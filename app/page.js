@@ -68,7 +68,7 @@ export default function Home() {
   const genNut = async () => {
     setNutLoad(true); setNutPlan('');
     const goals = ['Жин бууруулах','Жин хадгалах','Булчин нэмэх'];
-    const txt = await callAI(Боксчдод зориулсан хоол: жин ${weight}кг, зорилго: ${goals[nutGoal]}. Өдрийн калори, уураг/нүүрс ус/өөх тос гр, өглөө/өдөр/орой хоол. Монгол хэлээр товч.);
+    const txt = await callAI(`Боксчдод зориулсан хоол: жин ${weight}кг, зорилго: ${goals[nutGoal]}. Өдрийн калори, уураг/нүүрс ус/өөх тос гр, өглөө/өдөр/орой хоол. Монгол хэлээр товч.);
     setNutPlan(txt); setNutLoad(false);
   };
 
