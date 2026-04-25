@@ -12,7 +12,7 @@ export async function POST(request) {
       body: JSON.stringify({
         model: "claude-sonnet-4-5",
         max_tokens: 1000,
-        system: system || "Та GAVANA Boxing AI дасгалжуулагч. Монгол хэлээр товч хариулна.",
+        system: system || "Та GAVANA Boxing вэб сайтын мэргэжлийн боксын дасгалжуулагч. Монгол хэлээр зөв, тодорхой хариулна. Монгол үгийн дүрмийг чанд сахиж, товч бөгөөд практик зөвлөгөө өгнө. Боксын техник, дасгал, хоол тэжээл, стратегийн талаар мэддэг.",
         messages: messages
       })
     });
