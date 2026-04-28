@@ -1,6 +1,16 @@
-'use client';
-import { useState } from 'react';
- 
+"use client";
+
+import { useState, useEffect } from "react";
+
+import { auth } from "@/lib/firebase";
+
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "firebase/auth";
+
 const ANIMALS = [
   {name:'Эрвээхэй', boxer:'Muhammad Ali', color:'#FFD700', icon:'🦋', move:'Хөнгөн тасралтгүй хөдөлгөөн. Өрсөлдөгч онилох боломжгүй болгодог.', info:'Muhammad Ali (1942–2016) — The Greatest. 3 удаа дэлхийн чемпион. Float like a butterfly, sting like a bee.'},
   {name:'Могой', boxer:'Willie Pep', color:'#00FF88', icon:'🐍', move:'Биеийг долгионтуулан цохилтоос зайлж дайрах боломж хайна.', info:'Willie Pep (1922–2006) — 230 ялалт. Dodge & weave мастер.'},
@@ -11,7 +21,7 @@ const ANIMALS = [
  
 const BREATHING = [
   {name:'Хайрцаг амьсгал', boxer:'Vasyl Lomachenko', color:'#00E5FF', steps:['4 сек ав','4 сек барь','4 сек гарга','4 сек барь'], use:'Тэмцлийн өмнө тайвшрах', info:'Vasyl Lomachenko (1988–) — Hi-Tech. Олимпийн 2 удаагийн алтан медальт. 3 жингийн дэлхийн чемпион.'},
-  {name:'Хүчний амьсгал', boxer:'Mike Tyson', color:'#E8002D', steps:['Нударга зангид','Hss! гарга','Хэвлий чангар','Хурдан ав'], use:'Цохилтын хүч нэмэгдүүлэх', info:'Mike Tyson (1966–) — Цохих мөчид Hss! гэж амьсгал гаргах нь цохилтын хүчийг 10-20% нэмэгдүүлдэг.'},
+  {name:'Хүчний createUserWithEmailAndPasswordамьсгал', boxer:'Mike Tyson', color:'#E8002D', steps:['Нударга зангид','Hss! гарга','Хэвлий чангар','Хурдан ав'], use:'Цохилтын хүч нэмэгдүүлэх', info:'Mike Tyson (1966–) — Цохих мөчид Hss! гэж амьсгал гаргах нь цохилтын хүчийг 10-20% нэмэгдүүлдэг.'},
   {name:'Хэмнэлт амьсгал', boxer:'Floyd Mayweather', color:'#76FF03', steps:['Хөдөлгөөнтэй ав','Тогтмол хэм барь','Ядрахад хурдасгуй','Хамраар амьсгал'], use:'Урт раундад тэсвэр хадгалах', info:'Floyd Mayweather Jr. (1977–) — Money. 50-0. 5 жингийн дэлхийн чемпион.'},
   {name:'Нөхөн амьсгал', boxer:'Manny Pacquiao', color:'#E040FB', steps:['Амаар гүнзгий ав','Хамраар удаан гарга','Хэвлий ашигла','8-10 удаа давт'], use:'Раундын завсарт нөхөн сэргэх', info:'Manny Pacquiao (1978–) — Pac-Man. 8 жингийн дэлхийн чемпион.'},
 ];
@@ -71,7 +81,6 @@ function ClockDial({ angle, color }) {
 }
  
 export default function Home() {
-  const [tab, setTab] = useState(0);
   const [msgs, setMsgs] = useState([{role:'assistant',content:'Сайн байна уу! Би GAVANA Boxing AI дасгалжуулагч 🥊'}]);
   const [inp, setInp] = useState('');
   const [load, setLoad] = useState(false);
@@ -88,6 +97,17 @@ export default function Home() {
   const [streak, setStreak] = useState(3);
   const [doneDay, setDoneDay] = useState(null);
   const [activeDay, setActiveDay] = useState(0);
+  const [tab, setTab] = useState(0);
+  const [user, setUser] = useState(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    setUser(currentUser);
+  });
+
+  return () => unsubscribe();
+}, []);
  
   const callAI = async (prompt) => {
     const res = await fetch('/api/chat', {
@@ -147,6 +167,25 @@ export default function Home() {
     setAnalysis(txt);
     setAnaLoad(false);
   };
+  const register = async () => {
+  try {
+    await createUserWithEmailAndPassword(auth, email, password);
+  } catch (e) {
+    alert(e.message);
+  }
+};
+
+const login = async () => {
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (e) {
+    alert(e.message);
+  }
+};
+
+const logout = async () => {
+  await signOut(auth);
+};
  
   return (
     <div style={{minHeight:'100vh', background:'#080808', color:'#fff', fontFamily:'sans-serif', maxWidth:480, margin:'0 auto'}}>
@@ -155,6 +194,68 @@ export default function Home() {
         <h1 style={{color:'#E8002D', fontSize:26, fontWeight:900, letterSpacing:6, margin:0}}>GAVANA BOXING</h1>
         <p style={{color:'#555', fontSize:10, letterSpacing:4, margin:0}}>AI ДАСГАЛЖУУЛАГЧ</p>
       </div>
+      <div style={{padding:10, background:"#111", borderBottom:"1px solid #222"}}>
+  {user ? (
+    <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+      <span style={{color:"#76FF03", fontSize:12}}>
+        👤 {user.email}
+      </span>
+      <button 
+        onClick={logout} 
+        style={{
+          background:"#E8002D",
+          border:"none",
+          padding:"6px 10px",
+          color:"#fff",
+          borderRadius:6,
+          cursor:"pointer"
+        }}
+      >
+        Logout
+      </button>
+    </div>
+  ) : (
+    <div style={{display:"flex", gap:6}}>
+      <input
+        value={email}
+        onChange={(e)=>setEmail(e.target.value)}
+        placeholder="email"
+        style={{
+          flex:1,
+          padding:6,
+          background:"#222",
+          border:"1px solid #333",
+          color:"#fff"
+        }}
+      />
+      <input
+        value={password}
+        onChange={(e)=>setPassword(e.target.value)}
+        placeholder="password"
+        type="password"
+        style={{
+          flex:1,
+          padding:6,
+          background:"#222",
+          border:"1px solid #333",
+          color:"#fff"
+        }}
+      />
+      <button 
+        onClick={login}
+        style={{background:"#444", color:"#fff", padding:"6px"}}
+      >
+        Login
+      </button>
+      <button 
+        onClick={register}
+        style={{background:"#E8002D", color:"#fff", padding:"6px"}}
+      >
+        Reg
+      </button>
+    </div>
+  )}
+</div>
  
       <div style={{display:'flex', overflowX:'auto', padding:'8px 12px', gap:6, background:'#0a0a0a', borderBottom:'1px solid #1a1a1a'}}>
         {TABS.map((t, i) => (
