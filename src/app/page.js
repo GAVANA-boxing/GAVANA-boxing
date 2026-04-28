@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
- 
+
 const ANIMALS = [
   {name:'Эрвээхэй', boxer:'Muhammad Ali', color:'#FFD700', icon:'🦋', move:'Хөнгөн тасралтгүй хөдөлгөөн. Өрсөлдөгч онилох боломжгүй болгодог.', info:'Muhammad Ali (1942–2016) — The Greatest. 3 удаа дэлхийн чемпион. Float like a butterfly, sting like a bee.'},
   {name:'Могой', boxer:'Willie Pep', color:'#00FF88', icon:'🐍', move:'Биеийг долгионтуулан цохилтоос зайлж дайрах боломж хайна.', info:'Willie Pep (1922–2006) — 230 ялалт. Dodge & weave мастер.'},
@@ -8,14 +8,14 @@ const ANIMALS = [
   {name:'Бүргэд', boxer:'Roy Jones Jr.', color:'#64B5F6', icon:'🦅', move:'Дээрээс доош хурдан нарийн цохилт.', info:'Roy Jones Jr. (1969–) — 4 жингийн дэлхийн чемпион.'},
   {name:'Барс', boxer:'Mike Tyson', color:'#FF6F00', icon:'🐯', move:'Эрч хүчтэй довтолгоо. Эрүү доогуур нугалж орж цохино.', info:'Mike Tyson (1966–) — Iron Mike. 50 ялалтын 44-ийг KO-оор авсан.'},
 ];
- 
+
 const BREATHING = [
   {name:'Хайрцаг амьсгал', boxer:'Vasyl Lomachenko', color:'#00E5FF', steps:['4 сек ав','4 сек барь','4 сек гарга','4 сек барь'], use:'Тэмцлийн өмнө тайвшрах', info:'Vasyl Lomachenko (1988–) — Hi-Tech. Олимпийн 2 удаагийн алтан медальт. 3 жингийн дэлхийн чемпион.'},
   {name:'Хүчний амьсгал', boxer:'Mike Tyson', color:'#E8002D', steps:['Нударга зангид','Hss! гарга','Хэвлий чангар','Хурдан ав'], use:'Цохилтын хүч нэмэгдүүлэх', info:'Mike Tyson (1966–) — Цохих мөчид Hss! гэж амьсгал гаргах нь цохилтын хүчийг 10-20% нэмэгдүүлдэг.'},
   {name:'Хэмнэлт амьсгал', boxer:'Floyd Mayweather', color:'#76FF03', steps:['Хөдөлгөөнтэй ав','Тогтмол хэм барь','Ядрахад хурдасгуй','Хамраар амьсгал'], use:'Урт раундад тэсвэр хадгалах', info:'Floyd Mayweather Jr. (1977–) — Money. 50-0. 5 жингийн дэлхийн чемпион.'},
   {name:'Нөхөн амьсгал', boxer:'Manny Pacquiao', color:'#E040FB', steps:['Амаар гүнзгий ав','Хамраар удаан гарга','Хэвлий ашигла','8-10 удаа давт'], use:'Раундын завсарт нөхөн сэргэх', info:'Manny Pacquiao (1978–) — Pac-Man. 8 жингийн дэлхийн чемпион.'},
 ];
- 
+
 const PUNCHES = [
   {name:'Жаб', clock:'12:00', angle:0, color:'#E8002D', desc:'Шулуун урагш. Хамгийн хурдан цохилт. Зайг хянах үндсэн зэвсэг.'},
   {name:'Кросс', clock:'12-1', angle:8, color:'#FF6D00', desc:'Арын гараас хүчтэй шулуун цохилт. Эрүүг онилно.'},
@@ -24,14 +24,14 @@ const PUNCHES = [
   {name:'Апперкат', clock:'6:00', angle:270, color:'#00E5FF', desc:'Доороос дээш цохилт. Эрүүг онилно. Дотоод тулалдаанд.'},
   {name:'Оверхэнд', clock:'1-2 нум', angle:45, color:'#E040FB', desc:'Нуман замаар цохих хүчтэй цохилт. Хамгаалалт давна.'},
 ];
- 
+
 const WEIGHT_DIST = [
   {label:'Тайван (Neutral)', front:50, rear:50, color:'#76FF03'},
   {label:'Довтолгоо (Attack)', front:60, rear:40, color:'#E8002D'},
   {label:'Хамгаалалт (Defense)', front:40, rear:60, color:'#00E5FF'},
   {label:'Хук цохих үед', front:70, rear:30, color:'#FFC107'},
 ];
- 
+
 const FAQ = [
   {q:'Хэдэн насанд бокс эхлэж болох вэ?', a:'Ямар ч насанд эхлэж болно. 6 наснаас хүүхдийн бокс байдаг.'},
   {q:'Эхлэгчид ямар тоног төхөөрөмж хэрэгтэй вэ?', a:'Бороо, бокс бээлий (16oz), хоолой хамгаалагч, толгой хамгаалагч. 80,000-150,000 төгрөг.'},
@@ -42,10 +42,10 @@ const FAQ = [
   {q:'Бокс яагаад жин буурдаг вэ?', a:'Нэг цагт 600-1000 калори шатаадаг. Кардио болон булчингийн дасгал хосолдог.'},
   {q:'Бокс сэтгэл зүйд хэрхэн нөлөөлдөг вэ?', a:'Стрессийг бууруулж, өөртөө итгэх итгэлийг нэмэгдүүлдэг.'},
 ];
- 
+
 const TABS = ['Нүүр','Байрлал','Амьтад','Амьсгал','Дасгал','Хоол','Шинжилгээ','AI Чат','FAQ'];
 const ICONS = ['🏠','🥊','🦋','💨','💪','🥗','📊','🤖','❓'];
- 
+
 function ClockDial({ angle, color }) {
   const cx = 50, cy = 50, r = 38;
   const rad = (angle - 90) * Math.PI / 180;
@@ -69,7 +69,7 @@ function ClockDial({ angle, color }) {
     </svg>
   );
 }
- 
+
 export default function Home() {
   const [tab, setTab] = useState(0);
   const [msgs, setMsgs] = useState([{role:'assistant',content:'Сайн байна уу! Би GAVANA Boxing AI дасгалжуулагч 🥊'}]);
@@ -85,10 +85,7 @@ export default function Home() {
   const [workLoad, setWorkLoad] = useState(false);
   const [analysis, setAnalysis] = useState('');
   const [anaLoad, setAnaLoad] = useState(false);
-  const [streak, setStreak] = useState(3);
-  const [doneDay, setDoneDay] = useState(null);
-  const [activeDay, setActiveDay] = useState(0);
- 
+
   const callAI = async (prompt) => {
     const res = await fetch('/api/chat', {
       method: 'POST',
@@ -98,7 +95,7 @@ export default function Home() {
     const data = await res.json();
     return data.content ? data.content[0].text : 'Алдаа гарлаа';
   };
- 
+
   const send = async () => {
     if (!inp.trim() || load) return;
     const newMsgs = [...msgs, {role: 'user', content: inp}];
@@ -119,7 +116,7 @@ export default function Home() {
     }
     setLoad(false);
   };
- 
+
   const genNut = async () => {
     setNutLoad(true);
     setNutPlan('');
@@ -129,7 +126,7 @@ export default function Home() {
     setNutPlan(txt);
     setNutLoad(false);
   };
- 
+
   const genWork = async () => {
     setWorkLoad(true);
     setWorkPlan('');
@@ -138,7 +135,7 @@ export default function Home() {
     setWorkPlan(txt);
     setWorkLoad(false);
   };
- 
+
   const genAnalysis = async () => {
     setAnaLoad(true);
     setAnalysis('');
@@ -147,15 +144,15 @@ export default function Home() {
     setAnalysis(txt);
     setAnaLoad(false);
   };
- 
+
   return (
     <div style={{minHeight:'100vh', background:'#080808', color:'#fff', fontFamily:'sans-serif', maxWidth:480, margin:'0 auto'}}>
- 
+
       <div style={{background:'#0f0f0f', borderBottom:'2px solid #E8002D', padding:'14px 16px', textAlign:'center'}}>
         <h1 style={{color:'#E8002D', fontSize:26, fontWeight:900, letterSpacing:6, margin:0}}>GAVANA BOXING</h1>
         <p style={{color:'#555', fontSize:10, letterSpacing:4, margin:0}}>AI ДАСГАЛЖУУЛАГЧ</p>
       </div>
- 
+
       <div style={{display:'flex', overflowX:'auto', padding:'8px 12px', gap:6, background:'#0a0a0a', borderBottom:'1px solid #1a1a1a'}}>
         {TABS.map((t, i) => (
           <button key={i} onClick={() => setTab(i)} style={{
@@ -169,91 +166,42 @@ export default function Home() {
           </button>
         ))}
       </div>
- 
+
       <div style={{padding:'16px 14px 80px'}}>
- 
+
         {tab === 0 && (
           <div>
-            {/* HERO SECTION */}
-            <div style={{position:'relative', background:'linear-gradient(160deg,#1a0000 0%,#0a0a0a 60%,#000d1a 100%)', borderRadius:20, padding:'36px 20px 28px', marginBottom:16, textAlign:'center', overflow:'hidden'}}>
-              <div style={{position:'absolute', top:0, left:0, right:0, bottom:0, background:'radial-gradient(ellipse at 50% 0%, #E8002D18 0%, transparent 70%)', pointerEvents:'none'}}/>
-              <div style={{fontSize:64, marginBottom:12, lineHeight:1}}>🥊</div>
-              <div style={{fontSize:11, letterSpacing:6, color:'#E8002D', fontWeight:700, marginBottom:10, textTransform:'uppercase'}}>Boxing System</div>
-              <div style={{fontSize:28, fontWeight:900, lineHeight:1.2, marginBottom:8, letterSpacing:1}}>
-                Train like a boxer.<br/>
-                <span style={{color:'#E8002D'}}>Think like a fighter.</span>
-              </div>
-              <div style={{color:'#555', fontSize:13, marginBottom:24, lineHeight:1.6}}>
-                Хувийн дасгалжуулагч · AI тренинг · Боксын систем
-              </div>
-              <div style={{display:'flex', gap:10, justifyContent:'center'}}>
-                <button onClick={() => setTab(4)} style={{padding:'13px 24px', background:'#E8002D', border:'none', borderRadius:12, color:'#fff', fontSize:14, fontWeight:800, cursor:'pointer', letterSpacing:1}}>
-                  🥊 ДАСГАЛ ЭХЛЭХ
-                </button>
-                <button onClick={() => setTab(7)} style={{padding:'13px 20px', background:'transparent', border:'1px solid #333', borderRadius:12, color:'#aaa', fontSize:14, fontWeight:600, cursor:'pointer'}}>
-                  🤖 AI Чат
-                </button>
-              </div>
+            <div style={{background:'linear-gradient(135deg,#1a0000,#111)', border:'1px solid #E8002D22', borderRadius:14, padding:20, marginBottom:12, textAlign:'center'}}>
+              <div style={{fontSize:60, marginBottom:8}}>🥊</div>
+              <div style={{fontSize:20, color:'#E8002D', fontWeight:900, letterSpacing:3}}>АНХАН СУРАЛЦАГЧААС</div>
+              <div style={{fontSize:20, fontWeight:900, letterSpacing:3}}>МЭРГЭЖЛИЙН БОКСЧ БОЛТОЛ</div>
+              <div style={{color:'#555', fontSize:12, marginTop:8}}>Байрлал · Дасгал · Хоол · Амьтдын техник</div>
             </div>
- 
-            {/* STATS BAR */}
-            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:16}}>
-              {[
-                {num:'9', label:'Табын контент'},
-                {num:'AI', label:'Дасгалжуулагч'},
-                {num:'🔥', label:'Өдөр бүр шинэ'},
-              ].map((s, i) => (
-                <div key={i} style={{background:'#111', border:'1px solid #1f1f1f', borderRadius:12, padding:'12px 8px', textAlign:'center'}}>
-                  <div style={{fontSize:20, fontWeight:900, color:'#E8002D'}}>{s.num}</div>
-                  <div style={{fontSize:10, color:'#444', marginTop:2}}>{s.label}</div>
-                </div>
-              ))}
-            </div>
- 
-            {/* FEATURE CARDS */}
-            <div style={{fontSize:13, fontWeight:700, color:'#333', letterSpacing:3, marginBottom:10, textTransform:'uppercase'}}>Модулиуд</div>
             {[
-              {icon:'🥊', t:'Гарны байрлал', d:'Цохилт цагийн зүүгээр + жингийн хуваарилалт', i:1, color:'#E8002D'},
-              {icon:'🦋', t:'Амьтдын хөдөлгөөн', d:'Ali, Tyson, Frazier гэх мэт', i:2, color:'#FFD700'},
-              {icon:'💨', t:'Амьсгалын техник', d:'4 арга + мастер боксчид', i:3, color:'#00E5FF'},
-              {icon:'💪', t:'Дасгалын хуваарь', d:'AI-аар 7 хоногийн хуваарь гаргана', i:4, color:'#FF6D00'},
-              {icon:'🥗', t:'Хоол тэжээл', d:'Калори + AI хоол тооцоолно', i:5, color:'#76FF03'},
-              {icon:'📊', t:'Дүн шинжилгээ', d:'AI техник шинжилгээ + зөвлөгөө', i:6, color:'#E040FB'},
+              {icon:'🥊', t:'Гарны байрлал', d:'Цохилт цагийн зүүгээр + жингийн хуваарилалт', i:1},
+              {icon:'🦋', t:'Амьтдын хөдөлгөөн', d:'Ali, Tyson, Frazier гэх мэт', i:2},
+              {icon:'💨', t:'Амьсгалын техник', d:'4 арга + мастер боксчид', i:3},
+              {icon:'💪', t:'Дасгалын хуваарь', d:'AI хуваарь гаргана', i:4},
+              {icon:'🥗', t:'Хоол тэжээл', d:'Калори + AI хоол тооцоолно', i:5},
+              {icon:'📊', t:'Дүн шинжилгээ', d:'AI техник шинжилгээ', i:6},
             ].map(c => (
-              <div key={c.i} onClick={() => setTab(c.i)} style={{background:'#111', border:'1px solid #1a1a1a', borderRadius:14, padding:'14px 16px', marginBottom:8, display:'flex', gap:14, alignItems:'center', cursor:'pointer', transition:'border-color 0.2s'}}>
-                <div style={{width:44, height:44, borderRadius:12, background:c.color+'18', border:'1px solid '+c.color+'33', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, flexShrink:0}}>{c.icon}</div>
-                <div style={{flex:1}}>
-                  <div style={{fontWeight:700, marginBottom:3, fontSize:14}}>{c.t}</div>
-                  <div style={{color:'#444', fontSize:12}}>{c.d}</div>
+              <div key={c.i} onClick={() => setTab(c.i)} style={{background:'#111', border:'1px solid #1f1f1f', borderRadius:14, padding:16, marginBottom:10, display:'flex', gap:14, alignItems:'center', cursor:'pointer'}}>
+                <div style={{fontSize:32}}>{c.icon}</div>
+                <div>
+                  <div style={{fontWeight:700, marginBottom:2}}>{c.t}</div>
+                  <div style={{color:'#555', fontSize:12}}>{c.d}</div>
                 </div>
-                <div style={{color:'#333', fontSize:18}}>›</div>
               </div>
             ))}
- 
-            {/* PREMIUM CARD */}
-            <div style={{background:'linear-gradient(135deg,#0d1a00,#111)', border:'1px solid #76FF0344', borderRadius:16, padding:20, marginTop:8}}>
-              <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12}}>
-                <div style={{color:'#76FF03', fontWeight:900, fontSize:15}}>⭐ PREMIUM</div>
-                <div style={{color:'#76FF03', fontWeight:900, fontSize:18}}>15,000₮<span style={{fontSize:11, fontWeight:400, color:'#555'}}>/сар</span></div>
-              </div>
-              {[
-                {icon:'🤖', t:'Хязгааргүй AI чат'},
-                {icon:'💪', t:'AI дасгалын хуваарь'},
-                {icon:'🥗', t:'AI хоол тэжээлийн menu'},
-                {icon:'📊', t:'Дэлгэрэнгүй техник шинжилгээ'},
-              ].map((f, i) => (
-                <div key={i} style={{display:'flex', gap:10, alignItems:'center', padding:'6px 0', borderBottom: i<3 ? '1px solid #1a1a1a' : 'none'}}>
-                  <span style={{fontSize:14}}>{f.icon}</span>
-                  <span style={{color:'#666', fontSize:13}}>{f.t}</span>
-                </div>
+            <div style={{background:'linear-gradient(135deg,#0a1200,#111)', border:'1px solid #76FF0333', borderRadius:14, padding:16}}>
+              <div style={{color:'#76FF03', fontWeight:700, fontSize:14, marginBottom:8}}>⭐ PREMIUM — САРД 15,000₮</div>
+              {['AI дасгалын хуваарь', 'AI хоол тэжээлийн менюг', 'Хязгааргүй AI чат', 'Дэлгэрэнгүй техник шинжилгээ'].map((f, i) => (
+                <div key={i} style={{color:'#888', fontSize:13, padding:'3px 0'}}>✓ {f}</div>
               ))}
-              <button style={{width:'100%', padding:'13px', background:'linear-gradient(135deg,#1a3300,#76FF03)', color:'#000', border:'none', borderRadius:10, cursor:'pointer', fontSize:14, fontWeight:800, marginTop:14, letterSpacing:1}}>
-                PREMIUM АВАХ
-              </button>
             </div>
           </div>
         )}
- 
+
         {tab === 1 && (
           <div>
             <div style={{fontSize:22, fontWeight:900, marginBottom:4}}>🥊 ГАРНЫ БАЙРЛАЛ</div>
@@ -297,7 +245,7 @@ export default function Home() {
             ))}
           </div>
         )}
- 
+
         {tab === 2 && (
           <div>
             <div style={{fontSize:22, fontWeight:900, marginBottom:4}}>🦋 АМЬТДЫН ХӨДӨЛГӨӨН</div>
@@ -319,7 +267,7 @@ export default function Home() {
             ))}
           </div>
         )}
- 
+
         {tab === 3 && (
           <div>
             <div style={{fontSize:22, fontWeight:900, marginBottom:4}}>💨 АМЬСГАЛЫН ТЕХНИК</div>
@@ -343,7 +291,7 @@ export default function Home() {
             ))}
           </div>
         )}
- 
+
         {tab === 4 && (
           <div>
             <div style={{fontSize:22, fontWeight:900, marginBottom:16}}>💪 ДАСГАЛЫН ХУВААРЬ</div>
@@ -367,7 +315,7 @@ export default function Home() {
             </div>
           </div>
         )}
- 
+
         {tab === 5 && (
           <div>
             <div style={{fontSize:22, fontWeight:900, marginBottom:16}}>🥗 ХООЛ ТЭЖЭЭЛ</div>
@@ -416,7 +364,7 @@ export default function Home() {
             )}
           </div>
         )}
- 
+
         {tab === 6 && (
           <div>
             <div style={{fontSize:22, fontWeight:900, marginBottom:4}}>📊 ДҮН ШИНЖИЛГЭЭ</div>
@@ -449,7 +397,7 @@ export default function Home() {
             </div>
           </div>
         )}
- 
+
         {tab === 7 && (
           <div>
             <div style={{fontSize:22, fontWeight:900, marginBottom:4}}>🤖 AI ДАСГАЛЖУУЛАГЧ</div>
@@ -472,7 +420,7 @@ export default function Home() {
             </div>
           </div>
         )}
- 
+
         {tab === 8 && (
           <div>
             <div style={{fontSize:22, fontWeight:900, marginBottom:4}}>❓ ТҮГЭЭМЭЛ АСУУЛТУУД</div>
@@ -488,9 +436,9 @@ export default function Home() {
             ))}
           </div>
         )}
- 
+
       </div>
- 
+
       {modal && (
         <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,.9)', zIndex:200, display:'flex', alignItems:'flex-end'}} onClick={() => setModal(null)}>
           <div style={{width:'100%', maxWidth:480, margin:'0 auto', background:'#111', border:'1px solid #222', borderRadius:'20px 20px 0 0', padding:24, maxHeight:'80vh', overflowY:'auto'}} onClick={e => e.stopPropagation()}>

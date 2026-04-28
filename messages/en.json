@@ -1,0 +1,12 @@
+{
+  "home": {
+    "title": "Train like a boxer",
+    "start": "Start Training"
+  },
+  "dashboard": {
+    "title": "Dashboard"
+  },
+  "workout": {
+    "complete": "Workout Complete!"
+  }
+}
