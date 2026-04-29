@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 
 import {
   createUserWithEmailAndPassword,
@@ -10,6 +10,8 @@ import {
   signOut,
   onAuthStateChanged
 } from "firebase/auth";
+
+import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 
 const ANIMALS = [
   {name:'Эрвээхэй', boxer:'Muhammad Ali', color:'#FFD700', icon:'🦋', move:'Хөнгөн тасралтгүй хөдөлгөөн. Өрсөлдөгч онилох боломжгүй болгодог.', info:'Muhammad Ali (1942–2016) — The Greatest. 3 удаа дэлхийн чемпион. Float like a butterfly, sting like a bee.'},
@@ -21,7 +23,7 @@ const ANIMALS = [
  
 const BREATHING = [
   {name:'Хайрцаг амьсгал', boxer:'Vasyl Lomachenko', color:'#00E5FF', steps:['4 сек ав','4 сек барь','4 сек гарга','4 сек барь'], use:'Тэмцлийн өмнө тайвшрах', info:'Vasyl Lomachenko (1988–) — Hi-Tech. Олимпийн 2 удаагийн алтан медальт. 3 жингийн дэлхийн чемпион.'},
-  {name:'Хүчний createUserWithEmailAndPasswordамьсгал', boxer:'Mike Tyson', color:'#E8002D', steps:['Нударга зангид','Hss! гарга','Хэвлий чангар','Хурдан ав'], use:'Цохилтын хүч нэмэгдүүлэх', info:'Mike Tyson (1966–) — Цохих мөчид Hss! гэж амьсгал гаргах нь цохилтын хүчийг 10-20% нэмэгдүүлдэг.'},
+  {name:'Хүчний амьсгал', boxer:'Mike Tyson', color:'#E8002D', steps:['Нударга зангид','Hss! гарга','Хэвлий чангар','Хурдан ав'], use:'Цохилтын хүч нэмэгдүүлэх', info:'Mike Tyson (1966–) — Цохих мөчид Hss! гэж амьсгал гаргах нь цохилтын хүчийг 10-20% нэмэгдүүлдэг.'},
   {name:'Хэмнэлт амьсгал', boxer:'Floyd Mayweather', color:'#76FF03', steps:['Хөдөлгөөнтэй ав','Тогтмол хэм барь','Ядрахад хурдасгуй','Хамраар амьсгал'], use:'Урт раундад тэсвэр хадгалах', info:'Floyd Mayweather Jr. (1977–) — Money. 50-0. 5 жингийн дэлхийн чемпион.'},
   {name:'Нөхөн амьсгал', boxer:'Manny Pacquiao', color:'#E040FB', steps:['Амаар гүнзгий ав','Хамраар удаан гарга','Хэвлий ашигла','8-10 удаа давт'], use:'Раундын завсарт нөхөн сэргэх', info:'Manny Pacquiao (1978–) — Pac-Man. 8 жингийн дэлхийн чемпион.'},
 ];
@@ -93,6 +95,7 @@ export default function Home() {
   const [workPlan, setWorkPlan] = useState('');
   const [workLoad, setWorkLoad] = useState(false);
   const [analysis, setAnalysis] = useState('');
+  const [lastWorkout, setLastWorkout] = useState(null);
   const [anaLoad, setAnaLoad] = useState(false);
   const [streak, setStreak] = useState(3);
   const [doneDay, setDoneDay] = useState(null);
@@ -102,11 +105,32 @@ export default function Home() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+  const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
     setUser(currentUser);
+
+    if (currentUser) {
+      const userRef = doc(db, "users", currentUser.uid);
+      const snap = await getDoc(userRef);
+
+      if (snap.exists()) {
+        const data = snap.data();
+        setStreak(data.streak || 0);
+        setLastWorkout(data.lastWorkout || null);
+      } else {
+        await setDoc(userRef, {
+          email: currentUser.email,
+          streak: 0,
+          lastWorkout: null
+        });
+        setStreak(0);
+        setLastWorkout(null);
+      }
+    }
   });
 
-  return () => unsubscribe();
+  return () => {
+    unsubscribe();
+  };
 }, []);
  
   const callAI = async (prompt) => {
@@ -186,85 +210,101 @@ const login = async () => {
 const logout = async () => {
   await signOut(auth);
 };
+
+const markWorkoutDone = async () => {
+  if (!user) {
+    alert("Эхлээд login хийнэ үү");
+    return;
+  }
+
+  const today = new Date().toISOString().split("T")[0];
+
+  if (lastWorkout === today) {
+    alert("Өнөөдрийн дасгал аль хэдийн бүртгэгдсэн байна 🔥");
+    return;
+  }
+
+  const newStreak = streak + 1;
+  const userRef = doc(db, "users", user.uid);
+
+  await updateDoc(userRef, {
+    streak: newStreak,
+    lastWorkout: today
+  });
+
+  setStreak(newStreak);
+  setLastWorkout(today);
+
+  alert(`🔥 Streak нэмэгдлээ: ${newStreak} өдөр`);
+};
  
   return (
     <div style={{minHeight:'100vh', background:'#080808', color:'#fff', fontFamily:'sans-serif', maxWidth:480, margin:'0 auto'}}>
  
-      <div style={{background:'#0f0f0f', borderBottom:'2px solid #E8002D', padding:'14px 16px', textAlign:'center'}}>
-        <h1 style={{color:'#E8002D', fontSize:26, fontWeight:900, letterSpacing:6, margin:0}}>GAVANA BOXING</h1>
-        <p style={{color:'#555', fontSize:10, letterSpacing:4, margin:0}}>AI ДАСГАЛЖУУЛАГЧ</p>
+      <div style={{background:'#0c0c0c', borderBottom:'1px solid #1e1e1e', padding:'16px 20px', display:'flex', alignItems:'center', justifyContent:'space-between', position:'relative', overflow:'hidden'}}>
+        <div style={{position:'absolute', top:0, left:0, width:'100%', height:'2px', background:'linear-gradient(90deg, transparent, #E8002D, transparent)'}}/>
+        <div style={{display:'flex', alignItems:'center', gap:10}}>
+          <div style={{width:36, height:36, borderRadius:10, background:'#E8002D18', border:'1px solid #E8002D44', display:'flex', alignItems:'center', justifyContent:'center', fontSize:20}}>🥊</div>
+          <div>
+            <div style={{color:'#fff', fontSize:18, fontWeight:900, letterSpacing:3, lineHeight:1}}>GAVANA</div>
+            <div style={{color:'#E8002D', fontSize:9, letterSpacing:4, fontWeight:700}}>BOXING AI</div>
+          </div>
+        </div>
+        <div style={{textAlign:'right'}}>
+          <div style={{color:'#E8002D', fontSize:20, fontWeight:900, lineHeight:1}}>🔥 {streak}</div>
+          <div style={{color:'#333', fontSize:9, letterSpacing:2}}>STREAK</div>
+        </div>
       </div>
-      <div style={{padding:10, background:"#111", borderBottom:"1px solid #222"}}>
-  {user ? (
-    <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-      <span style={{color:"#76FF03", fontSize:12}}>
-        👤 {user.email}
-      </span>
-      <button 
-        onClick={logout} 
-        style={{
-          background:"#E8002D",
-          border:"none",
-          padding:"6px 10px",
-          color:"#fff",
-          borderRadius:6,
-          cursor:"pointer"
-        }}
-      >
-        Logout
-      </button>
-    </div>
-  ) : (
-    <div style={{display:"flex", gap:6}}>
-      <input
-        value={email}
-        onChange={(e)=>setEmail(e.target.value)}
-        placeholder="email"
-        style={{
-          flex:1,
-          padding:6,
-          background:"#222",
-          border:"1px solid #333",
-          color:"#fff"
-        }}
-      />
-      <input
-        value={password}
-        onChange={(e)=>setPassword(e.target.value)}
-        placeholder="password"
-        type="password"
-        style={{
-          flex:1,
-          padding:6,
-          background:"#222",
-          border:"1px solid #333",
-          color:"#fff"
-        }}
-      />
-      <button 
-        onClick={login}
-        style={{background:"#444", color:"#fff", padding:"6px"}}
-      >
-        Login
-      </button>
-      <button 
-        onClick={register}
-        style={{background:"#E8002D", color:"#fff", padding:"6px"}}
-      >
-        Reg
-      </button>
-    </div>
-  )}
-</div>
+      {user ? (
+        <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 16px', background:'#0d0d0d', borderBottom:'1px solid #1a1a1a'}}>
+          <div style={{display:'flex', alignItems:'center', gap:8}}>
+            <div style={{width:28, height:28, borderRadius:'50%', background:'#E8002D22', border:'1px solid #E8002D55', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13}}>👤</div>
+            <span style={{color:'#76FF03', fontSize:12, maxWidth:200, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{user.email}</span>
+          </div>
+          <button onClick={logout} style={{background:'transparent', border:'1px solid #333', padding:'6px 14px', color:'#666', borderRadius:8, cursor:'pointer', fontSize:12, fontFamily:'sans-serif'}}>
+            Гарах
+          </button>
+        </div>
+      ) : (
+        <div style={{background:'#0d0d0d', borderBottom:'1px solid #1a1a1a', padding:'16px'}}>
+          <div style={{fontSize:12, color:'#444', letterSpacing:2, textTransform:'uppercase', marginBottom:12, textAlign:'center'}}>Нэвтрэх / Бүртгүүлэх</div>
+          <div style={{display:'flex', flexDirection:'column', gap:8, marginBottom:10}}>
+            <input
+              value={email}
+              onChange={(e)=>setEmail(e.target.value)}
+              placeholder="И-мэйл хаяг"
+              style={{padding:'11px 14px', background:'#161616', border:'1px solid #2a2a2a', borderRadius:10, color:'#fff', fontSize:13, outline:'none', fontFamily:'sans-serif'}}
+            />
+            <input
+              value={password}
+              onChange={(e)=>setPassword(e.target.value)}
+              placeholder="Нууц үг"
+              type="password"
+              style={{padding:'11px 14px', background:'#161616', border:'1px solid #2a2a2a', borderRadius:10, color:'#fff', fontSize:13, outline:'none', fontFamily:'sans-serif'}}
+            />
+          </div>
+          <div style={{display:'flex', gap:8}}>
+            <button onClick={login} style={{flex:1, padding:'11px', background:'#1a1a1a', border:'1px solid #333', borderRadius:10, color:'#aaa', cursor:'pointer', fontSize:13, fontWeight:700, fontFamily:'sans-serif'}}>
+              Нэвтрэх
+            </button>
+            <button onClick={register} style={{flex:1, padding:'11px', background:'#E8002D', border:'none', borderRadius:10, color:'#fff', cursor:'pointer', fontSize:13, fontWeight:700, fontFamily:'sans-serif'}}>
+              Бүртгүүлэх
+            </button>
+          </div>
+        </div>
+      )}
  
-      <div style={{display:'flex', overflowX:'auto', padding:'8px 12px', gap:6, background:'#0a0a0a', borderBottom:'1px solid #1a1a1a'}}>
+      <div style={{display:'flex', overflowX:'auto', padding:'10px 12px', gap:6, background:'#080808', borderBottom:'1px solid #161616', scrollbarWidth:'none'}}>
         {TABS.map((t, i) => (
           <button key={i} onClick={() => setTab(i)} style={{
-            flexShrink:0, padding:'6px 12px',
-            background: tab === i ? '#E8002D' : 'transparent',
-            border: tab === i ? '1px solid #E8002D' : '1px solid #222',
-            color: tab === i ? '#fff' : '#666',
-            borderRadius:20, fontSize:11, cursor:'pointer', whiteSpace:'nowrap'
+            flexShrink:0, padding:'7px 14px',
+            background: tab === i ? '#E8002D' : '#111',
+            border: tab === i ? '1px solid #E8002D' : '1px solid #1e1e1e',
+            color: tab === i ? '#fff' : '#555',
+            borderRadius:22, fontSize:11, cursor:'pointer', whiteSpace:'nowrap',
+            fontFamily:'sans-serif', fontWeight: tab === i ? 700 : 400,
+            letterSpacing: tab === i ? 0.5 : 0,
+            transition:'all 0.15s'
           }}>
             {ICONS[i]} {t}
           </button>
@@ -276,43 +316,42 @@ const logout = async () => {
         {tab === 0 && (
           <div>
             {/* HERO SECTION */}
-            <div style={{position:'relative', background:'linear-gradient(160deg,#1a0000 0%,#0a0a0a 60%,#000d1a 100%)', borderRadius:20, padding:'36px 20px 28px', marginBottom:16, textAlign:'center', overflow:'hidden'}}>
-              <div style={{position:'absolute', top:0, left:0, right:0, bottom:0, background:'radial-gradient(ellipse at 50% 0%, #E8002D18 0%, transparent 70%)', pointerEvents:'none'}}/>
-              <div style={{fontSize:64, marginBottom:12, lineHeight:1}}>🥊</div>
-              <div style={{fontSize:11, letterSpacing:6, color:'#E8002D', fontWeight:700, marginBottom:10, textTransform:'uppercase'}}>Boxing System</div>
-              <div style={{fontSize:28, fontWeight:900, lineHeight:1.2, marginBottom:8, letterSpacing:1}}>
+            <div style={{position:'relative', background:'#0e0e0e', border:'1px solid #1c1c1c', borderRadius:20, padding:'32px 20px 24px', marginBottom:14, textAlign:'center', overflow:'hidden'}}>
+              <div style={{position:'absolute', top:0, left:0, right:0, height:120, background:'radial-gradient(ellipse at 50% -20%, #E8002D1a 0%, transparent 70%)', pointerEvents:'none'}}/>
+              <div style={{position:'absolute', top:0, left:0, right:0, height:1, background:'linear-gradient(90deg, transparent 10%, #E8002D66 50%, transparent 90%)'}}/>
+              <div style={{fontSize:56, marginBottom:10, lineHeight:1}}>🥊</div>
+              <div style={{fontSize:10, letterSpacing:5, color:'#E8002D', fontWeight:700, marginBottom:10, textTransform:'uppercase'}}>AI Boxing System</div>
+              <div style={{fontSize:26, fontWeight:900, lineHeight:1.25, marginBottom:6, letterSpacing:0.5}}>
                 Train like a boxer.<br/>
                 <span style={{color:'#E8002D'}}>Think like a fighter.</span>
               </div>
-              <div style={{color:'#555', fontSize:13, marginBottom:24, lineHeight:1.6}}>
+              <div style={{color:'#444', fontSize:12, marginBottom:22, lineHeight:1.7}}>
                 Хувийн дасгалжуулагч · AI тренинг · Боксын систем
               </div>
-              <div style={{display:'flex', gap:10, justifyContent:'center'}}>
-                <button onClick={() => setTab(4)} style={{padding:'13px 24px', background:'#E8002D', border:'none', borderRadius:12, color:'#fff', fontSize:14, fontWeight:800, cursor:'pointer', letterSpacing:1}}>
+              <div style={{display:'flex', gap:8, justifyContent:'center', marginBottom:20}}>
+                <button onClick={() => setTab(4)} style={{padding:'12px 22px', background:'#E8002D', border:'none', borderRadius:10, color:'#fff', fontSize:13, fontWeight:800, cursor:'pointer', letterSpacing:0.5, fontFamily:'sans-serif'}}>
                   🥊 ДАСГАЛ ЭХЛЭХ
                 </button>
-                <button onClick={() => setTab(7)} style={{padding:'13px 20px', background:'transparent', border:'1px solid #333', borderRadius:12, color:'#aaa', fontSize:14, fontWeight:600, cursor:'pointer'}}>
+                <button onClick={() => setTab(7)} style={{padding:'12px 18px', background:'#111', border:'1px solid #222', borderRadius:10, color:'#aaa', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'sans-serif'}}>
                   🤖 AI Чат
                 </button>
               </div>
-            </div>
- 
-            {/* STATS BAR */}
-            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:16}}>
-              {[
-                {num:'9', label:'Табын контент'},
-                {num:'AI', label:'Дасгалжуулагч'},
-                {num:'🔥', label:'Өдөр бүр шинэ'},
-              ].map((s, i) => (
-                <div key={i} style={{background:'#111', border:'1px solid #1f1f1f', borderRadius:12, padding:'12px 8px', textAlign:'center'}}>
-                  <div style={{fontSize:20, fontWeight:900, color:'#E8002D'}}>{s.num}</div>
-                  <div style={{fontSize:10, color:'#444', marginTop:2}}>{s.label}</div>
-                </div>
-              ))}
+              <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8}}>
+                {[
+                  {val:`🔥 ${streak}`, label:'Streak өдөр', color:'#E8002D'},
+                  {val:'AI', label:'Дасгалжуулагч', color:'#00E5FF'},
+                  {val:'9', label:'Модуль', color:'#76FF03'},
+                ].map((s,i) => (
+                  <div key={i} style={{background:'#0a0a0a', border:'1px solid #1a1a1a', borderRadius:10, padding:'10px 6px'}}>
+                    <div style={{fontSize:15, fontWeight:900, color:s.color}}>{s.val}</div>
+                    <div style={{fontSize:9, color:'#333', marginTop:3, letterSpacing:1}}>{s.label.toUpperCase()}</div>
+                  </div>
+                ))}
+              </div>
             </div>
  
             {/* FEATURE CARDS */}
-            <div style={{fontSize:13, fontWeight:700, color:'#333', letterSpacing:3, marginBottom:10, textTransform:'uppercase'}}>Модулиуд</div>
+            <div style={{fontSize:10, fontWeight:700, color:'#333', letterSpacing:3, marginBottom:10, textTransform:'uppercase', paddingLeft:2}}>МОДУЛИУД</div>
             {[
               {icon:'🥊', t:'Гарны байрлал', d:'Цохилт цагийн зүүгээр + жингийн хуваарилалт', i:1, color:'#E8002D'},
               {icon:'🦋', t:'Амьтдын хөдөлгөөн', d:'Ali, Tyson, Frazier гэх мэт', i:2, color:'#FFD700'},
@@ -321,35 +360,44 @@ const logout = async () => {
               {icon:'🥗', t:'Хоол тэжээл', d:'Калори + AI хоол тооцоолно', i:5, color:'#76FF03'},
               {icon:'📊', t:'Дүн шинжилгээ', d:'AI техник шинжилгээ + зөвлөгөө', i:6, color:'#E040FB'},
             ].map(c => (
-              <div key={c.i} onClick={() => setTab(c.i)} style={{background:'#111', border:'1px solid #1a1a1a', borderRadius:14, padding:'14px 16px', marginBottom:8, display:'flex', gap:14, alignItems:'center', cursor:'pointer', transition:'border-color 0.2s'}}>
-                <div style={{width:44, height:44, borderRadius:12, background:c.color+'18', border:'1px solid '+c.color+'33', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, flexShrink:0}}>{c.icon}</div>
+              <div key={c.i} onClick={() => setTab(c.i)} style={{background:'#0e0e0e', border:'1px solid #181818', borderLeft:'3px solid '+c.color+'55', borderRadius:12, padding:'13px 14px', marginBottom:7, display:'flex', gap:13, alignItems:'center', cursor:'pointer'}}>
+                <div style={{width:42, height:42, borderRadius:11, background:c.color+'12', display:'flex', alignItems:'center', justifyContent:'center', fontSize:21, flexShrink:0}}>{c.icon}</div>
                 <div style={{flex:1}}>
-                  <div style={{fontWeight:700, marginBottom:3, fontSize:14}}>{c.t}</div>
-                  <div style={{color:'#444', fontSize:12}}>{c.d}</div>
+                  <div style={{fontWeight:700, marginBottom:2, fontSize:13, color:'#ddd'}}>{c.t}</div>
+                  <div style={{color:'#3a3a3a', fontSize:11}}>{c.d}</div>
                 </div>
-                <div style={{color:'#333', fontSize:18}}>›</div>
+                <div style={{color:c.color+'66', fontSize:16, fontWeight:300}}>›</div>
               </div>
             ))}
  
             {/* PREMIUM CARD */}
-            <div style={{background:'linear-gradient(135deg,#0d1a00,#111)', border:'1px solid #76FF0344', borderRadius:16, padding:20, marginTop:8}}>
-              <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12}}>
-                <div style={{color:'#76FF03', fontWeight:900, fontSize:15}}>⭐ PREMIUM</div>
-                <div style={{color:'#76FF03', fontWeight:900, fontSize:18}}>15,000₮<span style={{fontSize:11, fontWeight:400, color:'#555'}}>/сар</span></div>
-              </div>
-              {[
-                {icon:'🤖', t:'Хязгааргүй AI чат'},
-                {icon:'💪', t:'AI дасгалын хуваарь'},
-                {icon:'🥗', t:'AI хоол тэжээлийн menu'},
-                {icon:'📊', t:'Дэлгэрэнгүй техник шинжилгээ'},
-              ].map((f, i) => (
-                <div key={i} style={{display:'flex', gap:10, alignItems:'center', padding:'6px 0', borderBottom: i<3 ? '1px solid #1a1a1a' : 'none'}}>
-                  <span style={{fontSize:14}}>{f.icon}</span>
-                  <span style={{color:'#666', fontSize:13}}>{f.t}</span>
+            <div style={{background:'#0d0d0d', border:'1px solid #76FF0322', borderRadius:14, padding:18, marginTop:8, position:'relative', overflow:'hidden'}}>
+              <div style={{position:'absolute', top:0, left:0, right:0, height:1, background:'linear-gradient(90deg, transparent, #76FF0366, transparent)'}}/>
+              <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14}}>
+                <div>
+                  <div style={{color:'#76FF03', fontWeight:900, fontSize:14, letterSpacing:1}}>⭐ PREMIUM</div>
+                  <div style={{color:'#333', fontSize:10, marginTop:2}}>Бүх боломжийг нээ</div>
                 </div>
-              ))}
-              <button style={{width:'100%', padding:'13px', background:'linear-gradient(135deg,#1a3300,#76FF03)', color:'#000', border:'none', borderRadius:10, cursor:'pointer', fontSize:14, fontWeight:800, marginTop:14, letterSpacing:1}}>
-                PREMIUM АВАХ
+                <div style={{textAlign:'right'}}>
+                  <div style={{color:'#76FF03', fontWeight:900, fontSize:20}}>15,000₮</div>
+                  <div style={{color:'#333', fontSize:10}}>/сар</div>
+                </div>
+              </div>
+              <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:6, marginBottom:14}}>
+                {[
+                  {icon:'🤖', t:'Хязгааргүй AI чат'},
+                  {icon:'💪', t:'AI дасгалын хуваарь'},
+                  {icon:'🥗', t:'AI хоол тэжээл'},
+                  {icon:'📊', t:'Дэлгэрэнгүй шинжилгээ'},
+                ].map((f, i) => (
+                  <div key={i} style={{background:'#111', border:'1px solid #1a1a1a', borderRadius:8, padding:'8px 10px', display:'flex', alignItems:'center', gap:7}}>
+                    <span style={{fontSize:13}}>{f.icon}</span>
+                    <span style={{color:'#555', fontSize:11}}>{f.t}</span>
+                  </div>
+                ))}
+              </div>
+              <button style={{width:'100%', padding:'13px', background:'#76FF03', color:'#000', border:'none', borderRadius:10, cursor:'pointer', fontSize:13, fontWeight:900, letterSpacing:1, fontFamily:'sans-serif'}}>
+                PREMIUM АВАХ →
               </button>
             </div>
           </div>
@@ -446,28 +494,53 @@ const logout = async () => {
         )}
  
         {tab === 4 && (
-          <div>
-            <div style={{fontSize:22, fontWeight:900, marginBottom:16}}>💪 ДАСГАЛЫН ХУВААРЬ</div>
-            <div style={{background:'#111', border:'1px solid #1f1f1f', borderRadius:14, padding:16, marginBottom:12}}>
-              <div style={{color:'#888', fontSize:13, marginBottom:8}}>AI-аар 7 хоногийн хуваарь гарга</div>
-              <button onClick={genWork} style={{width:'100%', padding:'14px', background:'linear-gradient(135deg,#E8002D,#FF6D00)', color:'#fff', border:'none', borderRadius:10, cursor:'pointer', fontSize:16, fontWeight:700}}>
-                {workLoad ? 'Боловсруулж байна...' : '🥊 AI ХУВААРЬ ГАРГАХ'}
-              </button>
-            </div>
-            {workPlan && (
-              <div style={{background:'#111', border:'1px solid #E8002D33', borderRadius:14, padding:16, marginBottom:12}}>
-                <div style={{color:'#E8002D', fontWeight:700, marginBottom:8}}>🤖 AI ДАСГАЛЫН ХУВААРЬ</div>
-                <div style={{color:'#ccc', fontSize:13, lineHeight:1.8, whiteSpace:'pre-wrap'}}>{workPlan}</div>
-              </div>
-            )}
-            <div style={{background:'#111', border:'1px solid #1f1f1f', borderRadius:14, padding:16}}>
-              <div style={{fontWeight:700, marginBottom:12}}>⚡ ШУУРХАЙ ЗӨВЛӨГӨӨ</div>
-              {['🥊 Нударга нүүрийн өндөрт байлга','👣 Хөлний зай мөрний өргөнтэй','💨 Цохих бүрт амьсгал гарга','👁️ Өрсөлдөгчийн нүдийг хар','🦵 Өвдөг зөөлөн нугарсан байлга'].map((t, i) => (
-                <div key={i} style={{color:'#777', fontSize:13, padding:'7px 0', borderBottom: i < 4 ? '1px solid #1a1a1a' : 'none'}}>{t}</div>
-              ))}
-            </div>
-          </div>
-        )}
+  <div>
+    <div style={{fontSize:22, fontWeight:900, marginBottom:16}}>💪 ДАСГАЛЫН ХУВААРЬ</div>
+
+    <div style={{background:'#111', border:'1px solid #1f1f1f', borderRadius:14, padding:16, marginBottom:12}}>
+      <div style={{color:'#888', fontSize:13, marginBottom:8}}>AI-аар 7 хоногийн хуваарь гарга</div>
+
+      <button
+        onClick={genWork}
+        style={{width:'100%', padding:'14px', background:'linear-gradient(135deg,#E8002D,#FF6D00)', color:'#fff', border:'none', borderRadius:10, cursor:'pointer', fontSize:16, fontWeight:700}}
+      >
+        {workLoad ? 'Боловсруулж байна...' : '🥊 AI ХУВААРЬ ГАРГАХ'}
+      </button>
+
+      <button
+        onClick={markWorkoutDone}
+        style={{
+          width: "100%",
+          padding: "14px",
+          background: "#76FF03",
+          color: "#000",
+          border: "none",
+          borderRadius: 10,
+          cursor: "pointer",
+          fontSize: 16,
+          fontWeight: 800,
+          marginTop: 10
+        }}
+      >
+        ✅ ӨНӨӨДРИЙН ДАСГАЛ ХИЙСЭН
+      </button>
+    </div>
+
+    {workPlan && (
+      <div style={{background:'#111', border:'1px solid #E8002D33', borderRadius:14, padding:16, marginBottom:12}}>
+        <div style={{color:'#E8002D', fontWeight:700, marginBottom:8}}>🤖 AI ДАСГАЛЫН ХУВААРЬ</div>
+        <div style={{color:'#ccc', fontSize:13, lineHeight:1.8, whiteSpace:'pre-wrap'}}>{workPlan}</div>
+      </div>
+    )}
+
+    <div style={{background:'#111', border:'1px solid #1f1f1f', borderRadius:14, padding:16}}>
+      <div style={{fontWeight:700, marginBottom:12}}>⚡ ШУУРХАЙ ЗӨВЛӨГӨӨ</div>
+      {['🥊Гараа буулгах үед эрүү шууд ил гардаг. Жаб эсвэл кросс цохисны дараа гараа заавал нүүрний хамгаалалт руу буцаа.','👣 Хөл хөдөлгөөнгүй бол өрсөлдөгч зайгаа амархан тааруулна. Цохилт бүрийн дараа жижиг алхам эсвэл өнцөг солилт хий.','💨 Амьсгалаа барих нь хурд, хүч, тэсвэрийг хурдан унагадаг. Цохилт хийх бүрт богино “hss” амьсгал гарга.','👁️ Зөвхөн гар харах нь хуурамч хөдөлгөөнд хууртах эрсдэлтэй. Цээж, мөр, ташааны хөдөлгөөнөөс цохилтын чиглэлийг унш.','🦵 Өвдөг хөшүүн байвал хамгаалалт, дайралт удааширна. Өвдгөө сул нугалж, жингээ хоёр хөл дээр тэнцвэртэй хадгал.','🛡️ Довтлохдоо хамгаалалтаа мартвал counter авах магадлал өндөр. Combo бүрийн төгсгөлд guard, slip эсвэл step-out хий.','🎯 Хэт хүчтэй цохих гэж оролдох үед техник задардаг. Эхлээд зөв байрлал, timing, balance дээр төвлөр.'].map((t, i) => (
+        <div key={i} style={{color:'#777', fontSize:13, padding:'7px 0', borderBottom: i < 4 ? '1px solid #1a1a1a' : 'none'}}>{t}</div>
+      ))}
+    </div>
+  </div>
+)}
  
         {tab === 5 && (
           <div>
@@ -567,8 +640,8 @@ const logout = async () => {
                 {load && <div style={{padding:'10px 14px', background:'#222', borderRadius:14, width:'fit-content', color:'#555'}}>Бодож байна...</div>}
               </div>
               <div style={{display:'flex', gap:8}}>
-                <input value={inp} onChange={e => setInp(e.target.value)} onKeyDown={e => e.key === 'Enter' && send()} placeholder="Асуулт бичнэ үү..." style={{flex:1, background:'#222', border:'1px solid #333', borderRadius:10, padding:'10px 14px', color:'#fff', fontSize:14, outline:'none'}}/>
-                <button onClick={send} style={{padding:'10px 18px', background:'#E8002D', border:'none', borderRadius:10, color:'#fff', fontSize:18, cursor:'pointer'}}>➤</button>
+                <input value={inp} onChange={e => setInp(e.target.value)} onKeyDown={e => e.key === 'Enter' && send()} placeholder="Асуулт бичнэ үү..." style={{flex:1, background:'#1a1a1a', border:'1px solid #252525', borderRadius:10, padding:'11px 14px', color:'#fff', fontSize:13, outline:'none', fontFamily:'sans-serif'}}/>
+                <button onClick={send} style={{padding:'11px 16px', background:'#E8002D', border:'none', borderRadius:10, color:'#fff', fontSize:16, cursor:'pointer', fontFamily:'sans-serif'}}>➤</button>
               </div>
             </div>
           </div>
