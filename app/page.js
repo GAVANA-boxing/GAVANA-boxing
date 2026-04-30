@@ -105,12 +105,24 @@ export default function Home() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   useEffect(() => {
+  let isActive = true;
+
   const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    if (!isActive) return;
+
     setUser(currentUser);
 
-    if (currentUser) {
+    if (!currentUser?.uid) {
+      setStreak(0);
+      setLastWorkout(null);
+      return;
+    }
+
+    try {
       const userRef = doc(db, "users", currentUser.uid);
       const snap = await getDoc(userRef);
+
+      if (!isActive) return;
 
       if (snap.exists()) {
         const data = snap.data();
@@ -122,13 +134,17 @@ export default function Home() {
           streak: 0,
           lastWorkout: null
         });
+        if (!isActive) return;
         setStreak(0);
         setLastWorkout(null);
       }
+    } catch (error) {
+      console.error("Failed to load user workout state:", error);
     }
   });
 
   return () => {
+    isActive = false;
     unsubscribe();
   };
 }, []);
@@ -208,7 +224,11 @@ const login = async () => {
 };
 
 const logout = async () => {
-  await signOut(auth);
+  try {
+    await signOut(auth);
+  } catch (e) {
+    alert(e.message);
+  }
 };
 
 const markWorkoutDone = async () => {
@@ -224,6 +244,7 @@ const markWorkoutDone = async () => {
     return;
   }
 
+  try {
   const newStreak = streak + 1;
   const userRef = doc(db, "users", user.uid);
 
@@ -236,6 +257,10 @@ const markWorkoutDone = async () => {
   setLastWorkout(today);
 
   alert(`🔥 Streak нэмэгдлээ: ${newStreak} өдөр`);
+  } catch (error) {
+    console.error("Failed to mark workout done:", error);
+    alert("Workout update failed. Please try again.");
+  }
 };
  
   return (
