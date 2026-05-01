@@ -145,6 +145,7 @@ export default function ReelsContent() {
   const [feedbackError, setFeedbackError] = useState("");
   const [feedbackResult, setFeedbackResult] = useState("");
   const [feedbackReel, setFeedbackReel] = useState(null);
+  const [videoErrors, setVideoErrors] = useState({});
   const videoRefs = useRef({});
   const viewTimers = useRef({});
   const controlsTimer = useRef(null);
@@ -576,8 +577,14 @@ export default function ReelsContent() {
     if (!video) return;
 
     setIsMuted(true);
+    setVideoErrors((prev) => ({ ...prev, [activeReelId]: false }));
+    if (video.readyState < 3) {
+      setVideoLoading((prev) => ({ ...prev, [activeReelId]: true }));
+    }
     video.muted = true;
     video.playsInline = true;
+    video.setAttribute("playsinline", "");
+    video.setAttribute("webkit-playsinline", "");
     video.play().catch(() => {
       // Browsers can still block autoplay; the tap-to-play overlay remains available.
     });
@@ -936,11 +943,18 @@ export default function ReelsContent() {
   // Handle video load start
   const handleVideoLoadStart = (reelId) => {
     setVideoLoading(prev => ({ ...prev, [reelId]: true }));
+    setVideoErrors(prev => ({ ...prev, [reelId]: false }));
   };
 
   // Handle video loaded
   const handleVideoLoaded = (reelId) => {
     setVideoLoading(prev => ({ ...prev, [reelId]: false }));
+    setVideoErrors(prev => ({ ...prev, [reelId]: false }));
+  };
+
+  const handleVideoError = (reelId) => {
+    setVideoLoading(prev => ({ ...prev, [reelId]: false }));
+    setVideoErrors(prev => ({ ...prev, [reelId]: true }));
   };
 
   // Format date
@@ -1030,17 +1044,12 @@ export default function ReelsContent() {
               ...(index === currentIndex ? styles.activeVideo : {})
             }}
           >
-            {/* Video Loading Spinner */}
-            {!reel.isDemo && videoLoading[reel.id] && (
-              <div style={styles.videoLoadingOverlay}>
-                <div style={styles.spinner}></div>
-              </div>
-            )}
-            
             {reel.isDemo ? (
               <DemoReelVisual
                 onUpload={() => router.push(`/${currentLocale}/upload`)}
               />
+            ) : videoErrors[reel.id] || !reel.videoUrl ? (
+              <ReelFallbackVisual reel={reel} />
             ) : (
               <video
                 ref={(el) => {
@@ -1048,6 +1057,8 @@ export default function ReelsContent() {
                     videoRefs.current[reel.id] = el;
                     el.muted = index !== currentIndex || isMuted;
                     el.playsInline = true;
+                    el.setAttribute("playsinline", "");
+                    el.setAttribute("webkit-playsinline", "");
                   } else {
                     delete videoRefs.current[reel.id];
                   }
@@ -1059,10 +1070,22 @@ export default function ReelsContent() {
                 loop
                 muted={index !== currentIndex || isMuted}
                 playsInline
+                webkit-playsinline="true"
+                poster={reel.thumbnailUrl || undefined}
                 onClick={handleVideoTap}
                 onLoadStart={() => handleVideoLoadStart(reel.id)}
+                onLoadedData={() => {
+                  handleVideoLoaded(reel.id);
+                  if (index === currentIndex) {
+                    const video = videoRefs.current[reel.id];
+                    if (video) {
+                      video.muted = isMuted;
+                      video.play().catch(() => {});
+                    }
+                  }
+                }}
                 onLoadedMetadata={() => {
-                  if (index === 0 && currentIndex === 0) {
+                  if (index === currentIndex) {
                     const video = videoRefs.current[reel.id];
                     if (video) {
                       video.muted = isMuted;
@@ -1072,7 +1095,7 @@ export default function ReelsContent() {
                 }}
                 onCanPlay={() => {
                   handleVideoLoaded(reel.id);
-                  if (index === 0 && currentIndex === 0) {
+                  if (index === currentIndex) {
                     const video = videoRefs.current[reel.id];
                     if (video) {
                       video.muted = isMuted;
@@ -1080,8 +1103,16 @@ export default function ReelsContent() {
                     }
                   }
                 }}
-                preload={index <= 1 ? "auto" : "metadata"}
+                onError={() => handleVideoError(reel.id)}
+                preload={index === currentIndex || index <= 1 ? "auto" : "metadata"}
               />
+            )}
+
+            {!reel.isDemo && !videoErrors[reel.id] && videoLoading[reel.id] && (
+              <div style={styles.videoLoadingOverlay}>
+                <div style={styles.spinner}></div>
+                <span style={styles.videoLoadingText}>Loading reel...</span>
+              </div>
             )}
 
             <div style={styles.vignette} />
@@ -1463,6 +1494,23 @@ function DemoReelVisual() {
   );
 }
 
+function ReelFallbackVisual({ reel }) {
+  return (
+    <div style={styles.reelFallback}>
+      <div style={styles.reelFallbackLight} />
+      <div style={styles.reelFallbackContent}>
+        <span style={styles.reelFallbackKicker}>GAVANA BOXING</span>
+        <strong style={styles.reelFallbackTitle}>
+          {reel?.description || reel?.caption || "Training reel unavailable"}
+        </strong>
+        <span style={styles.reelFallbackText}>
+          Video could not load. Try refreshing or opening the reel again.
+        </span>
+      </div>
+    </div>
+  );
+}
+
 // Bottom Nav component
 function BottomNav({ router, user, currentLocale, onInteractStart, onInteractEnd }) {
   const t = (key) => translate(currentLocale, key);
@@ -1772,10 +1820,18 @@ const styles = {
     right: 0,
     bottom: 0,
     display: "flex",
+    flexDirection: "column",
+    gap: 12,
     alignItems: "center",
     justifyContent: "center",
-    background: "#000",
+    background: "radial-gradient(circle at 50% 42%, rgba(193,18,31,0.16), transparent 34%), linear-gradient(180deg, rgba(7,7,7,0.82), rgba(7,7,7,0.94))",
     zIndex: 10,
+  },
+  videoLoadingText: {
+    color: "rgba(255,255,255,0.82)",
+    fontSize: 13,
+    fontWeight: 850,
+    textShadow: "0 3px 14px rgba(0,0,0,0.85)",
   },
   video: {
     width: "100%",
@@ -1796,12 +1852,52 @@ const styles = {
     position: "absolute",
     inset: 0,
     overflow: "hidden",
-    background: "#000",
+    background: "radial-gradient(circle at 52% 34%, rgba(212,175,55,0.16), transparent 28%), radial-gradient(circle at 46% 62%, rgba(193,18,31,0.2), transparent 30%), linear-gradient(145deg, #070707 0%, #171010 48%, #050505 100%)",
   },
   demoVignette: {
     position: "absolute",
     inset: 0,
     background: "radial-gradient(circle at 50% 38%, rgba(255,255,255,0.08), transparent 34%), linear-gradient(to bottom, rgba(0,0,0,0.15), #000)",
+  },
+  reelFallback: {
+    position: "absolute",
+    inset: 0,
+    overflow: "hidden",
+    background: "radial-gradient(circle at 50% 38%, rgba(193,18,31,0.22), transparent 32%), radial-gradient(circle at 58% 56%, rgba(212,175,55,0.12), transparent 30%), linear-gradient(145deg, #070707, #13090b 48%, #050505)",
+  },
+  reelFallbackLight: {
+    position: "absolute",
+    inset: 0,
+    background: "linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.08) 42%, transparent 66%)",
+    opacity: 0.5,
+  },
+  reelFallbackContent: {
+    position: "absolute",
+    left: "max(24px, env(safe-area-inset-left))",
+    right: 96,
+    bottom: "calc(170px + env(safe-area-inset-bottom))",
+    display: "grid",
+    gap: 10,
+    zIndex: 1,
+  },
+  reelFallbackKicker: {
+    color: "var(--accent-gold)",
+    fontSize: 11,
+    fontWeight: 950,
+    letterSpacing: 1.8,
+  },
+  reelFallbackTitle: {
+    color: "var(--text-primary)",
+    fontSize: 28,
+    lineHeight: 1.05,
+    fontWeight: 1000,
+    textShadow: "0 8px 28px rgba(0,0,0,0.9)",
+  },
+  reelFallbackText: {
+    color: "rgba(255,255,255,0.68)",
+    fontSize: 14,
+    lineHeight: 1.45,
+    maxWidth: 360,
   },
   demoGrid: {
     display: "none",
