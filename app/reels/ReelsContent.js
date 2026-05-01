@@ -129,7 +129,7 @@ export default function ReelsContent() {
   const [reels, setReels] = useState([]);
   const [reelsLoading, setReelsLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isMuted, setIsMuted] = useState(true);
+  const [soundEnabled, setSoundEnabled] = useState(false);
   const [showControls, setShowControls] = useState(false);
   const [userLikes, setUserLikes] = useState(new Set());
   const [userViews, setUserViews] = useState(new Set());
@@ -549,24 +549,47 @@ export default function ReelsContent() {
     scheduleControlsHide();
   }, [scheduleControlsHide]);
 
+  const enableSound = useCallback(() => {
+    const activeReelId = reels[currentIndex]?.id;
+    const video = videoRefs.current[activeReelId];
+
+    setSoundEnabled(true);
+    pauseInactiveVideos(activeReelId, false);
+
+    if (video) {
+      video.muted = false;
+      video.volume = 1;
+      video.play().catch(() => {
+        // If a browser still blocks sound, the control remains visible for another tap.
+      });
+    }
+
+    setShowControls(true);
+    scheduleControlsHide();
+  }, [currentIndex, pauseInactiveVideos, reels, scheduleControlsHide]);
+
+  const muteAllVideos = useCallback(() => {
+    setSoundEnabled(false);
+    Object.values(videoRefs.current).forEach((video) => {
+      if (video) {
+        video.muted = true;
+      }
+    });
+    setShowControls(true);
+  }, []);
+
   const handleVideoTap = useCallback(() => {
     revealControls();
 
-    if (isMuted) {
-      setIsMuted(false);
-      const video = videoRefs.current[reels[currentIndex]?.id];
-      if (video) {
-        pauseInactiveVideos(reels[currentIndex]?.id);
-        video.muted = false;
-        video.play().catch(() => {});
-      }
+    if (!soundEnabled) {
+      enableSound();
       return;
     }
 
     if (showControls) {
       togglePlay();
     }
-  }, [currentIndex, isMuted, pauseInactiveVideos, reels, revealControls, showControls, togglePlay]);
+  }, [enableSound, revealControls, showControls, soundEnabled, togglePlay]);
 
   useEffect(() => {
     const currentReel = reels[currentIndex];
@@ -579,12 +602,11 @@ export default function ReelsContent() {
     const video = videoRefs.current[activeReelId];
     if (!video) return;
 
-    setIsMuted(true);
     setVideoErrors((prev) => ({ ...prev, [activeReelId]: false }));
     if (video.readyState < 3) {
       setVideoLoading((prev) => ({ ...prev, [activeReelId]: true }));
     }
-    video.muted = true;
+    video.muted = !soundEnabled;
     video.playsInline = true;
     video.setAttribute("playsinline", "");
     video.setAttribute("webkit-playsinline", "");
@@ -593,7 +615,7 @@ export default function ReelsContent() {
     });
     setShowControls(true);
     scheduleControlsHide();
-  }, [reels, currentIndex, pauseInactiveVideos, scheduleControlsHide]);
+  }, [reels, currentIndex, pauseInactiveVideos, scheduleControlsHide, soundEnabled]);
 
   useEffect(() => {
     return () => {
@@ -609,22 +631,15 @@ export default function ReelsContent() {
     };
   }, []);
 
-  // Toggle mute
+  // Toggle global sound
   const toggleMute = useCallback(() => {
-    const video = videoRefs.current[reels[currentIndex]?.id];
+    if (soundEnabled) {
+      muteAllVideos();
+      return;
+    }
 
-    setIsMuted(prev => {
-      const nextMuted = !prev;
-      if (video) {
-        video.muted = nextMuted;
-        if (!nextMuted) {
-          pauseInactiveVideos(reels[currentIndex]?.id);
-          video.play().catch(() => {});
-        }
-      }
-      return nextMuted;
-    });
-  }, [currentIndex, pauseInactiveVideos, reels]);
+    enableSound();
+  }, [enableSound, muteAllVideos, soundEnabled]);
 
   // Handle like/unlike
   const handleLike = useCallback(async (reelId) => {
@@ -1061,7 +1076,7 @@ export default function ReelsContent() {
                 ref={(el) => {
                   if (el) {
                     videoRefs.current[reel.id] = el;
-                    el.muted = index !== currentIndex || isMuted;
+                    el.muted = index !== currentIndex || !soundEnabled;
                     el.playsInline = true;
                     el.setAttribute("playsinline", "");
                     el.setAttribute("webkit-playsinline", "");
@@ -1074,7 +1089,7 @@ export default function ReelsContent() {
                 className={index === currentIndex ? "cinematic-video" : ""}
                 autoPlay={index === currentIndex}
                 loop
-                muted={index !== currentIndex || isMuted}
+                muted={index !== currentIndex || !soundEnabled}
                 playsInline
                 webkit-playsinline="true"
                 poster={reel.thumbnailUrl || undefined}
@@ -1085,7 +1100,7 @@ export default function ReelsContent() {
                   if (index === currentIndex) {
                     const video = videoRefs.current[reel.id];
                     if (video) {
-                      video.muted = isMuted;
+                      video.muted = !soundEnabled;
                       video.play().catch(() => {});
                     }
                   }
@@ -1094,7 +1109,7 @@ export default function ReelsContent() {
                   if (index === currentIndex) {
                     const video = videoRefs.current[reel.id];
                     if (video) {
-                      video.muted = isMuted;
+                      video.muted = !soundEnabled;
                       video.play().catch(() => {});
                     }
                   }
@@ -1104,7 +1119,7 @@ export default function ReelsContent() {
                   if (index === currentIndex) {
                     const video = videoRefs.current[reel.id];
                     if (video) {
-                      video.muted = isMuted;
+                      video.muted = !soundEnabled;
                       video.play().catch(() => {});
                     }
                   }
@@ -1229,7 +1244,7 @@ export default function ReelsContent() {
             {/* Mute button */}
             {!reel.isDemo && showControls && (
               <button style={styles.muteBtn} onClick={toggleMute}>
-                {isMuted ? "Mute" : "Sound"}
+                {soundEnabled ? "Sound on" : "Tap for sound"}
               </button>
             )}
 
