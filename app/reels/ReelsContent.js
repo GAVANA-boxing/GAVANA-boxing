@@ -125,9 +125,9 @@ export default function ReelsContent() {
   const t = (key) => translate(currentLocale, key);
   const { user, loading: authLoading } = useAuth();
   const [feedMode, setFeedMode] = useState("forYou");
-  const [allReels, setAllReels] = useState([]);
+  const [allReels, setAllReels] = useState(null);
   const [reels, setReels] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [reelsLoading, setReelsLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
   const [showControls, setShowControls] = useState(false);
@@ -152,6 +152,11 @@ export default function ReelsContent() {
   const commentsUnsubscribeRef = useRef(null);
 
   useEffect(() => {
+    if (authLoading || allReels === null) {
+      setReels([]);
+      return;
+    }
+
     if (feedMode !== "following") {
       setReels(allReels.length > 0 ? allReels : [DEMO_REEL]);
       setCurrentIndex(0);
@@ -161,18 +166,19 @@ export default function ReelsContent() {
     const followedReels = allReels.filter((reel) => reel.userId && followingIds.has(reel.userId));
     setReels(followedReels);
     setCurrentIndex(0);
-  }, [allReels, feedMode, followingIds]);
+  }, [allReels, authLoading, feedMode, followingIds]);
 
   // Fetch reels from Firestore with real-time updates
   useEffect(() => {
     if (authLoading) {
+      setReelsLoading(true);
       return;
     }
 
     if (!user?.uid) {
-      setAllReels([DEMO_REEL]);
+      setAllReels([]);
       setFollowingIds(new Set());
-      setLoading(false);
+      setReelsLoading(false);
       return;
     }
 
@@ -202,28 +208,25 @@ export default function ReelsContent() {
             };
           });
           
-          const sortedReels = reelsData.length > 0
-            ? sortReelsByEngagement(reelsData)
-            : [DEMO_REEL];
-          
-          setAllReels(sortedReels);
+          setAllReels(sortReelsByEngagement(reelsData));
           setCurrentIndex(0);
-          setLoading(false);
+          setReelsLoading(false);
         }, (err) => {
           if (!isActive) return;
           console.error("Failed to listen for reels:", err);
-          setAllReels([DEMO_REEL]);
-          setLoading(false);
+          setAllReels([]);
+          setReelsLoading(false);
         });
       } catch (err) {
         if (!isActive) return;
         console.error("Failed to load reels:", err);
-        setAllReels([DEMO_REEL]);
-        setLoading(false);
+        setAllReels([]);
+        setReelsLoading(false);
       }
     }
 
-    setLoading(true);
+    setAllReels(null);
+    setReelsLoading(true);
     loadReels();
 
     return () => {
@@ -964,12 +967,15 @@ export default function ReelsContent() {
     return date.toLocaleDateString();
   };
 
-  if (loading) {
+  if (authLoading || reelsLoading) {
     return (
       <div style={styles.container}>
         <div style={styles.loading}>
           <div style={styles.spinner}></div>
-          {t("loading")}
+          <div style={styles.loadingTitle}>Loading reels...</div>
+          <div style={styles.loadingMeta}>
+            {authLoading ? "Checking your session" : "Fetching the fight feed"}
+          </div>
         </div>
         <BottomNav router={router} user={user} currentLocale={currentLocale} />
       </div>
@@ -1691,6 +1697,18 @@ const styles = {
     height: "100vh",
     color: "var(--text-primary)",
     fontSize: 16,
+  },
+  loadingTitle: {
+    color: "var(--text-primary)",
+    fontSize: 18,
+    fontWeight: 900,
+    letterSpacing: 0,
+  },
+  loadingMeta: {
+    color: "var(--text-secondary)",
+    fontSize: 13,
+    fontWeight: 650,
+    marginTop: -8,
   },
   spinner: {
     width: 40,
