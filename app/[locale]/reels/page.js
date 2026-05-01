@@ -1,6 +1,9 @@
 import { Suspense } from "react";
 import ReelsContent from "@/app/reels/ReelsContent";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 function LoadingFallback() {
   return (
     <div style={{

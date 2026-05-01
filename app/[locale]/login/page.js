@@ -38,7 +38,7 @@ export default function LoginPage() {
       <div style={styles.page}>
         <div style={styles.card}>
           <div style={{ textAlign: "center", marginBottom: 24 }}>
-            <p style={{ margin: 0, color: "#E8002D", letterSpacing: 2, fontSize: 12, fontWeight: 700 }}>
+            <p style={{ margin: 0, color: "#D4AF37", letterSpacing: 2, fontSize: 12, fontWeight: 800 }}>
               GAVANA BOXING
             </p>
             <h1 style={{ margin: "10px 0 0", fontSize: 28, fontWeight: 900, color: "#fff" }}>
@@ -84,7 +84,7 @@ export default function LoginPage() {
     <div style={styles.page}>
       <div style={styles.card}>
         <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <p style={{ margin: 0, color: "#E8002D", letterSpacing: 2, fontSize: 12, fontWeight: 700 }}>
+          <p style={{ margin: 0, color: "#D4AF37", letterSpacing: 2, fontSize: 12, fontWeight: 800 }}>
             GAVANA BOXING
           </p>
           <h1 style={{ margin: "10px 0 0", fontSize: 28, fontWeight: 900, color: "#fff" }}>
@@ -153,7 +153,7 @@ export default function LoginPage() {
               padding: "16px",
               borderRadius: 12,
               border: "none",
-              background: loading ? "#6d0f0f" : "#E8002D",
+              background: loading ? "#4d1117" : "#C1121F",
               color: "#fff",
               fontSize: 15,
               fontWeight: 700,
@@ -188,7 +188,7 @@ export default function LoginPage() {
 const styles = {
   page: {
     minHeight: "100vh",
-    background: "#080808",
+    background: "linear-gradient(180deg, #070707 0%, #0B0B0B 100%)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -196,7 +196,8 @@ const styles = {
     fontFamily: "sans-serif"
   },
   card: {
-    background: "#0d0d0d",
+    background: "#0B0B0B",
+    border: "1px solid rgba(212,175,55,0.16)",
     border: "1px solid #171717",
     borderRadius: 20,
     padding: 32,
@@ -217,7 +218,7 @@ const styles = {
   },
   errorBox: {
     background: "#3a0a0a",
-    border: "1px solid #E8002D",
+    border: "1px solid rgba(193,18,31,0.5)",
     color: "#ff8b8b",
     padding: 12,
     borderRadius: 8,
@@ -228,7 +229,7 @@ const styles = {
     padding: "16px",
     borderRadius: 12,
     border: "none",
-    background: "#E8002D",
+    background: "#C1121F",
     color: "#fff",
     fontSize: 15,
     fontWeight: 700,

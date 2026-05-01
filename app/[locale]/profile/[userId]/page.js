@@ -261,11 +261,11 @@ export default function UserProfilePage() {
     return (
       <div style={{
         minHeight: "100vh",
-        background: "#080808",
+        background: "var(--background)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        color: "#fff"
+        color: "var(--text-primary)"
       }}>
         Loading profile...
       </div>
@@ -279,74 +279,75 @@ export default function UserProfilePage() {
   return (
     <div style={{
       minHeight: "100vh",
-      background: "#080808",
-      color: "#fff",
-      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+      background: "var(--background)",
+      color: "var(--text-primary)",
+      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      padding: 0,
+      overflowX: "hidden"
     }}>
-      {/* Header */}
       <div style={{
-        padding: "20px",
-        borderBottom: "1px solid rgba(255,255,255,0.1)",
-        textAlign: "center"
+        width: "100%",
+        padding: "var(--space-8) var(--space-4) var(--space-6)",
+        background: "radial-gradient(circle at 50% 0%, rgba(193,18,31,0.18), transparent 34%), linear-gradient(180deg, var(--surface) 0%, var(--background) 100%)",
+        borderBottom: "1px solid var(--line)",
+        textAlign: "center",
+        boxSizing: "border-box"
       }}>
         <div style={{
-          width: 80,
-          height: 80,
+          width: 124,
+          height: 124,
           borderRadius: "50%",
-          background: "#E8002D",
+          background: "linear-gradient(145deg, #C1121F, #5b0710)",
+          border: "2px solid rgba(212,175,55,0.78)",
+          boxShadow: "0 0 0 6px rgba(193,18,31,0.16), var(--shadow-glow-red)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          fontSize: 32,
-          fontWeight: "bold",
-          margin: "0 auto 16px",
-          color: "#fff"
+          fontSize: 42,
+          fontWeight: 950,
+          margin: "0 auto 18px",
+          color: "var(--text-primary)"
         }}>
           {profileUser.username?.charAt(0).toUpperCase() || "U"}
         </div>
+
         <h1 style={{
-          fontSize: 24,
-          fontWeight: "bold",
-          margin: "0 0 8px",
-          color: "#fff"
+          fontSize: 42,
+          fontWeight: 1000,
+          margin: "0 0 20px",
+          color: "var(--text-primary)",
+          letterSpacing: 0,
+          lineHeight: 1,
+          textShadow: "0 10px 34px rgba(0,0,0,0.7)"
         }}>
           @{profileUser.username}
         </h1>
 
-        {/* Stats */}
         <div style={{
           display: "flex",
           justifyContent: "center",
-          gap: 32,
-          marginBottom: 20
+          gap: 24,
+          marginBottom: 24,
+          flexWrap: "wrap"
         }}>
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 20, fontWeight: "bold", color: "#fff" }}>
-              {userReels.length}
-            </div>
-            <div style={{ fontSize: 12, color: "#888" }}>Reels</div>
+            <div style={{ fontSize: 22, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1 }}>{userReels.length}</div>
+            <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 5 }}>reels</div>
           </div>
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 20, fontWeight: "bold", color: "#fff" }}>
-              {totalLikes}
-            </div>
-            <div style={{ fontSize: 12, color: "#888" }}>Likes</div>
+            <div style={{ fontSize: 22, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1 }}>{totalLikes}</div>
+            <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 5 }}>likes</div>
           </div>
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 20, fontWeight: "bold", color: "#fff" }}>
-              {stats.followers}
-            </div>
-            <div style={{ fontSize: 12, color: "#888" }}>Followers</div>
+            <div style={{ fontSize: 22, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1 }}>{stats.followers}</div>
+            <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 5 }}>followers</div>
           </div>
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 20, fontWeight: "bold", color: "#fff" }}>
-              {stats.following}
-            </div>
-            <div style={{ fontSize: 12, color: "#888" }}>Following</div>
+            <div style={{ fontSize: 22, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1 }}>{stats.following}</div>
+            <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 5 }}>following</div>
           </div>
         </div>
 
-        {/* Follow/Edit Button */}
         {isOwnProfile ? (
           <div style={{
             display: "flex",
@@ -357,12 +358,12 @@ export default function UserProfilePage() {
             <button
               onClick={() => router.push(`/${locale}/profile/edit`)}
               style={{
-                padding: "8px 16px",
-                border: "1px solid #333",
-                borderRadius: 20,
-                background: "transparent",
-                color: "#fff",
-                fontSize: 14,
+                padding: "9px 17px",
+                border: "1px solid var(--line)",
+                borderRadius: 999,
+                background: "rgba(255,255,255,0.055)",
+                color: "var(--text-primary)",
+                fontSize: 13,
                 cursor: "pointer"
               }}
             >
@@ -372,12 +373,12 @@ export default function UserProfilePage() {
               onClick={handleLogout}
               disabled={signingOut}
               style={{
-                padding: "8px 16px",
-                border: "1px solid #333",
-                borderRadius: 20,
-                background: "#171717",
-                color: "#fff",
-                fontSize: 14,
+                padding: "9px 17px",
+                border: "1px solid var(--line)",
+                borderRadius: 999,
+                background: "rgba(255,255,255,0.055)",
+                color: "var(--text-primary)",
+                fontSize: 13,
                 cursor: signingOut ? "not-allowed" : "pointer",
                 opacity: signingOut ? 0.7 : 1
               }}
@@ -388,12 +389,12 @@ export default function UserProfilePage() {
               onClick={handleSwitchAccount}
               disabled={signingOut}
               style={{
-                padding: "8px 16px",
+                padding: "9px 17px",
                 border: "none",
-                borderRadius: 20,
-                background: "#E8002D",
-                color: "#fff",
-                fontSize: 14,
+                borderRadius: 999,
+                background: "var(--primary-red)",
+                color: "var(--text-primary)",
+                fontSize: 13,
                 fontWeight: "bold",
                 cursor: signingOut ? "not-allowed" : "pointer",
                 opacity: signingOut ? 0.7 : 1
@@ -407,11 +408,11 @@ export default function UserProfilePage() {
             onClick={handleFollow}
             disabled={followLoading}
             style={{
-              padding: "8px 16px",
+              padding: "10px 28px",
               border: "none",
-              borderRadius: 20,
-              background: followLoading ? "#666" : (isFollowing ? "#333" : "#E8002D"),
-              color: "#fff",
+              borderRadius: 999,
+              background: followLoading ? "#555" : (isFollowing ? "#171717" : "#C1121F"),
+              color: "var(--text-primary)",
               fontSize: 14,
               fontWeight: "bold",
               cursor: followLoading ? "not-allowed" : "pointer",
@@ -423,32 +424,33 @@ export default function UserProfilePage() {
         )}
       </div>
 
-      {/* User's Reels Grid */}
       <div style={{
-        padding: "20px",
+        padding: 0,
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
-        gap: 12
+        gridTemplateColumns: "repeat(3, 1fr)",
+        gap: 1,
+        width: "100%"
       }}>
         {userReels.length === 0 ? (
           <div style={{
             gridColumn: "1 / -1",
             textAlign: "center",
-            padding: "40px",
-            color: "#666"
+            padding: "56px 24px",
+            color: "var(--text-secondary)",
+            background: "var(--background)"
           }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>🎬</div>
-            <p>No reels yet</p>
+            <p style={{ margin: 0, color: "var(--text-primary)", fontWeight: 850 }}>No reels yet</p>
+            <p style={{ margin: "8px 0 0", fontSize: 13 }}>Training clips will appear here.</p>
           </div>
         ) : (
           userReels.map((reel) => (
             <div
               key={reel.id}
+              className="profile-reel-tile"
               style={{
                 aspectRatio: "9/16",
-                borderRadius: 12,
                 overflow: "hidden",
-                background: "#1a1a1a",
+                background: "var(--surface-soft)",
                 cursor: "pointer",
                 position: "relative"
               }}
@@ -456,6 +458,7 @@ export default function UserProfilePage() {
             >
               <video
                 src={reel.videoUrl}
+                className="profile-reel-video"
                 style={{
                   width: "100%",
                   height: "100%",
@@ -466,19 +469,23 @@ export default function UserProfilePage() {
               />
               <div style={{
                 position: "absolute",
-                bottom: 8,
-                left: 8,
-                right: 8,
-                color: "#fff",
-                fontSize: 12
+                bottom: 0,
+                left: 0,
+                right: 0,
+                padding: "22px 8px 8px",
+                color: "var(--text-primary)",
+                fontSize: 11,
+                background: "linear-gradient(to top, rgba(0,0,0,0.65), transparent)",
+                textShadow: "0 2px 8px rgba(0,0,0,0.9)"
               }}>
-                <div style={{ fontWeight: "bold", marginBottom: 4 }}>
-                  ♥ {reelLikes[reel.id] || 0}
+                <div style={{ fontWeight: 800, marginBottom: 3 }}>
+                  {reelLikes[reel.id] || 0} likes
                 </div>
                 <div style={{
                   overflow: "hidden",
                   textOverflow: "ellipsis",
-                  whiteSpace: "nowrap"
+                  whiteSpace: "nowrap",
+                  color: "rgba(255,255,255,0.78)"
                 }}>
                   {reel.description || ""}
                 </div>
@@ -487,6 +494,23 @@ export default function UserProfilePage() {
           ))
         )}
       </div>
+
+      <style>{`
+        .profile-reel-tile .profile-reel-video {
+          transform: scale(1);
+          transition: transform var(--motion-fast), filter var(--motion-fast);
+        }
+
+        .profile-reel-tile:hover .profile-reel-video {
+          transform: scale(1.08);
+          filter: contrast(1.08);
+        }
+
+        .profile-reel-tile:active .profile-reel-video {
+          transform: scale(1.12);
+          filter: contrast(1.12);
+        }
+      `}</style>
     </div>
   );
 }

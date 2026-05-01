@@ -1,8 +1,27 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #070707;
+  --foreground: #ffffff;
+  --text-primary: #ffffff;
+  --text-secondary: #aaaaaa;
+  --brand-red: #C1121F;
+  --brand-gold: #D4AF37;
+  --primary-red: #C1121F;
+  --accent-gold: #D4AF37;
+  --surface: #0b0b0b;
+  --surface-soft: #111111;
+  --line: rgba(255, 255, 255, 0.1);
+  --glass: rgba(11, 11, 11, 0.52);
+  --glass-strong: rgba(11, 11, 11, 0.7);
+  --shadow-soft: 0 18px 60px rgba(0, 0, 0, 0.32);
+  --shadow-glow-red: 0 0 28px rgba(193, 18, 31, 0.3);
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --motion-fast: 180ms ease;
 }
 
 @theme inline {
@@ -14,13 +33,47 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #070707;
+    --foreground: #ffffff;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-weight: 500;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a, button {
+  transition: transform var(--motion-fast), border-color var(--motion-fast), background var(--motion-fast), opacity var(--motion-fast), box-shadow var(--motion-fast);
+}
+
+button:active,
+a:active {
+  transform: scale(0.98);
+}
+
+h1,
+h2,
+h3 {
+  color: var(--text-primary);
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 0.98;
+}
+
+p {
+  color: var(--text-secondary);
+}
+
+.glass-surface {
+  background: var(--glass);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  box-shadow: var(--shadow-soft);
 }

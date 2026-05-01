@@ -29,7 +29,7 @@ export default function UploadPage() {
     return (
       <div style={{
         minHeight: "100vh",
-        background: "#080808",
+        background: "#070707",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -120,20 +120,20 @@ export default function UploadPage() {
   return (
     <div style={{
       minHeight: "100vh",
-      background: "#080808",
+      background: "linear-gradient(180deg, #070707 0%, #0B0B0B 100%)",
       padding: "20px",
       fontFamily: "sans-serif"
     }}>
       <div style={{
-        maxWidth: 600,
+        maxWidth: 720,
         margin: "0 auto",
         padding: "20px"
       }}>
         <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <p style={{ margin: 0, color: "#E8002D", letterSpacing: 2, fontSize: 12, fontWeight: 700 }}>
+          <p style={{ margin: 0, color: "#D4AF37", letterSpacing: 2, fontSize: 12, fontWeight: 800 }}>
             GAVANA BOXING
           </p>
-          <h1 style={{ margin: "10px 0 0", fontSize: 28, fontWeight: 900, color: "#fff" }}>
+          <h1 style={{ margin: "10px 0 0", fontSize: 42, fontWeight: 950, color: "#fff", letterSpacing: 0 }}>
             Upload Reel
           </h1>
         </div>
@@ -141,7 +141,7 @@ export default function UploadPage() {
         {error && (
           <div style={{
             background: "#3a0a0a",
-            border: "1px solid #E8002D",
+            border: "1px solid rgba(193,18,31,0.5)",
             color: "#ff8b8b",
             padding: 12,
             borderRadius: 8,
@@ -155,16 +155,17 @@ export default function UploadPage() {
           <div
             onClick={() => fileInputRef.current?.click()}
             style={{
-              border: "2px dashed #333",
-              borderRadius: 20,
+              border: "1px dashed rgba(212,175,55,0.36)",
+              borderRadius: 18,
               padding: 60,
               textAlign: "center",
               cursor: "pointer",
-              background: "#0d0d0d",
-              transition: "border-color 0.2s ease"
+              background: "#0B0B0B",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.28)",
+              transition: "border-color 0.2s ease, transform 0.2s ease"
             }}
-            onMouseEnter={(e) => e.target.style.borderColor = "#E8002D"}
-            onMouseLeave={(e) => e.target.style.borderColor = "#333"}
+            onMouseEnter={(e) => e.currentTarget.style.borderColor = "#D4AF37"}
+            onMouseLeave={(e) => e.currentTarget.style.borderColor = "rgba(212,175,55,0.36)"}
           >
             <div style={{ fontSize: 48, marginBottom: 16 }}>📹</div>
             <p style={{ color: "#888", fontSize: 16, margin: 0 }}>
@@ -180,7 +181,9 @@ export default function UploadPage() {
               position: "relative",
               borderRadius: 16,
               overflow: "hidden",
-              background: "#000"
+              background: "#000",
+              border: "1px solid rgba(255,255,255,0.1)",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.35)"
             }}>
               <video
                 src={previewUrl}
@@ -210,8 +213,8 @@ export default function UploadPage() {
                   placeholder="Describe your boxing reel..."
                   style={{
                     width: "100%",
-                    background: "#131313",
-                    border: "1px solid #222",
+                    background: "#111",
+                    border: "1px solid rgba(255,255,255,0.12)",
                     borderRadius: 12,
                     padding: 14,
                     color: "#fff",
@@ -231,9 +234,9 @@ export default function UploadPage() {
                     flex: 1,
                     padding: "16px",
                     borderRadius: 12,
-                    border: "1px solid #333",
+                    border: "1px solid rgba(212,175,55,0.25)",
                     background: "transparent",
-                    color: "#888",
+                    color: "#D4AF37",
                     fontSize: 15,
                     fontWeight: 700,
                     cursor: uploading ? "not-allowed" : "pointer"
@@ -249,7 +252,7 @@ export default function UploadPage() {
                     padding: "16px",
                     borderRadius: 12,
                     border: "none",
-                    background: uploading ? "#6d0f0f" : "#E8002D",
+                    background: uploading ? "#4d1117" : "#C1121F",
                     color: "#fff",
                     fontSize: 15,
                     fontWeight: 700,

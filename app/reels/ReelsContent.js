@@ -27,6 +27,19 @@ async function getFirebase() {
   return { db };
 }
 
+const DEMO_REEL = {
+  id: "demo-reel",
+  isDemo: true,
+  userId: null,
+  username: "gavana",
+  description: "Your first 3 seconds decide everything. Show the combo, the footwork, the finish.",
+  likes: 128,
+  views: 2400,
+  commentsCount: 18,
+  shares: 7,
+  createdAt: new Date().toISOString(),
+};
+
 // Helper function to safely get like count from reel
 function getSafeLikeCount(reel) {
   // Try to use likes field first
@@ -67,36 +80,41 @@ function getSafeCommentsCount(reel) {
   return Math.max(0, count);
 }
 
-// Calculate "For You" score for a reel
-function calculateReelScore(reel, userFollowing) {
-  let score = 0;
-  
-  // Views: +1 point each
-  score += getSafeViewCount(reel);
-  
-  // Likes: +5 points each
-  score += getSafeLikeCount(reel) * 5;
-  
-  // Comments: +3 points each
-  score += getSafeCommentsCount(reel) * 3;
-  
-  // Recent posts get a small boost (within last 7 days)
-  if (reel.createdAt) {
-    const createdDate = reel.createdAt.toDate ? reel.createdAt.toDate() : new Date(reel.createdAt);
-    const daysSinceCreation = (Date.now() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
-    if (daysSinceCreation < 7) {
-      // Boost decreases over time: max +10 for very recent, +2 for 7 days old
-      const recencyBoost = Math.max(2, 10 - (daysSinceCreation * 1.14));
-      score += recencyBoost;
-    }
+function getEngagementScore(reel) {
+  return getSafeLikeCount(reel) + getSafeViewCount(reel);
+}
+
+function getCreatedAtMs(reel) {
+  if (!reel?.createdAt) return 0;
+  const date = reel.createdAt.toDate ? reel.createdAt.toDate() : new Date(reel.createdAt);
+  const time = date.getTime();
+  return Number.isNaN(time) ? 0 : time;
+}
+
+function formatCompactCount(count) {
+  const safeCount = Math.max(0, Number(count) || 0);
+
+  if (safeCount >= 1000000) {
+    return `${(safeCount / 1000000).toFixed(safeCount >= 10000000 ? 0 : 1).replace(/\.0$/, "")}M`;
   }
-  
-  // Follow boost: +10 if user follows this reel owner
-  if (reel.userId && userFollowing.has(reel.userId)) {
-    score += 10;
+
+  if (safeCount >= 1000) {
+    return `${(safeCount / 1000).toFixed(safeCount >= 10000 ? 0 : 1).replace(/\.0$/, "")}K`;
   }
-  
-  return score;
+
+  return String(safeCount);
+}
+
+function formatViews(count) {
+  return `${formatCompactCount(count)} views`;
+}
+
+function sortReelsByEngagement(reels) {
+  return [...reels].sort((a, b) => {
+    const scoreDelta = getEngagementScore(b) - getEngagementScore(a);
+    if (scoreDelta !== 0) return scoreDelta;
+    return getCreatedAtMs(b) - getCreatedAtMs(a);
+  });
 }
 
 export default function ReelsContent() {
@@ -109,10 +127,9 @@ export default function ReelsContent() {
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
-  const [showControls, setShowControls] = useState(true);
+  const [showControls, setShowControls] = useState(false);
   const [userLikes, setUserLikes] = useState(new Set());
   const [userViews, setUserViews] = useState(new Set());
-  const [userFollowing, setUserFollowing] = useState(new Set());
   const [videoLoading, setVideoLoading] = useState({});
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState([]);
@@ -120,6 +137,7 @@ export default function ReelsContent() {
   const [selectedReelId, setSelectedReelId] = useState(null);
   const videoRefs = useRef({});
   const viewTimers = useRef({});
+  const controlsTimer = useRef(null);
   const commentsUnsubscribeRef = useRef(null);
 
   // Fetch reels from Firestore with real-time updates
@@ -129,7 +147,7 @@ export default function ReelsContent() {
     }
 
     if (!user?.uid) {
-      setReels([]);
+      setReels([DEMO_REEL]);
       setLoading(false);
       return;
     }
@@ -160,24 +178,23 @@ export default function ReelsContent() {
             };
           });
           
-          // Sort by "For You" algorithm score
-          const sortedReels = reelsData.sort((a, b) => {
-            const scoreA = calculateReelScore(a, userFollowing);
-            const scoreB = calculateReelScore(b, userFollowing);
-            return scoreB - scoreA; // Sort descending (highest score first)
-          });
+          const sortedReels = reelsData.length > 0
+            ? sortReelsByEngagement(reelsData)
+            : [DEMO_REEL];
           
           setReels(sortedReels);
+          setCurrentIndex(0);
           setLoading(false);
         }, (err) => {
           if (!isActive) return;
           console.error("Failed to listen for reels:", err);
-          setReels([]);
+          setReels([DEMO_REEL]);
           setLoading(false);
         });
       } catch (err) {
         if (!isActive) return;
         console.error("Failed to load reels:", err);
+        setReels([DEMO_REEL]);
         setLoading(false);
       }
     }
@@ -191,7 +208,7 @@ export default function ReelsContent() {
         unsubscribe();
       }
     };
-  }, [authLoading, user?.uid, userFollowing]);
+  }, [authLoading, user?.uid]);
 
   // Fetch user's likes
   useEffect(() => {
@@ -280,7 +297,7 @@ export default function ReelsContent() {
     if (!user || !reels.length || currentIndex < 0 || currentIndex >= reels.length) return;
     
     const currentReel = reels[currentIndex];
-    if (!currentReel || !currentReel.id) return;
+    if (!currentReel || !currentReel.id || currentReel.isDemo) return;
     
     // If already viewed, don't track again
     if (userViews.has(currentReel.id)) return;
@@ -319,11 +336,11 @@ export default function ReelsContent() {
         });
         
         // Update reel data locally
-        setReels(prev => prev.map(reel => 
+        setReels(prev => sortReelsByEngagement(prev.map(reel => 
           reel.id === currentReel.id 
             ? { ...reel, views: getSafeViewCount(reel) + 1 }
             : reel
-        ));
+        )));
       } catch (err) {
         console.error("Failed to record view:", err);
       }
@@ -363,11 +380,61 @@ export default function ReelsContent() {
     if (video) {
       if (video.paused) {
         video.play();
+        setShowControls(false);
       } else {
         video.pause();
+        setShowControls(true);
       }
     }
   }, [currentIndex, reels]);
+
+  const clearControlsTimer = useCallback(() => {
+    if (controlsTimer.current) {
+      clearTimeout(controlsTimer.current);
+      controlsTimer.current = null;
+    }
+  }, []);
+
+  const scheduleControlsHide = useCallback(() => {
+    clearControlsTimer();
+    const video = videoRefs.current[reels[currentIndex]?.id];
+
+    if (video && !video.paused) {
+      controlsTimer.current = setTimeout(() => {
+        setShowControls(false);
+        controlsTimer.current = null;
+      }, 2500);
+    }
+  }, [clearControlsTimer, currentIndex, reels]);
+
+  const revealControls = useCallback(() => {
+    setShowControls(true);
+    scheduleControlsHide();
+  }, [scheduleControlsHide]);
+
+  useEffect(() => {
+    const currentReel = reels[currentIndex];
+    if (!currentReel || currentReel.isDemo) return;
+
+    const video = videoRefs.current[currentReel.id];
+    if (!video) return;
+
+    video.muted = true;
+    video.playsInline = true;
+    video.play().catch(() => {
+      // Browsers can still block autoplay; the tap-to-play overlay remains available.
+    });
+    setShowControls(true);
+    scheduleControlsHide();
+  }, [reels, currentIndex, scheduleControlsHide]);
+
+  useEffect(() => {
+    return () => {
+      if (controlsTimer.current) {
+        clearTimeout(controlsTimer.current);
+      }
+    };
+  }, []);
 
   // Toggle mute
   const toggleMute = useCallback(() => {
@@ -376,6 +443,12 @@ export default function ReelsContent() {
 
   // Handle like/unlike
   const handleLike = useCallback(async (reelId) => {
+    const targetReel = reels.find((reel) => reel.id === reelId);
+    if (targetReel?.isDemo) {
+      router.push(`/${currentLocale}/upload`);
+      return;
+    }
+
     if (!user) {
       router.push(`/${currentLocale}/login`);
       return;
@@ -402,11 +475,11 @@ export default function ReelsContent() {
           return newLikes;
         });
         
-        setReels(prev => prev.map(reel => 
+        setReels(prev => sortReelsByEngagement(prev.map(reel => 
           reel.id === reelId 
             ? { ...reel, likes: Math.max(0, getSafeLikeCount(reel) - 1) }
             : reel
-        ));
+        )));
       } else {
         const likedReel = reels.find((reel) => reel.id === reelId);
         // Like: add like and increment count
@@ -430,11 +503,11 @@ export default function ReelsContent() {
           return newLikes;
         });
         
-        setReels(prev => prev.map(reel => 
+        setReels(prev => sortReelsByEngagement(prev.map(reel => 
           reel.id === reelId 
             ? { ...reel, likes: getSafeLikeCount(reel) + 1 }
             : reel
-        ));
+        )));
       }
     } catch (err) {
       console.error("Failed to toggle like:", err);
@@ -443,6 +516,22 @@ export default function ReelsContent() {
 
   // Handle opening comments
   const handleOpenComments = useCallback(async (reelId) => {
+    const targetReel = reels.find((reel) => reel.id === reelId);
+    if (targetReel?.isDemo) {
+      setSelectedReelId(reelId);
+      setShowComments(true);
+      setNewComment("");
+      setComments([
+        {
+          id: "demo-comment",
+          username: "coach",
+          userId: null,
+          text: "Hook them early: start with the punch, then show the lesson.",
+        },
+      ]);
+      return;
+    }
+
     if (!user?.uid) {
       router.push(`/${currentLocale}/login`);
       return;
@@ -480,16 +569,17 @@ export default function ReelsContent() {
     } catch (err) {
       console.error("Failed to load comments:", err);
     }
-  }, [user?.uid, router, currentLocale]);
+  }, [user?.uid, router, currentLocale, reels]);
 
   // Handle adding comment
   const handleAddComment = useCallback(async () => {
     if (!user || !newComment.trim() || !selectedReelId) return;
+    const selectedReel = reels.find((reel) => reel.id === selectedReelId);
+    if (selectedReel?.isDemo) return;
 
     try {
       const { db } = await getFirebase();
       const { collection, addDoc, serverTimestamp, increment, doc, updateDoc } = await import("firebase/firestore");
-      const selectedReel = reels.find((reel) => reel.id === selectedReelId);
 
       // Add comment to subcollection
       await addDoc(collection(db, "reels", selectedReelId, "comments"), {
@@ -586,22 +676,8 @@ export default function ReelsContent() {
 
   return (
     <div style={styles.container}>
-      {/* Header - TikTok style top bar */}
-      <div style={styles.header}>
-        <div style={styles.headerTabs}>
-          <span style={styles.headerTabActive}>Reels</span>
-          <span style={styles.headerTab}>Following</span>
-          <span 
-            style={styles.headerTab} 
-            onClick={() => router.push(`/${currentLocale}/coach`)}
-          >
-            Coach
-          </span>
-        </div>
-      </div>
-
       {/* Reels Feed */}
-      <div style={styles.feed} onScroll={handleScroll}>
+      <div style={styles.feed} className="reels-feed" onScroll={handleScroll}>
         {reels.map((reel, index) => (
           <div 
             key={reel.id} 
@@ -611,92 +687,137 @@ export default function ReelsContent() {
             }}
           >
             {/* Video Loading Spinner */}
-            {videoLoading[reel.id] && (
+            {!reel.isDemo && videoLoading[reel.id] && (
               <div style={styles.videoLoadingOverlay}>
                 <div style={styles.spinner}></div>
               </div>
             )}
             
-            {/* Video - lazy load only current and nearby videos */}
-            <video
-              ref={(el) => { if (el) videoRefs.current[reel.id] = el; }}
-              src={reel.videoUrl}
-              style={styles.video}
-              autoPlay={index === currentIndex}
-              loop
-              muted={isMuted}
-              playsInline
-              onClick={togglePlay}
-              onLoadStart={() => handleVideoLoadStart(reel.id)}
-              onCanPlay={() => handleVideoLoaded(reel.id)}
-              preload={index === currentIndex ? "auto" : "none"}
-            />
+            {reel.isDemo ? (
+              <DemoReelVisual
+                onUpload={() => router.push(`/${currentLocale}/upload`)}
+              />
+            ) : (
+              <video
+                ref={(el) => {
+                  if (!el) return;
+                  videoRefs.current[reel.id] = el;
+                  if (index === 0 && currentIndex === 0) {
+                    el.muted = true;
+                    el.playsInline = true;
+                    el.play().catch(() => {});
+                  }
+                }}
+                src={reel.videoUrl}
+                style={styles.video}
+                className={index === currentIndex ? "cinematic-video" : ""}
+                autoPlay={index === currentIndex}
+                loop
+                muted={isMuted}
+                playsInline
+                onClick={() => {
+                  if (showControls) {
+                    togglePlay();
+                  } else {
+                    revealControls();
+                  }
+                }}
+                onLoadStart={() => handleVideoLoadStart(reel.id)}
+                onLoadedMetadata={() => {
+                  if (index === 0 && currentIndex === 0) {
+                    videoRefs.current[reel.id]?.play().catch(() => {});
+                  }
+                }}
+                onCanPlay={() => {
+                  handleVideoLoaded(reel.id);
+                  if (index === 0 && currentIndex === 0) {
+                    videoRefs.current[reel.id]?.play().catch(() => {});
+                  }
+                }}
+                preload={index <= 1 ? "auto" : "metadata"}
+              />
+            )}
 
-            {/* Overlay Info */}
-            <div style={styles.overlay}>
-              {/* Left side info */}
-              <div style={styles.info}>
-                <div 
-                  style={{...styles.username, cursor: "pointer"}}
-                  onClick={() => {
+            <div style={styles.vignette} />
+            <div style={styles.bottomGradient} />
+
+            <div style={styles.info}>
+              <div
+                style={{...styles.username, cursor: reel.userId ? "pointer" : "default"}}
+                onClick={() => {
+                  if (reel.userId) {
                     router.push(`/${currentLocale}/profile/${reel.userId}`);
-                  }}
-                >
-                  @{reel.username || "user"}
-                </div>
-                <div style={styles.description}>{reel.description || reel.caption || ""}</div>
-                <div style={styles.date}>{formatDate(reel.createdAt)}</div>
+                  }
+                }}
+              >
+                @{reel.username || "user"}
               </div>
-
-              {/* Right side actions - TikTok style */}
-              <div style={styles.actions}>
-                <div 
-                  style={styles.actionItem} 
-                  onClick={() => handleLike(reel.id)}
-                >
-                  <div style={{
-                    ...styles.actionCircle,
-                    ...(userLikes.has(reel.id) ? styles.actionCircleLiked : {})
-                  }}>
-                    <span style={{
-                      ...styles.actionIcon,
-                      ...(userLikes.has(reel.id) ? styles.actionIconLiked : {})
-                    }}>
-                      {userLikes.has(reel.id) ? "❤️" : "♥"}
-                    </span>
-                  </div>
-                  <span style={styles.actionText}>{getSafeLikeCount(reel)}</span>
+              {(reel.description || reel.caption) && (
+                <div style={styles.description}>
+                  {reel.description || reel.caption}
                 </div>
-                <div style={styles.actionItem} onClick={() => handleOpenComments(reel.id)}>
-                  <div style={styles.actionCircle}>
-                    <span style={styles.actionIcon}>💬</span>
-                  </div>
-                  <span style={styles.actionText}>{reel.commentsCount || 0}</span>
-                </div>
-                <div style={styles.actionItem}>
-                  <div style={styles.actionCircle}>
-                    <span style={styles.actionIcon}>↗️</span>
-                  </div>
-                  <span style={styles.actionText}>{reel.shares || 0}</span>
-                </div>
-                <div style={styles.actionItem}>
-                  <div style={styles.actionCircle}>
-                    <span style={styles.actionIcon}>👁️</span>
-                  </div>
-                  <span style={styles.actionText}>{getSafeViewCount(reel)}</span>
-                </div>
+              )}
+              <div style={styles.metaLine}>
+                <span>{formatViews(getSafeViewCount(reel))}</span>
+                <span>{formatDate(reel.createdAt)}</span>
               </div>
             </div>
 
+            <div style={styles.actions}>
+              <div
+                className="reel-action"
+                style={{
+                  ...styles.actionItem,
+                  ...(userLikes.has(reel.id) ? styles.actionItemLiked : {})
+                }}
+                onClick={() => handleLike(reel.id)}
+              >
+                <div
+                  className="reel-action-circle"
+                  style={{
+                    ...styles.actionCircle,
+                    ...(userLikes.has(reel.id) ? styles.actionCircleLiked : {})
+                  }}
+                >
+                  <span style={{
+                    ...styles.actionIcon,
+                    ...(userLikes.has(reel.id) ? styles.actionIconLiked : {})
+                  }}>
+                    <LikeIcon filled={userLikes.has(reel.id)} />
+                  </span>
+                </div>
+                <span style={styles.actionText}>{formatCompactCount(getSafeLikeCount(reel))}</span>
+              </div>
+              <div className="reel-action" style={styles.actionItem} onClick={() => handleOpenComments(reel.id)}>
+                <div className="reel-action-circle" style={styles.actionCircle}>
+                  <CommentIcon />
+                </div>
+                <span style={styles.actionText}>{formatCompactCount(getSafeCommentsCount(reel))}</span>
+              </div>
+              <div className="reel-action" style={styles.actionItem}>
+                <div className="reel-action-circle" style={styles.actionCircle}>
+                  <ShareIcon />
+                </div>
+                <span style={styles.actionText}>{formatCompactCount(reel.shares || 0)}</span>
+              </div>
+              <div className="reel-action" style={styles.actionItem}>
+                <div className="reel-action-circle" style={styles.actionCircle}>
+                  <ViewIcon />
+                </div>
+                <span style={styles.actionText}>{formatCompactCount(getSafeViewCount(reel))}</span>
+              </div>
+            </div>
             {/* Mute button */}
-            <button style={styles.muteBtn} onClick={toggleMute}>
-              {isMuted ? "🔇" : "🔊"}
-            </button>
+            {!reel.isDemo && showControls && (
+              <button style={styles.muteBtn} onClick={toggleMute}>
+                {isMuted ? "Mute" : "Sound"}
+              </button>
+            )}
 
             {/* Play/Pause indicator */}
-            {showControls && index === currentIndex && (
+            {!reel.isDemo && showControls && index === currentIndex && (
               <div style={styles.playIndicator}>
-                {videoRefs.current[reel.id]?.paused ? "▶️" : ""}
+                {videoRefs.current[reel.id]?.paused ? "Play" : ""}
               </div>
             )}
           </div>
@@ -710,7 +831,7 @@ export default function ReelsContent() {
           <div style={styles.commentsContent}>
             <div style={styles.commentsHeader}>
               <h3 style={styles.commentsTitle}>Comments</h3>
-              <button style={styles.commentsClose} onClick={handleCloseComments}>✕</button>
+              <button style={styles.commentsClose} onClick={handleCloseComments}>x</button>
             </div>
 
             <div style={styles.commentsList}>
@@ -766,13 +887,147 @@ export default function ReelsContent() {
         </div>
       )}
 
-      <BottomNav router={router} user={user} currentLocale={currentLocale} />
+      {showControls && (
+        <BottomNav
+          router={router}
+          user={user}
+          currentLocale={currentLocale}
+          onInteractStart={clearControlsTimer}
+          onInteractEnd={scheduleControlsHide}
+        />
+      )}
+      <style>{`
+        @keyframes likePop {
+          0% { transform: scale(1); }
+          45% { transform: scale(1.15); }
+          100% { transform: scale(1); }
+        }
+
+        @keyframes reelEnter {
+          from { opacity: 0.72; transform: scale(1.012); }
+          to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(14px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeScale {
+          from { opacity: 0; transform: scale(0.96); }
+          to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes cinematicZoom {
+          from { transform: scale(1); }
+          to { transform: scale(1.05); }
+        }
+
+        .cinematic-video {
+          animation: cinematicZoom 12s ease-out forwards;
+        }
+
+        .reels-feed {
+          scrollbar-width: none;
+        }
+
+        .reels-feed::-webkit-scrollbar {
+          display: none;
+        }
+
+        .reel-action:active {
+          animation: iconTap 220ms ease;
+        }
+
+        .reel-action:active .reel-action-circle {
+          transform: scale(1.15);
+        }
+
+        @keyframes iconTap {
+          0% { transform: scale(1); }
+          45% { transform: scale(1.15); }
+          100% { transform: scale(1); }
+        }
+
+        [style*="cursor: pointer"]:active {
+          transform: scale(0.96);
+        }
+      `}</style>
+    </div>
+  );
+}
+
+function LikeIcon({ filled }) {
+  return (
+    <svg style={styles.actionSvg} viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M20.8 4.9c-2-2-5.2-1.8-7 .4L12 7.1l-1.8-1.8c-1.8-2.2-5-2.4-7-.4-2.2 2.2-2 5.7.4 8.1l8.4 7.8 8.4-7.8c2.4-2.4 2.6-5.9.4-8.1Z"
+        fill={filled ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeWidth="1.45"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function CommentIcon() {
+  return (
+    <svg style={styles.actionSvg} viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M4.8 5.4h14.4v10.1H9.5L5 19.2v-3.7H4.8V5.4Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.45"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ShareIcon() {
+  return (
+    <svg style={styles.actionSvg} viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M7 12.5 18.5 5l-3 14-3.9-4.3-4.6-2.2Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.45"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ViewIcon() {
+  return (
+    <svg style={styles.actionSvg} viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M2.8 12s3.4-5.5 9.2-5.5 9.2 5.5 9.2 5.5-3.4 5.5-9.2 5.5S2.8 12 2.8 12Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.45"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="12" r="2.2" fill="none" stroke="currentColor" strokeWidth="1.45" />
+    </svg>
+  );
+}
+
+function DemoReelVisual() {
+  return (
+    <div style={styles.demoReel}>
+      <div style={styles.demoVignette} />
     </div>
   );
 }
 
 // Bottom Nav component
-function BottomNav({ router, user, currentLocale }) {
+function BottomNav({ router, user, currentLocale, onInteractStart, onInteractEnd }) {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
@@ -824,22 +1079,29 @@ function BottomNav({ router, user, currentLocale }) {
   }, [user?.uid]);
   
   return (
-    <div style={styles.bottomNav}>
+    <div
+      style={styles.bottomNav}
+      onPointerEnter={onInteractStart}
+      onPointerDown={onInteractStart}
+      onPointerLeave={onInteractEnd}
+      onPointerUp={onInteractEnd}
+      onPointerCancel={onInteractEnd}
+    >
       <div style={styles.navItem} onClick={() => router.push(`/${currentLocale}`)}>
-        <span style={styles.navIcon}>🏠</span>
+        <NavHomeIcon />
         <span style={styles.navLabel}>Home</span>
       </div>
       <div style={styles.navItemActive}>
-        <span style={styles.navIconActive}>🎬</span>
+        <NavReelsIcon active />
         <span style={styles.navLabelActive}>Reels</span>
       </div>
       <div style={styles.navItem} onClick={() => router.push(`/${currentLocale}/coach`)}>
-        <span style={styles.navIcon}>🤖</span>
+        <NavCoachIcon />
         <span style={styles.navLabel}>Coach</span>
       </div>
       <div style={styles.navItem} onClick={() => router.push(`/${currentLocale}/notifications`)}>
         <span style={styles.navIconWrap}>
-          <span style={styles.navIcon}>!</span>
+          <NavBellIcon />
           {unreadCount > 0 && (
             <span style={styles.navBadge}>{unreadCount > 9 ? "9+" : unreadCount}</span>
           )}
@@ -847,7 +1109,7 @@ function BottomNav({ router, user, currentLocale }) {
         <span style={styles.navLabel}>Alerts</span>
       </div>
       <div style={styles.navUpload} onClick={() => router.push(`/${currentLocale}/upload`)}>
-        <span style={styles.navUploadIcon}>+</span>
+        <NavPlusIcon />
       </div>
       <div style={styles.navItem} onClick={() => {
         if (user?.uid) {
@@ -856,10 +1118,70 @@ function BottomNav({ router, user, currentLocale }) {
           router.push(`/${currentLocale}/login`);
         }
       }}>
-        <span style={styles.navIcon}>👤</span>
+        <NavProfileIcon />
         <span style={styles.navLabel}>Profile</span>
       </div>
     </div>
+  );
+}
+
+function NavSvg({ children, active = false }) {
+  return (
+    <svg style={active ? styles.navSvgActive : styles.navSvg} viewBox="0 0 24 24" aria-hidden="true">
+      {children}
+    </svg>
+  );
+}
+
+function NavHomeIcon() {
+  return (
+    <NavSvg>
+      <path d="M4 10.8 12 4l8 6.8v8.7h-5.1v-5.2H9.1v5.2H4v-8.7Z" />
+    </NavSvg>
+  );
+}
+
+function NavReelsIcon({ active }) {
+  return (
+    <NavSvg active={active}>
+      <rect x="5" y="4" width="14" height="16" rx="3" />
+      <path d="m11 9 4 3-4 3V9Z" />
+    </NavSvg>
+  );
+}
+
+function NavCoachIcon() {
+  return (
+    <NavSvg>
+      <path d="M7.2 8.2h9.6a3.8 3.8 0 0 1 3.8 3.8v1.2a3.8 3.8 0 0 1-3.8 3.8H8.6L4 20v-8a3.8 3.8 0 0 1 3.2-3.8Z" />
+      <path d="M9 12h.1M15 12h.1" />
+    </NavSvg>
+  );
+}
+
+function NavBellIcon() {
+  return (
+    <NavSvg>
+      <path d="M18 10.8V9a6 6 0 0 0-12 0v1.8c0 2.8-1.4 3.7-2.2 4.7h16.4c-.8-1-2.2-1.9-2.2-4.7Z" />
+      <path d="M9.7 18.7a2.5 2.5 0 0 0 4.6 0" />
+    </NavSvg>
+  );
+}
+
+function NavPlusIcon() {
+  return (
+    <svg style={styles.navUploadSvg} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
+function NavProfileIcon() {
+  return (
+    <NavSvg>
+      <circle cx="12" cy="8.3" r="3.3" />
+      <path d="M5.5 20a6.5 6.5 0 0 1 13 0" />
+    </NavSvg>
   );
 }
 
@@ -881,14 +1203,14 @@ const styles = {
     justifyContent: "center",
     gap: 16,
     height: "100vh",
-    color: "#fff",
+    color: "var(--text-primary)",
     fontSize: 16,
   },
   spinner: {
     width: 40,
     height: 40,
     border: "3px solid rgba(255,255,255,0.3)",
-    borderTopColor: "#fe2c55",
+    borderTopColor: "var(--primary-red)",
     borderRadius: "50%",
     animation: "spin 1s linear infinite",
   },
@@ -898,31 +1220,21 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     height: "100vh",
-    color: "#fff",
+    color: "var(--text-primary)",
     gap: 16,
   },
   uploadBtn: {
-    background: "#fe2c55",
-    color: "#fff",
+    background: "var(--primary-red)",
+    color: "var(--text-primary)",
     border: "none",
-    borderRadius: 4,
-    padding: "12px 24px",
+    borderRadius: 10,
+    padding: "12px var(--space-6)",
     fontSize: 14,
     fontWeight: 600,
     cursor: "pointer",
   },
   header: {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 100,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "12px 20px",
-    background: "rgba(0,0,0,0.9)",
-    borderBottom: "1px solid rgba(255,255,255,0.1)",
+    display: "none",
   },
   headerTabs: {
     display: "flex",
@@ -935,10 +1247,10 @@ const styles = {
     cursor: "pointer",
   },
   headerTabActive: {
-    color: "#fff",
+    color: "var(--text-primary)",
     fontSize: 17,
     fontWeight: 700,
-    borderBottom: "2px solid #fe2c55",
+    borderBottom: "2px solid #C1121F",
     paddingBottom: 4,
   },
   feed: {
@@ -946,14 +1258,16 @@ const styles = {
     overflowY: "scroll",
     scrollSnapType: "y mandatory",
     scrollBehavior: "smooth",
-    paddingBottom: 60,
+    paddingBottom: 0,
   },
   videoContainer: {
     position: "relative",
     width: "100vw",
     height: "100vh",
+    overflow: "hidden",
     scrollSnapAlign: "start",
     scrollSnapStop: "always",
+    animation: "reelEnter 220ms ease both",
   },
   activeVideo: {
     zIndex: 1,
@@ -974,93 +1288,284 @@ const styles = {
     width: "100%",
     height: "100%",
     objectFit: "cover",
+    background: "var(--background)",
+    filter: "contrast(1.08) saturate(1.04)",
+    transformOrigin: "center center",
+  },
+  vignette: {
+    position: "absolute",
+    inset: 0,
+    pointerEvents: "none",
+    background: "radial-gradient(ellipse at center, transparent 42%, rgba(0,0,0,0.22) 72%, rgba(0,0,0,0.56) 100%)",
+    zIndex: 2,
+  },
+  demoReel: {
+    position: "absolute",
+    inset: 0,
+    overflow: "hidden",
     background: "#000",
+  },
+  demoVignette: {
+    position: "absolute",
+    inset: 0,
+    background: "radial-gradient(circle at 50% 38%, rgba(255,255,255,0.08), transparent 34%), linear-gradient(to bottom, rgba(0,0,0,0.15), #000)",
+  },
+  demoGrid: {
+    display: "none",
+  },
+  demoSpotlight: {
+    display: "none",
+  },
+  demoBag: {
+    display: "none",
+  },
+  demoFighter: {
+    display: "none",
+  },
+  demoHead: {
+    position: "absolute",
+    left: 76,
+    top: 0,
+    width: 54,
+    height: 54,
+    borderRadius: "50%",
+    background: "linear-gradient(145deg, #D4AF37, #70501a)",
+  },
+  demoTorso: {
+    position: "absolute",
+    left: 58,
+    top: 60,
+    width: 92,
+    height: 148,
+    borderRadius: "42px 42px 24px 24px",
+    background: "linear-gradient(160deg, #1c1c1c, #530916)",
+    border: "1px solid rgba(255,255,255,0.08)",
+  },
+  demoGloveLead: {
+    position: "absolute",
+    right: 0,
+    top: 76,
+    width: 86,
+    height: 58,
+    borderRadius: "34px 30px 28px 28px",
+    background: "linear-gradient(145deg, #C1121F, #770111)",
+    boxShadow: "0 20px 48px rgba(0,0,0,0.36)",
+  },
+  demoGloveRear: {
+    position: "absolute",
+    left: 8,
+    top: 86,
+    width: 66,
+    height: 54,
+    borderRadius: "30px",
+    background: "linear-gradient(145deg, #D4AF37, #70501a)",
+  },
+  demoHook: {
+    position: "absolute",
+    left: 18,
+    right: 92,
+    bottom: 132,
+    display: "grid",
+    gap: 8,
+  },
+  demoHookKicker: {
+    color: "var(--accent-gold)",
+    fontSize: 11,
+    fontWeight: 900,
+    letterSpacing: 1.8,
+    textTransform: "uppercase",
+  },
+  demoHookTitle: {
+    color: "var(--text-primary)",
+    fontSize: 34,
+    lineHeight: 1,
+    fontWeight: 950,
+    letterSpacing: 0,
+  },
+  demoHookText: {
+    color: "rgba(255,255,255,0.72)",
+    fontSize: 14,
+    lineHeight: 1.45,
+  },
+  demoUploadMessage: {
+    marginTop: 8,
+    color: "var(--text-primary)",
+    fontSize: 15,
+    fontWeight: 900,
+    textShadow: "0 2px 10px rgba(0,0,0,0.9)",
+  },
+  demoUploadButton: {
+    width: 128,
+    minHeight: 42,
+    marginTop: 4,
+    border: "none",
+    borderRadius: 8,
+    background: "var(--primary-red)",
+    color: "var(--text-primary)",
+    fontSize: 15,
+    fontWeight: 900,
+    cursor: "pointer",
+    boxShadow: "0 14px 32px rgba(0,0,0,0.34)",
   },
   overlay: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    padding: "20px 16px 90px",
-    background: "linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%)",
+    padding: "20px 18px calc(86px + env(safe-area-inset-bottom))",
+    background: "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.38) 46%, transparent 78%)",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "flex-end",
   },
+  bottomGradient: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: "64vh",
+    pointerEvents: "none",
+    background: "linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.68) 38%, rgba(0,0,0,0.32) 68%, transparent 100%)",
+    zIndex: 2,
+  },
   info: {
-    flex: 1,
-    maxWidth: "75%",
+    position: "absolute",
+    left: "max(18px, env(safe-area-inset-left))",
+    right: 96,
+    bottom: "calc(134px + env(safe-area-inset-bottom))",
+    maxWidth: 520,
+    animation: "fadeUp 420ms ease both",
+    zIndex: 4,
   },
   username: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: 700,
-    marginBottom: 8,
-    textShadow: "0 1px 2px rgba(0,0,0,0.5)",
+    color: "var(--text-primary)",
+    fontSize: 29,
+    fontWeight: 1000,
+    marginBottom: 14,
+    letterSpacing: 0,
+    lineHeight: 1.02,
+    textShadow: "0 5px 28px rgba(0,0,0,0.98), 0 1px 2px rgba(0,0,0,1)",
+  },
+  viewProof: {
+    color: "rgba(255,255,255,0.82)",
+    fontSize: 13,
+    fontWeight: 800,
+    marginBottom: 10,
+    textShadow: "0 2px 8px rgba(0,0,0,0.95)",
   },
   description: {
-    color: "#fff",
-    fontSize: 14,
-    lineHeight: 1.4,
-    marginBottom: 8,
-    textShadow: "0 1px 2px rgba(0,0,0,0.5)",
+    color: "var(--text-primary)",
+    fontSize: 17,
+    lineHeight: 1.35,
+    fontWeight: 650,
+    marginBottom: 14,
+    maxWidth: 500,
+    textShadow: "0 4px 22px rgba(0,0,0,0.96), 0 1px 2px rgba(0,0,0,1)",
+    letterSpacing: 0,
+    display: "-webkit-box",
+    WebkitLineClamp: 3,
+    WebkitBoxOrient: "vertical",
+    overflow: "hidden",
   },
-  date: {
-    color: "rgba(255,255,255,0.7)",
-    fontSize: 12,
+  metaLine: {
+    display: "flex",
+    gap: 14,
+    flexWrap: "wrap",
+    color: "rgba(170,170,170,0.9)",
+    fontSize: 13,
+    fontWeight: 800,
+    textShadow: "0 4px 18px rgba(0,0,0,0.98)",
   },
   actions: {
+    position: "absolute",
+    right: "max(12px, env(safe-area-inset-right))",
+    top: "50%",
+    transform: "translateY(-50%)",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     gap: 20,
-    paddingBottom: 8,
+    padding: "14px 8px",
+    borderRadius: 999,
+    background: "var(--glass)",
+    border: "1px solid var(--line)",
+    boxShadow: "var(--shadow-soft), inset 0 1px 0 rgba(255,255,255,0.08)",
+    backdropFilter: "blur(18px) saturate(140%)",
+    WebkitBackdropFilter: "blur(18px) saturate(140%)",
+    animation: "fadeScale 220ms ease both",
+    zIndex: 5,
   },
   actionItem: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: 4,
+    gap: 8,
     cursor: "pointer",
+    WebkitTapHighlightColor: "transparent",
+    userSelect: "none",
+    opacity: 0.82,
+    transition: "transform var(--motion-fast), opacity var(--motion-fast), filter var(--motion-fast)",
+  },
+  actionItemLiked: {
+    animation: "likePop 340ms ease",
+    opacity: 1,
   },
   actionCircle: {
     width: 44,
     height: 44,
     borderRadius: "50%",
-    background: "rgba(255,255,255,0.15)",
+    background: "transparent",
+    border: "1px solid transparent",
+    backdropFilter: "none",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 2,
-    transition: "transform 0.2s ease",
+    boxShadow: "none",
+    transition: "transform var(--motion-fast), background var(--motion-fast), border-color var(--motion-fast), box-shadow var(--motion-fast)",
   },
   actionCircleLiked: {
-    background: "rgba(254, 44, 85, 0.2)",
-    transform: "scale(1.1)",
+    background: "rgba(193, 18, 31, 0.12)",
+    borderColor: "rgba(193,18,31,0.32)",
+    boxShadow: "var(--shadow-glow-red)",
   },
   actionIcon: {
-    fontSize: 24,
+    color: "var(--text-primary)",
+    fontSize: 0,
+    fontWeight: 300,
+    lineHeight: 1,
+    textShadow: "0 2px 8px rgba(0,0,0,0.9)",
   },
   actionIconLiked: {
-    transform: "scale(1.2)",
+    color: "var(--primary-red)",
+    transform: "scale(1.08)",
+    textShadow: "0 0 22px rgba(193,18,31,0.75), 0 2px 8px rgba(0,0,0,0.9)",
+  },
+  actionSvg: {
+    width: 28,
+    height: 28,
+    display: "block",
+    color: "currentColor",
+    filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.85))",
   },
   actionText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: 600,
-    textShadow: "0 1px 2px rgba(0,0,0,0.5)",
+    color: "var(--text-primary)",
+    fontSize: 11,
+    fontWeight: 800,
+    textShadow: "0 2px 8px rgba(0,0,0,0.95)",
   },
   muteBtn: {
     position: "absolute",
-    top: "50%",
-    right: 12,
-    transform: "translateY(-50%)",
-    background: "rgba(255,255,255,0.2)",
-    border: "none",
-    borderRadius: "50%",
-    width: 36,
-    height: 36,
-    fontSize: 18,
+    top: "calc(16px + env(safe-area-inset-top))",
+    right: "max(14px, env(safe-area-inset-right))",
+    background: "rgba(0,0,0,0.28)",
+    border: "1px solid rgba(255,255,255,0.16)",
+    borderRadius: 999,
+    minWidth: 56,
+    height: 32,
+    color: "var(--text-primary)",
+    fontSize: 11,
+    fontWeight: 900,
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
@@ -1077,38 +1582,79 @@ const styles = {
   },
   bottomNav: {
     position: "fixed",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 56,
-    background: "#000",
-    borderTop: "1px solid rgba(255,255,255,0.1)",
+    bottom: "calc(6px + env(safe-area-inset-bottom))",
+    left: "50%",
+    width: "min(calc(100vw - 28px), 440px)",
+    minHeight: 58,
+    transform: "translateX(-50%)",
+    background: "var(--glass)",
+    border: "1px solid var(--line)",
+    borderRadius: 24,
+    boxShadow: "var(--shadow-soft), inset 0 1px 0 rgba(255,255,255,0.11)",
+    backdropFilter: "blur(30px) saturate(165%)",
+    WebkitBackdropFilter: "blur(30px) saturate(165%)",
     display: "flex",
     alignItems: "center",
-    justifyContent: "space-around",
+    justifyContent: "center",
+    gap: 7,
     zIndex: 100,
-    paddingBottom: "env(safe-area-inset-bottom)",
+    padding: "6px 8px",
   },
   navItem: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    gap: 2,
+    gap: 3,
     cursor: "pointer",
-    padding: "8px 16px",
+    padding: "6px 6px",
+    minWidth: 43,
+    minHeight: 44,
+    borderRadius: 16,
+    color: "rgba(255,255,255,0.62)",
+    WebkitTapHighlightColor: "transparent",
+    transition: "color var(--motion-fast), transform var(--motion-fast), background var(--motion-fast), opacity var(--motion-fast)",
   },
   navItemActive: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    gap: 2,
+    gap: 3,
     cursor: "pointer",
-    padding: "8px 16px",
+    padding: "6px 8px",
+    minWidth: 48,
+    minHeight: 44,
+    borderRadius: 16,
+    color: "var(--text-primary)",
+    background: "rgba(193,18,31,0.14)",
+    boxShadow: "0 0 20px rgba(193,18,31,0.24), inset 0 0 0 1px rgba(193,18,31,0.2)",
+    WebkitTapHighlightColor: "transparent",
+    transition: "color var(--motion-fast), transform var(--motion-fast), background var(--motion-fast), box-shadow var(--motion-fast)",
   },
   navIcon: {
-    fontSize: 24,
+    fontSize: 20,
+  },
+  navSvg: {
+    width: 20,
+    height: 20,
+    display: "block",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.9,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+  },
+  navSvgActive: {
+    width: 20,
+    height: 20,
+    display: "block",
+    fill: "none",
+    stroke: "#fff",
+    strokeWidth: 2,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    filter: "drop-shadow(0 0 8px rgba(193,18,31,0.72))",
   },
   navIconWrap: {
     position: "relative",
@@ -1117,51 +1663,69 @@ const styles = {
     justifyContent: "center",
     minWidth: 24,
     minHeight: 24,
-    color: "#fff",
+    color: "currentColor",
   },
   navBadge: {
     position: "absolute",
-    top: -6,
-    right: -10,
+    top: -7,
+    right: -9,
     minWidth: 16,
     height: 16,
     padding: "0 4px",
     borderRadius: 8,
-    background: "#fe2c55",
-    color: "#fff",
-    border: "1px solid #000",
+    background: "var(--primary-red)",
+    color: "var(--text-primary)",
+    border: "1px solid rgba(0,0,0,0.9)",
     fontSize: 10,
     fontWeight: 700,
     lineHeight: "14px",
     textAlign: "center",
   },
   navIconActive: {
-    fontSize: 26,
+    fontSize: 21,
   },
   navLabel: {
-    color: "rgba(255,255,255,0.7)",
-    fontSize: 10,
-    fontWeight: 500,
+    color: "currentColor",
+    fontSize: 8,
+    fontWeight: 700,
+    letterSpacing: 0,
   },
   navLabelActive: {
-    color: "#fff",
-    fontSize: 10,
-    fontWeight: 600,
+    color: "var(--text-primary)",
+    fontSize: 8,
+    fontWeight: 800,
+    letterSpacing: 0,
+    textShadow: "0 0 12px rgba(193,18,31,0.65)",
   },
   navUpload: {
-    width: 44,
-    height: 32,
-    background: "#fe2c55",
-    borderRadius: 6,
+    width: 42,
+    height: 42,
+    background: "rgba(193,18,31,0.82)",
+    border: "1px solid rgba(255,255,255,0.14)",
+    borderRadius: 16,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     cursor: "pointer",
+    boxShadow: "0 8px 22px rgba(193,18,31,0.24)",
+    WebkitTapHighlightColor: "transparent",
+    transition: "transform 180ms ease, box-shadow 180ms ease, background 180ms ease",
   },
   navUploadIcon: {
-    color: "#fff",
+    color: "var(--text-primary)",
     fontSize: 22,
     fontWeight: 300,
+  },
+  navUploadSvg: {
+    width: 21,
+    height: 21,
+    display: "block",
+    fill: "none",
+    stroke: "#fff",
+    strokeWidth: 2,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.35))",
   },
   // Comments Modal Styles
   commentsModal: {
@@ -1183,7 +1747,7 @@ const styles = {
     background: "rgba(0,0,0,0.5)",
   },
   commentsContent: {
-    background: "#0d0d0d",
+    background: "var(--surface)",
     borderRadius: "20px 20px 0 0",
     width: "100%",
     maxHeight: "70vh",
@@ -1197,10 +1761,10 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "center",
     padding: "20px",
-    borderBottom: "1px solid #333",
+    borderBottom: "1px solid rgba(212,175,55,0.16)",
   },
   commentsTitle: {
-    color: "#fff",
+    color: "var(--text-primary)",
     fontSize: 18,
     fontWeight: 600,
     margin: 0,
@@ -1208,7 +1772,7 @@ const styles = {
   commentsClose: {
     background: "none",
     border: "none",
-    color: "#fff",
+    color: "var(--text-primary)",
     fontSize: 20,
     cursor: "pointer",
     padding: "4px",
@@ -1235,11 +1799,11 @@ const styles = {
     width: 32,
     height: 32,
     borderRadius: "50%",
-    background: "#E8002D",
+    background: "var(--primary-red)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    color: "#fff",
+    color: "var(--text-primary)",
     fontSize: 14,
     fontWeight: "bold",
     flexShrink: 0,
@@ -1248,7 +1812,7 @@ const styles = {
     flex: 1,
   },
   commentUsername: {
-    color: "#fff",
+    color: "var(--text-primary)",
     fontSize: 14,
     fontWeight: 600,
     marginBottom: 4,
@@ -1262,24 +1826,24 @@ const styles = {
     display: "flex",
     gap: 12,
     padding: "20px",
-    borderTop: "1px solid #333",
+    borderTop: "1px solid rgba(212,175,55,0.16)",
   },
   commentInputField: {
     flex: 1,
     padding: "12px 16px",
-    borderRadius: 25,
-    border: "1px solid #333",
-    background: "#1a1a1a",
-    color: "#fff",
+    borderRadius: 12,
+    border: "1px solid var(--line)",
+    background: "#111",
+    color: "var(--text-primary)",
     fontSize: 14,
     outline: "none",
   },
   commentSendBtn: {
     padding: "12px 20px",
-    borderRadius: 25,
+    borderRadius: 12,
     border: "none",
-    background: "#E8002D",
-    color: "#fff",
+    background: "var(--primary-red)",
+    color: "var(--text-primary)",
     fontSize: 14,
     fontWeight: 600,
     cursor: "pointer",
@@ -1289,3 +1853,4 @@ const styles = {
     cursor: "not-allowed",
   },
 };
+
