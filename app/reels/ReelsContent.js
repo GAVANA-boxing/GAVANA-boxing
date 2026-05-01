@@ -780,12 +780,15 @@ export default function ReelsContent() {
     setFeedbackReel(reel);
 
     try {
-      const description = reel?.description || reel?.caption || "No description provided";
+      const caption = reel?.description || reel?.caption || "No caption provided";
+      const username = reel?.username || "fighter";
+      const likes = getSafeLikeCount(reel);
+      const views = getSafeViewCount(reel);
       const context = [
-        `Reel by @${reel?.username || "fighter"}`,
-        `Description: ${description}`,
-        `Views: ${getSafeViewCount(reel)}`,
-        `Likes: ${getSafeLikeCount(reel)}`,
+        `Username: @${username}`,
+        `Caption: ${caption}`,
+        `Likes: ${likes}`,
+        `Views: ${views}`,
       ].join("\n");
 
       const response = await fetch("/api/chat", {
@@ -800,13 +803,18 @@ export default function ReelsContent() {
             {
               role: "user",
               content: [
-                "Analyze this boxing training reel based on the available description and context.",
+                "Give personalized boxing feedback using only the reel metadata below.",
                 context,
-                "Return concise, practical feedback with exactly these sections:",
-                "1. Technique feedback",
-                "2. What is good",
-                "3. What to improve",
-                "4. Simple training advice",
+                "Important: You cannot see the actual video, so do not claim you observed punches, footwork, guard, stance, speed, or technique directly.",
+                "Infer likely training focus from the caption and engagement only. If the caption is vague, say what to check rather than pretending to know.",
+                "Make the advice feel specific to the username, caption, likes, and views.",
+                "Keep it realistic, natural, direct, and coach-like.",
+                "Give a realistic score out of 10. Do not make the score too perfect unless the context strongly supports it.",
+                "Return exactly this structure:",
+                "Score: a realistic score like 6.5/10.",
+                "Strength: one specific strength or positive signal based on the caption/context.",
+                "Improve: one practical thing to watch or refine next time.",
+                "Next drill: one simple boxing drill with a clear rep/time target.",
               ].join("\n"),
             },
           ],

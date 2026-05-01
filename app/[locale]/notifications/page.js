@@ -14,8 +14,16 @@ import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocale, translate } from "@/lib/i18n";
 
+function getActorName(notification) {
+  return notification.fromUsername || notification.actorName || "Someone";
+}
+
+function getActorId(notification) {
+  return notification.fromUserId || notification.actorId;
+}
+
 function getNotificationText(notification, locale) {
-  const actor = notification.actorName || "Someone";
+  const actor = getActorName(notification);
 
   if (notification.type === "like") {
     if (locale === "ko") return `${actor}님이 내 릴스를 좋아합니다`;
@@ -35,13 +43,62 @@ function getNotificationText(notification, locale) {
     return `${actor} followed you`;
   }
 
+  if (notification.type === "save") {
+    if (locale === "ko") return `${actor}님이 내 릴스를 저장했습니다`;
+    if (locale === "mn") return `${actor} таны рилсийг хадгаллаа`;
+    return `${actor} saved your reel`;
+  }
+
   return `${actor} sent you a notification`;
 }
 
-function formatDate(timestamp) {
-  if (!timestamp) return "";
+function getTypeLabel(type) {
+  if (type === "like") return "Like";
+  if (type === "comment") return "Comment";
+  if (type === "follow") return "Follow";
+  if (type === "save") return "Save";
+  return "Update";
+}
+
+function getTimestampMs(timestamp) {
+  if (!timestamp) return 0;
+  if (timestamp.toMillis) return timestamp.toMillis();
   const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  return date.toLocaleDateString();
+  const time = date.getTime();
+  return Number.isNaN(time) ? 0 : time;
+}
+
+function formatRelativeTime(timestamp) {
+  const time = getTimestampMs(timestamp);
+  if (!time) return "";
+
+  const diffSeconds = Math.max(1, Math.floor((Date.now() - time) / 1000));
+  if (diffSeconds < 60) return `${diffSeconds}s ago`;
+
+  const diffMinutes = Math.floor(diffSeconds / 60);
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `${diffDays}d ago`;
+
+  return new Date(time).toLocaleDateString();
+}
+
+function getTimeGroup(timestamp) {
+  const time = getTimestampMs(timestamp);
+  if (!time) return "Earlier";
+
+  const date = new Date(time);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  if (date.toDateString() === today.toDateString()) return "Today";
+  if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
+  return "Earlier";
 }
 
 export default function NotificationsPage() {
@@ -84,24 +141,18 @@ export default function NotificationsPage() {
           id: notificationDoc.id,
           ...notificationDoc.data(),
         }))
-        .sort((a, b) => {
-          const aTime = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
-          const bTime = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
-          return bTime - aTime;
-        });
+        .sort((a, b) => getTimestampMs(b.createdAt) - getTimestampMs(a.createdAt));
 
       setNotifications(nextNotifications);
       setLoading(false);
 
-      const unreadDocs = snapshot.docs.filter((notificationDoc) => {
-        return notificationDoc.data().read === false;
-      });
-
-      unreadDocs.forEach((notificationDoc) => {
-        updateDoc(doc(db, "notifications", notificationDoc.id), { read: true }).catch((error) => {
-          console.error("Failed to mark notification as read:", error);
+      snapshot.docs
+        .filter((notificationDoc) => notificationDoc.data().read === false)
+        .forEach((notificationDoc) => {
+          updateDoc(doc(db, "notifications", notificationDoc.id), { read: true }).catch((error) => {
+            console.error("Failed to mark notification as read:", error);
+          });
         });
-      });
     }, (error) => {
       if (!isActive) return;
       console.error("Failed to listen for notifications:", error);
@@ -118,6 +169,39 @@ export default function NotificationsPage() {
   const unreadCount = useMemo(() => {
     return notifications.filter((notification) => notification.read === false).length;
   }, [notifications]);
+
+  const groupedNotifications = useMemo(() => {
+    return notifications.reduce((groups, notification) => {
+      const group = getTimeGroup(notification.createdAt);
+      if (!groups[group]) groups[group] = [];
+      groups[group].push(notification);
+      return groups;
+    }, {});
+  }, [notifications]);
+
+  const handleOpenNotification = async (notification) => {
+    if (notification.read === false) {
+      updateDoc(doc(db, "notifications", notification.id), { read: true }).catch((error) => {
+        console.error("Failed to mark notification as read:", error);
+      });
+    }
+
+    if (notification.type === "follow") {
+      const actorId = getActorId(notification);
+      if (actorId) router.push(`/${locale}/profile/${actorId}`);
+      return;
+    }
+
+    if (notification.reelId) {
+      router.push(`/${locale}/reels`);
+      return;
+    }
+
+    const actorId = getActorId(notification);
+    if (actorId) {
+      router.push(`/${locale}/profile/${actorId}`);
+    }
+  };
 
   if (authLoading || loading) {
     return (
@@ -137,7 +221,9 @@ export default function NotificationsPage() {
           <p style={styles.eyebrow}>GAVANA BOXING</p>
           <h1 style={styles.title}>{t("notifications")}</h1>
         </div>
-        <div style={styles.unreadPill}>{unreadCount}</div>
+        <div style={unreadCount > 0 ? styles.unreadPill : styles.unreadPillMuted}>
+          {unreadCount}
+        </div>
       </header>
 
       <section style={styles.list}>
@@ -154,36 +240,48 @@ export default function NotificationsPage() {
             </p>
           </div>
         ) : (
-          notifications.map((notification) => (
-            <button
-              key={notification.id}
-              style={{
-                ...styles.notification,
-                ...(notification.read === false ? styles.notificationUnread : {}),
-              }}
-              onClick={() => {
-                if (notification.reelId) {
-                  router.push(`/${locale}/reels`);
-                } else if (notification.actorId) {
-                  router.push(`/${locale}/profile/${notification.actorId}`);
-                }
-              }}
-            >
-              <div style={styles.avatar}>
-                {(notification.actorName || "U").charAt(0).toUpperCase()}
+          ["Today", "Yesterday", "Earlier"].map((group) => (
+            groupedNotifications[group]?.length ? (
+              <div key={group} style={styles.group}>
+                <div style={styles.groupTitle}>{group}</div>
+                {groupedNotifications[group].map((notification) => {
+                  const actor = getActorName(notification);
+
+                  return (
+                    <button
+                      key={notification.id}
+                      style={{
+                        ...styles.notification,
+                        ...(notification.read === false ? styles.notificationUnread : {}),
+                      }}
+                      onClick={() => handleOpenNotification(notification)}
+                    >
+                      <div style={styles.avatar}>
+                        {actor.charAt(0).toUpperCase()}
+                      </div>
+                      <div style={styles.notificationBody}>
+                        <div style={styles.notificationTopLine}>
+                          <span style={styles.username}>@{actor}</span>
+                          <span style={styles.typePill}>{getTypeLabel(notification.type)}</span>
+                        </div>
+                        <div style={styles.notificationText}>
+                          {getNotificationText(notification, locale)}
+                        </div>
+                        {notification.text && (
+                          <div style={styles.commentPreview}>
+                            {notification.text}
+                          </div>
+                        )}
+                      </div>
+                      <div style={styles.meta}>
+                        {notification.read === false && <span style={styles.unreadDot} />}
+                        <span style={styles.date}>{formatRelativeTime(notification.createdAt)}</span>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
-              <div style={styles.notificationBody}>
-                <div style={styles.notificationText}>
-                  {getNotificationText(notification, locale)}
-                </div>
-                {notification.text && (
-                  <div style={styles.commentPreview}>
-                    {notification.text}
-                  </div>
-                )}
-                <div style={styles.date}>{formatDate(notification.createdAt)}</div>
-              </div>
-            </button>
+            ) : null
           ))
         )}
       </section>
@@ -254,10 +352,36 @@ const styles = {
     fontSize: 12,
     fontWeight: 800,
   },
+  unreadPillMuted: {
+    justifySelf: "end",
+    minWidth: 28,
+    height: 28,
+    borderRadius: 14,
+    background: "rgba(255,255,255,0.08)",
+    color: "#aaa",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 12,
+    fontWeight: 800,
+  },
   list: {
     maxWidth: 640,
     margin: "0 auto",
-    padding: "12px 16px",
+    padding: "16px",
+  },
+  group: {
+    display: "grid",
+    gap: 10,
+    marginBottom: 22,
+  },
+  groupTitle: {
+    color: "#D4AF37",
+    fontSize: 11,
+    fontWeight: 900,
+    letterSpacing: 1.3,
+    textTransform: "uppercase",
+    padding: "4px 2px",
   },
   empty: {
     minHeight: "60vh",
@@ -295,35 +419,58 @@ const styles = {
   },
   notification: {
     width: "100%",
-    display: "flex",
+    display: "grid",
+    gridTemplateColumns: "44px 1fr auto",
+    alignItems: "center",
     gap: 12,
-    padding: "14px 0",
-    border: "none",
+    padding: "14px",
     border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: 14,
-    background: "#0B0B0B",
+    borderRadius: 16,
+    background: "rgba(11,11,11,0.96)",
     color: "#fff",
     textAlign: "left",
     cursor: "pointer",
+    boxShadow: "0 12px 32px rgba(0,0,0,0.22)",
   },
   notificationUnread: {
-    background: "rgba(193,18,31,0.1)",
+    background: "linear-gradient(135deg, rgba(193,18,31,0.16), rgba(11,11,11,0.98))",
+    borderColor: "rgba(193,18,31,0.28)",
   },
   avatar: {
-    flex: "0 0 40px",
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    background: "#C1121F",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    background: "linear-gradient(145deg, #C1121F, #6d0a12)",
     color: "#fff",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontWeight: 800,
+    fontWeight: 900,
+    boxShadow: "0 0 24px rgba(193,18,31,0.22)",
   },
   notificationBody: {
     minWidth: 0,
     flex: 1,
+  },
+  notificationTopLine: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 4,
+  },
+  username: {
+    fontSize: 13,
+    fontWeight: 900,
+    color: "#fff",
+  },
+  typePill: {
+    borderRadius: 999,
+    background: "rgba(212,175,55,0.1)",
+    color: "#D4AF37",
+    border: "1px solid rgba(212,175,55,0.18)",
+    padding: "2px 7px",
+    fontSize: 10,
+    fontWeight: 900,
   },
   notificationText: {
     fontSize: 15,
@@ -339,9 +486,23 @@ const styles = {
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
   },
+  meta: {
+    display: "grid",
+    justifyItems: "end",
+    gap: 7,
+    alignSelf: "stretch",
+    alignContent: "center",
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    background: "#C1121F",
+    boxShadow: "0 0 14px rgba(193,18,31,0.7)",
+  },
   date: {
-    marginTop: 6,
-    color: "#666",
+    color: "#777",
     fontSize: 12,
+    whiteSpace: "nowrap",
   },
 };
