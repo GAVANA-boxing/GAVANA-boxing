@@ -374,6 +374,23 @@ export default function ReelsContent() {
     }
   }, [currentIndex, reels.length]);
 
+  const pauseInactiveVideos = useCallback((activeReelId, reset = true) => {
+    Object.entries(videoRefs.current).forEach(([reelId, video]) => {
+      if (!video || reelId === activeReelId) return;
+
+      video.pause();
+      video.muted = true;
+
+      if (reset) {
+        try {
+          video.currentTime = 0;
+        } catch {
+          // Some mobile browsers can reject currentTime changes before metadata is ready.
+        }
+      }
+    });
+  }, []);
+
   // Play/pause current video
   const togglePlay = useCallback(() => {
     const video = videoRefs.current[reels[currentIndex]?.id];
@@ -412,13 +429,37 @@ export default function ReelsContent() {
     scheduleControlsHide();
   }, [scheduleControlsHide]);
 
+  const handleVideoTap = useCallback(() => {
+    revealControls();
+
+    if (isMuted) {
+      setIsMuted(false);
+      const video = videoRefs.current[reels[currentIndex]?.id];
+      if (video) {
+        pauseInactiveVideos(reels[currentIndex]?.id);
+        video.muted = false;
+        video.play().catch(() => {});
+      }
+      return;
+    }
+
+    if (showControls) {
+      togglePlay();
+    }
+  }, [currentIndex, isMuted, pauseInactiveVideos, reels, revealControls, showControls, togglePlay]);
+
   useEffect(() => {
     const currentReel = reels[currentIndex];
-    if (!currentReel || currentReel.isDemo) return;
+    const activeReelId = currentReel?.isDemo ? null : currentReel?.id;
 
-    const video = videoRefs.current[currentReel.id];
+    pauseInactiveVideos(activeReelId);
+
+    if (!currentReel || currentReel.isDemo || !activeReelId) return;
+
+    const video = videoRefs.current[activeReelId];
     if (!video) return;
 
+    setIsMuted(true);
     video.muted = true;
     video.playsInline = true;
     video.play().catch(() => {
@@ -426,20 +467,38 @@ export default function ReelsContent() {
     });
     setShowControls(true);
     scheduleControlsHide();
-  }, [reels, currentIndex, scheduleControlsHide]);
+  }, [reels, currentIndex, pauseInactiveVideos, scheduleControlsHide]);
 
   useEffect(() => {
     return () => {
       if (controlsTimer.current) {
         clearTimeout(controlsTimer.current);
       }
+
+      Object.values(videoRefs.current).forEach((video) => {
+        if (!video) return;
+        video.pause();
+        video.muted = true;
+      });
     };
   }, []);
 
   // Toggle mute
   const toggleMute = useCallback(() => {
-    setIsMuted(prev => !prev);
-  }, []);
+    const video = videoRefs.current[reels[currentIndex]?.id];
+
+    setIsMuted(prev => {
+      const nextMuted = !prev;
+      if (video) {
+        video.muted = nextMuted;
+        if (!nextMuted) {
+          pauseInactiveVideos(reels[currentIndex]?.id);
+          video.play().catch(() => {});
+        }
+      }
+      return nextMuted;
+    });
+  }, [currentIndex, pauseInactiveVideos, reels]);
 
   // Handle like/unlike
   const handleLike = useCallback(async (reelId) => {
@@ -700,12 +759,12 @@ export default function ReelsContent() {
             ) : (
               <video
                 ref={(el) => {
-                  if (!el) return;
-                  videoRefs.current[reel.id] = el;
-                  if (index === 0 && currentIndex === 0) {
-                    el.muted = true;
+                  if (el) {
+                    videoRefs.current[reel.id] = el;
+                    el.muted = index !== currentIndex || isMuted;
                     el.playsInline = true;
-                    el.play().catch(() => {});
+                  } else {
+                    delete videoRefs.current[reel.id];
                   }
                 }}
                 src={reel.videoUrl}
@@ -713,25 +772,27 @@ export default function ReelsContent() {
                 className={index === currentIndex ? "cinematic-video" : ""}
                 autoPlay={index === currentIndex}
                 loop
-                muted={isMuted}
+                muted={index !== currentIndex || isMuted}
                 playsInline
-                onClick={() => {
-                  if (showControls) {
-                    togglePlay();
-                  } else {
-                    revealControls();
-                  }
-                }}
+                onClick={handleVideoTap}
                 onLoadStart={() => handleVideoLoadStart(reel.id)}
                 onLoadedMetadata={() => {
                   if (index === 0 && currentIndex === 0) {
-                    videoRefs.current[reel.id]?.play().catch(() => {});
+                    const video = videoRefs.current[reel.id];
+                    if (video) {
+                      video.muted = isMuted;
+                      video.play().catch(() => {});
+                    }
                   }
                 }}
                 onCanPlay={() => {
                   handleVideoLoaded(reel.id);
                   if (index === 0 && currentIndex === 0) {
-                    videoRefs.current[reel.id]?.play().catch(() => {});
+                    const video = videoRefs.current[reel.id];
+                    if (video) {
+                      video.muted = isMuted;
+                      video.play().catch(() => {});
+                    }
                   }
                 }}
                 preload={index <= 1 ? "auto" : "metadata"}
