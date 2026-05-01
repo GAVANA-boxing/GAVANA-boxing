@@ -6,10 +6,14 @@ import { useParams, useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { createNotification } from "@/lib/notifications";
+import { getLocale, translate } from "@/lib/i18n";
 
 export default function UserProfilePage() {
   const { user, loading: authLoading } = useAuth();
-  const { locale, userId } = useParams();
+  const params = useParams();
+  const locale = getLocale(params?.locale);
+  const userId = params?.userId;
+  const t = (key) => translate(locale, key);
   const router = useRouter();
   const [profileUser, setProfileUser] = useState(null);
   const [userReels, setUserReels] = useState([]);
@@ -393,19 +397,19 @@ export default function UserProfilePage() {
         }}>
           <div style={{ textAlign: "center" }}>
             <div style={{ fontSize: 22, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1 }}>{userReels.length}</div>
-            <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 5 }}>reels</div>
+            <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 5 }}>{t("reels")}</div>
           </div>
           <div style={{ textAlign: "center" }}>
             <div style={{ fontSize: 22, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1 }}>{totalLikes}</div>
-            <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 5 }}>likes</div>
+            <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 5 }}>{t("likes")}</div>
           </div>
           <div style={{ textAlign: "center" }}>
             <div style={{ fontSize: 22, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1 }}>{stats.followers}</div>
-            <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 5 }}>followers</div>
+            <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 5 }}>{t("followers")}</div>
           </div>
           <div style={{ textAlign: "center" }}>
             <div style={{ fontSize: 22, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1 }}>{stats.following}</div>
-            <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 5 }}>following</div>
+            <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 5 }}>{t("followingCount")}</div>
           </div>
         </div>
 
@@ -428,7 +432,7 @@ export default function UserProfilePage() {
                 cursor: "pointer"
               }}
             >
-              Edit Profile
+              {t("editProfile")}
             </button>
             <button
               onClick={handleLogout}
@@ -444,7 +448,7 @@ export default function UserProfilePage() {
                 opacity: signingOut ? 0.7 : 1
               }}
             >
-              {signingOut ? "Signing out..." : "Logout"}
+              {signingOut ? t("signingOut") : t("logout")}
             </button>
             <button
               onClick={handleSwitchAccount}
@@ -461,7 +465,7 @@ export default function UserProfilePage() {
                 opacity: signingOut ? 0.7 : 1
               }}
             >
-              Switch account
+              {t("switchAccount")}
             </button>
           </div>
         ) : (
@@ -480,7 +484,7 @@ export default function UserProfilePage() {
               opacity: followLoading ? 0.7 : 1
             }}
           >
-            {followLoading ? "..." : (isFollowing ? "Unfollow" : "Follow")}
+            {followLoading ? "..." : (isFollowing ? t("unfollow") : t("follow"))}
           </button>
         )}
       </div>
@@ -494,7 +498,7 @@ export default function UserProfilePage() {
             ...(profileTab === "posts" ? styles.profileTabActive : {})
           }}
         >
-          Posts
+          {t("posts")}
         </button>
         {isOwnProfile && (
           <button
@@ -505,7 +509,7 @@ export default function UserProfilePage() {
               ...(profileTab === "saved" ? styles.profileTabActive : {})
             }}
           >
-            Saved
+            {t("saved")}
           </button>
         )}
       </div>
@@ -526,7 +530,7 @@ export default function UserProfilePage() {
             background: "var(--background)"
           }}>
             <p style={{ margin: 0, color: "var(--text-primary)", fontWeight: 850 }}>
-              {profileTab === "saved" ? "No saved reels yet" : "No reels yet"}
+              {profileTab === "saved" ? t("noSavedReelsYet") : t("noReelsYet")}
             </p>
             <p style={{ margin: "8px 0 0", fontSize: 13 }}>
               {profileTab === "saved" ? "Bookmarked reels will appear here." : "Training clips will appear here."}
@@ -569,7 +573,7 @@ export default function UserProfilePage() {
                 textShadow: "0 2px 8px rgba(0,0,0,0.9)"
               }}>
                 <div style={{ fontWeight: 800, marginBottom: 3 }}>
-                  {reelLikes[reel.id] || 0} likes
+                  {reelLikes[reel.id] || 0} {t("likes")}
                 </div>
                 <div style={{
                   overflow: "hidden",

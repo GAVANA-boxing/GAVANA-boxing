@@ -12,19 +12,26 @@ import {
 } from "firebase/firestore";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
+import { getLocale, translate } from "@/lib/i18n";
 
-function getNotificationText(notification) {
+function getNotificationText(notification, locale) {
   const actor = notification.actorName || "Someone";
 
   if (notification.type === "like") {
+    if (locale === "ko") return `${actor}님이 내 릴스를 좋아합니다`;
+    if (locale === "mn") return `${actor} таны рилсэд дуртай гэж дарлаа`;
     return `${actor} liked your reel`;
   }
 
   if (notification.type === "comment") {
+    if (locale === "ko") return `${actor}님이 내 릴스에 댓글을 남겼습니다`;
+    if (locale === "mn") return `${actor} таны рилсэд сэтгэгдэл бичлээ`;
     return `${actor} commented on your reel`;
   }
 
   if (notification.type === "follow") {
+    if (locale === "ko") return `${actor}님이 나를 팔로우했습니다`;
+    if (locale === "mn") return `${actor} таныг дагалаа`;
     return `${actor} followed you`;
   }
 
@@ -39,7 +46,9 @@ function formatDate(timestamp) {
 
 export default function NotificationsPage() {
   const { user, loading: authLoading } = useAuth();
-  const { locale } = useParams();
+  const params = useParams();
+  const locale = getLocale(params?.locale);
+  const t = (key) => translate(locale, key);
   const router = useRouter();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -113,7 +122,7 @@ export default function NotificationsPage() {
   if (authLoading || loading) {
     return (
       <div style={styles.centered}>
-        Loading notifications...
+        {t("loading")}
       </div>
     );
   }
@@ -122,11 +131,11 @@ export default function NotificationsPage() {
     <main style={styles.page}>
       <header style={styles.header}>
         <button style={styles.backButton} onClick={() => router.push(`/${locale}/reels`)}>
-          Back
+          {t("back")}
         </button>
         <div>
           <p style={styles.eyebrow}>GAVANA BOXING</p>
-          <h1 style={styles.title}>Notifications</h1>
+          <h1 style={styles.title}>{t("notifications")}</h1>
         </div>
         <div style={styles.unreadPill}>{unreadCount}</div>
       </header>
@@ -135,8 +144,14 @@ export default function NotificationsPage() {
         {notifications.length === 0 ? (
           <div style={styles.empty}>
             <div style={styles.emptyIcon}>!</div>
-            <p style={styles.emptyTitle}>No notifications yet</p>
-            <p style={styles.emptyText}>Likes, comments, and follows will appear here.</p>
+            <p style={styles.emptyTitle}>{t("noNotificationsYet")}</p>
+            <p style={styles.emptyText}>
+              {locale === "ko"
+                ? "좋아요, 댓글, 팔로우가 여기에 표시됩니다."
+                : locale === "mn"
+                  ? "Таалагдсан, сэтгэгдэл, дагалтууд энд харагдана."
+                  : "Likes, comments, and follows will appear here."}
+            </p>
           </div>
         ) : (
           notifications.map((notification) => (
@@ -159,7 +174,7 @@ export default function NotificationsPage() {
               </div>
               <div style={styles.notificationBody}>
                 <div style={styles.notificationText}>
-                  {getNotificationText(notification)}
+                  {getNotificationText(notification, locale)}
                 </div>
                 {notification.text && (
                   <div style={styles.commentPreview}>

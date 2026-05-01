@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 import { createNotification } from "@/lib/notifications";
+import { getLocaleFromPathname, translate } from "@/lib/i18n";
 
 // Dynamic import for Firebase to avoid SSR issues
 let db = null;
@@ -120,8 +121,8 @@ function sortReelsByEngagement(reels) {
 export default function ReelsContent() {
   const router = useRouter();
   const pathname = usePathname();
-  const firstPathSegment = pathname?.split("/")[1];
-  const currentLocale = ["en", "ko", "mn"].includes(firstPathSegment) ? firstPathSegment : "en";
+  const currentLocale = getLocaleFromPathname(pathname);
+  const t = (key) => translate(currentLocale, key);
   const { user, loading: authLoading } = useAuth();
   const [feedMode, setFeedMode] = useState("forYou");
   const [allReels, setAllReels] = useState([]);
@@ -139,6 +140,11 @@ export default function ReelsContent() {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [selectedReelId, setSelectedReelId] = useState(null);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [feedbackError, setFeedbackError] = useState("");
+  const [feedbackResult, setFeedbackResult] = useState("");
+  const [feedbackReel, setFeedbackReel] = useState(null);
   const videoRefs = useRef({});
   const viewTimers = useRef({});
   const controlsTimer = useRef(null);
@@ -736,6 +742,80 @@ export default function ReelsContent() {
     }
   }, [currentLocale, reels, router, savedReels, user?.uid]);
 
+  const handleGetFeedback = useCallback(async (reel) => {
+    if (!user?.uid) {
+      router.push(`/${currentLocale}/login`);
+      return;
+    }
+
+    setFeedbackOpen(true);
+    setFeedbackLoading(true);
+    setFeedbackError("");
+    setFeedbackResult("");
+    setFeedbackReel(reel);
+
+    try {
+      const description = reel?.description || reel?.caption || "No description provided";
+      const context = [
+        `Reel by @${reel?.username || "fighter"}`,
+        `Description: ${description}`,
+        `Views: ${getSafeViewCount(reel)}`,
+        `Likes: ${getSafeLikeCount(reel)}`,
+      ].join("\n");
+
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          persona: "analyst",
+          locale: currentLocale,
+          messages: [
+            {
+              role: "user",
+              content: [
+                "Analyze this boxing training reel based on the available description and context.",
+                context,
+                "Return concise, practical feedback with exactly these sections:",
+                "1. Technique feedback",
+                "2. What is good",
+                "3. What to improve",
+                "4. Simple training advice",
+              ].join("\n"),
+            },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Feedback request failed");
+      }
+
+      const data = await response.json();
+      const text = data?.content?.find((item) => item?.type === "text")?.text || data?.content?.[0]?.text || "";
+
+      if (!text.trim()) {
+        throw new Error("Empty feedback response");
+      }
+
+      setFeedbackResult(text.trim());
+    } catch (err) {
+      console.error("Failed to generate AI feedback:", err);
+      setFeedbackError("Could not generate feedback. Please try again.");
+    } finally {
+      setFeedbackLoading(false);
+    }
+  }, [currentLocale, router, user?.uid]);
+
+  const handleCloseFeedback = useCallback(() => {
+    setFeedbackOpen(false);
+    setFeedbackLoading(false);
+    setFeedbackError("");
+    setFeedbackResult("");
+    setFeedbackReel(null);
+  }, []);
+
   // Handle opening comments
   const handleOpenComments = useCallback(async (reelId) => {
     const targetReel = reels.find((reel) => reel.id === reelId);
@@ -875,7 +955,7 @@ export default function ReelsContent() {
       <div style={styles.container}>
         <div style={styles.loading}>
           <div style={styles.spinner}></div>
-          Loading reels...
+          {t("loading")}
         </div>
         <BottomNav router={router} user={user} currentLocale={currentLocale} />
       </div>
@@ -886,9 +966,9 @@ export default function ReelsContent() {
     return (
       <div style={styles.container}>
         <div style={styles.empty}>
-          <p>No reels yet</p>
+          <p>{t("noReelsYet")}</p>
           <button style={styles.uploadBtn} onClick={() => router.push(`/${currentLocale}/upload`)}>
-            Upload First Reel
+            {t("upload")}
           </button>
         </div>
         <BottomNav router={router} user={user} currentLocale={currentLocale} />
@@ -907,7 +987,7 @@ export default function ReelsContent() {
             ...(feedMode === "forYou" ? styles.feedTabActive : {})
           }}
         >
-          For You
+          {t("forYou")}
         </button>
         <button
           type="button"
@@ -923,14 +1003,14 @@ export default function ReelsContent() {
             ...(feedMode === "following" ? styles.feedTabActive : {})
           }}
         >
-          Following
+          {t("following")}
         </button>
       </div>
       {/* Reels Feed */}
       <div style={styles.feed} className="reels-feed" onScroll={handleScroll}>
         {reels.length === 0 ? (
           <div style={{...styles.videoContainer, ...styles.followingEmpty}}>
-            <div style={styles.followingEmptyTitle}>No followed reels yet</div>
+            <div style={styles.followingEmptyTitle}>{t("noReelsYet")}</div>
             <div style={styles.followingEmptyText}>
               Follow fighters from their profile to build your training feed.
             </div>
@@ -939,7 +1019,7 @@ export default function ReelsContent() {
               onClick={() => setFeedMode("forYou")}
               style={styles.uploadBtn}
             >
-              Explore reels
+              {t("reels")}
             </button>
           </div>
         ) : reels.map((reel, index) => (
@@ -1024,9 +1104,19 @@ export default function ReelsContent() {
                 </div>
               )}
               <div style={styles.metaLine}>
-                <span>{formatViews(getSafeViewCount(reel))}</span>
+                <span>{formatCompactCount(getSafeViewCount(reel))} {t("views")}</span>
                 <span>{formatDate(reel.createdAt)}</span>
               </div>
+              <button
+                type="button"
+                style={styles.feedbackButton}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  handleGetFeedback(reel);
+                }}
+              >
+                {t("getAiFeedback")}
+              </button>
             </div>
 
             <div style={styles.actions}>
@@ -1066,16 +1156,10 @@ export default function ReelsContent() {
                 </div>
                 <span style={styles.actionText}>{formatCompactCount(reel.shares || 0)}</span>
               </div>
-              <div className="reel-action" style={styles.actionItem}>
-                <div className="reel-action-circle" style={styles.actionCircle}>
-                  <ViewIcon />
-                </div>
-                <span style={styles.actionText}>{formatCompactCount(getSafeViewCount(reel))}</span>
-              </div>
               <div
                 className="reel-action"
                 role="button"
-                title={savedReels.has(reel.id) ? "Unsave reel" : "Save reel"}
+                title={savedReels.has(reel.id) ? t("saved") : t("save")}
                 style={{
                   ...styles.actionItem,
                   ...(savedReels.has(reel.id) ? styles.actionItemSaved : {})
@@ -1096,7 +1180,13 @@ export default function ReelsContent() {
                     <BookmarkIcon filled={savedReels.has(reel.id)} />
                   </span>
                 </div>
-                <span style={styles.actionText}>{savedReels.has(reel.id) ? "Saved" : "Save"}</span>
+                <span style={styles.actionText}>{savedReels.has(reel.id) ? t("saved") : t("save")}</span>
+              </div>
+              <div className="reel-action" style={styles.actionItem}>
+                <div className="reel-action-circle" style={styles.actionCircle}>
+                  <ViewIcon />
+                </div>
+                <span style={styles.actionText}>{formatCompactCount(getSafeViewCount(reel))}</span>
               </div>
             </div>
             {/* Mute button */}
@@ -1122,14 +1212,18 @@ export default function ReelsContent() {
           <div style={styles.commentsOverlay} onClick={handleCloseComments} />
           <div style={styles.commentsContent}>
             <div style={styles.commentsHeader}>
-              <h3 style={styles.commentsTitle}>Comments</h3>
+              <h3 style={styles.commentsTitle}>{t("comment")}</h3>
               <button style={styles.commentsClose} onClick={handleCloseComments}>x</button>
             </div>
 
             <div style={styles.commentsList}>
               {comments.length === 0 ? (
                 <div style={styles.noComments}>
-                  No comments yet. Be the first to comment!
+                  {currentLocale === "ko"
+                    ? "아직 댓글이 없습니다. 첫 댓글을 남겨보세요!"
+                    : currentLocale === "mn"
+                      ? "Одоогоор сэтгэгдэл алга. Эхний сэтгэгдлийг бичээрэй!"
+                      : "No comments yet. Be the first to comment!"}
                 </div>
               ) : (
                 comments.map((comment) => (
@@ -1159,7 +1253,7 @@ export default function ReelsContent() {
                   type="text"
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Add a comment..."
+                  placeholder={currentLocale === "ko" ? "댓글 추가..." : currentLocale === "mn" ? "Сэтгэгдэл нэмэх..." : "Add a comment..."}
                   style={styles.commentInputField}
                   onKeyPress={(e) => e.key === "Enter" && handleAddComment()}
                 />
@@ -1171,10 +1265,46 @@ export default function ReelsContent() {
                     ...(newComment.trim() ? {} : styles.commentSendBtnDisabled)
                   }}
                 >
-                  Send
+                  {currentLocale === "ko" ? "보내기" : currentLocale === "mn" ? "Илгээх" : "Send"}
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {feedbackOpen && (
+        <div style={styles.feedbackModal}>
+          <div style={styles.feedbackOverlay} onClick={handleCloseFeedback} />
+          <div style={styles.feedbackSheet}>
+            <div style={styles.feedbackHandle} />
+            <div style={styles.feedbackHeader}>
+              <div>
+                <p style={styles.feedbackKicker}>{t("aiCoach")}</p>
+                <h3 style={styles.feedbackTitle}>{t("techniqueFeedback")}</h3>
+                {feedbackReel && (
+                  <p style={styles.feedbackSubtitle}>@{feedbackReel.username || "fighter"}</p>
+                )}
+              </div>
+              <button style={styles.feedbackClose} onClick={handleCloseFeedback}>x</button>
+            </div>
+
+            <div style={styles.feedbackBody}>
+              {feedbackLoading && (
+                <div style={styles.feedbackLoading}>
+                  <div style={styles.feedbackSpinner} />
+                  <span>{t("analyzingRound")}</span>
+                </div>
+              )}
+
+              {feedbackError && (
+                <div style={styles.feedbackError}>{feedbackError}</div>
+              )}
+
+              {feedbackResult && (
+                <pre style={styles.feedbackResult}>{feedbackResult}</pre>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -1335,6 +1465,7 @@ function DemoReelVisual() {
 
 // Bottom Nav component
 function BottomNav({ router, user, currentLocale, onInteractStart, onInteractEnd }) {
+  const t = (key) => translate(currentLocale, key);
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
@@ -1396,15 +1527,15 @@ function BottomNav({ router, user, currentLocale, onInteractStart, onInteractEnd
     >
       <div style={styles.navItem} onClick={() => router.push(`/${currentLocale}`)}>
         <NavHomeIcon />
-        <span style={styles.navLabel}>Home</span>
+        <span style={styles.navLabel}>{t("home")}</span>
       </div>
       <div style={styles.navItemActive}>
         <NavReelsIcon active />
-        <span style={styles.navLabelActive}>Reels</span>
+        <span style={styles.navLabelActive}>{t("reels")}</span>
       </div>
       <div style={styles.navItem} onClick={() => router.push(`/${currentLocale}/coach`)}>
         <NavCoachIcon />
-        <span style={styles.navLabel}>Coach</span>
+        <span style={styles.navLabel}>{t("aiCoach")}</span>
       </div>
       <div style={styles.navItem} onClick={() => router.push(`/${currentLocale}/notifications`)}>
         <span style={styles.navIconWrap}>
@@ -1413,7 +1544,7 @@ function BottomNav({ router, user, currentLocale, onInteractStart, onInteractEnd
             <span style={styles.navBadge}>{unreadCount > 9 ? "9+" : unreadCount}</span>
           )}
         </span>
-        <span style={styles.navLabel}>Alerts</span>
+        <span style={styles.navLabel}>{t("alerts")}</span>
       </div>
       <div style={styles.navUpload} onClick={() => router.push(`/${currentLocale}/upload`)}>
         <NavPlusIcon />
@@ -1426,7 +1557,7 @@ function BottomNav({ router, user, currentLocale, onInteractStart, onInteractEnd
         }
       }}>
         <NavProfileIcon />
-        <span style={styles.navLabel}>Profile</span>
+        <span style={styles.navLabel}>{t("profile")}</span>
       </div>
     </div>
   );
@@ -1838,6 +1969,27 @@ const styles = {
     fontWeight: 800,
     textShadow: "0 4px 18px rgba(0,0,0,0.98)",
   },
+  feedbackButton: {
+    marginTop: 16,
+    width: "fit-content",
+    minHeight: 38,
+    padding: "0 16px",
+    borderRadius: 999,
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "rgba(255,255,255,0.16)",
+    background: "rgba(193,18,31,0.82)",
+    color: "var(--text-primary)",
+    fontSize: 13,
+    fontWeight: 900,
+    letterSpacing: 0,
+    cursor: "pointer",
+    boxShadow: "0 14px 34px rgba(193,18,31,0.24), inset 0 1px 0 rgba(255,255,255,0.12)",
+    backdropFilter: "blur(16px)",
+    WebkitBackdropFilter: "blur(16px)",
+    transition: "transform var(--motion-fast), background var(--motion-fast), box-shadow var(--motion-fast)",
+    WebkitTapHighlightColor: "transparent",
+  },
   actions: {
     position: "absolute",
     right: "max(12px, env(safe-area-inset-right))",
@@ -2232,5 +2384,125 @@ const styles = {
     background: "#333",
     cursor: "not-allowed",
   },
+  feedbackModal: {
+    position: "fixed",
+    inset: 0,
+    zIndex: 1200,
+    display: "flex",
+    alignItems: "flex-end",
+  },
+  feedbackOverlay: {
+    position: "absolute",
+    inset: 0,
+    background: "rgba(0,0,0,0.62)",
+    backdropFilter: "blur(4px)",
+    WebkitBackdropFilter: "blur(4px)",
+  },
+  feedbackSheet: {
+    position: "relative",
+    zIndex: 1201,
+    width: "100%",
+    maxHeight: "76vh",
+    overflow: "hidden",
+    borderRadius: "26px 26px 0 0",
+    borderTopWidth: "1px",
+    borderTopStyle: "solid",
+    borderTopColor: "rgba(255,255,255,0.12)",
+    background: "linear-gradient(145deg, rgba(193,18,31,0.14), rgba(11,11,11,0.98) 36%, rgba(212,175,55,0.07))",
+    boxShadow: "0 -24px 80px rgba(0,0,0,0.58)",
+    color: "var(--text-primary)",
+  },
+  feedbackHandle: {
+    width: 42,
+    height: 4,
+    borderRadius: 999,
+    background: "rgba(255,255,255,0.24)",
+    margin: "10px auto 2px",
+  },
+  feedbackHeader: {
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 16,
+    padding: "18px 20px 14px",
+    borderBottomWidth: "1px",
+    borderBottomStyle: "solid",
+    borderBottomColor: "rgba(255,255,255,0.08)",
+  },
+  feedbackKicker: {
+    margin: 0,
+    color: "var(--accent-gold)",
+    fontSize: 11,
+    fontWeight: 950,
+    letterSpacing: 1.8,
+    textTransform: "uppercase",
+  },
+  feedbackTitle: {
+    margin: "5px 0 0",
+    color: "var(--text-primary)",
+    fontSize: 24,
+    lineHeight: 1,
+    fontWeight: 1000,
+    letterSpacing: 0,
+  },
+  feedbackSubtitle: {
+    margin: "8px 0 0",
+    color: "var(--text-secondary)",
+    fontSize: 13,
+    fontWeight: 750,
+  },
+  feedbackClose: {
+    width: 34,
+    height: 34,
+    borderRadius: "50%",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "rgba(255,255,255,0.12)",
+    background: "rgba(0,0,0,0.28)",
+    color: "var(--text-primary)",
+    fontSize: 18,
+    cursor: "pointer",
+  },
+  feedbackBody: {
+    maxHeight: "calc(76vh - 112px)",
+    overflowY: "auto",
+    padding: "18px 20px calc(24px + env(safe-area-inset-bottom))",
+  },
+  feedbackLoading: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    color: "var(--text-secondary)",
+    fontSize: 14,
+    fontWeight: 750,
+  },
+  feedbackSpinner: {
+    width: 22,
+    height: 22,
+    borderRadius: "50%",
+    borderWidth: "2px",
+    borderStyle: "solid",
+    borderColor: "rgba(255,255,255,0.18)",
+    borderTopColor: "var(--primary-red)",
+    animation: "spin 1s linear infinite",
+  },
+  feedbackError: {
+    color: "#ff8b8b",
+    background: "rgba(193,18,31,0.12)",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "rgba(193,18,31,0.26)",
+    borderRadius: 14,
+    padding: 14,
+    fontSize: 14,
+    lineHeight: 1.5,
+  },
+  feedbackResult: {
+    margin: 0,
+    whiteSpace: "pre-wrap",
+    color: "var(--text-primary)",
+    fontFamily: "inherit",
+    fontSize: 14,
+    lineHeight: 1.62,
+  },
 };
-

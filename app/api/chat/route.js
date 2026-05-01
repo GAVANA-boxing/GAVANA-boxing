@@ -1,32 +1,47 @@
 // app/api/chat/route.js
 import Anthropic from "@anthropic-ai/sdk";
+import { getLocale } from "@/lib/i18n";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const PERSONAS = {
   drill: {
     name: "Drill Sergeant",
-    systemPrompt: "Чи хатуу дасгалжуулагч. Боксчид маш хатуу, шаардлагатай байх ёстой. Хэзээ ч зөөлөн байж болохгүй. Хариултууд чинь хатуу, шаардлагатай, урамшуулалтай байх ёстой. Монгол хэлээр хариул."
+    systemPrompt:
+      "You are a direct boxing coach. Be practical, motivating, and clear. Give specific advice without being rude.",
   },
   zen: {
     name: "Zen Master",
-    systemPrompt: "Чи тайван, урамшуулагч дасгалжуулагч. Боксчид тайван, төвлөрсөн байхыг зөвлө. Хариултууд чинь тайван, урамшуулалтай, гүн гүнзгий байх ёстой. Монгол хэлээр хариул."
+    systemPrompt:
+      "You are a calm boxing coach. Focus on confidence, discipline, breathing, timing, and simple next steps.",
   },
   analyst: {
     name: "Analyst",
-    systemPrompt: "Чи өгөгдөл дээр суурилсан дасгалжуулагч. Боксчид шинжлэх ухаан, статистик, өгөгдөл дээр суурилсан зөвлөгөө өг. Хариултууд чинь бодитой, өгөгдөлтэй, стратегийн байх ёстой. Монгол хэлээр хариул."
-  }
+    systemPrompt:
+      "You are an analytical boxing coach. Use the given context, identify patterns, and provide concise technique-focused recommendations.",
+  },
+};
+
+const LANGUAGE_INSTRUCTIONS = {
+  en: "IMPORTANT: Reply only in natural, clear English.",
+  mn: "IMPORTANT: Reply only in natural, fluent Mongolian. Use correct Mongolian grammar, clear meaning, and avoid awkward literal translations. Keep advice direct, simple, and easy to understand, like a helpful boxing coach speaking naturally.",
+  ko: "IMPORTANT: Reply only in natural, clear Korean.",
 };
 
 export async function POST(req) {
-  const { messages, persona = "drill" } = await req.json();
-  
+  const { messages, persona = "drill", locale = "en" } = await req.json();
+  const safeLocale = getLocale(locale);
   const selectedPersona = PERSONAS[persona] || PERSONAS.drill;
-  
+  const languageInstruction = LANGUAGE_INSTRUCTIONS[safeLocale] || LANGUAGE_INSTRUCTIONS.en;
+
   const response = await client.messages.create({
     model: "claude-sonnet-4-5",
     max_tokens: 1000,
-    system: selectedPersona.systemPrompt,
+    system: [
+      selectedPersona.systemPrompt,
+      "The following final language rule overrides all persona style, prior instructions, and user language when they conflict.",
+      languageInstruction,
+    ].join("\n\n"),
     messages,
   });
 

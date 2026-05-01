@@ -6,6 +6,7 @@ import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "fire
 import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
+import { getLocale, translate } from "@/lib/i18n";
 
 function getFriendlyAuthError(error, isSignUp) {
   switch (error?.code) {
@@ -28,7 +29,9 @@ function getFriendlyAuthError(error, isSignUp) {
 }
 
 export default function LoginPage() {
-  const { locale } = useParams();
+  const params = useParams();
+  const locale = getLocale(params?.locale);
+  const t = (key) => translate(locale, key);
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const [email, setEmail] = useState("");
@@ -47,7 +50,7 @@ export default function LoginPage() {
     return (
       <div style={styles.page}>
         <div style={styles.card}>
-          <p style={styles.loadingText}>Loading...</p>
+          <p style={styles.loadingText}>{t("loading")}</p>
         </div>
       </div>
     );
@@ -108,7 +111,7 @@ export default function LoginPage() {
             GAVANA BOXING
           </p>
           <h1 style={{ margin: "10px 0 0", fontSize: 28, fontWeight: 900, color: "#fff" }}>
-            {isSignUp ? "Sign Up" : "Sign In"}
+            {isSignUp ? "Sign Up" : t("login")}
           </h1>
         </div>
 
@@ -181,7 +184,7 @@ export default function LoginPage() {
               transition: "background 0.2s ease"
             }}
           >
-            {loading ? "Loading..." : (isSignUp ? "Sign Up" : "Sign In")}
+            {loading ? t("loading") : (isSignUp ? "Sign Up" : t("login"))}
           </button>
         </form>
 

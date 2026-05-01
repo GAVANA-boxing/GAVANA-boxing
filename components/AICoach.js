@@ -1,8 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { getLocaleFromPathname, translate } from "@/lib/i18n";
 
 export default function AICoach() {
+  const pathname = usePathname();
+  const locale = getLocaleFromPathname(pathname);
+  const t = (key) => translate(locale, key);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -16,9 +21,9 @@ export default function AICoach() {
   ];
 
   const quickActions = [
-    "Create training plan",
-    "Fix my technique",
-    "Improve speed"
+    t("createTrainingPlan"),
+    t("fixTechnique"),
+    t("improveSpeed")
   ];
 
   const activePersona = personas.find((p) => p.id === persona) || personas[0];
@@ -54,7 +59,8 @@ export default function AICoach() {
         },
         body: JSON.stringify({
           messages: newMessages,
-          persona: persona
+          persona: persona,
+          locale
         }),
       });
 
@@ -71,7 +77,11 @@ export default function AICoach() {
       console.error("Error:", error);
       const errorMessage = {
         role: "assistant",
-        content: "Sorry, something went wrong. Try again in a moment."
+        content: locale === "ko"
+          ? "문제가 발생했습니다. 잠시 후 다시 시도해 주세요."
+          : locale === "mn"
+            ? "Алдаа гарлаа. Түр хүлээгээд дахин оролдоно уу."
+            : "Sorry, something went wrong. Try again in a moment."
       };
       setMessages([...newMessages, errorMessage]);
     } finally {
@@ -91,7 +101,7 @@ export default function AICoach() {
       <div style={styles.shell}>
         <div style={styles.header}>
           <p style={styles.kicker}>GAVANA BOXING</p>
-          <h1 style={styles.title}>AI Coach</h1>
+          <h1 style={styles.title}>{t("aiCoach")}</h1>
         </div>
 
         <div style={styles.personas}>
@@ -135,7 +145,7 @@ export default function AICoach() {
           <div style={styles.messages}>
             {messages.length === 0 ? (
               <div style={styles.emptyState}>
-                <div style={styles.emptyTitle}>Ask your coach</div>
+                <div style={styles.emptyTitle}>{t("askYourCoach")}</div>
                 <div style={styles.exampleThread}>
                   <div style={styles.exampleAssistant}>Tell me your goal, schedule, and biggest weakness.</div>
                   <div style={styles.exampleUser}>I have 30 minutes a day and want faster combinations.</div>
@@ -176,7 +186,7 @@ export default function AICoach() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Ask about training, technique, or fight prep..."
+              placeholder={t("coachPlaceholder")}
               disabled={loading}
               style={styles.input}
             />

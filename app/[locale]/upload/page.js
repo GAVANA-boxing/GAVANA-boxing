@@ -1,14 +1,17 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { storage, db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
+import { getLocaleFromPathname, translate } from "@/lib/i18n";
 
 export default function UploadPage() {
-  const { locale } = useParams();
+  const pathname = usePathname();
+  const locale = getLocaleFromPathname(pathname);
+  const t = (key) => translate(locale, key);
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const fileInputRef = useRef(null);
@@ -17,6 +20,10 @@ export default function UploadPage() {
   const [description, setDescription] = useState("");
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  const [captionContext, setCaptionContext] = useState("");
+  const [captionLoading, setCaptionLoading] = useState(false);
+  const [captionError, setCaptionError] = useState("");
+  const [captionResult, setCaptionResult] = useState("");
 
   // Redirect if not logged in
   useEffect(() => {
@@ -35,7 +42,7 @@ export default function UploadPage() {
         justifyContent: "center",
         color: "#fff"
       }}>
-        Loading...
+        {t("loading")}
       </div>
     );
   }
@@ -105,6 +112,69 @@ export default function UploadPage() {
     }
   };
 
+  const handleGenerateCaption = async () => {
+    const context = captionContext.trim();
+
+    if (!context) {
+      setCaptionError("Add a short context first.");
+      return;
+    }
+
+    setCaptionLoading(true);
+    setCaptionError("");
+    setCaptionResult("");
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          persona: "analyst",
+          locale,
+          messages: [
+            {
+              role: "user",
+              content: [
+                "Generate a premium boxing reel caption.",
+                `Context: ${context}`,
+                "Return exactly three short sections:",
+                "Hook: one short viral hook, maximum 8 words.",
+                "Caption: one punchy caption, maximum 18 words.",
+                "Hashtags: 5 to 8 relevant hashtags.",
+              ].join("\n"),
+            },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Caption request failed");
+      }
+
+      const data = await response.json();
+      const text = data?.content?.find((item) => item?.type === "text")?.text || data?.content?.[0]?.text || "";
+
+      if (!text.trim()) {
+        throw new Error("Empty caption response");
+      }
+
+      setCaptionResult(text.trim());
+    } catch (error) {
+      console.error("Caption generation error:", error);
+      setCaptionError("Could not generate a caption. Please try again.");
+    } finally {
+      setCaptionLoading(false);
+    }
+  };
+
+  const handleUseCaption = () => {
+    if (captionResult.trim()) {
+      setDescription(captionResult.trim());
+    }
+  };
+
   const handleCancel = () => {
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
@@ -134,7 +204,7 @@ export default function UploadPage() {
             GAVANA BOXING
           </p>
           <h1 style={{ margin: "10px 0 0", fontSize: 42, fontWeight: 950, color: "#fff", letterSpacing: 0 }}>
-            Upload Reel
+            {t("uploadReel")}
           </h1>
         </div>
 
@@ -205,7 +275,7 @@ export default function UploadPage() {
                   letterSpacing: 1.2,
                   textTransform: "uppercase"
                 }}>
-                  Description
+                  {t("description")}
                 </label>
                 <textarea
                   value={description}
@@ -226,6 +296,122 @@ export default function UploadPage() {
                 />
               </div>
 
+              <div style={{
+                display: "grid",
+                gap: 12,
+                padding: 16,
+                borderRadius: 16,
+                background: "linear-gradient(145deg, rgba(193,18,31,0.14), rgba(11,11,11,0.96) 46%, rgba(212,175,55,0.08))",
+                border: "1px solid rgba(255,255,255,0.08)",
+                boxShadow: "0 18px 48px rgba(0,0,0,0.28)"
+              }}>
+                <div style={{ display: "grid", gap: 4 }}>
+                  <span style={{
+                    color: "#D4AF37",
+                    fontSize: 12,
+                    fontWeight: 850,
+                    letterSpacing: 1.4,
+                    textTransform: "uppercase"
+                  }}>
+                    {t("aiCaptionGenerator")}
+                  </span>
+                  <p style={{
+                    margin: 0,
+                    color: "#AAAAAA",
+                    fontSize: 13,
+                    lineHeight: 1.5
+                  }}>
+                    {t("aiCaptionHelp")}
+                  </p>
+                </div>
+
+                <input
+                  value={captionContext}
+                  onChange={(e) => setCaptionContext(e.target.value)}
+                  placeholder={t("captionContextPlaceholder")}
+                  style={{
+                    width: "100%",
+                    background: "rgba(7,7,7,0.72)",
+                    border: "1px solid rgba(255,255,255,0.12)",
+                    borderRadius: 12,
+                    padding: "13px 14px",
+                    color: "#fff",
+                    fontSize: 14,
+                    outline: "none"
+                  }}
+                />
+
+                <button
+                  type="button"
+                  onClick={handleGenerateCaption}
+                  disabled={captionLoading}
+                  style={{
+                    width: "100%",
+                    padding: "14px 16px",
+                    borderRadius: 12,
+                    border: "none",
+                    background: captionLoading ? "#4d1117" : "linear-gradient(135deg, #C1121F, #8f0d17)",
+                    color: "#fff",
+                    fontSize: 14,
+                    fontWeight: 850,
+                    cursor: captionLoading ? "not-allowed" : "pointer",
+                    boxShadow: "0 12px 32px rgba(193,18,31,0.22)",
+                    transition: "transform 0.18s ease, opacity 0.18s ease"
+                  }}
+                >
+                  {captionLoading ? t("generating") : t("generateCaption")}
+                </button>
+
+                {captionError && (
+                  <div style={{
+                    color: "#ff8b8b",
+                    fontSize: 13,
+                    lineHeight: 1.5
+                  }}>
+                    {captionError}
+                  </div>
+                )}
+
+                {captionResult && (
+                  <div style={{
+                    display: "grid",
+                    gap: 12,
+                    padding: 14,
+                    borderRadius: 14,
+                    background: "rgba(0,0,0,0.34)",
+                    border: "1px solid rgba(255,255,255,0.08)"
+                  }}>
+                    <pre style={{
+                      margin: 0,
+                      whiteSpace: "pre-wrap",
+                      color: "#FFFFFF",
+                      fontFamily: "inherit",
+                      fontSize: 14,
+                      lineHeight: 1.55
+                    }}>
+                      {captionResult}
+                    </pre>
+                    <button
+                      type="button"
+                      onClick={handleUseCaption}
+                      style={{
+                        justifySelf: "start",
+                        padding: "11px 14px",
+                        borderRadius: 999,
+                        border: "1px solid rgba(212,175,55,0.34)",
+                        background: "rgba(212,175,55,0.1)",
+                        color: "#D4AF37",
+                        fontSize: 13,
+                        fontWeight: 800,
+                        cursor: "pointer"
+                      }}
+                    >
+                      {t("useAsDescription")}
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <div style={{ display: "flex", gap: 12 }}>
                 <button
                   onClick={handleCancel}
@@ -242,7 +428,7 @@ export default function UploadPage() {
                     cursor: uploading ? "not-allowed" : "pointer"
                   }}
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   onClick={handleUpload}
@@ -259,7 +445,7 @@ export default function UploadPage() {
                     cursor: uploading || !description.trim() ? "not-allowed" : "pointer"
                   }}
                 >
-                  {uploading ? "Uploading..." : "Upload"}
+                  {uploading ? t("uploading") : t("upload")}
                 </button>
               </div>
             </div>

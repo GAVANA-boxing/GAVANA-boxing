@@ -1,4 +1,5 @@
 import Link from "next/link";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 const whyItems = [
   {
@@ -30,6 +31,7 @@ const stats = [
 export default function HomePage() {
   return (
     <main className="landing">
+      <LanguageSwitcher currentLocale="en" />
       <section className="hero">
         <nav className="nav" aria-label="Main navigation">
           <Link href="/" className="brand">GAVANA</Link>
