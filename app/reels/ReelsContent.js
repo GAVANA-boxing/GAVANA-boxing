@@ -123,6 +123,8 @@ export default function ReelsContent() {
   const firstPathSegment = pathname?.split("/")[1];
   const currentLocale = ["en", "ko", "mn"].includes(firstPathSegment) ? firstPathSegment : "en";
   const { user, loading: authLoading } = useAuth();
+  const [feedMode, setFeedMode] = useState("forYou");
+  const [allReels, setAllReels] = useState([]);
   const [reels, setReels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -130,6 +132,8 @@ export default function ReelsContent() {
   const [showControls, setShowControls] = useState(false);
   const [userLikes, setUserLikes] = useState(new Set());
   const [userViews, setUserViews] = useState(new Set());
+  const [followingIds, setFollowingIds] = useState(new Set());
+  const [savedReels, setSavedReels] = useState(new Set());
   const [videoLoading, setVideoLoading] = useState({});
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState([]);
@@ -140,6 +144,18 @@ export default function ReelsContent() {
   const controlsTimer = useRef(null);
   const commentsUnsubscribeRef = useRef(null);
 
+  useEffect(() => {
+    if (feedMode !== "following") {
+      setReels(allReels.length > 0 ? allReels : [DEMO_REEL]);
+      setCurrentIndex(0);
+      return;
+    }
+
+    const followedReels = allReels.filter((reel) => reel.userId && followingIds.has(reel.userId));
+    setReels(followedReels);
+    setCurrentIndex(0);
+  }, [allReels, feedMode, followingIds]);
+
   // Fetch reels from Firestore with real-time updates
   useEffect(() => {
     if (authLoading) {
@@ -147,7 +163,8 @@ export default function ReelsContent() {
     }
 
     if (!user?.uid) {
-      setReels([DEMO_REEL]);
+      setAllReels([DEMO_REEL]);
+      setFollowingIds(new Set());
       setLoading(false);
       return;
     }
@@ -182,25 +199,78 @@ export default function ReelsContent() {
             ? sortReelsByEngagement(reelsData)
             : [DEMO_REEL];
           
-          setReels(sortedReels);
+          setAllReels(sortedReels);
           setCurrentIndex(0);
           setLoading(false);
         }, (err) => {
           if (!isActive) return;
           console.error("Failed to listen for reels:", err);
-          setReels([DEMO_REEL]);
+          setAllReels([DEMO_REEL]);
           setLoading(false);
         });
       } catch (err) {
         if (!isActive) return;
         console.error("Failed to load reels:", err);
-        setReels([DEMO_REEL]);
+        setAllReels([DEMO_REEL]);
         setLoading(false);
       }
     }
 
     setLoading(true);
     loadReels();
+
+    return () => {
+      isActive = false;
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [authLoading, user?.uid]);
+
+  useEffect(() => {
+    if (authLoading || !user?.uid) {
+      setFollowingIds(new Set());
+      return;
+    }
+
+    let unsubscribe;
+    let isActive = true;
+
+    async function listenForFollowing() {
+      try {
+        const { db } = await getFirebase();
+        const { collection, query, where, onSnapshot } = await import("firebase/firestore");
+        if (!isActive) return;
+
+        const followingQuery = query(
+          collection(db, "follows"),
+          where("followerId", "==", user.uid)
+        );
+
+        unsubscribe = onSnapshot(followingQuery, (snapshot) => {
+          if (!isActive) return;
+
+          const nextFollowing = new Set();
+          snapshot.forEach((doc) => {
+            const data = doc.data();
+            if (data.followingId) {
+              nextFollowing.add(data.followingId);
+            }
+          });
+          setFollowingIds(nextFollowing);
+        }, (err) => {
+          if (!isActive) return;
+          console.error("Failed to listen for following:", err);
+          setFollowingIds(new Set());
+        });
+      } catch (err) {
+        if (!isActive) return;
+        console.error("Failed to load following:", err);
+        setFollowingIds(new Set());
+      }
+    }
+
+    listenForFollowing();
 
     return () => {
       isActive = false;
@@ -245,6 +315,45 @@ export default function ReelsContent() {
     }
     
     loadUserLikes();
+
+    return () => {
+      isActive = false;
+    };
+  }, [authLoading, user?.uid]);
+
+  useEffect(() => {
+    if (authLoading || !user?.uid) {
+      setSavedReels(new Set());
+      return;
+    }
+
+    let isActive = true;
+
+    async function loadSavedReels() {
+      try {
+        const { db } = await getFirebase();
+        const { collection, getDocs, query, where } = await import("firebase/firestore");
+        if (!isActive) return;
+
+        const savedSnapshot = await getDocs(query(
+          collection(db, "saved_reels"),
+          where("userId", "==", user.uid)
+        ));
+        const savedSet = new Set();
+        savedSnapshot.forEach((doc) => {
+          const data = doc.data();
+          if (data.reelId) savedSet.add(data.reelId);
+        });
+
+        if (isActive) {
+          setSavedReels(savedSet);
+        }
+      } catch (err) {
+        console.error("Failed to load saved reels:", err);
+      }
+    }
+
+    loadSavedReels();
 
     return () => {
       isActive = false;
@@ -336,11 +445,12 @@ export default function ReelsContent() {
         });
         
         // Update reel data locally
-        setReels(prev => sortReelsByEngagement(prev.map(reel => 
+        const updateViewedReel = (prev) => sortReelsByEngagement(prev.map(reel => 
           reel.id === currentReel.id 
             ? { ...reel, views: getSafeViewCount(reel) + 1 }
             : reel
-        )));
+        ));
+        setAllReels(updateViewedReel);
       } catch (err) {
         console.error("Failed to record view:", err);
       }
@@ -534,11 +644,12 @@ export default function ReelsContent() {
           return newLikes;
         });
         
-        setReels(prev => sortReelsByEngagement(prev.map(reel => 
+        const updateUnlikedReel = (prev) => sortReelsByEngagement(prev.map(reel => 
           reel.id === reelId 
             ? { ...reel, likes: Math.max(0, getSafeLikeCount(reel) - 1) }
             : reel
-        )));
+        ));
+        setAllReels(updateUnlikedReel);
       } else {
         const likedReel = reels.find((reel) => reel.id === reelId);
         // Like: add like and increment count
@@ -562,16 +673,68 @@ export default function ReelsContent() {
           return newLikes;
         });
         
-        setReels(prev => sortReelsByEngagement(prev.map(reel => 
+        const updateLikedReel = (prev) => sortReelsByEngagement(prev.map(reel => 
           reel.id === reelId 
             ? { ...reel, likes: getSafeLikeCount(reel) + 1 }
             : reel
-        )));
+        ));
+        setAllReels(updateLikedReel);
       }
     } catch (err) {
       console.error("Failed to toggle like:", err);
     }
   }, [user, router, currentLocale, reels]);
+
+  const handleSave = useCallback(async (reelId) => {
+    const targetReel = reels.find((reel) => reel.id === reelId);
+    if (targetReel?.isDemo) {
+      router.push(`/${currentLocale}/upload`);
+      return;
+    }
+
+    if (!user?.uid) {
+      router.push(`/${currentLocale}/login`);
+      return;
+    }
+
+    const wasSaved = savedReels.has(reelId);
+    setSavedReels((prev) => {
+      const next = new Set(prev);
+      if (wasSaved) {
+        next.delete(reelId);
+      } else {
+        next.add(reelId);
+      }
+      return next;
+    });
+
+    try {
+      const { db } = await getFirebase();
+      const { doc, setDoc, deleteDoc, serverTimestamp } = await import("firebase/firestore");
+      const saveRef = doc(db, "saved_reels", `${user.uid}_${reelId}`);
+
+      if (wasSaved) {
+        await deleteDoc(saveRef);
+      } else {
+        await setDoc(saveRef, {
+          userId: user.uid,
+          reelId,
+          createdAt: serverTimestamp(),
+        });
+      }
+    } catch (err) {
+      console.error("Failed to toggle saved reel:", err);
+      setSavedReels((prev) => {
+        const next = new Set(prev);
+        if (wasSaved) {
+          next.add(reelId);
+        } else {
+          next.delete(reelId);
+        }
+        return next;
+      });
+    }
+  }, [currentLocale, reels, router, savedReels, user?.uid]);
 
   // Handle opening comments
   const handleOpenComments = useCallback(async (reelId) => {
@@ -719,7 +882,7 @@ export default function ReelsContent() {
     );
   }
 
-  if (reels.length === 0) {
+  if (reels.length === 0 && feedMode !== "following") {
     return (
       <div style={styles.container}>
         <div style={styles.empty}>
@@ -735,9 +898,51 @@ export default function ReelsContent() {
 
   return (
     <div style={styles.container}>
+      <div style={styles.feedTabs}>
+        <button
+          type="button"
+          onClick={() => setFeedMode("forYou")}
+          style={{
+            ...styles.feedTab,
+            ...(feedMode === "forYou" ? styles.feedTabActive : {})
+          }}
+        >
+          For You
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            if (!user?.uid) {
+              router.push(`/${currentLocale}/login`);
+              return;
+            }
+            setFeedMode("following");
+          }}
+          style={{
+            ...styles.feedTab,
+            ...(feedMode === "following" ? styles.feedTabActive : {})
+          }}
+        >
+          Following
+        </button>
+      </div>
       {/* Reels Feed */}
       <div style={styles.feed} className="reels-feed" onScroll={handleScroll}>
-        {reels.map((reel, index) => (
+        {reels.length === 0 ? (
+          <div style={{...styles.videoContainer, ...styles.followingEmpty}}>
+            <div style={styles.followingEmptyTitle}>No followed reels yet</div>
+            <div style={styles.followingEmptyText}>
+              Follow fighters from their profile to build your training feed.
+            </div>
+            <button
+              type="button"
+              onClick={() => setFeedMode("forYou")}
+              style={styles.uploadBtn}
+            >
+              Explore reels
+            </button>
+          </div>
+        ) : reels.map((reel, index) => (
           <div 
             key={reel.id} 
             style={{
@@ -866,6 +1071,32 @@ export default function ReelsContent() {
                   <ViewIcon />
                 </div>
                 <span style={styles.actionText}>{formatCompactCount(getSafeViewCount(reel))}</span>
+              </div>
+              <div
+                className="reel-action"
+                role="button"
+                title={savedReels.has(reel.id) ? "Unsave reel" : "Save reel"}
+                style={{
+                  ...styles.actionItem,
+                  ...(savedReels.has(reel.id) ? styles.actionItemSaved : {})
+                }}
+                onClick={() => handleSave(reel.id)}
+              >
+                <div
+                  className="reel-action-circle"
+                  style={{
+                    ...styles.actionCircle,
+                    ...(savedReels.has(reel.id) ? styles.actionCircleSaved : {})
+                  }}
+                >
+                  <span style={{
+                    ...styles.actionIcon,
+                    ...(savedReels.has(reel.id) ? styles.actionIconSaved : {})
+                  }}>
+                    <BookmarkIcon filled={savedReels.has(reel.id)} />
+                  </span>
+                </div>
+                <span style={styles.actionText}>{savedReels.has(reel.id) ? "Saved" : "Save"}</span>
               </div>
             </div>
             {/* Mute button */}
@@ -1075,6 +1306,21 @@ function ViewIcon() {
         strokeLinejoin="round"
       />
       <circle cx="12" cy="12" r="2.2" fill="none" stroke="currentColor" strokeWidth="1.45" />
+    </svg>
+  );
+}
+
+function BookmarkIcon({ filled }) {
+  return (
+    <svg style={styles.actionSvg} viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M7 4.5h10v15l-5-3.2-5 3.2v-15Z"
+        fill={filled ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeWidth="1.45"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -1314,6 +1560,40 @@ const styles = {
     borderBottom: "2px solid #C1121F",
     paddingBottom: 4,
   },
+  feedTabs: {
+    position: "fixed",
+    top: "calc(14px + env(safe-area-inset-top))",
+    left: "50%",
+    transform: "translateX(-50%)",
+    zIndex: 80,
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    padding: 4,
+    borderRadius: 999,
+    background: "var(--glass)",
+    border: "1px solid var(--line)",
+    backdropFilter: "blur(18px) saturate(150%)",
+    WebkitBackdropFilter: "blur(18px) saturate(150%)",
+    boxShadow: "var(--shadow-soft)",
+  },
+  feedTab: {
+    border: "none",
+    borderRadius: 999,
+    background: "transparent",
+    color: "rgba(255,255,255,0.66)",
+    minHeight: 34,
+    padding: "0 14px",
+    fontSize: 13,
+    fontWeight: 850,
+    cursor: "pointer",
+    WebkitTapHighlightColor: "transparent",
+  },
+  feedTabActive: {
+    background: "rgba(193,18,31,0.82)",
+    color: "var(--text-primary)",
+    boxShadow: "var(--shadow-glow-red)",
+  },
   feed: {
     height: "100vh",
     overflowY: "scroll",
@@ -1332,6 +1612,27 @@ const styles = {
   },
   activeVideo: {
     zIndex: 1,
+  },
+  followingEmpty: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 14,
+    padding: "0 var(--space-6)",
+    textAlign: "center",
+    background: "var(--background)",
+  },
+  followingEmptyTitle: {
+    color: "var(--text-primary)",
+    fontSize: 24,
+    fontWeight: 950,
+  },
+  followingEmptyText: {
+    color: "var(--text-secondary)",
+    fontSize: 14,
+    lineHeight: 1.45,
+    maxWidth: 320,
   },
   videoLoadingOverlay: {
     position: "absolute",
@@ -1545,8 +1846,8 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: 20,
-    padding: "14px 8px",
+    gap: 10,
+    padding: "8px 4px",
     borderRadius: 999,
     background: "var(--glass)",
     border: "1px solid var(--line)",
@@ -1555,12 +1856,14 @@ const styles = {
     WebkitBackdropFilter: "blur(18px) saturate(140%)",
     animation: "fadeScale 220ms ease both",
     zIndex: 5,
+    maxHeight: "min(600px, 90vh)",
+    overflowY: "auto",
   },
   actionItem: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: 8,
+    gap: 6,
     cursor: "pointer",
     WebkitTapHighlightColor: "transparent",
     userSelect: "none",
@@ -1571,17 +1874,23 @@ const styles = {
     animation: "likePop 340ms ease",
     opacity: 1,
   },
+  actionItemSaved: {
+    animation: "likePop 340ms ease",
+    opacity: 1,
+  },
   actionCircle: {
-    width: 44,
-    height: 44,
+    width: 36,
+    height: 36,
     borderRadius: "50%",
     background: "transparent",
-    border: "1px solid transparent",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "transparent",
     backdropFilter: "none",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 2,
+    marginBottom: 0,
     boxShadow: "none",
     transition: "transform var(--motion-fast), background var(--motion-fast), border-color var(--motion-fast), box-shadow var(--motion-fast)",
   },
@@ -1589,6 +1898,11 @@ const styles = {
     background: "rgba(193, 18, 31, 0.12)",
     borderColor: "rgba(193,18,31,0.32)",
     boxShadow: "var(--shadow-glow-red)",
+  },
+  actionCircleSaved: {
+    background: "rgba(212,175,55,0.12)",
+    borderColor: "rgba(212,175,55,0.34)",
+    boxShadow: "0 0 24px rgba(212,175,55,0.22)",
   },
   actionIcon: {
     color: "var(--text-primary)",
@@ -1602,17 +1916,22 @@ const styles = {
     transform: "scale(1.08)",
     textShadow: "0 0 22px rgba(193,18,31,0.75), 0 2px 8px rgba(0,0,0,0.9)",
   },
+  actionIconSaved: {
+    color: "var(--accent-gold)",
+    transform: "scale(1.08)",
+    textShadow: "0 0 20px rgba(212,175,55,0.45), 0 2px 8px rgba(0,0,0,0.9)",
+  },
   actionSvg: {
-    width: 28,
-    height: 28,
+    width: 22,
+    height: 22,
     display: "block",
     color: "currentColor",
     filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.85))",
   },
   actionText: {
     color: "var(--text-primary)",
-    fontSize: 11,
-    fontWeight: 800,
+    fontSize: 10,
+    fontWeight: 700,
     textShadow: "0 2px 8px rgba(0,0,0,0.95)",
   },
   muteBtn: {

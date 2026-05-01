@@ -13,6 +13,8 @@ export default function UserProfilePage() {
   const router = useRouter();
   const [profileUser, setProfileUser] = useState(null);
   const [userReels, setUserReels] = useState([]);
+  const [savedUserReels, setSavedUserReels] = useState([]);
+  const [profileTab, setProfileTab] = useState("posts");
   const [loading, setLoading] = useState(true);
   const [totalLikes, setTotalLikes] = useState(0);
   const [reelLikes, setReelLikes] = useState({});
@@ -72,6 +74,7 @@ export default function UserProfilePage() {
 
         // Load likes for each reel
         await loadReelLikes(reelsData);
+        await loadSavedReels(userId);
 
         // Calculate total likes by counting user_likes for this user's reels
         const reelIds = reelsData.map(reel => reel.id);
@@ -145,6 +148,49 @@ export default function UserProfilePage() {
     }
   };
 
+  const loadSavedReels = async (targetUserId) => {
+    if (!user?.uid || user.uid !== targetUserId) {
+      setSavedUserReels([]);
+      return;
+    }
+
+    try {
+      const { collection, query, where, getDocs, documentId } = await import("firebase/firestore");
+      const savedSnapshot = await getDocs(query(
+        collection(db, "saved_reels"),
+        where("userId", "==", targetUserId)
+      ));
+      const savedReelIds = savedSnapshot.docs
+        .map((savedDoc) => savedDoc.data().reelId)
+        .filter(Boolean);
+
+      if (savedReelIds.length === 0) {
+        setSavedUserReels([]);
+        return;
+      }
+
+      const savedReels = [];
+      const batchSize = 10;
+
+      for (let i = 0; i < savedReelIds.length; i += batchSize) {
+        const batchIds = savedReelIds.slice(i, i + batchSize);
+        const reelsSnapshot = await getDocs(query(
+          collection(db, "reels"),
+          where(documentId(), "in", batchIds)
+        ));
+        reelsSnapshot.forEach((reelDoc) => {
+          savedReels.push({ id: reelDoc.id, ...reelDoc.data() });
+        });
+      }
+
+      setSavedUserReels(savedReels);
+      await loadReelLikes(savedReels);
+    } catch (error) {
+      console.error("Error loading saved reels:", error);
+      setSavedUserReels([]);
+    }
+  };
+
   // Load follow statistics
   const loadFollowStats = async (targetUserId) => {
     if (!user?.uid) return;
@@ -191,18 +237,30 @@ export default function UserProfilePage() {
 
   // Handle follow/unfollow
   const handleFollow = async () => {
-    if (!user || isOwnProfile || followLoading) return;
+    if (!user) {
+      router.push(`/${locale || "en"}/login`);
+      return;
+    }
+
+    if (isOwnProfile || followLoading) return;
 
     setFollowLoading(true);
+    const wasFollowing = isFollowing;
+    const previousStats = stats;
+    setIsFollowing(!wasFollowing);
+    setStats((prev) => ({
+      ...prev,
+      followers: Math.max(0, prev.followers + (wasFollowing ? -1 : 1))
+    }));
+
     try {
       const { doc, setDoc, deleteDoc, serverTimestamp } = await import("firebase/firestore");
 
       const followRef = doc(db, "follows", `${user.uid}_${userId}`);
 
-      if (isFollowing) {
+      if (wasFollowing) {
         // Unfollow
         await deleteDoc(followRef);
-        setIsFollowing(false);
         // Reload follow stats to ensure accuracy
         await loadFollowStats(userId);
       } else {
@@ -218,12 +276,13 @@ export default function UserProfilePage() {
           actorName: user.email?.split("@")[0],
           type: "follow",
         });
-        setIsFollowing(true);
         // Reload follow stats to ensure accuracy
         await loadFollowStats(userId);
       }
     } catch (error) {
       console.error("Error following user:", error);
+      setIsFollowing(wasFollowing);
+      setStats(previousStats);
     } finally {
       setFollowLoading(false);
     }
@@ -275,6 +334,8 @@ export default function UserProfilePage() {
   if (!user || !profileUser) {
     return null; // Will redirect
   }
+
+  const visibleReels = profileTab === "saved" ? savedUserReels : userReels;
 
   return (
     <div style={{
@@ -424,6 +485,31 @@ export default function UserProfilePage() {
         )}
       </div>
 
+      <div style={styles.profileTabs}>
+        <button
+          type="button"
+          onClick={() => setProfileTab("posts")}
+          style={{
+            ...styles.profileTab,
+            ...(profileTab === "posts" ? styles.profileTabActive : {})
+          }}
+        >
+          Posts
+        </button>
+        {isOwnProfile && (
+          <button
+            type="button"
+            onClick={() => setProfileTab("saved")}
+            style={{
+              ...styles.profileTab,
+              ...(profileTab === "saved" ? styles.profileTabActive : {})
+            }}
+          >
+            Saved
+          </button>
+        )}
+      </div>
+
       <div style={{
         padding: 0,
         display: "grid",
@@ -431,7 +517,7 @@ export default function UserProfilePage() {
         gap: 1,
         width: "100%"
       }}>
-        {userReels.length === 0 ? (
+        {visibleReels.length === 0 ? (
           <div style={{
             gridColumn: "1 / -1",
             textAlign: "center",
@@ -439,11 +525,15 @@ export default function UserProfilePage() {
             color: "var(--text-secondary)",
             background: "var(--background)"
           }}>
-            <p style={{ margin: 0, color: "var(--text-primary)", fontWeight: 850 }}>No reels yet</p>
-            <p style={{ margin: "8px 0 0", fontSize: 13 }}>Training clips will appear here.</p>
+            <p style={{ margin: 0, color: "var(--text-primary)", fontWeight: 850 }}>
+              {profileTab === "saved" ? "No saved reels yet" : "No reels yet"}
+            </p>
+            <p style={{ margin: "8px 0 0", fontSize: 13 }}>
+              {profileTab === "saved" ? "Bookmarked reels will appear here." : "Training clips will appear here."}
+            </p>
           </div>
         ) : (
-          userReels.map((reel) => (
+          visibleReels.map((reel) => (
             <div
               key={reel.id}
               className="profile-reel-tile"
@@ -514,3 +604,26 @@ export default function UserProfilePage() {
     </div>
   );
 }
+
+const styles = {
+  profileTabs: {
+    display: "flex",
+    width: "100%",
+    borderBottom: "1px solid var(--line)",
+    background: "var(--background)",
+  },
+  profileTab: {
+    flex: 1,
+    minHeight: 46,
+    border: "none",
+    background: "transparent",
+    color: "var(--text-secondary)",
+    fontSize: 13,
+    fontWeight: 850,
+    cursor: "pointer",
+  },
+  profileTabActive: {
+    color: "var(--text-primary)",
+    boxShadow: "inset 0 -2px 0 var(--primary-red)",
+  },
+};

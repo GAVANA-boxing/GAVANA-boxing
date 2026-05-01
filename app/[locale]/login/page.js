@@ -7,6 +7,26 @@ import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 
+function getFriendlyAuthError(error, isSignUp) {
+  switch (error?.code) {
+    case "auth/invalid-credential":
+    case "auth/wrong-password":
+      return "Incorrect email or password";
+    case "auth/user-not-found":
+      return "Account not found, please sign up";
+    case "auth/email-already-in-use":
+      return "An account with this email already exists";
+    case "auth/weak-password":
+      return "Password should be at least 6 characters";
+    case "auth/invalid-email":
+      return "Please enter a valid email address";
+    default:
+      return isSignUp
+        ? "Could not create account. Please try again"
+        : "Could not sign in. Please try again";
+  }
+}
+
 export default function LoginPage() {
   const { locale } = useParams();
   const router = useRouter();
@@ -74,7 +94,7 @@ export default function LoginPage() {
       router.push(`/${locale}/reels`);
     } catch (err) {
       console.error("Auth error:", err);
-      setError(err.message);
+      setError(getFriendlyAuthError(err, isSignUp));
     } finally {
       setLoading(false);
     }
