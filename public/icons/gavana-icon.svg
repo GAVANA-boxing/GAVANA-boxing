@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Gavana Boxing">
+  <rect width="512" height="512" rx="112" fill="#070707"/>
+  <circle cx="256" cy="256" r="188" fill="none" stroke="#D4AF37" stroke-width="18"/>
+  <path d="M156 310c22 46 62 72 111 72 56 0 97-31 111-84h-80c-8 14-20 21-36 21-28 0-48-22-48-62s20-64 49-64c17 0 30 8 38 24h82c-15-58-60-88-121-88-75 0-130 53-130 128 0 19 8 41 24 53Z" fill="#FFFFFF"/>
+  <path d="M326 212h-62v66h118v-31c0-13-3-25-8-35h-48Z" fill="#C1121F"/>
+</svg>
