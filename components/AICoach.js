@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 
@@ -15,25 +15,36 @@ export default function AICoach() {
   const messagesEndRef = useRef(null);
 
   const personas = [
-    { id: "drill", name: "Drill Sergeant", label: "DS", color: "#C1121F" },
-    { id: "zen", name: "Zen Master", label: "ZM", color: "#D4AF37" },
-    { id: "analyst", name: "Analyst", label: "AN", color: "#D4AF37" }
-  ];
-
-  const quickActions = [
-    t("createTrainingPlan"),
-    t("fixTechnique"),
-    t("improveSpeed")
+    {
+      id: "drill",
+      name: t("drillSergeant"),
+      icon: "!",
+      label: t("intense"),
+      color: "#C1121F",
+      quickActions: [t("drillQuick1"), t("drillQuick2"), t("drillQuick3")],
+    },
+    {
+      id: "zen",
+      name: t("zenMaster"),
+      icon: "Z",
+      label: t("calm"),
+      color: "#3B82F6",
+      quickActions: [t("zenQuick1"), t("zenQuick2"), t("zenQuick3")],
+    },
+    {
+      id: "analyst",
+      name: t("analyst"),
+      icon: "%",
+      label: t("data"),
+      color: "#D4AF37",
+      quickActions: [t("analystQuick1"), t("analystQuick2"), t("analystQuick3")],
+    },
   ];
 
   const activePersona = personas.find((p) => p.id === persona) || personas[0];
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const handlePersonaChange = (newPersona) => {
@@ -59,39 +70,39 @@ export default function AICoach() {
         },
         body: JSON.stringify({
           messages: newMessages,
-          persona: persona,
-          locale
+          persona,
+          locale,
         }),
       });
 
       const data = await response.json();
 
       if (data.content && data.content[0]) {
-        const aiMessage = {
-          role: "assistant",
-          content: data.content[0].text
-        };
-        setMessages([...newMessages, aiMessage]);
+        setMessages([
+          ...newMessages,
+          {
+            role: "assistant",
+            content: data.content[0].text,
+          },
+        ]);
       }
     } catch (error) {
       console.error("Error:", error);
-      const errorMessage = {
-        role: "assistant",
-        content: locale === "ko"
-          ? "문제가 발생했습니다. 잠시 후 다시 시도해 주세요."
-          : locale === "mn"
-            ? "Алдаа гарлаа. Түр хүлээгээд дахин оролдоно уу."
-            : "Sorry, something went wrong. Try again in a moment."
-      };
-      setMessages([...newMessages, errorMessage]);
+      setMessages([
+        ...newMessages,
+        {
+          role: "assistant",
+          content: t("coachError"),
+        },
+      ]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
+  const handleKeyPress = (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
       handleSend();
     }
   };
@@ -105,27 +116,32 @@ export default function AICoach() {
         </div>
 
         <div style={styles.personas}>
-          {personas.map((p) => (
+          {personas.map((item) => (
             <button
-              key={p.id}
-              onClick={() => handlePersonaChange(p.id)}
+              key={item.id}
+              onClick={() => handlePersonaChange(item.id)}
               style={{
                 ...styles.personaButton,
-                ...(persona === p.id ? {
-                  border: `1px solid ${p.color}`,
-                  background: `linear-gradient(180deg, ${p.color}33, ${p.color}18)`,
-                  opacity: 1
-                } : {})
+                ...(persona === item.id ? {
+                  borderColor: item.color,
+                  background: `linear-gradient(180deg, ${item.color}24, rgba(11,11,11,0.96))`,
+                  boxShadow: `0 0 0 1px ${item.color}55, 0 0 28px ${item.color}33`,
+                  opacity: 1,
+                  transform: "translateY(-2px)",
+                } : {}),
               }}
             >
-              <span style={styles.personaLabel}>{p.label}</span>
-              <span>{p.name}</span>
+              <span style={{ ...styles.personaIcon, color: item.color }}>{item.icon}</span>
+              <span style={styles.personaText}>
+                <span style={styles.personaName}>{item.name}</span>
+                <span style={{ ...styles.personaLabel, color: item.color }}>{item.label}</span>
+              </span>
             </button>
           ))}
         </div>
 
         <div style={styles.quickActions}>
-          {quickActions.map((action) => (
+          {activePersona.quickActions.map((action) => (
             <button
               key={action}
               onClick={() => handleSend(action)}
@@ -133,7 +149,7 @@ export default function AICoach() {
               style={{
                 ...styles.quickAction,
                 opacity: loading ? 0.55 : 1,
-                cursor: loading ? "not-allowed" : "pointer"
+                cursor: loading ? "not-allowed" : "pointer",
               }}
             >
               {action}
@@ -147,32 +163,31 @@ export default function AICoach() {
               <div style={styles.emptyState}>
                 <div style={styles.emptyTitle}>{t("askYourCoach")}</div>
                 <div style={styles.exampleThread}>
-                  <div style={styles.exampleAssistant}>Tell me your goal, schedule, and biggest weakness.</div>
-                  <div style={styles.exampleUser}>I have 30 minutes a day and want faster combinations.</div>
-                  <div style={styles.exampleAssistant}>Good. I will build a 4-week plan with speed drills, rest, and measurable targets.</div>
+                  <div style={styles.exampleAssistant}>{t("coachExampleAssistant1")}</div>
+                  <div style={styles.exampleUser}>{t("coachExampleUser")}</div>
+                  <div style={styles.exampleAssistant}>{t("coachExampleAssistant2")}</div>
                 </div>
               </div>
             ) : (
-              messages.map((msg, index) => (
+              messages.map((message, index) => (
                 <div
                   key={index}
                   style={{
                     marginBottom: 16,
                     display: "flex",
-                    justifyContent: msg.role === "user" ? "flex-end" : "flex-start"
+                    justifyContent: message.role === "user" ? "flex-end" : "flex-start",
                   }}
                 >
-                  <div style={{
-                    maxWidth: "74%",
-                    padding: "12px 16px",
-                    borderRadius: 18,
-                    background: msg.role === "user" ? activePersona.color : "#151515",
-                    color: "#fff",
-                    fontSize: 14,
-                    lineHeight: 1.45,
-                    border: msg.role === "user" ? "none" : "1px solid rgba(255,255,255,0.08)"
-                  }}>
-                    {msg.content}
+                  <div
+                    style={{
+                      ...(message.role === "user" ? styles.userBubble : styles.assistantBubble),
+                      ...(message.role === "assistant" ? {
+                        borderLeftColor: activePersona.color,
+                        boxShadow: `inset 3px 0 0 ${activePersona.color}, 0 14px 34px rgba(0,0,0,0.24)`,
+                      } : {}),
+                    }}
+                  >
+                    {message.content}
                   </div>
                 </div>
               ))
@@ -184,7 +199,7 @@ export default function AICoach() {
             <input
               type="text"
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(event) => setInput(event.target.value)}
               onKeyPress={handleKeyPress}
               placeholder={t("coachPlaceholder")}
               disabled={loading}
@@ -197,9 +212,9 @@ export default function AICoach() {
                 ...styles.sendButton,
                 background: loading ? "#4d1117" : activePersona.color,
                 cursor: loading || !input.trim() ? "not-allowed" : "pointer",
-                opacity: loading || !input.trim() ? 0.7 : 1
+                opacity: loading || !input.trim() ? 0.7 : 1,
               }}
-              aria-label="Send message"
+              aria-label={t("sendMessage")}
             >
               {loading ? "..." : <SendIcon />}
             </button>
@@ -223,74 +238,101 @@ const styles = {
     minHeight: "100vh",
     background: "linear-gradient(180deg, var(--background) 0%, var(--surface) 100%)",
     color: "var(--text-primary)",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   },
   shell: {
     maxWidth: 800,
     margin: "0 auto",
-    padding: "var(--space-6)"
+    padding: "var(--space-6)",
   },
   header: {
     textAlign: "center",
-    marginBottom: "var(--space-8)"
+    marginBottom: "var(--space-8)",
   },
   kicker: {
     margin: 0,
     color: "var(--accent-gold)",
     letterSpacing: 2,
     fontSize: 12,
-    fontWeight: 700
+    fontWeight: 700,
   },
   title: {
     margin: "10px 0 0",
     fontSize: 38,
     fontWeight: 900,
-    color: "var(--text-primary)"
+    color: "var(--text-primary)",
   },
   personas: {
-    display: "flex",
+    display: "grid",
+    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
     gap: 12,
     marginBottom: "var(--space-4)",
-    justifyContent: "center",
-    flexWrap: "wrap"
   },
   personaButton: {
-    padding: "11px 16px",
-    borderRadius: 999,
-    border: "1px solid var(--line)",
-    background: "rgba(255,255,255,0.045)",
+    minHeight: 94,
+    padding: "14px 12px",
+    borderRadius: 18,
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "rgba(255,255,255,0.08)",
+    background: "rgba(255,255,255,0.04)",
     color: "var(--text-primary)",
-    fontSize: 14,
-    fontWeight: 700,
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
-    gap: 8,
-    transition: "all var(--motion-fast)",
-    opacity: 0.72
+    justifyContent: "center",
+    gap: 11,
+    transition: "transform var(--motion-fast), border-color var(--motion-fast), background var(--motion-fast), box-shadow var(--motion-fast), opacity var(--motion-fast)",
+    opacity: 0.72,
+  },
+  personaIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: "50%",
+    background: "rgba(255,255,255,0.06)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 18,
+    fontWeight: 1000,
+    flexShrink: 0,
+  },
+  personaText: {
+    display: "grid",
+    gap: 5,
+    textAlign: "left",
+  },
+  personaName: {
+    color: "var(--text-primary)",
+    fontSize: 14,
+    fontWeight: 900,
+    lineHeight: 1.05,
   },
   personaLabel: {
     fontSize: 10,
-    color: "var(--text-secondary)",
-    letterSpacing: 0.8
+    fontWeight: 900,
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
   },
   quickActions: {
     display: "flex",
     gap: 10,
     marginBottom: "var(--space-6)",
     justifyContent: "center",
-    flexWrap: "wrap"
+    flexWrap: "wrap",
   },
   quickAction: {
     padding: "10px 14px",
     borderRadius: 999,
-    border: "1px solid var(--line)",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "var(--line)",
     background: "rgba(255,255,255,0.055)",
     color: "var(--text-primary)",
     fontSize: 13,
     fontWeight: 750,
     boxShadow: "var(--shadow-soft)",
-    transition: "transform var(--motion-fast), border-color var(--motion-fast), background var(--motion-fast)"
+    transition: "transform var(--motion-fast), border-color var(--motion-fast), background var(--motion-fast)",
   },
   chatBox: {
     background: "radial-gradient(circle at 50% 0%, rgba(193,18,31,0.13), transparent 34%), linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.018)), var(--surface)",
@@ -302,12 +344,36 @@ const styles = {
     height: 520,
     overflow: "hidden",
     display: "flex",
-    flexDirection: "column"
+    flexDirection: "column",
   },
   messages: {
     flex: 1,
     overflowY: "auto",
-    paddingRight: 10
+    paddingRight: 10,
+  },
+  userBubble: {
+    maxWidth: "74%",
+    padding: "12px 16px",
+    borderRadius: "18px 18px 4px 18px",
+    background: "#C1121F",
+    color: "#fff",
+    fontSize: 14,
+    lineHeight: 1.45,
+    border: "none",
+    boxShadow: "0 12px 30px rgba(193,18,31,0.22)",
+  },
+  assistantBubble: {
+    maxWidth: "78%",
+    padding: "12px 16px",
+    borderRadius: "18px 18px 18px 4px",
+    background: "rgba(21,21,21,0.98)",
+    color: "#fff",
+    fontSize: 14,
+    lineHeight: 1.45,
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "rgba(255,255,255,0.08)",
+    borderLeftWidth: 3,
   },
   emptyState: {
     display: "grid",
@@ -315,20 +381,20 @@ const styles = {
     gap: 18,
     height: "100%",
     color: "rgba(247,242,232,0.72)",
-    fontSize: 14
+    fontSize: 14,
   },
   emptyTitle: {
     textAlign: "center",
     color: "var(--text-primary)",
     fontSize: 22,
-    fontWeight: 900
+    fontWeight: 900,
   },
   exampleThread: {
     display: "grid",
     gap: 12,
     maxWidth: 520,
     margin: "0 auto",
-    width: "100%"
+    width: "100%",
   },
   exampleAssistant: {
     justifySelf: "start",
@@ -337,7 +403,7 @@ const styles = {
     borderRadius: 16,
     background: "var(--surface-soft)",
     border: "1px solid var(--line)",
-    lineHeight: 1.45
+    lineHeight: 1.45,
   },
   exampleUser: {
     justifySelf: "end",
@@ -345,12 +411,12 @@ const styles = {
     padding: "12px 14px",
     borderRadius: 16,
     background: "rgba(193,18,31,0.82)",
-    lineHeight: 1.45
+    lineHeight: 1.45,
   },
   inputRow: {
     display: "flex",
     gap: 12,
-    alignItems: "center"
+    alignItems: "center",
   },
   input: {
     flex: 1,
@@ -360,7 +426,7 @@ const styles = {
     background: "rgba(17,17,17,0.9)",
     color: "var(--text-primary)",
     fontSize: 14,
-    outline: "none"
+    outline: "none",
   },
   sendButton: {
     width: 48,
@@ -370,6 +436,6 @@ const styles = {
     color: "var(--text-primary)",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center"
-  }
+    justifyContent: "center",
+  },
 };

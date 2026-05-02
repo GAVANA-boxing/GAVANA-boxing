@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { storage, db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
@@ -110,6 +110,7 @@ export default function UploadPage() {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [description, setDescription] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState("");
   const [captionContext, setCaptionContext] = useState("");
   const [captionLoading, setCaptionLoading] = useState(false);
@@ -149,17 +150,18 @@ export default function UploadPage() {
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
     } else {
-      alert("Please select a video file");
+      alert(t("uploadSelectVideo"));
     }
   };
 
   const handleUpload = async () => {
     if (!selectedFile || !description.trim()) {
-      alert("Please select a video and add a description");
+      alert(t("uploadMissingFields"));
       return;
     }
 
     setUploading(true);
+    setUploadProgress(0);
     setError("");
 
     try {
@@ -167,7 +169,14 @@ export default function UploadPage() {
 
       // Upload video to Firebase Storage
       const videoRef = ref(storage, `reels/${user.uid}/${Date.now()}_${selectedFile.name}`);
-      const snapshot = await uploadBytes(videoRef, selectedFile);
+      const snapshot = await new Promise((resolve, reject) => {
+        const uploadTask = uploadBytesResumable(videoRef, selectedFile);
+
+        uploadTask.on("state_changed", (taskSnapshot) => {
+          const progress = Math.round((taskSnapshot.bytesTransferred / taskSnapshot.totalBytes) * 100);
+          setUploadProgress(progress);
+        }, reject, () => resolve(uploadTask.snapshot));
+      });
       const videoUrl = await getDownloadURL(snapshot.ref);
 
       // Create thumbnail (first frame)
@@ -197,9 +206,10 @@ export default function UploadPage() {
       router.push(`/${locale}/reels`);
     } catch (error) {
       console.error("Upload error:", error);
-      setError("Upload failed. Please try again.");
+      setError(t("uploadFailed"));
     } finally {
       setUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -207,7 +217,7 @@ export default function UploadPage() {
     const context = captionContext.trim();
 
     if (!context) {
-      setCaptionError("Add a short context first.");
+      setCaptionError(t("captionContextRequired"));
       return;
     }
 
@@ -255,7 +265,7 @@ export default function UploadPage() {
       setCaptionResult(text.trim());
     } catch (error) {
       console.error("Caption generation error:", error);
-      setCaptionError("Could not generate a caption. Please try again.");
+      setCaptionError(t("captionGenerateFailed"));
     } finally {
       setCaptionLoading(false);
     }
@@ -340,33 +350,67 @@ export default function UploadPage() {
             onMouseEnter={(e) => e.currentTarget.style.borderColor = "#D4AF37"}
             onMouseLeave={(e) => e.currentTarget.style.borderColor = "rgba(212,175,55,0.36)"}
           >
-            <div style={{ fontSize: 48, marginBottom: 16 }}>📹</div>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>▣</div>
             <p style={{ color: "#888", fontSize: 16, margin: 0 }}>
-              Click to select a boxing reel video
+              {t("selectBoxingVideo")}
             </p>
             <p style={{ color: "#666", fontSize: 14, margin: "8px 0 0" }}>
-              MP4, MOV, or other video formats
+              {t("videoFormats")}
             </p>
           </div>
         ) : (
           <div style={{ display: "grid", gap: 24 }}>
             <div style={{
               position: "relative",
-              borderRadius: 16,
+              borderRadius: 20,
               overflow: "hidden",
               background: "#000",
               border: "1px solid rgba(255,255,255,0.1)",
-              boxShadow: "0 20px 60px rgba(0,0,0,0.35)"
+              boxShadow: "0 24px 70px rgba(0,0,0,0.45)"
             }}>
               <video
                 src={previewUrl}
                 controls
+                muted
+                playsInline
                 style={{
                   width: "100%",
-                  maxHeight: 400,
-                  objectFit: "contain"
+                  aspectRatio: "9 / 16",
+                  maxHeight: "68vh",
+                  objectFit: "cover",
+                  display: "block",
+                  background: "#050505"
                 }}
               />
+              <div style={{
+                position: "absolute",
+                left: 14,
+                right: 14,
+                bottom: 14,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 10,
+                pointerEvents: "none"
+              }}>
+                <span style={{
+                  color: "#fff",
+                  fontSize: 12,
+                  fontWeight: 850,
+                  textShadow: "0 2px 12px rgba(0,0,0,0.9)"
+                }}>
+                  {selectedFile.name}
+                </span>
+                <span style={{
+                  color: "#D4AF37",
+                  fontSize: 11,
+                  fontWeight: 900,
+                  letterSpacing: 1.1,
+                  textTransform: "uppercase"
+                }}>
+                  Preview
+                </span>
+              </div>
             </div>
 
             <div style={{ display: "grid", gap: 16 }}>
@@ -383,7 +427,7 @@ export default function UploadPage() {
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Describe your boxing reel..."
+                  placeholder={t("describeReelPlaceholder")}
                   style={{
                     width: "100%",
                     background: "#111",
@@ -482,26 +526,26 @@ export default function UploadPage() {
                     <div style={{
                       display: "grid",
                       gap: 12,
-                      padding: 14,
-                      borderRadius: 14,
-                      background: "rgba(0,0,0,0.34)",
-                      border: "1px solid rgba(255,255,255,0.08)"
+                      padding: 16,
+                      borderRadius: 16,
+                      background: "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.32))",
+                      border: "1px solid rgba(212,175,55,0.16)"
                     }}>
                       {parsedCaption.hook && (
                         <div style={styles.captionSection}>
-                          <span style={styles.captionSectionLabel}>Hook</span>
+                          <span style={styles.captionSectionLabel}>{t("hook")}</span>
                           <div style={styles.captionHookText}>{parsedCaption.hook}</div>
                         </div>
                       )}
                       {parsedCaption.caption && (
                         <div style={styles.captionSection}>
-                          <span style={styles.captionSectionLabel}>Caption</span>
+                          <span style={styles.captionSectionLabel}>{t("caption")}</span>
                           <div style={styles.captionResultText}>{parsedCaption.caption}</div>
                         </div>
                       )}
                       {parsedCaption.hashtags && (
                         <div style={styles.captionSection}>
-                          <span style={styles.captionSectionLabel}>Hashtags</span>
+                          <span style={styles.captionSectionLabel}>{t("hashtags")}</span>
                           <div style={styles.captionResultText}>{parsedCaption.hashtags}</div>
                         </div>
                       )}
@@ -511,7 +555,7 @@ export default function UploadPage() {
                           onClick={handleUseCaption}
                           style={styles.captionActionButton}
                         >
-                          Use caption
+                          {t("useCaption")}
                         </button>
                         <button
                           type="button"
@@ -523,7 +567,7 @@ export default function UploadPage() {
                             border: "1px solid rgba(255,255,255,0.12)"
                           }}
                         >
-                          Copy hashtags
+                          {t("copyHashtags")}
                         </button>
                       </div>
                     </div>
@@ -567,6 +611,38 @@ export default function UploadPage() {
                   {uploading ? t("uploading") : t("upload")}
                 </button>
               </div>
+              {uploading && (
+                <div style={{
+                  display: "grid",
+                  gap: 8,
+                  marginTop: -4
+                }}>
+                  <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    color: "#AAAAAA",
+                    fontSize: 12,
+                    fontWeight: 800
+                  }}>
+                    <span>{t("uploading")}</span>
+                    <span>{uploadProgress}%</span>
+                  </div>
+                  <div style={{
+                    height: 8,
+                    borderRadius: 999,
+                    background: "rgba(255,255,255,0.08)",
+                    overflow: "hidden"
+                  }}>
+                    <div style={{
+                      width: `${uploadProgress}%`,
+                      height: "100%",
+                      borderRadius: 999,
+                      background: "linear-gradient(90deg, #C1121F, #D4AF37)",
+                      transition: "width 180ms ease"
+                    }} />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

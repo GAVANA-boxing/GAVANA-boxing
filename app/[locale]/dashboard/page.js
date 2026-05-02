@@ -1,6 +1,7 @@
 import { WORKOUTS } from "@/lib/data";
 import WorkoutCard from "@/components/WorkoutCard";
 import ComboCard from "@/components/ComboCard";
+import Leaderboard from "@/components/Leaderboard";
 import { useTranslations } from "next-intl";
 
 export default function Dashboard() {
@@ -9,6 +10,8 @@ export default function Dashboard() {
   return (
     <div className="p-6">
       <h1 className="text-3xl">{t("title")}</h1>
+
+      <Leaderboard />
 
       <ComboCard />
 

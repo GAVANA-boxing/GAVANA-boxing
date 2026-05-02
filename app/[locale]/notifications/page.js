@@ -35,42 +35,32 @@ function getActorPhoto(notification, actorProfile) {
   );
 }
 
-function getNotificationText(notification, locale) {
-  const actor = getActorName(notification);
-
-  if (notification.type === "like") {
-    if (locale === "ko") return `${actor}님이 내 릴스를 좋아합니다`;
-    if (locale === "mn") return `${actor} таны рилсэд дуртай гэж дарлаа`;
-    return `${actor} liked your reel`;
-  }
-
-  if (notification.type === "comment") {
-    if (locale === "ko") return `${actor}님이 내 릴스에 댓글을 남겼습니다`;
-    if (locale === "mn") return `${actor} таны рилсэд сэтгэгдэл бичлээ`;
-    return `${actor} commented on your reel`;
-  }
-
-  if (notification.type === "follow") {
-    if (locale === "ko") return `${actor}님이 나를 팔로우했습니다`;
-    if (locale === "mn") return `${actor} таныг дагалаа`;
-    return `${actor} followed you`;
-  }
-
-  if (notification.type === "save") {
-    if (locale === "ko") return `${actor}님이 내 릴스를 저장했습니다`;
-    if (locale === "mn") return `${actor} таны рилсийг хадгаллаа`;
-    return `${actor} saved your reel`;
-  }
-
-  return `${actor} sent you a notification`;
+function getTypeLabel(type, t) {
+  if (type === "like") return t("like");
+  if (type === "comment") return t("comment");
+  if (type === "follow") return t("follow");
+  if (type === "save") return t("save");
+  return t("update");
 }
 
-function getTypeLabel(type) {
-  if (type === "like") return "Like";
-  if (type === "comment") return "Comment";
-  if (type === "follow") return "Follow";
-  if (type === "save") return "Save";
-  return "Update";
+function getTranslatedNotificationText(notification, t) {
+  const actor = getActorName(notification);
+  const keyByType = {
+    like: "notificationLike",
+    comment: "notificationComment",
+    follow: "notificationFollow",
+    save: "notificationSave",
+  };
+
+  return t(keyByType[notification.type] || "notificationDefault").replace("{actor}", actor);
+}
+
+function getTypeIcon(type) {
+  if (type === "like") return "❤";
+  if (type === "comment") return "💬";
+  if (type === "follow") return "👤";
+  if (type === "save") return "🔖";
+  return "•";
 }
 
 function getTimestampMs(timestamp) {
@@ -102,16 +92,16 @@ function formatRelativeTime(timestamp) {
 
 function getTimeGroup(timestamp) {
   const time = getTimestampMs(timestamp);
-  if (!time) return "Earlier";
+  if (!time) return "earlier";
 
   const date = new Date(time);
   const today = new Date();
   const yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);
 
-  if (date.toDateString() === today.toDateString()) return "Today";
-  if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
-  return "Earlier";
+  if (date.toDateString() === today.toDateString()) return "today";
+  if (date.toDateString() === yesterday.toDateString()) return "yesterday";
+  return "earlier";
 }
 
 export default function NotificationsPage() {
@@ -260,7 +250,7 @@ export default function NotificationsPage() {
     }
 
     if (notification.reelId) {
-      router.push(`/${locale}/reels`);
+      router.push(`/${locale}/reels?reelId=${notification.reelId}`);
       return;
     }
 
@@ -296,25 +286,22 @@ export default function NotificationsPage() {
       <section style={styles.list}>
         {notifications.length === 0 ? (
           <div style={styles.empty}>
-            <div style={styles.emptyIcon}>!</div>
+            <div style={styles.emptyIcon}>
+              <BoxingGloveIcon />
+            </div>
             <p style={styles.emptyTitle}>{t("noNotificationsYet")}</p>
-            <p style={styles.emptyText}>
-              {locale === "ko"
-                ? "좋아요, 댓글, 팔로우가 여기에 표시됩니다."
-                : locale === "mn"
-                  ? "Таалагдсан, сэтгэгдэл, дагалтууд энд харагдана."
-                  : "Likes, comments, and follows will appear here."}
-            </p>
+            <p style={styles.emptyText}>{t("notificationsEmptyHelp")}</p>
           </div>
         ) : (
-          ["Today", "Yesterday", "Earlier"].map((group) => (
+          ["today", "yesterday", "earlier"].map((group) => (
             groupedNotifications[group]?.length ? (
               <div key={group} style={styles.group}>
-                <div style={styles.groupTitle}>{group}</div>
+                <div style={styles.groupTitle}>{t(group)}</div>
                 {groupedNotifications[group].map((notification) => {
                   const actor = getActorName(notification);
                   const actorId = getActorId(notification);
                   const actorPhoto = getActorPhoto(notification, actorProfiles[actorId]);
+                  const typeIcon = getTypeIcon(notification.type);
 
                   return (
                     <button
@@ -325,6 +312,12 @@ export default function NotificationsPage() {
                       }}
                       onClick={() => handleOpenNotification(notification)}
                     >
+                      <div
+                        style={{
+                          ...styles.unreadRail,
+                          opacity: notification.read === false ? 0.92 : 0,
+                        }}
+                      />
                       <div style={styles.avatar}>
                         {actorPhoto ? (
                           <img src={actorPhoto} alt="" style={styles.avatarImage} />
@@ -335,10 +328,10 @@ export default function NotificationsPage() {
                       <div style={styles.notificationBody}>
                         <div style={styles.notificationTopLine}>
                           <span style={styles.username}>@{actor}</span>
-                          <span style={styles.typePill}>{getTypeLabel(notification.type)}</span>
+                          <span style={styles.typePill}>{typeIcon} {getTypeLabel(notification.type, t)}</span>
                         </div>
                         <div style={styles.notificationText}>
-                          {getNotificationText(notification, locale)}
+                          {getTranslatedNotificationText(notification, t)}
                         </div>
                         {notification.text && (
                           <div style={styles.commentPreview}>
@@ -347,7 +340,6 @@ export default function NotificationsPage() {
                         )}
                       </div>
                       <div style={styles.meta}>
-                        {notification.read === false && <span style={styles.unreadDot} />}
                         <span style={styles.date}>{formatRelativeTime(notification.createdAt)}</span>
                       </div>
                     </button>
@@ -359,6 +351,26 @@ export default function NotificationsPage() {
         )}
       </section>
     </main>
+  );
+}
+
+function BoxingGloveIcon() {
+  return (
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M8.3 4.3c3.8-1.2 8 .6 9.3 4.6.9 2.9-.2 6.2-2.8 7.8l-.5 2.6H7.2l.5-3.2c-1.7-.9-2.9-2.5-3.3-4.5-.7-3.4.9-6.4 3.9-7.3Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8 16.1h6.8M10.2 5.8c1.9.5 3.1 1.8 3.6 3.8"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 }
 
@@ -392,7 +404,9 @@ const styles = {
     borderBottom: "1px solid rgba(212,175,55,0.18)",
   },
   backButton: {
-    border: "1px solid rgba(212,175,55,0.28)",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "rgba(212,175,55,0.28)",
     background: "transparent",
     color: "#fff",
     borderRadius: 10,
@@ -466,18 +480,19 @@ const styles = {
     textAlign: "center",
   },
   emptyIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 62,
+    height: 62,
+    borderRadius: 31,
     background: "#111",
     color: "#D4AF37",
-    border: "1px solid rgba(212,175,55,0.2)",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "rgba(212,175,55,0.28)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: 28,
-    fontWeight: 900,
     marginBottom: 16,
+    boxShadow: "0 18px 44px rgba(0,0,0,0.28)",
   },
   emptyTitle: {
     margin: 0,
@@ -493,26 +508,37 @@ const styles = {
   notification: {
     width: "100%",
     display: "grid",
-    gridTemplateColumns: "44px 1fr auto",
+    gridTemplateColumns: "4px 46px minmax(0, 1fr) auto",
     alignItems: "center",
     gap: 12,
-    padding: "14px",
-    border: "1px solid rgba(255,255,255,0.08)",
+    padding: "14px 14px 14px 0",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "rgba(255,255,255,0.08)",
     borderRadius: 16,
     background: "rgba(11,11,11,0.96)",
     color: "#fff",
     textAlign: "left",
     cursor: "pointer",
     boxShadow: "0 12px 32px rgba(0,0,0,0.22)",
+    position: "relative",
+    overflow: "hidden",
   },
   notificationUnread: {
-    background: "linear-gradient(135deg, rgba(193,18,31,0.16), rgba(11,11,11,0.98))",
-    borderColor: "rgba(193,18,31,0.28)",
+    background: "linear-gradient(90deg, rgba(193,18,31,0.14), rgba(11,11,11,0.98) 34%)",
+    borderColor: "rgba(193,18,31,0.26)",
+  },
+  unreadRail: {
+    width: 4,
+    alignSelf: "stretch",
+    borderRadius: "0 4px 4px 0",
+    background: "#C1121F",
+    opacity: 0.92,
   },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     background: "linear-gradient(145deg, #C1121F, #6d0a12)",
     color: "#fff",
     display: "flex",
@@ -546,12 +572,15 @@ const styles = {
   },
   typePill: {
     borderRadius: 999,
-    background: "rgba(212,175,55,0.1)",
+    background: "rgba(255,255,255,0.055)",
     color: "#D4AF37",
-    border: "1px solid rgba(212,175,55,0.18)",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "rgba(212,175,55,0.16)",
     padding: "2px 7px",
     fontSize: 10,
     fontWeight: 900,
+    whiteSpace: "nowrap",
   },
   notificationText: {
     fontSize: 15,
@@ -570,7 +599,6 @@ const styles = {
   meta: {
     display: "grid",
     justifyItems: "end",
-    gap: 7,
     alignSelf: "stretch",
     alignContent: "center",
   },
@@ -587,3 +615,5 @@ const styles = {
     whiteSpace: "nowrap",
   },
 };
+
+

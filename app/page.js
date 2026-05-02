@@ -1,115 +1,109 @@
-import Link from "next/link";
+"use client";
+
+import { useRouter } from "next/navigation";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import DailyMission from "@/components/DailyMission";
+import { useAuth } from "@/lib/AuthContext";
 
-const whyItems = [
+const features = [
   {
-    title: "AI Boxing Coach",
-    text: "Get focused training ideas, technique cues, and round-by-round guidance when you need it.",
+    kicker: "AI Boxing Coach",
+    title: "Personal fight IQ",
+    text: "Technique prompts, training ideas, and score-focused feedback for every round.",
   },
   {
-    title: "Reel-based training",
-    text: "Post your rounds, bag work, footwork, and drills in a feed built around boxing progress.",
+    kicker: "Reels + Community",
+    title: "Post the work",
+    text: "Share bag work, sparring, footwork, and drills with fighters building in public.",
   },
   {
-    title: "Community & competition",
-    text: "Follow fighters, react to clips, and stay connected to the athletes sharpening their craft.",
+    kicker: "Progress Tracking",
+    title: "Score your growth",
+    text: "Save AI feedback history, compare scores, and turn each clip into a training signal.",
   },
-];
-
-const steps = [
-  "Upload your training",
-  "Get feedback",
-  "Improve and grow",
-];
-
-const stats = [
-  { value: "10,000+", label: "punches tracked" },
-  { value: "2,000+", label: "fighters" },
-  { value: "50,000+", label: "views" },
 ];
 
 export default function HomePage() {
+  const { user } = useAuth();
+  const router = useRouter();
+  const locale = "mn";
+  const isLoggedIn = Boolean(user?.uid);
+
+  const goTo = (route, protectedRoute = true) => {
+    if (!protectedRoute || isLoggedIn) {
+      router.push(route);
+      return;
+    }
+
+    router.push(`/${locale}/login?redirect=${encodeURIComponent(route)}`);
+  };
+
   return (
     <main className="landing">
-      <LanguageSwitcher currentLocale="en" />
+      <LanguageSwitcher currentLocale={locale} />
+
       <section className="hero">
         <nav className="nav" aria-label="Main navigation">
-          <Link href="/" className="brand">GAVANA</Link>
+          <button type="button" className="brand" onClick={() => router.push("/")}>
+            GAVANA
+          </button>
           <div className="navLinks">
-            <Link href="/reels">Reels</Link>
-            <Link href="/en/coach">Coach</Link>
-            <Link href="/en/profile">Profile</Link>
+            <button type="button" onClick={() => goTo(`/${locale}/reels`, false)}>Watch Reels</button>
+            <button type="button" onClick={() => goTo(`/${locale}/upload`)}>Start Training</button>
           </div>
         </nav>
 
-        <div className="heroContent reveal">
-          <p className="eyebrow">AI powered boxing community</p>
-          <h1>Train. Fight. Evolve.</h1>
-          <p className="subtitle">
-            Join the next generation of boxing with AI coaching and reels
-          </p>
-          <div className="ctaRow">
-            <Link href="/reels" className="ctaPrimary">Start Training</Link>
-            <Link href="/en/coach" className="ctaSecondary">Try AI Coach</Link>
-          </div>
-        </div>
+        <DailyMission locale={locale} />
 
-        <div className="heroVisual" aria-hidden="true">
-          <div className="ringFrame">
-            <div className="rope ropeTop" />
-            <div className="rope ropeMid" />
-            <div className="rope ropeBottom" />
-            <div className="fighterGlow" />
+        <div className="heroGrid">
+          <div className="heroCopy">
+            <p className="eyebrow">Premium boxing media and coaching</p>
+            <h1>Train. Fight. Evolve.</h1>
+            <p className="subtitle">
+              GAVANA brings boxing reels, AI coaching, and fighter progress into one focused platform.
+            </p>
+            <div className="ctaRow">
+              <button type="button" className="primaryCta" onClick={() => goTo(`/${locale}/reels`, false)}>
+                Watch Reels
+              </button>
+              <button type="button" className="secondaryCta" onClick={() => goTo(`/${locale}/upload`)}>
+                Start Training
+              </button>
+            </div>
+          </div>
+
+          <div className="heroVisual" aria-hidden="true">
+            <div className="ringLine ringTop" />
+            <div className="ringLine ringMid" />
+            <div className="ringLine ringLow" />
             <div className="bag" />
-            <div className="floorLight" />
+            <div className="fighterMark" />
+            <div className="floorGlow" />
           </div>
         </div>
       </section>
 
-      <section className="stats reveal" aria-label="Gavana stats">
-        {stats.map((stat) => (
-          <div className="stat" key={stat.label}>
-            <strong>{stat.value}</strong>
-            <span>{stat.label}</span>
-          </div>
+      <section className="features" aria-label="GAVANA features">
+        {features.map((feature) => (
+          <article className="featureCard" key={feature.kicker}>
+            <p>{feature.kicker}</p>
+            <h2>{feature.title}</h2>
+            <span>{feature.text}</span>
+          </article>
         ))}
       </section>
 
-      <section className="section reveal">
-        <div className="sectionHeader">
-          <p className="eyebrow">Why Gavana?</p>
-          <h2>Built for fighters who study the work.</h2>
+      <section className="finalBand">
+        <div>
+          <p className="eyebrow">Join the next round</p>
+          <h2>Build your fighter profile today.</h2>
         </div>
-        <div className="cards">
-          {whyItems.map((item) => (
-            <article className="card" key={item.title}>
-              <h3>{item.title}</h3>
-              <p>{item.text}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="section how reveal">
-        <div className="sectionHeader">
-          <p className="eyebrow">How it works</p>
-          <h2>Train in public. Improve with intention.</h2>
-        </div>
-        <div className="steps">
-          {steps.map((step, index) => (
-            <div className="step" key={step}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <h3>{step}</h3>
-            </div>
-          ))}
-        </div>
+        <button type="button" onClick={() => goTo(`/${locale}/upload`)}>
+          Start Training
+        </button>
       </section>
 
       <style>{`
-        html {
-          scroll-behavior: smooth;
-        }
-
         .landing {
           min-height: 100vh;
           background: #070707;
@@ -120,36 +114,12 @@ export default function HomePage() {
 
         .hero {
           min-height: 100vh;
-          position: relative;
-          display: grid;
-          grid-template-rows: auto 1fr;
-          padding: 18px clamp(18px, 5vw, 72px) 54px;
-          isolation: isolate;
+          padding: 18px clamp(18px, 5vw, 72px) 42px;
           background:
-            linear-gradient(90deg, rgba(4,4,4,0.92) 0%, rgba(4,4,4,0.78) 42%, rgba(4,4,4,0.38) 100%),
-            radial-gradient(circle at 72% 20%, rgba(193,18,31,0.28), transparent 28%),
-            radial-gradient(circle at 78% 82%, rgba(212,175,55,0.18), transparent 24%),
-            linear-gradient(135deg, #070707 0%, #120608 52%, #0b0b0b 100%);
-        }
-
-        .hero:before {
-          content: "";
-          position: absolute;
-          inset: 0;
-          z-index: -2;
-          background:
-            repeating-linear-gradient(90deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 96px),
-            linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.82) 100%);
-          opacity: 0.72;
-        }
-
-        .hero:after {
-          content: "";
-          position: absolute;
-          inset: auto 0 0;
-          height: 34vh;
-          z-index: -1;
-          background: linear-gradient(180deg, transparent, #070707 86%);
+            linear-gradient(90deg, rgba(7,7,7,0.98), rgba(7,7,7,0.78)),
+            radial-gradient(circle at 78% 12%, rgba(193,18,31,0.28), transparent 28%),
+            radial-gradient(circle at 74% 78%, rgba(212,175,55,0.14), transparent 26%),
+            #070707;
         }
 
         .nav {
@@ -158,324 +128,260 @@ export default function HomePage() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 18px;
+          gap: 16px;
+        }
+
+        button {
+          font: inherit;
         }
 
         .brand {
-          width: 112px;
+          min-width: 112px;
           min-height: 42px;
-          border: 1px solid rgba(212,175,55,0.5);
+          border: 1px solid rgba(212,175,55,0.48);
           border-radius: 8px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          color: #d4af37;
-          text-decoration: none;
+          background: rgba(11,11,11,0.78);
+          color: #D4AF37;
           font-weight: 950;
           letter-spacing: 2px;
-          background: rgba(0,0,0,0.34);
+          cursor: pointer;
         }
 
         .navLinks {
           display: flex;
-          gap: 16px;
+          gap: 10px;
           flex-wrap: wrap;
           justify-content: flex-end;
         }
 
-        .navLinks a {
-          color: rgba(255,255,255,0.72);
-          text-decoration: none;
-          font-size: 14px;
-          font-weight: 800;
+        .navLinks button,
+        .secondaryCta {
+          border: 1px solid #333;
+          background: transparent;
+          color: #fff;
         }
 
-        .heroContent {
+        .navLinks button {
+          min-height: 38px;
+          border-radius: 999px;
+          padding: 0 14px;
+          font-size: 13px;
+          font-weight: 850;
+          cursor: pointer;
+        }
+
+        .heroGrid {
           width: min(1180px, 100%);
+          min-height: calc(100vh - 78px);
           margin: 0 auto;
-          align-self: center;
-          padding: 72px 0 108px;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) minmax(280px, 0.68fr);
+          align-items: center;
+          gap: 34px;
+        }
+
+        .heroCopy {
+          padding: 72px 0;
         }
 
         .eyebrow {
-          margin: 0 0 14px;
-          color: #d4af37;
-          text-transform: uppercase;
-          letter-spacing: 2px;
+          margin: 0 0 16px;
+          color: #D4AF37;
           font-size: 12px;
           font-weight: 950;
+          letter-spacing: 2.2px;
+          text-transform: uppercase;
         }
 
         h1 {
-          max-width: 900px;
           margin: 0;
-          font-size: clamp(54px, 14vw, 132px);
+          max-width: 820px;
+          font-size: clamp(56px, 13vw, 128px);
           line-height: 0.9;
+          font-weight: 1000;
           letter-spacing: 0;
-          font-weight: 950;
         }
 
         .subtitle {
-          max-width: 620px;
+          max-width: 570px;
           margin: 24px 0 0;
-          color: rgba(255,255,255,0.76);
-          font-size: clamp(18px, 4.4vw, 27px);
-          line-height: 1.42;
+          color: #AAAAAA;
+          font-size: clamp(17px, 3vw, 24px);
+          line-height: 1.45;
+          font-weight: 600;
         }
 
         .ctaRow {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+          grid-template-columns: repeat(2, minmax(0, 190px));
           gap: 12px;
-          width: min(100%, 410px);
-          margin-top: 36px;
+          margin-top: 34px;
         }
 
-        .ctaPrimary,
-        .ctaSecondary {
-          min-height: 52px;
+        .primaryCta,
+        .secondaryCta,
+        .finalBand button {
+          min-height: 54px;
           border-radius: 8px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          text-decoration: none;
-          font-size: 15px;
+          font-size: 14px;
           font-weight: 950;
+          cursor: pointer;
         }
 
-        .ctaPrimary {
-          color: #fff;
-          background: #c1121f;
+        .primaryCta,
+        .finalBand button {
           border: 1px solid rgba(255,255,255,0.1);
-          box-shadow: 0 18px 42px rgba(193,18,31,0.24);
-        }
-
-        .ctaSecondary {
-          color: #d4af37;
-          background: rgba(255,255,255,0.055);
-          border: 1px solid rgba(212,175,55,0.38);
+          background: #C1121F;
+          color: #fff;
+          box-shadow: 0 20px 48px rgba(193,18,31,0.24);
         }
 
         .heroVisual {
-          position: absolute;
-          right: clamp(-110px, -4vw, -32px);
-          bottom: 0;
-          width: min(58vw, 760px);
-          height: min(72vh, 720px);
-          z-index: -1;
-          opacity: 0.9;
+          position: relative;
+          min-height: 560px;
+          border-left: 1px solid rgba(212,175,55,0.22);
+          border-bottom: 1px solid rgba(212,175,55,0.18);
+          transform: skewX(-7deg);
+          overflow: hidden;
         }
 
-        .ringFrame {
-          position: absolute;
-          inset: 6% 0 0;
-          border-left: 2px solid rgba(212,175,55,0.38);
-          border-bottom: 2px solid rgba(212,175,55,0.22);
-          transform: skewX(-8deg);
-        }
-
-        .rope {
+        .ringLine {
           position: absolute;
           left: 0;
-          right: 8%;
-          height: 2px;
-          background: linear-gradient(90deg, transparent, rgba(212,175,55,0.7), transparent);
+          right: 0;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(212,175,55,0.72), transparent);
         }
 
-        .ropeTop { top: 22%; }
-        .ropeMid { top: 38%; }
-        .ropeBottom { top: 54%; }
-
-        .fighterGlow {
-          position: absolute;
-          right: 26%;
-          top: 13%;
-          width: 220px;
-          height: 360px;
-          border-radius: 48% 52% 36% 40%;
-          background:
-            radial-gradient(circle at 50% 12%, rgba(255,255,255,0.32), transparent 12%),
-            linear-gradient(165deg, rgba(193,18,31,0.78), rgba(36,6,10,0.22) 58%, transparent);
-          filter: blur(1px);
-          opacity: 0.62;
-        }
+        .ringTop { top: 24%; }
+        .ringMid { top: 42%; }
+        .ringLow { top: 60%; }
 
         .bag {
           position: absolute;
-          right: 12%;
-          top: 2%;
+          right: 16%;
+          top: 4%;
           width: 92px;
           height: 360px;
-          border-radius: 42px;
-          background: linear-gradient(90deg, #12090a, #5f111e 45%, #160608);
-          border: 1px solid rgba(212,175,55,0.2);
-          box-shadow: 0 30px 90px rgba(0,0,0,0.38);
+          border-radius: 999px;
+          background: linear-gradient(90deg, #100607, #5f1018 48%, #130607);
+          border: 1px solid rgba(212,175,55,0.18);
+          box-shadow: 0 34px 90px rgba(0,0,0,0.46);
         }
 
-        .floorLight {
+        .fighterMark {
           position: absolute;
-          right: 8%;
-          bottom: 4%;
-          width: 74%;
-          height: 22%;
-          border-radius: 50%;
-          background: radial-gradient(ellipse, rgba(212,175,55,0.2), transparent 68%);
+          right: 42%;
+          top: 26%;
+          width: 210px;
+          height: 300px;
+          border-radius: 48% 52% 34% 40%;
+          background: linear-gradient(165deg, rgba(193,18,31,0.72), rgba(212,175,55,0.16), transparent 62%);
+          filter: blur(0.5px);
         }
 
-        .stats,
-        .section {
+        .floorGlow {
+          position: absolute;
+          right: 0;
+          bottom: 0;
+          width: 100%;
+          height: 26%;
+          background: radial-gradient(ellipse at 55% 50%, rgba(212,175,55,0.18), transparent 62%);
+        }
+
+        .features {
           width: min(1180px, calc(100% - 36px));
           margin: 0 auto;
-        }
-
-        .stats {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+          grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 14px;
-          padding: 28px 0 20px;
+          padding: 44px 0 30px;
         }
 
-        .stat {
-          border-top: 1px solid rgba(212,175,55,0.45);
-          padding: 18px 0 8px;
-        }
-
-        .stat strong {
-          display: block;
-          color: #fff;
-          font-size: clamp(30px, 8vw, 48px);
-          line-height: 1;
-          font-weight: 950;
-        }
-
-        .stat span {
-          display: block;
-          margin-top: 8px;
-          color: rgba(255,255,255,0.62);
-          font-size: 14px;
-          font-weight: 800;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-        }
-
-        .section {
-          padding: 58px 0;
-        }
-
-        .sectionHeader {
-          max-width: 680px;
-          margin-bottom: 24px;
-        }
-
-        h2 {
-          margin: 0;
-          font-size: clamp(32px, 8vw, 64px);
-          line-height: 1;
-          font-weight: 950;
-        }
-
-        .cards,
-        .steps {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-          gap: 14px;
-        }
-
-        .card,
-        .step {
+        .featureCard {
+          min-height: 190px;
           border-radius: 8px;
-          border: 1px solid rgba(255,255,255,0.1);
-          background: linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.025));
+          border: 1px solid #1a1a1a;
+          border-top: 2px solid #D4AF37;
+          background: #0B0B0B;
           padding: 22px;
+          box-shadow: 0 18px 44px rgba(0,0,0,0.22);
         }
 
-        .card h3,
-        .step h3 {
+        .featureCard p {
           margin: 0;
-          color: #fff;
-          font-size: 20px;
+          color: #D4AF37;
+          font-size: 11px;
           font-weight: 950;
+          letter-spacing: 1.6px;
+          text-transform: uppercase;
         }
 
-        .card p {
-          margin: 12px 0 0;
-          color: rgba(255,255,255,0.64);
-          font-size: 15px;
-          line-height: 1.6;
+        .featureCard h2 {
+          margin: 18px 0 0;
+          font-size: 25px;
+          line-height: 1.04;
+          font-weight: 1000;
         }
 
-        .how {
-          padding-bottom: 84px;
-        }
-
-        .step span {
+        .featureCard span {
           display: block;
-          margin-bottom: 48px;
-          color: #d4af37;
-          font-size: 13px;
-          font-weight: 950;
-          letter-spacing: 2px;
+          margin-top: 14px;
+          color: #AAAAAA;
+          font-size: 15px;
+          line-height: 1.55;
         }
 
-        .reveal {
-          animation: fadeUp 780ms ease both;
+        .finalBand {
+          width: min(1180px, calc(100% - 36px));
+          margin: 0 auto;
+          padding: 42px 0 70px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 20px;
         }
 
-        .stats.reveal {
-          animation-delay: 100ms;
+        .finalBand h2 {
+          margin: 0;
+          font-size: clamp(32px, 7vw, 58px);
+          line-height: 1;
+          font-weight: 1000;
         }
 
-        .section.reveal {
-          animation-delay: 180ms;
+        .finalBand button {
+          min-width: 190px;
         }
 
-        @keyframes fadeUp {
-          from {
-            opacity: 0;
-            transform: translateY(22px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @media (max-width: 760px) {
+        @media (max-width: 820px) {
           .hero {
-            padding: 16px 18px 42px;
+            padding: 16px 18px 38px;
           }
 
-          .nav {
-            align-items: flex-start;
+          .heroGrid {
+            grid-template-columns: 1fr;
+            min-height: auto;
           }
 
-          .navLinks {
-            gap: 10px;
-          }
-
-          .navLinks a {
-            font-size: 13px;
-          }
-
-          .heroContent {
-            padding: 74px 0 92px;
+          .heroCopy {
+            padding: 70px 0 20px;
           }
 
           .heroVisual {
-            right: -220px;
-            width: 560px;
-            height: 58vh;
-            opacity: 0.45;
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          html {
-            scroll-behavior: auto;
+            min-height: 300px;
+            opacity: 0.72;
           }
 
-          .reveal {
-            animation: none;
+          .features {
+            grid-template-columns: 1fr;
+          }
+
+          .finalBand {
+            display: grid;
+          }
+
+          .finalBand button {
+            width: 100%;
           }
         }
       `}</style>

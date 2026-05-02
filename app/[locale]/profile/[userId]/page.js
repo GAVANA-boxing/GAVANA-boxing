@@ -20,6 +20,26 @@ function getSafeReelLikes(reel) {
   return Math.max(0, fieldLikes);
 }
 
+function getTimestampMs(timestamp) {
+  if (!timestamp) return 0;
+  if (timestamp.toMillis) return timestamp.toMillis();
+  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+  const time = date.getTime();
+  return Number.isNaN(time) ? 0 : time;
+}
+
+function formatFeedbackDate(timestamp) {
+  const time = getTimestampMs(timestamp);
+  if (!time) return "";
+  return new Date(time).toLocaleDateString();
+}
+
+function formatScore(score) {
+  const numericScore = Number(score);
+  if (!Number.isFinite(numericScore)) return "0";
+  return numericScore.toFixed(1).replace(/\.0$/, "");
+}
+
 export default function UserProfilePage() {
   const { user, loading: authLoading } = useAuth();
   const params = useParams();
@@ -30,6 +50,7 @@ export default function UserProfilePage() {
   const [profileUser, setProfileUser] = useState(null);
   const [userReels, setUserReels] = useState([]);
   const [savedUserReels, setSavedUserReels] = useState([]);
+  const [aiFeedbackHistory, setAiFeedbackHistory] = useState([]);
   const [profileTab, setProfileTab] = useState("posts");
   const [loading, setLoading] = useState(true);
   const [totalLikes, setTotalLikes] = useState(0);
@@ -134,6 +155,63 @@ export default function UserProfilePage() {
       }
     };
   }, [user, userId, authLoading]);
+
+  useEffect(() => {
+    if (authLoading || !user?.uid || !userId) {
+      setAiFeedbackHistory([]);
+      return;
+    }
+
+    let isActive = true;
+    let unsubscribeFeedback = null;
+
+    async function listenForAiFeedback() {
+      try {
+        const { collection, onSnapshot, query, where } = await import("firebase/firestore");
+        const feedbackQuery = query(
+          collection(db, "ai_feedback"),
+          where("userId", "==", userId)
+        );
+
+        unsubscribeFeedback = onSnapshot(feedbackQuery, (snapshot) => {
+          if (!isActive) return;
+
+          const latestByReelId = new Map();
+          snapshot.docs
+            .map((feedbackDoc) => ({
+              id: feedbackDoc.id,
+              ...feedbackDoc.data(),
+            }))
+            .sort((a, b) => getTimestampMs(b.createdAt) - getTimestampMs(a.createdAt))
+            .forEach((feedback) => {
+              const reelKey = feedback.reelId || feedback.id;
+              if (!latestByReelId.has(reelKey)) {
+                latestByReelId.set(reelKey, feedback);
+              }
+            });
+
+          setAiFeedbackHistory([...latestByReelId.values()]);
+        }, (error) => {
+          if (!isActive) return;
+          console.error("Error listening to AI feedback:", error);
+          setAiFeedbackHistory([]);
+        });
+      } catch (error) {
+        if (!isActive) return;
+        console.error("Error loading AI feedback:", error);
+        setAiFeedbackHistory([]);
+      }
+    }
+
+    listenForAiFeedback();
+
+    return () => {
+      isActive = false;
+      if (unsubscribeFeedback) {
+        unsubscribeFeedback();
+      }
+    };
+  }, [authLoading, user?.uid, userId]);
 
   const loadSavedReels = async (targetUserId) => {
     if (!user?.uid || user.uid !== targetUserId) {
@@ -309,7 +387,7 @@ export default function UserProfilePage() {
       return;
     }
 
-    const confirmed = window.confirm("Are you sure you want to delete this reel?");
+    const confirmed = window.confirm(t("confirmDeleteReel"));
     if (!confirmed) return;
 
     const previousUserReels = userReels;
@@ -368,7 +446,7 @@ export default function UserProfilePage() {
       setUserReels(previousUserReels);
       setSavedUserReels(previousSavedReels);
       setTotalLikes(previousUserReels.reduce((sum, item) => sum + getSafeReelLikes(item), 0));
-      alert("Could not delete this reel. Please try again.");
+      alert(t("deleteReelError"));
     } finally {
       setDeletingReelIds((prev) => {
         const next = new Set(prev);
@@ -388,7 +466,7 @@ export default function UserProfilePage() {
         justifyContent: "center",
         color: "var(--text-primary)"
       }}>
-        Loading profile...
+        {t("loadingProfile")}
       </div>
     );
   }
@@ -397,9 +475,26 @@ export default function UserProfilePage() {
     return null; // Will redirect
   }
 
+  const feedbackScores = aiFeedbackHistory
+    .map((feedback) => Number(feedback.score))
+    .filter((score) => Number.isFinite(score));
+  const latestScore = feedbackScores.length ? feedbackScores[0] : null;
+  const bestScore = feedbackScores.length ? Math.max(...feedbackScores) : null;
+  const averageScore = feedbackScores.length
+    ? feedbackScores.reduce((sum, score) => sum + score, 0) / feedbackScores.length
+    : null;
   const visibleReels = profileTab === "saved" ? savedUserReels : userReels;
   const markPreviewFailed = (reelId, type) => {
     setPreviewFailures((prev) => ({ ...prev, [`${reelId}:${type}`]: true }));
+  };
+  const handleStatNavigate = (target) => {
+    if (target === "posts") {
+      setProfileTab("posts");
+      router.push(`/${locale}/profile/${userId}`);
+      return;
+    }
+
+    router.push(`/${locale}/profile/${userId}?view=${target}`);
   };
 
   return (
@@ -411,120 +506,54 @@ export default function UserProfilePage() {
       padding: 0,
       overflowX: "hidden"
     }}>
-      <div style={{
-        width: "100%",
-        padding: "var(--space-8) var(--space-4) var(--space-6)",
-        background: "radial-gradient(circle at 50% 0%, rgba(193,18,31,0.18), transparent 34%), linear-gradient(180deg, var(--surface) 0%, var(--background) 100%)",
-        borderBottom: "1px solid var(--line)",
-        textAlign: "center",
-        boxSizing: "border-box"
-      }}>
-        <div style={{
-          width: 124,
-          height: 124,
-          borderRadius: "50%",
-          background: "linear-gradient(145deg, #C1121F, #5b0710)",
-          border: "2px solid rgba(212,175,55,0.78)",
-          boxShadow: "0 0 0 6px rgba(193,18,31,0.16), var(--shadow-glow-red)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: 42,
-          fontWeight: 950,
-          margin: "0 auto 18px",
-          color: "var(--text-primary)"
-        }}>
+      <section style={styles.fighterCard}>
+        <div style={styles.fighterCardInner}>
+        <div style={styles.avatarFrame}>
           {profileUser.photoURL ? (
             <img
               src={profileUser.photoURL}
               alt={profileUser.displayName || profileUser.username || "Profile"}
-              style={{
-                width: "100%",
-                height: "100%",
-                borderRadius: "50%",
-                objectFit: "cover",
-                display: "block"
-              }}
+              style={styles.avatarImage}
             />
           ) : (
             profileUser.displayName?.charAt(0).toUpperCase() || profileUser.username?.charAt(0).toUpperCase() || "U"
           )}
         </div>
 
-        <h1 style={{
-          fontSize: 42,
-          fontWeight: 1000,
-          margin: "0 0 20px",
-          color: "var(--text-primary)",
-          letterSpacing: 0,
-          lineHeight: 1,
-          textShadow: "0 10px 34px rgba(0,0,0,0.7)"
-        }}>
+        <p style={styles.fighterKicker}>{t("fighter")}</p>
+        <h1 style={styles.fighterName}>
           {profileUser.displayName || profileUser.username}
         </h1>
-        <div style={{
-          margin: "-12px 0 12px",
-          color: "var(--text-secondary)",
-          fontSize: 14,
-          fontWeight: 750
-        }}>
+        <div style={styles.fighterUsername}>
           @{profileUser.username}
         </div>
+
         {profileUser.bio && (
-          <p style={{
-            maxWidth: 420,
-            margin: "0 auto 22px",
-            color: "rgba(255,255,255,0.78)",
-            fontSize: 14,
-            lineHeight: 1.55
-          }}>
+          <p style={styles.bio}>
             {profileUser.bio}
           </p>
         )}
 
-        <div style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: 24,
-          marginBottom: 24,
-          flexWrap: "wrap"
-        }}>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 22, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1 }}>{userReels.length}</div>
-            <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 5 }}>{t("reels")}</div>
-          </div>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 22, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1 }}>{totalLikes}</div>
-            <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 5 }}>{t("likes")}</div>
-          </div>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 22, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1 }}>{stats.followers}</div>
-            <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 5 }}>{t("followers")}</div>
-          </div>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 22, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1 }}>{stats.following}</div>
-            <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 5 }}>{t("followingCount")}</div>
-          </div>
+        <div style={styles.statsRow}>
+          <button type="button" onClick={() => handleStatNavigate("posts")} style={styles.statButton}>
+            <span style={styles.statNumber}>{userReels.length}</span>
+            <span style={styles.statLabel}>{t("posts")}</span>
+          </button>
+          <button type="button" onClick={() => handleStatNavigate("followers")} style={styles.statButton}>
+            <span style={styles.statNumber}>{stats.followers}</span>
+            <span style={styles.statLabel}>{t("followers")}</span>
+          </button>
+          <button type="button" onClick={() => handleStatNavigate("following")} style={styles.statButton}>
+            <span style={styles.statNumber}>{stats.following}</span>
+            <span style={styles.statLabel}>{t("followingCount")}</span>
+          </button>
         </div>
 
         {isOwnProfile ? (
-          <div style={{
-            display: "flex",
-            justifyContent: "center",
-            flexWrap: "wrap",
-            gap: 10
-          }}>
+          <div style={styles.actionRow}>
             <button
               onClick={() => router.push(`/${locale}/profile/edit`)}
-              style={{
-                padding: "9px 17px",
-                border: "1px solid var(--line)",
-                borderRadius: 999,
-                background: "rgba(255,255,255,0.055)",
-                color: "var(--text-primary)",
-                fontSize: 13,
-                cursor: "pointer"
-              }}
+              style={styles.ghostAction}
             >
               {t("editProfile")}
             </button>
@@ -532,12 +561,7 @@ export default function UserProfilePage() {
               onClick={handleLogout}
               disabled={signingOut}
               style={{
-                padding: "9px 17px",
-                border: "1px solid var(--line)",
-                borderRadius: 999,
-                background: "rgba(255,255,255,0.055)",
-                color: "var(--text-primary)",
-                fontSize: 13,
+                ...styles.ghostAction,
                 cursor: signingOut ? "not-allowed" : "pointer",
                 opacity: signingOut ? 0.7 : 1
               }}
@@ -548,13 +572,7 @@ export default function UserProfilePage() {
               onClick={handleSwitchAccount}
               disabled={signingOut}
               style={{
-                padding: "9px 17px",
-                border: "none",
-                borderRadius: 999,
-                background: "var(--primary-red)",
-                color: "var(--text-primary)",
-                fontSize: 13,
-                fontWeight: "bold",
+                ...styles.primaryAction,
                 cursor: signingOut ? "not-allowed" : "pointer",
                 opacity: signingOut ? 0.7 : 1
               }}
@@ -567,21 +585,17 @@ export default function UserProfilePage() {
             onClick={handleFollow}
             disabled={followLoading}
             style={{
-              padding: "10px 28px",
-              border: "none",
-              borderRadius: 999,
-              background: followLoading ? "#555" : (isFollowing ? "#171717" : "#C1121F"),
-              color: "var(--text-primary)",
-              fontSize: 14,
-              fontWeight: "bold",
+              ...styles.followAction,
+              background: followLoading ? "#555" : (isFollowing ? "#151515" : "#C1121F"),
               cursor: followLoading ? "not-allowed" : "pointer",
               opacity: followLoading ? 0.7 : 1
             }}
           >
-            {followLoading ? "..." : (isFollowing ? t("unfollow") : t("follow"))}
+            {followLoading ? t("followLoading") : (isFollowing ? t("unfollow") : t("follow"))}
           </button>
         )}
-      </div>
+        </div>
+      </section>
 
       <div style={styles.profileTabs}>
         <button
@@ -592,7 +606,7 @@ export default function UserProfilePage() {
             ...(profileTab === "posts" ? styles.profileTabActive : {})
           }}
         >
-          {t("posts")}
+          {t("postsGrid")}
         </button>
         {isOwnProfile && (
           <button
@@ -606,8 +620,66 @@ export default function UserProfilePage() {
             {t("saved")}
           </button>
         )}
+        <button
+          type="button"
+          onClick={() => setProfileTab("progress")}
+          style={{
+            ...styles.profileTab,
+            ...(profileTab === "progress" ? styles.profileTabActive : {})
+          }}
+        >
+          {t("aiProgress")}
+        </button>
       </div>
 
+      {profileTab === "progress" ? (
+        <section style={styles.progressSection}>
+          <div style={styles.progressHeader}>
+            <p style={styles.progressKicker}>{t("aiCoachKicker")}</p>
+            <h2 style={styles.progressTitle}>{t("aiProgress")}</h2>
+          </div>
+
+          <div style={styles.scoreGrid}>
+            <div style={styles.scoreCard}>
+              <span style={styles.scoreValue}>{formatScore(latestScore)}</span>
+              <span style={styles.scoreLabel}>{t("latest")}</span>
+            </div>
+            <div style={styles.scoreCard}>
+              <span style={styles.scoreValue}>{formatScore(bestScore)}</span>
+              <span style={styles.scoreLabel}>{t("best")}</span>
+            </div>
+            <div style={styles.scoreCard}>
+              <span style={styles.scoreValue}>{formatScore(averageScore)}</span>
+              <span style={styles.scoreLabel}>{t("average")}</span>
+            </div>
+          </div>
+
+          <div style={styles.progressList}>
+            {aiFeedbackHistory.length === 0 ? (
+              <div style={styles.progressEmpty}>
+                <p style={{ margin: 0, color: "var(--text-primary)", fontWeight: 900 }}>
+                  {t("noAiFeedbackYet")}
+                </p>
+                <p style={{ margin: "8px 0 0" }}>
+                  {t("aiFeedbackEmptyHelp")}
+                </p>
+              </div>
+            ) : (
+              aiFeedbackHistory.map((feedback) => (
+                <article key={feedback.id} style={styles.progressItem}>
+                  <div style={styles.progressItemTop}>
+                    <span style={styles.progressDate}>{formatFeedbackDate(feedback.createdAt)}</span>
+                    <strong style={styles.progressScore}>{t("score")}: {formatScore(feedback.score)}/10</strong>
+                  </div>
+                  <p style={styles.progressCaption}>
+                    {feedback.reelCaption || t("trainingReel")}
+                  </p>
+                </article>
+              ))
+            )}
+          </div>
+        </section>
+      ) : (
       <div style={{
         padding: 0,
         display: "grid",
@@ -627,7 +699,7 @@ export default function UserProfilePage() {
               {profileTab === "saved" ? t("noSavedReelsYet") : t("noReelsYet")}
             </p>
             <p style={{ margin: "8px 0 0", fontSize: 13 }}>
-              {profileTab === "saved" ? "Bookmarked reels will appear here." : "Training clips will appear here."}
+              {profileTab === "saved" ? t("bookmarkedReelsEmpty") : t("trainingClipsEmpty")}
             </p>
           </div>
         ) : (
@@ -651,12 +723,12 @@ export default function UserProfilePage() {
                   cursor: "pointer",
                   position: "relative"
                 }}
-                onClick={() => router.push(`/${locale}/reels`)}
+                onClick={() => router.push(`/${locale}/reels?reelId=${reel.id}&source=profile&userId=${userId}`)}
               >
                 {showImage ? (
                   <img
                     src={reel.thumbnailUrl}
-                    alt={reel.description || "Training reel"}
+                    alt={reel.description || t("trainingReel")}
                     className="profile-reel-media"
                     style={styles.reelPreviewMedia}
                     loading="lazy"
@@ -686,15 +758,15 @@ export default function UserProfilePage() {
                   <div style={styles.reelPreviewFallback}>
                     <div style={styles.reelPreviewGlow} />
                     <div style={styles.reelPreviewFallbackText}>
-                      {reel.description || "Training reel"}
+                      {reel.description || t("trainingReel")}
                     </div>
                   </div>
                 )}
                 {canDeleteReel && (
                   <button
                     type="button"
-                    aria-label="Delete reel"
-                    title="Delete reel"
+                    aria-label={t("deleteReel")}
+                    title={t("deleteReel")}
                     onClick={(event) => handleDeleteReel(event, reel)}
                     disabled={isDeletingReel}
                     style={{
@@ -734,6 +806,7 @@ export default function UserProfilePage() {
           })
         )}
       </div>
+      )}
 
       <style>{`
         .profile-reel-tile .profile-reel-media {
@@ -756,25 +829,263 @@ export default function UserProfilePage() {
 }
 
 const styles = {
+  fighterCard: {
+    width: "100%",
+    padding: "calc(28px + env(safe-area-inset-top)) 16px 26px",
+    background: "radial-gradient(circle at 50% 0%, rgba(193,18,31,0.22), transparent 36%), linear-gradient(180deg, #0B0B0B 0%, #070707 100%)",
+    borderBottom: "1px solid rgba(212,175,55,0.14)",
+    boxSizing: "border-box",
+  },
+  fighterCardInner: {
+    width: "min(100%, 520px)",
+    margin: "0 auto",
+    textAlign: "center",
+  },
+  avatarFrame: {
+    width: 138,
+    height: 138,
+    borderRadius: "50%",
+    background: "linear-gradient(145deg, #C1121F, #310408)",
+    border: "3px solid #C1121F",
+    boxShadow: "0 0 0 1px rgba(212,175,55,0.55), 0 22px 70px rgba(0,0,0,0.5)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 48,
+    fontWeight: 1000,
+    margin: "0 auto 18px",
+    color: "#FFFFFF",
+    overflow: "hidden",
+  },
+  avatarImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: "50%",
+    objectFit: "cover",
+    display: "block",
+  },
+  fighterKicker: {
+    margin: 0,
+    color: "#D4AF37",
+    fontSize: 11,
+    fontWeight: 950,
+    letterSpacing: 2,
+  },
+  fighterName: {
+    margin: "8px 0 0",
+    color: "#FFFFFF",
+    fontSize: "clamp(34px, 10vw, 48px)",
+    lineHeight: 0.95,
+    fontWeight: 1000,
+    letterSpacing: 0,
+  },
+  fighterUsername: {
+    marginTop: 10,
+    color: "#AAAAAA",
+    fontSize: 14,
+    fontWeight: 750,
+  },
+  bio: {
+    maxWidth: 430,
+    margin: "18px auto 0",
+    padding: "14px 16px",
+    borderRadius: 16,
+    background: "rgba(255,255,255,0.045)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    color: "rgba(255,255,255,0.8)",
+    fontSize: 14,
+    lineHeight: 1.55,
+  },
+  statsRow: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: 1,
+    margin: "22px auto 22px",
+    maxWidth: 430,
+    borderTop: "1px solid rgba(255,255,255,0.08)",
+    borderBottom: "1px solid rgba(255,255,255,0.08)",
+  },
+  statButton: {
+    minHeight: 72,
+    border: "none",
+    borderRight: "1px solid rgba(255,255,255,0.08)",
+    background: "transparent",
+    color: "#FFFFFF",
+    display: "grid",
+    alignContent: "center",
+    justifyItems: "center",
+    gap: 7,
+    cursor: "pointer",
+    WebkitTapHighlightColor: "transparent",
+  },
+  statNumber: {
+    color: "#FFFFFF",
+    fontSize: 25,
+    lineHeight: 1,
+    fontWeight: 1000,
+  },
+  statLabel: {
+    color: "#AAAAAA",
+    fontSize: 10,
+    fontWeight: 850,
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+  },
+  actionRow: {
+    display: "flex",
+    justifyContent: "center",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  ghostAction: {
+    padding: "10px 17px",
+    border: "1px solid rgba(255,255,255,0.12)",
+    borderRadius: 999,
+    background: "rgba(255,255,255,0.055)",
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: 800,
+    cursor: "pointer",
+  },
+  primaryAction: {
+    padding: "10px 17px",
+    border: "none",
+    borderRadius: 999,
+    background: "#C1121F",
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: 900,
+    cursor: "pointer",
+  },
+  followAction: {
+    padding: "12px 34px",
+    border: "none",
+    borderRadius: 999,
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: 900,
+  },
   profileTabs: {
     display: "flex",
     width: "100%",
-    borderBottom: "1px solid var(--line)",
-    background: "var(--background)",
+    borderBottom: "1px solid rgba(255,255,255,0.08)",
+    background: "#070707",
   },
   profileTab: {
     flex: 1,
-    minHeight: 46,
+    minHeight: 50,
     border: "none",
     background: "transparent",
-    color: "var(--text-secondary)",
-    fontSize: 13,
-    fontWeight: 850,
+    color: "#777",
+    fontSize: 11,
+    fontWeight: 900,
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
     cursor: "pointer",
   },
   profileTabActive: {
+    color: "#FFFFFF",
+    boxShadow: "inset 0 -2px 0 #C1121F",
+  },
+  progressSection: {
+    width: "min(100%, 680px)",
+    margin: "0 auto",
+    padding: "24px 16px 42px",
+    boxSizing: "border-box",
+  },
+  progressHeader: {
+    marginBottom: 18,
+  },
+  progressKicker: {
+    margin: 0,
+    color: "var(--accent-gold)",
+    fontSize: 11,
+    fontWeight: 950,
+    letterSpacing: 1.8,
+  },
+  progressTitle: {
+    margin: "6px 0 0",
     color: "var(--text-primary)",
-    boxShadow: "inset 0 -2px 0 var(--primary-red)",
+    fontSize: 28,
+    lineHeight: 1,
+    fontWeight: 1000,
+  },
+  scoreGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: 10,
+    marginBottom: 18,
+  },
+  scoreCard: {
+    minHeight: 84,
+    borderRadius: 18,
+    background: "linear-gradient(145deg, rgba(193,18,31,0.14), rgba(11,11,11,0.96))",
+    border: "1px solid rgba(255,255,255,0.08)",
+    display: "grid",
+    alignContent: "center",
+    justifyItems: "center",
+    gap: 7,
+    boxShadow: "0 18px 44px rgba(0,0,0,0.22)",
+  },
+  scoreValue: {
+    color: "var(--text-primary)",
+    fontSize: 28,
+    lineHeight: 1,
+    fontWeight: 1000,
+  },
+  scoreLabel: {
+    color: "var(--text-secondary)",
+    fontSize: 11,
+    fontWeight: 850,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  progressList: {
+    display: "grid",
+    gap: 10,
+  },
+  progressEmpty: {
+    padding: "34px 18px",
+    borderRadius: 18,
+    background: "rgba(255,255,255,0.045)",
+    color: "var(--text-secondary)",
+    textAlign: "center",
+    border: "1px solid rgba(255,255,255,0.08)",
+  },
+  progressItem: {
+    borderRadius: 18,
+    background: "rgba(11,11,11,0.96)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    padding: 15,
+    boxShadow: "0 12px 34px rgba(0,0,0,0.2)",
+  },
+  progressItemTop: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    marginBottom: 9,
+  },
+  progressDate: {
+    color: "var(--text-secondary)",
+    fontSize: 12,
+    fontWeight: 750,
+  },
+  progressScore: {
+    color: "var(--accent-gold)",
+    fontSize: 13,
+    fontWeight: 950,
+    whiteSpace: "nowrap",
+  },
+  progressCaption: {
+    margin: 0,
+    color: "rgba(255,255,255,0.82)",
+    fontSize: 14,
+    lineHeight: 1.45,
+    display: "-webkit-box",
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: "vertical",
+    overflow: "hidden",
   },
   reelPreviewMedia: {
     width: "100%",

@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
+import BottomNav from "@/components/BottomNav";
+import DailyMission from "@/components/DailyMission";
 import { createNotification } from "@/lib/notifications";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
+import { updateLeaderboard } from "@/components/Leaderboard";
 
 // Dynamic import for Firebase to avoid SSR issues
 let db = null;
@@ -12,7 +15,7 @@ async function getFirebase() {
   if (!db) {
     const { getFirestore } = await import("firebase/firestore");
     const { getApps, getApp, initializeApp } = await import("firebase/app");
-    
+
     const firebaseConfig = {
       apiKey: "AIzaSyDwVdR5oVYSXQbWL4jqNSNx9cqKuKxqt6c",
       authDomain: "gavana-boxing-89a22.firebaseapp.com",
@@ -21,7 +24,7 @@ async function getFirebase() {
       messagingSenderId: "1062689232574",
       appId: "1:1062689232574:web:1c362a4577072e51c9f0ef",
     };
-    
+
     const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
     db = getFirestore(app);
   }
@@ -127,14 +130,33 @@ function getCreatorPhoto(creatorProfile) {
 }
 
 function getCaptionToggleLabel(locale, expanded) {
-  if (locale === "mn") return expanded ? "хураах" : "дэлгэрэнгүй";
-  if (locale === "ko") return expanded ? "접기" : "더보기";
-  return expanded ? "less" : "more";
+  return expanded ? translate(locale, "less") : translate(locale, "more");
+}
+
+function extractFeedbackScore(feedbackText) {
+  const cleanedText = String(feedbackText || "")
+    .replace(/\*\*/g, "")
+    .replace(/__/g, "")
+    .replace(/`/g, "");
+  const labelMatch = cleanedText.match(/(?:score|РѕРЅРѕРѕ|м ђм€)\s*[:пјљ-]?\s*(\d+(?:[.,]\d+)?)\s*\/\s*10/i);
+  const fallbackMatch = cleanedText.match(/(\d+(?:[.,]\d+)?)\s*\/\s*10/i);
+  const match = labelMatch || fallbackMatch;
+  if (!match) return undefined;
+
+  const score = Number(String(match[1]).replace(",", "."));
+  if (!Number.isFinite(score)) return undefined;
+
+  return Math.max(0, Math.min(10, score));
 }
 
 export default function ReelsContent() {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const targetReelId = searchParams.get("reelId");
+  const source = searchParams.get("source");
+  const profileSourceUserId = searchParams.get("userId");
+  const isProfileSource = source === "profile" && Boolean(profileSourceUserId);
   const currentLocale = getLocaleFromPathname(pathname);
   const t = (key) => translate(currentLocale, key);
   const { user, loading: authLoading } = useAuth();
@@ -154,23 +176,35 @@ export default function ReelsContent() {
   const [videoLoading, setVideoLoading] = useState({});
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState([]);
+  const [commentProfiles, setCommentProfiles] = useState({});
   const [newComment, setNewComment] = useState("");
   const [selectedReelId, setSelectedReelId] = useState(null);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [feedbackError, setFeedbackError] = useState("");
   const [feedbackResult, setFeedbackResult] = useState("");
+  const [feedbackSaved, setFeedbackSaved] = useState(false);
   const [feedbackReel, setFeedbackReel] = useState(null);
   const [videoErrors, setVideoErrors] = useState({});
   const videoRefs = useRef({});
+  const feedRef = useRef(null);
+  const reelItemRefs = useRef({});
   const viewTimers = useRef({});
   const controlsTimer = useRef(null);
   const commentsUnsubscribeRef = useRef(null);
   const creatorProfileRequests = useRef(new Set());
+  const commentProfileRequests = useRef(new Set());
+  const lastScrolledReelId = useRef(null);
 
   useEffect(() => {
     if (authLoading || allReels === null) {
       setReels([]);
+      return;
+    }
+
+    if (isProfileSource) {
+      setReels(allReels.filter((reel) => reel.userId === profileSourceUserId));
+      setCurrentIndex(0);
       return;
     }
 
@@ -183,7 +217,24 @@ export default function ReelsContent() {
     const followedReels = allReels.filter((reel) => reel.userId && followingIds.has(reel.userId));
     setReels(followedReels);
     setCurrentIndex(0);
-  }, [allReels, authLoading, feedMode, followingIds]);
+  }, [allReels, authLoading, feedMode, followingIds, isProfileSource, profileSourceUserId]);
+
+  useEffect(() => {
+    if (!targetReelId || !reels.length || lastScrolledReelId.current === targetReelId) return;
+
+    const targetIndex = reels.findIndex((reel) => reel.id === targetReelId);
+    if (targetIndex < 0) return;
+
+    lastScrolledReelId.current = targetReelId;
+    setCurrentIndex(targetIndex);
+
+    requestAnimationFrame(() => {
+      reelItemRefs.current[targetReelId]?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  }, [reels, targetReelId]);
 
   useEffect(() => {
     if (!reels.length) return;
@@ -284,7 +335,7 @@ export default function ReelsContent() {
             };
           });
           
-          setAllReels(sortReelsByEngagement(reelsData));
+          setAllReels(reelsData.sort((a, b) => getCreatedAtMs(b) - getCreatedAtMs(a)));
           setCurrentIndex(0);
           setReelsLoading(false);
         }, (err) => {
@@ -570,6 +621,38 @@ export default function ReelsContent() {
     }
   }, [currentIndex, reels.length]);
 
+  useEffect(() => {
+    const root = feedRef.current;
+    if (!root || !reels.length) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      const mostVisible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+      if (!mostVisible || mostVisible.intersectionRatio < 0.6) return;
+
+      const nextIndex = Number(mostVisible.target.getAttribute("data-reel-index"));
+      if (!Number.isInteger(nextIndex) || nextIndex < 0 || nextIndex >= reels.length) return;
+
+      setCurrentIndex((prevIndex) => (prevIndex === nextIndex ? prevIndex : nextIndex));
+    }, {
+      root,
+      threshold: [0.6, 0.75, 0.9],
+    });
+
+    reels.forEach((reel) => {
+      const element = reelItemRefs.current[reel.id];
+      if (element) {
+        observer.observe(element);
+      }
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [reels]);
+
   const pauseInactiveVideos = useCallback((activeReelId, reset = true) => {
     Object.entries(videoRefs.current).forEach(([reelId, video]) => {
       if (!video || reelId === activeReelId) return;
@@ -656,16 +739,8 @@ export default function ReelsContent() {
 
   const handleVideoTap = useCallback(() => {
     revealControls();
-
-    if (!soundEnabled) {
-      enableSound();
-      return;
-    }
-
-    if (showControls) {
-      togglePlay();
-    }
-  }, [enableSound, revealControls, showControls, soundEnabled, togglePlay]);
+    togglePlay();
+  }, [revealControls, togglePlay]);
 
   useEffect(() => {
     const currentReel = reels[currentIndex];
@@ -843,6 +918,57 @@ export default function ReelsContent() {
     }
   }, [currentLocale, reels, router, savedReels, user?.uid]);
 
+  const handleShare = useCallback(async (reel) => {
+    try {
+      const { db } = await getFirebase();
+      const { collection, query, where, getDocs } = await import("firebase/firestore");
+
+      // Fetch feedback to get score
+      let score = null;
+      try {
+        const feedbackQuery = query(
+          collection(db, "feedback"),
+          where("reelId", "==", reel.id),
+          where("userId", "==", reel.userId)
+        );
+        const feedbackSnap = await getDocs(feedbackQuery);
+        if (!feedbackSnap.empty) {
+          const feedbackDoc = feedbackSnap.docs[0].data();
+          score = feedbackDoc.score;
+        }
+      } catch (err) {
+        console.error("Failed to fetch feedback for share:", err);
+      }
+
+      const baseUrl = window.location.origin;
+      const reelUrl = `${baseUrl}${pathname}?reelId=${reel.id}`;
+      const appUrl = baseUrl;
+
+      let shareText = "Check out this boxing reel on GAVANA 🥊";
+      if (score !== null) {
+        shareText = `I scored ${score}/10 on GAVANA 🥊 Can you beat me?`;
+      }
+
+      const shareData = {
+        title: "GAVANA Boxing Reel",
+        text: shareText,
+        url: reelUrl,
+      };
+
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback: copy to clipboard
+        const fullText = `${shareText} ${reelUrl} ${appUrl}`;
+        await navigator.clipboard.writeText(fullText);
+        alert("Link copied to clipboard!");
+      }
+    } catch (err) {
+      console.error("Failed to share:", err);
+      alert("Sharing failed. Please try again.");
+    }
+  }, [pathname]);
+
   const handleGetFeedback = useCallback(async (reel) => {
     if (!user?.uid) {
       router.push(`/${currentLocale}/login`);
@@ -853,6 +979,7 @@ export default function ReelsContent() {
     setFeedbackLoading(true);
     setFeedbackError("");
     setFeedbackResult("");
+    setFeedbackSaved(false);
     setFeedbackReel(reel);
 
     try {
@@ -860,6 +987,34 @@ export default function ReelsContent() {
       const username = reel?.username || "fighter";
       const likes = getSafeLikeCount(reel);
       const views = getSafeViewCount(reel);
+      const ownerId = reel?.userId;
+
+      if (!ownerId || reel?.isDemo) {
+        throw new Error("AI feedback is only available for real reels");
+      }
+
+      const isOwner = user.uid === ownerId;
+      const { db } = await getFirebase();
+      const { doc, getDoc, serverTimestamp, setDoc } = await import("firebase/firestore");
+      const feedbackRef = doc(db, "ai_feedback", reel.id);
+      const existingFeedbackSnap = await getDoc(feedbackRef);
+      const existingFeedback = existingFeedbackSnap.exists() ? {
+        id: existingFeedbackSnap.id,
+        ...existingFeedbackSnap.data(),
+      } : null;
+
+      if (existingFeedback?.feedbackText) {
+        setFeedbackResult(existingFeedback.feedbackText);
+        setFeedbackSaved(false);
+        return;
+      }
+
+      if (!isOwner) {
+        setFeedbackResult("Рилсийн эзэн AI feedback аваагүй байна");
+        setFeedbackSaved(false);
+        return;
+      }
+
       const context = [
         `Username: @${username}`,
         `Caption: ${caption}`,
@@ -886,8 +1041,8 @@ export default function ReelsContent() {
                 "Make the advice feel specific to the username, caption, likes, and views.",
                 "Keep it realistic, natural, direct, and coach-like.",
                 "Give a realistic score out of 10. Do not make the score too perfect unless the context strongly supports it.",
-                "Return exactly this structure:",
-                "Score: a realistic score like 6.5/10.",
+                "Return exactly this plain format with no markdown, no bold symbols, and no bullet points:",
+                "Score: 6.5/10",
                 "Strength: one specific strength or positive signal based on the caption/context.",
                 "Improve: one practical thing to watch or refine next time.",
                 "Next drill: one simple boxing drill with a clear rep/time target.",
@@ -908,7 +1063,44 @@ export default function ReelsContent() {
         throw new Error("Empty feedback response");
       }
 
-      setFeedbackResult(text.trim());
+      const feedbackText = text.trim();
+      setFeedbackResult(feedbackText);
+
+      try {
+        const parsedScore = extractFeedbackScore(feedbackText);
+        const feedbackDoc = {
+          userId: ownerId,
+          reelId: reel.id,
+          feedbackText,
+          reelCaption: caption,
+          createdAt: serverTimestamp(),
+          locale: currentLocale,
+        };
+
+        if (typeof parsedScore === "number") {
+          feedbackDoc.score = parsedScore;
+        }
+
+        await setDoc(feedbackRef, feedbackDoc);
+
+        // Update leaderboard if score exists
+        if (typeof parsedScore === "number") {
+          try {
+            const { doc, getDoc } = await import("firebase/firestore");
+            const userDoc = await getDoc(doc(db, "users", ownerId));
+            const userData = userDoc.exists() ? userDoc.data() : {};
+            const username = userData.displayName || userData.username || "Anonymous";
+            const photoURL = userData.photoURL || userData.profileImageUrl || "";
+            await updateLeaderboard(ownerId, parsedScore, username, photoURL);
+          } catch (leaderboardError) {
+            console.error("Failed to update leaderboard:", leaderboardError);
+          }
+        }
+
+        setFeedbackSaved(true);
+      } catch (saveError) {
+        console.error("Failed to save AI feedback:", saveError);
+      }
     } catch (err) {
       console.error("Failed to generate AI feedback:", err);
       setFeedbackError("Could not generate feedback. Please try again.");
@@ -922,6 +1114,7 @@ export default function ReelsContent() {
     setFeedbackLoading(false);
     setFeedbackError("");
     setFeedbackResult("");
+    setFeedbackSaved(false);
     setFeedbackReel(null);
   }, []);
 
@@ -1042,6 +1235,49 @@ export default function ReelsContent() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!comments.length) return;
+
+    let isActive = true;
+    const missingUserIds = [...new Set(comments
+      .map((comment) => comment.userId)
+      .filter((commentUserId) => commentUserId && !commentProfiles[commentUserId] && !commentProfileRequests.current.has(commentUserId))
+    )];
+
+    if (!missingUserIds.length) return;
+
+    async function loadCommentProfiles() {
+      try {
+        const { db } = await getFirebase();
+        const { doc, getDoc } = await import("firebase/firestore");
+
+        await Promise.all(missingUserIds.map(async (commentUserId) => {
+          commentProfileRequests.current.add(commentUserId);
+          const userSnap = await getDoc(doc(db, "users", commentUserId));
+          const userData = userSnap.exists() ? userSnap.data() : {};
+
+          if (!isActive) return;
+
+          setCommentProfiles((prev) => ({
+            ...prev,
+            [commentUserId]: {
+              displayName: userData.displayName || userData.username || "",
+              photoURL: userData.photoURL || userData.profileImageUrl || userData.profileImage || userData.avatarUrl || "",
+            },
+          }));
+        }));
+      } catch (error) {
+        console.error("Failed to load comment profiles:", error);
+      }
+    }
+
+    loadCommentProfiles();
+
+    return () => {
+      isActive = false;
+    };
+  }, [comments, commentProfiles]);
+
   // Handle video load start
   const handleVideoLoadStart = (reelId) => {
     setVideoLoading(prev => ({ ...prev, [reelId]: true }));
@@ -1083,9 +1319,9 @@ export default function ReelsContent() {
       <div style={styles.container}>
         <div style={styles.loading}>
           <div style={styles.spinner}></div>
-          <div style={styles.loadingTitle}>Loading reels...</div>
+          <div style={styles.loadingTitle}>{t("loadingReels")}</div>
           <div style={styles.loadingMeta}>
-            {authLoading ? "Checking your session" : "Fetching the fight feed"}
+            {authLoading ? t("checkingSession") : t("fetchingFeed")}
           </div>
         </div>
         <BottomNav router={router} user={user} currentLocale={currentLocale} />
@@ -1093,7 +1329,7 @@ export default function ReelsContent() {
     );
   }
 
-  if (reels.length === 0 && feedMode !== "following") {
+  if (reels.length === 0 && feedMode !== "following" && !isProfileSource) {
     return (
       <div style={styles.container}>
         <div style={styles.empty}>
@@ -1109,6 +1345,19 @@ export default function ReelsContent() {
 
   return (
     <div style={styles.container}>
+      {isProfileSource && (
+        <button
+          type="button"
+          style={styles.profileBackButton}
+          onClick={() => router.push(`/${currentLocale}/profile/${profileSourceUserId}`)}
+        >
+          <BackArrowIcon />
+          <span>{t("profile")}</span>
+        </button>
+      )}
+
+      <DailyMission locale={currentLocale} />
+      {!isProfileSource && (
       <div style={styles.feedTabs}>
         <button
           type="button"
@@ -1137,13 +1386,14 @@ export default function ReelsContent() {
           {t("following")}
         </button>
       </div>
+      )}
       {/* Reels Feed */}
-      <div style={styles.feed} className="reels-feed" onScroll={handleScroll}>
+      <div ref={feedRef} style={styles.feed} className="reels-feed" onScroll={handleScroll}>
         {reels.length === 0 ? (
           <div style={{...styles.videoContainer, ...styles.followingEmpty}}>
             <div style={styles.followingEmptyTitle}>{t("noReelsYet")}</div>
             <div style={styles.followingEmptyText}>
-              Follow fighters from their profile to build your training feed.
+              {t("followingEmptyHelp")}
             </div>
             <button
               type="button"
@@ -1170,6 +1420,14 @@ export default function ReelsContent() {
           return (
           <div
             key={reel.id}
+            data-reel-index={index}
+            ref={(el) => {
+              if (el) {
+                reelItemRefs.current[reel.id] = el;
+              } else {
+                delete reelItemRefs.current[reel.id];
+              }
+            }}
             style={{
               ...styles.videoContainer,
               ...(index === currentIndex ? styles.activeVideo : {})
@@ -1242,7 +1500,7 @@ export default function ReelsContent() {
             {!reel.isDemo && !videoErrors[reel.id] && videoLoading[reel.id] && (
               <div style={styles.videoLoadingOverlay}>
                 <div style={styles.spinner}></div>
-                <span style={styles.videoLoadingText}>Loading reel...</span>
+                <span style={styles.videoLoadingText}>{t("loadingReel")}</span>
               </div>
             )}
 
@@ -1302,16 +1560,6 @@ export default function ReelsContent() {
                 <span>{formatCompactCount(getSafeViewCount(reel))} {t("views")}</span>
                 <span>{formatDate(reel.createdAt)}</span>
               </div>
-              <button
-                type="button"
-                style={styles.feedbackButton}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  handleGetFeedback(reel);
-                }}
-              >
-                {t("getAiFeedback")}
-              </button>
             </div>
 
             <div style={styles.actions}>
@@ -1345,7 +1593,7 @@ export default function ReelsContent() {
                 </div>
                 <span style={styles.actionText}>{formatCompactCount(getSafeCommentsCount(reel))}</span>
               </div>
-              <div className="reel-action" style={styles.actionItem}>
+              <div className="reel-action" style={styles.actionItem} onClick={() => handleShare(reel)}>
                 <div className="reel-action-circle" style={styles.actionCircle}>
                   <ShareIcon />
                 </div>
@@ -1377,24 +1625,22 @@ export default function ReelsContent() {
                 </div>
                 <span style={styles.actionText}>{savedReels.has(reel.id) ? t("saved") : t("save")}</span>
               </div>
-              <div className="reel-action" style={styles.actionItem}>
+              <div
+                className="reel-action"
+                style={styles.actionItem}
+                onClick={() => handleGetFeedback(reel)}
+                title={t("getAiFeedback")}
+              >
                 <div className="reel-action-circle" style={styles.actionCircle}>
-                  <ViewIcon />
+                  <RobotIcon />
                 </div>
-                <span style={styles.actionText}>{formatCompactCount(getSafeViewCount(reel))}</span>
+                <span style={styles.actionText}>AI</span>
               </div>
             </div>
-            {/* Mute button */}
-            {!reel.isDemo && showControls && (
-              <button style={styles.muteBtn} onClick={toggleMute}>
-                {soundEnabled ? "Sound on" : "Tap for sound"}
-              </button>
-            )}
-
             {/* Play/Pause indicator */}
             {!reel.isDemo && showControls && index === currentIndex && (
               <div style={styles.playIndicator}>
-                {videoRefs.current[reel.id]?.paused ? "Play" : ""}
+                {videoRefs.current[reel.id]?.paused ? t("play") : ""}
               </div>
             )}
           </div>
@@ -1415,31 +1661,44 @@ export default function ReelsContent() {
             <div style={styles.commentsList}>
               {comments.length === 0 ? (
                 <div style={styles.noComments}>
-                  {currentLocale === "ko"
-                    ? "아직 댓글이 없습니다. 첫 댓글을 남겨보세요!"
-                    : currentLocale === "mn"
-                      ? "Одоогоор сэтгэгдэл алга. Эхний сэтгэгдлийг бичээрэй!"
-                      : "No comments yet. Be the first to comment!"}
+                  {t("noCommentsYet")}
                 </div>
               ) : (
-                comments.map((comment) => (
-                  <div key={comment.id} style={styles.commentItem}>
-                    <div style={styles.commentAvatar}>
-                      {comment.username?.charAt(0).toUpperCase() || "U"}
-                    </div>
-                    <div style={styles.commentContent}>
-                      <div 
-                        style={{...styles.commentUsername, cursor: "pointer"}}
+                comments.map((comment) => {
+                  const profile = comment.userId ? commentProfiles[comment.userId] : null;
+                  const commentName = profile?.displayName || comment.username || "user";
+                  const commentPhoto = comment.userPhotoURL || profile?.photoURL || "";
+
+                  return (
+                    <div key={comment.id} style={styles.commentItem}>
+                      <button
+                        type="button"
+                        style={styles.commentAvatar}
                         onClick={() => {
-                          router.push(`/${currentLocale}/profile/${comment.userId}`);
+                          if (comment.userId) router.push(`/${currentLocale}/profile/${comment.userId}`);
                         }}
                       >
-                        @{comment.username}
+                        {commentPhoto ? (
+                          <img src={commentPhoto} alt="" style={styles.commentAvatarImage} />
+                        ) : (
+                          commentName.charAt(0).toUpperCase() || "U"
+                        )}
+                      </button>
+                      <div style={styles.commentContent}>
+                        <button
+                          type="button"
+                          style={styles.commentUsername}
+                          onClick={() => {
+                            if (comment.userId) router.push(`/${currentLocale}/profile/${comment.userId}`);
+                          }}
+                        >
+                          @{commentName}
+                        </button>
+                        <div style={styles.commentText}>{comment.text}</div>
                       </div>
-                      <div style={styles.commentText}>{comment.text}</div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
 
@@ -1449,7 +1708,7 @@ export default function ReelsContent() {
                   type="text"
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  placeholder={currentLocale === "ko" ? "댓글 추가..." : currentLocale === "mn" ? "Сэтгэгдэл нэмэх..." : "Add a comment..."}
+                  placeholder={t("addComment")}
                   style={styles.commentInputField}
                   onKeyPress={(e) => e.key === "Enter" && handleAddComment()}
                 />
@@ -1461,7 +1720,7 @@ export default function ReelsContent() {
                     ...(newComment.trim() ? {} : styles.commentSendBtnDisabled)
                   }}
                 >
-                  {currentLocale === "ko" ? "보내기" : currentLocale === "mn" ? "Илгээх" : "Send"}
+                  {t("send")}
                 </button>
               </div>
             )}
@@ -1498,22 +1757,37 @@ export default function ReelsContent() {
               )}
 
               {feedbackResult && (
-                <pre style={styles.feedbackResult}>{feedbackResult}</pre>
+                <>
+                  {feedbackSaved && (
+                    <div style={styles.feedbackSaved}>
+                      {t("savedToProgress")}
+                    </div>
+                  )}
+                  <pre style={styles.feedbackResult}>{feedbackResult}</pre>
+                </>
               )}
             </div>
           </div>
         </div>
       )}
 
-      {showControls && (
-        <BottomNav
-          router={router}
-          user={user}
-          currentLocale={currentLocale}
-          onInteractStart={clearControlsTimer}
-          onInteractEnd={scheduleControlsHide}
-        />
-      )}
+      <button
+        type="button"
+        style={styles.soundToggleButton}
+        onClick={toggleMute}
+        aria-label={soundEnabled ? t("soundOn") : t("tapForSound")}
+        title={soundEnabled ? t("soundOn") : t("tapForSound")}
+      >
+        <SpeakerIcon muted={!soundEnabled} />
+      </button>
+
+      <BottomNav
+        router={router}
+        user={user}
+        currentLocale={currentLocale}
+        onInteractStart={clearControlsTimer}
+        onInteractEnd={scheduleControlsHide}
+      />
       <style>{`
         @keyframes likePop {
           0% { transform: scale(1); }
@@ -1590,6 +1864,46 @@ function LikeIcon({ filled }) {
   );
 }
 
+function BackArrowIcon() {
+  return (
+    <svg style={styles.backArrowSvg} viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M15 5 8 12l7 7"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function SpeakerIcon({ muted }) {
+  return (
+    <svg style={styles.soundSvg} viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M4.5 9.2h3.4l4.8-4v13.6l-4.8-4H4.5V9.2Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.55"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {muted ? (
+        <>
+          <path d="m17 9 4 4M21 9l-4 4" fill="none" stroke="currentColor" strokeWidth="1.55" strokeLinecap="round" />
+        </>
+      ) : (
+        <>
+          <path d="M16.2 8.2c1.1 1 1.7 2.3 1.7 3.8s-.6 2.8-1.7 3.8" fill="none" stroke="currentColor" strokeWidth="1.55" strokeLinecap="round" />
+          <path d="M18.7 5.8c1.8 1.6 2.8 3.8 2.8 6.2s-1 4.6-2.8 6.2" fill="none" stroke="currentColor" strokeWidth="1.55" strokeLinecap="round" />
+        </>
+      )}
+    </svg>
+  );
+}
+
 function CommentIcon() {
   return (
     <svg style={styles.actionSvg} viewBox="0 0 24 24" aria-hidden="true">
@@ -1651,6 +1965,31 @@ function BookmarkIcon({ filled }) {
   );
 }
 
+function RobotIcon() {
+  return (
+    <svg style={styles.actionSvg} viewBox="0 0 24 24" aria-hidden="true">
+      <rect
+        x="5"
+        y="8"
+        width="14"
+        height="10"
+        rx="3"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.45"
+      />
+      <path
+        d="M12 5v3M8.5 12h.1M15.5 12h.1M9 15h6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.45"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function DemoReelVisual() {
   return (
     <div style={styles.demoReel}>
@@ -1676,173 +2015,12 @@ function ReelFallbackVisual({ reel }) {
   );
 }
 
-// Bottom Nav component
-function BottomNav({ router, user, currentLocale, onInteractStart, onInteractEnd }) {
-  const t = (key) => translate(currentLocale, key);
-  const [unreadCount, setUnreadCount] = useState(0);
-
-  useEffect(() => {
-    if (!user?.uid) {
-      setUnreadCount(0);
-      return;
-    }
-
-    let unsubscribe;
-    let isActive = true;
-
-    async function listenForUnreadNotifications() {
-      try {
-        const { collection, query, where, onSnapshot } = await import("firebase/firestore");
-        const { db } = await getFirebase();
-        if (!isActive) return;
-        const unreadQuery = query(
-          collection(db, "notifications"),
-          where("recipientId", "==", user.uid),
-          where("read", "==", false)
-        );
-
-        unsubscribe = onSnapshot(unreadQuery, (snapshot) => {
-          if (isActive) {
-            setUnreadCount(snapshot.size);
-          }
-        }, (err) => {
-          if (isActive) {
-            console.error("Failed to listen for unread notifications:", err);
-            setUnreadCount(0);
-          }
-        });
-      } catch (err) {
-        if (isActive) {
-          console.error("Failed to load unread notifications:", err);
-          setUnreadCount(0);
-        }
-      }
-    }
-
-    listenForUnreadNotifications();
-
-    return () => {
-      isActive = false;
-      if (unsubscribe) {
-        unsubscribe();
-      }
-    };
-  }, [user?.uid]);
-  
-  return (
-    <div
-      style={styles.bottomNav}
-      onPointerEnter={onInteractStart}
-      onPointerDown={onInteractStart}
-      onPointerLeave={onInteractEnd}
-      onPointerUp={onInteractEnd}
-      onPointerCancel={onInteractEnd}
-    >
-      <div style={styles.navItem} onClick={() => router.push(`/${currentLocale}`)}>
-        <NavHomeIcon />
-        <span style={styles.navLabel}>{t("home")}</span>
-      </div>
-      <div style={styles.navItemActive}>
-        <NavReelsIcon active />
-        <span style={styles.navLabelActive}>{t("reels")}</span>
-      </div>
-      <div style={styles.navItem} onClick={() => router.push(`/${currentLocale}/coach`)}>
-        <NavCoachIcon />
-        <span style={styles.navLabel}>{t("aiCoach")}</span>
-      </div>
-      <div style={styles.navItem} onClick={() => router.push(`/${currentLocale}/notifications`)}>
-        <span style={styles.navIconWrap}>
-          <NavBellIcon />
-          {unreadCount > 0 && (
-            <span style={styles.navBadge}>{unreadCount > 9 ? "9+" : unreadCount}</span>
-          )}
-        </span>
-        <span style={styles.navLabel}>{t("alerts")}</span>
-      </div>
-      <div style={styles.navUpload} onClick={() => router.push(`/${currentLocale}/upload`)}>
-        <NavPlusIcon />
-      </div>
-      <div style={styles.navItem} onClick={() => {
-        if (user?.uid) {
-          router.push(`/${currentLocale}/profile/${user.uid}`);
-        } else {
-          router.push(`/${currentLocale}/login`);
-        }
-      }}>
-        <NavProfileIcon />
-        <span style={styles.navLabel}>{t("profile")}</span>
-      </div>
-    </div>
-  );
-}
-
-function NavSvg({ children, active = false }) {
-  return (
-    <svg style={active ? styles.navSvgActive : styles.navSvg} viewBox="0 0 24 24" aria-hidden="true">
-      {children}
-    </svg>
-  );
-}
-
-function NavHomeIcon() {
-  return (
-    <NavSvg>
-      <path d="M4 10.8 12 4l8 6.8v8.7h-5.1v-5.2H9.1v5.2H4v-8.7Z" />
-    </NavSvg>
-  );
-}
-
-function NavReelsIcon({ active }) {
-  return (
-    <NavSvg active={active}>
-      <rect x="5" y="4" width="14" height="16" rx="3" />
-      <path d="m11 9 4 3-4 3V9Z" />
-    </NavSvg>
-  );
-}
-
-function NavCoachIcon() {
-  return (
-    <NavSvg>
-      <path d="M7.2 8.2h9.6a3.8 3.8 0 0 1 3.8 3.8v1.2a3.8 3.8 0 0 1-3.8 3.8H8.6L4 20v-8a3.8 3.8 0 0 1 3.2-3.8Z" />
-      <path d="M9 12h.1M15 12h.1" />
-    </NavSvg>
-  );
-}
-
-function NavBellIcon() {
-  return (
-    <NavSvg>
-      <path d="M18 10.8V9a6 6 0 0 0-12 0v1.8c0 2.8-1.4 3.7-2.2 4.7h16.4c-.8-1-2.2-1.9-2.2-4.7Z" />
-      <path d="M9.7 18.7a2.5 2.5 0 0 0 4.6 0" />
-    </NavSvg>
-  );
-}
-
-function NavPlusIcon() {
-  return (
-    <svg style={styles.navUploadSvg} viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 5v14M5 12h14" />
-    </svg>
-  );
-}
-
-function NavProfileIcon() {
-  return (
-    <NavSvg>
-      <circle cx="12" cy="8.3" r="3.3" />
-      <path d="M5.5 20a6.5 6.5 0 0 1 13 0" />
-    </NavSvg>
-  );
-}
-
 const styles = {
   container: {
-    position: "fixed",
-    top: 0,
-    left: 0,
+    position: "relative",
     width: "100vw",
     height: "100vh",
+    minHeight: "100dvh",
     background: "#000",
     overflow: "hidden",
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -1891,7 +2069,10 @@ const styles = {
     color: "var(--text-primary)",
     border: "none",
     borderRadius: 10,
-    padding: "12px var(--space-6)",
+    paddingTop: 12,
+    paddingBottom: 12,
+    paddingLeft: "var(--space-6)",
+    paddingRight: "var(--space-6)",
     fontSize: 14,
     fontWeight: 600,
     cursor: "pointer",
@@ -1921,11 +2102,14 @@ const styles = {
     top: "calc(14px + env(safe-area-inset-top))",
     left: "50%",
     transform: "translateX(-50%)",
-    zIndex: 80,
+    zIndex: 110,
     display: "flex",
     alignItems: "center",
     gap: 8,
-    padding: 4,
+    paddingTop: 4,
+    paddingBottom: 4,
+    paddingLeft: 4,
+    paddingRight: 4,
     borderRadius: 999,
     background: "var(--glass)",
     border: "1px solid var(--line)",
@@ -1933,34 +2117,70 @@ const styles = {
     WebkitBackdropFilter: "blur(18px) saturate(150%)",
     boxShadow: "var(--shadow-soft)",
   },
+  profileBackButton: {
+    position: "fixed",
+    top: "calc(16px + env(safe-area-inset-top))",
+    left: "max(14px, env(safe-area-inset-left))",
+    zIndex: 90,
+    height: 38,
+    paddingTop: 0,
+    paddingRight: 13,
+    paddingBottom: 0,
+    paddingLeft: 10,
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.16)",
+    background: "rgba(0,0,0,0.5)",
+    color: "#fff",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+    fontSize: 12,
+    fontWeight: 900,
+    letterSpacing: 0.4,
+    cursor: "pointer",
+    backdropFilter: "blur(16px)",
+    WebkitBackdropFilter: "blur(16px)",
+  },
   feedTab: {
     border: "none",
     borderRadius: 999,
     background: "transparent",
-    color: "rgba(255,255,255,0.66)",
+    color: "#888",
     minHeight: 34,
-    padding: "0 14px",
+    paddingTop: 0,
+    paddingBottom: 0,
+    paddingLeft: 14,
+    paddingRight: 14,
     fontSize: 13,
     fontWeight: 850,
     cursor: "pointer",
     WebkitTapHighlightColor: "transparent",
   },
   feedTabActive: {
-    background: "rgba(193,18,31,0.82)",
-    color: "var(--text-primary)",
-    boxShadow: "var(--shadow-glow-red)",
+    background: "#C1121F",
+    color: "#FFFFFF",
+    boxShadow: "none",
   },
   feed: {
     height: "100vh",
+    minHeight: "100dvh",
     overflowY: "scroll",
     scrollSnapType: "y mandatory",
     scrollBehavior: "smooth",
-    paddingBottom: 0,
+    overscrollBehaviorY: "contain",
+    WebkitOverflowScrolling: "touch",
+    paddingBottom: "calc(78px + env(safe-area-inset-bottom))",
+    scrollPaddingBottom: "calc(78px + env(safe-area-inset-bottom))",
+    boxSizing: "border-box",
   },
   videoContainer: {
     position: "relative",
     width: "100vw",
     height: "100vh",
+    minHeight: "100dvh",
+    flexShrink: 0,
+    paddingBottom: 80,
+    boxSizing: "border-box",
     overflow: "hidden",
     scrollSnapAlign: "start",
     scrollSnapStop: "always",
@@ -1975,7 +2195,10 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     gap: 14,
-    padding: "0 var(--space-6)",
+    paddingTop: 0,
+    paddingBottom: 0,
+    paddingLeft: "var(--space-6)",
+    paddingRight: "var(--space-6)",
     textAlign: "center",
     background: "var(--background)",
   },
@@ -2178,7 +2401,10 @@ const styles = {
     bottom: 0,
     left: 0,
     right: 0,
-    padding: "20px 18px calc(86px + env(safe-area-inset-bottom))",
+    paddingTop: 20,
+    paddingRight: 18,
+    paddingBottom: "calc(86px + env(safe-area-inset-bottom))",
+    paddingLeft: 18,
     background: "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.38) 46%, transparent 78%)",
     display: "flex",
     justifyContent: "space-between",
@@ -2219,7 +2445,10 @@ const styles = {
     borderColor: "rgba(212,175,55,0.64)",
     background: "linear-gradient(145deg, rgba(193,18,31,0.9), rgba(7,7,7,0.78))",
     boxShadow: "0 0 0 3px rgba(193,18,31,0.2), 0 10px 26px rgba(0,0,0,0.55)",
-    padding: 0,
+    paddingTop: 0,
+    paddingBottom: 0,
+    paddingLeft: 0,
+    paddingRight: 0,
     overflow: "hidden",
     display: "flex",
     alignItems: "center",
@@ -2239,7 +2468,10 @@ const styles = {
     textShadow: "0 2px 10px rgba(0,0,0,0.72)",
   },
   username: {
-    padding: 0,
+    paddingTop: 0,
+    paddingBottom: 0,
+    paddingLeft: 0,
+    paddingRight: 0,
     border: "none",
     background: "transparent",
     color: "var(--text-primary)",
@@ -2264,7 +2496,10 @@ const styles = {
     width: "100%",
     border: "none",
     background: "transparent",
-    padding: 0,
+    paddingTop: 0,
+    paddingBottom: 0,
+    paddingLeft: 0,
+    paddingRight: 0,
     color: "var(--text-primary)",
     fontFamily: "inherit",
     fontSize: 17,
@@ -2311,7 +2546,10 @@ const styles = {
     marginTop: 16,
     width: "fit-content",
     minHeight: 38,
-    padding: "0 16px",
+    paddingTop: 0,
+    paddingBottom: 0,
+    paddingLeft: 16,
+    paddingRight: 16,
     borderRadius: 999,
     borderWidth: "1px",
     borderStyle: "solid",
@@ -2331,13 +2569,18 @@ const styles = {
   actions: {
     position: "absolute",
     right: "max(12px, env(safe-area-inset-right))",
-    top: "50%",
-    transform: "translateY(-50%)",
+    top: "calc(92px + env(safe-area-inset-top))",
+    bottom: "calc(92px + env(safe-area-inset-bottom))",
+    transform: "none",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
+    justifyContent: "center",
     gap: 10,
-    padding: "8px 4px",
+    paddingTop: 8,
+    paddingBottom: 8,
+    paddingLeft: 4,
+    paddingRight: 4,
     borderRadius: 999,
     background: "var(--glass)",
     border: "1px solid var(--line)",
@@ -2418,6 +2661,36 @@ const styles = {
     color: "currentColor",
     filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.85))",
   },
+  backArrowSvg: {
+    width: 18,
+    height: 18,
+    display: "block",
+  },
+  soundToggleButton: {
+    position: "fixed",
+    top: "calc(62px + env(safe-area-inset-top))",
+    right: "max(14px, env(safe-area-inset-right))",
+    zIndex: 92,
+    width: 36,
+    height: 36,
+    borderRadius: "50%",
+    border: "1px solid rgba(255,255,255,0.14)",
+    background: "rgba(0,0,0,0.5)",
+    color: "#fff",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
+    transition: "transform var(--motion-fast), background var(--motion-fast)",
+    WebkitTapHighlightColor: "transparent",
+  },
+  soundSvg: {
+    width: 20,
+    height: 20,
+    display: "block",
+  },
   actionText: {
     color: "var(--text-primary)",
     fontSize: 10,
@@ -2468,7 +2741,10 @@ const styles = {
     justifyContent: "center",
     gap: 7,
     zIndex: 100,
-    padding: "6px 8px",
+    paddingTop: 6,
+    paddingBottom: 6,
+    paddingLeft: 8,
+    paddingRight: 8,
   },
   navItem: {
     display: "flex",
@@ -2477,7 +2753,10 @@ const styles = {
     justifyContent: "center",
     gap: 3,
     cursor: "pointer",
-    padding: "6px 6px",
+    paddingTop: 6,
+    paddingBottom: 6,
+    paddingLeft: 6,
+    paddingRight: 6,
     minWidth: 43,
     minHeight: 44,
     borderRadius: 16,
@@ -2492,7 +2771,10 @@ const styles = {
     justifyContent: "center",
     gap: 3,
     cursor: "pointer",
-    padding: "6px 8px",
+    paddingTop: 6,
+    paddingBottom: 6,
+    paddingLeft: 8,
+    paddingRight: 8,
     minWidth: 48,
     minHeight: 44,
     borderRadius: 16,
@@ -2541,7 +2823,10 @@ const styles = {
     right: -9,
     minWidth: 16,
     height: 16,
-    padding: "0 4px",
+    paddingTop: 0,
+    paddingBottom: 0,
+    paddingLeft: 4,
+    paddingRight: 4,
     borderRadius: 8,
     background: "var(--primary-red)",
     color: "var(--text-primary)",
@@ -2614,29 +2899,38 @@ const styles = {
     left: 0,
     right: 0,
     bottom: 0,
-    background: "rgba(0,0,0,0.5)",
+    background: "rgba(0,0,0,0.62)",
+    backdropFilter: "blur(4px)",
+    WebkitBackdropFilter: "blur(4px)",
   },
   commentsContent: {
-    background: "var(--surface)",
-    borderRadius: "20px 20px 0 0",
+    background: "linear-gradient(180deg, #111 0%, #0B0B0B 100%)",
+    borderRadius: "24px 24px 0 0",
     width: "100%",
-    maxHeight: "70vh",
+    maxHeight: "78vh",
     display: "flex",
     flexDirection: "column",
     position: "relative",
     zIndex: 1001,
+    borderTopWidth: "1px",
+    borderTopStyle: "solid",
+    borderTopColor: "rgba(212,175,55,0.16)",
+    boxShadow: "0 -24px 70px rgba(0,0,0,0.52)",
   },
   commentsHeader: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: "20px",
+    paddingTop: 20,
+    paddingBottom: 20,
+    paddingLeft: 20,
+    paddingRight: 20,
     borderBottom: "1px solid rgba(212,175,55,0.16)",
   },
   commentsTitle: {
     color: "var(--text-primary)",
-    fontSize: 18,
-    fontWeight: 600,
+    fontSize: 20,
+    fontWeight: 950,
     margin: 0,
   },
   commentsClose: {
@@ -2645,47 +2939,83 @@ const styles = {
     color: "var(--text-primary)",
     fontSize: 20,
     cursor: "pointer",
-    padding: "4px",
+    paddingTop: 4,
+    paddingBottom: 4,
+    paddingLeft: 4,
+    paddingRight: 4,
   },
   commentsList: {
     flex: 1,
     overflowY: "auto",
-    padding: "0 20px",
-    maxHeight: "400px",
+    paddingTop: 0,
+    paddingBottom: 0,
+    paddingLeft: 20,
+    paddingRight: 20,
+    maxHeight: "min(460px, 54vh)",
   },
   noComments: {
     textAlign: "center",
-    color: "#666",
-    padding: "40px 20px",
+    color: "#AAAAAA",
+    paddingTop: 40,
+    paddingBottom: 40,
+    paddingLeft: 20,
+    paddingRight: 20,
     fontSize: 14,
+    lineHeight: 1.5,
   },
   commentItem: {
     display: "flex",
     gap: 12,
-    padding: "16px 0",
-    borderBottom: "1px solid #222",
+    paddingTop: 16,
+    paddingBottom: 16,
+    paddingLeft: 0,
+    paddingRight: 0,
+    borderBottom: "1px solid rgba(255,255,255,0.07)",
   },
   commentAvatar: {
-    width: 32,
-    height: 32,
+    width: 38,
+    height: 38,
     borderRadius: "50%",
-    background: "var(--primary-red)",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "rgba(212,175,55,0.32)",
+    background: "linear-gradient(145deg, #C1121F, #520711)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     color: "var(--text-primary)",
     fontSize: 14,
-    fontWeight: "bold",
+    fontWeight: 950,
     flexShrink: 0,
+    overflow: "hidden",
+    cursor: "pointer",
+    paddingTop: 0,
+    paddingBottom: 0,
+    paddingLeft: 0,
+    paddingRight: 0,
+  },
+  commentAvatarImage: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    display: "block",
   },
   commentContent: {
     flex: 1,
   },
   commentUsername: {
+    border: "none",
+    background: "transparent",
+    paddingTop: 0,
+    paddingBottom: 0,
+    paddingLeft: 0,
+    paddingRight: 0,
     color: "var(--text-primary)",
     fontSize: 14,
-    fontWeight: 600,
+    fontWeight: 900,
     marginBottom: 4,
+    cursor: "pointer",
+    textAlign: "left",
   },
   commentText: {
     color: "#ccc",
@@ -2695,12 +3025,18 @@ const styles = {
   commentInput: {
     display: "flex",
     gap: 12,
-    padding: "20px",
+    paddingTop: 20,
+    paddingBottom: 20,
+    paddingLeft: 20,
+    paddingRight: 20,
     borderTop: "1px solid rgba(212,175,55,0.16)",
   },
   commentInputField: {
     flex: 1,
-    padding: "12px 16px",
+    paddingTop: 12,
+    paddingBottom: 12,
+    paddingLeft: 16,
+    paddingRight: 16,
     borderRadius: 12,
     border: "1px solid var(--line)",
     background: "#111",
@@ -2709,7 +3045,10 @@ const styles = {
     outline: "none",
   },
   commentSendBtn: {
-    padding: "12px 20px",
+    paddingTop: 12,
+    paddingBottom: 12,
+    paddingLeft: 20,
+    paddingRight: 20,
     borderRadius: 12,
     border: "none",
     background: "var(--primary-red)",
@@ -2762,7 +3101,10 @@ const styles = {
     alignItems: "flex-start",
     justifyContent: "space-between",
     gap: 16,
-    padding: "18px 20px 14px",
+    paddingTop: 18,
+    paddingRight: 20,
+    paddingBottom: 14,
+    paddingLeft: 20,
     borderBottomWidth: "1px",
     borderBottomStyle: "solid",
     borderBottomColor: "rgba(255,255,255,0.08)",
@@ -2804,7 +3146,10 @@ const styles = {
   feedbackBody: {
     maxHeight: "calc(76vh - 112px)",
     overflowY: "auto",
-    padding: "18px 20px calc(24px + env(safe-area-inset-bottom))",
+    paddingTop: 18,
+    paddingRight: 20,
+    paddingBottom: "calc(24px + env(safe-area-inset-bottom))",
+    paddingLeft: 20,
   },
   feedbackLoading: {
     display: "flex",
@@ -2831,9 +3176,27 @@ const styles = {
     borderStyle: "solid",
     borderColor: "rgba(193,18,31,0.26)",
     borderRadius: 14,
-    padding: 14,
+    paddingTop: 14,
+    paddingBottom: 14,
+    paddingLeft: 14,
+    paddingRight: 14,
     fontSize: 14,
     lineHeight: 1.5,
+  },
+  feedbackSaved: {
+    marginBottom: 14,
+    color: "var(--accent-gold)",
+    background: "rgba(212,175,55,0.1)",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "rgba(212,175,55,0.22)",
+    borderRadius: 14,
+    paddingTop: 11,
+    paddingBottom: 11,
+    paddingLeft: 13,
+    paddingRight: 13,
+    fontSize: 13,
+    fontWeight: 900,
   },
   feedbackResult: {
     margin: 0,
@@ -2844,3 +3207,4 @@ const styles = {
     lineHeight: 1.62,
   },
 };
+

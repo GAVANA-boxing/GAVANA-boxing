@@ -1,73 +1,247 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
+import { useAuth } from "@/lib/AuthContext";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { getLocaleFromPathname, translate } from "@/lib/i18n";
 
-const steps = [
-  {
-    title: "Upload your training",
-    text: "Post bag work, sparring clips, and drills in seconds.",
-  },
-  {
-    title: "Get AI feedback",
-    text: "Use your caption and stats to get simple coaching advice.",
-  },
-  {
-    title: "Follow fighters and improve",
-    text: "Build your feed around athletes who push your level.",
-  },
-];
+const personaMap = {
+  strict: "Drill Sergeant",
+  calm: "Zen Master",
+  analytical: "Analyst",
+};
+
+function getQuestions(t) {
+  return [
+    {
+      key: "goal",
+      title: t("onboardingGoalTitle"),
+      description: t("onboardingGoalDesc"),
+      options: [
+        { value: "fitness", label: t("onboardingGoalFitness") },
+        { value: "amateur", label: t("onboardingGoalAmateur") },
+        { value: "pro", label: t("onboardingGoalPro") },
+      ],
+    },
+    {
+      key: "experience",
+      title: t("onboardingExpTitle"),
+      description: t("onboardingExpDesc"),
+      options: [
+        { value: "beginner", label: t("onboardingExpBeginner") },
+        { value: "intermediate", label: t("onboardingExpIntermediate") },
+        { value: "advanced", label: t("onboardingExpAdvanced") },
+      ],
+    },
+    {
+      key: "coachStyle",
+      title: t("onboardingCoachTitle"),
+      description: t("onboardingCoachDesc"),
+      options: [
+        { value: "strict", label: t("onboardingCoachStrict") },
+        { value: "calm", label: t("onboardingCoachCalm") },
+        { value: "analytical", label: t("onboardingCoachAnalytical") },
+      ],
+    },
+  ];
+}
 
 export default function OnboardingModal() {
+  const pathname = usePathname();
+  const locale = getLocaleFromPathname(pathname);
+  const t = (key) => translate(locale, key);
+  const { user, loading: authLoading } = useAuth();
   const [visible, setVisible] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
+  const [goal, setGoal] = useState("");
+  const [experience, setExperience] = useState("");
+  const [coachStyle, setCoachStyle] = useState("");
+  const [checking, setChecking] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const done = window.localStorage.getItem("gavana_onboarding_complete");
-    if (!done) {
-      setVisible(true);
-    }
-  }, []);
-
-  const finish = () => {
-    window.localStorage.setItem("gavana_onboarding_complete", "1");
-    setVisible(false);
-  };
-
-  const next = () => {
-    if (stepIndex >= steps.length - 1) {
-      finish();
+    if (authLoading) return;
+    if (!user?.uid) {
+      setVisible(false);
+      setChecking(false);
       return;
     }
 
+    let active = true;
+    async function checkOnboarding() {
+      try {
+        const userRef = doc(db, "users", user.uid);
+        const snapshot = await getDoc(userRef);
+        const data = snapshot.exists() ? snapshot.data() : {};
+        const onboarding = data?.onboarding;
+
+        if (onboarding?.completed) {
+          setVisible(false);
+        } else {
+          setGoal(onboarding?.goal || "");
+          setExperience(onboarding?.experience || "");
+          setCoachStyle(onboarding?.coachStyle || "");
+          setVisible(true);
+        }
+      } catch (err) {
+        console.error("Failed to load onboarding state:", err);
+      } finally {
+        if (active) setChecking(false);
+      }
+    }
+
+    checkOnboarding();
+    return () => { active = false; };
+  }, [authLoading, user?.uid]);
+
+  const selectedValues = useMemo(
+    () => ({ goal, experience, coachStyle }),
+    [goal, experience, coachStyle]
+  );
+
+  const questions = useMemo(() => getQuestions(t), [locale]);
+  const currentQuestion = questions[stepIndex];
+  const isSummaryStep = stepIndex >= questions.length;
+  const recommendedPersona = personaMap[coachStyle] || "Coach";
+
+  const saveOnboarding = async (payload) => {
+    if (!user?.uid) return;
+    setSaving(true);
+    setError("");
+
+    try {
+      const userRef = doc(db, "users", user.uid);
+      await setDoc(
+        userRef,
+        {
+          onboarding: {
+            ...payload,
+            coachPersona: payload.coachStyle ? personaMap[payload.coachStyle] : null,
+            completed: true,
+          },
+        },
+        { merge: true }
+      );
+      setVisible(false);
+    } catch (err) {
+      console.error("Failed to save onboarding:", err);
+      setError(t("onboardingErrSave"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleNext = () => {
+    if (isSummaryStep) {
+      saveOnboarding({ ...selectedValues });
+      return;
+    }
+
+    if (stepIndex === 0 && !goal) {
+      setError(t("onboardingErrGoal"));
+      return;
+    }
+
+    if (stepIndex === 1 && !experience) {
+      setError(t("onboardingErrExp"));
+      return;
+    }
+
+    if (stepIndex === 2 && !coachStyle) {
+      setError(t("onboardingErrCoach"));
+      return;
+    }
+
+    setError("");
     setStepIndex((current) => current + 1);
   };
 
-  if (!visible) return null;
+  const handleSkip = () => {
+    saveOnboarding({ skipped: true });
+  };
 
-  const step = steps[stepIndex];
+  const renderOptions = () => {
+    return currentQuestion.options.map((option) => {
+      const selected =
+        currentQuestion.key === "goal"
+          ? goal === option.value
+          : currentQuestion.key === "experience"
+          ? experience === option.value
+          : coachStyle === option.value;
+
+      return (
+        <button
+          key={option.value}
+          type="button"
+          onClick={() => {
+            setError("");
+            if (currentQuestion.key === "goal") setGoal(option.value);
+            if (currentQuestion.key === "experience") setExperience(option.value);
+            if (currentQuestion.key === "coachStyle") setCoachStyle(option.value);
+          }}
+          style={{
+            ...styles.optionButton,
+            ...(selected ? styles.optionButtonSelected : {}),
+          }}
+        >
+          <span>{option.label}</span>
+        </button>
+      );
+    });
+  };
+
+  if (authLoading || checking || !visible) {
+    return null;
+  }
+
+  const coachRecText = t("onboardingCoachRecText").replace("{persona}", recommendedPersona);
 
   return (
     <div style={styles.overlay}>
       <div style={styles.modal}>
         <div style={styles.glow} />
-        <p style={styles.kicker}>GAVANA BOXING</p>
-        <div style={styles.stepMark}>{stepIndex + 1}/3</div>
-        <h2 style={styles.title}>{step.title}</h2>
-        <p style={styles.text}>{step.text}</p>
-        <div style={styles.dots}>
-          {steps.map((item, index) => (
-            <span
-              key={item.title}
-              style={{
-                ...styles.dot,
-                ...(index === stepIndex ? styles.dotActive : {}),
-              }}
-            />
-          ))}
+        <div style={styles.brand}>GAVANA BOXING</div>
+        <div style={styles.stepMark}>{Math.min(stepIndex + 1, questions.length + 1)}/{questions.length + 1}</div>
+        {isSummaryStep ? (
+          <>
+            <h2 style={styles.title}>{t("onboardingCoachRec")}</h2>
+            <p style={styles.text}>{coachRecText}</p>
+            <div style={styles.summaryCard}>
+              <div style={styles.summaryRow}>
+                <span>{t("onboardingGoalLabel")}</span>
+                <strong>{goal || t("onboardingNotSelected")}</strong>
+              </div>
+              <div style={styles.summaryRow}>
+                <span>{t("onboardingExpLabel")}</span>
+                <strong>{experience || t("onboardingNotSelected")}</strong>
+              </div>
+              <div style={styles.summaryRow}>
+                <span>{t("onboardingCoachLabel")}</span>
+                <strong>{coachStyle || t("onboardingNotSelected")}</strong>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <h2 style={styles.title}>{currentQuestion.title}</h2>
+            <p style={styles.text}>{currentQuestion.description}</p>
+            <div style={styles.options}>{renderOptions()}</div>
+          </>
+        )}
+
+        {error ? <div style={styles.error}>{error}</div> : null}
+
+        <div style={styles.actions}>
+          <button type="button" style={styles.secondaryButton} onClick={handleSkip} disabled={saving}>
+            {t("onboardingSkip")}
+          </button>
+          <button type="button" style={styles.primaryButton} onClick={handleNext} disabled={saving}>
+            {isSummaryStep ? (saving ? t("onboardingSaving") : t("onboardingFinish")) : t("onboardingNext")}
+          </button>
         </div>
-        <button type="button" style={styles.button} onClick={next}>
-          {stepIndex === steps.length - 1 ? "Get started" : "Next"}
-        </button>
       </div>
     </div>
   );
@@ -87,10 +261,10 @@ const styles = {
   },
   modal: {
     position: "relative",
-    width: "min(100%, 420px)",
+    width: "min(100%, 480px)",
     overflow: "hidden",
-    borderRadius: 24,
-    padding: "28px 22px 22px",
+    borderRadius: 28,
+    padding: "32px 26px",
     background: "linear-gradient(145deg, rgba(193,18,31,0.16), rgba(11,11,11,0.98) 42%, rgba(212,175,55,0.08))",
     border: "1px solid rgba(255,255,255,0.1)",
     boxShadow: "0 28px 90px rgba(0,0,0,0.58)",
@@ -104,8 +278,7 @@ const styles = {
     background: "radial-gradient(circle, rgba(212,175,55,0.2), transparent 62%)",
     pointerEvents: "none",
   },
-  kicker: {
-    position: "relative",
+  brand: {
     margin: 0,
     color: "#D4AF37",
     fontSize: 11,
@@ -113,8 +286,7 @@ const styles = {
     letterSpacing: 2,
   },
   stepMark: {
-    position: "relative",
-    margin: "18px auto 14px",
+    margin: "18px auto 12px",
     width: 52,
     height: 52,
     borderRadius: "50%",
@@ -127,41 +299,73 @@ const styles = {
     fontWeight: 950,
   },
   title: {
-    position: "relative",
     margin: 0,
-    fontSize: 30,
-    lineHeight: 1,
-    fontWeight: 1000,
-    letterSpacing: 0,
+    fontSize: 28,
+    lineHeight: 1.05,
+    fontWeight: 900,
   },
   text: {
-    position: "relative",
-    margin: "12px auto 0",
-    maxWidth: 300,
-    color: "#AAAAAA",
+    margin: "12px auto 24px",
+    maxWidth: 360,
+    color: "#CCCCCC",
     fontSize: 15,
-    lineHeight: 1.45,
+    lineHeight: 1.6,
   },
-  dots: {
+  options: {
+    display: "grid",
+    gap: 12,
+    marginTop: 18,
+  },
+  optionButton: {
     display: "flex",
+    alignItems: "center",
     justifyContent: "center",
-    gap: 7,
-    margin: "24px 0 18px",
+    minHeight: 54,
+    padding: "0 14px",
+    borderRadius: 16,
+    border: "1px solid rgba(255,255,255,0.12)",
+    background: "rgba(255,255,255,0.04)",
+    color: "#fff",
+    fontWeight: 700,
+    cursor: "pointer",
+    transition: "transform 160ms ease, background 160ms ease, border-color 160ms ease",
   },
-  dot: {
-    width: 7,
-    height: 7,
-    borderRadius: 999,
-    background: "rgba(255,255,255,0.22)",
+  optionButtonSelected: {
+    background: "rgba(193,18,31,0.18)",
+    borderColor: "rgba(193,18,31,0.5)",
+    transform: "scale(1.01)",
   },
-  dotActive: {
-    width: 22,
-    background: "#C1121F",
-    boxShadow: "0 0 16px rgba(193,18,31,0.55)",
-  },
-  button: {
+  summaryCard: {
+    margin: "20px auto 0",
     width: "100%",
-    minHeight: 50,
+    maxWidth: 380,
+    padding: 20,
+    borderRadius: 18,
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    textAlign: "left",
+  },
+  summaryRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: 12,
+    marginBottom: 12,
+    color: "#DDD",
+    fontSize: 15,
+  },
+  error: {
+    marginTop: 16,
+    color: "#FF8B8B",
+    fontSize: 14,
+    minHeight: 22,
+  },
+  actions: {
+    display: "grid",
+    gap: 12,
+    marginTop: 22,
+  },
+  primaryButton: {
+    minHeight: 52,
     border: "none",
     borderRadius: 16,
     background: "#C1121F",
@@ -170,5 +374,15 @@ const styles = {
     fontWeight: 900,
     cursor: "pointer",
     boxShadow: "0 18px 44px rgba(193,18,31,0.28)",
+  },
+  secondaryButton: {
+    minHeight: 52,
+    borderRadius: 16,
+    border: "1px solid rgba(255,255,255,0.12)",
+    background: "rgba(255,255,255,0.04)",
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: 700,
+    cursor: "pointer",
   },
 };

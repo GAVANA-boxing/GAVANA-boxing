@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
@@ -33,20 +33,28 @@ export default function LoginPage() {
   const locale = getLocale(params?.locale);
   const t = (key) => translate(locale, key);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectParam = searchParams.get("redirect");
+  const initialMode = searchParams.get("mode");
+  const redirectTo = redirectParam?.startsWith(`/${locale}/`) ? redirectParam : `/${locale}/reels`;
   const { user, loading: authLoading } = useAuth();
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(initialMode === "signup");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (!authLoading && user) {
-      router.replace(`/${locale}/reels`);
+      router.replace(redirectTo);
     }
-  }, [authLoading, user, router, locale]);
+  }, [authLoading, user, router, redirectTo]);
+
+  useEffect(() => {
+    setIsSignUp(initialMode === "signup");
+  }, [initialMode]);
 
   if (authLoading) {
     return (
@@ -118,7 +126,7 @@ export default function LoginPage() {
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
-      router.push(`/${locale}/reels`);
+      router.push(redirectTo);
     } catch (err) {
       console.error("Auth error:", err);
       setError(getFriendlyAuthError(err, isSignUp));
