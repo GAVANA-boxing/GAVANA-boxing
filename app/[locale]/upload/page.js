@@ -8,6 +8,97 @@ import { storage, db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 
+function cleanCaptionLine(line) {
+  return line
+    .replace(/\*\*/g, "")
+    .replace(/__/g, "")
+    .replace(/^\s*[-*•]\s*/, "")
+    .replace(/^\s*\d+[\).:-]\s*/, "")
+    .trim();
+}
+
+function stripCaptionLabel(line) {
+  return cleanCaptionLine(line)
+    .replace(/^(hook|caption|hashtags?)\s*[:\-–—]\s*/i, "")
+    .trim();
+}
+
+function extractHashtags(text) {
+  return (text.match(/#[\p{L}\p{N}_]+/gu) || []).join(" ");
+}
+
+function removeHashtags(text) {
+  return text.replace(/#[\p{L}\p{N}_]+/gu, "").replace(/\s{2,}/g, " ").trim();
+}
+
+function parseAiCaptionResult(text = "") {
+  const sections = {
+    hook: "",
+    caption: "",
+    hashtags: "",
+  };
+  let currentSection = null;
+
+  text
+    .split(/\r?\n/)
+    .map(cleanCaptionLine)
+    .filter(Boolean)
+    .forEach((line) => {
+      const match = line.match(/^(hook|caption|hashtags?)\s*[:\-–—]\s*(.*)$/i);
+
+      if (match) {
+        const key = match[1].toLowerCase().startsWith("hashtag") ? "hashtags" : match[1].toLowerCase();
+        const value = match[2].trim();
+
+        if (key === "hashtags") {
+          sections.hashtags = [sections.hashtags, extractHashtags(value) || stripCaptionLabel(value)].filter(Boolean).join(" ");
+        } else {
+          sections[key] = [sections[key], removeHashtags(value)].filter(Boolean).join(" ");
+          const hashtags = extractHashtags(value);
+          if (hashtags) {
+            sections.hashtags = [sections.hashtags, hashtags].filter(Boolean).join(" ");
+          }
+        }
+
+        currentSection = key;
+        return;
+      }
+
+      if (line.includes("#")) {
+        sections.hashtags = [sections.hashtags, extractHashtags(line) || stripCaptionLabel(line)].filter(Boolean).join(" ");
+        return;
+      }
+
+      if (currentSection) {
+        sections[currentSection] = [sections[currentSection], removeHashtags(stripCaptionLabel(line))].filter(Boolean).join(" ");
+        return;
+      }
+
+      if (!sections.caption) {
+        sections.caption = stripCaptionLabel(line);
+      }
+    });
+
+  const fallbackClean = text
+    .split(/\r?\n/)
+    .map(stripCaptionLabel)
+    .filter(Boolean)
+    .join("\n")
+    .trim();
+
+  const description = [
+    removeHashtags(sections.caption).trim(),
+    (extractHashtags(sections.hashtags) || sections.hashtags).trim(),
+  ].filter(Boolean).join("\n").trim();
+
+  return {
+    hook: removeHashtags(sections.hook).trim(),
+    caption: removeHashtags(sections.caption).trim(),
+    hashtags: (extractHashtags(sections.hashtags) || sections.hashtags).trim(),
+    description: description || fallbackClean,
+  };
+}
+
 export default function UploadPage() {
   const pathname = usePathname();
   const locale = getLocaleFromPathname(pathname);
@@ -139,10 +230,11 @@ export default function UploadPage() {
               content: [
                 "Generate a premium boxing reel caption.",
                 `Context: ${context}`,
-                "Return exactly three short sections:",
+                "Return exactly three plain-text sections with no markdown, no bullets, and no numbering:",
                 "Hook: one short viral hook, maximum 8 words.",
                 "Caption: one punchy caption, maximum 18 words.",
                 "Hashtags: 5 to 8 relevant hashtags.",
+                "Do not put hashtags in Hook or Caption. Put hashtags only in Hashtags.",
               ].join("\n"),
             },
           ],
@@ -171,7 +263,18 @@ export default function UploadPage() {
 
   const handleUseCaption = () => {
     if (captionResult.trim()) {
-      setDescription(captionResult.trim());
+      setDescription(parseAiCaptionResult(captionResult).description);
+    }
+  };
+
+  const handleCopyHashtags = async () => {
+    const hashtags = parseAiCaptionResult(captionResult).hashtags;
+    if (!hashtags) return;
+
+    try {
+      await navigator.clipboard.writeText(hashtags);
+    } catch (error) {
+      console.error("Failed to copy hashtags:", error);
     }
   };
 
@@ -372,44 +475,60 @@ export default function UploadPage() {
                   </div>
                 )}
 
-                {captionResult && (
-                  <div style={{
-                    display: "grid",
-                    gap: 12,
-                    padding: 14,
-                    borderRadius: 14,
-                    background: "rgba(0,0,0,0.34)",
-                    border: "1px solid rgba(255,255,255,0.08)"
-                  }}>
-                    <pre style={{
-                      margin: 0,
-                      whiteSpace: "pre-wrap",
-                      color: "#FFFFFF",
-                      fontFamily: "inherit",
-                      fontSize: 14,
-                      lineHeight: 1.55
+                {captionResult && (() => {
+                  const parsedCaption = parseAiCaptionResult(captionResult);
+
+                  return (
+                    <div style={{
+                      display: "grid",
+                      gap: 12,
+                      padding: 14,
+                      borderRadius: 14,
+                      background: "rgba(0,0,0,0.34)",
+                      border: "1px solid rgba(255,255,255,0.08)"
                     }}>
-                      {captionResult}
-                    </pre>
-                    <button
-                      type="button"
-                      onClick={handleUseCaption}
-                      style={{
-                        justifySelf: "start",
-                        padding: "11px 14px",
-                        borderRadius: 999,
-                        border: "1px solid rgba(212,175,55,0.34)",
-                        background: "rgba(212,175,55,0.1)",
-                        color: "#D4AF37",
-                        fontSize: 13,
-                        fontWeight: 800,
-                        cursor: "pointer"
-                      }}
-                    >
-                      {t("useAsDescription")}
-                    </button>
-                  </div>
-                )}
+                      {parsedCaption.hook && (
+                        <div style={styles.captionSection}>
+                          <span style={styles.captionSectionLabel}>Hook</span>
+                          <div style={styles.captionHookText}>{parsedCaption.hook}</div>
+                        </div>
+                      )}
+                      {parsedCaption.caption && (
+                        <div style={styles.captionSection}>
+                          <span style={styles.captionSectionLabel}>Caption</span>
+                          <div style={styles.captionResultText}>{parsedCaption.caption}</div>
+                        </div>
+                      )}
+                      {parsedCaption.hashtags && (
+                        <div style={styles.captionSection}>
+                          <span style={styles.captionSectionLabel}>Hashtags</span>
+                          <div style={styles.captionResultText}>{parsedCaption.hashtags}</div>
+                        </div>
+                      )}
+                      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                        <button
+                          type="button"
+                          onClick={handleUseCaption}
+                          style={styles.captionActionButton}
+                        >
+                          Use caption
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleCopyHashtags}
+                          style={{
+                            ...styles.captionActionButton,
+                            background: "rgba(255,255,255,0.055)",
+                            color: "#fff",
+                            border: "1px solid rgba(255,255,255,0.12)"
+                          }}
+                        >
+                          Copy hashtags
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               <div style={{ display: "flex", gap: 12 }}>
@@ -463,3 +582,43 @@ export default function UploadPage() {
     </div>
   );
 }
+
+const styles = {
+  captionSection: {
+    display: "grid",
+    gap: 6,
+    padding: 12,
+    borderRadius: 12,
+    background: "rgba(255,255,255,0.045)",
+    border: "1px solid rgba(255,255,255,0.08)",
+  },
+  captionSectionLabel: {
+    color: "#D4AF37",
+    fontSize: 11,
+    fontWeight: 900,
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+  },
+  captionHookText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: 900,
+    lineHeight: 1.45,
+  },
+  captionResultText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    lineHeight: 1.55,
+    whiteSpace: "pre-wrap",
+  },
+  captionActionButton: {
+    padding: "11px 14px",
+    borderRadius: 999,
+    border: "1px solid rgba(212,175,55,0.34)",
+    background: "rgba(212,175,55,0.1)",
+    color: "#D4AF37",
+    fontSize: 13,
+    fontWeight: 800,
+    cursor: "pointer",
+  },
+};

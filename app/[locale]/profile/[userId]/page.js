@@ -39,6 +39,7 @@ export default function UserProfilePage() {
   const [followLoading, setFollowLoading] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [previewFailures, setPreviewFailures] = useState({});
+  const [deletingReelIds, setDeletingReelIds] = useState(new Set());
 
   // Redirect if not logged in
   useEffect(() => {
@@ -297,6 +298,82 @@ export default function UserProfilePage() {
     }
   };
 
+  const handleDeleteReel = async (event, reel) => {
+    event.stopPropagation();
+
+    if (!user?.uid || reel.userId !== user.uid || deletingReelIds.has(reel.id)) {
+      return;
+    }
+
+    const confirmed = window.confirm("Are you sure you want to delete this reel?");
+    if (!confirmed) return;
+
+    const previousUserReels = userReels;
+    const previousSavedReels = savedUserReels;
+
+    setDeletingReelIds((prev) => new Set(prev).add(reel.id));
+    setUserReels((prev) => prev.filter((item) => item.id !== reel.id));
+    setSavedUserReels((prev) => prev.filter((item) => item.id !== reel.id));
+    setTotalLikes((prev) => Math.max(0, prev - getSafeReelLikes(reel)));
+
+    try {
+      const {
+        collection,
+        deleteDoc,
+        doc,
+        getDocs,
+        query,
+        where,
+        writeBatch,
+      } = await import("firebase/firestore");
+
+      const deleteDocsInBatches = async (docs) => {
+        for (let i = 0; i < docs.length; i += 450) {
+          const batch = writeBatch(db);
+          docs.slice(i, i + 450).forEach((snapshotDoc) => {
+            batch.delete(snapshotDoc.ref);
+          });
+          await batch.commit();
+        }
+      };
+
+      const commentsSnapshot = await getDocs(collection(db, "reels", reel.id, "comments"));
+      await deleteDocsInBatches(commentsSnapshot.docs);
+
+      const likesSnapshot = await getDocs(query(
+        collection(db, "user_likes"),
+        where("reelId", "==", reel.id)
+      ));
+      await deleteDocsInBatches(likesSnapshot.docs);
+
+      const savedSnapshot = await getDocs(query(
+        collection(db, "saved_reels"),
+        where("reelId", "==", reel.id)
+      ));
+      await deleteDocsInBatches(savedSnapshot.docs);
+
+      const notificationsSnapshot = await getDocs(query(
+        collection(db, "notifications"),
+        where("reelId", "==", reel.id)
+      ));
+      await deleteDocsInBatches(notificationsSnapshot.docs);
+
+      await deleteDoc(doc(db, "reels", reel.id));
+    } catch (error) {
+      console.error("Error deleting reel:", error);
+      setUserReels(previousUserReels);
+      setSavedUserReels(previousSavedReels);
+      setTotalLikes(previousUserReels.reduce((sum, item) => sum + getSafeReelLikes(item), 0));
+      alert("Could not delete this reel. Please try again.");
+    } finally {
+      setDeletingReelIds((prev) => {
+        const next = new Set(prev);
+        next.delete(reel.id);
+        return next;
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div style={{
@@ -523,6 +600,8 @@ export default function UserProfilePage() {
             const showImage = reel.thumbnailUrl && !imageFailed;
             const showVideo = !showImage && reel.videoUrl && !videoFailed;
             const likeCount = getSafeReelLikes(reel);
+            const canDeleteReel = user?.uid && reel.userId === user.uid;
+            const isDeletingReel = deletingReelIds.has(reel.id);
 
             return (
               <div
@@ -573,6 +652,22 @@ export default function UserProfilePage() {
                       {reel.description || "Training reel"}
                     </div>
                   </div>
+                )}
+                {canDeleteReel && (
+                  <button
+                    type="button"
+                    aria-label="Delete reel"
+                    title="Delete reel"
+                    onClick={(event) => handleDeleteReel(event, reel)}
+                    disabled={isDeletingReel}
+                    style={{
+                      ...styles.deleteReelButton,
+                      opacity: isDeletingReel ? 0.55 : 1,
+                      cursor: isDeletingReel ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    {isDeletingReel ? "..." : "×"}
+                  </button>
                 )}
               <div style={{
                 position: "absolute",
@@ -676,5 +771,26 @@ const styles = {
     WebkitLineClamp: 3,
     WebkitBoxOrient: "vertical",
     overflow: "hidden",
+  },
+  deleteReelButton: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    zIndex: 3,
+    width: 30,
+    height: 30,
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.16)",
+    background: "rgba(7,7,7,0.72)",
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: 800,
+    lineHeight: "26px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "0 10px 24px rgba(0,0,0,0.36)",
+    backdropFilter: "blur(14px)",
+    WebkitBackdropFilter: "blur(14px)",
   },
 };
