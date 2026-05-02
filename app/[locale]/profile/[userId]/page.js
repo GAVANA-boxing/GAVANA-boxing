@@ -27,6 +27,7 @@ export default function UserProfilePage() {
   const [isOwnProfile, setIsOwnProfile] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [previewFailures, setPreviewFailures] = useState({});
 
   // Redirect if not logged in
   useEffect(() => {
@@ -340,6 +341,9 @@ export default function UserProfilePage() {
   }
 
   const visibleReels = profileTab === "saved" ? savedUserReels : userReels;
+  const markPreviewFailed = (reelId, type) => {
+    setPreviewFailures((prev) => ({ ...prev, [`${reelId}:${type}`]: true }));
+  };
 
   return (
     <div style={{
@@ -537,30 +541,62 @@ export default function UserProfilePage() {
             </p>
           </div>
         ) : (
-          visibleReels.map((reel) => (
-            <div
-              key={reel.id}
-              className="profile-reel-tile"
-              style={{
-                aspectRatio: "9/16",
-                overflow: "hidden",
-                background: "var(--surface-soft)",
-                cursor: "pointer",
-                position: "relative"
-              }}
-              onClick={() => router.push(`/${locale}/reels`)}
-            >
-              <video
-                src={reel.videoUrl}
-                className="profile-reel-video"
+          visibleReels.map((reel) => {
+            const imageFailed = previewFailures[`${reel.id}:image`];
+            const videoFailed = previewFailures[`${reel.id}:video`];
+            const showImage = reel.thumbnailUrl && !imageFailed;
+            const showVideo = !showImage && reel.videoUrl && !videoFailed;
+
+            return (
+              <div
+                key={reel.id}
+                className="profile-reel-tile"
                 style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover"
+                  aspectRatio: "9/16",
+                  overflow: "hidden",
+                  background: "var(--surface-soft)",
+                  cursor: "pointer",
+                  position: "relative"
                 }}
-                muted
-                preload="metadata"
-              />
+                onClick={() => router.push(`/${locale}/reels`)}
+              >
+                {showImage ? (
+                  <img
+                    src={reel.thumbnailUrl}
+                    alt={reel.description || "Training reel"}
+                    className="profile-reel-media"
+                    style={styles.reelPreviewMedia}
+                    loading="lazy"
+                    onError={() => markPreviewFailed(reel.id, "image")}
+                  />
+                ) : showVideo ? (
+                  <video
+                    src={reel.videoUrl}
+                    className="profile-reel-media"
+                    style={styles.reelPreviewMedia}
+                    muted
+                    playsInline
+                    preload="metadata"
+                    poster={reel.thumbnailUrl || undefined}
+                    onLoadedMetadata={(event) => {
+                      try {
+                        if (event.currentTarget.currentTime === 0) {
+                          event.currentTarget.currentTime = 0.05;
+                        }
+                      } catch {
+                        // Some mobile browsers do not allow seeking before enough data is ready.
+                      }
+                    }}
+                    onError={() => markPreviewFailed(reel.id, "video")}
+                  />
+                ) : (
+                  <div style={styles.reelPreviewFallback}>
+                    <div style={styles.reelPreviewGlow} />
+                    <div style={styles.reelPreviewFallbackText}>
+                      {reel.description || "Training reel"}
+                    </div>
+                  </div>
+                )}
               <div style={{
                 position: "absolute",
                 bottom: 0,
@@ -585,22 +621,23 @@ export default function UserProfilePage() {
                 </div>
               </div>
             </div>
-          ))
+            );
+          })
         )}
       </div>
 
       <style>{`
-        .profile-reel-tile .profile-reel-video {
+        .profile-reel-tile .profile-reel-media {
           transform: scale(1);
           transition: transform var(--motion-fast), filter var(--motion-fast);
         }
 
-        .profile-reel-tile:hover .profile-reel-video {
+        .profile-reel-tile:hover .profile-reel-media {
           transform: scale(1.08);
           filter: contrast(1.08);
         }
 
-        .profile-reel-tile:active .profile-reel-video {
+        .profile-reel-tile:active .profile-reel-media {
           transform: scale(1.12);
           filter: contrast(1.12);
         }
@@ -629,5 +666,38 @@ const styles = {
   profileTabActive: {
     color: "var(--text-primary)",
     boxShadow: "inset 0 -2px 0 var(--primary-red)",
+  },
+  reelPreviewMedia: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    display: "block",
+    background: "linear-gradient(145deg, #070707, #18090c)",
+  },
+  reelPreviewFallback: {
+    position: "absolute",
+    inset: 0,
+    display: "flex",
+    alignItems: "flex-end",
+    padding: 10,
+    background: "radial-gradient(circle at 50% 34%, rgba(212,175,55,0.14), transparent 30%), radial-gradient(circle at 45% 64%, rgba(193,18,31,0.18), transparent 34%), linear-gradient(145deg, #070707, #14090b 56%, #050505)",
+  },
+  reelPreviewGlow: {
+    position: "absolute",
+    inset: 0,
+    background: "linear-gradient(135deg, transparent, rgba(255,255,255,0.07), transparent)",
+    opacity: 0.55,
+  },
+  reelPreviewFallbackText: {
+    position: "relative",
+    color: "var(--text-primary)",
+    fontSize: 12,
+    fontWeight: 850,
+    lineHeight: 1.25,
+    textShadow: "0 3px 14px rgba(0,0,0,0.9)",
+    display: "-webkit-box",
+    WebkitLineClamp: 3,
+    WebkitBoxOrient: "vertical",
+    overflow: "hidden",
   },
 };
