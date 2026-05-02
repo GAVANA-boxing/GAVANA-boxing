@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 
 export default function AICoach() {

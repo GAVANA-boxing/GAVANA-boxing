@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { useParams, useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { createNotification } from "@/lib/notifications";
 import { getLocale, translate } from "@/lib/i18n";
+import { RANK_TIERS, calculateSessionXP, calculateUserXP, getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
+import RankIcon from "@/components/RankIcon";
+import RankUpModal from "@/components/RankUpModal";
 
 function getSafeReelLikes(reel) {
   const fieldLikes = typeof reel.likes === "number" && !Number.isNaN(reel.likes)
@@ -40,6 +43,25 @@ function formatScore(score) {
   return numericScore.toFixed(1).replace(/\.0$/, "");
 }
 
+function getLocalDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getPreviousLocalDateKey(date = new Date()) {
+  const previous = new Date(date);
+  previous.setDate(previous.getDate() - 1);
+  return getLocalDateKey(previous);
+}
+
+function getActiveChallengeStreak(profile) {
+  const lastDate = String(profile?.lastChallengeDate || "");
+  if (lastDate !== getLocalDateKey() && lastDate !== getPreviousLocalDateKey()) return 0;
+  return Number(profile?.challengeStreak) || 0;
+}
+
 export default function UserProfilePage() {
   const { user, loading: authLoading } = useAuth();
   const params = useParams();
@@ -51,6 +73,7 @@ export default function UserProfilePage() {
   const [userReels, setUserReels] = useState([]);
   const [savedUserReels, setSavedUserReels] = useState([]);
   const [aiFeedbackHistory, setAiFeedbackHistory] = useState([]);
+  const [trainingSessions, setTrainingSessions] = useState([]);
   const [profileTab, setProfileTab] = useState("posts");
   const [loading, setLoading] = useState(true);
   const [totalLikes, setTotalLikes] = useState(0);
@@ -61,6 +84,9 @@ export default function UserProfilePage() {
   const [signingOut, setSigningOut] = useState(false);
   const [previewFailures, setPreviewFailures] = useState({});
   const [deletingReelIds, setDeletingReelIds] = useState(new Set());
+  const [rankUpRank, setRankUpRank] = useState(null);
+  const [expandedTrainingGroups, setExpandedTrainingGroups] = useState(new Set());
+  const rankUpShownRef = useRef(false);
 
   // Redirect if not logged in
   useEffect(() => {
@@ -99,7 +125,12 @@ export default function UserProfilePage() {
           displayName: userData.displayName || userData.username || fallbackName,
           bio: userData.bio || "",
           photoURL: userData.photoURL || userData.profileImageUrl || "",
-          email: userData.email || `${fallbackName}@example.com`
+          email: userData.email || `${fallbackName}@example.com`,
+          streakCount: Number(userData.streakCount) || 0,
+          xp: Number(userData.xp) || 0,
+          totalChallengesCompleted: Number(userData.totalChallengesCompleted) || 0,
+          challengeStreak: Number(userData.challengeStreak) || 0,
+          lastChallengeDate: userData.lastChallengeDate || "",
         };
         setProfileUser(profileUserData);
 
@@ -176,21 +207,15 @@ export default function UserProfilePage() {
         unsubscribeFeedback = onSnapshot(feedbackQuery, (snapshot) => {
           if (!isActive) return;
 
-          const latestByReelId = new Map();
-          snapshot.docs
+          const feedbackItems = snapshot.docs
             .map((feedbackDoc) => ({
               id: feedbackDoc.id,
               ...feedbackDoc.data(),
             }))
-            .sort((a, b) => getTimestampMs(b.createdAt) - getTimestampMs(a.createdAt))
-            .forEach((feedback) => {
-              const reelKey = feedback.reelId || feedback.id;
-              if (!latestByReelId.has(reelKey)) {
-                latestByReelId.set(reelKey, feedback);
-              }
-            });
+            .filter((feedback) => Number.isFinite(Number(feedback.score)))
+            .sort((a, b) => getTimestampMs(b.createdAt) - getTimestampMs(a.createdAt));
 
-          setAiFeedbackHistory([...latestByReelId.values()]);
+          setAiFeedbackHistory(feedbackItems);
         }, (error) => {
           if (!isActive) return;
           console.error("Error listening to AI feedback:", error);
@@ -212,6 +237,80 @@ export default function UserProfilePage() {
       }
     };
   }, [authLoading, user?.uid, userId]);
+
+  useEffect(() => {
+    if (authLoading || !user?.uid || !userId) {
+      setTrainingSessions([]);
+      return;
+    }
+
+    let isActive = true;
+    let unsubscribeTraining = null;
+
+    async function listenForTrainingSessions() {
+      try {
+        const { collection, onSnapshot, query, where } = await import("firebase/firestore");
+        const trainingQuery = query(
+          collection(db, "training_sessions"),
+          where("userId", "==", userId)
+        );
+
+        unsubscribeTraining = onSnapshot(trainingQuery, (snapshot) => {
+          if (!isActive) return;
+
+          const sessions = snapshot.docs
+            .map((sessionDoc) => ({
+              id: sessionDoc.id,
+              ...sessionDoc.data(),
+            }))
+            .filter((session) => session.type === "training")
+            .sort((a, b) => getTimestampMs(b.createdAt) - getTimestampMs(a.createdAt));
+
+          setTrainingSessions(sessions);
+        }, (error) => {
+          if (!isActive) return;
+          console.error("Error listening to training sessions:", error);
+          setTrainingSessions([]);
+        });
+      } catch (error) {
+        if (!isActive) return;
+        console.error("Error loading training sessions:", error);
+        setTrainingSessions([]);
+      }
+    }
+
+    listenForTrainingSessions();
+
+    return () => {
+      isActive = false;
+      if (unsubscribeTraining) {
+        unsubscribeTraining();
+      }
+    };
+  }, [authLoading, user?.uid, userId]);
+
+  // Detect rank-up during session — own profile only
+  useEffect(() => {
+    if (loading || rankUpShownRef.current || !isOwnProfile) return;
+    const currentXP = (Number(profileUser?.xp) || 0) + calculateUserXP({
+      aiFeedbackDocs: aiFeedbackHistory,
+      streakDays: profileUser?.streakCount || 0,
+      likesReceived: totalLikes,
+    });
+    const currentRank = getFighterRank(currentXP);
+    const storedKey = typeof window !== "undefined"
+      ? localStorage.getItem("gavana_rank_key")
+      : null;
+    const currentIdx = RANK_TIERS.findIndex((r) => r.key === currentRank.key);
+    const storedIdx = storedKey ? RANK_TIERS.findIndex((r) => r.key === storedKey) : -1;
+    if (storedIdx >= 0 && currentIdx > storedIdx) {
+      setRankUpRank(currentRank);
+      rankUpShownRef.current = true;
+    }
+    if (typeof window !== "undefined") {
+      localStorage.setItem("gavana_rank_key", currentRank.key);
+    }
+  }, [loading, aiFeedbackHistory, userReels.length, stats.followers, profileUser?.streakCount, totalLikes, isOwnProfile]);
 
   const loadSavedReels = async (targetUserId) => {
     if (!user?.uid || user.uid !== targetUserId) {
@@ -456,6 +555,129 @@ export default function UserProfilePage() {
     }
   };
 
+  // Per-session XP breakdowns — must be before any early return (Rules of Hooks)
+  const xpBreakdowns = useMemo(() => {
+    const streak = profileUser?.streakCount || 0;
+    const sortedAsc = [...(aiFeedbackHistory || [])]
+      .map((fb) => ({ ...fb, _ts: getTimestampMs(fb.createdAt) }))
+      .sort((a, b) => a._ts - b._ts);
+    const result = {};
+    let prevScore = null;
+    for (const fb of sortedAsc) {
+      const score = Number(fb.score);
+      if (!Number.isFinite(score)) continue;
+      result[fb.id] = calculateSessionXP(score, prevScore, streak);
+      prevScore = score;
+    }
+    return result;
+  }, [aiFeedbackHistory, profileUser?.streakCount]);
+
+  const groupedTrainingSessions = useMemo(() => {
+    const groups = new Map();
+
+    for (const session of trainingSessions) {
+      const key = session.reelId || "free_training";
+      const existing = groups.get(key) || {
+        key,
+        reelId: session.reelId || null,
+        label: session.reelId ? `${t("reels.combo")} ${String(session.reelId).slice(0, 8)}` : t("freeTraining"),
+        sessions: [],
+        latestScore: null,
+        bestScore: null,
+        latestAt: 0,
+      };
+
+      const score = Number(session.score);
+      const createdAtMs = getTimestampMs(session.createdAt);
+
+      existing.sessions.push(session);
+      if (Number.isFinite(score)) {
+        existing.bestScore = existing.bestScore === null ? score : Math.max(existing.bestScore, score);
+        if (createdAtMs >= existing.latestAt) {
+          existing.latestAt = createdAtMs;
+          existing.latestScore = score;
+        }
+      }
+
+      groups.set(key, existing);
+    }
+
+    return [...groups.values()]
+      .map((group) => ({
+        ...group,
+        sessions: group.sessions.sort((a, b) => {
+          const attemptDelta = (Number(b.attemptNumber) || 0) - (Number(a.attemptNumber) || 0);
+          if (attemptDelta !== 0) return attemptDelta;
+          return getTimestampMs(b.createdAt) - getTimestampMs(a.createdAt);
+        }),
+      }))
+      .sort((a, b) => b.latestAt - a.latestAt);
+  }, [trainingSessions, t]);
+
+  const toggleTrainingGroup = (groupKey) => {
+    setExpandedTrainingGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(groupKey)) {
+        next.delete(groupKey);
+      } else {
+        next.add(groupKey);
+      }
+      return next;
+    });
+  };
+
+  const progressStats = useMemo(() => {
+    const sortedAsc = [...(aiFeedbackHistory || [])]
+      .map((feedback) => ({
+        ...feedback,
+        scoreNumber: Number(feedback.score),
+        ts: getTimestampMs(feedback.createdAt),
+      }))
+      .filter((feedback) => Number.isFinite(feedback.scoreNumber))
+      .sort((a, b) => a.ts - b.ts);
+
+    const totalSessions = sortedAsc.length;
+    const scores = sortedAsc.map((feedback) => feedback.scoreNumber);
+    const firstScore = totalSessions ? sortedAsc[0].scoreNumber : null;
+    const latestScoreValue = totalSessions ? sortedAsc[totalSessions - 1].scoreNumber : null;
+    const bestScoreValue = totalSessions ? Math.max(...scores) : null;
+    const averageScoreValue = totalSessions
+      ? scores.reduce((sum, score) => sum + score, 0) / totalSessions
+      : null;
+    const improvement = firstScore !== null && latestScoreValue !== null
+      ? latestScoreValue - firstScore
+      : null;
+    const weeklySequence = sortedAsc.slice(-7).map((feedback) => formatScore(feedback.scoreNumber));
+
+    const comboMap = new Map();
+    for (const feedback of sortedAsc) {
+      const key = feedback.reelId || "free_training";
+      const existing = comboMap.get(key) || {
+        key,
+        label: feedback.reelId ? `${t("reels.combo")} ${String(feedback.reelId).slice(0, 8)}` : t("freeTraining"),
+        bestScore: null,
+        attemptCount: 0,
+      };
+
+      existing.attemptCount += 1;
+      existing.bestScore = existing.bestScore === null
+        ? feedback.scoreNumber
+        : Math.max(existing.bestScore, feedback.scoreNumber);
+      comboMap.set(key, existing);
+    }
+
+    return {
+      totalSessions,
+      firstScore,
+      latestScore: latestScoreValue,
+      bestScore: bestScoreValue,
+      averageScore: averageScoreValue,
+      improvement,
+      weeklySequence,
+      comboProgress: [...comboMap.values()].sort((a, b) => b.bestScore - a.bestScore),
+    };
+  }, [aiFeedbackHistory, t]);
+
   if (loading) {
     return (
       <div style={{
@@ -478,6 +700,19 @@ export default function UserProfilePage() {
   const feedbackScores = aiFeedbackHistory
     .map((feedback) => Number(feedback.score))
     .filter((score) => Number.isFinite(score));
+
+  const streakCount = profileUser?.streakCount || 0;
+  const storedChallengeXP = Number(profileUser?.xp) || 0;
+  const xp = storedChallengeXP + calculateUserXP({
+    aiFeedbackDocs: aiFeedbackHistory,
+    streakDays: streakCount,
+    likesReceived: totalLikes,
+  });
+  const fighterRank = getFighterRank(xp);
+  const nextRank = getNextRank(xp);
+  const rankProgress = getRankProgress(xp);
+  const xpToNextVal = nextRank ? nextRank.minXP - xp : 0;
+
   const latestScore = feedbackScores.length ? feedbackScores[0] : null;
   const bestScore = feedbackScores.length ? Math.max(...feedbackScores) : null;
   const averageScore = feedbackScores.length
@@ -506,9 +741,27 @@ export default function UserProfilePage() {
       padding: 0,
       overflowX: "hidden"
     }}>
+      <header style={styles.backHeader}>
+        <button
+          type="button"
+          style={styles.backBtnProfile}
+          onClick={() => router.back()}
+        >
+          {t("back")}
+        </button>
+      </header>
       <section style={styles.fighterCard}>
         <div style={styles.fighterCardInner}>
-        <div style={styles.avatarFrame}>
+        <div
+          className={streakCount >= 10 ? "avatar-on-fire" : undefined}
+          style={{
+            ...styles.avatarFrame,
+            ...(streakCount >= 5 ? {
+              boxShadow: "0 0 0 1px rgba(212,175,55,0.55), 0 22px 70px rgba(0,0,0,0.5), 0 0 28px rgba(251,146,60,0.6), 0 0 56px rgba(251,146,60,0.28)",
+              border: "3px solid #FB923C",
+            } : {}),
+          }}
+        >
           {profileUser.photoURL ? (
             <img
               src={profileUser.photoURL}
@@ -526,6 +779,44 @@ export default function UserProfilePage() {
         </h1>
         <div style={styles.fighterUsername}>
           @{profileUser.username}
+        </div>
+        <div style={styles.challengeStreakBadge}>
+          <span style={styles.challengeStreakIcon}>🔥</span>
+          {t("challengeStreak").replace("{n}", getActiveChallengeStreak(profileUser))}
+        </div>
+
+        {/* Rank badge row — tappable, links to rank page */}
+        <button
+          type="button"
+          onClick={() => router.push(`/${locale}/rank`)}
+          style={styles.rankRow}
+        >
+          <RankIcon rank={fighterRank} size={38} animated />
+          <span style={{ ...styles.rankLabel, color: fighterRank.color }}>
+            {t(fighterRank.key)}
+          </span>
+          {streakCount >= 5 && (
+            <span style={styles.onFireBadge}>
+              {"🔥"}{streakCount >= 10 ? " " + t("onFireProfile") : ""}
+            </span>
+          )}
+        </button>
+
+        {/* XP progress bar */}
+        <div style={styles.xpWrap}>
+          <div style={styles.xpTopRow}>
+            <span style={{ ...styles.xpAmount, color: fighterRank.color }}>
+              {xp.toLocaleString()} {t("xpLabel")}
+            </span>
+            <span style={styles.xpNextLabel}>
+              {nextRank
+                ? t("xpToNext").replace("{xp}", xpToNextVal.toLocaleString()).replace("{rank}", t(nextRank.key))
+                : t("atMaxRank")}
+            </span>
+          </div>
+          <div style={styles.xpTrack}>
+            <div style={{ ...styles.xpFill, width: `${rankProgress}%`, background: fighterRank.gradient }} />
+          </div>
         </div>
 
         {profileUser.bio && (
@@ -636,23 +927,75 @@ export default function UserProfilePage() {
         <section style={styles.progressSection}>
           <div style={styles.progressHeader}>
             <p style={styles.progressKicker}>{t("aiCoachKicker")}</p>
-            <h2 style={styles.progressTitle}>{t("aiProgress")}</h2>
+            <h2 style={styles.progressTitle}>{t("progress")}</h2>
           </div>
 
-          <div style={styles.scoreGrid}>
-            <div style={styles.scoreCard}>
-              <span style={styles.scoreValue}>{formatScore(latestScore)}</span>
-              <span style={styles.scoreLabel}>{t("latest")}</span>
+          {progressStats.totalSessions === 0 ? (
+            <div style={styles.progressEmpty}>
+              <p style={{ margin: 0, color: "var(--text-primary)", fontWeight: 900 }}>
+                {t("startTrainingProgress")}
+              </p>
             </div>
-            <div style={styles.scoreCard}>
-              <span style={styles.scoreValue}>{formatScore(bestScore)}</span>
-              <span style={styles.scoreLabel}>{t("best")}</span>
-            </div>
-            <div style={styles.scoreCard}>
-              <span style={styles.scoreValue}>{formatScore(averageScore)}</span>
-              <span style={styles.scoreLabel}>{t("average")}</span>
-            </div>
-          </div>
+          ) : (
+            <>
+              <div style={styles.scoreGrid}>
+                <div style={styles.scoreCard}>
+                  <span style={styles.scoreValue}>{formatScore(progressStats.bestScore)}</span>
+                  <span style={styles.scoreLabel}>{t("bestScoreLabel")}</span>
+                </div>
+                <div style={styles.scoreCard}>
+                  <span style={styles.scoreValue}>{formatScore(progressStats.averageScore)}</span>
+                  <span style={styles.scoreLabel}>{t("averageScoreLabel")}</span>
+                </div>
+                <div style={styles.scoreCard}>
+                  <span style={styles.scoreValue}>{progressStats.totalSessions}</span>
+                  <span style={styles.scoreLabel}>{t("totalSessions")}</span>
+                </div>
+              </div>
+
+              <div style={styles.beforeAfterCard}>
+                <div style={styles.beforeAfterItem}>
+                  <span style={styles.beforeAfterLabel}>{t("before")}</span>
+                  <strong style={styles.beforeAfterValue}>{formatScore(progressStats.firstScore)}</strong>
+                </div>
+                <div style={styles.beforeAfterItem}>
+                  <span style={styles.beforeAfterLabel}>{t("now")}</span>
+                  <strong style={styles.beforeAfterValue}>{formatScore(progressStats.latestScore)}</strong>
+                </div>
+                <div style={styles.beforeAfterItem}>
+                  <span style={styles.beforeAfterLabel}>{t("improvement")}</span>
+                  <strong style={{
+                    ...styles.beforeAfterValue,
+                    color: progressStats.improvement >= 0 ? "#34D399" : "#FB7185",
+                  }}>
+                    {progressStats.improvement >= 0 ? "+" : ""}{formatScore(progressStats.improvement)}
+                  </strong>
+                </div>
+              </div>
+
+              <div style={styles.progressSubsection}>
+                <h3 style={styles.trainingHistoryTitle}>{t("weeklyProgress")}</h3>
+                <p style={styles.weeklySequence}>
+                  {progressStats.weeklySequence.join(" → ")}
+                </p>
+              </div>
+
+              <div style={styles.progressSubsection}>
+                <h3 style={styles.trainingHistoryTitle}>{t("comboProgress")}</h3>
+                <div style={styles.comboProgressList}>
+                  {progressStats.comboProgress.map((combo) => (
+                    <article key={combo.key} style={styles.comboProgressItem}>
+                      <strong style={styles.trainingGroupTitle}>{combo.label}</strong>
+                      <span style={styles.trainingGroupScores}>
+                        <span>{t("bestScoreLabel")}: {formatScore(combo.bestScore)}/10</span>
+                        <span>{t("totalSessions")}: {combo.attemptCount}</span>
+                      </span>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
 
           <div style={styles.progressList}>
             {aiFeedbackHistory.length === 0 ? (
@@ -674,9 +1017,94 @@ export default function UserProfilePage() {
                   <p style={styles.progressCaption}>
                     {feedback.reelCaption || t("trainingReel")}
                   </p>
+                  {xpBreakdowns[feedback.id] && (() => {
+                    const bd = xpBreakdowns[feedback.id];
+                    return (
+                      <div style={styles.xpBreakdownRow}>
+                        <span style={styles.xpBDLabel}>{t("xpEarned")}</span>
+                        <span style={styles.xpBDItem}>
+                          {t("xpBase")} <span style={styles.xpBDNum}>+{bd.base}</span>
+                        </span>
+                        {bd.improvement > 0 && (
+                          <span style={styles.xpBDItem}>
+                            {t("xpImprovement")} <span style={{ ...styles.xpBDNum, color: "#34D399" }}>+{bd.improvement}</span>
+                          </span>
+                        )}
+                        {bd.streakBonus > 0 && (
+                          <span style={styles.xpBDItem}>
+                            {t("xpStreakBonus")} <span style={{ ...styles.xpBDNum, color: "#FB923C" }}>+{bd.streakBonus}</span>
+                          </span>
+                        )}
+                        <span style={styles.xpBDTotal}>
+                          {bd.capped && <span style={styles.xpCapFlag}>{t("xpDailyCap")} · </span>}
+                          +{bd.total} {t("xpLabel")}
+                        </span>
+                      </div>
+                    );
+                  })()}
                 </article>
               ))
             )}
+          </div>
+
+          <div style={styles.trainingHistoryBlock}>
+            <div style={styles.trainingHistoryHeader}>
+              <h3 style={styles.trainingHistoryTitle}>{t("trainingHistory")}</h3>
+            </div>
+
+            <div style={styles.progressList}>
+              {groupedTrainingSessions.length === 0 ? (
+                <div style={styles.progressEmpty}>
+                  <p style={{ margin: 0, color: "var(--text-primary)", fontWeight: 900 }}>
+                    {t("noTrainingHistory")}
+                  </p>
+                </div>
+              ) : (
+                groupedTrainingSessions.map((group) => {
+                  const isExpanded = expandedTrainingGroups.has(group.key);
+
+                  return (
+                    <article key={group.key} style={styles.trainingGroup}>
+                      <button
+                        type="button"
+                        style={styles.trainingGroupButton}
+                        onClick={() => toggleTrainingGroup(group.key)}
+                      >
+                        <span style={styles.trainingGroupMain}>
+                          <strong style={styles.trainingGroupTitle}>{group.label}</strong>
+                          <span style={styles.progressDate}>
+                            {group.sessions.length} {group.sessions.length === 1 ? t("trainingAttempt") : t("trainingAttempts")}
+                          </span>
+                        </span>
+                        <span style={styles.trainingGroupScores}>
+                          <span>{t("latest")}: {formatScore(group.latestScore)}/10</span>
+                          <span>{t("best")}: {formatScore(group.bestScore)}/10</span>
+                        </span>
+                      </button>
+
+                      {isExpanded && (
+                        <div style={styles.trainingAttemptList}>
+                          {group.sessions.map((session) => (
+                            <div key={session.id} style={styles.trainingAttemptRow}>
+                              <div>
+                                <strong style={styles.trainingAttemptTitle}>
+                                  {t("trainingAttempt")} {Number(session.attemptNumber) || 1}
+                                </strong>
+                                <div style={styles.progressDate}>{formatFeedbackDate(session.createdAt)}</div>
+                              </div>
+                              <div style={styles.trainingAttemptStats}>
+                                <span>{t("score")}: {formatScore(session.score)}/10</span>
+                                <span>+{Number(session.xpGained || 0).toLocaleString()} {t("xpLabel")}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </article>
+                  );
+                })
+              )}
+            </div>
           </div>
         </section>
       ) : (
@@ -813,25 +1241,57 @@ export default function UserProfilePage() {
           transform: scale(1);
           transition: transform var(--motion-fast), filter var(--motion-fast);
         }
-
         .profile-reel-tile:hover .profile-reel-media {
           transform: scale(1.08);
           filter: contrast(1.08);
         }
-
         .profile-reel-tile:active .profile-reel-media {
           transform: scale(1.12);
           filter: contrast(1.12);
         }
+        @keyframes avatarFire {
+          0%,100% { box-shadow: 0 0 0 1px rgba(212,175,55,0.55), 0 22px 70px rgba(0,0,0,0.5), 0 0 28px rgba(251,146,60,0.7), 0 0 56px rgba(251,146,60,0.35); border-color: #FB923C; }
+          50%      { box-shadow: 0 0 0 1px rgba(212,175,55,0.75), 0 22px 70px rgba(0,0,0,0.5), 0 0 44px rgba(251,146,60,1.0), 0 0 88px rgba(251,146,60,0.55); border-color: #FFA040; }
+        }
+        .avatar-on-fire { animation: avatarFire 1.6s ease-in-out infinite; }
       `}</style>
+
+      {rankUpRank && (
+        <RankUpModal rank={rankUpRank} onClose={() => setRankUpRank(null)} t={t} />
+      )}
     </div>
   );
 }
 
 const styles = {
+  backHeader: {
+    position: "sticky",
+    top: 0,
+    zIndex: 10,
+    display: "flex",
+    alignItems: "center",
+    paddingTop: "calc(12px + env(safe-area-inset-top))",
+    paddingBottom: 12,
+    paddingLeft: 16,
+    paddingRight: 16,
+    background: "rgba(7,7,7,0.94)",
+    backdropFilter: "blur(14px)",
+    WebkitBackdropFilter: "blur(14px)",
+    borderBottom: "1px solid rgba(255,255,255,0.07)",
+  },
+  backBtnProfile: {
+    border: "1px solid rgba(212,175,55,0.28)",
+    background: "transparent",
+    color: "#fff",
+    borderRadius: 10,
+    padding: "8px 14px",
+    cursor: "pointer",
+    fontSize: 13,
+    fontWeight: 700,
+  },
   fighterCard: {
     width: "100%",
-    padding: "calc(28px + env(safe-area-inset-top)) 16px 26px",
+    padding: "28px 16px 26px",
     background: "radial-gradient(circle at 50% 0%, rgba(193,18,31,0.22), transparent 36%), linear-gradient(180deg, #0B0B0B 0%, #070707 100%)",
     borderBottom: "1px solid rgba(212,175,55,0.14)",
     boxSizing: "border-box",
@@ -884,6 +1344,25 @@ const styles = {
     color: "#AAAAAA",
     fontSize: 14,
     fontWeight: 750,
+  },
+  challengeStreakBadge: {
+    width: "fit-content",
+    margin: "12px auto 0",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 7,
+    minHeight: 32,
+    padding: "0 12px",
+    borderRadius: 999,
+    background: "rgba(251,146,60,0.12)",
+    border: "1px solid rgba(251,146,60,0.3)",
+    color: "#FED7AA",
+    fontSize: 13,
+    fontWeight: 950,
+  },
+  challengeStreakIcon: {
+    fontSize: 16,
+    lineHeight: 1,
   },
   bio: {
     maxWidth: 430,
@@ -1040,9 +1519,156 @@ const styles = {
     textTransform: "uppercase",
     letterSpacing: 1,
   },
+  beforeAfterCard: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: 10,
+    marginBottom: 18,
+    padding: 14,
+    borderRadius: 18,
+    background: "rgba(255,255,255,0.045)",
+    border: "1px solid rgba(255,255,255,0.08)",
+  },
+  beforeAfterItem: {
+    display: "grid",
+    justifyItems: "center",
+    gap: 5,
+  },
+  beforeAfterLabel: {
+    color: "var(--text-secondary)",
+    fontSize: 10,
+    fontWeight: 900,
+    letterSpacing: 1,
+    textTransform: "uppercase",
+  },
+  beforeAfterValue: {
+    color: "var(--text-primary)",
+    fontSize: 22,
+    lineHeight: 1,
+    fontWeight: 1000,
+  },
+  progressSubsection: {
+    display: "grid",
+    gap: 10,
+    marginBottom: 18,
+  },
+  weeklySequence: {
+    margin: 0,
+    padding: "14px 15px",
+    borderRadius: 16,
+    background: "rgba(11,11,11,0.96)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    color: "var(--accent-gold)",
+    fontSize: 15,
+    fontWeight: 900,
+    lineHeight: 1.55,
+    overflowWrap: "anywhere",
+  },
+  comboProgressList: {
+    display: "grid",
+    gap: 10,
+  },
+  comboProgressItem: {
+    borderRadius: 16,
+    background: "rgba(11,11,11,0.96)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    padding: 14,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
   progressList: {
     display: "grid",
     gap: 10,
+  },
+  trainingHistoryBlock: {
+    marginTop: 22,
+    display: "grid",
+    gap: 12,
+  },
+  trainingHistoryHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  trainingHistoryTitle: {
+    margin: 0,
+    color: "var(--text-primary)",
+    fontSize: 18,
+    fontWeight: 950,
+    letterSpacing: 0,
+  },
+  trainingGroup: {
+    borderRadius: 18,
+    background: "rgba(11,11,11,0.96)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    overflow: "hidden",
+    boxShadow: "0 12px 34px rgba(0,0,0,0.2)",
+  },
+  trainingGroupButton: {
+    width: "100%",
+    border: "none",
+    background: "transparent",
+    padding: 15,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    color: "var(--text-primary)",
+    cursor: "pointer",
+    textAlign: "left",
+  },
+  trainingGroupMain: {
+    display: "grid",
+    gap: 5,
+    minWidth: 0,
+  },
+  trainingGroupTitle: {
+    color: "var(--text-primary)",
+    fontSize: 14,
+    fontWeight: 950,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+  trainingGroupScores: {
+    display: "grid",
+    gap: 4,
+    color: "var(--accent-gold)",
+    fontSize: 12,
+    fontWeight: 900,
+    textAlign: "right",
+    whiteSpace: "nowrap",
+  },
+  trainingAttemptList: {
+    display: "grid",
+    gap: 1,
+    padding: "0 12px 12px",
+  },
+  trainingAttemptRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    padding: "11px 3px",
+    borderTop: "1px solid rgba(255,255,255,0.07)",
+  },
+  trainingAttemptTitle: {
+    display: "block",
+    color: "var(--text-primary)",
+    fontSize: 13,
+    fontWeight: 900,
+    marginBottom: 3,
+  },
+  trainingAttemptStats: {
+    display: "grid",
+    gap: 3,
+    color: "var(--text-secondary)",
+    fontSize: 12,
+    fontWeight: 850,
+    textAlign: "right",
+    whiteSpace: "nowrap",
   },
   progressEmpty: {
     padding: "34px 18px",
@@ -1140,5 +1766,110 @@ const styles = {
     boxShadow: "0 10px 24px rgba(0,0,0,0.36)",
     backdropFilter: "blur(14px)",
     WebkitBackdropFilter: "blur(14px)",
+  },
+  rankRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    marginTop: 10,
+    marginBottom: 2,
+    background: "transparent",
+    border: "none",
+    cursor: "pointer",
+    padding: "6px 14px",
+    borderRadius: 14,
+    WebkitTapHighlightColor: "transparent",
+  },
+  rankLabel: {
+    fontSize: 14,
+    fontWeight: 900,
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+  },
+  onFireBadge: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 3,
+    padding: "4px 10px",
+    borderRadius: 999,
+    fontSize: 11,
+    fontWeight: 900,
+    color: "#FB923C",
+    background: "rgba(251,146,60,0.12)",
+    border: "1px solid rgba(251,146,60,0.3)",
+  },
+  xpWrap: {
+    maxWidth: 430,
+    margin: "12px auto 0",
+    padding: "0 4px",
+  },
+  xpTopRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 6,
+  },
+  xpAmount: {
+    fontSize: 13,
+    fontWeight: 900,
+    letterSpacing: 0.3,
+  },
+  xpNextLabel: {
+    fontSize: 11,
+    color: "#888",
+    textAlign: "right",
+  },
+  xpTrack: {
+    width: "100%",
+    height: 6,
+    borderRadius: 999,
+    background: "rgba(255,255,255,0.08)",
+    overflow: "hidden",
+  },
+  xpFill: {
+    height: "100%",
+    borderRadius: 999,
+    transition: "width 500ms ease",
+  },
+  xpBreakdownRow: {
+    display: "flex",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: "4px 10px",
+    marginTop: 10,
+    padding: "8px 10px",
+    borderRadius: 10,
+    background: "rgba(212,175,55,0.07)",
+    border: "1px solid rgba(212,175,55,0.14)",
+  },
+  xpBDLabel: {
+    fontSize: 9,
+    fontWeight: 900,
+    color: "#D4AF37",
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
+    marginRight: 2,
+  },
+  xpBDItem: {
+    fontSize: 11,
+    color: "#888",
+    fontWeight: 600,
+  },
+  xpBDNum: {
+    fontWeight: 900,
+    color: "#ccc",
+  },
+  xpBDTotal: {
+    marginLeft: "auto",
+    fontSize: 12,
+    fontWeight: 900,
+    color: "#fff",
+    whiteSpace: "nowrap",
+  },
+  xpCapFlag: {
+    fontSize: 10,
+    color: "#FB923C",
+    fontWeight: 700,
   },
 };

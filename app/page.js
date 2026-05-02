@@ -4,30 +4,32 @@ import { useRouter } from "next/navigation";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import DailyMission from "@/components/DailyMission";
 import { useAuth } from "@/lib/AuthContext";
-
-const features = [
-  {
-    kicker: "AI Boxing Coach",
-    title: "Personal fight IQ",
-    text: "Technique prompts, training ideas, and score-focused feedback for every round.",
-  },
-  {
-    kicker: "Reels + Community",
-    title: "Post the work",
-    text: "Share bag work, sparring, footwork, and drills with fighters building in public.",
-  },
-  {
-    kicker: "Progress Tracking",
-    title: "Score your growth",
-    text: "Save AI feedback history, compare scores, and turn each clip into a training signal.",
-  },
-];
+import { translate } from "@/lib/i18n";
 
 export default function HomePage() {
   const { user } = useAuth();
   const router = useRouter();
-  const locale = "mn";
+  const locale = "en";
+  const t = (key) => translate(locale, key);
   const isLoggedIn = Boolean(user?.uid);
+
+  const features = [
+    {
+      kicker: t("landingFeature1Kicker"),
+      title: t("landingFeature1Title"),
+      text: t("landingFeature1Text"),
+    },
+    {
+      kicker: t("landingFeature2Kicker"),
+      title: t("landingFeature2Title"),
+      text: t("landingFeature2Text"),
+    },
+    {
+      kicker: t("landingFeature3Kicker"),
+      title: t("landingFeature3Title"),
+      text: t("landingFeature3Text"),
+    },
+  ];
 
   const goTo = (route, protectedRoute = true) => {
     if (!protectedRoute || isLoggedIn) {
@@ -48,8 +50,8 @@ export default function HomePage() {
             GAVANA
           </button>
           <div className="navLinks">
-            <button type="button" onClick={() => goTo(`/${locale}/reels`, false)}>Watch Reels</button>
-            <button type="button" onClick={() => goTo(`/${locale}/upload`)}>Start Training</button>
+            <button type="button" onClick={() => goTo(`/${locale}/reels`, false)}>{t("landingWatchReels")}</button>
+            <button type="button" onClick={() => goTo(`/${locale}/upload`)}>{t("landingStartTraining")}</button>
           </div>
         </nav>
 
@@ -57,17 +59,15 @@ export default function HomePage() {
 
         <div className="heroGrid">
           <div className="heroCopy">
-            <p className="eyebrow">Premium boxing media and coaching</p>
-            <h1>Train. Fight. Evolve.</h1>
-            <p className="subtitle">
-              GAVANA brings boxing reels, AI coaching, and fighter progress into one focused platform.
-            </p>
+            <p className="eyebrow">{t("landingEyebrow")}</p>
+            <h1>{t("landingHeroTitle")}</h1>
+            <p className="subtitle">{t("landingSubtitle")}</p>
             <div className="ctaRow">
               <button type="button" className="primaryCta" onClick={() => goTo(`/${locale}/reels`, false)}>
-                Watch Reels
+                {t("landingWatchReels")}
               </button>
               <button type="button" className="secondaryCta" onClick={() => goTo(`/${locale}/upload`)}>
-                Start Training
+                {t("landingStartTraining")}
               </button>
             </div>
           </div>
@@ -95,11 +95,11 @@ export default function HomePage() {
 
       <section className="finalBand">
         <div>
-          <p className="eyebrow">Join the next round</p>
-          <h2>Build your fighter profile today.</h2>
+          <p className="eyebrow">{t("landingJoinEyebrow")}</p>
+          <h2>{t("landingJoinTitle")}</h2>
         </div>
         <button type="button" onClick={() => goTo(`/${locale}/upload`)}>
-          Start Training
+          {t("landingStartTraining")}
         </button>
       </section>
 

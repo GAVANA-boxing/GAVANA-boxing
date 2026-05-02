@@ -71,21 +71,21 @@ function getTimestampMs(timestamp) {
   return Number.isNaN(time) ? 0 : time;
 }
 
-function formatRelativeTime(timestamp) {
+function formatRelativeTime(timestamp, t) {
   const time = getTimestampMs(timestamp);
   if (!time) return "";
 
   const diffSeconds = Math.max(1, Math.floor((Date.now() - time) / 1000));
-  if (diffSeconds < 60) return `${diffSeconds}s ago`;
+  if (diffSeconds < 60) return t("timeSecondsAgo").replace("{n}", diffSeconds);
 
   const diffMinutes = Math.floor(diffSeconds / 60);
-  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+  if (diffMinutes < 60) return t("timeMinutesAgo").replace("{n}", diffMinutes);
 
   const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffHours < 24) return t("timeHoursAgo").replace("{n}", diffHours);
 
   const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffDays < 7) return t("timeDaysAgo").replace("{n}", diffDays);
 
   return new Date(time).toLocaleDateString();
 }
@@ -340,7 +340,7 @@ export default function NotificationsPage() {
                         )}
                       </div>
                       <div style={styles.meta}>
-                        <span style={styles.date}>{formatRelativeTime(notification.createdAt)}</span>
+                        <span style={styles.date}>{formatRelativeTime(notification.createdAt, t)}</span>
                       </div>
                     </button>
                   );

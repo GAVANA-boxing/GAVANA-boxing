@@ -8,23 +8,21 @@ import { auth, db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale, translate } from "@/lib/i18n";
 
-function getFriendlyAuthError(error, isSignUp) {
+function getFriendlyAuthError(error, isSignUp, t) {
   switch (error?.code) {
     case "auth/invalid-credential":
     case "auth/wrong-password":
-      return "Email or password is incorrect.";
+      return t("loginErrInvalidCred");
     case "auth/user-not-found":
-      return "Account not found, please sign up";
+      return t("loginErrNotFound");
     case "auth/email-already-in-use":
-      return "This email is already registered. Please sign in instead.";
+      return t("loginErrEmailInUse");
     case "auth/weak-password":
-      return "Password should be at least 6 characters";
+      return t("loginErrWeakPassword");
     case "auth/invalid-email":
-      return "Please enter a valid email address";
+      return t("loginErrInvalidEmail");
     default:
-      return isSignUp
-        ? "Could not create account. Please try again"
-        : "Could not sign in. Please try again";
+      return isSignUp ? t("loginErrCreateAccount") : t("loginErrSignIn");
   }
 }
 
@@ -75,10 +73,10 @@ export default function LoginPage() {
               GAVANA BOXING
             </p>
             <h1 style={{ margin: "10px 0 0", fontSize: 28, fontWeight: 900, color: "#fff" }}>
-              You are already logged in
+              {t("loginAlreadyLoggedIn")}
             </h1>
           </div>
-          <p style={styles.loadingText}>Redirecting to reels...</p>
+          <p style={styles.loadingText}>{t("loginRedirecting")}</p>
         </div>
       </div>
     );
@@ -94,19 +92,19 @@ export default function LoginPage() {
     try {
       if (isSignUp) {
         if (!displayName.trim()) {
-          setError("Display name is required.");
+          setError(t("loginErrNameRequired"));
           setLoading(false);
           return;
         }
 
         if (password.length < 6) {
-          setError("Password should be at least 6 characters");
+          setError(t("loginErrWeakPassword"));
           setLoading(false);
           return;
         }
 
         if (password !== confirmPassword) {
-          setError("Passwords do not match.");
+          setError(t("loginErrPasswordMismatch"));
           setLoading(false);
           return;
         }
@@ -129,7 +127,7 @@ export default function LoginPage() {
       router.push(redirectTo);
     } catch (err) {
       console.error("Auth error:", err);
-      setError(getFriendlyAuthError(err, isSignUp));
+      setError(getFriendlyAuthError(err, isSignUp, t));
     } finally {
       setLoading(false);
     }
@@ -146,16 +144,16 @@ export default function LoginPage() {
             ...styles.modeBadge,
             ...(isSignUp ? styles.signUpBadge : {})
           }}>
-            {isSignUp ? "New fighter" : "Member access"}
+            {isSignUp ? t("loginNewFighter") : t("loginMemberAccess")}
           </div>
           <p style={{ margin: 0, color: "#D4AF37", letterSpacing: 2, fontSize: 12, fontWeight: 800 }}>
             GAVANA BOXING
           </p>
           <h1 style={{ margin: "10px 0 0", fontSize: 28, fontWeight: 900, color: "#fff" }}>
-            {isSignUp ? "Sign Up" : t("login")}
+            {isSignUp ? t("loginSignUp") : t("login")}
           </h1>
           <p style={styles.helperText}>
-            {isSignUp ? "Create your fighter profile" : "Welcome back to Gavana Boxing"}
+            {isSignUp ? t("loginCreateProfile") : t("loginWelcomeBack")}
           </p>
         </div>
 
@@ -163,7 +161,7 @@ export default function LoginPage() {
           {isSignUp && (
             <div style={{ display: "grid", gap: 8 }}>
               <label style={{ fontSize: 13, fontWeight: 700, color: "#888", letterSpacing: 1.2, textTransform: "uppercase" }}>
-                Display name
+                {t("loginDisplayName")}
               </label>
               <input
                 type="text"
@@ -172,14 +170,14 @@ export default function LoginPage() {
                 required={isSignUp}
                 maxLength={40}
                 style={styles.input}
-                placeholder="Your fighter name"
+                placeholder={t("loginDisplayNamePlaceholder")}
               />
             </div>
           )}
 
           <div style={{ display: "grid", gap: 8 }}>
             <label style={{ fontSize: 13, fontWeight: 700, color: "#888", letterSpacing: 1.2, textTransform: "uppercase" }}>
-              Email
+              {t("loginEmail")}
             </label>
             <input
               type="email"
@@ -193,7 +191,7 @@ export default function LoginPage() {
 
           <div style={{ display: "grid", gap: 8 }}>
             <label style={{ fontSize: 13, fontWeight: 700, color: "#888", letterSpacing: 1.2, textTransform: "uppercase" }}>
-              Password
+              {t("loginPassword")}
             </label>
             <input
               type="password"
@@ -209,7 +207,7 @@ export default function LoginPage() {
           {isSignUp && (
             <div style={{ display: "grid", gap: 8 }}>
               <label style={{ fontSize: 13, fontWeight: 700, color: "#888", letterSpacing: 1.2, textTransform: "uppercase" }}>
-                Confirm password
+                {t("loginConfirmPassword")}
               </label>
               <input
                 type="password"
@@ -247,7 +245,7 @@ export default function LoginPage() {
               transition: "transform 0.18s ease, background 0.2s ease"
             }}
           >
-            {loading ? t("loading") : (isSignUp ? "Sign Up" : t("login"))}
+            {loading ? t("loading") : (isSignUp ? t("loginSignUp") : t("login"))}
           </button>
         </form>
 
@@ -266,7 +264,7 @@ export default function LoginPage() {
               textDecoration: "underline"
             }}
           >
-            {isSignUp ? "Already have an account? Sign In" : "Need an account? Sign Up"}
+            {isSignUp ? t("loginAlreadyHaveAccount") : t("loginNeedAccount")}
           </button>
         </div>
       </div>

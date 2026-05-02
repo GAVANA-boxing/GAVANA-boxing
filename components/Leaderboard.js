@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import { collection, getDocs, doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
+import { translate } from "@/lib/i18n";
 
-export default function Leaderboard() {
+export default function Leaderboard({ locale = "en" }) {
+  const t = (key) => translate(locale, key);
   const { user } = useAuth();
   const [leaderboard, setLeaderboard] = useState([]);
   const [currentUserRank, setCurrentUserRank] = useState(null);
@@ -42,14 +44,14 @@ export default function Leaderboard() {
   }, [user?.uid]);
 
   if (loading) {
-    return <div className="p-4 text-center">Loading leaderboard...</div>;
+    return <div className="p-4 text-center">{t("leaderboardLoading")}</div>;
   }
 
   return (
     <div className="bg-gray-900 text-white p-4 rounded-lg">
-      <h2 className="text-xl font-bold mb-4">Global Leaderboard</h2>
+      <h2 className="text-xl font-bold mb-4">{t("leaderboardTitle")}</h2>
       {currentUserRank && (
-        <p className="mb-4">Your Rank: #{currentUserRank}</p>
+        <p className="mb-4">{t("leaderboardYourRank").replace("{rank}", currentUserRank)}</p>
       )}
       <ul className="space-y-2">
         {leaderboard.map((entry, index) => (

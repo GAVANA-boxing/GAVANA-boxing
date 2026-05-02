@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { translate } from "@/lib/i18n";
 
 function NavIcon({ children, active = false }) {
   return (
@@ -99,6 +100,7 @@ export default function BottomNav({
   const pathname = usePathname();
   const [unreadCount, setUnreadCount] = useState(0);
   const resolvedActiveTab = activeTab || getActiveTab(pathname);
+  const t = (key) => translate(currentLocale, key);
 
   useEffect(() => {
     if (!user?.uid) {
@@ -149,15 +151,15 @@ export default function BottomNav({
       onPointerCancel={onInteractEnd}
       aria-label="Primary navigation"
     >
-      <NavTab label="REELS" active={resolvedActiveTab === "reels"} onClick={() => router.push(`/${currentLocale}/reels`)}>
+      <NavTab label={t("navReels")} active={resolvedActiveTab === "reels"} onClick={() => router.push(`/${currentLocale}/reels`)}>
         <ReelsIcon active={resolvedActiveTab === "reels"} />
       </NavTab>
 
-      <NavTab label="DISCOVER" active={resolvedActiveTab === "discover"} onClick={() => router.push(`/${currentLocale}/discover`)}>
+      <NavTab label={t("navDiscover")} active={resolvedActiveTab === "discover"} onClick={() => router.push(`/${currentLocale}/discover`)}>
         <DiscoverIcon active={resolvedActiveTab === "discover"} />
       </NavTab>
 
-      <NavTab label="COACH" active={resolvedActiveTab === "coach"} onClick={() => router.push(`/${currentLocale}/coach`)}>
+      <NavTab label={t("navCoach")} active={resolvedActiveTab === "coach"} onClick={() => router.push(`/${currentLocale}/coach`)}>
         <CoachIcon active={resolvedActiveTab === "coach"} />
       </NavTab>
 
@@ -165,7 +167,7 @@ export default function BottomNav({
         type="button"
         onClick={() => router.push(`/${currentLocale}/upload`)}
         style={styles.uploadTab}
-        aria-label="Upload"
+        aria-label={t("navUpload")}
       >
         <span style={styles.uploadCircle}>
           <UploadIcon />
@@ -176,13 +178,13 @@ export default function BottomNav({
             color: resolvedActiveTab === "upload" ? "#C1121F" : "#444",
           }}
         >
-          UPLOAD
+          {t("navUpload")}
         </span>
         <span style={{ ...styles.indicator, opacity: resolvedActiveTab === "upload" ? 1 : 0 }} />
       </button>
 
       <NavTab
-        label="ALERTS"
+        label={t("navAlerts")}
         active={resolvedActiveTab === "alerts"}
         onClick={() => router.push(`/${currentLocale}/notifications`)}
         badge={unreadCount}
@@ -190,7 +192,7 @@ export default function BottomNav({
         <AlertsIcon active={resolvedActiveTab === "alerts"} />
       </NavTab>
 
-      <NavTab label="PROFILE" active={resolvedActiveTab === "profile"} onClick={goToProfile}>
+      <NavTab label={t("navProfile")} active={resolvedActiveTab === "profile"} onClick={goToProfile}>
         <ProfileIcon active={resolvedActiveTab === "profile"} />
       </NavTab>
     </nav>
@@ -200,6 +202,8 @@ export default function BottomNav({
 function getActiveTab(pathname = "") {
   if (pathname.includes("/upload")) return "upload";
   if (pathname.includes("/discover")) return "discover";
+  if (pathname.includes("/leaderboard")) return "discover";
+  if (pathname.includes("/rank")) return "profile";
   if (pathname.includes("/coach")) return "coach";
   if (pathname.includes("/notifications")) return "alerts";
   if (pathname.includes("/profile")) return "profile";

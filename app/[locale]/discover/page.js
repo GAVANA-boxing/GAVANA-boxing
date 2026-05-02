@@ -81,6 +81,34 @@ export default function DiscoverPage() {
           <h1 style={styles.title}>{t("discoverTitle")}</h1>
           {message ? <p style={styles.subtitle}>{message}</p> : null}
         </div>
+
+        {/* Leaderboard shortcut */}
+        <button
+          type="button"
+          onClick={() => router.push(`/${locale}/leaderboard`)}
+          style={styles.leaderboardCard}
+        >
+          <span style={styles.leaderboardCardIcon}>🏆</span>
+          <div style={styles.leaderboardCardText}>
+            <span style={styles.leaderboardCardTitle}>{t("leaderboardTitle")}</span>
+            <span style={styles.leaderboardCardSub}>{t("leaderboardTopFighters")}</span>
+          </div>
+          <span style={styles.leaderboardCardArrow}>›</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => router.push(`/${locale}/challenges`)}
+          style={styles.challengeCard}
+        >
+          <span style={styles.challengeCardIcon}>GO</span>
+          <div style={styles.leaderboardCardText}>
+            <span style={styles.challengeCardTitle}>{t("challengesTitle")}</span>
+            <span style={styles.challengeCardSub}>{t("challengesSubtitle")}</span>
+          </div>
+          <span style={styles.challengeCardArrow}>{">"}</span>
+        </button>
+
         <form onSubmit={handleSearch} style={styles.searchForm}>
           <input
             type="search"
@@ -120,7 +148,7 @@ export default function DiscoverPage() {
                       </div>
                       <div>
                         <div style={styles.cardTitle}>{profile.displayName || profile.username || "Unnamed"}</div>
-                        <div style={styles.cardSubtitle}>{profile.username ? `@${profile.username}` : "Fighter profile"}</div>
+                        <div style={styles.cardSubtitle}>{profile.username ? `@${profile.username}` : t("fighterProfile")}</div>
                       </div>
                     </div>
                     {profile.bio ? <p style={styles.cardText}>{profile.bio}</p> : null}
@@ -304,5 +332,93 @@ const styles = {
     textAlign: "center",
     borderRadius: 16,
     background: "rgba(255,255,255,0.02)",
+  },
+  leaderboardCard: {
+    display: "flex",
+    alignItems: "center",
+    gap: 14,
+    width: "100%",
+    padding: "14px 16px",
+    borderRadius: 16,
+    background: "rgba(212,175,55,0.07)",
+    border: "1px solid rgba(212,175,55,0.22)",
+    color: "#fff",
+    cursor: "pointer",
+    textAlign: "left",
+  },
+  leaderboardCardIcon: {
+    fontSize: 26,
+    lineHeight: 1,
+    flexShrink: 0,
+  },
+  leaderboardCardText: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 2,
+    flex: 1,
+    minWidth: 0,
+  },
+  leaderboardCardTitle: {
+    fontSize: 15,
+    fontWeight: 900,
+    color: "#D4AF37",
+    lineHeight: 1.2,
+  },
+  leaderboardCardSub: {
+    fontSize: 12,
+    color: "#888",
+  },
+  leaderboardCardArrow: {
+    fontSize: 22,
+    color: "#D4AF37",
+    fontWeight: 900,
+    lineHeight: 1,
+    flexShrink: 0,
+  },
+  challengeCard: {
+    display: "flex",
+    alignItems: "center",
+    gap: 14,
+    width: "100%",
+    padding: "16px 18px",
+    borderRadius: 18,
+    background: "linear-gradient(135deg, rgba(193,18,31,0.95), rgba(94,8,16,0.92))",
+    border: "1px solid rgba(255,255,255,0.14)",
+    boxShadow: "0 18px 46px rgba(193,18,31,0.22)",
+    color: "#fff",
+    cursor: "pointer",
+    textAlign: "left",
+  },
+  challengeCardIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    display: "grid",
+    placeItems: "center",
+    flexShrink: 0,
+    background: "rgba(212,175,55,0.18)",
+    border: "1px solid rgba(212,175,55,0.36)",
+    color: "#D4AF37",
+    fontSize: 12,
+    fontWeight: 1000,
+    letterSpacing: 0,
+  },
+  challengeCardTitle: {
+    fontSize: 16,
+    fontWeight: 1000,
+    color: "#fff",
+    lineHeight: 1.2,
+  },
+  challengeCardSub: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.72)",
+    lineHeight: 1.35,
+  },
+  challengeCardArrow: {
+    fontSize: 22,
+    color: "#D4AF37",
+    fontWeight: 1000,
+    lineHeight: 1,
+    flexShrink: 0,
   },
 };

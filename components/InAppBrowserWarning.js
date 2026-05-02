@@ -1,12 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { getLocaleFromPathname, translate } from "@/lib/i18n";
 
 function isSocialInAppBrowser(userAgent) {
   return /FBAN|FBAV|FB_IAB|FB4A|FBIOS|Instagram/i.test(userAgent || "");
 }
 
 export default function InAppBrowserWarning() {
+  const pathname = usePathname();
+  const locale = getLocaleFromPathname(pathname);
+  const t = (key) => translate(locale, key);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -28,8 +33,8 @@ export default function InAppBrowserWarning() {
   return (
     <div style={styles.banner}>
       <div style={styles.content}>
-        <strong style={styles.title}>For best experience, open in Safari or Chrome</strong>
-        <span style={styles.text}>Tap ⋯ and choose Open in browser</span>
+        <strong style={styles.title}>{t("browserWarningTitle")}</strong>
+        <span style={styles.text}>{t("browserWarningInstructions")}</span>
       </div>
       <button type="button" onClick={handleDismiss} style={styles.close} aria-label="Dismiss">
         ×

@@ -149,6 +149,45 @@ function extractFeedbackScore(feedbackText) {
   return Math.max(0, Math.min(10, score));
 }
 
+function getFirstValue(...values) {
+  for (const value of values) {
+    if (value !== null && value !== undefined && value !== "") return value;
+  }
+  return null;
+}
+
+function formatSpeedMetric(reel) {
+  const speed = getFirstValue(
+    reel?.speed,
+    reel?.speedScore,
+    reel?.aiSpeed,
+    reel?.metrics?.speed,
+    reel?.analysis?.speed
+  );
+
+  if (speed === null) return "Medium";
+  if (typeof speed === "number" && Number.isFinite(speed)) return speed > 10 ? `${Math.round(speed)}` : `${speed.toFixed(1)}`;
+  return String(speed);
+}
+
+function formatComboCountMetric(reel) {
+  const comboCount = getFirstValue(
+    reel?.comboCount,
+    reel?.combo_count,
+    reel?.combos,
+    reel?.metrics?.comboCount,
+    reel?.analysis?.comboCount
+  );
+
+  if (Array.isArray(comboCount)) return comboCount.length.toString();
+  if (typeof comboCount === "number" && Number.isFinite(comboCount)) return Math.max(0, Math.round(comboCount)).toString();
+  if (typeof comboCount === "string" && comboCount.trim()) return comboCount;
+
+  const caption = String(reel?.description || reel?.caption || "").toLowerCase();
+  const punchMatches = caption.match(/\b(jab|cross|hook|uppercut|body|slip|roll)\b/g);
+  return Math.max(1, Math.min(6, punchMatches?.length || 1)).toString();
+}
+
 export default function ReelsContent() {
   const router = useRouter();
   const pathname = usePathname();
@@ -185,7 +224,9 @@ export default function ReelsContent() {
   const [feedbackResult, setFeedbackResult] = useState("");
   const [feedbackSaved, setFeedbackSaved] = useState(false);
   const [feedbackReel, setFeedbackReel] = useState(null);
+  const [sessionXPData, setSessionXPData] = useState(null);
   const [videoErrors, setVideoErrors] = useState({});
+  const [creatorStats, setCreatorStats] = useState({}); // XP, rank, best score for creators
   const videoRefs = useRef({});
   const feedRef = useRef(null);
   const reelItemRefs = useRef({});
@@ -270,6 +311,7 @@ export default function ReelsContent() {
                 photoURL: profileData.photoURL || "",
                 profileImageUrl: profileData.profileImageUrl || "",
                 profileImage: profileData.profileImage || "",
+                streakCount: Number(profileData.streakCount) || 0,
               },
             }));
           } catch (err) {
@@ -294,6 +336,97 @@ export default function ReelsContent() {
       isActive = false;
     };
   }, [reels, creatorProfiles]);
+
+  // Fetch creator stats (XP, rank, best AI score)
+  useEffect(() => {
+    if (!reels.length) return;
+
+    let isActive = true;
+    const missingCreatorIds = [...new Set(
+      reels
+        .map((reel) => reel?.userId)
+        .filter((userId) => userId && !creatorStats[userId])
+    )];
+
+    if (!missingCreatorIds.length) return;
+
+    async function loadCreatorStats() {
+      try {
+        const { db } = await getFirebase();
+        const { collection, query, where, getDocs, doc, getDoc } = await import("firebase/firestore");
+        const { calculateUserXP, getFighterRank } = await import("@/lib/xp");
+
+        await Promise.all(missingCreatorIds.map(async (creatorId) => {
+          if (!isActive) return;
+
+          try {
+            // Get AI feedback scores
+            const feedbackQuery = query(
+              collection(db, "ai_feedback"),
+              where("userId", "==", creatorId)
+            );
+            const feedbackSnap = await getDocs(feedbackQuery);
+            const feedbackDocs = feedbackSnap.docs.map(doc => ({
+              score: doc.data().score,
+              createdAt: doc.data().createdAt
+            }));
+
+            // Get user profile for streak
+            const userDoc = await getDoc(doc(db, "users", creatorId));
+            const userData = userDoc.exists() ? userDoc.data() : {};
+            const streakDays = Number(userData.streakCount) || 0;
+
+            // Calculate XP and rank (without likesReceived for now)
+            const totalXP = calculateUserXP({
+              aiFeedbackDocs: feedbackDocs,
+              streakDays,
+              likesReceived: 0 // TODO: Calculate total likes received
+            });
+            const rank = getFighterRank(totalXP);
+
+            // Get best AI score
+            const bestScore = feedbackDocs.length > 0
+              ? Math.max(...feedbackDocs.map(d => Number(d.score) || 0))
+              : null;
+
+            if (!isActive) return;
+
+            setCreatorStats((prev) => ({
+              ...prev,
+              [creatorId]: {
+                xp: totalXP,
+                rank,
+                bestScore,
+                hasData: feedbackDocs.length > 0
+              },
+            }));
+          } catch (err) {
+            console.error("Failed to load creator stats:", err);
+
+            if (!isActive) return;
+
+            setCreatorStats((prev) => ({
+              ...prev,
+              [creatorId]: {
+                xp: 0,
+                rank: null,
+                bestScore: null,
+                hasData: false
+              },
+            }));
+          }
+        }));
+      } catch (err) {
+        console.error("Failed to prepare creator stats reads:", err);
+      }
+    }
+
+    loadCreatorStats();
+
+    return () => {
+      isActive = false;
+    };
+  }, [reels, creatorStats]);
 
   // Fetch reels from Firestore with real-time updates
   useEffect(() => {
@@ -944,13 +1077,13 @@ export default function ReelsContent() {
       const reelUrl = `${baseUrl}${pathname}?reelId=${reel.id}`;
       const appUrl = baseUrl;
 
-      let shareText = "Check out this boxing reel on GAVANA 🥊";
+      let shareText = t("shareReelText");
       if (score !== null) {
-        shareText = `I scored ${score}/10 on GAVANA 🥊 Can you beat me?`;
+        shareText = t("shareScoreText").replace("{score}", score);
       }
 
       const shareData = {
-        title: "GAVANA Boxing Reel",
+        title: t("shareReelTitle"),
         text: shareText,
         url: reelUrl,
       };
@@ -958,16 +1091,15 @@ export default function ReelsContent() {
       if (navigator.share) {
         await navigator.share(shareData);
       } else {
-        // Fallback: copy to clipboard
         const fullText = `${shareText} ${reelUrl} ${appUrl}`;
         await navigator.clipboard.writeText(fullText);
-        alert("Link copied to clipboard!");
+        alert(t("shareLinkCopied"));
       }
     } catch (err) {
       console.error("Failed to share:", err);
-      alert("Sharing failed. Please try again.");
+      alert(t("shareFailed"));
     }
-  }, [pathname]);
+  }, [pathname, currentLocale]);
 
   const handleGetFeedback = useCallback(async (reel) => {
     if (!user?.uid) {
@@ -981,6 +1113,7 @@ export default function ReelsContent() {
     setFeedbackResult("");
     setFeedbackSaved(false);
     setFeedbackReel(reel);
+    setSessionXPData(null);
 
     try {
       const caption = reel?.description || reel?.caption || "No caption provided";
@@ -1098,6 +1231,45 @@ export default function ReelsContent() {
         }
 
         setFeedbackSaved(true);
+
+        // Compute XP breakdown for the feedback card
+        if (typeof parsedScore === "number") {
+          try {
+            const { calculateSessionXP, calculateUserXP, getFighterRank, getNextRank, getRankProgress } = await import("@/lib/xp");
+            const { collection, getDocs, query, where } = await import("firebase/firestore");
+
+            const allSnap = await getDocs(query(collection(db, "ai_feedback"), where("userId", "==", ownerId)));
+            const allDocs = allSnap.docs.map((d) => ({ score: d.data().score, createdAt: d.data().createdAt }));
+
+            // Sort ascending to find previous score (second-to-last after current save)
+            const sorted = [...allDocs]
+              .filter((d) => Number.isFinite(Number(d.score)))
+              .sort((a, b) => (a.createdAt?.toMillis?.() || 0) - (b.createdAt?.toMillis?.() || 0));
+            const prevScore = sorted.length >= 2 ? Number(sorted[sorted.length - 2].score) : null;
+
+            const streakDays = creatorProfiles[ownerId]?.streakCount || 0;
+            const reelLikes = getSafeLikeCount(reel);
+            const likeXP = Math.round(reelLikes) * 2;
+
+            const breakdown = calculateSessionXP(parsedScore, prevScore, streakDays);
+            const totalXP = calculateUserXP({ aiFeedbackDocs: allDocs, streakDays, likesReceived: reelLikes });
+            const currentRank = getFighterRank(totalXP);
+            const nextRankTier = getNextRank(totalXP);
+            const progress = getRankProgress(totalXP);
+
+            setSessionXPData({
+              ...breakdown,
+              likeXP,
+              totalXP,
+              currentRank,
+              nextRank: nextRankTier,
+              rankProgress: progress,
+              xpToNext: nextRankTier ? nextRankTier.minXP - totalXP : 0,
+            });
+          } catch (xpErr) {
+            console.error("XP breakdown error:", xpErr);
+          }
+        }
       } catch (saveError) {
         console.error("Failed to save AI feedback:", saveError);
       }
@@ -1116,6 +1288,7 @@ export default function ReelsContent() {
     setFeedbackResult("");
     setFeedbackSaved(false);
     setFeedbackReel(null);
+    setSessionXPData(null);
   }, []);
 
   // Handle opening comments
@@ -1411,6 +1584,21 @@ export default function ReelsContent() {
           const captionText = reel.description || reel.caption || "";
           const isCaptionExpanded = expandedCaptionIds.has(reel.id);
           const canExpandCaption = captionText.length > 90;
+          const stats = reel.userId ? creatorStats[reel.userId] : null;
+          const hasBestScore = typeof stats?.bestScore === "number" && Number.isFinite(stats.bestScore) && stats.bestScore > 0;
+          const metrics = [
+            typeof stats?.xp === "number" ? { label: t("reels.xp"), value: stats.xp.toLocaleString() } : null,
+            { label: t("reels.speed"), value: formatSpeedMetric(reel) },
+            { label: t("reels.combo"), value: formatComboCountMetric(reel) },
+            stats?.rank ? { label: t("reels.rank"), value: t(stats.rank.key) } : null,
+          ].filter(Boolean);
+          const creatorStatLine = stats
+            ? [
+                stats.rank ? t(stats.rank.key) : null,
+                typeof stats.xp === "number" ? `${stats.xp.toLocaleString()} ${t("reels.xp")}` : null,
+                hasBestScore ? `${t("reels.bestScore")} ${stats.bestScore.toFixed(1)}/10` : null,
+              ].filter(Boolean).join(" · ")
+            : "";
           const openCreatorProfile = () => {
             if (reel.userId) {
               router.push(`/${currentLocale}/profile/${reel.userId}`);
@@ -1507,6 +1695,20 @@ export default function ReelsContent() {
             <div style={styles.vignette} />
             <div style={styles.bottomGradient} />
 
+            {/* AI Metrics Overlay */}
+            {!reel.isDemo && metrics.length > 0 && (
+              <div style={styles.metricsOverlay}>
+                <div style={styles.metricsRow}>
+                  {metrics.map((metric) => (
+                    <div key={`${metric.label}-${metric.value}`} style={styles.metricItem}>
+                      <span style={styles.metricLabel}>{metric.label}</span>
+                      <span style={styles.metricValue}>{metric.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div style={styles.info}>
               <div style={styles.creatorRow}>
                 <button
@@ -1524,16 +1726,24 @@ export default function ReelsContent() {
                     <span style={styles.creatorAvatarFallback}>{creatorInitial}</span>
                   )}
                 </button>
-                <button
-                  type="button"
-                  style={{
-                    ...styles.username,
-                    cursor: reel.userId ? "pointer" : "default",
-                  }}
-                  onClick={openCreatorProfile}
-                >
-                  @{creatorName}
-                </button>
+                <div style={styles.creatorInfo}>
+                  <button
+                    type="button"
+                    style={{
+                      ...styles.username,
+                      cursor: reel.userId ? "pointer" : "default",
+                    }}
+                    onClick={openCreatorProfile}
+                  >
+                    @{creatorName}
+                    {creatorProfile?.streakCount >= 5 && (
+                      <span style={styles.onFireBadge}>{"🔥"} {t("onFireBadgeText")}</span>
+                    )}
+                  </button>
+                  {!reel.isDemo && creatorStatLine && (
+                    <div style={styles.creatorStats}>{creatorStatLine}</div>
+                  )}
+                </div>
               </div>
               {captionText && (
                 <button
@@ -1560,6 +1770,15 @@ export default function ReelsContent() {
                 <span>{formatCompactCount(getSafeViewCount(reel))} {t("views")}</span>
                 <span>{formatDate(reel.createdAt)}</span>
               </div>
+              {!reel.isDemo && (
+                <button
+                  type="button"
+                  style={styles.tryThisButton}
+                  onClick={() => router.push(`/${currentLocale}/train?reelId=${encodeURIComponent(reel.id)}`)}
+                >
+                  {t("reels.tryThisCombo")}
+                </button>
+              )}
             </div>
 
             <div style={styles.actions}>
@@ -1637,6 +1856,7 @@ export default function ReelsContent() {
                 <span style={styles.actionText}>AI</span>
               </div>
             </div>
+
             {/* Play/Pause indicator */}
             {!reel.isDemo && showControls && index === currentIndex && (
               <div style={styles.playIndicator}>
@@ -1763,6 +1983,71 @@ export default function ReelsContent() {
                       {t("savedToProgress")}
                     </div>
                   )}
+
+                  {sessionXPData && (
+                    <div style={styles.xpCard}>
+                      <p style={styles.xpCardTitle}>{t("xpEarned")}</p>
+                      <div style={styles.xpCardRows}>
+                        <div style={styles.xpCardRow}>
+                          <span style={styles.xpCardLabel}>{t("xpBase")}</span>
+                          <span style={styles.xpCardVal}>+{sessionXPData.base}</span>
+                        </div>
+                        {sessionXPData.improvement > 0 && (
+                          <div style={styles.xpCardRow}>
+                            <span style={styles.xpCardLabel}>{t("xpImprovement")}</span>
+                            <span style={{ ...styles.xpCardVal, color: "#34D399" }}>+{sessionXPData.improvement}</span>
+                          </div>
+                        )}
+                        {sessionXPData.streakBonus > 0 && (
+                          <div style={styles.xpCardRow}>
+                            <span style={styles.xpCardLabel}>{t("xpStreakBonus")}</span>
+                            <span style={{ ...styles.xpCardVal, color: "#FB923C" }}>+{sessionXPData.streakBonus}</span>
+                          </div>
+                        )}
+                        {sessionXPData.likeXP > 0 && (
+                          <div style={styles.xpCardRow}>
+                            <span style={styles.xpCardLabel}>{t("xpLikes")}</span>
+                            <span style={{ ...styles.xpCardVal, color: "#60A5FA" }}>+{sessionXPData.likeXP}</span>
+                          </div>
+                        )}
+                        <div style={styles.xpCardRowTotal}>
+                          <span style={styles.xpCardTotalLabel}>{t("xpLabel")}</span>
+                          <span style={styles.xpCardTotalVal}>+{sessionXPData.total}</span>
+                        </div>
+                        {sessionXPData.capped && (
+                          <p style={styles.xpCapNotice}>{t("xpDailyCap")}</p>
+                        )}
+                      </div>
+
+                      {/* Rank progress bar */}
+                      <div style={styles.xpRankWrap}>
+                        <div style={styles.xpRankRow}>
+                          <span style={{ fontWeight: 900, fontSize: 12, color: sessionXPData.currentRank.color }}>
+                            {t(sessionXPData.currentRank.key)}
+                          </span>
+                          <span style={styles.xpTotalLabel}>
+                            {sessionXPData.totalXP.toLocaleString()} {t("xpLabel")}
+                          </span>
+                        </div>
+                        <div style={styles.xpRankTrack}>
+                          <div style={{
+                            ...styles.xpRankFill,
+                            width: `${sessionXPData.rankProgress}%`,
+                            background: sessionXPData.currentRank.gradient,
+                          }} />
+                        </div>
+                        {sessionXPData.nextRank && (
+                          <p style={styles.xpNextLabel}>
+                            {sessionXPData.xpToNext.toLocaleString()} {t("xpLabel")} → {t(sessionXPData.nextRank.key)}
+                          </p>
+                        )}
+                        {!sessionXPData.nextRank && (
+                          <p style={styles.xpNextLabel}>{t("atMaxRank")}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   <pre style={styles.feedbackResult}>{feedbackResult}</pre>
                 </>
               )}
@@ -2484,6 +2769,20 @@ const styles = {
     textAlign: "left",
     textShadow: "0 5px 28px rgba(0,0,0,0.98), 0 1px 2px rgba(0,0,0,1)",
     WebkitTapHighlightColor: "transparent",
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+  },
+  onFireBadge: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 3,
+    fontSize: 11,
+    fontWeight: 900,
+    letterSpacing: 0.6,
+    color: "#FB923C",
+    lineHeight: 1,
+    flexShrink: 0,
   },
   viewProof: {
     color: "rgba(255,255,255,0.82)",
@@ -3206,5 +3505,189 @@ const styles = {
     fontSize: 14,
     lineHeight: 1.62,
   },
+  xpCard: {
+    marginBottom: 16,
+    padding: "14px 15px",
+    borderRadius: 16,
+    background: "rgba(212,175,55,0.07)",
+    border: "1px solid rgba(212,175,55,0.2)",
+    animation: "fadeUp 280ms ease forwards",
+  },
+  xpCardTitle: {
+    margin: "0 0 10px",
+    fontSize: 9,
+    fontWeight: 900,
+    color: "#D4AF37",
+    letterSpacing: 2.5,
+    textTransform: "uppercase",
+  },
+  xpCardRows: {
+    display: "grid",
+    gap: 5,
+    marginBottom: 12,
+  },
+  xpCardRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  xpCardRowTotal: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderTop: "1px solid rgba(255,255,255,0.08)",
+    marginTop: 5,
+    paddingTop: 7,
+  },
+  xpCardLabel: {
+    fontSize: 12,
+    color: "#888",
+    fontWeight: 600,
+  },
+  xpCardVal: {
+    fontSize: 13,
+    fontWeight: 900,
+    color: "#ccc",
+  },
+  xpCardTotalLabel: {
+    fontSize: 12,
+    fontWeight: 900,
+    color: "#fff",
+  },
+  xpCardTotalVal: {
+    fontSize: 18,
+    fontWeight: 1000,
+    color: "#D4AF37",
+  },
+  xpCapNotice: {
+    margin: "5px 0 0",
+    fontSize: 10,
+    color: "#FB923C",
+    fontWeight: 700,
+  },
+  xpRankWrap: {
+    borderTop: "1px solid rgba(255,255,255,0.08)",
+    paddingTop: 11,
+  },
+  xpRankRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+  xpTotalLabel: {
+    fontSize: 11,
+    color: "#888",
+    fontWeight: 700,
+  },
+  xpRankTrack: {
+    height: 5,
+    borderRadius: 999,
+    background: "rgba(255,255,255,0.08)",
+    overflow: "hidden",
+    marginBottom: 5,
+  },
+  xpRankFill: {
+    height: "100%",
+    borderRadius: 999,
+    transition: "width 700ms ease",
+  },
+  xpNextLabel: {
+    margin: 0,
+    fontSize: 10,
+    color: "#888",
+    textAlign: "right",
+  },
+  // AI Metrics Overlay
+  metricsOverlay: {
+    position: "absolute",
+    top: "calc(124px + env(safe-area-inset-top))",
+    left: "max(18px, env(safe-area-inset-left))",
+    right: "calc(96px + env(safe-area-inset-right))",
+    zIndex: 4,
+    animation: "fadeUp 420ms ease both",
+    pointerEvents: "none",
+  },
+  metricsRow: {
+    width: "fit-content",
+    maxWidth: "min(300px, calc(100vw - 132px))",
+    display: "grid",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gap: 8,
+    padding: 10,
+    borderRadius: 18,
+    background: "linear-gradient(145deg, rgba(8,8,8,0.62), rgba(22,18,16,0.42))",
+    border: "1px solid rgba(255,255,255,0.14)",
+    backdropFilter: "blur(18px) saturate(150%)",
+    WebkitBackdropFilter: "blur(18px) saturate(150%)",
+    boxShadow: "0 18px 46px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.12)",
+  },
+  metricItem: {
+    minWidth: 0,
+    display: "grid",
+    gap: 5,
+    minHeight: 48,
+    padding: "8px 10px",
+    borderRadius: 13,
+    background: "rgba(255,255,255,0.075)",
+    border: "1px solid rgba(255,255,255,0.08)",
+  },
+  metricLabel: {
+    fontSize: 10,
+    fontWeight: 900,
+    color: "rgba(255,255,255,0.62)",
+    letterSpacing: 0,
+    textShadow: "0 1px 4px rgba(0,0,0,0.8)",
+    textTransform: "uppercase",
+    whiteSpace: "nowrap",
+  },
+  metricValue: {
+    minWidth: 0,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    fontSize: 15,
+    lineHeight: 1.05,
+    fontWeight: 1000,
+    color: "var(--text-primary)",
+    textShadow: "0 2px 8px rgba(0,0,0,0.9)",
+  },
+  // Creator Info and Stats
+  creatorInfo: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    gap: 4,
+  },
+  creatorStats: {
+    fontSize: 12,
+    lineHeight: 1.25,
+    fontWeight: 800,
+    color: "rgba(255,255,255,0.74)",
+    textShadow: "0 2px 8px rgba(0,0,0,0.9)",
+  },
+  tryThisButton: {
+    width: "fit-content",
+    maxWidth: "100%",
+    minHeight: 34,
+    marginTop: 12,
+    paddingTop: 0,
+    paddingBottom: 0,
+    paddingLeft: 14,
+    paddingRight: 14,
+    borderRadius: 999,
+    border: "1px solid rgba(212,175,55,0.42)",
+    background: "linear-gradient(135deg, rgba(193,18,31,0.94), rgba(92,7,17,0.94) 58%, rgba(147,104,26,0.9))",
+    color: "var(--text-primary)",
+    fontFamily: "inherit",
+    fontSize: 13,
+    lineHeight: 1,
+    fontWeight: 950,
+    letterSpacing: 0,
+    cursor: "pointer",
+    boxShadow: "0 10px 28px rgba(193,18,31,0.26), inset 0 1px 0 rgba(255,255,255,0.14)",
+    textShadow: "0 2px 8px rgba(0,0,0,0.5)",
+    transition: "transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease",
+    WebkitTapHighlightColor: "transparent",
+  },
 };
-

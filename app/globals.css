@@ -84,3 +84,12 @@ p {
   -webkit-backdrop-filter: blur(24px) saturate(150%);
   box-shadow: var(--shadow-soft);
 }
+
+@keyframes fire-pulse {
+  0%, 100% { box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 0 0 rgba(251,146,60,0.5); }
+  50% { box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 0 7px rgba(251,146,60,0); }
+}
+
+.fire-pulse {
+  animation: fire-pulse 2.2s ease-in-out infinite;
+}
