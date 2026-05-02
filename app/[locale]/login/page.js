@@ -12,11 +12,11 @@ function getFriendlyAuthError(error, isSignUp) {
   switch (error?.code) {
     case "auth/invalid-credential":
     case "auth/wrong-password":
-      return "Incorrect email or password";
+      return "Email or password is incorrect.";
     case "auth/user-not-found":
       return "Account not found, please sign up";
     case "auth/email-already-in-use":
-      return "An account with this email already exists";
+      return "This email is already registered. Please sign in instead.";
     case "auth/weak-password":
       return "Password should be at least 6 characters";
     case "auth/invalid-email":
@@ -34,8 +34,10 @@ export default function LoginPage() {
   const t = (key) => translate(locale, key);
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
+  const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -83,12 +85,34 @@ export default function LoginPage() {
 
     try {
       if (isSignUp) {
+        if (!displayName.trim()) {
+          setError("Display name is required.");
+          setLoading(false);
+          return;
+        }
+
+        if (password.length < 6) {
+          setError("Password should be at least 6 characters");
+          setLoading(false);
+          return;
+        }
+
+        if (password !== confirmPassword) {
+          setError("Passwords do not match.");
+          setLoading(false);
+          return;
+        }
+
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         // Create user document
         await setDoc(doc(db, "users", userCredential.user.uid), {
           email: userCredential.user.email,
           username: userCredential.user.email.split("@")[0],
-          role: "Боксч",
+          displayName: displayName.trim(),
+          bio: "",
+          photoURL: "",
+          profileImageUrl: "",
+          role: "boxer",
           createdAt: new Date().toISOString(),
         });
       } else {
@@ -105,17 +129,46 @@ export default function LoginPage() {
 
   return (
     <div style={styles.page}>
-      <div style={styles.card}>
+      <div style={{
+        ...styles.card,
+        ...(isSignUp ? styles.signUpCard : {})
+      }}>
         <div style={{ textAlign: "center", marginBottom: 32 }}>
+          <div style={{
+            ...styles.modeBadge,
+            ...(isSignUp ? styles.signUpBadge : {})
+          }}>
+            {isSignUp ? "New fighter" : "Member access"}
+          </div>
           <p style={{ margin: 0, color: "#D4AF37", letterSpacing: 2, fontSize: 12, fontWeight: 800 }}>
             GAVANA BOXING
           </p>
           <h1 style={{ margin: "10px 0 0", fontSize: 28, fontWeight: 900, color: "#fff" }}>
             {isSignUp ? "Sign Up" : t("login")}
           </h1>
+          <p style={styles.helperText}>
+            {isSignUp ? "Create your fighter profile" : "Welcome back to Gavana Boxing"}
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: "grid", gap: 20 }}>
+          {isSignUp && (
+            <div style={{ display: "grid", gap: 8 }}>
+              <label style={{ fontSize: 13, fontWeight: 700, color: "#888", letterSpacing: 1.2, textTransform: "uppercase" }}>
+                Display name
+              </label>
+              <input
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                required={isSignUp}
+                maxLength={40}
+                style={styles.input}
+                placeholder="Your fighter name"
+              />
+            </div>
+          )}
+
           <div style={{ display: "grid", gap: 8 }}>
             <label style={{ fontSize: 13, fontWeight: 700, color: "#888", letterSpacing: 1.2, textTransform: "uppercase" }}>
               Email
@@ -125,16 +178,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              style={{
-                width: "100%",
-                background: "#131313",
-                border: "1px solid #222",
-                borderRadius: 12,
-                padding: 14,
-                color: "#fff",
-                fontSize: 14,
-                outline: "none"
-              }}
+              style={styles.input}
               placeholder="your@email.com"
             />
           </div>
@@ -148,19 +192,28 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              style={{
-                width: "100%",
-                background: "#131313",
-                border: "1px solid #222",
-                borderRadius: 12,
-                padding: 14,
-                color: "#fff",
-                fontSize: 14,
-                outline: "none"
-              }}
+              minLength={isSignUp ? 6 : undefined}
+              style={styles.input}
               placeholder="••••••••"
             />
           </div>
+
+          {isSignUp && (
+            <div style={{ display: "grid", gap: 8 }}>
+              <label style={{ fontSize: 13, fontWeight: 700, color: "#888", letterSpacing: 1.2, textTransform: "uppercase" }}>
+                Confirm password
+              </label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required={isSignUp}
+                minLength={6}
+                style={styles.input}
+                placeholder="••••••••"
+              />
+            </div>
+          )}
 
           {error && (
             <div style={styles.errorBox}>
@@ -179,9 +232,11 @@ export default function LoginPage() {
               background: loading ? "#4d1117" : "#C1121F",
               color: "#fff",
               fontSize: 15,
-              fontWeight: 700,
+              fontWeight: 900,
               cursor: loading ? "not-allowed" : "pointer",
-              transition: "background 0.2s ease"
+              letterSpacing: 0.2,
+              boxShadow: loading ? "none" : "0 16px 42px rgba(193,18,31,0.28)",
+              transition: "transform 0.18s ease, background 0.2s ease"
             }}
           >
             {loading ? t("loading") : (isSignUp ? "Sign Up" : t("login"))}
@@ -190,7 +245,10 @@ export default function LoginPage() {
 
         <div style={{ textAlign: "center", marginTop: 24 }}>
           <button
-            onClick={() => setIsSignUp(!isSignUp)}
+            onClick={() => {
+              setError("");
+              setIsSignUp(!isSignUp);
+            }}
             style={{
               background: "none",
               border: "none",
@@ -211,7 +269,7 @@ export default function LoginPage() {
 const styles = {
   page: {
     minHeight: "100vh",
-    background: "linear-gradient(180deg, #070707 0%, #0B0B0B 100%)",
+    background: "radial-gradient(circle at 50% 0%, rgba(193,18,31,0.22), transparent 30%), radial-gradient(circle at 15% 85%, rgba(212,175,55,0.12), transparent 24%), linear-gradient(180deg, #070707 0%, #0B0B0B 100%)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -220,13 +278,53 @@ const styles = {
   },
   card: {
     background: "#0B0B0B",
-    border: "1px solid rgba(212,175,55,0.16)",
     border: "1px solid #171717",
     borderRadius: 20,
     padding: 32,
     width: "100%",
-    maxWidth: 400,
-    boxShadow: "0 14px 40px rgba(0,0,0,0.15)"
+    maxWidth: 420,
+    boxShadow: "0 24px 80px rgba(0,0,0,0.42)"
+  },
+  signUpCard: {
+    border: "1px solid rgba(212,175,55,0.26)",
+    boxShadow: "0 18px 60px rgba(193,18,31,0.18), 0 14px 40px rgba(0,0,0,0.18)",
+  },
+  modeBadge: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+    padding: "8px 12px",
+    borderRadius: 999,
+    background: "rgba(255,255,255,0.055)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    color: "#AAAAAA",
+    fontSize: 11,
+    fontWeight: 900,
+    letterSpacing: 1.4,
+    textTransform: "uppercase",
+  },
+  signUpBadge: {
+    background: "rgba(212,175,55,0.1)",
+    border: "1px solid rgba(212,175,55,0.24)",
+    color: "#D4AF37",
+  },
+  helperText: {
+    margin: "10px 0 0",
+    color: "#AAAAAA",
+    fontSize: 14,
+    lineHeight: 1.45,
+  },
+  input: {
+    width: "100%",
+    boxSizing: "border-box",
+    background: "#131313",
+    border: "1px solid #222",
+    borderRadius: 12,
+    padding: 14,
+    color: "#fff",
+    fontSize: 14,
+    outline: "none",
   },
   loadingText: {
     color: "#fff",

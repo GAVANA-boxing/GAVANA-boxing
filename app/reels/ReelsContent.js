@@ -118,6 +118,20 @@ function sortReelsByEngagement(reels) {
   });
 }
 
+function getCreatorName(reel, creatorProfile) {
+  return creatorProfile?.displayName || creatorProfile?.username || reel?.username || "user";
+}
+
+function getCreatorPhoto(creatorProfile) {
+  return creatorProfile?.photoURL || creatorProfile?.profileImageUrl || creatorProfile?.profileImage || "";
+}
+
+function getCaptionToggleLabel(locale, expanded) {
+  if (locale === "mn") return expanded ? "хураах" : "дэлгэрэнгүй";
+  if (locale === "ko") return expanded ? "접기" : "더보기";
+  return expanded ? "less" : "more";
+}
+
 export default function ReelsContent() {
   const router = useRouter();
   const pathname = usePathname();
@@ -135,6 +149,8 @@ export default function ReelsContent() {
   const [userViews, setUserViews] = useState(new Set());
   const [followingIds, setFollowingIds] = useState(new Set());
   const [savedReels, setSavedReels] = useState(new Set());
+  const [creatorProfiles, setCreatorProfiles] = useState({});
+  const [expandedCaptionIds, setExpandedCaptionIds] = useState(new Set());
   const [videoLoading, setVideoLoading] = useState({});
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState([]);
@@ -150,6 +166,7 @@ export default function ReelsContent() {
   const viewTimers = useRef({});
   const controlsTimer = useRef(null);
   const commentsUnsubscribeRef = useRef(null);
+  const creatorProfileRequests = useRef(new Set());
 
   useEffect(() => {
     if (authLoading || allReels === null) {
@@ -167,6 +184,65 @@ export default function ReelsContent() {
     setReels(followedReels);
     setCurrentIndex(0);
   }, [allReels, authLoading, feedMode, followingIds]);
+
+  useEffect(() => {
+    if (!reels.length) return;
+
+    let isActive = true;
+    const missingCreatorIds = [...new Set(
+      reels
+        .map((reel) => reel?.userId)
+        .filter((userId) => userId && !creatorProfiles[userId] && !creatorProfileRequests.current.has(userId))
+    )];
+
+    if (!missingCreatorIds.length) return;
+
+    async function loadCreatorProfiles() {
+      try {
+        const { db } = await getFirebase();
+        const { doc, getDoc } = await import("firebase/firestore");
+
+        await Promise.all(missingCreatorIds.map(async (creatorId) => {
+          creatorProfileRequests.current.add(creatorId);
+
+          try {
+            const profileSnap = await getDoc(doc(db, "users", creatorId));
+            const profileData = profileSnap.exists() ? profileSnap.data() : {};
+
+            if (!isActive) return;
+
+            setCreatorProfiles((prev) => ({
+              ...prev,
+              [creatorId]: {
+                displayName: profileData.displayName || "",
+                username: profileData.username || "",
+                photoURL: profileData.photoURL || "",
+                profileImageUrl: profileData.profileImageUrl || "",
+                profileImage: profileData.profileImage || "",
+              },
+            }));
+          } catch (err) {
+            console.error("Failed to load creator profile:", err);
+
+            if (!isActive) return;
+
+            setCreatorProfiles((prev) => ({
+              ...prev,
+              [creatorId]: {},
+            }));
+          }
+        }));
+      } catch (err) {
+        console.error("Failed to prepare creator profile reads:", err);
+      }
+    }
+
+    loadCreatorProfiles();
+
+    return () => {
+      isActive = false;
+    };
+  }, [reels, creatorProfiles]);
 
   // Fetch reels from Firestore with real-time updates
   useEffect(() => {
@@ -983,6 +1059,18 @@ export default function ReelsContent() {
     setVideoErrors(prev => ({ ...prev, [reelId]: true }));
   };
 
+  const toggleCaption = useCallback((reelId) => {
+    setExpandedCaptionIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(reelId)) {
+        next.delete(reelId);
+      } else {
+        next.add(reelId);
+      }
+      return next;
+    });
+  }, []);
+
   // Format date
   const formatDate = (timestamp) => {
     if (!timestamp) return "";
@@ -1065,9 +1153,23 @@ export default function ReelsContent() {
               {t("reels")}
             </button>
           </div>
-        ) : reels.map((reel, index) => (
-          <div 
-            key={reel.id} 
+        ) : reels.map((reel, index) => {
+          const creatorProfile = reel.userId ? creatorProfiles[reel.userId] : null;
+          const creatorName = getCreatorName(reel, creatorProfile);
+          const creatorPhoto = getCreatorPhoto(creatorProfile);
+          const creatorInitial = creatorName.charAt(0).toUpperCase() || "U";
+          const captionText = reel.description || reel.caption || "";
+          const isCaptionExpanded = expandedCaptionIds.has(reel.id);
+          const canExpandCaption = captionText.length > 90;
+          const openCreatorProfile = () => {
+            if (reel.userId) {
+              router.push(`/${currentLocale}/profile/${reel.userId}`);
+            }
+          };
+
+          return (
+          <div
+            key={reel.id}
             style={{
               ...styles.videoContainer,
               ...(index === currentIndex ? styles.activeVideo : {})
@@ -1148,20 +1250,53 @@ export default function ReelsContent() {
             <div style={styles.bottomGradient} />
 
             <div style={styles.info}>
-              <div
-                style={{...styles.username, cursor: reel.userId ? "pointer" : "default"}}
-                onClick={() => {
-                  if (reel.userId) {
-                    router.push(`/${currentLocale}/profile/${reel.userId}`);
-                  }
-                }}
-              >
-                @{reel.username || "user"}
+              <div style={styles.creatorRow}>
+                <button
+                  type="button"
+                  style={{
+                    ...styles.creatorAvatarButton,
+                    cursor: reel.userId ? "pointer" : "default",
+                  }}
+                  onClick={openCreatorProfile}
+                  aria-label={`Open ${creatorName}'s profile`}
+                >
+                  {creatorPhoto ? (
+                    <img src={creatorPhoto} alt="" style={styles.creatorAvatarImage} />
+                  ) : (
+                    <span style={styles.creatorAvatarFallback}>{creatorInitial}</span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  style={{
+                    ...styles.username,
+                    cursor: reel.userId ? "pointer" : "default",
+                  }}
+                  onClick={openCreatorProfile}
+                >
+                  @{creatorName}
+                </button>
               </div>
-              {(reel.description || reel.caption) && (
-                <div style={styles.description}>
-                  {reel.description || reel.caption}
-                </div>
+              {captionText && (
+                <button
+                  type="button"
+                  style={{
+                    ...styles.descriptionButton,
+                    ...(isCaptionExpanded ? styles.descriptionExpanded : {})
+                  }}
+                  onClick={() => {
+                    if (canExpandCaption) {
+                      toggleCaption(reel.id);
+                    }
+                  }}
+                >
+                  <span>{captionText}</span>
+                  {canExpandCaption && (
+                    <span style={styles.captionToggle}>
+                      {getCaptionToggleLabel(currentLocale, isCaptionExpanded)}
+                    </span>
+                  )}
+                </button>
               )}
               <div style={styles.metaLine}>
                 <span>{formatCompactCount(getSafeViewCount(reel))} {t("views")}</span>
@@ -1263,7 +1398,8 @@ export default function ReelsContent() {
               </div>
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Comments Modal */}
@@ -2067,14 +2203,55 @@ const styles = {
     animation: "fadeUp 420ms ease both",
     zIndex: 4,
   },
-  username: {
-    color: "var(--text-primary)",
-    fontSize: 29,
-    fontWeight: 1000,
+  creatorRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
     marginBottom: 14,
+  },
+  creatorAvatarButton: {
+    width: 44,
+    height: 44,
+    flex: "0 0 44px",
+    borderRadius: "50%",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "rgba(212,175,55,0.64)",
+    background: "linear-gradient(145deg, rgba(193,18,31,0.9), rgba(7,7,7,0.78))",
+    boxShadow: "0 0 0 3px rgba(193,18,31,0.2), 0 10px 26px rgba(0,0,0,0.55)",
+    padding: 0,
+    overflow: "hidden",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    WebkitTapHighlightColor: "transparent",
+  },
+  creatorAvatarImage: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    display: "block",
+  },
+  creatorAvatarFallback: {
+    color: "var(--text-primary)",
+    fontSize: 17,
+    fontWeight: 1000,
+    textShadow: "0 2px 10px rgba(0,0,0,0.72)",
+  },
+  username: {
+    padding: 0,
+    border: "none",
+    background: "transparent",
+    color: "var(--text-primary)",
+    fontFamily: "inherit",
+    fontSize: 27,
+    fontWeight: 1000,
+    margin: 0,
     letterSpacing: 0,
     lineHeight: 1.02,
+    textAlign: "left",
     textShadow: "0 5px 28px rgba(0,0,0,0.98), 0 1px 2px rgba(0,0,0,1)",
+    WebkitTapHighlightColor: "transparent",
   },
   viewProof: {
     color: "rgba(255,255,255,0.82)",
@@ -2083,8 +2260,13 @@ const styles = {
     marginBottom: 10,
     textShadow: "0 2px 8px rgba(0,0,0,0.95)",
   },
-  description: {
+  descriptionButton: {
+    width: "100%",
+    border: "none",
+    background: "transparent",
+    padding: 0,
     color: "var(--text-primary)",
+    fontFamily: "inherit",
     fontSize: 17,
     lineHeight: 1.35,
     fontWeight: 650,
@@ -2096,6 +2278,25 @@ const styles = {
     WebkitLineClamp: 3,
     WebkitBoxOrient: "vertical",
     overflow: "hidden",
+    textAlign: "left",
+    cursor: "pointer",
+    WebkitTapHighlightColor: "transparent",
+  },
+  descriptionExpanded: {
+    display: "block",
+    overflow: "visible",
+    WebkitLineClamp: "unset",
+    maxHeight: "32vh",
+    overflowY: "auto",
+    paddingRight: 6,
+  },
+  captionToggle: {
+    display: "inline",
+    marginLeft: 6,
+    color: "var(--accent-gold)",
+    fontSize: 13,
+    fontWeight: 900,
+    textShadow: "0 4px 18px rgba(0,0,0,0.96)",
   },
   metaLine: {
     display: "flex",

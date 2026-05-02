@@ -63,18 +63,22 @@ export default function UserProfilePage() {
       }
 
       try {
-        const { collection, query, where, orderBy, onSnapshot } = await import("firebase/firestore");
+        const { collection, query, where, orderBy, onSnapshot, doc, getDoc } = await import("firebase/firestore");
 
         // Check if this is the current user's own profile
         const isOwn = user.uid === userId;
         setIsOwnProfile(isOwn);
 
-        // Get user data (for now, we'll create a basic user object)
-        // In a real app, you'd have a users collection
+        const userDoc = await getDoc(doc(db, "users", userId));
+        const userData = userDoc.exists() ? userDoc.data() : {};
+        const fallbackName = userData.username || userData.email?.split("@")[0] || `user_${userId.slice(0, 8)}`;
         const profileUserData = {
           id: userId,
-          username: `user_${userId.slice(0, 8)}`, // Placeholder username
-          email: `user_${userId.slice(0, 8)}@example.com` // Placeholder email
+          username: userData.username || fallbackName,
+          displayName: userData.displayName || userData.username || fallbackName,
+          bio: userData.bio || "",
+          photoURL: userData.photoURL || userData.profileImageUrl || "",
+          email: userData.email || `${fallbackName}@example.com`
         };
         setProfileUser(profileUserData);
 
@@ -430,7 +434,21 @@ export default function UserProfilePage() {
           margin: "0 auto 18px",
           color: "var(--text-primary)"
         }}>
-          {profileUser.username?.charAt(0).toUpperCase() || "U"}
+          {profileUser.photoURL ? (
+            <img
+              src={profileUser.photoURL}
+              alt={profileUser.displayName || profileUser.username || "Profile"}
+              style={{
+                width: "100%",
+                height: "100%",
+                borderRadius: "50%",
+                objectFit: "cover",
+                display: "block"
+              }}
+            />
+          ) : (
+            profileUser.displayName?.charAt(0).toUpperCase() || profileUser.username?.charAt(0).toUpperCase() || "U"
+          )}
         </div>
 
         <h1 style={{
@@ -442,8 +460,27 @@ export default function UserProfilePage() {
           lineHeight: 1,
           textShadow: "0 10px 34px rgba(0,0,0,0.7)"
         }}>
-          @{profileUser.username}
+          {profileUser.displayName || profileUser.username}
         </h1>
+        <div style={{
+          margin: "-12px 0 12px",
+          color: "var(--text-secondary)",
+          fontSize: 14,
+          fontWeight: 750
+        }}>
+          @{profileUser.username}
+        </div>
+        {profileUser.bio && (
+          <p style={{
+            maxWidth: 420,
+            margin: "0 auto 22px",
+            color: "rgba(255,255,255,0.78)",
+            fontSize: 14,
+            lineHeight: 1.55
+          }}>
+            {profileUser.bio}
+          </p>
+        )}
 
         <div style={{
           display: "flex",

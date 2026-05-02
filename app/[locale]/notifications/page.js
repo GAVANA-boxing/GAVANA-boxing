@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   collection,
   doc,
+  getDoc,
   onSnapshot,
   query,
   updateDoc,
@@ -20,6 +21,18 @@ function getActorName(notification) {
 
 function getActorId(notification) {
   return notification.fromUserId || notification.actorId;
+}
+
+function getActorPhoto(notification, actorProfile) {
+  return (
+    notification.fromUserPhotoURL ||
+    notification.actorPhotoURL ||
+    actorProfile?.photoURL ||
+    actorProfile?.profileImageUrl ||
+    actorProfile?.profileImage ||
+    actorProfile?.avatarUrl ||
+    ""
+  );
 }
 
 function getNotificationText(notification, locale) {
@@ -109,6 +122,8 @@ export default function NotificationsPage() {
   const router = useRouter();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [actorProfiles, setActorProfiles] = useState({});
+  const actorProfileRequests = useRef(new Set());
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -165,6 +180,58 @@ export default function NotificationsPage() {
       unsubscribe();
     };
   }, [authLoading, user?.uid]);
+
+  useEffect(() => {
+    if (!notifications.length) return;
+
+    let isActive = true;
+    const missingActorIds = [...new Set(
+      notifications
+        .filter((notification) => !notification.fromUserPhotoURL && !notification.actorPhotoURL)
+        .map((notification) => getActorId(notification))
+        .filter((actorId) => actorId && !actorProfiles[actorId] && !actorProfileRequests.current.has(actorId))
+    )];
+
+    if (!missingActorIds.length) return;
+
+    async function loadMissingActorProfiles() {
+      await Promise.all(missingActorIds.map(async (actorId) => {
+        actorProfileRequests.current.add(actorId);
+
+        try {
+          const actorSnap = await getDoc(doc(db, "users", actorId));
+          const actorData = actorSnap.exists() ? actorSnap.data() : {};
+
+          if (!isActive) return;
+
+          setActorProfiles((prev) => ({
+            ...prev,
+            [actorId]: {
+              photoURL: actorData.photoURL || "",
+              profileImageUrl: actorData.profileImageUrl || "",
+              profileImage: actorData.profileImage || "",
+              avatarUrl: actorData.avatarUrl || "",
+            },
+          }));
+        } catch (error) {
+          console.error("Failed to load notification actor profile:", error);
+
+          if (!isActive) return;
+
+          setActorProfiles((prev) => ({
+            ...prev,
+            [actorId]: {},
+          }));
+        }
+      }));
+    }
+
+    loadMissingActorProfiles();
+
+    return () => {
+      isActive = false;
+    };
+  }, [notifications, actorProfiles]);
 
   const unreadCount = useMemo(() => {
     return notifications.filter((notification) => notification.read === false).length;
@@ -246,6 +313,8 @@ export default function NotificationsPage() {
                 <div style={styles.groupTitle}>{group}</div>
                 {groupedNotifications[group].map((notification) => {
                   const actor = getActorName(notification);
+                  const actorId = getActorId(notification);
+                  const actorPhoto = getActorPhoto(notification, actorProfiles[actorId]);
 
                   return (
                     <button
@@ -257,7 +326,11 @@ export default function NotificationsPage() {
                       onClick={() => handleOpenNotification(notification)}
                     >
                       <div style={styles.avatar}>
-                        {actor.charAt(0).toUpperCase()}
+                        {actorPhoto ? (
+                          <img src={actorPhoto} alt="" style={styles.avatarImage} />
+                        ) : (
+                          actor.charAt(0).toUpperCase()
+                        )}
                       </div>
                       <div style={styles.notificationBody}>
                         <div style={styles.notificationTopLine}>
@@ -447,6 +520,14 @@ const styles = {
     justifyContent: "center",
     fontWeight: 900,
     boxShadow: "0 0 24px rgba(193,18,31,0.22)",
+    overflow: "hidden",
+    flexShrink: 0,
+  },
+  avatarImage: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    display: "block",
   },
   notificationBody: {
     minWidth: 0,
