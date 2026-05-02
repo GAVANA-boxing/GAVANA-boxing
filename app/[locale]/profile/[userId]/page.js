@@ -8,6 +8,18 @@ import { auth, db } from "@/lib/firebase";
 import { createNotification } from "@/lib/notifications";
 import { getLocale, translate } from "@/lib/i18n";
 
+function getSafeReelLikes(reel) {
+  const fieldLikes = typeof reel.likes === "number" && !Number.isNaN(reel.likes)
+    ? reel.likes
+    : reel.likesCount;
+
+  if (typeof fieldLikes !== "number" || Number.isNaN(fieldLikes)) {
+    return 0;
+  }
+
+  return Math.max(0, fieldLikes);
+}
+
 export default function UserProfilePage() {
   const { user, loading: authLoading } = useAuth();
   const params = useParams();
@@ -21,7 +33,6 @@ export default function UserProfilePage() {
   const [profileTab, setProfileTab] = useState("posts");
   const [loading, setLoading] = useState(true);
   const [totalLikes, setTotalLikes] = useState(0);
-  const [reelLikes, setReelLikes] = useState({});
   const [stats, setStats] = useState({ followers: 0, following: 0 });
   const [isFollowing, setIsFollowing] = useState(false);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
@@ -39,6 +50,9 @@ export default function UserProfilePage() {
 
   // Load profile data
   useEffect(() => {
+    let unsubscribeReels = null;
+    let isActive = true;
+
     async function loadUserProfile() {
       if (authLoading) return;
 
@@ -48,7 +62,7 @@ export default function UserProfilePage() {
       }
 
       try {
-        const { collection, query, where, getDocs, orderBy, doc, getDoc } = await import("firebase/firestore");
+        const { collection, query, where, orderBy, onSnapshot } = await import("firebase/firestore");
 
         // Check if this is the current user's own profile
         const isOwn = user.uid === userId;
@@ -63,43 +77,31 @@ export default function UserProfilePage() {
         };
         setProfileUser(profileUserData);
 
-        // Get user's reels
+        // Listen to user's reels so likes update in real time from the reel document.
         const reelsQuery = query(
           collection(db, "reels"),
           where("userId", "==", userId),
           orderBy("createdAt", "desc")
         );
-        const reelsSnapshot = await getDocs(reelsQuery);
-        const reelsData = reelsSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
 
-        setUserReels(reelsData);
+        unsubscribeReels = onSnapshot(reelsQuery, (reelsSnapshot) => {
+          if (!isActive) return;
+          const reelsData = reelsSnapshot.docs.map((reelDoc) => ({
+            id: reelDoc.id,
+            ...reelDoc.data()
+          }));
+          setUserReels(reelsData);
+          setTotalLikes(reelsData.reduce((sum, reel) => sum + getSafeReelLikes(reel), 0));
+          setLoading(false);
+        }, (error) => {
+          if (!isActive) return;
+          console.error("Error listening to profile reels:", error);
+          setUserReels([]);
+          setTotalLikes(0);
+          setLoading(false);
+        });
 
-        // Load likes for each reel
-        await loadReelLikes(reelsData);
         await loadSavedReels(userId);
-
-        // Calculate total likes by counting user_likes for this user's reels
-        const reelIds = reelsData.map(reel => reel.id);
-        let totalLikesCount = 0;
-
-        if (reelIds.length > 0) {
-          // Handle Firestore 'in' query limit of 10 by batching
-          const batchSize = 10;
-          for (let i = 0; i < reelIds.length; i += batchSize) {
-            const batchIds = reelIds.slice(i, i + batchSize);
-            const likesQuery = query(
-              collection(db, "user_likes"),
-              where("reelId", "in", batchIds)
-            );
-            const likesSnapshot = await getDocs(likesQuery);
-            totalLikesCount += likesSnapshot.size;
-          }
-        }
-
-        setTotalLikes(totalLikesCount);
 
         // Load followers/following counts
         await loadFollowStats(userId);
@@ -111,47 +113,22 @@ export default function UserProfilePage() {
 
       } catch (error) {
         console.error("Error loading profile:", error);
-      } finally {
-        setLoading(false);
+        if (isActive) {
+          setLoading(false);
+        }
       }
     }
 
+    setLoading(true);
     loadUserProfile();
-  }, [user, userId, authLoading]);
 
-  // Load likes for reels
-  const loadReelLikes = async (reels) => {
-    if (!user?.uid) return;
-    if (reels.length === 0) return;
-
-    try {
-      const { collection, query, where, getDocs } = await import("firebase/firestore");
-
-      const reelIds = reels.map(reel => reel.id);
-      const likesMap = {};
-
-      // Handle Firestore 'in' query limit of 10 by batching
-      const batchSize = 10;
-      for (let i = 0; i < reelIds.length; i += batchSize) {
-        const batchIds = reelIds.slice(i, i + batchSize);
-        const likesQuery = query(
-          collection(db, "user_likes"),
-          where("reelId", "in", batchIds)
-        );
-        const likesSnapshot = await getDocs(likesQuery);
-
-        // Count likes for each reel in this batch
-        batchIds.forEach(reelId => {
-          const reelLikes = likesSnapshot.docs.filter(doc => doc.data().reelId === reelId).length;
-          likesMap[reelId] = reelLikes;
-        });
+    return () => {
+      isActive = false;
+      if (unsubscribeReels) {
+        unsubscribeReels();
       }
-
-      setReelLikes(likesMap);
-    } catch (error) {
-      console.error("Error loading reel likes:", error);
-    }
-  };
+    };
+  }, [user, userId, authLoading]);
 
   const loadSavedReels = async (targetUserId) => {
     if (!user?.uid || user.uid !== targetUserId) {
@@ -189,7 +166,6 @@ export default function UserProfilePage() {
       }
 
       setSavedUserReels(savedReels);
-      await loadReelLikes(savedReels);
     } catch (error) {
       console.error("Error loading saved reels:", error);
       setSavedUserReels([]);
@@ -546,6 +522,7 @@ export default function UserProfilePage() {
             const videoFailed = previewFailures[`${reel.id}:video`];
             const showImage = reel.thumbnailUrl && !imageFailed;
             const showVideo = !showImage && reel.videoUrl && !videoFailed;
+            const likeCount = getSafeReelLikes(reel);
 
             return (
               <div
@@ -609,7 +586,7 @@ export default function UserProfilePage() {
                 textShadow: "0 2px 8px rgba(0,0,0,0.9)"
               }}>
                 <div style={{ fontWeight: 800, marginBottom: 3 }}>
-                  {reelLikes[reel.id] || 0} {t("likes")}
+                  {likeCount} {t("likes")}
                 </div>
                 <div style={{
                   overflow: "hidden",
