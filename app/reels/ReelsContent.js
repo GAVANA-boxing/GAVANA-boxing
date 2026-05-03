@@ -227,7 +227,7 @@ export default function ReelsContent() {
   const [followingIds, setFollowingIds] = useState(new Set());
   const [savedReels, setSavedReels] = useState(new Set());
   const [creatorProfiles, setCreatorProfiles] = useState({});
-  const [expandedCaptionIds, setExpandedCaptionIds] = useState(new Set());
+  const [expandedCaptionIds, setExpandedCaptionIds] = useState(new Set()); // kept for compat
   const [videoLoading, setVideoLoading] = useState({});
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState([]);
@@ -294,14 +294,16 @@ export default function ReelsContent() {
     });
   }, [reels, targetReelId]);
 
-  // Load profile-source progress: user's training history on the target reel
+  // Load profile-source progress for current reel
+  const currentReelId = reels[currentIndex]?.id || null;
   useEffect(() => {
-    if (!isProfileSource || !profileSourceUserId || !targetReelId) {
+    if (!isProfileSource || !profileSourceUserId || !currentReelId) {
       setProfileReelProgress(null);
       return;
     }
 
     let isActive = true;
+    setProfileReelProgress(null); // reset while loading
 
     async function loadProgress() {
       try {
@@ -310,7 +312,7 @@ export default function ReelsContent() {
         const snap = await getDocs(query(
           collection(db, "training_sessions"),
           where("userId", "==", profileSourceUserId),
-          where("reelId", "==", targetReelId)
+          where("reelId", "==", currentReelId)
         ));
 
         if (!isActive) return;
@@ -349,7 +351,7 @@ export default function ReelsContent() {
 
     loadProgress();
     return () => { isActive = false; };
-  }, [isProfileSource, profileSourceUserId, targetReelId]);
+  }, [isProfileSource, profileSourceUserId, currentReelId]);
 
   useEffect(() => {
     if (!reels.length) return;
@@ -1656,8 +1658,6 @@ export default function ReelsContent() {
           const creatorPhoto = getCreatorPhoto(creatorProfile);
           const creatorInitial = creatorName.charAt(0).toUpperCase() || "U";
           const captionText = cleanCaption(reel.description || reel.caption || "");
-          const isCaptionExpanded = expandedCaptionIds.has(reel.id);
-          const canExpandCaption = captionText.length > 60;
           const stats = reel.userId ? creatorStats[reel.userId] : null;
           const hasBestScore = typeof stats?.bestScore === "number" && Number.isFinite(stats.bestScore) && stats.bestScore > 0;
           const metrics = [
@@ -1769,10 +1769,12 @@ export default function ReelsContent() {
             <div style={styles.vignette} />
             <div style={styles.bottomGradient} />
 
-            {isProfileSource && index === currentIndex && reel.id === targetReelId && (
+            {isProfileSource && index === currentIndex && !reel.isDemo && (
               <div style={styles.profileProgressCard}>
                 <span style={styles.profileProgressTitle}>{t("reelProgressTitle")}</span>
-                {profileReelProgress === null ? null : profileReelProgress?.empty ? (
+                {profileReelProgress === null ? (
+                  <span style={{ ...styles.profileProgressEmpty, opacity: 0.4 }}>…</span>
+                ) : profileReelProgress.empty ? (
                   <span style={styles.profileProgressEmpty}>{t("reelNoAttempts")}</span>
                 ) : (
                   <div style={styles.profileProgressStats}>
@@ -1796,7 +1798,7 @@ export default function ReelsContent() {
             )}
 
             <div style={styles.info}>
-              {!reel.isDemo && (typeof stats?.xp === "number" || hasBestScore || stats?.rank) && (
+              {!reel.isDemo && !isProfileSource && (typeof stats?.xp === "number" || hasBestScore || stats?.rank) && (
                 <div style={styles.metricsChips}>
                   {typeof stats?.xp === "number" && (
                     <span style={styles.metricChip}>{stats.xp.toLocaleString()} {t("reels.xp")}</span>
@@ -1845,28 +1847,8 @@ export default function ReelsContent() {
                 </div>
               </div>
               {captionText && (
-                <div style={styles.captionWrap}>
-                  <div
-                    style={{
-                      ...styles.descriptionButton,
-                      ...(isCaptionExpanded ? styles.descriptionExpanded : {}),
-                      cursor: canExpandCaption ? "pointer" : "default",
-                    }}
-                    role={canExpandCaption ? "button" : undefined}
-                    tabIndex={canExpandCaption ? 0 : undefined}
-                    onClick={() => canExpandCaption && toggleCaption(reel.id)}
-                  >
-                    {captionText}
-                  </div>
-                  {canExpandCaption && (
-                    <button
-                      type="button"
-                      style={styles.captionToggleBtn}
-                      onClick={() => toggleCaption(reel.id)}
-                    >
-                      {getCaptionToggleLabel(currentLocale, isCaptionExpanded)}
-                    </button>
-                  )}
+                <div style={styles.descriptionLine}>
+                  {captionText}
                 </div>
               )}
               <div style={styles.metaLine}>
@@ -2908,58 +2890,18 @@ const styles = {
     marginBottom: 10,
     textShadow: "0 2px 8px rgba(0,0,0,0.95)",
   },
-  captionWrap: {
+  descriptionLine: {
     marginBottom: 8,
-  },
-  descriptionButton: {
-    width: "100%",
-    border: "none",
-    background: "transparent",
-    paddingTop: 0,
-    paddingBottom: 0,
-    paddingLeft: 0,
-    paddingRight: 0,
     color: "var(--text-primary)",
-    fontFamily: "inherit",
-    fontSize: 14,
-    lineHeight: 1.4,
+    fontSize: 13,
+    lineHeight: 1.35,
     fontWeight: 500,
-    marginBottom: 0,
     maxWidth: 500,
     textShadow: "0 4px 22px rgba(0,0,0,0.96), 0 1px 2px rgba(0,0,0,1)",
     letterSpacing: 0,
-    display: "-webkit-box",
-    WebkitLineClamp: 2,
-    WebkitBoxOrient: "vertical",
     overflow: "hidden",
-    textAlign: "left",
-    WebkitTapHighlightColor: "transparent",
-  },
-  descriptionExpanded: {
-    display: "block",
-    overflow: "auto",
-    WebkitLineClamp: "unset",
-    maxHeight: "28vh",
-    paddingRight: 4,
-  },
-  captionToggleBtn: {
-    display: "inline-flex",
-    alignItems: "center",
-    marginTop: 3,
-    paddingTop: 0,
-    paddingBottom: 0,
-    paddingLeft: 0,
-    paddingRight: 0,
-    border: "none",
-    background: "transparent",
-    color: "var(--accent-gold)",
-    fontFamily: "inherit",
-    fontSize: 12,
-    fontWeight: 900,
-    letterSpacing: 0.2,
-    cursor: "pointer",
-    textShadow: "0 3px 14px rgba(0,0,0,0.96)",
-    WebkitTapHighlightColor: "transparent",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
   },
   metaLine: {
     display: "flex",

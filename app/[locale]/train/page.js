@@ -119,6 +119,8 @@ export default function TrainPage() {
   const [reelId, setReelId] = useState(null);
   const [challengeId, setChallengeId] = useState(null);
   const [targetScore, setTargetScore] = useState(null);
+  const [trainSource, setTrainSource] = useState(null);
+  const [trainSourceUserId, setTrainSourceUserId] = useState(null);
   const [challengeSaving, setChallengeSaving] = useState(false);
   const [challengeSaved, setChallengeSaved] = useState(false);
   const [challengeSaveMessage, setChallengeSaveMessage] = useState("");
@@ -167,6 +169,15 @@ export default function TrainPage() {
   };
 
   const goToReels = () => {
+    if (reelId) {
+      const params = new URLSearchParams({ reelId });
+      if (trainSource === "profile" && trainSourceUserId) {
+        params.set("source", "profile");
+        params.set("userId", trainSourceUserId);
+      }
+      router.push(`/${locale}/reels?${params.toString()}`);
+      return;
+    }
     router.push(`/${locale}/reels`);
   };
 
@@ -179,6 +190,8 @@ export default function TrainPage() {
     const params = new URLSearchParams(window.location.search);
     setReelId(params.get("reelId") || null);
     setChallengeId(params.get("challengeId") || null);
+    setTrainSource(params.get("source") || null);
+    setTrainSourceUserId(params.get("userId") || null);
     const parsedTargetScore = Number(params.get("score") || params.get("targetScore"));
     setTargetScore(Number.isFinite(parsedTargetScore) && parsedTargetScore > 0 ? parsedTargetScore : null);
   }, []);
@@ -496,6 +509,29 @@ export default function TrainPage() {
       "Keep going!", "Power! 💪", "Speed up!", "Snap it!", "Nice jab!", "Stay tight!",
     ];
 
+    function playPunchSound() {
+      try {
+        const ctx = audioCtxRef.current;
+        if (!ctx) return;
+        if (ctx.state === "suspended") ctx.resume();
+        const now = ctx.currentTime;
+        // Low thud: sine oscillator 180→60 Hz over 70ms
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.exponentialRampToValueAtTime(60, now + 0.07);
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+        osc.start(now);
+        osc.stop(now + 0.08);
+      } catch (e) {
+        // Fail silently
+      }
+    }
+
     function scheduleHit() {
       const delay = 400 + Math.floor(Math.random() * 501);
       hitTimerRef.current = window.setTimeout(() => {
@@ -506,6 +542,10 @@ export default function TrainPage() {
         setHitCount((c) => c + 1);
         setIsFlashing(true);
         window.setTimeout(() => setIsFlashing(false), 130);
+        if (typeof navigator !== "undefined" && navigator.vibrate) {
+          navigator.vibrate(30);
+        }
+        playPunchSound();
         const id = Date.now();
         const feedbackKey = milestoneMap[nextHitCount] || feedbackKeys[Math.floor(Math.random() * feedbackKeys.length)];
         const text = t(feedbackKey);
@@ -524,6 +564,21 @@ export default function TrainPage() {
   }, [phase, t, triggerImpact]);
 
   const handleStart = () => {
+    // Warm up AudioContext on direct user interaction so browsers allow sound
+    try {
+      if (typeof window !== "undefined") {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          if (!audioCtxRef.current || audioCtxRef.current.state === "closed") {
+            audioCtxRef.current = new AudioCtx();
+          } else if (audioCtxRef.current.state === "suspended") {
+            audioCtxRef.current.resume();
+          }
+        }
+      }
+    } catch (e) {
+      // Fail silently
+    }
     setError("");
     setResult(null);
     setSaved(false);
