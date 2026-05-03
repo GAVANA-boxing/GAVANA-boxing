@@ -8,6 +8,7 @@ import DailyMission from "@/components/DailyMission";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
+import { getCurrentSeasonId } from "@/lib/season";
 import { calculateChallengeXP, calculateUserXP, getFighterRank, getRankProgress } from "@/lib/xp";
 
 const RECORD_SECONDS = 10;
@@ -529,6 +530,7 @@ export default function TrainPage() {
           baseXP: xpGained,
           streakBonusXP,
           challengeStreak: nextStreak,
+          seasonId: getCurrentSeasonId(),
           createdAt: serverTimestamp(),
           locale,
         });

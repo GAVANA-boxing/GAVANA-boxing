@@ -10,6 +10,7 @@ import { getLocale, translate } from "@/lib/i18n";
 import { RANK_TIERS, calculateSessionXP, calculateUserXP, getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
 import RankIcon from "@/components/RankIcon";
 import RankUpModal from "@/components/RankUpModal";
+import { getCurrentSeasonId } from "@/lib/season";
 
 function getSafeReelLikes(reel) {
   const fieldLikes = typeof reel.likes === "number" && !Number.isNaN(reel.likes)
@@ -310,6 +311,8 @@ export default function UserProfilePage() {
   const [showStreakModal, setShowStreakModal] = useState(false);
   const [showRankModal, setShowRankModal] = useState(false);
   const [dailyMissionData, setDailyMissionData] = useState(null);
+  const [challengeRanks, setChallengeRanks] = useState(null);
+  const [showWeeklyModal, setShowWeeklyModal] = useState(false);
   const rankUpShownRef = useRef(false);
 
   // Redirect if not logged in
@@ -542,6 +545,74 @@ export default function UserProfilePage() {
     loadDailyMission();
     return () => { active = false; };
   }, [authLoading, user?.uid, userId]);
+
+  // Load challenge ranks — weekly + all-time rank for this profile
+  useEffect(() => {
+    if (!userId) return;
+    let active = true;
+
+    async function loadChallengeRanks() {
+      try {
+        const { collection, getDocs } = await import("firebase/firestore");
+        const snap = await getDocs(collection(db, "challenge_results"));
+        if (!active) return;
+
+        const currentSeasonId = getCurrentSeasonId();
+
+        // Collect all results
+        const allResults = [];
+        snap.forEach((docSnap) => {
+          const d = docSnap.data();
+          if (d.userId && d.score != null) {
+            allResults.push({
+              userId: d.userId,
+              score: Number(d.score),
+              seasonId: d.seasonId || null,
+            });
+          }
+        });
+
+        // Weekly: filter by current season, dedupe per user (best score)
+        const weeklyByUser = {};
+        for (const r of allResults) {
+          if (r.seasonId !== currentSeasonId) continue;
+          const score = r.score;
+          if (Number.isNaN(score)) continue;
+          if (!weeklyByUser[r.userId] || score > weeklyByUser[r.userId]) {
+            weeklyByUser[r.userId] = score;
+          }
+        }
+        const weeklySorted = Object.entries(weeklyByUser)
+          .sort((a, b) => b[1] - a[1]);
+        const weeklyRankIdx = weeklySorted.findIndex(([uid]) => uid === userId);
+        const weeklyRank = weeklyRankIdx >= 0 ? weeklyRankIdx + 1 : null;
+        const bestWeeklyScore = weeklyByUser[userId] ?? null;
+
+        // All-time: dedupe per user (best score across all results)
+        const allTimeByUser = {};
+        for (const r of allResults) {
+          const score = r.score;
+          if (Number.isNaN(score)) continue;
+          if (!allTimeByUser[r.userId] || score > allTimeByUser[r.userId]) {
+            allTimeByUser[r.userId] = score;
+          }
+        }
+        const allTimeSorted = Object.entries(allTimeByUser)
+          .sort((a, b) => b[1] - a[1]);
+        const allTimeRankIdx = allTimeSorted.findIndex(([uid]) => uid === userId);
+        const allTimeRank = allTimeRankIdx >= 0 ? allTimeRankIdx + 1 : null;
+
+        if (active) {
+          setChallengeRanks({ weeklyRank, allTimeRank, bestWeeklyScore, currentSeasonId });
+        }
+      } catch (e) {
+        if (active) setChallengeRanks(null);
+      }
+    }
+
+    loadChallengeRanks();
+    return () => { active = false; };
+  }, [userId]);
 
   // Detect rank-up during session — own profile only
   useEffect(() => {
@@ -1106,6 +1177,59 @@ export default function UserProfilePage() {
           </div>
         </div>
 
+        {/* Weekly season achievement card */}
+        {challengeRanks && (challengeRanks.weeklyRank || challengeRanks.allTimeRank) && (
+          <button
+            type="button"
+            style={styles.weeklySeasonCard}
+            onClick={() => setShowWeeklyModal(true)}
+          >
+            {challengeRanks.weeklyRank && challengeRanks.weeklyRank <= 3 && (
+              <div style={styles.weeklyBadgeRow}>
+                <span style={styles.weeklyBadgeEmoji}>
+                  {challengeRanks.weeklyRank === 1 ? "🥇" : challengeRanks.weeklyRank === 2 ? "🥈" : "🥉"}
+                </span>
+                <span style={{
+                  ...styles.weeklyBadgeLabel,
+                  color: challengeRanks.weeklyRank === 1 ? "#D4AF37" : challengeRanks.weeklyRank === 2 ? "#9CA3AF" : "#FB923C",
+                }}>
+                  {challengeRanks.weeklyRank === 1
+                    ? t("weeklyChampionBadge")
+                    : challengeRanks.weeklyRank === 2
+                    ? t("weeklySilverBadge")
+                    : t("weeklyBronzeBadge")}
+                </span>
+              </div>
+            )}
+            <div style={styles.weeklyRankRow}>
+              {challengeRanks.weeklyRank && (
+                <div style={styles.weeklyRankItem}>
+                  <span style={styles.weeklyRankNum}>#{challengeRanks.weeklyRank}</span>
+                  <span style={styles.weeklyRankLbl}>{t("seasonCurrentWeek")}</span>
+                </div>
+              )}
+              {challengeRanks.weeklyRank && challengeRanks.allTimeRank && (
+                <div style={styles.weeklyRankDivider} />
+              )}
+              {challengeRanks.allTimeRank && (
+                <div style={styles.weeklyRankItem}>
+                  <span style={styles.weeklyRankNum}>#{challengeRanks.allTimeRank}</span>
+                  <span style={styles.weeklyRankLbl}>{t("seasonAllTime")}</span>
+                </div>
+              )}
+              {challengeRanks.bestWeeklyScore != null && (
+                <>
+                  <div style={styles.weeklyRankDivider} />
+                  <div style={styles.weeklyRankItem}>
+                    <span style={{ ...styles.weeklyRankNum, color: "#D4AF37" }}>{challengeRanks.bestWeeklyScore}/10</span>
+                    <span style={styles.weeklyRankLbl}>{t("seasonBestWeeklyScore")}</span>
+                  </div>
+                </>
+              )}
+            </div>
+          </button>
+        )}
+
         {profileUser.bio && (
           <p style={styles.bio}>
             {profileUser.bio}
@@ -1651,6 +1775,63 @@ export default function UserProfilePage() {
           t={t}
           onClose={() => setShowRankModal(false)}
         />
+      )}
+
+      {showWeeklyModal && challengeRanks && (
+        <div style={styles.modalOverlay} onClick={() => setShowWeeklyModal(false)}>
+          <div style={styles.weeklyModalSheet} onClick={(e) => e.stopPropagation()}>
+            <div style={styles.weeklyModalHandle} />
+            <div style={styles.weeklyModalHeader}>
+              <span style={styles.weeklyModalTitle}>🏆 {t("weeklySeasonModalTitle")}</span>
+              <button type="button" style={styles.weeklyModalClose} onClick={() => setShowWeeklyModal(false)}>✕</button>
+            </div>
+
+            {challengeRanks.weeklyRank && challengeRanks.weeklyRank <= 3 && (
+              <div style={styles.weeklyModalBadgeBlock}>
+                <div style={styles.weeklyModalBadgeEmoji}>
+                  {challengeRanks.weeklyRank === 1 ? "🥇" : challengeRanks.weeklyRank === 2 ? "🥈" : "🥉"}
+                </div>
+                <div style={{
+                  ...styles.weeklyModalBadgeName,
+                  color: challengeRanks.weeklyRank === 1 ? "#D4AF37" : challengeRanks.weeklyRank === 2 ? "#9CA3AF" : "#FB923C",
+                }}>
+                  {challengeRanks.weeklyRank === 1
+                    ? t("weeklyChampionBadge")
+                    : challengeRanks.weeklyRank === 2
+                    ? t("weeklySilverBadge")
+                    : t("weeklyBronzeBadge")}
+                </div>
+              </div>
+            )}
+
+            <div style={styles.weeklyModalStats}>
+              {challengeRanks.weeklyRank && (
+                <div style={styles.weeklyModalStat}>
+                  <span style={styles.weeklyModalStatVal}>#{challengeRanks.weeklyRank}</span>
+                  <span style={styles.weeklyModalStatLbl}>{t("seasonCurrentWeek")}</span>
+                </div>
+              )}
+              {challengeRanks.bestWeeklyScore != null && (
+                <div style={styles.weeklyModalStat}>
+                  <span style={{ ...styles.weeklyModalStatVal, color: "#D4AF37" }}>{challengeRanks.bestWeeklyScore}/10</span>
+                  <span style={styles.weeklyModalStatLbl}>{t("seasonBestWeeklyScore")}</span>
+                </div>
+              )}
+              {challengeRanks.allTimeRank && (
+                <div style={styles.weeklyModalStat}>
+                  <span style={styles.weeklyModalStatVal}>#{challengeRanks.allTimeRank}</span>
+                  <span style={styles.weeklyModalStatLbl}>{t("seasonAllTime")}</span>
+                </div>
+              )}
+            </div>
+
+            <p style={styles.weeklyModalDesc}>{t("weeklySeasonModalDesc")}</p>
+
+            <button type="button" style={styles.weeklyModalBtn} onClick={() => { setShowWeeklyModal(false); router.push(`/${locale}/challenges`); }}>
+              {t("weeklySeasonModalCta")}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -2547,5 +2728,168 @@ const styles = {
     fontSize: 10,
     color: "#FB923C",
     fontWeight: 700,
+  },
+  weeklySeasonCard: {
+    width: "100%",
+    background: "rgba(212,175,55,0.08)",
+    border: "1px solid rgba(212,175,55,0.28)",
+    borderRadius: 14,
+    padding: "12px 16px",
+    marginTop: 14,
+    cursor: "pointer",
+    textAlign: "left",
+  },
+  weeklyBadgeRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 8,
+  },
+  weeklyBadgeEmoji: {
+    fontSize: 18,
+    lineHeight: 1,
+  },
+  weeklyBadgeLabel: {
+    fontSize: 12,
+    fontWeight: 900,
+    letterSpacing: 0.5,
+  },
+  weeklyRankRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+  },
+  weeklyRankItem: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 2,
+  },
+  weeklyRankNum: {
+    fontSize: 16,
+    fontWeight: 900,
+    color: "#fff",
+    lineHeight: 1,
+  },
+  weeklyRankLbl: {
+    fontSize: 9,
+    color: "#888",
+    fontWeight: 700,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  weeklyRankDivider: {
+    width: 1,
+    height: 28,
+    background: "rgba(255,255,255,0.12)",
+  },
+  modalOverlay: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.7)",
+    zIndex: 200,
+    display: "flex",
+    alignItems: "flex-end",
+  },
+  weeklyModalSheet: {
+    width: "100%",
+    background: "#111",
+    borderRadius: "18px 18px 0 0",
+    padding: "20px 20px 40px",
+    maxHeight: "60vh",
+    overflowY: "auto",
+  },
+  weeklyModalHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 99,
+    background: "rgba(255,255,255,0.18)",
+    margin: "0 auto 16px",
+  },
+  weeklyModalHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  weeklyModalTitle: {
+    fontSize: 16,
+    fontWeight: 900,
+    color: "#fff",
+  },
+  weeklyModalClose: {
+    background: "transparent",
+    border: "none",
+    color: "#888",
+    fontSize: 18,
+    cursor: "pointer",
+    padding: "4px 8px",
+  },
+  weeklyModalBadgeBlock: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 20,
+    padding: "16px 0",
+    background: "rgba(212,175,55,0.06)",
+    borderRadius: 12,
+    border: "1px solid rgba(212,175,55,0.2)",
+  },
+  weeklyModalBadgeEmoji: {
+    fontSize: 44,
+    lineHeight: 1,
+  },
+  weeklyModalBadgeName: {
+    fontSize: 16,
+    fontWeight: 900,
+    letterSpacing: 0.5,
+  },
+  weeklyModalStats: {
+    display: "flex",
+    justifyContent: "space-around",
+    gap: 12,
+    marginBottom: 16,
+    padding: "14px 12px",
+    background: "rgba(255,255,255,0.04)",
+    borderRadius: 12,
+  },
+  weeklyModalStat: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 4,
+  },
+  weeklyModalStatVal: {
+    fontSize: 22,
+    fontWeight: 900,
+    color: "#fff",
+    lineHeight: 1,
+  },
+  weeklyModalStatLbl: {
+    fontSize: 10,
+    color: "#888",
+    fontWeight: 700,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  weeklyModalDesc: {
+    margin: "0 0 16px",
+    fontSize: 13,
+    color: "#888",
+    lineHeight: 1.55,
+    textAlign: "center",
+  },
+  weeklyModalBtn: {
+    width: "100%",
+    padding: "14px 0",
+    borderRadius: 12,
+    background: "linear-gradient(135deg, #C1121F, #9B0D18)",
+    border: "none",
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: 900,
+    cursor: "pointer",
+    letterSpacing: 0.5,
   },
 };
