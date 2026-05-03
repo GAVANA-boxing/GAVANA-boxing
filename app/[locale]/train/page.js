@@ -84,6 +84,8 @@ export default function TrainPage() {
   const [reelId, setReelId] = useState(null);
   const [challengeId, setChallengeId] = useState(null);
   const [targetScore, setTargetScore] = useState(null);
+  const [trainSource, setTrainSource] = useState(null);
+  const [trainSourceUserId, setTrainSourceUserId] = useState(null);
   const [challengeSaving, setChallengeSaving] = useState(false);
   const [challengeSaved, setChallengeSaved] = useState(false);
   const [error, setError] = useState("");
@@ -113,6 +115,15 @@ export default function TrainPage() {
   };
 
   const goToReels = () => {
+    if (reelId) {
+      const params = new URLSearchParams({ reelId });
+      if (trainSource === "profile" && trainSourceUserId) {
+        params.set("source", "profile");
+        params.set("userId", trainSourceUserId);
+      }
+      router.push(`/${locale}/reels?${params.toString()}`);
+      return;
+    }
     router.push(`/${locale}/reels`);
   };
 
@@ -125,6 +136,8 @@ export default function TrainPage() {
     const params = new URLSearchParams(window.location.search);
     setReelId(params.get("reelId") || null);
     setChallengeId(params.get("challengeId") || null);
+    setTrainSource(params.get("source") || null);
+    setTrainSourceUserId(params.get("userId") || null);
     const parsedTargetScore = Number(params.get("score") || params.get("targetScore"));
     setTargetScore(Number.isFinite(parsedTargetScore) && parsedTargetScore > 0 ? parsedTargetScore : null);
   }, []);
@@ -307,25 +320,24 @@ export default function TrainPage() {
 
     function playPunchSound() {
       try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return;
-        if (!audioCtxRef.current) audioCtxRef.current = new AudioCtx();
         const ctx = audioCtxRef.current;
+        if (!ctx) return;
         if (ctx.state === "suspended") ctx.resume();
-        const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.09), ctx.sampleRate);
-        const data = buf.getChannelData(0);
-        for (let i = 0; i < data.length; i++) {
-          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.018));
-        }
-        const src = ctx.createBufferSource();
-        src.buffer = buf;
+        const now = ctx.currentTime;
+        // Low thud: sine oscillator 180→60 Hz over 70ms
+        const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        gain.gain.value = 0.28;
-        src.connect(gain);
+        osc.connect(gain);
         gain.connect(ctx.destination);
-        src.start();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.exponentialRampToValueAtTime(60, now + 0.07);
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+        osc.start(now);
+        osc.stop(now + 0.08);
       } catch (e) {
-        // Fail silently — browser may restrict audio
+        // Fail silently
       }
     }
 
@@ -359,6 +371,21 @@ export default function TrainPage() {
   }, [phase]);
 
   const handleStart = () => {
+    // Warm up AudioContext on direct user interaction so browsers allow sound
+    try {
+      if (typeof window !== "undefined") {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          if (!audioCtxRef.current || audioCtxRef.current.state === "closed") {
+            audioCtxRef.current = new AudioCtx();
+          } else if (audioCtxRef.current.state === "suspended") {
+            audioCtxRef.current.resume();
+          }
+        }
+      }
+    } catch (e) {
+      // Fail silently
+    }
     setError("");
     setResult(null);
     setSaved(false);
