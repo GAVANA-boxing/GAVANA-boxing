@@ -261,8 +261,12 @@ const styles = {
   label: {
     fontSize: 9,
     lineHeight: 1,
-    letterSpacing: 1.5,
+    letterSpacing: 0.4,
     fontWeight: 700,
+    maxWidth: "100%",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
   },
   indicator: {
     width: 4,
@@ -308,8 +312,12 @@ const styles = {
     color: "#444",
     fontSize: 9,
     lineHeight: 1,
-    letterSpacing: 1.5,
+    letterSpacing: 0.4,
     fontWeight: 700,
+    maxWidth: "100%",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
   },
   badge: {
     position: "absolute",
