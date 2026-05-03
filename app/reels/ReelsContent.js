@@ -130,7 +130,22 @@ function getCreatorPhoto(creatorProfile) {
 }
 
 function getCaptionToggleLabel(locale, expanded) {
+  const labels = {
+    mn: { more: "дэлгэрэнгүй", less: "хураах" },
+    ko: { more: "더보기", less: "접기" },
+  };
+  const l = labels[locale];
+  if (l) return expanded ? l.less : l.more;
   return expanded ? translate(locale, "less") : translate(locale, "more");
+}
+
+function cleanCaption(text) {
+  return String(text || "")
+    .replace(/\*\*[^*]*\*\*\s*:/g, "")
+    .replace(/\*\*/g, "")
+    .replace(/^\s*[-•]\s*/gm, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 function extractFeedbackScore(feedbackText) {
@@ -1581,9 +1596,9 @@ export default function ReelsContent() {
           const creatorName = getCreatorName(reel, creatorProfile);
           const creatorPhoto = getCreatorPhoto(creatorProfile);
           const creatorInitial = creatorName.charAt(0).toUpperCase() || "U";
-          const captionText = reel.description || reel.caption || "";
+          const captionText = cleanCaption(reel.description || reel.caption || "");
           const isCaptionExpanded = expandedCaptionIds.has(reel.id);
-          const canExpandCaption = captionText.length > 90;
+          const canExpandCaption = captionText.length > 60;
           const stats = reel.userId ? creatorStats[reel.userId] : null;
           const hasBestScore = typeof stats?.bestScore === "number" && Number.isFinite(stats.bestScore) && stats.bestScore > 0;
           const metrics = [
@@ -1695,21 +1710,20 @@ export default function ReelsContent() {
             <div style={styles.vignette} />
             <div style={styles.bottomGradient} />
 
-            {/* AI Metrics Overlay */}
-            {!reel.isDemo && metrics.length > 0 && (
-              <div style={styles.metricsOverlay}>
-                <div style={styles.metricsRow}>
-                  {metrics.map((metric) => (
-                    <div key={`${metric.label}-${metric.value}`} style={styles.metricItem}>
-                      <span style={styles.metricLabel}>{metric.label}</span>
-                      <span style={styles.metricValue}>{metric.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
             <div style={styles.info}>
+              {!reel.isDemo && (typeof stats?.xp === "number" || hasBestScore || stats?.rank) && (
+                <div style={styles.metricsChips}>
+                  {typeof stats?.xp === "number" && (
+                    <span style={styles.metricChip}>{stats.xp.toLocaleString()} {t("reels.xp")}</span>
+                  )}
+                  {hasBestScore && (
+                    <span style={styles.metricChip}>{t("reels.bestScore")} {stats.bestScore.toFixed(1)}</span>
+                  )}
+                  {stats?.rank && (
+                    <span style={styles.metricChip}>{t(stats.rank.key)}</span>
+                  )}
+                </div>
+              )}
               <div style={styles.creatorRow}>
                 <button
                   type="button"
@@ -2775,11 +2789,11 @@ const styles = {
     background: "transparent",
     color: "var(--text-primary)",
     fontFamily: "inherit",
-    fontSize: 27,
-    fontWeight: 1000,
+    fontSize: 18,
+    fontWeight: 900,
     margin: 0,
     letterSpacing: 0,
-    lineHeight: 1.02,
+    lineHeight: 1.1,
     textAlign: "left",
     textShadow: "0 5px 28px rgba(0,0,0,0.98), 0 1px 2px rgba(0,0,0,1)",
     WebkitTapHighlightColor: "transparent",
@@ -2815,10 +2829,10 @@ const styles = {
     paddingRight: 0,
     color: "var(--text-primary)",
     fontFamily: "inherit",
-    fontSize: 17,
-    lineHeight: 1.35,
-    fontWeight: 650,
-    marginBottom: 14,
+    fontSize: 14,
+    lineHeight: 1.4,
+    fontWeight: 500,
+    marginBottom: 8,
     maxWidth: 500,
     textShadow: "0 4px 22px rgba(0,0,0,0.96), 0 1px 2px rgba(0,0,0,1)",
     letterSpacing: 0,
@@ -2834,7 +2848,7 @@ const styles = {
     display: "block",
     overflow: "visible",
     WebkitLineClamp: "unset",
-    maxHeight: "32vh",
+    maxHeight: "30vh",
     overflowY: "auto",
     paddingRight: 6,
   },
@@ -3679,6 +3693,30 @@ const styles = {
     fontWeight: 800,
     color: "rgba(255,255,255,0.74)",
     textShadow: "0 2px 8px rgba(0,0,0,0.9)",
+  },
+  metricsChips: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 5,
+    marginBottom: 8,
+  },
+  metricChip: {
+    display: "inline-flex",
+    alignItems: "center",
+    height: 20,
+    paddingLeft: 8,
+    paddingRight: 8,
+    borderRadius: 999,
+    background: "rgba(0,0,0,0.55)",
+    border: "1px solid rgba(255,255,255,0.18)",
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)",
+    color: "rgba(255,255,255,0.88)",
+    fontSize: 11,
+    fontWeight: 800,
+    letterSpacing: 0,
+    whiteSpace: "nowrap",
+    textShadow: "0 1px 4px rgba(0,0,0,0.8)",
   },
   tryThisButton: {
     width: "fit-content",
