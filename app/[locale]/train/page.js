@@ -141,6 +141,7 @@ export default function TrainPage() {
   const isRecordingRef = useRef(false);
   const hitTimerRef = useRef(null);
   const hitCountRef = useRef(0);
+  const audioCtxRef = useRef(null);
 
   const activeChallenge = challengeId ? CHALLENGES[challengeId] : null;
   const sessionSeconds = activeChallenge?.seconds || RECORD_SECONDS;
@@ -495,19 +496,6 @@ export default function TrainPage() {
       "Keep going!", "Power! 💪", "Speed up!", "Snap it!", "Nice jab!", "Stay tight!",
     ];
 
-    const feedbackKeys = [
-      "trainFeedbackFaster",
-      "trainFeedbackGuard",
-      "trainFeedbackNiceCombo",
-      "trainFeedbackKeepMoving",
-      "trainFeedbackSharp",
-    ];
-    const milestoneMap = {
-      3: "trainMilestone3",
-      5: "trainMilestone5",
-      10: "trainMilestone10",
-    };
-
     function scheduleHit() {
       const delay = 400 + Math.floor(Math.random() * 501);
       hitTimerRef.current = window.setTimeout(() => {
@@ -515,8 +503,9 @@ export default function TrainPage() {
         const nextHitCount = hitCountRef.current + 1;
         hitCountRef.current = nextHitCount;
         setComboCount((c) => c + 1);
-        setHitCount(nextHitCount);
-        triggerImpact();
+        setHitCount((c) => c + 1);
+        setIsFlashing(true);
+        window.setTimeout(() => setIsFlashing(false), 130);
         const id = Date.now();
         const feedbackKey = milestoneMap[nextHitCount] || feedbackKeys[Math.floor(Math.random() * feedbackKeys.length)];
         const text = t(feedbackKey);
