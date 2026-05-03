@@ -243,6 +243,7 @@ export default function ReelsContent() {
   const [sessionXPData, setSessionXPData] = useState(null);
   const [videoErrors, setVideoErrors] = useState({});
   const [creatorStats, setCreatorStats] = useState({}); // XP, rank, best score for creators
+  const [profileReelProgress, setProfileReelProgress] = useState(null); // progress data when opened from profile
   const videoRefs = useRef({});
   const feedRef = useRef(null);
   const reelItemRefs = useRef({});
@@ -292,6 +293,63 @@ export default function ReelsContent() {
       });
     });
   }, [reels, targetReelId]);
+
+  // Load profile-source progress: user's training history on the target reel
+  useEffect(() => {
+    if (!isProfileSource || !profileSourceUserId || !targetReelId) {
+      setProfileReelProgress(null);
+      return;
+    }
+
+    let isActive = true;
+
+    async function loadProgress() {
+      try {
+        const { db } = await getFirebase();
+        const { collection, query, where, getDocs } = await import("firebase/firestore");
+        const snap = await getDocs(query(
+          collection(db, "training_sessions"),
+          where("userId", "==", profileSourceUserId),
+          where("reelId", "==", targetReelId)
+        ));
+
+        if (!isActive) return;
+
+        if (snap.empty) {
+          setProfileReelProgress({ empty: true });
+          return;
+        }
+
+        const sessions = snap.docs
+          .map((d) => ({ ...d.data(), id: d.id }))
+          .filter((s) => s.type === "training" && Number.isFinite(Number(s.score)))
+          .sort((a, b) => {
+            const ta = a.createdAt?.toMillis?.() || 0;
+            const tb = b.createdAt?.toMillis?.() || 0;
+            return tb - ta;
+          });
+
+        if (!sessions.length) {
+          setProfileReelProgress({ empty: true });
+          return;
+        }
+
+        const scores = sessions.map((s) => Number(s.score));
+        setProfileReelProgress({
+          empty: false,
+          attempts: sessions.length,
+          bestScore: Math.max(...scores),
+          latestScore: scores[0],
+        });
+      } catch (err) {
+        console.error("Failed to load profile reel progress:", err);
+        if (isActive) setProfileReelProgress(null);
+      }
+    }
+
+    loadProgress();
+    return () => { isActive = false; };
+  }, [isProfileSource, profileSourceUserId, targetReelId]);
 
   useEffect(() => {
     if (!reels.length) return;
@@ -1711,6 +1769,32 @@ export default function ReelsContent() {
             <div style={styles.vignette} />
             <div style={styles.bottomGradient} />
 
+            {isProfileSource && index === currentIndex && reel.id === targetReelId && (
+              <div style={styles.profileProgressCard}>
+                <span style={styles.profileProgressTitle}>{t("reelProgressTitle")}</span>
+                {profileReelProgress === null ? null : profileReelProgress?.empty ? (
+                  <span style={styles.profileProgressEmpty}>{t("reelNoAttempts")}</span>
+                ) : (
+                  <div style={styles.profileProgressStats}>
+                    <div style={styles.profileProgressStat}>
+                      <span style={styles.profileProgressStatVal}>{profileReelProgress.bestScore?.toFixed(1)}</span>
+                      <span style={styles.profileProgressStatLbl}>{t("best")}</span>
+                    </div>
+                    <div style={styles.profileProgressDivider} />
+                    <div style={styles.profileProgressStat}>
+                      <span style={styles.profileProgressStatVal}>{profileReelProgress.latestScore?.toFixed(1)}</span>
+                      <span style={styles.profileProgressStatLbl}>{t("reelLatestAttempt")}</span>
+                    </div>
+                    <div style={styles.profileProgressDivider} />
+                    <div style={styles.profileProgressStat}>
+                      <span style={styles.profileProgressStatVal}>{profileReelProgress.attempts}</span>
+                      <span style={styles.profileProgressStatLbl}>{t("reelAttemptCount")}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div style={styles.info}>
               {!reel.isDemo && (typeof stats?.xp === "number" || hasBestScore || stats?.rank) && (
                 <div style={styles.metricsChips}>
@@ -1761,25 +1845,29 @@ export default function ReelsContent() {
                 </div>
               </div>
               {captionText && (
-                <button
-                  type="button"
-                  style={{
-                    ...styles.descriptionButton,
-                    ...(isCaptionExpanded ? styles.descriptionExpanded : {})
-                  }}
-                  onClick={() => {
-                    if (canExpandCaption) {
-                      toggleCaption(reel.id);
-                    }
-                  }}
-                >
-                  <span>{captionText}</span>
+                <div style={styles.captionWrap}>
+                  <div
+                    style={{
+                      ...styles.descriptionButton,
+                      ...(isCaptionExpanded ? styles.descriptionExpanded : {}),
+                      cursor: canExpandCaption ? "pointer" : "default",
+                    }}
+                    role={canExpandCaption ? "button" : undefined}
+                    tabIndex={canExpandCaption ? 0 : undefined}
+                    onClick={() => canExpandCaption && toggleCaption(reel.id)}
+                  >
+                    {captionText}
+                  </div>
                   {canExpandCaption && (
-                    <span style={styles.captionToggle}>
+                    <button
+                      type="button"
+                      style={styles.captionToggleBtn}
+                      onClick={() => toggleCaption(reel.id)}
+                    >
                       {getCaptionToggleLabel(currentLocale, isCaptionExpanded)}
-                    </span>
+                    </button>
                   )}
-                </button>
+                </div>
               )}
               <div style={styles.metaLine}>
                 <span>{formatCompactCount(getSafeViewCount(reel))} {t("views")}</span>
@@ -2820,6 +2908,9 @@ const styles = {
     marginBottom: 10,
     textShadow: "0 2px 8px rgba(0,0,0,0.95)",
   },
+  captionWrap: {
+    marginBottom: 8,
+  },
   descriptionButton: {
     width: "100%",
     border: "none",
@@ -2833,7 +2924,7 @@ const styles = {
     fontSize: 14,
     lineHeight: 1.4,
     fontWeight: 500,
-    marginBottom: 8,
+    marginBottom: 0,
     maxWidth: 500,
     textShadow: "0 4px 22px rgba(0,0,0,0.96), 0 1px 2px rgba(0,0,0,1)",
     letterSpacing: 0,
@@ -2842,24 +2933,33 @@ const styles = {
     WebkitBoxOrient: "vertical",
     overflow: "hidden",
     textAlign: "left",
-    cursor: "pointer",
     WebkitTapHighlightColor: "transparent",
   },
   descriptionExpanded: {
     display: "block",
-    overflow: "visible",
+    overflow: "auto",
     WebkitLineClamp: "unset",
-    maxHeight: "30vh",
-    overflowY: "auto",
-    paddingRight: 6,
+    maxHeight: "28vh",
+    paddingRight: 4,
   },
-  captionToggle: {
-    display: "inline",
-    marginLeft: 6,
+  captionToggleBtn: {
+    display: "inline-flex",
+    alignItems: "center",
+    marginTop: 3,
+    paddingTop: 0,
+    paddingBottom: 0,
+    paddingLeft: 0,
+    paddingRight: 0,
+    border: "none",
+    background: "transparent",
     color: "var(--accent-gold)",
-    fontSize: 13,
+    fontFamily: "inherit",
+    fontSize: 12,
     fontWeight: 900,
-    textShadow: "0 4px 18px rgba(0,0,0,0.96)",
+    letterSpacing: 0.2,
+    cursor: "pointer",
+    textShadow: "0 3px 14px rgba(0,0,0,0.96)",
+    WebkitTapHighlightColor: "transparent",
   },
   metaLine: {
     display: "flex",
@@ -3737,5 +3837,65 @@ const styles = {
     textShadow: "0 2px 8px rgba(0,0,0,0.5)",
     transition: "transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease",
     WebkitTapHighlightColor: "transparent",
+  },
+  profileProgressCard: {
+    position: "absolute",
+    top: "calc(68px + env(safe-area-inset-top))",
+    left: "max(12px, env(safe-area-inset-left))",
+    zIndex: 6,
+    borderRadius: 14,
+    background: "rgba(0,0,0,0.58)",
+    border: "1px solid rgba(255,255,255,0.12)",
+    backdropFilter: "blur(14px) saturate(140%)",
+    WebkitBackdropFilter: "blur(14px) saturate(140%)",
+    padding: "8px 12px",
+    display: "grid",
+    gap: 6,
+    minWidth: 160,
+    maxWidth: 210,
+    pointerEvents: "none",
+  },
+  profileProgressTitle: {
+    color: "#D4AF37",
+    fontSize: 9,
+    fontWeight: 900,
+    letterSpacing: 1.4,
+    textTransform: "uppercase",
+  },
+  profileProgressEmpty: {
+    color: "rgba(255,255,255,0.55)",
+    fontSize: 11,
+    fontWeight: 700,
+    lineHeight: 1.3,
+  },
+  profileProgressStats: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+  },
+  profileProgressStat: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 1,
+  },
+  profileProgressStatVal: {
+    color: "#fff",
+    fontSize: 17,
+    fontWeight: 1000,
+    lineHeight: 1,
+  },
+  profileProgressStatLbl: {
+    color: "rgba(255,255,255,0.55)",
+    fontSize: 8,
+    fontWeight: 700,
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
+  },
+  profileProgressDivider: {
+    width: 1,
+    height: 24,
+    background: "rgba(255,255,255,0.14)",
+    flexShrink: 0,
   },
 };

@@ -97,6 +97,7 @@ export default function TrainPage() {
   const isRecordingRef = useRef(false);
   const hitTimerRef = useRef(null);
   const hitCountRef = useRef(0);
+  const audioCtxRef = useRef(null);
 
   const activeChallenge = challengeId ? CHALLENGES[challengeId] : null;
   const sessionSeconds = activeChallenge?.seconds || RECORD_SECONDS;
@@ -304,6 +305,30 @@ export default function TrainPage() {
       "Keep going!", "Power! 💪", "Speed up!", "Snap it!", "Nice jab!", "Stay tight!",
     ];
 
+    function playPunchSound() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        if (!audioCtxRef.current) audioCtxRef.current = new AudioCtx();
+        const ctx = audioCtxRef.current;
+        if (ctx.state === "suspended") ctx.resume();
+        const buf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.09), ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < data.length; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.018));
+        }
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        const gain = ctx.createGain();
+        gain.gain.value = 0.28;
+        src.connect(gain);
+        gain.connect(ctx.destination);
+        src.start();
+      } catch (e) {
+        // Fail silently — browser may restrict audio
+      }
+    }
+
     function scheduleHit() {
       const delay = 500 + Math.floor(Math.random() * 400);
       hitTimerRef.current = window.setTimeout(() => {
@@ -313,6 +338,10 @@ export default function TrainPage() {
         setHitCount((c) => c + 1);
         setIsFlashing(true);
         window.setTimeout(() => setIsFlashing(false), 130);
+        playPunchSound();
+        if (typeof navigator !== "undefined" && navigator.vibrate) {
+          navigator.vibrate(30);
+        }
         const id = Date.now();
         const text = FEEDBACK[Math.floor(Math.random() * FEEDBACK.length)];
         setLiveFeedback({ text, id });
