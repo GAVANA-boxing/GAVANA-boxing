@@ -89,6 +89,16 @@ export default function TrainPage() {
   const [challengeSaveMessage, setChallengeSaveMessage] = useState("");
   const [error, setError] = useState("");
 
+  // Live game state
+  const [comboCount, setComboCount] = useState(0);
+  const [hitCount, setHitCount] = useState(0);
+  const [isFlashing, setIsFlashing] = useState(false);
+  const [liveFeedback, setLiveFeedback] = useState(null);
+  const [showGo, setShowGo] = useState(false);
+  const isRecordingRef = useRef(false);
+  const hitTimerRef = useRef(null);
+  const hitCountRef = useRef(0);
+
   const activeChallenge = challengeId ? CHALLENGES[challengeId] : null;
   const sessionSeconds = activeChallenge?.seconds || RECORD_SECONDS;
   const activeChallengeName = activeChallenge ? t(activeChallenge.titleKey) : "";
@@ -212,9 +222,12 @@ export default function TrainPage() {
       recorderRef.current.stop();
     }
 
+    isRecordingRef.current = false;
+    if (hitTimerRef.current) window.clearTimeout(hitTimerRef.current);
+
     setSecondsLeft(0);
     setPhase("result");
-    setResult(makeTrainingResult(currentXP));
+    setResult({ ...makeTrainingResult(currentXP), hitCount: hitCountRef.current });
     setSaved(false);
     setSavedAttemptNumber(null);
   }, [currentXP]);
@@ -223,25 +236,39 @@ export default function TrainPage() {
     if (phase !== "countdown" || countdown === null) return undefined;
 
     if (countdown <= 0) {
-      chunksRef.current = [];
-      stopHandledRef.current = false;
-
-      if (streamRef.current && window.MediaRecorder) {
-        try {
-          const recorder = new MediaRecorder(streamRef.current);
-          recorder.ondataavailable = (event) => {
-            if (event.data?.size) chunksRef.current.push(event.data);
-          };
-          recorder.start();
-          recorderRef.current = recorder;
-        } catch (err) {
-          console.error("MediaRecorder start failed:", err);
-        }
+      setShowGo(true);
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        navigator.vibrate([60, 30, 60]);
       }
+      setIsFlashing(true);
+      const flashTimer = window.setTimeout(() => setIsFlashing(false), 300);
 
-      setSecondsLeft(sessionSeconds);
-      setPhase("recording");
-      return undefined;
+      const goTimer = window.setTimeout(() => {
+        setShowGo(false);
+        chunksRef.current = [];
+        stopHandledRef.current = false;
+
+        if (streamRef.current && window.MediaRecorder) {
+          try {
+            const recorder = new MediaRecorder(streamRef.current);
+            recorder.ondataavailable = (event) => {
+              if (event.data?.size) chunksRef.current.push(event.data);
+            };
+            recorder.start();
+            recorderRef.current = recorder;
+          } catch (err) {
+            console.error("MediaRecorder start failed:", err);
+          }
+        }
+
+        setSecondsLeft(sessionSeconds);
+        setPhase("recording");
+      }, 700);
+
+      return () => {
+        window.clearTimeout(flashTimer);
+        window.clearTimeout(goTimer);
+      };
     }
 
     const timer = window.setTimeout(() => setCountdown((value) => value - 1), 1000);
@@ -260,6 +287,49 @@ export default function TrainPage() {
     return () => window.clearTimeout(timer);
   }, [phase, secondsLeft, finishRecording]);
 
+  // Hit simulation — fires during recording only
+  useEffect(() => {
+    if (phase !== "recording") {
+      isRecordingRef.current = false;
+      if (hitTimerRef.current) window.clearTimeout(hitTimerRef.current);
+      return;
+    }
+
+    isRecordingRef.current = true;
+    hitCountRef.current = 0;
+    setComboCount(0);
+    setHitCount(0);
+
+    const FEEDBACK = [
+      "Faster! 💨", "Good! ✓", "Guard up!", "Nice combo!",
+      "Keep going!", "Power! 💪", "Speed up!", "Snap it!", "Nice jab!", "Stay tight!",
+    ];
+
+    function scheduleHit() {
+      const delay = 500 + Math.floor(Math.random() * 400);
+      hitTimerRef.current = window.setTimeout(() => {
+        if (!isRecordingRef.current) return;
+        hitCountRef.current += 1;
+        setComboCount((c) => c + 1);
+        setHitCount((c) => c + 1);
+        setIsFlashing(true);
+        window.setTimeout(() => setIsFlashing(false), 130);
+        const id = Date.now();
+        const text = FEEDBACK[Math.floor(Math.random() * FEEDBACK.length)];
+        setLiveFeedback({ text, id });
+        window.setTimeout(() => setLiveFeedback((prev) => (prev?.id === id ? null : prev)), 1300);
+        if (isRecordingRef.current) scheduleHit();
+      }, delay);
+    }
+
+    scheduleHit();
+
+    return () => {
+      isRecordingRef.current = false;
+      if (hitTimerRef.current) window.clearTimeout(hitTimerRef.current);
+    };
+  }, [phase]);
+
   const handleStart = () => {
     setError("");
     setResult(null);
@@ -268,6 +338,12 @@ export default function TrainPage() {
     setChallengeSaved(false);
     setChallengeSaveMessage("");
     challengeSavedRef.current = false;
+    setComboCount(0);
+    setHitCount(0);
+    setIsFlashing(false);
+    setLiveFeedback(null);
+    setShowGo(false);
+    hitCountRef.current = 0;
     setCountdown(3);
     setPhase("countdown");
   };
@@ -283,6 +359,12 @@ export default function TrainPage() {
     setSecondsLeft(sessionSeconds);
     setCountdown(null);
     setPhase("idle");
+    setComboCount(0);
+    setHitCount(0);
+    setIsFlashing(false);
+    setLiveFeedback(null);
+    setShowGo(false);
+    hitCountRef.current = 0;
   };
 
   const handleShareChallenge = async () => {
@@ -550,18 +632,52 @@ export default function TrainPage() {
 
           <div style={styles.stageShade} />
 
+          {/* Hit flash overlay — quick red burst on each simulated punch */}
+          {isFlashing && <div style={styles.flashOverlay} />}
+
+          {/* Countdown with scale-pop animation */}
           {isCountingDown && (
-            <div style={styles.countdown}>
-              {countdown}
+            <div
+              key={showGo ? "go" : String(countdown)}
+              style={{ ...styles.countdown, ...(showGo ? styles.countdownGo : {}) }}
+              className="countdown-pop"
+            >
+              {showGo ? "GO!" : countdown}
             </div>
           )}
 
           {isRecording && (
-            <div style={styles.recordingHud}>
-              <span style={styles.recordDot} />
-              <span>{t("trainRecording")}</span>
-              <strong>{secondsLeft}s</strong>
-            </div>
+            <>
+              {/* Recording HUD — top bar */}
+              <div style={styles.recordingHud}>
+                <span style={styles.recordDot} />
+                <span>{t("trainRecording")}</span>
+                <strong style={{ marginLeft: "auto" }}>{secondsLeft}s</strong>
+              </div>
+
+              {/* Hit progress counter */}
+              <div style={styles.hitCounter}>
+                <span style={styles.hitCountNum}>{hitCount}</span>
+                <span style={styles.hitCountSep}>/</span>
+                <span style={styles.hitCountTarget}>{Math.round(sessionSeconds * 1.2)}</span>
+                <span style={styles.hitCountLabel}>hits</span>
+              </div>
+
+              {/* Combo counter — bottom-center */}
+              {comboCount > 0 && (
+                <div key={comboCount} style={styles.comboCounter} className="combo-pop">
+                  <span style={styles.comboLabel}>COMBO</span>
+                  <span style={styles.comboNum}>{comboCount}</span>
+                </div>
+              )}
+
+              {/* Floating feedback toast — mid-screen */}
+              {liveFeedback && (
+                <div key={liveFeedback.id} style={styles.liveFeedbackBox} className="feedback-fade">
+                  {liveFeedback.text}
+                </div>
+              )}
+            </>
           )}
         </div>
 
@@ -631,6 +747,12 @@ export default function TrainPage() {
                     <span>{t("trainRankProgress")}</span>
                     <strong>{result.rankProgress}%</strong>
                   </div>
+                  {result.hitCount > 0 && (
+                    <div style={{ ...styles.resultItem, gridColumn: "1 / -1" }}>
+                      <span>Total Hits</span>
+                      <strong>{result.hitCount} 🥊</strong>
+                    </div>
+                  )}
                 </>
               )}
             </div>
@@ -706,6 +828,46 @@ export default function TrainPage() {
       )}
 
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="upload" />
+
+      <style>{`
+        @keyframes flashFade {
+          0%   { opacity: 1; }
+          100% { opacity: 0; }
+        }
+
+        .countdown-pop {
+          animation: countdownPop 900ms ease both;
+        }
+        @keyframes countdownPop {
+          0%   { transform: scale(1.7); opacity: 0; }
+          22%  { transform: scale(1);   opacity: 1; }
+          72%  { transform: scale(1);   opacity: 1; }
+          100% { transform: scale(0.8); opacity: 0; }
+        }
+
+        .combo-pop {
+          animation: comboPop 380ms cubic-bezier(0.34,1.56,0.64,1) both;
+        }
+        @keyframes comboPop {
+          0%   { transform: translateX(-50%) scale(0.5); opacity: 0; }
+          60%  { transform: translateX(-50%) scale(1.2); opacity: 1; }
+          100% { transform: translateX(-50%) scale(1);   opacity: 1; }
+        }
+
+        .feedback-fade {
+          animation: feedbackFade 1300ms ease forwards;
+        }
+        @keyframes feedbackFade {
+          0%   { opacity: 0; transform: translateX(-50%) translateY(10px); }
+          14%  { opacity: 1; transform: translateX(-50%) translateY(0);    }
+          70%  { opacity: 1; transform: translateX(-50%) translateY(0);    }
+          100% { opacity: 0; transform: translateX(-50%) translateY(-10px);}
+        }
+
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </main>
   );
 }
@@ -862,10 +1024,113 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: 112,
+    fontSize: 140,
     fontWeight: 1000,
     color: "#fff",
-    textShadow: "0 18px 60px rgba(0,0,0,0.8)",
+    textShadow: "0 0 80px rgba(193,18,31,0.7), 0 18px 60px rgba(0,0,0,0.9)",
+    zIndex: 10,
+    pointerEvents: "none",
+  },
+  countdownGo: {
+    fontSize: 100,
+    color: "#34D399",
+    textShadow: "0 0 80px rgba(52,211,153,0.65), 0 18px 60px rgba(0,0,0,0.9)",
+  },
+  flashOverlay: {
+    position: "absolute",
+    inset: 0,
+    background: "rgba(193,18,31,0.38)",
+    zIndex: 8,
+    pointerEvents: "none",
+    animation: "flashFade 150ms ease-out forwards",
+  },
+  hitCounter: {
+    position: "absolute",
+    top: 64,
+    left: "50%",
+    transform: "translateX(-50%)",
+    display: "flex",
+    alignItems: "baseline",
+    gap: 4,
+    background: "rgba(0,0,0,0.58)",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
+    borderRadius: 999,
+    padding: "5px 16px",
+    border: "1px solid rgba(255,255,255,0.16)",
+    zIndex: 5,
+    whiteSpace: "nowrap",
+  },
+  hitCountNum: {
+    color: "#fff",
+    fontSize: 24,
+    fontWeight: 1000,
+    lineHeight: 1,
+    textShadow: "0 0 20px rgba(212,175,55,0.5)",
+  },
+  hitCountSep: {
+    color: "rgba(255,255,255,0.4)",
+    fontSize: 14,
+    fontWeight: 700,
+    margin: "0 2px",
+  },
+  hitCountTarget: {
+    color: "rgba(255,255,255,0.65)",
+    fontSize: 16,
+    fontWeight: 800,
+  },
+  hitCountLabel: {
+    color: "rgba(255,255,255,0.45)",
+    fontSize: 11,
+    fontWeight: 700,
+    marginLeft: 3,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  comboCounter: {
+    position: "absolute",
+    bottom: 70,
+    left: "50%",
+    transform: "translateX(-50%)",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    zIndex: 6,
+    pointerEvents: "none",
+  },
+  comboLabel: {
+    color: "#D4AF37",
+    fontSize: 10,
+    fontWeight: 1000,
+    letterSpacing: 2.5,
+    textShadow: "0 2px 8px rgba(0,0,0,0.95)",
+    textTransform: "uppercase",
+  },
+  comboNum: {
+    color: "#fff",
+    fontSize: 64,
+    fontWeight: 1000,
+    lineHeight: 1,
+    textShadow: "0 0 40px rgba(212,175,55,0.55), 0 4px 18px rgba(0,0,0,0.95)",
+  },
+  liveFeedbackBox: {
+    position: "absolute",
+    top: "32%",
+    left: "50%",
+    transform: "translateX(-50%)",
+    background: "rgba(0,0,0,0.72)",
+    backdropFilter: "blur(14px)",
+    WebkitBackdropFilter: "blur(14px)",
+    border: "1px solid rgba(255,255,255,0.22)",
+    borderRadius: 999,
+    padding: "9px 22px",
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: 900,
+    whiteSpace: "nowrap",
+    zIndex: 9,
+    textShadow: "0 2px 8px rgba(0,0,0,0.9)",
+    pointerEvents: "none",
   },
   recordingHud: {
     position: "absolute",
@@ -881,14 +1146,17 @@ const styles = {
     background: "rgba(0,0,0,0.54)",
     border: "1px solid rgba(255,255,255,0.12)",
     backdropFilter: "blur(14px)",
+    WebkitBackdropFilter: "blur(14px)",
     fontSize: 12,
     fontWeight: 900,
+    zIndex: 5,
   },
   recordDot: {
     width: 9,
     height: 9,
     borderRadius: "50%",
     background: "#C1121F",
+    flexShrink: 0,
     boxShadow: "0 0 0 6px rgba(193,18,31,0.18)",
   },
   controls: {
