@@ -86,6 +86,7 @@ export default function UserProfilePage() {
   const [deletingReelIds, setDeletingReelIds] = useState(new Set());
   const [rankUpRank, setRankUpRank] = useState(null);
   const [expandedTrainingGroups, setExpandedTrainingGroups] = useState(new Set());
+  const [visibleTrainingGroups, setVisibleTrainingGroups] = useState(new Set());
   const rankUpShownRef = useRef(false);
 
   // Redirect if not logged in
@@ -572,30 +573,52 @@ export default function UserProfilePage() {
     return result;
   }, [aiFeedbackHistory, profileUser?.streakCount]);
 
+  const reelLabelMap = useMemo(() => {
+    const map = new Map();
+    for (const reel of [...userReels, ...savedUserReels]) {
+      if (!reel?.id) continue;
+      map.set(reel.id, reel.description || reel.caption || t("trainingReel"));
+    }
+    return map;
+  }, [savedUserReels, t, userReels]);
+
   const groupedTrainingSessions = useMemo(() => {
     const groups = new Map();
 
     for (const session of trainingSessions) {
       const key = session.reelId || "free_training";
+      const reelLabel = session.reelCaption || session.comboName || reelLabelMap.get(session.reelId);
       const existing = groups.get(key) || {
         key,
         reelId: session.reelId || null,
-        label: session.reelId ? `${t("reels.combo")} ${String(session.reelId).slice(0, 8)}` : t("freeTraining"),
+        label: session.reelId ? (reelLabel || `${t("reels.combo")} ${String(session.reelId).slice(0, 8)}`) : t("freeTraining"),
         sessions: [],
         latestScore: null,
         bestScore: null,
+        firstScore: null,
+        bestCombo: 0,
+        totalXP: 0,
         latestAt: 0,
+        firstAt: Number.POSITIVE_INFINITY,
       };
 
       const score = Number(session.score);
+      const bestCombo = Number(session.bestCombo) || Number(session.totalHits) || 0;
+      const xpGained = Number(session.xpGained) || 0;
       const createdAtMs = getTimestampMs(session.createdAt);
 
       existing.sessions.push(session);
+      existing.bestCombo = Math.max(existing.bestCombo, bestCombo);
+      existing.totalXP += xpGained;
       if (Number.isFinite(score)) {
         existing.bestScore = existing.bestScore === null ? score : Math.max(existing.bestScore, score);
         if (createdAtMs >= existing.latestAt) {
           existing.latestAt = createdAtMs;
           existing.latestScore = score;
+        }
+        if (createdAtMs <= existing.firstAt) {
+          existing.firstAt = createdAtMs;
+          existing.firstScore = score;
         }
       }
 
@@ -605,6 +628,9 @@ export default function UserProfilePage() {
     return [...groups.values()]
       .map((group) => ({
         ...group,
+        improvement: group.latestScore !== null && group.firstScore !== null
+          ? group.latestScore - group.firstScore
+          : 0,
         sessions: group.sessions.sort((a, b) => {
           const attemptDelta = (Number(b.attemptNumber) || 0) - (Number(a.attemptNumber) || 0);
           if (attemptDelta !== 0) return attemptDelta;
@@ -612,7 +638,29 @@ export default function UserProfilePage() {
         }),
       }))
       .sort((a, b) => b.latestAt - a.latestAt);
-  }, [trainingSessions, t]);
+  }, [reelLabelMap, trainingSessions, t]);
+
+  const trainingProgressStats = useMemo(() => {
+    const sortedAsc = [...(trainingSessions || [])]
+      .map((session) => ({
+        ...session,
+        scoreNumber: Number(session.score),
+        xpNumber: Number(session.xpGained) || 0,
+        ts: getTimestampMs(session.createdAt),
+      }))
+      .filter((session) => Number.isFinite(session.scoreNumber))
+      .sort((a, b) => a.ts - b.ts);
+
+    const totalSessions = sortedAsc.length;
+    const scores = sortedAsc.map((session) => session.scoreNumber);
+    return {
+      totalSessions,
+      latestScore: totalSessions ? sortedAsc[totalSessions - 1].scoreNumber : null,
+      bestScore: totalSessions ? Math.max(...scores) : null,
+      averageScore: totalSessions ? scores.reduce((sum, score) => sum + score, 0) / totalSessions : null,
+      totalTrainingXP: sortedAsc.reduce((sum, session) => sum + session.xpNumber, 0),
+    };
+  }, [trainingSessions]);
 
   const toggleTrainingGroup = (groupKey) => {
     setExpandedTrainingGroups((prev) => {
@@ -622,6 +670,14 @@ export default function UserProfilePage() {
       } else {
         next.add(groupKey);
       }
+      return next;
+    });
+  };
+
+  const showMoreTrainingAttempts = (groupKey) => {
+    setVisibleTrainingGroups((prev) => {
+      const next = new Set(prev);
+      next.add(groupKey);
       return next;
     });
   };
@@ -930,68 +986,91 @@ export default function UserProfilePage() {
             <h2 style={styles.progressTitle}>{t("progress")}</h2>
           </div>
 
-          {progressStats.totalSessions === 0 ? (
+          {trainingProgressStats.totalSessions === 0 ? (
             <div style={styles.progressEmpty}>
               <p style={{ margin: 0, color: "var(--text-primary)", fontWeight: 900 }}>
-                {t("startTrainingProgress")}
+                {t("trainingProgressCta")}
               </p>
             </div>
           ) : (
             <>
               <div style={styles.scoreGrid}>
                 <div style={styles.scoreCard}>
-                  <span style={styles.scoreValue}>{formatScore(progressStats.bestScore)}</span>
+                  <span style={styles.scoreValue}>{formatScore(trainingProgressStats.latestScore)}</span>
+                  <span style={styles.scoreLabel}>{t("latestScoreLabel")}</span>
+                </div>
+                <div style={styles.scoreCard}>
+                  <span style={styles.scoreValue}>{formatScore(trainingProgressStats.bestScore)}</span>
                   <span style={styles.scoreLabel}>{t("bestScoreLabel")}</span>
                 </div>
                 <div style={styles.scoreCard}>
-                  <span style={styles.scoreValue}>{formatScore(progressStats.averageScore)}</span>
+                  <span style={styles.scoreValue}>{formatScore(trainingProgressStats.averageScore)}</span>
                   <span style={styles.scoreLabel}>{t("averageScoreLabel")}</span>
                 </div>
                 <div style={styles.scoreCard}>
-                  <span style={styles.scoreValue}>{progressStats.totalSessions}</span>
+                  <span style={styles.scoreValue}>{trainingProgressStats.totalSessions}</span>
                   <span style={styles.scoreLabel}>{t("totalSessions")}</span>
                 </div>
-              </div>
-
-              <div style={styles.beforeAfterCard}>
-                <div style={styles.beforeAfterItem}>
-                  <span style={styles.beforeAfterLabel}>{t("before")}</span>
-                  <strong style={styles.beforeAfterValue}>{formatScore(progressStats.firstScore)}</strong>
-                </div>
-                <div style={styles.beforeAfterItem}>
-                  <span style={styles.beforeAfterLabel}>{t("now")}</span>
-                  <strong style={styles.beforeAfterValue}>{formatScore(progressStats.latestScore)}</strong>
-                </div>
-                <div style={styles.beforeAfterItem}>
-                  <span style={styles.beforeAfterLabel}>{t("improvement")}</span>
-                  <strong style={{
-                    ...styles.beforeAfterValue,
-                    color: progressStats.improvement >= 0 ? "#34D399" : "#FB7185",
-                  }}>
-                    {progressStats.improvement >= 0 ? "+" : ""}{formatScore(progressStats.improvement)}
-                  </strong>
+                <div style={styles.scoreCard}>
+                  <span style={styles.scoreValue}>{trainingProgressStats.totalTrainingXP.toLocaleString()}</span>
+                  <span style={styles.scoreLabel}>{t("trainingTotalXP")}</span>
                 </div>
               </div>
 
-              <div style={styles.progressSubsection}>
-                <h3 style={styles.trainingHistoryTitle}>{t("weeklyProgress")}</h3>
-                <p style={styles.weeklySequence}>
-                  {progressStats.weeklySequence.join(" → ")}
+              <div style={styles.rankProgressCard}>
+                <div style={styles.rankProgressTop}>
+                  <span style={styles.rankProgressBadge}>
+                    <RankIcon rank={fighterRank} size={24} animated />
+                    <strong style={{ color: fighterRank.color }}>{t(fighterRank.key)}</strong>
+                  </span>
+                  <span style={styles.rankProgressXP}>
+                    {nextRank
+                      ? `${xp.toLocaleString()} / ${nextRank.minXP.toLocaleString()} ${t("xpLabel")}`
+                      : `${xp.toLocaleString()} ${t("xpLabel")}`}
+                  </span>
+                </div>
+                <div style={styles.xpTrack}>
+                  <div style={{ ...styles.xpFill, width: `${rankProgress}%`, background: fighterRank.gradient }} />
+                </div>
+                <p style={styles.rankProgressHint}>
+                  {nextRank
+                    ? t("xpToNext").replace("{xp}", xpToNextVal.toLocaleString()).replace("{rank}", t(nextRank.key))
+                    : t("atMaxRank")}
                 </p>
               </div>
 
               <div style={styles.progressSubsection}>
                 <h3 style={styles.trainingHistoryTitle}>{t("comboProgress")}</h3>
                 <div style={styles.comboProgressList}>
-                  {progressStats.comboProgress.map((combo) => (
+                  {groupedTrainingSessions.map((combo) => {
+                    const improvementText = combo.improvement > 0.05
+                      ? t("trainingImproved")
+                      : combo.improvement < -0.05
+                        ? t("trainingDropped")
+                        : t("trainingSame");
+                    const improvementColor = combo.improvement > 0.05
+                      ? "#34D399"
+                      : combo.improvement < -0.05
+                        ? "#FB7185"
+                        : "var(--text-secondary)";
+                    return (
                     <article key={combo.key} style={styles.comboProgressItem}>
-                      <strong style={styles.trainingGroupTitle}>{combo.label}</strong>
-                      <span style={styles.trainingGroupScores}>
-                        <span>{t("bestScoreLabel")}: {formatScore(combo.bestScore)}/10</span>
-                        <span>{t("totalSessions")}: {combo.attemptCount}</span>
-                      </span>
+                      <div style={styles.comboProgressMain}>
+                        <strong style={styles.trainingGroupTitle}>{combo.label}</strong>
+                        <span style={styles.progressDate}>{t("lastTrained")}: {formatFeedbackDate(combo.sessions[0]?.createdAt)}</span>
+                      </div>
+                      <div style={styles.comboProgressStats}>
+                        <span>{t("bestScoreLabel")}: {formatScore(combo.bestScore)}</span>
+                        <span>{t("latestScoreLabel")}: {formatScore(combo.latestScore)}</span>
+                        <span>{t("trainingAttempts")}: {combo.sessions.length}</span>
+                        <span>{t("trainingBestCombo")}: {combo.bestCombo}</span>
+                        <strong style={{ color: improvementColor }}>
+                          {Math.abs(combo.improvement) <= 0.05 ? t("trainingSame") : `${combo.improvement > 0 ? "+" : ""}${formatScore(combo.improvement)} ${improvementText}`}
+                        </strong>
+                      </div>
                     </article>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </>
@@ -1056,12 +1135,24 @@ export default function UserProfilePage() {
               {groupedTrainingSessions.length === 0 ? (
                 <div style={styles.progressEmpty}>
                   <p style={{ margin: 0, color: "var(--text-primary)", fontWeight: 900 }}>
-                    {t("noTrainingHistory")}
+                    {t("trainingProgressCta")}
                   </p>
                 </div>
               ) : (
                 groupedTrainingSessions.map((group) => {
                   const isExpanded = expandedTrainingGroups.has(group.key);
+                  const showAll = visibleTrainingGroups.has(group.key);
+                  const visibleAttempts = showAll ? group.sessions : group.sessions.slice(0, 3);
+                  const improvementText = group.improvement > 0.05
+                    ? t("trainingImproved")
+                    : group.improvement < -0.05
+                      ? t("trainingDropped")
+                      : t("trainingSame");
+                  const improvementColor = group.improvement > 0.05
+                    ? "#34D399"
+                    : group.improvement < -0.05
+                      ? "#FB7185"
+                      : "var(--text-secondary)";
 
                   return (
                     <article key={group.key} style={styles.trainingGroup}>
@@ -1073,18 +1164,22 @@ export default function UserProfilePage() {
                         <span style={styles.trainingGroupMain}>
                           <strong style={styles.trainingGroupTitle}>{group.label}</strong>
                           <span style={styles.progressDate}>
-                            {group.sessions.length} {group.sessions.length === 1 ? t("trainingAttempt") : t("trainingAttempts")}
+                            {t("lastTrained")}: {formatFeedbackDate(group.sessions[0]?.createdAt)}
                           </span>
                         </span>
                         <span style={styles.trainingGroupScores}>
                           <span>{t("latest")}: {formatScore(group.latestScore)}/10</span>
                           <span>{t("best")}: {formatScore(group.bestScore)}/10</span>
+                          <span>{t("trainingBestCombo")}: {group.bestCombo}</span>
+                          <strong style={{ color: improvementColor }}>
+                            {Math.abs(group.improvement) <= 0.05 ? t("trainingSame") : `${group.improvement > 0 ? "+" : ""}${formatScore(group.improvement)} ${improvementText}`}
+                          </strong>
                         </span>
                       </button>
 
                       {isExpanded && (
                         <div style={styles.trainingAttemptList}>
-                          {group.sessions.map((session) => (
+                          {visibleAttempts.map((session) => (
                             <div key={session.id} style={styles.trainingAttemptRow}>
                               <div>
                                 <strong style={styles.trainingAttemptTitle}>
@@ -1094,10 +1189,21 @@ export default function UserProfilePage() {
                               </div>
                               <div style={styles.trainingAttemptStats}>
                                 <span>{t("score")}: {formatScore(session.score)}/10</span>
+                                <span>{t("trainTotalHits")}: {Number(session.totalHits ?? session.hitCount ?? 0)}</span>
+                                <span>{t("trainingAccuracy")}: {Number(session.accuracy || 0)}%</span>
                                 <span>+{Number(session.xpGained || 0).toLocaleString()} {t("xpLabel")}</span>
                               </div>
                             </div>
                           ))}
+                          {!showAll && group.sessions.length > 3 && (
+                            <button
+                              type="button"
+                              style={styles.viewMoreButton}
+                              onClick={() => showMoreTrainingAttempts(group.key)}
+                            >
+                              {t("viewMore")}
+                            </button>
+                          )}
                         </div>
                       )}
                     </article>
@@ -1491,13 +1597,13 @@ const styles = {
   },
   scoreGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
+    gridTemplateColumns: "repeat(auto-fit, minmax(116px, 1fr))",
     gap: 10,
-    marginBottom: 18,
+    marginBottom: 12,
   },
   scoreCard: {
-    minHeight: 84,
-    borderRadius: 18,
+    minHeight: 78,
+    borderRadius: 16,
     background: "linear-gradient(145deg, rgba(193,18,31,0.14), rgba(11,11,11,0.96))",
     border: "1px solid rgba(255,255,255,0.08)",
     display: "grid",
@@ -1508,9 +1614,45 @@ const styles = {
   },
   scoreValue: {
     color: "var(--text-primary)",
-    fontSize: 28,
+    fontSize: 25,
     lineHeight: 1,
     fontWeight: 1000,
+  },
+  rankProgressCard: {
+    display: "grid",
+    gap: 9,
+    marginBottom: 18,
+    padding: 14,
+    borderRadius: 18,
+    background: "linear-gradient(145deg, rgba(212,175,55,0.1), rgba(11,11,11,0.96))",
+    border: "1px solid rgba(212,175,55,0.16)",
+    boxShadow: "0 18px 44px rgba(0,0,0,0.2)",
+  },
+  rankProgressTop: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  rankProgressBadge: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 8,
+    fontSize: 13,
+    fontWeight: 950,
+    textTransform: "uppercase",
+  },
+  rankProgressXP: {
+    color: "var(--text-primary)",
+    fontSize: 12,
+    fontWeight: 900,
+    whiteSpace: "nowrap",
+  },
+  rankProgressHint: {
+    margin: 0,
+    color: "var(--text-secondary)",
+    fontSize: 12,
+    fontWeight: 800,
   },
   scoreLabel: {
     color: "var(--text-secondary)",
@@ -1577,6 +1719,22 @@ const styles = {
     alignItems: "center",
     justifyContent: "space-between",
     gap: 12,
+  },
+  comboProgressMain: {
+    minWidth: 0,
+    display: "grid",
+    gap: 5,
+  },
+  comboProgressStats: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, auto)",
+    gap: "4px 12px",
+    color: "var(--text-secondary)",
+    fontSize: 12,
+    fontWeight: 850,
+    textAlign: "right",
+    justifyContent: "end",
+    whiteSpace: "nowrap",
   },
   progressList: {
     display: "grid",
@@ -1669,6 +1827,17 @@ const styles = {
     fontWeight: 850,
     textAlign: "right",
     whiteSpace: "nowrap",
+  },
+  viewMoreButton: {
+    minHeight: 36,
+    marginTop: 8,
+    border: "1px solid rgba(212,175,55,0.24)",
+    borderRadius: 999,
+    background: "rgba(212,175,55,0.08)",
+    color: "var(--accent-gold)",
+    fontSize: 12,
+    fontWeight: 900,
+    cursor: "pointer",
   },
   progressEmpty: {
     padding: "34px 18px",
