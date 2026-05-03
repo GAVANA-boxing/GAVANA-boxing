@@ -141,8 +141,9 @@ function getCaptionToggleLabel(locale, expanded) {
 
 function cleanCaption(text) {
   return String(text || "")
-    .replace(/\*\*[^*]*\*\*\s*:/g, "")
+    .replace(/\*\*[^*]+\*\*\s*:\s*/g, "")
     .replace(/\*\*/g, "")
+    .replace(/^[ \t]*(Hook|Caption|Hashtags?)\s*:\s*/gim, "")
     .replace(/^\s*[-•]\s*/gm, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
@@ -2735,9 +2736,9 @@ const styles = {
   },
   info: {
     position: "absolute",
-    left: "max(18px, env(safe-area-inset-left))",
-    right: 96,
-    bottom: "calc(134px + env(safe-area-inset-bottom))",
+    left: "max(14px, env(safe-area-inset-left))",
+    right: 72,
+    bottom: "calc(90px + env(safe-area-inset-bottom))",
     maxWidth: 520,
     animation: "fadeUp 420ms ease both",
     zIndex: 4,
@@ -2895,15 +2896,12 @@ const styles = {
   },
   actions: {
     position: "absolute",
-    right: "max(12px, env(safe-area-inset-right))",
-    top: "calc(92px + env(safe-area-inset-top))",
-    bottom: "calc(92px + env(safe-area-inset-bottom))",
-    transform: "none",
+    right: "max(10px, env(safe-area-inset-right))",
+    bottom: "calc(90px + env(safe-area-inset-bottom))",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
+    gap: 6,
     paddingTop: 8,
     paddingBottom: 8,
     paddingLeft: 4,
@@ -2916,18 +2914,16 @@ const styles = {
     WebkitBackdropFilter: "blur(18px) saturate(140%)",
     animation: "fadeScale 220ms ease both",
     zIndex: 5,
-    maxHeight: "min(600px, 90vh)",
-    overflowY: "auto",
   },
   actionItem: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: 6,
+    gap: 2,
     cursor: "pointer",
     WebkitTapHighlightColor: "transparent",
     userSelect: "none",
-    opacity: 0.82,
+    opacity: 0.88,
     transition: "transform var(--motion-fast), opacity var(--motion-fast), filter var(--motion-fast)",
   },
   actionItemLiked: {
@@ -2939,8 +2935,8 @@ const styles = {
     opacity: 1,
   },
   actionCircle: {
-    width: 36,
-    height: 36,
+    width: 32,
+    height: 32,
     borderRadius: "50%",
     background: "transparent",
     borderWidth: "1px",
@@ -2982,8 +2978,8 @@ const styles = {
     textShadow: "0 0 20px rgba(212,175,55,0.45), 0 2px 8px rgba(0,0,0,0.9)",
   },
   actionSvg: {
-    width: 22,
-    height: 22,
+    width: 20,
+    height: 20,
     display: "block",
     color: "currentColor",
     filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.85))",
