@@ -244,6 +244,7 @@ export default function ReelsContent() {
   const [videoErrors, setVideoErrors] = useState({});
   const [creatorStats, setCreatorStats] = useState({}); // XP, rank, best score for creators
   const [profileReelProgress, setProfileReelProgress] = useState(null); // progress data when opened from profile
+  const [captionSheetReelId, setCaptionSheetReelId] = useState(null);
   const videoRefs = useRef({});
   const feedRef = useRef(null);
   const reelItemRefs = useRef({});
@@ -1847,9 +1848,14 @@ export default function ReelsContent() {
                 </div>
               </div>
               {captionText && (
-                <div style={styles.descriptionLine}>
+                <button
+                  type="button"
+                  style={styles.descriptionLine}
+                  onClick={() => setCaptionSheetReelId(reel.id)}
+                  aria-label={t("captionExpand")}
+                >
                   {captionText}
-                </div>
+                </button>
               )}
               <div style={styles.metaLine}>
                 <span>{formatCompactCount(getSafeViewCount(reel))} {t("views")}</span>
@@ -2140,6 +2146,38 @@ export default function ReelsContent() {
           </div>
         </div>
       )}
+
+      {captionSheetReelId && (() => {
+        const sheetReel = reels.find(r => r.id === captionSheetReelId);
+        const fullCaption = sheetReel ? cleanCaption(sheetReel.description || sheetReel.caption || "") : "";
+        return (
+          <div
+            style={styles.captionSheetOverlay}
+            onClick={() => setCaptionSheetReelId(null)}
+          >
+            <div
+              style={styles.captionSheet}
+              onClick={e => e.stopPropagation()}
+            >
+              <div style={styles.captionSheetHandle} />
+              <div style={styles.captionSheetHeader}>
+                <span style={styles.captionSheetTitle}>{t("captionSheetTitle")}</span>
+                <button
+                  type="button"
+                  style={styles.captionSheetClose}
+                  onClick={() => setCaptionSheetReelId(null)}
+                  aria-label={t("close")}
+                >
+                  ✕
+                </button>
+              </div>
+              <div style={styles.captionSheetBody}>
+                <p style={styles.captionSheetText}>{fullCaption}</p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       <button
         type="button"
@@ -2891,17 +2929,94 @@ const styles = {
     textShadow: "0 2px 8px rgba(0,0,0,0.95)",
   },
   descriptionLine: {
+    display: "block",
     marginBottom: 8,
+    padding: 0,
+    border: "none",
+    background: "transparent",
+    textAlign: "left",
+    cursor: "pointer",
     color: "var(--text-primary)",
     fontSize: 13,
     lineHeight: 1.35,
     fontWeight: 500,
     maxWidth: 500,
+    width: "100%",
     textShadow: "0 4px 22px rgba(0,0,0,0.96), 0 1px 2px rgba(0,0,0,1)",
     letterSpacing: 0,
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
+  },
+  captionSheetOverlay: {
+    position: "fixed",
+    inset: 0,
+    zIndex: 9999,
+    background: "rgba(0,0,0,0.55)",
+    display: "flex",
+    alignItems: "flex-end",
+    justifyContent: "center",
+  },
+  captionSheet: {
+    width: "100%",
+    maxWidth: 600,
+    maxHeight: "50vh",
+    background: "#111",
+    borderRadius: "18px 18px 0 0",
+    padding: "12px 20px 32px",
+    display: "flex",
+    flexDirection: "column",
+    boxShadow: "0 -4px 32px rgba(0,0,0,0.7)",
+  },
+  captionSheetHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    background: "rgba(255,255,255,0.22)",
+    alignSelf: "center",
+    marginBottom: 14,
+    flexShrink: 0,
+  },
+  captionSheetHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 14,
+    flexShrink: 0,
+  },
+  captionSheetTitle: {
+    color: "rgba(255,255,255,0.55)",
+    fontSize: 12,
+    fontWeight: 700,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  captionSheetClose: {
+    background: "rgba(255,255,255,0.1)",
+    border: "none",
+    borderRadius: "50%",
+    width: 28,
+    height: 28,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "rgba(255,255,255,0.7)",
+    fontSize: 14,
+    cursor: "pointer",
+    padding: 0,
+  },
+  captionSheetBody: {
+    overflowY: "auto",
+    flex: 1,
+  },
+  captionSheetText: {
+    margin: 0,
+    color: "var(--text-primary)",
+    fontSize: 15,
+    lineHeight: 1.6,
+    fontWeight: 400,
+    whiteSpace: "pre-wrap",
+    wordBreak: "break-word",
   },
   metaLine: {
     display: "flex",
