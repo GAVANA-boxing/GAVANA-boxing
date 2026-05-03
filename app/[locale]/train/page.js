@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { addDoc, collection, doc, getDocs, query, runTransaction, serverTimestamp, where } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, getDocs, query, runTransaction, serverTimestamp, setDoc, where } from "firebase/firestore";
 import BottomNav from "@/components/BottomNav";
+import DailyMission from "@/components/DailyMission";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
@@ -89,6 +90,10 @@ export default function TrainPage() {
   const [challengeSaving, setChallengeSaving] = useState(false);
   const [challengeSaved, setChallengeSaved] = useState(false);
   const [error, setError] = useState("");
+  const [missionJustCompleted, setMissionJustCompleted] = useState(false);
+  const [missionTotalBonus, setMissionTotalBonus] = useState(0);
+  const [missionStreakBonus, setMissionStreakBonus] = useState(0);
+  const [missionNewStreak, setMissionNewStreak] = useState(0);
 
   // Live game state
   const [comboCount, setComboCount] = useState(0);
@@ -589,7 +594,7 @@ export default function TrainPage() {
         where("reelId", "==", reelId)
       ));
       const previousAttempts = previousSessionsSnap.docs
-        .map((doc) => doc.data())
+        .map((d) => d.data())
         .filter((session) => session.type === "training").length;
       const attemptNumber = previousAttempts + 1;
 
@@ -605,6 +610,42 @@ export default function TrainPage() {
         locale,
         source: "train_screen",
       });
+
+      // Daily mission completion
+      const todayKey = getLocalDateKey();
+      const yesterdayKey = getPreviousLocalDateKey();
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+      const userData = userSnap.exists() ? userSnap.data() : {};
+      const alreadyCompleted = userData.dailyMissionCompleted === todayKey;
+
+      if (!alreadyCompleted) {
+        const MISSION_XP = 50;
+        const lastDate = String(userData.lastTrainingDate || "");
+        const currentStreak = Number(userData.dailyStreak) || 0;
+        const newStreak = lastDate === yesterdayKey ? currentStreak + 1 : 1;
+        const streakBonus = newStreak === 3 ? 100 : newStreak === 7 ? 250 : 0;
+        const totalBonus = MISSION_XP + streakBonus;
+        const currentStoredXP = Number(userData.xp) || 0;
+        const newBest = Math.max(newStreak, Number(userData.bestDailyStreak) || 0);
+
+        await setDoc(userRef, {
+          dailyMissionCompleted: todayKey,
+          lastTrainingDate: todayKey,
+          dailyStreak: newStreak,
+          bestDailyStreak: newBest,
+          xp: currentStoredXP + totalBonus,
+          updatedAt: serverTimestamp(),
+        }, { merge: true });
+
+        setMissionJustCompleted(true);
+        setMissionTotalBonus(totalBonus);
+        setMissionStreakBonus(streakBonus);
+        setMissionNewStreak(newStreak);
+      } else {
+        // Still update lastTrainingDate even if mission already completed today
+        await setDoc(userRef, { lastTrainingDate: todayKey }, { merge: true });
+      }
 
       setSaved(true);
       setSavedAttemptNumber(attemptNumber);
@@ -809,6 +850,25 @@ export default function TrainPage() {
               <div style={styles.modalSaved}>{t("challengeResultSaved")}</div>
             )}
 
+            {missionJustCompleted && (
+              <div style={styles.missionCompleteBanner}>
+                <div style={styles.missionCompleteTitle}>
+                  🎯 {t("missionDailyComplete")}
+                </div>
+                <div style={styles.missionCompleteXP}>
+                  +50 XP {t("missionTarget").length > 0 ? "" : ""}
+                  {missionStreakBonus > 0 && (
+                    <span style={styles.missionStreakBonusText}>
+                      {" "}+ {missionStreakBonus} XP 🔥{missionNewStreak} {t("missionStreakBonus")}
+                    </span>
+                  )}
+                </div>
+                <div style={styles.missionCompleteSub}>
+                  {t("missionCurrentStreak")}: 🔥{missionNewStreak}
+                </div>
+              </div>
+            )}
+
             <div style={styles.modalActions}>
               {!activeChallenge && (
                 <>
@@ -864,6 +924,7 @@ export default function TrainPage() {
         </div>
       )}
 
+      <DailyMission locale={locale} />
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="upload" />
 
       <style>{`
@@ -1248,6 +1309,36 @@ const styles = {
     color: "#A7F3D0",
     fontSize: 13,
     fontWeight: 900,
+  },
+  missionCompleteBanner: {
+    marginTop: 14,
+    padding: "12px 14px",
+    borderRadius: 14,
+    background: "linear-gradient(135deg, rgba(212,175,55,0.15), rgba(52,211,153,0.10))",
+    border: "1px solid rgba(212,175,55,0.35)",
+    display: "grid",
+    gap: 4,
+    textAlign: "center",
+  },
+  missionCompleteTitle: {
+    fontSize: 14,
+    fontWeight: 1000,
+    color: "#D4AF37",
+    letterSpacing: 0.3,
+  },
+  missionCompleteXP: {
+    fontSize: 18,
+    fontWeight: 1000,
+    color: "#34D399",
+  },
+  missionStreakBonusText: {
+    color: "#FB923C",
+    fontSize: 14,
+  },
+  missionCompleteSub: {
+    fontSize: 11,
+    color: "#888",
+    fontWeight: 700,
   },
   modalWrap: {
     position: "fixed",
