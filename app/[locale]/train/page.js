@@ -23,6 +23,7 @@ function makeTrainingResult(currentXP) {
     score,
     xpGained,
     rankProgress: getRankProgress(currentXP + xpGained),
+    beatPercent: Math.min(96, Math.max(38, Math.round(score * 9 + Math.random() * 12))),
   };
 }
 
@@ -93,6 +94,7 @@ export default function TrainPage() {
   const [comboCount, setComboCount] = useState(0);
   const [hitCount, setHitCount] = useState(0);
   const [isFlashing, setIsFlashing] = useState(false);
+  const [impactId, setImpactId] = useState(0);
   const [liveFeedback, setLiveFeedback] = useState(null);
   const [showGo, setShowGo] = useState(false);
   const isRecordingRef = useRef(false);
@@ -102,6 +104,16 @@ export default function TrainPage() {
   const activeChallenge = challengeId ? CHALLENGES[challengeId] : null;
   const sessionSeconds = activeChallenge?.seconds || RECORD_SECONDS;
   const activeChallengeName = activeChallenge ? t(activeChallenge.titleKey) : "";
+  const targetHits = Math.max(10, Math.round(sessionSeconds * 1.2));
+
+  const triggerImpact = useCallback(() => {
+    setIsFlashing(true);
+    setImpactId(Date.now());
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      navigator.vibrate(30);
+    }
+    window.setTimeout(() => setIsFlashing(false), 150);
+  }, []);
 
   const goBack = () => {
     if (typeof window !== "undefined" && window.history.length > 1) {
@@ -226,7 +238,7 @@ export default function TrainPage() {
     if (hitTimerRef.current) window.clearTimeout(hitTimerRef.current);
 
     setSecondsLeft(0);
-    setPhase("result");
+    setPhase("finished");
     setResult({ ...makeTrainingResult(currentXP), hitCount: hitCountRef.current });
     setSaved(false);
     setSavedAttemptNumber(null);
@@ -237,11 +249,7 @@ export default function TrainPage() {
 
     if (countdown <= 0) {
       setShowGo(true);
-      if (typeof navigator !== "undefined" && navigator.vibrate) {
-        navigator.vibrate([60, 30, 60]);
-      }
-      setIsFlashing(true);
-      const flashTimer = window.setTimeout(() => setIsFlashing(false), 300);
+      triggerImpact();
 
       const goTimer = window.setTimeout(() => {
         setShowGo(false);
@@ -266,14 +274,13 @@ export default function TrainPage() {
       }, 700);
 
       return () => {
-        window.clearTimeout(flashTimer);
         window.clearTimeout(goTimer);
       };
     }
 
     const timer = window.setTimeout(() => setCountdown((value) => value - 1), 1000);
     return () => window.clearTimeout(timer);
-  }, [phase, countdown, sessionSeconds]);
+  }, [phase, countdown, sessionSeconds, triggerImpact]);
 
   useEffect(() => {
     if (phase !== "recording") return undefined;
@@ -305,17 +312,31 @@ export default function TrainPage() {
       "Keep going!", "Power! 💪", "Speed up!", "Snap it!", "Nice jab!", "Stay tight!",
     ];
 
+    const feedbackKeys = [
+      "trainFeedbackFaster",
+      "trainFeedbackGuard",
+      "trainFeedbackNiceCombo",
+      "trainFeedbackKeepMoving",
+      "trainFeedbackSharp",
+    ];
+    const milestoneMap = {
+      3: "trainMilestone3",
+      5: "trainMilestone5",
+      10: "trainMilestone10",
+    };
+
     function scheduleHit() {
       const delay = 500 + Math.floor(Math.random() * 400);
       hitTimerRef.current = window.setTimeout(() => {
         if (!isRecordingRef.current) return;
-        hitCountRef.current += 1;
+        const nextHitCount = hitCountRef.current + 1;
+        hitCountRef.current = nextHitCount;
         setComboCount((c) => c + 1);
-        setHitCount((c) => c + 1);
-        setIsFlashing(true);
-        window.setTimeout(() => setIsFlashing(false), 130);
+        setHitCount(nextHitCount);
+        triggerImpact();
         const id = Date.now();
-        const text = FEEDBACK[Math.floor(Math.random() * FEEDBACK.length)];
+        const feedbackKey = milestoneMap[nextHitCount] || feedbackKeys[Math.floor(Math.random() * feedbackKeys.length)];
+        const text = t(feedbackKey);
         setLiveFeedback({ text, id });
         window.setTimeout(() => setLiveFeedback((prev) => (prev?.id === id ? null : prev)), 1300);
         if (isRecordingRef.current) scheduleHit();
@@ -328,7 +349,7 @@ export default function TrainPage() {
       isRecordingRef.current = false;
       if (hitTimerRef.current) window.clearTimeout(hitTimerRef.current);
     };
-  }, [phase]);
+  }, [phase, t, triggerImpact]);
 
   const handleStart = () => {
     setError("");
@@ -341,6 +362,7 @@ export default function TrainPage() {
     setComboCount(0);
     setHitCount(0);
     setIsFlashing(false);
+    setImpactId(0);
     setLiveFeedback(null);
     setShowGo(false);
     hitCountRef.current = 0;
@@ -362,6 +384,7 @@ export default function TrainPage() {
     setComboCount(0);
     setHitCount(0);
     setIsFlashing(false);
+    setImpactId(0);
     setLiveFeedback(null);
     setShowGo(false);
     hitCountRef.current = 0;
@@ -588,7 +611,7 @@ export default function TrainPage() {
 
   const isCountingDown = phase === "countdown";
   const isRecording = phase === "recording";
-  const canStart = phase === "idle" || phase === "result";
+  const canStart = phase === "idle" || phase === "finished";
 
   return (
     <main style={styles.page}>
@@ -609,7 +632,13 @@ export default function TrainPage() {
           )}
         </header>
 
-        <div style={styles.stage}>
+        <div
+          style={styles.stage}
+          className={isFlashing ? "stage-impact" : ""}
+          onClick={() => {
+            if (isRecording) triggerImpact();
+          }}
+        >
           {cameraState === "ready" ? (
             <video
               ref={videoRef}
@@ -634,6 +663,7 @@ export default function TrainPage() {
 
           {/* Hit flash overlay — quick red burst on each simulated punch */}
           {isFlashing && <div style={styles.flashOverlay} />}
+          {impactId > 0 && <div key={impactId} style={styles.impactRing} className="impact-ring" />}
 
           {/* Countdown with scale-pop animation */}
           {isCountingDown && (
@@ -650,16 +680,25 @@ export default function TrainPage() {
             <>
               {/* Recording HUD — top bar */}
               <div style={styles.recordingHud}>
-                <span style={styles.recordDot} />
-                <span>{t("trainRecording")}</span>
-                <strong style={{ marginLeft: "auto" }}>{secondsLeft}s</strong>
+                <div style={styles.hudStatus}>
+                  <span style={styles.recordDot} />
+                  <span>{secondsLeft}s</span>
+                </div>
+                <div style={styles.hudMetric}>
+                  <span>{t("reels.combo")}</span>
+                  <strong>{comboCount}</strong>
+                </div>
+                <div style={styles.hudMetric}>
+                  <span>{t("challengeTargetScore")}</span>
+                  <strong>{hitCount}/{targetHits}</strong>
+                </div>
               </div>
 
               {/* Hit progress counter */}
               <div style={styles.hitCounter}>
                 <span style={styles.hitCountNum}>{hitCount}</span>
                 <span style={styles.hitCountSep}>/</span>
-                <span style={styles.hitCountTarget}>{Math.round(sessionSeconds * 1.2)}</span>
+                <span style={styles.hitCountTarget}>{targetHits}</span>
                 <span style={styles.hitCountLabel}>hits</span>
               </div>
 
@@ -711,8 +750,20 @@ export default function TrainPage() {
           <div style={styles.modalOverlay} />
           <section style={styles.modal}>
             <p style={styles.modalKicker}>{t("trainResult")}</p>
-            <div style={styles.score}>{result.score.toFixed(1)}</div>
+            <div
+              style={{
+                ...styles.score,
+                ...(result.score > 7 ? styles.scoreGood : {}),
+                ...(result.score < 5 ? styles.scoreLow : {}),
+              }}
+              className="score-reveal"
+            >
+              {result.score.toFixed(1)}
+            </div>
             <span style={styles.scoreUnit}>/10</span>
+            <p style={styles.beatUsersText}>
+              {t("challengeBeatPlayers").replace("{n}", result.beatPercent || getChallengeComparisonPercent(result.score))}
+            </p>
 
             <div style={styles.resultGrid}>
               {activeChallenge ? (
@@ -835,6 +886,25 @@ export default function TrainPage() {
           100% { opacity: 0; }
         }
 
+        .stage-impact {
+          animation: stageImpact 180ms ease-out both;
+        }
+        @keyframes stageImpact {
+          0%   { transform: translate3d(0,0,0); }
+          22%  { transform: translate3d(2px,-1px,0); }
+          46%  { transform: translate3d(-2px,1px,0); }
+          70%  { transform: translate3d(1px,0,0); }
+          100% { transform: translate3d(0,0,0); }
+        }
+
+        .impact-ring {
+          animation: impactRing 220ms ease-out forwards;
+        }
+        @keyframes impactRing {
+          0%   { opacity: 0.95; transform: translate(-50%, -50%) scale(0.42); }
+          100% { opacity: 0; transform: translate(-50%, -50%) scale(1.35); }
+        }
+
         .countdown-pop {
           animation: countdownPop 900ms ease both;
         }
@@ -846,11 +916,11 @@ export default function TrainPage() {
         }
 
         .combo-pop {
-          animation: comboPop 380ms cubic-bezier(0.34,1.56,0.64,1) both;
+          animation: comboPop 340ms cubic-bezier(0.34,1.56,0.64,1) both;
         }
         @keyframes comboPop {
-          0%   { transform: translateX(-50%) scale(0.5); opacity: 0; }
-          60%  { transform: translateX(-50%) scale(1.2); opacity: 1; }
+          0%   { transform: translateX(-50%) scale(1); opacity: 0.9; }
+          50%  { transform: translateX(-50%) scale(1.25); opacity: 1; }
           100% { transform: translateX(-50%) scale(1);   opacity: 1; }
         }
 
@@ -866,6 +936,15 @@ export default function TrainPage() {
 
         @keyframes spin {
           to { transform: rotate(360deg); }
+        }
+
+        .score-reveal {
+          animation: scoreReveal 620ms cubic-bezier(0.16,1,0.3,1) both;
+        }
+        @keyframes scoreReveal {
+          0%   { opacity: 0; transform: scale(0.72); filter: blur(8px); }
+          58%  { opacity: 1; transform: scale(1.12); filter: blur(0); }
+          100% { opacity: 1; transform: scale(1); }
         }
       `}</style>
     </main>
@@ -1039,10 +1118,22 @@ const styles = {
   flashOverlay: {
     position: "absolute",
     inset: 0,
-    background: "rgba(193,18,31,0.38)",
+    background: "radial-gradient(circle at 50% 45%, rgba(251,146,60,0.22), rgba(193,18,31,0.24) 38%, transparent 72%)",
     zIndex: 8,
     pointerEvents: "none",
-    animation: "flashFade 150ms ease-out forwards",
+    animation: "flashFade 180ms ease-out forwards",
+  },
+  impactRing: {
+    position: "absolute",
+    left: "50%",
+    top: "47%",
+    width: 92,
+    height: 92,
+    borderRadius: "50%",
+    border: "2px solid rgba(253,186,116,0.72)",
+    boxShadow: "0 0 34px rgba(251,146,60,0.3), inset 0 0 24px rgba(193,18,31,0.18)",
+    zIndex: 9,
+    pointerEvents: "none",
   },
   hitCounter: {
     position: "absolute",
@@ -1089,12 +1180,19 @@ const styles = {
   },
   comboCounter: {
     position: "absolute",
-    bottom: 70,
+    bottom: 58,
     left: "50%",
     transform: "translateX(-50%)",
-    display: "flex",
-    flexDirection: "column",
+    display: "grid",
     alignItems: "center",
+    justifyItems: "center",
+    minWidth: 132,
+    padding: "10px 18px",
+    borderRadius: 22,
+    background: "linear-gradient(180deg, rgba(0,0,0,0.58), rgba(0,0,0,0.28))",
+    border: "1px solid rgba(212,175,55,0.24)",
+    backdropFilter: "blur(14px)",
+    WebkitBackdropFilter: "blur(14px)",
     zIndex: 6,
     pointerEvents: "none",
   },
@@ -1108,7 +1206,7 @@ const styles = {
   },
   comboNum: {
     color: "#fff",
-    fontSize: 64,
+    fontSize: 72,
     fontWeight: 1000,
     lineHeight: 1,
     textShadow: "0 0 40px rgba(212,175,55,0.55), 0 4px 18px rgba(0,0,0,0.95)",
@@ -1138,11 +1236,12 @@ const styles = {
     left: 16,
     right: 16,
     minHeight: 38,
-    display: "flex",
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr 1.25fr",
     alignItems: "center",
-    gap: 9,
+    gap: 8,
     borderRadius: 999,
-    padding: "0 13px",
+    padding: "5px 8px",
     background: "rgba(0,0,0,0.54)",
     border: "1px solid rgba(255,255,255,0.12)",
     backdropFilter: "blur(14px)",
@@ -1150,6 +1249,26 @@ const styles = {
     fontSize: 12,
     fontWeight: 900,
     zIndex: 5,
+  },
+  hudStatus: {
+    minHeight: 28,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderRadius: 999,
+    background: "rgba(193,18,31,0.18)",
+    color: "#fff",
+  },
+  hudMetric: {
+    minHeight: 28,
+    display: "grid",
+    alignContent: "center",
+    justifyItems: "center",
+    gap: 1,
+    borderRadius: 999,
+    background: "rgba(255,255,255,0.055)",
+    color: "#fff",
   },
   recordDot: {
     width: 9,
@@ -1253,11 +1372,27 @@ const styles = {
     fontSize: 72,
     lineHeight: 0.95,
     fontWeight: 1000,
+    color: "#D4AF37",
+    textShadow: "0 0 44px rgba(212,175,55,0.28)",
+  },
+  scoreGood: {
+    color: "#34D399",
+    textShadow: "0 0 46px rgba(52,211,153,0.36)",
+  },
+  scoreLow: {
+    color: "#FF6B6B",
+    textShadow: "0 0 42px rgba(193,18,31,0.34)",
   },
   scoreUnit: {
     color: "rgba(255,255,255,0.52)",
     fontSize: 16,
     fontWeight: 900,
+  },
+  beatUsersText: {
+    margin: "8px 0 0",
+    color: "rgba(255,255,255,0.72)",
+    fontSize: 13,
+    fontWeight: 850,
   },
   resultGrid: {
     display: "grid",
