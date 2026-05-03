@@ -73,6 +73,10 @@ export default function DiscoverPage() {
     router.push(`/${locale}/profile/${userId}`);
   };
 
+  const handleReelClick = (reelId) => {
+    router.push(`/${locale}/reels?reelId=${reelId}`);
+  };
+
   return (
     <div style={styles.page}>
       <div style={styles.header}>
@@ -165,18 +169,35 @@ export default function DiscoverPage() {
             <div style={styles.emptyState}>{t("discoverNoReels")}</div>
           ) : (
             <div style={styles.cardsGrid}>
-              {reelResults.map((reel) => (
-                <div key={reel.id} style={styles.card}>
-                  <div style={styles.cardHeader}>
-                    <div style={styles.avatar}>{(reel.username || "R").charAt(0).toUpperCase()}</div>
-                    <div>
-                      <div style={styles.cardTitle}>{reel.username ? `@${reel.username}` : "Reel"}</div>
-                      <div style={styles.cardSubtitle}>{reel.views ? `${Math.round(reel.views)} ${t("views")}` : ""}</div>
+              {reelResults.map((reel) => {
+                const thumbnailUrl = reel.thumbnailUrl || reel.posterUrl || "";
+                const caption = reel.caption || reel.description || "";
+                const views = Number(reel.views);
+
+                return (
+                  <button
+                    key={reel.id}
+                    type="button"
+                    onClick={() => handleReelClick(reel.id)}
+                    style={styles.card}
+                  >
+                    <div style={styles.cardHeader}>
+                      <div style={styles.reelPreview}>
+                        {thumbnailUrl ? (
+                          <img src={thumbnailUrl} alt={caption || "Reel"} style={styles.reelPreviewImg} />
+                        ) : (
+                          <span>{(reel.username || "R").charAt(0).toUpperCase()}</span>
+                        )}
+                      </div>
+                      <div>
+                        <div style={styles.cardTitle}>{reel.username ? `@${reel.username}` : t("navReels")}</div>
+                        <div style={styles.cardSubtitle}>{Number.isFinite(views) ? `${Math.round(views)} ${t("views")}` : ""}</div>
+                      </div>
                     </div>
-                  </div>
-                  <p style={styles.cardText}>{reel.caption || reel.description || ""}</p>
-                </div>
-              ))}
+                    <p style={styles.cardText}>{caption}</p>
+                  </button>
+                );
+              })}
             </div>
           )}
         </section>
@@ -283,6 +304,7 @@ const styles = {
     cursor: "pointer",
     color: "#fff",
     width: "100%",
+    font: "inherit",
   },
   cardHeader: {
     display: "flex",
@@ -308,6 +330,26 @@ const styles = {
     objectFit: "cover",
     display: "block",
     borderRadius: "50%",
+  },
+  reelPreview: {
+    width: 44,
+    height: 58,
+    borderRadius: 12,
+    display: "grid",
+    placeItems: "center",
+    background: "linear-gradient(145deg, rgba(193,18,31,0.28), rgba(212,175,55,0.14))",
+    border: "1px solid rgba(255,255,255,0.08)",
+    color: "#fff",
+    fontWeight: 900,
+    fontSize: 16,
+    flexShrink: 0,
+    overflow: "hidden",
+  },
+  reelPreviewImg: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    display: "block",
   },
   cardTitle: {
     margin: 0,

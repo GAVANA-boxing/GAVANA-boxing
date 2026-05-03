@@ -51,7 +51,7 @@ function getChallengeRank(score) {
 
 function getResultXP(result) {
   const storedXP = Number(result?.xpGained);
-  if (Number.isFinite(storedXP) && storedXP > 0) return Math.round(storedXP);
+  if (Number.isFinite(storedXP)) return Math.max(0, Math.round(storedXP));
 
   const score = Number(result?.score);
   const rank = String(result?.rank || getChallengeRank(score)).toUpperCase();
@@ -95,6 +95,7 @@ export default function ChallengesPage() {
   const [results, setResults] = useState([]);
   const [profiles, setProfiles] = useState({});
   const [leaderboardFilter, setLeaderboardFilter] = useState("global");
+  const [showStreakInfo, setShowStreakInfo] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -141,9 +142,24 @@ export default function ChallengesPage() {
     const grouped = {};
 
     for (const challenge of CHALLENGES) {
-      grouped[challenge.id] = results
+      const bestByUser = new Map();
+
+      results
         .filter((result) => result.challengeId === challenge.id)
-        .sort((a, b) => {
+        .forEach((result) => {
+          const existing = bestByUser.get(result.userId);
+          if (!existing) {
+            bestByUser.set(result.userId, result);
+            return;
+          }
+
+          const scoreDelta = Number(result.score) - Number(existing.score);
+          if (scoreDelta > 0 || (scoreDelta === 0 && getTimestampMs(result.createdAt) > getTimestampMs(existing.createdAt))) {
+            bestByUser.set(result.userId, result);
+          }
+        });
+
+      grouped[challenge.id] = [...bestByUser.values()].sort((a, b) => {
           const scoreDelta = Number(b.score) - Number(a.score);
           if (scoreDelta !== 0) return scoreDelta;
           return getTimestampMs(b.createdAt) - getTimestampMs(a.createdAt);
@@ -157,10 +173,7 @@ export default function ChallengesPage() {
     const grouped = {};
     for (const challenge of CHALLENGES) {
       const ranked = rankedScoresByChallenge[challenge.id] || [];
-      grouped[challenge.id] = (leaderboardFilter === "friends"
-        ? ranked.filter((result) => result.userId === user?.uid)
-        : ranked
-      ).slice(0, 5);
+      grouped[challenge.id] = leaderboardFilter === "friends" ? [] : ranked.slice(0, 5);
     }
     return grouped;
   }, [leaderboardFilter, rankedScoresByChallenge, user?.uid]);
@@ -188,10 +201,10 @@ export default function ChallengesPage() {
           <p style={styles.kicker}>GAVANA</p>
           <h1 style={styles.title}>{t("challengesTitle")}</h1>
           <p style={styles.subtitle}>{t("challengesSubtitle")}</p>
-          <div style={styles.streakPill}>
+          <button type="button" style={styles.streakPill} onClick={() => setShowStreakInfo(true)}>
             <span style={styles.streakFlame}>🔥</span>
-            {t("challengeStreak").replace("{n}", currentChallengeStreak)}
-          </div>
+            {t("challenge.streak")} · {currentChallengeStreak}
+          </button>
         </header>
 
         <div style={styles.leaderboardTools}>
@@ -204,7 +217,7 @@ export default function ChallengesPage() {
               }}
               onClick={() => setLeaderboardFilter("global")}
             >
-              {t("challengeGlobal")}
+              {t("challenge.global")}
             </button>
             <button
               type="button"
@@ -214,18 +227,20 @@ export default function ChallengesPage() {
               }}
               onClick={() => setLeaderboardFilter("friends")}
             >
-              {t("challengeFriends")}
+              {t("challenge.friends")}
             </button>
           </div>
         </div>
 
         <div style={styles.yourRankBar}>
           <span style={styles.yourRankLabel}>
-            {bestCurrentUserRank
-              ? t("challengeYouAreRank").replace("{rank}", bestCurrentUserRank.rank)
+            {leaderboardFilter === "friends"
+              ? t("challengeFriendsComingSoon")
+              : bestCurrentUserRank
+              ? `${t("challenge.yourRank")} #${bestCurrentUserRank.rank}`
               : t("challengeYouAreUnranked")}
           </span>
-          {bestCurrentUserRank && (
+          {leaderboardFilter !== "friends" && bestCurrentUserRank && (
             <span style={styles.yourRankChallenge}>{t(bestCurrentUserRank.challenge.titleKey)}</span>
           )}
         </div>
@@ -249,7 +264,9 @@ export default function ChallengesPage() {
 
               <div style={styles.leaderboard}>
                 <h3 style={styles.leaderboardTitle}>{t("challengeLeaderboard")}</h3>
-                {(topScoresByChallenge[challenge.id] || []).length === 0 ? (
+                {leaderboardFilter === "friends" ? (
+                  <div style={styles.emptyLeaderboard}>{t("challengeFriendsComingSoon")}</div>
+                ) : (topScoresByChallenge[challenge.id] || []).length === 0 ? (
                   <div style={styles.emptyLeaderboard}>{t("challengeNoScores")}</div>
                 ) : (
                   <div style={styles.scoreRows}>
@@ -299,6 +316,24 @@ export default function ChallengesPage() {
       </section>
 
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="discover" />
+      {showStreakInfo && (
+        <div style={styles.streakModalWrap}>
+          <div style={styles.streakModalOverlay} onClick={() => setShowStreakInfo(false)} />
+          <section style={styles.streakModal}>
+            <div style={styles.streakModalHeader}>
+              <h2 style={styles.streakModalTitle}>{t("challenge.streak")}</h2>
+              <button type="button" style={styles.streakCloseButton} onClick={() => setShowStreakInfo(false)}>
+                ×
+              </button>
+            </div>
+            <div style={styles.streakInfoList}>
+              <p>{t("challengeStreakExplain1")}</p>
+              <p>{t("challengeStreakExplain2")}</p>
+              <p>{t("challengeStreakExplain3")}</p>
+            </div>
+          </section>
+        </div>
+      )}
       <style jsx global>{`
         @keyframes challengeScoreGlow {
           0%, 100% { box-shadow: 0 0 0 rgba(212,175,55,0); }
@@ -367,6 +402,7 @@ const styles = {
     color: "#FED7AA",
     fontSize: 13,
     fontWeight: 950,
+    cursor: "pointer",
   },
   streakFlame: {
     fontSize: 16,
@@ -586,5 +622,62 @@ const styles = {
     color: "#D4AF37",
     fontSize: 11,
     fontWeight: 950,
+  },
+  streakModalWrap: {
+    position: "fixed",
+    inset: 0,
+    zIndex: 80,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 18,
+  },
+  streakModalOverlay: {
+    position: "absolute",
+    inset: 0,
+    background: "rgba(0,0,0,0.68)",
+    backdropFilter: "blur(8px)",
+    WebkitBackdropFilter: "blur(8px)",
+  },
+  streakModal: {
+    position: "relative",
+    width: "100%",
+    maxWidth: 420,
+    padding: 18,
+    borderRadius: 20,
+    background: "linear-gradient(180deg, #151111, #080808)",
+    border: "1px solid rgba(212,175,55,0.22)",
+    boxShadow: "0 24px 70px rgba(0,0,0,0.5)",
+  },
+  streakModalHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    marginBottom: 12,
+  },
+  streakModalTitle: {
+    margin: 0,
+    color: "#D4AF37",
+    fontSize: 18,
+    fontWeight: 1000,
+  },
+  streakCloseButton: {
+    width: 34,
+    height: 34,
+    border: "1px solid rgba(255,255,255,0.12)",
+    borderRadius: 999,
+    background: "rgba(255,255,255,0.06)",
+    color: "#fff",
+    fontSize: 20,
+    lineHeight: 1,
+    cursor: "pointer",
+  },
+  streakInfoList: {
+    display: "grid",
+    gap: 10,
+    color: "rgba(255,255,255,0.78)",
+    fontSize: 14,
+    lineHeight: 1.5,
   },
 };

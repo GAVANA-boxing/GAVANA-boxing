@@ -64,8 +64,16 @@ export default function OnboardingModal() {
 
   useEffect(() => {
     if (authLoading) return;
+
+    setChecking(true);
+    setError("");
+    setStepIndex(0);
+
     if (!user?.uid) {
       setVisible(false);
+      setGoal("");
+      setExperience("");
+      setCoachStyle("");
       setChecking(false);
       return;
     }
@@ -83,7 +91,7 @@ export default function OnboardingModal() {
         } else {
           setGoal(onboarding?.goal || "");
           setExperience(onboarding?.experience || "");
-          setCoachStyle(onboarding?.coachStyle || "");
+          setCoachStyle(personaMap[onboarding?.coachStyle] ? onboarding?.coachStyle : "");
           setVisible(true);
         }
       } catch (err) {
@@ -121,6 +129,7 @@ export default function OnboardingModal() {
             ...payload,
             coachPersona: payload.coachStyle ? personaMap[payload.coachStyle] : null,
             completed: true,
+            completedAt: new Date().toISOString(),
           },
         },
         { merge: true }

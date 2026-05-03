@@ -86,6 +86,7 @@ export default function TrainPage() {
   const [targetScore, setTargetScore] = useState(null);
   const [challengeSaving, setChallengeSaving] = useState(false);
   const [challengeSaved, setChallengeSaved] = useState(false);
+  const [challengeSaveMessage, setChallengeSaveMessage] = useState("");
   const [error, setError] = useState("");
 
   const activeChallenge = challengeId ? CHALLENGES[challengeId] : null;
@@ -265,6 +266,7 @@ export default function TrainPage() {
     setSaved(false);
     setSavedAttemptNumber(null);
     setChallengeSaved(false);
+    setChallengeSaveMessage("");
     challengeSavedRef.current = false;
     setCountdown(3);
     setPhase("countdown");
@@ -276,6 +278,7 @@ export default function TrainPage() {
     setSaved(false);
     setSavedAttemptNumber(null);
     setChallengeSaved(false);
+    setChallengeSaveMessage("");
     challengeSavedRef.current = false;
     setSecondsLeft(sessionSeconds);
     setCountdown(null);
@@ -354,13 +357,22 @@ export default function TrainPage() {
       const rank = getChallengeRank(result.score);
       const comparisonPercent = getChallengeComparisonPercent(result.score);
       const xpGained = calculateChallengeXP(result.score, rank);
+      const todayKey = getLocalDateKey();
+      const previousAttemptsSnap = await getDocs(query(
+        collection(db, "challenge_results"),
+        where("userId", "==", user.uid),
+        where("challengeId", "==", challengeId)
+      ));
+      const xpAlreadyClaimedToday = previousAttemptsSnap.docs.some((attemptDoc) => {
+        const attempt = attemptDoc.data();
+        return attempt.challengeDate === todayKey && Number(attempt.xpGained) > 0;
+      });
 
       await runTransaction(db, async (transaction) => {
         const userRef = doc(db, "users", user.uid);
         const challengeResultRef = doc(collection(db, "challenge_results"));
         const userSnap = await transaction.get(userRef);
         const userData = userSnap.exists() ? userSnap.data() : {};
-        const todayKey = getLocalDateKey();
         const yesterdayKey = getPreviousLocalDateKey();
         const lastChallengeDate = String(userData.lastChallengeDate || "");
         const currentStreak = Number(userData.challengeStreak) || 0;
@@ -370,8 +382,8 @@ export default function TrainPage() {
           : lastChallengeDate === yesterdayKey
             ? currentStreak + 1
             : 1;
-        const streakBonusXP = isSameDay ? 0 : getChallengeStreakBonus(nextStreak);
-        const totalChallengeXP = xpGained + streakBonusXP;
+        const streakBonusXP = xpAlreadyClaimedToday || isSameDay ? 0 : getChallengeStreakBonus(nextStreak);
+        const totalChallengeXP = xpAlreadyClaimedToday ? 0 : xpGained + streakBonusXP;
         const nextXP = Math.round((Number(userData.xp) || 0) + totalChallengeXP);
         const nextCompleted = Math.round((Number(userData.totalChallengesCompleted) || 0) + 1);
         const nextRank = getFighterRank(nextXP);
@@ -386,22 +398,30 @@ export default function TrainPage() {
           baseXP: xpGained,
           streakBonusXP,
           challengeStreak: nextStreak,
+          challengeDate: todayKey,
+          xpClaimed: !xpAlreadyClaimedToday,
           createdAt: serverTimestamp(),
           locale,
         });
 
-        transaction.set(userRef, {
-          xp: nextXP,
-          rank: nextRank.key,
-          rankName: nextRank.key.replace(/^rank/, ""),
+        const userUpdate = {
           totalChallengesCompleted: nextCompleted,
-          challengeStreak: nextStreak,
           lastChallengeDate: todayKey,
           updatedAt: serverTimestamp(),
-        }, { merge: true });
+        };
+
+        if (!xpAlreadyClaimedToday) {
+          userUpdate.xp = nextXP;
+          userUpdate.rank = nextRank.key;
+          userUpdate.rankName = nextRank.key.replace(/^rank/, "");
+          userUpdate.challengeStreak = nextStreak;
+        }
+
+        transaction.set(userRef, userUpdate, { merge: true });
       });
 
       setChallengeSaved(true);
+      setChallengeSaveMessage(xpAlreadyClaimedToday ? t("challengeXpAlreadyClaimed") : t("challengeSavedToLeaderboard"));
     } catch (err) {
       challengeSavedRef.current = false;
       console.error("Failed to save challenge result:", err);
@@ -628,7 +648,7 @@ export default function TrainPage() {
             )}
 
             {activeChallenge && challengeSaved && (
-              <div style={styles.modalSaved}>{t("challengeResultSaved")}</div>
+              <div style={styles.modalSaved}>{challengeSaveMessage || t("challengeSavedToLeaderboard")}</div>
             )}
 
             <div style={styles.modalActions}>
@@ -664,22 +684,21 @@ export default function TrainPage() {
                     {challengeSaving
                       ? t("trainSaving")
                       : challengeSaved
-                        ? t("challengeResultSaved")
-                        : t("challengeSaveResult")}
+                        ? t("challenge.saved")
+                        : t("challenge.saveResult")}
                   </button>
-                  <button type="button" style={styles.reelsButton} onClick={goToChallenges}>
-                    {t("challengeBackToChallenges")}
-                  </button>
-                  <button type="button" style={styles.challengeFriendButton} onClick={handleChallengeFriend}>
-                    {t("challengeFriend")}
-                  </button>
-                  <button type="button" style={styles.reelsButton} onClick={handleShareChallenge}>
-                    {t("challengeShare")}
+                  {challengeSaved && (
+                    <button type="button" style={styles.reelsButton} onClick={goToChallenges}>
+                      {t("challenge.backToChallenges")}
+                    </button>
+                  )}
+                  <button type="button" style={styles.shareMiniButton} onClick={handleShareChallenge}>
+                    {t("challenge.share")}
                   </button>
                 </>
               )}
               <button type="button" style={styles.tryAgainButton} onClick={handleTryAgain}>
-                {activeChallenge ? t("challengeTryAgain") : t("trainTryAgain")}
+                {activeChallenge ? t("challenge.tryAgain") : t("trainTryAgain")}
               </button>
             </div>
           </section>
@@ -1058,6 +1077,19 @@ const styles = {
     color: "#D4AF37",
     fontSize: 14,
     fontWeight: 950,
+    cursor: "pointer",
+  },
+  shareMiniButton: {
+    minHeight: 38,
+    width: "fit-content",
+    justifySelf: "center",
+    padding: "0 14px",
+    border: "1px solid rgba(255,255,255,0.12)",
+    borderRadius: 999,
+    background: "rgba(255,255,255,0.055)",
+    color: "rgba(255,255,255,0.82)",
+    fontSize: 12,
+    fontWeight: 900,
     cursor: "pointer",
   },
   challengeFriendButton: {
