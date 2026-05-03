@@ -211,12 +211,9 @@ export default function UserProfilePage() {
   const [deletingReelIds, setDeletingReelIds] = useState(new Set());
   const [rankUpRank, setRankUpRank] = useState(null);
   const [expandedTrainingGroups, setExpandedTrainingGroups] = useState(new Set());
-<<<<<<< HEAD
-  const [visibleTrainingGroups, setVisibleTrainingGroups] = useState(new Set());
-=======
-  const [showStreakModal, setShowStreakModal] = useState(false);
->>>>>>> origin/claude/review-refactor-code-DUmiX
-  const rankUpShownRef = useRef(false);
+const [visibleTrainingGroups, setVisibleTrainingGroups] = useState(new Set());
+const [showStreakModal, setShowStreakModal] = useState(false);
+const rankUpShownRef = useRef(false);
 
   // Redirect if not logged in
   useEffect(() => {
