@@ -1681,7 +1681,7 @@ export default function ReelsContent() {
                   }
                 }}
                 onError={() => handleVideoError(reel.id)}
-                preload={index === currentIndex || index <= 1 ? "auto" : "metadata"}
+                preload={index === currentIndex ? "auto" : index === currentIndex + 1 ? "metadata" : "none"}
               />
             )}
 
@@ -1857,10 +1857,10 @@ export default function ReelsContent() {
               </div>
             </div>
 
-            {/* Play/Pause indicator */}
-            {!reel.isDemo && showControls && index === currentIndex && (
+            {/* Play/Pause indicator — shown only when paused */}
+            {!reel.isDemo && showControls && index === currentIndex && videoRefs.current[reel.id]?.paused && (
               <div style={styles.playIndicator}>
-                {videoRefs.current[reel.id]?.paused ? t("play") : ""}
+                <CenterPlayIcon />
               </div>
             )}
           </div>
@@ -2275,6 +2275,27 @@ function RobotIcon() {
   );
 }
 
+function CenterPlayIcon() {
+  return (
+    <div style={{
+      width: 72,
+      height: 72,
+      borderRadius: "50%",
+      background: "rgba(0,0,0,0.55)",
+      border: "2px solid rgba(255,255,255,0.32)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      backdropFilter: "blur(8px)",
+      WebkitBackdropFilter: "blur(8px)",
+    }}>
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="white" aria-hidden="true">
+        <path d="M8 5.5v13l11-6.5-11-6.5Z" />
+      </svg>
+    </div>
+  );
+}
+
 function DemoReelVisual() {
   return (
     <div style={styles.demoReel}>
@@ -2447,25 +2468,18 @@ const styles = {
     boxShadow: "none",
   },
   feed: {
-    height: "100vh",
-    minHeight: "100dvh",
+    height: "100dvh",
     overflowY: "scroll",
     scrollSnapType: "y mandatory",
     scrollBehavior: "smooth",
     overscrollBehaviorY: "contain",
     WebkitOverflowScrolling: "touch",
-    paddingBottom: "calc(78px + env(safe-area-inset-bottom))",
-    scrollPaddingBottom: "calc(78px + env(safe-area-inset-bottom))",
-    boxSizing: "border-box",
   },
   videoContainer: {
     position: "relative",
     width: "100vw",
-    height: "100vh",
-    minHeight: "100dvh",
+    height: "100dvh",
     flexShrink: 0,
-    paddingBottom: 80,
-    boxSizing: "border-box",
     overflow: "hidden",
     scrollSnapAlign: "start",
     scrollSnapStop: "always",
@@ -2809,7 +2823,7 @@ const styles = {
     textShadow: "0 4px 22px rgba(0,0,0,0.96), 0 1px 2px rgba(0,0,0,1)",
     letterSpacing: 0,
     display: "-webkit-box",
-    WebkitLineClamp: 3,
+    WebkitLineClamp: 2,
     WebkitBoxOrient: "vertical",
     overflow: "hidden",
     textAlign: "left",
@@ -3018,9 +3032,9 @@ const styles = {
     top: "50%",
     left: "50%",
     transform: "translate(-50%, -50%)",
-    fontSize: 60,
-    opacity: 0.8,
-    textShadow: "0 2px 8px rgba(0,0,0,0.5)",
+    zIndex: 10,
+    pointerEvents: "none",
+    animation: "fadeScale 220ms ease both",
   },
   bottomNav: {
     position: "fixed",
