@@ -34,23 +34,25 @@ function makeTrainingResult(currentXP, stats) {
   const totalHits = Math.max(0, Number(stats.totalHits) || 0);
   const targetHits = Math.max(1, Number(stats.targetHits) || 1);
   const bestCombo = Math.max(0, Number(stats.bestCombo) || 0);
-  const completion = clamp(Number(stats.completion) || 0, 0, 1);
-  const hitRatio = clamp(totalHits / targetHits, 0, 1.25);
-  const comboRatio = clamp(bestCombo / targetHits, 0, 1);
-  const accuracy = totalHits === 0
-    ? 0
-    : Math.round(clamp(hitRatio * 82 + completion * 10 + comboRatio * 8, 0, 100));
-  const variation = totalHits === 0 ? Math.random() * 0.4 : (Math.random() - 0.5) * 0.5;
-  const rawScore = totalHits === 0
-    ? 0.5 + variation
-    : hitRatio * 6.6 + comboRatio * 1.5 + completion * 1.4 + (accuracy / 100) * 0.5 + variation;
-  const score = Number(clamp(rawScore, totalHits === 0 ? 0.5 : 1, 10).toFixed(1));
+  
+  // Use shared scoring function
+  const scoreData = calculateTrainingScore({
+    hits: totalHits,
+    targetHits,
+    combo: bestCombo,
+    elapsedSeconds: stats.elapsedSeconds,
+    durationSeconds: stats.durationSeconds,
+  });
+  
+  const score = scoreData.score;
+  const accuracy = scoreData.accuracy;
   const xpGained = Math.round(score * 42 + totalHits * 4 + bestCombo * 3);
+  
   return {
     score,
     xpGained,
     rankProgress: getRankProgress(currentXP + xpGained),
-    beatPercent: Math.min(96, Math.max(5, Math.round(score * 9 + accuracy * 0.25))),
+    beatPercent: Math.min(96, Math.max(5, Math.round(score * 10 + 5))),
     hitCount: totalHits,
     totalHits,
     bestCombo,
@@ -93,6 +95,56 @@ function getChallengeStreakBonus(streak) {
 function getTrainingStreakFire(count) {
   if (!count) return "";
   return "🔥".repeat(Math.min(3, count));
+}
+
+function calculateTrainingScore(stats) {
+  const hits = Math.max(0, Number(stats.hits) || 0);
+  const targetHits = Math.max(1, Number(stats.targetHits) || 1);
+  const combo = Math.max(0, Number(stats.combo) || 0);
+  
+  // Calculate accuracy as percentage
+  const accuracy = hits === 0 ? 0 : Math.round((hits / targetHits) * 100);
+  
+  // Base score from accuracy (0-10)
+  const baseScore = (accuracy / 100) * 10;
+  
+  // Combo bonus
+  let comboBonus = 0;
+  if (combo >= 10) {
+    comboBonus = 1.5;
+  } else if (combo >= 5) {
+    comboBonus = 1;
+  } else if (combo >= 3) {
+    comboBonus = 0.5;
+  }
+  
+  // Calculate score
+  let score = baseScore + comboBonus;
+  
+  // Edge case: if no hits, score must be 0
+  if (hits === 0) {
+    score = 0;
+  } else {
+    // Clamp to 0-10 range
+    score = clamp(score, 0, 10);
+  }
+  
+  // Round to 1 decimal place
+  score = Number(score.toFixed(1));
+  
+  // Calculate completion bonus if session duration provided
+  let completionBonus = 0;
+  if (stats.elapsedSeconds && stats.durationSeconds) {
+    const completion = clamp(stats.elapsedSeconds / stats.durationSeconds, 0, 1);
+    completionBonus = completion * 0.5;
+  }
+  
+  return {
+    score,
+    accuracy,
+    comboBonus,
+    completionBonus,
+  };
 }
 
 export default function TrainPage() {
@@ -146,6 +198,8 @@ export default function TrainPage() {
   const [trainingStreak, setTrainingStreak] = useState(0);
   const [animatedXP, setAnimatedXP] = useState(0);
   const [animatedRankProgress, setAnimatedRankProgress] = useState(0);
+  const [liveScore, setLiveScore] = useState(0);
+  const [liveAccuracy, setLiveAccuracy] = useState(0);
   const isRecordingRef = useRef(false);
   const hitTimerRef = useRef(null);
   const hitCountRef = useRef(0);
@@ -510,9 +564,18 @@ export default function TrainPage() {
     setComboCount(0);
     setHitCount(0);
 
-    const FEEDBACK = [
-      "Faster! 💨", "Good! ✓", "Guard up!", "Nice combo!",
-      "Keep going!", "Power! 💪", "Speed up!", "Snap it!", "Nice jab!", "Stay tight!",
+    const milestoneMap = {
+      3: "trainMilestone3",
+      5: "trainMilestone5",
+      10: "trainMilestone10",
+    };
+
+    const feedbackKeys = [
+      "trainFeedbackFaster",
+      "trainFeedbackGuard",
+      "trainFeedbackNiceCombo",
+      "trainFeedbackKeepMoving",
+      "trainFeedbackSharp",
     ];
 
     function playPunchSound() {
@@ -546,6 +609,17 @@ export default function TrainPage() {
         hitCountRef.current = nextHitCount;
         setComboCount((c) => c + 1);
         setHitCount((c) => c + 1);
+        
+        // Calculate live score based on current hits and combo
+        const nextCombo = nextHitCount; // combo = hit count in this simulation
+        const scoreData = calculateTrainingScore({
+          hits: nextHitCount,
+          targetHits,
+          combo: nextCombo,
+        });
+        setLiveScore(scoreData.score);
+        setLiveAccuracy(scoreData.accuracy);
+        
         setIsFlashing(true);
         window.setTimeout(() => setIsFlashing(false), 130);
         if (typeof navigator !== "undefined" && navigator.vibrate) {
@@ -600,6 +674,8 @@ export default function TrainPage() {
     setShowGo(false);
     setNewBest(false);
     setResultPreviousBest(null);
+    setLiveScore(0);
+    setLiveAccuracy(0);
     hitCountRef.current = 0;
     setCountdown(3);
     setPhase("countdown");
@@ -624,6 +700,8 @@ export default function TrainPage() {
     setShowGo(false);
     setNewBest(false);
     setResultPreviousBest(null);
+    setLiveScore(0);
+    setLiveAccuracy(0);
     hitCountRef.current = 0;
   };
 
@@ -1013,6 +1091,10 @@ export default function TrainPage() {
                 <div style={styles.hudStatus}>
                   <span style={styles.recordDot} />
                   <span>{secondsLeft}s</span>
+                </div>
+                <div style={styles.hudMetric}>
+                  <span>{t("score")}</span>
+                  <strong>{liveScore.toFixed(1)}</strong>
                 </div>
                 <div style={styles.hudMetric}>
                   <span>{t("reels.combo")}</span>
