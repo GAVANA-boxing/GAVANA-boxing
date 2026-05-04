@@ -8,6 +8,7 @@ import DailyMission from "@/components/DailyMission";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
+import { createPvpNotification } from "@/lib/notifications";
 import { getCurrentSeasonId } from "@/lib/season";
 import { calculateChallengeXP, calculateUserXP, getFighterRank, getRankProgress } from "@/lib/xp";
 
@@ -206,7 +207,7 @@ export default function TrainPage() {
     return () => { active = false; };
   }, [challengeUserId]);
 
-  // Auto-save PvP result when training finishes in PvP mode
+  // Auto-save PvP result and notify opponent when training finishes in PvP mode
   useEffect(() => {
     if (!result || !challengeUserId || !targetScore || !user?.uid || pvpSavedRef.current) return;
 
@@ -215,17 +216,43 @@ export default function TrainPage() {
     const pvpRes = won ? "win" : "lose";
     setPvpResult(pvpRes);
 
-    addDoc(collection(db, "pvp_results"), {
-      challengerId: user.uid,
-      opponentId: challengeUserId,
-      reelId: reelId || null,
-      challengerScore: result.score,
-      opponentScore: targetScore,
-      result: pvpRes,
-      seasonId: getCurrentSeasonId(),
-      createdAt: serverTimestamp(),
-    }).then(() => setPvpSaved(true)).catch(console.error);
-  }, [result, challengeUserId, targetScore, user?.uid, reelId]);
+    async function savePvpAndNotify() {
+      try {
+        const challengerSnap = await getDoc(doc(db, "users", user.uid));
+        const challengerData = challengerSnap.exists() ? challengerSnap.data() : {};
+        const challengerName = challengerData.username || challengerData.displayName || user.displayName || "Fighter";
+        const opponentName = opponentUsername || "Opponent";
+
+        await addDoc(collection(db, "pvp_results"), {
+          challengerId: user.uid,
+          challengerName,
+          opponentId: challengeUserId,
+          opponentName,
+          reelId: reelId || null,
+          challengerScore: result.score,
+          opponentScore: targetScore,
+          result: pvpRes,
+          seasonId: getCurrentSeasonId(),
+          createdAt: serverTimestamp(),
+        });
+        setPvpSaved(true);
+
+        createPvpNotification({
+          opponentId: challengeUserId,
+          challengerId: user.uid,
+          challengerName,
+          reelId: reelId || null,
+          challengerScore: result.score,
+          opponentScore: targetScore,
+          result: pvpRes,
+        }).catch(console.error);
+      } catch (err) {
+        console.error("Failed to save PvP result:", err);
+      }
+    }
+
+    savePvpAndNotify();
+  }, [result, challengeUserId, targetScore, user?.uid, reelId, opponentUsername]);
 
   useEffect(() => {
     let active = true;

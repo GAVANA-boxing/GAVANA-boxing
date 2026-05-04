@@ -631,13 +631,38 @@ export default function UserProfilePage() {
 
         let wins = 0;
         let losses = 0;
-        asChallenger.forEach((d) => {
-          if (d.data().result === "win") wins++;
-          else losses++;
-        });
-        const timeschallenged = asOpponent.size;
+        let bestWinScore = null;
+        const battles = [];
 
-        setPvpStats({ wins, losses, timeschallenged });
+        asChallenger.forEach((d) => {
+          const data = d.data();
+          const isWin = data.result === "win";
+          if (isWin) {
+            wins++;
+            const s = Number(data.challengerScore);
+            if (Number.isFinite(s) && (bestWinScore === null || s > bestWinScore)) bestWinScore = s;
+          } else {
+            losses++;
+          }
+          battles.push({
+            id: d.id,
+            opponentName: data.opponentName || "Opponent",
+            challengerScore: Number(data.challengerScore) || 0,
+            opponentScore: Number(data.opponentScore) || 0,
+            result: data.result,
+            createdAt: data.createdAt,
+          });
+        });
+
+        battles.sort((a, b) => getTimestampMs(b.createdAt) - getTimestampMs(a.createdAt));
+
+        setPvpStats({
+          wins,
+          losses,
+          timeschallenged: asOpponent.size,
+          bestWinScore,
+          recentBattles: battles.slice(0, 5),
+        });
       } catch (e) {
         if (active) setPvpStats(null);
       }
@@ -1277,16 +1302,45 @@ export default function UserProfilePage() {
                 <span style={{ ...styles.pvpCardNum, color: "#F87171" }}>{pvpStats.losses}</span>
                 <span style={styles.pvpCardLbl}>{t("pvpLosses")}</span>
               </div>
-              {pvpStats.timeschallenged > 0 && (
+              <div style={styles.pvpCardDivider} />
+              <div style={styles.pvpCardStat}>
+                <span style={styles.pvpCardNum}>{pvpStats.wins + pvpStats.losses}</span>
+                <span style={styles.pvpCardLbl}>{t("pvpTotalBattles")}</span>
+              </div>
+              {pvpStats.bestWinScore != null && (
                 <>
                   <div style={styles.pvpCardDivider} />
                   <div style={styles.pvpCardStat}>
-                    <span style={styles.pvpCardNum}>{pvpStats.timeschallenged}</span>
-                    <span style={styles.pvpCardLbl}>{t("pvpChallenged")}</span>
+                    <span style={{ ...styles.pvpCardNum, color: "#D4AF37" }}>
+                      {pvpStats.bestWinScore.toFixed(1)}
+                    </span>
+                    <span style={styles.pvpCardLbl}>{t("pvpBestWin")}</span>
                   </div>
                 </>
               )}
             </div>
+
+            {pvpStats.recentBattles?.length > 0 && (
+              <div style={styles.pvpBattleList}>
+                <span style={styles.pvpBattleListTitle}>{t("pvpRecentBattles")}</span>
+                {pvpStats.recentBattles.map((battle) => (
+                  <div key={battle.id} style={styles.pvpBattleRow}>
+                    <span style={{
+                      ...styles.pvpBattleBadge,
+                      background: battle.result === "win" ? "rgba(52,211,153,0.15)" : "rgba(248,113,113,0.15)",
+                      color: battle.result === "win" ? "#34D399" : "#F87171",
+                      borderColor: battle.result === "win" ? "rgba(52,211,153,0.3)" : "rgba(248,113,113,0.3)",
+                    }}>
+                      {battle.result === "win" ? "W" : "L"}
+                    </span>
+                    <span style={styles.pvpBattleOpponent}>@{battle.opponentName}</span>
+                    <span style={styles.pvpBattleScores}>
+                      {battle.challengerScore.toFixed(1)} vs {battle.opponentScore.toFixed(1)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -2998,5 +3052,53 @@ const styles = {
     width: 1,
     height: 24,
     background: "rgba(255,255,255,0.1)",
+  },
+  pvpBattleList: {
+    marginTop: 10,
+    display: "flex",
+    flexDirection: "column",
+    gap: 6,
+    borderTop: "1px solid rgba(255,255,255,0.07)",
+    paddingTop: 10,
+  },
+  pvpBattleListTitle: {
+    fontSize: 9,
+    fontWeight: 900,
+    color: "#555",
+    letterSpacing: 1,
+    textTransform: "uppercase",
+    marginBottom: 2,
+  },
+  pvpBattleRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+  },
+  pvpBattleBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    border: "1px solid",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 10,
+    fontWeight: 1000,
+    flexShrink: 0,
+  },
+  pvpBattleOpponent: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: 700,
+    color: "#ccc",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  },
+  pvpBattleScores: {
+    fontSize: 11,
+    color: "#666",
+    fontWeight: 700,
+    whiteSpace: "nowrap",
   },
 };

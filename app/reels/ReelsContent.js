@@ -212,6 +212,7 @@ export default function ReelsContent() {
   const source = searchParams.get("source");
   const profileSourceUserId = searchParams.get("userId");
   const isProfileSource = source === "profile" && Boolean(profileSourceUserId);
+  const isPvpSource = source === "pvp";
   const currentLocale = getLocaleFromPathname(pathname);
   const t = (key) => translate(currentLocale, key);
   const { user, loading: authLoading } = useAuth();
@@ -1769,6 +1770,13 @@ export default function ReelsContent() {
 
             <div style={styles.vignette} />
             <div style={styles.bottomGradient} />
+
+            {isPvpSource && index === currentIndex && !reel.isDemo && (
+              <div style={styles.pvpSourceBanner}>
+                <span style={styles.pvpSourceIcon}>⚔️</span>
+                <span style={styles.pvpSourceText}>{t("pvpChallengeBanner")}</span>
+              </div>
+            )}
 
             {isProfileSource && index === currentIndex && !reel.isDemo && (
               <div style={styles.profileProgressCard}>
@@ -3933,6 +3941,32 @@ const styles = {
     letterSpacing: 0,
     cursor: "pointer",
     WebkitTapHighlightColor: "transparent",
+  },
+  pvpSourceBanner: {
+    position: "absolute",
+    top: "calc(68px + env(safe-area-inset-top))",
+    left: "max(12px, env(safe-area-inset-left))",
+    zIndex: 6,
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+    padding: "6px 12px",
+    borderRadius: 999,
+    background: "rgba(96,165,250,0.18)",
+    border: "1px solid rgba(96,165,250,0.4)",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
+  },
+  pvpSourceIcon: {
+    fontSize: 14,
+    lineHeight: 1,
+  },
+  pvpSourceText: {
+    color: "#93C5FD",
+    fontSize: 11,
+    fontWeight: 900,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
   },
   profileProgressCard: {
     position: "absolute",
