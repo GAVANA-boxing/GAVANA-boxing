@@ -8,6 +8,7 @@ import DailyMission from "@/components/DailyMission";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
+import { createPvpNotification } from "@/lib/notifications";
 import { getCurrentSeasonId } from "@/lib/season";
 import { calculateChallengeXP, calculateUserXP, getFighterRank, getRankProgress } from "@/lib/xp";
 
@@ -30,12 +31,59 @@ function getSessionStorageKey(userId, reelId, challengeId) {
   return `${LAST_SESSION_PREFIX}_${userId}_${scope}`;
 }
 
+function calculateTrainingScore(statsOrHits, sessionSeconds) {
+  const stats = typeof statsOrHits === "object" && statsOrHits !== null
+    ? statsOrHits
+    : {
+      hits: Number(statsOrHits) || 0,
+      targetHits: Math.max(1, Math.round(sessionSeconds * 1.5)),
+      combo: Number(statsOrHits) || 0,
+    };
+
+  const hits = Math.max(0, Number(stats.hits) || 0);
+  const targetHits = Math.max(1, Number(stats.targetHits) || 1);
+  const combo = Math.max(0, Number(stats.combo) || 0);
+
+  const accuracy = hits === 0 ? 0 : Math.round((hits / targetHits) * 100);
+  const baseScore = (accuracy / 100) * 10;
+
+  let comboBonus = 0;
+  if (combo >= 10) {
+    comboBonus = 1.5;
+  } else if (combo >= 5) {
+    comboBonus = 1;
+  } else if (combo >= 3) {
+    comboBonus = 0.5;
+  }
+
+  let score = baseScore + comboBonus;
+  if (hits === 0) {
+    score = 0;
+  } else {
+    score = clamp(score, 0, 10);
+  }
+
+  score = Number(score.toFixed(1));
+
+  let completionBonus = 0;
+  if (stats.elapsedSeconds && stats.durationSeconds) {
+    const completion = clamp(stats.elapsedSeconds / stats.durationSeconds, 0, 1);
+    completionBonus = completion * 0.5;
+  }
+
+  return {
+    score,
+    accuracy,
+    comboBonus,
+    completionBonus,
+  };
+}
+
 function makeTrainingResult(currentXP, stats) {
   const totalHits = Math.max(0, Number(stats.totalHits) || 0);
   const targetHits = Math.max(1, Number(stats.targetHits) || 1);
   const bestCombo = Math.max(0, Number(stats.bestCombo) || 0);
-  
-  // Use shared scoring function
+
   const scoreData = calculateTrainingScore({
     hits: totalHits,
     targetHits,
@@ -43,11 +91,11 @@ function makeTrainingResult(currentXP, stats) {
     elapsedSeconds: stats.elapsedSeconds,
     durationSeconds: stats.durationSeconds,
   });
-  
+
   const score = scoreData.score;
   const accuracy = scoreData.accuracy;
   const xpGained = Math.round(score * 42 + totalHits * 4 + bestCombo * 3);
-  
+
   return {
     score,
     xpGained,
@@ -97,56 +145,6 @@ function getTrainingStreakFire(count) {
   return "🔥".repeat(Math.min(3, count));
 }
 
-function calculateTrainingScore(stats) {
-  const hits = Math.max(0, Number(stats.hits) || 0);
-  const targetHits = Math.max(1, Number(stats.targetHits) || 1);
-  const combo = Math.max(0, Number(stats.combo) || 0);
-  
-  // Calculate accuracy as percentage
-  const accuracy = hits === 0 ? 0 : Math.round((hits / targetHits) * 100);
-  
-  // Base score from accuracy (0-10)
-  const baseScore = (accuracy / 100) * 10;
-  
-  // Combo bonus
-  let comboBonus = 0;
-  if (combo >= 10) {
-    comboBonus = 1.5;
-  } else if (combo >= 5) {
-    comboBonus = 1;
-  } else if (combo >= 3) {
-    comboBonus = 0.5;
-  }
-  
-  // Calculate score
-  let score = baseScore + comboBonus;
-  
-  // Edge case: if no hits, score must be 0
-  if (hits === 0) {
-    score = 0;
-  } else {
-    // Clamp to 0-10 range
-    score = clamp(score, 0, 10);
-  }
-  
-  // Round to 1 decimal place
-  score = Number(score.toFixed(1));
-  
-  // Calculate completion bonus if session duration provided
-  let completionBonus = 0;
-  if (stats.elapsedSeconds && stats.durationSeconds) {
-    const completion = clamp(stats.elapsedSeconds / stats.durationSeconds, 0, 1);
-    completionBonus = completion * 0.5;
-  }
-  
-  return {
-    score,
-    accuracy,
-    comboBonus,
-    completionBonus,
-  };
-}
-
 export default function TrainPage() {
   const router = useRouter();
   const pathname = usePathname();
@@ -175,6 +173,11 @@ export default function TrainPage() {
   const [targetScore, setTargetScore] = useState(null);
   const [trainSource, setTrainSource] = useState(null);
   const [trainSourceUserId, setTrainSourceUserId] = useState(null);
+  const [challengeUserId, setChallengeUserId] = useState(null);
+  const [opponentUsername, setOpponentUsername] = useState(null);
+  const [pvpResult, setPvpResult] = useState(null);
+  const [pvpSaved, setPvpSaved] = useState(false);
+  const pvpSavedRef = useRef(false);
   const [challengeSaving, setChallengeSaving] = useState(false);
   const [challengeSaved, setChallengeSaved] = useState(false);
   const [challengeSaveMessage, setChallengeSaveMessage] = useState("");
@@ -187,6 +190,7 @@ export default function TrainPage() {
   // Live game state
   const [comboCount, setComboCount] = useState(0);
   const [hitCount, setHitCount] = useState(0);
+  const [liveScore, setLiveScore] = useState(0);
   const [isFlashing, setIsFlashing] = useState(false);
   const [impactId, setImpactId] = useState(0);
   const [liveFeedback, setLiveFeedback] = useState(null);
@@ -198,11 +202,11 @@ export default function TrainPage() {
   const [trainingStreak, setTrainingStreak] = useState(0);
   const [animatedXP, setAnimatedXP] = useState(0);
   const [animatedRankProgress, setAnimatedRankProgress] = useState(0);
-  const [liveScore, setLiveScore] = useState(0);
   const [liveAccuracy, setLiveAccuracy] = useState(0);
   const isRecordingRef = useRef(false);
   const hitTimerRef = useRef(null);
   const hitCountRef = useRef(0);
+  const liveScoreRef = useRef(0);
   const audioCtxRef = useRef(null);
 
   const activeChallenge = challengeId ? CHALLENGES[challengeId] : null;
@@ -252,6 +256,7 @@ export default function TrainPage() {
     setChallengeId(params.get("challengeId") || null);
     setTrainSource(params.get("source") || null);
     setTrainSourceUserId(params.get("userId") || null);
+    setChallengeUserId(params.get("challengeUserId") || null);
     const parsedTargetScore = Number(params.get("score") || params.get("targetScore"));
     setTargetScore(Number.isFinite(parsedTargetScore) && parsedTargetScore > 0 ? parsedTargetScore : null);
   }, []);
@@ -333,6 +338,73 @@ export default function TrainPage() {
       active = false;
     };
   }, [user?.uid]);
+
+  // Load PvP opponent username
+  useEffect(() => {
+    if (!challengeUserId) return;
+    let active = true;
+
+    async function loadOpponent() {
+      try {
+        const snap = await getDoc(doc(db, "users", challengeUserId));
+        if (!active) return;
+        const data = snap.exists() ? snap.data() : {};
+        setOpponentUsername(data.username || data.displayName || "Opponent");
+      } catch (e) {
+        if (active) setOpponentUsername("Opponent");
+      }
+    }
+
+    loadOpponent();
+    return () => { active = false; };
+  }, [challengeUserId]);
+
+  // Auto-save PvP result and notify opponent when training finishes in PvP mode
+  useEffect(() => {
+    if (!result || !challengeUserId || !targetScore || !user?.uid || pvpSavedRef.current) return;
+
+    pvpSavedRef.current = true;
+    const won = result.score > targetScore;
+    const pvpRes = won ? "win" : "lose";
+    setPvpResult(pvpRes);
+
+    async function savePvpAndNotify() {
+      try {
+        const challengerSnap = await getDoc(doc(db, "users", user.uid));
+        const challengerData = challengerSnap.exists() ? challengerSnap.data() : {};
+        const challengerName = challengerData.username || challengerData.displayName || user.displayName || "Fighter";
+        const opponentName = opponentUsername || "Opponent";
+
+        await addDoc(collection(db, "pvp_results"), {
+          challengerId: user.uid,
+          challengerName,
+          opponentId: challengeUserId,
+          opponentName,
+          reelId: reelId || null,
+          challengerScore: result.score,
+          opponentScore: targetScore,
+          result: pvpRes,
+          seasonId: getCurrentSeasonId(),
+          createdAt: serverTimestamp(),
+        });
+        setPvpSaved(true);
+
+        createPvpNotification({
+          opponentId: challengeUserId,
+          challengerId: user.uid,
+          challengerName,
+          reelId: reelId || null,
+          challengerScore: result.score,
+          opponentScore: targetScore,
+          result: pvpRes,
+        }).catch(console.error);
+      } catch (err) {
+        console.error("Failed to save PvP result:", err);
+      }
+    }
+
+    savePvpAndNotify();
+  }, [result, challengeUserId, targetScore, user?.uid, reelId, opponentUsername]);
 
   useEffect(() => {
     let active = true;
@@ -468,6 +540,7 @@ export default function TrainPage() {
       }
     }
 
+    liveScoreRef.current = nextResult.score;
     setResult(nextResult);
     setSaved(false);
     setSavedAttemptNumber(null);
@@ -561,8 +634,10 @@ export default function TrainPage() {
 
     isRecordingRef.current = true;
     hitCountRef.current = 0;
+    liveScoreRef.current = 0;
     setComboCount(0);
     setHitCount(0);
+    setLiveScore(0);
 
     const milestoneMap = {
       3: "trainMilestone3",
@@ -610,16 +685,17 @@ export default function TrainPage() {
         setComboCount((c) => c + 1);
         setHitCount((c) => c + 1);
         
-        // Calculate live score based on current hits and combo
-        const nextCombo = nextHitCount; // combo = hit count in this simulation
         const scoreData = calculateTrainingScore({
           hits: nextHitCount,
           targetHits,
-          combo: nextCombo,
+          combo: nextHitCount,
+          elapsedSeconds: sessionSeconds - secondsLeft,
+          durationSeconds: sessionSeconds,
         });
+        liveScoreRef.current = scoreData.score;
         setLiveScore(scoreData.score);
         setLiveAccuracy(scoreData.accuracy);
-        
+
         setIsFlashing(true);
         window.setTimeout(() => setIsFlashing(false), 130);
         if (typeof navigator !== "undefined" && navigator.vibrate) {
@@ -641,7 +717,7 @@ export default function TrainPage() {
       isRecordingRef.current = false;
       if (hitTimerRef.current) window.clearTimeout(hitTimerRef.current);
     };
-  }, [phase, t, triggerImpact]);
+  }, [phase, sessionSeconds, t, triggerImpact, targetHits]);
 
   const handleStart = () => {
     // Warm up AudioContext on direct user interaction so browsers allow sound
@@ -666,8 +742,12 @@ export default function TrainPage() {
     setChallengeSaved(false);
     setChallengeSaveMessage("");
     challengeSavedRef.current = false;
+    setPvpResult(null);
+    setPvpSaved(false);
+    pvpSavedRef.current = false;
     setComboCount(0);
     setHitCount(0);
+    setLiveScore(0);
     setIsFlashing(false);
     setImpactId(0);
     setLiveFeedback(null);
@@ -677,6 +757,7 @@ export default function TrainPage() {
     setLiveScore(0);
     setLiveAccuracy(0);
     hitCountRef.current = 0;
+    liveScoreRef.current = 0;
     setCountdown(3);
     setPhase("countdown");
   };
@@ -689,11 +770,15 @@ export default function TrainPage() {
     setChallengeSaved(false);
     setChallengeSaveMessage("");
     challengeSavedRef.current = false;
+    setPvpResult(null);
+    setPvpSaved(false);
+    pvpSavedRef.current = false;
     setSecondsLeft(sessionSeconds);
     setCountdown(null);
     setPhase("idle");
     setComboCount(0);
     setHitCount(0);
+    setLiveScore(0);
     setIsFlashing(false);
     setImpactId(0);
     setLiveFeedback(null);
@@ -703,6 +788,7 @@ export default function TrainPage() {
     setLiveScore(0);
     setLiveAccuracy(0);
     hitCountRef.current = 0;
+    liveScoreRef.current = 0;
   };
 
   const handleShareChallenge = async () => {
@@ -994,10 +1080,23 @@ export default function TrainPage() {
 
       <section style={styles.shell}>
         <header style={styles.header}>
-          <p style={styles.kicker}>{activeChallenge ? t("challengeMode") : t("trainKicker")}</p>
+          <p style={styles.kicker}>
+            {challengeUserId ? t("pvpChallengeMode") : activeChallenge ? t("challengeMode") : t("trainKicker")}
+          </p>
           <h1 style={styles.title}>{activeChallenge ? t(activeChallenge.titleKey) : t("trainTitle")}</h1>
           <p style={styles.subtitle}>{t("trainSubtitle")}</p>
-          {activeChallenge && targetScore && (
+          {challengeUserId && targetScore && (
+            <div style={styles.pvpBanner}>
+              <span style={styles.pvpBannerVs}>🆚</span>
+              <div style={styles.pvpBannerText}>
+                <span style={styles.pvpBannerLabel}>
+                  {t("pvpBeatScoreOf").replace("{username}", opponentUsername || "...")}
+                </span>
+                <span style={styles.pvpBannerScore}>{targetScore.toFixed(1)}/10</span>
+              </div>
+            </div>
+          )}
+          {!challengeUserId && activeChallenge && targetScore && (
             <div style={styles.targetScorePill}>
               <span style={styles.targetScoreLabel}>{t("challengeBeatScore").replace("{score}", targetScore.toFixed(1))}</span>
             </div>
@@ -1090,7 +1189,8 @@ export default function TrainPage() {
               <div style={styles.recordingHud}>
                 <div style={styles.hudStatus}>
                   <span style={styles.recordDot} />
-                  <span>{secondsLeft}s</span>
+                  <span>{t("trainRecording")}</span>
+                  <strong style={{ marginLeft: "auto" }}>{secondsLeft}s</strong>
                 </div>
                 <div style={styles.hudMetric}>
                   <span>{t("score")}</span>
@@ -1204,6 +1304,21 @@ export default function TrainPage() {
               </div>
               {streakText && <div style={styles.streakPill}>{streakText}</div>}
             </div>
+
+            {/* PvP result announcement */}
+            {challengeUserId && pvpResult && (
+              <div style={pvpResult === "win" ? styles.pvpWinBanner : styles.pvpLoseBanner}>
+                <div style={styles.pvpResultHeadline}>
+                  {pvpResult === "win"
+                    ? t("pvpYouWon").replace("{username}", opponentUsername || "them")
+                    : t("pvpYouLost")}
+                </div>
+                <div style={styles.pvpResultScores}>
+                  <span style={styles.pvpResultYou}>{t("pvpVsLabel")} @{opponentUsername || "?"}: {targetScore?.toFixed(1)}/10</span>
+                  {pvpSaved && <span style={styles.pvpResultSaved}>✓ {t("pvpResultSaved")}</span>}
+                </div>
+              </div>
+            )}
 
             <div style={styles.resultGrid}>
               {activeChallenge ? (
@@ -1557,8 +1672,75 @@ const styles = {
     color: "#FDE68A",
     boxShadow: "0 10px 28px rgba(212,175,55,0.12)",
   },
+  pvpBanner: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    padding: "10px 14px",
+    borderRadius: 14,
+    background: "rgba(96,165,250,0.1)",
+    border: "1px solid rgba(96,165,250,0.3)",
+  },
+  pvpBannerVs: {
+    fontSize: 20,
+    flexShrink: 0,
+  },
+  pvpBannerText: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 2,
+  },
+  pvpBannerLabel: {
+    color: "#93C5FD",
+    fontSize: 13,
+    fontWeight: 900,
+    lineHeight: 1.2,
+  },
+  pvpBannerScore: {
+    color: "#D4AF37",
+    fontSize: 18,
+    fontWeight: 1000,
+    lineHeight: 1,
+  },
+  pvpWinBanner: {
+    margin: "14px 0 0",
+    padding: "14px 16px",
+    borderRadius: 14,
+    background: "rgba(52,211,153,0.12)",
+    border: "1px solid rgba(52,211,153,0.35)",
+    textAlign: "center",
+  },
+  pvpLoseBanner: {
+    margin: "14px 0 0",
+    padding: "14px 16px",
+    borderRadius: 14,
+    background: "rgba(193,18,31,0.12)",
+    border: "1px solid rgba(193,18,31,0.35)",
+    textAlign: "center",
+  },
+  pvpResultHeadline: {
+    fontSize: 16,
+    fontWeight: 1000,
+    color: "#fff",
+    marginBottom: 6,
+  },
+  pvpResultScores: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 2,
+    alignItems: "center",
+  },
+  pvpResultYou: {
+    fontSize: 12,
+    color: "#aaa",
+    fontWeight: 700,
+  },
+  pvpResultSaved: {
+    fontSize: 11,
+    color: "#34D399",
+    fontWeight: 800,
+  },
   stage: {
-    position: "relative",
     overflow: "hidden",
     borderRadius: 22,
     minHeight: 420,
@@ -1877,6 +2059,13 @@ const styles = {
     background: "#C1121F",
     flexShrink: 0,
     boxShadow: "0 0 0 6px rgba(193,18,31,0.18)",
+  },
+  liveScoreHud: {
+    marginLeft: 8,
+    fontSize: 13,
+    fontWeight: 1000,
+    color: "#D4AF37",
+    letterSpacing: 0.5,
   },
   controls: {
     display: "grid",

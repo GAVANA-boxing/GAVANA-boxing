@@ -212,6 +212,7 @@ export default function ReelsContent() {
   const source = searchParams.get("source");
   const profileSourceUserId = searchParams.get("userId");
   const isProfileSource = source === "profile" && Boolean(profileSourceUserId);
+  const isPvpSource = source === "pvp";
   const currentLocale = getLocaleFromPathname(pathname);
   const t = (key) => translate(currentLocale, key);
   const { user, loading: authLoading } = useAuth();
@@ -1770,6 +1771,13 @@ export default function ReelsContent() {
             <div style={styles.vignette} />
             <div style={styles.bottomGradient} />
 
+            {isPvpSource && index === currentIndex && !reel.isDemo && (
+              <div style={styles.pvpSourceBanner}>
+                <span style={styles.pvpSourceIcon}>⚔️</span>
+                <span style={styles.pvpSourceText}>{t("pvpChallengeBanner")}</span>
+              </div>
+            )}
+
             {isProfileSource && index === currentIndex && !reel.isDemo && (
               <div style={styles.profileProgressCard}>
                 <span style={styles.profileProgressTitle}>{t("reelProgressTitle")}</span>
@@ -1862,13 +1870,26 @@ export default function ReelsContent() {
                 <span>{formatDate(reel.createdAt)}</span>
               </div>
               {!reel.isDemo && (
-                <button
-                  type="button"
-                  style={styles.tryThisButton}
-                  onClick={() => router.push(`/${currentLocale}/train?reelId=${encodeURIComponent(reel.id)}`)}
-                >
-                  {t("reels.tryThisCombo")}
-                </button>
+                <div style={styles.trainButtonRow}>
+                  <button
+                    type="button"
+                    style={styles.tryThisButton}
+                    onClick={() => router.push(`/${currentLocale}/train?reelId=${encodeURIComponent(reel.id)}`)}
+                  >
+                    {t("reels.tryThisCombo")}
+                  </button>
+                  {reel.userId && reel.userId !== user?.uid && hasBestScore && (
+                    <button
+                      type="button"
+                      style={styles.beatScoreButton}
+                      onClick={() => router.push(
+                        `/${currentLocale}/train?reelId=${encodeURIComponent(reel.id)}&challengeUserId=${encodeURIComponent(reel.userId)}&targetScore=${stats.bestScore.toFixed(1)}`
+                      )}
+                    >
+                      {t("pvpBeatThisScore")}
+                    </button>
+                  )}
+                </div>
               )}
             </div>
 
@@ -3871,11 +3892,17 @@ const styles = {
     whiteSpace: "nowrap",
     textShadow: "0 1px 4px rgba(0,0,0,0.8)",
   },
+  trainButtonRow: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 12,
+  },
   tryThisButton: {
     width: "fit-content",
     maxWidth: "100%",
     minHeight: 34,
-    marginTop: 12,
+    marginTop: 0,
     paddingTop: 0,
     paddingBottom: 0,
     paddingLeft: 14,
@@ -3894,6 +3921,52 @@ const styles = {
     textShadow: "0 2px 8px rgba(0,0,0,0.5)",
     transition: "transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease",
     WebkitTapHighlightColor: "transparent",
+  },
+  beatScoreButton: {
+    width: "fit-content",
+    maxWidth: "100%",
+    minHeight: 34,
+    paddingTop: 0,
+    paddingBottom: 0,
+    paddingLeft: 14,
+    paddingRight: 14,
+    borderRadius: 999,
+    border: "1px solid rgba(96,165,250,0.45)",
+    background: "rgba(96,165,250,0.12)",
+    color: "#93C5FD",
+    fontFamily: "inherit",
+    fontSize: 13,
+    lineHeight: 1,
+    fontWeight: 950,
+    letterSpacing: 0,
+    cursor: "pointer",
+    WebkitTapHighlightColor: "transparent",
+  },
+  pvpSourceBanner: {
+    position: "absolute",
+    top: "calc(68px + env(safe-area-inset-top))",
+    left: "max(12px, env(safe-area-inset-left))",
+    zIndex: 6,
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+    padding: "6px 12px",
+    borderRadius: 999,
+    background: "rgba(96,165,250,0.18)",
+    border: "1px solid rgba(96,165,250,0.4)",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
+  },
+  pvpSourceIcon: {
+    fontSize: 14,
+    lineHeight: 1,
+  },
+  pvpSourceText: {
+    color: "#93C5FD",
+    fontSize: 11,
+    fontWeight: 900,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
   },
   profileProgressCard: {
     position: "absolute",

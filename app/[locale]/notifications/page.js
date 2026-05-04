@@ -40,11 +40,18 @@ function getTypeLabel(type, t) {
   if (type === "comment") return t("comment");
   if (type === "follow") return t("follow");
   if (type === "save") return t("save");
+  if (type === "pvp_challenge") return t("pvpNotifType");
   return t("update");
 }
 
 function getTranslatedNotificationText(notification, t) {
   const actor = getActorName(notification);
+
+  if (notification.type === "pvp_challenge") {
+    const key = notification.result === "win" ? "pvpNotifBeat" : "pvpNotifFailed";
+    return t(key).replace("{actor}", actor);
+  }
+
   const keyByType = {
     like: "notificationLike",
     comment: "notificationComment",
@@ -60,6 +67,7 @@ function getTypeIcon(type) {
   if (type === "comment") return "💬";
   if (type === "follow") return "👤";
   if (type === "save") return "🔖";
+  if (type === "pvp_challenge") return "⚔️";
   return "•";
 }
 
@@ -249,6 +257,16 @@ export default function NotificationsPage() {
       return;
     }
 
+    if (notification.type === "pvp_challenge") {
+      if (notification.reelId) {
+        router.push(`/${locale}/reels?reelId=${encodeURIComponent(notification.reelId)}&source=pvp`);
+      } else {
+        const actorId = getActorId(notification);
+        if (actorId) router.push(`/${locale}/profile/${actorId}`);
+      }
+      return;
+    }
+
     if (notification.reelId) {
       router.push(`/${locale}/reels?reelId=${notification.reelId}`);
       return;
@@ -333,6 +351,20 @@ export default function NotificationsPage() {
                         <div style={styles.notificationText}>
                           {getTranslatedNotificationText(notification, t)}
                         </div>
+                        {notification.type === "pvp_challenge" && (
+                          <div style={styles.pvpScoreRow}>
+                            <span style={{
+                              color: notification.result === "win" ? "#F87171" : "#34D399",
+                              fontWeight: 900,
+                            }}>
+                              {Number(notification.challengerScore ?? 0).toFixed(1)}/10
+                            </span>
+                            <span style={{ color: "#555" }}> vs </span>
+                            <span style={{ color: "#D4AF37", fontWeight: 900 }}>
+                              {Number(notification.opponentScore ?? 0).toFixed(1)}/10
+                            </span>
+                          </div>
+                        )}
                         {notification.text && (
                           <div style={styles.commentPreview}>
                             {notification.text}
@@ -613,6 +645,12 @@ const styles = {
     color: "#777",
     fontSize: 12,
     whiteSpace: "nowrap",
+  },
+  pvpScoreRow: {
+    marginTop: 4,
+    fontSize: 13,
+    fontWeight: 700,
+    color: "#aaa",
   },
 };
 
