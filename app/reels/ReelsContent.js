@@ -1862,13 +1862,26 @@ export default function ReelsContent() {
                 <span>{formatDate(reel.createdAt)}</span>
               </div>
               {!reel.isDemo && (
-                <button
-                  type="button"
-                  style={styles.tryThisButton}
-                  onClick={() => router.push(`/${currentLocale}/train?reelId=${encodeURIComponent(reel.id)}`)}
-                >
-                  {t("reels.tryThisCombo")}
-                </button>
+                <div style={styles.trainButtonRow}>
+                  <button
+                    type="button"
+                    style={styles.tryThisButton}
+                    onClick={() => router.push(`/${currentLocale}/train?reelId=${encodeURIComponent(reel.id)}`)}
+                  >
+                    {t("reels.tryThisCombo")}
+                  </button>
+                  {reel.userId && reel.userId !== user?.uid && hasBestScore && (
+                    <button
+                      type="button"
+                      style={styles.beatScoreButton}
+                      onClick={() => router.push(
+                        `/${currentLocale}/train?reelId=${encodeURIComponent(reel.id)}&challengeUserId=${encodeURIComponent(reel.userId)}&targetScore=${stats.bestScore.toFixed(1)}`
+                      )}
+                    >
+                      {t("pvpBeatThisScore")}
+                    </button>
+                  )}
+                </div>
               )}
             </div>
 
@@ -3871,11 +3884,17 @@ const styles = {
     whiteSpace: "nowrap",
     textShadow: "0 1px 4px rgba(0,0,0,0.8)",
   },
+  trainButtonRow: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 12,
+  },
   tryThisButton: {
     width: "fit-content",
     maxWidth: "100%",
     minHeight: 34,
-    marginTop: 12,
+    marginTop: 0,
     paddingTop: 0,
     paddingBottom: 0,
     paddingLeft: 14,
@@ -3893,6 +3912,26 @@ const styles = {
     boxShadow: "0 10px 28px rgba(193,18,31,0.26), inset 0 1px 0 rgba(255,255,255,0.14)",
     textShadow: "0 2px 8px rgba(0,0,0,0.5)",
     transition: "transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease",
+    WebkitTapHighlightColor: "transparent",
+  },
+  beatScoreButton: {
+    width: "fit-content",
+    maxWidth: "100%",
+    minHeight: 34,
+    paddingTop: 0,
+    paddingBottom: 0,
+    paddingLeft: 14,
+    paddingRight: 14,
+    borderRadius: 999,
+    border: "1px solid rgba(96,165,250,0.45)",
+    background: "rgba(96,165,250,0.12)",
+    color: "#93C5FD",
+    fontFamily: "inherit",
+    fontSize: 13,
+    lineHeight: 1,
+    fontWeight: 950,
+    letterSpacing: 0,
+    cursor: "pointer",
     WebkitTapHighlightColor: "transparent",
   },
   profileProgressCard: {

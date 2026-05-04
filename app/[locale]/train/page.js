@@ -84,6 +84,11 @@ export default function TrainPage() {
   const [targetScore, setTargetScore] = useState(null);
   const [trainSource, setTrainSource] = useState(null);
   const [trainSourceUserId, setTrainSourceUserId] = useState(null);
+  const [challengeUserId, setChallengeUserId] = useState(null);
+  const [opponentUsername, setOpponentUsername] = useState(null);
+  const [pvpResult, setPvpResult] = useState(null);
+  const [pvpSaved, setPvpSaved] = useState(false);
+  const pvpSavedRef = useRef(false);
   const [challengeSaving, setChallengeSaving] = useState(false);
   const [challengeSaved, setChallengeSaved] = useState(false);
   const [error, setError] = useState("");
@@ -142,6 +147,7 @@ export default function TrainPage() {
     setChallengeId(params.get("challengeId") || null);
     setTrainSource(params.get("source") || null);
     setTrainSourceUserId(params.get("userId") || null);
+    setChallengeUserId(params.get("challengeUserId") || null);
     const parsedTargetScore = Number(params.get("score") || params.get("targetScore"));
     setTargetScore(Number.isFinite(parsedTargetScore) && parsedTargetScore > 0 ? parsedTargetScore : null);
   }, []);
@@ -179,6 +185,47 @@ export default function TrainPage() {
       active = false;
     };
   }, [user?.uid]);
+
+  // Load PvP opponent username
+  useEffect(() => {
+    if (!challengeUserId) return;
+    let active = true;
+
+    async function loadOpponent() {
+      try {
+        const snap = await getDoc(doc(db, "users", challengeUserId));
+        if (!active) return;
+        const data = snap.exists() ? snap.data() : {};
+        setOpponentUsername(data.username || data.displayName || "Opponent");
+      } catch (e) {
+        if (active) setOpponentUsername("Opponent");
+      }
+    }
+
+    loadOpponent();
+    return () => { active = false; };
+  }, [challengeUserId]);
+
+  // Auto-save PvP result when training finishes in PvP mode
+  useEffect(() => {
+    if (!result || !challengeUserId || !targetScore || !user?.uid || pvpSavedRef.current) return;
+
+    pvpSavedRef.current = true;
+    const won = result.score > targetScore;
+    const pvpRes = won ? "win" : "lose";
+    setPvpResult(pvpRes);
+
+    addDoc(collection(db, "pvp_results"), {
+      challengerId: user.uid,
+      opponentId: challengeUserId,
+      reelId: reelId || null,
+      challengerScore: result.score,
+      opponentScore: targetScore,
+      result: pvpRes,
+      seasonId: getCurrentSeasonId(),
+      createdAt: serverTimestamp(),
+    }).then(() => setPvpSaved(true)).catch(console.error);
+  }, [result, challengeUserId, targetScore, user?.uid, reelId]);
 
   useEffect(() => {
     let active = true;
@@ -408,6 +455,9 @@ export default function TrainPage() {
     setSavedAttemptNumber(null);
     setChallengeSaved(false);
     challengeSavedRef.current = false;
+    setPvpResult(null);
+    setPvpSaved(false);
+    pvpSavedRef.current = false;
     setComboCount(0);
     setHitCount(0);
     setLiveScore(0);
@@ -427,6 +477,9 @@ export default function TrainPage() {
     setSavedAttemptNumber(null);
     setChallengeSaved(false);
     challengeSavedRef.current = false;
+    setPvpResult(null);
+    setPvpSaved(false);
+    pvpSavedRef.current = false;
     setSecondsLeft(sessionSeconds);
     setCountdown(null);
     setPhase("idle");
@@ -692,10 +745,23 @@ export default function TrainPage() {
 
       <section style={styles.shell}>
         <header style={styles.header}>
-          <p style={styles.kicker}>{activeChallenge ? t("challengeMode") : t("trainKicker")}</p>
+          <p style={styles.kicker}>
+            {challengeUserId ? t("pvpChallengeMode") : activeChallenge ? t("challengeMode") : t("trainKicker")}
+          </p>
           <h1 style={styles.title}>{activeChallenge ? t(activeChallenge.titleKey) : t("trainTitle")}</h1>
           <p style={styles.subtitle}>{t("trainSubtitle")}</p>
-          {activeChallenge && targetScore && (
+          {challengeUserId && targetScore && (
+            <div style={styles.pvpBanner}>
+              <span style={styles.pvpBannerVs}>🆚</span>
+              <div style={styles.pvpBannerText}>
+                <span style={styles.pvpBannerLabel}>
+                  {t("pvpBeatScoreOf").replace("{username}", opponentUsername || "...")}
+                </span>
+                <span style={styles.pvpBannerScore}>{targetScore.toFixed(1)}/10</span>
+              </div>
+            </div>
+          )}
+          {!challengeUserId && activeChallenge && targetScore && (
             <div style={styles.targetScorePill}>
               <span style={styles.targetScoreLabel}>{t("challengeBeatScore").replace("{score}", targetScore.toFixed(1))}</span>
             </div>
@@ -807,6 +873,21 @@ export default function TrainPage() {
             <p style={styles.modalKicker}>{t("trainResult")}</p>
             <div style={styles.score}>{result.score.toFixed(1)}</div>
             <span style={styles.scoreUnit}>/10</span>
+
+            {/* PvP result announcement */}
+            {challengeUserId && pvpResult && (
+              <div style={pvpResult === "win" ? styles.pvpWinBanner : styles.pvpLoseBanner}>
+                <div style={styles.pvpResultHeadline}>
+                  {pvpResult === "win"
+                    ? t("pvpYouWon").replace("{username}", opponentUsername || "them")
+                    : t("pvpYouLost")}
+                </div>
+                <div style={styles.pvpResultScores}>
+                  <span style={styles.pvpResultYou}>{t("pvpVsLabel")} @{opponentUsername || "?"}: {targetScore?.toFixed(1)}/10</span>
+                  {pvpSaved && <span style={styles.pvpResultSaved}>✓ {t("pvpResultSaved")}</span>}
+                </div>
+              </div>
+            )}
 
             <div style={styles.resultGrid}>
               {activeChallenge ? (
@@ -1078,6 +1159,74 @@ const styles = {
     color: "#FDE68A",
     fontSize: 13,
     fontWeight: 1000,
+  },
+  pvpBanner: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    padding: "10px 14px",
+    borderRadius: 14,
+    background: "rgba(96,165,250,0.1)",
+    border: "1px solid rgba(96,165,250,0.3)",
+  },
+  pvpBannerVs: {
+    fontSize: 20,
+    flexShrink: 0,
+  },
+  pvpBannerText: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 2,
+  },
+  pvpBannerLabel: {
+    color: "#93C5FD",
+    fontSize: 13,
+    fontWeight: 900,
+    lineHeight: 1.2,
+  },
+  pvpBannerScore: {
+    color: "#D4AF37",
+    fontSize: 18,
+    fontWeight: 1000,
+    lineHeight: 1,
+  },
+  pvpWinBanner: {
+    margin: "14px 0 0",
+    padding: "14px 16px",
+    borderRadius: 14,
+    background: "rgba(52,211,153,0.12)",
+    border: "1px solid rgba(52,211,153,0.35)",
+    textAlign: "center",
+  },
+  pvpLoseBanner: {
+    margin: "14px 0 0",
+    padding: "14px 16px",
+    borderRadius: 14,
+    background: "rgba(193,18,31,0.12)",
+    border: "1px solid rgba(193,18,31,0.35)",
+    textAlign: "center",
+  },
+  pvpResultHeadline: {
+    fontSize: 16,
+    fontWeight: 1000,
+    color: "#fff",
+    marginBottom: 6,
+  },
+  pvpResultScores: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 2,
+    alignItems: "center",
+  },
+  pvpResultYou: {
+    fontSize: 12,
+    color: "#aaa",
+    fontWeight: 700,
+  },
+  pvpResultSaved: {
+    fontSize: 11,
+    color: "#34D399",
+    fontWeight: 800,
   },
   stage: {
     position: "relative",

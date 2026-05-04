@@ -313,6 +313,7 @@ export default function UserProfilePage() {
   const [dailyMissionData, setDailyMissionData] = useState(null);
   const [challengeRanks, setChallengeRanks] = useState(null);
   const [showWeeklyModal, setShowWeeklyModal] = useState(false);
+  const [pvpStats, setPvpStats] = useState(null);
   const rankUpShownRef = useRef(false);
 
   // Redirect if not logged in
@@ -611,6 +612,38 @@ export default function UserProfilePage() {
     }
 
     loadChallengeRanks();
+    return () => { active = false; };
+  }, [userId]);
+
+  // Load PvP stats for this profile
+  useEffect(() => {
+    if (!userId) return;
+    let active = true;
+
+    async function loadPvpStats() {
+      try {
+        const { collection, getDocs, query, where } = await import("firebase/firestore");
+        const [asChallenger, asOpponent] = await Promise.all([
+          getDocs(query(collection(db, "pvp_results"), where("challengerId", "==", userId))),
+          getDocs(query(collection(db, "pvp_results"), where("opponentId", "==", userId))),
+        ]);
+        if (!active) return;
+
+        let wins = 0;
+        let losses = 0;
+        asChallenger.forEach((d) => {
+          if (d.data().result === "win") wins++;
+          else losses++;
+        });
+        const timeschallenged = asOpponent.size;
+
+        setPvpStats({ wins, losses, timeschallenged });
+      } catch (e) {
+        if (active) setPvpStats(null);
+      }
+    }
+
+    loadPvpStats();
     return () => { active = false; };
   }, [userId]);
 
@@ -1228,6 +1261,33 @@ export default function UserProfilePage() {
               )}
             </div>
           </button>
+        )}
+
+        {/* PvP stats card */}
+        {pvpStats && (pvpStats.wins > 0 || pvpStats.losses > 0 || pvpStats.timeschallenged > 0) && (
+          <div style={styles.pvpCard}>
+            <span style={styles.pvpCardTitle}>⚔️ {t("pvpStatsTitle")}</span>
+            <div style={styles.pvpCardRow}>
+              <div style={styles.pvpCardStat}>
+                <span style={{ ...styles.pvpCardNum, color: "#34D399" }}>{pvpStats.wins}</span>
+                <span style={styles.pvpCardLbl}>{t("pvpWins")}</span>
+              </div>
+              <div style={styles.pvpCardDivider} />
+              <div style={styles.pvpCardStat}>
+                <span style={{ ...styles.pvpCardNum, color: "#F87171" }}>{pvpStats.losses}</span>
+                <span style={styles.pvpCardLbl}>{t("pvpLosses")}</span>
+              </div>
+              {pvpStats.timeschallenged > 0 && (
+                <>
+                  <div style={styles.pvpCardDivider} />
+                  <div style={styles.pvpCardStat}>
+                    <span style={styles.pvpCardNum}>{pvpStats.timeschallenged}</span>
+                    <span style={styles.pvpCardLbl}>{t("pvpChallenged")}</span>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
         )}
 
         {profileUser.bio && (
@@ -2891,5 +2951,52 @@ const styles = {
     fontWeight: 900,
     cursor: "pointer",
     letterSpacing: 0.5,
+  },
+  pvpCard: {
+    width: "100%",
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: 14,
+    padding: "10px 14px",
+    marginTop: 14,
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+  },
+  pvpCardTitle: {
+    fontSize: 10,
+    fontWeight: 900,
+    color: "#888",
+    letterSpacing: 1,
+    textTransform: "uppercase",
+  },
+  pvpCardRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+  },
+  pvpCardStat: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 2,
+  },
+  pvpCardNum: {
+    fontSize: 20,
+    fontWeight: 1000,
+    color: "#fff",
+    lineHeight: 1,
+  },
+  pvpCardLbl: {
+    fontSize: 9,
+    color: "#666",
+    fontWeight: 700,
+    letterSpacing: 0.4,
+    textTransform: "uppercase",
+  },
+  pvpCardDivider: {
+    width: 1,
+    height: 24,
+    background: "rgba(255,255,255,0.1)",
   },
 };
