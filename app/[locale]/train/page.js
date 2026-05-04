@@ -18,14 +18,10 @@ const CHALLENGES = {
   "combo-master": { titleKey: "challengeComboTitle", seconds: 30 },
 };
 
-function makeTrainingResult(currentXP) {
-  const score = Number((6.2 + Math.random() * 2.6).toFixed(1));
-  const xpGained = Math.round(score * score * 8);
-  return {
-    score,
-    xpGained,
-    rankProgress: getRankProgress(currentXP + xpGained),
-  };
+function calculateTrainingScore(hits, sessionSeconds) {
+  const targetHits = Math.max(1, Math.round(sessionSeconds * 1.5));
+  const ratio = Math.min(1, hits / targetHits);
+  return Number((ratio * 10).toFixed(1));
 }
 
 function getChallengeRank(score) {
@@ -99,12 +95,14 @@ export default function TrainPage() {
   // Live game state
   const [comboCount, setComboCount] = useState(0);
   const [hitCount, setHitCount] = useState(0);
+  const [liveScore, setLiveScore] = useState(0);
   const [isFlashing, setIsFlashing] = useState(false);
   const [liveFeedback, setLiveFeedback] = useState(null);
   const [showGo, setShowGo] = useState(false);
   const isRecordingRef = useRef(false);
   const hitTimerRef = useRef(null);
   const hitCountRef = useRef(0);
+  const liveScoreRef = useRef(0);
   const audioCtxRef = useRef(null);
 
   const activeChallenge = challengeId ? CHALLENGES[challengeId] : null;
@@ -246,7 +244,14 @@ export default function TrainPage() {
 
     setSecondsLeft(0);
     setPhase("result");
-    setResult({ ...makeTrainingResult(currentXP), hitCount: hitCountRef.current });
+    const finalScore = liveScoreRef.current;
+    const xpGained = Math.round(finalScore * finalScore * 8);
+    setResult({
+      score: finalScore,
+      xpGained,
+      rankProgress: getRankProgress(currentXP + xpGained),
+      hitCount: hitCountRef.current,
+    });
     setSaved(false);
     setSavedAttemptNumber(null);
   }, [currentXP]);
@@ -316,8 +321,10 @@ export default function TrainPage() {
 
     isRecordingRef.current = true;
     hitCountRef.current = 0;
+    liveScoreRef.current = 0;
     setComboCount(0);
     setHitCount(0);
+    setLiveScore(0);
 
     const FEEDBACK = [
       "Faster! 💨", "Good! ✓", "Guard up!", "Nice combo!",
@@ -352,6 +359,9 @@ export default function TrainPage() {
       hitTimerRef.current = window.setTimeout(() => {
         if (!isRecordingRef.current) return;
         hitCountRef.current += 1;
+        const newScore = calculateTrainingScore(hitCountRef.current, sessionSeconds);
+        liveScoreRef.current = newScore;
+        setLiveScore(newScore);
         setComboCount((c) => c + 1);
         setHitCount((c) => c + 1);
         setIsFlashing(true);
@@ -374,7 +384,7 @@ export default function TrainPage() {
       isRecordingRef.current = false;
       if (hitTimerRef.current) window.clearTimeout(hitTimerRef.current);
     };
-  }, [phase]);
+  }, [phase, sessionSeconds]);
 
   const handleStart = () => {
     // Warm up AudioContext on direct user interaction so browsers allow sound
@@ -400,10 +410,12 @@ export default function TrainPage() {
     challengeSavedRef.current = false;
     setComboCount(0);
     setHitCount(0);
+    setLiveScore(0);
     setIsFlashing(false);
     setLiveFeedback(null);
     setShowGo(false);
     hitCountRef.current = 0;
+    liveScoreRef.current = 0;
     setCountdown(3);
     setPhase("countdown");
   };
@@ -420,10 +432,12 @@ export default function TrainPage() {
     setPhase("idle");
     setComboCount(0);
     setHitCount(0);
+    setLiveScore(0);
     setIsFlashing(false);
     setLiveFeedback(null);
     setShowGo(false);
     hitCountRef.current = 0;
+    liveScoreRef.current = 0;
   };
 
   const handleShareChallenge = async () => {
@@ -731,6 +745,7 @@ export default function TrainPage() {
               <div style={styles.recordingHud}>
                 <span style={styles.recordDot} />
                 <span>{t("trainRecording")}</span>
+                <span style={styles.liveScoreHud}>{liveScore.toFixed(1)}</span>
                 <strong style={{ marginLeft: "auto" }}>{secondsLeft}s</strong>
               </div>
 
@@ -1258,6 +1273,13 @@ const styles = {
     background: "#C1121F",
     flexShrink: 0,
     boxShadow: "0 0 0 6px rgba(193,18,31,0.18)",
+  },
+  liveScoreHud: {
+    marginLeft: 8,
+    fontSize: 13,
+    fontWeight: 1000,
+    color: "#D4AF37",
+    letterSpacing: 0.5,
   },
   controls: {
     display: "grid",
