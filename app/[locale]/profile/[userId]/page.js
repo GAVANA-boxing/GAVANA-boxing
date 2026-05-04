@@ -10,6 +10,7 @@ import { getLocale, translate } from "@/lib/i18n";
 import { RANK_TIERS, calculateSessionXP, calculateUserXP, getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
 import RankIcon from "@/components/RankIcon";
 import RankUpModal from "@/components/RankUpModal";
+import { getCurrentSeasonId } from "@/lib/season";
 
 function getSafeReelLikes(reel) {
   const fieldLikes = typeof reel.likes === "number" && !Number.isNaN(reel.likes)
@@ -307,8 +308,12 @@ export default function UserProfilePage() {
   const [rankUpRank, setRankUpRank] = useState(null);
   const [expandedTrainingGroups, setExpandedTrainingGroups] = useState(new Set());
   const [visibleTrainingGroups, setVisibleTrainingGroups] = useState(new Set());
+  const [showAiFeedbackList, setShowAiFeedbackList] = useState(false);
   const [showStreakModal, setShowStreakModal] = useState(false);
   const [showRankModal, setShowRankModal] = useState(false);
+  const [dailyMissionData, setDailyMissionData] = useState(null);
+  const [challengeRanks, setChallengeRanks] = useState(null);
+  const [showWeeklyModal, setShowWeeklyModal] = useState(false);
   const rankUpShownRef = useRef(false);
 
   // Redirect if not logged in
@@ -511,6 +516,104 @@ export default function UserProfilePage() {
       }
     };
   }, [authLoading, user?.uid, userId]);
+
+  // Load daily mission data for own profile
+  useEffect(() => {
+    if (authLoading || !user?.uid || !userId || user.uid !== userId) {
+      setDailyMissionData(null);
+      return;
+    }
+    let active = true;
+
+    async function loadDailyMission() {
+      try {
+        const { doc: fsDoc, getDoc: fsGetDoc } = await import("firebase/firestore");
+        const snap = await fsGetDoc(fsDoc(db, "users", user.uid));
+        if (!active) return;
+        const data = snap.exists() ? snap.data() : {};
+        const todayKey = new Date().toISOString().split("T")[0];
+        setDailyMissionData({
+          dailyStreak: Number(data.dailyStreak) || 0,
+          bestDailyStreak: Number(data.bestDailyStreak) || 0,
+          missionCompleted: data.dailyMissionCompleted === todayKey,
+          lastTrainingDate: data.lastTrainingDate || null,
+        });
+      } catch (e) {
+        if (active) setDailyMissionData(null);
+      }
+    }
+
+    loadDailyMission();
+    return () => { active = false; };
+  }, [authLoading, user?.uid, userId]);
+
+  // Load challenge ranks — weekly + all-time rank for this profile
+  useEffect(() => {
+    if (!userId) return;
+    let active = true;
+
+    async function loadChallengeRanks() {
+      try {
+        const { collection, getDocs } = await import("firebase/firestore");
+        const snap = await getDocs(collection(db, "challenge_results"));
+        if (!active) return;
+
+        const currentSeasonId = getCurrentSeasonId();
+
+        // Collect all results
+        const allResults = [];
+        snap.forEach((docSnap) => {
+          const d = docSnap.data();
+          if (d.userId && d.score != null) {
+            allResults.push({
+              userId: d.userId,
+              score: Number(d.score),
+              seasonId: d.seasonId || null,
+            });
+          }
+        });
+
+        // Weekly: filter by current season, dedupe per user (best score)
+        const weeklyByUser = {};
+        for (const r of allResults) {
+          if (r.seasonId !== currentSeasonId) continue;
+          const score = r.score;
+          if (Number.isNaN(score)) continue;
+          if (!weeklyByUser[r.userId] || score > weeklyByUser[r.userId]) {
+            weeklyByUser[r.userId] = score;
+          }
+        }
+        const weeklySorted = Object.entries(weeklyByUser)
+          .sort((a, b) => b[1] - a[1]);
+        const weeklyRankIdx = weeklySorted.findIndex(([uid]) => uid === userId);
+        const weeklyRank = weeklyRankIdx >= 0 ? weeklyRankIdx + 1 : null;
+        const bestWeeklyScore = weeklyByUser[userId] ?? null;
+
+        // All-time: dedupe per user (best score across all results)
+        const allTimeByUser = {};
+        for (const r of allResults) {
+          const score = r.score;
+          if (Number.isNaN(score)) continue;
+          if (!allTimeByUser[r.userId] || score > allTimeByUser[r.userId]) {
+            allTimeByUser[r.userId] = score;
+          }
+        }
+        const allTimeSorted = Object.entries(allTimeByUser)
+          .sort((a, b) => b[1] - a[1]);
+        const allTimeRankIdx = allTimeSorted.findIndex(([uid]) => uid === userId);
+        const allTimeRank = allTimeRankIdx >= 0 ? allTimeRankIdx + 1 : null;
+
+        if (active) {
+          setChallengeRanks({ weeklyRank, allTimeRank, bestWeeklyScore, currentSeasonId });
+        }
+      } catch (e) {
+        if (active) setChallengeRanks(null);
+      }
+    }
+
+    loadChallengeRanks();
+    return () => { active = false; };
+  }, [userId]);
 
   // Detect rank-up during session — own profile only
   useEffect(() => {
@@ -821,44 +924,64 @@ export default function UserProfilePage() {
         bestCombo: 0,
         totalXP: 0,
         latestAt: 0,
-        firstAt: Number.POSITIVE_INFINITY,
+        earliestAt: Infinity,
+        totalHits: 0,
+        totalPunches: 0,
+        bestComboStr: null,
       };
 
       const score = Number(session.score);
       const bestCombo = Number(session.bestCombo) || Number(session.totalHits) || 0;
       const xpGained = Number(session.xpGained) || 0;
       const createdAtMs = getTimestampMs(session.createdAt);
+      const hits = Number(session.totalHits ?? session.hitCount ?? session.hits) || 0;
+      const punches = Number(session.totalPunches || session.punches) || 0;
 
       existing.sessions.push(session);
       existing.bestCombo = Math.max(existing.bestCombo, bestCombo);
       existing.totalXP += xpGained;
+      existing.totalHits += hits;
+      existing.totalPunches += punches;
+
       if (Number.isFinite(score)) {
         existing.bestScore = existing.bestScore === null ? score : Math.max(existing.bestScore, score);
         if (createdAtMs >= existing.latestAt) {
           existing.latestAt = createdAtMs;
           existing.latestScore = score;
         }
-        if (createdAtMs <= existing.firstAt) {
-          existing.firstAt = createdAtMs;
+        if (createdAtMs < existing.earliestAt) {
+          existing.earliestAt = createdAtMs;
           existing.firstScore = score;
         }
+      }
+      if (session.combo && (!existing.bestComboStr || bestCombo >= existing.bestCombo)) {
+        existing.bestComboStr = session.combo;
       }
 
       groups.set(key, existing);
     }
 
     return [...groups.values()]
-      .map((group) => ({
-        ...group,
-        improvement: group.latestScore !== null && group.firstScore !== null
-          ? group.latestScore - group.firstScore
-          : 0,
-        sessions: group.sessions.sort((a, b) => {
+      .map((group) => {
+        const sortedSessions = group.sessions.sort((a, b) => {
           const attemptDelta = (Number(b.attemptNumber) || 0) - (Number(a.attemptNumber) || 0);
           if (attemptDelta !== 0) return attemptDelta;
           return getTimestampMs(b.createdAt) - getTimestampMs(a.createdAt);
-        }),
-      }))
+        });
+        const acc = group.totalPunches > 0
+          ? Math.round((group.totalHits / group.totalPunches) * 100)
+          : null;
+        const delta = group.firstScore !== null && group.latestScore !== null
+          ? group.latestScore - group.firstScore
+          : null;
+        return {
+          ...group,
+          sessions: sortedSessions,
+          accuracy: acc,
+          improvement: delta ?? 0,
+          improvementDelta: delta,
+        };
+      })
       .sort((a, b) => b.latestAt - a.latestAt);
   }, [reelLabelMap, trainingSessions, t]);
 
@@ -1102,6 +1225,59 @@ export default function UserProfilePage() {
           </div>
         </div>
 
+        {/* Weekly season achievement card */}
+        {challengeRanks && (challengeRanks.weeklyRank || challengeRanks.allTimeRank) && (
+          <button
+            type="button"
+            style={styles.weeklySeasonCard}
+            onClick={() => setShowWeeklyModal(true)}
+          >
+            {challengeRanks.weeklyRank && challengeRanks.weeklyRank <= 3 && (
+              <div style={styles.weeklyBadgeRow}>
+                <span style={styles.weeklyBadgeEmoji}>
+                  {challengeRanks.weeklyRank === 1 ? "🥇" : challengeRanks.weeklyRank === 2 ? "🥈" : "🥉"}
+                </span>
+                <span style={{
+                  ...styles.weeklyBadgeLabel,
+                  color: challengeRanks.weeklyRank === 1 ? "#D4AF37" : challengeRanks.weeklyRank === 2 ? "#9CA3AF" : "#FB923C",
+                }}>
+                  {challengeRanks.weeklyRank === 1
+                    ? t("weeklyChampionBadge")
+                    : challengeRanks.weeklyRank === 2
+                    ? t("weeklySilverBadge")
+                    : t("weeklyBronzeBadge")}
+                </span>
+              </div>
+            )}
+            <div style={styles.weeklyRankRow}>
+              {challengeRanks.weeklyRank && (
+                <div style={styles.weeklyRankItem}>
+                  <span style={styles.weeklyRankNum}>#{challengeRanks.weeklyRank}</span>
+                  <span style={styles.weeklyRankLbl}>{t("seasonCurrentWeek")}</span>
+                </div>
+              )}
+              {challengeRanks.weeklyRank && challengeRanks.allTimeRank && (
+                <div style={styles.weeklyRankDivider} />
+              )}
+              {challengeRanks.allTimeRank && (
+                <div style={styles.weeklyRankItem}>
+                  <span style={styles.weeklyRankNum}>#{challengeRanks.allTimeRank}</span>
+                  <span style={styles.weeklyRankLbl}>{t("seasonAllTime")}</span>
+                </div>
+              )}
+              {challengeRanks.bestWeeklyScore != null && (
+                <>
+                  <div style={styles.weeklyRankDivider} />
+                  <div style={styles.weeklyRankItem}>
+                    <span style={{ ...styles.weeklyRankNum, color: "#D4AF37" }}>{challengeRanks.bestWeeklyScore}/10</span>
+                    <span style={styles.weeklyRankLbl}>{t("seasonBestWeeklyScore")}</span>
+                  </div>
+                </>
+              )}
+            </div>
+          </button>
+        )}
+
         {profileUser.bio && (
           <p style={styles.bio}>
             {profileUser.bio}
@@ -1213,10 +1389,54 @@ export default function UserProfilePage() {
             <h2 style={styles.progressTitle}>{t("progress")}</h2>
           </div>
 
-          {trainingProgressStats.totalSessions === 0 ? (
+          {/* Daily Mission card — own profile only */}
+          {isOwnProfile && (
+            <div style={styles.dailyMissionCard}>
+              <div style={styles.dailyMissionTop}>
+                <span style={styles.dailyMissionLabel}>{t("todaysMission")}</span>
+                {dailyMissionData?.missionCompleted ? (
+                  <span style={styles.dailyMissionBadgeDone}>{t("completed")}</span>
+                ) : (
+                  <span style={styles.dailyMissionBadgePending}>{t("missionPendingHint")}</span>
+                )}
+              </div>
+              <div style={styles.dailyMissionTarget}>
+                <span style={{ fontSize: 20 }}>{dailyMissionData?.missionCompleted ? "✅" : "🎯"}</span>
+                <span style={{ ...styles.dailyMissionTargetText, color: dailyMissionData?.missionCompleted ? "#34D399" : "#fff" }}>
+                  {t("missionTarget")}
+                </span>
+              </div>
+              <div style={styles.dailyMissionXpHint}>
+                {t("missionXpReward")}
+              </div>
+              <div style={styles.dailyMissionStreakRow}>
+                <div style={styles.dailyMissionStreakStat}>
+                  <span style={{ ...styles.dailyMissionStreakNum, color: "#FB923C" }}>
+                    🔥{dailyMissionData?.dailyStreak ?? 0}
+                  </span>
+                  <span style={styles.dailyMissionStreakLbl}>{t("missionCurrentStreak")}</span>
+                </div>
+                <div style={styles.dailyMissionStreakStat}>
+                  <span style={styles.dailyMissionStreakNum}>{dailyMissionData?.bestDailyStreak ?? 0}</span>
+                  <span style={styles.dailyMissionStreakLbl}>{t("missionBestStreak")}</span>
+                </div>
+              </div>
+              <div style={styles.dailyMissionMilestones}>
+                <span style={styles.dailyMissionMilestoneLbl}>{t("missionStreakRewards")}:</span>
+                <span style={{ color: (dailyMissionData?.dailyStreak ?? 0) >= 3 ? "#34D399" : "#888", fontSize: 11, fontWeight: 800 }}>
+                  3🔥 +100 XP
+                </span>
+                <span style={{ color: (dailyMissionData?.dailyStreak ?? 0) >= 7 ? "#D4AF37" : "#888", fontSize: 11, fontWeight: 800 }}>
+                  7🔥 +250 XP
+                </span>
+              </div>
+            </div>
+          )}
+
+          {progressStats.totalSessions === 0 && groupedTrainingSessions.length === 0 ? (
             <div style={styles.progressEmpty}>
               <p style={{ margin: 0, color: "var(--text-primary)", fontWeight: 900 }}>
-                {t("trainingProgressCta")}
+                {t("tryComboToStart")}
               </p>
             </div>
           ) : (
@@ -1266,40 +1486,227 @@ export default function UserProfilePage() {
                 </p>
               </div>
 
-              <div style={styles.progressSubsection}>
-                <h3 style={styles.trainingHistoryTitle}>{t("comboProgress")}</h3>
-                <div style={styles.comboProgressList}>
-                  {groupedTrainingSessions.map((combo) => {
-                    const improvementText = combo.improvement > 0.05
-                      ? t("trainingImproved")
-                      : combo.improvement < -0.05
-                        ? t("trainingDropped")
-                        : t("trainingSame");
-                    const improvementColor = combo.improvement > 0.05
-                      ? "#34D399"
-                      : combo.improvement < -0.05
-                        ? "#FB7185"
-                        : "var(--text-secondary)";
-                    return (
-                    <article key={combo.key} style={styles.comboProgressItem}>
-                      <div style={styles.comboProgressMain}>
-                        <strong style={styles.trainingGroupTitle}>{combo.label}</strong>
-                        <span style={styles.progressDate}>{t("lastTrained")}: {formatFeedbackDate(combo.sessions[0]?.createdAt)}</span>
+              {/* ── Overview cards ─────────────────────────────── */}
+              {progressStats.totalSessions > 0 && (
+                <>
+                  <div style={styles.overviewGrid}>
+                    <div style={styles.overviewCard}>
+                      <span style={{ ...styles.overviewVal, color: "#D4AF37" }}>{formatScore(progressStats.bestScore)}</span>
+                      <span style={styles.overviewLbl}>{t("bestScoreLabel")}</span>
+                    </div>
+                    <div style={styles.overviewCard}>
+                      <span style={styles.overviewVal}>{formatScore(progressStats.latestScore)}</span>
+                      <span style={styles.overviewLbl}>{t("latestScoreLabel")}</span>
+                    </div>
+                    <div style={styles.overviewCard}>
+                      <span style={styles.overviewVal}>{formatScore(progressStats.averageScore)}</span>
+                      <span style={styles.overviewLbl}>{t("averageScoreLabel")}</span>
+                    </div>
+                    <div style={styles.overviewCard}>
+                      <span style={styles.overviewVal}>{progressStats.totalSessions}</span>
+                      <span style={styles.overviewLbl}>{t("totalSessions")}</span>
+                    </div>
+                    <div style={styles.overviewCard}>
+                      <span style={{ ...styles.overviewVal, color: "#60A5FA" }}>{xp.toLocaleString()}</span>
+                      <span style={styles.overviewLbl}>{t("totalXpLabel")}</span>
+                    </div>
+                  </div>
+
+                  {/* ── Improvement banner ─────────────────────── */}
+                  {progressStats.improvement !== null && (
+                    <div style={styles.improvementBanner}>
+                      <div style={styles.improvementItem}>
+                        <span style={styles.improvementLbl}>{t("before")}</span>
+                        <strong style={styles.improvementVal}>{formatScore(progressStats.firstScore)}</strong>
                       </div>
-                      <div style={styles.comboProgressStats}>
-                        <span>{t("bestScoreLabel")}: {formatScore(combo.bestScore)}</span>
-                        <span>{t("latestScoreLabel")}: {formatScore(combo.latestScore)}</span>
-                        <span>{t("trainingAttempts")}: {combo.sessions.length}</span>
-                        <span>{t("trainingBestCombo")}: {combo.bestCombo}</span>
-                        <strong style={{ color: improvementColor }}>
-                          {Math.abs(combo.improvement) <= 0.05 ? t("trainingSame") : `${combo.improvement > 0 ? "+" : ""}${formatScore(combo.improvement)} ${improvementText}`}
+                      <div style={styles.improvementArrow}>→</div>
+                      <div style={styles.improvementItem}>
+                        <span style={styles.improvementLbl}>{t("now")}</span>
+                        <strong style={styles.improvementVal}>{formatScore(progressStats.latestScore)}</strong>
+                      </div>
+                      <div style={styles.improvementItem}>
+                        <span style={styles.improvementLbl}>{t("improvement")}</span>
+                        <strong style={{
+                          ...styles.improvementVal,
+                          color: progressStats.improvement > 0.05 ? "#34D399" : progressStats.improvement < -0.05 ? "#FB7185" : "#aaa",
+                          fontSize: 20,
+                        }}>
+                          {progressStats.improvement > 0.05
+                            ? `+${formatScore(progressStats.improvement)} ↑`
+                            : progressStats.improvement < -0.05
+                            ? `${formatScore(progressStats.improvement)} ↓`
+                            : `= ${t("same")}`}
                         </strong>
                       </div>
-                    </article>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* ── Per-reel progress ─────────────────────────── */}
+              {groupedTrainingSessions.length > 0 && (
+                <div style={{ marginTop: 20, display: "grid", gap: 10 }}>
+                  <h3 style={styles.sectionTitle}>{t("progressPerReel")}</h3>
+                  {groupedTrainingSessions.map((group) => {
+                    const isExpanded = expandedTrainingGroups.has(group.key);
+                    const showAll = visibleTrainingGroups.has(group.key);
+                    const visibleAttempts = showAll ? group.sessions : group.sessions.slice(0, 3);
+                    const delta = group.improvementDelta;
+                    const deltaColor = delta !== null && delta > 0.05 ? "#34D399" : delta !== null && delta < -0.05 ? "#FB7185" : "#aaa";
+                    const deltaLabel = delta === null ? null
+                      : delta > 0.05 ? `+${formatScore(delta)} ${t("improved")}`
+                      : delta < -0.05 ? `${formatScore(delta)} ${t("dropped")}`
+                      : t("same");
+
+                    return (
+                      <article key={group.key} style={styles.reelProgressCard}>
+                        {/* Card header */}
+                        <div style={styles.reelCardHeader}>
+                          <div style={styles.reelCardLeft}>
+                            <strong style={styles.reelCardTitle}>{group.label}</strong>
+                            <div style={styles.reelCardMeta}>
+                              <span>{group.sessions.length} {group.sessions.length === 1 ? t("trainingAttempt") : t("trainingAttempts")}</span>
+                              {group.latestAt > 0 && (
+                                <span style={{ color: "#666" }}>· {new Date(group.latestAt).toLocaleDateString()}</span>
+                              )}
+                            </div>
+                          </div>
+                          {deltaLabel && (
+                            <span style={{ ...styles.reelDeltaPill, color: deltaColor, borderColor: `${deltaColor}44` }}>
+                              {deltaLabel}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Stats row */}
+                        <div style={styles.reelStatsRow}>
+                          <div style={styles.reelStat}>
+                            <span style={{ ...styles.reelStatVal, color: "#D4AF37" }}>{formatScore(group.bestScore)}</span>
+                            <span style={styles.reelStatLbl}>{t("best")}</span>
+                          </div>
+                          <div style={styles.reelStatDivider} />
+                          <div style={styles.reelStat}>
+                            <span style={styles.reelStatVal}>{formatScore(group.latestScore)}</span>
+                            <span style={styles.reelStatLbl}>{t("latest")}</span>
+                          </div>
+                          {group.accuracy !== null && (
+                            <>
+                              <div style={styles.reelStatDivider} />
+                              <div style={styles.reelStat}>
+                                <span style={styles.reelStatVal}>{group.accuracy}%</span>
+                                <span style={styles.reelStatLbl}>{t("accuracy")}</span>
+                              </div>
+                            </>
+                          )}
+                          {group.bestComboStr && (
+                            <>
+                              <div style={styles.reelStatDivider} />
+                              <div style={styles.reelStat}>
+                                <span style={{ ...styles.reelStatVal, fontSize: 12 }}>{group.bestComboStr}</span>
+                                <span style={styles.reelStatLbl}>{t("bestCombo")}</span>
+                              </div>
+                            </>
+                          )}
+                        </div>
+
+                        {/* View attempts toggle */}
+                        <button
+                          type="button"
+                          style={styles.viewAttemptsBtn}
+                          onClick={() => toggleTrainingGroup(group.key)}
+                        >
+                          {isExpanded ? t("hideAttempts") : t("viewAttempts")}
+                          <span style={{ marginLeft: 4, fontSize: 10 }}>{isExpanded ? "▲" : "▼"}</span>
+                        </button>
+
+                        {isExpanded && (
+                          <div style={styles.attemptsListWrap}>
+                            {visibleAttempts.map((session) => (
+                              <div key={session.id} style={styles.attemptRow}>
+                                <div>
+                                  <strong style={styles.attemptNum}>
+                                    {t("trainingAttempt")} {Number(session.attemptNumber) || 1}
+                                  </strong>
+                                  <div style={styles.progressDate}>{formatFeedbackDate(session.createdAt)}</div>
+                                </div>
+                                <div style={styles.trainingAttemptStats}>
+                                  <span>{formatScore(session.score)}/10</span>
+                                  <span>{t("trainTotalHits")}: {Number(session.totalHits ?? session.hitCount ?? session.hits ?? 0)}</span>
+                                  <span>{t("trainingAccuracy")}: {Number(session.accuracy ?? group.accuracy ?? 0)}%</span>
+                                  <span style={{ color: "#D4AF37" }}>+{Number(session.xpGained || 0).toLocaleString()} {t("xpLabel")}</span>
+                                </div>
+                              </div>
+                            ))}
+                            {!showAll && group.sessions.length > 3 && (
+                              <button
+                                type="button"
+                                style={styles.viewMoreButton}
+                                onClick={() => showMoreTrainingAttempts(group.key)}
+                              >
+                                {t("viewMore")}
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </article>
                     );
                   })}
                 </div>
-              </div>
+              )}
+
+              {/* ── AI Feedback ───────────────────────────────── */}
+              {aiFeedbackHistory.length > 0 && (
+                <div style={{ marginTop: 22, display: "grid", gap: 10 }}>
+                  <button
+                    type="button"
+                    style={styles.aiFeedbackToggle}
+                    onClick={() => setShowAiFeedbackList((v) => !v)}
+                  >
+                    <span style={styles.sectionTitle}>{t("aiFeedbackHistory")}</span>
+                    <span style={{ fontSize: 10, color: "#888", marginLeft: 8 }}>{showAiFeedbackList ? "▲" : "▼"}</span>
+                  </button>
+                  {showAiFeedbackList && (
+                    <div style={styles.progressList}>
+                      {aiFeedbackHistory.map((feedback) => (
+                        <article key={feedback.id} style={styles.progressItem}>
+                          <div style={styles.progressItemTop}>
+                            <span style={styles.progressDate}>{formatFeedbackDate(feedback.createdAt)}</span>
+                            <strong style={styles.progressScore}>{t("score")}: {formatScore(feedback.score)}/10</strong>
+                          </div>
+                          <p style={styles.progressCaption}>
+                            {feedback.reelCaption || t("trainingReel")}
+                          </p>
+                          {xpBreakdowns[feedback.id] && (() => {
+                            const bd = xpBreakdowns[feedback.id];
+                            return (
+                              <div style={styles.xpBreakdownRow}>
+                                <span style={styles.xpBDLabel}>{t("xpEarned")}</span>
+                                <span style={styles.xpBDItem}>
+                                  {t("xpBase")} <span style={styles.xpBDNum}>+{bd.base}</span>
+                                </span>
+                                {bd.improvement > 0 && (
+                                  <span style={styles.xpBDItem}>
+                                    {t("xpImprovement")} <span style={{ ...styles.xpBDNum, color: "#34D399" }}>+{bd.improvement}</span>
+                                  </span>
+                                )}
+                                {bd.streakBonus > 0 && (
+                                  <span style={styles.xpBDItem}>
+                                    {t("xpStreakBonus")} <span style={{ ...styles.xpBDNum, color: "#FB923C" }}>+{bd.streakBonus}</span>
+                                  </span>
+                                )}
+                                <span style={styles.xpBDTotal}>
+                                  {bd.capped && <span style={styles.xpCapFlag}>{t("xpDailyCap")} · </span>}
+                                  +{bd.total} {t("xpLabel")}
+                                </span>
+                              </div>
+                            );
+                          })()}
+                        </article>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </>
           )}
 
@@ -1612,6 +2019,63 @@ export default function UserProfilePage() {
           onClose={() => setShowRankModal(false)}
         />
       )}
+
+      {showWeeklyModal && challengeRanks && (
+        <div style={styles.modalOverlay} onClick={() => setShowWeeklyModal(false)}>
+          <div style={styles.weeklyModalSheet} onClick={(e) => e.stopPropagation()}>
+            <div style={styles.weeklyModalHandle} />
+            <div style={styles.weeklyModalHeader}>
+              <span style={styles.weeklyModalTitle}>🏆 {t("weeklySeasonModalTitle")}</span>
+              <button type="button" style={styles.weeklyModalClose} onClick={() => setShowWeeklyModal(false)}>✕</button>
+            </div>
+
+            {challengeRanks.weeklyRank && challengeRanks.weeklyRank <= 3 && (
+              <div style={styles.weeklyModalBadgeBlock}>
+                <div style={styles.weeklyModalBadgeEmoji}>
+                  {challengeRanks.weeklyRank === 1 ? "🥇" : challengeRanks.weeklyRank === 2 ? "🥈" : "🥉"}
+                </div>
+                <div style={{
+                  ...styles.weeklyModalBadgeName,
+                  color: challengeRanks.weeklyRank === 1 ? "#D4AF37" : challengeRanks.weeklyRank === 2 ? "#9CA3AF" : "#FB923C",
+                }}>
+                  {challengeRanks.weeklyRank === 1
+                    ? t("weeklyChampionBadge")
+                    : challengeRanks.weeklyRank === 2
+                    ? t("weeklySilverBadge")
+                    : t("weeklyBronzeBadge")}
+                </div>
+              </div>
+            )}
+
+            <div style={styles.weeklyModalStats}>
+              {challengeRanks.weeklyRank && (
+                <div style={styles.weeklyModalStat}>
+                  <span style={styles.weeklyModalStatVal}>#{challengeRanks.weeklyRank}</span>
+                  <span style={styles.weeklyModalStatLbl}>{t("seasonCurrentWeek")}</span>
+                </div>
+              )}
+              {challengeRanks.bestWeeklyScore != null && (
+                <div style={styles.weeklyModalStat}>
+                  <span style={{ ...styles.weeklyModalStatVal, color: "#D4AF37" }}>{challengeRanks.bestWeeklyScore}/10</span>
+                  <span style={styles.weeklyModalStatLbl}>{t("seasonBestWeeklyScore")}</span>
+                </div>
+              )}
+              {challengeRanks.allTimeRank && (
+                <div style={styles.weeklyModalStat}>
+                  <span style={styles.weeklyModalStatVal}>#{challengeRanks.allTimeRank}</span>
+                  <span style={styles.weeklyModalStatLbl}>{t("seasonAllTime")}</span>
+                </div>
+              )}
+            </div>
+
+            <p style={styles.weeklyModalDesc}>{t("weeklySeasonModalDesc")}</p>
+
+            <button type="button" style={styles.weeklyModalBtn} onClick={() => { setShowWeeklyModal(false); router.push(`/${locale}/challenges`); }}>
+              {t("weeklySeasonModalCta")}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1822,8 +2286,291 @@ const styles = {
   progressSection: {
     width: "min(100%, 680px)",
     margin: "0 auto",
-    padding: "24px 16px 42px",
+    padding: "24px 16px 80px",
     boxSizing: "border-box",
+  },
+  dailyMissionCard: {
+    marginBottom: 18,
+    padding: "14px 16px",
+    borderRadius: 18,
+    background: "linear-gradient(145deg, rgba(212,175,55,0.10), rgba(11,11,11,0.98))",
+    border: "1px solid rgba(212,175,55,0.22)",
+    display: "grid",
+    gap: 10,
+    boxShadow: "0 8px 28px rgba(0,0,0,0.22)",
+  },
+  dailyMissionTop: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  dailyMissionLabel: {
+    color: "#D4AF37",
+    fontSize: 9,
+    fontWeight: 900,
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
+  },
+  dailyMissionBadgeDone: {
+    padding: "3px 10px",
+    borderRadius: 999,
+    background: "rgba(52,211,153,0.15)",
+    border: "1px solid rgba(52,211,153,0.3)",
+    color: "#34D399",
+    fontSize: 10,
+    fontWeight: 900,
+  },
+  dailyMissionBadgePending: {
+    padding: "3px 10px",
+    borderRadius: 999,
+    background: "rgba(255,255,255,0.06)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    color: "#888",
+    fontSize: 10,
+    fontWeight: 700,
+  },
+  dailyMissionTarget: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+  },
+  dailyMissionTargetText: {
+    fontSize: 14,
+    fontWeight: 900,
+    lineHeight: 1.3,
+  },
+  dailyMissionXpHint: {
+    fontSize: 11,
+    color: "#888",
+    fontWeight: 700,
+  },
+  dailyMissionStreakRow: {
+    display: "flex",
+    gap: 18,
+    padding: "10px 0 6px",
+    borderTop: "1px solid rgba(255,255,255,0.07)",
+  },
+  dailyMissionStreakStat: { display: "grid", gap: 3 },
+  dailyMissionStreakNum: {
+    fontSize: 20,
+    fontWeight: 1000,
+    lineHeight: 1,
+  },
+  dailyMissionStreakLbl: {
+    fontSize: 9,
+    color: "#888",
+    fontWeight: 800,
+    textTransform: "uppercase",
+    letterSpacing: 0.7,
+  },
+  dailyMissionMilestones: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    flexWrap: "wrap",
+  },
+  dailyMissionMilestoneLbl: {
+    fontSize: 10,
+    color: "#666",
+    fontWeight: 700,
+    letterSpacing: 0.4,
+  },
+  overviewGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: 8,
+    marginBottom: 14,
+  },
+  overviewCard: {
+    minHeight: 72,
+    borderRadius: 16,
+    background: "linear-gradient(145deg, rgba(193,18,31,0.10), rgba(11,11,11,0.98))",
+    border: "1px solid rgba(255,255,255,0.07)",
+    display: "grid",
+    alignContent: "center",
+    justifyItems: "center",
+    gap: 6,
+    padding: "10px 6px",
+  },
+  overviewVal: {
+    color: "var(--text-primary)",
+    fontSize: 24,
+    lineHeight: 1,
+    fontWeight: 1000,
+  },
+  overviewLbl: {
+    color: "var(--text-secondary)",
+    fontSize: 9,
+    fontWeight: 900,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+    textAlign: "center",
+  },
+  improvementBanner: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    padding: "14px 16px",
+    borderRadius: 16,
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    marginBottom: 6,
+    flexWrap: "wrap",
+  },
+  improvementItem: {
+    display: "grid",
+    gap: 4,
+    justifyItems: "center",
+    flex: 1,
+    minWidth: 60,
+  },
+  improvementArrow: {
+    color: "#555",
+    fontSize: 18,
+    fontWeight: 900,
+    flexShrink: 0,
+  },
+  improvementLbl: {
+    color: "var(--text-secondary)",
+    fontSize: 9,
+    fontWeight: 900,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  improvementVal: {
+    color: "var(--text-primary)",
+    fontSize: 22,
+    lineHeight: 1,
+    fontWeight: 1000,
+  },
+  sectionTitle: {
+    margin: 0,
+    color: "var(--text-primary)",
+    fontSize: 15,
+    fontWeight: 950,
+    letterSpacing: 0,
+  },
+  reelProgressCard: {
+    borderRadius: 18,
+    background: "rgba(11,11,11,0.97)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    padding: "14px 16px 12px",
+    boxShadow: "0 8px 24px rgba(0,0,0,0.22)",
+    display: "grid",
+    gap: 10,
+  },
+  reelCardHeader: {
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 10,
+  },
+  reelCardLeft: {
+    display: "grid",
+    gap: 4,
+    minWidth: 0,
+  },
+  reelCardTitle: {
+    color: "var(--text-primary)",
+    fontSize: 13,
+    fontWeight: 950,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+  reelCardMeta: {
+    display: "flex",
+    gap: 6,
+    color: "#888",
+    fontSize: 11,
+    fontWeight: 700,
+  },
+  reelDeltaPill: {
+    flexShrink: 0,
+    padding: "3px 9px",
+    borderRadius: 999,
+    border: "1px solid",
+    fontSize: 11,
+    fontWeight: 900,
+    background: "rgba(0,0,0,0.4)",
+  },
+  reelStatsRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 0,
+    background: "rgba(255,255,255,0.03)",
+    borderRadius: 12,
+    overflow: "hidden",
+    border: "1px solid rgba(255,255,255,0.06)",
+  },
+  reelStat: {
+    flex: 1,
+    display: "grid",
+    gap: 3,
+    justifyItems: "center",
+    padding: "9px 6px",
+  },
+  reelStatVal: {
+    color: "var(--text-primary)",
+    fontSize: 16,
+    lineHeight: 1,
+    fontWeight: 1000,
+  },
+  reelStatLbl: {
+    color: "#666",
+    fontSize: 9,
+    fontWeight: 900,
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+  },
+  reelStatDivider: {
+    width: 1,
+    alignSelf: "stretch",
+    background: "rgba(255,255,255,0.07)",
+    flexShrink: 0,
+  },
+  viewAttemptsBtn: {
+    background: "transparent",
+    border: "none",
+    color: "#888",
+    fontSize: 11,
+    fontWeight: 900,
+    cursor: "pointer",
+    padding: "4px 0",
+    textAlign: "left",
+    letterSpacing: 0.5,
+    display: "flex",
+    alignItems: "center",
+  },
+  attemptsListWrap: {
+    display: "grid",
+    gap: 1,
+    borderTop: "1px solid rgba(255,255,255,0.06)",
+    paddingTop: 8,
+  },
+  attemptRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    padding: "9px 2px",
+    borderBottom: "1px solid rgba(255,255,255,0.05)",
+  },
+  attemptNum: {
+    display: "block",
+    color: "var(--text-primary)",
+    fontSize: 12,
+    fontWeight: 900,
+    marginBottom: 2,
+  },
+  aiFeedbackToggle: {
+    display: "flex",
+    alignItems: "center",
+    background: "transparent",
+    border: "none",
+    padding: 0,
+    cursor: "pointer",
+    textAlign: "left",
   },
   progressHeader: {
     marginBottom: 18,
@@ -2287,5 +3034,168 @@ const styles = {
     fontSize: 10,
     color: "#FB923C",
     fontWeight: 700,
+  },
+  weeklySeasonCard: {
+    width: "100%",
+    background: "rgba(212,175,55,0.08)",
+    border: "1px solid rgba(212,175,55,0.28)",
+    borderRadius: 14,
+    padding: "12px 16px",
+    marginTop: 14,
+    cursor: "pointer",
+    textAlign: "left",
+  },
+  weeklyBadgeRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 8,
+  },
+  weeklyBadgeEmoji: {
+    fontSize: 18,
+    lineHeight: 1,
+  },
+  weeklyBadgeLabel: {
+    fontSize: 12,
+    fontWeight: 900,
+    letterSpacing: 0.5,
+  },
+  weeklyRankRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+  },
+  weeklyRankItem: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 2,
+  },
+  weeklyRankNum: {
+    fontSize: 16,
+    fontWeight: 900,
+    color: "#fff",
+    lineHeight: 1,
+  },
+  weeklyRankLbl: {
+    fontSize: 9,
+    color: "#888",
+    fontWeight: 700,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  weeklyRankDivider: {
+    width: 1,
+    height: 28,
+    background: "rgba(255,255,255,0.12)",
+  },
+  modalOverlay: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.7)",
+    zIndex: 200,
+    display: "flex",
+    alignItems: "flex-end",
+  },
+  weeklyModalSheet: {
+    width: "100%",
+    background: "#111",
+    borderRadius: "18px 18px 0 0",
+    padding: "20px 20px 40px",
+    maxHeight: "60vh",
+    overflowY: "auto",
+  },
+  weeklyModalHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 99,
+    background: "rgba(255,255,255,0.18)",
+    margin: "0 auto 16px",
+  },
+  weeklyModalHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  weeklyModalTitle: {
+    fontSize: 16,
+    fontWeight: 900,
+    color: "#fff",
+  },
+  weeklyModalClose: {
+    background: "transparent",
+    border: "none",
+    color: "#888",
+    fontSize: 18,
+    cursor: "pointer",
+    padding: "4px 8px",
+  },
+  weeklyModalBadgeBlock: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 20,
+    padding: "16px 0",
+    background: "rgba(212,175,55,0.06)",
+    borderRadius: 12,
+    border: "1px solid rgba(212,175,55,0.2)",
+  },
+  weeklyModalBadgeEmoji: {
+    fontSize: 44,
+    lineHeight: 1,
+  },
+  weeklyModalBadgeName: {
+    fontSize: 16,
+    fontWeight: 900,
+    letterSpacing: 0.5,
+  },
+  weeklyModalStats: {
+    display: "flex",
+    justifyContent: "space-around",
+    gap: 12,
+    marginBottom: 16,
+    padding: "14px 12px",
+    background: "rgba(255,255,255,0.04)",
+    borderRadius: 12,
+  },
+  weeklyModalStat: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 4,
+  },
+  weeklyModalStatVal: {
+    fontSize: 22,
+    fontWeight: 900,
+    color: "#fff",
+    lineHeight: 1,
+  },
+  weeklyModalStatLbl: {
+    fontSize: 10,
+    color: "#888",
+    fontWeight: 700,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  weeklyModalDesc: {
+    margin: "0 0 16px",
+    fontSize: 13,
+    color: "#888",
+    lineHeight: 1.55,
+    textAlign: "center",
+  },
+  weeklyModalBtn: {
+    width: "100%",
+    padding: "14px 0",
+    borderRadius: 12,
+    background: "linear-gradient(135deg, #C1121F, #9B0D18)",
+    border: "none",
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: 900,
+    cursor: "pointer",
+    letterSpacing: 0.5,
   },
 };

@@ -9,6 +9,7 @@ import BottomNav from "@/components/BottomNav";
 import { getLocale, translate } from "@/lib/i18n";
 import { calculateUserXP, getFighterRank } from "@/lib/xp";
 import RankIcon from "@/components/RankIcon";
+import { getCurrentSeasonId, getSeasonLabel } from "@/lib/season";
 
 function getRankMedal(rank) {
   if (rank === 1) return "🥇";
@@ -34,6 +35,22 @@ function getAvatarUrl(profile) {
   );
 }
 
+function dedupeWeeklyByUser(results, seasonId) {
+  const byUser = {};
+  for (const r of results) {
+    if (r.seasonId !== seasonId) continue;
+    const uid = r.userId;
+    const score = Number(r.score);
+    if (Number.isNaN(score)) continue;
+    if (!byUser[uid] || score > byUser[uid].bestScore) {
+      byUser[uid] = { userId: uid, bestScore: score };
+    }
+  }
+  return Object.values(byUser)
+    .sort((a, b) => b.bestScore - a.bestScore)
+    .slice(0, 50);
+}
+
 export default function LeaderboardPage() {
   const params = useParams();
   const router = useRouter();
@@ -41,9 +58,14 @@ export default function LeaderboardPage() {
   const locale = getLocale(params?.locale);
   const t = (key) => translate(locale, key);
 
+  const [leaderboardTab, setLeaderboardTab] = useState("week");
   const [entries, setEntries] = useState([]);
+  const [rawChallengeResults, setRawChallengeResults] = useState([]);
   const [profiles, setProfiles] = useState({});
   const [loading, setLoading] = useState(true);
+
+  const currentSeasonId = useMemo(() => getCurrentSeasonId(), []);
+  const seasonLabel = useMemo(() => getSeasonLabel(currentSeasonId), [currentSeasonId]);
 
   useEffect(() => {
     let active = true;
@@ -59,6 +81,21 @@ export default function LeaderboardPage() {
         const profileMap = {};
         usersSnapshot.forEach((userDoc) => {
           profileMap[userDoc.id] = { userId: userDoc.id, ...userDoc.data() };
+        });
+
+        // Store raw challenge results for weekly filtering
+        const rawResults = [];
+        challengeSnapshot.forEach((docSnap) => {
+          const d = docSnap.data();
+          if (d.userId && d.score != null) {
+            rawResults.push({
+              userId: d.userId,
+              score: Number(d.score),
+              seasonId: d.seasonId || null,
+              challengeId: d.challengeId || null,
+              createdAt: d.createdAt,
+            });
+          }
         });
 
         const userMap = {};
@@ -81,11 +118,9 @@ export default function LeaderboardPage() {
           }
         });
 
-        challengeSnapshot.forEach((docSnap) => {
-          const d = docSnap.data();
-          if (!d.userId || d.score == null) return;
-          const uid = d.userId;
-          const score = Number(d.score);
+        rawResults.forEach((r) => {
+          const uid = r.userId;
+          const score = r.score;
           if (Number.isNaN(score)) return;
 
           if (!userMap[uid]) {
@@ -94,7 +129,7 @@ export default function LeaderboardPage() {
           if (!userMap[uid].challengeScores) userMap[uid].challengeScores = [];
           userMap[uid].challengeScores.push(score);
 
-          const ts = d.createdAt?.toMillis?.() || 0;
+          const ts = r.createdAt?.toMillis?.() || 0;
           if (ts >= userMap[uid].latestTs) {
             userMap[uid].latestTs = ts;
             userMap[uid].latestScore = score;
@@ -127,8 +162,7 @@ export default function LeaderboardPage() {
 
         if (!active) return;
         setEntries(sorted);
-
-        if (!active) return;
+        setRawChallengeResults(rawResults);
         setProfiles(profileMap);
       } catch (err) {
         console.error("Leaderboard load error:", err);
@@ -141,16 +175,38 @@ export default function LeaderboardPage() {
     return () => { active = false; };
   }, []);
 
-  const currentUserRank = useMemo(() => {
+  const weeklyEntries = useMemo(
+    () => dedupeWeeklyByUser(rawChallengeResults, currentSeasonId),
+    [rawChallengeResults, currentSeasonId]
+  );
+
+  const displayEntries = leaderboardTab === "week" ? weeklyEntries : entries;
+
+  const currentUserAllTimeRank = useMemo(() => {
     if (!user?.uid) return null;
     const idx = entries.findIndex((e) => e.userId === user.uid);
     return idx >= 0 ? idx + 1 : null;
   }, [entries, user?.uid]);
 
-  const currentUserEntry = useMemo(() => {
+  const currentUserWeeklyRank = useMemo(() => {
+    if (!user?.uid) return null;
+    const idx = weeklyEntries.findIndex((e) => e.userId === user.uid);
+    return idx >= 0 ? idx + 1 : null;
+  }, [weeklyEntries, user?.uid]);
+
+  const currentUserAllTimeEntry = useMemo(() => {
     if (!user?.uid) return null;
     return entries.find((e) => e.userId === user.uid) || null;
   }, [entries, user?.uid]);
+
+  const currentUserWeeklyEntry = useMemo(() => {
+    if (!user?.uid) return null;
+    return weeklyEntries.find((e) => e.userId === user.uid) || null;
+  }, [weeklyEntries, user?.uid]);
+
+  const weeklyChampion = weeklyEntries.length > 0 ? weeklyEntries[0] : null;
+
+  const hasUserData = !authLoading && user && (currentUserAllTimeEntry || currentUserWeeklyEntry);
 
   return (
     <main style={styles.page}>
@@ -169,29 +225,88 @@ export default function LeaderboardPage() {
         <div style={styles.trophyBadge} aria-hidden="true">🏆</div>
       </header>
 
+      {/* Season tabs */}
+      <div style={styles.tabsWrap}>
+        <div style={styles.tabsRow}>
+          <button
+            type="button"
+            style={{ ...styles.tabBtn, ...(leaderboardTab === "week" ? styles.tabBtnActive : {}) }}
+            onClick={() => setLeaderboardTab("week")}
+          >
+            {t("leaderboardTabWeek")}
+          </button>
+          <button
+            type="button"
+            style={{ ...styles.tabBtn, ...(leaderboardTab === "alltime" ? styles.tabBtnActive : {}) }}
+            onClick={() => setLeaderboardTab("alltime")}
+          >
+            {t("leaderboardTabAllTime")}
+          </button>
+        </div>
+        {leaderboardTab === "week" && (
+          <p style={styles.seasonLabel}>{seasonLabel}</p>
+        )}
+      </div>
+
       <div style={styles.content}>
         {/* Current user rank card */}
-        {!authLoading && user && currentUserEntry && (
+        {hasUserData && (
           <div style={styles.yourRankCard}>
             <div style={styles.yourRankTop}>
-              <span style={styles.yourRankLabel}>{t("leaderboardYourRank").replace("{rank}", currentUserRank ?? "—")}</span>
-              <span style={{ ...styles.scorePill, background: getScoreColor(currentUserEntry.bestScore) }}>
-                {currentUserEntry.bestScore}/10
+              <span style={styles.yourRankLabel}>
+                {leaderboardTab === "week"
+                  ? (currentUserWeeklyRank
+                    ? t("seasonWeeklyRank").replace("{rank}", currentUserWeeklyRank)
+                    : t("seasonNoResultsThisWeek").split(".")[0])
+                  : t("leaderboardYourRank").replace("{rank}", currentUserAllTimeRank ?? "—")}
+              </span>
+              <span style={{ ...styles.scorePill, background: getScoreColor(leaderboardTab === "week" ? (currentUserWeeklyEntry?.bestScore ?? 0) : (currentUserAllTimeEntry?.bestScore ?? 0)) }}>
+                {leaderboardTab === "week"
+                  ? `${currentUserWeeklyEntry?.bestScore ?? 0}/10`
+                  : `${currentUserAllTimeEntry?.bestScore ?? 0}/10`}
               </span>
             </div>
             <div style={styles.yourRankSub}>
-              {t("leaderboardBestLabel")}: {currentUserEntry.bestScore}/10
-              {"  ·  "}
-              {currentUserEntry.xp.toLocaleString()} {t("xpLabel")}
-              {"  ·  "}
-              {currentUserEntry.sessions} {t("leaderboardSessions").toLowerCase()}
+              {currentUserWeeklyRank && (
+                <span style={{ color: "#60A5FA" }}>
+                  {t("seasonWeeklyRank").replace("{rank}", currentUserWeeklyRank)}
+                </span>
+              )}
+              {currentUserWeeklyRank && currentUserAllTimeRank && "  ·  "}
+              {currentUserAllTimeRank && (
+                <span>
+                  {t("seasonAllTimeRank").replace("{rank}", currentUserAllTimeRank)}
+                </span>
+              )}
+              {(currentUserWeeklyRank || currentUserAllTimeRank) && currentUserAllTimeEntry && "  ·  "}
+              {currentUserAllTimeEntry && `${currentUserAllTimeEntry.xp.toLocaleString()} ${t("xpLabel")}`}
+            </div>
+          </div>
+        )}
+
+        {/* Weekly champion banner */}
+        {leaderboardTab === "week" && !loading && weeklyChampion && (
+          <div style={styles.weeklyChampionBanner}>
+            <div style={styles.weeklyChampionTop}>
+              <span style={styles.weeklyChampionCrown}>👑</span>
+              <span style={styles.weeklyChampionTitle}>{t("leaderboardWeeklyChampion")}</span>
+            </div>
+            <div style={styles.weeklyChampionName}>
+              {profiles[weeklyChampion.userId]?.displayName ||
+                profiles[weeklyChampion.userId]?.username ||
+                "Fighter"}
+            </div>
+            <div style={styles.weeklyChampionScore}>
+              {weeklyChampion.bestScore}/10
             </div>
           </div>
         )}
 
         {/* Section header */}
         <div style={styles.sectionHeader}>
-          <p style={styles.sectionKicker}>{t("leaderboardKicker")}</p>
+          <p style={styles.sectionKicker}>
+            {leaderboardTab === "week" ? t("seasonCurrentWeek").toUpperCase() : t("leaderboardKicker")}
+          </p>
           <h2 style={styles.sectionTitle}>{t("leaderboardTopFighters")}</h2>
         </div>
 
@@ -201,18 +316,20 @@ export default function LeaderboardPage() {
         )}
 
         {/* Empty state */}
-        {!loading && entries.length === 0 && (
+        {!loading && displayEntries.length === 0 && (
           <div style={styles.emptyWrap}>
             <div style={styles.emptyIcon}>🏆</div>
-            <p style={styles.emptyTitle}>{t("leaderboardEmpty")}</p>
+            <p style={styles.emptyTitle}>
+              {leaderboardTab === "week" ? t("seasonNoResultsThisWeek") : t("leaderboardEmpty")}
+            </p>
             <p style={styles.emptyText}>{t("leaderboardEmptyHelp")}</p>
           </div>
         )}
 
         {/* Leaderboard list */}
-        {!loading && entries.length > 0 && (
+        {!loading && displayEntries.length > 0 && (
           <div style={styles.list}>
-            {entries.map((entry, index) => {
+            {displayEntries.map((entry, index) => {
               const rank = index + 1;
               const medal = getRankMedal(rank);
               const profile = profiles[entry.userId] || {};
@@ -221,7 +338,9 @@ export default function LeaderboardPage() {
               const username = profile.username ? `@${profile.username}` : "";
               const isCurrentUser = entry.userId === user?.uid;
               const scoreColor = getScoreColor(entry.bestScore);
-              const entryRank = getFighterRank(entry.xp);
+              const allTimeEntry = entries.find((e) => e.userId === entry.userId);
+              const entryRank = getFighterRank(allTimeEntry?.xp ?? 0);
+              const allTimeRank = entries.findIndex((e) => e.userId === entry.userId);
 
               return (
                 <div
@@ -277,9 +396,16 @@ export default function LeaderboardPage() {
                       <span style={{ color: entryRank.color, fontSize: 9, fontWeight: 900, letterSpacing: 0.5, textTransform: "uppercase" }}>
                         {t(entryRank.key)}
                       </span>
-                      <span style={styles.sessionsBadge}>
-                        · {entry.sessions} {t("leaderboardSessions").toLowerCase()}
-                      </span>
+                      {leaderboardTab === "week" && allTimeRank >= 0 && (
+                        <span style={styles.allTimeRankBadge}>
+                          · #{allTimeRank + 1} {t("seasonAllTime")}
+                        </span>
+                      )}
+                      {leaderboardTab === "alltime" && (
+                        <span style={styles.sessionsBadge}>
+                          · {entry.sessions} {t("leaderboardSessions").toLowerCase()}
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -288,9 +414,16 @@ export default function LeaderboardPage() {
                     <div style={{ ...styles.bestScore, color: scoreColor }}>
                       {entry.bestScore}/10
                     </div>
-                    <div style={styles.latestScore}>
-                      {entry.xp.toLocaleString()} {t("xpLabel")}
-                    </div>
+                    {leaderboardTab === "alltime" && (
+                      <div style={styles.latestScore}>
+                        {(allTimeEntry?.xp ?? 0).toLocaleString()} {t("xpLabel")}
+                      </div>
+                    )}
+                    {leaderboardTab === "week" && (
+                      <div style={styles.latestScore}>
+                        {t("seasonWeeklyScoreLabel")}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -361,6 +494,44 @@ const styles = {
     fontSize: 22,
     textAlign: "right",
   },
+  tabsWrap: {
+    background: "rgba(7,7,7,0.94)",
+    position: "sticky",
+    top: 90,
+    zIndex: 9,
+    borderBottom: "1px solid rgba(255,255,255,0.07)",
+    padding: "10px 16px 8px",
+  },
+  tabsRow: {
+    display: "flex",
+    gap: 8,
+    maxWidth: 640,
+    margin: "0 auto",
+  },
+  tabBtn: {
+    flex: 1,
+    padding: "9px 0",
+    borderRadius: 10,
+    border: "1px solid rgba(255,255,255,0.12)",
+    background: "rgba(255,255,255,0.04)",
+    color: "#aaa",
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: "pointer",
+    transition: "all 0.18s",
+  },
+  tabBtnActive: {
+    background: "rgba(212,175,55,0.16)",
+    border: "1px solid rgba(212,175,55,0.45)",
+    color: "#D4AF37",
+  },
+  seasonLabel: {
+    margin: "6px auto 0",
+    textAlign: "center",
+    fontSize: 11,
+    color: "#888",
+    maxWidth: 640,
+  },
   content: {
     maxWidth: 640,
     margin: "0 auto",
@@ -371,7 +542,7 @@ const styles = {
     borderRadius: 16,
     background: "rgba(193,18,31,0.12)",
     border: "1px solid rgba(193,18,31,0.3)",
-    marginBottom: 24,
+    marginBottom: 20,
   },
   yourRankTop: {
     display: "flex",
@@ -395,6 +566,43 @@ const styles = {
     fontSize: 12,
     color: "#aaa",
     lineHeight: 1.4,
+  },
+  weeklyChampionBanner: {
+    padding: "16px 18px",
+    borderRadius: 16,
+    background: "linear-gradient(135deg, rgba(212,175,55,0.18) 0%, rgba(212,175,55,0.06) 100%)",
+    border: "1px solid rgba(212,175,55,0.4)",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  weeklyChampionTop: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    marginBottom: 4,
+  },
+  weeklyChampionCrown: {
+    fontSize: 18,
+  },
+  weeklyChampionTitle: {
+    fontSize: 11,
+    fontWeight: 900,
+    letterSpacing: 1.5,
+    color: "#D4AF37",
+    textTransform: "uppercase",
+  },
+  weeklyChampionName: {
+    fontSize: 20,
+    fontWeight: 900,
+    color: "#fff",
+    lineHeight: 1.2,
+  },
+  weeklyChampionScore: {
+    fontSize: 14,
+    color: "#D4AF37",
+    fontWeight: 800,
+    marginTop: 2,
   },
   sectionHeader: {
     marginBottom: 16,
@@ -547,5 +755,9 @@ const styles = {
   sessionsBadge: {
     fontSize: 10,
     color: "#666",
+  },
+  allTimeRankBadge: {
+    fontSize: 10,
+    color: "#60A5FA",
   },
 };
