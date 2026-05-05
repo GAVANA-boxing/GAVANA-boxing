@@ -25,6 +25,17 @@ function calculateTrainingScore(hits, sessionSeconds) {
   return Number((ratio * 10).toFixed(1));
 }
 
+function computeScoreBreakdown(score, hitCount, sessionSeconds) {
+  const maxHits = Math.max(1, sessionSeconds * 2);
+  const hitRate = hitCount / maxHits;
+  const hitsPerSec = hitCount / Math.max(1, sessionSeconds);
+  const accuracy = Number(Math.min(10, hitRate * 12).toFixed(1));
+  const speed = Number(Math.min(10, hitsPerSec * 5).toFixed(1));
+  const power = Number(Math.min(10, score * 1.05).toFixed(1));
+  const consistency = Number(Math.min(10, Math.max(0, score - (10 - score) * 0.15)).toFixed(1));
+  return { accuracy, speed, power, consistency };
+}
+
 function getChallengeRank(score) {
   if (score >= 9) return "S";
   if (score >= 8) return "A";
@@ -361,11 +372,13 @@ export default function TrainPage() {
     setPhase("result");
     const finalScore = liveScoreRef.current;
     const xpGained = Math.round(finalScore * finalScore * 8);
+    const breakdown = computeScoreBreakdown(finalScore, hitCountRef.current, sessionSeconds);
     setResult({
       score: finalScore,
       xpGained,
       rankProgress: getRankProgress(currentXP + xpGained),
       hitCount: hitCountRef.current,
+      breakdown,
     });
     setSaved(false);
     setSavedAttemptNumber(null);
@@ -767,6 +780,8 @@ export default function TrainPage() {
         xpGained: result.xpGained,
         attemptNumber,
         rankProgress: result.rankProgress,
+        breakdown: result.breakdown || null,
+        hitCount: result.hitCount || 0,
         createdAt: serverTimestamp(),
         type: "training",
         locale,
@@ -1101,6 +1116,29 @@ export default function TrainPage() {
               )}
             </div>
 
+            {/* Score breakdown */}
+            {!activeChallenge && result.breakdown && (
+              <div style={styles.breakdownCard}>
+                <p style={styles.breakdownTitle}>{t("scoreBreakdown")}</p>
+                <div style={styles.breakdownGrid}>
+                  {[
+                    { key: "scoreAccuracy", val: result.breakdown.accuracy, color: "#60A5FA" },
+                    { key: "scoreSpeed", val: result.breakdown.speed, color: "#F59E0B" },
+                    { key: "scorePower", val: result.breakdown.power, color: "#F87171" },
+                    { key: "scoreConsistency", val: result.breakdown.consistency, color: "#34D399" },
+                  ].map(({ key, val, color }) => (
+                    <div key={key} style={styles.breakdownItem}>
+                      <span style={styles.breakdownLbl}>{t(key)}</span>
+                      <span style={{ ...styles.breakdownVal, color }}>{val.toFixed(1)}</span>
+                      <div style={styles.breakdownTrack}>
+                        <div style={{ ...styles.breakdownFill, width: `${val * 10}%`, background: color }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {!activeChallenge && (
               <div style={styles.progressTrack}>
                 <div style={{ ...styles.progressFill, width: `${result.rankProgress}%` }} />
@@ -1238,6 +1276,53 @@ export default function TrainPage() {
 }
 
 const styles = {
+  breakdownCard: {
+    marginTop: 14,
+    padding: "14px 16px",
+    borderRadius: 16,
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.09)",
+  },
+  breakdownTitle: {
+    margin: "0 0 12px",
+    fontSize: 11,
+    fontWeight: 900,
+    color: "rgba(255,255,255,0.45)",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  breakdownGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "12px 16px",
+  },
+  breakdownItem: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 4,
+  },
+  breakdownLbl: {
+    fontSize: 11,
+    color: "rgba(255,255,255,0.5)",
+    fontWeight: 700,
+  },
+  breakdownVal: {
+    fontSize: 20,
+    fontWeight: 1000,
+    lineHeight: 1,
+  },
+  breakdownTrack: {
+    height: 4,
+    borderRadius: 999,
+    background: "rgba(255,255,255,0.08)",
+    overflow: "hidden",
+    marginTop: 2,
+  },
+  breakdownFill: {
+    height: "100%",
+    borderRadius: 999,
+    transition: "width 0.6s ease",
+  },
   page: {
     minHeight: "100vh",
     background: "radial-gradient(circle at 50% 0%, rgba(193,18,31,0.2), transparent 34%), linear-gradient(180deg, #080808 0%, #0B0B0B 100%)",

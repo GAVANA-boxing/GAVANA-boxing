@@ -217,6 +217,7 @@ export default function ReelsContent() {
   const t = (key) => translate(currentLocale, key);
   const { user, loading: authLoading } = useAuth();
   const [feedMode, setFeedMode] = useState("forYou");
+  const [diffFilter, setDiffFilter] = useState("all"); // "all" | "beginner"
   const [allReels, setAllReels] = useState(null);
   const [reels, setReels] = useState([]);
   const [reelsLoading, setReelsLoading] = useState(true);
@@ -269,15 +270,18 @@ export default function ReelsContent() {
     }
 
     if (feedMode !== "following") {
-      setReels(allReels.length > 0 ? allReels : [DEMO_REEL]);
+      const base = allReels.length > 0 ? allReels : [DEMO_REEL];
+      const filtered = diffFilter === "beginner" ? base.filter((r) => r.difficulty === "beginner" || !r.difficulty) : base;
+      setReels(filtered.length > 0 ? filtered : base);
       setCurrentIndex(0);
       return;
     }
 
     const followedReels = allReels.filter((reel) => reel.userId && followingIds.has(reel.userId));
-    setReels(followedReels);
+    const filtered = diffFilter === "beginner" ? followedReels.filter((r) => r.difficulty === "beginner" || !r.difficulty) : followedReels;
+    setReels(filtered);
     setCurrentIndex(0);
-  }, [allReels, authLoading, feedMode, followingIds, isProfileSource, profileSourceUserId]);
+  }, [allReels, authLoading, feedMode, followingIds, isProfileSource, profileSourceUserId, diffFilter]);
 
   useEffect(() => {
     if (!targetReelId || !reels.length || lastScrolledReelId.current === targetReelId) return;
@@ -1636,6 +1640,18 @@ export default function ReelsContent() {
         >
           {t("following")}
         </button>
+        <button
+          type="button"
+          onClick={() => setDiffFilter((prev) => (prev === "beginner" ? "all" : "beginner"))}
+          style={{
+            ...styles.feedTab,
+            ...(diffFilter === "beginner" ? { ...styles.feedTabActive, color: "#34D399", borderColor: "rgba(52,211,153,0.5)" } : {}),
+            fontSize: 11,
+            padding: "4px 10px",
+          }}
+        >
+          {diffFilter === "beginner" ? `✓ ${t("beginnerFilter")}` : t("beginnerFilter")}
+        </button>
       </div>
       )}
       {/* Reels Feed */}
@@ -1869,28 +1885,54 @@ export default function ReelsContent() {
                 <span>{formatCompactCount(getSafeViewCount(reel))} {t("views")}</span>
                 <span>{formatDate(reel.createdAt)}</span>
               </div>
-              {!reel.isDemo && (
-                <div style={styles.trainButtonRow}>
-                  <button
-                    type="button"
-                    style={styles.tryThisButton}
-                    onClick={() => router.push(`/${currentLocale}/train?reelId=${encodeURIComponent(reel.id)}`)}
-                  >
-                    {t("reels.tryThisCombo")}
-                  </button>
-                  {reel.userId && reel.userId !== user?.uid && hasBestScore && (
-                    <button
-                      type="button"
-                      style={styles.beatScoreButton}
-                      onClick={() => router.push(
-                        `/${currentLocale}/train?reelId=${encodeURIComponent(reel.id)}&challengeUserId=${encodeURIComponent(reel.userId)}&targetScore=${stats.bestScore.toFixed(1)}`
-                      )}
-                    >
-                      {t("pvpBeatThisScore")}
-                    </button>
+              {/* Category / difficulty badges */}
+              {!reel.isDemo && (reel.category || reel.difficulty) && (
+                <div style={styles.reelBadgeRow}>
+                  {reel.difficulty && (
+                    <span style={{
+                      ...styles.reelBadge,
+                      background: reel.difficulty === "beginner" ? "rgba(52,211,153,0.15)" : reel.difficulty === "intermediate" ? "rgba(212,175,55,0.15)" : "rgba(193,18,31,0.18)",
+                      color: reel.difficulty === "beginner" ? "#34D399" : reel.difficulty === "intermediate" ? "#D4AF37" : "#F87171",
+                      borderColor: reel.difficulty === "beginner" ? "rgba(52,211,153,0.35)" : reel.difficulty === "intermediate" ? "rgba(212,175,55,0.35)" : "rgba(193,18,31,0.4)",
+                    }}>
+                      {t(`diff${reel.difficulty.charAt(0).toUpperCase()}${reel.difficulty.slice(1)}`) || reel.difficulty}
+                    </span>
+                  )}
+                  {reel.category && (
+                    <span style={styles.reelCategoryBadge}>
+                      {t(`cat${reel.category.split("_").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join("")}`) || reel.category}
+                    </span>
                   )}
                 </div>
               )}
+              {/* Type-aware single CTA */}
+              {!reel.isDemo && (() => {
+                const isTraining = reel.type === "training";
+                const isChallengeable = isTraining || reel.challengeEnabled;
+                if (!isChallengeable) return null;
+                return (
+                  <div style={styles.trainButtonRow}>
+                    <button
+                      type="button"
+                      style={styles.tryThisButton}
+                      onClick={() => router.push(`/${currentLocale}/train?reelId=${encodeURIComponent(reel.id)}`)}
+                    >
+                      {isTraining ? t("reelChallenge") : t("reelTryWorkout")}
+                    </button>
+                    {reel.userId && reel.userId !== user?.uid && hasBestScore && (
+                      <button
+                        type="button"
+                        style={styles.beatScoreButton}
+                        onClick={() => router.push(
+                          `/${currentLocale}/train?reelId=${encodeURIComponent(reel.id)}&challengeUserId=${encodeURIComponent(reel.userId)}&targetScore=${stats.bestScore.toFixed(1)}`
+                        )}
+                      >
+                        {t("pvpBeatThisScore")}
+                      </button>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
 
             <div style={styles.actions}>
@@ -3891,6 +3933,30 @@ const styles = {
     letterSpacing: 0,
     whiteSpace: "nowrap",
     textShadow: "0 1px 4px rgba(0,0,0,0.8)",
+  },
+  reelBadgeRow: {
+    display: "flex",
+    gap: 6,
+    flexWrap: "wrap",
+    marginTop: 6,
+  },
+  reelBadge: {
+    fontSize: 10,
+    fontWeight: 900,
+    borderRadius: 999,
+    border: "1px solid",
+    padding: "3px 8px",
+    letterSpacing: 0.4,
+  },
+  reelCategoryBadge: {
+    fontSize: 10,
+    fontWeight: 900,
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.18)",
+    padding: "3px 8px",
+    color: "rgba(255,255,255,0.6)",
+    background: "rgba(255,255,255,0.07)",
+    letterSpacing: 0.4,
   },
   trainButtonRow: {
     display: "flex",
