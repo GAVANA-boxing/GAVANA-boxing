@@ -94,7 +94,6 @@ export default function TrainPage() {
   const [challengeSaved, setChallengeSaved] = useState(false);
   const [error, setError] = useState("");
   const [missionJustCompleted, setMissionJustCompleted] = useState(false);
-  const [missionTotalBonus, setMissionTotalBonus] = useState(0);
   const [missionStreakBonus, setMissionStreakBonus] = useState(0);
   const [missionNewStreak, setMissionNewStreak] = useState(0);
 
@@ -110,6 +109,13 @@ export default function TrainPage() {
   const hitCountRef = useRef(0);
   const liveScoreRef = useRef(0);
   const audioCtxRef = useRef(null);
+
+  // Ghost AI state
+  const [ghostBestScore, setGhostBestScore] = useState(null);
+  const [ghostScore, setGhostScore] = useState(0);
+  const [ghostEnabled, setGhostEnabled] = useState(true);
+  const ghostBestScoreRef = useRef(null);
+  const ghostIntervalRef = useRef(null);
 
   const activeChallenge = challengeId ? CHALLENGES[challengeId] : null;
   const sessionSeconds = activeChallenge?.seconds || RECORD_SECONDS;
@@ -206,6 +212,36 @@ export default function TrainPage() {
     loadOpponent();
     return () => { active = false; };
   }, [challengeUserId]);
+
+  // Load ghost — best training session for this reelId
+  useEffect(() => {
+    if (!user?.uid || !reelId || challengeId || challengeUserId) return;
+    let active = true;
+
+    async function loadGhost() {
+      try {
+        const snap = await getDocs(query(
+          collection(db, "training_sessions"),
+          where("userId", "==", user.uid),
+          where("reelId", "==", reelId)
+        ));
+        if (!active) return;
+        const scores = snap.docs
+          .map(d => d.data())
+          .filter(d => d.type === "training" && Number.isFinite(Number(d.score)))
+          .map(d => Number(d.score));
+        if (!scores.length) return;
+        const best = Math.max(...scores);
+        setGhostBestScore(best);
+        ghostBestScoreRef.current = best;
+      } catch (e) {
+        // silent — ghost won't show
+      }
+    }
+
+    loadGhost();
+    return () => { active = false; };
+  }, [user?.uid, reelId, challengeId, challengeUserId]);
 
   // Auto-save PvP result and notify opponent when training finishes in PvP mode
   useEffect(() => {
@@ -315,6 +351,10 @@ export default function TrainPage() {
 
     isRecordingRef.current = false;
     if (hitTimerRef.current) window.clearTimeout(hitTimerRef.current);
+    if (ghostIntervalRef.current) {
+      window.clearInterval(ghostIntervalRef.current);
+      ghostIntervalRef.current = null;
+    }
 
     setSecondsLeft(0);
     setPhase("result");
@@ -399,6 +439,25 @@ export default function TrainPage() {
     setComboCount(0);
     setHitCount(0);
     setLiveScore(0);
+    setGhostScore(0);
+
+    // Ghost progression — linear from 0 → ghostBestScore over sessionSeconds
+    if (ghostBestScoreRef.current !== null && ghostEnabled) {
+      const ghostTarget = ghostBestScoreRef.current;
+      const intervalMs = 200;
+      const steps = (sessionSeconds * 1000) / intervalMs;
+      const increment = ghostTarget / steps;
+      let ghostProgress = 0;
+      ghostIntervalRef.current = window.setInterval(() => {
+        if (!isRecordingRef.current) {
+          window.clearInterval(ghostIntervalRef.current);
+          return;
+        }
+        ghostProgress = Math.min(ghostTarget, ghostProgress + increment);
+        const rounded = Number(ghostProgress.toFixed(1));
+        setGhostScore((prev) => (prev !== rounded ? rounded : prev));
+      }, intervalMs);
+    }
 
     const FEEDBACK = [
       "Faster! 💨", "Good! ✓", "Guard up!", "Nice combo!",
@@ -457,6 +516,10 @@ export default function TrainPage() {
     return () => {
       isRecordingRef.current = false;
       if (hitTimerRef.current) window.clearTimeout(hitTimerRef.current);
+      if (ghostIntervalRef.current) {
+        window.clearInterval(ghostIntervalRef.current);
+        ghostIntervalRef.current = null;
+      }
     };
   }, [phase, sessionSeconds]);
 
@@ -488,6 +551,7 @@ export default function TrainPage() {
     setComboCount(0);
     setHitCount(0);
     setLiveScore(0);
+    setGhostScore(0);
     setIsFlashing(false);
     setLiveFeedback(null);
     setShowGo(false);
@@ -513,6 +577,7 @@ export default function TrainPage() {
     setComboCount(0);
     setHitCount(0);
     setLiveScore(0);
+    setGhostScore(0);
     setIsFlashing(false);
     setLiveFeedback(null);
     setShowGo(false);
@@ -735,7 +800,6 @@ export default function TrainPage() {
         }, { merge: true });
 
         setMissionJustCompleted(true);
-        setMissionTotalBonus(totalBonus);
         setMissionStreakBonus(streakBonus);
         setMissionNewStreak(newStreak);
       } else {
@@ -858,6 +922,21 @@ export default function TrainPage() {
                 </div>
               )}
 
+              {/* Ghost vs You HUD — top-right */}
+              {ghostBestScore !== null && ghostEnabled && (
+                <div style={styles.ghostHud}>
+                  <div style={styles.ghostHudRow}>
+                    <span style={styles.ghostHudYouLabel}>YOU</span>
+                    <span style={styles.ghostHudYouScore}>{liveScore.toFixed(1)}</span>
+                  </div>
+                  <span style={styles.ghostHudSep}>vs</span>
+                  <div style={styles.ghostHudRow}>
+                    <span style={styles.ghostHudGhostLabel}>👻</span>
+                    <span style={styles.ghostHudGhostScore}>{ghostScore.toFixed(1)}</span>
+                  </div>
+                </div>
+              )}
+
               {/* Floating feedback toast — mid-screen */}
               {liveFeedback && (
                 <div key={liveFeedback.id} style={styles.liveFeedbackBox} className="feedback-fade">
@@ -890,6 +969,16 @@ export default function TrainPage() {
               {t("trainStop")}
             </button>
           )}
+
+          {!challengeUserId && !challengeId && ghostBestScore !== null && !isRecording && !isCountingDown && (
+            <button
+              type="button"
+              style={ghostEnabled ? styles.ghostToggleOn : styles.ghostToggleOff}
+              onClick={() => setGhostEnabled(g => !g)}
+            >
+              {ghostEnabled ? t("ghostModeOn") : t("ghostModeOff")}
+            </button>
+          )}
         </div>
       </section>
 
@@ -912,6 +1001,16 @@ export default function TrainPage() {
                 <div style={styles.pvpResultScores}>
                   <span style={styles.pvpResultYou}>{t("pvpVsLabel")} @{opponentUsername || "?"}: {targetScore?.toFixed(1)}/10</span>
                   {pvpSaved && <span style={styles.pvpResultSaved}>✓ {t("pvpResultSaved")}</span>}
+                </div>
+              </div>
+            )}
+
+            {/* Ghost comparison */}
+            {!challengeUserId && ghostBestScore !== null && ghostEnabled && (
+              <div style={result.score > ghostBestScore ? styles.ghostWinBanner : styles.ghostLoseBanner}>
+                {result.score > ghostBestScore ? t("ghostBeatBest") : t("ghostLostToBest")}
+                <div style={styles.ghostBestScoreRow}>
+                  {t("ghostBestLabel")}: {ghostBestScore.toFixed(1)}/10
                 </div>
               </div>
             )}
@@ -1685,5 +1784,105 @@ const styles = {
     fontWeight: 1000,
     cursor: "pointer",
     boxShadow: "0 14px 34px rgba(193,18,31,0.22)",
+  },
+  ghostHud: {
+    position: "absolute",
+    top: 64,
+    right: 12,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 3,
+    background: "rgba(0,0,0,0.62)",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
+    borderRadius: 14,
+    padding: "8px 14px",
+    border: "1px solid rgba(255,255,255,0.14)",
+    zIndex: 5,
+    minWidth: 60,
+  },
+  ghostHudRow: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 1,
+  },
+  ghostHudYouLabel: {
+    color: "#D4AF37",
+    fontSize: 9,
+    fontWeight: 1000,
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
+  },
+  ghostHudYouScore: {
+    color: "#D4AF37",
+    fontSize: 20,
+    fontWeight: 1000,
+    lineHeight: 1,
+  },
+  ghostHudSep: {
+    color: "rgba(255,255,255,0.38)",
+    fontSize: 10,
+    fontWeight: 700,
+  },
+  ghostHudGhostLabel: {
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 12,
+    lineHeight: 1,
+  },
+  ghostHudGhostScore: {
+    color: "rgba(255,255,255,0.85)",
+    fontSize: 20,
+    fontWeight: 1000,
+    lineHeight: 1,
+  },
+  ghostToggleOn: {
+    minHeight: 40,
+    border: "1px solid rgba(255,255,255,0.2)",
+    borderRadius: 12,
+    background: "rgba(255,255,255,0.08)",
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: 900,
+    cursor: "pointer",
+  },
+  ghostToggleOff: {
+    minHeight: 40,
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: 12,
+    background: "transparent",
+    color: "rgba(255,255,255,0.38)",
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+  ghostWinBanner: {
+    margin: "14px 0 0",
+    padding: "12px 16px",
+    borderRadius: 14,
+    background: "rgba(52,211,153,0.12)",
+    border: "1px solid rgba(52,211,153,0.35)",
+    textAlign: "center",
+    fontSize: 15,
+    fontWeight: 1000,
+    color: "#34D399",
+  },
+  ghostLoseBanner: {
+    margin: "14px 0 0",
+    padding: "12px 16px",
+    borderRadius: 14,
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    textAlign: "center",
+    fontSize: 15,
+    fontWeight: 1000,
+    color: "rgba(255,255,255,0.65)",
+  },
+  ghostBestScoreRow: {
+    marginTop: 4,
+    fontSize: 12,
+    color: "rgba(255,255,255,0.45)",
+    fontWeight: 700,
   },
 };
