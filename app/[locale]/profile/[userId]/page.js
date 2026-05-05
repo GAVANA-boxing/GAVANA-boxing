@@ -315,6 +315,7 @@ export default function UserProfilePage() {
   const [challengeRanks, setChallengeRanks] = useState(null);
   const [showWeeklyModal, setShowWeeklyModal] = useState(false);
   const [pvpStats, setPvpStats] = useState(null);
+  const [coachBookings, setCoachBookings] = useState([]);
   const rankUpShownRef = useRef(false);
 
   // Redirect if not logged in
@@ -672,6 +673,33 @@ export default function UserProfilePage() {
     loadPvpStats();
     return () => { active = false; };
   }, [userId]);
+
+  // Load upcoming coach bookings — own profile only
+  useEffect(() => {
+    if (!userId || !isOwnProfile) return;
+    let active = true;
+
+    async function loadBookings() {
+      try {
+        const { collection, getDocs, query, where, orderBy } = await import("firebase/firestore");
+        const snap = await getDocs(
+          query(
+            collection(db, "coach_bookings"),
+            where("userId", "==", userId),
+            where("status", "==", "scheduled"),
+            orderBy("date", "asc")
+          )
+        );
+        if (!active) return;
+        setCoachBookings(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      } catch {
+        // bookings are optional — silently skip
+      }
+    }
+
+    loadBookings();
+    return () => { active = false; };
+  }, [userId, isOwnProfile]);
 
   // Detect rank-up during session — own profile only
   useEffect(() => {
@@ -1355,6 +1383,17 @@ export default function UserProfilePage() {
                 <span style={styles.pvpCardNum}>{pvpStats.wins + pvpStats.losses}</span>
                 <span style={styles.pvpCardLbl}>{t("pvpTotalBattles")}</span>
               </div>
+              {pvpStats.wins + pvpStats.losses > 0 && (
+                <>
+                  <div style={styles.pvpCardDivider} />
+                  <div style={styles.pvpCardStat}>
+                    <span style={{ ...styles.pvpCardNum, color: "#60A5FA" }}>
+                      {Math.round((pvpStats.wins / (pvpStats.wins + pvpStats.losses)) * 100)}%
+                    </span>
+                    <span style={styles.pvpCardLbl}>{t("pvpWinRate")}</span>
+                  </div>
+                </>
+              )}
               {pvpStats.bestWinScore != null && (
                 <>
                   <div style={styles.pvpCardDivider} />
@@ -1960,6 +1999,45 @@ export default function UserProfilePage() {
               )}
             </div>
           </div>
+          {isOwnProfile && coachBookings.length > 0 && (
+  <div style={styles.sessionsCard}>
+    <span style={styles.sessionsTitle}>📅 {t("upcomingSessions")}</span>
+    {coachBookings.map((booking) => (
+      <div key={booking.id} style={styles.sessionRow}>
+        <div style={styles.sessionDateBadge}>
+          <span style={styles.sessionDateDay}>
+            {new Date(booking.date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+          </span>
+          <span style={styles.sessionDateTime}>{booking.time}</span>
+        </div>
+        <div style={styles.sessionInfo}>
+          <span style={styles.sessionDuration}>{booking.durationMinutes} min</span>
+          <span style={styles.sessionStatus}>{t("requestAccepted")}</span>
+        </div>
+      </div>
+    ))}
+  </div>
+)}
+          {/* Upcoming coach sessions — own profile only */}
+          {isOwnProfile && coachBookings.length > 0 && (
+            <div style={styles.sessionsCard}>
+              <span style={styles.sessionsTitle}>📅 {t("upcomingSessions")}</span>
+              {coachBookings.map((booking) => (
+                <div key={booking.id} style={styles.sessionRow}>
+                  <div style={styles.sessionDateBadge}>
+                    <span style={styles.sessionDateDay}>
+                      {new Date(booking.date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                    </span>
+                    <span style={styles.sessionDateTime}>{booking.time}</span>
+                  </div>
+                  <div style={styles.sessionInfo}>
+                    <span style={styles.sessionDuration}>{booking.durationMinutes} min</span>
+                    <span style={styles.sessionStatus}>{t("requestAccepted")}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       ) : (
       <div style={{
@@ -3311,6 +3389,66 @@ const styles = {
     fontWeight: 900,
     cursor: "pointer",
     letterSpacing: 0.5,
+  },
+  sessionsCard: {
+    width: "100%",
+    background: "rgba(212,175,55,0.05)",
+    border: "1px solid rgba(212,175,55,0.2)",
+    borderRadius: 14,
+    padding: "12px 14px",
+    marginTop: 14,
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+  },
+  sessionsTitle: {
+    fontSize: 13,
+    fontWeight: 1000,
+    color: "#D4AF37",
+    letterSpacing: 0.3,
+  },
+  sessionRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    padding: "8px 0",
+    borderTop: "1px solid rgba(255,255,255,0.06)",
+  },
+  sessionDateBadge: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    background: "rgba(212,175,55,0.1)",
+    border: "1px solid rgba(212,175,55,0.25)",
+    borderRadius: 10,
+    padding: "6px 10px",
+    minWidth: 60,
+  },
+  sessionDateDay: {
+    fontSize: 12,
+    fontWeight: 1000,
+    color: "#D4AF37",
+  },
+  sessionDateTime: {
+    fontSize: 11,
+    color: "rgba(255,255,255,0.5)",
+    fontWeight: 700,
+  },
+  sessionInfo: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    gap: 3,
+  },
+  sessionDuration: {
+    fontSize: 14,
+    fontWeight: 900,
+    color: "#fff",
+  },
+  sessionStatus: {
+    fontSize: 11,
+    color: "#34D399",
+    fontWeight: 700,
   },
   pvpCard: {
     width: "100%",
