@@ -8,54 +8,21 @@ import DailyMission from "@/components/DailyMission";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
+import { createPvpNotification } from "@/lib/notifications";
 import { getCurrentSeasonId } from "@/lib/season";
 import { calculateChallengeXP, calculateUserXP, getFighterRank, getRankProgress } from "@/lib/xp";
 
 const RECORD_SECONDS = 10;
-const LAST_SESSION_PREFIX = "gavana_last_session";
-const TRAINING_STREAK_KEY = "gavana_training_streak";
 const CHALLENGES = {
   "jab-minute": { titleKey: "challengeJabTitle", seconds: 60 },
   "speed-test": { titleKey: "challengeSpeedTitle", seconds: 20 },
   "combo-master": { titleKey: "challengeComboTitle", seconds: 30 },
 };
 
-function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
-}
-
-function getSessionStorageKey(userId, reelId, challengeId) {
-  if (!userId) return "";
-  const scope = challengeId ? `challenge_${challengeId}` : `reel_${reelId || "free"}`;
-  return `${LAST_SESSION_PREFIX}_${userId}_${scope}`;
-}
-
-function makeTrainingResult(currentXP, stats) {
-  const totalHits = Math.max(0, Number(stats.totalHits) || 0);
-  const targetHits = Math.max(1, Number(stats.targetHits) || 1);
-  const bestCombo = Math.max(0, Number(stats.bestCombo) || 0);
-  const completion = clamp(Number(stats.completion) || 0, 0, 1);
-  const hitRatio = clamp(totalHits / targetHits, 0, 1.25);
-  const comboRatio = clamp(bestCombo / targetHits, 0, 1);
-  const accuracy = totalHits === 0
-    ? 0
-    : Math.round(clamp(hitRatio * 82 + completion * 10 + comboRatio * 8, 0, 100));
-  const variation = totalHits === 0 ? Math.random() * 0.4 : (Math.random() - 0.5) * 0.5;
-  const rawScore = totalHits === 0
-    ? 0.5 + variation
-    : hitRatio * 6.6 + comboRatio * 1.5 + completion * 1.4 + (accuracy / 100) * 0.5 + variation;
-  const score = Number(clamp(rawScore, totalHits === 0 ? 0.5 : 1, 10).toFixed(1));
-  const xpGained = Math.round(score * 42 + totalHits * 4 + bestCombo * 3);
-  return {
-    score,
-    xpGained,
-    rankProgress: getRankProgress(currentXP + xpGained),
-    beatPercent: Math.min(96, Math.max(5, Math.round(score * 9 + accuracy * 0.25))),
-    hitCount: totalHits,
-    totalHits,
-    bestCombo,
-    accuracy,
-  };
+function calculateTrainingScore(hits, sessionSeconds) {
+  const targetHits = Math.max(1, Math.round(sessionSeconds * 1.5));
+  const ratio = Math.min(1, hits / targetHits);
+  return Number((ratio * 10).toFixed(1));
 }
 
 function getChallengeRank(score) {
@@ -67,7 +34,7 @@ function getChallengeRank(score) {
 }
 
 function getChallengeComparisonPercent(score) {
-  return Math.min(99, Math.max(5, Math.round(score * 10 + 3)));
+  return Math.min(99, Math.max(42, Math.round(score * 10 + 3)));
 }
 
 function getLocalDateKey(date = new Date()) {
@@ -88,35 +55,6 @@ function getChallengeStreakBonus(streak) {
   if (streak === 7) return 150;
   if (streak === 3) return 50;
   return 0;
-}
-
-function getTrainingStreakFire(count) {
-  if (!count) return "";
-  return "🔥".repeat(Math.min(3, count));
-}
-
-function calculateTrainingScore(stats) {
-  const hits = Math.max(0, Number(stats.hits) || 0);
-  const targetHits = Math.max(1, Number(stats.targetHits) || 1);
-  const combo = Math.max(0, Number(stats.combo) || 0);
-
-  if (hits === 0) {
-    return { score: 0, accuracy: 0 };
-  }
-
-  const hitScore = (hits / targetHits) * 8;
-  const comboScore = combo * 0.2;
-
-  let score = hitScore + comboScore;
-
-  score = Math.min(10, score);
-
-  const accuracy = Math.round((hits / targetHits) * 100);
-
-  return {
-    score: Number(score.toFixed(1)),
-    accuracy,
-  };
 }
 
 export default function TrainPage() {
@@ -147,51 +85,41 @@ export default function TrainPage() {
   const [targetScore, setTargetScore] = useState(null);
   const [trainSource, setTrainSource] = useState(null);
   const [trainSourceUserId, setTrainSourceUserId] = useState(null);
+  const [challengeUserId, setChallengeUserId] = useState(null);
+  const [opponentUsername, setOpponentUsername] = useState(null);
+  const [pvpResult, setPvpResult] = useState(null);
+  const [pvpSaved, setPvpSaved] = useState(false);
+  const pvpSavedRef = useRef(false);
   const [challengeSaving, setChallengeSaving] = useState(false);
   const [challengeSaved, setChallengeSaved] = useState(false);
-  const [challengeSaveMessage, setChallengeSaveMessage] = useState("");
   const [error, setError] = useState("");
   const [missionJustCompleted, setMissionJustCompleted] = useState(false);
-  const [missionTotalBonus, setMissionTotalBonus] = useState(0);
   const [missionStreakBonus, setMissionStreakBonus] = useState(0);
   const [missionNewStreak, setMissionNewStreak] = useState(0);
 
   // Live game state
   const [comboCount, setComboCount] = useState(0);
-  const comboCountRef = useRef(0);
   const [hitCount, setHitCount] = useState(0);
   const [liveScore, setLiveScore] = useState(0);
-  const [liveAccuracy, setLiveAccuracy] = useState(0);
-  const liveScoreRef = useRef(0);
   const [isFlashing, setIsFlashing] = useState(false);
-  const [impactId, setImpactId] = useState(0);
   const [liveFeedback, setLiveFeedback] = useState(null);
   const [showGo, setShowGo] = useState(false);
-  const [lastSession, setLastSession] = useState(null);
-  const [ghostEnabled, setGhostEnabled] = useState(false);
-  const [newBest, setNewBest] = useState(false);
-  const [resultPreviousBest, setResultPreviousBest] = useState(null);
-  const [trainingStreak, setTrainingStreak] = useState(0);
-  const [animatedXP, setAnimatedXP] = useState(0);
-  const [animatedRankProgress, setAnimatedRankProgress] = useState(0);
   const isRecordingRef = useRef(false);
   const hitTimerRef = useRef(null);
   const hitCountRef = useRef(0);
+  const liveScoreRef = useRef(0);
   const audioCtxRef = useRef(null);
+
+  // Ghost AI state
+  const [ghostBestScore, setGhostBestScore] = useState(null);
+  const [ghostScore, setGhostScore] = useState(0);
+  const [ghostEnabled, setGhostEnabled] = useState(true);
+  const ghostBestScoreRef = useRef(null);
+  const ghostIntervalRef = useRef(null);
 
   const activeChallenge = challengeId ? CHALLENGES[challengeId] : null;
   const sessionSeconds = activeChallenge?.seconds || RECORD_SECONDS;
   const activeChallengeName = activeChallenge ? t(activeChallenge.titleKey) : "";
-  const targetHits = Math.max(10, Math.round(sessionSeconds * 1.2));
-
-  const triggerImpact = useCallback(() => {
-    setIsFlashing(true);
-    setImpactId(Date.now());
-    if (typeof navigator !== "undefined" && navigator.vibrate) {
-      navigator.vibrate(30);
-    }
-    window.setTimeout(() => setIsFlashing(false), 150);
-  }, []);
 
   const goBack = () => {
     if (typeof window !== "undefined" && window.history.length > 1) {
@@ -226,52 +154,9 @@ export default function TrainPage() {
     setChallengeId(params.get("challengeId") || null);
     setTrainSource(params.get("source") || null);
     setTrainSourceUserId(params.get("userId") || null);
+    setChallengeUserId(params.get("challengeUserId") || null);
     const parsedTargetScore = Number(params.get("score") || params.get("targetScore"));
     setTargetScore(Number.isFinite(parsedTargetScore) && parsedTargetScore > 0 ? parsedTargetScore : null);
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const storageKey = getSessionStorageKey(user?.uid, reelId, challengeId);
-    setLastSession(null);
-    setGhostEnabled(false);
-    if (!storageKey) return;
-
-    try {
-      const stored = window.localStorage.getItem(storageKey);
-      if (!stored) return;
-
-      const parsed = JSON.parse(stored);
-      const score = Number(parsed?.score);
-      if (!Number.isFinite(score)) return;
-
-      setLastSession({
-        score,
-        comboCount: Math.max(0, Number(parsed.comboCount) || Number(parsed.hitCount) || 0),
-        timestamp: parsed.timestamp || null,
-        scoreProgression: Array.isArray(parsed.scoreProgression) ? parsed.scoreProgression : [],
-      });
-      setGhostEnabled(true);
-    } catch (err) {
-      console.warn("Could not load ghost session:", err);
-    }
-  }, [user?.uid, reelId, challengeId]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    try {
-      const stored = window.localStorage.getItem(TRAINING_STREAK_KEY);
-      if (!stored) return;
-
-      const parsed = JSON.parse(stored);
-      const lastTrainedAt = Number(parsed?.lastTrainedAt) || 0;
-      const count = Number(parsed?.count) || 0;
-      const expired = lastTrainedAt && Date.now() - lastTrainedAt > 24 * 60 * 60 * 1000;
-      setTrainingStreak(expired ? 0 : count);
-    } catch (err) {
-      console.warn("Could not load training streak:", err);
-    }
   }, []);
 
   useEffect(() => {
@@ -307,6 +192,103 @@ export default function TrainPage() {
       active = false;
     };
   }, [user?.uid]);
+
+  // Load PvP opponent username
+  useEffect(() => {
+    if (!challengeUserId) return;
+    let active = true;
+
+    async function loadOpponent() {
+      try {
+        const snap = await getDoc(doc(db, "users", challengeUserId));
+        if (!active) return;
+        const data = snap.exists() ? snap.data() : {};
+        setOpponentUsername(data.username || data.displayName || "Opponent");
+      } catch (e) {
+        if (active) setOpponentUsername("Opponent");
+      }
+    }
+
+    loadOpponent();
+    return () => { active = false; };
+  }, [challengeUserId]);
+
+  // Load ghost — best training session for this reelId
+  useEffect(() => {
+    if (!user?.uid || !reelId || challengeId || challengeUserId) return;
+    let active = true;
+
+    async function loadGhost() {
+      try {
+        const snap = await getDocs(query(
+          collection(db, "training_sessions"),
+          where("userId", "==", user.uid),
+          where("reelId", "==", reelId)
+        ));
+        if (!active) return;
+        const scores = snap.docs
+          .map(d => d.data())
+          .filter(d => d.type === "training" && Number.isFinite(Number(d.score)))
+          .map(d => Number(d.score));
+        if (!scores.length) return;
+        const best = Math.max(...scores);
+        setGhostBestScore(best);
+        ghostBestScoreRef.current = best;
+      } catch (e) {
+        // silent — ghost won't show
+      }
+    }
+
+    loadGhost();
+    return () => { active = false; };
+  }, [user?.uid, reelId, challengeId, challengeUserId]);
+
+  // Auto-save PvP result and notify opponent when training finishes in PvP mode
+  useEffect(() => {
+    if (!result || !challengeUserId || !targetScore || !user?.uid || pvpSavedRef.current) return;
+
+    pvpSavedRef.current = true;
+    const won = result.score > targetScore;
+    const pvpRes = won ? "win" : "lose";
+    setPvpResult(pvpRes);
+
+    async function savePvpAndNotify() {
+      try {
+        const challengerSnap = await getDoc(doc(db, "users", user.uid));
+        const challengerData = challengerSnap.exists() ? challengerSnap.data() : {};
+        const challengerName = challengerData.username || challengerData.displayName || user.displayName || "Fighter";
+        const opponentName = opponentUsername || "Opponent";
+
+        await addDoc(collection(db, "pvp_results"), {
+          challengerId: user.uid,
+          challengerName,
+          opponentId: challengeUserId,
+          opponentName,
+          reelId: reelId || null,
+          challengerScore: result.score,
+          opponentScore: targetScore,
+          result: pvpRes,
+          seasonId: getCurrentSeasonId(),
+          createdAt: serverTimestamp(),
+        });
+        setPvpSaved(true);
+
+        createPvpNotification({
+          opponentId: challengeUserId,
+          challengerId: user.uid,
+          challengerName,
+          reelId: reelId || null,
+          challengerScore: result.score,
+          opponentScore: targetScore,
+          result: pvpRes,
+        }).catch(console.error);
+      } catch (err) {
+        console.error("Failed to save PvP result:", err);
+      }
+    }
+
+    savePvpAndNotify();
+  }, [result, challengeUserId, targetScore, user?.uid, reelId, opponentUsername]);
 
   useEffect(() => {
     let active = true;
@@ -369,90 +351,35 @@ export default function TrainPage() {
 
     isRecordingRef.current = false;
     if (hitTimerRef.current) window.clearTimeout(hitTimerRef.current);
+    if (ghostIntervalRef.current) {
+      window.clearInterval(ghostIntervalRef.current);
+      ghostIntervalRef.current = null;
+    }
 
-    const totalHits = hitCount;
-    const completion = clamp((sessionSeconds - secondsLeft) / sessionSeconds, 0, 1);
-    const bestCombo = comboCount;
     setSecondsLeft(0);
-    setPhase("finished");
-    const nextResult = makeTrainingResult(currentXP, {
-      totalHits,
-      targetHits,
-      bestCombo,
-      completion,
+    setPhase("result");
+    const finalScore = liveScoreRef.current;
+    const xpGained = Math.round(finalScore * finalScore * 8);
+    setResult({
+      score: finalScore,
+      xpGained,
+      rankProgress: getRankProgress(currentXP + xpGained),
+      hitCount: hitCountRef.current,
     });
-    const previousScore = Number(lastSession?.score);
-    const hasPreviousBest = Number.isFinite(previousScore);
-    const didBeatPrevious = hasPreviousBest && nextResult.score > previousScore;
-    const shouldStoreSession = !hasPreviousBest || nextResult.score >= previousScore;
-
-    setNewBest(didBeatPrevious);
-    setResultPreviousBest(hasPreviousBest ? previousScore : null);
-
-    if (shouldStoreSession) {
-      const savedSession = {
-        score: nextResult.score,
-        comboCount: bestCombo,
-        totalHits,
-        bestCombo,
-        accuracy: nextResult.accuracy,
-        timestamp: Date.now(),
-        scoreProgression: [0, Number((nextResult.score * 0.35).toFixed(1)), Number((nextResult.score * 0.7).toFixed(1)), nextResult.score],
-      };
-
-      setLastSession(savedSession);
-      if (typeof window !== "undefined") {
-        try {
-          const storageKey = getSessionStorageKey(user?.uid, reelId, challengeId);
-          if (storageKey) {
-            window.localStorage.setItem(storageKey, JSON.stringify(savedSession));
-          }
-        } catch (err) {
-          console.warn("Could not save ghost session:", err);
-        }
-      }
-    }
-
-    if (typeof window !== "undefined") {
-      try {
-        const now = Date.now();
-        const todayKey = getLocalDateKey();
-        const stored = window.localStorage.getItem(TRAINING_STREAK_KEY);
-        const parsed = stored ? JSON.parse(stored) : {};
-        const lastTrainedAt = Number(parsed?.lastTrainedAt) || 0;
-        const lastDateKey = String(parsed?.lastDateKey || "");
-        const currentCount = Number(parsed?.count) || 0;
-        const expired = lastTrainedAt && now - lastTrainedAt > 24 * 60 * 60 * 1000;
-        const nextStreak = lastDateKey === todayKey
-          ? Math.max(1, currentCount)
-          : expired
-            ? 1
-            : currentCount + 1;
-
-        const streakSnapshot = {
-          count: nextStreak,
-          lastDateKey: todayKey,
-          lastTrainedAt: now,
-        };
-
-        window.localStorage.setItem(TRAINING_STREAK_KEY, JSON.stringify(streakSnapshot));
-        setTrainingStreak(nextStreak);
-      } catch (err) {
-        console.warn("Could not save training streak:", err);
-      }
-    }
-
-    setResult(nextResult);
     setSaved(false);
     setSavedAttemptNumber(null);
-  }, [challengeId, currentXP, lastSession, reelId, secondsLeft, sessionSeconds, targetHits, user?.uid, hitCount, comboCount]);
+  }, [currentXP]);
 
   useEffect(() => {
     if (phase !== "countdown" || countdown === null) return undefined;
 
     if (countdown <= 0) {
       setShowGo(true);
-      triggerImpact();
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        navigator.vibrate([60, 30, 60]);
+      }
+      setIsFlashing(true);
+      const flashTimer = window.setTimeout(() => setIsFlashing(false), 300);
 
       const goTimer = window.setTimeout(() => {
         setShowGo(false);
@@ -477,13 +404,14 @@ export default function TrainPage() {
       }, 700);
 
       return () => {
+        window.clearTimeout(flashTimer);
         window.clearTimeout(goTimer);
       };
     }
 
     const timer = window.setTimeout(() => setCountdown((value) => value - 1), 1000);
     return () => window.clearTimeout(timer);
-  }, [phase, countdown, sessionSeconds, triggerImpact]);
+  }, [phase, countdown, sessionSeconds]);
 
   useEffect(() => {
     if (phase !== "recording") return undefined;
@@ -497,144 +425,103 @@ export default function TrainPage() {
     return () => window.clearTimeout(timer);
   }, [phase, secondsLeft, finishRecording]);
 
-  useEffect(() => {
-    if (!result) {
-      setAnimatedXP(0);
-      setAnimatedRankProgress(0);
-      return undefined;
-    }
-
-    const start = performance.now();
-    const duration = 900;
-    const xpTarget = Math.max(0, Number(result.xpGained) || 0);
-    const rankTarget = Math.max(0, Math.min(100, Number(result.rankProgress) || 0));
-    let frame = 0;
-
-    function animate(now) {
-      const progress = Math.min(1, (now - start) / duration);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setAnimatedXP(Math.round(xpTarget * eased));
-      setAnimatedRankProgress(Math.round(rankTarget * eased));
-
-      if (progress < 1) {
-        frame = window.requestAnimationFrame(animate);
-      }
-    }
-
-    frame = window.requestAnimationFrame(animate);
-    return () => window.cancelAnimationFrame(frame);
-  }, [result]);
-
   // Hit simulation — fires during recording only
-useEffect(() => {
-  if (phase !== "recording") {
-    isRecordingRef.current = false;
-    if (hitTimerRef.current) window.clearTimeout(hitTimerRef.current);
-    return;
-  }
+  useEffect(() => {
+    if (phase !== "recording") {
+      isRecordingRef.current = false;
+      if (hitTimerRef.current) window.clearTimeout(hitTimerRef.current);
+      return;
+    }
 
-  isRecordingRef.current = true;
-  hitCountRef.current = 0;
-  comboCountRef.current = 0;
-  setHitCount(0);
-  setComboCount(0);
-  setLiveScore(0);
-  setLiveAccuracy(0);
+    isRecordingRef.current = true;
+    hitCountRef.current = 0;
+    liveScoreRef.current = 0;
+    setComboCount(0);
+    setHitCount(0);
+    setLiveScore(0);
+    setGhostScore(0);
 
-  const feedbackKeys = [
-    "trainFeedbackFaster",
-    "trainFeedbackGood",
-    "trainFeedbackGuardUp",
-    "trainFeedbackNiceCombo",
-    "trainFeedbackKeepMoving",
-  ];
+    // Ghost progression — linear from 0 → ghostBestScore over sessionSeconds
+    if (ghostBestScoreRef.current !== null && ghostEnabled) {
+      const ghostTarget = ghostBestScoreRef.current;
+      const intervalMs = 200;
+      const steps = (sessionSeconds * 1000) / intervalMs;
+      const increment = ghostTarget / steps;
+      let ghostProgress = 0;
+      ghostIntervalRef.current = window.setInterval(() => {
+        if (!isRecordingRef.current) {
+          window.clearInterval(ghostIntervalRef.current);
+          return;
+        }
+        ghostProgress = Math.min(ghostTarget, ghostProgress + increment);
+        const rounded = Number(ghostProgress.toFixed(1));
+        setGhostScore((prev) => (prev !== rounded ? rounded : prev));
+      }, intervalMs);
+    }
 
-  const milestoneMap = {
-    3: "trainGoodRhythm",
-    5: "trainComboBuilding",
-    10: "trainOnFire",
-  };
+    const FEEDBACK = [
+      "Faster! 💨", "Good! ✓", "Guard up!", "Nice combo!",
+      "Keep going!", "Power! 💪", "Speed up!", "Snap it!", "Nice jab!", "Stay tight!",
+    ];
 
-  function playPunchSound() {
-    try {
-      const ctx = audioCtxRef.current;
-      if (!ctx) return;
-      if (ctx.state === "suspended") ctx.resume();
-
-      const now = ctx.currentTime;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(180, now);
-      osc.frequency.exponentialRampToValueAtTime(60, now + 0.07);
-
-      gain.gain.setValueAtTime(0.25, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-
-      osc.start(now);
-      osc.stop(now + 0.08);
-    } catch (e) {}
-  }
-
-  function scheduleHit() {
-    const delay = 400 + Math.floor(Math.random() * 501);
-
-    hitTimerRef.current = window.setTimeout(() => {
-      if (!isRecordingRef.current) return;
-
-      const nextHitCount = hitCountRef.current + 1;
-      const nextCombo = comboCountRef.current + 1;
-
-      hitCountRef.current = nextHitCount;
-      comboCountRef.current = nextCombo;
-
-      setHitCount(nextHitCount);
-      setComboCount(nextCombo);
-
-      const scoreData = calculateTrainingScore({
-        hits: nextHitCount,
-        targetHits,
-        combo: nextCombo,
-      });
-
-      liveScoreRef.current = scoreData.score;
-      setLiveScore(scoreData.score);
-      setLiveAccuracy(scoreData.accuracy);
-
-      setIsFlashing(true);
-      setTimeout(() => setIsFlashing(false), 130);
-
-      if (typeof navigator !== "undefined" && navigator.vibrate) {
-        navigator.vibrate(30);
+    function playPunchSound() {
+      try {
+        const ctx = audioCtxRef.current;
+        if (!ctx) return;
+        if (ctx.state === "suspended") ctx.resume();
+        const now = ctx.currentTime;
+        // Low thud: sine oscillator 180→60 Hz over 70ms
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.exponentialRampToValueAtTime(60, now + 0.07);
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+        osc.start(now);
+        osc.stop(now + 0.08);
+      } catch (e) {
+        // Fail silently
       }
+    }
 
-      playPunchSound();
+    function scheduleHit() {
+      const delay = 500 + Math.floor(Math.random() * 400);
+      hitTimerRef.current = window.setTimeout(() => {
+        if (!isRecordingRef.current) return;
+        hitCountRef.current += 1;
+        const newScore = calculateTrainingScore(hitCountRef.current, sessionSeconds);
+        liveScoreRef.current = newScore;
+        setLiveScore(newScore);
+        setComboCount((c) => c + 1);
+        setHitCount((c) => c + 1);
+        setIsFlashing(true);
+        window.setTimeout(() => setIsFlashing(false), 130);
+        playPunchSound();
+        if (typeof navigator !== "undefined" && navigator.vibrate) {
+          navigator.vibrate(30);
+        }
+        const id = Date.now();
+        const text = FEEDBACK[Math.floor(Math.random() * FEEDBACK.length)];
+        setLiveFeedback({ text, id });
+        window.setTimeout(() => setLiveFeedback((prev) => (prev?.id === id ? null : prev)), 1300);
+        if (isRecordingRef.current) scheduleHit();
+      }, delay);
+    }
 
-      const id = Date.now();
-      const feedbackKey =
-        milestoneMap[nextHitCount] ||
-        feedbackKeys[Math.floor(Math.random() * feedbackKeys.length)];
+    scheduleHit();
 
-      setLiveFeedback({ text: t(feedbackKey), id });
-
-      setTimeout(() => {
-        setLiveFeedback((prev) => (prev?.id === id ? null : prev));
-      }, 1300);
-
-      if (isRecordingRef.current) scheduleHit();
-    }, delay);
-  }
-
-  scheduleHit();
-
-  return () => {
-    if (hitTimerRef.current) window.clearTimeout(hitTimerRef.current);
-  };
-}, [phase, t, targetHits]);
+    return () => {
+      isRecordingRef.current = false;
+      if (hitTimerRef.current) window.clearTimeout(hitTimerRef.current);
+      if (ghostIntervalRef.current) {
+        window.clearInterval(ghostIntervalRef.current);
+        ghostIntervalRef.current = null;
+      }
+    };
+  }, [phase, sessionSeconds]);
 
   const handleStart = () => {
     // Warm up AudioContext on direct user interaction so browsers allow sound
@@ -657,19 +544,20 @@ useEffect(() => {
     setSaved(false);
     setSavedAttemptNumber(null);
     setChallengeSaved(false);
-    setChallengeSaveMessage("");
     challengeSavedRef.current = false;
+    setPvpResult(null);
+    setPvpSaved(false);
+    pvpSavedRef.current = false;
     setComboCount(0);
     setHitCount(0);
+    setLiveScore(0);
+    setGhostScore(0);
     setIsFlashing(false);
-    setImpactId(0);
     setLiveFeedback(null);
     setShowGo(false);
-    setNewBest(false);
-    setResultPreviousBest(null);
     hitCountRef.current = 0;
+    liveScoreRef.current = 0;
     setCountdown(3);
-    isRecordingRef.current = true;
     setPhase("countdown");
   };
 
@@ -679,20 +567,22 @@ useEffect(() => {
     setSaved(false);
     setSavedAttemptNumber(null);
     setChallengeSaved(false);
-    setChallengeSaveMessage("");
     challengeSavedRef.current = false;
+    setPvpResult(null);
+    setPvpSaved(false);
+    pvpSavedRef.current = false;
     setSecondsLeft(sessionSeconds);
     setCountdown(null);
     setPhase("idle");
     setComboCount(0);
     setHitCount(0);
+    setLiveScore(0);
+    setGhostScore(0);
     setIsFlashing(false);
-    setImpactId(0);
     setLiveFeedback(null);
     setShowGo(false);
-    setNewBest(false);
-    setResultPreviousBest(null);
     hitCountRef.current = 0;
+    liveScoreRef.current = 0;
   };
 
   const handleShareChallenge = async () => {
@@ -767,22 +657,13 @@ useEffect(() => {
       const rank = getChallengeRank(result.score);
       const comparisonPercent = getChallengeComparisonPercent(result.score);
       const xpGained = calculateChallengeXP(result.score, rank);
-      const todayKey = getLocalDateKey();
-      const previousAttemptsSnap = await getDocs(query(
-        collection(db, "challenge_results"),
-        where("userId", "==", user.uid),
-        where("challengeId", "==", challengeId)
-      ));
-      const xpAlreadyClaimedToday = previousAttemptsSnap.docs.some((attemptDoc) => {
-        const attempt = attemptDoc.data();
-        return attempt.challengeDate === todayKey && Number(attempt.xpGained) > 0;
-      });
 
       await runTransaction(db, async (transaction) => {
         const userRef = doc(db, "users", user.uid);
         const challengeResultRef = doc(collection(db, "challenge_results"));
         const userSnap = await transaction.get(userRef);
         const userData = userSnap.exists() ? userSnap.data() : {};
+        const todayKey = getLocalDateKey();
         const yesterdayKey = getPreviousLocalDateKey();
         const lastChallengeDate = String(userData.lastChallengeDate || "");
         const currentStreak = Number(userData.challengeStreak) || 0;
@@ -792,8 +673,8 @@ useEffect(() => {
           : lastChallengeDate === yesterdayKey
             ? currentStreak + 1
             : 1;
-        const streakBonusXP = xpAlreadyClaimedToday || isSameDay ? 0 : getChallengeStreakBonus(nextStreak);
-        const totalChallengeXP = xpAlreadyClaimedToday ? 0 : xpGained + streakBonusXP;
+        const streakBonusXP = isSameDay ? 0 : getChallengeStreakBonus(nextStreak);
+        const totalChallengeXP = xpGained + streakBonusXP;
         const nextXP = Math.round((Number(userData.xp) || 0) + totalChallengeXP);
         const nextCompleted = Math.round((Number(userData.totalChallengesCompleted) || 0) + 1);
         const nextRank = getFighterRank(nextXP);
@@ -808,31 +689,23 @@ useEffect(() => {
           baseXP: xpGained,
           streakBonusXP,
           challengeStreak: nextStreak,
-          challengeDate: todayKey,
-          xpClaimed: !xpAlreadyClaimedToday,
           seasonId: getCurrentSeasonId(),
           createdAt: serverTimestamp(),
           locale,
         });
 
-        const userUpdate = {
+        transaction.set(userRef, {
+          xp: nextXP,
+          rank: nextRank.key,
+          rankName: nextRank.key.replace(/^rank/, ""),
           totalChallengesCompleted: nextCompleted,
+          challengeStreak: nextStreak,
           lastChallengeDate: todayKey,
           updatedAt: serverTimestamp(),
-        };
-
-        if (!xpAlreadyClaimedToday) {
-          userUpdate.xp = nextXP;
-          userUpdate.rank = nextRank.key;
-          userUpdate.rankName = nextRank.key.replace(/^rank/, "");
-          userUpdate.challengeStreak = nextStreak;
-        }
-
-        transaction.set(userRef, userUpdate, { merge: true });
+        }, { merge: true });
       });
 
       setChallengeSaved(true);
-      setChallengeSaveMessage(xpAlreadyClaimedToday ? t("challengeXpAlreadyClaimed") : t("challengeSavedToLeaderboard"));
     } catch (err) {
       challengeSavedRef.current = false;
       console.error("Failed to save challenge result:", err);
@@ -890,9 +763,6 @@ useEffect(() => {
         userId: user.uid,
         reelId,
         score: result.score,
-        totalHits: result.totalHits ?? result.hitCount ?? 0,
-        bestCombo: result.bestCombo || 0,
-        accuracy: result.accuracy || 0,
         xpGained: result.xpGained,
         attemptNumber,
         rankProgress: result.rankProgress,
@@ -930,7 +800,6 @@ useEffect(() => {
         }, { merge: true });
 
         setMissionJustCompleted(true);
-        setMissionTotalBonus(totalBonus);
         setMissionStreakBonus(streakBonus);
         setMissionNewStreak(newStreak);
       } else {
@@ -956,24 +825,7 @@ useEffect(() => {
 
   const isCountingDown = phase === "countdown";
   const isRecording = phase === "recording";
-  const canStart = phase === "idle" || phase === "finished";
-  const ghostScore = Number(lastSession?.score) || 0;
-  const ghostComboTarget = Math.max(0, Number(lastSession?.comboCount) || 0);
-  const elapsedSeconds = Math.max(0, sessionSeconds - secondsLeft);
-  const ghostProgress = sessionSeconds > 0 ? Math.min(100, Math.round((elapsedSeconds / sessionSeconds) * 100)) : 0;
-  const ghostComboProgress = Math.min(ghostComboTarget, Math.round((ghostComboTarget * ghostProgress) / 100));
-  const ghostScoreProgress = Number(((ghostScore * ghostProgress) / 100).toFixed(1));
-  const showGhostOverlay = Boolean(lastSession && ghostEnabled && (isCountingDown || isRecording));
-  const almostThere = Boolean(result && lastSession && !newBest && result.score < ghostScore && ghostScore - result.score <= 0.5);
-  const aheadPercent = result ? result.beatPercent || getChallengeComparisonPercent(result.score) : 0;
-  const resultBestLabel = Number.isFinite(resultPreviousBest)
-    ? t("ghostLastBest").replace("{score}", resultPreviousBest.toFixed(1))
-    : t("ghostNoPrevious");
-  const streakText = trainingStreak
-    ? t("trainingDayStreak")
-      .replace("{n}", trainingStreak)
-      .replace("{fire}", getTrainingStreakFire(trainingStreak))
-    : "";
+  const canStart = phase === "idle" || phase === "result";
 
   return (
     <main style={styles.page}>
@@ -984,40 +836,30 @@ useEffect(() => {
 
       <section style={styles.shell}>
         <header style={styles.header}>
-          <p style={styles.kicker}>{activeChallenge ? t("challengeMode") : t("trainKicker")}</p>
+          <p style={styles.kicker}>
+            {challengeUserId ? t("pvpChallengeMode") : activeChallenge ? t("challengeMode") : t("trainKicker")}
+          </p>
           <h1 style={styles.title}>{activeChallenge ? t(activeChallenge.titleKey) : t("trainTitle")}</h1>
           <p style={styles.subtitle}>{t("trainSubtitle")}</p>
-          {activeChallenge && targetScore && (
+          {challengeUserId && targetScore && (
+            <div style={styles.pvpBanner}>
+              <span style={styles.pvpBannerVs}>🆚</span>
+              <div style={styles.pvpBannerText}>
+                <span style={styles.pvpBannerLabel}>
+                  {t("pvpBeatScoreOf").replace("{username}", opponentUsername || "...")}
+                </span>
+                <span style={styles.pvpBannerScore}>{targetScore.toFixed(1)}/10</span>
+              </div>
+            </div>
+          )}
+          {!challengeUserId && activeChallenge && targetScore && (
             <div style={styles.targetScorePill}>
               <span style={styles.targetScoreLabel}>{t("challengeBeatScore").replace("{score}", targetScore.toFixed(1))}</span>
             </div>
           )}
-          {(lastSession || user?.uid) && (
-            <div style={styles.ghostTopRow}>
-              <span style={styles.ghostBestText}>
-                {lastSession ? t("ghostLastBest").replace("{score}", ghostScore.toFixed(1)) : t("ghostNoPrevious")}
-              </span>
-              {lastSession && (
-                <button
-                  type="button"
-                  style={{ ...styles.ghostToggle, ...(ghostEnabled ? styles.ghostToggleOn : {}) }}
-                  onClick={() => setGhostEnabled((value) => !value)}
-                  aria-pressed={ghostEnabled}
-                >
-                  {ghostEnabled ? t("ghostModeOn") : t("ghostModeOff")}
-                </button>
-              )}
-            </div>
-          )}
         </header>
 
-        <div
-          style={styles.stage}
-          className={isFlashing ? "stage-impact" : ""}
-          onClick={() => {
-            if (isRecording) triggerImpact();
-          }}
-        >
+        <div style={styles.stage}>
           {cameraState === "ready" ? (
             <video
               ref={videoRef}
@@ -1025,7 +867,6 @@ useEffect(() => {
               muted
               playsInline
               style={styles.preview}
-              className={isFlashing ? "camera-impact" : ""}
             />
           ) : (
             <div style={styles.fallback}>
@@ -1041,27 +882,8 @@ useEffect(() => {
 
           <div style={styles.stageShade} />
 
-          {showGhostOverlay && (
-            <div style={styles.ghostOverlay}>
-              <div style={styles.ghostSilhouette} />
-              <div style={styles.ghostPanel}>
-                <span style={styles.ghostPanelTitle}>
-                  {t("ghostLastBest").replace("{score}", ghostScore.toFixed(1))}
-                </span>
-                <div style={styles.ghostTrack}>
-                  <div style={{ ...styles.ghostFill, width: `${ghostProgress}%` }} />
-                </div>
-                <div style={styles.ghostStats}>
-                  <span>{t("reels.combo")} {ghostComboProgress}/{ghostComboTarget || targetHits}</span>
-                  <span>{t("score")} {ghostScoreProgress.toFixed(1)}</span>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Hit flash overlay — quick red burst on each simulated punch */}
           {isFlashing && <div style={styles.flashOverlay} />}
-          {impactId > 0 && <div key={impactId} style={styles.impactRing} className="impact-ring" />}
 
           {/* Countdown with scale-pop animation */}
           {isCountingDown && (
@@ -1078,34 +900,18 @@ useEffect(() => {
             <>
               {/* Recording HUD — top bar */}
               <div style={styles.recordingHud}>
-                <div style={styles.hudStatus}>
-                  <span style={styles.recordDot} />
-                  <span>{secondsLeft}s</span>
-                </div>
-                <div style={styles.hudMetric}>
-                  <span>{t("reels.combo")}</span>
-                  <strong>{comboCount}</strong>
-                </div>
-                <div style={styles.hudMetric}>
-                  <span>{t("challengeTargetScore")}</span>
-                  <strong>{hitCount}/{targetHits}</strong>
-                </div>
-              </div>
-              <div style={styles.hitProgressTrack}>
-                <div
-                  style={{
-                    ...styles.hitProgressFill,
-                    width: `${Math.min(100, Math.round((hitCount / targetHits) * 100))}%`,
-                  }}
-                />
+                <span style={styles.recordDot} />
+                <span>{t("trainRecording")}</span>
+                <span style={styles.liveScoreHud}>{liveScore.toFixed(1)}</span>
+                <strong style={{ marginLeft: "auto" }}>{secondsLeft}s</strong>
               </div>
 
               {/* Hit progress counter */}
               <div style={styles.hitCounter}>
                 <span style={styles.hitCountNum}>{hitCount}</span>
                 <span style={styles.hitCountSep}>/</span>
-                <span style={styles.hitCountTarget}>{targetHits}</span>
-                <span style={styles.hitCountLabel}>{t("trainHits")}</span>
+                <span style={styles.hitCountTarget}>{Math.round(sessionSeconds * 1.2)}</span>
+                <span style={styles.hitCountLabel}>hits</span>
               </div>
 
               {/* Combo counter — bottom-center */}
@@ -1113,6 +919,21 @@ useEffect(() => {
                 <div key={comboCount} style={styles.comboCounter} className="combo-pop">
                   <span style={styles.comboLabel}>COMBO</span>
                   <span style={styles.comboNum}>{comboCount}</span>
+                </div>
+              )}
+
+              {/* Ghost vs You HUD — top-right */}
+              {ghostBestScore !== null && ghostEnabled && (
+                <div style={styles.ghostHud}>
+                  <div style={styles.ghostHudRow}>
+                    <span style={styles.ghostHudYouLabel}>YOU</span>
+                    <span style={styles.ghostHudYouScore}>{liveScore.toFixed(1)}</span>
+                  </div>
+                  <span style={styles.ghostHudSep}>vs</span>
+                  <div style={styles.ghostHudRow}>
+                    <span style={styles.ghostHudGhostLabel}>👻</span>
+                    <span style={styles.ghostHudGhostScore}>{ghostScore.toFixed(1)}</span>
+                  </div>
                 </div>
               )}
 
@@ -1148,6 +969,16 @@ useEffect(() => {
               {t("trainStop")}
             </button>
           )}
+
+          {!challengeUserId && !challengeId && ghostBestScore !== null && !isRecording && !isCountingDown && (
+            <button
+              type="button"
+              style={ghostEnabled ? styles.ghostToggleOn : styles.ghostToggleOff}
+              onClick={() => setGhostEnabled(g => !g)}
+            >
+              {ghostEnabled ? t("ghostModeOn") : t("ghostModeOff")}
+            </button>
+          )}
         </div>
       </section>
 
@@ -1156,40 +987,33 @@ useEffect(() => {
           <div style={styles.modalOverlay} />
           <section style={styles.modal}>
             <p style={styles.modalKicker}>{t("trainResult")}</p>
-            <div
-              style={{
-                ...styles.score,
-                ...(result.score > 7 ? styles.scoreGood : {}),
-                ...(result.score < 5 ? styles.scoreLow : {}),
-              }}
-              className="score-reveal"
-            >
-              {result.score.toFixed(1)}
-            </div>
+            <div style={styles.score}>{result.score.toFixed(1)}</div>
             <span style={styles.scoreUnit}>/10</span>
-            <p style={styles.beatUsersText}>
-              {t("challengeBeatPlayers").replace("{n}", aheadPercent)}
-            </p>
-            <div style={styles.resultMetaRow}>
-              <span>{resultBestLabel}</span>
-              <button
-                type="button"
-                style={styles.resultShareButton}
-                onClick={activeChallenge ? handleShareChallenge : handleShareTraining}
-              >
-                {t("challenge.share")}
-              </button>
-            </div>
-            {newBest && <div style={styles.newBestBadge}>{t("ghostNewBest")}</div>}
-            {almostThere && <div style={styles.almostThereBadge}>{t("trainingAlmostThere")}</div>}
 
-            <div style={styles.rewardPanel}>
-              <div style={styles.nextChallengeBox}>
-                <span style={styles.rewardLabel}>{t("trainingNextChallenge")}</span>
-                <strong>{t("trainingNextChallengeSuggestion")}</strong>
+            {/* PvP result announcement */}
+            {challengeUserId && pvpResult && (
+              <div style={pvpResult === "win" ? styles.pvpWinBanner : styles.pvpLoseBanner}>
+                <div style={styles.pvpResultHeadline}>
+                  {pvpResult === "win"
+                    ? t("pvpYouWon").replace("{username}", opponentUsername || "them")
+                    : t("pvpYouLost")}
+                </div>
+                <div style={styles.pvpResultScores}>
+                  <span style={styles.pvpResultYou}>{t("pvpVsLabel")} @{opponentUsername || "?"}: {targetScore?.toFixed(1)}/10</span>
+                  {pvpSaved && <span style={styles.pvpResultSaved}>✓ {t("pvpResultSaved")}</span>}
+                </div>
               </div>
-              {streakText && <div style={styles.streakPill}>{streakText}</div>}
-            </div>
+            )}
+
+            {/* Ghost comparison */}
+            {!challengeUserId && ghostBestScore !== null && ghostEnabled && (
+              <div style={result.score > ghostBestScore ? styles.ghostWinBanner : styles.ghostLoseBanner}>
+                {result.score > ghostBestScore ? t("ghostBeatBest") : t("ghostLostToBest")}
+                <div style={styles.ghostBestScoreRow}>
+                  {t("ghostBestLabel")}: {ghostBestScore.toFixed(1)}/10
+                </div>
+              </div>
+            )}
 
             <div style={styles.resultGrid}>
               {activeChallenge ? (
@@ -1218,42 +1042,36 @@ useEffect(() => {
                 <>
                   <div style={styles.resultItem}>
                     <span>{t("trainXpGained")}</span>
-                    <strong>+{animatedXP}</strong>
+                    <strong>+{result.xpGained}</strong>
                   </div>
                   <div style={styles.resultItem}>
                     <span>{t("trainRankProgress")}</span>
-                    <strong>{animatedRankProgress}%</strong>
+                    <strong>{result.rankProgress}%</strong>
                   </div>
+                  {result.hitCount > 0 && (
+                    <div style={{ ...styles.resultItem, gridColumn: "1 / -1" }}>
+                      <span>Total Hits</span>
+                      <strong>{result.hitCount} 🥊</strong>
+                    </div>
+                  )}
                 </>
               )}
             </div>
 
-            <div style={styles.sessionSummary}>
-              <div style={styles.summaryItem}>
-                <span>{t("trainTotalHits")}</span>
-                <strong>{result.hitCount || 0}</strong>
-              </div>
-              <div style={styles.summaryItem}>
-                <span>{t("trainingBestCombo")}</span>
-                <strong>{result.bestCombo ?? result.hitCount ?? 0}</strong>
-              </div>
-              <div style={styles.summaryItem}>
-                <span>{t("trainingAccuracy")}</span>
-                <strong>{result.accuracy ?? 0}%</strong>
-              </div>
-            </div>
-
             {!activeChallenge && (
               <div style={styles.progressTrack}>
-                <div style={{ ...styles.progressFill, width: `${animatedRankProgress}%` }} />
+                <div style={{ ...styles.progressFill, width: `${result.rankProgress}%` }} />
               </div>
             )}
+
             {!activeChallenge && (
-              <p style={styles.aheadText}>{t("trainingAheadUsers").replace("{n}", aheadPercent)}</p>
+              <button type="button" style={styles.shareResultButton} onClick={handleShareTraining}>
+                {t("challengeShare")}
+              </button>
             )}
 
             {activeChallenge && challengeSaved && (
-              <div style={styles.modalSaved}>{challengeSaveMessage || t("challengeSavedToLeaderboard")}</div>
+              <div style={styles.modalSaved}>{t("challengeResultSaved")}</div>
             )}
 
             {missionJustCompleted && (
@@ -1308,16 +1126,22 @@ useEffect(() => {
                     {challengeSaving
                       ? t("trainSaving")
                       : challengeSaved
-                        ? t("challenge.saved")
-                        : t("challenge.saveResult")}
+                        ? t("challengeResultSaved")
+                        : t("challengeSaveResult")}
                   </button>
                   <button type="button" style={styles.reelsButton} onClick={goToChallenges}>
-                    {t("challenge.backToChallenges")}
+                    {t("challengeBackToChallenges")}
+                  </button>
+                  <button type="button" style={styles.challengeFriendButton} onClick={handleChallengeFriend}>
+                    {t("challengeFriend")}
+                  </button>
+                  <button type="button" style={styles.reelsButton} onClick={handleShareChallenge}>
+                    {t("challengeShare")}
                   </button>
                 </>
               )}
-              <button type="button" style={styles.tryAgainButton} className="try-again-pulse" onClick={handleTryAgain}>
-                {activeChallenge ? t("challenge.tryAgain") : t("trainTryAgain")}
+              <button type="button" style={styles.tryAgainButton} onClick={handleTryAgain}>
+                {activeChallenge ? t("challengeTryAgain") : t("trainTryAgain")}
               </button>
             </div>
           </section>
@@ -1333,35 +1157,6 @@ useEffect(() => {
           100% { opacity: 0; }
         }
 
-        .stage-impact {
-          animation: stageImpact 150ms ease-out both;
-        }
-        @keyframes stageImpact {
-          0%   { transform: translate3d(0,0,0); }
-          20%  { transform: translate3d(1.5px,-1px,0); }
-          45%  { transform: translate3d(-1.5px,1px,0); }
-          72%  { transform: translate3d(1px,0,0); }
-          100% { transform: translate3d(0,0,0); }
-        }
-
-        .camera-impact {
-          animation: cameraImpact 180ms ease-out both;
-        }
-        @keyframes cameraImpact {
-          0%   { transform: scaleX(-1) scale(1); }
-          45%  { transform: scaleX(-1) scale(1.02); }
-          100% { transform: scaleX(-1) scale(1); }
-        }
-
-        .impact-ring {
-          animation: impactRing 210ms ease-out forwards;
-        }
-        @keyframes impactRing {
-          0%   { opacity: 0.96; transform: translate(-50%, -50%) scale(0.34); filter: blur(0); }
-          62%  { opacity: 0.72; transform: translate(-50%, -50%) scale(1); }
-          100% { opacity: 0; transform: translate(-50%, -50%) scale(1.52); filter: blur(1px); }
-        }
-
         .countdown-pop {
           animation: countdownPop 900ms ease both;
         }
@@ -1373,43 +1168,26 @@ useEffect(() => {
         }
 
         .combo-pop {
-          animation: comboPop 360ms cubic-bezier(0.34,1.56,0.64,1) both;
+          animation: comboPop 380ms cubic-bezier(0.34,1.56,0.64,1) both;
         }
         @keyframes comboPop {
-          0%   { transform: translateX(-50%) scale(1); opacity: 0.9; filter: drop-shadow(0 0 0 rgba(251,146,60,0)); }
-          48%  { transform: translateX(-50%) scale(1.3); opacity: 1; filter: drop-shadow(0 0 22px rgba(251,146,60,0.72)); }
-          100% { transform: translateX(-50%) scale(1); opacity: 1; filter: drop-shadow(0 0 8px rgba(193,18,31,0.28)); }
+          0%   { transform: translateX(-50%) scale(0.5); opacity: 0; }
+          60%  { transform: translateX(-50%) scale(1.2); opacity: 1; }
+          100% { transform: translateX(-50%) scale(1);   opacity: 1; }
         }
 
         .feedback-fade {
           animation: feedbackFade 1300ms ease forwards;
         }
         @keyframes feedbackFade {
-          0%   { opacity: 0; transform: translateX(-50%) translateY(14px) scale(0.96); }
-          16%  { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
-          68%  { opacity: 1; transform: translateX(-50%) translateY(-4px) scale(1); }
-          100% { opacity: 0; transform: translateX(-50%) translateY(-18px) scale(0.98);}
+          0%   { opacity: 0; transform: translateX(-50%) translateY(10px); }
+          14%  { opacity: 1; transform: translateX(-50%) translateY(0);    }
+          70%  { opacity: 1; transform: translateX(-50%) translateY(0);    }
+          100% { opacity: 0; transform: translateX(-50%) translateY(-10px);}
         }
 
         @keyframes spin {
           to { transform: rotate(360deg); }
-        }
-
-        .score-reveal {
-          animation: scoreReveal 620ms cubic-bezier(0.16,1,0.3,1) both;
-        }
-        @keyframes scoreReveal {
-          0%   { opacity: 0; transform: scale(0.72); filter: blur(8px); }
-          58%  { opacity: 1; transform: scale(1.12); filter: blur(0); }
-          100% { opacity: 1; transform: scale(1); }
-        }
-
-        .try-again-pulse {
-          animation: tryAgainPulse 1800ms ease-in-out infinite;
-        }
-        @keyframes tryAgainPulse {
-          0%, 100% { box-shadow: 0 0 0 rgba(212,175,55,0); transform: translateY(0); }
-          50% { box-shadow: 0 0 28px rgba(212,175,55,0.18); transform: translateY(-1px); }
         }
       `}</style>
     </main>
@@ -1421,7 +1199,7 @@ const styles = {
     minHeight: "100vh",
     background: "radial-gradient(circle at 50% 0%, rgba(193,18,31,0.2), transparent 34%), linear-gradient(180deg, #080808 0%, #0B0B0B 100%)",
     color: "#fff",
-    padding: "calc(58px + env(safe-area-inset-top)) 16px calc(92px + env(safe-area-inset-bottom))",
+    padding: "calc(68px + env(safe-area-inset-top)) 16px calc(92px + env(safe-area-inset-bottom))",
     fontFamily: "sans-serif",
   },
   loading: {
@@ -1461,12 +1239,10 @@ const styles = {
     color: "#D4AF37",
   },
   shell: {
-    width: "min(100%, 540px)",
-    minHeight: "calc(100vh - 172px)",
+    maxWidth: 520,
     margin: "0 auto",
     display: "grid",
-    alignContent: "center",
-    gap: 14,
+    gap: 18,
   },
   header: {
     display: "grid",
@@ -1510,50 +1286,83 @@ const styles = {
     fontSize: 13,
     fontWeight: 1000,
   },
-  ghostTopRow: {
+  pvpBanner: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "space-between",
     gap: 10,
-    flexWrap: "wrap",
-    padding: 10,
-    borderRadius: 16,
-    background: "rgba(255,255,255,0.055)",
-    border: "1px solid rgba(255,255,255,0.1)",
+    padding: "10px 14px",
+    borderRadius: 14,
+    background: "rgba(96,165,250,0.1)",
+    border: "1px solid rgba(96,165,250,0.3)",
   },
-  ghostBestText: {
-    color: "rgba(255,255,255,0.82)",
+  pvpBannerVs: {
+    fontSize: 20,
+    flexShrink: 0,
+  },
+  pvpBannerText: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 2,
+  },
+  pvpBannerLabel: {
+    color: "#93C5FD",
     fontSize: 13,
     fontWeight: 900,
+    lineHeight: 1.2,
   },
-  ghostToggle: {
-    minHeight: 34,
-    padding: "0 12px",
-    borderRadius: 999,
-    border: "1px solid rgba(255,255,255,0.14)",
-    background: "rgba(0,0,0,0.36)",
-    color: "rgba(255,255,255,0.76)",
+  pvpBannerScore: {
+    color: "#D4AF37",
+    fontSize: 18,
+    fontWeight: 1000,
+    lineHeight: 1,
+  },
+  pvpWinBanner: {
+    margin: "14px 0 0",
+    padding: "14px 16px",
+    borderRadius: 14,
+    background: "rgba(52,211,153,0.12)",
+    border: "1px solid rgba(52,211,153,0.35)",
+    textAlign: "center",
+  },
+  pvpLoseBanner: {
+    margin: "14px 0 0",
+    padding: "14px 16px",
+    borderRadius: 14,
+    background: "rgba(193,18,31,0.12)",
+    border: "1px solid rgba(193,18,31,0.35)",
+    textAlign: "center",
+  },
+  pvpResultHeadline: {
+    fontSize: 16,
+    fontWeight: 1000,
+    color: "#fff",
+    marginBottom: 6,
+  },
+  pvpResultScores: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 2,
+    alignItems: "center",
+  },
+  pvpResultYou: {
     fontSize: 12,
-    fontWeight: 950,
-    cursor: "pointer",
+    color: "#aaa",
+    fontWeight: 700,
   },
-  ghostToggleOn: {
-    border: "1px solid rgba(212,175,55,0.36)",
-    background: "rgba(212,175,55,0.14)",
-    color: "#FDE68A",
-    boxShadow: "0 10px 28px rgba(212,175,55,0.12)",
+  pvpResultSaved: {
+    fontSize: 11,
+    color: "#34D399",
+    fontWeight: 800,
   },
   stage: {
     position: "relative",
     overflow: "hidden",
     borderRadius: 22,
-    minHeight: 420,
-    height: "min(72vh, 640px)",
-    aspectRatio: "9 / 13",
+    minHeight: 460,
+    aspectRatio: "9 / 14",
     background: "#050505",
     border: "1px solid rgba(255,255,255,0.1)",
-    boxShadow: "0 22px 62px rgba(0,0,0,0.5)",
-    willChange: "transform",
+    boxShadow: "0 24px 70px rgba(0,0,0,0.46)",
   },
   preview: {
     width: "100%",
@@ -1561,8 +1370,6 @@ const styles = {
     objectFit: "cover",
     display: "block",
     transform: "scaleX(-1)",
-    transformOrigin: "center",
-    willChange: "transform",
   },
   fallback: {
     position: "absolute",
@@ -1601,67 +1408,6 @@ const styles = {
     pointerEvents: "none",
     background: "linear-gradient(to top, rgba(0,0,0,0.38), transparent 48%)",
   },
-  ghostOverlay: {
-    position: "absolute",
-    inset: "22% 12% 20%",
-    zIndex: 4,
-    display: "grid",
-    alignContent: "center",
-    justifyItems: "center",
-    pointerEvents: "none",
-  },
-  ghostSilhouette: {
-    width: "46%",
-    minWidth: 132,
-    maxWidth: 190,
-    aspectRatio: "0.52 / 1",
-    borderRadius: "44% 44% 36% 36%",
-    background: "linear-gradient(180deg, rgba(255,255,255,0.18), rgba(212,175,55,0.08))",
-    border: "1px solid rgba(255,255,255,0.18)",
-    boxShadow: "0 0 44px rgba(212,175,55,0.12), inset 0 0 40px rgba(255,255,255,0.08)",
-    opacity: 0.46,
-    filter: "blur(0.2px)",
-  },
-  ghostPanel: {
-    width: "min(270px, 90%)",
-    marginTop: -18,
-    padding: "10px 12px",
-    borderRadius: 16,
-    background: "rgba(0,0,0,0.5)",
-    border: "1px solid rgba(255,255,255,0.13)",
-    backdropFilter: "blur(14px)",
-    WebkitBackdropFilter: "blur(14px)",
-    boxShadow: "0 16px 40px rgba(0,0,0,0.24)",
-  },
-  ghostPanelTitle: {
-    display: "block",
-    color: "#FDE68A",
-    fontSize: 12,
-    fontWeight: 1000,
-    textAlign: "center",
-  },
-  ghostTrack: {
-    height: 6,
-    marginTop: 8,
-    borderRadius: 999,
-    overflow: "hidden",
-    background: "rgba(255,255,255,0.12)",
-  },
-  ghostFill: {
-    height: "100%",
-    borderRadius: 999,
-    background: "linear-gradient(90deg, rgba(212,175,55,0.95), rgba(193,18,31,0.9))",
-    transition: "width 260ms ease",
-  },
-  ghostStats: {
-    display: "flex",
-    justifyContent: "space-between",
-    gap: 10,
-    marginTop: 8,
-    color: "rgba(255,255,255,0.74)",
-    fontSize: 11,
-    fontWeight: 900,
-  },
   countdown: {
     position: "absolute",
     inset: 0,
@@ -1683,23 +1429,10 @@ const styles = {
   flashOverlay: {
     position: "absolute",
     inset: 0,
-    background: "radial-gradient(circle at 50% 42%, rgba(253,186,116,0.28), rgba(251,146,60,0.2) 24%, rgba(193,18,31,0.18) 42%, transparent 74%)",
+    background: "rgba(193,18,31,0.38)",
     zIndex: 8,
     pointerEvents: "none",
-    animation: "flashFade 180ms ease-out forwards",
-  },
-  impactRing: {
-    position: "absolute",
-    left: "50%",
-    top: "43%",
-    width: 104,
-    height: 104,
-    borderRadius: "50%",
-    border: "2px solid rgba(253,186,116,0.78)",
-    background: "radial-gradient(circle, rgba(253,186,116,0.18), transparent 58%)",
-    boxShadow: "0 0 38px rgba(251,146,60,0.34), inset 0 0 26px rgba(193,18,31,0.2)",
-    zIndex: 9,
-    pointerEvents: "none",
+    animation: "flashFade 150ms ease-out forwards",
   },
   hitCounter: {
     position: "absolute",
@@ -1746,20 +1479,12 @@ const styles = {
   },
   comboCounter: {
     position: "absolute",
-    bottom: 58,
+    bottom: 70,
     left: "50%",
     transform: "translateX(-50%)",
-    display: "grid",
+    display: "flex",
+    flexDirection: "column",
     alignItems: "center",
-    justifyItems: "center",
-    minWidth: 132,
-    padding: "10px 18px",
-    borderRadius: 22,
-    background: "linear-gradient(180deg, rgba(0,0,0,0.58), rgba(0,0,0,0.28))",
-    border: "1px solid rgba(212,175,55,0.24)",
-    backdropFilter: "blur(14px)",
-    WebkitBackdropFilter: "blur(14px)",
-    boxShadow: "0 0 28px rgba(251,146,60,0.16), 0 16px 38px rgba(0,0,0,0.34)",
     zIndex: 6,
     pointerEvents: "none",
   },
@@ -1773,7 +1498,7 @@ const styles = {
   },
   comboNum: {
     color: "#fff",
-    fontSize: 72,
+    fontSize: 64,
     fontWeight: 1000,
     lineHeight: 1,
     textShadow: "0 0 40px rgba(212,175,55,0.55), 0 4px 18px rgba(0,0,0,0.95)",
@@ -1803,12 +1528,11 @@ const styles = {
     left: 16,
     right: 16,
     minHeight: 38,
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr 1.25fr",
+    display: "flex",
     alignItems: "center",
-    gap: 8,
+    gap: 9,
     borderRadius: 999,
-    padding: "5px 8px",
+    padding: "0 13px",
     background: "rgba(0,0,0,0.54)",
     border: "1px solid rgba(255,255,255,0.12)",
     backdropFilter: "blur(14px)",
@@ -1817,45 +1541,6 @@ const styles = {
     fontWeight: 900,
     zIndex: 5,
   },
-  hitProgressTrack: {
-    position: "absolute",
-    top: 62,
-    left: 22,
-    right: 22,
-    height: 6,
-    borderRadius: 999,
-    background: "rgba(255,255,255,0.1)",
-    overflow: "hidden",
-    zIndex: 5,
-    boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.04)",
-  },
-  hitProgressFill: {
-    height: "100%",
-    borderRadius: 999,
-    background: "linear-gradient(90deg, #C1121F 0%, #F97316 62%, #FBBF24 100%)",
-    boxShadow: "0 0 18px rgba(249,115,22,0.5)",
-    transition: "width 240ms cubic-bezier(0.16,1,0.3,1)",
-  },
-  hudStatus: {
-    minHeight: 28,
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    borderRadius: 999,
-    background: "rgba(193,18,31,0.18)",
-    color: "#fff",
-  },
-  hudMetric: {
-    minHeight: 28,
-    display: "grid",
-    alignContent: "center",
-    justifyItems: "center",
-    gap: 1,
-    borderRadius: 999,
-    background: "rgba(255,255,255,0.055)",
-    color: "#fff",
-  },
   recordDot: {
     width: 9,
     height: 9,
@@ -1863,6 +1548,13 @@ const styles = {
     background: "#C1121F",
     flexShrink: 0,
     boxShadow: "0 0 0 6px rgba(193,18,31,0.18)",
+  },
+  liveScoreHud: {
+    marginLeft: 8,
+    fontSize: 13,
+    fontWeight: 1000,
+    color: "#D4AF37",
+    letterSpacing: 0.5,
   },
   controls: {
     display: "grid",
@@ -1952,9 +1644,9 @@ const styles = {
     inset: 0,
     zIndex: 200,
     display: "flex",
-    alignItems: "center",
+    alignItems: "flex-end",
     justifyContent: "center",
-    padding: "calc(18px + env(safe-area-inset-top)) 16px calc(86px + env(safe-area-inset-bottom))",
+    padding: "20px 16px calc(92px + env(safe-area-inset-bottom))",
   },
   modalOverlay: {
     position: "absolute",
@@ -1965,14 +1657,14 @@ const styles = {
   modal: {
     position: "relative",
     width: "100%",
-    maxWidth: 440,
-    borderRadius: 20,
-    padding: 16,
+    maxWidth: 460,
+    borderRadius: 22,
+    padding: 20,
     background: "linear-gradient(180deg, #151111, #080808)",
     border: "1px solid rgba(212,175,55,0.2)",
-    boxShadow: "0 24px 70px rgba(0,0,0,0.54)",
+    boxShadow: "0 -24px 70px rgba(0,0,0,0.54)",
     textAlign: "center",
-    maxHeight: "calc(100vh - 110px)",
+    maxHeight: "calc(100vh - 132px)",
     overflowY: "auto",
   },
   modalKicker: {
@@ -1984,156 +1676,32 @@ const styles = {
     textTransform: "uppercase",
   },
   score: {
-    marginTop: 6,
-    fontSize: 62,
+    marginTop: 8,
+    fontSize: 72,
     lineHeight: 0.95,
     fontWeight: 1000,
-    color: "#D4AF37",
-    textShadow: "0 0 44px rgba(212,175,55,0.28)",
-  },
-  scoreGood: {
-    color: "#34D399",
-    textShadow: "0 0 46px rgba(52,211,153,0.36)",
-  },
-  scoreLow: {
-    color: "#FF6B6B",
-    textShadow: "0 0 42px rgba(193,18,31,0.34)",
   },
   scoreUnit: {
     color: "rgba(255,255,255,0.52)",
     fontSize: 16,
     fontWeight: 900,
   },
-  beatUsersText: {
-    margin: "6px 0 0",
-    color: "rgba(255,255,255,0.72)",
-    fontSize: 13,
-    fontWeight: 850,
-  },
-  resultMetaRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    flexWrap: "wrap",
-    marginTop: 8,
-    color: "rgba(255,255,255,0.55)",
-    fontSize: 12,
-    fontWeight: 850,
-  },
-  resultShareButton: {
-    minHeight: 28,
-    padding: "0 10px",
-    border: "1px solid rgba(255,255,255,0.12)",
-    borderRadius: 999,
-    background: "rgba(255,255,255,0.055)",
-    color: "rgba(255,255,255,0.82)",
-    fontSize: 11,
-    fontWeight: 900,
-    cursor: "pointer",
-  },
-  newBestBadge: {
-    width: "fit-content",
-    margin: "12px auto 0",
-    padding: "7px 12px",
-    borderRadius: 999,
-    background: "rgba(52,211,153,0.14)",
-    border: "1px solid rgba(52,211,153,0.32)",
-    color: "#A7F3D0",
-    fontSize: 12,
-    fontWeight: 1000,
-    letterSpacing: 1.4,
-    boxShadow: "0 0 26px rgba(52,211,153,0.18)",
-  },
-  almostThereBadge: {
-    width: "fit-content",
-    margin: "12px auto 0",
-    padding: "7px 12px",
-    borderRadius: 999,
-    background: "rgba(251,146,60,0.13)",
-    border: "1px solid rgba(251,146,60,0.32)",
-    color: "#FDBA74",
-    fontSize: 12,
-    fontWeight: 1000,
-    letterSpacing: 0.8,
-  },
-  rewardPanel: {
-    display: "grid",
-    gridTemplateColumns: "1fr auto",
-    alignItems: "stretch",
-    gap: 10,
-    marginTop: 10,
-  },
-  nextChallengeBox: {
-    display: "grid",
-    gap: 3,
-    minHeight: 48,
-    padding: "8px 10px",
-    borderRadius: 14,
-    background: "linear-gradient(135deg, rgba(193,18,31,0.16), rgba(212,175,55,0.09))",
-    border: "1px solid rgba(212,175,55,0.16)",
-    textAlign: "left",
-  },
-  rewardLabel: {
-    color: "#D4AF37",
-    fontSize: 10,
-    fontWeight: 1000,
-    letterSpacing: 1.4,
-    textTransform: "uppercase",
-  },
-  streakPill: {
-    minWidth: 88,
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "0 12px",
-    borderRadius: 14,
-    background: "rgba(0,0,0,0.36)",
-    border: "1px solid rgba(251,146,60,0.26)",
-    color: "#FDBA74",
-    fontSize: 13,
-    fontWeight: 1000,
-    whiteSpace: "nowrap",
-  },
   resultGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
-    gap: 8,
-    marginTop: 10,
+    gap: 10,
+    marginTop: 18,
   },
   resultItem: {
     display: "grid",
     gap: 6,
-    padding: 10,
-    borderRadius: 12,
+    padding: 14,
+    borderRadius: 14,
     background: "rgba(255,255,255,0.055)",
     border: "1px solid rgba(255,255,255,0.08)",
     color: "rgba(255,255,255,0.62)",
     fontSize: 12,
     fontWeight: 800,
-  },
-  sessionSummary: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
-    gap: 8,
-    marginTop: 10,
-  },
-  summaryItem: {
-    display: "grid",
-    gap: 4,
-    padding: "10px 8px",
-    borderRadius: 12,
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.07)",
-    color: "rgba(255,255,255,0.58)",
-    fontSize: 11,
-    fontWeight: 850,
-  },
-  aheadText: {
-    margin: "8px 0 0",
-    color: "rgba(255,255,255,0.58)",
-    fontSize: 12,
-    fontWeight: 850,
   },
   targetResultItem: {
     gridColumn: "1 / -1",
@@ -2152,9 +1720,7 @@ const styles = {
   progressFill: {
     height: "100%",
     borderRadius: 999,
-    background: "linear-gradient(90deg, #C1121F 0%, #F97316 58%, #D4AF37 100%)",
-    boxShadow: "0 0 18px rgba(249,115,22,0.42)",
-    transition: "width 420ms cubic-bezier(0.16,1,0.3,1)",
+    background: "linear-gradient(90deg, #C1121F, #D4AF37)",
   },
   shareResultButton: {
     width: "100%",
@@ -2170,12 +1736,12 @@ const styles = {
   },
   modalActions: {
     display: "grid",
-    gridTemplateColumns: "1fr 1fr 1fr",
-    gap: 8,
-    marginTop: 12,
+    gridTemplateColumns: "1fr",
+    gap: 10,
+    marginTop: 18,
   },
   saveButton: {
-    minHeight: 42,
+    minHeight: 46,
     border: "none",
     borderRadius: 14,
     background: "#C1121F",
@@ -2189,7 +1755,7 @@ const styles = {
     cursor: "default",
   },
   tryAgainButton: {
-    minHeight: 42,
+    minHeight: 46,
     border: "1px solid rgba(255,255,255,0.14)",
     borderRadius: 14,
     background: "rgba(255,255,255,0.06)",
@@ -2199,26 +1765,13 @@ const styles = {
     cursor: "pointer",
   },
   reelsButton: {
-    minHeight: 42,
+    minHeight: 46,
     border: "1px solid rgba(212,175,55,0.32)",
     borderRadius: 14,
     background: "rgba(212,175,55,0.1)",
     color: "#D4AF37",
     fontSize: 14,
     fontWeight: 950,
-    cursor: "pointer",
-  },
-  shareMiniButton: {
-    minHeight: 38,
-    width: "fit-content",
-    justifySelf: "center",
-    padding: "0 14px",
-    border: "1px solid rgba(255,255,255,0.12)",
-    borderRadius: 999,
-    background: "rgba(255,255,255,0.055)",
-    color: "rgba(255,255,255,0.82)",
-    fontSize: 12,
-    fontWeight: 900,
     cursor: "pointer",
   },
   challengeFriendButton: {
@@ -2231,5 +1784,105 @@ const styles = {
     fontWeight: 1000,
     cursor: "pointer",
     boxShadow: "0 14px 34px rgba(193,18,31,0.22)",
+  },
+  ghostHud: {
+    position: "absolute",
+    top: 64,
+    right: 12,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 3,
+    background: "rgba(0,0,0,0.62)",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
+    borderRadius: 14,
+    padding: "8px 14px",
+    border: "1px solid rgba(255,255,255,0.14)",
+    zIndex: 5,
+    minWidth: 60,
+  },
+  ghostHudRow: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 1,
+  },
+  ghostHudYouLabel: {
+    color: "#D4AF37",
+    fontSize: 9,
+    fontWeight: 1000,
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
+  },
+  ghostHudYouScore: {
+    color: "#D4AF37",
+    fontSize: 20,
+    fontWeight: 1000,
+    lineHeight: 1,
+  },
+  ghostHudSep: {
+    color: "rgba(255,255,255,0.38)",
+    fontSize: 10,
+    fontWeight: 700,
+  },
+  ghostHudGhostLabel: {
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 12,
+    lineHeight: 1,
+  },
+  ghostHudGhostScore: {
+    color: "rgba(255,255,255,0.85)",
+    fontSize: 20,
+    fontWeight: 1000,
+    lineHeight: 1,
+  },
+  ghostToggleOn: {
+    minHeight: 40,
+    border: "1px solid rgba(255,255,255,0.2)",
+    borderRadius: 12,
+    background: "rgba(255,255,255,0.08)",
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: 900,
+    cursor: "pointer",
+  },
+  ghostToggleOff: {
+    minHeight: 40,
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: 12,
+    background: "transparent",
+    color: "rgba(255,255,255,0.38)",
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+  ghostWinBanner: {
+    margin: "14px 0 0",
+    padding: "12px 16px",
+    borderRadius: 14,
+    background: "rgba(52,211,153,0.12)",
+    border: "1px solid rgba(52,211,153,0.35)",
+    textAlign: "center",
+    fontSize: 15,
+    fontWeight: 1000,
+    color: "#34D399",
+  },
+  ghostLoseBanner: {
+    margin: "14px 0 0",
+    padding: "12px 16px",
+    borderRadius: 14,
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    textAlign: "center",
+    fontSize: 15,
+    fontWeight: 1000,
+    color: "rgba(255,255,255,0.65)",
+  },
+  ghostBestScoreRow: {
+    marginTop: 4,
+    fontSize: 12,
+    color: "rgba(255,255,255,0.45)",
+    fontWeight: 700,
   },
 };
