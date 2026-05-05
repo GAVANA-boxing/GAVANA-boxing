@@ -54,7 +54,7 @@ function StatusBadge({ status, t }) {
   return <span style={styles.badgePending}>{t("requestPending")}</span>;
 }
 
-function RequestCard({ request, requesterUser, t, onAccept, onDecline, updating }) {
+function RequestCard({ request, requesterUser, t, onAccept, onDecline, onSchedule, updating }) {
   const typeLbl = request.type === "sparring" ? t("sparringRequestType") : t("coachRequestType");
 
   return (
@@ -105,6 +105,22 @@ function RequestCard({ request, requesterUser, t, onAccept, onDecline, updating 
           </button>
         </div>
       )}
+
+      {request.status === "accepted" && !request.bookedAt && (
+        <button
+          type="button"
+          style={styles.scheduleBtn}
+          onClick={() => onSchedule(request)}
+        >
+          📅 {t("scheduleSession")}
+        </button>
+      )}
+
+      {request.bookedAt && (
+        <div style={styles.bookedTag}>
+          📅 {request.bookedDate} {request.bookedTime} · {request.bookedDuration}min
+        </div>
+      )}
     </div>
   );
 }
@@ -122,6 +138,14 @@ export default function CoachDashboardPage() {
   const [updating, setUpdating] = useState(null);
   const [accessDenied, setAccessDenied] = useState(false);
   const loadedRef = useRef(false);
+
+  // Booking modal state
+  const [bookingRequest, setBookingRequest] = useState(null);
+  const [bookingDate, setBookingDate] = useState("");
+  const [bookingTime, setBookingTime] = useState("");
+  const [bookingDuration, setBookingDuration] = useState(60);
+  const [bookingSubmitting, setBookingSubmitting] = useState(false);
+  const [bookingSuccess, setBookingSuccess] = useState(false);
 
   // Auth + coach guard
   useEffect(() => {
@@ -246,6 +270,60 @@ export default function CoachDashboardPage() {
     }
   };
 
+  const openBookingModal = (request) => {
+    setBookingRequest(request);
+    setBookingDate("");
+    setBookingTime("");
+    setBookingDuration(60);
+    setBookingSuccess(false);
+  };
+
+  const handleBookingSubmit = async () => {
+    if (!bookingDate || !bookingTime || !bookingRequest) return;
+    setBookingSubmitting(true);
+    try {
+      await addDoc(collection(db, "coach_bookings"), {
+        coachId: user.uid,
+        userId: bookingRequest.userId,
+        requestId: bookingRequest.id,
+        date: bookingDate,
+        time: bookingTime,
+        durationMinutes: bookingDuration,
+        status: "scheduled",
+        createdAt: serverTimestamp(),
+      });
+
+      if (bookingRequest.userId) {
+        await addDoc(collection(db, "notifications"), {
+          recipientId: bookingRequest.userId,
+          actorId: user.uid,
+          actorName: user.displayName || "Coach",
+          fromUserId: user.uid,
+          fromUsername: user.displayName || "Coach",
+          fromUserPhotoURL: user.photoURL || "",
+          type: "booking_scheduled",
+          message: t("sessionScheduled"),
+          read: false,
+          createdAt: serverTimestamp(),
+        });
+      }
+
+      setRequests((prev) =>
+        prev.map((r) =>
+          r.id === bookingRequest.id
+            ? { ...r, bookedAt: true, bookedDate: bookingDate, bookedTime: bookingTime, bookedDuration: bookingDuration }
+            : r
+        )
+      );
+      setBookingSuccess(true);
+      setTimeout(() => setBookingRequest(null), 1400);
+    } catch (e) {
+      console.error("Failed to create booking:", e);
+    } finally {
+      setBookingSubmitting(false);
+    }
+  };
+
   if (authLoading || accessDenied) return null;
 
   const total = requests.length;
@@ -319,12 +397,77 @@ export default function CoachDashboardPage() {
               updating={updating}
               onAccept={handleAccept}
               onDecline={handleDecline}
+              onSchedule={openBookingModal}
             />
           ))}
         </div>
       </div>
 
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
+
+      {/* Booking modal */}
+      {bookingRequest && (
+        <div style={styles.modalBackdrop} onClick={() => setBookingRequest(null)}>
+          <div style={styles.modalSheet} onClick={(e) => e.stopPropagation()}>
+            <div style={styles.modalHandle} />
+            <div style={styles.modalHeader}>
+              <span style={styles.modalTitle}>📅 {t("scheduleSession")}</span>
+              <button type="button" style={styles.modalCloseBtn} onClick={() => setBookingRequest(null)}>✕</button>
+            </div>
+            <div style={styles.modalSubtitle}>
+              {requesterUsers[bookingRequest.userId]?.displayName || requesterUsers[bookingRequest.userId]?.username || "Fighter"}
+            </div>
+
+            {bookingSuccess ? (
+              <div style={styles.bookingSuccessMsg}>✓ {t("sessionScheduled")}</div>
+            ) : (
+              <>
+                <div style={styles.modalField}>
+                  <label style={styles.modalLabel}>{t("bookingDate")}</label>
+                  <input
+                    type="date"
+                    value={bookingDate}
+                    onChange={(e) => setBookingDate(e.target.value)}
+                    style={styles.modalInput}
+                  />
+                </div>
+                <div style={styles.modalField}>
+                  <label style={styles.modalLabel}>{t("bookingTime")}</label>
+                  <input
+                    type="time"
+                    value={bookingTime}
+                    onChange={(e) => setBookingTime(e.target.value)}
+                    style={styles.modalInput}
+                  />
+                </div>
+                <div style={styles.modalField}>
+                  <label style={styles.modalLabel}>{t("duration")}</label>
+                  <select
+                    value={bookingDuration}
+                    onChange={(e) => setBookingDuration(Number(e.target.value))}
+                    style={styles.modalSelect}
+                  >
+                    <option value={30}>30 min</option>
+                    <option value={60}>60 min</option>
+                    <option value={90}>90 min</option>
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  style={{
+                    ...styles.confirmBtn,
+                    opacity: (!bookingDate || !bookingTime || bookingSubmitting) ? 0.5 : 1,
+                  }}
+                  disabled={!bookingDate || !bookingTime || bookingSubmitting}
+                  onClick={handleBookingSubmit}
+                >
+                  {bookingSubmitting ? "…" : t("scheduleSession")}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   );
 }
@@ -582,6 +725,131 @@ const styles = {
     display: "flex",
     gap: 8,
     marginTop: 2,
+  },
+  scheduleBtn: {
+    width: "100%",
+    minHeight: 38,
+    border: "1px solid rgba(212,175,55,0.35)",
+    borderRadius: 10,
+    background: "rgba(212,175,55,0.08)",
+    color: "#D4AF37",
+    fontSize: 13,
+    fontWeight: 900,
+    cursor: "pointer",
+    marginTop: 2,
+  },
+  bookedTag: {
+    fontSize: 12,
+    color: "#34D399",
+    fontWeight: 700,
+    paddingTop: 2,
+  },
+  modalBackdrop: {
+    position: "fixed",
+    inset: 0,
+    zIndex: 200,
+    background: "rgba(0,0,0,0.72)",
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)",
+    display: "flex",
+    alignItems: "flex-end",
+    justifyContent: "center",
+  },
+  modalSheet: {
+    width: "min(100%, 520px)",
+    borderRadius: "24px 24px 0 0",
+    background: "linear-gradient(180deg, #161616 0%, #0f0f0f 100%)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    borderBottom: "none",
+    padding: "12px 20px calc(28px + env(safe-area-inset-bottom))",
+    display: "flex",
+    flexDirection: "column",
+    gap: 16,
+  },
+  modalHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    background: "rgba(255,255,255,0.18)",
+    alignSelf: "center",
+    marginBottom: 4,
+  },
+  modalHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  modalTitle: {
+    fontSize: 17,
+    fontWeight: 1000,
+    color: "#fff",
+  },
+  modalCloseBtn: {
+    background: "none",
+    border: "none",
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 18,
+    cursor: "pointer",
+    padding: 4,
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    color: "rgba(255,255,255,0.45)",
+    marginTop: -8,
+    fontWeight: 700,
+  },
+  modalField: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 6,
+  },
+  modalLabel: {
+    fontSize: 11,
+    fontWeight: 900,
+    color: "rgba(255,255,255,0.45)",
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+  },
+  modalInput: {
+    minHeight: 44,
+    borderRadius: 12,
+    border: "1px solid rgba(255,255,255,0.12)",
+    background: "rgba(255,255,255,0.06)",
+    color: "#fff",
+    fontSize: 15,
+    padding: "0 14px",
+    outline: "none",
+    colorScheme: "dark",
+  },
+  modalSelect: {
+    minHeight: 44,
+    borderRadius: 12,
+    border: "1px solid rgba(255,255,255,0.12)",
+    background: "rgba(255,255,255,0.06)",
+    color: "#fff",
+    fontSize: 15,
+    padding: "0 14px",
+    outline: "none",
+    colorScheme: "dark",
+  },
+  confirmBtn: {
+    minHeight: 48,
+    borderRadius: 14,
+    border: "none",
+    background: "linear-gradient(135deg, #C1121F, #7d0812)",
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: 1000,
+    cursor: "pointer",
+    boxShadow: "0 8px 24px rgba(193,18,31,0.35)",
+    marginTop: 4,
+  },
+  bookingSuccessMsg: {
+    textAlign: "center",
+    padding: "24px 0",
+    fontSize: 18,
+    fontWeight: 1000,
+    color: "#34D399",
   },
   declineBtn: {
     flex: 1,
