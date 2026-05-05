@@ -5,6 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   addDoc,
   collection,
+  doc,
+  getDoc,
   getDocs,
   query,
   serverTimestamp,
@@ -166,6 +168,7 @@ export default function CoachPage() {
   const [filterLocation, setFilterLocation] = useState("");
   const [sortBy, setSortBy] = useState("rating");
   const [requestedIds, setRequestedIds] = useState(new Set());
+  const [currentUserProfile, setCurrentUserProfile] = useState(null);
   const [showSparringForm, setShowSparringForm] = useState(false);
   const [sparringForm, setSparringForm] = useState({
     weight: "", level: "", location: "", availableTime: "", note: "",
@@ -174,6 +177,27 @@ export default function CoachPage() {
   const [sparringSaved, setSpSaved] = useState(false);
   const coachesLoadedRef = useRef(false);
   const sparringLoadedRef = useRef(false);
+
+  useEffect(() => {
+    if (!user?.uid) {
+      setCurrentUserProfile(null);
+      return;
+    }
+    let active = true;
+    async function loadUser() {
+      try {
+        const snap = await getDoc(doc(db, "users", user.uid));
+        if (!active) return;
+        setCurrentUserProfile(snap.exists() ? snap.data() : null);
+      } catch (err) {
+        console.error("Failed to load current user profile:", err);
+      }
+    }
+    loadUser();
+    return () => { active = false; };
+  }, [user?.uid]);
+
+  const isUserCoach = Boolean(currentUserProfile?.isCoach);
 
   useEffect(() => {
     if (tab !== "coaches" || coachesLoadedRef.current) return;
@@ -300,6 +324,29 @@ export default function CoachPage() {
         ))}
       </div>
 
+      <div style={styles.dashboardBanner}>
+        <div style={styles.dashboardBannerContent}>
+          <span style={styles.dashboardBannerTitle}>
+            {isUserCoach ? t("coachDashboard") : t("coachBecomeCoachTitle")}
+          </span>
+          <span style={styles.dashboardBannerSubtitle}>
+            {isUserCoach ? t("coachDashboardSubtitle") : t("coachBecomeCoachSubtitle")}
+          </span>
+        </div>
+        <button
+          type="button"
+          style={isUserCoach ? styles.dashboardBtn : styles.dashboardPlaceholderBtn}
+          onClick={() => {
+            if (isUserCoach) {
+              router.push(`/${locale}/coach/dashboard`);
+            }
+          }}
+          disabled={!isUserCoach}
+        >
+          {isUserCoach ? t("coachDashboardButton") : t("coachBecomeCoachButton")}
+        </button>
+      </div>
+
       {/* AI Coach tab */}
       {tab === "ai" && (
         <div style={styles.aiWrap}>
@@ -350,9 +397,9 @@ export default function CoachPage() {
                 onChange={(e) => setSortBy(e.target.value)}
                 style={styles.filterSelect}
               >
-                <option value="rating">{t("coachSortRating")}</option>
-                <option value="students">{t("coachSortStudents")}</option>
-                <option value="verified">{t("coachSortVerified")}</option>
+                <option value="rating" style={styles.optionStyle}>{t("coachSortRating")}</option>
+                <option value="students" style={styles.optionStyle}>{t("coachSortStudents")}</option>
+                <option value="verified" style={styles.optionStyle}>{t("coachSortVerified")}</option>
               </select>
             </div>
           </div>
@@ -457,9 +504,9 @@ export default function CoachPage() {
               onChange={(e) => setSparringForm((f) => ({ ...f, level: e.target.value }))}
               style={styles.fieldSelect}
             >
-              <option value="">—</option>
+              <option value="" style={styles.optionStyle}>—</option>
               {LEVELS.map((lv) => (
-                <option key={lv} value={lv}>{lv}</option>
+                <option key={lv} value={lv} style={styles.optionStyle}>{lv}</option>
               ))}
             </select>
 
@@ -638,12 +685,77 @@ const styles = {
     padding: "0 10px",
     borderRadius: 10,
     border: "1px solid rgba(255,255,255,0.14)",
-    background: "rgba(255,255,255,0.07)",
+    background: "rgba(18,18,18,0.96)",
     color: "#fff",
     fontSize: 12,
     fontWeight: 700,
     outline: "none",
     cursor: "pointer",
+  },
+  dashboardBanner: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    padding: "14px 16px",
+    margin: "12px 16px 8px",
+    borderRadius: 18,
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.08)",
+  },
+  dashboardBannerContent: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 4,
+  },
+  dashboardBannerTitle: {
+    fontSize: 14,
+    fontWeight: 900,
+    color: "#fff",
+  },
+  dashboardBannerSubtitle: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.65)",
+    lineHeight: 1.4,
+  },
+  dashboardBtn: {
+    minHeight: 40,
+    padding: "0 16px",
+    borderRadius: 999,
+    border: "none",
+    background: "linear-gradient(135deg, #C1121F, #7d0812)",
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: 900,
+    cursor: "pointer",
+  },
+  dashboardPlaceholderBtn: {
+    minHeight: 40,
+    padding: "0 16px",
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.18)",
+    background: "rgba(255,255,255,0.04)",
+    color: "rgba(255,255,255,0.65)",
+    fontSize: 13,
+    fontWeight: 900,
+    cursor: "not-allowed",
+  },
+  optionStyle: {
+    background: "#111",
+    color: "#fff",
+  },
+  fieldSelect: {
+    width: "100%",
+    minHeight: 42,
+    padding: "0 12px",
+    borderRadius: 10,
+    border: "1px solid rgba(255,255,255,0.14)",
+    background: "rgba(18,18,18,0.96)",
+    color: "#fff",
+    fontSize: 14,
+    outline: "none",
+    cursor: "pointer",
+    boxSizing: "border-box",
   },
   cardList: {
     display: "flex",
@@ -969,7 +1081,7 @@ const styles = {
     padding: "0 12px",
     borderRadius: 10,
     border: "1px solid rgba(255,255,255,0.14)",
-    background: "rgba(255,255,255,0.07)",
+    background: "rgba(18,18,18,0.96)",
     color: "#fff",
     fontSize: 14,
     outline: "none",
