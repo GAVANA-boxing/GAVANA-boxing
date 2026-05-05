@@ -270,6 +270,7 @@ export default function TrainPage() {
           result: pvpRes,
           seasonId: getCurrentSeasonId(),
           createdAt: serverTimestamp(),
+          locale,
         });
         setPvpSaved(true);
 
@@ -922,8 +923,28 @@ export default function TrainPage() {
                 </div>
               )}
 
+              {/* PvP target HUD — top-right (replaces ghost HUD in PvP mode) */}
+              {challengeUserId && targetScore && (
+                <div style={styles.ghostHud}>
+                  <div style={styles.ghostHudRow}>
+                    <span style={styles.ghostHudYouLabel}>{t("pvpYouLabel")}</span>
+                    <span style={{
+                      ...styles.ghostHudYouScore,
+                      color: liveScore >= targetScore ? "#34D399" : "#D4AF37",
+                    }}>
+                      {liveScore.toFixed(1)}
+                    </span>
+                  </div>
+                  <span style={styles.ghostHudSep}>vs</span>
+                  <div style={styles.ghostHudRow}>
+                    <span style={styles.ghostHudGhostLabel}>🎯</span>
+                    <span style={styles.ghostHudGhostScore}>{targetScore.toFixed(1)}</span>
+                  </div>
+                </div>
+              )}
+
               {/* Ghost vs You HUD — top-right */}
-              {ghostBestScore !== null && ghostEnabled && (
+              {!challengeUserId && ghostBestScore !== null && ghostEnabled && (
                 <div style={styles.ghostHud}>
                   <div style={styles.ghostHudRow}>
                     <span style={styles.ghostHudYouLabel}>YOU</span>
@@ -993,15 +1014,37 @@ export default function TrainPage() {
             {/* PvP result announcement */}
             {challengeUserId && pvpResult && (
               <div style={pvpResult === "win" ? styles.pvpWinBanner : styles.pvpLoseBanner}>
+                <div style={styles.pvpResultBadge}>
+                  {pvpResult === "win" ? t("pvpWin") : t("pvpLose")}
+                </div>
                 <div style={styles.pvpResultHeadline}>
                   {pvpResult === "win"
                     ? t("pvpYouWon").replace("{username}", opponentUsername || "them")
                     : t("pvpYouLost")}
                 </div>
-                <div style={styles.pvpResultScores}>
-                  <span style={styles.pvpResultYou}>{t("pvpVsLabel")} @{opponentUsername || "?"}: {targetScore?.toFixed(1)}/10</span>
-                  {pvpSaved && <span style={styles.pvpResultSaved}>✓ {t("pvpResultSaved")}</span>}
+                <div style={styles.pvpResultScoreRow}>
+                  <div style={styles.pvpResultScoreCell}>
+                    <span style={styles.pvpResultScoreNum}>{result.score.toFixed(1)}</span>
+                    <span style={styles.pvpResultScoreLbl}>{t("pvpYouLabel")}</span>
+                  </div>
+                  <div style={styles.pvpResultScoreVs}>{t("pvpVsLabel")}</div>
+                  <div style={styles.pvpResultScoreCell}>
+                    <span style={styles.pvpResultScoreNum}>{targetScore?.toFixed(1)}</span>
+                    <span style={styles.pvpResultScoreLbl}>@{opponentUsername || "?"}</span>
+                  </div>
                 </div>
+                {(() => {
+                  const diff = result.score - (targetScore || 0);
+                  return (
+                    <div style={{
+                      ...styles.pvpResultDiff,
+                      color: diff >= 0 ? "#34D399" : "#F87171",
+                    }}>
+                      {diff >= 0 ? "+" : ""}{diff.toFixed(1)}
+                    </div>
+                  );
+                })()}
+                {pvpSaved && <div style={styles.pvpResultSaved}>✓ {t("pvpResultSaved")}</div>}
               </div>
             )}
 
@@ -1332,27 +1375,63 @@ const styles = {
     border: "1px solid rgba(193,18,31,0.35)",
     textAlign: "center",
   },
+  pvpResultBadge: {
+    display: "inline-block",
+    padding: "3px 14px",
+    borderRadius: 999,
+    fontSize: 11,
+    fontWeight: 1000,
+    letterSpacing: 2,
+    textTransform: "uppercase",
+    background: "rgba(255,255,255,0.1)",
+    color: "#fff",
+    marginBottom: 8,
+  },
   pvpResultHeadline: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: 1000,
     color: "#fff",
+    marginBottom: 10,
+  },
+  pvpResultScoreRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
     marginBottom: 6,
   },
-  pvpResultScores: {
+  pvpResultScoreCell: {
     display: "flex",
     flexDirection: "column",
-    gap: 2,
     alignItems: "center",
+    gap: 2,
   },
-  pvpResultYou: {
-    fontSize: 12,
-    color: "#aaa",
+  pvpResultScoreNum: {
+    fontSize: 28,
+    fontWeight: 1000,
+    lineHeight: 1,
+    color: "#fff",
+  },
+  pvpResultScoreLbl: {
+    fontSize: 11,
+    color: "rgba(255,255,255,0.55)",
     fontWeight: 700,
+  },
+  pvpResultScoreVs: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.4)",
+    fontWeight: 700,
+  },
+  pvpResultDiff: {
+    fontSize: 20,
+    fontWeight: 1000,
+    marginBottom: 6,
   },
   pvpResultSaved: {
     fontSize: 11,
     color: "#34D399",
     fontWeight: 800,
+    marginTop: 4,
   },
   stage: {
     position: "relative",

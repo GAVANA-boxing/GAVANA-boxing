@@ -1307,6 +1307,17 @@ export default function UserProfilePage() {
                 <span style={styles.pvpCardNum}>{pvpStats.wins + pvpStats.losses}</span>
                 <span style={styles.pvpCardLbl}>{t("pvpTotalBattles")}</span>
               </div>
+              {pvpStats.wins + pvpStats.losses > 0 && (
+                <>
+                  <div style={styles.pvpCardDivider} />
+                  <div style={styles.pvpCardStat}>
+                    <span style={{ ...styles.pvpCardNum, color: "#60A5FA" }}>
+                      {Math.round((pvpStats.wins / (pvpStats.wins + pvpStats.losses)) * 100)}%
+                    </span>
+                    <span style={styles.pvpCardLbl}>{t("pvpWinRate")}</span>
+                  </div>
+                </>
+              )}
               {pvpStats.bestWinScore != null && (
                 <>
                   <div style={styles.pvpCardDivider} />
