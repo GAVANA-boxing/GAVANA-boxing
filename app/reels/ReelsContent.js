@@ -219,6 +219,7 @@ export default function ReelsContent() {
   const { user, loading: authLoading } = useAuth();
   const [feedMode, setFeedMode] = useState("forYou");
   const [diffFilter, setDiffFilter] = useState("all"); // "all" | "beginner"
+  const [ctFilter, setCtFilter] = useState("all"); // "all" | "training" | "lifestyle" | "educational"
   const [allReels, setAllReels] = useState(null);
   const [reels, setReels] = useState([]);
   const [reelsLoading, setReelsLoading] = useState(true);
@@ -280,7 +281,8 @@ export default function ReelsContent() {
 
     if (feedMode !== "following") {
       const base = allReels.length > 0 ? allReels : [DEMO_REEL];
-      const filtered = diffFilter === "beginner" ? base.filter((r) => r.difficulty === "beginner" || !r.difficulty) : base;
+      const diffFiltered = diffFilter === "beginner" ? base.filter((r) => r.difficulty === "beginner" || !r.difficulty) : base;
+      const filtered = ctFilter !== "all" ? diffFiltered.filter((r) => (r.contentType || "training") === ctFilter) : diffFiltered;
       const scored = [...filtered].sort((a, b) =>
         computeFeedScore(b, makeStats(b), userTrainingProfile, userViews.has(b.id), isFeatured(b)) -
         computeFeedScore(a, makeStats(a), userTrainingProfile, userViews.has(a.id), isFeatured(a))
@@ -292,7 +294,8 @@ export default function ReelsContent() {
 
     // Following feed: hybrid sort — recency-weighted but boosted by engagement and personalisation
     const followedReels = allReels.filter((reel) => reel.userId && followingIds.has(reel.userId));
-    const filtered = diffFilter === "beginner" ? followedReels.filter((r) => r.difficulty === "beginner" || !r.difficulty) : followedReels;
+    const diffFiltered = diffFilter === "beginner" ? followedReels.filter((r) => r.difficulty === "beginner" || !r.difficulty) : followedReels;
+    const filtered = ctFilter !== "all" ? diffFiltered.filter((r) => (r.contentType || "training") === ctFilter) : diffFiltered;
     const sorted = [...filtered].sort((a, b) => {
       const recencyA = getCreatedAtMs(a);
       const recencyB = getCreatedAtMs(b);
@@ -303,7 +306,7 @@ export default function ReelsContent() {
     });
     setReels(sorted);
     setCurrentIndex(0);
-  }, [allReels, authLoading, feedMode, followingIds, isProfileSource, profileSourceUserId, diffFilter, userTrainingProfile, userViews, featuredCreatorIds]);
+  }, [allReels, authLoading, feedMode, followingIds, isProfileSource, profileSourceUserId, diffFilter, ctFilter, userTrainingProfile, userViews, featuredCreatorIds]);
 
   useEffect(() => {
     if (!targetReelId || !reels.length || lastScrolledReelId.current === targetReelId) return;
@@ -1755,6 +1758,27 @@ export default function ReelsContent() {
         >
           {diffFilter === "beginner" ? `✓ ${t("beginnerFilter")}` : t("beginnerFilter")}
         </button>
+        <button
+          type="button"
+          onClick={() => setCtFilter((prev) => {
+            const order = ["all", "training", "lifestyle", "educational"];
+            return order[(order.indexOf(prev) + 1) % order.length];
+          })}
+          style={{
+            ...styles.feedTab,
+            ...(ctFilter !== "all" ? {
+              ...styles.feedTabActive,
+              color: ctFilter === "training" ? "#F87171" : ctFilter === "lifestyle" ? "#60A5FA" : "#D4AF37",
+              borderWidth: "1px",
+              borderStyle: "solid",
+              borderColor: ctFilter === "training" ? "rgba(193,18,31,0.5)" : ctFilter === "lifestyle" ? "rgba(96,165,250,0.4)" : "rgba(212,175,55,0.4)",
+            } : {}),
+            fontSize: 11,
+            padding: "4px 10px",
+          }}
+        >
+          {ctFilter === "all" ? `📂 ${t("ctFilterAll")}` : ctFilter === "training" ? `✓ 🥊 ${t("ctFilterTraining")}` : ctFilter === "lifestyle" ? `✓ 🎬 ${t("ctFilterLifestyle")}` : `✓ 📚 ${t("ctFilterEducational")}`}
+        </button>
       </div>
       )}
       {/* Reels Feed */}
@@ -1968,17 +1992,29 @@ export default function ReelsContent() {
                   {captionText}
                 </button>
               )}
-              {/* Difficulty badge only */}
-              {!reel.isDemo && reel.difficulty && (
+              {/* Difficulty + content type badges */}
+              {!reel.isDemo && (reel.difficulty || reel.contentType === "lifestyle" || reel.contentType === "educational") && (
                 <div style={styles.reelBadgeRow}>
-                  <span style={{
-                    ...styles.reelBadge,
-                    background: reel.difficulty === "beginner" ? "rgba(52,211,153,0.15)" : reel.difficulty === "intermediate" ? "rgba(212,175,55,0.15)" : "rgba(193,18,31,0.18)",
-                    color: reel.difficulty === "beginner" ? "#34D399" : reel.difficulty === "intermediate" ? "#D4AF37" : "#F87171",
-                    borderColor: reel.difficulty === "beginner" ? "rgba(52,211,153,0.35)" : reel.difficulty === "intermediate" ? "rgba(212,175,55,0.35)" : "rgba(193,18,31,0.4)",
-                  }}>
-                    {t(`diff${reel.difficulty.charAt(0).toUpperCase()}${reel.difficulty.slice(1)}`) || reel.difficulty}
-                  </span>
+                  {reel.difficulty && (
+                    <span style={{
+                      ...styles.reelBadge,
+                      background: reel.difficulty === "beginner" ? "rgba(52,211,153,0.15)" : reel.difficulty === "intermediate" ? "rgba(212,175,55,0.15)" : "rgba(193,18,31,0.18)",
+                      color: reel.difficulty === "beginner" ? "#34D399" : reel.difficulty === "intermediate" ? "#D4AF37" : "#F87171",
+                      borderColor: reel.difficulty === "beginner" ? "rgba(52,211,153,0.35)" : reel.difficulty === "intermediate" ? "rgba(212,175,55,0.35)" : "rgba(193,18,31,0.4)",
+                    }}>
+                      {t(`diff${reel.difficulty.charAt(0).toUpperCase()}${reel.difficulty.slice(1)}`) || reel.difficulty}
+                    </span>
+                  )}
+                  {reel.contentType === "lifestyle" && (
+                    <span style={{ ...styles.reelBadge, background: "rgba(96,165,250,0.15)", color: "#60A5FA", borderColor: "rgba(96,165,250,0.35)" }}>
+                      🎬 {t("ctFilterLifestyle")}
+                    </span>
+                  )}
+                  {reel.contentType === "educational" && (
+                    <span style={{ ...styles.reelBadge, background: "rgba(212,175,55,0.15)", color: "#D4AF37", borderColor: "rgba(212,175,55,0.35)" }}>
+                      📚 {t("ctFilterEducational")}
+                    </span>
+                  )}
                 </div>
               )}
               {/* Primary CTA — challenge button only */}

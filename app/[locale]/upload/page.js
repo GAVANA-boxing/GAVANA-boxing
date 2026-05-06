@@ -70,6 +70,7 @@ export default function UploadPage() {
   // Step: "choose" | "form"
   const [step, setStep] = useState("choose");
   const [reelType, setReelType] = useState("training"); // "training" | "content"
+  const [contentType, setContentType] = useState("training"); // "training" | "lifestyle" | "educational"
 
   // Remix context (populated from ?remixOf URL param)
   const [remixOfId, setRemixOfId] = useState(null);
@@ -135,8 +136,9 @@ export default function UploadPage() {
   if (authLoading) return <div style={styles.loading}>{t("loading")}</div>;
   if (!user) return null;
 
-  const handleTypeSelect = (type) => {
-    setReelType(type);
+  const handleTypeSelect = (ct) => {
+    setContentType(ct);
+    setReelType(ct === "training" ? "training" : "content");
     setStep("form");
   };
 
@@ -181,6 +183,7 @@ export default function UploadPage() {
         thumbnailUrl,
         description: description.trim(),
         type: reelType,
+        contentType,
         category,
         difficulty,
         tags: tagList,
@@ -280,10 +283,15 @@ export default function UploadPage() {
               <span style={styles.typeCardTitle}>{t("uploadTypeTraining")}</span>
               <span style={styles.typeCardDesc}>Challenge, score, compete</span>
             </button>
-            <button type="button" style={{ ...styles.typeCard, borderColor: "rgba(96,165,250,0.4)" }} onClick={() => handleTypeSelect("content")}>
+            <button type="button" style={{ ...styles.typeCard, borderColor: "rgba(96,165,250,0.4)" }} onClick={() => handleTypeSelect("lifestyle")}>
               <span style={styles.typeCardEmoji}>🎬</span>
-              <span style={{ ...styles.typeCardTitle, color: "#60A5FA" }}>{t("uploadTypeContent")}</span>
-              <span style={styles.typeCardDesc}>Share knowledge & technique</span>
+              <span style={{ ...styles.typeCardTitle, color: "#60A5FA" }}>{t("uploadTypeLifestyle")}</span>
+              <span style={styles.typeCardDesc}>Gym life, motivation, behind the scenes</span>
+            </button>
+            <button type="button" style={{ ...styles.typeCard, borderColor: "rgba(212,175,55,0.4)", gridColumn: "1 / -1" }} onClick={() => handleTypeSelect("educational")}>
+              <span style={styles.typeCardEmoji}>📚</span>
+              <span style={{ ...styles.typeCardTitle, color: "#D4AF37" }}>{t("uploadTypeEducational")}</span>
+              <span style={styles.typeCardDesc}>Technique breakdowns, tips, tutorials</span>
             </button>
           </div>
         </div>
@@ -303,8 +311,13 @@ export default function UploadPage() {
           <button type="button" style={styles.backBtn} onClick={() => setStep("choose")}>← {t("back")}</button>
           <p style={styles.eyebrow}>GAVANA BOXING</p>
           <h1 style={styles.headline}>{t("uploadReel")}</h1>
-          <span style={{ ...styles.typePill, background: isTraining ? "rgba(193,18,31,0.18)" : "rgba(96,165,250,0.12)", border: isTraining ? "1px solid rgba(193,18,31,0.4)" : "1px solid rgba(96,165,250,0.3)", color: isTraining ? "#F87171" : "#60A5FA" }}>
-            {isTraining ? `🥊 ${t("uploadTypeTraining")}` : `🎬 ${t("uploadTypeContent")}`}
+          <span style={{
+            ...styles.typePill,
+            background: contentType === "training" ? "rgba(193,18,31,0.18)" : contentType === "lifestyle" ? "rgba(96,165,250,0.12)" : "rgba(212,175,55,0.12)",
+            border: contentType === "training" ? "1px solid rgba(193,18,31,0.4)" : contentType === "lifestyle" ? "1px solid rgba(96,165,250,0.3)" : "1px solid rgba(212,175,55,0.35)",
+            color: contentType === "training" ? "#F87171" : contentType === "lifestyle" ? "#60A5FA" : "#D4AF37",
+          }}>
+            {contentType === "training" ? `🥊 ${t("uploadTypeTraining")}` : contentType === "lifestyle" ? `🎬 ${t("uploadTypeLifestyle")}` : `📚 ${t("uploadTypeEducational")}`}
           </span>
         </div>
 
