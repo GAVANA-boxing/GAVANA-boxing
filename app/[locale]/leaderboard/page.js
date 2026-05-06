@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
@@ -64,6 +64,7 @@ export default function LeaderboardPage() {
   const [profiles, setProfiles] = useState({});
   const [loading, setLoading] = useState(true);
   const [trainingSessions, setTrainingSessions] = useState([]);
+  const [followingIds, setFollowingIds] = useState(new Set());
 
   const currentSeasonId = useMemo(() => getCurrentSeasonId(), []);
   const seasonLabel = useMemo(() => getSeasonLabel(currentSeasonId), [currentSeasonId]);
@@ -187,6 +188,22 @@ export default function LeaderboardPage() {
     return () => { active = false; };
   }, []);
 
+  useEffect(() => {
+    if (!user?.uid) { setFollowingIds(new Set()); return; }
+    let active = true;
+    async function loadFollowing() {
+      try {
+        const snap = await getDocs(query(collection(db, "follows"), where("followerId", "==", user.uid)));
+        if (!active) return;
+        const ids = new Set();
+        snap.forEach((d) => { if (d.data().followingId) ids.add(d.data().followingId); });
+        setFollowingIds(ids);
+      } catch { setFollowingIds(new Set()); }
+    }
+    loadFollowing();
+    return () => { active = false; };
+  }, [user?.uid]);
+
   const weeklyEntries = useMemo(
     () => dedupeWeeklyByUser(rawChallengeResults, currentSeasonId),
     [rawChallengeResults, currentSeasonId]
@@ -224,10 +241,16 @@ export default function LeaderboardPage() {
       .slice(0, 50);
   }, [profiles]);
 
+  const friendsEntries = useMemo(() => {
+    if (!user?.uid || followingIds.size === 0) return [];
+    return entries.filter((e) => followingIds.has(e.userId) || e.userId === user.uid);
+  }, [entries, followingIds, user?.uid]);
+
   const displayEntries =
     leaderboardTab === "week" ? weeklyEntries
     : leaderboardTab === "improvement" ? improvementEntries
     : leaderboardTab === "streak" ? streakEntries
+    : leaderboardTab === "friends" ? friendsEntries
     : entries;
 
   const currentUserAllTimeRank = useMemo(() => {
@@ -303,6 +326,16 @@ export default function LeaderboardPage() {
             onClick={() => setLeaderboardTab("streak")}
           >
             {t("lbStreak")}
+          </button>
+          <button
+            type="button"
+            style={{ ...styles.tabBtn, ...(leaderboardTab === "friends" ? styles.tabBtnActive : {}) }}
+            onClick={() => {
+              if (!user?.uid) { router.push(`/${locale}/login`); return; }
+              setLeaderboardTab("friends");
+            }}
+          >
+            {t("friendsLeaderboard")}
           </button>
         </div>
         {leaderboardTab === "week" && (
@@ -382,7 +415,7 @@ export default function LeaderboardPage() {
           <div style={styles.emptyWrap}>
             <div style={styles.emptyIcon}>🏆</div>
             <p style={styles.emptyTitle}>
-              {leaderboardTab === "week" ? t("seasonNoResultsThisWeek") : leaderboardTab === "improvement" ? t("lbImprovementEmpty") : leaderboardTab === "streak" ? t("lbStreakEmpty") : t("leaderboardEmpty")}
+              {leaderboardTab === "week" ? t("seasonNoResultsThisWeek") : leaderboardTab === "improvement" ? t("lbImprovementEmpty") : leaderboardTab === "streak" ? t("lbStreakEmpty") : leaderboardTab === "friends" ? t("followingEmptyHelp") : t("leaderboardEmpty")}
             </p>
             <p style={styles.emptyText}>{t("leaderboardEmptyHelp")}</p>
           </div>

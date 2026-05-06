@@ -774,20 +774,20 @@ export default function ReelsContent() {
 
       try {
         const { db } = await getFirebase();
-        const { collection, addDoc, doc, updateDoc, increment, serverTimestamp } = await import("firebase/firestore");
-        
+        const { collection, addDoc, doc, setDoc, updateDoc, increment, serverTimestamp } = await import("firebase/firestore");
+
         // Record view in reel_views collection
         await addDoc(collection(db, "reel_views"), {
           reelId: currentReel.id,
           userId: user.uid,
           createdAt: serverTimestamp()
         });
-        
-        // Increment views count on reel
-        const reelRef = doc(db, "reels", currentReel.id);
-        await updateDoc(reelRef, {
-          views: increment(1)
-        });
+
+        // Increment views on reel doc and reel_stats in parallel
+        await Promise.all([
+          updateDoc(doc(db, "reels", currentReel.id), { views: increment(1) }),
+          setDoc(doc(db, "reel_stats", currentReel.id), { reelId: currentReel.id, views: increment(1), updatedAt: serverTimestamp() }, { merge: true }),
+        ]);
         
         // Update local state
         setUserViews(prev => {
@@ -1056,6 +1056,8 @@ export default function ReelsContent() {
           createdAt: new Date().toISOString()
         });
         await updateDoc(reelRef, { likes: increment(1) });
+        // Track in reel_stats for feed ranking
+        setDoc(doc(db, "reel_stats", reelId), { reelId, likes: increment(1), updatedAt: new Date() }, { merge: true }).catch(() => {});
         await createNotification({
           recipientId: likedReel?.userId,
           actorId: user.uid,
@@ -1107,7 +1109,7 @@ export default function ReelsContent() {
 
     try {
       const { db } = await getFirebase();
-      const { doc, setDoc, deleteDoc, serverTimestamp } = await import("firebase/firestore");
+      const { doc, setDoc, deleteDoc, serverTimestamp, increment } = await import("firebase/firestore");
       const saveRef = doc(db, "saved_reels", `${user.uid}_${reelId}`);
 
       if (wasSaved) {
@@ -1118,6 +1120,9 @@ export default function ReelsContent() {
           reelId,
           createdAt: serverTimestamp(),
         });
+        // Track saves in reel_stats for feed ranking
+        const statsRef = doc(db, "reel_stats", reelId);
+        setDoc(statsRef, { reelId, saves: increment(1), updatedAt: serverTimestamp() }, { merge: true }).catch(() => {});
       }
     } catch (err) {
       console.error("Failed to toggle saved reel:", err);
@@ -1910,13 +1915,17 @@ export default function ReelsContent() {
                 const isTraining = reel.type === "training";
                 const isChallengeable = isTraining || reel.challengeEnabled;
                 if (!isChallengeable) return null;
+                const handleChallengeClick = async () => {
+                  try {
+                    const { db: fdb } = await getFirebase();
+                    const { doc, setDoc, increment: fsIncrement, serverTimestamp: fsts } = await import("firebase/firestore");
+                    await setDoc(doc(fdb, "reel_stats", reel.id), { reelId: reel.id, challengeClicks: fsIncrement(1), updatedAt: fsts() }, { merge: true });
+                  } catch { /* non-critical */ }
+                  router.push(`/${currentLocale}/train?reelId=${encodeURIComponent(reel.id)}`);
+                };
                 return (
                   <div style={styles.trainButtonRow}>
-                    <button
-                      type="button"
-                      style={styles.tryThisButton}
-                      onClick={() => router.push(`/${currentLocale}/train?reelId=${encodeURIComponent(reel.id)}`)}
-                    >
+                    <button type="button" style={styles.tryThisButton} onClick={handleChallengeClick}>
                       {isTraining ? t("reelChallenge") : t("reelTryWorkout")}
                     </button>
                     {reel.userId && reel.userId !== user?.uid && hasBestScore && (
@@ -1930,9 +1939,27 @@ export default function ReelsContent() {
                         {t("pvpBeatThisScore")}
                       </button>
                     )}
+                    <button
+                      type="button"
+                      style={{ ...styles.beatScoreButton, color: "#A78BFA", borderColor: "rgba(167,139,250,0.4)" }}
+                      onClick={() => {
+                        const params = new URLSearchParams({ remixOf: reel.id });
+                        if (reel.userId) params.set("remixOfCreatorId", reel.userId);
+                        if (creatorName) params.set("remixOfCreatorName", creatorName);
+                        router.push(`/${currentLocale}/upload?${params.toString()}`);
+                      }}
+                    >
+                      🔀 {t("remixChallenge")}
+                    </button>
                   </div>
                 );
               })()}
+              {/* Remix origin banner */}
+              {!reel.isDemo && reel.remixOf && (
+                <div style={{ fontSize: 11, color: "#A78BFA", marginTop: 4, opacity: 0.85 }}>
+                  🔀 {t("remixOf").replace("{username}", reel.remixOfCreatorName || "creator")}
+                </div>
+              )}
             </div>
 
             <div style={styles.actions}>

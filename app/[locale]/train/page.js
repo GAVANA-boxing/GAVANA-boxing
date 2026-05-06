@@ -11,6 +11,8 @@ import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { createPvpNotification } from "@/lib/notifications";
 import { getCurrentSeasonId } from "@/lib/season";
 import { calculateChallengeXP, calculateUserXP, getFighterRank, getRankProgress } from "@/lib/xp";
+import { writeChallengeAttempt, updateUserTrainingProfile } from "@/lib/analytics";
+import { checkAndAwardBadges } from "@/lib/badges";
 
 const RECORD_SECONDS = 10;
 const CHALLENGES = {
@@ -732,23 +734,28 @@ export default function TrainPage() {
   const handleShareTraining = async () => {
     if (!result) return;
 
-    const text = `I scored ${result.score.toFixed(1)} in GAVANA 🥊 Can you beat me?`;
+    const scoreStr = result.score.toFixed(1);
+    const baseText = t("shareChallengeResult")
+      ? `${t("shareChallengeResult")} — ${scoreStr}/10 🥊`
+      : `I scored ${scoreStr}/10 in GAVANA 🥊 Can you beat me?`;
+
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+    const params = new URLSearchParams({ score: scoreStr });
+    if (reelId) params.set("reelId", reelId);
+    if (user?.uid) params.set("challengeUserId", user.uid);
+    const challengeUrl = reelId ? `${baseUrl}/${locale}/train?${params.toString()}` : "";
+    const fullText = challengeUrl ? `${baseText}\n${challengeUrl}` : baseText;
 
     try {
       if (navigator.share) {
-        await navigator.share({
-          title: "GAVANA",
-          text,
-        });
+        await navigator.share({ title: "GAVANA Boxing", text: baseText, ...(challengeUrl ? { url: challengeUrl } : {}) });
         return;
       }
-
       if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(text);
+        await navigator.clipboard.writeText(fullText);
         setError(t("shareLinkCopied"));
         return;
       }
-
       setError(t("shareFailed"));
     } catch (err) {
       console.error("Training share failed:", err);
@@ -825,6 +832,33 @@ export default function TrainPage() {
 
       setSaved(true);
       setSavedAttemptNumber(attemptNumber);
+
+      // Analytics + badges (non-critical, fire and forget)
+      if (reelId) {
+        writeChallengeAttempt({
+          userId: user.uid,
+          reelId,
+          score: result.score,
+          hitCount: result.hitCount || 0,
+          attemptNumber,
+        }).catch(() => {});
+      }
+
+      const newStreak = Number((await getDoc(doc(db, "users", user.uid))).data()?.dailyStreak) || 1;
+      const breakdown = result.breakdown || {};
+      updateUserTrainingProfile(user.uid, {
+        lastScore: result.score,
+        dailyStreak: newStreak,
+        totalAttempts: attemptNumber,
+      }).catch(() => {});
+
+      checkAndAwardBadges(user.uid, {
+        totalAttempts: attemptNumber,
+        dailyStreak: newStreak,
+        accuracy: breakdown.accuracy,
+        speed: breakdown.speed,
+        category: "boxing",
+      }).catch(() => {});
     } catch (err) {
       console.error("Failed to save training session:", err);
       setError(t("trainSaveFailed"));

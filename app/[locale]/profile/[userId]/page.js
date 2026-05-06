@@ -315,6 +315,7 @@ export default function UserProfilePage() {
   const [showWeeklyModal, setShowWeeklyModal] = useState(false);
   const [pvpStats, setPvpStats] = useState(null);
   const [coachBookings, setCoachBookings] = useState([]);
+  const [userBadges, setUserBadges] = useState([]);
   const rankUpShownRef = useRef(false);
 
   // Redirect if not logged in
@@ -670,6 +671,23 @@ export default function UserProfilePage() {
     }
 
     loadPvpStats();
+    return () => { active = false; };
+  }, [userId]);
+
+  // Load earned badges
+  useEffect(() => {
+    if (!userId) return;
+    let active = true;
+    async function loadBadges() {
+      try {
+        const { collection, getDocs, query, where } = await import("firebase/firestore");
+        const snap = await getDocs(query(collection(db, "user_badges"), where("userId", "==", userId)));
+        if (!active) return;
+        const badges = snap.docs.map((d) => d.data());
+        setUserBadges(badges);
+      } catch { if (active) setUserBadges([]); }
+    }
+    loadBadges();
     return () => { active = false; };
   }, [userId]);
 
@@ -1380,6 +1398,20 @@ export default function UserProfilePage() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {userBadges.length > 0 && (
+          <div style={styles.badgesRow}>
+            {userBadges.map((b) => {
+              const ICONS = { first_challenge: "🥊", streak_3: "🔥", streak_7: "⚡", jab_master: "🎯", speed_king: "💨", creator_starter: "🎬" };
+              const icon = ICONS[b.badgeId] || "🏅";
+              return (
+                <div key={b.badgeId} style={styles.badgePill} title={t(b.badgeId + "Badge") || b.badgeId}>
+                  <span>{icon}</span>
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -2111,6 +2143,26 @@ const styles = {
   challengeStreakIcon: {
     fontSize: 16,
     lineHeight: 1,
+  },
+  badgesRow: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 8,
+    justifyContent: "center",
+    margin: "14px auto 0",
+    maxWidth: 430,
+  },
+  badgePill: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    background: "rgba(255,255,255,0.07)",
+    border: "1px solid rgba(255,255,255,0.14)",
+    fontSize: 20,
+    cursor: "default",
   },
   bio: {
     maxWidth: 430,

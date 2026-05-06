@@ -69,6 +69,11 @@ export default function UploadPage() {
   const [step, setStep] = useState("choose");
   const [reelType, setReelType] = useState("training"); // "training" | "content"
 
+  // Remix context (populated from ?remixOf URL param)
+  const [remixOfId, setRemixOfId] = useState(null);
+  const [remixOfCreatorId, setRemixOfCreatorId] = useState(null);
+  const [remixOfCreatorName, setRemixOfCreatorName] = useState(null);
+
   // Video
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -98,6 +103,19 @@ export default function UploadPage() {
   useEffect(() => {
     if (!authLoading && !user) router.push(`/${locale}/login`);
   }, [authLoading, user, router, locale]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const rid = params.get("remixOf");
+    if (rid) {
+      setRemixOfId(rid);
+      setRemixOfCreatorId(params.get("remixOfCreatorId") || null);
+      setRemixOfCreatorName(params.get("remixOfCreatorName") || null);
+      setReelType("training");
+      setStep("form");
+    }
+  }, []);
 
   if (authLoading) return <div style={styles.loading}>{t("loading")}</div>;
   if (!user) return null;
@@ -141,7 +159,7 @@ export default function UploadPage() {
 
       const tagList = tags.split(",").map((t) => t.trim()).filter(Boolean);
 
-      await addDoc(collection(db, "reels"), {
+      const reelDoc = {
         userId: user.uid,
         username: user.displayName || user.email?.split("@")[0] || "user",
         videoUrl,
@@ -158,7 +176,13 @@ export default function UploadPage() {
         commentsCount: 0,
         shares: 0,
         createdAt: serverTimestamp(),
-      });
+      };
+      if (remixOfId) {
+        reelDoc.remixOf = remixOfId;
+        if (remixOfCreatorId) reelDoc.remixOfCreatorId = remixOfCreatorId;
+        if (remixOfCreatorName) reelDoc.remixOfCreatorName = remixOfCreatorName;
+      }
+      await addDoc(collection(db, "reels"), reelDoc);
 
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       router.push(`/${locale}/reels`);
@@ -253,6 +277,11 @@ export default function UploadPage() {
           </span>
         </div>
 
+        {remixOfId && (
+          <div style={{ background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.35)", borderRadius: 10, padding: "10px 14px", marginBottom: 12, fontSize: 13, color: "#F87171" }}>
+            🔀 {t("remixChallenge")}{remixOfCreatorName ? ` — ${t("remixOf").replace("{username}", remixOfCreatorName)}` : ""}
+          </div>
+        )}
         {error && <div style={styles.errBox}>{error}</div>}
 
         {/* Video picker / preview */}
