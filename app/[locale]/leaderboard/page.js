@@ -602,6 +602,7 @@ const styles = {
     fontSize: 28,
     fontWeight: 950,
     lineHeight: 1.1,
+    fontFamily: "var(--font-display, 'Anton', sans-serif)",
   },
   trophyBadge: {
     fontSize: 22,
@@ -732,6 +733,7 @@ const styles = {
     fontSize: 22,
     fontWeight: 900,
     lineHeight: 1.1,
+    fontFamily: "var(--font-display, 'Anton', sans-serif)",
   },
   loading: {
     textAlign: "center",

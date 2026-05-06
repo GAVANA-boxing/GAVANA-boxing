@@ -319,7 +319,7 @@ const styles = {
   content: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },
   header: { paddingTop: "calc(18px + env(safe-area-inset-top))", paddingBottom: 20, display: "flex", flexDirection: "column", gap: 4 },
   kicker: { margin: 0, fontSize: 11, letterSpacing: 2, color: "rgba(255,255,255,0.35)", textTransform: "uppercase" },
-  title: { margin: 0, fontSize: 28, fontWeight: 1000, lineHeight: 1.1 },
+  title: { margin: 0, fontSize: 28, fontWeight: 1000, lineHeight: 1.1, fontFamily: "var(--font-display, 'Anton', sans-serif)" },
   subtitle: { margin: 0, fontSize: 14, color: "rgba(255,255,255,0.45)" },
   registerBtn: { alignSelf: "flex-start", marginTop: 8, padding: "8px 16px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.45)", background: "rgba(212,175,55,0.1)", color: "#D4AF37", fontSize: 13, fontWeight: 900, cursor: "pointer" },
   searchInput: { width: "100%", boxSizing: "border-box", padding: "12px 16px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 15, outline: "none", marginBottom: 12 },

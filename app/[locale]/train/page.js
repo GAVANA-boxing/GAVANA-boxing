@@ -1417,6 +1417,7 @@ const styles = {
     lineHeight: 1,
     fontWeight: 1000,
     letterSpacing: 0,
+    fontFamily: "var(--font-display, 'Anton', sans-serif)",
   },
   subtitle: {
     margin: 0,
@@ -1607,6 +1608,7 @@ const styles = {
     justifyContent: "center",
     fontSize: 140,
     fontWeight: 1000,
+    fontFamily: "var(--font-display, 'Anton', sans-serif)",
     color: "#fff",
     textShadow: "0 0 80px rgba(193,18,31,0.7), 0 18px 60px rgba(0,0,0,0.9)",
     zIndex: 10,
@@ -1691,6 +1693,7 @@ const styles = {
     color: "#fff",
     fontSize: 64,
     fontWeight: 1000,
+    fontFamily: "var(--font-display, 'Anton', sans-serif)",
     lineHeight: 1,
     textShadow: "0 0 40px rgba(212,175,55,0.55), 0 4px 18px rgba(0,0,0,0.95)",
   },
@@ -1886,6 +1889,7 @@ const styles = {
     fontSize: 72,
     lineHeight: 0.95,
     fontWeight: 1000,
+    fontFamily: "var(--font-display, 'Anton', sans-serif)",
   },
   scoreUnit: {
     color: "rgba(255,255,255,0.52)",

@@ -279,7 +279,7 @@ const streakCardStyle = {
   justifyItems: "center",
 };
 const streakCardLabel = { color: "#888", fontSize: 10, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase" };
-const streakCardValue = { fontSize: 36, fontWeight: 1000, lineHeight: 1 };
+const streakCardValue = { fontSize: 36, fontWeight: 1000, lineHeight: 1, fontFamily: "var(--font-display, 'Anton', sans-serif)" };
 const streakCardUnit = { color: "#888", fontSize: 11, fontWeight: 700 };
 const streakRowStyle = { display: "flex", justifyContent: "space-between", alignItems: "center" };
 const streakRowLabel = { color: "#888", fontSize: 13, fontWeight: 700 };
@@ -2270,6 +2270,7 @@ const styles = {
     fontSize: 25,
     lineHeight: 1,
     fontWeight: 1000,
+    fontFamily: "var(--font-display, 'Anton', sans-serif)",
   },
   statLabel: {
     color: "#AAAAAA",

@@ -625,6 +625,7 @@ const styles = {
     fontSize: 28,
     fontWeight: 1000,
     lineHeight: 1.1,
+    fontFamily: "var(--font-display, 'Anton', sans-serif)",
   },
   filterBar: {
     display: "flex",

@@ -354,7 +354,7 @@ const styles = {
   },
   header: { display: "grid", gap: 8 },
   kicker: { margin: 0, color: "#D4AF37", fontSize: 11, fontWeight: 950, letterSpacing: 2 },
-  title: { margin: 0, fontSize: 38, lineHeight: 1, fontWeight: 1000 },
+  title: { margin: 0, fontSize: 38, lineHeight: 1, fontWeight: 1000, fontFamily: "var(--font-display, 'Anton', sans-serif)" },
   subtitle: { margin: 0, color: "rgba(255,255,255,0.66)", fontSize: 14, lineHeight: 1.45 },
   streakPill: {
     width: "fit-content",
@@ -474,7 +474,7 @@ const styles = {
     boxShadow: "0 18px 50px rgba(0,0,0,0.28)",
   },
   cardTop: { display: "grid", gap: 16 },
-  cardTitle: { margin: 0, color: "#fff", fontSize: 20, fontWeight: 950 },
+  cardTitle: { margin: 0, color: "#fff", fontSize: 20, fontWeight: 950, fontFamily: "var(--font-display, 'Anton', sans-serif)" },
   cardDesc: { margin: "7px 0 0", color: "rgba(255,255,255,0.64)", fontSize: 13, lineHeight: 1.45 },
   startButton: {
     width: "100%",
