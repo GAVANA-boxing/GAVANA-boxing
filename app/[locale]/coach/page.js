@@ -384,7 +384,7 @@ export default function CoachPage() {
             <div style={styles.emptyState}>
               <div style={styles.emptyIcon}>🥊</div>
               <div style={styles.emptyText}>{t("coachNoCoaches")}</div>
-              <p style={{ margin: "4px 0 16px", color: "rgba(255,255,255,0.35)", fontSize: 13, textAlign: "center", maxWidth: 260 }}>
+              <p style={{ margin: "4px 0 16px", color: "rgba(255,255,255,0.55)", fontSize: 13, textAlign: "center", maxWidth: 260 }}>
                 {t("coachNoCoachesSub")}
               </p>
               <button
@@ -582,7 +582,7 @@ const styles = {
     border: "none",
     borderBottom: "2px solid transparent",
     background: "transparent",
-    color: "rgba(255,255,255,0.45)",
+    color: "rgba(255,255,255,0.65)",
     fontSize: 13,
     fontWeight: 700,
     cursor: "pointer",
@@ -829,7 +829,7 @@ const styles = {
   },
   cardStatLbl: {
     fontSize: 10,
-    color: "rgba(255,255,255,0.45)",
+    color: "rgba(255,255,255,0.65)",
     fontWeight: 700,
     textTransform: "uppercase",
     letterSpacing: 0.5,
@@ -933,7 +933,7 @@ const styles = {
   loadingText: {
     textAlign: "center",
     padding: "40px 0",
-    color: "rgba(255,255,255,0.4)",
+    color: "rgba(255,255,255,0.62)",
     fontSize: 14,
   },
   emptyState: {
@@ -949,7 +949,7 @@ const styles = {
     opacity: 0.4,
   },
   emptyText: {
-    color: "rgba(255,255,255,0.4)",
+    color: "rgba(255,255,255,0.62)",
     fontSize: 15,
     fontWeight: 700,
   },

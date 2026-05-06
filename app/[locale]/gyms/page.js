@@ -284,7 +284,7 @@ export default function GymsPage() {
           <div style={styles.emptyState}>
             <div style={{ fontSize: 44, opacity: 0.5 }}>🏋️</div>
             <p style={styles.emptyText}>{t("gymsNoGyms")}</p>
-            <p style={{ margin: "-4px 0 16px", color: "rgba(255,255,255,0.32)", fontSize: 13, textAlign: "center", maxWidth: 260 }}>
+            <p style={{ margin: "-4px 0 16px", color: "rgba(255,255,255,0.55)", fontSize: 13, textAlign: "center", maxWidth: 260 }}>
               {t("gymsNoGymsSub")}
             </p>
             <button
@@ -318,9 +318,9 @@ const styles = {
   page: { minHeight: "100vh", background: "#0A0A0A", color: "#fff", fontFamily: "system-ui, sans-serif" },
   content: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },
   header: { paddingTop: "calc(18px + env(safe-area-inset-top))", paddingBottom: 20, display: "flex", flexDirection: "column", gap: 4 },
-  kicker: { margin: 0, fontSize: 11, letterSpacing: 2, color: "rgba(255,255,255,0.35)", textTransform: "uppercase" },
+  kicker: { margin: 0, fontSize: 11, letterSpacing: 2, color: "rgba(255,255,255,0.55)", textTransform: "uppercase" },
   title: { margin: 0, fontSize: 28, fontWeight: 1000, lineHeight: 1.1, fontFamily: "var(--font-display, 'Anton', sans-serif)" },
-  subtitle: { margin: 0, fontSize: 14, color: "rgba(255,255,255,0.45)" },
+  subtitle: { margin: 0, fontSize: 14, color: "rgba(255,255,255,0.65)" },
   registerBtn: { alignSelf: "flex-start", marginTop: 8, padding: "8px 16px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.45)", background: "rgba(212,175,55,0.1)", color: "#D4AF37", fontSize: 13, fontWeight: 900, cursor: "pointer" },
   searchInput: { width: "100%", boxSizing: "border-box", padding: "12px 16px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 15, outline: "none", marginBottom: 12 },
   sortRow: { display: "flex", gap: 8, marginBottom: 12 },
@@ -332,9 +332,9 @@ const styles = {
   catRow: { display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8, marginBottom: 16, scrollbarWidth: "none" },
   catBtn: { flexShrink: 0, padding: "6px 14px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 700, cursor: "pointer" },
   catActive: { flexShrink: 0, padding: "6px 14px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.5)", background: "rgba(212,175,55,0.12)", color: "#D4AF37", fontSize: 12, fontWeight: 700, cursor: "pointer" },
-  loadingText: { textAlign: "center", padding: "60px 0", color: "rgba(255,255,255,0.35)", fontSize: 14 },
+  loadingText: { textAlign: "center", padding: "60px 0", color: "rgba(255,255,255,0.55)", fontSize: 14 },
   emptyState: { display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "60px 24px", textAlign: "center" },
-  emptyText: { margin: 0, color: "rgba(255,255,255,0.4)", fontSize: 15 },
+  emptyText: { margin: 0, color: "rgba(255,255,255,0.62)", fontSize: 15 },
   cardList: { display: "flex", flexDirection: "column", gap: 12 },
   card: { borderRadius: 16, border: "1px solid rgba(255,255,255,0.08)", background: "linear-gradient(145deg, #131313, #0a0a0a)", overflow: "hidden", cursor: "pointer", boxShadow: "0 4px 20px rgba(0,0,0,0.3)" },
   cardImageWrap: { position: "relative", height: 90, background: "linear-gradient(135deg, #1a1a1a, #111)", display: "flex", alignItems: "center", justifyContent: "center" },
@@ -345,10 +345,10 @@ const styles = {
   cardNameRow: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 },
   cardName: { fontSize: 16, fontWeight: 1000, color: "#fff" },
   typeChip: { fontSize: 10, fontWeight: 900, color: "#C1121F", background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.25)", borderRadius: 999, padding: "2px 8px" },
-  cardLocation: { fontSize: 12, color: "rgba(255,255,255,0.45)", marginBottom: 6 },
+  cardLocation: { fontSize: 12, color: "rgba(255,255,255,0.65)", marginBottom: 6 },
   cardRating: { display: "flex", alignItems: "center", gap: 6, marginBottom: 6 },
-  reviewCount: { fontSize: 11, color: "rgba(255,255,255,0.35)" },
+  reviewCount: { fontSize: 11, color: "rgba(255,255,255,0.55)" },
   cardStats: { display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 6 },
   statChip: { fontSize: 11, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: "3px 8px" },
-  cardDesc: { margin: 0, fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 },
+  cardDesc: { margin: 0, fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.5 },
 };

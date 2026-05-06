@@ -1314,7 +1314,7 @@ const styles = {
     margin: "0 0 12px",
     fontSize: 11,
     fontWeight: 900,
-    color: "rgba(255,255,255,0.45)",
+    color: "rgba(255,255,255,0.65)",
     textTransform: "uppercase",
     letterSpacing: 1,
   },
@@ -1532,7 +1532,7 @@ const styles = {
   },
   pvpResultScoreVs: {
     fontSize: 12,
-    color: "rgba(255,255,255,0.4)",
+    color: "rgba(255,255,255,0.62)",
     fontWeight: 700,
   },
   pvpResultDiff: {
@@ -1652,7 +1652,7 @@ const styles = {
     textShadow: "0 0 20px rgba(212,175,55,0.5)",
   },
   hitCountSep: {
-    color: "rgba(255,255,255,0.4)",
+    color: "rgba(255,255,255,0.62)",
     fontSize: 14,
     fontWeight: 700,
     margin: "0 2px",
@@ -1663,7 +1663,7 @@ const styles = {
     fontWeight: 800,
   },
   hitCountLabel: {
-    color: "rgba(255,255,255,0.45)",
+    color: "rgba(255,255,255,0.65)",
     fontSize: 11,
     fontWeight: 700,
     marginLeft: 3,
@@ -2032,7 +2032,7 @@ const styles = {
     lineHeight: 1,
   },
   ghostHudSep: {
-    color: "rgba(255,255,255,0.38)",
+    color: "rgba(255,255,255,0.58)",
     fontSize: 10,
     fontWeight: 700,
   },
@@ -2062,7 +2062,7 @@ const styles = {
     border: "1px solid rgba(255,255,255,0.08)",
     borderRadius: 12,
     background: "transparent",
-    color: "rgba(255,255,255,0.38)",
+    color: "rgba(255,255,255,0.58)",
     fontSize: 13,
     fontWeight: 700,
     cursor: "pointer",
@@ -2092,7 +2092,7 @@ const styles = {
   ghostBestScoreRow: {
     marginTop: 4,
     fontSize: 12,
-    color: "rgba(255,255,255,0.45)",
+    color: "rgba(255,255,255,0.65)",
     fontWeight: 700,
   },
 };

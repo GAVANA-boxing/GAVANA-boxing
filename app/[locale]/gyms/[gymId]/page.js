@@ -216,7 +216,7 @@ export default function GymProfilePage() {
       <div style={styles.page}>
         <div style={styles.content}>
           <button type="button" style={styles.backBtn} onClick={() => router.push(`/${locale}/gyms`)}>← {t("back")}</button>
-          <p style={{ color: "rgba(255,255,255,0.4)", textAlign: "center", padding: "60px 0" }}>Gym not found.</p>
+          <p style={{ color: "rgba(255,255,255,0.62)", textAlign: "center", padding: "60px 0" }}>Gym not found.</p>
         </div>
         <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
       </div>
@@ -444,7 +444,7 @@ const styles = {
   loading: { display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#0A0A0A", color: "#fff", fontFamily: "system-ui, sans-serif" },
   page: { minHeight: "100vh", background: "#0A0A0A", color: "#fff", fontFamily: "system-ui, sans-serif" },
   content: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },
-  backBtn: { background: "none", border: "none", color: "rgba(255,255,255,0.45)", fontSize: 14, cursor: "pointer", padding: "16px 0", display: "block" },
+  backBtn: { background: "none", border: "none", color: "rgba(255,255,255,0.65)", fontSize: 14, cursor: "pointer", padding: "16px 0", display: "block" },
   hero: { position: "relative", height: 200, borderRadius: 16, overflow: "hidden", background: "linear-gradient(135deg,#1a1a1a,#111)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 0 },
   heroImg: { width: "100%", height: "100%", objectFit: "cover" },
   heroPlaceholder: { display: "flex", alignItems: "center", justifyContent: "center" },
@@ -455,11 +455,11 @@ const styles = {
   verifiedBadge: { fontSize: 11, fontWeight: 900, color: "#D4AF37", background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 999, padding: "3px 10px" },
   typeChip: { display: "inline-block", fontSize: 11, fontWeight: 900, color: "#C1121F", background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.25)", borderRadius: 999, padding: "3px 10px", marginBottom: 6 },
   gymLocation: { margin: "4px 0 2px", fontSize: 13, color: "rgba(255,255,255,0.5)" },
-  gymAddress: { margin: 0, fontSize: 12, color: "rgba(255,255,255,0.35)" },
+  gymAddress: { margin: 0, fontSize: 12, color: "rgba(255,255,255,0.55)" },
   statsRow: { display: "flex", gap: 0, borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", marginBottom: 16, overflow: "hidden" },
   statCell: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, padding: "14px 8px" },
   statNum: { fontSize: 17, fontWeight: 1000, color: "#fff" },
-  statLbl: { fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 700, textTransform: "uppercase" },
+  statLbl: { fontSize: 10, color: "rgba(255,255,255,0.62)", fontWeight: 700, textTransform: "uppercase" },
   ctaRow: { display: "flex", gap: 10, marginBottom: 20, alignItems: "center" },
   joinBtn: { flex: 1, minHeight: 44, border: "none", borderRadius: 12, background: "linear-gradient(135deg,#C1121F,#7d0812)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer" },
   requestedBtn: { flex: 1, minHeight: 44, border: "1px solid rgba(52,211,153,0.35)", borderRadius: 12, background: "rgba(52,211,153,0.08)", color: "#34D399", fontSize: 15, fontWeight: 900, cursor: "default" },
@@ -467,7 +467,7 @@ const styles = {
   contactBtn: { width: 44, height: 44, borderRadius: 12, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: "#fff", textDecoration: "none" },
   joinForm: { borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", padding: "16px", marginBottom: 16, display: "flex", flexDirection: "column", gap: 10 },
   section: { marginBottom: 24 },
-  sectionTitle: { margin: "0 0 10px", fontSize: 13, fontWeight: 900, color: "rgba(255,255,255,0.45)", letterSpacing: 1, textTransform: "uppercase" },
+  sectionTitle: { margin: "0 0 10px", fontSize: 13, fontWeight: 900, color: "rgba(255,255,255,0.65)", letterSpacing: 1, textTransform: "uppercase" },
   bodyText: { margin: 0, fontSize: 14, color: "rgba(255,255,255,0.7)", lineHeight: 1.6 },
   pillsRow: { display: "flex", flexWrap: "wrap", gap: 8 },
   pill: { fontSize: 12, color: "#F87171", background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.2)", borderRadius: 999, padding: "4px 12px", fontWeight: 700 },
@@ -476,7 +476,7 @@ const styles = {
   announcementCard: { borderRadius: 12, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.15)", padding: "12px 14px" },
   annTitle: { margin: "0 0 4px", fontSize: 14, fontWeight: 900, color: "#D4AF37" },
   annBody: { margin: "0 0 6px", fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.5 },
-  annDate: { fontSize: 11, color: "rgba(255,255,255,0.3)" },
+  annDate: { fontSize: 11, color: "rgba(255,255,255,0.55)" },
   reelsGrid: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6 },
   reelThumb: { aspectRatio: "9/16", borderRadius: 10, overflow: "hidden", background: "#111", cursor: "pointer" },
   reelThumbImg: { width: "100%", height: "100%", objectFit: "cover" },
@@ -487,12 +487,12 @@ const styles = {
   reviewList: { display: "flex", flexDirection: "column", gap: 10 },
   reviewCard: { borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "12px 14px" },
   reviewTop: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 },
-  reviewDate: { fontSize: 11, color: "rgba(255,255,255,0.3)" },
+  reviewDate: { fontSize: 11, color: "rgba(255,255,255,0.55)" },
   reviewText: { margin: 0, fontSize: 13, color: "rgba(255,255,255,0.65)", lineHeight: 1.5 },
   textarea: { width: "100%", boxSizing: "border-box", padding: "10px 12px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 14, resize: "vertical", outline: "none", fontFamily: "inherit" },
   cancelBtn: { flex: 1, minHeight: 40, border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, background: "transparent", color: "rgba(255,255,255,0.55)", fontSize: 14, fontWeight: 700, cursor: "pointer" },
   submitBtn: { flex: 2, minHeight: 40, border: "none", borderRadius: 10, background: "linear-gradient(135deg,#C1121F,#7d0812)", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" },
   errorText: { margin: 0, fontSize: 13, color: "#F87171" },
   successText: { margin: "0 0 10px", fontSize: 13, color: "#34D399", fontWeight: 700 },
-  emptyText: { margin: 0, fontSize: 13, color: "rgba(255,255,255,0.35)" },
+  emptyText: { margin: 0, fontSize: 13, color: "rgba(255,255,255,0.55)" },
 };

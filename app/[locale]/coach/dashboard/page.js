@@ -618,7 +618,7 @@ const styles = {
   },
   statLbl: {
     fontSize: 10,
-    color: "rgba(255,255,255,0.45)",
+    color: "rgba(255,255,255,0.65)",
     fontWeight: 700,
     textTransform: "uppercase",
     letterSpacing: 0.5,
@@ -639,7 +639,7 @@ const styles = {
   loadingText: {
     textAlign: "center",
     padding: "40px 0",
-    color: "rgba(255,255,255,0.4)",
+    color: "rgba(255,255,255,0.62)",
     fontSize: 14,
   },
   emptyState: {
@@ -664,7 +664,7 @@ const styles = {
   },
   emptyDesc: {
     fontSize: 13,
-    color: "rgba(255,255,255,0.35)",
+    color: "rgba(255,255,255,0.55)",
     lineHeight: 1.5,
     maxWidth: 260,
   },
@@ -750,7 +750,7 @@ const styles = {
   },
   cardTime: {
     fontSize: 11,
-    color: "rgba(255,255,255,0.38)",
+    color: "rgba(255,255,255,0.58)",
     fontWeight: 600,
   },
   badgePending: {
@@ -870,7 +870,7 @@ const styles = {
   },
   modalSubtitle: {
     fontSize: 13,
-    color: "rgba(255,255,255,0.45)",
+    color: "rgba(255,255,255,0.65)",
     marginTop: -8,
     fontWeight: 700,
   },
@@ -882,7 +882,7 @@ const styles = {
   modalLabel: {
     fontSize: 11,
     fontWeight: 900,
-    color: "rgba(255,255,255,0.45)",
+    color: "rgba(255,255,255,0.65)",
     textTransform: "uppercase",
     letterSpacing: 0.8,
   },
