@@ -250,6 +250,7 @@ export default function ReelsContent() {
   const [captionSheetReelId, setCaptionSheetReelId] = useState(null);
   const [userTrainingProfile, setUserTrainingProfile] = useState(null);
   const [gymNames, setGymNames] = useState({}); // gymId → gymName cache
+  const [featuredCreatorIds, setFeaturedCreatorIds] = useState(new Set());
   const videoRefs = useRef({});
   const feedRef = useRef(null);
   const reelItemRefs = useRef({});
@@ -274,13 +275,14 @@ export default function ReelsContent() {
     }
 
     const makeStats = (r) => ({ views: r.views || 0, likes: r.likes || 0, comments: r.commentsCount || 0, shares: r.shares || 0 });
+    const isFeatured = (r) => featuredCreatorIds.has(r.userId);
 
     if (feedMode !== "following") {
       const base = allReels.length > 0 ? allReels : [DEMO_REEL];
       const filtered = diffFilter === "beginner" ? base.filter((r) => r.difficulty === "beginner" || !r.difficulty) : base;
       const scored = [...filtered].sort((a, b) =>
-        computeFeedScore(b, makeStats(b), userTrainingProfile, userViews.has(b.id)) -
-        computeFeedScore(a, makeStats(a), userTrainingProfile, userViews.has(a.id))
+        computeFeedScore(b, makeStats(b), userTrainingProfile, userViews.has(b.id), isFeatured(b)) -
+        computeFeedScore(a, makeStats(a), userTrainingProfile, userViews.has(a.id), isFeatured(a))
       );
       setReels(scored.length > 0 ? scored : base);
       setCurrentIndex(0);
@@ -294,14 +296,13 @@ export default function ReelsContent() {
       const recencyA = getCreatedAtMs(a);
       const recencyB = getCreatedAtMs(b);
       const maxTs = Math.max(recencyA, recencyB, 1);
-      // 70 % recency + 30 % engagement so chronological feel is preserved
-      const hybridA = (recencyA / maxTs) * 0.7 + computeFeedScore(a, makeStats(a), userTrainingProfile, userViews.has(a.id)) * 0.3;
-      const hybridB = (recencyB / maxTs) * 0.7 + computeFeedScore(b, makeStats(b), userTrainingProfile, userViews.has(b.id)) * 0.3;
+      const hybridA = (recencyA / maxTs) * 0.7 + computeFeedScore(a, makeStats(a), userTrainingProfile, userViews.has(a.id), isFeatured(a)) * 0.3;
+      const hybridB = (recencyB / maxTs) * 0.7 + computeFeedScore(b, makeStats(b), userTrainingProfile, userViews.has(b.id), isFeatured(b)) * 0.3;
       return hybridB - hybridA;
     });
     setReels(sorted);
     setCurrentIndex(0);
-  }, [allReels, authLoading, feedMode, followingIds, isProfileSource, profileSourceUserId, diffFilter, userTrainingProfile, userViews]);
+  }, [allReels, authLoading, feedMode, followingIds, isProfileSource, profileSourceUserId, diffFilter, userTrainingProfile, userViews, featuredCreatorIds]);
 
   useEffect(() => {
     if (!targetReelId || !reels.length || lastScrolledReelId.current === targetReelId) return;
@@ -653,6 +654,28 @@ export default function ReelsContent() {
     loadProfile();
     return () => { active = false; };
   }, [user?.uid]);
+
+  // Load currently active featured creators (used for feed boost)
+  useEffect(() => {
+    let active = true;
+    async function loadFeaturedCreators() {
+      try {
+        const { db } = await getFirebase();
+        const { collection, getDocs, query, where, Timestamp } = await import("firebase/firestore");
+        const now = Timestamp.now();
+        const snap = await getDocs(query(
+          collection(db, "featured_creators"),
+          where("featuredUntil", ">=", now)
+        ));
+        if (!active) return;
+        const ids = new Set();
+        snap.forEach((doc) => { if (doc.data().userId) ids.add(doc.data().userId); });
+        setFeaturedCreatorIds(ids);
+      } catch { /* non-critical — featured boost is best-effort */ }
+    }
+    loadFeaturedCreators();
+    return () => { active = false; };
+  }, []);
 
   // Lazily fetch gym names for tagged reels
   useEffect(() => {
@@ -1972,7 +1995,9 @@ export default function ReelsContent() {
                     const { doc, setDoc, increment: fsIncrement, serverTimestamp: fsts } = await import("firebase/firestore");
                     await setDoc(doc(fdb, "reel_stats", reel.id), { reelId: reel.id, challengeClicks: fsIncrement(1), updatedAt: fsts() }, { merge: true });
                   } catch { /* non-critical */ }
-                  router.push(`/${currentLocale}/train?reelId=${encodeURIComponent(reel.id)}`);
+                  const trainParams = new URLSearchParams({ reelId: reel.id });
+                  if (reel.userId) trainParams.set("reelCreatorId", reel.userId);
+                  router.push(`/${currentLocale}/train?${trainParams.toString()}`);
                 };
                 return (
                   <div style={styles.trainButtonRow}>

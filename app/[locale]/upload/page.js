@@ -8,6 +8,7 @@ import { storage, db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { checkAndAwardBadges } from "@/lib/badges";
+import { createRemixNotification } from "@/lib/notifications";
 
 const CATEGORIES = ["boxing", "gym", "running", "street_workout", "sparring"];
 const DIFFICULTIES = ["beginner", "intermediate", "pro"];
@@ -197,10 +198,22 @@ export default function UploadPage() {
         if (remixOfCreatorName) reelDoc.remixOfCreatorName = remixOfCreatorName;
       }
       if (gymId) reelDoc.gymId = gymId;
-      await addDoc(collection(db, "reels"), reelDoc);
+      const newReelRef = await addDoc(collection(db, "reels"), reelDoc);
 
       // Award creator_starter badge (fire-and-forget)
       checkAndAwardBadges(user.uid, { hasUploaded: true }).catch(() => {});
+
+      // Notify original creator when this is a remix
+      if (remixOfId && remixOfCreatorId) {
+        createRemixNotification({
+          originalCreatorId: remixOfCreatorId,
+          actorId: user.uid,
+          actorName: user.displayName || user.email?.split("@")[0] || "Someone",
+          actorPhotoURL: user.photoURL || "",
+          originalReelId: remixOfId,
+          newReelId: newReelRef.id,
+        }).catch(() => {});
+      }
 
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       router.push(`/${locale}/reels`);

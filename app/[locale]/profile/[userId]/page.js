@@ -313,6 +313,7 @@ export default function UserProfilePage() {
   const [dailyMissionData, setDailyMissionData] = useState(null);
   const [challengeRanks, setChallengeRanks] = useState(null);
   const [showWeeklyModal, setShowWeeklyModal] = useState(false);
+  const [showWeeklyRecap, setShowWeeklyRecap] = useState(false);
   const [pvpStats, setPvpStats] = useState(null);
   const [coachBookings, setCoachBookings] = useState([]);
   const [userBadges, setUserBadges] = useState([]);
@@ -1444,6 +1445,20 @@ export default function UserProfilePage() {
             >
               {t("editProfile")}
             </button>
+            {userReels.length > 0 && (
+              <button
+                onClick={() => router.push(`/${locale}/creator/dashboard`)}
+                style={styles.ghostAction}
+              >
+                {t("creatorDashboard")}
+              </button>
+            )}
+            <button
+              onClick={() => setShowWeeklyRecap(true)}
+              style={styles.ghostAction}
+            >
+              {t("weeklyRecapView")}
+            </button>
             <button
               onClick={handleLogout}
               disabled={signingOut}
@@ -1982,6 +1997,42 @@ export default function UserProfilePage() {
           onClose={() => setShowRankModal(false)}
         />
       )}
+
+      {showWeeklyRecap && (() => {
+        const sevenDaysAgo = Date.now() - 7 * 24 * 3600 * 1000;
+        const getMs = (ts) => { if (!ts) return 0; if (ts.toMillis) return ts.toMillis(); return Number(ts) || 0; };
+        const weekFeedback = (aiFeedbackHistory || []).filter((f) => getMs(f.createdAt) >= sevenDaysAgo);
+        const weekXP = weekFeedback.reduce((s, f) => s + Math.round((Number(f.score) || 0) * (Number(f.score) || 0) * 10), 0);
+        const weekChallenges = weekFeedback.length;
+        return (
+          <div style={styles.modalOverlay} onClick={() => setShowWeeklyRecap(false)}>
+            <div style={styles.weeklyModalSheet} onClick={(e) => e.stopPropagation()}>
+              <div style={styles.weeklyModalHandle} />
+              <div style={styles.weeklyModalHeader}>
+                <span style={styles.weeklyModalTitle}>📅 {t("weeklyRecapTitle")}</span>
+                <button type="button" style={styles.weeklyModalClose} onClick={() => setShowWeeklyRecap(false)}>✕</button>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, padding: "4px 0 8px" }}>
+                <div style={styles.weeklyRankItem}>
+                  <span style={{ ...styles.weeklyRankNum, color: "#D4AF37" }}>+{weekXP}</span>
+                  <span style={styles.weeklyRankLbl}>{t("weeklyRecapXP")}</span>
+                </div>
+                <div style={styles.weeklyRankItem}>
+                  <span style={{ ...styles.weeklyRankNum, color: "#34D399" }}>{weekChallenges}</span>
+                  <span style={styles.weeklyRankLbl}>{t("weeklyRecapChallenges")}</span>
+                </div>
+                <div style={styles.weeklyRankItem}>
+                  <span style={{ ...styles.weeklyRankNum, color: "#FB923C" }}>{profileUser?.challengeStreak || 0}</span>
+                  <span style={styles.weeklyRankLbl}>{t("dayStreak").replace("{n}", "")}</span>
+                </div>
+              </div>
+              <button type="button" style={{ ...styles.weeklyModalClose, width: "100%", padding: "11px 0", borderRadius: 12, background: "rgba(255,255,255,0.07)", border: "none", color: "#fff", fontFamily: "inherit", fontSize: 14, fontWeight: 700, cursor: "pointer", marginTop: 6 }} onClick={() => setShowWeeklyRecap(false)}>
+                {t("weeklyRecapClose")}
+              </button>
+            </div>
+          </div>
+        );
+      })()}
 
       {showWeeklyModal && challengeRanks && (
         <div style={styles.modalOverlay} onClick={() => setShowWeeklyModal(false)}>

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query as fsQuery, where, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
@@ -19,6 +19,33 @@ export default function DiscoverPage() {
   const [userResults, setUserResults] = useState([]);
   const [reelResults, setReelResults] = useState([]);
   const [message, setMessage] = useState(() => translate(locale, "discoverSubtitle"));
+  const [featuredCreators, setFeaturedCreators] = useState([]);
+
+  // Load featured creators on mount
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      try {
+        const now = Timestamp.now();
+        const featuredSnap = await getDocs(fsQuery(collection(db, "featured_creators"), where("featuredUntil", ">=", now)));
+        if (!active || featuredSnap.empty) return;
+        const creatorIds = featuredSnap.docs.map((d) => d.data().userId).filter(Boolean);
+        if (!creatorIds.length) return;
+        // Load user profiles for featured creators
+        const usersSnap = await getDocs(collection(db, "users"));
+        const profiles = [];
+        usersSnap.forEach((d) => {
+          if (creatorIds.includes(d.id)) {
+            const featured = featuredSnap.docs.find((f) => f.data().userId === d.id);
+            profiles.push({ id: d.id, ...d.data(), reason: featured?.data().reason || "" });
+          }
+        });
+        if (active) setFeaturedCreators(profiles.slice(0, 6));
+      } catch { /* non-critical */ }
+    }
+    load();
+    return () => { active = false; };
+  }, []);
 
   const handleSearch = async (event) => {
     event.preventDefault();
@@ -122,6 +149,36 @@ export default function DiscoverPage() {
           </button>
         </form>
       </div>
+
+      {featuredCreators.length > 0 && (
+        <div style={{ padding: "0 0 4px" }}>
+          <h2 style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase", color: "#D4AF37" }}>
+            ⭐ {t("discoverFeatured")}
+          </h2>
+          <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4 }}>
+            {featuredCreators.map((creator) => {
+              const photo = creator.photoURL || creator.profileImageUrl || "";
+              const initial = (creator.displayName || creator.username || "C").charAt(0).toUpperCase();
+              return (
+                <button
+                  key={creator.id}
+                  type="button"
+                  onClick={() => router.push(`/${locale}/profile/${creator.id}`)}
+                  style={{ flexShrink: 0, width: 120, background: "rgba(212,175,55,0.07)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 14, padding: "12px 10px", display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer" }}
+                >
+                  <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#1a1a1a", border: "2px solid #D4AF37", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 900, overflow: "hidden", flexShrink: 0 }}>
+                    {photo ? <img src={photo} alt={initial} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : initial}
+                  </div>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "#eee", textAlign: "center", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {creator.displayName || creator.username || "Creator"}
+                  </span>
+                  <span style={{ fontSize: 10, color: "#D4AF37", fontWeight: 900, letterSpacing: 0.5 }}>⭐ {t("featuredBadge")}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div style={styles.resultsGrid}>
         <section style={styles.resultSection}>

@@ -8,7 +8,7 @@ import DailyMission from "@/components/DailyMission";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { createPvpNotification } from "@/lib/notifications";
+import { createChallengeAttemptNotification, createPvpNotification } from "@/lib/notifications";
 import { getCurrentSeasonId } from "@/lib/season";
 import { calculateChallengeXP, calculateUserXP, getFighterRank, getRankProgress } from "@/lib/xp";
 import { writeChallengeAttempt, updateUserTrainingProfile } from "@/lib/analytics";
@@ -166,7 +166,7 @@ export default function TrainPage() {
     setReelId(params.get("reelId") || null);
     setChallengeId(params.get("challengeId") || null);
     setTrainSource(params.get("source") || null);
-    setTrainSourceUserId(params.get("userId") || null);
+    setTrainSourceUserId(params.get("reelCreatorId") || params.get("userId") || null);
     setChallengeUserId(params.get("challengeUserId") || null);
     const parsedTargetScore = Number(params.get("score") || params.get("targetScore"));
     setTargetScore(Number.isFinite(parsedTargetScore) && parsedTargetScore > 0 ? parsedTargetScore : null);
@@ -860,6 +860,18 @@ export default function TrainPage() {
         speed: breakdown.speed,
         category: "boxing",
       }).catch(() => {});
+
+      // Notify the reel creator that someone attempted their challenge
+      if (reelId && trainSourceUserId) {
+        createChallengeAttemptNotification({
+          reelCreatorId: trainSourceUserId,
+          actorId: user.uid,
+          actorName: user.displayName || user.email?.split("@")[0] || "Someone",
+          actorPhotoURL: user.photoURL || "",
+          reelId,
+          score: result.score,
+        }).catch(() => {});
+      }
     } catch (err) {
       console.error("Failed to save training session:", err);
       setError(t("trainSaveFailed"));
