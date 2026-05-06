@@ -203,6 +203,8 @@ function StreakDetailModal({ profile, trainingSessions, t, onClose }) {
           padding: "28px 24px 24px",
           display: "grid",
           gap: 20,
+          maxHeight: "85vh",
+          overflowY: "auto",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -3078,8 +3080,10 @@ const styles = {
   modalOverlay: {
     position: "fixed",
     inset: 0,
-    background: "rgba(0,0,0,0.7)",
-    zIndex: 200,
+    background: "rgba(0,0,0,0.78)",
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)",
+    zIndex: 300,
     display: "flex",
     alignItems: "flex-end",
   },

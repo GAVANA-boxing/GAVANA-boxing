@@ -547,9 +547,9 @@ const styles = {
     textAlign: "center",
   },
   emptyIcon: {
-    width: 62,
-    height: 62,
-    borderRadius: 31,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     background: "#111",
     color: "#D4AF37",
     borderWidth: "1px",

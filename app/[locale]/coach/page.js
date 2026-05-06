@@ -384,6 +384,16 @@ export default function CoachPage() {
             <div style={styles.emptyState}>
               <div style={styles.emptyIcon}>🥊</div>
               <div style={styles.emptyText}>{t("coachNoCoaches")}</div>
+              <p style={{ margin: "4px 0 16px", color: "rgba(255,255,255,0.35)", fontSize: 13, textAlign: "center", maxWidth: 260 }}>
+                {t("coachNoCoachesSub")}
+              </p>
+              <button
+                type="button"
+                onClick={() => router.push(`/${locale}/coach/apply`)}
+                style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}
+              >
+                {t("becomeCoach")}
+              </button>
             </div>
           )}
 

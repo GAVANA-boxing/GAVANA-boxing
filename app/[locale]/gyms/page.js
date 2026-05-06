@@ -282,8 +282,18 @@ export default function GymsPage() {
           <div style={styles.loadingText}>{t("gymsLoading")}</div>
         ) : filtered.length === 0 ? (
           <div style={styles.emptyState}>
-            <div style={{ fontSize: 44, opacity: 0.4 }}>🏋️</div>
+            <div style={{ fontSize: 44, opacity: 0.5 }}>🏋️</div>
             <p style={styles.emptyText}>{t("gymsNoGyms")}</p>
+            <p style={{ margin: "-4px 0 16px", color: "rgba(255,255,255,0.32)", fontSize: 13, textAlign: "center", maxWidth: 260 }}>
+              {t("gymsNoGymsSub")}
+            </p>
+            <button
+              type="button"
+              onClick={() => router.push(`/${locale}/gyms/dashboard`)}
+              style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}
+            >
+              + {t("gymsRegister")}
+            </button>
           </div>
         ) : (
           <div style={styles.cardList}>
