@@ -1983,30 +1983,18 @@ export default function ReelsContent() {
                         {t("pvpBeatThisScore")}
                       </button>
                     )}
-                    <button
-                      type="button"
-                      style={{ ...styles.beatScoreButton, color: "#A78BFA", borderColor: "rgba(167,139,250,0.4)" }}
-                      onClick={() => {
-                        const params = new URLSearchParams({ remixOf: reel.id });
-                        if (reel.userId) params.set("remixOfCreatorId", reel.userId);
-                        if (creatorName) params.set("remixOfCreatorName", creatorName);
-                        router.push(`/${currentLocale}/upload?${params.toString()}`);
-                      }}
-                    >
-                      🔀 {t("remixChallenge")}
-                    </button>
                   </div>
                 );
               })()}
               {/* Remix origin banner */}
               {!reel.isDemo && reel.remixOf && (
-                <div style={{ fontSize: 11, color: "#A78BFA", marginTop: 4, opacity: 0.85 }}>
+                <div style={styles.remixBanner}>
                   🔀 {t("remixOf").replace("{username}", reel.remixOfCreatorName || "creator")}
                 </div>
               )}
               {/* Gym tag */}
               {!reel.isDemo && reel.gymId && gymNames[reel.gymId] && (
-                <div style={{ fontSize: 11, color: "#D4AF37", marginTop: 4, opacity: 0.9 }}>
+                <div style={styles.gymTagBanner}>
                   📍 {t("gymTrainingAt")} {gymNames[reel.gymId]}
                 </div>
               )}
@@ -4084,6 +4072,18 @@ const styles = {
     letterSpacing: 0,
     cursor: "pointer",
     WebkitTapHighlightColor: "transparent",
+  },
+  remixBanner: {
+    fontSize: 11,
+    color: "#A78BFA",
+    marginTop: 4,
+    opacity: 0.85,
+  },
+  gymTagBanner: {
+    fontSize: 11,
+    color: "#D4AF37",
+    marginTop: 4,
+    opacity: 0.9,
   },
   pvpSourceBanner: {
     position: "absolute",
