@@ -273,25 +273,35 @@ export default function ReelsContent() {
       return;
     }
 
+    const makeStats = (r) => ({ views: r.views || 0, likes: r.likes || 0, comments: r.commentsCount || 0, shares: r.shares || 0 });
+
     if (feedMode !== "following") {
       const base = allReels.length > 0 ? allReels : [DEMO_REEL];
       const filtered = diffFilter === "beginner" ? base.filter((r) => r.difficulty === "beginner" || !r.difficulty) : base;
-      // Apply feed score ranking for forYou tab
-      const scored = [...filtered].sort((a, b) => {
-        const statsA = { views: a.views || 0, likes: a.likes || 0, comments: a.commentsCount || 0, shares: a.shares || 0 };
-        const statsB = { views: b.views || 0, likes: b.likes || 0, comments: b.commentsCount || 0, shares: b.shares || 0 };
-        return computeFeedScore(b, statsB, userTrainingProfile) - computeFeedScore(a, statsA, userTrainingProfile);
-      });
+      const scored = [...filtered].sort((a, b) =>
+        computeFeedScore(b, makeStats(b), userTrainingProfile, userViews.has(b.id)) -
+        computeFeedScore(a, makeStats(a), userTrainingProfile, userViews.has(a.id))
+      );
       setReels(scored.length > 0 ? scored : base);
       setCurrentIndex(0);
       return;
     }
 
+    // Following feed: hybrid sort — recency-weighted but boosted by engagement and personalisation
     const followedReels = allReels.filter((reel) => reel.userId && followingIds.has(reel.userId));
     const filtered = diffFilter === "beginner" ? followedReels.filter((r) => r.difficulty === "beginner" || !r.difficulty) : followedReels;
-    setReels(filtered);
+    const sorted = [...filtered].sort((a, b) => {
+      const recencyA = getCreatedAtMs(a);
+      const recencyB = getCreatedAtMs(b);
+      const maxTs = Math.max(recencyA, recencyB, 1);
+      // 70 % recency + 30 % engagement so chronological feel is preserved
+      const hybridA = (recencyA / maxTs) * 0.7 + computeFeedScore(a, makeStats(a), userTrainingProfile, userViews.has(a.id)) * 0.3;
+      const hybridB = (recencyB / maxTs) * 0.7 + computeFeedScore(b, makeStats(b), userTrainingProfile, userViews.has(b.id)) * 0.3;
+      return hybridB - hybridA;
+    });
+    setReels(sorted);
     setCurrentIndex(0);
-  }, [allReels, authLoading, feedMode, followingIds, isProfileSource, profileSourceUserId, diffFilter, userTrainingProfile]);
+  }, [allReels, authLoading, feedMode, followingIds, isProfileSource, profileSourceUserId, diffFilter, userTrainingProfile, userViews]);
 
   useEffect(() => {
     if (!targetReelId || !reels.length || lastScrolledReelId.current === targetReelId) return;
@@ -589,42 +599,33 @@ export default function ReelsContent() {
     };
   }, [authLoading, user?.uid]);
 
+  // One-time read — follows change only when the user manually follows/unfollows,
+  // so a persistent listener is unnecessary overhead here.
   useEffect(() => {
     if (authLoading || !user?.uid) {
       setFollowingIds(new Set());
       return;
     }
 
-    let unsubscribe;
     let isActive = true;
 
-    async function listenForFollowing() {
+    async function loadFollowing() {
       try {
         const { db } = await getFirebase();
-        const { collection, query, where, onSnapshot } = await import("firebase/firestore");
+        const { collection, query, where, getDocs } = await import("firebase/firestore");
         if (!isActive) return;
 
-        const followingQuery = query(
-          collection(db, "follows"),
-          where("followerId", "==", user.uid)
+        const snap = await getDocs(
+          query(collection(db, "follows"), where("followerId", "==", user.uid))
         );
+        if (!isActive) return;
 
-        unsubscribe = onSnapshot(followingQuery, (snapshot) => {
-          if (!isActive) return;
-
-          const nextFollowing = new Set();
-          snapshot.forEach((doc) => {
-            const data = doc.data();
-            if (data.followingId) {
-              nextFollowing.add(data.followingId);
-            }
-          });
-          setFollowingIds(nextFollowing);
-        }, (err) => {
-          if (!isActive) return;
-          console.error("Failed to listen for following:", err);
-          setFollowingIds(new Set());
+        const nextFollowing = new Set();
+        snap.forEach((doc) => {
+          const data = doc.data();
+          if (data.followingId) nextFollowing.add(data.followingId);
         });
+        setFollowingIds(nextFollowing);
       } catch (err) {
         if (!isActive) return;
         console.error("Failed to load following:", err);
@@ -632,14 +633,9 @@ export default function ReelsContent() {
       }
     }
 
-    listenForFollowing();
+    loadFollowing();
 
-    return () => {
-      isActive = false;
-      if (unsubscribe) {
-        unsubscribe();
-      }
-    };
+    return () => { isActive = false; };
   }, [authLoading, user?.uid]);
 
   // Load user_training_profile for feed personalization
@@ -756,7 +752,8 @@ export default function ReelsContent() {
     };
   }, [authLoading, user?.uid]);
 
-  // Fetch user's views
+  // Load recent views to prevent double-counting. Capped at 300 to bound startup reads;
+  // session-local views (this page load) are stored in sessionStorage to avoid re-fetching.
   useEffect(() => {
     if (authLoading || !user?.uid) {
       setUserViews(new Set());
@@ -767,34 +764,36 @@ export default function ReelsContent() {
 
     async function loadUserViews() {
       try {
+        // Seed from sessionStorage first (fast, zero network cost)
+        const sessionKey = `gavana_views_${user.uid}`;
+        let viewsSet = new Set();
+        try {
+          const stored = sessionStorage.getItem(sessionKey);
+          if (stored) JSON.parse(stored).forEach((id) => viewsSet.add(id));
+        } catch { /* sessionStorage unavailable */ }
+
+        // Supplement with Firestore — only the 300 most recent records
         const { db } = await getFirebase();
-        const { collection, getDocs, query, where } = await import("firebase/firestore");
+        const { collection, getDocs, query, where, orderBy, limit } = await import("firebase/firestore");
         if (!isActive) return;
-        
-        const viewsSnapshot = await getDocs(query(
+
+        const snap = await getDocs(query(
           collection(db, "reel_views"),
-          where("userId", "==", user.uid)
+          where("userId", "==", user.uid),
+          orderBy("createdAt", "desc"),
+          limit(300)
         ));
-        const viewsSet = new Set();
-        
-        viewsSnapshot.forEach((doc) => {
-          const data = doc.data();
-          viewsSet.add(data.reelId);
-        });
-        
-        if (isActive) {
-          setUserViews(viewsSet);
-        }
+        snap.forEach((doc) => viewsSet.add(doc.data().reelId));
+
+        if (isActive) setUserViews(viewsSet);
       } catch (err) {
         console.error("Failed to load views:", err);
       }
     }
-    
+
     loadUserViews();
 
-    return () => {
-      isActive = false;
-    };
+    return () => { isActive = false; };
   }, [authLoading, user?.uid]);
 
   // Track view when reel is active for 3 seconds
@@ -833,10 +832,18 @@ export default function ReelsContent() {
           setDoc(doc(db, "reel_stats", currentReel.id), { reelId: currentReel.id, views: increment(1), updatedAt: serverTimestamp() }, { merge: true }),
         ]);
         
-        // Update local state
+        // Update local state and persist to sessionStorage so next load skips re-fetch
         setUserViews(prev => {
           const newViews = new Set(prev);
           newViews.add(currentReel.id);
+          try {
+            const sessionKey = `gavana_views_${user.uid}`;
+            const stored = sessionStorage.getItem(sessionKey);
+            const arr = stored ? JSON.parse(stored) : [];
+            arr.push(currentReel.id);
+            // Keep only last 500 to prevent unbounded growth
+            sessionStorage.setItem(sessionKey, JSON.stringify(arr.slice(-500)));
+          } catch { /* sessionStorage unavailable */ }
           return newViews;
         });
         

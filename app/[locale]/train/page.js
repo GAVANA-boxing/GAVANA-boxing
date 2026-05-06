@@ -373,7 +373,8 @@ export default function TrainPage() {
     setSecondsLeft(0);
     setPhase("result");
     const finalScore = liveScoreRef.current;
-    const xpGained = Math.round(finalScore * finalScore * 8);
+    // Use the same formula as the Firestore transaction so the display matches what's stored
+    const xpGained = calculateChallengeXP(finalScore, getChallengeRank(finalScore));
     const breakdown = computeScoreBreakdown(finalScore, hitCountRef.current, sessionSeconds);
     setResult({
       score: finalScore,
