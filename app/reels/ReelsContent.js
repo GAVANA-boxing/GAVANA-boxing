@@ -1913,19 +1913,6 @@ export default function ReelsContent() {
             )}
 
             <div style={styles.info}>
-              {!reel.isDemo && !isProfileSource && (typeof stats?.xp === "number" || hasBestScore || stats?.rank) && (
-                <div style={styles.metricsChips}>
-                  {typeof stats?.xp === "number" && (
-                    <span style={styles.metricChip}>{stats.xp.toLocaleString()} {t("reels.xp")}</span>
-                  )}
-                  {hasBestScore && (
-                    <span style={styles.metricChip}>{t("reels.bestScore")} {stats.bestScore.toFixed(1)}</span>
-                  )}
-                  {stats?.rank && (
-                    <span style={styles.metricChip}>{t(stats.rank.key)}</span>
-                  )}
-                </div>
-              )}
               <div style={styles.creatorRow}>
                 <button
                   type="button"
@@ -1953,12 +1940,9 @@ export default function ReelsContent() {
                   >
                     @{creatorName}
                     {creatorProfile?.streakCount >= 5 && (
-                      <span style={styles.onFireBadge}>{"🔥"} {t("onFireBadgeText")}</span>
+                      <span style={styles.onFireBadge}>{"🔥"}</span>
                     )}
                   </button>
-                  {!reel.isDemo && creatorStatLine && (
-                    <div style={styles.creatorStats}>{creatorStatLine}</div>
-                  )}
                 </div>
               </div>
               {captionText && (
@@ -1971,35 +1955,21 @@ export default function ReelsContent() {
                   {captionText}
                 </button>
               )}
-              <div style={styles.metaLine}>
-                <span>{formatCompactCount(getSafeViewCount(reel))} {t("views")}</span>
-                <span>{formatDate(reel.createdAt)}</span>
-              </div>
-              {/* Category / difficulty badges */}
-              {!reel.isDemo && (reel.category || reel.difficulty) && (
+              {/* Difficulty badge only */}
+              {!reel.isDemo && reel.difficulty && (
                 <div style={styles.reelBadgeRow}>
-                  {reel.difficulty && (
-                    <span style={{
-                      ...styles.reelBadge,
-                      background: reel.difficulty === "beginner" ? "rgba(52,211,153,0.15)" : reel.difficulty === "intermediate" ? "rgba(212,175,55,0.15)" : "rgba(193,18,31,0.18)",
-                      color: reel.difficulty === "beginner" ? "#34D399" : reel.difficulty === "intermediate" ? "#D4AF37" : "#F87171",
-                      borderColor: reel.difficulty === "beginner" ? "rgba(52,211,153,0.35)" : reel.difficulty === "intermediate" ? "rgba(212,175,55,0.35)" : "rgba(193,18,31,0.4)",
-                    }}>
-                      {t(`diff${reel.difficulty.charAt(0).toUpperCase()}${reel.difficulty.slice(1)}`) || reel.difficulty}
-                    </span>
-                  )}
-                  {reel.category && (
-                    <span style={styles.reelCategoryBadge}>
-                      {t(`cat${reel.category.split("_").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join("")}`) || reel.category}
-                    </span>
-                  )}
+                  <span style={{
+                    ...styles.reelBadge,
+                    background: reel.difficulty === "beginner" ? "rgba(52,211,153,0.15)" : reel.difficulty === "intermediate" ? "rgba(212,175,55,0.15)" : "rgba(193,18,31,0.18)",
+                    color: reel.difficulty === "beginner" ? "#34D399" : reel.difficulty === "intermediate" ? "#D4AF37" : "#F87171",
+                    borderColor: reel.difficulty === "beginner" ? "rgba(52,211,153,0.35)" : reel.difficulty === "intermediate" ? "rgba(212,175,55,0.35)" : "rgba(193,18,31,0.4)",
+                  }}>
+                    {t(`diff${reel.difficulty.charAt(0).toUpperCase()}${reel.difficulty.slice(1)}`) || reel.difficulty}
+                  </span>
                 </div>
               )}
-              {/* Type-aware single CTA */}
-              {!reel.isDemo && (() => {
-                const isTraining = reel.type === "training";
-                const isChallengeable = isTraining || reel.challengeEnabled;
-                if (!isChallengeable) return null;
+              {/* Primary CTA — challenge button only */}
+              {!reel.isDemo && (reel.type === "training" || reel.challengeEnabled) && (() => {
                 const handleChallengeClick = async () => {
                   try {
                     const { db: fdb } = await getFirebase();
@@ -2016,19 +1986,8 @@ export default function ReelsContent() {
                 return (
                   <div style={styles.trainButtonRow}>
                     <button type="button" style={styles.tryThisButton} onClick={handleChallengeClick}>
-                      {isTraining ? t("reelChallenge") : t("reelTryWorkout")}
+                      {reel.type === "training" ? t("reelChallenge") : t("reelTryWorkout")}
                     </button>
-                    {reel.userId && reel.userId !== user?.uid && hasBestScore && (
-                      <button
-                        type="button"
-                        style={styles.beatScoreButton}
-                        onClick={() => router.push(
-                          `/${currentLocale}/train?reelId=${encodeURIComponent(reel.id)}&challengeUserId=${encodeURIComponent(reel.userId)}&targetScore=${stats.bestScore.toFixed(1)}`
-                        )}
-                      >
-                        {t("pvpBeatThisScore")}
-                      </button>
-                    )}
                   </div>
                 );
               })()}
@@ -2036,12 +1995,6 @@ export default function ReelsContent() {
               {!reel.isDemo && reel.remixOf && (
                 <div style={styles.remixBanner}>
                   🔀 {t("remixOf").replace("{username}", reel.remixOfCreatorName || "creator")}
-                </div>
-              )}
-              {/* Gym tag */}
-              {!reel.isDemo && reel.gymId && gymNames[reel.gymId] && (
-                <div style={styles.gymTagBanner}>
-                  📍 {t("gymTrainingAt")} {gymNames[reel.gymId]}
                 </div>
               )}
             </div>

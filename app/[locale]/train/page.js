@@ -1084,208 +1084,173 @@ export default function TrainPage() {
         <div style={styles.modalWrap}>
           <div style={styles.modalOverlay} />
           <section style={styles.modal}>
-            <p style={styles.modalKicker}>{t("trainResult")}</p>
-            <div style={styles.score}>{result.score.toFixed(1)}</div>
-            <span style={styles.scoreUnit}>/10</span>
-
-            {/* PvP result announcement */}
-            {challengeUserId && pvpResult && (
-              <div style={pvpResult === "win" ? styles.pvpWinBanner : styles.pvpLoseBanner}>
-                <div style={styles.pvpResultBadge}>
-                  {pvpResult === "win" ? t("pvpWin") : t("pvpLose")}
-                </div>
-                <div style={styles.pvpResultHeadline}>
-                  {pvpResult === "win"
-                    ? t("pvpYouWon").replace("{username}", opponentUsername || "them")
-                    : t("pvpYouLost")}
-                </div>
-                <div style={styles.pvpResultScoreRow}>
-                  <div style={styles.pvpResultScoreCell}>
-                    <span style={styles.pvpResultScoreNum}>{result.score.toFixed(1)}</span>
-                    <span style={styles.pvpResultScoreLbl}>{t("pvpYouLabel")}</span>
-                  </div>
-                  <div style={styles.pvpResultScoreVs}>{t("pvpVsLabel")}</div>
-                  <div style={styles.pvpResultScoreCell}>
-                    <span style={styles.pvpResultScoreNum}>{targetScore?.toFixed(1)}</span>
-                    <span style={styles.pvpResultScoreLbl}>@{opponentUsername || "?"}</span>
-                  </div>
-                </div>
-                {(() => {
-                  const diff = result.score - (targetScore || 0);
-                  return (
-                    <div style={{
-                      ...styles.pvpResultDiff,
-                      color: diff >= 0 ? "#34D399" : "#F87171",
-                    }}>
-                      {diff >= 0 ? "+" : ""}{diff.toFixed(1)}
+            {/* TOP — score hero */}
+            <div style={styles.modalTop}>
+              <p style={styles.modalKicker}>{t("trainResult")}</p>
+              <div style={styles.score}>{result.score.toFixed(1)}</div>
+              <span style={styles.scoreUnit}>/10</span>
+              <div style={styles.resultGrid}>
+                {activeChallenge ? (
+                  <>
+                    <div style={styles.resultItem}>
+                      <span>{t("challengeRank")}</span>
+                      <strong>{getChallengeRank(result.score)}</strong>
                     </div>
-                  );
-                })()}
-                {pvpSaved && <div style={styles.pvpResultSaved}>✓ {t("pvpResultSaved")}</div>}
+                    <div style={styles.resultItem}>
+                      <span>{t("challengeComparison")}</span>
+                      <strong>{t("challengeBeatPlayers").replace("{n}", getChallengeComparisonPercent(result.score))}</strong>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div style={styles.resultItem}>
+                      <span>{t("trainXpGained")}</span>
+                      <strong>+{result.xpGained}</strong>
+                    </div>
+                    <div style={styles.resultItem}>
+                      <span>{t("trainRankProgress")}</span>
+                      <strong>{result.rankProgress}%</strong>
+                    </div>
+                  </>
+                )}
               </div>
-            )}
-
-            {/* Ghost comparison */}
-            {!challengeUserId && ghostBestScore !== null && ghostEnabled && (
-              <div style={result.score > ghostBestScore ? styles.ghostWinBanner : styles.ghostLoseBanner}>
-                {result.score > ghostBestScore ? t("ghostBeatBest") : t("ghostLostToBest")}
-                <div style={styles.ghostBestScoreRow}>
-                  {t("ghostBestLabel")}: {ghostBestScore.toFixed(1)}/10
+              {!activeChallenge && (
+                <div style={styles.progressTrack}>
+                  <div style={{ ...styles.progressFill, width: `${result.rankProgress}%` }} />
                 </div>
-              </div>
-            )}
-
-            <div style={styles.resultGrid}>
-              {activeChallenge ? (
-                <>
-                  <div style={styles.resultItem}>
-                    <span>{t("challengeRank")}</span>
-                    <strong>{getChallengeRank(result.score)}</strong>
-                  </div>
-                  <div style={styles.resultItem}>
-                    <span>{t("challengeComparison")}</span>
-                    <strong>
-                      {t("challengeBeatPlayers").replace(
-                        "{n}",
-                        getChallengeComparisonPercent(result.score)
-                      )}
-                    </strong>
-                  </div>
-                  {targetScore && (
-                    <div style={{ ...styles.resultItem, ...styles.targetResultItem }}>
-                      <span>{t("challengeTargetScore")}</span>
-                      <strong>{targetScore.toFixed(1)}/10</strong>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <>
-                  <div style={styles.resultItem}>
-                    <span>{t("trainXpGained")}</span>
-                    <strong>+{result.xpGained}</strong>
-                  </div>
-                  <div style={styles.resultItem}>
-                    <span>{t("trainRankProgress")}</span>
-                    <strong>{result.rankProgress}%</strong>
-                  </div>
-                  {result.hitCount > 0 && (
-                    <div style={{ ...styles.resultItem, gridColumn: "1 / -1" }}>
-                      <span>Total Hits</span>
-                      <strong>{result.hitCount} 🥊</strong>
-                    </div>
-                  )}
-                </>
               )}
             </div>
 
-            {/* Score breakdown */}
-            {!activeChallenge && result.breakdown && (
-              <div style={styles.breakdownCard}>
-                <p style={styles.breakdownTitle}>{t("scoreBreakdown")}</p>
-                <div style={styles.breakdownGrid}>
-                  {[
-                    { key: "scoreAccuracy", val: result.breakdown.accuracy, color: "#60A5FA" },
-                    { key: "scoreSpeed", val: result.breakdown.speed, color: "#F59E0B" },
-                    { key: "scorePower", val: result.breakdown.power, color: "#F87171" },
-                    { key: "scoreConsistency", val: result.breakdown.consistency, color: "#34D399" },
-                  ].map(({ key, val, color }) => (
-                    <div key={key} style={styles.breakdownItem}>
-                      <span style={styles.breakdownLbl}>{t(key)}</span>
-                      <span style={{ ...styles.breakdownVal, color }}>{val.toFixed(1)}</span>
-                      <div style={styles.breakdownTrack}>
-                        <div style={{ ...styles.breakdownFill, width: `${val * 10}%`, background: color }} />
-                      </div>
+            {/* MIDDLE — detail breakdown (scrollable) */}
+            <div style={styles.modalMiddle}>
+              {challengeUserId && pvpResult && (
+                <div style={pvpResult === "win" ? styles.pvpWinBanner : styles.pvpLoseBanner}>
+                  <div style={styles.pvpResultBadge}>
+                    {pvpResult === "win" ? t("pvpWin") : t("pvpLose")}
+                  </div>
+                  <div style={styles.pvpResultHeadline}>
+                    {pvpResult === "win"
+                      ? t("pvpYouWon").replace("{username}", opponentUsername || "them")
+                      : t("pvpYouLost")}
+                  </div>
+                  <div style={styles.pvpResultScoreRow}>
+                    <div style={styles.pvpResultScoreCell}>
+                      <span style={styles.pvpResultScoreNum}>{result.score.toFixed(1)}</span>
+                      <span style={styles.pvpResultScoreLbl}>{t("pvpYouLabel")}</span>
                     </div>
-                  ))}
+                    <div style={styles.pvpResultScoreVs}>{t("pvpVsLabel")}</div>
+                    <div style={styles.pvpResultScoreCell}>
+                      <span style={styles.pvpResultScoreNum}>{targetScore?.toFixed(1)}</span>
+                      <span style={styles.pvpResultScoreLbl}>@{opponentUsername || "?"}</span>
+                    </div>
+                  </div>
+                  {(() => {
+                    const diff = result.score - (targetScore || 0);
+                    return (
+                      <div style={{ ...styles.pvpResultDiff, color: diff >= 0 ? "#34D399" : "#F87171" }}>
+                        {diff >= 0 ? "+" : ""}{diff.toFixed(1)}
+                      </div>
+                    );
+                  })()}
                 </div>
-              </div>
-            )}
-
-            {!activeChallenge && (
-              <div style={styles.progressTrack}>
-                <div style={{ ...styles.progressFill, width: `${result.rankProgress}%` }} />
-              </div>
-            )}
-
-            {!activeChallenge && (
-              <button type="button" style={styles.shareResultButton} onClick={handleShareTraining}>
-                {t("challengeShare")}
-              </button>
-            )}
-
-            {activeChallenge && challengeSaved && (
-              <div style={styles.modalSaved}>{t("challengeResultSaved")}</div>
-            )}
-
-            {missionJustCompleted && (
-              <div style={styles.missionCompleteBanner}>
-                <div style={styles.missionCompleteTitle}>
-                  🎯 {t("missionDailyComplete")}
-                </div>
-                <div style={styles.missionCompleteXP}>
-                  +50 XP {t("missionTarget").length > 0 ? "" : ""}
-                  {missionStreakBonus > 0 && (
-                    <span style={styles.missionStreakBonusText}>
-                      {" "}+ {missionStreakBonus} XP 🔥{missionNewStreak} {t("missionStreakBonus")}
-                    </span>
-                  )}
-                </div>
-                <div style={styles.missionCompleteSub}>
-                  {t("missionCurrentStreak")}: 🔥{missionNewStreak}
-                </div>
-              </div>
-            )}
-
-            <div style={styles.modalActions}>
-              {!activeChallenge && (
-                <>
-                  <button
-                    type="button"
-                    style={{ ...styles.saveButton, ...(saved ? styles.saveButtonDone : {}) }}
-                    onClick={handleSave}
-                    disabled={saving || saved}
-                  >
-                    {saving
-                      ? t("trainSaving")
-                      : saved && savedAttemptNumber
-                        ? t("trainAttemptSaved").replace("{n}", savedAttemptNumber)
-                        : saved
-                          ? t("trainSavedShort")
-                          : t("trainSaveProgress")}
-                  </button>
-                  <button type="button" style={styles.reelsButton} onClick={goToReels}>
-                    {t("trainBackToReels")}
-                  </button>
-                </>
               )}
-              {activeChallenge && (
-                <>
-                  <button
-                    type="button"
-                    style={{ ...styles.saveButton, ...(challengeSaved ? styles.saveButtonDone : {}) }}
-                    onClick={handleSaveChallengeResult}
-                    disabled={challengeSaving || challengeSaved}
-                  >
-                    {challengeSaving
-                      ? t("trainSaving")
-                      : challengeSaved
-                        ? t("challengeResultSaved")
-                        : t("challengeSaveResult")}
-                  </button>
-                  <button type="button" style={styles.reelsButton} onClick={goToChallenges}>
-                    {t("challengeBackToChallenges")}
-                  </button>
-                  <button type="button" style={styles.challengeFriendButton} onClick={handleChallengeFriend}>
-                    {t("challengeFriend")}
-                  </button>
-                  <button type="button" style={styles.reelsButton} onClick={handleShareChallenge}>
-                    {t("challengeShare")}
-                  </button>
-                </>
+
+              {!challengeUserId && ghostBestScore !== null && ghostEnabled && (
+                <div style={result.score > ghostBestScore ? styles.ghostWinBanner : styles.ghostLoseBanner}>
+                  {result.score > ghostBestScore ? t("ghostBeatBest") : t("ghostLostToBest")}
+                  <div style={styles.ghostBestScoreRow}>
+                    {t("ghostBestLabel")}: {ghostBestScore.toFixed(1)}/10
+                  </div>
+                </div>
               )}
-              <button type="button" style={styles.tryAgainButton} onClick={handleTryAgain}>
-                {activeChallenge ? t("challengeTryAgain") : t("trainTryAgain")}
-              </button>
+
+              {!activeChallenge && result.breakdown && (
+                <div style={styles.breakdownCard}>
+                  <p style={styles.breakdownTitle}>{t("scoreBreakdown")}</p>
+                  <div style={styles.breakdownGrid}>
+                    {[
+                      { key: "scoreAccuracy", val: result.breakdown.accuracy, color: "#60A5FA" },
+                      { key: "scoreSpeed", val: result.breakdown.speed, color: "#F59E0B" },
+                      { key: "scorePower", val: result.breakdown.power, color: "#F87171" },
+                      { key: "scoreConsistency", val: result.breakdown.consistency, color: "#34D399" },
+                    ].map(({ key, val, color }) => (
+                      <div key={key} style={styles.breakdownItem}>
+                        <span style={styles.breakdownLbl}>{t(key)}</span>
+                        <span style={{ ...styles.breakdownVal, color }}>{val.toFixed(1)}</span>
+                        <div style={styles.breakdownTrack}>
+                          <div style={{ ...styles.breakdownFill, width: `${val * 10}%`, background: color }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {missionJustCompleted && (
+                <div style={styles.missionCompleteBanner}>
+                  <div style={styles.missionCompleteTitle}>🎯 {t("missionDailyComplete")}</div>
+                  <div style={styles.missionCompleteXP}>
+                    +50 XP
+                    {missionStreakBonus > 0 && (
+                      <span style={styles.missionStreakBonusText}>
+                        {" "}+ {missionStreakBonus} XP 🔥{missionNewStreak} {t("missionStreakBonus")}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* BOTTOM — action buttons */}
+            <div style={styles.modalBottom}>
+              <div style={styles.modalActions}>
+                {!activeChallenge && (
+                  <>
+                    <button
+                      type="button"
+                      style={{ ...styles.saveButton, ...(saved ? styles.saveButtonDone : {}) }}
+                      onClick={handleSave}
+                      disabled={saving || saved}
+                    >
+                      {saving
+                        ? t("trainSaving")
+                        : saved && savedAttemptNumber
+                          ? t("trainAttemptSaved").replace("{n}", savedAttemptNumber)
+                          : saved
+                            ? t("trainSavedShort")
+                            : t("trainSaveProgress")}
+                    </button>
+                    <button type="button" style={styles.reelsButton} onClick={goToReels}>
+                      {t("trainBackToReels")}
+                    </button>
+                  </>
+                )}
+                {activeChallenge && (
+                  <>
+                    <button
+                      type="button"
+                      style={{ ...styles.saveButton, ...(challengeSaved ? styles.saveButtonDone : {}) }}
+                      onClick={handleSaveChallengeResult}
+                      disabled={challengeSaving || challengeSaved}
+                    >
+                      {challengeSaving
+                        ? t("trainSaving")
+                        : challengeSaved
+                          ? t("challengeResultSaved")
+                          : t("challengeSaveResult")}
+                    </button>
+                    <button type="button" style={styles.reelsButton} onClick={goToChallenges}>
+                      {t("challengeBackToChallenges")}
+                    </button>
+                    <button type="button" style={styles.challengeFriendButton} onClick={handleChallengeFriend}>
+                      {t("challengeFriend")}
+                    </button>
+                  </>
+                )}
+                <button type="button" style={styles.tryAgainButton} onClick={handleTryAgain}>
+                  {activeChallenge ? t("challengeTryAgain") : t("trainTryAgain")}
+                </button>
+              </div>
             </div>
           </section>
         </div>
@@ -1885,13 +1850,28 @@ const styles = {
     width: "100%",
     maxWidth: 460,
     borderRadius: 22,
-    padding: 20,
     background: "linear-gradient(180deg, #151111, #080808)",
     border: "1px solid rgba(212,175,55,0.2)",
     boxShadow: "0 -24px 70px rgba(0,0,0,0.54)",
     textAlign: "center",
-    maxHeight: "calc(100vh - 132px)",
+    maxHeight: "min(600px, calc(100vh - 120px))",
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
+  },
+  modalTop: {
+    padding: "18px 20px 14px",
+    flexShrink: 0,
+  },
+  modalMiddle: {
     overflowY: "auto",
+    padding: "0 20px",
+    flex: 1,
+  },
+  modalBottom: {
+    padding: "12px 20px 16px",
+    flexShrink: 0,
+    borderTop: "1px solid rgba(255,255,255,0.06)",
   },
   modalKicker: {
     margin: 0,
