@@ -54,7 +54,7 @@ function StatusBadge({ status, t }) {
   return <span style={styles.badgePending}>{t("requestPending")}</span>;
 }
 
-function RequestCard({ request, requesterUser, t, onAccept, onDecline, onSchedule, updating }) {
+function RequestCard({ request, requesterUser, t, onAccept, onDecline, onSchedule, onMarkComplete, updating, completingId }) {
   const typeLbl = request.type === "sparring" ? t("sparringRequestType") : t("coachRequestType");
 
   return (
@@ -116,10 +116,26 @@ function RequestCard({ request, requesterUser, t, onAccept, onDecline, onSchedul
         </button>
       )}
 
-      {request.bookedAt && (
-        <div style={styles.bookedTag}>
-          📅 {request.bookedDate} {request.bookedTime} · {request.bookedDuration}min
+      {request.bookedAt && !request.sessionCompleted && (
+        <div style={styles.bookedRow}>
+          <div style={styles.bookedTag}>
+            📅 {request.bookedDate} {request.bookedTime} · {request.bookedDuration}min
+          </div>
+          {request.bookingId && (
+            <button
+              type="button"
+              style={styles.completeBtn}
+              disabled={completingId === request.id}
+              onClick={() => onMarkComplete(request)}
+            >
+              {completingId === request.id ? t("coachMarkCompleting") : t("coachMarkComplete")}
+            </button>
+          )}
         </div>
+      )}
+
+      {request.sessionCompleted && (
+        <div style={styles.completedTag}>✓ {t("coachBookingCompleted")}</div>
       )}
     </div>
   );
@@ -146,6 +162,7 @@ export default function CoachDashboardPage() {
   const [bookingDuration, setBookingDuration] = useState(60);
   const [bookingSubmitting, setBookingSubmitting] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [completingId, setCompletingId] = useState(null);
 
   // Auth + coach guard
   useEffect(() => {
@@ -282,7 +299,7 @@ export default function CoachDashboardPage() {
     if (!bookingDate || !bookingTime || !bookingRequest) return;
     setBookingSubmitting(true);
     try {
-      await addDoc(collection(db, "coach_bookings"), {
+      const bookingDoc = await addDoc(collection(db, "coach_bookings"), {
         coachId: user.uid,
         userId: bookingRequest.userId,
         requestId: bookingRequest.id,
@@ -292,6 +309,8 @@ export default function CoachDashboardPage() {
         status: "scheduled",
         createdAt: serverTimestamp(),
       });
+      // Store bookingId back on request for easy Mark Complete lookup
+      await updateDoc(doc(db, "coach_requests", bookingRequest.id), { bookingId: bookingDoc.id });
 
       if (bookingRequest.userId) {
         await addDoc(collection(db, "notifications"), {
@@ -321,6 +340,61 @@ export default function CoachDashboardPage() {
       console.error("Failed to create booking:", e);
     } finally {
       setBookingSubmitting(false);
+    }
+  };
+
+  const handleMarkComplete = async (request) => {
+    if (!request.bookingId) return;
+    setCompletingId(request.id);
+    try {
+      // 1. Update booking status
+      await updateDoc(doc(db, "coach_bookings", request.bookingId), {
+        status: "completed",
+        completedAt: serverTimestamp(),
+      });
+
+      // 2. Increment coach completedSessions
+      const { increment } = await import("firebase/firestore");
+      const coachRef = doc(db, "users", user.uid);
+      const coachSnap = await getDoc(coachRef);
+      const coachData = coachSnap.exists() ? coachSnap.data() : {};
+      const newCompleted = (Number(coachData.completedSessions) || 0) + 1;
+
+      // 3. Recalculate avg rating from reviews
+      const reviewsSnap = await getDocs(query(collection(db, "coach_reviews"), where("coachId", "==", user.uid)));
+      const ratings = reviewsSnap.docs.map((d) => Number(d.data().rating)).filter(Number.isFinite);
+      const avgRating = ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : Number(coachData.coachRating) || 5;
+
+      await updateDoc(coachRef, {
+        completedSessions: newCompleted,
+        coachRating: Number(avgRating.toFixed(1)),
+        coachTotalReviews: ratings.length,
+      });
+
+      // 4. Notify student
+      if (request.userId) {
+        await addDoc(collection(db, "notifications"), {
+          recipientId: request.userId,
+          actorId: user.uid,
+          actorName: user.displayName || "Coach",
+          fromUserId: user.uid,
+          fromUsername: user.displayName || "Coach",
+          fromUserPhotoURL: user.photoURL || "",
+          type: "session_completed",
+          message: t("coachSessionCompleted"),
+          read: false,
+          createdAt: serverTimestamp(),
+        });
+      }
+
+      // 5. Update local state
+      setRequests((prev) =>
+        prev.map((r) => r.id === request.id ? { ...r, sessionCompleted: true } : r)
+      );
+    } catch (e) {
+      console.error("Failed to mark complete:", e);
+    } finally {
+      setCompletingId(null);
     }
   };
 
@@ -395,9 +469,11 @@ export default function CoachDashboardPage() {
               requesterUser={requesterUsers[req.userId]}
               t={t}
               updating={updating}
+              completingId={completingId}
               onAccept={handleAccept}
               onDecline={handleDecline}
               onSchedule={openBookingModal}
+              onMarkComplete={handleMarkComplete}
             />
           ))}
         </div>
@@ -873,5 +949,30 @@ const styles = {
     fontWeight: 1000,
     cursor: "pointer",
     boxShadow: "0 6px 18px rgba(22,101,52,0.35)",
+  },
+  bookedRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    flexWrap: "wrap",
+  },
+  completeBtn: {
+    flexShrink: 0,
+    minHeight: 32,
+    padding: "0 14px",
+    border: "1px solid rgba(52,211,153,0.35)",
+    borderRadius: 10,
+    background: "rgba(52,211,153,0.08)",
+    color: "#34D399",
+    fontSize: 12,
+    fontWeight: 900,
+    cursor: "pointer",
+  },
+  completedTag: {
+    fontSize: 12,
+    color: "#34D399",
+    fontWeight: 700,
+    paddingTop: 2,
   },
 };
