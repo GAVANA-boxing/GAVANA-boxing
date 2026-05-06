@@ -8,9 +8,6 @@ import { useAuth } from "@/lib/AuthContext";
 import { getLocale, translate } from "@/lib/i18n";
 import BottomNav from "@/components/BottomNav";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
 function getCreatedAtMs(obj) {
   const ts = obj?.createdAt;
   if (!ts) return 0;

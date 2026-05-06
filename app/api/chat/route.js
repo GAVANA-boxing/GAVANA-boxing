@@ -28,22 +28,34 @@ const LANGUAGE_INSTRUCTIONS = {
   ko: "IMPORTANT: Reply only in natural, clear Korean.",
 };
 
+const FALLBACK = { message: "Feedback unavailable right now. Please try again later.", fallback: true };
+
 export async function POST(req) {
   const { messages, persona = "drill", locale = "en" } = await req.json();
   const safeLocale = getLocale(locale);
   const selectedPersona = PERSONAS[persona] || PERSONAS.drill;
   const languageInstruction = LANGUAGE_INSTRUCTIONS[safeLocale] || LANGUAGE_INSTRUCTIONS.en;
 
-  const response = await client.messages.create({
-    model: "claude-sonnet-4-5",
-    max_tokens: 1000,
-    system: [
-      selectedPersona.systemPrompt,
-      "The following final language rule overrides all persona style, prior instructions, and user language when they conflict.",
-      languageInstruction,
-    ].join("\n\n"),
-    messages,
-  });
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.error("[chat/route] ANTHROPIC_API_KEY is not set");
+    return Response.json(FALLBACK, { status: 200 });
+  }
 
-  return Response.json(response);
+  try {
+    const response = await client.messages.create({
+      model: "claude-sonnet-4-5",
+      max_tokens: 1000,
+      system: [
+        selectedPersona.systemPrompt,
+        "The following final language rule overrides all persona style, prior instructions, and user language when they conflict.",
+        languageInstruction,
+      ].join("\n\n"),
+      messages,
+    });
+
+    return Response.json(response);
+  } catch (err) {
+    console.error("[chat/route] AI call failed:", err?.message ?? err);
+    return Response.json(FALLBACK, { status: 200 });
+  }
 }

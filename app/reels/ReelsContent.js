@@ -1346,15 +1346,20 @@ export default function ReelsContent() {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error("Feedback request failed");
+      const data = await response.json();
+
+      if (!response.ok || data?.fallback) {
+        setFeedbackResult(data?.message || "Feedback unavailable right now. Please try again later.");
+        setFeedbackSaved(false);
+        return;
       }
 
-      const data = await response.json();
       const text = data?.content?.find((item) => item?.type === "text")?.text || data?.content?.[0]?.text || "";
 
       if (!text.trim()) {
-        throw new Error("Empty feedback response");
+        setFeedbackResult("Feedback unavailable right now. Please try again later.");
+        setFeedbackSaved(false);
+        return;
       }
 
       const feedbackText = text.trim();
@@ -1724,7 +1729,13 @@ export default function ReelsContent() {
           onClick={() => setDiffFilter((prev) => (prev === "beginner" ? "all" : "beginner"))}
           style={{
             ...styles.feedTab,
-            ...(diffFilter === "beginner" ? { ...styles.feedTabActive, color: "#34D399", borderColor: "rgba(52,211,153,0.5)" } : {}),
+            ...(diffFilter === "beginner" ? {
+              ...styles.feedTabActive,
+              color: "#34D399",
+              borderWidth: "1px",
+              borderStyle: "solid",
+              borderColor: "rgba(52,211,153,0.5)",
+            } : {}),
             fontSize: 11,
             padding: "4px 10px",
           }}

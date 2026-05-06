@@ -1,0 +1,224 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Helpers ────────────────────────────────────────────────
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function isOwner(field) {
+      return isAuth() && resource.data[field] == request.auth.uid;
+    }
+
+    // ─── Users ──────────────────────────────────────────────────
+    match /users/{userId} {
+      allow read: if true;
+      allow create: if isAuth() && request.auth.uid == userId;
+      allow update: if isAuth() && request.auth.uid == userId;
+      allow delete: if false;
+    }
+
+    // ─── Reels ──────────────────────────────────────────────────
+    match /reels/{reelId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if isOwner("userId");
+    }
+
+    // ─── Reel stats (public read; any auth user may increment) ──
+    match /reel_stats/{reelId} {
+      allow read: if true;
+      allow write: if isAuth();
+    }
+
+    // ─── Reel views (owner-read; any auth user may write own) ───
+    match /reel_views/{viewId} {
+      allow read: if isAuth() && resource.data.userId == request.auth.uid;
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // ─── Challenge attempts ──────────────────────────────────────
+    match /challenge_attempts/{attemptId} {
+      allow read: if isAuth() && resource.data.userId == request.auth.uid;
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update: if isAuth() && resource.data.userId == request.auth.uid;
+      allow delete: if false;
+    }
+
+    // ─── AI feedback ─────────────────────────────────────────────
+    match /ai_feedback/{feedbackId} {
+      allow read: if isAuth() && resource.data.userId == request.auth.uid;
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update: if isAuth() && resource.data.userId == request.auth.uid;
+      allow delete: if false;
+    }
+
+    // ─── Training sessions / profile ─────────────────────────────
+    match /training_sessions/{sessionId} {
+      allow read: if isAuth() && resource.data.userId == request.auth.uid;
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuth() && resource.data.userId == request.auth.uid;
+    }
+
+    match /user_training_profile/{userId} {
+      allow read: if true;
+      allow write: if isAuth() && request.auth.uid == userId;
+    }
+
+    // ─── Badges ───────────────────────────────────────────────────
+    match /user_badges/{badgeId} {
+      allow read: if true;
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuth() && resource.data.userId == request.auth.uid;
+    }
+
+    // ─── Follows ─────────────────────────────────────────────────
+    match /follows/{followId} {
+      allow read: if true;
+      allow create: if isAuth() && request.resource.data.followerId == request.auth.uid;
+      allow delete: if isAuth() && resource.data.followerId == request.auth.uid;
+      allow update: if false;
+    }
+
+    // ─── Likes ────────────────────────────────────────────────────
+    match /user_likes/{likeId} {
+      allow read: if isAuth() && resource.data.userId == request.auth.uid;
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow delete: if isAuth() && resource.data.userId == request.auth.uid;
+      allow update: if false;
+    }
+
+    // ─── Saved reels ──────────────────────────────────────────────
+    match /saved_reels/{savedId} {
+      allow read: if isAuth() && resource.data.userId == request.auth.uid;
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow delete: if isAuth() && resource.data.userId == request.auth.uid;
+      allow update: if false;
+    }
+
+    // ─── Notifications ────────────────────────────────────────────
+    match /notifications/{notifId} {
+      allow read: if isAuth() && resource.data.recipientId == request.auth.uid;
+      allow create: if isAuth();
+      allow update: if isAuth() && resource.data.recipientId == request.auth.uid;
+      allow delete: if isAuth() && resource.data.recipientId == request.auth.uid;
+    }
+
+    // ─── Featured creators ────────────────────────────────────────
+    // Public read; writes restricted to admins.
+    // TODO: replace with your project's admin check once admin custom claims are set up.
+    // Currently guarded by request.auth.token.admin == true (Firebase custom claim).
+    match /featured_creators/{docId} {
+      allow read: if true;
+      allow write: if isAuth() && request.auth.token.admin == true;
+    }
+
+    // ─── Gyms ─────────────────────────────────────────────────────
+    match /gyms/{gymId} {
+      allow read: if true;
+      allow create: if isAuth() && request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if isAuth() && resource.data.ownerId == request.auth.uid;
+    }
+
+    // ─── Gym announcements ────────────────────────────────────────
+    match /gym_announcements/{announcementId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if isAuth() && resource.data.ownerId == request.auth.uid;
+    }
+
+    // ─── Gym reviews ──────────────────────────────────────────────
+    match /gym_reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuth() && resource.data.userId == request.auth.uid;
+    }
+
+    // ─── Gym join requests ────────────────────────────────────────
+    // Requester can read/write their own; gym owners read all for their gym.
+    match /gym_join_requests/{requestId} {
+      allow read: if isAuth() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.gymOwnerId == request.auth.uid
+      );
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update: if isAuth() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.gymOwnerId == request.auth.uid
+      );
+      allow delete: if isAuth() && resource.data.userId == request.auth.uid;
+    }
+
+    // ─── Coach profiles / applications ────────────────────────────
+    match /coach_applications/{appId} {
+      allow read: if isAuth() && resource.data.userId == request.auth.uid;
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuth() && resource.data.userId == request.auth.uid;
+    }
+
+    // ─── Coach requests ───────────────────────────────────────────
+    match /coach_requests/{requestId} {
+      allow read: if isAuth() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.coachId == request.auth.uid
+      );
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update: if isAuth() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.coachId == request.auth.uid
+      );
+      allow delete: if isAuth() && resource.data.userId == request.auth.uid;
+    }
+
+    // ─── Coach bookings ───────────────────────────────────────────
+    match /coach_bookings/{bookingId} {
+      allow read: if isAuth() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.coachId == request.auth.uid
+      );
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update: if isAuth() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.coachId == request.auth.uid
+      );
+      allow delete: if isAuth() && resource.data.userId == request.auth.uid;
+    }
+
+    // ─── Coach reviews ────────────────────────────────────────────
+    match /coach_reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuth() && resource.data.userId == request.auth.uid;
+    }
+
+    // ─── PvP results ──────────────────────────────────────────────
+    match /pvp_results/{resultId} {
+      allow read: if isAuth() && (
+        resource.data.challengerId == request.auth.uid ||
+        resource.data.challengedUserId == request.auth.uid ||
+        resource.data.opponentId == request.auth.uid
+      );
+      allow create: if isAuth();
+      allow update: if isAuth() && (
+        resource.data.challengerId == request.auth.uid ||
+        resource.data.challengedUserId == request.auth.uid
+      );
+      allow delete: if false;
+    }
+
+    // ─── Sparring posts ───────────────────────────────────────────
+    match /sparring_posts/{postId} {
+      allow read: if true;
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuth() && resource.data.userId == request.auth.uid;
+    }
+
+    // ─── Leaderboard ──────────────────────────────────────────────
+    match /leaderboard/{entryId} {
+      allow read: if true;
+      allow write: if isAuth();
+    }
+  }
+}

@@ -269,6 +269,23 @@
         { "fieldPath": "seasonId", "order": "ASCENDING" },
         { "fieldPath": "score", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "coach_bookings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "date", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "coach_bookings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "coachId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []
