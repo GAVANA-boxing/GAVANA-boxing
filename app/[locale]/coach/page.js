@@ -86,6 +86,18 @@ function CoachCard({ coach, t, locale, onRequest, requested, router }) {
             <span style={styles.cardStatLbl}>{t("coachRating")}</span>
           </div>
         )}
+        {Number.isFinite(coach.coachTotalReviews) && coach.coachTotalReviews > 0 && (
+          <div style={styles.cardStat}>
+            <span style={styles.cardStatNum}>{coach.coachTotalReviews}</span>
+            <span style={styles.cardStatLbl}>{t("coachTotalReviews")}</span>
+          </div>
+        )}
+        {Number.isFinite(coach.completedSessions) && coach.completedSessions > 0 && (
+          <div style={styles.cardStat}>
+            <span style={styles.cardStatNum}>{coach.completedSessions}</span>
+            <span style={styles.cardStatLbl}>{t("coachCompletedSessions")}</span>
+          </div>
+        )}
         {Number.isFinite(coach.coachStudentsCount) && (
           <div style={styles.cardStat}>
             <span style={styles.cardStatNum}>{coach.coachStudentsCount}</span>
@@ -104,9 +116,9 @@ function CoachCard({ coach, t, locale, onRequest, requested, router }) {
         <button
           type="button"
           style={styles.viewProfileBtn}
-          onClick={() => router.push(`/${locale}/profile/${coach.id}`)}
+          onClick={() => router.push(`/${locale}/coach/${coach.id}`)}
         >
-          View Profile
+          {t("viewProfile")}
         </button>
         <button
           type="button"
@@ -360,6 +372,15 @@ export default function CoachPage() {
           <header style={styles.pageHeader}>
             <p style={styles.kicker}>GAVANA BOXING</p>
             <h1 style={styles.pageTitle}>{t("coachMarketplace")}</h1>
+            {user && (
+              <button
+                type="button"
+                style={styles.becomeCoachBtn}
+                onClick={() => router.push(`/${locale}/coach/apply`)}
+              >
+                {t("becomeCoach")}
+              </button>
+            )}
           </header>
 
           {/* Filters */}
@@ -613,6 +634,20 @@ const styles = {
   },
   pageHeader: {
     padding: "22px 0 12px",
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+  },
+  becomeCoachBtn: {
+    alignSelf: "flex-start",
+    background: "rgba(212,175,55,0.12)",
+    border: "1px solid rgba(212,175,55,0.4)",
+    borderRadius: 20,
+    padding: "7px 16px",
+    color: "#D4AF37",
+    fontSize: 13,
+    fontWeight: 600,
+    cursor: "pointer",
   },
   kicker: {
     margin: 0,

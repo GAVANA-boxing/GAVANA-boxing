@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
@@ -63,6 +63,8 @@ export default function LeaderboardPage() {
   const [rawChallengeResults, setRawChallengeResults] = useState([]);
   const [profiles, setProfiles] = useState({});
   const [loading, setLoading] = useState(true);
+  const [trainingSessions, setTrainingSessions] = useState([]);
+  const [followingIds, setFollowingIds] = useState(new Set());
 
   const currentSeasonId = useMemo(() => getCurrentSeasonId(), []);
   const seasonLabel = useMemo(() => getSeasonLabel(currentSeasonId), [currentSeasonId]);
@@ -72,10 +74,11 @@ export default function LeaderboardPage() {
 
     async function load() {
       try {
-        const [snapshot, challengeSnapshot, usersSnapshot] = await Promise.all([
+        const [snapshot, challengeSnapshot, usersSnapshot, trainingSnapshot] = await Promise.all([
           getDocs(collection(db, "ai_feedback")),
           getDocs(collection(db, "challenge_results")),
           getDocs(collection(db, "users")),
+          getDocs(collection(db, "training_sessions")),
         ]);
 
         const profileMap = {};
@@ -160,10 +163,20 @@ export default function LeaderboardPage() {
           .sort((a, b) => b.xp - a.xp || b.bestScore - a.bestScore)
           .slice(0, 50);
 
+        // Collect training sessions for improvement + streak tabs
+        const sessions = [];
+        trainingSnapshot.forEach((docSnap) => {
+          const d = docSnap.data();
+          if (d.userId && d.score != null) {
+            sessions.push({ userId: d.userId, score: Number(d.score), createdAt: d.createdAt });
+          }
+        });
+
         if (!active) return;
         setEntries(sorted);
         setRawChallengeResults(rawResults);
         setProfiles(profileMap);
+        setTrainingSessions(sessions);
       } catch (err) {
         console.error("Leaderboard load error:", err);
       } finally {
@@ -175,12 +188,70 @@ export default function LeaderboardPage() {
     return () => { active = false; };
   }, []);
 
+  useEffect(() => {
+    if (!user?.uid) { setFollowingIds(new Set()); return; }
+    let active = true;
+    async function loadFollowing() {
+      try {
+        const snap = await getDocs(query(collection(db, "follows"), where("followerId", "==", user.uid)));
+        if (!active) return;
+        const ids = new Set();
+        snap.forEach((d) => { if (d.data().followingId) ids.add(d.data().followingId); });
+        setFollowingIds(ids);
+      } catch { setFollowingIds(new Set()); }
+    }
+    loadFollowing();
+    return () => { active = false; };
+  }, [user?.uid]);
+
   const weeklyEntries = useMemo(
     () => dedupeWeeklyByUser(rawChallengeResults, currentSeasonId),
     [rawChallengeResults, currentSeasonId]
   );
 
-  const displayEntries = leaderboardTab === "week" ? weeklyEntries : entries;
+  // Improvement: biggest score jump in last 14 days vs previous 14 days
+  const improvementEntries = useMemo(() => {
+    const now = Date.now();
+    const recent = now - 14 * 86400000;
+    const prev = now - 28 * 86400000;
+    const byUser = {};
+    trainingSessions.forEach((s) => {
+      const ms = s.createdAt?.toMillis?.() || 0;
+      if (!byUser[s.userId]) byUser[s.userId] = { recentBest: null, prevBest: null };
+      if (ms >= recent) {
+        if (byUser[s.userId].recentBest === null || s.score > byUser[s.userId].recentBest) byUser[s.userId].recentBest = s.score;
+      } else if (ms >= prev) {
+        if (byUser[s.userId].prevBest === null || s.score > byUser[s.userId].prevBest) byUser[s.userId].prevBest = s.score;
+      }
+    });
+    return Object.entries(byUser)
+      .filter(([, v]) => v.recentBest !== null && v.prevBest !== null)
+      .map(([uid, v]) => ({ userId: uid, bestScore: v.recentBest, improvement: Number((v.recentBest - v.prevBest).toFixed(1)) }))
+      .filter((e) => e.improvement > 0)
+      .sort((a, b) => b.improvement - a.improvement)
+      .slice(0, 50);
+  }, [trainingSessions]);
+
+  // Streak: ordered by user dailyStreak field
+  const streakEntries = useMemo(() => {
+    return Object.values(profiles)
+      .filter((p) => (Number(p.dailyStreak) || 0) > 0)
+      .map((p) => ({ userId: p.userId, bestScore: Number(p.dailyStreak) || 0 }))
+      .sort((a, b) => b.bestScore - a.bestScore)
+      .slice(0, 50);
+  }, [profiles]);
+
+  const friendsEntries = useMemo(() => {
+    if (!user?.uid || followingIds.size === 0) return [];
+    return entries.filter((e) => followingIds.has(e.userId) || e.userId === user.uid);
+  }, [entries, followingIds, user?.uid]);
+
+  const displayEntries =
+    leaderboardTab === "week" ? weeklyEntries
+    : leaderboardTab === "improvement" ? improvementEntries
+    : leaderboardTab === "streak" ? streakEntries
+    : leaderboardTab === "friends" ? friendsEntries
+    : entries;
 
   const currentUserAllTimeRank = useMemo(() => {
     if (!user?.uid) return null;
@@ -241,6 +312,30 @@ export default function LeaderboardPage() {
             onClick={() => setLeaderboardTab("alltime")}
           >
             {t("leaderboardTabAllTime")}
+          </button>
+          <button
+            type="button"
+            style={{ ...styles.tabBtn, ...(leaderboardTab === "improvement" ? styles.tabBtnActive : {}) }}
+            onClick={() => setLeaderboardTab("improvement")}
+          >
+            {t("lbImprovement")}
+          </button>
+          <button
+            type="button"
+            style={{ ...styles.tabBtn, ...(leaderboardTab === "streak" ? styles.tabBtnActive : {}) }}
+            onClick={() => setLeaderboardTab("streak")}
+          >
+            {t("lbStreak")}
+          </button>
+          <button
+            type="button"
+            style={{ ...styles.tabBtn, ...(leaderboardTab === "friends" ? styles.tabBtnActive : {}) }}
+            onClick={() => {
+              if (!user?.uid) { router.push(`/${locale}/login`); return; }
+              setLeaderboardTab("friends");
+            }}
+          >
+            {t("friendsLeaderboard")}
           </button>
         </div>
         {leaderboardTab === "week" && (
@@ -320,7 +415,7 @@ export default function LeaderboardPage() {
           <div style={styles.emptyWrap}>
             <div style={styles.emptyIcon}>🏆</div>
             <p style={styles.emptyTitle}>
-              {leaderboardTab === "week" ? t("seasonNoResultsThisWeek") : t("leaderboardEmpty")}
+              {leaderboardTab === "week" ? t("seasonNoResultsThisWeek") : leaderboardTab === "improvement" ? t("lbImprovementEmpty") : leaderboardTab === "streak" ? t("lbStreakEmpty") : leaderboardTab === "friends" ? t("followingEmptyHelp") : t("leaderboardEmpty")}
             </p>
             <p style={styles.emptyText}>{t("leaderboardEmptyHelp")}</p>
           </div>
@@ -411,18 +506,36 @@ export default function LeaderboardPage() {
 
                   {/* Scores */}
                   <div style={styles.scoresBlock}>
-                    <div style={{ ...styles.bestScore, color: scoreColor }}>
-                      {entry.bestScore}/10
-                    </div>
-                    {leaderboardTab === "alltime" && (
-                      <div style={styles.latestScore}>
-                        {(allTimeEntry?.xp ?? 0).toLocaleString()} {t("xpLabel")}
-                      </div>
-                    )}
-                    {leaderboardTab === "week" && (
-                      <div style={styles.latestScore}>
-                        {t("seasonWeeklyScoreLabel")}
-                      </div>
+                    {leaderboardTab === "improvement" ? (
+                      <>
+                        <div style={{ ...styles.bestScore, color: "#34D399" }}>
+                          +{entry.improvement ?? 0}
+                        </div>
+                        <div style={styles.latestScore}>{t("lbImprovement")}</div>
+                      </>
+                    ) : leaderboardTab === "streak" ? (
+                      <>
+                        <div style={{ ...styles.bestScore, color: "#FB923C" }}>
+                          🔥{entry.bestScore}
+                        </div>
+                        <div style={styles.latestScore}>{t("lbStreak")}</div>
+                      </>
+                    ) : (
+                      <>
+                        <div style={{ ...styles.bestScore, color: scoreColor }}>
+                          {entry.bestScore}/10
+                        </div>
+                        {leaderboardTab === "alltime" && (
+                          <div style={styles.latestScore}>
+                            {(allTimeEntry?.xp ?? 0).toLocaleString()} {t("xpLabel")}
+                          </div>
+                        )}
+                        {leaderboardTab === "week" && (
+                          <div style={styles.latestScore}>
+                            {t("seasonWeeklyScoreLabel")}
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>

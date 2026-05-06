@@ -41,6 +41,11 @@ function getTypeLabel(type, t) {
   if (type === "follow") return t("follow");
   if (type === "save") return t("save");
   if (type === "pvp_challenge") return t("pvpNotifType");
+  if (type === "challenge_attempt") return t("notifTypeChallengeAttempt");
+  if (type === "remix") return t("notifTypeRemix");
+  if (type === "featured") return t("notifTypeFeatured");
+  if (type === "new_follower") return t("newFollower");
+  if (type === "challenge_beaten") return t("challengeBeaten");
   return t("update");
 }
 
@@ -51,6 +56,11 @@ function getTranslatedNotificationText(notification, t) {
     const key = notification.result === "win" ? "pvpNotifBeat" : "pvpNotifFailed";
     return t(key).replace("{actor}", actor);
   }
+  if (notification.type === "challenge_attempt") return t("notifChallengeAttempt").replace("{actor}", actor);
+  if (notification.type === "remix") return t("notifRemix").replace("{actor}", actor);
+  if (notification.type === "featured") return t("notifFeatured");
+  if (notification.type === "new_follower") return t("newFollowerLabel").replace("{actor}", actor);
+  if (notification.type === "challenge_beaten") return t("challengeBeatenLabel").replace("{actor}", actor);
 
   const keyByType = {
     like: "notificationLike",
@@ -68,6 +78,11 @@ function getTypeIcon(type) {
   if (type === "follow") return "👤";
   if (type === "save") return "🔖";
   if (type === "pvp_challenge") return "⚔️";
+  if (type === "challenge_attempt") return "🥊";
+  if (type === "remix") return "🔀";
+  if (type === "featured") return "⭐";
+  if (type === "new_follower") return "👤";
+  if (type === "challenge_beaten") return "🏅";
   return "•";
 }
 
@@ -251,7 +266,7 @@ export default function NotificationsPage() {
       });
     }
 
-    if (notification.type === "follow") {
+    if (notification.type === "follow" || notification.type === "new_follower") {
       const actorId = getActorId(notification);
       if (actorId) router.push(`/${locale}/profile/${actorId}`);
       return;
@@ -264,6 +279,26 @@ export default function NotificationsPage() {
         const actorId = getActorId(notification);
         if (actorId) router.push(`/${locale}/profile/${actorId}`);
       }
+      return;
+    }
+
+    if (notification.type === "challenge_attempt" && notification.reelId) {
+      router.push(`/${locale}/reels?reelId=${encodeURIComponent(notification.reelId)}`);
+      return;
+    }
+
+    if (notification.type === "remix" && notification.remixReelId) {
+      router.push(`/${locale}/reels?reelId=${encodeURIComponent(notification.remixReelId)}`);
+      return;
+    }
+
+    if (notification.type === "featured") {
+      router.push(`/${locale}/creator/dashboard`);
+      return;
+    }
+
+    if (notification.type === "challenge_beaten" && notification.reelId) {
+      router.push(`/${locale}/reels?reelId=${encodeURIComponent(notification.reelId)}`);
       return;
     }
 

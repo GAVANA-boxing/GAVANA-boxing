@@ -8,9 +8,11 @@ import DailyMission from "@/components/DailyMission";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { createPvpNotification } from "@/lib/notifications";
+import { createChallengeAttemptNotification, createChallengeBeatenNotification, createPvpNotification } from "@/lib/notifications";
 import { getCurrentSeasonId } from "@/lib/season";
 import { calculateChallengeXP, calculateUserXP, getFighterRank, getRankProgress } from "@/lib/xp";
+import { writeChallengeAttempt, updateUserTrainingProfile } from "@/lib/analytics";
+import { checkAndAwardBadges } from "@/lib/badges";
 
 const RECORD_SECONDS = 10;
 const CHALLENGES = {
@@ -23,6 +25,17 @@ function calculateTrainingScore(hits, sessionSeconds) {
   const targetHits = Math.max(1, Math.round(sessionSeconds * 1.5));
   const ratio = Math.min(1, hits / targetHits);
   return Number((ratio * 10).toFixed(1));
+}
+
+function computeScoreBreakdown(score, hitCount, sessionSeconds) {
+  const maxHits = Math.max(1, sessionSeconds * 2);
+  const hitRate = hitCount / maxHits;
+  const hitsPerSec = hitCount / Math.max(1, sessionSeconds);
+  const accuracy = Number(Math.min(10, hitRate * 12).toFixed(1));
+  const speed = Number(Math.min(10, hitsPerSec * 5).toFixed(1));
+  const power = Number(Math.min(10, score * 1.05).toFixed(1));
+  const consistency = Number(Math.min(10, Math.max(0, score - (10 - score) * 0.15)).toFixed(1));
+  return { accuracy, speed, power, consistency };
 }
 
 function getChallengeRank(score) {
@@ -85,6 +98,7 @@ export default function TrainPage() {
   const [targetScore, setTargetScore] = useState(null);
   const [trainSource, setTrainSource] = useState(null);
   const [trainSourceUserId, setTrainSourceUserId] = useState(null);
+  const [creatorBestScore, setCreatorBestScore] = useState(null);
   const [challengeUserId, setChallengeUserId] = useState(null);
   const [opponentUsername, setOpponentUsername] = useState(null);
   const [pvpResult, setPvpResult] = useState(null);
@@ -153,8 +167,10 @@ export default function TrainPage() {
     setReelId(params.get("reelId") || null);
     setChallengeId(params.get("challengeId") || null);
     setTrainSource(params.get("source") || null);
-    setTrainSourceUserId(params.get("userId") || null);
+    setTrainSourceUserId(params.get("reelCreatorId") || params.get("userId") || null);
     setChallengeUserId(params.get("challengeUserId") || null);
+    const parsedCreatorBest = Number(params.get("creatorBestScore"));
+    setCreatorBestScore(Number.isFinite(parsedCreatorBest) && parsedCreatorBest > 0 ? parsedCreatorBest : null);
     const parsedTargetScore = Number(params.get("score") || params.get("targetScore"));
     setTargetScore(Number.isFinite(parsedTargetScore) && parsedTargetScore > 0 ? parsedTargetScore : null);
   }, []);
@@ -360,12 +376,15 @@ export default function TrainPage() {
     setSecondsLeft(0);
     setPhase("result");
     const finalScore = liveScoreRef.current;
-    const xpGained = Math.round(finalScore * finalScore * 8);
+    // Use the same formula as the Firestore transaction so the display matches what's stored
+    const xpGained = calculateChallengeXP(finalScore, getChallengeRank(finalScore));
+    const breakdown = computeScoreBreakdown(finalScore, hitCountRef.current, sessionSeconds);
     setResult({
       score: finalScore,
       xpGained,
       rankProgress: getRankProgress(currentXP + xpGained),
       hitCount: hitCountRef.current,
+      breakdown,
     });
     setSaved(false);
     setSavedAttemptNumber(null);
@@ -719,23 +738,28 @@ export default function TrainPage() {
   const handleShareTraining = async () => {
     if (!result) return;
 
-    const text = `I scored ${result.score.toFixed(1)} in GAVANA 🥊 Can you beat me?`;
+    const scoreStr = result.score.toFixed(1);
+    const baseText = t("shareChallengeResult")
+      ? `${t("shareChallengeResult")} — ${scoreStr}/10 🥊`
+      : `I scored ${scoreStr}/10 in GAVANA 🥊 Can you beat me?`;
+
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+    const params = new URLSearchParams({ score: scoreStr });
+    if (reelId) params.set("reelId", reelId);
+    if (user?.uid) params.set("challengeUserId", user.uid);
+    const challengeUrl = reelId ? `${baseUrl}/${locale}/train?${params.toString()}` : "";
+    const fullText = challengeUrl ? `${baseText}\n${challengeUrl}` : baseText;
 
     try {
       if (navigator.share) {
-        await navigator.share({
-          title: "GAVANA",
-          text,
-        });
+        await navigator.share({ title: "GAVANA Boxing", text: baseText, ...(challengeUrl ? { url: challengeUrl } : {}) });
         return;
       }
-
       if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(text);
+        await navigator.clipboard.writeText(fullText);
         setError(t("shareLinkCopied"));
         return;
       }
-
       setError(t("shareFailed"));
     } catch (err) {
       console.error("Training share failed:", err);
@@ -767,6 +791,8 @@ export default function TrainPage() {
         xpGained: result.xpGained,
         attemptNumber,
         rankProgress: result.rankProgress,
+        breakdown: result.breakdown || null,
+        hitCount: result.hitCount || 0,
         createdAt: serverTimestamp(),
         type: "training",
         locale,
@@ -810,6 +836,57 @@ export default function TrainPage() {
 
       setSaved(true);
       setSavedAttemptNumber(attemptNumber);
+
+      // Analytics + badges (non-critical, fire and forget)
+      if (reelId) {
+        writeChallengeAttempt({
+          userId: user.uid,
+          reelId,
+          score: result.score,
+          hitCount: result.hitCount || 0,
+          attemptNumber,
+        }).catch(() => {});
+      }
+
+      const newStreak = Number((await getDoc(doc(db, "users", user.uid))).data()?.dailyStreak) || 1;
+      const breakdown = result.breakdown || {};
+      updateUserTrainingProfile(user.uid, {
+        lastScore: result.score,
+        dailyStreak: newStreak,
+        totalAttempts: attemptNumber,
+      }).catch(() => {});
+
+      checkAndAwardBadges(user.uid, {
+        totalAttempts: attemptNumber,
+        dailyStreak: newStreak,
+        accuracy: breakdown.accuracy,
+        speed: breakdown.speed,
+        category: "boxing",
+      }).catch(() => {});
+
+      // Notify the reel creator that someone attempted their challenge
+      if (reelId && trainSourceUserId) {
+        createChallengeAttemptNotification({
+          reelCreatorId: trainSourceUserId,
+          actorId: user.uid,
+          actorName: user.displayName || user.email?.split("@")[0] || "Someone",
+          actorPhotoURL: user.photoURL || "",
+          reelId,
+          score: result.score,
+        }).catch(() => {});
+
+        // Notify creator if challenger beats their best score
+        if (creatorBestScore != null && result.score > creatorBestScore) {
+          createChallengeBeatenNotification({
+            reelCreatorId: trainSourceUserId,
+            actorId: user.uid,
+            actorName: user.displayName || user.email?.split("@")[0] || "Someone",
+            actorPhotoURL: user.photoURL || "",
+            reelId,
+            score: result.score,
+          }).catch(() => {});
+        }
+      }
     } catch (err) {
       console.error("Failed to save training session:", err);
       setError(t("trainSaveFailed"));
@@ -1101,6 +1178,29 @@ export default function TrainPage() {
               )}
             </div>
 
+            {/* Score breakdown */}
+            {!activeChallenge && result.breakdown && (
+              <div style={styles.breakdownCard}>
+                <p style={styles.breakdownTitle}>{t("scoreBreakdown")}</p>
+                <div style={styles.breakdownGrid}>
+                  {[
+                    { key: "scoreAccuracy", val: result.breakdown.accuracy, color: "#60A5FA" },
+                    { key: "scoreSpeed", val: result.breakdown.speed, color: "#F59E0B" },
+                    { key: "scorePower", val: result.breakdown.power, color: "#F87171" },
+                    { key: "scoreConsistency", val: result.breakdown.consistency, color: "#34D399" },
+                  ].map(({ key, val, color }) => (
+                    <div key={key} style={styles.breakdownItem}>
+                      <span style={styles.breakdownLbl}>{t(key)}</span>
+                      <span style={{ ...styles.breakdownVal, color }}>{val.toFixed(1)}</span>
+                      <div style={styles.breakdownTrack}>
+                        <div style={{ ...styles.breakdownFill, width: `${val * 10}%`, background: color }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {!activeChallenge && (
               <div style={styles.progressTrack}>
                 <div style={{ ...styles.progressFill, width: `${result.rankProgress}%` }} />
@@ -1238,6 +1338,53 @@ export default function TrainPage() {
 }
 
 const styles = {
+  breakdownCard: {
+    marginTop: 14,
+    padding: "14px 16px",
+    borderRadius: 16,
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.09)",
+  },
+  breakdownTitle: {
+    margin: "0 0 12px",
+    fontSize: 11,
+    fontWeight: 900,
+    color: "rgba(255,255,255,0.45)",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  breakdownGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "12px 16px",
+  },
+  breakdownItem: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 4,
+  },
+  breakdownLbl: {
+    fontSize: 11,
+    color: "rgba(255,255,255,0.5)",
+    fontWeight: 700,
+  },
+  breakdownVal: {
+    fontSize: 20,
+    fontWeight: 1000,
+    lineHeight: 1,
+  },
+  breakdownTrack: {
+    height: 4,
+    borderRadius: 999,
+    background: "rgba(255,255,255,0.08)",
+    overflow: "hidden",
+    marginTop: 2,
+  },
+  breakdownFill: {
+    height: "100%",
+    borderRadius: 999,
+    transition: "width 0.6s ease",
+  },
   page: {
     minHeight: "100vh",
     background: "radial-gradient(circle at 50% 0%, rgba(193,18,31,0.2), transparent 34%), linear-gradient(180deg, #080808 0%, #0B0B0B 100%)",

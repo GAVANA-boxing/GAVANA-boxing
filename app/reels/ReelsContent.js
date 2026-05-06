@@ -8,6 +8,7 @@ import DailyMission from "@/components/DailyMission";
 import { createNotification } from "@/lib/notifications";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { updateLeaderboard } from "@/components/Leaderboard";
+import { computeFeedScore } from "@/lib/analytics";
 
 // Dynamic import for Firebase to avoid SSR issues
 let db = null;
@@ -217,6 +218,7 @@ export default function ReelsContent() {
   const t = (key) => translate(currentLocale, key);
   const { user, loading: authLoading } = useAuth();
   const [feedMode, setFeedMode] = useState("forYou");
+  const [diffFilter, setDiffFilter] = useState("all"); // "all" | "beginner"
   const [allReels, setAllReels] = useState(null);
   const [reels, setReels] = useState([]);
   const [reelsLoading, setReelsLoading] = useState(true);
@@ -246,6 +248,9 @@ export default function ReelsContent() {
   const [creatorStats, setCreatorStats] = useState({}); // XP, rank, best score for creators
   const [profileReelProgress, setProfileReelProgress] = useState(null); // progress data when opened from profile
   const [captionSheetReelId, setCaptionSheetReelId] = useState(null);
+  const [userTrainingProfile, setUserTrainingProfile] = useState(null);
+  const [gymNames, setGymNames] = useState({}); // gymId → gymName cache
+  const [featuredCreatorIds, setFeaturedCreatorIds] = useState(new Set());
   const videoRefs = useRef({});
   const feedRef = useRef(null);
   const reelItemRefs = useRef({});
@@ -255,6 +260,7 @@ export default function ReelsContent() {
   const creatorProfileRequests = useRef(new Set());
   const commentProfileRequests = useRef(new Set());
   const lastScrolledReelId = useRef(null);
+  const gymNameRequests = useRef(new Set());
 
   useEffect(() => {
     if (authLoading || allReels === null) {
@@ -268,16 +274,35 @@ export default function ReelsContent() {
       return;
     }
 
+    const makeStats = (r) => ({ views: r.views || 0, likes: r.likes || 0, comments: r.commentsCount || 0, shares: r.shares || 0 });
+    const isFeatured = (r) => featuredCreatorIds.has(r.userId);
+
     if (feedMode !== "following") {
-      setReels(allReels.length > 0 ? allReels : [DEMO_REEL]);
+      const base = allReels.length > 0 ? allReels : [DEMO_REEL];
+      const filtered = diffFilter === "beginner" ? base.filter((r) => r.difficulty === "beginner" || !r.difficulty) : base;
+      const scored = [...filtered].sort((a, b) =>
+        computeFeedScore(b, makeStats(b), userTrainingProfile, userViews.has(b.id), isFeatured(b)) -
+        computeFeedScore(a, makeStats(a), userTrainingProfile, userViews.has(a.id), isFeatured(a))
+      );
+      setReels(scored.length > 0 ? scored : base);
       setCurrentIndex(0);
       return;
     }
 
+    // Following feed: hybrid sort — recency-weighted but boosted by engagement and personalisation
     const followedReels = allReels.filter((reel) => reel.userId && followingIds.has(reel.userId));
-    setReels(followedReels);
+    const filtered = diffFilter === "beginner" ? followedReels.filter((r) => r.difficulty === "beginner" || !r.difficulty) : followedReels;
+    const sorted = [...filtered].sort((a, b) => {
+      const recencyA = getCreatedAtMs(a);
+      const recencyB = getCreatedAtMs(b);
+      const maxTs = Math.max(recencyA, recencyB, 1);
+      const hybridA = (recencyA / maxTs) * 0.7 + computeFeedScore(a, makeStats(a), userTrainingProfile, userViews.has(a.id), isFeatured(a)) * 0.3;
+      const hybridB = (recencyB / maxTs) * 0.7 + computeFeedScore(b, makeStats(b), userTrainingProfile, userViews.has(b.id), isFeatured(b)) * 0.3;
+      return hybridB - hybridA;
+    });
+    setReels(sorted);
     setCurrentIndex(0);
-  }, [allReels, authLoading, feedMode, followingIds, isProfileSource, profileSourceUserId]);
+  }, [allReels, authLoading, feedMode, followingIds, isProfileSource, profileSourceUserId, diffFilter, userTrainingProfile, userViews, featuredCreatorIds]);
 
   useEffect(() => {
     if (!targetReelId || !reels.length || lastScrolledReelId.current === targetReelId) return;
@@ -575,42 +600,33 @@ export default function ReelsContent() {
     };
   }, [authLoading, user?.uid]);
 
+  // One-time read — follows change only when the user manually follows/unfollows,
+  // so a persistent listener is unnecessary overhead here.
   useEffect(() => {
     if (authLoading || !user?.uid) {
       setFollowingIds(new Set());
       return;
     }
 
-    let unsubscribe;
     let isActive = true;
 
-    async function listenForFollowing() {
+    async function loadFollowing() {
       try {
         const { db } = await getFirebase();
-        const { collection, query, where, onSnapshot } = await import("firebase/firestore");
+        const { collection, query, where, getDocs } = await import("firebase/firestore");
         if (!isActive) return;
 
-        const followingQuery = query(
-          collection(db, "follows"),
-          where("followerId", "==", user.uid)
+        const snap = await getDocs(
+          query(collection(db, "follows"), where("followerId", "==", user.uid))
         );
+        if (!isActive) return;
 
-        unsubscribe = onSnapshot(followingQuery, (snapshot) => {
-          if (!isActive) return;
-
-          const nextFollowing = new Set();
-          snapshot.forEach((doc) => {
-            const data = doc.data();
-            if (data.followingId) {
-              nextFollowing.add(data.followingId);
-            }
-          });
-          setFollowingIds(nextFollowing);
-        }, (err) => {
-          if (!isActive) return;
-          console.error("Failed to listen for following:", err);
-          setFollowingIds(new Set());
+        const nextFollowing = new Set();
+        snap.forEach((doc) => {
+          const data = doc.data();
+          if (data.followingId) nextFollowing.add(data.followingId);
         });
+        setFollowingIds(nextFollowing);
       } catch (err) {
         if (!isActive) return;
         console.error("Failed to load following:", err);
@@ -618,15 +634,66 @@ export default function ReelsContent() {
       }
     }
 
-    listenForFollowing();
+    loadFollowing();
 
-    return () => {
-      isActive = false;
-      if (unsubscribe) {
-        unsubscribe();
-      }
-    };
+    return () => { isActive = false; };
   }, [authLoading, user?.uid]);
+
+  // Load user_training_profile for feed personalization
+  useEffect(() => {
+    if (!user?.uid) { setUserTrainingProfile(null); return; }
+    let active = true;
+    async function loadProfile() {
+      try {
+        const { db } = await getFirebase();
+        const { doc, getDoc } = await import("firebase/firestore");
+        const snap = await getDoc(doc(db, "user_training_profile", user.uid));
+        if (active && snap.exists()) setUserTrainingProfile(snap.data());
+      } catch { /* non-critical */ }
+    }
+    loadProfile();
+    return () => { active = false; };
+  }, [user?.uid]);
+
+  // Load currently active featured creators (used for feed boost)
+  useEffect(() => {
+    let active = true;
+    async function loadFeaturedCreators() {
+      try {
+        const { db } = await getFirebase();
+        const { collection, getDocs, query, where, Timestamp } = await import("firebase/firestore");
+        const now = Timestamp.now();
+        const snap = await getDocs(query(
+          collection(db, "featured_creators"),
+          where("featuredUntil", ">=", now)
+        ));
+        if (!active) return;
+        const ids = new Set();
+        snap.forEach((doc) => { if (doc.data().userId) ids.add(doc.data().userId); });
+        setFeaturedCreatorIds(ids);
+      } catch { /* non-critical — featured boost is best-effort */ }
+    }
+    loadFeaturedCreators();
+    return () => { active = false; };
+  }, []);
+
+  // Lazily fetch gym names for tagged reels
+  useEffect(() => {
+    const reelsWithGym = reels.filter((r) => r.gymId && !gymNames[r.gymId] && !gymNameRequests.current.has(r.gymId));
+    if (reelsWithGym.length === 0) return;
+    reelsWithGym.forEach((r) => gymNameRequests.current.add(r.gymId));
+    async function fetchGymNames() {
+      try {
+        const { db } = await getFirebase();
+        const { doc, getDoc } = await import("firebase/firestore");
+        const results = await Promise.all(reelsWithGym.map((r) => getDoc(doc(db, "gyms", r.gymId))));
+        const updates = {};
+        results.forEach((snap) => { if (snap.exists()) updates[snap.id] = snap.data().gymName || ""; });
+        if (Object.keys(updates).length > 0) setGymNames((prev) => ({ ...prev, ...updates }));
+      } catch { /* non-critical */ }
+    }
+    fetchGymNames();
+  }, [reels, gymNames]);
 
   // Fetch user's likes
   useEffect(() => {
@@ -708,7 +775,8 @@ export default function ReelsContent() {
     };
   }, [authLoading, user?.uid]);
 
-  // Fetch user's views
+  // Load recent views to prevent double-counting. Capped at 300 to bound startup reads;
+  // session-local views (this page load) are stored in sessionStorage to avoid re-fetching.
   useEffect(() => {
     if (authLoading || !user?.uid) {
       setUserViews(new Set());
@@ -719,34 +787,36 @@ export default function ReelsContent() {
 
     async function loadUserViews() {
       try {
+        // Seed from sessionStorage first (fast, zero network cost)
+        const sessionKey = `gavana_views_${user.uid}`;
+        let viewsSet = new Set();
+        try {
+          const stored = sessionStorage.getItem(sessionKey);
+          if (stored) JSON.parse(stored).forEach((id) => viewsSet.add(id));
+        } catch { /* sessionStorage unavailable */ }
+
+        // Supplement with Firestore — only the 300 most recent records
         const { db } = await getFirebase();
-        const { collection, getDocs, query, where } = await import("firebase/firestore");
+        const { collection, getDocs, query, where, orderBy, limit } = await import("firebase/firestore");
         if (!isActive) return;
-        
-        const viewsSnapshot = await getDocs(query(
+
+        const snap = await getDocs(query(
           collection(db, "reel_views"),
-          where("userId", "==", user.uid)
+          where("userId", "==", user.uid),
+          orderBy("createdAt", "desc"),
+          limit(300)
         ));
-        const viewsSet = new Set();
-        
-        viewsSnapshot.forEach((doc) => {
-          const data = doc.data();
-          viewsSet.add(data.reelId);
-        });
-        
-        if (isActive) {
-          setUserViews(viewsSet);
-        }
+        snap.forEach((doc) => viewsSet.add(doc.data().reelId));
+
+        if (isActive) setUserViews(viewsSet);
       } catch (err) {
         console.error("Failed to load views:", err);
       }
     }
-    
+
     loadUserViews();
 
-    return () => {
-      isActive = false;
-    };
+    return () => { isActive = false; };
   }, [authLoading, user?.uid]);
 
   // Track view when reel is active for 3 seconds
@@ -770,25 +840,33 @@ export default function ReelsContent() {
 
       try {
         const { db } = await getFirebase();
-        const { collection, addDoc, doc, updateDoc, increment, serverTimestamp } = await import("firebase/firestore");
-        
+        const { collection, addDoc, doc, setDoc, updateDoc, increment, serverTimestamp } = await import("firebase/firestore");
+
         // Record view in reel_views collection
         await addDoc(collection(db, "reel_views"), {
           reelId: currentReel.id,
           userId: user.uid,
           createdAt: serverTimestamp()
         });
+
+        // Increment views on reel doc and reel_stats in parallel
+        await Promise.all([
+          updateDoc(doc(db, "reels", currentReel.id), { views: increment(1) }),
+          setDoc(doc(db, "reel_stats", currentReel.id), { reelId: currentReel.id, views: increment(1), updatedAt: serverTimestamp() }, { merge: true }),
+        ]);
         
-        // Increment views count on reel
-        const reelRef = doc(db, "reels", currentReel.id);
-        await updateDoc(reelRef, {
-          views: increment(1)
-        });
-        
-        // Update local state
+        // Update local state and persist to sessionStorage so next load skips re-fetch
         setUserViews(prev => {
           const newViews = new Set(prev);
           newViews.add(currentReel.id);
+          try {
+            const sessionKey = `gavana_views_${user.uid}`;
+            const stored = sessionStorage.getItem(sessionKey);
+            const arr = stored ? JSON.parse(stored) : [];
+            arr.push(currentReel.id);
+            // Keep only last 500 to prevent unbounded growth
+            sessionStorage.setItem(sessionKey, JSON.stringify(arr.slice(-500)));
+          } catch { /* sessionStorage unavailable */ }
           return newViews;
         });
         
@@ -1052,6 +1130,8 @@ export default function ReelsContent() {
           createdAt: new Date().toISOString()
         });
         await updateDoc(reelRef, { likes: increment(1) });
+        // Track in reel_stats for feed ranking
+        setDoc(doc(db, "reel_stats", reelId), { reelId, likes: increment(1), updatedAt: new Date() }, { merge: true }).catch(() => {});
         await createNotification({
           recipientId: likedReel?.userId,
           actorId: user.uid,
@@ -1103,7 +1183,7 @@ export default function ReelsContent() {
 
     try {
       const { db } = await getFirebase();
-      const { doc, setDoc, deleteDoc, serverTimestamp } = await import("firebase/firestore");
+      const { doc, setDoc, deleteDoc, serverTimestamp, increment } = await import("firebase/firestore");
       const saveRef = doc(db, "saved_reels", `${user.uid}_${reelId}`);
 
       if (wasSaved) {
@@ -1114,6 +1194,9 @@ export default function ReelsContent() {
           reelId,
           createdAt: serverTimestamp(),
         });
+        // Track saves in reel_stats for feed ranking
+        const statsRef = doc(db, "reel_stats", reelId);
+        setDoc(statsRef, { reelId, saves: increment(1), updatedAt: serverTimestamp() }, { merge: true }).catch(() => {});
       }
     } catch (err) {
       console.error("Failed to toggle saved reel:", err);
@@ -1636,6 +1719,18 @@ export default function ReelsContent() {
         >
           {t("following")}
         </button>
+        <button
+          type="button"
+          onClick={() => setDiffFilter((prev) => (prev === "beginner" ? "all" : "beginner"))}
+          style={{
+            ...styles.feedTab,
+            ...(diffFilter === "beginner" ? { ...styles.feedTabActive, color: "#34D399", borderColor: "rgba(52,211,153,0.5)" } : {}),
+            fontSize: 11,
+            padding: "4px 10px",
+          }}
+        >
+          {diffFilter === "beginner" ? `✓ ${t("beginnerFilter")}` : t("beginnerFilter")}
+        </button>
       </div>
       )}
       {/* Reels Feed */}
@@ -1869,26 +1964,73 @@ export default function ReelsContent() {
                 <span>{formatCompactCount(getSafeViewCount(reel))} {t("views")}</span>
                 <span>{formatDate(reel.createdAt)}</span>
               </div>
-              {!reel.isDemo && (
-                <div style={styles.trainButtonRow}>
-                  <button
-                    type="button"
-                    style={styles.tryThisButton}
-                    onClick={() => router.push(`/${currentLocale}/train?reelId=${encodeURIComponent(reel.id)}`)}
-                  >
-                    {t("reels.tryThisCombo")}
-                  </button>
-                  {reel.userId && reel.userId !== user?.uid && hasBestScore && (
-                    <button
-                      type="button"
-                      style={styles.beatScoreButton}
-                      onClick={() => router.push(
-                        `/${currentLocale}/train?reelId=${encodeURIComponent(reel.id)}&challengeUserId=${encodeURIComponent(reel.userId)}&targetScore=${stats.bestScore.toFixed(1)}`
-                      )}
-                    >
-                      {t("pvpBeatThisScore")}
-                    </button>
+              {/* Category / difficulty badges */}
+              {!reel.isDemo && (reel.category || reel.difficulty) && (
+                <div style={styles.reelBadgeRow}>
+                  {reel.difficulty && (
+                    <span style={{
+                      ...styles.reelBadge,
+                      background: reel.difficulty === "beginner" ? "rgba(52,211,153,0.15)" : reel.difficulty === "intermediate" ? "rgba(212,175,55,0.15)" : "rgba(193,18,31,0.18)",
+                      color: reel.difficulty === "beginner" ? "#34D399" : reel.difficulty === "intermediate" ? "#D4AF37" : "#F87171",
+                      borderColor: reel.difficulty === "beginner" ? "rgba(52,211,153,0.35)" : reel.difficulty === "intermediate" ? "rgba(212,175,55,0.35)" : "rgba(193,18,31,0.4)",
+                    }}>
+                      {t(`diff${reel.difficulty.charAt(0).toUpperCase()}${reel.difficulty.slice(1)}`) || reel.difficulty}
+                    </span>
                   )}
+                  {reel.category && (
+                    <span style={styles.reelCategoryBadge}>
+                      {t(`cat${reel.category.split("_").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join("")}`) || reel.category}
+                    </span>
+                  )}
+                </div>
+              )}
+              {/* Type-aware single CTA */}
+              {!reel.isDemo && (() => {
+                const isTraining = reel.type === "training";
+                const isChallengeable = isTraining || reel.challengeEnabled;
+                if (!isChallengeable) return null;
+                const handleChallengeClick = async () => {
+                  try {
+                    const { db: fdb } = await getFirebase();
+                    const { doc, setDoc, increment: fsIncrement, serverTimestamp: fsts } = await import("firebase/firestore");
+                    await setDoc(doc(fdb, "reel_stats", reel.id), { reelId: reel.id, challengeClicks: fsIncrement(1), updatedAt: fsts() }, { merge: true });
+                  } catch { /* non-critical */ }
+                  const trainParams = new URLSearchParams({ reelId: reel.id });
+                  if (reel.userId) trainParams.set("reelCreatorId", reel.userId);
+                  if (stats?.bestScore != null && Number.isFinite(stats.bestScore) && stats.bestScore > 0) {
+                    trainParams.set("creatorBestScore", stats.bestScore.toFixed(1));
+                  }
+                  router.push(`/${currentLocale}/train?${trainParams.toString()}`);
+                };
+                return (
+                  <div style={styles.trainButtonRow}>
+                    <button type="button" style={styles.tryThisButton} onClick={handleChallengeClick}>
+                      {isTraining ? t("reelChallenge") : t("reelTryWorkout")}
+                    </button>
+                    {reel.userId && reel.userId !== user?.uid && hasBestScore && (
+                      <button
+                        type="button"
+                        style={styles.beatScoreButton}
+                        onClick={() => router.push(
+                          `/${currentLocale}/train?reelId=${encodeURIComponent(reel.id)}&challengeUserId=${encodeURIComponent(reel.userId)}&targetScore=${stats.bestScore.toFixed(1)}`
+                        )}
+                      >
+                        {t("pvpBeatThisScore")}
+                      </button>
+                    )}
+                  </div>
+                );
+              })()}
+              {/* Remix origin banner */}
+              {!reel.isDemo && reel.remixOf && (
+                <div style={styles.remixBanner}>
+                  🔀 {t("remixOf").replace("{username}", reel.remixOfCreatorName || "creator")}
+                </div>
+              )}
+              {/* Gym tag */}
+              {!reel.isDemo && reel.gymId && gymNames[reel.gymId] && (
+                <div style={styles.gymTagBanner}>
+                  📍 {t("gymTrainingAt")} {gymNames[reel.gymId]}
                 </div>
               )}
             </div>
@@ -3892,6 +4034,30 @@ const styles = {
     whiteSpace: "nowrap",
     textShadow: "0 1px 4px rgba(0,0,0,0.8)",
   },
+  reelBadgeRow: {
+    display: "flex",
+    gap: 6,
+    flexWrap: "wrap",
+    marginTop: 6,
+  },
+  reelBadge: {
+    fontSize: 10,
+    fontWeight: 900,
+    borderRadius: 999,
+    border: "1px solid",
+    padding: "3px 8px",
+    letterSpacing: 0.4,
+  },
+  reelCategoryBadge: {
+    fontSize: 10,
+    fontWeight: 900,
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.18)",
+    padding: "3px 8px",
+    color: "rgba(255,255,255,0.6)",
+    background: "rgba(255,255,255,0.07)",
+    letterSpacing: 0.4,
+  },
   trainButtonRow: {
     display: "flex",
     flexWrap: "wrap",
@@ -3941,6 +4107,18 @@ const styles = {
     letterSpacing: 0,
     cursor: "pointer",
     WebkitTapHighlightColor: "transparent",
+  },
+  remixBanner: {
+    fontSize: 11,
+    color: "#A78BFA",
+    marginTop: 4,
+    opacity: 0.85,
+  },
+  gymTagBanner: {
+    fontSize: 11,
+    color: "#D4AF37",
+    marginTop: 4,
+    opacity: 0.9,
   },
   pvpSourceBanner: {
     position: "absolute",

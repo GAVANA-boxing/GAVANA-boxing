@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { useParams, useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
-import { createNotification } from "@/lib/notifications";
+import { createNotification, createNewFollowerNotification } from "@/lib/notifications";
 import { getLocale, translate } from "@/lib/i18n";
 import { RANK_TIERS, calculateSessionXP, calculateUserXP, getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
 import RankIcon from "@/components/RankIcon";
@@ -300,6 +300,7 @@ export default function UserProfilePage() {
   const [totalLikes, setTotalLikes] = useState(0);
   const [stats, setStats] = useState({ followers: 0, following: 0 });
   const [isFollowing, setIsFollowing] = useState(false);
+  const [isMutual, setIsMutual] = useState(false);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -314,8 +315,10 @@ export default function UserProfilePage() {
   const [dailyMissionData, setDailyMissionData] = useState(null);
   const [challengeRanks, setChallengeRanks] = useState(null);
   const [showWeeklyModal, setShowWeeklyModal] = useState(false);
+  const [showWeeklyRecap, setShowWeeklyRecap] = useState(false);
   const [pvpStats, setPvpStats] = useState(null);
   const [coachBookings, setCoachBookings] = useState([]);
+  const [userBadges, setUserBadges] = useState([]);
   const rankUpShownRef = useRef(false);
 
   // Redirect if not logged in
@@ -674,6 +677,23 @@ export default function UserProfilePage() {
     return () => { active = false; };
   }, [userId]);
 
+  // Load earned badges
+  useEffect(() => {
+    if (!userId) return;
+    let active = true;
+    async function loadBadges() {
+      try {
+        const { collection, getDocs, query, where } = await import("firebase/firestore");
+        const snap = await getDocs(query(collection(db, "user_badges"), where("userId", "==", userId)));
+        if (!active) return;
+        const badges = snap.docs.map((d) => d.data());
+        setUserBadges(badges);
+      } catch { if (active) setUserBadges([]); }
+    }
+    loadBadges();
+    return () => { active = false; };
+  }, [userId]);
+
   // Load upcoming coach bookings — own profile only
   useEffect(() => {
     if (!userId || !isOwnProfile) return;
@@ -795,16 +815,19 @@ export default function UserProfilePage() {
     }
   };
 
-  // Check if current user is following this profile
+  // Check if current user is following this profile (and if the follow is mutual)
   const checkFollowStatus = async (currentUserId, targetUserId) => {
     if (!currentUserId || !targetUserId) return;
 
     try {
       const { doc, getDoc } = await import("firebase/firestore");
 
-      const followRef = doc(db, "follows", `${currentUserId}_${targetUserId}`);
-      const followDoc = await getDoc(followRef);
+      const [followDoc, reverseDoc] = await Promise.all([
+        getDoc(doc(db, "follows", `${currentUserId}_${targetUserId}`)),
+        getDoc(doc(db, "follows", `${targetUserId}_${currentUserId}`)),
+      ]);
       setIsFollowing(followDoc.exists());
+      setIsMutual(followDoc.exists() && reverseDoc.exists());
     } catch (error) {
       console.error("Error checking follow status:", error);
     }
@@ -829,13 +852,14 @@ export default function UserProfilePage() {
     }));
 
     try {
-      const { doc, setDoc, deleteDoc, serverTimestamp } = await import("firebase/firestore");
+      const { doc, setDoc, deleteDoc, getDoc, serverTimestamp } = await import("firebase/firestore");
 
       const followRef = doc(db, "follows", `${user.uid}_${userId}`);
 
       if (wasFollowing) {
         // Unfollow
         await deleteDoc(followRef);
+        setIsMutual(false);
         // Reload follow stats to ensure accuracy
         await loadFollowStats(userId);
       } else {
@@ -845,12 +869,15 @@ export default function UserProfilePage() {
           followingId: userId,
           createdAt: serverTimestamp()
         });
-        await createNotification({
+        createNewFollowerNotification({
           recipientId: userId,
           actorId: user.uid,
-          actorName: user.email?.split("@")[0],
-          type: "follow",
+          actorName: user.displayName || user.email?.split("@")[0],
+          actorPhotoURL: user.photoURL || "",
         });
+        // Check if now mutual
+        const reverseDoc = await getDoc(doc(db, "follows", `${userId}_${user.uid}`));
+        setIsMutual(reverseDoc.exists());
         // Reload follow stats to ensure accuracy
         await loadFollowStats(userId);
       }
@@ -1431,6 +1458,20 @@ export default function UserProfilePage() {
           </div>
         )}
 
+        {userBadges.length > 0 && (
+          <div style={styles.badgesRow}>
+            {userBadges.map((b) => {
+              const ICONS = { first_challenge: "🥊", streak_3: "🔥", streak_7: "⚡", jab_master: "🎯", speed_king: "💨", creator_starter: "🎬" };
+              const icon = ICONS[b.badgeId] || "🏅";
+              return (
+                <div key={b.badgeId} style={styles.badgePill} title={t(b.badgeId + "Badge") || b.badgeId}>
+                  <span>{icon}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         {profileUser.bio && (
           <p style={styles.bio}>
             {profileUser.bio}
@@ -1460,6 +1501,20 @@ export default function UserProfilePage() {
             >
               {t("editProfile")}
             </button>
+            {userReels.length > 0 && (
+              <button
+                onClick={() => router.push(`/${locale}/creator/dashboard`)}
+                style={styles.ghostAction}
+              >
+                {t("creatorDashboard")}
+              </button>
+            )}
+            <button
+              onClick={() => setShowWeeklyRecap(true)}
+              style={styles.ghostAction}
+            >
+              {t("weeklyRecapView")}
+            </button>
             <button
               onClick={handleLogout}
               disabled={signingOut}
@@ -1484,18 +1539,25 @@ export default function UserProfilePage() {
             </button>
           </div>
         ) : (
-          <button
-            onClick={handleFollow}
-            disabled={followLoading}
-            style={{
-              ...styles.followAction,
-              background: followLoading ? "#555" : (isFollowing ? "#151515" : "#C1121F"),
-              cursor: followLoading ? "not-allowed" : "pointer",
-              opacity: followLoading ? 0.7 : 1
-            }}
-          >
-            {followLoading ? t("followLoading") : (isFollowing ? t("unfollow") : t("follow"))}
-          </button>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+            <button
+              onClick={handleFollow}
+              disabled={followLoading}
+              style={{
+                ...styles.followAction,
+                background: followLoading ? "#555" : (isFollowing ? "#151515" : "#C1121F"),
+                cursor: followLoading ? "not-allowed" : "pointer",
+                opacity: followLoading ? 0.7 : 1
+              }}
+            >
+              {followLoading ? t("followLoading") : (isFollowing ? t("unfollow") : t("follow"))}
+            </button>
+            {isMutual && (
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#D4AF37", letterSpacing: 0.5 }}>
+                ⇄ {t("mutual")}
+              </span>
+            )}
+          </div>
         )}
         </div>
       </section>
@@ -2212,6 +2274,42 @@ export default function UserProfilePage() {
         />
       )}
 
+      {showWeeklyRecap && (() => {
+        const sevenDaysAgo = Date.now() - 7 * 24 * 3600 * 1000;
+        const getMs = (ts) => { if (!ts) return 0; if (ts.toMillis) return ts.toMillis(); return Number(ts) || 0; };
+        const weekFeedback = (aiFeedbackHistory || []).filter((f) => getMs(f.createdAt) >= sevenDaysAgo);
+        const weekXP = weekFeedback.reduce((s, f) => s + Math.round((Number(f.score) || 0) * (Number(f.score) || 0) * 10), 0);
+        const weekChallenges = weekFeedback.length;
+        return (
+          <div style={styles.modalOverlay} onClick={() => setShowWeeklyRecap(false)}>
+            <div style={styles.weeklyModalSheet} onClick={(e) => e.stopPropagation()}>
+              <div style={styles.weeklyModalHandle} />
+              <div style={styles.weeklyModalHeader}>
+                <span style={styles.weeklyModalTitle}>📅 {t("weeklyRecapTitle")}</span>
+                <button type="button" style={styles.weeklyModalClose} onClick={() => setShowWeeklyRecap(false)}>✕</button>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, padding: "4px 0 8px" }}>
+                <div style={styles.weeklyRankItem}>
+                  <span style={{ ...styles.weeklyRankNum, color: "#D4AF37" }}>+{weekXP}</span>
+                  <span style={styles.weeklyRankLbl}>{t("weeklyRecapXP")}</span>
+                </div>
+                <div style={styles.weeklyRankItem}>
+                  <span style={{ ...styles.weeklyRankNum, color: "#34D399" }}>{weekChallenges}</span>
+                  <span style={styles.weeklyRankLbl}>{t("weeklyRecapChallenges")}</span>
+                </div>
+                <div style={styles.weeklyRankItem}>
+                  <span style={{ ...styles.weeklyRankNum, color: "#FB923C" }}>{profileUser?.challengeStreak || 0}</span>
+                  <span style={styles.weeklyRankLbl}>{t("dayStreak").replace("{n}", "")}</span>
+                </div>
+              </div>
+              <button type="button" style={{ ...styles.weeklyModalClose, width: "100%", padding: "11px 0", borderRadius: 12, background: "rgba(255,255,255,0.07)", border: "none", color: "#fff", fontFamily: "inherit", fontSize: 14, fontWeight: 700, cursor: "pointer", marginTop: 6 }} onClick={() => setShowWeeklyRecap(false)}>
+                {t("weeklyRecapClose")}
+              </button>
+            </div>
+          </div>
+        );
+      })()}
+
       {showWeeklyModal && challengeRanks && (
         <div style={styles.modalOverlay} onClick={() => setShowWeeklyModal(false)}>
           <div style={styles.weeklyModalSheet} onClick={(e) => e.stopPropagation()}>
@@ -2372,6 +2470,26 @@ const styles = {
   challengeStreakIcon: {
     fontSize: 16,
     lineHeight: 1,
+  },
+  badgesRow: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 8,
+    justifyContent: "center",
+    margin: "14px auto 0",
+    maxWidth: 430,
+  },
+  badgePill: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    background: "rgba(255,255,255,0.07)",
+    border: "1px solid rgba(255,255,255,0.14)",
+    fontSize: 20,
+    cursor: "default",
   },
   bio: {
     maxWidth: 430,
