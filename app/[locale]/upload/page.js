@@ -94,6 +94,10 @@ export default function UploadPage() {
   // Content-only fields
   const [challengeEnabled, setChallengeEnabled] = useState(false);
 
+  // Gym tag
+  const [gymId, setGymId] = useState("");
+  const [gyms, setGyms] = useState([]);
+
   // AI caption
   const [captionContext, setCaptionContext] = useState("");
   const [captionLoading, setCaptionLoading] = useState(false);
@@ -103,6 +107,15 @@ export default function UploadPage() {
   useEffect(() => {
     if (!authLoading && !user) router.push(`/${locale}/login`);
   }, [authLoading, user, router, locale]);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    import("firebase/firestore").then(({ collection: col, getDocs: gd, query: q, where: wh }) => {
+      gd(q(col(db, "gyms"))).then((snap) => {
+        setGyms(snap.docs.map((d) => ({ id: d.id, gymName: d.data().gymName })));
+      }).catch(() => {});
+    });
+  }, [user?.uid]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -182,6 +195,7 @@ export default function UploadPage() {
         if (remixOfCreatorId) reelDoc.remixOfCreatorId = remixOfCreatorId;
         if (remixOfCreatorName) reelDoc.remixOfCreatorName = remixOfCreatorName;
       }
+      if (gymId) reelDoc.gymId = gymId;
       await addDoc(collection(db, "reels"), reelDoc);
 
       if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -364,6 +378,17 @@ export default function UploadPage() {
                   </button>
                 </div>
               </>
+            )}
+
+            {/* Gym tag */}
+            {gyms.length > 0 && (
+              <div style={styles.field}>
+                <label style={styles.fieldLabel}>{t("uploadGymTag")}</label>
+                <select value={gymId} onChange={(e) => setGymId(e.target.value)} style={styles.input}>
+                  <option value="">{t("uploadGymNone")}</option>
+                  {gyms.map((g) => <option key={g.id} value={g.id}>{g.gymName}</option>)}
+                </select>
+              </div>
             )}
 
             {/* AI Caption generator */}
