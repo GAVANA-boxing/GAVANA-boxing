@@ -8,6 +8,7 @@ import DailyMission from "@/components/DailyMission";
 import { createNotification } from "@/lib/notifications";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { updateLeaderboard } from "@/components/Leaderboard";
+import { computeFeedScore } from "@/lib/analytics";
 
 // Dynamic import for Firebase to avoid SSR issues
 let db = null;
@@ -247,6 +248,8 @@ export default function ReelsContent() {
   const [creatorStats, setCreatorStats] = useState({}); // XP, rank, best score for creators
   const [profileReelProgress, setProfileReelProgress] = useState(null); // progress data when opened from profile
   const [captionSheetReelId, setCaptionSheetReelId] = useState(null);
+  const [userTrainingProfile, setUserTrainingProfile] = useState(null);
+  const [gymNames, setGymNames] = useState({}); // gymId → gymName cache
   const videoRefs = useRef({});
   const feedRef = useRef(null);
   const reelItemRefs = useRef({});
@@ -256,6 +259,7 @@ export default function ReelsContent() {
   const creatorProfileRequests = useRef(new Set());
   const commentProfileRequests = useRef(new Set());
   const lastScrolledReelId = useRef(null);
+  const gymNameRequests = useRef(new Set());
 
   useEffect(() => {
     if (authLoading || allReels === null) {
@@ -272,7 +276,13 @@ export default function ReelsContent() {
     if (feedMode !== "following") {
       const base = allReels.length > 0 ? allReels : [DEMO_REEL];
       const filtered = diffFilter === "beginner" ? base.filter((r) => r.difficulty === "beginner" || !r.difficulty) : base;
-      setReels(filtered.length > 0 ? filtered : base);
+      // Apply feed score ranking for forYou tab
+      const scored = [...filtered].sort((a, b) => {
+        const statsA = { views: a.views || 0, likes: a.likes || 0, comments: a.commentsCount || 0, shares: a.shares || 0 };
+        const statsB = { views: b.views || 0, likes: b.likes || 0, comments: b.commentsCount || 0, shares: b.shares || 0 };
+        return computeFeedScore(b, statsB, userTrainingProfile) - computeFeedScore(a, statsA, userTrainingProfile);
+      });
+      setReels(scored.length > 0 ? scored : base);
       setCurrentIndex(0);
       return;
     }
@@ -281,7 +291,7 @@ export default function ReelsContent() {
     const filtered = diffFilter === "beginner" ? followedReels.filter((r) => r.difficulty === "beginner" || !r.difficulty) : followedReels;
     setReels(filtered);
     setCurrentIndex(0);
-  }, [allReels, authLoading, feedMode, followingIds, isProfileSource, profileSourceUserId, diffFilter]);
+  }, [allReels, authLoading, feedMode, followingIds, isProfileSource, profileSourceUserId, diffFilter, userTrainingProfile]);
 
   useEffect(() => {
     if (!targetReelId || !reels.length || lastScrolledReelId.current === targetReelId) return;
@@ -631,6 +641,40 @@ export default function ReelsContent() {
       }
     };
   }, [authLoading, user?.uid]);
+
+  // Load user_training_profile for feed personalization
+  useEffect(() => {
+    if (!user?.uid) { setUserTrainingProfile(null); return; }
+    let active = true;
+    async function loadProfile() {
+      try {
+        const { db } = await getFirebase();
+        const { doc, getDoc } = await import("firebase/firestore");
+        const snap = await getDoc(doc(db, "user_training_profile", user.uid));
+        if (active && snap.exists()) setUserTrainingProfile(snap.data());
+      } catch { /* non-critical */ }
+    }
+    loadProfile();
+    return () => { active = false; };
+  }, [user?.uid]);
+
+  // Lazily fetch gym names for tagged reels
+  useEffect(() => {
+    const reelsWithGym = reels.filter((r) => r.gymId && !gymNames[r.gymId] && !gymNameRequests.current.has(r.gymId));
+    if (reelsWithGym.length === 0) return;
+    reelsWithGym.forEach((r) => gymNameRequests.current.add(r.gymId));
+    async function fetchGymNames() {
+      try {
+        const { db } = await getFirebase();
+        const { doc, getDoc } = await import("firebase/firestore");
+        const results = await Promise.all(reelsWithGym.map((r) => getDoc(doc(db, "gyms", r.gymId))));
+        const updates = {};
+        results.forEach((snap) => { if (snap.exists()) updates[snap.id] = snap.data().gymName || ""; });
+        if (Object.keys(updates).length > 0) setGymNames((prev) => ({ ...prev, ...updates }));
+      } catch { /* non-critical */ }
+    }
+    fetchGymNames();
+  }, [reels, gymNames]);
 
   // Fetch user's likes
   useEffect(() => {
@@ -1958,6 +2002,12 @@ export default function ReelsContent() {
               {!reel.isDemo && reel.remixOf && (
                 <div style={{ fontSize: 11, color: "#A78BFA", marginTop: 4, opacity: 0.85 }}>
                   🔀 {t("remixOf").replace("{username}", reel.remixOfCreatorName || "creator")}
+                </div>
+              )}
+              {/* Gym tag */}
+              {!reel.isDemo && reel.gymId && gymNames[reel.gymId] && (
+                <div style={{ fontSize: 11, color: "#D4AF37", marginTop: 4, opacity: 0.9 }}>
+                  📍 {t("gymTrainingAt")} {gymNames[reel.gymId]}
                 </div>
               )}
             </div>

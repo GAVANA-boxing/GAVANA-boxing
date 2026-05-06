@@ -7,6 +7,7 @@ import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { storage, db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
+import { checkAndAwardBadges } from "@/lib/badges";
 
 const CATEGORIES = ["boxing", "gym", "running", "street_workout", "sparring"];
 const DIFFICULTIES = ["beginner", "intermediate", "pro"];
@@ -197,6 +198,9 @@ export default function UploadPage() {
       }
       if (gymId) reelDoc.gymId = gymId;
       await addDoc(collection(db, "reels"), reelDoc);
+
+      // Award creator_starter badge (fire-and-forget)
+      checkAndAwardBadges(user.uid, { hasUploaded: true }).catch(() => {});
 
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       router.push(`/${locale}/reels`);
