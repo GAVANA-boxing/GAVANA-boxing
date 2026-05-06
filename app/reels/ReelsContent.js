@@ -1997,6 +1997,9 @@ export default function ReelsContent() {
                   } catch { /* non-critical */ }
                   const trainParams = new URLSearchParams({ reelId: reel.id });
                   if (reel.userId) trainParams.set("reelCreatorId", reel.userId);
+                  if (stats?.bestScore != null && Number.isFinite(stats.bestScore) && stats.bestScore > 0) {
+                    trainParams.set("creatorBestScore", stats.bestScore.toFixed(1));
+                  }
                   router.push(`/${currentLocale}/train?${trainParams.toString()}`);
                 };
                 return (

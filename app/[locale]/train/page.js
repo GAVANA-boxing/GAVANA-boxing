@@ -8,7 +8,7 @@ import DailyMission from "@/components/DailyMission";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { createChallengeAttemptNotification, createPvpNotification } from "@/lib/notifications";
+import { createChallengeAttemptNotification, createChallengeBeatenNotification, createPvpNotification } from "@/lib/notifications";
 import { getCurrentSeasonId } from "@/lib/season";
 import { calculateChallengeXP, calculateUserXP, getFighterRank, getRankProgress } from "@/lib/xp";
 import { writeChallengeAttempt, updateUserTrainingProfile } from "@/lib/analytics";
@@ -98,6 +98,7 @@ export default function TrainPage() {
   const [targetScore, setTargetScore] = useState(null);
   const [trainSource, setTrainSource] = useState(null);
   const [trainSourceUserId, setTrainSourceUserId] = useState(null);
+  const [creatorBestScore, setCreatorBestScore] = useState(null);
   const [challengeUserId, setChallengeUserId] = useState(null);
   const [opponentUsername, setOpponentUsername] = useState(null);
   const [pvpResult, setPvpResult] = useState(null);
@@ -168,6 +169,8 @@ export default function TrainPage() {
     setTrainSource(params.get("source") || null);
     setTrainSourceUserId(params.get("reelCreatorId") || params.get("userId") || null);
     setChallengeUserId(params.get("challengeUserId") || null);
+    const parsedCreatorBest = Number(params.get("creatorBestScore"));
+    setCreatorBestScore(Number.isFinite(parsedCreatorBest) && parsedCreatorBest > 0 ? parsedCreatorBest : null);
     const parsedTargetScore = Number(params.get("score") || params.get("targetScore"));
     setTargetScore(Number.isFinite(parsedTargetScore) && parsedTargetScore > 0 ? parsedTargetScore : null);
   }, []);
@@ -871,6 +874,18 @@ export default function TrainPage() {
           reelId,
           score: result.score,
         }).catch(() => {});
+
+        // Notify creator if challenger beats their best score
+        if (creatorBestScore != null && result.score > creatorBestScore) {
+          createChallengeBeatenNotification({
+            reelCreatorId: trainSourceUserId,
+            actorId: user.uid,
+            actorName: user.displayName || user.email?.split("@")[0] || "Someone",
+            actorPhotoURL: user.photoURL || "",
+            reelId,
+            score: result.score,
+          }).catch(() => {});
+        }
       }
     } catch (err) {
       console.error("Failed to save training session:", err);

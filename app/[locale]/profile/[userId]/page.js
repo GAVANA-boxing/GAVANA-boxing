@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { useParams, useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
-import { createNotification } from "@/lib/notifications";
+import { createNotification, createNewFollowerNotification } from "@/lib/notifications";
 import { getLocale, translate } from "@/lib/i18n";
 import { RANK_TIERS, calculateSessionXP, calculateUserXP, getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
 import RankIcon from "@/components/RankIcon";
@@ -300,6 +300,7 @@ export default function UserProfilePage() {
   const [totalLikes, setTotalLikes] = useState(0);
   const [stats, setStats] = useState({ followers: 0, following: 0 });
   const [isFollowing, setIsFollowing] = useState(false);
+  const [isMutual, setIsMutual] = useState(false);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -813,16 +814,19 @@ export default function UserProfilePage() {
     }
   };
 
-  // Check if current user is following this profile
+  // Check if current user is following this profile (and if the follow is mutual)
   const checkFollowStatus = async (currentUserId, targetUserId) => {
     if (!currentUserId || !targetUserId) return;
 
     try {
       const { doc, getDoc } = await import("firebase/firestore");
 
-      const followRef = doc(db, "follows", `${currentUserId}_${targetUserId}`);
-      const followDoc = await getDoc(followRef);
+      const [followDoc, reverseDoc] = await Promise.all([
+        getDoc(doc(db, "follows", `${currentUserId}_${targetUserId}`)),
+        getDoc(doc(db, "follows", `${targetUserId}_${currentUserId}`)),
+      ]);
       setIsFollowing(followDoc.exists());
+      setIsMutual(followDoc.exists() && reverseDoc.exists());
     } catch (error) {
       console.error("Error checking follow status:", error);
     }
@@ -847,13 +851,14 @@ export default function UserProfilePage() {
     }));
 
     try {
-      const { doc, setDoc, deleteDoc, serverTimestamp } = await import("firebase/firestore");
+      const { doc, setDoc, deleteDoc, getDoc, serverTimestamp } = await import("firebase/firestore");
 
       const followRef = doc(db, "follows", `${user.uid}_${userId}`);
 
       if (wasFollowing) {
         // Unfollow
         await deleteDoc(followRef);
+        setIsMutual(false);
         // Reload follow stats to ensure accuracy
         await loadFollowStats(userId);
       } else {
@@ -863,12 +868,15 @@ export default function UserProfilePage() {
           followingId: userId,
           createdAt: serverTimestamp()
         });
-        await createNotification({
+        createNewFollowerNotification({
           recipientId: userId,
           actorId: user.uid,
-          actorName: user.email?.split("@")[0],
-          type: "follow",
+          actorName: user.displayName || user.email?.split("@")[0],
+          actorPhotoURL: user.photoURL || "",
         });
+        // Check if now mutual
+        const reverseDoc = await getDoc(doc(db, "follows", `${userId}_${user.uid}`));
+        setIsMutual(reverseDoc.exists());
         // Reload follow stats to ensure accuracy
         await loadFollowStats(userId);
       }
@@ -1483,18 +1491,25 @@ export default function UserProfilePage() {
             </button>
           </div>
         ) : (
-          <button
-            onClick={handleFollow}
-            disabled={followLoading}
-            style={{
-              ...styles.followAction,
-              background: followLoading ? "#555" : (isFollowing ? "#151515" : "#C1121F"),
-              cursor: followLoading ? "not-allowed" : "pointer",
-              opacity: followLoading ? 0.7 : 1
-            }}
-          >
-            {followLoading ? t("followLoading") : (isFollowing ? t("unfollow") : t("follow"))}
-          </button>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+            <button
+              onClick={handleFollow}
+              disabled={followLoading}
+              style={{
+                ...styles.followAction,
+                background: followLoading ? "#555" : (isFollowing ? "#151515" : "#C1121F"),
+                cursor: followLoading ? "not-allowed" : "pointer",
+                opacity: followLoading ? 0.7 : 1
+              }}
+            >
+              {followLoading ? t("followLoading") : (isFollowing ? t("unfollow") : t("follow"))}
+            </button>
+            {isMutual && (
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#D4AF37", letterSpacing: 0.5 }}>
+                ⇄ {t("mutual")}
+              </span>
+            )}
+          </div>
         )}
         </div>
       </section>
