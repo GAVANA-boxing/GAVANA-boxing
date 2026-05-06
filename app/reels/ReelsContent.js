@@ -252,6 +252,7 @@ export default function ReelsContent() {
   const [gymNames, setGymNames] = useState({}); // gymId → gymName cache
   const [featuredCreatorIds, setFeaturedCreatorIds] = useState(new Set());
   const videoRefs = useRef({});
+  const feedbackCacheRef = useRef({});
   const feedRef = useRef(null);
   const reelItemRefs = useRef({});
   const viewTimers = useRef({});
@@ -1269,12 +1270,22 @@ export default function ReelsContent() {
     }
 
     setFeedbackOpen(true);
+    setFeedbackReel(reel);
+    setSessionXPData(null);
+
+    const cached = feedbackCacheRef.current[reel?.id];
+    if (cached) {
+      setFeedbackResult(cached);
+      setFeedbackLoading(false);
+      setFeedbackError("");
+      setFeedbackSaved(false);
+      return;
+    }
+
     setFeedbackLoading(true);
     setFeedbackError("");
     setFeedbackResult("");
     setFeedbackSaved(false);
-    setFeedbackReel(reel);
-    setSessionXPData(null);
 
     try {
       const caption = reel?.description || reel?.caption || "No caption provided";
@@ -1298,6 +1309,7 @@ export default function ReelsContent() {
       } : null;
 
       if (existingFeedback?.feedbackText) {
+        feedbackCacheRef.current[reel.id] = existingFeedback.feedbackText;
         setFeedbackResult(existingFeedback.feedbackText);
         setFeedbackSaved(false);
         return;
@@ -1363,6 +1375,7 @@ export default function ReelsContent() {
       }
 
       const feedbackText = text.trim();
+      feedbackCacheRef.current[reel.id] = feedbackText;
       setFeedbackResult(feedbackText);
 
       try {
