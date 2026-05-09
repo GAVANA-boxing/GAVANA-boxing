@@ -1032,6 +1032,12 @@ export default function TrainPage() {
                     <span style={styles.ghostHudGhostLabel}>👻</span>
                     <span style={styles.ghostHudGhostScore}>{ghostScore.toFixed(1)}</span>
                   </div>
+                  <span style={{
+                    ...styles.ghostHudState,
+                    color: liveScore > ghostBestScore ? "#34D399" : liveScore > ghostScore ? "#D4AF37" : "rgba(255,255,255,0.4)",
+                  }}>
+                    {liveScore > ghostBestScore ? "NEW BEST" : liveScore > ghostScore ? "AHEAD" : "BEHIND"}
+                  </span>
                 </div>
               )}
 
@@ -1044,6 +1050,43 @@ export default function TrainPage() {
             </>
           )}
         </div>
+
+        {/* Pre-game competitive context card */}
+        {phase === "idle" && (
+          <div style={styles.contextCard}>
+            {(ghostBestScore !== null || targetScore || (challengeUserId && opponentUsername)) ? (
+              <div style={styles.contextStatsRow}>
+                {!challengeUserId && ghostBestScore !== null && (
+                  <div style={styles.contextStat}>
+                    <span style={styles.contextStatLabel}>👻 YOUR BEST</span>
+                    <span style={styles.contextStatValue}>{ghostBestScore.toFixed(1)}<span style={styles.contextStatUnit}>/10</span></span>
+                  </div>
+                )}
+                {!challengeUserId && targetScore && (
+                  <div style={styles.contextStat}>
+                    <span style={styles.contextStatLabel}>🎯 TARGET</span>
+                    <span style={{ ...styles.contextStatValue, color: "#FDE68A" }}>{targetScore.toFixed(1)}<span style={styles.contextStatUnit}>/10</span></span>
+                  </div>
+                )}
+                {challengeUserId && targetScore && (
+                  <div style={{ ...styles.contextStat, flex: 1, alignItems: "center" }}>
+                    <span style={styles.contextStatLabel}>🆚 BEAT</span>
+                    <span style={{ ...styles.contextStatValue, color: "#93C5FD", fontSize: 17 }}>
+                      {opponentUsername || "Opponent"} · {targetScore.toFixed(1)}/10
+                    </span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={styles.contextEmptyMsg}>
+                {reelId ? "Set your first score on this challenge" : "Ready to train"}
+              </div>
+            )}
+            {ghostEnabled && ghostBestScore !== null && !challengeUserId && (
+              <div style={styles.contextGhostNote}>👻 Ghost mode active — beat {ghostBestScore.toFixed(1)}/10</div>
+            )}
+          </div>
+        )}
 
         {error && <div style={styles.error}>{error}</div>}
         {saved && (
@@ -1097,6 +1140,10 @@ export default function TrainPage() {
                       <strong>{getChallengeRank(result.score)}</strong>
                     </div>
                     <div style={styles.resultItem}>
+                      <span>{t("trainXpGained")}</span>
+                      <strong style={{ color: "#D4AF37" }}>+{result.xpGained}</strong>
+                    </div>
+                    <div style={{ ...styles.resultItem, gridColumn: "1 / -1" }}>
                       <span>{t("challengeComparison")}</span>
                       <strong>{t("challengeBeatPlayers").replace("{n}", getChallengeComparisonPercent(result.score))}</strong>
                     </div>
@@ -1155,12 +1202,31 @@ export default function TrainPage() {
                 </div>
               )}
 
-              {!challengeUserId && ghostBestScore !== null && ghostEnabled && (
-                <div style={result.score > ghostBestScore ? styles.ghostWinBanner : styles.ghostLoseBanner}>
-                  {result.score > ghostBestScore ? t("ghostBeatBest") : t("ghostLostToBest")}
-                  <div style={styles.ghostBestScoreRow}>
-                    {t("ghostBestLabel")}: {ghostBestScore.toFixed(1)}/10
+              {!challengeUserId && ghostBestScore !== null && (
+                <div style={result.score > ghostBestScore ? styles.newBestCard : styles.vsGhostCard}>
+                  {result.score > ghostBestScore && (
+                    <div style={styles.newBestBadge}>🏆 NEW PERSONAL BEST</div>
+                  )}
+                  <div style={styles.vsCompareRow}>
+                    <div style={styles.vsCompareCell}>
+                      <span style={styles.vsCompareLbl}>NEW</span>
+                      <span style={{ ...styles.vsCompareScore, color: result.score > ghostBestScore ? "#34D399" : "#fff" }}>
+                        {result.score.toFixed(1)}
+                      </span>
+                    </div>
+                    <div style={{ ...styles.vsCompareDelta, color: result.score >= ghostBestScore ? "#34D399" : "#F87171" }}>
+                      {result.score >= ghostBestScore ? `+${(result.score - ghostBestScore).toFixed(1)}` : (result.score - ghostBestScore).toFixed(1)}
+                    </div>
+                    <div style={styles.vsCompareCell}>
+                      <span style={styles.vsCompareLbl}>PREV BEST</span>
+                      <span style={styles.vsCompareScore}>{ghostBestScore.toFixed(1)}</span>
+                    </div>
                   </div>
+                  {result.score < ghostBestScore && (
+                    <div style={styles.almostMsg}>
+                      {(ghostBestScore - result.score) < 0.5 ? "🔥 Almost there! So close." : `${(ghostBestScore - result.score).toFixed(1)} short of your best — retry!`}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1219,6 +1285,9 @@ export default function TrainPage() {
                           : saved
                             ? t("trainSavedShort")
                             : t("trainSaveProgress")}
+                    </button>
+                    <button type="button" style={styles.shareResultButton} onClick={handleShareTraining}>
+                      {t("challengeFriend")}
                     </button>
                     <button type="button" style={styles.reelsButton} onClick={goToReels}>
                       {t("trainBackToReels")}
@@ -2093,6 +2162,139 @@ const styles = {
     marginTop: 4,
     fontSize: 12,
     color: "rgba(255,255,255,0.65)",
+    fontWeight: 700,
+  },
+  ghostHudState: {
+    marginTop: 5,
+    fontSize: 8,
+    fontWeight: 1000,
+    letterSpacing: 1.4,
+    textTransform: "uppercase",
+  },
+
+  // Pre-game context card
+  contextCard: {
+    padding: "14px 16px",
+    borderRadius: 16,
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+  },
+  contextStatsRow: {
+    display: "flex",
+    gap: 12,
+    alignItems: "flex-start",
+  },
+  contextStat: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 2,
+    flex: 1,
+  },
+  contextStatLabel: {
+    fontSize: 10,
+    fontWeight: 900,
+    color: "rgba(255,255,255,0.45)",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  contextStatValue: {
+    fontSize: 24,
+    fontWeight: 1000,
+    color: "#fff",
+    lineHeight: 1,
+    fontFamily: "var(--font-display, 'Anton', sans-serif)",
+  },
+  contextStatUnit: {
+    fontSize: 13,
+    fontWeight: 700,
+    color: "rgba(255,255,255,0.5)",
+    marginLeft: 2,
+  },
+  contextEmptyMsg: {
+    fontSize: 13,
+    color: "rgba(255,255,255,0.5)",
+    fontWeight: 700,
+    textAlign: "center",
+    padding: "4px 0",
+  },
+  contextGhostNote: {
+    fontSize: 11,
+    color: "rgba(255,255,255,0.38)",
+    fontWeight: 700,
+    borderTop: "1px solid rgba(255,255,255,0.07)",
+    paddingTop: 8,
+  },
+
+  // Result — new best / vs ghost comparison card
+  newBestCard: {
+    margin: "14px 0 0",
+    padding: "14px 16px",
+    borderRadius: 16,
+    background: "linear-gradient(135deg, rgba(52,211,153,0.14), rgba(11,11,11,0.92))",
+    border: "1px solid rgba(52,211,153,0.35)",
+    textAlign: "center",
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+    alignItems: "center",
+  },
+  vsGhostCard: {
+    margin: "14px 0 0",
+    padding: "14px 16px",
+    borderRadius: 16,
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    textAlign: "center",
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+    alignItems: "center",
+  },
+  newBestBadge: {
+    fontSize: 11,
+    fontWeight: 1000,
+    letterSpacing: 1.6,
+    color: "#34D399",
+    textTransform: "uppercase",
+  },
+  vsCompareRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 14,
+  },
+  vsCompareCell: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 2,
+  },
+  vsCompareLbl: {
+    fontSize: 9,
+    fontWeight: 900,
+    color: "rgba(255,255,255,0.45)",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  vsCompareScore: {
+    fontSize: 30,
+    fontWeight: 1000,
+    color: "#fff",
+    lineHeight: 1,
+    fontFamily: "var(--font-display, 'Anton', sans-serif)",
+  },
+  vsCompareDelta: {
+    fontSize: 18,
+    fontWeight: 1000,
+    minWidth: 44,
+    textAlign: "center",
+  },
+  almostMsg: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.55)",
     fontWeight: 700,
   },
 };
