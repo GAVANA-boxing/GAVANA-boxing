@@ -256,6 +256,8 @@ export default function ReelsContent() {
   const [featuredCreatorIds, setFeaturedCreatorIds] = useState(new Set());
   const videoRefs = useRef({});
   const feedbackCacheRef = useRef({});
+  const lastTapRef = useRef({ time: 0, reelId: null });
+  const [heartBursts, setHeartBursts] = useState([]);
   const feedRef = useRef(null);
   const reelItemRefs = useRef({});
   const viewTimers = useRef({});
@@ -1036,6 +1038,25 @@ export default function ReelsContent() {
     revealControls();
     togglePlay();
   }, [revealControls, togglePlay]);
+
+  const handleVideoClick = useCallback((e, reel) => {
+    const now = Date.now();
+    const isDoubleTap = now - lastTapRef.current.time < 350 && lastTapRef.current.reelId === reel.id;
+    lastTapRef.current = { time: now, reelId: reel.id };
+
+    if (isDoubleTap) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = (e.clientX || e.changedTouches?.[0]?.clientX || rect.width / 2) - rect.left;
+      const y = (e.clientY || e.changedTouches?.[0]?.clientY || rect.height / 2) - rect.top;
+      if (!reel.isDemo && !userLikes.has(reel.id)) handleLike(reel.id);
+      const burstId = now;
+      setHeartBursts((prev) => [...prev, { id: burstId, x, y, reelId: reel.id }]);
+      setTimeout(() => setHeartBursts((prev) => prev.filter((b) => b.id !== burstId)), 800);
+    } else {
+      revealControls();
+      togglePlay();
+    }
+  }, [handleLike, revealControls, togglePlay, userLikes]);
 
   useEffect(() => {
     const currentReel = reels[currentIndex];
@@ -1875,7 +1896,7 @@ export default function ReelsContent() {
                 playsInline
                 webkit-playsinline="true"
                 poster={reel.thumbnailUrl || undefined}
-                onClick={handleVideoTap}
+                onClick={(e) => handleVideoClick(e, reel)}
                 onLoadStart={() => handleVideoLoadStart(reel.id)}
                 onLoadedData={() => {
                   handleVideoLoaded(reel.id);
@@ -1920,6 +1941,17 @@ export default function ReelsContent() {
 
             <div style={styles.vignette} />
             <div style={styles.bottomGradient} />
+
+            {/* Double-tap heart bursts */}
+            {heartBursts.filter((b) => b.reelId === reel.id).map((b) => (
+              <span
+                key={b.id}
+                className="heart-burst"
+                style={{ position: "absolute", left: b.x, top: b.y, fontSize: 80, zIndex: 60, lineHeight: 1 }}
+              >
+                ❤️
+              </span>
+            ))}
 
             {isPvpSource && index === currentIndex && !reel.isDemo && (
               <div style={styles.pvpSourceBanner}>
