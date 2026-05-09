@@ -33,21 +33,27 @@ function StatCard({ label, value, color = "#D4AF37", icon }) {
   );
 }
 
-function ReelRow({ reel, stats, rank, t, locale, router }) {
+function ReelRow({ reel, stats, rank, maxViews, t, locale, router }) {
   const views = stats?.views || reel.views || 0;
   const likes = stats?.likes || reel.likes || 0;
   const attempts = stats?.challengeAttempts || 0;
+  const engRate = views > 0 ? ((likes + attempts) / views * 100).toFixed(1) : "0.0";
+  const barPct = maxViews > 0 ? Math.max(4, Math.round((views / maxViews) * 100)) : 4;
   return (
     <div style={styles.reelRow} onClick={() => router.push(`/${locale}/reels?reelId=${reel.id}`)}>
       <div style={styles.reelRank}>#{rank}</div>
       <div style={styles.reelInfo}>
         <div style={styles.reelCaption} title={reel.description || reel.caption || ""}>
-          {(reel.description || reel.caption || t("trainingReel")).slice(0, 60) || t("trainingReel")}
+          {(reel.description || reel.caption || t("trainingReel")).slice(0, 55) || t("trainingReel")}
+        </div>
+        <div style={styles.reelBar}>
+          <div style={{ ...styles.reelBarFill, width: `${barPct}%` }} />
         </div>
         <div style={styles.reelMeta}>
           <span>👁 {formatCompact(views)}</span>
           <span>❤ {formatCompact(likes)}</span>
           {attempts > 0 && <span>🥊 {formatCompact(attempts)}</span>}
+          <span style={{ marginLeft: "auto", color: engRate >= 5 ? "#34D399" : engRate >= 2 ? "#D4AF37" : "#888" }}>{engRate}%</span>
         </div>
       </div>
     </div>
@@ -153,9 +159,37 @@ export default function CreatorDashboard() {
   const avgScore = externalAttempts.length > 0
     ? (externalAttempts.reduce((s, a) => s + (Number(a.score) || 0), 0) / externalAttempts.length).toFixed(1)
     : null;
+  const bestScore = externalAttempts.length > 0
+    ? Math.max(...externalAttempts.map((a) => Number(a.score) || 0)).toFixed(1)
+    : null;
+  const engagementRate = totalViews > 0
+    ? ((totalLikes + externalAttempts.length) / totalViews * 100).toFixed(1)
+    : "0.0";
+  const weekAgoMs = Date.now() - 7 * 24 * 3600 * 1000;
+  const attemptsThisWeek = externalAttempts.filter((a) => {
+    const ms = a.createdAt?.toMillis?.() || a.createdAt?.toDate?.().getTime?.() || 0;
+    return ms >= weekAgoMs;
+  }).length;
+
+  // Content type breakdown
+  const ctCounts = reels.reduce((acc, r) => {
+    const ct = r.contentType || (r.type === "training" ? "training" : "lifestyle");
+    acc[ct] = (acc[ct] || 0) + 1;
+    return acc;
+  }, {});
+  const ctTotal = reels.length || 1;
+
+  // Growth tip
+  const hasNoChallengeReels = reels.every((r) => !r.challengeEnabled && r.type !== "training");
+  const growthTip = hasNoChallengeReels
+    ? t("creatorTipNoChallenge")
+    : Number(engagementRate) < 2
+    ? t("creatorTipLowEngagement")
+    : t("creatorTipGood");
 
   // Top reel by views
   const reelsByViews = [...reels].sort((a, b) => (reelStats[b.id]?.views || b.views || 0) - (reelStats[a.id]?.views || a.views || 0));
+  const maxViews = reelsByViews.length > 0 ? (reelStats[reelsByViews[0].id]?.views || reelsByViews[0].views || 1) : 1;
   // Most challenged reel
   const attemptsByReel = {};
   externalAttempts.forEach((a) => { attemptsByReel[a.reelId] = (attemptsByReel[a.reelId] || 0) + 1; });
@@ -192,6 +226,16 @@ export default function CreatorDashboard() {
               <span style={styles.growthNum}>+{newFollowersThisWeek}</span>
               <span style={styles.growthLbl}>{t("creatorNewFollowers")}</span>
             </div>
+            <div style={styles.growthItem}>
+              <span style={{ ...styles.growthNum, color: Number(engagementRate) >= 5 ? "#34D399" : Number(engagementRate) >= 2 ? "#D4AF37" : "#F87171" }}>
+                {engagementRate}%
+              </span>
+              <span style={styles.growthLbl}>{t("creatorEngagementRate")}</span>
+            </div>
+            <div style={styles.growthItem}>
+              <span style={{ ...styles.growthNum, color: "#60A5FA" }}>+{attemptsThisWeek}</span>
+              <span style={styles.growthLbl}>{t("creatorAttemptsWeek")}</span>
+            </div>
             {uniqueStudents > 0 && (
               <div style={styles.growthItem}>
                 <span style={styles.growthNum}>{uniqueStudents}</span>
@@ -204,6 +248,44 @@ export default function CreatorDashboard() {
                 <span style={styles.growthLbl}>{t("creatorAvgScore")}</span>
               </div>
             )}
+            {bestScore != null && (
+              <div style={styles.growthItem}>
+                <span style={{ ...styles.growthNum, color: "#D4AF37" }}>⭐ {bestScore}</span>
+                <span style={styles.growthLbl}>{t("creatorBestScore")}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Content type breakdown */}
+          {reels.length > 0 && (
+            <section style={styles.section}>
+              <h2 style={styles.sectionTitle}>📊 {t("creatorContentBreakdown")}</h2>
+              <div style={styles.breakdown}>
+                {[
+                  { key: "training", label: "🥊 Training", color: "#F87171" },
+                  { key: "lifestyle", label: "🎬 Lifestyle", color: "#60A5FA" },
+                  { key: "educational", label: "📚 Educational", color: "#D4AF37" },
+                ].map(({ key, label, color }) => {
+                  const count = ctCounts[key] || 0;
+                  const pct = Math.round((count / ctTotal) * 100);
+                  return count > 0 ? (
+                    <div key={key} style={styles.breakdownRow}>
+                      <span style={{ ...styles.breakdownLabel, color }}>{label}</span>
+                      <div style={styles.breakdownBar}>
+                        <div style={{ ...styles.breakdownFill, width: `${pct}%`, background: color }} />
+                      </div>
+                      <span style={styles.breakdownCount}>{count}</span>
+                    </div>
+                  ) : null;
+                })}
+              </div>
+            </section>
+          )}
+
+          {/* Growth tip */}
+          <div style={styles.tip}>
+            <span style={styles.tipIcon}>💡</span>
+            <span style={styles.tipText}>{growthTip}</span>
           </div>
 
           {reels.length === 0 ? (
@@ -215,28 +297,12 @@ export default function CreatorDashboard() {
             </div>
           ) : (
             <>
-              {/* Top reel */}
-              {reelsByViews[0] && (
-                <section style={styles.section}>
-                  <h2 style={styles.sectionTitle}>🏆 {t("creatorTopReel")}</h2>
-                  <ReelRow reel={reelsByViews[0]} stats={reelStats[reelsByViews[0].id]} rank={1} t={t} locale={locale} router={router} />
-                </section>
-              )}
-
-              {/* Most challenged */}
-              {reelsByAttempts[0] && (attemptsByReel[reelsByAttempts[0].id] || 0) > 0 && (
-                <section style={styles.section}>
-                  <h2 style={styles.sectionTitle}>🥊 {t("creatorMostChallenged")}</h2>
-                  <ReelRow reel={reelsByAttempts[0]} stats={reelStats[reelsByAttempts[0].id]} rank={1} t={t} locale={locale} router={router} />
-                </section>
-              )}
-
-              {/* Full reel list */}
+              {/* Reel performance list */}
               <section style={styles.section}>
-                <h2 style={styles.sectionTitle}>{t("creatorReelList")}</h2>
+                <h2 style={styles.sectionTitle}>📈 {t("creatorPerformance")}</h2>
                 <div style={styles.reelList}>
                   {reelsByViews.map((reel, i) => (
-                    <ReelRow key={reel.id} reel={reel} stats={reelStats[reel.id]} rank={i + 1} t={t} locale={locale} router={router} />
+                    <ReelRow key={reel.id} reel={reel} stats={reelStats[reel.id]} rank={i + 1} maxViews={maxViews} t={t} locale={locale} router={router} />
                   ))}
                 </div>
               </section>
@@ -388,10 +454,78 @@ const styles = {
     textTransform: "uppercase",
     color: "#888",
   },
+  breakdown: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+  },
+  breakdownRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+  },
+  breakdownLabel: {
+    width: 110,
+    fontSize: 12,
+    fontWeight: 700,
+    flexShrink: 0,
+  },
+  breakdownBar: {
+    flex: 1,
+    height: 6,
+    borderRadius: 999,
+    background: "rgba(255,255,255,0.07)",
+    overflow: "hidden",
+  },
+  breakdownFill: {
+    height: "100%",
+    borderRadius: 999,
+    transition: "width 0.4s ease",
+    opacity: 0.85,
+  },
+  breakdownCount: {
+    width: 20,
+    textAlign: "right",
+    fontSize: 12,
+    fontWeight: 700,
+    color: "#888",
+    flexShrink: 0,
+  },
+  tip: {
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 10,
+    padding: "14px 16px",
+    borderRadius: 14,
+    background: "rgba(212,175,55,0.07)",
+    border: "1px solid rgba(212,175,55,0.2)",
+  },
+  tipIcon: {
+    fontSize: 16,
+    flexShrink: 0,
+    marginTop: 1,
+  },
+  tipText: {
+    fontSize: 13,
+    color: "rgba(255,255,255,0.75)",
+    lineHeight: 1.5,
+  },
   reelList: {
     display: "flex",
     flexDirection: "column",
     gap: 6,
+  },
+  reelBar: {
+    height: 3,
+    borderRadius: 999,
+    background: "rgba(255,255,255,0.07)",
+    overflow: "hidden",
+    margin: "2px 0",
+  },
+  reelBarFill: {
+    height: "100%",
+    borderRadius: 999,
+    background: "linear-gradient(90deg, #C1121F, #D4AF37)",
   },
   reelRow: {
     display: "flex",
