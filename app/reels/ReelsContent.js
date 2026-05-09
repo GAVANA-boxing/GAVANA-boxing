@@ -1776,9 +1776,7 @@ export default function ReelsContent() {
             ...(diffFilter === "beginner" ? {
               ...styles.feedTabActive,
               color: "#34D399",
-              borderWidth: "1px",
-              borderStyle: "solid",
-              borderColor: "rgba(52,211,153,0.5)",
+              border: "1px solid rgba(52,211,153,0.5)",
             } : {}),
             fontSize: 11,
             padding: "4px 8px",
@@ -1797,9 +1795,7 @@ export default function ReelsContent() {
             ...(ctFilter !== "all" ? {
               ...styles.feedTabActive,
               color: ctFilter === "training" ? "#F87171" : ctFilter === "lifestyle" ? "#60A5FA" : "#D4AF37",
-              borderWidth: "1px",
-              borderStyle: "solid",
-              borderColor: ctFilter === "training" ? "rgba(193,18,31,0.5)" : ctFilter === "lifestyle" ? "rgba(96,165,250,0.4)" : "rgba(212,175,55,0.4)",
+              border: ctFilter === "training" ? "1px solid rgba(193,18,31,0.5)" : ctFilter === "lifestyle" ? "1px solid rgba(96,165,250,0.4)" : "1px solid rgba(212,175,55,0.4)",
             } : {}),
             fontSize: 11,
             padding: "4px 10px",

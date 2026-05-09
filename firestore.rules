@@ -11,11 +11,26 @@ service cloud.firestore {
       return isAuth() && resource.data[field] == request.auth.uid;
     }
 
+    function isPublicReelCounterUpdate() {
+      return isAuth() && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        "views",
+        "likes",
+        "likesCount",
+        "commentsCount",
+        "saves",
+        "challengeClicks"
+      ]);
+    }
+
     // ─── Users ──────────────────────────────────────────────────
     match /users/{userId} {
       allow read: if true;
       allow create: if isAuth() && request.auth.uid == userId;
-      allow update: if isAuth() && request.auth.uid == userId;
+      allow update: if (isAuth() && request.auth.uid == userId) ||
+        (isAuth() && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "coachRating",
+          "coachTotalReviews"
+        ]));
       allow delete: if false;
     }
 
@@ -23,8 +38,8 @@ service cloud.firestore {
     match /reels/{reelId} {
       allow read: if true;
       allow create: if isAuth();
-      // Any auth user may increment views; only owner may change other fields.
-      allow update: if isOwner("userId") || (isAuth() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["views"]));
+      // Any auth user may update public counters; only owner may change content fields.
+      allow update: if isOwner("userId") || isPublicReelCounterUpdate();
       allow delete: if isOwner("userId");
     }
 
@@ -51,7 +66,7 @@ service cloud.firestore {
     // ─── Challenge attempts ──────────────────────────────────────
     // isAuth() read allows creator dashboard to query attempts on their reels.
     match /challenge_attempts/{attemptId} {
-      allow read: if isAuth();
+      allow read: if true;
       allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
       allow update: if isAuth() && resource.data.userId == request.auth.uid;
       allow delete: if false;
@@ -71,6 +86,13 @@ service cloud.firestore {
       allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
       allow update: if isAuth() && resource.data.userId == request.auth.uid;
       allow delete: if false;
+    }
+
+    // Legacy feedback documents are read when sharing older reels.
+    match /feedback/{feedbackId} {
+      allow read: if true;
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuth() && resource.data.userId == request.auth.uid;
     }
 
     // ─── Training sessions / profile ─────────────────────────────
@@ -188,9 +210,11 @@ service cloud.firestore {
     }
 
     // ─── Coach bookings ───────────────────────────────────────────
-    // isAuth() read so coach public profile can show completed session count.
     match /coach_bookings/{bookingId} {
-      allow read: if isAuth();
+      allow read: if resource.data.status == "completed" || (isAuth() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.coachId == request.auth.uid
+      ));
       allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
       allow update: if isAuth() && (
         resource.data.userId == request.auth.uid ||
