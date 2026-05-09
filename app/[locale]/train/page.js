@@ -231,7 +231,7 @@ export default function TrainPage() {
 
   // Load ghost — best training session for this reelId
   useEffect(() => {
-    if (!user?.uid || !reelId || challengeId || challengeUserId) return;
+    if (!user?.uid || !reelId || challengeUserId) return;
     let active = true;
 
     async function loadGhost() {
@@ -257,7 +257,37 @@ export default function TrainPage() {
 
     loadGhost();
     return () => { active = false; };
-  }, [user?.uid, reelId, challengeId, challengeUserId]);
+  }, [user?.uid, reelId, challengeUserId]);
+
+  // Load ghost — best challenge result for challengeId-based flow
+  useEffect(() => {
+    if (!user?.uid || !challengeId || challengeUserId) return;
+    let active = true;
+
+    async function loadChallengeGhost() {
+      try {
+        const snap = await getDocs(query(
+          collection(db, "challenge_results"),
+          where("userId", "==", user.uid),
+          where("challengeId", "==", challengeId)
+        ));
+        if (!active) return;
+        const scores = snap.docs
+          .map(d => d.data())
+          .filter(d => Number.isFinite(Number(d.score)))
+          .map(d => Number(d.score));
+        if (!scores.length) return;
+        const best = Math.max(...scores);
+        setGhostBestScore(best);
+        ghostBestScoreRef.current = best;
+      } catch (e) {
+        // silent — ghost won't show
+      }
+    }
+
+    loadChallengeGhost();
+    return () => { active = false; };
+  }, [user?.uid, challengeId, challengeUserId]);
 
   // Auto-save PvP result and notify opponent when training finishes in PvP mode
   useEffect(() => {
@@ -1034,9 +1064,15 @@ export default function TrainPage() {
                   </div>
                   <span style={{
                     ...styles.ghostHudState,
-                    color: liveScore > ghostBestScore ? "#34D399" : liveScore > ghostScore ? "#D4AF37" : "rgba(255,255,255,0.4)",
+                    color: liveScore > ghostBestScore ? "#34D399"
+                      : liveScore >= ghostBestScore - 0.5 ? "#FB923C"
+                      : liveScore > ghostScore ? "#D4AF37"
+                      : "rgba(255,255,255,0.4)",
                   }}>
-                    {liveScore > ghostBestScore ? "NEW BEST" : liveScore > ghostScore ? "AHEAD" : "BEHIND"}
+                    {liveScore > ghostBestScore ? "NEW BEST"
+                      : liveScore >= ghostBestScore - 0.5 ? "ALMOST!"
+                      : liveScore > ghostScore ? "AHEAD"
+                      : "BEHIND"}
                   </span>
                 </div>
               )}
@@ -1205,11 +1241,11 @@ export default function TrainPage() {
               {!challengeUserId && ghostBestScore !== null && (
                 <div style={result.score > ghostBestScore ? styles.newBestCard : styles.vsGhostCard}>
                   {result.score > ghostBestScore && (
-                    <div style={styles.newBestBadge}>🏆 NEW PERSONAL BEST</div>
+                    <div style={styles.newBestBadge}>🏆 Өмнөх оноогоо эвдлээ!</div>
                   )}
                   <div style={styles.vsCompareRow}>
                     <div style={styles.vsCompareCell}>
-                      <span style={styles.vsCompareLbl}>NEW</span>
+                      <span style={styles.vsCompareLbl}>ШИНЭ</span>
                       <span style={{ ...styles.vsCompareScore, color: result.score > ghostBestScore ? "#34D399" : "#fff" }}>
                         {result.score.toFixed(1)}
                       </span>
@@ -1218,13 +1254,15 @@ export default function TrainPage() {
                       {result.score >= ghostBestScore ? `+${(result.score - ghostBestScore).toFixed(1)}` : (result.score - ghostBestScore).toFixed(1)}
                     </div>
                     <div style={styles.vsCompareCell}>
-                      <span style={styles.vsCompareLbl}>PREV BEST</span>
+                      <span style={styles.vsCompareLbl}>ХАМГИЙН ӨНДӨР</span>
                       <span style={styles.vsCompareScore}>{ghostBestScore.toFixed(1)}</span>
                     </div>
                   </div>
                   {result.score < ghostBestScore && (
                     <div style={styles.almostMsg}>
-                      {(ghostBestScore - result.score) < 0.5 ? "🔥 Almost there! So close." : `${(ghostBestScore - result.score).toFixed(1)} short of your best — retry!`}
+                      {(ghostBestScore - result.score) <= 0.5
+                        ? "🔥 Бараг боллоо — дахин оролдоод давна"
+                        : `${(ghostBestScore - result.score).toFixed(1)} оноо дутлаа — дахин оролдоод давна`}
                     </div>
                   )}
                 </div>
@@ -1270,54 +1308,45 @@ export default function TrainPage() {
             {/* BOTTOM — action buttons */}
             <div style={styles.modalBottom}>
               <div style={styles.modalActions}>
-                {!activeChallenge && (
-                  <>
-                    <button
-                      type="button"
-                      style={{ ...styles.saveButton, ...(saved ? styles.saveButtonDone : {}) }}
-                      onClick={handleSave}
-                      disabled={saving || saved}
-                    >
-                      {saving
-                        ? t("trainSaving")
-                        : saved && savedAttemptNumber
-                          ? t("trainAttemptSaved").replace("{n}", savedAttemptNumber)
-                          : saved
-                            ? t("trainSavedShort")
-                            : t("trainSaveProgress")}
-                    </button>
-                    <button type="button" style={styles.shareResultButton} onClick={handleShareTraining}>
-                      {t("challengeFriend")}
-                    </button>
-                    <button type="button" style={styles.reelsButton} onClick={goToReels}>
-                      {t("trainBackToReels")}
-                    </button>
-                  </>
-                )}
-                {activeChallenge && (
-                  <>
-                    <button
-                      type="button"
-                      style={{ ...styles.saveButton, ...(challengeSaved ? styles.saveButtonDone : {}) }}
-                      onClick={handleSaveChallengeResult}
-                      disabled={challengeSaving || challengeSaved}
-                    >
-                      {challengeSaving
-                        ? t("trainSaving")
-                        : challengeSaved
-                          ? t("challengeResultSaved")
-                          : t("challengeSaveResult")}
-                    </button>
-                    <button type="button" style={styles.reelsButton} onClick={goToChallenges}>
-                      {t("challengeBackToChallenges")}
-                    </button>
-                    <button type="button" style={styles.challengeFriendButton} onClick={handleChallengeFriend}>
-                      {t("challengeFriend")}
-                    </button>
-                  </>
-                )}
                 <button type="button" style={styles.tryAgainButton} onClick={handleTryAgain}>
                   {activeChallenge ? t("challengeTryAgain") : t("trainTryAgain")}
+                </button>
+                {!activeChallenge && (
+                  <button
+                    type="button"
+                    style={{ ...styles.saveButton, ...(saved ? styles.saveButtonDone : {}) }}
+                    onClick={handleSave}
+                    disabled={saving || saved}
+                  >
+                    {saving
+                      ? t("trainSaving")
+                      : saved && savedAttemptNumber
+                        ? t("trainAttemptSaved").replace("{n}", savedAttemptNumber)
+                        : saved
+                          ? t("trainSavedShort")
+                          : t("trainSaveProgress")}
+                  </button>
+                )}
+                {activeChallenge && (
+                  <button
+                    type="button"
+                    style={{ ...styles.saveButton, ...(challengeSaved ? styles.saveButtonDone : {}) }}
+                    onClick={handleSaveChallengeResult}
+                    disabled={challengeSaving || challengeSaved}
+                  >
+                    {challengeSaving
+                      ? t("trainSaving")
+                      : challengeSaved
+                        ? t("challengeResultSaved")
+                        : t("challengeSaveResult")}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  style={styles.shareResultButton}
+                  onClick={activeChallenge ? handleShareChallenge : handleShareTraining}
+                >
+                  {t("share") || "Share"}
                 </button>
               </div>
             </div>
