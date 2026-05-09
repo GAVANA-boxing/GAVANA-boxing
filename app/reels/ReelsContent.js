@@ -1753,7 +1753,7 @@ export default function ReelsContent() {
               borderColor: "rgba(52,211,153,0.5)",
             } : {}),
             fontSize: 11,
-            padding: "4px 10px",
+            padding: "4px 8px",
           }}
         >
           {diffFilter === "beginner" ? `✓ ${t("beginnerFilter")}` : t("beginnerFilter")}
@@ -1777,7 +1777,7 @@ export default function ReelsContent() {
             padding: "4px 10px",
           }}
         >
-          {ctFilter === "all" ? `📂 ${t("ctFilterAll")}` : ctFilter === "training" ? `✓ 🥊 ${t("ctFilterTraining")}` : ctFilter === "lifestyle" ? `✓ 🎬 ${t("ctFilterLifestyle")}` : `✓ 📚 ${t("ctFilterEducational")}`}
+          {ctFilter === "all" ? "📂" : ctFilter === "training" ? "✓ 🥊" : ctFilter === "lifestyle" ? "✓ 🎬" : "✓ 📚"}
         </button>
       </div>
       )}
@@ -2702,26 +2702,6 @@ const styles = {
     borderBottom: "2px solid #C1121F",
     paddingBottom: 4,
   },
-  feedTabs: {
-    position: "fixed",
-    top: "calc(14px + env(safe-area-inset-top))",
-    left: "50%",
-    transform: "translateX(-50%)",
-    zIndex: 110,
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    paddingTop: 4,
-    paddingBottom: 4,
-    paddingLeft: 4,
-    paddingRight: 4,
-    borderRadius: 999,
-    background: "var(--glass)",
-    border: "1px solid var(--line)",
-    backdropFilter: "blur(18px) saturate(150%)",
-    WebkitBackdropFilter: "blur(18px) saturate(150%)",
-    boxShadow: "var(--shadow-soft)",
-  },
   profileBackButton: {
     position: "fixed",
     top: "calc(16px + env(safe-area-inset-top))",
@@ -2746,6 +2726,29 @@ const styles = {
     backdropFilter: "blur(16px)",
     WebkitBackdropFilter: "blur(16px)",
   },
+  feedTabs: {
+    position: "fixed",
+    top: "calc(14px + env(safe-area-inset-top))",
+    left: "50%",
+    transform: "translateX(-50%)",
+    zIndex: 110,
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    paddingTop: 4,
+    paddingBottom: 4,
+    paddingLeft: 4,
+    paddingRight: 4,
+    borderRadius: 999,
+    background: "var(--glass)",
+    border: "1px solid var(--line)",
+    backdropFilter: "blur(18px) saturate(150%)",
+    WebkitBackdropFilter: "blur(18px) saturate(150%)",
+    boxShadow: "var(--shadow-soft)",
+    maxWidth: "calc(100vw - 24px)",
+    overflowX: "auto",
+    scrollbarWidth: "none",
+  },
   feedTab: {
     border: "none",
     borderRadius: 999,
@@ -2754,12 +2757,14 @@ const styles = {
     minHeight: 34,
     paddingTop: 0,
     paddingBottom: 0,
-    paddingLeft: 14,
-    paddingRight: 14,
-    fontSize: 13,
+    paddingLeft: 11,
+    paddingRight: 11,
+    fontSize: 12,
     fontWeight: 850,
     cursor: "pointer",
     WebkitTapHighlightColor: "transparent",
+    flexShrink: 0,
+    whiteSpace: "nowrap",
   },
   feedTabActive: {
     background: "#C1121F",
