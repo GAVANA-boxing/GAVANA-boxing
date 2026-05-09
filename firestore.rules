@@ -118,7 +118,7 @@ service cloud.firestore {
     // ─── Gyms ─────────────────────────────────────────────────────
     match /gyms/{gymId} {
       allow read: if true;
-      allow create: if isAuth() && request.resource.data.ownerId == request.auth.uid;
+      allow create: if isAuth();
       allow update, delete: if isAuth() && resource.data.ownerId == request.auth.uid;
     }
 
@@ -137,12 +137,8 @@ service cloud.firestore {
     }
 
     // ─── Gym join requests ────────────────────────────────────────
-    // Requester can read/write their own; gym owners read all for their gym.
     match /gym_join_requests/{requestId} {
-      allow read: if isAuth() && (
-        resource.data.userId == request.auth.uid ||
-        resource.data.gymOwnerId == request.auth.uid
-      );
+      allow read: if isAuth();
       allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
       allow update: if isAuth() && (
         resource.data.userId == request.auth.uid ||

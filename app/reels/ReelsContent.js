@@ -1039,25 +1039,6 @@ export default function ReelsContent() {
     togglePlay();
   }, [revealControls, togglePlay]);
 
-  const handleVideoClick = useCallback((e, reel) => {
-    const now = Date.now();
-    const isDoubleTap = now - lastTapRef.current.time < 350 && lastTapRef.current.reelId === reel.id;
-    lastTapRef.current = { time: now, reelId: reel.id };
-
-    if (isDoubleTap) {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const x = (e.clientX || e.changedTouches?.[0]?.clientX || rect.width / 2) - rect.left;
-      const y = (e.clientY || e.changedTouches?.[0]?.clientY || rect.height / 2) - rect.top;
-      if (!reel.isDemo && !userLikes.has(reel.id)) handleLike(reel.id);
-      const burstId = now;
-      setHeartBursts((prev) => [...prev, { id: burstId, x, y, reelId: reel.id }]);
-      setTimeout(() => setHeartBursts((prev) => prev.filter((b) => b.id !== burstId)), 800);
-    } else {
-      revealControls();
-      togglePlay();
-    }
-  }, [handleLike, revealControls, togglePlay, userLikes]);
-
   useEffect(() => {
     const currentReel = reels[currentIndex];
     const activeReelId = currentReel?.isDemo ? null : currentReel?.id;
@@ -1184,6 +1165,25 @@ export default function ReelsContent() {
       console.error("Failed to toggle like:", err);
     }
   }, [user, router, currentLocale, reels]);
+
+  const handleVideoClick = useCallback((e, reel) => {
+    const now = Date.now();
+    const isDoubleTap = now - lastTapRef.current.time < 350 && lastTapRef.current.reelId === reel.id;
+    lastTapRef.current = { time: now, reelId: reel.id };
+
+    if (isDoubleTap) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = (e.clientX || e.changedTouches?.[0]?.clientX || rect.width / 2) - rect.left;
+      const y = (e.clientY || e.changedTouches?.[0]?.clientY || rect.height / 2) - rect.top;
+      if (!reel.isDemo && !userLikes.has(reel.id)) handleLike(reel.id);
+      const burstId = now;
+      setHeartBursts((prev) => [...prev, { id: burstId, x, y, reelId: reel.id }]);
+      setTimeout(() => setHeartBursts((prev) => prev.filter((b) => b.id !== burstId)), 800);
+    } else {
+      revealControls();
+      togglePlay();
+    }
+  }, [handleLike, revealControls, togglePlay, userLikes]);
 
   const handleSave = useCallback(async (reelId) => {
     const targetReel = reels.find((reel) => reel.id === reelId);
