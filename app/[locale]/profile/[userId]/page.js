@@ -1221,6 +1221,7 @@ export default function UserProfilePage() {
       </header>
       <section style={styles.fighterCard}>
         <div style={styles.fighterCardInner}>
+        {/* Avatar */}
         <div
           className={streakCount >= 10 ? "avatar-on-fire" : undefined}
           style={{
@@ -1242,37 +1243,42 @@ export default function UserProfilePage() {
           )}
         </div>
 
-        <p style={styles.fighterKicker}>{t("fighter")}</p>
+        {/* Name + username */}
         <h1 style={styles.fighterName}>
           {profileUser.displayName || profileUser.username}
         </h1>
-        <div style={styles.fighterUsername}>
-          @{profileUser.username}
-        </div>
-        <button
-          type="button"
-          style={{ ...styles.challengeStreakBadge, cursor: "pointer", border: "none" }}
-          onClick={() => setShowStreakModal(true)}
-        >
-          <span style={styles.challengeStreakIcon}>🔥</span>
-          {t("challengeStreak").replace("{n}", getActiveChallengeStreak(profileUser))}
-        </button>
+        <div style={styles.fighterUsername}>@{profileUser.username}</div>
 
-        {/* Rank badge row — tappable, opens rank belt modal */}
-        <button
-          type="button"
-          onClick={() => setShowRankModal(true)}
-          style={styles.rankRow}
-        >
-          <RankIcon rank={fighterRank} size={38} animated />
-          <span style={{ ...styles.rankLabel, color: fighterRank.color }}>
-            {t(fighterRank.key)}
-          </span>
-          {streakCount >= 5 && (
-            <span style={styles.onFireBadge}>
-              {"🔥"}{streakCount >= 10 ? " " + t("onFireProfile") : ""}
-            </span>
-          )}
+        {/* Bio */}
+        {profileUser.bio && (
+          <p style={styles.bio}>{profileUser.bio}</p>
+        )}
+
+        {/* Fighter identity tags — derived from data */}
+        {(() => {
+          const tags = [];
+          tags.push({ label: t(fighterRank.key), color: fighterRank.color, bg: `${fighterRank.color}18`, border: `${fighterRank.color}44` });
+          const challengeStreak = getActiveChallengeStreak(profileUser);
+          if (challengeStreak > 0) tags.push({ label: `🔥 ${challengeStreak}d`, color: "#FB923C", bg: "rgba(251,146,60,0.12)", border: "rgba(251,146,60,0.35)" });
+          if (bestScore !== null) tags.push({ label: `⭐ ${formatScore(bestScore)}/10`, color: "#D4AF37", bg: "rgba(212,175,55,0.12)", border: "rgba(212,175,55,0.35)" });
+          if (userReels.length > 0) tags.push({ label: `🎬 ${t("creatorTag")}`, color: "#60A5FA", bg: "rgba(96,165,250,0.10)", border: "rgba(96,165,250,0.28)" });
+          if (challengeRanks?.weeklyRank && challengeRanks.weeklyRank <= 10) tags.push({ label: `#${challengeRanks.weeklyRank} ${t("seasonCurrentWeek")}`, color: "#D4AF37", bg: "rgba(212,175,55,0.12)", border: "rgba(212,175,55,0.32)" });
+          if (pvpStats && pvpStats.wins > 0) tags.push({ label: `⚔️ ${pvpStats.wins}W ${pvpStats.losses}L`, color: "#A78BFA", bg: "rgba(167,139,250,0.10)", border: "rgba(167,139,250,0.28)" });
+          return (
+            <div style={styles.fighterTagsRow}>
+              {tags.map((tag, i) => (
+                <span key={i} style={{ ...styles.fighterTag, color: tag.color, background: tag.bg, borderColor: tag.border }}>
+                  {tag.label}
+                </span>
+              ))}
+            </div>
+          );
+        })()}
+
+        {/* Rank row — tappable, opens rank modal */}
+        <button type="button" onClick={() => setShowRankModal(true)} style={styles.rankRow}>
+          <RankIcon rank={fighterRank} size={30} animated />
+          <span style={{ ...styles.rankLabel, color: fighterRank.color }}>{t(fighterRank.key)}</span>
         </button>
 
         {/* XP progress bar */}
@@ -1292,126 +1298,7 @@ export default function UserProfilePage() {
           </div>
         </div>
 
-        {/* Weekly season achievement card */}
-        {challengeRanks && (challengeRanks.weeklyRank || challengeRanks.allTimeRank) && (
-          <button
-            type="button"
-            style={styles.weeklySeasonCard}
-            onClick={() => setShowWeeklyModal(true)}
-          >
-            {challengeRanks.weeklyRank && challengeRanks.weeklyRank <= 3 && (
-              <div style={styles.weeklyBadgeRow}>
-                <span style={styles.weeklyBadgeEmoji}>
-                  {challengeRanks.weeklyRank === 1 ? "🥇" : challengeRanks.weeklyRank === 2 ? "🥈" : "🥉"}
-                </span>
-                <span style={{
-                  ...styles.weeklyBadgeLabel,
-                  color: challengeRanks.weeklyRank === 1 ? "#D4AF37" : challengeRanks.weeklyRank === 2 ? "#9CA3AF" : "#FB923C",
-                }}>
-                  {challengeRanks.weeklyRank === 1
-                    ? t("weeklyChampionBadge")
-                    : challengeRanks.weeklyRank === 2
-                    ? t("weeklySilverBadge")
-                    : t("weeklyBronzeBadge")}
-                </span>
-              </div>
-            )}
-            <div style={styles.weeklyRankRow}>
-              {challengeRanks.weeklyRank && (
-                <div style={styles.weeklyRankItem}>
-                  <span style={styles.weeklyRankNum}>#{challengeRanks.weeklyRank}</span>
-                  <span style={styles.weeklyRankLbl}>{t("seasonCurrentWeek")}</span>
-                </div>
-              )}
-              {challengeRanks.weeklyRank && challengeRanks.allTimeRank && (
-                <div style={styles.weeklyRankDivider} />
-              )}
-              {challengeRanks.allTimeRank && (
-                <div style={styles.weeklyRankItem}>
-                  <span style={styles.weeklyRankNum}>#{challengeRanks.allTimeRank}</span>
-                  <span style={styles.weeklyRankLbl}>{t("seasonAllTime")}</span>
-                </div>
-              )}
-              {challengeRanks.bestWeeklyScore != null && (
-                <>
-                  <div style={styles.weeklyRankDivider} />
-                  <div style={styles.weeklyRankItem}>
-                    <span style={{ ...styles.weeklyRankNum, color: "#D4AF37" }}>{challengeRanks.bestWeeklyScore}/10</span>
-                    <span style={styles.weeklyRankLbl}>{t("seasonBestWeeklyScore")}</span>
-                  </div>
-                </>
-              )}
-            </div>
-          </button>
-        )}
-
-        {/* PvP stats card */}
-        {pvpStats && (pvpStats.wins > 0 || pvpStats.losses > 0 || pvpStats.timeschallenged > 0) && (
-          <div style={styles.pvpCard}>
-            <span style={styles.pvpCardTitle}>⚔️ {t("pvpStatsTitle")}</span>
-            <div style={styles.pvpCardRow}>
-              <div style={styles.pvpCardStat}>
-                <span style={{ ...styles.pvpCardNum, color: "#34D399" }}>{pvpStats.wins}</span>
-                <span style={styles.pvpCardLbl}>{t("pvpWins")}</span>
-              </div>
-              <div style={styles.pvpCardDivider} />
-              <div style={styles.pvpCardStat}>
-                <span style={{ ...styles.pvpCardNum, color: "#F87171" }}>{pvpStats.losses}</span>
-                <span style={styles.pvpCardLbl}>{t("pvpLosses")}</span>
-              </div>
-              <div style={styles.pvpCardDivider} />
-              <div style={styles.pvpCardStat}>
-                <span style={styles.pvpCardNum}>{pvpStats.wins + pvpStats.losses}</span>
-                <span style={styles.pvpCardLbl}>{t("pvpTotalBattles")}</span>
-              </div>
-              {pvpStats.wins + pvpStats.losses > 0 && (
-                <>
-                  <div style={styles.pvpCardDivider} />
-                  <div style={styles.pvpCardStat}>
-                    <span style={{ ...styles.pvpCardNum, color: "#60A5FA" }}>
-                      {Math.round((pvpStats.wins / (pvpStats.wins + pvpStats.losses)) * 100)}%
-                    </span>
-                    <span style={styles.pvpCardLbl}>{t("pvpWinRate")}</span>
-                  </div>
-                </>
-              )}
-              {pvpStats.bestWinScore != null && (
-                <>
-                  <div style={styles.pvpCardDivider} />
-                  <div style={styles.pvpCardStat}>
-                    <span style={{ ...styles.pvpCardNum, color: "#D4AF37" }}>
-                      {pvpStats.bestWinScore.toFixed(1)}
-                    </span>
-                    <span style={styles.pvpCardLbl}>{t("pvpBestWin")}</span>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {pvpStats.recentBattles?.length > 0 && (
-              <div style={styles.pvpBattleList}>
-                <span style={styles.pvpBattleListTitle}>{t("pvpRecentBattles")}</span>
-                {pvpStats.recentBattles.map((battle) => (
-                  <div key={battle.id} style={styles.pvpBattleRow}>
-                    <span style={{
-                      ...styles.pvpBattleBadge,
-                      background: battle.result === "win" ? "rgba(52,211,153,0.15)" : "rgba(248,113,113,0.15)",
-                      color: battle.result === "win" ? "#34D399" : "#F87171",
-                      borderColor: battle.result === "win" ? "rgba(52,211,153,0.3)" : "rgba(248,113,113,0.3)",
-                    }}>
-                      {battle.result === "win" ? "W" : "L"}
-                    </span>
-                    <span style={styles.pvpBattleOpponent}>@{battle.opponentName}</span>
-                    <span style={styles.pvpBattleScores}>
-                      {battle.challengerScore.toFixed(1)} vs {battle.opponentScore.toFixed(1)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
+        {/* User achievement badges */}
         {userBadges.length > 0 && (
           <div style={styles.badgesRow}>
             {userBadges.map((b) => {
@@ -1426,12 +1313,7 @@ export default function UserProfilePage() {
           </div>
         )}
 
-        {profileUser.bio && (
-          <p style={styles.bio}>
-            {profileUser.bio}
-          </p>
-        )}
-
+        {/* Stats row: posts / followers / following */}
         <div style={styles.statsRow}>
           <button type="button" onClick={() => handleStatNavigate("posts")} style={styles.statButton}>
             <span style={styles.statNumber}>{userReels.length}</span>
@@ -1447,49 +1329,23 @@ export default function UserProfilePage() {
           </button>
         </div>
 
+        {/* Action buttons */}
         {isOwnProfile ? (
           <div style={styles.actionRow}>
-            <button
-              onClick={() => router.push(`/${locale}/profile/edit`)}
-              style={styles.ghostAction}
-            >
+            <button onClick={() => router.push(`/${locale}/profile/edit`)} style={styles.ghostAction}>
               {t("editProfile")}
             </button>
             {userReels.length > 0 && (
-              <button
-                onClick={() => router.push(`/${locale}/creator/dashboard`)}
-                style={styles.ghostAction}
-              >
+              <button onClick={() => router.push(`/${locale}/creator/dashboard`)} style={styles.ghostAction}>
                 {t("creatorDashboard")}
               </button>
             )}
             <button
-              onClick={() => setShowWeeklyRecap(true)}
-              style={styles.ghostAction}
-            >
-              {t("weeklyRecapView")}
-            </button>
-            <button
               onClick={handleLogout}
               disabled={signingOut}
-              style={{
-                ...styles.ghostAction,
-                cursor: signingOut ? "not-allowed" : "pointer",
-                opacity: signingOut ? 0.7 : 1
-              }}
+              style={{ ...styles.ghostAction, opacity: signingOut ? 0.7 : 1, cursor: signingOut ? "not-allowed" : "pointer" }}
             >
               {signingOut ? t("signingOut") : t("logout")}
-            </button>
-            <button
-              onClick={handleSwitchAccount}
-              disabled={signingOut}
-              style={{
-                ...styles.primaryAction,
-                cursor: signingOut ? "not-allowed" : "pointer",
-                opacity: signingOut ? 0.7 : 1
-              }}
-            >
-              {t("switchAccount")}
             </button>
           </div>
         ) : (
@@ -1515,6 +1371,7 @@ export default function UserProfilePage() {
         )}
         </div>
       </section>
+
 
       <div style={styles.profileTabs}>
         <button
@@ -1851,19 +1708,23 @@ export default function UserProfilePage() {
         width: "100%"
       }}>
         {visibleReels.length === 0 ? (
-          <div style={{
-            gridColumn: "1 / -1",
-            textAlign: "center",
-            padding: "56px 24px",
-            color: "var(--text-secondary)",
-            background: "var(--background)"
-          }}>
-            <p style={{ margin: 0, color: "var(--text-primary)", fontWeight: 850 }}>
+          <div style={styles.reelGridEmpty}>
+            <div style={styles.reelGridEmptyIcon}>🥊</div>
+            <p style={styles.reelGridEmptyTitle}>
               {profileTab === "saved" ? t("noSavedReelsYet") : t("noReelsYet")}
             </p>
-            <p style={{ margin: "8px 0 0", fontSize: 13 }}>
+            <p style={styles.reelGridEmptyText}>
               {profileTab === "saved" ? t("bookmarkedReelsEmpty") : t("trainingClipsEmpty")}
             </p>
+            {profileTab !== "saved" && isOwnProfile && (
+              <button
+                type="button"
+                style={styles.reelGridEmptyCta}
+                onClick={() => router.push(`/${locale}/upload`)}
+              >
+                {t("uploadFirstReel")}
+              </button>
+            )}
           </div>
         ) : (
           visibleReels.map((reel) => {
@@ -1874,6 +1735,7 @@ export default function UserProfilePage() {
             const likeCount = getSafeReelLikes(reel);
             const canDeleteReel = user?.uid && reel.userId === user.uid;
             const isDeletingReel = deletingReelIds.has(reel.id);
+            const effectiveType = reel.contentType || reel.type || "lifestyle";
 
             return (
               <div
@@ -1882,9 +1744,10 @@ export default function UserProfilePage() {
                 style={{
                   aspectRatio: "9/16",
                   overflow: "hidden",
-                  background: "var(--surface-soft)",
+                  background: "#0a0a0a",
                   cursor: "pointer",
-                  position: "relative"
+                  position: "relative",
+                  borderRadius: 2,
                 }}
                 onClick={() => router.push(`/${locale}/reels?reelId=${reel.id}&source=profile&userId=${userId}`)}
               >
@@ -1925,6 +1788,12 @@ export default function UserProfilePage() {
                     </div>
                   </div>
                 )}
+
+                {/* Content type indicator — top-left */}
+                <div style={styles.reelTileTypeBadge}>
+                  {effectiveType === "training" ? "🥊" : effectiveType === "educational" ? "📚" : "🎬"}
+                </div>
+
                 {canDeleteReel && (
                   <button
                     type="button"
@@ -1941,30 +1810,17 @@ export default function UserProfilePage() {
                     {isDeletingReel ? "..." : "×"}
                   </button>
                 )}
-              <div style={{
-                position: "absolute",
-                bottom: 0,
-                left: 0,
-                right: 0,
-                padding: "22px 8px 8px",
-                color: "var(--text-primary)",
-                fontSize: 11,
-                background: "linear-gradient(to top, rgba(0,0,0,0.65), transparent)",
-                textShadow: "0 2px 8px rgba(0,0,0,0.9)"
-              }}>
-                <div style={{ fontWeight: 800, marginBottom: 3 }}>
-                  {likeCount} {t("likes")}
-                </div>
-                <div style={{
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                  color: "rgba(255,255,255,0.78)"
-                }}>
-                  {reel.description || ""}
+                <div style={styles.reelTileOverlay}>
+                  <div style={styles.reelTileLikes}>
+                    ♥ {likeCount}
+                  </div>
+                  {reel.description && (
+                    <div style={styles.reelTileCaption}>
+                      {reel.description}
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
             );
           })
         )}
@@ -2918,6 +2774,105 @@ const styles = {
     boxShadow: "0 10px 24px rgba(0,0,0,0.36)",
     backdropFilter: "blur(14px)",
     WebkitBackdropFilter: "blur(14px)",
+  },
+  fighterTagsRow: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 6,
+    justifyContent: "center",
+    margin: "14px auto 4px",
+    maxWidth: 430,
+  },
+  fighterTag: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 4,
+    padding: "4px 10px",
+    borderRadius: 999,
+    border: "1px solid",
+    fontSize: 11,
+    fontWeight: 850,
+    letterSpacing: 0.3,
+    lineHeight: 1.4,
+  },
+  reelGridEmpty: {
+    gridColumn: "1 / -1",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "72px 24px 80px",
+    gap: 12,
+    background: "var(--background)",
+  },
+  reelGridEmptyIcon: {
+    fontSize: 52,
+    lineHeight: 1,
+    marginBottom: 4,
+    filter: "drop-shadow(0 4px 16px rgba(193,18,31,0.4))",
+  },
+  reelGridEmptyTitle: {
+    margin: 0,
+    color: "var(--text-primary)",
+    fontWeight: 950,
+    fontSize: 20,
+    textAlign: "center",
+  },
+  reelGridEmptyText: {
+    margin: 0,
+    fontSize: 14,
+    color: "var(--text-secondary)",
+    textAlign: "center",
+    maxWidth: 280,
+    lineHeight: 1.5,
+  },
+  reelGridEmptyCta: {
+    marginTop: 8,
+    padding: "12px 26px",
+    borderRadius: 999,
+    border: "none",
+    background: "#C1121F",
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: 900,
+    cursor: "pointer",
+    letterSpacing: 0.2,
+  },
+  reelTileTypeBadge: {
+    position: "absolute",
+    top: 7,
+    left: 7,
+    fontSize: 13,
+    lineHeight: 1,
+    pointerEvents: "none",
+    zIndex: 2,
+    filter: "drop-shadow(0 1px 4px rgba(0,0,0,0.9))",
+  },
+  reelTileOverlay: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: "24px 7px 7px",
+    background: "linear-gradient(to top, rgba(0,0,0,0.72), transparent)",
+    pointerEvents: "none",
+  },
+  reelTileLikes: {
+    color: "rgba(255,255,255,0.9)",
+    fontSize: 11,
+    fontWeight: 800,
+    letterSpacing: 0.2,
+    textShadow: "0 1px 6px rgba(0,0,0,0.9)",
+    marginBottom: 2,
+  },
+  reelTileCaption: {
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    color: "rgba(255,255,255,0.65)",
+    fontSize: 10,
+    fontWeight: 600,
+    textShadow: "0 1px 4px rgba(0,0,0,0.9)",
   },
   rankRow: {
     display: "flex",
