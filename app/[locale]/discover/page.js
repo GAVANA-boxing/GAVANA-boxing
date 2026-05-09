@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   collection, getDocs, query as fsQuery, where,
@@ -11,13 +11,23 @@ import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
 import { getLocale, translate } from "@/lib/i18n";
 
-const CATEGORIES = [
-  { key: "discoverCatAll", value: "" },
-  { key: "discoverCatTech", value: "technique" },
-  { key: "discoverCatSpar", value: "sparring" },
-  { key: "discoverCatCond", value: "conditioning" },
-  { key: "discoverCatShadow", value: "shadow" },
-  { key: "discoverCatBag", value: "bag_work" },
+const FIGHTER_STYLES = [
+  { key: "all", labelKey: "discoverStyleAll", emoji: "🥊" },
+  { key: "counter", labelKey: "discoverStyleCounter", emoji: "🎯", keywords: ["counter", "technique", "technical", "parry"] },
+  { key: "pressure", labelKey: "discoverStylePressure", emoji: "💥", keywords: ["pressure", "conditioning", "bag", "power", "heavy"] },
+  { key: "fastHands", labelKey: "discoverStyleFastHands", emoji: "⚡", keywords: ["speed", "fast", "combo", "rapid", "jab"] },
+  { key: "footwork", labelKey: "discoverStyleFootwork", emoji: "👟", keywords: ["footwork", "movement", "pivot", "step", "shadow"] },
+  { key: "technical", labelKey: "discoverStyleTechnical", emoji: "📐", keywords: ["technical", "technique", "timing", "rhythm"] },
+  { key: "southpaw", labelKey: "discoverStyleSouthpaw", emoji: "🔄", keywords: ["southpaw", "orthodox", "stance"] },
+];
+
+const EDU_CATEGORIES = [
+  { key: "all", labelKey: "discoverEduAll", emoji: "📚" },
+  { key: "defense", labelKey: "discoverEduDefense", emoji: "🛡️", keywords: ["defense", "guard", "block", "parry", "slip", "roll"] },
+  { key: "footwork", labelKey: "discoverEduFootwork", emoji: "👟", keywords: ["footwork", "movement", "pivot", "step", "angle"] },
+  { key: "jab", labelKey: "discoverEduJab", emoji: "👊", keywords: ["jab", "lead hand", "jab cross", "straight"] },
+  { key: "combo", labelKey: "discoverEduCombo", emoji: "💥", keywords: ["combo", "combination", "sequence", "1-2", "three"] },
+  { key: "timing", labelKey: "discoverEduTiming", emoji: "⏱️", keywords: ["timing", "rhythm", "tempo", "reaction", "counter"] },
 ];
 
 function formatCompact(n) {
@@ -27,6 +37,84 @@ function formatCompact(n) {
   return String(num);
 }
 
+function reelMatchesKeywords(reel, keywords) {
+  const text = [
+    reel.category || "",
+    reel.caption || "",
+    reel.description || "",
+    reel.contentType || "",
+    reel.type || "",
+  ].join(" ").toLowerCase();
+  return keywords.some((k) => text.includes(k.toLowerCase()));
+}
+
+function ReelThumbCard({ reel, onClick }) {
+  const typeEmoji = reel.contentType === "educational" ? "📚" : reel.contentType === "lifestyle" ? "🎬" : "🥊";
+  const typeColor = reel.contentType === "educational" ? "#D4AF37" : reel.contentType === "lifestyle" ? "#60A5FA" : "#F87171";
+  const diffColor = reel.difficulty === "beginner" ? "#34D399" : reel.difficulty === "intermediate" ? "#D4AF37" : "#F87171";
+
+  return (
+    <button type="button" onClick={onClick} style={s.reelCard}>
+      <div style={s.reelThumb}>
+        {reel.thumbnailUrl || reel.thumbnail ? (
+          <img src={reel.thumbnailUrl || reel.thumbnail} alt="" style={s.reelThumbImg} />
+        ) : (
+          <div style={{ ...s.reelThumbFallback, background: `radial-gradient(circle at 40% 40%, rgba(193,18,31,0.28), transparent 60%), #0a0a0a` }}>
+            <span style={{ fontSize: 22 }}>{typeEmoji}</span>
+          </div>
+        )}
+        <span style={{ ...s.reelTypeBadge, color: typeColor }}>{typeEmoji}</span>
+        {reel.difficulty && (
+          <span style={{ ...s.reelDiffBadge, color: diffColor, borderColor: `${diffColor}55` }}>
+            {reel.difficulty.charAt(0).toUpperCase()}
+          </span>
+        )}
+      </div>
+      <div style={s.reelCardBody}>
+        <span style={s.reelCaption}>{reel.caption || reel.description || "Reel"}</span>
+        <span style={s.reelMeta}>
+          {formatCompact(reel.views || 0)} views · {formatCompact(reel.likes || reel.likesCount || 0)} ♥
+        </span>
+      </div>
+    </button>
+  );
+}
+
+function SectionRow({ title, reels, router, locale, viewAllPath, shimmer }) {
+  if (shimmer) {
+    return (
+      <section style={s.section}>
+        <p style={{ ...s.sectionLabel, marginBottom: 10 }}>{title}</p>
+        <div style={s.shimmerRow}>
+          {[1, 2, 3].map((i) => <div key={i} style={s.shimmerCard} />)}
+        </div>
+      </section>
+    );
+  }
+  if (!reels || !reels.length) return null;
+  return (
+    <section style={s.section}>
+      <div style={s.sectionHeader}>
+        <p style={{ ...s.sectionLabel, margin: 0 }}>{title}</p>
+        {viewAllPath && (
+          <button type="button" onClick={() => router.push(viewAllPath)} style={s.viewAll}>
+            See all ›
+          </button>
+        )}
+      </div>
+      <div style={s.scroll}>
+        {reels.slice(0, 8).map((reel) => (
+          <ReelThumbCard
+            key={reel.id}
+            reel={reel}
+            onClick={() => router.push(`/${locale}/reels?reelId=${reel.id}`)}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function DiscoverPage() {
   const params = useParams();
   const router = useRouter();
@@ -34,21 +122,20 @@ export default function DiscoverPage() {
   const locale = getLocale(params?.locale);
   const t = (key) => translate(locale, key);
 
-  // Explore state
+  const [allReels, setAllReels] = useState([]);
   const [featuredCreators, setFeaturedCreators] = useState([]);
-  const [trendingReels, setTrendingReels] = useState([]);
   const [topCoaches, setTopCoaches] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
   const [exploreLoading, setExploreLoading] = useState(true);
+  const [userChallengeResults, setUserChallengeResults] = useState([]);
+  const [selectedStyle, setSelectedStyle] = useState("all");
+  const [selectedEduCat, setSelectedEduCat] = useState("all");
 
-  // Search state
   const [query, setQuery] = useState("");
   const [searching, setSearching] = useState(false);
   const [userResults, setUserResults] = useState([]);
   const [reelResults, setReelResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Load explore data on mount
   useEffect(() => {
     let active = true;
     async function load() {
@@ -56,12 +143,11 @@ export default function DiscoverPage() {
         const now = Timestamp.now();
         const [featuredSnap, reelsSnap, coachSnap] = await Promise.all([
           getDocs(fsQuery(collection(db, "featured_creators"), where("featuredUntil", ">=", now))),
-          getDocs(fsQuery(collection(db, "reels"), orderBy("views", "desc"), limit(10))),
+          getDocs(fsQuery(collection(db, "reels"), orderBy("createdAt", "desc"), limit(60))),
           getDocs(fsQuery(collection(db, "users"), where("isCoach", "==", true), limit(6))),
         ]);
         if (!active) return;
 
-        // Featured creators
         if (!featuredSnap.empty) {
           const creatorIds = featuredSnap.docs.map((d) => d.data().userId).filter(Boolean);
           if (creatorIds.length) {
@@ -76,14 +162,8 @@ export default function DiscoverPage() {
             if (active) setFeaturedCreators(profiles.slice(0, 6));
           }
         }
-
-        // Trending reels
         if (active) {
-          setTrendingReels(reelsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
-        }
-
-        // Top coaches
-        if (active) {
+          setAllReels(reelsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
           setTopCoaches(coachSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
         }
       } catch { /* non-critical */ }
@@ -93,11 +173,26 @@ export default function DiscoverPage() {
     return () => { active = false; };
   }, []);
 
+  useEffect(() => {
+    if (!user?.uid) return;
+    let active = true;
+    async function loadUserData() {
+      try {
+        const snap = await getDocs(
+          fsQuery(collection(db, "challenge_results"), where("userId", "==", user.uid))
+        );
+        if (!active) return;
+        setUserChallengeResults(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      } catch { /* non-critical */ }
+    }
+    loadUserData();
+    return () => { active = false; };
+  }, [user?.uid]);
+
   const handleSearch = useCallback(async (e) => {
     e?.preventDefault();
     const term = query.trim().toLowerCase();
     if (!term) return;
-
     setSearching(true);
     setHasSearched(true);
     try {
@@ -135,21 +230,65 @@ export default function DiscoverPage() {
     setHasSearched(false);
   };
 
-  const filteredTrending = selectedCategory
-    ? trendingReels.filter((r) => r.category === selectedCategory)
-    : trendingReels;
+  // Derived reel sections
+  const nonDemoReels = useMemo(() => allReels.filter((r) => !r.isDemo), [allReels]);
+
+  const forYouReels = useMemo(() => {
+    if (selectedStyle === "all") return nonDemoReels;
+    const style = FIGHTER_STYLES.find((st) => st.key === selectedStyle);
+    if (!style?.keywords) return nonDemoReels;
+    const matched = nonDemoReels.filter((r) => reelMatchesKeywords(r, style.keywords));
+    return matched.length ? matched : nonDemoReels;
+  }, [nonDemoReels, selectedStyle]);
+
+  const beginnerReels = useMemo(
+    () => nonDemoReels.filter((r) => r.difficulty === "beginner"),
+    [nonDemoReels]
+  );
+  const educationalReels = useMemo(
+    () => nonDemoReels.filter((r) => r.contentType === "educational"),
+    [nonDemoReels]
+  );
+  const timingReels = useMemo(
+    () => nonDemoReels.filter((r) => reelMatchesKeywords(r, ["timing", "reaction", "rhythm", "tempo"])),
+    [nonDemoReels]
+  );
+  const footworkReels = useMemo(
+    () => nonDemoReels.filter((r) => reelMatchesKeywords(r, ["footwork", "movement", "pivot", "angle", "step"])),
+    [nonDemoReels]
+  );
+  const comboReels = useMemo(
+    () => nonDemoReels.filter((r) => reelMatchesKeywords(r, ["combo", "combination", "1-2", "three punch", "sequence"])),
+    [nonDemoReels]
+  );
+  const filteredEduReels = useMemo(() => {
+    if (selectedEduCat === "all") return educationalReels;
+    const cat = EDU_CATEGORIES.find((c) => c.key === selectedEduCat);
+    if (!cat?.keywords) return educationalReels;
+    return educationalReels.filter((r) => reelMatchesKeywords(r, cat.keywords));
+  }, [educationalReels, selectedEduCat]);
+
+  // Personalization: progression hint
+  const completedCount = useMemo(
+    () => userChallengeResults.filter((r) => Number.isFinite(Number(r.score)) && Number(r.score) >= 5).length,
+    [userChallengeResults]
+  );
+  const bestScore = useMemo(() => {
+    const scores = userChallengeResults.map((r) => Number(r.score)).filter(Number.isFinite);
+    return scores.length ? Math.max(...scores) : null;
+  }, [userChallengeResults]);
+  const showNextLevelHint = completedCount >= 3 && (bestScore === null || bestScore < 8);
 
   const showSearch = hasSearched && query.trim();
 
   return (
     <div style={s.page}>
-      {/* Header */}
       <div style={s.header}>
         <p style={s.kicker}>{t("discoverKicker")}</p>
         <h1 style={s.title}>{t("discoverTitle")}</h1>
       </div>
 
-      {/* Search bar */}
+      {/* Search */}
       <form onSubmit={handleSearch} style={s.searchRow}>
         <div style={s.searchWrap}>
           <span style={s.searchIcon}>🔍</span>
@@ -160,9 +299,7 @@ export default function DiscoverPage() {
             placeholder={t("discoverPlaceholder")}
             style={s.searchInput}
           />
-          {query && (
-            <button type="button" onClick={clearSearch} style={s.clearBtn}>✕</button>
-          )}
+          {query && <button type="button" onClick={clearSearch} style={s.clearBtn}>✕</button>}
         </div>
         <button type="submit" style={s.searchBtn} disabled={searching || !query.trim()}>
           {searching ? "…" : t("discoverSearch")}
@@ -170,10 +307,8 @@ export default function DiscoverPage() {
       </form>
 
       {showSearch ? (
-        /* ── Search Results ── */
         <div style={s.content}>
           <p style={s.sectionLabel}>{t("discoverSearchResults")}</p>
-
           {userResults.length > 0 && (
             <div style={{ marginBottom: 24 }}>
               <p style={s.subLabel}>{t("discoverFighters")}</p>
@@ -182,15 +317,8 @@ export default function DiscoverPage() {
                   const photo = u.photoURL || u.profileImageUrl || "";
                   const initial = (u.displayName || u.username || "U").charAt(0).toUpperCase();
                   return (
-                    <button
-                      key={u.id}
-                      type="button"
-                      onClick={() => router.push(`/${locale}/profile/${u.id}`)}
-                      style={s.listCard}
-                    >
-                      <div style={s.avatar}>
-                        {photo ? <img src={photo} alt="" style={s.avatarImg} /> : initial}
-                      </div>
+                    <button key={u.id} type="button" onClick={() => router.push(`/${locale}/profile/${u.id}`)} style={s.listCard}>
+                      <div style={s.avatar}>{photo ? <img src={photo} alt="" style={s.avatarImg} /> : initial}</div>
                       <div style={s.listCardText}>
                         <span style={s.listCardName}>{u.displayName || u.username || "Unnamed"}</span>
                         {u.username && <span style={s.listCardSub}>@{u.username}</span>}
@@ -202,21 +330,13 @@ export default function DiscoverPage() {
               </div>
             </div>
           )}
-
           {reelResults.length > 0 && (
             <div>
               <p style={s.subLabel}>{t("discoverReels")}</p>
               <div style={s.cardList}>
                 {reelResults.map((r) => (
-                  <button
-                    key={r.id}
-                    type="button"
-                    onClick={() => router.push(`/${locale}/reels?reelId=${r.id}`)}
-                    style={s.listCard}
-                  >
-                    <div style={{ ...s.avatar, background: "rgba(212,175,55,0.15)", color: "#D4AF37" }}>
-                      🎬
-                    </div>
+                  <button key={r.id} type="button" onClick={() => router.push(`/${locale}/reels?reelId=${r.id}`)} style={s.listCard}>
+                    <div style={{ ...s.avatar, background: "rgba(212,175,55,0.15)", color: "#D4AF37" }}>🎬</div>
                     <div style={s.listCardText}>
                       <span style={s.listCardName}>{r.caption || r.description || "Reel"}</span>
                       <span style={s.listCardSub}>{formatCompact(r.views || 0)} {t("views")}</span>
@@ -227,7 +347,6 @@ export default function DiscoverPage() {
               </div>
             </div>
           )}
-
           {userResults.length === 0 && reelResults.length === 0 && !searching && (
             <div style={s.emptyState}>
               <div style={{ fontSize: 36, marginBottom: 8 }}>🔍</div>
@@ -236,44 +355,117 @@ export default function DiscoverPage() {
           )}
         </div>
       ) : (
-        /* ── Explore Mode ── */
         <div style={s.content}>
-          {/* Quick action cards */}
-          <div style={s.quickGrid}>
-            <button type="button" onClick={() => router.push(`/${locale}/leaderboard`)} style={{ ...s.quickCard, background: "rgba(212,175,55,0.09)", borderColor: "rgba(212,175,55,0.22)" }}>
-              <span style={s.quickIcon}>🏆</span>
-              <span style={s.quickLabel}>{t("leaderboardTitle")}</span>
-            </button>
-            <button type="button" onClick={() => router.push(`/${locale}/challenges`)} style={{ ...s.quickCard, background: "rgba(193,18,31,0.1)", borderColor: "rgba(193,18,31,0.28)" }}>
-              <span style={s.quickIcon}>🥊</span>
-              <span style={s.quickLabel}>{t("challengesTitle")}</span>
-            </button>
-            <button type="button" onClick={() => router.push(`/${locale}/coach`)} style={{ ...s.quickCard, background: "rgba(96,165,250,0.08)", borderColor: "rgba(96,165,250,0.2)" }}>
-              <span style={s.quickIcon}>🎓</span>
-              <span style={s.quickLabel}>{t("navCoach")}</span>
-            </button>
-            <button type="button" onClick={() => router.push(`/${locale}/gyms`)} style={{ ...s.quickCard, background: "rgba(52,211,153,0.08)", borderColor: "rgba(52,211,153,0.2)" }}>
-              <span style={s.quickIcon}>🏋️</span>
-              <span style={s.quickLabel}>{t("gymsTitle")}</span>
-            </button>
-          </div>
-
-          {/* Category chips */}
-          <div style={s.chips}>
-            {CATEGORIES.map(({ key, value }) => (
+          {/* Fighter Style Identity chips */}
+          <p style={s.styleFilterLabel}>{t("discoverStyleFilterLabel")}</p>
+          <div style={s.styleChips}>
+            {FIGHTER_STYLES.map((style) => (
               <button
-                key={key}
+                key={style.key}
                 type="button"
-                onClick={() => setSelectedCategory(value)}
-                style={{
-                  ...s.chip,
-                  ...(selectedCategory === value ? s.chipActive : {}),
-                }}
+                onClick={() => setSelectedStyle(style.key)}
+                style={{ ...s.styleChip, ...(selectedStyle === style.key ? s.styleChipActive : {}) }}
               >
-                {t(key)}
+                <span>{style.emoji}</span>
+                <span>{t(style.labelKey)}</span>
               </button>
             ))}
           </div>
+
+          {/* Progression hint */}
+          {showNextLevelHint && (
+            <button type="button" style={s.progressionCard} onClick={() => router.push(`/${locale}/challenges`)}>
+              <div style={s.progressionLeft}>
+                <span style={s.progressionEmoji}>⬆️</span>
+                <div>
+                  <p style={s.progressionTitle}>{t("discoverNextLevel")}</p>
+                  <p style={s.progressionDesc}>{t("discoverNextLevelDesc").replace("{n}", completedCount)}</p>
+                </div>
+              </div>
+              <span style={s.progressionArrow}>›</span>
+            </button>
+          )}
+
+          {/* For You / style-filtered feed */}
+          <SectionRow
+            title={`🎯 ${t("discoverForYou")}`}
+            reels={forYouReels}
+            router={router}
+            locale={locale}
+            viewAllPath={`/${locale}/reels`}
+            shimmer={exploreLoading}
+          />
+
+          {/* Beginner Friendly — shown when no style filter active */}
+          {selectedStyle === "all" && (
+            <SectionRow
+              title={`🟢 ${t("discoverForBeginners")}`}
+              reels={beginnerReels}
+              router={router}
+              locale={locale}
+            />
+          )}
+
+          {/* Timing & Reaction */}
+          <SectionRow
+            title={`⏱️ ${t("discoverTiming")}`}
+            reels={timingReels}
+            router={router}
+            locale={locale}
+          />
+
+          {/* Footwork Focus */}
+          <SectionRow
+            title={`👟 ${t("discoverFootworkFocus")}`}
+            reels={footworkReels}
+            router={router}
+            locale={locale}
+          />
+
+          {/* Fast Combo Drills */}
+          <SectionRow
+            title={`⚡ ${t("discoverComboDrills")}`}
+            reels={comboReels}
+            router={router}
+            locale={locale}
+          />
+
+          {/* Educational section with subcategory pills */}
+          {(educationalReels.length > 0 || exploreLoading) && (
+            <section style={s.section}>
+              <div style={s.sectionHeader}>
+                <p style={{ ...s.sectionLabel, margin: 0 }}>📚 {t("discoverEduSection")}</p>
+                <button type="button" onClick={() => router.push(`/${locale}/reels`)} style={s.viewAll}>
+                  {t("discoverViewAll")} ›
+                </button>
+              </div>
+              <div style={s.chips}>
+                {EDU_CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.key}
+                    type="button"
+                    onClick={() => setSelectedEduCat(cat.key)}
+                    style={{ ...s.chip, ...(selectedEduCat === cat.key ? s.chipActive : {}) }}
+                  >
+                    {cat.emoji} {t(cat.labelKey)}
+                  </button>
+                ))}
+              </div>
+              {exploreLoading ? (
+                <div style={s.shimmerRow}>{[1, 2, 3].map((i) => <div key={i} style={s.shimmerCard} />)}</div>
+              ) : filteredEduReels.length > 0 ? (
+                <div style={s.scroll}>
+                  {filteredEduReels.slice(0, 8).map((reel) => (
+                    <ReelThumbCard key={reel.id} reel={reel} onClick={() => router.push(`/${locale}/reels?reelId=${reel.id}`)} />
+                  ))}
+                </div>
+              ) : (
+                <div style={s.emptyState}>
+                  <p style={{ margin: 0, color: "#888", fontSize: 13 }}>No content in this category yet.</p>
+                </div>
+              )}
+            </section>
+          )}
 
           {/* Featured creators */}
           {featuredCreators.length > 0 && (
@@ -286,12 +478,7 @@ export default function DiscoverPage() {
                   const photo = c.photoURL || c.profileImageUrl || "";
                   const initial = (c.displayName || c.username || "C").charAt(0).toUpperCase();
                   return (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => router.push(`/${locale}/profile/${c.id}`)}
-                      style={s.creatorCard}
-                    >
+                    <button key={c.id} type="button" onClick={() => router.push(`/${locale}/profile/${c.id}`)} style={s.creatorCard}>
                       <div style={s.creatorAvatar}>
                         {photo ? <img src={photo} alt="" style={s.avatarImg} /> : initial}
                       </div>
@@ -304,48 +491,29 @@ export default function DiscoverPage() {
             </section>
           )}
 
-          {/* Trending reels */}
+          {/* Compact quick-action pill strip */}
           <section style={s.section}>
             <div style={s.sectionHeader}>
-              <p style={{ ...s.sectionLabel, margin: 0 }}>🔥 {t("discoverTrendingReels")}</p>
-              <button type="button" onClick={() => router.push(`/${locale}/reels`)} style={s.viewAll}>
-                {t("discoverViewAll")} ›
+              <p style={{ ...s.sectionLabel, margin: 0 }}>🗺️ Explore</p>
+            </div>
+            <div style={s.quickPills}>
+              <button type="button" onClick={() => router.push(`/${locale}/leaderboard`)} style={s.quickPill}>
+                🏆 {t("leaderboardTitle")}
+              </button>
+              <button type="button" onClick={() => router.push(`/${locale}/challenges`)} style={{ ...s.quickPill, borderColor: "rgba(193,18,31,0.35)", color: "#F87171" }}>
+                🥊 {t("challengesTitle")}
+              </button>
+              <button type="button" onClick={() => router.push(`/${locale}/coach`)} style={{ ...s.quickPill, borderColor: "rgba(96,165,250,0.28)", color: "#60A5FA" }}>
+                🎓 {t("navCoach")}
+              </button>
+              <button type="button" onClick={() => router.push(`/${locale}/gyms`)} style={{ ...s.quickPill, borderColor: "rgba(52,211,153,0.28)", color: "#34D399" }}>
+                🏋️ {t("gymsTitle")}
               </button>
             </div>
-            {exploreLoading ? (
-              <div style={s.shimmerRow}>
-                {[1,2,3].map((i) => <div key={i} style={s.shimmerCard} />)}
-              </div>
-            ) : filteredTrending.length === 0 ? (
-              <div style={s.emptyState}><p style={{ margin: 0, color: "#888" }}>{t("discoverNoTrending")}</p></div>
-            ) : (
-              <div style={s.scroll}>
-                {filteredTrending.slice(0, 8).map((reel) => (
-                  <button
-                    key={reel.id}
-                    type="button"
-                    onClick={() => router.push(`/${locale}/reels?reelId=${reel.id}`)}
-                    style={s.reelCard}
-                  >
-                    <div style={s.reelThumb}>
-                      {reel.thumbnailUrl || reel.thumbnail ? (
-                        <img src={reel.thumbnailUrl || reel.thumbnail} alt="" style={s.reelThumbImg} />
-                      ) : (
-                        <span style={{ fontSize: 24 }}>🥊</span>
-                      )}
-                    </div>
-                    <div style={s.reelCardBody}>
-                      <span style={s.reelCaption}>{reel.caption || reel.description || "Reel"}</span>
-                      <span style={s.reelMeta}>{formatCompact(reel.views || 0)} {t("views")}</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
           </section>
 
-          {/* Top coaches */}
-          {(topCoaches.length > 0 || !exploreLoading) && (
+          {/* Top Coaches */}
+          {topCoaches.length > 0 && (
             <section style={s.section}>
               <div style={s.sectionHeader}>
                 <p style={{ ...s.sectionLabel, margin: 0 }}>🎓 {t("discoverTopCoaches")}</p>
@@ -353,48 +521,24 @@ export default function DiscoverPage() {
                   {t("discoverViewAll")} ›
                 </button>
               </div>
-              {exploreLoading ? (
-                <div style={s.shimmerRow}>
-                  {[1,2].map((i) => <div key={i} style={{ ...s.shimmerCard, height: 64 }} />)}
-                </div>
-              ) : topCoaches.length === 0 ? (
-                <div style={s.emptyState}>
-                  <p style={{ margin: 0, color: "#888" }}>{t("discoverNoCoaches")}</p>
-                  <button
-                    type="button"
-                    onClick={() => router.push(`/${locale}/coach/apply`)}
-                    style={{ marginTop: 12, padding: "10px 22px", borderRadius: 12, border: "none", background: "#C1121F", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer" }}
-                  >
-                    {t("becomeCoach")}
-                  </button>
-                </div>
-              ) : (
-                <div style={s.cardList}>
-                  {topCoaches.map((coach) => {
-                    const photo = coach.photoURL || coach.profileImageUrl || "";
-                    const initial = (coach.displayName || coach.username || "C").charAt(0).toUpperCase();
-                    return (
-                      <button
-                        key={coach.id}
-                        type="button"
-                        onClick={() => router.push(`/${locale}/coach/${coach.id}`)}
-                        style={s.listCard}
-                      >
-                        <div style={{ ...s.avatar, border: "2px solid rgba(96,165,250,0.4)" }}>
-                          {photo ? <img src={photo} alt="" style={s.avatarImg} /> : initial}
-                        </div>
-                        <div style={s.listCardText}>
-                          <span style={s.listCardName}>{coach.displayName || coach.username || "Coach"}</span>
-                          <span style={{ ...s.listCardSub, color: "#60A5FA" }}>
-                            {coach.coachSpecialty || coach.specialty || t("navCoach")}
-                          </span>
-                        </div>
-                        <span style={s.arrow}>›</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+              <div style={s.cardList}>
+                {topCoaches.map((coach) => {
+                  const photo = coach.photoURL || coach.profileImageUrl || "";
+                  const initial = (coach.displayName || coach.username || "C").charAt(0).toUpperCase();
+                  return (
+                    <button key={coach.id} type="button" onClick={() => router.push(`/${locale}/coach/${coach.id}`)} style={s.listCard}>
+                      <div style={{ ...s.avatar, border: "2px solid rgba(96,165,250,0.4)" }}>
+                        {photo ? <img src={photo} alt="" style={s.avatarImg} /> : initial}
+                      </div>
+                      <div style={s.listCardText}>
+                        <span style={s.listCardName}>{coach.displayName || coach.username || "Coach"}</span>
+                        <span style={{ ...s.listCardSub, color: "#60A5FA" }}>{coach.coachSpecialty || coach.specialty || t("navCoach")}</span>
+                      </div>
+                      <span style={s.arrow}>›</span>
+                    </button>
+                  );
+                })}
+              </div>
             </section>
           )}
         </div>
@@ -414,7 +558,7 @@ const s = {
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   },
   header: {
-    padding: "28px 20px 0",
+    padding: "calc(28px + env(safe-area-inset-top)) 20px 0",
     maxWidth: 640,
   },
   kicker: {
@@ -488,65 +632,91 @@ const s = {
     fontWeight: 800,
     cursor: "pointer",
     flexShrink: 0,
-    opacity: 1,
   },
   content: {
     padding: "0 20px",
   },
-  quickGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(2, 1fr)",
-    gap: 10,
-    marginBottom: 20,
+  styleFilterLabel: {
+    margin: "0 0 8px",
+    fontSize: 10,
+    fontWeight: 900,
+    letterSpacing: 1.4,
+    textTransform: "uppercase",
+    color: "#666",
   },
-  quickCard: {
+  styleChips: {
     display: "flex",
-    flexDirection: "row",
+    gap: 7,
+    overflowX: "auto",
+    paddingBottom: 4,
+    marginBottom: 18,
+    scrollbarWidth: "none",
+  },
+  styleChip: {
+    flexShrink: 0,
+    display: "inline-flex",
     alignItems: "center",
-    gap: 10,
-    padding: "14px 16px",
+    gap: 5,
+    padding: "7px 12px",
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.12)",
+    background: "rgba(255,255,255,0.04)",
+    color: "#aaa",
+    fontSize: 12,
+    fontWeight: 750,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+    WebkitTapHighlightColor: "transparent",
+  },
+  styleChipActive: {
+    background: "linear-gradient(135deg, rgba(193,18,31,0.9), rgba(92,7,17,0.9))",
+    borderColor: "rgba(193,18,31,0.5)",
+    color: "#fff",
+    fontWeight: 900,
+  },
+  progressionCard: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+    padding: "13px 16px",
+    marginBottom: 18,
     borderRadius: 16,
-    border: "1px solid",
+    border: "1px solid rgba(212,175,55,0.3)",
+    background: "linear-gradient(135deg, rgba(212,175,55,0.12), rgba(11,11,11,0.98))",
     cursor: "pointer",
     color: "#fff",
+    boxSizing: "border-box",
   },
-  quickIcon: {
+  progressionLeft: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    textAlign: "left",
+  },
+  progressionEmoji: {
     fontSize: 22,
     lineHeight: 1,
     flexShrink: 0,
   },
-  quickLabel: {
-    fontSize: 13,
-    fontWeight: 800,
-    letterSpacing: 0.2,
-    textAlign: "left",
-    color: "#ddd",
+  progressionTitle: {
+    margin: 0,
+    fontSize: 14,
+    fontWeight: 900,
+    color: "#D4AF37",
     lineHeight: 1.2,
   },
-  chips: {
-    display: "flex",
-    gap: 8,
-    overflowX: "auto",
-    paddingBottom: 4,
-    marginBottom: 20,
-    scrollbarWidth: "none",
-  },
-  chip: {
-    flexShrink: 0,
-    padding: "7px 14px",
-    borderRadius: 999,
-    border: "1px solid rgba(255,255,255,0.1)",
-    background: "rgba(255,255,255,0.04)",
-    color: "#aaa",
+  progressionDesc: {
+    margin: "3px 0 0",
     fontSize: 12,
-    fontWeight: 700,
-    cursor: "pointer",
-    whiteSpace: "nowrap",
+    color: "#888",
+    fontWeight: 600,
+    lineHeight: 1.3,
   },
-  chipActive: {
-    background: "#C1121F",
-    borderColor: "#C1121F",
-    color: "#fff",
+  progressionArrow: {
+    color: "#D4AF37",
+    fontSize: 20,
+    flexShrink: 0,
   },
   section: {
     marginBottom: 28,
@@ -560,7 +730,7 @@ const s = {
   sectionLabel: {
     fontSize: 12,
     fontWeight: 900,
-    letterSpacing: 1,
+    letterSpacing: 0.8,
     textTransform: "uppercase",
     color: "#fff",
   },
@@ -581,6 +751,31 @@ const s = {
     cursor: "pointer",
     padding: 0,
   },
+  chips: {
+    display: "flex",
+    gap: 7,
+    overflowX: "auto",
+    paddingBottom: 4,
+    marginBottom: 12,
+    scrollbarWidth: "none",
+  },
+  chip: {
+    flexShrink: 0,
+    padding: "6px 12px",
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.1)",
+    background: "rgba(255,255,255,0.04)",
+    color: "#aaa",
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+  },
+  chipActive: {
+    background: "#C1121F",
+    borderColor: "#C1121F",
+    color: "#fff",
+  },
   scroll: {
     display: "flex",
     gap: 10,
@@ -588,9 +783,104 @@ const s = {
     paddingBottom: 4,
     scrollbarWidth: "none",
   },
+  reelCard: {
+    flexShrink: 0,
+    width: 136,
+    borderRadius: 14,
+    background: "rgba(255,255,255,0.03)",
+    border: "1px solid rgba(255,255,255,0.07)",
+    overflow: "hidden",
+    cursor: "pointer",
+    display: "flex",
+    flexDirection: "column",
+    color: "#fff",
+    textAlign: "left",
+    WebkitTapHighlightColor: "transparent",
+  },
+  reelThumb: {
+    width: "100%",
+    height: 106,
+    background: "#0a0a0a",
+    position: "relative",
+    flexShrink: 0,
+    overflow: "hidden",
+  },
+  reelThumbFallback: {
+    width: "100%",
+    height: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  reelThumbImg: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    display: "block",
+  },
+  reelTypeBadge: {
+    position: "absolute",
+    top: 5,
+    left: 6,
+    fontSize: 12,
+    lineHeight: 1,
+    filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.9))",
+  },
+  reelDiffBadge: {
+    position: "absolute",
+    bottom: 5,
+    right: 5,
+    fontSize: 9,
+    fontWeight: 900,
+    lineHeight: 1,
+    padding: "2px 5px",
+    borderRadius: 999,
+    border: "1px solid",
+    background: "rgba(0,0,0,0.7)",
+    letterSpacing: 0.3,
+  },
+  reelCardBody: {
+    padding: "7px 9px 9px",
+    display: "grid",
+    gap: 3,
+  },
+  reelCaption: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: "#eee",
+    overflow: "hidden",
+    display: "-webkit-box",
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: "vertical",
+    lineHeight: 1.35,
+  },
+  reelMeta: {
+    fontSize: 10,
+    color: "#666",
+    fontWeight: 600,
+  },
+  quickPills: {
+    display: "flex",
+    gap: 8,
+    flexWrap: "wrap",
+  },
+  quickPill: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+    padding: "9px 14px",
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.1)",
+    background: "rgba(255,255,255,0.04)",
+    color: "#ccc",
+    fontSize: 12,
+    fontWeight: 800,
+    cursor: "pointer",
+    WebkitTapHighlightColor: "transparent",
+  },
   creatorCard: {
     flexShrink: 0,
-    width: 110,
+    width: 100,
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
@@ -601,17 +891,18 @@ const s = {
     border: "1px solid rgba(212,175,55,0.2)",
     cursor: "pointer",
     color: "#fff",
+    WebkitTapHighlightColor: "transparent",
   },
   creatorAvatar: {
-    width: 48,
-    height: 48,
+    width: 46,
+    height: 46,
     borderRadius: "50%",
     background: "#1a1a1a",
     border: "2px solid #D4AF37",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: 900,
     overflow: "hidden",
     flexShrink: 0,
@@ -633,54 +924,6 @@ const s = {
     fontWeight: 900,
     letterSpacing: 0.4,
   },
-  reelCard: {
-    flexShrink: 0,
-    width: 140,
-    borderRadius: 16,
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.07)",
-    overflow: "hidden",
-    cursor: "pointer",
-    display: "flex",
-    flexDirection: "column",
-    color: "#fff",
-    textAlign: "left",
-  },
-  reelThumb: {
-    width: "100%",
-    height: 110,
-    background: "rgba(193,18,31,0.12)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-  },
-  reelThumbImg: {
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-    display: "block",
-  },
-  reelCardBody: {
-    padding: "8px 10px 10px",
-    display: "grid",
-    gap: 3,
-  },
-  reelCaption: {
-    fontSize: 12,
-    fontWeight: 700,
-    color: "#eee",
-    overflow: "hidden",
-    display: "-webkit-box",
-    WebkitLineClamp: 2,
-    WebkitBoxOrient: "vertical",
-    lineHeight: 1.35,
-  },
-  reelMeta: {
-    fontSize: 10,
-    color: "#888",
-    fontWeight: 600,
-  },
   cardList: {
     display: "grid",
     gap: 8,
@@ -697,6 +940,7 @@ const s = {
     color: "#fff",
     textAlign: "left",
     width: "100%",
+    WebkitTapHighlightColor: "transparent",
   },
   avatar: {
     width: 42,
@@ -744,8 +988,8 @@ const s = {
   },
   emptyState: {
     textAlign: "center",
-    padding: "24px 20px",
-    borderRadius: 16,
+    padding: "20px 20px",
+    borderRadius: 14,
     background: "rgba(255,255,255,0.02)",
     border: "1px solid rgba(255,255,255,0.05)",
   },
@@ -755,10 +999,11 @@ const s = {
   },
   shimmerCard: {
     flexShrink: 0,
-    width: 140,
-    height: 170,
-    borderRadius: 16,
-    background: "rgba(255,255,255,0.05)",
-    animation: "shimmer 1.5s infinite",
+    width: 136,
+    height: 160,
+    borderRadius: 14,
+    background: "linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.07) 50%, rgba(255,255,255,0.04) 100%)",
+    backgroundSize: "200% 100%",
+    animation: "shimmer 1.6s infinite",
   },
 };
