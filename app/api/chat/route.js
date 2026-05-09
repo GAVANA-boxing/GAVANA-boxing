@@ -8,76 +8,99 @@ let loggedMissingKey = false;
 let loggedInvalidKey = false;
 let loggedApiFailure = false;
 
+// GAVANA platform context injected into every request
+const GAVANA_CONTEXT =
+  "You are coaching on GAVANA — a combat sports platform for boxers and fighters. " +
+  "GAVANA tone: sharp, technical, fighter-like. Not a generic fitness app. Real coaches say more in less. " +
+  "Content types on the platform: challenge (score-focused, competitive), educational (coach/explainer), lifestyle (supportive, lighter). " +
+  "Adapt tone to context. Always be brief — max 4 sentences unless giving a structured breakdown.";
+
 const PERSONAS = {
   drill: {
     name: "Drill Sergeant",
     systemPrompt:
-      "You are a direct boxing coach. Be practical, motivating, and clear. Give specific advice without being rude.",
+      "You are a direct, demanding boxing coach. Short sentences, zero fluff. " +
+      "Give sharp, actionable cues. Motivate through precision, not cheerleading. " +
+      "Examples of your style: 'Guard drops after the jab — fix it.' / 'Reset your feet after every combo.' / 'Again. Cleaner this time.'",
   },
   zen: {
     name: "Zen Master",
     systemPrompt:
-      "You are a calm boxing coach. Focus on confidence, discipline, breathing, timing, and simple next steps.",
+      "You are a calm, focused boxing coach who teaches through rhythm and body awareness. " +
+      "Focus on breathing, timing, and flow — not scorelines. " +
+      "Examples of your style: 'Breathe first, then punch.' / 'Guard is a habit, not a thought.' / 'Your timing is ahead of your rhythm — slow down to speed up.'",
   },
   analyst: {
     name: "Analyst",
     systemPrompt:
-      "You are an analytical boxing coach. Use the given context, identify patterns, and provide concise technique-focused recommendations.",
+      "You are a precise, data-driven boxing coach who identifies patterns and gives score-aware feedback. " +
+      "Reference numbers when given. Rank insights by impact. Lead with what matters most. " +
+      "Examples of your style: 'Speed score is strong but power drops after 3-punch combos.' / 'Consistency is your ceiling — track it session to session.'",
   },
 };
 
 const LANGUAGE_INSTRUCTIONS = {
-  en: "IMPORTANT: Reply only in natural, clear English.",
+  en: "IMPORTANT: Reply in natural English. Be concise — one key insight per response, no walls of text.",
   mn: [
-    "IMPORTANT: Reply only in natural, fluent Mongolian.",
-    "Use boxing-specific Mongolian phrasing that sounds like a real coach.",
-    "Keep it concise and practical. Avoid awkward literal translation.",
+    "IMPORTANT: Хариулт нь байгалийн монгол хэлтэй, товч байх ёстой.",
+    "Combo, timing, rhythm, tempo, guard, jab, cross, pivot, footwork, reaction, ghost, score, streak, round зэрэг тулааны нэр томьёог АНГЛИАР бич — монгол боксын соёлд эдгээр нь байгалийн хэлбэртэй.",
+    "Жишээ нь: 'Combo clean байна.', 'Timing жаахан хоцорч байна.', 'Guard задраад байна.', 'Ghost-оо давлаа.', 'Tempo сайн байна.'",
+    "Богино, хурц, тулаанч дуу хоолойтой байгаарай. Урт текст, хиймэл эрч хүч биш.",
   ].join(" "),
-  ko: "IMPORTANT: Reply only in natural, clear Korean.",
+  ko: "IMPORTANT: Reply in natural Korean. Be concise. Keep widely-used combat terms (combo, timing, guard, jab, footwork, score) in English when it sounds more natural.",
 };
 
-const FALLBACK_TEXT = {
+// Fallback pools — 3 variants per category, randomly selected to avoid repetition
+const FALLBACK_POOLS = {
   en: {
-    coach: "Keep it simple this round: stay balanced, keep your guard high, and finish each combo by resetting your feet.",
+    coach: [
+      "Guard stays up between punches. Combo means nothing if you drop your hands after.",
+      "Breathing controls your timing. Exhale on impact, reset on defense.",
+      "Reset your stance after every combo. Balance is where the next shot starts.",
+    ],
     feedback: [
-      "Score: 6.5/10",
-      "Strength: Strong training intent from the reel context.",
-      "Improve: Check your guard and balance after every combination.",
-      "Next drill: 3 rounds of jab-cross-reset, 45 seconds each.",
-    ].join("\n"),
+      "Score: 6.5/10\nStrength: Clean entry angles.\nImprove: Guard drops on the third punch — close that gap.\nNext drill: 3×45s jab-cross, guard check after every set.",
+      "Score: 6.5/10\nStrength: Good rhythm on early combos.\nImprove: Footwork resets too slow after 3-punch sequences.\nNext drill: Shadow drill — punch, reset, pivot. 5 minutes.",
+      "Score: 6.5/10\nStrength: Consistent tempo.\nImprove: Power drops late in session — work on hip rotation.\nNext drill: Single jab with full hip drive — 50 reps, focus over speed.",
+    ],
     caption: [
-      "Hook: Sharp rounds only",
-      "Caption: Clean hands, calm feet, better rounds every session.",
-      "Hashtags: #boxing #boxingtraining #fightcamp #mittwork #boxingdrills #gavana",
-    ].join("\n"),
+      "Hook: Sharp. Fast. Focused.\nCaption: Clean hands, clean mind. Better every round.\nHashtags: #boxing #boxingtraining #fightcamp #mittwork #gavana",
+      "Hook: Work nobody sees\nCaption: The round that misses the highlight reel still counts.\nHashtags: #boxing #grind #fightcamp #boxingdrills #gavana",
+      "Hook: No off days\nCaption: Every session is a deposit. Stay consistent.\nHashtags: #boxing #boxinglife #fightcamp #gavana #boxingtraining",
+    ],
   },
   mn: {
-    coach: "Энэ раунд дээр энгийн бай: тэнцвэрээ барь, хамгаалалтаа өндөр байлга, комбинац бүрийн дараа хөлөө дахин байрлуул.",
+    coach: [
+      "Guard combo хоорондоо унаад байна. Цохилт хийгээд гараа буцааж татаарай.",
+      "Амьсгал нь timing-ийг удирддаг. Цохилтоор гарга, хамгаалалтад амаа.",
+      "Combo бүрийн дараа stance-аа дахин тогтоо. Тэнцвэр — дараагийн цохилтын эхлэл.",
+    ],
     feedback: [
-      "Оноо: 6.5/10",
-      "Давуу тал: Рилсийн мэдээллээс бэлтгэлийн зорилго тод харагдаж байна.",
-      "Сайжруулах: Комбинац бүрийн дараа хамгаалалт, тэнцвэрээ шалга.",
-      "Дараагийн дасгал: Жэб-кросс-reset 45 секундээр 3 раунд.",
-    ].join("\n"),
+      "Score: 6.5/10\nДавуу тал: Entry angle цэвэр байна.\nСайжруулах: 3 дахь цохилтод guard буурна — засаарай.\nДараагийн дасгал: Jab-cross 3×45 сек, set болгоны дараа guard шалгаарай.",
+      "Score: 6.5/10\nДавуу тал: Эхний combo-д rhythm сайн байна.\nСайжруулах: 3 цохилтын дараа footwork reset удааширна.\nДараагийн дасгал: Shadow — цохилт, reset, pivot. 5 минут.",
+      "Score: 6.5/10\nДавуу тал: Tempo тогтвортой.\nСайжруулах: Session-ийн сүүлд power буурна — бүсний эргэлт дээр ажиллаарай.\nДараагийн дасгал: Jab бүрт бүсний дүүрэн эргэлт — 50 удаа, хурд биш фокус.",
+    ],
     caption: [
-      "Hook: Хурц раунд эхэллээ",
-      "Caption: Гар цэвэр, хөл тайван, раунд бүр дээр ахиц гарга.",
-      "Hashtags: #бокс #боксынбэлтгэл #gavana #boxingtraining #fightcamp",
-    ].join("\n"),
+      "Hook: Ghost-оо давах хүртэл зогсохгүй.\nCaption: Tempo өсөж байна. Шинэ best гарна.\nHashtags: #бокс #боксынбэлтгэл #gavana #boxingtraining",
+      "Hook: Өчигдрийн өөрийгөө давах өдөр.\nCaption: Score биш process. Давтамж бүр тооцоо.\nHashtags: #бокс #gavana #fightcamp #боксынбэлтгэл",
+      "Hook: Хурц. Хурдтай. Анхаарал бүтэн.\nCaption: Clean work. Зогсохгүй.\nHashtags: #бокс #боксынбэлтгэл #gavana #boxing",
+    ],
   },
   ko: {
-    coach: "이번 라운드는 단순하게 가세요. 균형을 잡고 가드를 높게 유지한 뒤 콤비네이션 후에는 발을 다시 정리하세요.",
+    coach: [
+      "펀치 사이에 가드를 올려두세요. 콤보 후 손을 내리면 아무 의미가 없습니다.",
+      "호흡이 타이밍을 제어합니다. 임팩트에서 내쉬고, 방어에서 리셋하세요.",
+      "콤보 후에 스탠스를 리셋하세요. 균형이 다음 샷의 시작점입니다.",
+    ],
     feedback: [
-      "Score: 6.5/10",
-      "Strength: Reel context shows a clear training focus.",
-      "Improve: Check guard and balance after each combination.",
-      "Next drill: 3 rounds of jab-cross-reset, 45 seconds each.",
-    ].join("\n"),
+      "Score: 6.5/10\n강점: 진입 각도가 깔끔합니다.\n개선: 세 번째 펀치에서 가드가 내려갑니다 — 수정하세요.\n다음 훈련: 잽-크로스 3×45초, 매 세트 후 가드 체크.",
+      "Score: 6.5/10\n강점: 초반 콤보의 리듬이 좋습니다.\n개선: 3타 후 풋워크 리셋이 느립니다.\n다음 훈련: 섀도우 — 펀치, 리셋, 피벗. 5분.",
+      "Score: 6.5/10\n강점: 일관된 템포.\n개선: 후반에 파워가 떨어집니다 — 힙 회전을 강화하세요.\n다음 훈련: 잽마다 완전한 힙 드라이브 — 50회, 속도보다 집중.",
+    ],
     caption: [
-      "Hook: 날카로운 라운드",
-      "Caption: 손은 깔끔하게, 발은 차분하게, 매 세션 더 좋아진다.",
-      "Hashtags: #boxing #boxingtraining #fightcamp #boxingdrills #gavana",
-    ].join("\n"),
+      "Hook: 날카롭게. 빠르게. 집중해서.\nCaption: 깔끔한 손, 맑은 정신. 매 라운드 더 나아진다.\nHashtags: #boxing #boxingtraining #fightcamp #gavana",
+      "Hook: 아무도 보지 않는 훈련\nCaption: 하이라이트에 안 나오는 라운드도 카운트된다.\nHashtags: #boxing #grind #fightcamp #gavana",
+    ],
   },
 };
 
@@ -115,16 +138,18 @@ function normalizeMessages(messages) {
 }
 
 function detectFallbackType(messages) {
-  const combined = normalizeMessages(messages).map((message) => message.content).join("\n").toLowerCase();
+  const combined = normalizeMessages(messages).map((m) => m.content).join("\n").toLowerCase();
   if (combined.includes("caption") || combined.includes("hashtags")) return "caption";
-  if (combined.includes("score:") || combined.includes("strength:") || combined.includes("next drill")) return "feedback";
+  if (combined.includes("score:") || combined.includes("strength:") || combined.includes("next drill") || combined.includes("score /10") || combined.includes("/10")) return "feedback";
   return "coach";
 }
 
 function getFallback(locale, messages) {
   const safeLocale = getLocale(locale);
-  const fallbackSet = FALLBACK_TEXT[safeLocale] || FALLBACK_TEXT.en;
-  return fallbackSet[detectFallbackType(messages)] || fallbackSet.coach;
+  const pool = FALLBACK_POOLS[safeLocale] || FALLBACK_POOLS.en;
+  const type = detectFallbackType(messages);
+  const options = pool[type] || pool.coach;
+  return options[Math.floor(Math.random() * options.length)];
 }
 
 export async function POST(req) {
@@ -152,15 +177,15 @@ export async function POST(req) {
       },
       body: JSON.stringify({
         model: MODEL,
-        temperature: 0.7,
-        max_tokens: 700,
+        temperature: 0.75,
+        max_tokens: 600,
         messages: [
           {
             role: "system",
             content: [
               selectedPersona.systemPrompt,
-              "You are supporting a boxing app. Keep advice practical, safe, and grounded in the provided context.",
-              "The following final language rule overrides all persona style, prior instructions, and user language when they conflict.",
+              GAVANA_CONTEXT,
+              "The following language rule overrides all persona style and prior instructions.",
               languageInstruction,
             ].join("\n\n"),
           },

@@ -271,6 +271,7 @@ export default function UploadPage() {
     setCaptionLoading(true);
     setCaptionError("");
     setCaptionResult("");
+    const typeLabel = isTraining ? "challenge" : isEdu ? "educational" : "lifestyle";
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
@@ -281,12 +282,14 @@ export default function UploadPage() {
           messages: [{
             role: "user",
             content: [
-              "Generate a premium boxing reel caption.",
-              `Context: ${context}`,
-              "Return exactly three plain-text sections with no markdown, no bullets:",
-              "Hook: one short viral hook, maximum 8 words.",
-              "Caption: one punchy caption, maximum 18 words.",
-              "Hashtags: 5 to 8 relevant hashtags.",
+              "Generate a GAVANA boxing reel caption.",
+              `Content type: ${typeLabel}. Context: ${context}`,
+              "GAVANA tone: modern fighter/athlete social media — short, sharp, confident. No cringe, no over-explaining.",
+              `Good hook examples: 'Sharp. Fast. Focused.' / 'Clean work.' / 'Ghost-оо давах хүртэл зогсохгүй.' / 'Tempo sain baina.'`,
+              "Return exactly three plain-text sections, no markdown, no bullets:",
+              "Hook: one punchy viral line, max 8 words.",
+              "Caption: one tight fighter-voice caption, max 16 words.",
+              "Hashtags: 5 to 7 relevant hashtags including #gavana.",
             ].join("\n"),
           }],
         }),
@@ -416,34 +419,34 @@ export default function UploadPage() {
           {/* CHALLENGE */}
           {isTraining && (
             <>
-              <UField label="Caption">
-                <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe your challenge..." style={S.textarea} />
+              <UField label={t("caption")}>
+                <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t("uploadChallengePlaceholder")} style={S.textarea} />
               </UField>
-              <UField label="Challenge Name">
-                <input value={challengeLabel} onChange={(e) => setChallengeLabel(e.target.value)} placeholder="e.g. 100 jabs in 60 seconds" style={S.input} />
+              <UField label={t("uploadChallengeLabel")}>
+                <input value={challengeLabel} onChange={(e) => setChallengeLabel(e.target.value)} placeholder={t("uploadChallengeLabelPlaceholder")} style={S.input} />
               </UField>
-              <UField label="Target Hits / Score">
+              <UField label={t("uploadTargetHits")}>
                 <input type="number" value={targetHits} onChange={(e) => setTargetHits(e.target.value)} placeholder="e.g. 100" style={{ ...S.input, width: 140 }} min={1} />
               </UField>
-              <UField label="Difficulty">
+              <UField label={t("uploadDifficulty")}>
                 <UChips options={DIFFICULTIES} keyMap={DIFF_KEY} t={t} selected={difficulty} onSelect={setDifficulty} colorMap={diffColorMap} />
               </UField>
-              <UToggle label="AI Scoring" description="Let GAVANA AI score each attempt" value={aiScoringEnabled} onChange={setAiScoringEnabled} />
-              <UToggle label="Challenge CTA" description="Always on for challenges" value={true} locked />
+              <UToggle label={t("uploadAiScoring")} description={t("uploadAiScoringDesc")} value={aiScoringEnabled} onChange={setAiScoringEnabled} />
+              <UToggle label={t("uploadChallengeCta")} description={t("uploadChallengeCtaDesc")} value={true} locked />
             </>
           )}
 
           {/* LIFESTYLE */}
           {isLifestyle && (
             <>
-              <UField label="Caption">
-                <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What's happening? #hashtags" style={S.textarea} />
+              <UField label={t("caption")}>
+                <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t("uploadLifestylePlaceholder")} style={S.textarea} />
               </UField>
-              <UField label="Category">
+              <UField label={t("uploadCategory")}>
                 <UChips options={CATEGORIES} keyMap={CAT_KEY} t={t} selected={category} onSelect={setCategory} colorMap={() => S.chipActive} />
               </UField>
-              <UField label="Tags">
-                <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="boxing, motivation, gym (comma-separated)" style={S.input} />
+              <UField label={t("uploadTags")}>
+                <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder={t("uploadTagsPlaceholder")} style={S.input} />
               </UField>
             </>
           )}
@@ -451,23 +454,23 @@ export default function UploadPage() {
           {/* EDUCATIONAL */}
           {isEdu && (
             <>
-              <UField label="Technique Title">
-                <input value={techniqueTitle} onChange={(e) => setTechniqueTitle(e.target.value)} placeholder="e.g. Double jab – cross combo" style={S.input} />
+              <UField label={t("uploadTechniqueTitle")}>
+                <input value={techniqueTitle} onChange={(e) => setTechniqueTitle(e.target.value)} placeholder={t("uploadTechniquePlaceholder")} style={S.input} />
               </UField>
-              <UField label="Common Mistake">
-                <textarea value={mistakeNote} onChange={(e) => setMistakeNote(e.target.value)} placeholder="What mistake are you correcting?" style={{ ...S.textarea, minHeight: 60 }} />
+              <UField label={t("uploadMistakeLabel")}>
+                <textarea value={mistakeNote} onChange={(e) => setMistakeNote(e.target.value)} placeholder={t("uploadMistakePlaceholder")} style={{ ...S.textarea, minHeight: 60 }} />
               </UField>
-              <UField label="The Fix">
-                <textarea value={fixNote} onChange={(e) => setFixNote(e.target.value)} placeholder="What's the correct technique?" style={{ ...S.textarea, minHeight: 60 }} />
+              <UField label={t("uploadFixLabel")}>
+                <textarea value={fixNote} onChange={(e) => setFixNote(e.target.value)} placeholder={t("uploadFixPlaceholder")} style={{ ...S.textarea, minHeight: 60 }} />
               </UField>
-              <UField label="Coach Note (optional)">
-                <textarea value={coachNote} onChange={(e) => setCoachNote(e.target.value)} placeholder="Add a coaching cue or tip..." style={{ ...S.textarea, minHeight: 60 }} />
+              <UField label={t("uploadCoachNoteLabel")}>
+                <textarea value={coachNote} onChange={(e) => setCoachNote(e.target.value)} placeholder={t("uploadCoachNotePlaceholder")} style={{ ...S.textarea, minHeight: 60 }} />
               </UField>
-              <UField label="Difficulty">
+              <UField label={t("uploadDifficulty")}>
                 <UChips options={DIFFICULTIES} keyMap={DIFF_KEY} t={t} selected={difficulty} onSelect={setDifficulty} colorMap={diffColorMap} />
               </UField>
-              <UToggle label="Save / Learn CTA" description="Lets users save this to their training library" value={true} locked />
-              <UToggle label="Challenge CTA (optional)" description="Let users attempt this as a challenge" value={eduChallengeEnabled} onChange={setEduChallengeEnabled} />
+              <UToggle label={t("uploadSaveCta")} description={t("uploadSaveCtaDesc")} value={true} locked />
+              <UToggle label={t("uploadEduChallengeCta")} description={t("uploadEduChallengeCtaDesc")} value={eduChallengeEnabled} onChange={setEduChallengeEnabled} />
             </>
           )}
 
@@ -514,14 +517,14 @@ export default function UploadPage() {
         {uploading && (
           <div style={S.progressWrap}>
             <div style={{ display: "flex", justifyContent: "space-between", color: "#aaa", fontSize: 12, fontWeight: 800 }}>
-              <span>Uploading...</span><span>{uploadProgress}%</span>
+              <span>{t("uploading")}</span><span>{uploadProgress}%</span>
             </div>
             <div style={S.progressTrack}><div style={{ ...S.progressFill, width: `${uploadProgress}%` }} /></div>
           </div>
         )}
 
         <button onClick={handleUpload} disabled={uploading} style={{ ...S.primaryBtn, opacity: uploading ? 0.6 : 1, marginBottom: 32 }}>
-          {uploading ? `Uploading ${uploadProgress}%` : "Post Reel"}
+          {uploading ? `${uploadProgress}%` : t("uploadPostReel")}
         </button>
       </div>
     </div>
