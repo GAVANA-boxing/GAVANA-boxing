@@ -257,6 +257,7 @@ export default function ReelsContent() {
   const videoRefs = useRef({});
   const feedbackCacheRef = useRef({});
   const lastTapRef = useRef({ time: 0, reelId: null });
+  const singleTapTimerRef = useRef(null);
   const [heartBursts, setHeartBursts] = useState([]);
   const feedRef = useRef(null);
   const reelItemRefs = useRef({});
@@ -1070,6 +1071,9 @@ export default function ReelsContent() {
       if (controlsTimer.current) {
         clearTimeout(controlsTimer.current);
       }
+      if (singleTapTimerRef.current) {
+        clearTimeout(singleTapTimerRef.current);
+      }
 
       Object.values(videoRefs.current).forEach((video) => {
         if (!video) return;
@@ -1172,6 +1176,10 @@ export default function ReelsContent() {
     lastTapRef.current = { time: now, reelId: reel.id };
 
     if (isDoubleTap) {
+      if (singleTapTimerRef.current) {
+        clearTimeout(singleTapTimerRef.current);
+        singleTapTimerRef.current = null;
+      }
       const rect = e.currentTarget.getBoundingClientRect();
       const x = (e.clientX || e.changedTouches?.[0]?.clientX || rect.width / 2) - rect.left;
       const y = (e.clientY || e.changedTouches?.[0]?.clientY || rect.height / 2) - rect.top;
@@ -1180,8 +1188,12 @@ export default function ReelsContent() {
       setHeartBursts((prev) => [...prev, { id: burstId, x, y, reelId: reel.id }]);
       setTimeout(() => setHeartBursts((prev) => prev.filter((b) => b.id !== burstId)), 800);
     } else {
-      revealControls();
-      togglePlay();
+      if (singleTapTimerRef.current) clearTimeout(singleTapTimerRef.current);
+      singleTapTimerRef.current = setTimeout(() => {
+        revealControls();
+        togglePlay();
+        singleTapTimerRef.current = null;
+      }, 250);
     }
   }, [handleLike, revealControls, togglePlay, userLikes]);
 

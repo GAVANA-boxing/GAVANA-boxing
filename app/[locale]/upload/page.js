@@ -327,7 +327,7 @@ export default function UploadPage() {
 
         <div style={S.videoPicker} onClick={() => !selectedFile && fileInputRef.current?.click()}>
           {selectedFile ? (
-            <video src={previewUrl} autoPlay muted loop playsInline style={S.videoFull} />
+            <video src={previewUrl} controls playsInline preload="metadata" style={S.videoFull} />
           ) : (
             <div style={S.videoEmptyState}>
               <div style={S.videoEmptyIcon}>▣</div>
@@ -403,7 +403,7 @@ export default function UploadPage() {
                 onClick={() => setContentType(id)}
                 style={{
                   ...S.typeTab,
-                  ...(active ? { color, borderColor: border, background: `${color}1a` } : {}),
+                  ...(active ? { color, border: `1px solid ${border}`, background: `${color}1a` } : {}),
                 }}
               >
                 {emoji} {label}
@@ -502,7 +502,7 @@ export default function UploadPage() {
                     {parsedCaption.hashtags && <div style={S.captionSection}><span style={S.captionLbl}>{t("hashtags")}</span><div style={S.captionBody}>{parsedCaption.hashtags}</div></div>}
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 4 }}>
                       <button style={S.captionActionBtn} onClick={() => setDescription(parsedCaption.description)}>{t("useCaption")}</button>
-                      <button style={{ ...S.captionActionBtn, background: "rgba(255,255,255,0.05)", color: "#fff", borderColor: "rgba(255,255,255,0.12)" }} onClick={() => navigator.clipboard?.writeText(parsedCaption.hashtags)}>{t("copyHashtags")}</button>
+                      <button style={{ ...S.captionActionBtn, background: "rgba(255,255,255,0.05)", color: "#fff", border: "1px solid rgba(255,255,255,0.12)" }} onClick={() => navigator.clipboard?.writeText(parsedCaption.hashtags)}>{t("copyHashtags")}</button>
                     </div>
                   </div>
                 )}

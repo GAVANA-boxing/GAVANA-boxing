@@ -22,6 +22,18 @@ service cloud.firestore {
       ]);
     }
 
+    function isReelOwner(reelId) {
+      return isAuth() &&
+        exists(/databases/$(database)/documents/reels/$(reelId)) &&
+        get(/databases/$(database)/documents/reels/$(reelId)).data.userId == request.auth.uid;
+    }
+
+    function isRelatedReelOwner() {
+      return isAuth() &&
+        resource.data.reelId is string &&
+        isReelOwner(resource.data.reelId);
+    }
+
     // ─── Users ──────────────────────────────────────────────────
     match /users/{userId} {
       allow read: if true;
@@ -47,7 +59,8 @@ service cloud.firestore {
     match /reels/{reelId}/comments/{commentId} {
       allow read: if true;
       allow create: if isAuth();
-      allow update, delete: if isAuth() && resource.data.userId == request.auth.uid;
+      allow update: if isAuth() && resource.data.userId == request.auth.uid;
+      allow delete: if (isAuth() && resource.data.userId == request.auth.uid) || isReelOwner(reelId);
     }
 
     // ─── Reel stats (public read; any auth user may increment) ──
@@ -125,26 +138,28 @@ service cloud.firestore {
 
     // ─── Likes ────────────────────────────────────────────────────
     match /user_likes/{likeId} {
-      allow read: if isAuth() && resource.data.userId == request.auth.uid;
+      allow get: if isAuth() && likeId.matches(request.auth.uid + "_.*");
+      allow list: if (isAuth() && resource.data.userId == request.auth.uid) || isRelatedReelOwner();
       allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
-      allow delete: if isAuth() && resource.data.userId == request.auth.uid;
+      allow delete: if (isAuth() && resource.data.userId == request.auth.uid) || isRelatedReelOwner();
       allow update: if false;
     }
 
     // ─── Saved reels ──────────────────────────────────────────────
     match /saved_reels/{savedId} {
-      allow read: if isAuth() && resource.data.userId == request.auth.uid;
+      allow get: if isAuth() && savedId.matches(request.auth.uid + "_.*");
+      allow list: if (isAuth() && resource.data.userId == request.auth.uid) || isRelatedReelOwner();
       allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
-      allow delete: if isAuth() && resource.data.userId == request.auth.uid;
+      allow delete: if (isAuth() && resource.data.userId == request.auth.uid) || isRelatedReelOwner();
       allow update: if false;
     }
 
     // ─── Notifications ────────────────────────────────────────────
     match /notifications/{notifId} {
-      allow read: if isAuth() && resource.data.recipientId == request.auth.uid;
+      allow read: if (isAuth() && resource.data.recipientId == request.auth.uid) || isRelatedReelOwner();
       allow create: if isAuth();
       allow update: if isAuth() && resource.data.recipientId == request.auth.uid;
-      allow delete: if isAuth() && resource.data.recipientId == request.auth.uid;
+      allow delete: if (isAuth() && resource.data.recipientId == request.auth.uid) || isRelatedReelOwner();
     }
 
     // ─── Featured creators ────────────────────────────────────────
