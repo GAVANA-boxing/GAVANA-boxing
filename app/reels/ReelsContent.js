@@ -237,6 +237,8 @@ export default function ReelsContent() {
   const [comments, setComments] = useState([]);
   const [commentProfiles, setCommentProfiles] = useState({});
   const [newComment, setNewComment] = useState("");
+  const [replyingTo, setReplyingTo] = useState(null); // { commentId, username }
+  const [expandedReplies, setExpandedReplies] = useState(new Set());
   const [selectedReelId, setSelectedReelId] = useState(null);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
@@ -1543,9 +1545,11 @@ export default function ReelsContent() {
       // Add comment to subcollection
       await addDoc(collection(db, "reels", selectedReelId, "comments"), {
         userId: user.uid,
-        username: user.email.split("@")[0],
+        username: user.displayName || user.email.split("@")[0],
+        userPhotoURL: user.photoURL || "",
         text: newComment.trim(),
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
+        parentId: replyingTo?.commentId || null,
       });
 
       // Update comment count on reel
@@ -1563,10 +1567,11 @@ export default function ReelsContent() {
       });
 
       setNewComment("");
+      setReplyingTo(null);
     } catch (err) {
       console.error("Failed to add comment:", err);
     }
-  }, [user, newComment, selectedReelId, reels]);
+  }, [user, newComment, selectedReelId, reels, replyingTo]);
 
   // Handle closing comments
   const handleCloseComments = useCallback(() => {
@@ -1579,6 +1584,8 @@ export default function ReelsContent() {
     setSelectedReelId(null);
     setComments([]);
     setNewComment("");
+    setReplyingTo(null);
+    setExpandedReplies(new Set());
   }, []);
 
   useEffect(() => {
@@ -2147,68 +2154,91 @@ export default function ReelsContent() {
 
             <div style={styles.commentsList}>
               {comments.length === 0 ? (
-                <div style={styles.noComments}>
-                  {t("noCommentsYet")}
-                </div>
-              ) : (
-                comments.map((comment) => {
-                  const profile = comment.userId ? commentProfiles[comment.userId] : null;
-                  const commentName = profile?.displayName || comment.username || "user";
-                  const commentPhoto = comment.userPhotoURL || profile?.photoURL || "";
+                <div style={styles.noComments}>{t("noCommentsYet")}</div>
+              ) : (() => {
+                const topLevel = comments.filter((c) => !c.parentId);
+                const repliesByParent = comments.reduce((acc, c) => {
+                  if (c.parentId) { acc[c.parentId] = acc[c.parentId] || []; acc[c.parentId].push(c); }
+                  return acc;
+                }, {});
 
+                const renderComment = (comment, isReply = false) => {
+                  const profile = comment.userId ? commentProfiles[comment.userId] : null;
+                  const name = profile?.displayName || comment.username || "user";
+                  const photo = comment.userPhotoURL || profile?.photoURL || "";
                   return (
-                    <div key={comment.id} style={styles.commentItem}>
-                      <button
-                        type="button"
-                        style={styles.commentAvatar}
-                        onClick={() => {
-                          if (comment.userId) router.push(`/${currentLocale}/profile/${comment.userId}`);
-                        }}
-                      >
-                        {commentPhoto ? (
-                          <img src={commentPhoto} alt="" style={styles.commentAvatarImage} />
-                        ) : (
-                          commentName.charAt(0).toUpperCase() || "U"
-                        )}
+                    <div key={comment.id} style={isReply ? styles.replyItem : styles.commentItem}>
+                      <button type="button" style={isReply ? styles.replyAvatar : styles.commentAvatar}
+                        onClick={() => comment.userId && router.push(`/${currentLocale}/profile/${comment.userId}`)}>
+                        {photo ? <img src={photo} alt="" style={styles.commentAvatarImage} /> : name.charAt(0).toUpperCase()}
                       </button>
                       <div style={styles.commentContent}>
-                        <button
-                          type="button"
-                          style={styles.commentUsername}
-                          onClick={() => {
-                            if (comment.userId) router.push(`/${currentLocale}/profile/${comment.userId}`);
-                          }}
-                        >
-                          @{commentName}
+                        <button type="button" style={styles.commentUsername}
+                          onClick={() => comment.userId && router.push(`/${currentLocale}/profile/${comment.userId}`)}>
+                          @{name}
                         </button>
                         <div style={styles.commentText}>{comment.text}</div>
+                        {!isReply && user && (
+                          <button type="button" style={styles.replyBtn}
+                            onClick={() => setReplyingTo(replyingTo?.commentId === comment.id ? null : { commentId: comment.id, username: name })}>
+                            {replyingTo?.commentId === comment.id ? t("cancelReply") : t("reply")}
+                          </button>
+                        )}
                       </div>
                     </div>
                   );
-                })
-              )}
+                };
+
+                return topLevel.map((comment) => {
+                  const replies = repliesByParent[comment.id] || [];
+                  const isExpanded = expandedReplies.has(comment.id);
+                  return (
+                    <div key={comment.id}>
+                      {renderComment(comment, false)}
+                      {replies.length > 0 && (
+                        <div style={styles.repliesSection}>
+                          <button type="button" style={styles.toggleReplies}
+                            onClick={() => setExpandedReplies((prev) => {
+                              const next = new Set(prev);
+                              isExpanded ? next.delete(comment.id) : next.add(comment.id);
+                              return next;
+                            })}>
+                            {isExpanded ? `▲ ${t("hideReplies")}` : `▼ ${t("viewReplies").replace("{n}", replies.length)}`}
+                          </button>
+                          {isExpanded && replies.map((r) => renderComment(r, true))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                });
+              })()}
             </div>
 
             {user && (
               <div style={styles.commentInput}>
-                <input
-                  type="text"
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder={t("addComment")}
-                  style={styles.commentInputField}
-                  onKeyPress={(e) => e.key === "Enter" && handleAddComment()}
-                />
-                <button
-                  onClick={handleAddComment}
-                  disabled={!newComment.trim()}
-                  style={{
-                    ...styles.commentSendBtn,
-                    ...(newComment.trim() ? {} : styles.commentSendBtnDisabled)
-                  }}
-                >
-                  {t("send")}
-                </button>
+                {replyingTo && (
+                  <div style={styles.replyPill}>
+                    <span style={styles.replyPillText}>↩ @{replyingTo.username}</span>
+                    <button type="button" style={styles.replyPillClose} onClick={() => setReplyingTo(null)}>✕</button>
+                  </div>
+                )}
+                <div style={styles.commentInputRow}>
+                  <input
+                    type="text"
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder={replyingTo ? `${t("replyTo")} @${replyingTo.username}…` : t("addComment")}
+                    style={styles.commentInputField}
+                    onKeyDown={(e) => e.key === "Enter" && handleAddComment()}
+                  />
+                  <button
+                    onClick={handleAddComment}
+                    disabled={!newComment.trim()}
+                    style={{ ...styles.commentSendBtn, ...(newComment.trim() ? {} : styles.commentSendBtnDisabled) }}
+                  >
+                    {t("send")}
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -3683,14 +3713,92 @@ const styles = {
     fontSize: 14,
     lineHeight: 1.4,
   },
+  replyItem: {
+    display: "flex",
+    gap: 10,
+    paddingTop: 10,
+    paddingBottom: 10,
+    paddingLeft: 0,
+    paddingRight: 0,
+  },
+  replyAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: "50%",
+    border: "1px solid rgba(255,255,255,0.15)",
+    background: "rgba(255,255,255,0.08)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "#fff",
+    fontSize: 11,
+    fontWeight: 900,
+    flexShrink: 0,
+    overflow: "hidden",
+    cursor: "pointer",
+    padding: 0,
+  },
+  replyBtn: {
+    marginTop: 4,
+    background: "none",
+    border: "none",
+    color: "rgba(255,255,255,0.45)",
+    fontSize: 11,
+    fontWeight: 700,
+    cursor: "pointer",
+    padding: 0,
+  },
+  repliesSection: {
+    marginLeft: 50,
+    marginBottom: 4,
+  },
+  toggleReplies: {
+    background: "none",
+    border: "none",
+    color: "#D4AF37",
+    fontSize: 11,
+    fontWeight: 700,
+    cursor: "pointer",
+    padding: "4px 0 8px",
+    display: "block",
+  },
   commentInput: {
     display: "flex",
-    gap: 12,
-    paddingTop: 20,
+    flexDirection: "column",
+    paddingTop: 12,
     paddingBottom: 20,
     paddingLeft: 20,
     paddingRight: 20,
     borderTop: "1px solid rgba(212,175,55,0.16)",
+    gap: 8,
+  },
+  commentInputRow: {
+    display: "flex",
+    gap: 12,
+  },
+  replyPill: {
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    padding: "5px 10px",
+    borderRadius: 999,
+    background: "rgba(212,175,55,0.1)",
+    border: "1px solid rgba(212,175,55,0.25)",
+    alignSelf: "flex-start",
+  },
+  replyPillText: {
+    fontSize: 12,
+    color: "#D4AF37",
+    fontWeight: 700,
+  },
+  replyPillClose: {
+    background: "none",
+    border: "none",
+    color: "#D4AF37",
+    fontSize: 11,
+    cursor: "pointer",
+    padding: 0,
+    lineHeight: 1,
   },
   commentInputField: {
     flex: 1,
