@@ -23,7 +23,16 @@ service cloud.firestore {
     match /reels/{reelId} {
       allow read: if true;
       allow create: if isAuth();
-      allow update, delete: if isOwner("userId");
+      // Any auth user may increment views; only owner may change other fields.
+      allow update: if isOwner("userId") || (isAuth() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["views"]));
+      allow delete: if isOwner("userId");
+    }
+
+    // ─── Reel comments (subcollection) ───────────────────────────
+    match /reels/{reelId}/comments/{commentId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if isAuth() && resource.data.userId == request.auth.uid;
     }
 
     // ─── Reel stats (public read; any auth user may increment) ──
@@ -40,24 +49,34 @@ service cloud.firestore {
     }
 
     // ─── Challenge attempts ──────────────────────────────────────
+    // isAuth() read allows creator dashboard to query attempts on their reels.
     match /challenge_attempts/{attemptId} {
-      allow read: if isAuth() && resource.data.userId == request.auth.uid;
+      allow read: if isAuth();
       allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
       allow update: if isAuth() && resource.data.userId == request.auth.uid;
       allow delete: if false;
     }
 
+    // ─── Challenge results (public leaderboard scores) ───────────
+    match /challenge_results/{resultId} {
+      allow read: if true;
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuth() && resource.data.userId == request.auth.uid;
+    }
+
     // ─── AI feedback ─────────────────────────────────────────────
+    // Public read so creator rank/XP can be shown on reel cards and leaderboard.
     match /ai_feedback/{feedbackId} {
-      allow read: if isAuth() && resource.data.userId == request.auth.uid;
+      allow read: if true;
       allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
       allow update: if isAuth() && resource.data.userId == request.auth.uid;
       allow delete: if false;
     }
 
     // ─── Training sessions / profile ─────────────────────────────
+    // Public read so leaderboard and profile views can aggregate scores.
     match /training_sessions/{sessionId} {
-      allow read: if isAuth() && resource.data.userId == request.auth.uid;
+      allow read: if true;
       allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAuth() && resource.data.userId == request.auth.uid;
     }
@@ -169,11 +188,9 @@ service cloud.firestore {
     }
 
     // ─── Coach bookings ───────────────────────────────────────────
+    // isAuth() read so coach public profile can show completed session count.
     match /coach_bookings/{bookingId} {
-      allow read: if isAuth() && (
-        resource.data.userId == request.auth.uid ||
-        resource.data.coachId == request.auth.uid
-      );
+      allow read: if isAuth();
       allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
       allow update: if isAuth() && (
         resource.data.userId == request.auth.uid ||
