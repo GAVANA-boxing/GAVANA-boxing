@@ -95,35 +95,42 @@ export default function FighterDetailPage() {
     <div style={{ ...s.page, background: `radial-gradient(ellipse at top center, ${acc}12 0%, transparent 40%), #080808` }} className="page-enter">
 
       {/* ══════════ HERO ══════════ */}
-      <div style={{ ...s.hero, background: `linear-gradient(175deg, ${acc}28 0%, ${acc}0a 40%, #080808 75%)` }} className="hero-enter">
+      <div style={{ ...s.hero, background: `linear-gradient(180deg, ${acc}30 0%, ${acc}0e 55%, #080808 88%)` }} className="hero-enter">
         {/* Glow accent bar at very top */}
-        <div style={{ ...s.heroTopBar, background: `linear-gradient(90deg, ${acc} 0%, ${acc}88 50%, transparent 100%)` }} />
+        <div style={{ ...s.heroTopBar, background: `linear-gradient(90deg, ${acc} 0%, ${acc}66 60%, transparent 100%)` }} />
 
-        {/* Ambient radial glow */}
-        <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: "100%", height: "100%", background: `radial-gradient(ellipse at 50% 0%, ${acc}20 0%, transparent 60%)`, pointerEvents: "none" }} />
+        {/* Ambient radial glow — larger, more dramatic */}
+        <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: "140%", height: "100%", background: `radial-gradient(ellipse at 50% 10%, ${acc}2a 0%, transparent 55%)`, pointerEvents: "none" }} />
+
+        {/* Faint grid lines for depth */}
+        <div style={{ position: "absolute", inset: 0, backgroundImage: `linear-gradient(${acc}06 1px, transparent 1px), linear-gradient(90deg, ${acc}06 1px, transparent 1px)`, backgroundSize: "44px 44px", pointerEvents: "none", opacity: 0.5 }} />
 
         <button style={s.backPill} onClick={() => router.back()}>
           ← {t("back")}
         </button>
 
-        {/* Fighter card block */}
-        <div style={s.heroCard}>
-          {/* Left: flag — large and iconic */}
-          <div style={{ ...s.heroFlagCol, borderColor: acc + "40", background: `radial-gradient(ellipse at center, ${acc}14, rgba(255,255,255,0.03))` }}>
-            <span style={s.heroFlag}>{fighter.country}</span>
-            <span style={{ ...s.heroWeightBadge, color: acc, borderColor: acc + "35" }}>
-              {fighter.weightClass}
-            </span>
+        {/* Cinematic centered fighter identity */}
+        <div style={s.heroCenter} className="silhouette-enter">
+          <p style={s.heroKicker}>GAVANA · FIGHTER STUDY</p>
+
+          {/* Flag focal point with glow */}
+          <div style={s.heroFlagDisplay}>
+            <span style={s.heroFlagBig}>{fighter.country}</span>
+            <div style={{ position: "absolute", bottom: -4, left: "50%", transform: "translateX(-50%)", width: 80, height: 20, background: `radial-gradient(ellipse, ${acc}70, transparent 70%)`, filter: "blur(10px)", pointerEvents: "none" }} />
           </div>
 
-          {/* Right: name + metadata */}
-          <div style={s.heroInfo}>
-            <p style={s.heroKicker}>FIGHTER STUDY</p>
-            <h1 style={{ ...s.heroName, color: "#fff" }}>{fighter.name.toUpperCase()}</h1>
-            <p style={s.heroNickname}>"{fighter.nickname}"</p>
-            <span style={{ ...s.heroStyleBadge, background: acc + "20", color: acc, borderColor: acc + "38" }}>
+          {/* Fighter name — Anton display font, massive */}
+          <h1 style={{ ...s.heroNameBig, textShadow: `0 0 40px ${acc}44` }}>
+            {fighter.name.toUpperCase()}
+          </h1>
+          <p style={s.heroNickname}>"{fighter.nickname}"</p>
+
+          {/* Meta row: style + weight class */}
+          <div style={s.heroMeta}>
+            <span style={{ ...s.heroStyleBadge, background: acc + "1e", color: acc, borderColor: acc + "40" }}>
               {fighter.style}
             </span>
+            <span style={s.heroWeightClass}>{fighter.weightClass}</span>
           </div>
         </div>
 
@@ -290,86 +297,89 @@ const s = {
     padding: "5px 16px",
     borderRadius: 20,
     cursor: "pointer",
-    margin: "10px 0 12px",
+    margin: "10px 0 4px",
+    position: "relative",
+    zIndex: 2,
   },
-  heroCard: {
-    display: "flex",
-    gap: 16,
-    alignItems: "flex-start",
-    padding: "0 16px",
-    marginBottom: 16,
-  },
-  heroFlagCol: {
-    flexShrink: 0,
-    width: 76,
-    border: "1px solid",
-    borderRadius: 14,
+  heroCenter: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
-    padding: "12px 6px 10px",
-    gap: 10,
-  },
-  heroFlag: {
-    fontSize: 44,
-    lineHeight: 1,
-    filter: "drop-shadow(0 4px 16px rgba(0,0,0,0.7))",
-  },
-  heroWeightBadge: {
-    fontSize: 7,
-    fontWeight: 900,
-    letterSpacing: 0.6,
-    textTransform: "uppercase",
-    border: "1px solid",
-    borderRadius: 20,
-    padding: "2px 6px",
     textAlign: "center",
-    lineHeight: 1.4,
-  },
-  heroInfo: {
-    flex: 1,
-    minWidth: 0,
-    paddingTop: 2,
+    padding: "0 20px 16px",
+    position: "relative",
+    zIndex: 2,
   },
   heroKicker: {
-    margin: "0 0 5px",
+    margin: "0 0 16px",
     fontSize: 8,
     fontWeight: 900,
-    letterSpacing: 2.5,
+    letterSpacing: 3,
     color: "rgba(255,255,255,0.25)",
     textTransform: "uppercase",
   },
-  heroName: {
-    margin: "0 0 4px",
-    fontSize: 26,
-    fontWeight: 900,
-    letterSpacing: -0.8,
+  heroFlagDisplay: {
+    position: "relative",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 14,
+  },
+  heroFlagBig: {
+    fontSize: 72,
     lineHeight: 1,
+    filter: "drop-shadow(0 8px 24px rgba(0,0,0,0.7)) drop-shadow(0 0 30px rgba(255,255,255,0.05))",
+  },
+  heroNameBig: {
+    margin: "0 0 6px",
+    fontSize: "clamp(38px, 11vw, 64px)",
+    fontFamily: "var(--font-display, 'Anton', sans-serif)",
+    fontWeight: 400,
+    letterSpacing: "0.02em",
+    lineHeight: 0.9,
     color: "#fff",
+    textTransform: "uppercase",
   },
   heroNickname: {
-    margin: "0 0 12px",
-    fontSize: 12,
-    color: "rgba(255,255,255,0.4)",
+    margin: "0 0 16px",
+    fontSize: 13,
+    color: "rgba(255,255,255,0.38)",
     fontStyle: "italic",
+    fontWeight: 400,
+  },
+  heroMeta: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    flexWrap: "wrap",
+    justifyContent: "center",
   },
   heroStyleBadge: {
     display: "inline-block",
     border: "1px solid",
     borderRadius: 20,
-    padding: "3px 11px",
+    padding: "4px 13px",
     fontSize: 9,
     fontWeight: 800,
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
+  heroWeightClass: {
+    fontSize: 9,
+    fontWeight: 700,
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
+    color: "rgba(255,255,255,0.28)",
+  },
   heroIdentity: {
-    margin: "0 16px 12px",
+    margin: "0 20px 12px",
     fontSize: 13,
-    color: "rgba(255,255,255,0.65)",
-    lineHeight: 1.6,
+    color: "rgba(255,255,255,0.62)",
+    lineHeight: 1.65,
     fontWeight: 400,
+    textAlign: "center",
+    position: "relative",
+    zIndex: 2,
   },
   heroWeapon: {
     display: "flex",

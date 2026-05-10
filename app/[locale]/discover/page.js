@@ -18,14 +18,15 @@ function FighterStudyCard({ fighter, onClick }) {
   const acc = fighter.accent;
   return (
     <button type="button" onClick={onClick} style={fs.card}>
-      <div style={{ ...fs.cardTop, background: `linear-gradient(150deg, ${acc}28 0%, #111 100%)` }}>
+      <div style={{ ...fs.cardTop, background: `linear-gradient(160deg, ${acc}30 0%, #0e0e0e 100%)` }}>
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: `radial-gradient(ellipse at 50% 0%, ${acc}18, transparent 70%)`, pointerEvents: "none" }} />
         <span style={fs.cardFlag}>{fighter.country}</span>
-        <div style={{ ...fs.cardAccentBar, background: acc }} />
+        <div style={{ ...fs.cardAccentBar, background: `linear-gradient(90deg, ${acc}, ${acc}00)` }} />
       </div>
       <div style={fs.cardBody}>
         <p style={fs.cardName}>{fighter.name}</p>
         <p style={fs.cardNickname}>"{fighter.nickname}"</p>
-        <span style={{ ...fs.cardPill, borderColor: acc + "55", color: acc }}>{fighter.style}</span>
+        <span style={{ ...fs.cardPill, borderColor: acc + "40", color: acc }}>{fighter.style}</span>
       </div>
     </button>
   );
@@ -35,39 +36,44 @@ function FighterStudyCard({ fighter, onClick }) {
 const fs = {
   card: {
     flexShrink: 0,
-    width: 120,
-    background: "#111",
-    border: "1px solid rgba(255,255,255,0.07)",
-    borderRadius: 12,
+    width: 130,
+    background: "rgba(255,255,255,0.025)",
+    border: "none",
+    borderTop: "1px solid rgba(255,255,255,0.07)",
+    borderRadius: 14,
     overflow: "hidden",
     cursor: "pointer",
     textAlign: "left",
     padding: 0,
   },
   cardTop: {
-    height: 64,
+    height: 72,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
+    overflow: "hidden",
   },
   cardFlag: {
-    fontSize: 30,
+    fontSize: 38,
     lineHeight: 1,
+    filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.6))",
+    position: "relative",
+    zIndex: 1,
   },
   cardAccentBar: {
     position: "absolute",
     bottom: 0,
     left: 0,
-    right: 0,
-    height: 2,
-    opacity: 0.5,
+    width: "70%",
+    height: 1.5,
+    opacity: 0.7,
   },
   cardBody: {
-    padding: "8px 10px 10px",
+    padding: "9px 11px 12px",
   },
   cardName: {
-    margin: "0 0 1px",
+    margin: "0 0 2px",
     fontSize: 11,
     fontWeight: 800,
     color: "#fff",
@@ -77,9 +83,9 @@ const fs = {
     textOverflow: "ellipsis",
   },
   cardNickname: {
-    margin: "0 0 6px",
+    margin: "0 0 7px",
     fontSize: 9,
-    color: "#666",
+    color: "rgba(255,255,255,0.3)",
     fontStyle: "italic",
     whiteSpace: "nowrap",
     overflow: "hidden",
@@ -89,10 +95,10 @@ const fs = {
     display: "inline-block",
     border: "1px solid",
     borderRadius: 20,
-    padding: "1px 6px",
+    padding: "2px 7px",
     fontSize: 8,
     fontWeight: 700,
-    letterSpacing: 0.2,
+    letterSpacing: 0.3,
     textTransform: "uppercase",
     lineHeight: 1.6,
   },
@@ -345,8 +351,9 @@ export default function DiscoverPage() {
     <div style={s.page} className="page-enter">
       {/* ── Header ── */}
       <div style={s.header}>
-        <p style={s.kicker}>GAVANA</p>
+        <p style={s.kicker}>GAVANA · EXPLORE</p>
         <h1 style={s.title}>{t("discoverTitle")}</h1>
+        <p style={s.subtitle}>{t("discoverSubtitle") || "Fighters. Techniques. Community."}</p>
       </div>
 
       {/* ── Stories ── */}
@@ -629,22 +636,31 @@ const s = {
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   },
   header: {
-    padding: "calc(22px + env(safe-area-inset-top)) 20px 10px",
+    padding: "calc(28px + env(safe-area-inset-top)) 20px 14px",
+    position: "relative",
   },
   kicker: {
-    margin: 0,
-    color: "#C1121F",
+    margin: "0 0 6px",
+    color: "rgba(193,18,31,0.9)",
     fontSize: 9,
     fontWeight: 900,
-    letterSpacing: 3,
+    letterSpacing: 3.5,
     textTransform: "uppercase",
   },
   title: {
-    margin: "4px 0 0",
-    fontSize: 28,
+    margin: "0 0 4px",
+    fontSize: "clamp(30px, 9vw, 42px)",
     fontWeight: 900,
-    letterSpacing: -0.5,
-    lineHeight: 1.1,
+    letterSpacing: -0.8,
+    lineHeight: 1.0,
+    fontFamily: "var(--font-display, 'Anton', sans-serif)",
+  },
+  subtitle: {
+    margin: 0,
+    fontSize: 13,
+    color: "rgba(255,255,255,0.3)",
+    fontWeight: 400,
+    lineHeight: 1.5,
   },
 
   // ── Search ──

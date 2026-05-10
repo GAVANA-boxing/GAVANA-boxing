@@ -125,6 +125,45 @@ p {
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+/* ── Identity Explosion — Typography System ── */
+
+/* Display headings: cinematic, dramatic, combat */
+.heading-display {
+  font-family: var(--font-display, 'Anton', sans-serif);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+/* Hero-scale heading: fighter names, page titles */
+.heading-hero {
+  font-family: var(--font-display, 'Anton', sans-serif);
+  font-weight: 400;
+  font-size: clamp(52px, 14vw, 88px);
+  letter-spacing: 0.01em;
+  line-height: 0.9;
+  text-transform: uppercase;
+}
+
+/* Kicker/label above headings */
+.text-kicker {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
+/* Red glow on text for accent/highlight words */
+.text-glow-red {
+  text-shadow: 0 0 20px rgba(193,18,31,0.6), 0 0 40px rgba(193,18,31,0.25);
+}
+
+.text-glow-gold {
+  text-shadow: 0 0 16px rgba(212,175,55,0.5), 0 0 32px rgba(212,175,55,0.2);
+}
+
 /* ── Immersive Combat Experience — Motion System ── */
 
 /* Soft page entrance: every major page wrapper uses this */
@@ -175,6 +214,24 @@ p {
   to   { opacity: 1; transform: scale(1); }
 }
 
+/* Cinematic shimmer for premium loading states */
+@keyframes shimmerSlide {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Fighter silhouette entrance */
+@keyframes silhouetteRise {
+  from { opacity: 0; transform: translateY(16px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Glow pulse for avatar rings */
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(193,18,31,0.4), 0 0 24px rgba(193,18,31,0.2); }
+  50%       { box-shadow: 0 0 0 2px rgba(193,18,31,0.7), 0 0 40px rgba(193,18,31,0.38); }
+}
+
 /* ── Utility animation classes ── */
 
 .page-enter {
@@ -193,6 +250,14 @@ p {
   animation: ambientBreath 3s ease-in-out infinite;
 }
 
+.silhouette-enter {
+  animation: silhouetteRise 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.glow-pulse {
+  animation: glowPulse 2.8s ease-in-out infinite;
+}
+
 .pulse-ring::after {
   content: '';
   position: absolute;
@@ -200,4 +265,11 @@ p {
   border-radius: 50%;
   border: 1px solid currentColor;
   animation: pulseRing 2s ease-out infinite;
+}
+
+/* ── Premium Shimmer Skeleton ── */
+.shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.09) 50%, rgba(255,255,255,0.03) 100%);
+  background-size: 200% 100%;
+  animation: shimmerSlide 1.8s ease infinite;
 }

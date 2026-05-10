@@ -11,11 +11,15 @@ function FighterGridCard({ fighter, onClick }) {
   return (
     <button type="button" onClick={onClick} style={s.card}>
       {/* Gradient top */}
-      <div style={{ ...s.cardTop, background: `linear-gradient(160deg, ${acc}3a 0%, #0e0e0e 100%)` }}>
+      <div style={{ ...s.cardTop, background: `linear-gradient(160deg, ${acc}40 0%, #0c0c0c 100%)` }}>
         <span style={s.cardFlag}>{fighter.country}</span>
         <div style={{ ...s.cardAccentBar, background: `linear-gradient(90deg, ${acc}, ${acc}00)` }} />
         {/* Ambient corner glow */}
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: `radial-gradient(ellipse at 50% 0%, ${acc}18, transparent 70%)`, pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: `radial-gradient(ellipse at 50% 0%, ${acc}22, transparent 70%)`, pointerEvents: "none" }} />
+        {/* Weight class chip */}
+        <span style={{ position: "absolute", bottom: 7, right: 8, fontSize: 7, fontWeight: 900, letterSpacing: 0.5, color: acc, opacity: 0.75, textTransform: "uppercase" }}>
+          {fighter.weightClass.split(" ")[0]}
+        </span>
       </div>
       {/* Info */}
       <div style={s.cardBody}>
@@ -115,11 +119,12 @@ const s = {
   },
   title: {
     margin: "0 0 8px",
-    fontSize: 32,
+    fontSize: "clamp(34px, 10vw, 52px)",
     fontWeight: 900,
-    letterSpacing: -0.8,
-    lineHeight: 1.05,
+    letterSpacing: -0.5,
+    lineHeight: 0.95,
     color: "#fff",
+    fontFamily: "var(--font-display, 'Anton', sans-serif)",
   },
   subtitle: {
     margin: 0,
