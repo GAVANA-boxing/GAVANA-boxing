@@ -136,21 +136,23 @@ function ScoreChart({ scores, t }) {
 function StatCard({ icon, label, value, sub, valueColor, accent }) {
   return (
     <div style={{
-      background: accent ? "rgba(193,18,31,0.07)" : "rgba(255,255,255,0.03)",
-      border: `1px solid ${accent ? "rgba(193,18,31,0.22)" : "rgba(255,255,255,0.06)"}`,
-      borderRadius: 12,
-      padding: "11px 13px 10px",
+      background: accent
+        ? "radial-gradient(ellipse at top left, rgba(193,18,31,0.12), rgba(193,18,31,0.04) 70%)"
+        : "rgba(255,255,255,0.025)",
+      borderRadius: 14,
+      padding: "12px 13px 11px",
+      borderTop: accent ? "1px solid rgba(193,18,31,0.18)" : "1px solid rgba(255,255,255,0.05)",
     }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 5 }}>
-        <span style={{ fontSize: 13 }}>{icon}</span>
-        <span style={{ fontSize: 9, fontWeight: 800, color: "#4a4a4a", textTransform: "uppercase", letterSpacing: "0.07em" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 6 }}>
+        <span style={{ fontSize: 12 }}>{icon}</span>
+        <span style={{ fontSize: 8, fontWeight: 900, color: "#3d3d3d", textTransform: "uppercase", letterSpacing: "0.08em" }}>
           {label}
         </span>
       </div>
-      <div style={{ fontSize: 18, fontWeight: 900, color: valueColor || "#fff", lineHeight: 1, marginBottom: sub ? 3 : 0 }}>
+      <div style={{ fontSize: 20, fontWeight: 900, color: valueColor || "#fff", lineHeight: 1, marginBottom: sub ? 3 : 0, letterSpacing: "-0.02em" }}>
         {value}
       </div>
-      {sub && <div style={{ fontSize: 10, color: "#555", marginTop: 2 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 9, color: "#444", marginTop: 3 }}>{sub}</div>}
     </div>
   );
 }
@@ -164,37 +166,39 @@ function RankBar({ xp, t }) {
 
   return (
     <div style={{
-      background: "rgba(255,255,255,0.03)",
-      border: "1px solid rgba(255,255,255,0.06)",
-      borderRadius: 14,
-      padding: "14px 16px",
+      background: `radial-gradient(ellipse at left, ${rank.color}10, transparent 65%), rgba(255,255,255,0.025)`,
+      borderRadius: 16,
+      padding: "16px 18px",
+      borderTop: `1px solid ${rank.color}22`,
     }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
         <div>
-          <div style={{ fontSize: 9, fontWeight: 800, color: "#555", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 3 }}>
+          <div style={{ fontSize: 8, fontWeight: 900, color: "#3d3d3d", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>
             {t("dashboardCurrentRank")}
           </div>
-          <div style={{ fontSize: 16, fontWeight: 900, color: rank.color }}>{t(rank.key)}</div>
+          <div style={{ fontSize: 18, fontWeight: 900, color: rank.color, letterSpacing: "-0.01em" }}>{t(rank.key)}</div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: 9, fontWeight: 800, color: "#555", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 3 }}>
+          <div style={{ fontSize: 8, fontWeight: 900, color: "#3d3d3d", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>
             {t("dashboardXP")}
           </div>
-          <div style={{ fontSize: 16, fontWeight: 900, color: "#D4AF37" }}>{xp.toLocaleString()}</div>
+          <div style={{ fontSize: 18, fontWeight: 900, color: "#D4AF37", letterSpacing: "-0.01em" }}>{xp.toLocaleString()}</div>
         </div>
       </div>
-      <div style={{ background: "rgba(255,255,255,0.07)", borderRadius: 999, height: 5, overflow: "hidden" }}>
+      <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: 999, height: 4, overflow: "hidden" }}>
         <div style={{
           height: "100%", borderRadius: 999,
           background: rank.gradient || rank.color,
           width: `${progress}%`,
-          transition: "width 600ms ease",
+          transition: "width 700ms cubic-bezier(0.4, 0, 0.2, 1)",
+          boxShadow: `0 0 12px ${rank.color}88`,
+          animation: "rankFill 900ms cubic-bezier(0.16, 1, 0.3, 1) both",
         }} />
       </div>
       {next && (
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 5 }}>
-          <span style={{ fontSize: 9, color: "#444" }}>{t(rank.key)}</span>
-          <span style={{ fontSize: 9, color: "#555" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
+          <span style={{ fontSize: 9, color: "#3d3d3d" }}>{t(rank.key)}</span>
+          <span style={{ fontSize: 9, color: "#444" }}>
             {(next.minXP - xp).toLocaleString()} {t("dashboardToGo")} → {t(next.key)}
           </span>
         </div>
@@ -257,8 +261,9 @@ function SessionRow({ session, t }) {
       padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.04)",
     }}>
       <div style={{
-        width: 38, height: 38, borderRadius: 10, flexShrink: 0,
-        background: `${scoreColor}14`, border: `1px solid ${scoreColor}30`,
+        width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+        background: `${scoreColor}10`,
+        borderTop: `1px solid ${scoreColor}25`,
         display: "flex", alignItems: "center", justifyContent: "center",
       }}>
         <span style={{ fontSize: 13, fontWeight: 900, color: scoreColor }}>
@@ -510,10 +515,9 @@ function Section({ title, children }) {
   return (
     <section>
       <h2 style={{
-        margin: "0 0 12px",
-        fontSize: 10, fontWeight: 900,
-        color: "#D4AF37", textTransform: "uppercase", letterSpacing: "0.1em",
-        paddingBottom: 10, borderBottom: "1px solid rgba(255,255,255,0.06)",
+        margin: "0 0 14px",
+        fontSize: 9, fontWeight: 900,
+        color: "rgba(212,175,55,0.5)", textTransform: "uppercase", letterSpacing: "0.14em",
       }}>
         {title}
       </h2>
@@ -643,18 +647,21 @@ export default function AthleteDashboard() {
   }
 
   return (
-    <div style={{ background: "#070707", minHeight: "100dvh", color: "#fff" }}>
-      <div style={{ maxWidth: 540, margin: "0 auto", padding: "calc(16px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom))" }}>
+    <div style={{ background: "radial-gradient(ellipse at top center, rgba(193,18,31,0.06) 0%, transparent 50%), #070707", minHeight: "100dvh", color: "#fff" }} className="page-enter">
+      <div style={{ maxWidth: 540, margin: "0 auto", padding: "calc(20px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom))" }}>
 
         {/* Page header */}
-        <div style={{ marginBottom: 24 }}>
-          <h1 style={{ margin: "0 0 2px", fontSize: 22, fontWeight: 900, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1 }}>
+        <div style={{ marginBottom: 28 }}>
+          <p style={{ margin: "0 0 4px", fontSize: 9, fontWeight: 900, color: "#C1121F", letterSpacing: 3, textTransform: "uppercase" }}>
+            GAVANA
+          </p>
+          <h1 style={{ margin: "0 0 2px", fontSize: 24, fontWeight: 900, color: "#fff", letterSpacing: "-0.025em", lineHeight: 1 }}>
             {userData?.username || user?.displayName || pageTitle}
           </h1>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 5 }}>
             <span style={{ fontSize: 12, color: rank.color, fontWeight: 800 }}>{t(rank.key)}</span>
-            <span style={{ fontSize: 10, color: "#333" }}>·</span>
-            <span style={{ fontSize: 11, color: "#555" }}>{pageTitle}</span>
+            <span style={{ fontSize: 10, color: "#2a2a2a" }}>·</span>
+            <span style={{ fontSize: 11, color: "#444" }}>{pageTitle}</span>
           </div>
         </div>
 
@@ -693,13 +700,10 @@ export default function AthleteDashboard() {
           {/* ── E. AI Progress Insight ── */}
           <Section title={t("dashboardAIInsight")}>
             <div style={{
-              background: INSIGHT_COLORS[insight.type].bg,
-              border: `1px solid ${INSIGHT_COLORS[insight.type].border}`,
-              borderLeft: `3px solid ${INSIGHT_COLORS[insight.type].text}`,
-              borderRadius: 12,
-              padding: "14px 16px",
+              padding: "4px 0 4px 16px",
+              borderLeft: `2px solid ${INSIGHT_COLORS[insight.type].text}`,
             }}>
-              <p style={{ margin: 0, fontSize: 13, color: "#ddd", lineHeight: 1.6, fontWeight: 600 }}>
+              <p style={{ margin: 0, fontSize: 14, color: "rgba(255,255,255,0.72)", lineHeight: 1.65, fontWeight: 500, letterSpacing: "0.01em" }}>
                 {insight.text}
               </p>
             </div>
@@ -708,10 +712,9 @@ export default function AthleteDashboard() {
           {/* ── B. Score History Chart ── */}
           <Section title={t("dashboardScoreHistory")}>
             <div style={{
-              background: "rgba(255,255,255,0.02)",
-              border: "1px solid rgba(255,255,255,0.06)",
-              borderRadius: 12,
-              padding: "14px",
+              background: "radial-gradient(ellipse at center bottom, rgba(193,18,31,0.05), transparent 70%)",
+              borderRadius: 14,
+              padding: "12px 6px 8px",
             }}>
               <ScoreChart scores={stats.chronoScores} t={t} />
             </div>

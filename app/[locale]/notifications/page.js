@@ -118,23 +118,25 @@ function getTimestampMs(timestamp) {
   return Number.isNaN(time) ? 0 : time;
 }
 
-function formatRelativeTime(timestamp, t) {
+function formatRelativeTime(timestamp) {
   const time = getTimestampMs(timestamp);
   if (!time) return "";
 
   const diffSeconds = Math.max(1, Math.floor((Date.now() - time) / 1000));
-  if (diffSeconds < 60) return t("timeSecondsAgo").replace("{n}", diffSeconds);
+  if (diffSeconds < 60) return "now";
 
   const diffMinutes = Math.floor(diffSeconds / 60);
-  if (diffMinutes < 60) return t("timeMinutesAgo").replace("{n}", diffMinutes);
+  if (diffMinutes < 60) return `${diffMinutes}m`;
 
   const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) return t("timeHoursAgo").replace("{n}", diffHours);
+  if (diffHours < 24) return `${diffHours}h`;
 
   const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 7) return t("timeDaysAgo").replace("{n}", diffDays);
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays}d`;
 
-  return new Date(time).toLocaleDateString();
+  const d = new Date(time);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 function getTimeGroup(timestamp) {
@@ -378,7 +380,7 @@ export default function NotificationsPage() {
   }
 
   return (
-    <main style={styles.page}>
+    <main style={styles.page} className="page-enter">
       <header style={styles.header}>
         <button style={styles.backButton} onClick={() => router.push(`/${locale}/reels`)}>
           {t("back")}
@@ -417,53 +419,53 @@ export default function NotificationsPage() {
                       key={notification.id}
                       style={{
                         ...styles.notification,
-                        ...(notification.read === false ? styles.notificationUnread : {}),
+                        background: notification.read === false
+                          ? "linear-gradient(90deg, rgba(193,18,31,0.12) 0%, rgba(12,10,10,0.96) 50%)"
+                          : "rgba(255,255,255,0.025)",
                       }}
                       onClick={() => handleOpenNotification(notification)}
                     >
-                      <div
-                        style={{
-                          ...styles.unreadRail,
-                          opacity: notification.read === false ? 0.92 : 0,
-                        }}
-                      />
-                      <div style={styles.avatar}>
-                        {actorPhoto ? (
-                          <img src={actorPhoto} alt="" style={styles.avatarImage} />
-                        ) : (
-                          actor.charAt(0).toUpperCase()
-                        )}
+                      {/* Unread bar */}
+                      {notification.read === false && (
+                        <div style={styles.unreadBar} />
+                      )}
+                      {/* Avatar with type badge */}
+                      <div style={styles.avatarWrap}>
+                        <div style={{
+                          ...styles.avatar,
+                          ...(notification.read === false ? {
+                            boxShadow: "0 0 0 2px rgba(193,18,31,0.5), 0 0 16px rgba(193,18,31,0.2)",
+                          } : {}),
+                        }}>
+                          {actorPhoto
+                            ? <img src={actorPhoto} alt="" style={styles.avatarImage} />
+                            : actor.charAt(0).toUpperCase()}
+                        </div>
+                        <span style={styles.typeBadge}>{typeIcon}</span>
                       </div>
+                      {/* Body */}
                       <div style={styles.notificationBody}>
                         <div style={styles.notificationTopLine}>
-                          <span style={styles.username}>@{actor}</span>
-                          <span style={styles.typePill}>{typeIcon} {getTypeLabel(notification.type, t)}</span>
+                          <span style={styles.username}>{actor}</span>
+                          <span style={styles.date}>{formatRelativeTime(notification.createdAt)}</span>
                         </div>
                         <div style={styles.notificationText}>
                           {getTranslatedNotificationText(notification, t)}
                         </div>
                         {notification.type === "pvp_challenge" && (
                           <div style={styles.pvpScoreRow}>
-                            <span style={{
-                              color: notification.result === "win" ? "#F87171" : "#34D399",
-                              fontWeight: 900,
-                            }}>
+                            <span style={{ color: notification.result === "win" ? "#F87171" : "#34D399", fontWeight: 900 }}>
                               {Number(notification.challengerScore ?? 0).toFixed(1)}/10
                             </span>
-                            <span style={{ color: "#555" }}> vs </span>
+                            <span style={{ color: "#444" }}> vs </span>
                             <span style={{ color: "#D4AF37", fontWeight: 900 }}>
                               {Number(notification.opponentScore ?? 0).toFixed(1)}/10
                             </span>
                           </div>
                         )}
                         {notification.text && (
-                          <div style={styles.commentPreview}>
-                            {notification.text}
-                          </div>
+                          <div style={styles.commentPreview}>{notification.text}</div>
                         )}
-                      </div>
-                      <div style={styles.meta}>
-                        <span style={styles.date}>{formatRelativeTime(notification.createdAt, t)}</span>
                       </div>
                     </button>
                   );
@@ -500,7 +502,7 @@ function BoxingGloveIcon() {
 const styles = {
   page: {
     minHeight: "100vh",
-    background: "linear-gradient(180deg, #070707 0%, #0B0B0B 100%)",
+    background: "radial-gradient(ellipse at top center, rgba(193,18,31,0.06) 0%, transparent 50%), linear-gradient(180deg, #070707 0%, #0a0a0a 100%)",
     color: "#fff",
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     paddingBottom: 32,
@@ -518,80 +520,84 @@ const styles = {
     top: 0,
     zIndex: 10,
     display: "grid",
-    gridTemplateColumns: "64px 1fr 44px",
+    gridTemplateColumns: "56px 1fr 44px",
     alignItems: "center",
     gap: 12,
-    padding: "18px 16px",
-    background: "rgba(7,7,7,0.92)",
-    backdropFilter: "blur(14px)",
-    borderBottom: "1px solid rgba(212,175,55,0.18)",
+    padding: "calc(env(safe-area-inset-top) + 14px) 16px 14px",
+    background: "rgba(7,7,7,0.94)",
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
+    borderBottom: "1px solid rgba(255,255,255,0.05)",
   },
   backButton: {
-    borderWidth: "1px",
-    borderStyle: "solid",
-    borderColor: "rgba(212,175,55,0.28)",
-    background: "transparent",
-    color: "#fff",
+    border: "none",
+    background: "rgba(255,255,255,0.07)",
+    color: "rgba(255,255,255,0.7)",
     borderRadius: 10,
     padding: "8px 10px",
     cursor: "pointer",
+    fontSize: 13,
+    fontWeight: 700,
   },
   eyebrow: {
     margin: 0,
-    color: "#D4AF37",
-    fontSize: 11,
-    fontWeight: 800,
-    letterSpacing: 1.5,
+    color: "rgba(212,175,55,0.6)",
+    fontSize: 9,
+    fontWeight: 900,
+    letterSpacing: 2,
     textAlign: "center",
+    textTransform: "uppercase",
   },
   title: {
-    margin: "4px 0 0",
+    margin: "3px 0 0",
     textAlign: "center",
-    fontSize: 30,
-    fontWeight: 950,
+    fontSize: 22,
+    fontWeight: 900,
+    letterSpacing: "-0.02em",
   },
   unreadPill: {
     justifySelf: "end",
-    minWidth: 28,
-    height: 28,
-    borderRadius: 14,
+    minWidth: 26,
+    height: 26,
+    borderRadius: 13,
     background: "#C1121F",
+    boxShadow: "0 0 12px rgba(193,18,31,0.5)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: 12,
-    fontWeight: 800,
+    fontSize: 11,
+    fontWeight: 900,
   },
   unreadPillMuted: {
     justifySelf: "end",
-    minWidth: 28,
-    height: 28,
-    borderRadius: 14,
-    background: "rgba(255,255,255,0.08)",
-    color: "#aaa",
+    minWidth: 26,
+    height: 26,
+    borderRadius: 13,
+    background: "rgba(255,255,255,0.06)",
+    color: "#555",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 800,
   },
   list: {
     maxWidth: 640,
     margin: "0 auto",
-    padding: "16px",
+    padding: "12px 16px",
   },
   group: {
     display: "grid",
-    gap: 10,
-    marginBottom: 22,
+    gap: 6,
+    marginBottom: 28,
   },
   groupTitle: {
-    color: "#D4AF37",
-    fontSize: 11,
+    color: "rgba(212,175,55,0.55)",
+    fontSize: 10,
     fontWeight: 900,
-    letterSpacing: 1.3,
+    letterSpacing: 2,
     textTransform: "uppercase",
-    padding: "4px 2px",
+    padding: "6px 2px 8px",
   },
   empty: {
     minHeight: "60vh",
@@ -603,72 +609,70 @@ const styles = {
     textAlign: "center",
   },
   emptyIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    background: "#111",
-    color: "#D4AF37",
-    borderWidth: "1px",
-    borderStyle: "solid",
-    borderColor: "rgba(212,175,55,0.28)",
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    background: "rgba(193,18,31,0.08)",
+    color: "rgba(212,175,55,0.7)",
+    border: "1px solid rgba(212,175,55,0.15)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 16,
-    boxShadow: "0 18px 44px rgba(0,0,0,0.28)",
+    boxShadow: "0 0 32px rgba(193,18,31,0.1)",
   },
   emptyTitle: {
     margin: 0,
     color: "#fff",
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: 800,
   },
   emptyText: {
     margin: "8px 0 0",
-    maxWidth: 280,
-    lineHeight: 1.5,
+    maxWidth: 260,
+    lineHeight: 1.55,
+    fontSize: 13,
+    color: "#555",
   },
   notification: {
     width: "100%",
-    display: "grid",
-    gridTemplateColumns: "4px 46px minmax(0, 1fr) auto",
+    display: "flex",
     alignItems: "center",
-    gap: 12,
-    padding: "14px 14px 14px 0",
-    borderWidth: "1px",
-    borderStyle: "solid",
-    borderColor: "rgba(255,255,255,0.08)",
+    gap: 13,
+    padding: "13px 14px",
+    border: "none",
     borderRadius: 16,
-    background: "rgba(11,11,11,0.96)",
     color: "#fff",
     textAlign: "left",
     cursor: "pointer",
-    boxShadow: "0 12px 32px rgba(0,0,0,0.22)",
     position: "relative",
     overflow: "hidden",
+    transition: "background 200ms ease",
   },
-  notificationUnread: {
-    background: "linear-gradient(90deg, rgba(193,18,31,0.14), rgba(11,11,11,0.98) 34%)",
-    borderColor: "rgba(193,18,31,0.26)",
+  unreadBar: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: 3,
+    bottom: 0,
+    background: "linear-gradient(180deg, #C1121F, rgba(193,18,31,0.4))",
+    borderRadius: "3px 0 0 3px",
   },
-  unreadRail: {
-    width: 4,
-    alignSelf: "stretch",
-    borderRadius: "0 4px 4px 0",
-    background: "#C1121F",
-    opacity: 0.92,
+  avatarWrap: {
+    position: "relative",
+    flexShrink: 0,
   },
   avatar: {
     width: 46,
     height: 46,
-    borderRadius: 23,
-    background: "linear-gradient(145deg, #C1121F, #6d0a12)",
+    borderRadius: "50%",
+    background: "#1a1a1a",
     color: "#fff",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontWeight: 900,
-    boxShadow: "0 0 24px rgba(193,18,31,0.22)",
+    fontWeight: 800,
+    fontSize: 17,
     overflow: "hidden",
     flexShrink: 0,
   },
@@ -678,68 +682,64 @@ const styles = {
     objectFit: "cover",
     display: "block",
   },
+  typeBadge: {
+    position: "absolute",
+    bottom: -2,
+    right: -4,
+    width: 19,
+    height: 19,
+    borderRadius: "50%",
+    background: "#0d0d0d",
+    border: "1.5px solid #1a1a1a",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 10,
+    lineHeight: 1,
+  },
   notificationBody: {
     minWidth: 0,
     flex: 1,
   },
   notificationTopLine: {
     display: "flex",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 4,
+    justifyContent: "space-between",
+    alignItems: "baseline",
+    marginBottom: 3,
   },
   username: {
     fontSize: 13,
-    fontWeight: 900,
+    fontWeight: 800,
     color: "#fff",
-  },
-  typePill: {
-    borderRadius: 999,
-    background: "rgba(255,255,255,0.055)",
-    color: "#D4AF37",
-    borderWidth: "1px",
-    borderStyle: "solid",
-    borderColor: "rgba(212,175,55,0.16)",
-    padding: "2px 7px",
-    fontSize: 10,
-    fontWeight: 900,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
     whiteSpace: "nowrap",
+    maxWidth: "65%",
+  },
+  date: {
+    color: "#444",
+    fontSize: 10,
+    whiteSpace: "nowrap",
+    flexShrink: 0,
   },
   notificationText: {
-    fontSize: 15,
-    fontWeight: 700,
-    lineHeight: 1.35,
+    fontSize: 13,
+    color: "rgba(255,255,255,0.55)",
+    lineHeight: 1.4,
   },
   commentPreview: {
-    marginTop: 6,
-    color: "#aaa",
-    fontSize: 14,
+    marginTop: 5,
+    color: "#555",
+    fontSize: 12,
     lineHeight: 1.4,
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
-  },
-  meta: {
-    display: "grid",
-    justifyItems: "end",
-    alignSelf: "stretch",
-    alignContent: "center",
-  },
-  unreadDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    background: "#C1121F",
-    boxShadow: "0 0 14px rgba(193,18,31,0.7)",
-  },
-  date: {
-    color: "#777",
-    fontSize: 12,
-    whiteSpace: "nowrap",
+    fontStyle: "italic",
   },
   pvpScoreRow: {
     marginTop: 4,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: 700,
     color: "#aaa",
   },

@@ -7,89 +7,81 @@ import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { translate } from "@/lib/i18n";
 
-function NavIcon({ children, active = false }) {
+// ─── SVG Icons ────────────────────────────────────────────────────────────────
+function HomeIcon({ active }) {
   return (
-    <svg
-      style={{
-        ...styles.icon,
-        color: active ? "#C1121F" : "#444",
-      }}
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
-      {children}
+    <svg style={{ ...ic, color: active ? "#fff" : "#3a3a3a" }} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M3 12L12 4l9 8" />
+      <path d="M5 10v9a1 1 0 0 0 1 1h4v-5h4v5h4a1 1 0 0 0 1-1v-9" />
     </svg>
-  );
-}
-
-function ReelsIcon({ active }) {
-  return (
-    <NavIcon active={active}>
-      <rect x="6" y="4" width="12" height="16" rx="2.2" />
-      <path d="M11 9.2 15 12l-4 2.8V9.2Z" />
-    </NavIcon>
   );
 }
 
 function DiscoverIcon({ active }) {
   return (
-    <NavIcon active={active}>
-      <circle cx="11" cy="11" r="5" />
-      <path d="m16.5 16.5 3.5 3.5" />
-    </NavIcon>
-  );
-}
-
-function CoachIcon({ active }) {
-  return (
-    <NavIcon active={active}>
-      <path d="M5 8.8A4.8 4.8 0 0 1 9.8 4h4.4A4.8 4.8 0 0 1 19 8.8v2.6a4.8 4.8 0 0 1-4.8 4.8H9.4L5 20v-8.6" />
-      <path d="M9 10.5h6M9 13.5h3.6" />
-    </NavIcon>
+    <svg style={{ ...ic, color: active ? "#fff" : "#3a3a3a" }} viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="11" cy="11" r="6" />
+      <path d="m17 17 3.5 3.5" />
+    </svg>
   );
 }
 
 function AlertsIcon({ active }) {
   return (
-    <NavIcon active={active}>
+    <svg style={{ ...ic, color: active ? "#fff" : "#3a3a3a" }} viewBox="0 0 24 24" aria-hidden="true">
       <path d="M18 10.5V9a6 6 0 0 0-12 0v1.5c0 2.7-1.2 3.8-2.2 5h16.4c-1-1.2-2.2-2.3-2.2-5Z" />
       <path d="M9.7 18.5a2.5 2.5 0 0 0 4.6 0" />
-    </NavIcon>
+    </svg>
   );
 }
 
-function ProfileIcon({ active }) {
+function PlusIcon() {
   return (
-    <NavIcon active={active}>
-      <circle cx="12" cy="8" r="3.4" />
-      <path d="M5.5 20a6.5 6.5 0 0 1 13 0" />
-    </NavIcon>
-  );
-}
-
-function UploadIcon() {
-  return (
-    <svg style={styles.uploadIcon} viewBox="0 0 24 24" aria-hidden="true">
+    <svg style={icPlus} viewBox="0 0 24 24" aria-hidden="true">
       <path d="M12 5v14M5 12h14" />
     </svg>
   );
 }
 
-function NavTab({ label, active, onClick, children, badge }) {
+// ─── Profile avatar tab ───────────────────────────────────────────────────────
+function ProfileTab({ user, active, onClick }) {
+  const photo = user?.photoURL || user?.profileImageUrl || "";
+  const initial = (user?.displayName || user?.username || "?").charAt(0).toUpperCase();
+
   return (
-    <button type="button" onClick={onClick} style={styles.tab}>
-      <span style={styles.iconWrap}>
-        {children}
-        {badge > 0 && <span style={styles.badge}>{badge > 9 ? "9+" : badge}</span>}
+    <button type="button" onClick={onClick} style={s.iconTab} aria-label="Profile">
+      <span style={{
+        ...s.avatarWrap,
+        boxShadow: active ? "0 0 0 2px #C1121F" : "0 0 0 1.5px rgba(255,255,255,0.08)",
+      }}>
+        {photo
+          ? <img src={photo} alt="" style={s.avatarImg} />
+          : <span style={{ ...s.avatarInitial, background: active ? "#C1121F" : "#222" }}>{initial}</span>
+        }
       </span>
-      <span style={{ ...styles.label, color: active ? "#C1121F" : "#444" }}>
-        {label}
-      </span>
-      <span style={{ ...styles.indicator, opacity: active ? 1 : 0 }} />
     </button>
   );
 }
 
+// ─── Icon tab ─────────────────────────────────────────────────────────────────
+function IconTab({ active, onClick, badge, children, label }) {
+  return (
+    <button type="button" onClick={onClick} style={s.iconTab} aria-label={label}>
+      <span style={{
+        ...s.iconGlow,
+        background: active ? "rgba(193,18,31,0.12)" : "transparent",
+        boxShadow: active ? "0 0 16px rgba(193,18,31,0.18)" : "none",
+      }}>
+        {children}
+        {badge > 0 && (
+          <span style={s.badge}>{badge > 9 ? "9+" : badge}</span>
+        )}
+      </span>
+    </button>
+  );
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
 export default function BottomNav({
   router,
   user,
@@ -107,43 +99,22 @@ export default function BottomNav({
   const resolvedActiveTab = activeTab || getActiveTab(pathname);
   const t = (key) => translate(currentLocale, key);
 
+  // Unread notification count
   useEffect(() => {
-    if (!user?.uid) {
-      setUnreadCount(0);
-      return;
-    }
-
-    let isActive = true;
-    const unreadQuery = query(
+    if (!user?.uid) { setUnreadCount(0); return; }
+    let active = true;
+    const q = query(
       collection(db, "notifications"),
       where("recipientId", "==", user.uid),
       where("read", "==", false)
     );
-
-    const unsubscribe = onSnapshot(unreadQuery, (snapshot) => {
-      if (isActive) {
-        setUnreadCount(snapshot.size);
-      }
-    }, (error) => {
-      if (isActive) {
-        console.error("Failed to listen for unread notifications:", error);
-        setUnreadCount(0);
-      }
-    });
-
-    return () => {
-      isActive = false;
-      unsubscribe();
-    };
+    const unsub = onSnapshot(q, (snap) => { if (active) setUnreadCount(snap.size); },
+      () => { if (active) setUnreadCount(0); });
+    return () => { active = false; unsub(); };
   }, [user?.uid]);
 
   const goToProfile = () => {
-    if (user?.uid) {
-      router.push(`/${currentLocale}/profile/${user.uid}`);
-      return;
-    }
-
-    router.push(`/${currentLocale}/login`);
+    router.push(user?.uid ? `/${currentLocale}/profile/${user.uid}` : `/${currentLocale}/login`);
   };
 
   const HUB_OPTIONS = [
@@ -153,39 +124,42 @@ export default function BottomNav({
   ];
 
   const hubOverlay = (
-    <div style={hub.overlay}>
-      <div style={hub.backdrop} onClick={() => setHubOpen(false)} />
-      <div style={hub.sheet}>
-        <div style={hub.handle} />
-        <p style={hub.sheetTitle}>{t("hubCreate")}</p>
+    <div style={h.overlay}>
+      <div style={h.backdrop} onClick={() => setHubOpen(false)} />
+      <div style={h.sheet}>
+        <div style={h.handle} />
+        <p style={h.sheetTitle}>{t("hubCreate")}</p>
 
         {HUB_OPTIONS.map(opt => (
           <button
             key={opt.label}
             type="button"
-            style={hub.option}
+            style={h.option}
             onClick={() => { router.push(opt.path); setHubOpen(false); }}
           >
-            <div style={{ ...hub.optIcon, background: opt.accent + "22", color: opt.accent }}>{opt.icon}</div>
-            <div style={hub.optText}>
-              <span style={hub.optLabel}>{opt.label}</span>
-              <span style={hub.optSub}>{opt.sub}</span>
+            <div style={{ ...h.optIcon, background: opt.accent + "1a", color: opt.accent }}>
+              {opt.icon}
             </div>
+            <div style={h.optText}>
+              <span style={h.optLabel}>{opt.label}</span>
+              <span style={h.optSub}>{opt.sub}</span>
+            </div>
+            <svg style={h.optArrow} viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg>
           </button>
         ))}
 
         {/* Live — Coming Soon */}
-        <div style={hub.optionDisabled}>
-          <div style={hub.optIconDisabled}>🔴</div>
-          <div style={hub.optText}>
-            <span style={hub.optLabelDisabled}>
-              {t("hubLive")} <span style={hub.soonBadge}>{t("hubLiveSoon")}</span>
-            </span>
-            <span style={hub.optSub}>{t("hubLiveSoonSub")}</span>
+        <div style={{ ...h.option, opacity: 0.35, cursor: "not-allowed" }}>
+          <div style={{ ...h.optIcon, background: "rgba(255,255,255,0.04)", color: "#888" }}>🔴</div>
+          <div style={h.optText}>
+            <span style={h.optLabel}>{t("hubLive")}  <span style={h.soonBadge}>{t("hubLiveSoon")}</span></span>
+            <span style={h.optSub}>{t("hubLiveSoonSub")}</span>
           </div>
         </div>
 
-        <button type="button" style={hub.cancelBtn} onClick={() => setHubOpen(false)}>{t("cancel")}</button>
+        <button type="button" style={h.cancelBtn} onClick={() => setHubOpen(false)}>
+          {t("cancel")}
+        </button>
       </div>
     </div>
   );
@@ -195,59 +169,39 @@ export default function BottomNav({
       {mounted && hubOpen && createPortal(hubOverlay, document.body)}
 
       <nav
-        style={styles.nav}
+        style={s.nav}
         onPointerEnter={onInteractStart}
-      onPointerDown={onInteractStart}
-      onPointerLeave={onInteractEnd}
-      onPointerUp={onInteractEnd}
-      onPointerCancel={onInteractEnd}
-      aria-label="Primary navigation"
-    >
-      <NavTab label={t("navReels")} active={resolvedActiveTab === "reels"} onClick={() => router.push(`/${currentLocale}/reels`)}>
-        <ReelsIcon active={resolvedActiveTab === "reels"} />
-      </NavTab>
-
-      <NavTab label={t("navDiscover")} active={resolvedActiveTab === "discover"} onClick={() => router.push(`/${currentLocale}/discover`)}>
-        <DiscoverIcon active={resolvedActiveTab === "discover"} />
-      </NavTab>
-
-      <NavTab label={t("navCoach")} active={resolvedActiveTab === "coach"} onClick={() => router.push(`/${currentLocale}/coach`)}>
-        <CoachIcon active={resolvedActiveTab === "coach"} />
-      </NavTab>
-
-      <button
-        type="button"
-        onClick={() => setHubOpen(true)}
-        style={styles.uploadTab}
-        aria-label={t("navUpload")}
+        onPointerDown={onInteractStart}
+        onPointerLeave={onInteractEnd}
+        onPointerUp={onInteractEnd}
+        onPointerCancel={onInteractEnd}
+        aria-label="Primary navigation"
       >
-        <span style={styles.uploadCircle}>
-          <UploadIcon />
-        </span>
-        <span
-          style={{
-            ...styles.uploadLabel,
-            color: resolvedActiveTab === "upload" ? "#C1121F" : "#444",
-          }}
-        >
-          {t("navUpload")}
-        </span>
-        <span style={{ ...styles.indicator, opacity: resolvedActiveTab === "upload" ? 1 : 0 }} />
-      </button>
+        {/* Home */}
+        <IconTab active={resolvedActiveTab === "reels"} onClick={() => router.push(`/${currentLocale}/reels`)} label="Home">
+          <HomeIcon active={resolvedActiveTab === "reels"} />
+        </IconTab>
 
-      <NavTab
-        label={t("navAlerts")}
-        active={resolvedActiveTab === "alerts"}
-        onClick={() => router.push(`/${currentLocale}/notifications`)}
-        badge={unreadCount}
-      >
-        <AlertsIcon active={resolvedActiveTab === "alerts"} />
-      </NavTab>
+        {/* Discover */}
+        <IconTab active={resolvedActiveTab === "discover"} onClick={() => router.push(`/${currentLocale}/discover`)} label="Discover">
+          <DiscoverIcon active={resolvedActiveTab === "discover"} />
+        </IconTab>
 
-      <NavTab label={t("navProfile")} active={resolvedActiveTab === "profile"} onClick={goToProfile}>
-        <ProfileIcon active={resolvedActiveTab === "profile"} />
-      </NavTab>
-    </nav>
+        {/* Upload + */}
+        <button type="button" onClick={() => setHubOpen(true)} style={s.plusTab} aria-label={t("navUpload")}>
+          <span style={s.plusCircle}>
+            <PlusIcon />
+          </span>
+        </button>
+
+        {/* Alerts */}
+        <IconTab active={resolvedActiveTab === "alerts"} onClick={() => router.push(`/${currentLocale}/notifications`)} badge={unreadCount} label="Alerts">
+          <AlertsIcon active={resolvedActiveTab === "alerts"} />
+        </IconTab>
+
+        {/* Profile */}
+        <ProfileTab user={user} active={resolvedActiveTab === "profile"} onClick={goToProfile} />
+      </nav>
     </>
   );
 }
@@ -256,155 +210,262 @@ function getActiveTab(pathname = "") {
   if (pathname.includes("/upload")) return "upload";
   if (pathname.includes("/discover")) return "discover";
   if (pathname.includes("/leaderboard")) return "discover";
+  if (pathname.includes("/fighters")) return "discover";
   if (pathname.includes("/rank")) return "profile";
-  if (pathname.includes("/coach")) return "coach";
+  if (pathname.includes("/coach")) return "profile";
+  if (pathname.includes("/gyms")) return "profile";
   if (pathname.includes("/notifications")) return "alerts";
   if (pathname.includes("/profile")) return "profile";
   return "reels";
 }
 
-const styles = {
+// ─── Shared icon style ────────────────────────────────────────────────────────
+const ic = {
+  width: 24,
+  height: 24,
+  display: "block",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.8,
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  transition: "color 160ms ease",
+};
+
+const icPlus = {
+  width: 22,
+  height: 22,
+  display: "block",
+  fill: "none",
+  stroke: "#fff",
+  strokeWidth: 2.2,
+  strokeLinecap: "round",
+};
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
+const s = {
   nav: {
     position: "fixed",
     left: 0,
     right: 0,
     bottom: 0,
     zIndex: 100,
-    minHeight: "calc(64px + env(safe-area-inset-bottom))",
-    padding: "8px 10px calc(8px + env(safe-area-inset-bottom))",
-    background: "#0B0B0B",
-    borderTop: "1px solid #1a1a1a",
+    height: "calc(58px + env(safe-area-inset-bottom))",
+    paddingBottom: "env(safe-area-inset-bottom)",
+    background: "rgba(8,8,8,0.97)",
+    borderTop: "1px solid rgba(255,255,255,0.06)",
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
     display: "grid",
-    gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
-    alignItems: "end",
+    gridTemplateColumns: "repeat(5, 1fr)",
+    alignItems: "center",
     boxSizing: "border-box",
   },
-  tab: {
-    minWidth: 0,
-    minHeight: 48,
+  iconTab: {
     border: "none",
     background: "transparent",
-    color: "#444",
-    display: "grid",
-    justifyItems: "center",
-    alignContent: "center",
-    gap: 4,
-    padding: "3px 0 0",
     cursor: "pointer",
-    WebkitTapHighlightColor: "transparent",
-  },
-  iconWrap: {
-    position: "relative",
-    display: "inline-flex",
+    display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    width: 24,
-    height: 24,
+    height: 58,
+    WebkitTapHighlightColor: "transparent",
+    padding: 0,
   },
-  icon: {
-    width: 22,
-    height: 22,
-    display: "block",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 1.7,
-    strokeLinecap: "round",
-    strokeLinejoin: "round",
+  iconGlow: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+    transition: "background 200ms ease, box-shadow 200ms ease",
   },
-  label: {
-    fontSize: 9,
-    lineHeight: 1,
-    letterSpacing: 0.4,
-    fontWeight: 700,
-    maxWidth: "100%",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-  },
-  indicator: {
-    width: 4,
-    height: 4,
-    borderRadius: "50%",
+  badge: {
+    position: "absolute",
+    top: 2,
+    right: 2,
+    minWidth: 14,
+    height: 14,
+    padding: "0 3px",
+    borderRadius: 7,
     background: "#C1121F",
-    transition: "opacity 180ms ease",
+    color: "#fff",
+    border: "1.5px solid rgba(8,8,8,0.97)",
+    fontSize: 8,
+    fontWeight: 900,
+    lineHeight: "11px",
+    textAlign: "center",
+    boxSizing: "border-box",
   },
-  uploadTab: {
-    minWidth: 0,
-    minHeight: 48,
+  // Plus tab
+  plusTab: {
     border: "none",
     background: "transparent",
-    color: "#444",
-    display: "grid",
-    justifyItems: "center",
-    alignContent: "center",
-    gap: 4,
-    padding: "3px 0 0",
     cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: 58,
     WebkitTapHighlightColor: "transparent",
+    padding: 0,
   },
-  uploadCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: "50%",
+  plusCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     background: "#C1121F",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    boxShadow: "0 4px 16px rgba(193,18,31,0.4)",
   },
-  uploadIcon: {
-    width: 20,
-    height: 20,
-    display: "block",
-    fill: "none",
-    stroke: "#fff",
-    strokeWidth: 2,
-    strokeLinecap: "round",
-    strokeLinejoin: "round",
-  },
-  uploadLabel: {
-    color: "#444",
-    fontSize: 9,
-    lineHeight: 1,
-    letterSpacing: 0.4,
-    fontWeight: 700,
-    maxWidth: "100%",
+  // Profile avatar
+  avatarWrap: {
+    width: 30,
+    height: 30,
+    borderRadius: "50%",
     overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    transition: "box-shadow 200ms ease",
+    flexShrink: 0,
   },
-  badge: {
-    position: "absolute",
-    top: -6,
-    right: -9,
-    minWidth: 15,
-    height: 15,
-    padding: "0 4px",
-    borderRadius: 8,
-    background: "#C1121F",
-    color: "#fff",
-    border: "1px solid #0B0B0B",
-    fontSize: 9,
+  avatarImg: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    display: "block",
+  },
+  avatarInitial: {
+    width: "100%",
+    height: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 12,
     fontWeight: 800,
-    lineHeight: "13px",
-    textAlign: "center",
-    boxSizing: "border-box",
+    color: "#fff",
   },
 };
 
-const hub = {
-  overlay: { position: "fixed", inset: 0, zIndex: 999, display: "flex", alignItems: "flex-end", justifyContent: "center" },
-  backdrop: { position: "absolute", inset: 0, background: "rgba(0,0,0,0.72)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)" },
-  sheet: { position: "relative", width: "100%", maxWidth: 520, background: "linear-gradient(180deg, #1a1212 0%, #0d0d0d 100%)", border: "1px solid rgba(212,175,55,0.14)", borderBottom: "none", borderRadius: "24px 24px 0 0", padding: "10px 20px calc(16px + env(safe-area-inset-bottom))", display: "flex", flexDirection: "column", gap: 2, boxShadow: "0 -24px 60px rgba(0,0,0,0.7)" },
-  handle: { width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.15)", alignSelf: "center", marginBottom: 10 },
-  sheetTitle: { margin: "0 0 10px", fontSize: 14, fontWeight: 900, color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: 1.5 },
-  option: { display: "flex", alignItems: "center", gap: 14, padding: "14px 12px", borderRadius: 14, border: "none", background: "transparent", cursor: "pointer", width: "100%", textAlign: "left", transition: "background 120ms" },
-  optionDisabled: { display: "flex", alignItems: "center", gap: 14, padding: "14px 12px", borderRadius: 14, opacity: 0.45, cursor: "not-allowed" },
-  optIcon: { width: 48, height: 48, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 },
-  optIconDisabled: { width: 48, height: 48, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0, background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.2)" },
-  optText: { display: "flex", flexDirection: "column", gap: 2 },
-  optLabel: { fontSize: 15, fontWeight: 800, color: "#fff" },
-  optLabelDisabled: { fontSize: 15, fontWeight: 800, color: "rgba(255,255,255,0.35)", display: "flex", alignItems: "center", gap: 8 },
-  optSub: { fontSize: 12, color: "rgba(255,255,255,0.38)", fontWeight: 500 },
-  soonBadge: { fontSize: 9, fontWeight: 900, color: "#D4AF37", background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 999, padding: "2px 7px", letterSpacing: 1 },
-  cancelBtn: { marginTop: 8, width: "100%", padding: "14px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.55)", fontSize: 14, fontWeight: 700, cursor: "pointer" },
+const h = {
+  overlay: {
+    position: "fixed",
+    inset: 0,
+    zIndex: 999,
+    display: "flex",
+    alignItems: "flex-end",
+    justifyContent: "center",
+  },
+  backdrop: {
+    position: "absolute",
+    inset: 0,
+    background: "rgba(0,0,0,0.75)",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
+  },
+  sheet: {
+    position: "relative",
+    width: "100%",
+    maxWidth: 520,
+    background: "linear-gradient(180deg, #181010 0%, #0d0d0d 100%)",
+    border: "1px solid rgba(193,18,31,0.15)",
+    borderBottom: "none",
+    borderRadius: "24px 24px 0 0",
+    padding: "12px 20px calc(20px + env(safe-area-inset-bottom))",
+    display: "flex",
+    flexDirection: "column",
+    gap: 4,
+    boxShadow: "0 -20px 60px rgba(0,0,0,0.8)",
+  },
+  handle: {
+    width: 32,
+    height: 4,
+    borderRadius: 2,
+    background: "rgba(255,255,255,0.12)",
+    alignSelf: "center",
+    marginBottom: 12,
+  },
+  sheetTitle: {
+    margin: "0 0 8px",
+    fontSize: 11,
+    fontWeight: 900,
+    color: "rgba(255,255,255,0.3)",
+    textTransform: "uppercase",
+    letterSpacing: 2,
+    paddingLeft: 4,
+  },
+  option: {
+    display: "flex",
+    alignItems: "center",
+    gap: 14,
+    padding: "14px 12px",
+    borderRadius: 14,
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    width: "100%",
+    textAlign: "left",
+  },
+  optIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 24,
+    flexShrink: 0,
+  },
+  optText: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 2,
+    flex: 1,
+  },
+  optLabel: {
+    fontSize: 16,
+    fontWeight: 800,
+    color: "#fff",
+  },
+  optSub: {
+    fontSize: 12,
+    color: "rgba(255,255,255,0.35)",
+  },
+  optArrow: {
+    width: 18,
+    height: 18,
+    fill: "none",
+    stroke: "rgba(255,255,255,0.18)",
+    strokeWidth: 2,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    flexShrink: 0,
+  },
+  soonBadge: {
+    fontSize: 8,
+    fontWeight: 900,
+    color: "#D4AF37",
+    background: "rgba(212,175,55,0.1)",
+    border: "1px solid rgba(212,175,55,0.25)",
+    borderRadius: 999,
+    padding: "1px 6px",
+    letterSpacing: 1,
+    marginLeft: 6,
+  },
+  cancelBtn: {
+    marginTop: 8,
+    width: "100%",
+    padding: "14px",
+    borderRadius: 14,
+    border: "1px solid rgba(255,255,255,0.07)",
+    background: "rgba(255,255,255,0.03)",
+    color: "rgba(255,255,255,0.4)",
+    fontSize: 14,
+    fontWeight: 700,
+    cursor: "pointer",
+  },
 };
