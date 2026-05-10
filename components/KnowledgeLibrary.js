@@ -724,6 +724,152 @@ const KO_WEEKLY_FOCUS = [
   { day: "Saturday",  emoji: "🧠", focus: "Technique Review",  desc: "촬영하거나 거울로 작업. 무엇을 고쳐야 하나?",                                       drill: "가장 약한 technique을 골라라. 10min 집중 작업만." },
 ];
 
+// ─── Combat Movement Origins content ──────────────────────────────────────────
+
+const EN_MOVEMENT = [
+  {
+    key: "animal",
+    emoji: "🐆",
+    color: "#34d399",
+    name: "Animal Movement",
+    desc: "Boxing's movement vocabulary comes from nature. Cats stalk with fluid weight shifts. Snakes strike from stillness. Bears absorb and crash forward. Study the animal, become the fighter.",
+    teaches: ["Stay light, never flat-footed", "Strike from stillness — no telegraph", "Move with intent, not panic"],
+    drill: "2min shadow: move like a cat — light steps, sudden stops, weight always ready.",
+  },
+  {
+    key: "footwork_patterns",
+    emoji: "🔺",
+    color: "#60a5fa",
+    name: "Footwork Patterns",
+    desc: "Three core patterns every ring general masters: triangle footwork (angle control), pendulum step (in-out rhythm disruption), and pivot (offline escape + counter).",
+    teaches: ["Triangle = control the angle", "Pendulum = break their rhythm", "Pivot = go offline, come back hard"],
+    drill: "Walk a triangle: forward, pivot 45° left, pivot 45° right, repeat — 3min steady.",
+  },
+  {
+    key: "rhythm_timing",
+    emoji: "🎵",
+    color: "#a78bfa",
+    name: "Rhythm & Timing",
+    desc: "The sweet science runs on rhythm. Speed is one thing — timing is everything. Break your pattern, break their timing. The counter arrives when the punch is half-thrown.",
+    teaches: ["Find your natural rhythm", "Break rhythm to create openings", "Slow down to speed up"],
+    drill: "Double-time jab: jab... jab-jab. Vary the pause every 30s. Find where the break lands.",
+  },
+  {
+    key: "defense_movement",
+    emoji: "🛡️",
+    color: "#f59e0b",
+    name: "Defense Movement",
+    desc: "Shoulder roll, pull counter, lean-back, slip — each is a system, not a trick. Defense should feel offensive: you don't just avoid the punch, you earn the counter.",
+    teaches: ["Shoulder roll: absorb and counter together", "Pull: bait the overhand", "Slip: go offline, come back hard"],
+    drill: "Pick one defense. 5min: receive every shadow punch with that defense only. Feel the counter.",
+  },
+  {
+    key: "pressure_movement",
+    emoji: "📐",
+    color: "#ef4444",
+    name: "Pressure Movement",
+    desc: "Cutting the ring isn't chasing — it's geometry. Use 45° angles to close space systematically. Walk straight in and you get countered. Cut angles and you control the cage.",
+    teaches: ["Cut 45° angles, never chase straight", "Keep them on ropes without breaking rhythm", "Jab to position, not just to score"],
+    drill: "Shadow: every 3rd step, cut left or right at 45°. Never let your ghost opponent escape to center.",
+  },
+];
+
+const MN_MOVEMENT = [
+  {
+    key: "animal",
+    emoji: "🐆",
+    color: "#34d399",
+    name: "Амьтны хөдөлгөөн",
+    desc: "Боксын хөдөлгөөний хэл байгалиас үүдэлтэй. Муур жин шилжүүлэлттэйгээр нуугддаг. Могой тайван байдлаас цохидог. Баавгай шингээж урагш шахдаг. Амьтныг судал, тулаанч бол.",
+    teaches: ["Хөнгөн бай, хэзээ ч хавтгай хөлтэй биш", "Тайван байдлаас цохих — урьдчилан мэдэгдэхгүй", "Зорилготой хөдөл, паник биш"],
+    drill: "2min shadow: муур шиг хөдөл — хөнгөн алхам, гэнэтийн зогсолт, жин үргэлж бэлэн.",
+  },
+  {
+    key: "footwork_patterns",
+    emoji: "🔺",
+    color: "#60a5fa",
+    name: "Footwork хэв маягууд",
+    desc: "Рингийн бүх жанжин эзэмшдэг гурван үндсэн хэв маяг: гурвалжин footwork (өнцөг хяналт), дүүжин алхам (хэмнэл тасалдал), pivot (шугамаас гарах + counter).",
+    teaches: ["Гурвалжин = өнцгийг хянах", "Дүүжин = тэдний хэмнэлийг эвд", "Pivot = шугамаас гар, хатуу буц"],
+    drill: "Гурвалжин алхам: урагш, 45° зүүн pivot, 45° баруун pivot, давт — 3min жигд.",
+  },
+  {
+    key: "rhythm_timing",
+    emoji: "🎵",
+    color: "#a78bfa",
+    name: "Хэмнэл ба Timing",
+    desc: "Чихэр шинжлэх ухаан хэмнэл дээр явдаг. Хурд нэг зүйл — timing бол бүх зүйл. Хэв маягаа эвд, тэдний timing-г эвд. Counter нь цохилт хагас нисэхэд ирдэг.",
+    teaches: ["Байгалийн хэмнэлээ ол", "Хэмнэл эвдэж завсар бүтээ", "Хурдасхийхийн тулд удаашир"],
+    drill: "Давхар jab: jab... jab-jab. 30 секунд тутамд завсарыг өөрчил. Завсар хаана буудгийг ол.",
+  },
+  {
+    key: "defense_movement",
+    emoji: "🛡️",
+    color: "#f59e0b",
+    name: "Хамгаалалтын хөдөлгөөн",
+    desc: "Мөрний roll, буцах counter, хойшоо хазайх, slip — тус бүр систем, трюк биш. Хамгаалалт довтолгоотой санагдах ёстой: цохилтоос зайлахгүй, counter-г олж авдаг.",
+    teaches: ["Мөрний roll: шингээж, нэгэн зэрэг counter", "Буцах: overhand-д урхи тавих", "Slip: шугамаас гар, хатуу буц"],
+    drill: "Нэг хамгаалалт сонго. 5min: зөвхөн тэр хамгаалалтаар shadow цохилт болгоныг авах. Counter мэдэр.",
+  },
+  {
+    key: "pressure_movement",
+    emoji: "📐",
+    color: "#ef4444",
+    name: "Pressure хөдөлгөөн",
+    desc: "Ринг таслах нь хөөх биш — геометр юм. 45° өнцгийг системтэйгээр зайг багасгахад ашигла. Шулуун орж ирвэл counter авна. Өнцөг таслаж, зайг хянаарай.",
+    teaches: ["45° өнцгөөр тас, шулуун хөөх биш", "Хэмнэл эвдэхгүйгээр rope дээр барих", "Jab байр эзлэхэд ашигла, оноо авахад биш"],
+    drill: "Shadow: 3 дахь алхам болгон зүүн эсвэл баруун 45°-аар тас. Shadow өрсөлдөгчийг төвд гарахыг зөвшөөрж болохгүй.",
+  },
+];
+
+const KO_MOVEMENT = [
+  {
+    key: "animal",
+    emoji: "🐆",
+    color: "#34d399",
+    name: "동물 움직임",
+    desc: "복싱의 움직임 어휘는 자연에서 비롯된다. 고양이는 무게를 유동적으로 이동하며 접근한다. 뱀은 정지 상태에서 공격한다. 곰은 흡수하며 전진한다. 동물을 연구하고 파이터가 되어라.",
+    teaches: ["가볍게 유지, 절대 평발 금지", "정지 상태에서 공격 — 예고 없이", "목적을 갖고 이동, 패닉 없이"],
+    drill: "2min shadow: 고양이처럼 움직여라 — 가벼운 발걸음, 갑작스런 정지, 무게 항상 준비.",
+  },
+  {
+    key: "footwork_patterns",
+    emoji: "🔺",
+    color: "#60a5fa",
+    name: "Footwork 패턴",
+    desc: "링의 모든 장군이 마스터하는 세 가지 핵심 패턴: 삼각 footwork(각도 제어), 진자 스텝(리듬 혼란), pivot(선 밖 탈출 + counter).",
+    teaches: ["삼각형 = 각도 제어", "진자 = 상대 리듬 교란", "Pivot = 선 밖으로, 세게 돌아오기"],
+    drill: "삼각형 걷기: 전진, 왼쪽 45° pivot, 오른쪽 45° pivot, 반복 — 3min 꾸준히.",
+  },
+  {
+    key: "rhythm_timing",
+    emoji: "🎵",
+    color: "#a78bfa",
+    name: "리듬 & 타이밍",
+    desc: "달콤한 과학은 리듬 위에서 작동한다. 속도는 하나의 요소 — timing이 전부. 패턴을 깨라, 상대의 timing을 깨라. Counter는 상대 punch가 절반 날아갈 때 도착한다.",
+    teaches: ["자연스러운 리듬 찾기", "리듬을 깨서 빈틈 만들기", "빠르게 하려면 느려져라"],
+    drill: "더블 jab: jab... jab-jab. 30초마다 pause 변경. 틈이 어디서 생기는지 찾아라.",
+  },
+  {
+    key: "defense_movement",
+    emoji: "🛡️",
+    color: "#f59e0b",
+    name: "방어 움직임",
+    desc: "숄더 롤, 풀 counter, 뒤로 기대기, slip — 각각 하나의 시스템이지 트릭이 아니다. 방어는 공격적이어야 한다: punch를 피하는 것이 아니라 counter를 얻는 것.",
+    teaches: ["숄더 롤: 흡수하며 동시에 counter", "풀: overhand를 유혹", "Slip: 선 밖으로, 세게 돌아오기"],
+    drill: "방어 하나 선택. 5min: 그 하나의 방어로만 모든 shadow punch 받아내기. Counter를 느껴라.",
+  },
+  {
+    key: "pressure_movement",
+    emoji: "📐",
+    color: "#ef4444",
+    name: "압박 움직임",
+    desc: "링을 차단하는 것은 추격이 아니라 기하학이다. 45° 각도로 체계적으로 공간을 줄여라. 직선으로 달려들면 counter를 맞는다. 각도를 끊어내면 공간을 지배한다.",
+    teaches: ["45° 각도로 차단, 직선 추격 금지", "리듬을 깨지 않고 로프에 붙잡기", "jab은 포지셔닝용, 점수만을 위한 것이 아니다"],
+    drill: "Shadow: 세 번째 스텝마다 왼쪽 또는 오른쪽 45°로 차단. 가상 상대가 중앙으로 도망가게 두지 마라.",
+  },
+];
+
 // ─── Content dispatcher functions ─────────────────────────────────────────────
 
 function getStyles(locale) {
@@ -756,6 +902,37 @@ function getWeeklyFocus(locale) {
   return EN_WEEKLY_FOCUS;
 }
 
+function getMovement(locale) {
+  if (locale === "mn") return MN_MOVEMENT;
+  if (locale === "ko") return KO_MOVEMENT;
+  return EN_MOVEMENT;
+}
+
+// ─── Fighter examples (locale-agnostic, keyed by style/technique key) ─────────
+
+const STYLE_EXAMPLES = {
+  pressure:  "Study: Canelo, GGG, Joe Frazier",
+  counter:   "Study: Floyd Mayweather, Willie Pep",
+  technical: "Study: Lomachenko, Pernell Whitaker",
+  footwork:  "Study: Muhammad Ali, Nicolino Locche",
+  southpaw:  "Study: Marvin Hagler, Pernell Whitaker",
+  longrange: "Study: Lennox Lewis, Larry Holmes",
+  inside:    "Study: Joe Frazier, Rocky Marciano",
+};
+
+const TECH_EXAMPLES = {
+  jab:      "Study: Larry Holmes, Lennox Lewis",
+  cross:    "Study: George Foreman, Earnie Shavers",
+  hook:     "Study: Joe Frazier, Julian Jackson",
+  uppercut: "Study: Mike Tyson, Riddick Bowe",
+  slip:     "Study: Willie Pep, Floyd Mayweather",
+  pivot:    "Study: Muhammad Ali, Lomachenko",
+  guard:    "Study: Floyd Mayweather, James Toney",
+  footwork: "Study: Muhammad Ali, Pernell Whitaker",
+  timing:   "Study: Archie Moore, Rigondeaux",
+  combo:    "Study: Sugar Ray Leonard, Pacquiao",
+};
+
 // ─── Quick prompts (i18n keys — locale-resolved by translate()) ───────────────
 
 const QUICK_PROMPTS = [
@@ -770,9 +947,9 @@ const QUICK_PROMPTS = [
 
 function SectionHeader({ emoji, title }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-      <span style={{ fontSize: 16 }}>{emoji}</span>
-      <h3 style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#fff", textTransform: "uppercase", letterSpacing: "0.07em" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14, paddingBottom: 10, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+      <span style={{ fontSize: 15 }}>{emoji}</span>
+      <h3 style={{ margin: 0, fontSize: 11, fontWeight: 900, color: "#D4AF37", textTransform: "uppercase", letterSpacing: "0.1em" }}>
         {title}
       </h3>
     </div>
@@ -780,58 +957,64 @@ function SectionHeader({ emoji, title }) {
 }
 
 function StyleCard({ style, onAsk, t }) {
+  const examples = STYLE_EXAMPLES[style.key];
   return (
     <div style={{
       flexShrink: 0,
       scrollSnapAlign: "start",
-      width: 220,
-      background: "#181818",
-      border: `1px solid ${style.tagColor}33`,
+      width: 224,
+      background: "rgba(14,14,14,0.92)",
+      border: `1px solid ${style.tagColor}28`,
       borderTop: `3px solid ${style.tagColor}`,
-      borderRadius: 12,
+      borderRadius: 14,
       padding: "14px 14px 12px",
       display: "flex",
       flexDirection: "column",
-      gap: 8,
+      gap: 9,
+      backdropFilter: "blur(6px)",
     }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <span style={{ fontSize: 18 }}>{style.emoji}</span>
-          <span style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>{style.name}</span>
+          <span style={{ fontSize: 13, fontWeight: 900, color: "#fff", lineHeight: 1.2 }}>{style.name}</span>
         </div>
         <span style={{
-          fontSize: 10, fontWeight: 700, color: style.tagColor,
-          background: `${style.tagColor}18`, border: `1px solid ${style.tagColor}44`,
-          borderRadius: 20, padding: "2px 7px",
+          fontSize: 9, fontWeight: 800, color: style.tagColor,
+          background: `${style.tagColor}14`, border: `1px solid ${style.tagColor}35`,
+          borderRadius: 20, padding: "2px 8px", letterSpacing: "0.04em",
         }}>{style.tag}</span>
       </div>
-      <p style={{ fontSize: 12, color: "#aaa", margin: 0, lineHeight: 1.5 }}>{style.desc}</p>
-      <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      <p style={{ fontSize: 11, color: "#999", margin: 0, lineHeight: 1.5 }}>{style.desc}</p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         {style.strengths.slice(0, 2).map((s, i) => (
           <div key={i} style={{ display: "flex", gap: 5, alignItems: "flex-start" }}>
-            <span style={{ color: "#4ade80", fontSize: 11, fontWeight: 800, flexShrink: 0 }}>✓</span>
-            <span style={{ fontSize: 11, color: "#bbb" }}>{s}</span>
+            <span style={{ color: "#4ade80", fontSize: 10, fontWeight: 900, flexShrink: 0, marginTop: 1 }}>✓</span>
+            <span style={{ fontSize: 11, color: "#ccc" }}>{s}</span>
           </div>
         ))}
         {style.weaknesses.slice(0, 1).map((w, i) => (
           <div key={i} style={{ display: "flex", gap: 5, alignItems: "flex-start" }}>
-            <span style={{ color: "#f87171", fontSize: 11, fontWeight: 800, flexShrink: 0 }}>✗</span>
-            <span style={{ fontSize: 11, color: "#bbb" }}>{w}</span>
+            <span style={{ color: "#f87171", fontSize: 10, fontWeight: 900, flexShrink: 0, marginTop: 1 }}>✗</span>
+            <span style={{ fontSize: 11, color: "#ccc" }}>{w}</span>
           </div>
         ))}
       </div>
-      <div style={{ borderTop: "1px solid #222", paddingTop: 8, marginTop: 2 }}>
-        <p style={{ fontSize: 10, color: "#ef4444", fontWeight: 700, margin: "0 0 3px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+      <div style={{ background: "rgba(193,18,31,0.06)", border: "1px solid rgba(193,18,31,0.2)", borderRadius: 8, padding: "7px 9px" }}>
+        <p style={{ fontSize: 9, color: "#C1121F", fontWeight: 800, margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
           {t("libraryPractice")}
         </p>
         <p style={{ fontSize: 11, color: "#fca5a5", margin: 0, lineHeight: 1.4 }}>{style.practice}</p>
       </div>
+      {examples && (
+        <p style={{ margin: 0, fontSize: 10, color: "#555", fontStyle: "italic", lineHeight: 1.3 }}>{examples}</p>
+      )}
       <button
         onClick={() => onAsk(`Tell me more about the ${style.name} style and what I should work on`)}
         style={{
-          marginTop: 2, padding: "7px 0", borderRadius: 8,
-          background: "#222", border: `1px solid ${style.tagColor}44`,
-          color: style.tagColor, fontSize: 11, fontWeight: 700, cursor: "pointer",
+          marginTop: 2, padding: "8px 0", borderRadius: 9,
+          background: "rgba(255,255,255,0.04)", border: `1px solid ${style.tagColor}35`,
+          color: style.tagColor, fontSize: 11, fontWeight: 800, cursor: "pointer",
+          letterSpacing: "0.02em",
         }}
       >
         {t("libraryAskCoach")} →
@@ -841,43 +1024,48 @@ function StyleCard({ style, onAsk, t }) {
 }
 
 function TechCard({ tech, onAsk, t }) {
+  const examples = TECH_EXAMPLES[tech.key];
   return (
     <div style={{
       flexShrink: 0,
       scrollSnapAlign: "start",
-      width: 200,
-      background: "#181818",
-      border: `1px solid ${tech.color}33`,
+      width: 204,
+      background: "rgba(14,14,14,0.92)",
+      border: `1px solid ${tech.color}28`,
       borderTop: `3px solid ${tech.color}`,
-      borderRadius: 12,
+      borderRadius: 14,
       padding: "13px 13px 11px",
       display: "flex",
       flexDirection: "column",
-      gap: 8,
+      gap: 9,
+      backdropFilter: "blur(6px)",
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <span style={{ fontSize: 18 }}>{tech.emoji}</span>
-        <span style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>{tech.name}</span>
+        <span style={{ fontSize: 13, fontWeight: 900, color: "#fff" }}>{tech.name}</span>
       </div>
-      <p style={{ fontSize: 11, color: "#bbb", margin: 0, lineHeight: 1.45 }}>{tech.what}</p>
-      <div style={{ background: "#1f0a0a", border: "1px solid #7f1d1d", borderRadius: 7, padding: "7px 9px" }}>
-        <p style={{ fontSize: 9, fontWeight: 700, color: "#ef4444", margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+      <p style={{ fontSize: 11, color: "#999", margin: 0, lineHeight: 1.45 }}>{tech.what}</p>
+      <div style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(127,29,29,0.5)", borderRadius: 8, padding: "7px 9px" }}>
+        <p style={{ fontSize: 9, fontWeight: 800, color: "#ef4444", margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
           {t("libraryMistake")}
         </p>
         <p style={{ fontSize: 11, color: "#fca5a5", margin: 0, lineHeight: 1.4 }}>{tech.mistake}</p>
       </div>
-      <div style={{ background: "#1c1400", border: "1px solid #78350f", borderRadius: 7, padding: "7px 9px" }}>
-        <p style={{ fontSize: 9, fontWeight: 700, color: "#f59e0b", margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+      <div style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(120,53,15,0.5)", borderRadius: 8, padding: "7px 9px" }}>
+        <p style={{ fontSize: 9, fontWeight: 800, color: "#D4AF37", margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
           {t("libraryDrill")}
         </p>
         <p style={{ fontSize: 11, color: "#fde68a", margin: 0, lineHeight: 1.4 }}>{tech.drill}</p>
       </div>
+      {examples && (
+        <p style={{ margin: 0, fontSize: 10, color: "#555", fontStyle: "italic", lineHeight: 1.3 }}>{examples}</p>
+      )}
       <button
         onClick={() => onAsk(`How do I improve my ${tech.name}?`)}
         style={{
-          padding: "7px 0", borderRadius: 8,
-          background: "#222", border: `1px solid ${tech.color}44`,
-          color: tech.color, fontSize: 11, fontWeight: 700, cursor: "pointer",
+          padding: "8px 0", borderRadius: 9,
+          background: "rgba(255,255,255,0.04)", border: `1px solid ${tech.color}35`,
+          color: tech.color, fontSize: 11, fontWeight: 800, cursor: "pointer",
         }}
       >
         {t("libraryAskCoach")} →
@@ -891,24 +1079,64 @@ function CountryCard({ cs }) {
     <div style={{
       flexShrink: 0,
       scrollSnapAlign: "start",
-      width: 180,
-      background: "#181818",
-      border: `1px solid ${cs.color}33`,
+      width: 184,
+      background: "rgba(14,14,14,0.92)",
+      border: `1px solid ${cs.color}28`,
       borderTop: `3px solid ${cs.color}`,
-      borderRadius: 12,
+      borderRadius: 14,
       padding: "13px 13px 12px",
       display: "flex",
       flexDirection: "column",
-      gap: 6,
+      gap: 7,
+      backdropFilter: "blur(6px)",
     }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
         <span style={{ fontSize: 20 }}>{cs.flag}</span>
         <div>
-          <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "#fff" }}>{cs.name}</p>
+          <p style={{ margin: 0, fontSize: 12, fontWeight: 900, color: "#fff" }}>{cs.name}</p>
           <p style={{ margin: 0, fontSize: 10, color: cs.color, fontWeight: 700 }}>{cs.tagline}</p>
         </div>
       </div>
-      <p style={{ fontSize: 11, color: "#aaa", margin: 0, lineHeight: 1.5 }}>{cs.desc}</p>
+      <p style={{ fontSize: 11, color: "#888", margin: 0, lineHeight: 1.5 }}>{cs.desc}</p>
+    </div>
+  );
+}
+
+function MovementCard({ card, t }) {
+  return (
+    <div style={{
+      flexShrink: 0,
+      scrollSnapAlign: "start",
+      width: 214,
+      background: "rgba(14,14,14,0.92)",
+      border: `1px solid ${card.color}28`,
+      borderTop: `3px solid ${card.color}`,
+      borderRadius: 14,
+      padding: "14px 14px 12px",
+      display: "flex",
+      flexDirection: "column",
+      gap: 9,
+      backdropFilter: "blur(6px)",
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+        <span style={{ fontSize: 20 }}>{card.emoji}</span>
+        <span style={{ fontSize: 13, fontWeight: 900, color: "#fff", lineHeight: 1.2 }}>{card.name}</span>
+      </div>
+      <p style={{ fontSize: 11, color: "#888", margin: 0, lineHeight: 1.5 }}>{card.desc}</p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        {card.teaches.map((item, i) => (
+          <div key={i} style={{ display: "flex", gap: 5, alignItems: "flex-start" }}>
+            <span style={{ color: card.color, fontSize: 10, flexShrink: 0, marginTop: 2 }}>▸</span>
+            <span style={{ fontSize: 11, color: "#ccc" }}>{item}</span>
+          </div>
+        ))}
+      </div>
+      <div style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 8, padding: "7px 9px" }}>
+        <p style={{ fontSize: 9, fontWeight: 800, color: "#D4AF37", margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+          {t("libraryDrill")}
+        </p>
+        <p style={{ fontSize: 11, color: "#fde68a", margin: 0, lineHeight: 1.4 }}>{card.drill}</p>
+      </div>
     </div>
   );
 }
@@ -940,11 +1168,24 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 28, paddingBottom: 32 }}>
 
-      {/* Quick Prompts */}
-      <div>
-        <p style={{ margin: "0 0 10px", fontSize: 11, fontWeight: 700, color: "#555", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-          {t("libraryQuickPromptsLabel")}
-        </p>
+      {/* Hero Header */}
+      <div style={{
+        background: "linear-gradient(135deg, rgba(193,18,31,0.1) 0%, rgba(212,175,55,0.07) 100%)",
+        border: "1px solid rgba(212,175,55,0.14)",
+        borderRadius: 16,
+        padding: "18px 16px 16px",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 8 }}>
+          <span style={{ fontSize: 24 }}>📚</span>
+          <div>
+            <h2 style={{ margin: 0, fontSize: 17, fontWeight: 900, color: "#fff", lineHeight: 1, letterSpacing: "-0.01em" }}>
+              GAVANA Library
+            </h2>
+            <p style={{ margin: "3px 0 0", fontSize: 10, color: "#D4AF37", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+              AI Coach Knowledge Base
+            </p>
+          </div>
+        </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           {QUICK_PROMPTS.map((p) => (
             <button
@@ -952,10 +1193,11 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
               onClick={() => onAsk(t(p.key))}
               style={{
                 display: "flex", alignItems: "center", gap: 5,
-                padding: "8px 13px", borderRadius: 999,
-                background: "#1a1a1a", border: "1px solid #333",
-                color: "#fff", fontSize: 12, fontWeight: 700,
+                padding: "7px 12px", borderRadius: 999,
+                background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+                color: "#ddd", fontSize: 11, fontWeight: 700,
                 cursor: "pointer", whiteSpace: "nowrap",
+                backdropFilter: "blur(6px)",
               }}
             >
               <span>{p.emoji}</span>
@@ -969,31 +1211,31 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
       <div>
         <SectionHeader emoji="🔥" title={t("librarySectionToday")} />
         <div style={{
-          background: "#1c1400",
-          border: "1px solid #78350f",
-          borderLeft: "4px solid #f59e0b",
-          borderRadius: 12,
+          background: "rgba(212,175,55,0.07)",
+          border: "1px solid rgba(212,175,55,0.2)",
+          borderLeft: "3px solid #D4AF37",
+          borderRadius: 14,
           padding: "14px 16px",
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-            <span style={{ fontSize: 20 }}>{todayFocus.emoji}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7 }}>
+            <span style={{ fontSize: 22 }}>{todayFocus.emoji}</span>
             <div>
-              <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: "#fff" }}>{todayFocus.focus}</p>
-              <p style={{ margin: 0, fontSize: 11, color: "#f59e0b" }}>{todayFocus.day}</p>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: "#fff" }}>{todayFocus.focus}</p>
+              <p style={{ margin: 0, fontSize: 10, color: "#D4AF37", fontWeight: 700, letterSpacing: "0.04em" }}>{todayFocus.day}</p>
             </div>
           </div>
-          <p style={{ margin: "0 0 8px", fontSize: 12, color: "#d4a", lineHeight: 1.5 }}>{todayFocus.desc}</p>
-          <div style={{ background: "#111", border: "1px solid #333", borderRadius: 8, padding: "8px 10px" }}>
+          <p style={{ margin: "0 0 10px", fontSize: 12, color: "#aaa", lineHeight: 1.5 }}>{todayFocus.desc}</p>
+          <div style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 9, padding: "9px 11px" }}>
             <p style={{ margin: 0, fontSize: 12, color: "#fde68a", lineHeight: 1.5 }}>
-              <strong style={{ color: "#f59e0b" }}>Drill: </strong>{todayFocus.drill}
+              <strong style={{ color: "#D4AF37" }}>Drill: </strong>{todayFocus.drill}
             </p>
           </div>
           <button
             onClick={() => onAsk(t("libPromptToday"))}
             style={{
-              marginTop: 10, width: "100%", padding: "9px 0", borderRadius: 8,
-              background: "#2a1800", border: "1px solid #78350f",
-              color: "#f59e0b", fontSize: 12, fontWeight: 700, cursor: "pointer",
+              marginTop: 10, width: "100%", padding: "9px 0", borderRadius: 9,
+              background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.2)",
+              color: "#D4AF37", fontSize: 12, fontWeight: 800, cursor: "pointer",
             }}
           >
             {t("libraryAskCoach")} →
@@ -1004,7 +1246,7 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
       {/* Fighter Styles */}
       <div>
         <SectionHeader emoji="🥊" title={t("librarySectionStyles")} />
-        <ScrollRow>
+        <ScrollRow cardWidth={224}>
           {getStyles(locale).map((s) => (
             <StyleCard key={s.key} style={s} onAsk={onAsk} t={t} />
           ))}
@@ -1014,9 +1256,19 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
       {/* Techniques */}
       <div>
         <SectionHeader emoji="🎯" title={t("librarySectionTechniques")} />
-        <ScrollRow>
+        <ScrollRow cardWidth={204}>
           {getTechniques(locale).map((tech) => (
             <TechCard key={tech.key} tech={tech} onAsk={onAsk} t={t} />
+          ))}
+        </ScrollRow>
+      </div>
+
+      {/* Combat Movement Origins */}
+      <div>
+        <SectionHeader emoji="🐆" title={t("librarySectionMovement")} />
+        <ScrollRow cardWidth={214}>
+          {getMovement(locale).map((card) => (
+            <MovementCard key={card.key} card={card} t={t} />
           ))}
         </ScrollRow>
       </div>
@@ -1024,7 +1276,7 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
       {/* Country / Legacy Styles */}
       <div>
         <SectionHeader emoji="🌍" title={t("librarySectionCountries")} />
-        <ScrollRow>
+        <ScrollRow cardWidth={184}>
           {getCountryStyles(locale).map((cs) => (
             <CountryCard key={cs.name} cs={cs} />
           ))}
@@ -1034,7 +1286,7 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
       {/* Common Mistakes */}
       <div>
         <SectionHeader emoji="⚠️" title={t("librarySectionMistakes")} />
-        <div style={{ borderTop: "1px solid #1f1f1f" }}>
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
           {getCommonMistakes(locale).map((item, i) => (
             <MistakeRow key={i} item={item} />
           ))}
@@ -1042,9 +1294,9 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
         <button
           onClick={() => onAsk("What are the most common boxing mistakes beginners make and how do I fix them?")}
           style={{
-            marginTop: 12, width: "100%", padding: "9px 0", borderRadius: 8,
-            background: "#1a1a1a", border: "1px solid #333",
-            color: "#aaa", fontSize: 12, fontWeight: 700, cursor: "pointer",
+            marginTop: 12, width: "100%", padding: "9px 0", borderRadius: 9,
+            background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
+            color: "#777", fontSize: 12, fontWeight: 700, cursor: "pointer",
           }}
         >
           Ask coach about my mistakes →
