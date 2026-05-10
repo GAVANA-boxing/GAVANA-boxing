@@ -9,6 +9,7 @@ import { createNotification } from "@/lib/notifications";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { updateLeaderboard } from "@/components/Leaderboard";
 import { computeFeedScore } from "@/lib/analytics";
+import AIBreakdownSheet from "@/components/AIBreakdownSheet";
 
 // Dynamic import for Firebase to avoid SSR issues
 let db = null;
@@ -251,6 +252,7 @@ export default function ReelsContent() {
   const [creatorStats, setCreatorStats] = useState({}); // XP, rank, best score for creators
   const [profileReelProgress, setProfileReelProgress] = useState(null); // progress data when opened from profile
   const [captionSheetReelId, setCaptionSheetReelId] = useState(null);
+  const [breakdownReel, setBreakdownReel] = useState(null);
   const [userTrainingProfile, setUserTrainingProfile] = useState(null);
   const [gymNames, setGymNames] = useState({}); // gymId → gymName cache
   const [featuredCreatorIds, setFeaturedCreatorIds] = useState(new Set());
@@ -2194,6 +2196,17 @@ export default function ReelsContent() {
                 </div>
                 <span style={styles.actionText}>AI</span>
               </div>
+              <div
+                className="reel-action"
+                style={styles.actionItem}
+                onClick={() => setBreakdownReel(reel)}
+                title={t("aiBreakdownBtn")}
+              >
+                <div className="reel-action-circle" style={{ ...styles.actionCircle, fontSize: 18 }}>
+                  🧠
+                </div>
+                <span style={styles.actionText}>{t("aiBreakdownBtn")}</span>
+              </div>
             </div>
 
             {/* Play/Pause indicator — shown only when paused */}
@@ -2416,6 +2429,14 @@ export default function ReelsContent() {
             </div>
           </div>
         </div>
+      )}
+
+      {breakdownReel && (
+        <AIBreakdownSheet
+          reel={breakdownReel}
+          locale={locale}
+          onClose={() => setBreakdownReel(null)}
+        />
       )}
 
       {captionSheetReelId && (() => {
