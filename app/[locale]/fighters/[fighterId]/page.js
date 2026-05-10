@@ -11,6 +11,7 @@ import {
 } from "@/lib/fighters.i18n";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
+import FighterPortrait from "@/components/FighterPortrait";
 
 // ─── Combo step pills ─────────────────────────────────────────────────────────
 function ComboSteps({ steps }) {
@@ -95,37 +96,32 @@ export default function FighterDetailPage() {
     <div style={{ ...s.page, background: `radial-gradient(ellipse at top center, ${acc}12 0%, transparent 40%), #080808` }} className="page-enter">
 
       {/* ══════════ HERO ══════════ */}
-      <div style={{ ...s.hero, background: `linear-gradient(180deg, ${acc}30 0%, ${acc}0e 55%, #080808 88%)` }} className="hero-enter">
-        {/* Glow accent bar at very top */}
-        <div style={{ ...s.heroTopBar, background: `linear-gradient(90deg, ${acc} 0%, ${acc}66 60%, transparent 100%)` }} />
+      <div style={s.hero} className="hero-enter">
+        {/* Portrait — dominant visual (full width, tall) */}
+        <div style={s.heroPortraitWrap}>
+          <FighterPortrait
+            fighterId={fighter.id}
+            fighter={fighter}
+            height={260}
+            flagSize={80}
+            showName={false}
+            showLabel={false}
+          />
+          {/* Overlay gradient — fades to page bg at bottom */}
+          <div style={{ ...s.heroPortraitFade, background: `linear-gradient(to bottom, transparent 40%, ${acc}08 65%, #080808 100%)` }} />
+          {/* Back button — floats over portrait */}
+          <button style={s.backPill} onClick={() => router.back()}>← {t("back")}</button>
+          {/* Top accent bar */}
+          <div style={{ ...s.heroTopBar, background: `linear-gradient(90deg, ${acc} 0%, ${acc}66 60%, transparent 100%)` }} />
+        </div>
 
-        {/* Ambient radial glow — larger, more dramatic */}
-        <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: "140%", height: "100%", background: `radial-gradient(ellipse at 50% 10%, ${acc}2a 0%, transparent 55%)`, pointerEvents: "none" }} />
-
-        {/* Faint grid lines for depth */}
-        <div style={{ position: "absolute", inset: 0, backgroundImage: `linear-gradient(${acc}06 1px, transparent 1px), linear-gradient(90deg, ${acc}06 1px, transparent 1px)`, backgroundSize: "44px 44px", pointerEvents: "none", opacity: 0.5 }} />
-
-        <button style={s.backPill} onClick={() => router.back()}>
-          ← {t("back")}
-        </button>
-
-        {/* Cinematic centered fighter identity */}
-        <div style={s.heroCenter} className="silhouette-enter">
+        {/* Text block below portrait */}
+        <div style={s.heroCenter}>
           <p style={s.heroKicker}>GAVANA · FIGHTER STUDY</p>
-
-          {/* Flag focal point with glow */}
-          <div style={s.heroFlagDisplay}>
-            <span style={s.heroFlagBig}>{fighter.country}</span>
-            <div style={{ position: "absolute", bottom: -4, left: "50%", transform: "translateX(-50%)", width: 80, height: 20, background: `radial-gradient(ellipse, ${acc}70, transparent 70%)`, filter: "blur(10px)", pointerEvents: "none" }} />
-          </div>
-
-          {/* Fighter name — Anton display font, massive */}
           <h1 style={{ ...s.heroNameBig, textShadow: `0 0 40px ${acc}44` }}>
             {fighter.name.toUpperCase()}
           </h1>
           <p style={s.heroNickname}>"{fighter.nickname}"</p>
-
-          {/* Meta row: style + weight class */}
           <div style={s.heroMeta}>
             <span style={{ ...s.heroStyleBadge, background: acc + "1e", color: acc, borderColor: acc + "40" }}>
               {fighter.style}
@@ -137,7 +133,7 @@ export default function FighterDetailPage() {
         {/* Identity line */}
         <p style={s.heroIdentity}>{identity}</p>
 
-        {/* Key weapon — inline, no card */}
+        {/* Key weapon */}
         <div style={s.heroWeapon}>
           <span style={s.heroWeaponDot}>⚡</span>
           <span style={{ ...s.heroWeaponText, color: acc }}>{fighter.keyWeapon}</span>
@@ -275,9 +271,18 @@ const s = {
   // ── Hero ──
   hero: {
     position: "relative",
-    paddingTop: "calc(16px + env(safe-area-inset-top))",
     paddingBottom: 0,
     overflow: "hidden",
+  },
+  heroPortraitWrap: {
+    position: "relative",
+    width: "100%",
+  },
+  heroPortraitFade: {
+    position: "absolute",
+    inset: 0,
+    pointerEvents: "none",
+    zIndex: 1,
   },
   heroTopBar: {
     position: "absolute",
@@ -285,21 +290,25 @@ const s = {
     left: 0,
     right: 0,
     height: 2,
+    zIndex: 5,
   },
   backPill: {
     display: "inline-flex",
     alignItems: "center",
     gap: 4,
-    background: "none",
+    background: "rgba(0,0,0,0.45)",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
     border: "none",
-    color: "rgba(255,255,255,0.35)",
+    color: "rgba(255,255,255,0.75)",
     fontSize: 12,
-    padding: "5px 16px",
+    padding: "7px 16px",
     borderRadius: 20,
     cursor: "pointer",
-    margin: "10px 0 4px",
-    position: "relative",
-    zIndex: 2,
+    position: "absolute",
+    top: "calc(12px + env(safe-area-inset-top))",
+    left: 12,
+    zIndex: 10,
   },
   heroCenter: {
     display: "flex",

@@ -60,7 +60,7 @@ function GymCard({ gym, t, router, locale }) {
           <img src={gym.logo} alt="" style={styles.cardLogo} />
         ) : (
           <div style={styles.cardLogoFallback}>
-            <span style={{ fontSize: 28 }}>🥊</span>
+            <span style={{ fontSize: 32, filter: "drop-shadow(0 2px 12px rgba(193,18,31,0.6))" }}>🥊</span>
           </div>
         )}
         {gym.verified && (
@@ -373,9 +373,9 @@ const styles = {
   emptyText: { margin: 0, color: "rgba(255,255,255,0.62)", fontSize: 15 },
   cardList: { display: "flex", flexDirection: "column", gap: 12 },
   card: { borderRadius: 16, border: "1px solid rgba(255,255,255,0.08)", background: "linear-gradient(145deg, #131313, #0a0a0a)", overflow: "hidden", cursor: "pointer", boxShadow: "0 4px 20px rgba(0,0,0,0.3)" },
-  cardImageWrap: { position: "relative", height: 90, background: "linear-gradient(135deg, #1a1a1a, #111)", display: "flex", alignItems: "center", justifyContent: "center" },
-  cardLogo: { width: 60, height: 60, objectFit: "cover", borderRadius: 12 },
-  cardLogoFallback: { width: 60, height: 60, borderRadius: 12, background: "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center" },
+  cardImageWrap: { position: "relative", height: 100, background: "radial-gradient(ellipse at 50% 0%, rgba(193,18,31,0.18) 0%, transparent 60%), linear-gradient(160deg, #141010, #0d0d0d)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  cardLogo: { width: 64, height: 64, objectFit: "cover", borderRadius: 14, boxShadow: "0 8px 24px rgba(0,0,0,0.5)" },
+  cardLogoFallback: { width: 68, height: 68, borderRadius: 16, background: "radial-gradient(ellipse at 50% 30%, rgba(193,18,31,0.3), rgba(10,5,5,0.9))", border: "1px solid rgba(193,18,31,0.2)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 24px rgba(193,18,31,0.12)" },
   verifiedBadge: { position: "absolute", top: 10, right: 10, fontSize: 10, fontWeight: 900, color: "#D4AF37", background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 999, padding: "3px 8px" },
   cardBody: { padding: "12px 14px 14px" },
   cardNameRow: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 },

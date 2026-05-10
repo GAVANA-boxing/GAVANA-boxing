@@ -11,6 +11,7 @@ import { RANK_TIERS, calculateSessionXP, calculateUserXP, getFighterRank, getNex
 import RankIcon from "@/components/RankIcon";
 import RankUpModal from "@/components/RankUpModal";
 import { getCurrentSeasonId } from "@/lib/season";
+import MediaCover from "@/components/MediaCover";
 
 function getSafeReelLikes(reel) {
   const fieldLikes = typeof reel.likes === "number" && !Number.isNaN(reel.likes)
@@ -1787,12 +1788,11 @@ export default function UserProfilePage() {
                     onError={() => markPreviewFailed(reel.id, "video")}
                   />
                 ) : (
-                  <div style={styles.reelPreviewFallback}>
-                    <div style={styles.reelPreviewGlow} />
-                    <div style={styles.reelPreviewFallbackText}>
-                      {reel.description || t("trainingReel")}
-                    </div>
-                  </div>
+                  <MediaCover
+                    contentType={effectiveType}
+                    caption={reel.description || reel.caption}
+                    style={{ position: "absolute", inset: 0 }}
+                  />
                 )}
 
                 {/* Content type indicator — top-left */}
@@ -2738,28 +2738,6 @@ const styles = {
   reelPreviewFallback: {
     position: "absolute",
     inset: 0,
-    display: "flex",
-    alignItems: "flex-end",
-    padding: 10,
-    background: "radial-gradient(circle at 50% 34%, rgba(212,175,55,0.14), transparent 30%), radial-gradient(circle at 45% 64%, rgba(193,18,31,0.18), transparent 34%), linear-gradient(145deg, #070707, #14090b 56%, #050505)",
-  },
-  reelPreviewGlow: {
-    position: "absolute",
-    inset: 0,
-    background: "linear-gradient(135deg, transparent, rgba(255,255,255,0.07), transparent)",
-    opacity: 0.55,
-  },
-  reelPreviewFallbackText: {
-    position: "relative",
-    color: "var(--text-primary)",
-    fontSize: 12,
-    fontWeight: 850,
-    lineHeight: 1.25,
-    textShadow: "0 3px 14px rgba(0,0,0,0.9)",
-    display: "-webkit-box",
-    WebkitLineClamp: 3,
-    WebkitBoxOrient: "vertical",
-    overflow: "hidden",
   },
   deleteReelButton: {
     position: "absolute",
@@ -2847,22 +2825,23 @@ const styles = {
   },
   reelTileTypeBadge: {
     position: "absolute",
-    top: 7,
-    left: 7,
-    fontSize: 13,
+    top: 6,
+    right: 6,
+    fontSize: 14,
     lineHeight: 1,
     pointerEvents: "none",
-    zIndex: 2,
-    filter: "drop-shadow(0 1px 4px rgba(0,0,0,0.9))",
+    zIndex: 4,
+    filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.95))",
   },
   reelTileOverlay: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    padding: "24px 7px 7px",
-    background: "linear-gradient(to top, rgba(0,0,0,0.72), transparent)",
+    padding: "20px 6px 6px",
+    background: "linear-gradient(to top, rgba(0,0,0,0.85), transparent)",
     pointerEvents: "none",
+    zIndex: 3,
   },
   reelTileLikes: {
     color: "rgba(255,255,255,0.9)",

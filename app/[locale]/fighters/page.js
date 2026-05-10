@@ -5,30 +5,27 @@ import { getLocale, translate } from "@/lib/i18n";
 import { FIGHTERS } from "@/lib/fighters";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
+import FighterPortrait from "@/components/FighterPortrait";
 
 function FighterGridCard({ fighter, onClick }) {
   const acc = fighter.accent;
   return (
     <button type="button" onClick={onClick} style={s.card}>
-      {/* Gradient top */}
-      <div style={{ ...s.cardTop, background: `linear-gradient(160deg, ${acc}40 0%, #0c0c0c 100%)` }}>
-        <span style={s.cardFlag}>{fighter.country}</span>
-        <div style={{ ...s.cardAccentBar, background: `linear-gradient(90deg, ${acc}, ${acc}00)` }} />
-        {/* Ambient corner glow */}
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: `radial-gradient(ellipse at 50% 0%, ${acc}22, transparent 70%)`, pointerEvents: "none" }} />
-        {/* Weight class chip */}
-        <span style={{ position: "absolute", bottom: 7, right: 8, fontSize: 7, fontWeight: 900, letterSpacing: 0.5, color: acc, opacity: 0.75, textTransform: "uppercase" }}>
-          {fighter.weightClass.split(" ")[0]}
-        </span>
-      </div>
-      {/* Info */}
-      <div style={s.cardBody}>
-        <p style={s.cardName}>{fighter.name}</p>
-        <p style={s.cardNickname}>"{fighter.nickname}"</p>
-        <span style={{ ...s.cardStylePill, borderColor: acc + "40", color: acc }}>
-          {fighter.style}
-        </span>
-        <p style={s.cardWeapon}>{fighter.keyWeapon}</p>
+      {/* Portrait area — cinematic visual identity */}
+      <FighterPortrait
+        fighterId={fighter.id}
+        fighter={fighter}
+        height={130}
+        flagSize={46}
+        showName
+        showLabel
+      />
+      {/* Key weapon hint at bottom */}
+      <div style={s.cardBottom}>
+        <p style={{ ...s.cardWeapon, color: "rgba(255,255,255,0.38)" }}>
+          <span style={{ color: acc + "cc", marginRight: 4, fontSize: 9 }}>⚡</span>
+          {fighter.keyWeapon}
+        </p>
       </div>
     </button>
   );
@@ -141,64 +138,17 @@ const s = {
     zIndex: 1,
   },
   card: {
-    background: "rgba(255,255,255,0.03)",
+    background: "rgba(255,255,255,0.02)",
     border: "none",
-    borderTop: "1px solid rgba(255,255,255,0.06)",
     borderRadius: 16,
     overflow: "hidden",
     cursor: "pointer",
     textAlign: "left",
     padding: 0,
   },
-  cardTop: {
-    height: 90,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-    overflow: "hidden",
-  },
-  cardFlag: {
-    fontSize: 44,
-    lineHeight: 1,
-    position: "relative",
-    zIndex: 1,
-    filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.6))",
-  },
-  cardAccentBar: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    width: "60%",
-    height: 1.5,
-    opacity: 0.7,
-  },
-  cardBody: {
-    padding: "10px 12px 14px",
-  },
-  cardName: {
-    margin: "0 0 2px",
-    fontSize: 13,
-    fontWeight: 800,
-    color: "#fff",
-    lineHeight: 1.2,
-  },
-  cardNickname: {
-    margin: "0 0 8px",
-    fontSize: 9,
-    color: "rgba(255,255,255,0.35)",
-    fontStyle: "italic",
-  },
-  cardStylePill: {
-    display: "inline-block",
-    border: "1px solid",
-    borderRadius: 20,
-    padding: "2px 7px",
-    fontSize: 8,
-    fontWeight: 700,
-    letterSpacing: 0.4,
-    textTransform: "uppercase",
-    marginBottom: 7,
+  cardBottom: {
+    padding: "7px 10px 9px",
+    background: "rgba(0,0,0,0.4)",
   },
   cardWeapon: {
     margin: 0,

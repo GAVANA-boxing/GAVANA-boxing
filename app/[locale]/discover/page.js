@@ -12,22 +12,22 @@ import BottomNav from "@/components/BottomNav";
 import StoryBar from "@/components/StoryBar";
 import { getLocale, translate } from "@/lib/i18n";
 import { FIGHTERS } from "@/lib/fighters";
+import FighterPortrait from "@/components/FighterPortrait";
+import MediaCover from "@/components/MediaCover";
 
 // ─── Legendary fighter mini card (for Fighter Study row) ─────────────────────
 function FighterStudyCard({ fighter, onClick }) {
   const acc = fighter.accent;
   return (
     <button type="button" onClick={onClick} style={fs.card}>
-      <div style={{ ...fs.cardTop, background: `linear-gradient(160deg, ${acc}30 0%, #0e0e0e 100%)` }}>
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: `radial-gradient(ellipse at 50% 0%, ${acc}18, transparent 70%)`, pointerEvents: "none" }} />
-        <span style={fs.cardFlag}>{fighter.country}</span>
-        <div style={{ ...fs.cardAccentBar, background: `linear-gradient(90deg, ${acc}, ${acc}00)` }} />
-      </div>
-      <div style={fs.cardBody}>
-        <p style={fs.cardName}>{fighter.name}</p>
-        <p style={fs.cardNickname}>"{fighter.nickname}"</p>
-        <span style={{ ...fs.cardPill, borderColor: acc + "40", color: acc }}>{fighter.style}</span>
-      </div>
+      <FighterPortrait
+        fighterId={fighter.id}
+        fighter={fighter}
+        height={88}
+        flagSize={36}
+        showName
+        showLabel
+      />
     </button>
   );
 }
@@ -36,71 +36,14 @@ function FighterStudyCard({ fighter, onClick }) {
 const fs = {
   card: {
     flexShrink: 0,
-    width: 130,
-    background: "rgba(255,255,255,0.025)",
+    width: 128,
+    background: "transparent",
     border: "none",
-    borderTop: "1px solid rgba(255,255,255,0.07)",
     borderRadius: 14,
     overflow: "hidden",
     cursor: "pointer",
     textAlign: "left",
     padding: 0,
-  },
-  cardTop: {
-    height: 72,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-    overflow: "hidden",
-  },
-  cardFlag: {
-    fontSize: 38,
-    lineHeight: 1,
-    filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.6))",
-    position: "relative",
-    zIndex: 1,
-  },
-  cardAccentBar: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    width: "70%",
-    height: 1.5,
-    opacity: 0.7,
-  },
-  cardBody: {
-    padding: "9px 11px 12px",
-  },
-  cardName: {
-    margin: "0 0 2px",
-    fontSize: 11,
-    fontWeight: 800,
-    color: "#fff",
-    lineHeight: 1.2,
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-  },
-  cardNickname: {
-    margin: "0 0 7px",
-    fontSize: 9,
-    color: "rgba(255,255,255,0.3)",
-    fontStyle: "italic",
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-  },
-  cardPill: {
-    display: "inline-block",
-    border: "1px solid",
-    borderRadius: 20,
-    padding: "2px 7px",
-    fontSize: 8,
-    fontWeight: 700,
-    letterSpacing: 0.3,
-    textTransform: "uppercase",
-    lineHeight: 1.6,
   },
 };
 
@@ -168,12 +111,12 @@ function ReelCard({ reel, onClick }) {
             onError={() => setMediaErr(true)}
           />
         ) : (
-          <div style={{ ...s.reelThumbFallback, background: `linear-gradient(160deg, ${typeColor}22 0%, #111 60%, #0a0a0a 100%)` }}>
-            <span style={{ fontSize: 34, filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.8))" }}>{typeEmoji}</span>
-            {caption ? (
-              <p style={s.reelFallbackCaption}>{caption}</p>
-            ) : null}
-          </div>
+          <MediaCover
+            contentType={reel.contentType}
+            category={reel.category}
+            caption={caption}
+            style={{ position: "absolute", inset: 0 }}
+          />
         )}
         {/* Gradient overlays */}
         <div style={s.reelGradTop} />
