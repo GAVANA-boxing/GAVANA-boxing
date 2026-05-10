@@ -92,12 +92,15 @@ export default function FighterDetailPage() {
   const fights         = getLocalizedFights(fighter, locale);
 
   return (
-    <div style={s.page}>
+    <div style={{ ...s.page, background: `radial-gradient(ellipse at top center, ${acc}12 0%, transparent 40%), #080808` }} className="page-enter">
 
       {/* ══════════ HERO ══════════ */}
-      <div style={{ ...s.hero, background: `linear-gradient(170deg, ${acc}1a 0%, #0a0a0a 55%)` }}>
+      <div style={{ ...s.hero, background: `linear-gradient(175deg, ${acc}28 0%, ${acc}0a 40%, #080808 75%)` }} className="hero-enter">
         {/* Glow accent bar at very top */}
-        <div style={{ ...s.heroTopBar, background: `linear-gradient(90deg, ${acc} 0%, ${acc}00 100%)` }} />
+        <div style={{ ...s.heroTopBar, background: `linear-gradient(90deg, ${acc} 0%, ${acc}88 50%, transparent 100%)` }} />
+
+        {/* Ambient radial glow */}
+        <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: "100%", height: "100%", background: `radial-gradient(ellipse at 50% 0%, ${acc}20 0%, transparent 60%)`, pointerEvents: "none" }} />
 
         <button style={s.backPill} onClick={() => router.back()}>
           ← {t("back")}
@@ -105,20 +108,20 @@ export default function FighterDetailPage() {
 
         {/* Fighter card block */}
         <div style={s.heroCard}>
-          {/* Left: flag + accent border */}
-          <div style={{ ...s.heroFlagCol, borderColor: acc + "55" }}>
+          {/* Left: flag — large and iconic */}
+          <div style={{ ...s.heroFlagCol, borderColor: acc + "40", background: `radial-gradient(ellipse at center, ${acc}14, rgba(255,255,255,0.03))` }}>
             <span style={s.heroFlag}>{fighter.country}</span>
-            <span style={{ ...s.heroWeightBadge, color: acc, borderColor: acc + "40" }}>
+            <span style={{ ...s.heroWeightBadge, color: acc, borderColor: acc + "35" }}>
               {fighter.weightClass}
             </span>
           </div>
 
           {/* Right: name + metadata */}
           <div style={s.heroInfo}>
-            <p style={s.heroKicker}>GAVANA · FIGHTER STUDY</p>
-            <h1 style={s.heroName}>{fighter.name.toUpperCase()}</h1>
+            <p style={s.heroKicker}>FIGHTER STUDY</p>
+            <h1 style={{ ...s.heroName, color: "#fff" }}>{fighter.name.toUpperCase()}</h1>
             <p style={s.heroNickname}>"{fighter.nickname}"</p>
-            <span style={{ ...s.heroStyleBadge, background: acc + "22", color: acc, borderColor: acc + "44" }}>
+            <span style={{ ...s.heroStyleBadge, background: acc + "20", color: acc, borderColor: acc + "38" }}>
               {fighter.style}
             </span>
           </div>
@@ -127,14 +130,14 @@ export default function FighterDetailPage() {
         {/* Identity line */}
         <p style={s.heroIdentity}>{identity}</p>
 
-        {/* Key weapon pill */}
+        {/* Key weapon — inline, no card */}
         <div style={s.heroWeapon}>
           <span style={s.heroWeaponDot}>⚡</span>
-          <span style={s.heroWeaponText}>{fighter.keyWeapon}</span>
+          <span style={{ ...s.heroWeaponText, color: acc }}>{fighter.keyWeapon}</span>
         </div>
 
         {/* Bottom accent line */}
-        <div style={{ ...s.heroAccentLine, background: `linear-gradient(90deg, ${acc} 0%, ${acc}44 60%, transparent 100%)` }} />
+        <div style={{ ...s.heroAccentLine, background: `linear-gradient(90deg, ${acc} 0%, ${acc}55 50%, transparent 100%)` }} />
       </div>
 
       {/* ══════════ CONTENT ══════════ */}
@@ -256,16 +259,16 @@ export default function FighterDetailPage() {
 const s = {
   page: {
     minHeight: "100vh",
-    background: "#080808",
     color: "#fff",
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     paddingBottom: 100,
+    position: "relative",
   },
 
   // ── Hero ──
   hero: {
     position: "relative",
-    paddingTop: "calc(20px + env(safe-area-inset-top))",
+    paddingTop: "calc(16px + env(safe-area-inset-top))",
     paddingBottom: 0,
     overflow: "hidden",
   },
@@ -274,170 +277,173 @@ const s = {
     top: 0,
     left: 0,
     right: 0,
-    height: 3,
+    height: 2,
   },
   backPill: {
     display: "inline-flex",
     alignItems: "center",
     gap: 4,
-    background: "rgba(255,255,255,0.05)",
-    border: "1px solid rgba(255,255,255,0.1)",
-    color: "#888",
+    background: "none",
+    border: "none",
+    color: "rgba(255,255,255,0.35)",
     fontSize: 12,
-    padding: "5px 12px",
+    padding: "5px 16px",
     borderRadius: 20,
     cursor: "pointer",
-    margin: "12px 16px 14px",
+    margin: "10px 0 12px",
   },
   heroCard: {
     display: "flex",
-    gap: 14,
+    gap: 16,
     alignItems: "flex-start",
     padding: "0 16px",
-    marginBottom: 14,
+    marginBottom: 16,
   },
   heroFlagCol: {
     flexShrink: 0,
-    width: 68,
-    background: "rgba(255,255,255,0.04)",
+    width: 76,
     border: "1px solid",
-    borderRadius: 12,
+    borderRadius: 14,
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    padding: "10px 6px 8px",
-    gap: 8,
+    padding: "12px 6px 10px",
+    gap: 10,
   },
   heroFlag: {
-    fontSize: 36,
+    fontSize: 44,
     lineHeight: 1,
+    filter: "drop-shadow(0 4px 16px rgba(0,0,0,0.7))",
   },
   heroWeightBadge: {
     fontSize: 7,
-    fontWeight: 800,
-    letterSpacing: 0.5,
+    fontWeight: 900,
+    letterSpacing: 0.6,
     textTransform: "uppercase",
     border: "1px solid",
     borderRadius: 20,
-    padding: "2px 5px",
+    padding: "2px 6px",
     textAlign: "center",
     lineHeight: 1.4,
   },
   heroInfo: {
     flex: 1,
     minWidth: 0,
+    paddingTop: 2,
   },
   heroKicker: {
-    margin: "0 0 4px",
+    margin: "0 0 5px",
     fontSize: 8,
     fontWeight: 900,
-    letterSpacing: 2,
-    color: "#444",
+    letterSpacing: 2.5,
+    color: "rgba(255,255,255,0.25)",
     textTransform: "uppercase",
   },
   heroName: {
-    margin: "0 0 2px",
-    fontSize: 22,
+    margin: "0 0 4px",
+    fontSize: 26,
     fontWeight: 900,
-    letterSpacing: -0.5,
-    lineHeight: 1.05,
+    letterSpacing: -0.8,
+    lineHeight: 1,
     color: "#fff",
   },
   heroNickname: {
-    margin: "0 0 10px",
+    margin: "0 0 12px",
     fontSize: 12,
-    color: "#666",
+    color: "rgba(255,255,255,0.4)",
     fontStyle: "italic",
   },
   heroStyleBadge: {
     display: "inline-block",
     border: "1px solid",
     borderRadius: 20,
-    padding: "3px 10px",
-    fontSize: 10,
-    fontWeight: 700,
-    letterSpacing: 0.3,
+    padding: "3px 11px",
+    fontSize: 9,
+    fontWeight: 800,
+    letterSpacing: 0.5,
     textTransform: "uppercase",
   },
   heroIdentity: {
-    margin: "0 16px 10px",
+    margin: "0 16px 12px",
     fontSize: 13,
-    color: "#bbb",
-    lineHeight: 1.55,
+    color: "rgba(255,255,255,0.65)",
+    lineHeight: 1.6,
+    fontWeight: 400,
   },
   heroWeapon: {
     display: "flex",
     alignItems: "center",
-    gap: 6,
-    margin: "0 16px 16px",
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.07)",
-    borderRadius: 8,
-    padding: "7px 10px",
+    gap: 7,
+    margin: "0 16px 18px",
+    padding: "0 0 4px",
   },
   heroWeaponDot: {
-    fontSize: 13,
+    fontSize: 14,
+    opacity: 0.7,
   },
   heroWeaponText: {
     fontSize: 12,
-    color: "#ccc",
-    fontWeight: 600,
+    fontWeight: 700,
+    letterSpacing: 0.1,
   },
   heroAccentLine: {
-    height: 2,
+    height: 1,
     marginTop: 0,
+    opacity: 0.6,
   },
 
   // ── Content ──
   content: {
-    padding: "14px 14px",
+    padding: "16px 14px",
     display: "flex",
     flexDirection: "column",
-    gap: 10,
+    gap: 8,
   },
 
   // ── Section ──
   section: {
-    background: "#0f0f0f",
-    border: "1px solid rgba(255,255,255,0.06)",
-    borderLeft: "3px solid",
-    borderRadius: 12,
+    background: "rgba(255,255,255,0.02)",
+    border: "none",
+    borderLeft: "2px solid",
+    borderRadius: 0,
     overflow: "hidden",
-    transition: "border-color 200ms ease",
+    transition: "border-color 220ms ease",
+    borderTopLeftRadius: 2,
+    borderBottomLeftRadius: 2,
   },
   sectionBtn: {
     width: "100%",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: "12px 14px",
+    padding: "13px 16px",
     border: "none",
     background: "transparent",
     cursor: "pointer",
-    WebkitTapHighlightColor: "transparent",
   },
   sectionTitle: {
     margin: 0,
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 900,
-    letterSpacing: 1.5,
+    letterSpacing: 2,
     textTransform: "uppercase",
-    transition: "color 200ms ease",
+    transition: "color 220ms ease",
   },
   chevron: {
-    width: 16,
-    height: 16,
+    width: 15,
+    height: 15,
     fill: "none",
     stroke: "currentColor",
     strokeWidth: 2,
     strokeLinecap: "round",
     strokeLinejoin: "round",
     flexShrink: 0,
-    transition: "transform 200ms ease, color 200ms ease",
+    transition: "transform 220ms ease, color 220ms ease",
+    opacity: 0.5,
   },
   sectionBody: {
-    padding: "0 14px 12px",
+    padding: "0 16px 14px",
   },
 
   // ── Style identity pills ──
@@ -466,10 +472,10 @@ const s = {
 
   // ── Combos ──
   comboCard: {
-    background: "rgba(255,255,255,0.03)",
-    borderRadius: 8,
-    padding: "8px 10px",
-    marginBottom: 6,
+    background: "rgba(255,255,255,0.025)",
+    borderRadius: 10,
+    padding: "10px 12px",
+    marginBottom: 8,
   },
   comboName: {
     margin: "0 0 6px",
@@ -656,25 +662,28 @@ const s = {
     gap: 5,
   },
   tagChip: {
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.08)",
+    background: "none",
+    border: "1px solid rgba(255,255,255,0.07)",
     borderRadius: 20,
-    padding: "2px 9px",
+    padding: "3px 10px",
     fontSize: 10,
-    color: "#666",
+    color: "rgba(255,255,255,0.28)",
+    letterSpacing: 0.2,
   },
 
   // ── Back button ──
   allBtn: {
     width: "100%",
-    padding: "12px",
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.07)",
-    borderRadius: 10,
-    color: "#666",
+    padding: "14px",
+    background: "none",
+    border: "none",
+    borderTop: "1px solid rgba(255,255,255,0.05)",
+    borderRadius: 0,
+    color: "rgba(255,255,255,0.25)",
     fontSize: 12,
     cursor: "pointer",
     textAlign: "center",
+    marginTop: 8,
   },
 
   // ── Not found ──

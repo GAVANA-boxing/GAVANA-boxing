@@ -46,6 +46,10 @@ body {
   font-weight: 500;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 html,
 body {
   width: 100%;
@@ -55,6 +59,14 @@ body {
 
 * {
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Hide scrollbars globally — feel cleaner, more immersive */
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  background: transparent;
 }
 
 a, button {
@@ -63,7 +75,7 @@ a, button {
 
 button:active,
 a:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
 }
 
 h1,
@@ -111,4 +123,81 @@ p {
 @keyframes dropDown {
   from { opacity: 0; transform: translateY(-6px) scale(0.96); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── Immersive Combat Experience — Motion System ── */
+
+/* Soft page entrance: every major page wrapper uses this */
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Staggered content reveal for sections */
+@keyframes sectionReveal {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Hero entrance: dramatic scale-in from slight below */
+@keyframes heroEnter {
+  from { opacity: 0; transform: scale(1.02) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Ambient glow breathing for accent elements */
+@keyframes ambientBreath {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 0.9; }
+}
+
+/* XP bar fill animation */
+@keyframes rankFill {
+  from { width: 0%; }
+}
+
+/* Pulse ring for live/active indicators */
+@keyframes pulseRing {
+  0%   { transform: scale(1);   opacity: 0.8; }
+  70%  { transform: scale(1.4); opacity: 0; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+/* Slide up from bottom for modals/sheets */
+@keyframes slideUpSheet {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
+
+/* Fade scale in (story, overlay, modal) */
+@keyframes fadeScaleIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── Utility animation classes ── */
+
+.page-enter {
+  animation: pageEnter 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.hero-enter {
+  animation: heroEnter 480ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.section-reveal {
+  animation: sectionReveal 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.ambient-breath {
+  animation: ambientBreath 3s ease-in-out infinite;
+}
+
+.pulse-ring::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  animation: pulseRing 2s ease-out infinite;
 }

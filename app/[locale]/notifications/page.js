@@ -380,7 +380,7 @@ export default function NotificationsPage() {
   }
 
   return (
-    <main style={styles.page}>
+    <main style={styles.page} className="page-enter">
       <header style={styles.header}>
         <button style={styles.backButton} onClick={() => router.push(`/${locale}/reels`)}>
           {t("back")}

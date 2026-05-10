@@ -342,7 +342,7 @@ export default function DiscoverPage() {
   const showSearch = hasSearched && query.trim();
 
   return (
-    <div style={s.page}>
+    <div style={s.page} className="page-enter">
       {/* ── Header ── */}
       <div style={s.header}>
         <p style={s.kicker}>GAVANA</p>

@@ -192,6 +192,7 @@ function RankBar({ xp, t }) {
           width: `${progress}%`,
           transition: "width 700ms cubic-bezier(0.4, 0, 0.2, 1)",
           boxShadow: `0 0 12px ${rank.color}88`,
+          animation: "rankFill 900ms cubic-bezier(0.16, 1, 0.3, 1) both",
         }} />
       </div>
       {next && (
@@ -646,7 +647,7 @@ export default function AthleteDashboard() {
   }
 
   return (
-    <div style={{ background: "radial-gradient(ellipse at top center, rgba(193,18,31,0.06) 0%, transparent 50%), #070707", minHeight: "100dvh", color: "#fff" }}>
+    <div style={{ background: "radial-gradient(ellipse at top center, rgba(193,18,31,0.06) 0%, transparent 50%), #070707", minHeight: "100dvh", color: "#fff" }} className="page-enter">
       <div style={{ maxWidth: 540, margin: "0 auto", padding: "calc(20px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom))" }}>
 
         {/* Page header */}
