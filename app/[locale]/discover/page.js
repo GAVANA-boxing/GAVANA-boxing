@@ -11,6 +11,92 @@ import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
 import StoryBar from "@/components/StoryBar";
 import { getLocale, translate } from "@/lib/i18n";
+import { FIGHTERS } from "@/lib/fighters";
+
+// ─── Legendary fighter mini card (for Fighter Study row) ─────────────────────
+function FighterStudyCard({ fighter, onClick }) {
+  const acc = fighter.accent;
+  return (
+    <button type="button" onClick={onClick} style={fs.card}>
+      <div style={{ ...fs.cardTop, background: `linear-gradient(150deg, ${acc}28 0%, #111 100%)` }}>
+        <span style={fs.cardFlag}>{fighter.country}</span>
+        <div style={{ ...fs.cardAccentBar, background: acc }} />
+      </div>
+      <div style={fs.cardBody}>
+        <p style={fs.cardName}>{fighter.name}</p>
+        <p style={fs.cardNickname}>"{fighter.nickname}"</p>
+        <span style={{ ...fs.cardPill, borderColor: acc + "55", color: acc }}>{fighter.style}</span>
+      </div>
+    </button>
+  );
+}
+
+// Fighter Study card styles
+const fs = {
+  card: {
+    flexShrink: 0,
+    width: 120,
+    background: "#111",
+    border: "1px solid rgba(255,255,255,0.07)",
+    borderRadius: 12,
+    overflow: "hidden",
+    cursor: "pointer",
+    textAlign: "left",
+    padding: 0,
+  },
+  cardTop: {
+    height: 64,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+  },
+  cardFlag: {
+    fontSize: 30,
+    lineHeight: 1,
+  },
+  cardAccentBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 2,
+    opacity: 0.5,
+  },
+  cardBody: {
+    padding: "8px 10px 10px",
+  },
+  cardName: {
+    margin: "0 0 1px",
+    fontSize: 11,
+    fontWeight: 800,
+    color: "#fff",
+    lineHeight: 1.2,
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  },
+  cardNickname: {
+    margin: "0 0 6px",
+    fontSize: 9,
+    color: "#666",
+    fontStyle: "italic",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  },
+  cardPill: {
+    display: "inline-block",
+    border: "1px solid",
+    borderRadius: 20,
+    padding: "1px 6px",
+    fontSize: 8,
+    fontWeight: 700,
+    letterSpacing: 0.2,
+    textTransform: "uppercase",
+    lineHeight: 1.6,
+  },
+};
 
 // ─── Fighter style identity chips ────────────────────────────────────────────
 const FIGHTER_STYLES = [
@@ -371,6 +457,31 @@ export default function DiscoverPage() {
             expanded={learnOpen}
             onToggle={() => setLearnOpen((v) => !v)}
           >
+            {/* ── Fighter Study subsection ── */}
+            <div style={s.fighterStudySection}>
+              <div style={s.fighterStudyHeader}>
+                <span style={s.fighterStudyLabel}>🥊 {t("fighterStudyTitle")}</span>
+                <button
+                  type="button"
+                  style={s.fighterStudySeeAll}
+                  onClick={() => router.push(`/${locale}/fighters`)}
+                >
+                  {t("fighterStudySeeAll")} ›
+                </button>
+              </div>
+              <div style={s.fighterStudyScroll}>
+                {FIGHTERS.map((f) => (
+                  <FighterStudyCard
+                    key={f.id}
+                    fighter={f}
+                    onClick={() => router.push(`/${locale}/fighters/${f.id}`)}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div style={s.learnDivider} />
+
             {/* Sub-category chips */}
             <div style={s.learnChips}>
               {LEARN_CATS.map((cat) => (
@@ -1090,5 +1201,45 @@ const s = {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
+  },
+
+  // ── Fighter Study subsection ──
+  fighterStudySection: {
+    marginBottom: 4,
+  },
+  fighterStudyHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  fighterStudyLabel: {
+    fontSize: 12,
+    fontWeight: 800,
+    color: "#D4AF37",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  fighterStudySeeAll: {
+    background: "none",
+    border: "none",
+    color: "#888",
+    fontSize: 11,
+    cursor: "pointer",
+    padding: 0,
+  },
+  fighterStudyScroll: {
+    display: "flex",
+    gap: 10,
+    overflowX: "auto",
+    paddingBottom: 4,
+    scrollbarWidth: "none",
+    msOverflowStyle: "none",
+    WebkitOverflowScrolling: "touch",
+  },
+  learnDivider: {
+    height: 1,
+    background: "rgba(255,255,255,0.06)",
+    margin: "14px 0",
   },
 };
