@@ -17,9 +17,11 @@ import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 
 const SPECIALTIES = [
-  "Jab", "Footwork", "Defense", "Conditioning",
-  "Technique", "Sparring", "Amateur", "Pro",
+  "Footwork", "Pressure", "Counter", "Beginners",
+  "Sparring", "Conditioning", "Defense", "Pad work", "Amateur", "Pro",
 ];
+
+const VIBE_FILTERS = ["Friendly", "Technical", "Hard sparring", "Competitive"];
 
 const LEVELS = ["Amateur", "Fighter", "Pro", "Elite", "Champion"];
 
@@ -175,6 +177,7 @@ export default function CoachPage() {
   const [coachesLoading, setCoachesLoading] = useState(false);
   const [sparringLoading, setSparringLoading] = useState(false);
   const [filterSpecialty, setFilterSpecialty] = useState("");
+  const [filterVibe, setFilterVibe] = useState("");
   const [filterLocation, setFilterLocation] = useState("");
   const [sortBy, setSortBy] = useState("rating");
   const [requestedIds, setRequestedIds] = useState(new Set());
@@ -284,6 +287,7 @@ export default function CoachPage() {
 
   const filteredCoaches = coaches
     .filter((c) => !filterSpecialty || (c.coachSpecialties || []).includes(filterSpecialty))
+    .filter((c) => !filterVibe || (c.coachVibes || []).includes(filterVibe))
     .filter((c) => !filterLocation || (c.coachLocation || "").toLowerCase().includes(filterLocation.toLowerCase()))
     .sort((a, b) => {
       if (sortBy === "rating") return (b.coachRating || 0) - (a.coachRating || 0);
@@ -336,6 +340,34 @@ export default function CoachPage() {
             )}
           </header>
 
+          {/* Featured coaches row */}
+          {coaches.filter((c) => c.coachVerified || c.coachFeatured).length > 0 && (
+            <div style={styles.featuredSection}>
+              <p style={styles.featuredLabel}>{t("marketplaceFeatured")}</p>
+              <div style={styles.featuredScroll}>
+                {coaches.filter((c) => c.coachVerified || c.coachFeatured).slice(0, 6).map((coach) => {
+                  const initials = (coach.displayName || coach.username || "?").split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+                  return (
+                    <button
+                      key={coach.id}
+                      type="button"
+                      style={styles.featuredChip}
+                      onClick={() => router.push(`/${locale}/coach/${coach.id}`)}
+                    >
+                      {coach.photoURL ? (
+                        <img src={coach.photoURL} alt="" style={styles.featuredAvatar} />
+                      ) : (
+                        <div style={styles.featuredAvatarInitials}>{initials}</div>
+                      )}
+                      <span style={styles.featuredName}>{coach.displayName || coach.username || "Coach"}</span>
+                      {coach.coachVerified && <span style={styles.featuredVerified}>✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Filters */}
           <div style={styles.filterBar}>
             <div style={styles.specialtyScroll}>
@@ -354,6 +386,19 @@ export default function CoachPage() {
                   onClick={() => setFilterSpecialty((prev) => prev === s ? "" : s)}
                 >
                   {s}
+                </button>
+              ))}
+            </div>
+
+            <div style={styles.specialtyScroll}>
+              {VIBE_FILTERS.map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  style={filterVibe === v ? styles.vibeChipActive : styles.vibeChip}
+                  onClick={() => setFilterVibe((prev) => (prev === v ? "" : v))}
+                >
+                  {v}
                 </button>
               ))}
             </div>
@@ -1064,4 +1109,14 @@ const styles = {
     cursor: "pointer",
     boxShadow: "0 12px 30px rgba(193,18,31,0.28)",
   },
+  vibeChip: { flexShrink: 0, padding: "5px 12px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.25)", background: "rgba(193,18,31,0.08)", color: "rgba(255,165,130,0.7)", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" },
+  vibeChipActive: { flexShrink: 0, padding: "5px 12px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.6)", background: "rgba(193,18,31,0.22)", color: "#F87171", fontSize: 12, fontWeight: 900, cursor: "pointer", whiteSpace: "nowrap" },
+  featuredSection: { marginBottom: 16 },
+  featuredLabel: { margin: "0 0 8px", fontSize: 11, fontWeight: 900, color: "#D4AF37", letterSpacing: 1.5, textTransform: "uppercase" },
+  featuredScroll: { display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" },
+  featuredChip: { flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 12, padding: "10px 12px", cursor: "pointer", minWidth: 72 },
+  featuredAvatar: { width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(212,175,55,0.4)" },
+  featuredAvatarInitials: { width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg, #C1121F, #7d0812)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 900, color: "#fff" },
+  featuredName: { fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.8)", maxWidth: 64, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  featuredVerified: { fontSize: 10, color: "#D4AF37", fontWeight: 900 },
 };

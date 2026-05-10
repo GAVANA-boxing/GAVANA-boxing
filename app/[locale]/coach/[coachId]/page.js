@@ -8,6 +8,43 @@ import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 
+const BEST_FOR_MAP = {
+  Footwork: { en: "Fighters wanting better ring movement & pivots", mn: "Хөдөлгөөн, хөлийн ажлаа сайжруулахыг хүсэгчид", ko: "이동 동작을 향상시키려는 선수" },
+  Pressure: { en: "Brawlers building aggressive pressure fighting", mn: "Дайралтын арга барилаа хөгжүүлэхийг хүсэгчид", ko: "압박 파이팅을 구사하려는 선수" },
+  Counter: { en: "Defensive fighters learning counter-punching", mn: "Тохой үхэлт тоглогч болохыг хүсэгчид", ko: "카운터펀치를 익히려는 수비 지향 선수" },
+  Beginners: { en: "First-time boxers — all levels welcome", mn: "Анх удаа боксыг эзэмшигчид", ko: "처음 복싱을 시작하는 입문자" },
+  Sparring: { en: "Fighters ready to test themselves in the ring", mn: "Рингд сорилоо туршихад бэлэн тамирчид", ko: "실전 훈련을 하고 싶은 선수" },
+  Conditioning: { en: "Athletes improving fitness and endurance", mn: "Бие бялдараа сайжруулахыг хүсэгчид", ko: "체력과 지구력을 강화하려는 운동선수" },
+  Defense: { en: "Fighters wanting a tighter guard and better slipping", mn: "Хамгаалалтаа бат бэх болгохыг хүсэгчид", ko: "가드와 슬리핑을 개선하고 싶은 선수" },
+  "Pad work": { en: "Anyone wanting sharper, faster hands", mn: "Гарын хурд, нарийвчлалаа дээшлүүлэхийг хүсэгчид", ko: "더 빠르고 정확한 손기술을 원하는 선수" },
+  Amateur: { en: "Competitors training for amateur fights", mn: "Аматур тэмцээнд бэлтгэж буй тамирчид", ko: "아마추어 대회를 준비하는 선수" },
+  Pro: { en: "Professional-level fighters and competitors", mn: "Мэргэжлийн түвшний тамирчид", ko: "프로 레벨의 파이터" },
+};
+
+const IMPROVE_MAP = {
+  Footwork: ["Footwork & Pivots", "Ring positioning", "Defensive movement"],
+  Pressure: ["Forward pressure", "Body work", "Cutting off the ring"],
+  Counter: ["Timing & counters", "Head movement", "Defensive IQ"],
+  Beginners: ["Basic stance & guard", "Punching mechanics", "Confidence"],
+  Sparring: ["Timing & reaction", "Ring generalship", "Composure"],
+  Conditioning: ["Endurance", "Core strength", "Recovery speed"],
+  Defense: ["Slipping & rolling", "Guard stability", "Block mechanics"],
+  "Pad work": ["Hand speed", "Combination flow", "Accuracy"],
+  Amateur: ["Fight IQ", "Scoring punches", "Amateur tactics"],
+  Pro: ["Advanced tactics", "Mental game", "Peak conditioning"],
+};
+
+function getCoachInsight(coach) {
+  const specs = coach.coachSpecialties || [];
+  const first = specs[0];
+  const bestFor = first ? BEST_FOR_MAP[first] : null;
+  const improves = specs
+    .flatMap((s) => IMPROVE_MAP[s] || [])
+    .filter((v, i, a) => a.indexOf(v) === i)
+    .slice(0, 4);
+  return { bestFor, improves };
+}
+
 function StarRating({ value, onChange, readonly = false }) {
   return (
     <div style={{ display: "flex", gap: 6 }}>
@@ -293,6 +330,15 @@ export default function CoachProfilePage() {
           </div>
         )}
 
+        {/* Vibe tags */}
+        {coach.coachVibes?.length > 0 && (
+          <div style={styles.specialtyRow}>
+            {coach.coachVibes.map((v) => (
+              <span key={v} style={styles.vibeChip}>{v}</span>
+            ))}
+          </div>
+        )}
+
         {/* Bio */}
         {(coach.coachBio || coach.bio) && (
           <p style={styles.bio}>{coach.coachBio || coach.bio}</p>
@@ -302,6 +348,32 @@ export default function CoachProfilePage() {
         {coach.coachCertifications && (
           <p style={styles.cert}>🏅 {coach.coachCertifications}</p>
         )}
+
+        {/* Best for + What you'll improve */}
+        {(() => {
+          const { bestFor, improves } = getCoachInsight(coach);
+          if (!bestFor && !improves.length) return null;
+          return (
+            <>
+              {bestFor && (
+                <div style={styles.insightCard}>
+                  <span style={styles.insightLabel}>{t("coachBestFor")}</span>
+                  <span style={styles.insightText}>{bestFor[locale] || bestFor.en}</span>
+                </div>
+              )}
+              {improves.length > 0 && (
+                <div style={styles.insightCard}>
+                  <span style={styles.insightLabel}>{t("coachWillImprove")}</span>
+                  <div style={styles.improveList}>
+                    {improves.map((imp) => (
+                      <span key={imp} style={styles.improveChip}>✓ {imp}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          );
+        })()}
 
         {/* Social links */}
         {(coach.coachInstagram || coach.coachYoutube) && (
@@ -483,4 +555,10 @@ const styles = {
   reelThumb: { aspectRatio: "9/16", background: "rgba(255,255,255,0.05)", border: "none", borderRadius: 8, cursor: "pointer", overflow: "hidden", padding: 0 },
   reelThumbImg: { width: "100%", height: "100%", objectFit: "cover" },
   reelThumbPlaceholder: { width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.65)", fontSize: 20 },
+  vibeChip: { background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.28)", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 800, color: "#F87171", letterSpacing: 0.3 },
+  insightCard: { width: "100%", maxWidth: 360, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.18)", borderRadius: 12, padding: "12px 14px", display: "flex", flexDirection: "column", gap: 6 },
+  insightLabel: { fontSize: 10, fontWeight: 900, color: "#D4AF37", textTransform: "uppercase", letterSpacing: 1 },
+  insightText: { fontSize: 13, color: "rgba(255,255,255,0.75)", lineHeight: 1.4 },
+  improveList: { display: "flex", flexWrap: "wrap", gap: 5 },
+  improveChip: { fontSize: 12, color: "rgba(255,255,255,0.6)", background: "rgba(255,255,255,0.05)", borderRadius: 6, padding: "3px 8px" },
 };

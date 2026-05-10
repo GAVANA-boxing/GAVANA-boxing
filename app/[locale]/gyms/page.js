@@ -30,6 +30,19 @@ const GYM_TYPE_KEYS = {
   "Running Club": "gymTypeRunningClub",
 };
 
+const VIBE_FILTERS = ["Beginner-Friendly", "Technical", "Competitive", "Traditional"];
+
+function getDefaultVibes(gymType) {
+  const map = {
+    Boxing: ["Technical", "Sparring"],
+    MMA: ["Hard training", "Competitive"],
+    "Muay Thai": ["Traditional", "Technical"],
+    Fitness: ["Beginner-Friendly", "Conditioning"],
+    Crossfit: ["High intensity", "Competitive"],
+  };
+  return map[gymType] || [];
+}
+
 function StarDisplay({ rating }) {
   const r = Number(rating) || 0;
   return (
@@ -87,6 +100,13 @@ function GymCard({ gym, t, router, locale }) {
           )}
         </div>
 
+        {getDefaultVibes(gym.gymType).length > 0 && (
+          <div style={styles.cardVibeRow}>
+            {(gym.vibes || getDefaultVibes(gym.gymType)).slice(0, 3).map((v) => (
+              <span key={v} style={styles.cardVibeBadge}>{v}</span>
+            ))}
+          </div>
+        )}
         {gym.description && (
           <p style={styles.cardDesc}>
             {gym.description.length > 100 ? gym.description.slice(0, 100) + "…" : gym.description}
@@ -111,6 +131,7 @@ export default function GymsPage() {
   const [sortMode, setSortMode] = useState("topRated"); // topRated | newest | nearby
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [cityFilter, setCityFilter] = useState("");
+  const [filterVibe, setFilterVibe] = useState("");
   const [nearbyCoords, setNearbyCoords] = useState(null);
   const [nearbyLoading, setNearbyLoading] = useState(false);
 
@@ -165,6 +186,7 @@ export default function GymsPage() {
     if (verifiedOnly) list = list.filter((g) => g.verified);
     if (selectedType !== "all") list = list.filter((g) => g.gymType === selectedType);
     if (cityFilter) list = list.filter((g) => g.city === cityFilter);
+    if (filterVibe) list = list.filter((g) => (g.vibes || getDefaultVibes(g.gymType)).includes(filterVibe));
     if (searchText.trim()) {
       const q = searchText.toLowerCase();
       list = list.filter((g) =>
@@ -254,6 +276,20 @@ export default function GymsPage() {
             />
             {t("gymsVerifiedOnly")}
           </label>
+        </div>
+
+        {/* Vibe filter chips */}
+        <div style={styles.vibeRow}>
+          {VIBE_FILTERS.map((v) => (
+            <button
+              key={v}
+              type="button"
+              style={filterVibe === v ? styles.vibeActive : styles.vibeBtn}
+              onClick={() => setFilterVibe((prev) => (prev === v ? "" : v))}
+            >
+              {v}
+            </button>
+          ))}
         </div>
 
         {/* Category pills */}
@@ -351,4 +387,9 @@ const styles = {
   cardStats: { display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 6 },
   statChip: { fontSize: 11, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: "3px 8px" },
   cardDesc: { margin: 0, fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.5 },
+  cardVibeRow: { display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 4 },
+  cardVibeBadge: { fontSize: 10, fontWeight: 800, color: "#F87171", background: "rgba(193,18,31,0.08)", border: "1px solid rgba(193,18,31,0.2)", borderRadius: 999, padding: "2px 8px" },
+  vibeRow: { display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8, marginBottom: 12, scrollbarWidth: "none" },
+  vibeBtn: { flexShrink: 0, padding: "5px 14px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.2)", background: "rgba(193,18,31,0.05)", color: "rgba(255,165,130,0.65)", fontSize: 12, fontWeight: 700, cursor: "pointer" },
+  vibeActive: { flexShrink: 0, padding: "5px 14px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.6)", background: "rgba(193,18,31,0.18)", color: "#F87171", fontSize: 12, fontWeight: 900, cursor: "pointer" },
 };

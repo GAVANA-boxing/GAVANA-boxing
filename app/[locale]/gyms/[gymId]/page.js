@@ -31,6 +31,31 @@ const GYM_TYPE_KEYS = {
   "Running Club": "gymTypeRunningClub",
 };
 
+function getGymVibes(gym) {
+  if (gym.vibes?.length) return gym.vibes;
+  const v = [];
+  if (gym.gymType === "Boxing") { v.push("Technical", "Sparring"); }
+  else if (gym.gymType === "MMA") { v.push("Hard training", "Competitive"); }
+  else if (gym.gymType === "Muay Thai") { v.push("Traditional", "Technical"); }
+  else if (gym.gymType === "Fitness") { v.push("Beginner-Friendly", "Conditioning"); }
+  else if (gym.gymType === "Crossfit") { v.push("High intensity", "Conditioning"); }
+  return v;
+}
+
+function getGymGoodFor(gym) {
+  const map = {
+    Boxing: ["Fighters", "Sparring", "Technical work"],
+    MMA: ["Mixed fighting", "Strike defense", "Grappling"],
+    "Muay Thai": ["Kicks & knees", "Clinch work", "Traditional training"],
+    Fitness: ["Weight loss", "Cardio", "General fitness"],
+    Crossfit: ["Strength", "Conditioning", "Athletic performance"],
+    "Street Workout": ["Calisthenics", "Outdoor training", "Body control"],
+    Powerlifting: ["Max strength", "Barbell training", "Power sports"],
+    "Running Club": ["Endurance", "Cardio", "Community running"],
+  };
+  return map[gym.gymType] || gym.specialties?.slice(0, 3) || [];
+}
+
 function StarRating({ value, onChange, readonly = false }) {
   return (
     <div style={{ display: "flex", gap: 4 }}>
@@ -259,6 +284,13 @@ export default function GymProfilePage() {
             <p style={styles.gymLocation}>📍 {[gym.district, gym.city, gym.country].filter(Boolean).join(", ")}</p>
           )}
           {gym.address && <p style={styles.gymAddress}>{gym.address}</p>}
+          {getGymVibes(gym).length > 0 && (
+            <div style={styles.vibeRow}>
+              {getGymVibes(gym).map((v) => (
+                <span key={v} style={styles.vibeBadge}>{v}</span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Trust stats */}
@@ -324,6 +356,18 @@ export default function GymProfilePage() {
               </button>
             </div>
           </div>
+        )}
+
+        {/* Good for */}
+        {getGymGoodFor(gym).length > 0 && (
+          <section style={styles.section}>
+            <p style={styles.sectionTitle}>{t("gymGoodFor")}</p>
+            <div style={styles.pillsRow}>
+              {getGymGoodFor(gym).map((g) => (
+                <span key={g} style={styles.goodForPill}>{g}</span>
+              ))}
+            </div>
+          </section>
         )}
 
         {/* Description */}
@@ -495,4 +539,7 @@ const styles = {
   errorText: { margin: 0, fontSize: 13, color: "#F87171" },
   successText: { margin: "0 0 10px", fontSize: 13, color: "#34D399", fontWeight: 700 },
   emptyText: { margin: 0, fontSize: 13, color: "rgba(255,255,255,0.55)" },
+  vibeRow: { display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 },
+  vibeBadge: { fontSize: 11, fontWeight: 800, color: "#F87171", background: "rgba(193,18,31,0.1)", border: "1px solid rgba(193,18,31,0.25)", borderRadius: 999, padding: "3px 10px" },
+  goodForPill: { fontSize: 12, color: "rgba(255,255,255,0.65)", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 999, padding: "4px 12px", fontWeight: 600 },
 };
