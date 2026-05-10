@@ -11,6 +11,7 @@ import { RANK_TIERS, calculateSessionXP, calculateUserXP, getFighterRank, getNex
 import RankIcon from "@/components/RankIcon";
 import RankUpModal from "@/components/RankUpModal";
 import { getCurrentSeasonId } from "@/lib/season";
+import MediaCover from "@/components/MediaCover";
 
 function getSafeReelLikes(reel) {
   const fieldLikes = typeof reel.likes === "number" && !Number.isNaN(reel.likes)
@@ -1202,9 +1203,9 @@ export default function UserProfilePage() {
   };
 
   return (
-    <div style={{
+    <div className="page-enter" style={{
       minHeight: "100vh",
-      background: "var(--background)",
+      background: "radial-gradient(ellipse at top center, rgba(193,18,31,0.08) 0%, transparent 50%), var(--background)",
       color: "var(--text-primary)",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
       padding: 0,
@@ -1787,12 +1788,11 @@ export default function UserProfilePage() {
                     onError={() => markPreviewFailed(reel.id, "video")}
                   />
                 ) : (
-                  <div style={styles.reelPreviewFallback}>
-                    <div style={styles.reelPreviewGlow} />
-                    <div style={styles.reelPreviewFallbackText}>
-                      {reel.description || t("trainingReel")}
-                    </div>
-                  </div>
+                  <MediaCover
+                    contentType={effectiveType}
+                    caption={reel.description || reel.caption}
+                    style={{ position: "absolute", inset: 0 }}
+                  />
                 )}
 
                 {/* Content type indicator — top-left */}
@@ -1984,10 +1984,9 @@ const styles = {
     paddingBottom: 12,
     paddingLeft: 16,
     paddingRight: 16,
-    background: "rgba(7,7,7,0.94)",
-    backdropFilter: "blur(14px)",
-    WebkitBackdropFilter: "blur(14px)",
-    borderBottom: "1px solid rgba(255,255,255,0.07)",
+    background: "rgba(7,7,7,0.88)",
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
   },
   backBtnProfile: {
     border: "1px solid rgba(212,175,55,0.28)",
@@ -2001,10 +2000,11 @@ const styles = {
   },
   fighterCard: {
     width: "100%",
-    padding: "28px 16px 26px",
-    background: "radial-gradient(circle at 50% 0%, rgba(193,18,31,0.22), transparent 36%), linear-gradient(180deg, #0B0B0B 0%, #070707 100%)",
-    borderBottom: "1px solid rgba(212,175,55,0.14)",
+    padding: "32px 16px 28px",
+    background: "radial-gradient(ellipse at 50% 0%, rgba(193,18,31,0.28) 0%, rgba(193,18,31,0.06) 40%, transparent 65%), linear-gradient(180deg, #0C0C0C 0%, #070707 100%)",
     boxSizing: "border-box",
+    position: "relative",
+    overflow: "hidden",
   },
   fighterCardInner: {
     width: "min(100%, 520px)",
@@ -2012,20 +2012,21 @@ const styles = {
     textAlign: "center",
   },
   avatarFrame: {
-    width: 138,
-    height: 138,
+    width: 148,
+    height: 148,
     borderRadius: "50%",
     background: "linear-gradient(145deg, #C1121F, #310408)",
-    border: "3px solid #C1121F",
-    boxShadow: "0 0 0 1px rgba(212,175,55,0.55), 0 22px 70px rgba(0,0,0,0.5)",
+    border: "3px solid rgba(193,18,31,0.85)",
+    boxShadow: "0 0 0 1px rgba(212,175,55,0.5), 0 0 0 4px rgba(193,18,31,0.15), 0 24px 80px rgba(0,0,0,0.6), 0 0 48px rgba(193,18,31,0.25)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: 48,
+    fontSize: 52,
     fontWeight: 1000,
-    margin: "0 auto 18px",
+    margin: "0 auto 20px",
     color: "#FFFFFF",
     overflow: "hidden",
+    position: "relative",
   },
   avatarImage: {
     width: "100%",
@@ -2044,10 +2045,11 @@ const styles = {
   fighterName: {
     margin: "8px 0 0",
     color: "#FFFFFF",
-    fontSize: "clamp(34px, 10vw, 48px)",
-    lineHeight: 0.95,
+    fontSize: "clamp(36px, 11vw, 56px)",
+    lineHeight: 0.92,
     fontWeight: 1000,
-    letterSpacing: 0,
+    letterSpacing: -0.5,
+    fontFamily: "var(--font-display, 'Anton', sans-serif)",
   },
   fighterUsername: {
     marginTop: 10,
@@ -2095,24 +2097,23 @@ const styles = {
     cursor: "default",
   },
   bio: {
-    maxWidth: 430,
-    margin: "18px auto 0",
-    padding: "14px 16px",
-    borderRadius: 16,
-    background: "rgba(255,255,255,0.045)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    color: "rgba(255,255,255,0.8)",
-    fontSize: 14,
-    lineHeight: 1.55,
+    maxWidth: 380,
+    margin: "14px auto 0",
+    color: "rgba(255,255,255,0.55)",
+    fontSize: 13,
+    lineHeight: 1.6,
+    fontWeight: 400,
+    fontStyle: "italic",
   },
   statsRow: {
     display: "grid",
     gridTemplateColumns: "repeat(3, 1fr)",
     gap: 1,
-    margin: "22px auto 22px",
+    margin: "24px auto 24px",
     maxWidth: 430,
-    borderTop: "1px solid rgba(255,255,255,0.08)",
-    borderBottom: "1px solid rgba(255,255,255,0.08)",
+    borderTop: "1px solid rgba(255,255,255,0.06)",
+    borderBottom: "1px solid rgba(255,255,255,0.06)",
+    background: "rgba(255,255,255,0.01)",
   },
   statButton: {
     minHeight: 72,
@@ -2737,28 +2738,6 @@ const styles = {
   reelPreviewFallback: {
     position: "absolute",
     inset: 0,
-    display: "flex",
-    alignItems: "flex-end",
-    padding: 10,
-    background: "radial-gradient(circle at 50% 34%, rgba(212,175,55,0.14), transparent 30%), radial-gradient(circle at 45% 64%, rgba(193,18,31,0.18), transparent 34%), linear-gradient(145deg, #070707, #14090b 56%, #050505)",
-  },
-  reelPreviewGlow: {
-    position: "absolute",
-    inset: 0,
-    background: "linear-gradient(135deg, transparent, rgba(255,255,255,0.07), transparent)",
-    opacity: 0.55,
-  },
-  reelPreviewFallbackText: {
-    position: "relative",
-    color: "var(--text-primary)",
-    fontSize: 12,
-    fontWeight: 850,
-    lineHeight: 1.25,
-    textShadow: "0 3px 14px rgba(0,0,0,0.9)",
-    display: "-webkit-box",
-    WebkitLineClamp: 3,
-    WebkitBoxOrient: "vertical",
-    overflow: "hidden",
   },
   deleteReelButton: {
     position: "absolute",
@@ -2846,22 +2825,23 @@ const styles = {
   },
   reelTileTypeBadge: {
     position: "absolute",
-    top: 7,
-    left: 7,
-    fontSize: 13,
+    top: 6,
+    right: 6,
+    fontSize: 14,
     lineHeight: 1,
     pointerEvents: "none",
-    zIndex: 2,
-    filter: "drop-shadow(0 1px 4px rgba(0,0,0,0.9))",
+    zIndex: 4,
+    filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.95))",
   },
   reelTileOverlay: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    padding: "24px 7px 7px",
-    background: "linear-gradient(to top, rgba(0,0,0,0.72), transparent)",
+    padding: "20px 6px 6px",
+    background: "linear-gradient(to top, rgba(0,0,0,0.85), transparent)",
     pointerEvents: "none",
+    zIndex: 3,
   },
   reelTileLikes: {
     color: "rgba(255,255,255,0.9)",

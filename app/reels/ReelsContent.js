@@ -2505,6 +2505,11 @@ export default function ReelsContent() {
           to { opacity: 1; transform: translateY(0); }
         }
 
+        @keyframes pageEnter {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
         @keyframes fadeScale {
           from { opacity: 0; transform: scale(0.96); }
           to { opacity: 1; transform: scale(1); }
@@ -3144,10 +3149,10 @@ const styles = {
   info: {
     position: "absolute",
     left: "max(14px, env(safe-area-inset-left))",
-    right: 72,
-    bottom: "calc(90px + env(safe-area-inset-bottom))",
+    right: 76,
+    bottom: "calc(92px + env(safe-area-inset-bottom))",
     maxWidth: 520,
-    animation: "fadeUp 420ms ease both",
+    animation: "pageEnter 380ms cubic-bezier(0.16, 1, 0.3, 1) both",
     zIndex: 4,
   },
   creatorRow: {

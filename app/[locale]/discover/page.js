@@ -12,21 +12,22 @@ import BottomNav from "@/components/BottomNav";
 import StoryBar from "@/components/StoryBar";
 import { getLocale, translate } from "@/lib/i18n";
 import { FIGHTERS } from "@/lib/fighters";
+import FighterPortrait from "@/components/FighterPortrait";
+import MediaCover from "@/components/MediaCover";
 
 // ─── Legendary fighter mini card (for Fighter Study row) ─────────────────────
 function FighterStudyCard({ fighter, onClick }) {
   const acc = fighter.accent;
   return (
     <button type="button" onClick={onClick} style={fs.card}>
-      <div style={{ ...fs.cardTop, background: `linear-gradient(150deg, ${acc}28 0%, #111 100%)` }}>
-        <span style={fs.cardFlag}>{fighter.country}</span>
-        <div style={{ ...fs.cardAccentBar, background: acc }} />
-      </div>
-      <div style={fs.cardBody}>
-        <p style={fs.cardName}>{fighter.name}</p>
-        <p style={fs.cardNickname}>"{fighter.nickname}"</p>
-        <span style={{ ...fs.cardPill, borderColor: acc + "55", color: acc }}>{fighter.style}</span>
-      </div>
+      <FighterPortrait
+        fighterId={fighter.id}
+        fighter={fighter}
+        height={88}
+        flagSize={36}
+        showName
+        showLabel
+      />
     </button>
   );
 }
@@ -35,66 +36,14 @@ function FighterStudyCard({ fighter, onClick }) {
 const fs = {
   card: {
     flexShrink: 0,
-    width: 120,
-    background: "#111",
-    border: "1px solid rgba(255,255,255,0.07)",
-    borderRadius: 12,
+    width: 128,
+    background: "transparent",
+    border: "none",
+    borderRadius: 14,
     overflow: "hidden",
     cursor: "pointer",
     textAlign: "left",
     padding: 0,
-  },
-  cardTop: {
-    height: 64,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-  },
-  cardFlag: {
-    fontSize: 30,
-    lineHeight: 1,
-  },
-  cardAccentBar: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 2,
-    opacity: 0.5,
-  },
-  cardBody: {
-    padding: "8px 10px 10px",
-  },
-  cardName: {
-    margin: "0 0 1px",
-    fontSize: 11,
-    fontWeight: 800,
-    color: "#fff",
-    lineHeight: 1.2,
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-  },
-  cardNickname: {
-    margin: "0 0 6px",
-    fontSize: 9,
-    color: "#666",
-    fontStyle: "italic",
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-  },
-  cardPill: {
-    display: "inline-block",
-    border: "1px solid",
-    borderRadius: 20,
-    padding: "1px 6px",
-    fontSize: 8,
-    fontWeight: 700,
-    letterSpacing: 0.2,
-    textTransform: "uppercase",
-    lineHeight: 1.6,
   },
 };
 
@@ -162,12 +111,12 @@ function ReelCard({ reel, onClick }) {
             onError={() => setMediaErr(true)}
           />
         ) : (
-          <div style={{ ...s.reelThumbFallback, background: `linear-gradient(160deg, ${typeColor}22 0%, #111 60%, #0a0a0a 100%)` }}>
-            <span style={{ fontSize: 34, filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.8))" }}>{typeEmoji}</span>
-            {caption ? (
-              <p style={s.reelFallbackCaption}>{caption}</p>
-            ) : null}
-          </div>
+          <MediaCover
+            contentType={reel.contentType}
+            category={reel.category}
+            caption={caption}
+            style={{ position: "absolute", inset: 0 }}
+          />
         )}
         {/* Gradient overlays */}
         <div style={s.reelGradTop} />
@@ -345,8 +294,9 @@ export default function DiscoverPage() {
     <div style={s.page} className="page-enter">
       {/* ── Header ── */}
       <div style={s.header}>
-        <p style={s.kicker}>GAVANA</p>
+        <p style={s.kicker}>GAVANA · EXPLORE</p>
         <h1 style={s.title}>{t("discoverTitle")}</h1>
+        <p style={s.subtitle}>{t("discoverSubtitle") || "Fighters. Techniques. Community."}</p>
       </div>
 
       {/* ── Stories ── */}
@@ -629,22 +579,31 @@ const s = {
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   },
   header: {
-    padding: "calc(22px + env(safe-area-inset-top)) 20px 10px",
+    padding: "calc(28px + env(safe-area-inset-top)) 20px 14px",
+    position: "relative",
   },
   kicker: {
-    margin: 0,
-    color: "#C1121F",
+    margin: "0 0 6px",
+    color: "rgba(193,18,31,0.9)",
     fontSize: 9,
     fontWeight: 900,
-    letterSpacing: 3,
+    letterSpacing: 3.5,
     textTransform: "uppercase",
   },
   title: {
-    margin: "4px 0 0",
-    fontSize: 28,
+    margin: "0 0 4px",
+    fontSize: "clamp(30px, 9vw, 42px)",
     fontWeight: 900,
-    letterSpacing: -0.5,
-    lineHeight: 1.1,
+    letterSpacing: -0.8,
+    lineHeight: 1.0,
+    fontFamily: "var(--font-display, 'Anton', sans-serif)",
+  },
+  subtitle: {
+    margin: 0,
+    fontSize: 13,
+    color: "rgba(255,255,255,0.3)",
+    fontWeight: 400,
+    lineHeight: 1.5,
   },
 
   // ── Search ──

@@ -11,6 +11,7 @@ import {
 } from "@/lib/fighters.i18n";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
+import FighterPortrait from "@/components/FighterPortrait";
 
 // ─── Combo step pills ─────────────────────────────────────────────────────────
 function ComboSteps({ steps }) {
@@ -95,42 +96,44 @@ export default function FighterDetailPage() {
     <div style={{ ...s.page, background: `radial-gradient(ellipse at top center, ${acc}12 0%, transparent 40%), #080808` }} className="page-enter">
 
       {/* ══════════ HERO ══════════ */}
-      <div style={{ ...s.hero, background: `linear-gradient(175deg, ${acc}28 0%, ${acc}0a 40%, #080808 75%)` }} className="hero-enter">
-        {/* Glow accent bar at very top */}
-        <div style={{ ...s.heroTopBar, background: `linear-gradient(90deg, ${acc} 0%, ${acc}88 50%, transparent 100%)` }} />
+      <div style={s.hero} className="hero-enter">
+        {/* Portrait — dominant visual (full width, tall) */}
+        <div style={s.heroPortraitWrap}>
+          <FighterPortrait
+            fighterId={fighter.id}
+            fighter={fighter}
+            height={260}
+            flagSize={80}
+            showName={false}
+            showLabel={false}
+          />
+          {/* Overlay gradient — fades to page bg at bottom */}
+          <div style={{ ...s.heroPortraitFade, background: `linear-gradient(to bottom, transparent 40%, ${acc}08 65%, #080808 100%)` }} />
+          {/* Back button — floats over portrait */}
+          <button style={s.backPill} onClick={() => router.back()}>← {t("back")}</button>
+          {/* Top accent bar */}
+          <div style={{ ...s.heroTopBar, background: `linear-gradient(90deg, ${acc} 0%, ${acc}66 60%, transparent 100%)` }} />
+        </div>
 
-        {/* Ambient radial glow */}
-        <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: "100%", height: "100%", background: `radial-gradient(ellipse at 50% 0%, ${acc}20 0%, transparent 60%)`, pointerEvents: "none" }} />
-
-        <button style={s.backPill} onClick={() => router.back()}>
-          ← {t("back")}
-        </button>
-
-        {/* Fighter card block */}
-        <div style={s.heroCard}>
-          {/* Left: flag — large and iconic */}
-          <div style={{ ...s.heroFlagCol, borderColor: acc + "40", background: `radial-gradient(ellipse at center, ${acc}14, rgba(255,255,255,0.03))` }}>
-            <span style={s.heroFlag}>{fighter.country}</span>
-            <span style={{ ...s.heroWeightBadge, color: acc, borderColor: acc + "35" }}>
-              {fighter.weightClass}
-            </span>
-          </div>
-
-          {/* Right: name + metadata */}
-          <div style={s.heroInfo}>
-            <p style={s.heroKicker}>FIGHTER STUDY</p>
-            <h1 style={{ ...s.heroName, color: "#fff" }}>{fighter.name.toUpperCase()}</h1>
-            <p style={s.heroNickname}>"{fighter.nickname}"</p>
-            <span style={{ ...s.heroStyleBadge, background: acc + "20", color: acc, borderColor: acc + "38" }}>
+        {/* Text block below portrait */}
+        <div style={s.heroCenter}>
+          <p style={s.heroKicker}>GAVANA · FIGHTER STUDY</p>
+          <h1 style={{ ...s.heroNameBig, textShadow: `0 0 40px ${acc}44` }}>
+            {fighter.name.toUpperCase()}
+          </h1>
+          <p style={s.heroNickname}>"{fighter.nickname}"</p>
+          <div style={s.heroMeta}>
+            <span style={{ ...s.heroStyleBadge, background: acc + "1e", color: acc, borderColor: acc + "40" }}>
               {fighter.style}
             </span>
+            <span style={s.heroWeightClass}>{fighter.weightClass}</span>
           </div>
         </div>
 
         {/* Identity line */}
         <p style={s.heroIdentity}>{identity}</p>
 
-        {/* Key weapon — inline, no card */}
+        {/* Key weapon */}
         <div style={s.heroWeapon}>
           <span style={s.heroWeaponDot}>⚡</span>
           <span style={{ ...s.heroWeaponText, color: acc }}>{fighter.keyWeapon}</span>
@@ -268,9 +271,18 @@ const s = {
   // ── Hero ──
   hero: {
     position: "relative",
-    paddingTop: "calc(16px + env(safe-area-inset-top))",
     paddingBottom: 0,
     overflow: "hidden",
+  },
+  heroPortraitWrap: {
+    position: "relative",
+    width: "100%",
+  },
+  heroPortraitFade: {
+    position: "absolute",
+    inset: 0,
+    pointerEvents: "none",
+    zIndex: 1,
   },
   heroTopBar: {
     position: "absolute",
@@ -278,98 +290,105 @@ const s = {
     left: 0,
     right: 0,
     height: 2,
+    zIndex: 5,
   },
   backPill: {
     display: "inline-flex",
     alignItems: "center",
     gap: 4,
-    background: "none",
+    background: "rgba(0,0,0,0.45)",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
     border: "none",
-    color: "rgba(255,255,255,0.35)",
+    color: "rgba(255,255,255,0.75)",
     fontSize: 12,
-    padding: "5px 16px",
+    padding: "7px 16px",
     borderRadius: 20,
     cursor: "pointer",
-    margin: "10px 0 12px",
+    position: "absolute",
+    top: "calc(12px + env(safe-area-inset-top))",
+    left: 12,
+    zIndex: 10,
   },
-  heroCard: {
-    display: "flex",
-    gap: 16,
-    alignItems: "flex-start",
-    padding: "0 16px",
-    marginBottom: 16,
-  },
-  heroFlagCol: {
-    flexShrink: 0,
-    width: 76,
-    border: "1px solid",
-    borderRadius: 14,
+  heroCenter: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
-    padding: "12px 6px 10px",
-    gap: 10,
-  },
-  heroFlag: {
-    fontSize: 44,
-    lineHeight: 1,
-    filter: "drop-shadow(0 4px 16px rgba(0,0,0,0.7))",
-  },
-  heroWeightBadge: {
-    fontSize: 7,
-    fontWeight: 900,
-    letterSpacing: 0.6,
-    textTransform: "uppercase",
-    border: "1px solid",
-    borderRadius: 20,
-    padding: "2px 6px",
     textAlign: "center",
-    lineHeight: 1.4,
-  },
-  heroInfo: {
-    flex: 1,
-    minWidth: 0,
-    paddingTop: 2,
+    padding: "0 20px 16px",
+    position: "relative",
+    zIndex: 2,
   },
   heroKicker: {
-    margin: "0 0 5px",
+    margin: "0 0 16px",
     fontSize: 8,
     fontWeight: 900,
-    letterSpacing: 2.5,
+    letterSpacing: 3,
     color: "rgba(255,255,255,0.25)",
     textTransform: "uppercase",
   },
-  heroName: {
-    margin: "0 0 4px",
-    fontSize: 26,
-    fontWeight: 900,
-    letterSpacing: -0.8,
+  heroFlagDisplay: {
+    position: "relative",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 14,
+  },
+  heroFlagBig: {
+    fontSize: 72,
     lineHeight: 1,
+    filter: "drop-shadow(0 8px 24px rgba(0,0,0,0.7)) drop-shadow(0 0 30px rgba(255,255,255,0.05))",
+  },
+  heroNameBig: {
+    margin: "0 0 6px",
+    fontSize: "clamp(38px, 11vw, 64px)",
+    fontFamily: "var(--font-display, 'Anton', sans-serif)",
+    fontWeight: 400,
+    letterSpacing: "0.02em",
+    lineHeight: 0.9,
     color: "#fff",
+    textTransform: "uppercase",
   },
   heroNickname: {
-    margin: "0 0 12px",
-    fontSize: 12,
-    color: "rgba(255,255,255,0.4)",
+    margin: "0 0 16px",
+    fontSize: 13,
+    color: "rgba(255,255,255,0.38)",
     fontStyle: "italic",
+    fontWeight: 400,
+  },
+  heroMeta: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    flexWrap: "wrap",
+    justifyContent: "center",
   },
   heroStyleBadge: {
     display: "inline-block",
     border: "1px solid",
     borderRadius: 20,
-    padding: "3px 11px",
+    padding: "4px 13px",
     fontSize: 9,
     fontWeight: 800,
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
+  heroWeightClass: {
+    fontSize: 9,
+    fontWeight: 700,
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
+    color: "rgba(255,255,255,0.28)",
+  },
   heroIdentity: {
-    margin: "0 16px 12px",
+    margin: "0 20px 12px",
     fontSize: 13,
-    color: "rgba(255,255,255,0.65)",
-    lineHeight: 1.6,
+    color: "rgba(255,255,255,0.62)",
+    lineHeight: 1.65,
     fontWeight: 400,
+    textAlign: "center",
+    position: "relative",
+    zIndex: 2,
   },
   heroWeapon: {
     display: "flex",
