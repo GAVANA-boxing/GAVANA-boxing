@@ -99,6 +99,7 @@ export default function BottomNav({
 }) {
   const pathname = usePathname();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [hubOpen, setHubOpen] = useState(false);
   const resolvedActiveTab = activeTab || getActiveTab(pathname);
   const t = (key) => translate(currentLocale, key);
 
@@ -141,10 +142,55 @@ export default function BottomNav({
     router.push(`/${currentLocale}/login`);
   };
 
+  const HUB_OPTIONS = [
+    { icon: "🎬", label: t("hubReel"), sub: t("hubReelSub"), path: `/${currentLocale}/upload`, accent: "#C1121F" },
+    { icon: "⚡", label: t("hubStory"), sub: t("hubStorySub"), path: `/${currentLocale}/story/upload`, accent: "#D4AF37" },
+    { icon: "📈", label: t("hubProgress"), sub: t("hubProgressSub"), path: `/${currentLocale}/story/upload?type=progress_update`, accent: "#34D399" },
+  ];
+
   return (
-    <nav
-      style={styles.nav}
-      onPointerEnter={onInteractStart}
+    <>
+      {hubOpen && (
+        <div style={hub.overlay}>
+          <div style={hub.backdrop} onClick={() => setHubOpen(false)} />
+          <div style={hub.sheet}>
+            <div style={hub.handle} />
+            <p style={hub.sheetTitle}>{t("hubCreate")}</p>
+
+            {HUB_OPTIONS.map(opt => (
+              <button
+                key={opt.label}
+                type="button"
+                style={hub.option}
+                onClick={() => { router.push(opt.path); setHubOpen(false); }}
+              >
+                <div style={{ ...hub.optIcon, background: opt.accent + "22", color: opt.accent }}>{opt.icon}</div>
+                <div style={hub.optText}>
+                  <span style={hub.optLabel}>{opt.label}</span>
+                  <span style={hub.optSub}>{opt.sub}</span>
+                </div>
+              </button>
+            ))}
+
+            {/* Live — Coming Soon */}
+            <div style={hub.optionDisabled}>
+              <div style={hub.optIconDisabled}>🔴</div>
+              <div style={hub.optText}>
+                <span style={hub.optLabelDisabled}>
+                  {t("hubLive")} <span style={hub.soonBadge}>{t("hubLiveSoon")}</span>
+                </span>
+                <span style={hub.optSub}>{t("hubLiveSoonSub")}</span>
+              </div>
+            </div>
+
+            <button type="button" style={hub.cancelBtn} onClick={() => setHubOpen(false)}>{t("cancel")}</button>
+          </div>
+        </div>
+      )}
+
+      <nav
+        style={styles.nav}
+        onPointerEnter={onInteractStart}
       onPointerDown={onInteractStart}
       onPointerLeave={onInteractEnd}
       onPointerUp={onInteractEnd}
@@ -165,7 +211,7 @@ export default function BottomNav({
 
       <button
         type="button"
-        onClick={() => router.push(`/${currentLocale}/upload`)}
+        onClick={() => setHubOpen(true)}
         style={styles.uploadTab}
         aria-label={t("navUpload")}
       >
@@ -196,6 +242,7 @@ export default function BottomNav({
         <ProfileIcon active={resolvedActiveTab === "profile"} />
       </NavTab>
     </nav>
+    </>
   );
 }
 
@@ -336,4 +383,22 @@ const styles = {
     textAlign: "center",
     boxSizing: "border-box",
   },
+};
+
+const hub = {
+  overlay: { position: "fixed", inset: 0, zIndex: 999, display: "flex", alignItems: "flex-end", justifyContent: "center" },
+  backdrop: { position: "absolute", inset: 0, background: "rgba(0,0,0,0.72)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)" },
+  sheet: { position: "relative", width: "100%", maxWidth: 520, background: "linear-gradient(180deg, #1a1212 0%, #0d0d0d 100%)", border: "1px solid rgba(212,175,55,0.14)", borderBottom: "none", borderRadius: "24px 24px 0 0", padding: "10px 20px calc(16px + env(safe-area-inset-bottom))", display: "flex", flexDirection: "column", gap: 2, boxShadow: "0 -24px 60px rgba(0,0,0,0.7)" },
+  handle: { width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.15)", alignSelf: "center", marginBottom: 10 },
+  sheetTitle: { margin: "0 0 10px", fontSize: 14, fontWeight: 900, color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: 1.5 },
+  option: { display: "flex", alignItems: "center", gap: 14, padding: "14px 12px", borderRadius: 14, border: "none", background: "transparent", cursor: "pointer", width: "100%", textAlign: "left", transition: "background 120ms" },
+  optionDisabled: { display: "flex", alignItems: "center", gap: 14, padding: "14px 12px", borderRadius: 14, opacity: 0.45, cursor: "not-allowed" },
+  optIcon: { width: 48, height: 48, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 },
+  optIconDisabled: { width: 48, height: 48, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0, background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.2)" },
+  optText: { display: "flex", flexDirection: "column", gap: 2 },
+  optLabel: { fontSize: 15, fontWeight: 800, color: "#fff" },
+  optLabelDisabled: { fontSize: 15, fontWeight: 800, color: "rgba(255,255,255,0.35)", display: "flex", alignItems: "center", gap: 8 },
+  optSub: { fontSize: 12, color: "rgba(255,255,255,0.38)", fontWeight: 500 },
+  soonBadge: { fontSize: 9, fontWeight: 900, color: "#D4AF37", background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 999, padding: "2px 7px", letterSpacing: 1 },
+  cancelBtn: { marginTop: 8, width: "100%", padding: "14px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.55)", fontSize: 14, fontWeight: 700, cursor: "pointer" },
 };

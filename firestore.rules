@@ -279,5 +279,28 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAuth();
     }
+
+    // ─── Stories (24h expiring) ────────────────────────────────────
+    match /stories/{storyId} {
+      allow read: if true;
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuth() && resource.data.userId == request.auth.uid;
+    }
+
+    // ─── Story reactions ──────────────────────────────────────────
+    match /story_reactions/{reactionId} {
+      allow read: if true;
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow delete: if isAuth() && resource.data.userId == request.auth.uid;
+      allow update: if false;
+    }
+
+    // ─── Story replies ────────────────────────────────────────────
+    match /story_replies/{replyId} {
+      allow read: if isAuth();
+      allow create: if isAuth() && request.resource.data.fromUserId == request.auth.uid;
+      allow delete: if isAuth() && resource.data.fromUserId == request.auth.uid;
+      allow update: if false;
+    }
   }
 }
