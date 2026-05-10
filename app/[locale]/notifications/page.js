@@ -46,6 +46,14 @@ function getTypeLabel(type, t) {
   if (type === "featured") return t("notifTypeFeatured");
   if (type === "new_follower") return t("newFollower");
   if (type === "challenge_beaten") return t("challengeBeaten");
+  if (type === "coach_request") return t("notifLabelCoachRequest");
+  if (type === "gym_join_request") return t("notifLabelGymJoinRequest");
+  if (type === "coach_accept") return t("notifLabelCoachAccept");
+  if (type === "coach_decline") return t("notifLabelCoachDecline");
+  if (type === "gym_approved") return t("notifLabelGymApproved");
+  if (type === "gym_declined") return t("notifLabelGymDeclined");
+  if (type === "booking_scheduled") return t("notifLabelBookingScheduled");
+  if (type === "session_completed") return t("notifLabelSessionCompleted");
   return t("update");
 }
 
@@ -61,6 +69,14 @@ function getTranslatedNotificationText(notification, t) {
   if (notification.type === "featured") return t("notifFeatured");
   if (notification.type === "new_follower") return t("newFollowerLabel").replace("{actor}", actor);
   if (notification.type === "challenge_beaten") return t("challengeBeatenLabel").replace("{actor}", actor);
+  if (notification.type === "coach_request") return t("notifCoachRequest").replace("{actor}", actor);
+  if (notification.type === "gym_join_request") return t("notifGymJoinRequest").replace("{actor}", actor);
+  if (notification.type === "coach_accept") return t("notifCoachAccepted");
+  if (notification.type === "coach_decline") return t("notifCoachDeclined");
+  if (notification.type === "gym_approved") return t("notifGymApproved");
+  if (notification.type === "gym_declined") return t("notifGymDeclined");
+  if (notification.type === "booking_scheduled") return t("sessionScheduled");
+  if (notification.type === "session_completed") return t("coachSessionCompleted");
 
   const keyByType = {
     like: "notificationLike",
@@ -83,6 +99,14 @@ function getTypeIcon(type) {
   if (type === "featured") return "⭐";
   if (type === "new_follower") return "👤";
   if (type === "challenge_beaten") return "🏅";
+  if (type === "coach_request") return "🥊";
+  if (type === "gym_join_request") return "🏋️";
+  if (type === "coach_accept") return "✅";
+  if (type === "coach_decline") return "❌";
+  if (type === "gym_approved") return "✅";
+  if (type === "gym_declined") return "❌";
+  if (type === "booking_scheduled") return "📅";
+  if (type === "session_completed") return "🏆";
   return "•";
 }
 
@@ -264,6 +288,38 @@ export default function NotificationsPage() {
       updateDoc(doc(db, "notifications", notification.id), { read: true }).catch((error) => {
         console.error("Failed to mark notification as read:", error);
       });
+    }
+
+    if (notification.type === "coach_request") {
+      router.push(`/${locale}/coach/dashboard`);
+      return;
+    }
+
+    if (notification.type === "gym_join_request") {
+      router.push(`/${locale}/gyms/dashboard`);
+      return;
+    }
+
+    if (notification.type === "coach_accept" || notification.type === "coach_decline") {
+      const actorId = getActorId(notification);
+      if (actorId) router.push(`/${locale}/coach/${actorId}`);
+      return;
+    }
+
+    if (notification.type === "gym_approved" && notification.gymId) {
+      router.push(`/${locale}/gyms/${notification.gymId}`);
+      return;
+    }
+
+    if (notification.type === "gym_declined") {
+      router.push(`/${locale}/gyms`);
+      return;
+    }
+
+    if (notification.type === "booking_scheduled" || notification.type === "session_completed") {
+      const actorId = getActorId(notification);
+      if (actorId) router.push(`/${locale}/coach/${actorId}`);
+      return;
     }
 
     if (notification.type === "follow" || notification.type === "new_follower") {

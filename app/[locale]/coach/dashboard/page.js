@@ -273,10 +273,26 @@ export default function CoachDashboardPage() {
 
   const handleDecline = async (requestId) => {
     setUpdating(requestId);
+    const req = requests.find((r) => r.id === requestId);
     try {
       await updateDoc(doc(db, "coach_requests", requestId), {
         status: "declined",
+        declinedAt: serverTimestamp(),
       });
+      if (req?.userId) {
+        await addDoc(collection(db, "notifications"), {
+          recipientId: req.userId,
+          actorId: user.uid,
+          actorName: user.displayName || "Coach",
+          fromUserId: user.uid,
+          fromUsername: user.displayName || "Coach",
+          fromUserPhotoURL: user.photoURL || "",
+          type: "coach_decline",
+          message: t("notifCoachDeclined"),
+          read: false,
+          createdAt: serverTimestamp(),
+        });
+      }
       setRequests((prev) =>
         prev.map((r) => r.id === requestId ? { ...r, status: "declined" } : r)
       );

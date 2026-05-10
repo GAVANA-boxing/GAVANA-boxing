@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -100,6 +101,9 @@ export default function BottomNav({
   const pathname = usePathname();
   const [unreadCount, setUnreadCount] = useState(0);
   const [hubOpen, setHubOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
   const resolvedActiveTab = activeTab || getActiveTab(pathname);
   const t = (key) => translate(currentLocale, key);
 
@@ -148,45 +152,47 @@ export default function BottomNav({
     { icon: "📈", label: t("hubProgress"), sub: t("hubProgressSub"), path: `/${currentLocale}/story/upload?type=progress_update`, accent: "#34D399" },
   ];
 
-  return (
-    <>
-      {hubOpen && (
-        <div style={hub.overlay}>
-          <div style={hub.backdrop} onClick={() => setHubOpen(false)} />
-          <div style={hub.sheet}>
-            <div style={hub.handle} />
-            <p style={hub.sheetTitle}>{t("hubCreate")}</p>
+  const hubOverlay = (
+    <div style={hub.overlay}>
+      <div style={hub.backdrop} onClick={() => setHubOpen(false)} />
+      <div style={hub.sheet}>
+        <div style={hub.handle} />
+        <p style={hub.sheetTitle}>{t("hubCreate")}</p>
 
-            {HUB_OPTIONS.map(opt => (
-              <button
-                key={opt.label}
-                type="button"
-                style={hub.option}
-                onClick={() => { router.push(opt.path); setHubOpen(false); }}
-              >
-                <div style={{ ...hub.optIcon, background: opt.accent + "22", color: opt.accent }}>{opt.icon}</div>
-                <div style={hub.optText}>
-                  <span style={hub.optLabel}>{opt.label}</span>
-                  <span style={hub.optSub}>{opt.sub}</span>
-                </div>
-              </button>
-            ))}
-
-            {/* Live — Coming Soon */}
-            <div style={hub.optionDisabled}>
-              <div style={hub.optIconDisabled}>🔴</div>
-              <div style={hub.optText}>
-                <span style={hub.optLabelDisabled}>
-                  {t("hubLive")} <span style={hub.soonBadge}>{t("hubLiveSoon")}</span>
-                </span>
-                <span style={hub.optSub}>{t("hubLiveSoonSub")}</span>
-              </div>
+        {HUB_OPTIONS.map(opt => (
+          <button
+            key={opt.label}
+            type="button"
+            style={hub.option}
+            onClick={() => { router.push(opt.path); setHubOpen(false); }}
+          >
+            <div style={{ ...hub.optIcon, background: opt.accent + "22", color: opt.accent }}>{opt.icon}</div>
+            <div style={hub.optText}>
+              <span style={hub.optLabel}>{opt.label}</span>
+              <span style={hub.optSub}>{opt.sub}</span>
             </div>
+          </button>
+        ))}
 
-            <button type="button" style={hub.cancelBtn} onClick={() => setHubOpen(false)}>{t("cancel")}</button>
+        {/* Live — Coming Soon */}
+        <div style={hub.optionDisabled}>
+          <div style={hub.optIconDisabled}>🔴</div>
+          <div style={hub.optText}>
+            <span style={hub.optLabelDisabled}>
+              {t("hubLive")} <span style={hub.soonBadge}>{t("hubLiveSoon")}</span>
+            </span>
+            <span style={hub.optSub}>{t("hubLiveSoonSub")}</span>
           </div>
         </div>
-      )}
+
+        <button type="button" style={hub.cancelBtn} onClick={() => setHubOpen(false)}>{t("cancel")}</button>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      {mounted && hubOpen && createPortal(hubOverlay, document.body)}
 
       <nav
         style={styles.nav}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { addDoc, collection, doc, getDoc, getDocs, query, serverTimestamp, where } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, serverTimestamp, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
@@ -98,6 +98,7 @@ export default function CoachProfilePage() {
   const [completedSessions, setCompletedSessions] = useState(0);
   const [loading, setLoading] = useState(true);
   const [requested, setRequested] = useState(false);
+  const [pendingRequestId, setPendingRequestId] = useState(null);
   const [requesting, setRequesting] = useState(false);
 
   // Review form
@@ -148,7 +149,7 @@ export default function CoachProfilePage() {
 
     async function checkEligible() {
       try {
-        const [bookingsSnap, existingReviewSnap] = await Promise.all([
+        const [bookingsSnap, existingReviewSnap, pendingReqSnap] = await Promise.all([
           getDocs(query(
             collection(db, "coach_bookings"),
             where("userId", "==", user.uid),
@@ -160,11 +161,21 @@ export default function CoachProfilePage() {
             where("userId", "==", user.uid),
             where("coachId", "==", coachId)
           )),
+          getDocs(query(
+            collection(db, "coach_requests"),
+            where("userId", "==", user.uid),
+            where("coachId", "==", coachId),
+            where("status", "==", "pending")
+          )),
         ]);
         if (!active) return;
 
         if (!bookingsSnap.empty && existingReviewSnap.empty) {
           setEligibleBooking(bookingsSnap.docs[0].id);
+        }
+        if (!pendingReqSnap.empty) {
+          setRequested(true);
+          setPendingRequestId(pendingReqSnap.docs[0].id);
         }
       } catch { /* silent */ }
     }
@@ -177,7 +188,7 @@ export default function CoachProfilePage() {
     if (!user?.uid) { router.push(`/${locale}/login`); return; }
     setRequesting(true);
     try {
-      await addDoc(collection(db, "coach_requests"), {
+      const reqDoc = await addDoc(collection(db, "coach_requests"), {
         coachId,
         userId: user.uid,
         status: "pending",
@@ -186,10 +197,35 @@ export default function CoachProfilePage() {
         locale,
       });
       setRequested(true);
+      setPendingRequestId(reqDoc.id);
+      // Notify the coach
+      await addDoc(collection(db, "notifications"), {
+        recipientId: coachId,
+        actorId: user.uid,
+        actorName: user.displayName || "Someone",
+        fromUserId: user.uid,
+        fromUsername: user.displayName || "Someone",
+        fromUserPhotoURL: user.photoURL || "",
+        type: "coach_request",
+        message: t("notifCoachRequest").replace("{actor}", user.displayName || "Someone"),
+        read: false,
+        createdAt: serverTimestamp(),
+      });
     } catch (e) {
       console.error("Request error:", e);
     } finally {
       setRequesting(false);
+    }
+  };
+
+  const handleCancelCoachRequest = async () => {
+    if (!pendingRequestId) return;
+    try {
+      await deleteDoc(doc(db, "coach_requests", pendingRequestId));
+      setRequested(false);
+      setPendingRequestId(null);
+    } catch (e) {
+      console.error("Cancel request error:", e);
     }
   };
 
@@ -398,14 +434,23 @@ export default function CoachProfilePage() {
         {/* CTA buttons */}
         {!isOwnProfile && (
           <div style={styles.ctaRow}>
-            <button
-              type="button"
-              style={requested ? styles.requestedBtn : styles.requestBtn}
-              onClick={handleRequest}
-              disabled={requested || requesting}
-            >
-              {requested ? t("requestSent") : requesting ? "..." : t("requestCoach")}
-            </button>
+            {pendingRequestId ? (
+              <div style={styles.pendingRow}>
+                <span style={styles.pendingBadge}>⏳ {t("requestPendingLabel")}</span>
+                <button type="button" style={styles.cancelReqBtn} onClick={handleCancelCoachRequest}>
+                  {t("cancelRequest")}
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                style={requesting ? styles.requestedBtn : styles.requestBtn}
+                onClick={handleRequest}
+                disabled={requesting}
+              >
+                {requesting ? "..." : t("requestCoach")}
+              </button>
+            )}
           </div>
         )}
         {isOwnProfile && (
@@ -556,6 +601,9 @@ const styles = {
   reelThumbImg: { width: "100%", height: "100%", objectFit: "cover" },
   reelThumbPlaceholder: { width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.65)", fontSize: 20 },
   vibeChip: { background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.28)", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 800, color: "#F87171", letterSpacing: 0.3 },
+  pendingRow: { display: "flex", flexDirection: "column", gap: 8, width: "100%" },
+  pendingBadge: { display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 16px", borderRadius: 12, background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.35)", color: "#F59E0B", fontSize: 14, fontWeight: 800 },
+  cancelReqBtn: { width: "100%", padding: "10px", border: "1px solid rgba(248,113,113,0.35)", borderRadius: 12, background: "rgba(248,113,113,0.08)", color: "#F87171", fontSize: 14, fontWeight: 700, cursor: "pointer" },
   insightCard: { width: "100%", maxWidth: 360, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.18)", borderRadius: 12, padding: "12px 14px", display: "flex", flexDirection: "column", gap: 6 },
   insightLabel: { fontSize: 10, fontWeight: 900, color: "#D4AF37", textTransform: "uppercase", letterSpacing: 1 },
   insightText: { fontSize: 13, color: "rgba(255,255,255,0.75)", lineHeight: 1.4 },
