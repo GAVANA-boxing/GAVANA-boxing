@@ -194,12 +194,22 @@ service cloud.firestore {
 
     // ─── Gym join requests ────────────────────────────────────────
     match /gym_join_requests/{requestId} {
-      allow read: if isAuth();
-      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
-      allow update: if isAuth() && (
+      allow read: if isAuth() && (
         resource.data.userId == request.auth.uid ||
         resource.data.gymOwnerId == request.auth.uid
       );
+      allow create: if isAuth() &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.status == "pending";
+      allow update: if isAuth() &&
+        resource.data.gymOwnerId == request.auth.uid &&
+        request.resource.data.userId == resource.data.userId &&
+        request.resource.data.gymId == resource.data.gymId &&
+        request.resource.data.gymOwnerId == resource.data.gymOwnerId &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "status",
+          "reviewedAt"
+        ]);
       allow delete: if isAuth() && resource.data.userId == request.auth.uid;
     }
 

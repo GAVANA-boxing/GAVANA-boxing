@@ -128,8 +128,10 @@ export default function GymProfilePage() {
   // Join request
   const [joinMessage, setJoinMessage] = useState("");
   const [joinRequested, setJoinRequested] = useState(false);
+  const [joinStatus, setJoinStatus] = useState("");
   const [joinSubmitting, setJoinSubmitting] = useState(false);
   const [joinError, setJoinError] = useState("");
+  const [joinSuccess, setJoinSuccess] = useState(false);
   const [showJoinForm, setShowJoinForm] = useState(false);
 
   // Review form
@@ -175,7 +177,18 @@ export default function GymProfilePage() {
         getDocs(query(collection(db, "gym_join_requests"), where("gymId", "==", gymId), where("userId", "==", user.uid))),
         getDocs(query(collection(db, "gym_reviews"), where("gymId", "==", gymId), where("userId", "==", user.uid))),
       ]);
-      if (!joinSnap.empty) setJoinRequested(true);
+      if (!joinSnap.empty) {
+        const latestRequest = joinSnap.docs
+          .map((requestDoc) => requestDoc.data())
+          .sort((a, b) => {
+            const aTime = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+            const bTime = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+            return bTime - aTime;
+          })[0];
+        const status = latestRequest?.status || "pending";
+        setJoinStatus(status);
+        setJoinRequested(status === "pending" || status === "approved");
+      }
       if (!reviewSnap.empty) setAlreadyReviewed(true);
     }
     checkStatus().catch(() => {});
@@ -185,17 +198,34 @@ export default function GymProfilePage() {
     if (!user) { router.push(`/${locale}/login`); return; }
     setJoinSubmitting(true);
     setJoinError("");
+    setJoinSuccess(false);
     try {
-      await addDoc(collection(db, "gym_join_requests"), {
+      const requestDoc = await addDoc(collection(db, "gym_join_requests"), {
         userId: user.uid,
         gymId,
+        gymOwnerId: gym.ownerId,
         message: joinMessage.trim(),
         createdAt: serverTimestamp(),
         status: "pending",
       });
+
+      await addDoc(collection(db, "notifications"), {
+        type: "gym_join_request",
+        gymId,
+        requestId: requestDoc.id,
+        fromUserId: user.uid,
+        targetUserId: gym.ownerId,
+        recipientId: gym.ownerId,
+        read: false,
+        createdAt: serverTimestamp(),
+      });
+      setJoinStatus("pending");
       setJoinRequested(true);
+      setJoinSuccess(true);
+      setJoinMessage("");
       setShowJoinForm(false);
-    } catch {
+    } catch (error) {
+      console.error("gym join request error", error);
       setJoinError(t("gymJoinRequestError"));
     } finally {
       setJoinSubmitting(false);
@@ -249,6 +279,12 @@ export default function GymProfilePage() {
   }
 
   const isOwner = user?.uid === gym.ownerId;
+  const joinCtaLabel = joinStatus === "approved"
+    ? t("gymMember")
+    : joinStatus === "pending"
+      ? t("gymRequestPending")
+      : t("gymJoin");
+  const joinCtaDisabled = joinStatus === "pending" || joinStatus === "approved";
 
   return (
     <div style={styles.page}>
@@ -321,10 +357,10 @@ export default function GymProfilePage() {
             <button type="button" style={styles.manageBtn} onClick={() => router.push(`/${locale}/gyms/dashboard`)}>
               {t("gymManage")}
             </button>
-          ) : joinRequested ? (
-            <button type="button" style={styles.requestedBtn} disabled>{t("gymJoinRequested")}</button>
+          ) : joinCtaDisabled ? (
+            <button type="button" style={styles.requestedBtn} disabled>{joinCtaLabel}</button>
           ) : (
-            <button type="button" style={styles.joinBtn} onClick={() => setShowJoinForm(true)}>{t("gymJoin")}</button>
+            <button type="button" style={styles.joinBtn} onClick={() => setShowJoinForm(true)}>{joinCtaLabel}</button>
           )}
           {gym.phone && (
             <a href={`tel:${gym.phone}`} style={styles.contactBtn}>📞</a>
@@ -336,6 +372,13 @@ export default function GymProfilePage() {
             <a href={gym.website} target="_blank" rel="noopener noreferrer" style={styles.contactBtn}>🌐</a>
           )}
         </div>
+
+        {joinSuccess && (
+          <div style={styles.toastSuccess}>
+            <strong>{t("gymJoinRequestSent")}</strong>
+            <span>{t("gymJoinRequestReview")}</span>
+          </div>
+        )}
 
         {/* Join form */}
         {showJoinForm && (
@@ -509,6 +552,7 @@ const styles = {
   requestedBtn: { flex: 1, minHeight: 44, border: "1px solid rgba(52,211,153,0.35)", borderRadius: 12, background: "rgba(52,211,153,0.08)", color: "#34D399", fontSize: 15, fontWeight: 900, cursor: "default" },
   manageBtn: { flex: 1, minHeight: 44, border: "1px solid rgba(212,175,55,0.4)", borderRadius: 12, background: "rgba(212,175,55,0.1)", color: "#D4AF37", fontSize: 15, fontWeight: 900, cursor: "pointer" },
   contactBtn: { width: 44, height: 44, borderRadius: 12, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: "#fff", textDecoration: "none" },
+  toastSuccess: { display: "grid", gap: 3, margin: "-8px 0 16px", padding: "12px 14px", borderRadius: 14, background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.3)", color: "#A7F3D0", fontSize: 13, fontWeight: 800 },
   joinForm: { borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", padding: "16px", marginBottom: 16, display: "flex", flexDirection: "column", gap: 10 },
   section: { marginBottom: 24 },
   sectionTitle: { margin: "0 0 10px", fontSize: 13, fontWeight: 900, color: "rgba(255,255,255,0.65)", letterSpacing: 1, textTransform: "uppercase" },

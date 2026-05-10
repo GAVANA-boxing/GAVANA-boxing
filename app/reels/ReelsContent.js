@@ -2434,7 +2434,7 @@ export default function ReelsContent() {
       {breakdownReel && (
         <AIBreakdownSheet
           reel={breakdownReel}
-          locale={locale}
+          locale={currentLocale}
           onClose={() => setBreakdownReel(null)}
         />
       )}

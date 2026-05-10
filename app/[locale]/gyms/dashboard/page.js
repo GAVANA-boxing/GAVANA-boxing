@@ -49,6 +49,8 @@ export default function GymDashboardPage() {
   const [joinRequests, setJoinRequests] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [updatingId, setUpdatingId] = useState(null);
+  const [dashboardNotice, setDashboardNotice] = useState("");
+  const [dashboardError, setDashboardError] = useState("");
   const [activeTab, setActiveTab] = useState("requests"); // requests | announce | manage
 
   // Register form state
@@ -95,11 +97,22 @@ export default function GymDashboardPage() {
           setGym(gymDoc);
           // Load join requests and announcements for this gym
           const [reqSnap, annSnap] = await Promise.all([
-            getDocs(query(collection(db, "gym_join_requests"), where("gymId", "==", gymDoc.id), where("status", "==", "pending"))),
+            getDocs(query(
+              collection(db, "gym_join_requests"),
+              where("gymOwnerId", "==", user.uid),
+              where("gymId", "==", gymDoc.id),
+              where("status", "==", "pending")
+            )),
             getDocs(query(collection(db, "gym_announcements"), where("gymId", "==", gymDoc.id))),
           ]);
           if (active) {
-            setJoinRequests(reqSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+            setJoinRequests(reqSnap.docs
+              .map((d) => ({ id: d.id, ...d.data() }))
+              .sort((a, b) => {
+                const aTime = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+                const bTime = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+                return bTime - aTime;
+              }));
             setAnnouncements(annSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
           }
         }
@@ -174,6 +187,8 @@ export default function GymDashboardPage() {
 
   const handleJoinAction = async (req, action) => {
     setUpdatingId(req.id);
+    setDashboardError("");
+    setDashboardNotice("");
     try {
       await updateDoc(doc(db, "gym_join_requests", req.id), {
         status: action,
@@ -184,8 +199,11 @@ export default function GymDashboardPage() {
         setGym((g) => ({ ...g, memberCount: (g.memberCount || 0) + 1 }));
       }
       setJoinRequests((prev) => prev.filter((r) => r.id !== req.id));
+      setDashboardNotice(action === "approved" ? t("gymRequestApproved") : t("gymRequestDeclined"));
+      setTimeout(() => setDashboardNotice(""), 3000);
     } catch (e) {
       console.error("join action error", e);
+      setDashboardError(t("gymJoinActionError"));
     } finally {
       setUpdatingId(null);
     }
@@ -405,6 +423,8 @@ export default function GymDashboardPage() {
         {/* Join Requests */}
         {activeTab === "requests" && (
           <div>
+            {dashboardNotice && <div style={styles.noticeBox}>{dashboardNotice}</div>}
+            {dashboardError && <div style={styles.errBox}>{dashboardError}</div>}
             {joinRequests.length === 0 ? (
               <div style={styles.emptyState}>
                 <span style={{ fontSize: 40, opacity: 0.4 }}>👥</span>
@@ -526,6 +546,7 @@ const styles = {
   logoImg: { width: "100%", height: "100%", objectFit: "cover" },
   logoLabel: { background: "none", border: "none", color: "rgba(255,255,255,0.65)", fontSize: 13, cursor: "pointer" },
   errBox: { background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.35)", borderRadius: 10, padding: "10px 14px", color: "#F87171", fontSize: 13, marginBottom: 14 },
+  noticeBox: { background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.3)", borderRadius: 10, padding: "10px 14px", color: "#A7F3D0", fontSize: 13, fontWeight: 800, marginBottom: 14 },
   fields: { display: "flex", flexDirection: "column", gap: 14, marginBottom: 20 },
   fieldRow: { display: "flex", gap: 10 },
   input: { width: "100%", boxSizing: "border-box", padding: "11px 14px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 15, outline: "none" },
