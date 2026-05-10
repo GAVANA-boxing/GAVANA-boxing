@@ -21,6 +21,55 @@ export default function DailyMission({ locale = "en" }) {
   const [missionCompleted, setMissionCompleted] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const containerRef = useRef(null);
+  const posRef = useRef({ x: 12, y: 12 });
+  const [pos, setPos] = useState(() => {
+    try {
+      const saved = typeof window !== "undefined" && localStorage.getItem("gavana_mission_pos");
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return { x: 12, y: 12 };
+  });
+
+  // Sync posRef with pos
+  useEffect(() => { posRef.current = pos; }, [pos]);
+
+  const startDrag = (e) => {
+    // Only drag on the handle (pill button) — don't start drag on child buttons
+    if (e.target.tagName === "BUTTON" && e.target !== e.currentTarget) return;
+    e.preventDefault();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const startOffsetX = clientX - posRef.current.x;
+    const startOffsetY = clientY - posRef.current.y;
+
+    function onMove(ev) {
+      ev.preventDefault();
+      const cx = ev.touches ? ev.touches[0].clientX : ev.clientX;
+      const cy = ev.touches ? ev.touches[0].clientY : ev.clientY;
+      const el = containerRef.current;
+      const w = el ? el.offsetWidth : 60;
+      const h = el ? el.offsetHeight : 40;
+      const newX = Math.max(0, Math.min(window.innerWidth - w - 4, cx - startOffsetX));
+      const newY = Math.max(0, Math.min(window.innerHeight - h - 4, cy - startOffsetY));
+      posRef.current = { x: newX, y: newY };
+      if (el) { el.style.left = newX + "px"; el.style.top = newY + "px"; }
+    }
+
+    function onEnd() {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("touchmove", onMove);
+      document.removeEventListener("mouseup", onEnd);
+      document.removeEventListener("touchend", onEnd);
+      const finalPos = { ...posRef.current };
+      setPos(finalPos);
+      try { localStorage.setItem("gavana_mission_pos", JSON.stringify(finalPos)); } catch {}
+    }
+
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("touchmove", onMove, { passive: false });
+    document.addEventListener("mouseup", onEnd);
+    document.addEventListener("touchend", onEnd);
+  };
 
   const todayKey = useMemo(() => formatDateKey(), []);
 
@@ -66,6 +115,8 @@ export default function DailyMission({ locale = "en" }) {
   const next3 = dailyStreak < 3 ? 3 - dailyStreak : null;
   const next7 = dailyStreak < 7 ? 7 - dailyStreak : null;
 
+  const dynamicPos = { left: pos.x, top: pos.y };
+
   if (!expanded) {
     return (
       <button
@@ -73,7 +124,9 @@ export default function DailyMission({ locale = "en" }) {
         type="button"
         className={missionCompleted ? undefined : "fire-pulse"}
         onClick={() => setExpanded(true)}
-        style={pillStyles.fireButton}
+        onMouseDown={startDrag}
+        onTouchStart={startDrag}
+        style={{ ...pillStyles.fireButton, ...dynamicPos }}
         aria-label={t("todaysMission")}
       >
         <span style={pillStyles.fireEmoji}>{missionCompleted ? "✅" : "🎯"}</span>
@@ -87,7 +140,12 @@ export default function DailyMission({ locale = "en" }) {
   }
 
   return (
-    <div ref={containerRef} style={pillStyles.pill}>
+    <div
+      ref={containerRef}
+      style={{ ...pillStyles.pill, ...dynamicPos }}
+      onMouseDown={startDrag}
+      onTouchStart={startDrag}
+    >
       <div style={pillStyles.pillTop}>
         <span style={pillStyles.pillLabel}>{t("todaysMission")}</span>
         <button type="button" style={pillStyles.closeBtn} onClick={() => setExpanded(false)} aria-label="close">✕</button>
@@ -149,8 +207,6 @@ export default function DailyMission({ locale = "en" }) {
 const pillStyles = {
   pill: {
     position: "fixed",
-    top: "calc(12px + env(safe-area-inset-top))",
-    left: "max(12px, env(safe-area-inset-left))",
     zIndex: 100,
     width: "min(88vw, 240px)",
     padding: "10px 12px",
@@ -164,11 +220,12 @@ const pillStyles = {
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     display: "grid",
     gap: 8,
+    cursor: "grab",
+    userSelect: "none",
+    touchAction: "none",
   },
   fireButton: {
     position: "fixed",
-    top: "calc(12px + env(safe-area-inset-top))",
-    left: "max(12px, env(safe-area-inset-left))",
     zIndex: 100,
     display: "flex",
     alignItems: "center",
@@ -180,9 +237,11 @@ const pillStyles = {
     border: "1px solid rgba(255,255,255,0.14)",
     background: "rgba(0,0,0,0.72)",
     color: "#fff",
-    cursor: "pointer",
+    cursor: "grab",
     backdropFilter: "blur(16px)",
     WebkitBackdropFilter: "blur(16px)",
+    touchAction: "none",
+    userSelect: "none",
   },
   fireEmoji: { fontSize: 15, lineHeight: 1 },
   fireStreak: { fontSize: 12, fontWeight: 900 },
