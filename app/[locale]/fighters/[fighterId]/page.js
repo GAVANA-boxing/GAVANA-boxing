@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getLocale, translate } from "@/lib/i18n";
 import { getFighter } from "@/lib/fighters";
@@ -25,14 +26,32 @@ function ComboSteps({ steps }) {
   );
 }
 
-// ─── Compact section block ────────────────────────────────────────────────────
-function Section({ title, emoji, accent, children }) {
+// ─── Tap-to-expand section ────────────────────────────────────────────────────
+function Section({ title, emoji, accent, children, defaultOpen = false }) {
+  const [open, setOpen] = useState(defaultOpen);
   return (
-    <div style={{ ...s.section, borderLeftColor: accent }}>
-      <p style={{ ...s.sectionTitle, color: accent }}>
-        {emoji} {title}
-      </p>
-      {children}
+    <div style={{ ...s.section, borderLeftColor: open ? accent : "rgba(255,255,255,0.08)" }}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        style={s.sectionBtn}
+      >
+        <span style={{ ...s.sectionTitle, color: open ? accent : "#888" }}>
+          {emoji} {title}
+        </span>
+        <svg
+          style={{
+            ...s.chevron,
+            transform: open ? "rotate(180deg)" : "rotate(0deg)",
+            color: open ? accent : "#444",
+          }}
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+      {open && <div style={s.sectionBody}>{children}</div>}
     </div>
   );
 }
@@ -122,7 +141,7 @@ export default function FighterDetailPage() {
       <div style={s.content}>
 
         {/* ── Style Identity ── */}
-        <Section title={t("fighterStyleIdentity")} emoji="🎯" accent={acc}>
+        <Section title={t("fighterStyleIdentity")} emoji="🎯" accent={acc} defaultOpen>
           <div style={s.pillGrid}>
             {styleIdentity.map((item, i) => (
               <span key={i} style={{ ...s.stylePill, borderColor: acc + "35", background: acc + "0d" }}>
@@ -134,7 +153,7 @@ export default function FighterDetailPage() {
         </Section>
 
         {/* ── Signature Combos ── */}
-        <Section title={t("fighterSignatureCombos")} emoji="💥" accent={acc}>
+        <Section title={t("fighterSignatureCombos")} emoji="💥" accent={acc} defaultOpen>
           {combos.map((combo, i) => (
             <div key={i} style={s.comboCard}>
               <p style={{ ...s.comboName, color: acc }}>{combo.name}</p>
@@ -384,14 +403,41 @@ const s = {
     border: "1px solid rgba(255,255,255,0.06)",
     borderLeft: "3px solid",
     borderRadius: 12,
+    overflow: "hidden",
+    transition: "border-color 200ms ease",
+  },
+  sectionBtn: {
+    width: "100%",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: "12px 14px",
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    WebkitTapHighlightColor: "transparent",
   },
   sectionTitle: {
-    margin: "0 0 10px",
+    margin: 0,
     fontSize: 10,
     fontWeight: 900,
     letterSpacing: 1.5,
     textTransform: "uppercase",
+    transition: "color 200ms ease",
+  },
+  chevron: {
+    width: 16,
+    height: 16,
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 2,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    flexShrink: 0,
+    transition: "transform 200ms ease, color 200ms ease",
+  },
+  sectionBody: {
+    padding: "0 14px 12px",
   },
 
   // ── Style identity pills ──
