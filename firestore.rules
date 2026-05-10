@@ -194,22 +194,16 @@ service cloud.firestore {
 
     // ─── Gym join requests ────────────────────────────────────────
     match /gym_join_requests/{requestId} {
-      allow read: if isAuth() && (
+      // Approved membership is public so gym detail page can show members.
+      // Auth users can read their own requests; gym owners can read all for their gym.
+      allow read: if resource.data.status == "approved" ||
+        (isAuth() && resource.data.userId == request.auth.uid) ||
+        (isAuth() && resource.data.gymOwnerId == request.auth.uid);
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update: if isAuth() && (
         resource.data.userId == request.auth.uid ||
         resource.data.gymOwnerId == request.auth.uid
       );
-      allow create: if isAuth() &&
-        request.resource.data.userId == request.auth.uid &&
-        request.resource.data.status == "pending";
-      allow update: if isAuth() &&
-        resource.data.gymOwnerId == request.auth.uid &&
-        request.resource.data.userId == resource.data.userId &&
-        request.resource.data.gymId == resource.data.gymId &&
-        request.resource.data.gymOwnerId == resource.data.gymOwnerId &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          "status",
-          "reviewedAt"
-        ]);
       allow delete: if isAuth() && resource.data.userId == request.auth.uid;
     }
 
@@ -288,6 +282,29 @@ service cloud.firestore {
     match /leaderboard/{entryId} {
       allow read: if true;
       allow write: if isAuth();
+    }
+
+    // ─── Stories (24h expiring) ────────────────────────────────────
+    match /stories/{storyId} {
+      allow read: if true;
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuth() && resource.data.userId == request.auth.uid;
+    }
+
+    // ─── Story reactions ──────────────────────────────────────────
+    match /story_reactions/{reactionId} {
+      allow read: if true;
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow delete: if isAuth() && resource.data.userId == request.auth.uid;
+      allow update: if false;
+    }
+
+    // ─── Story replies ────────────────────────────────────────────
+    match /story_replies/{replyId} {
+      allow read: if isAuth();
+      allow create: if isAuth() && request.resource.data.fromUserId == request.auth.uid;
+      allow delete: if isAuth() && resource.data.fromUserId == request.auth.uid;
+      allow update: if false;
     }
   }
 }

@@ -9,6 +9,7 @@ import {
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
+import StoryBar from "@/components/StoryBar";
 import { getLocale, translate } from "@/lib/i18n";
 
 const FIGHTER_STYLES = [
@@ -287,6 +288,8 @@ export default function DiscoverPage() {
         <p style={s.kicker}>{t("discoverKicker")}</p>
         <h1 style={s.title}>{t("discoverTitle")}</h1>
       </div>
+
+      <StoryBar locale={locale} router={router} />
 
       {/* Search */}
       <form onSubmit={handleSearch} style={s.searchRow}>

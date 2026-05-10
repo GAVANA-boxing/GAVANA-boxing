@@ -6,6 +6,7 @@ import {
   addDoc,
   collection,
   doc,
+  documentId,
   getDocs,
   query,
   serverTimestamp,
@@ -47,10 +48,9 @@ export default function GymDashboardPage() {
   const [checking, setChecking] = useState(true);
   const [gym, setGym] = useState(null); // null = not registered yet
   const [joinRequests, setJoinRequests] = useState([]);
+  const [requesterUsers, setRequesterUsers] = useState({});
   const [announcements, setAnnouncements] = useState([]);
   const [updatingId, setUpdatingId] = useState(null);
-  const [dashboardNotice, setDashboardNotice] = useState("");
-  const [dashboardError, setDashboardError] = useState("");
   const [activeTab, setActiveTab] = useState("requests"); // requests | announce | manage
 
   // Register form state
@@ -97,23 +97,26 @@ export default function GymDashboardPage() {
           setGym(gymDoc);
           // Load join requests and announcements for this gym
           const [reqSnap, annSnap] = await Promise.all([
-            getDocs(query(
-              collection(db, "gym_join_requests"),
-              where("gymOwnerId", "==", user.uid),
-              where("gymId", "==", gymDoc.id),
-              where("status", "==", "pending")
-            )),
+            getDocs(query(collection(db, "gym_join_requests"), where("gymId", "==", gymDoc.id), where("status", "==", "pending"))),
             getDocs(query(collection(db, "gym_announcements"), where("gymId", "==", gymDoc.id))),
           ]);
           if (active) {
-            setJoinRequests(reqSnap.docs
-              .map((d) => ({ id: d.id, ...d.data() }))
-              .sort((a, b) => {
-                const aTime = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
-                const bTime = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
-                return bTime - aTime;
-              }));
+            const reqDocs = reqSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            setJoinRequests(reqDocs);
             setAnnouncements(annSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+
+            // Batch-load requester profiles
+            const uniqueIds = [...new Set(reqDocs.map((r) => r.userId).filter(Boolean))];
+            if (uniqueIds.length > 0) {
+              const chunks = [];
+              for (let i = 0; i < uniqueIds.length; i += 10) chunks.push(uniqueIds.slice(i, i + 10));
+              const userMap = {};
+              await Promise.all(chunks.map(async (chunk) => {
+                const uSnap = await getDocs(query(collection(db, "users"), where(documentId(), "in", chunk)));
+                uSnap.docs.forEach((d) => { userMap[d.id] = d.data(); });
+              }));
+              if (active) setRequesterUsers(userMap);
+            }
           }
         }
       } catch (e) {
@@ -187,8 +190,6 @@ export default function GymDashboardPage() {
 
   const handleJoinAction = async (req, action) => {
     setUpdatingId(req.id);
-    setDashboardError("");
-    setDashboardNotice("");
     try {
       await updateDoc(doc(db, "gym_join_requests", req.id), {
         status: action,
@@ -197,13 +198,40 @@ export default function GymDashboardPage() {
       if (action === "approved") {
         await updateDoc(doc(db, "gyms", gym.id), { memberCount: (gym.memberCount || 0) + 1 });
         setGym((g) => ({ ...g, memberCount: (g.memberCount || 0) + 1 }));
+        if (req.userId) {
+          await addDoc(collection(db, "notifications"), {
+            recipientId: req.userId,
+            actorId: user.uid,
+            actorName: gym.gymName || "Gym",
+            fromUserId: user.uid,
+            fromUsername: gym.gymName || "Gym",
+            fromUserPhotoURL: gym.logo || "",
+            type: "gym_approved",
+            message: t("notifGymApproved"),
+            gymId: gym.id,
+            read: false,
+            createdAt: serverTimestamp(),
+          });
+        }
+      } else {
+        if (req.userId) {
+          await addDoc(collection(db, "notifications"), {
+            recipientId: req.userId,
+            actorId: user.uid,
+            actorName: gym.gymName || "Gym",
+            fromUserId: user.uid,
+            fromUsername: gym.gymName || "Gym",
+            fromUserPhotoURL: gym.logo || "",
+            type: "gym_declined",
+            message: t("notifGymDeclined"),
+            read: false,
+            createdAt: serverTimestamp(),
+          });
+        }
       }
       setJoinRequests((prev) => prev.filter((r) => r.id !== req.id));
-      setDashboardNotice(action === "approved" ? t("gymRequestApproved") : t("gymRequestDeclined"));
-      setTimeout(() => setDashboardNotice(""), 3000);
     } catch (e) {
       console.error("join action error", e);
-      setDashboardError(t("gymJoinActionError"));
     } finally {
       setUpdatingId(null);
     }
@@ -423,8 +451,6 @@ export default function GymDashboardPage() {
         {/* Join Requests */}
         {activeTab === "requests" && (
           <div>
-            {dashboardNotice && <div style={styles.noticeBox}>{dashboardNotice}</div>}
-            {dashboardError && <div style={styles.errBox}>{dashboardError}</div>}
             {joinRequests.length === 0 ? (
               <div style={styles.emptyState}>
                 <span style={{ fontSize: 40, opacity: 0.4 }}>👥</span>
@@ -432,38 +458,48 @@ export default function GymDashboardPage() {
               </div>
             ) : (
               <div style={styles.cardList}>
-                {joinRequests.map((req) => (
-                  <div key={req.id} style={styles.requestCard}>
-                    <div style={styles.requestTop}>
-                      <div style={styles.reqAvatar}>👤</div>
-                      <div style={styles.reqInfo}>
-                        <p style={styles.reqUserId}>{req.userId?.slice(0, 10)}...</p>
-                        <p style={styles.reqDate}>
-                          {req.createdAt?.toDate ? new Date(req.createdAt.toDate()).toLocaleDateString() : ""}
-                        </p>
+                {joinRequests.map((req) => {
+                  const ru = requesterUsers[req.userId] || {};
+                  const name = ru.displayName || ru.username || ru.name || "Fighter";
+                  const photo = ru.photoURL || ru.profileImageUrl || "";
+                  return (
+                    <div key={req.id} style={styles.requestCard}>
+                      <div style={styles.requestTop}>
+                        <div style={styles.reqAvatar}>
+                          {photo
+                            ? <img src={photo} alt="" style={styles.reqAvatarImg} />
+                            : <span style={styles.reqAvatarInitial}>{name[0]?.toUpperCase()}</span>
+                          }
+                        </div>
+                        <div style={styles.reqInfo}>
+                          <p style={styles.reqName}>{name}</p>
+                          <p style={styles.reqDate}>
+                            {req.createdAt?.toDate ? new Date(req.createdAt.toDate()).toLocaleDateString() : ""}
+                          </p>
+                        </div>
+                      </div>
+                      {req.message && <p style={styles.reqMessage}>"{req.message}"</p>}
+                      <div style={styles.reqActions}>
+                        <button
+                          type="button"
+                          style={styles.declineBtn}
+                          disabled={updatingId === req.id}
+                          onClick={() => handleJoinAction(req, "declined")}
+                        >
+                          {t("gymDecline")}
+                        </button>
+                        <button
+                          type="button"
+                          style={styles.approveBtn}
+                          disabled={updatingId === req.id}
+                          onClick={() => handleJoinAction(req, "approved")}
+                        >
+                          {updatingId === req.id ? "…" : t("gymApprove")}
+                        </button>
                       </div>
                     </div>
-                    {req.message && <p style={styles.reqMessage}>"{req.message}"</p>}
-                    <div style={styles.reqActions}>
-                      <button
-                        type="button"
-                        style={styles.declineBtn}
-                        disabled={updatingId === req.id}
-                        onClick={() => handleJoinAction(req, "declined")}
-                      >
-                        {t("gymDecline")}
-                      </button>
-                      <button
-                        type="button"
-                        style={styles.approveBtn}
-                        disabled={updatingId === req.id}
-                        onClick={() => handleJoinAction(req, "approved")}
-                      >
-                        {updatingId === req.id ? "…" : t("gymApprove")}
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -546,7 +582,6 @@ const styles = {
   logoImg: { width: "100%", height: "100%", objectFit: "cover" },
   logoLabel: { background: "none", border: "none", color: "rgba(255,255,255,0.65)", fontSize: 13, cursor: "pointer" },
   errBox: { background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.35)", borderRadius: 10, padding: "10px 14px", color: "#F87171", fontSize: 13, marginBottom: 14 },
-  noticeBox: { background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.3)", borderRadius: 10, padding: "10px 14px", color: "#A7F3D0", fontSize: 13, fontWeight: 800, marginBottom: 14 },
   fields: { display: "flex", flexDirection: "column", gap: 14, marginBottom: 20 },
   fieldRow: { display: "flex", gap: 10 },
   input: { width: "100%", boxSizing: "border-box", padding: "11px 14px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 15, outline: "none" },
@@ -574,9 +609,11 @@ const styles = {
   cardList: { display: "flex", flexDirection: "column", gap: 10 },
   requestCard: { borderRadius: 14, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "14px" },
   requestTop: { display: "flex", alignItems: "center", gap: 10, marginBottom: 8 },
-  reqAvatar: { width: 38, height: 38, borderRadius: "50%", background: "rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 },
+  reqAvatar: { width: 40, height: 40, borderRadius: "50%", background: "rgba(193,18,31,0.2)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 },
+  reqAvatarImg: { width: "100%", height: "100%", objectFit: "cover" },
+  reqAvatarInitial: { fontSize: 16, fontWeight: 800, color: "#fff" },
   reqInfo: { flex: 1 },
-  reqUserId: { margin: 0, fontSize: 13, fontWeight: 700, color: "#fff" },
+  reqName: { margin: 0, fontSize: 14, fontWeight: 800, color: "#fff" },
   reqDate: { margin: 0, fontSize: 11, color: "rgba(255,255,255,0.55)" },
   reqMessage: { margin: "0 0 10px", fontSize: 13, color: "rgba(255,255,255,0.55)", fontStyle: "italic", borderLeft: "2px solid rgba(255,255,255,0.1)", paddingLeft: 10 },
   reqActions: { display: "flex", gap: 8 },

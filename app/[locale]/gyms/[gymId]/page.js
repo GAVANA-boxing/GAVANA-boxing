@@ -5,6 +5,7 @@ import { useParams, usePathname, useRouter } from "next/navigation";
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -128,11 +129,13 @@ export default function GymProfilePage() {
   // Join request
   const [joinMessage, setJoinMessage] = useState("");
   const [joinRequested, setJoinRequested] = useState(false);
-  const [joinStatus, setJoinStatus] = useState("");
+  const [pendingJoinRequestId, setPendingJoinRequestId] = useState(null);
   const [joinSubmitting, setJoinSubmitting] = useState(false);
   const [joinError, setJoinError] = useState("");
-  const [joinSuccess, setJoinSuccess] = useState(false);
   const [showJoinForm, setShowJoinForm] = useState(false);
+
+  // Members
+  const [members, setMembers] = useState([]);
 
   // Review form
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -159,6 +162,28 @@ export default function GymProfilePage() {
         setReels(reelsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
         setReviews(reviewsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
         setAnnouncements(announcementsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+
+        // Load approved members
+        const membersSnap = await getDocs(query(
+          collection(db, "gym_join_requests"),
+          where("gymId", "==", gymId),
+          where("status", "==", "approved")
+        ));
+        const memberDocs = membersSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        const memberUserIds = [...new Set(memberDocs.map((m) => m.userId).filter(Boolean))];
+        const memberUserMap = {};
+        if (memberUserIds.length > 0) {
+          await Promise.all(memberUserIds.map(async (uid) => {
+            const uSnap = await getDoc(doc(db, "users", uid));
+            if (uSnap.exists()) memberUserMap[uid] = uSnap.data();
+          }));
+        }
+        if (active) {
+          setMembers(memberDocs.map((m) => ({
+            ...m,
+            user: memberUserMap[m.userId] || null,
+          })));
+        }
       } catch (e) {
         console.error("gym profile load error", e);
       } finally {
@@ -178,16 +203,9 @@ export default function GymProfilePage() {
         getDocs(query(collection(db, "gym_reviews"), where("gymId", "==", gymId), where("userId", "==", user.uid))),
       ]);
       if (!joinSnap.empty) {
-        const latestRequest = joinSnap.docs
-          .map((requestDoc) => requestDoc.data())
-          .sort((a, b) => {
-            const aTime = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
-            const bTime = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
-            return bTime - aTime;
-          })[0];
-        const status = latestRequest?.status || "pending";
-        setJoinStatus(status);
-        setJoinRequested(status === "pending" || status === "approved");
+        setJoinRequested(true);
+        const pending = joinSnap.docs.find((d) => d.data().status === "pending");
+        if (pending) setPendingJoinRequestId(pending.id);
       }
       if (!reviewSnap.empty) setAlreadyReviewed(true);
     }
@@ -198,9 +216,8 @@ export default function GymProfilePage() {
     if (!user) { router.push(`/${locale}/login`); return; }
     setJoinSubmitting(true);
     setJoinError("");
-    setJoinSuccess(false);
     try {
-      const requestDoc = await addDoc(collection(db, "gym_join_requests"), {
+      const reqDoc = await addDoc(collection(db, "gym_join_requests"), {
         userId: user.uid,
         gymId,
         gymOwnerId: gym.ownerId,
@@ -208,27 +225,40 @@ export default function GymProfilePage() {
         createdAt: serverTimestamp(),
         status: "pending",
       });
-
-      await addDoc(collection(db, "notifications"), {
-        type: "gym_join_request",
-        gymId,
-        requestId: requestDoc.id,
-        fromUserId: user.uid,
-        targetUserId: gym.ownerId,
-        recipientId: gym.ownerId,
-        read: false,
-        createdAt: serverTimestamp(),
-      });
-      setJoinStatus("pending");
       setJoinRequested(true);
-      setJoinSuccess(true);
-      setJoinMessage("");
+      setPendingJoinRequestId(reqDoc.id);
       setShowJoinForm(false);
-    } catch (error) {
-      console.error("gym join request error", error);
+      // Notify gym owner
+      if (gym.ownerId) {
+        await addDoc(collection(db, "notifications"), {
+          recipientId: gym.ownerId,
+          actorId: user.uid,
+          actorName: user.displayName || "Someone",
+          fromUserId: user.uid,
+          fromUsername: user.displayName || "Someone",
+          fromUserPhotoURL: user.photoURL || "",
+          type: "gym_join_request",
+          message: t("notifGymJoinRequest").replace("{actor}", user.displayName || "Someone"),
+          gymId,
+          read: false,
+          createdAt: serverTimestamp(),
+        });
+      }
+    } catch {
       setJoinError(t("gymJoinRequestError"));
     } finally {
       setJoinSubmitting(false);
+    }
+  };
+
+  const handleCancelJoinRequest = async () => {
+    if (!pendingJoinRequestId) return;
+    try {
+      await deleteDoc(doc(db, "gym_join_requests", pendingJoinRequestId));
+      setJoinRequested(false);
+      setPendingJoinRequestId(null);
+    } catch (e) {
+      console.error("Cancel join request error:", e);
     }
   };
 
@@ -279,12 +309,6 @@ export default function GymProfilePage() {
   }
 
   const isOwner = user?.uid === gym.ownerId;
-  const joinCtaLabel = joinStatus === "approved"
-    ? t("gymMember")
-    : joinStatus === "pending"
-      ? t("gymRequestPending")
-      : t("gymJoin");
-  const joinCtaDisabled = joinStatus === "pending" || joinStatus === "approved";
 
   return (
     <div style={styles.page}>
@@ -357,10 +381,17 @@ export default function GymProfilePage() {
             <button type="button" style={styles.manageBtn} onClick={() => router.push(`/${locale}/gyms/dashboard`)}>
               {t("gymManage")}
             </button>
-          ) : joinCtaDisabled ? (
-            <button type="button" style={styles.requestedBtn} disabled>{joinCtaLabel}</button>
+          ) : pendingJoinRequestId ? (
+            <div style={styles.pendingJoinCol}>
+              <span style={styles.pendingJoinBadge}>⏳ {t("requestPendingLabel")}</span>
+              <button type="button" style={styles.cancelJoinBtn} onClick={handleCancelJoinRequest}>
+                {t("cancelRequest")}
+              </button>
+            </div>
+          ) : joinRequested ? (
+            <span style={styles.approvedBadge}>✓ {t("gymMembers")}</span>
           ) : (
-            <button type="button" style={styles.joinBtn} onClick={() => setShowJoinForm(true)}>{joinCtaLabel}</button>
+            <button type="button" style={styles.joinBtn} onClick={() => setShowJoinForm(true)}>{t("gymJoin")}</button>
           )}
           {gym.phone && (
             <a href={`tel:${gym.phone}`} style={styles.contactBtn}>📞</a>
@@ -372,13 +403,6 @@ export default function GymProfilePage() {
             <a href={gym.website} target="_blank" rel="noopener noreferrer" style={styles.contactBtn}>🌐</a>
           )}
         </div>
-
-        {joinSuccess && (
-          <div style={styles.toastSuccess}>
-            <strong>{t("gymJoinRequestSent")}</strong>
-            <span>{t("gymJoinRequestReview")}</span>
-          </div>
-        )}
 
         {/* Join form */}
         {showJoinForm && (
@@ -459,6 +483,30 @@ export default function GymProfilePage() {
                   </span>
                 </div>
               ))}
+            </div>
+          </section>
+        )}
+
+        {/* Members */}
+        {members.length > 0 && (
+          <section style={styles.section}>
+            <p style={styles.sectionTitle}>{t("gymMembersSection")} ({members.length})</p>
+            <div style={styles.membersRow}>
+              {members.slice(0, 12).map((m) => {
+                const name = m.user?.displayName || m.user?.username || "Member";
+                const photo = m.user?.photoURL || m.user?.profileImageUrl || "";
+                return (
+                  <div key={m.id} style={styles.memberSlot}>
+                    <div style={styles.memberAvatar}>
+                      {photo
+                        ? <img src={photo} alt="" style={styles.memberAvatarImg} />
+                        : <span style={styles.memberAvatarInitial}>{name[0]?.toUpperCase()}</span>
+                      }
+                    </div>
+                    <span style={styles.memberName}>{name.split(" ")[0]}</span>
+                  </div>
+                );
+              })}
             </div>
           </section>
         )}
@@ -552,7 +600,6 @@ const styles = {
   requestedBtn: { flex: 1, minHeight: 44, border: "1px solid rgba(52,211,153,0.35)", borderRadius: 12, background: "rgba(52,211,153,0.08)", color: "#34D399", fontSize: 15, fontWeight: 900, cursor: "default" },
   manageBtn: { flex: 1, minHeight: 44, border: "1px solid rgba(212,175,55,0.4)", borderRadius: 12, background: "rgba(212,175,55,0.1)", color: "#D4AF37", fontSize: 15, fontWeight: 900, cursor: "pointer" },
   contactBtn: { width: 44, height: 44, borderRadius: 12, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: "#fff", textDecoration: "none" },
-  toastSuccess: { display: "grid", gap: 3, margin: "-8px 0 16px", padding: "12px 14px", borderRadius: 14, background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.3)", color: "#A7F3D0", fontSize: 13, fontWeight: 800 },
   joinForm: { borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", padding: "16px", marginBottom: 16, display: "flex", flexDirection: "column", gap: 10 },
   section: { marginBottom: 24 },
   sectionTitle: { margin: "0 0 10px", fontSize: 13, fontWeight: 900, color: "rgba(255,255,255,0.65)", letterSpacing: 1, textTransform: "uppercase" },
@@ -586,4 +633,14 @@ const styles = {
   vibeRow: { display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 },
   vibeBadge: { fontSize: 11, fontWeight: 800, color: "#F87171", background: "rgba(193,18,31,0.1)", border: "1px solid rgba(193,18,31,0.25)", borderRadius: 999, padding: "3px 10px" },
   goodForPill: { fontSize: 12, color: "rgba(255,255,255,0.65)", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 999, padding: "4px 12px", fontWeight: 600 },
+  pendingJoinCol: { flex: 1, display: "flex", flexDirection: "column", gap: 8 },
+  pendingJoinBadge: { display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 16px", borderRadius: 12, background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.35)", color: "#F59E0B", fontSize: 14, fontWeight: 800 },
+  cancelJoinBtn: { width: "100%", padding: "10px", border: "1px solid rgba(248,113,113,0.35)", borderRadius: 12, background: "rgba(248,113,113,0.08)", color: "#F87171", fontSize: 14, fontWeight: 700, cursor: "pointer" },
+  approvedBadge: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "10px 16px", borderRadius: 12, background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.3)", color: "#34D399", fontSize: 14, fontWeight: 800 },
+  membersRow: { display: "flex", flexWrap: "wrap", gap: 12 },
+  memberSlot: { display: "flex", flexDirection: "column", alignItems: "center", gap: 4 },
+  memberAvatar: { width: 44, height: 44, borderRadius: "50%", overflow: "hidden", background: "rgba(193,18,31,0.2)", display: "flex", alignItems: "center", justifyContent: "center" },
+  memberAvatarImg: { width: "100%", height: "100%", objectFit: "cover" },
+  memberAvatarInitial: { fontSize: 16, fontWeight: 800, color: "#fff" },
+  memberName: { fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.55)", maxWidth: 44, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" },
 };
