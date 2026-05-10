@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import {
-  collection, query, where, orderBy, limit,
-  getDocs, addDoc, serverTimestamp,
+  collection, doc, query, where, limit,
+  getDocs, getDoc, addDoc, serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
@@ -56,7 +56,7 @@ function ScoreChart({ scores, t }) {
   if (!scores || scores.length < 2) {
     return (
       <div style={{ textAlign: "center", padding: "24px 0", color: "#444", fontSize: 12 }}>
-        {scores?.length === 1 ? "1 session recorded — need 2+ to show chart" : "No score data yet"}
+        {scores?.length === 1 ? "1 session — need 2+ for chart" : t("dashboardNoSessions")}
       </div>
     );
   }
@@ -78,7 +78,6 @@ function ScoreChart({ scores, t }) {
   return (
     <div style={{ width: "100%" }}>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: "block" }}>
-        {/* Grid */}
         {[0, 5, 10].map((v) => (
           <g key={v}>
             <line x1={PAD.left} y1={toY(v)} x2={W - PAD.right} y2={toY(v)}
@@ -87,36 +86,24 @@ function ScoreChart({ scores, t }) {
               fontSize="7" fill="rgba(255,255,255,0.28)">{v}</text>
           </g>
         ))}
-
-        {/* Best score dashed gold line */}
         <line x1={PAD.left} y1={bestY} x2={W - PAD.right} y2={bestY}
           stroke="#D4AF37" strokeWidth="0.8" strokeDasharray="4,3" opacity="0.75" />
         <text x={W - PAD.right + 3} y={Number(bestY) + 3.5} fontSize="7" fill="#D4AF37" opacity="0.9">
           {t("dashboardBest")}
         </text>
-
-        {/* Avg dashed white line */}
         <line x1={PAD.left} y1={avgY} x2={W - PAD.right} y2={avgY}
           stroke="rgba(255,255,255,0.2)" strokeWidth="0.6" strokeDasharray="2,3" />
-
-        {/* Area fill */}
         <polygon
           points={`${pts} ${toX(scores.length - 1).toFixed(1)},${PAD.top + ph} ${PAD.left},${PAD.top + ph}`}
           fill="rgba(193,18,31,0.08)"
         />
-
-        {/* Score line */}
         <polyline points={pts} fill="none" stroke="#C1121F" strokeWidth="1.6"
           strokeLinejoin="round" strokeLinecap="round" />
-
-        {/* Dots */}
         {scores.map((s, i) => (
           <circle key={i} cx={toX(i).toFixed(1)} cy={toY(s).toFixed(1)} r="2.5"
             fill={s === best ? "#D4AF37" : "#C1121F"}
             stroke="rgba(0,0,0,0.6)" strokeWidth="0.5" />
         ))}
-
-        {/* X labels */}
         {[0, scores.length - 1].map((idx) => (
           <text key={idx} x={toX(idx).toFixed(1)} y={H - 4} textAnchor="middle"
             fontSize="7" fill="rgba(255,255,255,0.28)">
@@ -124,25 +111,22 @@ function ScoreChart({ scores, t }) {
           </text>
         ))}
       </svg>
-
       <div style={{ display: "flex", gap: 14, marginTop: 6, paddingLeft: 26 }}>
-        <ChartLegendItem color="#C1121F" solid label="Score" />
-        <ChartLegendItem color="#D4AF37" dashed label={`${t("dashboardBest")} ${formatScore(best)}`} />
-        <ChartLegendItem color="rgba(255,255,255,0.3)" dashed label={`${t("dashboardAvgScore")} ${formatScore(avg)}`} />
+        {[
+          { color: "#C1121F", solid: true, label: "Score" },
+          { color: "#D4AF37", dashed: true, label: `${t("dashboardBest")} ${formatScore(best)}` },
+          { color: "rgba(255,255,255,0.3)", dashed: true, label: `${t("dashboardAvgScore")} ${formatScore(avg)}` },
+        ].map((item) => (
+          <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <div style={{
+              width: 16, height: 2,
+              background: item.solid ? item.color : "transparent",
+              borderTop: item.dashed ? `1.5px dashed ${item.color}` : "none",
+            }} />
+            <span style={{ fontSize: 9, color: "#666" }}>{item.label}</span>
+          </div>
+        ))}
       </div>
-    </div>
-  );
-}
-
-function ChartLegendItem({ color, solid, dashed, label }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-      <div style={{
-        width: 16, height: 2,
-        background: solid ? color : "transparent",
-        borderTop: dashed ? `1.5px dashed ${color}` : "none",
-      }} />
-      <span style={{ fontSize: 9, color: "#666" }}>{label}</span>
     </div>
   );
 }
@@ -317,15 +301,21 @@ function BodyProgressSection({ userId, t }) {
     let active = true;
     async function load() {
       try {
+        // No orderBy to avoid composite index requirement; sort client-side
         const q = query(
           collection(db, "body_progress"),
           where("userId", "==", userId),
-          orderBy("createdAt", "desc"),
-          limit(8)
+          limit(10)
         );
         const snap = await getDocs(q);
-        if (active) setHistory(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-      } catch { /* empty */ }
+        if (!active) return;
+        const docs = snap.docs
+          .map((d) => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => getTs(b.createdAt) - getTs(a.createdAt));
+        setHistory(docs);
+      } catch (e) {
+        console.error("Body progress load error:", e);
+      }
     }
     load();
     return () => { active = false; };
@@ -346,7 +336,8 @@ function BodyProgressSection({ userId, t }) {
       if (form.notes.trim()) payload.notes = form.notes.trim();
 
       const ref = await addDoc(collection(db, "body_progress"), payload);
-      setHistory((prev) => [{ id: ref.id, ...payload, createdAt: new Date() }, ...prev].slice(0, 8));
+      const newEntry = { id: ref.id, ...payload, createdAt: { toMillis: () => Date.now() } };
+      setHistory((prev) => [newEntry, ...prev].slice(0, 10));
       setForm({ weight: "", height: "", reach: "", weightClass: "", notes: "" });
       setShowForm(false);
     } catch (e) {
@@ -360,7 +351,6 @@ function BodyProgressSection({ userId, t }) {
 
   return (
     <div>
-      {/* Latest stats */}
       {latest && (
         <div style={{
           background: "rgba(255,255,255,0.03)",
@@ -372,7 +362,7 @@ function BodyProgressSection({ userId, t }) {
           <div style={{ fontSize: 10, fontWeight: 800, color: "#555", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>
             {t("dashboardBodyLatest")} · {formatDate(latest.createdAt)}
           </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
             {latest.weight && <BodyStat label={t("dashboardWeight")} value={`${latest.weight} kg`} />}
             {latest.height && <BodyStat label={t("dashboardHeight")} value={`${latest.height} cm`} />}
             {latest.reach && <BodyStat label={t("dashboardReach")} value={`${latest.reach} cm`} />}
@@ -388,7 +378,6 @@ function BodyProgressSection({ userId, t }) {
         <p style={{ fontSize: 12, color: "#444", margin: "0 0 10px" }}>{t("dashboardNoBodyData")}</p>
       )}
 
-      {/* Add form */}
       {showForm ? (
         <div style={{
           background: "rgba(255,255,255,0.02)",
@@ -409,37 +398,28 @@ function BodyProgressSection({ userId, t }) {
             <InputField label={t("dashboardReach")} value={form.reach}
               onChange={(v) => setForm((f) => ({ ...f, reach: v }))} type="number" />
             <div>
-              <label style={{ fontSize: 10, fontWeight: 700, color: "#555", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: 4 }}>
-                {t("dashboardWeightClass")}
-              </label>
-              <select
-                value={form.weightClass}
+              <label style={labelStyle}>{t("dashboardWeightClass")}</label>
+              <select value={form.weightClass}
                 onChange={(e) => setForm((f) => ({ ...f, weightClass: e.target.value }))}
-                style={inputStyle}
-              >
+                style={inputStyle}>
                 <option value="">—</option>
                 {WEIGHT_CLASSES.map((wc) => <option key={wc} value={wc}>{wc}</option>)}
               </select>
             </div>
           </div>
           <div>
-            <label style={{ fontSize: 10, fontWeight: 700, color: "#555", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: 4 }}>
-              {t("dashboardNotes")}
-            </label>
-            <textarea
-              value={form.notes}
+            <label style={labelStyle}>{t("dashboardNotes")}</label>
+            <textarea value={form.notes}
               onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-              rows={2}
-              style={{ ...inputStyle, resize: "none", height: "auto" }}
-              placeholder="Optional notes..."
-            />
+              rows={2} style={{ ...inputStyle, resize: "none", height: "auto" }}
+              placeholder={t("dashboardNotesPlaceholder")} />
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button onClick={handleSave} disabled={saving} style={primaryBtnStyle}>
               {saving ? t("dashboardSaving") : t("dashboardSave")}
             </button>
             <button onClick={() => setShowForm(false)} style={ghostBtnStyle}>
-              Cancel
+              {t("dashboardCancel")}
             </button>
           </div>
         </div>
@@ -449,7 +429,6 @@ function BodyProgressSection({ userId, t }) {
         </button>
       )}
 
-      {/* History */}
       {history.length > 1 && (
         <div style={{ marginTop: 14 }}>
           <div style={{ fontSize: 10, fontWeight: 800, color: "#444", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>
@@ -486,21 +465,20 @@ function BodyStat({ label, value }) {
 function InputField({ label, value, onChange, type = "text", required }) {
   return (
     <div>
-      <label style={{ fontSize: 10, fontWeight: 700, color: "#555", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: 4 }}>
-        {label}{required && " *"}
-      </label>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        style={inputStyle}
-        inputMode={type === "number" ? "decimal" : "text"}
-      />
+      <label style={labelStyle}>{label}{required && " *"}</label>
+      <input type={type} value={value} onChange={(e) => onChange(e.target.value)}
+        style={inputStyle} inputMode={type === "number" ? "decimal" : "text"} />
     </div>
   );
 }
 
 // ─── Shared styles ────────────────────────────────────────────────────────────
+
+const labelStyle = {
+  fontSize: 10, fontWeight: 700, color: "#555",
+  textTransform: "uppercase", letterSpacing: "0.06em",
+  display: "block", marginBottom: 4,
+};
 
 const inputStyle = {
   width: "100%",
@@ -553,12 +531,17 @@ export default function AthleteDashboard() {
   const locale = getLocaleFromPathname(pathname);
   const t = (key) => translate(locale, key);
 
-  const [loading, setLoading] = useState(true);
+  // Phase 1: user/rank data (fast)
   const [userData, setUserData] = useState(null);
   const [xp, setXp] = useState(0);
+  const [rankReady, setRankReady] = useState(false);
+
+  // Phase 2: session history
   const [trainingSessions, setTrainingSessions] = useState([]);
   const [challengeCount, setChallengeCount] = useState(0);
+  const [sessionsReady, setSessionsReady] = useState(false);
 
+  // Phase 1: load user doc + ai_feedback → XP/rank (same formula as Profile)
   useEffect(() => {
     if (authLoading) return;
     if (!user?.uid) {
@@ -567,55 +550,59 @@ export default function AthleteDashboard() {
     }
 
     let active = true;
-    async function load() {
+    async function loadRank() {
       try {
-        const { getDoc, doc } = await import("firebase/firestore");
-
-        // 1. User doc
+        // User doc (streak, stored challenge XP, username)
         const userSnap = await getDoc(doc(db, "users", user.uid));
         const uData = userSnap.exists() ? userSnap.data() : {};
 
-        // 2. AI feedback → XP
+        // AI feedback → XP (same as Profile: calculateUserXP)
         const feedbackSnap = await getDocs(
           query(collection(db, "ai_feedback"), where("userId", "==", user.uid))
         );
         const feedbackDocs = feedbackSnap.docs.map((d) => d.data());
-        const computedXP = calculateUserXP({
-          aiFeedbackDocs: feedbackDocs,
-          streakDays: Number(uData.dailyStreak) || 0,
-        });
 
-        // 3. Training sessions (last 25)
-        const sessionsSnap = await getDocs(
-          query(
-            collection(db, "training_sessions"),
-            where("userId", "==", user.uid),
-            orderBy("createdAt", "desc"),
-            limit(25)
-          )
+        // Training sessions for xpGained sum (no orderBy = no composite index needed)
+        const sessSnap = await getDocs(
+          query(collection(db, "training_sessions"), where("userId", "==", user.uid))
         );
-        const sessions = sessionsSnap.docs
+        const allSessions = sessSnap.docs
           .map((d) => ({ id: d.id, ...d.data() }))
-          .filter((s) => s.type === "training");
+          .filter((s) => s.type === "training")
+          .sort((a, b) => getTs(b.createdAt) - getTs(a.createdAt));
 
-        // 4. Challenge results count
-        const challengeSnap = await getDocs(
-          query(collection(db, "challenge_results"), where("userId", "==", user.uid))
-        );
+        const trainingSessionXP = allSessions.reduce((sum, s) => sum + (Number(s.xpGained) || 0), 0);
+
+        // storedChallengeXP = users.xp (challenge XP stored by train page)
+        const storedChallengeXP = Number(uData.xp) || 0;
+
+        // streakCount (Profile uses streakCount, fall back to dailyStreak)
+        const streakDays = Number(uData.streakCount) || Number(uData.dailyStreak) || 0;
+
+        const totalXP = storedChallengeXP + trainingSessionXP + calculateUserXP({
+          aiFeedbackDocs: feedbackDocs,
+          streakDays,
+        });
 
         if (!active) return;
         setUserData(uData);
-        setXp(computedXP);
-        setTrainingSessions(sessions);
-        setChallengeCount(challengeSnap.size);
+        setXp(totalXP);
+        setTrainingSessions(allSessions.slice(0, 25));
+        setRankReady(true);
+
+        // Phase 2: challenge count (fire-and-forget)
+        getDocs(query(collection(db, "challenge_results"), where("userId", "==", user.uid)))
+          .then((snap) => { if (active) setChallengeCount(snap.size); })
+          .catch(() => {});
+
+        setSessionsReady(true);
       } catch (e) {
         console.error("Dashboard load error:", e);
-      } finally {
-        if (active) setLoading(false);
+        if (active) setRankReady(true); // show page even on error
       }
     }
 
-    load();
+    loadRank();
     return () => { active = false; };
   }, [authLoading, user?.uid, locale, router]);
 
@@ -624,23 +611,31 @@ export default function AthleteDashboard() {
       .map((s) => Number(s.score))
       .filter(Number.isFinite);
     const bestScore = scores.length ? Math.max(...scores) : null;
-    const chronoScores = [...scores].reverse(); // oldest → newest for chart
+    const chronoScores = [...scores].reverse();
     return { scores, bestScore, chronoScores };
   }, [trainingSessions]);
 
   const insight = useMemo(() =>
-    getInsight(locale, stats.scores, Number(userData?.dailyStreak) || 0),
+    getInsight(locale, stats.scores, Number(userData?.dailyStreak || userData?.streakCount) || 0),
     [locale, stats.scores, userData]
   );
 
   const rank = getFighterRank(xp);
+  const dailyStreak = Number(userData?.dailyStreak || userData?.streakCount) || 0;
+  const bestStreak = Number(userData?.bestDailyStreak) || 0;
 
-  if (authLoading || loading) {
+  // Localized page title
+  const pageTitle = locale === "mn"
+    ? "Тамирчны ахиц"
+    : locale === "ko"
+      ? "선수 진행 현황"
+      : "My Progress";
+
+  if (authLoading || !rankReady) {
     return (
       <div style={{ minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", background: "#070707" }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
           <div style={{ width: 32, height: 32, border: "2px solid #C1121F", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-          <span style={{ fontSize: 12, color: "#555" }}>Loading...</span>
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       </div>
@@ -653,18 +648,13 @@ export default function AthleteDashboard() {
 
         {/* Page header */}
         <div style={{ marginBottom: 24 }}>
-          <h1 style={{
-            margin: "0 0 2px", fontSize: 22, fontWeight: 900,
-            color: "#fff", letterSpacing: "-0.02em", lineHeight: 1,
-          }}>
-            {userData?.username || user?.displayName || "Athlete"}
+          <h1 style={{ margin: "0 0 2px", fontSize: 22, fontWeight: 900, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1 }}>
+            {userData?.username || user?.displayName || pageTitle}
           </h1>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 12, color: rank.color, fontWeight: 800 }}>
-              {t(rank.key)}
-            </span>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
+            <span style={{ fontSize: 12, color: rank.color, fontWeight: 800 }}>{t(rank.key)}</span>
             <span style={{ fontSize: 10, color: "#333" }}>·</span>
-            <span style={{ fontSize: 11, color: "#555" }}>{t("dashboardProgressOverview")}</span>
+            <span style={{ fontSize: 11, color: "#555" }}>{pageTitle}</span>
           </div>
         </div>
 
@@ -672,16 +662,13 @@ export default function AthleteDashboard() {
 
           {/* ── A. Progress Overview ── */}
           <Section title={t("dashboardProgressOverview")}>
-            {/* Rank + XP bar */}
             <div style={{ marginBottom: 12 }}>
               <RankBar xp={xp} t={t} />
             </div>
-
-            {/* Stat cards grid */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
               <StatCard icon="🔥" label={t("dashboardTrainingStreak")}
-                value={`${Number(userData?.dailyStreak) || 0}d`}
-                sub={`best ${Number(userData?.bestDailyStreak) || 0}d`}
+                value={`${dailyStreak}d`}
+                sub={bestStreak > 0 ? `best ${bestStreak}d` : undefined}
                 valueColor="#FB923C" />
               <StatCard icon="⭐" label={t("dashboardBestScore")}
                 value={stats.bestScore != null ? formatScore(stats.bestScore) : "—"}
@@ -690,10 +677,12 @@ export default function AthleteDashboard() {
                 value={trainingSessions.length}
                 valueColor="#fff" />
               <StatCard icon="🎯" label={t("dashboardChallengeAttempts")}
-                value={challengeCount}
+                value={sessionsReady ? challengeCount : "…"}
                 valueColor="#60a5fa" />
-              <StatCard icon="📈" label="Avg Score"
-                value={stats.scores.length ? formatScore(stats.scores.reduce((a, b) => a + b, 0) / stats.scores.length) : "—"}
+              <StatCard icon="📈" label={t("dashboardAvgScore")}
+                value={stats.scores.length
+                  ? formatScore(stats.scores.reduce((a, b) => a + b, 0) / stats.scores.length)
+                  : "—"}
                 sub="/10" valueColor="#a78bfa" />
               <StatCard icon="✨" label={t("dashboardXP")}
                 value={xp >= 1000 ? `${(xp / 1000).toFixed(1)}k` : xp}
@@ -718,18 +707,14 @@ export default function AthleteDashboard() {
 
           {/* ── B. Score History Chart ── */}
           <Section title={t("dashboardScoreHistory")}>
-            {stats.chronoScores.length === 0 ? (
-              <p style={{ fontSize: 12, color: "#444", margin: 0 }}>{t("dashboardNoSessions")}</p>
-            ) : (
-              <div style={{
-                background: "rgba(255,255,255,0.02)",
-                border: "1px solid rgba(255,255,255,0.06)",
-                borderRadius: 12,
-                padding: "14px",
-              }}>
-                <ScoreChart scores={stats.chronoScores} t={t} />
-              </div>
-            )}
+            <div style={{
+              background: "rgba(255,255,255,0.02)",
+              border: "1px solid rgba(255,255,255,0.06)",
+              borderRadius: 12,
+              padding: "14px",
+            }}>
+              <ScoreChart scores={stats.chronoScores} t={t} />
+            </div>
           </Section>
 
           {/* ── C. Training History ── */}
@@ -737,11 +722,9 @@ export default function AthleteDashboard() {
             {trainingSessions.length === 0 ? (
               <p style={{ fontSize: 12, color: "#444", margin: 0 }}>{t("dashboardNoSessions")}</p>
             ) : (
-              <div>
-                {trainingSessions.slice(0, 12).map((s) => (
-                  <SessionRow key={s.id} session={s} t={t} />
-                ))}
-              </div>
+              trainingSessions.slice(0, 12).map((s) => (
+                <SessionRow key={s.id} session={s} t={t} />
+              ))
             )}
           </Section>
 

@@ -1335,6 +1335,12 @@ export default function UserProfilePage() {
             <button onClick={() => router.push(`/${locale}/profile/edit`)} style={styles.ghostAction}>
               {t("editProfile")}
             </button>
+            <button
+              onClick={() => router.push(`/${locale}/dashboard`)}
+              style={{ ...styles.ghostAction, color: "#D4AF37", borderColor: "rgba(212,175,55,0.3)" }}
+            >
+              {t("dashboardViewProgress")}
+            </button>
             {userReels.length > 0 && (
               <button onClick={() => router.push(`/${locale}/creator/dashboard`)} style={styles.ghostAction}>
                 {t("creatorDashboard")}
