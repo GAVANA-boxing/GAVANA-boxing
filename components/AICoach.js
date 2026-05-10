@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
+import KnowledgeLibrary from "@/components/KnowledgeLibrary";
 
 export default function AICoach() {
   const pathname = usePathname();
@@ -12,6 +13,7 @@ export default function AICoach() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [persona, setPersona] = useState("drill");
+  const [activeSection, setActiveSection] = useState("library");
   const messagesEndRef = useRef(null);
 
   const personas = [
@@ -50,6 +52,11 @@ export default function AICoach() {
   const handlePersonaChange = (newPersona) => {
     setPersona(newPersona);
     setMessages([]);
+  };
+
+  const handleAskFromLibrary = (prompt) => {
+    setActiveSection("chat");
+    handleSend(prompt);
   };
 
   const handleSend = async (presetPrompt) => {
@@ -115,6 +122,31 @@ export default function AICoach() {
           <h1 style={styles.title}>{t("aiCoach")}</h1>
         </div>
 
+        {/* Section sub-tabs: Library / Chat */}
+        <div style={styles.sectionTabRow}>
+          {[
+            { key: "library", label: t("libraryTabLabel"), emoji: "📚" },
+            { key: "chat",    label: t("chatTabLabel"),    emoji: "💬" },
+          ].map(({ key, label, emoji }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setActiveSection(key)}
+              style={activeSection === key ? styles.sectionTabActive : styles.sectionTabInactive}
+            >
+              <span>{emoji}</span> {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Library section */}
+        {activeSection === "library" && (
+          <KnowledgeLibrary locale={locale} onAsk={handleAskFromLibrary} />
+        )}
+
+        {/* Chat section */}
+        {activeSection === "chat" && (
+          <>
         <div style={styles.personas}>
           {personas.map((item) => (
             <button
@@ -220,6 +252,8 @@ export default function AICoach() {
             </button>
           </div>
         </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -244,6 +278,46 @@ const styles = {
     maxWidth: 800,
     margin: "0 auto",
     padding: "var(--space-6)",
+  },
+  sectionTabRow: {
+    display: "flex",
+    gap: 8,
+    marginBottom: 24,
+    background: "#161616",
+    border: "1px solid #222",
+    borderRadius: 12,
+    padding: 4,
+  },
+  sectionTabActive: {
+    flex: 1,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    padding: "10px 0",
+    borderRadius: 9,
+    background: "#C1121F",
+    border: "none",
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: 800,
+    cursor: "pointer",
+    letterSpacing: "0.01em",
+  },
+  sectionTabInactive: {
+    flex: 1,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    padding: "10px 0",
+    borderRadius: 9,
+    background: "transparent",
+    border: "none",
+    color: "#666",
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: "pointer",
   },
   header: {
     textAlign: "center",
