@@ -108,6 +108,17 @@ export default function StoryViewer({ stories, onClose, locale, currentUser }) {
 
   return (
     <div style={s.overlay}>
+      <style>{`
+        @keyframes storyFadeIn {
+          from { opacity: 0; transform: scale(1.018); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+        @keyframes storySlideUp {
+          from { opacity: 0; transform: translateY(8px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+
       {/* Tap zones */}
       <div style={s.tapL} onClick={() => !showReply && idx > 0 && setIdx(i => i - 1)} />
       <div style={s.tapR} onClick={() => !showReply && (idx < stories.length - 1 ? setIdx(i => i + 1) : onClose())} />
@@ -115,11 +126,11 @@ export default function StoryViewer({ stories, onClose, locale, currentUser }) {
       {/* Background */}
       {story.mediaUrl ? (
         isVideo
-          ? <video src={story.mediaUrl} style={s.media} autoPlay muted playsInline loop />
-          : <img src={story.mediaUrl} style={s.media} alt="" />
+          ? <video key={`v-${idx}`} src={story.mediaUrl} style={{ ...s.media, animation: "storyFadeIn 380ms ease forwards" }} autoPlay muted playsInline loop />
+          : <img key={`i-${idx}`} src={story.mediaUrl} style={{ ...s.media, animation: "storyFadeIn 380ms ease forwards" }} alt="" />
       ) : isProgress
-        ? <div style={s.progressBg}><ProgressCard data={story.progressData || {}} /></div>
-        : <div style={s.defaultBg} />
+        ? <div key={`p-${idx}`} style={{ ...s.progressBg, animation: "storyFadeIn 380ms ease forwards" }}><ProgressCard data={story.progressData || {}} /></div>
+        : <div key={`d-${idx}`} style={{ ...s.defaultBg, animation: "storyFadeIn 380ms ease forwards" }} />
       }
 
       {/* Gradients */}
@@ -148,7 +159,7 @@ export default function StoryViewer({ stories, onClose, locale, currentUser }) {
 
       {/* Caption */}
       {story.caption && !isProgress && (
-        <div style={s.captionWrap}>
+        <div key={`cap-${idx}`} style={{ ...s.captionWrap, animation: "storySlideUp 400ms ease forwards" }}>
           <p style={s.captionText}>{story.caption}</p>
         </div>
       )}
@@ -233,9 +244,10 @@ const s = {
   },
   segFill: {
     height: "100%",
-    background: "linear-gradient(90deg, rgba(255,255,255,0.9), #fff)",
+    background: "linear-gradient(90deg, rgba(255,255,255,0.85), #fff)",
     borderRadius: 1,
     transition: "width 100ms linear",
+    boxShadow: "0 0 6px rgba(255,255,255,0.3)",
   },
   metaRow: {
     display: "flex", alignItems: "center", justifyContent: "space-between",
