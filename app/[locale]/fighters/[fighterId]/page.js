@@ -1,30 +1,34 @@
 "use client";
 
-import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getLocale, translate } from "@/lib/i18n";
 import { getFighter } from "@/lib/fighters";
+import {
+  getLocalizedField,
+  getLocalizedCombos,
+  getLocalizedFights,
+} from "@/lib/fighters.i18n";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
 
-// ─── Combo step row ───────────────────────────────────────────────────────────
+// ─── Combo step pills ─────────────────────────────────────────────────────────
 function ComboSteps({ steps }) {
   return (
     <div style={s.comboSteps}>
       {steps.map((step, i) => (
-        <div key={i} style={s.comboStepWrap}>
+        <span key={i} style={s.comboStepWrap}>
           <span style={s.comboStep}>{step}</span>
-          {i < steps.length - 1 && <span style={s.comboArrow}>→</span>}
-        </div>
+          {i < steps.length - 1 && <span style={s.comboArrow}>›</span>}
+        </span>
       ))}
     </div>
   );
 }
 
-// ─── Section card ─────────────────────────────────────────────────────────────
+// ─── Compact section block ────────────────────────────────────────────────────
 function Section({ title, emoji, accent, children }) {
   return (
-    <div style={{ ...s.section, borderColor: accent + "30" }}>
+    <div style={{ ...s.section, borderLeftColor: accent }}>
       <p style={{ ...s.sectionTitle, color: accent }}>
         {emoji} {title}
       </p>
@@ -46,8 +50,8 @@ export default function FighterDetailPage() {
     return (
       <div style={s.page}>
         <div style={s.notFound}>
-          <span style={{ fontSize: 40 }}>🥊</span>
-          <p style={{ color: "#aaa", marginTop: 12 }}>{t("fighterNotFound")}</p>
+          <span style={{ fontSize: 48 }}>🥊</span>
+          <p style={{ color: "#aaa", marginTop: 12, fontSize: 14 }}>{t("fighterNotFound")}</p>
           <button style={s.backBtn} onClick={() => router.back()}>← {t("back")}</button>
         </div>
         <BottomNav router={router} user={user} currentLocale={locale} activeTab="discover" />
@@ -57,48 +61,83 @@ export default function FighterDetailPage() {
 
   const acc = fighter.accent;
 
+  // Localized content
+  const identity       = getLocalizedField(fighter, "identity", locale);
+  const styleIdentity  = getLocalizedField(fighter, "styleIdentity", locale);
+  const moveDNADesc    = getLocalizedField(fighter, "movementDNA", locale, "description");
+  const whatToStudy    = getLocalizedField(fighter, "whatToStudy", locale);
+  const habits         = getLocalizedField(fighter, "habitsToMimick", locale);
+  const drills         = getLocalizedField(fighter, "drills", locale);
+  const weaknesses     = getLocalizedField(fighter, "weaknesses", locale);
+  const combos         = getLocalizedCombos(fighter, locale);
+  const fights         = getLocalizedFights(fighter, locale);
+
   return (
     <div style={s.page}>
-      {/* ── Hero header ── */}
-      <div style={{ ...s.hero, background: `linear-gradient(160deg, ${acc}22 0%, #080808 60%)` }}>
+
+      {/* ══════════ HERO ══════════ */}
+      <div style={{ ...s.hero, background: `linear-gradient(170deg, ${acc}1a 0%, #0a0a0a 55%)` }}>
+        {/* Glow accent bar at very top */}
+        <div style={{ ...s.heroTopBar, background: `linear-gradient(90deg, ${acc} 0%, ${acc}00 100%)` }} />
+
         <button style={s.backPill} onClick={() => router.back()}>
           ← {t("back")}
         </button>
 
-        <div style={s.heroContent}>
-          <span style={s.heroFlag}>{fighter.country}</span>
-          <h1 style={s.heroName}>{fighter.name}</h1>
-          <p style={s.heroNickname}>"{fighter.nickname}"</p>
-
-          <div style={s.heroPills}>
-            <span style={{ ...s.heroPill, borderColor: acc + "60", color: acc }}>{fighter.weightClass}</span>
-            <span style={{ ...s.heroPill, borderColor: acc + "60", color: acc }}>{fighter.style}</span>
+        {/* Fighter card block */}
+        <div style={s.heroCard}>
+          {/* Left: flag + accent border */}
+          <div style={{ ...s.heroFlagCol, borderColor: acc + "55" }}>
+            <span style={s.heroFlag}>{fighter.country}</span>
+            <span style={{ ...s.heroWeightBadge, color: acc, borderColor: acc + "40" }}>
+              {fighter.weightClass}
+            </span>
           </div>
 
-          <p style={s.heroIdentity}>{fighter.identity}</p>
+          {/* Right: name + metadata */}
+          <div style={s.heroInfo}>
+            <p style={s.heroKicker}>GAVANA · FIGHTER STUDY</p>
+            <h1 style={s.heroName}>{fighter.name.toUpperCase()}</h1>
+            <p style={s.heroNickname}>"{fighter.nickname}"</p>
+            <span style={{ ...s.heroStyleBadge, background: acc + "22", color: acc, borderColor: acc + "44" }}>
+              {fighter.style}
+            </span>
+          </div>
         </div>
 
-        {/* Accent line */}
-        <div style={{ ...s.heroLine, background: acc }} />
+        {/* Identity line */}
+        <p style={s.heroIdentity}>{identity}</p>
+
+        {/* Key weapon pill */}
+        <div style={s.heroWeapon}>
+          <span style={s.heroWeaponDot}>⚡</span>
+          <span style={s.heroWeaponText}>{fighter.keyWeapon}</span>
+        </div>
+
+        {/* Bottom accent line */}
+        <div style={{ ...s.heroAccentLine, background: `linear-gradient(90deg, ${acc} 0%, ${acc}44 60%, transparent 100%)` }} />
       </div>
 
+      {/* ══════════ CONTENT ══════════ */}
       <div style={s.content}>
 
         {/* ── Style Identity ── */}
         <Section title={t("fighterStyleIdentity")} emoji="🎯" accent={acc}>
-          {fighter.styleIdentity.map((item, i) => (
-            <div key={i} style={s.bulletRow}>
-              <span style={{ ...s.bulletDot, background: acc }} />
-              <span style={s.bulletText}>{item}</span>
-            </div>
-          ))}
+          <div style={s.pillGrid}>
+            {styleIdentity.map((item, i) => (
+              <span key={i} style={{ ...s.stylePill, borderColor: acc + "35", background: acc + "0d" }}>
+                <span style={{ ...s.pillDot, background: acc }} />
+                {item}
+              </span>
+            ))}
+          </div>
         </Section>
 
         {/* ── Signature Combos ── */}
         <Section title={t("fighterSignatureCombos")} emoji="💥" accent={acc}>
-          {fighter.signatureCombos.map((combo, i) => (
+          {combos.map((combo, i) => (
             <div key={i} style={s.comboCard}>
-              <p style={s.comboName}>{combo.name}</p>
+              <p style={{ ...s.comboName, color: acc }}>{combo.name}</p>
               <ComboSteps steps={combo.steps} />
             </div>
           ))}
@@ -106,64 +145,64 @@ export default function FighterDetailPage() {
 
         {/* ── Movement DNA ── */}
         <Section title={t("fighterMovementDNA")} emoji="🧬" accent={acc}>
-          <div style={{ ...s.moveDNABox, borderColor: acc + "40", background: acc + "0a" }}>
-            <p style={{ ...s.moveDNAType, color: acc }}>{fighter.movementDNA.type}</p>
-            <p style={s.moveDNADesc}>{fighter.movementDNA.description}</p>
-            <div style={s.moveDNATags}>
-              {fighter.movementDNA.tags.map((tag) => (
-                <span key={tag} style={{ ...s.moveDNATag, borderColor: acc + "40", color: acc + "cc" }}>
-                  {tag}
-                </span>
-              ))}
+          <div style={{ ...s.dnaBox, borderColor: acc + "35", background: acc + "0a" }}>
+            <div style={s.dnaHeader}>
+              <span style={{ ...s.dnaType, color: acc }}>{fighter.movementDNA.type}</span>
+              <div style={s.dnaTags}>
+                {fighter.movementDNA.tags.map((tag) => (
+                  <span key={tag} style={{ ...s.dnaTag, borderColor: acc + "40", color: acc + "bb" }}>{tag}</span>
+                ))}
+              </div>
             </div>
+            <p style={s.dnaDesc}>{moveDNADesc}</p>
           </div>
         </Section>
 
         {/* ── What to Study ── */}
         <Section title={t("fighterWhatToStudy")} emoji="📚" accent={acc}>
-          {fighter.whatToStudy.map((item, i) => (
-            <div key={i} style={s.bulletRow}>
-              <span style={s.bulletNum}>{i + 1}</span>
-              <span style={s.bulletText}>{item}</span>
+          {whatToStudy.map((item, i) => (
+            <div key={i} style={s.numRow}>
+              <span style={{ ...s.numBadge, background: acc + "22", color: acc }}>{i + 1}</span>
+              <span style={s.rowText}>{item}</span>
             </div>
           ))}
         </Section>
 
         {/* ── Habits to Copy ── */}
-        <Section title={t("fighterHabits")} emoji="🔄" accent={acc}>
-          {fighter.habitsToMimick.map((item, i) => (
-            <div key={i} style={s.bulletRow}>
-              <span style={{ ...s.bulletDot, background: "#D4AF37" }} />
-              <span style={s.bulletText}>{item}</span>
+        <Section title={t("fighterHabits")} emoji="🔄" accent="#D4AF37">
+          {habits.map((item, i) => (
+            <div key={i} style={s.dotRow}>
+              <span style={{ ...s.dotMark, background: "#D4AF37" }} />
+              <span style={s.rowText}>{item}</span>
             </div>
           ))}
         </Section>
 
-        {/* ── Recommended Drills ── */}
+        {/* ── Drills ── */}
         <Section title={t("fighterDrills")} emoji="🏋️" accent="#10B981">
-          {fighter.drills.map((drill, i) => (
+          {drills.map((drill, i) => (
             <div key={i} style={s.drillRow}>
-              <span style={s.drillIndex}>{i + 1}</span>
+              <span style={s.drillNum}>{i + 1}</span>
               <span style={s.drillText}>{drill}</span>
             </div>
           ))}
         </Section>
 
-        {/* ── Weaknesses / Risk ── */}
+        {/* ── Weaknesses ── */}
         <Section title={t("fighterWeaknesses")} emoji="⚠️" accent="#F87171">
-          {fighter.weaknesses.map((item, i) => (
-            <div key={i} style={s.bulletRow}>
-              <span style={{ ...s.bulletDot, background: "#F87171" }} />
-              <span style={{ ...s.bulletText, color: "#aaa" }}>{item}</span>
+          {weaknesses.map((item, i) => (
+            <div key={i} style={s.dotRow}>
+              <span style={{ ...s.dotMark, background: "#F87171" }} />
+              <span style={{ ...s.rowText, color: "#999" }}>{item}</span>
             </div>
           ))}
         </Section>
 
         {/* ── Famous Fights ── */}
         <Section title={t("fighterFamousFights")} emoji="🎬" accent="#D4AF37">
-          {fighter.famousFights.map((f, i) => (
-            <div key={i} style={s.fightCard}>
-              <div style={s.fightTop}>
+          {fights.map((f, i) => (
+            <div key={i} style={s.fightRow}>
+              <div style={s.fightMeta}>
                 <span style={s.fightName}>{f.fight}</span>
                 <span style={s.fightYear}>{f.year}</span>
               </div>
@@ -173,8 +212,8 @@ export default function FighterDetailPage() {
         </Section>
 
         {/* ── Related tags ── */}
-        <div style={s.tagsSection}>
-          <p style={s.tagsLabel}>Study tags</p>
+        <div style={s.tagsBlock}>
+          <p style={s.tagsLabel}>Tags</p>
           <div style={s.tagsRow}>
             {fighter.relatedKeywords.map((kw) => (
               <span key={kw} style={s.tagChip}>{kw}</span>
@@ -182,11 +221,8 @@ export default function FighterDetailPage() {
           </div>
         </div>
 
-        {/* ── Back to all fighters ── */}
-        <button
-          style={s.allFightersBtn}
-          onClick={() => router.push(`/${locale}/fighters`)}
-        >
+        {/* ── Back to all ── */}
+        <button style={s.allBtn} onClick={() => router.push(`/${locale}/fighters`)}>
           ← {t("fighterBackToAll")}
         </button>
 
@@ -210,144 +246,191 @@ const s = {
   // ── Hero ──
   hero: {
     position: "relative",
-    padding: "calc(36px + env(safe-area-inset-top)) 20px 0",
+    paddingTop: "calc(20px + env(safe-area-inset-top))",
+    paddingBottom: 0,
     overflow: "hidden",
   },
-  heroLine: {
-    height: 2,
-    marginTop: 20,
-    borderRadius: 1,
-    opacity: 0.5,
+  heroTopBar: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 3,
   },
   backPill: {
     display: "inline-flex",
     alignItems: "center",
     gap: 4,
-    background: "rgba(255,255,255,0.06)",
+    background: "rgba(255,255,255,0.05)",
     border: "1px solid rgba(255,255,255,0.1)",
-    color: "#aaa",
-    fontSize: 13,
-    padding: "6px 14px",
+    color: "#888",
+    fontSize: 12,
+    padding: "5px 12px",
     borderRadius: 20,
     cursor: "pointer",
-    marginBottom: 20,
+    margin: "12px 16px 14px",
   },
-  heroContent: {
-    textAlign: "left",
+  heroCard: {
+    display: "flex",
+    gap: 14,
+    alignItems: "flex-start",
+    padding: "0 16px",
+    marginBottom: 14,
+  },
+  heroFlagCol: {
+    flexShrink: 0,
+    width: 68,
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid",
+    borderRadius: 12,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "10px 6px 8px",
+    gap: 8,
   },
   heroFlag: {
     fontSize: 36,
     lineHeight: 1,
-    display: "block",
-    marginBottom: 8,
+  },
+  heroWeightBadge: {
+    fontSize: 7,
+    fontWeight: 800,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+    border: "1px solid",
+    borderRadius: 20,
+    padding: "2px 5px",
+    textAlign: "center",
+    lineHeight: 1.4,
+  },
+  heroInfo: {
+    flex: 1,
+    minWidth: 0,
+  },
+  heroKicker: {
+    margin: "0 0 4px",
+    fontSize: 8,
+    fontWeight: 900,
+    letterSpacing: 2,
+    color: "#444",
+    textTransform: "uppercase",
   },
   heroName: {
-    margin: 0,
-    fontSize: 32,
+    margin: "0 0 2px",
+    fontSize: 22,
     fontWeight: 900,
-    letterSpacing: -1,
+    letterSpacing: -0.5,
     lineHeight: 1.05,
+    color: "#fff",
   },
   heroNickname: {
-    margin: "4px 0 12px",
-    color: "#888",
-    fontSize: 15,
+    margin: "0 0 10px",
+    fontSize: 12,
+    color: "#666",
     fontStyle: "italic",
   },
-  heroPills: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: 6,
-    marginBottom: 14,
-  },
-  heroPill: {
+  heroStyleBadge: {
+    display: "inline-block",
     border: "1px solid",
     borderRadius: 20,
     padding: "3px 10px",
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: 700,
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
     textTransform: "uppercase",
   },
   heroIdentity: {
-    margin: 0,
-    fontSize: 14,
+    margin: "0 16px 10px",
+    fontSize: 13,
     color: "#bbb",
-    lineHeight: 1.5,
-    maxWidth: 380,
+    lineHeight: 1.55,
+  },
+  heroWeapon: {
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    margin: "0 16px 16px",
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.07)",
+    borderRadius: 8,
+    padding: "7px 10px",
+  },
+  heroWeaponDot: {
+    fontSize: 13,
+  },
+  heroWeaponText: {
+    fontSize: 12,
+    color: "#ccc",
+    fontWeight: 600,
+  },
+  heroAccentLine: {
+    height: 2,
+    marginTop: 0,
   },
 
   // ── Content ──
   content: {
-    padding: "20px 16px",
+    padding: "14px 14px",
     display: "flex",
     flexDirection: "column",
-    gap: 12,
+    gap: 10,
   },
 
   // ── Section ──
   section: {
-    background: "#111",
-    border: "1px solid",
-    borderRadius: 14,
-    padding: "14px 16px",
+    background: "#0f0f0f",
+    border: "1px solid rgba(255,255,255,0.06)",
+    borderLeft: "3px solid",
+    borderRadius: 12,
+    padding: "12px 14px",
   },
   sectionTitle: {
-    margin: "0 0 12px",
-    fontSize: 12,
-    fontWeight: 800,
+    margin: "0 0 10px",
+    fontSize: 10,
+    fontWeight: 900,
     letterSpacing: 1.5,
     textTransform: "uppercase",
   },
 
-  // ── Bullets ──
-  bulletRow: {
+  // ── Style identity pills ──
+  pillGrid: {
     display: "flex",
-    alignItems: "flex-start",
-    gap: 10,
-    marginBottom: 8,
+    flexDirection: "column",
+    gap: 6,
   },
-  bulletDot: {
-    width: 6,
-    height: 6,
-    borderRadius: "50%",
-    marginTop: 6,
-    flexShrink: 0,
-  },
-  bulletNum: {
-    width: 18,
-    height: 18,
-    borderRadius: "50%",
-    background: "rgba(255,255,255,0.08)",
-    color: "#888",
-    fontSize: 10,
-    fontWeight: 800,
+  stylePill: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-    marginTop: 2,
-  },
-  bulletText: {
-    fontSize: 14,
+    gap: 8,
+    border: "1px solid",
+    borderRadius: 8,
+    padding: "6px 10px",
+    fontSize: 12,
     color: "#ddd",
-    lineHeight: 1.45,
+    lineHeight: 1.3,
+  },
+  pillDot: {
+    width: 5,
+    height: 5,
+    borderRadius: "50%",
+    flexShrink: 0,
   },
 
   // ── Combos ──
   comboCard: {
-    background: "rgba(255,255,255,0.04)",
-    borderRadius: 10,
-    padding: "10px 12px",
-    marginBottom: 8,
+    background: "rgba(255,255,255,0.03)",
+    borderRadius: 8,
+    padding: "8px 10px",
+    marginBottom: 6,
   },
   comboName: {
-    margin: "0 0 8px",
-    fontSize: 12,
-    fontWeight: 700,
-    color: "#888",
+    margin: "0 0 6px",
+    fontSize: 10,
+    fontWeight: 800,
+    letterSpacing: 1,
     textTransform: "uppercase",
-    letterSpacing: 0.8,
   },
   comboSteps: {
     display: "flex",
@@ -356,149 +439,196 @@ const s = {
     alignItems: "center",
   },
   comboStepWrap: {
-    display: "flex",
+    display: "inline-flex",
     alignItems: "center",
     gap: 4,
   },
   comboStep: {
-    background: "rgba(255,255,255,0.08)",
-    border: "1px solid rgba(255,255,255,0.12)",
-    borderRadius: 8,
-    padding: "3px 8px",
-    fontSize: 12,
+    background: "rgba(255,255,255,0.07)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: 6,
+    padding: "2px 7px",
+    fontSize: 11,
     fontWeight: 600,
-    color: "#eee",
+    color: "#e0e0e0",
   },
   comboArrow: {
-    color: "#555",
-    fontSize: 12,
+    color: "#444",
+    fontSize: 11,
   },
 
   // ── Movement DNA ──
-  moveDNABox: {
+  dnaBox: {
     border: "1px solid",
-    borderRadius: 12,
-    padding: "14px",
+    borderRadius: 10,
+    padding: "12px",
+    overflow: "hidden",
   },
-  moveDNAType: {
-    margin: "0 0 6px",
-    fontSize: 16,
-    fontWeight: 800,
+  dnaHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: 8,
+    marginBottom: 8,
+  },
+  dnaType: {
+    fontSize: 15,
+    fontWeight: 900,
     letterSpacing: -0.3,
+    lineHeight: 1.1,
   },
-  moveDNADesc: {
-    margin: "0 0 10px",
-    fontSize: 13,
-    color: "#bbb",
-    lineHeight: 1.5,
-  },
-  moveDNATags: {
+  dnaTags: {
     display: "flex",
     flexWrap: "wrap",
-    gap: 6,
+    gap: 4,
+    justifyContent: "flex-end",
+    maxWidth: "55%",
   },
-  moveDNATag: {
+  dnaTag: {
     border: "1px solid",
     borderRadius: 20,
-    padding: "2px 8px",
-    fontSize: 11,
+    padding: "1px 6px",
+    fontSize: 9,
     fontWeight: 600,
     textTransform: "lowercase",
+  },
+  dnaDesc: {
+    margin: 0,
+    fontSize: 12,
+    color: "#bbb",
+    lineHeight: 1.55,
+  },
+
+  // ── Common rows ──
+  numRow: {
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 9,
+    marginBottom: 7,
+  },
+  numBadge: {
+    width: 18,
+    height: 18,
+    borderRadius: "50%",
+    fontSize: 9,
+    fontWeight: 900,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+    marginTop: 1,
+  },
+  dotRow: {
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 9,
+    marginBottom: 7,
+  },
+  dotMark: {
+    width: 5,
+    height: 5,
+    borderRadius: "50%",
+    flexShrink: 0,
+    marginTop: 6,
+  },
+  rowText: {
+    fontSize: 13,
+    color: "#d0d0d0",
+    lineHeight: 1.45,
   },
 
   // ── Drills ──
   drillRow: {
     display: "flex",
     alignItems: "flex-start",
-    gap: 10,
-    marginBottom: 8,
-    padding: "8px 10px",
+    gap: 9,
+    marginBottom: 6,
     background: "rgba(16,185,129,0.06)",
-    borderRadius: 8,
+    borderRadius: 7,
+    padding: "6px 8px",
   },
-  drillIndex: {
-    width: 20,
-    height: 20,
+  drillNum: {
+    width: 18,
+    height: 18,
     borderRadius: "50%",
-    background: "rgba(16,185,129,0.2)",
+    background: "rgba(16,185,129,0.18)",
     color: "#10B981",
-    fontSize: 10,
-    fontWeight: 800,
+    fontSize: 9,
+    fontWeight: 900,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
   },
   drillText: {
-    fontSize: 13,
-    color: "#ccc",
+    fontSize: 12,
+    color: "#c8c8c8",
     lineHeight: 1.45,
   },
 
-  // ── Fights ──
-  fightCard: {
-    padding: "10px 0",
-    borderBottom: "1px solid rgba(255,255,255,0.06)",
+  // ── Famous fights ──
+  fightRow: {
+    paddingBottom: 10,
+    marginBottom: 4,
+    borderBottom: "1px solid rgba(255,255,255,0.05)",
   },
-  fightTop: {
+  fightMeta: {
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "baseline",
-    marginBottom: 4,
+    marginBottom: 3,
   },
   fightName: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: 700,
-    color: "#fff",
+    color: "#eee",
   },
   fightYear: {
     fontSize: 11,
-    color: "#666",
+    color: "#555",
   },
   fightNote: {
     margin: 0,
     fontSize: 12,
-    color: "#999",
+    color: "#888",
     lineHeight: 1.4,
   },
 
   // ── Tags ──
-  tagsSection: {
-    marginTop: 4,
+  tagsBlock: {
+    marginTop: 2,
   },
   tagsLabel: {
-    margin: "0 0 8px",
-    fontSize: 11,
-    color: "#555",
+    margin: "0 0 6px",
+    fontSize: 9,
+    color: "#444",
     textTransform: "uppercase",
-    letterSpacing: 1,
+    letterSpacing: 1.5,
   },
   tagsRow: {
     display: "flex",
     flexWrap: "wrap",
-    gap: 6,
+    gap: 5,
   },
   tagChip: {
-    background: "rgba(255,255,255,0.05)",
-    border: "1px solid rgba(255,255,255,0.1)",
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.08)",
     borderRadius: 20,
-    padding: "3px 10px",
-    fontSize: 11,
-    color: "#888",
+    padding: "2px 9px",
+    fontSize: 10,
+    color: "#666",
   },
 
-  // ── Footer btn ──
-  allFightersBtn: {
+  // ── Back button ──
+  allBtn: {
     width: "100%",
-    padding: "14px",
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.1)",
-    borderRadius: 12,
-    color: "#888",
-    fontSize: 13,
+    padding: "12px",
+    background: "rgba(255,255,255,0.03)",
+    border: "1px solid rgba(255,255,255,0.07)",
+    borderRadius: 10,
+    color: "#666",
+    fontSize: 12,
     cursor: "pointer",
     textAlign: "center",
-    marginTop: 8,
   },
 
   // ── Not found ──
@@ -508,16 +638,16 @@ const s = {
     alignItems: "center",
     justifyContent: "center",
     minHeight: "60vh",
-    gap: 8,
+    gap: 4,
   },
   backBtn: {
     marginTop: 16,
-    padding: "10px 20px",
-    background: "rgba(255,255,255,0.06)",
+    padding: "9px 18px",
+    background: "rgba(255,255,255,0.05)",
     border: "1px solid rgba(255,255,255,0.1)",
     borderRadius: 20,
     color: "#aaa",
-    fontSize: 13,
+    fontSize: 12,
     cursor: "pointer",
   },
 };

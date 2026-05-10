@@ -139,26 +139,34 @@ function reelMatchesKeywords(reel, keywords) {
 }
 
 // ─── Premium portrait reel card ───────────────────────────────────────────────
+// thumbnailUrl in Firestore is the video URL itself (set by upload page).
+// Use <video preload="metadata"> so the browser renders the first frame.
 function ReelCard({ reel, onClick }) {
-  const [imgErr, setImgErr] = useState(false);
-  const thumb = reel.thumbnailUrl || reel.thumbnail || reel.coverUrl || "";
+  const [mediaErr, setMediaErr] = useState(false);
+  const src = reel.thumbnailUrl || reel.thumbnail || reel.coverUrl || reel.videoUrl || "";
   const typeEmoji = reel.contentType === "educational" ? "📚" : reel.contentType === "lifestyle" ? "🎬" : "🥊";
+  const typeColor = reel.contentType === "educational" ? "#D4AF37" : reel.contentType === "lifestyle" ? "#60A5FA" : "#C1121F";
   const caption = reel.caption || reel.description || reel.title || "";
   const views = formatCompact(reel.views || 0);
 
   return (
     <button type="button" onClick={onClick} style={s.reelCard}>
       <div style={s.reelThumbWrap}>
-        {thumb && !imgErr ? (
-          <img
-            src={thumb}
-            alt=""
+        {src && !mediaErr ? (
+          <video
+            src={src}
             style={s.reelThumbImg}
-            onError={() => setImgErr(true)}
+            preload="metadata"
+            muted
+            playsInline
+            onError={() => setMediaErr(true)}
           />
         ) : (
-          <div style={s.reelThumbFallback}>
-            <span style={{ fontSize: 28, opacity: 0.5 }}>{typeEmoji}</span>
+          <div style={{ ...s.reelThumbFallback, background: `linear-gradient(160deg, ${typeColor}22 0%, #111 60%, #0a0a0a 100%)` }}>
+            <span style={{ fontSize: 34, filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.8))" }}>{typeEmoji}</span>
+            {caption ? (
+              <p style={s.reelFallbackCaption}>{caption}</p>
+            ) : null}
           </div>
         )}
         {/* Gradient overlays */}
@@ -811,9 +819,23 @@ const s = {
     width: "100%",
     height: "100%",
     display: "flex",
+    flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    background: "linear-gradient(135deg, rgba(193,18,31,0.15) 0%, #0d0d0d 100%)",
+    gap: 8,
+    padding: "8px 8px 24px",
+    boxSizing: "border-box",
+  },
+  reelFallbackCaption: {
+    margin: 0,
+    fontSize: 9,
+    color: "rgba(255,255,255,0.55)",
+    lineHeight: 1.3,
+    textAlign: "center",
+    display: "-webkit-box",
+    WebkitLineClamp: 3,
+    WebkitBoxOrient: "vertical",
+    overflow: "hidden",
   },
   reelGradTop: {
     position: "absolute",
