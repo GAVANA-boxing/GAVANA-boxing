@@ -267,6 +267,13 @@ service cloud.firestore {
       allow update, delete: if isAuth() && resource.data.userId == request.auth.uid;
     }
 
+    // ─── Body progress (private — own data only) ──────────────────
+    match /body_progress/{docId} {
+      allow read: if isAuth() && resource.data.userId == request.auth.uid;
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuth() && resource.data.userId == request.auth.uid;
+    }
+
     // ─── Leaderboard ──────────────────────────────────────────────
     match /leaderboard/{entryId} {
       allow read: if true;
