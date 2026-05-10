@@ -214,7 +214,7 @@ function ReelRow({ reels, router, locale, loading }) {
 function HubCard({ emoji, title, accent, expanded, onToggle, children }) {
   return (
     <div style={s.hubWrap}>
-      <button type="button" style={{ ...s.hubRow, borderColor: expanded ? accent + "50" : "rgba(255,255,255,0.08)" }} onClick={onToggle}>
+      <button type="button" style={{ ...s.hubRow, background: expanded ? "rgba(255,255,255,0.02)" : "none" }} onClick={onToggle}>
         <div style={s.hubLeft}>
           <span style={{ ...s.hubEmoji, background: accent + "18", color: accent }}>{emoji}</span>
           <span style={s.hubTitle}>{title}</span>
@@ -623,18 +623,18 @@ export default function DiscoverPage() {
 const s = {
   page: {
     minHeight: "100vh",
-    background: "#080808",
+    background: "radial-gradient(ellipse at top center, rgba(193,18,31,0.07) 0%, transparent 55%), #080808",
     color: "#fff",
     paddingBottom: 100,
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   },
   header: {
-    padding: "calc(28px + env(safe-area-inset-top)) 20px 16px",
+    padding: "calc(22px + env(safe-area-inset-top)) 20px 10px",
   },
   kicker: {
     margin: 0,
     color: "#C1121F",
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 900,
     letterSpacing: 3,
     textTransform: "uppercase",
@@ -719,14 +719,16 @@ const s = {
 
   // ── Hub Section (For You) ──
   hubSection: {
-    marginBottom: 24,
+    marginBottom: 32,
     padding: "0 16px",
   },
   forYouHeader: {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 12,
+    marginBottom: 14,
+    paddingTop: 8,
+    borderTop: "1px solid rgba(255,255,255,0.06)",
   },
   forYouTitle: {
     fontSize: 16,
@@ -904,22 +906,22 @@ const s = {
 
   // ── Expandable hub ──
   hubWrap: {
-    marginBottom: 12,
-    padding: "0 16px",
+    marginBottom: 4,
   },
   hubRow: {
     width: "100%",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: "14px 16px",
-    borderRadius: 16,
-    border: "1px solid rgba(255,255,255,0.08)",
-    background: "rgba(255,255,255,0.03)",
+    padding: "16px 20px",
+    borderRadius: 0,
+    border: "none",
+    borderTop: "1px solid rgba(255,255,255,0.06)",
+    background: "none",
     cursor: "pointer",
     WebkitTapHighlightColor: "transparent",
     boxSizing: "border-box",
-    transition: "border-color 200ms",
+    transition: "background 180ms",
   },
   hubLeft: {
     display: "flex",
@@ -927,26 +929,26 @@ const s = {
     gap: 12,
   },
   hubEmoji: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: 34,
+    height: 34,
+    borderRadius: 9,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: 18,
+    fontSize: 17,
     flexShrink: 0,
   },
   hubTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: 900,
     color: "#fff",
-    letterSpacing: 0.2,
+    letterSpacing: 0.1,
   },
   hubChevron: {
-    width: 20,
-    height: 20,
+    width: 18,
+    height: 18,
     fill: "none",
-    stroke: "#555",
+    stroke: "rgba(255,255,255,0.3)",
     strokeWidth: 2.2,
     strokeLinecap: "round",
     strokeLinejoin: "round",
@@ -954,7 +956,7 @@ const s = {
     flexShrink: 0,
   },
   hubBody: {
-    marginTop: 12,
+    padding: "4px 16px 20px",
     display: "flex",
     flexDirection: "column",
     gap: 12,

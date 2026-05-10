@@ -139,9 +139,10 @@ export default function StoryViewer({ stories, onClose, locale, currentUser }) {
           <div style={s.userRow}>
             {story.photoURL && <img src={story.photoURL} style={s.userAvatar} alt="" />}
             <span style={s.userName}>{story.displayName || story.username || "Boxer"}</span>
-            {TYPE_LABELS[story.type] && <span style={s.typeBadge}>{TYPE_LABELS[story.type]}</span>}
           </div>
-          <button style={s.closeBtn} onClick={onClose}>✕</button>
+          <button style={s.closeBtn} onClick={onClose} aria-label="Close">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
         </div>
       </div>
 
@@ -191,33 +192,127 @@ export default function StoryViewer({ stories, onClose, locale, currentUser }) {
 }
 
 const s = {
-  overlay: { position: "fixed", inset: 0, zIndex: 500, background: "#000", display: "flex", flexDirection: "column", fontFamily: "system-ui, sans-serif" },
+  overlay: {
+    position: "fixed", inset: 0, zIndex: 500,
+    background: "#000",
+    display: "flex", flexDirection: "column",
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  },
   tapL: { position: "absolute", left: 0, top: 0, width: "35%", height: "100%", zIndex: 10, cursor: "pointer" },
   tapR: { position: "absolute", right: 0, top: 0, width: "65%", height: "100%", zIndex: 10, cursor: "pointer" },
   media: { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" },
-  progressBg: { position: "absolute", inset: 0, background: "radial-gradient(circle at 50% 40%, rgba(193,18,31,0.22), transparent 58%), linear-gradient(180deg, #0e0808, #0a0a0a)", display: "flex", alignItems: "center", justifyContent: "center" },
-  defaultBg: { position: "absolute", inset: 0, background: "linear-gradient(135deg, #0e0808, #0a0a0a)" },
-  topGrad: { position: "absolute", top: 0, left: 0, right: 0, height: 170, background: "linear-gradient(180deg, rgba(0,0,0,0.78), transparent)", zIndex: 5, pointerEvents: "none" },
-  bottomGrad: { position: "absolute", bottom: 0, left: 0, right: 0, height: 200, background: "linear-gradient(0deg, rgba(0,0,0,0.85), transparent)", zIndex: 5, pointerEvents: "none" },
-  topBar: { position: "absolute", top: 0, left: 0, right: 0, zIndex: 20, padding: "calc(env(safe-area-inset-top) + 10px) 12px 0", display: "flex", flexDirection: "column", gap: 8 },
-  segsRow: { display: "flex", gap: 3 },
-  seg: { flex: 1, height: 2.5, borderRadius: 2, background: "rgba(255,255,255,0.3)", overflow: "hidden" },
-  segFill: { height: "100%", background: "#fff", borderRadius: 2, transition: "width 100ms linear" },
-  metaRow: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 0" },
-  userRow: { display: "flex", alignItems: "center", gap: 8 },
-  userAvatar: { width: 30, height: 30, borderRadius: "50%", objectFit: "cover", border: "1.5px solid rgba(255,255,255,0.5)" },
-  userName: { fontSize: 13, fontWeight: 800, color: "#fff", textShadow: "0 1px 4px rgba(0,0,0,0.8)" },
-  typeBadge: { fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.55)" },
-  closeBtn: { background: "none", border: "none", color: "#fff", fontSize: 16, cursor: "pointer", padding: "4px 8px", opacity: 0.8 },
-  captionWrap: { position: "absolute", bottom: 110, left: 16, right: 16, zIndex: 20, pointerEvents: "none" },
-  captionText: { margin: 0, fontSize: 15, fontWeight: 600, color: "#fff", textShadow: "0 2px 8px rgba(0,0,0,0.9)", lineHeight: 1.4 },
-  bottom: { position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 20, padding: "16px 16px calc(24px + env(safe-area-inset-bottom))" },
+  progressBg: {
+    position: "absolute", inset: 0,
+    background: "radial-gradient(ellipse at 50% 35%, rgba(193,18,31,0.28), transparent 65%), linear-gradient(180deg, #0e0808 0%, #070707 100%)",
+    display: "flex", alignItems: "center", justifyContent: "center",
+  },
+  defaultBg: {
+    position: "absolute", inset: 0,
+    background: "linear-gradient(160deg, #0e0808 0%, #080808 50%, #050505 100%)",
+  },
+  // Stronger top gradient for better readability
+  topGrad: {
+    position: "absolute", top: 0, left: 0, right: 0, height: 200,
+    background: "linear-gradient(180deg, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.3) 60%, transparent 100%)",
+    zIndex: 5, pointerEvents: "none",
+  },
+  bottomGrad: {
+    position: "absolute", bottom: 0, left: 0, right: 0, height: 240,
+    background: "linear-gradient(0deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.5) 50%, transparent 100%)",
+    zIndex: 5, pointerEvents: "none",
+  },
+  topBar: {
+    position: "absolute", top: 0, left: 0, right: 0, zIndex: 20,
+    padding: "calc(env(safe-area-inset-top) + 12px) 14px 0",
+    display: "flex", flexDirection: "column", gap: 10,
+  },
+  segsRow: { display: "flex", gap: 2.5 },
+  seg: {
+    flex: 1, height: 2, borderRadius: 1,
+    background: "rgba(255,255,255,0.22)", overflow: "hidden",
+  },
+  segFill: {
+    height: "100%",
+    background: "linear-gradient(90deg, rgba(255,255,255,0.9), #fff)",
+    borderRadius: 1,
+    transition: "width 100ms linear",
+  },
+  metaRow: {
+    display: "flex", alignItems: "center", justifyContent: "space-between",
+    padding: "4px 0",
+  },
+  userRow: { display: "flex", alignItems: "center", gap: 9 },
+  userAvatar: {
+    width: 32, height: 32, borderRadius: "50%", objectFit: "cover",
+    border: "1.5px solid rgba(255,255,255,0.6)",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.6)",
+  },
+  userName: {
+    fontSize: 13, fontWeight: 800, color: "#fff",
+    textShadow: "0 1px 6px rgba(0,0,0,0.9)",
+    letterSpacing: 0.1,
+  },
+  closeBtn: {
+    background: "rgba(0,0,0,0.3)",
+    backdropFilter: "blur(8px)",
+    border: "none",
+    color: "rgba(255,255,255,0.8)",
+    width: 32, height: 32,
+    borderRadius: "50%",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    cursor: "pointer",
+    padding: 0,
+  },
+  captionWrap: {
+    position: "absolute", bottom: 118, left: 18, right: 80,
+    zIndex: 20, pointerEvents: "none",
+  },
+  captionText: {
+    margin: 0, fontSize: 15, fontWeight: 600, color: "#fff",
+    textShadow: "0 2px 12px rgba(0,0,0,0.95)",
+    lineHeight: 1.45,
+  },
+  bottom: {
+    position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 20,
+    padding: "16px 16px calc(28px + env(safe-area-inset-bottom))",
+  },
   actRow: { display: "flex", alignItems: "center", gap: 10 },
   reactsRow: { display: "flex", gap: 8 },
-  reactBtn: { width: 44, height: 44, borderRadius: "50%", border: "1.5px solid rgba(255,255,255,0.2)", background: "rgba(0,0,0,0.4)", backdropFilter: "blur(8px)", fontSize: 20, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" },
-  reactActive: { border: "1.5px solid rgba(255,255,255,0.7)", background: "rgba(255,255,255,0.15)", transform: "scale(1.15)" },
-  replyBtn: { flex: 1, height: 44, border: "1.5px solid rgba(255,255,255,0.22)", borderRadius: 22, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(8px)", color: "rgba(255,255,255,0.6)", fontSize: 13, fontWeight: 600, cursor: "pointer", textAlign: "left", paddingLeft: 16 },
+  reactBtn: {
+    width: 44, height: 44, borderRadius: "50%",
+    border: "1.5px solid rgba(255,255,255,0.18)",
+    background: "rgba(0,0,0,0.45)",
+    backdropFilter: "blur(10px)",
+    fontSize: 20, display: "flex", alignItems: "center", justifyContent: "center",
+    cursor: "pointer", transition: "transform 150ms ease",
+  },
+  reactActive: {
+    border: "1.5px solid rgba(255,255,255,0.6)",
+    background: "rgba(255,255,255,0.12)",
+    transform: "scale(1.12)",
+  },
+  replyBtn: {
+    flex: 1, height: 44,
+    border: "1px solid rgba(255,255,255,0.18)",
+    borderRadius: 22,
+    background: "rgba(0,0,0,0.35)",
+    backdropFilter: "blur(10px)",
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 13, fontWeight: 600,
+    cursor: "pointer", textAlign: "left", paddingLeft: 18,
+  },
   replyRow: { display: "flex", gap: 8, alignItems: "center" },
-  replyInput: { flex: 1, height: 44, border: "1.5px solid rgba(255,255,255,0.25)", borderRadius: 22, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)", color: "#fff", fontSize: 14, paddingLeft: 16, outline: "none", fontFamily: "inherit" },
-  sendBtn: { height: 44, padding: "0 16px", border: "none", borderRadius: 22, background: "#C1121F", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer" },
+  replyInput: {
+    flex: 1, height: 44,
+    border: "1px solid rgba(255,255,255,0.2)",
+    borderRadius: 22,
+    background: "rgba(0,0,0,0.5)",
+    backdropFilter: "blur(10px)",
+    color: "#fff", fontSize: 14, paddingLeft: 18, outline: "none", fontFamily: "inherit",
+  },
+  sendBtn: {
+    height: 44, padding: "0 18px", border: "none", borderRadius: 22,
+    background: "#C1121F", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
+    boxShadow: "0 4px 16px rgba(193,18,31,0.4)",
+  },
 };
