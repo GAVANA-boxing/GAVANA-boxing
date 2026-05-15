@@ -190,6 +190,7 @@ export default function DiscoverPage() {
   const [learnOpen, setLearnOpen] = useState(false);
   const [learnCat, setLearnCat] = useState("all");
   const [challengesOpen, setChallengesOpen] = useState(false);
+  const [exploreOpen, setExploreOpen] = useState(false);
   const [topCoaches, setTopCoaches] = useState([]);
 
   // Search
@@ -406,6 +407,31 @@ export default function DiscoverPage() {
           </div>
 
           {/* ════════════════════════════════════════
+              FIGHTER STUDY — standalone visible section
+          ════════════════════════════════════════ */}
+          <div style={{ ...s.hubSection, marginBottom: 8 }}>
+            <div style={s.fighterStudyHeader}>
+              <span style={s.fighterStudyLabel}>🥊 {t("fighterStudyTitle")}</span>
+              <button
+                type="button"
+                style={s.fighterStudySeeAll}
+                onClick={() => router.push(`/${locale}/fighters`)}
+              >
+                {t("fighterStudySeeAll")} ›
+              </button>
+            </div>
+            <div style={s.fighterStudyScroll}>
+              {FIGHTERS.map((f) => (
+                <FighterStudyCard
+                  key={f.id}
+                  fighter={f}
+                  onClick={() => router.push(`/${locale}/fighters/${f.id}`)}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* ════════════════════════════════════════
               HUB 2 — 🧠 LEARN
           ════════════════════════════════════════ */}
           <HubCard
@@ -415,31 +441,6 @@ export default function DiscoverPage() {
             expanded={learnOpen}
             onToggle={() => setLearnOpen((v) => !v)}
           >
-            {/* ── Fighter Study subsection ── */}
-            <div style={s.fighterStudySection}>
-              <div style={s.fighterStudyHeader}>
-                <span style={s.fighterStudyLabel}>🥊 {t("fighterStudyTitle")}</span>
-                <button
-                  type="button"
-                  style={s.fighterStudySeeAll}
-                  onClick={() => router.push(`/${locale}/fighters`)}
-                >
-                  {t("fighterStudySeeAll")} ›
-                </button>
-              </div>
-              <div style={s.fighterStudyScroll}>
-                {FIGHTERS.map((f) => (
-                  <FighterStudyCard
-                    key={f.id}
-                    fighter={f}
-                    onClick={() => router.push(`/${locale}/fighters/${f.id}`)}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div style={s.learnDivider} />
-
             {/* Sub-category chips */}
             <div style={s.learnChips}>
               {LEARN_CATS.map((cat) => (
@@ -510,10 +511,15 @@ export default function DiscoverPage() {
           </HubCard>
 
           {/* ════════════════════════════════════════
-              EXPLORE — quick nav pills
+              HUB 4 — 🌐 EXPLORE MORE
           ════════════════════════════════════════ */}
-          <div style={s.exploreSection}>
-            <p style={s.exploreSectionLabel}>Explore</p>
+          <HubCard
+            emoji="🌐"
+            title="Explore More"
+            accent="#60A5FA"
+            expanded={exploreOpen}
+            onToggle={() => setExploreOpen((v) => !v)}
+          >
             <div style={s.explorePills}>
               <button type="button" onClick={() => router.push(`/${locale}/leaderboard`)} style={s.explorePill}>
                 🏆 {t("leaderboardTitle")}
@@ -525,41 +531,33 @@ export default function DiscoverPage() {
                 🏋️ {t("gymsTitle")}
               </button>
             </div>
-          </div>
 
-          {/* ════════════════════════════════════════
-              TOP COACHES strip
-          ════════════════════════════════════════ */}
-          {topCoaches.length > 0 && (
-            <div style={s.coachStrip}>
-              <div style={s.coachStripHeader}>
-                <span style={s.coachStripLabel}>🎓 {t("discoverTopCoaches")}</span>
-                <button type="button" onClick={() => router.push(`/${locale}/coach`)} style={s.seeAllBtn}>
-                  {t("discoverViewAll")} ›
-                </button>
-              </div>
-              <div style={s.coachScroll}>
-                {topCoaches.map((coach) => {
-                  const photo = coach.photoURL || coach.profileImageUrl || "";
-                  const initial = (coach.displayName || coach.username || "C").charAt(0).toUpperCase();
-                  return (
-                    <button
-                      key={coach.id}
-                      type="button"
-                      onClick={() => router.push(`/${locale}/coach/${coach.id}`)}
-                      style={s.coachCard}
-                    >
-                      <div style={s.coachAvatar}>
-                        {photo ? <img src={photo} alt="" style={s.coachAvatarImg} /> : initial}
-                      </div>
-                      <span style={s.coachName}>{(coach.displayName || coach.username || "Coach").split(" ")[0]}</span>
-                      <span style={s.coachSpec}>{coach.coachSpecialties?.[0] || "Coach"}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+            {topCoaches.length > 0 && (
+              <>
+                <p style={{ ...s.sectionLabel, margin: "16px 0 10px" }}>🎓 {t("discoverTopCoaches")}</p>
+                <div style={s.coachScroll}>
+                  {topCoaches.map((coach) => {
+                    const photo = coach.photoURL || coach.profileImageUrl || "";
+                    const initial = (coach.displayName || coach.username || "C").charAt(0).toUpperCase();
+                    return (
+                      <button
+                        key={coach.id}
+                        type="button"
+                        onClick={() => router.push(`/${locale}/coach/${coach.id}`)}
+                        style={s.coachCard}
+                      >
+                        <div style={s.coachAvatar}>
+                          {photo ? <img src={photo} alt="" style={s.coachAvatarImg} /> : initial}
+                        </div>
+                        <span style={s.coachName}>{(coach.displayName || coach.username || "Coach").split(" ")[0]}</span>
+                        <span style={s.coachSpec}>{coach.coachSpecialties?.[0] || "Coach"}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </HubCard>
 
         </div>
       )}
