@@ -414,18 +414,25 @@ function FighterHero({ displayScore, fighterScore, xp, rank, nextRank, xpProgres
 function StatPill({ label, value, sub, color }) {
   return (
     <div style={{
-      background: "rgba(255,255,255,0.025)",
-      border: "1px solid rgba(255,255,255,0.06)",
-      borderRadius: 14,
-      padding: "14px 14px 11px",
+      background: "linear-gradient(160deg, #111012 0%, #0a0a0a 100%)",
+      border: "1px solid rgba(255,255,255,0.07)",
+      borderTop: `2px solid ${color || "rgba(255,255,255,0.18)"}`,
+      borderRadius: 13,
+      padding: "12px 11px 10px",
+      boxShadow: `0 0 14px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.025)`,
     }}>
-      <div style={{ fontSize: 22, fontWeight: 900, color: color || "#fff", letterSpacing: "-0.02em", lineHeight: 1 }}>
+      <div style={{
+        fontSize: 20, fontWeight: 900, color: color || "#fff",
+        letterSpacing: "-0.025em", lineHeight: 1,
+        fontFamily: "var(--font-display,'Anton',sans-serif)",
+        textShadow: `0 0 18px ${color || "rgba(255,255,255,0.2)"}44`,
+      }}>
         {value}
       </div>
-      <div style={{ fontSize: 9, fontWeight: 800, color: "#383838", textTransform: "uppercase", letterSpacing: 0.9, marginTop: 5 }}>
+      <div style={{ fontSize: 8, fontWeight: 800, color: "rgba(255,255,255,0.32)", textTransform: "uppercase", letterSpacing: 0.8, marginTop: 5 }}>
         {label}
       </div>
-      {sub && <div style={{ fontSize: 9, color: "#2d2d2d", marginTop: 2 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 8, color: "rgba(255,255,255,0.18)", marginTop: 2 }}>{sub}</div>}
     </div>
   );
 }
@@ -467,7 +474,7 @@ function ScoreChart({ scores, t }) {
           <span style={{ fontSize: 12, fontWeight: 900, color: improvement > 0 ? "#4ade80" : "#f87171" }}>
             {improvement > 0 ? "↑" : "↓"} {Math.abs(improvement).toFixed(0)}%
           </span>
-          <span style={{ fontSize: 10, color: "#3a3a3a", fontWeight: 700 }}>vs earlier</span>
+          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>vs earlier</span>
         </div>
       )}
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: "block" }}>
@@ -516,7 +523,7 @@ function ScoreChart({ scores, t }) {
               background: item.solid ? item.color : "transparent",
               borderTop: item.dashed ? `1.5px dashed ${item.color}` : "none",
             }} />
-            <span style={{ fontSize: 9, color: "#444" }}>{item.label}</span>
+            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>{item.label}</span>
           </div>
         ))}
       </div>
@@ -552,7 +559,7 @@ function SessionRow({ session, t }) {
         <div style={{ fontSize: 12, fontWeight: 700, color: "#ccc", marginBottom: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {label}
         </div>
-        <span style={{ fontSize: 10, color: "#3a3a3a" }}>{formatDate(session.createdAt)}</span>
+        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.28)" }}>{formatDate(session.createdAt)}</span>
       </div>
       {session.xpGained != null && (
         <div style={{ fontSize: 10, fontWeight: 800, color: "#D4AF3788", flexShrink: 0 }}>
@@ -627,12 +634,12 @@ function BodyProgressSection({ userId, t }) {
           borderRadius: 12,
           marginBottom: 10,
         }}>
-          <span style={{ fontSize: 9, fontWeight: 800, color: "#333", textTransform: "uppercase", letterSpacing: 0.7, flexShrink: 0 }}>
+          <span style={{ fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: 0.7, flexShrink: 0 }}>
             {formatDate(latest.createdAt)}
           </span>
           {latest.weight && <span style={{ fontSize: 13, fontWeight: 800, color: "#ccc" }}>{latest.weight} kg</span>}
-          {latest.height && <span style={{ fontSize: 12, color: "#555" }}>{latest.height} cm</span>}
-          {latest.reach && <span style={{ fontSize: 12, color: "#555" }}>reach {latest.reach}</span>}
+          {latest.height && <span style={{ fontSize: 12, color: "rgba(255,255,255,0.38)" }}>{latest.height} cm</span>}
+          {latest.reach && <span style={{ fontSize: 12, color: "rgba(255,255,255,0.38)" }}>reach {latest.reach}</span>}
           {latest.weightClass && (
             <span style={{ fontSize: 11, color: "#D4AF37", fontWeight: 700 }}>
               {latest.weightClass.split(" ")[0]}
@@ -699,13 +706,13 @@ function BodyProgressSection({ userId, t }) {
             <div key={entry.id} style={{
               display: "flex", gap: 10, padding: "6px 0",
               borderBottom: "1px solid rgba(255,255,255,0.035)",
-              fontSize: 11, color: "#555",
+              fontSize: 11, color: "rgba(255,255,255,0.3)",
             }}>
               <span style={{ flexShrink: 0 }}>{formatDate(entry.createdAt)}</span>
               <span>{entry.weight} kg</span>
               {entry.height && <span>{entry.height} cm</span>}
               {entry.reach && <span>reach {entry.reach}</span>}
-              {entry.weightClass && <span style={{ color: "#444" }}>{entry.weightClass.split(" ")[0]}</span>}
+              {entry.weightClass && <span style={{ color: "rgba(255,255,255,0.22)" }}>{entry.weightClass.split(" ")[0]}</span>}
             </div>
           ))}
         </div>
@@ -733,7 +740,53 @@ function InputField({ label, value, onChange, type = "text", required }) {
   );
 }
 
-// ─── Section wrapper ──────────────────────────────────────────────────────────
+// ─── Panel Card (sports-tech HUD style) ──────────────────────────────────────
+
+function PanelCard({ label, accent = "#C1121F", tag, children, style: styleProp = {} }) {
+  return (
+    <div style={{
+      position: "relative",
+      background: "linear-gradient(145deg, #111012 0%, #0a0a0a 100%)",
+      border: "1px solid rgba(255,255,255,0.07)",
+      borderLeft: `2.5px solid ${accent}`,
+      borderRadius: "3px 16px 16px 3px",
+      boxShadow: `0 0 0 1px rgba(0,0,0,0.4), 0 12px 40px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.025)`,
+      overflow: "hidden",
+      marginBottom: 28,
+      ...styleProp,
+    }}>
+      <div style={{
+        display: "flex", alignItems: "center", gap: 8,
+        padding: "9px 14px 8px",
+        borderBottom: "1px solid rgba(255,255,255,0.045)",
+        background: "rgba(0,0,0,0.18)",
+      }}>
+        <div style={{
+          width: 5, height: 5, borderRadius: "50%", flexShrink: 0,
+          background: accent,
+          boxShadow: `0 0 7px ${accent}, 0 0 14px ${accent}55`,
+        }} />
+        <span style={{
+          fontSize: 9, fontWeight: 900, flex: 1,
+          color: "rgba(255,255,255,0.55)",
+          letterSpacing: "0.2em", textTransform: "uppercase",
+        }}>
+          {label}
+        </span>
+        {tag && (
+          <span style={{ fontSize: 8, color: "rgba(255,255,255,0.2)", fontWeight: 700, letterSpacing: "0.08em" }}>
+            {tag}
+          </span>
+        )}
+      </div>
+      <div style={{ padding: "14px 14px 16px" }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ─── Section wrapper (plain, no card) ────────────────────────────────────────
 
 function Section({ title, accent, children }) {
   return (
@@ -756,7 +809,7 @@ function Section({ title, accent, children }) {
 // ─── Shared styles ────────────────────────────────────────────────────────────
 
 const labelStyle = {
-  fontSize: 10, fontWeight: 700, color: "#555",
+  fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.35)",
   textTransform: "uppercase", letterSpacing: "0.06em",
   display: "block", marginBottom: 4,
 };
@@ -782,7 +835,7 @@ const primaryBtnStyle = {
 const ghostBtnStyle = {
   flex: 1, padding: "10px 0", borderRadius: 9,
   background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)",
-  color: "#666", fontSize: 12, fontWeight: 700, cursor: "pointer",
+  color: "rgba(255,255,255,0.45)", fontSize: 12, fontWeight: 700, cursor: "pointer",
 };
 
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
@@ -958,45 +1011,44 @@ export default function AthleteDashboard() {
         </div>
 
         {/* ── Combat Profile (Radar) ── */}
-        <Section title={locale === "mn" ? "Дайны профайл" : locale === "ko" ? "전투 프로필" : "Combat Profile"}>
-          <div style={{
-            background: "radial-gradient(ellipse at center, rgba(193,18,31,0.06) 0%, transparent 70%)",
-            borderRadius: 18,
-            padding: "16px 8px 8px",
-            border: "1px solid rgba(255,255,255,0.05)",
-          }}>
+        <PanelCard
+          label={locale === "mn" ? "Дайны профайл" : locale === "ko" ? "전투 프로필" : "Combat Profile"}
+          accent="#C1121F"
+          tag="6 METRICS"
+        >
+          <div style={{ background: "radial-gradient(ellipse at center, rgba(193,18,31,0.06) 0%, transparent 70%)", padding: "4px 0 0" }}>
             <RadarChart stats={radarStats} />
           </div>
-        </Section>
+        </PanelCard>
 
         {/* ── Style DNA ── */}
-        <Section title={locale === "mn" ? "Тоглолтын хэв маяг" : locale === "ko" ? "스타일 DNA" : "Style DNA"}>
-          <div style={{
-            background: "rgba(255,255,255,0.02)",
-            border: "1px solid rgba(255,255,255,0.055)",
-            borderRadius: 16,
-            padding: "16px 18px",
-          }}>
-            <StyleDNA radarStats={radarStats} />
-          </div>
-        </Section>
+        <PanelCard
+          label={locale === "mn" ? "Тоглолтын хэв маяг" : locale === "ko" ? "스타일 DNA" : "Style DNA"}
+          accent="#D4AF37"
+          tag="5 ATTRS"
+        >
+          <StyleDNA radarStats={radarStats} />
+        </PanelCard>
 
         {/* ── Score Trend ── */}
-        <Section title={locale === "mn" ? "Оноогийн чиглэл" : locale === "ko" ? "점수 추세" : "Score Trend"}>
-          <div style={{
-            background: "radial-gradient(ellipse at center bottom, rgba(193,18,31,0.04), transparent 70%)",
-            borderRadius: 16,
-            padding: "12px 6px 8px",
-            border: "1px solid rgba(255,255,255,0.05)",
-          }}>
+        <PanelCard
+          label={locale === "mn" ? "Оноогийн чиглэл" : locale === "ko" ? "점수 추세" : "Score Trend"}
+          accent="#C1121F"
+          tag={`${stats.chronoScores.length} SESS`}
+        >
+          <div style={{ padding: "2px 0 0" }}>
             <ScoreChart scores={stats.chronoScores} t={t} />
           </div>
-        </Section>
+        </PanelCard>
 
         {/* ── Session History ── */}
-        <Section title={t("dashboardTrainingHistory")}>
+        <PanelCard
+          label={t("dashboardTrainingHistory")}
+          accent="rgba(255,255,255,0.22)"
+          tag={`${trainingSessions.length} TOTAL`}
+        >
           {trainingSessions.length === 0 ? (
-            <p style={{ fontSize: 12, color: "#333", margin: 0 }}>{t("dashboardNoSessions")}</p>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.22)", margin: 0 }}>{t("dashboardNoSessions")}</p>
           ) : (
             <>
               {visibleSessions.map((s) => (
@@ -1015,12 +1067,15 @@ export default function AthleteDashboard() {
               )}
             </>
           )}
-        </Section>
+        </PanelCard>
 
         {/* ── Body Stats ── */}
-        <Section title={t("dashboardBodyProgress")}>
+        <PanelCard
+          label={t("dashboardBodyProgress")}
+          accent="#60A5FA"
+        >
           <BodyProgressSection userId={user?.uid} t={t} />
-        </Section>
+        </PanelCard>
 
       </div>
 
