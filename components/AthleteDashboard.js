@@ -14,6 +14,8 @@ import {
   getNextRank, getRankProgress,
 } from "@/lib/xp";
 import BottomNav from "@/components/BottomNav";
+import FighterStyleQuiz, { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
+import FighterPath from "@/components/FighterPath";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -854,6 +856,9 @@ export default function AthleteDashboard() {
   const [challengeCount, setChallengeCount] = useState(0);
   const [sessionsReady, setSessionsReady] = useState(false);
   const [showAllSessions, setShowAllSessions] = useState(false);
+  const [fighterArchetype, setFighterArchetype] = useState(null);
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [reelsCount, setReelsCount] = useState(0);
 
   useEffect(() => {
     if (authLoading) return;
@@ -891,9 +896,14 @@ export default function AthleteDashboard() {
         setXp(totalXP);
         setTrainingSessions(allSessions.slice(0, 25));
         setRankReady(true);
+        setFighterArchetype(uData.fighterArchetype || null);
+        if (!uData.fighterArchetype && uData.onboarding?.completed) setShowQuiz(true);
 
         getDocs(query(collection(db, "challenge_results"), where("userId", "==", user.uid)))
           .then((snap) => { if (active) setChallengeCount(snap.size); })
+          .catch(() => {});
+        getDocs(query(collection(db, "reels"), where("userId", "==", user.uid)))
+          .then((snap) => { if (active) setReelsCount(snap.size); })
           .catch(() => {});
         setSessionsReady(true);
       } catch (e) {
@@ -984,6 +994,35 @@ export default function AthleteDashboard() {
           t={t}
         />
 
+        {/* ── Fighter Style Archetype chip ── */}
+        {fighterArchetype && ARCHETYPE_DISPLAY[fighterArchetype] && (() => {
+          const arch = ARCHETYPE_DISPLAY[fighterArchetype];
+          return (
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              padding: "10px 14px", borderRadius: 12, marginBottom: 14,
+              background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.065)",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 20 }}>{arch.emoji}</span>
+                <div>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", letterSpacing: 1.2 }}>
+                    Fighter Style
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 900, color: arch.color }}>{arch.name}</div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowQuiz(true)}
+                style={{ background: "none", border: "none", color: "rgba(255,255,255,0.22)", fontSize: 11, fontWeight: 700, cursor: "pointer", padding: "4px 8px" }}
+              >
+                Солих →
+              </button>
+            </div>
+          );
+        })()}
+
         {/* ── 4 Stat Pills ── */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8, marginBottom: 32 }}>
           <StatPill
@@ -1009,6 +1048,21 @@ export default function AthleteDashboard() {
             color="#D4AF37"
           />
         </div>
+
+        {/* ── Fighter Path ── */}
+        <FighterPath
+          pathData={{
+            photoURL: userData?.photoURL || user?.photoURL,
+            bio: userData?.bio,
+            reelsCount,
+            challengesCount: challengeCount,
+            streakDays: dailyStreak,
+            coachId: userData?.coachId,
+            hasCoach: userData?.hasCoach,
+          }}
+          locale={locale}
+          router={router}
+        />
 
         {/* ── Combat Profile (Radar) ── */}
         <PanelCard
@@ -1080,6 +1134,17 @@ export default function AthleteDashboard() {
       </div>
 
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
+
+      {/* ── Fighter Style Quiz modal ── */}
+      {showQuiz && (
+        <FighterStyleQuiz
+          user={user}
+          onComplete={(archetype) => {
+            setFighterArchetype(archetype);
+            setShowQuiz(false);
+          }}
+        />
+      )}
     </div>
   );
 }
