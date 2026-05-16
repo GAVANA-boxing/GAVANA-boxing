@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter as useNextRouter } from "next/navigation";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { translate } from "@/lib/i18n";
@@ -91,6 +91,8 @@ export default function BottomNav({
   onInteractEnd,
 }) {
   const pathname = usePathname();
+  const nextRouter = useNextRouter();
+  const r = router ?? nextRouter;
   const [unreadCount, setUnreadCount] = useState(0);
   const [hubOpen, setHubOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -114,7 +116,7 @@ export default function BottomNav({
   }, [user?.uid]);
 
   const goToProfile = () => {
-    router.push(user?.uid ? `/${currentLocale}/profile/${user.uid}` : `/${currentLocale}/login`);
+    r.push(user?.uid ? `/${currentLocale}/profile/${user.uid}` : `/${currentLocale}/login`);
   };
 
   const HUB_OPTIONS = [
@@ -135,7 +137,7 @@ export default function BottomNav({
             key={opt.label}
             type="button"
             style={h.option}
-            onClick={() => { router.push(opt.path); setHubOpen(false); }}
+            onClick={() => { r.push(opt.path); setHubOpen(false); }}
           >
             <div style={{ ...h.optIcon, background: opt.accent + "1a", color: opt.accent }}>
               {opt.icon}
@@ -178,12 +180,12 @@ export default function BottomNav({
         aria-label="Primary navigation"
       >
         {/* Home */}
-        <IconTab active={resolvedActiveTab === "reels"} onClick={() => router.push(`/${currentLocale}/reels`)} label="Home">
+        <IconTab active={resolvedActiveTab === "reels"} onClick={() => r.push(`/${currentLocale}/reels`)} label="Home">
           <HomeIcon active={resolvedActiveTab === "reels"} />
         </IconTab>
 
         {/* Discover */}
-        <IconTab active={resolvedActiveTab === "discover"} onClick={() => router.push(`/${currentLocale}/discover`)} label="Discover">
+        <IconTab active={resolvedActiveTab === "discover"} onClick={() => r.push(`/${currentLocale}/discover`)} label="Discover">
           <DiscoverIcon active={resolvedActiveTab === "discover"} />
         </IconTab>
 
@@ -195,7 +197,7 @@ export default function BottomNav({
         </button>
 
         {/* Alerts */}
-        <IconTab active={resolvedActiveTab === "alerts"} onClick={() => router.push(`/${currentLocale}/notifications`)} badge={unreadCount} label="Alerts">
+        <IconTab active={resolvedActiveTab === "alerts"} onClick={() => r.push(`/${currentLocale}/notifications`)} badge={unreadCount} label="Alerts">
           <AlertsIcon active={resolvedActiveTab === "alerts"} />
         </IconTab>
 
