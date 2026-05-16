@@ -8,6 +8,7 @@ import {
   doc,
   documentId,
   getDocs,
+  increment,
   query,
   serverTimestamp,
   updateDoc,
@@ -48,6 +49,7 @@ export default function GymDashboardPage() {
   const [checking, setChecking] = useState(true);
   const [gym, setGym] = useState(null); // null = not registered yet
   const [joinRequests, setJoinRequests] = useState([]);
+  const [members, setMembers] = useState([]);
   const [requesterUsers, setRequesterUsers] = useState({});
   const [announcements, setAnnouncements] = useState([]);
   const [updatingId, setUpdatingId] = useState(null);
@@ -97,16 +99,23 @@ export default function GymDashboardPage() {
           setGym(gymDoc);
           // Load join requests and announcements for this gym
           const [reqSnap, annSnap] = await Promise.all([
-            getDocs(query(collection(db, "gym_join_requests"), where("gymId", "==", gymDoc.id), where("status", "==", "pending"))),
+            getDocs(query(collection(db, "gym_join_requests"), where("gymId", "==", gymDoc.id))),
             getDocs(query(collection(db, "gym_announcements"), where("gymId", "==", gymDoc.id))),
           ]);
           if (active) {
-            const reqDocs = reqSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-            setJoinRequests(reqDocs);
-            setAnnouncements(annSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+            const allReqDocs = reqSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            const pendingDocs = allReqDocs.filter((r) => r.status === "pending" || !r.status);
+            const approvedDocs = allReqDocs.filter((r) => r.status === "approved");
+            setJoinRequests(pendingDocs);
+            setMembers(approvedDocs);
+            setAnnouncements(annSnap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => {
+              const aMs = a.createdAt?.toMillis?.() || a.createdAt?.toDate?.()?.getTime?.() || 0;
+              const bMs = b.createdAt?.toMillis?.() || b.createdAt?.toDate?.()?.getTime?.() || 0;
+              return bMs - aMs;
+            }));
 
-            // Batch-load requester profiles
-            const uniqueIds = [...new Set(reqDocs.map((r) => r.userId).filter(Boolean))];
+            // Batch-load profiles for pending requesters and approved members
+            const uniqueIds = [...new Set(allReqDocs.map((r) => r.userId).filter(Boolean))];
             if (uniqueIds.length > 0) {
               const chunks = [];
               for (let i = 0; i < uniqueIds.length; i += 10) chunks.push(uniqueIds.slice(i, i + 10));
@@ -196,7 +205,7 @@ export default function GymDashboardPage() {
         reviewedAt: serverTimestamp(),
       });
       if (action === "approved") {
-        await updateDoc(doc(db, "gyms", gym.id), { memberCount: (gym.memberCount || 0) + 1 });
+        await updateDoc(doc(db, "gyms", gym.id), { memberCount: increment(1) });
         setGym((g) => ({ ...g, memberCount: (g.memberCount || 0) + 1 }));
         if (req.userId) {
           await addDoc(collection(db, "notifications"), {
@@ -288,7 +297,7 @@ export default function GymDashboardPage() {
               )}
             </div>
             <button type="button" style={styles.logoLabel} onClick={() => logoInputRef.current?.click()}>
-              Upload Logo
+              {locale === "mn" ? "Лого оруулах" : locale === "ko" ? "로고 업로드" : "Upload Logo"}
             </button>
             <input ref={logoInputRef} type="file" accept="image/*" onChange={handleLogoSelect} style={{ display: "none" }} />
           </div>
@@ -388,7 +397,7 @@ export default function GymDashboardPage() {
             <div style={{ fontSize: 52 }}>🏋️</div>
             <h2 style={styles.successTitle}>{t("gymRegisterSuccess")}</h2>
             <button type="button" style={styles.submitBtn} onClick={() => router.push(`/${locale}/gyms/${gym.id}`)}>
-              View Gym
+              {locale === "mn" ? "Gym харах" : locale === "ko" ? "체육관 보기" : "View Gym"}
             </button>
           </div>
         </div>
@@ -435,6 +444,7 @@ export default function GymDashboardPage() {
         <div style={styles.tabs}>
           {[
             { key: "requests", label: `${t("gymJoinRequests")} (${joinRequests.length})` },
+            { key: "members", label: locale === "mn" ? `Гишүүд (${members.length})` : locale === "ko" ? `회원 (${members.length})` : `Members (${members.length})` },
             { key: "announce", label: t("gymPostAnnouncement") },
           ].map(({ key, label }) => (
             <button
@@ -505,6 +515,59 @@ export default function GymDashboardPage() {
           </div>
         )}
 
+        {/* Members */}
+        {activeTab === "members" && (
+          <div>
+            {members.length === 0 ? (
+              <div style={styles.emptyState}>
+                <span style={{ fontSize: 40, opacity: 0.4 }}>👥</span>
+                <p style={styles.emptyText}>
+                  {locale === "mn" ? "Одоогоор гишүүн байхгүй" : locale === "ko" ? "아직 회원이 없습니다" : "No members yet"}
+                </p>
+              </div>
+            ) : (
+              <div style={styles.cardList}>
+                {members.map((mem) => {
+                  const mu = requesterUsers[mem.userId] || {};
+                  const name = mu.displayName || mu.username || mu.name || "Fighter";
+                  const photo = mu.photoURL || mu.profileImageUrl || "";
+                  const archetype = mu.archetype || "";
+                  const weightClass = mu.weightClass || "";
+                  const joinedAt = mem.reviewedAt?.toDate
+                    ? mem.reviewedAt.toDate().toLocaleDateString()
+                    : mem.createdAt?.toDate
+                    ? mem.createdAt.toDate().toLocaleDateString()
+                    : "";
+                  return (
+                    <div key={mem.id} style={styles.memberCard}>
+                      <div style={styles.requestTop}>
+                        <div style={styles.reqAvatar}>
+                          {photo
+                            ? <img src={photo} alt="" style={styles.reqAvatarImg} />
+                            : <span style={styles.reqAvatarInitial}>{name[0]?.toUpperCase()}</span>
+                          }
+                        </div>
+                        <div style={styles.reqInfo}>
+                          <p style={styles.reqName}>{name}</p>
+                          <p style={styles.reqDate}>
+                            {archetype && weightClass ? `${archetype} · ${weightClass}` : archetype || weightClass || "Fighter"}
+                          </p>
+                        </div>
+                        <div style={styles.memberJoinedChip}>
+                          <span style={styles.memberJoinedLabel}>
+                            {locale === "mn" ? "Нэгдсэн" : locale === "ko" ? "가입" : "Joined"}
+                          </span>
+                          <span style={styles.memberJoinedDate}>{joinedAt}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Announcements */}
         {activeTab === "announce" && (
           <div>
@@ -537,7 +600,7 @@ export default function GymDashboardPage() {
 
             {announcements.length > 0 && (
               <div style={styles.annList}>
-                <p style={styles.sectionLabel}>Posted announcements</p>
+                <p style={styles.sectionLabel}>{locale === "mn" ? "Нийтэлсэн мэдэгдлүүд" : locale === "ko" ? "게시된 공지" : "Posted announcements"}</p>
                 {announcements.map((ann) => (
                   <div key={ann.id} style={styles.annCard}>
                     <p style={styles.annTitle}>{ann.title}</p>
@@ -608,6 +671,10 @@ const styles = {
   emptyText: { margin: 0, fontSize: 14, color: "rgba(255,255,255,0.55)" },
   cardList: { display: "flex", flexDirection: "column", gap: 10 },
   requestCard: { borderRadius: 14, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "14px" },
+  memberCard: { borderRadius: 14, border: "1px solid rgba(52,211,153,0.12)", background: "rgba(52,211,153,0.04)", padding: "14px" },
+  memberJoinedChip: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2, flexShrink: 0 },
+  memberJoinedLabel: { fontSize: 9, color: "rgba(255,255,255,0.45)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.4 },
+  memberJoinedDate: { fontSize: 11, color: "rgba(255,255,255,0.65)", fontWeight: 600 },
   requestTop: { display: "flex", alignItems: "center", gap: 10, marginBottom: 8 },
   reqAvatar: { width: 40, height: 40, borderRadius: "50%", background: "rgba(193,18,31,0.2)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 },
   reqAvatarImg: { width: "100%", height: "100%", objectFit: "cover" },
