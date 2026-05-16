@@ -321,6 +321,7 @@ export default function UserProfilePage() {
   const [showWeeklyModal, setShowWeeklyModal] = useState(false);
   const [showWeeklyRecap, setShowWeeklyRecap] = useState(false);
   const [pvpStats, setPvpStats] = useState(null);
+  const [sparringRecord, setSparringRecord] = useState(null);
   const [coachBookings, setCoachBookings] = useState([]);
   const [userBadges, setUserBadges] = useState([]);
   const rankUpShownRef = useRef(false);
@@ -347,7 +348,7 @@ export default function UserProfilePage() {
       }
 
       try {
-        const { collection, query, where, orderBy, onSnapshot, doc, getDoc } = await import("firebase/firestore");
+        const { collection, query, where, onSnapshot, doc, getDoc } = await import("firebase/firestore");
 
         // Check if this is the current user's own profile
         const isOwn = user.uid === userId;
@@ -375,16 +376,14 @@ export default function UserProfilePage() {
         // Listen to user's reels so likes update in real time from the reel document.
         const reelsQuery = query(
           collection(db, "reels"),
-          where("userId", "==", userId),
-          orderBy("createdAt", "desc")
+          where("userId", "==", userId)
         );
 
         unsubscribeReels = onSnapshot(reelsQuery, (reelsSnapshot) => {
           if (!isActive) return;
-          const reelsData = reelsSnapshot.docs.map((reelDoc) => ({
-            id: reelDoc.id,
-            ...reelDoc.data()
-          }));
+          const reelsData = reelsSnapshot.docs
+            .map((reelDoc) => ({ id: reelDoc.id, ...reelDoc.data() }))
+            .sort((a, b) => getTimestampMs(b.createdAt) - getTimestampMs(a.createdAt));
           setUserReels(reelsData);
           setTotalLikes(reelsData.reduce((sum, reel) => sum + getSafeReelLikes(reel), 0));
           setLoading(false);
@@ -682,6 +681,31 @@ export default function UserProfilePage() {
     return () => { active = false; };
   }, [userId]);
 
+  // Load sparring record
+  useEffect(() => {
+    if (!userId) return;
+    let active = true;
+    async function loadSparring() {
+      try {
+        const { collection, getDocs, query, where } = await import("firebase/firestore");
+        const [asSender, asReceiver] = await Promise.all([
+          getDocs(query(collection(db, "sparring_requests"), where("fromUserId", "==", userId))),
+          getDocs(query(collection(db, "sparring_requests"), where("toUserId", "==", userId))),
+        ]);
+        if (!active) return;
+        const allReqs = [
+          ...asSender.docs.map((d) => ({ id: d.id, ...d.data(), role: "sender" })),
+          ...asReceiver.docs.map((d) => ({ id: d.id, ...d.data(), role: "receiver" })),
+        ];
+        const accepted = allReqs.filter((r) => r.status === "accepted");
+        const sentPending = allReqs.filter((r) => r.status === "pending" && r.role === "sender").length;
+        setSparringRecord({ totalAccepted: accepted.length, sentPending });
+      } catch { if (active) setSparringRecord(null); }
+    }
+    loadSparring();
+    return () => { active = false; };
+  }, [userId]);
+
   // Load earned badges
   useEffect(() => {
     if (!userId) return;
@@ -708,15 +732,15 @@ export default function UserProfilePage() {
       try {
         const { collection, getDocs, query, where, orderBy } = await import("firebase/firestore");
         const snap = await getDocs(
-          query(
-            collection(db, "coach_bookings"),
-            where("userId", "==", userId),
-            where("status", "==", "scheduled"),
-            orderBy("date", "asc")
-          )
+          query(collection(db, "coach_bookings"), where("userId", "==", userId))
         );
         if (!active) return;
-        setCoachBookings(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setCoachBookings(
+          snap.docs
+            .map((d) => ({ id: d.id, ...d.data() }))
+            .filter((b) => b.status === "scheduled")
+            .sort((a, b) => getTimestampMs(a.date) - getTimestampMs(b.date))
+        );
       } catch {
         // bookings are optional — silently skip
       }
@@ -1420,7 +1444,7 @@ export default function UserProfilePage() {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                 </svg>
-                Message
+                {locale === "mn" ? "Мессеж" : locale === "ko" ? "메시지" : "Message"}
               </button>
             </div>
             {isMutual && (
@@ -1712,6 +1736,59 @@ export default function UserProfilePage() {
               <p style={{ color: "#333", fontSize: 12, margin: 0 }}>
                 {locale === "mn" ? "PvP тулаанд оролцоод эхэлнэ үү" : locale === "ko" ? "PvP 배틀에 참가하세요" : "Start a PvP battle to build your record"}
               </p>
+            </div>
+          )}
+
+          {/* Sparring Record */}
+          {sparringRecord !== null && (
+            <div style={{
+              marginTop: 14,
+              background: "linear-gradient(145deg, #0a0a0a, #111)",
+              border: "1px solid rgba(193,18,31,0.15)",
+              borderLeft: "3px solid #C1121F",
+              borderRadius: "3px 16px 16px 3px",
+              padding: "18px 16px",
+            }}>
+              <p style={{ margin: "0 0 14px", fontSize: 9, fontWeight: 900, color: "#C1121F", letterSpacing: 2.5, textTransform: "uppercase" }}>
+                🥊 {locale === "mn" ? "Спарринг бичиг" : locale === "ko" ? "스파링 기록" : "Sparring Record"}
+              </p>
+              <div style={{ display: "flex", gap: 8, justifyContent: "space-around", marginBottom: 14 }}>
+                <div style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: 36, fontWeight: 900, color: "#C1121F", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>
+                    {sparringRecord.totalAccepted}
+                  </div>
+                  <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>
+                    {locale === "mn" ? "СПАРРИНГ" : locale === "ko" ? "스파링" : "SPARRING"}
+                  </div>
+                </div>
+                <div style={{ width: 1, background: "rgba(255,255,255,0.07)" }} />
+                <div style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: 36, fontWeight: 900, color: "#D4AF37", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>
+                    {sparringRecord.sentPending}
+                  </div>
+                  <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>
+                    {locale === "mn" ? "ХҮЛЭЭГДЭЖ" : locale === "ko" ? "대기 중" : "PENDING"}
+                  </div>
+                </div>
+              </div>
+              {sparringRecord.totalAccepted === 0 && sparringRecord.sentPending === 0 && (
+                <p style={{ margin: "0 0 12px", fontSize: 12, color: "#444", textAlign: "center" }}>
+                  {locale === "mn" ? "Одоогоор спарринг хийгдэж байхгүй" : locale === "ko" ? "아직 스파링 없음" : "No sparring yet"}
+                </p>
+              )}
+              {isOwnProfile && (
+                <button
+                  type="button"
+                  onClick={() => router.push(`/${locale}/sparring`)}
+                  style={{
+                    width: "100%", padding: "11px 0", borderRadius: 11,
+                    background: "linear-gradient(135deg, #C1121F, #7d0812)",
+                    border: "none", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
+                  }}
+                >
+                  {locale === "mn" ? "Спарринг хайх →" : locale === "ko" ? "스파링 찾기 →" : "Find Sparring Partner →"}
+                </button>
+              )}
             </div>
           )}
         </section>
