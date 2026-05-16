@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { createNotification, createNewFollowerNotification } from "@/lib/notifications";
+import { startConversation } from "@/lib/messaging";
 import { getLocale, translate } from "@/lib/i18n";
 import { RANK_TIERS, calculateSessionXP, calculateUserXP, getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
 import RankIcon from "@/components/RankIcon";
@@ -835,6 +836,21 @@ export default function UserProfilePage() {
     }
   };
 
+  // Handle message
+  const handleMessage = async () => {
+    if (!user) { router.push(`/${locale || "en"}/login`); return; }
+    if (isOwnProfile) { router.push(`/${locale || "en"}/inbox`); return; }
+    try {
+      const convoId = await startConversation(user, userId, {
+        displayName: profileUserData?.displayName || profileUserData?.username || "",
+        photoURL: profileUserData?.photoURL || "",
+      });
+      router.push(`/${locale || "en"}/inbox/${convoId}`);
+    } catch (e) {
+      console.error("Message error:", e);
+    }
+  };
+
   // Handle follow/unfollow
   const handleFollow = async () => {
     if (!user) {
@@ -1357,18 +1373,36 @@ export default function UserProfilePage() {
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-            <button
-              onClick={handleFollow}
-              disabled={followLoading}
-              style={{
-                ...styles.followAction,
-                background: followLoading ? "#555" : (isFollowing ? "#151515" : "#C1121F"),
-                cursor: followLoading ? "not-allowed" : "pointer",
-                opacity: followLoading ? 0.7 : 1
-              }}
-            >
-              {followLoading ? t("followLoading") : (isFollowing ? t("unfollow") : t("follow"))}
-            </button>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                onClick={handleFollow}
+                disabled={followLoading}
+                style={{
+                  ...styles.followAction,
+                  background: followLoading ? "#555" : (isFollowing ? "#151515" : "#C1121F"),
+                  cursor: followLoading ? "not-allowed" : "pointer",
+                  opacity: followLoading ? 0.7 : 1
+                }}
+              >
+                {followLoading ? t("followLoading") : (isFollowing ? t("unfollow") : t("follow"))}
+              </button>
+              <button
+                type="button"
+                onClick={handleMessage}
+                style={{
+                  height: 38, padding: "0 18px", borderRadius: 999,
+                  border: "1px solid rgba(255,255,255,0.14)",
+                  background: "rgba(255,255,255,0.05)",
+                  color: "#fff", fontSize: 13, fontWeight: 800,
+                  cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                Message
+              </button>
+            </div>
             {isMutual && (
               <span style={{ fontSize: 11, fontWeight: 700, color: "#D4AF37", letterSpacing: 0.5 }}>
                 ⇄ {t("mutual")}

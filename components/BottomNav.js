@@ -44,20 +44,29 @@ function PlusIcon() {
 }
 
 // ─── Profile avatar tab ───────────────────────────────────────────────────────
-function ProfileTab({ user, active, onClick }) {
+function ProfileTab({ user, active, onClick, dmUnread }) {
   const photo = user?.photoURL || user?.profileImageUrl || "";
   const initial = (user?.displayName || user?.username || "?").charAt(0).toUpperCase();
 
   return (
     <button type="button" onClick={onClick} style={s.iconTab} aria-label="Profile">
-      <span style={{
-        ...s.avatarWrap,
-        boxShadow: active ? "0 0 0 2px #C1121F" : "0 0 0 1.5px rgba(255,255,255,0.08)",
-      }}>
-        {photo
-          ? <img src={photo} alt="" style={s.avatarImg} />
-          : <span style={{ ...s.avatarInitial, background: active ? "#C1121F" : "#222" }}>{initial}</span>
-        }
+      <span style={{ position: "relative", display: "inline-flex" }}>
+        <span style={{
+          ...s.avatarWrap,
+          boxShadow: active ? "0 0 0 2px #C1121F" : "0 0 0 1.5px rgba(255,255,255,0.08)",
+        }}>
+          {photo
+            ? <img src={photo} alt="" style={s.avatarImg} />
+            : <span style={{ ...s.avatarInitial, background: active ? "#C1121F" : "#222" }}>{initial}</span>
+          }
+        </span>
+        {dmUnread > 0 && (
+          <span style={{
+            position: "absolute", top: -2, right: -2,
+            width: 10, height: 10, borderRadius: "50%",
+            background: "#C1121F", border: "2px solid rgba(8,8,8,0.97)",
+          }} />
+        )}
       </span>
     </button>
   );
@@ -94,12 +103,26 @@ export default function BottomNav({
   const nextRouter = useNextRouter();
   const r = router ?? nextRouter;
   const [unreadCount, setUnreadCount] = useState(0);
+  const [dmUnread, setDmUnread] = useState(0);
   const [hubOpen, setHubOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
   const resolvedActiveTab = activeTab || getActiveTab(pathname);
   const t = (key) => translate(currentLocale, key);
+
+  // Unread DM count
+  useEffect(() => {
+    if (!user?.uid) { setDmUnread(0); return; }
+    let active = true;
+    const qDm = query(collection(db, "conversations"), where("members", "array-contains", user.uid));
+    const unsub = onSnapshot(qDm, (snap) => {
+      if (!active) return;
+      const total = snap.docs.reduce((sum, d) => sum + (d.data().unreadCount?.[user.uid] || 0), 0);
+      setDmUnread(total);
+    }, () => { if (active) setDmUnread(0); });
+    return () => { active = false; unsub(); };
+  }, [user?.uid]);
 
   // Unread notification count
   useEffect(() => {
@@ -202,7 +225,7 @@ export default function BottomNav({
         </IconTab>
 
         {/* Profile */}
-        <ProfileTab user={user} active={resolvedActiveTab === "profile"} onClick={goToProfile} />
+        <ProfileTab user={user} active={resolvedActiveTab === "profile"} onClick={goToProfile} dmUnread={dmUnread} />
       </nav>
     </>
   );
@@ -217,6 +240,7 @@ function getActiveTab(pathname = "") {
   if (pathname.includes("/coach")) return "profile";
   if (pathname.includes("/gyms")) return "profile";
   if (pathname.includes("/notifications")) return "alerts";
+  if (pathname.includes("/inbox")) return "profile";
   if (pathname.includes("/profile")) return "profile";
   return "reels";
 }
