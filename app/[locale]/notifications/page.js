@@ -55,6 +55,8 @@ function getTypeLabel(type, t) {
   if (type === "gym_declined") return t("notifLabelGymDeclined");
   if (type === "booking_scheduled") return t("notifLabelBookingScheduled");
   if (type === "session_completed") return t("notifLabelSessionCompleted");
+  if (type === "sparring_request") return "Sparring хүсэлт";
+  if (type === "sparring_accepted") return "Sparring зөвшөөрсөн";
   return t("update");
 }
 
@@ -108,6 +110,8 @@ function getTypeIcon(type) {
   if (type === "gym_declined") return "❌";
   if (type === "booking_scheduled") return "📅";
   if (type === "session_completed") return "🏆";
+  if (type === "sparring_request") return "🥊";
+  if (type === "sparring_accepted") return "✅";
   return "•";
 }
 
@@ -167,7 +171,7 @@ export default function NotificationsPage() {
   const [actorProfiles, setActorProfiles] = useState({});
   const actorProfileRequests = useRef(new Set());
 
-  const SOCIAL_TYPES = new Set(["like", "comment", "follow", "save", "new_follower", "pvp_challenge", "challenge_attempt", "challenge_beaten", "remix", "featured"]);
+  const SOCIAL_TYPES = new Set(["like", "comment", "follow", "save", "new_follower", "pvp_challenge", "challenge_attempt", "challenge_beaten", "remix", "featured", "sparring_request", "sparring_accepted"]);
   const COACH_TYPES = new Set(["coach_request", "coach_accept", "coach_decline", "booking_scheduled", "session_completed"]);
   const GYM_TYPES = new Set(["gym_join_request", "gym_approved", "gym_declined"]);
 
@@ -352,6 +356,18 @@ export default function NotificationsPage() {
     if (notification.type === "booking_scheduled" || notification.type === "session_completed") {
       const actorId = getActorId(notification);
       if (actorId) router.push(`/${locale}/coach/${actorId}`);
+      return;
+    }
+
+    if (notification.type === "sparring_request") {
+      router.push(`/${locale}/sparring`);
+      return;
+    }
+
+    if (notification.type === "sparring_accepted") {
+      const actorId = getActorId(notification);
+      if (actorId) router.push(`/${locale}/inbox`);
+      else router.push(`/${locale}/sparring`);
       return;
     }
 
