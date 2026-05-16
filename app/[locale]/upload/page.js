@@ -147,6 +147,7 @@ export default function UploadPage() {
   const [gymId, setGymId] = useState("");
   const [gyms, setGyms] = useState([]);
   const [captionOpen, setCaptionOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [captionContext, setCaptionContext] = useState("");
   const [captionLoading, setCaptionLoading] = useState(false);
   const [captionError, setCaptionError] = useState("");
@@ -416,63 +417,77 @@ export default function UploadPage() {
         </div>
 
         <div style={S.fields}>
-          {/* CHALLENGE */}
-          {isTraining && (
-            <>
-              <UField label={t("caption")}>
-                <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t("uploadChallengePlaceholder")} style={S.textarea} />
-              </UField>
-              <UField label={t("uploadChallengeLabel")}>
-                <input value={challengeLabel} onChange={(e) => setChallengeLabel(e.target.value)} placeholder={t("uploadChallengeLabelPlaceholder")} style={S.input} />
-              </UField>
-              <UField label={t("uploadTargetHits")}>
-                <input type="number" value={targetHits} onChange={(e) => setTargetHits(e.target.value)} placeholder="e.g. 100" style={{ ...S.input, width: 140 }} min={1} />
-              </UField>
-              <UField label={t("uploadDifficulty")}>
-                <UChips options={DIFFICULTIES} keyMap={DIFF_KEY} t={t} selected={difficulty} onSelect={setDifficulty} colorMap={diffColorMap} />
-              </UField>
-              <UToggle label={t("uploadAiScoring")} description={t("uploadAiScoringDesc")} value={aiScoringEnabled} onChange={setAiScoringEnabled} />
-              <UToggle label={t("uploadChallengeCta")} description={t("uploadChallengeCtaDesc")} value={true} locked />
-            </>
+          {/* Primary field — caption or technique title (always visible) */}
+          {(isTraining || isLifestyle) && (
+            <UField label={t("caption")}>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder={isTraining ? t("uploadChallengePlaceholder") : t("uploadLifestylePlaceholder")}
+                style={{ ...S.textarea, minHeight: 96 }}
+              />
+            </UField>
           )}
-
-          {/* LIFESTYLE */}
-          {isLifestyle && (
-            <>
-              <UField label={t("caption")}>
-                <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t("uploadLifestylePlaceholder")} style={S.textarea} />
-              </UField>
-              <UField label={t("uploadCategory")}>
-                <UChips options={CATEGORIES} keyMap={CAT_KEY} t={t} selected={category} onSelect={setCategory} colorMap={() => S.chipActive} />
-              </UField>
-              <UField label={t("uploadTags")}>
-                <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder={t("uploadTagsPlaceholder")} style={S.input} />
-              </UField>
-            </>
-          )}
-
-          {/* EDUCATIONAL */}
           {isEdu && (
-            <>
-              <UField label={t("uploadTechniqueTitle")}>
-                <input value={techniqueTitle} onChange={(e) => setTechniqueTitle(e.target.value)} placeholder={t("uploadTechniquePlaceholder")} style={S.input} />
-              </UField>
-              <UField label={t("uploadMistakeLabel")}>
-                <textarea value={mistakeNote} onChange={(e) => setMistakeNote(e.target.value)} placeholder={t("uploadMistakePlaceholder")} style={{ ...S.textarea, minHeight: 60 }} />
-              </UField>
-              <UField label={t("uploadFixLabel")}>
-                <textarea value={fixNote} onChange={(e) => setFixNote(e.target.value)} placeholder={t("uploadFixPlaceholder")} style={{ ...S.textarea, minHeight: 60 }} />
-              </UField>
-              <UField label={t("uploadCoachNoteLabel")}>
-                <textarea value={coachNote} onChange={(e) => setCoachNote(e.target.value)} placeholder={t("uploadCoachNotePlaceholder")} style={{ ...S.textarea, minHeight: 60 }} />
-              </UField>
-              <UField label={t("uploadDifficulty")}>
-                <UChips options={DIFFICULTIES} keyMap={DIFF_KEY} t={t} selected={difficulty} onSelect={setDifficulty} colorMap={diffColorMap} />
-              </UField>
-              <UToggle label={t("uploadSaveCta")} description={t("uploadSaveCtaDesc")} value={true} locked />
-              <UToggle label={t("uploadEduChallengeCta")} description={t("uploadEduChallengeCtaDesc")} value={eduChallengeEnabled} onChange={setEduChallengeEnabled} />
-            </>
+            <UField label={t("uploadTechniqueTitle")}>
+              <input value={techniqueTitle} onChange={(e) => setTechniqueTitle(e.target.value)} placeholder={t("uploadTechniquePlaceholder")} style={S.input} />
+            </UField>
           )}
+
+          {/* Details accordion — advanced options collapsed by default */}
+          <div style={S.detailsBox}>
+            <button type="button" onClick={() => setDetailsOpen(!detailsOpen)} style={S.detailsToggle}>
+              <span style={S.detailsLabel}>⚙ Details</span>
+              <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 16, lineHeight: 1 }}>{detailsOpen ? "∧" : "∨"}</span>
+            </button>
+            {detailsOpen && (
+              <div style={{ padding: "4px 16px 16px", display: "flex", flexDirection: "column", gap: 16 }}>
+                {isTraining && (
+                  <>
+                    <UField label={t("uploadChallengeLabel")}>
+                      <input value={challengeLabel} onChange={(e) => setChallengeLabel(e.target.value)} placeholder={t("uploadChallengeLabelPlaceholder")} style={S.input} />
+                    </UField>
+                    <UField label={t("uploadTargetHits")}>
+                      <input type="number" value={targetHits} onChange={(e) => setTargetHits(e.target.value)} placeholder="e.g. 100" style={{ ...S.input, width: 140 }} min={1} />
+                    </UField>
+                    <UField label={t("uploadDifficulty")}>
+                      <UChips options={DIFFICULTIES} keyMap={DIFF_KEY} t={t} selected={difficulty} onSelect={setDifficulty} colorMap={diffColorMap} />
+                    </UField>
+                    <UToggle label={t("uploadAiScoring")} description={t("uploadAiScoringDesc")} value={aiScoringEnabled} onChange={setAiScoringEnabled} />
+                    <UToggle label={t("uploadChallengeCta")} description={t("uploadChallengeCtaDesc")} value={true} locked />
+                  </>
+                )}
+                {isLifestyle && (
+                  <>
+                    <UField label={t("uploadCategory")}>
+                      <UChips options={CATEGORIES} keyMap={CAT_KEY} t={t} selected={category} onSelect={setCategory} colorMap={() => S.chipActive} />
+                    </UField>
+                    <UField label={t("uploadTags")}>
+                      <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder={t("uploadTagsPlaceholder")} style={S.input} />
+                    </UField>
+                  </>
+                )}
+                {isEdu && (
+                  <>
+                    <UField label={t("uploadMistakeLabel")}>
+                      <textarea value={mistakeNote} onChange={(e) => setMistakeNote(e.target.value)} placeholder={t("uploadMistakePlaceholder")} style={{ ...S.textarea, minHeight: 60 }} />
+                    </UField>
+                    <UField label={t("uploadFixLabel")}>
+                      <textarea value={fixNote} onChange={(e) => setFixNote(e.target.value)} placeholder={t("uploadFixPlaceholder")} style={{ ...S.textarea, minHeight: 60 }} />
+                    </UField>
+                    <UField label={t("uploadCoachNoteLabel")}>
+                      <textarea value={coachNote} onChange={(e) => setCoachNote(e.target.value)} placeholder={t("uploadCoachNotePlaceholder")} style={{ ...S.textarea, minHeight: 60 }} />
+                    </UField>
+                    <UField label={t("uploadDifficulty")}>
+                      <UChips options={DIFFICULTIES} keyMap={DIFF_KEY} t={t} selected={difficulty} onSelect={setDifficulty} colorMap={diffColorMap} />
+                    </UField>
+                    <UToggle label={t("uploadSaveCta")} description={t("uploadSaveCtaDesc")} value={true} locked />
+                    <UToggle label={t("uploadEduChallengeCta")} description={t("uploadEduChallengeCtaDesc")} value={eduChallengeEnabled} onChange={setEduChallengeEnabled} />
+                  </>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Gym tag */}
           {gyms.length > 0 && (
@@ -607,6 +622,11 @@ const S = {
   toggleLabel: { fontSize: 14, fontWeight: 800, color: "#fff" },
   toggleDesc: { fontSize: 12, color: "rgba(255,255,255,0.38)", marginTop: 3 },
   toggleBtn: { flexShrink: 0, minWidth: 52, padding: "7px 14px", borderRadius: 999, border: "none", color: "#fff", fontSize: 12, fontWeight: 900 },
+
+  // Details accordion
+  detailsBox: { borderRadius: 14, border: "1px solid rgba(255,255,255,0.07)", overflow: "hidden", background: "rgba(255,255,255,0.02)" },
+  detailsToggle: { width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: "none", border: "none", cursor: "pointer" },
+  detailsLabel: { color: "rgba(255,255,255,0.45)", fontSize: 11, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase" },
 
   // AI box
   aiBox: { borderRadius: 16, background: "linear-gradient(145deg, rgba(193,18,31,0.08), rgba(11,11,11,0.9) 50%, rgba(212,175,55,0.05))", border: "1px solid rgba(255,255,255,0.07)" },
