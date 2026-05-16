@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   collection,
+  doc,
+  getDoc,
   getDocs,
   orderBy,
   query,
@@ -124,8 +126,12 @@ export default function GymsPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
 
+  const [tab, setTab] = useState("all");
   const [gyms, setGyms] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [myMemberships, setMyMemberships] = useState([]);
+  const [myMembershipsLoading, setMyMembershipsLoading] = useState(false);
+  const myMembershipsLoadedRef = useRef(false);
   const [searchText, setSearchText] = useState("");
   const [selectedType, setSelectedType] = useState("all");
   const [sortMode, setSortMode] = useState("topRated"); // topRated | newest | nearby
@@ -154,6 +160,30 @@ export default function GymsPage() {
     load();
     return () => { active = false; };
   }, []);
+
+  useEffect(() => {
+    if (tab !== "mine" || myMembershipsLoadedRef.current || !user?.uid) return;
+    myMembershipsLoadedRef.current = true;
+    let active = true;
+    setMyMembershipsLoading(true);
+    getDocs(query(collection(db, "gym_join_requests"), where("userId", "==", user.uid)))
+      .then(async (snap) => {
+        if (!active) return;
+        const reqs = snap.docs
+          .map((d) => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+        const gymIds = [...new Set(reqs.map((r) => r.gymId).filter(Boolean))];
+        const gymMap = {};
+        await Promise.all(gymIds.map(async (gid) => {
+          const s = await getDoc(doc(db, "gyms", gid));
+          if (s.exists()) gymMap[gid] = { id: gid, ...s.data() };
+        }));
+        if (active) setMyMemberships(reqs.map((r) => ({ ...r, gym: gymMap[r.gymId] || null })));
+      })
+      .catch(() => {})
+      .finally(() => { if (active) setMyMembershipsLoading(false); });
+    return () => { active = false; };
+  }, [tab, user?.uid]);
 
   const handleNearby = () => {
     if (!navigator.geolocation) return;
@@ -213,9 +243,110 @@ export default function GymsPage() {
     return list;
   }, [gyms, verifiedOnly, selectedType, cityFilter, searchText, sortMode, nearbyCoords]);
 
+  const GYM_STATUS = {
+    pending:  { color: "#F59E0B", bg: "rgba(245,158,11,0.1)",  border: "rgba(245,158,11,0.35)",  label: "⏳ Хүлээгдэж байна" },
+    approved: { color: "#34D399", bg: "rgba(52,211,153,0.1)",  border: "rgba(52,211,153,0.35)",  label: "✓ Гишүүн" },
+    declined: { color: "#F87171", bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.35)", label: "✕ Татгалзсан" },
+  };
+
   return (
     <div style={styles.page}>
+      {/* Sticky tab bar */}
+      <div style={styles.tabBar}>
+        {[
+          { key: "all", label: "🏋️ Бүх gym" },
+          { key: "mine", label: "🥊 Миний gym" },
+        ].map(({ key, label }) => (
+          <button
+            key={key}
+            type="button"
+            style={tab === key ? styles.tabActive : styles.tabInactive}
+            onClick={() => setTab(key)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       <div style={styles.content}>
+        {/* My Gym tab */}
+        {tab === "mine" && (
+          <>
+            <div style={{ ...styles.header, paddingTop: 20 }}>
+              <p style={styles.kicker}>GAVANA</p>
+              <h1 style={styles.title}>Миний Gym</h1>
+            </div>
+
+            {!user?.uid ? (
+              <div style={styles.emptyState}>
+                <div style={{ fontSize: 40, opacity: 0.4 }}>🔒</div>
+                <p style={styles.emptyText}>Нэвтрэх шаардлагатай</p>
+                <button
+                  type="button"
+                  onClick={() => router.push(`/${locale}/login`)}
+                  style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}
+                >
+                  Нэвтрэх →
+                </button>
+              </div>
+            ) : myMembershipsLoading ? (
+              <div style={styles.loadingText}>{t("gymsLoading")}</div>
+            ) : myMemberships.length === 0 ? (
+              <div style={styles.emptyState}>
+                <div style={{ fontSize: 40, opacity: 0.4 }}>🏋️</div>
+                <p style={styles.emptyText}>Gym-д элсээгүй байна</p>
+                <p style={{ margin: 0, color: "rgba(255,255,255,0.45)", fontSize: 13, textAlign: "center", maxWidth: 240 }}>
+                  Gym-д элсэж тамирлалтаа нэгтгэ
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setTab("all")}
+                  style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", marginTop: 4 }}
+                >
+                  Gym хайх →
+                </button>
+              </div>
+            ) : (
+              <div style={styles.cardList}>
+                {myMemberships.map((mem) => {
+                  const gym = mem.gym;
+                  const st = GYM_STATUS[mem.status] || GYM_STATUS.pending;
+                  if (!gym) return null;
+                  return (
+                    <div
+                      key={mem.id}
+                      style={{ ...styles.card, borderLeft: `2.5px solid ${st.color}`, borderRadius: "3px 16px 16px 3px", cursor: "pointer" }}
+                      onClick={() => router.push(`/${locale}/gyms/${gym.id}`)}
+                    >
+                      <div style={styles.cardImageWrap}>
+                        {gym.logo
+                          ? <img src={gym.logo} alt="" style={styles.cardLogo} />
+                          : <div style={styles.cardLogoFallback}><span style={{ fontSize: 28 }}>🥊</span></div>
+                        }
+                        <span style={{ position: "absolute", bottom: 8, right: 10, padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 900, background: st.bg, border: `1px solid ${st.border}`, color: st.color }}>
+                          {st.label}
+                        </span>
+                      </div>
+                      <div style={styles.cardBody}>
+                        <div style={styles.cardNameRow}>
+                          <span style={styles.cardName}>{gym.gymName}</span>
+                          {gym.verified && <span style={styles.verifiedBadge}>✓</span>}
+                        </div>
+                        {(gym.city || gym.country) && (
+                          <div style={styles.cardLocation}>📍 {[gym.city, gym.country].filter(Boolean).join(", ")}</div>
+                        )}
+                        {gym.gymType && <span style={styles.typeChip}>{t(GYM_TYPE_KEYS[gym.gymType]) || gym.gymType}</span>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* All Gyms tab */}
+        {tab === "all" && (<>
         {/* Header */}
         <div style={styles.header}>
           <p style={styles.kicker}>GAVANA</p>
@@ -338,6 +469,7 @@ export default function GymsPage() {
             ))}
           </div>
         )}
+        </>)}
       </div>
 
       <BottomNav
@@ -352,6 +484,23 @@ export default function GymsPage() {
 
 const styles = {
   page: { minHeight: "100vh", background: "#0A0A0A", color: "#fff", fontFamily: "system-ui, sans-serif" },
+  tabBar: {
+    position: "sticky", top: 0, zIndex: 50,
+    display: "flex", background: "rgba(8,8,8,0.95)",
+    backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
+    borderBottom: "1px solid rgba(255,255,255,0.07)",
+    paddingTop: "env(safe-area-inset-top)",
+  },
+  tabActive: {
+    flex: 1, minHeight: 46, border: "none",
+    borderBottom: "2px solid #C1121F", background: "transparent",
+    color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", letterSpacing: 0.3,
+  },
+  tabInactive: {
+    flex: 1, minHeight: 46, border: "none",
+    borderBottom: "2px solid transparent", background: "transparent",
+    color: "rgba(255,255,255,0.45)", fontSize: 13, fontWeight: 700, cursor: "pointer",
+  },
   content: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },
   header: { paddingTop: "calc(18px + env(safe-area-inset-top))", paddingBottom: 20, display: "flex", flexDirection: "column", gap: 4 },
   kicker: { margin: 0, fontSize: 11, letterSpacing: 2, color: "rgba(255,255,255,0.55)", textTransform: "uppercase" },
