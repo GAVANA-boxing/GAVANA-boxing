@@ -241,6 +241,7 @@ function getActiveTab(pathname = "") {
   if (pathname.includes("/gyms")) return "profile";
   if (pathname.includes("/notifications")) return "alerts";
   if (pathname.includes("/inbox")) return "profile";
+  if (pathname.includes("/sparring")) return "discover";
   if (pathname.includes("/profile")) return "profile";
   return "reels";
 }

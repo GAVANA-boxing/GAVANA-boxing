@@ -5,6 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   addDoc,
   collection,
+  doc,
+  getDoc,
   getDocs,
   query,
   serverTimestamp,
@@ -24,6 +26,23 @@ const SPECIALTIES = [
 const VIBE_FILTERS = ["Friendly", "Technical", "Hard sparring", "Competitive"];
 
 const LEVELS = ["Amateur", "Fighter", "Pro", "Elite", "Champion"];
+
+function formatTimeAgo(date) {
+  const diff = Date.now() - date.getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days === 0) return "Өнөөдөр";
+  if (days === 1) return "Өчигдөр";
+  if (days < 7) return `${days} өдрийн өмнө`;
+  return date.toLocaleDateString();
+}
+
+const REQ_STATUS = {
+  pending:   { bg: "rgba(245,158,11,0.1)",  border: "rgba(245,158,11,0.35)",  color: "#F59E0B", label: "⏳ Хүлээгдэж байна" },
+  accepted:  { bg: "rgba(52,211,153,0.1)",  border: "rgba(52,211,153,0.35)",  color: "#34D399", label: "✓ Зөвшөөрөгдсөн" },
+  declined:  { bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.35)", color: "#F87171", label: "✕ Татгалзсан" },
+  scheduled: { bg: "rgba(167,139,250,0.1)", border: "rgba(167,139,250,0.35)", color: "#A78BFA", label: "📅 Товлогдсон" },
+  completed: { bg: "rgba(96,165,250,0.1)",  border: "rgba(96,165,250,0.35)",  color: "#60A5FA", label: "✓ Дууссан" },
+};
 
 function CoachCard({ coach, t, locale, onRequest, requested, router }) {
   const initials = (coach.displayName || coach.username || "?")
@@ -72,14 +91,71 @@ function CoachCard({ coach, t, locale, onRequest, requested, router }) {
         </div>
       </div>
 
-      <button
-        type="button"
-        style={requested ? styles.requestedBtn : styles.requestBtn}
-        disabled={requested}
-        onClick={() => onRequest(coach.id)}
-      >
-        {requested ? t("requestSent") : t("requestCoach")}
-      </button>
+      {Number.isFinite(coach.coachPricePerSession) && coach.coachPricePerSession > 0 && (
+        <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+          <span style={{ fontSize: 15, fontWeight: 900, color: "#D4AF37" }}>${coach.coachPricePerSession}</span>
+          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>/session</span>
+        </div>
+      )}
+      <div style={styles.cardActions}>
+        <button
+          type="button"
+          style={styles.viewProfileBtn}
+          onClick={() => router.push(`/${locale}/coach/${coach.id}`)}
+        >
+          Profile →
+        </button>
+        <button
+          type="button"
+          style={requested ? styles.requestedBtn : styles.requestBtn}
+          disabled={requested}
+          onClick={() => onRequest(coach.id)}
+        >
+          {requested ? t("requestSent") : t("requestCoach")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function MyRequestCard({ req, coachProfile, locale, router }) {
+  const name = coachProfile?.displayName || coachProfile?.username || "Coach";
+  const photo = coachProfile?.photoURL || coachProfile?.profileImageUrl || "";
+  const initials = name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+  const st = REQ_STATUS[req.status] || REQ_STATUS.pending;
+  const timeAgo = req.createdAt?.toDate ? formatTimeAgo(req.createdAt.toDate()) : "";
+
+  return (
+    <div style={{ ...styles.card, borderLeft: `2.5px solid ${st.color}`, borderRadius: "3px 18px 18px 3px" }}>
+      <div style={styles.cardTop}>
+        <div style={styles.avatarWrap}>
+          {photo
+            ? <img src={photo} alt="" style={styles.avatar} />
+            : <div style={styles.avatarInitials}>{initials}</div>
+          }
+        </div>
+        <div style={styles.cardInfo}>
+          <div style={styles.cardNameRow}>
+            <span style={styles.cardName}>{name}</span>
+            {req.type === "sparring" && (
+              <span style={{ fontSize: 10, fontWeight: 900, color: "#D4AF37", background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.28)", borderRadius: 999, padding: "1px 7px" }}>🥊 Sparring</span>
+            )}
+          </div>
+          <span style={{ display: "inline-flex", marginTop: 4, padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 900, background: st.bg, border: `1px solid ${st.border}`, color: st.color }}>
+            {st.label}
+          </span>
+          {timeAgo && <div style={{ ...styles.cardLocation, marginTop: 4 }}>{timeAgo}</div>}
+        </div>
+      </div>
+      {req.coachId && (
+        <button
+          type="button"
+          style={styles.viewProfileBtn}
+          onClick={() => router.push(`/${locale}/coach/${req.coachId}`)}
+        >
+          Coach Profile харах →
+        </button>
+      )}
     </div>
   );
 }
@@ -139,8 +215,12 @@ export default function CoachPage() {
   });
   const [sparringSaving, setSpSaving] = useState(false);
   const [sparringSaved, setSpSaved] = useState(false);
+  const [myRequests, setMyRequests] = useState([]);
+  const [myRequestsLoading, setMyRequestsLoading] = useState(false);
+  const [myRequestCoaches, setMyRequestCoaches] = useState({});
   const coachesLoadedRef = useRef(false);
   const sparringLoadedRef = useRef(false);
+  const myRequestsLoadedRef = useRef(false);
 
   useEffect(() => {
     if (tab !== "coaches" || coachesLoadedRef.current) return;
@@ -171,6 +251,34 @@ export default function CoachPage() {
       .finally(() => { if (active) setSparringLoading(false); });
     return () => { active = false; };
   }, [tab]);
+
+  useEffect(() => {
+    if (tab !== "mine" || myRequestsLoadedRef.current || !user?.uid) return;
+    myRequestsLoadedRef.current = true;
+    let active = true;
+    setMyRequestsLoading(true);
+    getDocs(query(collection(db, "coach_requests"), where("userId", "==", user.uid)))
+      .then(async (snap) => {
+        if (!active) return;
+        const reqs = snap.docs
+          .map((d) => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+        setMyRequests(reqs);
+
+        const coachIds = [...new Set(reqs.map((r) => r.coachId).filter(Boolean))];
+        if (coachIds.length) {
+          const profiles = await Promise.all(
+            coachIds.map((cid) => getDoc(doc(db, "users", cid)).then((s) => s.exists() ? { id: cid, ...s.data() } : null))
+          );
+          const map = {};
+          profiles.forEach((p) => { if (p) map[p.id] = p; });
+          if (active) setMyRequestCoaches(map);
+        }
+      })
+      .catch(() => {})
+      .finally(() => { if (active) setMyRequestsLoading(false); });
+    return () => { active = false; };
+  }, [tab, user?.uid]);
 
   const handleCoachRequest = async (coachId) => {
     if (!user?.uid) { router.push(`/${locale}/login`); return; }
@@ -256,6 +364,7 @@ export default function CoachPage() {
           { key: "ai", label: t("coachTabAI") },
           { key: "coaches", label: t("coachTabCoaches") },
           { key: "sparring", label: t("coachTabSparring") },
+          { key: "mine", label: "Миний хүсэлт" },
         ].map(({ key, label }) => (
           <button
             key={key}
@@ -473,6 +582,61 @@ export default function CoachPage() {
               />
             ))}
           </div>
+
+          <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
+        </div>
+      )}
+
+      {/* My Requests tab */}
+      {tab === "mine" && (
+        <div style={styles.content}>
+          <header style={styles.pageHeader}>
+            <p style={styles.kicker}>GAVANA BOXING</p>
+            <h1 style={styles.pageTitle}>Миний хүсэлтүүд</h1>
+          </header>
+
+          {!user?.uid ? (
+            <div style={styles.emptyState}>
+              <div style={styles.emptyIcon}>🔒</div>
+              <div style={styles.emptyText}>Нэвтрэх шаардлагатай</div>
+              <button
+                type="button"
+                onClick={() => router.push(`/${locale}/login`)}
+                style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}
+              >
+                Нэвтрэх →
+              </button>
+            </div>
+          ) : myRequestsLoading ? (
+            <div style={styles.loadingText}>Уншиж байна…</div>
+          ) : myRequests.length === 0 ? (
+            <div style={styles.emptyState}>
+              <div style={styles.emptyIcon}>📋</div>
+              <div style={styles.emptyText}>Хүсэлт байхгүй байна</div>
+              <p style={{ margin: 0, color: "rgba(255,255,255,0.45)", fontSize: 13, textAlign: "center", maxWidth: 240 }}>
+                Coach-той холбогдож хүсэлт илгээгээрэй
+              </p>
+              <button
+                type="button"
+                onClick={() => setTab("coaches")}
+                style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", marginTop: 4 }}
+              >
+                Coach хайх →
+              </button>
+            </div>
+          ) : (
+            <div style={styles.cardList}>
+              {myRequests.map((req) => (
+                <MyRequestCard
+                  key={req.id}
+                  req={req}
+                  coachProfile={myRequestCoaches[req.coachId]}
+                  locale={locale}
+                  router={router}
+                />
+              ))}
+            </div>
+          )}
 
           <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
         </div>

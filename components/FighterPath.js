@@ -51,10 +51,9 @@ const STEPS = [
     icon: "🥊",
     label: "Sparring partner",
     desc: "Тулах хүн олох",
-    check: () => false,
-    cta: null,
-    link: null,
-    soon: true,
+    check: (d) => !!(d.hasSparringPartner),
+    cta: "Sparring хайх",
+    link: "sparring",
   },
 ];
 
