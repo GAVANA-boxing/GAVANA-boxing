@@ -57,6 +57,7 @@ function getTypeLabel(type, t) {
   if (type === "session_completed") return t("notifLabelSessionCompleted");
   if (type === "sparring_request") return "Sparring хүсэлт";
   if (type === "sparring_accepted") return "Sparring зөвшөөрсөн";
+  if (type === "event_rsvp") return locale === "mn" ? "Event RSVP" : locale === "ko" ? "이벤트 참가 신청" : "Event RSVP";
   return t("update");
 }
 
@@ -112,6 +113,7 @@ function getTypeIcon(type) {
   if (type === "session_completed") return "🏆";
   if (type === "sparring_request") return "🥊";
   if (type === "sparring_accepted") return "✅";
+  if (type === "event_rsvp") return "🏆";
   return "•";
 }
 
@@ -171,7 +173,7 @@ export default function NotificationsPage() {
   const [actorProfiles, setActorProfiles] = useState({});
   const actorProfileRequests = useRef(new Set());
 
-  const SOCIAL_TYPES = new Set(["like", "comment", "follow", "save", "new_follower", "pvp_challenge", "challenge_attempt", "challenge_beaten", "remix", "featured", "sparring_request", "sparring_accepted"]);
+  const SOCIAL_TYPES = new Set(["like", "comment", "follow", "save", "new_follower", "pvp_challenge", "challenge_attempt", "challenge_beaten", "remix", "featured", "sparring_request", "sparring_accepted", "event_rsvp"]);
   const COACH_TYPES = new Set(["coach_request", "coach_accept", "coach_decline", "booking_scheduled", "session_completed"]);
   const GYM_TYPES = new Set(["gym_join_request", "gym_approved", "gym_declined"]);
 
@@ -368,6 +370,11 @@ export default function NotificationsPage() {
       const actorId = getActorId(notification);
       if (actorId) router.push(`/${locale}/inbox`);
       else router.push(`/${locale}/sparring`);
+      return;
+    }
+
+    if (notification.type === "event_rsvp" && notification.eventId) {
+      router.push(`/${locale}/events/${notification.eventId}`);
       return;
     }
 
