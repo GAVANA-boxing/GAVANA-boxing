@@ -2171,9 +2171,12 @@ export default function ReelsContent() {
         <div style={styles.commentsModal}>
           <div style={styles.commentsOverlay} onClick={handleCloseComments} />
           <div style={styles.commentsContent}>
+            <div style={styles.commentsHandle} />
             <div style={styles.commentsHeader}>
-              <h3 style={styles.commentsTitle}>{t("comment")}</h3>
-              <button style={styles.commentsClose} onClick={handleCloseComments}>x</button>
+              <span style={styles.commentsTitle}>{t("comment")}</span>
+              <button style={styles.commentsClose} onClick={handleCloseComments} aria-label="Close">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              </button>
             </div>
 
             <div style={styles.commentsList}>
@@ -2410,7 +2413,28 @@ export default function ReelsContent() {
                 </button>
               </div>
               <div style={styles.captionSheetBody}>
-                <p style={styles.captionSheetText}>{fullCaption}</p>
+                {fullCaption ? (
+                  <p style={styles.captionSheetText}>{fullCaption}</p>
+                ) : (
+                  <p style={{ ...styles.captionSheetText, opacity: 0.35 }}>—</p>
+                )}
+                {sheetReel && (sheetReel.contentType || sheetReel.difficulty) && (
+                  <div style={{ marginTop: 16, display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    {sheetReel.contentType && (
+                      <span style={styles.captionMetaChip}>
+                        {sheetReel.contentType === "training" ? "🥊 Training"
+                          : sheetReel.contentType === "educational" ? "📚 Educational"
+                          : sheetReel.contentType === "lifestyle" ? "🎬 Lifestyle"
+                          : sheetReel.contentType}
+                      </span>
+                    )}
+                    {sheetReel.difficulty && (
+                      <span style={styles.captionMetaChip}>
+                        {sheetReel.difficulty === "beginner" ? "🟢 Beginner" : sheetReel.difficulty}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -2546,6 +2570,17 @@ export default function ReelsContent() {
           45% { transform: scale(1.15); }
           100% { transform: scale(1); }
         }
+
+        @keyframes heartBurst {
+          0%   { opacity: 0; transform: scale(0.3); }
+          18%  { opacity: 1; transform: scale(1.45); }
+          65%  { opacity: 0.9; transform: scale(1.0); }
+          100% { opacity: 0; transform: scale(0.8) translateY(-18px); }
+        }
+        .heart-burst { animation: heartBurst 700ms cubic-bezier(0.16,1,0.3,1) forwards; pointer-events: none; }
+
+        .reel-action-circle { transition: transform 160ms ease, background 160ms ease, border-color 160ms ease; }
+        .reel-action:active .reel-action-circle { transform: scale(0.88); }
 
         [style*="cursor: pointer"]:active {
           transform: scale(0.96);
@@ -3203,7 +3238,7 @@ const styles = {
     background: "transparent",
     color: "var(--text-primary)",
     fontFamily: "inherit",
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: 900,
     margin: 0,
     letterSpacing: 0,
@@ -3422,6 +3457,18 @@ const styles = {
     whiteSpace: "pre-wrap",
     wordBreak: "break-word",
   },
+  captionMetaChip: {
+    display: "inline-flex",
+    alignItems: "center",
+    padding: "5px 11px",
+    borderRadius: 999,
+    background: "rgba(255,255,255,0.06)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: 0.3,
+  },
   metaLine: {
     display: "flex",
     gap: 14,
@@ -3462,17 +3509,17 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: 6,
-    paddingTop: 8,
-    paddingBottom: 8,
+    gap: 4,
+    paddingTop: 7,
+    paddingBottom: 7,
     paddingLeft: 4,
     paddingRight: 4,
     borderRadius: 999,
     background: "var(--glass)",
     border: "1px solid var(--line)",
     boxShadow: "var(--shadow-soft), inset 0 1px 0 rgba(255,255,255,0.08)",
-    backdropFilter: "blur(18px) saturate(140%)",
-    WebkitBackdropFilter: "blur(18px) saturate(140%)",
+    backdropFilter: "blur(22px) saturate(155%)",
+    WebkitBackdropFilter: "blur(22px) saturate(155%)",
     animation: "fadeScale 220ms ease both",
     zIndex: 5,
   },
@@ -3788,43 +3835,56 @@ const styles = {
     WebkitBackdropFilter: "blur(4px)",
   },
   commentsContent: {
-    background: "linear-gradient(180deg, #111 0%, #0B0B0B 100%)",
-    borderRadius: "24px 24px 0 0",
+    background: "linear-gradient(180deg, #0f0f0f 0%, #0a0a0a 100%)",
+    borderRadius: "22px 22px 0 0",
     width: "100%",
     maxHeight: "78vh",
     display: "flex",
     flexDirection: "column",
     position: "relative",
     zIndex: 1001,
-    borderTop: "1px solid rgba(212,175,55,0.16)",
-    boxShadow: "0 -24px 70px rgba(0,0,0,0.52)",
+    borderTop: "1px solid rgba(255,255,255,0.07)",
+    boxShadow: "0 -24px 70px rgba(0,0,0,0.65)",
+  },
+  commentsHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    background: "rgba(255,255,255,0.18)",
+    alignSelf: "center",
+    margin: "10px auto 0",
+    flexShrink: 0,
   },
   commentsHeader: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingTop: 20,
-    paddingBottom: 20,
+    paddingTop: 14,
+    paddingBottom: 14,
     paddingLeft: 20,
     paddingRight: 20,
-    borderBottom: "1px solid rgba(212,175,55,0.16)",
+    borderBottom: "1px solid rgba(255,255,255,0.055)",
   },
   commentsTitle: {
-    color: "var(--text-primary)",
-    fontSize: 20,
-    fontWeight: 950,
+    color: "rgba(255,255,255,0.85)",
+    fontSize: 14,
+    fontWeight: 800,
     margin: 0,
+    letterSpacing: 0.3,
+    textTransform: "uppercase",
   },
   commentsClose: {
-    background: "none",
-    border: "none",
-    color: "var(--text-primary)",
-    fontSize: 20,
+    background: "rgba(255,255,255,0.07)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: "50%",
+    width: 30,
+    height: 30,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "rgba(255,255,255,0.65)",
     cursor: "pointer",
-    paddingTop: 4,
-    paddingBottom: 4,
-    paddingLeft: 4,
-    paddingRight: 4,
+    padding: 0,
   },
   commentsList: {
     flex: 1,
@@ -3993,29 +4053,30 @@ const styles = {
   },
   commentInputField: {
     flex: 1,
-    paddingTop: 12,
-    paddingBottom: 12,
-    paddingLeft: 16,
-    paddingRight: 16,
-    borderRadius: 12,
-    border: "1px solid var(--line)",
-    background: "#111",
+    paddingTop: 11,
+    paddingBottom: 11,
+    paddingLeft: 14,
+    paddingRight: 14,
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.09)",
+    background: "rgba(255,255,255,0.06)",
     color: "var(--text-primary)",
     fontSize: 14,
     outline: "none",
   },
   commentSendBtn: {
-    paddingTop: 12,
-    paddingBottom: 12,
-    paddingLeft: 20,
-    paddingRight: 20,
-    borderRadius: 12,
+    paddingTop: 11,
+    paddingBottom: 11,
+    paddingLeft: 18,
+    paddingRight: 18,
+    borderRadius: 999,
     border: "none",
-    background: "var(--primary-red)",
-    color: "var(--text-primary)",
-    fontSize: 14,
-    fontWeight: 600,
+    background: "#C1121F",
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: 800,
     cursor: "pointer",
+    boxShadow: "0 4px 14px rgba(193,18,31,0.35)",
   },
   commentSendBtnDisabled: {
     background: "#333",
@@ -4375,27 +4436,29 @@ const styles = {
     display: "flex",
     flexWrap: "wrap",
     gap: 8,
-    marginTop: 12,
+    marginTop: 8,
   },
   tryThisButton: {
     width: "fit-content",
     maxWidth: "100%",
-    minHeight: 30,
+    minHeight: 26,
     marginTop: 0,
     paddingTop: 0,
     paddingBottom: 0,
-    paddingLeft: 12,
-    paddingRight: 12,
+    paddingLeft: 10,
+    paddingRight: 10,
     borderRadius: 999,
-    border: "1px solid rgba(193,18,31,0.5)",
-    background: "rgba(193,18,31,0.22)",
-    color: "#F87171",
+    border: "1px solid rgba(193,18,31,0.4)",
+    background: "rgba(0,0,0,0.38)",
+    color: "rgba(255,100,100,0.88)",
     fontFamily: "inherit",
-    fontSize: 11,
+    fontSize: 10,
     lineHeight: 1,
     fontWeight: 900,
-    letterSpacing: 0.3,
+    letterSpacing: 0.5,
     cursor: "pointer",
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)",
     boxShadow: "none",
     textShadow: "none",
     transition: "transform 180ms ease, background 180ms ease",
