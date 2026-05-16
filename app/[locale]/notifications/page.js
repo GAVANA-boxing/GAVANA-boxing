@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   collection,
+  deleteDoc,
   doc,
   getDoc,
   onSnapshot,
@@ -161,8 +162,14 @@ export default function NotificationsPage() {
   const router = useRouter();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filterType, setFilterType] = useState("all");
+  const [clearing, setClearing] = useState(false);
   const [actorProfiles, setActorProfiles] = useState({});
   const actorProfileRequests = useRef(new Set());
+
+  const SOCIAL_TYPES = new Set(["like", "comment", "follow", "save", "new_follower", "pvp_challenge", "challenge_attempt", "challenge_beaten", "remix", "featured"]);
+  const COACH_TYPES = new Set(["coach_request", "coach_accept", "coach_decline", "booking_scheduled", "session_completed"]);
+  const GYM_TYPES = new Set(["gym_join_request", "gym_approved", "gym_declined"]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -276,14 +283,35 @@ export default function NotificationsPage() {
     return notifications.filter((notification) => notification.read === false).length;
   }, [notifications]);
 
+  const filteredNotifications = useMemo(() => {
+    if (filterType === "all") return notifications;
+    if (filterType === "social") return notifications.filter((n) => SOCIAL_TYPES.has(n.type));
+    if (filterType === "coach") return notifications.filter((n) => COACH_TYPES.has(n.type));
+    if (filterType === "gym") return notifications.filter((n) => GYM_TYPES.has(n.type));
+    return notifications;
+  }, [notifications, filterType]);
+
   const groupedNotifications = useMemo(() => {
-    return notifications.reduce((groups, notification) => {
+    return filteredNotifications.reduce((groups, notification) => {
       const group = getTimeGroup(notification.createdAt);
       if (!groups[group]) groups[group] = [];
       groups[group].push(notification);
       return groups;
     }, {});
-  }, [notifications]);
+  }, [filteredNotifications]);
+
+  const handleClearRead = async () => {
+    const readIds = notifications.filter((n) => n.read === true).map((n) => n.id);
+    if (!readIds.length) return;
+    setClearing(true);
+    try {
+      await Promise.all(readIds.map((id) => deleteDoc(doc(db, "notifications", id))));
+    } catch (e) {
+      console.error("Clear read notifications error:", e);
+    } finally {
+      setClearing(false);
+    }
+  };
 
   const handleOpenNotification = async (notification) => {
     if (notification.read === false) {
@@ -394,14 +422,48 @@ export default function NotificationsPage() {
         </div>
       </header>
 
+      {/* Filter chips + Clear */}
+      <div style={styles.filterBar}>
+        <div style={styles.filterChips}>
+          {[
+            { key: "all",    label: "Бүгд" },
+            { key: "social", label: "🤝 Social" },
+            { key: "coach",  label: "🥊 Coach" },
+            { key: "gym",    label: "🏋️ Gym" },
+          ].map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setFilterType(key)}
+              style={{
+                ...styles.filterChip,
+                ...(filterType === key ? styles.filterChipActive : {}),
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {notifications.some((n) => n.read === true) && (
+          <button
+            type="button"
+            onClick={handleClearRead}
+            disabled={clearing}
+            style={styles.clearBtn}
+          >
+            {clearing ? "…" : "Арилгах"}
+          </button>
+        )}
+      </div>
+
       <section style={styles.list}>
-        {notifications.length === 0 ? (
+        {filteredNotifications.length === 0 ? (
           <div style={styles.empty}>
             <div style={styles.emptyIcon}>
               <BoxingGloveIcon />
             </div>
-            <p style={styles.emptyTitle}>{t("noNotificationsYet")}</p>
-            <p style={styles.emptyText}>{t("notificationsEmptyHelp")}</p>
+            <p style={styles.emptyTitle}>{filterType === "all" ? t("noNotificationsYet") : "Мэдэгдэл байхгүй"}</p>
+            <p style={styles.emptyText}>{filterType === "all" ? t("notificationsEmptyHelp") : "Энэ ангилалд мэдэгдэл байхгүй байна"}</p>
           </div>
         ) : (
           ["today", "yesterday", "earlier"].map((group) => (
@@ -742,6 +804,53 @@ const styles = {
     fontSize: 12,
     fontWeight: 700,
     color: "#aaa",
+  },
+  filterBar: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    padding: "10px 16px 4px",
+    maxWidth: 640,
+    margin: "0 auto",
+  },
+  filterChips: {
+    display: "flex",
+    gap: 6,
+    flex: 1,
+    overflowX: "auto",
+    scrollbarWidth: "none",
+    WebkitOverflowScrolling: "touch",
+  },
+  filterChip: {
+    flexShrink: 0,
+    padding: "6px 13px",
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.1)",
+    background: "rgba(255,255,255,0.04)",
+    color: "rgba(255,255,255,0.45)",
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+    transition: "all 0.15s ease",
+  },
+  filterChipActive: {
+    background: "rgba(193,18,31,0.18)",
+    border: "1px solid rgba(193,18,31,0.55)",
+    color: "#fff",
+    fontWeight: 900,
+  },
+  clearBtn: {
+    flexShrink: 0,
+    padding: "6px 12px",
+    borderRadius: 999,
+    border: "1px solid rgba(248,113,113,0.25)",
+    background: "rgba(248,113,113,0.06)",
+    color: "#F87171",
+    fontSize: 11,
+    fontWeight: 800,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
   },
 };
 
