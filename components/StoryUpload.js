@@ -159,8 +159,8 @@ export default function StoryUpload({ locale, initialType = "training_clip" }) {
                 style={progressType === pt.key ? s.ptActive : s.ptBtn}
                 onClick={() => setProgressType(pt.key)}
               >
-                <span style={{ fontSize: 26 }}>{pt.icon}</span>
-                <span style={{ fontSize: 11, fontWeight: 700 }}>{pt.label}</span>
+                <span style={{ fontSize: 28 }}>{pt.icon}</span>
+                <span style={{ fontSize: 10, fontWeight: 900, textAlign: "center", lineHeight: 1.2 }}>{pt.label}</span>
               </button>
             ))}
           </div>
@@ -220,31 +220,31 @@ export default function StoryUpload({ locale, initialType = "training_clip" }) {
 }
 
 const s = {
-  page: { minHeight: "100vh", background: "#0A0A0A", color: "#fff", fontFamily: "system-ui, sans-serif", display: "flex", flexDirection: "column" },
-  header: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "calc(16px + env(safe-area-inset-top)) 16px 12px", borderBottom: "1px solid rgba(255,255,255,0.07)" },
-  closeBtn: { background: "none", border: "none", color: "rgba(255,255,255,0.55)", fontSize: 18, cursor: "pointer", padding: "4px 8px" },
-  title: { fontSize: 15, fontWeight: 700, color: "#fff" },
-  postBtn: { background: "#C1121F", border: "none", borderRadius: 20, padding: "8px 20px", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer" },
-  postBtnGray: { background: "rgba(193,18,31,0.35)", border: "none", borderRadius: 20, padding: "8px 20px", color: "rgba(255,255,255,0.45)", fontSize: 13, cursor: "not-allowed" },
-  typeRow: { display: "flex", gap: 6, overflowX: "auto", padding: "12px 16px", scrollbarWidth: "none", borderBottom: "1px solid rgba(255,255,255,0.06)" },
-  typeChip: { flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: "8px 12px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.45)", fontSize: 11, fontWeight: 700, cursor: "pointer" },
-  typeActive: { flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: "8px 12px", borderRadius: 12, border: "1px solid rgba(212,175,55,0.5)", background: "rgba(212,175,55,0.1)", color: "#D4AF37", fontSize: 11, fontWeight: 900, cursor: "pointer" },
-  mediaArea: { flex: 1, padding: 16 },
-  uploadZone: { width: "100%", minHeight: 260, border: "2px dashed rgba(255,255,255,0.12)", borderRadius: 16, background: "rgba(255,255,255,0.02)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, cursor: "pointer", boxSizing: "border-box" },
-  zoneTxt: { fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.45)" },
-  zoneSub: { fontSize: 12, color: "rgba(255,255,255,0.28)" },
-  previewWrap: { position: "relative", width: "100%", maxHeight: 340, borderRadius: 12, overflow: "hidden", background: "#111" },
-  previewMedia: { width: "100%", maxHeight: 340, objectFit: "cover", display: "block" },
-  changeBtn: { position: "absolute", top: 10, right: 10, padding: "6px 12px", borderRadius: 20, background: "rgba(0,0,0,0.65)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" },
+  page: { minHeight: "100vh", background: "linear-gradient(180deg, #0d0005 0%, #070707 60%)", color: "#fff", fontFamily: "system-ui, sans-serif", display: "flex", flexDirection: "column" },
+  header: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "calc(16px + env(safe-area-inset-top)) 16px 14px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(7,7,7,0.88)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", position: "sticky", top: 0, zIndex: 10 },
+  closeBtn: { width: 36, height: 36, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.6)", fontSize: 15, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
+  title: { fontSize: 15, fontWeight: 800, color: "#fff", letterSpacing: 0.3 },
+  postBtn: { background: "linear-gradient(135deg, #C1121F, #8f0d17)", border: "none", borderRadius: 999, padding: "9px 22px", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", boxShadow: "0 4px 16px rgba(193,18,31,0.35)" },
+  postBtnGray: { background: "rgba(193,18,31,0.2)", border: "1px solid rgba(193,18,31,0.2)", borderRadius: 999, padding: "9px 22px", color: "rgba(255,255,255,0.3)", fontSize: 13, cursor: "not-allowed" },
+  typeRow: { display: "flex", gap: 6, overflowX: "auto", padding: "10px 16px", scrollbarWidth: "none", borderBottom: "1px solid rgba(255,255,255,0.05)" },
+  typeChip: { flexShrink: 0, display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.09)", background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.4)", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" },
+  typeActive: { flexShrink: 0, display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.5)", background: "rgba(193,18,31,0.12)", color: "#ff6b6b", fontSize: 12, fontWeight: 900, cursor: "pointer", whiteSpace: "nowrap" },
+  mediaArea: { flex: 1, padding: "16px 16px 0" },
+  uploadZone: { width: "100%", minHeight: 240, border: "2px dashed rgba(193,18,31,0.35)", borderRadius: 18, background: "rgba(193,18,31,0.03)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, cursor: "pointer", boxSizing: "border-box", transition: "border-color 200ms ease, background 200ms ease" },
+  zoneTxt: { fontSize: 15, fontWeight: 800, color: "rgba(255,255,255,0.55)" },
+  zoneSub: { fontSize: 12, color: "rgba(255,255,255,0.25)", marginTop: -4 },
+  previewWrap: { position: "relative", width: "100%", maxHeight: 360, borderRadius: 14, overflow: "hidden", background: "#0d0d0d", border: "1px solid rgba(255,255,255,0.08)" },
+  previewMedia: { width: "100%", maxHeight: 360, objectFit: "cover", display: "block" },
+  changeBtn: { position: "absolute", top: 10, right: 10, padding: "6px 14px", borderRadius: 999, background: "rgba(0,0,0,0.7)", border: "1px solid rgba(255,255,255,0.18)", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer", backdropFilter: "blur(8px)" },
   progressArea: { flex: 1, padding: "16px 16px 0" },
-  progressGrid: { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8, marginBottom: 14 },
-  ptBtn: { padding: "14px 8px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.45)", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 },
-  ptActive: { padding: "14px 8px", borderRadius: 12, border: "1px solid rgba(212,175,55,0.45)", background: "rgba(212,175,55,0.1)", color: "#D4AF37", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 },
-  captionWrap: { padding: "0 16px 20px" },
-  captionInput: { width: "100%", boxSizing: "border-box", padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "#fff", fontSize: 14, resize: "none", outline: "none", fontFamily: "inherit" },
-  fieldLabel: { margin: "0 0 7px", fontSize: 11, fontWeight: 900, color: "#D4AF37", textTransform: "uppercase", letterSpacing: 1 },
-  input: { width: "100%", boxSizing: "border-box", padding: "12px 14px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "#fff", fontSize: 14, outline: "none", marginBottom: 12, fontFamily: "inherit" },
-  error: { margin: "0 16px 16px", padding: "10px 14px", borderRadius: 10, background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.28)", color: "#F87171", fontSize: 13 },
-  successPage: { minHeight: "100vh", background: "#0A0A0A", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, fontFamily: "system-ui, sans-serif" },
+  progressGrid: { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8, marginBottom: 16 },
+  ptBtn: { padding: "16px 10px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.4)", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 6, transition: "all 160ms ease" },
+  ptActive: { padding: "16px 10px", borderRadius: 14, border: "1px solid rgba(193,18,31,0.45)", background: "rgba(193,18,31,0.1)", color: "#ff6b6b", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 6, boxShadow: "0 0 20px rgba(193,18,31,0.12)" },
+  captionWrap: { padding: "14px 16px 24px" },
+  captionInput: { width: "100%", boxSizing: "border-box", padding: "13px 14px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.09)", background: "rgba(255,255,255,0.03)", color: "#fff", fontSize: 14, resize: "none", outline: "none", fontFamily: "inherit", lineHeight: 1.5 },
+  fieldLabel: { margin: "0 0 8px", fontSize: 10, fontWeight: 900, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: 1.5 },
+  input: { width: "100%", boxSizing: "border-box", padding: "12px 14px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.09)", background: "rgba(255,255,255,0.03)", color: "#fff", fontSize: 14, outline: "none", marginBottom: 12, fontFamily: "inherit" },
+  error: { margin: "0 16px 16px", padding: "10px 14px", borderRadius: 10, background: "rgba(248,113,113,0.07)", border: "1px solid rgba(248,113,113,0.25)", color: "#F87171", fontSize: 13 },
+  successPage: { minHeight: "100vh", background: "#070707", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, fontFamily: "system-ui, sans-serif" },
   successText: { fontSize: 18, fontWeight: 800, color: "#fff", margin: 0 },
 };
