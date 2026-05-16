@@ -33,6 +33,8 @@ function CoachCard({ coach, t, locale, onRequest, requested, router }) {
     .join("")
     .toUpperCase();
 
+  const primarySpecialty = coach.coachSpecialties?.[0];
+
   return (
     <div style={styles.card}>
       <div style={styles.cardTop}>
@@ -59,76 +61,25 @@ function CoachCard({ coach, t, locale, onRequest, requested, router }) {
           {coach.coachLocation && (
             <div style={styles.cardLocation}>📍 {coach.coachLocation}</div>
           )}
-          {Number.isFinite(coach.coachExperienceYears) && coach.coachExperienceYears > 0 && (
-            <div style={styles.cardExp}>
-              {t("coachExperience").replace("{n}", coach.coachExperienceYears)}
-            </div>
-          )}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+            {primarySpecialty && (
+              <span style={styles.specialtyChip}>{primarySpecialty}</span>
+            )}
+            {Number.isFinite(coach.coachRating) && (
+              <span style={styles.cardRatingInline}>⭐ {coach.coachRating.toFixed(1)}</span>
+            )}
+          </div>
         </div>
       </div>
 
-      {coach.coachSpecialties?.length > 0 && (
-        <div style={styles.specialtyRow}>
-          {coach.coachSpecialties.slice(0, 4).map((s) => (
-            <span key={s} style={styles.specialtyChip}>{s}</span>
-          ))}
-        </div>
-      )}
-
-      {coach.coachBio && (
-        <p style={styles.cardBio}>{coach.coachBio}</p>
-      )}
-
-      <div style={styles.cardStats}>
-        {Number.isFinite(coach.coachRating) && (
-          <div style={styles.cardStat}>
-            <span style={styles.cardStatNum}>⭐ {coach.coachRating.toFixed(1)}</span>
-            <span style={styles.cardStatLbl}>{t("coachRating")}</span>
-          </div>
-        )}
-        {Number.isFinite(coach.coachTotalReviews) && coach.coachTotalReviews > 0 && (
-          <div style={styles.cardStat}>
-            <span style={styles.cardStatNum}>{coach.coachTotalReviews}</span>
-            <span style={styles.cardStatLbl}>{t("coachTotalReviews")}</span>
-          </div>
-        )}
-        {Number.isFinite(coach.completedSessions) && coach.completedSessions > 0 && (
-          <div style={styles.cardStat}>
-            <span style={styles.cardStatNum}>{coach.completedSessions}</span>
-            <span style={styles.cardStatLbl}>{t("coachCompletedSessions")}</span>
-          </div>
-        )}
-        {Number.isFinite(coach.coachStudentsCount) && (
-          <div style={styles.cardStat}>
-            <span style={styles.cardStatNum}>{coach.coachStudentsCount}</span>
-            <span style={styles.cardStatLbl}>{t("coachStudents")}</span>
-          </div>
-        )}
-        {Number.isFinite(coach.coachPricePerSession) && (
-          <div style={styles.cardStat}>
-            <span style={styles.cardStatNum}>${coach.coachPricePerSession}</span>
-            <span style={styles.cardStatLbl}>{t("coachPrice")}</span>
-          </div>
-        )}
-      </div>
-
-      <div style={styles.cardActions}>
-        <button
-          type="button"
-          style={styles.viewProfileBtn}
-          onClick={() => router.push(`/${locale}/coach/${coach.id}`)}
-        >
-          {t("viewProfile")}
-        </button>
-        <button
-          type="button"
-          style={requested ? styles.requestedBtn : styles.requestBtn}
-          disabled={requested}
-          onClick={() => onRequest(coach.id)}
-        >
-          {requested ? t("requestSent") : t("requestCoach")}
-        </button>
-      </div>
+      <button
+        type="button"
+        style={requested ? styles.requestedBtn : styles.requestBtn}
+        disabled={requested}
+        onClick={() => onRequest(coach.id)}
+      >
+        {requested ? t("requestSent") : t("requestCoach")}
+      </button>
     </div>
   );
 }
@@ -181,6 +132,7 @@ export default function CoachPage() {
   const [filterLocation, setFilterLocation] = useState("");
   const [sortBy, setSortBy] = useState("rating");
   const [requestedIds, setRequestedIds] = useState(new Set());
+  const [showCoachFilterSheet, setShowCoachFilterSheet] = useState(false);
   const [showSparringForm, setShowSparringForm] = useState(false);
   const [sparringForm, setSparringForm] = useState({
     weight: "", level: "", location: "", availableTime: "", note: "",
@@ -368,60 +320,78 @@ export default function CoachPage() {
             </div>
           )}
 
-          {/* Filters */}
-          <div style={styles.filterBar}>
-            <div style={styles.specialtyScroll}>
+          {/* Compact filter bar */}
+          <div style={styles.filterBarCompact}>
+            <button
+              type="button"
+              style={filterSpecialty === "" ? styles.chipActive : styles.chip}
+              onClick={() => setFilterSpecialty("")}
+            >
+              {t("coachFilterAll")}
+            </button>
+            {SPECIALTIES.slice(0, 2).map((s) => (
               <button
+                key={s}
                 type="button"
-                style={filterSpecialty === "" ? styles.chipActive : styles.chip}
-                onClick={() => setFilterSpecialty("")}
+                style={filterSpecialty === s ? styles.chipActive : styles.chip}
+                onClick={() => setFilterSpecialty((prev) => prev === s ? "" : s)}
               >
-                {t("coachFilterAll")}
+                {s}
               </button>
-              {SPECIALTIES.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  style={filterSpecialty === s ? styles.chipActive : styles.chip}
-                  onClick={() => setFilterSpecialty((prev) => prev === s ? "" : s)}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-
-            <div style={styles.specialtyScroll}>
-              {VIBE_FILTERS.map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  style={filterVibe === v ? styles.vibeChipActive : styles.vibeChip}
-                  onClick={() => setFilterVibe((prev) => (prev === v ? "" : v))}
-                >
-                  {v}
-                </button>
-              ))}
-            </div>
-
-            <div style={styles.filterRow}>
-              <input
-                type="text"
-                placeholder={t("coachLocation")}
-                value={filterLocation}
-                onChange={(e) => setFilterLocation(e.target.value)}
-                style={styles.filterInput}
-              />
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                style={styles.filterSelect}
-              >
-                <option value="rating">{t("coachSortRating")}</option>
-                <option value="students">{t("coachSortStudents")}</option>
-                <option value="verified">{t("coachSortVerified")}</option>
-              </select>
-            </div>
+            ))}
+            <button
+              type="button"
+              style={styles.filterMoreBtn}
+              onClick={() => setShowCoachFilterSheet(true)}
+            >
+              {(filterSpecialty && !SPECIALTIES.slice(0, 2).includes(filterSpecialty)) || filterVibe || filterLocation
+                ? "● Filters"
+                : "Filters ›"}
+            </button>
           </div>
+
+          {/* Full filter sheet */}
+          {showCoachFilterSheet && (
+            <div style={styles.filterSheetOverlay} onClick={() => setShowCoachFilterSheet(false)}>
+              <div style={styles.filterSheetModal} onClick={(e) => e.stopPropagation()}>
+                <div style={styles.filterSheetHandle} />
+                <p style={styles.filterSheetSectionLabel}>SPECIALTY</p>
+                <div style={styles.specialtyScroll}>
+                  <button type="button" style={filterSpecialty === "" ? styles.chipActive : styles.chip} onClick={() => setFilterSpecialty("")}>
+                    {t("coachFilterAll")}
+                  </button>
+                  {SPECIALTIES.map((s) => (
+                    <button key={s} type="button" style={filterSpecialty === s ? styles.chipActive : styles.chip} onClick={() => setFilterSpecialty((prev) => prev === s ? "" : s)}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
+                <p style={{ ...styles.filterSheetSectionLabel, marginTop: 16 }}>VIBE</p>
+                <div style={styles.specialtyScroll}>
+                  {VIBE_FILTERS.map((v) => (
+                    <button key={v} type="button" style={filterVibe === v ? styles.vibeChipActive : styles.vibeChip} onClick={() => setFilterVibe((prev) => (prev === v ? "" : v))}>
+                      {v}
+                    </button>
+                  ))}
+                </div>
+                <p style={{ ...styles.filterSheetSectionLabel, marginTop: 16 }}>LOCATION</p>
+                <input
+                  type="text"
+                  placeholder={t("coachLocation")}
+                  value={filterLocation}
+                  onChange={(e) => setFilterLocation(e.target.value)}
+                  style={{ ...styles.filterInput, marginBottom: 12 }}
+                />
+                <p style={styles.filterSheetSectionLabel}>SORT BY</p>
+                <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} style={styles.filterSelect}>
+                  <option value="rating">{t("coachSortRating")}</option>
+                  <option value="students">{t("coachSortStudents")}</option>
+                  <option value="verified">{t("coachSortVerified")}</option>
+                </select>
+                <button type="button" style={styles.filterSheetDone} onClick={() => setShowCoachFilterSheet(false)}>Done</button>
+              </div>
+            </div>
+          )}
 
           {coachesLoading && <div style={styles.loadingText}>Loading…</div>}
 
@@ -677,6 +647,87 @@ const styles = {
     flexDirection: "column",
     gap: 10,
     marginBottom: 20,
+  },
+  filterBarCompact: {
+    display: "flex",
+    gap: 6,
+    flexWrap: "nowrap",
+    overflowX: "auto",
+    paddingBottom: 4,
+    scrollbarWidth: "none",
+    marginBottom: 20,
+    alignItems: "center",
+  },
+  filterMoreBtn: {
+    flexShrink: 0,
+    padding: "5px 12px",
+    borderRadius: 999,
+    border: "1px solid rgba(212,175,55,0.3)",
+    background: "rgba(212,175,55,0.06)",
+    color: "#D4AF37",
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+  },
+  filterSheetOverlay: {
+    position: "fixed",
+    inset: 0,
+    zIndex: 300,
+    background: "rgba(0,0,0,0.65)",
+    backdropFilter: "blur(4px)",
+    display: "flex",
+    alignItems: "flex-end",
+    justifyContent: "center",
+  },
+  filterSheetModal: {
+    position: "relative",
+    width: "100%",
+    maxWidth: 520,
+    maxHeight: "80vh",
+    overflowY: "auto",
+    borderRadius: "20px 20px 0 0",
+    padding: "14px 20px calc(24px + env(safe-area-inset-bottom))",
+    background: "linear-gradient(180deg, #161212, #0a0a0a)",
+    border: "1px solid rgba(212,175,55,0.14)",
+    boxShadow: "0 -20px 50px rgba(0,0,0,0.6)",
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+  },
+  filterSheetHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    background: "rgba(255,255,255,0.18)",
+    alignSelf: "center",
+    marginBottom: 12,
+    flexShrink: 0,
+  },
+  filterSheetSectionLabel: {
+    margin: "0 0 8px",
+    fontSize: 10,
+    fontWeight: 900,
+    color: "#D4AF37",
+    letterSpacing: 1.5,
+  },
+  filterSheetDone: {
+    marginTop: 16,
+    width: "100%",
+    minHeight: 46,
+    border: "none",
+    borderRadius: 14,
+    background: "linear-gradient(135deg, #C1121F, #7d0812)",
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: 900,
+    cursor: "pointer",
+    boxShadow: "0 8px 24px rgba(193,18,31,0.25)",
+  },
+  cardRatingInline: {
+    fontSize: 12,
+    fontWeight: 800,
+    color: "#D4AF37",
   },
   specialtyScroll: {
     display: "flex",

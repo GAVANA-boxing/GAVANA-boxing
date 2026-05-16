@@ -221,6 +221,7 @@ export default function ReelsContent() {
   const [feedMode, setFeedMode] = useState("forYou");
   const [diffFilter, setDiffFilter] = useState("all"); // "all" | "beginner"
   const [ctFilter, setCtFilter] = useState("all"); // "all" | "training" | "lifestyle" | "educational"
+  const [showFilterSheet, setShowFilterSheet] = useState(false);
   const [allReels, setAllReels] = useState(null);
   const [reels, setReels] = useState([]);
   const [reelsLoading, setReelsLoading] = useState(true);
@@ -1784,38 +1785,20 @@ export default function ReelsContent() {
         </button>
         <button
           type="button"
-          onClick={() => setDiffFilter((prev) => (prev === "beginner" ? "all" : "beginner"))}
+          onClick={() => setShowFilterSheet(true)}
           style={{
             ...styles.feedTab,
-            ...(diffFilter === "beginner" ? {
+            ...((diffFilter !== "all" || ctFilter !== "all") ? {
               ...styles.feedTabActive,
-              color: "#34D399",
-              border: "1px solid rgba(52,211,153,0.5)",
+              color: "#D4AF37",
+              background: "rgba(212,175,55,0.15)",
             } : {}),
-            fontSize: 11,
-            padding: "4px 8px",
+            padding: "4px 9px",
+            fontSize: 14,
           }}
+          aria-label="Filters"
         >
-          {diffFilter === "beginner" ? `✓ ${t("beginnerFilter")}` : t("beginnerFilter")}
-        </button>
-        <button
-          type="button"
-          onClick={() => setCtFilter((prev) => {
-            const order = ["all", "training", "lifestyle", "educational"];
-            return order[(order.indexOf(prev) + 1) % order.length];
-          })}
-          style={{
-            ...styles.feedTab,
-            ...(ctFilter !== "all" ? {
-              ...styles.feedTabActive,
-              color: ctFilter === "training" ? "#F87171" : ctFilter === "lifestyle" ? "#60A5FA" : "#D4AF37",
-              border: ctFilter === "training" ? "1px solid rgba(193,18,31,0.5)" : ctFilter === "lifestyle" ? "1px solid rgba(96,165,250,0.4)" : "1px solid rgba(212,175,55,0.4)",
-            } : {}),
-            fontSize: 11,
-            padding: "4px 10px",
-          }}
-        >
-          {ctFilter === "all" ? "📂" : ctFilter === "training" ? "✓ 🥊" : ctFilter === "lifestyle" ? "✓ 🎬" : "✓ 📚"}
+          {(diffFilter !== "all" || ctFilter !== "all") ? "●" : "⚙"}
         </button>
       </div>
       )}
@@ -2041,43 +2024,6 @@ export default function ReelsContent() {
                   {captionText}
                 </button>
               )}
-              {/* Content type + difficulty badges */}
-              {!reel.isDemo && (() => {
-                const effectiveType = reel.contentType || reel.type || "lifestyle";
-                const isChallengeBadge = effectiveType === "training";
-                const isLifestyleBadge = effectiveType === "lifestyle";
-                const isEduBadge = effectiveType === "educational";
-                if (!isChallengeBadge && !isLifestyleBadge && !isEduBadge && !reel.difficulty) return null;
-                return (
-                  <div style={styles.reelBadgeRow}>
-                    {isChallengeBadge && (
-                      <span style={{ ...styles.reelBadge, background: "rgba(193,18,31,0.18)", color: "#F87171", borderColor: "rgba(193,18,31,0.4)" }}>
-                        🥊 {t("ctFilterTraining")}
-                      </span>
-                    )}
-                    {isLifestyleBadge && (
-                      <span style={{ ...styles.reelBadge, background: "rgba(96,165,250,0.15)", color: "#60A5FA", borderColor: "rgba(96,165,250,0.35)" }}>
-                        🎬 {t("ctFilterLifestyle")}
-                      </span>
-                    )}
-                    {isEduBadge && (
-                      <span style={{ ...styles.reelBadge, background: "rgba(212,175,55,0.15)", color: "#D4AF37", borderColor: "rgba(212,175,55,0.35)" }}>
-                        📚 {t("ctFilterEducational")}
-                      </span>
-                    )}
-                    {reel.difficulty && (
-                      <span style={{
-                        ...styles.reelBadge,
-                        background: reel.difficulty === "beginner" ? "rgba(52,211,153,0.15)" : reel.difficulty === "intermediate" ? "rgba(212,175,55,0.15)" : "rgba(193,18,31,0.18)",
-                        color: reel.difficulty === "beginner" ? "#34D399" : reel.difficulty === "intermediate" ? "#D4AF37" : "#F87171",
-                        borderColor: reel.difficulty === "beginner" ? "rgba(52,211,153,0.35)" : reel.difficulty === "intermediate" ? "rgba(212,175,55,0.35)" : "rgba(193,18,31,0.4)",
-                      }}>
-                        {t(`diff${reel.difficulty.charAt(0).toUpperCase()}${reel.difficulty.slice(1)}`) || reel.difficulty}
-                      </span>
-                    )}
-                  </div>
-                );
-              })()}
               {/* Primary CTA — single, type-aware, no duplicates */}
               {!reel.isDemo && (() => {
                 const effectiveType = reel.contentType || reel.type || "lifestyle";
@@ -2480,6 +2426,61 @@ export default function ReelsContent() {
       >
         <SpeakerIcon muted={!soundEnabled} />
       </button>
+
+      {/* Filter sheet */}
+      {showFilterSheet && (
+        <div style={styles.filterSheetOverlay} onClick={() => setShowFilterSheet(false)}>
+          <div style={styles.filterSheet} onClick={(e) => e.stopPropagation()}>
+            <div style={styles.filterSheetHandle} />
+            <div style={styles.filterSheetHeader}>
+              <span style={styles.filterSheetTitle}>FILTERS</span>
+              <button type="button" style={styles.filterSheetClose} onClick={() => setShowFilterSheet(false)}>✕</button>
+            </div>
+            <div style={styles.filterSheetBody}>
+              <p style={styles.filterSheetLabel}>LEVEL</p>
+              <div style={styles.filterSheetRow}>
+                {[{ key: "all", label: "All levels" }, { key: "beginner", label: "🟢 Beginner" }].map(({ key, label }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setDiffFilter(key)}
+                    style={{ ...styles.filterChip, ...(diffFilter === key ? styles.filterChipActive : {}) }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <p style={{ ...styles.filterSheetLabel, marginTop: 16 }}>CONTENT</p>
+              <div style={styles.filterSheetRow}>
+                {[
+                  { key: "all", label: "📂 All" },
+                  { key: "training", label: "🥊 Training" },
+                  { key: "lifestyle", label: "🎬 Lifestyle" },
+                  { key: "educational", label: "📚 Education" },
+                ].map(({ key, label }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setCtFilter(key)}
+                    style={{ ...styles.filterChip, ...(ctFilter === key ? styles.filterChipActive : {}) }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {(diffFilter !== "all" || ctFilter !== "all") && (
+                <button
+                  type="button"
+                  style={styles.filterClearBtn}
+                  onClick={() => { setDiffFilter("all"); setCtFilter("all"); }}
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <BottomNav
         router={router}
@@ -3251,6 +3252,105 @@ const styles = {
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
+  },
+  filterSheetOverlay: {
+    position: "fixed",
+    inset: 0,
+    zIndex: 9999,
+    background: "rgba(0,0,0,0.55)",
+    display: "flex",
+    alignItems: "flex-end",
+    justifyContent: "center",
+  },
+  filterSheet: {
+    width: "100%",
+    maxWidth: 600,
+    background: "linear-gradient(180deg, #161212, #0a0a0a)",
+    borderRadius: "20px 20px 0 0",
+    padding: "10px 20px calc(32px + env(safe-area-inset-bottom))",
+    border: "1px solid rgba(212,175,55,0.12)",
+    boxShadow: "0 -16px 48px rgba(0,0,0,0.7)",
+    display: "flex",
+    flexDirection: "column",
+  },
+  filterSheetHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    background: "rgba(255,255,255,0.18)",
+    alignSelf: "center",
+    marginBottom: 16,
+    flexShrink: 0,
+  },
+  filterSheetHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+  filterSheetTitle: {
+    fontSize: 10,
+    fontWeight: 900,
+    color: "rgba(255,255,255,0.4)",
+    letterSpacing: 2,
+  },
+  filterSheetClose: {
+    background: "rgba(255,255,255,0.08)",
+    border: "none",
+    borderRadius: "50%",
+    width: 28,
+    height: 28,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 12,
+    cursor: "pointer",
+    padding: 0,
+  },
+  filterSheetBody: {
+    display: "flex",
+    flexDirection: "column",
+  },
+  filterSheetLabel: {
+    margin: "0 0 10px",
+    fontSize: 10,
+    fontWeight: 900,
+    color: "#D4AF37",
+    letterSpacing: 1.5,
+  },
+  filterSheetRow: {
+    display: "flex",
+    gap: 8,
+    flexWrap: "wrap",
+  },
+  filterChip: {
+    padding: "7px 14px",
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.14)",
+    background: "rgba(255,255,255,0.06)",
+    color: "rgba(255,255,255,0.65)",
+    fontSize: 12,
+    fontWeight: 800,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+  },
+  filterChipActive: {
+    border: "1px solid rgba(193,18,31,0.6)",
+    background: "rgba(193,18,31,0.2)",
+    color: "#F87171",
+  },
+  filterClearBtn: {
+    marginTop: 20,
+    padding: "10px 20px",
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.12)",
+    background: "rgba(255,255,255,0.05)",
+    color: "rgba(255,255,255,0.5)",
+    fontSize: 12,
+    fontWeight: 800,
+    cursor: "pointer",
+    alignSelf: "flex-start",
   },
   captionSheetOverlay: {
     position: "fixed",
@@ -4280,25 +4380,25 @@ const styles = {
   tryThisButton: {
     width: "fit-content",
     maxWidth: "100%",
-    minHeight: 34,
+    minHeight: 30,
     marginTop: 0,
     paddingTop: 0,
     paddingBottom: 0,
-    paddingLeft: 14,
-    paddingRight: 14,
+    paddingLeft: 12,
+    paddingRight: 12,
     borderRadius: 999,
-    border: "1px solid rgba(212,175,55,0.42)",
-    background: "linear-gradient(135deg, rgba(193,18,31,0.94), rgba(92,7,17,0.94) 58%, rgba(147,104,26,0.9))",
-    color: "var(--text-primary)",
+    border: "1px solid rgba(193,18,31,0.5)",
+    background: "rgba(193,18,31,0.22)",
+    color: "#F87171",
     fontFamily: "inherit",
-    fontSize: 13,
+    fontSize: 11,
     lineHeight: 1,
-    fontWeight: 950,
-    letterSpacing: 0,
+    fontWeight: 900,
+    letterSpacing: 0.3,
     cursor: "pointer",
-    boxShadow: "0 10px 28px rgba(193,18,31,0.26), inset 0 1px 0 rgba(255,255,255,0.14)",
-    textShadow: "0 2px 8px rgba(0,0,0,0.5)",
-    transition: "transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease",
+    boxShadow: "none",
+    textShadow: "none",
+    transition: "transform 180ms ease, background 180ms ease",
     WebkitTapHighlightColor: "transparent",
   },
   beatScoreButton: {
