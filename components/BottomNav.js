@@ -124,17 +124,15 @@ export default function BottomNav({
     return () => { active = false; unsub(); };
   }, [user?.uid]);
 
-  // Unread notification count
+  // Unread notification count — single-field query + JS filter avoids composite index
   useEffect(() => {
     if (!user?.uid) { setUnreadCount(0); return; }
     let active = true;
-    const q = query(
-      collection(db, "notifications"),
-      where("recipientId", "==", user.uid),
-      where("read", "==", false)
-    );
-    const unsub = onSnapshot(q, (snap) => { if (active) setUnreadCount(snap.size); },
-      () => { if (active) setUnreadCount(0); });
+    const q = query(collection(db, "notifications"), where("recipientId", "==", user.uid));
+    const unsub = onSnapshot(q, (snap) => {
+      if (!active) return;
+      setUnreadCount(snap.docs.filter((d) => d.data().read === false).length);
+    }, () => { if (active) setUnreadCount(0); });
     return () => { active = false; unsub(); };
   }, [user?.uid]);
 

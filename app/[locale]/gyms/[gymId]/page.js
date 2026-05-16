@@ -9,7 +9,6 @@ import {
   doc,
   getDoc,
   getDocs,
-  orderBy,
   query,
   serverTimestamp,
   updateDoc,
@@ -151,17 +150,18 @@ export default function GymProfilePage() {
     let active = true;
     async function load() {
       try {
+        const byTs = (a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0);
         const [gymSnap, reelsSnap, reviewsSnap, announcementsSnap] = await Promise.all([
           getDoc(doc(db, "gyms", gymId)),
-          getDocs(query(collection(db, "reels"), where("gymId", "==", gymId), orderBy("createdAt", "desc"))),
-          getDocs(query(collection(db, "gym_reviews"), where("gymId", "==", gymId), orderBy("createdAt", "desc"))),
-          getDocs(query(collection(db, "gym_announcements"), where("gymId", "==", gymId), orderBy("createdAt", "desc"))),
+          getDocs(query(collection(db, "reels"), where("gymId", "==", gymId))),
+          getDocs(query(collection(db, "gym_reviews"), where("gymId", "==", gymId))),
+          getDocs(query(collection(db, "gym_announcements"), where("gymId", "==", gymId))),
         ]);
         if (!active) return;
         if (gymSnap.exists()) setGym({ id: gymSnap.id, ...gymSnap.data() });
-        setReels(reelsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
-        setReviews(reviewsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
-        setAnnouncements(announcementsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setReels(reelsSnap.docs.map((d) => ({ id: d.id, ...d.data() })).sort(byTs));
+        setReviews(reviewsSnap.docs.map((d) => ({ id: d.id, ...d.data() })).sort(byTs));
+        setAnnouncements(announcementsSnap.docs.map((d) => ({ id: d.id, ...d.data() })).sort(byTs));
 
         // Load approved members
         const membersSnap = await getDocs(query(
