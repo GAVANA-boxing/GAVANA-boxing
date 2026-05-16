@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { collection, getDocs, getDoc, doc, query, where, orderBy, Timestamp } from "firebase/firestore";
+import { collection, getDocs, getDoc, doc, query, where, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale, translate } from "@/lib/i18n";
@@ -85,10 +85,12 @@ export default function CreatorDashboard() {
 
     async function load() {
       try {
-        // 1. Load user's reels
-        const reelsSnap = await getDocs(query(collection(db, "reels"), where("userId", "==", user.uid), orderBy("createdAt", "desc")));
+        // 1. Load user's reels — sort JS-side to avoid composite index
+        const reelsSnap = await getDocs(query(collection(db, "reels"), where("userId", "==", user.uid)));
         if (!active) return;
-        const reelDocs = reelsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        const reelDocs = reelsSnap.docs
+          .map((d) => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => getCreatedAtMs(b) - getCreatedAtMs(a));
         setReels(reelDocs);
 
         const reelIds = reelDocs.map((r) => r.id);
@@ -127,15 +129,19 @@ export default function CreatorDashboard() {
         setFollowerCount(followSnap.size);
         setNewFollowersThisWeek(weekNew);
 
-        // 5. Check whether this creator is currently featured
-        const now = Timestamp.now();
+        // 5. Check whether this creator is currently featured — single-field + JS filter
         const featuredSnap = await getDocs(query(
           collection(db, "featured_creators"),
-          where("userId", "==", user.uid),
-          where("featuredUntil", ">=", now)
+          where("userId", "==", user.uid)
         ));
         if (!active) return;
-        setIsFeatured(!featuredSnap.empty);
+        const nowMs = Date.now();
+        const isCurrentlyFeatured = featuredSnap.docs.some((d) => {
+          const until = d.data().featuredUntil;
+          const untilMs = until?.toMillis?.() || until?.toDate?.().getTime?.() || 0;
+          return untilMs > nowMs;
+        });
+        setIsFeatured(isCurrentlyFeatured);
       } catch (err) {
         console.error("Creator dashboard load error:", err);
       } finally {
@@ -194,6 +200,17 @@ export default function CreatorDashboard() {
   const attemptsByReel = {};
   externalAttempts.forEach((a) => { attemptsByReel[a.reelId] = (attemptsByReel[a.reelId] || 0) + 1; });
   const reelsByAttempts = [...reels].sort((a, b) => (attemptsByReel[b.id] || 0) - (attemptsByReel[a.id] || 0));
+  const mostChallengedReel = reelsByAttempts[0] && attemptsByReel[reelsByAttempts[0].id] > 0 ? reelsByAttempts[0] : null;
+
+  // Score distribution across all external attempts
+  const scoreDistrib = externalAttempts.reduce((acc, a) => {
+    const s = Number(a.score) || 0;
+    if (s >= 8) acc.excellent += 1;
+    else if (s >= 6) acc.good += 1;
+    else acc.poor += 1;
+    return acc;
+  }, { excellent: 0, good: 0, poor: 0 });
+  const distribTotal = externalAttempts.length || 1;
 
   return (
     <div style={styles.page}>
@@ -288,6 +305,28 @@ export default function CreatorDashboard() {
             <span style={styles.tipText}>{growthTip}</span>
           </div>
 
+          {/* Score distribution — only when there are external attempts */}
+          {externalAttempts.length > 0 && (
+            <section style={styles.section}>
+              <h2 style={styles.sectionTitle}>🎯 {locale === "mn" ? "Оролдлогын оноо хуваарилалт" : locale === "ko" ? "도전 점수 분포" : "Challenge Score Distribution"}</h2>
+              <div style={{ background: "linear-gradient(145deg, #111012, #0a0a0a)", border: "1px solid rgba(255,255,255,0.07)", borderLeft: "2.5px solid #D4AF37", borderRadius: "3px 14px 14px 3px", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+                {[
+                  { key: "excellent", label: locale === "mn" ? "🌟 Шилдэг (8–10)" : locale === "ko" ? "🌟 우수 (8–10)" : "🌟 Excellent (8–10)", count: scoreDistrib.excellent, color: "#34D399" },
+                  { key: "good",      label: locale === "mn" ? "👍 Сайн (6–7)"    : locale === "ko" ? "👍 양호 (6–7)"    : "👍 Good (6–7)",      count: scoreDistrib.good,      color: "#D4AF37" },
+                  { key: "poor",      label: locale === "mn" ? "📈 Хүчилгэй (<6)" : locale === "ko" ? "📈 개선 필요 (<6)" : "📈 Needs work (<6)", count: scoreDistrib.poor,      color: "#F87171" },
+                ].map(({ key, label, count, color }) => (
+                  <div key={key} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color, width: 140, flexShrink: 0 }}>{label}</span>
+                    <div style={{ flex: 1, height: 6, borderRadius: 999, background: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
+                      <div style={{ height: "100%", borderRadius: 999, background: color, width: `${Math.round((count / distribTotal) * 100)}%`, transition: "width 0.5s ease" }} />
+                    </div>
+                    <span style={{ fontSize: 12, fontWeight: 900, color, width: 24, textAlign: "right", flexShrink: 0 }}>{count}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {reels.length === 0 ? (
             <div style={styles.emptyState}>
               <p style={styles.emptyText}>{t("creatorNoReels")}</p>
@@ -297,6 +336,28 @@ export default function CreatorDashboard() {
             </div>
           ) : (
             <>
+              {/* Most challenged reel highlight */}
+              {mostChallengedReel && (
+                <section style={styles.section}>
+                  <h2 style={styles.sectionTitle}>🔥 {locale === "mn" ? "Хамгийн их сорилт авсан" : locale === "ko" ? "도전 최다 릴" : "Most Challenged Reel"}</h2>
+                  <div
+                    style={{ background: "linear-gradient(145deg, #1c0202, #0e0000)", border: "1px solid rgba(193,18,31,0.2)", borderLeft: "3px solid #C1121F", borderRadius: "3px 14px 14px 3px", padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
+                    onClick={() => router.push(`/${locale}/reels?reelId=${mostChallengedReel.id}`)}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", marginBottom: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {mostChallengedReel.description || mostChallengedReel.caption || t("trainingReel")}
+                      </div>
+                      <div style={{ fontSize: 11, color: "#888" }}>
+                        🥊 {attemptsByReel[mostChallengedReel.id]} {locale === "mn" ? "оролдлого" : locale === "ko" ? "도전" : "challenges"}
+                        {avgScore && <span style={{ marginLeft: 10, color: "#D4AF37" }}>⭐ avg {avgScore}/10</span>}
+                      </div>
+                    </div>
+                    <span style={{ color: "#C1121F", fontSize: 18, flexShrink: 0 }}>→</span>
+                  </div>
+                </section>
+              )}
+
               {/* Reel performance list */}
               <section style={styles.section}>
                 <h2 style={styles.sectionTitle}>📈 {t("creatorPerformance")}</h2>
@@ -308,6 +369,11 @@ export default function CreatorDashboard() {
               </section>
             </>
           )}
+
+          {/* Persistent upload CTA */}
+          <button type="button" style={styles.uploadBtn} onClick={() => router.push(`/${locale}/upload`)}>
+            + {locale === "mn" ? "Шинэ reel нийтлэх" : locale === "ko" ? "새 릴 업로드" : "Upload New Reel"}
+          </button>
         </div>
       )}
 
