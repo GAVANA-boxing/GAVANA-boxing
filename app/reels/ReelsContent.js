@@ -1844,6 +1844,7 @@ export default function ReelsContent() {
               router.push(`/${currentLocale}/profile/${reel.userId}`);
             }
           };
+          const hasStory = !!(creatorProfile?.storyActive || creatorProfile?.hasActiveStory);
 
           return (
           <div
@@ -1988,6 +1989,10 @@ export default function ReelsContent() {
                   style={{
                     ...styles.creatorAvatarButton,
                     cursor: reel.userId ? "pointer" : "default",
+                    ...(hasStory ? {
+                      borderColor: "#C1121F",
+                      boxShadow: "0 0 0 2px #C1121F, 0 0 0 4px rgba(212,175,55,0.35)",
+                    } : {}),
                   }}
                   onClick={openCreatorProfile}
                   aria-label={`Open ${creatorName}'s profile`}
@@ -2129,7 +2134,6 @@ export default function ReelsContent() {
                     <BookmarkIcon filled={savedReels.has(reel.id)} />
                   </span>
                 </div>
-                <span style={styles.actionText}>{savedReels.has(reel.id) ? t("saved") : t("save")}</span>
               </div>
               <div
                 className="reel-action"
@@ -2140,7 +2144,7 @@ export default function ReelsContent() {
                 <div className="reel-action-circle" style={styles.actionCircle}>
                   <RobotIcon />
                 </div>
-                <span style={styles.actionText}>AI</span>
+                <span style={{ fontSize: 8, color: "rgba(255,255,255,0.35)", fontWeight: 700, textShadow: "0 2px 8px rgba(0,0,0,0.95)" }}>AI</span>
               </div>
               <div
                 className="reel-action"
@@ -2148,10 +2152,9 @@ export default function ReelsContent() {
                 onClick={() => setBreakdownReel(reel)}
                 title={t("aiBreakdownBtn")}
               >
-                <div className="reel-action-circle" style={{ ...styles.actionCircle, fontSize: 18 }}>
-                  🧠
+                <div className="reel-action-circle" style={styles.actionCircle}>
+                  <AISparkIcon />
                 </div>
-                <span style={styles.actionText}>{t("aiBreakdownBtn")}</span>
               </div>
             </div>
 
@@ -2731,6 +2734,17 @@ function RobotIcon() {
   );
 }
 
+function AISparkIcon() {
+  return (
+    <svg style={{ ...styles.actionSvg, width: 18, height: 18 }} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M9.5 3 4 13h7l-1.5 8L20 11h-7L14.5 3z"
+        fill="none" stroke="currentColor" strokeWidth="1.5"
+        strokeLinecap="round" strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function CenterPlayIcon() {
   return (
     <div style={{
@@ -3194,8 +3208,8 @@ const styles = {
   creatorRow: {
     display: "flex",
     alignItems: "center",
-    gap: 12,
-    marginBottom: 14,
+    gap: 10,
+    marginBottom: 10,
   },
   creatorAvatarButton: {
     width: 44,
