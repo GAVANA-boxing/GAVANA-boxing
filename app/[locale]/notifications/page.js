@@ -301,11 +301,14 @@ export default function NotificationsPage() {
   }, [filteredNotifications]);
 
   const handleClearRead = async () => {
-    const readIds = notifications.filter((n) => n.read === true).map((n) => n.id);
-    if (!readIds.length) return;
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+    const staleReadIds = notifications
+      .filter((n) => n.read === true && getTimestampMs(n.createdAt) < cutoff)
+      .map((n) => n.id);
+    if (!staleReadIds.length) return;
     setClearing(true);
     try {
-      await Promise.all(readIds.map((id) => deleteDoc(doc(db, "notifications", id))));
+      await Promise.all(staleReadIds.map((id) => deleteDoc(doc(db, "notifications", id))));
     } catch (e) {
       console.error("Clear read notifications error:", e);
     } finally {
@@ -444,14 +447,14 @@ export default function NotificationsPage() {
             </button>
           ))}
         </div>
-        {notifications.some((n) => n.read === true) && (
+        {notifications.some((n) => n.read === true && getTimestampMs(n.createdAt) < Date.now() - 86400000) && (
           <button
             type="button"
             onClick={handleClearRead}
             disabled={clearing}
             style={styles.clearBtn}
           >
-            {clearing ? "…" : "Арилгах"}
+            {clearing ? "…" : locale === "mn" ? "Арилгах" : locale === "ko" ? "지우기" : "Clear"}
           </button>
         )}
       </div>
@@ -462,8 +465,8 @@ export default function NotificationsPage() {
             <div style={styles.emptyIcon}>
               <BoxingGloveIcon />
             </div>
-            <p style={styles.emptyTitle}>{filterType === "all" ? t("noNotificationsYet") : "Мэдэгдэл байхгүй"}</p>
-            <p style={styles.emptyText}>{filterType === "all" ? t("notificationsEmptyHelp") : "Энэ ангилалд мэдэгдэл байхгүй байна"}</p>
+            <p style={styles.emptyTitle}>{filterType === "all" ? t("noNotificationsYet") : locale === "mn" ? "Мэдэгдэл байхгүй" : locale === "ko" ? "알림 없음" : "No notifications"}</p>
+            <p style={styles.emptyText}>{filterType === "all" ? t("notificationsEmptyHelp") : locale === "mn" ? "Энэ ангилалд мэдэгдэл байхгүй байна" : locale === "ko" ? "이 카테고리에 알림이 없습니다" : "No notifications in this category"}</p>
           </div>
         ) : (
           ["today", "yesterday", "earlier"].map((group) => (

@@ -478,9 +478,15 @@ export default function LeaderboardPage() {
           <div style={styles.emptyWrap}>
             <div style={styles.emptyIcon}>🏆</div>
             <p style={styles.emptyTitle}>
-              {leaderboardTab === "week" ? t("seasonNoResultsThisWeek") : leaderboardTab === "improvement" ? t("lbImprovementEmpty") : leaderboardTab === "streak" ? t("lbStreakEmpty") : leaderboardTab === "friends" ? t("followingEmptyHelp") : t("leaderboardEmpty")}
+              {archetypeFilter !== "all" || weightFilter !== "all"
+                ? (locale === "mn" ? "Тохирох байлдагч олдсонгүй" : locale === "ko" ? "해당 필터에 선수 없음" : "No fighters match this filter")
+                : leaderboardTab === "week" ? t("seasonNoResultsThisWeek") : leaderboardTab === "improvement" ? t("lbImprovementEmpty") : leaderboardTab === "streak" ? t("lbStreakEmpty") : leaderboardTab === "friends" ? t("followingEmptyHelp") : t("leaderboardEmpty")}
             </p>
-            <p style={styles.emptyText}>{t("leaderboardEmptyHelp")}</p>
+            <p style={styles.emptyText}>
+              {archetypeFilter !== "all" || weightFilter !== "all"
+                ? (locale === "mn" ? "Шүүлтүүрийг өөрчлөөд дахин үзнэ үү" : locale === "ko" ? "필터를 변경해 보세요" : "Try changing or clearing the filters")
+                : t("leaderboardEmptyHelp")}
+            </p>
           </div>
         )}
 

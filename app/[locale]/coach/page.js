@@ -27,9 +27,21 @@ const VIBE_FILTERS = ["Friendly", "Technical", "Hard sparring", "Competitive"];
 
 const LEVELS = ["Amateur", "Fighter", "Pro", "Elite", "Champion"];
 
-function formatTimeAgo(date) {
+function formatTimeAgo(date, locale) {
   const diff = Date.now() - date.getTime();
   const days = Math.floor(diff / 86400000);
+  if (locale === "ko") {
+    if (days === 0) return "오늘";
+    if (days === 1) return "어제";
+    if (days < 7) return `${days}일 전`;
+    return date.toLocaleDateString();
+  }
+  if (locale !== "mn") {
+    if (days === 0) return "Today";
+    if (days === 1) return "Yesterday";
+    if (days < 7) return `${days}d ago`;
+    return date.toLocaleDateString();
+  }
   if (days === 0) return "Өнөөдөр";
   if (days === 1) return "Өчигдөр";
   if (days < 7) return `${days} өдрийн өмнө`;
@@ -37,12 +49,23 @@ function formatTimeAgo(date) {
 }
 
 const REQ_STATUS = {
-  pending:   { bg: "rgba(245,158,11,0.1)",  border: "rgba(245,158,11,0.35)",  color: "#F59E0B", label: "⏳ Хүлээгдэж байна" },
-  accepted:  { bg: "rgba(52,211,153,0.1)",  border: "rgba(52,211,153,0.35)",  color: "#34D399", label: "✓ Зөвшөөрөгдсөн" },
-  declined:  { bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.35)", color: "#F87171", label: "✕ Татгалзсан" },
-  scheduled: { bg: "rgba(167,139,250,0.1)", border: "rgba(167,139,250,0.35)", color: "#A78BFA", label: "📅 Товлогдсон" },
-  completed: { bg: "rgba(96,165,250,0.1)",  border: "rgba(96,165,250,0.35)",  color: "#60A5FA", label: "✓ Дууссан" },
+  pending:   { bg: "rgba(245,158,11,0.1)",  border: "rgba(245,158,11,0.35)",  color: "#F59E0B" },
+  accepted:  { bg: "rgba(52,211,153,0.1)",  border: "rgba(52,211,153,0.35)",  color: "#34D399" },
+  declined:  { bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.35)", color: "#F87171" },
+  scheduled: { bg: "rgba(167,139,250,0.1)", border: "rgba(167,139,250,0.35)", color: "#A78BFA" },
+  completed: { bg: "rgba(96,165,250,0.1)",  border: "rgba(96,165,250,0.35)",  color: "#60A5FA" },
 };
+
+function getReqStatusLabel(status, locale) {
+  const labels = {
+    pending:   { mn: "⏳ Хүлээгдэж байна", ko: "⏳ 대기 중",      en: "⏳ Pending" },
+    accepted:  { mn: "✓ Зөвшөөрөгдсөн",   ko: "✓ 수락됨",        en: "✓ Accepted" },
+    declined:  { mn: "✕ Татгалзсан",       ko: "✕ 거절됨",        en: "✕ Declined" },
+    scheduled: { mn: "📅 Товлогдсон",      ko: "📅 예약됨",       en: "📅 Scheduled" },
+    completed: { mn: "✓ Дууссан",          ko: "✓ 완료됨",        en: "✓ Completed" },
+  };
+  return (labels[status] || labels.pending)[locale] || (labels[status] || labels.pending).en;
+}
 
 function CoachCard({ coach, t, locale, onRequest, requested, router }) {
   const initials = (coach.displayName || coach.username || "?")
@@ -123,7 +146,8 @@ function MyRequestCard({ req, coachProfile, locale, router }) {
   const photo = coachProfile?.photoURL || coachProfile?.profileImageUrl || "";
   const initials = name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
   const st = REQ_STATUS[req.status] || REQ_STATUS.pending;
-  const timeAgo = req.createdAt?.toDate ? formatTimeAgo(req.createdAt.toDate()) : "";
+  const statusLabel = getReqStatusLabel(req.status, locale);
+  const timeAgo = req.createdAt?.toDate ? formatTimeAgo(req.createdAt.toDate(), locale) : "";
 
   return (
     <div style={{ ...styles.card, borderLeft: `2.5px solid ${st.color}`, borderRadius: "3px 18px 18px 3px" }}>
@@ -142,7 +166,7 @@ function MyRequestCard({ req, coachProfile, locale, router }) {
             )}
           </div>
           <span style={{ display: "inline-flex", marginTop: 4, padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 900, background: st.bg, border: `1px solid ${st.border}`, color: st.color }}>
-            {st.label}
+            {statusLabel}
           </span>
           {timeAgo && <div style={{ ...styles.cardLocation, marginTop: 4 }}>{timeAgo}</div>}
         </div>
@@ -153,7 +177,7 @@ function MyRequestCard({ req, coachProfile, locale, router }) {
           style={styles.viewProfileBtn}
           onClick={() => router.push(`/${locale}/coach/${req.coachId}`)}
         >
-          Coach Profile харах →
+          {locale === "mn" ? "Coach Profile харах →" : locale === "ko" ? "코치 프로필 보기 →" : "View Coach Profile →"}
         </button>
       )}
     </div>
