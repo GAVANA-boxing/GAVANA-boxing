@@ -1416,295 +1416,118 @@ export default function UserProfilePage() {
       </div>
 
       {profileTab === "progress" ? (
-        <section style={styles.progressSection}>
-          <div style={styles.progressHeader}>
-            <p style={styles.progressKicker}>{t("aiCoachKicker")}</p>
-            <h2 style={styles.progressTitle}>{t("progress")}</h2>
-          </div>
+        <section style={{ ...styles.progressSection, padding: "16px 16px 32px" }}>
+          {(() => {
+            const scores = feedbackScores;
+            const best = progressStats.bestScore ?? 0;
+            const avg = progressStats.averageScore ?? 0;
+            const fighterScore = scores.length
+              ? Math.min(100, Math.round(best * 6 + avg * 4 + Math.min(5, streakCount * 0.3)))
+              : 0;
 
-          {/* Daily Mission card — own profile only */}
-          {isOwnProfile && (
-            <div style={styles.dailyMissionCard}>
-              <div style={styles.dailyMissionTop}>
-                <span style={styles.dailyMissionLabel}>{t("todaysMission")}</span>
-                {dailyMissionData?.missionCompleted ? (
-                  <span style={styles.dailyMissionBadgeDone}>{t("completed")}</span>
-                ) : (
-                  <span style={styles.dailyMissionBadgePending}>{t("missionPendingHint")}</span>
-                )}
-              </div>
-              <div style={styles.dailyMissionTarget}>
-                <span style={{ fontSize: 20 }}>{dailyMissionData?.missionCompleted ? "✅" : "🎯"}</span>
-                <span style={{ ...styles.dailyMissionTargetText, color: dailyMissionData?.missionCompleted ? "#34D399" : "#fff" }}>
-                  {t("missionTarget")}
-                </span>
-              </div>
-              <div style={styles.dailyMissionXpHint}>
-                {t("missionXpReward")}
-              </div>
-              <div style={styles.dailyMissionStreakRow}>
-                <div style={styles.dailyMissionStreakStat}>
-                  <span style={{ ...styles.dailyMissionStreakNum, color: "#FB923C" }}>
-                    🔥{dailyMissionData?.dailyStreak ?? 0}
-                  </span>
-                  <span style={styles.dailyMissionStreakLbl}>{t("missionCurrentStreak")}</span>
-                </div>
-                <div style={styles.dailyMissionStreakStat}>
-                  <span style={styles.dailyMissionStreakNum}>{dailyMissionData?.bestDailyStreak ?? 0}</span>
-                  <span style={styles.dailyMissionStreakLbl}>{t("missionBestStreak")}</span>
-                </div>
-              </div>
-              <div style={styles.dailyMissionMilestones}>
-                <span style={styles.dailyMissionMilestoneLbl}>{t("missionStreakRewards")}:</span>
-                <span style={{ color: (dailyMissionData?.dailyStreak ?? 0) >= 3 ? "#34D399" : "#888", fontSize: 11, fontWeight: 800 }}>
-                  3🔥 +100 XP
-                </span>
-                <span style={{ color: (dailyMissionData?.dailyStreak ?? 0) >= 7 ? "#D4AF37" : "#888", fontSize: 11, fontWeight: 800 }}>
-                  7🔥 +250 XP
-                </span>
-              </div>
-            </div>
-          )}
+            const recentAvg = scores.length >= 1
+              ? scores.slice(0, Math.min(3, scores.length)).reduce((a, b) => a + b, 0) / Math.min(3, scores.length)
+              : 0;
+            const olderAvg = scores.length >= 4
+              ? scores.slice(3, 6).reduce((a, b) => a + b, 0) / Math.min(3, scores.slice(3, 6).length)
+              : 0;
+            const delta = scores.length >= 4 ? recentAvg - olderAvg : 0;
 
-          {progressStats.totalSessions === 0 && groupedTrainingSessions.length === 0 ? (
-            <div style={styles.progressEmpty}>
-              <p style={{ margin: 0, color: "var(--text-primary)", fontWeight: 900 }}>
-                {t("tryComboToStart")}
-              </p>
-            </div>
-          ) : (
-            <>
-              {/* ── Overview cards ─────────────────────────────── */}
-              {progressStats.totalSessions > 0 && (
-                <>
-                  <div style={styles.overviewGrid}>
-                    <div style={styles.overviewCard}>
-                      <span style={{ ...styles.overviewVal, color: "#D4AF37" }}>{formatScore(progressStats.bestScore)}</span>
-                      <span style={styles.overviewLbl}>{t("bestScoreLabel")}</span>
+            let insightText, insightColor;
+            if (scores.length < 2) {
+              insightText = locale === "mn" ? "Дасгал хийж эхэл — ахиц харагдана 🎯"
+                : locale === "ko" ? "훈련을 시작하면 추세가 보여요 🎯"
+                : "Start training to see your progress 🎯";
+              insightColor = "#D4AF37";
+            } else if (delta >= 0.4) {
+              insightText = locale === "mn" ? "Оноо нэмэгдэж байна 🔥 Ийнхүү явж байгаарай."
+                : locale === "ko" ? "점수가 오르고 있어요 🔥 계속 유지하세요."
+                : "Score is climbing 🔥 Keep the pressure on.";
+              insightColor = "#4ade80";
+            } else if (delta <= -0.4) {
+              insightText = locale === "mn" ? "Техник болон guard-д анхаар ⚠️"
+                : locale === "ko" ? "기술과 가드에 집중하세요 ⚠️"
+                : "Focus on technique and guard ⚠️";
+              insightColor = "#FB923C";
+            } else if (streakCount >= 3) {
+              insightText = locale === "mn" ? "Тасралтгүй дасгал — хамгийн сайн зэвсэг 💪"
+                : locale === "ko" ? "꾸준함이 무기예요 💪"
+                : "Consistency is your weapon 💪";
+              insightColor = "#4ade80";
+            } else {
+              insightText = locale === "mn" ? "Intensity нэмж score ахиулаарай."
+                : locale === "ko" ? "강도를 높여보세요."
+                : "Push intensity to break through.";
+              insightColor = "#D4AF37";
+            }
+
+            return (
+              <div style={{
+                position: "relative",
+                background: "linear-gradient(145deg, #1c0202 0%, #0e0000 40%, #080808 100%)",
+                border: "1px solid rgba(193,18,31,0.18)",
+                borderLeft: "3px solid #C1121F",
+                borderRadius: "3px 20px 20px 3px",
+                padding: "20px 18px 18px",
+                boxShadow: "0 8px 40px rgba(0,0,0,0.55)",
+                overflow: "hidden",
+              }}>
+                <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(ellipse at 10% 30%, rgba(193,18,31,0.18) 0%, transparent 55%)" }} />
+                <div style={{ position: "relative" }}>
+                  <p style={{ margin: "0 0 16px", fontSize: 9, fontWeight: 900, color: "rgba(193,18,31,0.7)", letterSpacing: 3, textTransform: "uppercase" }}>
+                    GAVANA · FIGHTER SCORE
+                  </p>
+
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16 }}>
+                    <div>
+                      <div style={{ fontSize: 64, fontWeight: 900, color: "#fff", letterSpacing: "-0.04em", lineHeight: 0.9, fontFamily: "var(--font-display,'Anton',sans-serif)", textShadow: "0 0 40px rgba(193,18,31,0.4)" }}>
+                        {fighterScore}
+                      </div>
+                      <span style={{ fontSize: 14, color: "rgba(255,255,255,0.2)", fontWeight: 700 }}>/100</span>
                     </div>
-                    <div style={styles.overviewCard}>
-                      <span style={styles.overviewVal}>{formatScore(progressStats.latestScore)}</span>
-                      <span style={styles.overviewLbl}>{t("latestScoreLabel")}</span>
-                    </div>
-                    <div style={styles.overviewCard}>
-                      <span style={styles.overviewVal}>{formatScore(progressStats.averageScore)}</span>
-                      <span style={styles.overviewLbl}>{t("averageScoreLabel")}</span>
-                    </div>
-                    <div style={styles.overviewCard}>
-                      <span style={styles.overviewVal}>{progressStats.totalSessions}</span>
-                      <span style={styles.overviewLbl}>{t("totalSessions")}</span>
-                    </div>
-                    <div style={styles.overviewCard}>
-                      <span style={{ ...styles.overviewVal, color: "#60A5FA" }}>{xp.toLocaleString()}</span>
-                      <span style={styles.overviewLbl}>{t("totalXpLabel")}</span>
+                    <div style={{ textAlign: "right" }}>
+                      <span style={{ fontSize: 15, fontWeight: 900, color: fighterRank.color, display: "block", marginBottom: 4 }}>
+                        {t(fighterRank.key)}
+                      </span>
+                      <span style={{ fontSize: 12, color: "#D4AF37", fontWeight: 800, display: "block" }}>
+                        {xp.toLocaleString()} XP
+                      </span>
+                      {nextRank && (
+                        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.28)", fontWeight: 700 }}>
+                          {(nextRank.minXP - xp).toLocaleString()} → {t(nextRank.key)}
+                        </span>
+                      )}
                     </div>
                   </div>
 
-                  {/* ── Improvement banner ─────────────────────── */}
-                  {progressStats.improvement !== null && (
-                    <div style={styles.improvementBanner}>
-                      <div style={styles.improvementItem}>
-                        <span style={styles.improvementLbl}>{t("before")}</span>
-                        <strong style={styles.improvementVal}>{formatScore(progressStats.firstScore)}</strong>
-                      </div>
-                      <div style={styles.improvementArrow}>→</div>
-                      <div style={styles.improvementItem}>
-                        <span style={styles.improvementLbl}>{t("now")}</span>
-                        <strong style={styles.improvementVal}>{formatScore(progressStats.latestScore)}</strong>
-                      </div>
-                      <div style={styles.improvementItem}>
-                        <span style={styles.improvementLbl}>{t("improvement")}</span>
-                        <strong style={{
-                          ...styles.improvementVal,
-                          color: progressStats.improvement > 0.05 ? "#34D399" : progressStats.improvement < -0.05 ? "#FB7185" : "#aaa",
-                          fontSize: 20,
-                        }}>
-                          {progressStats.improvement > 0.05
-                            ? `+${formatScore(progressStats.improvement)} ↑`
-                            : progressStats.improvement < -0.05
-                            ? `${formatScore(progressStats.improvement)} ↓`
-                            : `= ${t("same")}`}
-                        </strong>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
+                  {/* XP bar */}
+                  <div style={{ height: 4, borderRadius: 999, background: "rgba(255,255,255,0.07)", overflow: "hidden", marginBottom: 14 }}>
+                    <div style={{ height: "100%", width: `${rankProgress}%`, borderRadius: 999, background: fighterRank.gradient || fighterRank.color, boxShadow: `0 0 10px ${fighterRank.color}55`, transition: "width 800ms cubic-bezier(0.16,1,0.3,1)" }} />
+                  </div>
 
-              {/* ── Per-reel progress ─────────────────────────── */}
-              {groupedTrainingSessions.length > 0 && (
-                <div style={{ marginTop: 20, display: "grid", gap: 10 }}>
-                  <h3 style={styles.sectionTitle}>{t("progressPerReel")}</h3>
-                  {groupedTrainingSessions.map((group) => {
-                    const isExpanded = expandedTrainingGroups.has(group.key);
-                    const delta = group.improvementDelta;
-                    const deltaColor = delta !== null && delta > 0.05 ? "#34D399" : delta !== null && delta < -0.05 ? "#FB7185" : "#aaa";
-                    const deltaLabel = delta === null ? null
-                      : delta > 0.05 ? `+${formatScore(delta)} ${t("improved")}`
-                      : delta < -0.05 ? `${formatScore(delta)} ${t("dropped")}`
-                      : t("same");
+                  <p style={{ margin: "0 0 18px", fontSize: 12, color: insightColor, fontStyle: "italic", lineHeight: 1.55, borderLeft: `2px solid ${insightColor}44`, paddingLeft: 10 }}>
+                    {insightText}
+                  </p>
 
-                    return (
-                      <article key={group.key} style={styles.reelProgressCard}>
-                        {/* Card header */}
-                        <div style={styles.reelCardHeader}>
-                          <div style={styles.reelCardLeft}>
-                            <strong style={styles.reelCardTitle}>{group.label}</strong>
-                            <div style={styles.reelCardMeta}>
-                              <span>{group.sessions.length} {group.sessions.length === 1 ? t("trainingAttempt") : t("trainingAttempts")}</span>
-                              {group.latestAt > 0 && (
-                                <span style={{ color: "#666" }}>· {new Date(group.latestAt).toLocaleDateString()}</span>
-                              )}
-                            </div>
-                          </div>
-                          {deltaLabel && (
-                            <span style={{ ...styles.reelDeltaPill, color: deltaColor, borderColor: `${deltaColor}44` }}>
-                              {deltaLabel}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Stats row */}
-                        <div style={styles.reelStatsRow}>
-                          <div style={styles.reelStat}>
-                            <span style={{ ...styles.reelStatVal, color: "#D4AF37" }}>{formatScore(group.bestScore)}</span>
-                            <span style={styles.reelStatLbl}>{t("best")}</span>
-                          </div>
-                          <div style={styles.reelStatDivider} />
-                          <div style={styles.reelStat}>
-                            <span style={styles.reelStatVal}>{formatScore(group.latestScore)}</span>
-                            <span style={styles.reelStatLbl}>{t("latest")}</span>
-                          </div>
-                          {group.accuracy !== null && (
-                            <>
-                              <div style={styles.reelStatDivider} />
-                              <div style={styles.reelStat}>
-                                <span style={styles.reelStatVal}>{group.accuracy}%</span>
-                                <span style={styles.reelStatLbl}>{t("accuracy")}</span>
-                              </div>
-                            </>
-                          )}
-                          {group.bestComboStr && (
-                            <>
-                              <div style={styles.reelStatDivider} />
-                              <div style={styles.reelStat}>
-                                <span style={{ ...styles.reelStatVal, fontSize: 12 }}>{group.bestComboStr}</span>
-                                <span style={styles.reelStatLbl}>{t("bestCombo")}</span>
-                              </div>
-                            </>
-                          )}
-                        </div>
-
-                        {/* View attempts toggle */}
-                        <button
-                          type="button"
-                          style={styles.viewAttemptsBtn}
-                          onClick={() => toggleTrainingGroup(group.key)}
-                        >
-                          {isExpanded ? t("hideAttempts") : t("viewAttempts")}
-                          <span style={{ marginLeft: 4, fontSize: 10 }}>{isExpanded ? "▲" : "▼"}</span>
-                        </button>
-
-                        {isExpanded && (
-                          <div style={styles.attemptsListWrap}>
-                            {group.sessions.map((session) => (
-                              <div key={session.id} style={styles.attemptRow}>
-                                <div>
-                                  <strong style={styles.attemptNum}>
-                                    {t("trainingAttempt")} {Number(session.attemptNumber) || 1}
-                                  </strong>
-                                  <div style={styles.progressDate}>{formatFeedbackDate(session.createdAt)}</div>
-                                </div>
-                                <div style={styles.trainingAttemptStats}>
-                                  <span>{formatScore(session.score)}/10</span>
-                                  <span style={{ color: "#D4AF37" }}>+{Number(session.xpGained || 0).toLocaleString()} {t("xpLabel")}</span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </article>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* ── AI Feedback ───────────────────────────────── */}
-              {aiFeedbackHistory.length > 0 && (
-                <div style={{ marginTop: 22, display: "grid", gap: 10 }}>
-                  <button
-                    type="button"
-                    style={styles.aiFeedbackToggle}
-                    onClick={() => setShowAiFeedbackList((v) => !v)}
-                  >
-                    <span style={styles.sectionTitle}>{t("aiFeedbackHistory")}</span>
-                    <span style={{ fontSize: 10, color: "#888", marginLeft: 8 }}>{showAiFeedbackList ? "▲" : "▼"}</span>
-                  </button>
-                  {showAiFeedbackList && (
-                    <div style={styles.progressList}>
-                      {aiFeedbackHistory.map((feedback) => (
-                        <article key={feedback.id} style={styles.progressItem}>
-                          <div style={styles.progressItemTop}>
-                            <span style={styles.progressDate}>{formatFeedbackDate(feedback.createdAt)}</span>
-                            <strong style={styles.progressScore}>{t("score")}: {formatScore(feedback.score)}/10</strong>
-                          </div>
-                          <p style={styles.progressCaption}>
-                            {feedback.reelCaption || t("trainingReel")}
-                          </p>
-                          {xpBreakdowns[feedback.id] && (() => {
-                            const bd = xpBreakdowns[feedback.id];
-                            return (
-                              <div style={styles.xpBreakdownRow}>
-                                <span style={styles.xpBDLabel}>{t("xpEarned")}</span>
-                                <span style={styles.xpBDItem}>
-                                  {t("xpBase")} <span style={styles.xpBDNum}>+{bd.base}</span>
-                                </span>
-                                {bd.improvement > 0 && (
-                                  <span style={styles.xpBDItem}>
-                                    {t("xpImprovement")} <span style={{ ...styles.xpBDNum, color: "#34D399" }}>+{bd.improvement}</span>
-                                  </span>
-                                )}
-                                {bd.streakBonus > 0 && (
-                                  <span style={styles.xpBDItem}>
-                                    {t("xpStreakBonus")} <span style={{ ...styles.xpBDNum, color: "#FB923C" }}>+{bd.streakBonus}</span>
-                                  </span>
-                                )}
-                                <span style={styles.xpBDTotal}>
-                                  {bd.capped && <span style={styles.xpCapFlag}>{t("xpDailyCap")} · </span>}
-                                  +{bd.total} {t("xpLabel")}
-                                </span>
-                              </div>
-                            );
-                          })()}
-                        </article>
-                      ))}
-                    </div>
+                  {isOwnProfile && (
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/${locale}/dashboard`)}
+                      style={{
+                        width: "100%", padding: "13px 0", borderRadius: 13,
+                        background: "linear-gradient(135deg, #C1121F, #7d0812)",
+                        border: "none", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
+                        boxShadow: "0 4px 18px rgba(193,18,31,0.38)",
+                        letterSpacing: 0.3,
+                      }}
+                    >
+                      {locale === "mn" ? "Ахиц дэлгэрэнгүй харах →" : locale === "ko" ? "상세 분석 보기 →" : "View Full Analytics →"}
+                    </button>
                   )}
                 </div>
-              )}
-            </>
-          )}
-
-          {/* Upcoming coach sessions — own profile only */}
-          {isOwnProfile && coachBookings.length > 0 && (
-            <div style={styles.sessionsCard}>
-              <span style={styles.sessionsTitle}>📅 {t("upcomingSessions")}</span>
-              {coachBookings.map((booking) => (
-                <div key={booking.id} style={styles.sessionRow}>
-                  <div style={styles.sessionDateBadge}>
-                    <span style={styles.sessionDateDay}>
-                      {new Date(booking.date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-                    </span>
-                    <span style={styles.sessionDateTime}>{booking.time}</span>
-                  </div>
-                  <div style={styles.sessionInfo}>
-                    <span style={styles.sessionDuration}>{booking.durationMinutes} min</span>
-                    <span style={styles.sessionStatus}>{t("requestAccepted")}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+              </div>
+            );
+          })()}
         </section>
       ) : (
       <div style={{
