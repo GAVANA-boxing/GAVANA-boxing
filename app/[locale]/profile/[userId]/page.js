@@ -13,6 +13,7 @@ import RankIcon from "@/components/RankIcon";
 import RankUpModal from "@/components/RankUpModal";
 import { getCurrentSeasonId } from "@/lib/season";
 import MediaCover from "@/components/MediaCover";
+import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 
 function getSafeReelLikes(reel) {
   const fieldLikes = typeof reel.likes === "number" && !Number.isNaN(reel.likes)
@@ -367,6 +368,7 @@ export default function UserProfilePage() {
           totalChallengesCompleted: Number(userData.totalChallengesCompleted) || 0,
           challengeStreak: Number(userData.challengeStreak) || 0,
           lastChallengeDate: userData.lastChallengeDate || "",
+          fighterArchetype: userData.fighterArchetype || null,
         };
         setProfileUser(profileUserData);
 
@@ -1271,6 +1273,24 @@ export default function UserProfilePage() {
           <p style={styles.bio}>{profileUser.bio}</p>
         )}
 
+        {/* Archetype badge */}
+        {profileUser.fighterArchetype && ARCHETYPE_DISPLAY[profileUser.fighterArchetype] && (() => {
+          const arch = ARCHETYPE_DISPLAY[profileUser.fighterArchetype];
+          return (
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "5px 14px", borderRadius: 999,
+                background: `${arch.color}15`,
+                border: `1px solid ${arch.color}44`,
+                color: arch.color, fontSize: 13, fontWeight: 800,
+              }}>
+                {arch.emoji} {arch.name}
+              </span>
+            </div>
+          );
+        })()}
+
         {/* Fighter identity tags — derived from data */}
         {(() => {
           const tags = [];
@@ -1447,6 +1467,16 @@ export default function UserProfilePage() {
         >
           {t("aiProgress")}
         </button>
+        <button
+          type="button"
+          onClick={() => setProfileTab("record")}
+          style={{
+            ...styles.profileTab,
+            ...(profileTab === "record" ? styles.profileTabActive : {})
+          }}
+        >
+          ⚔️ {locale === "mn" ? "Тулаан" : locale === "ko" ? "기록" : "Record"}
+        </button>
       </div>
 
       {profileTab === "progress" ? (
@@ -1562,6 +1592,128 @@ export default function UserProfilePage() {
               </div>
             );
           })()}
+
+          {/* XP history — last 5 AI feedback sessions */}
+          {aiFeedbackHistory.length > 0 && (
+            <div style={{
+              marginTop: 14,
+              background: "linear-gradient(145deg, #111012, #0a0a0a)",
+              border: "1px solid rgba(255,255,255,0.06)",
+              borderLeft: "2.5px solid #D4AF37",
+              borderRadius: "3px 16px 16px 3px",
+              padding: "14px 16px",
+            }}>
+              <p style={{ margin: "0 0 10px", fontSize: 9, fontWeight: 900, color: "#D4AF37", letterSpacing: 2.5, textTransform: "uppercase" }}>
+                {locale === "mn" ? "Сүүлийн дасгалын XP" : locale === "ko" ? "최근 세션 XP" : "Recent Session XP"}
+              </p>
+              {aiFeedbackHistory.slice(0, 5).map((session, i) => {
+                const prevScore = i < aiFeedbackHistory.length - 1 ? Number(aiFeedbackHistory[i + 1].score) : null;
+                const xpResult = calculateSessionXP(Number(session.score), prevScore, streakCount);
+                const dateLabel = session.createdAt
+                  ? new Date(getTimestampMs(session.createdAt)).toLocaleDateString()
+                  : "";
+                return (
+                  <div key={session.id} style={{
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                    padding: "7px 0",
+                    borderBottom: i < Math.min(4, aiFeedbackHistory.length - 1) ? "1px solid rgba(255,255,255,0.05)" : "none",
+                  }}>
+                    <div>
+                      <span style={{ fontSize: 13, color: "#fff", fontWeight: 700 }}>⭐ {formatScore(session.score)}/10</span>
+                      <span style={{ fontSize: 10, color: "#444", marginLeft: 8 }}>{dateLabel}</span>
+                    </div>
+                    <span style={{ fontSize: 13, fontWeight: 900, color: "#D4AF37" }}>+{xpResult.total} XP</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      ) : profileTab === "record" ? (
+        <section style={{ padding: "16px 16px 32px" }}>
+          {pvpStats && (pvpStats.wins > 0 || pvpStats.losses > 0) ? (
+            <>
+              {/* W/L summary card */}
+              <div style={{
+                background: "linear-gradient(145deg, #0a0a0a, #111)",
+                border: "1px solid rgba(167,139,250,0.15)",
+                borderLeft: "3px solid #A78BFA",
+                borderRadius: "3px 16px 16px 3px",
+                padding: "18px 16px", marginBottom: 14,
+              }}>
+                <p style={{ margin: "0 0 14px", fontSize: 9, fontWeight: 900, color: "#A78BFA", letterSpacing: 2.5, textTransform: "uppercase" }}>
+                  ⚔️ {locale === "mn" ? "PvP дүнгийн хавтас" : locale === "ko" ? "PvP 전적" : "PvP Fight Record"}
+                </p>
+                <div style={{ display: "flex", gap: 8, justifyContent: "space-around" }}>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: 42, fontWeight: 900, color: "#34D399", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{pvpStats.wins}</div>
+                    <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>{locale === "mn" ? "ЯЛАЛТ" : locale === "ko" ? "승" : "WINS"}</div>
+                  </div>
+                  <div style={{ width: 1, background: "rgba(255,255,255,0.07)" }} />
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: 42, fontWeight: 900, color: "#F87171", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{pvpStats.losses}</div>
+                    <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>{locale === "mn" ? "ЯЛАГДАЛ" : locale === "ko" ? "패" : "LOSSES"}</div>
+                  </div>
+                  {pvpStats.bestWinScore !== null && (
+                    <>
+                      <div style={{ width: 1, background: "rgba(255,255,255,0.07)" }} />
+                      <div style={{ textAlign: "center" }}>
+                        <div style={{ fontSize: 42, fontWeight: 900, color: "#D4AF37", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{formatScore(pvpStats.bestWinScore)}</div>
+                        <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>{locale === "mn" ? "ШИЛДЭГ" : locale === "ko" ? "최고" : "BEST"}</div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Recent battles list */}
+              {pvpStats.recentBattles.length > 0 && (
+                <div style={{ display: "grid", gap: 8 }}>
+                  <p style={{ margin: "0 0 6px", fontSize: 9, fontWeight: 900, color: "#555", letterSpacing: 2, textTransform: "uppercase" }}>
+                    {locale === "mn" ? "Сүүлийн тулааны бичиг" : locale === "ko" ? "최근 경기" : "Recent Battles"}
+                  </p>
+                  {pvpStats.recentBattles.map((battle) => {
+                    const isWin = battle.result === "win";
+                    const col = isWin ? "#34D399" : "#F87171";
+                    const dateLabel = battle.createdAt
+                      ? new Date(getTimestampMs(battle.createdAt)).toLocaleDateString()
+                      : "";
+                    return (
+                      <div key={battle.id} style={{
+                        background: "linear-gradient(145deg, #111012, #0a0a0a)",
+                        border: `1px solid ${col}22`,
+                        borderLeft: `3px solid ${col}`,
+                        borderRadius: "3px 14px 14px 3px",
+                        padding: "12px 14px",
+                        display: "flex", alignItems: "center", justifyContent: "space-between",
+                      }}>
+                        <div>
+                          <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", marginBottom: 2 }}>vs {battle.opponentName}</div>
+                          <div style={{ fontSize: 10, color: "#444" }}>{dateLabel}</div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ fontSize: 13, fontWeight: 900, color: col }}>
+                            {isWin ? (locale === "mn" ? "✓ ЯЛАЛТ" : locale === "ko" ? "✓ 승리" : "✓ WIN") : (locale === "mn" ? "✕ ЯЛАГДАЛ" : locale === "ko" ? "✕ 패배" : "✕ LOSS")}
+                          </div>
+                          <div style={{ fontSize: 11, color: "#555" }}>{formatScore(battle.challengerScore)} vs {formatScore(battle.opponentScore)}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          ) : (
+            <div style={{ textAlign: "center", padding: "60px 20px" }}>
+              <div style={{ fontSize: 44, marginBottom: 14 }}>⚔️</div>
+              <p style={{ color: "#555", fontSize: 14, fontWeight: 800, margin: "0 0 6px" }}>
+                {locale === "mn" ? "Тулааны бичиг байхгүй" : locale === "ko" ? "전적 없음" : "No fight record yet"}
+              </p>
+              <p style={{ color: "#333", fontSize: 12, margin: 0 }}>
+                {locale === "mn" ? "PvP тулаанд оролцоод эхэлнэ үү" : locale === "ko" ? "PvP 배틀에 참가하세요" : "Start a PvP battle to build your record"}
+              </p>
+            </div>
+          )}
         </section>
       ) : (
       <div style={{
