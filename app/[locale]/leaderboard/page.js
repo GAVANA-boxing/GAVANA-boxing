@@ -10,6 +10,7 @@ import { getLocale, translate } from "@/lib/i18n";
 import { calculateUserXP, getFighterRank } from "@/lib/xp";
 import RankIcon from "@/components/RankIcon";
 import { getCurrentSeasonId, getSeasonLabel } from "@/lib/season";
+import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 
 function getRankMedal(rank) {
   if (rank === 1) return "🥇";
@@ -65,6 +66,8 @@ export default function LeaderboardPage() {
   const [loading, setLoading] = useState(true);
   const [trainingSessions, setTrainingSessions] = useState([]);
   const [followingIds, setFollowingIds] = useState(new Set());
+  const [archetypeFilter, setArchetypeFilter] = useState("all");
+  const [weightFilter, setWeightFilter] = useState("all");
 
   const currentSeasonId = useMemo(() => getCurrentSeasonId(), []);
   const seasonLabel = useMemo(() => getSeasonLabel(currentSeasonId), [currentSeasonId]);
@@ -253,6 +256,17 @@ export default function LeaderboardPage() {
     : leaderboardTab === "friends" ? friendsEntries
     : entries;
 
+  const filteredDisplayEntries = useMemo(() => {
+    let result = displayEntries;
+    if (archetypeFilter !== "all") {
+      result = result.filter((e) => profiles[e.userId]?.fighterArchetype === archetypeFilter);
+    }
+    if (weightFilter !== "all") {
+      result = result.filter((e) => profiles[e.userId]?.weightClass === weightFilter);
+    }
+    return result;
+  }, [displayEntries, archetypeFilter, weightFilter, profiles]);
+
   const currentUserAllTimeRank = useMemo(() => {
     if (!user?.uid) return null;
     const idx = entries.findIndex((e) => e.userId === user.uid);
@@ -343,6 +357,55 @@ export default function LeaderboardPage() {
         )}
       </div>
 
+      {/* Archetype + weight filters */}
+      <div style={styles.filterWrap}>
+        <div style={styles.filterRow}>
+          {[
+            { key: "all", label: "🥊 Бүгд" },
+            { key: "pressure", label: `${ARCHETYPE_DISPLAY.pressure.emoji} Pressure` },
+            { key: "counter",  label: `${ARCHETYPE_DISPLAY.counter.emoji} Counter` },
+            { key: "technical",label: `${ARCHETYPE_DISPLAY.technical.emoji} Technical` },
+            { key: "brawler",  label: `${ARCHETYPE_DISPLAY.brawler.emoji} Brawler` },
+          ].map(({ key, label }) => {
+            const isActive = archetypeFilter === key;
+            const color = key === "all" ? "#D4AF37" : ARCHETYPE_DISPLAY[key]?.color;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setArchetypeFilter(key)}
+                style={{
+                  ...styles.filterChip,
+                  ...(isActive ? {
+                    background: `${color}22`,
+                    border: `1px solid ${color}`,
+                    color,
+                  } : {}),
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div style={styles.filterRow}>
+          {["all", "-54", "-60", "-67", "-75", "-81", "+91"].map((wt) => (
+            <button
+              key={wt}
+              type="button"
+              onClick={() => setWeightFilter(wt)}
+              style={{
+                ...styles.filterChip,
+                ...(weightFilter === wt ? styles.filterChipActiveWeight : {}),
+              }}
+            >
+              {wt === "all" ? "Жин бүгд" : `${wt}kg`}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div style={styles.content}>
         {/* Current user rank card */}
         {hasUserData && (
@@ -411,7 +474,7 @@ export default function LeaderboardPage() {
         )}
 
         {/* Empty state */}
-        {!loading && displayEntries.length === 0 && (
+        {!loading && filteredDisplayEntries.length === 0 && (
           <div style={styles.emptyWrap}>
             <div style={styles.emptyIcon}>🏆</div>
             <p style={styles.emptyTitle}>
@@ -422,9 +485,9 @@ export default function LeaderboardPage() {
         )}
 
         {/* Leaderboard list */}
-        {!loading && displayEntries.length > 0 && (
+        {!loading && filteredDisplayEntries.length > 0 && (
           <div style={styles.list}>
-            {displayEntries.map((entry, index) => {
+            {filteredDisplayEntries.map((entry, index) => {
               const rank = index + 1;
               const medal = getRankMedal(rank);
               const profile = profiles[entry.userId] || {};
@@ -481,9 +544,26 @@ export default function LeaderboardPage() {
 
                   {/* Name + username */}
                   <div style={styles.nameBlock}>
-                    <div style={styles.displayName}>
-                      {displayName}
-                      {isCurrentUser && <span style={styles.youTag}> YOU</span>}
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <div style={styles.displayName}>
+                        {displayName}
+                        {isCurrentUser && <span style={styles.youTag}> YOU</span>}
+                      </div>
+                      {(() => {
+                        const arch = profile.fighterArchetype;
+                        const ad = ARCHETYPE_DISPLAY[arch];
+                        if (!ad) return null;
+                        return (
+                          <span style={{
+                            ...styles.archetypeChip,
+                            color: ad.color,
+                            background: `${ad.color}18`,
+                            border: `1px solid ${ad.color}35`,
+                          }}>
+                            {ad.emoji}
+                          </span>
+                        );
+                      })()}
                     </div>
                     {username ? <div style={styles.username}>{username}</div> : null}
                     <div style={styles.entryRankRow}>
@@ -874,5 +954,49 @@ const styles = {
   allTimeRankBadge: {
     fontSize: 10,
     color: "#60A5FA",
+  },
+  filterWrap: {
+    background: "rgba(7,7,7,0.92)",
+    padding: "8px 16px 10px",
+    borderBottom: "1px solid rgba(255,255,255,0.05)",
+    display: "flex",
+    flexDirection: "column",
+    gap: 6,
+  },
+  filterRow: {
+    display: "flex",
+    gap: 6,
+    overflowX: "auto",
+    WebkitOverflowScrolling: "touch",
+    scrollbarWidth: "none",
+    msOverflowStyle: "none",
+  },
+  filterChip: {
+    flexShrink: 0,
+    padding: "6px 12px",
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.1)",
+    background: "rgba(255,255,255,0.04)",
+    color: "rgba(255,255,255,0.45)",
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+    transition: "all 0.15s ease",
+  },
+  filterChipActiveWeight: {
+    background: "rgba(96,165,250,0.15)",
+    border: "1px solid #60A5FA",
+    color: "#60A5FA",
+  },
+  archetypeChip: {
+    flexShrink: 0,
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 11,
   },
 };
