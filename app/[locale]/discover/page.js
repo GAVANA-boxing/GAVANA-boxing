@@ -215,7 +215,7 @@ function FeedPostCard({ reel, authorUser, router, locale }) {
   const src = reel.thumbnailUrl || reel.thumbnail || reel.videoUrl || "";
   const typeEmoji = reel.contentType === "educational" ? "📚" : reel.contentType === "lifestyle" ? "🎬" : "🥊";
   const caption = reel.caption || reel.description || "";
-  const name = authorUser?.displayName || authorUser?.username || "Fighter";
+  const name = authorUser?.displayName || authorUser?.username || (locale === "mn" ? "Боксч" : locale === "ko" ? "파이터" : "Fighter");
   const photo = authorUser?.photoURL || authorUser?.profileImageUrl || "";
 
   return (
@@ -480,7 +480,7 @@ export default function DiscoverPage() {
                     <button key={u.id} type="button" onClick={() => router.push(`/${locale}/profile/${u.id}`)} style={s.listCard}>
                       <div style={s.listAvatar}>{photo ? <img src={photo} alt="" style={s.listAvatarImg} /> : initial}</div>
                       <div style={s.listCardText}>
-                        <span style={s.listCardName}>{u.displayName || u.username || "Unnamed"}</span>
+                        <span style={s.listCardName}>{u.displayName || u.username || (locale === "mn" ? "Нэргүй" : locale === "ko" ? "이름 없음" : "Unnamed")}</span>
                         {u.username && <span style={s.listCardSub}>@{u.username}</span>}
                       </div>
                       <span style={s.listArrow}>›</span>
@@ -498,7 +498,7 @@ export default function DiscoverPage() {
                   <button key={r.id} type="button" onClick={() => router.push(`/${locale}/reels?reelId=${r.id}`)} style={s.listCard}>
                     <div style={{ ...s.listAvatar, background: "rgba(212,175,55,0.15)", color: "#D4AF37", fontSize: 18 }}>🎬</div>
                     <div style={s.listCardText}>
-                      <span style={s.listCardName}>{r.caption || r.description || "Reel"}</span>
+                      <span style={s.listCardName}>{r.caption || r.description || (locale === "mn" ? "Видео" : locale === "ko" ? "릴" : "Reel")}</span>
                       <span style={s.listCardSub}>{formatCompact(r.views || 0)} {locale === "mn" ? "үзэлт" : locale === "ko" ? "조회수" : "views"}</span>
                     </div>
                     <span style={s.listArrow}>›</span>
@@ -601,6 +601,11 @@ export default function DiscoverPage() {
             </div>
 
             <ReelRow reels={forYouReels} router={router} locale={locale} loading={exploreLoading} />
+            {!exploreLoading && forYouReels.length === 0 && (
+              <div style={s.hubEmpty}>
+                <p style={s.hubEmptyText}>{locale === "mn" ? "Одоогоор контент байхгүй байна." : locale === "ko" ? "아직 콘텐츠가 없습니다." : "No content available yet."}</p>
+              </div>
+            )}
           </div>
 
           {/* ════════════════════════════════════════
@@ -746,7 +751,7 @@ export default function DiscoverPage() {
                         <div style={s.coachAvatar}>
                           {photo ? <img src={photo} alt="" style={s.coachAvatarImg} /> : initial}
                         </div>
-                        <span style={s.coachName}>{(coach.displayName || coach.username || "Coach").split(" ")[0]}</span>
+                        <span style={s.coachName}>{(coach.displayName || coach.username || (locale === "mn" ? "Тренер" : locale === "ko" ? "코치" : "Coach")).split(" ")[0]}</span>
                         <span style={s.coachSpec}>{coach.coachSpecialties?.[0] || (locale === "mn" ? "Тренер" : locale === "ko" ? "코치" : "Coach")}</span>
                       </button>
                     );
