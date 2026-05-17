@@ -20,6 +20,28 @@ import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 
+const AMENITY_ICONS = {
+  Shower: "🚿", Showers: "🚿",
+  Parking: "🅿️", "Free Parking": "🅿️",
+  Locker: "🔒", Lockers: "🔒", "Locker Room": "🔒",
+  WiFi: "📶", "Free WiFi": "📶",
+  Ring: "🥊", "Boxing Ring": "🥊",
+  "Heavy Bags": "🥊", "Punching Bags": "🥊",
+  "Speed Bags": "🎯",
+  Sauna: "🧖", "Steam Room": "🧖",
+  "Juice Bar": "🥤", Café: "☕", Cafe: "☕",
+  "Strength Equipment": "🏋️", Gym: "🏋️", Equipment: "🏋️",
+  "Changing Room": "👔", "Change Room": "👔",
+  "Open Mat": "🟩",
+  "Air Conditioning": "❄️", AC: "❄️",
+  Cardio: "🏃", "Cardio Equipment": "🏃",
+  "Sparring": "🤝",
+  "Pro Shop": "🛒",
+  "Personal Training": "👤",
+  Pool: "🏊",
+  Yoga: "🧘",
+};
+
 const GYM_TYPE_KEYS = {
   Boxing: "gymTypeBoxing",
   MMA: "gymTypeMMA",
@@ -494,7 +516,9 @@ export default function GymProfilePage() {
             <p style={styles.sectionTitle}>{t("gymAmenities")}</p>
             <div style={styles.pillsRow}>
               {gym.amenities.map((a) => (
-                <span key={a} style={styles.amenityPill}>{a}</span>
+                <span key={a} style={styles.amenityPill}>
+                  {AMENITY_ICONS[a] && <span style={{ marginRight: 4 }}>{AMENITY_ICONS[a]}</span>}{a}
+                </span>
               ))}
             </div>
           </section>
@@ -507,7 +531,10 @@ export default function GymProfilePage() {
             <div style={styles.announcementList}>
               {announcements.map((ann) => (
                 <div key={ann.id} style={styles.announcementCard}>
-                  <p style={styles.annTitle}>{ann.title}</p>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 6 }}>
+                    <span style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }}>📌</span>
+                    <p style={{ ...styles.annTitle, margin: 0 }}>{ann.title}</p>
+                  </div>
                   <p style={styles.annBody}>{ann.body}</p>
                   <span style={styles.annDate}>
                     {ann.createdAt?.toDate ? new Date(ann.createdAt.toDate()).toLocaleDateString() : ""}
@@ -639,7 +666,7 @@ const styles = {
   pill: { fontSize: 12, color: "#F87171", background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.2)", borderRadius: 999, padding: "4px 12px", fontWeight: 700 },
   amenityPill: { fontSize: 12, color: "rgba(255,255,255,0.6)", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 999, padding: "4px 12px" },
   announcementList: { display: "flex", flexDirection: "column", gap: 10 },
-  announcementCard: { borderRadius: 12, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.15)", padding: "12px 14px" },
+  announcementCard: { borderRadius: "3px 12px 12px 3px", background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.18)", borderLeft: "3px solid #D4AF37", padding: "12px 14px" },
   annTitle: { margin: "0 0 4px", fontSize: 14, fontWeight: 900, color: "#D4AF37" },
   annBody: { margin: "0 0 6px", fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.5 },
   annDate: { fontSize: 11, color: "rgba(255,255,255,0.55)" },

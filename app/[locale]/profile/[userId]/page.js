@@ -676,6 +676,7 @@ export default function UserProfilePage() {
             opponentScore: Number(data.opponentScore) || 0,
             result: data.result,
             createdAt: data.createdAt,
+            reelId: data.reelId || null,
           });
         });
 
@@ -1930,6 +1931,29 @@ export default function UserProfilePage() {
                     </>
                   )}
                 </div>
+                {/* Win rate bar */}
+                {(() => {
+                  const total = pvpStats.wins + pvpStats.losses;
+                  const winPct = total > 0 ? Math.round((pvpStats.wins / total) * 100) : 0;
+                  return (
+                    <div style={{ marginTop: 14 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
+                        <span style={{ fontSize: 9, fontWeight: 800, color: "#555", letterSpacing: 1.5, textTransform: "uppercase" }}>
+                          {locale === "mn" ? "Ялалтын хувь" : locale === "ko" ? "승률" : "Win Rate"}
+                        </span>
+                        <span style={{ fontSize: 13, fontWeight: 900, color: winPct >= 50 ? "#34D399" : "#F87171" }}>{winPct}%</span>
+                      </div>
+                      <div style={{ height: 6, borderRadius: 99, background: "rgba(248,113,113,0.25)", overflow: "hidden" }}>
+                        <div style={{
+                          height: "100%", borderRadius: 99,
+                          width: `${winPct}%`,
+                          background: winPct >= 50 ? "linear-gradient(90deg, #34D399, #059669)" : "linear-gradient(90deg, #F87171, #dc2626)",
+                          transition: "width 0.6s ease",
+                        }} />
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Recent battles list */}
@@ -1957,27 +1981,68 @@ export default function UserProfilePage() {
                           <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", marginBottom: 2 }}>vs {battle.opponentName}</div>
                           <div style={{ fontSize: 10, color: "#444" }}>{dateLabel}</div>
                         </div>
-                        <div style={{ textAlign: "right" }}>
-                          <div style={{ fontSize: 13, fontWeight: 900, color: col }}>
-                            {isWin ? (locale === "mn" ? "✓ ЯЛАЛТ" : locale === "ko" ? "✓ 승리" : "✓ WIN") : (locale === "mn" ? "✕ ЯЛАГДАЛ" : locale === "ko" ? "✕ 패배" : "✕ LOSS")}
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          {battle.reelId && (
+                            <a
+                              href={`/${locale}/reels?id=${battle.reelId}`}
+                              style={{
+                                fontSize: 10, fontWeight: 800, color: "#A78BFA",
+                                textDecoration: "none", padding: "3px 8px",
+                                border: "1px solid rgba(167,139,250,0.3)",
+                                borderRadius: 6, background: "rgba(167,139,250,0.08)",
+                              }}
+                            >
+                              {locale === "mn" ? "▶ Үзэх" : locale === "ko" ? "▶ 보기" : "▶ Watch"}
+                            </a>
+                          )}
+                          <div style={{ textAlign: "right" }}>
+                            <div style={{ fontSize: 13, fontWeight: 900, color: col }}>
+                              {isWin ? (locale === "mn" ? "✓ ЯЛАЛТ" : locale === "ko" ? "✓ 승리" : "✓ WIN") : (locale === "mn" ? "✕ ЯЛАГДАЛ" : locale === "ko" ? "✕ 패배" : "✕ LOSS")}
+                            </div>
+                            <div style={{ fontSize: 11, color: "#555" }}>{formatScore(battle.challengerScore)} vs {formatScore(battle.opponentScore)}</div>
                           </div>
-                          <div style={{ fontSize: 11, color: "#555" }}>{formatScore(battle.challengerScore)} vs {formatScore(battle.opponentScore)}</div>
                         </div>
                       </div>
                     );
                   })}
                 </div>
               )}
+              {/* Find Opponent CTA */}
+              <a
+                href={`/${locale}/sparring`}
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  marginTop: 14, padding: "11px 0", borderRadius: 12,
+                  background: "linear-gradient(135deg, rgba(167,139,250,0.12), rgba(167,139,250,0.06))",
+                  border: "1px solid rgba(167,139,250,0.25)",
+                  color: "#A78BFA", fontSize: 13, fontWeight: 800,
+                  textDecoration: "none", letterSpacing: "0.02em",
+                }}
+              >
+                ⚔️ {locale === "mn" ? "Өрсөлдөгч хайх" : locale === "ko" ? "상대 찾기" : "Find Opponent"}
+              </a>
             </>
           ) : (
-            <div style={{ textAlign: "center", padding: "60px 20px" }}>
+            <div style={{ textAlign: "center", padding: "52px 20px 40px" }}>
               <div style={{ fontSize: 44, marginBottom: 14 }}>⚔️</div>
               <p style={{ color: "#555", fontSize: 14, fontWeight: 800, margin: "0 0 6px" }}>
                 {locale === "mn" ? "Тулааны бичиг байхгүй" : locale === "ko" ? "전적 없음" : "No fight record yet"}
               </p>
-              <p style={{ color: "#333", fontSize: 12, margin: 0 }}>
+              <p style={{ color: "#333", fontSize: 12, margin: "0 0 20px" }}>
                 {locale === "mn" ? "PvP тулаанд оролцоод эхэлнэ үү" : locale === "ko" ? "PvP 배틀에 참가하세요" : "Start a PvP battle to build your record"}
               </p>
+              <a
+                href={`/${locale}/sparring`}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  padding: "10px 22px", borderRadius: 12,
+                  background: "linear-gradient(135deg, #A78BFA, #7c3aed)",
+                  color: "#fff", fontSize: 13, fontWeight: 800,
+                  textDecoration: "none", letterSpacing: "0.02em",
+                }}
+              >
+                ⚔️ {locale === "mn" ? "Өрсөлдөгч хайх" : locale === "ko" ? "상대 찾기" : "Find Opponent"}
+              </a>
             </div>
           )}
 
