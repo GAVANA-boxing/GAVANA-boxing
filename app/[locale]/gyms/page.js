@@ -7,7 +7,6 @@ import {
   doc,
   getDoc,
   getDocs,
-  orderBy,
   query,
   where,
 } from "firebase/firestore";
@@ -55,9 +54,10 @@ function StarDisplay({ rating }) {
 }
 
 function GymCard({ gym, t, router, locale }) {
+  const vibes = gym.vibes || getDefaultVibes(gym.gymType);
   return (
-    <div style={styles.card} onClick={() => router.push(`/${locale}/gyms/${gym.id}`)}>
-      <div style={styles.cardImageWrap}>
+    <div style={styles.card}>
+      <div style={styles.cardImageWrap} onClick={() => router.push(`/${locale}/gyms/${gym.id}`)}>
         {gym.logo ? (
           <img src={gym.logo} alt="" style={styles.cardLogo} />
         ) : (
@@ -67,6 +67,9 @@ function GymCard({ gym, t, router, locale }) {
         )}
         {gym.verified && (
           <span style={styles.verifiedBadge}>✓ {t("gymVerified")}</span>
+        )}
+        {gym.memberCount > 0 && (
+          <span style={styles.memberCountBadge}>👥 {gym.memberCount}</span>
         )}
       </div>
 
@@ -93,27 +96,35 @@ function GymCard({ gym, t, router, locale }) {
           </div>
         )}
 
-        <div style={styles.cardStats}>
-          {gym.memberCount > 0 && (
-            <span style={styles.statChip}>👥 {gym.memberCount} {t("gymMembers")}</span>
-          )}
-          {gym.specialties?.length > 0 && (
-            <span style={styles.statChip}>{gym.specialties.slice(0, 2).join(" · ")}</span>
-          )}
-        </div>
+        {gym.specialties?.length > 0 && (
+          <div style={styles.cardStats}>
+            {gym.specialties.slice(0, 3).map((sp) => (
+              <span key={sp} style={styles.statChip}>{sp}</span>
+            ))}
+          </div>
+        )}
 
-        {getDefaultVibes(gym.gymType).length > 0 && (
+        {vibes.length > 0 && (
           <div style={styles.cardVibeRow}>
-            {(gym.vibes || getDefaultVibes(gym.gymType)).slice(0, 3).map((v) => (
+            {vibes.slice(0, 3).map((v) => (
               <span key={v} style={styles.cardVibeBadge}>{v}</span>
             ))}
           </div>
         )}
+
         {gym.description && (
           <p style={styles.cardDesc}>
-            {gym.description.length > 100 ? gym.description.slice(0, 100) + "…" : gym.description}
+            {gym.description.length > 90 ? gym.description.slice(0, 90) + "…" : gym.description}
           </p>
         )}
+
+        <button
+          type="button"
+          style={styles.joinBtn}
+          onClick={() => router.push(`/${locale}/gyms/${gym.id}`)}
+        >
+          {locale === "mn" ? "Үзэх → Нэгдэх" : locale === "ko" ? "보기 → 가입" : "View → Join"}
+        </button>
       </div>
     </div>
   );
@@ -146,10 +157,12 @@ export default function GymsPage() {
     async function load() {
       setLoading(true);
       try {
-        const q = query(collection(db, "gyms"), orderBy("createdAt", "desc"));
-        const snap = await getDocs(q);
+        const snap = await getDocs(collection(db, "gyms"));
         if (active) {
-          setGyms(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+          const list = snap.docs
+            .map((d) => ({ id: d.id, ...d.data() }))
+            .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+          setGyms(list);
         }
       } catch (e) {
         console.error("gyms load error", e);
@@ -210,6 +223,18 @@ export default function GymsPage() {
     const set = new Set(gyms.map((g) => g.city).filter(Boolean));
     return Array.from(set).sort();
   }, [gyms]);
+
+  const featuredGyms = useMemo(() =>
+    [...gyms]
+      .filter((g) => g.rating > 0 || g.featured || (g.memberCount || 0) > 0)
+      .sort((a, b) => {
+        if (b.featured && !a.featured) return 1;
+        if (a.featured && !b.featured) return -1;
+        return (b.rating || 0) - (a.rating || 0);
+      })
+      .slice(0, 8),
+    [gyms]
+  );
 
   const filtered = useMemo(() => {
     let list = [...gyms];
@@ -356,6 +381,39 @@ export default function GymsPage() {
             + {t("gymsRegister")}
           </button>
         </div>
+
+        {/* Featured Gyms horizontal scroll */}
+        {!loading && featuredGyms.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
+            <p style={styles.sectionLabel}>
+              ⭐ {locale === "mn" ? "Онцлох gym-ууд" : locale === "ko" ? "추천 체육관" : "Featured Gyms"}
+            </p>
+            <div style={styles.featuredScroll}>
+              {featuredGyms.map((gym) => (
+                <button
+                  key={gym.id}
+                  type="button"
+                  style={styles.featuredCard}
+                  onClick={() => router.push(`/${locale}/gyms/${gym.id}`)}
+                >
+                  {gym.logo ? (
+                    <img src={gym.logo} alt="" style={styles.featuredLogo} />
+                  ) : (
+                    <div style={styles.featuredLogoFallback}>🥊</div>
+                  )}
+                  <p style={styles.featuredName}>{gym.gymName}</p>
+                  <p style={styles.featuredCity}>{gym.city || ""}</p>
+                  {gym.rating > 0 && (
+                    <span style={styles.featuredRating}>⭐ {Number(gym.rating).toFixed(1)}</span>
+                  )}
+                  {gym.memberCount > 0 && (
+                    <span style={styles.featuredMembers}>👥 {gym.memberCount}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Search */}
         <input
@@ -536,9 +594,20 @@ const styles = {
   cardStats: { display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 6 },
   statChip: { fontSize: 11, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: "3px 8px" },
   cardDesc: { margin: 0, fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.5 },
-  cardVibeRow: { display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 4 },
+  cardVibeRow: { display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 8 },
   cardVibeBadge: { fontSize: 10, fontWeight: 800, color: "#F87171", background: "rgba(193,18,31,0.08)", border: "1px solid rgba(193,18,31,0.2)", borderRadius: 999, padding: "2px 8px" },
   vibeRow: { display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8, marginBottom: 12, scrollbarWidth: "none" },
   vibeBtn: { flexShrink: 0, padding: "5px 14px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.2)", background: "rgba(193,18,31,0.05)", color: "rgba(255,165,130,0.65)", fontSize: 12, fontWeight: 700, cursor: "pointer" },
   vibeActive: { flexShrink: 0, padding: "5px 14px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.6)", background: "rgba(193,18,31,0.18)", color: "#F87171", fontSize: 12, fontWeight: 900, cursor: "pointer" },
+  memberCountBadge: { position: "absolute", bottom: 8, left: 10, fontSize: 10, fontWeight: 900, color: "#fff", background: "rgba(0,0,0,0.65)", borderRadius: 999, padding: "2px 8px" },
+  joinBtn: { display: "block", width: "100%", marginTop: 10, padding: "10px 0", borderRadius: 12, border: "none", background: "#C1121F", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", letterSpacing: 0.3, boxShadow: "0 6px 20px rgba(193,18,31,0.22)" },
+  sectionLabel: { margin: "0 0 10px", fontSize: 11, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" },
+  featuredScroll: { display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none", WebkitOverflowScrolling: "touch" },
+  featuredCard: { flexShrink: 0, width: 116, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "linear-gradient(145deg, #131313, #0a0a0a)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "12px 8px", cursor: "pointer", textAlign: "center", WebkitTapHighlightColor: "transparent" },
+  featuredLogo: { width: 48, height: 48, borderRadius: 12, objectFit: "cover", marginBottom: 2 },
+  featuredLogoFallback: { width: 48, height: 48, borderRadius: 12, background: "rgba(193,18,31,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, marginBottom: 2 },
+  featuredName: { margin: 0, fontSize: 12, fontWeight: 900, color: "#fff", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "100%" },
+  featuredCity: { margin: 0, fontSize: 10, color: "#666", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "100%" },
+  featuredRating: { fontSize: 10, color: "#D4AF37", fontWeight: 800 },
+  featuredMembers: { fontSize: 10, color: "#888" },
 };

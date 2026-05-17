@@ -75,8 +75,6 @@ function CoachCard({ coach, t, locale, onRequest, requested, router }) {
     .join("")
     .toUpperCase();
 
-  const primarySpecialty = coach.coachSpecialties?.[0];
-
   return (
     <div style={styles.card}>
       <div style={styles.cardTop}>
@@ -104,29 +102,39 @@ function CoachCard({ coach, t, locale, onRequest, requested, router }) {
             <div style={styles.cardLocation}>📍 {coach.coachLocation}</div>
           )}
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
-            {primarySpecialty && (
-              <span style={styles.specialtyChip}>{primarySpecialty}</span>
-            )}
-            {Number.isFinite(coach.coachRating) && (
+            {Number.isFinite(coach.coachRating) && coach.coachRating > 0 && (
               <span style={styles.cardRatingInline}>⭐ {coach.coachRating.toFixed(1)}</span>
+            )}
+            {Number.isFinite(coach.coachPricePerSession) && coach.coachPricePerSession > 0 && (
+              <span style={{ fontSize: 13, fontWeight: 900, color: "#D4AF37" }}>
+                ${coach.coachPricePerSession}<span style={{ fontSize: 10, color: "#888", fontWeight: 600 }}>/sess</span>
+              </span>
             )}
           </div>
         </div>
       </div>
 
-      {Number.isFinite(coach.coachPricePerSession) && coach.coachPricePerSession > 0 && (
-        <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-          <span style={{ fontSize: 15, fontWeight: 900, color: "#D4AF37" }}>${coach.coachPricePerSession}</span>
-          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>/session</span>
+      {coach.coachSpecialties?.length > 0 && (
+        <div style={styles.specialtyRow}>
+          {coach.coachSpecialties.slice(0, 4).map((sp) => (
+            <span key={sp} style={styles.specialtyChip}>{sp}</span>
+          ))}
         </div>
       )}
+
+      {coach.coachBio && (
+        <p style={styles.cardBio}>
+          {coach.coachBio.length > 90 ? coach.coachBio.slice(0, 90) + "…" : coach.coachBio}
+        </p>
+      )}
+
       <div style={styles.cardActions}>
         <button
           type="button"
           style={styles.viewProfileBtn}
           onClick={() => router.push(`/${locale}/coach/${coach.id}`)}
         >
-          Profile →
+          {locale === "mn" ? "Профайл →" : locale === "ko" ? "프로필 →" : "Profile →"}
         </button>
         <button
           type="button"
@@ -134,7 +142,9 @@ function CoachCard({ coach, t, locale, onRequest, requested, router }) {
           disabled={requested}
           onClick={() => onRequest(coach.id)}
         >
-          {requested ? t("requestSent") : t("requestCoach")}
+          {requested
+            ? t("requestSent")
+            : locale === "mn" ? "Захиалах →" : locale === "ko" ? "예약하기 →" : "Book Session →"}
         </button>
       </div>
     </div>
@@ -475,33 +485,59 @@ export default function CoachPage() {
             </div>
           )}
 
-          {/* Compact filter bar */}
-          <div style={styles.filterBarCompact}>
+          {/* Specialty filter chips — full horizontal scroll */}
+          <div style={styles.specialtyChipsRow}>
             <button
               type="button"
-              style={filterSpecialty === "" ? styles.chipActive : styles.chip}
+              style={filterSpecialty === "" ? styles.specChipActive : styles.specChip}
               onClick={() => setFilterSpecialty("")}
             >
-              {t("coachFilterAll")}
+              🥊 {t("coachFilterAll")}
             </button>
-            {SPECIALTIES.slice(0, 2).map((s) => (
+            {SPECIALTIES.map((s) => (
               <button
                 key={s}
                 type="button"
-                style={filterSpecialty === s ? styles.chipActive : styles.chip}
+                style={filterSpecialty === s ? styles.specChipActive : styles.specChip}
                 onClick={() => setFilterSpecialty((prev) => prev === s ? "" : s)}
               >
                 {s}
               </button>
             ))}
+          </div>
+
+          {/* Sort + advanced filter row */}
+          <div style={{ display: "flex", gap: 8, marginBottom: 16, alignItems: "center" }}>
+            {[
+              { key: "rating", label: locale === "mn" ? "⭐ Рейтинг" : locale === "ko" ? "⭐ 평점" : "⭐ Rating" },
+              { key: "students", label: locale === "mn" ? "👥 Сурагчид" : locale === "ko" ? "👥 학생수" : "👥 Students" },
+              { key: "verified", label: locale === "mn" ? "✓ Баталгаа" : locale === "ko" ? "✓ 인증" : "✓ Verified" },
+            ].map(({ key, label }) => (
+              <button
+                key={key}
+                type="button"
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: 999,
+                  border: sortBy === key ? "1px solid rgba(212,175,55,0.6)" : "1px solid rgba(255,255,255,0.1)",
+                  background: sortBy === key ? "rgba(212,175,55,0.15)" : "rgba(255,255,255,0.03)",
+                  color: sortBy === key ? "#D4AF37" : "rgba(255,255,255,0.4)",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  flexShrink: 0,
+                }}
+                onClick={() => setSortBy(key)}
+              >
+                {label}
+              </button>
+            ))}
             <button
               type="button"
-              style={styles.filterMoreBtn}
+              style={{ marginLeft: "auto", padding: "6px 12px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.4)", fontSize: 12, fontWeight: 700, cursor: "pointer", flexShrink: 0 }}
               onClick={() => setShowCoachFilterSheet(true)}
             >
-              {(filterSpecialty && !SPECIALTIES.slice(0, 2).includes(filterSpecialty)) || filterVibe || filterLocation
-                ? "● Filters"
-                : "Filters ›"}
+              {filterVibe || filterLocation ? "● More" : "More ›"}
             </button>
           </div>
 
@@ -857,6 +893,41 @@ const styles = {
     flexDirection: "column",
     gap: 10,
     marginBottom: 20,
+  },
+  specialtyChipsRow: {
+    display: "flex",
+    gap: 6,
+    overflowX: "auto",
+    paddingBottom: 8,
+    scrollbarWidth: "none",
+    marginBottom: 12,
+    alignItems: "center",
+  },
+  specChip: {
+    flexShrink: 0,
+    padding: "7px 14px",
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.1)",
+    background: "rgba(255,255,255,0.03)",
+    color: "rgba(255,255,255,0.45)",
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+    WebkitTapHighlightColor: "transparent",
+  },
+  specChipActive: {
+    flexShrink: 0,
+    padding: "7px 14px",
+    borderRadius: 999,
+    border: "1px solid rgba(193,18,31,0.6)",
+    background: "rgba(193,18,31,0.18)",
+    color: "#F87171",
+    fontSize: 12,
+    fontWeight: 900,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+    WebkitTapHighlightColor: "transparent",
   },
   filterBarCompact: {
     display: "flex",
