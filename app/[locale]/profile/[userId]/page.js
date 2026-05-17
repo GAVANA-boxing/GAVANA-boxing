@@ -320,6 +320,7 @@ export default function UserProfilePage() {
   const [signingOut, setSigningOut] = useState(false);
   const [previewFailures, setPreviewFailures] = useState({});
   const [deletingReelIds, setDeletingReelIds] = useState(new Set());
+  const [deleteConfirmReel, setDeleteConfirmReel] = useState(null);
   const [rankUpRank, setRankUpRank] = useState(null);
   const [expandedTrainingGroups, setExpandedTrainingGroups] = useState(new Set());
   const [showAiFeedbackList, setShowAiFeedbackList] = useState(false);
@@ -1051,9 +1052,6 @@ export default function UserProfilePage() {
     if (!user?.uid || reel.userId !== user.uid || deletingReelIds.has(reel.id)) {
       return;
     }
-
-    const confirmed = window.confirm(t("confirmDeleteReel"));
-    if (!confirmed) return;
 
     const previousUserReels = userReels;
     const previousSavedReels = savedUserReels;
@@ -2198,7 +2196,7 @@ export default function UserProfilePage() {
                     type="button"
                     aria-label={t("deleteReel")}
                     title={t("deleteReel")}
-                    onClick={(event) => handleDeleteReel(event, reel)}
+                    onClick={(event) => { event.stopPropagation(); if (!isDeletingReel) setDeleteConfirmReel(reel); }}
                     disabled={isDeletingReel}
                     style={{
                       ...styles.deleteReelButton,
@@ -2206,7 +2204,10 @@ export default function UserProfilePage() {
                       cursor: isDeletingReel ? "not-allowed" : "pointer",
                     }}
                   >
-                    {isDeletingReel ? "..." : "×"}
+                    {isDeletingReel
+                      ? <span style={{ fontSize: 11, fontWeight: 900 }}>...</span>
+                      : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+                    }
                   </button>
                 )}
                 <div style={styles.reelTileOverlay}>
@@ -2248,6 +2249,42 @@ export default function UserProfilePage() {
 
       {rankUpRank && (
         <RankUpModal rank={rankUpRank} onClose={() => setRankUpRank(null)} t={t} />
+      )}
+
+      {deleteConfirmReel && (
+        <div
+          style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.72)", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 24px" }}
+          onClick={() => setDeleteConfirmReel(null)}
+        >
+          <div
+            style={{ background: "#111", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, padding: "28px 24px", width: "100%", maxWidth: 340, textAlign: "center" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ fontSize: 36, marginBottom: 12 }}>🗑️</div>
+            <p style={{ margin: "0 0 6px", fontSize: 16, fontWeight: 900, color: "#fff" }}>
+              {locale === "mn" ? "Устгахдаа итгэлтэй үү?" : locale === "ko" ? "삭제하시겠습니까?" : "Delete this reel?"}
+            </p>
+            <p style={{ margin: "0 0 24px", fontSize: 12, color: "rgba(255,255,255,0.4)" }}>
+              {locale === "mn" ? "Энэ үйлдлийг буцаах боломжгүй." : locale === "ko" ? "이 작업은 되돌릴 수 없습니다." : "This action cannot be undone."}
+            </p>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmReel(null)}
+                style={{ flex: 1, padding: "12px 0", borderRadius: 12, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
+              >
+                {locale === "mn" ? "Болих" : locale === "ko" ? "취소" : "Cancel"}
+              </button>
+              <button
+                type="button"
+                onClick={async () => { const reel = deleteConfirmReel; setDeleteConfirmReel(null); await handleDeleteReel({ stopPropagation: () => {} }, reel); }}
+                style={{ flex: 1, padding: "12px 0", borderRadius: 12, border: "1px solid rgba(239,68,68,0.4)", background: "rgba(239,68,68,0.15)", color: "#F87171", fontSize: 13, fontWeight: 900, cursor: "pointer" }}
+              >
+                {locale === "mn" ? "Устгах" : locale === "ko" ? "삭제" : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {showStreakModal && (
@@ -2431,8 +2468,11 @@ export default function UserProfilePage() {
                   </span>
                   <span style={{ fontSize: 12, fontWeight: 900, color: fighterRank.color }}>{xp.toLocaleString()} XP</span>
                 </div>
-                <div style={{ height: 5, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                <div style={{ height: 6, borderRadius: 999, background: "rgba(255,255,255,0.14)", overflow: "hidden" }}>
                   <div style={{ height: "100%", width: `${rankProgress}%`, borderRadius: 999, background: fighterRank.gradient || accentColor, transition: "width 600ms ease" }} />
+                </div>
+                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 4 }}>
+                  <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>{rankProgress}% → {fighterRank.label}</span>
                 </div>
               </div>
 
@@ -2452,7 +2492,7 @@ export default function UserProfilePage() {
 
               {/* Challenge rank */}
               {(challengeRanks?.weeklyRank || challengeRanks?.allTimeRank) && (
-                <div style={{ width: "100%", padding: "8px 12px", borderRadius: 10, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.15)", display: "flex", justifyContent: "space-around", marginBottom: 14 }}>
+                <div style={{ width: "100%", padding: "12px 16px", borderRadius: 10, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.15)", display: "flex", justifyContent: "space-around", alignItems: "center", marginBottom: 14 }}>
                   {challengeRanks.weeklyRank && (
                     <div style={{ textAlign: "center" }}>
                       <div style={{ fontSize: 15, fontWeight: 1000, color: "#D4AF37" }}>#{challengeRanks.weeklyRank}</div>
@@ -2763,13 +2803,18 @@ const styles = {
     flexShrink: 0,
   },
   bio: {
-    maxWidth: 380,
-    margin: "14px auto 0",
-    color: "rgba(255,255,255,0.55)",
-    fontSize: 13,
-    lineHeight: 1.6,
+    maxWidth: 360,
+    margin: "12px auto 0",
+    color: "rgba(255,255,255,0.38)",
+    fontSize: 12,
+    lineHeight: 1.65,
     fontWeight: 400,
     fontStyle: "italic",
+    letterSpacing: 0.2,
+    padding: "8px 14px",
+    borderRadius: 8,
+    background: "rgba(255,255,255,0.03)",
+    border: "1px solid rgba(255,255,255,0.06)",
   },
   statsRow: {
     display: "grid",

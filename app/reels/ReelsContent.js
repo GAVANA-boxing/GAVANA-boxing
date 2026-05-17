@@ -1373,6 +1373,12 @@ export default function ReelsContent() {
         `Views: ${views}`,
       ].join("\n");
 
+      const feedbackFormatLabels = currentLocale === "mn"
+        ? { strength: "Давуу тал", improve: "Сайжруулах", drill: "Дараагийн дасгал" }
+        : currentLocale === "ko"
+        ? { strength: "강점", improve: "개선점", drill: "다음 훈련" }
+        : { strength: "Strength", improve: "Improve", drill: "Next drill" };
+
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
@@ -1394,9 +1400,9 @@ export default function ReelsContent() {
                 "Give a realistic score out of 10. Do not make the score too perfect unless the context strongly supports it.",
                 "Return exactly this plain format with no markdown, no bold symbols, and no bullet points:",
                 "Score: 6.5/10",
-                "Strength: one specific strength or positive signal based on the caption/context.",
-                "Improve: one practical thing to watch or refine next time.",
-                "Next drill: one simple boxing drill with a clear rep/time target.",
+                `${feedbackFormatLabels.strength}: one specific strength or positive signal based on the caption/context.`,
+                `${feedbackFormatLabels.improve}: one practical thing to watch or refine next time.`,
+                `${feedbackFormatLabels.drill}: one simple boxing drill with a clear rep/time target.`,
               ].join("\n"),
             },
           ],
@@ -1612,6 +1618,18 @@ export default function ReelsContent() {
       console.error("Failed to add comment:", err);
     }
   }, [user, newComment, selectedReelId, reels, replyingTo]);
+
+  const handleDeleteComment = useCallback(async (comment) => {
+    if (!user || comment.userId !== user.uid || !selectedReelId) return;
+    try {
+      const { db } = await getFirebase();
+      const { doc, deleteDoc, updateDoc, increment } = await import("firebase/firestore");
+      await deleteDoc(doc(db, "reels", selectedReelId, "comments", comment.id));
+      await updateDoc(doc(db, "reels", selectedReelId), { commentsCount: increment(-1) });
+    } catch (err) {
+      console.error("Failed to delete comment:", err);
+    }
+  }, [user, selectedReelId]);
 
   // Handle closing comments
   const handleCloseComments = useCallback(() => {
@@ -2130,13 +2148,13 @@ export default function ReelsContent() {
                 </div>
                 <span style={styles.actionText}>{formatCompactCount(getSafeLikeCount(reel))}</span>
               </div>
-              <div className="reel-action" style={styles.actionItem} onClick={() => handleOpenComments(reel.id)}>
+              <div className="reel-action" style={styles.actionItem} onClick={() => handleOpenComments(reel.id)} title={t("comment")}>
                 <div className="reel-action-circle" style={styles.actionCircle}>
                   <CommentIcon />
                 </div>
                 <span style={styles.actionText}>{formatCompactCount(getSafeCommentsCount(reel))}</span>
               </div>
-              <div className="reel-action" style={styles.actionItem} onClick={() => handleShare(reel)}>
+              <div className="reel-action" style={styles.actionItem} onClick={() => handleShare(reel)} title={t("share") || "Share"}>
                 <div className="reel-action-circle" style={styles.actionCircle}>
                   <ShareIcon />
                 </div>
@@ -2176,7 +2194,9 @@ export default function ReelsContent() {
                 <div className="reel-action-circle" style={styles.actionCircle}>
                   <RobotIcon />
                 </div>
-                <span style={{ fontSize: 8, color: "rgba(255,255,255,0.35)", fontWeight: 700, textShadow: "0 2px 8px rgba(0,0,0,0.95)" }}>AI</span>
+                <span style={{ fontSize: 8, color: "rgba(255,255,255,0.35)", fontWeight: 700, textShadow: "0 2px 8px rgba(0,0,0,0.95)", textAlign: "center", lineHeight: 1.2 }}>
+                  {currentLocale === "mn" ? "AI" : currentLocale === "ko" ? "AI" : "AI"}
+                </span>
               </div>
               <div
                 className="reel-action"
@@ -2187,7 +2207,9 @@ export default function ReelsContent() {
                 <div className="reel-action-circle" style={styles.actionCircle}>
                   <AISparkIcon />
                 </div>
-                <span style={{ fontSize: 8, color: "rgba(255,255,255,0.35)", fontWeight: 700, textShadow: "0 2px 8px rgba(0,0,0,0.95)" }}>📊</span>
+                <span style={{ fontSize: 7, color: "rgba(255,255,255,0.35)", fontWeight: 700, textShadow: "0 2px 8px rgba(0,0,0,0.95)", textAlign: "center", lineHeight: 1.2, maxWidth: 40 }}>
+                  {currentLocale === "mn" ? "Шинж" : currentLocale === "ko" ? "분석" : "Breakdown"}
+                </span>
               </div>
             </div>
 
@@ -2209,7 +2231,9 @@ export default function ReelsContent() {
           <div style={styles.commentsContent}>
             <div style={styles.commentsHandle} />
             <div style={styles.commentsHeader}>
-              <span style={styles.commentsTitle}>{t("comment")}</span>
+              <span style={styles.commentsTitle}>
+                {t("comment")}{comments.length > 0 ? ` (${comments.length})` : ""}
+              </span>
               <button style={styles.commentsClose} onClick={handleCloseComments} aria-label="Close">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
               </button>
@@ -2236,10 +2260,22 @@ export default function ReelsContent() {
                         {photo ? <img src={photo} alt="" style={styles.commentAvatarImage} /> : name.charAt(0).toUpperCase()}
                       </button>
                       <div style={styles.commentContent}>
-                        <button type="button" style={styles.commentUsername}
-                          onClick={() => comment.userId && router.push(`/${currentLocale}/profile/${comment.userId}`)}>
-                          @{name}
-                        </button>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                          <button type="button" style={styles.commentUsername}
+                            onClick={() => comment.userId && router.push(`/${currentLocale}/profile/${comment.userId}`)}>
+                            @{name}
+                          </button>
+                          {user?.uid === comment.userId && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteComment(comment)}
+                              style={{ background: "none", border: "none", cursor: "pointer", padding: "2px 4px", color: "rgba(255,255,255,0.25)", lineHeight: 1 }}
+                              title={currentLocale === "mn" ? "Устгах" : currentLocale === "ko" ? "삭제" : "Delete"}
+                            >
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+                            </button>
+                          )}
+                        </div>
                         <div style={styles.commentText}>{comment.text}</div>
                         {!isReply && user && (
                           <button type="button" style={styles.replyBtn}
@@ -2279,6 +2315,18 @@ export default function ReelsContent() {
 
             {user && (
               <div style={styles.commentInput}>
+                <div style={{ display: "flex", gap: 6, padding: "6px 12px 0", overflowX: "auto", scrollbarWidth: "none" }}>
+                  {["🥊", "🔥", "💪", "👏", "🙌", "👊"].map((emoji) => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      onClick={() => setNewComment((prev) => prev + emoji)}
+                      style={{ flexShrink: 0, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "4px 8px", fontSize: 16, cursor: "pointer", lineHeight: 1 }}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
                 {replyingTo && (
                   <div style={styles.replyPill}>
                     <span style={styles.replyPillText}>↩ @{replyingTo.username}</span>
@@ -2321,7 +2369,9 @@ export default function ReelsContent() {
                   <p style={styles.feedbackSubtitle}>@{feedbackReel.username || "fighter"}</p>
                 )}
               </div>
-              <button style={styles.feedbackClose} onClick={handleCloseFeedback}>x</button>
+              <button style={styles.feedbackClose} onClick={handleCloseFeedback} aria-label="Close">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              </button>
             </div>
 
             <div style={styles.feedbackBody}>
