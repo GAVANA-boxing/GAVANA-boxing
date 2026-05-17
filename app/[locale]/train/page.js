@@ -106,6 +106,7 @@ export default function TrainPage() {
   const pvpSavedRef = useRef(false);
   const [challengeSaving, setChallengeSaving] = useState(false);
   const [challengeSaved, setChallengeSaved] = useState(false);
+  const [rankUpInfo, setRankUpInfo] = useState(null);
   const [error, setError] = useState("");
   const [missionJustCompleted, setMissionJustCompleted] = useState(false);
   const [missionStreakBonus, setMissionStreakBonus] = useState(0);
@@ -757,6 +758,7 @@ export default function TrainPage() {
       const comparisonPercent = getChallengeComparisonPercent(result.score);
       const xpGained = calculateChallengeXP(result.score, rank);
 
+      let rankUpData = null;
       await runTransaction(db, async (transaction) => {
         const userRef = doc(db, "users", user.uid);
         const challengeResultRef = doc(collection(db, "challenge_results"));
@@ -776,7 +778,9 @@ export default function TrainPage() {
         const totalChallengeXP = xpGained + streakBonusXP;
         const nextXP = Math.round((Number(userData.xp) || 0) + totalChallengeXP);
         const nextCompleted = Math.round((Number(userData.totalChallengesCompleted) || 0) + 1);
+        const prevRank = getFighterRank(Number(userData.xp) || 0);
         const nextRank = getFighterRank(nextXP);
+        if (prevRank.key !== nextRank.key) rankUpData = nextRank;
 
         transaction.set(challengeResultRef, {
           userId: user.uid,
@@ -805,6 +809,7 @@ export default function TrainPage() {
       });
 
       setChallengeSaved(true);
+      if (rankUpData) setRankUpInfo(rankUpData);
     } catch (err) {
       challengeSavedRef.current = false;
       console.error("Failed to save challenge result:", err);
@@ -1441,6 +1446,28 @@ export default function TrainPage() {
                 </div>
               )}
 
+              {/* Rank-up celebration */}
+              {rankUpInfo && (
+                <div style={{
+                  borderRadius: 16, padding: "18px 20px", textAlign: "center",
+                  background: `linear-gradient(135deg, ${rankUpInfo.color}18, rgba(0,0,0,0.8))`,
+                  border: `1px solid ${rankUpInfo.color}55`,
+                  boxShadow: `0 0 28px ${rankUpInfo.color}30`,
+                  animation: "rankUpPulse 2s ease-in-out infinite",
+                }}>
+                  <div style={{ fontSize: 36, marginBottom: 6 }}>🎖️</div>
+                  <div style={{ fontSize: 16, fontWeight: 900, color: rankUpInfo.color, marginBottom: 4 }}>
+                    {locale === "mn" ? "ДЭВШЛЭТ!" : locale === "ko" ? "승급!" : "RANK UP!"}
+                  </div>
+                  <div style={{ fontSize: 13, color: "#fff", fontWeight: 800 }}>
+                    {t(rankUpInfo.key)}
+                  </div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 4 }}>
+                    {locale === "mn" ? "Шинэ дэв авлаа" : locale === "ko" ? "새 등급 달성" : "New rank achieved"}
+                  </div>
+                </div>
+              )}
+
               {/* Session history sparkline in result screen */}
               {sessionHistory.length > 0 && (
                 <div style={styles.resultSparklineCard}>
@@ -1568,6 +1595,10 @@ export default function TrainPage() {
           60%  { transform: scale(0.97); }
           80%  { transform: scale(1.03); }
           100% { transform: scale(1);   opacity: 1; }
+        }
+        @keyframes rankUpPulse {
+          0%, 100% { transform: scale(1); box-shadow: inherit; }
+          50% { transform: scale(1.02); }
         }
       `}</style>
     </main>
