@@ -1355,7 +1355,7 @@ export default function TrainPage() {
       )}
 
       <DailyMission locale={locale} />
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="upload" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="reels" />
 
       <style>{`
         @keyframes flashFade {

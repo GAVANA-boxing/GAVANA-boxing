@@ -303,7 +303,7 @@ export default function GymProfilePage() {
           <button type="button" style={styles.backBtn} onClick={() => router.push(`/${locale}/gyms`)}>← {t("back")}</button>
           <p style={{ color: "rgba(255,255,255,0.62)", textAlign: "center", padding: "60px 0" }}>Gym not found.</p>
         </div>
-        <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
+        <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
       </div>
     );
   }
@@ -570,7 +570,7 @@ export default function GymProfilePage() {
         </section>
       </div>
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
     </div>
   );
 }

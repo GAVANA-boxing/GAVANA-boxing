@@ -384,7 +384,7 @@ export default function GymDashboardPage() {
             {submitting ? t("gymRegisterSubmitting") : t("gymRegisterSubmit")}
           </button>
         </div>
-        <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
+        <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
       </div>
     );
   }
@@ -401,7 +401,7 @@ export default function GymDashboardPage() {
             </button>
           </div>
         </div>
-        <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
+        <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
       </div>
     );
   }
@@ -613,7 +613,7 @@ export default function GymDashboardPage() {
         )}
       </div>
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
     </div>
   );
 }

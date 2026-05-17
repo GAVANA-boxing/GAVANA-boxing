@@ -442,7 +442,7 @@ export default function ProgramsPage() {
         </div>
       )}
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="reels" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
     </div>
   );
 }

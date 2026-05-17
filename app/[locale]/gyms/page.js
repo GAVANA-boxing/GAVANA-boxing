@@ -269,9 +269,9 @@ export default function GymsPage() {
   }, [gyms, verifiedOnly, selectedType, cityFilter, searchText, sortMode, nearbyCoords]);
 
   const GYM_STATUS = {
-    pending:  { color: "#F59E0B", bg: "rgba(245,158,11,0.1)",  border: "rgba(245,158,11,0.35)",  label: "⏳ Хүлээгдэж байна" },
-    approved: { color: "#34D399", bg: "rgba(52,211,153,0.1)",  border: "rgba(52,211,153,0.35)",  label: "✓ Гишүүн" },
-    declined: { color: "#F87171", bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.35)", label: "✕ Татгалзсан" },
+    pending:  { color: "#F59E0B", bg: "rgba(245,158,11,0.1)",  border: "rgba(245,158,11,0.35)",  label: locale === "mn" ? "⏳ Хүлээгдэж байна" : locale === "ko" ? "⏳ 대기 중" : "⏳ Pending" },
+    approved: { color: "#34D399", bg: "rgba(52,211,153,0.1)",  border: "rgba(52,211,153,0.35)",  label: locale === "mn" ? "✓ Гишүүн" : locale === "ko" ? "✓ 회원" : "✓ Member" },
+    declined: { color: "#F87171", bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.35)", label: locale === "mn" ? "✕ Татгалзсан" : locale === "ko" ? "✕ 거절됨" : "✕ Declined" },
   };
 
   return (
@@ -279,8 +279,8 @@ export default function GymsPage() {
       {/* Sticky tab bar */}
       <div style={styles.tabBar}>
         {[
-          { key: "all", label: "🏋️ Бүх gym" },
-          { key: "mine", label: "🥊 Миний gym" },
+          { key: "all",  label: locale === "mn" ? "🏋️ Бүх gym" : locale === "ko" ? "🏋️ 전체" : "🏋️ All Gyms" },
+          { key: "mine", label: locale === "mn" ? "🥊 Миний gym" : locale === "ko" ? "🥊 내 체육관" : "🥊 My Gyms" },
         ].map(({ key, label }) => (
           <button
             key={key}
@@ -534,7 +534,7 @@ export default function GymsPage() {
         router={router}
         user={user}
         currentLocale={locale}
-        activeTab="coach"
+        activeTab="profile"
       />
     </div>
   );
