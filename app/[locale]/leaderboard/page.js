@@ -644,17 +644,21 @@ export default function LeaderboardPage() {
               const medals = ["🥇", "🥈", "🥉"];
               const colors = ["#D4AF37", "#C0C0C0", "#CD7F32"];
               if (!entry) return null;
+              const avatarSize = isFirst ? 56 : 44;
+              const glowShadow = isFirst
+                ? `0 0 0 2.5px ${colors[0]}, 0 0 22px ${colors[0]}88`
+                : `0 0 8px ${colors[rank - 1]}44`;
               return (
                 <div key={rank} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer" }} onClick={() => router.push(`/${locale}/profile/${entry.userId}`)}>
-                  <span style={{ fontSize: 16 }}>{medals[rank - 1]}</span>
+                  <span style={{ fontSize: isFirst ? 20 : 16 }}>{medals[rank - 1]}</span>
                   {photo
-                    ? <img src={photo} alt="" style={{ width: isFirst ? 52 : 44, height: isFirst ? 52 : 44, borderRadius: "50%", objectFit: "cover", border: `2.5px solid ${colors[rank - 1]}`, boxShadow: `0 0 12px ${colors[rank - 1]}44` }} />
-                    : <div style={{ width: isFirst ? 52 : 44, height: isFirst ? 52 : 44, borderRadius: "50%", background: "rgba(255,255,255,0.08)", border: `2.5px solid ${colors[rank - 1]}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: isFirst ? 20 : 16, fontWeight: 900, color: "#fff" }}>{name[0]?.toUpperCase()}</div>
+                    ? <img src={photo} alt="" style={{ width: avatarSize, height: avatarSize, borderRadius: "50%", objectFit: "cover", border: `2.5px solid ${colors[rank - 1]}`, boxShadow: glowShadow }} />
+                    : <div style={{ width: avatarSize, height: avatarSize, borderRadius: "50%", background: "rgba(255,255,255,0.08)", border: `2.5px solid ${colors[rank - 1]}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: isFirst ? 22 : 16, fontWeight: 900, color: "#fff", boxShadow: glowShadow }}>{name[0]?.toUpperCase()}</div>
                   }
-                  <span style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.7)", maxWidth: 70, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>{name.split(" ")[0]}</span>
-                  <span style={{ fontSize: 11, fontWeight: 900, color: colors[rank - 1] }}>{entry.bestScore}/10</span>
-                  <div style={{ width: "100%", height: podiumH, borderRadius: "8px 8px 0 0", background: `linear-gradient(180deg, ${colors[rank - 1]}22, ${colors[rank - 1]}0a)`, border: `1px solid ${colors[rank - 1]}33`, borderBottom: "none", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ fontSize: isFirst ? 22 : 18, fontWeight: 900, color: colors[rank - 1], opacity: 0.6 }}>#{rank}</span>
+                  <span style={{ fontSize: isFirst ? 11 : 10, fontWeight: 800, color: isFirst ? "#fff" : "rgba(255,255,255,0.7)", maxWidth: 72, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>{name.split(" ")[0]}</span>
+                  <span style={{ fontSize: isFirst ? 13 : 11, fontWeight: 900, color: colors[rank - 1], textAlign: "center" }}>{entry.bestScore}/10</span>
+                  <div style={{ width: "100%", height: podiumH, borderRadius: "8px 8px 0 0", background: isFirst ? `linear-gradient(180deg, ${colors[0]}2a, ${colors[0]}08)` : `linear-gradient(180deg, ${colors[rank - 1]}18, ${colors[rank - 1]}06)`, border: `1px solid ${colors[rank - 1]}${isFirst ? "55" : "28"}`, borderBottom: "none", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: isFirst ? `0 -4px 20px ${colors[0]}22` : "none" }}>
+                    <span style={{ fontSize: isFirst ? 22 : 18, fontWeight: 900, color: colors[rank - 1], opacity: isFirst ? 0.8 : 0.5 }}>#{rank}</span>
                   </div>
                 </div>
               );
