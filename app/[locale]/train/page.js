@@ -111,6 +111,11 @@ export default function TrainPage() {
   const [missionStreakBonus, setMissionStreakBonus] = useState(0);
   const [missionNewStreak, setMissionNewStreak] = useState(0);
 
+  // Session stats for pre-session panel & sparkline
+  const [sessionHistory, setSessionHistory] = useState([]);
+  const [weeklySessionCount, setWeeklySessionCount] = useState(0);
+  const [userStreak, setUserStreak] = useState(0);
+
   // Live game state
   const [comboCount, setComboCount] = useState(0);
   const [hitCount, setHitCount] = useState(0);
@@ -207,6 +212,50 @@ export default function TrainPage() {
     return () => {
       active = false;
     };
+  }, [user?.uid]);
+
+  // Load session history, weekly count, and streak for pre-session panel
+  useEffect(() => {
+    if (!user?.uid) return;
+    let active = true;
+
+    async function loadSessionStats() {
+      try {
+        const [userSnap, sessSnap] = await Promise.all([
+          getDoc(doc(db, "users", user.uid)),
+          getDocs(query(collection(db, "training_sessions"), where("userId", "==", user.uid))),
+        ]);
+        if (!active) return;
+
+        const userData = userSnap.exists() ? userSnap.data() : {};
+        setUserStreak(Number(userData.dailyStreak) || 0);
+
+        const sessions = sessSnap.docs
+          .map(d => d.data())
+          .filter(d => d.type === "training" && Number.isFinite(Number(d.score)));
+
+        sessions.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+        setSessionHistory(sessions.slice(0, 5).map(d => Number(d.score)));
+
+        const now = new Date();
+        const dayOfWeek = now.getDay();
+        const monday = new Date(now);
+        monday.setDate(now.getDate() - ((dayOfWeek + 6) % 7));
+        monday.setHours(0, 0, 0, 0);
+
+        const weeklyCount = sessions.filter(d => {
+          const ts = d.createdAt?.seconds ? new Date(d.createdAt.seconds * 1000) : null;
+          return ts && ts >= monday;
+        }).length;
+        setWeeklySessionCount(weeklyCount);
+      } catch {
+        // silent
+      }
+    }
+
+    loadSessionStats();
+    return () => { active = false; };
   }, [user?.uid]);
 
   // Load PvP opponent username
@@ -1090,23 +1139,97 @@ export default function TrainPage() {
         {/* Pre-game competitive context card */}
         {phase === "idle" && (
           <div style={styles.contextCard}>
+            {/* Weekly goal ring + streak strip */}
+            {!challengeUserId && (
+              <div style={styles.preSessionStrip}>
+                {/* Weekly ring */}
+                {(() => {
+                  const weeklyGoal = 5;
+                  const pct = Math.min(1, weeklySessionCount / weeklyGoal);
+                  const r = 22;
+                  const circ = 2 * Math.PI * r;
+                  const filled = pct * circ;
+                  return (
+                    <div style={styles.weeklyRingWrap}>
+                      <svg width="56" height="56" viewBox="0 0 56 56" style={{ display: "block" }}>
+                        <circle cx="28" cy="28" r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="4" />
+                        <circle cx="28" cy="28" r={r} fill="none" stroke="#D4AF37" strokeWidth="4"
+                          strokeDasharray={`${filled} ${circ - filled}`}
+                          strokeLinecap="round"
+                          transform="rotate(-90 28 28)"
+                          style={{ transition: "stroke-dasharray 0.6s ease" }}
+                        />
+                        <text x="28" y="32" textAnchor="middle" fill="#fff" fontSize="11" fontWeight="900" fontFamily="sans-serif">
+                          {weeklySessionCount}/{weeklyGoal}
+                        </text>
+                      </svg>
+                      <span style={styles.weeklyRingLabel}>
+                        {locale === "mn" ? "7 хоног" : locale === "ko" ? "주간" : "Weekly"}
+                      </span>
+                    </div>
+                  );
+                })()}
+
+                {/* Streak */}
+                <div style={styles.preSessionStat}>
+                  <span style={styles.preSessionStatVal}>
+                    {userStreak > 0 ? `🔥 ${userStreak}` : "—"}
+                  </span>
+                  <span style={styles.preSessionStatLbl}>
+                    {locale === "mn" ? "Дараалал" : locale === "ko" ? "연속" : "Streak"}
+                  </span>
+                </div>
+
+                {/* Personal best */}
+                {ghostBestScore !== null && (
+                  <div style={styles.preSessionStat}>
+                    <span style={styles.preSessionStatVal}>{ghostBestScore.toFixed(1)}</span>
+                    <span style={styles.preSessionStatLbl}>
+                      {locale === "mn" ? "Хамгийн дээд" : locale === "ko" ? "최고 기록" : "Best"}
+                    </span>
+                  </div>
+                )}
+
+                {/* Session history mini sparkline */}
+                {sessionHistory.length > 0 && (
+                  <div style={styles.preSessionSparkWrap}>
+                    <div style={styles.preSessionSparkBars}>
+                      {[...sessionHistory].reverse().map((s, i, arr) => (
+                        <div
+                          key={i}
+                          style={{
+                            ...styles.preSessionSparkBar,
+                            height: `${Math.max(12, (s / 10) * 36)}px`,
+                            background: i === arr.length - 1 ? "#C1121F" : "rgba(255,255,255,0.18)",
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <span style={styles.preSessionStatLbl}>
+                      {locale === "mn" ? "Түүх" : locale === "ko" ? "히스토리" : "History"}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
             {(ghostBestScore !== null || targetScore || (challengeUserId && opponentUsername)) ? (
               <div style={styles.contextStatsRow}>
                 {!challengeUserId && ghostBestScore !== null && (
                   <div style={styles.contextStat}>
-                    <span style={styles.contextStatLabel}>👻 YOUR BEST</span>
+                    <span style={styles.contextStatLabel}>👻 {locale === "mn" ? "ХАМГИЙН ДЭЭД" : locale === "ko" ? "최고" : "YOUR BEST"}</span>
                     <span style={styles.contextStatValue}>{ghostBestScore.toFixed(1)}<span style={styles.contextStatUnit}>/10</span></span>
                   </div>
                 )}
                 {!challengeUserId && targetScore && (
                   <div style={styles.contextStat}>
-                    <span style={styles.contextStatLabel}>🎯 TARGET</span>
+                    <span style={styles.contextStatLabel}>🎯 {locale === "mn" ? "ЗОРИЛТ" : locale === "ko" ? "목표" : "TARGET"}</span>
                     <span style={{ ...styles.contextStatValue, color: "#FDE68A" }}>{targetScore.toFixed(1)}<span style={styles.contextStatUnit}>/10</span></span>
                   </div>
                 )}
                 {challengeUserId && targetScore && (
                   <div style={{ ...styles.contextStat, flex: 1, alignItems: "center" }}>
-                    <span style={styles.contextStatLabel}>🆚 BEAT</span>
+                    <span style={styles.contextStatLabel}>🆚 {locale === "mn" ? "ДАВАХ" : locale === "ko" ? "이겨라" : "BEAT"}</span>
                     <span style={{ ...styles.contextStatValue, color: "#93C5FD", fontSize: 17 }}>
                       {opponentUsername || "Opponent"} · {targetScore.toFixed(1)}/10
                     </span>
@@ -1114,12 +1237,18 @@ export default function TrainPage() {
                 )}
               </div>
             ) : (
-              <div style={styles.contextEmptyMsg}>
-                {reelId ? "Set your first score on this challenge" : "Ready to train"}
-              </div>
+              !challengeUserId && (
+                <div style={styles.contextEmptyMsg}>
+                  {reelId
+                    ? (locale === "mn" ? "Энэ даалгавар дээр анхны оноогоо тавь" : locale === "ko" ? "이 챌린지에서 첫 점수를 기록하세요" : "Set your first score on this challenge")
+                    : (locale === "mn" ? "Дасгалд бэлэн байна" : locale === "ko" ? "훈련 준비 완료" : "Ready to train")}
+                </div>
+              )
             )}
             {ghostEnabled && ghostBestScore !== null && !challengeUserId && (
-              <div style={styles.contextGhostNote}>👻 Ghost mode active — beat {ghostBestScore.toFixed(1)}/10</div>
+              <div style={styles.contextGhostNote}>
+                👻 {locale === "mn" ? `Ghost горим идэвхтэй — ${ghostBestScore.toFixed(1)}/10 давах` : locale === "ko" ? `고스트 모드 활성화 — ${ghostBestScore.toFixed(1)}/10 넘기` : `Ghost mode active — beat ${ghostBestScore.toFixed(1)}/10`}
+              </div>
             )}
           </div>
         )}
@@ -1291,7 +1420,10 @@ export default function TrainPage() {
               )}
 
               {missionJustCompleted && (
-                <div style={styles.missionCompleteBanner}>
+                <div
+                  style={styles.missionCompleteBanner}
+                  className={missionStreakBonus > 0 ? "streak-burst" : undefined}
+                >
                   <div style={styles.missionCompleteTitle}>🎯 {t("missionDailyComplete")}</div>
                   <div style={styles.missionCompleteXP}>
                     +50 XP
@@ -1300,6 +1432,37 @@ export default function TrainPage() {
                         {" "}+ {missionStreakBonus} XP 🔥{missionNewStreak} {t("missionStreakBonus")}
                       </span>
                     )}
+                  </div>
+                  {missionStreakBonus > 0 && (
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", fontWeight: 700, marginTop: 2 }}>
+                      {locale === "mn" ? `${missionNewStreak} өдрийн дараалал — бонус XP авлаа!` : locale === "ko" ? `${missionNewStreak}일 연속 — 보너스 XP 획득!` : `${missionNewStreak}-day streak — bonus XP earned!`}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Session history sparkline in result screen */}
+              {sessionHistory.length > 0 && (
+                <div style={styles.resultSparklineCard}>
+                  <p style={styles.resultSparklineTitle}>
+                    {locale === "mn" ? "Сүүлийн дасгалууд" : locale === "ko" ? "최근 세션" : "Recent sessions"}
+                  </p>
+                  <div style={styles.resultSparklineBars}>
+                    {[...sessionHistory].reverse().map((s, i, arr) => (
+                      <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+                        <div style={{
+                          width: "100%",
+                          height: `${Math.max(8, (s / 10) * 44)}px`,
+                          background: i === arr.length - 1 ? "#C1121F" : "rgba(255,255,255,0.16)",
+                          borderRadius: "3px 3px 0 0",
+                          transition: "height 0.5s ease",
+                          alignSelf: "flex-end",
+                        }} />
+                        <span style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>
+                          {s.toFixed(1)}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
@@ -1394,6 +1557,17 @@ export default function TrainPage() {
 
         @keyframes spin {
           to { transform: rotate(360deg); }
+        }
+
+        .streak-burst {
+          animation: streakBurst 500ms cubic-bezier(0.34,1.56,0.64,1) both;
+        }
+        @keyframes streakBurst {
+          0%   { transform: scale(0.82); opacity: 0; }
+          38%  { transform: scale(1.08); opacity: 1; }
+          60%  { transform: scale(0.97); }
+          80%  { transform: scale(1.03); }
+          100% { transform: scale(1);   opacity: 1; }
         }
       `}</style>
     </main>
@@ -2255,6 +2429,89 @@ const styles = {
     fontWeight: 700,
     borderTop: "1px solid rgba(255,255,255,0.07)",
     paddingTop: 8,
+  },
+  preSessionStrip: {
+    display: "flex",
+    alignItems: "center",
+    gap: 14,
+    paddingBottom: 10,
+    borderBottom: "1px solid rgba(255,255,255,0.07)",
+    marginBottom: 4,
+  },
+  weeklyRingWrap: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 2,
+    flexShrink: 0,
+  },
+  weeklyRingLabel: {
+    fontSize: 9,
+    fontWeight: 900,
+    color: "rgba(255,255,255,0.4)",
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+  },
+  preSessionStat: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 3,
+    flex: 1,
+  },
+  preSessionStatVal: {
+    fontSize: 18,
+    fontWeight: 1000,
+    color: "#fff",
+    lineHeight: 1,
+    fontFamily: "var(--font-display, 'Anton', sans-serif)",
+  },
+  preSessionStatLbl: {
+    fontSize: 9,
+    fontWeight: 900,
+    color: "rgba(255,255,255,0.4)",
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+    textAlign: "center",
+  },
+  preSessionSparkWrap: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 3,
+    flex: 1,
+  },
+  preSessionSparkBars: {
+    display: "flex",
+    alignItems: "flex-end",
+    gap: 3,
+    height: 36,
+  },
+  preSessionSparkBar: {
+    width: 8,
+    borderRadius: "2px 2px 0 0",
+    transition: "height 0.5s ease",
+  },
+  resultSparklineCard: {
+    marginTop: 14,
+    padding: "12px 14px",
+    borderRadius: 14,
+    background: "rgba(255,255,255,0.03)",
+    border: "1px solid rgba(255,255,255,0.08)",
+  },
+  resultSparklineTitle: {
+    margin: "0 0 10px",
+    fontSize: 10,
+    fontWeight: 900,
+    color: "rgba(255,255,255,0.45)",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  resultSparklineBars: {
+    display: "flex",
+    alignItems: "flex-end",
+    gap: 5,
+    height: 56,
   },
 
   // Result — new best / vs ghost comparison card
