@@ -37,7 +37,8 @@ export default function OnboardingPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
 
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0);
+  const [role, setRole] = useState(null); // "fighter" | "coach" | "gym"
   const [archetype, setArchetype] = useState(null);
   const [weightClass, setWeightClass] = useState("");
   const [saving, setSaving] = useState(false);
@@ -51,11 +52,28 @@ export default function OnboardingPage() {
     if (!authLoading && !user) router.replace(`/${locale}/login`);
   }, [authLoading, user, router, locale]);
 
+  const handleRoleNext = async (selectedRole) => {
+    setRole(selectedRole);
+    setSaving(true);
+    try {
+      await updateDoc(doc(db, "users", user.uid), { role: selectedRole });
+    } catch (e) { console.error("role save", e); }
+    setSaving(false);
+    if (selectedRole === "coach") {
+      setStep(3);
+    } else if (selectedRole === "gym") {
+      setStep(3);
+    } else {
+      setStep(1);
+    }
+  };
+
   const handleStep1Next = async () => {
     if (!archetype) return;
     setSaving(true);
     try {
       await updateDoc(doc(db, "users", user.uid), {
+        role: "fighter",
         archetype,
         fighterArchetype: archetype,
         weightClass: weightClass || null,
@@ -112,7 +130,7 @@ export default function OnboardingPage() {
     <div style={s.page}>
       {/* Step progress */}
       <div style={s.progressRow}>
-        {[1, 2, 3].map((n) => (
+        {[0, 1, 2, 3].map((n) => (
           <div
             key={n}
             style={{
@@ -125,6 +143,43 @@ export default function OnboardingPage() {
       </div>
 
       <div style={s.inner}>
+
+        {/* ── STEP 0: Role Selection ── */}
+        {step === 0 && (
+          <div>
+            <div style={s.header}>
+              <p style={s.kicker}>GAVANA</p>
+              <h1 style={s.title}>
+                {locale === "mn" ? "Та хэн бэ?" : locale === "ko" ? "당신은 누구인가요?" : "Who are you?"}
+              </h1>
+              <p style={s.subtitle}>
+                {locale === "mn" ? "Нийгэмлэгт оролцох үүргээ сонго" : locale === "ko" ? "커뮤니티에서의 역할을 선택하세요" : "Choose your role in the community"}
+              </p>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 24 }}>
+              {[
+                { key: "fighter", emoji: "🥊", label: locale === "mn" ? "Боксчин / Fighter" : locale === "ko" ? "복서 / 파이터" : "Fighter / Boxer", desc: locale === "mn" ? "Дасгал хийж, rank ахиулж, тулааны шийдэл илгээ" : locale === "ko" ? "훈련하고 랭킹을 높이고 배틀을 신청하세요" : "Train, climb ranks, and challenge fighters" },
+                { key: "coach", emoji: "🎓", label: locale === "mn" ? "Дасгалжуулагч / Coach" : locale === "ko" ? "코치" : "Coach / Trainer", desc: locale === "mn" ? "Шавь нарыг дасгалжуулж, хөтөлбөр боловсруул" : locale === "ko" ? "학생을 코칭하고 프로그램을 개발하세요" : "Coach students and develop training programs" },
+                { key: "gym", emoji: "🏋️", label: locale === "mn" ? "Gym эзэмшигч" : locale === "ko" ? "체육관 운영자" : "Gym Owner", desc: locale === "mn" ? "Gym бүртгэж, гишүүд, мэдэгдэл удирдах" : locale === "ko" ? "체육관을 등록하고 회원과 공지를 관리하세요" : "Register your gym and manage members and announcements" },
+              ].map((r) => (
+                <button
+                  key={r.key}
+                  type="button"
+                  disabled={saving}
+                  onClick={() => handleRoleNext(r.key)}
+                  style={{ display: "flex", alignItems: "center", gap: 14, padding: "18px 16px", borderRadius: 16, border: "2px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", cursor: saving ? "not-allowed" : "pointer", textAlign: "left", width: "100%", transition: "all 0.15s" }}
+                >
+                  <span style={{ fontSize: 36, flexShrink: 0 }}>{r.emoji}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 15, fontWeight: 900, color: "#fff", marginBottom: 3 }}>{r.label}</div>
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.4 }}>{r.desc}</div>
+                  </div>
+                  <span style={{ fontSize: 18, color: "rgba(255,255,255,0.3)", flexShrink: 0 }}>›</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ── STEP 1: Fighter Identity ── */}
         {step === 1 && (
@@ -278,41 +333,64 @@ export default function OnboardingPage() {
         {/* ── STEP 3: Welcome ── */}
         {step === 3 && (
           <div style={{ textAlign: "center" }}>
-            <div style={s.welcomeEmoji}>{archetypeArch?.emoji || "🥊"}</div>
-            <p style={s.kicker}>GAVANA</p>
-            <h1 style={s.title}>
-              {locale === "mn" ? "Бэлэн боллоо!" : locale === "ko" ? "준비 완료!" : "You're all set!"}
-            </h1>
-            {archetypeArch && (
-              <p style={{ ...s.archetypeNameLarge, color: archetypeArch.color }}>
-                {archetypeArch.emoji} {archetypeArch.name}
+            <style>{`@keyframes welcomePop{0%{transform:scale(0.5);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}} @keyframes welcomeFade{0%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:translateY(0)}}`}</style>
+            <div style={{ ...s.welcomeEmoji, animation: "welcomePop 0.6s cubic-bezier(0.175,0.885,0.32,1.275) forwards" }}>
+              {role === "coach" ? "🎓" : role === "gym" ? "🏋️" : archetypeArch?.emoji || "🥊"}
+            </div>
+            <div style={{ animation: "welcomeFade 0.5s ease 0.3s both" }}>
+              <p style={s.kicker}>GAVANA</p>
+              <h1 style={s.title}>
+                {locale === "mn" ? "Тавтай морил!" : locale === "ko" ? "환영합니다!" : "Welcome!"}
+              </h1>
+              {role === "coach" && (
+                <p style={{ ...s.archetypeNameLarge, color: "#D4AF37" }}>🎓 {locale === "mn" ? "Coach" : locale === "ko" ? "코치" : "Coach"}</p>
+              )}
+              {role === "gym" && (
+                <p style={{ ...s.archetypeNameLarge, color: "#34D399" }}>🏋️ {locale === "mn" ? "Gym эзэмшигч" : locale === "ko" ? "체육관 운영자" : "Gym Owner"}</p>
+              )}
+              {role === "fighter" && archetypeArch && (
+                <p style={{ ...s.archetypeNameLarge, color: archetypeArch.color }}>
+                  {archetypeArch.emoji} {archetypeArch.name}
+                </p>
+              )}
+              <p style={{ ...s.subtitle, marginTop: 8 }}>
+                {role === "coach"
+                  ? (locale === "mn" ? "GAVANA-д тавтай морил. Шавь нарыг дасгалжуулж, хөтөлбөр бүтээгээрэй." : locale === "ko" ? "GAVANA에 오신 것을 환영합니다. 학생들을 코칭하세요." : "Welcome to GAVANA. Start coaching students and building programs.")
+                  : role === "gym"
+                  ? (locale === "mn" ? "Gym-ийн dashboard ашиглан гишүүдийг удирдаарай." : locale === "ko" ? "체육관 대시보드로 회원을 관리하세요." : "Use the gym dashboard to manage members and announcements.")
+                  : (locale === "mn" ? "GAVANA-д тавтай морил. Эхний дасгалаа эхлүүлэхэд бэлэн." : locale === "ko" ? "GAVANA에 오신 것을 환영합니다. 첫 훈련을 시작하세요." : "Welcome to GAVANA. Start training and climb the ranks.")}
               </p>
-            )}
-            <p style={{ ...s.subtitle, marginTop: 8 }}>
-              {locale === "mn"
-                ? "GAVANA-д тавтай морил. Эхний дасгалаа эхлүүлэхэд бэлэн."
-                : locale === "ko"
-                ? "GAVANA에 오신 것을 환영합니다. 첫 훈련을 시작하세요."
-                : "Welcome to GAVANA. Start training and climb the ranks."}
-            </p>
 
-            <div style={s.ctaGroup}>
-              <button
-                type="button"
-                style={s.primaryBtn}
-                disabled={saving}
-                onClick={() => finishOnboarding(`/${locale}/train`)}
-              >
-                🥊 {locale === "mn" ? "Эхний дасгал хийх" : locale === "ko" ? "첫 훈련 시작" : "Start First Training"}
-              </button>
-              <button
-                type="button"
-                style={s.ghostBtn}
-                disabled={saving}
-                onClick={() => finishOnboarding(`/${locale}/reels`)}
-              >
-                {locale === "mn" ? "Reels үзэх →" : locale === "ko" ? "릴 보기 →" : "Browse Reels →"}
-              </button>
+              <div style={s.ctaGroup}>
+                {role === "coach" ? (
+                  <>
+                    <button type="button" style={s.primaryBtn} disabled={saving} onClick={() => finishOnboarding(`/${locale}/coach/dashboard`)}>
+                      🎓 {locale === "mn" ? "Coach dashboard руу →" : locale === "ko" ? "코치 대시보드 →" : "Go to Coach Dashboard →"}
+                    </button>
+                    <button type="button" style={s.ghostBtn} disabled={saving} onClick={() => finishOnboarding(`/${locale}/reels`)}>
+                      {locale === "mn" ? "Reels үзэх →" : locale === "ko" ? "릴 보기 →" : "Browse Reels →"}
+                    </button>
+                  </>
+                ) : role === "gym" ? (
+                  <>
+                    <button type="button" style={s.primaryBtn} disabled={saving} onClick={() => finishOnboarding(`/${locale}/gyms/dashboard`)}>
+                      🏋️ {locale === "mn" ? "Gym бүртгэх →" : locale === "ko" ? "체육관 등록 →" : "Register Your Gym →"}
+                    </button>
+                    <button type="button" style={s.ghostBtn} disabled={saving} onClick={() => finishOnboarding(`/${locale}/reels`)}>
+                      {locale === "mn" ? "Reels үзэх →" : locale === "ko" ? "릴 보기 →" : "Browse Reels →"}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button type="button" style={s.primaryBtn} disabled={saving} onClick={() => finishOnboarding(`/${locale}/train`)}>
+                      🥊 {locale === "mn" ? "Эхний дасгал хийх" : locale === "ko" ? "첫 훈련 시작" : "Start First Training"}
+                    </button>
+                    <button type="button" style={s.ghostBtn} disabled={saving} onClick={() => finishOnboarding(`/${locale}/reels`)}>
+                      {locale === "mn" ? "Reels үзэх →" : locale === "ko" ? "릴 보기 →" : "Browse Reels →"}
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         )}
