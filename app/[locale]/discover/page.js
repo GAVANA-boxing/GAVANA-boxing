@@ -59,14 +59,14 @@ const FIGHTER_STYLES = [
 
 // ─── Learn sub-categories ─────────────────────────────────────────────────────
 const LEARN_CATS = [
-  { key: "all", emoji: "📚", label: "All" },
-  { key: "combo", emoji: "💥", label: "Combo", keywords: ["combo", "combination", "1-2", "sequence"] },
-  { key: "timing", emoji: "⏱️", label: "Timing", keywords: ["timing", "rhythm", "tempo", "reaction"] },
-  { key: "footwork", emoji: "👟", label: "Footwork", keywords: ["footwork", "movement", "pivot", "step", "angle"] },
-  { key: "defense", emoji: "🛡️", label: "Defense", keywords: ["defense", "guard", "block", "slip", "roll", "parry"] },
-  { key: "jab", emoji: "👊", label: "Jab", keywords: ["jab", "lead hand", "straight", "jab cross"] },
-  { key: "pressure", emoji: "🔥", label: "Pressure", keywords: ["pressure", "forward", "cut off", "body"] },
-  { key: "counter", emoji: "🎯", label: "Counter", keywords: ["counter", "counterpunch", "parry", "check"] },
+  { key: "all", emoji: "📚", label: "All", mn: "Бүгд", ko: "전체" },
+  { key: "combo", emoji: "💥", label: "Combo", mn: "Комбо", ko: "콤보", keywords: ["combo", "combination", "1-2", "sequence"] },
+  { key: "timing", emoji: "⏱️", label: "Timing", mn: "Цаг хугацаа", ko: "타이밍", keywords: ["timing", "rhythm", "tempo", "reaction"] },
+  { key: "footwork", emoji: "👟", label: "Footwork", mn: "Хөл хөдөлгөөн", ko: "풋워크", keywords: ["footwork", "movement", "pivot", "step", "angle"] },
+  { key: "defense", emoji: "🛡️", label: "Defense", mn: "Хамгаалалт", ko: "방어", keywords: ["defense", "guard", "block", "slip", "roll", "parry"] },
+  { key: "jab", emoji: "👊", label: "Jab", mn: "Жаб", ko: "잽", keywords: ["jab", "lead hand", "straight", "jab cross"] },
+  { key: "pressure", emoji: "🔥", label: "Pressure", mn: "Дарамт", ko: "압박", keywords: ["pressure", "forward", "cut off", "body"] },
+  { key: "counter", emoji: "🎯", label: "Counter", mn: "Контр", ko: "카운터", keywords: ["counter", "counterpunch", "parry", "check"] },
 ];
 
 function formatCompact(n) {
@@ -499,7 +499,7 @@ export default function DiscoverPage() {
                     <div style={{ ...s.listAvatar, background: "rgba(212,175,55,0.15)", color: "#D4AF37", fontSize: 18 }}>🎬</div>
                     <div style={s.listCardText}>
                       <span style={s.listCardName}>{r.caption || r.description || "Reel"}</span>
-                      <span style={s.listCardSub}>{formatCompact(r.views || 0)} views</span>
+                      <span style={s.listCardSub}>{formatCompact(r.views || 0)} {locale === "mn" ? "үзэлт" : locale === "ko" ? "조회수" : "views"}</span>
                     </div>
                     <span style={s.listArrow}>›</span>
                   </button>
@@ -647,7 +647,7 @@ export default function DiscoverPage() {
                   onClick={() => setLearnCat(cat.key)}
                   style={{ ...s.learnChip, ...(learnCat === cat.key ? s.learnChipActive : {}) }}
                 >
-                  {cat.emoji} {cat.label}
+                  {cat.emoji} {locale === "mn" ? cat.mn : locale === "ko" ? cat.ko : cat.label}
                 </button>
               ))}
             </div>
@@ -686,10 +686,10 @@ export default function DiscoverPage() {
             {/* Challenge category quick links */}
             <div style={s.challengeGrid}>
               {[
-                { emoji: "🟢", label: "Beginner", keywords: ["beginner"] },
-                { emoji: "⚡", label: "Speed", keywords: ["speed", "fast"] },
-                { emoji: "💥", label: "Power", keywords: ["power", "heavy"] },
-                { emoji: "🏆", label: "Advanced", keywords: ["advanced", "pro"] },
+                { emoji: "🟢", label: "Beginner", mn: "Анхлан", ko: "입문자", keywords: ["beginner"] },
+                { emoji: "⚡", label: "Speed", mn: "Хурд", ko: "스피드", keywords: ["speed", "fast"] },
+                { emoji: "💥", label: "Power", mn: "Хүч", ko: "파워", keywords: ["power", "heavy"] },
+                { emoji: "🏆", label: "Advanced", mn: "Дэвшилтэт", ko: "고급", keywords: ["advanced", "pro"] },
               ].map((ch) => (
                 <button
                   key={ch.label}
@@ -697,7 +697,7 @@ export default function DiscoverPage() {
                   style={s.challengeChip}
                   onClick={() => router.push(`/${locale}/challenges`)}
                 >
-                  {ch.emoji} {ch.label}
+                  {ch.emoji} {locale === "mn" ? ch.mn : locale === "ko" ? ch.ko : ch.label}
                 </button>
               ))}
             </div>
@@ -747,7 +747,7 @@ export default function DiscoverPage() {
                           {photo ? <img src={photo} alt="" style={s.coachAvatarImg} /> : initial}
                         </div>
                         <span style={s.coachName}>{(coach.displayName || coach.username || "Coach").split(" ")[0]}</span>
-                        <span style={s.coachSpec}>{coach.coachSpecialties?.[0] || "Coach"}</span>
+                        <span style={s.coachSpec}>{coach.coachSpecialties?.[0] || (locale === "mn" ? "Тренер" : locale === "ko" ? "코치" : "Coach")}</span>
                       </button>
                     );
                   })}
