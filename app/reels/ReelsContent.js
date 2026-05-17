@@ -1357,7 +1357,7 @@ export default function ReelsContent() {
       }
 
       if (!isOwner) {
-        setFeedbackResult("Рилсийн эзэн AI feedback аваагүй байна");
+        setFeedbackResult(t("reelOwnerNoFeedback"));
         setFeedbackSaved(false);
         return;
       }
@@ -1402,7 +1402,7 @@ export default function ReelsContent() {
       const data = await response.json();
 
       if (!response.ok || data?.fallback) {
-        setFeedbackResult(data?.message || "Feedback unavailable right now. Please try again later.");
+        setFeedbackResult(data?.message || t("feedbackUnavailable"));
         setFeedbackSaved(false);
         return;
       }
@@ -1410,7 +1410,7 @@ export default function ReelsContent() {
       const text = data?.content?.find((item) => item?.type === "text")?.text || data?.content?.[0]?.text || "";
 
       if (!text.trim()) {
-        setFeedbackResult("Feedback unavailable right now. Please try again later.");
+        setFeedbackResult(t("feedbackUnavailable"));
         setFeedbackSaved(false);
         return;
       }
@@ -1495,7 +1495,7 @@ export default function ReelsContent() {
       }
     } catch (err) {
       console.error("Failed to generate AI feedback:", err);
-      setFeedbackError("Could not generate feedback. Please try again.");
+      setFeedbackError(t("feedbackGenerateError"));
     } finally {
       setFeedbackLoading(false);
     }
@@ -2396,7 +2396,7 @@ export default function ReelsContent() {
       {breakdownReel && (
         <AIBreakdownSheet
           reel={breakdownReel}
-          locale={locale}
+          locale={currentLocale}
           onClose={() => setBreakdownReel(null)}
         />
       )}
@@ -2435,15 +2435,15 @@ export default function ReelsContent() {
                   <div style={{ marginTop: 16, display: "flex", flexWrap: "wrap", gap: 8 }}>
                     {sheetReel.contentType && (
                       <span style={styles.captionMetaChip}>
-                        {sheetReel.contentType === "training" ? "🥊 Training"
-                          : sheetReel.contentType === "educational" ? "📚 Educational"
-                          : sheetReel.contentType === "lifestyle" ? "🎬 Lifestyle"
+                        {sheetReel.contentType === "training" ? `🥊 ${t("ctFilterTraining")}`
+                          : sheetReel.contentType === "educational" ? `📚 ${t("ctFilterEducational")}`
+                          : sheetReel.contentType === "lifestyle" ? `🎬 ${t("ctFilterLifestyle")}`
                           : sheetReel.contentType}
                       </span>
                     )}
                     {sheetReel.difficulty && (
                       <span style={styles.captionMetaChip}>
-                        {sheetReel.difficulty === "beginner" ? "🟢 Beginner" : sheetReel.difficulty}
+                        {sheetReel.difficulty === "beginner" ? `🟢 ${t("diffBeginner")}` : sheetReel.difficulty}
                       </span>
                     )}
                   </div>
@@ -2471,18 +2471,18 @@ export default function ReelsContent() {
             <div style={styles.filterSheetHandle} />
             <div style={styles.filterSheetHeader}>
               <span style={styles.filterSheetTitle}>
-                {currentLocale === "mn" ? "ШҮҮЛТҮҮР" : currentLocale === "ko" ? "필터" : "FILTERS"}
+                {t("filterSheetTitle") || (currentLocale === "mn" ? "ШҮҮЛТҮҮР" : currentLocale === "ko" ? "필터" : "FILTERS")}
               </span>
               <button type="button" style={styles.filterSheetClose} onClick={() => setShowFilterSheet(false)}>✕</button>
             </div>
             <div style={styles.filterSheetBody}>
               <p style={styles.filterSheetLabel}>
-                {currentLocale === "mn" ? "ТҮВШИН" : currentLocale === "ko" ? "레벨" : "LEVEL"}
+                {t("filterLevelLabel") || (currentLocale === "mn" ? "ТҮВШИН" : currentLocale === "ko" ? "레벨" : "LEVEL")}
               </p>
               <div style={styles.filterSheetRow}>
                 {[
                   { key: "all", label: currentLocale === "mn" ? "Бүх түвшин" : currentLocale === "ko" ? "전체" : "All levels" },
-                  { key: "beginner", label: currentLocale === "mn" ? "🟢 Анхан шат" : currentLocale === "ko" ? "🟢 초급" : "🟢 Beginner" },
+                  { key: "beginner", label: `🟢 ${t("diffBeginner")}` },
                 ].map(({ key, label }) => (
                   <button
                     key={key}
@@ -2495,14 +2495,14 @@ export default function ReelsContent() {
                 ))}
               </div>
               <p style={{ ...styles.filterSheetLabel, marginTop: 16 }}>
-                {currentLocale === "mn" ? "КОНТЕНТ" : currentLocale === "ko" ? "콘텐츠" : "CONTENT"}
+                {t("filterContentLabel") || (currentLocale === "mn" ? "КОНТЕНТ" : currentLocale === "ko" ? "콘텐츠" : "CONTENT")}
               </p>
               <div style={styles.filterSheetRow}>
                 {[
-                  { key: "all", label: currentLocale === "mn" ? "📂 Бүгд" : currentLocale === "ko" ? "📂 전체" : "📂 All" },
-                  { key: "training", label: currentLocale === "mn" ? "🥊 Дасгал" : currentLocale === "ko" ? "🥊 훈련" : "🥊 Training" },
-                  { key: "lifestyle", label: currentLocale === "mn" ? "🎬 Lifestyle" : currentLocale === "ko" ? "🎬 라이프스타일" : "🎬 Lifestyle" },
-                  { key: "educational", label: currentLocale === "mn" ? "📚 Сургалт" : currentLocale === "ko" ? "📚 교육" : "📚 Education" },
+                  { key: "all", label: `📂 ${t("ctFilterAll")}` },
+                  { key: "training", label: `🥊 ${t("ctFilterTraining")}` },
+                  { key: "lifestyle", label: `🎬 ${t("ctFilterLifestyle")}` },
+                  { key: "educational", label: `📚 ${t("ctFilterEducational")}` },
                 ].map(({ key, label }) => (
                   <button
                     key={key}
@@ -2520,7 +2520,7 @@ export default function ReelsContent() {
                   style={styles.filterClearBtn}
                   onClick={() => { setDiffFilter("all"); setCtFilter("all"); }}
                 >
-                  {currentLocale === "mn" ? "Шүүлтүүр арилгах" : currentLocale === "ko" ? "필터 초기화" : "Clear filters"}
+                  {t("filterClear") || (currentLocale === "mn" ? "Шүүлтүүр арилгах" : currentLocale === "ko" ? "필터 초기화" : "Clear filters")}
                 </button>
               )}
             </div>
