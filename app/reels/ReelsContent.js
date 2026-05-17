@@ -262,6 +262,7 @@ export default function ReelsContent() {
   const lastTapRef = useRef({ time: 0, reelId: null });
   const singleTapTimerRef = useRef(null);
   const [heartBursts, setHeartBursts] = useState([]);
+  const [videoProgress, setVideoProgress] = useState(0);
   const feedRef = useRef(null);
   const reelItemRefs = useRef({});
   const viewTimers = useRef({});
@@ -984,6 +985,9 @@ export default function ReelsContent() {
       }
     }
   }, [currentIndex, reels]);
+
+  // Reset video progress when switching reels
+  useEffect(() => { setVideoProgress(0); }, [currentIndex]);
 
   const clearControlsTimer = useCallback(() => {
     if (controlsTimer.current) {
@@ -1922,6 +1926,12 @@ export default function ReelsContent() {
                   }
                 }}
                 onError={() => handleVideoError(reel.id)}
+                onTimeUpdate={(e) => {
+                  if (index === currentIndex) {
+                    const v = e.currentTarget;
+                    if (v.duration) setVideoProgress(v.currentTime / v.duration);
+                  }
+                }}
                 preload={index === currentIndex ? "auto" : index === currentIndex + 1 ? "metadata" : "none"}
               />
             )}
@@ -1935,6 +1945,13 @@ export default function ReelsContent() {
 
             <div style={styles.vignette} />
             <div style={styles.bottomGradient} />
+
+            {/* Video progress bar */}
+            {index === currentIndex && !reel.isDemo && (
+              <div style={styles.videoProgressBar}>
+                <div style={{ ...styles.videoProgressFill, width: `${videoProgress * 100}%` }} />
+              </div>
+            )}
 
             {/* Double-tap heart bursts */}
             {heartBursts.filter((b) => b.reelId === reel.id).map((b) => (
@@ -3215,6 +3232,22 @@ const styles = {
     background: "linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.68) 38%, rgba(0,0,0,0.32) 68%, transparent 100%)",
     zIndex: 2,
   },
+  videoProgressBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 2,
+    background: "rgba(255,255,255,0.15)",
+    zIndex: 20,
+    overflow: "hidden",
+  },
+  videoProgressFill: {
+    height: "100%",
+    background: "rgba(255,255,255,0.65)",
+    transition: "width 0.25s linear",
+    borderRadius: "0 1px 1px 0",
+  },
   info: {
     position: "absolute",
     left: "max(14px, env(safe-area-inset-left))",
@@ -3663,13 +3696,13 @@ const styles = {
   },
   muteBtn: {
     position: "absolute",
-    top: "calc(16px + env(safe-area-inset-top))",
+    top: "calc(64px + env(safe-area-inset-top))",
     right: "max(14px, env(safe-area-inset-right))",
-    background: "rgba(0,0,0,0.28)",
-    border: "1px solid rgba(255,255,255,0.16)",
+    background: "rgba(0,0,0,0.42)",
+    border: "1px solid rgba(255,255,255,0.18)",
     borderRadius: 999,
-    minWidth: 56,
-    height: 32,
+    minWidth: 52,
+    height: 30,
     color: "var(--text-primary)",
     fontSize: 11,
     fontWeight: 900,
@@ -3677,6 +3710,8 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    backdropFilter: "blur(8px)",
+    WebkitBackdropFilter: "blur(8px)",
   },
   playIndicator: {
     position: "absolute",
