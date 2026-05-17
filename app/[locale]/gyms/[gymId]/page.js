@@ -571,9 +571,49 @@ export default function GymProfilePage() {
 
         {/* Reels */}
         <section style={styles.section}>
-          <p style={styles.sectionTitle}>{t("gymReels")}</p>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+            <p style={{ ...styles.sectionTitle, margin: 0 }}>{t("gymReels")}</p>
+            {isOwner && (
+              <button
+                onClick={() => router.push(`/${locale}/upload`)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 5,
+                  padding: "5px 11px", borderRadius: 999,
+                  background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.3)",
+                  color: "#F87171", fontSize: 11, fontWeight: 800, cursor: "pointer",
+                }}
+              >
+                + {locale === "mn" ? "Рилс нэмэх" : locale === "ko" ? "릴 추가" : "Add Reel"}
+              </button>
+            )}
+          </div>
           {reels.length === 0 ? (
-            <p style={styles.emptyText}>{t("gymNoReels")}</p>
+            isOwner ? (
+              <div style={{
+                display: "flex", flexDirection: "column", alignItems: "center",
+                padding: "28px 16px", borderRadius: 14,
+                background: "rgba(193,18,31,0.05)", border: "1px dashed rgba(193,18,31,0.25)",
+                gap: 10,
+              }}>
+                <span style={{ fontSize: 28 }}>🎥</span>
+                <p style={{ margin: 0, fontSize: 13, color: "#777", fontWeight: 700 }}>
+                  {locale === "mn" ? "Танай жимд рилс байхгүй байна" : locale === "ko" ? "아직 릴이 없습니다" : "No reels yet"}
+                </p>
+                <button
+                  onClick={() => router.push(`/${locale}/upload`)}
+                  style={{
+                    padding: "8px 20px", borderRadius: 999,
+                    background: "linear-gradient(135deg, #C1121F, #8f0d17)",
+                    color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer",
+                    border: "none",
+                  }}
+                >
+                  {locale === "mn" ? "+ Анхны рилсаа оруулах" : locale === "ko" ? "+ 첫 릴 올리기" : "+ Upload First Reel"}
+                </button>
+              </div>
+            ) : (
+              <p style={styles.emptyText}>{t("gymNoReels")}</p>
+            )
           ) : (
             <div style={styles.reelsGrid}>
               {reels.map((reel) => (

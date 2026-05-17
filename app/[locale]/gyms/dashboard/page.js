@@ -513,18 +513,31 @@ export default function GymDashboardPage() {
         {/* Tabs */}
         <div style={{ ...styles.tabs, flexWrap: "wrap" }}>
           {[
-            { key: "requests", label: joinRequests.length > 0 ? `🔴 ${t("gymJoinRequests")} (${joinRequests.length})` : t("gymJoinRequests") },
+            { key: "requests", label: t("gymJoinRequests"), badge: joinRequests.length > 0 ? joinRequests.length : null },
             { key: "members", label: locale === "mn" ? `👥 Гишүүд (${members.length})` : locale === "ko" ? `👥 회원 (${members.length})` : `👥 Members (${members.length})` },
             { key: "sessions", label: locale === "mn" ? "📅 Хичээл" : locale === "ko" ? "📅 세션" : "📅 Sessions" },
             { key: "announce", label: locale === "mn" ? "📢 Мэдэгдэл" : locale === "ko" ? "📢 공지" : "📢 Announce" },
-          ].map(({ key, label }) => (
+          ].map(({ key, label, badge }) => (
             <button
               key={key}
               type="button"
-              style={activeTab === key ? styles.tabActive : styles.tab}
+              style={{ ...(activeTab === key ? styles.tabActive : styles.tab), position: "relative" }}
               onClick={() => setActiveTab(key)}
             >
               {label}
+              {badge && (
+                <span style={{
+                  position: "absolute", top: -4, right: -4,
+                  minWidth: 16, height: 16, borderRadius: 99,
+                  background: "#C1121F", color: "#fff",
+                  fontSize: 9, fontWeight: 900,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  padding: "0 4px", lineHeight: 1,
+                  boxShadow: "0 0 0 2px #0a0a0a",
+                }}>
+                  {badge}
+                </span>
+              )}
             </button>
           ))}
         </div>
