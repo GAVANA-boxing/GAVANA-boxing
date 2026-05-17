@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { collection, getDocs, getDoc, doc, query, where, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -33,18 +33,38 @@ function StatCard({ label, value, color = "#D4AF37", icon }) {
   );
 }
 
+function SkeletonBlock({ height = 80, radius = 14 }) {
+  return <div className="shimmer" style={{ height, borderRadius: radius, flexShrink: 0 }} />;
+}
+
 function ReelRow({ reel, stats, rank, maxViews, t, locale, router }) {
+  const [mediaErr, setMediaErr] = useState(false);
+  const src = reel.thumbnailUrl || reel.thumbnail || reel.videoUrl || "";
   const views = stats?.views || reel.views || 0;
   const likes = stats?.likes || reel.likes || 0;
   const attempts = stats?.challengeAttempts || 0;
   const engRate = views > 0 ? ((likes + attempts) / views * 100).toFixed(1) : "0.0";
   const barPct = maxViews > 0 ? Math.max(4, Math.round((views / maxViews) * 100)) : 4;
+  const typeEmoji = reel.contentType === "educational" ? "📚" : reel.contentType === "lifestyle" ? "🎬" : "🥊";
+  const typeColor = reel.contentType === "educational" ? "#D4AF37" : reel.contentType === "lifestyle" ? "#60A5FA" : "#C1121F";
+  const dateStr = reel.createdAt?.toDate ? reel.createdAt.toDate().toLocaleDateString() : "";
+
   return (
     <div style={styles.reelRow} onClick={() => router.push(`/${locale}/reels?reelId=${reel.id}`)}>
+      <div style={styles.reelThumb}>
+        {src && !mediaErr ? (
+          <video src={src} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 8, display: "block" }} preload="none" muted playsInline onError={() => setMediaErr(true)} />
+        ) : (
+          <div style={{ width: "100%", height: "100%", borderRadius: 8, background: typeColor + "22", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>{typeEmoji}</div>
+        )}
+      </div>
       <div style={styles.reelRank}>#{rank}</div>
       <div style={styles.reelInfo}>
-        <div style={styles.reelCaption} title={reel.description || reel.caption || ""}>
-          {(reel.description || reel.caption || t("trainingReel")).slice(0, 55) || t("trainingReel")}
+        <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 2 }}>
+          <span style={{ fontSize: 10, color: typeColor, fontWeight: 900 }}>{typeEmoji}</span>
+          <span style={styles.reelCaption} title={reel.description || reel.caption || ""}>
+            {(reel.description || reel.caption || t("trainingReel")).slice(0, 46) || t("trainingReel")}
+          </span>
         </div>
         <div style={styles.reelBar}>
           <div style={{ ...styles.reelBarFill, width: `${barPct}%` }} />
@@ -53,8 +73,9 @@ function ReelRow({ reel, stats, rank, maxViews, t, locale, router }) {
           <span>👁 {formatCompact(views)}</span>
           <span>❤ {formatCompact(likes)}</span>
           {attempts > 0 && <span>🥊 {formatCompact(attempts)}</span>}
-          <span style={{ marginLeft: "auto", color: engRate >= 5 ? "#34D399" : engRate >= 2 ? "#D4AF37" : "#888" }}>{engRate}%</span>
+          <span style={{ marginLeft: "auto", color: Number(engRate) >= 5 ? "#34D399" : Number(engRate) >= 2 ? "#D4AF37" : "#888" }}>{engRate}%</span>
         </div>
+        {dateStr && <div style={{ fontSize: 10, color: "#444" }}>{dateStr}</div>}
       </div>
     </div>
   );
@@ -67,6 +88,7 @@ export default function CreatorDashboard() {
   const locale = getLocale(params?.locale);
   const t = (key) => translate(locale, key);
 
+  const [activeTab, setActiveTab] = useState("overview"); // overview | reels | audience
   const [loading, setLoading] = useState(true);
   const [reels, setReels] = useState([]);
   const [reelStats, setReelStats] = useState({});       // reelId → stats doc
@@ -185,6 +207,28 @@ export default function CreatorDashboard() {
   }, {});
   const ctTotal = reels.length || 1;
 
+  // Best post day analysis
+  const bestPostDay = useMemo(() => {
+    const dayLabels = locale === "mn"
+      ? ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"]
+      : locale === "ko"
+      ? ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]
+      : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const byDay = {};
+    reels.forEach((r) => {
+      if (!r.createdAt?.toDate) return;
+      const day = r.createdAt.toDate().getDay();
+      const v = reelStats[r.id]?.views || r.views || 0;
+      if (!byDay[day]) byDay[day] = { count: 0, views: 0 };
+      byDay[day].count += 1;
+      byDay[day].views += v;
+    });
+    return Object.entries(byDay).reduce((best, [day, data]) => {
+      const avg = data.count > 0 ? data.views / data.count : 0;
+      return avg > (best?.avg || 0) ? { day: dayLabels[Number(day)], avg: Math.round(avg) } : best;
+    }, null);
+  }, [reels, reelStats, locale]);
+
   // Growth tip
   const hasNoChallengeReels = reels.every((r) => !r.challengeEnabled && r.type !== "training");
   const growthTip = hasNoChallengeReels
@@ -225,159 +269,204 @@ export default function CreatorDashboard() {
         )}
       </header>
 
+      {/* ── Tab bar ── */}
+      <div style={styles.tabBar}>
+        {[
+          { key: "overview", label: locale === "mn" ? "Ерөнхий" : locale === "ko" ? "개요" : "Overview" },
+          { key: "reels",    label: locale === "mn" ? "Reels"    : locale === "ko" ? "릴"   : "Reels" },
+          { key: "audience", label: locale === "mn" ? "Үзэгчид"  : locale === "ko" ? "시청자" : "Audience" },
+        ].map(({ key, label }) => (
+          <button
+            key={key}
+            type="button"
+            style={activeTab === key ? styles.tabActive : styles.tabInactive}
+            onClick={() => setActiveTab(key)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       {loading ? (
-        <div style={styles.loadingText}>...</div>
+        <div style={styles.content}>
+          <div style={styles.statsGrid}>
+            {[1, 2, 3, 4].map((i) => <SkeletonBlock key={i} height={96} />)}
+          </div>
+          <SkeletonBlock height={64} />
+          <SkeletonBlock height={120} />
+          <SkeletonBlock height={200} />
+        </div>
       ) : (
         <div style={styles.content}>
-          {/* Stats grid */}
-          <div style={styles.statsGrid}>
-            <StatCard label={t("creatorTotalViews")} value={totalViews} icon="👁" color="#60A5FA" />
-            <StatCard label={t("creatorTotalLikes")} value={totalLikes} icon="❤" color="#F87171" />
-            <StatCard label={t("creatorFollowers")} value={followerCount} icon="👥" color="#D4AF37" />
-            <StatCard label={t("creatorChallengeAttempts")} value={externalAttempts.length} icon="🥊" color="#34D399" />
-          </div>
 
-          {/* Growth row */}
-          <div style={styles.growthRow}>
-            <div style={styles.growthItem}>
-              <span style={styles.growthNum}>+{newFollowersThisWeek}</span>
-              <span style={styles.growthLbl}>{t("creatorNewFollowers")}</span>
+          {/* ══ OVERVIEW TAB ══ */}
+          {activeTab === "overview" && (<>
+            <div style={styles.statsGrid}>
+              <StatCard label={t("creatorTotalViews")} value={totalViews} icon="👁" color="#60A5FA" />
+              <StatCard label={t("creatorTotalLikes")} value={totalLikes} icon="❤" color="#F87171" />
+              <StatCard label={t("creatorFollowers")} value={followerCount} icon="👥" color="#D4AF37" />
+              <StatCard label={t("creatorChallengeAttempts")} value={externalAttempts.length} icon="🥊" color="#34D399" />
             </div>
-            <div style={styles.growthItem}>
-              <span style={{ ...styles.growthNum, color: Number(engagementRate) >= 5 ? "#34D399" : Number(engagementRate) >= 2 ? "#D4AF37" : "#F87171" }}>
-                {engagementRate}%
-              </span>
-              <span style={styles.growthLbl}>{t("creatorEngagementRate")}</span>
-            </div>
-            <div style={styles.growthItem}>
-              <span style={{ ...styles.growthNum, color: "#60A5FA" }}>+{attemptsThisWeek}</span>
-              <span style={styles.growthLbl}>{t("creatorAttemptsWeek")}</span>
-            </div>
-            {uniqueStudents > 0 && (
+
+            <div style={styles.growthRow}>
               <div style={styles.growthItem}>
-                <span style={styles.growthNum}>{uniqueStudents}</span>
-                <span style={styles.growthLbl}>{t("creatorTotalStudents")}</span>
+                <span style={styles.growthNum}>+{newFollowersThisWeek}</span>
+                <span style={styles.growthLbl}>{t("creatorNewFollowers")}</span>
               </div>
-            )}
-            {avgScore != null && (
               <div style={styles.growthItem}>
-                <span style={{ ...styles.growthNum, color: "#D4AF37" }}>{avgScore}/10</span>
-                <span style={styles.growthLbl}>{t("creatorAvgScore")}</span>
+                <span style={{ ...styles.growthNum, color: Number(engagementRate) >= 5 ? "#34D399" : Number(engagementRate) >= 2 ? "#D4AF37" : "#F87171" }}>
+                  {engagementRate}%
+                </span>
+                <span style={styles.growthLbl}>{t("creatorEngagementRate")}</span>
               </div>
-            )}
-            {bestScore != null && (
               <div style={styles.growthItem}>
-                <span style={{ ...styles.growthNum, color: "#D4AF37" }}>⭐ {bestScore}</span>
-                <span style={styles.growthLbl}>{t("creatorBestScore")}</span>
+                <span style={{ ...styles.growthNum, color: "#60A5FA" }}>+{attemptsThisWeek}</span>
+                <span style={styles.growthLbl}>{t("creatorAttemptsWeek")}</span>
               </div>
-            )}
-          </div>
-
-          {/* Content type breakdown */}
-          {reels.length > 0 && (
-            <section style={styles.section}>
-              <h2 style={styles.sectionTitle}>📊 {t("creatorContentBreakdown")}</h2>
-              <div style={styles.breakdown}>
-                {[
-                  { key: "training", label: "🥊 Training", color: "#F87171" },
-                  { key: "lifestyle", label: "🎬 Lifestyle", color: "#60A5FA" },
-                  { key: "educational", label: "📚 Educational", color: "#D4AF37" },
-                ].map(({ key, label, color }) => {
-                  const count = ctCounts[key] || 0;
-                  const pct = Math.round((count / ctTotal) * 100);
-                  return count > 0 ? (
-                    <div key={key} style={styles.breakdownRow}>
-                      <span style={{ ...styles.breakdownLabel, color }}>{label}</span>
-                      <div style={styles.breakdownBar}>
-                        <div style={{ ...styles.breakdownFill, width: `${pct}%`, background: color }} />
-                      </div>
-                      <span style={styles.breakdownCount}>{count}</span>
-                    </div>
-                  ) : null;
-                })}
-              </div>
-            </section>
-          )}
-
-          {/* Growth tip */}
-          <div style={styles.tip}>
-            <span style={styles.tipIcon}>💡</span>
-            <span style={styles.tipText}>{growthTip}</span>
-          </div>
-
-          {/* Score distribution — only when there are external attempts */}
-          {externalAttempts.length > 0 && (
-            <section style={styles.section}>
-              <h2 style={styles.sectionTitle}>🎯 {locale === "mn" ? "Оролдлогын оноо хуваарилалт" : locale === "ko" ? "도전 점수 분포" : "Challenge Score Distribution"}</h2>
-              <div style={{ background: "linear-gradient(145deg, #111012, #0a0a0a)", border: "1px solid rgba(255,255,255,0.07)", borderLeft: "2.5px solid #D4AF37", borderRadius: "3px 14px 14px 3px", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
-                {[
-                  { key: "excellent", label: locale === "mn" ? "🌟 Шилдэг (8–10)" : locale === "ko" ? "🌟 우수 (8–10)" : "🌟 Excellent (8–10)", count: scoreDistrib.excellent, color: "#34D399" },
-                  { key: "good",      label: locale === "mn" ? "👍 Сайн (6–7)"    : locale === "ko" ? "👍 양호 (6–7)"    : "👍 Good (6–7)",      count: scoreDistrib.good,      color: "#D4AF37" },
-                  { key: "poor",      label: locale === "mn" ? "📈 Хүчилгэй (<6)" : locale === "ko" ? "📈 개선 필요 (<6)" : "📈 Needs work (<6)", count: scoreDistrib.poor,      color: "#F87171" },
-                ].map(({ key, label, count, color }) => (
-                  <div key={key} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color, width: 140, flexShrink: 0 }}>{label}</span>
-                    <div style={{ flex: 1, height: 6, borderRadius: 999, background: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
-                      <div style={{ height: "100%", borderRadius: 999, background: color, width: `${Math.round((count / distribTotal) * 100)}%`, transition: "width 0.5s ease" }} />
-                    </div>
-                    <span style={{ fontSize: 12, fontWeight: 900, color, width: 24, textAlign: "right", flexShrink: 0 }}>{count}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {reels.length === 0 ? (
-            <div style={styles.emptyState}>
-              <p style={styles.emptyText}>{t("creatorNoReels")}</p>
-              <button type="button" style={styles.uploadBtn} onClick={() => router.push(`/${locale}/upload`)}>
-                {t("creatorGoUpload")}
-              </button>
-            </div>
-          ) : (
-            <>
-              {/* Most challenged reel highlight */}
-              {mostChallengedReel && (
-                <section style={styles.section}>
-                  <h2 style={styles.sectionTitle}>🔥 {locale === "mn" ? "Хамгийн их сорилт авсан" : locale === "ko" ? "도전 최다 릴" : "Most Challenged Reel"}</h2>
-                  <div
-                    style={{ background: "linear-gradient(145deg, #1c0202, #0e0000)", border: "1px solid rgba(193,18,31,0.2)", borderLeft: "3px solid #C1121F", borderRadius: "3px 14px 14px 3px", padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
-                    onClick={() => router.push(`/${locale}/reels?reelId=${mostChallengedReel.id}`)}
-                  >
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", marginBottom: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {mostChallengedReel.description || mostChallengedReel.caption || t("trainingReel")}
-                      </div>
-                      <div style={{ fontSize: 11, color: "#888" }}>
-                        🥊 {attemptsByReel[mostChallengedReel.id]} {locale === "mn" ? "оролдлого" : locale === "ko" ? "도전" : "challenges"}
-                        {avgScore && <span style={{ marginLeft: 10, color: "#D4AF37" }}>⭐ avg {avgScore}/10</span>}
-                      </div>
-                    </div>
-                    <span style={{ color: "#C1121F", fontSize: 18, flexShrink: 0 }}>→</span>
-                  </div>
-                </section>
+              {uniqueStudents > 0 && (
+                <div style={styles.growthItem}>
+                  <span style={styles.growthNum}>{uniqueStudents}</span>
+                  <span style={styles.growthLbl}>{t("creatorTotalStudents")}</span>
+                </div>
               )}
+            </div>
 
-              {/* Reel performance list */}
+            {bestPostDay && (
+              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 14, background: "rgba(96,165,250,0.08)", border: "1px solid rgba(96,165,250,0.18)", borderLeft: "3px solid #60A5FA" }}>
+                <span style={{ fontSize: 20 }}>📅</span>
+                <div>
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 900, color: "#fff" }}>
+                    {locale === "mn" ? "Шилдэг нийтлэлийн өдөр:" : locale === "ko" ? "최고 게시 요일:" : "Best Post Day:"} <span style={{ color: "#60A5FA" }}>{bestPostDay.day}</span>
+                  </p>
+                  <p style={{ margin: 0, fontSize: 11, color: "#888" }}>
+                    {locale === "mn" ? `Дундажаар ${formatCompact(bestPostDay.avg)} үзэлт` : locale === "ko" ? `평균 ${formatCompact(bestPostDay.avg)} 조회수` : `~${formatCompact(bestPostDay.avg)} avg views`}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div style={styles.tip}>
+              <span style={styles.tipIcon}>💡</span>
+              <span style={styles.tipText}>{growthTip}</span>
+            </div>
+
+            {mostChallengedReel && (
               <section style={styles.section}>
-                <h2 style={styles.sectionTitle}>📈 {t("creatorPerformance")}</h2>
+                <h2 style={styles.sectionTitle}>🔥 {locale === "mn" ? "Хамгийн их сорилт авсан" : locale === "ko" ? "도전 최다 릴" : "Most Challenged Reel"}</h2>
+                <div
+                  style={{ background: "linear-gradient(145deg, #1c0202, #0e0000)", border: "1px solid rgba(193,18,31,0.2)", borderLeft: "3px solid #C1121F", borderRadius: "3px 14px 14px 3px", padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
+                  onClick={() => router.push(`/${locale}/reels?reelId=${mostChallengedReel.id}`)}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", marginBottom: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {mostChallengedReel.description || mostChallengedReel.caption || t("trainingReel")}
+                    </div>
+                    <div style={{ fontSize: 11, color: "#888" }}>
+                      🥊 {attemptsByReel[mostChallengedReel.id]} {locale === "mn" ? "оролдлого" : locale === "ko" ? "도전" : "challenges"}
+                      {avgScore && <span style={{ marginLeft: 10, color: "#D4AF37" }}>⭐ avg {avgScore}/10</span>}
+                    </div>
+                  </div>
+                  <span style={{ color: "#C1121F", fontSize: 18, flexShrink: 0 }}>→</span>
+                </div>
+              </section>
+            )}
+
+            <button type="button" style={styles.uploadBtn} onClick={() => router.push(`/${locale}/upload`)}>
+              + {locale === "mn" ? "Шинэ reel нийтлэх" : locale === "ko" ? "새 릴 업로드" : "Upload New Reel"}
+            </button>
+          </>)}
+
+          {/* ══ REELS TAB ══ */}
+          {activeTab === "reels" && (<>
+            {reels.length === 0 ? (
+              <div style={styles.emptyState}>
+                <p style={styles.emptyText}>{t("creatorNoReels")}</p>
+                <button type="button" style={styles.uploadBtn} onClick={() => router.push(`/${locale}/upload`)}>
+                  {t("creatorGoUpload")}
+                </button>
+              </div>
+            ) : (<>
+              <section style={styles.section}>
+                <h2 style={styles.sectionTitle}>📈 {t("creatorPerformance")} · {reels.length} reels</h2>
                 <div style={styles.reelList}>
                   {reelsByViews.map((reel, i) => (
                     <ReelRow key={reel.id} reel={reel} stats={reelStats[reel.id]} rank={i + 1} maxViews={maxViews} t={t} locale={locale} router={router} />
                   ))}
                 </div>
               </section>
-            </>
-          )}
+              <button type="button" style={styles.uploadBtn} onClick={() => router.push(`/${locale}/upload`)}>
+                + {locale === "mn" ? "Шинэ reel нийтлэх" : locale === "ko" ? "새 릴 업로드" : "Upload New Reel"}
+              </button>
+            </>)}
+          </>)}
 
-          {/* Persistent upload CTA */}
-          <button type="button" style={styles.uploadBtn} onClick={() => router.push(`/${locale}/upload`)}>
-            + {locale === "mn" ? "Шинэ reel нийтлэх" : locale === "ko" ? "새 릴 업로드" : "Upload New Reel"}
-          </button>
+          {/* ══ AUDIENCE TAB ══ */}
+          {activeTab === "audience" && (<>
+            <div style={styles.statsGrid}>
+              <StatCard label={t("creatorFollowers")} value={followerCount} icon="👥" color="#D4AF37" />
+              <StatCard label={t("creatorNewFollowers")} value={newFollowersThisWeek} icon="📈" color="#34D399" />
+              {avgScore != null && <StatCard label={t("creatorAvgScore")} value={avgScore} icon="⭐" color="#D4AF37" />}
+              {bestScore != null && <StatCard label={t("creatorBestScore")} value={bestScore} icon="🏆" color="#60A5FA" />}
+            </div>
+
+            {reels.length > 0 && (
+              <section style={styles.section}>
+                <h2 style={styles.sectionTitle}>📊 {t("creatorContentBreakdown")}</h2>
+                <div style={styles.breakdown}>
+                  {[
+                    { key: "training", label: "🥊 Training", color: "#F87171" },
+                    { key: "lifestyle", label: "🎬 Lifestyle", color: "#60A5FA" },
+                    { key: "educational", label: "📚 Educational", color: "#D4AF37" },
+                  ].map(({ key, label, color }) => {
+                    const count = ctCounts[key] || 0;
+                    const pct = Math.round((count / ctTotal) * 100);
+                    return count > 0 ? (
+                      <div key={key} style={styles.breakdownRow}>
+                        <span style={{ ...styles.breakdownLabel, color }}>{label}</span>
+                        <div style={styles.breakdownBar}>
+                          <div style={{ ...styles.breakdownFill, width: `${pct}%`, background: color }} />
+                        </div>
+                        <span style={styles.breakdownCount}>{count}</span>
+                      </div>
+                    ) : null;
+                  })}
+                </div>
+              </section>
+            )}
+
+            {externalAttempts.length > 0 && (
+              <section style={styles.section}>
+                <h2 style={styles.sectionTitle}>🎯 {locale === "mn" ? "Оролдлогын оноо хуваарилалт" : locale === "ko" ? "도전 점수 분포" : "Challenge Score Distribution"}</h2>
+                <div style={{ background: "linear-gradient(145deg, #111012, #0a0a0a)", border: "1px solid rgba(255,255,255,0.07)", borderLeft: "2.5px solid #D4AF37", borderRadius: "3px 14px 14px 3px", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+                  {[
+                    { key: "excellent", label: locale === "mn" ? "🌟 Шилдэг (8–10)" : locale === "ko" ? "🌟 우수 (8–10)" : "🌟 Excellent (8–10)", count: scoreDistrib.excellent, color: "#34D399" },
+                    { key: "good",      label: locale === "mn" ? "👍 Сайн (6–7)"    : locale === "ko" ? "👍 양호 (6–7)"    : "👍 Good (6–7)",      count: scoreDistrib.good,      color: "#D4AF37" },
+                    { key: "poor",      label: locale === "mn" ? "📈 Хүчилгэй (<6)" : locale === "ko" ? "📈 개선 필요 (<6)" : "📈 Needs work (<6)", count: scoreDistrib.poor,      color: "#F87171" },
+                  ].map(({ key, label, count, color }) => (
+                    <div key={key} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color, width: 140, flexShrink: 0 }}>{label}</span>
+                      <div style={{ flex: 1, height: 6, borderRadius: 999, background: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
+                        <div style={{ height: "100%", borderRadius: 999, background: color, width: `${Math.round((count / distribTotal) * 100)}%`, transition: "width 0.5s ease" }} />
+                      </div>
+                      <span style={{ fontSize: 12, fontWeight: 900, color, width: 24, textAlign: "right", flexShrink: 0 }}>{count}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {externalAttempts.length === 0 && followerCount === 0 && (
+              <div style={styles.emptyState}>
+                <p style={{ ...styles.emptyText, fontSize: 32 }}>👥</p>
+                <p style={styles.emptyText}>{locale === "mn" ? "Үзэгчдийн мэдээлэл хуримтлагдаагүй байна." : locale === "ko" ? "아직 시청자 데이터가 없습니다." : "No audience data yet. Keep posting!"}</p>
+              </div>
+            )}
+          </>)}
+
         </div>
       )}
 
-      <BottomNav locale={locale} activeTab="profile" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
     </div>
   );
 }
@@ -655,6 +744,41 @@ const styles = {
     fontFamily: "inherit",
     fontSize: 14,
     fontWeight: 900,
+    cursor: "pointer",
+  },
+  reelThumb: {
+    width: 52,
+    height: 72,
+    borderRadius: 8,
+    overflow: "hidden",
+    flexShrink: 0,
+    background: "#111",
+  },
+  tabBar: {
+    display: "flex",
+    borderBottom: "1px solid rgba(255,255,255,0.07)",
+    background: "rgba(5,5,5,0.98)",
+  },
+  tabActive: {
+    flex: 1,
+    padding: "12px 0",
+    border: "none",
+    borderBottom: "2px solid #C1121F",
+    background: "transparent",
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: 900,
+    cursor: "pointer",
+  },
+  tabInactive: {
+    flex: 1,
+    padding: "12px 0",
+    border: "none",
+    borderBottom: "2px solid transparent",
+    background: "transparent",
+    color: "rgba(255,255,255,0.4)",
+    fontSize: 13,
+    fontWeight: 700,
     cursor: "pointer",
   },
 };
