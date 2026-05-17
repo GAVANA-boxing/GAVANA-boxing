@@ -216,7 +216,7 @@ function SparringPostCard({ post, t, onRequest, requested, user, router, locale 
         }}
       >
         {post.userId === user?.uid
-          ? "Your post"
+          ? (locale === "mn" ? "Миний пост" : locale === "ko" ? "내 글" : "Your post")
           : requested
             ? t("requestSent")
             : t("sendRequest")}
@@ -579,7 +579,7 @@ export default function CoachPage() {
                   <option value="students">{t("coachSortStudents")}</option>
                   <option value="verified">{t("coachSortVerified")}</option>
                 </select>
-                <button type="button" style={styles.filterSheetDone} onClick={() => setShowCoachFilterSheet(false)}>Done</button>
+                <button type="button" style={styles.filterSheetDone} onClick={() => setShowCoachFilterSheet(false)}>{locale === "mn" ? "Болсон" : locale === "ko" ? "완료" : "Done"}</button>
               </div>
             </div>
           )}
@@ -753,7 +753,7 @@ export default function CoachPage() {
             <label style={styles.fieldLabel}>{t("weightClass")}</label>
             <input
               type="text"
-              placeholder="e.g. Lightweight, 135 lbs"
+              placeholder={locale === "mn" ? "жишээ: Хөнгөн жин, 61 кг" : locale === "ko" ? "예: 라이트급, 61kg" : "e.g. Lightweight, 135 lbs"}
               value={sparringForm.weight}
               onChange={(e) => setSparringForm((f) => ({ ...f, weight: e.target.value }))}
               style={styles.fieldInput}
@@ -774,7 +774,7 @@ export default function CoachPage() {
             <label style={styles.fieldLabel}>{t("coachLocation")}</label>
             <input
               type="text"
-              placeholder="City / Gym name"
+              placeholder={locale === "mn" ? "Хот / Жимийн нэр" : locale === "ko" ? "도시 / 체육관 이름" : "City / Gym name"}
               value={sparringForm.location}
               onChange={(e) => setSparringForm((f) => ({ ...f, location: e.target.value }))}
               style={styles.fieldInput}
@@ -783,7 +783,7 @@ export default function CoachPage() {
             <label style={styles.fieldLabel}>{t("availableTime")}</label>
             <input
               type="text"
-              placeholder="e.g. Weekends, evenings"
+              placeholder={locale === "mn" ? "жишээ: Амралтын өдрүүд, оройгоор" : locale === "ko" ? "예: 주말, 저녁" : "e.g. Weekends, evenings"}
               value={sparringForm.availableTime}
               onChange={(e) => setSparringForm((f) => ({ ...f, availableTime: e.target.value }))}
               style={styles.fieldInput}
@@ -791,7 +791,7 @@ export default function CoachPage() {
 
             <label style={styles.fieldLabel}>{t("sparringNote")}</label>
             <textarea
-              placeholder="Any additional details…"
+              placeholder={locale === "mn" ? "Нэмэлт мэдээлэл..." : locale === "ko" ? "추가 세부 사항..." : "Any additional details…"}
               value={sparringForm.note}
               onChange={(e) => setSparringForm((f) => ({ ...f, note: e.target.value }))}
               style={styles.fieldTextarea}

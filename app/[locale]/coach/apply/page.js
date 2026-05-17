@@ -145,7 +145,7 @@ export default function CoachApplyPage() {
           <div style={styles.successCard}>
             <div style={styles.successIcon}>🥊</div>
             <h2 style={styles.successTitle}>{t("verifiedCoach")}</h2>
-            <p style={styles.successDesc}>You are already a verified coach on GAVANA.</p>
+            <p style={styles.successDesc}>{locale === "mn" ? "Та GAVANA-д баталгаажсан тренер байна." : locale === "ko" ? "당신은 이미 GAVANA의 인증된 코치입니다." : "You are already a verified coach on GAVANA."}</p>
             <button type="button" style={styles.submitBtn} onClick={() => router.push(`/${locale}/coach/dashboard`)}>
               {t("coachDashboard")}
             </button>
