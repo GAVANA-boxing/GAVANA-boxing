@@ -338,9 +338,8 @@ export default function ProgramsPage() {
               </h2>
               {discoverPrograms.map((program) => {
                 const color = program.color || LEVEL_COLOR[program.level] || "#C1121F";
-                const levelLabel = program.level
-                  ? program.level.charAt(0).toUpperCase() + program.level.slice(1)
-                  : "";
+                const levelKeyMap = { beginner: "levelBeginner", intermediate: "levelIntermediate", advanced: "levelAdvanced" };
+                const levelLabel = program.level ? t(levelKeyMap[program.level] || program.level) : "";
                 return (
                   <div key={program.id} style={{ ...s.discoverCard, borderLeft: `3px solid ${color}` }}>
                     <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>

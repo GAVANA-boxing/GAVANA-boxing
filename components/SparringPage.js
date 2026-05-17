@@ -265,21 +265,33 @@ export default function SparringPage() {
     return () => unsub();
   }, [user?.uid]);
 
-  // Load match history when history tab opened
+  // Load match history when history tab opened (challenger + opponent)
   useEffect(() => {
     if (tab !== "history" || !user?.uid) return;
     let active = true;
     setHistoryLoading(true);
-    getDocs(query(collection(db, "pvp_results"), where("challengerId", "==", user.uid))).then((snap) => {
+    Promise.all([
+      getDocs(query(collection(db, "pvp_results"), where("challengerId", "==", user.uid))),
+      getDocs(query(collection(db, "pvp_results"), where("opponentId", "==", user.uid))),
+    ]).then(([asChallenger, asOpponent]) => {
       if (!active) return;
-      const results = snap.docs
-        .map((d) => ({ id: d.id, ...d.data() }))
-        .sort((a, b) => {
-          const at = a.createdAt?.toMillis?.() || 0;
-          const bt = b.createdAt?.toMillis?.() || 0;
-          return bt - at;
-        });
-      setMatchHistory(results);
+      const fromChallenger = asChallenger.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const fromOpponent = asOpponent.docs.map((d) => {
+        const data = d.data();
+        const result = data.result === "win" ? "loss" : data.result === "loss" ? "win" : data.result;
+        return {
+          id: d.id,
+          ...data,
+          result,
+          opponentName: data.challengerName || data.challengerDisplayName || "Opponent",
+          challengerScore: data.opponentScore,
+          opponentScore: data.challengerScore,
+        };
+      });
+      const seen = new Set(fromChallenger.map((d) => d.id));
+      const unique = [...fromChallenger, ...fromOpponent.filter((d) => !seen.has(d.id))];
+      unique.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+      setMatchHistory(unique);
     }).catch(() => {}).finally(() => { if (active) setHistoryLoading(false); });
     return () => { active = false; };
   }, [tab, user?.uid]);
@@ -433,7 +445,7 @@ export default function SparringPage() {
         </button>
         <div style={s.headerCenter}>
           <div style={s.headerKicker}>GAVANA</div>
-          <div style={s.headerTitle}>Sparring Matchmaking</div>
+          <div style={s.headerTitle}>{t("sparringMatchmaking")}</div>
         </div>
         <div style={{ width: 40 }} />
       </div>

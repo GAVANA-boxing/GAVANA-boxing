@@ -8,7 +8,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
-import { translate } from "@/lib/i18n";
+import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import {
   calculateUserXP, getFighterRank,
   getNextRank, getRankProgress,
@@ -36,11 +36,6 @@ function formatScore(s) {
   const n = Number(s);
   if (!Number.isFinite(n)) return "—";
   return n.toFixed(1);
-}
-
-function getLocaleFromPathname(p = "") {
-  const seg = p.split("/")[1];
-  return ["en", "mn", "ko"].includes(seg) ? seg : "en";
 }
 
 const WEIGHT_CLASSES = [
@@ -476,7 +471,7 @@ function ScoreChart({ scores, t }) {
           <span style={{ fontSize: 12, fontWeight: 900, color: improvement > 0 ? "#4ade80" : "#f87171" }}>
             {improvement > 0 ? "↑" : "↓"} {Math.abs(improvement).toFixed(0)}%
           </span>
-          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>vs earlier</span>
+          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>{t("dashboardVsEarlier")}</span>
         </div>
       )}
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: "block" }}>
@@ -509,15 +504,15 @@ function ScoreChart({ scores, t }) {
           />
         ))}
         <text x={toX(0).toFixed(1)} y={H - 4} textAnchor="middle"
-          fontSize="7" fill="rgba(255,255,255,0.18)">older</text>
+          fontSize="7" fill="rgba(255,255,255,0.18)">{t("dashboardOlderSess")}</text>
         <text x={toX(scores.length - 1).toFixed(1)} y={H - 4} textAnchor="middle"
-          fontSize="7" fill="rgba(255,255,255,0.18)">recent</text>
+          fontSize="7" fill="rgba(255,255,255,0.18)">{t("dashboardRecentSess")}</text>
       </svg>
       <div style={{ display: "flex", gap: 14, marginTop: 7, paddingLeft: 26 }}>
         {[
-          { color: "#C1121F", solid: true, label: "Score" },
+          { color: "#C1121F", solid: true, label: t("dashboardScore") },
           { color: "#D4AF37", dashed: true, label: `${t("dashboardBest")} ${formatScore(best)}` },
-          { color: "rgba(255,255,255,0.22)", dashed: true, label: `Avg ${formatScore(avg)}` },
+          { color: "rgba(255,255,255,0.22)", dashed: true, label: `${t("dashboardAvg")} ${formatScore(avg)}` },
         ].map((item) => (
           <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <div style={{
@@ -1081,7 +1076,7 @@ export default function AthleteDashboard() {
                 <span style={{ fontSize: 20 }}>{arch.emoji}</span>
                 <div>
                   <div style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", letterSpacing: 1.2 }}>
-                    Fighter Style
+                    {t("dashboardFighterStyleLabel")}
                   </div>
                   <div style={{ fontSize: 13, fontWeight: 900, color: arch.color }}>{arch.name}</div>
                 </div>
@@ -1091,7 +1086,7 @@ export default function AthleteDashboard() {
                 onClick={() => setShowQuiz(true)}
                 style={{ background: "none", border: "none", color: "rgba(255,255,255,0.22)", fontSize: 11, fontWeight: 700, cursor: "pointer", padding: "4px 8px" }}
               >
-                Солих →
+                {t("dashboardChangeStyle")}
               </button>
             </div>
           );
@@ -1102,7 +1097,7 @@ export default function AthleteDashboard() {
           <StatPill
             label={t("dashboardTrainingStreak")}
             value={`${dailyStreak}d`}
-            sub={bestStreak > 0 ? `best ${bestStreak}d` : undefined}
+            sub={bestStreak > 0 ? `${t("dashboardBestStreak")} ${bestStreak}d` : undefined}
             color="#FB923C"
           />
           <StatPill
@@ -1189,8 +1184,8 @@ export default function AthleteDashboard() {
                   style={{ ...ghostBtnStyle, marginTop: 10, width: "100%", flex: "unset" }}
                 >
                   {showAllSessions
-                    ? "Show less"
-                    : `Show all ${trainingSessions.length} sessions`}
+                    ? t("dashboardShowLess")
+                    : `${t("dashboardShowAll")} ${trainingSessions.length}`}
                 </button>
               )}
             </>
