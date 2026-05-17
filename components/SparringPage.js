@@ -211,6 +211,9 @@ export default function SparringPage() {
   const [myPost, setMyPost] = useState(null);
   const [incomingRequests, setIncomingRequests] = useState([]);
   const [sentRequestToIds, setSentRequestToIds] = useState(new Set());
+  const [sentRequests, setSentRequests] = useState([]);
+  const [requestsSubTab, setRequestsSubTab] = useState("received");
+  const [cancelling, setCancelling] = useState(null);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState(false);
@@ -255,12 +258,14 @@ export default function SparringPage() {
     return () => unsub();
   }, [user?.uid]);
 
-  // Real-time sent requests — track which users already have a request
+  // Real-time sent requests — track which users already have a request + full docs
   useEffect(() => {
     if (!user?.uid) return;
     const q = query(collection(db, "sparring_requests"), where("fromUserId", "==", user.uid));
     const unsub = onSnapshot(q, (snap) => {
-      setSentRequestToIds(new Set(snap.docs.map((d) => d.data().toUserId)));
+      const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => getTs(b.createdAt) - getTs(a.createdAt));
+      setSentRequestToIds(new Set(docs.map((d) => d.toUserId)));
+      setSentRequests(docs);
     }, () => {});
     return () => unsub();
   }, [user?.uid]);
@@ -411,6 +416,18 @@ export default function SparringPage() {
     }
   };
 
+  const handleCancelSparringRequest = async (req) => {
+    if (cancelling) return;
+    setCancelling(req.id);
+    try {
+      await deleteDoc(doc(db, "sparring_requests", req.id));
+    } catch (e) {
+      console.error("Cancel sparring request error:", e);
+    } finally {
+      setCancelling(null);
+    }
+  };
+
   const filtered = posts.filter((p) => {
     if (filterArchetype !== "all" && p.archetype !== filterArchetype) return false;
     if (filterWeight !== "all" && !p.weightClass?.includes(filterWeight)) return false;
@@ -541,67 +558,157 @@ export default function SparringPage() {
       {/* ── REQUESTS TAB ── */}
       {tab === "requests" && (
         <div style={s.list}>
+          {/* Sent / Received sub-tabs */}
+          <div style={{ display: "flex", gap: 0, margin: "10px 16px 4px", borderRadius: 12, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", overflow: "hidden" }}>
+            {[
+              { key: "received", label: locale === "mn" ? "📬 Ирсэн" : locale === "ko" ? "📬 받은" : "📬 Received", count: pendingIncoming.length },
+              { key: "sent",     label: locale === "mn" ? "📤 Илгээсэн" : locale === "ko" ? "📤 보낸" : "📤 Sent", count: sentRequests.filter((r) => r.status === "pending").length },
+            ].map(({ key, label, count }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setRequestsSubTab(key)}
+                style={{
+                  flex: 1, padding: "10px 8px", border: "none",
+                  background: requestsSubTab === key ? "rgba(193,18,31,0.2)" : "transparent",
+                  color: requestsSubTab === key ? "#fff" : "rgba(255,255,255,0.4)",
+                  fontSize: 12, fontWeight: 800, cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                }}
+              >
+                {label}
+                {count > 0 && (
+                  <span style={{ minWidth: 16, height: 16, borderRadius: 999, background: "#C1121F", color: "#fff", fontSize: 9, fontWeight: 900, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+
           {!user ? (
             <div style={s.empty}>
               <p style={s.emptyTitle}>{locale === "mn" ? "Нэвтрэх шаардлагатай" : locale === "ko" ? "로그인이 필요합니다" : "Login required"}</p>
             </div>
-          ) : pendingIncoming.length === 0 && resolvedIncoming.length === 0 ? (
-            <div style={s.empty}>
-              <div style={{ fontSize: 48, marginBottom: 8 }}>📬</div>
-              <p style={s.emptyTitle}>{locale === "mn" ? "Хүсэлт ирээгүй байна" : locale === "ko" ? "받은 요청 없음" : "No requests yet"}</p>
-              <p style={s.emptySub}>{locale === "mn" ? "Sparring post идэвхжүүлэхэд хүсэлтүүд энд гарч ирнэ." : locale === "ko" ? "스파링 게시물을 활성화하면 요청이 여기에 표시됩니다." : "Enable your sparring post and requests will appear here."}</p>
-            </div>
-          ) : (
-            <>
-              {pendingIncoming.length > 0 && (
-                <>
-                  <div style={s.sectionLabel}>
-                    {locale === "mn" ? "⏳ Хүлээгдэж байгаа хүсэлтүүд" : locale === "ko" ? "⏳ 대기 중인 요청" : "⏳ Pending requests"}
-                  </div>
-                  {pendingIncoming.map((req) => (
-                    <div key={req.id} style={{ padding: "0 16px 8px" }}>
-                      <IncomingRequestCard
-                        req={req}
-                        onAccept={handleAccept}
-                        onDecline={handleDecline}
-                        accepting={accepting}
-                        declining={declining}
-                        locale={locale}
-                      />
+          ) : requestsSubTab === "received" ? (
+            pendingIncoming.length === 0 && resolvedIncoming.length === 0 ? (
+              <div style={s.empty}>
+                <div style={{ fontSize: 48, marginBottom: 8 }}>📬</div>
+                <p style={s.emptyTitle}>{locale === "mn" ? "Хүсэлт ирээгүй байна" : locale === "ko" ? "받은 요청 없음" : "No requests received"}</p>
+                <p style={s.emptySub}>{locale === "mn" ? "Sparring post идэвхжүүлэхэд хүсэлтүүд энд гарч ирнэ." : locale === "ko" ? "스파링 게시물을 활성화하면 요청이 여기에 표시됩니다." : "Enable your sparring post and requests will appear here."}</p>
+              </div>
+            ) : (
+              <>
+                {pendingIncoming.length > 0 && (
+                  <>
+                    <div style={s.sectionLabel}>
+                      {locale === "mn" ? "⏳ Хүлээгдэж байгаа хүсэлтүүд" : locale === "ko" ? "⏳ 대기 중인 요청" : "⏳ Pending requests"}
                     </div>
-                  ))}
-                </>
-              )}
-              {resolvedIncoming.length > 0 && (
-                <>
-                  <div style={s.sectionLabel}>
-                    {locale === "mn" ? "Дууссан хүсэлтүүд" : locale === "ko" ? "처리된 요청" : "Resolved requests"}
-                  </div>
-                  {resolvedIncoming.map((req) => {
-                    const isAccepted = req.status === "accepted";
-                    const col = isAccepted ? "#34D399" : "#F87171";
-                    return (
+                    {pendingIncoming.map((req) => (
                       <div key={req.id} style={{ padding: "0 16px 8px" }}>
-                        <div style={{ ...c.card, borderLeft: `2.5px solid ${col}`, opacity: 0.65 }}>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                              {req.fromPhotoURL
-                                ? <img src={req.fromPhotoURL} alt="" style={{ ...c.avatar, width: 36, height: 36 }} />
-                                : <div style={{ ...c.avatarFallback, width: 36, height: 36, fontSize: 14 }}>{(req.fromDisplayName || "?").charAt(0).toUpperCase()}</div>
-                              }
-                              <span style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>{req.fromDisplayName || "Fighter"}</span>
+                        <IncomingRequestCard
+                          req={req}
+                          onAccept={handleAccept}
+                          onDecline={handleDecline}
+                          accepting={accepting}
+                          declining={declining}
+                          locale={locale}
+                        />
+                      </div>
+                    ))}
+                  </>
+                )}
+                {resolvedIncoming.length > 0 && (
+                  <>
+                    <div style={s.sectionLabel}>
+                      {locale === "mn" ? "Дууссан хүсэлтүүд" : locale === "ko" ? "처리된 요청" : "Resolved requests"}
+                    </div>
+                    {resolvedIncoming.map((req) => {
+                      const isAccepted = req.status === "accepted";
+                      const col = isAccepted ? "#34D399" : "#F87171";
+                      const ago = formatAgo(req.createdAt, locale);
+                      return (
+                        <div key={req.id} style={{ padding: "0 16px 8px" }}>
+                          <div style={{ ...c.card, borderLeft: `2.5px solid ${col}`, opacity: 0.65 }}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                {req.fromPhotoURL
+                                  ? <img src={req.fromPhotoURL} alt="" style={{ ...c.avatar, width: 36, height: 36 }} />
+                                  : <div style={{ ...c.avatarFallback, width: 36, height: 36, fontSize: 14 }}>{(req.fromDisplayName || "?").charAt(0).toUpperCase()}</div>
+                                }
+                                <div>
+                                  <span style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>{req.fromDisplayName || "Fighter"}</span>
+                                  {ago && <div style={{ fontSize: 10, color: "#666", marginTop: 2 }}>🕐 {ago}</div>}
+                                </div>
+                              </div>
+                              <span style={{ fontSize: 11, fontWeight: 900, color: col }}>
+                                {isAccepted ? (locale === "mn" ? "✓ Зөвшөөрсөн" : locale === "ko" ? "✓ 수락됨" : "✓ Accepted") : (locale === "mn" ? "✕ Татгалзсан" : locale === "ko" ? "✕ 거절됨" : "✕ Declined")}
+                              </span>
                             </div>
-                            <span style={{ fontSize: 11, fontWeight: 900, color: col }}>
-                              {isAccepted ? (locale === "mn" ? "✓ Зөвшөөрсөн" : locale === "ko" ? "✓ 수락됨" : "✓ Accepted") : (locale === "mn" ? "✕ Татгалзсан" : locale === "ko" ? "✕ 거절됨" : "✕ Declined")}
-                            </span>
                           </div>
                         </div>
+                      );
+                    })}
+                  </>
+                )}
+              </>
+            )
+          ) : (
+            // Sent requests sub-tab
+            sentRequests.length === 0 ? (
+              <div style={s.empty}>
+                <div style={{ fontSize: 48, marginBottom: 8 }}>📤</div>
+                <p style={s.emptyTitle}>{locale === "mn" ? "Илгээсэн хүсэлт байхгүй" : locale === "ko" ? "보낸 요청 없음" : "No requests sent"}</p>
+                <p style={s.emptySub}>{locale === "mn" ? "Discover табаас тулаанч олж sparring хүсэлт илгээгээрэй." : locale === "ko" ? "탐색 탭에서 파이터를 찾아 스파링 요청을 보내세요." : "Find fighters in the Discover tab and send sparring requests."}</p>
+              </div>
+            ) : (
+              <>
+                {sentRequests.map((req) => {
+                  const isPending = req.status === "pending";
+                  const isAccepted = req.status === "accepted";
+                  const col = isAccepted ? "#34D399" : isPending ? "#F59E0B" : "#F87171";
+                  const ago = formatAgo(req.createdAt, locale);
+                  const isBusy = cancelling === req.id;
+                  return (
+                    <div key={req.id} style={{ padding: "0 16px 8px" }}>
+                      <div style={{ ...c.card, borderLeft: `2.5px solid ${col}` }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", marginBottom: 2 }}>
+                              {locale === "mn" ? "Sparring хүсэлт илгээсэн" : locale === "ko" ? "스파링 요청 보냄" : "Sparring request sent"}
+                            </div>
+                            <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+                              <span style={{ fontSize: 11, fontWeight: 800, color: col }}>
+                                {isAccepted ? (locale === "mn" ? "✓ Зөвшөөрсөн" : locale === "ko" ? "✓ 수락됨" : "✓ Accepted")
+                                  : isPending ? (locale === "mn" ? "⏳ Хүлээгдэж байна" : locale === "ko" ? "⏳ 대기 중" : "⏳ Pending")
+                                  : (locale === "mn" ? "✕ Татгалзсан" : locale === "ko" ? "✕ 거절됨" : "✕ Declined")}
+                              </span>
+                              {ago && <span style={{ fontSize: 10, color: "#666" }}>· {ago}</span>}
+                            </div>
+                          </div>
+                          {isPending && (
+                            <button
+                              type="button"
+                              onClick={() => !isBusy && handleCancelSparringRequest(req)}
+                              disabled={isBusy}
+                              style={{
+                                flexShrink: 0, padding: "7px 12px", borderRadius: 8,
+                                border: "1px solid rgba(248,113,113,0.3)",
+                                background: "rgba(248,113,113,0.07)",
+                                color: "#F87171", fontSize: 11, fontWeight: 900,
+                                cursor: isBusy ? "wait" : "pointer", opacity: isBusy ? 0.6 : 1,
+                              }}
+                            >
+                              {isBusy ? "…" : (locale === "mn" ? "Цуцлах" : locale === "ko" ? "취소" : "Cancel")}
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    );
-                  })}
-                </>
-              )}
-            </>
+                    </div>
+                  );
+                })}
+              </>
+            )
           )}
           <div style={{ height: "calc(24px + env(safe-area-inset-bottom))" }} />
         </div>
