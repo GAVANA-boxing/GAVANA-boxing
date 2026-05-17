@@ -27,9 +27,21 @@ const VIBE_FILTERS = ["Friendly", "Technical", "Hard sparring", "Competitive"];
 
 const LEVELS = ["Amateur", "Fighter", "Pro", "Elite", "Champion"];
 
-function formatTimeAgo(date) {
+function formatTimeAgo(date, locale) {
   const diff = Date.now() - date.getTime();
   const days = Math.floor(diff / 86400000);
+  if (locale === "ko") {
+    if (days === 0) return "오늘";
+    if (days === 1) return "어제";
+    if (days < 7) return `${days}일 전`;
+    return date.toLocaleDateString();
+  }
+  if (locale !== "mn") {
+    if (days === 0) return "Today";
+    if (days === 1) return "Yesterday";
+    if (days < 7) return `${days}d ago`;
+    return date.toLocaleDateString();
+  }
   if (days === 0) return "Өнөөдөр";
   if (days === 1) return "Өчигдөр";
   if (days < 7) return `${days} өдрийн өмнө`;
@@ -37,12 +49,23 @@ function formatTimeAgo(date) {
 }
 
 const REQ_STATUS = {
-  pending:   { bg: "rgba(245,158,11,0.1)",  border: "rgba(245,158,11,0.35)",  color: "#F59E0B", label: "⏳ Хүлээгдэж байна" },
-  accepted:  { bg: "rgba(52,211,153,0.1)",  border: "rgba(52,211,153,0.35)",  color: "#34D399", label: "✓ Зөвшөөрөгдсөн" },
-  declined:  { bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.35)", color: "#F87171", label: "✕ Татгалзсан" },
-  scheduled: { bg: "rgba(167,139,250,0.1)", border: "rgba(167,139,250,0.35)", color: "#A78BFA", label: "📅 Товлогдсон" },
-  completed: { bg: "rgba(96,165,250,0.1)",  border: "rgba(96,165,250,0.35)",  color: "#60A5FA", label: "✓ Дууссан" },
+  pending:   { bg: "rgba(245,158,11,0.1)",  border: "rgba(245,158,11,0.35)",  color: "#F59E0B" },
+  accepted:  { bg: "rgba(52,211,153,0.1)",  border: "rgba(52,211,153,0.35)",  color: "#34D399" },
+  declined:  { bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.35)", color: "#F87171" },
+  scheduled: { bg: "rgba(167,139,250,0.1)", border: "rgba(167,139,250,0.35)", color: "#A78BFA" },
+  completed: { bg: "rgba(96,165,250,0.1)",  border: "rgba(96,165,250,0.35)",  color: "#60A5FA" },
 };
+
+function getReqStatusLabel(status, locale) {
+  const labels = {
+    pending:   { mn: "⏳ Хүлээгдэж байна", ko: "⏳ 대기 중",      en: "⏳ Pending" },
+    accepted:  { mn: "✓ Зөвшөөрөгдсөн",   ko: "✓ 수락됨",        en: "✓ Accepted" },
+    declined:  { mn: "✕ Татгалзсан",       ko: "✕ 거절됨",        en: "✕ Declined" },
+    scheduled: { mn: "📅 Товлогдсон",      ko: "📅 예약됨",       en: "📅 Scheduled" },
+    completed: { mn: "✓ Дууссан",          ko: "✓ 완료됨",        en: "✓ Completed" },
+  };
+  return (labels[status] || labels.pending)[locale] || (labels[status] || labels.pending).en;
+}
 
 function CoachCard({ coach, t, locale, onRequest, requested, router }) {
   const initials = (coach.displayName || coach.username || "?")
@@ -51,8 +74,6 @@ function CoachCard({ coach, t, locale, onRequest, requested, router }) {
     .slice(0, 2)
     .join("")
     .toUpperCase();
-
-  const primarySpecialty = coach.coachSpecialties?.[0];
 
   return (
     <div style={styles.card}>
@@ -81,29 +102,39 @@ function CoachCard({ coach, t, locale, onRequest, requested, router }) {
             <div style={styles.cardLocation}>📍 {coach.coachLocation}</div>
           )}
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
-            {primarySpecialty && (
-              <span style={styles.specialtyChip}>{primarySpecialty}</span>
-            )}
-            {Number.isFinite(coach.coachRating) && (
+            {Number.isFinite(coach.coachRating) && coach.coachRating > 0 && (
               <span style={styles.cardRatingInline}>⭐ {coach.coachRating.toFixed(1)}</span>
+            )}
+            {Number.isFinite(coach.coachPricePerSession) && coach.coachPricePerSession > 0 && (
+              <span style={{ fontSize: 13, fontWeight: 900, color: "#D4AF37" }}>
+                ${coach.coachPricePerSession}<span style={{ fontSize: 10, color: "#888", fontWeight: 600 }}>/sess</span>
+              </span>
             )}
           </div>
         </div>
       </div>
 
-      {Number.isFinite(coach.coachPricePerSession) && coach.coachPricePerSession > 0 && (
-        <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-          <span style={{ fontSize: 15, fontWeight: 900, color: "#D4AF37" }}>${coach.coachPricePerSession}</span>
-          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>/session</span>
+      {coach.coachSpecialties?.length > 0 && (
+        <div style={styles.specialtyRow}>
+          {coach.coachSpecialties.slice(0, 4).map((sp) => (
+            <span key={sp} style={styles.specialtyChip}>{sp}</span>
+          ))}
         </div>
       )}
+
+      {coach.coachBio && (
+        <p style={styles.cardBio}>
+          {coach.coachBio.length > 90 ? coach.coachBio.slice(0, 90) + "…" : coach.coachBio}
+        </p>
+      )}
+
       <div style={styles.cardActions}>
         <button
           type="button"
           style={styles.viewProfileBtn}
           onClick={() => router.push(`/${locale}/coach/${coach.id}`)}
         >
-          Profile →
+          {locale === "mn" ? "Профайл →" : locale === "ko" ? "프로필 →" : "Profile →"}
         </button>
         <button
           type="button"
@@ -111,7 +142,9 @@ function CoachCard({ coach, t, locale, onRequest, requested, router }) {
           disabled={requested}
           onClick={() => onRequest(coach.id)}
         >
-          {requested ? t("requestSent") : t("requestCoach")}
+          {requested
+            ? t("requestSent")
+            : locale === "mn" ? "Захиалах →" : locale === "ko" ? "예약하기 →" : "Book Session →"}
         </button>
       </div>
     </div>
@@ -123,7 +156,8 @@ function MyRequestCard({ req, coachProfile, locale, router }) {
   const photo = coachProfile?.photoURL || coachProfile?.profileImageUrl || "";
   const initials = name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
   const st = REQ_STATUS[req.status] || REQ_STATUS.pending;
-  const timeAgo = req.createdAt?.toDate ? formatTimeAgo(req.createdAt.toDate()) : "";
+  const statusLabel = getReqStatusLabel(req.status, locale);
+  const timeAgo = req.createdAt?.toDate ? formatTimeAgo(req.createdAt.toDate(), locale) : "";
 
   return (
     <div style={{ ...styles.card, borderLeft: `2.5px solid ${st.color}`, borderRadius: "3px 18px 18px 3px" }}>
@@ -142,7 +176,7 @@ function MyRequestCard({ req, coachProfile, locale, router }) {
             )}
           </div>
           <span style={{ display: "inline-flex", marginTop: 4, padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 900, background: st.bg, border: `1px solid ${st.border}`, color: st.color }}>
-            {st.label}
+            {statusLabel}
           </span>
           {timeAgo && <div style={{ ...styles.cardLocation, marginTop: 4 }}>{timeAgo}</div>}
         </div>
@@ -153,7 +187,7 @@ function MyRequestCard({ req, coachProfile, locale, router }) {
           style={styles.viewProfileBtn}
           onClick={() => router.push(`/${locale}/coach/${req.coachId}`)}
         >
-          Coach Profile харах →
+          {locale === "mn" ? "Coach Profile харах →" : locale === "ko" ? "코치 프로필 보기 →" : "View Coach Profile →"}
         </button>
       )}
     </div>
@@ -182,7 +216,7 @@ function SparringPostCard({ post, t, onRequest, requested, user, router, locale 
         }}
       >
         {post.userId === user?.uid
-          ? "Your post"
+          ? (locale === "mn" ? "Миний пост" : locale === "ko" ? "내 글" : "Your post")
           : requested
             ? t("requestSent")
             : t("sendRequest")}
@@ -364,7 +398,7 @@ export default function CoachPage() {
           { key: "ai", label: t("coachTabAI") },
           { key: "coaches", label: t("coachTabCoaches") },
           { key: "sparring", label: t("coachTabSparring") },
-          { key: "mine", label: "Миний хүсэлт" },
+          { key: "mine", label: locale === "mn" ? "Миний хүсэлт" : locale === "ko" ? "내 요청" : "My Requests" },
         ].map(({ key, label }) => (
           <button
             key={key}
@@ -380,6 +414,28 @@ export default function CoachPage() {
       {/* AI Coach tab */}
       {tab === "ai" && (
         <div style={styles.aiWrap}>
+          <div style={{ padding: "0 0 12px", textAlign: "center" }}>
+            <button
+              type="button"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "10px 20px",
+                borderRadius: 12,
+                border: "none",
+                background: "#C1121F",
+                color: "#fff",
+                fontSize: 14,
+                fontWeight: 900,
+                cursor: "pointer",
+                boxShadow: "0 8px 28px rgba(193,18,31,0.32)",
+              }}
+              onClick={() => router.push(`/${locale}/coach/chat`)}
+            >
+              💬 {locale === "mn" ? "Бүтэн дэлгэцэн чат нээх" : locale === "ko" ? "전체화면 채팅 열기" : "Open Full-Screen Chat"}
+            </button>
+          </div>
           <AICoach />
         </div>
       )}
@@ -429,33 +485,59 @@ export default function CoachPage() {
             </div>
           )}
 
-          {/* Compact filter bar */}
-          <div style={styles.filterBarCompact}>
+          {/* Specialty filter chips — full horizontal scroll */}
+          <div style={styles.specialtyChipsRow}>
             <button
               type="button"
-              style={filterSpecialty === "" ? styles.chipActive : styles.chip}
+              style={filterSpecialty === "" ? styles.specChipActive : styles.specChip}
               onClick={() => setFilterSpecialty("")}
             >
-              {t("coachFilterAll")}
+              🥊 {t("coachFilterAll")}
             </button>
-            {SPECIALTIES.slice(0, 2).map((s) => (
+            {SPECIALTIES.map((s) => (
               <button
                 key={s}
                 type="button"
-                style={filterSpecialty === s ? styles.chipActive : styles.chip}
+                style={filterSpecialty === s ? styles.specChipActive : styles.specChip}
                 onClick={() => setFilterSpecialty((prev) => prev === s ? "" : s)}
               >
                 {s}
               </button>
             ))}
+          </div>
+
+          {/* Sort + advanced filter row */}
+          <div style={{ display: "flex", gap: 8, marginBottom: 16, alignItems: "center" }}>
+            {[
+              { key: "rating", label: locale === "mn" ? "⭐ Рейтинг" : locale === "ko" ? "⭐ 평점" : "⭐ Rating" },
+              { key: "students", label: locale === "mn" ? "👥 Сурагчид" : locale === "ko" ? "👥 학생수" : "👥 Students" },
+              { key: "verified", label: locale === "mn" ? "✓ Баталгаа" : locale === "ko" ? "✓ 인증" : "✓ Verified" },
+            ].map(({ key, label }) => (
+              <button
+                key={key}
+                type="button"
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: 999,
+                  border: sortBy === key ? "1px solid rgba(212,175,55,0.6)" : "1px solid rgba(255,255,255,0.1)",
+                  background: sortBy === key ? "rgba(212,175,55,0.15)" : "rgba(255,255,255,0.03)",
+                  color: sortBy === key ? "#D4AF37" : "rgba(255,255,255,0.4)",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  flexShrink: 0,
+                }}
+                onClick={() => setSortBy(key)}
+              >
+                {label}
+              </button>
+            ))}
             <button
               type="button"
-              style={styles.filterMoreBtn}
+              style={{ marginLeft: "auto", padding: "6px 12px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.4)", fontSize: 12, fontWeight: 700, cursor: "pointer", flexShrink: 0 }}
               onClick={() => setShowCoachFilterSheet(true)}
             >
-              {(filterSpecialty && !SPECIALTIES.slice(0, 2).includes(filterSpecialty)) || filterVibe || filterLocation
-                ? "● Filters"
-                : "Filters ›"}
+              {filterVibe || filterLocation ? "● More" : "More ›"}
             </button>
           </div>
 
@@ -497,12 +579,18 @@ export default function CoachPage() {
                   <option value="students">{t("coachSortStudents")}</option>
                   <option value="verified">{t("coachSortVerified")}</option>
                 </select>
-                <button type="button" style={styles.filterSheetDone} onClick={() => setShowCoachFilterSheet(false)}>Done</button>
+                <button type="button" style={styles.filterSheetDone} onClick={() => setShowCoachFilterSheet(false)}>{locale === "mn" ? "Болсон" : locale === "ko" ? "완료" : "Done"}</button>
               </div>
             </div>
           )}
 
-          {coachesLoading && <div style={styles.loadingText}>Loading…</div>}
+          {coachesLoading && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "0 0 12px" }}>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="shimmer" style={{ height: 88, borderRadius: 16, background: "rgba(255,255,255,0.06)" }} />
+              ))}
+            </div>
+          )}
 
           {!coachesLoading && filteredCoaches.length === 0 && (
             <div style={styles.emptyState}>
@@ -535,7 +623,7 @@ export default function CoachPage() {
             ))}
           </div>
 
-          <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
+          <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
         </div>
       )}
 
@@ -559,7 +647,13 @@ export default function CoachPage() {
             <div style={styles.savedBanner}>✓ {t("requestSent")}</div>
           )}
 
-          {sparringLoading && <div style={styles.loadingText}>Loading…</div>}
+          {sparringLoading && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "0 0 12px" }}>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="shimmer" style={{ height: 88, borderRadius: 16, background: "rgba(255,255,255,0.06)" }} />
+              ))}
+            </div>
+          )}
 
           {!sparringLoading && sparringPosts.length === 0 && (
             <div style={styles.emptyState}>
@@ -583,7 +677,7 @@ export default function CoachPage() {
             ))}
           </div>
 
-          <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
+          <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
         </div>
       )}
 
@@ -592,36 +686,40 @@ export default function CoachPage() {
         <div style={styles.content}>
           <header style={styles.pageHeader}>
             <p style={styles.kicker}>GAVANA BOXING</p>
-            <h1 style={styles.pageTitle}>Миний хүсэлтүүд</h1>
+            <h1 style={styles.pageTitle}>{locale === "mn" ? "Миний хүсэлтүүд" : locale === "ko" ? "내 요청 목록" : "My Requests"}</h1>
           </header>
 
           {!user?.uid ? (
             <div style={styles.emptyState}>
               <div style={styles.emptyIcon}>🔒</div>
-              <div style={styles.emptyText}>Нэвтрэх шаардлагатай</div>
+              <div style={styles.emptyText}>{locale === "mn" ? "Нэвтрэх шаардлагатай" : locale === "ko" ? "로그인이 필요합니다" : "Sign in required"}</div>
               <button
                 type="button"
                 onClick={() => router.push(`/${locale}/login`)}
                 style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}
               >
-                Нэвтрэх →
+                {locale === "mn" ? "Нэвтрэх →" : locale === "ko" ? "로그인 →" : "Sign in →"}
               </button>
             </div>
           ) : myRequestsLoading ? (
-            <div style={styles.loadingText}>Уншиж байна…</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "0 0 12px" }}>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="shimmer" style={{ height: 88, borderRadius: 16, background: "rgba(255,255,255,0.06)" }} />
+              ))}
+            </div>
           ) : myRequests.length === 0 ? (
             <div style={styles.emptyState}>
               <div style={styles.emptyIcon}>📋</div>
-              <div style={styles.emptyText}>Хүсэлт байхгүй байна</div>
+              <div style={styles.emptyText}>{locale === "mn" ? "Хүсэлт байхгүй байна" : locale === "ko" ? "요청이 없습니다" : "No requests yet"}</div>
               <p style={{ margin: 0, color: "rgba(255,255,255,0.45)", fontSize: 13, textAlign: "center", maxWidth: 240 }}>
-                Coach-той холбогдож хүсэлт илгээгээрэй
+                {locale === "mn" ? "Coach-той холбогдож хүсэлт илгээгээрэй" : locale === "ko" ? "코치에게 요청을 보내보세요" : "Send a request to a coach to get started"}
               </p>
               <button
                 type="button"
                 onClick={() => setTab("coaches")}
                 style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", marginTop: 4 }}
               >
-                Coach хайх →
+                {locale === "mn" ? "Coach хайх →" : locale === "ko" ? "코치 찾기 →" : "Find a Coach →"}
               </button>
             </div>
           ) : (
@@ -638,7 +736,7 @@ export default function CoachPage() {
             </div>
           )}
 
-          <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
+          <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
         </div>
       )}
 
@@ -655,7 +753,7 @@ export default function CoachPage() {
             <label style={styles.fieldLabel}>{t("weightClass")}</label>
             <input
               type="text"
-              placeholder="e.g. Lightweight, 135 lbs"
+              placeholder={locale === "mn" ? "жишээ: Хөнгөн жин, 61 кг" : locale === "ko" ? "예: 라이트급, 61kg" : "e.g. Lightweight, 135 lbs"}
               value={sparringForm.weight}
               onChange={(e) => setSparringForm((f) => ({ ...f, weight: e.target.value }))}
               style={styles.fieldInput}
@@ -676,7 +774,7 @@ export default function CoachPage() {
             <label style={styles.fieldLabel}>{t("coachLocation")}</label>
             <input
               type="text"
-              placeholder="City / Gym name"
+              placeholder={locale === "mn" ? "Хот / Жимийн нэр" : locale === "ko" ? "도시 / 체육관 이름" : "City / Gym name"}
               value={sparringForm.location}
               onChange={(e) => setSparringForm((f) => ({ ...f, location: e.target.value }))}
               style={styles.fieldInput}
@@ -685,7 +783,7 @@ export default function CoachPage() {
             <label style={styles.fieldLabel}>{t("availableTime")}</label>
             <input
               type="text"
-              placeholder="e.g. Weekends, evenings"
+              placeholder={locale === "mn" ? "жишээ: Амралтын өдрүүд, оройгоор" : locale === "ko" ? "예: 주말, 저녁" : "e.g. Weekends, evenings"}
               value={sparringForm.availableTime}
               onChange={(e) => setSparringForm((f) => ({ ...f, availableTime: e.target.value }))}
               style={styles.fieldInput}
@@ -693,7 +791,7 @@ export default function CoachPage() {
 
             <label style={styles.fieldLabel}>{t("sparringNote")}</label>
             <textarea
-              placeholder="Any additional details…"
+              placeholder={locale === "mn" ? "Нэмэлт мэдээлэл..." : locale === "ko" ? "추가 세부 사항..." : "Any additional details…"}
               value={sparringForm.note}
               onChange={(e) => setSparringForm((f) => ({ ...f, note: e.target.value }))}
               style={styles.fieldTextarea}
@@ -811,6 +909,41 @@ const styles = {
     flexDirection: "column",
     gap: 10,
     marginBottom: 20,
+  },
+  specialtyChipsRow: {
+    display: "flex",
+    gap: 6,
+    overflowX: "auto",
+    paddingBottom: 8,
+    scrollbarWidth: "none",
+    marginBottom: 12,
+    alignItems: "center",
+  },
+  specChip: {
+    flexShrink: 0,
+    padding: "7px 14px",
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.1)",
+    background: "rgba(255,255,255,0.03)",
+    color: "rgba(255,255,255,0.45)",
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+    WebkitTapHighlightColor: "transparent",
+  },
+  specChipActive: {
+    flexShrink: 0,
+    padding: "7px 14px",
+    borderRadius: 999,
+    border: "1px solid rgba(193,18,31,0.6)",
+    background: "rgba(193,18,31,0.18)",
+    color: "#F87171",
+    fontSize: 12,
+    fontWeight: 900,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+    WebkitTapHighlightColor: "transparent",
   },
   filterBarCompact: {
     display: "flex",

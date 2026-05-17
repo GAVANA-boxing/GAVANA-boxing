@@ -13,6 +13,7 @@ import RankIcon from "@/components/RankIcon";
 import RankUpModal from "@/components/RankUpModal";
 import { getCurrentSeasonId } from "@/lib/season";
 import MediaCover from "@/components/MediaCover";
+import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 
 function getSafeReelLikes(reel) {
   const fieldLikes = typeof reel.likes === "number" && !Number.isNaN(reel.likes)
@@ -320,8 +321,15 @@ export default function UserProfilePage() {
   const [showWeeklyModal, setShowWeeklyModal] = useState(false);
   const [showWeeklyRecap, setShowWeeklyRecap] = useState(false);
   const [pvpStats, setPvpStats] = useState(null);
+  const [sparringRecord, setSparringRecord] = useState(null);
   const [coachBookings, setCoachBookings] = useState([]);
   const [userBadges, setUserBadges] = useState([]);
+  const [showFighterCard, setShowFighterCard] = useState(false);
+  const [cardShareCopied, setCardShareCopied] = useState(false);
+  const [showChallengeModal, setShowChallengeModal] = useState(false);
+  const [challengeSending, setChallengeSending] = useState(false);
+  const [challengeSent, setChallengeSent] = useState(false);
+  const [myStats, setMyStats] = useState(null);
   const rankUpShownRef = useRef(false);
 
   // Redirect if not logged in
@@ -346,7 +354,7 @@ export default function UserProfilePage() {
       }
 
       try {
-        const { collection, query, where, orderBy, onSnapshot, doc, getDoc } = await import("firebase/firestore");
+        const { collection, query, where, onSnapshot, doc, getDoc } = await import("firebase/firestore");
 
         // Check if this is the current user's own profile
         const isOwn = user.uid === userId;
@@ -367,22 +375,21 @@ export default function UserProfilePage() {
           totalChallengesCompleted: Number(userData.totalChallengesCompleted) || 0,
           challengeStreak: Number(userData.challengeStreak) || 0,
           lastChallengeDate: userData.lastChallengeDate || "",
+          fighterArchetype: userData.fighterArchetype || null,
         };
         setProfileUser(profileUserData);
 
         // Listen to user's reels so likes update in real time from the reel document.
         const reelsQuery = query(
           collection(db, "reels"),
-          where("userId", "==", userId),
-          orderBy("createdAt", "desc")
+          where("userId", "==", userId)
         );
 
         unsubscribeReels = onSnapshot(reelsQuery, (reelsSnapshot) => {
           if (!isActive) return;
-          const reelsData = reelsSnapshot.docs.map((reelDoc) => ({
-            id: reelDoc.id,
-            ...reelDoc.data()
-          }));
+          const reelsData = reelsSnapshot.docs
+            .map((reelDoc) => ({ id: reelDoc.id, ...reelDoc.data() }))
+            .sort((a, b) => getTimestampMs(b.createdAt) - getTimestampMs(a.createdAt));
           setUserReels(reelsData);
           setTotalLikes(reelsData.reduce((sum, reel) => sum + getSafeReelLikes(reel), 0));
           setLoading(false);
@@ -680,6 +687,59 @@ export default function UserProfilePage() {
     return () => { active = false; };
   }, [userId]);
 
+  // Load sparring record
+  useEffect(() => {
+    if (!userId) return;
+    let active = true;
+    async function loadSparring() {
+      try {
+        const { collection, getDocs, query, where } = await import("firebase/firestore");
+        const [asSender, asReceiver] = await Promise.all([
+          getDocs(query(collection(db, "sparring_requests"), where("fromUserId", "==", userId))),
+          getDocs(query(collection(db, "sparring_requests"), where("toUserId", "==", userId))),
+        ]);
+        if (!active) return;
+        const allReqs = [
+          ...asSender.docs.map((d) => ({ id: d.id, ...d.data(), role: "sender" })),
+          ...asReceiver.docs.map((d) => ({ id: d.id, ...d.data(), role: "receiver" })),
+        ];
+        const accepted = allReqs.filter((r) => r.status === "accepted");
+        const sentPending = allReqs.filter((r) => r.status === "pending" && r.role === "sender").length;
+        setSparringRecord({ totalAccepted: accepted.length, sentPending });
+      } catch { if (active) setSparringRecord(null); }
+    }
+    loadSparring();
+    return () => { active = false; };
+  }, [userId]);
+
+  // Load current user's own stats for rival comparison
+  useEffect(() => {
+    if (!user?.uid || !userId || user.uid === userId) { setMyStats(null); return; }
+    let active = true;
+    async function loadMyStats() {
+      try {
+        const { collection, doc: fsDoc, getDoc: fsGetDoc, getDocs, query, where } = await import("firebase/firestore");
+        const [uSnap, feedSnap] = await Promise.all([
+          fsGetDoc(fsDoc(db, "users", user.uid)),
+          getDocs(query(collection(db, "ai_feedback"), where("userId", "==", user.uid))),
+        ]);
+        if (!active) return;
+        const p = uSnap.exists() ? uSnap.data() : {};
+        const scores = feedSnap.docs.map(d => Number(d.data().score)).filter(Number.isFinite);
+        const storedXP = Number(p.xp) || 0;
+        const myXP = storedXP + calculateUserXP({ aiFeedbackDocs: feedSnap.docs.map(d => d.data()) });
+        setMyStats({
+          xp: myXP,
+          bestScore: scores.length ? Math.max(...scores) : null,
+          streak: Number(p.challengeStreak) || Number(p.streakCount) || 0,
+          wins: Number(p.pvpWins) || 0,
+        });
+      } catch { if (active) setMyStats(null); }
+    }
+    loadMyStats();
+    return () => { active = false; };
+  }, [user?.uid, userId]);
+
   // Load earned badges
   useEffect(() => {
     if (!userId) return;
@@ -706,15 +766,15 @@ export default function UserProfilePage() {
       try {
         const { collection, getDocs, query, where, orderBy } = await import("firebase/firestore");
         const snap = await getDocs(
-          query(
-            collection(db, "coach_bookings"),
-            where("userId", "==", userId),
-            where("status", "==", "scheduled"),
-            orderBy("date", "asc")
-          )
+          query(collection(db, "coach_bookings"), where("userId", "==", userId))
         );
         if (!active) return;
-        setCoachBookings(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setCoachBookings(
+          snap.docs
+            .map((d) => ({ id: d.id, ...d.data() }))
+            .filter((b) => b.status === "scheduled")
+            .sort((a, b) => getTimestampMs(a.date) - getTimestampMs(b.date))
+        );
       } catch {
         // bookings are optional — silently skip
       }
@@ -841,11 +901,9 @@ export default function UserProfilePage() {
     if (!user) { router.push(`/${locale || "en"}/login`); return; }
     if (isOwnProfile) { router.push(`/${locale || "en"}/inbox`); return; }
     try {
-      const displayName = profileUser?.displayName || profileUser?.username || "Fighter";
-      const photoURL = profileUser?.photoURL || "";
       const convoId = await startConversation(user, userId, {
-        displayName,
-        photoURL,
+        displayName: profileUser?.displayName || profileUser?.username || "",
+        photoURL: profileUser?.photoURL || "",
       });
       router.push(`/${locale || "en"}/inbox/${convoId}`);
     } catch (e) {
@@ -921,6 +979,44 @@ export default function UserProfilePage() {
       console.error("Error signing out:", error);
     } finally {
       setSigningOut(false);
+    }
+  };
+
+  const handleSendChallenge = async (challengeId) => {
+    if (!user?.uid || !userId || challengeSending) return;
+    setChallengeSending(true);
+    try {
+      const { addDoc, collection, serverTimestamp } = await import("firebase/firestore");
+      await addDoc(collection(db, "pvp_challenges"), {
+        challengerId: user.uid,
+        opponentId: userId,
+        challengeId,
+        status: "pending",
+        createdAt: serverTimestamp(),
+      });
+      await addDoc(collection(db, "notifications"), {
+        recipientId: userId,
+        actorId: user.uid,
+        actorName: user.displayName || "Fighter",
+        fromUserId: user.uid,
+        fromUsername: user.displayName || "Fighter",
+        fromUserPhotoURL: user.photoURL || "",
+        type: "pvp_challenge",
+        challengeId,
+        message: locale === "mn"
+          ? `${user.displayName || "Fighter"} тан руу тулааны шийдэл илгээлээ!`
+          : locale === "ko"
+          ? `${user.displayName || "Fighter"}님이 PvP 배틀을 신청했습니다!`
+          : `${user.displayName || "Fighter"} challenged you to a battle!`,
+        read: false,
+        createdAt: serverTimestamp(),
+      });
+      setChallengeSent(true);
+      setTimeout(() => { setChallengeSent(false); setShowChallengeModal(false); }, 2000);
+    } catch (e) {
+      console.error("challenge send error", e);
+    } finally {
+      setChallengeSending(false);
     }
   };
 
@@ -1239,6 +1335,21 @@ export default function UserProfilePage() {
         </button>
       </header>
       <section style={styles.fighterCard}>
+        {/* ── Cover Photo ── */}
+        <div style={styles.coverPhotoSection}>
+          {(profileUser.coverPhotoURL || profileUser.coverPhoto) ? (
+            <img src={profileUser.coverPhotoURL || profileUser.coverPhoto} alt="" style={styles.coverPhotoImg} />
+          ) : (
+            <div style={styles.coverPhotoFallback} />
+          )}
+          <div style={styles.coverPhotoGradient} />
+          {isOwnProfile && (
+            <button type="button" style={styles.coverPhotoEditBtn} onClick={() => router.push(`/${locale}/profile/edit`)}>
+              📷
+            </button>
+          )}
+        </div>
+
         <div style={styles.fighterCardInner}>
         {/* Avatar */}
         <div
@@ -1262,6 +1373,18 @@ export default function UserProfilePage() {
           )}
         </div>
 
+        {/* "Add Story" shortcut — own profile only */}
+        {isOwnProfile && (
+          <button
+            type="button"
+            onClick={() => router.push(`/${locale}/story/upload`)}
+            style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 6, padding: "5px 12px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.35)", background: "rgba(193,18,31,0.08)", color: "rgba(255,255,255,0.7)", fontSize: 11, fontWeight: 800, cursor: "pointer", letterSpacing: 0.3 }}
+          >
+            <span style={{ fontSize: 13 }}>+</span>
+            {locale === "mn" ? "Story нэмэх" : locale === "ko" ? "스토리 추가" : "Add Story"}
+          </button>
+        )}
+
         {/* Name + username */}
         <h1 style={styles.fighterName}>
           {profileUser.displayName || profileUser.username}
@@ -1271,6 +1394,40 @@ export default function UserProfilePage() {
         {/* Bio */}
         {profileUser.bio && (
           <p style={styles.bio}>{profileUser.bio}</p>
+        )}
+
+        {/* Archetype badge */}
+        {profileUser.fighterArchetype && ARCHETYPE_DISPLAY[profileUser.fighterArchetype] && (() => {
+          const arch = ARCHETYPE_DISPLAY[profileUser.fighterArchetype];
+          return (
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "5px 14px", borderRadius: 999,
+                background: `${arch.color}15`,
+                border: `1px solid ${arch.color}44`,
+                color: arch.color, fontSize: 13, fontWeight: 800,
+              }}>
+                {arch.emoji} {arch.name}
+              </span>
+            </div>
+          );
+        })()}
+
+        {/* Gym + weight class metadata */}
+        {(profileUser.gym || profileUser.weightClass) && (
+          <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
+            {profileUser.gym && (
+              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", padding: "3px 10px", borderRadius: 999, fontWeight: 700 }}>
+                🏋️ {profileUser.gym}
+              </span>
+            )}
+            {profileUser.weightClass && (
+              <span style={{ fontSize: 11, color: "#60A5FA", background: "rgba(96,165,250,0.08)", border: "1px solid rgba(96,165,250,0.2)", padding: "3px 10px", borderRadius: 999, fontWeight: 700 }}>
+                ⚖️ {profileUser.weightClass}kg
+              </span>
+            )}
+          </div>
         )}
 
         {/* Fighter identity tags — derived from data */}
@@ -1317,15 +1474,25 @@ export default function UserProfilePage() {
           </div>
         </div>
 
-        {/* User achievement badges */}
+        {/* Achievements Shelf */}
         {userBadges.length > 0 && (
-          <div style={styles.badgesRow}>
+          <div style={styles.achievementsShelf}>
             {userBadges.map((b) => {
-              const ICONS = { first_challenge: "🥊", streak_3: "🔥", streak_7: "⚡", jab_master: "🎯", speed_king: "💨", creator_starter: "🎬" };
-              const icon = ICONS[b.badgeId] || "🏅";
+              const BADGE_META = {
+                first_challenge: { icon: "🥊", label: locale === "mn" ? "Эхний тулаан" : locale === "ko" ? "첫 도전" : "First Challenge", color: "#C1121F" },
+                streak_3:        { icon: "🔥", label: locale === "mn" ? "3 өдрийн дараалал" : locale === "ko" ? "3일 연속" : "3-Day Streak", color: "#FB923C" },
+                streak_7:        { icon: "⚡", label: locale === "mn" ? "7 хоног дараалал" : locale === "ko" ? "7일 연속" : "Week Warrior", color: "#F59E0B" },
+                jab_master:      { icon: "🎯", label: locale === "mn" ? "Jab мэргэн" : locale === "ko" ? "잽 마스터" : "Jab Master", color: "#60A5FA" },
+                speed_king:      { icon: "💨", label: locale === "mn" ? "Хурдны хаан" : locale === "ko" ? "스피드 킹" : "Speed King", color: "#A78BFA" },
+                creator_starter: { icon: "🎬", label: locale === "mn" ? "Контент бүтээгч" : locale === "ko" ? "콘텐츠 제작자" : "Creator", color: "#34D399" },
+              };
+              const meta = BADGE_META[b.badgeId] || { icon: "🏅", label: b.badgeId, color: "#D4AF37" };
               return (
-                <div key={b.badgeId} style={styles.badgePill} title={t(b.badgeId + "Badge") || b.badgeId}>
-                  <span>{icon}</span>
+                <div key={b.badgeId} style={{ ...styles.achievementCard, borderColor: meta.color + "44" }}>
+                  <span style={{ fontSize: 22 }}>{meta.icon}</span>
+                  <span style={{ fontSize: 9, fontWeight: 900, color: meta.color, marginTop: 4, textAlign: "center", lineHeight: 1.2, letterSpacing: 0.3 }}>
+                    {meta.label}
+                  </span>
                 </div>
               );
             })}
@@ -1366,6 +1533,13 @@ export default function UserProfilePage() {
               </button>
             )}
             <button
+              type="button"
+              onClick={() => setShowFighterCard(true)}
+              style={{ ...styles.ghostAction, color: "#D4AF37", borderColor: "rgba(212,175,55,0.3)" }}
+            >
+              🥊 {locale === "mn" ? "Fighter Card" : locale === "ko" ? "파이터 카드" : "Fighter Card"}
+            </button>
+            <button
               onClick={handleLogout}
               disabled={signingOut}
               style={{ ...styles.ghostAction, opacity: signingOut ? 0.7 : 1, cursor: signingOut ? "not-allowed" : "pointer" }}
@@ -1402,7 +1576,7 @@ export default function UserProfilePage() {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                 </svg>
-                Message
+                {locale === "mn" ? "Мессеж" : locale === "ko" ? "메시지" : "Message"}
               </button>
             </div>
             {isMutual && (
@@ -1410,11 +1584,72 @@ export default function UserProfilePage() {
                 ⇄ {t("mutual")}
               </span>
             )}
+            <div style={{ display: "flex", gap: 8, marginTop: 2 }}>
+              <button
+                type="button"
+                onClick={() => { setShowChallengeModal(true); setChallengeSent(false); }}
+                style={{ ...styles.ghostAction, color: "#A78BFA", borderColor: "rgba(167,139,250,0.3)", flex: 1 }}
+              >
+                ⚔️ {locale === "mn" ? "Тулаан" : locale === "ko" ? "배틀 신청" : "Challenge"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowFighterCard(true)}
+                style={{ ...styles.ghostAction, color: "#D4AF37", borderColor: "rgba(212,175,55,0.3)", flex: 1 }}
+              >
+                🥊 {locale === "mn" ? "Fighter Card" : locale === "ko" ? "파이터 카드" : "Fighter Card"}
+              </button>
+            </div>
           </div>
         )}
         </div>
       </section>
 
+      {/* ── Rival Comparison ── */}
+      {!isOwnProfile && myStats && (
+        <div style={{ padding: "0 16px 4px" }}>
+          <div style={{ background: "linear-gradient(145deg, #0d0b0d, #0a0a0a)", border: "1px solid rgba(167,139,250,0.15)", borderLeft: "3px solid #A78BFA", borderRadius: "3px 16px 16px 3px", padding: "14px 16px" }}>
+            <p style={{ margin: "0 0 10px", fontSize: 9, fontWeight: 900, color: "#A78BFA", letterSpacing: 2, textTransform: "uppercase" }}>
+              ⚔️ {locale === "mn" ? "ТА vs " : locale === "ko" ? "나 vs " : "You vs "}
+              {(profileUser.displayName || profileUser.username || "Fighter").split(" ")[0]}
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 0 }}>
+              {/* Headers */}
+              <div style={{ textAlign: "center", fontSize: 9, fontWeight: 900, color: "#C1121F", letterSpacing: 0.5, paddingBottom: 8 }}>
+                {locale === "mn" ? "ТА" : locale === "ko" ? "나" : "YOU"}
+              </div>
+              <div />
+              <div style={{ textAlign: "center", fontSize: 9, fontWeight: 900, color: "rgba(255,255,255,0.35)", letterSpacing: 0.5, paddingBottom: 8 }}>
+                {(profileUser.displayName || profileUser.username || "Fighter").split(" ")[0].toUpperCase().slice(0, 8)}
+              </div>
+              {[
+                { label: "XP", my: myStats.xp, their: xp, fmt: v => v.toLocaleString() },
+                { label: locale === "mn" ? "Шилдэг" : locale === "ko" ? "최고" : "Best", my: myStats.bestScore, their: bestScore, fmt: v => v !== null ? `${formatScore(v)}/10` : "—" },
+                { label: locale === "mn" ? "Дараалал" : locale === "ko" ? "연속" : "Streak", my: myStats.streak, their: getActiveChallengeStreak(profileUser), fmt: v => v > 0 ? `🔥${v}d` : "—" },
+              ].map((stat, i) => {
+                const myNum = Number(stat.my) || 0;
+                const theirNum = Number(stat.their) || 0;
+                const myWins = myNum > theirNum;
+                const theirWins = theirNum > myNum;
+                const sep = i > 0 ? "1px solid rgba(255,255,255,0.04)" : "none";
+                return (
+                  <div key={i} style={{ display: "contents" }}>
+                    <div style={{ textAlign: "center", padding: "7px 0", borderTop: sep }}>
+                      <span style={{ fontSize: 15, fontWeight: 900, color: myWins ? "#34D399" : "#fff" }}>{stat.fmt(stat.my)}</span>
+                    </div>
+                    <div style={{ textAlign: "center", fontSize: 9, fontWeight: 700, color: "#555", paddingTop: i > 0 ? 7 : 0, borderTop: sep }}>
+                      {stat.label}
+                    </div>
+                    <div style={{ textAlign: "center", padding: "7px 0", borderTop: sep }}>
+                      <span style={{ fontSize: 15, fontWeight: 900, color: theirWins ? "#34D399" : "#fff" }}>{stat.fmt(stat.their)}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div style={styles.profileTabs}>
         <button
@@ -1448,6 +1683,16 @@ export default function UserProfilePage() {
           }}
         >
           {t("aiProgress")}
+        </button>
+        <button
+          type="button"
+          onClick={() => setProfileTab("record")}
+          style={{
+            ...styles.profileTab,
+            ...(profileTab === "record" ? styles.profileTabActive : {})
+          }}
+        >
+          ⚔️ {locale === "mn" ? "Тулаан" : locale === "ko" ? "기록" : "Record"}
         </button>
       </div>
 
@@ -1564,6 +1809,181 @@ export default function UserProfilePage() {
               </div>
             );
           })()}
+
+          {/* XP history — last 5 AI feedback sessions */}
+          {aiFeedbackHistory.length > 0 && (
+            <div style={{
+              marginTop: 14,
+              background: "linear-gradient(145deg, #111012, #0a0a0a)",
+              border: "1px solid rgba(255,255,255,0.06)",
+              borderLeft: "2.5px solid #D4AF37",
+              borderRadius: "3px 16px 16px 3px",
+              padding: "14px 16px",
+            }}>
+              <p style={{ margin: "0 0 10px", fontSize: 9, fontWeight: 900, color: "#D4AF37", letterSpacing: 2.5, textTransform: "uppercase" }}>
+                {locale === "mn" ? "Сүүлийн дасгалын XP" : locale === "ko" ? "최근 세션 XP" : "Recent Session XP"}
+              </p>
+              {aiFeedbackHistory.slice(0, 5).map((session, i) => {
+                const prevScore = i < aiFeedbackHistory.length - 1 ? Number(aiFeedbackHistory[i + 1].score) : null;
+                const xpResult = calculateSessionXP(Number(session.score), prevScore, streakCount);
+                const dateLabel = session.createdAt
+                  ? new Date(getTimestampMs(session.createdAt)).toLocaleDateString()
+                  : "";
+                return (
+                  <div key={session.id} style={{
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                    padding: "7px 0",
+                    borderBottom: i < Math.min(4, aiFeedbackHistory.length - 1) ? "1px solid rgba(255,255,255,0.05)" : "none",
+                  }}>
+                    <div>
+                      <span style={{ fontSize: 13, color: "#fff", fontWeight: 700 }}>⭐ {formatScore(session.score)}/10</span>
+                      <span style={{ fontSize: 10, color: "#444", marginLeft: 8 }}>{dateLabel}</span>
+                    </div>
+                    <span style={{ fontSize: 13, fontWeight: 900, color: "#D4AF37" }}>+{xpResult.total} XP</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      ) : profileTab === "record" ? (
+        <section style={{ padding: "16px 16px 32px" }}>
+          {pvpStats && (pvpStats.wins > 0 || pvpStats.losses > 0) ? (
+            <>
+              {/* W/L summary card */}
+              <div style={{
+                background: "linear-gradient(145deg, #0a0a0a, #111)",
+                border: "1px solid rgba(167,139,250,0.15)",
+                borderLeft: "3px solid #A78BFA",
+                borderRadius: "3px 16px 16px 3px",
+                padding: "18px 16px", marginBottom: 14,
+              }}>
+                <p style={{ margin: "0 0 14px", fontSize: 9, fontWeight: 900, color: "#A78BFA", letterSpacing: 2.5, textTransform: "uppercase" }}>
+                  ⚔️ {locale === "mn" ? "PvP дүнгийн хавтас" : locale === "ko" ? "PvP 전적" : "PvP Fight Record"}
+                </p>
+                <div style={{ display: "flex", gap: 8, justifyContent: "space-around" }}>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: 42, fontWeight: 900, color: "#34D399", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{pvpStats.wins}</div>
+                    <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>{locale === "mn" ? "ЯЛАЛТ" : locale === "ko" ? "승" : "WINS"}</div>
+                  </div>
+                  <div style={{ width: 1, background: "rgba(255,255,255,0.07)" }} />
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: 42, fontWeight: 900, color: "#F87171", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{pvpStats.losses}</div>
+                    <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>{locale === "mn" ? "ЯЛАГДАЛ" : locale === "ko" ? "패" : "LOSSES"}</div>
+                  </div>
+                  {pvpStats.bestWinScore !== null && (
+                    <>
+                      <div style={{ width: 1, background: "rgba(255,255,255,0.07)" }} />
+                      <div style={{ textAlign: "center" }}>
+                        <div style={{ fontSize: 42, fontWeight: 900, color: "#D4AF37", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{formatScore(pvpStats.bestWinScore)}</div>
+                        <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>{locale === "mn" ? "ШИЛДЭГ" : locale === "ko" ? "최고" : "BEST"}</div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Recent battles list */}
+              {pvpStats.recentBattles?.length > 0 && (
+                <div style={{ display: "grid", gap: 8 }}>
+                  <p style={{ margin: "0 0 6px", fontSize: 9, fontWeight: 900, color: "#555", letterSpacing: 2, textTransform: "uppercase" }}>
+                    {locale === "mn" ? "Сүүлийн тулааны бичиг" : locale === "ko" ? "최근 경기" : "Recent Battles"}
+                  </p>
+                  {pvpStats.recentBattles.map((battle) => {
+                    const isWin = battle.result === "win";
+                    const col = isWin ? "#34D399" : "#F87171";
+                    const dateLabel = battle.createdAt
+                      ? new Date(getTimestampMs(battle.createdAt)).toLocaleDateString()
+                      : "";
+                    return (
+                      <div key={battle.id} style={{
+                        background: "linear-gradient(145deg, #111012, #0a0a0a)",
+                        border: `1px solid ${col}22`,
+                        borderLeft: `3px solid ${col}`,
+                        borderRadius: "3px 14px 14px 3px",
+                        padding: "12px 14px",
+                        display: "flex", alignItems: "center", justifyContent: "space-between",
+                      }}>
+                        <div>
+                          <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", marginBottom: 2 }}>vs {battle.opponentName}</div>
+                          <div style={{ fontSize: 10, color: "#444" }}>{dateLabel}</div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ fontSize: 13, fontWeight: 900, color: col }}>
+                            {isWin ? (locale === "mn" ? "✓ ЯЛАЛТ" : locale === "ko" ? "✓ 승리" : "✓ WIN") : (locale === "mn" ? "✕ ЯЛАГДАЛ" : locale === "ko" ? "✕ 패배" : "✕ LOSS")}
+                          </div>
+                          <div style={{ fontSize: 11, color: "#555" }}>{formatScore(battle.challengerScore)} vs {formatScore(battle.opponentScore)}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          ) : (
+            <div style={{ textAlign: "center", padding: "60px 20px" }}>
+              <div style={{ fontSize: 44, marginBottom: 14 }}>⚔️</div>
+              <p style={{ color: "#555", fontSize: 14, fontWeight: 800, margin: "0 0 6px" }}>
+                {locale === "mn" ? "Тулааны бичиг байхгүй" : locale === "ko" ? "전적 없음" : "No fight record yet"}
+              </p>
+              <p style={{ color: "#333", fontSize: 12, margin: 0 }}>
+                {locale === "mn" ? "PvP тулаанд оролцоод эхэлнэ үү" : locale === "ko" ? "PvP 배틀에 참가하세요" : "Start a PvP battle to build your record"}
+              </p>
+            </div>
+          )}
+
+          {/* Sparring Record */}
+          {sparringRecord !== null && (
+            <div style={{
+              marginTop: 14,
+              background: "linear-gradient(145deg, #0a0a0a, #111)",
+              border: "1px solid rgba(193,18,31,0.15)",
+              borderLeft: "3px solid #C1121F",
+              borderRadius: "3px 16px 16px 3px",
+              padding: "18px 16px",
+            }}>
+              <p style={{ margin: "0 0 14px", fontSize: 9, fontWeight: 900, color: "#C1121F", letterSpacing: 2.5, textTransform: "uppercase" }}>
+                🥊 {locale === "mn" ? "Спарринг бичиг" : locale === "ko" ? "스파링 기록" : "Sparring Record"}
+              </p>
+              <div style={{ display: "flex", gap: 8, justifyContent: "space-around", marginBottom: 14 }}>
+                <div style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: 36, fontWeight: 900, color: "#C1121F", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>
+                    {sparringRecord.totalAccepted}
+                  </div>
+                  <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>
+                    {locale === "mn" ? "СПАРРИНГ" : locale === "ko" ? "스파링" : "SPARRING"}
+                  </div>
+                </div>
+                <div style={{ width: 1, background: "rgba(255,255,255,0.07)" }} />
+                <div style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: 36, fontWeight: 900, color: "#D4AF37", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>
+                    {sparringRecord.sentPending}
+                  </div>
+                  <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>
+                    {locale === "mn" ? "ХҮЛЭЭГДЭЖ" : locale === "ko" ? "대기 중" : "PENDING"}
+                  </div>
+                </div>
+              </div>
+              {sparringRecord.totalAccepted === 0 && sparringRecord.sentPending === 0 && (
+                <p style={{ margin: "0 0 12px", fontSize: 12, color: "#444", textAlign: "center" }}>
+                  {locale === "mn" ? "Одоогоор спарринг хийгдэж байхгүй" : locale === "ko" ? "아직 스파링 없음" : "No sparring yet"}
+                </p>
+              )}
+              {isOwnProfile && (
+                <button
+                  type="button"
+                  onClick={() => router.push(`/${locale}/sparring`)}
+                  style={{
+                    width: "100%", padding: "11px 0", borderRadius: 11,
+                    background: "linear-gradient(135deg, #C1121F, #7d0812)",
+                    border: "none", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
+                  }}
+                >
+                  {locale === "mn" ? "Спарринг хайх →" : locale === "ko" ? "스파링 찾기 →" : "Find Sparring Partner →"}
+                </button>
+              )}
+            </div>
+          )}
         </section>
       ) : (
       <div style={{
@@ -1772,6 +2192,240 @@ export default function UserProfilePage() {
         );
       })()}
 
+      {showChallengeModal && !isOwnProfile && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={() => setShowChallengeModal(false)}>
+          <div style={{ width: "100%", maxWidth: 480, background: "linear-gradient(145deg,#111012,#0a0a0a)", borderRadius: "20px 20px 0 0", borderTop: "2.5px solid rgba(167,139,250,0.4)", padding: "24px 20px calc(32px + env(safe-area-inset-bottom))" }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+              <div>
+                <p style={{ margin: 0, fontSize: 10, fontWeight: 900, color: "#A78BFA", letterSpacing: 1.4, textTransform: "uppercase" }}>GAVANA PvP</p>
+                <h2 style={{ margin: "4px 0 0", fontSize: 20, fontWeight: 900, color: "#fff" }}>
+                  {locale === "mn" ? "⚔️ Тулаанд уриалах" : locale === "ko" ? "⚔️ 배틀 신청" : "⚔️ Send Challenge"}
+                </h2>
+              </div>
+              <button type="button" onClick={() => setShowChallengeModal(false)} style={{ width: 32, height: 32, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.7)", cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+            </div>
+            <p style={{ margin: "0 0 16px", fontSize: 13, color: "rgba(255,255,255,0.55)" }}>
+              {locale === "mn" ? "Тулааны төрлөө сонгоно уу:" : locale === "ko" ? "배틀 유형을 선택하세요:" : "Pick a challenge to compete on:"}
+            </p>
+            {challengeSent ? (
+              <div style={{ textAlign: "center", padding: "24px 0", fontSize: 15, fontWeight: 900, color: "#34D399" }}>
+                ✅ {locale === "mn" ? "Уриалга илгээгдлээ!" : locale === "ko" ? "배틀 신청 완료!" : "Challenge sent!"}
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {[
+                  { id: "jab-minute", emoji: "👊", label: locale === "mn" ? "Нэг минутын JAB" : locale === "ko" ? "1분 잽 챌린지" : "Jab Minute", desc: locale === "mn" ? "Нэг минутад хамгийн сайн JAB хий" : locale === "ko" ? "1분 동안 최고의 잽을 보여라" : "Best jab form in one minute" },
+                  { id: "speed-test", emoji: "⚡", label: locale === "mn" ? "Хурдны тест" : locale === "ko" ? "스피드 테스트" : "Speed Test", desc: locale === "mn" ? "Хурд, нарийвчлал хосолсон тулаан" : locale === "ko" ? "스피드와 정확도 배틀" : "Speed and accuracy battle" },
+                  { id: "combo-master", emoji: "🔥", label: locale === "mn" ? "Combo Master" : locale === "ko" ? "콤보 마스터" : "Combo Master", desc: locale === "mn" ? "Хамгийн сайн комбо бичлэгийг хий" : locale === "ko" ? "최고의 콤보를 선보여라" : "Best combination sequence" },
+                ].map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    disabled={challengeSending}
+                    onClick={() => handleSendChallenge(c.id)}
+                    style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderRadius: 14, border: "1px solid rgba(167,139,250,0.2)", background: challengeSending ? "rgba(167,139,250,0.04)" : "rgba(167,139,250,0.08)", cursor: challengeSending ? "not-allowed" : "pointer", textAlign: "left", width: "100%", transition: "background 0.15s" }}
+                  >
+                    <span style={{ fontSize: 28, flexShrink: 0 }}>{c.emoji}</span>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 900, color: "#fff", marginBottom: 2 }}>{c.label}</div>
+                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }}>{c.desc}</div>
+                    </div>
+                    <span style={{ marginLeft: "auto", fontSize: 16, color: "rgba(167,139,250,0.6)", flexShrink: 0 }}>›</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {showFighterCard && (() => {
+        const arch = profileUser.fighterArchetype ? ARCHETYPE_DISPLAY[profileUser.fighterArchetype] : null;
+        const accentColor = arch?.color || fighterRank.color || "#C1121F";
+        const challengeStreak = getActiveChallengeStreak(profileUser);
+        const BADGE_META = {
+          first_challenge: { icon: "🥊", label: locale === "mn" ? "Эхний тулаан" : locale === "ko" ? "첫 도전" : "First Challenge", color: "#C1121F" },
+          streak_3:        { icon: "🔥", label: locale === "mn" ? "3 өдрийн дараалал" : locale === "ko" ? "3일 연속" : "3-Day Streak", color: "#FB923C" },
+          streak_7:        { icon: "⚡", label: locale === "mn" ? "7 хоног дараалал" : locale === "ko" ? "7일 연속" : "Week Warrior", color: "#F59E0B" },
+          jab_master:      { icon: "🎯", label: locale === "mn" ? "Jab мэргэн" : locale === "ko" ? "잽 마스터" : "Jab Master", color: "#60A5FA" },
+          speed_king:      { icon: "💨", label: locale === "mn" ? "Хурдны хаан" : locale === "ko" ? "스피드 킹" : "Speed King", color: "#A78BFA" },
+          creator_starter: { icon: "🎬", label: locale === "mn" ? "Контент бүтээгч" : locale === "ko" ? "콘텐츠 제작자" : "Creator", color: "#34D399" },
+        };
+
+        const handleShare = () => {
+          const url = typeof window !== "undefined" ? window.location.href : "";
+          const text = locale === "mn"
+            ? `${profileUser.displayName || profileUser.username} — GAVANA-д ${t(fighterRank.key)} зэрэгтэй боксчин | ${xp.toLocaleString()} XP`
+            : locale === "ko"
+            ? `${profileUser.displayName || profileUser.username} — GAVANA에서 ${t(fighterRank.key)} | ${xp.toLocaleString()} XP`
+            : `${profileUser.displayName || profileUser.username} is a ${t(fighterRank.key)} on GAVANA Boxing | ${xp.toLocaleString()} XP`;
+
+          if (typeof navigator !== "undefined" && navigator.share) {
+            navigator.share({ title: "GAVANA Fighter Card", text, url }).catch(() => {});
+          } else if (typeof navigator !== "undefined" && navigator.clipboard) {
+            navigator.clipboard.writeText(`${text}\n${url}`).then(() => {
+              setCardShareCopied(true);
+              setTimeout(() => setCardShareCopied(false), 2500);
+            }).catch(() => {});
+          }
+        };
+
+        return (
+          <div
+            style={{ position: "fixed", inset: 0, zIndex: 400, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px 16px", background: "rgba(0,0,0,0.85)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}
+            onClick={() => setShowFighterCard(false)}
+          >
+            <div
+              style={{ width: "min(100%, 360px)", borderRadius: 24, background: `radial-gradient(ellipse at top, ${accentColor}18 0%, transparent 55%), linear-gradient(160deg, #131013 0%, #0b0b0b 100%)`, border: `1px solid ${accentColor}33`, boxShadow: `0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px ${accentColor}1a`, padding: "22px 20px 20px", display: "flex", flexDirection: "column", alignItems: "center", gap: 0 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* GAVANA watermark */}
+              <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 3, color: accentColor, textTransform: "uppercase", opacity: 0.7, marginBottom: 14 }}>
+                GAVANA BOXING
+              </div>
+
+              {/* Avatar + Rank icon */}
+              <div style={{ position: "relative", marginBottom: 14 }}>
+                <div style={{ width: 88, height: 88, borderRadius: "50%", overflow: "hidden", border: `2.5px solid ${accentColor}66`, background: "#111" }}>
+                  {profileUser.photoURL
+                    ? <img src={profileUser.photoURL} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: `${accentColor}22`, fontSize: 32, fontWeight: 900 }}>
+                        {(profileUser.displayName || profileUser.username || "?")[0].toUpperCase()}
+                      </div>}
+                </div>
+                <div style={{ position: "absolute", bottom: -6, right: -6, width: 32, height: 32, borderRadius: "50%", background: "#0b0b0b", border: `1.5px solid ${accentColor}55`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <RankIcon rank={fighterRank} size={20} animated={false} />
+                </div>
+              </div>
+
+              {/* Name */}
+              <div style={{ fontSize: 20, fontWeight: 1000, color: "#fff", textAlign: "center", lineHeight: 1.1, marginBottom: 4 }}>
+                {profileUser.displayName || profileUser.username}
+              </div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontWeight: 600, marginBottom: 12 }}>
+                @{profileUser.username}
+              </div>
+
+              {/* Rank + Archetype badges */}
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center", marginBottom: 16 }}>
+                <span style={{ padding: "4px 12px", borderRadius: 999, background: `${fighterRank.color}18`, border: `1px solid ${fighterRank.color}44`, color: fighterRank.color, fontSize: 11, fontWeight: 900 }}>
+                  {t(fighterRank.key)}
+                </span>
+                {arch && (
+                  <span style={{ padding: "4px 12px", borderRadius: 999, background: `${arch.color}15`, border: `1px solid ${arch.color}44`, color: arch.color, fontSize: 11, fontWeight: 900 }}>
+                    {arch.emoji} {arch.name}
+                  </span>
+                )}
+              </div>
+
+              {/* XP bar */}
+              <div style={{ width: "100%", marginBottom: 16 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                    {locale === "mn" ? "Туршлагын оноо" : locale === "ko" ? "경험치" : "Experience"}
+                  </span>
+                  <span style={{ fontSize: 12, fontWeight: 900, color: fighterRank.color }}>{xp.toLocaleString()} XP</span>
+                </div>
+                <div style={{ height: 5, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${rankProgress}%`, borderRadius: 999, background: fighterRank.gradient || accentColor, transition: "width 600ms ease" }} />
+                </div>
+              </div>
+
+              {/* Stats grid */}
+              <div style={{ width: "100%", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 16 }}>
+                {[
+                  { label: locale === "mn" ? "Ялалт" : locale === "ko" ? "승" : "Wins", value: pvpStats?.wins ?? "—", color: "#34D399" },
+                  { label: locale === "mn" ? "Дараалал" : locale === "ko" ? "연속" : "Streak", value: challengeStreak > 0 ? `🔥${challengeStreak}` : "—", color: "#FB923C" },
+                  { label: locale === "mn" ? "Шилдэг" : locale === "ko" ? "최고점" : "Best", value: bestScore !== null ? `${formatScore(bestScore)}/10` : "—", color: "#D4AF37" },
+                ].map(({ label, value, color }) => (
+                  <div key={label} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "10px 4px", display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+                    <span style={{ fontSize: 18, fontWeight: 1000, color, lineHeight: 1 }}>{value}</span>
+                    <span style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: 0.5 }}>{label}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Challenge rank */}
+              {(challengeRanks?.weeklyRank || challengeRanks?.allTimeRank) && (
+                <div style={{ width: "100%", padding: "8px 12px", borderRadius: 10, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.15)", display: "flex", justifyContent: "space-around", marginBottom: 14 }}>
+                  {challengeRanks.weeklyRank && (
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: 15, fontWeight: 1000, color: "#D4AF37" }}>#{challengeRanks.weeklyRank}</div>
+                      <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", fontWeight: 700, textTransform: "uppercase" }}>{locale === "mn" ? "Энэ 7 хоног" : locale === "ko" ? "이번 주" : "This week"}</div>
+                    </div>
+                  )}
+                  {challengeRanks.weeklyRank && challengeRanks.allTimeRank && <div style={{ width: 1, background: "rgba(255,255,255,0.08)" }} />}
+                  {challengeRanks.allTimeRank && (
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: 15, fontWeight: 1000, color: "#D4AF37" }}>#{challengeRanks.allTimeRank}</div>
+                      <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", fontWeight: 700, textTransform: "uppercase" }}>{locale === "mn" ? "Нийт" : locale === "ko" ? "전체" : "All-time"}</div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Recent AI session scores */}
+              {aiFeedbackHistory.length > 0 && (
+                <div style={{ width: "100%", borderTop: `1px solid rgba(255,255,255,0.06)`, paddingTop: 12, marginTop: 2, marginBottom: 14 }}>
+                  <p style={{ margin: "0 0 8px", fontSize: 9, fontWeight: 900, color: "rgba(255,255,255,0.25)", letterSpacing: 1.5, textTransform: "uppercase", textAlign: "center" }}>
+                    {locale === "mn" ? "Сүүлийн дасгалууд" : locale === "ko" ? "최근 세션" : "Recent Sessions"}
+                  </p>
+                  <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+                    {aiFeedbackHistory.slice(0, 4).map((f, i) => {
+                      const sc = Number(f.score);
+                      const col = sc >= 9 ? "#D4AF37" : sc >= 7 ? "#34D399" : sc >= 5 ? "#60A5FA" : "#FB923C";
+                      return (
+                        <div key={f.id || i} style={{ textAlign: "center", background: `${col}12`, border: `1px solid ${col}33`, borderRadius: 10, padding: "6px 10px" }}>
+                          <div style={{ fontSize: 16, fontWeight: 900, color: col, lineHeight: 1 }}>{formatScore(f.score)}</div>
+                          <div style={{ fontSize: 8, color: "#555", fontWeight: 700, marginTop: 2 }}>/10</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Badges */}
+              {userBadges.length > 0 && (
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center", marginBottom: 14 }}>
+                  {userBadges.slice(0, 5).map((b) => {
+                    const bm = BADGE_META[b.badgeId] || { icon: "🏅", color: "#D4AF37" };
+                    return (
+                      <span key={b.badgeId} style={{ fontSize: 18, filter: "drop-shadow(0 0 4px rgba(255,255,255,0.15))" }} title={bm.label}>
+                        {bm.icon}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Divider */}
+              <div style={{ width: "100%", height: 1, background: `linear-gradient(90deg, transparent, ${accentColor}33, transparent)`, marginBottom: 14 }} />
+
+              {/* Action buttons */}
+              <div style={{ width: "100%", display: "flex", gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  style={{ flex: 2, padding: "12px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg, ${accentColor}, ${accentColor}aa)`, color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer" }}
+                >
+                  {cardShareCopied
+                    ? (locale === "mn" ? "✓ Хуулагдлаа" : locale === "ko" ? "✓ 복사됨" : "✓ Copied!")
+                    : (locale === "mn" ? "📤 Хуваалцах" : locale === "ko" ? "📤 공유하기" : "📤 Share")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowFighterCard(false)}
+                  style={{ flex: 1, padding: "12px 0", borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.55)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
+                >
+                  {locale === "mn" ? "Хаах" : locale === "ko" ? "닫기" : "Close"}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {showWeeklyModal && challengeRanks && (
         <div style={styles.modalOverlay} onClick={() => setShowWeeklyModal(false)}>
           <div style={styles.weeklyModalSheet} onClick={(e) => e.stopPropagation()}>
@@ -1859,11 +2513,54 @@ const styles = {
   },
   fighterCard: {
     width: "100%",
-    padding: "32px 16px 28px",
+    padding: "0 16px 28px",
     background: "radial-gradient(ellipse at 50% 0%, rgba(193,18,31,0.28) 0%, rgba(193,18,31,0.06) 40%, transparent 65%), linear-gradient(180deg, #0C0C0C 0%, #070707 100%)",
     boxSizing: "border-box",
     position: "relative",
     overflow: "hidden",
+  },
+  coverPhotoSection: {
+    position: "relative",
+    height: 150,
+    overflow: "hidden",
+    background: "linear-gradient(135deg, #1a0404 0%, #0d0d0d 100%)",
+    marginLeft: -16,
+    marginRight: -16,
+  },
+  coverPhotoImg: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    display: "block",
+  },
+  coverPhotoFallback: {
+    width: "100%",
+    height: "100%",
+    background: "radial-gradient(ellipse at 50% 0%, rgba(193,18,31,0.35) 0%, rgba(193,18,31,0.08) 50%, transparent 100%)",
+  },
+  coverPhotoGradient: {
+    position: "absolute",
+    inset: 0,
+    background: "linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(7,7,7,0.75) 100%)",
+    pointerEvents: "none",
+  },
+  coverPhotoEditBtn: {
+    position: "absolute",
+    bottom: 10,
+    right: 12,
+    background: "rgba(0,0,0,0.55)",
+    backdropFilter: "blur(8px)",
+    WebkitBackdropFilter: "blur(8px)",
+    border: "1px solid rgba(255,255,255,0.18)",
+    borderRadius: 8,
+    color: "#fff",
+    width: 32,
+    height: 32,
+    cursor: "pointer",
+    fontSize: 14,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
   fighterCardInner: {
     width: "min(100%, 520px)",
@@ -1882,10 +2579,11 @@ const styles = {
     justifyContent: "center",
     fontSize: 52,
     fontWeight: 1000,
-    margin: "0 auto 20px",
+    margin: "-52px auto 20px",
     color: "#FFFFFF",
     overflow: "hidden",
     position: "relative",
+    zIndex: 1,
   },
   avatarImage: {
     width: "100%",
@@ -1935,25 +2633,29 @@ const styles = {
     fontSize: 16,
     lineHeight: 1,
   },
-  badgesRow: {
+  achievementsShelf: {
     display: "flex",
-    flexWrap: "wrap",
     gap: 8,
-    justifyContent: "center",
-    margin: "14px auto 0",
+    overflowX: "auto",
+    scrollbarWidth: "none",
+    WebkitOverflowScrolling: "touch",
+    padding: "14px 0 0",
+    margin: "0 auto",
     maxWidth: 430,
-  },
-  badgePill: {
-    display: "inline-flex",
-    alignItems: "center",
     justifyContent: "center",
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    background: "rgba(255,255,255,0.07)",
-    border: "1px solid rgba(255,255,255,0.14)",
-    fontSize: 20,
-    cursor: "default",
+    flexWrap: "wrap",
+  },
+  achievementCard: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    padding: "10px 12px",
+    borderRadius: 12,
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid",
+    minWidth: 76,
+    gap: 4,
+    flexShrink: 0,
   },
   bio: {
     maxWidth: 380,

@@ -9,7 +9,6 @@ import {
   documentId,
   getDoc,
   getDocs,
-  orderBy,
   query,
   serverTimestamp,
   updateDoc,
@@ -20,16 +19,29 @@ import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 
-function formatTimeAgo(timestamp) {
+function formatTimeAgo(timestamp, locale = "en") {
   if (!timestamp) return "";
   const ms = timestamp.toMillis ? timestamp.toMillis() : new Date(timestamp).getTime();
   const diff = Date.now() - ms;
   const m = Math.floor(diff / 60000);
+  const h = Math.floor(diff / 3600000);
+  const d = Math.floor(diff / 86400000);
+  if (locale === "mn") {
+    if (m < 1) return "Дөнгөж сая";
+    if (m < 60) return `${m}м өмнө`;
+    if (h < 24) return `${h}ц өмнө`;
+    return `${d}өдр өмнө`;
+  }
+  if (locale === "ko") {
+    if (m < 1) return "방금";
+    if (m < 60) return `${m}분 전`;
+    if (h < 24) return `${h}시간 전`;
+    return `${d}일 전`;
+  }
   if (m < 1) return "just now";
   if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
   if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+  return `${d}d ago`;
 }
 
 function RequesterAvatar({ user: u }) {
@@ -54,13 +66,15 @@ function StatusBadge({ status, t }) {
   return <span style={styles.badgePending}>{t("requestPending")}</span>;
 }
 
-function RequestCard({ request, requesterUser, t, onAccept, onDecline, onSchedule, onMarkComplete, updating, completingId }) {
+function RequestCard({ request, requesterUser, t, locale, onAccept, onDecline, onSchedule, onMarkComplete, onViewProfile, updating, completingId }) {
   const typeLbl = request.type === "sparring" ? t("sparringRequestType") : t("coachRequestType");
 
   return (
     <div style={styles.card}>
       <div style={styles.cardTop}>
-        <RequesterAvatar user={requesterUser} />
+        <button type="button" style={styles.avatarBtn} onClick={() => onViewProfile?.(requesterUser, request)}>
+          <RequesterAvatar user={requesterUser} />
+        </button>
         <div style={styles.cardMeta}>
           <div style={styles.cardNameRow}>
             <span style={styles.cardName}>
@@ -70,7 +84,7 @@ function RequestCard({ request, requesterUser, t, onAccept, onDecline, onSchedul
               {typeLbl}
             </span>
           </div>
-          <span style={styles.cardTime}>{formatTimeAgo(request.createdAt)}</span>
+          <span style={styles.cardTime}>{formatTimeAgo(request.createdAt, locale)}</span>
         </div>
         <StatusBadge status={request.status} t={t} />
       </div>
@@ -81,7 +95,7 @@ function RequestCard({ request, requesterUser, t, onAccept, onDecline, onSchedul
 
       {request.type === "sparring" && request.sparringPostId && (
         <div style={styles.sparringTag}>
-          Sparring post request
+          {locale === "mn" ? "⚔️ Sparring хүсэлт" : locale === "ko" ? "⚔️ 스파링 요청" : "⚔️ Sparring post request"}
         </div>
       )}
 
@@ -155,6 +169,15 @@ export default function CoachDashboardPage() {
   const [accessDenied, setAccessDenied] = useState(false);
   const loadedRef = useRef(false);
 
+  // Programs
+  const [programs, setPrograms] = useState([]);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [progTitle, setProgTitle] = useState("");
+  const [progDesc, setProgDesc] = useState("");
+  const [progDuration, setProgDuration] = useState(7);
+  const [progLevel, setProgLevel] = useState("beginner");
+  const [progSaving, setProgSaving] = useState(false);
+
   // Booking modal state
   const [bookingRequest, setBookingRequest] = useState(null);
   const [bookingDate, setBookingDate] = useState("");
@@ -163,6 +186,11 @@ export default function CoachDashboardPage() {
   const [bookingSubmitting, setBookingSubmitting] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [completingId, setCompletingId] = useState(null);
+  const [completedSessions, setCompletedSessions] = useState(0);
+  const [activeFilter, setActiveFilter] = useState("all");
+
+  // Profile quick-view modal
+  const [profileModal, setProfileModal] = useState(null);
 
   // Auth + coach guard
   useEffect(() => {
@@ -177,7 +205,9 @@ export default function CoachDashboardPage() {
         if (!snap.exists() || !snap.data().isCoach) {
           setAccessDenied(true);
           router.replace(`/${locale}/coach`);
+          return;
         }
+        setCompletedSessions(Number(snap.data().completedSessions) || 0);
       } catch {
         setAccessDenied(true);
         router.replace(`/${locale}/coach`);
@@ -196,15 +226,13 @@ export default function CoachDashboardPage() {
       setLoadingRequests(true);
       try {
         const snap = await getDocs(
-          query(
-            collection(db, "coach_requests"),
-            where("coachId", "==", user.uid),
-            orderBy("createdAt", "desc")
-          )
+          query(collection(db, "coach_requests"), where("coachId", "==", user.uid))
         );
         if (!active) return;
 
-        const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        const docs = snap.docs
+          .map((d) => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
         setRequests(docs);
 
         // Batch-load requester profiles
@@ -386,6 +414,7 @@ export default function CoachDashboardPage() {
         coachRating: Number(avgRating.toFixed(1)),
         coachTotalReviews: ratings.length,
       });
+      setCompletedSessions(newCompleted);
 
       // 4. Notify student
       if (request.userId) {
@@ -414,12 +443,63 @@ export default function CoachDashboardPage() {
     }
   };
 
+  // Load own programs
+  useEffect(() => {
+    if (!user?.uid) return;
+    let active = true;
+    getDocs(query(collection(db, "training_programs"), where("coachId", "==", user.uid)))
+      .then((snap) => {
+        if (!active) return;
+        setPrograms(snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0)));
+      }).catch(() => {});
+    return () => { active = false; };
+  }, [user?.uid]);
+
+  const handleCreateProgram = async () => {
+    if (!progTitle.trim() || progSaving) return;
+    setProgSaving(true);
+    try {
+      const userData = await getDoc(doc(db, "users", user.uid));
+      const uData = userData.exists() ? userData.data() : {};
+      const ref = await addDoc(collection(db, "training_programs"), {
+        coachId: user.uid,
+        coachName: uData.displayName || uData.username || "",
+        coachPhotoURL: uData.photoURL || "",
+        title: progTitle.trim(),
+        description: progDesc.trim(),
+        duration: progDuration,
+        level: progLevel,
+        enrolledCount: 0,
+        createdAt: serverTimestamp(),
+      });
+      setPrograms((prev) => [{ id: ref.id, coachId: user.uid, title: progTitle.trim(), description: progDesc.trim(), duration: progDuration, level: progLevel, enrolledCount: 0 }, ...prev]);
+      setProgTitle(""); setProgDesc(""); setProgDuration(7); setProgLevel("beginner");
+      setShowCreateForm(false);
+    } catch (e) {
+      console.error("Create program error:", e);
+    } finally {
+      setProgSaving(false);
+    }
+  };
+
   if (authLoading || accessDenied) return null;
 
   const total = requests.length;
   const pending = requests.filter((r) => r.status === "pending").length;
   const accepted = requests.filter((r) => r.status === "accepted").length;
+  const declined = requests.filter((r) => r.status === "declined").length;
   const acceptRate = total > 0 ? Math.round((accepted / total) * 100) : 0;
+
+  const filteredRequests = activeFilter === "all"
+    ? requests
+    : requests.filter((r) => r.status === activeFilter);
+
+  const FILTER_TABS = [
+    { key: "all", label: locale === "mn" ? "Бүгд" : locale === "ko" ? "전체" : "All", count: total },
+    { key: "pending", label: locale === "mn" ? "Хүлээгдэж буй" : locale === "ko" ? "대기중" : "Pending", count: pending },
+    { key: "accepted", label: locale === "mn" ? "Зөвшөөрсөн" : locale === "ko" ? "수락됨" : "Accepted", count: accepted },
+    { key: "declined", label: locale === "mn" ? "Татгалзсан" : locale === "ko" ? "거절됨" : "Declined", count: declined },
+  ];
 
   return (
     <main style={styles.page}>
@@ -450,8 +530,8 @@ export default function CoachDashboardPage() {
           </div>
           <div style={styles.statDivider} />
           <div style={styles.statCell}>
-            <span style={{ ...styles.statNum, color: "#34D399" }}>{accepted}</span>
-            <span style={styles.statLbl}>{t("acceptedRequests")}</span>
+            <span style={{ ...styles.statNum, color: "#34D399" }}>{completedSessions}</span>
+            <span style={styles.statLbl}>{locale === "mn" ? "Хийгдсэн" : locale === "ko" ? "완료" : "Completed"}</span>
           </div>
           <div style={styles.statDivider} />
           <div style={styles.statCell}>
@@ -461,41 +541,171 @@ export default function CoachDashboardPage() {
         </div>
 
         {/* Requests list */}
-        <h2 style={styles.sectionTitle}>{t("coachRequests")}</h2>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+          <h2 style={{ ...styles.sectionTitle, margin: 0 }}>{t("coachRequests")}</h2>
+        </div>
+
+        {/* Filter tabs */}
+        <div style={styles.filterRow}>
+          {FILTER_TABS.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              style={{ ...styles.filterTab, ...(activeFilter === tab.key ? styles.filterTabActive : {}) }}
+              onClick={() => setActiveFilter(tab.key)}
+            >
+              {tab.label}
+              {tab.count > 0 && (
+                <span style={{ ...styles.filterTabCount, ...(activeFilter === tab.key ? { background: "rgba(255,255,255,0.25)" } : {}) }}>
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
 
         {loadingRequests && (
-          <div style={styles.loadingText}>Loading…</div>
+          <div style={styles.skeletonWrap}>
+            {[0, 1].map((i) => (
+              <div key={i} style={styles.skeletonCard} className="skeleton-pulse" />
+            ))}
+          </div>
         )}
 
-        {!loadingRequests && requests.length === 0 && (
+        {!loadingRequests && filteredRequests.length === 0 && (
           <div style={styles.emptyState}>
             <div style={styles.emptyIcon}>📭</div>
-            <div style={styles.emptyTitle}>{t("noRequests")}</div>
+            <div style={styles.emptyTitle}>
+              {activeFilter === "all" ? t("noRequests") : (locale === "mn" ? "Хүсэлт байхгүй" : locale === "ko" ? "요청 없음" : "No requests")}
+            </div>
             <div style={styles.emptyDesc}>
-              New coaching and sparring requests will appear here.
+              {activeFilter === "all"
+                ? (locale === "mn" ? "Шинэ coaching болон sparring хүсэлтүүд энд харагдана." : locale === "ko" ? "새 코칭 및 스파링 요청이 여기에 표시됩니다." : "New coaching and sparring requests will appear here.")
+                : (locale === "mn" ? `${FILTER_TABS.find(t => t.key === activeFilter)?.label} хүсэлт байхгүй.` : locale === "ko" ? "해당 카테고리에 요청이 없습니다." : `No ${activeFilter} requests.`)}
             </div>
           </div>
         )}
 
         <div style={styles.cardList}>
-          {requests.map((req) => (
+          {filteredRequests.map((req) => (
             <RequestCard
               key={req.id}
               request={req}
               requesterUser={requesterUsers[req.userId]}
               t={t}
+              locale={locale}
               updating={updating}
               completingId={completingId}
               onAccept={handleAccept}
               onDecline={handleDecline}
               onSchedule={openBookingModal}
               onMarkComplete={handleMarkComplete}
+              onViewProfile={(u, r) => setProfileModal({ user: u, request: r })}
             />
           ))}
         </div>
+
+        {/* Training Programs section — inside same content wrapper */}
+        <div style={{ marginTop: 32, borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 24 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+            <h2 style={{ ...styles.sectionTitle, margin: 0 }}>
+              📋 {locale === "mn" ? "Миний програмууд" : locale === "ko" ? "내 프로그램" : "My Programs"}
+            </h2>
+            <button
+              type="button"
+              onClick={() => setShowCreateForm((v) => !v)}
+              style={{ padding: "7px 14px", borderRadius: 999, border: "none", background: "linear-gradient(135deg, #C1121F, #8f0d17)", color: "#fff", fontSize: 12, fontWeight: 900, cursor: "pointer" }}
+            >
+              {showCreateForm ? "✕" : "+ " + (locale === "mn" ? "Шинэ" : locale === "ko" ? "추가" : "New")}
+            </button>
+          </div>
+
+          {showCreateForm && (
+            <div style={{ background: "linear-gradient(145deg, #111012, #0a0a0a)", border: "1px solid rgba(255,255,255,0.09)", borderLeft: "2.5px solid #C1121F", borderRadius: "3px 14px 14px 3px", padding: "16px", marginBottom: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+              <input
+                value={progTitle}
+                onChange={(e) => setProgTitle(e.target.value)}
+                placeholder={locale === "mn" ? "Програмын нэр" : locale === "ko" ? "프로그램 이름" : "Program title"}
+                style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", color: "#fff", fontSize: 13, outline: "none" }}
+              />
+              <textarea
+                value={progDesc}
+                onChange={(e) => setProgDesc(e.target.value)}
+                placeholder={locale === "mn" ? "Тайлбар (заавал биш)" : locale === "ko" ? "설명 (선택)" : "Description (optional)"}
+                rows={3}
+                style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", color: "#fff", fontSize: 13, outline: "none", resize: "vertical", fontFamily: "inherit" }}
+              />
+              <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                <span style={{ fontSize: 12, color: "#888", fontWeight: 700, flexShrink: 0 }}>
+                  {locale === "mn" ? "Хугацаа:" : locale === "ko" ? "기간:" : "Duration:"}
+                </span>
+                {[7, 14, 30].map((d) => (
+                  <button key={d} type="button" onClick={() => setProgDuration(d)} style={{ padding: "5px 12px", borderRadius: 999, border: "none", background: progDuration === d ? "#C1121F" : "rgba(255,255,255,0.08)", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>
+                    {d}{locale === "mn" ? "өд" : locale === "ko" ? "일" : "d"}
+                  </button>
+                ))}
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                {[
+                  ["beginner", "#34D399", locale === "mn" ? "Анхан" : locale === "ko" ? "입문" : "Beginner"],
+                  ["intermediate", "#D4AF37", locale === "mn" ? "Дунд" : locale === "ko" ? "중급" : "Intermediate"],
+                  ["advanced", "#C1121F", locale === "mn" ? "Ахисан" : locale === "ko" ? "고급" : "Advanced"],
+                ].map(([lvl, col, lbl]) => (
+                  <button key={lvl} type="button" onClick={() => setProgLevel(lvl)} style={{ flex: 1, padding: "6px 0", borderRadius: 999, border: `1px solid ${progLevel === lvl ? col : "rgba(255,255,255,0.1)"}`, background: progLevel === lvl ? `${col}18` : "transparent", color: progLevel === lvl ? col : "#888", fontSize: 11, fontWeight: 800, cursor: "pointer" }}>
+                    {lbl}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={handleCreateProgram}
+                disabled={!progTitle.trim() || progSaving}
+                style={{ padding: "11px 0", borderRadius: 10, border: "none", background: progTitle.trim() ? "linear-gradient(135deg, #C1121F, #8f0d17)" : "rgba(255,255,255,0.06)", color: "#fff", fontSize: 13, fontWeight: 900, cursor: progTitle.trim() ? "pointer" : "not-allowed", opacity: progSaving ? 0.6 : 1 }}
+              >
+                {progSaving ? "…" : locale === "mn" ? "Хадгалах" : locale === "ko" ? "저장" : "Save Program"}
+              </button>
+            </div>
+          )}
+
+          {programs.length === 0 && !showCreateForm && (
+            <div style={{ textAlign: "center", padding: "32px 20px", background: "rgba(255,255,255,0.02)", borderRadius: 14, border: "1px dashed rgba(255,255,255,0.09)" }}>
+              <div style={{ fontSize: 36, marginBottom: 8 }}>📋</div>
+              <p style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 800, color: "#fff" }}>
+                {locale === "mn" ? "Програм байхгүй" : locale === "ko" ? "프로그램 없음" : "No programs yet"}
+              </p>
+              <p style={{ margin: 0, fontSize: 12, color: "#555" }}>
+                {locale === "mn" ? "Шинэ программ үүсгэж тулаанчдад санал болгоорой." : locale === "ko" ? "새 프로그램을 만들어 선수들에게 제공하세요." : "Create a program to offer fighters a structured plan."}
+              </p>
+            </div>
+          )}
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {programs.map((prog) => {
+              const LEVEL_COLOR = { beginner: "#34D399", intermediate: "#D4AF37", advanced: "#C1121F" };
+              const LEVEL_LBL = {
+                beginner: locale === "mn" ? "Анхан" : locale === "ko" ? "입문" : "Beginner",
+                intermediate: locale === "mn" ? "Дунд" : locale === "ko" ? "중급" : "Intermediate",
+                advanced: locale === "mn" ? "Ахисан" : locale === "ko" ? "고급" : "Advanced",
+              };
+              const col = LEVEL_COLOR[prog.level] || "#888";
+              return (
+                <div key={prog.id} style={{ background: "linear-gradient(145deg, #111012, #0a0a0a)", border: "1px solid rgba(255,255,255,0.07)", borderLeft: `2.5px solid ${col}`, borderRadius: "3px 14px 14px 3px", padding: "12px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", marginBottom: 3 }}>{prog.title}</div>
+                    <div style={{ display: "flex", gap: 8, fontSize: 11, color: "#555", fontWeight: 700 }}>
+                      <span style={{ color: col }}>{LEVEL_LBL[prog.level] || prog.level}</span>
+                      {prog.duration && <span>📅 {prog.duration}{locale === "mn" ? "өд" : locale === "ko" ? "일" : "d"}</span>}
+                      <span>👥 {prog.enrolledCount || 0} {locale === "mn" ? "дагагч" : locale === "ko" ? "등록" : "enrolled"}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div style={{ height: "calc(16px + env(safe-area-inset-bottom))" }} />
       </div>
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
 
       {/* Booking modal */}
       {bookingRequest && (
@@ -560,6 +770,57 @@ export default function CoachDashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Student profile quick-view modal */}
+      {profileModal && (
+        <div style={styles.modalBackdrop} onClick={() => setProfileModal(null)}>
+          <div style={styles.modalSheet} onClick={(e) => e.stopPropagation()}>
+            <div style={styles.modalHandle} />
+            <div style={styles.modalHeader}>
+              <span style={styles.modalTitle}>
+                {locale === "mn" ? "Тулаанчийн мэдээлэл" : locale === "ko" ? "선수 정보" : "Fighter Profile"}
+              </span>
+              <button type="button" style={styles.modalCloseBtn} onClick={() => setProfileModal(null)}>✕</button>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
+              <RequesterAvatar user={profileModal.user} />
+              <div>
+                <div style={{ fontSize: 17, fontWeight: 1000, color: "#fff" }}>
+                  {profileModal.user?.displayName || profileModal.user?.username || "Fighter"}
+                </div>
+                {profileModal.user?.gym && (
+                  <div style={{ fontSize: 12, color: "#888", fontWeight: 700, marginTop: 2 }}>🏋️ {profileModal.user.gym}</div>
+                )}
+                {profileModal.user?.bio && (
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", marginTop: 4, lineHeight: 1.4 }}>
+                    {profileModal.user.bio}
+                  </div>
+                )}
+              </div>
+            </div>
+            {profileModal.request?.message && (
+              <div style={{ padding: "10px 14px", borderRadius: 12, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.5, fontStyle: "italic" }}>
+                "{profileModal.request.message}"
+              </div>
+            )}
+            <button
+              type="button"
+              style={{ marginTop: 16, width: "100%", padding: "12px 0", borderRadius: 12, border: "none", background: "rgba(255,255,255,0.08)", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}
+              onClick={() => { setProfileModal(null); router.push(`/${locale}/profile/${profileModal.request?.userId}`); }}
+            >
+              {locale === "mn" ? "Бүрэн профайл харах" : locale === "ko" ? "전체 프로필 보기" : "View Full Profile"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes skeletonPulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.4; }
+        }
+        .skeleton-pulse { animation: skeletonPulse 1.4s ease infinite; }
+      `}</style>
     </main>
   );
 }
@@ -812,6 +1073,60 @@ const styles = {
     fontSize: 11,
     color: "#60A5FA",
     fontWeight: 700,
+  },
+  avatarBtn: {
+    padding: 0,
+    border: "none",
+    background: "none",
+    cursor: "pointer",
+    flexShrink: 0,
+  },
+  filterRow: {
+    display: "flex",
+    gap: 6,
+    overflowX: "auto",
+    paddingBottom: 2,
+    marginBottom: 16,
+    scrollbarWidth: "none",
+  },
+  filterTab: {
+    flexShrink: 0,
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 5,
+    padding: "6px 12px",
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.1)",
+    background: "rgba(255,255,255,0.05)",
+    color: "rgba(255,255,255,0.65)",
+    fontSize: 12,
+    fontWeight: 800,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+  },
+  filterTabActive: {
+    background: "#C1121F",
+    border: "1px solid #C1121F",
+    color: "#fff",
+  },
+  filterTabCount: {
+    fontSize: 10,
+    fontWeight: 900,
+    background: "rgba(255,255,255,0.16)",
+    borderRadius: 999,
+    padding: "1px 6px",
+    lineHeight: 1.4,
+  },
+  skeletonWrap: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+    marginBottom: 8,
+  },
+  skeletonCard: {
+    height: 88,
+    borderRadius: 16,
+    background: "rgba(255,255,255,0.06)",
   },
   cardActions: {
     display: "flex",

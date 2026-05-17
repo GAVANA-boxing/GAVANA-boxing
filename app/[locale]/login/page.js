@@ -119,8 +119,12 @@ export default function LoginPage() {
           photoURL: "",
           profileImageUrl: "",
           role: "boxer",
+          onboardingComplete: false,
           createdAt: new Date().toISOString(),
         });
+        // New users go through onboarding
+        router.push(`/${locale}/onboarding`);
+        return;
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }

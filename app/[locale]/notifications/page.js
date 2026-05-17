@@ -15,6 +15,7 @@ import {
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocale, translate } from "@/lib/i18n";
+import BottomNav from "@/components/BottomNav";
 
 function getActorName(notification) {
   return notification.fromUsername || notification.actorName || "Someone";
@@ -36,7 +37,7 @@ function getActorPhoto(notification, actorProfile) {
   );
 }
 
-function getTypeLabel(type, t) {
+function getTypeLabel(type, t, locale = "en") {
   if (type === "like") return t("like");
   if (type === "comment") return t("comment");
   if (type === "follow") return t("follow");
@@ -55,6 +56,10 @@ function getTypeLabel(type, t) {
   if (type === "gym_declined") return t("notifLabelGymDeclined");
   if (type === "booking_scheduled") return t("notifLabelBookingScheduled");
   if (type === "session_completed") return t("notifLabelSessionCompleted");
+  if (type === "mention") return t("notifTypeMention");
+  if (type === "sparring_request") return locale === "mn" ? "Sparring хүсэлт" : locale === "ko" ? "스파링 요청" : "Sparring request";
+  if (type === "sparring_accepted") return locale === "mn" ? "Sparring зөвшөөрсөн" : locale === "ko" ? "스파링 수락됨" : "Sparring accepted";
+  if (type === "event_rsvp") return t("notifTypeEventRsvp");
   return t("update");
 }
 
@@ -78,6 +83,10 @@ function getTranslatedNotificationText(notification, t) {
   if (notification.type === "gym_declined") return t("notifGymDeclined");
   if (notification.type === "booking_scheduled") return t("sessionScheduled");
   if (notification.type === "session_completed") return t("coachSessionCompleted");
+  if (notification.type === "sparring_request") return notification.message || t("notificationDefault").replace("{actor}", actor);
+  if (notification.type === "sparring_accepted") return notification.message || t("notificationDefault").replace("{actor}", actor);
+  if (notification.type === "event_rsvp") return notification.message || t("notificationDefault").replace("{actor}", actor);
+  if (notification.type === "event_reminder") return notification.message || t("notificationDefault").replace("{actor}", actor);
 
   const keyByType = {
     like: "notificationLike",
@@ -98,6 +107,7 @@ function getTypeIcon(type) {
   if (type === "challenge_attempt") return "🥊";
   if (type === "remix") return "🔀";
   if (type === "featured") return "⭐";
+  if (type === "mention") return "💬";
   if (type === "new_follower") return "👤";
   if (type === "challenge_beaten") return "🏅";
   if (type === "coach_request") return "🥊";
@@ -108,6 +118,10 @@ function getTypeIcon(type) {
   if (type === "gym_declined") return "❌";
   if (type === "booking_scheduled") return "📅";
   if (type === "session_completed") return "🏆";
+  if (type === "sparring_request") return "🥊";
+  if (type === "sparring_accepted") return "✅";
+  if (type === "event_rsvp") return "🏆";
+  if (type === "event_reminder") return "🔔";
   return "•";
 }
 
@@ -119,12 +133,12 @@ function getTimestampMs(timestamp) {
   return Number.isNaN(time) ? 0 : time;
 }
 
-function formatRelativeTime(timestamp) {
+function formatRelativeTime(timestamp, locale = "en") {
   const time = getTimestampMs(timestamp);
   if (!time) return "";
 
   const diffSeconds = Math.max(1, Math.floor((Date.now() - time) / 1000));
-  if (diffSeconds < 60) return "now";
+  if (diffSeconds < 60) return locale === "mn" ? "одоо" : locale === "ko" ? "방금" : "now";
 
   const diffMinutes = Math.floor(diffSeconds / 60);
   if (diffMinutes < 60) return `${diffMinutes}m`;
@@ -133,7 +147,7 @@ function formatRelativeTime(timestamp) {
   if (diffHours < 24) return `${diffHours}h`;
 
   const diffDays = Math.floor(diffHours / 24);
-  if (diffDays === 1) return "Yesterday";
+  if (diffDays === 1) return locale === "mn" ? "Өчигдөр" : locale === "ko" ? "어제" : "Yesterday";
   if (diffDays < 7) return `${diffDays}d`;
 
   const d = new Date(time);
@@ -167,7 +181,7 @@ export default function NotificationsPage() {
   const [actorProfiles, setActorProfiles] = useState({});
   const actorProfileRequests = useRef(new Set());
 
-  const SOCIAL_TYPES = new Set(["like", "comment", "follow", "save", "new_follower", "pvp_challenge", "challenge_attempt", "challenge_beaten", "remix", "featured"]);
+  const SOCIAL_TYPES = new Set(["like", "comment", "follow", "save", "new_follower", "pvp_challenge", "challenge_attempt", "challenge_beaten", "remix", "featured", "mention", "sparring_request", "sparring_accepted", "event_rsvp", "event_reminder"]);
   const COACH_TYPES = new Set(["coach_request", "coach_accept", "coach_decline", "booking_scheduled", "session_completed"]);
   const GYM_TYPES = new Set(["gym_join_request", "gym_approved", "gym_declined"]);
 
@@ -301,16 +315,25 @@ export default function NotificationsPage() {
   }, [filteredNotifications]);
 
   const handleClearRead = async () => {
-    const readIds = notifications.filter((n) => n.read === true).map((n) => n.id);
-    if (!readIds.length) return;
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+    const staleReadIds = notifications
+      .filter((n) => n.read === true && getTimestampMs(n.createdAt) < cutoff)
+      .map((n) => n.id);
+    if (!staleReadIds.length) return;
     setClearing(true);
     try {
-      await Promise.all(readIds.map((id) => deleteDoc(doc(db, "notifications", id))));
+      await Promise.all(staleReadIds.map((id) => deleteDoc(doc(db, "notifications", id))));
     } catch (e) {
       console.error("Clear read notifications error:", e);
     } finally {
       setClearing(false);
     }
+  };
+
+  const handleMarkAllRead = async () => {
+    const unreadIds = notifications.filter((n) => n.read === false).map((n) => n.id);
+    if (!unreadIds.length) return;
+    await Promise.all(unreadIds.map((id) => updateDoc(doc(db, "notifications", id), { read: true }).catch(() => {})));
   };
 
   const handleOpenNotification = async (notification) => {
@@ -352,6 +375,28 @@ export default function NotificationsPage() {
       return;
     }
 
+    if (notification.type === "sparring_request") {
+      router.push(`/${locale}/sparring`);
+      return;
+    }
+
+    if (notification.type === "sparring_accepted") {
+      const actorId = getActorId(notification);
+      if (actorId) router.push(`/${locale}/inbox`);
+      else router.push(`/${locale}/sparring`);
+      return;
+    }
+
+    if ((notification.type === "event_rsvp" || notification.type === "event_reminder") && notification.eventId) {
+      router.push(`/${locale}/events/${notification.eventId}`);
+      return;
+    }
+
+    if (notification.type === "event_reminder") {
+      router.push(`/${locale}/events`);
+      return;
+    }
+
     if (notification.type === "follow" || notification.type === "new_follower") {
       const actorId = getActorId(notification);
       if (actorId) router.push(`/${locale}/profile/${actorId}`);
@@ -362,8 +407,7 @@ export default function NotificationsPage() {
       if (notification.reelId) {
         router.push(`/${locale}/reels?reelId=${encodeURIComponent(notification.reelId)}&source=pvp`);
       } else {
-        const actorId = getActorId(notification);
-        if (actorId) router.push(`/${locale}/profile/${actorId}`);
+        router.push(`/${locale}/challenges`);
       }
       return;
     }
@@ -401,8 +445,20 @@ export default function NotificationsPage() {
 
   if (authLoading || loading) {
     return (
-      <div style={styles.centered}>
-        {t("loading")}
+      <div style={styles.page}>
+        <header style={styles.header}>
+          <button style={styles.backButton} onClick={() => router.push(`/${locale}/reels`)}>{t("back")}</button>
+          <div>
+            <p style={styles.eyebrow}>GAVANA BOXING</p>
+            <h1 style={styles.title}>{t("notifications")}</h1>
+          </div>
+          <div style={styles.unreadPillMuted}>—</div>
+        </header>
+        <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: 8 }}>
+          {[1,2,3,4,5].map((i) => (
+            <div key={i} className="shimmer" style={{ height: 72, borderRadius: 16 }} />
+          ))}
+        </div>
       </div>
     );
   }
@@ -422,38 +478,37 @@ export default function NotificationsPage() {
         </div>
       </header>
 
-      {/* Filter chips + Clear */}
+      {/* Filter chips + actions */}
       <div style={styles.filterBar}>
         <div style={styles.filterChips}>
           {[
-            { key: "all",    label: "Бүгд" },
-            { key: "social", label: "🤝 Social" },
-            { key: "coach",  label: "🥊 Coach" },
-            { key: "gym",    label: "🏋️ Gym" },
+            { key: "all",    label: locale === "mn" ? "Бүгд" : locale === "ko" ? "전체" : "All" },
+            { key: "social", label: locale === "mn" ? "🤝 Нийгмийн" : locale === "ko" ? "🤝 소셜" : "🤝 Social" },
+            { key: "coach",  label: locale === "mn" ? "🥊 Дасгалжуулагч" : locale === "ko" ? "🥊 코치" : "🥊 Coach" },
+            { key: "gym",    label: locale === "mn" ? "🏋️ Gym" : locale === "ko" ? "🏋️ 체육관" : "🏋️ Gym" },
           ].map(({ key, label }) => (
             <button
               key={key}
               type="button"
               onClick={() => setFilterType(key)}
-              style={{
-                ...styles.filterChip,
-                ...(filterType === key ? styles.filterChipActive : {}),
-              }}
+              style={{ ...styles.filterChip, ...(filterType === key ? styles.filterChipActive : {}) }}
             >
               {label}
             </button>
           ))}
         </div>
-        {notifications.some((n) => n.read === true) && (
-          <button
-            type="button"
-            onClick={handleClearRead}
-            disabled={clearing}
-            style={styles.clearBtn}
-          >
-            {clearing ? "…" : "Арилгах"}
-          </button>
-        )}
+        <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+          {unreadCount > 0 && (
+            <button type="button" onClick={handleMarkAllRead} style={styles.markReadBtn}>
+              {locale === "mn" ? "Бүгдийг уншсан" : locale === "ko" ? "모두 읽음" : "Mark all read"}
+            </button>
+          )}
+          {notifications.some((n) => n.read === true && getTimestampMs(n.createdAt) < Date.now() - 86400000) && (
+            <button type="button" onClick={handleClearRead} disabled={clearing} style={styles.clearBtn}>
+              {clearing ? "…" : locale === "mn" ? "Арилгах" : locale === "ko" ? "지우기" : "Clear"}
+            </button>
+          )}
+        </div>
       </div>
 
       <section style={styles.list}>
@@ -462,8 +517,8 @@ export default function NotificationsPage() {
             <div style={styles.emptyIcon}>
               <BoxingGloveIcon />
             </div>
-            <p style={styles.emptyTitle}>{filterType === "all" ? t("noNotificationsYet") : "Мэдэгдэл байхгүй"}</p>
-            <p style={styles.emptyText}>{filterType === "all" ? t("notificationsEmptyHelp") : "Энэ ангилалд мэдэгдэл байхгүй байна"}</p>
+            <p style={styles.emptyTitle}>{filterType === "all" ? t("noNotificationsYet") : locale === "mn" ? "Мэдэгдэл байхгүй" : locale === "ko" ? "알림 없음" : "No notifications"}</p>
+            <p style={styles.emptyText}>{filterType === "all" ? t("notificationsEmptyHelp") : locale === "mn" ? "Энэ ангилалд мэдэгдэл байхгүй байна" : locale === "ko" ? "이 카테고리에 알림이 없습니다" : "No notifications in this category"}</p>
           </div>
         ) : (
           ["today", "yesterday", "earlier"].map((group) => (
@@ -509,7 +564,7 @@ export default function NotificationsPage() {
                       <div style={styles.notificationBody}>
                         <div style={styles.notificationTopLine}>
                           <span style={styles.username}>{actor}</span>
-                          <span style={styles.date}>{formatRelativeTime(notification.createdAt)}</span>
+                          <span style={styles.date}>{formatRelativeTime(notification.createdAt, locale)}</span>
                         </div>
                         <div style={styles.notificationText}>
                           {getTranslatedNotificationText(notification, t)}
@@ -537,6 +592,7 @@ export default function NotificationsPage() {
           ))
         )}
       </section>
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="alerts" />
     </main>
   );
 }
@@ -567,7 +623,7 @@ const styles = {
     background: "radial-gradient(ellipse at top center, rgba(193,18,31,0.06) 0%, transparent 50%), linear-gradient(180deg, #070707 0%, #0a0a0a 100%)",
     color: "#fff",
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-    paddingBottom: 32,
+    paddingBottom: "calc(64px + env(safe-area-inset-bottom))",
   },
   centered: {
     minHeight: "100vh",
@@ -847,6 +903,18 @@ const styles = {
     border: "1px solid rgba(248,113,113,0.25)",
     background: "rgba(248,113,113,0.06)",
     color: "#F87171",
+    fontSize: 11,
+    fontWeight: 800,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+  },
+  markReadBtn: {
+    flexShrink: 0,
+    padding: "6px 12px",
+    borderRadius: 999,
+    border: "1px solid rgba(212,175,55,0.3)",
+    background: "rgba(212,175,55,0.07)",
+    color: "#D4AF37",
     fontSize: 11,
     fontWeight: 800,
     cursor: "pointer",

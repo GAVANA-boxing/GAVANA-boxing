@@ -5,14 +5,19 @@ import { addDoc, collection, getDocs, query, serverTimestamp, where } from "fire
 import { db } from "@/lib/firebase";
 import { translate } from "@/lib/i18n";
 
-const TYPE_LABELS = {
-  training_clip: "🥊 Training Clip",
-  gym_mood: "🏋️ Gym Mood",
-  mitt_work: "🎯 Mitt Work",
-  progress_update: "📈 Progress",
-  challenge_result: "🏆 Challenge",
-  motivational: "🔥 Motivational",
-};
+function getTypeLabel(type, locale) {
+  const labels = {
+    training_clip: { mn: "🥊 Дасгал", ko: "🥊 훈련 클립", en: "🥊 Training Clip" },
+    gym_mood:      { mn: "🏋️ Gym", ko: "🏋️ 체육관", en: "🏋️ Gym Mood" },
+    mitt_work:     { mn: "🎯 Митт ажил", ko: "🎯 미트 워크", en: "🎯 Mitt Work" },
+    progress_update: { mn: "📈 Ахиц", ko: "📈 진척도", en: "📈 Progress" },
+    challenge_result: { mn: "🏆 Шийдэл", ko: "🏆 챌린지", en: "🏆 Challenge" },
+    motivational: { mn: "🔥 Урам зориг", ko: "🔥 동기부여", en: "🔥 Motivational" },
+  };
+  const l = labels[type];
+  if (!l) return type;
+  return l[locale] || l.en;
+}
 
 function ProgressCard({ data = {} }) {
   return (
@@ -149,7 +154,14 @@ export default function StoryViewer({ stories, onClose, locale, currentUser }) {
         <div style={s.metaRow}>
           <div style={s.userRow}>
             {story.photoURL && <img src={story.photoURL} style={s.userAvatar} alt="" />}
-            <span style={s.userName}>{story.displayName || story.username || "Boxer"}</span>
+            <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              <span style={s.userName}>{story.displayName || story.username || "Boxer"}</span>
+              {story.type && (
+                <span style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.5)", letterSpacing: 0.5 }}>
+                  {getTypeLabel(story.type, locale)}
+                </span>
+              )}
+            </div>
           </div>
           <button style={s.closeBtn} onClick={onClose} aria-label="Close">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>

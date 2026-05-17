@@ -8,6 +8,33 @@ import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
 import { getLocale, translate } from "@/lib/i18n";
 import { calculateUserXP, getFighterRank } from "@/lib/xp";
+
+function useWeeklyCountdown() {
+  const [ms, setMs] = useState(null);
+  useEffect(() => {
+    const getMs = () => {
+      const now = new Date();
+      const daysUntilMonday = (8 - now.getUTCDay()) % 7 || 7;
+      const nextMonday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + daysUntilMonday));
+      return Math.max(0, nextMonday - now);
+    };
+    setMs(getMs());
+    const id = setInterval(() => setMs(getMs()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return ms;
+}
+
+function formatCountdown(ms, locale) {
+  if (ms === null) return "";
+  const d = Math.floor(ms / 86400000);
+  const h = Math.floor((ms % 86400000) / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  const s = Math.floor((ms % 60000) / 1000);
+  if (locale === "mn") return d > 0 ? `${d}өд ${h}ц ${m}м` : `${h}ц ${m}м ${s}с`;
+  if (locale === "ko") return d > 0 ? `${d}일 ${h}시 ${m}분` : `${h}시간 ${m}분 ${s}초`;
+  return d > 0 ? `${d}d ${h}h ${m}m` : `${h}h ${m}m ${s}s`;
+}
 import RankIcon from "@/components/RankIcon";
 import { getCurrentSeasonId, getSeasonLabel } from "@/lib/season";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
@@ -17,6 +44,29 @@ function getRankMedal(rank) {
   if (rank === 2) return "🥈";
   if (rank === 3) return "🥉";
   return null;
+}
+
+function formatCompact(n) {
+  const num = Number(n) || 0;
+  if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + "M";
+  if (num >= 1_000) return (num / 1_000).toFixed(1) + "K";
+  return String(num);
+}
+
+function getEntryBadges({ entry, rank, weeklyEntries, streakEntries, improvementEntries }) {
+  const badges = [];
+  if (weeklyEntries[0]?.userId === entry.userId)
+    badges.push({ icon: "👑", label: "Weekly Champ", color: "#D4AF37" });
+  if (rank <= 3)
+    badges.push({ icon: "🏆", label: "Top 3", color: "#D4AF37" });
+  else if (rank <= 10)
+    badges.push({ icon: "🏅", label: "Top 10", color: "#60A5FA" });
+  if (streakEntries[0]?.userId === entry.userId && streakEntries[0]?.bestScore >= 7)
+    badges.push({ icon: "🔥", label: "Streak King", color: "#FB923C" });
+  const impIdx = improvementEntries.findIndex((e) => e.userId === entry.userId);
+  if (impIdx >= 0 && impIdx < 3)
+    badges.push({ icon: "⚡", label: "Rising", color: "#34D399" });
+  return badges.slice(0, 2);
 }
 
 function getScoreColor(score) {
@@ -68,6 +118,9 @@ export default function LeaderboardPage() {
   const [followingIds, setFollowingIds] = useState(new Set());
   const [archetypeFilter, setArchetypeFilter] = useState("all");
   const [weightFilter, setWeightFilter] = useState("all");
+  const [reelsStats, setReelsStats] = useState({});
+  const [shareCopied, setShareCopied] = useState(false);
+  const weeklyCountdownMs = useWeeklyCountdown();
 
   const currentSeasonId = useMemo(() => getCurrentSeasonId(), []);
   const seasonLabel = useMemo(() => getSeasonLabel(currentSeasonId), [currentSeasonId]);
@@ -77,11 +130,12 @@ export default function LeaderboardPage() {
 
     async function load() {
       try {
-        const [snapshot, challengeSnapshot, usersSnapshot, trainingSnapshot] = await Promise.all([
+        const [snapshot, challengeSnapshot, usersSnapshot, trainingSnapshot, reelsSnapshot] = await Promise.all([
           getDocs(collection(db, "ai_feedback")),
           getDocs(collection(db, "challenge_results")),
           getDocs(collection(db, "users")),
           getDocs(collection(db, "training_sessions")),
+          getDocs(collection(db, "reels")),
         ]);
 
         const profileMap = {};
@@ -175,11 +229,22 @@ export default function LeaderboardPage() {
           }
         });
 
+        // Build reels stats per user (views + likes)
+        const reelsMap = {};
+        reelsSnapshot.forEach((docSnap) => {
+          const d = docSnap.data();
+          if (!d.userId) return;
+          if (!reelsMap[d.userId]) reelsMap[d.userId] = { totalViews: 0, totalLikes: 0 };
+          reelsMap[d.userId].totalViews += Number(d.views || 0);
+          reelsMap[d.userId].totalLikes += Number(d.likes || d.likesCount || 0);
+        });
+
         if (!active) return;
         setEntries(sorted);
         setRawChallengeResults(rawResults);
         setProfiles(profileMap);
         setTrainingSessions(sessions);
+        setReelsStats(reelsMap);
       } catch (err) {
         console.error("Leaderboard load error:", err);
       } finally {
@@ -249,11 +314,29 @@ export default function LeaderboardPage() {
     return entries.filter((e) => followingIds.has(e.userId) || e.userId === user.uid);
   }, [entries, followingIds, user?.uid]);
 
+  const viewsEntries = useMemo(() =>
+    Object.entries(reelsStats)
+      .map(([userId, stats]) => ({ userId, bestScore: stats.totalViews, totalLikes: stats.totalLikes }))
+      .sort((a, b) => b.bestScore - a.bestScore)
+      .slice(0, 50),
+    [reelsStats]
+  );
+
+  const likesEntries = useMemo(() =>
+    Object.entries(reelsStats)
+      .map(([userId, stats]) => ({ userId, bestScore: stats.totalLikes, totalViews: stats.totalViews }))
+      .sort((a, b) => b.bestScore - a.bestScore)
+      .slice(0, 50),
+    [reelsStats]
+  );
+
   const displayEntries =
     leaderboardTab === "week" ? weeklyEntries
     : leaderboardTab === "improvement" ? improvementEntries
     : leaderboardTab === "streak" ? streakEntries
     : leaderboardTab === "friends" ? friendsEntries
+    : leaderboardTab === "views" ? viewsEntries
+    : leaderboardTab === "likes" ? likesEntries
     : entries;
 
   const filteredDisplayEntries = useMemo(() => {
@@ -292,6 +375,25 @@ export default function LeaderboardPage() {
   const weeklyChampion = weeklyEntries.length > 0 ? weeklyEntries[0] : null;
 
   const hasUserData = !authLoading && user && (currentUserAllTimeEntry || currentUserWeeklyEntry);
+
+  const handleShareRank = async () => {
+    const rank = leaderboardTab === "week" ? currentUserWeeklyRank : currentUserAllTimeRank;
+    const score = leaderboardTab === "week"
+      ? (currentUserWeeklyEntry?.bestScore ?? 0)
+      : (currentUserAllTimeEntry?.bestScore ?? 0);
+    if (!rank) return;
+    const text = locale === "mn"
+      ? `GAVANA BOXING дээр миний rank #${rank} байна, score ${score}/10 🥊 gavana.app`
+      : locale === "ko"
+      ? `GAVANA BOXING에서 내 랭킹 #${rank}, 점수 ${score}/10 🥊 gavana.app`
+      : `I'm ranked #${rank} on GAVANA BOXING with ${score}/10 🥊 gavana.app`;
+    try {
+      if (navigator.share) { await navigator.share({ text }); return; }
+    } catch {}
+    try { await navigator.clipboard.writeText(text); } catch {}
+    setShareCopied(true);
+    setTimeout(() => setShareCopied(false), 2000);
+  };
 
   return (
     <main style={styles.page}>
@@ -351,9 +453,34 @@ export default function LeaderboardPage() {
           >
             {t("friendsLeaderboard")}
           </button>
+          <button
+            type="button"
+            style={{ ...styles.tabBtn, ...(leaderboardTab === "views" ? styles.tabBtnViews : {}) }}
+            onClick={() => setLeaderboardTab("views")}
+          >
+            👁 {locale === "mn" ? "Үзэлт" : locale === "ko" ? "조회수" : "Views"}
+          </button>
+          <button
+            type="button"
+            style={{ ...styles.tabBtn, ...(leaderboardTab === "likes" ? styles.tabBtnLikes : {}) }}
+            onClick={() => setLeaderboardTab("likes")}
+          >
+            ❤️ {locale === "mn" ? "Лайк" : locale === "ko" ? "좋아요" : "Likes"}
+          </button>
         </div>
         {leaderboardTab === "week" && (
-          <p style={styles.seasonLabel}>{seasonLabel}</p>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 4px 0" }}>
+            <p style={{ ...styles.seasonLabel, margin: 0 }}>{seasonLabel}</p>
+            {weeklyCountdownMs !== null && (
+              <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 999, background: "rgba(193,18,31,0.1)", border: "1px solid rgba(193,18,31,0.25)" }}>
+                <span style={{ fontSize: 10 }}>⏱</span>
+                <span style={{ fontSize: 10, fontWeight: 800, color: "#F87171", letterSpacing: 0.3 }}>
+                  {locale === "mn" ? "Шинэчлэгдэнэ: " : locale === "ko" ? "리셋: " : "Resets: "}
+                  {formatCountdown(weeklyCountdownMs, locale)}
+                </span>
+              </div>
+            )}
+          </div>
         )}
       </div>
 
@@ -361,7 +488,7 @@ export default function LeaderboardPage() {
       <div style={styles.filterWrap}>
         <div style={styles.filterRow}>
           {[
-            { key: "all", label: "🥊 Бүгд" },
+            { key: "all", label: locale === "mn" ? "🥊 Бүгд" : locale === "ko" ? "🥊 전체" : "🥊 All" },
             { key: "pressure", label: `${ARCHETYPE_DISPLAY.pressure.emoji} Pressure` },
             { key: "counter",  label: `${ARCHETYPE_DISPLAY.counter.emoji} Counter` },
             { key: "technical",label: `${ARCHETYPE_DISPLAY.technical.emoji} Technical` },
@@ -400,7 +527,7 @@ export default function LeaderboardPage() {
                 ...(weightFilter === wt ? styles.filterChipActiveWeight : {}),
               }}
             >
-              {wt === "all" ? "Жин бүгд" : `${wt}kg`}
+              {wt === "all" ? (locale === "mn" ? "Жин бүгд" : locale === "ko" ? "전체 체급" : "All weights") : `${wt}kg`}
             </button>
           ))}
         </div>
@@ -418,11 +545,20 @@ export default function LeaderboardPage() {
                     : t("seasonNoResultsThisWeek").split(".")[0])
                   : t("leaderboardYourRank").replace("{rank}", currentUserAllTimeRank ?? "—")}
               </span>
-              <span style={{ ...styles.scorePill, background: getScoreColor(leaderboardTab === "week" ? (currentUserWeeklyEntry?.bestScore ?? 0) : (currentUserAllTimeEntry?.bestScore ?? 0)) }}>
-                {leaderboardTab === "week"
-                  ? `${currentUserWeeklyEntry?.bestScore ?? 0}/10`
-                  : `${currentUserAllTimeEntry?.bestScore ?? 0}/10`}
-              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ ...styles.scorePill, background: getScoreColor(leaderboardTab === "week" ? (currentUserWeeklyEntry?.bestScore ?? 0) : (currentUserAllTimeEntry?.bestScore ?? 0)) }}>
+                  {leaderboardTab === "week"
+                    ? `${currentUserWeeklyEntry?.bestScore ?? 0}/10`
+                    : `${currentUserAllTimeEntry?.bestScore ?? 0}/10`}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleShareRank}
+                  style={{ padding: "4px 10px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.3)", background: "rgba(212,175,55,0.08)", color: "#D4AF37", fontSize: 11, fontWeight: 800, cursor: "pointer" }}
+                >
+                  {shareCopied ? "✓" : (locale === "mn" ? "Хуваалцах" : locale === "ko" ? "공유" : "Share")}
+                </button>
+              </div>
             </div>
             <div style={styles.yourRankSub}>
               {currentUserWeeklyRank && (
@@ -470,7 +606,11 @@ export default function LeaderboardPage() {
 
         {/* Loading state */}
         {loading && (
-          <div style={styles.loading}>{t("leaderboardLoading")}</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="shimmer" style={{ height: 72, borderRadius: 14, background: "rgba(255,255,255,0.06)" }} />
+            ))}
+          </div>
         )}
 
         {/* Empty state */}
@@ -478,9 +618,47 @@ export default function LeaderboardPage() {
           <div style={styles.emptyWrap}>
             <div style={styles.emptyIcon}>🏆</div>
             <p style={styles.emptyTitle}>
-              {leaderboardTab === "week" ? t("seasonNoResultsThisWeek") : leaderboardTab === "improvement" ? t("lbImprovementEmpty") : leaderboardTab === "streak" ? t("lbStreakEmpty") : leaderboardTab === "friends" ? t("followingEmptyHelp") : t("leaderboardEmpty")}
+              {archetypeFilter !== "all" || weightFilter !== "all"
+                ? (locale === "mn" ? "Тохирох байлдагч олдсонгүй" : locale === "ko" ? "해당 필터에 선수 없음" : "No fighters match this filter")
+                : leaderboardTab === "week" ? t("seasonNoResultsThisWeek") : leaderboardTab === "improvement" ? t("lbImprovementEmpty") : leaderboardTab === "streak" ? t("lbStreakEmpty") : leaderboardTab === "friends" ? t("followingEmptyHelp") : t("leaderboardEmpty")}
             </p>
-            <p style={styles.emptyText}>{t("leaderboardEmptyHelp")}</p>
+            <p style={styles.emptyText}>
+              {archetypeFilter !== "all" || weightFilter !== "all"
+                ? (locale === "mn" ? "Шүүлтүүрийг өөрчлөөд дахин үзнэ үү" : locale === "ko" ? "필터를 변경해 보세요" : "Try changing or clearing the filters")
+                : t("leaderboardEmptyHelp")}
+            </p>
+          </div>
+        )}
+
+        {/* Top-3 Podium Card */}
+        {!loading && filteredDisplayEntries.length >= 3 && (leaderboardTab === "week" || leaderboardTab === "alltime") && (
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "center", gap: 8, marginBottom: 20, padding: "0 8px" }}>
+            {[1, 0, 2].map((idx) => {
+              const entry = filteredDisplayEntries[idx];
+              const rank = idx + 1;
+              const profile = profiles[entry?.userId] || {};
+              const name = profile.displayName || profile.username || "Fighter";
+              const photo = getAvatarUrl(profile);
+              const isFirst = rank === 1;
+              const podiumH = idx === 0 ? 128 : idx === 1 ? 100 : 84;
+              const medals = ["🥇", "🥈", "🥉"];
+              const colors = ["#D4AF37", "#C0C0C0", "#CD7F32"];
+              if (!entry) return null;
+              return (
+                <div key={rank} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer" }} onClick={() => router.push(`/${locale}/profile/${entry.userId}`)}>
+                  <span style={{ fontSize: 16 }}>{medals[rank - 1]}</span>
+                  {photo
+                    ? <img src={photo} alt="" style={{ width: isFirst ? 52 : 44, height: isFirst ? 52 : 44, borderRadius: "50%", objectFit: "cover", border: `2.5px solid ${colors[rank - 1]}`, boxShadow: `0 0 12px ${colors[rank - 1]}44` }} />
+                    : <div style={{ width: isFirst ? 52 : 44, height: isFirst ? 52 : 44, borderRadius: "50%", background: "rgba(255,255,255,0.08)", border: `2.5px solid ${colors[rank - 1]}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: isFirst ? 20 : 16, fontWeight: 900, color: "#fff" }}>{name[0]?.toUpperCase()}</div>
+                  }
+                  <span style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.7)", maxWidth: 70, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>{name.split(" ")[0]}</span>
+                  <span style={{ fontSize: 11, fontWeight: 900, color: colors[rank - 1] }}>{entry.bestScore}/10</span>
+                  <div style={{ width: "100%", height: podiumH, borderRadius: "8px 8px 0 0", background: `linear-gradient(180deg, ${colors[rank - 1]}22, ${colors[rank - 1]}0a)`, border: `1px solid ${colors[rank - 1]}33`, borderBottom: "none", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ fontSize: isFirst ? 22 : 18, fontWeight: 900, color: colors[rank - 1], opacity: 0.6 }}>#{rank}</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -499,6 +677,8 @@ export default function LeaderboardPage() {
               const allTimeEntry = entries.find((e) => e.userId === entry.userId);
               const entryRank = getFighterRank(allTimeEntry?.xp ?? 0);
               const allTimeRank = entries.findIndex((e) => e.userId === entry.userId);
+              const entryBadges = getEntryBadges({ entry, rank, weeklyEntries, streakEntries, improvementEntries });
+              const topStyle = rank === 1 ? styles.rowFirst : rank === 2 ? styles.rowSecond : rank === 3 ? styles.rowThird : {};
 
               return (
                 <div
@@ -508,7 +688,7 @@ export default function LeaderboardPage() {
                   style={{
                     ...styles.row,
                     ...(isCurrentUser ? styles.rowHighlight : {}),
-                    ...(rank <= 3 ? styles.rowTop : {}),
+                    ...topStyle,
                     cursor: "pointer",
                   }}
                   onClick={() => router.push(`/${locale}/profile/${entry.userId}`)}
@@ -582,6 +762,15 @@ export default function LeaderboardPage() {
                         </span>
                       )}
                     </div>
+                    {entryBadges.length > 0 && (
+                      <div style={styles.badgeRow}>
+                        {entryBadges.map((b) => (
+                          <span key={b.label} style={{ ...styles.badge, color: b.color, borderColor: b.color + "44", background: b.color + "12" }}>
+                            {b.icon} {b.label}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Scores */}
@@ -599,6 +788,20 @@ export default function LeaderboardPage() {
                           🔥{entry.bestScore}
                         </div>
                         <div style={styles.latestScore}>{t("lbStreak")}</div>
+                      </>
+                    ) : leaderboardTab === "views" ? (
+                      <>
+                        <div style={{ ...styles.bestScore, color: "#60A5FA" }}>
+                          👁 {formatCompact(entry.bestScore)}
+                        </div>
+                        <div style={styles.latestScore}>{locale === "mn" ? "нийт үзэлт" : locale === "ko" ? "총 조회수" : "total views"}</div>
+                      </>
+                    ) : leaderboardTab === "likes" ? (
+                      <>
+                        <div style={{ ...styles.bestScore, color: "#F472B6" }}>
+                          ❤️ {formatCompact(entry.bestScore)}
+                        </div>
+                        <div style={styles.latestScore}>{locale === "mn" ? "нийт лайк" : locale === "ko" ? "총 좋아요" : "total likes"}</div>
                       </>
                     ) : (
                       <>
@@ -718,6 +921,16 @@ const styles = {
     background: "rgba(212,175,55,0.16)",
     border: "1px solid rgba(212,175,55,0.45)",
     color: "#D4AF37",
+  },
+  tabBtnViews: {
+    background: "rgba(96,165,250,0.16)",
+    border: "1px solid rgba(96,165,250,0.45)",
+    color: "#60A5FA",
+  },
+  tabBtnLikes: {
+    background: "rgba(244,114,182,0.16)",
+    border: "1px solid rgba(244,114,182,0.45)",
+    color: "#F472B6",
   },
   seasonLabel: {
     margin: "6px auto 0",
@@ -864,9 +1077,23 @@ const styles = {
     background: "rgba(193,18,31,0.1)",
     border: "1px solid rgba(193,18,31,0.28)",
   },
-  rowTop: {
-    background: "rgba(212,175,55,0.06)",
-    border: "1px solid rgba(212,175,55,0.18)",
+  rowFirst: {
+    background: "linear-gradient(145deg, rgba(212,175,55,0.1), rgba(212,175,55,0.03))",
+    border: "1px solid rgba(212,175,55,0.28)",
+    borderLeft: "3px solid #D4AF37",
+    borderRadius: "3px 16px 16px 3px",
+  },
+  rowSecond: {
+    background: "linear-gradient(145deg, rgba(156,163,175,0.08), rgba(156,163,175,0.02))",
+    border: "1px solid rgba(156,163,175,0.2)",
+    borderLeft: "3px solid #9CA3AF",
+    borderRadius: "3px 16px 16px 3px",
+  },
+  rowThird: {
+    background: "linear-gradient(145deg, rgba(251,146,60,0.08), rgba(251,146,60,0.02))",
+    border: "1px solid rgba(251,146,60,0.2)",
+    borderLeft: "3px solid #FB923C",
+    borderRadius: "3px 16px 16px 3px",
   },
   rankWrap: {
     display: "flex",
@@ -998,5 +1225,23 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     fontSize: 11,
+  },
+  badgeRow: {
+    display: "flex",
+    gap: 4,
+    marginTop: 5,
+    flexWrap: "wrap",
+  },
+  badge: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 3,
+    padding: "2px 7px",
+    borderRadius: 999,
+    border: "1px solid",
+    fontSize: 10,
+    fontWeight: 800,
+    letterSpacing: 0.2,
+    whiteSpace: "nowrap",
   },
 };

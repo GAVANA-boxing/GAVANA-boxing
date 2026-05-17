@@ -13,14 +13,7 @@ function LoadingFallback() {
       width: "100vw",
       height: "100vh",
       background: "#000",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      color: "#fff",
-      fontSize: 16,
-    }}>
-      Loading reels...
-    </div>
+    }} />
   );
 }
 

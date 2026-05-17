@@ -8,6 +8,7 @@ import {
   doc,
   documentId,
   getDocs,
+  increment,
   query,
   serverTimestamp,
   updateDoc,
@@ -18,6 +19,21 @@ import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
 import { db, storage } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
+
+function getCompleteness(gym) {
+  if (!gym) return 0;
+  let score = 0;
+  if (gym.gymName) score += 20;
+  if (gym.description) score += 15;
+  if (gym.logo) score += 15;
+  if (gym.city && gym.country) score += 10;
+  if (gym.district || gym.address) score += 10;
+  if (gym.specialties?.length > 0) score += 10;
+  if (gym.amenities?.length > 0) score += 10;
+  if (gym.phone) score += 5;
+  if (gym.instagram || gym.website) score += 5;
+  return Math.min(100, score);
+}
 
 const GYM_TYPES = [
   "Boxing", "MMA", "Muay Thai", "Fitness",
@@ -48,6 +64,7 @@ export default function GymDashboardPage() {
   const [checking, setChecking] = useState(true);
   const [gym, setGym] = useState(null); // null = not registered yet
   const [joinRequests, setJoinRequests] = useState([]);
+  const [members, setMembers] = useState([]);
   const [requesterUsers, setRequesterUsers] = useState({});
   const [announcements, setAnnouncements] = useState([]);
   const [updatingId, setUpdatingId] = useState(null);
@@ -97,16 +114,23 @@ export default function GymDashboardPage() {
           setGym(gymDoc);
           // Load join requests and announcements for this gym
           const [reqSnap, annSnap] = await Promise.all([
-            getDocs(query(collection(db, "gym_join_requests"), where("gymId", "==", gymDoc.id), where("status", "==", "pending"))),
+            getDocs(query(collection(db, "gym_join_requests"), where("gymId", "==", gymDoc.id))),
             getDocs(query(collection(db, "gym_announcements"), where("gymId", "==", gymDoc.id))),
           ]);
           if (active) {
-            const reqDocs = reqSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-            setJoinRequests(reqDocs);
-            setAnnouncements(annSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+            const allReqDocs = reqSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            const pendingDocs = allReqDocs.filter((r) => r.status === "pending" || !r.status);
+            const approvedDocs = allReqDocs.filter((r) => r.status === "approved");
+            setJoinRequests(pendingDocs);
+            setMembers(approvedDocs);
+            setAnnouncements(annSnap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => {
+              const aMs = a.createdAt?.toMillis?.() || a.createdAt?.toDate?.()?.getTime?.() || 0;
+              const bMs = b.createdAt?.toMillis?.() || b.createdAt?.toDate?.()?.getTime?.() || 0;
+              return bMs - aMs;
+            }));
 
-            // Batch-load requester profiles
-            const uniqueIds = [...new Set(reqDocs.map((r) => r.userId).filter(Boolean))];
+            // Batch-load profiles for pending requesters and approved members
+            const uniqueIds = [...new Set(allReqDocs.map((r) => r.userId).filter(Boolean))];
             if (uniqueIds.length > 0) {
               const chunks = [];
               for (let i = 0; i < uniqueIds.length; i += 10) chunks.push(uniqueIds.slice(i, i + 10));
@@ -140,7 +164,10 @@ export default function GymDashboardPage() {
   };
 
   const handleRegister = async () => {
-    if (!gymName.trim()) { setRegisterError(t("gymRegisterName") + " is required."); return; }
+    if (!gymName.trim()) {
+      setRegisterError(locale === "mn" ? "Gym-ийн нэр заавал шаардлагатай." : locale === "ko" ? "체육관 이름은 필수입니다." : "Gym name is required.");
+      return;
+    }
     setRegisterError("");
     setSubmitting(true);
     try {
@@ -196,7 +223,7 @@ export default function GymDashboardPage() {
         reviewedAt: serverTimestamp(),
       });
       if (action === "approved") {
-        await updateDoc(doc(db, "gyms", gym.id), { memberCount: (gym.memberCount || 0) + 1 });
+        await updateDoc(doc(db, "gyms", gym.id), { memberCount: increment(1) });
         setGym((g) => ({ ...g, memberCount: (g.memberCount || 0) + 1 }));
         if (req.userId) {
           await addDoc(collection(db, "notifications"), {
@@ -262,7 +289,38 @@ export default function GymDashboardPage() {
   };
 
   if (authLoading || checking) {
-    return <div style={styles.loading}>{t("loading")}</div>;
+    return (
+      <div style={styles.page}>
+        <style>{`@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}.shimmer{background:linear-gradient(90deg,rgba(255,255,255,0.04) 0%,rgba(255,255,255,0.09) 50%,rgba(255,255,255,0.04) 100%);background-size:800px 100%;animation:shimmer 1.6s infinite;}`}</style>
+        <div style={styles.content}>
+          <div style={{ height: 20, width: 80, borderRadius: 6, background: "rgba(255,255,255,0.06)", marginBottom: 8 }} className="shimmer" />
+          <div style={{ height: 28, width: "60%", borderRadius: 8, background: "rgba(255,255,255,0.08)", marginBottom: 20 }} className="shimmer" />
+          <div style={{ display: "flex", borderRadius: 16, overflow: "hidden", border: "1px solid rgba(255,255,255,0.06)", marginBottom: 20 }}>
+            {[1,2,3,4].map((i) => (
+              <div key={i} style={{ flex: 1, padding: "14px 6px", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+                <div style={{ height: 20, width: 32, borderRadius: 4, background: "rgba(255,255,255,0.08)" }} className="shimmer" />
+                <div style={{ height: 10, width: 44, borderRadius: 4, background: "rgba(255,255,255,0.05)" }} className="shimmer" />
+              </div>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+            {[1,2,3,4].map((i) => <div key={i} style={{ flex: 1, height: 38, borderRadius: 10, background: "rgba(255,255,255,0.06)" }} className="shimmer" />)}
+          </div>
+          {[1,2,3].map((i) => (
+            <div key={i} style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,0.06)", padding: 14, marginBottom: 10 }}>
+              <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,0.08)" }} className="shimmer" />
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+                  <div style={{ height: 13, width: "50%", borderRadius: 6, background: "rgba(255,255,255,0.08)" }} className="shimmer" />
+                  <div style={{ height: 11, width: "30%", borderRadius: 6, background: "rgba(255,255,255,0.05)" }} className="shimmer" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
+      </div>
+    );
   }
   if (!user) return null;
 
@@ -288,7 +346,7 @@ export default function GymDashboardPage() {
               )}
             </div>
             <button type="button" style={styles.logoLabel} onClick={() => logoInputRef.current?.click()}>
-              Upload Logo
+              {locale === "mn" ? "Лого оруулах" : locale === "ko" ? "로고 업로드" : "Upload Logo"}
             </button>
             <input ref={logoInputRef} type="file" accept="image/*" onChange={handleLogoSelect} style={{ display: "none" }} />
           </div>
@@ -375,7 +433,7 @@ export default function GymDashboardPage() {
             {submitting ? t("gymRegisterSubmitting") : t("gymRegisterSubmit")}
           </button>
         </div>
-        <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
+        <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
       </div>
     );
   }
@@ -388,11 +446,11 @@ export default function GymDashboardPage() {
             <div style={{ fontSize: 52 }}>🏋️</div>
             <h2 style={styles.successTitle}>{t("gymRegisterSuccess")}</h2>
             <button type="button" style={styles.submitBtn} onClick={() => router.push(`/${locale}/gyms/${gym.id}`)}>
-              View Gym
+              {locale === "mn" ? "Gym харах" : locale === "ko" ? "체육관 보기" : "View Gym"}
             </button>
           </div>
         </div>
-        <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
+        <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
       </div>
     );
   }
@@ -406,6 +464,27 @@ export default function GymDashboardPage() {
         <div style={styles.dashHeader}>
           <p style={styles.kicker}>{t("gymDashboardKicker")}</p>
           <h1 style={styles.title}>{t("gymDashboard")}</h1>
+          {(() => {
+            const pct = getCompleteness(gym);
+            const label = locale === "mn" ? "Профайл дүүргэлт" : locale === "ko" ? "프로필 완성도" : "Profile completeness";
+            const color = pct >= 80 ? "#34D399" : pct >= 50 ? "#D4AF37" : "#C1121F";
+            return (
+              <div style={{ marginTop: 12, background: "rgba(255,255,255,0.04)", borderRadius: 12, padding: "10px 14px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.4 }}>{label}</span>
+                  <span style={{ fontSize: 13, fontWeight: 900, color }}>{pct}%</span>
+                </div>
+                <div style={{ height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 2, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 2, transition: "width 0.6s ease" }} />
+                </div>
+                {pct < 100 && (
+                  <p style={{ margin: "6px 0 0", fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                    {locale === "mn" ? "Gym профайлаа бөглөж илүү олон гишүүн татаарай." : locale === "ko" ? "프로필을 완성하면 더 많은 회원을 유치할 수 있습니다." : "Complete your profile to attract more members."}
+                  </p>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         {/* Stats panel */}
@@ -432,10 +511,12 @@ export default function GymDashboardPage() {
         </div>
 
         {/* Tabs */}
-        <div style={styles.tabs}>
+        <div style={{ ...styles.tabs, flexWrap: "wrap" }}>
           {[
-            { key: "requests", label: `${t("gymJoinRequests")} (${joinRequests.length})` },
-            { key: "announce", label: t("gymPostAnnouncement") },
+            { key: "requests", label: joinRequests.length > 0 ? `🔴 ${t("gymJoinRequests")} (${joinRequests.length})` : t("gymJoinRequests") },
+            { key: "members", label: locale === "mn" ? `👥 Гишүүд (${members.length})` : locale === "ko" ? `👥 회원 (${members.length})` : `👥 Members (${members.length})` },
+            { key: "sessions", label: locale === "mn" ? "📅 Хичээл" : locale === "ko" ? "📅 세션" : "📅 Sessions" },
+            { key: "announce", label: locale === "mn" ? "📢 Мэдэгдэл" : locale === "ko" ? "📢 공지" : "📢 Announce" },
           ].map(({ key, label }) => (
             <button
               key={key}
@@ -505,6 +586,75 @@ export default function GymDashboardPage() {
           </div>
         )}
 
+        {/* Members */}
+        {activeTab === "members" && (
+          <div>
+            {members.length === 0 ? (
+              <div style={styles.emptyState}>
+                <span style={{ fontSize: 40, opacity: 0.4 }}>👥</span>
+                <p style={styles.emptyText}>
+                  {locale === "mn" ? "Одоогоор гишүүн байхгүй" : locale === "ko" ? "아직 회원이 없습니다" : "No members yet"}
+                </p>
+              </div>
+            ) : (
+              <div style={styles.cardList}>
+                {members.map((mem) => {
+                  const mu = requesterUsers[mem.userId] || {};
+                  const name = mu.displayName || mu.username || mu.name || "Fighter";
+                  const photo = mu.photoURL || mu.profileImageUrl || "";
+                  const archetype = mu.archetype || "";
+                  const weightClass = mu.weightClass || "";
+                  const joinedAt = mem.reviewedAt?.toDate
+                    ? mem.reviewedAt.toDate().toLocaleDateString()
+                    : mem.createdAt?.toDate
+                    ? mem.createdAt.toDate().toLocaleDateString()
+                    : "";
+                  return (
+                    <button key={mem.id} type="button" style={{ ...styles.memberCard, width: "100%", textAlign: "left", cursor: "pointer" }} onClick={() => mem.userId && router.push(`/${locale}/profile/${mem.userId}`)}>
+                      <div style={styles.requestTop}>
+                        <div style={styles.reqAvatar}>
+                          {photo
+                            ? <img src={photo} alt="" style={styles.reqAvatarImg} />
+                            : <span style={styles.reqAvatarInitial}>{name[0]?.toUpperCase()}</span>
+                          }
+                        </div>
+                        <div style={styles.reqInfo}>
+                          <p style={styles.reqName}>{name}</p>
+                          <p style={styles.reqDate}>
+                            {archetype && weightClass ? `${archetype} · ${weightClass}` : archetype || weightClass || "Fighter"}
+                          </p>
+                        </div>
+                        <div style={styles.memberJoinedChip}>
+                          <span style={styles.memberJoinedLabel}>
+                            {locale === "mn" ? "Нэгдсэн" : locale === "ko" ? "가입" : "Joined"}
+                          </span>
+                          <span style={styles.memberJoinedDate}>{joinedAt}</span>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Sessions */}
+        {activeTab === "sessions" && (
+          <div style={styles.emptyState}>
+            <span style={{ fontSize: 48, opacity: 0.5 }}>📅</span>
+            <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#fff" }}>
+              {locale === "mn" ? "Хичээлийн хуваарь" : locale === "ko" ? "세션 일정" : "Session Schedule"}
+            </p>
+            <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.45)", textAlign: "center", maxWidth: 280, lineHeight: 1.6 }}>
+              {locale === "mn" ? "Coach-ууд таны gym дээр хичээл зааж эхлэхэд энд харагдана." : locale === "ko" ? "코치들이 체육관에서 세션을 시작하면 여기에 표시됩니다." : "When coaches schedule sessions at your gym, they will appear here."}
+            </p>
+            <button type="button" style={{ padding: "11px 24px", borderRadius: 999, border: "none", background: "linear-gradient(135deg,#C1121F,#7d0812)", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", marginTop: 4 }} onClick={() => router.push(`/${locale}/coach`)}>
+              {locale === "mn" ? "🎓 Coach хайх" : locale === "ko" ? "🎓 코치 찾기" : "🎓 Find Coaches"}
+            </button>
+          </div>
+        )}
+
         {/* Announcements */}
         {activeTab === "announce" && (
           <div>
@@ -537,7 +687,7 @@ export default function GymDashboardPage() {
 
             {announcements.length > 0 && (
               <div style={styles.annList}>
-                <p style={styles.sectionLabel}>Posted announcements</p>
+                <p style={styles.sectionLabel}>{locale === "mn" ? "Нийтэлсэн мэдэгдлүүд" : locale === "ko" ? "게시된 공지" : "Posted announcements"}</p>
                 {announcements.map((ann) => (
                   <div key={ann.id} style={styles.annCard}>
                     <p style={styles.annTitle}>{ann.title}</p>
@@ -550,7 +700,7 @@ export default function GymDashboardPage() {
         )}
       </div>
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
     </div>
   );
 }
@@ -608,6 +758,10 @@ const styles = {
   emptyText: { margin: 0, fontSize: 14, color: "rgba(255,255,255,0.55)" },
   cardList: { display: "flex", flexDirection: "column", gap: 10 },
   requestCard: { borderRadius: 14, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "14px" },
+  memberCard: { borderRadius: 14, border: "1px solid rgba(52,211,153,0.12)", background: "rgba(52,211,153,0.04)", padding: "14px" },
+  memberJoinedChip: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2, flexShrink: 0 },
+  memberJoinedLabel: { fontSize: 9, color: "rgba(255,255,255,0.45)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.4 },
+  memberJoinedDate: { fontSize: 11, color: "rgba(255,255,255,0.65)", fontWeight: 600 },
   requestTop: { display: "flex", alignItems: "center", gap: 10, marginBottom: 8 },
   reqAvatar: { width: 40, height: 40, borderRadius: "50%", background: "rgba(193,18,31,0.2)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 },
   reqAvatarImg: { width: "100%", height: "100%", objectFit: "cover" },

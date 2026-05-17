@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, serverTimestamp, where } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, increment, query, serverTimestamp, updateDoc, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
@@ -112,6 +112,11 @@ export default function CoachProfilePage() {
 
   // Completed booking eligible for review
   const [eligibleBooking, setEligibleBooking] = useState(null);
+
+  // Training programs
+  const [programs, setPrograms] = useState([]);
+  const [enrolledIds, setEnrolledIds] = useState(new Set()); // programIds user is enrolled in
+  const [enrolling, setEnrolling] = useState(null); // programId being toggled
 
   useEffect(() => {
     if (!coachId) return;
@@ -275,6 +280,65 @@ export default function CoachProfilePage() {
       setReviewError(t("coachReviewError"));
     } finally {
       setReviewSubmitting(false);
+    }
+  };
+
+  // Load training programs for this coach + own enrollments
+  useEffect(() => {
+    if (!coachId) return;
+    let active = true;
+    async function loadPrograms() {
+      try {
+        const snap = await getDocs(query(collection(db, "training_programs"), where("coachId", "==", coachId)));
+        if (!active) return;
+        setPrograms(snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0)));
+      } catch { if (active) setPrograms([]); }
+    }
+    loadPrograms();
+    return () => { active = false; };
+  }, [coachId]);
+
+  useEffect(() => {
+    if (!user?.uid) { setEnrolledIds(new Set()); return; }
+    let active = true;
+    async function loadEnrollments() {
+      try {
+        const snap = await getDocs(query(collection(db, "program_enrollments"), where("userId", "==", user.uid)));
+        if (!active) return;
+        setEnrolledIds(new Set(snap.docs.map((d) => d.data().programId)));
+      } catch { if (active) setEnrolledIds(new Set()); }
+    }
+    loadEnrollments();
+    return () => { active = false; };
+  }, [user?.uid]);
+
+  const handleEnroll = async (program) => {
+    if (!user) { router.push(`/${locale}/login`); return; }
+    if (enrolling) return;
+    setEnrolling(program.id);
+    const alreadyEnrolled = enrolledIds.has(program.id);
+    try {
+      if (alreadyEnrolled) {
+        const snap = await getDocs(query(collection(db, "program_enrollments"), where("userId", "==", user.uid), where("programId", "==", program.id)));
+        await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)));
+        await updateDoc(doc(db, "training_programs", program.id), { enrolledCount: increment(-1) }).catch(() => {});
+        setEnrolledIds((prev) => { const next = new Set(prev); next.delete(program.id); return next; });
+        setPrograms((prev) => prev.map((p) => p.id === program.id ? { ...p, enrolledCount: Math.max(0, (p.enrolledCount || 1) - 1) } : p));
+      } else {
+        await addDoc(collection(db, "program_enrollments"), {
+          userId: user.uid,
+          programId: program.id,
+          coachId: program.coachId,
+          enrolledAt: serverTimestamp(),
+        });
+        await updateDoc(doc(db, "training_programs", program.id), { enrolledCount: increment(1) }).catch(() => {});
+        setEnrolledIds((prev) => new Set([...prev, program.id]));
+        setPrograms((prev) => prev.map((p) => p.id === program.id ? { ...p, enrolledCount: (p.enrolledCount || 0) + 1 } : p));
+      }
+    } catch (e) {
+      console.error("Enroll error:", e);
+    } finally {
+      setEnrolling(null);
     }
   };
 
@@ -517,6 +581,77 @@ export default function CoachProfilePage() {
         )}
       </div>
 
+      {/* Training Programs section */}
+      {programs.length > 0 && (
+        <div style={styles.section}>
+          <h2 style={styles.sectionTitle}>
+            📋 {locale === "mn" ? "Дасгалжуулагчийн програм" : locale === "ko" ? "트레이닝 프로그램" : "Training Programs"}
+          </h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {programs.map((prog) => {
+              const enrolled = enrolledIds.has(prog.id);
+              const isBusy = enrolling === prog.id;
+              const LEVEL_COLOR = { beginner: "#34D399", intermediate: "#D4AF37", advanced: "#C1121F" };
+              const levelColor = LEVEL_COLOR[prog.level] || "#888";
+              return (
+                <div key={prog.id} style={{
+                  background: "linear-gradient(145deg, #111012, #0a0a0a)",
+                  border: "1px solid rgba(255,255,255,0.07)",
+                  borderLeft: `2.5px solid ${levelColor}`,
+                  borderRadius: "3px 14px 14px 3px",
+                  padding: "14px 14px 12px",
+                  display: "flex", flexDirection: "column", gap: 10,
+                }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 900, color: "#fff", marginBottom: 4 }}>{prog.title}</div>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: prog.description ? 6 : 0 }}>
+                        <span style={{ fontSize: 10, fontWeight: 800, color: levelColor, background: `${levelColor}15`, border: `1px solid ${levelColor}44`, borderRadius: 999, padding: "2px 8px" }}>
+                          {prog.level ? prog.level.charAt(0).toUpperCase() + prog.level.slice(1) : ""}
+                        </span>
+                        {prog.duration && (
+                          <span style={{ fontSize: 10, fontWeight: 700, color: "#888", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 999, padding: "2px 8px" }}>
+                            📅 {prog.duration} {locale === "mn" ? "өдөр" : locale === "ko" ? "일" : "days"}
+                          </span>
+                        )}
+                        {prog.enrolledCount > 0 && (
+                          <span style={{ fontSize: 10, fontWeight: 700, color: "#888", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 999, padding: "2px 8px" }}>
+                            👥 {prog.enrolledCount}
+                          </span>
+                        )}
+                      </div>
+                      {prog.description && (
+                        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>
+                          {prog.description.slice(0, 100)}{prog.description.length > 100 ? "…" : ""}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {!isOwnProfile && (
+                    <button
+                      type="button"
+                      onClick={() => handleEnroll(prog)}
+                      disabled={isBusy}
+                      style={{
+                        padding: "9px 0", borderRadius: 10, border: enrolled ? `1px solid ${levelColor}44` : "none",
+                        background: enrolled ? `${levelColor}12` : `linear-gradient(135deg, ${levelColor}, ${levelColor}bb)`,
+                        color: enrolled ? levelColor : "#fff",
+                        fontSize: 12, fontWeight: 900, cursor: isBusy ? "wait" : "pointer",
+                        opacity: isBusy ? 0.6 : 1,
+                      }}
+                    >
+                      {isBusy ? "…" : enrolled
+                        ? (locale === "mn" ? "✓ Дагасан" : locale === "ko" ? "✓ 등록됨" : "✓ Enrolled")
+                        : (locale === "mn" ? "Програм дагах" : locale === "ko" ? "프로그램 등록" : "Follow Program")}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Reels section */}
       {reels.length > 0 && (
         <div style={styles.section}>
@@ -540,7 +675,7 @@ export default function CoachProfilePage() {
         </div>
       )}
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
     </main>
   );
 }
