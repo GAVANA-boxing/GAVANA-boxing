@@ -120,10 +120,13 @@ export default function LeaderboardPage() {
   const [weightFilter, setWeightFilter] = useState("all");
   const [reelsStats, setReelsStats] = useState({});
   const [shareCopied, setShareCopied] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(20);
   const weeklyCountdownMs = useWeeklyCountdown();
 
   const currentSeasonId = useMemo(() => getCurrentSeasonId(), []);
   const seasonLabel = useMemo(() => getSeasonLabel(currentSeasonId), [currentSeasonId]);
+
+  useEffect(() => { setVisibleCount(20); }, [leaderboardTab, archetypeFilter, weightFilter]);
 
   useEffect(() => {
     let active = true;
@@ -402,8 +405,9 @@ export default function LeaderboardPage() {
           type="button"
           style={styles.backBtn}
           onClick={() => router.push(`/${locale}/discover`)}
+          aria-label="Back"
         >
-          {t("back")}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
         <div style={styles.headerCenter}>
           <p style={styles.eyebrow}>GAVANA BOXING</p>
@@ -471,15 +475,13 @@ export default function LeaderboardPage() {
         {leaderboardTab === "week" && (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 4px 0" }}>
             <p style={{ ...styles.seasonLabel, margin: 0 }}>{seasonLabel}</p>
-            {weeklyCountdownMs !== null && (
-              <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 999, background: "rgba(193,18,31,0.1)", border: "1px solid rgba(193,18,31,0.25)" }}>
-                <span style={{ fontSize: 10 }}>⏱</span>
-                <span style={{ fontSize: 10, fontWeight: 800, color: "#F87171", letterSpacing: 0.3 }}>
-                  {locale === "mn" ? "Шинэчлэгдэнэ: " : locale === "ko" ? "리셋: " : "Resets: "}
-                  {formatCountdown(weeklyCountdownMs, locale)}
-                </span>
-              </div>
-            )}
+            <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 999, background: "rgba(193,18,31,0.1)", border: "1px solid rgba(193,18,31,0.25)" }}>
+              <span style={{ fontSize: 10 }}>⏱</span>
+              <span style={{ fontSize: 10, fontWeight: 800, color: "#F87171", letterSpacing: 0.3 }}>
+                {locale === "mn" ? "Шинэчлэгдэнэ: " : locale === "ko" ? "리셋: " : "Resets: "}
+                {weeklyCountdownMs !== null ? formatCountdown(weeklyCountdownMs, locale) : "—"}
+              </span>
+            </div>
           </div>
         )}
       </div>
@@ -692,7 +694,7 @@ export default function LeaderboardPage() {
         {/* Leaderboard list */}
         {!loading && filteredDisplayEntries.length > 0 && (
           <div style={styles.list}>
-            {filteredDisplayEntries.map((entry, index) => {
+            {filteredDisplayEntries.slice(0, visibleCount).map((entry, index) => {
               const rank = index + 1;
               const medal = getRankMedal(rank);
               const profile = profiles[entry.userId] || {};
@@ -851,6 +853,15 @@ export default function LeaderboardPage() {
                 </div>
               );
             })}
+            {filteredDisplayEntries.length > visibleCount && (
+              <button
+                type="button"
+                onClick={() => setVisibleCount((c) => c + 20)}
+                style={{ width: "100%", padding: "14px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.6)", fontSize: 13, fontWeight: 800, cursor: "pointer", marginTop: 4 }}
+              >
+                {locale === "mn" ? `Дахин ${Math.min(20, filteredDisplayEntries.length - visibleCount)} байлдагч харах` : locale === "ko" ? `${Math.min(20, filteredDisplayEntries.length - visibleCount)}명 더 보기` : `Load ${Math.min(20, filteredDisplayEntries.length - visibleCount)} more`}
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -892,10 +903,13 @@ const styles = {
     background: "transparent",
     color: "#fff",
     borderRadius: 10,
-    padding: "8px 10px",
+    width: 40,
+    height: 40,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     cursor: "pointer",
-    fontSize: 13,
-    fontWeight: 700,
+    flexShrink: 0,
   },
   headerCenter: {
     textAlign: "center",

@@ -178,6 +178,7 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState("all");
   const [clearing, setClearing] = useState(false);
+  const [toast, setToast] = useState(null);
   const [actorProfiles, setActorProfiles] = useState({});
   const actorProfileRequests = useRef(new Set());
 
@@ -314,6 +315,11 @@ export default function NotificationsPage() {
     }, {});
   }, [filteredNotifications]);
 
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  };
+
   const handleClearRead = async () => {
     const cutoff = Date.now() - 24 * 60 * 60 * 1000;
     const staleReadIds = notifications
@@ -325,6 +331,7 @@ export default function NotificationsPage() {
       await Promise.all(staleReadIds.map((id) => deleteDoc(doc(db, "notifications", id))));
     } catch (e) {
       console.error("Clear read notifications error:", e);
+      showToast(locale === "mn" ? "Арилгахад алдаа гарлаа" : locale === "ko" ? "삭제 실패" : "Failed to clear notifications");
     } finally {
       setClearing(false);
     }
@@ -333,7 +340,19 @@ export default function NotificationsPage() {
   const handleMarkAllRead = async () => {
     const unreadIds = notifications.filter((n) => n.read === false).map((n) => n.id);
     if (!unreadIds.length) return;
-    await Promise.all(unreadIds.map((id) => updateDoc(doc(db, "notifications", id), { read: true }).catch(() => {})));
+    try {
+      await Promise.all(unreadIds.map((id) => updateDoc(doc(db, "notifications", id), { read: true })));
+    } catch (e) {
+      console.error("Mark all read error:", e);
+      showToast(locale === "mn" ? "Уншигдсан болгоход алдаа гарлаа" : locale === "ko" ? "읽음 표시 실패" : "Failed to mark all as read");
+    }
+  };
+
+  const handleDismissNotification = (e, notificationId) => {
+    e.stopPropagation();
+    deleteDoc(doc(db, "notifications", notificationId)).catch((err) => {
+      console.error("Dismiss notification error:", err);
+    });
   };
 
   const handleOpenNotification = async (notification) => {
@@ -447,7 +466,9 @@ export default function NotificationsPage() {
     return (
       <div style={styles.page}>
         <header style={styles.header}>
-          <button style={styles.backButton} onClick={() => router.push(`/${locale}/reels`)}>{t("back")}</button>
+          <button style={styles.backButton} onClick={() => router.push(`/${locale}/reels`)} aria-label="Back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
           <div>
             <p style={styles.eyebrow}>GAVANA BOXING</p>
             <h1 style={styles.title}>{t("notifications")}</h1>
@@ -466,8 +487,8 @@ export default function NotificationsPage() {
   return (
     <main style={styles.page} className="page-enter">
       <header style={styles.header}>
-        <button style={styles.backButton} onClick={() => router.push(`/${locale}/reels`)}>
-          {t("back")}
+        <button style={styles.backButton} onClick={() => router.push(`/${locale}/reels`)} aria-label="Back">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
         <div>
           <p style={styles.eyebrow}>GAVANA BOXING</p>
@@ -532,7 +553,7 @@ export default function NotificationsPage() {
                   const typeIcon = getTypeIcon(notification.type);
 
                   return (
-                    <button
+                    <div
                       key={notification.id}
                       style={{
                         ...styles.notification,
@@ -540,7 +561,10 @@ export default function NotificationsPage() {
                           ? "linear-gradient(90deg, rgba(193,18,31,0.12) 0%, rgba(12,10,10,0.96) 50%)"
                           : "rgba(255,255,255,0.025)",
                       }}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => handleOpenNotification(notification)}
+                      onKeyDown={(e) => { if (e.key === "Enter") handleOpenNotification(notification); }}
                     >
                       {/* Unread bar */}
                       {notification.read === false && (
@@ -584,7 +608,16 @@ export default function NotificationsPage() {
                           <div style={styles.commentPreview}>{notification.text}</div>
                         )}
                       </div>
-                    </button>
+                      <button
+                        style={styles.dismissBtn}
+                        onClick={(e) => handleDismissNotification(e, notification.id)}
+                        aria-label="Dismiss"
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                        </svg>
+                      </button>
+                    </div>
                   );
                 })}
               </div>
@@ -593,6 +626,12 @@ export default function NotificationsPage() {
         )}
       </section>
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="alerts" />
+
+      {toast && (
+        <div style={styles.toast}>
+          {toast}
+        </div>
+      )}
     </main>
   );
 }
@@ -652,10 +691,13 @@ const styles = {
     background: "rgba(255,255,255,0.07)",
     color: "rgba(255,255,255,0.7)",
     borderRadius: 10,
-    padding: "8px 10px",
+    width: 40,
+    height: 40,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     cursor: "pointer",
-    fontSize: 13,
-    fontWeight: 700,
+    flexShrink: 0,
   },
   eyebrow: {
     margin: 0,
@@ -919,6 +961,39 @@ const styles = {
     fontWeight: 800,
     cursor: "pointer",
     whiteSpace: "nowrap",
+  },
+  dismissBtn: {
+    flexShrink: 0,
+    width: 26,
+    height: 26,
+    border: "none",
+    background: "transparent",
+    color: "rgba(255,255,255,0.22)",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 8,
+    padding: 0,
+    marginLeft: 4,
+    transition: "color 0.15s, background 0.15s",
+  },
+  toast: {
+    position: "fixed",
+    bottom: "calc(72px + env(safe-area-inset-bottom))",
+    left: "50%",
+    transform: "translateX(-50%)",
+    zIndex: 9999,
+    background: "rgba(30,10,10,0.97)",
+    border: "1px solid rgba(248,113,113,0.35)",
+    color: "#F87171",
+    padding: "10px 20px",
+    borderRadius: 12,
+    fontSize: 13,
+    fontWeight: 700,
+    whiteSpace: "nowrap",
+    boxShadow: "0 4px 24px rgba(0,0,0,0.4)",
+    pointerEvents: "none",
   },
 };
 
