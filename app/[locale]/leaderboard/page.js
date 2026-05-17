@@ -575,6 +575,29 @@ export default function LeaderboardPage() {
               {(currentUserWeeklyRank || currentUserAllTimeRank) && currentUserAllTimeEntry && "  ·  "}
               {currentUserAllTimeEntry && `${currentUserAllTimeEntry.xp.toLocaleString()} ${t("xpLabel")}`}
             </div>
+            {(() => {
+              const topEntry = leaderboardTab === "week" ? weeklyEntries[0] : entries[0];
+              const userScore = leaderboardTab === "week" ? (currentUserWeeklyEntry?.bestScore ?? null) : (currentUserAllTimeEntry?.bestScore ?? null);
+              const topScore = topEntry?.bestScore ?? null;
+              if (!topEntry || userScore === null || topScore === null) return null;
+              if (topEntry.userId === user?.uid) return (
+                <div style={{ marginTop: 6, fontSize: 11, fontWeight: 800, color: "#D4AF37" }}>
+                  👑 {locale === "mn" ? "Та тэргүүлж байна!" : locale === "ko" ? "1위입니다!" : "You're #1!"}
+                </div>
+              );
+              const gap = Math.max(0, topScore - userScore).toFixed(1);
+              return (
+                <div style={{ marginTop: 6, fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.38)", display: "flex", alignItems: "center", gap: 4 }}>
+                  <span style={{ color: "#C1121F", fontWeight: 900 }}>-{gap}</span>
+                  <span>{locale === "mn" ? "1-р байрнаас" : locale === "ko" ? "1위와의 차이" : "pts from #1"}</span>
+                  <span style={{ color: "rgba(255,255,255,0.25)" }}>· #{1}</span>
+                  <span style={{ color: "rgba(255,255,255,0.5)" }}>
+                    {profiles[topEntry.userId]?.displayName?.split(" ")[0] || profiles[topEntry.userId]?.username || "Fighter"}
+                  </span>
+                  <span style={{ color: "rgba(255,255,255,0.25)" }}>({topScore}/10)</span>
+                </div>
+              );
+            })()}
           </div>
         )}
 
