@@ -150,6 +150,7 @@ export default function GymsPage() {
   const [myMemberships, setMyMemberships] = useState([]);
   const [myMembershipsLoading, setMyMembershipsLoading] = useState(false);
   const myMembershipsLoadedRef = useRef(false);
+  const [ownedGym, setOwnedGym] = useState(null);
   const [searchText, setSearchText] = useState("");
   const [selectedType, setSelectedType] = useState("all");
   const [sortMode, setSortMode] = useState("topRated"); // topRated | newest | nearby
@@ -186,10 +187,17 @@ export default function GymsPage() {
     myMembershipsLoadedRef.current = true;
     let active = true;
     setMyMembershipsLoading(true);
-    getDocs(query(collection(db, "gym_join_requests"), where("userId", "==", user.uid)))
-      .then(async (snap) => {
+    Promise.all([
+      getDocs(query(collection(db, "gym_join_requests"), where("userId", "==", user.uid))),
+      getDocs(query(collection(db, "gyms"), where("ownerId", "==", user.uid))),
+    ])
+      .then(async ([reqSnap, ownedSnap]) => {
         if (!active) return;
-        const reqs = snap.docs
+        if (!ownedSnap.empty) {
+          const od = ownedSnap.docs[0];
+          setOwnedGym({ id: od.id, ...od.data() });
+        }
+        const reqs = reqSnap.docs
           .map((d) => ({ id: d.id, ...d.data() }))
           .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
         const gymIds = [...new Set(reqs.map((r) => r.gymId).filter(Boolean))];
@@ -325,7 +333,7 @@ export default function GymsPage() {
               <div style={styles.skeletonList}>
                 {[0, 1].map((i) => <div key={i} style={styles.skeletonCard} className="sk-pulse" />)}
               </div>
-            ) : myMemberships.length === 0 ? (
+            ) : myMemberships.length === 0 && !ownedGym ? (
               <div style={styles.emptyState}>
                 <div style={{ fontSize: 40, opacity: 0.4 }}>🏋️</div>
                 <p style={styles.emptyText}>{locale === "mn" ? "Gym-д элсээгүй байна" : locale === "ko" ? "체육관에 가입하지 않았습니다" : "Not in any gym yet"}</p>
@@ -342,6 +350,39 @@ export default function GymsPage() {
               </div>
             ) : (
               <div style={styles.cardList}>
+                {ownedGym && (
+                  <div
+                    style={{ ...styles.card, borderLeft: "2.5px solid #D4AF37", borderRadius: "3px 16px 16px 3px", cursor: "pointer" }}
+                    onClick={() => router.push(`/${locale}/gyms/${ownedGym.id}`)}
+                  >
+                    <div style={styles.cardImageWrap}>
+                      {ownedGym.logo
+                        ? <img src={ownedGym.logo} alt="" style={styles.cardLogo} />
+                        : <div style={styles.cardLogoFallback}><span style={{ fontSize: 28 }}>🥊</span></div>
+                      }
+                      <span style={{ position: "absolute", bottom: 8, right: 10, padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 900, background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.5)", color: "#D4AF37" }}>
+                        👑 {locale === "mn" ? "Эзэмшигч" : locale === "ko" ? "오너" : "Owner"}
+                      </span>
+                    </div>
+                    <div style={styles.cardBody}>
+                      <div style={styles.cardNameRow}>
+                        <span style={styles.cardName}>{ownedGym.gymName}</span>
+                        {ownedGym.verified && <span style={styles.verifiedBadge}>✓</span>}
+                      </div>
+                      {(ownedGym.city || ownedGym.country) && (
+                        <div style={styles.cardLocation}>📍 {[ownedGym.city, ownedGym.country].filter(Boolean).join(", ")}</div>
+                      )}
+                      {ownedGym.gymType && <span style={styles.typeChip}>{t(GYM_TYPE_KEYS[ownedGym.gymType]) || ownedGym.gymType}</span>}
+                      <button
+                        type="button"
+                        style={{ marginTop: 10, padding: "8px 16px", borderRadius: 10, border: "1px solid rgba(212,175,55,0.4)", background: "rgba(212,175,55,0.1)", color: "#D4AF37", fontSize: 12, fontWeight: 900, cursor: "pointer" }}
+                        onClick={(e) => { e.stopPropagation(); router.push(`/${locale}/gyms/dashboard`); }}
+                      >
+                        ⚙️ {locale === "mn" ? "Удирдах" : locale === "ko" ? "관리" : "Manage"}
+                      </button>
+                    </div>
+                  </div>
+                )}
                 {myMemberships.map((mem) => {
                   const gym = mem.gym;
                   const st = GYM_STATUS[mem.status] || GYM_STATUS.pending;

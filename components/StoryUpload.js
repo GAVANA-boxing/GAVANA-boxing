@@ -118,6 +118,7 @@ export default function StoryUpload({ locale, initialType = "training_clip" }) {
 
   return (
     <div style={s.page}>
+      <style>{`.story-type-row::-webkit-scrollbar{display:none}`}</style>
       {/* Header */}
       <div style={s.header}>
         <button type="button" style={s.closeBtn} onClick={() => router.back()}>✕</button>
@@ -133,7 +134,7 @@ export default function StoryUpload({ locale, initialType = "training_clip" }) {
       </div>
 
       {/* Story type chips */}
-      <div style={s.typeRow}>
+      <div style={s.typeRow} className="story-type-row">
         {STORY_TYPES.map(st => (
           <button
             key={st.key}
@@ -226,7 +227,7 @@ const s = {
   title: { fontSize: 15, fontWeight: 800, color: "#fff", letterSpacing: 0.3 },
   postBtn: { background: "linear-gradient(135deg, #C1121F, #8f0d17)", border: "none", borderRadius: 999, padding: "9px 22px", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", boxShadow: "0 4px 16px rgba(193,18,31,0.35)" },
   postBtnGray: { background: "rgba(193,18,31,0.2)", border: "1px solid rgba(193,18,31,0.2)", borderRadius: 999, padding: "9px 22px", color: "rgba(255,255,255,0.3)", fontSize: 13, cursor: "not-allowed" },
-  typeRow: { display: "flex", gap: 6, overflowX: "auto", padding: "10px 16px", paddingRight: 88, scrollbarWidth: "none", borderBottom: "1px solid rgba(255,255,255,0.05)" },
+  typeRow: { display: "flex", flexWrap: "nowrap", gap: 6, overflowX: "auto", padding: "10px 16px", paddingRight: 88, scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch", borderBottom: "1px solid rgba(255,255,255,0.05)" },
   typeChip: { flexShrink: 0, display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.09)", background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.4)", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" },
   typeActive: { flexShrink: 0, display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.5)", background: "rgba(193,18,31,0.12)", color: "#ff6b6b", fontSize: 12, fontWeight: 900, cursor: "pointer", whiteSpace: "nowrap" },
   mediaArea: { flex: 1, padding: "16px 16px 0" },
