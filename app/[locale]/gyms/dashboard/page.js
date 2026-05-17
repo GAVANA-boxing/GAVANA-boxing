@@ -489,25 +489,25 @@ export default function GymDashboardPage() {
 
         {/* Stats panel */}
         <div style={styles.statsPanel}>
-          <div style={styles.statCell}>
+          <button type="button" style={styles.statCellBtn} onClick={() => setActiveTab("members")}>
             <span style={styles.statNum}>{gym.memberCount || 0}</span>
             <span style={styles.statLbl}>{t("gymMembers")}</span>
-          </div>
+          </button>
           <div style={styles.statDivider} />
-          <div style={styles.statCell}>
+          <button type="button" style={styles.statCellBtn} onClick={() => router.push(`/${locale}/gyms/${gym.id}#reviews`)}>
             <span style={styles.statNum}>{gym.totalReviews || 0}</span>
             <span style={styles.statLbl}>{t("gymReviews")}</span>
-          </div>
+          </button>
           <div style={styles.statDivider} />
-          <div style={styles.statCell}>
+          <button type="button" style={styles.statCellBtn} onClick={() => router.push(`/${locale}/gyms/${gym.id}#reviews`)}>
             <span style={styles.statNum}>{gym.rating ? gym.rating.toFixed(1) : "—"}</span>
             <span style={styles.statLbl}>{t("gymRating")}</span>
-          </div>
+          </button>
           <div style={styles.statDivider} />
-          <div style={styles.statCell}>
-            <span style={styles.statNum}>{joinRequests.length}</span>
+          <button type="button" style={{ ...styles.statCellBtn, ...(joinRequests.length > 0 ? { color: "#C1121F" } : {}) }} onClick={() => setActiveTab("requests")}>
+            <span style={{ ...styles.statNum, ...(joinRequests.length > 0 ? { color: "#F87171" } : {}) }}>{joinRequests.length}</span>
             <span style={styles.statLbl}>{t("gymJoinRequests")}</span>
-          </div>
+          </button>
         </div>
 
         {/* Tabs */}
@@ -748,6 +748,7 @@ const styles = {
   successTitle: { margin: 0, fontSize: 22, fontWeight: 1000, color: "#fff" },
   statsPanel: { display: "flex", borderRadius: 16, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", marginBottom: 20, overflow: "hidden" },
   statCell: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, padding: "14px 6px" },
+  statCellBtn: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, padding: "14px 6px", background: "none", border: "none", cursor: "pointer", color: "inherit", transition: "background 120ms ease", borderRadius: 0 },
   statNum: { fontSize: 18, fontWeight: 1000, color: "#fff" },
   statLbl: { fontSize: 9, color: "rgba(255,255,255,0.58)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.4, textAlign: "center" },
   statDivider: { width: 1, background: "rgba(255,255,255,0.07)", alignSelf: "stretch" },
