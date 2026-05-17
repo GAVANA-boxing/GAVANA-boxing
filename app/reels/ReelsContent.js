@@ -2017,6 +2017,16 @@ export default function ReelsContent() {
                       <span style={styles.onFireBadge}>{"🔥"}</span>
                     )}
                   </button>
+                  {creatorStatLine ? (
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", fontWeight: 700, marginTop: 2, letterSpacing: 0.2 }}>
+                      {creatorStatLine}
+                    </div>
+                  ) : null}
+                  {reel.gymId && gymNames[reel.gymId] ? (
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 600, marginTop: 1 }}>
+                      🏋️ {gymNames[reel.gymId]}
+                    </div>
+                  ) : null}
                 </div>
               </div>
               {captionText && (
@@ -2460,13 +2470,20 @@ export default function ReelsContent() {
           <div style={styles.filterSheet} onClick={(e) => e.stopPropagation()}>
             <div style={styles.filterSheetHandle} />
             <div style={styles.filterSheetHeader}>
-              <span style={styles.filterSheetTitle}>FILTERS</span>
+              <span style={styles.filterSheetTitle}>
+                {currentLocale === "mn" ? "ШҮҮЛТҮҮР" : currentLocale === "ko" ? "필터" : "FILTERS"}
+              </span>
               <button type="button" style={styles.filterSheetClose} onClick={() => setShowFilterSheet(false)}>✕</button>
             </div>
             <div style={styles.filterSheetBody}>
-              <p style={styles.filterSheetLabel}>LEVEL</p>
+              <p style={styles.filterSheetLabel}>
+                {currentLocale === "mn" ? "ТҮВШИН" : currentLocale === "ko" ? "레벨" : "LEVEL"}
+              </p>
               <div style={styles.filterSheetRow}>
-                {[{ key: "all", label: "All levels" }, { key: "beginner", label: "🟢 Beginner" }].map(({ key, label }) => (
+                {[
+                  { key: "all", label: currentLocale === "mn" ? "Бүх түвшин" : currentLocale === "ko" ? "전체" : "All levels" },
+                  { key: "beginner", label: currentLocale === "mn" ? "🟢 Анхан шат" : currentLocale === "ko" ? "🟢 초급" : "🟢 Beginner" },
+                ].map(({ key, label }) => (
                   <button
                     key={key}
                     type="button"
@@ -2477,13 +2494,15 @@ export default function ReelsContent() {
                   </button>
                 ))}
               </div>
-              <p style={{ ...styles.filterSheetLabel, marginTop: 16 }}>CONTENT</p>
+              <p style={{ ...styles.filterSheetLabel, marginTop: 16 }}>
+                {currentLocale === "mn" ? "КОНТЕНТ" : currentLocale === "ko" ? "콘텐츠" : "CONTENT"}
+              </p>
               <div style={styles.filterSheetRow}>
                 {[
-                  { key: "all", label: "📂 All" },
-                  { key: "training", label: "🥊 Training" },
-                  { key: "lifestyle", label: "🎬 Lifestyle" },
-                  { key: "educational", label: "📚 Education" },
+                  { key: "all", label: currentLocale === "mn" ? "📂 Бүгд" : currentLocale === "ko" ? "📂 전체" : "📂 All" },
+                  { key: "training", label: currentLocale === "mn" ? "🥊 Дасгал" : currentLocale === "ko" ? "🥊 훈련" : "🥊 Training" },
+                  { key: "lifestyle", label: currentLocale === "mn" ? "🎬 Lifestyle" : currentLocale === "ko" ? "🎬 라이프스타일" : "🎬 Lifestyle" },
+                  { key: "educational", label: currentLocale === "mn" ? "📚 Сургалт" : currentLocale === "ko" ? "📚 교육" : "📚 Education" },
                 ].map(({ key, label }) => (
                   <button
                     key={key}
@@ -2501,7 +2520,7 @@ export default function ReelsContent() {
                   style={styles.filterClearBtn}
                   onClick={() => { setDiffFilter("all"); setCtFilter("all"); }}
                 >
-                  Clear filters
+                  {currentLocale === "mn" ? "Шүүлтүүр арилгах" : currentLocale === "ko" ? "필터 초기화" : "Clear filters"}
                 </button>
               )}
             </div>
