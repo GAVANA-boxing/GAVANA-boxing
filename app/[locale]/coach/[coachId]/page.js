@@ -8,6 +8,19 @@ import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 
+const SPECIALTY_COLORS = {
+  Amateur:      "#34D399",
+  Pro:          "#C1121F",
+  Sparring:     "#FB923C",
+  Defense:      "#60A5FA",
+  Counter:      "#60A5FA",
+  Footwork:     "#A78BFA",
+  "Pad work":   "#F59E0B",
+  Conditioning: "#34D399",
+  Beginners:    "#34D399",
+  Pressure:     "#F87171",
+};
+
 const BEST_FOR_MAP = {
   Footwork: { en: "Fighters wanting better ring movement & pivots", mn: "Хөдөлгөөн, хөлийн ажлаа сайжруулахыг хүсэгчид", ko: "이동 동작을 향상시키려는 선수" },
   Pressure: { en: "Brawlers building aggressive pressure fighting", mn: "Дайралтын арга барилаа хөгжүүлэхийг хүсэгчид", ko: "압박 파이팅을 구사하려는 선수" },
@@ -424,9 +437,22 @@ export default function CoachProfilePage() {
         {/* Specialties */}
         {coach.coachSpecialties?.length > 0 && (
           <div style={styles.specialtyRow}>
-            {coach.coachSpecialties.map((s) => (
-              <span key={s} style={styles.specialtyChip}>{s}</span>
-            ))}
+            {coach.coachSpecialties.map((sp) => {
+              const spColor = SPECIALTY_COLORS[sp] || null;
+              return (
+                <span
+                  key={sp}
+                  style={spColor ? {
+                    ...styles.specialtyChip,
+                    color: spColor,
+                    background: `${spColor}14`,
+                    border: `1px solid ${spColor}44`,
+                  } : styles.specialtyChip}
+                >
+                  {sp}
+                </span>
+              );
+            })}
           </div>
         )}
 
@@ -476,13 +502,32 @@ export default function CoachProfilePage() {
         })()}
 
         {/* Social links */}
-        {(coach.coachInstagram || coach.coachYoutube) && (
+        {(coach.coachInstagram || coach.coachYoutube || coach.coachPhone) && (
           <div style={styles.socialRow}>
             {coach.coachInstagram && (
-              <span style={styles.socialChip}>📸 @{coach.coachInstagram.replace("@", "")}</span>
+              <a
+                href={`https://instagram.com/${coach.coachInstagram.replace("@", "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={styles.socialLink}
+              >
+                📸 @{coach.coachInstagram.replace("@", "")}
+              </a>
             )}
             {coach.coachYoutube && (
-              <span style={styles.socialChip}>▶ YouTube</span>
+              <a
+                href={coach.coachYoutube.startsWith("http") ? coach.coachYoutube : `https://youtube.com/@${coach.coachYoutube.replace("@", "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={styles.socialLink}
+              >
+                ▶ YouTube
+              </a>
+            )}
+            {coach.coachPhone && (
+              <a href={`tel:${coach.coachPhone}`} style={styles.socialLink}>
+                📞 {coach.coachPhone}
+              </a>
             )}
           </div>
         )}
@@ -575,7 +620,11 @@ export default function CoachProfilePage() {
       <div style={styles.section}>
         <h2 style={styles.sectionTitle}>{t("coachReviews")}</h2>
         {reviews.length === 0 ? (
-          <p style={styles.empty}>{t("coachReviewsEmpty")}</p>
+          <div style={styles.emptyState}>
+            <span style={styles.emptyIcon}>⭐</span>
+            <p style={styles.emptyTitle}>{t("coachReviewsEmpty")}</p>
+            <p style={styles.emptySub}>{locale === "mn" ? "Энэ коачтай хамт дасгалжуулалт хийснийхээ дараа үнэлгээ үлдээх боломжтой." : locale === "ko" ? "코치와 함께 세션을 완료한 후 리뷰를 남길 수 있습니다." : "Reviews from students who have completed sessions will appear here."}</p>
+          </div>
         ) : (
           reviews.map((r) => <ReviewCard key={r.id} review={r} />)
         )}
@@ -703,8 +752,8 @@ const styles = {
   specialtyChip: { background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20, padding: "4px 12px", fontSize: 12, color: "rgba(255,255,255,0.7)" },
   bio: { fontSize: 14, color: "rgba(255,255,255,0.65)", textAlign: "center", lineHeight: 1.55, maxWidth: 380, margin: 0 },
   cert: { fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0 },
-  socialRow: { display: "flex", gap: 8 },
-  socialChip: { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, padding: "4px 12px", fontSize: 12, color: "rgba(255,255,255,0.6)" },
+  socialRow: { display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" },
+  socialLink: { display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 20, padding: "6px 14px", fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.75)", textDecoration: "none", cursor: "pointer", transition: "background 150ms ease" },
   priceRow: { display: "flex", alignItems: "baseline", gap: 6 },
   price: { fontSize: 22, fontWeight: 700, color: "#D4AF37" },
   priceLbl: { fontSize: 13, color: "rgba(255,255,255,0.62)" },
@@ -727,6 +776,10 @@ const styles = {
   section: { padding: "0 16px 24px" },
   sectionTitle: { fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.85)", marginBottom: 12 },
   empty: { fontSize: 14, color: "rgba(255,255,255,0.55)", textAlign: "center", padding: "20px 0" },
+  emptyState: { display: "flex", flexDirection: "column", alignItems: "center", gap: 8, padding: "28px 16px", background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.1)", borderRadius: 16 },
+  emptyIcon: { fontSize: 36, opacity: 0.55 },
+  emptyTitle: { margin: 0, fontSize: 14, fontWeight: 800, color: "rgba(255,255,255,0.7)", textAlign: "center" },
+  emptySub: { margin: 0, fontSize: 12, color: "rgba(255,255,255,0.35)", textAlign: "center", lineHeight: 1.55, maxWidth: 280 },
   reviewCard: { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "14px", marginBottom: 10 },
   reviewTop: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
   reviewDate: { fontSize: 12, color: "rgba(255,255,255,0.55)" },

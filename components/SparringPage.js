@@ -74,7 +74,7 @@ function FighterCard({ post, isMe, onRequest, sent, requesting, locale }) {
           <div style={c.name}>{post.displayName || "Fighter"}</div>
           <div style={c.chips}>
             {post.rankKey && (
-              <span style={{ ...c.chip, color: post.rankColor || "#fff", borderColor: `${post.rankColor || "#fff"}44` }}>
+              <span style={{ ...c.chip, color: post.rankColor || "#fff", background: `${post.rankColor || "#fff"}14`, borderColor: `${post.rankColor || "#fff"}44` }}>
                 {t(post.rankKey)}
               </span>
             )}
