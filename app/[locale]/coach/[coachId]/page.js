@@ -390,15 +390,30 @@ export default function CoachProfilePage() {
             <div style={styles.avatarInitials}>{initials}</div>
           )}
           {coach.coachVerified && (
-            <span style={styles.verifiedDot} title={t("verifiedCoach")}>✓</span>
+            <span style={styles.verifiedDot} title={t("verifiedCoach")}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M20 6L9 17l-5-5" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
           )}
         </div>
 
         {/* Name + verified */}
-        <h1 style={styles.name}>{displayName}</h1>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
+          <h1 style={{ ...styles.name, margin: 0 }}>{displayName}</h1>
+          {coach.coachVerified && (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" title={t("verifiedCoach")} aria-label={t("verifiedCoach")}>
+              <circle cx="12" cy="12" r="11" fill="#D4AF37" />
+              <path d="M7 12.5l3.5 3.5 6.5-7" stroke="#000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          )}
+        </div>
         {coach.coachVerified && (
           <div style={styles.verifiedBadge}>
-            <span style={styles.verifiedIcon}>✓</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="11" fill="#D4AF37" />
+              <path d="M7 12.5l3.5 3.5 6.5-7" stroke="#000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
             {t("verifiedCoach")}
           </div>
         )}
@@ -739,10 +754,9 @@ const styles = {
   avatarWrap: { position: "relative", width: 88, height: 88 },
   avatar: { width: 88, height: 88, borderRadius: 44, objectFit: "cover", border: "2px solid rgba(212,175,55,0.4)" },
   avatarInitials: { width: 88, height: 88, borderRadius: 44, background: "rgba(193,18,31,0.2)", border: "2px solid rgba(193,18,31,0.4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30, fontWeight: 700, color: "#fff" },
-  verifiedDot: { position: "absolute", bottom: 2, right: 2, width: 22, height: 22, borderRadius: 11, background: "#D4AF37", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, boxShadow: "0 0 0 2px #0A0A0A" },
+  verifiedDot: { position: "absolute", bottom: 2, right: 2, width: 24, height: 24, borderRadius: "50%", background: "#D4AF37", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 0 2.5px #0A0A0A, 0 2px 8px rgba(212,175,55,0.5)" },
   name: { fontSize: 22, fontWeight: 700, margin: 0, textAlign: "center" },
-  verifiedBadge: { display: "flex", alignItems: "center", gap: 5, background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600, color: "#D4AF37" },
-  verifiedIcon: { fontSize: 11, fontWeight: 700 },
+  verifiedBadge: { display: "flex", alignItems: "center", gap: 6, background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 20, padding: "5px 13px", fontSize: 12, fontWeight: 700, color: "#D4AF37", letterSpacing: "0.02em" },
   location: { fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0 },
   trustRow: { display: "flex", gap: 20, flexWrap: "wrap", justifyContent: "center", margin: "4px 0" },
   trustStat: { display: "flex", flexDirection: "column", alignItems: "center", gap: 2 },
