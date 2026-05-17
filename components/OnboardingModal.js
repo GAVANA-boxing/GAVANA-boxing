@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -50,6 +50,7 @@ function getQuestions(t) {
 
 export default function OnboardingModal() {
   const pathname = usePathname();
+  const router = useRouter();
   const locale = getLocaleFromPathname(pathname);
   const t = (key) => translate(locale, key);
   const { user, loading: authLoading } = useAuth();
@@ -70,21 +71,29 @@ export default function OnboardingModal() {
       return;
     }
 
+    // Don't show on the onboarding page itself
+    if (pathname?.includes("/onboarding")) {
+      setVisible(false);
+      setChecking(false);
+      return;
+    }
+
     let active = true;
     async function checkOnboarding() {
       try {
         const userRef = doc(db, "users", user.uid);
         const snapshot = await getDoc(userRef);
         const data = snapshot.exists() ? snapshot.data() : {};
-        const onboarding = data?.onboarding;
 
-        if (onboarding?.completed) {
+        // Check both field names (onboardingComplete = new page, onboarding.completed = old modal)
+        const isDone = data?.onboardingComplete === true || data?.onboarding?.completed === true;
+
+        if (isDone) {
           setVisible(false);
         } else {
-          setGoal(onboarding?.goal || "");
-          setExperience(onboarding?.experience || "");
-          setCoachStyle(onboarding?.coachStyle || "");
-          setVisible(true);
+          // Redirect to full onboarding page instead of showing modal questions
+          router.replace(`/${locale}/onboarding`);
+          setVisible(false);
         }
       } catch (err) {
         console.error("Failed to load onboarding state:", err);
@@ -95,7 +104,7 @@ export default function OnboardingModal() {
 
     checkOnboarding();
     return () => { active = false; };
-  }, [authLoading, user?.uid]);
+  }, [authLoading, user?.uid, pathname]);
 
   const selectedValues = useMemo(
     () => ({ goal, experience, coachStyle }),
