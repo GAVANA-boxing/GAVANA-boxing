@@ -33,6 +33,7 @@ export default function CoachApplyPage() {
   const [certifications, setCertifications] = useState("");
   const [instagram, setInstagram] = useState("");
   const [youtube, setYoutube] = useState("");
+  const [phone, setPhone] = useState("");
   const [bio, setBio] = useState("");
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
@@ -118,6 +119,7 @@ export default function CoachApplyPage() {
         certifications: certifications.trim(),
         instagram: instagram.trim(),
         youtube: youtube.trim(),
+        phone: phone.trim(),
         bio: bio.trim(),
         profileImage: profileImageUrl,
         submittedAt: serverTimestamp(),
@@ -295,6 +297,11 @@ export default function CoachApplyPage() {
           </div>
 
           <div style={styles.field}>
+            <label style={styles.fieldLabel}>{locale === "mn" ? "Утасны дугаар" : locale === "ko" ? "전화번호" : "Phone Number"}</label>
+            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+976 9999 0000" style={styles.input} />
+          </div>
+
+          <div style={styles.field}>
             <label style={styles.fieldLabel}>{t("coachApplyBio")} *</label>
             <textarea
               value={bio}
@@ -343,7 +350,7 @@ const styles = {
   fields: { display: "flex", flexDirection: "column", gap: 16, marginBottom: 24 },
   field: { display: "flex", flexDirection: "column", gap: 6 },
   fieldRow: { display: "flex", gap: 12 },
-  fieldLabel: { fontSize: 12, color: "rgba(255,255,255,0.5)", letterSpacing: 0.5, textTransform: "uppercase" },
+  fieldLabel: { fontSize: 11, fontWeight: 900, color: "rgba(255,255,255,0.7)", letterSpacing: 1, textTransform: "uppercase" },
   input: { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "12px 14px", color: "#fff", fontSize: 15, outline: "none", width: "100%", boxSizing: "border-box" },
   textarea: { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "12px 14px", color: "#fff", fontSize: 15, outline: "none", width: "100%", resize: "vertical", boxSizing: "border-box", fontFamily: "inherit" },
   specialtyGrid: { display: "flex", flexWrap: "wrap", gap: 8 },
