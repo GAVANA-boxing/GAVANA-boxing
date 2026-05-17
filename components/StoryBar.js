@@ -19,11 +19,16 @@ function isAlive(story) {
   return exp && exp > new Date();
 }
 
+function getSeenKey(userId) { return `gavana_story_seen_${userId}`; }
+function markSeen(userId) { try { localStorage.setItem(getSeenKey(userId), Date.now().toString()); } catch {} }
+function wasSeen(userId) { try { const t = Number(localStorage.getItem(getSeenKey(userId)) || 0); return t > Date.now() - 24 * 60 * 60 * 1000; } catch { return false; } }
+
 export default function StoryBar({ locale, router }) {
   const { user } = useAuth();
   const t = (key) => translate(locale, key);
   const [groups, setGroups] = useState([]);
   const [viewing, setViewing] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     getDocs(collection(db, "stories"))
@@ -44,25 +49,38 @@ export default function StoryBar({ locale, router }) {
           displayName: list[0]?.displayName || list[0]?.username || "Boxer",
           photoURL: list[0]?.photoURL || "",
           isOwn: uid === user?.uid,
+          seen: wasSeen(uid),
         }));
 
-        grps.sort((a, b) => (b.isOwn ? 1 : 0) - (a.isOwn ? 1 : 0));
+        grps.sort((a, b) => {
+          if (b.isOwn !== a.isOwn) return b.isOwn ? 1 : -1;
+          if (a.seen !== b.seen) return a.seen ? 1 : -1;
+          return 0;
+        });
         setGroups(grps);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, [user?.uid]);
 
   const ownGroup = groups.find(g => g.isOwn);
   const others = groups.filter(g => !g.isOwn);
 
+  const openGroup = (grp) => {
+    markSeen(grp.userId);
+    setGroups(prev => prev.map(g => g.userId === grp.userId ? { ...g, seen: true } : g));
+    setViewing(grp);
+  };
+
   return (
     <>
+      <style>{`@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}.sb-shimmer{background:linear-gradient(90deg,rgba(255,255,255,0.04) 0%,rgba(255,255,255,0.09) 50%,rgba(255,255,255,0.04) 100%);background-size:800px 100%;animation:shimmer 1.6s infinite;}`}</style>
       <div style={st.bar}>
-        {/* Your story */}
+        {/* Your story slot — always shown */}
         <button
           type="button"
           style={st.slot}
-          onClick={() => ownGroup ? setViewing(ownGroup) : router.push(`/${locale}/story/upload`)}
+          onClick={() => ownGroup ? openGroup(ownGroup) : router.push(`/${locale}/story/upload`)}
         >
           <div style={ownGroup ? st.ownRingActive : st.ownRingEmpty}>
             {user?.photoURL
@@ -74,20 +92,31 @@ export default function StoryBar({ locale, router }) {
           <span style={st.label}>{t("storyYours")}</span>
         </button>
 
-        {/* Other users */}
-        {others.map((grp, i) => (
-          <button type="button" key={grp.userId} style={st.slot} onClick={() => setViewing(grp)}>
-            <div style={{ ...st.ring, background: RING_GRADIENTS[i % RING_GRADIENTS.length] }}>
-              <div style={st.avatarFrame}>
-                {grp.photoURL
-                  ? <img src={grp.photoURL} style={st.avatar} alt="" />
-                  : <div style={st.avatarFallback}>{grp.displayName[0]?.toUpperCase()}</div>
-                }
-              </div>
-            </div>
-            <span style={st.label}>{grp.displayName.split(" ")[0]}</span>
-          </button>
+        {/* Shimmer placeholders while loading */}
+        {loading && [1, 2, 3].map((i) => (
+          <div key={i} style={st.slot}>
+            <div className="sb-shimmer" style={{ width: RING_SIZE, height: RING_SIZE, borderRadius: "50%", background: "rgba(255,255,255,0.06)" }} />
+            <div className="sb-shimmer" style={{ height: 8, width: 40, borderRadius: 4, background: "rgba(255,255,255,0.04)", marginTop: 2 }} />
+          </div>
         ))}
+
+        {/* Other users */}
+        {!loading && others.map((grp, i) => {
+          const isSeen = grp.seen;
+          return (
+            <button type="button" key={grp.userId} style={st.slot} onClick={() => openGroup(grp)}>
+              <div style={{ ...st.ring, background: isSeen ? "rgba(255,255,255,0.08)" : RING_GRADIENTS[i % RING_GRADIENTS.length], opacity: isSeen ? 0.7 : 1 }}>
+                <div style={st.avatarFrame}>
+                  {grp.photoURL
+                    ? <img src={grp.photoURL} style={st.avatar} alt="" />
+                    : <div style={st.avatarFallback}>{grp.displayName[0]?.toUpperCase()}</div>
+                  }
+                </div>
+              </div>
+              <span style={{ ...st.label, color: isSeen ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.35)" }}>{grp.displayName.split(" ")[0]}</span>
+            </button>
+          );
+        })}
       </div>
 
       {viewing && (

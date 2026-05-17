@@ -1344,6 +1344,18 @@ export default function UserProfilePage() {
           )}
         </div>
 
+        {/* "Add Story" shortcut — own profile only */}
+        {isOwnProfile && (
+          <button
+            type="button"
+            onClick={() => router.push(`/${locale}/story/upload`)}
+            style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 6, padding: "5px 12px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.35)", background: "rgba(193,18,31,0.08)", color: "rgba(255,255,255,0.7)", fontSize: 11, fontWeight: 800, cursor: "pointer", letterSpacing: 0.3 }}
+          >
+            <span style={{ fontSize: 13 }}>+</span>
+            {locale === "mn" ? "Story нэмэх" : locale === "ko" ? "스토리 추가" : "Add Story"}
+          </button>
+        )}
+
         {/* Name + username */}
         <h1 style={styles.fighterName}>
           {profileUser.displayName || profileUser.username}
