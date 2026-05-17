@@ -289,7 +289,8 @@ export default function SparringPage() {
     const q = query(collection(db, "sparring_requests"), where("fromUserId", "==", user.uid));
     const unsub = onSnapshot(q, (snap) => {
       const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => getTs(b.createdAt) - getTs(a.createdAt));
-      setSentRequestToIds(new Set(docs.map((d) => d.toUserId)));
+      // Only mark as "sent" if the request is still pending — declined requests allow re-sending
+      setSentRequestToIds(new Set(docs.filter((d) => !d.status || d.status === "pending").map((d) => d.toUserId)));
       setSentRequests(docs);
     }, () => {});
     return () => unsub();
