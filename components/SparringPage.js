@@ -17,6 +17,14 @@ import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import BottomNav from "@/components/BottomNav";
 
 const ARCHETYPE_KEYS = ["all", "pressure", "counter", "technical", "brawler"];
+
+const ARCHETYPE_STATS = {
+  pressure:  { SPD: 75, PWR: 80, TEC: 55, STAM: 90 },
+  counter:   { SPD: 85, PWR: 65, TEC: 90, STAM: 70 },
+  technical: { SPD: 80, PWR: 50, TEC: 95, STAM: 72 },
+  brawler:   { SPD: 60, PWR: 95, TEC: 50, STAM: 80 },
+};
+
 const WEIGHT_OPTS = [
   "all",
   "Flyweight", "Bantamweight", "Featherweight", "Lightweight",
@@ -48,11 +56,16 @@ function FighterCard({ post, isMe, onRequest, sent, requesting, locale }) {
   const arch = ARCHETYPE_DISPLAY[post.archetype];
   const t = (key) => translate(locale, key);
   const isBusy = requesting === post.userId;
+  const stats = ARCHETYPE_STATS[post.archetype] || null;
+  const rankGlow = post.rankColor && post.rankKey !== "rankRookieGloves" && post.rankKey !== "rankAmateurBelt"
+    ? `0 0 12px ${post.rankColor}35, 0 2px 8px rgba(0,0,0,0.5)`
+    : "0 2px 8px rgba(0,0,0,0.4)";
 
   return (
     <div style={{
       ...c.card,
-      borderLeft: `2.5px solid ${arch?.color || "#C1121F"}`,
+      borderLeft: `2.5px solid ${post.rankColor || arch?.color || "#C1121F"}`,
+      boxShadow: rankGlow,
       opacity: isMe ? 0.55 : 1,
     }}>
       <div style={c.cardTop}>
@@ -89,6 +102,18 @@ function FighterCard({ post, isMe, onRequest, sent, requesting, locale }) {
           </div>
           {post.location && <div style={c.location}>📍 {post.location}</div>}
           {post.bio && <div style={c.bio}>{post.bio.slice(0, 72)}{post.bio.length > 72 ? "…" : ""}</div>}
+          {stats && (
+            <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+              {[["SPD", stats.SPD, "#60A5FA"], ["PWR", stats.PWR, "#F87171"], ["TEC", stats.TEC, "#34D399"], ["STAM", stats.STAM, "#FB923C"]].map(([label, val, col]) => (
+                <div key={label} style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+                  <span style={{ fontSize: 8, fontWeight: 900, color: col, letterSpacing: "0.05em", textAlign: "center" }}>{label}</span>
+                  <div style={{ height: 3, borderRadius: 99, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${val}%`, borderRadius: 99, background: col }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
