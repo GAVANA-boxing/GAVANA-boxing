@@ -207,6 +207,9 @@ export default function EventsPage() {
     return true;
   });
 
+  const upcomingFiltered = filteredEvents.filter(isUpcoming);
+  const pastFiltered = filteredEvents.filter((e) => !isUpcoming(e));
+
   if (!user && !authLoading) return null;
 
   return (
@@ -315,14 +318,28 @@ export default function EventsPage() {
           </div>
         ) : !loading ? (
           <div style={s.eventList}>
-            {filteredEvents.map((event) => {
+            {(tab === "all" ? [
+              ...(upcomingFiltered.length > 0 ? [{ _divider: true, key: "div-up", label: locale === "mn" ? "🗓 Ойрын" : locale === "ko" ? "🗓 예정" : "🗓 Upcoming" }] : []),
+              ...upcomingFiltered,
+              ...(pastFiltered.length > 0 ? [{ _divider: true, key: "div-past", label: locale === "mn" ? "⏳ Дууссан" : locale === "ko" ? "⏳ 종료" : "⏳ Past" }] : []),
+              ...pastFiltered,
+            ] : filteredEvents).map((event) => {
+              if (event._divider) {
+                return (
+                  <div key={event.key} style={{ fontSize: 10, fontWeight: 900, color: "rgba(255,255,255,0.3)", letterSpacing: 1.5, textTransform: "uppercase", padding: "8px 4px 4px" }}>
+                    {event.label}
+                  </div>
+                );
+              }
               const meta = TYPE_META[event.eventType] || TYPE_META.boxing;
               const isGoing = myRsvpIds.has(event.id);
               const upcoming = isUpcoming(event);
               const live = isLive(event);
               const isFull = event.maxParticipants && (event.participantCount || 0) >= event.maxParticipants;
+              const spotsUsed = Math.min(event.participantCount || 0, event.maxParticipants || 0);
+              const spotsPct = event.maxParticipants ? Math.round((spotsUsed / event.maxParticipants) * 100) : 0;
               return (
-                <div key={event.id} style={{ ...s.eventCard, borderLeftColor: live ? "#34D399" : meta.color }}
+                <div key={event.id} style={{ ...s.eventCard, borderLeftColor: live ? "#34D399" : meta.color, opacity: !upcoming && !live ? 0.72 : 1 }}
                   onClick={() => router.push(`/${locale}/events/${event.id}`)}
                 >
                   <div style={s.eventCardTop}>
@@ -352,6 +369,13 @@ export default function EventsPage() {
                       {event.maxParticipants ? ` / ${event.maxParticipants}` : ""}
                     </span>
                   </div>
+
+                  {/* Spots bar */}
+                  {event.maxParticipants > 0 && (
+                    <div style={{ height: 3, borderRadius: 999, background: "rgba(255,255,255,0.08)", marginBottom: 8, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${spotsPct}%`, borderRadius: 999, background: spotsPct >= 90 ? "#F87171" : spotsPct >= 60 ? "#D4AF37" : "#34D399", transition: "width 600ms ease" }} />
+                    </div>
+                  )}
 
                   {event.description ? (
                     <p style={s.eventDesc}>{event.description.slice(0, 100)}{event.description.length > 100 ? "…" : ""}</p>

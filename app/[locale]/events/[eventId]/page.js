@@ -100,6 +100,7 @@ export default function EventDetailPage() {
   const [rsvping, setRsvping] = useState(false);
   const [reminderSet, setReminderSet] = useState(false);
   const [settingReminder, setSettingReminder] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
   const countdown = useCountdown(event?.date);
 
   useEffect(() => {
@@ -211,6 +212,24 @@ export default function EventDetailPage() {
     finally { setSettingReminder(false); }
   };
 
+  const handleShare = async () => {
+    if (!event) return;
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    const dateStr = event.date ? formatEventDate(event.date, locale) : "";
+    const locationStr = [event.location, event.city].filter(Boolean).join(", ");
+    const text = locale === "mn"
+      ? `${event.title}${dateStr ? ` — ${dateStr}` : ""}${locationStr ? ` @ ${locationStr}` : ""} | GAVANA`
+      : locale === "ko"
+      ? `${event.title}${dateStr ? ` — ${dateStr}` : ""}${locationStr ? ` @ ${locationStr}` : ""} | GAVANA`
+      : `${event.title}${dateStr ? ` — ${dateStr}` : ""}${locationStr ? ` @ ${locationStr}` : ""} | GAVANA Boxing`;
+    try {
+      if (navigator.share) { await navigator.share({ title: event.title, text, url }); return; }
+    } catch {}
+    try { await navigator.clipboard.writeText(`${text}\n${url}`); } catch {}
+    setShareCopied(true);
+    setTimeout(() => setShareCopied(false), 2000);
+  };
+
   if (!user && !authLoading) return null;
   if (authLoading || loading) {
     return (
@@ -304,21 +323,45 @@ export default function EventDetailPage() {
           {(event.city || event.location) && (
             <div style={s.detailRow}>
               <span style={s.detailIcon}>📍</span>
-              <div>
+              <div style={{ flex: 1 }}>
                 <p style={s.detailLabel}>{locale === "mn" ? "Байршил" : locale === "ko" ? "장소" : "Location"}</p>
                 <p style={s.detailValue}>{[event.city, event.location].filter(Boolean).join(" · ")}</p>
+                <a
+                  href={`https://maps.google.com/?q=${encodeURIComponent([event.location, event.city].filter(Boolean).join(", "))}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: 11, color: "#60A5FA", fontWeight: 800, letterSpacing: 0.3, textDecoration: "none", display: "inline-block", marginTop: 4 }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  🗺 {locale === "mn" ? "Газрын зураг" : locale === "ko" ? "지도 보기" : "View on Maps"}
+                </a>
               </div>
             </div>
           )}
           <div style={s.detailRow}>
             <span style={s.detailIcon}>👥</span>
-            <div>
+            <div style={{ flex: 1 }}>
               <p style={s.detailLabel}>{locale === "mn" ? "Оролцогчид" : locale === "ko" ? "참가자" : "Participants"}</p>
               <p style={s.detailValue}>
                 {event.participantCount || 0}
                 {event.maxParticipants ? ` / ${event.maxParticipants}` : ""}
                 {event.maxParticipants && <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 11 }}> {locale === "mn" ? "орон байр" : locale === "ko" ? "자리" : "spots"}</span>}
               </p>
+              {event.maxParticipants > 0 && (() => {
+                const pct = Math.round(Math.min(100, ((event.participantCount || 0) / event.maxParticipants) * 100));
+                const barColor = pct >= 90 ? "#F87171" : pct >= 60 ? "#D4AF37" : "#34D399";
+                return (
+                  <div style={{ marginTop: 6 }}>
+                    <div style={{ height: 4, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${pct}%`, borderRadius: 999, background: barColor, transition: "width 600ms ease" }} />
+                    </div>
+                    <p style={{ margin: "3px 0 0", fontSize: 9, color: barColor, fontWeight: 900 }}>
+                      {pct >= 90 ? (locale === "mn" ? "Бараг дүүрсэн!" : locale === "ko" ? "거의 마감!" : "Almost full!")
+                        : `${event.maxParticipants - (event.participantCount || 0)} ${locale === "mn" ? "орон үлдсэн" : locale === "ko" ? "자리 남음" : "spots left"}`}
+                    </p>
+                  </div>
+                );
+              })()}
             </div>
           </div>
           <div style={s.detailRow}>
@@ -358,6 +401,17 @@ export default function EventDetailPage() {
               : (locale === "mn" ? "🔔 Сануулга тохируулах" : locale === "ko" ? "🔔 알림 받기" : "🔔 Set Reminder")}
           </button>
         )}
+
+        {/* Share event */}
+        <button
+          type="button"
+          onClick={handleShare}
+          style={{ width: "100%", padding: "11px 0", borderRadius: 12, border: "1px solid rgba(212,175,55,0.25)", background: "rgba(212,175,55,0.06)", color: shareCopied ? "#34D399" : "#D4AF37", fontSize: 13, fontWeight: 800, cursor: "pointer", marginBottom: 8 }}
+        >
+          {shareCopied
+            ? (locale === "mn" ? "✓ Холбоос хуулагдлаа" : locale === "ko" ? "✓ 링크 복사됨" : "✓ Link copied!")
+            : (locale === "mn" ? "📤 Арга хэмжээ хуваалцах" : locale === "ko" ? "📤 이벤트 공유" : "📤 Share Event")}
+        </button>
 
         {isOrganizer && (
           <div style={s.organizerBanner}>
