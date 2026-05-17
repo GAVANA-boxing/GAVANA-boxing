@@ -404,6 +404,28 @@ export default function CoachPage() {
       {/* AI Coach tab */}
       {tab === "ai" && (
         <div style={styles.aiWrap}>
+          <div style={{ padding: "0 0 12px", textAlign: "center" }}>
+            <button
+              type="button"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "10px 20px",
+                borderRadius: 12,
+                border: "none",
+                background: "#C1121F",
+                color: "#fff",
+                fontSize: 14,
+                fontWeight: 900,
+                cursor: "pointer",
+                boxShadow: "0 8px 28px rgba(193,18,31,0.32)",
+              }}
+              onClick={() => router.push(`/${locale}/coach/chat`)}
+            >
+              💬 {locale === "mn" ? "Бүтэн дэлгэцэн чат нээх" : locale === "ko" ? "전체화면 채팅 열기" : "Open Full-Screen Chat"}
+            </button>
+          </div>
           <AICoach />
         </div>
       )}
