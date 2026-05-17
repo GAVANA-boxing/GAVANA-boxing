@@ -52,6 +52,14 @@ function isUpcoming(event) {
   return new Date(event.date) >= new Date();
 }
 
+function isLive(event) {
+  if (!event.date) return false;
+  const now = Date.now();
+  const start = new Date(event.date).getTime();
+  const end = start + (event.durationMinutes || 120) * 60 * 1000;
+  return now >= start && now <= end;
+}
+
 export default function EventsPage() {
   const pathname = usePathname();
   const locale = getLocaleFromPathname(pathname);
@@ -199,10 +207,7 @@ export default function EventsPage() {
     return true;
   });
 
-  if (authLoading || loading) {
-    return <div style={s.loading}>{locale === "mn" ? "Уншиж байна…" : locale === "ko" ? "로딩 중…" : "Loading…"}</div>;
-  }
-  if (!user) return null;
+  if (!user && !authLoading) return null;
 
   return (
     <div style={s.page}>
@@ -286,7 +291,15 @@ export default function EventsPage() {
         </div>
 
         {/* Events list */}
-        {filteredEvents.length === 0 ? (
+        {(authLoading || loading) && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="shimmer" style={{ height: 130, borderRadius: "3px 16px 16px 3px", background: "rgba(255,255,255,0.06)" }} />
+            ))}
+          </div>
+        )}
+
+        {!loading && filteredEvents.length === 0 ? (
           <div style={s.emptyState}>
             <span style={{ fontSize: 44, opacity: 0.35 }}>🏆</span>
             <p style={s.emptyTitle}>
@@ -300,22 +313,29 @@ export default function EventsPage() {
               {locale === "mn" ? "Шинэ арга хэмжээ үүсгэхийн тулд дээрх + товч дарна уу" : locale === "ko" ? "위의 + 버튼으로 이벤트를 만들어보세요" : "Use the + Create button above to add one"}
             </p>
           </div>
-        ) : (
+        ) : !loading ? (
           <div style={s.eventList}>
             {filteredEvents.map((event) => {
               const meta = TYPE_META[event.eventType] || TYPE_META.boxing;
               const isGoing = myRsvpIds.has(event.id);
               const upcoming = isUpcoming(event);
+              const live = isLive(event);
               const isFull = event.maxParticipants && (event.participantCount || 0) >= event.maxParticipants;
               return (
-                <div key={event.id} style={{ ...s.eventCard, borderLeftColor: meta.color }}
+                <div key={event.id} style={{ ...s.eventCard, borderLeftColor: live ? "#34D399" : meta.color }}
                   onClick={() => router.push(`/${locale}/events/${event.id}`)}
                 >
                   <div style={s.eventCardTop}>
                     <div style={{ ...s.typeBadge, background: `${meta.color}18`, color: meta.color, borderColor: `${meta.color}35` }}>
                       {meta.emoji} {getTypeLabel(event.eventType, locale)}
                     </div>
-                    {!upcoming && <span style={s.pastBadge}>{locale === "mn" ? "Дууссан" : locale === "ko" ? "종료" : "Past"}</span>}
+                    {live && (
+                      <span style={s.liveBadge}>
+                        <span style={s.liveDot} />
+                        LIVE
+                      </span>
+                    )}
+                    {!live && !upcoming && <span style={s.pastBadge}>{locale === "mn" ? "Дууссан" : locale === "ko" ? "종료" : "Past"}</span>}
                   </div>
 
                   <h3 style={s.eventTitle}>{event.title}</h3>
@@ -363,7 +383,7 @@ export default function EventsPage() {
               );
             })}
           </div>
-        )}
+        ) : null}
       </div>
 
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="discover" />
@@ -403,6 +423,8 @@ const s = {
   eventCardTop: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
   typeBadge: { display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 10px", borderRadius: 999, border: "1px solid", fontSize: 10, fontWeight: 900, letterSpacing: 0.3 },
   pastBadge: { fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 700, letterSpacing: 0.5 },
+  liveBadge: { display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 999, background: "rgba(52,211,153,0.15)", border: "1px solid rgba(52,211,153,0.4)", color: "#34D399", fontSize: 10, fontWeight: 900, letterSpacing: 1.2 },
+  liveDot: { width: 6, height: 6, borderRadius: "50%", background: "#34D399", boxShadow: "0 0 6px #34D399", animation: "pulse 1.4s infinite" },
   eventTitle: { margin: "0 0 8px", fontSize: 16, fontWeight: 900, lineHeight: 1.2, color: "#fff" },
   eventMeta: { display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 },
   metaChip: { fontSize: 11, color: "rgba(255,255,255,0.5)", fontWeight: 600 },

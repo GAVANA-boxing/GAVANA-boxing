@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   addDoc,
@@ -52,6 +52,39 @@ function isUpcoming(dateStr) {
   return new Date(dateStr) >= new Date();
 }
 
+function isLive(event) {
+  if (!event?.date) return false;
+  const now = Date.now();
+  const start = new Date(event.date).getTime();
+  const end = start + (event.durationMinutes || 120) * 60 * 1000;
+  return now >= start && now <= end;
+}
+
+function useCountdown(dateStr) {
+  const [ms, setMs] = useState(null);
+  useEffect(() => {
+    if (!dateStr) return;
+    const target = new Date(dateStr).getTime();
+    const tick = () => setMs(Math.max(0, target - Date.now()));
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [dateStr]);
+  return ms;
+}
+
+function formatCountdown(ms, locale) {
+  if (ms === null || ms === undefined) return "";
+  if (ms <= 0) return locale === "mn" ? "🔴 Одоо явагдаж байна" : locale === "ko" ? "🔴 진행 중" : "🔴 Live now";
+  const days = Math.floor(ms / 86400000);
+  const hours = Math.floor((ms % 86400000) / 3600000);
+  const mins = Math.floor((ms % 3600000) / 60000);
+  const secs = Math.floor((ms % 60000) / 1000);
+  if (days > 0) return locale === "mn" ? `${days}ө ${hours}ц ${mins}м` : locale === "ko" ? `${days}일 ${hours}시간 ${mins}분` : `${days}d ${hours}h ${mins}m`;
+  if (hours > 0) return locale === "mn" ? `${hours}ц ${mins}м ${secs}с` : locale === "ko" ? `${hours}시간 ${mins}분 ${secs}초` : `${hours}h ${mins}m ${secs}s`;
+  return locale === "mn" ? `${mins}м ${secs}с` : locale === "ko" ? `${mins}분 ${secs}초` : `${mins}m ${secs}s`;
+}
+
 export default function EventDetailPage() {
   const params = useParams();
   const locale = getLocale(params?.locale);
@@ -60,11 +93,14 @@ export default function EventDetailPage() {
   const { user, loading: authLoading } = useAuth();
 
   const [event, setEvent] = useState(null);
-  const [rsvps, setRsvps] = useState([]); // {userId, ...}
-  const [participants, setParticipants] = useState({}); // userId → user data
+  const [rsvps, setRsvps] = useState([]);
+  const [participants, setParticipants] = useState({});
   const [isGoing, setIsGoing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [rsvping, setRsvping] = useState(false);
+  const [reminderSet, setReminderSet] = useState(false);
+  const [settingReminder, setSettingReminder] = useState(false);
+  const countdown = useCountdown(event?.date);
 
   useEffect(() => {
     if (!authLoading && !user) router.push(`/${locale}/login`);
@@ -153,10 +189,44 @@ export default function EventDetailPage() {
     }
   };
 
+  const handleReminder = async () => {
+    if (!user || settingReminder || reminderSet || !event) return;
+    setSettingReminder(true);
+    try {
+      await addDoc(collection(db, "notifications"), {
+        recipientId: user.uid,
+        actorId: "system",
+        type: "event_reminder",
+        message: locale === "mn"
+          ? `📅 Сануулга: ${event.title} — ${formatEventDate(event.date, locale)}`
+          : locale === "ko"
+          ? `📅 알림: ${event.title} — ${formatEventDate(event.date, locale)}`
+          : `📅 Reminder: ${event.title} — ${formatEventDate(event.date, locale)}`,
+        eventId,
+        read: false,
+        createdAt: serverTimestamp(),
+      });
+      setReminderSet(true);
+    } catch {}
+    finally { setSettingReminder(false); }
+  };
+
+  if (!user && !authLoading) return null;
   if (authLoading || loading) {
-    return <div style={s.loading}>…</div>;
+    return (
+      <div style={{ minHeight: "100vh", background: "#0A0A0A", color: "#fff", fontFamily: "system-ui, sans-serif" }}>
+        <div style={{ maxWidth: 520, margin: "0 auto", padding: "0 16px" }}>
+          <div style={{ height: 44, paddingTop: 16, marginBottom: 20 }}>
+            <div className="shimmer" style={{ width: 100, height: 20, borderRadius: 8, background: "rgba(255,255,255,0.06)" }} />
+          </div>
+          <div className="shimmer" style={{ height: 140, borderRadius: "3px 20px 20px 3px", background: "rgba(255,255,255,0.06)", marginBottom: 12 }} />
+          <div className="shimmer" style={{ height: 160, borderRadius: 16, background: "rgba(255,255,255,0.06)", marginBottom: 12 }} />
+          <div className="shimmer" style={{ height: 52, borderRadius: 14, background: "rgba(255,255,255,0.06)" }} />
+        </div>
+      </div>
+    );
   }
-  if (!user) return null;
+
   if (!event) {
     return (
       <div style={s.page}>
@@ -174,6 +244,7 @@ export default function EventDetailPage() {
 
   const meta = TYPE_META[event.eventType] || TYPE_META.boxing;
   const upcoming = isUpcoming(event.date);
+  const live = isLive(event);
   const isFull = event.maxParticipants && (event.participantCount || 0) >= event.maxParticipants && !isGoing;
   const isOrganizer = event.organizerId === user.uid;
 
@@ -185,15 +256,38 @@ export default function EventDetailPage() {
         </button>
 
         {/* Hero */}
-        <div style={{ ...s.heroCard, borderLeftColor: meta.color }}>
+        <div style={{ ...s.heroCard, borderLeftColor: live ? "#34D399" : meta.color }}>
           <div style={s.heroTop}>
             <span style={{ ...s.typeBadge, background: `${meta.color}18`, color: meta.color, borderColor: `${meta.color}35` }}>
               {meta.emoji} {getTypeLabel(event.eventType, locale)}
             </span>
-            {!upcoming && <span style={s.pastLabel}>{locale === "mn" ? "Дууссан" : locale === "ko" ? "종료" : "Past event"}</span>}
+            {live && (
+              <span style={s.liveBadge}>
+                <span style={s.liveDot} />
+                LIVE
+              </span>
+            )}
+            {!live && !upcoming && <span style={s.pastLabel}>{locale === "mn" ? "Дууссан" : locale === "ko" ? "종료" : "Past event"}</span>}
           </div>
           <h1 style={s.eventTitle}>{event.title}</h1>
           {event.description && <p style={s.eventDesc}>{event.description}</p>}
+
+          {/* Countdown */}
+          {upcoming && !live && countdown !== null && (
+            <div style={s.countdownBox}>
+              <span style={s.countdownLabel}>
+                {locale === "mn" ? "Эхлэхэд" : locale === "ko" ? "시작까지" : "Starts in"}
+              </span>
+              <span style={s.countdownValue}>{formatCountdown(countdown, locale)}</span>
+            </div>
+          )}
+          {live && (
+            <div style={{ ...s.countdownBox, borderColor: "rgba(52,211,153,0.3)", background: "rgba(52,211,153,0.08)" }}>
+              <span style={{ ...s.countdownValue, color: "#34D399" }}>
+                {locale === "mn" ? "🔴 Одоо явагдаж байна" : locale === "ko" ? "🔴 현재 진행 중" : "🔴 Happening now"}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Details */}
@@ -250,6 +344,21 @@ export default function EventDetailPage() {
               : (locale === "mn" ? "🥊 Оролцоно" : locale === "ko" ? "🥊 참가 신청" : "🥊 RSVP — I'm Going")}
           </button>
         )}
+        {/* Reminder button */}
+        {upcoming && (
+          <button
+            type="button"
+            disabled={reminderSet || settingReminder}
+            onClick={handleReminder}
+            style={reminderSet ? s.reminderSetBtn : s.reminderBtn}
+          >
+            {settingReminder ? "…"
+              : reminderSet
+              ? (locale === "mn" ? "🔔 Сануулга тохирлоо" : locale === "ko" ? "🔔 알림 설정됨" : "🔔 Reminder set")
+              : (locale === "mn" ? "🔔 Сануулга тохируулах" : locale === "ko" ? "🔔 알림 받기" : "🔔 Set Reminder")}
+          </button>
+        )}
+
         {isOrganizer && (
           <div style={s.organizerBanner}>
             🎤 {locale === "mn" ? "Та энэ арга хэмжээг зохион байгуулж байна" : locale === "ko" ? "귀하가 이 이벤트의 주최자입니다" : "You are the organizer of this event"}
@@ -306,9 +415,16 @@ const s = {
   detailIcon: { fontSize: 18, flexShrink: 0, marginTop: 1 },
   detailLabel: { margin: "0 0 2px", fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 },
   detailValue: { margin: 0, fontSize: 14, color: "#fff", fontWeight: 700 },
-  rsvpBtn: { width: "100%", padding: 16, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#C1121F,#7d0812)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: "0 8px 28px rgba(193,18,31,0.32)", marginBottom: 16 },
-  cancelRsvpBtn: { width: "100%", padding: 16, borderRadius: 14, border: "1px solid rgba(52,211,153,0.3)", background: "rgba(52,211,153,0.08)", color: "#34D399", fontSize: 15, fontWeight: 900, cursor: "pointer", marginBottom: 16 },
-  fullBtn: { width: "100%", padding: 16, borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.3)", fontSize: 15, fontWeight: 700, cursor: "not-allowed", marginBottom: 16 },
+  rsvpBtn: { width: "100%", padding: 16, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#C1121F,#7d0812)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: "0 8px 28px rgba(193,18,31,0.32)", marginBottom: 10 },
+  cancelRsvpBtn: { width: "100%", padding: 16, borderRadius: 14, border: "1px solid rgba(52,211,153,0.3)", background: "rgba(52,211,153,0.08)", color: "#34D399", fontSize: 15, fontWeight: 900, cursor: "pointer", marginBottom: 10 },
+  fullBtn: { width: "100%", padding: 16, borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.3)", fontSize: 15, fontWeight: 700, cursor: "not-allowed", marginBottom: 10 },
+  reminderBtn: { width: "100%", padding: 13, borderRadius: 14, border: "1px solid rgba(212,175,55,0.3)", background: "rgba(212,175,55,0.06)", color: "#D4AF37", fontSize: 14, fontWeight: 800, cursor: "pointer", marginBottom: 16 },
+  reminderSetBtn: { width: "100%", padding: 13, borderRadius: 14, border: "1px solid rgba(52,211,153,0.2)", background: "rgba(52,211,153,0.05)", color: "rgba(52,211,153,0.7)", fontSize: 14, fontWeight: 800, cursor: "not-allowed", marginBottom: 16 },
+  countdownBox: { marginTop: 14, padding: "10px 14px", borderRadius: 12, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.2)", display: "flex", alignItems: "center", justifyContent: "space-between" },
+  countdownLabel: { fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 },
+  countdownValue: { fontSize: 18, fontWeight: 1000, color: "#D4AF37", fontVariantNumeric: "tabular-nums", letterSpacing: 0.5 },
+  liveBadge: { display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 12px", borderRadius: 999, background: "rgba(52,211,153,0.15)", border: "1px solid rgba(52,211,153,0.4)", color: "#34D399", fontSize: 11, fontWeight: 900, letterSpacing: 1.2 },
+  liveDot: { width: 7, height: 7, borderRadius: "50%", background: "#34D399", boxShadow: "0 0 6px #34D399" },
   organizerBanner: { padding: "12px 16px", borderRadius: 12, background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.2)", color: "#D4AF37", fontSize: 13, fontWeight: 700, marginBottom: 16, textAlign: "center" },
   participantSection: { marginTop: 4 },
   sectionLabel: { margin: "0 0 10px", fontSize: 10, color: "rgba(255,255,255,0.45)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 },
