@@ -398,7 +398,7 @@ export default function CoachPage() {
           { key: "ai", label: t("coachTabAI") },
           { key: "coaches", label: t("coachTabCoaches") },
           { key: "sparring", label: t("coachTabSparring") },
-          { key: "mine", label: "Миний хүсэлт" },
+          { key: "mine", label: locale === "mn" ? "Миний хүсэлт" : locale === "ko" ? "내 요청" : "My Requests" },
         ].map(({ key, label }) => (
           <button
             key={key}
@@ -584,7 +584,13 @@ export default function CoachPage() {
             </div>
           )}
 
-          {coachesLoading && <div style={styles.loadingText}>Loading…</div>}
+          {coachesLoading && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "0 0 12px" }}>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="shimmer" style={{ height: 88, borderRadius: 16, background: "rgba(255,255,255,0.06)" }} />
+              ))}
+            </div>
+          )}
 
           {!coachesLoading && filteredCoaches.length === 0 && (
             <div style={styles.emptyState}>
@@ -617,7 +623,7 @@ export default function CoachPage() {
             ))}
           </div>
 
-          <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
+          <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
         </div>
       )}
 
@@ -641,7 +647,13 @@ export default function CoachPage() {
             <div style={styles.savedBanner}>✓ {t("requestSent")}</div>
           )}
 
-          {sparringLoading && <div style={styles.loadingText}>Loading…</div>}
+          {sparringLoading && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "0 0 12px" }}>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="shimmer" style={{ height: 88, borderRadius: 16, background: "rgba(255,255,255,0.06)" }} />
+              ))}
+            </div>
+          )}
 
           {!sparringLoading && sparringPosts.length === 0 && (
             <div style={styles.emptyState}>
@@ -665,7 +677,7 @@ export default function CoachPage() {
             ))}
           </div>
 
-          <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
+          <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
         </div>
       )}
 
@@ -674,36 +686,40 @@ export default function CoachPage() {
         <div style={styles.content}>
           <header style={styles.pageHeader}>
             <p style={styles.kicker}>GAVANA BOXING</p>
-            <h1 style={styles.pageTitle}>Миний хүсэлтүүд</h1>
+            <h1 style={styles.pageTitle}>{locale === "mn" ? "Миний хүсэлтүүд" : locale === "ko" ? "내 요청 목록" : "My Requests"}</h1>
           </header>
 
           {!user?.uid ? (
             <div style={styles.emptyState}>
               <div style={styles.emptyIcon}>🔒</div>
-              <div style={styles.emptyText}>Нэвтрэх шаардлагатай</div>
+              <div style={styles.emptyText}>{locale === "mn" ? "Нэвтрэх шаардлагатай" : locale === "ko" ? "로그인이 필요합니다" : "Sign in required"}</div>
               <button
                 type="button"
                 onClick={() => router.push(`/${locale}/login`)}
                 style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}
               >
-                Нэвтрэх →
+                {locale === "mn" ? "Нэвтрэх →" : locale === "ko" ? "로그인 →" : "Sign in →"}
               </button>
             </div>
           ) : myRequestsLoading ? (
-            <div style={styles.loadingText}>Уншиж байна…</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "0 0 12px" }}>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="shimmer" style={{ height: 88, borderRadius: 16, background: "rgba(255,255,255,0.06)" }} />
+              ))}
+            </div>
           ) : myRequests.length === 0 ? (
             <div style={styles.emptyState}>
               <div style={styles.emptyIcon}>📋</div>
-              <div style={styles.emptyText}>Хүсэлт байхгүй байна</div>
+              <div style={styles.emptyText}>{locale === "mn" ? "Хүсэлт байхгүй байна" : locale === "ko" ? "요청이 없습니다" : "No requests yet"}</div>
               <p style={{ margin: 0, color: "rgba(255,255,255,0.45)", fontSize: 13, textAlign: "center", maxWidth: 240 }}>
-                Coach-той холбогдож хүсэлт илгээгээрэй
+                {locale === "mn" ? "Coach-той холбогдож хүсэлт илгээгээрэй" : locale === "ko" ? "코치에게 요청을 보내보세요" : "Send a request to a coach to get started"}
               </p>
               <button
                 type="button"
                 onClick={() => setTab("coaches")}
                 style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", marginTop: 4 }}
               >
-                Coach хайх →
+                {locale === "mn" ? "Coach хайх →" : locale === "ko" ? "코치 찾기 →" : "Find a Coach →"}
               </button>
             </div>
           ) : (
@@ -720,7 +736,7 @@ export default function CoachPage() {
             </div>
           )}
 
-          <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
+          <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
         </div>
       )}
 

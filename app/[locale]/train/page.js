@@ -1241,11 +1241,11 @@ export default function TrainPage() {
               {!challengeUserId && ghostBestScore !== null && (
                 <div style={result.score > ghostBestScore ? styles.newBestCard : styles.vsGhostCard}>
                   {result.score > ghostBestScore && (
-                    <div style={styles.newBestBadge}>🏆 Өмнөх оноогоо эвдлээ!</div>
+                    <div style={styles.newBestBadge}>🏆 {locale === "mn" ? "Өмнөх оноогоо эвдлээ!" : locale === "ko" ? "새 기록 달성!" : "New personal best!"}</div>
                   )}
                   <div style={styles.vsCompareRow}>
                     <div style={styles.vsCompareCell}>
-                      <span style={styles.vsCompareLbl}>ШИНЭ</span>
+                      <span style={styles.vsCompareLbl}>{locale === "mn" ? "ШИНЭ" : locale === "ko" ? "신기록" : "NEW"}</span>
                       <span style={{ ...styles.vsCompareScore, color: result.score > ghostBestScore ? "#34D399" : "#fff" }}>
                         {result.score.toFixed(1)}
                       </span>
@@ -1254,15 +1254,15 @@ export default function TrainPage() {
                       {result.score >= ghostBestScore ? `+${(result.score - ghostBestScore).toFixed(1)}` : (result.score - ghostBestScore).toFixed(1)}
                     </div>
                     <div style={styles.vsCompareCell}>
-                      <span style={styles.vsCompareLbl}>ХАМГИЙН ӨНДӨР</span>
+                      <span style={styles.vsCompareLbl}>{locale === "mn" ? "ХАМГИЙН ӨНДӨР" : locale === "ko" ? "최고 기록" : "BEST"}</span>
                       <span style={styles.vsCompareScore}>{ghostBestScore.toFixed(1)}</span>
                     </div>
                   </div>
                   {result.score < ghostBestScore && (
                     <div style={styles.almostMsg}>
                       {(ghostBestScore - result.score) <= 0.5
-                        ? "🔥 Бараг боллоо — дахин оролдоод давна"
-                        : `${(ghostBestScore - result.score).toFixed(1)} оноо дутлаа — дахин оролдоод давна`}
+                        ? (locale === "mn" ? "🔥 Бараг боллоо — дахин оролдоод давна" : locale === "ko" ? "🔥 거의 다 왔어요 — 다시 도전!" : "🔥 So close — try again!")
+                        : (locale === "mn" ? `${(ghostBestScore - result.score).toFixed(1)} оноо дутлаа — дахин оролдоод давна` : locale === "ko" ? `${(ghostBestScore - result.score).toFixed(1)}점 부족 — 다시 도전!` : `${(ghostBestScore - result.score).toFixed(1)} pts away — keep going!`)}
                     </div>
                   )}
                 </div>

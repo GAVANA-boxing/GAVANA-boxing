@@ -429,7 +429,7 @@ export default function LeaderboardPage() {
       <div style={styles.filterWrap}>
         <div style={styles.filterRow}>
           {[
-            { key: "all", label: "🥊 Бүгд" },
+            { key: "all", label: locale === "mn" ? "🥊 Бүгд" : locale === "ko" ? "🥊 전체" : "🥊 All" },
             { key: "pressure", label: `${ARCHETYPE_DISPLAY.pressure.emoji} Pressure` },
             { key: "counter",  label: `${ARCHETYPE_DISPLAY.counter.emoji} Counter` },
             { key: "technical",label: `${ARCHETYPE_DISPLAY.technical.emoji} Technical` },
@@ -468,7 +468,7 @@ export default function LeaderboardPage() {
                 ...(weightFilter === wt ? styles.filterChipActiveWeight : {}),
               }}
             >
-              {wt === "all" ? "Жин бүгд" : `${wt}kg`}
+              {wt === "all" ? (locale === "mn" ? "Жин бүгд" : locale === "ko" ? "전체 체급" : "All weights") : `${wt}kg`}
             </button>
           ))}
         </div>
@@ -538,7 +538,11 @@ export default function LeaderboardPage() {
 
         {/* Loading state */}
         {loading && (
-          <div style={styles.loading}>{t("leaderboardLoading")}</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="shimmer" style={{ height: 72, borderRadius: 14, background: "rgba(255,255,255,0.06)" }} />
+            ))}
+          </div>
         )}
 
         {/* Empty state */}
