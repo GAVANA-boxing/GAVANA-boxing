@@ -78,6 +78,7 @@ export default function ChatThread({ conversationId }) {
   const [showQuickReplies, setShowQuickReplies] = useState(true);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
+  const [lastSentId, setLastSentId] = useState(null);
 
   const T = {
     placeholder: locale === "mn" ? "Мессеж бичих…" : locale === "ko" ? "메시지 입력…" : "Message…",
@@ -127,20 +128,31 @@ export default function ChatThread({ conversationId }) {
   const isUserCoach = !!(convo?.memberDetails?.[user?.uid]?.isCoach || convo?.memberDetails?.[user?.uid]?.coachVerified);
   const quickReplies = getQuickReplies(isUserCoach, recipientIsCoach, locale);
 
+  // Auto-resize textarea
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+  }, [text]);
+
   const handleSend = async (msgText) => {
     const trimmed = (msgText || text).trim();
     if (!trimmed || !user?.uid || !conversationId || sending) return;
     setSending(true);
     setText("");
     setShowQuickReplies(false);
+    // Reset textarea height
+    if (inputRef.current) inputRef.current.style.height = "auto";
     try {
-      await addDoc(collection(db, "messages"), {
+      const ref = await addDoc(collection(db, "messages"), {
         conversationId,
         senderId: user.uid,
         text: trimmed,
         createdAt: serverTimestamp(),
         read: false,
       });
+      setLastSentId(ref.id);
       await updateDoc(doc(db, "conversations", conversationId), {
         lastMessage: trimmed,
         lastMessageAt: serverTimestamp(),
@@ -249,8 +261,13 @@ export default function ChatThread({ conversationId }) {
                 <div style={{ ...s.bubbleText, ...(isMe ? s.bubbleTextMe : s.bubbleTextThem) }}>
                   {msg.text}
                 </div>
-                <div style={{ ...s.bubbleTime, ...(isMe ? { textAlign: "right" } : {}) }}>
-                  {formatMsgTime(msg.createdAt)}
+                <div style={{ ...s.bubbleTime, display: "flex", alignItems: "center", gap: 3, ...(isMe ? { justifyContent: "flex-end" } : {}) }}>
+                  <span>{formatMsgTime(msg.createdAt)}</span>
+                  {isMe && (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={msg.id === lastSentId ? "#C1121F" : "rgba(255,255,255,0.3)"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  )}
                 </div>
               </div>
             </div>
