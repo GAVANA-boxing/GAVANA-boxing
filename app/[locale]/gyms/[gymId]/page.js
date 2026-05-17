@@ -626,7 +626,7 @@ const styles = {
   statCell: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, padding: "14px 8px" },
   statNum: { fontSize: 17, fontWeight: 1000, color: "#fff" },
   statLbl: { fontSize: 10, color: "rgba(255,255,255,0.62)", fontWeight: 700, textTransform: "uppercase" },
-  ctaRow: { display: "flex", gap: 10, marginBottom: 20, alignItems: "center" },
+  ctaRow: { display: "flex", gap: 8, marginBottom: 20, alignItems: "flex-start", flexWrap: "wrap" },
   joinBtn: { flex: 1, minHeight: 44, border: "none", borderRadius: 12, background: "linear-gradient(135deg,#C1121F,#7d0812)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer" },
   requestedBtn: { flex: 1, minHeight: 44, border: "1px solid rgba(52,211,153,0.35)", borderRadius: 12, background: "rgba(52,211,153,0.08)", color: "#34D399", fontSize: 15, fontWeight: 900, cursor: "default" },
   manageBtn: { flex: 1, minHeight: 44, border: "1px solid rgba(212,175,55,0.4)", borderRadius: 12, background: "rgba(212,175,55,0.1)", color: "#D4AF37", fontSize: 15, fontWeight: 900, cursor: "pointer" },

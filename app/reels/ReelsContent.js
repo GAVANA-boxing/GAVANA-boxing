@@ -2182,6 +2182,7 @@ export default function ReelsContent() {
                 <div className="reel-action-circle" style={styles.actionCircle}>
                   <AISparkIcon />
                 </div>
+                <span style={{ fontSize: 8, color: "rgba(255,255,255,0.35)", fontWeight: 700, textShadow: "0 2px 8px rgba(0,0,0,0.95)" }}>📊</span>
               </div>
             </div>
 
