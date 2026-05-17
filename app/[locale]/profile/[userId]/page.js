@@ -327,6 +327,7 @@ export default function UserProfilePage() {
   const [showFighterCard, setShowFighterCard] = useState(false);
   const [cardShareCopied, setCardShareCopied] = useState(false);
   const [showChallengeModal, setShowChallengeModal] = useState(false);
+  const tabContentRef = useRef(null);
   const [challengeSending, setChallengeSending] = useState(false);
   const [challengeSent, setChallengeSent] = useState(false);
   const [myStats, setMyStats] = useState(null);
@@ -1209,6 +1210,12 @@ export default function UserProfilePage() {
     });
   };
 
+  useEffect(() => {
+    if (tabContentRef.current) {
+      tabContentRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [profileTab]);
+
   const progressStats = useMemo(() => {
     const sortedAsc = [...(aiFeedbackHistory || [])]
       .map((feedback) => ({
@@ -1696,6 +1703,8 @@ export default function UserProfilePage() {
         </button>
       </div>
 
+      <div ref={tabContentRef} />
+
       {profileTab === "progress" ? (
         <section style={{ ...styles.progressSection, padding: "16px 16px 32px" }}>
           {(() => {
@@ -1809,6 +1818,45 @@ export default function UserProfilePage() {
               </div>
             );
           })()}
+
+          {/* Empty state — no training data yet */}
+          {aiFeedbackHistory.length === 0 && (
+            <div style={{
+              marginTop: 14,
+              background: "linear-gradient(145deg, #111012, #0a0a0a)",
+              border: "1px solid rgba(212,175,55,0.18)",
+              borderLeft: "3px solid #D4AF37",
+              borderRadius: "3px 16px 16px 3px",
+              padding: "20px 18px",
+              textAlign: "center",
+            }}>
+              <p style={{ margin: "0 0 6px", fontSize: 28 }}>🥊</p>
+              <p style={{ margin: "0 0 8px", fontSize: 13, fontWeight: 800, color: "#fff" }}>
+                {locale === "mn" ? "Дасгал хийж эхэл" : locale === "ko" ? "훈련을 시작하세요" : "Start Training"}
+              </p>
+              <p style={{ margin: "0 0 16px", fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>
+                {locale === "mn"
+                  ? "Рилс үзэж AI feedback авснаар энд ахиц харагдана."
+                  : locale === "ko"
+                  ? "릴을 보고 AI 피드백을 받으면 여기서 진행 상황을 확인할 수 있어요."
+                  : "Watch a reel and get AI feedback to see your progress here."}
+              </p>
+              {isOwnProfile && (
+                <button
+                  type="button"
+                  onClick={() => router.push(`/${locale}/reels`)}
+                  style={{
+                    padding: "11px 24px",
+                    background: "linear-gradient(135deg, #D4AF37, #b8942a)",
+                    border: "none", color: "#000", fontSize: 12, fontWeight: 900,
+                    borderRadius: 10, cursor: "pointer", letterSpacing: 0.3,
+                  }}
+                >
+                  {locale === "mn" ? "Рилс үзэх →" : locale === "ko" ? "릴 보기 →" : "Watch Reels →"}
+                </button>
+              )}
+            </div>
+          )}
 
           {/* XP history — last 5 AI feedback sessions */}
           {aiFeedbackHistory.length > 0 && (
