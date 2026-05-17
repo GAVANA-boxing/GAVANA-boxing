@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { translate } from "@/lib/i18n";
 import ScrollRow from "@/components/ScrollRow";
 
@@ -958,6 +958,7 @@ function SectionHeader({ emoji, title }) {
 
 function StyleCard({ style, onAsk, t }) {
   const examples = STYLE_EXAMPLES[style.key];
+  const [askHover, setAskHover] = useState(false);
   return (
     <div style={{
       flexShrink: 0,
@@ -1010,11 +1011,15 @@ function StyleCard({ style, onAsk, t }) {
       )}
       <button
         onClick={() => onAsk(`Tell me more about the ${style.name} style and what I should work on`)}
+        onMouseEnter={() => setAskHover(true)}
+        onMouseLeave={() => setAskHover(false)}
         style={{
           marginTop: 2, padding: "8px 0", borderRadius: 9,
-          background: "rgba(255,255,255,0.04)", border: `1px solid ${style.tagColor}35`,
+          background: askHover ? `${style.tagColor}18` : "rgba(255,255,255,0.04)",
+          border: `1px solid ${style.tagColor}${askHover ? "80" : "35"}`,
           color: style.tagColor, fontSize: 11, fontWeight: 800, cursor: "pointer",
-          letterSpacing: "0.02em",
+          letterSpacing: "0.02em", transition: "background 140ms ease, border-color 140ms ease",
+          transform: askHover ? "translateY(-1px)" : "none",
         }}
       >
         {t("libraryAskCoach")} →
@@ -1025,6 +1030,7 @@ function StyleCard({ style, onAsk, t }) {
 
 function TechCard({ tech, onAsk, t }) {
   const examples = TECH_EXAMPLES[tech.key];
+  const [askHover, setAskHover] = useState(false);
   return (
     <div style={{
       flexShrink: 0,
@@ -1062,10 +1068,15 @@ function TechCard({ tech, onAsk, t }) {
       )}
       <button
         onClick={() => onAsk(`How do I improve my ${tech.name}?`)}
+        onMouseEnter={() => setAskHover(true)}
+        onMouseLeave={() => setAskHover(false)}
         style={{
           padding: "8px 0", borderRadius: 9,
-          background: "rgba(255,255,255,0.04)", border: `1px solid ${tech.color}35`,
+          background: askHover ? `${tech.color}18` : "rgba(255,255,255,0.04)",
+          border: `1px solid ${tech.color}${askHover ? "80" : "35"}`,
           color: tech.color, fontSize: 11, fontWeight: 800, cursor: "pointer",
+          transition: "background 140ms ease, border-color 140ms ease",
+          transform: askHover ? "translateY(-1px)" : "none",
         }}
       >
         {t("libraryAskCoach")} →
@@ -1160,6 +1171,9 @@ function MistakeRow({ item }) {
 
 export default function KnowledgeLibrary({ locale, onAsk }) {
   const t = (key) => translate(locale, key);
+  const [hoveredPrompt, setHoveredPrompt] = useState(null);
+  const [todayHover, setTodayHover] = useState(false);
+  const [mistakesHover, setMistakesHover] = useState(false);
 
   const todayFocus = useMemo(() => {
     return getWeeklyFocus(locale)[new Date().getDay()];
@@ -1191,13 +1205,18 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
             <button
               key={p.key}
               onClick={() => onAsk(t(p.key))}
+              onMouseEnter={() => setHoveredPrompt(p.key)}
+              onMouseLeave={() => setHoveredPrompt(null)}
               style={{
                 display: "flex", alignItems: "center", gap: 5,
                 padding: "7px 12px", borderRadius: 999,
-                background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
-                color: "#ddd", fontSize: 11, fontWeight: 700,
+                background: hoveredPrompt === p.key ? "rgba(212,175,55,0.12)" : "rgba(255,255,255,0.05)",
+                border: `1px solid ${hoveredPrompt === p.key ? "rgba(212,175,55,0.4)" : "rgba(255,255,255,0.1)"}`,
+                color: hoveredPrompt === p.key ? "#D4AF37" : "#ddd",
+                fontSize: 11, fontWeight: 700,
                 cursor: "pointer", whiteSpace: "nowrap",
                 backdropFilter: "blur(6px)",
+                transition: "background 130ms ease, border-color 130ms ease, color 130ms ease",
               }}
             >
               <span>{p.emoji}</span>
@@ -1232,10 +1251,15 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
           </div>
           <button
             onClick={() => onAsk(t("libPromptToday"))}
+            onMouseEnter={() => setTodayHover(true)}
+            onMouseLeave={() => setTodayHover(false)}
             style={{
               marginTop: 10, width: "100%", padding: "9px 0", borderRadius: 9,
-              background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.2)",
+              background: todayHover ? "rgba(212,175,55,0.16)" : "rgba(212,175,55,0.08)",
+              border: `1px solid rgba(212,175,55,${todayHover ? "0.5" : "0.2"})`,
               color: "#D4AF37", fontSize: 12, fontWeight: 800, cursor: "pointer",
+              transition: "background 130ms ease, border-color 130ms ease",
+              transform: todayHover ? "translateY(-1px)" : "none",
             }}
           >
             {t("libraryAskCoach")} →
@@ -1293,10 +1317,15 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
         </div>
         <button
           onClick={() => onAsk("What are the most common boxing mistakes beginners make and how do I fix them?")}
+          onMouseEnter={() => setMistakesHover(true)}
+          onMouseLeave={() => setMistakesHover(false)}
           style={{
             marginTop: 12, width: "100%", padding: "9px 0", borderRadius: 9,
-            background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
-            color: "#777", fontSize: 12, fontWeight: 700, cursor: "pointer",
+            background: mistakesHover ? "rgba(193,18,31,0.1)" : "rgba(255,255,255,0.03)",
+            border: `1px solid ${mistakesHover ? "rgba(193,18,31,0.35)" : "rgba(255,255,255,0.08)"}`,
+            color: mistakesHover ? "#f87171" : "#777",
+            fontSize: 12, fontWeight: 700, cursor: "pointer",
+            transition: "background 130ms ease, border-color 130ms ease, color 130ms ease",
           }}
         >
           Ask coach about my mistakes →
