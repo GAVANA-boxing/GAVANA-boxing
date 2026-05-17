@@ -33,6 +33,13 @@ const GYM_TYPE_KEYS = {
 
 const VIBE_FILTERS = ["Beginner-Friendly", "Technical", "Competitive", "Traditional"];
 
+const VIBE_LABELS = {
+  "Beginner-Friendly": { mn: "Анхлан суралцагч", ko: "입문자 친화적" },
+  "Technical": { mn: "Техникийн", ko: "기술적" },
+  "Competitive": { mn: "Өрсөлдөөнт", ko: "경쟁적" },
+  "Traditional": { mn: "Уламжлалт", ko: "전통적" },
+};
+
 function getDefaultVibes(gymType) {
   const map = {
     Boxing: ["Technical", "Sparring"],
@@ -299,36 +306,38 @@ export default function GymsPage() {
           <>
             <div style={{ ...styles.header, paddingTop: 20 }}>
               <p style={styles.kicker}>GAVANA</p>
-              <h1 style={styles.title}>Миний Gym</h1>
+              <h1 style={styles.title}>{locale === "mn" ? "Миний Gym" : locale === "ko" ? "내 체육관" : "My Gyms"}</h1>
             </div>
 
             {!user?.uid ? (
               <div style={styles.emptyState}>
                 <div style={{ fontSize: 40, opacity: 0.4 }}>🔒</div>
-                <p style={styles.emptyText}>Нэвтрэх шаардлагатай</p>
+                <p style={styles.emptyText}>{locale === "mn" ? "Нэвтрэх шаардлагатай" : locale === "ko" ? "로그인이 필요합니다" : "Login required"}</p>
                 <button
                   type="button"
                   onClick={() => router.push(`/${locale}/login`)}
                   style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}
                 >
-                  Нэвтрэх →
+                  {locale === "mn" ? "Нэвтрэх →" : locale === "ko" ? "로그인 →" : "Log in →"}
                 </button>
               </div>
             ) : myMembershipsLoading ? (
-              <div style={styles.loadingText}>{t("gymsLoading")}</div>
+              <div style={styles.skeletonList}>
+                {[0, 1].map((i) => <div key={i} style={styles.skeletonCard} className="sk-pulse" />)}
+              </div>
             ) : myMemberships.length === 0 ? (
               <div style={styles.emptyState}>
                 <div style={{ fontSize: 40, opacity: 0.4 }}>🏋️</div>
-                <p style={styles.emptyText}>Gym-д элсээгүй байна</p>
+                <p style={styles.emptyText}>{locale === "mn" ? "Gym-д элсээгүй байна" : locale === "ko" ? "체육관에 가입하지 않았습니다" : "Not in any gym yet"}</p>
                 <p style={{ margin: 0, color: "rgba(255,255,255,0.45)", fontSize: 13, textAlign: "center", maxWidth: 240 }}>
-                  Gym-д элсэж тамирлалтаа нэгтгэ
+                  {locale === "mn" ? "Gym-д элсэж тамирлалтаа нэгтгэ" : locale === "ko" ? "체육관에 가입하고 훈련을 함께 하세요" : "Join a gym to train with your community"}
                 </p>
                 <button
                   type="button"
                   onClick={() => setTab("all")}
                   style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", marginTop: 4 }}
                 >
-                  Gym хайх →
+                  {locale === "mn" ? "Gym хайх →" : locale === "ko" ? "체육관 찾기 →" : "Find a gym →"}
                 </button>
               </div>
             ) : (
@@ -469,16 +478,19 @@ export default function GymsPage() {
 
         {/* Vibe filter chips */}
         <div style={styles.vibeRow}>
-          {VIBE_FILTERS.map((v) => (
-            <button
-              key={v}
-              type="button"
-              style={filterVibe === v ? styles.vibeActive : styles.vibeBtn}
-              onClick={() => setFilterVibe((prev) => (prev === v ? "" : v))}
-            >
-              {v}
-            </button>
-          ))}
+          {VIBE_FILTERS.map((v) => {
+            const lbl = locale === "mn" ? (VIBE_LABELS[v]?.mn || v) : locale === "ko" ? (VIBE_LABELS[v]?.ko || v) : v;
+            return (
+              <button
+                key={v}
+                type="button"
+                style={filterVibe === v ? styles.vibeActive : styles.vibeBtn}
+                onClick={() => setFilterVibe((prev) => (prev === v ? "" : v))}
+              >
+                {lbl}
+              </button>
+            );
+          })}
         </div>
 
         {/* Category pills */}
@@ -504,7 +516,9 @@ export default function GymsPage() {
 
         {/* List */}
         {loading ? (
-          <div style={styles.loadingText}>{t("gymsLoading")}</div>
+          <div style={styles.skeletonList}>
+            {[0, 1, 2].map((i) => <div key={i} style={styles.skeletonCard} className="sk-pulse" />)}
+          </div>
         ) : filtered.length === 0 ? (
           <div style={styles.emptyState}>
             <div style={{ fontSize: 44, opacity: 0.5 }}>🏋️</div>
@@ -534,8 +548,12 @@ export default function GymsPage() {
         router={router}
         user={user}
         currentLocale={locale}
-        activeTab="profile"
+        activeTab="discover"
       />
+      <style>{`
+        @keyframes skPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+        .sk-pulse { animation: skPulse 1.4s ease infinite; }
+      `}</style>
     </div>
   );
 }
@@ -576,6 +594,8 @@ const styles = {
   catBtn: { flexShrink: 0, padding: "6px 14px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 700, cursor: "pointer" },
   catActive: { flexShrink: 0, padding: "6px 14px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.5)", background: "rgba(212,175,55,0.12)", color: "#D4AF37", fontSize: 12, fontWeight: 700, cursor: "pointer" },
   loadingText: { textAlign: "center", padding: "60px 0", color: "rgba(255,255,255,0.55)", fontSize: 14 },
+  skeletonList: { display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 },
+  skeletonCard: { height: 200, borderRadius: 16, background: "rgba(255,255,255,0.06)" },
   emptyState: { display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "60px 24px", textAlign: "center" },
   emptyText: { margin: 0, color: "rgba(255,255,255,0.62)", fontSize: 15 },
   cardList: { display: "flex", flexDirection: "column", gap: 12 },

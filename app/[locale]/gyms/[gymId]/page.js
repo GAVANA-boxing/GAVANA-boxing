@@ -301,12 +301,37 @@ export default function GymProfilePage() {
       <div style={styles.page}>
         <div style={styles.content}>
           <button type="button" style={styles.backBtn} onClick={() => router.push(`/${locale}/gyms`)}>← {t("back")}</button>
-          <p style={{ color: "rgba(255,255,255,0.62)", textAlign: "center", padding: "60px 0" }}>Gym not found.</p>
+          <p style={{ color: "rgba(255,255,255,0.62)", textAlign: "center", padding: "60px 0" }}>
+            {locale === "mn" ? "Gym олдсонгүй." : locale === "ko" ? "체육관을 찾을 수 없습니다." : "Gym not found."}
+          </p>
         </div>
-        <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
+        <BottomNav router={router} user={user} currentLocale={locale} activeTab="discover" />
       </div>
     );
   }
+
+  const mapsQuery = [gym.gymName, gym.address, gym.city, gym.country].filter(Boolean).join(", ");
+  const mapsUrl = `https://maps.google.com/?q=${encodeURIComponent(mapsQuery)}`;
+
+  const handleShare = async () => {
+    const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+    const text = locale === "mn"
+      ? `${gym.gymName} — GAVANA дээр харах`
+      : locale === "ko"
+        ? `${gym.gymName} — GAVANA에서 보기`
+        : `Check out ${gym.gymName} on GAVANA`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: gym.gymName, text, url: shareUrl });
+        return;
+      }
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(`${text}\n${shareUrl}`);
+      }
+    } catch {
+      // silent
+    }
+  };
 
   const isOwner = user?.uid === gym.ownerId;
 
@@ -402,6 +427,12 @@ export default function GymProfilePage() {
           {gym.website && (
             <a href={gym.website} target="_blank" rel="noopener noreferrer" style={styles.contactBtn}>🌐</a>
           )}
+          {(gym.city || gym.address) && (
+            <a href={mapsUrl} target="_blank" rel="noopener noreferrer" style={styles.contactBtn} title={locale === "mn" ? "Газрын зураг" : locale === "ko" ? "지도" : "Map"}>📍</a>
+          )}
+          <button type="button" style={styles.contactBtn} onClick={handleShare} title={locale === "mn" ? "Хуваалцах" : locale === "ko" ? "공유" : "Share"}>
+            ↗
+          </button>
         </div>
 
         {/* Join form */}
@@ -570,7 +601,7 @@ export default function GymProfilePage() {
         </section>
       </div>
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="discover" />
     </div>
   );
 }

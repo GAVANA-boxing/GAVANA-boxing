@@ -164,7 +164,10 @@ export default function GymDashboardPage() {
   };
 
   const handleRegister = async () => {
-    if (!gymName.trim()) { setRegisterError(t("gymRegisterName") + " is required."); return; }
+    if (!gymName.trim()) {
+      setRegisterError(locale === "mn" ? "Gym-ийн нэр заавал шаардлагатай." : locale === "ko" ? "체육관 이름은 필수입니다." : "Gym name is required.");
+      return;
+    }
     setRegisterError("");
     setSubmitting(true);
     try {
