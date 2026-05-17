@@ -714,7 +714,7 @@ export default function UserProfilePage() {
 
   // Load current user's own stats for rival comparison
   useEffect(() => {
-    if (!user?.uid || !userId || isOwnProfile) { setMyStats(null); return; }
+    if (!user?.uid || !userId || user.uid === userId) { setMyStats(null); return; }
     let active = true;
     async function loadMyStats() {
       try {
@@ -738,7 +738,7 @@ export default function UserProfilePage() {
     }
     loadMyStats();
     return () => { active = false; };
-  }, [user?.uid, userId, isOwnProfile]);
+  }, [user?.uid, userId]);
 
   // Load earned badges
   useEffect(() => {
@@ -902,8 +902,8 @@ export default function UserProfilePage() {
     if (isOwnProfile) { router.push(`/${locale || "en"}/inbox`); return; }
     try {
       const convoId = await startConversation(user, userId, {
-        displayName: profileUserData?.displayName || profileUserData?.username || "",
-        photoURL: profileUserData?.photoURL || "",
+        displayName: profileUser?.displayName || profileUser?.username || "",
+        photoURL: profileUser?.photoURL || "",
       });
       router.push(`/${locale || "en"}/inbox/${convoId}`);
     } catch (e) {
@@ -1632,17 +1632,19 @@ export default function UserProfilePage() {
                 const myWins = myNum > theirNum;
                 const theirWins = theirNum > myNum;
                 const sep = i > 0 ? "1px solid rgba(255,255,255,0.04)" : "none";
-                return [
-                  <div key={`m${i}`} style={{ textAlign: "center", padding: "7px 0", borderTop: sep }}>
-                    <span style={{ fontSize: 15, fontWeight: 900, color: myWins ? "#34D399" : "#fff" }}>{stat.fmt(stat.my)}</span>
-                  </div>,
-                  <div key={`l${i}`} style={{ textAlign: "center", fontSize: 9, fontWeight: 700, color: "#555", paddingTop: i > 0 ? 7 : 0, borderTop: sep }}>
-                    {stat.label}
-                  </div>,
-                  <div key={`t${i}`} style={{ textAlign: "center", padding: "7px 0", borderTop: sep }}>
-                    <span style={{ fontSize: 15, fontWeight: 900, color: theirWins ? "#34D399" : "#fff" }}>{stat.fmt(stat.their)}</span>
-                  </div>,
-                ];
+                return (
+                  <div key={i} style={{ display: "contents" }}>
+                    <div style={{ textAlign: "center", padding: "7px 0", borderTop: sep }}>
+                      <span style={{ fontSize: 15, fontWeight: 900, color: myWins ? "#34D399" : "#fff" }}>{stat.fmt(stat.my)}</span>
+                    </div>
+                    <div style={{ textAlign: "center", fontSize: 9, fontWeight: 700, color: "#555", paddingTop: i > 0 ? 7 : 0, borderTop: sep }}>
+                      {stat.label}
+                    </div>
+                    <div style={{ textAlign: "center", padding: "7px 0", borderTop: sep }}>
+                      <span style={{ fontSize: 15, fontWeight: 900, color: theirWins ? "#34D399" : "#fff" }}>{stat.fmt(stat.their)}</span>
+                    </div>
+                  </div>
+                );
               })}
             </div>
           </div>
@@ -1882,7 +1884,7 @@ export default function UserProfilePage() {
               </div>
 
               {/* Recent battles list */}
-              {pvpStats.recentBattles.length > 0 && (
+              {pvpStats.recentBattles?.length > 0 && (
                 <div style={{ display: "grid", gap: 8 }}>
                   <p style={{ margin: "0 0 6px", fontSize: 9, fontWeight: 900, color: "#555", letterSpacing: 2, textTransform: "uppercase" }}>
                     {locale === "mn" ? "Сүүлийн тулааны бичиг" : locale === "ko" ? "최근 경기" : "Recent Battles"}
