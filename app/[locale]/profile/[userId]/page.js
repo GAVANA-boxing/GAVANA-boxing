@@ -2148,6 +2148,14 @@ export default function UserProfilePage() {
                   borderRadius: 2,
                 }}
                 onClick={() => router.push(`/${locale}/reels?reelId=${reel.id}&source=profile&userId=${userId}`)}
+                onMouseEnter={(e) => {
+                  const video = e.currentTarget.querySelector("video");
+                  if (video) video.play().catch(() => {});
+                }}
+                onMouseLeave={(e) => {
+                  const video = e.currentTarget.querySelector("video");
+                  if (video) { video.pause(); video.currentTime = 0; }
+                }}
               >
                 {showImage ? (
                   <img
@@ -2165,6 +2173,7 @@ export default function UserProfilePage() {
                     style={styles.reelPreviewMedia}
                     muted
                     playsInline
+                    loop
                     preload="metadata"
                     poster={reel.thumbnailUrl || undefined}
                     onLoadedMetadata={(event) => {
@@ -2184,6 +2193,15 @@ export default function UserProfilePage() {
                     caption={reel.description || reel.caption}
                     style={{ position: "absolute", inset: 0 }}
                   />
+                )}
+
+                {/* Hover play hint (desktop only via CSS) */}
+                {showVideo && (
+                  <div className="reel-play-hint">
+                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                    </div>
+                  </div>
                 )}
 
                 {/* Content type indicator — top-left */}
@@ -2239,6 +2257,22 @@ export default function UserProfilePage() {
         .profile-reel-tile:active .profile-reel-media {
           transform: scale(1.12);
           filter: contrast(1.12);
+        }
+        @media (hover: hover) {
+          .profile-reel-tile .reel-play-hint {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 180ms ease;
+            pointer-events: none;
+            z-index: 2;
+          }
+          .profile-reel-tile:hover .reel-play-hint {
+            opacity: 1;
+          }
         }
         @keyframes avatarFire {
           0%,100% { box-shadow: 0 0 0 1px rgba(212,175,55,0.55), 0 22px 70px rgba(0,0,0,0.5), 0 0 28px rgba(251,146,60,0.7), 0 0 56px rgba(251,146,60,0.35); border-color: #FB923C; }
