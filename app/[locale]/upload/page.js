@@ -95,9 +95,26 @@ function UToggle({ label, description, value, onChange, locked }) {
         type="button"
         disabled={!!locked}
         onClick={() => !locked && onChange && onChange(!value)}
-        style={{ ...S.toggleBtn, background: value ? "rgba(193,18,31,0.55)" : "rgba(255,255,255,0.07)", cursor: locked ? "default" : "pointer", opacity: locked ? 0.5 : 1 }}
+        aria-checked={value}
+        role="switch"
+        style={{
+          flexShrink: 0,
+          width: 46, height: 26, borderRadius: 999, border: "none", cursor: locked ? "default" : "pointer",
+          background: value ? "#C1121F" : "rgba(255,255,255,0.12)",
+          opacity: locked ? 0.45 : 1,
+          position: "relative",
+          transition: "background 180ms ease",
+          padding: 0,
+          outline: "none",
+        }}
       >
-        {value ? "ON" : "OFF"}
+        <span style={{
+          position: "absolute",
+          top: 3, left: value ? "calc(100% - 23px)" : 3,
+          width: 20, height: 20, borderRadius: "50%",
+          background: "#fff", transition: "left 180ms ease",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.5)",
+        }} />
       </button>
     </div>
   );
@@ -494,10 +511,17 @@ export default function UploadPage() {
           {/* Gym tag */}
           {gyms.length > 0 && (
             <UField label={t("uploadGymTag")}>
-              <select value={gymId} onChange={(e) => setGymId(e.target.value)} style={S.input}>
-                <option value="">{t("uploadGymNone")}</option>
-                {gyms.map((g) => <option key={g.id} value={g.id}>{g.gymName}</option>)}
-              </select>
+              <div style={{ position: "relative" }}>
+                <select
+                  value={gymId}
+                  onChange={(e) => setGymId(e.target.value)}
+                  style={{ ...S.input, appearance: "none", WebkitAppearance: "none", paddingRight: 36, color: gymId ? "#fff" : "rgba(255,255,255,0.38)" }}
+                >
+                  <option value="" style={{ color: "#aaa" }}>{t("uploadGymNone")}</option>
+                  {gyms.map((g) => <option key={g.id} value={g.id} style={{ color: "#fff", background: "#111" }}>{g.gymName}</option>)}
+                </select>
+                <span style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "rgba(255,255,255,0.38)", fontSize: 11 }}>▾</span>
+              </div>
             </UField>
           )}
 
@@ -609,7 +633,7 @@ const S = {
 
   // Fields
   fields: { display: "flex", flexDirection: "column", gap: 18 },
-  fieldLabel: { fontSize: 11, fontWeight: 900, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: 1 },
+  fieldLabel: { fontSize: 11, fontWeight: 900, color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: 1 },
   input: { background: "#111", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 12, padding: "13px 16px", color: "#fff", fontSize: 14, outline: "none", width: "100%", boxSizing: "border-box" },
   textarea: { background: "#111", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 12, padding: "13px 16px", color: "#fff", fontSize: 14, minHeight: 82, resize: "vertical", outline: "none", width: "100%", boxSizing: "border-box" },
   chipRow: { display: "flex", flexWrap: "wrap", gap: 8 },
