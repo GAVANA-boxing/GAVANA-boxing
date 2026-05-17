@@ -20,6 +20,21 @@ import { useAuth } from "@/lib/AuthContext";
 import { db, storage } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 
+function getCompleteness(gym) {
+  if (!gym) return 0;
+  let score = 0;
+  if (gym.gymName) score += 20;
+  if (gym.description) score += 15;
+  if (gym.logo) score += 15;
+  if (gym.city && gym.country) score += 10;
+  if (gym.district || gym.address) score += 10;
+  if (gym.specialties?.length > 0) score += 10;
+  if (gym.amenities?.length > 0) score += 10;
+  if (gym.phone) score += 5;
+  if (gym.instagram || gym.website) score += 5;
+  return Math.min(100, score);
+}
+
 const GYM_TYPES = [
   "Boxing", "MMA", "Muay Thai", "Fitness",
   "Crossfit", "Street Workout", "Powerlifting", "Running Club",
@@ -271,7 +286,38 @@ export default function GymDashboardPage() {
   };
 
   if (authLoading || checking) {
-    return <div style={styles.loading}>{t("loading")}</div>;
+    return (
+      <div style={styles.page}>
+        <style>{`@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}.shimmer{background:linear-gradient(90deg,rgba(255,255,255,0.04) 0%,rgba(255,255,255,0.09) 50%,rgba(255,255,255,0.04) 100%);background-size:800px 100%;animation:shimmer 1.6s infinite;}`}</style>
+        <div style={styles.content}>
+          <div style={{ height: 20, width: 80, borderRadius: 6, background: "rgba(255,255,255,0.06)", marginBottom: 8 }} className="shimmer" />
+          <div style={{ height: 28, width: "60%", borderRadius: 8, background: "rgba(255,255,255,0.08)", marginBottom: 20 }} className="shimmer" />
+          <div style={{ display: "flex", borderRadius: 16, overflow: "hidden", border: "1px solid rgba(255,255,255,0.06)", marginBottom: 20 }}>
+            {[1,2,3,4].map((i) => (
+              <div key={i} style={{ flex: 1, padding: "14px 6px", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+                <div style={{ height: 20, width: 32, borderRadius: 4, background: "rgba(255,255,255,0.08)" }} className="shimmer" />
+                <div style={{ height: 10, width: 44, borderRadius: 4, background: "rgba(255,255,255,0.05)" }} className="shimmer" />
+              </div>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+            {[1,2,3,4].map((i) => <div key={i} style={{ flex: 1, height: 38, borderRadius: 10, background: "rgba(255,255,255,0.06)" }} className="shimmer" />)}
+          </div>
+          {[1,2,3].map((i) => (
+            <div key={i} style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,0.06)", padding: 14, marginBottom: 10 }}>
+              <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,0.08)" }} className="shimmer" />
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+                  <div style={{ height: 13, width: "50%", borderRadius: 6, background: "rgba(255,255,255,0.08)" }} className="shimmer" />
+                  <div style={{ height: 11, width: "30%", borderRadius: 6, background: "rgba(255,255,255,0.05)" }} className="shimmer" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
+      </div>
+    );
   }
   if (!user) return null;
 
@@ -415,6 +461,27 @@ export default function GymDashboardPage() {
         <div style={styles.dashHeader}>
           <p style={styles.kicker}>{t("gymDashboardKicker")}</p>
           <h1 style={styles.title}>{t("gymDashboard")}</h1>
+          {(() => {
+            const pct = getCompleteness(gym);
+            const label = locale === "mn" ? "Профайл дүүргэлт" : locale === "ko" ? "프로필 완성도" : "Profile completeness";
+            const color = pct >= 80 ? "#34D399" : pct >= 50 ? "#D4AF37" : "#C1121F";
+            return (
+              <div style={{ marginTop: 12, background: "rgba(255,255,255,0.04)", borderRadius: 12, padding: "10px 14px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.4 }}>{label}</span>
+                  <span style={{ fontSize: 13, fontWeight: 900, color }}>{pct}%</span>
+                </div>
+                <div style={{ height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 2, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 2, transition: "width 0.6s ease" }} />
+                </div>
+                {pct < 100 && (
+                  <p style={{ margin: "6px 0 0", fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                    {locale === "mn" ? "Gym профайлаа бөглөж илүү олон гишүүн татаарай." : locale === "ko" ? "프로필을 완성하면 더 많은 회원을 유치할 수 있습니다." : "Complete your profile to attract more members."}
+                  </p>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         {/* Stats panel */}
@@ -441,11 +508,12 @@ export default function GymDashboardPage() {
         </div>
 
         {/* Tabs */}
-        <div style={styles.tabs}>
+        <div style={{ ...styles.tabs, flexWrap: "wrap" }}>
           {[
-            { key: "requests", label: `${t("gymJoinRequests")} (${joinRequests.length})` },
-            { key: "members", label: locale === "mn" ? `Гишүүд (${members.length})` : locale === "ko" ? `회원 (${members.length})` : `Members (${members.length})` },
-            { key: "announce", label: t("gymPostAnnouncement") },
+            { key: "requests", label: joinRequests.length > 0 ? `🔴 ${t("gymJoinRequests")} (${joinRequests.length})` : t("gymJoinRequests") },
+            { key: "members", label: locale === "mn" ? `👥 Гишүүд (${members.length})` : locale === "ko" ? `👥 회원 (${members.length})` : `👥 Members (${members.length})` },
+            { key: "sessions", label: locale === "mn" ? "📅 Хичээл" : locale === "ko" ? "📅 세션" : "📅 Sessions" },
+            { key: "announce", label: locale === "mn" ? "📢 Мэдэгдэл" : locale === "ko" ? "📢 공지" : "📢 Announce" },
           ].map(({ key, label }) => (
             <button
               key={key}
@@ -539,7 +607,7 @@ export default function GymDashboardPage() {
                     ? mem.createdAt.toDate().toLocaleDateString()
                     : "";
                   return (
-                    <div key={mem.id} style={styles.memberCard}>
+                    <button key={mem.id} type="button" style={{ ...styles.memberCard, width: "100%", textAlign: "left", cursor: "pointer" }} onClick={() => mem.userId && router.push(`/${locale}/profile/${mem.userId}`)}>
                       <div style={styles.requestTop}>
                         <div style={styles.reqAvatar}>
                           {photo
@@ -560,11 +628,27 @@ export default function GymDashboardPage() {
                           <span style={styles.memberJoinedDate}>{joinedAt}</span>
                         </div>
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Sessions */}
+        {activeTab === "sessions" && (
+          <div style={styles.emptyState}>
+            <span style={{ fontSize: 48, opacity: 0.5 }}>📅</span>
+            <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#fff" }}>
+              {locale === "mn" ? "Хичээлийн хуваарь" : locale === "ko" ? "세션 일정" : "Session Schedule"}
+            </p>
+            <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.45)", textAlign: "center", maxWidth: 280, lineHeight: 1.6 }}>
+              {locale === "mn" ? "Coach-ууд таны gym дээр хичээл зааж эхлэхэд энд харагдана." : locale === "ko" ? "코치들이 체육관에서 세션을 시작하면 여기에 표시됩니다." : "When coaches schedule sessions at your gym, they will appear here."}
+            </p>
+            <button type="button" style={{ padding: "11px 24px", borderRadius: 999, border: "none", background: "linear-gradient(135deg,#C1121F,#7d0812)", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", marginTop: 4 }} onClick={() => router.push(`/${locale}/coach`)}>
+              {locale === "mn" ? "🎓 Coach хайх" : locale === "ko" ? "🎓 코치 찾기" : "🎓 Find Coaches"}
+            </button>
           </div>
         )}
 
