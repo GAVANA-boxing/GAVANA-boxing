@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, getDocs, onSnapshot, query, where } from "firebase/firestore";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
@@ -97,9 +97,42 @@ export default function ChallengesPage() {
   const [results, setResults] = useState([]);
   const [profiles, setProfiles] = useState({});
   const [seasonTab, setSeasonTab] = useState("week"); // "week" | "alltime"
+  const [mainTab, setMainTab] = useState("leaderboard"); // "leaderboard" | "battles"
+  const [myBattles, setMyBattles] = useState([]);
+  const [battlesLoading, setBattlesLoading] = useState(false);
 
   const currentSeasonId = useMemo(() => getCurrentSeasonId(), []);
   const seasonLabel = useMemo(() => getSeasonLabel(currentSeasonId), [currentSeasonId]);
+
+  useEffect(() => {
+    if (!user?.uid || mainTab !== "battles") return;
+    let active = true;
+    setBattlesLoading(true);
+    async function loadBattles() {
+      try {
+        const [asChal, asOpp] = await Promise.all([
+          getDocs(query(collection(db, "pvp_challenges"), where("challengerId", "==", user.uid))),
+          getDocs(query(collection(db, "pvp_challenges"), where("opponentId", "==", user.uid))),
+        ]);
+        if (!active) return;
+        const all = [
+          ...asChal.docs.map((d) => ({ id: d.id, ...d.data(), role: "challenger" })),
+          ...asOpp.docs.map((d) => ({ id: d.id, ...d.data(), role: "opponent" })),
+        ].sort((a, b) => {
+          const aMs = a.createdAt?.toMillis?.() || 0;
+          const bMs = b.createdAt?.toMillis?.() || 0;
+          return bMs - aMs;
+        });
+        setMyBattles(all);
+      } catch (e) {
+        console.error("battles load error", e);
+      } finally {
+        if (active) setBattlesLoading(false);
+      }
+    }
+    loadBattles();
+    return () => { active = false; };
+  }, [user?.uid, mainTab]);
 
   useEffect(() => {
     if (!authLoading && !user) router.push(`/${locale}/login`);
@@ -189,6 +222,74 @@ export default function ChallengesPage() {
           </div>
         </header>
 
+        {/* Main tabs: Leaderboard | My Battles */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, padding: 5, borderRadius: 16, background: "rgba(0,0,0,0.48)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)" }}>
+          <button type="button" style={{ ...styles.seasonTab, ...(mainTab === "leaderboard" ? styles.seasonTabActive : {}) }} onClick={() => setMainTab("leaderboard")}>
+            🏆 {locale === "mn" ? "Тэргүүний самбар" : locale === "ko" ? "리더보드" : "Leaderboard"}
+          </button>
+          <button type="button" style={{ ...styles.seasonTab, ...(mainTab === "battles" ? styles.seasonTabActive : {}), ...(myBattles.some((b) => b.status === "pending" && b.role === "opponent") ? { color: "#A78BFA" } : {}) }} onClick={() => setMainTab("battles")}>
+            ⚔️ {locale === "mn" ? "Миний тулаанууд" : locale === "ko" ? "내 배틀" : "My Battles"}
+            {myBattles.some((b) => b.status === "pending" && b.role === "opponent") && <span style={{ marginLeft: 4, display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: "#A78BFA", verticalAlign: "middle" }} />}
+          </button>
+        </div>
+
+        {mainTab === "battles" ? (
+          <div style={{ display: "grid", gap: 10 }}>
+            {battlesLoading ? (
+              <div style={{ textAlign: "center", padding: "40px 0", color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
+                {locale === "mn" ? "Уншиж байна..." : locale === "ko" ? "로딩 중..." : "Loading..."}
+              </div>
+            ) : myBattles.length === 0 ? (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "40px 16px", textAlign: "center" }}>
+                <span style={{ fontSize: 48, opacity: 0.5 }}>⚔️</span>
+                <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#fff" }}>
+                  {locale === "mn" ? "Тулаан байхгүй байна" : locale === "ko" ? "배틀 없음" : "No battles yet"}
+                </p>
+                <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.45)", maxWidth: 260, lineHeight: 1.6 }}>
+                  {locale === "mn" ? "Fighter-ийн profile дээрх ⚔️ товчийг дараад тулааны шийдэл илгээгээрэй." : locale === "ko" ? "파이터의 프로필에서 ⚔️ 버튼으로 배틀을 신청하세요." : "Go to a fighter's profile and tap ⚔️ to send a challenge."}
+                </p>
+                <button type="button" style={{ padding: "11px 24px", borderRadius: 999, border: "none", background: "linear-gradient(135deg,#7C3AED,#4C1D95)", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer" }} onClick={() => router.push(`/${locale}/fighters`)}>
+                  {locale === "mn" ? "🥊 Fighter хайх" : locale === "ko" ? "🥊 파이터 찾기" : "🥊 Find Fighters"}
+                </button>
+              </div>
+            ) : (
+              myBattles.map((battle) => {
+                const challengeInfo = CHALLENGES.find((c) => c.id === battle.challengeId);
+                const isReceived = battle.role === "opponent";
+                const isPending = battle.status === "pending";
+                return (
+                  <div key={battle.id} style={{ borderRadius: 16, border: `1px solid ${isPending && isReceived ? "rgba(167,139,250,0.35)" : "rgba(255,255,255,0.08)"}`, background: isPending && isReceived ? "rgba(167,139,250,0.07)" : "rgba(255,255,255,0.03)", padding: "14px 16px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                      <span style={{ fontSize: 24 }}>{isPending && isReceived ? "⚔️" : battle.status === "completed" ? "✅" : "🕐"}</span>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 14, fontWeight: 900, color: "#fff" }}>{challengeInfo ? t(challengeInfo.titleKey) : battle.challengeId}</div>
+                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 2 }}>
+                          {isReceived
+                            ? (locale === "mn" ? "Тулааны урилга ирлээ" : locale === "ko" ? "배틀 신청 받음" : "Challenge received")
+                            : (locale === "mn" ? "Тулааны урилга илгээсэн" : locale === "ko" ? "배틀 신청 보냄" : "Challenge sent")}
+                          {" · "}
+                          {battle.status === "pending"
+                            ? (locale === "mn" ? "Хүлээгдэж байна" : locale === "ko" ? "대기 중" : "Pending")
+                            : battle.status === "completed"
+                            ? (locale === "mn" ? "Дууссан" : locale === "ko" ? "완료" : "Completed")
+                            : battle.status}
+                        </div>
+                      </div>
+                      {isPending && isReceived && (
+                        <button type="button" style={{ padding: "8px 16px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#7C3AED,#4C1D95)", color: "#fff", fontSize: 12, fontWeight: 900, cursor: "pointer", flexShrink: 0 }} onClick={() => router.push(`/${locale}/train?challengeId=${battle.challengeId}`)}>
+                          {locale === "mn" ? "Тулаан →" : locale === "ko" ? "배틀 →" : "Compete →"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        ) : null}
+
+        {mainTab === "leaderboard" && (
+          <>
         {/* Season tabs */}
         <div style={styles.seasonTabRow}>
           <button
@@ -317,6 +418,8 @@ export default function ChallengesPage() {
             );
           })}
         </div>
+          </>
+        )}
       </section>
 
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="discover" />

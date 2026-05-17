@@ -326,6 +326,9 @@ export default function UserProfilePage() {
   const [userBadges, setUserBadges] = useState([]);
   const [showFighterCard, setShowFighterCard] = useState(false);
   const [cardShareCopied, setCardShareCopied] = useState(false);
+  const [showChallengeModal, setShowChallengeModal] = useState(false);
+  const [challengeSending, setChallengeSending] = useState(false);
+  const [challengeSent, setChallengeSent] = useState(false);
   const rankUpShownRef = useRef(false);
 
   // Redirect if not logged in
@@ -950,6 +953,44 @@ export default function UserProfilePage() {
     }
   };
 
+  const handleSendChallenge = async (challengeId) => {
+    if (!user?.uid || !userId || challengeSending) return;
+    setChallengeSending(true);
+    try {
+      const { addDoc, collection, serverTimestamp } = await import("firebase/firestore");
+      await addDoc(collection(db, "pvp_challenges"), {
+        challengerId: user.uid,
+        opponentId: userId,
+        challengeId,
+        status: "pending",
+        createdAt: serverTimestamp(),
+      });
+      await addDoc(collection(db, "notifications"), {
+        recipientId: userId,
+        actorId: user.uid,
+        actorName: user.displayName || "Fighter",
+        fromUserId: user.uid,
+        fromUsername: user.displayName || "Fighter",
+        fromUserPhotoURL: user.photoURL || "",
+        type: "pvp_challenge",
+        challengeId,
+        message: locale === "mn"
+          ? `${user.displayName || "Fighter"} тан руу тулааны шийдэл илгээлээ!`
+          : locale === "ko"
+          ? `${user.displayName || "Fighter"}님이 PvP 배틀을 신청했습니다!`
+          : `${user.displayName || "Fighter"} challenged you to a battle!`,
+        read: false,
+        createdAt: serverTimestamp(),
+      });
+      setChallengeSent(true);
+      setTimeout(() => { setChallengeSent(false); setShowChallengeModal(false); }, 2000);
+    } catch (e) {
+      console.error("challenge send error", e);
+    } finally {
+      setChallengeSending(false);
+    }
+  };
+
   const handleSwitchAccount = async () => {
     if (signingOut) return;
 
@@ -1486,13 +1527,22 @@ export default function UserProfilePage() {
                 ⇄ {t("mutual")}
               </span>
             )}
-            <button
-              type="button"
-              onClick={() => setShowFighterCard(true)}
-              style={{ ...styles.ghostAction, color: "#D4AF37", borderColor: "rgba(212,175,55,0.3)", marginTop: 2 }}
-            >
-              🥊 {locale === "mn" ? "Fighter Card" : locale === "ko" ? "파이터 카드" : "Fighter Card"}
-            </button>
+            <div style={{ display: "flex", gap: 8, marginTop: 2 }}>
+              <button
+                type="button"
+                onClick={() => { setShowChallengeModal(true); setChallengeSent(false); }}
+                style={{ ...styles.ghostAction, color: "#A78BFA", borderColor: "rgba(167,139,250,0.3)", flex: 1 }}
+              >
+                ⚔️ {locale === "mn" ? "Тулаан" : locale === "ko" ? "배틀 신청" : "Challenge"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowFighterCard(true)}
+                style={{ ...styles.ghostAction, color: "#D4AF37", borderColor: "rgba(212,175,55,0.3)", flex: 1 }}
+              >
+                🥊 {locale === "mn" ? "Fighter Card" : locale === "ko" ? "파이터 카드" : "Fighter Card"}
+              </button>
+            </div>
           </div>
         )}
         </div>
@@ -2039,6 +2089,53 @@ export default function UserProfilePage() {
           </div>
         );
       })()}
+
+      {showChallengeModal && !isOwnProfile && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={() => setShowChallengeModal(false)}>
+          <div style={{ width: "100%", maxWidth: 480, background: "linear-gradient(145deg,#111012,#0a0a0a)", borderRadius: "20px 20px 0 0", borderTop: "2.5px solid rgba(167,139,250,0.4)", padding: "24px 20px calc(32px + env(safe-area-inset-bottom))" }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+              <div>
+                <p style={{ margin: 0, fontSize: 10, fontWeight: 900, color: "#A78BFA", letterSpacing: 1.4, textTransform: "uppercase" }}>GAVANA PvP</p>
+                <h2 style={{ margin: "4px 0 0", fontSize: 20, fontWeight: 900, color: "#fff" }}>
+                  {locale === "mn" ? "⚔️ Тулаанд уриалах" : locale === "ko" ? "⚔️ 배틀 신청" : "⚔️ Send Challenge"}
+                </h2>
+              </div>
+              <button type="button" onClick={() => setShowChallengeModal(false)} style={{ width: 32, height: 32, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.7)", cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+            </div>
+            <p style={{ margin: "0 0 16px", fontSize: 13, color: "rgba(255,255,255,0.55)" }}>
+              {locale === "mn" ? "Тулааны төрлөө сонгоно уу:" : locale === "ko" ? "배틀 유형을 선택하세요:" : "Pick a challenge to compete on:"}
+            </p>
+            {challengeSent ? (
+              <div style={{ textAlign: "center", padding: "24px 0", fontSize: 15, fontWeight: 900, color: "#34D399" }}>
+                ✅ {locale === "mn" ? "Уриалга илгээгдлээ!" : locale === "ko" ? "배틀 신청 완료!" : "Challenge sent!"}
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {[
+                  { id: "jab-minute", emoji: "👊", label: locale === "mn" ? "Нэг минутын JAB" : locale === "ko" ? "1분 잽 챌린지" : "Jab Minute", desc: locale === "mn" ? "Нэг минутад хамгийн сайн JAB хий" : locale === "ko" ? "1분 동안 최고의 잽을 보여라" : "Best jab form in one minute" },
+                  { id: "speed-test", emoji: "⚡", label: locale === "mn" ? "Хурдны тест" : locale === "ko" ? "스피드 테스트" : "Speed Test", desc: locale === "mn" ? "Хурд, нарийвчлал хосолсон тулаан" : locale === "ko" ? "스피드와 정확도 배틀" : "Speed and accuracy battle" },
+                  { id: "combo-master", emoji: "🔥", label: locale === "mn" ? "Combo Master" : locale === "ko" ? "콤보 마스터" : "Combo Master", desc: locale === "mn" ? "Хамгийн сайн комбо бичлэгийг хий" : locale === "ko" ? "최고의 콤보를 선보여라" : "Best combination sequence" },
+                ].map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    disabled={challengeSending}
+                    onClick={() => handleSendChallenge(c.id)}
+                    style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderRadius: 14, border: "1px solid rgba(167,139,250,0.2)", background: challengeSending ? "rgba(167,139,250,0.04)" : "rgba(167,139,250,0.08)", cursor: challengeSending ? "not-allowed" : "pointer", textAlign: "left", width: "100%", transition: "background 0.15s" }}
+                  >
+                    <span style={{ fontSize: 28, flexShrink: 0 }}>{c.emoji}</span>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 900, color: "#fff", marginBottom: 2 }}>{c.label}</div>
+                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }}>{c.desc}</div>
+                    </div>
+                    <span style={{ marginLeft: "auto", fontSize: 16, color: "rgba(167,139,250,0.6)", flexShrink: 0 }}>›</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {showFighterCard && (() => {
         const arch = profileUser.fighterArchetype ? ARCHETYPE_DISPLAY[profileUser.fighterArchetype] : null;
