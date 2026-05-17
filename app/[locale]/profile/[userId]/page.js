@@ -1263,6 +1263,21 @@ export default function UserProfilePage() {
         </button>
       </header>
       <section style={styles.fighterCard}>
+        {/* ── Cover Photo ── */}
+        <div style={styles.coverPhotoSection}>
+          {(profileUser.coverPhotoURL || profileUser.coverPhoto) ? (
+            <img src={profileUser.coverPhotoURL || profileUser.coverPhoto} alt="" style={styles.coverPhotoImg} />
+          ) : (
+            <div style={styles.coverPhotoFallback} />
+          )}
+          <div style={styles.coverPhotoGradient} />
+          {isOwnProfile && (
+            <button type="button" style={styles.coverPhotoEditBtn} onClick={() => router.push(`/${locale}/profile/edit`)}>
+              📷
+            </button>
+          )}
+        </div>
+
         <div style={styles.fighterCardInner}>
         {/* Avatar */}
         <div
@@ -1359,15 +1374,25 @@ export default function UserProfilePage() {
           </div>
         </div>
 
-        {/* User achievement badges */}
+        {/* Achievements Shelf */}
         {userBadges.length > 0 && (
-          <div style={styles.badgesRow}>
+          <div style={styles.achievementsShelf}>
             {userBadges.map((b) => {
-              const ICONS = { first_challenge: "🥊", streak_3: "🔥", streak_7: "⚡", jab_master: "🎯", speed_king: "💨", creator_starter: "🎬" };
-              const icon = ICONS[b.badgeId] || "🏅";
+              const BADGE_META = {
+                first_challenge: { icon: "🥊", label: locale === "mn" ? "Эхний тулаан" : locale === "ko" ? "첫 도전" : "First Challenge", color: "#C1121F" },
+                streak_3:        { icon: "🔥", label: locale === "mn" ? "3 өдрийн дараалал" : locale === "ko" ? "3일 연속" : "3-Day Streak", color: "#FB923C" },
+                streak_7:        { icon: "⚡", label: locale === "mn" ? "7 хоног дараалал" : locale === "ko" ? "7일 연속" : "Week Warrior", color: "#F59E0B" },
+                jab_master:      { icon: "🎯", label: locale === "mn" ? "Jab мэргэн" : locale === "ko" ? "잽 마스터" : "Jab Master", color: "#60A5FA" },
+                speed_king:      { icon: "💨", label: locale === "mn" ? "Хурдны хаан" : locale === "ko" ? "스피드 킹" : "Speed King", color: "#A78BFA" },
+                creator_starter: { icon: "🎬", label: locale === "mn" ? "Контент бүтээгч" : locale === "ko" ? "콘텐츠 제작자" : "Creator", color: "#34D399" },
+              };
+              const meta = BADGE_META[b.badgeId] || { icon: "🏅", label: b.badgeId, color: "#D4AF37" };
               return (
-                <div key={b.badgeId} style={styles.badgePill} title={t(b.badgeId + "Badge") || b.badgeId}>
-                  <span>{icon}</span>
+                <div key={b.badgeId} style={{ ...styles.achievementCard, borderColor: meta.color + "44" }}>
+                  <span style={{ fontSize: 22 }}>{meta.icon}</span>
+                  <span style={{ fontSize: 9, fontWeight: 900, color: meta.color, marginTop: 4, textAlign: "center", lineHeight: 1.2, letterSpacing: 0.3 }}>
+                    {meta.label}
+                  </span>
                 </div>
               );
             })}
@@ -2086,11 +2111,54 @@ const styles = {
   },
   fighterCard: {
     width: "100%",
-    padding: "32px 16px 28px",
+    padding: "0 16px 28px",
     background: "radial-gradient(ellipse at 50% 0%, rgba(193,18,31,0.28) 0%, rgba(193,18,31,0.06) 40%, transparent 65%), linear-gradient(180deg, #0C0C0C 0%, #070707 100%)",
     boxSizing: "border-box",
     position: "relative",
     overflow: "hidden",
+  },
+  coverPhotoSection: {
+    position: "relative",
+    height: 150,
+    overflow: "hidden",
+    background: "linear-gradient(135deg, #1a0404 0%, #0d0d0d 100%)",
+    marginLeft: -16,
+    marginRight: -16,
+  },
+  coverPhotoImg: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    display: "block",
+  },
+  coverPhotoFallback: {
+    width: "100%",
+    height: "100%",
+    background: "radial-gradient(ellipse at 50% 0%, rgba(193,18,31,0.35) 0%, rgba(193,18,31,0.08) 50%, transparent 100%)",
+  },
+  coverPhotoGradient: {
+    position: "absolute",
+    inset: 0,
+    background: "linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(7,7,7,0.75) 100%)",
+    pointerEvents: "none",
+  },
+  coverPhotoEditBtn: {
+    position: "absolute",
+    bottom: 10,
+    right: 12,
+    background: "rgba(0,0,0,0.55)",
+    backdropFilter: "blur(8px)",
+    WebkitBackdropFilter: "blur(8px)",
+    border: "1px solid rgba(255,255,255,0.18)",
+    borderRadius: 8,
+    color: "#fff",
+    width: 32,
+    height: 32,
+    cursor: "pointer",
+    fontSize: 14,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
   fighterCardInner: {
     width: "min(100%, 520px)",
@@ -2109,10 +2177,11 @@ const styles = {
     justifyContent: "center",
     fontSize: 52,
     fontWeight: 1000,
-    margin: "0 auto 20px",
+    margin: "-52px auto 20px",
     color: "#FFFFFF",
     overflow: "hidden",
     position: "relative",
+    zIndex: 1,
   },
   avatarImage: {
     width: "100%",
@@ -2162,25 +2231,29 @@ const styles = {
     fontSize: 16,
     lineHeight: 1,
   },
-  badgesRow: {
+  achievementsShelf: {
     display: "flex",
-    flexWrap: "wrap",
     gap: 8,
-    justifyContent: "center",
-    margin: "14px auto 0",
+    overflowX: "auto",
+    scrollbarWidth: "none",
+    WebkitOverflowScrolling: "touch",
+    padding: "14px 0 0",
+    margin: "0 auto",
     maxWidth: 430,
-  },
-  badgePill: {
-    display: "inline-flex",
-    alignItems: "center",
     justifyContent: "center",
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    background: "rgba(255,255,255,0.07)",
-    border: "1px solid rgba(255,255,255,0.14)",
-    fontSize: 20,
-    cursor: "default",
+    flexWrap: "wrap",
+  },
+  achievementCard: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    padding: "10px 12px",
+    borderRadius: 12,
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid",
+    minWidth: 76,
+    gap: 4,
+    flexShrink: 0,
   },
   bio: {
     maxWidth: 380,
