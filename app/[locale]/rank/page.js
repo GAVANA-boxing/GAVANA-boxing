@@ -68,6 +68,11 @@ export default function RankPage() {
 
       <div style={styles.content}>
         {/* Current rank card */}
+        {dataLoading && (
+          <div style={{ ...styles.currentCard, borderColor: "rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.03)", animation: "pulse 1.4s ease infinite" }}>
+            <div style={{ height: 60, borderRadius: 12, background: "rgba(255,255,255,0.06)" }} />
+          </div>
+        )}
         {!dataLoading && (
           <div style={{
             ...styles.currentCard,
@@ -173,6 +178,12 @@ export default function RankPage() {
       </div>
 
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.45; }
+        }
+      `}</style>
     </main>
   );
 }

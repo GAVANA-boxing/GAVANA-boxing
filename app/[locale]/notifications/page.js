@@ -133,12 +133,12 @@ function getTimestampMs(timestamp) {
   return Number.isNaN(time) ? 0 : time;
 }
 
-function formatRelativeTime(timestamp) {
+function formatRelativeTime(timestamp, locale = "en") {
   const time = getTimestampMs(timestamp);
   if (!time) return "";
 
   const diffSeconds = Math.max(1, Math.floor((Date.now() - time) / 1000));
-  if (diffSeconds < 60) return "now";
+  if (diffSeconds < 60) return locale === "mn" ? "одоо" : locale === "ko" ? "방금" : "now";
 
   const diffMinutes = Math.floor(diffSeconds / 60);
   if (diffMinutes < 60) return `${diffMinutes}m`;
@@ -147,7 +147,7 @@ function formatRelativeTime(timestamp) {
   if (diffHours < 24) return `${diffHours}h`;
 
   const diffDays = Math.floor(diffHours / 24);
-  if (diffDays === 1) return "Yesterday";
+  if (diffDays === 1) return locale === "mn" ? "Өчигдөр" : locale === "ko" ? "어제" : "Yesterday";
   if (diffDays < 7) return `${diffDays}d`;
 
   const d = new Date(time);
@@ -564,7 +564,7 @@ export default function NotificationsPage() {
                       <div style={styles.notificationBody}>
                         <div style={styles.notificationTopLine}>
                           <span style={styles.username}>{actor}</span>
-                          <span style={styles.date}>{formatRelativeTime(notification.createdAt)}</span>
+                          <span style={styles.date}>{formatRelativeTime(notification.createdAt, locale)}</span>
                         </div>
                         <div style={styles.notificationText}>
                           {getTranslatedNotificationText(notification, t)}
