@@ -10,10 +10,29 @@ import { getLocale, translate } from "@/lib/i18n";
 import { getCurrentSeasonId, getSeasonLabel } from "@/lib/season";
 
 const CHALLENGES = [
-  { id: "jab-minute",   titleKey: "challengeJabTitle",   descKey: "challengeJabDesc" },
-  { id: "speed-test",   titleKey: "challengeSpeedTitle",  descKey: "challengeSpeedDesc" },
-  { id: "combo-master", titleKey: "challengeComboTitle",  descKey: "challengeComboDesc" },
+  { id: "jab-minute",   titleKey: "challengeJabTitle",   descKey: "challengeJabDesc",   emoji: "🥊" },
+  { id: "speed-test",   titleKey: "challengeSpeedTitle",  descKey: "challengeSpeedDesc",  emoji: "⚡" },
+  { id: "combo-master", titleKey: "challengeComboTitle",  descKey: "challengeComboDesc",  emoji: "🎯" },
 ];
+
+function getWeekEndMs() {
+  const now = new Date();
+  const day = now.getUTCDay();
+  const daysUntilMonday = day === 0 ? 1 : 8 - day;
+  const weekEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + daysUntilMonday));
+  return weekEnd.getTime();
+}
+
+function formatCountdown(msLeft) {
+  if (msLeft <= 0) return "00:00:00";
+  const totalSecs = Math.floor(msLeft / 1000);
+  const d = Math.floor(totalSecs / 86400);
+  const h = Math.floor((totalSecs % 86400) / 3600);
+  const m = Math.floor((totalSecs % 3600) / 60);
+  const s = totalSecs % 60;
+  if (d > 0) return `${d}d ${String(h).padStart(2, "0")}h`;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
 
 const SEASON_BADGE = ["🥇", "🥈", "🥉"];
 
@@ -100,9 +119,15 @@ export default function ChallengesPage() {
   const [mainTab, setMainTab] = useState("leaderboard"); // "leaderboard" | "battles"
   const [myBattles, setMyBattles] = useState([]);
   const [battlesLoading, setBattlesLoading] = useState(false);
+  const [countdown, setCountdown] = useState(() => formatCountdown(getWeekEndMs() - Date.now()));
 
   const currentSeasonId = useMemo(() => getCurrentSeasonId(), []);
   const seasonLabel = useMemo(() => getSeasonLabel(currentSeasonId), [currentSeasonId]);
+
+  useEffect(() => {
+    const id = setInterval(() => setCountdown(formatCountdown(getWeekEndMs() - Date.now())), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (!user?.uid || mainTab !== "battles") return;
@@ -308,10 +333,13 @@ export default function ChallengesPage() {
           </button>
         </div>
 
-        {/* Season label */}
+        {/* Season label + countdown */}
         {seasonTab === "week" && (
-          <div style={styles.seasonLabel}>
+          <div style={{ ...styles.seasonLabel, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 2px" }}>
             <span style={styles.seasonLabelText}>🗓 {seasonLabel}</span>
+            <span style={{ fontSize: 11, fontWeight: 900, color: "#D4AF37", fontVariantNumeric: "tabular-nums", letterSpacing: 0.5 }}>
+              ⏱ {countdown}
+            </span>
           </div>
         )}
 
@@ -359,7 +387,10 @@ export default function ChallengesPage() {
               <article key={challenge.id} style={styles.card}>
                 <div style={styles.cardTop}>
                   <div>
-                    <h2 style={styles.cardTitle}>{t(challenge.titleKey)}</h2>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                      <span style={{ fontSize: 28 }}>{challenge.emoji}</span>
+                      <h2 style={{ ...styles.cardTitle, margin: 0 }}>{t(challenge.titleKey)}</h2>
+                    </div>
                     <p style={styles.cardDesc}>{t(challenge.descKey)}</p>
                   </div>
                   <button
