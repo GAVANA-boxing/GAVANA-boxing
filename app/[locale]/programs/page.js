@@ -244,6 +244,24 @@ export default function ProgramsPage() {
       </header>
 
       <div style={s.content}>
+        {/* AI Builder banner */}
+        <button
+          type="button"
+          style={s.aiBuilderBanner}
+          onClick={() => router.push(`/${locale}/workout/builder`)}
+        >
+          <span style={{ fontSize: 28 }}>🤖</span>
+          <div style={{ textAlign: "left" }}>
+            <div style={{ fontSize: 13, fontWeight: 900, color: "#fff" }}>
+              {locale === "mn" ? "AI Тренинг Зохиогч" : locale === "ko" ? "AI 운동 플래너" : "AI Workout Builder"}
+            </div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 2 }}>
+              {locale === "mn" ? "Чиний зорилгод тохирсон хөтөлбөр →" : locale === "ko" ? "맞춤 주간 플랜 만들기 →" : "Build a personalized weekly plan →"}
+            </div>
+          </div>
+          <span style={{ marginLeft: "auto", fontSize: 16, color: "rgba(212,175,55,0.7)" }}>›</span>
+        </button>
+
         {loading ? (
           <>
             <SkeletonBlock height={24} radius={8} />
@@ -448,6 +466,7 @@ export default function ProgramsPage() {
 }
 
 const s = {
+  aiBuilderBanner: { width: "100%", boxSizing: "border-box", display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderRadius: "3px 14px 14px 3px", background: "linear-gradient(145deg, #111012, #0a0a0a)", border: "1px solid rgba(212,175,55,0.18)", borderLeft: "2.5px solid #D4AF37", cursor: "pointer", marginBottom: 20, textAlign: "left" },
   page: {
     minHeight: "100dvh",
     background: "#050505",
