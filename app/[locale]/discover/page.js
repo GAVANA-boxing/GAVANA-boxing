@@ -108,6 +108,16 @@ function formatAgo(ts, locale) {
   return `${days}d ago`;
 }
 
+function cleanCaption(text) {
+  if (!text) return "";
+  return text
+    .replace(/^Hook:\s*/i, "")
+    .replace(/\nCaption:\s*/i, " — ")
+    .replace(/\nHashtags:.*$/is, "")
+    .replace(/\nCaption:.*/is, "")
+    .trim();
+}
+
 function reelMatchesKeywords(reel, keywords) {
   const text = [
     reel.category || "",
@@ -127,7 +137,7 @@ function ReelCard({ reel, onClick }) {
   const src = reel.thumbnailUrl || reel.thumbnail || reel.coverUrl || reel.videoUrl || "";
   const typeEmoji = reel.contentType === "educational" ? "📚" : reel.contentType === "lifestyle" ? "🎬" : "🥊";
   const typeColor = reel.contentType === "educational" ? "#D4AF37" : reel.contentType === "lifestyle" ? "#60A5FA" : "#C1121F";
-  const caption = reel.caption || reel.description || reel.title || "";
+  const caption = cleanCaption(reel.caption || reel.description || reel.title || "");
   const views = formatCompact(reel.views || 0);
 
   return (
@@ -214,7 +224,7 @@ function FeedPostCard({ reel, authorUser, router, locale }) {
   const [mediaErr, setMediaErr] = useState(false);
   const src = reel.thumbnailUrl || reel.thumbnail || reel.videoUrl || "";
   const typeEmoji = reel.contentType === "educational" ? "📚" : reel.contentType === "lifestyle" ? "🎬" : "🥊";
-  const caption = reel.caption || reel.description || "";
+  const caption = cleanCaption(reel.caption || reel.description || "");
   const name = authorUser?.displayName || authorUser?.username || (locale === "mn" ? "Боксч" : locale === "ko" ? "파이터" : "Fighter");
   const photo = authorUser?.photoURL || authorUser?.profileImageUrl || "";
 

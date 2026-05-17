@@ -295,6 +295,15 @@ export default function UserProfilePage() {
   const userId = params?.userId;
   const t = (key) => translate(locale, key);
   const router = useRouter();
+
+  const BADGE_META = {
+    first_challenge: { icon: "🥊", label: locale === "mn" ? "Эхний тулаан" : locale === "ko" ? "첫 도전" : "First Challenge", color: "#C1121F" },
+    streak_3:        { icon: "🔥", label: locale === "mn" ? "3 өдрийн дараалал" : locale === "ko" ? "3일 연속" : "3-Day Streak", color: "#FB923C" },
+    streak_7:        { icon: "⚡", label: locale === "mn" ? "7 хоног дараалал" : locale === "ko" ? "7일 연속" : "Week Warrior", color: "#F59E0B" },
+    jab_master:      { icon: "🎯", label: locale === "mn" ? "Jab мэргэн" : locale === "ko" ? "잽 마스터" : "Jab Master", color: "#60A5FA" },
+    speed_king:      { icon: "💨", label: locale === "mn" ? "Хурдны хаан" : locale === "ko" ? "스피드 킹" : "Speed King", color: "#A78BFA" },
+    creator_starter: { icon: "🎬", label: t("creatorTag"), color: "#34D399" },
+  };
   const [profileUser, setProfileUser] = useState(null);
   const [userReels, setUserReels] = useState([]);
   const [savedUserReels, setSavedUserReels] = useState([]);
@@ -1485,14 +1494,6 @@ export default function UserProfilePage() {
         {userBadges.length > 0 && (
           <div style={styles.achievementsShelf}>
             {userBadges.map((b) => {
-              const BADGE_META = {
-                first_challenge: { icon: "🥊", label: locale === "mn" ? "Эхний тулаан" : locale === "ko" ? "첫 도전" : "First Challenge", color: "#C1121F" },
-                streak_3:        { icon: "🔥", label: locale === "mn" ? "3 өдрийн дараалал" : locale === "ko" ? "3일 연속" : "3-Day Streak", color: "#FB923C" },
-                streak_7:        { icon: "⚡", label: locale === "mn" ? "7 хоног дараалал" : locale === "ko" ? "7일 연속" : "Week Warrior", color: "#F59E0B" },
-                jab_master:      { icon: "🎯", label: locale === "mn" ? "Jab мэргэн" : locale === "ko" ? "잽 마스터" : "Jab Master", color: "#60A5FA" },
-                speed_king:      { icon: "💨", label: locale === "mn" ? "Хурдны хаан" : locale === "ko" ? "스피드 킹" : "Speed King", color: "#A78BFA" },
-                creator_starter: { icon: "🎬", label: locale === "mn" ? "Контент бүтээгч" : locale === "ko" ? "콘텐츠 제작자" : "Creator", color: "#34D399" },
-              };
               const meta = BADGE_META[b.badgeId] || { icon: "🏅", label: b.badgeId, color: "#D4AF37" };
               return (
                 <div key={b.badgeId} style={{ ...styles.achievementCard, borderColor: meta.color + "44" }}>
@@ -2038,7 +2039,7 @@ export default function UserProfilePage() {
         padding: 0,
         display: "grid",
         gridTemplateColumns: "repeat(3, 1fr)",
-        gap: 1,
+        gap: 2,
         width: "100%"
       }}>
         {visibleReels.length === 0 ? (
@@ -2291,15 +2292,6 @@ export default function UserProfilePage() {
         const arch = profileUser.fighterArchetype ? ARCHETYPE_DISPLAY[profileUser.fighterArchetype] : null;
         const accentColor = arch?.color || fighterRank.color || "#C1121F";
         const challengeStreak = getActiveChallengeStreak(profileUser);
-        const BADGE_META = {
-          first_challenge: { icon: "🥊", label: locale === "mn" ? "Эхний тулаан" : locale === "ko" ? "첫 도전" : "First Challenge", color: "#C1121F" },
-          streak_3:        { icon: "🔥", label: locale === "mn" ? "3 өдрийн дараалал" : locale === "ko" ? "3일 연속" : "3-Day Streak", color: "#FB923C" },
-          streak_7:        { icon: "⚡", label: locale === "mn" ? "7 хоног дараалал" : locale === "ko" ? "7일 연속" : "Week Warrior", color: "#F59E0B" },
-          jab_master:      { icon: "🎯", label: locale === "mn" ? "Jab мэргэн" : locale === "ko" ? "잽 마스터" : "Jab Master", color: "#60A5FA" },
-          speed_king:      { icon: "💨", label: locale === "mn" ? "Хурдны хаан" : locale === "ko" ? "스피드 킹" : "Speed King", color: "#A78BFA" },
-          creator_starter: { icon: "🎬", label: locale === "mn" ? "Контент бүтээгч" : locale === "ko" ? "콘텐츠 제작자" : "Creator", color: "#34D399" },
-        };
-
         const handleShare = () => {
           const url = typeof window !== "undefined" ? window.location.href : "";
           const text = locale === "mn"
@@ -2745,7 +2737,7 @@ const styles = {
     fontFamily: "var(--font-display, 'Anton', sans-serif)",
   },
   statLabel: {
-    color: "#AAAAAA",
+    color: "rgba(255,255,255,0.65)",
     fontSize: 10,
     fontWeight: 850,
     letterSpacing: 1.2,
@@ -2790,6 +2782,9 @@ const styles = {
     width: "100%",
     borderBottom: "1px solid rgba(255,255,255,0.08)",
     background: "#070707",
+    position: "sticky",
+    top: 0,
+    zIndex: 8,
   },
   profileTab: {
     flex: 1,

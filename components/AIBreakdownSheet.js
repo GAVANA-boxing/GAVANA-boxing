@@ -306,18 +306,19 @@ export default function AIBreakdownSheet({ reel, locale, onClose }) {
           <button
             onClick={onClose}
             style={{
-              background: "#222",
-              border: "none",
-              color: "#888",
+              background: "rgba(255,255,255,0.1)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              color: "#fff",
               fontSize: 18,
-              width: 30,
-              height: 30,
+              width: 32,
+              height: 32,
               borderRadius: "50%",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               lineHeight: 1,
+              flexShrink: 0,
             }}
           >
             ×

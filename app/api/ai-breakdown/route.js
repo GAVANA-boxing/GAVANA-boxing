@@ -166,7 +166,13 @@ function buildFallback(reel) {
 
 // ─── Anthropic Claude call ────────────────────────────────────────────────────
 
-async function callClaude(reel) {
+const LANG_INSTRUCTION = {
+  mn: 'Write all string values in Mongolian. Keep boxing terms (jab, cross, hook, combo, guard, footwork, pivot, slip) in English — they are natural in Mongolian boxing culture. Example: "Jab хурдтай, guard буцааж татаарай."',
+  ko: "Write all string values in Korean. Keep widely-used boxing terms (jab, cross, hook, combo, guard, footwork) in English when it sounds more natural.",
+  en: "Write all string values in English.",
+};
+
+async function callClaude(reel, locale = "en") {
   const reelContext = [
     `Content type: ${reel.contentType || reel.type || "training"}`,
     reel.category ? `Category: ${reel.category}` : null,
@@ -175,10 +181,13 @@ async function callClaude(reel) {
     reel.difficulty ? `Difficulty: ${reel.difficulty}` : null,
   ].filter(Boolean).join("\n");
 
+  const langNote = LANG_INSTRUCTION[locale] || LANG_INSTRUCTION.en;
+
   const system = `You are a sharp boxing analyst for GAVANA — a combat sports platform.
 Analyze a reel and return a JSON breakdown.
 Tone: fighter-like, concise, modern. NOT textbook. NOT robotic.
 Think: "sharp coach watching ringside".
+Language rule: ${langNote}
 Return ONLY valid JSON with exactly these keys, no other text:
 {
   "style": string (e.g. "Counter Puncher"),
@@ -227,7 +236,7 @@ Return ONLY valid JSON with exactly these keys, no other text:
 
 export async function POST(req) {
   try {
-    const { reel } = await req.json();
+    const { reel, locale } = await req.json();
     if (!reel) return Response.json({ error: "Missing reel" }, { status: 400 });
 
     if (!process.env.ANTHROPIC_API_KEY) {
@@ -239,7 +248,7 @@ export async function POST(req) {
     }
 
     try {
-      const result = await callClaude(reel);
+      const result = await callClaude(reel, locale || "en");
       return Response.json(result);
     } catch (err) {
       if (!loggedApiFailure) {

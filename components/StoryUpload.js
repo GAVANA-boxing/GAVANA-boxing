@@ -18,10 +18,10 @@ const STORY_TYPES = [
 ];
 
 const PROGRESS_TYPES = [
-  { key: "score_improvement", label: "Score Improvement", icon: "📊" },
-  { key: "streak_milestone", label: "Streak Milestone", icon: "🔥" },
-  { key: "new_best", label: "New Best Score", icon: "🏆" },
-  { key: "weight_update", label: "Weight Update", icon: "⚖️" },
+  { key: "score_improvement", labelKey: "progressTypeScore", icon: "📊" },
+  { key: "streak_milestone", labelKey: "progressTypeStreak", icon: "🔥" },
+  { key: "new_best", labelKey: "progressTypeBest", icon: "🏆" },
+  { key: "weight_update", labelKey: "progressTypeWeight", icon: "⚖️" },
 ];
 
 export default function StoryUpload({ locale, initialType = "training_clip" }) {
@@ -160,7 +160,7 @@ export default function StoryUpload({ locale, initialType = "training_clip" }) {
                 onClick={() => setProgressType(pt.key)}
               >
                 <span style={{ fontSize: 28 }}>{pt.icon}</span>
-                <span style={{ fontSize: 10, fontWeight: 900, textAlign: "center", lineHeight: 1.2 }}>{pt.label}</span>
+                <span style={{ fontSize: 10, fontWeight: 900, textAlign: "center", lineHeight: 1.2 }}>{t(pt.labelKey)}</span>
               </button>
             ))}
           </div>
@@ -221,12 +221,12 @@ export default function StoryUpload({ locale, initialType = "training_clip" }) {
 
 const s = {
   page: { minHeight: "100vh", background: "linear-gradient(180deg, #0d0005 0%, #070707 60%)", color: "#fff", fontFamily: "system-ui, sans-serif", display: "flex", flexDirection: "column" },
-  header: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "calc(16px + env(safe-area-inset-top)) 16px 14px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(7,7,7,0.88)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", position: "sticky", top: 0, zIndex: 10 },
+  header: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "calc(16px + env(safe-area-inset-top)) max(88px, calc(12px + 76px)) 14px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(7,7,7,0.88)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", position: "sticky", top: 0, zIndex: 10 },
   closeBtn: { width: 36, height: 36, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.6)", fontSize: 15, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
   title: { fontSize: 15, fontWeight: 800, color: "#fff", letterSpacing: 0.3 },
   postBtn: { background: "linear-gradient(135deg, #C1121F, #8f0d17)", border: "none", borderRadius: 999, padding: "9px 22px", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", boxShadow: "0 4px 16px rgba(193,18,31,0.35)" },
   postBtnGray: { background: "rgba(193,18,31,0.2)", border: "1px solid rgba(193,18,31,0.2)", borderRadius: 999, padding: "9px 22px", color: "rgba(255,255,255,0.3)", fontSize: 13, cursor: "not-allowed" },
-  typeRow: { display: "flex", gap: 6, overflowX: "auto", padding: "10px 16px", scrollbarWidth: "none", borderBottom: "1px solid rgba(255,255,255,0.05)" },
+  typeRow: { display: "flex", gap: 6, overflowX: "auto", padding: "10px 16px", paddingRight: 88, scrollbarWidth: "none", borderBottom: "1px solid rgba(255,255,255,0.05)" },
   typeChip: { flexShrink: 0, display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.09)", background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.4)", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" },
   typeActive: { flexShrink: 0, display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.5)", background: "rgba(193,18,31,0.12)", color: "#ff6b6b", fontSize: 12, fontWeight: 900, cursor: "pointer", whiteSpace: "nowrap" },
   mediaArea: { flex: 1, padding: "16px 16px 0" },
