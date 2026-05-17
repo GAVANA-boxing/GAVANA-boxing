@@ -8,6 +8,33 @@ import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
 import { getLocale, translate } from "@/lib/i18n";
 import { calculateUserXP, getFighterRank } from "@/lib/xp";
+
+function useWeeklyCountdown() {
+  const [ms, setMs] = useState(null);
+  useEffect(() => {
+    const getMs = () => {
+      const now = new Date();
+      const daysUntilMonday = (8 - now.getUTCDay()) % 7 || 7;
+      const nextMonday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + daysUntilMonday));
+      return Math.max(0, nextMonday - now);
+    };
+    setMs(getMs());
+    const id = setInterval(() => setMs(getMs()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return ms;
+}
+
+function formatCountdown(ms, locale) {
+  if (ms === null) return "";
+  const d = Math.floor(ms / 86400000);
+  const h = Math.floor((ms % 86400000) / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  const s = Math.floor((ms % 60000) / 1000);
+  if (locale === "mn") return d > 0 ? `${d}өд ${h}ц ${m}м` : `${h}ц ${m}м ${s}с`;
+  if (locale === "ko") return d > 0 ? `${d}일 ${h}시 ${m}분` : `${h}시간 ${m}분 ${s}초`;
+  return d > 0 ? `${d}d ${h}h ${m}m` : `${h}h ${m}m ${s}s`;
+}
 import RankIcon from "@/components/RankIcon";
 import { getCurrentSeasonId, getSeasonLabel } from "@/lib/season";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
@@ -92,6 +119,8 @@ export default function LeaderboardPage() {
   const [archetypeFilter, setArchetypeFilter] = useState("all");
   const [weightFilter, setWeightFilter] = useState("all");
   const [reelsStats, setReelsStats] = useState({});
+  const [shareCopied, setShareCopied] = useState(false);
+  const weeklyCountdownMs = useWeeklyCountdown();
 
   const currentSeasonId = useMemo(() => getCurrentSeasonId(), []);
   const seasonLabel = useMemo(() => getSeasonLabel(currentSeasonId), [currentSeasonId]);
@@ -347,6 +376,25 @@ export default function LeaderboardPage() {
 
   const hasUserData = !authLoading && user && (currentUserAllTimeEntry || currentUserWeeklyEntry);
 
+  const handleShareRank = async () => {
+    const rank = leaderboardTab === "week" ? currentUserWeeklyRank : currentUserAllTimeRank;
+    const score = leaderboardTab === "week"
+      ? (currentUserWeeklyEntry?.bestScore ?? 0)
+      : (currentUserAllTimeEntry?.bestScore ?? 0);
+    if (!rank) return;
+    const text = locale === "mn"
+      ? `GAVANA BOXING дээр миний rank #${rank} байна, score ${score}/10 🥊 gavana.app`
+      : locale === "ko"
+      ? `GAVANA BOXING에서 내 랭킹 #${rank}, 점수 ${score}/10 🥊 gavana.app`
+      : `I'm ranked #${rank} on GAVANA BOXING with ${score}/10 🥊 gavana.app`;
+    try {
+      if (navigator.share) { await navigator.share({ text }); return; }
+    } catch {}
+    try { await navigator.clipboard.writeText(text); } catch {}
+    setShareCopied(true);
+    setTimeout(() => setShareCopied(false), 2000);
+  };
+
   return (
     <main style={styles.page}>
       <header style={styles.header}>
@@ -421,7 +469,18 @@ export default function LeaderboardPage() {
           </button>
         </div>
         {leaderboardTab === "week" && (
-          <p style={styles.seasonLabel}>{seasonLabel}</p>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 4px 0" }}>
+            <p style={{ ...styles.seasonLabel, margin: 0 }}>{seasonLabel}</p>
+            {weeklyCountdownMs !== null && (
+              <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 999, background: "rgba(193,18,31,0.1)", border: "1px solid rgba(193,18,31,0.25)" }}>
+                <span style={{ fontSize: 10 }}>⏱</span>
+                <span style={{ fontSize: 10, fontWeight: 800, color: "#F87171", letterSpacing: 0.3 }}>
+                  {locale === "mn" ? "Шинэчлэгдэнэ: " : locale === "ko" ? "리셋: " : "Resets: "}
+                  {formatCountdown(weeklyCountdownMs, locale)}
+                </span>
+              </div>
+            )}
+          </div>
         )}
       </div>
 
@@ -486,11 +545,20 @@ export default function LeaderboardPage() {
                     : t("seasonNoResultsThisWeek").split(".")[0])
                   : t("leaderboardYourRank").replace("{rank}", currentUserAllTimeRank ?? "—")}
               </span>
-              <span style={{ ...styles.scorePill, background: getScoreColor(leaderboardTab === "week" ? (currentUserWeeklyEntry?.bestScore ?? 0) : (currentUserAllTimeEntry?.bestScore ?? 0)) }}>
-                {leaderboardTab === "week"
-                  ? `${currentUserWeeklyEntry?.bestScore ?? 0}/10`
-                  : `${currentUserAllTimeEntry?.bestScore ?? 0}/10`}
-              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ ...styles.scorePill, background: getScoreColor(leaderboardTab === "week" ? (currentUserWeeklyEntry?.bestScore ?? 0) : (currentUserAllTimeEntry?.bestScore ?? 0)) }}>
+                  {leaderboardTab === "week"
+                    ? `${currentUserWeeklyEntry?.bestScore ?? 0}/10`
+                    : `${currentUserAllTimeEntry?.bestScore ?? 0}/10`}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleShareRank}
+                  style={{ padding: "4px 10px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.3)", background: "rgba(212,175,55,0.08)", color: "#D4AF37", fontSize: 11, fontWeight: 800, cursor: "pointer" }}
+                >
+                  {shareCopied ? "✓" : (locale === "mn" ? "Хуваалцах" : locale === "ko" ? "공유" : "Share")}
+                </button>
+              </div>
             </div>
             <div style={styles.yourRankSub}>
               {currentUserWeeklyRank && (
@@ -559,6 +627,38 @@ export default function LeaderboardPage() {
                 ? (locale === "mn" ? "Шүүлтүүрийг өөрчлөөд дахин үзнэ үү" : locale === "ko" ? "필터를 변경해 보세요" : "Try changing or clearing the filters")
                 : t("leaderboardEmptyHelp")}
             </p>
+          </div>
+        )}
+
+        {/* Top-3 Podium Card */}
+        {!loading && filteredDisplayEntries.length >= 3 && (leaderboardTab === "week" || leaderboardTab === "alltime") && (
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "center", gap: 8, marginBottom: 20, padding: "0 8px" }}>
+            {[1, 0, 2].map((idx) => {
+              const entry = filteredDisplayEntries[idx];
+              const rank = idx + 1;
+              const profile = profiles[entry?.userId] || {};
+              const name = profile.displayName || profile.username || "Fighter";
+              const photo = getAvatarUrl(profile);
+              const isFirst = rank === 1;
+              const podiumH = idx === 0 ? 128 : idx === 1 ? 100 : 84;
+              const medals = ["🥇", "🥈", "🥉"];
+              const colors = ["#D4AF37", "#C0C0C0", "#CD7F32"];
+              if (!entry) return null;
+              return (
+                <div key={rank} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer" }} onClick={() => router.push(`/${locale}/profile/${entry.userId}`)}>
+                  <span style={{ fontSize: 16 }}>{medals[rank - 1]}</span>
+                  {photo
+                    ? <img src={photo} alt="" style={{ width: isFirst ? 52 : 44, height: isFirst ? 52 : 44, borderRadius: "50%", objectFit: "cover", border: `2.5px solid ${colors[rank - 1]}`, boxShadow: `0 0 12px ${colors[rank - 1]}44` }} />
+                    : <div style={{ width: isFirst ? 52 : 44, height: isFirst ? 52 : 44, borderRadius: "50%", background: "rgba(255,255,255,0.08)", border: `2.5px solid ${colors[rank - 1]}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: isFirst ? 20 : 16, fontWeight: 900, color: "#fff" }}>{name[0]?.toUpperCase()}</div>
+                  }
+                  <span style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.7)", maxWidth: 70, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>{name.split(" ")[0]}</span>
+                  <span style={{ fontSize: 11, fontWeight: 900, color: colors[rank - 1] }}>{entry.bestScore}/10</span>
+                  <div style={{ width: "100%", height: podiumH, borderRadius: "8px 8px 0 0", background: `linear-gradient(180deg, ${colors[rank - 1]}22, ${colors[rank - 1]}0a)`, border: `1px solid ${colors[rank - 1]}33`, borderBottom: "none", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ fontSize: isFirst ? 22 : 18, fontWeight: 900, color: colors[rank - 1], opacity: 0.6 }}>#{rank}</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
 
