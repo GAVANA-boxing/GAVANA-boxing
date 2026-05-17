@@ -329,6 +329,7 @@ export default function UserProfilePage() {
   const [showChallengeModal, setShowChallengeModal] = useState(false);
   const [challengeSending, setChallengeSending] = useState(false);
   const [challengeSent, setChallengeSent] = useState(false);
+  const [myStats, setMyStats] = useState(null);
   const rankUpShownRef = useRef(false);
 
   // Redirect if not logged in
@@ -710,6 +711,34 @@ export default function UserProfilePage() {
     loadSparring();
     return () => { active = false; };
   }, [userId]);
+
+  // Load current user's own stats for rival comparison
+  useEffect(() => {
+    if (!user?.uid || !userId || isOwnProfile) { setMyStats(null); return; }
+    let active = true;
+    async function loadMyStats() {
+      try {
+        const { collection, doc: fsDoc, getDoc: fsGetDoc, getDocs, query, where } = await import("firebase/firestore");
+        const [uSnap, feedSnap] = await Promise.all([
+          fsGetDoc(fsDoc(db, "users", user.uid)),
+          getDocs(query(collection(db, "ai_feedback"), where("userId", "==", user.uid))),
+        ]);
+        if (!active) return;
+        const p = uSnap.exists() ? uSnap.data() : {};
+        const scores = feedSnap.docs.map(d => Number(d.data().score)).filter(Number.isFinite);
+        const storedXP = Number(p.xp) || 0;
+        const myXP = storedXP + calculateUserXP({ aiFeedbackDocs: feedSnap.docs.map(d => d.data()) });
+        setMyStats({
+          xp: myXP,
+          bestScore: scores.length ? Math.max(...scores) : null,
+          streak: Number(p.challengeStreak) || Number(p.streakCount) || 0,
+          wins: Number(p.pvpWins) || 0,
+        });
+      } catch { if (active) setMyStats(null); }
+    }
+    loadMyStats();
+    return () => { active = false; };
+  }, [user?.uid, userId, isOwnProfile]);
 
   // Load earned badges
   useEffect(() => {
@@ -1385,6 +1414,22 @@ export default function UserProfilePage() {
           );
         })()}
 
+        {/* Gym + weight class metadata */}
+        {(profileUser.gym || profileUser.weightClass) && (
+          <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
+            {profileUser.gym && (
+              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", padding: "3px 10px", borderRadius: 999, fontWeight: 700 }}>
+                🏋️ {profileUser.gym}
+              </span>
+            )}
+            {profileUser.weightClass && (
+              <span style={{ fontSize: 11, color: "#60A5FA", background: "rgba(96,165,250,0.08)", border: "1px solid rgba(96,165,250,0.2)", padding: "3px 10px", borderRadius: 999, fontWeight: 700 }}>
+                ⚖️ {profileUser.weightClass}kg
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Fighter identity tags — derived from data */}
         {(() => {
           const tags = [];
@@ -1560,6 +1605,49 @@ export default function UserProfilePage() {
         </div>
       </section>
 
+      {/* ── Rival Comparison ── */}
+      {!isOwnProfile && myStats && (
+        <div style={{ padding: "0 16px 4px" }}>
+          <div style={{ background: "linear-gradient(145deg, #0d0b0d, #0a0a0a)", border: "1px solid rgba(167,139,250,0.15)", borderLeft: "3px solid #A78BFA", borderRadius: "3px 16px 16px 3px", padding: "14px 16px" }}>
+            <p style={{ margin: "0 0 10px", fontSize: 9, fontWeight: 900, color: "#A78BFA", letterSpacing: 2, textTransform: "uppercase" }}>
+              ⚔️ {locale === "mn" ? "ТА vs " : locale === "ko" ? "나 vs " : "You vs "}
+              {(profileUser.displayName || profileUser.username || "Fighter").split(" ")[0]}
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 0 }}>
+              {/* Headers */}
+              <div style={{ textAlign: "center", fontSize: 9, fontWeight: 900, color: "#C1121F", letterSpacing: 0.5, paddingBottom: 8 }}>
+                {locale === "mn" ? "ТА" : locale === "ko" ? "나" : "YOU"}
+              </div>
+              <div />
+              <div style={{ textAlign: "center", fontSize: 9, fontWeight: 900, color: "rgba(255,255,255,0.35)", letterSpacing: 0.5, paddingBottom: 8 }}>
+                {(profileUser.displayName || profileUser.username || "Fighter").split(" ")[0].toUpperCase().slice(0, 8)}
+              </div>
+              {[
+                { label: "XP", my: myStats.xp, their: xp, fmt: v => v.toLocaleString() },
+                { label: locale === "mn" ? "Шилдэг" : locale === "ko" ? "최고" : "Best", my: myStats.bestScore, their: bestScore, fmt: v => v !== null ? `${formatScore(v)}/10` : "—" },
+                { label: locale === "mn" ? "Дараалал" : locale === "ko" ? "연속" : "Streak", my: myStats.streak, their: getActiveChallengeStreak(profileUser), fmt: v => v > 0 ? `🔥${v}d` : "—" },
+              ].map((stat, i) => {
+                const myNum = Number(stat.my) || 0;
+                const theirNum = Number(stat.their) || 0;
+                const myWins = myNum > theirNum;
+                const theirWins = theirNum > myNum;
+                const sep = i > 0 ? "1px solid rgba(255,255,255,0.04)" : "none";
+                return [
+                  <div key={`m${i}`} style={{ textAlign: "center", padding: "7px 0", borderTop: sep }}>
+                    <span style={{ fontSize: 15, fontWeight: 900, color: myWins ? "#34D399" : "#fff" }}>{stat.fmt(stat.my)}</span>
+                  </div>,
+                  <div key={`l${i}`} style={{ textAlign: "center", fontSize: 9, fontWeight: 700, color: "#555", paddingTop: i > 0 ? 7 : 0, borderTop: sep }}>
+                    {stat.label}
+                  </div>,
+                  <div key={`t${i}`} style={{ textAlign: "center", padding: "7px 0", borderTop: sep }}>
+                    <span style={{ fontSize: 15, fontWeight: 900, color: theirWins ? "#34D399" : "#fff" }}>{stat.fmt(stat.their)}</span>
+                  </div>,
+                ];
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div style={styles.profileTabs}>
         <button
@@ -2271,6 +2359,27 @@ export default function UserProfilePage() {
                       <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", fontWeight: 700, textTransform: "uppercase" }}>{locale === "mn" ? "Нийт" : locale === "ko" ? "전체" : "All-time"}</div>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Recent AI session scores */}
+              {aiFeedbackHistory.length > 0 && (
+                <div style={{ width: "100%", borderTop: `1px solid rgba(255,255,255,0.06)`, paddingTop: 12, marginTop: 2, marginBottom: 14 }}>
+                  <p style={{ margin: "0 0 8px", fontSize: 9, fontWeight: 900, color: "rgba(255,255,255,0.25)", letterSpacing: 1.5, textTransform: "uppercase", textAlign: "center" }}>
+                    {locale === "mn" ? "Сүүлийн дасгалууд" : locale === "ko" ? "최근 세션" : "Recent Sessions"}
+                  </p>
+                  <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+                    {aiFeedbackHistory.slice(0, 4).map((f, i) => {
+                      const sc = Number(f.score);
+                      const col = sc >= 9 ? "#D4AF37" : sc >= 7 ? "#34D399" : sc >= 5 ? "#60A5FA" : "#FB923C";
+                      return (
+                        <div key={f.id || i} style={{ textAlign: "center", background: `${col}12`, border: `1px solid ${col}33`, borderRadius: 10, padding: "6px 10px" }}>
+                          <div style={{ fontSize: 16, fontWeight: 900, color: col, lineHeight: 1 }}>{formatScore(f.score)}</div>
+                          <div style={{ fontSize: 8, color: "#555", fontWeight: 700, marginTop: 2 }}>/10</div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
 
