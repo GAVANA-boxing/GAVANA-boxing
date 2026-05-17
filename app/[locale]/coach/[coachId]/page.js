@@ -675,7 +675,7 @@ export default function CoachProfilePage() {
         </div>
       )}
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
     </main>
   );
 }

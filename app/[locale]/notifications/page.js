@@ -37,7 +37,7 @@ function getActorPhoto(notification, actorProfile) {
   );
 }
 
-function getTypeLabel(type, t) {
+function getTypeLabel(type, t, locale = "en") {
   if (type === "like") return t("like");
   if (type === "comment") return t("comment");
   if (type === "follow") return t("follow");
@@ -57,8 +57,8 @@ function getTypeLabel(type, t) {
   if (type === "booking_scheduled") return t("notifLabelBookingScheduled");
   if (type === "session_completed") return t("notifLabelSessionCompleted");
   if (type === "mention") return t("notifTypeMention");
-  if (type === "sparring_request") return "Sparring хүсэлт";
-  if (type === "sparring_accepted") return "Sparring зөвшөөрсөн";
+  if (type === "sparring_request") return locale === "mn" ? "Sparring хүсэлт" : locale === "ko" ? "스파링 요청" : "Sparring request";
+  if (type === "sparring_accepted") return locale === "mn" ? "Sparring зөвшөөрсөн" : locale === "ko" ? "스파링 수락됨" : "Sparring accepted";
   if (type === "event_rsvp") return t("notifTypeEventRsvp");
   return t("update");
 }
@@ -83,6 +83,10 @@ function getTranslatedNotificationText(notification, t) {
   if (notification.type === "gym_declined") return t("notifGymDeclined");
   if (notification.type === "booking_scheduled") return t("sessionScheduled");
   if (notification.type === "session_completed") return t("coachSessionCompleted");
+  if (notification.type === "sparring_request") return notification.message || t("notificationDefault").replace("{actor}", actor);
+  if (notification.type === "sparring_accepted") return notification.message || t("notificationDefault").replace("{actor}", actor);
+  if (notification.type === "event_rsvp") return notification.message || t("notificationDefault").replace("{actor}", actor);
+  if (notification.type === "event_reminder") return notification.message || t("notificationDefault").replace("{actor}", actor);
 
   const keyByType = {
     like: "notificationLike",
@@ -117,6 +121,7 @@ function getTypeIcon(type) {
   if (type === "sparring_request") return "🥊";
   if (type === "sparring_accepted") return "✅";
   if (type === "event_rsvp") return "🏆";
+  if (type === "event_reminder") return "🔔";
   return "•";
 }
 
@@ -176,7 +181,7 @@ export default function NotificationsPage() {
   const [actorProfiles, setActorProfiles] = useState({});
   const actorProfileRequests = useRef(new Set());
 
-  const SOCIAL_TYPES = new Set(["like", "comment", "follow", "save", "new_follower", "pvp_challenge", "challenge_attempt", "challenge_beaten", "remix", "featured", "mention", "sparring_request", "sparring_accepted", "event_rsvp"]);
+  const SOCIAL_TYPES = new Set(["like", "comment", "follow", "save", "new_follower", "pvp_challenge", "challenge_attempt", "challenge_beaten", "remix", "featured", "mention", "sparring_request", "sparring_accepted", "event_rsvp", "event_reminder"]);
   const COACH_TYPES = new Set(["coach_request", "coach_accept", "coach_decline", "booking_scheduled", "session_completed"]);
   const GYM_TYPES = new Set(["gym_join_request", "gym_approved", "gym_declined"]);
 
