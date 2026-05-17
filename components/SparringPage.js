@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import {
-  addDoc, doc, getDoc, setDoc, deleteDoc, updateDoc,
+  addDoc, doc, getDoc, getDocs, setDoc, deleteDoc, updateDoc,
   collection, query, where, onSnapshot,
   serverTimestamp,
 } from "firebase/firestore";
@@ -14,6 +14,7 @@ import { startConversation } from "@/lib/messaging";
 import { createNotification } from "@/lib/notifications";
 import { getFighterRank } from "@/lib/xp";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
+import BottomNav from "@/components/BottomNav";
 
 const ARCHETYPE_KEYS = ["all", "pressure", "counter", "technical", "brawler"];
 const WEIGHT_OPTS = [
@@ -218,6 +219,8 @@ export default function SparringPage() {
   const [declining, setDeclining] = useState(null);
   const [filterArchetype, setFilterArchetype] = useState("all");
   const [filterWeight, setFilterWeight] = useState("all");
+  const [matchHistory, setMatchHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   // Own user data
   useEffect(() => {
@@ -261,6 +264,25 @@ export default function SparringPage() {
     }, () => {});
     return () => unsub();
   }, [user?.uid]);
+
+  // Load match history when history tab opened
+  useEffect(() => {
+    if (tab !== "history" || !user?.uid) return;
+    let active = true;
+    setHistoryLoading(true);
+    getDocs(query(collection(db, "pvp_results"), where("challengerId", "==", user.uid))).then((snap) => {
+      if (!active) return;
+      const results = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => {
+          const at = a.createdAt?.toMillis?.() || 0;
+          const bt = b.createdAt?.toMillis?.() || 0;
+          return bt - at;
+        });
+      setMatchHistory(results);
+    }).catch(() => {}).finally(() => { if (active) setHistoryLoading(false); });
+    return () => { active = false; };
+  }, [tab, user?.uid]);
 
   const handleToggle = async () => {
     if (!user) { router.push(`/${locale}/login`); return; }
@@ -388,9 +410,10 @@ export default function SparringPage() {
 
   if (authLoading || loading) {
     return (
-      <div style={s.loadWrap}>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        <div style={s.spinner} />
+      <div style={{ ...s.page, padding: "calc(60px + env(safe-area-inset-top)) 16px 16px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {[1,2,3].map((i) => <div key={i} className="shimmer" style={{ height: 110, borderRadius: 14 }} />)}
+        </div>
       </div>
     );
   }
@@ -418,9 +441,10 @@ export default function SparringPage() {
       {/* Tab bar */}
       <div style={s.tabBar}>
         {[
-          { key: "discover", label: locale === "mn" ? "🥊 Хайх" : locale === "ko" ? "🥊 탐색" : "🥊 Discover" },
-          { key: "requests", label: locale === "mn" ? "📬 Хүсэлт" : locale === "ko" ? "📬 요청" : "📬 Requests", badge: pendingIncoming.length },
-          { key: "mine",     label: locale === "mn" ? "👤 Миний" : locale === "ko" ? "👤 내 게시물" : "👤 Mine" },
+          { key: "discover", label: locale === "mn" ? "🥊 Хайх"   : locale === "ko" ? "🥊 탐색"   : "🥊 Discover" },
+          { key: "requests", label: locale === "mn" ? "📬 Хүсэлт" : locale === "ko" ? "📬 요청"   : "📬 Requests", badge: pendingIncoming.length },
+          { key: "mine",     label: locale === "mn" ? "👤 Миний"   : locale === "ko" ? "👤 내 게시물" : "👤 Mine" },
+          { key: "history",  label: locale === "mn" ? "📊 Түүх"   : locale === "ko" ? "📊 기록"   : "📊 History" },
         ].map(({ key, label, badge }) => (
           <button
             key={key}
@@ -646,6 +670,75 @@ export default function SparringPage() {
           <div style={{ height: "calc(24px + env(safe-area-inset-bottom))" }} />
         </div>
       )}
+
+      {/* ── HISTORY TAB ── */}
+      {tab === "history" && (
+        <div style={{ ...s.list, padding: "8px 16px 0" }}>
+          {historyLoading ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: 8 }}>
+              {[1,2,3].map((i) => <div key={i} className="shimmer" style={{ height: 72, borderRadius: 12 }} />)}
+            </div>
+          ) : matchHistory.length === 0 ? (
+            <div style={s.empty}>
+              <div style={{ fontSize: 48, marginBottom: 8 }}>📊</div>
+              <p style={s.emptyTitle}>{locale === "mn" ? "Тулааны түүх байхгүй" : locale === "ko" ? "매치 기록 없음" : "No match history yet"}</p>
+              <p style={s.emptySub}>{locale === "mn" ? "PvP тулааны дараа энд гарч ирнэ" : locale === "ko" ? "PvP 매치 후 여기에 표시됩니다" : "Complete PvP training sessions to build your history"}</p>
+            </div>
+          ) : (
+            <>
+              {/* Win/loss summary strip */}
+              {(() => {
+                const wins = matchHistory.filter((m) => m.result === "win").length;
+                const total = matchHistory.length;
+                const winPct = total > 0 ? Math.round((wins / total) * 100) : 0;
+                return (
+                  <div style={{ display: "flex", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
+                    {[
+                      { label: locale === "mn" ? "Нийт" : locale === "ko" ? "총" : "Matches", value: total, color: "#fff" },
+                      { label: locale === "mn" ? "Ялалт" : locale === "ko" ? "승리" : "Wins", value: wins, color: "#34D399" },
+                      { label: locale === "mn" ? "Ялалт %" : locale === "ko" ? "승률" : "Win rate", value: `${winPct}%`, color: "#D4AF37" },
+                    ].map(({ label, value, color }) => (
+                      <div key={label} style={{ flex: 1, minWidth: 80, padding: "10px 12px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, textAlign: "center" }}>
+                        <p style={{ margin: 0, fontSize: 18, fontWeight: 900, color }}>{value}</p>
+                        <p style={{ margin: "2px 0 0", fontSize: 10, fontWeight: 700, color: "#888" }}>{label}</p>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+              {matchHistory.map((match) => {
+                const won = match.result === "win";
+                const col = won ? "#34D399" : "#F87171";
+                const ago = formatAgo(match.createdAt, locale);
+                return (
+                  <div
+                    key={match.id}
+                    style={{ background: "linear-gradient(145deg, #111012, #0a0a0a)", border: "1px solid rgba(255,255,255,0.07)", borderLeft: `3px solid ${col}`, borderRadius: "3px 12px 12px 3px", padding: "12px 14px", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, cursor: match.reelId ? "pointer" : "default" }}
+                    onClick={() => match.reelId && router.push(`/${locale}/reels?reelId=${match.reelId}&source=pvp`)}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 900, color: "#fff", marginBottom: 3 }}>
+                        vs {match.opponentName || "Opponent"}
+                      </div>
+                      <div style={{ display: "flex", gap: 8, fontSize: 11, color: "#888", flexWrap: "wrap" }}>
+                        <span style={{ color: col, fontWeight: 800 }}>{won ? (locale === "mn" ? "✓ Ялалт" : locale === "ko" ? "✓ 승리" : "✓ Win") : (locale === "mn" ? "✕ Ялагдлт" : locale === "ko" ? "✕ 패배" : "✕ Loss")}</span>
+                        <span>{match.challengerScore?.toFixed(1)} vs {match.opponentScore?.toFixed(1)}</span>
+                        {ago && <span>{ago}</span>}
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: col, flexShrink: 0 }}>
+                      {won ? "🏆" : "💪"}
+                    </div>
+                  </div>
+                );
+              })}
+            </>
+          )}
+          <div style={{ height: "calc(80px + env(safe-area-inset-bottom))" }} />
+        </div>
+      )}
+
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="sparring" />
     </div>
   );
 }
