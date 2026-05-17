@@ -324,6 +324,8 @@ export default function UserProfilePage() {
   const [sparringRecord, setSparringRecord] = useState(null);
   const [coachBookings, setCoachBookings] = useState([]);
   const [userBadges, setUserBadges] = useState([]);
+  const [showFighterCard, setShowFighterCard] = useState(false);
+  const [cardShareCopied, setCardShareCopied] = useState(false);
   const rankUpShownRef = useRef(false);
 
   // Redirect if not logged in
@@ -1433,6 +1435,13 @@ export default function UserProfilePage() {
               </button>
             )}
             <button
+              type="button"
+              onClick={() => setShowFighterCard(true)}
+              style={{ ...styles.ghostAction, color: "#D4AF37", borderColor: "rgba(212,175,55,0.3)" }}
+            >
+              🥊 {locale === "mn" ? "Fighter Card" : locale === "ko" ? "파이터 카드" : "Fighter Card"}
+            </button>
+            <button
               onClick={handleLogout}
               disabled={signingOut}
               style={{ ...styles.ghostAction, opacity: signingOut ? 0.7 : 1, cursor: signingOut ? "not-allowed" : "pointer" }}
@@ -1477,6 +1486,13 @@ export default function UserProfilePage() {
                 ⇄ {t("mutual")}
               </span>
             )}
+            <button
+              type="button"
+              onClick={() => setShowFighterCard(true)}
+              style={{ ...styles.ghostAction, color: "#D4AF37", borderColor: "rgba(212,175,55,0.3)", marginTop: 2 }}
+            >
+              🥊 {locale === "mn" ? "Fighter Card" : locale === "ko" ? "파이터 카드" : "Fighter Card"}
+            </button>
           </div>
         )}
         </div>
@@ -2019,6 +2035,172 @@ export default function UserProfilePage() {
               <button type="button" style={{ ...styles.weeklyModalClose, width: "100%", padding: "11px 0", borderRadius: 12, background: "rgba(255,255,255,0.07)", border: "none", color: "#fff", fontFamily: "inherit", fontSize: 14, fontWeight: 700, cursor: "pointer", marginTop: 6 }} onClick={() => setShowWeeklyRecap(false)}>
                 {t("weeklyRecapClose")}
               </button>
+            </div>
+          </div>
+        );
+      })()}
+
+      {showFighterCard && (() => {
+        const arch = profileUser.fighterArchetype ? ARCHETYPE_DISPLAY[profileUser.fighterArchetype] : null;
+        const accentColor = arch?.color || fighterRank.color || "#C1121F";
+        const challengeStreak = getActiveChallengeStreak(profileUser);
+        const BADGE_META = {
+          first_challenge: { icon: "🥊", label: locale === "mn" ? "Эхний тулаан" : locale === "ko" ? "첫 도전" : "First Challenge", color: "#C1121F" },
+          streak_3:        { icon: "🔥", label: locale === "mn" ? "3 өдрийн дараалал" : locale === "ko" ? "3일 연속" : "3-Day Streak", color: "#FB923C" },
+          streak_7:        { icon: "⚡", label: locale === "mn" ? "7 хоног дараалал" : locale === "ko" ? "7일 연속" : "Week Warrior", color: "#F59E0B" },
+          jab_master:      { icon: "🎯", label: locale === "mn" ? "Jab мэргэн" : locale === "ko" ? "잽 마스터" : "Jab Master", color: "#60A5FA" },
+          speed_king:      { icon: "💨", label: locale === "mn" ? "Хурдны хаан" : locale === "ko" ? "스피드 킹" : "Speed King", color: "#A78BFA" },
+          creator_starter: { icon: "🎬", label: locale === "mn" ? "Контент бүтээгч" : locale === "ko" ? "콘텐츠 제작자" : "Creator", color: "#34D399" },
+        };
+
+        const handleShare = () => {
+          const url = typeof window !== "undefined" ? window.location.href : "";
+          const text = locale === "mn"
+            ? `${profileUser.displayName || profileUser.username} — GAVANA-д ${t(fighterRank.key)} зэрэгтэй боксчин | ${xp.toLocaleString()} XP`
+            : locale === "ko"
+            ? `${profileUser.displayName || profileUser.username} — GAVANA에서 ${t(fighterRank.key)} | ${xp.toLocaleString()} XP`
+            : `${profileUser.displayName || profileUser.username} is a ${t(fighterRank.key)} on GAVANA Boxing | ${xp.toLocaleString()} XP`;
+
+          if (typeof navigator !== "undefined" && navigator.share) {
+            navigator.share({ title: "GAVANA Fighter Card", text, url }).catch(() => {});
+          } else if (typeof navigator !== "undefined" && navigator.clipboard) {
+            navigator.clipboard.writeText(`${text}\n${url}`).then(() => {
+              setCardShareCopied(true);
+              setTimeout(() => setCardShareCopied(false), 2500);
+            }).catch(() => {});
+          }
+        };
+
+        return (
+          <div
+            style={{ position: "fixed", inset: 0, zIndex: 400, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px 16px", background: "rgba(0,0,0,0.85)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}
+            onClick={() => setShowFighterCard(false)}
+          >
+            <div
+              style={{ width: "min(100%, 360px)", borderRadius: 24, background: `radial-gradient(ellipse at top, ${accentColor}18 0%, transparent 55%), linear-gradient(160deg, #131013 0%, #0b0b0b 100%)`, border: `1px solid ${accentColor}33`, boxShadow: `0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px ${accentColor}1a`, padding: "22px 20px 20px", display: "flex", flexDirection: "column", alignItems: "center", gap: 0 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* GAVANA watermark */}
+              <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 3, color: accentColor, textTransform: "uppercase", opacity: 0.7, marginBottom: 14 }}>
+                GAVANA BOXING
+              </div>
+
+              {/* Avatar + Rank icon */}
+              <div style={{ position: "relative", marginBottom: 14 }}>
+                <div style={{ width: 88, height: 88, borderRadius: "50%", overflow: "hidden", border: `2.5px solid ${accentColor}66`, background: "#111" }}>
+                  {profileUser.photoURL
+                    ? <img src={profileUser.photoURL} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: `${accentColor}22`, fontSize: 32, fontWeight: 900 }}>
+                        {(profileUser.displayName || profileUser.username || "?")[0].toUpperCase()}
+                      </div>}
+                </div>
+                <div style={{ position: "absolute", bottom: -6, right: -6, width: 32, height: 32, borderRadius: "50%", background: "#0b0b0b", border: `1.5px solid ${accentColor}55`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <RankIcon rank={fighterRank} size={20} animated={false} />
+                </div>
+              </div>
+
+              {/* Name */}
+              <div style={{ fontSize: 20, fontWeight: 1000, color: "#fff", textAlign: "center", lineHeight: 1.1, marginBottom: 4 }}>
+                {profileUser.displayName || profileUser.username}
+              </div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontWeight: 600, marginBottom: 12 }}>
+                @{profileUser.username}
+              </div>
+
+              {/* Rank + Archetype badges */}
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center", marginBottom: 16 }}>
+                <span style={{ padding: "4px 12px", borderRadius: 999, background: `${fighterRank.color}18`, border: `1px solid ${fighterRank.color}44`, color: fighterRank.color, fontSize: 11, fontWeight: 900 }}>
+                  {t(fighterRank.key)}
+                </span>
+                {arch && (
+                  <span style={{ padding: "4px 12px", borderRadius: 999, background: `${arch.color}15`, border: `1px solid ${arch.color}44`, color: arch.color, fontSize: 11, fontWeight: 900 }}>
+                    {arch.emoji} {arch.name}
+                  </span>
+                )}
+              </div>
+
+              {/* XP bar */}
+              <div style={{ width: "100%", marginBottom: 16 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                    {locale === "mn" ? "Туршлагын оноо" : locale === "ko" ? "경험치" : "Experience"}
+                  </span>
+                  <span style={{ fontSize: 12, fontWeight: 900, color: fighterRank.color }}>{xp.toLocaleString()} XP</span>
+                </div>
+                <div style={{ height: 5, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${rankProgress}%`, borderRadius: 999, background: fighterRank.gradient || accentColor, transition: "width 600ms ease" }} />
+                </div>
+              </div>
+
+              {/* Stats grid */}
+              <div style={{ width: "100%", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 16 }}>
+                {[
+                  { label: locale === "mn" ? "Ялалт" : locale === "ko" ? "승" : "Wins", value: pvpStats?.wins ?? "—", color: "#34D399" },
+                  { label: locale === "mn" ? "Дараалал" : locale === "ko" ? "연속" : "Streak", value: challengeStreak > 0 ? `🔥${challengeStreak}` : "—", color: "#FB923C" },
+                  { label: locale === "mn" ? "Шилдэг" : locale === "ko" ? "최고점" : "Best", value: bestScore !== null ? `${formatScore(bestScore)}/10` : "—", color: "#D4AF37" },
+                ].map(({ label, value, color }) => (
+                  <div key={label} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "10px 4px", display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+                    <span style={{ fontSize: 18, fontWeight: 1000, color, lineHeight: 1 }}>{value}</span>
+                    <span style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: 0.5 }}>{label}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Challenge rank */}
+              {(challengeRanks?.weeklyRank || challengeRanks?.allTimeRank) && (
+                <div style={{ width: "100%", padding: "8px 12px", borderRadius: 10, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.15)", display: "flex", justifyContent: "space-around", marginBottom: 14 }}>
+                  {challengeRanks.weeklyRank && (
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: 15, fontWeight: 1000, color: "#D4AF37" }}>#{challengeRanks.weeklyRank}</div>
+                      <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", fontWeight: 700, textTransform: "uppercase" }}>{locale === "mn" ? "Энэ 7 хоног" : locale === "ko" ? "이번 주" : "This week"}</div>
+                    </div>
+                  )}
+                  {challengeRanks.weeklyRank && challengeRanks.allTimeRank && <div style={{ width: 1, background: "rgba(255,255,255,0.08)" }} />}
+                  {challengeRanks.allTimeRank && (
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: 15, fontWeight: 1000, color: "#D4AF37" }}>#{challengeRanks.allTimeRank}</div>
+                      <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", fontWeight: 700, textTransform: "uppercase" }}>{locale === "mn" ? "Нийт" : locale === "ko" ? "전체" : "All-time"}</div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Badges */}
+              {userBadges.length > 0 && (
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center", marginBottom: 14 }}>
+                  {userBadges.slice(0, 5).map((b) => {
+                    const bm = BADGE_META[b.badgeId] || { icon: "🏅", color: "#D4AF37" };
+                    return (
+                      <span key={b.badgeId} style={{ fontSize: 18, filter: "drop-shadow(0 0 4px rgba(255,255,255,0.15))" }} title={bm.label}>
+                        {bm.icon}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Divider */}
+              <div style={{ width: "100%", height: 1, background: `linear-gradient(90deg, transparent, ${accentColor}33, transparent)`, marginBottom: 14 }} />
+
+              {/* Action buttons */}
+              <div style={{ width: "100%", display: "flex", gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  style={{ flex: 2, padding: "12px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg, ${accentColor}, ${accentColor}aa)`, color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer" }}
+                >
+                  {cardShareCopied
+                    ? (locale === "mn" ? "✓ Хуулагдлаа" : locale === "ko" ? "✓ 복사됨" : "✓ Copied!")
+                    : (locale === "mn" ? "📤 Хуваалцах" : locale === "ko" ? "📤 공유하기" : "📤 Share")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowFighterCard(false)}
+                  style={{ flex: 1, padding: "12px 0", borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.55)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
+                >
+                  {locale === "mn" ? "Хаах" : locale === "ko" ? "닫기" : "Close"}
+                </button>
+              </div>
             </div>
           </div>
         );
