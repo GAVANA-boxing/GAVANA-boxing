@@ -83,6 +83,10 @@ export default function AIChatPage() {
   const inputRef = useRef(null);
   const activePersona = PERSONAS.find((p) => p.id === persona) || PERSONAS[0];
 
+  useEffect(() => {
+    if (user === null) router.replace(`/${locale}/login`);
+  }, [user, locale, router]);
+
   // Load chat history for current persona
   useEffect(() => {
     try {

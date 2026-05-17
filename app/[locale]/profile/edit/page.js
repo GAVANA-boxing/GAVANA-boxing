@@ -148,12 +148,12 @@ export default function EditProfilePage() {
     <main style={styles.page}>
       <section style={styles.shell}>
         <button style={styles.backButton} onClick={() => router.back()}>
-          Back
+          {locale === "mn" ? "Буцах" : locale === "ko" ? "뒤로" : "Back"}
         </button>
 
         <header style={styles.header}>
           <p style={styles.kicker}>GAVANA BOXING</p>
-          <h1 style={styles.title}>Edit Profile</h1>
+          <h1 style={styles.title}>{locale === "mn" ? "Профайл засах" : locale === "ko" ? "프로필 수정" : "Edit Profile"}</h1>
         </header>
 
         <div style={styles.avatarBlock}>
@@ -179,7 +179,7 @@ export default function EditProfilePage() {
             onClick={() => fileInputRef.current?.click()}
             style={styles.photoButton}
           >
-            Change profile image
+            {locale === "mn" ? "Зураг солих" : locale === "ko" ? "사진 변경" : "Change profile image"}
           </button>
           <input
             ref={fileInputRef}
@@ -192,24 +192,24 @@ export default function EditProfilePage() {
 
         <div style={styles.form}>
           <label style={styles.field}>
-            <span style={styles.label}>Display name</span>
+            <span style={styles.label}>{locale === "mn" ? "Нэр" : locale === "ko" ? "이름" : "Display name"}</span>
             <input
               value={displayName}
               onChange={(event) => setDisplayName(event.target.value)}
               maxLength={40}
               style={styles.input}
-              placeholder="Your fighter name"
+              placeholder={locale === "mn" ? "Байлдааны нэр" : locale === "ko" ? "닉네임" : "Your fighter name"}
             />
           </label>
 
           <label style={styles.field}>
-            <span style={styles.label}>Bio</span>
+            <span style={styles.label}>{locale === "mn" ? "Танилцуулга" : locale === "ko" ? "자기소개" : "Bio"}</span>
             <textarea
               value={bio}
               onChange={(event) => setBio(event.target.value.slice(0, 160))}
               maxLength={160}
               style={styles.textarea}
-              placeholder="Short bio, gym, goal, or fight style"
+              placeholder={locale === "mn" ? "Жим, зорилго, тулааны стиль..." : locale === "ko" ? "짧은 소개, 체육관, 목표..." : "Short bio, gym, goal, or fight style"}
             />
             <span style={styles.count}>{bio.length}/160</span>
           </label>
@@ -226,7 +226,7 @@ export default function EditProfilePage() {
               cursor: saving ? "not-allowed" : "pointer",
             }}
           >
-            {saving ? "Saving..." : "Save profile"}
+            {saving ? (locale === "mn" ? "Хадгалж байна..." : locale === "ko" ? "저장 중..." : "Saving...") : (locale === "mn" ? "Профайл хадгалах" : locale === "ko" ? "프로필 저장" : "Save profile")}
           </button>
         </div>
       </section>

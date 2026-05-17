@@ -387,11 +387,6 @@ export default function NotificationsPage() {
       return;
     }
 
-    if (notification.type === "coach_request") {
-      router.push(`/${locale}/coach/dashboard`);
-      return;
-    }
-
     if ((notification.type === "event_rsvp" || notification.type === "event_reminder") && notification.eventId) {
       router.push(`/${locale}/events/${notification.eventId}`);
       return;
