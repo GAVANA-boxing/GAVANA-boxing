@@ -841,9 +841,11 @@ export default function UserProfilePage() {
     if (!user) { router.push(`/${locale || "en"}/login`); return; }
     if (isOwnProfile) { router.push(`/${locale || "en"}/inbox`); return; }
     try {
+      const displayName = profileUser?.displayName || profileUser?.username || "Fighter";
+      const photoURL = profileUser?.photoURL || "";
       const convoId = await startConversation(user, userId, {
-        displayName: profileUserData?.displayName || profileUserData?.username || "",
-        photoURL: profileUserData?.photoURL || "",
+        displayName,
+        photoURL,
       });
       router.push(`/${locale || "en"}/inbox/${convoId}`);
     } catch (e) {
