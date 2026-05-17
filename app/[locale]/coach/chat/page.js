@@ -295,7 +295,7 @@ export default function AIChatPage() {
         </div>
       </div>
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
     </div>
   );
 }

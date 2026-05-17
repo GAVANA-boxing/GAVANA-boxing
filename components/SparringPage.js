@@ -738,7 +738,7 @@ export default function SparringPage() {
         </div>
       )}
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="sparring" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="reels" />
     </div>
   );
 }

@@ -20,16 +20,29 @@ import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 
-function formatTimeAgo(timestamp) {
+function formatTimeAgo(timestamp, locale = "en") {
   if (!timestamp) return "";
   const ms = timestamp.toMillis ? timestamp.toMillis() : new Date(timestamp).getTime();
   const diff = Date.now() - ms;
   const m = Math.floor(diff / 60000);
+  const h = Math.floor(diff / 3600000);
+  const d = Math.floor(diff / 86400000);
+  if (locale === "mn") {
+    if (m < 1) return "Дөнгөж сая";
+    if (m < 60) return `${m}м өмнө`;
+    if (h < 24) return `${h}ц өмнө`;
+    return `${d}өдр өмнө`;
+  }
+  if (locale === "ko") {
+    if (m < 1) return "방금";
+    if (m < 60) return `${m}분 전`;
+    if (h < 24) return `${h}시간 전`;
+    return `${d}일 전`;
+  }
   if (m < 1) return "just now";
   if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
   if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+  return `${d}d ago`;
 }
 
 function RequesterAvatar({ user: u }) {
@@ -70,7 +83,7 @@ function RequestCard({ request, requesterUser, t, onAccept, onDecline, onSchedul
               {typeLbl}
             </span>
           </div>
-          <span style={styles.cardTime}>{formatTimeAgo(request.createdAt)}</span>
+          <span style={styles.cardTime}>{formatTimeAgo(request.createdAt, locale)}</span>
         </div>
         <StatusBadge status={request.status} t={t} />
       </div>
@@ -512,7 +525,7 @@ export default function CoachDashboardPage() {
         <h2 style={styles.sectionTitle}>{t("coachRequests")}</h2>
 
         {loadingRequests && (
-          <div style={styles.loadingText}>Loading…</div>
+          <div style={styles.loadingText}>{t("loading")}</div>
         )}
 
         {!loadingRequests && requests.length === 0 && (
@@ -520,7 +533,7 @@ export default function CoachDashboardPage() {
             <div style={styles.emptyIcon}>📭</div>
             <div style={styles.emptyTitle}>{t("noRequests")}</div>
             <div style={styles.emptyDesc}>
-              New coaching and sparring requests will appear here.
+              {locale === "mn" ? "Шинэ coaching болон sparring хүсэлтүүд энд харагдана." : locale === "ko" ? "새 코칭 및 스파링 요청이 여기에 표시됩니다." : "New coaching and sparring requests will appear here."}
             </div>
           </div>
         )}
@@ -543,7 +556,7 @@ export default function CoachDashboardPage() {
         </div>
       </div>
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
 
       {/* Booking modal */}
       {bookingRequest && (

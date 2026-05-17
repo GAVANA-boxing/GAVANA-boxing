@@ -138,7 +138,7 @@ export default function EditProfilePage() {
 
   if (authLoading || loading) {
     return (
-      <main style={styles.centered}>Loading profile...</main>
+      <main style={styles.centered}>{locale === "mn" ? "Профайл ачааллаж байна..." : locale === "ko" ? "프로필 로딩 중..." : "Loading profile..."}</main>
     );
   }
 
