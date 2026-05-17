@@ -1,7 +1,9 @@
 // app/api/ai-breakdown/route.js
-// AI Breakdown for GAVANA reels — OpenAI + rule-based fallback
+// AI Breakdown for GAVANA reels — Anthropic Claude + rule-based fallback
 
-const MODEL = "gpt-4.1-mini";
+const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
+const ANTHROPIC_VERSION = "2023-06-01";
+const MODEL = "claude-haiku-4-5-20251001";
 
 let loggedMissingKey = false;
 let loggedApiFailure = false;
@@ -162,9 +164,9 @@ function buildFallback(reel) {
   };
 }
 
-// ─── OpenAI call ──────────────────────────────────────────────────────────────
+// ─── Anthropic Claude call ────────────────────────────────────────────────────
 
-async function callOpenAI(reel) {
+async function callClaude(reel) {
   const reelContext = [
     `Content type: ${reel.contentType || reel.type || "training"}`,
     reel.category ? `Category: ${reel.category}` : null,
@@ -177,7 +179,7 @@ async function callOpenAI(reel) {
 Analyze a reel and return a JSON breakdown.
 Tone: fighter-like, concise, modern. NOT textbook. NOT robotic.
 Think: "sharp coach watching ringside".
-Always return valid JSON with exactly these keys:
+Return ONLY valid JSON with exactly these keys, no other text:
 {
   "style": string (e.g. "Counter Puncher"),
   "styleEmoji": string (single emoji),
@@ -190,33 +192,33 @@ Always return valid JSON with exactly these keys:
   "nextDrill": string (specific drill, 1 line)
 }`;
 
-  const user = `Reel to analyze:\n${reelContext}\n\nReturn breakdown JSON only.`;
+  const userMessage = `Reel to analyze:\n${reelContext}\n\nReturn breakdown JSON only.`;
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+  const response = await fetch(ANTHROPIC_URL, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      "content-type": "application/json",
+      "x-api-key": process.env.ANTHROPIC_API_KEY,
+      "anthropic-version": ANTHROPIC_VERSION,
     },
     body: JSON.stringify({
       model: MODEL,
-      temperature: 0.7,
       max_tokens: 400,
-      response_format: { type: "json_object" },
+      system,
       messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
+        { role: "user", content: userMessage },
+        { role: "assistant", content: "{" },
       ],
     }),
   });
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error(err?.error?.message || `OpenAI ${response.status}`);
+    throw new Error(err?.error?.message || `Anthropic ${response.status}`);
   }
 
   const data = await response.json();
-  const text = data?.choices?.[0]?.message?.content?.trim();
+  const text = "{" + (data?.content?.[0]?.text?.trim() || "");
   const parsed = JSON.parse(text);
   return { ...parsed, isFallback: false };
 }
@@ -228,20 +230,20 @@ export async function POST(req) {
     const { reel } = await req.json();
     if (!reel) return Response.json({ error: "Missing reel" }, { status: 400 });
 
-    if (!process.env.OPENAI_API_KEY) {
+    if (!process.env.ANTHROPIC_API_KEY) {
       if (!loggedMissingKey) {
-        console.warn("[ai-breakdown] No OPENAI_API_KEY — using rule-based breakdown");
+        console.warn("[ai-breakdown] No ANTHROPIC_API_KEY — using rule-based breakdown");
         loggedMissingKey = true;
       }
       return Response.json(buildFallback(reel));
     }
 
     try {
-      const result = await callOpenAI(reel);
+      const result = await callClaude(reel);
       return Response.json(result);
     } catch (err) {
       if (!loggedApiFailure) {
-        console.warn("[ai-breakdown] OpenAI failed, using fallback:", err.message);
+        console.warn("[ai-breakdown] Anthropic failed, using fallback:", err.message);
         loggedApiFailure = true;
       }
       return Response.json(buildFallback(reel));
