@@ -319,7 +319,7 @@ export default function UploadPage() {
       <div style={S.videoPage}>
         <div style={S.videoHeader}>
           <button onClick={() => router.back()} style={S.iconBtn}>✕</button>
-          <span style={S.headerTitle}>New Reel</span>
+          <span style={S.headerTitle}>{locale === "mn" ? "Шинэ рилс" : locale === "ko" ? "새 릴스" : "New Reel"}</span>
           <div style={{ width: 40 }} />
         </div>
 
@@ -335,7 +335,7 @@ export default function UploadPage() {
           ) : (
             <div style={S.videoEmptyState}>
               <div style={S.videoEmptyIcon}>▣</div>
-              <p style={S.videoEmptyLabel}>Tap to select a video</p>
+              <p style={S.videoEmptyLabel}>{locale === "mn" ? "Видео сонгохын тулд дарна уу" : locale === "ko" ? "동영상을 선택하려면 탭하세요" : "Tap to select a video"}</p>
               <p style={S.videoEmptySub}>MP4, MOV · up to 500MB</p>
             </div>
           )}
@@ -344,7 +344,9 @@ export default function UploadPage() {
         <div style={S.videoBottomBar}>
           <button style={S.galleryBtn} onClick={() => fileInputRef.current?.click()}>
             <span style={{ fontSize: 13, fontWeight: 800, color: selectedFile ? "#D4AF37" : "rgba(255,255,255,0.75)" }}>
-              {selectedFile ? "Change" : "Gallery"}
+              {selectedFile
+              ? (locale === "mn" ? "Солих" : locale === "ko" ? "변경" : "Change")
+              : (locale === "mn" ? "Галерей" : locale === "ko" ? "갤러리" : "Gallery")}
             </span>
           </button>
           {selectedFile && (
@@ -356,7 +358,7 @@ export default function UploadPage() {
             onClick={() => selectedFile ? setStep("setup") : fileInputRef.current?.click()}
             style={{ ...S.nextBtn, opacity: selectedFile ? 1 : 0.42 }}
           >
-            Next →
+            {locale === "mn" ? "Дараах →" : locale === "ko" ? "다음 →" : "Next →"}
           </button>
         </div>
 
@@ -370,9 +372,9 @@ export default function UploadPage() {
     <div style={S.setupPage}>
       <div style={S.setupHeader}>
         <button onClick={() => setStep("video")} style={S.iconBtn}>←</button>
-        <span style={S.headerTitle}>Post Reel</span>
+        <span style={S.headerTitle}>{locale === "mn" ? "Рилс нийтлэх" : locale === "ko" ? "릴스 올리기" : "Post Reel"}</span>
         <button onClick={handleUpload} disabled={uploading} style={{ ...S.postBtn, opacity: uploading ? 0.6 : 1 }}>
-          {uploading ? `${uploadProgress}%` : "Post"}
+          {uploading ? `${uploadProgress}%` : (locale === "mn" ? "Нийтлэх" : locale === "ko" ? "올리기" : "Post")}
         </button>
       </div>
 
@@ -384,7 +386,7 @@ export default function UploadPage() {
             <div style={{ color: "rgba(255,255,255,0.65)", fontSize: 13, fontWeight: 700, marginBottom: 6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {selectedFile?.name}
             </div>
-            <button onClick={() => setStep("video")} style={S.changeVideoBtn}>Change video</button>
+            <button onClick={() => setStep("video")} style={S.changeVideoBtn}>{locale === "mn" ? "Видео солих" : locale === "ko" ? "동영상 변경" : "Change video"}</button>
           </div>
         </div>
 
@@ -554,7 +556,7 @@ const S = {
   videoHeader: {
     position: "absolute", top: 0, left: 0, right: 0, zIndex: 20,
     display: "flex", alignItems: "center", justifyContent: "space-between",
-    padding: "52px 20px 16px",
+    padding: "calc(16px + env(safe-area-inset-top)) 20px 16px",
     background: "linear-gradient(180deg, rgba(0,0,0,0.72) 0%, transparent 100%)",
   },
   remixBar: {
@@ -587,12 +589,12 @@ const S = {
   setupHeader: {
     position: "sticky", top: 0, zIndex: 20,
     display: "flex", alignItems: "center", justifyContent: "space-between",
-    padding: "52px 20px 14px",
+    padding: "calc(16px + env(safe-area-inset-top)) 20px 14px",
     background: "rgba(7,7,7,0.96)", backdropFilter: "blur(16px)",
     borderBottom: "1px solid rgba(255,255,255,0.06)",
   },
   iconBtn: { width: 40, height: 40, borderRadius: 999, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", color: "#fff", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
-  headerTitle: { color: "#fff", fontSize: 16, fontWeight: 900 },
+  headerTitle: { flex: 1, color: "#fff", fontSize: 16, fontWeight: 900, textAlign: "center" },
   postBtn: { padding: "10px 24px", borderRadius: 999, border: "none", background: "linear-gradient(135deg, #C1121F, #8f0d17)", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: "0 4px 16px rgba(193,18,31,0.35)" },
   setupScroll: { flex: 1, overflowY: "auto", padding: "20px 20px 40px", display: "flex", flexDirection: "column", gap: 20, maxWidth: 600, width: "100%", margin: "0 auto", boxSizing: "border-box" },
 
