@@ -412,8 +412,7 @@ export default function NotificationsPage() {
       if (notification.reelId) {
         router.push(`/${locale}/reels?reelId=${encodeURIComponent(notification.reelId)}&source=pvp`);
       } else {
-        const actorId = getActorId(notification);
-        if (actorId) router.push(`/${locale}/profile/${actorId}`);
+        router.push(`/${locale}/challenges`);
       }
       return;
     }
