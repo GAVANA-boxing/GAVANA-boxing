@@ -1953,15 +1953,20 @@ export default function ReelsContent() {
               </div>
             )}
 
-            {/* Double-tap heart bursts */}
+            {/* Double-tap heart + fire bursts */}
             {heartBursts.filter((b) => b.reelId === reel.id).map((b) => (
-              <span
-                key={b.id}
-                className="heart-burst"
-                style={{ position: "absolute", left: b.x, top: b.y, fontSize: 80, zIndex: 60, lineHeight: 1 }}
-              >
-                ❤️
-              </span>
+              <div key={b.id} style={{ position: "absolute", left: b.x - 40, top: b.y - 40, zIndex: 60, pointerEvents: "none", width: 80, height: 80 }}>
+                <span className="heart-burst" style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 80, lineHeight: 1 }}>❤️</span>
+                {[...Array(6)].map((_, i) => (
+                  <span
+                    key={i}
+                    className={`fire-spark fire-spark-${i}`}
+                    style={{ position: "absolute", left: "50%", top: "50%", fontSize: 18, lineHeight: 1 }}
+                  >
+                    {["🔥", "✨", "🔥", "💥", "✨", "🔥"][i]}
+                  </span>
+                ))}
+              </div>
             ))}
 
             {isPvpSource && index === currentIndex && !reel.isDemo && (
@@ -2618,6 +2623,19 @@ export default function ReelsContent() {
           100% { opacity: 0; transform: scale(0.8) translateY(-18px); }
         }
         .heart-burst { animation: heartBurst 700ms cubic-bezier(0.16,1,0.3,1) forwards; pointer-events: none; }
+
+        @keyframes sparkFly0 { 0%{opacity:0;transform:translate(-50%,-50%) scale(0)} 20%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:0;transform:translate(calc(-50% - 36px),calc(-50% - 44px)) scale(0.5)} }
+        @keyframes sparkFly1 { 0%{opacity:0;transform:translate(-50%,-50%) scale(0)} 20%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:0;transform:translate(calc(-50% + 38px),calc(-50% - 40px)) scale(0.5)} }
+        @keyframes sparkFly2 { 0%{opacity:0;transform:translate(-50%,-50%) scale(0)} 25%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:0;transform:translate(calc(-50% - 48px),calc(-50% - 18px)) scale(0.4)} }
+        @keyframes sparkFly3 { 0%{opacity:0;transform:translate(-50%,-50%) scale(0)} 25%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:0;transform:translate(calc(-50% + 48px),calc(-50% - 14px)) scale(0.4)} }
+        @keyframes sparkFly4 { 0%{opacity:0;transform:translate(-50%,-50%) scale(0)} 30%{opacity:1;transform:translate(-50%,-50%) scale(0.9)} 100%{opacity:0;transform:translate(calc(-50% - 22px),calc(-50% + 42px)) scale(0.3)} }
+        @keyframes sparkFly5 { 0%{opacity:0;transform:translate(-50%,-50%) scale(0)} 30%{opacity:1;transform:translate(-50%,-50%) scale(0.9)} 100%{opacity:0;transform:translate(calc(-50% + 22px),calc(-50% + 42px)) scale(0.3)} }
+        .fire-spark-0 { animation: sparkFly0 750ms ease-out 80ms forwards; }
+        .fire-spark-1 { animation: sparkFly1 750ms ease-out 100ms forwards; }
+        .fire-spark-2 { animation: sparkFly2 700ms ease-out 60ms forwards; }
+        .fire-spark-3 { animation: sparkFly3 700ms ease-out 120ms forwards; }
+        .fire-spark-4 { animation: sparkFly4 650ms ease-out 140ms forwards; }
+        .fire-spark-5 { animation: sparkFly5 650ms ease-out 160ms forwards; }
 
         .reel-action-circle { transition: transform 160ms ease, background 160ms ease, border-color 160ms ease; }
         .reel-action:active .reel-action-circle { transform: scale(0.88); }
