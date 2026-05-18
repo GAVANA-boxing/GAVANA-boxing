@@ -21,6 +21,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { db, storage } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { RED, GOLD } from "@/lib/tokens";
+import { snapToDocs } from "@/lib/firestore";
 
 function getCompleteness(gym) {
   if (!gym) return 0;
@@ -120,12 +121,12 @@ export default function GymDashboardPage() {
             getDocs(query(collection(db, "gym_announcements"), where("gymId", "==", gymDoc.id))),
           ]);
           if (active) {
-            const allReqDocs = reqSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            const allReqDocs = snapToDocs(reqSnap);
             const pendingDocs = allReqDocs.filter((r) => r.status === "pending" || !r.status);
             const approvedDocs = allReqDocs.filter((r) => r.status === "approved");
             setJoinRequests(pendingDocs);
             setMembers(approvedDocs);
-            setAnnouncements(annSnap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => {
+            setAnnouncements(snapToDocs(annSnap).sort((a, b) => {
               const aMs = a.createdAt?.toMillis?.() || a.createdAt?.toDate?.()?.getTime?.() || 0;
               const bMs = b.createdAt?.toMillis?.() || b.createdAt?.toDate?.()?.getTime?.() || 0;
               return bMs - aMs;

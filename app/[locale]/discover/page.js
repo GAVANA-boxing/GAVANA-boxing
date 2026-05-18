@@ -15,6 +15,7 @@ import { FIGHTERS } from "@/lib/fighters";
 import FighterPortrait from "@/components/FighterPortrait";
 import MediaCover from "@/components/MediaCover";
 import { RED, GOLD } from "@/lib/tokens";
+import { snapToDocs } from "@/lib/firestore";
 
 // ─── Legendary fighter mini card (for Fighter Study row) ─────────────────────
 function FighterStudyCard({ fighter, onClick }) {
@@ -306,8 +307,8 @@ export default function DiscoverPage() {
         getDocs(fsQuery(collection(db, "users"), where("isCoach", "==", true), limit(4))),
       ]);
       if (!active) return;
-      setAllReels(reelsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
-      setTopCoaches(coachSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      setAllReels(snapToDocs(reelsSnap));
+      setTopCoaches(snapToDocs(coachSnap));
     } catch {
       if (active) setExploreError(true);
     }

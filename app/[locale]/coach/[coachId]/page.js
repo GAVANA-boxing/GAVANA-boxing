@@ -9,6 +9,7 @@ import BottomNav from "@/components/BottomNav";
 import EmptyState from "@/components/EmptyState";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { RED, GOLD } from "@/lib/tokens";
+import { snapToDocs } from "@/lib/firestore";
 
 const SPECIALTY_COLORS = {
   Amateur:      "#34D399",
@@ -148,8 +149,8 @@ export default function CoachProfilePage() {
         if (!active) return;
 
         setCoach(coachSnap.exists() ? { id: coachSnap.id, ...coachSnap.data() } : null);
-        setReviews(reviewsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
-        setReels(reelsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setReviews(snapToDocs(reviewsSnap));
+        setReels(snapToDocs(reelsSnap));
         setCompletedSessions(bookingsSnap.size);
       } catch (e) {
         console.error("Coach profile load error:", e);
@@ -306,7 +307,7 @@ export default function CoachProfilePage() {
       try {
         const snap = await getDocs(query(collection(db, "training_programs"), where("coachId", "==", coachId)));
         if (!active) return;
-        setPrograms(snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0)));
+        setPrograms(snapToDocs(snap).sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0)));
       } catch { if (active) setPrograms([]); }
     }
     loadPrograms();

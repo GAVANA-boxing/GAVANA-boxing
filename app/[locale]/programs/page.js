@@ -13,6 +13,7 @@ import { getLocale, translate } from "@/lib/i18n";
 import BottomNav from "@/components/BottomNav";
 import SkeletonBlock from "@/components/SkeletonBlock";
 import { RED, GOLD } from "@/lib/tokens";
+import { snapToDocs } from "@/lib/firestore";
 
 const DEMO_PROGRAMS = [
   {
@@ -122,7 +123,7 @@ export default function ProgramsPage() {
     async function load() {
       try {
         const progSnap = await getDocs(query(collection(db, "training_programs"), limit(50)));
-        const progDocs = progSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        const progDocs = snapToDocs(progSnap);
         const allPrograms = progDocs.length > 0 ? progDocs : DEMO_PROGRAMS;
         if (!active) return;
         setPrograms(allPrograms);

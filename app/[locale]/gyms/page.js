@@ -18,6 +18,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { RED, GOLD } from "@/lib/tokens";
+import { snapToDocs } from "@/lib/firestore";
 
 const GYM_TYPES = [
   "Boxing", "MMA", "Muay Thai", "Fitness",
@@ -171,7 +172,7 @@ export default function GymsPage() {
       try {
         const snap = await getDocs(query(collection(db, "gyms"), orderBy("createdAt", "desc"), limit(50)));
         if (active) {
-          setGyms(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+          setGyms(snapToDocs(snap));
         }
       } catch (e) {
         console.error("gyms load error", e);

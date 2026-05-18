@@ -20,6 +20,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { RED, GOLD } from "@/lib/tokens";
+import { snapToDocs } from "@/lib/firestore";
 
 function formatTimeAgo(timestamp, locale = "en") {
   if (!timestamp) return "";
@@ -452,7 +453,7 @@ export default function CoachDashboardPage() {
     getDocs(query(collection(db, "training_programs"), where("coachId", "==", user.uid)))
       .then((snap) => {
         if (!active) return;
-        setPrograms(snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0)));
+        setPrograms(snapToDocs(snap).sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0)));
       }).catch(() => {});
     return () => { active = false; };
   }, [user?.uid]);

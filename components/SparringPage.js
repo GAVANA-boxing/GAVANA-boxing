@@ -16,6 +16,7 @@ import { getFighterRank } from "@/lib/xp";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import BottomNav from "@/components/BottomNav";
 import { RED, GOLD } from "@/lib/tokens";
+import { snapToDocs } from "@/lib/firestore";
 
 const ARCHETYPE_KEYS = ["all", "pressure", "counter", "technical", "brawler"];
 
@@ -264,7 +265,7 @@ export default function SparringPage() {
     const q = query(collection(db, "sparring_posts"), where("lookingForSparring", "==", true));
     const unsub = onSnapshot(q, (snap) => {
       const uid = user?.uid;
-      const all = snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => getTs(b.createdAt) - getTs(a.createdAt));
+      const all = snapToDocs(snap).sort((a, b) => getTs(b.createdAt) - getTs(a.createdAt));
       setMyPost(uid ? (all.find((p) => p.userId === uid) || null) : null);
       setPosts(all.filter((p) => p.userId !== uid));
       setLoading(false);
@@ -278,7 +279,7 @@ export default function SparringPage() {
     const q = query(collection(db, "sparring_requests"), where("toUserId", "==", user.uid));
     const unsub = onSnapshot(q, (snap) => {
       setIncomingRequests(
-        snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => getTs(b.createdAt) - getTs(a.createdAt))
+        snapToDocs(snap).sort((a, b) => getTs(b.createdAt) - getTs(a.createdAt))
       );
     }, () => {});
     return () => unsub();
@@ -289,7 +290,7 @@ export default function SparringPage() {
     if (!user?.uid) return;
     const q = query(collection(db, "sparring_requests"), where("fromUserId", "==", user.uid));
     const unsub = onSnapshot(q, (snap) => {
-      const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => getTs(b.createdAt) - getTs(a.createdAt));
+      const docs = snapToDocs(snap).sort((a, b) => getTs(b.createdAt) - getTs(a.createdAt));
       // Only mark as "sent" if the request is still pending — declined requests allow re-sending
       setSentRequestToIds(new Set(docs.filter((d) => !d.status || d.status === "pending").map((d) => d.toUserId)));
       setSentRequests(docs);
@@ -307,7 +308,7 @@ export default function SparringPage() {
       getDocs(query(collection(db, "pvp_results"), where("opponentId", "==", user.uid))),
     ]).then(([asChallenger, asOpponent]) => {
       if (!active) return;
-      const fromChallenger = asChallenger.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const fromChallenger = snapToDocs(asChallenger);
       const fromOpponent = asOpponent.docs.map((d) => {
         const data = d.data();
         const result = data.result === "win" ? "loss" : data.result === "loss" ? "win" : data.result;

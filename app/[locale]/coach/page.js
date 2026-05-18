@@ -21,6 +21,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { RED, GOLD } from "@/lib/tokens";
+import { snapToDocs } from "@/lib/firestore";
 
 const SPECIALTIES = [
   "Footwork", "Pressure", "Counter", "Beginners",
@@ -268,7 +269,7 @@ export default function CoachPage() {
     getDocs(query(collection(db, "users"), where("isCoach", "==", true)))
       .then((snap) => {
         if (!active) return;
-        setCoaches(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setCoaches(snapToDocs(snap));
       })
       .catch(() => {})
       .finally(() => { if (active) setCoachesLoading(false); });
@@ -283,7 +284,7 @@ export default function CoachPage() {
     getDocs(query(collection(db, "sparring_posts"), where("active", "==", true)))
       .then((snap) => {
         if (!active) return;
-        setSparringPosts(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setSparringPosts(snapToDocs(snap));
       })
       .catch(() => {})
       .finally(() => { if (active) setSparringLoading(false); });

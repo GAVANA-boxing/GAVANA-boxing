@@ -20,6 +20,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { RED, GOLD } from "@/lib/tokens";
+import { snapToDocs } from "@/lib/firestore";
 
 const AMENITY_ICONS = {
   Shower: "🚿", Showers: "🚿",
@@ -182,9 +183,9 @@ export default function GymProfilePage() {
         ]);
         if (!active) return;
         if (gymSnap.exists()) setGym({ id: gymSnap.id, ...gymSnap.data() });
-        setReels(reelsSnap.docs.map((d) => ({ id: d.id, ...d.data() })).sort(byTs));
-        setReviews(reviewsSnap.docs.map((d) => ({ id: d.id, ...d.data() })).sort(byTs));
-        setAnnouncements(announcementsSnap.docs.map((d) => ({ id: d.id, ...d.data() })).sort(byTs));
+        setReels(snapToDocs(reelsSnap).sort(byTs));
+        setReviews(snapToDocs(reviewsSnap).sort(byTs));
+        setAnnouncements(snapToDocs(announcementsSnap).sort(byTs));
 
         // Load approved members
         const membersSnap = await getDocs(query(
@@ -192,7 +193,7 @@ export default function GymProfilePage() {
           where("gymId", "==", gymId),
           where("status", "==", "approved")
         ));
-        const memberDocs = membersSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        const memberDocs = snapToDocs(membersSnap);
         const memberUserIds = [...new Set(memberDocs.map((m) => m.userId).filter(Boolean))];
         const memberUserMap = {};
         if (memberUserIds.length > 0) {

@@ -18,6 +18,7 @@ import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import EmptyState from "@/components/EmptyState";
 import { RED, GOLD } from "@/lib/tokens";
+import { snapToDocs } from "@/lib/firestore";
 
 const WEIGHT_CLASSES = [
   "Mini Flyweight (49kg)", "Light Flyweight (49kg)", "Flyweight (52kg)",
@@ -117,7 +118,7 @@ export default function OnboardingPage() {
     setGymsLoading(true);
     try {
       const snap = await getDocs(query(collection(db, "gyms"), limit(12)));
-      setGyms(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      setGyms(snapToDocs(snap));
     } catch {}
     setGymsLoading(false);
     goTo(3);
