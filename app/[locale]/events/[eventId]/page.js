@@ -20,7 +20,7 @@ import {
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
-import { getLocale } from "@/lib/i18n";
+import { getLocale, translate } from "@/lib/i18n";
 
 const TYPE_META = {
   boxing:     { mn: "Бокс",     ko: "복싱",    en: "Boxing",     color: "#C1121F", emoji: "🥊" },
@@ -91,6 +91,8 @@ export default function EventDetailPage() {
   const eventId = params?.eventId;
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
+
+  const t = (key) => translate(locale, key);
 
   const [event, setEvent] = useState(null);
   const [rsvps, setRsvps] = useState([]);
@@ -250,10 +252,10 @@ export default function EventDetailPage() {
     return (
       <div style={s.page}>
         <div style={s.inner}>
-          <button type="button" style={s.backBtn} onClick={() => router.push(`/${locale}/events`)}>← {locale === "mn" ? "Буцах" : locale === "ko" ? "돌아가기" : "Back"}</button>
+          <button type="button" style={s.backBtn} onClick={() => router.push(`/${locale}/events`)}>← {t("eventBack")}</button>
           <div style={s.notFound}>
             <span style={{ fontSize: 44, opacity: 0.4 }}>🏆</span>
-            <p style={{ color: "rgba(255,255,255,0.45)", margin: 0 }}>{locale === "mn" ? "Арга хэмжээ олдсонгүй" : locale === "ko" ? "이벤트를 찾을 수 없습니다" : "Event not found"}</p>
+            <p style={{ color: "rgba(255,255,255,0.45)", margin: 0 }}>{t("eventNotFound")}</p>
           </div>
         </div>
         <BottomNav router={router} user={user} currentLocale={locale} activeTab="discover" />
@@ -271,7 +273,7 @@ export default function EventDetailPage() {
     <div style={{ ...s.page, background: `radial-gradient(ellipse at top, ${meta.color}10 0%, transparent 40%), #0A0A0A` }}>
       <div style={s.inner}>
         <button type="button" style={s.backBtn} onClick={() => router.push(`/${locale}/events`)}>
-          ← {locale === "mn" ? "Арга хэмжээнүүд" : locale === "ko" ? "이벤트 목록" : "Events"}
+          ← {t("eventBackToList")}
         </button>
 
         {/* Hero */}
@@ -286,7 +288,7 @@ export default function EventDetailPage() {
                 LIVE
               </span>
             )}
-            {!live && !upcoming && <span style={s.pastLabel}>{locale === "mn" ? "Дууссан" : locale === "ko" ? "종료" : "Past event"}</span>}
+            {!live && !upcoming && <span style={s.pastLabel}>{t("eventPast")}</span>}
           </div>
           <h1 style={s.eventTitle}>{event.title}</h1>
           {event.description && <p style={s.eventDesc}>{event.description}</p>}
@@ -295,7 +297,7 @@ export default function EventDetailPage() {
           {upcoming && !live && countdown !== null && (
             <div style={s.countdownBox}>
               <span style={s.countdownLabel}>
-                {locale === "mn" ? "Эхлэхэд" : locale === "ko" ? "시작까지" : "Starts in"}
+                {t("eventStartsIn")}
               </span>
               <span style={s.countdownValue}>{formatCountdown(countdown, locale)}</span>
             </div>
@@ -303,7 +305,7 @@ export default function EventDetailPage() {
           {live && (
             <div style={{ ...s.countdownBox, borderColor: "rgba(52,211,153,0.3)", background: "rgba(52,211,153,0.08)" }}>
               <span style={{ ...s.countdownValue, color: "#34D399" }}>
-                {locale === "mn" ? "🔴 Одоо явагдаж байна" : locale === "ko" ? "🔴 현재 진행 중" : "🔴 Happening now"}
+                {t("eventHappeningNow")}
               </span>
             </div>
           )}
@@ -315,7 +317,7 @@ export default function EventDetailPage() {
             <div style={s.detailRow}>
               <span style={s.detailIcon}>📅</span>
               <div>
-                <p style={s.detailLabel}>{locale === "mn" ? "Огноо, цаг" : locale === "ko" ? "날짜 및 시간" : "Date & Time"}</p>
+                <p style={s.detailLabel}>{t("eventDateTime")}</p>
                 <p style={s.detailValue}>{formatEventDate(event.date, locale)}</p>
               </div>
             </div>
@@ -324,7 +326,7 @@ export default function EventDetailPage() {
             <div style={s.detailRow}>
               <span style={s.detailIcon}>📍</span>
               <div style={{ flex: 1 }}>
-                <p style={s.detailLabel}>{locale === "mn" ? "Байршил" : locale === "ko" ? "장소" : "Location"}</p>
+                <p style={s.detailLabel}>{t("eventLocation")}</p>
                 <p style={s.detailValue}>{[event.city, event.location].filter(Boolean).join(" · ")}</p>
                 <a
                   href={`https://maps.google.com/?q=${encodeURIComponent([event.location, event.city].filter(Boolean).join(", "))}`}
@@ -333,7 +335,7 @@ export default function EventDetailPage() {
                   style={{ fontSize: 11, color: "#60A5FA", fontWeight: 800, letterSpacing: 0.3, textDecoration: "none", display: "inline-block", marginTop: 4 }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  🗺 {locale === "mn" ? "Газрын зураг" : locale === "ko" ? "지도 보기" : "View on Maps"}
+                  🗺 {t("eventViewOnMaps")}
                 </a>
               </div>
             </div>
@@ -341,11 +343,11 @@ export default function EventDetailPage() {
           <div style={s.detailRow}>
             <span style={s.detailIcon}>👥</span>
             <div style={{ flex: 1 }}>
-              <p style={s.detailLabel}>{locale === "mn" ? "Оролцогчид" : locale === "ko" ? "참가자" : "Participants"}</p>
+              <p style={s.detailLabel}>{t("eventParticipants")}</p>
               <p style={s.detailValue}>
                 {event.participantCount || 0}
                 {event.maxParticipants ? ` / ${event.maxParticipants}` : ""}
-                {event.maxParticipants && <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 11 }}> {locale === "mn" ? "орон байр" : locale === "ko" ? "자리" : "spots"}</span>}
+                {event.maxParticipants && <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 11 }}> {t("eventSpots")}</span>}
               </p>
               {event.maxParticipants > 0 && (() => {
                 const pct = Math.round(Math.min(100, ((event.participantCount || 0) / event.maxParticipants) * 100));
@@ -356,8 +358,8 @@ export default function EventDetailPage() {
                       <div style={{ height: "100%", width: `${pct}%`, borderRadius: 999, background: barColor, transition: "width 600ms ease" }} />
                     </div>
                     <p style={{ margin: "3px 0 0", fontSize: 9, color: barColor, fontWeight: 900 }}>
-                      {pct >= 90 ? (locale === "mn" ? "Бараг дүүрсэн!" : locale === "ko" ? "거의 마감!" : "Almost full!")
-                        : `${event.maxParticipants - (event.participantCount || 0)} ${locale === "mn" ? "орон үлдсэн" : locale === "ko" ? "자리 남음" : "spots left"}`}
+                      {pct >= 90 ? t("eventAlmostFull")
+                        : `${event.maxParticipants - (event.participantCount || 0)} ${t("eventSpotsLeft")}`}
                     </p>
                   </div>
                 );
@@ -367,7 +369,7 @@ export default function EventDetailPage() {
           <div style={s.detailRow}>
             <span style={s.detailIcon}>🎤</span>
             <div>
-              <p style={s.detailLabel}>{locale === "mn" ? "Зохион байгуулагч" : locale === "ko" ? "주최자" : "Organizer"}</p>
+              <p style={s.detailLabel}>{t("eventOrganizer")}</p>
               <p style={s.detailValue}>{event.organizerName}</p>
             </div>
           </div>
@@ -382,9 +384,9 @@ export default function EventDetailPage() {
             style={isGoing ? s.cancelRsvpBtn : isFull ? s.fullBtn : s.rsvpBtn}
           >
             {rsvping ? "…"
-              : isGoing ? (locale === "mn" ? "✓ Оролцоно — Цуцлах" : locale === "ko" ? "✓ 참가 취소" : "✓ Going — Cancel RSVP")
-              : isFull ? (locale === "mn" ? "Бүрэн дүүрсэн" : locale === "ko" ? "마감됨" : "Event is full")
-              : (locale === "mn" ? "🥊 Оролцоно" : locale === "ko" ? "🥊 참가 신청" : "🥊 RSVP — I'm Going")}
+              : isGoing ? t("eventCancelRsvp")
+              : isFull ? t("eventFull")
+              : t("eventRsvp")}
           </button>
         )}
         {/* Reminder button */}
@@ -397,8 +399,8 @@ export default function EventDetailPage() {
           >
             {settingReminder ? "…"
               : reminderSet
-              ? (locale === "mn" ? "🔔 Сануулга тохирлоо" : locale === "ko" ? "🔔 알림 설정됨" : "🔔 Reminder set")
-              : (locale === "mn" ? "🔔 Сануулга тохируулах" : locale === "ko" ? "🔔 알림 받기" : "🔔 Set Reminder")}
+              ? t("eventReminderSet")
+              : t("eventSetReminder")}
           </button>
         )}
 
@@ -408,14 +410,12 @@ export default function EventDetailPage() {
           onClick={handleShare}
           style={{ width: "100%", padding: "11px 0", borderRadius: 12, border: "1px solid rgba(212,175,55,0.25)", background: "rgba(212,175,55,0.06)", color: shareCopied ? "#34D399" : "#D4AF37", fontSize: 13, fontWeight: 800, cursor: "pointer", marginBottom: 8 }}
         >
-          {shareCopied
-            ? (locale === "mn" ? "✓ Холбоос хуулагдлаа" : locale === "ko" ? "✓ 링크 복사됨" : "✓ Link copied!")
-            : (locale === "mn" ? "📤 Арга хэмжээ хуваалцах" : locale === "ko" ? "📤 이벤트 공유" : "📤 Share Event")}
+          {shareCopied ? t("eventLinkCopied") : t("eventShare")}
         </button>
 
         {isOrganizer && (
           <div style={s.organizerBanner}>
-            🎤 {locale === "mn" ? "Та энэ арга хэмжээг зохион байгуулж байна" : locale === "ko" ? "귀하가 이 이벤트의 주최자입니다" : "You are the organizer of this event"}
+            🎤 {t("eventYouAreOrganizer")}
           </div>
         )}
 
@@ -423,7 +423,7 @@ export default function EventDetailPage() {
         {rsvps.length > 0 && (
           <div style={s.participantSection}>
             <p style={s.sectionLabel}>
-              {locale === "mn" ? "Оролцогчид" : locale === "ko" ? "참가자 목록" : "Participants"} ({rsvps.length})
+              {t("eventParticipantsList")} ({rsvps.length})
             </p>
             <div style={s.participantGrid}>
               {rsvps.map((r) => {
