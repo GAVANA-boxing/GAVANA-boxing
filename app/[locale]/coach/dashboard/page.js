@@ -15,6 +15,7 @@ import {
   where,
 } from "firebase/firestore";
 import BottomNav from "@/components/BottomNav";
+import BottomSheet from "@/components/BottomSheet";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
@@ -708,111 +709,98 @@ export default function CoachDashboardPage() {
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
 
       {/* Booking modal */}
-      {bookingRequest && (
-        <div style={styles.modalBackdrop} onClick={() => setBookingRequest(null)}>
-          <div style={styles.modalSheet} onClick={(e) => e.stopPropagation()}>
-            <div style={styles.modalHandle} />
-            <div style={styles.modalHeader}>
-              <span style={styles.modalTitle}>📅 {t("scheduleSession")}</span>
-              <button type="button" style={styles.modalCloseBtn} onClick={() => setBookingRequest(null)}>✕</button>
-            </div>
-            <div style={styles.modalSubtitle}>
-              {requesterUsers[bookingRequest.userId]?.displayName || requesterUsers[bookingRequest.userId]?.username || "Fighter"}
-            </div>
-
-            {bookingSuccess ? (
-              <div style={styles.bookingSuccessMsg}>✓ {t("sessionScheduled")}</div>
-            ) : (
-              <>
-                <div style={styles.modalField}>
-                  <label style={styles.modalLabel}>{t("bookingDate")}</label>
-                  <input
-                    type="date"
-                    value={bookingDate}
-                    onChange={(e) => setBookingDate(e.target.value)}
-                    style={styles.modalInput}
-                  />
-                </div>
-                <div style={styles.modalField}>
-                  <label style={styles.modalLabel}>{t("bookingTime")}</label>
-                  <input
-                    type="time"
-                    value={bookingTime}
-                    onChange={(e) => setBookingTime(e.target.value)}
-                    style={styles.modalInput}
-                  />
-                </div>
-                <div style={styles.modalField}>
-                  <label style={styles.modalLabel}>{t("duration")}</label>
-                  <select
-                    value={bookingDuration}
-                    onChange={(e) => setBookingDuration(Number(e.target.value))}
-                    style={styles.modalSelect}
-                  >
-                    <option value={30}>30 min</option>
-                    <option value={60}>60 min</option>
-                    <option value={90}>90 min</option>
-                  </select>
-                </div>
-                <button
-                  type="button"
-                  style={{
-                    ...styles.confirmBtn,
-                    opacity: (!bookingDate || !bookingTime || bookingSubmitting) ? 0.5 : 1,
-                  }}
-                  disabled={!bookingDate || !bookingTime || bookingSubmitting}
-                  onClick={handleBookingSubmit}
-                >
-                  {bookingSubmitting ? "…" : t("scheduleSession")}
-                </button>
-              </>
-            )}
-          </div>
+      <BottomSheet
+        open={!!bookingRequest}
+        onClose={() => setBookingRequest(null)}
+        title={`📅 ${t("scheduleSession")}`}
+      >
+        <div style={styles.modalSubtitle}>
+          {requesterUsers[bookingRequest?.userId]?.displayName || requesterUsers[bookingRequest?.userId]?.username || "Fighter"}
         </div>
-      )}
-
-      {/* Student profile quick-view modal */}
-      {profileModal && (
-        <div style={styles.modalBackdrop} onClick={() => setProfileModal(null)}>
-          <div style={styles.modalSheet} onClick={(e) => e.stopPropagation()}>
-            <div style={styles.modalHandle} />
-            <div style={styles.modalHeader}>
-              <span style={styles.modalTitle}>
-                {t("coachDashFighterProfile")}
-              </span>
-              <button type="button" style={styles.modalCloseBtn} onClick={() => setProfileModal(null)}>✕</button>
+        {bookingSuccess ? (
+          <div style={styles.bookingSuccessMsg}>✓ {t("sessionScheduled")}</div>
+        ) : (
+          <>
+            <div style={styles.modalField}>
+              <label style={styles.modalLabel}>{t("bookingDate")}</label>
+              <input
+                type="date"
+                value={bookingDate}
+                onChange={(e) => setBookingDate(e.target.value)}
+                style={styles.modalInput}
+              />
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
-              <RequesterAvatar user={profileModal.user} />
-              <div>
-                <div style={{ fontSize: 17, fontWeight: 1000, color: "#fff" }}>
-                  {profileModal.user?.displayName || profileModal.user?.username || "Fighter"}
-                </div>
-                {profileModal.user?.gym && (
-                  <div style={{ fontSize: 12, color: "#888", fontWeight: 700, marginTop: 2 }}>🏋️ {profileModal.user.gym}</div>
-                )}
-                {profileModal.user?.bio && (
-                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", marginTop: 4, lineHeight: 1.4 }}>
-                    {profileModal.user.bio}
-                  </div>
-                )}
-              </div>
+            <div style={styles.modalField}>
+              <label style={styles.modalLabel}>{t("bookingTime")}</label>
+              <input
+                type="time"
+                value={bookingTime}
+                onChange={(e) => setBookingTime(e.target.value)}
+                style={styles.modalInput}
+              />
             </div>
-            {profileModal.request?.message && (
-              <div style={{ padding: "10px 14px", borderRadius: 12, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.5, fontStyle: "italic" }}>
-                "{profileModal.request.message}"
-              </div>
-            )}
+            <div style={styles.modalField}>
+              <label style={styles.modalLabel}>{t("duration")}</label>
+              <select
+                value={bookingDuration}
+                onChange={(e) => setBookingDuration(Number(e.target.value))}
+                style={styles.modalSelect}
+              >
+                <option value={30}>30 min</option>
+                <option value={60}>60 min</option>
+                <option value={90}>90 min</option>
+              </select>
+            </div>
             <button
               type="button"
-              style={{ marginTop: 16, width: "100%", padding: "12px 0", borderRadius: 12, border: "none", background: "rgba(255,255,255,0.08)", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}
-              onClick={() => { setProfileModal(null); router.push(`/${locale}/profile/${profileModal.request?.userId}`); }}
+              style={{
+                ...styles.confirmBtn,
+                opacity: (!bookingDate || !bookingTime || bookingSubmitting) ? 0.5 : 1,
+              }}
+              disabled={!bookingDate || !bookingTime || bookingSubmitting}
+              onClick={handleBookingSubmit}
             >
-              {t("coachDashViewFull")}
+              {bookingSubmitting ? "…" : t("scheduleSession")}
             </button>
+          </>
+        )}
+      </BottomSheet>
+
+      {/* Student profile quick-view modal */}
+      <BottomSheet
+        open={!!profileModal}
+        onClose={() => setProfileModal(null)}
+        title={t("coachDashFighterProfile")}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <RequesterAvatar user={profileModal?.user} />
+          <div>
+            <div style={{ fontSize: 17, fontWeight: 1000, color: "#fff" }}>
+              {profileModal?.user?.displayName || profileModal?.user?.username || "Fighter"}
+            </div>
+            {profileModal?.user?.gym && (
+              <div style={{ fontSize: 12, color: "#888", fontWeight: 700, marginTop: 2 }}>🏋️ {profileModal.user.gym}</div>
+            )}
+            {profileModal?.user?.bio && (
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", marginTop: 4, lineHeight: 1.4 }}>
+                {profileModal.user.bio}
+              </div>
+            )}
           </div>
         </div>
-      )}
+        {profileModal?.request?.message && (
+          <div style={{ padding: "10px 14px", borderRadius: 12, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.5, fontStyle: "italic" }}>
+            "{profileModal.request.message}"
+          </div>
+        )}
+        <button
+          type="button"
+          style={{ width: "100%", padding: "12px 0", borderRadius: 12, border: "none", background: "rgba(255,255,255,0.08)", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}
+          onClick={() => { setProfileModal(null); router.push(`/${locale}/profile/${profileModal?.request?.userId}`); }}
+        >
+          {t("coachDashViewFull")}
+        </button>
+      </BottomSheet>
 
       <style>{`
         @keyframes skeletonPulse {
@@ -1150,54 +1138,6 @@ const styles = {
     color: "#34D399",
     fontWeight: 700,
     paddingTop: 2,
-  },
-  modalBackdrop: {
-    position: "fixed",
-    inset: 0,
-    zIndex: 200,
-    background: "rgba(0,0,0,0.72)",
-    backdropFilter: "blur(10px)",
-    WebkitBackdropFilter: "blur(10px)",
-    display: "flex",
-    alignItems: "flex-end",
-    justifyContent: "center",
-  },
-  modalSheet: {
-    width: "min(100%, 520px)",
-    borderRadius: "24px 24px 0 0",
-    background: "linear-gradient(180deg, #161616 0%, #0f0f0f 100%)",
-    border: "1px solid rgba(255,255,255,0.1)",
-    borderBottom: "none",
-    padding: "12px 20px calc(28px + env(safe-area-inset-bottom))",
-    display: "flex",
-    flexDirection: "column",
-    gap: 16,
-  },
-  modalHandle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    background: "rgba(255,255,255,0.18)",
-    alignSelf: "center",
-    marginBottom: 4,
-  },
-  modalHeader: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  modalTitle: {
-    fontSize: 17,
-    fontWeight: 1000,
-    color: "#fff",
-  },
-  modalCloseBtn: {
-    background: "none",
-    border: "none",
-    color: "rgba(255,255,255,0.5)",
-    fontSize: 18,
-    cursor: "pointer",
-    padding: 4,
   },
   modalSubtitle: {
     fontSize: 13,

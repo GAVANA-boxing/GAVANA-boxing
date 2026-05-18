@@ -14,6 +14,7 @@ import {
 } from "firebase/firestore";
 import AICoach from "@/components/AICoach";
 import BottomNav from "@/components/BottomNav";
+import BottomSheet from "@/components/BottomSheet";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
@@ -542,47 +543,47 @@ export default function CoachPage() {
           </div>
 
           {/* Full filter sheet */}
-          {showCoachFilterSheet && (
-            <div style={styles.filterSheetOverlay} onClick={() => setShowCoachFilterSheet(false)}>
-              <div style={styles.filterSheetModal} onClick={(e) => e.stopPropagation()}>
-                <div style={styles.filterSheetHandle} />
-                <p style={styles.filterSheetSectionLabel}>SPECIALTY</p>
-                <div style={styles.specialtyScroll}>
-                  <button type="button" style={filterSpecialty === "" ? styles.chipActive : styles.chip} onClick={() => setFilterSpecialty("")}>
-                    {t("coachFilterAll")}
-                  </button>
-                  {SPECIALTIES.map((s) => (
-                    <button key={s} type="button" style={filterSpecialty === s ? styles.chipActive : styles.chip} onClick={() => setFilterSpecialty((prev) => prev === s ? "" : s)}>
-                      {s}
-                    </button>
-                  ))}
-                </div>
-                <p style={{ ...styles.filterSheetSectionLabel, marginTop: 16 }}>VIBE</p>
-                <div style={styles.specialtyScroll}>
-                  {VIBE_FILTERS.map((v) => (
-                    <button key={v} type="button" style={filterVibe === v ? styles.vibeChipActive : styles.vibeChip} onClick={() => setFilterVibe((prev) => (prev === v ? "" : v))}>
-                      {v}
-                    </button>
-                  ))}
-                </div>
-                <p style={{ ...styles.filterSheetSectionLabel, marginTop: 16 }}>LOCATION</p>
-                <input
-                  type="text"
-                  placeholder={t("coachLocation")}
-                  value={filterLocation}
-                  onChange={(e) => setFilterLocation(e.target.value)}
-                  style={{ ...styles.filterInput, marginBottom: 12 }}
-                />
-                <p style={styles.filterSheetSectionLabel}>SORT BY</p>
-                <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} style={styles.filterSelect}>
-                  <option value="rating">{t("coachSortRating")}</option>
-                  <option value="students">{t("coachSortStudents")}</option>
-                  <option value="verified">{t("coachSortVerified")}</option>
-                </select>
-                <button type="button" style={styles.filterSheetDone} onClick={() => setShowCoachFilterSheet(false)}>{t("coachFilterDone")}</button>
-              </div>
+          <BottomSheet
+            open={showCoachFilterSheet}
+            onClose={() => setShowCoachFilterSheet(false)}
+            zIndex={300}
+            accent="#D4AF37"
+          >
+            <p style={styles.filterSheetSectionLabel}>SPECIALTY</p>
+            <div style={styles.specialtyScroll}>
+              <button type="button" style={filterSpecialty === "" ? styles.chipActive : styles.chip} onClick={() => setFilterSpecialty("")}>
+                {t("coachFilterAll")}
+              </button>
+              {SPECIALTIES.map((s) => (
+                <button key={s} type="button" style={filterSpecialty === s ? styles.chipActive : styles.chip} onClick={() => setFilterSpecialty((prev) => prev === s ? "" : s)}>
+                  {s}
+                </button>
+              ))}
             </div>
-          )}
+            <p style={{ ...styles.filterSheetSectionLabel, marginTop: 16 }}>VIBE</p>
+            <div style={styles.specialtyScroll}>
+              {VIBE_FILTERS.map((v) => (
+                <button key={v} type="button" style={filterVibe === v ? styles.vibeChipActive : styles.vibeChip} onClick={() => setFilterVibe((prev) => (prev === v ? "" : v))}>
+                  {v}
+                </button>
+              ))}
+            </div>
+            <p style={{ ...styles.filterSheetSectionLabel, marginTop: 16 }}>LOCATION</p>
+            <input
+              type="text"
+              placeholder={t("coachLocation")}
+              value={filterLocation}
+              onChange={(e) => setFilterLocation(e.target.value)}
+              style={{ ...styles.filterInput, marginBottom: 12 }}
+            />
+            <p style={styles.filterSheetSectionLabel}>SORT BY</p>
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} style={styles.filterSelect}>
+              <option value="rating">{t("coachSortRating")}</option>
+              <option value="students">{t("coachSortStudents")}</option>
+              <option value="verified">{t("coachSortVerified")}</option>
+            </select>
+            <button type="button" style={styles.filterSheetDone} onClick={() => setShowCoachFilterSheet(false)}>{t("coachFilterDone")}</button>
+          </BottomSheet>
 
           {coachesLoading && (
             <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "0 0 12px" }}>
@@ -741,83 +742,79 @@ export default function CoachPage() {
       )}
 
       {/* Sparring create form modal */}
-      {showSparringForm && (
-        <div style={styles.modalWrap}>
-          <div
-            style={styles.modalOverlay}
+      <BottomSheet
+        open={showSparringForm}
+        onClose={() => setShowSparringForm(false)}
+        title={t("createSparringPost")}
+        zIndex={300}
+        accent="#D4AF37"
+      >
+        <label style={styles.fieldLabel}>{t("weightClass")}</label>
+        <input
+          type="text"
+          placeholder={t("coachWeightPlaceholder")}
+          value={sparringForm.weight}
+          onChange={(e) => setSparringForm((f) => ({ ...f, weight: e.target.value }))}
+          style={styles.fieldInput}
+        />
+
+        <label style={styles.fieldLabel}>{t("boxingLevel")}</label>
+        <select
+          value={sparringForm.level}
+          onChange={(e) => setSparringForm((f) => ({ ...f, level: e.target.value }))}
+          style={styles.fieldSelect}
+        >
+          <option value="">—</option>
+          {LEVELS.map((lv) => (
+            <option key={lv} value={lv}>{lv}</option>
+          ))}
+        </select>
+
+        <label style={styles.fieldLabel}>{t("coachLocation")}</label>
+        <input
+          type="text"
+          placeholder={t("coachLocationPlaceholder")}
+          value={sparringForm.location}
+          onChange={(e) => setSparringForm((f) => ({ ...f, location: e.target.value }))}
+          style={styles.fieldInput}
+        />
+
+        <label style={styles.fieldLabel}>{t("availableTime")}</label>
+        <input
+          type="text"
+          placeholder={t("coachAvailPlaceholder")}
+          value={sparringForm.availableTime}
+          onChange={(e) => setSparringForm((f) => ({ ...f, availableTime: e.target.value }))}
+          style={styles.fieldInput}
+        />
+
+        <label style={styles.fieldLabel}>{t("sparringNote")}</label>
+        <textarea
+          placeholder={t("coachNotesPlaceholder")}
+          value={sparringForm.note}
+          onChange={(e) => setSparringForm((f) => ({ ...f, note: e.target.value }))}
+          style={styles.fieldTextarea}
+          rows={3}
+        />
+
+        <div style={styles.modalActions}>
+          <button
+            type="button"
+            style={styles.cancelBtn}
             onClick={() => setShowSparringForm(false)}
-          />
-          <div style={styles.modal}>
-            <h2 style={styles.modalTitle}>{t("createSparringPost")}</h2>
-
-            <label style={styles.fieldLabel}>{t("weightClass")}</label>
-            <input
-              type="text"
-              placeholder={t("coachWeightPlaceholder")}
-              value={sparringForm.weight}
-              onChange={(e) => setSparringForm((f) => ({ ...f, weight: e.target.value }))}
-              style={styles.fieldInput}
-            />
-
-            <label style={styles.fieldLabel}>{t("boxingLevel")}</label>
-            <select
-              value={sparringForm.level}
-              onChange={(e) => setSparringForm((f) => ({ ...f, level: e.target.value }))}
-              style={styles.fieldSelect}
-            >
-              <option value="">—</option>
-              {LEVELS.map((lv) => (
-                <option key={lv} value={lv}>{lv}</option>
-              ))}
-            </select>
-
-            <label style={styles.fieldLabel}>{t("coachLocation")}</label>
-            <input
-              type="text"
-              placeholder={t("coachLocationPlaceholder")}
-              value={sparringForm.location}
-              onChange={(e) => setSparringForm((f) => ({ ...f, location: e.target.value }))}
-              style={styles.fieldInput}
-            />
-
-            <label style={styles.fieldLabel}>{t("availableTime")}</label>
-            <input
-              type="text"
-              placeholder={t("coachAvailPlaceholder")}
-              value={sparringForm.availableTime}
-              onChange={(e) => setSparringForm((f) => ({ ...f, availableTime: e.target.value }))}
-              style={styles.fieldInput}
-            />
-
-            <label style={styles.fieldLabel}>{t("sparringNote")}</label>
-            <textarea
-              placeholder={t("coachNotesPlaceholder")}
-              value={sparringForm.note}
-              onChange={(e) => setSparringForm((f) => ({ ...f, note: e.target.value }))}
-              style={styles.fieldTextarea}
-              rows={3}
-            />
-
-            <div style={styles.modalActions}>
-              <button
-                type="button"
-                style={styles.cancelBtn}
-                onClick={() => setShowSparringForm(false)}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                style={styles.submitBtn}
-                disabled={sparringSaving}
-                onClick={handleCreateSparringPost}
-              >
-                {sparringSaving ? "…" : t("sendRequest")}
-              </button>
-            </div>
-          </div>
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            style={styles.submitBtn}
+            disabled={sparringSaving}
+            onClick={handleCreateSparringPost}
+          >
+            {sparringSaving ? "…" : t("sendRequest")}
+          </button>
         </div>
-      )}
+      </BottomSheet>
     </main>
   );
 }
@@ -966,40 +963,6 @@ const styles = {
     fontWeight: 700,
     cursor: "pointer",
     whiteSpace: "nowrap",
-  },
-  filterSheetOverlay: {
-    position: "fixed",
-    inset: 0,
-    zIndex: 300,
-    background: "rgba(0,0,0,0.65)",
-    backdropFilter: "blur(4px)",
-    display: "flex",
-    alignItems: "flex-end",
-    justifyContent: "center",
-  },
-  filterSheetModal: {
-    position: "relative",
-    width: "100%",
-    maxWidth: 520,
-    maxHeight: "80vh",
-    overflowY: "auto",
-    borderRadius: "20px 20px 0 0",
-    padding: "14px 20px calc(24px + env(safe-area-inset-bottom))",
-    background: "linear-gradient(180deg, #161212, #0a0a0a)",
-    border: "1px solid rgba(212,175,55,0.14)",
-    boxShadow: "0 -20px 50px rgba(0,0,0,0.6)",
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-  },
-  filterSheetHandle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    background: "rgba(255,255,255,0.18)",
-    alignSelf: "center",
-    marginBottom: 12,
-    flexShrink: 0,
   },
   filterSheetSectionLabel: {
     margin: "0 0 8px",
@@ -1345,43 +1308,6 @@ const styles = {
     color: "rgba(255,255,255,0.62)",
     fontSize: 15,
     fontWeight: 700,
-  },
-  modalWrap: {
-    position: "fixed",
-    inset: 0,
-    zIndex: 300,
-    display: "flex",
-    alignItems: "flex-end",
-    justifyContent: "center",
-    padding: "0 0 env(safe-area-inset-bottom)",
-  },
-  modalOverlay: {
-    position: "absolute",
-    inset: 0,
-    background: "rgba(0,0,0,0.7)",
-    backdropFilter: "blur(6px)",
-  },
-  modal: {
-    position: "relative",
-    width: "100%",
-    maxWidth: 520,
-    maxHeight: "85vh",
-    overflowY: "auto",
-    borderRadius: "22px 22px 0 0",
-    padding: "20px 20px calc(20px + env(safe-area-inset-bottom))",
-    background: "linear-gradient(180deg, #161212, #0a0a0a)",
-    border: "1px solid rgba(212,175,55,0.18)",
-    boxShadow: "0 -24px 60px rgba(0,0,0,0.6)",
-    display: "flex",
-    flexDirection: "column",
-    gap: 10,
-  },
-  modalTitle: {
-    margin: 0,
-    fontSize: 20,
-    fontWeight: 1000,
-    color: "#fff",
-    marginBottom: 4,
   },
   fieldLabel: {
     fontSize: 11,
