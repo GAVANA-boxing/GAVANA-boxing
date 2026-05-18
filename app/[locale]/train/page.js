@@ -85,6 +85,7 @@ export default function TrainPage() {
   const challengeSavedRef = useRef(false);
 
   const [cameraState, setCameraState] = useState("checking");
+  const [cameraRetryKey, setCameraRetryKey] = useState(0);
   const [phase, setPhase] = useState("idle");
   const [countdown, setCountdown] = useState(null);
   const [secondsLeft, setSecondsLeft] = useState(RECORD_SECONDS);
@@ -389,10 +390,11 @@ export default function TrainPage() {
 
   useEffect(() => {
     let active = true;
+    setCameraState("checking");
 
     async function startCamera() {
       if (!navigator.mediaDevices?.getUserMedia) {
-        setCameraState("unsupported");
+        if (active) setCameraState("unsupported");
         return;
       }
 
@@ -414,9 +416,7 @@ export default function TrainPage() {
         }
       } catch (err) {
         console.error("Camera permission error:", err);
-        if (active) {
-          setCameraState("denied");
-        }
+        if (active) setCameraState("denied");
       }
     }
 
@@ -430,7 +430,7 @@ export default function TrainPage() {
       streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     };
-  }, []);
+  }, [cameraRetryKey]);
 
   useEffect(() => {
     if (cameraState === "ready" && videoRef.current && streamRef.current) {
@@ -496,6 +496,7 @@ export default function TrainPage() {
             recorderRef.current = recorder;
           } catch (err) {
             console.error("MediaRecorder start failed:", err);
+            setError(locale === "mn" ? "Бичлэг эхлүүлэхэд алдаа гарлаа" : locale === "ko" ? "녹화 시작 실패" : "Recording failed to start");
           }
         }
 
@@ -991,9 +992,10 @@ export default function TrainPage() {
 
   return (
     <main style={styles.page}>
-      <button type="button" style={styles.backButton} onClick={goBack}>
-        <span style={styles.backIcon}>{"<"}</span>
-        {t("back")}
+      <button type="button" style={styles.backButton} onClick={goBack} aria-label="Back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
       </button>
 
       <section style={styles.shell}>
@@ -1032,13 +1034,26 @@ export default function TrainPage() {
             />
           ) : (
             <div style={styles.fallback}>
-              <div style={styles.fallbackMark}>REC</div>
+              {cameraState === "checking" ? (
+                <div style={{ width: 40, height: 40, border: "3px solid rgba(255,255,255,0.15)", borderTopColor: "#C1121F", borderRadius: "50%", animation: "spin 0.8s linear infinite", marginBottom: 12 }} />
+              ) : (
+                <div style={styles.fallbackMark}>REC</div>
+              )}
               <p style={styles.fallbackTitle}>
                 {cameraState === "checking" ? t("trainCameraChecking") : t("trainCameraUnavailable")}
               </p>
               <p style={styles.fallbackText}>
                 {cameraState === "denied" ? t("trainCameraDenied") : t("trainCameraFallback")}
               </p>
+              {cameraState === "denied" && (
+                <button
+                  type="button"
+                  onClick={() => setCameraRetryKey((k) => k + 1)}
+                  style={{ marginTop: 12, padding: "9px 20px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.07)", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer" }}
+                >
+                  {locale === "mn" ? "Дахин оролдох" : locale === "ko" ? "다시 시도" : "Retry camera"}
+                </button>
+              )}
             </div>
           )}
 
@@ -1507,6 +1522,11 @@ export default function TrainPage() {
 
             {/* BOTTOM — action buttons */}
             <div style={styles.modalBottom}>
+              {error && (
+                <div style={{ margin: "0 0 10px", padding: "10px 14px", borderRadius: 10, background: "rgba(193,18,31,0.15)", border: "1px solid rgba(193,18,31,0.35)", color: "#fca5a5", fontSize: 13, fontWeight: 700 }}>
+                  {error}
+                </div>
+              )}
               <div style={styles.modalActions}>
                 <button type="button" style={styles.tryAgainButton} onClick={handleTryAgain}>
                   {activeChallenge ? t("challengeTryAgain") : t("trainTryAgain")}
@@ -1514,7 +1534,7 @@ export default function TrainPage() {
                 {!activeChallenge && (
                   <button
                     type="button"
-                    style={{ ...styles.saveButton, ...(saved ? styles.saveButtonDone : {}) }}
+                    style={{ ...styles.saveButton, ...(saved ? styles.saveButtonDone : {}), opacity: saving || saved ? 0.65 : 1, cursor: saving || saved ? "default" : "pointer" }}
                     onClick={handleSave}
                     disabled={saving || saved}
                   >
@@ -1530,7 +1550,7 @@ export default function TrainPage() {
                 {activeChallenge && (
                   <button
                     type="button"
-                    style={{ ...styles.saveButton, ...(challengeSaved ? styles.saveButtonDone : {}) }}
+                    style={{ ...styles.saveButton, ...(challengeSaved ? styles.saveButtonDone : {}), opacity: challengeSaving || challengeSaved ? 0.65 : 1, cursor: challengeSaving || challengeSaved ? "default" : "pointer" }}
                     onClick={handleSaveChallengeResult}
                     disabled={challengeSaving || challengeSaved}
                   >
@@ -1558,6 +1578,8 @@ export default function TrainPage() {
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="reels" />
 
       <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+
         @keyframes flashFade {
           0%   { opacity: 1; }
           100% { opacity: 0; }
@@ -1683,20 +1705,16 @@ const styles = {
     top: "calc(14px + env(safe-area-inset-top))",
     left: "max(14px, env(safe-area-inset-left))",
     zIndex: 40,
-    minHeight: 38,
-    paddingTop: 0,
-    paddingBottom: 0,
-    paddingLeft: 11,
-    paddingRight: 14,
+    width: 40,
+    height: 40,
+    padding: 0,
     borderRadius: 999,
     border: "1px solid rgba(255,255,255,0.12)",
     background: "rgba(0,0,0,0.44)",
     color: "#fff",
     display: "inline-flex",
     alignItems: "center",
-    gap: 5,
-    fontSize: 13,
-    fontWeight: 900,
+    justifyContent: "center",
     cursor: "pointer",
     backdropFilter: "blur(14px)",
     WebkitBackdropFilter: "blur(14px)",

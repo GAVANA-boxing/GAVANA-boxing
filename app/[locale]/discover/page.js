@@ -183,7 +183,7 @@ function ReelRow({ reels, router, locale, loading }) {
   if (loading) {
     return (
       <div style={s.reelScroll}>
-        {[1, 2, 3, 4].map((i) => <div key={i} style={s.shimmerCard} />)}
+        {[1, 2, 3, 4].map((i) => <div key={i} className="shimmer" style={s.shimmerCard} />)}
       </div>
     );
   }
@@ -272,6 +272,7 @@ export default function DiscoverPage() {
 
   const [allReels, setAllReels] = useState([]);
   const [exploreLoading, setExploreLoading] = useState(true);
+  const [exploreError, setExploreError] = useState(false);
   const [selectedStyle, setSelectedStyle] = useState("all");
   const [learnOpen, setLearnOpen] = useState(false);
   const [learnCat, setLearnCat] = useState("all");
@@ -289,27 +290,31 @@ export default function DiscoverPage() {
   // Search
   const [query, setQuery] = useState("");
   const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState(false);
   const [userResults, setUserResults] = useState([]);
   const [reelResults, setReelResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
 
-  useEffect(() => {
+  const loadExplore = useCallback(async () => {
+    setExploreLoading(true);
+    setExploreError(false);
     let active = true;
-    async function load() {
-      try {
-        const [reelsSnap, coachSnap] = await Promise.all([
-          getDocs(fsQuery(collection(db, "reels"), orderBy("createdAt", "desc"), limit(80))),
-          getDocs(fsQuery(collection(db, "users"), where("isCoach", "==", true), limit(4))),
-        ]);
-        if (!active) return;
-        setAllReels(reelsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
-        setTopCoaches(coachSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
-      } catch { /* non-critical */ }
-      if (active) setExploreLoading(false);
+    try {
+      const [reelsSnap, coachSnap] = await Promise.all([
+        getDocs(fsQuery(collection(db, "reels"), orderBy("createdAt", "desc"), limit(80))),
+        getDocs(fsQuery(collection(db, "users"), where("isCoach", "==", true), limit(4))),
+      ]);
+      if (!active) return;
+      setAllReels(reelsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      setTopCoaches(coachSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    } catch {
+      if (active) setExploreError(true);
     }
-    load();
+    if (active) setExploreLoading(false);
     return () => { active = false; };
   }, []);
+
+  useEffect(() => { loadExplore(); }, [loadExplore]);
 
   // Following feed — lazy-loaded on first tab switch
   useEffect(() => {
@@ -355,6 +360,7 @@ export default function DiscoverPage() {
     if (!term) return;
     setSearching(true);
     setHasSearched(true);
+    setSearchError(false);
     try {
       const [usersSnap, reelsSnap] = await Promise.all([
         getDocs(collection(db, "users")),
@@ -376,7 +382,9 @@ export default function DiscoverPage() {
       });
       setUserResults(users.slice(0, 20));
       setReelResults(reels.slice(0, 20));
-    } catch { /* silent */ }
+    } catch {
+      setSearchError(true);
+    }
     setSearching(false);
   }, [query]);
 
@@ -464,13 +472,20 @@ export default function DiscoverPage() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t("discoverPlaceholder")}
             style={s.searchInput}
+            aria-label={t("discoverPlaceholder")}
           />
           {query && (
-            <button type="button" onClick={clearSearch} style={s.clearBtn}>✕</button>
+            <button type="button" onClick={clearSearch} style={s.clearBtn} aria-label="Clear search">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+              </svg>
+            </button>
           )}
         </div>
-        <button type="submit" style={s.searchBtn} disabled={searching || !query.trim()}>
-          {searching ? "…" : t("discoverSearch")}
+        <button type="submit" style={{ ...s.searchBtn, opacity: searching || !query.trim() ? 0.55 : 1, cursor: searching || !query.trim() ? "default" : "pointer" }} disabled={searching || !query.trim()}>
+          {searching ? (
+            <span style={{ display: "inline-block", width: 14, height: 14, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
+          ) : t("discoverSearch")}
         </button>
       </form>
 
@@ -479,7 +494,25 @@ export default function DiscoverPage() {
       ══════════════════════════════════════════════ */}
       {showSearch ? (
         <div style={s.content}>
-          {userResults.length > 0 && (
+          {searching && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "12px 16px" }}>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="shimmer" style={{ height: 60, borderRadius: 12 }} />
+              ))}
+            </div>
+          )}
+          {searchError && !searching && (
+            <div style={s.emptyState}>
+              <span style={{ fontSize: 32 }}>⚠️</span>
+              <p style={{ margin: "8px 0 4px", color: "#fff", fontSize: 14, fontWeight: 800 }}>
+                {locale === "mn" ? "Хайлт амжилтгүй боллоо" : locale === "ko" ? "검색 실패" : "Search failed"}
+              </p>
+              <button type="button" onClick={() => handleSearch()} style={{ marginTop: 8, padding: "8px 18px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
+                {locale === "mn" ? "Дахин оролдох" : locale === "ko" ? "다시 시도" : "Retry"}
+              </button>
+            </div>
+          )}
+          {!searching && !searchError && userResults.length > 0 && (
             <div style={{ marginBottom: 28 }}>
               <p style={s.sectionLabel}>{t("discoverFighters")}</p>
               <div style={s.listStack}>
@@ -493,14 +526,14 @@ export default function DiscoverPage() {
                         <span style={s.listCardName}>{u.displayName || u.username || (locale === "mn" ? "Нэргүй" : locale === "ko" ? "이름 없음" : "Unnamed")}</span>
                         {u.username && <span style={s.listCardSub}>@{u.username}</span>}
                       </div>
-                      <span style={s.listArrow}>›</span>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ color: "#444", flexShrink: 0 }} aria-hidden="true"><path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     </button>
                   );
                 })}
               </div>
             </div>
           )}
-          {reelResults.length > 0 && (
+          {!searching && !searchError && reelResults.length > 0 && (
             <div style={{ marginBottom: 28 }}>
               <p style={s.sectionLabel}>{t("discoverReels")}</p>
               <div style={s.listStack}>
@@ -517,10 +550,16 @@ export default function DiscoverPage() {
               </div>
             </div>
           )}
-          {userResults.length === 0 && reelResults.length === 0 && !searching && (
+          {!searching && !searchError && userResults.length === 0 && reelResults.length === 0 && (
             <div style={s.emptyState}>
               <span style={{ fontSize: 36 }}>🔍</span>
-              <p style={{ margin: "8px 0 0", color: "#666", fontSize: 14 }}>{t("discoverNoMatches")}</p>
+              <p style={{ margin: "8px 0 4px", color: "#fff", fontSize: 15, fontWeight: 800 }}>{t("discoverNoMatches")}</p>
+              <p style={{ margin: 0, color: "#555", fontSize: 13, maxWidth: 240, lineHeight: 1.5 }}>
+                {locale === "mn" ? "Өөр түлхүүр үг туршаад үзнэ үү, эсвэл доорх категориудаас хайгаарай." : locale === "ko" ? "다른 키워드로 검색하거나 아래 카테고리를 탐색해 보세요." : "Try different keywords, or browse the categories below."}
+              </p>
+              <button type="button" onClick={clearSearch} style={{ marginTop: 12, padding: "8px 18px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", color: "#D4AF37", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
+                {locale === "mn" ? "Хайлт цэвэрлэх" : locale === "ko" ? "검색 지우기" : "Clear search"}
+              </button>
             </div>
           )}
         </div>
@@ -584,6 +623,18 @@ export default function DiscoverPage() {
           )}
 
           {feedTab === "explore" && (<>
+
+          {/* Explore load error */}
+          {exploreError && !exploreLoading && (
+            <div style={{ padding: "20px 16px", textAlign: "center" }}>
+              <p style={{ margin: "0 0 10px", color: "#888", fontSize: 14 }}>
+                {locale === "mn" ? "Контент ачааллахад алдаа гарлаа." : locale === "ko" ? "콘텐츠를 불러오지 못했습니다." : "Could not load content."}
+              </p>
+              <button type="button" onClick={loadExplore} style={{ padding: "9px 20px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
+                {locale === "mn" ? "Дахин оролдох" : locale === "ko" ? "다시 시도" : "Retry"}
+              </button>
+            </div>
+          )}
 
           {/* ════════════════════════════════════════
               HUB 1 — 🥊 FOR YOU
@@ -777,6 +828,7 @@ export default function DiscoverPage() {
       )}
 
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="discover" />
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 }
@@ -864,10 +916,12 @@ const s = {
     right: 10,
     background: "none",
     border: "none",
-    color: "#555",
-    fontSize: 13,
+    color: "#666",
     cursor: "pointer",
     padding: 4,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
   searchBtn: {
     height: 44,
@@ -1070,9 +1124,6 @@ const s = {
     width: 120,
     height: 200,
     borderRadius: 14,
-    background: "linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 100%)",
-    backgroundSize: "200% 100%",
-    animation: "shimmer 1.4s ease infinite",
   },
 
   // ── Expandable hub ──
