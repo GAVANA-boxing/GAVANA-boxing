@@ -6,6 +6,7 @@ import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, increment, query, 
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
+import EmptyState from "@/components/EmptyState";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 
 const SPECIALTY_COLORS = {
@@ -635,10 +636,8 @@ export default function CoachProfilePage() {
       <div style={styles.section}>
         <h2 style={styles.sectionTitle}>{t("coachReviews")}</h2>
         {reviews.length === 0 ? (
-          <div style={styles.emptyState}>
-            <span style={styles.emptyIcon}>⭐</span>
-            <p style={styles.emptyTitle}>{t("coachReviewsEmpty")}</p>
-            <p style={styles.emptySub}>{t("coachIdReviewsEmpty")}</p>
+          <div style={{ borderRadius: 16, background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.1)" }}>
+            <EmptyState emoji="⭐" title={t("coachReviewsEmpty")} hint={t("coachIdReviewsEmpty")} padding="28px 16px" />
           </div>
         ) : (
           reviews.map((r) => <ReviewCard key={r.id} review={r} />)
@@ -790,10 +789,6 @@ const styles = {
   section: { padding: "0 16px 24px" },
   sectionTitle: { fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.85)", marginBottom: 12 },
   empty: { fontSize: 14, color: "rgba(255,255,255,0.55)", textAlign: "center", padding: "20px 0" },
-  emptyState: { display: "flex", flexDirection: "column", alignItems: "center", gap: 8, padding: "28px 16px", background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.1)", borderRadius: 16 },
-  emptyIcon: { fontSize: 36, opacity: 0.55 },
-  emptyTitle: { margin: 0, fontSize: 14, fontWeight: 800, color: "rgba(255,255,255,0.7)", textAlign: "center" },
-  emptySub: { margin: 0, fontSize: 12, color: "rgba(255,255,255,0.35)", textAlign: "center", lineHeight: 1.55, maxWidth: 280 },
   reviewCard: { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "14px", marginBottom: 10 },
   reviewTop: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
   reviewDate: { fontSize: 12, color: "rgba(255,255,255,0.55)" },
