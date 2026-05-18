@@ -297,11 +297,11 @@ export default function UserProfilePage() {
   const router = useRouter();
 
   const BADGE_META = {
-    first_challenge: { icon: "🥊", label: locale === "mn" ? "Эхний тулаан" : locale === "ko" ? "첫 도전" : "First Challenge", color: "#C1121F" },
-    streak_3:        { icon: "🔥", label: locale === "mn" ? "3 өдрийн дараалал" : locale === "ko" ? "3일 연속" : "3-Day Streak", color: "#FB923C" },
-    streak_7:        { icon: "⚡", label: locale === "mn" ? "7 хоног дараалал" : locale === "ko" ? "7일 연속" : "Week Warrior", color: "#F59E0B" },
-    jab_master:      { icon: "🎯", label: locale === "mn" ? "Jab мэргэн" : locale === "ko" ? "잽 마스터" : "Jab Master", color: "#60A5FA" },
-    speed_king:      { icon: "💨", label: locale === "mn" ? "Хурдны хаан" : locale === "ko" ? "스피드 킹" : "Speed King", color: "#A78BFA" },
+    first_challenge: { icon: "🥊", label: t("profileBadgeFirstChallenge"), color: "#C1121F" },
+    streak_3:        { icon: "🔥", label: t("profileBadgeStreak3"), color: "#FB923C" },
+    streak_7:        { icon: "⚡", label: t("profileBadgeStreak7"), color: "#F59E0B" },
+    jab_master:      { icon: "🎯", label: t("profileBadgeJabMaster"), color: "#60A5FA" },
+    speed_king:      { icon: "💨", label: t("profileBadgeSpeedKing"), color: "#A78BFA" },
     creator_starter: { icon: "🎬", label: t("creatorTag"), color: "#34D399" },
   };
   const [profileUser, setProfileUser] = useState(null);
@@ -1387,7 +1387,7 @@ export default function UserProfilePage() {
             style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 6, padding: "5px 12px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.35)", background: "rgba(193,18,31,0.08)", color: "rgba(255,255,255,0.7)", fontSize: 11, fontWeight: 800, cursor: "pointer", letterSpacing: 0.3 }}
           >
             <span style={{ fontSize: 13 }}>+</span>
-            {locale === "mn" ? "Story нэмэх" : locale === "ko" ? "스토리 추가" : "Add Story"}
+            {t("profileAddStory")}
           </button>
         )}
 
@@ -1535,7 +1535,7 @@ export default function UserProfilePage() {
               onClick={() => setShowFighterCard(true)}
               style={{ ...styles.ghostAction, color: "#D4AF37", borderColor: "rgba(212,175,55,0.3)" }}
             >
-              🥊 {locale === "mn" ? "Fighter Card" : locale === "ko" ? "파이터 카드" : "Fighter Card"}
+              🥊 {t("profileFighterCard")}
             </button>
             <button
               onClick={handleLogout}
@@ -1574,7 +1574,7 @@ export default function UserProfilePage() {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                 </svg>
-                {locale === "mn" ? "Мессеж" : locale === "ko" ? "메시지" : "Message"}
+                {t("profileMessageBtn")}
               </button>
             </div>
             {isMutual && (
@@ -1588,14 +1588,14 @@ export default function UserProfilePage() {
                 onClick={() => { setShowChallengeModal(true); setChallengeSent(false); }}
                 style={{ ...styles.ghostAction, color: "#A78BFA", borderColor: "rgba(167,139,250,0.3)", flex: 1 }}
               >
-                ⚔️ {locale === "mn" ? "Тулаан" : locale === "ko" ? "배틀 신청" : "Challenge"}
+                ⚔️ {t("profileChallengeBtn")}
               </button>
               <button
                 type="button"
                 onClick={() => setShowFighterCard(true)}
                 style={{ ...styles.ghostAction, color: "#D4AF37", borderColor: "rgba(212,175,55,0.3)", flex: 1 }}
               >
-                🥊 {locale === "mn" ? "Fighter Card" : locale === "ko" ? "파이터 카드" : "Fighter Card"}
+                🥊 {t("profileFighterCard")}
               </button>
             </div>
           </div>
@@ -1608,13 +1608,12 @@ export default function UserProfilePage() {
         <div style={{ padding: "0 16px 4px" }}>
           <div style={{ background: "linear-gradient(145deg, #0d0b0d, #0a0a0a)", border: "1px solid rgba(167,139,250,0.15)", borderLeft: "3px solid #A78BFA", borderRadius: "3px 16px 16px 3px", padding: "14px 16px" }}>
             <p style={{ margin: "0 0 10px", fontSize: 9, fontWeight: 900, color: "#A78BFA", letterSpacing: 2, textTransform: "uppercase" }}>
-              ⚔️ {locale === "mn" ? "ТА vs " : locale === "ko" ? "나 vs " : "You vs "}
-              {(profileUser.displayName || profileUser.username || "Fighter").split(" ")[0]}
+              ⚔️ {t("profileYouVs")}{(profileUser.displayName || profileUser.username || "Fighter").split(" ")[0]}
             </p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 0 }}>
               {/* Headers */}
               <div style={{ textAlign: "center", fontSize: 9, fontWeight: 900, color: "#C1121F", letterSpacing: 0.5, paddingBottom: 8 }}>
-                {locale === "mn" ? "ТА" : locale === "ko" ? "나" : "YOU"}
+                {t("profileYouLabel")}
               </div>
               <div />
               <div style={{ textAlign: "center", fontSize: 9, fontWeight: 900, color: "rgba(255,255,255,0.35)", letterSpacing: 0.5, paddingBottom: 8 }}>
@@ -1622,8 +1621,8 @@ export default function UserProfilePage() {
               </div>
               {[
                 { label: "XP", my: myStats.xp, their: xp, fmt: v => v.toLocaleString() },
-                { label: locale === "mn" ? "Шилдэг" : locale === "ko" ? "최고" : "Best", my: myStats.bestScore, their: bestScore, fmt: v => v !== null ? `${formatScore(v)}/10` : "—" },
-                { label: locale === "mn" ? "Дараалал" : locale === "ko" ? "연속" : "Streak", my: myStats.streak, their: getActiveChallengeStreak(profileUser), fmt: v => v > 0 ? `🔥${v}d` : "—" },
+                { label: t("profileStatBest"), my: myStats.bestScore, their: bestScore, fmt: v => v !== null ? `${formatScore(v)}/10` : "—" },
+                { label: t("profileStatStreak"), my: myStats.streak, their: getActiveChallengeStreak(profileUser), fmt: v => v > 0 ? `🔥${v}d` : "—" },
               ].map((stat, i) => {
                 const myNum = Number(stat.my) || 0;
                 const theirNum = Number(stat.their) || 0;
@@ -1690,7 +1689,7 @@ export default function UserProfilePage() {
             ...(profileTab === "record" ? styles.profileTabActive : {})
           }}
         >
-          ⚔️ {locale === "mn" ? "Тулаан" : locale === "ko" ? "기록" : "Record"}
+          ⚔️ {t("profileRecordTab")}
         </button>
       </div>
 
@@ -1716,29 +1715,19 @@ export default function UserProfilePage() {
 
             let insightText, insightColor;
             if (scores.length < 2) {
-              insightText = locale === "mn" ? "Дасгал хийж эхэл — ахиц харагдана 🎯"
-                : locale === "ko" ? "훈련을 시작하면 추세가 보여요 🎯"
-                : "Start training to see your progress 🎯";
+              insightText = t("profileInsightStart");
               insightColor = "#D4AF37";
             } else if (delta >= 0.4) {
-              insightText = locale === "mn" ? "Оноо нэмэгдэж байна 🔥 Ийнхүү явж байгаарай."
-                : locale === "ko" ? "점수가 오르고 있어요 🔥 계속 유지하세요."
-                : "Score is climbing 🔥 Keep the pressure on.";
+              insightText = t("profileInsightGrowing");
               insightColor = "#4ade80";
             } else if (delta <= -0.4) {
-              insightText = locale === "mn" ? "Техник болон guard-д анхаар ⚠️"
-                : locale === "ko" ? "기술과 가드에 집중하세요 ⚠️"
-                : "Focus on technique and guard ⚠️";
+              insightText = t("profileInsightFocus");
               insightColor = "#FB923C";
             } else if (streakCount >= 3) {
-              insightText = locale === "mn" ? "Тасралтгүй дасгал — хамгийн сайн зэвсэг 💪"
-                : locale === "ko" ? "꾸준함이 무기예요 💪"
-                : "Consistency is your weapon 💪";
+              insightText = t("profileInsightConsistent");
               insightColor = "#4ade80";
             } else {
-              insightText = locale === "mn" ? "Intensity нэмж score ахиулаарай."
-                : locale === "ko" ? "강도를 높여보세요."
-                : "Push intensity to break through.";
+              insightText = t("profileInsightPush");
               insightColor = "#D4AF37";
             }
 
@@ -1802,7 +1791,7 @@ export default function UserProfilePage() {
                         letterSpacing: 0.3,
                       }}
                     >
-                      {locale === "mn" ? "Ахиц дэлгэрэнгүй харах →" : locale === "ko" ? "상세 분석 보기 →" : "View Full Analytics →"}
+                      {t("profileViewAnalytics")}
                     </button>
                   )}
                 </div>
@@ -1823,14 +1812,10 @@ export default function UserProfilePage() {
             }}>
               <p style={{ margin: "0 0 6px", fontSize: 28 }}>🥊</p>
               <p style={{ margin: "0 0 8px", fontSize: 13, fontWeight: 800, color: "#fff" }}>
-                {locale === "mn" ? "Дасгал хийж эхэл" : locale === "ko" ? "훈련을 시작하세요" : "Start Training"}
+                {t("profileStartTraining")}
               </p>
               <p style={{ margin: "0 0 16px", fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>
-                {locale === "mn"
-                  ? "Рилс үзэж AI feedback авснаар энд ахиц харагдана."
-                  : locale === "ko"
-                  ? "릴을 보고 AI 피드백을 받으면 여기서 진행 상황을 확인할 수 있어요."
-                  : "Watch a reel and get AI feedback to see your progress here."}
+                {t("profileStartTrainingHint")}
               </p>
               {isOwnProfile && (
                 <button
@@ -1843,7 +1828,7 @@ export default function UserProfilePage() {
                     borderRadius: 10, cursor: "pointer", letterSpacing: 0.3,
                   }}
                 >
-                  {locale === "mn" ? "Рилс үзэх →" : locale === "ko" ? "릴 보기 →" : "Watch Reels →"}
+                  {t("profileWatchReels")}
                 </button>
               )}
             </div>
@@ -1860,7 +1845,7 @@ export default function UserProfilePage() {
               padding: "14px 16px",
             }}>
               <p style={{ margin: "0 0 10px", fontSize: 9, fontWeight: 900, color: "#D4AF37", letterSpacing: 2.5, textTransform: "uppercase" }}>
-                {locale === "mn" ? "Сүүлийн дасгалын XP" : locale === "ko" ? "최근 세션 XP" : "Recent Session XP"}
+                {t("profileRecentXP")}
               </p>
               {aiFeedbackHistory.slice(0, 5).map((session, i) => {
                 const prevScore = i < aiFeedbackHistory.length - 1 ? Number(aiFeedbackHistory[i + 1].score) : null;
@@ -1898,24 +1883,24 @@ export default function UserProfilePage() {
                 padding: "18px 16px", marginBottom: 14,
               }}>
                 <p style={{ margin: "0 0 14px", fontSize: 9, fontWeight: 900, color: "#A78BFA", letterSpacing: 2.5, textTransform: "uppercase" }}>
-                  ⚔️ {locale === "mn" ? "PvP дүнгийн хавтас" : locale === "ko" ? "PvP 전적" : "PvP Fight Record"}
+                  ⚔️ {t("profilePvpRecord")}
                 </p>
                 <div style={{ display: "flex", gap: 8, justifyContent: "space-around" }}>
                   <div style={{ textAlign: "center" }}>
                     <div style={{ fontSize: 42, fontWeight: 900, color: "#34D399", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{pvpStats.wins}</div>
-                    <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>{locale === "mn" ? "ЯЛАЛТ" : locale === "ko" ? "승" : "WINS"}</div>
+                    <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>{t("profileWinsLabel")}</div>
                   </div>
                   <div style={{ width: 1, background: "rgba(255,255,255,0.07)" }} />
                   <div style={{ textAlign: "center" }}>
                     <div style={{ fontSize: 42, fontWeight: 900, color: "#F87171", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{pvpStats.losses}</div>
-                    <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>{locale === "mn" ? "ЯЛАГДАЛ" : locale === "ko" ? "패" : "LOSSES"}</div>
+                    <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>{t("profileLossesLabel")}</div>
                   </div>
                   {pvpStats.bestWinScore !== null && (
                     <>
                       <div style={{ width: 1, background: "rgba(255,255,255,0.07)" }} />
                       <div style={{ textAlign: "center" }}>
                         <div style={{ fontSize: 42, fontWeight: 900, color: "#D4AF37", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{formatScore(pvpStats.bestWinScore)}</div>
-                        <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>{locale === "mn" ? "ШИЛДЭГ" : locale === "ko" ? "최고" : "BEST"}</div>
+                        <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>{t("profileBestLabel")}</div>
                       </div>
                     </>
                   )}
@@ -1928,7 +1913,7 @@ export default function UserProfilePage() {
                     <div style={{ marginTop: 14 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
                         <span style={{ fontSize: 9, fontWeight: 800, color: "#555", letterSpacing: 1.5, textTransform: "uppercase" }}>
-                          {locale === "mn" ? "Ялалтын хувь" : locale === "ko" ? "승률" : "Win Rate"}
+                          {t("profileWinRate")}
                         </span>
                         <span style={{ fontSize: 13, fontWeight: 900, color: winPct >= 50 ? "#34D399" : "#F87171" }}>{winPct}%</span>
                       </div>
@@ -1949,7 +1934,7 @@ export default function UserProfilePage() {
               {pvpStats.recentBattles?.length > 0 && (
                 <div style={{ display: "grid", gap: 8 }}>
                   <p style={{ margin: "0 0 6px", fontSize: 9, fontWeight: 900, color: "#555", letterSpacing: 2, textTransform: "uppercase" }}>
-                    {locale === "mn" ? "Сүүлийн тулааны бичиг" : locale === "ko" ? "최근 경기" : "Recent Battles"}
+                    {t("profileRecentBattles")}
                   </p>
                   {pvpStats.recentBattles.map((battle) => {
                     const isWin = battle.result === "win";
@@ -1981,12 +1966,12 @@ export default function UserProfilePage() {
                                 borderRadius: 6, background: "rgba(167,139,250,0.08)",
                               }}
                             >
-                              {locale === "mn" ? "▶ Үзэх" : locale === "ko" ? "▶ 보기" : "▶ Watch"}
+                              {t("profileWatchBtn")}
                             </a>
                           )}
                           <div style={{ textAlign: "right" }}>
                             <div style={{ fontSize: 13, fontWeight: 900, color: col }}>
-                              {isWin ? (locale === "mn" ? "✓ ЯЛАЛТ" : locale === "ko" ? "✓ 승리" : "✓ WIN") : (locale === "mn" ? "✕ ЯЛАГДАЛ" : locale === "ko" ? "✕ 패배" : "✕ LOSS")}
+                              {isWin ? t("profileWinResult") : t("profileLossResult")}
                             </div>
                             <div style={{ fontSize: 11, color: "#555" }}>{formatScore(battle.challengerScore)} vs {formatScore(battle.opponentScore)}</div>
                           </div>
@@ -2008,17 +1993,17 @@ export default function UserProfilePage() {
                   textDecoration: "none", letterSpacing: "0.02em",
                 }}
               >
-                ⚔️ {locale === "mn" ? "Өрсөлдөгч хайх" : locale === "ko" ? "상대 찾기" : "Find Opponent"}
+                ⚔️ {t("profileFindOpponent")}
               </a>
             </>
           ) : (
             <div style={{ textAlign: "center", padding: "52px 20px 40px" }}>
               <div style={{ fontSize: 44, marginBottom: 14 }}>⚔️</div>
               <p style={{ color: "#555", fontSize: 14, fontWeight: 800, margin: "0 0 6px" }}>
-                {locale === "mn" ? "Тулааны бичиг байхгүй" : locale === "ko" ? "전적 없음" : "No fight record yet"}
+                {t("profileNoFightRecord")}
               </p>
               <p style={{ color: "#333", fontSize: 12, margin: "0 0 20px" }}>
-                {locale === "mn" ? "PvP тулаанд оролцоод эхэлнэ үү" : locale === "ko" ? "PvP 배틀에 참가하세요" : "Start a PvP battle to build your record"}
+                {t("profileFightRecordHint")}
               </p>
               <a
                 href={`/${locale}/sparring`}
@@ -2030,7 +2015,7 @@ export default function UserProfilePage() {
                   textDecoration: "none", letterSpacing: "0.02em",
                 }}
               >
-                ⚔️ {locale === "mn" ? "Өрсөлдөгч хайх" : locale === "ko" ? "상대 찾기" : "Find Opponent"}
+                ⚔️ {t("profileFindOpponent")}
               </a>
             </div>
           )}
@@ -2046,7 +2031,7 @@ export default function UserProfilePage() {
               padding: "18px 16px",
             }}>
               <p style={{ margin: "0 0 14px", fontSize: 9, fontWeight: 900, color: "#C1121F", letterSpacing: 2.5, textTransform: "uppercase" }}>
-                🥊 {locale === "mn" ? "Спарринг бичиг" : locale === "ko" ? "스파링 기록" : "Sparring Record"}
+                🥊 {t("profileSparringRecord")}
               </p>
               <div style={{ display: "flex", gap: 8, justifyContent: "space-around", marginBottom: 14 }}>
                 <div style={{ textAlign: "center" }}>
@@ -2054,7 +2039,7 @@ export default function UserProfilePage() {
                     {sparringRecord.totalAccepted}
                   </div>
                   <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>
-                    {locale === "mn" ? "СПАРРИНГ" : locale === "ko" ? "스파링" : "SPARRING"}
+                    {t("profileSparringLabel")}
                   </div>
                 </div>
                 <div style={{ width: 1, background: "rgba(255,255,255,0.07)" }} />
@@ -2063,13 +2048,13 @@ export default function UserProfilePage() {
                     {sparringRecord.sentPending}
                   </div>
                   <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>
-                    {locale === "mn" ? "ХҮЛЭЭГДЭЖ" : locale === "ko" ? "대기 중" : "PENDING"}
+                    {t("profilePendingLabel")}
                   </div>
                 </div>
               </div>
               {sparringRecord.totalAccepted === 0 && sparringRecord.sentPending === 0 && (
                 <p style={{ margin: "0 0 12px", fontSize: 12, color: "#444", textAlign: "center" }}>
-                  {locale === "mn" ? "Одоогоор спарринг хийгдэж байхгүй" : locale === "ko" ? "아직 스파링 없음" : "No sparring yet"}
+                  {t("profileNoSparring")}
                 </p>
               )}
               {isOwnProfile && (
@@ -2082,7 +2067,7 @@ export default function UserProfilePage() {
                     border: "none", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
                   }}
                 >
-                  {locale === "mn" ? "Спарринг хайх →" : locale === "ko" ? "스파링 찾기 →" : "Find Sparring Partner →"}
+                  {t("profileFindSparring")}
                 </button>
               )}
             </div>
@@ -2287,10 +2272,10 @@ export default function UserProfilePage() {
           >
             <div style={{ fontSize: 36, marginBottom: 12 }}>🗑️</div>
             <p style={{ margin: "0 0 6px", fontSize: 16, fontWeight: 900, color: "#fff" }}>
-              {locale === "mn" ? "Устгахдаа итгэлтэй үү?" : locale === "ko" ? "삭제하시겠습니까?" : "Delete this reel?"}
+              {t("profileDeleteTitle")}
             </p>
             <p style={{ margin: "0 0 24px", fontSize: 12, color: "rgba(255,255,255,0.4)" }}>
-              {locale === "mn" ? "Энэ үйлдлийг буцаах боломжгүй." : locale === "ko" ? "이 작업은 되돌릴 수 없습니다." : "This action cannot be undone."}
+              {t("profileDeleteWarning")}
             </p>
             <div style={{ display: "flex", gap: 10 }}>
               <button
@@ -2298,14 +2283,14 @@ export default function UserProfilePage() {
                 onClick={() => setDeleteConfirmReel(null)}
                 style={{ flex: 1, padding: "12px 0", borderRadius: 12, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
               >
-                {locale === "mn" ? "Болих" : locale === "ko" ? "취소" : "Cancel"}
+                {t("profileCancelBtn")}
               </button>
               <button
                 type="button"
                 onClick={async () => { const reel = deleteConfirmReel; setDeleteConfirmReel(null); await handleDeleteReel({ stopPropagation: () => {} }, reel); }}
                 style={{ flex: 1, padding: "12px 0", borderRadius: 12, border: "1px solid rgba(239,68,68,0.4)", background: "rgba(239,68,68,0.15)", color: "#F87171", fontSize: 13, fontWeight: 900, cursor: "pointer" }}
               >
-                {locale === "mn" ? "Устгах" : locale === "ko" ? "삭제" : "Delete"}
+                {t("profileDeleteBtn")}
               </button>
             </div>
           </div>
@@ -2375,24 +2360,24 @@ export default function UserProfilePage() {
               <div>
                 <p style={{ margin: 0, fontSize: 10, fontWeight: 900, color: "#A78BFA", letterSpacing: 1.4, textTransform: "uppercase" }}>GAVANA PvP</p>
                 <h2 style={{ margin: "4px 0 0", fontSize: 20, fontWeight: 900, color: "#fff" }}>
-                  {locale === "mn" ? "⚔️ Тулаанд уриалах" : locale === "ko" ? "⚔️ 배틀 신청" : "⚔️ Send Challenge"}
+                  {t("profileSendChallenge")}
                 </h2>
               </div>
               <button type="button" onClick={() => setShowChallengeModal(false)} style={{ width: 32, height: 32, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.7)", cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
             </div>
             <p style={{ margin: "0 0 16px", fontSize: 13, color: "rgba(255,255,255,0.55)" }}>
-              {locale === "mn" ? "Тулааны төрлөө сонгоно уу:" : locale === "ko" ? "배틀 유형을 선택하세요:" : "Pick a challenge to compete on:"}
+              {t("profilePickChallenge")}
             </p>
             {challengeSent ? (
               <div style={{ textAlign: "center", padding: "24px 0", fontSize: 15, fontWeight: 900, color: "#34D399" }}>
-                ✅ {locale === "mn" ? "Уриалга илгээгдлээ!" : locale === "ko" ? "배틀 신청 완료!" : "Challenge sent!"}
+                {t("profileChallengeSent")}
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {[
-                  { id: "jab-minute", emoji: "👊", label: locale === "mn" ? "Нэг минутын JAB" : locale === "ko" ? "1분 잽 챌린지" : "Jab Minute", desc: locale === "mn" ? "Нэг минутад хамгийн сайн JAB хий" : locale === "ko" ? "1분 동안 최고의 잽을 보여라" : "Best jab form in one minute" },
-                  { id: "speed-test", emoji: "⚡", label: locale === "mn" ? "Хурдны тест" : locale === "ko" ? "스피드 테스트" : "Speed Test", desc: locale === "mn" ? "Хурд, нарийвчлал хосолсон тулаан" : locale === "ko" ? "스피드와 정확도 배틀" : "Speed and accuracy battle" },
-                  { id: "combo-master", emoji: "🔥", label: locale === "mn" ? "Combo Master" : locale === "ko" ? "콤보 마스터" : "Combo Master", desc: locale === "mn" ? "Хамгийн сайн комбо бичлэгийг хий" : locale === "ko" ? "최고의 콤보를 선보여라" : "Best combination sequence" },
+                  { id: "jab-minute", emoji: "👊", label: t("profileChallengeJabMinute"), desc: t("profileChallengeJabDesc") },
+                  { id: "speed-test", emoji: "⚡", label: t("profileChallengeSpeedTest"), desc: t("profileChallengeSpeedDesc") },
+                  { id: "combo-master", emoji: "🔥", label: t("profileChallengeComboMaster"), desc: t("profileChallengeComboDesc") },
                 ].map((c) => (
                   <button
                     key={c.id}
@@ -2489,7 +2474,7 @@ export default function UserProfilePage() {
               <div style={{ width: "100%", marginBottom: 16 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
                   <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                    {locale === "mn" ? "Туршлагын оноо" : locale === "ko" ? "경험치" : "Experience"}
+                    {t("profileExperience")}
                   </span>
                   <span style={{ fontSize: 12, fontWeight: 900, color: fighterRank.color }}>{xp.toLocaleString()} XP</span>
                 </div>
@@ -2504,9 +2489,9 @@ export default function UserProfilePage() {
               {/* Stats grid */}
               <div style={{ width: "100%", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 16 }}>
                 {[
-                  { label: locale === "mn" ? "Ялалт" : locale === "ko" ? "승" : "Wins", value: pvpStats?.wins ?? "—", color: "#34D399" },
-                  { label: locale === "mn" ? "Дараалал" : locale === "ko" ? "연속" : "Streak", value: challengeStreak > 0 ? `🔥${challengeStreak}` : "—", color: "#FB923C" },
-                  { label: locale === "mn" ? "Шилдэг" : locale === "ko" ? "최고점" : "Best", value: bestScore !== null ? `${formatScore(bestScore)}/10` : "—", color: "#D4AF37" },
+                  { label: t("profileStatWins"), value: pvpStats?.wins ?? "—", color: "#34D399" },
+                  { label: t("profileStatStreak"), value: challengeStreak > 0 ? `🔥${challengeStreak}` : "—", color: "#FB923C" },
+                  { label: t("profileStatBestScore"), value: bestScore !== null ? `${formatScore(bestScore)}/10` : "—", color: "#D4AF37" },
                 ].map(({ label, value, color }) => (
                   <div key={label} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "10px 4px", display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
                     <span style={{ fontSize: 18, fontWeight: 1000, color, lineHeight: 1 }}>{value}</span>
@@ -2521,14 +2506,14 @@ export default function UserProfilePage() {
                   {challengeRanks.weeklyRank && (
                     <div style={{ textAlign: "center" }}>
                       <div style={{ fontSize: 15, fontWeight: 1000, color: "#D4AF37" }}>#{challengeRanks.weeklyRank}</div>
-                      <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", fontWeight: 700, textTransform: "uppercase" }}>{locale === "mn" ? "Энэ 7 хоног" : locale === "ko" ? "이번 주" : "This week"}</div>
+                      <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", fontWeight: 700, textTransform: "uppercase" }}>{t("profileThisWeek")}</div>
                     </div>
                   )}
                   {challengeRanks.weeklyRank && challengeRanks.allTimeRank && <div style={{ width: 1, background: "rgba(255,255,255,0.08)" }} />}
                   {challengeRanks.allTimeRank && (
                     <div style={{ textAlign: "center" }}>
                       <div style={{ fontSize: 15, fontWeight: 1000, color: "#D4AF37" }}>#{challengeRanks.allTimeRank}</div>
-                      <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", fontWeight: 700, textTransform: "uppercase" }}>{locale === "mn" ? "Нийт" : locale === "ko" ? "전체" : "All-time"}</div>
+                      <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", fontWeight: 700, textTransform: "uppercase" }}>{t("profileAllTime")}</div>
                     </div>
                   )}
                 </div>
@@ -2538,7 +2523,7 @@ export default function UserProfilePage() {
               {aiFeedbackHistory.length > 0 && (
                 <div style={{ width: "100%", borderTop: `1px solid rgba(255,255,255,0.06)`, paddingTop: 12, marginTop: 2, marginBottom: 14 }}>
                   <p style={{ margin: "0 0 8px", fontSize: 9, fontWeight: 900, color: "rgba(255,255,255,0.25)", letterSpacing: 1.5, textTransform: "uppercase", textAlign: "center" }}>
-                    {locale === "mn" ? "Сүүлийн дасгалууд" : locale === "ko" ? "최근 세션" : "Recent Sessions"}
+                    {t("profileRecentSessions")}
                   </p>
                   <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
                     {aiFeedbackHistory.slice(0, 4).map((f, i) => {
@@ -2579,16 +2564,14 @@ export default function UserProfilePage() {
                   onClick={handleShare}
                   style={{ flex: 2, padding: "12px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg, ${accentColor}, ${accentColor}aa)`, color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer" }}
                 >
-                  {cardShareCopied
-                    ? (locale === "mn" ? "✓ Хуулагдлаа" : locale === "ko" ? "✓ 복사됨" : "✓ Copied!")
-                    : (locale === "mn" ? "📤 Хуваалцах" : locale === "ko" ? "📤 공유하기" : "📤 Share")}
+                  {cardShareCopied ? t("profileCopied") : t("profileShare")}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowFighterCard(false)}
                   style={{ flex: 1, padding: "12px 0", borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.55)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
                 >
-                  {locale === "mn" ? "Хаах" : locale === "ko" ? "닫기" : "Close"}
+                  {t("profileClose")}
                 </button>
               </div>
             </div>
