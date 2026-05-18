@@ -804,13 +804,6 @@ export default function CoachDashboardPage() {
         </button>
       </BottomSheet>
 
-      <style>{`
-        @keyframes skeletonPulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
-        }
-        .skeleton-pulse { animation: skeletonPulse 1.4s ease infinite; }
-      `}</style>
     </main>
   );
 }

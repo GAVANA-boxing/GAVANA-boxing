@@ -583,10 +583,6 @@ export default function GymsPage() {
         currentLocale={locale}
         activeTab="discover"
       />
-      <style>{`
-        @keyframes skPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-        .sk-pulse { animation: skPulse 1.4s ease infinite; }
-      `}</style>
     </div>
   );
 }
