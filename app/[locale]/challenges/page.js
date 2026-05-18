@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { collection, getDocs, onSnapshot, query, where } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, onSnapshot, query, where } from "firebase/firestore";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
@@ -114,7 +114,9 @@ export default function ChallengesPage() {
   const { user, loading: authLoading } = useAuth();
 
   const [results, setResults] = useState([]);
+  const [resultsLoading, setResultsLoading] = useState(true);
   const [profiles, setProfiles] = useState({});
+  const profileRequestsRef = useRef(new Set());
   const [seasonTab, setSeasonTab] = useState("week"); // "week" | "alltime"
   const [mainTab, setMainTab] = useState("leaderboard"); // "leaderboard" | "battles"
   const [myBattles, setMyBattles] = useState([]);
@@ -163,6 +165,26 @@ export default function ChallengesPage() {
     if (!authLoading && !user) router.push(`/${locale}/login`);
   }, [authLoading, user, router, locale]);
 
+  // Load current user's own profile for streak display
+  useEffect(() => {
+    if (!user?.uid || profiles[user.uid]) return;
+    let active = true;
+    getDoc(doc(db, "users", user.uid)).then((snap) => {
+      if (!active || !snap.exists()) return;
+      const data = snap.data();
+      setProfiles((prev) => ({
+        ...prev,
+        [user.uid]: {
+          name: data.displayName || data.username || "",
+          photoURL: data.photoURL || data.profileImageUrl || "",
+          challengeStreak: Number(data.challengeStreak) || 0,
+          lastChallengeDate: data.lastChallengeDate || "",
+        },
+      }));
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [user?.uid]);
+
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "challenge_results"), (snap) => {
       setResults(
@@ -170,26 +192,40 @@ export default function ChallengesPage() {
           .map((d) => ({ id: d.id, ...d.data() }))
           .filter((r) => r.challengeId && Number.isFinite(Number(r.score)))
       );
-    }, (err) => { console.error(err); setResults([]); });
+      setResultsLoading(false);
+    }, (err) => { console.error(err); setResults([]); setResultsLoading(false); });
     return () => unsub();
   }, []);
 
+  // Load only profiles for users who appear in results (not entire users collection)
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, "users"), (snap) => {
-      const next = {};
-      snap.docs.forEach((d) => {
-        const data = d.data();
-        next[d.id] = {
+    if (!results.length) return;
+    const uids = [...new Set(results.map((r) => r.userId).filter(Boolean))];
+    const missing = uids.filter((uid) => !profiles[uid] && !profileRequestsRef.current.has(uid));
+    if (!missing.length) return;
+    let active = true;
+    missing.forEach((uid) => profileRequestsRef.current.add(uid));
+    Promise.all(missing.map(async (uid) => {
+      try {
+        const snap = await getDoc(doc(db, "users", uid));
+        const data = snap.exists() ? snap.data() : {};
+        return [uid, {
           name: data.displayName || data.username || "",
           photoURL: data.photoURL || data.profileImageUrl || data.profileImage || data.avatarUrl || "",
           challengeStreak: Number(data.challengeStreak) || 0,
           lastChallengeDate: data.lastChallengeDate || "",
-        };
+        }];
+      } catch { return [uid, {}]; }
+    })).then((entries) => {
+      if (!active) return;
+      setProfiles((prev) => {
+        const next = { ...prev };
+        entries.forEach(([uid, data]) => { next[uid] = data; });
+        return next;
       });
-      setProfiles(next);
-    }, (err) => { console.error(err); setProfiles({}); });
-    return () => unsub();
-  }, []);
+    });
+    return () => { active = false; };
+  }, [results]);
 
   // All results grouped and ranked per challenge (best score per user)
   const allTimeByChallenge = useMemo(() => {
@@ -215,7 +251,16 @@ export default function ChallengesPage() {
 
   const displayByChallenge = seasonTab === "week" ? weeklyByChallenge : allTimeByChallenge;
 
-  if (authLoading) return <div style={styles.loading}>{t("loading")}</div>;
+  if (authLoading) return (
+    <div style={styles.page}>
+      <div style={{ maxWidth: 760, margin: "0 auto", display: "grid", gap: 14 }}>
+        <div className="shimmer" style={{ height: 40, width: 40, borderRadius: 10 }} />
+        <div className="shimmer" style={{ height: 100, borderRadius: 16 }} />
+        <div className="shimmer" style={{ height: 48, borderRadius: 14 }} />
+        {[1,2,3].map((i) => <div key={i} className="shimmer" style={{ height: 220, borderRadius: 20 }} />)}
+      </div>
+    </div>
+  );
   if (!user) return null;
 
   const currentChallengeStreak = getActiveChallengeStreak(profiles[user.uid]);
@@ -237,6 +282,11 @@ export default function ChallengesPage() {
   return (
     <main style={styles.page}>
       <section style={styles.shell}>
+        <button type="button" style={styles.backBtn} onClick={() => router.back()} aria-label="Back">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
         <header style={styles.header}>
           <p style={styles.kicker}>GAVANA</p>
           <h1 style={styles.title}>{t("challengesTitle")}</h1>
@@ -261,8 +311,8 @@ export default function ChallengesPage() {
         {mainTab === "battles" ? (
           <div style={{ display: "grid", gap: 10 }}>
             {battlesLoading ? (
-              <div style={{ textAlign: "center", padding: "40px 0", color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
-                {locale === "mn" ? "Уншиж байна..." : locale === "ko" ? "로딩 중..." : "Loading..."}
+              <div style={{ display: "grid", gap: 10 }}>
+                {[1,2,3].map((i) => <div key={i} className="shimmer" style={{ height: 80, borderRadius: 16 }} />)}
               </div>
             ) : myBattles.length === 0 ? (
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "40px 16px", textAlign: "center" }}>
@@ -415,11 +465,17 @@ export default function ChallengesPage() {
                         const profile = profiles[result.userId] || {};
                         const displayName = isCurrentUser ? t("challengeYou") : profile.name || t("fighter");
                         const initial = (displayName || "F").charAt(0).toUpperCase();
+                        const rankLetter = result.rank || getChallengeRank(result.score);
+                        const rankColor = rankLetter === "S" ? "#D4AF37" : rankLetter === "A" ? "#60A5FA" : rankLetter === "B" ? "#A78BFA" : rankLetter === "C" ? "#34D399" : "#888";
 
                         return (
                           <div
                             key={result.id}
-                            style={{ ...styles.scoreRow, ...(isCurrentUser ? styles.scoreRowCurrent : {}) }}
+                            role="button"
+                            tabIndex={0}
+                            style={{ ...styles.scoreRow, ...(isCurrentUser ? styles.scoreRowCurrent : {}), cursor: "pointer" }}
+                            onClick={() => !isCurrentUser && router.push(`/${locale}/profile/${result.userId}`)}
+                            onKeyDown={(e) => { if (e.key === "Enter" && !isCurrentUser) router.push(`/${locale}/profile/${result.userId}`); }}
                           >
                             <span style={styles.rankNum}>{getRankIcon(index)}</span>
                             <span style={styles.fighterCell}>
@@ -431,7 +487,7 @@ export default function ChallengesPage() {
                               <span style={styles.fighterText}>
                                 <span style={styles.fighterName}>{displayName}</span>
                                 <span style={styles.resultMeta}>
-                                  {t("challengeRank")}: {result.rank || getChallengeRank(result.score)}
+                                  {t("challengeRank")}: <span style={{ color: rankColor, fontWeight: 900 }}>{rankLetter}</span>
                                 </span>
                               </span>
                             </span>
@@ -471,6 +527,20 @@ const styles = {
     color: "#fff",
     padding: "calc(28px + env(safe-area-inset-top)) 16px calc(92px + env(safe-area-inset-bottom))",
     fontFamily: "sans-serif",
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    border: "1px solid rgba(255,255,255,0.12)",
+    background: "rgba(255,255,255,0.055)",
+    borderRadius: 10,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+    padding: 0,
+    color: "#fff",
+    justifySelf: "start",
   },
   loading: {
     minHeight: "100vh",
@@ -645,7 +715,6 @@ const styles = {
     borderRadius: 14,
     background: "rgba(255,255,255,0.045)",
     border: "1px solid rgba(255,255,255,0.07)",
-    animation: "challengeScoreGlow 2.8s ease-in-out infinite",
   },
   scoreRowCurrent: {
     background: "rgba(212,175,55,0.14)",
