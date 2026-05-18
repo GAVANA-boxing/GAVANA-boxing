@@ -7,7 +7,7 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
 import { getLocale, translate } from "@/lib/i18n";
-import { calculateUserXP, getFighterRank } from "@/lib/xp";
+import { getFighterRank } from "@/lib/xp";
 
 function useWeeklyCountdown() {
   const [ms, setMs] = useState(null);
@@ -133,11 +133,16 @@ export default function LeaderboardPage() {
 
     async function load() {
       try {
-        const [snapshot, challengeSnapshot, usersSnapshot, trainingSnapshot, reelsSnapshot] = await Promise.all([
-          getDocs(collection(db, "ai_feedback")),
-          getDocs(collection(db, "challenge_results")),
+        const twentyEightDaysAgo = new Date(Date.now() - 28 * 86_400_000);
+
+        // challenge_results: current season only (not all history)
+        // training_sessions: last 28 days only (improvement tab needs 14+14 days)
+        // reels: all (needed for views/likes leaderboard)
+        // ai_feedback: skipped — use stored xp field from user profiles instead
+        const [challengeSnapshot, usersSnapshot, trainingSnapshot, reelsSnapshot] = await Promise.all([
+          getDocs(query(collection(db, "challenge_results"), where("seasonId", "==", currentSeasonId))),
           getDocs(collection(db, "users")),
-          getDocs(collection(db, "training_sessions")),
+          getDocs(query(collection(db, "training_sessions"), where("createdAt", ">", twentyEightDaysAgo))),
           getDocs(collection(db, "reels")),
         ]);
 
@@ -161,23 +166,13 @@ export default function LeaderboardPage() {
           }
         });
 
+        // Build userMap from stored profile XP (avoids loading entire ai_feedback collection)
         const userMap = {};
-        snapshot.forEach((docSnap) => {
-          const d = docSnap.data();
-          if (!d.userId || d.score == null) return;
-          const uid = d.userId;
-          const score = Number(d.score);
-          if (Number.isNaN(score)) return;
-
-          if (!userMap[uid]) {
-            userMap[uid] = { userId: uid, docs: [], latestTs: 0, latestScore: 0 };
-          }
-          userMap[uid].docs.push({ score: d.score, createdAt: d.createdAt });
-
-          const ts = d.createdAt?.toMillis?.() || 0;
-          if (ts >= userMap[uid].latestTs) {
-            userMap[uid].latestTs = ts;
-            userMap[uid].latestScore = score;
+        Object.values(profileMap).forEach((p) => {
+          const uid = p.userId;
+          const storedXP = Number(p.xp) || 0;
+          if (storedXP > 0 || p.displayName || p.username) {
+            userMap[uid] = { userId: uid, xp: storedXP, challengeScores: [], latestTs: 0, latestScore: 0 };
           }
         });
 
@@ -185,13 +180,11 @@ export default function LeaderboardPage() {
           const uid = r.userId;
           const score = r.score;
           if (Number.isNaN(score)) return;
-
           if (!userMap[uid]) {
-            userMap[uid] = { userId: uid, docs: [], challengeScores: [], latestTs: 0, latestScore: 0 };
+            userMap[uid] = { userId: uid, xp: Number(profileMap[uid]?.xp) || 0, challengeScores: [], latestTs: 0, latestScore: 0 };
           }
           if (!userMap[uid].challengeScores) userMap[uid].challengeScores = [];
           userMap[uid].challengeScores.push(score);
-
           const ts = r.createdAt?.toMillis?.() || 0;
           if (ts >= userMap[uid].latestTs) {
             userMap[uid].latestTs = ts;
@@ -199,25 +192,15 @@ export default function LeaderboardPage() {
           }
         });
 
-        Object.keys(profileMap).forEach((uid) => {
-          const storedXP = Number(profileMap[uid]?.xp) || 0;
-          if (storedXP > 0 && !userMap[uid]) {
-            userMap[uid] = { userId: uid, docs: [], challengeScores: [], latestTs: 0, latestScore: 0 };
-          }
-        });
-
         const sorted = Object.values(userMap)
           .map((u) => {
-            const aiScores = u.docs.map((d) => Number(d.score)).filter((s) => Number.isFinite(s));
-            const scores = [...aiScores, ...(u.challengeScores || [])].filter((s) => Number.isFinite(s));
-            const storedChallengeXP = Number(profileMap[u.userId]?.xp) || 0;
-            const xp = storedChallengeXP + calculateUserXP({ aiFeedbackDocs: u.docs });
+            const scores = (u.challengeScores || []).filter((s) => Number.isFinite(s));
             return {
               userId: u.userId,
               bestScore: scores.length ? Math.max(...scores) : 0,
               latestScore: u.latestScore,
-              sessions: u.docs.length + (u.challengeScores || []).length,
-              xp,
+              sessions: (u.challengeScores || []).length,
+              xp: u.xp,
             };
           })
           .sort((a, b) => b.xp - a.xp || b.bestScore - a.bestScore)
@@ -892,7 +875,7 @@ const styles = {
     gridTemplateColumns: "64px 1fr 44px",
     alignItems: "center",
     gap: 12,
-    padding: "18px 16px",
+    padding: "calc(18px + env(safe-area-inset-top)) 16px 18px",
     background: "rgba(7,7,7,0.94)",
     backdropFilter: "blur(14px)",
     WebkitBackdropFilter: "blur(14px)",
