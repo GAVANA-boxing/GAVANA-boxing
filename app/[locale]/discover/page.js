@@ -14,6 +14,8 @@ import { getLocale, translate } from "@/lib/i18n";
 import { FIGHTERS } from "@/lib/fighters";
 import FighterPortrait from "@/components/FighterPortrait";
 import MediaCover from "@/components/MediaCover";
+import { RED, GOLD } from "@/lib/tokens";
+import { snapToDocs } from "@/lib/firestore";
 
 // ─── Legendary fighter mini card (for Fighter Study row) ─────────────────────
 function FighterStudyCard({ fighter, onClick }) {
@@ -108,6 +110,16 @@ function formatAgo(ts, locale) {
   return `${days}d ago`;
 }
 
+function cleanCaption(text) {
+  if (!text) return "";
+  return text
+    .replace(/^Hook:\s*/i, "")
+    .replace(/\nCaption:\s*/i, " — ")
+    .replace(/\nHashtags:.*$/is, "")
+    .replace(/\nCaption:.*/is, "")
+    .trim();
+}
+
 function reelMatchesKeywords(reel, keywords) {
   const text = [
     reel.category || "",
@@ -126,8 +138,8 @@ function ReelCard({ reel, onClick }) {
   const [mediaErr, setMediaErr] = useState(false);
   const src = reel.thumbnailUrl || reel.thumbnail || reel.coverUrl || reel.videoUrl || "";
   const typeEmoji = reel.contentType === "educational" ? "📚" : reel.contentType === "lifestyle" ? "🎬" : "🥊";
-  const typeColor = reel.contentType === "educational" ? "#D4AF37" : reel.contentType === "lifestyle" ? "#60A5FA" : "#C1121F";
-  const caption = reel.caption || reel.description || reel.title || "";
+  const typeColor = reel.contentType === "educational" ? GOLD : reel.contentType === "lifestyle" ? "#60A5FA" : RED;
+  const caption = cleanCaption(reel.caption || reel.description || reel.title || "");
   const views = formatCompact(reel.views || 0);
 
   return (
@@ -173,7 +185,7 @@ function ReelRow({ reels, router, locale, loading }) {
   if (loading) {
     return (
       <div style={s.reelScroll}>
-        {[1, 2, 3, 4].map((i) => <div key={i} style={s.shimmerCard} />)}
+        {[1, 2, 3, 4].map((i) => <div key={i} className="shimmer" style={s.shimmerCard} />)}
       </div>
     );
   }
@@ -214,8 +226,8 @@ function FeedPostCard({ reel, authorUser, router, locale }) {
   const [mediaErr, setMediaErr] = useState(false);
   const src = reel.thumbnailUrl || reel.thumbnail || reel.videoUrl || "";
   const typeEmoji = reel.contentType === "educational" ? "📚" : reel.contentType === "lifestyle" ? "🎬" : "🥊";
-  const caption = reel.caption || reel.description || "";
-  const name = authorUser?.displayName || authorUser?.username || (locale === "mn" ? "Боксч" : locale === "ko" ? "파이터" : "Fighter");
+  const caption = cleanCaption(reel.caption || reel.description || "");
+  const name = authorUser?.displayName || authorUser?.username || t("fallbackFighter");
   const photo = authorUser?.photoURL || authorUser?.profileImageUrl || "";
 
   return (
@@ -230,7 +242,7 @@ function FeedPostCard({ reel, authorUser, router, locale }) {
           <p style={feed.authorName}>{name}</p>
           <p style={feed.timeAgo}>{formatAgo(reel.createdAt, locale)}</p>
         </div>
-        <span style={{ ...feed.typeBadge, color: reel.contentType === "educational" ? "#D4AF37" : reel.contentType === "lifestyle" ? "#60A5FA" : "#C1121F" }}>
+        <span style={{ ...feed.typeBadge, color: reel.contentType === "educational" ? GOLD : reel.contentType === "lifestyle" ? "#60A5FA" : RED }}>
           {typeEmoji}
         </span>
       </div>
@@ -246,7 +258,7 @@ function FeedPostCard({ reel, authorUser, router, locale }) {
       <div style={feed.cardFooter}>
         <span style={feed.likes}>❤️ {formatCompact(reel.likes || reel.likesCount || 0)}</span>
         <button type="button" style={feed.watchBtn} onClick={() => router.push(`/${locale}/reels?reelId=${reel.id}`)}>
-          {locale === "mn" ? "Харах →" : locale === "ko" ? "보기 →" : "Watch →"}
+          {t("discoverWatch")}
         </button>
       </div>
     </div>
@@ -262,6 +274,7 @@ export default function DiscoverPage() {
 
   const [allReels, setAllReels] = useState([]);
   const [exploreLoading, setExploreLoading] = useState(true);
+  const [exploreError, setExploreError] = useState(false);
   const [selectedStyle, setSelectedStyle] = useState("all");
   const [learnOpen, setLearnOpen] = useState(false);
   const [learnCat, setLearnCat] = useState("all");
@@ -279,27 +292,31 @@ export default function DiscoverPage() {
   // Search
   const [query, setQuery] = useState("");
   const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState(false);
   const [userResults, setUserResults] = useState([]);
   const [reelResults, setReelResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
 
-  useEffect(() => {
+  const loadExplore = useCallback(async () => {
+    setExploreLoading(true);
+    setExploreError(false);
     let active = true;
-    async function load() {
-      try {
-        const [reelsSnap, coachSnap] = await Promise.all([
-          getDocs(fsQuery(collection(db, "reels"), orderBy("createdAt", "desc"), limit(80))),
-          getDocs(fsQuery(collection(db, "users"), where("isCoach", "==", true), limit(4))),
-        ]);
-        if (!active) return;
-        setAllReels(reelsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
-        setTopCoaches(coachSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
-      } catch { /* non-critical */ }
-      if (active) setExploreLoading(false);
+    try {
+      const [reelsSnap, coachSnap] = await Promise.all([
+        getDocs(fsQuery(collection(db, "reels"), orderBy("createdAt", "desc"), limit(80))),
+        getDocs(fsQuery(collection(db, "users"), where("isCoach", "==", true), limit(4))),
+      ]);
+      if (!active) return;
+      setAllReels(snapToDocs(reelsSnap));
+      setTopCoaches(snapToDocs(coachSnap));
+    } catch {
+      if (active) setExploreError(true);
     }
-    load();
+    if (active) setExploreLoading(false);
     return () => { active = false; };
   }, []);
+
+  useEffect(() => { loadExplore(); }, [loadExplore]);
 
   // Following feed — lazy-loaded on first tab switch
   useEffect(() => {
@@ -345,6 +362,7 @@ export default function DiscoverPage() {
     if (!term) return;
     setSearching(true);
     setHasSearched(true);
+    setSearchError(false);
     try {
       const [usersSnap, reelsSnap] = await Promise.all([
         getDocs(collection(db, "users")),
@@ -366,7 +384,9 @@ export default function DiscoverPage() {
       });
       setUserResults(users.slice(0, 20));
       setReelResults(reels.slice(0, 20));
-    } catch { /* silent */ }
+    } catch {
+      setSearchError(true);
+    }
     setSearching(false);
   }, [query]);
 
@@ -431,14 +451,14 @@ export default function DiscoverPage() {
           style={feedTab === "explore" ? s.feedTabActive : s.feedTabBtn}
           onClick={() => setFeedTab("explore")}
         >
-          🧭 {locale === "mn" ? "Нээх" : locale === "ko" ? "탐색" : "Explore"}
+          {t("discoverExploreTab")}
         </button>
         <button
           type="button"
           style={feedTab === "following" ? s.feedTabActive : s.feedTabBtn}
           onClick={() => setFeedTab("following")}
         >
-          👥 {locale === "mn" ? "Дагасан" : locale === "ko" ? "팔로잉" : "Following"}
+          {t("discoverFollowingTab")}
         </button>
       </div>
 
@@ -454,13 +474,20 @@ export default function DiscoverPage() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t("discoverPlaceholder")}
             style={s.searchInput}
+            aria-label={t("discoverPlaceholder")}
           />
           {query && (
-            <button type="button" onClick={clearSearch} style={s.clearBtn}>✕</button>
+            <button type="button" onClick={clearSearch} style={s.clearBtn} aria-label="Clear search">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+              </svg>
+            </button>
           )}
         </div>
-        <button type="submit" style={s.searchBtn} disabled={searching || !query.trim()}>
-          {searching ? "…" : t("discoverSearch")}
+        <button type="submit" style={{ ...s.searchBtn, opacity: searching || !query.trim() ? 0.55 : 1, cursor: searching || !query.trim() ? "default" : "pointer" }} disabled={searching || !query.trim()}>
+          {searching ? (
+            <span style={{ display: "inline-block", width: 14, height: 14, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
+          ) : t("discoverSearch")}
         </button>
       </form>
 
@@ -469,7 +496,25 @@ export default function DiscoverPage() {
       ══════════════════════════════════════════════ */}
       {showSearch ? (
         <div style={s.content}>
-          {userResults.length > 0 && (
+          {searching && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "12px 16px" }}>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="shimmer" style={{ height: 60, borderRadius: 12 }} />
+              ))}
+            </div>
+          )}
+          {searchError && !searching && (
+            <div style={s.emptyState}>
+              <span style={{ fontSize: 32 }}>⚠️</span>
+              <p style={{ margin: "8px 0 4px", color: "#fff", fontSize: 14, fontWeight: 800 }}>
+                {t("discoverSearchFailed")}
+              </p>
+              <button type="button" onClick={() => handleSearch()} style={{ marginTop: 8, padding: "8px 18px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
+                {t("discoverRetry")}
+              </button>
+            </div>
+          )}
+          {!searching && !searchError && userResults.length > 0 && (
             <div style={{ marginBottom: 28 }}>
               <p style={s.sectionLabel}>{t("discoverFighters")}</p>
               <div style={s.listStack}>
@@ -480,26 +525,26 @@ export default function DiscoverPage() {
                     <button key={u.id} type="button" onClick={() => router.push(`/${locale}/profile/${u.id}`)} style={s.listCard}>
                       <div style={s.listAvatar}>{photo ? <img src={photo} alt="" style={s.listAvatarImg} /> : initial}</div>
                       <div style={s.listCardText}>
-                        <span style={s.listCardName}>{u.displayName || u.username || (locale === "mn" ? "Нэргүй" : locale === "ko" ? "이름 없음" : "Unnamed")}</span>
+                        <span style={s.listCardName}>{u.displayName || u.username || t("fallbackUnnamed")}</span>
                         {u.username && <span style={s.listCardSub}>@{u.username}</span>}
                       </div>
-                      <span style={s.listArrow}>›</span>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ color: "#444", flexShrink: 0 }} aria-hidden="true"><path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     </button>
                   );
                 })}
               </div>
             </div>
           )}
-          {reelResults.length > 0 && (
+          {!searching && !searchError && reelResults.length > 0 && (
             <div style={{ marginBottom: 28 }}>
               <p style={s.sectionLabel}>{t("discoverReels")}</p>
               <div style={s.listStack}>
                 {reelResults.map((r) => (
                   <button key={r.id} type="button" onClick={() => router.push(`/${locale}/reels?reelId=${r.id}`)} style={s.listCard}>
-                    <div style={{ ...s.listAvatar, background: "rgba(212,175,55,0.15)", color: "#D4AF37", fontSize: 18 }}>🎬</div>
+                    <div style={{ ...s.listAvatar, background: "rgba(212,175,55,0.15)", color: GOLD, fontSize: 18 }}>🎬</div>
                     <div style={s.listCardText}>
-                      <span style={s.listCardName}>{r.caption || r.description || (locale === "mn" ? "Видео" : locale === "ko" ? "릴" : "Reel")}</span>
-                      <span style={s.listCardSub}>{formatCompact(r.views || 0)} {locale === "mn" ? "үзэлт" : locale === "ko" ? "조회수" : "views"}</span>
+                      <span style={s.listCardName}>{r.caption || r.description || t("fallbackReel")}</span>
+                      <span style={s.listCardSub}>{formatCompact(r.views || 0)} {t("views")}</span>
                     </div>
                     <span style={s.listArrow}>›</span>
                   </button>
@@ -507,10 +552,16 @@ export default function DiscoverPage() {
               </div>
             </div>
           )}
-          {userResults.length === 0 && reelResults.length === 0 && !searching && (
+          {!searching && !searchError && userResults.length === 0 && reelResults.length === 0 && (
             <div style={s.emptyState}>
               <span style={{ fontSize: 36 }}>🔍</span>
-              <p style={{ margin: "8px 0 0", color: "#666", fontSize: 14 }}>{t("discoverNoMatches")}</p>
+              <p style={{ margin: "8px 0 4px", color: "#fff", fontSize: 15, fontWeight: 800 }}>{t("discoverNoMatches")}</p>
+              <p style={{ margin: 0, color: "#555", fontSize: 13, maxWidth: 240, lineHeight: 1.5 }}>
+                {t("discoverSearchHint")}
+              </p>
+              <button type="button" onClick={clearSearch} style={{ marginTop: 12, padding: "8px 18px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", color: GOLD, fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
+                {t("discoverClearSearch")}
+              </button>
             </div>
           )}
         </div>
@@ -532,28 +583,20 @@ export default function DiscoverPage() {
               {!feedLoading && !user?.uid && (
                 <div style={feed.emptyWrap}>
                   <span style={{ fontSize: 40 }}>🔒</span>
-                  <p style={feed.emptyTitle}>
-                    {locale === "mn" ? "Нэвтрэх шаардлагатай" : locale === "ko" ? "로그인 필요" : "Sign in required"}
-                  </p>
-                  <p style={feed.emptyText}>
-                    {locale === "mn" ? "Дагасан хүмүүсийн постыг харахын тулд нэвтэрнэ үү." : locale === "ko" ? "팔로잉 피드를 보려면 로그인하세요." : "Sign in to see posts from fighters you follow."}
-                  </p>
+                  <p style={feed.emptyTitle}>{t("discoverSignInRequired")}</p>
+                  <p style={feed.emptyText}>{t("discoverSignInDesc")}</p>
                   <button type="button" style={feed.emptyBtn} onClick={() => router.push(`/${locale}/login`)}>
-                    {locale === "mn" ? "Нэвтрэх" : locale === "ko" ? "로그인" : "Sign In"}
+                    {t("discoverSignIn")}
                   </button>
                 </div>
               )}
               {!feedLoading && user?.uid && feedLoaded && followingReels.length === 0 && (
                 <div style={feed.emptyWrap}>
                   <span style={{ fontSize: 40 }}>👥</span>
-                  <p style={feed.emptyTitle}>
-                    {locale === "mn" ? "Дагасан хүн байхгүй" : locale === "ko" ? "팔로잉이 없습니다" : "No one followed yet"}
-                  </p>
-                  <p style={feed.emptyText}>
-                    {locale === "mn" ? "Боксчдыг дагаж тэдний постыг энд харна уу." : locale === "ko" ? "파이터를 팔로우하면 여기서 게시물을 볼 수 있어요." : "Follow fighters to see their posts here."}
-                  </p>
+                  <p style={feed.emptyTitle}>{t("discoverNoFollowing")}</p>
+                  <p style={feed.emptyText}>{t("discoverNoFollowingDesc")}</p>
                   <button type="button" style={feed.emptyBtn} onClick={() => setFeedTab("explore")}>
-                    {locale === "mn" ? "Нээх →" : locale === "ko" ? "탐색하기 →" : "Explore fighters →"}
+                    {t("discoverExploreFighters")}
                   </button>
                 </div>
               )}
@@ -574,6 +617,18 @@ export default function DiscoverPage() {
           )}
 
           {feedTab === "explore" && (<>
+
+          {/* Explore load error */}
+          {exploreError && !exploreLoading && (
+            <div style={{ padding: "20px 16px", textAlign: "center" }}>
+              <p style={{ margin: "0 0 10px", color: "#888", fontSize: 14 }}>
+                {t("discoverLoadError")}
+              </p>
+              <button type="button" onClick={loadExplore} style={{ padding: "9px 20px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
+                {t("discoverRetry")}
+              </button>
+            </div>
+          )}
 
           {/* ════════════════════════════════════════
               HUB 1 — 🥊 FOR YOU
@@ -603,7 +658,7 @@ export default function DiscoverPage() {
             <ReelRow reels={forYouReels} router={router} locale={locale} loading={exploreLoading} />
             {!exploreLoading && forYouReels.length === 0 && (
               <div style={s.hubEmpty}>
-                <p style={s.hubEmptyText}>{locale === "mn" ? "Одоогоор контент байхгүй байна." : locale === "ko" ? "아직 콘텐츠가 없습니다." : "No content available yet."}</p>
+                <p style={s.hubEmptyText}>{t("discoverNoContent")}</p>
               </div>
             )}
           </div>
@@ -639,7 +694,7 @@ export default function DiscoverPage() {
           <HubCard
             emoji="🧠"
             title={t("discoverLearnHub")}
-            accent="#D4AF37"
+            accent={GOLD}
             expanded={learnOpen}
             onToggle={() => setLearnOpen((v) => !v)}
           >
@@ -661,12 +716,12 @@ export default function DiscoverPage() {
               <ReelRow reels={filteredLearnReels} router={router} locale={locale} loading={false} />
             ) : (
               <div style={s.hubEmpty}>
-                <p style={s.hubEmptyText}>{locale === "mn" ? "Энэ ангилалд контент байхгүй байна." : locale === "ko" ? "이 카테고리에 콘텐츠가 없습니다." : "No content yet in this category."}</p>
+                <p style={s.hubEmptyText}>{t("discoverNoCategoryContent")}</p>
               </div>
             )}
 
             <button type="button" style={s.hubFooterBtn} onClick={() => router.push(`/${locale}/reels`)}>
-              {locale === "mn" ? "Бүх техник reel үзэх →" : locale === "ko" ? "모든 기술 릴 보기 →" : "Browse all technique reels →"}
+              {t("discoverBrowseReels")}
             </button>
           </HubCard>
 
@@ -676,7 +731,7 @@ export default function DiscoverPage() {
           <HubCard
             emoji="⚔️"
             title={t("discoverChallengesHub")}
-            accent="#C1121F"
+            accent={RED}
             expanded={challengesOpen}
             onToggle={() => setChallengesOpen((v) => !v)}
           >
@@ -684,7 +739,7 @@ export default function DiscoverPage() {
               <ReelRow reels={challengeReels} router={router} locale={locale} loading={false} />
             ) : (
               <div style={s.hubEmpty}>
-                <p style={s.hubEmptyText}>{locale === "mn" ? "Чамайг хүлээж буй challenge байна." : locale === "ko" ? "챌린지 릴이 기다리고 있어요." : "Challenge reels are waiting for you."}</p>
+                <p style={s.hubEmptyText}>{t("discoverChallengeEmpty")}</p>
               </div>
             )}
 
@@ -708,7 +763,7 @@ export default function DiscoverPage() {
             </div>
 
             <button type="button" style={{ ...s.hubFooterBtn, color: "#F87171", borderColor: "rgba(193,18,31,0.3)" }} onClick={() => router.push(`/${locale}/challenges`)}>
-              {locale === "mn" ? "Бүх challenge руу →" : locale === "ko" ? "모든 챌린지 보기 →" : "Go to all challenges →"}
+              {t("discoverGoToChallenges")}
             </button>
           </HubCard>
 
@@ -717,7 +772,7 @@ export default function DiscoverPage() {
           ════════════════════════════════════════ */}
           <HubCard
             emoji="🌐"
-            title={locale === "mn" ? "Илүү ихийг нээх" : locale === "ko" ? "더 탐색하기" : "Explore More"}
+            title={t("discoverExploreMore")}
             accent="#60A5FA"
             expanded={exploreOpen}
             onToggle={() => setExploreOpen((v) => !v)}
@@ -751,7 +806,7 @@ export default function DiscoverPage() {
                         <div style={s.coachAvatar}>
                           {photo ? <img src={photo} alt="" style={s.coachAvatarImg} /> : initial}
                         </div>
-                        <span style={s.coachName}>{(coach.displayName || coach.username || (locale === "mn" ? "Тренер" : locale === "ko" ? "코치" : "Coach")).split(" ")[0]}</span>
+                        <span style={s.coachName}>{(coach.displayName || coach.username || t("fallbackCoach")).split(" ")[0]}</span>
                         <span style={s.coachSpec}>{coach.coachSpecialties?.[0] || (locale === "mn" ? "Тренер" : locale === "ko" ? "코치" : "Coach")}</span>
                       </button>
                     );
@@ -767,6 +822,7 @@ export default function DiscoverPage() {
       )}
 
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="discover" />
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 }
@@ -840,8 +896,8 @@ const s = {
   searchInput: {
     width: "100%",
     height: 44,
-    borderRadius: 12,
-    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.1)",
     background: "rgba(255,255,255,0.06)",
     color: "#fff",
     padding: "0 34px 0 38px",
@@ -854,17 +910,19 @@ const s = {
     right: 10,
     background: "none",
     border: "none",
-    color: "#555",
-    fontSize: 13,
+    color: "#666",
     cursor: "pointer",
     padding: 4,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
   searchBtn: {
     height: 44,
-    padding: "0 16px",
-    borderRadius: 12,
+    padding: "0 18px",
+    borderRadius: 999,
     border: "none",
-    background: "#C1121F",
+    background: "linear-gradient(135deg, #C1121F, #8f0d17)",
     color: "#fff",
     fontSize: 14,
     fontWeight: 800,
@@ -900,7 +958,7 @@ const s = {
   seeAllBtn: {
     background: "none",
     border: "none",
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 12,
     fontWeight: 800,
     cursor: "pointer",
@@ -1060,9 +1118,6 @@ const s = {
     width: 120,
     height: 200,
     borderRadius: 14,
-    background: "linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 100%)",
-    backgroundSize: "200% 100%",
-    animation: "shimmer 1.4s ease infinite",
   },
 
   // ── Expandable hub ──
@@ -1150,7 +1205,7 @@ const s = {
   learnChipActive: {
     background: "rgba(212,175,55,0.18)",
     borderColor: "rgba(212,175,55,0.55)",
-    color: "#D4AF37",
+    color: GOLD,
     fontWeight: 900,
   },
   hubEmpty: {
@@ -1167,7 +1222,7 @@ const s = {
     border: "1px solid rgba(255,255,255,0.1)",
     borderRadius: 12,
     padding: "11px 16px",
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 13,
     fontWeight: 800,
     cursor: "pointer",
@@ -1401,7 +1456,7 @@ const s = {
   fighterStudyLabel: {
     fontSize: 12,
     fontWeight: 800,
-    color: "#D4AF37",
+    color: GOLD,
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
@@ -1506,7 +1561,7 @@ const feed = {
     padding: "11px 22px",
     borderRadius: 12,
     border: "none",
-    background: "#C1121F",
+    background: RED,
     color: "#fff",
     fontSize: 14,
     fontWeight: 900,
@@ -1618,7 +1673,7 @@ const feed = {
     padding: "7px 14px",
     borderRadius: 10,
     border: "none",
-    background: "#C1121F",
+    background: RED,
     color: "#fff",
     fontSize: 12,
     fontWeight: 900,

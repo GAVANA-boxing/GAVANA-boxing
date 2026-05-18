@@ -5,13 +5,14 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
 import { getLocale, translate } from "@/lib/i18n";
+import { RED, GOLD } from "@/lib/tokens";
 
 // ─── Persona config ───────────────────────────────────────────────────────────
 const PERSONAS = [
   {
     id: "drill",
     emoji: "🔥",
-    color: "#C1121F",
+    color: RED,
     nameKey: "drillSergeant",
     quickKeys: ["drillQuick1", "drillQuick2", "drillQuick3"],
     greeting: {
@@ -35,7 +36,7 @@ const PERSONAS = [
   {
     id: "analyst",
     emoji: "📊",
-    color: "#D4AF37",
+    color: GOLD,
     nameKey: "analyst",
     quickKeys: ["analystQuick1", "analystQuick2", "analystQuick3"],
     greeting: {
@@ -78,6 +79,8 @@ export default function AIChatPage() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [streamingIdx, setStreamingIdx] = useState(-1);
+  const [streamingText, setStreamingText] = useState("");
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -139,13 +142,34 @@ export default function AIChatPage() {
       });
       const data = await res.json();
       const reply = data.content?.[0]?.text || data.message || t("coachError");
-      setMessages((prev) => [...prev, { role: "assistant", content: reply, ts: Date.now() }]);
+      const newMsg = { role: "assistant", content: reply, ts: Date.now() };
+      setMessages((prev) => {
+        const updated = [...prev, newMsg];
+        setStreamingIdx(updated.length - 1);
+        setStreamingText("");
+        return updated;
+      });
     } catch {
       setMessages((prev) => [...prev, { role: "assistant", content: t("coachError"), ts: Date.now() }]);
     } finally {
       setLoading(false);
     }
   };
+
+  // Typewriter effect for the most recent assistant message
+  useEffect(() => {
+    if (streamingIdx < 0) return;
+    const fullText = messages[streamingIdx]?.content || "";
+    if (streamingText.length >= fullText.length) {
+      setStreamingIdx(-1);
+      return;
+    }
+    const delay = fullText.length > 200 ? 10 : 18;
+    const timer = setTimeout(() => {
+      setStreamingText(fullText.slice(0, streamingText.length + 1));
+    }, delay);
+    return () => clearTimeout(timer);
+  }, [streamingIdx, streamingText, messages]);
 
   const onKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -156,8 +180,42 @@ export default function AIChatPage() {
 
   const quickActions = activePersona.quickKeys.map((k) => t(k));
 
+  const hasDrillContent = (text) => {
+    const lower = text.toLowerCase();
+    return /drill|×|mins|minutes|rounds|session|sets|reps|jab|combo|shadow|heavy bag/.test(lower);
+  };
+
+  const addToCalendar = (text) => {
+    const now = new Date();
+    const start = new Date(now.getTime() + 86400000);
+    const end = new Date(start.getTime() + 3600000);
+    const fmt = (d) => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+    const summary = "GAVANA Training";
+    const desc = text.replace(/\n/g, "\\n").slice(0, 200);
+    const ics = [
+      "BEGIN:VCALENDAR", "VERSION:2.0",
+      "BEGIN:VEVENT",
+      `DTSTART:${fmt(start)}`,
+      `DTEND:${fmt(end)}`,
+      `SUMMARY:${summary}`,
+      `DESCRIPTION:${desc}`,
+      "END:VEVENT", "END:VCALENDAR",
+    ].join("\r\n");
+    const blob = new Blob([ics], { type: "text/calendar" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "training.ics";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div style={s.page}>
+      <style>{`
+        @keyframes blink { 0%,100%{opacity:0.5} 50%{opacity:0} }
+        @keyframes dotBounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }
+      `}</style>
       {/* ── Header ── */}
       <div style={s.header}>
         <button type="button" style={s.backBtn} onClick={() => router.back()} aria-label="Back">
@@ -175,7 +233,7 @@ export default function AIChatPage() {
         </div>
 
         <button type="button" style={s.clearBtn} onClick={clearSession}>
-          {locale === "mn" ? "Арилгах" : locale === "ko" ? "초기화" : "Clear"}
+          {t("coachClearChat")}
         </button>
       </div>
 
@@ -216,31 +274,46 @@ export default function AIChatPage() {
           </div>
         )}
 
-        {messages.map((msg, i) => (
-          <div
-            key={i}
-            style={{
-              display: "flex",
-              justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
-              marginBottom: 10,
-              padding: "0 16px",
-            }}
-          >
+        {messages.map((msg, i) => {
+          const isStreaming = msg.role === "assistant" && i === streamingIdx;
+          const displayText = isStreaming ? streamingText : msg.content;
+          const isLastAI = msg.role === "assistant" && i === messages.length - 1 && !loading;
+          return (
             <div
-              style={
-                msg.role === "user"
-                  ? s.userBubble
-                  : {
-                      ...s.aiBubble,
-                      borderLeftColor: activePersona.color,
-                      boxShadow: `inset 3px 0 0 ${activePersona.color}`,
-                    }
-              }
+              key={i}
+              style={{
+                display: "flex",
+                justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
+                marginBottom: 10,
+                padding: "0 16px",
+              }}
             >
-              {msg.content}
+              {msg.role === "user" ? (
+                <div style={s.userBubble}>{displayText}</div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 6, maxWidth: "85%" }}>
+                  <div style={{ ...s.aiBubble, maxWidth: "100%", borderLeftColor: activePersona.color, boxShadow: `inset 3px 0 0 ${activePersona.color}` }}>
+                    {displayText}
+                    {isStreaming && <span style={{ opacity: 0.5, animation: "blink 0.7s step-end infinite" }}>▋</span>}
+                  </div>
+                  {isLastAI && !isStreaming && hasDrillContent(msg.content) && (
+                    <button
+                      onClick={() => addToCalendar(msg.content)}
+                      style={{
+                        alignSelf: "flex-start", display: "flex", alignItems: "center", gap: 5,
+                        padding: "5px 11px", borderRadius: 999,
+                        background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)",
+                        color: GOLD, fontSize: 11, fontWeight: 800, cursor: "pointer",
+                      }}
+                    >
+                      📅 {t("coachAddCalendar")}
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {loading && (
           <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 10, padding: "0 16px" }}>
@@ -465,7 +538,7 @@ const s = {
     maxWidth: "76%",
     padding: "11px 15px",
     borderRadius: "18px 18px 4px 18px",
-    background: "#C1121F",
+    background: RED,
     color: "#fff",
     fontSize: 14,
     lineHeight: 1.5,

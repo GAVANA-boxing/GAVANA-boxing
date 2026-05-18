@@ -8,7 +8,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
-import { translate } from "@/lib/i18n";
+import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import {
   calculateUserXP, getFighterRank,
   getNextRank, getRankProgress,
@@ -16,6 +16,7 @@ import {
 import BottomNav from "@/components/BottomNav";
 import FighterStyleQuiz, { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import FighterPath from "@/components/FighterPath";
+import { RED, GOLD } from "@/lib/tokens";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -36,11 +37,6 @@ function formatScore(s) {
   const n = Number(s);
   if (!Number.isFinite(n)) return "—";
   return n.toFixed(1);
-}
-
-function getLocaleFromPathname(p = "") {
-  const seg = p.split("/")[1];
-  return ["en", "mn", "ko"].includes(seg) ? seg : "en";
 }
 
 const WEIGHT_CLASSES = [
@@ -155,7 +151,7 @@ function getInsight(locale, recentScores, dailyStreak) {
 const INSIGHT_COLOR = {
   positive: "#4ade80",
   warning:  "#FB923C",
-  neutral:  "#D4AF37",
+  neutral:  GOLD,
 };
 
 // ─── Radar Chart ──────────────────────────────────────────────────────────────
@@ -225,7 +221,7 @@ function RadarChart({ stats }) {
       {/* Data polygon */}
       <polygon points={dataPoly}
         fill="url(#rdg)"
-        stroke="#D4AF37"
+        stroke={GOLD}
         strokeWidth="1.8"
         strokeLinejoin="round"
         filter="url(#rdGlow)"
@@ -236,7 +232,7 @@ function RadarChart({ stats }) {
       {dataPoints.map((p, i) => (
         <circle key={i}
           cx={p.x.toFixed(1)} cy={p.y.toFixed(1)}
-          r="3" fill="#D4AF37" stroke="rgba(0,0,0,0.55)" strokeWidth="0.5" opacity="0.92"
+          r="3" fill={GOLD} stroke="rgba(0,0,0,0.55)" strokeWidth="0.5" opacity="0.92"
         />
       ))}
 
@@ -245,7 +241,7 @@ function RadarChart({ stats }) {
         const p = radPolar(RADAR_ANGLES[i], maxR + 17, cx, cy);
         const ta = p.x < cx - 8 ? "end" : p.x > cx + 8 ? "start" : "middle";
         const val = Math.max(0, Math.min(10, stats[key] || 0));
-        const valColor = val >= 7 ? "#D4AF37" : val >= 5 ? "rgba(255,255,255,0.45)" : "#C1121F";
+        const valColor = val >= 7 ? GOLD : val >= 5 ? "rgba(255,255,255,0.45)" : RED;
         return (
           <g key={key}>
             <text x={p.x.toFixed(1)} y={(p.y - 4).toFixed(1)}
@@ -268,8 +264,8 @@ function RadarChart({ stats }) {
 // ─── Style DNA ────────────────────────────────────────────────────────────────
 
 const DNA_ATTRS = [
-  { key: "Pressure",  color: "#C1121F", fn: (s) => (s.Speed + s.Power) / 2 },
-  { key: "Technical", color: "#D4AF37", fn: (s) => (s.Timing + s.Accuracy) / 2 },
+  { key: "Pressure",  color: RED, fn: (s) => (s.Speed + s.Power) / 2 },
+  { key: "Technical", color: GOLD, fn: (s) => (s.Timing + s.Accuracy) / 2 },
   { key: "Counter",   color: "#60A5FA", fn: (s) => (s.Timing + s.Guard) / 2 },
   { key: "Footwork",  color: "#34D399", fn: (s) => s.Footwork },
   { key: "Defense",   color: "#A78BFA", fn: (s) => s.Guard },
@@ -354,7 +350,7 @@ function FighterHero({ displayScore, fighterScore, xp, rank, nextRank, xpProgres
             <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
               <span style={{ fontSize: 14, fontWeight: 900, color: rank.color, letterSpacing: 0.2 }}>{t(rank.key)}</span>
               <span style={{ color: "rgba(255,255,255,0.12)", fontSize: 12 }}>·</span>
-              <span style={{ fontSize: 12, color: "#D4AF37", fontWeight: 800 }}>{xp.toLocaleString()} XP</span>
+              <span style={{ fontSize: 12, color: GOLD, fontWeight: 800 }}>{xp.toLocaleString()} XP</span>
             </div>
           </div>
 
@@ -476,7 +472,7 @@ function ScoreChart({ scores, t }) {
           <span style={{ fontSize: 12, fontWeight: 900, color: improvement > 0 ? "#4ade80" : "#f87171" }}>
             {improvement > 0 ? "↑" : "↓"} {Math.abs(improvement).toFixed(0)}%
           </span>
-          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>vs earlier</span>
+          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>{t("dashboardVsEarlier")}</span>
         </div>
       )}
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: "block" }}>
@@ -489,8 +485,8 @@ function ScoreChart({ scores, t }) {
           </g>
         ))}
         <line x1={PAD.left} y1={bestY} x2={W - PAD.right} y2={bestY}
-          stroke="#D4AF37" strokeWidth="0.8" strokeDasharray="4,3" opacity="0.5" />
-        <text x={W - PAD.right + 3} y={Number(bestY) + 3.5} fontSize="7" fill="#D4AF37" opacity="0.65">
+          stroke={GOLD} strokeWidth="0.8" strokeDasharray="4,3" opacity="0.5" />
+        <text x={W - PAD.right + 3} y={Number(bestY) + 3.5} fontSize="7" fill={GOLD} opacity="0.65">
           {t("dashboardBest")}
         </text>
         <line x1={PAD.left} y1={avgY} x2={W - PAD.right} y2={avgY}
@@ -499,25 +495,25 @@ function ScoreChart({ scores, t }) {
           points={`${pts} ${toX(scores.length - 1).toFixed(1)},${PAD.top + ph} ${PAD.left},${PAD.top + ph}`}
           fill="rgba(193,18,31,0.07)"
         />
-        <polyline points={pts} fill="none" stroke="#C1121F" strokeWidth="1.8"
+        <polyline points={pts} fill="none" stroke={RED} strokeWidth="1.8"
           strokeLinejoin="round" strokeLinecap="round" className="graph-line" />
         {scores.map((s, i) => (
           <circle key={i} cx={toX(i).toFixed(1)} cy={toY(s).toFixed(1)}
             r={i === bestIdx ? 3.5 : 2.5}
-            fill={i === bestIdx ? "#D4AF37" : "#C1121F"}
+            fill={i === bestIdx ? GOLD : RED}
             stroke="rgba(0,0,0,0.6)" strokeWidth="0.5"
           />
         ))}
         <text x={toX(0).toFixed(1)} y={H - 4} textAnchor="middle"
-          fontSize="7" fill="rgba(255,255,255,0.18)">older</text>
+          fontSize="7" fill="rgba(255,255,255,0.18)">{t("dashboardOlderSess")}</text>
         <text x={toX(scores.length - 1).toFixed(1)} y={H - 4} textAnchor="middle"
-          fontSize="7" fill="rgba(255,255,255,0.18)">recent</text>
+          fontSize="7" fill="rgba(255,255,255,0.18)">{t("dashboardRecentSess")}</text>
       </svg>
       <div style={{ display: "flex", gap: 14, marginTop: 7, paddingLeft: 26 }}>
         {[
-          { color: "#C1121F", solid: true, label: "Score" },
-          { color: "#D4AF37", dashed: true, label: `${t("dashboardBest")} ${formatScore(best)}` },
-          { color: "rgba(255,255,255,0.22)", dashed: true, label: `Avg ${formatScore(avg)}` },
+          { color: RED, solid: true, label: t("dashboardScore") },
+          { color: GOLD, dashed: true, label: `${t("dashboardBest")} ${formatScore(best)}` },
+          { color: "rgba(255,255,255,0.22)", dashed: true, label: `${t("dashboardAvg")} ${formatScore(avg)}` },
         ].map((item) => (
           <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <div style={{
@@ -537,7 +533,7 @@ function ScoreChart({ scores, t }) {
 
 function SessionRow({ session, t }) {
   const score = Number(session.score);
-  const scoreColor = score >= 7 ? "#4ade80" : score >= 5 ? "#D4AF37" : score >= 3 ? "#fb923c" : "#f87171";
+  const scoreColor = score >= 7 ? "#4ade80" : score >= 5 ? GOLD : score >= 3 ? "#fb923c" : "#f87171";
   const label = session.reelId
     ? `Reel ${String(session.reelId).slice(0, 6)}…`
     : t("dashboardFreeTraining");
@@ -643,7 +639,7 @@ function BodyProgressSection({ userId, t }) {
           {latest.height && <span style={{ fontSize: 12, color: "rgba(255,255,255,0.38)" }}>{latest.height} cm</span>}
           {latest.reach && <span style={{ fontSize: 12, color: "rgba(255,255,255,0.38)" }}>reach {latest.reach}</span>}
           {latest.weightClass && (
-            <span style={{ fontSize: 11, color: "#D4AF37", fontWeight: 700 }}>
+            <span style={{ fontSize: 11, color: GOLD, fontWeight: 700 }}>
               {latest.weightClass.split(" ")[0]}
             </span>
           )}
@@ -744,7 +740,7 @@ function InputField({ label, value, onChange, type = "text", required }) {
 
 // ─── Panel Card (sports-tech HUD style) ──────────────────────────────────────
 
-function PanelCard({ label, accent = "#C1121F", tag, children, style: styleProp = {} }) {
+function PanelCard({ label, accent = RED, tag, children, style: styleProp = {} }) {
   return (
     <div style={{
       position: "relative",
@@ -1033,7 +1029,7 @@ export default function AthleteDashboard() {
                 🥊 {weekSessions.length} {locale === "mn" ? "сесс" : locale === "ko" ? "세션" : "sessions"}
               </span>
               {weekXP > 0 && (
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 11px", borderRadius: 999, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.25)", color: "#D4AF37", fontSize: 12, fontWeight: 900 }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 11px", borderRadius: 999, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.25)", color: GOLD, fontSize: 12, fontWeight: 900 }}>
                   ⚡ +{weekXP} XP
                 </span>
               )}
@@ -1081,7 +1077,7 @@ export default function AthleteDashboard() {
                 <span style={{ fontSize: 20 }}>{arch.emoji}</span>
                 <div>
                   <div style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", letterSpacing: 1.2 }}>
-                    Fighter Style
+                    {t("dashboardFighterStyleLabel")}
                   </div>
                   <div style={{ fontSize: 13, fontWeight: 900, color: arch.color }}>{arch.name}</div>
                 </div>
@@ -1091,7 +1087,7 @@ export default function AthleteDashboard() {
                 onClick={() => setShowQuiz(true)}
                 style={{ background: "none", border: "none", color: "rgba(255,255,255,0.22)", fontSize: 11, fontWeight: 700, cursor: "pointer", padding: "4px 8px" }}
               >
-                Солих →
+                {t("dashboardChangeStyle")}
               </button>
             </div>
           );
@@ -1102,14 +1098,14 @@ export default function AthleteDashboard() {
           <StatPill
             label={t("dashboardTrainingStreak")}
             value={`${dailyStreak}d`}
-            sub={bestStreak > 0 ? `best ${bestStreak}d` : undefined}
+            sub={bestStreak > 0 ? `${t("dashboardBestStreak")} ${bestStreak}d` : undefined}
             color="#FB923C"
           />
           <StatPill
             label={t("dashboardBestScore")}
             value={stats.bestScore != null ? formatScore(stats.bestScore) : "—"}
             sub="/10"
-            color="#D4AF37"
+            color={GOLD}
           />
           <StatPill
             label={t("dashboardTotalSessions")}
@@ -1119,7 +1115,7 @@ export default function AthleteDashboard() {
           <StatPill
             label={t("dashboardXP")}
             value={xp >= 1000 ? `${(xp / 1000).toFixed(1)}k` : xp}
-            color="#D4AF37"
+            color={GOLD}
           />
         </div>
 
@@ -1141,7 +1137,7 @@ export default function AthleteDashboard() {
         {/* ── Combat Profile (Radar) ── */}
         <PanelCard
           label={locale === "mn" ? "Дайны профайл" : locale === "ko" ? "전투 프로필" : "Combat Profile"}
-          accent="#C1121F"
+          accent={RED}
           tag="6 METRICS"
         >
           <div style={{ background: "radial-gradient(ellipse at center, rgba(193,18,31,0.06) 0%, transparent 70%)", padding: "4px 0 0" }}>
@@ -1152,7 +1148,7 @@ export default function AthleteDashboard() {
         {/* ── Style DNA ── */}
         <PanelCard
           label={locale === "mn" ? "Тоглолтын хэв маяг" : locale === "ko" ? "스타일 DNA" : "Style DNA"}
-          accent="#D4AF37"
+          accent={GOLD}
           tag="5 ATTRS"
         >
           <StyleDNA radarStats={radarStats} />
@@ -1161,7 +1157,7 @@ export default function AthleteDashboard() {
         {/* ── Score Trend ── */}
         <PanelCard
           label={locale === "mn" ? "Оноогийн чиглэл" : locale === "ko" ? "점수 추세" : "Score Trend"}
-          accent="#C1121F"
+          accent={RED}
           tag={`${stats.chronoScores.length} SESS`}
         >
           <div style={{ padding: "2px 0 0" }}>
@@ -1189,8 +1185,8 @@ export default function AthleteDashboard() {
                   style={{ ...ghostBtnStyle, marginTop: 10, width: "100%", flex: "unset" }}
                 >
                   {showAllSessions
-                    ? "Show less"
-                    : `Show all ${trainingSessions.length} sessions`}
+                    ? t("dashboardShowLess")
+                    : `${t("dashboardShowAll")} ${trainingSessions.length}`}
                 </button>
               )}
             </>

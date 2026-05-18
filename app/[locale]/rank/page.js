@@ -2,13 +2,67 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { RANK_TIERS, calculateUserXP, getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
 import { getLocale, translate } from "@/lib/i18n";
 import RankIcon from "@/components/RankIcon";
 import BottomNav from "@/components/BottomNav";
+import { RED, GOLD } from "@/lib/tokens";
+
+const HOW_TO_EARN = [
+  {
+    icon: "🎯",
+    en: "Training session",
+    mn: "Дасгалын сесс",
+    ko: "훈련 세션",
+    detailEn: "score² × 10 XP (max 1,000/day)",
+    detailMn: "оноо² × 10 XP (өдөрт хамгийн ихдээ 1,000)",
+    detailKo: "점수² × 10 XP (하루 최대 1,000)",
+    color: GOLD,
+  },
+  {
+    icon: "⚡",
+    en: "Improvement bonus",
+    mn: "Дэвшлийн бонус",
+    ko: "향상 보너스",
+    detailEn: "+200 XP (0.5pt jump) or +400 XP (1pt jump)",
+    detailMn: "+200 XP (0.5 оноо) эсвэл +400 XP (1 оноо)",
+    detailKo: "+200 XP (0.5점 향상) 또는 +400 XP (1점 향상)",
+    color: "#A78BFA",
+  },
+  {
+    icon: "⚔️",
+    en: "Challenge",
+    mn: "Тэмцээн",
+    ko: "챌린지",
+    detailEn: "Up to 500 XP per attempt",
+    detailMn: "Нэг оролдлогод хамгийн ихдээ 500 XP",
+    detailKo: "시도당 최대 500 XP",
+    color: "#F87171",
+  },
+  {
+    icon: "🔥",
+    en: "Daily streak",
+    mn: "Өдрийн streak",
+    ko: "데일리 스트릭",
+    detailEn: "20 XP per streak day",
+    detailMn: "Streak өдөр бүрт 20 XP",
+    detailKo: "스트릭 하루당 20 XP",
+    color: "#FB923C",
+  },
+  {
+    icon: "❤️",
+    en: "Likes received",
+    mn: "Хүлээн авсан лайк",
+    ko: "받은 좋아요",
+    detailEn: "2 XP per like on your reels",
+    detailMn: "Таны видео дээрх лайк бүрт 2 XP",
+    detailKo: "내 릴에 받은 좋아요당 2 XP",
+    color: "#F472B6",
+  },
+];
 
 export default function RankPage() {
   const params = useParams();
@@ -16,26 +70,35 @@ export default function RankPage() {
   const { user, loading: authLoading } = useAuth();
   const locale = getLocale(params?.locale);
   const t = (key) => translate(locale, key);
+  const lbl = (mn, ko, en) => locale === "mn" ? mn : locale === "ko" ? ko : en;
 
   const [xp, setXp] = useState(null);
+  const [sessionCount, setSessionCount] = useState(0);
   const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user?.uid) {
-      setXp(0);
-      setDataLoading(false);
-      return;
-    }
+    if (!user?.uid) { setXp(0); setDataLoading(false); return; }
 
     let active = true;
     async function loadXP() {
       try {
-        const snap = await getDocs(
-          query(collection(db, "ai_feedback"), where("userId", "==", user.uid))
-        );
-        const docs = snap.docs.map((d) => ({ score: d.data().score, createdAt: d.data().createdAt }));
-        if (active) setXp(calculateUserXP({ aiFeedbackDocs: docs }));
+        const [feedbackSnap, profileSnap] = await Promise.all([
+          getDocs(query(collection(db, "ai_feedback"), where("userId", "==", user.uid))),
+          getDoc(doc(db, "users", user.uid)),
+        ]);
+
+        const docs = feedbackSnap.docs.map((d) => ({ score: d.data().score, createdAt: d.data().createdAt }));
+        const profileData = profileSnap.exists() ? profileSnap.data() : {};
+        const storedXP = Number(profileData.xp) || 0;
+        const streak = Number(profileData.dailyStreak) || 0;
+        const likes = Number(profileData.likesReceived) || 0;
+        const aiXP = calculateUserXP({ aiFeedbackDocs: docs, streakDays: streak, likesReceived: likes });
+
+        if (active) {
+          setXp(storedXP + aiXP);
+          setSessionCount(feedbackSnap.docs.length);
+        }
       } catch {
         if (active) setXp(0);
       } finally {
@@ -52,12 +115,18 @@ export default function RankPage() {
   const nextRank = getNextRank(currentXP);
   const rankProgress = getRankProgress(currentXP);
   const xpToNext = nextRank ? nextRank.minXP - currentXP : 0;
+  const tierXPStart = fighterRank.minXP;
+  const tierXPEnd = nextRank?.minXP ?? fighterRank.minXP;
+  const tierXPDone = currentXP - tierXPStart;
+  const tierXPRange = tierXPEnd - tierXPStart;
 
   return (
     <main style={styles.page}>
       <header style={styles.header}>
-        <button type="button" style={styles.backBtn} onClick={() => router.back()}>
-          {t("back")}
+        <button type="button" style={styles.backBtn} onClick={() => router.back()} aria-label="Back">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </button>
         <div style={styles.headerCenter}>
           <p style={styles.eyebrow}>GAVANA BOXING</p>
@@ -67,35 +136,55 @@ export default function RankPage() {
       </header>
 
       <div style={styles.content}>
+
         {/* Current rank card */}
-        {dataLoading && (
-          <div style={{ ...styles.currentCard, borderColor: "rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.03)", animation: "pulse 1.4s ease infinite" }}>
-            <div style={{ height: 60, borderRadius: 12, background: "rgba(255,255,255,0.06)" }} />
+        {dataLoading ? (
+          <div style={{ marginBottom: 28 }}>
+            <div className="shimmer" style={{ height: 160, borderRadius: 20 }} />
           </div>
-        )}
-        {!dataLoading && (
+        ) : (
           <div style={{
             ...styles.currentCard,
             borderColor: fighterRank.glowColor
-              ? fighterRank.glowColor.replace(/[\d.]+\)$/, "0.45)")
+              ? fighterRank.glowColor.replace(/[\d.]+\)$/, "0.5)")
               : `${fighterRank.color}55`,
             background: fighterRank.glowColor
               ? fighterRank.glowColor.replace(/[\d.]+\)$/, "0.08)")
               : `${fighterRank.color}12`,
+            boxShadow: fighterRank.pulse
+              ? `0 0 32px ${fighterRank.glowColor?.replace(/[\d.]+\)$/, "0.22)")}`
+              : "none",
           }}>
             <div style={styles.currentTop}>
-              <RankIcon rank={fighterRank} size={60} animated />
+              <RankIcon rank={fighterRank} size={64} animated />
               <div style={styles.currentInfo}>
                 <p style={styles.currentKicker}>{t("rankCurrentLabel")}</p>
                 <h2 style={{ ...styles.currentName, color: fighterRank.color }}>
                   {t(fighterRank.key)}
                 </h2>
-                <p style={styles.currentXP}>
-                  {currentXP.toLocaleString()} {t("xpLabel")}
-                </p>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                  <p style={styles.currentXP}>
+                    {currentXP.toLocaleString()} {t("xpLabel")}
+                  </p>
+                  {sessionCount > 0 && (
+                    <span style={{ fontSize: 11, color: "#555", fontWeight: 700 }}>
+                      · {sessionCount} {lbl("сесс", "세션", "sessions")}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
+
+            {/* XP bar */}
             <div style={styles.xpBarWrap}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                <span style={{ fontSize: 10, color: "#666", fontWeight: 700 }}>
+                  {tierXPDone.toLocaleString()} / {tierXPRange > 0 ? tierXPRange.toLocaleString() : "MAX"}
+                </span>
+                <span style={{ fontSize: 10, fontWeight: 900, color: fighterRank.color }}>
+                  {nextRank ? `${rankProgress}%` : "MAX"}
+                </span>
+              </div>
               <div style={styles.xpTrack}>
                 <div style={{
                   ...styles.xpFill,
@@ -105,14 +194,14 @@ export default function RankPage() {
               </div>
               <p style={styles.xpBarLabel}>
                 {nextRank
-                  ? t("xpToNext").replace("{xp}", xpToNext.toLocaleString()).replace("{rank}", t(nextRank.key))
+                  ? `${xpToNext.toLocaleString()} XP → ${t(nextRank.key)}`
                   : t("atMaxRank")}
               </p>
             </div>
           </div>
         )}
 
-        {/* Ladder section */}
+        {/* All-rank ladder */}
         <h2 style={styles.ladderHeading}>{t("rankPageKicker")}</h2>
 
         <div style={styles.ladder}>
@@ -138,15 +227,12 @@ export default function RankPage() {
                 }}
               >
                 <div style={styles.rowIcon}>
-                  <RankIcon rank={tier} size={38} animated={isCurrent} />
+                  <RankIcon rank={tier} size={36} animated={isCurrent} />
                 </div>
 
                 <div style={styles.rowInfo}>
                   <div style={styles.rowNameLine}>
-                    <span style={{
-                      ...styles.rowName,
-                      color: isUnlocked ? tier.color : "#555",
-                    }}>
+                    <span style={{ ...styles.rowName, color: isUnlocked ? tier.color : "#555" }}>
                       {t(tier.key)}
                     </span>
                     {isCurrent && (
@@ -165,7 +251,6 @@ export default function RankPage() {
                   </p>
                 </div>
 
-                {/* Progress indicator for current rank */}
                 {isCurrent && (
                   <div style={styles.rowProgress}>
                     <div style={{ ...styles.rowProgressFill, width: `${rankProgress}%`, background: tier.gradient }} />
@@ -175,15 +260,30 @@ export default function RankPage() {
             );
           })}
         </div>
+
+        {/* How to earn XP */}
+        <h2 style={{ ...styles.ladderHeading, marginTop: 36 }}>
+          {t("howToEarnXP")}
+        </h2>
+        <div style={styles.earnGrid}>
+          {HOW_TO_EARN.map((item) => (
+            <div key={item.en} style={{ ...styles.earnCard, borderColor: `${item.color}28` }}>
+              <span style={{ fontSize: 22 }}>{item.icon}</span>
+              <div style={styles.earnInfo}>
+                <span style={{ ...styles.earnTitle, color: item.color }}>
+                  {lbl(item.mn, item.ko, item.en)}
+                </span>
+                <span style={styles.earnDetail}>
+                  {lbl(item.detailMn, item.detailKo, item.detailEn)}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+
       </div>
 
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.45; }
-        }
-      `}</style>
     </main>
   );
 }
@@ -204,7 +304,7 @@ const styles = {
     gridTemplateColumns: "64px 1fr 44px",
     alignItems: "center",
     gap: 12,
-    padding: "18px 16px",
+    padding: "calc(env(safe-area-inset-top) + 14px) 16px 14px",
     background: "rgba(7,7,7,0.94)",
     backdropFilter: "blur(14px)",
     WebkitBackdropFilter: "blur(14px)",
@@ -215,15 +315,19 @@ const styles = {
     background: "transparent",
     color: "#fff",
     borderRadius: 10,
-    padding: "8px 10px",
+    width: 40,
+    height: 40,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     cursor: "pointer",
-    fontSize: 13,
-    fontWeight: 700,
+    padding: 0,
+    flexShrink: 0,
   },
   headerCenter: { textAlign: "center" },
   eyebrow: {
     margin: 0,
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 11,
     fontWeight: 800,
     letterSpacing: 1.5,
@@ -244,6 +348,7 @@ const styles = {
     borderRadius: 20,
     border: "1px solid",
     marginBottom: 28,
+    transition: "box-shadow 0.4s",
   },
   currentTop: {
     display: "flex",
@@ -261,8 +366,8 @@ const styles = {
     textTransform: "uppercase",
   },
   currentName: {
-    margin: "0 0 4px",
-    fontSize: 26,
+    margin: "0 0 5px",
+    fontSize: 24,
     fontWeight: 1000,
     lineHeight: 1,
     textTransform: "uppercase",
@@ -281,25 +386,26 @@ const styles = {
     borderRadius: 999,
     background: "rgba(255,255,255,0.08)",
     overflow: "hidden",
-    marginBottom: 7,
+    marginBottom: 6,
   },
   xpFill: {
     height: "100%",
     borderRadius: 999,
-    transition: "width 600ms ease",
+    transition: "width 700ms ease",
   },
   xpBarLabel: {
     margin: 0,
     fontSize: 11,
-    color: "#888",
+    color: "#666",
     textAlign: "right",
+    fontWeight: 700,
   },
   ladderHeading: {
-    margin: "0 0 14px",
+    margin: "0 0 12px",
     fontSize: 11,
     fontWeight: 900,
     letterSpacing: 2.5,
-    color: "#D4AF37",
+    color: GOLD,
     textTransform: "uppercase",
   },
   ladder: {
@@ -310,7 +416,7 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: 14,
-    padding: "14px 16px",
+    padding: "13px 15px",
     borderRadius: 16,
     background: "rgba(255,255,255,0.03)",
     border: "1px solid rgba(255,255,255,0.07)",
@@ -321,15 +427,10 @@ const styles = {
     border: "1px solid",
   },
   rowLocked: {
-    opacity: 0.48,
+    opacity: 0.42,
   },
-  rowIcon: {
-    flexShrink: 0,
-  },
-  rowInfo: {
-    flex: 1,
-    minWidth: 0,
-  },
+  rowIcon: { flexShrink: 0 },
+  rowInfo: { flex: 1, minWidth: 0 },
   rowNameLine: {
     display: "flex",
     alignItems: "center",
@@ -337,7 +438,7 @@ const styles = {
     flexWrap: "wrap",
   },
   rowName: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: 900,
     textTransform: "uppercase",
     letterSpacing: 0.4,
@@ -351,9 +452,7 @@ const styles = {
     letterSpacing: 0.8,
     textTransform: "uppercase",
   },
-  lockIcon: {
-    fontSize: 12,
-  },
+  lockIcon: { fontSize: 12 },
   rowXP: {
     margin: "3px 0 0",
     fontSize: 11,
@@ -371,6 +470,34 @@ const styles = {
   },
   rowProgressFill: {
     height: "100%",
-    transition: "width 600ms ease",
+    transition: "width 700ms ease",
+  },
+  earnGrid: {
+    display: "grid",
+    gap: 8,
+  },
+  earnCard: {
+    display: "flex",
+    alignItems: "center",
+    gap: 14,
+    padding: "13px 15px",
+    borderRadius: 14,
+    background: "rgba(255,255,255,0.025)",
+    border: "1px solid",
+  },
+  earnInfo: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 2,
+    minWidth: 0,
+  },
+  earnTitle: {
+    fontSize: 13,
+    fontWeight: 800,
+  },
+  earnDetail: {
+    fontSize: 11,
+    color: "#666",
+    lineHeight: 1.4,
   },
 };

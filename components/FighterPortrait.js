@@ -116,7 +116,7 @@ export default function FighterPortrait({
     label: "FIGHTER",
   };
 
-  const acc = fighter?.accent || "#C1121F";
+  const acc = fighter?.accent || RED;
 
   return (
     <div

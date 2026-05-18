@@ -1,19 +1,39 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { collection, getDocs, onSnapshot, query, where } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, onSnapshot, query, where } from "firebase/firestore";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocale, translate } from "@/lib/i18n";
 import { getCurrentSeasonId, getSeasonLabel } from "@/lib/season";
+import { RED, GOLD } from "@/lib/tokens";
 
 const CHALLENGES = [
-  { id: "jab-minute",   titleKey: "challengeJabTitle",   descKey: "challengeJabDesc" },
-  { id: "speed-test",   titleKey: "challengeSpeedTitle",  descKey: "challengeSpeedDesc" },
-  { id: "combo-master", titleKey: "challengeComboTitle",  descKey: "challengeComboDesc" },
+  { id: "jab-minute",   titleKey: "challengeJabTitle",   descKey: "challengeJabDesc",   emoji: "🥊" },
+  { id: "speed-test",   titleKey: "challengeSpeedTitle",  descKey: "challengeSpeedDesc",  emoji: "⚡" },
+  { id: "combo-master", titleKey: "challengeComboTitle",  descKey: "challengeComboDesc",  emoji: "🎯" },
 ];
+
+function getWeekEndMs() {
+  const now = new Date();
+  const day = now.getUTCDay();
+  const daysUntilMonday = day === 0 ? 1 : 8 - day;
+  const weekEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + daysUntilMonday));
+  return weekEnd.getTime();
+}
+
+function formatCountdown(msLeft) {
+  if (msLeft <= 0) return "00:00:00";
+  const totalSecs = Math.floor(msLeft / 1000);
+  const d = Math.floor(totalSecs / 86400);
+  const h = Math.floor((totalSecs % 86400) / 3600);
+  const m = Math.floor((totalSecs % 3600) / 60);
+  const s = totalSecs % 60;
+  if (d > 0) return `${d}d ${String(h).padStart(2, "0")}h`;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
 
 const SEASON_BADGE = ["🥇", "🥈", "🥉"];
 
@@ -95,14 +115,22 @@ export default function ChallengesPage() {
   const { user, loading: authLoading } = useAuth();
 
   const [results, setResults] = useState([]);
+  const [resultsLoading, setResultsLoading] = useState(true);
   const [profiles, setProfiles] = useState({});
+  const profileRequestsRef = useRef(new Set());
   const [seasonTab, setSeasonTab] = useState("week"); // "week" | "alltime"
   const [mainTab, setMainTab] = useState("leaderboard"); // "leaderboard" | "battles"
   const [myBattles, setMyBattles] = useState([]);
   const [battlesLoading, setBattlesLoading] = useState(false);
+  const [countdown, setCountdown] = useState(() => formatCountdown(getWeekEndMs() - Date.now()));
 
   const currentSeasonId = useMemo(() => getCurrentSeasonId(), []);
   const seasonLabel = useMemo(() => getSeasonLabel(currentSeasonId), [currentSeasonId]);
+
+  useEffect(() => {
+    const id = setInterval(() => setCountdown(formatCountdown(getWeekEndMs() - Date.now())), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (!user?.uid || mainTab !== "battles") return;
@@ -138,6 +166,26 @@ export default function ChallengesPage() {
     if (!authLoading && !user) router.push(`/${locale}/login`);
   }, [authLoading, user, router, locale]);
 
+  // Load current user's own profile for streak display
+  useEffect(() => {
+    if (!user?.uid || profiles[user.uid]) return;
+    let active = true;
+    getDoc(doc(db, "users", user.uid)).then((snap) => {
+      if (!active || !snap.exists()) return;
+      const data = snap.data();
+      setProfiles((prev) => ({
+        ...prev,
+        [user.uid]: {
+          name: data.displayName || data.username || "",
+          photoURL: data.photoURL || data.profileImageUrl || "",
+          challengeStreak: Number(data.challengeStreak) || 0,
+          lastChallengeDate: data.lastChallengeDate || "",
+        },
+      }));
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [user?.uid]);
+
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "challenge_results"), (snap) => {
       setResults(
@@ -145,26 +193,40 @@ export default function ChallengesPage() {
           .map((d) => ({ id: d.id, ...d.data() }))
           .filter((r) => r.challengeId && Number.isFinite(Number(r.score)))
       );
-    }, (err) => { console.error(err); setResults([]); });
+      setResultsLoading(false);
+    }, (err) => { console.error(err); setResults([]); setResultsLoading(false); });
     return () => unsub();
   }, []);
 
+  // Load only profiles for users who appear in results (not entire users collection)
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, "users"), (snap) => {
-      const next = {};
-      snap.docs.forEach((d) => {
-        const data = d.data();
-        next[d.id] = {
+    if (!results.length) return;
+    const uids = [...new Set(results.map((r) => r.userId).filter(Boolean))];
+    const missing = uids.filter((uid) => !profiles[uid] && !profileRequestsRef.current.has(uid));
+    if (!missing.length) return;
+    let active = true;
+    missing.forEach((uid) => profileRequestsRef.current.add(uid));
+    Promise.all(missing.map(async (uid) => {
+      try {
+        const snap = await getDoc(doc(db, "users", uid));
+        const data = snap.exists() ? snap.data() : {};
+        return [uid, {
           name: data.displayName || data.username || "",
           photoURL: data.photoURL || data.profileImageUrl || data.profileImage || data.avatarUrl || "",
           challengeStreak: Number(data.challengeStreak) || 0,
           lastChallengeDate: data.lastChallengeDate || "",
-        };
+        }];
+      } catch { return [uid, {}]; }
+    })).then((entries) => {
+      if (!active) return;
+      setProfiles((prev) => {
+        const next = { ...prev };
+        entries.forEach(([uid, data]) => { next[uid] = data; });
+        return next;
       });
-      setProfiles(next);
-    }, (err) => { console.error(err); setProfiles({}); });
-    return () => unsub();
-  }, []);
+    });
+    return () => { active = false; };
+  }, [results]);
 
   // All results grouped and ranked per challenge (best score per user)
   const allTimeByChallenge = useMemo(() => {
@@ -190,7 +252,16 @@ export default function ChallengesPage() {
 
   const displayByChallenge = seasonTab === "week" ? weeklyByChallenge : allTimeByChallenge;
 
-  if (authLoading) return <div style={styles.loading}>{t("loading")}</div>;
+  if (authLoading) return (
+    <div style={styles.page}>
+      <div style={{ maxWidth: 760, margin: "0 auto", display: "grid", gap: 14 }}>
+        <div className="shimmer" style={{ height: 40, width: 40, borderRadius: 10 }} />
+        <div className="shimmer" style={{ height: 100, borderRadius: 16 }} />
+        <div className="shimmer" style={{ height: 48, borderRadius: 14 }} />
+        {[1,2,3].map((i) => <div key={i} className="shimmer" style={{ height: 220, borderRadius: 20 }} />)}
+      </div>
+    </div>
+  );
   if (!user) return null;
 
   const currentChallengeStreak = getActiveChallengeStreak(profiles[user.uid]);
@@ -212,6 +283,11 @@ export default function ChallengesPage() {
   return (
     <main style={styles.page}>
       <section style={styles.shell}>
+        <button type="button" style={styles.backBtn} onClick={() => router.back()} aria-label="Back">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
         <header style={styles.header}>
           <p style={styles.kicker}>GAVANA</p>
           <h1 style={styles.title}>{t("challengesTitle")}</h1>
@@ -225,10 +301,10 @@ export default function ChallengesPage() {
         {/* Main tabs: Leaderboard | My Battles */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, padding: 5, borderRadius: 16, background: "rgba(0,0,0,0.48)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)" }}>
           <button type="button" style={{ ...styles.seasonTab, ...(mainTab === "leaderboard" ? styles.seasonTabActive : {}) }} onClick={() => setMainTab("leaderboard")}>
-            🏆 {locale === "mn" ? "Тэргүүний самбар" : locale === "ko" ? "리더보드" : "Leaderboard"}
+            {t("battleLeaderboardTab")}
           </button>
           <button type="button" style={{ ...styles.seasonTab, ...(mainTab === "battles" ? styles.seasonTabActive : {}), ...(myBattles.some((b) => b.status === "pending" && b.role === "opponent") ? { color: "#A78BFA" } : {}) }} onClick={() => setMainTab("battles")}>
-            ⚔️ {locale === "mn" ? "Миний тулаанууд" : locale === "ko" ? "내 배틀" : "My Battles"}
+            {t("battleMyBattlesTab")}
             {myBattles.some((b) => b.status === "pending" && b.role === "opponent") && <span style={{ marginLeft: 4, display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: "#A78BFA", verticalAlign: "middle" }} />}
           </button>
         </div>
@@ -236,20 +312,20 @@ export default function ChallengesPage() {
         {mainTab === "battles" ? (
           <div style={{ display: "grid", gap: 10 }}>
             {battlesLoading ? (
-              <div style={{ textAlign: "center", padding: "40px 0", color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
-                {locale === "mn" ? "Уншиж байна..." : locale === "ko" ? "로딩 중..." : "Loading..."}
+              <div style={{ display: "grid", gap: 10 }}>
+                {[1,2,3].map((i) => <div key={i} className="shimmer" style={{ height: 80, borderRadius: 16 }} />)}
               </div>
             ) : myBattles.length === 0 ? (
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "40px 16px", textAlign: "center" }}>
                 <span style={{ fontSize: 48, opacity: 0.5 }}>⚔️</span>
                 <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#fff" }}>
-                  {locale === "mn" ? "Тулаан байхгүй байна" : locale === "ko" ? "배틀 없음" : "No battles yet"}
+                  {t("battleNoneYet")}
                 </p>
                 <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.45)", maxWidth: 260, lineHeight: 1.6 }}>
-                  {locale === "mn" ? "Fighter-ийн profile дээрх ⚔️ товчийг дараад тулааны шийдэл илгээгээрэй." : locale === "ko" ? "파이터의 프로필에서 ⚔️ 버튼으로 배틀을 신청하세요." : "Go to a fighter's profile and tap ⚔️ to send a challenge."}
+                  {t("battleNoneDesc")}
                 </p>
                 <button type="button" style={{ padding: "11px 24px", borderRadius: 999, border: "none", background: "linear-gradient(135deg,#7C3AED,#4C1D95)", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer" }} onClick={() => router.push(`/${locale}/fighters`)}>
-                  {locale === "mn" ? "🥊 Fighter хайх" : locale === "ko" ? "🥊 파이터 찾기" : "🥊 Find Fighters"}
+                  {t("battleFindFighters")}
                 </button>
               </div>
             ) : (
@@ -264,20 +340,18 @@ export default function ChallengesPage() {
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 14, fontWeight: 900, color: "#fff" }}>{challengeInfo ? t(challengeInfo.titleKey) : battle.challengeId}</div>
                         <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 2 }}>
-                          {isReceived
-                            ? (locale === "mn" ? "Тулааны урилга ирлээ" : locale === "ko" ? "배틀 신청 받음" : "Challenge received")
-                            : (locale === "mn" ? "Тулааны урилга илгээсэн" : locale === "ko" ? "배틀 신청 보냄" : "Challenge sent")}
+                          {isReceived ? t("battleChallengeReceived") : t("battleChallengeSent")}
                           {" · "}
                           {battle.status === "pending"
-                            ? (locale === "mn" ? "Хүлээгдэж байна" : locale === "ko" ? "대기 중" : "Pending")
+                            ? t("battlePending")
                             : battle.status === "completed"
-                            ? (locale === "mn" ? "Дууссан" : locale === "ko" ? "완료" : "Completed")
+                            ? t("battleCompleted")
                             : battle.status}
                         </div>
                       </div>
                       {isPending && isReceived && (
                         <button type="button" style={{ padding: "8px 16px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#7C3AED,#4C1D95)", color: "#fff", fontSize: 12, fontWeight: 900, cursor: "pointer", flexShrink: 0 }} onClick={() => router.push(`/${locale}/train?challengeId=${battle.challengeId}`)}>
-                          {locale === "mn" ? "Тулаан →" : locale === "ko" ? "배틀 →" : "Compete →"}
+                          {t("battleCompete")}
                         </button>
                       )}
                     </div>
@@ -308,10 +382,13 @@ export default function ChallengesPage() {
           </button>
         </div>
 
-        {/* Season label */}
+        {/* Season label + countdown */}
         {seasonTab === "week" && (
-          <div style={styles.seasonLabel}>
+          <div style={{ ...styles.seasonLabel, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 2px" }}>
             <span style={styles.seasonLabelText}>🗓 {seasonLabel}</span>
+            <span style={{ fontSize: 11, fontWeight: 900, color: GOLD, fontVariantNumeric: "tabular-nums", letterSpacing: 0.5 }}>
+              ⏱ {countdown}
+            </span>
           </div>
         )}
 
@@ -359,7 +436,10 @@ export default function ChallengesPage() {
               <article key={challenge.id} style={styles.card}>
                 <div style={styles.cardTop}>
                   <div>
-                    <h2 style={styles.cardTitle}>{t(challenge.titleKey)}</h2>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                      <span style={{ fontSize: 28 }}>{challenge.emoji}</span>
+                      <h2 style={{ ...styles.cardTitle, margin: 0 }}>{t(challenge.titleKey)}</h2>
+                    </div>
                     <p style={styles.cardDesc}>{t(challenge.descKey)}</p>
                   </div>
                   <button
@@ -384,11 +464,17 @@ export default function ChallengesPage() {
                         const profile = profiles[result.userId] || {};
                         const displayName = isCurrentUser ? t("challengeYou") : profile.name || t("fighter");
                         const initial = (displayName || "F").charAt(0).toUpperCase();
+                        const rankLetter = result.rank || getChallengeRank(result.score);
+                        const rankColor = rankLetter === "S" ? GOLD : rankLetter === "A" ? "#60A5FA" : rankLetter === "B" ? "#A78BFA" : rankLetter === "C" ? "#34D399" : "#888";
 
                         return (
                           <div
                             key={result.id}
-                            style={{ ...styles.scoreRow, ...(isCurrentUser ? styles.scoreRowCurrent : {}) }}
+                            role="button"
+                            tabIndex={0}
+                            style={{ ...styles.scoreRow, ...(isCurrentUser ? styles.scoreRowCurrent : {}), cursor: "pointer" }}
+                            onClick={() => !isCurrentUser && router.push(`/${locale}/profile/${result.userId}`)}
+                            onKeyDown={(e) => { if (e.key === "Enter" && !isCurrentUser) router.push(`/${locale}/profile/${result.userId}`); }}
                           >
                             <span style={styles.rankNum}>{getRankIcon(index)}</span>
                             <span style={styles.fighterCell}>
@@ -400,7 +486,7 @@ export default function ChallengesPage() {
                               <span style={styles.fighterText}>
                                 <span style={styles.fighterName}>{displayName}</span>
                                 <span style={styles.resultMeta}>
-                                  {t("challengeRank")}: {result.rank || getChallengeRank(result.score)}
+                                  {t("challengeRank")}: <span style={{ color: rankColor, fontWeight: 900 }}>{rankLetter}</span>
                                 </span>
                               </span>
                             </span>
@@ -441,6 +527,20 @@ const styles = {
     padding: "calc(28px + env(safe-area-inset-top)) 16px calc(92px + env(safe-area-inset-bottom))",
     fontFamily: "sans-serif",
   },
+  backBtn: {
+    width: 40,
+    height: 40,
+    border: "1px solid rgba(255,255,255,0.12)",
+    background: "rgba(255,255,255,0.055)",
+    borderRadius: 10,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+    padding: 0,
+    color: "#fff",
+    justifySelf: "start",
+  },
   loading: {
     minHeight: "100vh",
     background: "#070707",
@@ -456,7 +556,7 @@ const styles = {
     gap: 14,
   },
   header: { display: "grid", gap: 8 },
-  kicker: { margin: 0, color: "#D4AF37", fontSize: 11, fontWeight: 950, letterSpacing: 2 },
+  kicker: { margin: 0, color: GOLD, fontSize: 11, fontWeight: 950, letterSpacing: 2 },
   title: { margin: 0, fontSize: 38, lineHeight: 1, fontWeight: 1000, fontFamily: "var(--font-display, 'Anton', sans-serif)" },
   subtitle: { margin: 0, color: "rgba(255,255,255,0.66)", fontSize: 14, lineHeight: 1.45 },
   streakPill: {
@@ -524,7 +624,7 @@ const styles = {
   },
   champBannerTitle: {
     margin: 0,
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 11,
     fontWeight: 950,
     letterSpacing: 1.5,
@@ -540,7 +640,7 @@ const styles = {
   champInfo: { display: "grid", gap: 2, flex: 1, minWidth: 0 },
   champName: { fontSize: 13, fontWeight: 900, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
   champChallenge: { fontSize: 10, color: "#888", fontWeight: 700 },
-  champScore: { fontSize: 14, fontWeight: 1000, color: "#D4AF37", flexShrink: 0 },
+  champScore: { fontSize: 14, fontWeight: 1000, color: GOLD, flexShrink: 0 },
   yourRankBar: {
     position: "sticky",
     top: "calc(62px + env(safe-area-inset-top))",
@@ -564,7 +664,7 @@ const styles = {
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 12,
     fontWeight: 900,
   },
@@ -597,7 +697,7 @@ const styles = {
   leaderboard: { marginTop: 16, display: "grid", gap: 9 },
   leaderboardTitle: {
     margin: 0,
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 11,
     fontWeight: 950,
     letterSpacing: 1.4,
@@ -614,7 +714,6 @@ const styles = {
     borderRadius: 14,
     background: "rgba(255,255,255,0.045)",
     border: "1px solid rgba(255,255,255,0.07)",
-    animation: "challengeScoreGlow 2.8s ease-in-out infinite",
   },
   scoreRowCurrent: {
     background: "rgba(212,175,55,0.14)",
@@ -631,7 +730,7 @@ const styles = {
     fontWeight: 800,
     textAlign: "center",
   },
-  rankNum: { color: "#D4AF37", fontSize: 18, fontWeight: 950, textAlign: "center" },
+  rankNum: { color: GOLD, fontSize: 18, fontWeight: 950, textAlign: "center" },
   fighterCell: { minWidth: 0, display: "flex", alignItems: "center", gap: 9 },
   avatar: {
     width: 26,
@@ -661,5 +760,5 @@ const styles = {
   resultMeta: { color: "rgba(255,255,255,0.52)", fontSize: 11, fontWeight: 850 },
   scoreStack: { display: "grid", justifyItems: "end", gap: 4 },
   scoreValue: { color: "#fff", fontSize: 16, fontWeight: 1000, textShadow: "0 0 18px rgba(212,175,55,0.3)" },
-  xpValue: { color: "#D4AF37", fontSize: 11, fontWeight: 950 },
+  xpValue: { color: GOLD, fontSize: 11, fontWeight: 950 },
 };

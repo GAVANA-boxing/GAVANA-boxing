@@ -7,6 +7,7 @@ import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
+import { RED, GOLD } from "@/lib/tokens";
 
 const SPECIALTIES = [
   "Jab", "Footwork", "Defense", "Conditioning",
@@ -33,6 +34,7 @@ export default function CoachApplyPage() {
   const [certifications, setCertifications] = useState("");
   const [instagram, setInstagram] = useState("");
   const [youtube, setYoutube] = useState("");
+  const [phone, setPhone] = useState("");
   const [bio, setBio] = useState("");
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
@@ -118,6 +120,7 @@ export default function CoachApplyPage() {
         certifications: certifications.trim(),
         instagram: instagram.trim(),
         youtube: youtube.trim(),
+        phone: phone.trim(),
         bio: bio.trim(),
         profileImage: profileImageUrl,
         submittedAt: serverTimestamp(),
@@ -145,7 +148,7 @@ export default function CoachApplyPage() {
           <div style={styles.successCard}>
             <div style={styles.successIcon}>🥊</div>
             <h2 style={styles.successTitle}>{t("verifiedCoach")}</h2>
-            <p style={styles.successDesc}>{locale === "mn" ? "Та GAVANA-д баталгаажсан тренер байна." : locale === "ko" ? "당신은 이미 GAVANA의 인증된 코치입니다." : "You are already a verified coach on GAVANA."}</p>
+            <p style={styles.successDesc}>{t("coachAlreadyVerified")}</p>
             <button type="button" style={styles.submitBtn} onClick={() => router.push(`/${locale}/coach/dashboard`)}>
               {t("coachDashboard")}
             </button>
@@ -295,6 +298,11 @@ export default function CoachApplyPage() {
           </div>
 
           <div style={styles.field}>
+            <label style={styles.fieldLabel}>{t("coachPhoneLabel")}</label>
+            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+976 9999 0000" style={styles.input} />
+          </div>
+
+          <div style={styles.field}>
             <label style={styles.fieldLabel}>{t("coachApplyBio")} *</label>
             <textarea
               value={bio}
@@ -343,15 +351,15 @@ const styles = {
   fields: { display: "flex", flexDirection: "column", gap: 16, marginBottom: 24 },
   field: { display: "flex", flexDirection: "column", gap: 6 },
   fieldRow: { display: "flex", gap: 12 },
-  fieldLabel: { fontSize: 12, color: "rgba(255,255,255,0.5)", letterSpacing: 0.5, textTransform: "uppercase" },
+  fieldLabel: { fontSize: 11, fontWeight: 900, color: "rgba(255,255,255,0.7)", letterSpacing: 1, textTransform: "uppercase" },
   input: { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "12px 14px", color: "#fff", fontSize: 15, outline: "none", width: "100%", boxSizing: "border-box" },
   textarea: { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "12px 14px", color: "#fff", fontSize: 15, outline: "none", width: "100%", resize: "vertical", boxSizing: "border-box", fontFamily: "inherit" },
   specialtyGrid: { display: "flex", flexWrap: "wrap", gap: 8 },
-  specialtyBtn: { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20, padding: "6px 14px", color: "rgba(255,255,255,0.6)", fontSize: 13, cursor: "pointer" },
-  specialtyActive: { background: "rgba(193,18,31,0.2)", border: "1px solid rgba(193,18,31,0.5)", borderRadius: 20, padding: "6px 14px", color: "#F87171", fontSize: 13, cursor: "pointer" },
+  specialtyBtn: { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20, padding: "6px 14px", color: "rgba(255,255,255,0.55)", fontSize: 13, cursor: "pointer", transition: "all 140ms ease" },
+  specialtyActive: { background: "rgba(193,18,31,0.25)", border: "2px solid #C1121F", borderRadius: 20, padding: "5px 13px", color: "#ff6b6b", fontSize: 13, fontWeight: 800, cursor: "pointer", boxShadow: "0 0 10px rgba(193,18,31,0.25)", transition: "all 140ms ease" },
   progressWrap: { height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 2, marginBottom: 16, overflow: "hidden" },
-  progressBar: { height: "100%", background: "#C1121F", borderRadius: 2, transition: "width 0.2s" },
-  submitBtn: { width: "100%", padding: "16px", background: "#C1121F", border: "none", borderRadius: 12, color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer", letterSpacing: 0.5 },
+  progressBar: { height: "100%", background: RED, borderRadius: 2, transition: "width 0.2s" },
+  submitBtn: { width: "100%", padding: "16px", background: RED, border: "none", borderRadius: 12, color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer", letterSpacing: 0.5 },
   submitBtnDisabled: { width: "100%", padding: "16px", background: "rgba(193,18,31,0.4)", border: "none", borderRadius: 12, color: "rgba(255,255,255,0.5)", fontSize: 16, fontWeight: 700, cursor: "not-allowed", letterSpacing: 0.5 },
   successCard: { textAlign: "center", padding: "60px 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 },
   successIcon: { fontSize: 56 },

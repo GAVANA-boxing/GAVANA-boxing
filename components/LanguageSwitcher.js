@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { locales, getLocale } from "@/lib/i18n";
+import { RED, GOLD } from "@/lib/tokens";
 
 const FLAG = { en: "🇺🇸", mn: "🇲🇳", ko: "🇰🇷" };
 const CODE = { en: "EN", mn: "MN", ko: "KO" };
@@ -146,7 +147,7 @@ const s = {
     width: 4,
     height: 4,
     borderRadius: "50%",
-    background: "#D4AF37",
+    background: GOLD,
     marginLeft: "auto",
     flexShrink: 0,
   },

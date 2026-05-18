@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { collection, query, where, onSnapshot, getDocs, limit, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname } from "@/lib/i18n";
+import { startConversation } from "@/lib/messaging";
 import BottomNav from "@/components/BottomNav";
+import { RED, GOLD } from "@/lib/tokens";
 
 function getTs(ts) {
   if (!ts) return 0;
@@ -40,6 +42,15 @@ export default function InboxList() {
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Compose state
+  const [showCompose, setShowCompose] = useState(false);
+  const [search, setSearch] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [starting, setStarting] = useState(null);
+  const searchRef = useRef(null);
+  const searchTimerRef = useRef(null);
+
   const T = {
     title:    locale === "mn" ? "Мессеж" : locale === "ko" ? "메시지" : "Messages",
     you:      locale === "mn" ? "Та: " : locale === "ko" ? "나: " : "You: ",
@@ -48,6 +59,9 @@ export default function InboxList() {
     emptySub: locale === "mn" ? "Coach эсвэл Fighter-тэй холбогдохдоо тэдний profile дээрх «Мессеж» товчийг дарна уу." : locale === "ko" ? "코치나 파이터의 프로필에서 '메시지' 버튼을 눌러보세요." : "Tap the Message button on a coach or fighter's profile to start chatting.",
     findCoach: locale === "mn" ? "🎓 Coach хайх" : locale === "ko" ? "🎓 코치 찾기" : "🎓 Find a Coach",
     coach:    locale === "mn" ? "Coach" : locale === "ko" ? "코치" : "Coach",
+    newMsg:   locale === "mn" ? "Шинэ мессеж" : locale === "ko" ? "새 메시지" : "New Message",
+    searchPlaceholder: locale === "mn" ? "Username хайх…" : locale === "ko" ? "유저 검색…" : "Search by username…",
+    noResults: locale === "mn" ? "Хэрэглэгч олдсонгүй" : locale === "ko" ? "사용자를 찾을 수 없습니다" : "No users found",
   };
 
   useEffect(() => {
@@ -65,6 +79,62 @@ export default function InboxList() {
 
     return () => unsub();
   }, [authLoading, user?.uid, locale, router]);
+
+  // Focus search input when compose opens
+  useEffect(() => {
+    if (showCompose) {
+      setTimeout(() => searchRef.current?.focus(), 80);
+    } else {
+      setSearch("");
+      setSearchResults([]);
+    }
+  }, [showCompose]);
+
+  // Debounced user search
+  useEffect(() => {
+    clearTimeout(searchTimerRef.current);
+    if (!search.trim()) { setSearchResults([]); return; }
+    searchTimerRef.current = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const lower = search.trim().toLowerCase();
+        const snap = await getDocs(
+          query(
+            collection(db, "users"),
+            where("username", ">=", lower),
+            where("username", "<=", lower + ""),
+            limit(12)
+          )
+        );
+        const results = snap.docs
+          .map((d) => ({ id: d.id, ...d.data() }))
+          .filter((u) => u.id !== user.uid);
+        setSearchResults(results);
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 320);
+    return () => clearTimeout(searchTimerRef.current);
+  }, [search, user?.uid]);
+
+  const handleStartConvo = async (recipient) => {
+    if (starting) return;
+    setStarting(recipient.id);
+    try {
+      const convoId = await startConversation(user, recipient.id, {
+        displayName: recipient.displayName || recipient.username || "",
+        photoURL: recipient.photoURL || recipient.profileImageUrl || "",
+      });
+      setShowCompose(false);
+      router.push(`/${locale}/inbox/${convoId}`);
+    } catch (e) {
+      console.error("Start convo error:", e);
+    } finally {
+      setStarting(null);
+    }
+  };
 
   if (authLoading || loading) {
     return (
@@ -96,7 +166,7 @@ export default function InboxList() {
 
   return (
     <div style={s.page}>
-      <style>{`@keyframes shimmer { 0%{background-position:-400px 0} 100%{background-position:400px 0} } .shimmer{background:linear-gradient(90deg,rgba(255,255,255,0.04) 0%,rgba(255,255,255,0.09) 50%,rgba(255,255,255,0.04) 100%);background-size:800px 100%;animation:shimmer 1.6s infinite;}`}</style>
+      <style>{`@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}.shimmer{background:linear-gradient(90deg,rgba(255,255,255,0.04) 0%,rgba(255,255,255,0.09) 50%,rgba(255,255,255,0.04) 100%);background-size:800px 100%;animation:shimmer 1.6s infinite;}@keyframes sheetUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}@keyframes spin{to{transform:rotate(360deg)}}`}</style>
 
       {/* Header */}
       <div style={s.header}>
@@ -106,7 +176,11 @@ export default function InboxList() {
           </svg>
         </button>
         <span style={s.title}>{T.title}</span>
-        <div style={{ width: 40 }} />
+        <button type="button" onClick={() => setShowCompose(true)} style={s.composeBtn} title={T.newMsg}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+        </button>
       </div>
 
       {/* List */}
@@ -133,7 +207,6 @@ export default function InboxList() {
                 onClick={() => router.push(`/${locale}/inbox/${convo.id}`)}
                 style={{ ...s.row, ...(unread > 0 ? s.rowUnread : {}) }}
               >
-                {/* Avatar */}
                 <div style={s.avatarWrap}>
                   {other.photoURL
                     ? <img src={other.photoURL} alt="" style={{ ...s.avatar, ...(isCoach ? { border: "2px solid #D4AF37" } : {}) }} />
@@ -141,38 +214,101 @@ export default function InboxList() {
                         {(other.displayName || "?").charAt(0).toUpperCase()}
                       </div>
                   }
-                  {isCoach && (
-                    <div style={s.coachBadge}>🎓</div>
-                  )}
+                  {isCoach && <div style={s.coachBadge}>🎓</div>}
                   {!isCoach && unread > 0 && <div style={s.unreadDot} />}
                 </div>
 
-                {/* Text */}
                 <div style={s.rowBody}>
                   <div style={s.rowTop}>
                     <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                       <span style={{ ...s.name, ...(unread > 0 ? { color: "#fff", fontWeight: 900 } : {}) }}>
                         {other.displayName || "Fighter"}
                       </span>
-                      {isCoach && (
-                        <span style={s.coachTag}>{T.coach}</span>
-                      )}
+                      {isCoach && <span style={s.coachTag}>{T.coach}</span>}
                     </div>
                     <span style={s.time}>{formatTime(convo.lastMessageAt, locale)}</span>
                   </div>
                   <div style={{ ...s.preview, ...(unread > 0 ? { color: "rgba(255,255,255,0.7)" } : {}) }}>
-                    {convo.lastMessage
-                      ? `${isMe ? T.you : ""}${convo.lastMessage}`
-                      : T.start}
+                    {convo.lastMessage ? `${isMe ? T.you : ""}${convo.lastMessage}` : T.start}
                   </div>
                 </div>
 
-                {unread > 0 && (
-                  <div style={s.badge}>{unread > 9 ? "9+" : unread}</div>
-                )}
+                {unread > 0 && <div style={s.badge}>{unread > 9 ? "9+" : unread}</div>}
               </button>
             );
           })}
+        </div>
+      )}
+
+      {/* Compose sheet */}
+      {showCompose && (
+        <div style={s.composeOverlay} onClick={() => setShowCompose(false)}>
+          <div style={s.composeSheet} onClick={(e) => e.stopPropagation()}>
+            <div style={s.composeHandle} />
+            <div style={s.composeHeader}>
+              <span style={s.composeTitle}>{T.newMsg}</span>
+              <button type="button" onClick={() => setShowCompose(false)} style={s.composeClose}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+
+            <div style={s.composeSearchWrap}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}>
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              </svg>
+              <input
+                ref={searchRef}
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={T.searchPlaceholder}
+                style={s.composeSearch}
+              />
+              {searching && <div style={s.searchSpinner} />}
+            </div>
+
+            <div style={s.composeResults}>
+              {!search.trim() && (
+                <p style={s.composeHint}>
+                  {locale === "mn" ? "Username оруулж хэрэглэгч хайна уу" : locale === "ko" ? "유저명을 입력하세요" : "Type a username to find fighters and coaches"}
+                </p>
+              )}
+              {search.trim() && !searching && searchResults.length === 0 && (
+                <p style={s.composeHint}>{T.noResults}</p>
+              )}
+              {searchResults.map((u) => {
+                const isCoach = u.isCoach || u.coachVerified;
+                return (
+                  <button
+                    key={u.id}
+                    type="button"
+                    disabled={!!starting}
+                    onClick={() => handleStartConvo(u)}
+                    style={s.composeUserRow}
+                  >
+                    <div style={{ position: "relative", flexShrink: 0 }}>
+                      {u.photoURL || u.profileImageUrl
+                        ? <img src={u.photoURL || u.profileImageUrl} alt="" style={{ width: 42, height: 42, borderRadius: "50%", objectFit: "cover", display: "block", border: isCoach ? "2px solid #D4AF37" : "none" }} />
+                        : <div style={{ width: 42, height: 42, borderRadius: "50%", background: "#1a1a1a", border: isCoach ? "2px solid #D4AF37" : "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 900, color: "#fff" }}>
+                            {(u.displayName || u.username || "?").charAt(0).toUpperCase()}
+                          </div>
+                      }
+                    </div>
+                    <div style={{ flex: 1, textAlign: "left" }}>
+                      <div style={{ fontSize: 14, fontWeight: 800, color: "#fff" }}>{u.displayName || u.username}</div>
+                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.38)", marginTop: 1 }}>
+                        @{u.username}{isCoach ? ` · ${T.coach}` : ""}
+                      </div>
+                    </div>
+                    {starting === u.id
+                      ? <span style={{ fontSize: 13, color: "rgba(255,255,255,0.3)" }}>…</span>
+                      : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round"><path d="m9 18 6-6-6-6"/></svg>
+                    }
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       )}
 
@@ -185,6 +321,7 @@ const s = {
   page: { minHeight: "100dvh", background: "#070707", color: "#fff", fontFamily: "system-ui, sans-serif", display: "flex", flexDirection: "column", paddingBottom: "calc(64px + env(safe-area-inset-bottom))" },
   header: { position: "sticky", top: 0, zIndex: 20, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "calc(16px + env(safe-area-inset-top)) 16px 14px", background: "rgba(7,7,7,0.96)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.06)" },
   backBtn: { width: 40, height: 40, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.7)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  composeBtn: { width: 40, height: 40, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.8)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
   title: { fontSize: 16, fontWeight: 900, color: "#fff", letterSpacing: -0.2 },
   list: { display: "flex", flexDirection: "column" },
   row: { display: "flex", alignItems: "center", gap: 13, padding: "13px 16px", background: "transparent", border: "none", borderBottom: "1px solid rgba(255,255,255,0.04)", cursor: "pointer", width: "100%", textAlign: "left", WebkitTapHighlightColor: "transparent" },
@@ -192,18 +329,31 @@ const s = {
   avatarWrap: { position: "relative", flexShrink: 0 },
   avatar: { width: 48, height: 48, borderRadius: "50%", objectFit: "cover", display: "block", background: "#1a1a1a" },
   avatarFallback: { width: 48, height: 48, borderRadius: "50%", background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 900, color: "#fff" },
-  coachBadge: { position: "absolute", bottom: -2, right: -2, width: 18, height: 18, borderRadius: "50%", background: "#D4AF37", border: "2px solid #070707", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9 },
-  unreadDot: { position: "absolute", bottom: 1, right: 1, width: 11, height: 11, borderRadius: "50%", background: "#C1121F", border: "2px solid #070707" },
+  coachBadge: { position: "absolute", bottom: -2, right: -2, width: 18, height: 18, borderRadius: "50%", background: GOLD, border: "2px solid #070707", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9 },
+  unreadDot: { position: "absolute", bottom: 1, right: 1, width: 11, height: 11, borderRadius: "50%", background: RED, border: "2px solid #070707" },
   rowBody: { flex: 1, minWidth: 0 },
   rowTop: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 3 },
   name: { fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.85)", lineHeight: 1 },
-  coachTag: { fontSize: 9, fontWeight: 900, color: "#D4AF37", background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 999, padding: "1px 5px", letterSpacing: 0.3 },
+  coachTag: { fontSize: 9, fontWeight: 900, color: GOLD, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 999, padding: "1px 5px", letterSpacing: 0.3 },
   time: { fontSize: 11, color: "rgba(255,255,255,0.3)", fontWeight: 600, flexShrink: 0 },
   preview: { fontSize: 13, color: "rgba(255,255,255,0.38)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", lineHeight: 1.3 },
-  badge: { flexShrink: 0, minWidth: 20, height: 20, borderRadius: 999, background: "#C1121F", color: "#fff", fontSize: 10, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 5px" },
+  badge: { flexShrink: 0, minWidth: 20, height: 20, borderRadius: 999, background: RED, color: "#fff", fontSize: 10, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 5px" },
   empty: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 32px", gap: 12 },
   emptyIcon: { fontSize: 52, marginBottom: 4 },
   emptyTitle: { margin: 0, fontSize: 17, fontWeight: 900, color: "#fff" },
   emptySub: { margin: 0, fontSize: 13, color: "rgba(255,255,255,0.38)", textAlign: "center", lineHeight: 1.6, maxWidth: 280 },
   findCoachBtn: { padding: "11px 24px", borderRadius: 999, border: "none", background: "linear-gradient(135deg, #C1121F, #7d0812)", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", marginTop: 4 },
+  // Compose sheet
+  composeOverlay: { position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", display: "flex", alignItems: "flex-end" },
+  composeSheet: { width: "100%", maxHeight: "85dvh", background: "#0f0f0f", borderRadius: "24px 24px 0 0", border: "1px solid rgba(255,255,255,0.08)", borderBottom: "none", display: "flex", flexDirection: "column", animation: "sheetUp 0.28s cubic-bezier(0.25,0.46,0.45,0.94) forwards", paddingBottom: "env(safe-area-inset-bottom)" },
+  composeHandle: { width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.15)", margin: "12px auto 0" },
+  composeHeader: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px 10px" },
+  composeTitle: { fontSize: 15, fontWeight: 900, color: "#fff" },
+  composeClose: { width: 30, height: 30, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.6)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
+  composeSearchWrap: { display: "flex", alignItems: "center", gap: 10, margin: "0 16px 6px", padding: "10px 14px", borderRadius: 14, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)" },
+  composeSearch: { flex: 1, background: "none", border: "none", outline: "none", color: "#fff", fontSize: 14, fontFamily: "system-ui, sans-serif" },
+  searchSpinner: { width: 14, height: 14, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.15)", borderTopColor: "rgba(255,255,255,0.6)", animation: "spin 0.7s linear infinite", flexShrink: 0 },
+  composeResults: { flex: 1, overflowY: "auto", padding: "4px 0 12px" },
+  composeHint: { margin: "24px 0", fontSize: 13, color: "rgba(255,255,255,0.3)", textAlign: "center" },
+  composeUserRow: { display: "flex", alignItems: "center", gap: 12, padding: "11px 18px", width: "100%", background: "none", border: "none", cursor: "pointer", WebkitTapHighlightColor: "transparent" },
 };

@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
-  collection, getDocs, query, where,
+  collection, getDocs, limit, query, where,
   addDoc, deleteDoc, doc, updateDoc,
   serverTimestamp, arrayUnion,
 } from "firebase/firestore";
@@ -11,6 +11,9 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale, translate } from "@/lib/i18n";
 import BottomNav from "@/components/BottomNav";
+import SkeletonBlock from "@/components/SkeletonBlock";
+import { RED, GOLD } from "@/lib/tokens";
+import { snapToDocs } from "@/lib/firestore";
 
 const DEMO_PROGRAMS = [
   {
@@ -21,7 +24,7 @@ const DEMO_PROGRAMS = [
     level: "beginner",
     category: "Boxing",
     emoji: "🥊",
-    color: "#C1121F",
+    color: RED,
     sessions: [
       { name: "Warm-up & Footwork", duration: "10 min" },
       { name: "Jab–Cross Drill", duration: "15 min" },
@@ -36,7 +39,7 @@ const DEMO_PROGRAMS = [
     level: "intermediate",
     category: "Conditioning",
     emoji: "💪",
-    color: "#D4AF37",
+    color: GOLD,
     sessions: [
       { name: "HIIT Cardio", duration: "15 min" },
       { name: "Core Circuit", duration: "12 min" },
@@ -60,7 +63,7 @@ const DEMO_PROGRAMS = [
   },
 ];
 
-const LEVEL_COLOR = { beginner: "#34D399", intermediate: "#D4AF37", advanced: "#C1121F" };
+const LEVEL_COLOR = { beginner: "#34D399", intermediate: GOLD, advanced: RED };
 
 function getLocalDateKey(date = new Date()) {
   const y = date.getFullYear();
@@ -69,7 +72,7 @@ function getLocalDateKey(date = new Date()) {
   return `${y}-${m}-${d}`;
 }
 
-function ProgressRing({ pct = 0, size = 56, stroke = 5, color = "#C1121F" }) {
+function ProgressRing({ pct = 0, size = 56, stroke = 5, color = RED }) {
   const r = (size - stroke * 2) / 2;
   const circ = 2 * Math.PI * r;
   const offset = circ * (1 - Math.min(1, pct / 100));
@@ -91,9 +94,6 @@ function ProgressRing({ pct = 0, size = 56, stroke = 5, color = "#C1121F" }) {
   );
 }
 
-function SkeletonBlock({ height = 80, radius = 14 }) {
-  return <div className="shimmer" style={{ height, borderRadius: radius }} />;
-}
 
 export default function ProgramsPage() {
   const params = useParams();
@@ -122,8 +122,8 @@ export default function ProgramsPage() {
 
     async function load() {
       try {
-        const progSnap = await getDocs(collection(db, "training_programs"));
-        const progDocs = progSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        const progSnap = await getDocs(query(collection(db, "training_programs"), limit(50)));
+        const progDocs = snapToDocs(progSnap);
         const allPrograms = progDocs.length > 0 ? progDocs : DEMO_PROGRAMS;
         if (!active) return;
         setPrograms(allPrograms);
@@ -234,11 +234,15 @@ export default function ProgramsPage() {
   return (
     <div style={s.page}>
       <header style={s.header}>
-        <button type="button" style={s.backBtn} onClick={() => router.back()}>←</button>
+        <button type="button" style={s.backBtn} onClick={() => router.back()} aria-label="Back">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
         <div>
           <p style={s.kicker}>GAVANA BOXING</p>
           <h1 style={s.title}>
-            {locale === "mn" ? "Хөтөлбөр" : locale === "ko" ? "트레이닝 프로그램" : "Training Programs"}
+            {t("programsTitle")}
           </h1>
         </div>
       </header>
@@ -253,10 +257,10 @@ export default function ProgramsPage() {
           <span style={{ fontSize: 28 }}>🤖</span>
           <div style={{ textAlign: "left" }}>
             <div style={{ fontSize: 13, fontWeight: 900, color: "#fff" }}>
-              {locale === "mn" ? "AI Тренинг Зохиогч" : locale === "ko" ? "AI 운동 플래너" : "AI Workout Builder"}
+              {t("programsAiBuilder")}
             </div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 2 }}>
-              {locale === "mn" ? "Чиний зорилгод тохирсон хөтөлбөр →" : locale === "ko" ? "맞춤 주간 플랜 만들기 →" : "Build a personalized weekly plan →"}
+              {t("programsAiBuilderCta")}
             </div>
           </div>
           <span style={{ marginLeft: "auto", fontSize: 16, color: "rgba(212,175,55,0.7)" }}>›</span>
@@ -276,7 +280,7 @@ export default function ProgramsPage() {
           {enrolledPrograms.length > 0 && (
             <section style={s.section}>
               <h2 style={s.sectionTitle}>
-                {locale === "mn" ? "Миний хөтөлбөр" : locale === "ko" ? "내 프로그램" : "My Programs"}
+                {t("programsMy")}
               </h2>
               {enrolledPrograms.map((program) => {
                 const enrollment = enrollments[program.id];
@@ -285,7 +289,7 @@ export default function ProgramsPage() {
                 const pct = Math.round((completedDays.length / total) * 100);
                 const streak = enrollment?.streak || 0;
                 const doneToday = completedDays.includes(todayKey);
-                const color = program.color || LEVEL_COLOR[program.level] || "#C1121F";
+                const color = program.color || LEVEL_COLOR[program.level] || RED;
 
                 return (
                   <div key={program.id} style={{ ...s.enrolledCard, borderLeft: `3px solid ${color}` }}>
@@ -294,11 +298,11 @@ export default function ProgramsPage() {
                         <p style={{ margin: 0, fontSize: 18 }}>{program.emoji || "🥊"}</p>
                         <p style={s.enrolledTitle}>{program.title}</p>
                         <p style={{ margin: "2px 0 0", fontSize: 11, color: "#888" }}>
-                          {completedDays.length}/{total} {locale === "mn" ? "өдөр" : locale === "ko" ? "일" : "days"}
+                          {completedDays.length}/{total} {t("programsDaysUnit")}
                         </p>
                         {streak > 0 && (
                           <div style={s.streakBadge}>
-                            🔥 {streak} {locale === "mn" ? "өдрийн дараалал" : locale === "ko" ? "일 연속" : "day streak"}
+                            🔥 {streak} {t("programsDayStreak")}
                           </div>
                         )}
                       </div>
@@ -316,12 +320,10 @@ export default function ProgramsPage() {
                         onClick={() => { if (!doneToday) { setTodayChecked({}); setSelectedProgram(program); } }}
                         disabled={doneToday}
                       >
-                        {doneToday
-                          ? (locale === "mn" ? "✓ Өнөөдөр дууслаа" : locale === "ko" ? "✓ 오늘 완료" : "✓ Done today")
-                          : (locale === "mn" ? "Үргэлжлүүлэх →" : locale === "ko" ? "계속하기 →" : "Continue →")}
+                        {doneToday ? t("programsDoneToday") : t("programsContinue")}
                       </button>
                       <button type="button" style={s.unenrollBtn} onClick={() => handleUnenroll(program.id)}>
-                        {locale === "mn" ? "Гарах" : locale === "ko" ? "탈퇴" : "Leave"}
+                        {t("programsLeave")}
                       </button>
                     </div>
                   </div>
@@ -334,13 +336,12 @@ export default function ProgramsPage() {
           {discoverPrograms.length > 0 && (
             <section style={s.section}>
               <h2 style={s.sectionTitle}>
-                {locale === "mn" ? "Хөтөлбөр сонгох" : locale === "ko" ? "프로그램 찾기" : "Discover Programs"}
+                {t("programsDiscover")}
               </h2>
               {discoverPrograms.map((program) => {
-                const color = program.color || LEVEL_COLOR[program.level] || "#C1121F";
-                const levelLabel = program.level
-                  ? program.level.charAt(0).toUpperCase() + program.level.slice(1)
-                  : "";
+                const color = program.color || LEVEL_COLOR[program.level] || RED;
+                const levelKeyMap = { beginner: "levelBeginner", intermediate: "levelIntermediate", advanced: "levelAdvanced" };
+                const levelLabel = program.level ? t(levelKeyMap[program.level] || program.level) : "";
                 return (
                   <div key={program.id} style={{ ...s.discoverCard, borderLeft: `3px solid ${color}` }}>
                     <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
@@ -357,7 +358,7 @@ export default function ProgramsPage() {
                             <span style={s.metaChip}>{program.category}</span>
                           )}
                           <span style={s.metaChip}>
-                            📅 {program.duration || program.durationDays || 30} {locale === "mn" ? "өдөр" : locale === "ko" ? "일" : "d"}
+                            📅 {program.duration || program.durationDays || 30} {t("programsDayShort")}
                           </span>
                         </div>
                         {program.description && (
@@ -373,9 +374,7 @@ export default function ProgramsPage() {
                       onClick={() => handleEnroll(program)}
                       disabled={!!enrolling}
                     >
-                      {enrolling === program.id
-                        ? "…"
-                        : (locale === "mn" ? "Бүртгүүлэх →" : locale === "ko" ? "등록하기 →" : "Enroll →")}
+                      {enrolling === program.id ? "…" : t("programsEnroll")}
                     </button>
                   </div>
                 );
@@ -387,7 +386,7 @@ export default function ProgramsPage() {
             <div style={s.empty}>
               <p style={{ fontSize: 40, margin: 0 }}>🥊</p>
               <p style={{ color: "#666", margin: "12px 0 0", fontSize: 14 }}>
-                {locale === "mn" ? "Хөтөлбөр байхгүй байна" : locale === "ko" ? "프로그램이 없습니다" : "No programs available yet"}
+                {t("programsNone")}
               </p>
             </div>
           )}
@@ -403,7 +402,7 @@ export default function ProgramsPage() {
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16 }}>
               <div>
                 <p style={s.sheetKicker}>
-                  {locale === "mn" ? "Өнөөдрийн хичээл" : locale === "ko" ? "오늘의 세션" : "Today's Sessions"}
+                  {t("programsTodaySessions")}
                 </p>
                 <p style={s.sheetTitle}>{selectedProgram.title}</p>
               </div>
@@ -446,15 +445,13 @@ export default function ProgramsPage() {
               type="button"
               style={{
                 ...s.completeDayBtn,
-                background: allSessionsDone ? "#34D399" : "#C1121F",
+                background: allSessionsDone ? "#34D399" : RED,
                 opacity: completingDay ? 0.6 : 1,
               }}
               onClick={handleCompleteDay}
               disabled={completingDay}
             >
-              {completingDay
-                ? "…"
-                : (locale === "mn" ? "🏆 Өдрийг дуусгах" : locale === "ko" ? "🏆 오늘 완료" : "🏆 Complete Day")}
+              {completingDay ? "…" : t("programsCompleteDay")}
             </button>
           </div>
         </div>
@@ -488,13 +485,18 @@ const s = {
     zIndex: 10,
   },
   backBtn: {
-    background: "none",
-    border: "none",
+    width: 40,
+    height: 40,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "rgba(255,255,255,0.055)",
+    border: "1px solid rgba(255,255,255,0.12)",
     color: "#fff",
-    fontSize: 20,
+    borderRadius: 10,
     cursor: "pointer",
-    padding: "4px 8px",
-    borderRadius: 8,
+    padding: 0,
+    flexShrink: 0,
   },
   kicker: {
     margin: 0,
@@ -502,7 +504,7 @@ const s = {
     fontWeight: 900,
     letterSpacing: 2,
     textTransform: "uppercase",
-    color: "#D4AF37",
+    color: GOLD,
   },
   title: {
     margin: "2px 0 0",

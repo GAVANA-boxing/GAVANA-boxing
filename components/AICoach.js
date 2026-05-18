@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import KnowledgeLibrary from "@/components/KnowledgeLibrary";
+import { RED, GOLD } from "@/lib/tokens";
 
 export default function AICoach() {
   const pathname = usePathname();
@@ -22,7 +23,7 @@ export default function AICoach() {
       name: t("drillSergeant"),
       icon: "!",
       label: t("intense"),
-      color: "#C1121F",
+      color: RED,
       quickActions: [t("drillQuick1"), t("drillQuick2"), t("drillQuick3")],
     },
     {
@@ -38,7 +39,7 @@ export default function AICoach() {
       name: t("analyst"),
       icon: "%",
       label: t("data"),
-      color: "#D4AF37",
+      color: GOLD,
       quickActions: [t("analystQuick1"), t("analystQuick2"), t("analystQuick3")],
     },
   ];
@@ -295,7 +296,7 @@ const styles = {
     gap: 6,
     padding: "10px 0",
     borderRadius: 9,
-    background: "#C1121F",
+    background: RED,
     border: "none",
     color: "#fff",
     fontSize: 13,
@@ -428,7 +429,7 @@ const styles = {
     maxWidth: "74%",
     padding: "11px 15px",
     borderRadius: "18px 18px 4px 18px",
-    background: "#C1121F",
+    background: RED,
     color: "#fff",
     fontSize: 14,
     lineHeight: 1.5,

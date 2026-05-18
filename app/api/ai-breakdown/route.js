@@ -1,7 +1,9 @@
 // app/api/ai-breakdown/route.js
-// AI Breakdown for GAVANA reels — OpenAI + rule-based fallback
+// AI Breakdown for GAVANA reels — Anthropic Claude + rule-based fallback
 
-const MODEL = "gpt-4.1-mini";
+const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
+const ANTHROPIC_VERSION = "2023-06-01";
+const MODEL = "claude-haiku-4-5-20251001";
 
 let loggedMissingKey = false;
 let loggedApiFailure = false;
@@ -162,9 +164,15 @@ function buildFallback(reel) {
   };
 }
 
-// ─── OpenAI call ──────────────────────────────────────────────────────────────
+// ─── Anthropic Claude call ────────────────────────────────────────────────────
 
-async function callOpenAI(reel) {
+const LANG_INSTRUCTION = {
+  mn: 'Write all string values in Mongolian. Keep boxing terms (jab, cross, hook, combo, guard, footwork, pivot, slip) in English — they are natural in Mongolian boxing culture. Example: "Jab хурдтай, guard буцааж татаарай."',
+  ko: "Write all string values in Korean. Keep widely-used boxing terms (jab, cross, hook, combo, guard, footwork) in English when it sounds more natural.",
+  en: "Write all string values in English.",
+};
+
+async function callClaude(reel, locale = "en") {
   const reelContext = [
     `Content type: ${reel.contentType || reel.type || "training"}`,
     reel.category ? `Category: ${reel.category}` : null,
@@ -173,11 +181,14 @@ async function callOpenAI(reel) {
     reel.difficulty ? `Difficulty: ${reel.difficulty}` : null,
   ].filter(Boolean).join("\n");
 
+  const langNote = LANG_INSTRUCTION[locale] || LANG_INSTRUCTION.en;
+
   const system = `You are a sharp boxing analyst for GAVANA — a combat sports platform.
 Analyze a reel and return a JSON breakdown.
 Tone: fighter-like, concise, modern. NOT textbook. NOT robotic.
 Think: "sharp coach watching ringside".
-Always return valid JSON with exactly these keys:
+Language rule: ${langNote}
+Return ONLY valid JSON with exactly these keys, no other text:
 {
   "style": string (e.g. "Counter Puncher"),
   "styleEmoji": string (single emoji),
@@ -190,33 +201,33 @@ Always return valid JSON with exactly these keys:
   "nextDrill": string (specific drill, 1 line)
 }`;
 
-  const user = `Reel to analyze:\n${reelContext}\n\nReturn breakdown JSON only.`;
+  const userMessage = `Reel to analyze:\n${reelContext}\n\nReturn breakdown JSON only.`;
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+  const response = await fetch(ANTHROPIC_URL, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      "content-type": "application/json",
+      "x-api-key": process.env.ANTHROPIC_API_KEY,
+      "anthropic-version": ANTHROPIC_VERSION,
     },
     body: JSON.stringify({
       model: MODEL,
-      temperature: 0.7,
       max_tokens: 400,
-      response_format: { type: "json_object" },
+      system,
       messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
+        { role: "user", content: userMessage },
+        { role: "assistant", content: "{" },
       ],
     }),
   });
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error(err?.error?.message || `OpenAI ${response.status}`);
+    throw new Error(err?.error?.message || `Anthropic ${response.status}`);
   }
 
   const data = await response.json();
-  const text = data?.choices?.[0]?.message?.content?.trim();
+  const text = "{" + (data?.content?.[0]?.text?.trim() || "");
   const parsed = JSON.parse(text);
   return { ...parsed, isFallback: false };
 }
@@ -225,23 +236,31 @@ Always return valid JSON with exactly these keys:
 
 export async function POST(req) {
   try {
-    const { reel } = await req.json();
-    if (!reel) return Response.json({ error: "Missing reel" }, { status: 400 });
+    const body = await req.json();
+    const { reel, locale } = body;
+    if (!reel || typeof reel !== "object") return Response.json({ error: "Missing reel" }, { status: 400 });
 
-    if (!process.env.OPENAI_API_KEY) {
+    // Truncate user-supplied strings to prevent oversized Claude prompts
+    const MAX = 400;
+    if (reel.description) reel.description = String(reel.description).slice(0, MAX);
+    if (reel.caption) reel.caption = String(reel.caption).slice(0, MAX);
+    if (reel.category) reel.category = String(reel.category).slice(0, 80);
+    if (reel.contentType) reel.contentType = String(reel.contentType).slice(0, 80);
+
+    if (!process.env.ANTHROPIC_API_KEY) {
       if (!loggedMissingKey) {
-        console.warn("[ai-breakdown] No OPENAI_API_KEY — using rule-based breakdown");
+        console.warn("[ai-breakdown] No ANTHROPIC_API_KEY — using rule-based breakdown");
         loggedMissingKey = true;
       }
       return Response.json(buildFallback(reel));
     }
 
     try {
-      const result = await callOpenAI(reel);
+      const result = await callClaude(reel, locale || "en");
       return Response.json(result);
     } catch (err) {
       if (!loggedApiFailure) {
-        console.warn("[ai-breakdown] OpenAI failed, using fallback:", err.message);
+        console.warn("[ai-breakdown] Anthropic failed, using fallback:", err.message);
         loggedApiFailure = true;
       }
       return Response.json(buildFallback(reel));

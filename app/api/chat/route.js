@@ -1,11 +1,11 @@
 // app/api/chat/route.js
 import { getLocale } from "@/lib/i18n";
 
-const OPENAI_CHAT_COMPLETIONS_URL = "https://api.openai.com/v1/chat/completions";
-const MODEL = "gpt-4.1-mini";
+const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
+const ANTHROPIC_VERSION = "2023-06-01";
+const MODEL = "claude-haiku-4-5-20251001";
 
 let loggedMissingKey = false;
-let loggedInvalidKey = false;
 let loggedApiFailure = false;
 
 // GAVANA platform context injected into every request
@@ -153,67 +153,70 @@ function getFallback(locale, messages) {
 }
 
 export async function POST(req) {
-  const { messages, persona = "drill", locale = "en" } = await req.json();
+  let body;
+  try { body = await req.json(); } catch { return Response.json({ error: "Invalid JSON" }, { status: 400 }); }
+  let { messages, persona = "drill", locale = "en" } = body;
+
+  // Cap message history to prevent excessively large Claude context calls
+  const MAX_MESSAGES = 20;
+  const MAX_MSG_LEN = 800;
+  if (!Array.isArray(messages)) messages = [];
+  messages = messages.slice(-MAX_MESSAGES).map((m) => ({
+    ...m,
+    content: typeof m?.content === "string" ? m.content.slice(0, MAX_MSG_LEN) : m?.content,
+  }));
   const safeLocale = getLocale(locale);
   const selectedPersona = PERSONAS[persona] || PERSONAS.drill;
   const languageInstruction = LANGUAGE_INSTRUCTIONS[safeLocale] || LANGUAGE_INSTRUCTIONS.en;
   const normalizedMessages = normalizeMessages(messages);
   const fallbackText = getFallback(safeLocale, messages);
 
-  if (!process.env.OPENAI_API_KEY) {
+  if (!process.env.ANTHROPIC_API_KEY) {
     if (!loggedMissingKey) {
-      console.warn("[chat/route] OPENAI_API_KEY is not set; returning fallback response.");
+      console.warn("[chat/route] ANTHROPIC_API_KEY is not set; returning fallback response.");
       loggedMissingKey = true;
     }
     return textResponse(fallbackText, true);
   }
 
+  const systemPrompt = [
+    selectedPersona.systemPrompt,
+    GAVANA_CONTEXT,
+    "The following language rule overrides all persona style and prior instructions.",
+    languageInstruction,
+  ].join("\n\n");
+
   try {
-    const response = await fetch(OPENAI_CHAT_COMPLETIONS_URL, {
+    const response = await fetch(ANTHROPIC_URL, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "content-type": "application/json",
+        "x-api-key": process.env.ANTHROPIC_API_KEY,
+        "anthropic-version": ANTHROPIC_VERSION,
       },
       body: JSON.stringify({
         model: MODEL,
-        temperature: 0.75,
         max_tokens: 600,
-        messages: [
-          {
-            role: "system",
-            content: [
-              selectedPersona.systemPrompt,
-              GAVANA_CONTEXT,
-              "The following language rule overrides all persona style and prior instructions.",
-              languageInstruction,
-            ].join("\n\n"),
-          },
-          ...normalizedMessages,
-        ],
+        system: systemPrompt,
+        messages: normalizedMessages,
       }),
     });
 
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      if (response.status === 401) {
-        if (!loggedInvalidKey) {
-          console.warn("[chat/route] OPENAI_API_KEY was rejected; returning fallback response.");
-          loggedInvalidKey = true;
-        }
-      } else if (!loggedApiFailure) {
-        console.warn("[chat/route] OpenAI request failed; returning fallback response.", data?.error?.message || response.status);
+      if (!loggedApiFailure) {
+        console.warn("[chat/route] Anthropic request failed; returning fallback.", data?.error?.message || response.status);
         loggedApiFailure = true;
       }
       return textResponse(fallbackText, true);
     }
 
-    const text = data?.choices?.[0]?.message?.content?.trim();
+    const text = data?.content?.[0]?.text?.trim();
     return textResponse(text || fallbackText, !text);
   } catch (err) {
     if (!loggedApiFailure) {
-      console.warn("[chat/route] OpenAI request failed; returning fallback response.", err?.message || err);
+      console.warn("[chat/route] Anthropic request error; returning fallback.", err?.message || err);
       loggedApiFailure = true;
     }
     return textResponse(fallbackText, true);

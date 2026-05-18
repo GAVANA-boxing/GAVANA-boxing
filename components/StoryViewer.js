@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { addDoc, collection, getDocs, query, serverTimestamp, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { translate } from "@/lib/i18n";
+import { RED, GOLD } from "@/lib/tokens";
 
 function getTypeLabel(type, locale) {
   const labels = {
@@ -33,7 +34,7 @@ function ProgressCard({ data = {} }) {
 const pc = {
   wrap: { display: "flex", flexDirection: "column", alignItems: "center", gap: 14, padding: 32 },
   type: { margin: 0, fontSize: 12, fontWeight: 900, color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: 2 },
-  value: { margin: 0, fontSize: 64, fontWeight: 1000, color: "#D4AF37", lineHeight: 1 },
+  value: { margin: 0, fontSize: 64, fontWeight: 1000, color: GOLD, lineHeight: 1 },
   delta: { margin: 0, fontSize: 22, fontWeight: 900, color: "#34D399" },
   caption: { margin: 0, fontSize: 15, color: "rgba(255,255,255,0.7)", textAlign: "center", maxWidth: 280, lineHeight: 1.4 },
 };
@@ -336,7 +337,7 @@ const s = {
   },
   sendBtn: {
     height: 44, padding: "0 18px", border: "none", borderRadius: 22,
-    background: "#C1121F", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
+    background: RED, color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
     boxShadow: "0 4px 16px rgba(193,18,31,0.4)",
   },
 };

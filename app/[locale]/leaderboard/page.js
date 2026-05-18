@@ -6,8 +6,9 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
+import SkeletonBlock from "@/components/SkeletonBlock";
 import { getLocale, translate } from "@/lib/i18n";
-import { calculateUserXP, getFighterRank } from "@/lib/xp";
+import { getFighterRank } from "@/lib/xp";
 
 function useWeeklyCountdown() {
   const [ms, setMs] = useState(null);
@@ -38,6 +39,7 @@ function formatCountdown(ms, locale) {
 import RankIcon from "@/components/RankIcon";
 import { getCurrentSeasonId, getSeasonLabel } from "@/lib/season";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
+import { RED, GOLD } from "@/lib/tokens";
 
 function getRankMedal(rank) {
   if (rank === 1) return "🥇";
@@ -56,9 +58,9 @@ function formatCompact(n) {
 function getEntryBadges({ entry, rank, weeklyEntries, streakEntries, improvementEntries }) {
   const badges = [];
   if (weeklyEntries[0]?.userId === entry.userId)
-    badges.push({ icon: "👑", label: "Weekly Champ", color: "#D4AF37" });
+    badges.push({ icon: "👑", label: "Weekly Champ", color: GOLD });
   if (rank <= 3)
-    badges.push({ icon: "🏆", label: "Top 3", color: "#D4AF37" });
+    badges.push({ icon: "🏆", label: "Top 3", color: GOLD });
   else if (rank <= 10)
     badges.push({ icon: "🏅", label: "Top 10", color: "#60A5FA" });
   if (streakEntries[0]?.userId === entry.userId && streakEntries[0]?.bestScore >= 7)
@@ -70,7 +72,7 @@ function getEntryBadges({ entry, rank, weeklyEntries, streakEntries, improvement
 }
 
 function getScoreColor(score) {
-  if (score >= 9) return "#D4AF37";
+  if (score >= 9) return GOLD;
   if (score >= 7) return "#60A5FA";
   if (score >= 5) return "#A78BFA";
   return "#FB923C";
@@ -120,21 +122,29 @@ export default function LeaderboardPage() {
   const [weightFilter, setWeightFilter] = useState("all");
   const [reelsStats, setReelsStats] = useState({});
   const [shareCopied, setShareCopied] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(20);
   const weeklyCountdownMs = useWeeklyCountdown();
 
   const currentSeasonId = useMemo(() => getCurrentSeasonId(), []);
   const seasonLabel = useMemo(() => getSeasonLabel(currentSeasonId), [currentSeasonId]);
+
+  useEffect(() => { setVisibleCount(20); }, [leaderboardTab, archetypeFilter, weightFilter]);
 
   useEffect(() => {
     let active = true;
 
     async function load() {
       try {
-        const [snapshot, challengeSnapshot, usersSnapshot, trainingSnapshot, reelsSnapshot] = await Promise.all([
-          getDocs(collection(db, "ai_feedback")),
-          getDocs(collection(db, "challenge_results")),
+        const twentyEightDaysAgo = new Date(Date.now() - 28 * 86_400_000);
+
+        // challenge_results: current season only (not all history)
+        // training_sessions: last 28 days only (improvement tab needs 14+14 days)
+        // reels: all (needed for views/likes leaderboard)
+        // ai_feedback: skipped — use stored xp field from user profiles instead
+        const [challengeSnapshot, usersSnapshot, trainingSnapshot, reelsSnapshot] = await Promise.all([
+          getDocs(query(collection(db, "challenge_results"), where("seasonId", "==", currentSeasonId))),
           getDocs(collection(db, "users")),
-          getDocs(collection(db, "training_sessions")),
+          getDocs(query(collection(db, "training_sessions"), where("createdAt", ">", twentyEightDaysAgo))),
           getDocs(collection(db, "reels")),
         ]);
 
@@ -158,23 +168,13 @@ export default function LeaderboardPage() {
           }
         });
 
+        // Build userMap from stored profile XP (avoids loading entire ai_feedback collection)
         const userMap = {};
-        snapshot.forEach((docSnap) => {
-          const d = docSnap.data();
-          if (!d.userId || d.score == null) return;
-          const uid = d.userId;
-          const score = Number(d.score);
-          if (Number.isNaN(score)) return;
-
-          if (!userMap[uid]) {
-            userMap[uid] = { userId: uid, docs: [], latestTs: 0, latestScore: 0 };
-          }
-          userMap[uid].docs.push({ score: d.score, createdAt: d.createdAt });
-
-          const ts = d.createdAt?.toMillis?.() || 0;
-          if (ts >= userMap[uid].latestTs) {
-            userMap[uid].latestTs = ts;
-            userMap[uid].latestScore = score;
+        Object.values(profileMap).forEach((p) => {
+          const uid = p.userId;
+          const storedXP = Number(p.xp) || 0;
+          if (storedXP > 0 || p.displayName || p.username) {
+            userMap[uid] = { userId: uid, xp: storedXP, challengeScores: [], latestTs: 0, latestScore: 0 };
           }
         });
 
@@ -182,13 +182,11 @@ export default function LeaderboardPage() {
           const uid = r.userId;
           const score = r.score;
           if (Number.isNaN(score)) return;
-
           if (!userMap[uid]) {
-            userMap[uid] = { userId: uid, docs: [], challengeScores: [], latestTs: 0, latestScore: 0 };
+            userMap[uid] = { userId: uid, xp: Number(profileMap[uid]?.xp) || 0, challengeScores: [], latestTs: 0, latestScore: 0 };
           }
           if (!userMap[uid].challengeScores) userMap[uid].challengeScores = [];
           userMap[uid].challengeScores.push(score);
-
           const ts = r.createdAt?.toMillis?.() || 0;
           if (ts >= userMap[uid].latestTs) {
             userMap[uid].latestTs = ts;
@@ -196,25 +194,15 @@ export default function LeaderboardPage() {
           }
         });
 
-        Object.keys(profileMap).forEach((uid) => {
-          const storedXP = Number(profileMap[uid]?.xp) || 0;
-          if (storedXP > 0 && !userMap[uid]) {
-            userMap[uid] = { userId: uid, docs: [], challengeScores: [], latestTs: 0, latestScore: 0 };
-          }
-        });
-
         const sorted = Object.values(userMap)
           .map((u) => {
-            const aiScores = u.docs.map((d) => Number(d.score)).filter((s) => Number.isFinite(s));
-            const scores = [...aiScores, ...(u.challengeScores || [])].filter((s) => Number.isFinite(s));
-            const storedChallengeXP = Number(profileMap[u.userId]?.xp) || 0;
-            const xp = storedChallengeXP + calculateUserXP({ aiFeedbackDocs: u.docs });
+            const scores = (u.challengeScores || []).filter((s) => Number.isFinite(s));
             return {
               userId: u.userId,
               bestScore: scores.length ? Math.max(...scores) : 0,
               latestScore: u.latestScore,
-              sessions: u.docs.length + (u.challengeScores || []).length,
-              xp,
+              sessions: (u.challengeScores || []).length,
+              xp: u.xp,
             };
           })
           .sort((a, b) => b.xp - a.xp || b.bestScore - a.bestScore)
@@ -402,8 +390,9 @@ export default function LeaderboardPage() {
           type="button"
           style={styles.backBtn}
           onClick={() => router.push(`/${locale}/discover`)}
+          aria-label="Back"
         >
-          {t("back")}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
         <div style={styles.headerCenter}>
           <p style={styles.eyebrow}>GAVANA BOXING</p>
@@ -458,28 +447,26 @@ export default function LeaderboardPage() {
             style={{ ...styles.tabBtn, ...(leaderboardTab === "views" ? styles.tabBtnViews : {}) }}
             onClick={() => setLeaderboardTab("views")}
           >
-            👁 {locale === "mn" ? "Үзэлт" : locale === "ko" ? "조회수" : "Views"}
+            👁 {t("lbViews")}
           </button>
           <button
             type="button"
             style={{ ...styles.tabBtn, ...(leaderboardTab === "likes" ? styles.tabBtnLikes : {}) }}
             onClick={() => setLeaderboardTab("likes")}
           >
-            ❤️ {locale === "mn" ? "Лайк" : locale === "ko" ? "좋아요" : "Likes"}
+            ❤️ {t("lbLikes")}
           </button>
         </div>
         {leaderboardTab === "week" && (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 4px 0" }}>
             <p style={{ ...styles.seasonLabel, margin: 0 }}>{seasonLabel}</p>
-            {weeklyCountdownMs !== null && (
-              <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 999, background: "rgba(193,18,31,0.1)", border: "1px solid rgba(193,18,31,0.25)" }}>
-                <span style={{ fontSize: 10 }}>⏱</span>
-                <span style={{ fontSize: 10, fontWeight: 800, color: "#F87171", letterSpacing: 0.3 }}>
-                  {locale === "mn" ? "Шинэчлэгдэнэ: " : locale === "ko" ? "리셋: " : "Resets: "}
-                  {formatCountdown(weeklyCountdownMs, locale)}
-                </span>
-              </div>
-            )}
+            <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 999, background: "rgba(193,18,31,0.1)", border: "1px solid rgba(193,18,31,0.25)" }}>
+              <span style={{ fontSize: 10 }}>⏱</span>
+              <span style={{ fontSize: 10, fontWeight: 800, color: "#F87171", letterSpacing: 0.3 }}>
+                {t("lbResets")}
+                {weeklyCountdownMs !== null ? formatCountdown(weeklyCountdownMs, locale) : "—"}
+              </span>
+            </div>
           </div>
         )}
       </div>
@@ -488,14 +475,14 @@ export default function LeaderboardPage() {
       <div style={styles.filterWrap}>
         <div style={styles.filterRow}>
           {[
-            { key: "all", label: locale === "mn" ? "🥊 Бүгд" : locale === "ko" ? "🥊 전체" : "🥊 All" },
+            { key: "all", label: t("lbAllArchetype") },
             { key: "pressure", label: `${ARCHETYPE_DISPLAY.pressure.emoji} Pressure` },
             { key: "counter",  label: `${ARCHETYPE_DISPLAY.counter.emoji} Counter` },
             { key: "technical",label: `${ARCHETYPE_DISPLAY.technical.emoji} Technical` },
             { key: "brawler",  label: `${ARCHETYPE_DISPLAY.brawler.emoji} Brawler` },
           ].map(({ key, label }) => {
             const isActive = archetypeFilter === key;
-            const color = key === "all" ? "#D4AF37" : ARCHETYPE_DISPLAY[key]?.color;
+            const color = key === "all" ? GOLD : ARCHETYPE_DISPLAY[key]?.color;
             return (
               <button
                 key={key}
@@ -527,7 +514,7 @@ export default function LeaderboardPage() {
                 ...(weightFilter === wt ? styles.filterChipActiveWeight : {}),
               }}
             >
-              {wt === "all" ? (locale === "mn" ? "Жин бүгд" : locale === "ko" ? "전체 체급" : "All weights") : `${wt}kg`}
+              {wt === "all" ? t("lbAllWeights") : `${wt}kg`}
             </button>
           ))}
         </div>
@@ -554,9 +541,9 @@ export default function LeaderboardPage() {
                 <button
                   type="button"
                   onClick={handleShareRank}
-                  style={{ padding: "4px 10px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.3)", background: "rgba(212,175,55,0.08)", color: "#D4AF37", fontSize: 11, fontWeight: 800, cursor: "pointer" }}
+                  style={{ padding: "4px 10px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.3)", background: "rgba(212,175,55,0.08)", color: GOLD, fontSize: 11, fontWeight: 800, cursor: "pointer" }}
                 >
-                  {shareCopied ? "✓" : (locale === "mn" ? "Хуваалцах" : locale === "ko" ? "공유" : "Share")}
+                  {shareCopied ? "✓" : t("lbShare")}
                 </button>
               </div>
             </div>
@@ -575,6 +562,29 @@ export default function LeaderboardPage() {
               {(currentUserWeeklyRank || currentUserAllTimeRank) && currentUserAllTimeEntry && "  ·  "}
               {currentUserAllTimeEntry && `${currentUserAllTimeEntry.xp.toLocaleString()} ${t("xpLabel")}`}
             </div>
+            {(() => {
+              const topEntry = leaderboardTab === "week" ? weeklyEntries[0] : entries[0];
+              const userScore = leaderboardTab === "week" ? (currentUserWeeklyEntry?.bestScore ?? null) : (currentUserAllTimeEntry?.bestScore ?? null);
+              const topScore = topEntry?.bestScore ?? null;
+              if (!topEntry || userScore === null || topScore === null) return null;
+              if (topEntry.userId === user?.uid) return (
+                <div style={{ marginTop: 6, fontSize: 11, fontWeight: 800, color: GOLD }}>
+                  👑 {t("lbYouAreFirst")}
+                </div>
+              );
+              const gap = Math.max(0, topScore - userScore).toFixed(1);
+              return (
+                <div style={{ marginTop: 6, fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.38)", display: "flex", alignItems: "center", gap: 4 }}>
+                  <span style={{ color: RED, fontWeight: 900 }}>-{gap}</span>
+                  <span>{t("lbPtsFromFirst")}</span>
+                  <span style={{ color: "rgba(255,255,255,0.25)" }}>· #{1}</span>
+                  <span style={{ color: "rgba(255,255,255,0.5)" }}>
+                    {profiles[topEntry.userId]?.displayName?.split(" ")[0] || profiles[topEntry.userId]?.username || "Fighter"}
+                  </span>
+                  <span style={{ color: "rgba(255,255,255,0.25)" }}>({topScore}/10)</span>
+                </div>
+              );
+            })()}
           </div>
         )}
 
@@ -608,7 +618,7 @@ export default function LeaderboardPage() {
         {loading && (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="shimmer" style={{ height: 72, borderRadius: 14, background: "rgba(255,255,255,0.06)" }} />
+              <SkeletonBlock key={i} height={72} radius={14} />
             ))}
           </div>
         )}
@@ -619,12 +629,12 @@ export default function LeaderboardPage() {
             <div style={styles.emptyIcon}>🏆</div>
             <p style={styles.emptyTitle}>
               {archetypeFilter !== "all" || weightFilter !== "all"
-                ? (locale === "mn" ? "Тохирох байлдагч олдсонгүй" : locale === "ko" ? "해당 필터에 선수 없음" : "No fighters match this filter")
+                ? t("lbNoFightersFilter")
                 : leaderboardTab === "week" ? t("seasonNoResultsThisWeek") : leaderboardTab === "improvement" ? t("lbImprovementEmpty") : leaderboardTab === "streak" ? t("lbStreakEmpty") : leaderboardTab === "friends" ? t("followingEmptyHelp") : t("leaderboardEmpty")}
             </p>
             <p style={styles.emptyText}>
               {archetypeFilter !== "all" || weightFilter !== "all"
-                ? (locale === "mn" ? "Шүүлтүүрийг өөрчлөөд дахин үзнэ үү" : locale === "ko" ? "필터를 변경해 보세요" : "Try changing or clearing the filters")
+                ? t("lbNoFightersFilterHint")
                 : t("leaderboardEmptyHelp")}
             </p>
           </div>
@@ -642,19 +652,23 @@ export default function LeaderboardPage() {
               const isFirst = rank === 1;
               const podiumH = idx === 0 ? 128 : idx === 1 ? 100 : 84;
               const medals = ["🥇", "🥈", "🥉"];
-              const colors = ["#D4AF37", "#C0C0C0", "#CD7F32"];
+              const colors = [GOLD, "#C0C0C0", "#CD7F32"];
               if (!entry) return null;
+              const avatarSize = isFirst ? 56 : 44;
+              const glowShadow = isFirst
+                ? `0 0 0 2.5px ${colors[0]}, 0 0 22px ${colors[0]}88`
+                : `0 0 8px ${colors[rank - 1]}44`;
               return (
                 <div key={rank} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer" }} onClick={() => router.push(`/${locale}/profile/${entry.userId}`)}>
-                  <span style={{ fontSize: 16 }}>{medals[rank - 1]}</span>
+                  <span style={{ fontSize: isFirst ? 20 : 16 }}>{medals[rank - 1]}</span>
                   {photo
-                    ? <img src={photo} alt="" style={{ width: isFirst ? 52 : 44, height: isFirst ? 52 : 44, borderRadius: "50%", objectFit: "cover", border: `2.5px solid ${colors[rank - 1]}`, boxShadow: `0 0 12px ${colors[rank - 1]}44` }} />
-                    : <div style={{ width: isFirst ? 52 : 44, height: isFirst ? 52 : 44, borderRadius: "50%", background: "rgba(255,255,255,0.08)", border: `2.5px solid ${colors[rank - 1]}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: isFirst ? 20 : 16, fontWeight: 900, color: "#fff" }}>{name[0]?.toUpperCase()}</div>
+                    ? <img src={photo} alt="" style={{ width: avatarSize, height: avatarSize, borderRadius: "50%", objectFit: "cover", border: `2.5px solid ${colors[rank - 1]}`, boxShadow: glowShadow }} />
+                    : <div style={{ width: avatarSize, height: avatarSize, borderRadius: "50%", background: "rgba(255,255,255,0.08)", border: `2.5px solid ${colors[rank - 1]}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: isFirst ? 22 : 16, fontWeight: 900, color: "#fff", boxShadow: glowShadow }}>{name[0]?.toUpperCase()}</div>
                   }
-                  <span style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.7)", maxWidth: 70, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>{name.split(" ")[0]}</span>
-                  <span style={{ fontSize: 11, fontWeight: 900, color: colors[rank - 1] }}>{entry.bestScore}/10</span>
-                  <div style={{ width: "100%", height: podiumH, borderRadius: "8px 8px 0 0", background: `linear-gradient(180deg, ${colors[rank - 1]}22, ${colors[rank - 1]}0a)`, border: `1px solid ${colors[rank - 1]}33`, borderBottom: "none", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ fontSize: isFirst ? 22 : 18, fontWeight: 900, color: colors[rank - 1], opacity: 0.6 }}>#{rank}</span>
+                  <span style={{ fontSize: isFirst ? 11 : 10, fontWeight: 800, color: isFirst ? "#fff" : "rgba(255,255,255,0.7)", maxWidth: 72, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>{name.split(" ")[0]}</span>
+                  <span style={{ fontSize: isFirst ? 13 : 11, fontWeight: 900, color: colors[rank - 1], textAlign: "center" }}>{entry.bestScore}/10</span>
+                  <div style={{ width: "100%", height: podiumH, borderRadius: "8px 8px 0 0", background: isFirst ? `linear-gradient(180deg, ${colors[0]}2a, ${colors[0]}08)` : `linear-gradient(180deg, ${colors[rank - 1]}18, ${colors[rank - 1]}06)`, border: `1px solid ${colors[rank - 1]}${isFirst ? "55" : "28"}`, borderBottom: "none", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: isFirst ? `0 -4px 20px ${colors[0]}22` : "none" }}>
+                    <span style={{ fontSize: isFirst ? 22 : 18, fontWeight: 900, color: colors[rank - 1], opacity: isFirst ? 0.8 : 0.5 }}>#{rank}</span>
                   </div>
                 </div>
               );
@@ -665,7 +679,7 @@ export default function LeaderboardPage() {
         {/* Leaderboard list */}
         {!loading && filteredDisplayEntries.length > 0 && (
           <div style={styles.list}>
-            {filteredDisplayEntries.map((entry, index) => {
+            {filteredDisplayEntries.slice(0, visibleCount).map((entry, index) => {
               const rank = index + 1;
               const medal = getRankMedal(rank);
               const profile = profiles[entry.userId] || {};
@@ -794,14 +808,14 @@ export default function LeaderboardPage() {
                         <div style={{ ...styles.bestScore, color: "#60A5FA" }}>
                           👁 {formatCompact(entry.bestScore)}
                         </div>
-                        <div style={styles.latestScore}>{locale === "mn" ? "нийт үзэлт" : locale === "ko" ? "총 조회수" : "total views"}</div>
+                        <div style={styles.latestScore}>{t("lbTotalViews")}</div>
                       </>
                     ) : leaderboardTab === "likes" ? (
                       <>
                         <div style={{ ...styles.bestScore, color: "#F472B6" }}>
                           ❤️ {formatCompact(entry.bestScore)}
                         </div>
-                        <div style={styles.latestScore}>{locale === "mn" ? "нийт лайк" : locale === "ko" ? "총 좋아요" : "total likes"}</div>
+                        <div style={styles.latestScore}>{t("lbTotalLikes")}</div>
                       </>
                     ) : (
                       <>
@@ -824,6 +838,15 @@ export default function LeaderboardPage() {
                 </div>
               );
             })}
+            {filteredDisplayEntries.length > visibleCount && (
+              <button
+                type="button"
+                onClick={() => setVisibleCount((c) => c + 20)}
+                style={{ width: "100%", padding: "14px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.6)", fontSize: 13, fontWeight: 800, cursor: "pointer", marginTop: 4 }}
+              >
+                {t("lbLoadMore").replace("{n}", Math.min(20, filteredDisplayEntries.length - visibleCount))}
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -854,7 +877,7 @@ const styles = {
     gridTemplateColumns: "64px 1fr 44px",
     alignItems: "center",
     gap: 12,
-    padding: "18px 16px",
+    padding: "calc(18px + env(safe-area-inset-top)) 16px 18px",
     background: "rgba(7,7,7,0.94)",
     backdropFilter: "blur(14px)",
     WebkitBackdropFilter: "blur(14px)",
@@ -865,17 +888,20 @@ const styles = {
     background: "transparent",
     color: "#fff",
     borderRadius: 10,
-    padding: "8px 10px",
+    width: 40,
+    height: 40,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     cursor: "pointer",
-    fontSize: 13,
-    fontWeight: 700,
+    flexShrink: 0,
   },
   headerCenter: {
     textAlign: "center",
   },
   eyebrow: {
     margin: 0,
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 11,
     fontWeight: 800,
     letterSpacing: 1.5,
@@ -920,7 +946,7 @@ const styles = {
   tabBtnActive: {
     background: "rgba(212,175,55,0.16)",
     border: "1px solid rgba(212,175,55,0.45)",
-    color: "#D4AF37",
+    color: GOLD,
   },
   tabBtnViews: {
     background: "rgba(96,165,250,0.16)",
@@ -996,7 +1022,7 @@ const styles = {
     fontSize: 11,
     fontWeight: 900,
     letterSpacing: 1.5,
-    color: "#D4AF37",
+    color: GOLD,
     textTransform: "uppercase",
   },
   weeklyChampionName: {
@@ -1007,7 +1033,7 @@ const styles = {
   },
   weeklyChampionScore: {
     fontSize: 14,
-    color: "#D4AF37",
+    color: GOLD,
     fontWeight: 800,
     marginTop: 2,
   },
@@ -1016,7 +1042,7 @@ const styles = {
   },
   sectionKicker: {
     margin: "0 0 4px",
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 11,
     fontWeight: 900,
     letterSpacing: 1.8,
@@ -1146,7 +1172,7 @@ const styles = {
     fontSize: 9,
     fontWeight: 900,
     letterSpacing: 1,
-    color: "#C1121F",
+    color: RED,
     verticalAlign: "middle",
   },
   username: {

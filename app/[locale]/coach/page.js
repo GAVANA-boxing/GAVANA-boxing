@@ -14,9 +14,14 @@ import {
 } from "firebase/firestore";
 import AICoach from "@/components/AICoach";
 import BottomNav from "@/components/BottomNav";
+import BottomSheet from "@/components/BottomSheet";
+import EmptyState from "@/components/EmptyState";
+import SkeletonBlock from "@/components/SkeletonBlock";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
+import { RED, GOLD } from "@/lib/tokens";
+import { snapToDocs } from "@/lib/firestore";
 
 const SPECIALTIES = [
   "Footwork", "Pressure", "Counter", "Beginners",
@@ -106,7 +111,7 @@ function CoachCard({ coach, t, locale, onRequest, requested, router }) {
               <span style={styles.cardRatingInline}>⭐ {coach.coachRating.toFixed(1)}</span>
             )}
             {Number.isFinite(coach.coachPricePerSession) && coach.coachPricePerSession > 0 && (
-              <span style={{ fontSize: 13, fontWeight: 900, color: "#D4AF37" }}>
+              <span style={{ fontSize: 13, fontWeight: 900, color: GOLD }}>
                 ${coach.coachPricePerSession}<span style={{ fontSize: 10, color: "#888", fontWeight: 600 }}>/sess</span>
               </span>
             )}
@@ -134,7 +139,7 @@ function CoachCard({ coach, t, locale, onRequest, requested, router }) {
           style={styles.viewProfileBtn}
           onClick={() => router.push(`/${locale}/coach/${coach.id}`)}
         >
-          {locale === "mn" ? "Профайл →" : locale === "ko" ? "프로필 →" : "Profile →"}
+          {t("coachProfileBtn")}
         </button>
         <button
           type="button"
@@ -144,7 +149,7 @@ function CoachCard({ coach, t, locale, onRequest, requested, router }) {
         >
           {requested
             ? t("requestSent")
-            : locale === "mn" ? "Захиалах →" : locale === "ko" ? "예약하기 →" : "Book Session →"}
+            : t("coachBookSession")}
         </button>
       </div>
     </div>
@@ -172,7 +177,7 @@ function MyRequestCard({ req, coachProfile, locale, router }) {
           <div style={styles.cardNameRow}>
             <span style={styles.cardName}>{name}</span>
             {req.type === "sparring" && (
-              <span style={{ fontSize: 10, fontWeight: 900, color: "#D4AF37", background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.28)", borderRadius: 999, padding: "1px 7px" }}>🥊 Sparring</span>
+              <span style={{ fontSize: 10, fontWeight: 900, color: GOLD, background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.28)", borderRadius: 999, padding: "1px 7px" }}>🥊 Sparring</span>
             )}
           </div>
           <span style={{ display: "inline-flex", marginTop: 4, padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 900, background: st.bg, border: `1px solid ${st.border}`, color: st.color }}>
@@ -187,7 +192,7 @@ function MyRequestCard({ req, coachProfile, locale, router }) {
           style={styles.viewProfileBtn}
           onClick={() => router.push(`/${locale}/coach/${req.coachId}`)}
         >
-          {locale === "mn" ? "Coach Profile харах →" : locale === "ko" ? "코치 프로필 보기 →" : "View Coach Profile →"}
+          {t("coachViewProfile")}
         </button>
       )}
     </div>
@@ -216,7 +221,7 @@ function SparringPostCard({ post, t, onRequest, requested, user, router, locale 
         }}
       >
         {post.userId === user?.uid
-          ? (locale === "mn" ? "Миний пост" : locale === "ko" ? "내 글" : "Your post")
+          ? t("coachYourPost")
           : requested
             ? t("requestSent")
             : t("sendRequest")}
@@ -264,7 +269,7 @@ export default function CoachPage() {
     getDocs(query(collection(db, "users"), where("isCoach", "==", true)))
       .then((snap) => {
         if (!active) return;
-        setCoaches(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setCoaches(snapToDocs(snap));
       })
       .catch(() => {})
       .finally(() => { if (active) setCoachesLoading(false); });
@@ -279,7 +284,7 @@ export default function CoachPage() {
     getDocs(query(collection(db, "sparring_posts"), where("active", "==", true)))
       .then((snap) => {
         if (!active) return;
-        setSparringPosts(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setSparringPosts(snapToDocs(snap));
       })
       .catch(() => {})
       .finally(() => { if (active) setSparringLoading(false); });
@@ -398,7 +403,7 @@ export default function CoachPage() {
           { key: "ai", label: t("coachTabAI") },
           { key: "coaches", label: t("coachTabCoaches") },
           { key: "sparring", label: t("coachTabSparring") },
-          { key: "mine", label: locale === "mn" ? "Миний хүсэлт" : locale === "ko" ? "내 요청" : "My Requests" },
+          { key: "mine", label: t("coachFilterMyRequests") },
         ].map(({ key, label }) => (
           <button
             key={key}
@@ -424,7 +429,7 @@ export default function CoachPage() {
                 padding: "10px 20px",
                 borderRadius: 12,
                 border: "none",
-                background: "#C1121F",
+                background: RED,
                 color: "#fff",
                 fontSize: 14,
                 fontWeight: 900,
@@ -433,7 +438,7 @@ export default function CoachPage() {
               }}
               onClick={() => router.push(`/${locale}/coach/chat`)}
             >
-              💬 {locale === "mn" ? "Бүтэн дэлгэцэн чат нээх" : locale === "ko" ? "전체화면 채팅 열기" : "Open Full-Screen Chat"}
+              💬 {t("coachOpenFullChat")}
             </button>
           </div>
           <AICoach />
@@ -509,9 +514,9 @@ export default function CoachPage() {
           {/* Sort + advanced filter row */}
           <div style={{ display: "flex", gap: 8, marginBottom: 16, alignItems: "center" }}>
             {[
-              { key: "rating", label: locale === "mn" ? "⭐ Рейтинг" : locale === "ko" ? "⭐ 평점" : "⭐ Rating" },
-              { key: "students", label: locale === "mn" ? "👥 Сурагчид" : locale === "ko" ? "👥 학생수" : "👥 Students" },
-              { key: "verified", label: locale === "mn" ? "✓ Баталгаа" : locale === "ko" ? "✓ 인증" : "✓ Verified" },
+              { key: "rating", label: t("coachSortRating") },
+              { key: "students", label: t("coachSortStudents") },
+              { key: "verified", label: t("coachSortVerified") },
             ].map(({ key, label }) => (
               <button
                 key={key}
@@ -521,7 +526,7 @@ export default function CoachPage() {
                   borderRadius: 999,
                   border: sortBy === key ? "1px solid rgba(212,175,55,0.6)" : "1px solid rgba(255,255,255,0.1)",
                   background: sortBy === key ? "rgba(212,175,55,0.15)" : "rgba(255,255,255,0.03)",
-                  color: sortBy === key ? "#D4AF37" : "rgba(255,255,255,0.4)",
+                  color: sortBy === key ? GOLD : "rgba(255,255,255,0.4)",
                   fontSize: 12,
                   fontWeight: 700,
                   cursor: "pointer",
@@ -542,71 +547,67 @@ export default function CoachPage() {
           </div>
 
           {/* Full filter sheet */}
-          {showCoachFilterSheet && (
-            <div style={styles.filterSheetOverlay} onClick={() => setShowCoachFilterSheet(false)}>
-              <div style={styles.filterSheetModal} onClick={(e) => e.stopPropagation()}>
-                <div style={styles.filterSheetHandle} />
-                <p style={styles.filterSheetSectionLabel}>SPECIALTY</p>
-                <div style={styles.specialtyScroll}>
-                  <button type="button" style={filterSpecialty === "" ? styles.chipActive : styles.chip} onClick={() => setFilterSpecialty("")}>
-                    {t("coachFilterAll")}
-                  </button>
-                  {SPECIALTIES.map((s) => (
-                    <button key={s} type="button" style={filterSpecialty === s ? styles.chipActive : styles.chip} onClick={() => setFilterSpecialty((prev) => prev === s ? "" : s)}>
-                      {s}
-                    </button>
-                  ))}
-                </div>
-                <p style={{ ...styles.filterSheetSectionLabel, marginTop: 16 }}>VIBE</p>
-                <div style={styles.specialtyScroll}>
-                  {VIBE_FILTERS.map((v) => (
-                    <button key={v} type="button" style={filterVibe === v ? styles.vibeChipActive : styles.vibeChip} onClick={() => setFilterVibe((prev) => (prev === v ? "" : v))}>
-                      {v}
-                    </button>
-                  ))}
-                </div>
-                <p style={{ ...styles.filterSheetSectionLabel, marginTop: 16 }}>LOCATION</p>
-                <input
-                  type="text"
-                  placeholder={t("coachLocation")}
-                  value={filterLocation}
-                  onChange={(e) => setFilterLocation(e.target.value)}
-                  style={{ ...styles.filterInput, marginBottom: 12 }}
-                />
-                <p style={styles.filterSheetSectionLabel}>SORT BY</p>
-                <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} style={styles.filterSelect}>
-                  <option value="rating">{t("coachSortRating")}</option>
-                  <option value="students">{t("coachSortStudents")}</option>
-                  <option value="verified">{t("coachSortVerified")}</option>
-                </select>
-                <button type="button" style={styles.filterSheetDone} onClick={() => setShowCoachFilterSheet(false)}>{locale === "mn" ? "Болсон" : locale === "ko" ? "완료" : "Done"}</button>
-              </div>
+          <BottomSheet
+            open={showCoachFilterSheet}
+            onClose={() => setShowCoachFilterSheet(false)}
+            zIndex={300}
+            accent={GOLD}
+          >
+            <p style={styles.filterSheetSectionLabel}>SPECIALTY</p>
+            <div style={styles.specialtyScroll}>
+              <button type="button" style={filterSpecialty === "" ? styles.chipActive : styles.chip} onClick={() => setFilterSpecialty("")}>
+                {t("coachFilterAll")}
+              </button>
+              {SPECIALTIES.map((s) => (
+                <button key={s} type="button" style={filterSpecialty === s ? styles.chipActive : styles.chip} onClick={() => setFilterSpecialty((prev) => prev === s ? "" : s)}>
+                  {s}
+                </button>
+              ))}
             </div>
-          )}
+            <p style={{ ...styles.filterSheetSectionLabel, marginTop: 16 }}>VIBE</p>
+            <div style={styles.specialtyScroll}>
+              {VIBE_FILTERS.map((v) => (
+                <button key={v} type="button" style={filterVibe === v ? styles.vibeChipActive : styles.vibeChip} onClick={() => setFilterVibe((prev) => (prev === v ? "" : v))}>
+                  {v}
+                </button>
+              ))}
+            </div>
+            <p style={{ ...styles.filterSheetSectionLabel, marginTop: 16 }}>LOCATION</p>
+            <input
+              type="text"
+              placeholder={t("coachLocation")}
+              value={filterLocation}
+              onChange={(e) => setFilterLocation(e.target.value)}
+              style={{ ...styles.filterInput, marginBottom: 12 }}
+            />
+            <p style={styles.filterSheetSectionLabel}>SORT BY</p>
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} style={styles.filterSelect}>
+              <option value="rating">{t("coachSortRating")}</option>
+              <option value="students">{t("coachSortStudents")}</option>
+              <option value="verified">{t("coachSortVerified")}</option>
+            </select>
+            <button type="button" style={styles.filterSheetDone} onClick={() => setShowCoachFilterSheet(false)}>{t("coachFilterDone")}</button>
+          </BottomSheet>
 
           {coachesLoading && (
             <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "0 0 12px" }}>
               {[1, 2, 3].map((i) => (
-                <div key={i} className="shimmer" style={{ height: 88, borderRadius: 16, background: "rgba(255,255,255,0.06)" }} />
+                <SkeletonBlock key={i} height={88} radius={16} />
               ))}
             </div>
           )}
 
           {!coachesLoading && filteredCoaches.length === 0 && (
-            <div style={styles.emptyState}>
-              <div style={styles.emptyIcon}>🥊</div>
-              <div style={styles.emptyText}>{t("coachNoCoaches")}</div>
-              <p style={{ margin: "4px 0 16px", color: "rgba(255,255,255,0.55)", fontSize: 13, textAlign: "center", maxWidth: 260 }}>
-                {t("coachNoCoachesSub")}
-              </p>
-              <button
-                type="button"
-                onClick={() => router.push(`/${locale}/coach/apply`)}
-                style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}
-              >
-                {t("becomeCoach")}
-              </button>
-            </div>
+            <EmptyState
+              emoji="🥊"
+              title={t("coachNoCoaches")}
+              hint={t("coachNoCoachesSub")}
+              action={
+                <button type="button" onClick={() => router.push(`/${locale}/coach/apply`)} style={{ padding: "12px 28px", borderRadius: 14, background: RED, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}>
+                  {t("becomeCoach")}
+                </button>
+              }
+            />
           )}
 
           <div style={styles.cardList}>
@@ -650,16 +651,13 @@ export default function CoachPage() {
           {sparringLoading && (
             <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "0 0 12px" }}>
               {[1, 2, 3].map((i) => (
-                <div key={i} className="shimmer" style={{ height: 88, borderRadius: 16, background: "rgba(255,255,255,0.06)" }} />
+                <SkeletonBlock key={i} height={88} radius={16} />
               ))}
             </div>
           )}
 
           {!sparringLoading && sparringPosts.length === 0 && (
-            <div style={styles.emptyState}>
-              <div style={styles.emptyIcon}>🥊</div>
-              <div style={styles.emptyText}>{t("sparringNoPosts")}</div>
-            </div>
+            <EmptyState emoji="🥊" title={t("sparringNoPosts")} />
           )}
 
           <div style={styles.cardList}>
@@ -686,42 +684,36 @@ export default function CoachPage() {
         <div style={styles.content}>
           <header style={styles.pageHeader}>
             <p style={styles.kicker}>GAVANA BOXING</p>
-            <h1 style={styles.pageTitle}>{locale === "mn" ? "Миний хүсэлтүүд" : locale === "ko" ? "내 요청 목록" : "My Requests"}</h1>
+            <h1 style={styles.pageTitle}>{t("coachMyRequestsTitle")}</h1>
           </header>
 
           {!user?.uid ? (
-            <div style={styles.emptyState}>
-              <div style={styles.emptyIcon}>🔒</div>
-              <div style={styles.emptyText}>{locale === "mn" ? "Нэвтрэх шаардлагатай" : locale === "ko" ? "로그인이 필요합니다" : "Sign in required"}</div>
-              <button
-                type="button"
-                onClick={() => router.push(`/${locale}/login`)}
-                style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}
-              >
-                {locale === "mn" ? "Нэвтрэх →" : locale === "ko" ? "로그인 →" : "Sign in →"}
-              </button>
-            </div>
+            <EmptyState
+              emoji="🔒"
+              title={t("coachSignInRequired")}
+              action={
+                <button type="button" onClick={() => router.push(`/${locale}/login`)} style={{ padding: "12px 28px", borderRadius: 14, background: RED, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}>
+                  {t("coachSignInBtn")}
+                </button>
+              }
+            />
           ) : myRequestsLoading ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "0 0 12px" }}>
               {[1, 2, 3].map((i) => (
-                <div key={i} className="shimmer" style={{ height: 88, borderRadius: 16, background: "rgba(255,255,255,0.06)" }} />
+                <SkeletonBlock key={i} height={88} radius={16} />
               ))}
             </div>
           ) : myRequests.length === 0 ? (
-            <div style={styles.emptyState}>
-              <div style={styles.emptyIcon}>📋</div>
-              <div style={styles.emptyText}>{locale === "mn" ? "Хүсэлт байхгүй байна" : locale === "ko" ? "요청이 없습니다" : "No requests yet"}</div>
-              <p style={{ margin: 0, color: "rgba(255,255,255,0.45)", fontSize: 13, textAlign: "center", maxWidth: 240 }}>
-                {locale === "mn" ? "Coach-той холбогдож хүсэлт илгээгээрэй" : locale === "ko" ? "코치에게 요청을 보내보세요" : "Send a request to a coach to get started"}
-              </p>
-              <button
-                type="button"
-                onClick={() => setTab("coaches")}
-                style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", marginTop: 4 }}
-              >
-                {locale === "mn" ? "Coach хайх →" : locale === "ko" ? "코치 찾기 →" : "Find a Coach →"}
-              </button>
-            </div>
+            <EmptyState
+              emoji="📋"
+              title={t("coachNoRequests")}
+              hint={t("coachNoRequestsHint")}
+              action={
+                <button type="button" onClick={() => setTab("coaches")} style={{ padding: "12px 28px", borderRadius: 14, background: RED, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", marginTop: 4 }}>
+                  {t("coachFindCoach")}
+                </button>
+              }
+            />
           ) : (
             <div style={styles.cardList}>
               {myRequests.map((req) => (
@@ -741,83 +733,79 @@ export default function CoachPage() {
       )}
 
       {/* Sparring create form modal */}
-      {showSparringForm && (
-        <div style={styles.modalWrap}>
-          <div
-            style={styles.modalOverlay}
+      <BottomSheet
+        open={showSparringForm}
+        onClose={() => setShowSparringForm(false)}
+        title={t("createSparringPost")}
+        zIndex={300}
+        accent={GOLD}
+      >
+        <label style={styles.fieldLabel}>{t("weightClass")}</label>
+        <input
+          type="text"
+          placeholder={t("coachWeightPlaceholder")}
+          value={sparringForm.weight}
+          onChange={(e) => setSparringForm((f) => ({ ...f, weight: e.target.value }))}
+          style={styles.fieldInput}
+        />
+
+        <label style={styles.fieldLabel}>{t("boxingLevel")}</label>
+        <select
+          value={sparringForm.level}
+          onChange={(e) => setSparringForm((f) => ({ ...f, level: e.target.value }))}
+          style={styles.fieldSelect}
+        >
+          <option value="">—</option>
+          {LEVELS.map((lv) => (
+            <option key={lv} value={lv}>{lv}</option>
+          ))}
+        </select>
+
+        <label style={styles.fieldLabel}>{t("coachLocation")}</label>
+        <input
+          type="text"
+          placeholder={t("coachLocationPlaceholder")}
+          value={sparringForm.location}
+          onChange={(e) => setSparringForm((f) => ({ ...f, location: e.target.value }))}
+          style={styles.fieldInput}
+        />
+
+        <label style={styles.fieldLabel}>{t("availableTime")}</label>
+        <input
+          type="text"
+          placeholder={t("coachAvailPlaceholder")}
+          value={sparringForm.availableTime}
+          onChange={(e) => setSparringForm((f) => ({ ...f, availableTime: e.target.value }))}
+          style={styles.fieldInput}
+        />
+
+        <label style={styles.fieldLabel}>{t("sparringNote")}</label>
+        <textarea
+          placeholder={t("coachNotesPlaceholder")}
+          value={sparringForm.note}
+          onChange={(e) => setSparringForm((f) => ({ ...f, note: e.target.value }))}
+          style={styles.fieldTextarea}
+          rows={3}
+        />
+
+        <div style={styles.modalActions}>
+          <button
+            type="button"
+            style={styles.cancelBtn}
             onClick={() => setShowSparringForm(false)}
-          />
-          <div style={styles.modal}>
-            <h2 style={styles.modalTitle}>{t("createSparringPost")}</h2>
-
-            <label style={styles.fieldLabel}>{t("weightClass")}</label>
-            <input
-              type="text"
-              placeholder={locale === "mn" ? "жишээ: Хөнгөн жин, 61 кг" : locale === "ko" ? "예: 라이트급, 61kg" : "e.g. Lightweight, 135 lbs"}
-              value={sparringForm.weight}
-              onChange={(e) => setSparringForm((f) => ({ ...f, weight: e.target.value }))}
-              style={styles.fieldInput}
-            />
-
-            <label style={styles.fieldLabel}>{t("boxingLevel")}</label>
-            <select
-              value={sparringForm.level}
-              onChange={(e) => setSparringForm((f) => ({ ...f, level: e.target.value }))}
-              style={styles.fieldSelect}
-            >
-              <option value="">—</option>
-              {LEVELS.map((lv) => (
-                <option key={lv} value={lv}>{lv}</option>
-              ))}
-            </select>
-
-            <label style={styles.fieldLabel}>{t("coachLocation")}</label>
-            <input
-              type="text"
-              placeholder={locale === "mn" ? "Хот / Жимийн нэр" : locale === "ko" ? "도시 / 체육관 이름" : "City / Gym name"}
-              value={sparringForm.location}
-              onChange={(e) => setSparringForm((f) => ({ ...f, location: e.target.value }))}
-              style={styles.fieldInput}
-            />
-
-            <label style={styles.fieldLabel}>{t("availableTime")}</label>
-            <input
-              type="text"
-              placeholder={locale === "mn" ? "жишээ: Амралтын өдрүүд, оройгоор" : locale === "ko" ? "예: 주말, 저녁" : "e.g. Weekends, evenings"}
-              value={sparringForm.availableTime}
-              onChange={(e) => setSparringForm((f) => ({ ...f, availableTime: e.target.value }))}
-              style={styles.fieldInput}
-            />
-
-            <label style={styles.fieldLabel}>{t("sparringNote")}</label>
-            <textarea
-              placeholder={locale === "mn" ? "Нэмэлт мэдээлэл..." : locale === "ko" ? "추가 세부 사항..." : "Any additional details…"}
-              value={sparringForm.note}
-              onChange={(e) => setSparringForm((f) => ({ ...f, note: e.target.value }))}
-              style={styles.fieldTextarea}
-              rows={3}
-            />
-
-            <div style={styles.modalActions}>
-              <button
-                type="button"
-                style={styles.cancelBtn}
-                onClick={() => setShowSparringForm(false)}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                style={styles.submitBtn}
-                disabled={sparringSaving}
-                onClick={handleCreateSparringPost}
-              >
-                {sparringSaving ? "…" : t("sendRequest")}
-              </button>
-            </div>
-          </div>
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            style={styles.submitBtn}
+            disabled={sparringSaving}
+            onClick={handleCreateSparringPost}
+          >
+            {sparringSaving ? "…" : t("sendRequest")}
+          </button>
         </div>
-      )}
+      </BottomSheet>
     </main>
   );
 }
@@ -884,14 +872,14 @@ const styles = {
     border: "1px solid rgba(212,175,55,0.4)",
     borderRadius: 20,
     padding: "7px 16px",
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 13,
     fontWeight: 600,
     cursor: "pointer",
   },
   kicker: {
     margin: 0,
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 11,
     fontWeight: 950,
     letterSpacing: 2,
@@ -961,51 +949,17 @@ const styles = {
     borderRadius: 999,
     border: "1px solid rgba(212,175,55,0.3)",
     background: "rgba(212,175,55,0.06)",
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 12,
     fontWeight: 700,
     cursor: "pointer",
     whiteSpace: "nowrap",
   },
-  filterSheetOverlay: {
-    position: "fixed",
-    inset: 0,
-    zIndex: 300,
-    background: "rgba(0,0,0,0.65)",
-    backdropFilter: "blur(4px)",
-    display: "flex",
-    alignItems: "flex-end",
-    justifyContent: "center",
-  },
-  filterSheetModal: {
-    position: "relative",
-    width: "100%",
-    maxWidth: 520,
-    maxHeight: "80vh",
-    overflowY: "auto",
-    borderRadius: "20px 20px 0 0",
-    padding: "14px 20px calc(24px + env(safe-area-inset-bottom))",
-    background: "linear-gradient(180deg, #161212, #0a0a0a)",
-    border: "1px solid rgba(212,175,55,0.14)",
-    boxShadow: "0 -20px 50px rgba(0,0,0,0.6)",
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-  },
-  filterSheetHandle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    background: "rgba(255,255,255,0.18)",
-    alignSelf: "center",
-    marginBottom: 12,
-    flexShrink: 0,
-  },
   filterSheetSectionLabel: {
     margin: "0 0 8px",
     fontSize: 10,
     fontWeight: 900,
-    color: "#D4AF37",
+    color: GOLD,
     letterSpacing: 1.5,
   },
   filterSheetDone: {
@@ -1024,7 +978,7 @@ const styles = {
   cardRatingInline: {
     fontSize: 12,
     fontWeight: 800,
-    color: "#D4AF37",
+    color: GOLD,
   },
   specialtyScroll: {
     display: "flex",
@@ -1135,7 +1089,7 @@ const styles = {
     width: 18,
     height: 18,
     borderRadius: "50%",
-    background: "#D4AF37",
+    background: GOLD,
     color: "#000",
     fontSize: 10,
     fontWeight: 1000,
@@ -1165,7 +1119,7 @@ const styles = {
   verifiedBadge: {
     fontSize: 10,
     fontWeight: 900,
-    color: "#D4AF37",
+    color: GOLD,
     background: "rgba(212,175,55,0.12)",
     border: "1px solid rgba(212,175,55,0.3)",
     borderRadius: 999,
@@ -1179,7 +1133,7 @@ const styles = {
   },
   cardExp: {
     fontSize: 12,
-    color: "#D4AF37",
+    color: GOLD,
     fontWeight: 700,
   },
   specialtyRow: {
@@ -1298,7 +1252,7 @@ const styles = {
   sparringLevel: {
     fontSize: 13,
     fontWeight: 1000,
-    color: "#D4AF37",
+    color: GOLD,
     background: "rgba(212,175,55,0.12)",
     border: "1px solid rgba(212,175,55,0.25)",
     borderRadius: 999,
@@ -1329,64 +1283,10 @@ const styles = {
     color: "rgba(255,255,255,0.62)",
     fontSize: 14,
   },
-  emptyState: {
-    textAlign: "center",
-    padding: "48px 0",
-    display: "flex",
-    flexDirection: "column",
-    gap: 10,
-    alignItems: "center",
-  },
-  emptyIcon: {
-    fontSize: 40,
-    opacity: 0.4,
-  },
-  emptyText: {
-    color: "rgba(255,255,255,0.62)",
-    fontSize: 15,
-    fontWeight: 700,
-  },
-  modalWrap: {
-    position: "fixed",
-    inset: 0,
-    zIndex: 300,
-    display: "flex",
-    alignItems: "flex-end",
-    justifyContent: "center",
-    padding: "0 0 env(safe-area-inset-bottom)",
-  },
-  modalOverlay: {
-    position: "absolute",
-    inset: 0,
-    background: "rgba(0,0,0,0.7)",
-    backdropFilter: "blur(6px)",
-  },
-  modal: {
-    position: "relative",
-    width: "100%",
-    maxWidth: 520,
-    maxHeight: "85vh",
-    overflowY: "auto",
-    borderRadius: "22px 22px 0 0",
-    padding: "20px 20px calc(20px + env(safe-area-inset-bottom))",
-    background: "linear-gradient(180deg, #161212, #0a0a0a)",
-    border: "1px solid rgba(212,175,55,0.18)",
-    boxShadow: "0 -24px 60px rgba(0,0,0,0.6)",
-    display: "flex",
-    flexDirection: "column",
-    gap: 10,
-  },
-  modalTitle: {
-    margin: 0,
-    fontSize: 20,
-    fontWeight: 1000,
-    color: "#fff",
-    marginBottom: 4,
-  },
   fieldLabel: {
     fontSize: 11,
     fontWeight: 900,
-    color: "#D4AF37",
+    color: GOLD,
     letterSpacing: 1,
     textTransform: "uppercase",
   },
@@ -1460,11 +1360,11 @@ const styles = {
   vibeChip: { flexShrink: 0, padding: "5px 12px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.25)", background: "rgba(193,18,31,0.08)", color: "rgba(255,165,130,0.7)", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" },
   vibeChipActive: { flexShrink: 0, padding: "5px 12px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.6)", background: "rgba(193,18,31,0.22)", color: "#F87171", fontSize: 12, fontWeight: 900, cursor: "pointer", whiteSpace: "nowrap" },
   featuredSection: { marginBottom: 16 },
-  featuredLabel: { margin: "0 0 8px", fontSize: 11, fontWeight: 900, color: "#D4AF37", letterSpacing: 1.5, textTransform: "uppercase" },
+  featuredLabel: { margin: "0 0 8px", fontSize: 11, fontWeight: 900, color: GOLD, letterSpacing: 1.5, textTransform: "uppercase" },
   featuredScroll: { display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" },
   featuredChip: { flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 12, padding: "10px 12px", cursor: "pointer", minWidth: 72 },
   featuredAvatar: { width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(212,175,55,0.4)" },
   featuredAvatarInitials: { width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg, #C1121F, #7d0812)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 900, color: "#fff" },
   featuredName: { fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.8)", maxWidth: 64, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-  featuredVerified: { fontSize: 10, color: "#D4AF37", fontWeight: 900 },
+  featuredVerified: { fontSize: 10, color: GOLD, fontWeight: 900 },
 };

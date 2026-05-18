@@ -10,6 +10,7 @@ import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { updateLeaderboard } from "@/components/Leaderboard";
 import { computeFeedScore } from "@/lib/analytics";
 import AIBreakdownSheet from "@/components/AIBreakdownSheet";
+import { RED, GOLD } from "@/lib/tokens";
 
 // Dynamic import for Firebase to avoid SSR issues
 let db = null;
@@ -262,6 +263,7 @@ export default function ReelsContent() {
   const lastTapRef = useRef({ time: 0, reelId: null });
   const singleTapTimerRef = useRef(null);
   const [heartBursts, setHeartBursts] = useState([]);
+  const [videoProgress, setVideoProgress] = useState(0);
   const feedRef = useRef(null);
   const reelItemRefs = useRef({});
   const viewTimers = useRef({});
@@ -985,6 +987,9 @@ export default function ReelsContent() {
     }
   }, [currentIndex, reels]);
 
+  // Reset video progress when switching reels
+  useEffect(() => { setVideoProgress(0); }, [currentIndex]);
+
   const clearControlsTimer = useCallback(() => {
     if (controlsTimer.current) {
       clearTimeout(controlsTimer.current);
@@ -1357,7 +1362,7 @@ export default function ReelsContent() {
       }
 
       if (!isOwner) {
-        setFeedbackResult("Рилсийн эзэн AI feedback аваагүй байна");
+        setFeedbackResult(t("reelOwnerNoFeedback"));
         setFeedbackSaved(false);
         return;
       }
@@ -1368,6 +1373,12 @@ export default function ReelsContent() {
         `Likes: ${likes}`,
         `Views: ${views}`,
       ].join("\n");
+
+      const feedbackFormatLabels = currentLocale === "mn"
+        ? { strength: "Давуу тал", improve: "Сайжруулах", drill: "Дараагийн дасгал" }
+        : currentLocale === "ko"
+        ? { strength: "강점", improve: "개선점", drill: "다음 훈련" }
+        : { strength: "Strength", improve: "Improve", drill: "Next drill" };
 
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -1390,9 +1401,9 @@ export default function ReelsContent() {
                 "Give a realistic score out of 10. Do not make the score too perfect unless the context strongly supports it.",
                 "Return exactly this plain format with no markdown, no bold symbols, and no bullet points:",
                 "Score: 6.5/10",
-                "Strength: one specific strength or positive signal based on the caption/context.",
-                "Improve: one practical thing to watch or refine next time.",
-                "Next drill: one simple boxing drill with a clear rep/time target.",
+                `${feedbackFormatLabels.strength}: one specific strength or positive signal based on the caption/context.`,
+                `${feedbackFormatLabels.improve}: one practical thing to watch or refine next time.`,
+                `${feedbackFormatLabels.drill}: one simple boxing drill with a clear rep/time target.`,
               ].join("\n"),
             },
           ],
@@ -1402,7 +1413,7 @@ export default function ReelsContent() {
       const data = await response.json();
 
       if (!response.ok || data?.fallback) {
-        setFeedbackResult(data?.message || "Feedback unavailable right now. Please try again later.");
+        setFeedbackResult(data?.message || t("feedbackUnavailable"));
         setFeedbackSaved(false);
         return;
       }
@@ -1410,7 +1421,7 @@ export default function ReelsContent() {
       const text = data?.content?.find((item) => item?.type === "text")?.text || data?.content?.[0]?.text || "";
 
       if (!text.trim()) {
-        setFeedbackResult("Feedback unavailable right now. Please try again later.");
+        setFeedbackResult(t("feedbackUnavailable"));
         setFeedbackSaved(false);
         return;
       }
@@ -1495,7 +1506,7 @@ export default function ReelsContent() {
       }
     } catch (err) {
       console.error("Failed to generate AI feedback:", err);
-      setFeedbackError("Could not generate feedback. Please try again.");
+      setFeedbackError(t("feedbackGenerateError"));
     } finally {
       setFeedbackLoading(false);
     }
@@ -1608,6 +1619,18 @@ export default function ReelsContent() {
       console.error("Failed to add comment:", err);
     }
   }, [user, newComment, selectedReelId, reels, replyingTo]);
+
+  const handleDeleteComment = useCallback(async (comment) => {
+    if (!user || comment.userId !== user.uid || !selectedReelId) return;
+    try {
+      const { db } = await getFirebase();
+      const { doc, deleteDoc, updateDoc, increment } = await import("firebase/firestore");
+      await deleteDoc(doc(db, "reels", selectedReelId, "comments", comment.id));
+      await updateDoc(doc(db, "reels", selectedReelId), { commentsCount: increment(-1) });
+    } catch (err) {
+      console.error("Failed to delete comment:", err);
+    }
+  }, [user, selectedReelId]);
 
   // Handle closing comments
   const handleCloseComments = useCallback(() => {
@@ -1790,7 +1813,7 @@ export default function ReelsContent() {
             ...styles.feedTab,
             ...((diffFilter !== "all" || ctFilter !== "all") ? {
               ...styles.feedTabActive,
-              color: "#D4AF37",
+              color: GOLD,
               background: "rgba(212,175,55,0.15)",
             } : {}),
             padding: "4px 9px",
@@ -1922,6 +1945,12 @@ export default function ReelsContent() {
                   }
                 }}
                 onError={() => handleVideoError(reel.id)}
+                onTimeUpdate={(e) => {
+                  if (index === currentIndex) {
+                    const v = e.currentTarget;
+                    if (v.duration) setVideoProgress(v.currentTime / v.duration);
+                  }
+                }}
                 preload={index === currentIndex ? "auto" : index === currentIndex + 1 ? "metadata" : "none"}
               />
             )}
@@ -1936,15 +1965,27 @@ export default function ReelsContent() {
             <div style={styles.vignette} />
             <div style={styles.bottomGradient} />
 
-            {/* Double-tap heart bursts */}
+            {/* Video progress bar */}
+            {index === currentIndex && !reel.isDemo && (
+              <div style={styles.videoProgressBar}>
+                <div style={{ ...styles.videoProgressFill, width: `${videoProgress * 100}%` }} />
+              </div>
+            )}
+
+            {/* Double-tap heart + fire bursts */}
             {heartBursts.filter((b) => b.reelId === reel.id).map((b) => (
-              <span
-                key={b.id}
-                className="heart-burst"
-                style={{ position: "absolute", left: b.x, top: b.y, fontSize: 80, zIndex: 60, lineHeight: 1 }}
-              >
-                ❤️
-              </span>
+              <div key={b.id} style={{ position: "absolute", left: b.x - 40, top: b.y - 40, zIndex: 60, pointerEvents: "none", width: 80, height: 80 }}>
+                <span className="heart-burst" style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 80, lineHeight: 1 }}>❤️</span>
+                {[...Array(6)].map((_, i) => (
+                  <span
+                    key={i}
+                    className={`fire-spark fire-spark-${i}`}
+                    style={{ position: "absolute", left: "50%", top: "50%", fontSize: 18, lineHeight: 1 }}
+                  >
+                    {["🔥", "✨", "🔥", "💥", "✨", "🔥"][i]}
+                  </span>
+                ))}
+              </div>
             ))}
 
             {isPvpSource && index === currentIndex && !reel.isDemo && (
@@ -1990,7 +2031,7 @@ export default function ReelsContent() {
                     ...styles.creatorAvatarButton,
                     cursor: reel.userId ? "pointer" : "default",
                     ...(hasStory ? {
-                      borderColor: "#C1121F",
+                      borderColor: RED,
                       boxShadow: "0 0 0 2px #C1121F, 0 0 0 4px rgba(212,175,55,0.35)",
                     } : {}),
                   }}
@@ -2108,13 +2149,13 @@ export default function ReelsContent() {
                 </div>
                 <span style={styles.actionText}>{formatCompactCount(getSafeLikeCount(reel))}</span>
               </div>
-              <div className="reel-action" style={styles.actionItem} onClick={() => handleOpenComments(reel.id)}>
+              <div className="reel-action" style={styles.actionItem} onClick={() => handleOpenComments(reel.id)} title={t("comment")}>
                 <div className="reel-action-circle" style={styles.actionCircle}>
                   <CommentIcon />
                 </div>
                 <span style={styles.actionText}>{formatCompactCount(getSafeCommentsCount(reel))}</span>
               </div>
-              <div className="reel-action" style={styles.actionItem} onClick={() => handleShare(reel)}>
+              <div className="reel-action" style={styles.actionItem} onClick={() => handleShare(reel)} title={t("share") || "Share"}>
                 <div className="reel-action-circle" style={styles.actionCircle}>
                   <ShareIcon />
                 </div>
@@ -2154,7 +2195,9 @@ export default function ReelsContent() {
                 <div className="reel-action-circle" style={styles.actionCircle}>
                   <RobotIcon />
                 </div>
-                <span style={{ fontSize: 8, color: "rgba(255,255,255,0.35)", fontWeight: 700, textShadow: "0 2px 8px rgba(0,0,0,0.95)" }}>AI</span>
+                <span style={{ fontSize: 8, color: "rgba(255,255,255,0.35)", fontWeight: 700, textShadow: "0 2px 8px rgba(0,0,0,0.95)", textAlign: "center", lineHeight: 1.2 }}>
+                  {currentLocale === "mn" ? "AI" : currentLocale === "ko" ? "AI" : "AI"}
+                </span>
               </div>
               <div
                 className="reel-action"
@@ -2165,6 +2208,9 @@ export default function ReelsContent() {
                 <div className="reel-action-circle" style={styles.actionCircle}>
                   <AISparkIcon />
                 </div>
+                <span style={{ fontSize: 7, color: "rgba(255,255,255,0.35)", fontWeight: 700, textShadow: "0 2px 8px rgba(0,0,0,0.95)", textAlign: "center", lineHeight: 1.2, maxWidth: 40 }}>
+                  {currentLocale === "mn" ? "Шинж" : currentLocale === "ko" ? "분석" : "Breakdown"}
+                </span>
               </div>
             </div>
 
@@ -2186,7 +2232,9 @@ export default function ReelsContent() {
           <div style={styles.commentsContent}>
             <div style={styles.commentsHandle} />
             <div style={styles.commentsHeader}>
-              <span style={styles.commentsTitle}>{t("comment")}</span>
+              <span style={styles.commentsTitle}>
+                {t("comment")}{comments.length > 0 ? ` (${comments.length})` : ""}
+              </span>
               <button style={styles.commentsClose} onClick={handleCloseComments} aria-label="Close">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
               </button>
@@ -2213,10 +2261,22 @@ export default function ReelsContent() {
                         {photo ? <img src={photo} alt="" style={styles.commentAvatarImage} /> : name.charAt(0).toUpperCase()}
                       </button>
                       <div style={styles.commentContent}>
-                        <button type="button" style={styles.commentUsername}
-                          onClick={() => comment.userId && router.push(`/${currentLocale}/profile/${comment.userId}`)}>
-                          @{name}
-                        </button>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                          <button type="button" style={styles.commentUsername}
+                            onClick={() => comment.userId && router.push(`/${currentLocale}/profile/${comment.userId}`)}>
+                            @{name}
+                          </button>
+                          {user?.uid === comment.userId && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteComment(comment)}
+                              style={{ background: "none", border: "none", cursor: "pointer", padding: "2px 4px", color: "rgba(255,255,255,0.25)", lineHeight: 1 }}
+                              title={currentLocale === "mn" ? "Устгах" : currentLocale === "ko" ? "삭제" : "Delete"}
+                            >
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+                            </button>
+                          )}
+                        </div>
                         <div style={styles.commentText}>{comment.text}</div>
                         {!isReply && user && (
                           <button type="button" style={styles.replyBtn}
@@ -2256,6 +2316,18 @@ export default function ReelsContent() {
 
             {user && (
               <div style={styles.commentInput}>
+                <div style={{ display: "flex", gap: 6, padding: "6px 12px 0", overflowX: "auto", scrollbarWidth: "none" }}>
+                  {["🥊", "🔥", "💪", "👏", "🙌", "👊"].map((emoji) => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      onClick={() => setNewComment((prev) => prev + emoji)}
+                      style={{ flexShrink: 0, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "4px 8px", fontSize: 16, cursor: "pointer", lineHeight: 1 }}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
                 {replyingTo && (
                   <div style={styles.replyPill}>
                     <span style={styles.replyPillText}>↩ @{replyingTo.username}</span>
@@ -2298,7 +2370,9 @@ export default function ReelsContent() {
                   <p style={styles.feedbackSubtitle}>@{feedbackReel.username || "fighter"}</p>
                 )}
               </div>
-              <button style={styles.feedbackClose} onClick={handleCloseFeedback}>x</button>
+              <button style={styles.feedbackClose} onClick={handleCloseFeedback} aria-label="Close">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              </button>
             </div>
 
             <div style={styles.feedbackBody}>
@@ -2435,15 +2509,15 @@ export default function ReelsContent() {
                   <div style={{ marginTop: 16, display: "flex", flexWrap: "wrap", gap: 8 }}>
                     {sheetReel.contentType && (
                       <span style={styles.captionMetaChip}>
-                        {sheetReel.contentType === "training" ? "🥊 Training"
-                          : sheetReel.contentType === "educational" ? "📚 Educational"
-                          : sheetReel.contentType === "lifestyle" ? "🎬 Lifestyle"
+                        {sheetReel.contentType === "training" ? `🥊 ${t("ctFilterTraining")}`
+                          : sheetReel.contentType === "educational" ? `📚 ${t("ctFilterEducational")}`
+                          : sheetReel.contentType === "lifestyle" ? `🎬 ${t("ctFilterLifestyle")}`
                           : sheetReel.contentType}
                       </span>
                     )}
                     {sheetReel.difficulty && (
                       <span style={styles.captionMetaChip}>
-                        {sheetReel.difficulty === "beginner" ? "🟢 Beginner" : sheetReel.difficulty}
+                        {sheetReel.difficulty === "beginner" ? `🟢 ${t("diffBeginner")}` : sheetReel.difficulty}
                       </span>
                     )}
                   </div>
@@ -2471,18 +2545,18 @@ export default function ReelsContent() {
             <div style={styles.filterSheetHandle} />
             <div style={styles.filterSheetHeader}>
               <span style={styles.filterSheetTitle}>
-                {currentLocale === "mn" ? "ШҮҮЛТҮҮР" : currentLocale === "ko" ? "필터" : "FILTERS"}
+                {t("filterSheetTitle") || (currentLocale === "mn" ? "ШҮҮЛТҮҮР" : currentLocale === "ko" ? "필터" : "FILTERS")}
               </span>
               <button type="button" style={styles.filterSheetClose} onClick={() => setShowFilterSheet(false)}>✕</button>
             </div>
             <div style={styles.filterSheetBody}>
               <p style={styles.filterSheetLabel}>
-                {currentLocale === "mn" ? "ТҮВШИН" : currentLocale === "ko" ? "레벨" : "LEVEL"}
+                {t("filterLevelLabel") || (currentLocale === "mn" ? "ТҮВШИН" : currentLocale === "ko" ? "레벨" : "LEVEL")}
               </p>
               <div style={styles.filterSheetRow}>
                 {[
                   { key: "all", label: currentLocale === "mn" ? "Бүх түвшин" : currentLocale === "ko" ? "전체" : "All levels" },
-                  { key: "beginner", label: currentLocale === "mn" ? "🟢 Анхан шат" : currentLocale === "ko" ? "🟢 초급" : "🟢 Beginner" },
+                  { key: "beginner", label: `🟢 ${t("diffBeginner")}` },
                 ].map(({ key, label }) => (
                   <button
                     key={key}
@@ -2495,14 +2569,14 @@ export default function ReelsContent() {
                 ))}
               </div>
               <p style={{ ...styles.filterSheetLabel, marginTop: 16 }}>
-                {currentLocale === "mn" ? "КОНТЕНТ" : currentLocale === "ko" ? "콘텐츠" : "CONTENT"}
+                {t("filterContentLabel") || (currentLocale === "mn" ? "КОНТЕНТ" : currentLocale === "ko" ? "콘텐츠" : "CONTENT")}
               </p>
               <div style={styles.filterSheetRow}>
                 {[
-                  { key: "all", label: currentLocale === "mn" ? "📂 Бүгд" : currentLocale === "ko" ? "📂 전체" : "📂 All" },
-                  { key: "training", label: currentLocale === "mn" ? "🥊 Дасгал" : currentLocale === "ko" ? "🥊 훈련" : "🥊 Training" },
-                  { key: "lifestyle", label: currentLocale === "mn" ? "🎬 Lifestyle" : currentLocale === "ko" ? "🎬 라이프스타일" : "🎬 Lifestyle" },
-                  { key: "educational", label: currentLocale === "mn" ? "📚 Сургалт" : currentLocale === "ko" ? "📚 교육" : "📚 Education" },
+                  { key: "all", label: `📂 ${t("ctFilterAll")}` },
+                  { key: "training", label: `🥊 ${t("ctFilterTraining")}` },
+                  { key: "lifestyle", label: `🎬 ${t("ctFilterLifestyle")}` },
+                  { key: "educational", label: `📚 ${t("ctFilterEducational")}` },
                 ].map(({ key, label }) => (
                   <button
                     key={key}
@@ -2520,7 +2594,7 @@ export default function ReelsContent() {
                   style={styles.filterClearBtn}
                   onClick={() => { setDiffFilter("all"); setCtFilter("all"); }}
                 >
-                  {currentLocale === "mn" ? "Шүүлтүүр арилгах" : currentLocale === "ko" ? "필터 초기화" : "Clear filters"}
+                  {t("filterClear") || (currentLocale === "mn" ? "Шүүлтүүр арилгах" : currentLocale === "ko" ? "필터 초기화" : "Clear filters")}
                 </button>
               )}
             </div>
@@ -2600,6 +2674,19 @@ export default function ReelsContent() {
           100% { opacity: 0; transform: scale(0.8) translateY(-18px); }
         }
         .heart-burst { animation: heartBurst 700ms cubic-bezier(0.16,1,0.3,1) forwards; pointer-events: none; }
+
+        @keyframes sparkFly0 { 0%{opacity:0;transform:translate(-50%,-50%) scale(0)} 20%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:0;transform:translate(calc(-50% - 36px),calc(-50% - 44px)) scale(0.5)} }
+        @keyframes sparkFly1 { 0%{opacity:0;transform:translate(-50%,-50%) scale(0)} 20%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:0;transform:translate(calc(-50% + 38px),calc(-50% - 40px)) scale(0.5)} }
+        @keyframes sparkFly2 { 0%{opacity:0;transform:translate(-50%,-50%) scale(0)} 25%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:0;transform:translate(calc(-50% - 48px),calc(-50% - 18px)) scale(0.4)} }
+        @keyframes sparkFly3 { 0%{opacity:0;transform:translate(-50%,-50%) scale(0)} 25%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:0;transform:translate(calc(-50% + 48px),calc(-50% - 14px)) scale(0.4)} }
+        @keyframes sparkFly4 { 0%{opacity:0;transform:translate(-50%,-50%) scale(0)} 30%{opacity:1;transform:translate(-50%,-50%) scale(0.9)} 100%{opacity:0;transform:translate(calc(-50% - 22px),calc(-50% + 42px)) scale(0.3)} }
+        @keyframes sparkFly5 { 0%{opacity:0;transform:translate(-50%,-50%) scale(0)} 30%{opacity:1;transform:translate(-50%,-50%) scale(0.9)} 100%{opacity:0;transform:translate(calc(-50% + 22px),calc(-50% + 42px)) scale(0.3)} }
+        .fire-spark-0 { animation: sparkFly0 750ms ease-out 80ms forwards; }
+        .fire-spark-1 { animation: sparkFly1 750ms ease-out 100ms forwards; }
+        .fire-spark-2 { animation: sparkFly2 700ms ease-out 60ms forwards; }
+        .fire-spark-3 { animation: sparkFly3 700ms ease-out 120ms forwards; }
+        .fire-spark-4 { animation: sparkFly4 650ms ease-out 140ms forwards; }
+        .fire-spark-5 { animation: sparkFly5 650ms ease-out 160ms forwards; }
 
         .reel-action-circle { transition: transform 160ms ease, background 160ms ease, border-color 160ms ease; }
         .reel-action:active .reel-action-circle { transform: scale(0.88); }
@@ -2959,7 +3046,7 @@ const styles = {
     whiteSpace: "nowrap",
   },
   feedTabActive: {
-    background: "#C1121F",
+    background: RED,
     color: "#FFFFFF",
     boxShadow: "none",
   },
@@ -3215,6 +3302,22 @@ const styles = {
     background: "linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.68) 38%, rgba(0,0,0,0.32) 68%, transparent 100%)",
     zIndex: 2,
   },
+  videoProgressBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 2,
+    background: "rgba(255,255,255,0.15)",
+    zIndex: 20,
+    overflow: "hidden",
+  },
+  videoProgressFill: {
+    height: "100%",
+    background: "rgba(255,255,255,0.65)",
+    transition: "width 0.25s linear",
+    borderRadius: "0 1px 1px 0",
+  },
   info: {
     position: "absolute",
     left: "max(14px, env(safe-area-inset-left))",
@@ -3384,7 +3487,7 @@ const styles = {
     margin: "0 0 10px",
     fontSize: 10,
     fontWeight: 900,
-    color: "#D4AF37",
+    color: GOLD,
     letterSpacing: 1.5,
   },
   filterSheetRow: {
@@ -3663,13 +3766,13 @@ const styles = {
   },
   muteBtn: {
     position: "absolute",
-    top: "calc(16px + env(safe-area-inset-top))",
+    top: "calc(64px + env(safe-area-inset-top))",
     right: "max(14px, env(safe-area-inset-right))",
-    background: "rgba(0,0,0,0.28)",
-    border: "1px solid rgba(255,255,255,0.16)",
+    background: "rgba(0,0,0,0.42)",
+    border: "1px solid rgba(255,255,255,0.18)",
     borderRadius: 999,
-    minWidth: 56,
-    height: 32,
+    minWidth: 52,
+    height: 30,
     color: "var(--text-primary)",
     fontSize: 11,
     fontWeight: 900,
@@ -3677,6 +3780,8 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    backdropFilter: "blur(8px)",
+    WebkitBackdropFilter: "blur(8px)",
   },
   playIndicator: {
     position: "absolute",
@@ -4000,10 +4105,12 @@ const styles = {
   replyItem: {
     display: "flex",
     gap: 10,
-    paddingTop: 10,
-    paddingBottom: 10,
-    paddingLeft: 0,
+    paddingTop: 8,
+    paddingBottom: 8,
+    paddingLeft: 16,
     paddingRight: 0,
+    borderLeft: "2px solid rgba(212,175,55,0.18)",
+    marginLeft: 12,
   },
   replyAvatar: {
     width: 28,
@@ -4039,7 +4146,7 @@ const styles = {
   toggleReplies: {
     background: "none",
     border: "none",
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 11,
     fontWeight: 700,
     cursor: "pointer",
@@ -4058,7 +4165,8 @@ const styles = {
   },
   commentInputRow: {
     display: "flex",
-    gap: 12,
+    gap: 10,
+    alignItems: "center",
   },
   replyPill: {
     display: "flex",
@@ -4072,13 +4180,13 @@ const styles = {
   },
   replyPillText: {
     fontSize: 12,
-    color: "#D4AF37",
+    color: GOLD,
     fontWeight: 700,
   },
   replyPillClose: {
     background: "none",
     border: "none",
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 11,
     cursor: "pointer",
     padding: 0,
@@ -4104,7 +4212,7 @@ const styles = {
     paddingRight: 18,
     borderRadius: 999,
     border: "none",
-    background: "#C1121F",
+    background: RED,
     color: "#fff",
     fontSize: 13,
     fontWeight: 800,
@@ -4187,11 +4295,16 @@ const styles = {
     borderRadius: "50%",
     borderWidth: "1px",
     borderStyle: "solid",
-    borderColor: "rgba(255,255,255,0.12)",
-    background: "rgba(0,0,0,0.28)",
-    color: "var(--text-primary)",
+    borderColor: "rgba(255,255,255,0.2)",
+    background: "rgba(255,255,255,0.08)",
+    color: "#fff",
     fontSize: 18,
     cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+    lineHeight: 1,
   },
   feedbackBody: {
     maxHeight: "calc(76vh - 112px)",
@@ -4268,7 +4381,7 @@ const styles = {
     margin: "0 0 10px",
     fontSize: 9,
     fontWeight: 900,
-    color: "#D4AF37",
+    color: GOLD,
     letterSpacing: 2.5,
     textTransform: "uppercase",
   },
@@ -4308,7 +4421,7 @@ const styles = {
   xpCardTotalVal: {
     fontSize: 18,
     fontWeight: 1000,
-    color: "#D4AF37",
+    color: GOLD,
   },
   xpCapNotice: {
     margin: "5px 0 0",
@@ -4528,7 +4641,7 @@ const styles = {
     borderRadius: 999,
     border: "1px solid rgba(212,175,55,0.42)",
     background: "rgba(212,175,55,0.12)",
-    color: "#D4AF37",
+    color: GOLD,
     fontFamily: "inherit",
     fontSize: 13,
     lineHeight: 1,
@@ -4545,7 +4658,7 @@ const styles = {
   },
   gymTagBanner: {
     fontSize: 11,
-    color: "#D4AF37",
+    color: GOLD,
     marginTop: 4,
     opacity: 0.9,
   },
@@ -4593,7 +4706,7 @@ const styles = {
     pointerEvents: "none",
   },
   profileProgressTitle: {
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 9,
     fontWeight: 900,
     letterSpacing: 1.4,

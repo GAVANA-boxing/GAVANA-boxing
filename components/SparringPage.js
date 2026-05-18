@@ -15,8 +15,18 @@ import { createNotification } from "@/lib/notifications";
 import { getFighterRank } from "@/lib/xp";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import BottomNav from "@/components/BottomNav";
+import { RED, GOLD } from "@/lib/tokens";
+import { snapToDocs } from "@/lib/firestore";
 
 const ARCHETYPE_KEYS = ["all", "pressure", "counter", "technical", "brawler"];
+
+const ARCHETYPE_STATS = {
+  pressure:  { SPD: 75, PWR: 80, TEC: 55, STAM: 90 },
+  counter:   { SPD: 85, PWR: 65, TEC: 90, STAM: 70 },
+  technical: { SPD: 80, PWR: 50, TEC: 95, STAM: 72 },
+  brawler:   { SPD: 60, PWR: 95, TEC: 50, STAM: 80 },
+};
+
 const WEIGHT_OPTS = [
   "all",
   "Flyweight", "Bantamweight", "Featherweight", "Lightweight",
@@ -48,11 +58,16 @@ function FighterCard({ post, isMe, onRequest, sent, requesting, locale }) {
   const arch = ARCHETYPE_DISPLAY[post.archetype];
   const t = (key) => translate(locale, key);
   const isBusy = requesting === post.userId;
+  const stats = ARCHETYPE_STATS[post.archetype] || null;
+  const rankGlow = post.rankColor && post.rankKey !== "rankRookieGloves" && post.rankKey !== "rankAmateurBelt"
+    ? `0 0 12px ${post.rankColor}35, 0 2px 8px rgba(0,0,0,0.5)`
+    : "0 2px 8px rgba(0,0,0,0.4)";
 
   return (
     <div style={{
       ...c.card,
-      borderLeft: `2.5px solid ${arch?.color || "#C1121F"}`,
+      borderLeft: `2.5px solid ${post.rankColor || arch?.color || RED}`,
+      boxShadow: rankGlow,
       opacity: isMe ? 0.55 : 1,
     }}>
       <div style={c.cardTop}>
@@ -74,7 +89,7 @@ function FighterCard({ post, isMe, onRequest, sent, requesting, locale }) {
           <div style={c.name}>{post.displayName || "Fighter"}</div>
           <div style={c.chips}>
             {post.rankKey && (
-              <span style={{ ...c.chip, color: post.rankColor || "#fff", borderColor: `${post.rankColor || "#fff"}44` }}>
+              <span style={{ ...c.chip, color: post.rankColor || "#fff", background: `${post.rankColor || "#fff"}14`, borderColor: `${post.rankColor || "#fff"}44` }}>
                 {t(post.rankKey)}
               </span>
             )}
@@ -89,6 +104,18 @@ function FighterCard({ post, isMe, onRequest, sent, requesting, locale }) {
           </div>
           {post.location && <div style={c.location}>📍 {post.location}</div>}
           {post.bio && <div style={c.bio}>{post.bio.slice(0, 72)}{post.bio.length > 72 ? "…" : ""}</div>}
+          {stats && (
+            <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+              {[["SPD", stats.SPD, "#60A5FA"], ["PWR", stats.PWR, "#F87171"], ["TEC", stats.TEC, "#34D399"], ["STAM", stats.STAM, "#FB923C"]].map(([label, val, col]) => (
+                <div key={label} style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+                  <span style={{ fontSize: 8, fontWeight: 900, color: col, letterSpacing: "0.05em", textAlign: "center" }}>{label}</span>
+                  <div style={{ height: 3, borderRadius: 99, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${val}%`, borderRadius: 99, background: col }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -211,6 +238,9 @@ export default function SparringPage() {
   const [myPost, setMyPost] = useState(null);
   const [incomingRequests, setIncomingRequests] = useState([]);
   const [sentRequestToIds, setSentRequestToIds] = useState(new Set());
+  const [sentRequests, setSentRequests] = useState([]);
+  const [requestsSubTab, setRequestsSubTab] = useState("received");
+  const [cancelling, setCancelling] = useState(null);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState(false);
@@ -235,7 +265,7 @@ export default function SparringPage() {
     const q = query(collection(db, "sparring_posts"), where("lookingForSparring", "==", true));
     const unsub = onSnapshot(q, (snap) => {
       const uid = user?.uid;
-      const all = snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => getTs(b.createdAt) - getTs(a.createdAt));
+      const all = snapToDocs(snap).sort((a, b) => getTs(b.createdAt) - getTs(a.createdAt));
       setMyPost(uid ? (all.find((p) => p.userId === uid) || null) : null);
       setPosts(all.filter((p) => p.userId !== uid));
       setLoading(false);
@@ -249,37 +279,52 @@ export default function SparringPage() {
     const q = query(collection(db, "sparring_requests"), where("toUserId", "==", user.uid));
     const unsub = onSnapshot(q, (snap) => {
       setIncomingRequests(
-        snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => getTs(b.createdAt) - getTs(a.createdAt))
+        snapToDocs(snap).sort((a, b) => getTs(b.createdAt) - getTs(a.createdAt))
       );
     }, () => {});
     return () => unsub();
   }, [user?.uid]);
 
-  // Real-time sent requests — track which users already have a request
+  // Real-time sent requests — track which users already have a request + full docs
   useEffect(() => {
     if (!user?.uid) return;
     const q = query(collection(db, "sparring_requests"), where("fromUserId", "==", user.uid));
     const unsub = onSnapshot(q, (snap) => {
-      setSentRequestToIds(new Set(snap.docs.map((d) => d.data().toUserId)));
+      const docs = snapToDocs(snap).sort((a, b) => getTs(b.createdAt) - getTs(a.createdAt));
+      // Only mark as "sent" if the request is still pending — declined requests allow re-sending
+      setSentRequestToIds(new Set(docs.filter((d) => !d.status || d.status === "pending").map((d) => d.toUserId)));
+      setSentRequests(docs);
     }, () => {});
     return () => unsub();
   }, [user?.uid]);
 
-  // Load match history when history tab opened
+  // Load match history when history tab opened (challenger + opponent)
   useEffect(() => {
     if (tab !== "history" || !user?.uid) return;
     let active = true;
     setHistoryLoading(true);
-    getDocs(query(collection(db, "pvp_results"), where("challengerId", "==", user.uid))).then((snap) => {
+    Promise.all([
+      getDocs(query(collection(db, "pvp_results"), where("challengerId", "==", user.uid))),
+      getDocs(query(collection(db, "pvp_results"), where("opponentId", "==", user.uid))),
+    ]).then(([asChallenger, asOpponent]) => {
       if (!active) return;
-      const results = snap.docs
-        .map((d) => ({ id: d.id, ...d.data() }))
-        .sort((a, b) => {
-          const at = a.createdAt?.toMillis?.() || 0;
-          const bt = b.createdAt?.toMillis?.() || 0;
-          return bt - at;
-        });
-      setMatchHistory(results);
+      const fromChallenger = snapToDocs(asChallenger);
+      const fromOpponent = asOpponent.docs.map((d) => {
+        const data = d.data();
+        const result = data.result === "win" ? "loss" : data.result === "loss" ? "win" : data.result;
+        return {
+          id: d.id,
+          ...data,
+          result,
+          opponentName: data.challengerName || data.challengerDisplayName || "Opponent",
+          challengerScore: data.opponentScore,
+          opponentScore: data.challengerScore,
+        };
+      });
+      const seen = new Set(fromChallenger.map((d) => d.id));
+      const unique = [...fromChallenger, ...fromOpponent.filter((d) => !seen.has(d.id))];
+      unique.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+      setMatchHistory(unique);
     }).catch(() => {}).finally(() => { if (active) setHistoryLoading(false); });
     return () => { active = false; };
   }, [tab, user?.uid]);
@@ -399,6 +444,18 @@ export default function SparringPage() {
     }
   };
 
+  const handleCancelSparringRequest = async (req) => {
+    if (cancelling) return;
+    setCancelling(req.id);
+    try {
+      await deleteDoc(doc(db, "sparring_requests", req.id));
+    } catch (e) {
+      console.error("Cancel sparring request error:", e);
+    } finally {
+      setCancelling(null);
+    }
+  };
+
   const filtered = posts.filter((p) => {
     if (filterArchetype !== "all" && p.archetype !== filterArchetype) return false;
     if (filterWeight !== "all" && !p.weightClass?.includes(filterWeight)) return false;
@@ -433,7 +490,7 @@ export default function SparringPage() {
         </button>
         <div style={s.headerCenter}>
           <div style={s.headerKicker}>GAVANA</div>
-          <div style={s.headerTitle}>Sparring Matchmaking</div>
+          <div style={s.headerTitle}>{t("sparringMatchmaking")}</div>
         </div>
         <div style={{ width: 40 }} />
       </div>
@@ -472,7 +529,7 @@ export default function SparringPage() {
                 return (
                   <button key={key} type="button" onClick={() => setFilterArchetype(key)} style={{
                     ...s.filterChip,
-                    ...(active ? { background: arch ? `${arch.color}18` : "rgba(193,18,31,0.15)", border: `1px solid ${arch ? arch.color : "#C1121F"}55`, color: arch ? arch.color : "#fff" } : {}),
+                    ...(active ? { background: arch ? `${arch.color}18` : "rgba(193,18,31,0.15)", border: `1px solid ${arch ? arch.color : RED}55`, color: arch ? arch.color : "#fff" } : {}),
                   }}>
                     {key === "all" ? (locale === "mn" ? "Бүгд" : locale === "ko" ? "전체" : "All") : `${arch?.emoji} ${arch?.name.split(" ")[0]}`}
                   </button>
@@ -529,67 +586,157 @@ export default function SparringPage() {
       {/* ── REQUESTS TAB ── */}
       {tab === "requests" && (
         <div style={s.list}>
+          {/* Sent / Received sub-tabs */}
+          <div style={{ display: "flex", gap: 0, margin: "10px 16px 4px", borderRadius: 12, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", overflow: "hidden" }}>
+            {[
+              { key: "received", label: locale === "mn" ? "📬 Ирсэн" : locale === "ko" ? "📬 받은" : "📬 Received", count: pendingIncoming.length },
+              { key: "sent",     label: locale === "mn" ? "📤 Илгээсэн" : locale === "ko" ? "📤 보낸" : "📤 Sent", count: sentRequests.filter((r) => r.status === "pending").length },
+            ].map(({ key, label, count }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setRequestsSubTab(key)}
+                style={{
+                  flex: 1, padding: "10px 8px", border: "none",
+                  background: requestsSubTab === key ? "rgba(193,18,31,0.2)" : "transparent",
+                  color: requestsSubTab === key ? "#fff" : "rgba(255,255,255,0.4)",
+                  fontSize: 12, fontWeight: 800, cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                }}
+              >
+                {label}
+                {count > 0 && (
+                  <span style={{ minWidth: 16, height: 16, borderRadius: 999, background: RED, color: "#fff", fontSize: 9, fontWeight: 900, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+
           {!user ? (
             <div style={s.empty}>
               <p style={s.emptyTitle}>{locale === "mn" ? "Нэвтрэх шаардлагатай" : locale === "ko" ? "로그인이 필요합니다" : "Login required"}</p>
             </div>
-          ) : pendingIncoming.length === 0 && resolvedIncoming.length === 0 ? (
-            <div style={s.empty}>
-              <div style={{ fontSize: 48, marginBottom: 8 }}>📬</div>
-              <p style={s.emptyTitle}>{locale === "mn" ? "Хүсэлт ирээгүй байна" : locale === "ko" ? "받은 요청 없음" : "No requests yet"}</p>
-              <p style={s.emptySub}>{locale === "mn" ? "Sparring post идэвхжүүлэхэд хүсэлтүүд энд гарч ирнэ." : locale === "ko" ? "스파링 게시물을 활성화하면 요청이 여기에 표시됩니다." : "Enable your sparring post and requests will appear here."}</p>
-            </div>
-          ) : (
-            <>
-              {pendingIncoming.length > 0 && (
-                <>
-                  <div style={s.sectionLabel}>
-                    {locale === "mn" ? "⏳ Хүлээгдэж байгаа хүсэлтүүд" : locale === "ko" ? "⏳ 대기 중인 요청" : "⏳ Pending requests"}
-                  </div>
-                  {pendingIncoming.map((req) => (
-                    <div key={req.id} style={{ padding: "0 16px 8px" }}>
-                      <IncomingRequestCard
-                        req={req}
-                        onAccept={handleAccept}
-                        onDecline={handleDecline}
-                        accepting={accepting}
-                        declining={declining}
-                        locale={locale}
-                      />
+          ) : requestsSubTab === "received" ? (
+            pendingIncoming.length === 0 && resolvedIncoming.length === 0 ? (
+              <div style={s.empty}>
+                <div style={{ fontSize: 48, marginBottom: 8 }}>📬</div>
+                <p style={s.emptyTitle}>{locale === "mn" ? "Хүсэлт ирээгүй байна" : locale === "ko" ? "받은 요청 없음" : "No requests received"}</p>
+                <p style={s.emptySub}>{locale === "mn" ? "Sparring post идэвхжүүлэхэд хүсэлтүүд энд гарч ирнэ." : locale === "ko" ? "스파링 게시물을 활성화하면 요청이 여기에 표시됩니다." : "Enable your sparring post and requests will appear here."}</p>
+              </div>
+            ) : (
+              <>
+                {pendingIncoming.length > 0 && (
+                  <>
+                    <div style={s.sectionLabel}>
+                      {locale === "mn" ? "⏳ Хүлээгдэж байгаа хүсэлтүүд" : locale === "ko" ? "⏳ 대기 중인 요청" : "⏳ Pending requests"}
                     </div>
-                  ))}
-                </>
-              )}
-              {resolvedIncoming.length > 0 && (
-                <>
-                  <div style={s.sectionLabel}>
-                    {locale === "mn" ? "Дууссан хүсэлтүүд" : locale === "ko" ? "처리된 요청" : "Resolved requests"}
-                  </div>
-                  {resolvedIncoming.map((req) => {
-                    const isAccepted = req.status === "accepted";
-                    const col = isAccepted ? "#34D399" : "#F87171";
-                    return (
+                    {pendingIncoming.map((req) => (
                       <div key={req.id} style={{ padding: "0 16px 8px" }}>
-                        <div style={{ ...c.card, borderLeft: `2.5px solid ${col}`, opacity: 0.65 }}>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                              {req.fromPhotoURL
-                                ? <img src={req.fromPhotoURL} alt="" style={{ ...c.avatar, width: 36, height: 36 }} />
-                                : <div style={{ ...c.avatarFallback, width: 36, height: 36, fontSize: 14 }}>{(req.fromDisplayName || "?").charAt(0).toUpperCase()}</div>
-                              }
-                              <span style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>{req.fromDisplayName || "Fighter"}</span>
+                        <IncomingRequestCard
+                          req={req}
+                          onAccept={handleAccept}
+                          onDecline={handleDecline}
+                          accepting={accepting}
+                          declining={declining}
+                          locale={locale}
+                        />
+                      </div>
+                    ))}
+                  </>
+                )}
+                {resolvedIncoming.length > 0 && (
+                  <>
+                    <div style={s.sectionLabel}>
+                      {locale === "mn" ? "Дууссан хүсэлтүүд" : locale === "ko" ? "처리된 요청" : "Resolved requests"}
+                    </div>
+                    {resolvedIncoming.map((req) => {
+                      const isAccepted = req.status === "accepted";
+                      const col = isAccepted ? "#34D399" : "#F87171";
+                      const ago = formatAgo(req.createdAt, locale);
+                      return (
+                        <div key={req.id} style={{ padding: "0 16px 8px" }}>
+                          <div style={{ ...c.card, borderLeft: `2.5px solid ${col}`, opacity: 0.65 }}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                {req.fromPhotoURL
+                                  ? <img src={req.fromPhotoURL} alt="" style={{ ...c.avatar, width: 36, height: 36 }} />
+                                  : <div style={{ ...c.avatarFallback, width: 36, height: 36, fontSize: 14 }}>{(req.fromDisplayName || "?").charAt(0).toUpperCase()}</div>
+                                }
+                                <div>
+                                  <span style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>{req.fromDisplayName || "Fighter"}</span>
+                                  {ago && <div style={{ fontSize: 10, color: "#666", marginTop: 2 }}>🕐 {ago}</div>}
+                                </div>
+                              </div>
+                              <span style={{ fontSize: 11, fontWeight: 900, color: col }}>
+                                {isAccepted ? (locale === "mn" ? "✓ Зөвшөөрсөн" : locale === "ko" ? "✓ 수락됨" : "✓ Accepted") : (locale === "mn" ? "✕ Татгалзсан" : locale === "ko" ? "✕ 거절됨" : "✕ Declined")}
+                              </span>
                             </div>
-                            <span style={{ fontSize: 11, fontWeight: 900, color: col }}>
-                              {isAccepted ? (locale === "mn" ? "✓ Зөвшөөрсөн" : locale === "ko" ? "✓ 수락됨" : "✓ Accepted") : (locale === "mn" ? "✕ Татгалзсан" : locale === "ko" ? "✕ 거절됨" : "✕ Declined")}
-                            </span>
                           </div>
                         </div>
+                      );
+                    })}
+                  </>
+                )}
+              </>
+            )
+          ) : (
+            // Sent requests sub-tab
+            sentRequests.length === 0 ? (
+              <div style={s.empty}>
+                <div style={{ fontSize: 48, marginBottom: 8 }}>📤</div>
+                <p style={s.emptyTitle}>{locale === "mn" ? "Илгээсэн хүсэлт байхгүй" : locale === "ko" ? "보낸 요청 없음" : "No requests sent"}</p>
+                <p style={s.emptySub}>{locale === "mn" ? "Discover табаас тулаанч олж sparring хүсэлт илгээгээрэй." : locale === "ko" ? "탐색 탭에서 파이터를 찾아 스파링 요청을 보내세요." : "Find fighters in the Discover tab and send sparring requests."}</p>
+              </div>
+            ) : (
+              <>
+                {sentRequests.map((req) => {
+                  const isPending = req.status === "pending";
+                  const isAccepted = req.status === "accepted";
+                  const col = isAccepted ? "#34D399" : isPending ? "#F59E0B" : "#F87171";
+                  const ago = formatAgo(req.createdAt, locale);
+                  const isBusy = cancelling === req.id;
+                  return (
+                    <div key={req.id} style={{ padding: "0 16px 8px" }}>
+                      <div style={{ ...c.card, borderLeft: `2.5px solid ${col}` }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", marginBottom: 2 }}>
+                              {locale === "mn" ? "Sparring хүсэлт илгээсэн" : locale === "ko" ? "스파링 요청 보냄" : "Sparring request sent"}
+                            </div>
+                            <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+                              <span style={{ fontSize: 11, fontWeight: 800, color: col }}>
+                                {isAccepted ? (locale === "mn" ? "✓ Зөвшөөрсөн" : locale === "ko" ? "✓ 수락됨" : "✓ Accepted")
+                                  : isPending ? (locale === "mn" ? "⏳ Хүлээгдэж байна" : locale === "ko" ? "⏳ 대기 중" : "⏳ Pending")
+                                  : (locale === "mn" ? "✕ Татгалзсан" : locale === "ko" ? "✕ 거절됨" : "✕ Declined")}
+                              </span>
+                              {ago && <span style={{ fontSize: 10, color: "#666" }}>· {ago}</span>}
+                            </div>
+                          </div>
+                          {isPending && (
+                            <button
+                              type="button"
+                              onClick={() => !isBusy && handleCancelSparringRequest(req)}
+                              disabled={isBusy}
+                              style={{
+                                flexShrink: 0, padding: "7px 12px", borderRadius: 8,
+                                border: "1px solid rgba(248,113,113,0.3)",
+                                background: "rgba(248,113,113,0.07)",
+                                color: "#F87171", fontSize: 11, fontWeight: 900,
+                                cursor: isBusy ? "wait" : "pointer", opacity: isBusy ? 0.6 : 1,
+                              }}
+                            >
+                              {isBusy ? "…" : (locale === "mn" ? "Цуцлах" : locale === "ko" ? "취소" : "Cancel")}
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    );
-                  })}
-                </>
-              )}
-            </>
+                    </div>
+                  );
+                })}
+              </>
+            )
           )}
           <div style={{ height: "calc(24px + env(safe-area-inset-bottom))" }} />
         </div>
@@ -696,7 +843,7 @@ export default function SparringPage() {
                     {[
                       { label: locale === "mn" ? "Нийт" : locale === "ko" ? "총" : "Matches", value: total, color: "#fff" },
                       { label: locale === "mn" ? "Ялалт" : locale === "ko" ? "승리" : "Wins", value: wins, color: "#34D399" },
-                      { label: locale === "mn" ? "Ялалт %" : locale === "ko" ? "승률" : "Win rate", value: `${winPct}%`, color: "#D4AF37" },
+                      { label: locale === "mn" ? "Ялалт %" : locale === "ko" ? "승률" : "Win rate", value: `${winPct}%`, color: GOLD },
                     ].map(({ label, value, color }) => (
                       <div key={label} style={{ flex: 1, minWidth: 80, padding: "10px 12px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, textAlign: "center" }}>
                         <p style={{ margin: 0, fontSize: 18, fontWeight: 900, color }}>{value}</p>
@@ -777,7 +924,7 @@ const s = {
   tabBtnActive: { color: "#fff", borderBottom: "2px solid #C1121F" },
   tabBadge: {
     minWidth: 16, height: 16, borderRadius: 999,
-    background: "#C1121F", color: "#fff",
+    background: RED, color: "#fff",
     fontSize: 9, fontWeight: 900, display: "inline-flex", alignItems: "center", justifyContent: "center",
     padding: "0 4px",
   },

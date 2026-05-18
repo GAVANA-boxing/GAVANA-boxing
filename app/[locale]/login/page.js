@@ -7,6 +7,7 @@ import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale, translate } from "@/lib/i18n";
+import { RED, GOLD } from "@/lib/tokens";
 
 function getFriendlyAuthError(error, isSignUp, t) {
   switch (error?.code) {
@@ -69,7 +70,7 @@ export default function LoginPage() {
       <div style={styles.page}>
         <div style={styles.card}>
           <div style={{ textAlign: "center", marginBottom: 24 }}>
-            <p style={{ margin: 0, color: "#D4AF37", letterSpacing: 2, fontSize: 12, fontWeight: 800 }}>
+            <p style={{ margin: 0, color: GOLD, letterSpacing: 2, fontSize: 12, fontWeight: 800 }}>
               GAVANA BOXING
             </p>
             <h1 style={{ margin: "10px 0 0", fontSize: 28, fontWeight: 900, color: "#fff" }}>
@@ -150,7 +151,7 @@ export default function LoginPage() {
           }}>
             {isSignUp ? t("loginNewFighter") : t("loginMemberAccess")}
           </div>
-          <p style={{ margin: 0, color: "#D4AF37", letterSpacing: 2, fontSize: 12, fontWeight: 800 }}>
+          <p style={{ margin: 0, color: GOLD, letterSpacing: 2, fontSize: 12, fontWeight: 800 }}>
             GAVANA BOXING
           </p>
           <h1 style={{ margin: "10px 0 0", fontSize: 28, fontWeight: 900, color: "#fff" }}>
@@ -239,7 +240,7 @@ export default function LoginPage() {
               padding: "16px",
               borderRadius: 12,
               border: "none",
-              background: loading ? "#4d1117" : "#C1121F",
+              background: loading ? "#4d1117" : RED,
               color: "#fff",
               fontSize: 15,
               fontWeight: 900,
@@ -317,7 +318,7 @@ const styles = {
   signUpBadge: {
     background: "rgba(212,175,55,0.1)",
     border: "1px solid rgba(212,175,55,0.24)",
-    color: "#D4AF37",
+    color: GOLD,
   },
   helperText: {
     margin: "10px 0 0",
@@ -360,7 +361,7 @@ const styles = {
     padding: "16px",
     borderRadius: 12,
     border: "none",
-    background: "#C1121F",
+    background: RED,
     color: "#fff",
     fontSize: 15,
     fontWeight: 700,

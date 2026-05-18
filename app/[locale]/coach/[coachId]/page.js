@@ -6,7 +6,23 @@ import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, increment, query, 
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
+import EmptyState from "@/components/EmptyState";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
+import { RED, GOLD } from "@/lib/tokens";
+import { snapToDocs } from "@/lib/firestore";
+
+const SPECIALTY_COLORS = {
+  Amateur:      "#34D399",
+  Pro:          RED,
+  Sparring:     "#FB923C",
+  Defense:      "#60A5FA",
+  Counter:      "#60A5FA",
+  Footwork:     "#A78BFA",
+  "Pad work":   "#F59E0B",
+  Conditioning: "#34D399",
+  Beginners:    "#34D399",
+  Pressure:     "#F87171",
+};
 
 const BEST_FOR_MAP = {
   Footwork: { en: "Fighters wanting better ring movement & pivots", mn: "Хөдөлгөөн, хөлийн ажлаа сайжруулахыг хүсэгчид", ko: "이동 동작을 향상시키려는 선수" },
@@ -58,7 +74,7 @@ function StarRating({ value, onChange, readonly = false }) {
             border: "none",
             fontSize: 24,
             cursor: readonly ? "default" : "pointer",
-            color: n <= value ? "#D4AF37" : "rgba(255,255,255,0.2)",
+            color: n <= value ? GOLD : "rgba(255,255,255,0.2)",
             padding: "2px 1px",
           }}
         >
@@ -133,8 +149,8 @@ export default function CoachProfilePage() {
         if (!active) return;
 
         setCoach(coachSnap.exists() ? { id: coachSnap.id, ...coachSnap.data() } : null);
-        setReviews(reviewsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
-        setReels(reelsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setReviews(snapToDocs(reviewsSnap));
+        setReels(snapToDocs(reelsSnap));
         setCompletedSessions(bookingsSnap.size);
       } catch (e) {
         console.error("Coach profile load error:", e);
@@ -291,7 +307,7 @@ export default function CoachProfilePage() {
       try {
         const snap = await getDocs(query(collection(db, "training_programs"), where("coachId", "==", coachId)));
         if (!active) return;
-        setPrograms(snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0)));
+        setPrograms(snapToDocs(snap).sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0)));
       } catch { if (active) setPrograms([]); }
     }
     loadPrograms();
@@ -377,15 +393,30 @@ export default function CoachProfilePage() {
             <div style={styles.avatarInitials}>{initials}</div>
           )}
           {coach.coachVerified && (
-            <span style={styles.verifiedDot} title={t("verifiedCoach")}>✓</span>
+            <span style={styles.verifiedDot} title={t("verifiedCoach")}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M20 6L9 17l-5-5" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
           )}
         </div>
 
         {/* Name + verified */}
-        <h1 style={styles.name}>{displayName}</h1>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
+          <h1 style={{ ...styles.name, margin: 0 }}>{displayName}</h1>
+          {coach.coachVerified && (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" title={t("verifiedCoach")} aria-label={t("verifiedCoach")}>
+              <circle cx="12" cy="12" r="11" fill={GOLD} />
+              <path d="M7 12.5l3.5 3.5 6.5-7" stroke="#000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          )}
+        </div>
         {coach.coachVerified && (
           <div style={styles.verifiedBadge}>
-            <span style={styles.verifiedIcon}>✓</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="11" fill={GOLD} />
+              <path d="M7 12.5l3.5 3.5 6.5-7" stroke="#000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
             {t("verifiedCoach")}
           </div>
         )}
@@ -424,9 +455,22 @@ export default function CoachProfilePage() {
         {/* Specialties */}
         {coach.coachSpecialties?.length > 0 && (
           <div style={styles.specialtyRow}>
-            {coach.coachSpecialties.map((s) => (
-              <span key={s} style={styles.specialtyChip}>{s}</span>
-            ))}
+            {coach.coachSpecialties.map((sp) => {
+              const spColor = SPECIALTY_COLORS[sp] || null;
+              return (
+                <span
+                  key={sp}
+                  style={spColor ? {
+                    ...styles.specialtyChip,
+                    color: spColor,
+                    background: `${spColor}14`,
+                    border: `1px solid ${spColor}44`,
+                  } : styles.specialtyChip}
+                >
+                  {sp}
+                </span>
+              );
+            })}
           </div>
         )}
 
@@ -476,13 +520,32 @@ export default function CoachProfilePage() {
         })()}
 
         {/* Social links */}
-        {(coach.coachInstagram || coach.coachYoutube) && (
+        {(coach.coachInstagram || coach.coachYoutube || coach.coachPhone) && (
           <div style={styles.socialRow}>
             {coach.coachInstagram && (
-              <span style={styles.socialChip}>📸 @{coach.coachInstagram.replace("@", "")}</span>
+              <a
+                href={`https://instagram.com/${coach.coachInstagram.replace("@", "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={styles.socialLink}
+              >
+                📸 @{coach.coachInstagram.replace("@", "")}
+              </a>
             )}
             {coach.coachYoutube && (
-              <span style={styles.socialChip}>▶ YouTube</span>
+              <a
+                href={coach.coachYoutube.startsWith("http") ? coach.coachYoutube : `https://youtube.com/@${coach.coachYoutube.replace("@", "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={styles.socialLink}
+              >
+                ▶ YouTube
+              </a>
+            )}
+            {coach.coachPhone && (
+              <a href={`tel:${coach.coachPhone}`} style={styles.socialLink}>
+                📞 {coach.coachPhone}
+              </a>
             )}
           </div>
         )}
@@ -575,7 +638,9 @@ export default function CoachProfilePage() {
       <div style={styles.section}>
         <h2 style={styles.sectionTitle}>{t("coachReviews")}</h2>
         {reviews.length === 0 ? (
-          <p style={styles.empty}>{t("coachReviewsEmpty")}</p>
+          <div style={{ borderRadius: 16, background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.1)" }}>
+            <EmptyState emoji="⭐" title={t("coachReviewsEmpty")} hint={t("coachIdReviewsEmpty")} padding="28px 16px" />
+          </div>
         ) : (
           reviews.map((r) => <ReviewCard key={r.id} review={r} />)
         )}
@@ -585,13 +650,13 @@ export default function CoachProfilePage() {
       {programs.length > 0 && (
         <div style={styles.section}>
           <h2 style={styles.sectionTitle}>
-            📋 {locale === "mn" ? "Дасгалжуулагчийн програм" : locale === "ko" ? "트레이닝 프로그램" : "Training Programs"}
+            📋 {t("coachIdTrainingPrograms")}
           </h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {programs.map((prog) => {
               const enrolled = enrolledIds.has(prog.id);
               const isBusy = enrolling === prog.id;
-              const LEVEL_COLOR = { beginner: "#34D399", intermediate: "#D4AF37", advanced: "#C1121F" };
+              const LEVEL_COLOR = { beginner: "#34D399", intermediate: GOLD, advanced: RED };
               const levelColor = LEVEL_COLOR[prog.level] || "#888";
               return (
                 <div key={prog.id} style={{
@@ -611,7 +676,7 @@ export default function CoachProfilePage() {
                         </span>
                         {prog.duration && (
                           <span style={{ fontSize: 10, fontWeight: 700, color: "#888", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 999, padding: "2px 8px" }}>
-                            📅 {prog.duration} {locale === "mn" ? "өдөр" : locale === "ko" ? "일" : "days"}
+                            📅 {prog.duration} {t("coachIdDaysUnit")}
                           </span>
                         )}
                         {prog.enrolledCount > 0 && (
@@ -641,8 +706,8 @@ export default function CoachProfilePage() {
                       }}
                     >
                       {isBusy ? "…" : enrolled
-                        ? (locale === "mn" ? "✓ Дагасан" : locale === "ko" ? "✓ 등록됨" : "✓ Enrolled")
-                        : (locale === "mn" ? "Програм дагах" : locale === "ko" ? "프로그램 등록" : "Follow Program")}
+                        ? t("coachIdEnrolled")
+                        : t("coachIdFollowProgram")}
                     </button>
                   )}
                 </div>
@@ -690,10 +755,9 @@ const styles = {
   avatarWrap: { position: "relative", width: 88, height: 88 },
   avatar: { width: 88, height: 88, borderRadius: 44, objectFit: "cover", border: "2px solid rgba(212,175,55,0.4)" },
   avatarInitials: { width: 88, height: 88, borderRadius: 44, background: "rgba(193,18,31,0.2)", border: "2px solid rgba(193,18,31,0.4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30, fontWeight: 700, color: "#fff" },
-  verifiedDot: { position: "absolute", bottom: 2, right: 2, width: 22, height: 22, borderRadius: 11, background: "#D4AF37", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, boxShadow: "0 0 0 2px #0A0A0A" },
+  verifiedDot: { position: "absolute", bottom: 2, right: 2, width: 24, height: 24, borderRadius: "50%", background: GOLD, color: "#000", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 0 2.5px #0A0A0A, 0 2px 8px rgba(212,175,55,0.5)" },
   name: { fontSize: 22, fontWeight: 700, margin: 0, textAlign: "center" },
-  verifiedBadge: { display: "flex", alignItems: "center", gap: 5, background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600, color: "#D4AF37" },
-  verifiedIcon: { fontSize: 11, fontWeight: 700 },
+  verifiedBadge: { display: "flex", alignItems: "center", gap: 6, background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 20, padding: "5px 13px", fontSize: 12, fontWeight: 700, color: GOLD, letterSpacing: "0.02em" },
   location: { fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0 },
   trustRow: { display: "flex", gap: 20, flexWrap: "wrap", justifyContent: "center", margin: "4px 0" },
   trustStat: { display: "flex", flexDirection: "column", alignItems: "center", gap: 2 },
@@ -703,20 +767,20 @@ const styles = {
   specialtyChip: { background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20, padding: "4px 12px", fontSize: 12, color: "rgba(255,255,255,0.7)" },
   bio: { fontSize: 14, color: "rgba(255,255,255,0.65)", textAlign: "center", lineHeight: 1.55, maxWidth: 380, margin: 0 },
   cert: { fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0 },
-  socialRow: { display: "flex", gap: 8 },
-  socialChip: { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, padding: "4px 12px", fontSize: 12, color: "rgba(255,255,255,0.6)" },
+  socialRow: { display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" },
+  socialLink: { display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 20, padding: "6px 14px", fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.75)", textDecoration: "none", cursor: "pointer", transition: "background 150ms ease" },
   priceRow: { display: "flex", alignItems: "baseline", gap: 6 },
-  price: { fontSize: 22, fontWeight: 700, color: "#D4AF37" },
+  price: { fontSize: 22, fontWeight: 700, color: GOLD },
   priceLbl: { fontSize: 13, color: "rgba(255,255,255,0.62)" },
   ctaRow: { display: "flex", gap: 10, width: "100%", maxWidth: 360, marginTop: 4 },
-  requestBtn: { flex: 1, padding: "14px", background: "#C1121F", border: "none", borderRadius: 12, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" },
+  requestBtn: { flex: 1, padding: "14px", background: RED, border: "none", borderRadius: 12, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" },
   requestedBtn: { flex: 1, padding: "14px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, color: "rgba(255,255,255,0.5)", fontSize: 15, fontWeight: 600, cursor: "default" },
-  submitBtn: { flex: 1, padding: "12px", background: "#C1121F", border: "none", borderRadius: 10, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" },
+  submitBtn: { flex: 1, padding: "12px", background: RED, border: "none", borderRadius: 10, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" },
   submitBtnDisabled: { flex: 1, padding: "12px", background: "rgba(193,18,31,0.4)", border: "none", borderRadius: 10, color: "rgba(255,255,255,0.62)", fontSize: 14, cursor: "not-allowed" },
   cancelBtn: { flex: 1, padding: "12px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, color: "rgba(255,255,255,0.6)", fontSize: 14, cursor: "pointer" },
   reviewPrompt: { margin: "0 16px 16px", padding: "14px 16px", background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "space-between" },
-  reviewPromptText: { fontSize: 13, color: "#D4AF37", margin: 0 },
-  leaveReviewBtn: { background: "#D4AF37", border: "none", borderRadius: 8, padding: "8px 14px", color: "#000", fontSize: 13, fontWeight: 700, cursor: "pointer" },
+  reviewPromptText: { fontSize: 13, color: GOLD, margin: 0 },
+  leaveReviewBtn: { background: GOLD, border: "none", borderRadius: 8, padding: "8px 14px", color: "#000", fontSize: 13, fontWeight: 700, cursor: "pointer" },
   reviewFormCard: { margin: "0 16px 16px", padding: "18px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, display: "flex", flexDirection: "column", gap: 12 },
   reviewFormTitle: { fontSize: 16, fontWeight: 700, margin: 0, color: "#fff" },
   ratingRow: { display: "flex", alignItems: "center", gap: 12 },
@@ -740,7 +804,7 @@ const styles = {
   pendingBadge: { display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 16px", borderRadius: 12, background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.35)", color: "#F59E0B", fontSize: 14, fontWeight: 800 },
   cancelReqBtn: { width: "100%", padding: "10px", border: "1px solid rgba(248,113,113,0.35)", borderRadius: 12, background: "rgba(248,113,113,0.08)", color: "#F87171", fontSize: 14, fontWeight: 700, cursor: "pointer" },
   insightCard: { width: "100%", maxWidth: 360, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.18)", borderRadius: 12, padding: "12px 14px", display: "flex", flexDirection: "column", gap: 6 },
-  insightLabel: { fontSize: 10, fontWeight: 900, color: "#D4AF37", textTransform: "uppercase", letterSpacing: 1 },
+  insightLabel: { fontSize: 10, fontWeight: 900, color: GOLD, textTransform: "uppercase", letterSpacing: 1 },
   insightText: { fontSize: 13, color: "rgba(255,255,255,0.75)", lineHeight: 1.4 },
   improveList: { display: "flex", flexWrap: "wrap", gap: 5 },
   improveChip: { fontSize: 12, color: "rgba(255,255,255,0.6)", background: "rgba(255,255,255,0.05)", borderRadius: 6, padding: "3px 8px" },

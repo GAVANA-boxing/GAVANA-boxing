@@ -5,6 +5,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale, translate } from "@/lib/i18n";
+import { RED, GOLD } from "@/lib/tokens";
 
 const DRAG_THRESHOLD = 8;
 const EDGE_MARGIN = 12;
@@ -239,8 +240,8 @@ export default function DailyMission({ locale = "en" }) {
             {dailyStreak >= 3 ? "✓" : `${next3}d`} 3🔥 +100
           </span>
         </div>
-        <div style={{ ...pillStyles.milestone, borderColor: dailyStreak >= 7 ? "#D4AF37" : "rgba(255,255,255,0.1)" }}>
-          <span style={{ color: dailyStreak >= 7 ? "#D4AF37" : "#888", fontSize: 10, fontWeight: 900 }}>
+        <div style={{ ...pillStyles.milestone, borderColor: dailyStreak >= 7 ? GOLD : "rgba(255,255,255,0.1)" }}>
+          <span style={{ color: dailyStreak >= 7 ? GOLD : "#888", fontSize: 10, fontWeight: 900 }}>
             {dailyStreak >= 7 ? "✓" : `${next7}d`} 7🔥 +250
           </span>
         </div>
@@ -297,7 +298,7 @@ const pillStyles = {
   fireEmoji: { fontSize: 15, lineHeight: 1 },
   fireStreak: { fontSize: 12, fontWeight: 900 },
   pillTop: { display: "flex", alignItems: "center", justifyContent: "space-between" },
-  pillLabel: { color: "#D4AF37", fontSize: 9, fontWeight: 900, letterSpacing: 1.1, textTransform: "uppercase" },
+  pillLabel: { color: GOLD, fontSize: 9, fontWeight: 900, letterSpacing: 1.1, textTransform: "uppercase" },
   closeBtn: { background: "none", border: "none", color: "#666", fontSize: 12, cursor: "pointer", padding: 0 },
   missionRow: { display: "flex", alignItems: "flex-start", gap: 8 },
   missionIcon: { fontSize: 18, lineHeight: 1, flexShrink: 0 },

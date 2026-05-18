@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { checkAndAwardBadges } from "@/lib/badges";
 import { createRemixNotification } from "@/lib/notifications";
+import { RED, GOLD } from "@/lib/tokens";
 
 const CATEGORIES = ["boxing", "gym", "running", "street_workout", "sparring"];
 const DIFFICULTIES = ["beginner", "intermediate", "pro"];
@@ -95,9 +96,26 @@ function UToggle({ label, description, value, onChange, locked }) {
         type="button"
         disabled={!!locked}
         onClick={() => !locked && onChange && onChange(!value)}
-        style={{ ...S.toggleBtn, background: value ? "rgba(193,18,31,0.55)" : "rgba(255,255,255,0.07)", cursor: locked ? "default" : "pointer", opacity: locked ? 0.5 : 1 }}
+        aria-checked={value}
+        role="switch"
+        style={{
+          flexShrink: 0,
+          width: 46, height: 26, borderRadius: 999, border: "none", cursor: locked ? "default" : "pointer",
+          background: value ? RED : "rgba(255,255,255,0.12)",
+          opacity: locked ? 0.45 : 1,
+          position: "relative",
+          transition: "background 180ms ease",
+          padding: 0,
+          outline: "none",
+        }}
       >
-        {value ? "ON" : "OFF"}
+        <span style={{
+          position: "absolute",
+          top: 3, left: value ? "calc(100% - 23px)" : 3,
+          width: 20, height: 20, borderRadius: "50%",
+          background: "#fff", transition: "left 180ms ease",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.5)",
+        }} />
       </button>
     </div>
   );
@@ -123,6 +141,7 @@ export default function UploadPage() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState("");
+  const [videoDuration, setVideoDuration] = useState(null);
 
   // Common
   const [description, setDescription] = useState("");
@@ -188,7 +207,17 @@ export default function UploadPage() {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setSelectedFile(file);
     setPreviewUrl(URL.createObjectURL(file));
+    setVideoDuration(null);
   };
+
+  const formatDuration = (secs) => {
+    if (!secs || isNaN(secs)) return null;
+    const m = Math.floor(secs / 60);
+    const s = Math.floor(secs % 60);
+    return `${m}:${String(s).padStart(2, "0")}`;
+  };
+
+  const fileSizeMB = selectedFile ? (selectedFile.size / (1024 * 1024)).toFixed(1) : null;
 
   const handleUpload = async () => {
     if (!selectedFile) return;
@@ -319,7 +348,7 @@ export default function UploadPage() {
       <div style={S.videoPage}>
         <div style={S.videoHeader}>
           <button onClick={() => router.back()} style={S.iconBtn}>✕</button>
-          <span style={S.headerTitle}>New Reel</span>
+          <span style={S.headerTitle}>{t("uploadNewReel")}</span>
           <div style={{ width: 40 }} />
         </div>
 
@@ -331,20 +360,33 @@ export default function UploadPage() {
 
         <div style={S.videoPicker} onClick={() => !selectedFile && fileInputRef.current?.click()}>
           {selectedFile ? (
-            <video src={previewUrl} controls playsInline preload="metadata" style={S.videoFull} />
+            <video
+              src={previewUrl}
+              controls
+              playsInline
+              preload="metadata"
+              style={S.videoFull}
+              onLoadedMetadata={(e) => setVideoDuration(e.currentTarget.duration)}
+            />
           ) : (
             <div style={S.videoEmptyState}>
-              <div style={S.videoEmptyIcon}>▣</div>
-              <p style={S.videoEmptyLabel}>Tap to select a video</p>
-              <p style={S.videoEmptySub}>MP4, MOV · up to 500MB</p>
+              <div style={S.videoEmptyIconWrap}>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.89L15 14"/>
+                  <rect x="3" y="6" width="12" height="12" rx="2"/>
+                  <path d="M9 10v4M7 12h4" stroke={GOLD} strokeWidth="1.8"/>
+                </svg>
+              </div>
+              <p style={S.videoEmptyLabel}>{t("uploadTapSelect")}</p>
+              <p style={S.videoEmptySub}>MP4, MOV · {t("uploadSizeLimit")}</p>
             </div>
           )}
         </div>
 
         <div style={S.videoBottomBar}>
           <button style={S.galleryBtn} onClick={() => fileInputRef.current?.click()}>
-            <span style={{ fontSize: 13, fontWeight: 800, color: selectedFile ? "#D4AF37" : "rgba(255,255,255,0.75)" }}>
-              {selectedFile ? "Change" : "Gallery"}
+            <span style={{ fontSize: 13, fontWeight: 800, color: selectedFile ? GOLD : "rgba(255,255,255,0.75)" }}>
+              {selectedFile ? t("uploadChange") : t("uploadGallery")}
             </span>
           </button>
           {selectedFile && (
@@ -356,7 +398,7 @@ export default function UploadPage() {
             onClick={() => selectedFile ? setStep("setup") : fileInputRef.current?.click()}
             style={{ ...S.nextBtn, opacity: selectedFile ? 1 : 0.42 }}
           >
-            Next →
+            {t("uploadNext")}
           </button>
         </div>
 
@@ -370,21 +412,48 @@ export default function UploadPage() {
     <div style={S.setupPage}>
       <div style={S.setupHeader}>
         <button onClick={() => setStep("video")} style={S.iconBtn}>←</button>
-        <span style={S.headerTitle}>Post Reel</span>
+        <span style={S.headerTitle}>{t("uploadPostReel")}</span>
         <button onClick={handleUpload} disabled={uploading} style={{ ...S.postBtn, opacity: uploading ? 0.6 : 1 }}>
-          {uploading ? `${uploadProgress}%` : "Post"}
+          {uploading ? `${uploadProgress}%` : t("uploadPost")}
         </button>
       </div>
 
       <div style={S.setupScroll}>
         {/* Video thumbnail strip */}
         <div style={S.videoStrip}>
-          <video src={previewUrl} muted playsInline style={S.videoThumb} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ color: "rgba(255,255,255,0.65)", fontSize: 13, fontWeight: 700, marginBottom: 6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <div style={{ position: "relative", flexShrink: 0 }}>
+            <video
+              src={previewUrl}
+              muted
+              playsInline
+              style={S.videoThumb}
+              onLoadedMetadata={(e) => setVideoDuration(e.currentTarget.duration)}
+            />
+            {videoDuration && (
+              <div style={{ position: "absolute", bottom: 4, right: 4, background: "rgba(0,0,0,0.72)", borderRadius: 4, padding: "2px 5px", fontSize: 10, fontWeight: 800, color: "#fff" }}>
+                {formatDuration(videoDuration)}
+              </div>
+            )}
+          </div>
+          <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}>
+            <div style={{ color: "#fff", fontSize: 13, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {selectedFile?.name}
             </div>
-            <button onClick={() => setStep("video")} style={S.changeVideoBtn}>Change video</button>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {fileSizeMB && (
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", background: "rgba(255,255,255,0.06)", borderRadius: 6, padding: "2px 7px", fontWeight: 700 }}>
+                  {fileSizeMB} MB
+                </span>
+              )}
+              {videoDuration && (
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", background: "rgba(255,255,255,0.06)", borderRadius: 6, padding: "2px 7px", fontWeight: 700 }}>
+                  {formatDuration(videoDuration)}
+                </span>
+              )}
+            </div>
+            <button onClick={() => setStep("video")} style={S.changeVideoBtn}>
+              {t("uploadChangeVideo")}
+            </button>
           </div>
         </div>
 
@@ -398,7 +467,7 @@ export default function UploadPage() {
           {[
             { id: "training", emoji: "🥊", label: "Challenge", color: "#F87171", border: "rgba(193,18,31,0.5)" },
             { id: "lifestyle", emoji: "🎬", label: "Lifestyle", color: "#60A5FA", border: "rgba(96,165,250,0.45)" },
-            { id: "educational", emoji: "📚", label: "Education", color: "#D4AF37", border: "rgba(212,175,55,0.5)" },
+            { id: "educational", emoji: "📚", label: "Education", color: GOLD, border: "rgba(212,175,55,0.5)" },
           ].map(({ id, emoji, label, color, border }) => {
             const active = contentType === id;
             return (
@@ -420,12 +489,18 @@ export default function UploadPage() {
           {/* Primary field — caption or technique title (always visible) */}
           {(isTraining || isLifestyle) && (
             <UField label={t("caption")}>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder={isTraining ? t("uploadChallengePlaceholder") : t("uploadLifestylePlaceholder")}
-                style={{ ...S.textarea, minHeight: 96 }}
-              />
+              <div style={{ position: "relative" }}>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder={isTraining ? t("uploadChallengePlaceholder") : t("uploadLifestylePlaceholder")}
+                  maxLength={300}
+                  style={{ ...S.textarea, minHeight: 96, paddingBottom: 28 }}
+                />
+                <span style={{ position: "absolute", bottom: 10, right: 12, fontSize: 11, color: description.length > 260 ? "#F87171" : "rgba(255,255,255,0.25)", fontWeight: 700, pointerEvents: "none" }}>
+                  {description.length}/300
+                </span>
+              </div>
             </UField>
           )}
           {isEdu && (
@@ -492,10 +567,17 @@ export default function UploadPage() {
           {/* Gym tag */}
           {gyms.length > 0 && (
             <UField label={t("uploadGymTag")}>
-              <select value={gymId} onChange={(e) => setGymId(e.target.value)} style={S.input}>
-                <option value="">{t("uploadGymNone")}</option>
-                {gyms.map((g) => <option key={g.id} value={g.id}>{g.gymName}</option>)}
-              </select>
+              <div style={{ position: "relative" }}>
+                <select
+                  value={gymId}
+                  onChange={(e) => setGymId(e.target.value)}
+                  style={{ ...S.input, appearance: "none", WebkitAppearance: "none", paddingRight: 36, color: gymId ? "#fff" : "rgba(255,255,255,0.38)" }}
+                >
+                  <option value="" style={{ color: "#aaa" }}>{t("uploadGymNone")}</option>
+                  {gyms.map((g) => <option key={g.id} value={g.id} style={{ color: "#fff", background: "#111" }}>{g.gymName}</option>)}
+                </select>
+                <span style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "rgba(255,255,255,0.38)", fontSize: 11 }}>▾</span>
+              </div>
             </UField>
           )}
 
@@ -503,7 +585,7 @@ export default function UploadPage() {
           <div style={S.aiBox}>
             <button onClick={() => setCaptionOpen(!captionOpen)} style={S.aiBoxBtn}>
               <span style={S.aiBoxLabel}>✨ {t("aiCaptionGenerator")}</span>
-              <span style={{ color: "#D4AF37", fontSize: 18, lineHeight: 1 }}>{captionOpen ? "∧" : "∨"}</span>
+              <span style={{ color: GOLD, fontSize: 18, lineHeight: 1 }}>{captionOpen ? "∧" : "∨"}</span>
             </button>
             {captionOpen && (
               <div style={{ padding: "0 16px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
@@ -529,19 +611,31 @@ export default function UploadPage() {
           </div>
         </div>
 
-        {uploading && (
-          <div style={S.progressWrap}>
-            <div style={{ display: "flex", justifyContent: "space-between", color: "#aaa", fontSize: 12, fontWeight: 800 }}>
-              <span>{t("uploading")}</span><span>{uploadProgress}%</span>
-            </div>
-            <div style={S.progressTrack}><div style={{ ...S.progressFill, width: `${uploadProgress}%` }} /></div>
-          </div>
-        )}
-
-        <button onClick={handleUpload} disabled={uploading} style={{ ...S.primaryBtn, opacity: uploading ? 0.6 : 1, marginBottom: 32 }}>
-          {uploading ? `${uploadProgress}%` : t("uploadPostReel")}
+        <button onClick={handleUpload} disabled={uploading} style={{ ...S.primaryBtn, opacity: uploading ? 0.45 : 1, marginBottom: 32 }}>
+          {t("uploadPostReel")}
         </button>
       </div>
+
+      {/* Upload progress overlay */}
+      {uploading && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.88)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, padding: 32 }}>
+          <div style={{ fontSize: 48 }}>🥊</div>
+          <div style={{ fontSize: 17, fontWeight: 900, color: "#fff" }}>
+            {t("uploadUploading")}
+          </div>
+          <div style={{ width: "100%", maxWidth: 280 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 12, color: "rgba(255,255,255,0.55)", fontWeight: 700 }}>
+              <span>{t("uploading")}</span><span>{uploadProgress}%</span>
+            </div>
+            <div style={{ height: 6, borderRadius: 999, background: "rgba(255,255,255,0.1)", overflow: "hidden" }}>
+              <div style={{ height: "100%", borderRadius: 999, background: "linear-gradient(90deg,#C1121F,#D4AF37)", width: `${uploadProgress}%`, transition: "width 200ms ease" }} />
+            </div>
+          </div>
+          <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.35)", textAlign: "center" }}>
+            {t("uploadDontClose")}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
@@ -554,7 +648,7 @@ const S = {
   videoHeader: {
     position: "absolute", top: 0, left: 0, right: 0, zIndex: 20,
     display: "flex", alignItems: "center", justifyContent: "space-between",
-    padding: "52px 20px 16px",
+    padding: "calc(16px + env(safe-area-inset-top)) 20px 16px",
     background: "linear-gradient(180deg, rgba(0,0,0,0.72) 0%, transparent 100%)",
   },
   remixBar: {
@@ -569,10 +663,10 @@ const S = {
     minHeight: "calc(100vh - 88px)", cursor: "pointer",
   },
   videoFull: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, width: "100%", height: "100%", objectFit: "cover" },
-  videoEmptyState: { display: "flex", flexDirection: "column", alignItems: "center", gap: 16, padding: 40, zIndex: 1 },
-  videoEmptyIcon: { fontSize: 72, color: "#D4AF37" },
+  videoEmptyState: { display: "flex", flexDirection: "column", alignItems: "center", gap: 18, padding: 40, zIndex: 1 },
+  videoEmptyIconWrap: { width: 96, height: 96, borderRadius: "50%", background: "rgba(212,175,55,0.1)", border: "1.5px solid rgba(212,175,55,0.25)", display: "flex", alignItems: "center", justifyContent: "center" },
   videoEmptyLabel: { margin: 0, color: "rgba(255,255,255,0.88)", fontSize: 20, fontWeight: 900, textAlign: "center" },
-  videoEmptySub: { margin: 0, color: "rgba(255,255,255,0.4)", fontSize: 14, textAlign: "center" },
+  videoEmptySub: { margin: 0, color: "rgba(255,255,255,0.35)", fontSize: 13, textAlign: "center" },
   videoBottomBar: {
     position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 20,
     display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -587,19 +681,19 @@ const S = {
   setupHeader: {
     position: "sticky", top: 0, zIndex: 20,
     display: "flex", alignItems: "center", justifyContent: "space-between",
-    padding: "52px 20px 14px",
+    padding: "calc(16px + env(safe-area-inset-top)) 20px 14px",
     background: "rgba(7,7,7,0.96)", backdropFilter: "blur(16px)",
     borderBottom: "1px solid rgba(255,255,255,0.06)",
   },
   iconBtn: { width: 40, height: 40, borderRadius: 999, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", color: "#fff", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
-  headerTitle: { color: "#fff", fontSize: 16, fontWeight: 900 },
+  headerTitle: { flex: 1, color: "#fff", fontSize: 16, fontWeight: 900, textAlign: "center" },
   postBtn: { padding: "10px 24px", borderRadius: 999, border: "none", background: "linear-gradient(135deg, #C1121F, #8f0d17)", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: "0 4px 16px rgba(193,18,31,0.35)" },
   setupScroll: { flex: 1, overflowY: "auto", padding: "20px 20px 40px", display: "flex", flexDirection: "column", gap: 20, maxWidth: 600, width: "100%", margin: "0 auto", boxSizing: "border-box" },
 
   // Video strip
-  videoStrip: { display: "flex", gap: 14, alignItems: "center", padding: "12px 16px", background: "rgba(255,255,255,0.04)", borderRadius: 16, border: "1px solid rgba(255,255,255,0.08)" },
-  videoThumb: { width: 48, height: 64, borderRadius: 10, objectFit: "cover", background: "#111", flexShrink: 0 },
-  changeVideoBtn: { background: "none", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 999, color: "rgba(255,255,255,0.45)", fontSize: 12, fontWeight: 700, padding: "4px 12px", cursor: "pointer" },
+  videoStrip: { display: "flex", gap: 14, alignItems: "center", padding: "12px 14px", background: "rgba(255,255,255,0.04)", borderRadius: 16, border: "1px solid rgba(255,255,255,0.08)" },
+  videoThumb: { width: 63, height: 84, borderRadius: 10, objectFit: "cover", background: "#111", flexShrink: 0, display: "block" },
+  changeVideoBtn: { background: "none", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 999, color: "rgba(255,255,255,0.45)", fontSize: 12, fontWeight: 700, padding: "5px 12px", cursor: "pointer", alignSelf: "flex-start" },
 
   // Type tabs
   typeTabs: { display: "flex", gap: 6, padding: 5, background: "rgba(255,255,255,0.04)", borderRadius: 14, border: "1px solid rgba(255,255,255,0.06)" },
@@ -607,14 +701,14 @@ const S = {
 
   // Fields
   fields: { display: "flex", flexDirection: "column", gap: 18 },
-  fieldLabel: { fontSize: 11, fontWeight: 900, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: 1 },
+  fieldLabel: { fontSize: 11, fontWeight: 900, color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: 1 },
   input: { background: "#111", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 12, padding: "13px 16px", color: "#fff", fontSize: 14, outline: "none", width: "100%", boxSizing: "border-box" },
   textarea: { background: "#111", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 12, padding: "13px 16px", color: "#fff", fontSize: 14, minHeight: 82, resize: "vertical", outline: "none", width: "100%", boxSizing: "border-box" },
   chipRow: { display: "flex", flexWrap: "wrap", gap: 8 },
   chip: { padding: "8px 16px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.45)", fontSize: 13, fontWeight: 800, cursor: "pointer" },
   chipActive: { background: "rgba(193,18,31,0.18)", border: "1px solid rgba(193,18,31,0.5)", color: "#F87171" },
   chipGreen: { background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.4)", color: "#34D399" },
-  chipGold: { background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.4)", color: "#D4AF37" },
+  chipGold: { background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.4)", color: GOLD },
   chipRed: { background: "rgba(193,18,31,0.18)", border: "1px solid rgba(193,18,31,0.5)", color: "#F87171" },
 
   // Toggles
@@ -631,16 +725,16 @@ const S = {
   // AI box
   aiBox: { borderRadius: 16, background: "linear-gradient(145deg, rgba(193,18,31,0.08), rgba(11,11,11,0.9) 50%, rgba(212,175,55,0.05))", border: "1px solid rgba(255,255,255,0.07)" },
   aiBoxBtn: { width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "15px 16px", background: "none", border: "none", cursor: "pointer" },
-  aiBoxLabel: { color: "#D4AF37", fontSize: 13, fontWeight: 900, letterSpacing: 0.6 },
+  aiBoxLabel: { color: GOLD, fontSize: 13, fontWeight: 900, letterSpacing: 0.6 },
   aiBoxHelp: { margin: 0, color: "#888", fontSize: 13, lineHeight: 1.5 },
 
   // Caption result
   captionResult: { display: "flex", flexDirection: "column", gap: 10, padding: 14, borderRadius: 14, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(212,175,55,0.14)" },
   captionSection: { display: "grid", gap: 4, padding: 10, borderRadius: 10, background: "rgba(255,255,255,0.04)" },
-  captionLbl: { color: "#D4AF37", fontSize: 10, fontWeight: 900, letterSpacing: 1.2, textTransform: "uppercase" },
+  captionLbl: { color: GOLD, fontSize: 10, fontWeight: 900, letterSpacing: 1.2, textTransform: "uppercase" },
   captionHook: { color: "#fff", fontSize: 14, fontWeight: 900, lineHeight: 1.45 },
   captionBody: { color: "#fff", fontSize: 14, lineHeight: 1.55, whiteSpace: "pre-wrap" },
-  captionActionBtn: { padding: "9px 14px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.34)", background: "rgba(212,175,55,0.1)", color: "#D4AF37", fontSize: 13, fontWeight: 800, cursor: "pointer" },
+  captionActionBtn: { padding: "9px 14px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.34)", background: "rgba(212,175,55,0.1)", color: GOLD, fontSize: 13, fontWeight: 800, cursor: "pointer" },
 
   primaryBtn: { padding: "14px 20px", borderRadius: 14, border: "none", background: "linear-gradient(135deg, #C1121F, #8f0d17)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: "0 8px 24px rgba(193,18,31,0.28)" },
 

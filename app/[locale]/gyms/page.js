@@ -7,13 +7,18 @@ import {
   doc,
   getDoc,
   getDocs,
+  limit,
+  orderBy,
   query,
   where,
 } from "firebase/firestore";
 import BottomNav from "@/components/BottomNav";
+import EmptyState from "@/components/EmptyState";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
+import { RED, GOLD } from "@/lib/tokens";
+import { snapToDocs } from "@/lib/firestore";
 
 const GYM_TYPES = [
   "Boxing", "MMA", "Muay Thai", "Fitness",
@@ -54,7 +59,7 @@ function getDefaultVibes(gymType) {
 function StarDisplay({ rating }) {
   const r = Number(rating) || 0;
   return (
-    <span style={{ color: "#D4AF37", fontSize: 12, fontWeight: 700 }}>
+    <span style={{ color: GOLD, fontSize: 12, fontWeight: 700 }}>
       {"★".repeat(Math.round(r))}{"☆".repeat(5 - Math.round(r))} {r > 0 ? r.toFixed(1) : ""}
     </span>
   );
@@ -130,7 +135,7 @@ function GymCard({ gym, t, router, locale }) {
           style={styles.joinBtn}
           onClick={() => router.push(`/${locale}/gyms/${gym.id}`)}
         >
-          {locale === "mn" ? "Үзэх → Нэгдэх" : locale === "ko" ? "보기 → 가입" : "View → Join"}
+          {t("gymViewJoin")}
         </button>
       </div>
     </div>
@@ -150,6 +155,7 @@ export default function GymsPage() {
   const [myMemberships, setMyMemberships] = useState([]);
   const [myMembershipsLoading, setMyMembershipsLoading] = useState(false);
   const myMembershipsLoadedRef = useRef(false);
+  const [ownedGym, setOwnedGym] = useState(null);
   const [searchText, setSearchText] = useState("");
   const [selectedType, setSelectedType] = useState("all");
   const [sortMode, setSortMode] = useState("topRated"); // topRated | newest | nearby
@@ -164,12 +170,9 @@ export default function GymsPage() {
     async function load() {
       setLoading(true);
       try {
-        const snap = await getDocs(collection(db, "gyms"));
+        const snap = await getDocs(query(collection(db, "gyms"), orderBy("createdAt", "desc"), limit(50)));
         if (active) {
-          const list = snap.docs
-            .map((d) => ({ id: d.id, ...d.data() }))
-            .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
-          setGyms(list);
+          setGyms(snapToDocs(snap));
         }
       } catch (e) {
         console.error("gyms load error", e);
@@ -186,10 +189,17 @@ export default function GymsPage() {
     myMembershipsLoadedRef.current = true;
     let active = true;
     setMyMembershipsLoading(true);
-    getDocs(query(collection(db, "gym_join_requests"), where("userId", "==", user.uid)))
-      .then(async (snap) => {
+    Promise.all([
+      getDocs(query(collection(db, "gym_join_requests"), where("userId", "==", user.uid))),
+      getDocs(query(collection(db, "gyms"), where("ownerId", "==", user.uid))),
+    ])
+      .then(async ([reqSnap, ownedSnap]) => {
         if (!active) return;
-        const reqs = snap.docs
+        if (!ownedSnap.empty) {
+          const od = ownedSnap.docs[0];
+          setOwnedGym({ id: od.id, ...od.data() });
+        }
+        const reqs = reqSnap.docs
           .map((d) => ({ id: d.id, ...d.data() }))
           .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
         const gymIds = [...new Set(reqs.map((r) => r.gymId).filter(Boolean))];
@@ -276,9 +286,9 @@ export default function GymsPage() {
   }, [gyms, verifiedOnly, selectedType, cityFilter, searchText, sortMode, nearbyCoords]);
 
   const GYM_STATUS = {
-    pending:  { color: "#F59E0B", bg: "rgba(245,158,11,0.1)",  border: "rgba(245,158,11,0.35)",  label: locale === "mn" ? "⏳ Хүлээгдэж байна" : locale === "ko" ? "⏳ 대기 중" : "⏳ Pending" },
-    approved: { color: "#34D399", bg: "rgba(52,211,153,0.1)",  border: "rgba(52,211,153,0.35)",  label: locale === "mn" ? "✓ Гишүүн" : locale === "ko" ? "✓ 회원" : "✓ Member" },
-    declined: { color: "#F87171", bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.35)", label: locale === "mn" ? "✕ Татгалзсан" : locale === "ko" ? "✕ 거절됨" : "✕ Declined" },
+    pending:  { color: "#F59E0B", bg: "rgba(245,158,11,0.1)",  border: "rgba(245,158,11,0.35)",  label: t("gymStatusPending") },
+    approved: { color: "#34D399", bg: "rgba(52,211,153,0.1)",  border: "rgba(52,211,153,0.35)",  label: t("gymStatusMember") },
+    declined: { color: "#F87171", bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.35)", label: t("gymStatusDeclined") },
   };
 
   return (
@@ -286,8 +296,8 @@ export default function GymsPage() {
       {/* Sticky tab bar */}
       <div style={styles.tabBar}>
         {[
-          { key: "all",  label: locale === "mn" ? "🏋️ Бүх gym" : locale === "ko" ? "🏋️ 전체" : "🏋️ All Gyms" },
-          { key: "mine", label: locale === "mn" ? "🥊 Миний gym" : locale === "ko" ? "🥊 내 체육관" : "🥊 My Gyms" },
+          { key: "all",  label: t("gymAllTab") },
+          { key: "mine", label: t("gymMyTab") },
         ].map(({ key, label }) => (
           <button
             key={key}
@@ -306,42 +316,69 @@ export default function GymsPage() {
           <>
             <div style={{ ...styles.header, paddingTop: 20 }}>
               <p style={styles.kicker}>GAVANA</p>
-              <h1 style={styles.title}>{locale === "mn" ? "Миний Gym" : locale === "ko" ? "내 체육관" : "My Gyms"}</h1>
+              <h1 style={styles.title}>{t("gymMyTitle")}</h1>
             </div>
 
             {!user?.uid ? (
-              <div style={styles.emptyState}>
-                <div style={{ fontSize: 40, opacity: 0.4 }}>🔒</div>
-                <p style={styles.emptyText}>{locale === "mn" ? "Нэвтрэх шаардлагатай" : locale === "ko" ? "로그인이 필요합니다" : "Login required"}</p>
-                <button
-                  type="button"
-                  onClick={() => router.push(`/${locale}/login`)}
-                  style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}
-                >
-                  {locale === "mn" ? "Нэвтрэх →" : locale === "ko" ? "로그인 →" : "Log in →"}
-                </button>
-              </div>
+              <EmptyState
+                emoji="🔒"
+                title={t("gymLoginRequired")}
+                action={
+                  <button type="button" onClick={() => router.push(`/${locale}/login`)} style={{ padding: "12px 28px", borderRadius: 14, background: RED, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}>
+                    {t("gymLoginBtn")}
+                  </button>
+                }
+              />
             ) : myMembershipsLoading ? (
               <div style={styles.skeletonList}>
                 {[0, 1].map((i) => <div key={i} style={styles.skeletonCard} className="sk-pulse" />)}
               </div>
-            ) : myMemberships.length === 0 ? (
-              <div style={styles.emptyState}>
-                <div style={{ fontSize: 40, opacity: 0.4 }}>🏋️</div>
-                <p style={styles.emptyText}>{locale === "mn" ? "Gym-д элсээгүй байна" : locale === "ko" ? "체육관에 가입하지 않았습니다" : "Not in any gym yet"}</p>
-                <p style={{ margin: 0, color: "rgba(255,255,255,0.45)", fontSize: 13, textAlign: "center", maxWidth: 240 }}>
-                  {locale === "mn" ? "Gym-д элсэж тамирлалтаа нэгтгэ" : locale === "ko" ? "체육관에 가입하고 훈련을 함께 하세요" : "Join a gym to train with your community"}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setTab("all")}
-                  style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", marginTop: 4 }}
-                >
-                  {locale === "mn" ? "Gym хайх →" : locale === "ko" ? "체육관 찾기 →" : "Find a gym →"}
-                </button>
-              </div>
+            ) : myMemberships.length === 0 && !ownedGym ? (
+              <EmptyState
+                emoji="🏋️"
+                title={t("gymNotMember")}
+                hint={t("gymJoinHint")}
+                action={
+                  <button type="button" onClick={() => setTab("all")} style={{ padding: "12px 28px", borderRadius: 14, background: RED, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", marginTop: 4 }}>
+                    {t("gymFindBtn")}
+                  </button>
+                }
+              />
             ) : (
               <div style={styles.cardList}>
+                {ownedGym && (
+                  <div
+                    style={{ ...styles.card, borderLeft: "2.5px solid #D4AF37", borderRadius: "3px 16px 16px 3px", cursor: "pointer" }}
+                    onClick={() => router.push(`/${locale}/gyms/${ownedGym.id}`)}
+                  >
+                    <div style={styles.cardImageWrap}>
+                      {ownedGym.logo
+                        ? <img src={ownedGym.logo} alt="" style={styles.cardLogo} />
+                        : <div style={styles.cardLogoFallback}><span style={{ fontSize: 28 }}>🥊</span></div>
+                      }
+                      <span style={{ position: "absolute", bottom: 8, right: 10, padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 900, background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.5)", color: GOLD }}>
+                        {t("gymOwnerLabel")}
+                      </span>
+                    </div>
+                    <div style={styles.cardBody}>
+                      <div style={styles.cardNameRow}>
+                        <span style={styles.cardName}>{ownedGym.gymName}</span>
+                        {ownedGym.verified && <span style={styles.verifiedBadge}>✓</span>}
+                      </div>
+                      {(ownedGym.city || ownedGym.country) && (
+                        <div style={styles.cardLocation}>📍 {[ownedGym.city, ownedGym.country].filter(Boolean).join(", ")}</div>
+                      )}
+                      {ownedGym.gymType && <span style={styles.typeChip}>{t(GYM_TYPE_KEYS[ownedGym.gymType]) || ownedGym.gymType}</span>}
+                      <button
+                        type="button"
+                        style={{ marginTop: 10, padding: "8px 16px", borderRadius: 10, border: "1px solid rgba(212,175,55,0.4)", background: "rgba(212,175,55,0.1)", color: GOLD, fontSize: 12, fontWeight: 900, cursor: "pointer" }}
+                        onClick={(e) => { e.stopPropagation(); router.push(`/${locale}/gyms/dashboard`); }}
+                      >
+                        {t("gymManageBtn")}
+                      </button>
+                    </div>
+                  </div>
+                )}
                 {myMemberships.map((mem) => {
                   const gym = mem.gym;
                   const st = GYM_STATUS[mem.status] || GYM_STATUS.pending;
@@ -395,7 +432,7 @@ export default function GymsPage() {
         {!loading && featuredGyms.length > 0 && (
           <div style={{ marginBottom: 20 }}>
             <p style={styles.sectionLabel}>
-              ⭐ {locale === "mn" ? "Онцлох gym-ууд" : locale === "ko" ? "추천 체육관" : "Featured Gyms"}
+              {t("gymFeatured")}
             </p>
             <div style={styles.featuredScroll}>
               {featuredGyms.map((gym) => (
@@ -470,7 +507,7 @@ export default function GymsPage() {
               type="checkbox"
               checked={verifiedOnly}
               onChange={(e) => setVerifiedOnly(e.target.checked)}
-              style={{ marginRight: 6, accentColor: "#D4AF37" }}
+              style={{ marginRight: 6, accentColor: GOLD }}
             />
             {t("gymsVerifiedOnly")}
           </label>
@@ -520,20 +557,16 @@ export default function GymsPage() {
             {[0, 1, 2].map((i) => <div key={i} style={styles.skeletonCard} className="sk-pulse" />)}
           </div>
         ) : filtered.length === 0 ? (
-          <div style={styles.emptyState}>
-            <div style={{ fontSize: 44, opacity: 0.5 }}>🏋️</div>
-            <p style={styles.emptyText}>{t("gymsNoGyms")}</p>
-            <p style={{ margin: "-4px 0 16px", color: "rgba(255,255,255,0.55)", fontSize: 13, textAlign: "center", maxWidth: 260 }}>
-              {t("gymsNoGymsSub")}
-            </p>
-            <button
-              type="button"
-              onClick={() => router.push(`/${locale}/gyms/dashboard`)}
-              style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}
-            >
-              + {t("gymsRegister")}
-            </button>
-          </div>
+          <EmptyState
+            emoji="🏋️"
+            title={t("gymsNoGyms")}
+            hint={t("gymsNoGymsSub")}
+            action={
+              <button type="button" onClick={() => router.push(`/${locale}/gyms/dashboard`)} style={{ padding: "12px 28px", borderRadius: 14, background: RED, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}>
+                + {t("gymsRegister")}
+              </button>
+            }
+          />
         ) : (
           <div style={styles.cardList}>
             {filtered.map((gym) => (
@@ -582,32 +615,30 @@ const styles = {
   kicker: { margin: 0, fontSize: 11, letterSpacing: 2, color: "rgba(255,255,255,0.55)", textTransform: "uppercase" },
   title: { margin: 0, fontSize: 28, fontWeight: 1000, lineHeight: 1.1, fontFamily: "var(--font-display, 'Anton', sans-serif)" },
   subtitle: { margin: 0, fontSize: 14, color: "rgba(255,255,255,0.65)" },
-  registerBtn: { alignSelf: "flex-start", marginTop: 8, padding: "8px 16px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.45)", background: "rgba(212,175,55,0.1)", color: "#D4AF37", fontSize: 13, fontWeight: 900, cursor: "pointer" },
-  searchInput: { width: "100%", boxSizing: "border-box", padding: "12px 16px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 15, outline: "none", marginBottom: 12 },
+  registerBtn: { alignSelf: "flex-start", marginTop: 8, padding: "8px 16px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.45)", background: "rgba(212,175,55,0.1)", color: GOLD, fontSize: 13, fontWeight: 900, cursor: "pointer" },
+  searchInput: { width: "100%", boxSizing: "border-box", padding: "12px 16px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 14, outline: "none", marginBottom: 14 },
   sortRow: { display: "flex", gap: 8, marginBottom: 12 },
   sortBtn: { padding: "7px 14px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.12)", background: "transparent", color: "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: 700, cursor: "pointer" },
   sortBtnActive: { padding: "7px 14px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.5)", background: "rgba(193,18,31,0.15)", color: "#F87171", fontSize: 13, fontWeight: 700, cursor: "pointer" },
-  filtersRow: { display: "flex", alignItems: "center", gap: 12, marginBottom: 12 },
-  filterSelect: { flex: 1, padding: "8px 12px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 13, outline: "none", colorScheme: "dark" },
-  verifiedToggle: { display: "flex", alignItems: "center", fontSize: 13, color: "rgba(255,255,255,0.6)", cursor: "pointer", whiteSpace: "nowrap" },
+  filtersRow: { display: "flex", alignItems: "center", gap: 10, marginBottom: 12 },
+  filterSelect: { flex: 1, height: 38, padding: "0 12px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 13, outline: "none", colorScheme: "dark", appearance: "none", WebkitAppearance: "none" },
+  verifiedToggle: { display: "flex", alignItems: "center", height: 38, gap: 6, padding: "0 12px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.09)", background: "rgba(255,255,255,0.04)", fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.65)", cursor: "pointer", whiteSpace: "nowrap" },
   catRow: { display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8, marginBottom: 16, scrollbarWidth: "none" },
   catBtn: { flexShrink: 0, padding: "6px 14px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 700, cursor: "pointer" },
-  catActive: { flexShrink: 0, padding: "6px 14px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.5)", background: "rgba(212,175,55,0.12)", color: "#D4AF37", fontSize: 12, fontWeight: 700, cursor: "pointer" },
+  catActive: { flexShrink: 0, padding: "6px 14px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.5)", background: "rgba(212,175,55,0.12)", color: GOLD, fontSize: 12, fontWeight: 700, cursor: "pointer" },
   loadingText: { textAlign: "center", padding: "60px 0", color: "rgba(255,255,255,0.55)", fontSize: 14 },
   skeletonList: { display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 },
   skeletonCard: { height: 200, borderRadius: 16, background: "rgba(255,255,255,0.06)" },
-  emptyState: { display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "60px 24px", textAlign: "center" },
-  emptyText: { margin: 0, color: "rgba(255,255,255,0.62)", fontSize: 15 },
   cardList: { display: "flex", flexDirection: "column", gap: 12 },
   card: { borderRadius: 16, border: "1px solid rgba(255,255,255,0.08)", background: "linear-gradient(145deg, #131313, #0a0a0a)", overflow: "hidden", cursor: "pointer", boxShadow: "0 4px 20px rgba(0,0,0,0.3)" },
   cardImageWrap: { position: "relative", height: 100, background: "radial-gradient(ellipse at 50% 0%, rgba(193,18,31,0.18) 0%, transparent 60%), linear-gradient(160deg, #141010, #0d0d0d)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" },
   cardLogo: { width: 64, height: 64, objectFit: "cover", borderRadius: 14, boxShadow: "0 8px 24px rgba(0,0,0,0.5)" },
   cardLogoFallback: { width: 68, height: 68, borderRadius: 16, background: "radial-gradient(ellipse at 50% 30%, rgba(193,18,31,0.3), rgba(10,5,5,0.9))", border: "1px solid rgba(193,18,31,0.2)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 24px rgba(193,18,31,0.12)" },
-  verifiedBadge: { position: "absolute", top: 10, right: 10, fontSize: 10, fontWeight: 900, color: "#D4AF37", background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 999, padding: "3px 8px" },
+  verifiedBadge: { position: "absolute", top: 10, right: 10, fontSize: 10, fontWeight: 900, color: GOLD, background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 999, padding: "3px 8px" },
   cardBody: { padding: "12px 14px 14px" },
   cardNameRow: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 },
   cardName: { fontSize: 16, fontWeight: 1000, color: "#fff" },
-  typeChip: { fontSize: 10, fontWeight: 900, color: "#C1121F", background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.25)", borderRadius: 999, padding: "2px 8px" },
+  typeChip: { fontSize: 10, fontWeight: 900, color: RED, background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.25)", borderRadius: 999, padding: "2px 8px" },
   cardLocation: { fontSize: 12, color: "rgba(255,255,255,0.65)", marginBottom: 6 },
   cardRating: { display: "flex", alignItems: "center", gap: 6, marginBottom: 6 },
   reviewCount: { fontSize: 11, color: "rgba(255,255,255,0.55)" },
@@ -620,7 +651,7 @@ const styles = {
   vibeBtn: { flexShrink: 0, padding: "5px 14px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.2)", background: "rgba(193,18,31,0.05)", color: "rgba(255,165,130,0.65)", fontSize: 12, fontWeight: 700, cursor: "pointer" },
   vibeActive: { flexShrink: 0, padding: "5px 14px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.6)", background: "rgba(193,18,31,0.18)", color: "#F87171", fontSize: 12, fontWeight: 900, cursor: "pointer" },
   memberCountBadge: { position: "absolute", bottom: 8, left: 10, fontSize: 10, fontWeight: 900, color: "#fff", background: "rgba(0,0,0,0.65)", borderRadius: 999, padding: "2px 8px" },
-  joinBtn: { display: "block", width: "100%", marginTop: 10, padding: "10px 0", borderRadius: 12, border: "none", background: "#C1121F", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", letterSpacing: 0.3, boxShadow: "0 6px 20px rgba(193,18,31,0.22)" },
+  joinBtn: { display: "block", width: "100%", marginTop: 10, padding: "10px 0", borderRadius: 12, border: "none", background: RED, color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", letterSpacing: 0.3, boxShadow: "0 6px 20px rgba(193,18,31,0.22)" },
   sectionLabel: { margin: "0 0 10px", fontSize: 11, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" },
   featuredScroll: { display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none", WebkitOverflowScrolling: "touch" },
   featuredCard: { flexShrink: 0, width: 116, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "linear-gradient(145deg, #131313, #0a0a0a)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "12px 8px", cursor: "pointer", textAlign: "center", WebkitTapHighlightColor: "transparent" },
@@ -628,6 +659,6 @@ const styles = {
   featuredLogoFallback: { width: 48, height: 48, borderRadius: 12, background: "rgba(193,18,31,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, marginBottom: 2 },
   featuredName: { margin: 0, fontSize: 12, fontWeight: 900, color: "#fff", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "100%" },
   featuredCity: { margin: 0, fontSize: 10, color: "#666", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "100%" },
-  featuredRating: { fontSize: 10, color: "#D4AF37", fontWeight: 800 },
+  featuredRating: { fontSize: 10, color: GOLD, fontWeight: 800 },
   featuredMembers: { fontSize: 10, color: "#888" },
 };

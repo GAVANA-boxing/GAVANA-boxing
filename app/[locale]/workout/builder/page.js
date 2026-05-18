@@ -7,6 +7,7 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale } from "@/lib/i18n";
 import BottomNav from "@/components/BottomNav";
+import { RED, GOLD } from "@/lib/tokens";
 
 const GOALS = [
   { key: "conditioning",   emoji: "🏋️", mn: "Нийт бэлтгэл",  ko: "체력 훈련",    en: "Conditioning" },
@@ -127,26 +128,6 @@ export default function WorkoutBuilderPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const T = {
-    title:     locale === "mn" ? "AI Тренинг Зохиогч"         : locale === "ko" ? "AI 운동 플래너"         : "AI Workout Builder",
-    subtitle:  locale === "mn" ? "Чиний зорилгод тохирсон 7 хоногийн хөтөлбөр" : locale === "ko" ? "목표에 맞는 주간 운동 계획" : "A personalized weekly plan built for your goal",
-    goalStep:  locale === "mn" ? "Зорилгоо сонго"              : locale === "ko" ? "목표를 선택하세요"       : "Choose your goal",
-    levelStep: locale === "mn" ? "Дэвшил & хуваарь"            : locale === "ko" ? "수준 & 일정"            : "Level & schedule",
-    durationStep: locale === "mn" ? "Дасгалын хугацаа"         : locale === "ko" ? "세션 시간"              : "Session duration",
-    level:     locale === "mn" ? "Дэвшил"                      : locale === "ko" ? "수준"                   : "Level",
-    daysWeek:  locale === "mn" ? "7 хоногт хэдэн өдөр"         : locale === "ko" ? "주당 훈련일"            : "Days per week",
-    generate:  locale === "mn" ? "🤖 Хөтөлбөр үүсгэх"          : locale === "ko" ? "🤖 플랜 생성"           : "🤖 Generate Plan",
-    generating: locale === "mn" ? "Үүсгэж байна…"               : locale === "ko" ? "생성 중…"              : "Generating…",
-    save:      locale === "mn" ? "💾 Хадгалах"                  : locale === "ko" ? "💾 저장"               : "💾 Save Plan",
-    saved:     locale === "mn" ? "✓ Хадгалагдлаа"               : locale === "ko" ? "✓ 저장됨"              : "✓ Saved!",
-    rebuild:   locale === "mn" ? "🔄 Дахин үүсгэх"              : locale === "ko" ? "🔄 다시 생성"          : "🔄 Rebuild",
-    tips:      locale === "mn" ? "Зөвлөмж"                      : locale === "ko" ? "팁"                    : "Tips",
-    rest:      locale === "mn" ? "Амралтын өдөр"                : locale === "ko" ? "휴식일"                : "Rest day",
-    back:      locale === "mn" ? "← Буцах"                      : locale === "ko" ? "← 돌아가기"            : "← Back",
-    next:      locale === "mn" ? "Үргэлжлүүлэх →"              : locale === "ko" ? "계속 →"                : "Next →",
-    errAuth:   locale === "mn" ? "Нэвтэрч орно уу"              : locale === "ko" ? "로그인이 필요합니다"    : "Please sign in",
-    errApi:    locale === "mn" ? "Алдаа гарлаа. Дахин оролдоно уу." : locale === "ko" ? "오류가 발생했습니다." : "Something went wrong. Please try again.",
-  };
 
   const handleGenerate = async () => {
     if (!goal || !level) return;
@@ -172,7 +153,7 @@ export default function WorkoutBuilderPage() {
       setPlan(parsePlan(text));
       setStep(3);
     } catch {
-      setError(T.errApi);
+      setError(t("wbErrApi"));
     } finally {
       setGenerating(false);
     }
@@ -180,7 +161,7 @@ export default function WorkoutBuilderPage() {
 
   const handleSave = async () => {
     if (!user?.uid || !plan || saving || saved) return;
-    if (!user) { setError(T.errAuth); return; }
+    if (!user) { setError(t("wbErrAuth")); return; }
     setSaving(true);
     try {
       const goalMeta = GOALS.find((g) => g.key === goal);
@@ -188,11 +169,11 @@ export default function WorkoutBuilderPage() {
       await addDoc(collection(db, "training_programs"), {
         userId: user.uid,
         title: `${goalMeta?.emoji || "🥊"} ${label(goalMeta || { en: goal }, locale)} — ${label(levelMeta || { en: level }, locale)}`,
-        description: T.subtitle,
+        description: t("wbSubtitle"),
         level,
         category: "AI Generated",
         emoji: goalMeta?.emoji || "🤖",
-        color: "#C1121F",
+        color: RED,
         duration: days * 7,
         daysPerWeek: days,
         sessionMinutes: duration,
@@ -202,7 +183,7 @@ export default function WorkoutBuilderPage() {
       });
       setSaved(true);
     } catch {
-      setError(T.errApi);
+      setError(t("wbErrApi"));
     } finally {
       setSaving(false);
     }
@@ -213,23 +194,25 @@ export default function WorkoutBuilderPage() {
       <div style={s.inner}>
         {/* Header */}
         <div style={s.header}>
-          <button type="button" style={s.backBtn} onClick={() => step > 0 && step < 3 ? setStep(step - 1) : router.push(`/${locale}/programs`)}>
-            {T.back}
+          <button type="button" style={s.backBtn} onClick={() => step > 0 && step < 3 ? setStep(step - 1) : router.push(`/${locale}/programs`)} aria-label="Back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </button>
           <div style={s.kicker}>GAVANA AI</div>
         </div>
 
         <div style={s.heroSection}>
           <div style={s.heroEmoji}>🤖</div>
-          <h1 style={s.title}>{T.title}</h1>
-          <p style={s.subtitle}>{T.subtitle}</p>
+          <h1 style={s.title}>{t("wbTitle")}</h1>
+          <p style={s.subtitle}>{t("wbSubtitle")}</p>
         </div>
 
         {/* Step indicator */}
         {step < 3 && (
           <div style={s.stepDots}>
             {[0, 1, 2].map((i) => (
-              <div key={i} style={{ ...s.dot, background: i <= step ? "#C1121F" : "rgba(255,255,255,0.12)" }} />
+              <div key={i} style={{ ...s.dot, background: i <= step ? RED : "rgba(255,255,255,0.12)" }} />
             ))}
           </div>
         )}
@@ -237,7 +220,7 @@ export default function WorkoutBuilderPage() {
         {/* STEP 0 — Goal */}
         {step === 0 && (
           <div style={s.stepWrap}>
-            <p style={s.stepLabel}>{T.goalStep}</p>
+            <p style={s.stepLabel}>{t("wbGoalStep")}</p>
             <div style={s.goalGrid}>
               {GOALS.map((g) => (
                 <button
@@ -257,7 +240,7 @@ export default function WorkoutBuilderPage() {
               disabled={!goal}
               onClick={() => setStep(1)}
             >
-              {T.next}
+              {t("wbNext")}
             </button>
           </div>
         )}
@@ -265,9 +248,9 @@ export default function WorkoutBuilderPage() {
         {/* STEP 1 — Level + Days */}
         {step === 1 && (
           <div style={s.stepWrap}>
-            <p style={s.stepLabel}>{T.levelStep}</p>
+            <p style={s.stepLabel}>{t("wbLevelStep")}</p>
 
-            <p style={s.fieldLabel}>{T.level}</p>
+            <p style={s.fieldLabel}>{t("wbLevel")}</p>
             <div style={s.chipRow}>
               {LEVELS.map((l) => (
                 <button
@@ -281,7 +264,7 @@ export default function WorkoutBuilderPage() {
               ))}
             </div>
 
-            <p style={{ ...s.fieldLabel, marginTop: 20 }}>{T.daysWeek}</p>
+            <p style={{ ...s.fieldLabel, marginTop: 20 }}>{t("wbDaysWeek")}</p>
             <div style={s.chipRow}>
               {DAYS_OPTIONS.map((d) => (
                 <button
@@ -301,7 +284,7 @@ export default function WorkoutBuilderPage() {
               disabled={!level}
               onClick={() => setStep(2)}
             >
-              {T.next}
+              {t("wbNext")}
             </button>
           </div>
         )}
@@ -309,7 +292,7 @@ export default function WorkoutBuilderPage() {
         {/* STEP 2 — Duration */}
         {step === 2 && (
           <div style={s.stepWrap}>
-            <p style={s.stepLabel}>{T.durationStep}</p>
+            <p style={s.stepLabel}>{t("wbDurationStep")}</p>
             <div style={s.durationGrid}>
               {DURATION_OPTIONS.map((d) => (
                 <button
@@ -319,7 +302,7 @@ export default function WorkoutBuilderPage() {
                   style={{ ...s.durationCard, ...(duration === d.value ? s.durationCardActive : {}) }}
                 >
                   <span style={s.durationValue}>{d.value}</span>
-                  <span style={s.durationUnit}>{locale === "mn" ? "мин" : locale === "ko" ? "분" : "min"}</span>
+                  <span style={s.durationUnit}>{t("wbMinUnit")}</span>
                 </button>
               ))}
             </div>
@@ -332,7 +315,7 @@ export default function WorkoutBuilderPage() {
               disabled={generating}
               onClick={handleGenerate}
             >
-              {generating ? T.generating : T.generate}
+              {generating ? t("wbGenerating") : t("wbGenerate")}
             </button>
           </div>
         )}
@@ -345,8 +328,8 @@ export default function WorkoutBuilderPage() {
               {[
                 { icon: GOALS.find((g) => g.key === goal)?.emoji || "🥊", text: label(GOALS.find((g) => g.key === goal) || { en: goal }, locale) },
                 { icon: "📊", text: label(LEVELS.find((l) => l.key === level) || { en: level }, locale) },
-                { icon: "📅", text: `${days}x ${locale === "mn" ? "7 хоногт" : locale === "ko" ? "/주" : "/week"}` },
-                { icon: "⏱", text: `${duration} ${locale === "mn" ? "мин" : locale === "ko" ? "분" : "min"}` },
+                { icon: "📅", text: `${days}x ${t("wbPerWeek")}` },
+                { icon: "⏱", text: `${duration} ${t("wbMinUnit")}` },
               ].map(({ icon, text }) => (
                 <div key={text} style={s.summaryChip}>
                   <span style={{ fontSize: 14 }}>{icon}</span>
@@ -360,7 +343,7 @@ export default function WorkoutBuilderPage() {
               <div key={i} style={{ ...s.dayCard, ...(day.isRest ? s.dayCardRest : {}) }}>
                 <div style={s.dayTitle}>{day.title}</div>
                 {day.isRest ? (
-                  <p style={s.restText}>{T.rest} 💤</p>
+                  <p style={s.restText}>{t("wbRest")} 💤</p>
                 ) : (
                   <ul style={s.itemList}>
                     {day.items.map((item, j) => (
@@ -377,7 +360,7 @@ export default function WorkoutBuilderPage() {
             {/* Tips */}
             {plan.tips.length > 0 && (
               <div style={s.tipsCard}>
-                <p style={s.tipsTitle}>💡 {T.tips}</p>
+                <p style={s.tipsTitle}>💡 {t("wbTips")}</p>
                 {plan.tips.map((tip, i) => (
                   <p key={i} style={s.tipRow}>• {tip}</p>
                 ))}
@@ -394,14 +377,14 @@ export default function WorkoutBuilderPage() {
                 disabled={saving || saved}
                 onClick={handleSave}
               >
-                {saved ? T.saved : saving ? "…" : T.save}
+                {saved ? t("wbSaved") : saving ? "…" : t("wbSave")}
               </button>
               <button
                 type="button"
                 style={s.rebuildBtn}
                 onClick={() => { setPlan(null); setSaved(false); setError(""); setStep(2); }}
               >
-                {T.rebuild}
+                {t("wbRebuild")}
               </button>
             </div>
           </div>
@@ -417,8 +400,8 @@ const s = {
   page: { minHeight: "100vh", background: "#080808", color: "#fff", fontFamily: "system-ui, sans-serif" },
   inner: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },
   header: { display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "calc(16px + env(safe-area-inset-top))", paddingBottom: 8 },
-  backBtn: { background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 14, cursor: "pointer", padding: 0 },
-  kicker: { fontSize: 10, letterSpacing: 2.5, color: "#D4AF37", textTransform: "uppercase", fontWeight: 900 },
+  backBtn: { width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.055)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", borderRadius: 10, cursor: "pointer", padding: 0 },
+  kicker: { fontSize: 10, letterSpacing: 2.5, color: GOLD, textTransform: "uppercase", fontWeight: 900 },
   heroSection: { textAlign: "center", padding: "20px 0 24px" },
   heroEmoji: { fontSize: 48, marginBottom: 12 },
   title: { margin: "0 0 8px", fontSize: 24, fontWeight: 1000, lineHeight: 1.1 },
@@ -455,10 +438,10 @@ const s = {
   restText: { margin: 0, fontSize: 13, color: "rgba(255,255,255,0.35)", fontStyle: "italic" },
   itemList: { listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 6 },
   itemRow: { display: "flex", alignItems: "flex-start", gap: 8 },
-  itemBullet: { color: "#C1121F", fontSize: 10, marginTop: 3, flexShrink: 0 },
+  itemBullet: { color: RED, fontSize: 10, marginTop: 3, flexShrink: 0 },
   itemText: { fontSize: 13, color: "rgba(255,255,255,0.8)", lineHeight: 1.45 },
   tipsCard: { background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.18)", borderRadius: 14, padding: "14px 16px" },
-  tipsTitle: { margin: "0 0 10px", fontSize: 12, fontWeight: 900, color: "#D4AF37", textTransform: "uppercase", letterSpacing: 0.5 },
+  tipsTitle: { margin: "0 0 10px", fontSize: 12, fontWeight: 900, color: GOLD, textTransform: "uppercase", letterSpacing: 0.5 },
   tipRow: { margin: "0 0 6px", fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.45 },
   actionRow: { display: "flex", gap: 8, marginTop: 4 },
   saveBtn: { flex: 2, padding: 14, borderRadius: 14, border: "none", background: "linear-gradient(135deg, #C1121F, #7d0812)", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" },

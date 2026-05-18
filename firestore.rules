@@ -157,7 +157,8 @@ service cloud.firestore {
     // ─── Notifications ────────────────────────────────────────────
     match /notifications/{notifId} {
       allow read: if (isAuth() && resource.data.recipientId == request.auth.uid) || isRelatedReelOwner();
-      allow create: if isAuth();
+      // actorId must match the caller to prevent impersonation spam.
+      allow create: if isAuth() && request.resource.data.actorId == request.auth.uid;
       allow update: if isAuth() && resource.data.recipientId == request.auth.uid;
       allow delete: if (isAuth() && resource.data.recipientId == request.auth.uid) || isRelatedReelOwner();
     }
@@ -181,7 +182,10 @@ service cloud.firestore {
     // ─── Gym announcements ────────────────────────────────────────
     match /gym_announcements/{announcementId} {
       allow read: if true;
-      allow create: if isAuth();
+      // Only the gym owner may post announcements for their gym.
+      allow create: if isAuth() &&
+        request.resource.data.gymId is string &&
+        get(/databases/$(database)/documents/gyms/$(request.resource.data.gymId)).data.ownerId == request.auth.uid;
       allow update, delete: if isAuth() && resource.data.ownerId == request.auth.uid;
     }
 
@@ -256,7 +260,7 @@ service cloud.firestore {
         resource.data.challengedUserId == request.auth.uid ||
         resource.data.opponentId == request.auth.uid
       );
-      allow create: if isAuth();
+      allow create: if isAuth() && request.resource.data.challengerId == request.auth.uid;
       allow update: if isAuth() && (
         resource.data.challengerId == request.auth.uid ||
         resource.data.challengedUserId == request.auth.uid
@@ -281,7 +285,9 @@ service cloud.firestore {
     // ─── Leaderboard ──────────────────────────────────────────────
     match /leaderboard/{entryId} {
       allow read: if true;
-      allow write: if isAuth();
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update: if isAuth() && resource.data.userId == request.auth.uid;
+      allow delete: if false;
     }
 
     // ─── Stories (24h expiring) ────────────────────────────────────

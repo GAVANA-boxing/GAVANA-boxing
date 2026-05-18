@@ -19,6 +19,30 @@ import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
+import { RED, GOLD } from "@/lib/tokens";
+import { snapToDocs } from "@/lib/firestore";
+
+const AMENITY_ICONS = {
+  Shower: "🚿", Showers: "🚿",
+  Parking: "🅿️", "Free Parking": "🅿️",
+  Locker: "🔒", Lockers: "🔒", "Locker Room": "🔒",
+  WiFi: "📶", "Free WiFi": "📶",
+  Ring: "🥊", "Boxing Ring": "🥊",
+  "Heavy Bags": "🥊", "Punching Bags": "🥊",
+  "Speed Bags": "🎯",
+  Sauna: "🧖", "Steam Room": "🧖",
+  "Juice Bar": "🥤", Café: "☕", Cafe: "☕",
+  "Strength Equipment": "🏋️", Gym: "🏋️", Equipment: "🏋️",
+  "Changing Room": "👔", "Change Room": "👔",
+  "Open Mat": "🟩",
+  "Air Conditioning": "❄️", AC: "❄️",
+  Cardio: "🏃", "Cardio Equipment": "🏃",
+  "Sparring": "🤝",
+  "Pro Shop": "🛒",
+  "Personal Training": "👤",
+  Pool: "🏊",
+  Yoga: "🧘",
+};
 
 const GYM_TYPE_KEYS = {
   Boxing: "gymTypeBoxing",
@@ -69,7 +93,7 @@ function StarRating({ value, onChange, readonly = false }) {
             border: "none",
             fontSize: 22,
             cursor: readonly ? "default" : "pointer",
-            color: n <= value ? "#D4AF37" : "rgba(255,255,255,0.2)",
+            color: n <= value ? GOLD : "rgba(255,255,255,0.2)",
             padding: "1px",
           }}
         >
@@ -159,9 +183,9 @@ export default function GymProfilePage() {
         ]);
         if (!active) return;
         if (gymSnap.exists()) setGym({ id: gymSnap.id, ...gymSnap.data() });
-        setReels(reelsSnap.docs.map((d) => ({ id: d.id, ...d.data() })).sort(byTs));
-        setReviews(reviewsSnap.docs.map((d) => ({ id: d.id, ...d.data() })).sort(byTs));
-        setAnnouncements(announcementsSnap.docs.map((d) => ({ id: d.id, ...d.data() })).sort(byTs));
+        setReels(snapToDocs(reelsSnap).sort(byTs));
+        setReviews(snapToDocs(reviewsSnap).sort(byTs));
+        setAnnouncements(snapToDocs(announcementsSnap).sort(byTs));
 
         // Load approved members
         const membersSnap = await getDocs(query(
@@ -169,7 +193,7 @@ export default function GymProfilePage() {
           where("gymId", "==", gymId),
           where("status", "==", "approved")
         ));
-        const memberDocs = membersSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        const memberDocs = snapToDocs(membersSnap);
         const memberUserIds = [...new Set(memberDocs.map((m) => m.userId).filter(Boolean))];
         const memberUserMap = {};
         if (memberUserIds.length > 0) {
@@ -294,15 +318,29 @@ export default function GymProfilePage() {
   };
 
   if (loading || authLoading) {
-    return <div style={styles.loading}>{t("loading")}</div>;
+    return (
+      <div style={{ minHeight: "100vh", background: "#0A0A0A", padding: "calc(28px + env(safe-area-inset-top)) 16px 40px" }}>
+        <div style={{ maxWidth: 520, margin: "0 auto", display: "grid", gap: 14 }}>
+          <div className="shimmer" style={{ width: 40, height: 40, borderRadius: 10 }} />
+          <div className="shimmer" style={{ height: 200, borderRadius: 18 }} />
+          <div className="shimmer" style={{ height: 80, borderRadius: 14 }} />
+          <div className="shimmer" style={{ height: 60, borderRadius: 14 }} />
+          <div className="shimmer" style={{ height: 120, borderRadius: 14 }} />
+        </div>
+      </div>
+    );
   }
   if (!gym) {
     return (
       <div style={styles.page}>
         <div style={styles.content}>
-          <button type="button" style={styles.backBtn} onClick={() => router.push(`/${locale}/gyms`)}>← {t("back")}</button>
+          <button type="button" style={styles.backBtn} onClick={() => router.push(`/${locale}/gyms`)} aria-label="Back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
           <p style={{ color: "rgba(255,255,255,0.62)", textAlign: "center", padding: "60px 0" }}>
-            {locale === "mn" ? "Gym олдсонгүй." : locale === "ko" ? "체육관을 찾을 수 없습니다." : "Gym not found."}
+            {t("gymIdNotFound")}
           </p>
         </div>
         <BottomNav router={router} user={user} currentLocale={locale} activeTab="discover" />
@@ -428,9 +466,9 @@ export default function GymProfilePage() {
             <a href={gym.website} target="_blank" rel="noopener noreferrer" style={styles.contactBtn}>🌐</a>
           )}
           {(gym.city || gym.address) && (
-            <a href={mapsUrl} target="_blank" rel="noopener noreferrer" style={styles.contactBtn} title={locale === "mn" ? "Газрын зураг" : locale === "ko" ? "지도" : "Map"}>📍</a>
+            <a href={mapsUrl} target="_blank" rel="noopener noreferrer" style={styles.contactBtn} title={t("gymIdMapTitle")}>📍</a>
           )}
-          <button type="button" style={styles.contactBtn} onClick={handleShare} title={locale === "mn" ? "Хуваалцах" : locale === "ko" ? "공유" : "Share"}>
+          <button type="button" style={styles.contactBtn} onClick={handleShare} title={t("share")}>
             ↗
           </button>
         </div>
@@ -494,7 +532,9 @@ export default function GymProfilePage() {
             <p style={styles.sectionTitle}>{t("gymAmenities")}</p>
             <div style={styles.pillsRow}>
               {gym.amenities.map((a) => (
-                <span key={a} style={styles.amenityPill}>{a}</span>
+                <span key={a} style={styles.amenityPill}>
+                  {AMENITY_ICONS[a] && <span style={{ marginRight: 4 }}>{AMENITY_ICONS[a]}</span>}{a}
+                </span>
               ))}
             </div>
           </section>
@@ -507,7 +547,10 @@ export default function GymProfilePage() {
             <div style={styles.announcementList}>
               {announcements.map((ann) => (
                 <div key={ann.id} style={styles.announcementCard}>
-                  <p style={styles.annTitle}>{ann.title}</p>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 6 }}>
+                    <span style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }}>📌</span>
+                    <p style={{ ...styles.annTitle, margin: 0 }}>{ann.title}</p>
+                  </div>
                   <p style={styles.annBody}>{ann.body}</p>
                   <span style={styles.annDate}>
                     {ann.createdAt?.toDate ? new Date(ann.createdAt.toDate()).toLocaleDateString() : ""}
@@ -544,9 +587,49 @@ export default function GymProfilePage() {
 
         {/* Reels */}
         <section style={styles.section}>
-          <p style={styles.sectionTitle}>{t("gymReels")}</p>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+            <p style={{ ...styles.sectionTitle, margin: 0 }}>{t("gymReels")}</p>
+            {isOwner && (
+              <button
+                onClick={() => router.push(`/${locale}/upload`)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 5,
+                  padding: "5px 11px", borderRadius: 999,
+                  background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.3)",
+                  color: "#F87171", fontSize: 11, fontWeight: 800, cursor: "pointer",
+                }}
+              >
+                + {t("gymIdAddReel")}
+              </button>
+            )}
+          </div>
           {reels.length === 0 ? (
-            <p style={styles.emptyText}>{t("gymNoReels")}</p>
+            isOwner ? (
+              <div style={{
+                display: "flex", flexDirection: "column", alignItems: "center",
+                padding: "28px 16px", borderRadius: 14,
+                background: "rgba(193,18,31,0.05)", border: "1px dashed rgba(193,18,31,0.25)",
+                gap: 10,
+              }}>
+                <span style={{ fontSize: 28 }}>🎥</span>
+                <p style={{ margin: 0, fontSize: 13, color: "#777", fontWeight: 700 }}>
+                  {t("gymIdNoReels")}
+                </p>
+                <button
+                  onClick={() => router.push(`/${locale}/upload`)}
+                  style={{
+                    padding: "8px 20px", borderRadius: 999,
+                    background: "linear-gradient(135deg, #C1121F, #8f0d17)",
+                    color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer",
+                    border: "none",
+                  }}
+                >
+                  {t("gymIdUploadFirstReel")}
+                </button>
+              </div>
+            ) : (
+              <p style={styles.emptyText}>{t("gymNoReels")}</p>
+            )
           ) : (
             <div style={styles.reelsGrid}>
               {reels.map((reel) => (
@@ -610,7 +693,7 @@ const styles = {
   loading: { display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#0A0A0A", color: "#fff", fontFamily: "system-ui, sans-serif" },
   page: { minHeight: "100vh", background: "#0A0A0A", color: "#fff", fontFamily: "system-ui, sans-serif" },
   content: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },
-  backBtn: { background: "none", border: "none", color: "rgba(255,255,255,0.65)", fontSize: 14, cursor: "pointer", padding: "16px 0", display: "block" },
+  backBtn: { width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.055)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", borderRadius: 10, cursor: "pointer", padding: 0 },
   hero: { position: "relative", height: 200, borderRadius: 16, overflow: "hidden", background: "linear-gradient(135deg,#1a1a1a,#111)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 0 },
   heroImg: { width: "100%", height: "100%", objectFit: "cover" },
   heroPlaceholder: { display: "flex", alignItems: "center", justifyContent: "center" },
@@ -618,18 +701,18 @@ const styles = {
   gymHeader: { paddingTop: 28, paddingBottom: 12 },
   gymNameRow: { display: "flex", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 6 },
   gymName: { margin: 0, fontSize: 26, fontWeight: 1000, lineHeight: 1.1 },
-  verifiedBadge: { fontSize: 11, fontWeight: 900, color: "#D4AF37", background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 999, padding: "3px 10px" },
-  typeChip: { display: "inline-block", fontSize: 11, fontWeight: 900, color: "#C1121F", background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.25)", borderRadius: 999, padding: "3px 10px", marginBottom: 6 },
+  verifiedBadge: { fontSize: 11, fontWeight: 900, color: GOLD, background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 999, padding: "3px 10px" },
+  typeChip: { display: "inline-block", fontSize: 11, fontWeight: 900, color: RED, background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.25)", borderRadius: 999, padding: "3px 10px", marginBottom: 6 },
   gymLocation: { margin: "4px 0 2px", fontSize: 13, color: "rgba(255,255,255,0.5)" },
   gymAddress: { margin: 0, fontSize: 12, color: "rgba(255,255,255,0.55)" },
   statsRow: { display: "flex", gap: 0, borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", marginBottom: 16, overflow: "hidden" },
   statCell: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, padding: "14px 8px" },
   statNum: { fontSize: 17, fontWeight: 1000, color: "#fff" },
   statLbl: { fontSize: 10, color: "rgba(255,255,255,0.62)", fontWeight: 700, textTransform: "uppercase" },
-  ctaRow: { display: "flex", gap: 10, marginBottom: 20, alignItems: "center" },
+  ctaRow: { display: "flex", gap: 8, marginBottom: 20, alignItems: "flex-start", flexWrap: "wrap" },
   joinBtn: { flex: 1, minHeight: 44, border: "none", borderRadius: 12, background: "linear-gradient(135deg,#C1121F,#7d0812)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer" },
   requestedBtn: { flex: 1, minHeight: 44, border: "1px solid rgba(52,211,153,0.35)", borderRadius: 12, background: "rgba(52,211,153,0.08)", color: "#34D399", fontSize: 15, fontWeight: 900, cursor: "default" },
-  manageBtn: { flex: 1, minHeight: 44, border: "1px solid rgba(212,175,55,0.4)", borderRadius: 12, background: "rgba(212,175,55,0.1)", color: "#D4AF37", fontSize: 15, fontWeight: 900, cursor: "pointer" },
+  manageBtn: { flex: 1, minHeight: 44, border: "1px solid rgba(212,175,55,0.4)", borderRadius: 12, background: "rgba(212,175,55,0.1)", color: GOLD, fontSize: 15, fontWeight: 900, cursor: "pointer" },
   contactBtn: { width: 44, height: 44, borderRadius: 12, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: "#fff", textDecoration: "none" },
   joinForm: { borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", padding: "16px", marginBottom: 16, display: "flex", flexDirection: "column", gap: 10 },
   section: { marginBottom: 24 },
@@ -639,8 +722,8 @@ const styles = {
   pill: { fontSize: 12, color: "#F87171", background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.2)", borderRadius: 999, padding: "4px 12px", fontWeight: 700 },
   amenityPill: { fontSize: 12, color: "rgba(255,255,255,0.6)", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 999, padding: "4px 12px" },
   announcementList: { display: "flex", flexDirection: "column", gap: 10 },
-  announcementCard: { borderRadius: 12, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.15)", padding: "12px 14px" },
-  annTitle: { margin: "0 0 4px", fontSize: 14, fontWeight: 900, color: "#D4AF37" },
+  announcementCard: { borderRadius: "3px 12px 12px 3px", background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.18)", borderLeft: "3px solid #D4AF37", padding: "12px 14px" },
+  annTitle: { margin: "0 0 4px", fontSize: 14, fontWeight: 900, color: GOLD },
   annBody: { margin: "0 0 6px", fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.5 },
   annDate: { fontSize: 11, color: "rgba(255,255,255,0.55)" },
   reelsGrid: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6 },
@@ -648,7 +731,7 @@ const styles = {
   reelThumbImg: { width: "100%", height: "100%", objectFit: "cover" },
   reelThumbPlaceholder: { width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 },
   reviewsHeader: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 },
-  leaveReviewBtn: { background: "none", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 999, color: "#D4AF37", fontSize: 12, fontWeight: 900, cursor: "pointer", padding: "5px 12px" },
+  leaveReviewBtn: { background: "none", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 999, color: GOLD, fontSize: 12, fontWeight: 900, cursor: "pointer", padding: "5px 12px" },
   reviewForm: { borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", padding: 16, marginBottom: 16, display: "flex", flexDirection: "column", gap: 10 },
   reviewList: { display: "flex", flexDirection: "column", gap: 10 },
   reviewCard: { borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "12px 14px" },
