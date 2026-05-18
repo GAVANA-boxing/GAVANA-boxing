@@ -109,10 +109,8 @@ export default function UserProfilePage() {
   const [deleteConfirmReel, setDeleteConfirmReel] = useState(null);
   const [rankUpRank, setRankUpRank] = useState(null);
   const [expandedTrainingGroups, setExpandedTrainingGroups] = useState(new Set());
-  const [showAiFeedbackList, setShowAiFeedbackList] = useState(false);
   const [showStreakModal, setShowStreakModal] = useState(false);
   const [showRankModal, setShowRankModal] = useState(false);
-  const [dailyMissionData, setDailyMissionData] = useState(null);
   const [challengeRanks, setChallengeRanks] = useState(null);
   const [showWeeklyModal, setShowWeeklyModal] = useState(false);
   const [showWeeklyRecap, setShowWeeklyRecap] = useState(false);
@@ -327,36 +325,6 @@ export default function UserProfilePage() {
         unsubscribeTraining();
       }
     };
-  }, [authLoading, user?.uid, userId]);
-
-  // Load daily mission data for own profile
-  useEffect(() => {
-    if (authLoading || !user?.uid || !userId || user.uid !== userId) {
-      setDailyMissionData(null);
-      return;
-    }
-    let active = true;
-
-    async function loadDailyMission() {
-      try {
-        const { doc: fsDoc, getDoc: fsGetDoc } = await import("firebase/firestore");
-        const snap = await fsGetDoc(fsDoc(db, "users", user.uid));
-        if (!active) return;
-        const data = snap.exists() ? snap.data() : {};
-        const todayKey = new Date().toISOString().split("T")[0];
-        setDailyMissionData({
-          dailyStreak: Number(data.dailyStreak) || 0,
-          bestDailyStreak: Number(data.bestDailyStreak) || 0,
-          missionCompleted: data.dailyMissionCompleted === todayKey,
-          lastTrainingDate: data.lastTrainingDate || null,
-        });
-      } catch (e) {
-        if (active) setDailyMissionData(null);
-      }
-    }
-
-    loadDailyMission();
-    return () => { active = false; };
   }, [authLoading, user?.uid, userId]);
 
   // Load challenge ranks — weekly + all-time rank for this profile
@@ -2121,92 +2089,6 @@ const styles = {
   profileTabActive: {
     color: "#FFFFFF",
     boxShadow: "inset 0 -2px 0 #C1121F",
-  },
-  dailyMissionCard: {
-    marginBottom: 18,
-    padding: "14px 16px",
-    borderRadius: 18,
-    background: "linear-gradient(145deg, rgba(212,175,55,0.10), rgba(11,11,11,0.98))",
-    border: "1px solid rgba(212,175,55,0.22)",
-    display: "grid",
-    gap: 10,
-    boxShadow: "0 8px 28px rgba(0,0,0,0.22)",
-  },
-  dailyMissionTop: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  dailyMissionLabel: {
-    color: GOLD,
-    fontSize: 9,
-    fontWeight: 900,
-    letterSpacing: 1.5,
-    textTransform: "uppercase",
-  },
-  dailyMissionBadgeDone: {
-    padding: "3px 10px",
-    borderRadius: 999,
-    background: "rgba(52,211,153,0.15)",
-    border: "1px solid rgba(52,211,153,0.3)",
-    color: "#34D399",
-    fontSize: 10,
-    fontWeight: 900,
-  },
-  dailyMissionBadgePending: {
-    padding: "3px 10px",
-    borderRadius: 999,
-    background: "rgba(255,255,255,0.06)",
-    border: "1px solid rgba(255,255,255,0.1)",
-    color: "#888",
-    fontSize: 10,
-    fontWeight: 700,
-  },
-  dailyMissionTarget: {
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-  },
-  dailyMissionTargetText: {
-    fontSize: 14,
-    fontWeight: 900,
-    lineHeight: 1.3,
-  },
-  dailyMissionXpHint: {
-    fontSize: 11,
-    color: "#888",
-    fontWeight: 700,
-  },
-  dailyMissionStreakRow: {
-    display: "flex",
-    gap: 18,
-    padding: "10px 0 6px",
-    borderTop: "1px solid rgba(255,255,255,0.07)",
-  },
-  dailyMissionStreakStat: { display: "grid", gap: 3 },
-  dailyMissionStreakNum: {
-    fontSize: 20,
-    fontWeight: 1000,
-    lineHeight: 1,
-  },
-  dailyMissionStreakLbl: {
-    fontSize: 9,
-    color: "#888",
-    fontWeight: 800,
-    textTransform: "uppercase",
-    letterSpacing: 0.7,
-  },
-  dailyMissionMilestones: {
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-    flexWrap: "wrap",
-  },
-  dailyMissionMilestoneLbl: {
-    fontSize: 10,
-    color: "#666",
-    fontWeight: 700,
-    letterSpacing: 0.4,
   },
   overviewGrid: {
     display: "grid",
