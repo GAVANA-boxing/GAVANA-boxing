@@ -160,7 +160,7 @@ export default function EventsPage() {
   };
 
   const handleCreate = async () => {
-    if (!cfTitle.trim() || !cfDate) { setCreateError(locale === "mn" ? "Гарчиг болон огноо шаардлагатай" : locale === "ko" ? "제목과 날짜를 입력하세요" : "Title and date are required"); return; }
+    if (!cfTitle.trim() || !cfDate) { setCreateError(t("eventErrorRequired")); return; }
     setCreating(true);
     setCreateError("");
     try {
@@ -195,7 +195,7 @@ export default function EventsPage() {
       setShowCreate(false);
     } catch (e) {
       console.error("create event error", e);
-      setCreateError(locale === "mn" ? "Алдаа гарлаа" : locale === "ko" ? "오류가 발생했습니다" : "Something went wrong");
+      setCreateError(t("eventErrorGeneric"));
     } finally {
       setCreating(false);
     }
@@ -220,22 +220,22 @@ export default function EventsPage() {
         <div style={s.pageHeader}>
           <div>
             <p style={s.kicker}>GAVANA</p>
-            <h1 style={s.title}>{locale === "mn" ? "Тэмцээн & Арга хэмжээ" : locale === "ko" ? "이벤트 & 토너먼트" : "Events & Tournaments"}</h1>
+            <h1 style={s.title}>{t("eventsTitle")}</h1>
           </div>
           <button type="button" style={s.createBtn} onClick={() => setShowCreate((v) => !v)}>
-            {showCreate ? "×" : "+ " + (locale === "mn" ? "Үүсгэх" : locale === "ko" ? "만들기" : "Create")}
+            {showCreate ? t("eventCreateClose") : `+ ${t("eventCreateBtn")}`}
           </button>
         </div>
 
         {/* Create form */}
         {showCreate && (
           <div style={s.createForm}>
-            <p style={s.formTitle}>{locale === "mn" ? "Шинэ арга хэмжээ" : locale === "ko" ? "새 이벤트" : "New Event"}</p>
-            <input type="text" value={cfTitle} onChange={(e) => setCfTitle(e.target.value)} placeholder={locale === "mn" ? "Гарчиг *" : locale === "ko" ? "제목 *" : "Title *"} style={s.input} />
-            <textarea value={cfDesc} onChange={(e) => setCfDesc(e.target.value)} placeholder={locale === "mn" ? "Тайлбар" : locale === "ko" ? "설명" : "Description"} style={s.textarea} rows={3} />
+            <p style={s.formTitle}>{t("eventNewFormTitle")}</p>
+            <input type="text" value={cfTitle} onChange={(e) => setCfTitle(e.target.value)} placeholder={t("eventTitlePlaceholder")} style={s.input} />
+            <textarea value={cfDesc} onChange={(e) => setCfDesc(e.target.value)} placeholder={t("eventDescPlaceholder")} style={s.textarea} rows={3} />
             <div style={s.formRow}>
               <div style={{ flex: 1 }}>
-                <label style={s.fieldLabel}>{locale === "mn" ? "Төрөл" : locale === "ko" ? "유형" : "Type"}</label>
+                <label style={s.fieldLabel}>{t("eventTypeLabel")}</label>
                 <select value={cfType} onChange={(e) => setCfType(e.target.value)} style={s.select}>
                   {EVENT_TYPES.map((t) => (
                     <option key={t} value={t}>{TYPE_META[t].emoji} {getTypeLabel(t, locale)}</option>
@@ -243,18 +243,18 @@ export default function EventsPage() {
                 </select>
               </div>
               <div style={{ flex: 1 }}>
-                <label style={s.fieldLabel}>{locale === "mn" ? "Хамгийн ихдээ" : locale === "ko" ? "최대 인원" : "Max participants"}</label>
+                <label style={s.fieldLabel}>{t("eventMaxLabel")}</label>
                 <input type="number" value={cfMax} onChange={(e) => setCfMax(e.target.value)} placeholder="∞" style={s.input} min={1} />
               </div>
             </div>
             <input type="datetime-local" value={cfDate} onChange={(e) => setCfDate(e.target.value)} style={s.input} />
             <div style={s.formRow}>
-              <input type="text" value={cfCity} onChange={(e) => setCfCity(e.target.value)} placeholder={locale === "mn" ? "Хот" : locale === "ko" ? "도시" : "City"} style={{ ...s.input, flex: 1 }} />
-              <input type="text" value={cfLocation} onChange={(e) => setCfLocation(e.target.value)} placeholder={locale === "mn" ? "Газар" : locale === "ko" ? "장소" : "Location / venue"} style={{ ...s.input, flex: 2 }} />
+              <input type="text" value={cfCity} onChange={(e) => setCfCity(e.target.value)} placeholder={t("eventCityPlaceholder")} style={{ ...s.input, flex: 1 }} />
+              <input type="text" value={cfLocation} onChange={(e) => setCfLocation(e.target.value)} placeholder={t("eventLocationPlaceholder")} style={{ ...s.input, flex: 2 }} />
             </div>
             {createError && <p style={s.errorText}>{createError}</p>}
             <button type="button" style={creating ? s.submitBtnDisabled : s.submitBtn} onClick={handleCreate} disabled={creating}>
-              {creating ? "…" : (locale === "mn" ? "Нийтлэх" : locale === "ko" ? "게시" : "Publish")}
+              {creating ? t("eventPublishing") : t("eventPublish")}
             </button>
           </div>
         )}
@@ -262,9 +262,9 @@ export default function EventsPage() {
         {/* Tabs */}
         <div style={s.tabs}>
           {[
-            { key: "upcoming", label: locale === "mn" ? "Ойрын" : locale === "ko" ? "예정" : "Upcoming" },
-            { key: "all", label: locale === "mn" ? "Бүгд" : locale === "ko" ? "전체" : "All" },
-            { key: "mine", label: locale === "mn" ? "Миний" : locale === "ko" ? "내 이벤트" : "My Events" },
+            { key: "upcoming", label: t("eventTabUpcoming") },
+            { key: "all",      label: t("eventTabAll") },
+            { key: "mine",     label: t("eventTabMine") },
           ].map(({ key, label }) => (
             <button key={key} type="button" style={tab === key ? s.tabActive : s.tab} onClick={() => setTab(key)}>
               {label}
@@ -275,7 +275,7 @@ export default function EventsPage() {
         {/* Type filter pills */}
         <div style={s.typeFilters}>
           <button type="button" style={typeFilter === "all" ? s.typePillActive : s.typePill} onClick={() => setTypeFilter("all")}>
-            {locale === "mn" ? "Бүгд" : locale === "ko" ? "전체" : "All"}
+            {t("eventTabAll")}
           </button>
           {EVENT_TYPES.map((t) => {
             const meta = TYPE_META[t];
@@ -307,22 +307,16 @@ export default function EventsPage() {
           <div style={s.emptyState}>
             <span style={{ fontSize: 44, opacity: 0.35 }}>🏆</span>
             <p style={s.emptyTitle}>
-              {tab === "mine"
-                ? (locale === "mn" ? "Таны арга хэмжээ байхгүй" : locale === "ko" ? "내 이벤트 없음" : "No events yet")
-                : tab === "upcoming"
-                ? (locale === "mn" ? "Ойрын арга хэмжээ байхгүй" : locale === "ko" ? "예정된 이벤트 없음" : "No upcoming events")
-                : (locale === "mn" ? "Арга хэмжээ байхгүй" : locale === "ko" ? "이벤트 없음" : "No events found")}
+              {tab === "mine" ? t("eventNoMine") : tab === "upcoming" ? t("eventNoUpcoming") : t("eventNone")}
             </p>
-            <p style={s.emptyText}>
-              {locale === "mn" ? "Шинэ арга хэмжээ үүсгэхийн тулд дээрх + товч дарна уу" : locale === "ko" ? "위의 + 버튼으로 이벤트를 만들어보세요" : "Use the + Create button above to add one"}
-            </p>
+            <p style={s.emptyText}>{t("eventCreateHint")}</p>
           </div>
         ) : !loading ? (
           <div style={s.eventList}>
             {(tab === "all" ? [
-              ...(upcomingFiltered.length > 0 ? [{ _divider: true, key: "div-up", label: locale === "mn" ? "🗓 Ойрын" : locale === "ko" ? "🗓 예정" : "🗓 Upcoming" }] : []),
+              ...(upcomingFiltered.length > 0 ? [{ _divider: true, key: "div-up", label: t("eventDividerUpcoming") }] : []),
               ...upcomingFiltered,
-              ...(pastFiltered.length > 0 ? [{ _divider: true, key: "div-past", label: locale === "mn" ? "⏳ Дууссан" : locale === "ko" ? "⏳ 종료" : "⏳ Past" }] : []),
+              ...(pastFiltered.length > 0 ? [{ _divider: true, key: "div-past", label: t("eventDividerPast") }] : []),
               ...pastFiltered,
             ] : filteredEvents).map((event) => {
               if (event._divider) {
@@ -353,7 +347,7 @@ export default function EventsPage() {
                         LIVE
                       </span>
                     )}
-                    {!live && !upcoming && <span style={s.pastBadge}>{locale === "mn" ? "Дууссан" : locale === "ko" ? "종료" : "Past"}</span>}
+                    {!live && !upcoming && <span style={s.pastBadge}>{t("eventBadgePast")}</span>}
                   </div>
 
                   <h3 style={s.eventTitle}>{event.title}</h3>
@@ -384,7 +378,7 @@ export default function EventsPage() {
 
                   <div style={s.eventFooter} onClick={(e) => e.stopPropagation()}>
                     <span style={s.organizerLabel}>
-                      {locale === "mn" ? "Зохион байгуулагч" : locale === "ko" ? "주최자" : "By"}: {event.organizerName}
+                      {t("eventOrganizer")}: {event.organizerName}
                     </span>
                     {upcoming && (
                       <button
@@ -398,9 +392,9 @@ export default function EventsPage() {
                         }
                       >
                         {rsvping === event.id ? "…"
-                          : isGoing ? (locale === "mn" ? "✓ Оролцоно" : locale === "ko" ? "✓ 참가" : "✓ Going")
-                          : isFull ? (locale === "mn" ? "Дүүрсэн" : locale === "ko" ? "마감" : "Full")
-                          : (locale === "mn" ? "RSVP" : locale === "ko" ? "참가 신청" : "RSVP")}
+                          : isGoing ? t("eventGoing")
+                          : isFull ? t("eventFull")
+                          : t("eventRsvp")}
                       </button>
                     )}
                   </div>

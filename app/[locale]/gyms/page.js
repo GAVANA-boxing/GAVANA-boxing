@@ -132,7 +132,7 @@ function GymCard({ gym, t, router, locale }) {
           style={styles.joinBtn}
           onClick={() => router.push(`/${locale}/gyms/${gym.id}`)}
         >
-          {locale === "mn" ? "Үзэх → Нэгдэх" : locale === "ko" ? "보기 → 가입" : "View → Join"}
+          {t("gymViewJoin")}
         </button>
       </div>
     </div>
@@ -283,9 +283,9 @@ export default function GymsPage() {
   }, [gyms, verifiedOnly, selectedType, cityFilter, searchText, sortMode, nearbyCoords]);
 
   const GYM_STATUS = {
-    pending:  { color: "#F59E0B", bg: "rgba(245,158,11,0.1)",  border: "rgba(245,158,11,0.35)",  label: locale === "mn" ? "⏳ Хүлээгдэж байна" : locale === "ko" ? "⏳ 대기 중" : "⏳ Pending" },
-    approved: { color: "#34D399", bg: "rgba(52,211,153,0.1)",  border: "rgba(52,211,153,0.35)",  label: locale === "mn" ? "✓ Гишүүн" : locale === "ko" ? "✓ 회원" : "✓ Member" },
-    declined: { color: "#F87171", bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.35)", label: locale === "mn" ? "✕ Татгалзсан" : locale === "ko" ? "✕ 거절됨" : "✕ Declined" },
+    pending:  { color: "#F59E0B", bg: "rgba(245,158,11,0.1)",  border: "rgba(245,158,11,0.35)",  label: t("gymStatusPending") },
+    approved: { color: "#34D399", bg: "rgba(52,211,153,0.1)",  border: "rgba(52,211,153,0.35)",  label: t("gymStatusMember") },
+    declined: { color: "#F87171", bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.35)", label: t("gymStatusDeclined") },
   };
 
   return (
@@ -293,8 +293,8 @@ export default function GymsPage() {
       {/* Sticky tab bar */}
       <div style={styles.tabBar}>
         {[
-          { key: "all",  label: locale === "mn" ? "🏋️ Бүх gym" : locale === "ko" ? "🏋️ 전체" : "🏋️ All Gyms" },
-          { key: "mine", label: locale === "mn" ? "🥊 Миний gym" : locale === "ko" ? "🥊 내 체육관" : "🥊 My Gyms" },
+          { key: "all",  label: t("gymAllTab") },
+          { key: "mine", label: t("gymMyTab") },
         ].map(({ key, label }) => (
           <button
             key={key}
@@ -313,19 +313,19 @@ export default function GymsPage() {
           <>
             <div style={{ ...styles.header, paddingTop: 20 }}>
               <p style={styles.kicker}>GAVANA</p>
-              <h1 style={styles.title}>{locale === "mn" ? "Миний Gym" : locale === "ko" ? "내 체육관" : "My Gyms"}</h1>
+              <h1 style={styles.title}>{t("gymMyTitle")}</h1>
             </div>
 
             {!user?.uid ? (
               <div style={styles.emptyState}>
                 <div style={{ fontSize: 40, opacity: 0.4 }}>🔒</div>
-                <p style={styles.emptyText}>{locale === "mn" ? "Нэвтрэх шаардлагатай" : locale === "ko" ? "로그인이 필요합니다" : "Login required"}</p>
+                <p style={styles.emptyText}>{t("gymLoginRequired")}</p>
                 <button
                   type="button"
                   onClick={() => router.push(`/${locale}/login`)}
                   style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}
                 >
-                  {locale === "mn" ? "Нэвтрэх →" : locale === "ko" ? "로그인 →" : "Log in →"}
+                  {t("gymLoginBtn")}
                 </button>
               </div>
             ) : myMembershipsLoading ? (
@@ -335,16 +335,16 @@ export default function GymsPage() {
             ) : myMemberships.length === 0 && !ownedGym ? (
               <div style={styles.emptyState}>
                 <div style={{ fontSize: 40, opacity: 0.4 }}>🏋️</div>
-                <p style={styles.emptyText}>{locale === "mn" ? "Gym-д элсээгүй байна" : locale === "ko" ? "체육관에 가입하지 않았습니다" : "Not in any gym yet"}</p>
+                <p style={styles.emptyText}>{t("gymNotMember")}</p>
                 <p style={{ margin: 0, color: "rgba(255,255,255,0.45)", fontSize: 13, textAlign: "center", maxWidth: 240 }}>
-                  {locale === "mn" ? "Gym-д элсэж тамирлалтаа нэгтгэ" : locale === "ko" ? "체육관에 가입하고 훈련을 함께 하세요" : "Join a gym to train with your community"}
+                  {t("gymJoinHint")}
                 </p>
                 <button
                   type="button"
                   onClick={() => setTab("all")}
                   style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", marginTop: 4 }}
                 >
-                  {locale === "mn" ? "Gym хайх →" : locale === "ko" ? "체육관 찾기 →" : "Find a gym →"}
+                  {t("gymFindBtn")}
                 </button>
               </div>
             ) : (
@@ -360,7 +360,7 @@ export default function GymsPage() {
                         : <div style={styles.cardLogoFallback}><span style={{ fontSize: 28 }}>🥊</span></div>
                       }
                       <span style={{ position: "absolute", bottom: 8, right: 10, padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 900, background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.5)", color: "#D4AF37" }}>
-                        👑 {locale === "mn" ? "Эзэмшигч" : locale === "ko" ? "오너" : "Owner"}
+                        {t("gymOwnerLabel")}
                       </span>
                     </div>
                     <div style={styles.cardBody}>
@@ -377,7 +377,7 @@ export default function GymsPage() {
                         style={{ marginTop: 10, padding: "8px 16px", borderRadius: 10, border: "1px solid rgba(212,175,55,0.4)", background: "rgba(212,175,55,0.1)", color: "#D4AF37", fontSize: 12, fontWeight: 900, cursor: "pointer" }}
                         onClick={(e) => { e.stopPropagation(); router.push(`/${locale}/gyms/dashboard`); }}
                       >
-                        ⚙️ {locale === "mn" ? "Удирдах" : locale === "ko" ? "관리" : "Manage"}
+                        {t("gymManageBtn")}
                       </button>
                     </div>
                   </div>
@@ -435,7 +435,7 @@ export default function GymsPage() {
         {!loading && featuredGyms.length > 0 && (
           <div style={{ marginBottom: 20 }}>
             <p style={styles.sectionLabel}>
-              ⭐ {locale === "mn" ? "Онцлох gym-ууд" : locale === "ko" ? "추천 체육관" : "Featured Gyms"}
+              {t("gymFeatured")}
             </p>
             <div style={styles.featuredScroll}>
               {featuredGyms.map((gym) => (
