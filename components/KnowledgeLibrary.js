@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { translate } from "@/lib/i18n";
 import ScrollRow from "@/components/ScrollRow";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
 
 // ─── English content ──────────────────────────────────────────────────────────
 
@@ -1001,7 +1001,7 @@ function StyleCard({ style, onAsk, t }) {
           </div>
         ))}
       </div>
-      <div style={{ background: "rgba(193,18,31,0.06)", border: "1px solid rgba(193,18,31,0.2)", borderRadius: 8, padding: "7px 9px" }}>
+      <div style={{ background: `${redAlpha(0.06)}`, border: `1px solid ${redAlpha(0.2)}`, borderRadius: 8, padding: "7px 9px" }}>
         <p style={{ fontSize: 9, color: RED, fontWeight: 800, margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
           {t("libraryPractice")}
         </p>
@@ -1058,7 +1058,7 @@ function TechCard({ tech, onAsk, t }) {
         </p>
         <p style={{ fontSize: 11, color: "#fca5a5", margin: 0, lineHeight: 1.4 }}>{tech.mistake}</p>
       </div>
-      <div style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(120,53,15,0.5)", borderRadius: 8, padding: "7px 9px" }}>
+      <div style={{ background: `${goldAlpha(0.06)}`, border: "1px solid rgba(120,53,15,0.5)", borderRadius: 8, padding: "7px 9px" }}>
         <p style={{ fontSize: 9, fontWeight: 800, color: GOLD, margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
           {t("libraryDrill")}
         </p>
@@ -1143,7 +1143,7 @@ function MovementCard({ card, t }) {
           </div>
         ))}
       </div>
-      <div style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 8, padding: "7px 9px" }}>
+      <div style={{ background: `${goldAlpha(0.06)}`, border: `1px solid ${goldAlpha(0.15)}`, borderRadius: 8, padding: "7px 9px" }}>
         <p style={{ fontSize: 9, fontWeight: 800, color: GOLD, margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
           {t("libraryDrill")}
         </p>
@@ -1185,8 +1185,8 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
 
       {/* Hero Header */}
       <div style={{
-        background: "linear-gradient(135deg, rgba(193,18,31,0.1) 0%, rgba(212,175,55,0.07) 100%)",
-        border: "1px solid rgba(212,175,55,0.14)",
+        background: `linear-gradient(135deg, ${redAlpha(0.1)} 0%, ${goldAlpha(0.07)} 100%)`,
+        border: `1px solid ${goldAlpha(0.14)}`,
         borderRadius: 16,
         padding: "18px 16px 16px",
       }}>
@@ -1211,8 +1211,8 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
               style={{
                 display: "flex", alignItems: "center", gap: 5,
                 padding: "7px 12px", borderRadius: 999,
-                background: hoveredPrompt === p.key ? "rgba(212,175,55,0.12)" : "rgba(255,255,255,0.05)",
-                border: `1px solid ${hoveredPrompt === p.key ? "rgba(212,175,55,0.4)" : "rgba(255,255,255,0.1)"}`,
+                background: hoveredPrompt === p.key ? `${goldAlpha(0.12)}` : "rgba(255,255,255,0.05)",
+                border: `1px solid ${hoveredPrompt === p.key ? `${goldAlpha(0.4)}` : "rgba(255,255,255,0.1)"}`,
                 color: hoveredPrompt === p.key ? GOLD : "#ddd",
                 fontSize: 11, fontWeight: 700,
                 cursor: "pointer", whiteSpace: "nowrap",
@@ -1231,8 +1231,8 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
       <div>
         <SectionHeader emoji="🔥" title={t("librarySectionToday")} />
         <div style={{
-          background: "rgba(212,175,55,0.07)",
-          border: "1px solid rgba(212,175,55,0.2)",
+          background: `${goldAlpha(0.07)}`,
+          border: `1px solid ${goldAlpha(0.2)}`,
           borderLeft: "3px solid #D4AF37",
           borderRadius: 14,
           padding: "14px 16px",
@@ -1256,7 +1256,7 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
             onMouseLeave={() => setTodayHover(false)}
             style={{
               marginTop: 10, width: "100%", padding: "9px 0", borderRadius: 9,
-              background: todayHover ? "rgba(212,175,55,0.16)" : "rgba(212,175,55,0.08)",
+              background: todayHover ? `${goldAlpha(0.16)}` : `${goldAlpha(0.08)}`,
               border: `1px solid rgba(212,175,55,${todayHover ? "0.5" : "0.2"})`,
               color: GOLD, fontSize: 12, fontWeight: 800, cursor: "pointer",
               transition: "background 130ms ease, border-color 130ms ease",
@@ -1322,8 +1322,8 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
           onMouseLeave={() => setMistakesHover(false)}
           style={{
             marginTop: 12, width: "100%", padding: "9px 0", borderRadius: 9,
-            background: mistakesHover ? "rgba(193,18,31,0.1)" : "rgba(255,255,255,0.03)",
-            border: `1px solid ${mistakesHover ? "rgba(193,18,31,0.35)" : "rgba(255,255,255,0.08)"}`,
+            background: mistakesHover ? `${redAlpha(0.1)}` : "rgba(255,255,255,0.03)",
+            border: `1px solid ${mistakesHover ? `${redAlpha(0.35)}` : "rgba(255,255,255,0.08)"}`,
             color: mistakesHover ? "#f87171" : "#777",
             fontSize: 12, fontWeight: 700, cursor: "pointer",
             transition: "background 130ms ease, border-color 130ms ease, color 130ms ease",

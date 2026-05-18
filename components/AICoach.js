@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import KnowledgeLibrary from "@/components/KnowledgeLibrary";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , redAlpha} from "@/lib/tokens";
 
 export default function AICoach() {
   const pathname = usePathname();
@@ -271,7 +271,7 @@ function SendIcon() {
 const styles = {
   page: {
     minHeight: "100vh",
-    background: "radial-gradient(ellipse at top center, rgba(193,18,31,0.05) 0%, transparent 50%), #080808",
+    background: `radial-gradient(ellipse at top center, ${redAlpha(0.05)} 0%, transparent 50%), #080808`,
     color: "var(--text-primary)",
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   },
@@ -303,7 +303,7 @@ const styles = {
     fontWeight: 800,
     cursor: "pointer",
     letterSpacing: "0.01em",
-    boxShadow: "0 4px 16px rgba(193,18,31,0.3)",
+    boxShadow: `0 4px 16px ${redAlpha(0.3)}`,
   },
   sectionTabInactive: {
     flex: 1,
@@ -326,7 +326,7 @@ const styles = {
   },
   kicker: {
     margin: 0,
-    color: "rgba(193,18,31,0.8)",
+    color: `${redAlpha(0.8)}`,
     letterSpacing: 3,
     fontSize: 9,
     fontWeight: 900,
@@ -434,7 +434,7 @@ const styles = {
     fontSize: 14,
     lineHeight: 1.5,
     border: "none",
-    boxShadow: "0 8px 24px rgba(193,18,31,0.2)",
+    boxShadow: `0 8px 24px ${redAlpha(0.2)}`,
   },
   assistantBubble: {
     maxWidth: "78%",
@@ -487,7 +487,7 @@ const styles = {
     maxWidth: "82%",
     padding: "10px 13px",
     borderRadius: 14,
-    background: "rgba(193,18,31,0.7)",
+    background: `${redAlpha(0.7)}`,
     lineHeight: 1.5,
     fontSize: 13,
   },

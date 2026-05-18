@@ -7,6 +7,7 @@ import { ref as storageRef, uploadBytesResumable, getDownloadURL } from "firebas
 import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { translate } from "@/lib/i18n";
+import { redAlpha } from "@/lib/tokens";
 
 const STORY_TYPES = [
   { key: "training_clip", emoji: "🥊", labelKey: "storyTrainingClip" },
@@ -225,13 +226,13 @@ const s = {
   header: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "calc(16px + env(safe-area-inset-top)) max(88px, calc(12px + 76px)) 14px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(7,7,7,0.88)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", position: "sticky", top: 0, zIndex: 10 },
   closeBtn: { width: 36, height: 36, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.6)", fontSize: 15, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
   title: { fontSize: 15, fontWeight: 800, color: "#fff", letterSpacing: 0.3 },
-  postBtn: { background: "linear-gradient(135deg, #C1121F, #8f0d17)", border: "none", borderRadius: 999, padding: "9px 22px", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", boxShadow: "0 4px 16px rgba(193,18,31,0.35)" },
-  postBtnGray: { background: "rgba(193,18,31,0.2)", border: "1px solid rgba(193,18,31,0.2)", borderRadius: 999, padding: "9px 22px", color: "rgba(255,255,255,0.3)", fontSize: 13, cursor: "not-allowed" },
+  postBtn: { background: "linear-gradient(135deg, #C1121F, #8f0d17)", border: "none", borderRadius: 999, padding: "9px 22px", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", boxShadow: `0 4px 16px ${redAlpha(0.35)}` },
+  postBtnGray: { background: `${redAlpha(0.2)}`, border: `1px solid ${redAlpha(0.2)}`, borderRadius: 999, padding: "9px 22px", color: "rgba(255,255,255,0.3)", fontSize: 13, cursor: "not-allowed" },
   typeRow: { display: "flex", flexWrap: "nowrap", gap: 6, overflowX: "auto", padding: "10px 16px", paddingRight: 88, scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch", borderBottom: "1px solid rgba(255,255,255,0.05)" },
   typeChip: { flexShrink: 0, display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.09)", background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.4)", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" },
-  typeActive: { flexShrink: 0, display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.5)", background: "rgba(193,18,31,0.12)", color: "#ff6b6b", fontSize: 12, fontWeight: 900, cursor: "pointer", whiteSpace: "nowrap" },
+  typeActive: { flexShrink: 0, display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 999, border: `1px solid ${redAlpha(0.5)}`, background: `${redAlpha(0.12)}`, color: "#ff6b6b", fontSize: 12, fontWeight: 900, cursor: "pointer", whiteSpace: "nowrap" },
   mediaArea: { flex: 1, padding: "16px 16px 0" },
-  uploadZone: { width: "100%", minHeight: 240, border: "2px dashed rgba(193,18,31,0.35)", borderRadius: 18, background: "rgba(193,18,31,0.03)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, cursor: "pointer", boxSizing: "border-box", transition: "border-color 200ms ease, background 200ms ease" },
+  uploadZone: { width: "100%", minHeight: 240, border: `2px dashed ${redAlpha(0.35)}`, borderRadius: 18, background: `${redAlpha(0.03)}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, cursor: "pointer", boxSizing: "border-box", transition: "border-color 200ms ease, background 200ms ease" },
   zoneTxt: { fontSize: 15, fontWeight: 800, color: "rgba(255,255,255,0.55)" },
   zoneSub: { fontSize: 12, color: "rgba(255,255,255,0.25)", marginTop: -4 },
   previewWrap: { position: "relative", width: "100%", maxHeight: 360, borderRadius: 14, overflow: "hidden", background: "#0d0d0d", border: "1px solid rgba(255,255,255,0.08)" },
@@ -240,7 +241,7 @@ const s = {
   progressArea: { flex: 1, padding: "16px 16px 0" },
   progressGrid: { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8, marginBottom: 16 },
   ptBtn: { padding: "16px 10px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.4)", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 6, transition: "all 160ms ease" },
-  ptActive: { padding: "16px 10px", borderRadius: 14, border: "1px solid rgba(193,18,31,0.45)", background: "rgba(193,18,31,0.1)", color: "#ff6b6b", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 6, boxShadow: "0 0 20px rgba(193,18,31,0.12)" },
+  ptActive: { padding: "16px 10px", borderRadius: 14, border: `1px solid ${redAlpha(0.45)}`, background: `${redAlpha(0.1)}`, color: "#ff6b6b", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 6, boxShadow: `0 0 20px ${redAlpha(0.12)}` },
   captionWrap: { padding: "14px 16px 24px" },
   captionInput: { width: "100%", boxSizing: "border-box", padding: "13px 14px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.09)", background: "rgba(255,255,255,0.03)", color: "#fff", fontSize: 14, resize: "none", outline: "none", fontFamily: "inherit", lineHeight: 1.5 },
   fieldLabel: { margin: "0 0 8px", fontSize: 10, fontWeight: 900, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: 1.5 },

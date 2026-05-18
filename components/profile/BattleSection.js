@@ -1,6 +1,6 @@
 "use client";
 
-import { RED, GOLD , PURPLE} from "@/lib/tokens";
+import { RED, GOLD , PURPLE, redAlpha} from "@/lib/tokens";
 
 function getTimestampMs(timestamp) {
   if (!timestamp) return 0;
@@ -168,7 +168,7 @@ export default function BattleSection({ pvpStats, sparringRecord, isOwnProfile, 
         <div style={{
           marginTop: 14,
           background: "linear-gradient(145deg, #0a0a0a, #111)",
-          border: "1px solid rgba(193,18,31,0.15)",
+          border: `1px solid ${redAlpha(0.15)}`,
           borderLeft: "3px solid #C1121F",
           borderRadius: "3px 16px 16px 3px",
           padding: "18px 16px",

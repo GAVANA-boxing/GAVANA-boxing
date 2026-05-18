@@ -20,7 +20,7 @@ import EmptyState from "@/components/EmptyState";
 import { useAuth } from "@/lib/AuthContext";
 import { db, storage } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
 import { snapToDocs } from "@/lib/firestore";
 
 function getCompleteness(gym) {
@@ -736,7 +736,7 @@ const styles = {
   logoCircle: { width: 80, height: 80, borderRadius: 16, background: "rgba(255,255,255,0.06)", border: "2px dashed rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", overflow: "hidden" },
   logoImg: { width: "100%", height: "100%", objectFit: "cover" },
   logoLabel: { background: "none", border: "none", color: "rgba(255,255,255,0.65)", fontSize: 13, cursor: "pointer" },
-  errBox: { background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.35)", borderRadius: 10, padding: "10px 14px", color: "#F87171", fontSize: 13, marginBottom: 14 },
+  errBox: { background: `${redAlpha(0.12)}`, border: `1px solid ${redAlpha(0.35)}`, borderRadius: 10, padding: "10px 14px", color: "#F87171", fontSize: 13, marginBottom: 14 },
   fields: { display: "flex", flexDirection: "column", gap: 14, marginBottom: 20 },
   fieldRow: { display: "flex", gap: 10 },
   input: { width: "100%", boxSizing: "border-box", padding: "11px 14px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 15, outline: "none" },
@@ -744,11 +744,11 @@ const styles = {
   select: { width: "100%", padding: "11px 14px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 14, outline: "none", colorScheme: "dark" },
   pillsGrid: { display: "flex", flexWrap: "wrap", gap: 8 },
   pillBtn: { padding: "5px 12px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.12)", background: "transparent", color: "rgba(255,255,255,0.55)", fontSize: 12, fontWeight: 700, cursor: "pointer" },
-  pillActive: { padding: "5px 12px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.5)", background: "rgba(193,18,31,0.15)", color: "#F87171", fontSize: 12, fontWeight: 700, cursor: "pointer" },
+  pillActive: { padding: "5px 12px", borderRadius: 999, border: `1px solid ${redAlpha(0.5)}`, background: `${redAlpha(0.15)}`, color: "#F87171", fontSize: 12, fontWeight: 700, cursor: "pointer" },
   progressWrap: { height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 2, marginBottom: 14, overflow: "hidden" },
   progressBar: { height: "100%", background: RED, borderRadius: 2, transition: "width 0.2s" },
   submitBtn: { width: "100%", padding: "15px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#C1121F,#7d0812)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer" },
-  submitBtnDisabled: { width: "100%", padding: "15px", borderRadius: 12, border: "none", background: "rgba(193,18,31,0.35)", color: "rgba(255,255,255,0.65)", fontSize: 15, fontWeight: 900, cursor: "not-allowed" },
+  submitBtnDisabled: { width: "100%", padding: "15px", borderRadius: 12, border: "none", background: `${redAlpha(0.35)}`, color: "rgba(255,255,255,0.65)", fontSize: 15, fontWeight: 900, cursor: "not-allowed" },
   successCard: { display: "flex", flexDirection: "column", alignItems: "center", gap: 16, padding: "60px 24px", textAlign: "center" },
   successTitle: { margin: 0, fontSize: 22, fontWeight: 1000, color: "#fff" },
   statsPanel: { display: "flex", borderRadius: 16, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", marginBottom: 20, overflow: "hidden" },
@@ -759,7 +759,7 @@ const styles = {
   statDivider: { width: 1, background: "rgba(255,255,255,0.07)", alignSelf: "stretch" },
   tabs: { display: "flex", gap: 8, marginBottom: 16 },
   tab: { flex: 1, padding: "10px 0", borderRadius: 10, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.65)", fontSize: 13, fontWeight: 700, cursor: "pointer" },
-  tabActive: { flex: 1, padding: "10px 0", borderRadius: 10, border: "1px solid rgba(212,175,55,0.4)", background: "rgba(212,175,55,0.1)", color: GOLD, fontSize: 13, fontWeight: 900, cursor: "pointer", boxShadow: "inset 0 -2px 0 #D4AF37" },
+  tabActive: { flex: 1, padding: "10px 0", borderRadius: 10, border: `1px solid ${goldAlpha(0.4)}`, background: `${goldAlpha(0.1)}`, color: GOLD, fontSize: 13, fontWeight: 900, cursor: "pointer", boxShadow: "inset 0 -2px 0 #D4AF37" },
   cardList: { display: "flex", flexDirection: "column", gap: 10 },
   requestCard: { borderRadius: 14, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "14px" },
   memberCard: { borderRadius: 14, border: "1px solid rgba(52,211,153,0.12)", background: "rgba(52,211,153,0.04)", padding: "14px" },
@@ -767,7 +767,7 @@ const styles = {
   memberJoinedLabel: { fontSize: 9, color: "rgba(255,255,255,0.45)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.4 },
   memberJoinedDate: { fontSize: 11, color: "rgba(255,255,255,0.65)", fontWeight: 600 },
   requestTop: { display: "flex", alignItems: "center", gap: 10, marginBottom: 8 },
-  reqAvatar: { width: 40, height: 40, borderRadius: "50%", background: "rgba(193,18,31,0.2)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 },
+  reqAvatar: { width: 40, height: 40, borderRadius: "50%", background: `${redAlpha(0.2)}`, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 },
   reqAvatarImg: { width: "100%", height: "100%", objectFit: "cover" },
   reqAvatarInitial: { fontSize: 16, fontWeight: 800, color: "#fff" },
   reqInfo: { flex: 1 },
@@ -780,7 +780,7 @@ const styles = {
   annForm: { display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 },
   annList: { display: "flex", flexDirection: "column", gap: 8 },
   sectionLabel: { margin: "0 0 8px", fontSize: 11, color: "rgba(255,255,255,0.55)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 },
-  annCard: { borderRadius: 12, border: "1px solid rgba(212,175,55,0.15)", background: "rgba(212,175,55,0.05)", padding: "12px 14px" },
+  annCard: { borderRadius: 12, border: `1px solid ${goldAlpha(0.15)}`, background: `${goldAlpha(0.05)}`, padding: "12px 14px" },
   annTitle: { margin: "0 0 4px", fontSize: 14, fontWeight: 900, color: GOLD },
   annBody: { margin: 0, fontSize: 13, color: "rgba(255,255,255,0.6)" },
   errorText: { margin: 0, fontSize: 13, color: "#F87171" },

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
+import { goldAlpha } from "@/lib/tokens";
 
 function isSocialInAppBrowser(userAgent) {
   return /FBAN|FBAV|FB_IAB|FB4A|FBIOS|Instagram/i.test(userAgent || "");
@@ -58,7 +59,7 @@ const styles = {
     padding: "12px 12px 12px 14px",
     borderRadius: 16,
     background: "rgba(11,11,11,0.86)",
-    border: "1px solid rgba(212,175,55,0.2)",
+    border: `1px solid ${goldAlpha(0.2)}`,
     boxShadow: "0 18px 50px rgba(0,0,0,0.42)",
     color: "#fff",
     backdropFilter: "blur(20px) saturate(150%)",

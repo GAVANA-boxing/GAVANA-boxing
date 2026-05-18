@@ -7,7 +7,7 @@ import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , redAlpha} from "@/lib/tokens";
 
 const SPECIALTIES = [
   "Jab", "Footwork", "Defense", "Conditioning",
@@ -342,7 +342,7 @@ const styles = {
   eyebrow: { fontSize: 11, letterSpacing: 2, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", margin: "0 0 8px" },
   title: { fontSize: 26, fontWeight: 700, margin: "0 0 8px", color: "#fff" },
   subtitle: { fontSize: 14, color: "rgba(255,255,255,0.5)", margin: 0 },
-  errBox: { background: "rgba(193,18,31,0.15)", border: "1px solid rgba(193,18,31,0.4)", borderRadius: 10, padding: "10px 14px", color: "#F87171", fontSize: 13, marginBottom: 16 },
+  errBox: { background: `${redAlpha(0.15)}`, border: `1px solid ${redAlpha(0.4)}`, borderRadius: 10, padding: "10px 14px", color: "#F87171", fontSize: 13, marginBottom: 16 },
   photoSection: { display: "flex", flexDirection: "column", alignItems: "center", gap: 10, marginBottom: 24 },
   photoCircle: { width: 80, height: 80, borderRadius: 40, background: "rgba(255,255,255,0.07)", border: "2px dashed rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", overflow: "hidden" },
   photoImg: { width: "100%", height: "100%", objectFit: "cover" },
@@ -356,11 +356,11 @@ const styles = {
   textarea: { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "12px 14px", color: "#fff", fontSize: 15, outline: "none", width: "100%", resize: "vertical", boxSizing: "border-box", fontFamily: "inherit" },
   specialtyGrid: { display: "flex", flexWrap: "wrap", gap: 8 },
   specialtyBtn: { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20, padding: "6px 14px", color: "rgba(255,255,255,0.55)", fontSize: 13, cursor: "pointer", transition: "all 140ms ease" },
-  specialtyActive: { background: "rgba(193,18,31,0.25)", border: "2px solid #C1121F", borderRadius: 20, padding: "5px 13px", color: "#ff6b6b", fontSize: 13, fontWeight: 800, cursor: "pointer", boxShadow: "0 0 10px rgba(193,18,31,0.25)", transition: "all 140ms ease" },
+  specialtyActive: { background: `${redAlpha(0.25)}`, border: "2px solid #C1121F", borderRadius: 20, padding: "5px 13px", color: "#ff6b6b", fontSize: 13, fontWeight: 800, cursor: "pointer", boxShadow: `0 0 10px ${redAlpha(0.25)}`, transition: "all 140ms ease" },
   progressWrap: { height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 2, marginBottom: 16, overflow: "hidden" },
   progressBar: { height: "100%", background: RED, borderRadius: 2, transition: "width 0.2s" },
   submitBtn: { width: "100%", padding: "16px", background: RED, border: "none", borderRadius: 12, color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer", letterSpacing: 0.5 },
-  submitBtnDisabled: { width: "100%", padding: "16px", background: "rgba(193,18,31,0.4)", border: "none", borderRadius: 12, color: "rgba(255,255,255,0.5)", fontSize: 16, fontWeight: 700, cursor: "not-allowed", letterSpacing: 0.5 },
+  submitBtnDisabled: { width: "100%", padding: "16px", background: `${redAlpha(0.4)}`, border: "none", borderRadius: 12, color: "rgba(255,255,255,0.5)", fontSize: 16, fontWeight: 700, cursor: "not-allowed", letterSpacing: 0.5 },
   successCard: { textAlign: "center", padding: "60px 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 },
   successIcon: { fontSize: 56 },
   successTitle: { fontSize: 24, fontWeight: 700, margin: 0, color: "#fff" },

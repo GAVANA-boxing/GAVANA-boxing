@@ -9,7 +9,7 @@ import { RANK_TIERS, calculateUserXP, getFighterRank, getNextRank, getRankProgre
 import { getLocale, translate } from "@/lib/i18n";
 import RankIcon from "@/components/RankIcon";
 import BottomNav from "@/components/BottomNav";
-import { RED, GOLD , PURPLE} from "@/lib/tokens";
+import { RED, GOLD , PURPLE, goldAlpha} from "@/lib/tokens";
 
 const HOW_TO_EARN = [
   {
@@ -308,10 +308,10 @@ const styles = {
     background: "rgba(7,7,7,0.94)",
     backdropFilter: "blur(14px)",
     WebkitBackdropFilter: "blur(14px)",
-    borderBottom: "1px solid rgba(212,175,55,0.18)",
+    borderBottom: `1px solid ${goldAlpha(0.18)}`,
   },
   backBtn: {
-    border: "1px solid rgba(212,175,55,0.28)",
+    border: `1px solid ${goldAlpha(0.28)}`,
     background: "transparent",
     color: "#fff",
     borderRadius: 10,

@@ -9,7 +9,7 @@ import { getLocale, translate } from "@/lib/i18n";
 import BottomNav from "@/components/BottomNav";
 import EmptyState from "@/components/EmptyState";
 import SkeletonBlock from "@/components/SkeletonBlock";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
 
 function getCreatedAtMs(obj) {
   const ts = obj?.createdAt;
@@ -358,7 +358,7 @@ export default function CreatorDashboard() {
               <section style={styles.section}>
                 <h2 style={styles.sectionTitle}>🔥 {t("creatorMostChallenged")}</h2>
                 <div
-                  style={{ background: "linear-gradient(145deg, #1c0202, #0e0000)", border: "1px solid rgba(193,18,31,0.2)", borderLeft: "3px solid #C1121F", borderRadius: "3px 14px 14px 3px", padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
+                  style={{ background: "linear-gradient(145deg, #1c0202, #0e0000)", border: `1px solid ${redAlpha(0.2)}`, borderLeft: "3px solid #C1121F", borderRadius: "3px 14px 14px 3px", padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
                   onClick={() => router.push(`/${locale}/reels?reelId=${mostChallengedReel.id}`)}
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -522,8 +522,8 @@ const styles = {
     marginLeft: "auto",
     padding: "5px 12px",
     borderRadius: 999,
-    background: "rgba(212,175,55,0.15)",
-    border: "1px solid rgba(212,175,55,0.4)",
+    background: `${goldAlpha(0.15)}`,
+    border: `1px solid ${goldAlpha(0.4)}`,
     color: GOLD,
     fontSize: 12,
     fontWeight: 900,
@@ -659,8 +659,8 @@ const styles = {
     gap: 10,
     padding: "14px 16px",
     borderRadius: 14,
-    background: "rgba(212,175,55,0.07)",
-    border: "1px solid rgba(212,175,55,0.2)",
+    background: `${goldAlpha(0.07)}`,
+    border: `1px solid ${goldAlpha(0.2)}`,
   },
   tipIcon: {
     fontSize: 16,

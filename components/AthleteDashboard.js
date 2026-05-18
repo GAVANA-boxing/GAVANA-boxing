@@ -16,7 +16,7 @@ import {
 import BottomNav from "@/components/BottomNav";
 import FighterStyleQuiz, { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import FighterPath from "@/components/FighterPath";
-import { RED, GOLD , PURPLE} from "@/lib/tokens";
+import { RED, GOLD , PURPLE, redAlpha, goldAlpha} from "@/lib/tokens";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -186,8 +186,8 @@ function RadarChart({ stats }) {
     <svg viewBox={`0 0 ${SIZE} ${SIZE}`} width="100%" style={{ display: "block", overflow: "visible" }}>
       <defs>
         <radialGradient id="rdg" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="rgba(193,18,31,0.52)" />
-          <stop offset="100%" stopColor="rgba(193,18,31,0.05)" />
+          <stop offset="0%" stopColor={redAlpha(0.52)} />
+          <stop offset="100%" stopColor={redAlpha(0.05)} />
         </radialGradient>
         <filter id="rdGlow" x="-20%" y="-20%" width="140%" height="140%">
           <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur" />
@@ -315,18 +315,18 @@ function FighterHero({ displayScore, fighterScore, xp, rank, nextRank, xpProgres
       borderRadius: 22,
       overflow: "hidden",
       background: "linear-gradient(160deg, #1c0202 0%, #0e0000 45%, #080808 100%)",
-      border: "1px solid rgba(193,18,31,0.18)",
-      boxShadow: "0 0 0 1px rgba(193,18,31,0.07), 0 28px 64px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.035)",
+      border: `1px solid ${redAlpha(0.18)}`,
+      boxShadow: `0 0 0 1px ${redAlpha(0.07)}, 0 28px 64px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.035)`,
       marginBottom: 20,
     }}>
       {/* Atmosphere */}
       <div style={{
         position: "absolute", inset: 0, pointerEvents: "none",
-        background: "radial-gradient(ellipse at 18% 25%, rgba(193,18,31,0.24) 0%, transparent 58%)",
+        background: `radial-gradient(ellipse at 18% 25%, ${redAlpha(0.24)} 0%, transparent 58%)`,
       }} />
       <div style={{ position: "relative", padding: "22px 22px 20px" }}>
         {/* Kicker */}
-        <p style={{ margin: "0 0 18px", fontSize: 9, fontWeight: 900, color: "rgba(193,18,31,0.75)", letterSpacing: 3.5, textTransform: "uppercase" }}>
+        <p style={{ margin: "0 0 18px", fontSize: 9, fontWeight: 900, color: `${redAlpha(0.75)}`, letterSpacing: 3.5, textTransform: "uppercase" }}>
           GAVANA · FIGHTER SCORE
         </p>
 
@@ -341,7 +341,7 @@ function FighterHero({ displayScore, fighterScore, xp, rank, nextRank, xpProgres
                 letterSpacing: "-0.045em",
                 lineHeight: 0.92,
                 fontFamily: "var(--font-display, 'Anton', sans-serif)",
-                textShadow: "0 0 60px rgba(193,18,31,0.35), 0 4px 24px rgba(0,0,0,0.8)",
+                textShadow: `0 0 60px ${redAlpha(0.35)}, 0 4px 24px rgba(0,0,0,0.8)`,
               }}>
                 {displayScore}
               </span>
@@ -493,7 +493,7 @@ function ScoreChart({ scores, t }) {
           stroke="rgba(255,255,255,0.13)" strokeWidth="0.6" strokeDasharray="2,3" />
         <polygon
           points={`${pts} ${toX(scores.length - 1).toFixed(1)},${PAD.top + ph} ${PAD.left},${PAD.top + ph}`}
-          fill="rgba(193,18,31,0.07)"
+          fill={redAlpha(0.07)}
         />
         <polyline points={pts} fill="none" stroke={RED} strokeWidth="1.8"
           strokeLinejoin="round" strokeLinecap="round" className="graph-line" />
@@ -793,7 +793,7 @@ function Section({ title, accent, children }) {
         <h2 style={{
           margin: "0 0 14px",
           fontSize: 9, fontWeight: 900,
-          color: accent || "rgba(212,175,55,0.38)",
+          color: accent || `${goldAlpha(0.38)}`,
           textTransform: "uppercase", letterSpacing: "0.15em",
         }}>
           {title}
@@ -983,7 +983,7 @@ export default function AthleteDashboard() {
   return (
     <div
       className="page-enter"
-      style={{ background: "radial-gradient(ellipse at top center, rgba(193,18,31,0.07) 0%, transparent 48%), #070707", minHeight: "100dvh", color: "#fff" }}
+      style={{ background: `radial-gradient(ellipse at top center, ${redAlpha(0.07)} 0%, transparent 48%), #070707`, minHeight: "100dvh", color: "#fff" }}
     >
       <style>{`
         @keyframes rankFill { from { width: 0 !important; } }
@@ -996,7 +996,7 @@ export default function AthleteDashboard() {
 
         {/* Page kicker + name */}
         <div style={{ marginBottom: 22 }}>
-          <p style={{ margin: "0 0 2px", fontSize: 9, fontWeight: 900, color: "rgba(193,18,31,0.7)", letterSpacing: 3, textTransform: "uppercase" }}>
+          <p style={{ margin: "0 0 2px", fontSize: 9, fontWeight: 900, color: `${redAlpha(0.7)}`, letterSpacing: 3, textTransform: "uppercase" }}>
             GAVANA
           </p>
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: "#fff", letterSpacing: "-0.025em", lineHeight: 1, fontFamily: "var(--font-display, 'Anton', sans-serif)" }}>
@@ -1029,7 +1029,7 @@ export default function AthleteDashboard() {
                 🥊 {weekSessions.length} {locale === "mn" ? "сесс" : locale === "ko" ? "세션" : "sessions"}
               </span>
               {weekXP > 0 && (
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 11px", borderRadius: 999, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.25)", color: GOLD, fontSize: 12, fontWeight: 900 }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 11px", borderRadius: 999, background: `${goldAlpha(0.1)}`, border: `1px solid ${goldAlpha(0.25)}`, color: GOLD, fontSize: 12, fontWeight: 900 }}>
                   ⚡ +{weekXP} XP
                 </span>
               )}
@@ -1140,7 +1140,7 @@ export default function AthleteDashboard() {
           accent={RED}
           tag="6 METRICS"
         >
-          <div style={{ background: "radial-gradient(ellipse at center, rgba(193,18,31,0.06) 0%, transparent 70%)", padding: "4px 0 0" }}>
+          <div style={{ background: `radial-gradient(ellipse at center, ${redAlpha(0.06)} 0%, transparent 70%)`, padding: "4px 0 0" }}>
             <RadarChart stats={radarStats} />
           </div>
         </PanelCard>

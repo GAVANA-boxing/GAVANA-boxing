@@ -15,7 +15,7 @@ import { getCurrentSeasonId } from "@/lib/season";
 import MediaCover from "@/components/MediaCover";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import BottomSheet from "@/components/BottomSheet";
-import { RED, GOLD , PURPLE} from "@/lib/tokens";
+import { RED, GOLD , PURPLE, redAlpha, goldAlpha} from "@/lib/tokens";
 import RankBeltModal from "@/components/profile/RankBeltModal";
 import StreakDetailModal from "@/components/profile/StreakDetailModal";
 import FighterShareCard from "@/components/profile/FighterShareCard";
@@ -1070,7 +1070,7 @@ export default function UserProfilePage() {
   return (
     <div className="page-enter" style={{
       minHeight: "100vh",
-      background: "radial-gradient(ellipse at top center, rgba(193,18,31,0.08) 0%, transparent 50%), var(--background)",
+      background: `radial-gradient(ellipse at top center, ${redAlpha(0.08)} 0%, transparent 50%), var(--background)`,
       color: "var(--text-primary)",
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
       padding: 0,
@@ -1111,7 +1111,7 @@ export default function UserProfilePage() {
           style={{
             ...styles.avatarFrame,
             ...(streakCount >= 5 ? {
-              boxShadow: "0 0 0 1px rgba(212,175,55,0.55), 0 22px 70px rgba(0,0,0,0.5), 0 0 28px rgba(251,146,60,0.6), 0 0 56px rgba(251,146,60,0.28)",
+              boxShadow: `0 0 0 1px ${goldAlpha(0.55)}, 0 22px 70px rgba(0,0,0,0.5), 0 0 28px rgba(251,146,60,0.6), 0 0 56px rgba(251,146,60,0.28)`,
               border: "3px solid #FB923C",
             } : {}),
           }}
@@ -1132,7 +1132,7 @@ export default function UserProfilePage() {
           <button
             type="button"
             onClick={() => router.push(`/${locale}/story/upload`)}
-            style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 6, padding: "5px 12px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.35)", background: "rgba(193,18,31,0.08)", color: "rgba(255,255,255,0.7)", fontSize: 11, fontWeight: 800, cursor: "pointer", letterSpacing: 0.3 }}
+            style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 6, padding: "5px 12px", borderRadius: 999, border: `1px solid ${redAlpha(0.35)}`, background: `${redAlpha(0.08)}`, color: "rgba(255,255,255,0.7)", fontSize: 11, fontWeight: 800, cursor: "pointer", letterSpacing: 0.3 }}
           >
             <span style={{ fontSize: 13 }}>+</span>
             {t("profileAddStory")}
@@ -1190,9 +1190,9 @@ export default function UserProfilePage() {
           tags.push({ label: t(fighterRank.key), color: fighterRank.color, bg: `${fighterRank.color}18`, border: `${fighterRank.color}44` });
           const challengeStreak = getActiveChallengeStreak(profileUser);
           if (challengeStreak > 0) tags.push({ label: `🔥 ${challengeStreak}d`, color: "#FB923C", bg: "rgba(251,146,60,0.12)", border: "rgba(251,146,60,0.35)" });
-          if (bestScore !== null) tags.push({ label: `⭐ ${formatScore(bestScore)}/10`, color: GOLD, bg: "rgba(212,175,55,0.12)", border: "rgba(212,175,55,0.35)" });
+          if (bestScore !== null) tags.push({ label: `⭐ ${formatScore(bestScore)}/10`, color: GOLD, bg: `${goldAlpha(0.12)}`, border: `${goldAlpha(0.35)}` });
           if (userReels.length > 0) tags.push({ label: `🎬 ${t("creatorTag")}`, color: "#60A5FA", bg: "rgba(96,165,250,0.10)", border: "rgba(96,165,250,0.28)" });
-          if (challengeRanks?.weeklyRank && challengeRanks.weeklyRank <= 10) tags.push({ label: `#${challengeRanks.weeklyRank} ${t("seasonCurrentWeek")}`, color: GOLD, bg: "rgba(212,175,55,0.12)", border: "rgba(212,175,55,0.32)" });
+          if (challengeRanks?.weeklyRank && challengeRanks.weeklyRank <= 10) tags.push({ label: `#${challengeRanks.weeklyRank} ${t("seasonCurrentWeek")}`, color: GOLD, bg: `${goldAlpha(0.12)}`, border: `${goldAlpha(0.32)}` });
           if (pvpStats && pvpStats.wins > 0) tags.push({ label: `⚔️ ${pvpStats.wins}W ${pvpStats.losses}L`, color: PURPLE, bg: "rgba(167,139,250,0.10)", border: "rgba(167,139,250,0.28)" });
           return (
             <div style={styles.fighterTagsRow}>
@@ -1269,7 +1269,7 @@ export default function UserProfilePage() {
             </button>
             <button
               onClick={() => router.push(`/${locale}/dashboard`)}
-              style={{ ...styles.ghostAction, color: GOLD, borderColor: "rgba(212,175,55,0.3)" }}
+              style={{ ...styles.ghostAction, color: GOLD, borderColor: `${goldAlpha(0.3)}` }}
             >
               {t("dashboardViewProgress")}
             </button>
@@ -1281,7 +1281,7 @@ export default function UserProfilePage() {
             <button
               type="button"
               onClick={() => setShowFighterCard(true)}
-              style={{ ...styles.ghostAction, color: GOLD, borderColor: "rgba(212,175,55,0.3)" }}
+              style={{ ...styles.ghostAction, color: GOLD, borderColor: `${goldAlpha(0.3)}` }}
             >
               🥊 {t("profileFighterCard")}
             </button>
@@ -1341,7 +1341,7 @@ export default function UserProfilePage() {
               <button
                 type="button"
                 onClick={() => setShowFighterCard(true)}
-                style={{ ...styles.ghostAction, color: GOLD, borderColor: "rgba(212,175,55,0.3)", flex: 1 }}
+                style={{ ...styles.ghostAction, color: GOLD, borderColor: `${goldAlpha(0.3)}`, flex: 1 }}
               >
                 🥊 {t("profileFighterCard")}
               </button>
@@ -1831,7 +1831,7 @@ const styles = {
   fighterCard: {
     width: "100%",
     padding: "0 16px 28px",
-    background: "radial-gradient(ellipse at 50% 0%, rgba(193,18,31,0.28) 0%, rgba(193,18,31,0.06) 40%, transparent 65%), linear-gradient(180deg, #0C0C0C 0%, #070707 100%)",
+    background: `radial-gradient(ellipse at 50% 0%, ${redAlpha(0.28)} 0%, ${redAlpha(0.06)} 40%, transparent 65%), linear-gradient(180deg, #0C0C0C 0%, #070707 100%)`,
     boxSizing: "border-box",
     position: "relative",
     overflow: "hidden",
@@ -1853,7 +1853,7 @@ const styles = {
   coverPhotoFallback: {
     width: "100%",
     height: "100%",
-    background: "radial-gradient(ellipse at 50% 0%, rgba(193,18,31,0.35) 0%, rgba(193,18,31,0.08) 50%, transparent 100%)",
+    background: `radial-gradient(ellipse at 50% 0%, ${redAlpha(0.35)} 0%, ${redAlpha(0.08)} 50%, transparent 100%)`,
   },
   coverPhotoGradient: {
     position: "absolute",
@@ -1889,8 +1889,8 @@ const styles = {
     height: 148,
     borderRadius: "50%",
     background: "linear-gradient(145deg, #C1121F, #310408)",
-    border: "3px solid rgba(193,18,31,0.85)",
-    boxShadow: "0 0 0 1px rgba(212,175,55,0.5), 0 0 0 4px rgba(193,18,31,0.15), 0 24px 80px rgba(0,0,0,0.6), 0 0 48px rgba(193,18,31,0.25)",
+    border: `3px solid ${redAlpha(0.85)}`,
+    boxShadow: `0 0 0 1px ${goldAlpha(0.5)}, 0 0 0 4px ${redAlpha(0.15)}, 0 24px 80px rgba(0,0,0,0.6), 0 0 48px ${redAlpha(0.25)}`,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -2110,7 +2110,7 @@ const styles = {
     fontSize: 52,
     lineHeight: 1,
     marginBottom: 4,
-    filter: "drop-shadow(0 4px 16px rgba(193,18,31,0.4))",
+    filter: `drop-shadow(0 4px 16px ${redAlpha(0.4)})`,
   },
   reelGridEmptyTitle: {
     margin: 0,

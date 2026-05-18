@@ -17,7 +17,7 @@ import { db } from "@/lib/firebase";
 import { getLocale, translate } from "@/lib/i18n";
 import BottomNav from "@/components/BottomNav";
 import SkeletonBlock from "@/components/SkeletonBlock";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
 
 function getActorName(notification) {
   return notification.fromUsername || notification.actorName || "Someone";
@@ -560,7 +560,7 @@ export default function NotificationsPage() {
                       style={{
                         ...styles.notification,
                         background: notification.read === false
-                          ? "linear-gradient(90deg, rgba(193,18,31,0.12) 0%, rgba(12,10,10,0.96) 50%)"
+                          ? `linear-gradient(90deg, ${redAlpha(0.12)} 0%, rgba(12,10,10,0.96) 50%)`
                           : "rgba(255,255,255,0.025)",
                       }}
                       role="button"
@@ -577,7 +577,7 @@ export default function NotificationsPage() {
                         <div style={{
                           ...styles.avatar,
                           ...(notification.read === false ? {
-                            boxShadow: "0 0 0 2px rgba(193,18,31,0.5), 0 0 16px rgba(193,18,31,0.2)",
+                            boxShadow: `0 0 0 2px ${redAlpha(0.5)}, 0 0 16px ${redAlpha(0.2)}`,
                           } : {}),
                         }}>
                           {actorPhoto
@@ -661,7 +661,7 @@ function BoxingGloveIcon() {
 const styles = {
   page: {
     minHeight: "100vh",
-    background: "radial-gradient(ellipse at top center, rgba(193,18,31,0.06) 0%, transparent 50%), linear-gradient(180deg, #070707 0%, #0a0a0a 100%)",
+    background: `radial-gradient(ellipse at top center, ${redAlpha(0.06)} 0%, transparent 50%), linear-gradient(180deg, #070707 0%, #0a0a0a 100%)`,
     color: "#fff",
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     paddingBottom: "calc(64px + env(safe-area-inset-bottom))",
@@ -703,7 +703,7 @@ const styles = {
   },
   eyebrow: {
     margin: 0,
-    color: "rgba(212,175,55,0.6)",
+    color: `${goldAlpha(0.6)}`,
     fontSize: 9,
     fontWeight: 900,
     letterSpacing: 2,
@@ -723,7 +723,7 @@ const styles = {
     height: 26,
     borderRadius: 13,
     background: RED,
-    boxShadow: "0 0 12px rgba(193,18,31,0.5)",
+    boxShadow: `0 0 12px ${redAlpha(0.5)}`,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -754,7 +754,7 @@ const styles = {
     marginBottom: 28,
   },
   groupTitle: {
-    color: "rgba(212,175,55,0.55)",
+    color: `${goldAlpha(0.55)}`,
     fontSize: 10,
     fontWeight: 900,
     letterSpacing: 2,
@@ -774,14 +774,14 @@ const styles = {
     width: 72,
     height: 72,
     borderRadius: 36,
-    background: "rgba(193,18,31,0.1)",
-    color: "rgba(212,175,55,0.85)",
-    border: "1px solid rgba(212,175,55,0.2)",
+    background: `${redAlpha(0.1)}`,
+    color: `${goldAlpha(0.85)}`,
+    border: `1px solid ${goldAlpha(0.2)}`,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 16,
-    boxShadow: "0 0 40px rgba(193,18,31,0.15)",
+    boxShadow: `0 0 40px ${redAlpha(0.15)}`,
   },
   emptyTitle: {
     margin: 0,
@@ -817,7 +817,7 @@ const styles = {
     left: 0,
     width: 3,
     bottom: 0,
-    background: "linear-gradient(180deg, #C1121F, rgba(193,18,31,0.4))",
+    background: `linear-gradient(180deg, #C1121F, ${redAlpha(0.4)})`,
     borderRadius: "3px 0 0 3px",
   },
   avatarWrap: {
@@ -935,8 +935,8 @@ const styles = {
     transition: "all 0.15s ease",
   },
   filterChipActive: {
-    background: "rgba(193,18,31,0.18)",
-    border: "1px solid rgba(193,18,31,0.55)",
+    background: `${redAlpha(0.18)}`,
+    border: `1px solid ${redAlpha(0.55)}`,
     color: "#fff",
     fontWeight: 900,
   },
@@ -956,8 +956,8 @@ const styles = {
     flexShrink: 0,
     padding: "6px 12px",
     borderRadius: 999,
-    border: "1px solid rgba(212,175,55,0.3)",
-    background: "rgba(212,175,55,0.07)",
+    border: `1px solid ${goldAlpha(0.3)}`,
+    background: `${goldAlpha(0.07)}`,
     color: GOLD,
     fontSize: 11,
     fontWeight: 800,

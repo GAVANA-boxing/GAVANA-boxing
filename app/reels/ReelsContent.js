@@ -10,7 +10,7 @@ import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { updateLeaderboard } from "@/components/Leaderboard";
 import { computeFeedScore } from "@/lib/analytics";
 import AIBreakdownSheet from "@/components/AIBreakdownSheet";
-import { RED, GOLD , PURPLE} from "@/lib/tokens";
+import { RED, GOLD , PURPLE, redAlpha, goldAlpha} from "@/lib/tokens";
 
 // Dynamic import for Firebase to avoid SSR issues
 let db = null;
@@ -1814,7 +1814,7 @@ export default function ReelsContent() {
             ...((diffFilter !== "all" || ctFilter !== "all") ? {
               ...styles.feedTabActive,
               color: GOLD,
-              background: "rgba(212,175,55,0.15)",
+              background: `${goldAlpha(0.15)}`,
             } : {}),
             padding: "4px 9px",
             fontSize: 14,
@@ -2032,7 +2032,7 @@ export default function ReelsContent() {
                     cursor: reel.userId ? "pointer" : "default",
                     ...(hasStory ? {
                       borderColor: RED,
-                      boxShadow: "0 0 0 2px #C1121F, 0 0 0 4px rgba(212,175,55,0.35)",
+                      boxShadow: `0 0 0 2px #C1121F, 0 0 0 4px ${goldAlpha(0.35)}`,
                     } : {}),
                   }}
                   onClick={openCreatorProfile}
@@ -3106,7 +3106,7 @@ const styles = {
     gap: 12,
     alignItems: "center",
     justifyContent: "center",
-    background: "radial-gradient(circle at 50% 42%, rgba(193,18,31,0.16), transparent 34%), linear-gradient(180deg, rgba(7,7,7,0.82), rgba(7,7,7,0.94))",
+    background: `radial-gradient(circle at 50% 42%, ${redAlpha(0.16)}, transparent 34%), linear-gradient(180deg, rgba(7,7,7,0.82), rgba(7,7,7,0.94))`,
     zIndex: 10,
   },
   videoLoadingText: {
@@ -3134,7 +3134,7 @@ const styles = {
     position: "absolute",
     inset: 0,
     overflow: "hidden",
-    background: "radial-gradient(circle at 52% 34%, rgba(212,175,55,0.16), transparent 28%), radial-gradient(circle at 46% 62%, rgba(193,18,31,0.2), transparent 30%), linear-gradient(145deg, #070707 0%, #171010 48%, #050505 100%)",
+    background: `radial-gradient(circle at 52% 34%, ${goldAlpha(0.16)}, transparent 28%), radial-gradient(circle at 46% 62%, ${redAlpha(0.2)}, transparent 30%), linear-gradient(145deg, #070707 0%, #171010 48%, #050505 100%)`,
   },
   demoVignette: {
     position: "absolute",
@@ -3145,7 +3145,7 @@ const styles = {
     position: "absolute",
     inset: 0,
     overflow: "hidden",
-    background: "radial-gradient(circle at 50% 38%, rgba(193,18,31,0.22), transparent 32%), radial-gradient(circle at 58% 56%, rgba(212,175,55,0.12), transparent 30%), linear-gradient(145deg, #070707, #13090b 48%, #050505)",
+    background: `radial-gradient(circle at 50% 38%, ${redAlpha(0.22)}, transparent 32%), radial-gradient(circle at 58% 56%, ${goldAlpha(0.12)}, transparent 30%), linear-gradient(145deg, #070707, #13090b 48%, #050505)`,
   },
   reelFallbackLight: {
     position: "absolute",
@@ -3340,9 +3340,9 @@ const styles = {
     borderRadius: "50%",
     borderWidth: "1px",
     borderStyle: "solid",
-    borderColor: "rgba(212,175,55,0.64)",
-    background: "linear-gradient(145deg, rgba(193,18,31,0.9), rgba(7,7,7,0.78))",
-    boxShadow: "0 0 0 3px rgba(193,18,31,0.2), 0 10px 26px rgba(0,0,0,0.55)",
+    borderColor: `${goldAlpha(0.64)}`,
+    background: `linear-gradient(145deg, ${redAlpha(0.9)}, rgba(7,7,7,0.78))`,
+    boxShadow: `0 0 0 3px ${redAlpha(0.2)}, 0 10px 26px rgba(0,0,0,0.55)`,
     paddingTop: 0,
     paddingBottom: 0,
     paddingLeft: 0,
@@ -3439,7 +3439,7 @@ const styles = {
     background: "linear-gradient(180deg, #161212, #0a0a0a)",
     borderRadius: "20px 20px 0 0",
     padding: "10px 20px calc(32px + env(safe-area-inset-bottom))",
-    border: "1px solid rgba(212,175,55,0.12)",
+    border: `1px solid ${goldAlpha(0.12)}`,
     boxShadow: "0 -16px 48px rgba(0,0,0,0.7)",
     display: "flex",
     flexDirection: "column",
@@ -3507,8 +3507,8 @@ const styles = {
     whiteSpace: "nowrap",
   },
   filterChipActive: {
-    border: "1px solid rgba(193,18,31,0.6)",
-    background: "rgba(193,18,31,0.2)",
+    border: `1px solid ${redAlpha(0.6)}`,
+    background: `${redAlpha(0.2)}`,
     color: "#F87171",
   },
   filterClearBtn: {
@@ -3626,13 +3626,13 @@ const styles = {
     borderWidth: "1px",
     borderStyle: "solid",
     borderColor: "rgba(255,255,255,0.16)",
-    background: "rgba(193,18,31,0.82)",
+    background: `${redAlpha(0.82)}`,
     color: "var(--text-primary)",
     fontSize: 13,
     fontWeight: 900,
     letterSpacing: 0,
     cursor: "pointer",
-    boxShadow: "0 14px 34px rgba(193,18,31,0.24), inset 0 1px 0 rgba(255,255,255,0.12)",
+    boxShadow: `0 14px 34px ${redAlpha(0.24)}, inset 0 1px 0 rgba(255,255,255,0.12)`,
     backdropFilter: "blur(16px)",
     WebkitBackdropFilter: "blur(16px)",
     transition: "transform var(--motion-fast), background var(--motion-fast), box-shadow var(--motion-fast)",
@@ -3696,13 +3696,13 @@ const styles = {
   },
   actionCircleLiked: {
     background: "rgba(193, 18, 31, 0.12)",
-    borderColor: "rgba(193,18,31,0.32)",
+    borderColor: `${redAlpha(0.32)}`,
     boxShadow: "var(--shadow-glow-red)",
   },
   actionCircleSaved: {
-    background: "rgba(212,175,55,0.12)",
-    borderColor: "rgba(212,175,55,0.34)",
-    boxShadow: "0 0 24px rgba(212,175,55,0.22)",
+    background: `${goldAlpha(0.12)}`,
+    borderColor: `${goldAlpha(0.34)}`,
+    boxShadow: `0 0 24px ${goldAlpha(0.22)}`,
   },
   actionIcon: {
     color: "var(--text-primary)",
@@ -3714,12 +3714,12 @@ const styles = {
   actionIconLiked: {
     color: "var(--primary-red)",
     transform: "scale(1.08)",
-    textShadow: "0 0 22px rgba(193,18,31,0.75), 0 2px 8px rgba(0,0,0,0.9)",
+    textShadow: `0 0 22px ${redAlpha(0.75)}, 0 2px 8px rgba(0,0,0,0.9)`,
   },
   actionIconSaved: {
     color: "var(--accent-gold)",
     transform: "scale(1.08)",
-    textShadow: "0 0 20px rgba(212,175,55,0.45), 0 2px 8px rgba(0,0,0,0.9)",
+    textShadow: `0 0 20px ${goldAlpha(0.45)}, 0 2px 8px rgba(0,0,0,0.9)`,
   },
   actionSvg: {
     width: 20,
@@ -3848,8 +3848,8 @@ const styles = {
     minHeight: 44,
     borderRadius: 16,
     color: "var(--text-primary)",
-    background: "rgba(193,18,31,0.14)",
-    boxShadow: "0 0 20px rgba(193,18,31,0.24), inset 0 0 0 1px rgba(193,18,31,0.2)",
+    background: `${redAlpha(0.14)}`,
+    boxShadow: `0 0 20px ${redAlpha(0.24)}, inset 0 0 0 1px ${redAlpha(0.2)}`,
     WebkitTapHighlightColor: "transparent",
     transition: "color var(--motion-fast), transform var(--motion-fast), background var(--motion-fast), box-shadow var(--motion-fast)",
   },
@@ -3875,7 +3875,7 @@ const styles = {
     strokeWidth: 2,
     strokeLinecap: "round",
     strokeLinejoin: "round",
-    filter: "drop-shadow(0 0 8px rgba(193,18,31,0.72))",
+    filter: `drop-shadow(0 0 8px ${redAlpha(0.72)})`,
   },
   navIconWrap: {
     position: "relative",
@@ -3919,19 +3919,19 @@ const styles = {
     fontSize: 8,
     fontWeight: 800,
     letterSpacing: 0,
-    textShadow: "0 0 12px rgba(193,18,31,0.65)",
+    textShadow: `0 0 12px ${redAlpha(0.65)}`,
   },
   navUpload: {
     width: 42,
     height: 42,
-    background: "rgba(193,18,31,0.82)",
+    background: `${redAlpha(0.82)}`,
     border: "1px solid rgba(255,255,255,0.14)",
     borderRadius: 16,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     cursor: "pointer",
-    boxShadow: "0 8px 22px rgba(193,18,31,0.24)",
+    boxShadow: `0 8px 22px ${redAlpha(0.24)}`,
     WebkitTapHighlightColor: "transparent",
     transition: "transform 180ms ease, box-shadow 180ms ease, background 180ms ease",
   },
@@ -4058,7 +4058,7 @@ const styles = {
     borderRadius: "50%",
     borderWidth: "1px",
     borderStyle: "solid",
-    borderColor: "rgba(212,175,55,0.32)",
+    borderColor: `${goldAlpha(0.32)}`,
     background: "linear-gradient(145deg, #C1121F, #520711)",
     display: "flex",
     alignItems: "center",
@@ -4109,7 +4109,7 @@ const styles = {
     paddingBottom: 8,
     paddingLeft: 16,
     paddingRight: 0,
-    borderLeft: "2px solid rgba(212,175,55,0.18)",
+    borderLeft: `2px solid ${goldAlpha(0.18)}`,
     marginLeft: 12,
   },
   replyAvatar: {
@@ -4160,7 +4160,7 @@ const styles = {
     paddingBottom: 20,
     paddingLeft: 20,
     paddingRight: 20,
-    borderTop: "1px solid rgba(212,175,55,0.16)",
+    borderTop: `1px solid ${goldAlpha(0.16)}`,
     gap: 8,
   },
   commentInputRow: {
@@ -4174,8 +4174,8 @@ const styles = {
     gap: 6,
     padding: "5px 10px",
     borderRadius: 999,
-    background: "rgba(212,175,55,0.1)",
-    border: "1px solid rgba(212,175,55,0.25)",
+    background: `${goldAlpha(0.1)}`,
+    border: `1px solid ${goldAlpha(0.25)}`,
     alignSelf: "flex-start",
   },
   replyPillText: {
@@ -4217,7 +4217,7 @@ const styles = {
     fontSize: 13,
     fontWeight: 800,
     cursor: "pointer",
-    boxShadow: "0 4px 14px rgba(193,18,31,0.35)",
+    boxShadow: `0 4px 14px ${redAlpha(0.35)}`,
   },
   commentSendBtnDisabled: {
     background: "#333",
@@ -4245,7 +4245,7 @@ const styles = {
     overflow: "hidden",
     borderRadius: "26px 26px 0 0",
     borderTop: "1px solid rgba(255,255,255,0.12)",
-    background: "linear-gradient(145deg, rgba(193,18,31,0.14), rgba(11,11,11,0.98) 36%, rgba(212,175,55,0.07))",
+    background: `linear-gradient(145deg, ${redAlpha(0.14)}, rgba(11,11,11,0.98) 36%, ${goldAlpha(0.07)})`,
     boxShadow: "0 -24px 80px rgba(0,0,0,0.58)",
     color: "var(--text-primary)",
   },
@@ -4334,10 +4334,10 @@ const styles = {
   },
   feedbackError: {
     color: "#ff8b8b",
-    background: "rgba(193,18,31,0.12)",
+    background: `${redAlpha(0.12)}`,
     borderWidth: "1px",
     borderStyle: "solid",
-    borderColor: "rgba(193,18,31,0.26)",
+    borderColor: `${redAlpha(0.26)}`,
     borderRadius: 14,
     paddingTop: 14,
     paddingBottom: 14,
@@ -4349,10 +4349,10 @@ const styles = {
   feedbackSaved: {
     marginBottom: 14,
     color: "var(--accent-gold)",
-    background: "rgba(212,175,55,0.1)",
+    background: `${goldAlpha(0.1)}`,
     borderWidth: "1px",
     borderStyle: "solid",
-    borderColor: "rgba(212,175,55,0.22)",
+    borderColor: `${goldAlpha(0.22)}`,
     borderRadius: 14,
     paddingTop: 11,
     paddingBottom: 11,
@@ -4373,8 +4373,8 @@ const styles = {
     marginBottom: 16,
     padding: "14px 15px",
     borderRadius: 16,
-    background: "rgba(212,175,55,0.07)",
-    border: "1px solid rgba(212,175,55,0.2)",
+    background: `${goldAlpha(0.07)}`,
+    border: `1px solid ${goldAlpha(0.2)}`,
     animation: "fadeUp 280ms ease forwards",
   },
   xpCardTitle: {
@@ -4594,7 +4594,7 @@ const styles = {
     paddingLeft: 10,
     paddingRight: 10,
     borderRadius: 999,
-    border: "1px solid rgba(193,18,31,0.4)",
+    border: `1px solid ${redAlpha(0.4)}`,
     background: "rgba(0,0,0,0.38)",
     color: "rgba(255,100,100,0.88)",
     fontFamily: "inherit",
@@ -4639,8 +4639,8 @@ const styles = {
     paddingLeft: 14,
     paddingRight: 14,
     borderRadius: 999,
-    border: "1px solid rgba(212,175,55,0.42)",
-    background: "rgba(212,175,55,0.12)",
+    border: `1px solid ${goldAlpha(0.42)}`,
+    background: `${goldAlpha(0.12)}`,
     color: GOLD,
     fontFamily: "inherit",
     fontSize: 13,

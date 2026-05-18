@@ -19,7 +19,7 @@ import BottomSheet from "@/components/BottomSheet";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
 import { snapToDocs } from "@/lib/firestore";
 
 function formatTimeAgo(timestamp, locale = "en") {
@@ -818,7 +818,7 @@ export default function CoachDashboardPage() {
 const styles = {
   page: {
     minHeight: "100vh",
-    background: "radial-gradient(circle at 50% 0%, rgba(193,18,31,0.18), transparent 30%), linear-gradient(180deg, #080808 0%, #0B0B0B 100%)",
+    background: `radial-gradient(circle at 50% 0%, ${redAlpha(0.18)}, transparent 30%), linear-gradient(180deg, #080808 0%, #0B0B0B 100%)`,
     color: "#fff",
     fontFamily: "sans-serif",
   },
@@ -960,7 +960,7 @@ const styles = {
     height: 42,
     borderRadius: "50%",
     objectFit: "cover",
-    border: "2px solid rgba(212,175,55,0.35)",
+    border: `2px solid ${goldAlpha(0.35)}`,
     flexShrink: 0,
   },
   avatarFallback: {
@@ -968,7 +968,7 @@ const styles = {
     height: 42,
     borderRadius: "50%",
     background: "linear-gradient(135deg, #C1121F, #7d0812)",
-    border: "2px solid rgba(212,175,55,0.35)",
+    border: `2px solid ${goldAlpha(0.35)}`,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -999,8 +999,8 @@ const styles = {
     fontSize: 10,
     fontWeight: 900,
     color: GOLD,
-    background: "rgba(212,175,55,0.12)",
-    border: "1px solid rgba(212,175,55,0.25)",
+    background: `${goldAlpha(0.12)}`,
+    border: `1px solid ${goldAlpha(0.25)}`,
     borderRadius: 999,
     padding: "2px 8px",
     letterSpacing: 0.5,
@@ -1126,9 +1126,9 @@ const styles = {
   scheduleBtn: {
     width: "100%",
     minHeight: 38,
-    border: "1px solid rgba(212,175,55,0.35)",
+    border: `1px solid ${goldAlpha(0.35)}`,
     borderRadius: 10,
-    background: "rgba(212,175,55,0.08)",
+    background: `${goldAlpha(0.08)}`,
     color: GOLD,
     fontSize: 13,
     fontWeight: 900,
@@ -1190,7 +1190,7 @@ const styles = {
     fontSize: 15,
     fontWeight: 1000,
     cursor: "pointer",
-    boxShadow: "0 8px 24px rgba(193,18,31,0.35)",
+    boxShadow: `0 8px 24px ${redAlpha(0.35)}`,
     marginTop: 4,
   },
   bookingSuccessMsg: {

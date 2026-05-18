@@ -1,6 +1,6 @@
 "use client";
 
-import { GOLD } from "@/lib/tokens";
+import { GOLD , goldAlpha} from "@/lib/tokens";
 
 const overlay = {
   position: "fixed",
@@ -77,7 +77,7 @@ export function WeeklyLeaderboardModal({ challengeRanks, t, onClose, onGoToChall
         </div>
 
         {challengeRanks.weeklyRank && challengeRanks.weeklyRank <= 3 && (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, marginBottom: 20, padding: "16px 0", background: "rgba(212,175,55,0.06)", borderRadius: 12, border: "1px solid rgba(212,175,55,0.2)" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, marginBottom: 20, padding: "16px 0", background: `${goldAlpha(0.06)}`, borderRadius: 12, border: `1px solid ${goldAlpha(0.2)}` }}>
             <div style={{ fontSize: 44, lineHeight: 1 }}>
               {challengeRanks.weeklyRank === 1 ? "🥇" : challengeRanks.weeklyRank === 2 ? "🥈" : "🥉"}
             </div>

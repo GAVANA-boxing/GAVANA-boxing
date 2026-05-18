@@ -1,5 +1,7 @@
 "use client";
 
+import { redAlpha, goldAlpha } from "@/lib/tokens";
+
 const STEPS = [
   {
     id: "profile",
@@ -158,7 +160,7 @@ const fp = {
   },
   pctBadge: {
     fontSize: 11, fontWeight: 900, color: GOLD,
-    background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.2)",
+    background: `${goldAlpha(0.1)}`, border: `1px solid ${goldAlpha(0.2)}`,
     borderRadius: 999, padding: "2px 10px",
   },
   track: {
@@ -179,8 +181,8 @@ const fp = {
     borderBottom: "1px solid rgba(255,255,255,0.03)",
   },
   stepHighlight: {
-    background: "rgba(193,18,31,0.05)",
-    borderBottom: "1px solid rgba(193,18,31,0.08)",
+    background: `${redAlpha(0.05)}`,
+    borderBottom: `1px solid ${redAlpha(0.08)}`,
   },
   stepDone: { opacity: 0.5 },
   stepIcon: {
@@ -192,7 +194,7 @@ const fp = {
     color: "#34D399", fontSize: 12, fontWeight: 900,
   },
   iconActive: {
-    background: "rgba(193,18,31,0.15)", border: "1px solid rgba(193,18,31,0.38)",
+    background: `${redAlpha(0.15)}`, border: `1px solid ${redAlpha(0.38)}`,
     color: "#fff",
   },
   iconIdle: {
@@ -209,7 +211,7 @@ const fp = {
     flexShrink: 0, padding: "6px 12px", borderRadius: 999, border: "none",
     background: "linear-gradient(135deg, #C1121F, #8f0d17)",
     color: "#fff", fontSize: 11, fontWeight: 900, cursor: "pointer",
-    boxShadow: "0 2px 10px rgba(193,18,31,0.3)",
+    boxShadow: `0 2px 10px ${redAlpha(0.3)}`,
     whiteSpace: "nowrap",
   },
   soonTag: {

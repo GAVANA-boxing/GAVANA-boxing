@@ -17,7 +17,7 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale, translate } from "@/lib/i18n";
 import { createFeaturedNotification } from "@/lib/notifications";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
 
 export default function AdminFeaturedCreatorsPage() {
   const params = useParams();
@@ -387,14 +387,14 @@ const styles = {
     width: "100%",
   },
   resultItemSelected: {
-    background: "rgba(212,175,55,0.1)",
-    border: "1px solid rgba(212,175,55,0.35)",
+    background: `${goldAlpha(0.1)}`,
+    border: `1px solid ${goldAlpha(0.35)}`,
   },
   avatar: {
     width: 38,
     height: 38,
     borderRadius: "50%",
-    background: "rgba(193,18,31,0.3)",
+    background: `${redAlpha(0.3)}`,
     display: "grid",
     placeItems: "center",
     fontSize: 15,
@@ -428,8 +428,8 @@ const styles = {
     gap: 10,
     padding: "14px",
     borderRadius: 14,
-    background: "rgba(212,175,55,0.06)",
-    border: "1px solid rgba(212,175,55,0.2)",
+    background: `${goldAlpha(0.06)}`,
+    border: `1px solid ${goldAlpha(0.2)}`,
     marginTop: 8,
   },
   selectedLabel: {
@@ -467,14 +467,14 @@ const styles = {
     gap: 12,
     padding: "12px 14px",
     borderRadius: 14,
-    background: "rgba(212,175,55,0.05)",
-    border: "1px solid rgba(212,175,55,0.15)",
+    background: `${goldAlpha(0.05)}`,
+    border: `1px solid ${goldAlpha(0.15)}`,
   },
   removeBtn: {
     padding: "8px 14px",
     borderRadius: 10,
-    border: "1px solid rgba(193,18,31,0.4)",
-    background: "rgba(193,18,31,0.12)",
+    border: `1px solid ${redAlpha(0.4)}`,
+    background: `${redAlpha(0.12)}`,
     color: "#ff4444",
     fontSize: 12,
     fontWeight: 700,

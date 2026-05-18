@@ -1,17 +1,19 @@
 "use client";
 
+import { redAlpha, goldAlpha } from "@/lib/tokens";
+
 // Cinematic visual identity per fighter — gradients, aura, label
 export const FIGHTER_VISUALS = {
   "mike-tyson": {
     bg: "radial-gradient(ellipse at 50% 15%, #6e0004 0%, #2a0002 48%, #060101 100%)",
     spotLight: "radial-gradient(ellipse at 50% 110%, #C1121F60 0%, transparent 65%)",
-    glowColor: "rgba(193,18,31,0.65)",
+    glowColor: `${redAlpha(0.65)}`,
     label: "PRESSURE",
   },
   "muhammad-ali": {
     bg: "radial-gradient(ellipse at 50% 15%, #6b4d00 0%, #2d2000 48%, #060400 100%)",
     spotLight: "radial-gradient(ellipse at 50% 110%, #D4AF3760 0%, transparent 65%)",
-    glowColor: "rgba(212,175,55,0.6)",
+    glowColor: `${goldAlpha(0.6)}`,
     label: "FLOAT",
   },
   "naoya-inoue": {
@@ -112,7 +114,7 @@ export default function FighterPortrait({
   const visual = FIGHTER_VISUALS[fighterId] || {
     bg: "radial-gradient(ellipse at 50% 15%, #3d0000 0%, #150000 48%, #050000 100%)",
     spotLight: "radial-gradient(ellipse at 50% 110%, #C1121F50 0%, transparent 65%)",
-    glowColor: "rgba(193,18,31,0.5)",
+    glowColor: `${redAlpha(0.5)}`,
     label: "FIGHTER",
   };
 

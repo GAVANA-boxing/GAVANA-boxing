@@ -39,7 +39,7 @@ function formatCountdown(ms, locale) {
 import RankIcon from "@/components/RankIcon";
 import { getCurrentSeasonId, getSeasonLabel } from "@/lib/season";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
-import { RED, GOLD , PURPLE} from "@/lib/tokens";
+import { RED, GOLD , PURPLE, redAlpha, goldAlpha} from "@/lib/tokens";
 
 function getRankMedal(rank) {
   if (rank === 1) return "🥇";
@@ -460,7 +460,7 @@ export default function LeaderboardPage() {
         {leaderboardTab === "week" && (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 4px 0" }}>
             <p style={{ ...styles.seasonLabel, margin: 0 }}>{seasonLabel}</p>
-            <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 999, background: "rgba(193,18,31,0.1)", border: "1px solid rgba(193,18,31,0.25)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 999, background: `${redAlpha(0.1)}`, border: `1px solid ${redAlpha(0.25)}` }}>
               <span style={{ fontSize: 10 }}>⏱</span>
               <span style={{ fontSize: 10, fontWeight: 800, color: "#F87171", letterSpacing: 0.3 }}>
                 {t("lbResets")}
@@ -541,7 +541,7 @@ export default function LeaderboardPage() {
                 <button
                   type="button"
                   onClick={handleShareRank}
-                  style={{ padding: "4px 10px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.3)", background: "rgba(212,175,55,0.08)", color: GOLD, fontSize: 11, fontWeight: 800, cursor: "pointer" }}
+                  style={{ padding: "4px 10px", borderRadius: 999, border: `1px solid ${goldAlpha(0.3)}`, background: `${goldAlpha(0.08)}`, color: GOLD, fontSize: 11, fontWeight: 800, cursor: "pointer" }}
                 >
                   {shareCopied ? "✓" : t("lbShare")}
                 </button>
@@ -881,10 +881,10 @@ const styles = {
     background: "rgba(7,7,7,0.94)",
     backdropFilter: "blur(14px)",
     WebkitBackdropFilter: "blur(14px)",
-    borderBottom: "1px solid rgba(212,175,55,0.18)",
+    borderBottom: `1px solid ${goldAlpha(0.18)}`,
   },
   backBtn: {
-    border: "1px solid rgba(212,175,55,0.28)",
+    border: `1px solid ${goldAlpha(0.28)}`,
     background: "transparent",
     color: "#fff",
     borderRadius: 10,
@@ -944,8 +944,8 @@ const styles = {
     transition: "all 0.18s",
   },
   tabBtnActive: {
-    background: "rgba(212,175,55,0.16)",
-    border: "1px solid rgba(212,175,55,0.45)",
+    background: `${goldAlpha(0.16)}`,
+    border: `1px solid ${goldAlpha(0.45)}`,
     color: GOLD,
   },
   tabBtnViews: {
@@ -973,8 +973,8 @@ const styles = {
   yourRankCard: {
     padding: "14px 16px",
     borderRadius: 16,
-    background: "rgba(193,18,31,0.12)",
-    border: "1px solid rgba(193,18,31,0.3)",
+    background: `${redAlpha(0.12)}`,
+    border: `1px solid ${redAlpha(0.3)}`,
     marginBottom: 20,
   },
   yourRankTop: {
@@ -1003,8 +1003,8 @@ const styles = {
   weeklyChampionBanner: {
     padding: "16px 18px",
     borderRadius: 16,
-    background: "linear-gradient(135deg, rgba(212,175,55,0.18) 0%, rgba(212,175,55,0.06) 100%)",
-    border: "1px solid rgba(212,175,55,0.4)",
+    background: `linear-gradient(135deg, ${goldAlpha(0.18)} 0%, ${goldAlpha(0.06)} 100%)`,
+    border: `1px solid ${goldAlpha(0.4)}`,
     marginBottom: 20,
     textAlign: "center",
   },
@@ -1100,12 +1100,12 @@ const styles = {
     border: "1px solid rgba(255,255,255,0.07)",
   },
   rowHighlight: {
-    background: "rgba(193,18,31,0.1)",
-    border: "1px solid rgba(193,18,31,0.28)",
+    background: `${redAlpha(0.1)}`,
+    border: `1px solid ${redAlpha(0.28)}`,
   },
   rowFirst: {
-    background: "linear-gradient(145deg, rgba(212,175,55,0.1), rgba(212,175,55,0.03))",
-    border: "1px solid rgba(212,175,55,0.28)",
+    background: `linear-gradient(145deg, ${goldAlpha(0.1)}, ${goldAlpha(0.03)})`,
+    border: `1px solid ${goldAlpha(0.28)}`,
     borderLeft: "3px solid #D4AF37",
     borderRadius: "3px 16px 16px 3px",
   },
@@ -1139,7 +1139,7 @@ const styles = {
     width: 44,
     height: 44,
     borderRadius: "50%",
-    background: "rgba(193,18,31,0.22)",
+    background: `${redAlpha(0.22)}`,
     overflow: "hidden",
     display: "flex",
     alignItems: "center",

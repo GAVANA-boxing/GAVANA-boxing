@@ -20,7 +20,7 @@ import SkeletonBlock from "@/components/SkeletonBlock";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { RED, GOLD , PURPLE} from "@/lib/tokens";
+import { RED, GOLD , PURPLE, redAlpha, goldAlpha} from "@/lib/tokens";
 import { snapToDocs } from "@/lib/firestore";
 
 const SPECIALTIES = [
@@ -177,7 +177,7 @@ function MyRequestCard({ req, coachProfile, locale, router }) {
           <div style={styles.cardNameRow}>
             <span style={styles.cardName}>{name}</span>
             {req.type === "sparring" && (
-              <span style={{ fontSize: 10, fontWeight: 900, color: GOLD, background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.28)", borderRadius: 999, padding: "1px 7px" }}>🥊 Sparring</span>
+              <span style={{ fontSize: 10, fontWeight: 900, color: GOLD, background: `${goldAlpha(0.12)}`, border: `1px solid ${goldAlpha(0.28)}`, borderRadius: 999, padding: "1px 7px" }}>🥊 Sparring</span>
             )}
           </div>
           <span style={{ display: "inline-flex", marginTop: 4, padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 900, background: st.bg, border: `1px solid ${st.border}`, color: st.color }}>
@@ -434,7 +434,7 @@ export default function CoachPage() {
                 fontSize: 14,
                 fontWeight: 900,
                 cursor: "pointer",
-                boxShadow: "0 8px 28px rgba(193,18,31,0.32)",
+                boxShadow: `0 8px 28px ${redAlpha(0.32)}`,
               }}
               onClick={() => router.push(`/${locale}/coach/chat`)}
             >
@@ -524,8 +524,8 @@ export default function CoachPage() {
                 style={{
                   padding: "6px 12px",
                   borderRadius: 999,
-                  border: sortBy === key ? "1px solid rgba(212,175,55,0.6)" : "1px solid rgba(255,255,255,0.1)",
-                  background: sortBy === key ? "rgba(212,175,55,0.15)" : "rgba(255,255,255,0.03)",
+                  border: sortBy === key ? `1px solid ${goldAlpha(0.6)}` : "1px solid rgba(255,255,255,0.1)",
+                  background: sortBy === key ? `${goldAlpha(0.15)}` : "rgba(255,255,255,0.03)",
                   color: sortBy === key ? GOLD : "rgba(255,255,255,0.4)",
                   fontSize: 12,
                   fontWeight: 700,
@@ -813,7 +813,7 @@ export default function CoachPage() {
 const styles = {
   page: {
     minHeight: "100vh",
-    background: "radial-gradient(circle at 50% 0%, rgba(193,18,31,0.18), transparent 30%), linear-gradient(180deg, #080808 0%, #0B0B0B 100%)",
+    background: `radial-gradient(circle at 50% 0%, ${redAlpha(0.18)}, transparent 30%), linear-gradient(180deg, #080808 0%, #0B0B0B 100%)`,
     color: "#fff",
     fontFamily: "sans-serif",
   },
@@ -868,8 +868,8 @@ const styles = {
   },
   becomeCoachBtn: {
     alignSelf: "flex-start",
-    background: "rgba(212,175,55,0.12)",
-    border: "1px solid rgba(212,175,55,0.4)",
+    background: `${goldAlpha(0.12)}`,
+    border: `1px solid ${goldAlpha(0.4)}`,
     borderRadius: 20,
     padding: "7px 16px",
     color: GOLD,
@@ -924,8 +924,8 @@ const styles = {
     flexShrink: 0,
     padding: "7px 14px",
     borderRadius: 999,
-    border: "1px solid rgba(193,18,31,0.6)",
-    background: "rgba(193,18,31,0.18)",
+    border: `1px solid ${redAlpha(0.6)}`,
+    background: `${redAlpha(0.18)}`,
     color: "#F87171",
     fontSize: 12,
     fontWeight: 900,
@@ -947,8 +947,8 @@ const styles = {
     flexShrink: 0,
     padding: "5px 12px",
     borderRadius: 999,
-    border: "1px solid rgba(212,175,55,0.3)",
-    background: "rgba(212,175,55,0.06)",
+    border: `1px solid ${goldAlpha(0.3)}`,
+    background: `${goldAlpha(0.06)}`,
     color: GOLD,
     fontSize: 12,
     fontWeight: 700,
@@ -973,7 +973,7 @@ const styles = {
     fontSize: 14,
     fontWeight: 900,
     cursor: "pointer",
-    boxShadow: "0 8px 24px rgba(193,18,31,0.25)",
+    boxShadow: `0 8px 24px ${redAlpha(0.25)}`,
   },
   cardRatingInline: {
     fontSize: 12,
@@ -1003,8 +1003,8 @@ const styles = {
     flexShrink: 0,
     padding: "5px 12px",
     borderRadius: 999,
-    border: "1px solid rgba(193,18,31,0.6)",
-    background: "rgba(193,18,31,0.18)",
+    border: `1px solid ${redAlpha(0.6)}`,
+    background: `${redAlpha(0.18)}`,
     color: "#fff",
     fontSize: 12,
     fontWeight: 900,
@@ -1067,14 +1067,14 @@ const styles = {
     height: 52,
     borderRadius: "50%",
     objectFit: "cover",
-    border: "2px solid rgba(212,175,55,0.4)",
+    border: `2px solid ${goldAlpha(0.4)}`,
   },
   avatarInitials: {
     width: 52,
     height: 52,
     borderRadius: "50%",
     background: "linear-gradient(135deg, #C1121F, #7d0812)",
-    border: "2px solid rgba(212,175,55,0.4)",
+    border: `2px solid ${goldAlpha(0.4)}`,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -1120,8 +1120,8 @@ const styles = {
     fontSize: 10,
     fontWeight: 900,
     color: GOLD,
-    background: "rgba(212,175,55,0.12)",
-    border: "1px solid rgba(212,175,55,0.3)",
+    background: `${goldAlpha(0.12)}`,
+    border: `1px solid ${goldAlpha(0.3)}`,
     borderRadius: 999,
     padding: "1px 7px",
     letterSpacing: 0.5,
@@ -1207,7 +1207,7 @@ const styles = {
     fontSize: 13,
     fontWeight: 900,
     cursor: "pointer",
-    boxShadow: "0 8px 24px rgba(193,18,31,0.28)",
+    boxShadow: `0 8px 24px ${redAlpha(0.28)}`,
   },
   requestedBtn: {
     flex: 1,
@@ -1223,15 +1223,15 @@ const styles = {
   createPostBtn: {
     width: "100%",
     minHeight: 48,
-    border: "1px solid rgba(212,175,55,0.35)",
+    border: `1px solid ${goldAlpha(0.35)}`,
     borderRadius: 14,
-    background: "linear-gradient(135deg, rgba(193,18,31,0.9), rgba(212,175,55,0.2))",
+    background: `linear-gradient(135deg, ${redAlpha(0.9)}, ${goldAlpha(0.2)})`,
     color: "#fff",
     fontSize: 14,
     fontWeight: 1000,
     cursor: "pointer",
     marginBottom: 16,
-    boxShadow: "0 12px 30px rgba(193,18,31,0.22)",
+    boxShadow: `0 12px 30px ${redAlpha(0.22)}`,
   },
   savedBanner: {
     padding: "10px 14px",
@@ -1253,8 +1253,8 @@ const styles = {
     fontSize: 13,
     fontWeight: 1000,
     color: GOLD,
-    background: "rgba(212,175,55,0.12)",
-    border: "1px solid rgba(212,175,55,0.25)",
+    background: `${goldAlpha(0.12)}`,
+    border: `1px solid ${goldAlpha(0.25)}`,
     borderRadius: 999,
     padding: "3px 10px",
   },
@@ -1355,15 +1355,15 @@ const styles = {
     fontSize: 14,
     fontWeight: 1000,
     cursor: "pointer",
-    boxShadow: "0 12px 30px rgba(193,18,31,0.28)",
+    boxShadow: `0 12px 30px ${redAlpha(0.28)}`,
   },
-  vibeChip: { flexShrink: 0, padding: "5px 12px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.25)", background: "rgba(193,18,31,0.08)", color: "rgba(255,165,130,0.7)", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" },
-  vibeChipActive: { flexShrink: 0, padding: "5px 12px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.6)", background: "rgba(193,18,31,0.22)", color: "#F87171", fontSize: 12, fontWeight: 900, cursor: "pointer", whiteSpace: "nowrap" },
+  vibeChip: { flexShrink: 0, padding: "5px 12px", borderRadius: 999, border: `1px solid ${redAlpha(0.25)}`, background: `${redAlpha(0.08)}`, color: "rgba(255,165,130,0.7)", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" },
+  vibeChipActive: { flexShrink: 0, padding: "5px 12px", borderRadius: 999, border: `1px solid ${redAlpha(0.6)}`, background: `${redAlpha(0.22)}`, color: "#F87171", fontSize: 12, fontWeight: 900, cursor: "pointer", whiteSpace: "nowrap" },
   featuredSection: { marginBottom: 16 },
   featuredLabel: { margin: "0 0 8px", fontSize: 11, fontWeight: 900, color: GOLD, letterSpacing: 1.5, textTransform: "uppercase" },
   featuredScroll: { display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" },
-  featuredChip: { flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 12, padding: "10px 12px", cursor: "pointer", minWidth: 72 },
-  featuredAvatar: { width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(212,175,55,0.4)" },
+  featuredChip: { flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "rgba(255,255,255,0.05)", border: `1px solid ${goldAlpha(0.2)}`, borderRadius: 12, padding: "10px 12px", cursor: "pointer", minWidth: 72 },
+  featuredAvatar: { width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: `2px solid ${goldAlpha(0.4)}` },
   featuredAvatarInitials: { width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg, #C1121F, #7d0812)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 900, color: "#fff" },
   featuredName: { fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.8)", maxWidth: 64, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
   featuredVerified: { fontSize: 10, color: GOLD, fontWeight: 900 },

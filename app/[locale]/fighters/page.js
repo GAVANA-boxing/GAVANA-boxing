@@ -6,7 +6,7 @@ import { FIGHTERS } from "@/lib/fighters";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
 import FighterPortrait from "@/components/FighterPortrait";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , redAlpha} from "@/lib/tokens";
 
 function FighterGridCard({ fighter, onClick }) {
   const acc = fighter.accent;
@@ -76,7 +76,7 @@ export default function FightersPage() {
 const s = {
   page: {
     minHeight: "100vh",
-    background: "radial-gradient(ellipse at top center, rgba(193,18,31,0.1) 0%, transparent 45%), #080808",
+    background: `radial-gradient(ellipse at top center, ${redAlpha(0.1)} 0%, transparent 45%), #080808`,
     color: "#fff",
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     paddingBottom: 100,
@@ -89,7 +89,7 @@ const s = {
     transform: "translateX(-50%)",
     width: "80%",
     height: 300,
-    background: "radial-gradient(ellipse at top, rgba(193,18,31,0.08) 0%, transparent 70%)",
+    background: `radial-gradient(ellipse at top, ${redAlpha(0.08)} 0%, transparent 70%)`,
     pointerEvents: "none",
     zIndex: 0,
   },

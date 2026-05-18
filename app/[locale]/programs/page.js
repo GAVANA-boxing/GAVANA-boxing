@@ -12,7 +12,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { getLocale, translate } from "@/lib/i18n";
 import BottomNav from "@/components/BottomNav";
 import SkeletonBlock from "@/components/SkeletonBlock";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , goldAlpha} from "@/lib/tokens";
 import { snapToDocs } from "@/lib/firestore";
 
 const DEMO_PROGRAMS = [
@@ -263,7 +263,7 @@ export default function ProgramsPage() {
               {t("programsAiBuilderCta")}
             </div>
           </div>
-          <span style={{ marginLeft: "auto", fontSize: 16, color: "rgba(212,175,55,0.7)" }}>›</span>
+          <span style={{ marginLeft: "auto", fontSize: 16, color: `${goldAlpha(0.7)}` }}>›</span>
         </button>
 
         {loading ? (
@@ -463,7 +463,7 @@ export default function ProgramsPage() {
 }
 
 const s = {
-  aiBuilderBanner: { width: "100%", boxSizing: "border-box", display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderRadius: "3px 14px 14px 3px", background: "linear-gradient(145deg, #111012, #0a0a0a)", border: "1px solid rgba(212,175,55,0.18)", borderLeft: "2.5px solid #D4AF37", cursor: "pointer", marginBottom: 20, textAlign: "left" },
+  aiBuilderBanner: { width: "100%", boxSizing: "border-box", display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderRadius: "3px 14px 14px 3px", background: "linear-gradient(145deg, #111012, #0a0a0a)", border: `1px solid ${goldAlpha(0.18)}`, borderLeft: "2.5px solid #D4AF37", cursor: "pointer", marginBottom: 20, textAlign: "left" },
   page: {
     minHeight: "100dvh",
     background: "#050505",

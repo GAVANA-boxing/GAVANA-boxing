@@ -14,7 +14,7 @@ import { getLocale, translate } from "@/lib/i18n";
 import { FIGHTERS } from "@/lib/fighters";
 import FighterPortrait from "@/components/FighterPortrait";
 import MediaCover from "@/components/MediaCover";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
 import { snapToDocs } from "@/lib/firestore";
 
 // ─── Legendary fighter mini card (for Fighter Study row) ─────────────────────
@@ -541,7 +541,7 @@ export default function DiscoverPage() {
               <div style={s.listStack}>
                 {reelResults.map((r) => (
                   <button key={r.id} type="button" onClick={() => router.push(`/${locale}/reels?reelId=${r.id}`)} style={s.listCard}>
-                    <div style={{ ...s.listAvatar, background: "rgba(212,175,55,0.15)", color: GOLD, fontSize: 18 }}>🎬</div>
+                    <div style={{ ...s.listAvatar, background: `${goldAlpha(0.15)}`, color: GOLD, fontSize: 18 }}>🎬</div>
                     <div style={s.listCardText}>
                       <span style={s.listCardName}>{r.caption || r.description || t("fallbackReel")}</span>
                       <span style={s.listCardSub}>{formatCompact(r.views || 0)} {t("views")}</span>
@@ -762,7 +762,7 @@ export default function DiscoverPage() {
               ))}
             </div>
 
-            <button type="button" style={{ ...s.hubFooterBtn, color: "#F87171", borderColor: "rgba(193,18,31,0.3)" }} onClick={() => router.push(`/${locale}/challenges`)}>
+            <button type="button" style={{ ...s.hubFooterBtn, color: "#F87171", borderColor: `${redAlpha(0.3)}` }} onClick={() => router.push(`/${locale}/challenges`)}>
               {t("discoverGoToChallenges")}
             </button>
           </HubCard>
@@ -831,7 +831,7 @@ export default function DiscoverPage() {
 const s = {
   page: {
     minHeight: "100vh",
-    background: "radial-gradient(ellipse at top center, rgba(193,18,31,0.07) 0%, transparent 55%), #080808",
+    background: `radial-gradient(ellipse at top center, ${redAlpha(0.07)} 0%, transparent 55%), #080808`,
     color: "#fff",
     paddingBottom: 100,
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -842,7 +842,7 @@ const s = {
   },
   kicker: {
     margin: "0 0 6px",
-    color: "rgba(193,18,31,0.9)",
+    color: `${redAlpha(0.9)}`,
     fontSize: 9,
     fontWeight: 900,
     letterSpacing: 3.5,
@@ -990,8 +990,8 @@ const s = {
     gap: 5,
   },
   styleChipActive: {
-    background: "rgba(193,18,31,0.85)",
-    borderColor: "rgba(193,18,31,0.6)",
+    background: `${redAlpha(0.85)}`,
+    borderColor: `${redAlpha(0.6)}`,
     color: "#fff",
     fontWeight: 900,
   },
@@ -1190,8 +1190,8 @@ const s = {
     flexShrink: 0,
     padding: "6px 12px",
     borderRadius: 999,
-    border: "1px solid rgba(212,175,55,0.18)",
-    background: "rgba(212,175,55,0.04)",
+    border: `1px solid ${goldAlpha(0.18)}`,
+    background: `${goldAlpha(0.04)}`,
     color: "rgba(255,255,255,0.5)",
     fontSize: 12,
     fontWeight: 700,
@@ -1203,8 +1203,8 @@ const s = {
     WebkitTapHighlightColor: "transparent",
   },
   learnChipActive: {
-    background: "rgba(212,175,55,0.18)",
-    borderColor: "rgba(212,175,55,0.55)",
+    background: `${goldAlpha(0.18)}`,
+    borderColor: `${goldAlpha(0.55)}`,
     color: GOLD,
     fontWeight: 900,
   },
@@ -1239,8 +1239,8 @@ const s = {
   challengeChip: {
     padding: "12px 8px",
     borderRadius: 12,
-    border: "1px solid rgba(193,18,31,0.2)",
-    background: "rgba(193,18,31,0.06)",
+    border: `1px solid ${redAlpha(0.2)}`,
+    background: `${redAlpha(0.06)}`,
     color: "rgba(255,255,255,0.7)",
     fontSize: 13,
     fontWeight: 800,
@@ -1584,8 +1584,8 @@ const feed = {
     width: 38,
     height: 38,
     borderRadius: "50%",
-    background: "rgba(193,18,31,0.2)",
-    border: "1.5px solid rgba(193,18,31,0.4)",
+    background: `${redAlpha(0.2)}`,
+    border: `1.5px solid ${redAlpha(0.4)}`,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",

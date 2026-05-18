@@ -17,7 +17,7 @@ import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import EmptyState from "@/components/EmptyState";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , redAlpha} from "@/lib/tokens";
 import { snapToDocs } from "@/lib/firestore";
 
 const WEIGHT_CLASSES = [
@@ -192,7 +192,7 @@ export default function OnboardingPage() {
                   ? RED
                   : "rgba(255,255,255,0.1)",
                 boxShadow: n === (role === "fighter" ? step - 1 : step >= 4 ? TOTAL_STEPS - 1 : -1)
-                  ? "0 0 10px rgba(193,18,31,0.6)"
+                  ? `0 0 10px ${redAlpha(0.6)}`
                   : "none",
               }}
             />
@@ -331,9 +331,9 @@ export default function OnboardingPage() {
                     style={{
                       display: "flex", alignItems: "center", gap: 14,
                       padding: "16px 18px", borderRadius: 16,
-                      border: isSelected ? "2px solid rgba(193,18,31,0.6)" : "2px solid rgba(255,255,255,0.08)",
-                      background: isSelected ? "rgba(193,18,31,0.12)" : "rgba(255,255,255,0.03)",
-                      boxShadow: isSelected ? "0 0 20px rgba(193,18,31,0.18)" : "none",
+                      border: isSelected ? `2px solid ${redAlpha(0.6)}` : "2px solid rgba(255,255,255,0.08)",
+                      background: isSelected ? `${redAlpha(0.12)}` : "rgba(255,255,255,0.03)",
+                      boxShadow: isSelected ? `0 0 20px ${redAlpha(0.18)}` : "none",
                       cursor: "pointer", textAlign: "left", width: "100%",
                       transition: "all 0.15s",
                     }}
@@ -460,7 +460,7 @@ export default function OnboardingPage() {
 
               {/* Weekly goal confirmation */}
               {role === "fighter" && selectedGoal && (
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 10, padding: "8px 16px", borderRadius: 999, background: "rgba(193,18,31,0.1)", border: "1px solid rgba(193,18,31,0.25)" }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 10, padding: "8px 16px", borderRadius: 999, background: `${redAlpha(0.1)}`, border: `1px solid ${redAlpha(0.25)}` }}>
                   <span>{selectedGoal.emoji}</span>
                   <span style={{ fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.7)" }}>
                     {locale === "mn" ? `${selectedGoal.labelMn} дасгал` : locale === "ko" ? `${selectedGoal.labelKo} 훈련` : `${selectedGoal.labelEn} training`}
@@ -518,7 +518,7 @@ export default function OnboardingPage() {
 const s = {
   loading: { minHeight: "100vh", background: "#080808", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" },
   page: { minHeight: "100vh", background: "#080808", color: "#fff", fontFamily: "system-ui, sans-serif", paddingBottom: 56, position: "relative", overflow: "hidden" },
-  bgGlow: { position: "fixed", top: "-20%", left: "50%", transform: "translateX(-50%)", width: 600, height: 400, background: "radial-gradient(ellipse, rgba(193,18,31,0.14) 0%, transparent 65%)", pointerEvents: "none", zIndex: 0 },
+  bgGlow: { position: "fixed", top: "-20%", left: "50%", transform: "translateX(-50%)", width: 600, height: 400, background: `radial-gradient(ellipse, ${redAlpha(0.14)} 0%, transparent 65%)`, pointerEvents: "none", zIndex: 0 },
   progressWrap: { position: "sticky", top: 0, zIndex: 10, paddingTop: "calc(12px + env(safe-area-inset-top))", paddingBottom: 12, background: "rgba(8,8,8,0.85)", backdropFilter: "blur(12px)" },
   progressRow: { display: "flex", gap: 5, justifyContent: "center", padding: "0 20px" },
   progressSeg: { height: 3, flex: 1, maxWidth: 70, borderRadius: 2, transition: "background 0.35s, box-shadow 0.35s" },
@@ -537,18 +537,18 @@ const s = {
   weightSection: { marginBottom: 20 },
   fieldLabel: { display: "block", fontSize: 11, color: "rgba(255,255,255,0.55)", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 8 },
   select: { width: "100%", padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", color: "#fff", fontSize: 14, outline: "none", colorScheme: "dark", boxSizing: "border-box" },
-  primaryBtn: { width: "100%", padding: 15, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#C1121F,#8d0e17)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: "0 8px 28px rgba(193,18,31,0.3)", letterSpacing: 0.2 },
-  primaryBtnDisabled: { width: "100%", padding: 15, borderRadius: 14, border: "none", background: "rgba(193,18,31,0.18)", color: "rgba(255,255,255,0.3)", fontSize: 15, fontWeight: 900, cursor: "not-allowed" },
+  primaryBtn: { width: "100%", padding: 15, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#C1121F,#8d0e17)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 28px ${redAlpha(0.3)}`, letterSpacing: 0.2 },
+  primaryBtnDisabled: { width: "100%", padding: 15, borderRadius: 14, border: "none", background: `${redAlpha(0.18)}`, color: "rgba(255,255,255,0.3)", fontSize: 15, fontWeight: 900, cursor: "not-allowed" },
   successBanner: { background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.25)", borderRadius: 12, padding: "10px 14px", fontSize: 13, fontWeight: 800, color: "#34D399", marginBottom: 14 },
   gymList: { display: "flex", flexDirection: "column", gap: 8, marginBottom: 18 },
   gymSkeleton: { height: 64, borderRadius: 14, background: "rgba(255,255,255,0.04)" },
   gymCard: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "12px 14px", borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" },
   gymCardLeft: { display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 },
   gymLogo: { width: 40, height: 40, borderRadius: 10, objectFit: "cover", flexShrink: 0 },
-  gymLogoFallback: { width: 40, height: 40, borderRadius: 10, background: "rgba(193,18,31,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 },
+  gymLogoFallback: { width: 40, height: 40, borderRadius: 10, background: `${redAlpha(0.15)}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 },
   gymName: { margin: 0, fontSize: 13, fontWeight: 800, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
   gymMeta: { margin: "1px 0 0", fontSize: 11, color: "rgba(255,255,255,0.42)" },
-  joinBtn: { padding: "8px 16px", borderRadius: 999, border: "none", background: "rgba(193,18,31,0.8)", color: "#fff", fontSize: 12, fontWeight: 900, cursor: "pointer", flexShrink: 0 },
+  joinBtn: { padding: "8px 16px", borderRadius: 999, border: "none", background: `${redAlpha(0.8)}`, color: "#fff", fontSize: 12, fontWeight: 900, cursor: "pointer", flexShrink: 0 },
   joinBtnDisabled: { padding: "8px 16px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.08)", background: "transparent", color: "rgba(255,255,255,0.25)", fontSize: 12, fontWeight: 900, cursor: "not-allowed", flexShrink: 0 },
   joinedBtn: { padding: "8px 16px", borderRadius: 999, border: "1px solid rgba(52,211,153,0.3)", background: "rgba(52,211,153,0.1)", color: "#34D399", fontSize: 12, fontWeight: 900, cursor: "default", flexShrink: 0 },
   actionRow: { display: "flex", gap: 10 },

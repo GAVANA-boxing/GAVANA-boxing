@@ -15,7 +15,7 @@ import { createNotification } from "@/lib/notifications";
 import { getFighterRank } from "@/lib/xp";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import BottomNav from "@/components/BottomNav";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , redAlpha} from "@/lib/tokens";
 import { snapToDocs } from "@/lib/firestore";
 
 const ARCHETYPE_KEYS = ["all", "pressure", "counter", "technical", "brawler"];
@@ -529,7 +529,7 @@ export default function SparringPage() {
                 return (
                   <button key={key} type="button" onClick={() => setFilterArchetype(key)} style={{
                     ...s.filterChip,
-                    ...(active ? { background: arch ? `${arch.color}18` : "rgba(193,18,31,0.15)", border: `1px solid ${arch ? arch.color : RED}55`, color: arch ? arch.color : "#fff" } : {}),
+                    ...(active ? { background: arch ? `${arch.color}18` : `${redAlpha(0.15)}`, border: `1px solid ${arch ? arch.color : RED}55`, color: arch ? arch.color : "#fff" } : {}),
                   }}>
                     {key === "all" ? (locale === "mn" ? "Бүгд" : locale === "ko" ? "전체" : "All") : `${arch?.emoji} ${arch?.name.split(" ")[0]}`}
                   </button>
@@ -598,7 +598,7 @@ export default function SparringPage() {
                 onClick={() => setRequestsSubTab(key)}
                 style={{
                   flex: 1, padding: "10px 8px", border: "none",
-                  background: requestsSubTab === key ? "rgba(193,18,31,0.2)" : "transparent",
+                  background: requestsSubTab === key ? `${redAlpha(0.2)}` : "transparent",
                   color: requestsSubTab === key ? "#fff" : "rgba(255,255,255,0.4)",
                   fontSize: 12, fontWeight: 800, cursor: "pointer",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
@@ -909,7 +909,7 @@ const s = {
     display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
   },
   headerCenter: { textAlign: "center" },
-  headerKicker: { fontSize: 9, fontWeight: 900, color: "rgba(193,18,31,0.7)", letterSpacing: 3, textTransform: "uppercase" },
+  headerKicker: { fontSize: 9, fontWeight: 900, color: `${redAlpha(0.7)}`, letterSpacing: 3, textTransform: "uppercase" },
   headerTitle: { fontSize: 15, fontWeight: 900, color: "#fff" },
   tabBar: {
     display: "flex", borderBottom: "1px solid rgba(255,255,255,0.07)",
@@ -1000,7 +1000,7 @@ const c = {
     width: "100%", padding: "10px", borderRadius: 10, border: "none",
     color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer",
     display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-    boxShadow: "0 4px 16px rgba(193,18,31,0.25)",
+    boxShadow: `0 4px 16px ${redAlpha(0.25)}`,
   },
   myLabel: { textAlign: "center", fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.28)", padding: "2px 0" },
 };

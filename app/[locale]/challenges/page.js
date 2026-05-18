@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocale, translate } from "@/lib/i18n";
 import { getCurrentSeasonId, getSeasonLabel } from "@/lib/season";
-import { RED, GOLD , PURPLE} from "@/lib/tokens";
+import { RED, GOLD , PURPLE, redAlpha, goldAlpha} from "@/lib/tokens";
 
 const CHALLENGES = [
   { id: "jab-minute",   titleKey: "challengeJabTitle",   descKey: "challengeJabDesc",   emoji: "🥊" },
@@ -522,7 +522,7 @@ export default function ChallengesPage() {
 const styles = {
   page: {
     minHeight: "100vh",
-    background: "radial-gradient(circle at 50% 0%, rgba(193,18,31,0.2), transparent 34%), linear-gradient(180deg, #080808 0%, #0B0B0B 100%)",
+    background: `radial-gradient(circle at 50% 0%, ${redAlpha(0.2)}, transparent 34%), linear-gradient(180deg, #080808 0%, #0B0B0B 100%)`,
     color: "#fff",
     padding: "calc(28px + env(safe-area-inset-top)) 16px calc(92px + env(safe-area-inset-bottom))",
     fontFamily: "sans-serif",
@@ -599,9 +599,9 @@ const styles = {
     cursor: "pointer",
   },
   seasonTabActive: {
-    background: "linear-gradient(135deg, rgba(193,18,31,0.9), rgba(212,175,55,0.18))",
+    background: `linear-gradient(135deg, ${redAlpha(0.9)}, ${goldAlpha(0.18)})`,
     color: "#fff",
-    boxShadow: "0 10px 30px rgba(193,18,31,0.18)",
+    boxShadow: `0 10px 30px ${redAlpha(0.18)}`,
   },
   seasonLabel: {
     textAlign: "center",
@@ -616,9 +616,9 @@ const styles = {
   champBanner: {
     padding: "14px 16px",
     borderRadius: 18,
-    background: "linear-gradient(135deg, rgba(212,175,55,0.16), rgba(11,11,11,0.95))",
-    border: "1px solid rgba(212,175,55,0.3)",
-    boxShadow: "0 8px 28px rgba(212,175,55,0.1)",
+    background: `linear-gradient(135deg, ${goldAlpha(0.16)}, rgba(11,11,11,0.95))`,
+    border: `1px solid ${goldAlpha(0.3)}`,
+    boxShadow: `0 8px 28px ${goldAlpha(0.1)}`,
     display: "grid",
     gap: 10,
   },
@@ -652,8 +652,8 @@ const styles = {
     minHeight: 44,
     padding: "0 14px",
     borderRadius: 16,
-    background: "linear-gradient(135deg, rgba(212,175,55,0.16), rgba(10,10,10,0.76))",
-    border: "1px solid rgba(212,175,55,0.25)",
+    background: `linear-gradient(135deg, ${goldAlpha(0.16)}, rgba(10,10,10,0.76))`,
+    border: `1px solid ${goldAlpha(0.25)}`,
     backdropFilter: "blur(16px)",
     WebkitBackdropFilter: "blur(16px)",
     boxShadow: "0 14px 36px rgba(0,0,0,0.26)",
@@ -672,7 +672,7 @@ const styles = {
   card: {
     borderRadius: 20,
     padding: 16,
-    background: "linear-gradient(145deg, rgba(193,18,31,0.13), rgba(11,11,11,0.98) 48%, rgba(212,175,55,0.08))",
+    background: `linear-gradient(145deg, ${redAlpha(0.13)}, rgba(11,11,11,0.98) 48%, ${goldAlpha(0.08)})`,
     border: "1px solid rgba(255,255,255,0.09)",
     boxShadow: "0 18px 50px rgba(0,0,0,0.28)",
   },
@@ -686,7 +686,7 @@ const styles = {
     border: "1px solid rgba(255,255,255,0.14)",
     borderRadius: 16,
     background: "linear-gradient(135deg, #F02234, #B80F1D 48%, #7d0812)",
-    boxShadow: "0 18px 42px rgba(193,18,31,0.36)",
+    boxShadow: `0 18px 42px ${redAlpha(0.36)}`,
     color: "#fff",
     fontSize: 16,
     fontWeight: 1000,
@@ -716,9 +716,9 @@ const styles = {
     border: "1px solid rgba(255,255,255,0.07)",
   },
   scoreRowCurrent: {
-    background: "rgba(212,175,55,0.14)",
-    borderColor: "rgba(212,175,55,0.38)",
-    boxShadow: "0 0 0 1px rgba(212,175,55,0.1), 0 14px 32px rgba(212,175,55,0.12)",
+    background: `${goldAlpha(0.14)}`,
+    borderColor: `${goldAlpha(0.38)}`,
+    boxShadow: `0 0 0 1px ${goldAlpha(0.1)}, 0 14px 32px ${goldAlpha(0.12)}`,
   },
   emptyLeaderboard: {
     padding: "14px 12px",
@@ -740,8 +740,8 @@ const styles = {
     placeItems: "center",
     flexShrink: 0,
     overflow: "hidden",
-    background: "rgba(193,18,31,0.28)",
-    border: "1px solid rgba(212,175,55,0.24)",
+    background: `${redAlpha(0.28)}`,
+    border: `1px solid ${goldAlpha(0.24)}`,
     color: "#fff",
     fontSize: 11,
     fontWeight: 950,
@@ -759,6 +759,6 @@ const styles = {
   },
   resultMeta: { color: "rgba(255,255,255,0.52)", fontSize: 11, fontWeight: 850 },
   scoreStack: { display: "grid", justifyItems: "end", gap: 4 },
-  scoreValue: { color: "#fff", fontSize: 16, fontWeight: 1000, textShadow: "0 0 18px rgba(212,175,55,0.3)" },
+  scoreValue: { color: "#fff", fontSize: 16, fontWeight: 1000, textShadow: `0 0 18px ${goldAlpha(0.3)}` },
   xpValue: { color: GOLD, fontSize: 11, fontWeight: 950 },
 };

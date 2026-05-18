@@ -3,7 +3,7 @@
 import { useState } from "react";
 import RankIcon from "@/components/RankIcon";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , goldAlpha} from "@/lib/tokens";
 
 function formatScore(score) {
   const n = Number(score);
@@ -123,7 +123,7 @@ export default function FighterShareCard({
         </div>
 
         {(challengeRanks?.weeklyRank || challengeRanks?.allTimeRank) && (
-          <div style={{ width: "100%", padding: "12px 16px", borderRadius: 10, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.15)", display: "flex", justifyContent: "space-around", alignItems: "center", marginBottom: 14 }}>
+          <div style={{ width: "100%", padding: "12px 16px", borderRadius: 10, background: `${goldAlpha(0.06)}`, border: `1px solid ${goldAlpha(0.15)}`, display: "flex", justifyContent: "space-around", alignItems: "center", marginBottom: 14 }}>
             {challengeRanks.weeklyRank && (
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: 15, fontWeight: 1000, color: GOLD }}>#{challengeRanks.weeklyRank}</div>

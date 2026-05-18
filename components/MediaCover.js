@@ -1,16 +1,18 @@
 "use client";
 
+import { redAlpha, goldAlpha } from "@/lib/tokens";
+
 const TYPE_THEMES = {
   training: {
     bg: "linear-gradient(160deg, #3d0000 0%, #1a0000 45%, #080000 100%)",
-    glow: "radial-gradient(ellipse at 50% 30%, rgba(193,18,31,0.22) 0%, transparent 65%)",
+    glow: `radial-gradient(ellipse at 50% 30%, ${redAlpha(0.22)} 0%, transparent 65%)`,
     icon: "🥊",
     accent: RED,
     label: "TRAINING",
   },
   educational: {
     bg: "linear-gradient(160deg, #2a1c00 0%, #100c00 45%, #060400 100%)",
-    glow: "radial-gradient(ellipse at 50% 30%, rgba(212,175,55,0.2) 0%, transparent 65%)",
+    glow: `radial-gradient(ellipse at 50% 30%, ${goldAlpha(0.2)} 0%, transparent 65%)`,
     icon: "📚",
     accent: GOLD,
     label: "TECHNIQUE",

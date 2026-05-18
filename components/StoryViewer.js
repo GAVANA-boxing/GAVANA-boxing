@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { addDoc, collection, getDocs, query, serverTimestamp, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { translate } from "@/lib/i18n";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , redAlpha} from "@/lib/tokens";
 
 function getTypeLabel(type, locale) {
   const labels = {
@@ -227,7 +227,7 @@ const s = {
   media: { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" },
   progressBg: {
     position: "absolute", inset: 0,
-    background: "radial-gradient(ellipse at 50% 35%, rgba(193,18,31,0.28), transparent 65%), linear-gradient(180deg, #0e0808 0%, #070707 100%)",
+    background: `radial-gradient(ellipse at 50% 35%, ${redAlpha(0.28)}, transparent 65%), linear-gradient(180deg, #0e0808 0%, #070707 100%)`,
     display: "flex", alignItems: "center", justifyContent: "center",
   },
   defaultBg: {
@@ -338,6 +338,6 @@ const s = {
   sendBtn: {
     height: 44, padding: "0 18px", border: "none", borderRadius: 22,
     background: RED, color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
-    boxShadow: "0 4px 16px rgba(193,18,31,0.4)",
+    boxShadow: `0 4px 16px ${redAlpha(0.4)}`,
   },
 };

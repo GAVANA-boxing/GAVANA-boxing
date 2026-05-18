@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { checkAndAwardBadges } from "@/lib/badges";
 import { createRemixNotification } from "@/lib/notifications";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
 
 const CATEGORIES = ["boxing", "gym", "running", "street_workout", "sparring"];
 const DIFFICULTIES = ["beginner", "intermediate", "pro"];
@@ -465,9 +465,9 @@ export default function UploadPage() {
         {/* Content type tabs */}
         <div style={S.typeTabs}>
           {[
-            { id: "training", emoji: "🥊", label: "Challenge", color: "#F87171", border: "rgba(193,18,31,0.5)" },
+            { id: "training", emoji: "🥊", label: "Challenge", color: "#F87171", border: `${redAlpha(0.5)}` },
             { id: "lifestyle", emoji: "🎬", label: "Lifestyle", color: "#60A5FA", border: "rgba(96,165,250,0.45)" },
-            { id: "educational", emoji: "📚", label: "Education", color: GOLD, border: "rgba(212,175,55,0.5)" },
+            { id: "educational", emoji: "📚", label: "Education", color: GOLD, border: `${goldAlpha(0.5)}` },
           ].map(({ id, emoji, label, color, border }) => {
             const active = contentType === id;
             return (
@@ -653,8 +653,8 @@ const S = {
   },
   remixBar: {
     position: "absolute", top: 108, left: 0, right: 0, zIndex: 20,
-    textAlign: "center", background: "rgba(193,18,31,0.2)",
-    borderBottom: "1px solid rgba(193,18,31,0.3)",
+    textAlign: "center", background: `${redAlpha(0.2)}`,
+    borderBottom: `1px solid ${redAlpha(0.3)}`,
     padding: "8px 16px", color: "#F87171", fontSize: 13, fontWeight: 800,
   },
   videoPicker: {
@@ -664,7 +664,7 @@ const S = {
   },
   videoFull: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, width: "100%", height: "100%", objectFit: "cover" },
   videoEmptyState: { display: "flex", flexDirection: "column", alignItems: "center", gap: 18, padding: 40, zIndex: 1 },
-  videoEmptyIconWrap: { width: 96, height: 96, borderRadius: "50%", background: "rgba(212,175,55,0.1)", border: "1.5px solid rgba(212,175,55,0.25)", display: "flex", alignItems: "center", justifyContent: "center" },
+  videoEmptyIconWrap: { width: 96, height: 96, borderRadius: "50%", background: `${goldAlpha(0.1)}`, border: `1.5px solid ${goldAlpha(0.25)}`, display: "flex", alignItems: "center", justifyContent: "center" },
   videoEmptyLabel: { margin: 0, color: "rgba(255,255,255,0.88)", fontSize: 20, fontWeight: 900, textAlign: "center" },
   videoEmptySub: { margin: 0, color: "rgba(255,255,255,0.35)", fontSize: 13, textAlign: "center" },
   videoBottomBar: {
@@ -674,7 +674,7 @@ const S = {
     background: "linear-gradient(0deg, rgba(0,0,0,0.82) 0%, transparent 100%)",
   },
   galleryBtn: { padding: "10px 20px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(0,0,0,0.4)", cursor: "pointer" },
-  nextBtn: { padding: "12px 28px", borderRadius: 999, border: "none", background: "linear-gradient(135deg, #C1121F, #8f0d17)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: "0 4px 20px rgba(193,18,31,0.45)" },
+  nextBtn: { padding: "12px 28px", borderRadius: 999, border: "none", background: "linear-gradient(135deg, #C1121F, #8f0d17)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: `0 4px 20px ${redAlpha(0.45)}` },
 
   // ── Setup step
   setupPage: { minHeight: "100vh", background: "#070707", display: "flex", flexDirection: "column", fontFamily: "sans-serif" },
@@ -687,7 +687,7 @@ const S = {
   },
   iconBtn: { width: 40, height: 40, borderRadius: 999, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", color: "#fff", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
   headerTitle: { flex: 1, color: "#fff", fontSize: 16, fontWeight: 900, textAlign: "center" },
-  postBtn: { padding: "10px 24px", borderRadius: 999, border: "none", background: "linear-gradient(135deg, #C1121F, #8f0d17)", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: "0 4px 16px rgba(193,18,31,0.35)" },
+  postBtn: { padding: "10px 24px", borderRadius: 999, border: "none", background: "linear-gradient(135deg, #C1121F, #8f0d17)", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: `0 4px 16px ${redAlpha(0.35)}` },
   setupScroll: { flex: 1, overflowY: "auto", padding: "20px 20px 40px", display: "flex", flexDirection: "column", gap: 20, maxWidth: 600, width: "100%", margin: "0 auto", boxSizing: "border-box" },
 
   // Video strip
@@ -706,10 +706,10 @@ const S = {
   textarea: { background: "#111", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 12, padding: "13px 16px", color: "#fff", fontSize: 14, minHeight: 82, resize: "vertical", outline: "none", width: "100%", boxSizing: "border-box" },
   chipRow: { display: "flex", flexWrap: "wrap", gap: 8 },
   chip: { padding: "8px 16px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.45)", fontSize: 13, fontWeight: 800, cursor: "pointer" },
-  chipActive: { background: "rgba(193,18,31,0.18)", border: "1px solid rgba(193,18,31,0.5)", color: "#F87171" },
+  chipActive: { background: `${redAlpha(0.18)}`, border: `1px solid ${redAlpha(0.5)}`, color: "#F87171" },
   chipGreen: { background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.4)", color: "#34D399" },
-  chipGold: { background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.4)", color: GOLD },
-  chipRed: { background: "rgba(193,18,31,0.18)", border: "1px solid rgba(193,18,31,0.5)", color: "#F87171" },
+  chipGold: { background: `${goldAlpha(0.12)}`, border: `1px solid ${goldAlpha(0.4)}`, color: GOLD },
+  chipRed: { background: `${redAlpha(0.18)}`, border: `1px solid ${redAlpha(0.5)}`, color: "#F87171" },
 
   // Toggles
   toggleRow: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "14px 16px", borderRadius: 14, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" },
@@ -723,24 +723,24 @@ const S = {
   detailsLabel: { color: "rgba(255,255,255,0.45)", fontSize: 11, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase" },
 
   // AI box
-  aiBox: { borderRadius: 16, background: "linear-gradient(145deg, rgba(193,18,31,0.08), rgba(11,11,11,0.9) 50%, rgba(212,175,55,0.05))", border: "1px solid rgba(255,255,255,0.07)" },
+  aiBox: { borderRadius: 16, background: `linear-gradient(145deg, ${redAlpha(0.08)}, rgba(11,11,11,0.9) 50%, ${goldAlpha(0.05)})`, border: "1px solid rgba(255,255,255,0.07)" },
   aiBoxBtn: { width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "15px 16px", background: "none", border: "none", cursor: "pointer" },
   aiBoxLabel: { color: GOLD, fontSize: 13, fontWeight: 900, letterSpacing: 0.6 },
   aiBoxHelp: { margin: 0, color: "#888", fontSize: 13, lineHeight: 1.5 },
 
   // Caption result
-  captionResult: { display: "flex", flexDirection: "column", gap: 10, padding: 14, borderRadius: 14, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(212,175,55,0.14)" },
+  captionResult: { display: "flex", flexDirection: "column", gap: 10, padding: 14, borderRadius: 14, background: "rgba(255,255,255,0.05)", border: `1px solid ${goldAlpha(0.14)}` },
   captionSection: { display: "grid", gap: 4, padding: 10, borderRadius: 10, background: "rgba(255,255,255,0.04)" },
   captionLbl: { color: GOLD, fontSize: 10, fontWeight: 900, letterSpacing: 1.2, textTransform: "uppercase" },
   captionHook: { color: "#fff", fontSize: 14, fontWeight: 900, lineHeight: 1.45 },
   captionBody: { color: "#fff", fontSize: 14, lineHeight: 1.55, whiteSpace: "pre-wrap" },
-  captionActionBtn: { padding: "9px 14px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.34)", background: "rgba(212,175,55,0.1)", color: GOLD, fontSize: 13, fontWeight: 800, cursor: "pointer" },
+  captionActionBtn: { padding: "9px 14px", borderRadius: 999, border: `1px solid ${goldAlpha(0.34)}`, background: `${goldAlpha(0.1)}`, color: GOLD, fontSize: 13, fontWeight: 800, cursor: "pointer" },
 
-  primaryBtn: { padding: "14px 20px", borderRadius: 14, border: "none", background: "linear-gradient(135deg, #C1121F, #8f0d17)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: "0 8px 24px rgba(193,18,31,0.28)" },
+  primaryBtn: { padding: "14px 20px", borderRadius: 14, border: "none", background: "linear-gradient(135deg, #C1121F, #8f0d17)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 24px ${redAlpha(0.28)}` },
 
-  errBox: { background: "#3a0a0a", border: "1px solid rgba(193,18,31,0.5)", color: "#ff8b8b", padding: "12px 14px", borderRadius: 10, fontSize: 13 },
+  errBox: { background: "#3a0a0a", border: `1px solid ${redAlpha(0.5)}`, color: "#ff8b8b", padding: "12px 14px", borderRadius: 10, fontSize: 13 },
   errTxt: { margin: 0, color: "#ff8b8b", fontSize: 13 },
-  remixBox: { background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.35)", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#F87171" },
+  remixBox: { background: `${redAlpha(0.12)}`, border: `1px solid ${redAlpha(0.35)}`, borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#F87171" },
 
   progressWrap: { display: "flex", flexDirection: "column", gap: 6 },
   progressTrack: { height: 6, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" },

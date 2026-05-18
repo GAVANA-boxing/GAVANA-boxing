@@ -21,7 +21,7 @@ import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocale, translate } from "@/lib/i18n";
-import { RED, GOLD , PURPLE} from "@/lib/tokens";
+import { RED, GOLD , PURPLE, redAlpha, goldAlpha} from "@/lib/tokens";
 
 const TYPE_META = {
   boxing:     { mn: "Бокс",     ko: "복싱",    en: "Boxing",     color: RED, emoji: "🥊" },
@@ -409,7 +409,7 @@ export default function EventDetailPage() {
         <button
           type="button"
           onClick={handleShare}
-          style={{ width: "100%", padding: "11px 0", borderRadius: 12, border: "1px solid rgba(212,175,55,0.25)", background: "rgba(212,175,55,0.06)", color: shareCopied ? "#34D399" : GOLD, fontSize: 13, fontWeight: 800, cursor: "pointer", marginBottom: 8 }}
+          style={{ width: "100%", padding: "11px 0", borderRadius: 12, border: `1px solid ${goldAlpha(0.25)}`, background: `${goldAlpha(0.06)}`, color: shareCopied ? "#34D399" : GOLD, fontSize: 13, fontWeight: 800, cursor: "pointer", marginBottom: 8 }}
         >
           {shareCopied ? t("eventLinkCopied") : t("eventShare")}
         </button>
@@ -470,22 +470,22 @@ const s = {
   detailIcon: { fontSize: 18, flexShrink: 0, marginTop: 1 },
   detailLabel: { margin: "0 0 2px", fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 },
   detailValue: { margin: 0, fontSize: 14, color: "#fff", fontWeight: 700 },
-  rsvpBtn: { width: "100%", padding: 16, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#C1121F,#7d0812)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: "0 8px 28px rgba(193,18,31,0.32)", marginBottom: 10 },
+  rsvpBtn: { width: "100%", padding: 16, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#C1121F,#7d0812)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 28px ${redAlpha(0.32)}`, marginBottom: 10 },
   cancelRsvpBtn: { width: "100%", padding: 16, borderRadius: 14, border: "1px solid rgba(52,211,153,0.3)", background: "rgba(52,211,153,0.08)", color: "#34D399", fontSize: 15, fontWeight: 900, cursor: "pointer", marginBottom: 10 },
   fullBtn: { width: "100%", padding: 16, borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.3)", fontSize: 15, fontWeight: 700, cursor: "not-allowed", marginBottom: 10 },
-  reminderBtn: { width: "100%", padding: 13, borderRadius: 14, border: "1px solid rgba(212,175,55,0.3)", background: "rgba(212,175,55,0.06)", color: GOLD, fontSize: 14, fontWeight: 800, cursor: "pointer", marginBottom: 16 },
+  reminderBtn: { width: "100%", padding: 13, borderRadius: 14, border: `1px solid ${goldAlpha(0.3)}`, background: `${goldAlpha(0.06)}`, color: GOLD, fontSize: 14, fontWeight: 800, cursor: "pointer", marginBottom: 16 },
   reminderSetBtn: { width: "100%", padding: 13, borderRadius: 14, border: "1px solid rgba(52,211,153,0.2)", background: "rgba(52,211,153,0.05)", color: "rgba(52,211,153,0.7)", fontSize: 14, fontWeight: 800, cursor: "not-allowed", marginBottom: 16 },
-  countdownBox: { marginTop: 14, padding: "10px 14px", borderRadius: 12, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.2)", display: "flex", alignItems: "center", justifyContent: "space-between" },
+  countdownBox: { marginTop: 14, padding: "10px 14px", borderRadius: 12, background: `${goldAlpha(0.06)}`, border: `1px solid ${goldAlpha(0.2)}`, display: "flex", alignItems: "center", justifyContent: "space-between" },
   countdownLabel: { fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 },
   countdownValue: { fontSize: 18, fontWeight: 1000, color: GOLD, fontVariantNumeric: "tabular-nums", letterSpacing: 0.5 },
   liveBadge: { display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 12px", borderRadius: 999, background: "rgba(52,211,153,0.15)", border: "1px solid rgba(52,211,153,0.4)", color: "#34D399", fontSize: 11, fontWeight: 900, letterSpacing: 1.2 },
   liveDot: { width: 7, height: 7, borderRadius: "50%", background: "#34D399", boxShadow: "0 0 6px #34D399" },
-  organizerBanner: { padding: "12px 16px", borderRadius: 12, background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.2)", color: GOLD, fontSize: 13, fontWeight: 700, marginBottom: 16, textAlign: "center" },
+  organizerBanner: { padding: "12px 16px", borderRadius: 12, background: `${goldAlpha(0.08)}`, border: `1px solid ${goldAlpha(0.2)}`, color: GOLD, fontSize: 13, fontWeight: 700, marginBottom: 16, textAlign: "center" },
   participantSection: { marginTop: 4 },
   sectionLabel: { margin: "0 0 10px", fontSize: 10, color: "rgba(255,255,255,0.45)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 },
   participantGrid: { display: "flex", flexDirection: "column", gap: 8 },
   participantChip: { display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 12, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", cursor: "pointer" },
-  partAvatar: { width: 34, height: 34, borderRadius: "50%", background: "rgba(193,18,31,0.2)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 },
+  partAvatar: { width: 34, height: 34, borderRadius: "50%", background: `${redAlpha(0.2)}`, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 },
   partAvatarImg: { width: "100%", height: "100%", objectFit: "cover" },
   partAvatarInitial: { fontSize: 13, fontWeight: 900, color: "#fff" },
   partName: { fontSize: 14, fontWeight: 700, color: "#fff" },

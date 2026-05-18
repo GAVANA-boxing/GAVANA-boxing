@@ -19,7 +19,7 @@ import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
 import { snapToDocs } from "@/lib/firestore";
 
 const AMENITY_ICONS = {
@@ -595,7 +595,7 @@ export default function GymProfilePage() {
                 style={{
                   display: "flex", alignItems: "center", gap: 5,
                   padding: "5px 11px", borderRadius: 999,
-                  background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.3)",
+                  background: `${redAlpha(0.12)}`, border: `1px solid ${redAlpha(0.3)}`,
                   color: "#F87171", fontSize: 11, fontWeight: 800, cursor: "pointer",
                 }}
               >
@@ -608,7 +608,7 @@ export default function GymProfilePage() {
               <div style={{
                 display: "flex", flexDirection: "column", alignItems: "center",
                 padding: "28px 16px", borderRadius: 14,
-                background: "rgba(193,18,31,0.05)", border: "1px dashed rgba(193,18,31,0.25)",
+                background: `${redAlpha(0.05)}`, border: `1px dashed ${redAlpha(0.25)}`,
                 gap: 10,
               }}>
                 <span style={{ fontSize: 28 }}>🎥</span>
@@ -701,8 +701,8 @@ const styles = {
   gymHeader: { paddingTop: 28, paddingBottom: 12 },
   gymNameRow: { display: "flex", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 6 },
   gymName: { margin: 0, fontSize: 26, fontWeight: 1000, lineHeight: 1.1 },
-  verifiedBadge: { fontSize: 11, fontWeight: 900, color: GOLD, background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 999, padding: "3px 10px" },
-  typeChip: { display: "inline-block", fontSize: 11, fontWeight: 900, color: RED, background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.25)", borderRadius: 999, padding: "3px 10px", marginBottom: 6 },
+  verifiedBadge: { fontSize: 11, fontWeight: 900, color: GOLD, background: `${goldAlpha(0.12)}`, border: `1px solid ${goldAlpha(0.3)}`, borderRadius: 999, padding: "3px 10px" },
+  typeChip: { display: "inline-block", fontSize: 11, fontWeight: 900, color: RED, background: `${redAlpha(0.12)}`, border: `1px solid ${redAlpha(0.25)}`, borderRadius: 999, padding: "3px 10px", marginBottom: 6 },
   gymLocation: { margin: "4px 0 2px", fontSize: 13, color: "rgba(255,255,255,0.5)" },
   gymAddress: { margin: 0, fontSize: 12, color: "rgba(255,255,255,0.55)" },
   statsRow: { display: "flex", gap: 0, borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", marginBottom: 16, overflow: "hidden" },
@@ -712,17 +712,17 @@ const styles = {
   ctaRow: { display: "flex", gap: 8, marginBottom: 20, alignItems: "flex-start", flexWrap: "wrap" },
   joinBtn: { flex: 1, minHeight: 44, border: "none", borderRadius: 12, background: "linear-gradient(135deg,#C1121F,#7d0812)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer" },
   requestedBtn: { flex: 1, minHeight: 44, border: "1px solid rgba(52,211,153,0.35)", borderRadius: 12, background: "rgba(52,211,153,0.08)", color: "#34D399", fontSize: 15, fontWeight: 900, cursor: "default" },
-  manageBtn: { flex: 1, minHeight: 44, border: "1px solid rgba(212,175,55,0.4)", borderRadius: 12, background: "rgba(212,175,55,0.1)", color: GOLD, fontSize: 15, fontWeight: 900, cursor: "pointer" },
+  manageBtn: { flex: 1, minHeight: 44, border: `1px solid ${goldAlpha(0.4)}`, borderRadius: 12, background: `${goldAlpha(0.1)}`, color: GOLD, fontSize: 15, fontWeight: 900, cursor: "pointer" },
   contactBtn: { width: 44, height: 44, borderRadius: 12, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: "#fff", textDecoration: "none" },
   joinForm: { borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", padding: "16px", marginBottom: 16, display: "flex", flexDirection: "column", gap: 10 },
   section: { marginBottom: 24 },
   sectionTitle: { margin: "0 0 10px", fontSize: 13, fontWeight: 900, color: "rgba(255,255,255,0.65)", letterSpacing: 1, textTransform: "uppercase" },
   bodyText: { margin: 0, fontSize: 14, color: "rgba(255,255,255,0.7)", lineHeight: 1.6 },
   pillsRow: { display: "flex", flexWrap: "wrap", gap: 8 },
-  pill: { fontSize: 12, color: "#F87171", background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.2)", borderRadius: 999, padding: "4px 12px", fontWeight: 700 },
+  pill: { fontSize: 12, color: "#F87171", background: `${redAlpha(0.12)}`, border: `1px solid ${redAlpha(0.2)}`, borderRadius: 999, padding: "4px 12px", fontWeight: 700 },
   amenityPill: { fontSize: 12, color: "rgba(255,255,255,0.6)", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 999, padding: "4px 12px" },
   announcementList: { display: "flex", flexDirection: "column", gap: 10 },
-  announcementCard: { borderRadius: "3px 12px 12px 3px", background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.18)", borderLeft: "3px solid #D4AF37", padding: "12px 14px" },
+  announcementCard: { borderRadius: "3px 12px 12px 3px", background: `${goldAlpha(0.06)}`, border: `1px solid ${goldAlpha(0.18)}`, borderLeft: "3px solid #D4AF37", padding: "12px 14px" },
   annTitle: { margin: "0 0 4px", fontSize: 14, fontWeight: 900, color: GOLD },
   annBody: { margin: "0 0 6px", fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.5 },
   annDate: { fontSize: 11, color: "rgba(255,255,255,0.55)" },
@@ -731,7 +731,7 @@ const styles = {
   reelThumbImg: { width: "100%", height: "100%", objectFit: "cover" },
   reelThumbPlaceholder: { width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 },
   reviewsHeader: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 },
-  leaveReviewBtn: { background: "none", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 999, color: GOLD, fontSize: 12, fontWeight: 900, cursor: "pointer", padding: "5px 12px" },
+  leaveReviewBtn: { background: "none", border: `1px solid ${goldAlpha(0.35)}`, borderRadius: 999, color: GOLD, fontSize: 12, fontWeight: 900, cursor: "pointer", padding: "5px 12px" },
   reviewForm: { borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", padding: 16, marginBottom: 16, display: "flex", flexDirection: "column", gap: 10 },
   reviewList: { display: "flex", flexDirection: "column", gap: 10 },
   reviewCard: { borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "12px 14px" },
@@ -745,7 +745,7 @@ const styles = {
   successText: { margin: "0 0 10px", fontSize: 13, color: "#34D399", fontWeight: 700 },
   emptyText: { margin: 0, fontSize: 13, color: "rgba(255,255,255,0.55)" },
   vibeRow: { display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 },
-  vibeBadge: { fontSize: 11, fontWeight: 800, color: "#F87171", background: "rgba(193,18,31,0.1)", border: "1px solid rgba(193,18,31,0.25)", borderRadius: 999, padding: "3px 10px" },
+  vibeBadge: { fontSize: 11, fontWeight: 800, color: "#F87171", background: `${redAlpha(0.1)}`, border: `1px solid ${redAlpha(0.25)}`, borderRadius: 999, padding: "3px 10px" },
   goodForPill: { fontSize: 12, color: "rgba(255,255,255,0.65)", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 999, padding: "4px 12px", fontWeight: 600 },
   pendingJoinCol: { flex: 1, display: "flex", flexDirection: "column", gap: 8 },
   pendingJoinBadge: { display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 16px", borderRadius: 12, background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.35)", color: "#F59E0B", fontSize: 14, fontWeight: 800 },
@@ -753,7 +753,7 @@ const styles = {
   approvedBadge: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "10px 16px", borderRadius: 12, background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.3)", color: "#34D399", fontSize: 14, fontWeight: 800 },
   membersRow: { display: "flex", flexWrap: "wrap", gap: 12 },
   memberSlot: { display: "flex", flexDirection: "column", alignItems: "center", gap: 4 },
-  memberAvatar: { width: 44, height: 44, borderRadius: "50%", overflow: "hidden", background: "rgba(193,18,31,0.2)", display: "flex", alignItems: "center", justifyContent: "center" },
+  memberAvatar: { width: 44, height: 44, borderRadius: "50%", overflow: "hidden", background: `${redAlpha(0.2)}`, display: "flex", alignItems: "center", justifyContent: "center" },
   memberAvatarImg: { width: "100%", height: "100%", objectFit: "cover" },
   memberAvatarInitial: { fontSize: 16, fontWeight: 800, color: "#fff" },
   memberName: { fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.55)", maxWidth: 44, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" },

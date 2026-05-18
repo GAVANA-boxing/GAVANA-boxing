@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { locales, getLocale } from "@/lib/i18n";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , goldAlpha} from "@/lib/tokens";
 
 const FLAG = { en: "🇺🇸", mn: "🇲🇳", ko: "🇰🇷" };
 const CODE = { en: "EN", mn: "MN", ko: "KO" };
@@ -141,7 +141,7 @@ const s = {
     width: "100%",
   },
   optionActive: {
-    background: "rgba(212,175,55,0.1)",
+    background: `${goldAlpha(0.1)}`,
   },
   dot: {
     width: 4,

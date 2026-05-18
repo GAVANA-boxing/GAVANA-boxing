@@ -7,7 +7,7 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale } from "@/lib/i18n";
 import BottomNav from "@/components/BottomNav";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
 
 const GOALS = [
   { key: "conditioning",   emoji: "🏋️", mn: "Нийт бэлтгэл",  ko: "체력 훈련",    en: "Conditioning" },
@@ -413,20 +413,20 @@ const s = {
   fieldLabel: { margin: "0 0 10px", fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 },
   goalGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 24 },
   goalCard: { padding: "20px 12px", borderRadius: 16, border: "1.5px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, transition: "border-color 0.2s" },
-  goalCardActive: { border: "1.5px solid rgba(193,18,31,0.7)", background: "rgba(193,18,31,0.1)", boxShadow: "0 0 0 1px rgba(193,18,31,0.2)" },
+  goalCardActive: { border: `1.5px solid ${redAlpha(0.7)}`, background: `${redAlpha(0.1)}`, boxShadow: `0 0 0 1px ${redAlpha(0.2)}` },
   goalEmoji: { fontSize: 32 },
   goalLabel: { fontSize: 13, fontWeight: 800, color: "#fff", textAlign: "center" },
   chipRow: { display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 },
   chip: { padding: "9px 18px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.6)", fontSize: 13, fontWeight: 700, cursor: "pointer" },
-  chipActive: { border: "1px solid rgba(193,18,31,0.6)", background: "rgba(193,18,31,0.14)", color: "#fff", fontWeight: 900 },
+  chipActive: { border: `1px solid ${redAlpha(0.6)}`, background: `${redAlpha(0.14)}`, color: "#fff", fontWeight: 900 },
   durationGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 24 },
   durationCard: { padding: "18px 12px", borderRadius: 14, border: "1.5px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 },
-  durationCardActive: { border: "1.5px solid rgba(193,18,31,0.7)", background: "rgba(193,18,31,0.1)", boxShadow: "0 0 0 1px rgba(193,18,31,0.2)" },
+  durationCardActive: { border: `1.5px solid ${redAlpha(0.7)}`, background: `${redAlpha(0.1)}`, boxShadow: `0 0 0 1px ${redAlpha(0.2)}` },
   durationValue: { fontSize: 28, fontWeight: 1000, color: "#fff" },
   durationUnit: { fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 700 },
-  nextBtn: { marginTop: 8, width: "100%", padding: 15, borderRadius: 14, border: "none", background: "linear-gradient(135deg, #C1121F, #7d0812)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: "0 8px 24px rgba(193,18,31,0.28)" },
-  nextBtnDisabled: { marginTop: 8, width: "100%", padding: 15, borderRadius: 14, border: "none", background: "rgba(193,18,31,0.25)", color: "rgba(255,255,255,0.4)", fontSize: 15, fontWeight: 900, cursor: "not-allowed" },
-  generateBtn: { marginTop: 8, width: "100%", padding: 15, borderRadius: 14, border: "none", background: "linear-gradient(135deg, #C1121F, #7d0812)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: "0 8px 24px rgba(193,18,31,0.28)" },
+  nextBtn: { marginTop: 8, width: "100%", padding: 15, borderRadius: 14, border: "none", background: "linear-gradient(135deg, #C1121F, #7d0812)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 24px ${redAlpha(0.28)}` },
+  nextBtnDisabled: { marginTop: 8, width: "100%", padding: 15, borderRadius: 14, border: "none", background: `${redAlpha(0.25)}`, color: "rgba(255,255,255,0.4)", fontSize: 15, fontWeight: 900, cursor: "not-allowed" },
+  generateBtn: { marginTop: 8, width: "100%", padding: 15, borderRadius: 14, border: "none", background: "linear-gradient(135deg, #C1121F, #7d0812)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 24px ${redAlpha(0.28)}` },
   errorText: { margin: "10px 0 0", fontSize: 12, color: "#F87171", textAlign: "center" },
   resultWrap: { display: "flex", flexDirection: "column", gap: 12 },
   summaryStrip: { display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 4 },
@@ -440,7 +440,7 @@ const s = {
   itemRow: { display: "flex", alignItems: "flex-start", gap: 8 },
   itemBullet: { color: RED, fontSize: 10, marginTop: 3, flexShrink: 0 },
   itemText: { fontSize: 13, color: "rgba(255,255,255,0.8)", lineHeight: 1.45 },
-  tipsCard: { background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.18)", borderRadius: 14, padding: "14px 16px" },
+  tipsCard: { background: `${goldAlpha(0.06)}`, border: `1px solid ${goldAlpha(0.18)}`, borderRadius: 14, padding: "14px 16px" },
   tipsTitle: { margin: "0 0 10px", fontSize: 12, fontWeight: 900, color: GOLD, textTransform: "uppercase", letterSpacing: 0.5 },
   tipRow: { margin: "0 0 6px", fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.45 },
   actionRow: { display: "flex", gap: 8, marginTop: 4 },

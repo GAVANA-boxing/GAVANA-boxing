@@ -1,6 +1,6 @@
 "use client";
 
-import { GOLD } from "@/lib/tokens";
+import { GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
 import { calculateSessionXP } from "@/lib/xp";
 
 function getTimestampMs(timestamp) {
@@ -77,22 +77,22 @@ export default function TrainingProgressSection({
       <div style={{
         position: "relative",
         background: "linear-gradient(145deg, #1c0202 0%, #0e0000 40%, #080808 100%)",
-        border: "1px solid rgba(193,18,31,0.18)",
+        border: `1px solid ${redAlpha(0.18)}`,
         borderLeft: "3px solid #C1121F",
         borderRadius: "3px 20px 20px 3px",
         padding: "20px 18px 18px",
         boxShadow: "0 8px 40px rgba(0,0,0,0.55)",
         overflow: "hidden",
       }}>
-        <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(ellipse at 10% 30%, rgba(193,18,31,0.18) 0%, transparent 55%)" }} />
+        <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: `radial-gradient(ellipse at 10% 30%, ${redAlpha(0.18)} 0%, transparent 55%)` }} />
         <div style={{ position: "relative" }}>
-          <p style={{ margin: "0 0 16px", fontSize: 9, fontWeight: 900, color: "rgba(193,18,31,0.7)", letterSpacing: 3, textTransform: "uppercase" }}>
+          <p style={{ margin: "0 0 16px", fontSize: 9, fontWeight: 900, color: `${redAlpha(0.7)}`, letterSpacing: 3, textTransform: "uppercase" }}>
             GAVANA · FIGHTER SCORE
           </p>
 
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16 }}>
             <div>
-              <div style={{ fontSize: 64, fontWeight: 900, color: "#fff", letterSpacing: "-0.04em", lineHeight: 0.9, fontFamily: "var(--font-display,'Anton',sans-serif)", textShadow: "0 0 40px rgba(193,18,31,0.4)" }}>
+              <div style={{ fontSize: 64, fontWeight: 900, color: "#fff", letterSpacing: "-0.04em", lineHeight: 0.9, fontFamily: "var(--font-display,'Anton',sans-serif)", textShadow: `0 0 40px ${redAlpha(0.4)}` }}>
                 {fighterScore}
               </div>
               <span style={{ fontSize: 14, color: "rgba(255,255,255,0.2)", fontWeight: 700 }}>/100</span>
@@ -128,7 +128,7 @@ export default function TrainingProgressSection({
                 width: "100%", padding: "13px 0", borderRadius: 13,
                 background: "linear-gradient(135deg, #C1121F, #7d0812)",
                 border: "none", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
-                boxShadow: "0 4px 18px rgba(193,18,31,0.38)",
+                boxShadow: `0 4px 18px ${redAlpha(0.38)}`,
                 letterSpacing: 0.3,
               }}
             >
@@ -142,7 +142,7 @@ export default function TrainingProgressSection({
         <div style={{
           marginTop: 14,
           background: "linear-gradient(145deg, #111012, #0a0a0a)",
-          border: "1px solid rgba(212,175,55,0.18)",
+          border: `1px solid ${goldAlpha(0.18)}`,
           borderLeft: "3px solid #D4AF37",
           borderRadius: "3px 16px 16px 3px",
           padding: "20px 18px",

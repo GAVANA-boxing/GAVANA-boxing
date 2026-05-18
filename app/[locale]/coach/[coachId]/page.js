@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
 import EmptyState from "@/components/EmptyState";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { RED, GOLD , PURPLE} from "@/lib/tokens";
+import { RED, GOLD , PURPLE, redAlpha, goldAlpha} from "@/lib/tokens";
 import { snapToDocs } from "@/lib/firestore";
 
 const SPECIALTY_COLORS = {
@@ -753,11 +753,11 @@ const styles = {
   headerTitle: { fontSize: 15, fontWeight: 600, color: "#fff" },
   profileSection: { padding: "8px 20px 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: 10 },
   avatarWrap: { position: "relative", width: 88, height: 88 },
-  avatar: { width: 88, height: 88, borderRadius: 44, objectFit: "cover", border: "2px solid rgba(212,175,55,0.4)" },
-  avatarInitials: { width: 88, height: 88, borderRadius: 44, background: "rgba(193,18,31,0.2)", border: "2px solid rgba(193,18,31,0.4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30, fontWeight: 700, color: "#fff" },
-  verifiedDot: { position: "absolute", bottom: 2, right: 2, width: 24, height: 24, borderRadius: "50%", background: GOLD, color: "#000", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 0 2.5px #0A0A0A, 0 2px 8px rgba(212,175,55,0.5)" },
+  avatar: { width: 88, height: 88, borderRadius: 44, objectFit: "cover", border: `2px solid ${goldAlpha(0.4)}` },
+  avatarInitials: { width: 88, height: 88, borderRadius: 44, background: `${redAlpha(0.2)}`, border: `2px solid ${redAlpha(0.4)}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30, fontWeight: 700, color: "#fff" },
+  verifiedDot: { position: "absolute", bottom: 2, right: 2, width: 24, height: 24, borderRadius: "50%", background: GOLD, color: "#000", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 0 2.5px #0A0A0A, 0 2px 8px ${goldAlpha(0.5)}` },
   name: { fontSize: 22, fontWeight: 700, margin: 0, textAlign: "center" },
-  verifiedBadge: { display: "flex", alignItems: "center", gap: 6, background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 20, padding: "5px 13px", fontSize: 12, fontWeight: 700, color: GOLD, letterSpacing: "0.02em" },
+  verifiedBadge: { display: "flex", alignItems: "center", gap: 6, background: `${goldAlpha(0.15)}`, border: `1px solid ${goldAlpha(0.4)}`, borderRadius: 20, padding: "5px 13px", fontSize: 12, fontWeight: 700, color: GOLD, letterSpacing: "0.02em" },
   location: { fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0 },
   trustRow: { display: "flex", gap: 20, flexWrap: "wrap", justifyContent: "center", margin: "4px 0" },
   trustStat: { display: "flex", flexDirection: "column", alignItems: "center", gap: 2 },
@@ -776,9 +776,9 @@ const styles = {
   requestBtn: { flex: 1, padding: "14px", background: RED, border: "none", borderRadius: 12, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" },
   requestedBtn: { flex: 1, padding: "14px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, color: "rgba(255,255,255,0.5)", fontSize: 15, fontWeight: 600, cursor: "default" },
   submitBtn: { flex: 1, padding: "12px", background: RED, border: "none", borderRadius: 10, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" },
-  submitBtnDisabled: { flex: 1, padding: "12px", background: "rgba(193,18,31,0.4)", border: "none", borderRadius: 10, color: "rgba(255,255,255,0.62)", fontSize: 14, cursor: "not-allowed" },
+  submitBtnDisabled: { flex: 1, padding: "12px", background: `${redAlpha(0.4)}`, border: "none", borderRadius: 10, color: "rgba(255,255,255,0.62)", fontSize: 14, cursor: "not-allowed" },
   cancelBtn: { flex: 1, padding: "12px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, color: "rgba(255,255,255,0.6)", fontSize: 14, cursor: "pointer" },
-  reviewPrompt: { margin: "0 16px 16px", padding: "14px 16px", background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "space-between" },
+  reviewPrompt: { margin: "0 16px 16px", padding: "14px 16px", background: `${goldAlpha(0.08)}`, border: `1px solid ${goldAlpha(0.3)}`, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "space-between" },
   reviewPromptText: { fontSize: 13, color: GOLD, margin: 0 },
   leaveReviewBtn: { background: GOLD, border: "none", borderRadius: 8, padding: "8px 14px", color: "#000", fontSize: 13, fontWeight: 700, cursor: "pointer" },
   reviewFormCard: { margin: "0 16px 16px", padding: "18px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, display: "flex", flexDirection: "column", gap: 12 },
@@ -799,11 +799,11 @@ const styles = {
   reelThumb: { aspectRatio: "9/16", background: "rgba(255,255,255,0.05)", border: "none", borderRadius: 8, cursor: "pointer", overflow: "hidden", padding: 0 },
   reelThumbImg: { width: "100%", height: "100%", objectFit: "cover" },
   reelThumbPlaceholder: { width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.65)", fontSize: 20 },
-  vibeChip: { background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.28)", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 800, color: "#F87171", letterSpacing: 0.3 },
+  vibeChip: { background: `${redAlpha(0.12)}`, border: `1px solid ${redAlpha(0.28)}`, borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 800, color: "#F87171", letterSpacing: 0.3 },
   pendingRow: { display: "flex", flexDirection: "column", gap: 8, width: "100%" },
   pendingBadge: { display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 16px", borderRadius: 12, background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.35)", color: "#F59E0B", fontSize: 14, fontWeight: 800 },
   cancelReqBtn: { width: "100%", padding: "10px", border: "1px solid rgba(248,113,113,0.35)", borderRadius: 12, background: "rgba(248,113,113,0.08)", color: "#F87171", fontSize: 14, fontWeight: 700, cursor: "pointer" },
-  insightCard: { width: "100%", maxWidth: 360, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.18)", borderRadius: 12, padding: "12px 14px", display: "flex", flexDirection: "column", gap: 6 },
+  insightCard: { width: "100%", maxWidth: 360, background: `${goldAlpha(0.06)}`, border: `1px solid ${goldAlpha(0.18)}`, borderRadius: 12, padding: "12px 14px", display: "flex", flexDirection: "column", gap: 6 },
   insightLabel: { fontSize: 10, fontWeight: 900, color: GOLD, textTransform: "uppercase", letterSpacing: 1 },
   insightText: { fontSize: 13, color: "rgba(255,255,255,0.75)", lineHeight: 1.4 },
   improveList: { display: "flex", flexWrap: "wrap", gap: 5 },

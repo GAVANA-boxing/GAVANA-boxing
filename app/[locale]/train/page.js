@@ -13,7 +13,7 @@ import { getCurrentSeasonId } from "@/lib/season";
 import { calculateChallengeXP, calculateUserXP, getFighterRank, getRankProgress } from "@/lib/xp";
 import { writeChallengeAttempt, updateUserTrainingProfile } from "@/lib/analytics";
 import { checkAndAwardBadges } from "@/lib/badges";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
 
 const RECORD_SECONDS = 10;
 const CHALLENGES = {
@@ -1524,7 +1524,7 @@ export default function TrainPage() {
             {/* BOTTOM — action buttons */}
             <div style={styles.modalBottom}>
               {error && (
-                <div style={{ margin: "0 0 10px", padding: "10px 14px", borderRadius: 10, background: "rgba(193,18,31,0.15)", border: "1px solid rgba(193,18,31,0.35)", color: "#fca5a5", fontSize: 13, fontWeight: 700 }}>
+                <div style={{ margin: "0 0 10px", padding: "10px 14px", borderRadius: 10, background: `${redAlpha(0.15)}`, border: `1px solid ${redAlpha(0.35)}`, color: "#fca5a5", fontSize: 13, fontWeight: 700 }}>
                   {error}
                 </div>
               )}
@@ -1688,7 +1688,7 @@ const styles = {
   },
   page: {
     minHeight: "100vh",
-    background: "radial-gradient(circle at 50% 0%, rgba(193,18,31,0.2), transparent 34%), linear-gradient(180deg, #080808 0%, #0B0B0B 100%)",
+    background: `radial-gradient(circle at 50% 0%, ${redAlpha(0.2)}, transparent 34%), linear-gradient(180deg, #080808 0%, #0B0B0B 100%)`,
     color: "#fff",
     padding: "calc(68px + env(safe-area-inset-top)) 16px calc(92px + env(safe-area-inset-bottom))",
     fontFamily: "sans-serif",
@@ -1765,9 +1765,9 @@ const styles = {
     minHeight: 36,
     padding: "0 13px",
     borderRadius: 999,
-    background: "rgba(212,175,55,0.16)",
-    border: "1px solid rgba(212,175,55,0.34)",
-    boxShadow: "0 12px 32px rgba(212,175,55,0.12)",
+    background: `${goldAlpha(0.16)}`,
+    border: `1px solid ${goldAlpha(0.34)}`,
+    boxShadow: `0 12px 32px ${goldAlpha(0.12)}`,
   },
   targetScoreLabel: {
     color: "#FDE68A",
@@ -1816,8 +1816,8 @@ const styles = {
     margin: "14px 0 0",
     padding: "14px 16px",
     borderRadius: 14,
-    background: "rgba(193,18,31,0.12)",
-    border: "1px solid rgba(193,18,31,0.35)",
+    background: `${redAlpha(0.12)}`,
+    border: `1px solid ${redAlpha(0.35)}`,
     textAlign: "center",
   },
   pvpResultBadge: {
@@ -1904,10 +1904,10 @@ const styles = {
     gap: 12,
     padding: 28,
     textAlign: "center",
-    background: "radial-gradient(circle at 50% 38%, rgba(212,175,55,0.13), transparent 30%), linear-gradient(145deg, #12090a, #050505)",
+    background: `radial-gradient(circle at 50% 38%, ${goldAlpha(0.13)}, transparent 30%), linear-gradient(145deg, #12090a, #050505)`,
   },
   fallbackMark: {
-    border: "1px solid rgba(193,18,31,0.55)",
+    border: `1px solid ${redAlpha(0.55)}`,
     borderRadius: 999,
     padding: "7px 12px",
     color: "#FF6B6B",
@@ -1942,7 +1942,7 @@ const styles = {
     fontWeight: 1000,
     fontFamily: "var(--font-display, 'Anton', sans-serif)",
     color: "#fff",
-    textShadow: "0 0 80px rgba(193,18,31,0.7), 0 18px 60px rgba(0,0,0,0.9)",
+    textShadow: `0 0 80px ${redAlpha(0.7)}, 0 18px 60px rgba(0,0,0,0.9)`,
     zIndex: 10,
     pointerEvents: "none",
   },
@@ -1954,7 +1954,7 @@ const styles = {
   flashOverlay: {
     position: "absolute",
     inset: 0,
-    background: "rgba(193,18,31,0.38)",
+    background: `${redAlpha(0.38)}`,
     zIndex: 8,
     pointerEvents: "none",
     animation: "flashFade 150ms ease-out forwards",
@@ -1981,7 +1981,7 @@ const styles = {
     fontSize: 24,
     fontWeight: 1000,
     lineHeight: 1,
-    textShadow: "0 0 20px rgba(212,175,55,0.5)",
+    textShadow: `0 0 20px ${goldAlpha(0.5)}`,
   },
   hitCountSep: {
     color: "rgba(255,255,255,0.62)",
@@ -2027,7 +2027,7 @@ const styles = {
     fontWeight: 1000,
     fontFamily: "var(--font-display, 'Anton', sans-serif)",
     lineHeight: 1,
-    textShadow: "0 0 40px rgba(212,175,55,0.55), 0 4px 18px rgba(0,0,0,0.95)",
+    textShadow: `0 0 40px ${goldAlpha(0.55)}, 0 4px 18px rgba(0,0,0,0.95)`,
   },
   liveFeedbackBox: {
     position: "absolute",
@@ -2073,7 +2073,7 @@ const styles = {
     borderRadius: "50%",
     background: RED,
     flexShrink: 0,
-    boxShadow: "0 0 0 6px rgba(193,18,31,0.18)",
+    boxShadow: `0 0 0 6px ${redAlpha(0.18)}`,
   },
   liveScoreHud: {
     marginLeft: 8,
@@ -2088,7 +2088,7 @@ const styles = {
   },
   startButton: {
     minHeight: 58,
-    border: "1px solid rgba(212,175,55,0.34)",
+    border: `1px solid ${goldAlpha(0.34)}`,
     borderRadius: 16,
     background: "linear-gradient(135deg, #C1121F, #7d0812 58%, #9a6a18)",
     color: "#fff",
@@ -2096,7 +2096,7 @@ const styles = {
     fontWeight: 1000,
     letterSpacing: 1.2,
     cursor: "pointer",
-    boxShadow: "0 18px 44px rgba(193,18,31,0.26)",
+    boxShadow: `0 18px 44px ${redAlpha(0.26)}`,
   },
   stopButton: {
     minHeight: 54,
@@ -2111,8 +2111,8 @@ const styles = {
   error: {
     padding: 12,
     borderRadius: 12,
-    background: "rgba(193,18,31,0.14)",
-    border: "1px solid rgba(193,18,31,0.35)",
+    background: `${redAlpha(0.14)}`,
+    border: `1px solid ${redAlpha(0.35)}`,
     color: "#ffb4b4",
     fontSize: 13,
   },
@@ -2139,8 +2139,8 @@ const styles = {
     marginTop: 14,
     padding: "12px 14px",
     borderRadius: 14,
-    background: "linear-gradient(135deg, rgba(212,175,55,0.15), rgba(52,211,153,0.10))",
-    border: "1px solid rgba(212,175,55,0.35)",
+    background: `linear-gradient(135deg, ${goldAlpha(0.15)}, rgba(52,211,153,0.10))`,
+    border: `1px solid ${goldAlpha(0.35)}`,
     display: "grid",
     gap: 4,
     textAlign: "center",
@@ -2186,7 +2186,7 @@ const styles = {
     maxWidth: 460,
     borderRadius: 22,
     background: "linear-gradient(180deg, #151111, #080808)",
-    border: "1px solid rgba(212,175,55,0.2)",
+    border: `1px solid ${goldAlpha(0.2)}`,
     boxShadow: "0 -24px 70px rgba(0,0,0,0.54)",
     textAlign: "center",
     maxHeight: "min(600px, calc(100vh - 120px))",
@@ -2247,10 +2247,10 @@ const styles = {
   },
   targetResultItem: {
     gridColumn: "1 / -1",
-    background: "rgba(212,175,55,0.13)",
-    border: "1px solid rgba(212,175,55,0.28)",
+    background: `${goldAlpha(0.13)}`,
+    border: `1px solid ${goldAlpha(0.28)}`,
     color: "rgba(253,230,138,0.78)",
-    boxShadow: "0 0 28px rgba(212,175,55,0.12)",
+    boxShadow: `0 0 28px ${goldAlpha(0.12)}`,
   },
   progressTrack: {
     height: 8,
@@ -2268,9 +2268,9 @@ const styles = {
     width: "100%",
     minHeight: 46,
     marginTop: 14,
-    border: "1px solid rgba(212,175,55,0.36)",
+    border: `1px solid ${goldAlpha(0.36)}`,
     borderRadius: 14,
-    background: "linear-gradient(135deg, rgba(212,175,55,0.18), rgba(193,18,31,0.18))",
+    background: `linear-gradient(135deg, ${goldAlpha(0.18)}, ${redAlpha(0.18)})`,
     color: GOLD,
     fontSize: 14,
     fontWeight: 950,
@@ -2308,9 +2308,9 @@ const styles = {
   },
   reelsButton: {
     minHeight: 46,
-    border: "1px solid rgba(212,175,55,0.32)",
+    border: `1px solid ${goldAlpha(0.32)}`,
     borderRadius: 14,
-    background: "rgba(212,175,55,0.1)",
+    background: `${goldAlpha(0.1)}`,
     color: GOLD,
     fontSize: 14,
     fontWeight: 950,
@@ -2318,14 +2318,14 @@ const styles = {
   },
   challengeFriendButton: {
     minHeight: 46,
-    border: "1px solid rgba(212,175,55,0.42)",
+    border: `1px solid ${goldAlpha(0.42)}`,
     borderRadius: 14,
-    background: "linear-gradient(135deg, rgba(193,18,31,0.92), rgba(212,175,55,0.28))",
+    background: `linear-gradient(135deg, ${redAlpha(0.92)}, ${goldAlpha(0.28)})`,
     color: "#fff",
     fontSize: 14,
     fontWeight: 1000,
     cursor: "pointer",
-    boxShadow: "0 14px 34px rgba(193,18,31,0.22)",
+    boxShadow: `0 14px 34px ${redAlpha(0.22)}`,
   },
   ghostHud: {
     position: "absolute",

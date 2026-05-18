@@ -7,7 +7,7 @@ import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale } from "@/lib/i18n";
-import { RED, GOLD , PURPLE} from "@/lib/tokens";
+import { RED, GOLD , PURPLE, redAlpha, goldAlpha} from "@/lib/tokens";
 
 const WEIGHT_CLASSES = [
   { value: "-54", label: "-54kg" },
@@ -344,7 +344,7 @@ export default function EditProfilePage() {
 const styles = {
   page: {
     minHeight: "100vh",
-    background: "radial-gradient(circle at 50% 0%, rgba(193,18,31,0.14), transparent 32%), linear-gradient(180deg, #070707, #0B0B0B)",
+    background: `radial-gradient(circle at 50% 0%, ${redAlpha(0.14)}, transparent 32%), linear-gradient(180deg, #070707, #0B0B0B)`,
     color: "#fff",
     padding: "calc(20px + env(safe-area-inset-top)) 16px 48px",
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -395,9 +395,9 @@ const styles = {
     width: 120,
     height: 120,
     borderRadius: "50%",
-    border: "2.5px solid rgba(212,175,55,0.6)",
+    border: `2.5px solid ${goldAlpha(0.6)}`,
     background: "linear-gradient(145deg, #C1121F, #5b0710)",
-    boxShadow: "0 0 0 6px rgba(193,18,31,0.14), 0 20px 54px rgba(0,0,0,0.4)",
+    boxShadow: `0 0 0 6px ${redAlpha(0.14)}, 0 20px 54px rgba(0,0,0,0.4)`,
     overflow: "hidden",
     cursor: "pointer",
     padding: 0,
@@ -428,8 +428,8 @@ const styles = {
     pointerEvents: "none",
   },
   photoButton: {
-    border: "1px solid rgba(212,175,55,0.28)",
-    background: "rgba(212,175,55,0.08)",
+    border: `1px solid ${goldAlpha(0.28)}`,
+    background: `${goldAlpha(0.08)}`,
     color: GOLD,
     borderRadius: 999,
     padding: "9px 16px",
@@ -536,8 +536,8 @@ const styles = {
   },
   error: {
     color: "#fca5a5",
-    background: "rgba(193,18,31,0.12)",
-    border: "1px solid rgba(193,18,31,0.3)",
+    background: `${redAlpha(0.12)}`,
+    border: `1px solid ${redAlpha(0.3)}`,
     borderRadius: 12,
     padding: "12px 14px",
     fontSize: 13,
@@ -552,7 +552,7 @@ const styles = {
     minHeight: 52,
     fontSize: 15,
     fontWeight: 900,
-    boxShadow: "0 16px 44px rgba(193,18,31,0.24)",
+    boxShadow: `0 16px 44px ${redAlpha(0.24)}`,
     transition: "background 0.3s, box-shadow 0.3s",
     fontFamily: "inherit",
   },

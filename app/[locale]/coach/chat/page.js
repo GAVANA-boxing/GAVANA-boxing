@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
 import { getLocale, translate } from "@/lib/i18n";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
 
 // ─── Persona config ───────────────────────────────────────────────────────────
 const PERSONAS = [
@@ -302,7 +302,7 @@ export default function AIChatPage() {
                       style={{
                         alignSelf: "flex-start", display: "flex", alignItems: "center", gap: 5,
                         padding: "5px 11px", borderRadius: 999,
-                        background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)",
+                        background: `${goldAlpha(0.1)}`, border: `1px solid ${goldAlpha(0.3)}`,
                         color: GOLD, fontSize: 11, fontWeight: 800, cursor: "pointer",
                       }}
                     >
@@ -542,7 +542,7 @@ const s = {
     color: "#fff",
     fontSize: 14,
     lineHeight: 1.5,
-    boxShadow: "0 8px 24px rgba(193,18,31,0.22)",
+    boxShadow: `0 8px 24px ${redAlpha(0.22)}`,
     whiteSpace: "pre-wrap",
   },
   aiBubble: {
