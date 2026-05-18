@@ -496,7 +496,7 @@ export default function TrainPage() {
             recorderRef.current = recorder;
           } catch (err) {
             console.error("MediaRecorder start failed:", err);
-            setError(locale === "mn" ? "Бичлэг эхлүүлэхэд алдаа гарлаа" : locale === "ko" ? "녹화 시작 실패" : "Recording failed to start");
+            setError(t("trainRecordError"));
           }
         }
 
@@ -1051,7 +1051,7 @@ export default function TrainPage() {
                   onClick={() => setCameraRetryKey((k) => k + 1)}
                   style={{ marginTop: 12, padding: "9px 20px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.07)", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer" }}
                 >
-                  {locale === "mn" ? "Дахин оролдох" : locale === "ko" ? "다시 시도" : "Retry camera"}
+                  {t("trainRetryCam")}
                 </button>
               )}
             </div>
@@ -1184,7 +1184,7 @@ export default function TrainPage() {
                         </text>
                       </svg>
                       <span style={styles.weeklyRingLabel}>
-                        {locale === "mn" ? "7 хоног" : locale === "ko" ? "주간" : "Weekly"}
+                        {t("trainWeekly")}
                       </span>
                     </div>
                   );
@@ -1196,7 +1196,7 @@ export default function TrainPage() {
                     {userStreak > 0 ? `🔥 ${userStreak}` : "—"}
                   </span>
                   <span style={styles.preSessionStatLbl}>
-                    {locale === "mn" ? "Дараалал" : locale === "ko" ? "연속" : "Streak"}
+                    {t("profileStatStreak")}
                   </span>
                 </div>
 
@@ -1205,7 +1205,7 @@ export default function TrainPage() {
                   <div style={styles.preSessionStat}>
                     <span style={styles.preSessionStatVal}>{ghostBestScore.toFixed(1)}</span>
                     <span style={styles.preSessionStatLbl}>
-                      {locale === "mn" ? "Хамгийн дээд" : locale === "ko" ? "최고 기록" : "Best"}
+                      {t("trainBest")}
                     </span>
                   </div>
                 )}
@@ -1226,7 +1226,7 @@ export default function TrainPage() {
                       ))}
                     </div>
                     <span style={styles.preSessionStatLbl}>
-                      {locale === "mn" ? "Түүх" : locale === "ko" ? "히스토리" : "History"}
+                      {t("trainHistory")}
                     </span>
                   </div>
                 )}
@@ -1237,19 +1237,19 @@ export default function TrainPage() {
               <div style={styles.contextStatsRow}>
                 {!challengeUserId && ghostBestScore !== null && (
                   <div style={styles.contextStat}>
-                    <span style={styles.contextStatLabel}>👻 {locale === "mn" ? "ХАМГИЙН ДЭЭД" : locale === "ko" ? "최고" : "YOUR BEST"}</span>
+                    <span style={styles.contextStatLabel}>👻 {t("trainYourBest")}</span>
                     <span style={styles.contextStatValue}>{ghostBestScore.toFixed(1)}<span style={styles.contextStatUnit}>/10</span></span>
                   </div>
                 )}
                 {!challengeUserId && targetScore && (
                   <div style={styles.contextStat}>
-                    <span style={styles.contextStatLabel}>🎯 {locale === "mn" ? "ЗОРИЛТ" : locale === "ko" ? "목표" : "TARGET"}</span>
+                    <span style={styles.contextStatLabel}>🎯 {t("trainTarget")}</span>
                     <span style={{ ...styles.contextStatValue, color: "#FDE68A" }}>{targetScore.toFixed(1)}<span style={styles.contextStatUnit}>/10</span></span>
                   </div>
                 )}
                 {challengeUserId && targetScore && (
                   <div style={{ ...styles.contextStat, flex: 1, alignItems: "center" }}>
-                    <span style={styles.contextStatLabel}>🆚 {locale === "mn" ? "ДАВАХ" : locale === "ko" ? "이겨라" : "BEAT"}</span>
+                    <span style={styles.contextStatLabel}>🆚 {t("trainBeat")}</span>
                     <span style={{ ...styles.contextStatValue, color: "#93C5FD", fontSize: 17 }}>
                       {opponentUsername || "Opponent"} · {targetScore.toFixed(1)}/10
                     </span>
@@ -1260,8 +1260,8 @@ export default function TrainPage() {
               !challengeUserId && (
                 <div style={styles.contextEmptyMsg}>
                   {reelId
-                    ? (locale === "mn" ? "Энэ даалгавар дээр анхны оноогоо тавь" : locale === "ko" ? "이 챌린지에서 첫 점수를 기록하세요" : "Set your first score on this challenge")
-                    : (locale === "mn" ? "Дасгалд бэлэн байна" : locale === "ko" ? "훈련 준비 완료" : "Ready to train")}
+                    ? t("trainFirstScore")
+                    : t("trainReadyToTrain")}
                 </div>
               )
             )}
@@ -1391,7 +1391,7 @@ export default function TrainPage() {
                       style={{ marginTop: 12, padding: "8px 18px", borderRadius: 999, border: "1px solid rgba(168,85,247,0.4)", background: "rgba(168,85,247,0.12)", color: "#C084FC", fontSize: 12, fontWeight: 900, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}
                     >
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                      {locale === "mn" ? "Тулааны Reel үзэх" : locale === "ko" ? "매치 릴 보기" : "Watch Match Reel"}
+                      {t("trainWatchMatchReel")}
                     </button>
                   )}
                 </div>
@@ -1400,11 +1400,11 @@ export default function TrainPage() {
               {!challengeUserId && ghostBestScore !== null && (
                 <div style={result.score > ghostBestScore ? styles.newBestCard : styles.vsGhostCard}>
                   {result.score > ghostBestScore && (
-                    <div style={styles.newBestBadge}>🏆 {locale === "mn" ? "Өмнөх оноогоо эвдлээ!" : locale === "ko" ? "새 기록 달성!" : "New personal best!"}</div>
+                    <div style={styles.newBestBadge}>🏆 {t("trainNewBest")}</div>
                   )}
                   <div style={styles.vsCompareRow}>
                     <div style={styles.vsCompareCell}>
-                      <span style={styles.vsCompareLbl}>{locale === "mn" ? "ШИНЭ" : locale === "ko" ? "신기록" : "NEW"}</span>
+                      <span style={styles.vsCompareLbl}>{t("trainNewLabel")}</span>
                       <span style={{ ...styles.vsCompareScore, color: result.score > ghostBestScore ? "#34D399" : "#fff" }}>
                         {result.score.toFixed(1)}
                       </span>
@@ -1413,14 +1413,14 @@ export default function TrainPage() {
                       {result.score >= ghostBestScore ? `+${(result.score - ghostBestScore).toFixed(1)}` : (result.score - ghostBestScore).toFixed(1)}
                     </div>
                     <div style={styles.vsCompareCell}>
-                      <span style={styles.vsCompareLbl}>{locale === "mn" ? "ХАМГИЙН ӨНДӨР" : locale === "ko" ? "최고 기록" : "BEST"}</span>
+                      <span style={styles.vsCompareLbl}>{t("trainBestLabel")}</span>
                       <span style={styles.vsCompareScore}>{ghostBestScore.toFixed(1)}</span>
                     </div>
                   </div>
                   {result.score < ghostBestScore && (
                     <div style={styles.almostMsg}>
                       {(ghostBestScore - result.score) <= 0.5
-                        ? (locale === "mn" ? "🔥 Бараг боллоо — дахин оролдоод давна" : locale === "ko" ? "🔥 거의 다 왔어요 — 다시 도전!" : "🔥 So close — try again!")
+                        ? t("trainSoClose")
                         : (locale === "mn" ? `${(ghostBestScore - result.score).toFixed(1)} оноо дутлаа — дахин оролдоод давна` : locale === "ko" ? `${(ghostBestScore - result.score).toFixed(1)}점 부족 — 다시 도전!` : `${(ghostBestScore - result.score).toFixed(1)} pts away — keep going!`)}
                     </div>
                   )}
@@ -1482,13 +1482,13 @@ export default function TrainPage() {
                 }}>
                   <div style={{ fontSize: 36, marginBottom: 6 }}>🎖️</div>
                   <div style={{ fontSize: 16, fontWeight: 900, color: rankUpInfo.color, marginBottom: 4 }}>
-                    {locale === "mn" ? "ДЭВШЛЭТ!" : locale === "ko" ? "승급!" : "RANK UP!"}
+                    {t("trainRankUp")}
                   </div>
                   <div style={{ fontSize: 13, color: "#fff", fontWeight: 800 }}>
                     {t(rankUpInfo.key)}
                   </div>
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 4 }}>
-                    {locale === "mn" ? "Шинэ дэв авлаа" : locale === "ko" ? "새 등급 달성" : "New rank achieved"}
+                    {t("trainNewRank")}
                   </div>
                 </div>
               )}
@@ -1497,7 +1497,7 @@ export default function TrainPage() {
               {sessionHistory.length > 0 && (
                 <div style={styles.resultSparklineCard}>
                   <p style={styles.resultSparklineTitle}>
-                    {locale === "mn" ? "Сүүлийн дасгалууд" : locale === "ko" ? "최근 세션" : "Recent sessions"}
+                    {t("trainRecentSessions")}
                   </p>
                   <div style={styles.resultSparklineBars}>
                     {[...sessionHistory].reverse().map((s, i, arr) => (

@@ -134,7 +134,7 @@ function CoachCard({ coach, t, locale, onRequest, requested, router }) {
           style={styles.viewProfileBtn}
           onClick={() => router.push(`/${locale}/coach/${coach.id}`)}
         >
-          {locale === "mn" ? "Профайл →" : locale === "ko" ? "프로필 →" : "Profile →"}
+          {t("coachProfileBtn")}
         </button>
         <button
           type="button"
@@ -144,7 +144,7 @@ function CoachCard({ coach, t, locale, onRequest, requested, router }) {
         >
           {requested
             ? t("requestSent")
-            : locale === "mn" ? "Захиалах →" : locale === "ko" ? "예약하기 →" : "Book Session →"}
+            : t("coachBookSession")}
         </button>
       </div>
     </div>
@@ -187,7 +187,7 @@ function MyRequestCard({ req, coachProfile, locale, router }) {
           style={styles.viewProfileBtn}
           onClick={() => router.push(`/${locale}/coach/${req.coachId}`)}
         >
-          {locale === "mn" ? "Coach Profile харах →" : locale === "ko" ? "코치 프로필 보기 →" : "View Coach Profile →"}
+          {t("coachViewProfile")}
         </button>
       )}
     </div>
@@ -398,7 +398,7 @@ export default function CoachPage() {
           { key: "ai", label: t("coachTabAI") },
           { key: "coaches", label: t("coachTabCoaches") },
           { key: "sparring", label: t("coachTabSparring") },
-          { key: "mine", label: locale === "mn" ? "Миний хүсэлт" : locale === "ko" ? "내 요청" : "My Requests" },
+          { key: "mine", label: t("coachFilterMyRequests") },
         ].map(({ key, label }) => (
           <button
             key={key}
@@ -433,7 +433,7 @@ export default function CoachPage() {
               }}
               onClick={() => router.push(`/${locale}/coach/chat`)}
             >
-              💬 {locale === "mn" ? "Бүтэн дэлгэцэн чат нээх" : locale === "ko" ? "전체화면 채팅 열기" : "Open Full-Screen Chat"}
+              💬 {t("coachOpenFullChat")}
             </button>
           </div>
           <AICoach />
@@ -509,9 +509,9 @@ export default function CoachPage() {
           {/* Sort + advanced filter row */}
           <div style={{ display: "flex", gap: 8, marginBottom: 16, alignItems: "center" }}>
             {[
-              { key: "rating", label: locale === "mn" ? "⭐ Рейтинг" : locale === "ko" ? "⭐ 평점" : "⭐ Rating" },
-              { key: "students", label: locale === "mn" ? "👥 Сурагчид" : locale === "ko" ? "👥 학생수" : "👥 Students" },
-              { key: "verified", label: locale === "mn" ? "✓ Баталгаа" : locale === "ko" ? "✓ 인증" : "✓ Verified" },
+              { key: "rating", label: t("coachSortRating") },
+              { key: "students", label: t("coachSortStudents") },
+              { key: "verified", label: t("coachSortVerified") },
             ].map(({ key, label }) => (
               <button
                 key={key}
@@ -579,7 +579,7 @@ export default function CoachPage() {
                   <option value="students">{t("coachSortStudents")}</option>
                   <option value="verified">{t("coachSortVerified")}</option>
                 </select>
-                <button type="button" style={styles.filterSheetDone} onClick={() => setShowCoachFilterSheet(false)}>{locale === "mn" ? "Болсон" : locale === "ko" ? "완료" : "Done"}</button>
+                <button type="button" style={styles.filterSheetDone} onClick={() => setShowCoachFilterSheet(false)}>{t("coachFilterDone")}</button>
               </div>
             </div>
           )}
@@ -686,19 +686,19 @@ export default function CoachPage() {
         <div style={styles.content}>
           <header style={styles.pageHeader}>
             <p style={styles.kicker}>GAVANA BOXING</p>
-            <h1 style={styles.pageTitle}>{locale === "mn" ? "Миний хүсэлтүүд" : locale === "ko" ? "내 요청 목록" : "My Requests"}</h1>
+            <h1 style={styles.pageTitle}>{t("coachMyRequestsTitle")}</h1>
           </header>
 
           {!user?.uid ? (
             <div style={styles.emptyState}>
               <div style={styles.emptyIcon}>🔒</div>
-              <div style={styles.emptyText}>{locale === "mn" ? "Нэвтрэх шаардлагатай" : locale === "ko" ? "로그인이 필요합니다" : "Sign in required"}</div>
+              <div style={styles.emptyText}>{t("coachSignInRequired")}</div>
               <button
                 type="button"
                 onClick={() => router.push(`/${locale}/login`)}
                 style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}
               >
-                {locale === "mn" ? "Нэвтрэх →" : locale === "ko" ? "로그인 →" : "Sign in →"}
+                {t("coachSignInBtn")}
               </button>
             </div>
           ) : myRequestsLoading ? (
@@ -710,16 +710,16 @@ export default function CoachPage() {
           ) : myRequests.length === 0 ? (
             <div style={styles.emptyState}>
               <div style={styles.emptyIcon}>📋</div>
-              <div style={styles.emptyText}>{locale === "mn" ? "Хүсэлт байхгүй байна" : locale === "ko" ? "요청이 없습니다" : "No requests yet"}</div>
+              <div style={styles.emptyText}>{t("coachNoRequests")}</div>
               <p style={{ margin: 0, color: "rgba(255,255,255,0.45)", fontSize: 13, textAlign: "center", maxWidth: 240 }}>
-                {locale === "mn" ? "Coach-той холбогдож хүсэлт илгээгээрэй" : locale === "ko" ? "코치에게 요청을 보내보세요" : "Send a request to a coach to get started"}
+                {t("coachNoRequestsHint")}
               </p>
               <button
                 type="button"
                 onClick={() => setTab("coaches")}
                 style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", marginTop: 4 }}
               >
-                {locale === "mn" ? "Coach хайх →" : locale === "ko" ? "코치 찾기 →" : "Find a Coach →"}
+                {t("coachFindCoach")}
               </button>
             </div>
           ) : (
@@ -753,7 +753,7 @@ export default function CoachPage() {
             <label style={styles.fieldLabel}>{t("weightClass")}</label>
             <input
               type="text"
-              placeholder={locale === "mn" ? "жишээ: Хөнгөн жин, 61 кг" : locale === "ko" ? "예: 라이트급, 61kg" : "e.g. Lightweight, 135 lbs"}
+              placeholder={t("coachWeightPlaceholder")}
               value={sparringForm.weight}
               onChange={(e) => setSparringForm((f) => ({ ...f, weight: e.target.value }))}
               style={styles.fieldInput}
@@ -774,7 +774,7 @@ export default function CoachPage() {
             <label style={styles.fieldLabel}>{t("coachLocation")}</label>
             <input
               type="text"
-              placeholder={locale === "mn" ? "Хот / Жимийн нэр" : locale === "ko" ? "도시 / 체육관 이름" : "City / Gym name"}
+              placeholder={t("coachLocationPlaceholder")}
               value={sparringForm.location}
               onChange={(e) => setSparringForm((f) => ({ ...f, location: e.target.value }))}
               style={styles.fieldInput}
@@ -783,7 +783,7 @@ export default function CoachPage() {
             <label style={styles.fieldLabel}>{t("availableTime")}</label>
             <input
               type="text"
-              placeholder={locale === "mn" ? "жишээ: Амралтын өдрүүд, оройгоор" : locale === "ko" ? "예: 주말, 저녁" : "e.g. Weekends, evenings"}
+              placeholder={t("coachAvailPlaceholder")}
               value={sparringForm.availableTime}
               onChange={(e) => setSparringForm((f) => ({ ...f, availableTime: e.target.value }))}
               style={styles.fieldInput}
@@ -791,7 +791,7 @@ export default function CoachPage() {
 
             <label style={styles.fieldLabel}>{t("sparringNote")}</label>
             <textarea
-              placeholder={locale === "mn" ? "Нэмэлт мэдээлэл..." : locale === "ko" ? "추가 세부 사항..." : "Any additional details…"}
+              placeholder={t("coachNotesPlaceholder")}
               value={sparringForm.note}
               onChange={(e) => setSparringForm((f) => ({ ...f, note: e.target.value }))}
               style={styles.fieldTextarea}
