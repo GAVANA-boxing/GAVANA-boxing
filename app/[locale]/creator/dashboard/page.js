@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { getLocale, translate } from "@/lib/i18n";
 import BottomNav from "@/components/BottomNav";
 import EmptyState from "@/components/EmptyState";
+import SkeletonBlock from "@/components/SkeletonBlock";
 
 function getCreatedAtMs(obj) {
   const ts = obj?.createdAt;
@@ -34,9 +35,6 @@ function StatCard({ label, value, color = "#D4AF37", icon }) {
   );
 }
 
-function SkeletonBlock({ height = 80, radius = 14 }) {
-  return <div className="shimmer" style={{ height, borderRadius: radius, flexShrink: 0 }} />;
-}
 
 function ReelRow({ reel, stats, rank, maxViews, t, locale, router }) {
   const [mediaErr, setMediaErr] = useState(false);

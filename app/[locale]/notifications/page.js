@@ -16,6 +16,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocale, translate } from "@/lib/i18n";
 import BottomNav from "@/components/BottomNav";
+import SkeletonBlock from "@/components/SkeletonBlock";
 
 function getActorName(notification) {
   return notification.fromUsername || notification.actorName || "Someone";
@@ -477,7 +478,7 @@ export default function NotificationsPage() {
         </header>
         <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: 8 }}>
           {[1,2,3,4,5].map((i) => (
-            <div key={i} className="shimmer" style={{ height: 72, borderRadius: 16 }} />
+            <SkeletonBlock key={i} height={72} radius={16} />
           ))}
         </div>
       </div>

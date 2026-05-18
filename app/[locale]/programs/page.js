@@ -11,6 +11,7 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale, translate } from "@/lib/i18n";
 import BottomNav from "@/components/BottomNav";
+import SkeletonBlock from "@/components/SkeletonBlock";
 
 const DEMO_PROGRAMS = [
   {
@@ -91,9 +92,6 @@ function ProgressRing({ pct = 0, size = 56, stroke = 5, color = "#C1121F" }) {
   );
 }
 
-function SkeletonBlock({ height = 80, radius = 14 }) {
-  return <div className="shimmer" style={{ height, borderRadius: radius }} />;
-}
 
 export default function ProgramsPage() {
   const params = useParams();

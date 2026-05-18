@@ -6,6 +6,7 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
+import SkeletonBlock from "@/components/SkeletonBlock";
 import { getLocale, translate } from "@/lib/i18n";
 import { getFighterRank } from "@/lib/xp";
 
@@ -616,7 +617,7 @@ export default function LeaderboardPage() {
         {loading && (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="shimmer" style={{ height: 72, borderRadius: 14, background: "rgba(255,255,255,0.06)" }} />
+              <SkeletonBlock key={i} height={72} radius={14} />
             ))}
           </div>
         )}

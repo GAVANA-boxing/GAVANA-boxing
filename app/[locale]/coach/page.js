@@ -16,6 +16,7 @@ import AICoach from "@/components/AICoach";
 import BottomNav from "@/components/BottomNav";
 import BottomSheet from "@/components/BottomSheet";
 import EmptyState from "@/components/EmptyState";
+import SkeletonBlock from "@/components/SkeletonBlock";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
@@ -589,7 +590,7 @@ export default function CoachPage() {
           {coachesLoading && (
             <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "0 0 12px" }}>
               {[1, 2, 3].map((i) => (
-                <div key={i} className="shimmer" style={{ height: 88, borderRadius: 16, background: "rgba(255,255,255,0.06)" }} />
+                <SkeletonBlock key={i} height={88} radius={16} />
               ))}
             </div>
           )}
@@ -648,7 +649,7 @@ export default function CoachPage() {
           {sparringLoading && (
             <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "0 0 12px" }}>
               {[1, 2, 3].map((i) => (
-                <div key={i} className="shimmer" style={{ height: 88, borderRadius: 16, background: "rgba(255,255,255,0.06)" }} />
+                <SkeletonBlock key={i} height={88} radius={16} />
               ))}
             </div>
           )}
@@ -697,7 +698,7 @@ export default function CoachPage() {
           ) : myRequestsLoading ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "0 0 12px" }}>
               {[1, 2, 3].map((i) => (
-                <div key={i} className="shimmer" style={{ height: 88, borderRadius: 16, background: "rgba(255,255,255,0.06)" }} />
+                <SkeletonBlock key={i} height={88} radius={16} />
               ))}
             </div>
           ) : myRequests.length === 0 ? (

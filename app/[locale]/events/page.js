@@ -19,6 +19,7 @@ import {
 } from "firebase/firestore";
 import BottomNav from "@/components/BottomNav";
 import EmptyState from "@/components/EmptyState";
+import SkeletonBlock from "@/components/SkeletonBlock";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname } from "@/lib/i18n";
@@ -299,7 +300,7 @@ export default function EventsPage() {
         {(authLoading || loading) && (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {[1, 2, 3].map((i) => (
-              <div key={i} className="shimmer" style={{ height: 130, borderRadius: "3px 16px 16px 3px", background: "rgba(255,255,255,0.06)" }} />
+              <SkeletonBlock key={i} height={130} radius="3px 16px 16px 3px" />
             ))}
           </div>
         )}
