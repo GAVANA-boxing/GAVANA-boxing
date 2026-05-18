@@ -153,7 +153,18 @@ function getFallback(locale, messages) {
 }
 
 export async function POST(req) {
-  const { messages, persona = "drill", locale = "en" } = await req.json();
+  let body;
+  try { body = await req.json(); } catch { return Response.json({ error: "Invalid JSON" }, { status: 400 }); }
+  let { messages, persona = "drill", locale = "en" } = body;
+
+  // Cap message history to prevent excessively large Claude context calls
+  const MAX_MESSAGES = 20;
+  const MAX_MSG_LEN = 800;
+  if (!Array.isArray(messages)) messages = [];
+  messages = messages.slice(-MAX_MESSAGES).map((m) => ({
+    ...m,
+    content: typeof m?.content === "string" ? m.content.slice(0, MAX_MSG_LEN) : m?.content,
+  }));
   const safeLocale = getLocale(locale);
   const selectedPersona = PERSONAS[persona] || PERSONAS.drill;
   const languageInstruction = LANGUAGE_INSTRUCTIONS[safeLocale] || LANGUAGE_INSTRUCTIONS.en;

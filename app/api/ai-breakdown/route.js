@@ -236,8 +236,16 @@ Return ONLY valid JSON with exactly these keys, no other text:
 
 export async function POST(req) {
   try {
-    const { reel, locale } = await req.json();
-    if (!reel) return Response.json({ error: "Missing reel" }, { status: 400 });
+    const body = await req.json();
+    const { reel, locale } = body;
+    if (!reel || typeof reel !== "object") return Response.json({ error: "Missing reel" }, { status: 400 });
+
+    // Truncate user-supplied strings to prevent oversized Claude prompts
+    const MAX = 400;
+    if (reel.description) reel.description = String(reel.description).slice(0, MAX);
+    if (reel.caption) reel.caption = String(reel.caption).slice(0, MAX);
+    if (reel.category) reel.category = String(reel.category).slice(0, 80);
+    if (reel.contentType) reel.contentType = String(reel.contentType).slice(0, 80);
 
     if (!process.env.ANTHROPIC_API_KEY) {
       if (!loggedMissingKey) {
