@@ -445,14 +445,14 @@ export default function LeaderboardPage() {
             style={{ ...styles.tabBtn, ...(leaderboardTab === "views" ? styles.tabBtnViews : {}) }}
             onClick={() => setLeaderboardTab("views")}
           >
-            👁 {locale === "mn" ? "Үзэлт" : locale === "ko" ? "조회수" : "Views"}
+            👁 {t("lbViews")}
           </button>
           <button
             type="button"
             style={{ ...styles.tabBtn, ...(leaderboardTab === "likes" ? styles.tabBtnLikes : {}) }}
             onClick={() => setLeaderboardTab("likes")}
           >
-            ❤️ {locale === "mn" ? "Лайк" : locale === "ko" ? "좋아요" : "Likes"}
+            ❤️ {t("lbLikes")}
           </button>
         </div>
         {leaderboardTab === "week" && (
@@ -461,7 +461,7 @@ export default function LeaderboardPage() {
             <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 999, background: "rgba(193,18,31,0.1)", border: "1px solid rgba(193,18,31,0.25)" }}>
               <span style={{ fontSize: 10 }}>⏱</span>
               <span style={{ fontSize: 10, fontWeight: 800, color: "#F87171", letterSpacing: 0.3 }}>
-                {locale === "mn" ? "Шинэчлэгдэнэ: " : locale === "ko" ? "리셋: " : "Resets: "}
+                {t("lbResets")}
                 {weeklyCountdownMs !== null ? formatCountdown(weeklyCountdownMs, locale) : "—"}
               </span>
             </div>
@@ -473,7 +473,7 @@ export default function LeaderboardPage() {
       <div style={styles.filterWrap}>
         <div style={styles.filterRow}>
           {[
-            { key: "all", label: locale === "mn" ? "🥊 Бүгд" : locale === "ko" ? "🥊 전체" : "🥊 All" },
+            { key: "all", label: t("lbAllArchetype") },
             { key: "pressure", label: `${ARCHETYPE_DISPLAY.pressure.emoji} Pressure` },
             { key: "counter",  label: `${ARCHETYPE_DISPLAY.counter.emoji} Counter` },
             { key: "technical",label: `${ARCHETYPE_DISPLAY.technical.emoji} Technical` },
@@ -512,7 +512,7 @@ export default function LeaderboardPage() {
                 ...(weightFilter === wt ? styles.filterChipActiveWeight : {}),
               }}
             >
-              {wt === "all" ? (locale === "mn" ? "Жин бүгд" : locale === "ko" ? "전체 체급" : "All weights") : `${wt}kg`}
+              {wt === "all" ? t("lbAllWeights") : `${wt}kg`}
             </button>
           ))}
         </div>
@@ -541,7 +541,7 @@ export default function LeaderboardPage() {
                   onClick={handleShareRank}
                   style={{ padding: "4px 10px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.3)", background: "rgba(212,175,55,0.08)", color: "#D4AF37", fontSize: 11, fontWeight: 800, cursor: "pointer" }}
                 >
-                  {shareCopied ? "✓" : (locale === "mn" ? "Хуваалцах" : locale === "ko" ? "공유" : "Share")}
+                  {shareCopied ? "✓" : t("lbShare")}
                 </button>
               </div>
             </div>
@@ -567,14 +567,14 @@ export default function LeaderboardPage() {
               if (!topEntry || userScore === null || topScore === null) return null;
               if (topEntry.userId === user?.uid) return (
                 <div style={{ marginTop: 6, fontSize: 11, fontWeight: 800, color: "#D4AF37" }}>
-                  👑 {locale === "mn" ? "Та тэргүүлж байна!" : locale === "ko" ? "1위입니다!" : "You're #1!"}
+                  👑 {t("lbYouAreFirst")}
                 </div>
               );
               const gap = Math.max(0, topScore - userScore).toFixed(1);
               return (
                 <div style={{ marginTop: 6, fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.38)", display: "flex", alignItems: "center", gap: 4 }}>
                   <span style={{ color: "#C1121F", fontWeight: 900 }}>-{gap}</span>
-                  <span>{locale === "mn" ? "1-р байрнаас" : locale === "ko" ? "1위와의 차이" : "pts from #1"}</span>
+                  <span>{t("lbPtsFromFirst")}</span>
                   <span style={{ color: "rgba(255,255,255,0.25)" }}>· #{1}</span>
                   <span style={{ color: "rgba(255,255,255,0.5)" }}>
                     {profiles[topEntry.userId]?.displayName?.split(" ")[0] || profiles[topEntry.userId]?.username || "Fighter"}
@@ -627,12 +627,12 @@ export default function LeaderboardPage() {
             <div style={styles.emptyIcon}>🏆</div>
             <p style={styles.emptyTitle}>
               {archetypeFilter !== "all" || weightFilter !== "all"
-                ? (locale === "mn" ? "Тохирох байлдагч олдсонгүй" : locale === "ko" ? "해당 필터에 선수 없음" : "No fighters match this filter")
+                ? t("lbNoFightersFilter")
                 : leaderboardTab === "week" ? t("seasonNoResultsThisWeek") : leaderboardTab === "improvement" ? t("lbImprovementEmpty") : leaderboardTab === "streak" ? t("lbStreakEmpty") : leaderboardTab === "friends" ? t("followingEmptyHelp") : t("leaderboardEmpty")}
             </p>
             <p style={styles.emptyText}>
               {archetypeFilter !== "all" || weightFilter !== "all"
-                ? (locale === "mn" ? "Шүүлтүүрийг өөрчлөөд дахин үзнэ үү" : locale === "ko" ? "필터를 변경해 보세요" : "Try changing or clearing the filters")
+                ? t("lbNoFightersFilterHint")
                 : t("leaderboardEmptyHelp")}
             </p>
           </div>
@@ -806,14 +806,14 @@ export default function LeaderboardPage() {
                         <div style={{ ...styles.bestScore, color: "#60A5FA" }}>
                           👁 {formatCompact(entry.bestScore)}
                         </div>
-                        <div style={styles.latestScore}>{locale === "mn" ? "нийт үзэлт" : locale === "ko" ? "총 조회수" : "total views"}</div>
+                        <div style={styles.latestScore}>{t("lbTotalViews")}</div>
                       </>
                     ) : leaderboardTab === "likes" ? (
                       <>
                         <div style={{ ...styles.bestScore, color: "#F472B6" }}>
                           ❤️ {formatCompact(entry.bestScore)}
                         </div>
-                        <div style={styles.latestScore}>{locale === "mn" ? "нийт лайк" : locale === "ko" ? "총 좋아요" : "total likes"}</div>
+                        <div style={styles.latestScore}>{t("lbTotalLikes")}</div>
                       </>
                     ) : (
                       <>
@@ -842,7 +842,7 @@ export default function LeaderboardPage() {
                 onClick={() => setVisibleCount((c) => c + 20)}
                 style={{ width: "100%", padding: "14px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.6)", fontSize: 13, fontWeight: 800, cursor: "pointer", marginTop: 4 }}
               >
-                {locale === "mn" ? `Дахин ${Math.min(20, filteredDisplayEntries.length - visibleCount)} байлдагч харах` : locale === "ko" ? `${Math.min(20, filteredDisplayEntries.length - visibleCount)}명 더 보기` : `Load ${Math.min(20, filteredDisplayEntries.length - visibleCount)} more`}
+                {t("lbLoadMore").replace("{n}", Math.min(20, filteredDisplayEntries.length - visibleCount))}
               </button>
             )}
           </div>

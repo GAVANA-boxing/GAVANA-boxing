@@ -57,8 +57,8 @@ function getTypeLabel(type, t, locale = "en") {
   if (type === "booking_scheduled") return t("notifLabelBookingScheduled");
   if (type === "session_completed") return t("notifLabelSessionCompleted");
   if (type === "mention") return t("notifTypeMention");
-  if (type === "sparring_request") return locale === "mn" ? "Sparring хүсэлт" : locale === "ko" ? "스파링 요청" : "Sparring request";
-  if (type === "sparring_accepted") return locale === "mn" ? "Sparring зөвшөөрсөн" : locale === "ko" ? "스파링 수락됨" : "Sparring accepted";
+  if (type === "sparring_request") return t("notifLabelSparringRequest");
+  if (type === "sparring_accepted") return t("notifLabelSparringAccepted");
   if (type === "event_rsvp") return t("notifTypeEventRsvp");
   return t("update");
 }
@@ -133,12 +133,12 @@ function getTimestampMs(timestamp) {
   return Number.isNaN(time) ? 0 : time;
 }
 
-function formatRelativeTime(timestamp, locale = "en") {
+function formatRelativeTime(timestamp, locale = "en", t = (k) => k) {
   const time = getTimestampMs(timestamp);
   if (!time) return "";
 
   const diffSeconds = Math.max(1, Math.floor((Date.now() - time) / 1000));
-  if (diffSeconds < 60) return locale === "mn" ? "одоо" : locale === "ko" ? "방금" : "now";
+  if (diffSeconds < 60) return t("notifNow");
 
   const diffMinutes = Math.floor(diffSeconds / 60);
   if (diffMinutes < 60) return `${diffMinutes}m`;
@@ -147,7 +147,7 @@ function formatRelativeTime(timestamp, locale = "en") {
   if (diffHours < 24) return `${diffHours}h`;
 
   const diffDays = Math.floor(diffHours / 24);
-  if (diffDays === 1) return locale === "mn" ? "Өчигдөр" : locale === "ko" ? "어제" : "Yesterday";
+  if (diffDays === 1) return t("notifYesterday");
   if (diffDays < 7) return `${diffDays}d`;
 
   const d = new Date(time);
@@ -331,7 +331,7 @@ export default function NotificationsPage() {
       await Promise.all(staleReadIds.map((id) => deleteDoc(doc(db, "notifications", id))));
     } catch (e) {
       console.error("Clear read notifications error:", e);
-      showToast(locale === "mn" ? "Арилгахад алдаа гарлаа" : locale === "ko" ? "삭제 실패" : "Failed to clear notifications");
+      showToast(t("notifClearError"));
     } finally {
       setClearing(false);
     }
@@ -344,7 +344,7 @@ export default function NotificationsPage() {
       await Promise.all(unreadIds.map((id) => updateDoc(doc(db, "notifications", id), { read: true })));
     } catch (e) {
       console.error("Mark all read error:", e);
-      showToast(locale === "mn" ? "Уншигдсан болгоход алдаа гарлаа" : locale === "ko" ? "읽음 표시 실패" : "Failed to mark all as read");
+      showToast(t("notifMarkReadError"));
     }
   };
 
@@ -503,10 +503,10 @@ export default function NotificationsPage() {
       <div style={styles.filterBar}>
         <div style={styles.filterChips}>
           {[
-            { key: "all",    label: locale === "mn" ? "Бүгд" : locale === "ko" ? "전체" : "All" },
-            { key: "social", label: locale === "mn" ? "🤝 Нийгмийн" : locale === "ko" ? "🤝 소셜" : "🤝 Social" },
-            { key: "coach",  label: locale === "mn" ? "🥊 Дасгалжуулагч" : locale === "ko" ? "🥊 코치" : "🥊 Coach" },
-            { key: "gym",    label: locale === "mn" ? "🏋️ Gym" : locale === "ko" ? "🏋️ 체육관" : "🏋️ Gym" },
+            { key: "all",    label: t("notifFilterAll") },
+            { key: "social", label: t("notifFilterSocial") },
+            { key: "coach",  label: t("notifFilterCoach") },
+            { key: "gym",    label: t("notifFilterGym") },
           ].map(({ key, label }) => (
             <button
               key={key}
@@ -521,12 +521,12 @@ export default function NotificationsPage() {
         <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
           {unreadCount > 0 && (
             <button type="button" onClick={handleMarkAllRead} style={styles.markReadBtn}>
-              {locale === "mn" ? "Бүгдийг уншсан" : locale === "ko" ? "모두 읽음" : "Mark all read"}
+              {t("notifMarkAllRead")}
             </button>
           )}
           {notifications.some((n) => n.read === true && getTimestampMs(n.createdAt) < Date.now() - 86400000) && (
             <button type="button" onClick={handleClearRead} disabled={clearing} style={styles.clearBtn}>
-              {clearing ? "…" : locale === "mn" ? "Арилгах" : locale === "ko" ? "지우기" : "Clear"}
+              {clearing ? "…" : t("notifClear")}
             </button>
           )}
         </div>
@@ -538,8 +538,8 @@ export default function NotificationsPage() {
             <div style={styles.emptyIcon}>
               <BoxingGloveIcon />
             </div>
-            <p style={styles.emptyTitle}>{filterType === "all" ? t("noNotificationsYet") : locale === "mn" ? "Мэдэгдэл байхгүй" : locale === "ko" ? "알림 없음" : "No notifications"}</p>
-            <p style={styles.emptyText}>{filterType === "all" ? t("notificationsEmptyHelp") : locale === "mn" ? "Энэ ангилалд мэдэгдэл байхгүй байна" : locale === "ko" ? "이 카테고리에 알림이 없습니다" : "No notifications in this category"}</p>
+            <p style={styles.emptyTitle}>{filterType === "all" ? t("noNotificationsYet") : t("notifEmptyFiltered")}</p>
+            <p style={styles.emptyText}>{filterType === "all" ? t("notificationsEmptyHelp") : t("notifEmptyFilteredDesc")}</p>
           </div>
         ) : (
           ["today", "yesterday", "earlier"].map((group) => (
@@ -588,7 +588,7 @@ export default function NotificationsPage() {
                       <div style={styles.notificationBody}>
                         <div style={styles.notificationTopLine}>
                           <span style={styles.username}>{actor}</span>
-                          <span style={styles.date}>{formatRelativeTime(notification.createdAt, locale)}</span>
+                          <span style={styles.date}>{formatRelativeTime(notification.createdAt, locale, t)}</span>
                         </div>
                         <div style={styles.notificationText}>
                           {getTranslatedNotificationText(notification, t)}

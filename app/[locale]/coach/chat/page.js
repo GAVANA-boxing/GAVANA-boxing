@@ -189,7 +189,7 @@ export default function AIChatPage() {
     const start = new Date(now.getTime() + 86400000);
     const end = new Date(start.getTime() + 3600000);
     const fmt = (d) => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-    const summary = locale === "mn" ? "GAVANA Дасгал" : locale === "ko" ? "GAVANA 훈련" : "GAVANA Training";
+    const summary = "GAVANA Training";
     const desc = text.replace(/\n/g, "\\n").slice(0, 200);
     const ics = [
       "BEGIN:VCALENDAR", "VERSION:2.0",
@@ -232,7 +232,7 @@ export default function AIChatPage() {
         </div>
 
         <button type="button" style={s.clearBtn} onClick={clearSession}>
-          {locale === "mn" ? "Арилгах" : locale === "ko" ? "초기화" : "Clear"}
+          {t("coachClearChat")}
         </button>
       </div>
 
@@ -305,7 +305,7 @@ export default function AIChatPage() {
                         color: "#D4AF37", fontSize: 11, fontWeight: 800, cursor: "pointer",
                       }}
                     >
-                      📅 {locale === "mn" ? "Хуанлид нэмэх" : locale === "ko" ? "캘린더에 추가" : "Add to Calendar"}
+                      📅 {t("coachAddCalendar")}
                     </button>
                   )}
                 </div>

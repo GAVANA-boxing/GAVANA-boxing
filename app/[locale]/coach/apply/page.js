@@ -147,7 +147,7 @@ export default function CoachApplyPage() {
           <div style={styles.successCard}>
             <div style={styles.successIcon}>🥊</div>
             <h2 style={styles.successTitle}>{t("verifiedCoach")}</h2>
-            <p style={styles.successDesc}>{locale === "mn" ? "Та GAVANA-д баталгаажсан тренер байна." : locale === "ko" ? "당신은 이미 GAVANA의 인증된 코치입니다." : "You are already a verified coach on GAVANA."}</p>
+            <p style={styles.successDesc}>{t("coachAlreadyVerified")}</p>
             <button type="button" style={styles.submitBtn} onClick={() => router.push(`/${locale}/coach/dashboard`)}>
               {t("coachDashboard")}
             </button>
@@ -297,7 +297,7 @@ export default function CoachApplyPage() {
           </div>
 
           <div style={styles.field}>
-            <label style={styles.fieldLabel}>{locale === "mn" ? "Утасны дугаар" : locale === "ko" ? "전화번호" : "Phone Number"}</label>
+            <label style={styles.fieldLabel}>{t("coachPhoneLabel")}</label>
             <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+976 9999 0000" style={styles.input} />
           </div>
 
