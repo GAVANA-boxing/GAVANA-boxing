@@ -16,6 +16,7 @@ import {
 } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import BottomNav from "@/components/BottomNav";
+import EmptyState from "@/components/EmptyState";
 import { useAuth } from "@/lib/AuthContext";
 import { db, storage } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
@@ -546,10 +547,7 @@ export default function GymDashboardPage() {
         {activeTab === "requests" && (
           <div>
             {joinRequests.length === 0 ? (
-              <div style={styles.emptyState}>
-                <span style={{ fontSize: 44, opacity: 0.7 }}>👥</span>
-                <p style={styles.emptyText}>{t("gymNoJoinRequests")}</p>
-              </div>
+              <EmptyState emoji="👥" title={t("gymNoJoinRequests")} />
             ) : (
               <div style={styles.cardList}>
                 {joinRequests.map((req) => {
@@ -603,12 +601,7 @@ export default function GymDashboardPage() {
         {activeTab === "members" && (
           <div>
             {members.length === 0 ? (
-              <div style={styles.emptyState}>
-                <span style={{ fontSize: 44, opacity: 0.7 }}>👥</span>
-                <p style={styles.emptyText}>
-                  {t("gymDashNoMembers")}
-                </p>
-              </div>
+              <EmptyState emoji="👥" title={t("gymDashNoMembers")} />
             ) : (
               <div style={styles.cardList}>
                 {members.map((mem) => {
@@ -654,18 +647,16 @@ export default function GymDashboardPage() {
 
         {/* Sessions */}
         {activeTab === "sessions" && (
-          <div style={styles.emptyState}>
-            <span style={{ fontSize: 48, opacity: 0.5 }}>📅</span>
-            <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#fff" }}>
-              {t("gymDashSessionSchedule")}
-            </p>
-            <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.45)", textAlign: "center", maxWidth: 280, lineHeight: 1.6 }}>
-              {t("gymDashSessionHint")}
-            </p>
-            <button type="button" style={{ padding: "11px 24px", borderRadius: 999, border: "none", background: "linear-gradient(135deg,#C1121F,#7d0812)", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", marginTop: 4 }} onClick={() => router.push(`/${locale}/coach`)}>
-              {t("gymDashFindCoaches")}
-            </button>
-          </div>
+          <EmptyState
+            emoji="📅"
+            title={t("gymDashSessionSchedule")}
+            hint={t("gymDashSessionHint")}
+            action={
+              <button type="button" style={{ padding: "11px 24px", borderRadius: 999, border: "none", background: "linear-gradient(135deg,#C1121F,#7d0812)", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", marginTop: 4 }} onClick={() => router.push(`/${locale}/coach`)}>
+                {t("gymDashFindCoaches")}
+              </button>
+            }
+          />
         )}
 
         {/* Announcements */}
@@ -768,8 +759,6 @@ const styles = {
   tabs: { display: "flex", gap: 8, marginBottom: 16 },
   tab: { flex: 1, padding: "10px 0", borderRadius: 10, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.65)", fontSize: 13, fontWeight: 700, cursor: "pointer" },
   tabActive: { flex: 1, padding: "10px 0", borderRadius: 10, border: "1px solid rgba(212,175,55,0.4)", background: "rgba(212,175,55,0.1)", color: "#D4AF37", fontSize: 13, fontWeight: 900, cursor: "pointer", boxShadow: "inset 0 -2px 0 #D4AF37" },
-  emptyState: { display: "flex", flexDirection: "column", alignItems: "center", gap: 10, padding: "50px 0", textAlign: "center" },
-  emptyText: { margin: 0, fontSize: 14, color: "rgba(255,255,255,0.55)" },
   cardList: { display: "flex", flexDirection: "column", gap: 10 },
   requestCard: { borderRadius: 14, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "14px" },
   memberCard: { borderRadius: 14, border: "1px solid rgba(52,211,153,0.12)", background: "rgba(52,211,153,0.04)", padding: "14px" },

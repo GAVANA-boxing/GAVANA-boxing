@@ -15,6 +15,7 @@ import {
 import AICoach from "@/components/AICoach";
 import BottomNav from "@/components/BottomNav";
 import BottomSheet from "@/components/BottomSheet";
+import EmptyState from "@/components/EmptyState";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
@@ -594,20 +595,16 @@ export default function CoachPage() {
           )}
 
           {!coachesLoading && filteredCoaches.length === 0 && (
-            <div style={styles.emptyState}>
-              <div style={styles.emptyIcon}>🥊</div>
-              <div style={styles.emptyText}>{t("coachNoCoaches")}</div>
-              <p style={{ margin: "4px 0 16px", color: "rgba(255,255,255,0.55)", fontSize: 13, textAlign: "center", maxWidth: 260 }}>
-                {t("coachNoCoachesSub")}
-              </p>
-              <button
-                type="button"
-                onClick={() => router.push(`/${locale}/coach/apply`)}
-                style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}
-              >
-                {t("becomeCoach")}
-              </button>
-            </div>
+            <EmptyState
+              emoji="🥊"
+              title={t("coachNoCoaches")}
+              hint={t("coachNoCoachesSub")}
+              action={
+                <button type="button" onClick={() => router.push(`/${locale}/coach/apply`)} style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}>
+                  {t("becomeCoach")}
+                </button>
+              }
+            />
           )}
 
           <div style={styles.cardList}>
@@ -657,10 +654,7 @@ export default function CoachPage() {
           )}
 
           {!sparringLoading && sparringPosts.length === 0 && (
-            <div style={styles.emptyState}>
-              <div style={styles.emptyIcon}>🥊</div>
-              <div style={styles.emptyText}>{t("sparringNoPosts")}</div>
-            </div>
+            <EmptyState emoji="🥊" title={t("sparringNoPosts")} />
           )}
 
           <div style={styles.cardList}>
@@ -691,17 +685,15 @@ export default function CoachPage() {
           </header>
 
           {!user?.uid ? (
-            <div style={styles.emptyState}>
-              <div style={styles.emptyIcon}>🔒</div>
-              <div style={styles.emptyText}>{t("coachSignInRequired")}</div>
-              <button
-                type="button"
-                onClick={() => router.push(`/${locale}/login`)}
-                style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}
-              >
-                {t("coachSignInBtn")}
-              </button>
-            </div>
+            <EmptyState
+              emoji="🔒"
+              title={t("coachSignInRequired")}
+              action={
+                <button type="button" onClick={() => router.push(`/${locale}/login`)} style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}>
+                  {t("coachSignInBtn")}
+                </button>
+              }
+            />
           ) : myRequestsLoading ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "0 0 12px" }}>
               {[1, 2, 3].map((i) => (
@@ -709,20 +701,16 @@ export default function CoachPage() {
               ))}
             </div>
           ) : myRequests.length === 0 ? (
-            <div style={styles.emptyState}>
-              <div style={styles.emptyIcon}>📋</div>
-              <div style={styles.emptyText}>{t("coachNoRequests")}</div>
-              <p style={{ margin: 0, color: "rgba(255,255,255,0.45)", fontSize: 13, textAlign: "center", maxWidth: 240 }}>
-                {t("coachNoRequestsHint")}
-              </p>
-              <button
-                type="button"
-                onClick={() => setTab("coaches")}
-                style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", marginTop: 4 }}
-              >
-                {t("coachFindCoach")}
-              </button>
-            </div>
+            <EmptyState
+              emoji="📋"
+              title={t("coachNoRequests")}
+              hint={t("coachNoRequestsHint")}
+              action={
+                <button type="button" onClick={() => setTab("coaches")} style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", marginTop: 4 }}>
+                  {t("coachFindCoach")}
+                </button>
+              }
+            />
           ) : (
             <div style={styles.cardList}>
               {myRequests.map((req) => (
@@ -1291,23 +1279,6 @@ const styles = {
     padding: "40px 0",
     color: "rgba(255,255,255,0.62)",
     fontSize: 14,
-  },
-  emptyState: {
-    textAlign: "center",
-    padding: "48px 0",
-    display: "flex",
-    flexDirection: "column",
-    gap: 10,
-    alignItems: "center",
-  },
-  emptyIcon: {
-    fontSize: 40,
-    opacity: 0.4,
-  },
-  emptyText: {
-    color: "rgba(255,255,255,0.62)",
-    fontSize: 15,
-    fontWeight: 700,
   },
   fieldLabel: {
     fontSize: 11,

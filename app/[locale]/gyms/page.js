@@ -13,6 +13,7 @@ import {
   where,
 } from "firebase/firestore";
 import BottomNav from "@/components/BottomNav";
+import EmptyState from "@/components/EmptyState";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
@@ -317,36 +318,30 @@ export default function GymsPage() {
             </div>
 
             {!user?.uid ? (
-              <div style={styles.emptyState}>
-                <div style={{ fontSize: 40, opacity: 0.4 }}>🔒</div>
-                <p style={styles.emptyText}>{t("gymLoginRequired")}</p>
-                <button
-                  type="button"
-                  onClick={() => router.push(`/${locale}/login`)}
-                  style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}
-                >
-                  {t("gymLoginBtn")}
-                </button>
-              </div>
+              <EmptyState
+                emoji="🔒"
+                title={t("gymLoginRequired")}
+                action={
+                  <button type="button" onClick={() => router.push(`/${locale}/login`)} style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}>
+                    {t("gymLoginBtn")}
+                  </button>
+                }
+              />
             ) : myMembershipsLoading ? (
               <div style={styles.skeletonList}>
                 {[0, 1].map((i) => <div key={i} style={styles.skeletonCard} className="sk-pulse" />)}
               </div>
             ) : myMemberships.length === 0 && !ownedGym ? (
-              <div style={styles.emptyState}>
-                <div style={{ fontSize: 40, opacity: 0.4 }}>🏋️</div>
-                <p style={styles.emptyText}>{t("gymNotMember")}</p>
-                <p style={{ margin: 0, color: "rgba(255,255,255,0.45)", fontSize: 13, textAlign: "center", maxWidth: 240 }}>
-                  {t("gymJoinHint")}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setTab("all")}
-                  style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", marginTop: 4 }}
-                >
-                  {t("gymFindBtn")}
-                </button>
-              </div>
+              <EmptyState
+                emoji="🏋️"
+                title={t("gymNotMember")}
+                hint={t("gymJoinHint")}
+                action={
+                  <button type="button" onClick={() => setTab("all")} style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", marginTop: 4 }}>
+                    {t("gymFindBtn")}
+                  </button>
+                }
+              />
             ) : (
               <div style={styles.cardList}>
                 {ownedGym && (
@@ -560,20 +555,16 @@ export default function GymsPage() {
             {[0, 1, 2].map((i) => <div key={i} style={styles.skeletonCard} className="sk-pulse" />)}
           </div>
         ) : filtered.length === 0 ? (
-          <div style={styles.emptyState}>
-            <div style={{ fontSize: 44, opacity: 0.5 }}>🏋️</div>
-            <p style={styles.emptyText}>{t("gymsNoGyms")}</p>
-            <p style={{ margin: "-4px 0 16px", color: "rgba(255,255,255,0.55)", fontSize: 13, textAlign: "center", maxWidth: 260 }}>
-              {t("gymsNoGymsSub")}
-            </p>
-            <button
-              type="button"
-              onClick={() => router.push(`/${locale}/gyms/dashboard`)}
-              style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}
-            >
-              + {t("gymsRegister")}
-            </button>
-          </div>
+          <EmptyState
+            emoji="🏋️"
+            title={t("gymsNoGyms")}
+            hint={t("gymsNoGymsSub")}
+            action={
+              <button type="button" onClick={() => router.push(`/${locale}/gyms/dashboard`)} style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}>
+                + {t("gymsRegister")}
+              </button>
+            }
+          />
         ) : (
           <div style={styles.cardList}>
             {filtered.map((gym) => (
@@ -636,8 +627,6 @@ const styles = {
   loadingText: { textAlign: "center", padding: "60px 0", color: "rgba(255,255,255,0.55)", fontSize: 14 },
   skeletonList: { display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 },
   skeletonCard: { height: 200, borderRadius: 16, background: "rgba(255,255,255,0.06)" },
-  emptyState: { display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "60px 24px", textAlign: "center" },
-  emptyText: { margin: 0, color: "rgba(255,255,255,0.62)", fontSize: 15 },
   cardList: { display: "flex", flexDirection: "column", gap: 12 },
   card: { borderRadius: 16, border: "1px solid rgba(255,255,255,0.08)", background: "linear-gradient(145deg, #131313, #0a0a0a)", overflow: "hidden", cursor: "pointer", boxShadow: "0 4px 20px rgba(0,0,0,0.3)" },
   cardImageWrap: { position: "relative", height: 100, background: "radial-gradient(ellipse at 50% 0%, rgba(193,18,31,0.18) 0%, transparent 60%), linear-gradient(160deg, #141010, #0d0d0d)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" },

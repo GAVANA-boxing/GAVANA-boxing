@@ -16,6 +16,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
+import EmptyState from "@/components/EmptyState";
 
 const WEIGHT_CLASSES = [
   "Mini Flyweight (49kg)", "Light Flyweight (49kg)", "Flyweight (52kg)",
@@ -389,12 +390,7 @@ export default function OnboardingPage() {
                 {[0, 1, 2].map((i) => <div key={i} style={s.gymSkeleton} />)}
               </div>
             ) : gyms.length === 0 ? (
-              <div style={s.emptyState}>
-                <span style={{ fontSize: 36, opacity: 0.4 }}>🏋️</span>
-                <p style={s.emptyText}>
-                  {t("onboardingNoGyms")}
-                </p>
-              </div>
+              <EmptyState emoji="🏋️" title={t("onboardingNoGyms")} />
             ) : (
               <div style={s.gymList}>
                 {gyms.map((gym) => {
@@ -544,8 +540,6 @@ const s = {
   successBanner: { background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.25)", borderRadius: 12, padding: "10px 14px", fontSize: 13, fontWeight: 800, color: "#34D399", marginBottom: 14 },
   gymList: { display: "flex", flexDirection: "column", gap: 8, marginBottom: 18 },
   gymSkeleton: { height: 64, borderRadius: 14, background: "rgba(255,255,255,0.04)" },
-  emptyState: { textAlign: "center", padding: "36px 0 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: 8 },
-  emptyText: { margin: 0, fontSize: 13, color: "rgba(255,255,255,0.38)" },
   gymCard: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "12px 14px", borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" },
   gymCardLeft: { display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 },
   gymLogo: { width: 40, height: 40, borderRadius: 10, objectFit: "cover", flexShrink: 0 },

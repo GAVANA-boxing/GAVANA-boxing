@@ -7,6 +7,7 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale, translate } from "@/lib/i18n";
 import BottomNav from "@/components/BottomNav";
+import EmptyState from "@/components/EmptyState";
 
 function getCreatedAtMs(obj) {
   const ts = obj?.createdAt;
@@ -383,12 +384,14 @@ export default function CreatorDashboard() {
           {/* ══ REELS TAB ══ */}
           {activeTab === "reels" && (<>
             {reels.length === 0 ? (
-              <div style={styles.emptyState}>
-                <p style={styles.emptyText}>{t("creatorNoReels")}</p>
-                <button type="button" style={styles.uploadBtn} onClick={() => router.push(`/${locale}/upload`)}>
-                  {t("creatorGoUpload")}
-                </button>
-              </div>
+              <EmptyState
+                title={t("creatorNoReels")}
+                action={
+                  <button type="button" style={styles.uploadBtn} onClick={() => router.push(`/${locale}/upload`)}>
+                    {t("creatorGoUpload")}
+                  </button>
+                }
+              />
             ) : (<>
               <section style={styles.section}>
                 <h2 style={styles.sectionTitle}>📈 {t("creatorPerformance")} · {reels.length} reels</h2>
@@ -460,10 +463,7 @@ export default function CreatorDashboard() {
             )}
 
             {externalAttempts.length === 0 && followerCount === 0 && (
-              <div style={styles.emptyState}>
-                <p style={{ ...styles.emptyText, fontSize: 32 }}>👥</p>
-                <p style={styles.emptyText}>{t("creatorNoAudience")}</p>
-              </div>
+              <EmptyState emoji="👥" title={t("creatorNoAudience")} />
             )}
           </>)}
 
@@ -729,19 +729,6 @@ const styles = {
     fontSize: 11,
     color: "#666",
     fontWeight: 700,
-  },
-  emptyState: {
-    textAlign: "center",
-    padding: "40px 20px",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 16,
-  },
-  emptyText: {
-    margin: 0,
-    color: "#666",
-    fontSize: 14,
   },
   uploadBtn: {
     padding: "12px 28px",

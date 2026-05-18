@@ -18,6 +18,7 @@ import {
   where,
 } from "firebase/firestore";
 import BottomNav from "@/components/BottomNav";
+import EmptyState from "@/components/EmptyState";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname } from "@/lib/i18n";
@@ -304,13 +305,11 @@ export default function EventsPage() {
         )}
 
         {!loading && filteredEvents.length === 0 ? (
-          <div style={s.emptyState}>
-            <span style={{ fontSize: 44, opacity: 0.35 }}>🏆</span>
-            <p style={s.emptyTitle}>
-              {tab === "mine" ? t("eventNoMine") : tab === "upcoming" ? t("eventNoUpcoming") : t("eventNone")}
-            </p>
-            <p style={s.emptyText}>{t("eventCreateHint")}</p>
-          </div>
+          <EmptyState
+            emoji="🏆"
+            title={tab === "mine" ? t("eventNoMine") : tab === "upcoming" ? t("eventNoUpcoming") : t("eventNone")}
+            hint={t("eventCreateHint")}
+          />
         ) : !loading ? (
           <div style={s.eventList}>
             {(tab === "all" ? [
@@ -434,9 +433,6 @@ const s = {
   typeFilters: { display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4, marginBottom: 14, scrollbarWidth: "none" },
   typePill: { padding: "5px 12px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 },
   typePillActive: { padding: "5px 12px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.4)", background: "rgba(212,175,55,0.12)", color: "#D4AF37", fontSize: 11, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 },
-  emptyState: { display: "flex", flexDirection: "column", alignItems: "center", gap: 10, padding: "60px 0", textAlign: "center" },
-  emptyTitle: { margin: 0, fontSize: 15, fontWeight: 800, color: "rgba(255,255,255,0.55)" },
-  emptyText: { margin: 0, fontSize: 13, color: "rgba(255,255,255,0.35)" },
   eventList: { display: "flex", flexDirection: "column", gap: 12 },
   eventCard: { background: "linear-gradient(145deg, #111012, #0a0a0a)", border: "1px solid rgba(255,255,255,0.07)", borderLeft: "2.5px solid #C1121F", borderRadius: "3px 16px 16px 3px", padding: "14px 16px", cursor: "pointer", transition: "border-color 0.2s" },
   eventCardTop: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
