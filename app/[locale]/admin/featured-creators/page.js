@@ -17,6 +17,7 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale, translate } from "@/lib/i18n";
 import { createFeaturedNotification } from "@/lib/notifications";
+import { RED, GOLD } from "@/lib/tokens";
 
 export default function AdminFeaturedCreatorsPage() {
   const params = useParams();
@@ -303,7 +304,7 @@ const styles = {
   backLink: {
     background: "none",
     border: "none",
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 22,
     cursor: "pointer",
     padding: "4px 0",
@@ -312,7 +313,7 @@ const styles = {
   },
   kicker: {
     margin: 0,
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 11,
     fontWeight: 900,
     letterSpacing: 2,
@@ -338,7 +339,7 @@ const styles = {
     fontWeight: 900,
     letterSpacing: 1,
     textTransform: "uppercase",
-    color: "#D4AF37",
+    color: GOLD,
   },
   searchRow: {
     display: "flex",
@@ -361,7 +362,7 @@ const styles = {
     padding: "0 18px",
     borderRadius: 12,
     border: "none",
-    background: "#C1121F",
+    background: RED,
     color: "#fff",
     fontSize: 14,
     fontWeight: 800,
@@ -418,7 +419,7 @@ const styles = {
   },
   checkmark: {
     marginLeft: "auto",
-    color: "#D4AF37",
+    color: GOLD,
     fontWeight: 900,
     fontSize: 16,
   },
@@ -450,7 +451,7 @@ const styles = {
     padding: "11px 0",
     borderRadius: 12,
     border: "none",
-    background: "#D4AF37",
+    background: GOLD,
     color: "#000",
     fontSize: 14,
     fontWeight: 900,

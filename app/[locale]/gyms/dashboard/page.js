@@ -20,6 +20,7 @@ import EmptyState from "@/components/EmptyState";
 import { useAuth } from "@/lib/AuthContext";
 import { db, storage } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
+import { RED, GOLD } from "@/lib/tokens";
 
 function getCompleteness(gym) {
   if (!gym) return 0;
@@ -467,7 +468,7 @@ export default function GymDashboardPage() {
           {(() => {
             const pct = getCompleteness(gym);
             const label = t("gymDashProfileComplete");
-            const color = pct >= 80 ? "#34D399" : pct >= 50 ? "#D4AF37" : "#C1121F";
+            const color = pct >= 80 ? "#34D399" : pct >= 50 ? GOLD : RED;
             return (
               <div style={{ marginTop: 12, background: "rgba(255,255,255,0.04)", borderRadius: 12, padding: "10px 14px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
@@ -504,7 +505,7 @@ export default function GymDashboardPage() {
             <span style={styles.statLbl}>{t("gymRating")}</span>
           </button>
           <div style={styles.statDivider} />
-          <button type="button" style={{ ...styles.statCellBtn, ...(joinRequests.length > 0 ? { color: "#C1121F" } : {}) }} onClick={() => setActiveTab("requests")}>
+          <button type="button" style={{ ...styles.statCellBtn, ...(joinRequests.length > 0 ? { color: RED } : {}) }} onClick={() => setActiveTab("requests")}>
             <span style={{ ...styles.statNum, ...(joinRequests.length > 0 ? { color: "#F87171" } : {}) }}>{joinRequests.length}</span>
             <span style={styles.statLbl}>{t("gymJoinRequests")}</span>
           </button>
@@ -529,7 +530,7 @@ export default function GymDashboardPage() {
                 <span style={{
                   position: "absolute", top: -4, right: -4,
                   minWidth: 16, height: 16, borderRadius: 99,
-                  background: "#C1121F", color: "#fff",
+                  background: RED, color: "#fff",
                   fontSize: 9, fontWeight: 900,
                   display: "flex", alignItems: "center", justifyContent: "center",
                   padding: "0 4px", lineHeight: 1,
@@ -727,7 +728,7 @@ const styles = {
   backBtn: { background: "none", border: "none", color: "rgba(255,255,255,0.65)", fontSize: 14, cursor: "pointer", padding: "16px 0", display: "block" },
   pageHeader: { textAlign: "center", paddingBottom: 20 },
   dashHeader: { paddingTop: "calc(18px + env(safe-area-inset-top))", paddingBottom: 16 },
-  kicker: { margin: "0 0 4px", fontSize: 11, letterSpacing: 2, color: "#D4AF37", textTransform: "uppercase", fontWeight: 900 },
+  kicker: { margin: "0 0 4px", fontSize: 11, letterSpacing: 2, color: GOLD, textTransform: "uppercase", fontWeight: 900 },
   title: { margin: "0 0 4px", fontSize: 26, fontWeight: 1000, lineHeight: 1.1 },
   subtitle: { margin: 0, fontSize: 14, color: "rgba(255,255,255,0.65)" },
   logoSection: { display: "flex", flexDirection: "column", alignItems: "center", gap: 10, marginBottom: 20 },
@@ -744,7 +745,7 @@ const styles = {
   pillBtn: { padding: "5px 12px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.12)", background: "transparent", color: "rgba(255,255,255,0.55)", fontSize: 12, fontWeight: 700, cursor: "pointer" },
   pillActive: { padding: "5px 12px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.5)", background: "rgba(193,18,31,0.15)", color: "#F87171", fontSize: 12, fontWeight: 700, cursor: "pointer" },
   progressWrap: { height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 2, marginBottom: 14, overflow: "hidden" },
-  progressBar: { height: "100%", background: "#C1121F", borderRadius: 2, transition: "width 0.2s" },
+  progressBar: { height: "100%", background: RED, borderRadius: 2, transition: "width 0.2s" },
   submitBtn: { width: "100%", padding: "15px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#C1121F,#7d0812)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer" },
   submitBtnDisabled: { width: "100%", padding: "15px", borderRadius: 12, border: "none", background: "rgba(193,18,31,0.35)", color: "rgba(255,255,255,0.65)", fontSize: 15, fontWeight: 900, cursor: "not-allowed" },
   successCard: { display: "flex", flexDirection: "column", alignItems: "center", gap: 16, padding: "60px 24px", textAlign: "center" },
@@ -757,7 +758,7 @@ const styles = {
   statDivider: { width: 1, background: "rgba(255,255,255,0.07)", alignSelf: "stretch" },
   tabs: { display: "flex", gap: 8, marginBottom: 16 },
   tab: { flex: 1, padding: "10px 0", borderRadius: 10, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.65)", fontSize: 13, fontWeight: 700, cursor: "pointer" },
-  tabActive: { flex: 1, padding: "10px 0", borderRadius: 10, border: "1px solid rgba(212,175,55,0.4)", background: "rgba(212,175,55,0.1)", color: "#D4AF37", fontSize: 13, fontWeight: 900, cursor: "pointer", boxShadow: "inset 0 -2px 0 #D4AF37" },
+  tabActive: { flex: 1, padding: "10px 0", borderRadius: 10, border: "1px solid rgba(212,175,55,0.4)", background: "rgba(212,175,55,0.1)", color: GOLD, fontSize: 13, fontWeight: 900, cursor: "pointer", boxShadow: "inset 0 -2px 0 #D4AF37" },
   cardList: { display: "flex", flexDirection: "column", gap: 10 },
   requestCard: { borderRadius: 14, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "14px" },
   memberCard: { borderRadius: 14, border: "1px solid rgba(52,211,153,0.12)", background: "rgba(52,211,153,0.04)", padding: "14px" },
@@ -779,7 +780,7 @@ const styles = {
   annList: { display: "flex", flexDirection: "column", gap: 8 },
   sectionLabel: { margin: "0 0 8px", fontSize: 11, color: "rgba(255,255,255,0.55)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 },
   annCard: { borderRadius: 12, border: "1px solid rgba(212,175,55,0.15)", background: "rgba(212,175,55,0.05)", padding: "12px 14px" },
-  annTitle: { margin: "0 0 4px", fontSize: 14, fontWeight: 900, color: "#D4AF37" },
+  annTitle: { margin: "0 0 4px", fontSize: 14, fontWeight: 900, color: GOLD },
   annBody: { margin: 0, fontSize: 13, color: "rgba(255,255,255,0.6)" },
   errorText: { margin: 0, fontSize: 13, color: "#F87171" },
   successText: { margin: 0, fontSize: 13, color: "#34D399", fontWeight: 700 },

@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocale, translate } from "@/lib/i18n";
 import { getCurrentSeasonId, getSeasonLabel } from "@/lib/season";
+import { RED, GOLD } from "@/lib/tokens";
 
 const CHALLENGES = [
   { id: "jab-minute",   titleKey: "challengeJabTitle",   descKey: "challengeJabDesc",   emoji: "🥊" },
@@ -385,7 +386,7 @@ export default function ChallengesPage() {
         {seasonTab === "week" && (
           <div style={{ ...styles.seasonLabel, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 2px" }}>
             <span style={styles.seasonLabelText}>🗓 {seasonLabel}</span>
-            <span style={{ fontSize: 11, fontWeight: 900, color: "#D4AF37", fontVariantNumeric: "tabular-nums", letterSpacing: 0.5 }}>
+            <span style={{ fontSize: 11, fontWeight: 900, color: GOLD, fontVariantNumeric: "tabular-nums", letterSpacing: 0.5 }}>
               ⏱ {countdown}
             </span>
           </div>
@@ -464,7 +465,7 @@ export default function ChallengesPage() {
                         const displayName = isCurrentUser ? t("challengeYou") : profile.name || t("fighter");
                         const initial = (displayName || "F").charAt(0).toUpperCase();
                         const rankLetter = result.rank || getChallengeRank(result.score);
-                        const rankColor = rankLetter === "S" ? "#D4AF37" : rankLetter === "A" ? "#60A5FA" : rankLetter === "B" ? "#A78BFA" : rankLetter === "C" ? "#34D399" : "#888";
+                        const rankColor = rankLetter === "S" ? GOLD : rankLetter === "A" ? "#60A5FA" : rankLetter === "B" ? "#A78BFA" : rankLetter === "C" ? "#34D399" : "#888";
 
                         return (
                           <div
@@ -555,7 +556,7 @@ const styles = {
     gap: 14,
   },
   header: { display: "grid", gap: 8 },
-  kicker: { margin: 0, color: "#D4AF37", fontSize: 11, fontWeight: 950, letterSpacing: 2 },
+  kicker: { margin: 0, color: GOLD, fontSize: 11, fontWeight: 950, letterSpacing: 2 },
   title: { margin: 0, fontSize: 38, lineHeight: 1, fontWeight: 1000, fontFamily: "var(--font-display, 'Anton', sans-serif)" },
   subtitle: { margin: 0, color: "rgba(255,255,255,0.66)", fontSize: 14, lineHeight: 1.45 },
   streakPill: {
@@ -623,7 +624,7 @@ const styles = {
   },
   champBannerTitle: {
     margin: 0,
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 11,
     fontWeight: 950,
     letterSpacing: 1.5,
@@ -639,7 +640,7 @@ const styles = {
   champInfo: { display: "grid", gap: 2, flex: 1, minWidth: 0 },
   champName: { fontSize: 13, fontWeight: 900, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
   champChallenge: { fontSize: 10, color: "#888", fontWeight: 700 },
-  champScore: { fontSize: 14, fontWeight: 1000, color: "#D4AF37", flexShrink: 0 },
+  champScore: { fontSize: 14, fontWeight: 1000, color: GOLD, flexShrink: 0 },
   yourRankBar: {
     position: "sticky",
     top: "calc(62px + env(safe-area-inset-top))",
@@ -663,7 +664,7 @@ const styles = {
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 12,
     fontWeight: 900,
   },
@@ -696,7 +697,7 @@ const styles = {
   leaderboard: { marginTop: 16, display: "grid", gap: 9 },
   leaderboardTitle: {
     margin: 0,
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 11,
     fontWeight: 950,
     letterSpacing: 1.4,
@@ -729,7 +730,7 @@ const styles = {
     fontWeight: 800,
     textAlign: "center",
   },
-  rankNum: { color: "#D4AF37", fontSize: 18, fontWeight: 950, textAlign: "center" },
+  rankNum: { color: GOLD, fontSize: 18, fontWeight: 950, textAlign: "center" },
   fighterCell: { minWidth: 0, display: "flex", alignItems: "center", gap: 9 },
   avatar: {
     width: 26,
@@ -759,5 +760,5 @@ const styles = {
   resultMeta: { color: "rgba(255,255,255,0.52)", fontSize: 11, fontWeight: 850 },
   scoreStack: { display: "grid", justifyItems: "end", gap: 4 },
   scoreValue: { color: "#fff", fontSize: 16, fontWeight: 1000, textShadow: "0 0 18px rgba(212,175,55,0.3)" },
-  xpValue: { color: "#D4AF37", fontSize: 11, fontWeight: 950 },
+  xpValue: { color: GOLD, fontSize: 11, fontWeight: 950 },
 };

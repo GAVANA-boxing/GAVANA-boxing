@@ -17,6 +17,7 @@ import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import EmptyState from "@/components/EmptyState";
+import { RED, GOLD } from "@/lib/tokens";
 
 const WEIGHT_CLASSES = [
   "Mini Flyweight (49kg)", "Light Flyweight (49kg)", "Flyweight (52kg)",
@@ -187,7 +188,7 @@ export default function OnboardingPage() {
               style={{
                 ...s.progressSeg,
                 background: n < (role === "fighter" ? step : step >= 4 ? TOTAL_STEPS : 0)
-                  ? "#C1121F"
+                  ? RED
                   : "rgba(255,255,255,0.1)",
                 boxShadow: n === (role === "fighter" ? step - 1 : step >= 4 ? TOTAL_STEPS - 1 : -1)
                   ? "0 0 10px rgba(193,18,31,0.6)"
@@ -346,7 +347,7 @@ export default function OnboardingPage() {
                       </div>
                     </div>
                     {isSelected && (
-                      <div style={{ width: 20, height: 20, borderRadius: "50%", background: "#C1121F", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <div style={{ width: 20, height: 20, borderRadius: "50%", background: RED, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                       </div>
                     )}
@@ -445,7 +446,7 @@ export default function OnboardingPage() {
                 {t("onboardingWelcome")}
               </h1>
               {role === "coach" && (
-                <p style={{ ...s.archetypeNameLarge, color: "#D4AF37" }}>🎓 {t("onboardingRoleCoach")}</p>
+                <p style={{ ...s.archetypeNameLarge, color: GOLD }}>🎓 {t("onboardingRoleCoach")}</p>
               )}
               {role === "gym" && (
                 <p style={{ ...s.archetypeNameLarge, color: "#34D399" }}>🏋️ {t("onboardingRoleGymLabel")}</p>
@@ -522,7 +523,7 @@ const s = {
   progressSeg: { height: 3, flex: 1, maxWidth: 70, borderRadius: 2, transition: "background 0.35s, box-shadow 0.35s" },
   inner: { maxWidth: 440, margin: "0 auto", padding: "0 16px", position: "relative", zIndex: 1 },
   header: { textAlign: "center", padding: "28px 0 20px" },
-  kicker: { margin: "0 0 8px", fontSize: 10, letterSpacing: 3, color: "#D4AF37", textTransform: "uppercase", fontWeight: 900 },
+  kicker: { margin: "0 0 8px", fontSize: 10, letterSpacing: 3, color: GOLD, textTransform: "uppercase", fontWeight: 900 },
   title: { margin: "0 0 8px", fontSize: 30, fontWeight: 1000, lineHeight: 1.08, letterSpacing: -0.3 },
   subtitle: { margin: 0, fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6 },
   roleCard: { display: "flex", alignItems: "center", gap: 14, padding: "18px 16px", borderRadius: 16, border: "2px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", cursor: "pointer", textAlign: "left", width: "100%", transition: "all 0.15s", color: "#fff" },

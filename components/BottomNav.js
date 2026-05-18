@@ -6,6 +6,7 @@ import { usePathname, useRouter as useNextRouter } from "next/navigation";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { translate } from "@/lib/i18n";
+import { RED, GOLD } from "@/lib/tokens";
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
 function HomeIcon({ active }) {
@@ -57,14 +58,14 @@ function ProfileTab({ user, active, onClick, dmUnread }) {
         }}>
           {photo
             ? <img src={photo} alt="" style={s.avatarImg} />
-            : <span style={{ ...s.avatarInitial, background: active ? "#C1121F" : "#222" }}>{initial}</span>
+            : <span style={{ ...s.avatarInitial, background: active ? RED : "#222" }}>{initial}</span>
           }
         </span>
         {dmUnread > 0 && (
           <span style={{
             position: "absolute", top: -2, right: -2,
             width: 10, height: 10, borderRadius: "50%",
-            background: "#C1121F", border: "2px solid rgba(8,8,8,0.97)",
+            background: RED, border: "2px solid rgba(8,8,8,0.97)",
           }} />
         )}
       </span>
@@ -141,8 +142,8 @@ export default function BottomNav({
   };
 
   const HUB_OPTIONS = [
-    { icon: "🎬", label: t("hubReel"), sub: t("hubReelSub"), path: `/${currentLocale}/upload`, accent: "#C1121F" },
-    { icon: "⚡", label: t("hubStory"), sub: t("hubStorySub"), path: `/${currentLocale}/story/upload`, accent: "#D4AF37" },
+    { icon: "🎬", label: t("hubReel"), sub: t("hubReelSub"), path: `/${currentLocale}/upload`, accent: RED },
+    { icon: "⚡", label: t("hubStory"), sub: t("hubStorySub"), path: `/${currentLocale}/story/upload`, accent: GOLD },
     { icon: "📈", label: t("hubProgress"), sub: t("hubProgressSub"), path: `/${currentLocale}/story/upload?type=progress_update`, accent: "#34D399" },
   ];
 
@@ -315,7 +316,7 @@ const s = {
     height: 14,
     padding: "0 3px",
     borderRadius: 7,
-    background: "#C1121F",
+    background: RED,
     color: "#fff",
     border: "1.5px solid rgba(8,8,8,0.97)",
     fontSize: 8,
@@ -340,7 +341,7 @@ const s = {
     width: 44,
     height: 44,
     borderRadius: 14,
-    background: "#C1121F",
+    background: RED,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -473,7 +474,7 @@ const h = {
   soonBadge: {
     fontSize: 8,
     fontWeight: 900,
-    color: "#D4AF37",
+    color: GOLD,
     background: "rgba(212,175,55,0.1)",
     border: "1px solid rgba(212,175,55,0.25)",
     borderRadius: 999,

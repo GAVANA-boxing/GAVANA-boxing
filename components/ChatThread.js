@@ -9,6 +9,7 @@ import {
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname } from "@/lib/i18n";
+import { RED, GOLD } from "@/lib/tokens";
 
 function getTs(ts) {
   if (!ts) return 0;
@@ -221,13 +222,13 @@ export default function ChatThread({ conversationId }) {
                 </div>
             }
             {recipientIsCoach && (
-              <div style={{ position: "absolute", bottom: -2, right: -2, width: 14, height: 14, borderRadius: "50%", background: "#D4AF37", border: "2px solid #070707", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 7 }}>🎓</div>
+              <div style={{ position: "absolute", bottom: -2, right: -2, width: 14, height: 14, borderRadius: "50%", background: GOLD, border: "2px solid #070707", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 7 }}>🎓</div>
             )}
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 1 }}>
             <span style={s.headerName}>{recipientInfo.displayName || "Fighter"}</span>
             {recipientIsCoach && (
-              <span style={{ fontSize: 9, fontWeight: 900, color: "#D4AF37", letterSpacing: 0.5 }}>{T.coach}</span>
+              <span style={{ fontSize: 9, fontWeight: 900, color: GOLD, letterSpacing: 0.5 }}>{T.coach}</span>
             )}
           </div>
         </button>
@@ -264,7 +265,7 @@ export default function ChatThread({ conversationId }) {
                 <div style={{ ...s.bubbleTime, display: "flex", alignItems: "center", gap: 3, ...(isMe ? { justifyContent: "flex-end" } : {}) }}>
                   <span>{formatMsgTime(msg.createdAt)}</span>
                   {isMe && (
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={msg.id === lastSentId ? "#C1121F" : "rgba(255,255,255,0.3)"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={msg.id === lastSentId ? RED : "rgba(255,255,255,0.3)"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12"/>
                     </svg>
                   )}

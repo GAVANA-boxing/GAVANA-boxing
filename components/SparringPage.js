@@ -15,6 +15,7 @@ import { createNotification } from "@/lib/notifications";
 import { getFighterRank } from "@/lib/xp";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import BottomNav from "@/components/BottomNav";
+import { RED, GOLD } from "@/lib/tokens";
 
 const ARCHETYPE_KEYS = ["all", "pressure", "counter", "technical", "brawler"];
 
@@ -64,7 +65,7 @@ function FighterCard({ post, isMe, onRequest, sent, requesting, locale }) {
   return (
     <div style={{
       ...c.card,
-      borderLeft: `2.5px solid ${post.rankColor || arch?.color || "#C1121F"}`,
+      borderLeft: `2.5px solid ${post.rankColor || arch?.color || RED}`,
       boxShadow: rankGlow,
       opacity: isMe ? 0.55 : 1,
     }}>
@@ -527,7 +528,7 @@ export default function SparringPage() {
                 return (
                   <button key={key} type="button" onClick={() => setFilterArchetype(key)} style={{
                     ...s.filterChip,
-                    ...(active ? { background: arch ? `${arch.color}18` : "rgba(193,18,31,0.15)", border: `1px solid ${arch ? arch.color : "#C1121F"}55`, color: arch ? arch.color : "#fff" } : {}),
+                    ...(active ? { background: arch ? `${arch.color}18` : "rgba(193,18,31,0.15)", border: `1px solid ${arch ? arch.color : RED}55`, color: arch ? arch.color : "#fff" } : {}),
                   }}>
                     {key === "all" ? (locale === "mn" ? "Бүгд" : locale === "ko" ? "전체" : "All") : `${arch?.emoji} ${arch?.name.split(" ")[0]}`}
                   </button>
@@ -604,7 +605,7 @@ export default function SparringPage() {
               >
                 {label}
                 {count > 0 && (
-                  <span style={{ minWidth: 16, height: 16, borderRadius: 999, background: "#C1121F", color: "#fff", fontSize: 9, fontWeight: 900, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>
+                  <span style={{ minWidth: 16, height: 16, borderRadius: 999, background: RED, color: "#fff", fontSize: 9, fontWeight: 900, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>
                     {count}
                   </span>
                 )}
@@ -841,7 +842,7 @@ export default function SparringPage() {
                     {[
                       { label: locale === "mn" ? "Нийт" : locale === "ko" ? "총" : "Matches", value: total, color: "#fff" },
                       { label: locale === "mn" ? "Ялалт" : locale === "ko" ? "승리" : "Wins", value: wins, color: "#34D399" },
-                      { label: locale === "mn" ? "Ялалт %" : locale === "ko" ? "승률" : "Win rate", value: `${winPct}%`, color: "#D4AF37" },
+                      { label: locale === "mn" ? "Ялалт %" : locale === "ko" ? "승률" : "Win rate", value: `${winPct}%`, color: GOLD },
                     ].map(({ label, value, color }) => (
                       <div key={label} style={{ flex: 1, minWidth: 80, padding: "10px 12px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, textAlign: "center" }}>
                         <p style={{ margin: 0, fontSize: 18, fontWeight: 900, color }}>{value}</p>
@@ -922,7 +923,7 @@ const s = {
   tabBtnActive: { color: "#fff", borderBottom: "2px solid #C1121F" },
   tabBadge: {
     minWidth: 16, height: 16, borderRadius: 999,
-    background: "#C1121F", color: "#fff",
+    background: RED, color: "#fff",
     fontSize: 9, fontWeight: 900, display: "inline-flex", alignItems: "center", justifyContent: "center",
     padding: "0 4px",
   },

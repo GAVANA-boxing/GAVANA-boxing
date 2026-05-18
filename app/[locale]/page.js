@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getLocale, translate } from "@/lib/i18n";
+import { RED, GOLD } from "@/lib/tokens";
 
 export default async function LocalizedHomePage({ params }) {
   const { locale: rawLocale } = await params;
@@ -41,7 +42,7 @@ const styles = {
   },
   kicker: {
     margin: 0,
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 12,
     fontWeight: 900,
     letterSpacing: 2,
@@ -69,7 +70,7 @@ const styles = {
   primary: {
     padding: "13px 18px",
     borderRadius: 999,
-    background: "#C1121F",
+    background: RED,
     color: "#fff",
     textDecoration: "none",
     fontWeight: 900,

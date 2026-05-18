@@ -13,6 +13,7 @@ import { getCurrentSeasonId } from "@/lib/season";
 import { calculateChallengeXP, calculateUserXP, getFighterRank, getRankProgress } from "@/lib/xp";
 import { writeChallengeAttempt, updateUserTrainingProfile } from "@/lib/analytics";
 import { checkAndAwardBadges } from "@/lib/badges";
+import { RED, GOLD } from "@/lib/tokens";
 
 const RECORD_SECONDS = 10;
 const CHALLENGES = {
@@ -1035,7 +1036,7 @@ export default function TrainPage() {
           ) : (
             <div style={styles.fallback}>
               {cameraState === "checking" ? (
-                <div style={{ width: 40, height: 40, border: "3px solid rgba(255,255,255,0.15)", borderTopColor: "#C1121F", borderRadius: "50%", animation: "spin 0.8s linear infinite", marginBottom: 12 }} />
+                <div style={{ width: 40, height: 40, border: "3px solid rgba(255,255,255,0.15)", borderTopColor: RED, borderRadius: "50%", animation: "spin 0.8s linear infinite", marginBottom: 12 }} />
               ) : (
                 <div style={styles.fallbackMark}>REC</div>
               )}
@@ -1106,7 +1107,7 @@ export default function TrainPage() {
                     <span style={styles.ghostHudYouLabel}>{t("pvpYouLabel")}</span>
                     <span style={{
                       ...styles.ghostHudYouScore,
-                      color: liveScore >= targetScore ? "#34D399" : "#D4AF37",
+                      color: liveScore >= targetScore ? "#34D399" : GOLD,
                     }}>
                       {liveScore.toFixed(1)}
                     </span>
@@ -1135,7 +1136,7 @@ export default function TrainPage() {
                     ...styles.ghostHudState,
                     color: liveScore > ghostBestScore ? "#34D399"
                       : liveScore >= ghostBestScore - 0.5 ? "#FB923C"
-                      : liveScore > ghostScore ? "#D4AF37"
+                      : liveScore > ghostScore ? GOLD
                       : "rgba(255,255,255,0.4)",
                   }}>
                     {liveScore > ghostBestScore ? "NEW BEST"
@@ -1173,7 +1174,7 @@ export default function TrainPage() {
                     <div style={styles.weeklyRingWrap}>
                       <svg width="56" height="56" viewBox="0 0 56 56" style={{ display: "block" }}>
                         <circle cx="28" cy="28" r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="4" />
-                        <circle cx="28" cy="28" r={r} fill="none" stroke="#D4AF37" strokeWidth="4"
+                        <circle cx="28" cy="28" r={r} fill="none" stroke={GOLD} strokeWidth="4"
                           strokeDasharray={`${filled} ${circ - filled}`}
                           strokeLinecap="round"
                           transform="rotate(-90 28 28)"
@@ -1220,7 +1221,7 @@ export default function TrainPage() {
                           style={{
                             ...styles.preSessionSparkBar,
                             height: `${Math.max(12, (s / 10) * 36)}px`,
-                            background: i === arr.length - 1 ? "#C1121F" : "rgba(255,255,255,0.18)",
+                            background: i === arr.length - 1 ? RED : "rgba(255,255,255,0.18)",
                           }}
                         />
                       ))}
@@ -1326,7 +1327,7 @@ export default function TrainPage() {
                     </div>
                     <div style={styles.resultItem}>
                       <span>{t("trainXpGained")}</span>
-                      <strong style={{ color: "#D4AF37" }}>+{result.xpGained}</strong>
+                      <strong style={{ color: GOLD }}>+{result.xpGained}</strong>
                     </div>
                     <div style={{ ...styles.resultItem, gridColumn: "1 / -1" }}>
                       <span>{t("challengeComparison")}</span>
@@ -1505,7 +1506,7 @@ export default function TrainPage() {
                         <div style={{
                           width: "100%",
                           height: `${Math.max(8, (s / 10) * 44)}px`,
-                          background: i === arr.length - 1 ? "#C1121F" : "rgba(255,255,255,0.16)",
+                          background: i === arr.length - 1 ? RED : "rgba(255,255,255,0.16)",
                           borderRadius: "3px 3px 0 0",
                           transition: "height 0.5s ease",
                           alignSelf: "flex-end",
@@ -1722,7 +1723,7 @@ const styles = {
   backIcon: {
     fontSize: 24,
     lineHeight: 1,
-    color: "#D4AF37",
+    color: GOLD,
   },
   shell: {
     maxWidth: 520,
@@ -1736,7 +1737,7 @@ const styles = {
   },
   kicker: {
     margin: 0,
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 11,
     fontWeight: 950,
     letterSpacing: 2,
@@ -1798,7 +1799,7 @@ const styles = {
     lineHeight: 1.2,
   },
   pvpBannerScore: {
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 18,
     fontWeight: 1000,
     lineHeight: 1,
@@ -2013,7 +2014,7 @@ const styles = {
     pointerEvents: "none",
   },
   comboLabel: {
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 10,
     fontWeight: 1000,
     letterSpacing: 2.5,
@@ -2070,7 +2071,7 @@ const styles = {
     width: 9,
     height: 9,
     borderRadius: "50%",
-    background: "#C1121F",
+    background: RED,
     flexShrink: 0,
     boxShadow: "0 0 0 6px rgba(193,18,31,0.18)",
   },
@@ -2078,7 +2079,7 @@ const styles = {
     marginLeft: 8,
     fontSize: 13,
     fontWeight: 1000,
-    color: "#D4AF37",
+    color: GOLD,
     letterSpacing: 0.5,
   },
   controls: {
@@ -2147,7 +2148,7 @@ const styles = {
   missionCompleteTitle: {
     fontSize: 14,
     fontWeight: 1000,
-    color: "#D4AF37",
+    color: GOLD,
     letterSpacing: 0.3,
   },
   missionCompleteXP: {
@@ -2209,7 +2210,7 @@ const styles = {
   },
   modalKicker: {
     margin: 0,
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 11,
     fontWeight: 950,
     letterSpacing: 2,
@@ -2270,7 +2271,7 @@ const styles = {
     border: "1px solid rgba(212,175,55,0.36)",
     borderRadius: 14,
     background: "linear-gradient(135deg, rgba(212,175,55,0.18), rgba(193,18,31,0.18))",
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 14,
     fontWeight: 950,
     cursor: "pointer",
@@ -2285,7 +2286,7 @@ const styles = {
     minHeight: 46,
     border: "none",
     borderRadius: 14,
-    background: "#C1121F",
+    background: RED,
     color: "#fff",
     fontSize: 14,
     fontWeight: 950,
@@ -2310,7 +2311,7 @@ const styles = {
     border: "1px solid rgba(212,175,55,0.32)",
     borderRadius: 14,
     background: "rgba(212,175,55,0.1)",
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 14,
     fontWeight: 950,
     cursor: "pointer",
@@ -2350,14 +2351,14 @@ const styles = {
     gap: 1,
   },
   ghostHudYouLabel: {
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 9,
     fontWeight: 1000,
     letterSpacing: 1.5,
     textTransform: "uppercase",
   },
   ghostHudYouScore: {
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 20,
     fontWeight: 1000,
     lineHeight: 1,

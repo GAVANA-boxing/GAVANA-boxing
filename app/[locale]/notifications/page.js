@@ -17,6 +17,7 @@ import { db } from "@/lib/firebase";
 import { getLocale, translate } from "@/lib/i18n";
 import BottomNav from "@/components/BottomNav";
 import SkeletonBlock from "@/components/SkeletonBlock";
+import { RED, GOLD } from "@/lib/tokens";
 
 function getActorName(notification) {
   return notification.fromUsername || notification.actorName || "Someone";
@@ -600,7 +601,7 @@ export default function NotificationsPage() {
                               {Number(notification.challengerScore ?? 0).toFixed(1)}/10
                             </span>
                             <span style={{ color: "#444" }}> vs </span>
-                            <span style={{ color: "#D4AF37", fontWeight: 900 }}>
+                            <span style={{ color: GOLD, fontWeight: 900 }}>
                               {Number(notification.opponentScore ?? 0).toFixed(1)}/10
                             </span>
                           </div>
@@ -721,7 +722,7 @@ const styles = {
     minWidth: 26,
     height: 26,
     borderRadius: 13,
-    background: "#C1121F",
+    background: RED,
     boxShadow: "0 0 12px rgba(193,18,31,0.5)",
     display: "flex",
     alignItems: "center",
@@ -957,7 +958,7 @@ const styles = {
     borderRadius: 999,
     border: "1px solid rgba(212,175,55,0.3)",
     background: "rgba(212,175,55,0.07)",
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 11,
     fontWeight: 800,
     cursor: "pointer",

@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { checkAndAwardBadges } from "@/lib/badges";
 import { createRemixNotification } from "@/lib/notifications";
+import { RED, GOLD } from "@/lib/tokens";
 
 const CATEGORIES = ["boxing", "gym", "running", "street_workout", "sparring"];
 const DIFFICULTIES = ["beginner", "intermediate", "pro"];
@@ -100,7 +101,7 @@ function UToggle({ label, description, value, onChange, locked }) {
         style={{
           flexShrink: 0,
           width: 46, height: 26, borderRadius: 999, border: "none", cursor: locked ? "default" : "pointer",
-          background: value ? "#C1121F" : "rgba(255,255,255,0.12)",
+          background: value ? RED : "rgba(255,255,255,0.12)",
           opacity: locked ? 0.45 : 1,
           position: "relative",
           transition: "background 180ms ease",
@@ -370,10 +371,10 @@ export default function UploadPage() {
           ) : (
             <div style={S.videoEmptyState}>
               <div style={S.videoEmptyIconWrap}>
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.89L15 14"/>
                   <rect x="3" y="6" width="12" height="12" rx="2"/>
-                  <path d="M9 10v4M7 12h4" stroke="#D4AF37" strokeWidth="1.8"/>
+                  <path d="M9 10v4M7 12h4" stroke={GOLD} strokeWidth="1.8"/>
                 </svg>
               </div>
               <p style={S.videoEmptyLabel}>{t("uploadTapSelect")}</p>
@@ -384,7 +385,7 @@ export default function UploadPage() {
 
         <div style={S.videoBottomBar}>
           <button style={S.galleryBtn} onClick={() => fileInputRef.current?.click()}>
-            <span style={{ fontSize: 13, fontWeight: 800, color: selectedFile ? "#D4AF37" : "rgba(255,255,255,0.75)" }}>
+            <span style={{ fontSize: 13, fontWeight: 800, color: selectedFile ? GOLD : "rgba(255,255,255,0.75)" }}>
               {selectedFile ? t("uploadChange") : t("uploadGallery")}
             </span>
           </button>
@@ -466,7 +467,7 @@ export default function UploadPage() {
           {[
             { id: "training", emoji: "🥊", label: "Challenge", color: "#F87171", border: "rgba(193,18,31,0.5)" },
             { id: "lifestyle", emoji: "🎬", label: "Lifestyle", color: "#60A5FA", border: "rgba(96,165,250,0.45)" },
-            { id: "educational", emoji: "📚", label: "Education", color: "#D4AF37", border: "rgba(212,175,55,0.5)" },
+            { id: "educational", emoji: "📚", label: "Education", color: GOLD, border: "rgba(212,175,55,0.5)" },
           ].map(({ id, emoji, label, color, border }) => {
             const active = contentType === id;
             return (
@@ -584,7 +585,7 @@ export default function UploadPage() {
           <div style={S.aiBox}>
             <button onClick={() => setCaptionOpen(!captionOpen)} style={S.aiBoxBtn}>
               <span style={S.aiBoxLabel}>✨ {t("aiCaptionGenerator")}</span>
-              <span style={{ color: "#D4AF37", fontSize: 18, lineHeight: 1 }}>{captionOpen ? "∧" : "∨"}</span>
+              <span style={{ color: GOLD, fontSize: 18, lineHeight: 1 }}>{captionOpen ? "∧" : "∨"}</span>
             </button>
             {captionOpen && (
               <div style={{ padding: "0 16px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
@@ -707,7 +708,7 @@ const S = {
   chip: { padding: "8px 16px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.45)", fontSize: 13, fontWeight: 800, cursor: "pointer" },
   chipActive: { background: "rgba(193,18,31,0.18)", border: "1px solid rgba(193,18,31,0.5)", color: "#F87171" },
   chipGreen: { background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.4)", color: "#34D399" },
-  chipGold: { background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.4)", color: "#D4AF37" },
+  chipGold: { background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.4)", color: GOLD },
   chipRed: { background: "rgba(193,18,31,0.18)", border: "1px solid rgba(193,18,31,0.5)", color: "#F87171" },
 
   // Toggles
@@ -724,16 +725,16 @@ const S = {
   // AI box
   aiBox: { borderRadius: 16, background: "linear-gradient(145deg, rgba(193,18,31,0.08), rgba(11,11,11,0.9) 50%, rgba(212,175,55,0.05))", border: "1px solid rgba(255,255,255,0.07)" },
   aiBoxBtn: { width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "15px 16px", background: "none", border: "none", cursor: "pointer" },
-  aiBoxLabel: { color: "#D4AF37", fontSize: 13, fontWeight: 900, letterSpacing: 0.6 },
+  aiBoxLabel: { color: GOLD, fontSize: 13, fontWeight: 900, letterSpacing: 0.6 },
   aiBoxHelp: { margin: 0, color: "#888", fontSize: 13, lineHeight: 1.5 },
 
   // Caption result
   captionResult: { display: "flex", flexDirection: "column", gap: 10, padding: 14, borderRadius: 14, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(212,175,55,0.14)" },
   captionSection: { display: "grid", gap: 4, padding: 10, borderRadius: 10, background: "rgba(255,255,255,0.04)" },
-  captionLbl: { color: "#D4AF37", fontSize: 10, fontWeight: 900, letterSpacing: 1.2, textTransform: "uppercase" },
+  captionLbl: { color: GOLD, fontSize: 10, fontWeight: 900, letterSpacing: 1.2, textTransform: "uppercase" },
   captionHook: { color: "#fff", fontSize: 14, fontWeight: 900, lineHeight: 1.45 },
   captionBody: { color: "#fff", fontSize: 14, lineHeight: 1.55, whiteSpace: "pre-wrap" },
-  captionActionBtn: { padding: "9px 14px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.34)", background: "rgba(212,175,55,0.1)", color: "#D4AF37", fontSize: 13, fontWeight: 800, cursor: "pointer" },
+  captionActionBtn: { padding: "9px 14px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.34)", background: "rgba(212,175,55,0.1)", color: GOLD, fontSize: 13, fontWeight: 800, cursor: "pointer" },
 
   primaryBtn: { padding: "14px 20px", borderRadius: 14, border: "none", background: "linear-gradient(135deg, #C1121F, #8f0d17)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: "0 8px 24px rgba(193,18,31,0.28)" },
 

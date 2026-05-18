@@ -149,7 +149,7 @@ const fp = {
   left: { display: "flex", alignItems: "center", gap: 8 },
   dot: {
     width: 5, height: 5, borderRadius: "50%", flexShrink: 0,
-    background: "#D4AF37",
+    background: GOLD,
     boxShadow: "0 0 7px #D4AF37, 0 0 14px #D4AF3755",
   },
   label: {
@@ -157,7 +157,7 @@ const fp = {
     letterSpacing: "0.2em", textTransform: "uppercase",
   },
   pctBadge: {
-    fontSize: 11, fontWeight: 900, color: "#D4AF37",
+    fontSize: 11, fontWeight: 900, color: GOLD,
     background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.2)",
     borderRadius: 999, padding: "2px 10px",
   },

@@ -8,7 +8,7 @@
  *   onClose    {function}   — called when backdrop clicked or ✕ pressed
  *   title      {ReactNode}  — optional header title (left side)
  *   zIndex     {number}     — default 200
- *   accent     {string}     — css color for border tint (e.g. "#D4AF37")
+ *   accent     {string}     — css color for border tint (e.g. GOLD)
  *   centered   {boolean}    — centers dialog instead of anchoring to bottom
  *   maxWidth   {number}     — max sheet width in px, default 520
  *   children   {ReactNode}

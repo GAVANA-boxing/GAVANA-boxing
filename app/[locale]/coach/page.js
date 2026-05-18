@@ -20,6 +20,7 @@ import SkeletonBlock from "@/components/SkeletonBlock";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
+import { RED, GOLD } from "@/lib/tokens";
 
 const SPECIALTIES = [
   "Footwork", "Pressure", "Counter", "Beginners",
@@ -109,7 +110,7 @@ function CoachCard({ coach, t, locale, onRequest, requested, router }) {
               <span style={styles.cardRatingInline}>⭐ {coach.coachRating.toFixed(1)}</span>
             )}
             {Number.isFinite(coach.coachPricePerSession) && coach.coachPricePerSession > 0 && (
-              <span style={{ fontSize: 13, fontWeight: 900, color: "#D4AF37" }}>
+              <span style={{ fontSize: 13, fontWeight: 900, color: GOLD }}>
                 ${coach.coachPricePerSession}<span style={{ fontSize: 10, color: "#888", fontWeight: 600 }}>/sess</span>
               </span>
             )}
@@ -175,7 +176,7 @@ function MyRequestCard({ req, coachProfile, locale, router }) {
           <div style={styles.cardNameRow}>
             <span style={styles.cardName}>{name}</span>
             {req.type === "sparring" && (
-              <span style={{ fontSize: 10, fontWeight: 900, color: "#D4AF37", background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.28)", borderRadius: 999, padding: "1px 7px" }}>🥊 Sparring</span>
+              <span style={{ fontSize: 10, fontWeight: 900, color: GOLD, background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.28)", borderRadius: 999, padding: "1px 7px" }}>🥊 Sparring</span>
             )}
           </div>
           <span style={{ display: "inline-flex", marginTop: 4, padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 900, background: st.bg, border: `1px solid ${st.border}`, color: st.color }}>
@@ -427,7 +428,7 @@ export default function CoachPage() {
                 padding: "10px 20px",
                 borderRadius: 12,
                 border: "none",
-                background: "#C1121F",
+                background: RED,
                 color: "#fff",
                 fontSize: 14,
                 fontWeight: 900,
@@ -524,7 +525,7 @@ export default function CoachPage() {
                   borderRadius: 999,
                   border: sortBy === key ? "1px solid rgba(212,175,55,0.6)" : "1px solid rgba(255,255,255,0.1)",
                   background: sortBy === key ? "rgba(212,175,55,0.15)" : "rgba(255,255,255,0.03)",
-                  color: sortBy === key ? "#D4AF37" : "rgba(255,255,255,0.4)",
+                  color: sortBy === key ? GOLD : "rgba(255,255,255,0.4)",
                   fontSize: 12,
                   fontWeight: 700,
                   cursor: "pointer",
@@ -549,7 +550,7 @@ export default function CoachPage() {
             open={showCoachFilterSheet}
             onClose={() => setShowCoachFilterSheet(false)}
             zIndex={300}
-            accent="#D4AF37"
+            accent={GOLD}
           >
             <p style={styles.filterSheetSectionLabel}>SPECIALTY</p>
             <div style={styles.specialtyScroll}>
@@ -601,7 +602,7 @@ export default function CoachPage() {
               title={t("coachNoCoaches")}
               hint={t("coachNoCoachesSub")}
               action={
-                <button type="button" onClick={() => router.push(`/${locale}/coach/apply`)} style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}>
+                <button type="button" onClick={() => router.push(`/${locale}/coach/apply`)} style={{ padding: "12px 28px", borderRadius: 14, background: RED, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}>
                   {t("becomeCoach")}
                 </button>
               }
@@ -690,7 +691,7 @@ export default function CoachPage() {
               emoji="🔒"
               title={t("coachSignInRequired")}
               action={
-                <button type="button" onClick={() => router.push(`/${locale}/login`)} style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}>
+                <button type="button" onClick={() => router.push(`/${locale}/login`)} style={{ padding: "12px 28px", borderRadius: 14, background: RED, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}>
                   {t("coachSignInBtn")}
                 </button>
               }
@@ -707,7 +708,7 @@ export default function CoachPage() {
               title={t("coachNoRequests")}
               hint={t("coachNoRequestsHint")}
               action={
-                <button type="button" onClick={() => setTab("coaches")} style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", marginTop: 4 }}>
+                <button type="button" onClick={() => setTab("coaches")} style={{ padding: "12px 28px", borderRadius: 14, background: RED, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", marginTop: 4 }}>
                   {t("coachFindCoach")}
                 </button>
               }
@@ -736,7 +737,7 @@ export default function CoachPage() {
         onClose={() => setShowSparringForm(false)}
         title={t("createSparringPost")}
         zIndex={300}
-        accent="#D4AF37"
+        accent={GOLD}
       >
         <label style={styles.fieldLabel}>{t("weightClass")}</label>
         <input
@@ -870,14 +871,14 @@ const styles = {
     border: "1px solid rgba(212,175,55,0.4)",
     borderRadius: 20,
     padding: "7px 16px",
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 13,
     fontWeight: 600,
     cursor: "pointer",
   },
   kicker: {
     margin: 0,
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 11,
     fontWeight: 950,
     letterSpacing: 2,
@@ -947,7 +948,7 @@ const styles = {
     borderRadius: 999,
     border: "1px solid rgba(212,175,55,0.3)",
     background: "rgba(212,175,55,0.06)",
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 12,
     fontWeight: 700,
     cursor: "pointer",
@@ -957,7 +958,7 @@ const styles = {
     margin: "0 0 8px",
     fontSize: 10,
     fontWeight: 900,
-    color: "#D4AF37",
+    color: GOLD,
     letterSpacing: 1.5,
   },
   filterSheetDone: {
@@ -976,7 +977,7 @@ const styles = {
   cardRatingInline: {
     fontSize: 12,
     fontWeight: 800,
-    color: "#D4AF37",
+    color: GOLD,
   },
   specialtyScroll: {
     display: "flex",
@@ -1087,7 +1088,7 @@ const styles = {
     width: 18,
     height: 18,
     borderRadius: "50%",
-    background: "#D4AF37",
+    background: GOLD,
     color: "#000",
     fontSize: 10,
     fontWeight: 1000,
@@ -1117,7 +1118,7 @@ const styles = {
   verifiedBadge: {
     fontSize: 10,
     fontWeight: 900,
-    color: "#D4AF37",
+    color: GOLD,
     background: "rgba(212,175,55,0.12)",
     border: "1px solid rgba(212,175,55,0.3)",
     borderRadius: 999,
@@ -1131,7 +1132,7 @@ const styles = {
   },
   cardExp: {
     fontSize: 12,
-    color: "#D4AF37",
+    color: GOLD,
     fontWeight: 700,
   },
   specialtyRow: {
@@ -1250,7 +1251,7 @@ const styles = {
   sparringLevel: {
     fontSize: 13,
     fontWeight: 1000,
-    color: "#D4AF37",
+    color: GOLD,
     background: "rgba(212,175,55,0.12)",
     border: "1px solid rgba(212,175,55,0.25)",
     borderRadius: 999,
@@ -1284,7 +1285,7 @@ const styles = {
   fieldLabel: {
     fontSize: 11,
     fontWeight: 900,
-    color: "#D4AF37",
+    color: GOLD,
     letterSpacing: 1,
     textTransform: "uppercase",
   },
@@ -1358,11 +1359,11 @@ const styles = {
   vibeChip: { flexShrink: 0, padding: "5px 12px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.25)", background: "rgba(193,18,31,0.08)", color: "rgba(255,165,130,0.7)", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" },
   vibeChipActive: { flexShrink: 0, padding: "5px 12px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.6)", background: "rgba(193,18,31,0.22)", color: "#F87171", fontSize: 12, fontWeight: 900, cursor: "pointer", whiteSpace: "nowrap" },
   featuredSection: { marginBottom: 16 },
-  featuredLabel: { margin: "0 0 8px", fontSize: 11, fontWeight: 900, color: "#D4AF37", letterSpacing: 1.5, textTransform: "uppercase" },
+  featuredLabel: { margin: "0 0 8px", fontSize: 11, fontWeight: 900, color: GOLD, letterSpacing: 1.5, textTransform: "uppercase" },
   featuredScroll: { display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" },
   featuredChip: { flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: 12, padding: "10px 12px", cursor: "pointer", minWidth: 72 },
   featuredAvatar: { width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(212,175,55,0.4)" },
   featuredAvatarInitials: { width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg, #C1121F, #7d0812)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 900, color: "#fff" },
   featuredName: { fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.8)", maxWidth: 64, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-  featuredVerified: { fontSize: 10, color: "#D4AF37", fontWeight: 900 },
+  featuredVerified: { fontSize: 10, color: GOLD, fontWeight: 900 },
 };

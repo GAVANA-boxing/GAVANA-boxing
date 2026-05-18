@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { RED, GOLD } from "@/lib/tokens";
 
 export const ARCHETYPE_DISPLAY = {
-  pressure: { emoji: "🔴", name: "Pressure Fighter", color: "#C1121F" },
-  counter:  { emoji: "⚡", name: "Counter Puncher",  color: "#D4AF37" },
+  pressure: { emoji: "🔴", name: "Pressure Fighter", color: RED },
+  counter:  { emoji: "⚡", name: "Counter Puncher",  color: GOLD },
   technical:{ emoji: "🧠", name: "Technical Boxer",  color: "#60A5FA" },
   brawler:  { emoji: "💪", name: "Power Brawler",    color: "#F97316" },
 };
@@ -222,7 +223,7 @@ const Q = {
   },
   brand: {
     fontSize: 10, fontWeight: 900, letterSpacing: 2.5,
-    color: "#D4AF37", textTransform: "uppercase", marginBottom: 20,
+    color: GOLD, textTransform: "uppercase", marginBottom: 20,
     position: "relative",
   },
   track: {

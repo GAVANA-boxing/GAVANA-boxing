@@ -15,6 +15,7 @@ import { getCurrentSeasonId } from "@/lib/season";
 import MediaCover from "@/components/MediaCover";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import BottomSheet from "@/components/BottomSheet";
+import { RED, GOLD } from "@/lib/tokens";
 
 function getSafeReelLikes(reel) {
   const fieldLikes = typeof reel.likes === "number" && !Number.isNaN(reel.likes)
@@ -239,7 +240,7 @@ function StreakDetailModal({ profile, trainingSessions, t, onClose }) {
             </div>
             <div style={streakCardStyle}>
               <span style={streakCardLabel}>{t("streakBestDays")}</span>
-              <span style={{ ...streakCardValue, color: "#D4AF37" }}>{Math.max(challengeStreak, trainingStreak)}</span>
+              <span style={{ ...streakCardValue, color: GOLD }}>{Math.max(challengeStreak, trainingStreak)}</span>
               <span style={streakCardUnit}>days</span>
             </div>
           </div>
@@ -298,7 +299,7 @@ export default function UserProfilePage() {
   const router = useRouter();
 
   const BADGE_META = {
-    first_challenge: { icon: "🥊", label: t("profileBadgeFirstChallenge"), color: "#C1121F" },
+    first_challenge: { icon: "🥊", label: t("profileBadgeFirstChallenge"), color: RED },
     streak_3:        { icon: "🔥", label: t("profileBadgeStreak3"), color: "#FB923C" },
     streak_7:        { icon: "⚡", label: t("profileBadgeStreak7"), color: "#F59E0B" },
     jab_master:      { icon: "🎯", label: t("profileBadgeJabMaster"), color: "#60A5FA" },
@@ -1443,9 +1444,9 @@ export default function UserProfilePage() {
           tags.push({ label: t(fighterRank.key), color: fighterRank.color, bg: `${fighterRank.color}18`, border: `${fighterRank.color}44` });
           const challengeStreak = getActiveChallengeStreak(profileUser);
           if (challengeStreak > 0) tags.push({ label: `🔥 ${challengeStreak}d`, color: "#FB923C", bg: "rgba(251,146,60,0.12)", border: "rgba(251,146,60,0.35)" });
-          if (bestScore !== null) tags.push({ label: `⭐ ${formatScore(bestScore)}/10`, color: "#D4AF37", bg: "rgba(212,175,55,0.12)", border: "rgba(212,175,55,0.35)" });
+          if (bestScore !== null) tags.push({ label: `⭐ ${formatScore(bestScore)}/10`, color: GOLD, bg: "rgba(212,175,55,0.12)", border: "rgba(212,175,55,0.35)" });
           if (userReels.length > 0) tags.push({ label: `🎬 ${t("creatorTag")}`, color: "#60A5FA", bg: "rgba(96,165,250,0.10)", border: "rgba(96,165,250,0.28)" });
-          if (challengeRanks?.weeklyRank && challengeRanks.weeklyRank <= 10) tags.push({ label: `#${challengeRanks.weeklyRank} ${t("seasonCurrentWeek")}`, color: "#D4AF37", bg: "rgba(212,175,55,0.12)", border: "rgba(212,175,55,0.32)" });
+          if (challengeRanks?.weeklyRank && challengeRanks.weeklyRank <= 10) tags.push({ label: `#${challengeRanks.weeklyRank} ${t("seasonCurrentWeek")}`, color: GOLD, bg: "rgba(212,175,55,0.12)", border: "rgba(212,175,55,0.32)" });
           if (pvpStats && pvpStats.wins > 0) tags.push({ label: `⚔️ ${pvpStats.wins}W ${pvpStats.losses}L`, color: "#A78BFA", bg: "rgba(167,139,250,0.10)", border: "rgba(167,139,250,0.28)" });
           return (
             <div style={styles.fighterTagsRow}>
@@ -1485,7 +1486,7 @@ export default function UserProfilePage() {
         {userBadges.length > 0 && (
           <div style={styles.achievementsShelf}>
             {userBadges.map((b) => {
-              const meta = BADGE_META[b.badgeId] || { icon: "🏅", label: b.badgeId, color: "#D4AF37" };
+              const meta = BADGE_META[b.badgeId] || { icon: "🏅", label: b.badgeId, color: GOLD };
               return (
                 <div key={b.badgeId} style={{ ...styles.achievementCard, borderColor: meta.color + "44" }}>
                   <span style={{ fontSize: 22 }}>{meta.icon}</span>
@@ -1522,7 +1523,7 @@ export default function UserProfilePage() {
             </button>
             <button
               onClick={() => router.push(`/${locale}/dashboard`)}
-              style={{ ...styles.ghostAction, color: "#D4AF37", borderColor: "rgba(212,175,55,0.3)" }}
+              style={{ ...styles.ghostAction, color: GOLD, borderColor: "rgba(212,175,55,0.3)" }}
             >
               {t("dashboardViewProgress")}
             </button>
@@ -1534,7 +1535,7 @@ export default function UserProfilePage() {
             <button
               type="button"
               onClick={() => setShowFighterCard(true)}
-              style={{ ...styles.ghostAction, color: "#D4AF37", borderColor: "rgba(212,175,55,0.3)" }}
+              style={{ ...styles.ghostAction, color: GOLD, borderColor: "rgba(212,175,55,0.3)" }}
             >
               🥊 {t("profileFighterCard")}
             </button>
@@ -1554,7 +1555,7 @@ export default function UserProfilePage() {
                 disabled={followLoading}
                 style={{
                   ...styles.followAction,
-                  background: followLoading ? "#555" : (isFollowing ? "#151515" : "#C1121F"),
+                  background: followLoading ? "#555" : (isFollowing ? "#151515" : RED),
                   cursor: followLoading ? "not-allowed" : "pointer",
                   opacity: followLoading ? 0.7 : 1
                 }}
@@ -1579,7 +1580,7 @@ export default function UserProfilePage() {
               </button>
             </div>
             {isMutual && (
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#D4AF37", letterSpacing: 0.5 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: GOLD, letterSpacing: 0.5 }}>
                 ⇄ {t("mutual")}
               </span>
             )}
@@ -1594,7 +1595,7 @@ export default function UserProfilePage() {
               <button
                 type="button"
                 onClick={() => setShowFighterCard(true)}
-                style={{ ...styles.ghostAction, color: "#D4AF37", borderColor: "rgba(212,175,55,0.3)", flex: 1 }}
+                style={{ ...styles.ghostAction, color: GOLD, borderColor: "rgba(212,175,55,0.3)", flex: 1 }}
               >
                 🥊 {t("profileFighterCard")}
               </button>
@@ -1613,7 +1614,7 @@ export default function UserProfilePage() {
             </p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 0 }}>
               {/* Headers */}
-              <div style={{ textAlign: "center", fontSize: 9, fontWeight: 900, color: "#C1121F", letterSpacing: 0.5, paddingBottom: 8 }}>
+              <div style={{ textAlign: "center", fontSize: 9, fontWeight: 900, color: RED, letterSpacing: 0.5, paddingBottom: 8 }}>
                 {t("profileYouLabel")}
               </div>
               <div />
@@ -1717,7 +1718,7 @@ export default function UserProfilePage() {
             let insightText, insightColor;
             if (scores.length < 2) {
               insightText = t("profileInsightStart");
-              insightColor = "#D4AF37";
+              insightColor = GOLD;
             } else if (delta >= 0.4) {
               insightText = t("profileInsightGrowing");
               insightColor = "#4ade80";
@@ -1729,7 +1730,7 @@ export default function UserProfilePage() {
               insightColor = "#4ade80";
             } else {
               insightText = t("profileInsightPush");
-              insightColor = "#D4AF37";
+              insightColor = GOLD;
             }
 
             return (
@@ -1760,7 +1761,7 @@ export default function UserProfilePage() {
                       <span style={{ fontSize: 15, fontWeight: 900, color: fighterRank.color, display: "block", marginBottom: 4 }}>
                         {t(fighterRank.key)}
                       </span>
-                      <span style={{ fontSize: 12, color: "#D4AF37", fontWeight: 800, display: "block" }}>
+                      <span style={{ fontSize: 12, color: GOLD, fontWeight: 800, display: "block" }}>
                         {xp.toLocaleString()} XP
                       </span>
                       {nextRank && (
@@ -1845,7 +1846,7 @@ export default function UserProfilePage() {
               borderRadius: "3px 16px 16px 3px",
               padding: "14px 16px",
             }}>
-              <p style={{ margin: "0 0 10px", fontSize: 9, fontWeight: 900, color: "#D4AF37", letterSpacing: 2.5, textTransform: "uppercase" }}>
+              <p style={{ margin: "0 0 10px", fontSize: 9, fontWeight: 900, color: GOLD, letterSpacing: 2.5, textTransform: "uppercase" }}>
                 {t("profileRecentXP")}
               </p>
               {aiFeedbackHistory.slice(0, 5).map((session, i) => {
@@ -1864,7 +1865,7 @@ export default function UserProfilePage() {
                       <span style={{ fontSize: 13, color: "#fff", fontWeight: 700 }}>⭐ {formatScore(session.score)}/10</span>
                       <span style={{ fontSize: 10, color: "#444", marginLeft: 8 }}>{dateLabel}</span>
                     </div>
-                    <span style={{ fontSize: 13, fontWeight: 900, color: "#D4AF37" }}>+{xpResult.total} XP</span>
+                    <span style={{ fontSize: 13, fontWeight: 900, color: GOLD }}>+{xpResult.total} XP</span>
                   </div>
                 );
               })}
@@ -1900,7 +1901,7 @@ export default function UserProfilePage() {
                     <>
                       <div style={{ width: 1, background: "rgba(255,255,255,0.07)" }} />
                       <div style={{ textAlign: "center" }}>
-                        <div style={{ fontSize: 42, fontWeight: 900, color: "#D4AF37", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{formatScore(pvpStats.bestWinScore)}</div>
+                        <div style={{ fontSize: 42, fontWeight: 900, color: GOLD, fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{formatScore(pvpStats.bestWinScore)}</div>
                         <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>{t("profileBestLabel")}</div>
                       </div>
                     </>
@@ -2031,12 +2032,12 @@ export default function UserProfilePage() {
               borderRadius: "3px 16px 16px 3px",
               padding: "18px 16px",
             }}>
-              <p style={{ margin: "0 0 14px", fontSize: 9, fontWeight: 900, color: "#C1121F", letterSpacing: 2.5, textTransform: "uppercase" }}>
+              <p style={{ margin: "0 0 14px", fontSize: 9, fontWeight: 900, color: RED, letterSpacing: 2.5, textTransform: "uppercase" }}>
                 🥊 {t("profileSparringRecord")}
               </p>
               <div style={{ display: "flex", gap: 8, justifyContent: "space-around", marginBottom: 14 }}>
                 <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: 36, fontWeight: 900, color: "#C1121F", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>
+                  <div style={{ fontSize: 36, fontWeight: 900, color: RED, fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>
                     {sparringRecord.totalAccepted}
                   </div>
                   <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>
@@ -2045,7 +2046,7 @@ export default function UserProfilePage() {
                 </div>
                 <div style={{ width: 1, background: "rgba(255,255,255,0.07)" }} />
                 <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: 36, fontWeight: 900, color: "#D4AF37", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>
+                  <div style={{ fontSize: 36, fontWeight: 900, color: GOLD, fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>
                     {sparringRecord.sentPending}
                   </div>
                   <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>
@@ -2332,7 +2333,7 @@ export default function UserProfilePage() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, padding: "4px 0 8px" }}>
                 <div style={styles.weeklyRankItem}>
-                  <span style={{ ...styles.weeklyRankNum, color: "#D4AF37" }}>+{weekXP}</span>
+                  <span style={{ ...styles.weeklyRankNum, color: GOLD }}>+{weekXP}</span>
                   <span style={styles.weeklyRankLbl}>{t("weeklyRecapXP")}</span>
                 </div>
                 <div style={styles.weeklyRankItem}>
@@ -2402,7 +2403,7 @@ export default function UserProfilePage() {
 
       {showFighterCard && (() => {
         const arch = profileUser.fighterArchetype ? ARCHETYPE_DISPLAY[profileUser.fighterArchetype] : null;
-        const accentColor = arch?.color || fighterRank.color || "#C1121F";
+        const accentColor = arch?.color || fighterRank.color || RED;
         const challengeStreak = getActiveChallengeStreak(profileUser);
         const handleShare = () => {
           const url = typeof window !== "undefined" ? window.location.href : "";
@@ -2491,7 +2492,7 @@ export default function UserProfilePage() {
                 {[
                   { label: t("profileStatWins"), value: pvpStats?.wins ?? "—", color: "#34D399" },
                   { label: t("profileStatStreak"), value: challengeStreak > 0 ? `🔥${challengeStreak}` : "—", color: "#FB923C" },
-                  { label: t("profileStatBestScore"), value: bestScore !== null ? `${formatScore(bestScore)}/10` : "—", color: "#D4AF37" },
+                  { label: t("profileStatBestScore"), value: bestScore !== null ? `${formatScore(bestScore)}/10` : "—", color: GOLD },
                 ].map(({ label, value, color }) => (
                   <div key={label} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, padding: "10px 4px", display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
                     <span style={{ fontSize: 18, fontWeight: 1000, color, lineHeight: 1 }}>{value}</span>
@@ -2505,14 +2506,14 @@ export default function UserProfilePage() {
                 <div style={{ width: "100%", padding: "12px 16px", borderRadius: 10, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.15)", display: "flex", justifyContent: "space-around", alignItems: "center", marginBottom: 14 }}>
                   {challengeRanks.weeklyRank && (
                     <div style={{ textAlign: "center" }}>
-                      <div style={{ fontSize: 15, fontWeight: 1000, color: "#D4AF37" }}>#{challengeRanks.weeklyRank}</div>
+                      <div style={{ fontSize: 15, fontWeight: 1000, color: GOLD }}>#{challengeRanks.weeklyRank}</div>
                       <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", fontWeight: 700, textTransform: "uppercase" }}>{t("profileThisWeek")}</div>
                     </div>
                   )}
                   {challengeRanks.weeklyRank && challengeRanks.allTimeRank && <div style={{ width: 1, background: "rgba(255,255,255,0.08)" }} />}
                   {challengeRanks.allTimeRank && (
                     <div style={{ textAlign: "center" }}>
-                      <div style={{ fontSize: 15, fontWeight: 1000, color: "#D4AF37" }}>#{challengeRanks.allTimeRank}</div>
+                      <div style={{ fontSize: 15, fontWeight: 1000, color: GOLD }}>#{challengeRanks.allTimeRank}</div>
                       <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", fontWeight: 700, textTransform: "uppercase" }}>{t("profileAllTime")}</div>
                     </div>
                   )}
@@ -2528,7 +2529,7 @@ export default function UserProfilePage() {
                   <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
                     {aiFeedbackHistory.slice(0, 4).map((f, i) => {
                       const sc = Number(f.score);
-                      const col = sc >= 9 ? "#D4AF37" : sc >= 7 ? "#34D399" : sc >= 5 ? "#60A5FA" : "#FB923C";
+                      const col = sc >= 9 ? GOLD : sc >= 7 ? "#34D399" : sc >= 5 ? "#60A5FA" : "#FB923C";
                       return (
                         <div key={f.id || i} style={{ textAlign: "center", background: `${col}12`, border: `1px solid ${col}33`, borderRadius: 10, padding: "6px 10px" }}>
                           <div style={{ fontSize: 16, fontWeight: 900, color: col, lineHeight: 1 }}>{formatScore(f.score)}</div>
@@ -2544,7 +2545,7 @@ export default function UserProfilePage() {
               {userBadges.length > 0 && (
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center", marginBottom: 14 }}>
                   {userBadges.slice(0, 5).map((b) => {
-                    const bm = BADGE_META[b.badgeId] || { icon: "🏅", color: "#D4AF37" };
+                    const bm = BADGE_META[b.badgeId] || { icon: "🏅", color: GOLD };
                     return (
                       <span key={b.badgeId} style={{ fontSize: 18, filter: "drop-shadow(0 0 4px rgba(255,255,255,0.15))" }} title={bm.label}>
                         {bm.icon}
@@ -2595,7 +2596,7 @@ export default function UserProfilePage() {
                 </div>
                 <div style={{
                   ...styles.weeklyModalBadgeName,
-                  color: challengeRanks.weeklyRank === 1 ? "#D4AF37" : challengeRanks.weeklyRank === 2 ? "#9CA3AF" : "#FB923C",
+                  color: challengeRanks.weeklyRank === 1 ? GOLD : challengeRanks.weeklyRank === 2 ? "#9CA3AF" : "#FB923C",
                 }}>
                   {challengeRanks.weeklyRank === 1
                     ? t("weeklyChampionBadge")
@@ -2615,7 +2616,7 @@ export default function UserProfilePage() {
               )}
               {challengeRanks.bestWeeklyScore != null && (
                 <div style={styles.weeklyModalStat}>
-                  <span style={{ ...styles.weeklyModalStatVal, color: "#D4AF37" }}>{challengeRanks.bestWeeklyScore}/10</span>
+                  <span style={{ ...styles.weeklyModalStatVal, color: GOLD }}>{challengeRanks.bestWeeklyScore}/10</span>
                   <span style={styles.weeklyModalStatLbl}>{t("seasonBestWeeklyScore")}</span>
                 </div>
               )}
@@ -2750,7 +2751,7 @@ const styles = {
   },
   fighterKicker: {
     margin: 0,
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 11,
     fontWeight: 950,
     letterSpacing: 2,
@@ -2884,7 +2885,7 @@ const styles = {
     padding: "10px 17px",
     border: "none",
     borderRadius: 999,
-    background: "#C1121F",
+    background: RED,
     color: "#FFFFFF",
     fontSize: 13,
     fontWeight: 900,
@@ -2945,7 +2946,7 @@ const styles = {
     justifyContent: "space-between",
   },
   dailyMissionLabel: {
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 9,
     fontWeight: 900,
     letterSpacing: 1.5,
@@ -3541,7 +3542,7 @@ const styles = {
     padding: "12px 26px",
     borderRadius: 999,
     border: "none",
-    background: "#C1121F",
+    background: RED,
     color: "#fff",
     fontSize: 14,
     fontWeight: 900,
@@ -3664,7 +3665,7 @@ const styles = {
   xpBDLabel: {
     fontSize: 9,
     fontWeight: 900,
-    color: "#D4AF37",
+    color: GOLD,
     letterSpacing: 1.5,
     textTransform: "uppercase",
     marginRight: 2,
@@ -3869,7 +3870,7 @@ const styles = {
   sessionsTitle: {
     fontSize: 13,
     fontWeight: 1000,
-    color: "#D4AF37",
+    color: GOLD,
     letterSpacing: 0.3,
   },
   sessionRow: {
@@ -3892,7 +3893,7 @@ const styles = {
   sessionDateDay: {
     fontSize: 12,
     fontWeight: 1000,
-    color: "#D4AF37",
+    color: GOLD,
   },
   sessionDateTime: {
     fontSize: 11,

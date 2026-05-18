@@ -10,6 +10,7 @@ import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { updateLeaderboard } from "@/components/Leaderboard";
 import { computeFeedScore } from "@/lib/analytics";
 import AIBreakdownSheet from "@/components/AIBreakdownSheet";
+import { RED, GOLD } from "@/lib/tokens";
 
 // Dynamic import for Firebase to avoid SSR issues
 let db = null;
@@ -1812,7 +1813,7 @@ export default function ReelsContent() {
             ...styles.feedTab,
             ...((diffFilter !== "all" || ctFilter !== "all") ? {
               ...styles.feedTabActive,
-              color: "#D4AF37",
+              color: GOLD,
               background: "rgba(212,175,55,0.15)",
             } : {}),
             padding: "4px 9px",
@@ -2030,7 +2031,7 @@ export default function ReelsContent() {
                     ...styles.creatorAvatarButton,
                     cursor: reel.userId ? "pointer" : "default",
                     ...(hasStory ? {
-                      borderColor: "#C1121F",
+                      borderColor: RED,
                       boxShadow: "0 0 0 2px #C1121F, 0 0 0 4px rgba(212,175,55,0.35)",
                     } : {}),
                   }}
@@ -3045,7 +3046,7 @@ const styles = {
     whiteSpace: "nowrap",
   },
   feedTabActive: {
-    background: "#C1121F",
+    background: RED,
     color: "#FFFFFF",
     boxShadow: "none",
   },
@@ -3486,7 +3487,7 @@ const styles = {
     margin: "0 0 10px",
     fontSize: 10,
     fontWeight: 900,
-    color: "#D4AF37",
+    color: GOLD,
     letterSpacing: 1.5,
   },
   filterSheetRow: {
@@ -4145,7 +4146,7 @@ const styles = {
   toggleReplies: {
     background: "none",
     border: "none",
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 11,
     fontWeight: 700,
     cursor: "pointer",
@@ -4179,13 +4180,13 @@ const styles = {
   },
   replyPillText: {
     fontSize: 12,
-    color: "#D4AF37",
+    color: GOLD,
     fontWeight: 700,
   },
   replyPillClose: {
     background: "none",
     border: "none",
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 11,
     cursor: "pointer",
     padding: 0,
@@ -4211,7 +4212,7 @@ const styles = {
     paddingRight: 18,
     borderRadius: 999,
     border: "none",
-    background: "#C1121F",
+    background: RED,
     color: "#fff",
     fontSize: 13,
     fontWeight: 800,
@@ -4380,7 +4381,7 @@ const styles = {
     margin: "0 0 10px",
     fontSize: 9,
     fontWeight: 900,
-    color: "#D4AF37",
+    color: GOLD,
     letterSpacing: 2.5,
     textTransform: "uppercase",
   },
@@ -4420,7 +4421,7 @@ const styles = {
   xpCardTotalVal: {
     fontSize: 18,
     fontWeight: 1000,
-    color: "#D4AF37",
+    color: GOLD,
   },
   xpCapNotice: {
     margin: "5px 0 0",
@@ -4640,7 +4641,7 @@ const styles = {
     borderRadius: 999,
     border: "1px solid rgba(212,175,55,0.42)",
     background: "rgba(212,175,55,0.12)",
-    color: "#D4AF37",
+    color: GOLD,
     fontFamily: "inherit",
     fontSize: 13,
     lineHeight: 1,
@@ -4657,7 +4658,7 @@ const styles = {
   },
   gymTagBanner: {
     fontSize: 11,
-    color: "#D4AF37",
+    color: GOLD,
     marginTop: 4,
     opacity: 0.9,
   },
@@ -4705,7 +4706,7 @@ const styles = {
     pointerEvents: "none",
   },
   profileProgressTitle: {
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 9,
     fontWeight: 900,
     letterSpacing: 1.4,

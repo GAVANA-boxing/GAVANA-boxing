@@ -23,15 +23,16 @@ import SkeletonBlock from "@/components/SkeletonBlock";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname } from "@/lib/i18n";
+import { RED, GOLD } from "@/lib/tokens";
 
 const EVENT_TYPES = ["boxing", "mma", "muay_thai", "sparring", "tournament", "seminar"];
 
 const TYPE_META = {
-  boxing:     { mn: "Бокс",     ko: "복싱",    en: "Boxing",      color: "#C1121F", emoji: "🥊" },
+  boxing:     { mn: "Бокс",     ko: "복싱",    en: "Boxing",      color: RED, emoji: "🥊" },
   mma:        { mn: "MMA",      ko: "MMA",     en: "MMA",         color: "#A78BFA", emoji: "⚔️" },
   muay_thai:  { mn: "Муай Тай", ko: "무에타이", en: "Muay Thai",   color: "#F97316", emoji: "🦵" },
   sparring:   { mn: "Спарринг", ko: "스파링",   en: "Sparring",    color: "#34D399", emoji: "🤜" },
-  tournament: { mn: "Тэмцээн",  ko: "토너먼트", en: "Tournament",  color: "#D4AF37", emoji: "🏆" },
+  tournament: { mn: "Тэмцээн",  ko: "토너먼트", en: "Tournament",  color: GOLD, emoji: "🏆" },
   seminar:    { mn: "Семинар",   ko: "세미나",   en: "Seminar",    color: "#60A5FA", emoji: "📚" },
 };
 
@@ -368,7 +369,7 @@ export default function EventsPage() {
                   {/* Spots bar */}
                   {event.maxParticipants > 0 && (
                     <div style={{ height: 3, borderRadius: 999, background: "rgba(255,255,255,0.08)", marginBottom: 8, overflow: "hidden" }}>
-                      <div style={{ height: "100%", width: `${spotsPct}%`, borderRadius: 999, background: spotsPct >= 90 ? "#F87171" : spotsPct >= 60 ? "#D4AF37" : "#34D399", transition: "width 600ms ease" }} />
+                      <div style={{ height: "100%", width: `${spotsPct}%`, borderRadius: 999, background: spotsPct >= 90 ? "#F87171" : spotsPct >= 60 ? GOLD : "#34D399", transition: "width 600ms ease" }} />
                     </div>
                   )}
 
@@ -415,11 +416,11 @@ const s = {
   page: { minHeight: "100vh", background: "#0A0A0A", color: "#fff", fontFamily: "system-ui, sans-serif" },
   content: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },
   pageHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", paddingTop: "calc(20px + env(safe-area-inset-top))", paddingBottom: 16 },
-  kicker: { margin: "0 0 4px", fontSize: 10, letterSpacing: 2.5, color: "#D4AF37", textTransform: "uppercase", fontWeight: 900 },
+  kicker: { margin: "0 0 4px", fontSize: 10, letterSpacing: 2.5, color: GOLD, textTransform: "uppercase", fontWeight: 900 },
   title: { margin: 0, fontSize: 24, fontWeight: 1000, lineHeight: 1.1 },
   createBtn: { padding: "8px 16px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.4)", background: "rgba(193,18,31,0.1)", color: "#F87171", fontSize: 13, fontWeight: 900, cursor: "pointer", flexShrink: 0, marginTop: 4 },
   createForm: { background: "linear-gradient(145deg, #111012, #0a0a0a)", border: "1px solid rgba(212,175,55,0.2)", borderLeft: "2.5px solid #D4AF37", borderRadius: "3px 16px 16px 3px", padding: "16px", marginBottom: 18, display: "flex", flexDirection: "column", gap: 10 },
-  formTitle: { margin: 0, fontSize: 12, fontWeight: 900, color: "#D4AF37", letterSpacing: 1.5, textTransform: "uppercase" },
+  formTitle: { margin: 0, fontSize: 12, fontWeight: 900, color: GOLD, letterSpacing: 1.5, textTransform: "uppercase" },
   formRow: { display: "flex", gap: 8 },
   fieldLabel: { display: "block", fontSize: 10, color: "rgba(255,255,255,0.45)", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 4 },
   input: { width: "100%", boxSizing: "border-box", padding: "11px 13px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "#fff", fontSize: 14, outline: "none", colorScheme: "dark" },
@@ -430,10 +431,10 @@ const s = {
   errorText: { margin: 0, fontSize: 12, color: "#F87171" },
   tabs: { display: "flex", gap: 6, marginBottom: 12 },
   tab: { flex: 1, padding: "9px 0", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", background: "transparent", color: "rgba(255,255,255,0.55)", fontSize: 12, fontWeight: 700, cursor: "pointer" },
-  tabActive: { flex: 1, padding: "9px 0", borderRadius: 10, border: "1px solid rgba(212,175,55,0.3)", background: "rgba(212,175,55,0.08)", color: "#D4AF37", fontSize: 12, fontWeight: 900, cursor: "pointer" },
+  tabActive: { flex: 1, padding: "9px 0", borderRadius: 10, border: "1px solid rgba(212,175,55,0.3)", background: "rgba(212,175,55,0.08)", color: GOLD, fontSize: 12, fontWeight: 900, cursor: "pointer" },
   typeFilters: { display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4, marginBottom: 14, scrollbarWidth: "none" },
   typePill: { padding: "5px 12px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 },
-  typePillActive: { padding: "5px 12px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.4)", background: "rgba(212,175,55,0.12)", color: "#D4AF37", fontSize: 11, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 },
+  typePillActive: { padding: "5px 12px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.4)", background: "rgba(212,175,55,0.12)", color: GOLD, fontSize: 11, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 },
   eventList: { display: "flex", flexDirection: "column", gap: 12 },
   eventCard: { background: "linear-gradient(145deg, #111012, #0a0a0a)", border: "1px solid rgba(255,255,255,0.07)", borderLeft: "2.5px solid #C1121F", borderRadius: "3px 16px 16px 3px", padding: "14px 16px", cursor: "pointer", transition: "border-color 0.2s" },
   eventCardTop: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },

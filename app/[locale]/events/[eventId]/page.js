@@ -21,13 +21,14 @@ import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocale, translate } from "@/lib/i18n";
+import { RED, GOLD } from "@/lib/tokens";
 
 const TYPE_META = {
-  boxing:     { mn: "Бокс",     ko: "복싱",    en: "Boxing",     color: "#C1121F", emoji: "🥊" },
+  boxing:     { mn: "Бокс",     ko: "복싱",    en: "Boxing",     color: RED, emoji: "🥊" },
   mma:        { mn: "MMA",      ko: "MMA",     en: "MMA",        color: "#A78BFA", emoji: "⚔️" },
   muay_thai:  { mn: "Муай Тай", ko: "무에타이", en: "Muay Thai",  color: "#F97316", emoji: "🦵" },
   sparring:   { mn: "Спарринг", ko: "스파링",   en: "Sparring",   color: "#34D399", emoji: "🤜" },
-  tournament: { mn: "Тэмцээн",  ko: "토너먼트", en: "Tournament", color: "#D4AF37", emoji: "🏆" },
+  tournament: { mn: "Тэмцээн",  ko: "토너먼트", en: "Tournament", color: GOLD, emoji: "🏆" },
   seminar:    { mn: "Семинар",   ko: "세미나",   en: "Seminar",   color: "#60A5FA", emoji: "📚" },
 };
 
@@ -351,7 +352,7 @@ export default function EventDetailPage() {
               </p>
               {event.maxParticipants > 0 && (() => {
                 const pct = Math.round(Math.min(100, ((event.participantCount || 0) / event.maxParticipants) * 100));
-                const barColor = pct >= 90 ? "#F87171" : pct >= 60 ? "#D4AF37" : "#34D399";
+                const barColor = pct >= 90 ? "#F87171" : pct >= 60 ? GOLD : "#34D399";
                 return (
                   <div style={{ marginTop: 6 }}>
                     <div style={{ height: 4, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
@@ -408,7 +409,7 @@ export default function EventDetailPage() {
         <button
           type="button"
           onClick={handleShare}
-          style={{ width: "100%", padding: "11px 0", borderRadius: 12, border: "1px solid rgba(212,175,55,0.25)", background: "rgba(212,175,55,0.06)", color: shareCopied ? "#34D399" : "#D4AF37", fontSize: 13, fontWeight: 800, cursor: "pointer", marginBottom: 8 }}
+          style={{ width: "100%", padding: "11px 0", borderRadius: 12, border: "1px solid rgba(212,175,55,0.25)", background: "rgba(212,175,55,0.06)", color: shareCopied ? "#34D399" : GOLD, fontSize: 13, fontWeight: 800, cursor: "pointer", marginBottom: 8 }}
         >
           {shareCopied ? t("eventLinkCopied") : t("eventShare")}
         </button>
@@ -472,14 +473,14 @@ const s = {
   rsvpBtn: { width: "100%", padding: 16, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#C1121F,#7d0812)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: "0 8px 28px rgba(193,18,31,0.32)", marginBottom: 10 },
   cancelRsvpBtn: { width: "100%", padding: 16, borderRadius: 14, border: "1px solid rgba(52,211,153,0.3)", background: "rgba(52,211,153,0.08)", color: "#34D399", fontSize: 15, fontWeight: 900, cursor: "pointer", marginBottom: 10 },
   fullBtn: { width: "100%", padding: 16, borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.3)", fontSize: 15, fontWeight: 700, cursor: "not-allowed", marginBottom: 10 },
-  reminderBtn: { width: "100%", padding: 13, borderRadius: 14, border: "1px solid rgba(212,175,55,0.3)", background: "rgba(212,175,55,0.06)", color: "#D4AF37", fontSize: 14, fontWeight: 800, cursor: "pointer", marginBottom: 16 },
+  reminderBtn: { width: "100%", padding: 13, borderRadius: 14, border: "1px solid rgba(212,175,55,0.3)", background: "rgba(212,175,55,0.06)", color: GOLD, fontSize: 14, fontWeight: 800, cursor: "pointer", marginBottom: 16 },
   reminderSetBtn: { width: "100%", padding: 13, borderRadius: 14, border: "1px solid rgba(52,211,153,0.2)", background: "rgba(52,211,153,0.05)", color: "rgba(52,211,153,0.7)", fontSize: 14, fontWeight: 800, cursor: "not-allowed", marginBottom: 16 },
   countdownBox: { marginTop: 14, padding: "10px 14px", borderRadius: 12, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.2)", display: "flex", alignItems: "center", justifyContent: "space-between" },
   countdownLabel: { fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 },
-  countdownValue: { fontSize: 18, fontWeight: 1000, color: "#D4AF37", fontVariantNumeric: "tabular-nums", letterSpacing: 0.5 },
+  countdownValue: { fontSize: 18, fontWeight: 1000, color: GOLD, fontVariantNumeric: "tabular-nums", letterSpacing: 0.5 },
   liveBadge: { display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 12px", borderRadius: 999, background: "rgba(52,211,153,0.15)", border: "1px solid rgba(52,211,153,0.4)", color: "#34D399", fontSize: 11, fontWeight: 900, letterSpacing: 1.2 },
   liveDot: { width: 7, height: 7, borderRadius: "50%", background: "#34D399", boxShadow: "0 0 6px #34D399" },
-  organizerBanner: { padding: "12px 16px", borderRadius: 12, background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.2)", color: "#D4AF37", fontSize: 13, fontWeight: 700, marginBottom: 16, textAlign: "center" },
+  organizerBanner: { padding: "12px 16px", borderRadius: 12, background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.2)", color: GOLD, fontSize: 13, fontWeight: 700, marginBottom: 16, textAlign: "center" },
   participantSection: { marginTop: 4 },
   sectionLabel: { margin: "0 0 10px", fontSize: 10, color: "rgba(255,255,255,0.45)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 },
   participantGrid: { display: "flex", flexDirection: "column", gap: 8 },

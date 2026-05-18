@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname } from "@/lib/i18n";
 import { startConversation } from "@/lib/messaging";
 import BottomNav from "@/components/BottomNav";
+import { RED, GOLD } from "@/lib/tokens";
 
 function getTs(ts) {
   if (!ts) return 0;
@@ -328,15 +329,15 @@ const s = {
   avatarWrap: { position: "relative", flexShrink: 0 },
   avatar: { width: 48, height: 48, borderRadius: "50%", objectFit: "cover", display: "block", background: "#1a1a1a" },
   avatarFallback: { width: 48, height: 48, borderRadius: "50%", background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 900, color: "#fff" },
-  coachBadge: { position: "absolute", bottom: -2, right: -2, width: 18, height: 18, borderRadius: "50%", background: "#D4AF37", border: "2px solid #070707", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9 },
-  unreadDot: { position: "absolute", bottom: 1, right: 1, width: 11, height: 11, borderRadius: "50%", background: "#C1121F", border: "2px solid #070707" },
+  coachBadge: { position: "absolute", bottom: -2, right: -2, width: 18, height: 18, borderRadius: "50%", background: GOLD, border: "2px solid #070707", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9 },
+  unreadDot: { position: "absolute", bottom: 1, right: 1, width: 11, height: 11, borderRadius: "50%", background: RED, border: "2px solid #070707" },
   rowBody: { flex: 1, minWidth: 0 },
   rowTop: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 3 },
   name: { fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.85)", lineHeight: 1 },
-  coachTag: { fontSize: 9, fontWeight: 900, color: "#D4AF37", background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 999, padding: "1px 5px", letterSpacing: 0.3 },
+  coachTag: { fontSize: 9, fontWeight: 900, color: GOLD, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 999, padding: "1px 5px", letterSpacing: 0.3 },
   time: { fontSize: 11, color: "rgba(255,255,255,0.3)", fontWeight: 600, flexShrink: 0 },
   preview: { fontSize: 13, color: "rgba(255,255,255,0.38)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", lineHeight: 1.3 },
-  badge: { flexShrink: 0, minWidth: 20, height: 20, borderRadius: 999, background: "#C1121F", color: "#fff", fontSize: 10, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 5px" },
+  badge: { flexShrink: 0, minWidth: 20, height: 20, borderRadius: 999, background: RED, color: "#fff", fontSize: 10, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 5px" },
   empty: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 32px", gap: 12 },
   emptyIcon: { fontSize: 52, marginBottom: 4 },
   emptyTitle: { margin: 0, fontSize: 17, fontWeight: 900, color: "#fff" },

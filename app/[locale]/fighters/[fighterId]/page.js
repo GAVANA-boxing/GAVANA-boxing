@@ -12,6 +12,7 @@ import {
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
 import FighterPortrait from "@/components/FighterPortrait";
+import { RED, GOLD } from "@/lib/tokens";
 
 // ─── Combo step pills ─────────────────────────────────────────────────────────
 function ComboSteps({ steps }) {
@@ -194,10 +195,10 @@ export default function FighterDetailPage() {
         </Section>
 
         {/* ── Habits to Copy ── */}
-        <Section title={t("fighterHabits")} emoji="🔄" accent="#D4AF37">
+        <Section title={t("fighterHabits")} emoji="🔄" accent={GOLD}>
           {habits.map((item, i) => (
             <div key={i} style={s.dotRow}>
-              <span style={{ ...s.dotMark, background: "#D4AF37" }} />
+              <span style={{ ...s.dotMark, background: GOLD }} />
               <span style={s.rowText}>{item}</span>
             </div>
           ))}
@@ -224,7 +225,7 @@ export default function FighterDetailPage() {
         </Section>
 
         {/* ── Famous Fights ── */}
-        <Section title={t("fighterFamousFights")} emoji="🎬" accent="#D4AF37">
+        <Section title={t("fighterFamousFights")} emoji="🎬" accent={GOLD}>
           {fights.map((f, i) => (
             <div key={i} style={s.fightRow}>
               <div style={s.fightMeta}>

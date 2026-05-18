@@ -5,13 +5,14 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
 import { getLocale, translate } from "@/lib/i18n";
+import { RED, GOLD } from "@/lib/tokens";
 
 // ─── Persona config ───────────────────────────────────────────────────────────
 const PERSONAS = [
   {
     id: "drill",
     emoji: "🔥",
-    color: "#C1121F",
+    color: RED,
     nameKey: "drillSergeant",
     quickKeys: ["drillQuick1", "drillQuick2", "drillQuick3"],
     greeting: {
@@ -35,7 +36,7 @@ const PERSONAS = [
   {
     id: "analyst",
     emoji: "📊",
-    color: "#D4AF37",
+    color: GOLD,
     nameKey: "analyst",
     quickKeys: ["analystQuick1", "analystQuick2", "analystQuick3"],
     greeting: {
@@ -302,7 +303,7 @@ export default function AIChatPage() {
                         alignSelf: "flex-start", display: "flex", alignItems: "center", gap: 5,
                         padding: "5px 11px", borderRadius: 999,
                         background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)",
-                        color: "#D4AF37", fontSize: 11, fontWeight: 800, cursor: "pointer",
+                        color: GOLD, fontSize: 11, fontWeight: 800, cursor: "pointer",
                       }}
                     >
                       📅 {t("coachAddCalendar")}
@@ -537,7 +538,7 @@ const s = {
     maxWidth: "76%",
     padding: "11px 15px",
     borderRadius: "18px 18px 4px 18px",
-    background: "#C1121F",
+    background: RED,
     color: "#fff",
     fontSize: 14,
     lineHeight: 1.5,

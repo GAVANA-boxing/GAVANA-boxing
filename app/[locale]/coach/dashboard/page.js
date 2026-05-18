@@ -19,6 +19,7 @@ import BottomSheet from "@/components/BottomSheet";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
+import { RED, GOLD } from "@/lib/tokens";
 
 function formatTimeAgo(timestamp, locale = "en") {
   if (!timestamp) return "";
@@ -641,7 +642,7 @@ export default function CoachDashboardPage() {
                   {t("coachDashDurationLabel")}
                 </span>
                 {[7, 14, 30].map((d) => (
-                  <button key={d} type="button" onClick={() => setProgDuration(d)} style={{ padding: "5px 12px", borderRadius: 999, border: "none", background: progDuration === d ? "#C1121F" : "rgba(255,255,255,0.08)", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>
+                  <button key={d} type="button" onClick={() => setProgDuration(d)} style={{ padding: "5px 12px", borderRadius: 999, border: "none", background: progDuration === d ? RED : "rgba(255,255,255,0.08)", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>
                     {d}{t("coachDashDayShort")}
                   </button>
                 ))}
@@ -649,8 +650,8 @@ export default function CoachDashboardPage() {
               <div style={{ display: "flex", gap: 8 }}>
                 {[
                   ["beginner", "#34D399", t("coachDashLevelBeginner")],
-                  ["intermediate", "#D4AF37", t("coachDashLevelIntermediate")],
-                  ["advanced", "#C1121F", t("coachDashLevelAdvanced")],
+                  ["intermediate", GOLD, t("coachDashLevelIntermediate")],
+                  ["advanced", RED, t("coachDashLevelAdvanced")],
                 ].map(([lvl, col, lbl]) => (
                   <button key={lvl} type="button" onClick={() => setProgLevel(lvl)} style={{ flex: 1, padding: "6px 0", borderRadius: 999, border: `1px solid ${progLevel === lvl ? col : "rgba(255,255,255,0.1)"}`, background: progLevel === lvl ? `${col}18` : "transparent", color: progLevel === lvl ? col : "#888", fontSize: 11, fontWeight: 800, cursor: "pointer" }}>
                     {lbl}
@@ -681,7 +682,7 @@ export default function CoachDashboardPage() {
           )}
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {programs.map((prog) => {
-              const LEVEL_COLOR = { beginner: "#34D399", intermediate: "#D4AF37", advanced: "#C1121F" };
+              const LEVEL_COLOR = { beginner: "#34D399", intermediate: GOLD, advanced: RED };
               const LEVEL_LBL = {
                 beginner: locale === "mn" ? "Анхан" : locale === "ko" ? "입문" : "Beginner",
                 intermediate: locale === "mn" ? "Дунд" : locale === "ko" ? "중급" : "Intermediate",
@@ -838,7 +839,7 @@ const styles = {
     borderRadius: 999,
     border: "1px solid rgba(255,255,255,0.12)",
     background: "rgba(0,0,0,0.4)",
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 13,
     fontWeight: 900,
     cursor: "pointer",
@@ -846,7 +847,7 @@ const styles = {
   },
   kicker: {
     margin: 0,
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 11,
     fontWeight: 950,
     letterSpacing: 2,
@@ -996,7 +997,7 @@ const styles = {
   typeChipCoach: {
     fontSize: 10,
     fontWeight: 900,
-    color: "#D4AF37",
+    color: GOLD,
     background: "rgba(212,175,55,0.12)",
     border: "1px solid rgba(212,175,55,0.25)",
     borderRadius: 999,
@@ -1093,7 +1094,7 @@ const styles = {
     whiteSpace: "nowrap",
   },
   filterTabActive: {
-    background: "#C1121F",
+    background: RED,
     border: "1px solid #C1121F",
     color: "#fff",
   },
@@ -1127,7 +1128,7 @@ const styles = {
     border: "1px solid rgba(212,175,55,0.35)",
     borderRadius: 10,
     background: "rgba(212,175,55,0.08)",
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 13,
     fontWeight: 900,
     cursor: "pointer",

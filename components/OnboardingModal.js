@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
+import { RED, GOLD } from "@/lib/tokens";
 
 const personaMap = {
   strict: "Drill Sergeant",
@@ -289,7 +290,7 @@ const styles = {
   },
   brand: {
     margin: 0,
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 11,
     fontWeight: 900,
     letterSpacing: 2,
@@ -377,7 +378,7 @@ const styles = {
     minHeight: 52,
     border: "none",
     borderRadius: 16,
-    background: "#C1121F",
+    background: RED,
     color: "#fff",
     fontSize: 15,
     fontWeight: 900,

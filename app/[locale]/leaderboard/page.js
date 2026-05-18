@@ -39,6 +39,7 @@ function formatCountdown(ms, locale) {
 import RankIcon from "@/components/RankIcon";
 import { getCurrentSeasonId, getSeasonLabel } from "@/lib/season";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
+import { RED, GOLD } from "@/lib/tokens";
 
 function getRankMedal(rank) {
   if (rank === 1) return "🥇";
@@ -57,9 +58,9 @@ function formatCompact(n) {
 function getEntryBadges({ entry, rank, weeklyEntries, streakEntries, improvementEntries }) {
   const badges = [];
   if (weeklyEntries[0]?.userId === entry.userId)
-    badges.push({ icon: "👑", label: "Weekly Champ", color: "#D4AF37" });
+    badges.push({ icon: "👑", label: "Weekly Champ", color: GOLD });
   if (rank <= 3)
-    badges.push({ icon: "🏆", label: "Top 3", color: "#D4AF37" });
+    badges.push({ icon: "🏆", label: "Top 3", color: GOLD });
   else if (rank <= 10)
     badges.push({ icon: "🏅", label: "Top 10", color: "#60A5FA" });
   if (streakEntries[0]?.userId === entry.userId && streakEntries[0]?.bestScore >= 7)
@@ -71,7 +72,7 @@ function getEntryBadges({ entry, rank, weeklyEntries, streakEntries, improvement
 }
 
 function getScoreColor(score) {
-  if (score >= 9) return "#D4AF37";
+  if (score >= 9) return GOLD;
   if (score >= 7) return "#60A5FA";
   if (score >= 5) return "#A78BFA";
   return "#FB923C";
@@ -481,7 +482,7 @@ export default function LeaderboardPage() {
             { key: "brawler",  label: `${ARCHETYPE_DISPLAY.brawler.emoji} Brawler` },
           ].map(({ key, label }) => {
             const isActive = archetypeFilter === key;
-            const color = key === "all" ? "#D4AF37" : ARCHETYPE_DISPLAY[key]?.color;
+            const color = key === "all" ? GOLD : ARCHETYPE_DISPLAY[key]?.color;
             return (
               <button
                 key={key}
@@ -540,7 +541,7 @@ export default function LeaderboardPage() {
                 <button
                   type="button"
                   onClick={handleShareRank}
-                  style={{ padding: "4px 10px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.3)", background: "rgba(212,175,55,0.08)", color: "#D4AF37", fontSize: 11, fontWeight: 800, cursor: "pointer" }}
+                  style={{ padding: "4px 10px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.3)", background: "rgba(212,175,55,0.08)", color: GOLD, fontSize: 11, fontWeight: 800, cursor: "pointer" }}
                 >
                   {shareCopied ? "✓" : t("lbShare")}
                 </button>
@@ -567,14 +568,14 @@ export default function LeaderboardPage() {
               const topScore = topEntry?.bestScore ?? null;
               if (!topEntry || userScore === null || topScore === null) return null;
               if (topEntry.userId === user?.uid) return (
-                <div style={{ marginTop: 6, fontSize: 11, fontWeight: 800, color: "#D4AF37" }}>
+                <div style={{ marginTop: 6, fontSize: 11, fontWeight: 800, color: GOLD }}>
                   👑 {t("lbYouAreFirst")}
                 </div>
               );
               const gap = Math.max(0, topScore - userScore).toFixed(1);
               return (
                 <div style={{ marginTop: 6, fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.38)", display: "flex", alignItems: "center", gap: 4 }}>
-                  <span style={{ color: "#C1121F", fontWeight: 900 }}>-{gap}</span>
+                  <span style={{ color: RED, fontWeight: 900 }}>-{gap}</span>
                   <span>{t("lbPtsFromFirst")}</span>
                   <span style={{ color: "rgba(255,255,255,0.25)" }}>· #{1}</span>
                   <span style={{ color: "rgba(255,255,255,0.5)" }}>
@@ -651,7 +652,7 @@ export default function LeaderboardPage() {
               const isFirst = rank === 1;
               const podiumH = idx === 0 ? 128 : idx === 1 ? 100 : 84;
               const medals = ["🥇", "🥈", "🥉"];
-              const colors = ["#D4AF37", "#C0C0C0", "#CD7F32"];
+              const colors = [GOLD, "#C0C0C0", "#CD7F32"];
               if (!entry) return null;
               const avatarSize = isFirst ? 56 : 44;
               const glowShadow = isFirst
@@ -900,7 +901,7 @@ const styles = {
   },
   eyebrow: {
     margin: 0,
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 11,
     fontWeight: 800,
     letterSpacing: 1.5,
@@ -945,7 +946,7 @@ const styles = {
   tabBtnActive: {
     background: "rgba(212,175,55,0.16)",
     border: "1px solid rgba(212,175,55,0.45)",
-    color: "#D4AF37",
+    color: GOLD,
   },
   tabBtnViews: {
     background: "rgba(96,165,250,0.16)",
@@ -1021,7 +1022,7 @@ const styles = {
     fontSize: 11,
     fontWeight: 900,
     letterSpacing: 1.5,
-    color: "#D4AF37",
+    color: GOLD,
     textTransform: "uppercase",
   },
   weeklyChampionName: {
@@ -1032,7 +1033,7 @@ const styles = {
   },
   weeklyChampionScore: {
     fontSize: 14,
-    color: "#D4AF37",
+    color: GOLD,
     fontWeight: 800,
     marginTop: 2,
   },
@@ -1041,7 +1042,7 @@ const styles = {
   },
   sectionKicker: {
     margin: "0 0 4px",
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 11,
     fontWeight: 900,
     letterSpacing: 1.8,
@@ -1171,7 +1172,7 @@ const styles = {
     fontSize: 9,
     fontWeight: 900,
     letterSpacing: 1,
-    color: "#C1121F",
+    color: RED,
     verticalAlign: "middle",
   },
   username: {

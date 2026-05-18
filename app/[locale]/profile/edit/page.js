@@ -7,6 +7,7 @@ import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale } from "@/lib/i18n";
+import { RED, GOLD } from "@/lib/tokens";
 
 const WEIGHT_CLASSES = [
   { value: "-54", label: "-54kg" },
@@ -373,7 +374,7 @@ const styles = {
   },
   kicker: {
     margin: 0,
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 12,
     fontWeight: 900,
     letterSpacing: 2,
@@ -429,7 +430,7 @@ const styles = {
   photoButton: {
     border: "1px solid rgba(212,175,55,0.28)",
     background: "rgba(212,175,55,0.08)",
-    color: "#D4AF37",
+    color: GOLD,
     borderRadius: 999,
     padding: "9px 16px",
     fontSize: 13,
@@ -546,7 +547,7 @@ const styles = {
     width: "100%",
     border: "none",
     borderRadius: 14,
-    background: "#C1121F",
+    background: RED,
     color: "#fff",
     minHeight: 52,
     fontSize: 15,

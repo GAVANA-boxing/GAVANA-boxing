@@ -9,6 +9,7 @@ import { RANK_TIERS, calculateUserXP, getFighterRank, getNextRank, getRankProgre
 import { getLocale, translate } from "@/lib/i18n";
 import RankIcon from "@/components/RankIcon";
 import BottomNav from "@/components/BottomNav";
+import { RED, GOLD } from "@/lib/tokens";
 
 const HOW_TO_EARN = [
   {
@@ -19,7 +20,7 @@ const HOW_TO_EARN = [
     detailEn: "score² × 10 XP (max 1,000/day)",
     detailMn: "оноо² × 10 XP (өдөрт хамгийн ихдээ 1,000)",
     detailKo: "점수² × 10 XP (하루 최대 1,000)",
-    color: "#D4AF37",
+    color: GOLD,
   },
   {
     icon: "⚡",
@@ -326,7 +327,7 @@ const styles = {
   headerCenter: { textAlign: "center" },
   eyebrow: {
     margin: 0,
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 11,
     fontWeight: 800,
     letterSpacing: 1.5,
@@ -404,7 +405,7 @@ const styles = {
     fontSize: 11,
     fontWeight: 900,
     letterSpacing: 2.5,
-    color: "#D4AF37",
+    color: GOLD,
     textTransform: "uppercase",
   },
   ladder: {

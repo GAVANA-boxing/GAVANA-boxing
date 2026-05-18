@@ -9,6 +9,7 @@ import { getLocale, translate } from "@/lib/i18n";
 import BottomNav from "@/components/BottomNav";
 import EmptyState from "@/components/EmptyState";
 import SkeletonBlock from "@/components/SkeletonBlock";
+import { RED, GOLD } from "@/lib/tokens";
 
 function getCreatedAtMs(obj) {
   const ts = obj?.createdAt;
@@ -25,7 +26,7 @@ function formatCompact(n) {
   return String(num);
 }
 
-function StatCard({ label, value, color = "#D4AF37", icon }) {
+function StatCard({ label, value, color = GOLD, icon }) {
   return (
     <div style={styles.statCard}>
       <span style={styles.statIcon}>{icon}</span>
@@ -45,7 +46,7 @@ function ReelRow({ reel, stats, rank, maxViews, t, locale, router }) {
   const engRate = views > 0 ? ((likes + attempts) / views * 100).toFixed(1) : "0.0";
   const barPct = maxViews > 0 ? Math.max(4, Math.round((views / maxViews) * 100)) : 4;
   const typeEmoji = reel.contentType === "educational" ? "📚" : reel.contentType === "lifestyle" ? "🎬" : "🥊";
-  const typeColor = reel.contentType === "educational" ? "#D4AF37" : reel.contentType === "lifestyle" ? "#60A5FA" : "#C1121F";
+  const typeColor = reel.contentType === "educational" ? GOLD : reel.contentType === "lifestyle" ? "#60A5FA" : RED;
   const dateStr = reel.createdAt?.toDate ? reel.createdAt.toDate().toLocaleDateString() : "";
 
   return (
@@ -72,7 +73,7 @@ function ReelRow({ reel, stats, rank, maxViews, t, locale, router }) {
           <span>👁 {formatCompact(views)}</span>
           <span>❤ {formatCompact(likes)}</span>
           {attempts > 0 && <span>🥊 {formatCompact(attempts)}</span>}
-          <span style={{ marginLeft: "auto", color: Number(engRate) >= 5 ? "#34D399" : Number(engRate) >= 2 ? "#D4AF37" : "#888" }}>{engRate}%</span>
+          <span style={{ marginLeft: "auto", color: Number(engRate) >= 5 ? "#34D399" : Number(engRate) >= 2 ? GOLD : "#888" }}>{engRate}%</span>
         </div>
         {dateStr && <div style={{ fontSize: 10, color: "#444" }}>{dateStr}</div>}
       </div>
@@ -307,7 +308,7 @@ export default function CreatorDashboard() {
             <div style={styles.statsGrid}>
               <StatCard label={t("creatorTotalViews")} value={totalViews} icon="👁" color="#60A5FA" />
               <StatCard label={t("creatorTotalLikes")} value={totalLikes} icon="❤" color="#F87171" />
-              <StatCard label={t("creatorFollowers")} value={followerCount} icon="👥" color="#D4AF37" />
+              <StatCard label={t("creatorFollowers")} value={followerCount} icon="👥" color={GOLD} />
               <StatCard label={t("creatorChallengeAttempts")} value={externalAttempts.length} icon="🥊" color="#34D399" />
             </div>
 
@@ -317,7 +318,7 @@ export default function CreatorDashboard() {
                 <span style={styles.growthLbl}>{t("creatorNewFollowers")}</span>
               </div>
               <div style={styles.growthItem}>
-                <span style={{ ...styles.growthNum, color: Number(engagementRate) >= 5 ? "#34D399" : Number(engagementRate) >= 2 ? "#D4AF37" : "#F87171" }}>
+                <span style={{ ...styles.growthNum, color: Number(engagementRate) >= 5 ? "#34D399" : Number(engagementRate) >= 2 ? GOLD : "#F87171" }}>
                   {engagementRate}%
                 </span>
                 <span style={styles.growthLbl}>{t("creatorEngagementRate")}</span>
@@ -366,10 +367,10 @@ export default function CreatorDashboard() {
                     </div>
                     <div style={{ fontSize: 11, color: "#888" }}>
                       🥊 {attemptsByReel[mostChallengedReel.id]} {locale === "mn" ? "оролдлого" : locale === "ko" ? "도전" : "challenges"}
-                      {avgScore && <span style={{ marginLeft: 10, color: "#D4AF37" }}>⭐ avg {avgScore}/10</span>}
+                      {avgScore && <span style={{ marginLeft: 10, color: GOLD }}>⭐ avg {avgScore}/10</span>}
                     </div>
                   </div>
-                  <span style={{ color: "#C1121F", fontSize: 18, flexShrink: 0 }}>→</span>
+                  <span style={{ color: RED, fontSize: 18, flexShrink: 0 }}>→</span>
                 </div>
               </section>
             )}
@@ -408,9 +409,9 @@ export default function CreatorDashboard() {
           {/* ══ AUDIENCE TAB ══ */}
           {activeTab === "audience" && (<>
             <div style={styles.statsGrid}>
-              <StatCard label={t("creatorFollowers")} value={followerCount} icon="👥" color="#D4AF37" />
+              <StatCard label={t("creatorFollowers")} value={followerCount} icon="👥" color={GOLD} />
               <StatCard label={t("creatorNewFollowers")} value={newFollowersThisWeek} icon="📈" color="#34D399" />
-              {avgScore != null && <StatCard label={t("creatorAvgScore")} value={avgScore} icon="⭐" color="#D4AF37" />}
+              {avgScore != null && <StatCard label={t("creatorAvgScore")} value={avgScore} icon="⭐" color={GOLD} />}
               {bestScore != null && <StatCard label={t("creatorBestScore")} value={bestScore} icon="🏆" color="#60A5FA" />}
             </div>
 
@@ -421,7 +422,7 @@ export default function CreatorDashboard() {
                   {[
                     { key: "training", label: "🥊 Training", color: "#F87171" },
                     { key: "lifestyle", label: "🎬 Lifestyle", color: "#60A5FA" },
-                    { key: "educational", label: "📚 Educational", color: "#D4AF37" },
+                    { key: "educational", label: "📚 Educational", color: GOLD },
                   ].map(({ key, label, color }) => {
                     const count = ctCounts[key] || 0;
                     const pct = Math.round((count / ctTotal) * 100);
@@ -445,7 +446,7 @@ export default function CreatorDashboard() {
                 <div style={{ background: "linear-gradient(145deg, #111012, #0a0a0a)", border: "1px solid rgba(255,255,255,0.07)", borderLeft: "2.5px solid #D4AF37", borderRadius: "3px 14px 14px 3px", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
                   {[
                     { key: "excellent", label: t("creatorScoreExcellent"), count: scoreDistrib.excellent, color: "#34D399" },
-                    { key: "good",      label: t("creatorScoreGood"),      count: scoreDistrib.good,      color: "#D4AF37" },
+                    { key: "good",      label: t("creatorScoreGood"),      count: scoreDistrib.good,      color: GOLD },
                     { key: "poor",      label: t("creatorScorePoor"),      count: scoreDistrib.poor,      color: "#F87171" },
                   ].map(({ key, label, count, color }) => (
                     <div key={key} style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -510,7 +511,7 @@ const styles = {
     fontWeight: 900,
     letterSpacing: 2,
     textTransform: "uppercase",
-    color: "#D4AF37",
+    color: GOLD,
   },
   sub: {
     margin: "2px 0 0",
@@ -523,7 +524,7 @@ const styles = {
     borderRadius: 999,
     background: "rgba(212,175,55,0.15)",
     border: "1px solid rgba(212,175,55,0.4)",
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 12,
     fontWeight: 900,
   },
@@ -731,7 +732,7 @@ const styles = {
   uploadBtn: {
     padding: "12px 28px",
     borderRadius: 999,
-    background: "#C1121F",
+    background: RED,
     border: "none",
     color: "#fff",
     fontFamily: "inherit",

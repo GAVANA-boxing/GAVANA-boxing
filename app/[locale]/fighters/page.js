@@ -6,6 +6,7 @@ import { FIGHTERS } from "@/lib/fighters";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
 import FighterPortrait from "@/components/FighterPortrait";
+import { RED, GOLD } from "@/lib/tokens";
 
 function FighterGridCard({ fighter, onClick }) {
   const acc = fighter.accent;
@@ -113,7 +114,7 @@ const s = {
   },
   kicker: {
     margin: "0 0 8px",
-    color: "#C1121F",
+    color: RED,
     fontSize: 9,
     fontWeight: 900,
     letterSpacing: 3.5,

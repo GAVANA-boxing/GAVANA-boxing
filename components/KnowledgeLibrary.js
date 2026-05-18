@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { translate } from "@/lib/i18n";
 import ScrollRow from "@/components/ScrollRow";
+import { RED, GOLD } from "@/lib/tokens";
 
 // ─── English content ──────────────────────────────────────────────────────────
 
@@ -949,7 +950,7 @@ function SectionHeader({ emoji, title }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14, paddingBottom: 10, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
       <span style={{ fontSize: 15 }}>{emoji}</span>
-      <h3 style={{ margin: 0, fontSize: 11, fontWeight: 900, color: "#D4AF37", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+      <h3 style={{ margin: 0, fontSize: 11, fontWeight: 900, color: GOLD, textTransform: "uppercase", letterSpacing: "0.1em" }}>
         {title}
       </h3>
     </div>
@@ -1001,7 +1002,7 @@ function StyleCard({ style, onAsk, t }) {
         ))}
       </div>
       <div style={{ background: "rgba(193,18,31,0.06)", border: "1px solid rgba(193,18,31,0.2)", borderRadius: 8, padding: "7px 9px" }}>
-        <p style={{ fontSize: 9, color: "#C1121F", fontWeight: 800, margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+        <p style={{ fontSize: 9, color: RED, fontWeight: 800, margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
           {t("libraryPractice")}
         </p>
         <p style={{ fontSize: 11, color: "#fca5a5", margin: 0, lineHeight: 1.4 }}>{style.practice}</p>
@@ -1058,7 +1059,7 @@ function TechCard({ tech, onAsk, t }) {
         <p style={{ fontSize: 11, color: "#fca5a5", margin: 0, lineHeight: 1.4 }}>{tech.mistake}</p>
       </div>
       <div style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(120,53,15,0.5)", borderRadius: 8, padding: "7px 9px" }}>
-        <p style={{ fontSize: 9, fontWeight: 800, color: "#D4AF37", margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+        <p style={{ fontSize: 9, fontWeight: 800, color: GOLD, margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
           {t("libraryDrill")}
         </p>
         <p style={{ fontSize: 11, color: "#fde68a", margin: 0, lineHeight: 1.4 }}>{tech.drill}</p>
@@ -1143,7 +1144,7 @@ function MovementCard({ card, t }) {
         ))}
       </div>
       <div style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.15)", borderRadius: 8, padding: "7px 9px" }}>
-        <p style={{ fontSize: 9, fontWeight: 800, color: "#D4AF37", margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+        <p style={{ fontSize: 9, fontWeight: 800, color: GOLD, margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
           {t("libraryDrill")}
         </p>
         <p style={{ fontSize: 11, color: "#fde68a", margin: 0, lineHeight: 1.4 }}>{card.drill}</p>
@@ -1195,7 +1196,7 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
             <h2 style={{ margin: 0, fontSize: 17, fontWeight: 900, color: "#fff", lineHeight: 1, letterSpacing: "-0.01em" }}>
               GAVANA Library
             </h2>
-            <p style={{ margin: "3px 0 0", fontSize: 10, color: "#D4AF37", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+            <p style={{ margin: "3px 0 0", fontSize: 10, color: GOLD, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>
               AI Coach Knowledge Base
             </p>
           </div>
@@ -1212,7 +1213,7 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
                 padding: "7px 12px", borderRadius: 999,
                 background: hoveredPrompt === p.key ? "rgba(212,175,55,0.12)" : "rgba(255,255,255,0.05)",
                 border: `1px solid ${hoveredPrompt === p.key ? "rgba(212,175,55,0.4)" : "rgba(255,255,255,0.1)"}`,
-                color: hoveredPrompt === p.key ? "#D4AF37" : "#ddd",
+                color: hoveredPrompt === p.key ? GOLD : "#ddd",
                 fontSize: 11, fontWeight: 700,
                 cursor: "pointer", whiteSpace: "nowrap",
                 backdropFilter: "blur(6px)",
@@ -1240,13 +1241,13 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
             <span style={{ fontSize: 22 }}>{todayFocus.emoji}</span>
             <div>
               <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: "#fff" }}>{todayFocus.focus}</p>
-              <p style={{ margin: 0, fontSize: 10, color: "#D4AF37", fontWeight: 700, letterSpacing: "0.04em" }}>{todayFocus.day}</p>
+              <p style={{ margin: 0, fontSize: 10, color: GOLD, fontWeight: 700, letterSpacing: "0.04em" }}>{todayFocus.day}</p>
             </div>
           </div>
           <p style={{ margin: "0 0 10px", fontSize: 12, color: "#aaa", lineHeight: 1.5 }}>{todayFocus.desc}</p>
           <div style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 9, padding: "9px 11px" }}>
             <p style={{ margin: 0, fontSize: 12, color: "#fde68a", lineHeight: 1.5 }}>
-              <strong style={{ color: "#D4AF37" }}>Drill: </strong>{todayFocus.drill}
+              <strong style={{ color: GOLD }}>Drill: </strong>{todayFocus.drill}
             </p>
           </div>
           <button
@@ -1257,7 +1258,7 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
               marginTop: 10, width: "100%", padding: "9px 0", borderRadius: 9,
               background: todayHover ? "rgba(212,175,55,0.16)" : "rgba(212,175,55,0.08)",
               border: `1px solid rgba(212,175,55,${todayHover ? "0.5" : "0.2"})`,
-              color: "#D4AF37", fontSize: 12, fontWeight: 800, cursor: "pointer",
+              color: GOLD, fontSize: 12, fontWeight: 800, cursor: "pointer",
               transition: "background 130ms ease, border-color 130ms ease",
               transform: todayHover ? "translateY(-1px)" : "none",
             }}

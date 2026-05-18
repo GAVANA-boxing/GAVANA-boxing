@@ -17,6 +17,7 @@ import EmptyState from "@/components/EmptyState";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
+import { RED, GOLD } from "@/lib/tokens";
 
 const GYM_TYPES = [
   "Boxing", "MMA", "Muay Thai", "Fitness",
@@ -57,7 +58,7 @@ function getDefaultVibes(gymType) {
 function StarDisplay({ rating }) {
   const r = Number(rating) || 0;
   return (
-    <span style={{ color: "#D4AF37", fontSize: 12, fontWeight: 700 }}>
+    <span style={{ color: GOLD, fontSize: 12, fontWeight: 700 }}>
       {"★".repeat(Math.round(r))}{"☆".repeat(5 - Math.round(r))} {r > 0 ? r.toFixed(1) : ""}
     </span>
   );
@@ -322,7 +323,7 @@ export default function GymsPage() {
                 emoji="🔒"
                 title={t("gymLoginRequired")}
                 action={
-                  <button type="button" onClick={() => router.push(`/${locale}/login`)} style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}>
+                  <button type="button" onClick={() => router.push(`/${locale}/login`)} style={{ padding: "12px 28px", borderRadius: 14, background: RED, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}>
                     {t("gymLoginBtn")}
                   </button>
                 }
@@ -337,7 +338,7 @@ export default function GymsPage() {
                 title={t("gymNotMember")}
                 hint={t("gymJoinHint")}
                 action={
-                  <button type="button" onClick={() => setTab("all")} style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", marginTop: 4 }}>
+                  <button type="button" onClick={() => setTab("all")} style={{ padding: "12px 28px", borderRadius: 14, background: RED, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", marginTop: 4 }}>
                     {t("gymFindBtn")}
                   </button>
                 }
@@ -354,7 +355,7 @@ export default function GymsPage() {
                         ? <img src={ownedGym.logo} alt="" style={styles.cardLogo} />
                         : <div style={styles.cardLogoFallback}><span style={{ fontSize: 28 }}>🥊</span></div>
                       }
-                      <span style={{ position: "absolute", bottom: 8, right: 10, padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 900, background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.5)", color: "#D4AF37" }}>
+                      <span style={{ position: "absolute", bottom: 8, right: 10, padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 900, background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.5)", color: GOLD }}>
                         {t("gymOwnerLabel")}
                       </span>
                     </div>
@@ -369,7 +370,7 @@ export default function GymsPage() {
                       {ownedGym.gymType && <span style={styles.typeChip}>{t(GYM_TYPE_KEYS[ownedGym.gymType]) || ownedGym.gymType}</span>}
                       <button
                         type="button"
-                        style={{ marginTop: 10, padding: "8px 16px", borderRadius: 10, border: "1px solid rgba(212,175,55,0.4)", background: "rgba(212,175,55,0.1)", color: "#D4AF37", fontSize: 12, fontWeight: 900, cursor: "pointer" }}
+                        style={{ marginTop: 10, padding: "8px 16px", borderRadius: 10, border: "1px solid rgba(212,175,55,0.4)", background: "rgba(212,175,55,0.1)", color: GOLD, fontSize: 12, fontWeight: 900, cursor: "pointer" }}
                         onClick={(e) => { e.stopPropagation(); router.push(`/${locale}/gyms/dashboard`); }}
                       >
                         {t("gymManageBtn")}
@@ -505,7 +506,7 @@ export default function GymsPage() {
               type="checkbox"
               checked={verifiedOnly}
               onChange={(e) => setVerifiedOnly(e.target.checked)}
-              style={{ marginRight: 6, accentColor: "#D4AF37" }}
+              style={{ marginRight: 6, accentColor: GOLD }}
             />
             {t("gymsVerifiedOnly")}
           </label>
@@ -560,7 +561,7 @@ export default function GymsPage() {
             title={t("gymsNoGyms")}
             hint={t("gymsNoGymsSub")}
             action={
-              <button type="button" onClick={() => router.push(`/${locale}/gyms/dashboard`)} style={{ padding: "12px 28px", borderRadius: 14, background: "#C1121F", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}>
+              <button type="button" onClick={() => router.push(`/${locale}/gyms/dashboard`)} style={{ padding: "12px 28px", borderRadius: 14, background: RED, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}>
                 + {t("gymsRegister")}
               </button>
             }
@@ -613,7 +614,7 @@ const styles = {
   kicker: { margin: 0, fontSize: 11, letterSpacing: 2, color: "rgba(255,255,255,0.55)", textTransform: "uppercase" },
   title: { margin: 0, fontSize: 28, fontWeight: 1000, lineHeight: 1.1, fontFamily: "var(--font-display, 'Anton', sans-serif)" },
   subtitle: { margin: 0, fontSize: 14, color: "rgba(255,255,255,0.65)" },
-  registerBtn: { alignSelf: "flex-start", marginTop: 8, padding: "8px 16px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.45)", background: "rgba(212,175,55,0.1)", color: "#D4AF37", fontSize: 13, fontWeight: 900, cursor: "pointer" },
+  registerBtn: { alignSelf: "flex-start", marginTop: 8, padding: "8px 16px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.45)", background: "rgba(212,175,55,0.1)", color: GOLD, fontSize: 13, fontWeight: 900, cursor: "pointer" },
   searchInput: { width: "100%", boxSizing: "border-box", padding: "12px 16px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 14, outline: "none", marginBottom: 14 },
   sortRow: { display: "flex", gap: 8, marginBottom: 12 },
   sortBtn: { padding: "7px 14px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.12)", background: "transparent", color: "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: 700, cursor: "pointer" },
@@ -623,7 +624,7 @@ const styles = {
   verifiedToggle: { display: "flex", alignItems: "center", height: 38, gap: 6, padding: "0 12px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.09)", background: "rgba(255,255,255,0.04)", fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.65)", cursor: "pointer", whiteSpace: "nowrap" },
   catRow: { display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8, marginBottom: 16, scrollbarWidth: "none" },
   catBtn: { flexShrink: 0, padding: "6px 14px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 700, cursor: "pointer" },
-  catActive: { flexShrink: 0, padding: "6px 14px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.5)", background: "rgba(212,175,55,0.12)", color: "#D4AF37", fontSize: 12, fontWeight: 700, cursor: "pointer" },
+  catActive: { flexShrink: 0, padding: "6px 14px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.5)", background: "rgba(212,175,55,0.12)", color: GOLD, fontSize: 12, fontWeight: 700, cursor: "pointer" },
   loadingText: { textAlign: "center", padding: "60px 0", color: "rgba(255,255,255,0.55)", fontSize: 14 },
   skeletonList: { display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 },
   skeletonCard: { height: 200, borderRadius: 16, background: "rgba(255,255,255,0.06)" },
@@ -632,11 +633,11 @@ const styles = {
   cardImageWrap: { position: "relative", height: 100, background: "radial-gradient(ellipse at 50% 0%, rgba(193,18,31,0.18) 0%, transparent 60%), linear-gradient(160deg, #141010, #0d0d0d)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" },
   cardLogo: { width: 64, height: 64, objectFit: "cover", borderRadius: 14, boxShadow: "0 8px 24px rgba(0,0,0,0.5)" },
   cardLogoFallback: { width: 68, height: 68, borderRadius: 16, background: "radial-gradient(ellipse at 50% 30%, rgba(193,18,31,0.3), rgba(10,5,5,0.9))", border: "1px solid rgba(193,18,31,0.2)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 24px rgba(193,18,31,0.12)" },
-  verifiedBadge: { position: "absolute", top: 10, right: 10, fontSize: 10, fontWeight: 900, color: "#D4AF37", background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 999, padding: "3px 8px" },
+  verifiedBadge: { position: "absolute", top: 10, right: 10, fontSize: 10, fontWeight: 900, color: GOLD, background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 999, padding: "3px 8px" },
   cardBody: { padding: "12px 14px 14px" },
   cardNameRow: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 },
   cardName: { fontSize: 16, fontWeight: 1000, color: "#fff" },
-  typeChip: { fontSize: 10, fontWeight: 900, color: "#C1121F", background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.25)", borderRadius: 999, padding: "2px 8px" },
+  typeChip: { fontSize: 10, fontWeight: 900, color: RED, background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.25)", borderRadius: 999, padding: "2px 8px" },
   cardLocation: { fontSize: 12, color: "rgba(255,255,255,0.65)", marginBottom: 6 },
   cardRating: { display: "flex", alignItems: "center", gap: 6, marginBottom: 6 },
   reviewCount: { fontSize: 11, color: "rgba(255,255,255,0.55)" },
@@ -649,7 +650,7 @@ const styles = {
   vibeBtn: { flexShrink: 0, padding: "5px 14px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.2)", background: "rgba(193,18,31,0.05)", color: "rgba(255,165,130,0.65)", fontSize: 12, fontWeight: 700, cursor: "pointer" },
   vibeActive: { flexShrink: 0, padding: "5px 14px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.6)", background: "rgba(193,18,31,0.18)", color: "#F87171", fontSize: 12, fontWeight: 900, cursor: "pointer" },
   memberCountBadge: { position: "absolute", bottom: 8, left: 10, fontSize: 10, fontWeight: 900, color: "#fff", background: "rgba(0,0,0,0.65)", borderRadius: 999, padding: "2px 8px" },
-  joinBtn: { display: "block", width: "100%", marginTop: 10, padding: "10px 0", borderRadius: 12, border: "none", background: "#C1121F", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", letterSpacing: 0.3, boxShadow: "0 6px 20px rgba(193,18,31,0.22)" },
+  joinBtn: { display: "block", width: "100%", marginTop: 10, padding: "10px 0", borderRadius: 12, border: "none", background: RED, color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", letterSpacing: 0.3, boxShadow: "0 6px 20px rgba(193,18,31,0.22)" },
   sectionLabel: { margin: "0 0 10px", fontSize: 11, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" },
   featuredScroll: { display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none", WebkitOverflowScrolling: "touch" },
   featuredCard: { flexShrink: 0, width: 116, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "linear-gradient(145deg, #131313, #0a0a0a)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "12px 8px", cursor: "pointer", textAlign: "center", WebkitTapHighlightColor: "transparent" },
@@ -657,6 +658,6 @@ const styles = {
   featuredLogoFallback: { width: 48, height: 48, borderRadius: 12, background: "rgba(193,18,31,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, marginBottom: 2 },
   featuredName: { margin: 0, fontSize: 12, fontWeight: 900, color: "#fff", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "100%" },
   featuredCity: { margin: 0, fontSize: 10, color: "#666", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "100%" },
-  featuredRating: { fontSize: 10, color: "#D4AF37", fontWeight: 800 },
+  featuredRating: { fontSize: 10, color: GOLD, fontWeight: 800 },
   featuredMembers: { fontSize: 10, color: "#888" },
 };

@@ -12,6 +12,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { getLocale, translate } from "@/lib/i18n";
 import BottomNav from "@/components/BottomNav";
 import SkeletonBlock from "@/components/SkeletonBlock";
+import { RED, GOLD } from "@/lib/tokens";
 
 const DEMO_PROGRAMS = [
   {
@@ -22,7 +23,7 @@ const DEMO_PROGRAMS = [
     level: "beginner",
     category: "Boxing",
     emoji: "🥊",
-    color: "#C1121F",
+    color: RED,
     sessions: [
       { name: "Warm-up & Footwork", duration: "10 min" },
       { name: "Jab–Cross Drill", duration: "15 min" },
@@ -37,7 +38,7 @@ const DEMO_PROGRAMS = [
     level: "intermediate",
     category: "Conditioning",
     emoji: "💪",
-    color: "#D4AF37",
+    color: GOLD,
     sessions: [
       { name: "HIIT Cardio", duration: "15 min" },
       { name: "Core Circuit", duration: "12 min" },
@@ -61,7 +62,7 @@ const DEMO_PROGRAMS = [
   },
 ];
 
-const LEVEL_COLOR = { beginner: "#34D399", intermediate: "#D4AF37", advanced: "#C1121F" };
+const LEVEL_COLOR = { beginner: "#34D399", intermediate: GOLD, advanced: RED };
 
 function getLocalDateKey(date = new Date()) {
   const y = date.getFullYear();
@@ -70,7 +71,7 @@ function getLocalDateKey(date = new Date()) {
   return `${y}-${m}-${d}`;
 }
 
-function ProgressRing({ pct = 0, size = 56, stroke = 5, color = "#C1121F" }) {
+function ProgressRing({ pct = 0, size = 56, stroke = 5, color = RED }) {
   const r = (size - stroke * 2) / 2;
   const circ = 2 * Math.PI * r;
   const offset = circ * (1 - Math.min(1, pct / 100));
@@ -287,7 +288,7 @@ export default function ProgramsPage() {
                 const pct = Math.round((completedDays.length / total) * 100);
                 const streak = enrollment?.streak || 0;
                 const doneToday = completedDays.includes(todayKey);
-                const color = program.color || LEVEL_COLOR[program.level] || "#C1121F";
+                const color = program.color || LEVEL_COLOR[program.level] || RED;
 
                 return (
                   <div key={program.id} style={{ ...s.enrolledCard, borderLeft: `3px solid ${color}` }}>
@@ -337,7 +338,7 @@ export default function ProgramsPage() {
                 {t("programsDiscover")}
               </h2>
               {discoverPrograms.map((program) => {
-                const color = program.color || LEVEL_COLOR[program.level] || "#C1121F";
+                const color = program.color || LEVEL_COLOR[program.level] || RED;
                 const levelKeyMap = { beginner: "levelBeginner", intermediate: "levelIntermediate", advanced: "levelAdvanced" };
                 const levelLabel = program.level ? t(levelKeyMap[program.level] || program.level) : "";
                 return (
@@ -443,7 +444,7 @@ export default function ProgramsPage() {
               type="button"
               style={{
                 ...s.completeDayBtn,
-                background: allSessionsDone ? "#34D399" : "#C1121F",
+                background: allSessionsDone ? "#34D399" : RED,
                 opacity: completingDay ? 0.6 : 1,
               }}
               onClick={handleCompleteDay}
@@ -502,7 +503,7 @@ const s = {
     fontWeight: 900,
     letterSpacing: 2,
     textTransform: "uppercase",
-    color: "#D4AF37",
+    color: GOLD,
   },
   title: {
     margin: "2px 0 0",

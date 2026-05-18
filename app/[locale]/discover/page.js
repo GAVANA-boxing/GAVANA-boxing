@@ -14,6 +14,7 @@ import { getLocale, translate } from "@/lib/i18n";
 import { FIGHTERS } from "@/lib/fighters";
 import FighterPortrait from "@/components/FighterPortrait";
 import MediaCover from "@/components/MediaCover";
+import { RED, GOLD } from "@/lib/tokens";
 
 // ─── Legendary fighter mini card (for Fighter Study row) ─────────────────────
 function FighterStudyCard({ fighter, onClick }) {
@@ -136,7 +137,7 @@ function ReelCard({ reel, onClick }) {
   const [mediaErr, setMediaErr] = useState(false);
   const src = reel.thumbnailUrl || reel.thumbnail || reel.coverUrl || reel.videoUrl || "";
   const typeEmoji = reel.contentType === "educational" ? "📚" : reel.contentType === "lifestyle" ? "🎬" : "🥊";
-  const typeColor = reel.contentType === "educational" ? "#D4AF37" : reel.contentType === "lifestyle" ? "#60A5FA" : "#C1121F";
+  const typeColor = reel.contentType === "educational" ? GOLD : reel.contentType === "lifestyle" ? "#60A5FA" : RED;
   const caption = cleanCaption(reel.caption || reel.description || reel.title || "");
   const views = formatCompact(reel.views || 0);
 
@@ -240,7 +241,7 @@ function FeedPostCard({ reel, authorUser, router, locale }) {
           <p style={feed.authorName}>{name}</p>
           <p style={feed.timeAgo}>{formatAgo(reel.createdAt, locale)}</p>
         </div>
-        <span style={{ ...feed.typeBadge, color: reel.contentType === "educational" ? "#D4AF37" : reel.contentType === "lifestyle" ? "#60A5FA" : "#C1121F" }}>
+        <span style={{ ...feed.typeBadge, color: reel.contentType === "educational" ? GOLD : reel.contentType === "lifestyle" ? "#60A5FA" : RED }}>
           {typeEmoji}
         </span>
       </div>
@@ -539,7 +540,7 @@ export default function DiscoverPage() {
               <div style={s.listStack}>
                 {reelResults.map((r) => (
                   <button key={r.id} type="button" onClick={() => router.push(`/${locale}/reels?reelId=${r.id}`)} style={s.listCard}>
-                    <div style={{ ...s.listAvatar, background: "rgba(212,175,55,0.15)", color: "#D4AF37", fontSize: 18 }}>🎬</div>
+                    <div style={{ ...s.listAvatar, background: "rgba(212,175,55,0.15)", color: GOLD, fontSize: 18 }}>🎬</div>
                     <div style={s.listCardText}>
                       <span style={s.listCardName}>{r.caption || r.description || t("fallbackReel")}</span>
                       <span style={s.listCardSub}>{formatCompact(r.views || 0)} {t("views")}</span>
@@ -557,7 +558,7 @@ export default function DiscoverPage() {
               <p style={{ margin: 0, color: "#555", fontSize: 13, maxWidth: 240, lineHeight: 1.5 }}>
                 {t("discoverSearchHint")}
               </p>
-              <button type="button" onClick={clearSearch} style={{ marginTop: 12, padding: "8px 18px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", color: "#D4AF37", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
+              <button type="button" onClick={clearSearch} style={{ marginTop: 12, padding: "8px 18px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", color: GOLD, fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
                 {t("discoverClearSearch")}
               </button>
             </div>
@@ -692,7 +693,7 @@ export default function DiscoverPage() {
           <HubCard
             emoji="🧠"
             title={t("discoverLearnHub")}
-            accent="#D4AF37"
+            accent={GOLD}
             expanded={learnOpen}
             onToggle={() => setLearnOpen((v) => !v)}
           >
@@ -729,7 +730,7 @@ export default function DiscoverPage() {
           <HubCard
             emoji="⚔️"
             title={t("discoverChallengesHub")}
-            accent="#C1121F"
+            accent={RED}
             expanded={challengesOpen}
             onToggle={() => setChallengesOpen((v) => !v)}
           >
@@ -956,7 +957,7 @@ const s = {
   seeAllBtn: {
     background: "none",
     border: "none",
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 12,
     fontWeight: 800,
     cursor: "pointer",
@@ -1203,7 +1204,7 @@ const s = {
   learnChipActive: {
     background: "rgba(212,175,55,0.18)",
     borderColor: "rgba(212,175,55,0.55)",
-    color: "#D4AF37",
+    color: GOLD,
     fontWeight: 900,
   },
   hubEmpty: {
@@ -1220,7 +1221,7 @@ const s = {
     border: "1px solid rgba(255,255,255,0.1)",
     borderRadius: 12,
     padding: "11px 16px",
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 13,
     fontWeight: 800,
     cursor: "pointer",
@@ -1454,7 +1455,7 @@ const s = {
   fighterStudyLabel: {
     fontSize: 12,
     fontWeight: 800,
-    color: "#D4AF37",
+    color: GOLD,
     letterSpacing: 0.5,
     textTransform: "uppercase",
   },
@@ -1559,7 +1560,7 @@ const feed = {
     padding: "11px 22px",
     borderRadius: 12,
     border: "none",
-    background: "#C1121F",
+    background: RED,
     color: "#fff",
     fontSize: 14,
     fontWeight: 900,
@@ -1671,7 +1672,7 @@ const feed = {
     padding: "7px 14px",
     borderRadius: 10,
     border: "none",
-    background: "#C1121F",
+    background: RED,
     color: "#fff",
     fontSize: 12,
     fontWeight: 900,

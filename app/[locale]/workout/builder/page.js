@@ -7,6 +7,7 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale } from "@/lib/i18n";
 import BottomNav from "@/components/BottomNav";
+import { RED, GOLD } from "@/lib/tokens";
 
 const GOALS = [
   { key: "conditioning",   emoji: "🏋️", mn: "Нийт бэлтгэл",  ko: "체력 훈련",    en: "Conditioning" },
@@ -172,7 +173,7 @@ export default function WorkoutBuilderPage() {
         level,
         category: "AI Generated",
         emoji: goalMeta?.emoji || "🤖",
-        color: "#C1121F",
+        color: RED,
         duration: days * 7,
         daysPerWeek: days,
         sessionMinutes: duration,
@@ -211,7 +212,7 @@ export default function WorkoutBuilderPage() {
         {step < 3 && (
           <div style={s.stepDots}>
             {[0, 1, 2].map((i) => (
-              <div key={i} style={{ ...s.dot, background: i <= step ? "#C1121F" : "rgba(255,255,255,0.12)" }} />
+              <div key={i} style={{ ...s.dot, background: i <= step ? RED : "rgba(255,255,255,0.12)" }} />
             ))}
           </div>
         )}
@@ -400,7 +401,7 @@ const s = {
   inner: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },
   header: { display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "calc(16px + env(safe-area-inset-top))", paddingBottom: 8 },
   backBtn: { width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.055)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", borderRadius: 10, cursor: "pointer", padding: 0 },
-  kicker: { fontSize: 10, letterSpacing: 2.5, color: "#D4AF37", textTransform: "uppercase", fontWeight: 900 },
+  kicker: { fontSize: 10, letterSpacing: 2.5, color: GOLD, textTransform: "uppercase", fontWeight: 900 },
   heroSection: { textAlign: "center", padding: "20px 0 24px" },
   heroEmoji: { fontSize: 48, marginBottom: 12 },
   title: { margin: "0 0 8px", fontSize: 24, fontWeight: 1000, lineHeight: 1.1 },
@@ -437,10 +438,10 @@ const s = {
   restText: { margin: 0, fontSize: 13, color: "rgba(255,255,255,0.35)", fontStyle: "italic" },
   itemList: { listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 6 },
   itemRow: { display: "flex", alignItems: "flex-start", gap: 8 },
-  itemBullet: { color: "#C1121F", fontSize: 10, marginTop: 3, flexShrink: 0 },
+  itemBullet: { color: RED, fontSize: 10, marginTop: 3, flexShrink: 0 },
   itemText: { fontSize: 13, color: "rgba(255,255,255,0.8)", lineHeight: 1.45 },
   tipsCard: { background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.18)", borderRadius: 14, padding: "14px 16px" },
-  tipsTitle: { margin: "0 0 10px", fontSize: 12, fontWeight: 900, color: "#D4AF37", textTransform: "uppercase", letterSpacing: 0.5 },
+  tipsTitle: { margin: "0 0 10px", fontSize: 12, fontWeight: 900, color: GOLD, textTransform: "uppercase", letterSpacing: 0.5 },
   tipRow: { margin: "0 0 6px", fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.45 },
   actionRow: { display: "flex", gap: 8, marginTop: 4 },
   saveBtn: { flex: 2, padding: 14, borderRadius: 14, border: "none", background: "linear-gradient(135deg, #C1121F, #7d0812)", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" },
