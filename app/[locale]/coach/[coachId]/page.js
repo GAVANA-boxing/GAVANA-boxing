@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
 import EmptyState from "@/components/EmptyState";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , PURPLE} from "@/lib/tokens";
 import { snapToDocs } from "@/lib/firestore";
 
 const SPECIALTY_COLORS = {
@@ -17,7 +17,7 @@ const SPECIALTY_COLORS = {
   Sparring:     "#FB923C",
   Defense:      "#60A5FA",
   Counter:      "#60A5FA",
-  Footwork:     "#A78BFA",
+  Footwork:     PURPLE,
   "Pad work":   "#F59E0B",
   Conditioning: "#34D399",
   Beginners:    "#34D399",

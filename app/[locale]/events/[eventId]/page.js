@@ -21,11 +21,11 @@ import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocale, translate } from "@/lib/i18n";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , PURPLE} from "@/lib/tokens";
 
 const TYPE_META = {
   boxing:     { mn: "Бокс",     ko: "복싱",    en: "Boxing",     color: RED, emoji: "🥊" },
-  mma:        { mn: "MMA",      ko: "MMA",     en: "MMA",        color: "#A78BFA", emoji: "⚔️" },
+  mma:        { mn: "MMA",      ko: "MMA",     en: "MMA",        color: PURPLE, emoji: "⚔️" },
   muay_thai:  { mn: "Муай Тай", ko: "무에타이", en: "Muay Thai",  color: "#F97316", emoji: "🦵" },
   sparring:   { mn: "Спарринг", ko: "스파링",   en: "Sparring",   color: "#34D399", emoji: "🤜" },
   tournament: { mn: "Тэмцээн",  ko: "토너먼트", en: "Tournament", color: GOLD, emoji: "🏆" },

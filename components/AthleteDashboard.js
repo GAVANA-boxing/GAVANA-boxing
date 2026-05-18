@@ -16,7 +16,7 @@ import {
 import BottomNav from "@/components/BottomNav";
 import FighterStyleQuiz, { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import FighterPath from "@/components/FighterPath";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , PURPLE} from "@/lib/tokens";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -268,7 +268,7 @@ const DNA_ATTRS = [
   { key: "Technical", color: GOLD, fn: (s) => (s.Timing + s.Accuracy) / 2 },
   { key: "Counter",   color: "#60A5FA", fn: (s) => (s.Timing + s.Guard) / 2 },
   { key: "Footwork",  color: "#34D399", fn: (s) => s.Footwork },
-  { key: "Defense",   color: "#A78BFA", fn: (s) => s.Guard },
+  { key: "Defense",   color: PURPLE, fn: (s) => s.Guard },
 ];
 
 function StyleDNA({ radarStats }) {

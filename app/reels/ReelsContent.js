@@ -10,7 +10,7 @@ import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { updateLeaderboard } from "@/components/Leaderboard";
 import { computeFeedScore } from "@/lib/analytics";
 import AIBreakdownSheet from "@/components/AIBreakdownSheet";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , PURPLE} from "@/lib/tokens";
 
 // Dynamic import for Firebase to avoid SSR issues
 let db = null;
@@ -4652,7 +4652,7 @@ const styles = {
   },
   remixBanner: {
     fontSize: 11,
-    color: "#A78BFA",
+    color: PURPLE,
     marginTop: 4,
     opacity: 0.85,
   },

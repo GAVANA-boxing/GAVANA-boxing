@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocale, translate } from "@/lib/i18n";
 import { getCurrentSeasonId, getSeasonLabel } from "@/lib/season";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , PURPLE} from "@/lib/tokens";
 
 const CHALLENGES = [
   { id: "jab-minute",   titleKey: "challengeJabTitle",   descKey: "challengeJabDesc",   emoji: "🥊" },
@@ -303,9 +303,9 @@ export default function ChallengesPage() {
           <button type="button" style={{ ...styles.seasonTab, ...(mainTab === "leaderboard" ? styles.seasonTabActive : {}) }} onClick={() => setMainTab("leaderboard")}>
             {t("battleLeaderboardTab")}
           </button>
-          <button type="button" style={{ ...styles.seasonTab, ...(mainTab === "battles" ? styles.seasonTabActive : {}), ...(myBattles.some((b) => b.status === "pending" && b.role === "opponent") ? { color: "#A78BFA" } : {}) }} onClick={() => setMainTab("battles")}>
+          <button type="button" style={{ ...styles.seasonTab, ...(mainTab === "battles" ? styles.seasonTabActive : {}), ...(myBattles.some((b) => b.status === "pending" && b.role === "opponent") ? { color: PURPLE } : {}) }} onClick={() => setMainTab("battles")}>
             {t("battleMyBattlesTab")}
-            {myBattles.some((b) => b.status === "pending" && b.role === "opponent") && <span style={{ marginLeft: 4, display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: "#A78BFA", verticalAlign: "middle" }} />}
+            {myBattles.some((b) => b.status === "pending" && b.role === "opponent") && <span style={{ marginLeft: 4, display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: PURPLE, verticalAlign: "middle" }} />}
           </button>
         </div>
 
@@ -465,7 +465,7 @@ export default function ChallengesPage() {
                         const displayName = isCurrentUser ? t("challengeYou") : profile.name || t("fighter");
                         const initial = (displayName || "F").charAt(0).toUpperCase();
                         const rankLetter = result.rank || getChallengeRank(result.score);
-                        const rankColor = rankLetter === "S" ? GOLD : rankLetter === "A" ? "#60A5FA" : rankLetter === "B" ? "#A78BFA" : rankLetter === "C" ? "#34D399" : "#888";
+                        const rankColor = rankLetter === "S" ? GOLD : rankLetter === "A" ? "#60A5FA" : rankLetter === "B" ? PURPLE : rankLetter === "C" ? "#34D399" : "#888";
 
                         return (
                           <div

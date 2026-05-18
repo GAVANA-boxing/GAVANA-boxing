@@ -7,7 +7,7 @@ import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale } from "@/lib/i18n";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , PURPLE} from "@/lib/tokens";
 
 const WEIGHT_CLASSES = [
   { value: "-54", label: "-54kg" },
@@ -21,7 +21,7 @@ const WEIGHT_CLASSES = [
 const ARCHETYPES = [
   { value: "pressure", emoji: "⚡", label: "Pressure", color: "#F87171" },
   { value: "counter",  emoji: "🎯", label: "Counter",  color: "#60A5FA" },
-  { value: "technical",emoji: "🧠", label: "Technical",color: "#A78BFA" },
+  { value: "technical",emoji: "🧠", label: "Technical",color: PURPLE },
   { value: "brawler",  emoji: "🔥", label: "Brawler",  color: "#FB923C" },
 ];
 

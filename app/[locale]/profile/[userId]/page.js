@@ -15,7 +15,7 @@ import { getCurrentSeasonId } from "@/lib/season";
 import MediaCover from "@/components/MediaCover";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import BottomSheet from "@/components/BottomSheet";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , PURPLE} from "@/lib/tokens";
 import RankBeltModal from "@/components/profile/RankBeltModal";
 import StreakDetailModal from "@/components/profile/StreakDetailModal";
 import FighterShareCard from "@/components/profile/FighterShareCard";
@@ -81,7 +81,7 @@ export default function UserProfilePage() {
     streak_3:        { icon: "🔥", label: t("profileBadgeStreak3"), color: "#FB923C" },
     streak_7:        { icon: "⚡", label: t("profileBadgeStreak7"), color: "#F59E0B" },
     jab_master:      { icon: "🎯", label: t("profileBadgeJabMaster"), color: "#60A5FA" },
-    speed_king:      { icon: "💨", label: t("profileBadgeSpeedKing"), color: "#A78BFA" },
+    speed_king:      { icon: "💨", label: t("profileBadgeSpeedKing"), color: PURPLE },
     creator_starter: { icon: "🎬", label: t("creatorTag"), color: "#34D399" },
   };
   const [profileUser, setProfileUser] = useState(null);
@@ -1193,7 +1193,7 @@ export default function UserProfilePage() {
           if (bestScore !== null) tags.push({ label: `⭐ ${formatScore(bestScore)}/10`, color: GOLD, bg: "rgba(212,175,55,0.12)", border: "rgba(212,175,55,0.35)" });
           if (userReels.length > 0) tags.push({ label: `🎬 ${t("creatorTag")}`, color: "#60A5FA", bg: "rgba(96,165,250,0.10)", border: "rgba(96,165,250,0.28)" });
           if (challengeRanks?.weeklyRank && challengeRanks.weeklyRank <= 10) tags.push({ label: `#${challengeRanks.weeklyRank} ${t("seasonCurrentWeek")}`, color: GOLD, bg: "rgba(212,175,55,0.12)", border: "rgba(212,175,55,0.32)" });
-          if (pvpStats && pvpStats.wins > 0) tags.push({ label: `⚔️ ${pvpStats.wins}W ${pvpStats.losses}L`, color: "#A78BFA", bg: "rgba(167,139,250,0.10)", border: "rgba(167,139,250,0.28)" });
+          if (pvpStats && pvpStats.wins > 0) tags.push({ label: `⚔️ ${pvpStats.wins}W ${pvpStats.losses}L`, color: PURPLE, bg: "rgba(167,139,250,0.10)", border: "rgba(167,139,250,0.28)" });
           return (
             <div style={styles.fighterTagsRow}>
               {tags.map((tag, i) => (
@@ -1334,7 +1334,7 @@ export default function UserProfilePage() {
               <button
                 type="button"
                 onClick={() => { setShowChallengeModal(true); setChallengeSent(false); }}
-                style={{ ...styles.ghostAction, color: "#A78BFA", borderColor: "rgba(167,139,250,0.3)", flex: 1 }}
+                style={{ ...styles.ghostAction, color: PURPLE, borderColor: "rgba(167,139,250,0.3)", flex: 1 }}
               >
                 ⚔️ {t("profileChallengeBtn")}
               </button>
@@ -1354,8 +1354,8 @@ export default function UserProfilePage() {
       {/* ── Rival Comparison ── */}
       {!isOwnProfile && myStats && (
         <div style={{ padding: "0 16px 4px" }}>
-          <div style={{ background: "linear-gradient(145deg, #0d0b0d, #0a0a0a)", border: "1px solid rgba(167,139,250,0.15)", borderLeft: "3px solid #A78BFA", borderRadius: "3px 16px 16px 3px", padding: "14px 16px" }}>
-            <p style={{ margin: "0 0 10px", fontSize: 9, fontWeight: 900, color: "#A78BFA", letterSpacing: 2, textTransform: "uppercase" }}>
+          <div style={{ background: "linear-gradient(145deg, #0d0b0d, #0a0a0a)", border: "1px solid rgba(167,139,250,0.15)", borderLeft: `3px solid ${PURPLE}`, borderRadius: "3px 16px 16px 3px", padding: "14px 16px" }}>
+            <p style={{ margin: "0 0 10px", fontSize: 9, fontWeight: 900, color: PURPLE, letterSpacing: 2, textTransform: "uppercase" }}>
               ⚔️ {t("profileYouVs")}{(profileUser.displayName || profileUser.username || "Fighter").split(" ")[0]}
             </p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 0 }}>
@@ -1724,11 +1724,11 @@ export default function UserProfilePage() {
           open
           onClose={() => setShowChallengeModal(false)}
           zIndex={999}
-          accent="#A78BFA"
+          accent={PURPLE}
           maxWidth={480}
         >
           <div>
-            <p style={{ margin: 0, fontSize: 10, fontWeight: 900, color: "#A78BFA", letterSpacing: 1.4, textTransform: "uppercase" }}>GAVANA PvP</p>
+            <p style={{ margin: 0, fontSize: 10, fontWeight: 900, color: PURPLE, letterSpacing: 1.4, textTransform: "uppercase" }}>GAVANA PvP</p>
             <h2 style={{ margin: "4px 0 0", fontSize: 20, fontWeight: 900, color: "#fff" }}>
               {t("profileSendChallenge")}
             </h2>

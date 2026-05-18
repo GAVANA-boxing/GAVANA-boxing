@@ -39,7 +39,7 @@ function formatCountdown(ms, locale) {
 import RankIcon from "@/components/RankIcon";
 import { getCurrentSeasonId, getSeasonLabel } from "@/lib/season";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , PURPLE} from "@/lib/tokens";
 
 function getRankMedal(rank) {
   if (rank === 1) return "🥇";
@@ -74,7 +74,7 @@ function getEntryBadges({ entry, rank, weeklyEntries, streakEntries, improvement
 function getScoreColor(score) {
   if (score >= 9) return GOLD;
   if (score >= 7) return "#60A5FA";
-  if (score >= 5) return "#A78BFA";
+  if (score >= 5) return PURPLE;
   return "#FB923C";
 }
 

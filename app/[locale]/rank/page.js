@@ -9,7 +9,7 @@ import { RANK_TIERS, calculateUserXP, getFighterRank, getNextRank, getRankProgre
 import { getLocale, translate } from "@/lib/i18n";
 import RankIcon from "@/components/RankIcon";
 import BottomNav from "@/components/BottomNav";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , PURPLE} from "@/lib/tokens";
 
 const HOW_TO_EARN = [
   {
@@ -30,7 +30,7 @@ const HOW_TO_EARN = [
     detailEn: "+200 XP (0.5pt jump) or +400 XP (1pt jump)",
     detailMn: "+200 XP (0.5 оноо) эсвэл +400 XP (1 оноо)",
     detailKo: "+200 XP (0.5점 향상) 또는 +400 XP (1점 향상)",
-    color: "#A78BFA",
+    color: PURPLE,
   },
   {
     icon: "⚔️",

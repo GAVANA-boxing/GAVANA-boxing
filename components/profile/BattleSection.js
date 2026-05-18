@@ -1,6 +1,6 @@
 "use client";
 
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , PURPLE} from "@/lib/tokens";
 
 function getTimestampMs(timestamp) {
   if (!timestamp) return 0;
@@ -24,11 +24,11 @@ export default function BattleSection({ pvpStats, sparringRecord, isOwnProfile, 
           <div style={{
             background: "linear-gradient(145deg, #0a0a0a, #111)",
             border: "1px solid rgba(167,139,250,0.15)",
-            borderLeft: "3px solid #A78BFA",
+            borderLeft: `3px solid ${PURPLE}`,
             borderRadius: "3px 16px 16px 3px",
             padding: "18px 16px", marginBottom: 14,
           }}>
-            <p style={{ margin: "0 0 14px", fontSize: 9, fontWeight: 900, color: "#A78BFA", letterSpacing: 2.5, textTransform: "uppercase" }}>
+            <p style={{ margin: "0 0 14px", fontSize: 9, fontWeight: 900, color: PURPLE, letterSpacing: 2.5, textTransform: "uppercase" }}>
               ⚔️ {t("profilePvpRecord")}
             </p>
             <div style={{ display: "flex", gap: 8, justifyContent: "space-around" }}>
@@ -104,7 +104,7 @@ export default function BattleSection({ pvpStats, sparringRecord, isOwnProfile, 
                         <a
                           href={`/${locale}/reels?id=${battle.reelId}`}
                           style={{
-                            fontSize: 10, fontWeight: 800, color: "#A78BFA",
+                            fontSize: 10, fontWeight: 800, color: PURPLE,
                             textDecoration: "none", padding: "3px 8px",
                             border: "1px solid rgba(167,139,250,0.3)",
                             borderRadius: 6, background: "rgba(167,139,250,0.08)",
@@ -133,7 +133,7 @@ export default function BattleSection({ pvpStats, sparringRecord, isOwnProfile, 
               marginTop: 14, padding: "11px 0", borderRadius: 12,
               background: "linear-gradient(135deg, rgba(167,139,250,0.12), rgba(167,139,250,0.06))",
               border: "1px solid rgba(167,139,250,0.25)",
-              color: "#A78BFA", fontSize: 13, fontWeight: 800,
+              color: PURPLE, fontSize: 13, fontWeight: 800,
               textDecoration: "none", letterSpacing: "0.02em",
             }}
           >
@@ -154,7 +154,7 @@ export default function BattleSection({ pvpStats, sparringRecord, isOwnProfile, 
             style={{
               display: "inline-flex", alignItems: "center", gap: 6,
               padding: "10px 22px", borderRadius: 12,
-              background: "linear-gradient(135deg, #A78BFA, #7c3aed)",
+              background: `linear-gradient(135deg, ${PURPLE}, #7c3aed)`,
               color: "#fff", fontSize: 13, fontWeight: 800,
               textDecoration: "none", letterSpacing: "0.02em",
             }}
