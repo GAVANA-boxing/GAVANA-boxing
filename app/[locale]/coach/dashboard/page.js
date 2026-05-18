@@ -95,7 +95,7 @@ function RequestCard({ request, requesterUser, t, locale, onAccept, onDecline, o
 
       {request.type === "sparring" && request.sparringPostId && (
         <div style={styles.sparringTag}>
-          {locale === "mn" ? "⚔️ Sparring хүсэлт" : locale === "ko" ? "⚔️ 스파링 요청" : "⚔️ Sparring post request"}
+          {t("coachSparringPostTag")}
         </div>
       )}
 
@@ -495,10 +495,10 @@ export default function CoachDashboardPage() {
     : requests.filter((r) => r.status === activeFilter);
 
   const FILTER_TABS = [
-    { key: "all", label: locale === "mn" ? "Бүгд" : locale === "ko" ? "전체" : "All", count: total },
-    { key: "pending", label: locale === "mn" ? "Хүлээгдэж буй" : locale === "ko" ? "대기중" : "Pending", count: pending },
-    { key: "accepted", label: locale === "mn" ? "Зөвшөөрсөн" : locale === "ko" ? "수락됨" : "Accepted", count: accepted },
-    { key: "declined", label: locale === "mn" ? "Татгалзсан" : locale === "ko" ? "거절됨" : "Declined", count: declined },
+    { key: "all", label: t("coachFilterAll"), count: total },
+    { key: "pending", label: t("requestPending"), count: pending },
+    { key: "accepted", label: t("coachDashAccepted"), count: accepted },
+    { key: "declined", label: t("coachDashDeclined"), count: declined },
   ];
 
   return (
@@ -531,7 +531,7 @@ export default function CoachDashboardPage() {
           <div style={styles.statDivider} />
           <div style={styles.statCell}>
             <span style={{ ...styles.statNum, color: "#34D399" }}>{completedSessions}</span>
-            <span style={styles.statLbl}>{locale === "mn" ? "Хийгдсэн" : locale === "ko" ? "완료" : "Completed"}</span>
+            <span style={styles.statLbl}>{t("coachDashCompleted")}</span>
           </div>
           <div style={styles.statDivider} />
           <div style={styles.statCell}>
@@ -576,12 +576,12 @@ export default function CoachDashboardPage() {
           <div style={styles.emptyState}>
             <div style={styles.emptyIcon}>📭</div>
             <div style={styles.emptyTitle}>
-              {activeFilter === "all" ? t("noRequests") : (locale === "mn" ? "Хүсэлт байхгүй" : locale === "ko" ? "요청 없음" : "No requests")}
+              {activeFilter === "all" ? t("noRequests") : t("coachDashNoRequests")}
             </div>
             <div style={styles.emptyDesc}>
               {activeFilter === "all"
-                ? (locale === "mn" ? "Шинэ coaching болон sparring хүсэлтүүд энд харагдана." : locale === "ko" ? "새 코칭 및 스파링 요청이 여기에 표시됩니다." : "New coaching and sparring requests will appear here.")
-                : (locale === "mn" ? `${FILTER_TABS.find(t => t.key === activeFilter)?.label} хүсэлт байхгүй.` : locale === "ko" ? "해당 카테고리에 요청이 없습니다." : `No ${activeFilter} requests.`)}
+                ? t("coachDashNoRequestsDesc")
+                : (locale === "mn" ? `${FILTER_TABS.find(tab => tab.key === activeFilter)?.label} хүсэлт байхгүй.` : locale === "ko" ? "해당 카테고리에 요청이 없습니다." : `No ${activeFilter} requests.`)}
             </div>
           </div>
         )}
@@ -609,14 +609,14 @@ export default function CoachDashboardPage() {
         <div style={{ marginTop: 32, borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 24 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
             <h2 style={{ ...styles.sectionTitle, margin: 0 }}>
-              📋 {locale === "mn" ? "Миний програмууд" : locale === "ko" ? "내 프로그램" : "My Programs"}
+              📋 {t("coachDashMyPrograms")}
             </h2>
             <button
               type="button"
               onClick={() => setShowCreateForm((v) => !v)}
               style={{ padding: "7px 14px", borderRadius: 999, border: "none", background: "linear-gradient(135deg, #C1121F, #8f0d17)", color: "#fff", fontSize: 12, fontWeight: 900, cursor: "pointer" }}
             >
-              {showCreateForm ? "✕" : "+ " + (locale === "mn" ? "Шинэ" : locale === "ko" ? "추가" : "New")}
+              {showCreateForm ? "✕" : "+ " + t("coachDashNew")}
             </button>
           </div>
 
@@ -625,31 +625,31 @@ export default function CoachDashboardPage() {
               <input
                 value={progTitle}
                 onChange={(e) => setProgTitle(e.target.value)}
-                placeholder={locale === "mn" ? "Програмын нэр" : locale === "ko" ? "프로그램 이름" : "Program title"}
+                placeholder={t("coachDashProgTitle")}
                 style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", color: "#fff", fontSize: 13, outline: "none" }}
               />
               <textarea
                 value={progDesc}
                 onChange={(e) => setProgDesc(e.target.value)}
-                placeholder={locale === "mn" ? "Тайлбар (заавал биш)" : locale === "ko" ? "설명 (선택)" : "Description (optional)"}
+                placeholder={t("coachDashProgDesc")}
                 rows={3}
                 style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", color: "#fff", fontSize: 13, outline: "none", resize: "vertical", fontFamily: "inherit" }}
               />
               <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                 <span style={{ fontSize: 12, color: "#888", fontWeight: 700, flexShrink: 0 }}>
-                  {locale === "mn" ? "Хугацаа:" : locale === "ko" ? "기간:" : "Duration:"}
+                  {t("coachDashDurationLabel")}
                 </span>
                 {[7, 14, 30].map((d) => (
                   <button key={d} type="button" onClick={() => setProgDuration(d)} style={{ padding: "5px 12px", borderRadius: 999, border: "none", background: progDuration === d ? "#C1121F" : "rgba(255,255,255,0.08)", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>
-                    {d}{locale === "mn" ? "өд" : locale === "ko" ? "일" : "d"}
+                    {d}{t("coachDashDayShort")}
                   </button>
                 ))}
               </div>
               <div style={{ display: "flex", gap: 8 }}>
                 {[
-                  ["beginner", "#34D399", locale === "mn" ? "Анхан" : locale === "ko" ? "입문" : "Beginner"],
-                  ["intermediate", "#D4AF37", locale === "mn" ? "Дунд" : locale === "ko" ? "중급" : "Intermediate"],
-                  ["advanced", "#C1121F", locale === "mn" ? "Ахисан" : locale === "ko" ? "고급" : "Advanced"],
+                  ["beginner", "#34D399", t("coachDashLevelBeginner")],
+                  ["intermediate", "#D4AF37", t("coachDashLevelIntermediate")],
+                  ["advanced", "#C1121F", t("coachDashLevelAdvanced")],
                 ].map(([lvl, col, lbl]) => (
                   <button key={lvl} type="button" onClick={() => setProgLevel(lvl)} style={{ flex: 1, padding: "6px 0", borderRadius: 999, border: `1px solid ${progLevel === lvl ? col : "rgba(255,255,255,0.1)"}`, background: progLevel === lvl ? `${col}18` : "transparent", color: progLevel === lvl ? col : "#888", fontSize: 11, fontWeight: 800, cursor: "pointer" }}>
                     {lbl}
@@ -662,7 +662,7 @@ export default function CoachDashboardPage() {
                 disabled={!progTitle.trim() || progSaving}
                 style={{ padding: "11px 0", borderRadius: 10, border: "none", background: progTitle.trim() ? "linear-gradient(135deg, #C1121F, #8f0d17)" : "rgba(255,255,255,0.06)", color: "#fff", fontSize: 13, fontWeight: 900, cursor: progTitle.trim() ? "pointer" : "not-allowed", opacity: progSaving ? 0.6 : 1 }}
               >
-                {progSaving ? "…" : locale === "mn" ? "Хадгалах" : locale === "ko" ? "저장" : "Save Program"}
+                {progSaving ? "…" : t("coachDashSaveProgram")}
               </button>
             </div>
           )}
@@ -671,10 +671,10 @@ export default function CoachDashboardPage() {
             <div style={{ textAlign: "center", padding: "32px 20px", background: "rgba(255,255,255,0.02)", borderRadius: 14, border: "1px dashed rgba(255,255,255,0.09)" }}>
               <div style={{ fontSize: 36, marginBottom: 8 }}>📋</div>
               <p style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 800, color: "#fff" }}>
-                {locale === "mn" ? "Програм байхгүй" : locale === "ko" ? "프로그램 없음" : "No programs yet"}
+                {t("coachDashNoPrograms")}
               </p>
               <p style={{ margin: 0, fontSize: 12, color: "#555" }}>
-                {locale === "mn" ? "Шинэ программ үүсгэж тулаанчдад санал болгоорой." : locale === "ko" ? "새 프로그램을 만들어 선수들에게 제공하세요." : "Create a program to offer fighters a structured plan."}
+                {t("coachDashNoProgramsHint")}
               </p>
             </div>
           )}
@@ -693,8 +693,8 @@ export default function CoachDashboardPage() {
                     <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", marginBottom: 3 }}>{prog.title}</div>
                     <div style={{ display: "flex", gap: 8, fontSize: 11, color: "#555", fontWeight: 700 }}>
                       <span style={{ color: col }}>{LEVEL_LBL[prog.level] || prog.level}</span>
-                      {prog.duration && <span>📅 {prog.duration}{locale === "mn" ? "өд" : locale === "ko" ? "일" : "d"}</span>}
-                      <span>👥 {prog.enrolledCount || 0} {locale === "mn" ? "дагагч" : locale === "ko" ? "등록" : "enrolled"}</span>
+                      {prog.duration && <span>📅 {prog.duration}{t("coachDashDayShort")}</span>}
+                      <span>👥 {prog.enrolledCount || 0} {t("coachDashEnrolled")}</span>
                     </div>
                   </div>
                 </div>
@@ -778,7 +778,7 @@ export default function CoachDashboardPage() {
             <div style={styles.modalHandle} />
             <div style={styles.modalHeader}>
               <span style={styles.modalTitle}>
-                {locale === "mn" ? "Тулаанчийн мэдээлэл" : locale === "ko" ? "선수 정보" : "Fighter Profile"}
+                {t("coachDashFighterProfile")}
               </span>
               <button type="button" style={styles.modalCloseBtn} onClick={() => setProfileModal(null)}>✕</button>
             </div>
@@ -808,7 +808,7 @@ export default function CoachDashboardPage() {
               style={{ marginTop: 16, width: "100%", padding: "12px 0", borderRadius: 12, border: "none", background: "rgba(255,255,255,0.08)", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}
               onClick={() => { setProfileModal(null); router.push(`/${locale}/profile/${profileModal.request?.userId}`); }}
             >
-              {locale === "mn" ? "Бүрэн профайл харах" : locale === "ko" ? "전체 프로필 보기" : "View Full Profile"}
+              {t("coachDashViewFull")}
             </button>
           </div>
         </div>

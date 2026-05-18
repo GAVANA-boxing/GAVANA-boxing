@@ -256,7 +256,7 @@ function FeedPostCard({ reel, authorUser, router, locale }) {
       <div style={feed.cardFooter}>
         <span style={feed.likes}>❤️ {formatCompact(reel.likes || reel.likesCount || 0)}</span>
         <button type="button" style={feed.watchBtn} onClick={() => router.push(`/${locale}/reels?reelId=${reel.id}`)}>
-          {locale === "mn" ? "Харах →" : locale === "ko" ? "보기 →" : "Watch →"}
+          {t("discoverWatch")}
         </button>
       </div>
     </div>
@@ -542,7 +542,7 @@ export default function DiscoverPage() {
                     <div style={{ ...s.listAvatar, background: "rgba(212,175,55,0.15)", color: "#D4AF37", fontSize: 18 }}>🎬</div>
                     <div style={s.listCardText}>
                       <span style={s.listCardName}>{r.caption || r.description || (locale === "mn" ? "Видео" : locale === "ko" ? "릴" : "Reel")}</span>
-                      <span style={s.listCardSub}>{formatCompact(r.views || 0)} {locale === "mn" ? "үзэлт" : locale === "ko" ? "조회수" : "views"}</span>
+                      <span style={s.listCardSub}>{formatCompact(r.views || 0)} {t("views")}</span>
                     </div>
                     <span style={s.listArrow}>›</span>
                   </button>
@@ -656,7 +656,7 @@ export default function DiscoverPage() {
             <ReelRow reels={forYouReels} router={router} locale={locale} loading={exploreLoading} />
             {!exploreLoading && forYouReels.length === 0 && (
               <div style={s.hubEmpty}>
-                <p style={s.hubEmptyText}>{locale === "mn" ? "Одоогоор контент байхгүй байна." : locale === "ko" ? "아직 콘텐츠가 없습니다." : "No content available yet."}</p>
+                <p style={s.hubEmptyText}>{t("discoverNoContent")}</p>
               </div>
             )}
           </div>
@@ -714,12 +714,12 @@ export default function DiscoverPage() {
               <ReelRow reels={filteredLearnReels} router={router} locale={locale} loading={false} />
             ) : (
               <div style={s.hubEmpty}>
-                <p style={s.hubEmptyText}>{locale === "mn" ? "Энэ ангилалд контент байхгүй байна." : locale === "ko" ? "이 카테고리에 콘텐츠가 없습니다." : "No content yet in this category."}</p>
+                <p style={s.hubEmptyText}>{t("discoverNoCategoryContent")}</p>
               </div>
             )}
 
             <button type="button" style={s.hubFooterBtn} onClick={() => router.push(`/${locale}/reels`)}>
-              {locale === "mn" ? "Бүх техник reel үзэх →" : locale === "ko" ? "모든 기술 릴 보기 →" : "Browse all technique reels →"}
+              {t("discoverBrowseReels")}
             </button>
           </HubCard>
 
@@ -737,7 +737,7 @@ export default function DiscoverPage() {
               <ReelRow reels={challengeReels} router={router} locale={locale} loading={false} />
             ) : (
               <div style={s.hubEmpty}>
-                <p style={s.hubEmptyText}>{locale === "mn" ? "Чамайг хүлээж буй challenge байна." : locale === "ko" ? "챌린지 릴이 기다리고 있어요." : "Challenge reels are waiting for you."}</p>
+                <p style={s.hubEmptyText}>{t("discoverChallengeEmpty")}</p>
               </div>
             )}
 
@@ -761,7 +761,7 @@ export default function DiscoverPage() {
             </div>
 
             <button type="button" style={{ ...s.hubFooterBtn, color: "#F87171", borderColor: "rgba(193,18,31,0.3)" }} onClick={() => router.push(`/${locale}/challenges`)}>
-              {locale === "mn" ? "Бүх challenge руу →" : locale === "ko" ? "모든 챌린지 보기 →" : "Go to all challenges →"}
+              {t("discoverGoToChallenges")}
             </button>
           </HubCard>
 
@@ -770,7 +770,7 @@ export default function DiscoverPage() {
           ════════════════════════════════════════ */}
           <HubCard
             emoji="🌐"
-            title={locale === "mn" ? "Илүү ихийг нээх" : locale === "ko" ? "더 탐색하기" : "Explore More"}
+            title={t("discoverExploreMore")}
             accent="#60A5FA"
             expanded={exploreOpen}
             onToggle={() => setExploreOpen((v) => !v)}
