@@ -449,14 +449,14 @@ export default function DiscoverPage() {
           style={feedTab === "explore" ? s.feedTabActive : s.feedTabBtn}
           onClick={() => setFeedTab("explore")}
         >
-          🧭 {locale === "mn" ? "Нээх" : locale === "ko" ? "탐색" : "Explore"}
+          {t("discoverExploreTab")}
         </button>
         <button
           type="button"
           style={feedTab === "following" ? s.feedTabActive : s.feedTabBtn}
           onClick={() => setFeedTab("following")}
         >
-          👥 {locale === "mn" ? "Дагасан" : locale === "ko" ? "팔로잉" : "Following"}
+          {t("discoverFollowingTab")}
         </button>
       </div>
 
@@ -505,10 +505,10 @@ export default function DiscoverPage() {
             <div style={s.emptyState}>
               <span style={{ fontSize: 32 }}>⚠️</span>
               <p style={{ margin: "8px 0 4px", color: "#fff", fontSize: 14, fontWeight: 800 }}>
-                {locale === "mn" ? "Хайлт амжилтгүй боллоо" : locale === "ko" ? "검색 실패" : "Search failed"}
+                {t("discoverSearchFailed")}
               </p>
               <button type="button" onClick={() => handleSearch()} style={{ marginTop: 8, padding: "8px 18px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
-                {locale === "mn" ? "Дахин оролдох" : locale === "ko" ? "다시 시도" : "Retry"}
+                {t("discoverRetry")}
               </button>
             </div>
           )}
@@ -555,10 +555,10 @@ export default function DiscoverPage() {
               <span style={{ fontSize: 36 }}>🔍</span>
               <p style={{ margin: "8px 0 4px", color: "#fff", fontSize: 15, fontWeight: 800 }}>{t("discoverNoMatches")}</p>
               <p style={{ margin: 0, color: "#555", fontSize: 13, maxWidth: 240, lineHeight: 1.5 }}>
-                {locale === "mn" ? "Өөр түлхүүр үг туршаад үзнэ үү, эсвэл доорх категориудаас хайгаарай." : locale === "ko" ? "다른 키워드로 검색하거나 아래 카테고리를 탐색해 보세요." : "Try different keywords, or browse the categories below."}
+                {t("discoverSearchHint")}
               </p>
               <button type="button" onClick={clearSearch} style={{ marginTop: 12, padding: "8px 18px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", color: "#D4AF37", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
-                {locale === "mn" ? "Хайлт цэвэрлэх" : locale === "ko" ? "검색 지우기" : "Clear search"}
+                {t("discoverClearSearch")}
               </button>
             </div>
           )}
@@ -581,28 +581,20 @@ export default function DiscoverPage() {
               {!feedLoading && !user?.uid && (
                 <div style={feed.emptyWrap}>
                   <span style={{ fontSize: 40 }}>🔒</span>
-                  <p style={feed.emptyTitle}>
-                    {locale === "mn" ? "Нэвтрэх шаардлагатай" : locale === "ko" ? "로그인 필요" : "Sign in required"}
-                  </p>
-                  <p style={feed.emptyText}>
-                    {locale === "mn" ? "Дагасан хүмүүсийн постыг харахын тулд нэвтэрнэ үү." : locale === "ko" ? "팔로잉 피드를 보려면 로그인하세요." : "Sign in to see posts from fighters you follow."}
-                  </p>
+                  <p style={feed.emptyTitle}>{t("discoverSignInRequired")}</p>
+                  <p style={feed.emptyText}>{t("discoverSignInDesc")}</p>
                   <button type="button" style={feed.emptyBtn} onClick={() => router.push(`/${locale}/login`)}>
-                    {locale === "mn" ? "Нэвтрэх" : locale === "ko" ? "로그인" : "Sign In"}
+                    {t("discoverSignIn")}
                   </button>
                 </div>
               )}
               {!feedLoading && user?.uid && feedLoaded && followingReels.length === 0 && (
                 <div style={feed.emptyWrap}>
                   <span style={{ fontSize: 40 }}>👥</span>
-                  <p style={feed.emptyTitle}>
-                    {locale === "mn" ? "Дагасан хүн байхгүй" : locale === "ko" ? "팔로잉이 없습니다" : "No one followed yet"}
-                  </p>
-                  <p style={feed.emptyText}>
-                    {locale === "mn" ? "Боксчдыг дагаж тэдний постыг энд харна уу." : locale === "ko" ? "파이터를 팔로우하면 여기서 게시물을 볼 수 있어요." : "Follow fighters to see their posts here."}
-                  </p>
+                  <p style={feed.emptyTitle}>{t("discoverNoFollowing")}</p>
+                  <p style={feed.emptyText}>{t("discoverNoFollowingDesc")}</p>
                   <button type="button" style={feed.emptyBtn} onClick={() => setFeedTab("explore")}>
-                    {locale === "mn" ? "Нээх →" : locale === "ko" ? "탐색하기 →" : "Explore fighters →"}
+                    {t("discoverExploreFighters")}
                   </button>
                 </div>
               )}
@@ -628,10 +620,10 @@ export default function DiscoverPage() {
           {exploreError && !exploreLoading && (
             <div style={{ padding: "20px 16px", textAlign: "center" }}>
               <p style={{ margin: "0 0 10px", color: "#888", fontSize: 14 }}>
-                {locale === "mn" ? "Контент ачааллахад алдаа гарлаа." : locale === "ko" ? "콘텐츠를 불러오지 못했습니다." : "Could not load content."}
+                {t("discoverLoadError")}
               </p>
               <button type="button" onClick={loadExplore} style={{ padding: "9px 20px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
-                {locale === "mn" ? "Дахин оролдох" : locale === "ko" ? "다시 시도" : "Retry"}
+                {t("discoverRetry")}
               </button>
             </div>
           )}

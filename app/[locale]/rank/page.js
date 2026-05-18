@@ -262,7 +262,7 @@ export default function RankPage() {
 
         {/* How to earn XP */}
         <h2 style={{ ...styles.ladderHeading, marginTop: 36 }}>
-          {lbl("XP хэрхэн цуглуулах вэ", "XP 획득 방법", "How to earn XP")}
+          {t("howToEarnXP")}
         </h2>
         <div style={styles.earnGrid}>
           {HOW_TO_EARN.map((item) => (

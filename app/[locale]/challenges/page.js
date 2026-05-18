@@ -300,10 +300,10 @@ export default function ChallengesPage() {
         {/* Main tabs: Leaderboard | My Battles */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, padding: 5, borderRadius: 16, background: "rgba(0,0,0,0.48)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)" }}>
           <button type="button" style={{ ...styles.seasonTab, ...(mainTab === "leaderboard" ? styles.seasonTabActive : {}) }} onClick={() => setMainTab("leaderboard")}>
-            🏆 {locale === "mn" ? "Тэргүүний самбар" : locale === "ko" ? "리더보드" : "Leaderboard"}
+            {t("battleLeaderboardTab")}
           </button>
           <button type="button" style={{ ...styles.seasonTab, ...(mainTab === "battles" ? styles.seasonTabActive : {}), ...(myBattles.some((b) => b.status === "pending" && b.role === "opponent") ? { color: "#A78BFA" } : {}) }} onClick={() => setMainTab("battles")}>
-            ⚔️ {locale === "mn" ? "Миний тулаанууд" : locale === "ko" ? "내 배틀" : "My Battles"}
+            {t("battleMyBattlesTab")}
             {myBattles.some((b) => b.status === "pending" && b.role === "opponent") && <span style={{ marginLeft: 4, display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: "#A78BFA", verticalAlign: "middle" }} />}
           </button>
         </div>
@@ -318,13 +318,13 @@ export default function ChallengesPage() {
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "40px 16px", textAlign: "center" }}>
                 <span style={{ fontSize: 48, opacity: 0.5 }}>⚔️</span>
                 <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#fff" }}>
-                  {locale === "mn" ? "Тулаан байхгүй байна" : locale === "ko" ? "배틀 없음" : "No battles yet"}
+                  {t("battleNoneYet")}
                 </p>
                 <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.45)", maxWidth: 260, lineHeight: 1.6 }}>
-                  {locale === "mn" ? "Fighter-ийн profile дээрх ⚔️ товчийг дараад тулааны шийдэл илгээгээрэй." : locale === "ko" ? "파이터의 프로필에서 ⚔️ 버튼으로 배틀을 신청하세요." : "Go to a fighter's profile and tap ⚔️ to send a challenge."}
+                  {t("battleNoneDesc")}
                 </p>
                 <button type="button" style={{ padding: "11px 24px", borderRadius: 999, border: "none", background: "linear-gradient(135deg,#7C3AED,#4C1D95)", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer" }} onClick={() => router.push(`/${locale}/fighters`)}>
-                  {locale === "mn" ? "🥊 Fighter хайх" : locale === "ko" ? "🥊 파이터 찾기" : "🥊 Find Fighters"}
+                  {t("battleFindFighters")}
                 </button>
               </div>
             ) : (
@@ -339,20 +339,18 @@ export default function ChallengesPage() {
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 14, fontWeight: 900, color: "#fff" }}>{challengeInfo ? t(challengeInfo.titleKey) : battle.challengeId}</div>
                         <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 2 }}>
-                          {isReceived
-                            ? (locale === "mn" ? "Тулааны урилга ирлээ" : locale === "ko" ? "배틀 신청 받음" : "Challenge received")
-                            : (locale === "mn" ? "Тулааны урилга илгээсэн" : locale === "ko" ? "배틀 신청 보냄" : "Challenge sent")}
+                          {isReceived ? t("battleChallengeReceived") : t("battleChallengeSent")}
                           {" · "}
                           {battle.status === "pending"
-                            ? (locale === "mn" ? "Хүлээгдэж байна" : locale === "ko" ? "대기 중" : "Pending")
+                            ? t("battlePending")
                             : battle.status === "completed"
-                            ? (locale === "mn" ? "Дууссан" : locale === "ko" ? "완료" : "Completed")
+                            ? t("battleCompleted")
                             : battle.status}
                         </div>
                       </div>
                       {isPending && isReceived && (
                         <button type="button" style={{ padding: "8px 16px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#7C3AED,#4C1D95)", color: "#fff", fontSize: 12, fontWeight: 900, cursor: "pointer", flexShrink: 0 }} onClick={() => router.push(`/${locale}/train?challengeId=${battle.challengeId}`)}>
-                          {locale === "mn" ? "Тулаан →" : locale === "ko" ? "배틀 →" : "Compete →"}
+                          {t("battleCompete")}
                         </button>
                       )}
                     </div>
