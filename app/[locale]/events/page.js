@@ -9,6 +9,8 @@ import {
   doc,
   getDocs,
   increment,
+  limit,
+  orderBy,
   query,
   serverTimestamp,
   setDoc,
@@ -95,13 +97,12 @@ export default function EventsPage() {
     async function load() {
       try {
         const [eventsSnap, rsvpSnap] = await Promise.all([
-          getDocs(collection(db, "events")),
+          getDocs(query(collection(db, "events"), orderBy("date", "asc"), limit(100))),
           getDocs(query(collection(db, "event_rsvps"), where("userId", "==", user.uid))),
         ]);
         if (!active) return;
         const evs = eventsSnap.docs
-          .map((d) => ({ id: d.id, ...d.data() }))
-          .sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
+          .map((d) => ({ id: d.id, ...d.data() }));
         setEvents(evs);
         setMyRsvpIds(new Set(rsvpSnap.docs.map((d) => d.data().eventId)));
       } catch (e) {

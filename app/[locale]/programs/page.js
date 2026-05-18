@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
-  collection, getDocs, query, where,
+  collection, getDocs, limit, query, where,
   addDoc, deleteDoc, doc, updateDoc,
   serverTimestamp, arrayUnion,
 } from "firebase/firestore";
@@ -122,7 +122,7 @@ export default function ProgramsPage() {
 
     async function load() {
       try {
-        const progSnap = await getDocs(collection(db, "training_programs"));
+        const progSnap = await getDocs(query(collection(db, "training_programs"), limit(50)));
         const progDocs = progSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
         const allPrograms = progDocs.length > 0 ? progDocs : DEMO_PROGRAMS;
         if (!active) return;
@@ -234,7 +234,11 @@ export default function ProgramsPage() {
   return (
     <div style={s.page}>
       <header style={s.header}>
-        <button type="button" style={s.backBtn} onClick={() => router.back()}>←</button>
+        <button type="button" style={s.backBtn} onClick={() => router.back()} aria-label="Back">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
         <div>
           <p style={s.kicker}>GAVANA BOXING</p>
           <h1 style={s.title}>
@@ -487,13 +491,18 @@ const s = {
     zIndex: 10,
   },
   backBtn: {
-    background: "none",
-    border: "none",
+    width: 40,
+    height: 40,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "rgba(255,255,255,0.055)",
+    border: "1px solid rgba(255,255,255,0.12)",
     color: "#fff",
-    fontSize: 20,
+    borderRadius: 10,
     cursor: "pointer",
-    padding: "4px 8px",
-    borderRadius: 8,
+    padding: 0,
+    flexShrink: 0,
   },
   kicker: {
     margin: 0,

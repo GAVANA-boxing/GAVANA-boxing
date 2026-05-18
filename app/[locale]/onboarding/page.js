@@ -7,6 +7,8 @@ import {
   collection,
   doc,
   getDocs,
+  limit,
+  query,
   serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
@@ -110,8 +112,8 @@ export default function OnboardingPage() {
     }
     setGymsLoading(true);
     try {
-      const snap = await getDocs(collection(db, "gyms"));
-      setGyms(snap.docs.map((d) => ({ id: d.id, ...d.data() })).slice(0, 12));
+      const snap = await getDocs(query(collection(db, "gyms"), limit(12)));
+      setGyms(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     } catch {}
     setGymsLoading(false);
     goTo(3);

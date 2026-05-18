@@ -7,6 +7,8 @@ import {
   doc,
   getDoc,
   getDocs,
+  limit,
+  orderBy,
   query,
   where,
 } from "firebase/firestore";
@@ -165,12 +167,9 @@ export default function GymsPage() {
     async function load() {
       setLoading(true);
       try {
-        const snap = await getDocs(collection(db, "gyms"));
+        const snap = await getDocs(query(collection(db, "gyms"), orderBy("createdAt", "desc"), limit(50)));
         if (active) {
-          const list = snap.docs
-            .map((d) => ({ id: d.id, ...d.data() }))
-            .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
-          setGyms(list);
+          setGyms(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
         }
       } catch (e) {
         console.error("gyms load error", e);
