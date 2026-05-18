@@ -257,10 +257,10 @@ export default function ProgramsPage() {
           <span style={{ fontSize: 28 }}>🤖</span>
           <div style={{ textAlign: "left" }}>
             <div style={{ fontSize: 13, fontWeight: 900, color: "#fff" }}>
-              {locale === "mn" ? "AI Тренинг Зохиогч" : locale === "ko" ? "AI 운동 플래너" : "AI Workout Builder"}
+              {t("programsAiBuilder")}
             </div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 2 }}>
-              {locale === "mn" ? "Чиний зорилгод тохирсон хөтөлбөр →" : locale === "ko" ? "맞춤 주간 플랜 만들기 →" : "Build a personalized weekly plan →"}
+              {t("programsAiBuilderCta")}
             </div>
           </div>
           <span style={{ marginLeft: "auto", fontSize: 16, color: "rgba(212,175,55,0.7)" }}>›</span>

@@ -216,7 +216,7 @@ function SparringPostCard({ post, t, onRequest, requested, user, router, locale 
         }}
       >
         {post.userId === user?.uid
-          ? (locale === "mn" ? "Миний пост" : locale === "ko" ? "내 글" : "Your post")
+          ? t("coachYourPost")
           : requested
             ? t("requestSent")
             : t("sendRequest")}

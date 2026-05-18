@@ -225,7 +225,7 @@ function FeedPostCard({ reel, authorUser, router, locale }) {
   const src = reel.thumbnailUrl || reel.thumbnail || reel.videoUrl || "";
   const typeEmoji = reel.contentType === "educational" ? "📚" : reel.contentType === "lifestyle" ? "🎬" : "🥊";
   const caption = cleanCaption(reel.caption || reel.description || "");
-  const name = authorUser?.displayName || authorUser?.username || (locale === "mn" ? "Боксч" : locale === "ko" ? "파이터" : "Fighter");
+  const name = authorUser?.displayName || authorUser?.username || t("fallbackFighter");
   const photo = authorUser?.photoURL || authorUser?.profileImageUrl || "";
 
   return (
@@ -523,7 +523,7 @@ export default function DiscoverPage() {
                     <button key={u.id} type="button" onClick={() => router.push(`/${locale}/profile/${u.id}`)} style={s.listCard}>
                       <div style={s.listAvatar}>{photo ? <img src={photo} alt="" style={s.listAvatarImg} /> : initial}</div>
                       <div style={s.listCardText}>
-                        <span style={s.listCardName}>{u.displayName || u.username || (locale === "mn" ? "Нэргүй" : locale === "ko" ? "이름 없음" : "Unnamed")}</span>
+                        <span style={s.listCardName}>{u.displayName || u.username || t("fallbackUnnamed")}</span>
                         {u.username && <span style={s.listCardSub}>@{u.username}</span>}
                       </div>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ color: "#444", flexShrink: 0 }} aria-hidden="true"><path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -541,7 +541,7 @@ export default function DiscoverPage() {
                   <button key={r.id} type="button" onClick={() => router.push(`/${locale}/reels?reelId=${r.id}`)} style={s.listCard}>
                     <div style={{ ...s.listAvatar, background: "rgba(212,175,55,0.15)", color: "#D4AF37", fontSize: 18 }}>🎬</div>
                     <div style={s.listCardText}>
-                      <span style={s.listCardName}>{r.caption || r.description || (locale === "mn" ? "Видео" : locale === "ko" ? "릴" : "Reel")}</span>
+                      <span style={s.listCardName}>{r.caption || r.description || t("fallbackReel")}</span>
                       <span style={s.listCardSub}>{formatCompact(r.views || 0)} {t("views")}</span>
                     </div>
                     <span style={s.listArrow}>›</span>
@@ -804,7 +804,7 @@ export default function DiscoverPage() {
                         <div style={s.coachAvatar}>
                           {photo ? <img src={photo} alt="" style={s.coachAvatarImg} /> : initial}
                         </div>
-                        <span style={s.coachName}>{(coach.displayName || coach.username || (locale === "mn" ? "Тренер" : locale === "ko" ? "코치" : "Coach")).split(" ")[0]}</span>
+                        <span style={s.coachName}>{(coach.displayName || coach.username || t("fallbackCoach")).split(" ")[0]}</span>
                         <span style={s.coachSpec}>{coach.coachSpecialties?.[0] || (locale === "mn" ? "Тренер" : locale === "ko" ? "코치" : "Coach")}</span>
                       </button>
                     );
