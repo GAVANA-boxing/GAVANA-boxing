@@ -638,7 +638,7 @@ export default function CoachProfilePage() {
           <div style={styles.emptyState}>
             <span style={styles.emptyIcon}>⭐</span>
             <p style={styles.emptyTitle}>{t("coachReviewsEmpty")}</p>
-            <p style={styles.emptySub}>{locale === "mn" ? "Энэ коачтай хамт дасгалжуулалт хийснийхээ дараа үнэлгээ үлдээх боломжтой." : locale === "ko" ? "코치와 함께 세션을 완료한 후 리뷰를 남길 수 있습니다." : "Reviews from students who have completed sessions will appear here."}</p>
+            <p style={styles.emptySub}>{t("coachIdReviewsEmpty")}</p>
           </div>
         ) : (
           reviews.map((r) => <ReviewCard key={r.id} review={r} />)
@@ -649,7 +649,7 @@ export default function CoachProfilePage() {
       {programs.length > 0 && (
         <div style={styles.section}>
           <h2 style={styles.sectionTitle}>
-            📋 {locale === "mn" ? "Дасгалжуулагчийн програм" : locale === "ko" ? "트레이닝 프로그램" : "Training Programs"}
+            📋 {t("coachIdTrainingPrograms")}
           </h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {programs.map((prog) => {
@@ -675,7 +675,7 @@ export default function CoachProfilePage() {
                         </span>
                         {prog.duration && (
                           <span style={{ fontSize: 10, fontWeight: 700, color: "#888", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 999, padding: "2px 8px" }}>
-                            📅 {prog.duration} {locale === "mn" ? "өдөр" : locale === "ko" ? "일" : "days"}
+                            📅 {prog.duration} {t("coachIdDaysUnit")}
                           </span>
                         )}
                         {prog.enrolledCount > 0 && (
@@ -705,8 +705,8 @@ export default function CoachProfilePage() {
                       }}
                     >
                       {isBusy ? "…" : enrolled
-                        ? (locale === "mn" ? "✓ Дагасан" : locale === "ko" ? "✓ 등록됨" : "✓ Enrolled")
-                        : (locale === "mn" ? "Програм дагах" : locale === "ko" ? "프로그램 등록" : "Follow Program")}
+                        ? t("coachIdEnrolled")
+                        : t("coachIdFollowProgram")}
                     </button>
                   )}
                 </div>

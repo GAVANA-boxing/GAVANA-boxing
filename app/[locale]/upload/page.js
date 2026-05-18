@@ -347,7 +347,7 @@ export default function UploadPage() {
       <div style={S.videoPage}>
         <div style={S.videoHeader}>
           <button onClick={() => router.back()} style={S.iconBtn}>✕</button>
-          <span style={S.headerTitle}>{locale === "mn" ? "Шинэ рилс" : locale === "ko" ? "새 릴스" : "New Reel"}</span>
+          <span style={S.headerTitle}>{t("uploadNewReel")}</span>
           <div style={{ width: 40 }} />
         </div>
 
@@ -376,8 +376,8 @@ export default function UploadPage() {
                   <path d="M9 10v4M7 12h4" stroke="#D4AF37" strokeWidth="1.8"/>
                 </svg>
               </div>
-              <p style={S.videoEmptyLabel}>{locale === "mn" ? "Видео сонгохын тулд дарна уу" : locale === "ko" ? "동영상을 선택하려면 탭하세요" : "Tap to select a video"}</p>
-              <p style={S.videoEmptySub}>MP4, MOV · {locale === "mn" ? "500MB хүртэл" : locale === "ko" ? "최대 500MB" : "up to 500MB"}</p>
+              <p style={S.videoEmptyLabel}>{t("uploadTapSelect")}</p>
+              <p style={S.videoEmptySub}>MP4, MOV · {t("uploadSizeLimit")}</p>
             </div>
           )}
         </div>
@@ -385,9 +385,7 @@ export default function UploadPage() {
         <div style={S.videoBottomBar}>
           <button style={S.galleryBtn} onClick={() => fileInputRef.current?.click()}>
             <span style={{ fontSize: 13, fontWeight: 800, color: selectedFile ? "#D4AF37" : "rgba(255,255,255,0.75)" }}>
-              {selectedFile
-              ? (locale === "mn" ? "Солих" : locale === "ko" ? "변경" : "Change")
-              : (locale === "mn" ? "Галерей" : locale === "ko" ? "갤러리" : "Gallery")}
+              {selectedFile ? t("uploadChange") : t("uploadGallery")}
             </span>
           </button>
           {selectedFile && (
@@ -399,7 +397,7 @@ export default function UploadPage() {
             onClick={() => selectedFile ? setStep("setup") : fileInputRef.current?.click()}
             style={{ ...S.nextBtn, opacity: selectedFile ? 1 : 0.42 }}
           >
-            {locale === "mn" ? "Дараах →" : locale === "ko" ? "다음 →" : "Next →"}
+            {t("uploadNext")}
           </button>
         </div>
 
@@ -413,9 +411,9 @@ export default function UploadPage() {
     <div style={S.setupPage}>
       <div style={S.setupHeader}>
         <button onClick={() => setStep("video")} style={S.iconBtn}>←</button>
-        <span style={S.headerTitle}>{locale === "mn" ? "Рилс нийтлэх" : locale === "ko" ? "릴스 올리기" : "Post Reel"}</span>
+        <span style={S.headerTitle}>{t("uploadPostReel")}</span>
         <button onClick={handleUpload} disabled={uploading} style={{ ...S.postBtn, opacity: uploading ? 0.6 : 1 }}>
-          {uploading ? `${uploadProgress}%` : (locale === "mn" ? "Нийтлэх" : locale === "ko" ? "올리기" : "Post")}
+          {uploading ? `${uploadProgress}%` : t("uploadPost")}
         </button>
       </div>
 
@@ -453,7 +451,7 @@ export default function UploadPage() {
               )}
             </div>
             <button onClick={() => setStep("video")} style={S.changeVideoBtn}>
-              {locale === "mn" ? "Видео солих" : locale === "ko" ? "동영상 변경" : "Change video"}
+              {t("uploadChangeVideo")}
             </button>
           </div>
         </div>
@@ -622,7 +620,7 @@ export default function UploadPage() {
         <div style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.88)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, padding: 32 }}>
           <div style={{ fontSize: 48 }}>🥊</div>
           <div style={{ fontSize: 17, fontWeight: 900, color: "#fff" }}>
-            {locale === "mn" ? "Нийтэлж байна…" : locale === "ko" ? "업로드 중…" : "Uploading…"}
+            {t("uploadUploading")}
           </div>
           <div style={{ width: "100%", maxWidth: 280 }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 12, color: "rgba(255,255,255,0.55)", fontWeight: 700 }}>
@@ -633,7 +631,7 @@ export default function UploadPage() {
             </div>
           </div>
           <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.35)", textAlign: "center" }}>
-            {locale === "mn" ? "Хаахгүй байгаарай…" : locale === "ko" ? "닫지 마세요…" : "Please don't close this page…"}
+            {t("uploadDontClose")}
           </p>
         </div>
       )}

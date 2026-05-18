@@ -276,9 +276,9 @@ export default function CreatorDashboard() {
       {/* ── Tab bar ── */}
       <div style={styles.tabBar}>
         {[
-          { key: "overview", label: locale === "mn" ? "Ерөнхий" : locale === "ko" ? "개요" : "Overview" },
-          { key: "reels",    label: locale === "mn" ? "Reels"    : locale === "ko" ? "릴"   : "Reels" },
-          { key: "audience", label: locale === "mn" ? "Үзэгчид"  : locale === "ko" ? "시청자" : "Audience" },
+          { key: "overview", label: t("creatorOverviewTab") },
+          { key: "reels",    label: t("creatorReelsTab") },
+          { key: "audience", label: t("creatorAudienceTab") },
         ].map(({ key, label }) => (
           <button
             key={key}
@@ -340,7 +340,7 @@ export default function CreatorDashboard() {
                 <span style={{ fontSize: 20 }}>📅</span>
                 <div>
                   <p style={{ margin: 0, fontSize: 13, fontWeight: 900, color: "#fff" }}>
-                    {locale === "mn" ? "Шилдэг нийтлэлийн өдөр:" : locale === "ko" ? "최고 게시 요일:" : "Best Post Day:"} <span style={{ color: "#60A5FA" }}>{bestPostDay.day}</span>
+                    {t("creatorBestPostDay")} <span style={{ color: "#60A5FA" }}>{bestPostDay.day}</span>
                   </p>
                   <p style={{ margin: 0, fontSize: 11, color: "#888" }}>
                     {locale === "mn" ? `Дундажаар ${formatCompact(bestPostDay.avg)} үзэлт` : locale === "ko" ? `평균 ${formatCompact(bestPostDay.avg)} 조회수` : `~${formatCompact(bestPostDay.avg)} avg views`}
@@ -356,7 +356,7 @@ export default function CreatorDashboard() {
 
             {mostChallengedReel && (
               <section style={styles.section}>
-                <h2 style={styles.sectionTitle}>🔥 {locale === "mn" ? "Хамгийн их сорилт авсан" : locale === "ko" ? "도전 최다 릴" : "Most Challenged Reel"}</h2>
+                <h2 style={styles.sectionTitle}>🔥 {t("creatorMostChallenged")}</h2>
                 <div
                   style={{ background: "linear-gradient(145deg, #1c0202, #0e0000)", border: "1px solid rgba(193,18,31,0.2)", borderLeft: "3px solid #C1121F", borderRadius: "3px 14px 14px 3px", padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
                   onClick={() => router.push(`/${locale}/reels?reelId=${mostChallengedReel.id}`)}
@@ -376,7 +376,7 @@ export default function CreatorDashboard() {
             )}
 
             <button type="button" style={styles.uploadBtn} onClick={() => router.push(`/${locale}/upload`)}>
-              + {locale === "mn" ? "Шинэ reel нийтлэх" : locale === "ko" ? "새 릴 업로드" : "Upload New Reel"}
+              + {t("creatorUploadNew")}
             </button>
           </>)}
 
@@ -399,7 +399,7 @@ export default function CreatorDashboard() {
                 </div>
               </section>
               <button type="button" style={styles.uploadBtn} onClick={() => router.push(`/${locale}/upload`)}>
-                + {locale === "mn" ? "Шинэ reel нийтлэх" : locale === "ko" ? "새 릴 업로드" : "Upload New Reel"}
+                + {t("creatorUploadNew")}
               </button>
             </>)}
           </>)}
@@ -440,12 +440,12 @@ export default function CreatorDashboard() {
 
             {externalAttempts.length > 0 && (
               <section style={styles.section}>
-                <h2 style={styles.sectionTitle}>🎯 {locale === "mn" ? "Оролдлогын оноо хуваарилалт" : locale === "ko" ? "도전 점수 분포" : "Challenge Score Distribution"}</h2>
+                <h2 style={styles.sectionTitle}>🎯 {t("creatorScoreDistrib")}</h2>
                 <div style={{ background: "linear-gradient(145deg, #111012, #0a0a0a)", border: "1px solid rgba(255,255,255,0.07)", borderLeft: "2.5px solid #D4AF37", borderRadius: "3px 14px 14px 3px", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
                   {[
-                    { key: "excellent", label: locale === "mn" ? "🌟 Шилдэг (8–10)" : locale === "ko" ? "🌟 우수 (8–10)" : "🌟 Excellent (8–10)", count: scoreDistrib.excellent, color: "#34D399" },
-                    { key: "good",      label: locale === "mn" ? "👍 Сайн (6–7)"    : locale === "ko" ? "👍 양호 (6–7)"    : "👍 Good (6–7)",      count: scoreDistrib.good,      color: "#D4AF37" },
-                    { key: "poor",      label: locale === "mn" ? "📈 Хүчилгэй (<6)" : locale === "ko" ? "📈 개선 필요 (<6)" : "📈 Needs work (<6)", count: scoreDistrib.poor,      color: "#F87171" },
+                    { key: "excellent", label: t("creatorScoreExcellent"), count: scoreDistrib.excellent, color: "#34D399" },
+                    { key: "good",      label: t("creatorScoreGood"),      count: scoreDistrib.good,      color: "#D4AF37" },
+                    { key: "poor",      label: t("creatorScorePoor"),      count: scoreDistrib.poor,      color: "#F87171" },
                   ].map(({ key, label, count, color }) => (
                     <div key={key} style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <span style={{ fontSize: 11, fontWeight: 700, color, width: 140, flexShrink: 0 }}>{label}</span>
@@ -462,7 +462,7 @@ export default function CreatorDashboard() {
             {externalAttempts.length === 0 && followerCount === 0 && (
               <div style={styles.emptyState}>
                 <p style={{ ...styles.emptyText, fontSize: 32 }}>👥</p>
-                <p style={styles.emptyText}>{locale === "mn" ? "Үзэгчдийн мэдээлэл хуримтлагдаагүй байна." : locale === "ko" ? "아직 시청자 데이터가 없습니다." : "No audience data yet. Keep posting!"}</p>
+                <p style={styles.emptyText}>{t("creatorNoAudience")}</p>
               </div>
             )}
           </>)}

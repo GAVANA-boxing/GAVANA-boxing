@@ -338,7 +338,7 @@ export default function GymProfilePage() {
             </svg>
           </button>
           <p style={{ color: "rgba(255,255,255,0.62)", textAlign: "center", padding: "60px 0" }}>
-            {locale === "mn" ? "Gym олдсонгүй." : locale === "ko" ? "체육관을 찾을 수 없습니다." : "Gym not found."}
+            {t("gymIdNotFound")}
           </p>
         </div>
         <BottomNav router={router} user={user} currentLocale={locale} activeTab="discover" />
@@ -464,9 +464,9 @@ export default function GymProfilePage() {
             <a href={gym.website} target="_blank" rel="noopener noreferrer" style={styles.contactBtn}>🌐</a>
           )}
           {(gym.city || gym.address) && (
-            <a href={mapsUrl} target="_blank" rel="noopener noreferrer" style={styles.contactBtn} title={locale === "mn" ? "Газрын зураг" : locale === "ko" ? "지도" : "Map"}>📍</a>
+            <a href={mapsUrl} target="_blank" rel="noopener noreferrer" style={styles.contactBtn} title={t("gymIdMapTitle")}>📍</a>
           )}
-          <button type="button" style={styles.contactBtn} onClick={handleShare} title={locale === "mn" ? "Хуваалцах" : locale === "ko" ? "공유" : "Share"}>
+          <button type="button" style={styles.contactBtn} onClick={handleShare} title={t("share")}>
             ↗
           </button>
         </div>
@@ -597,7 +597,7 @@ export default function GymProfilePage() {
                   color: "#F87171", fontSize: 11, fontWeight: 800, cursor: "pointer",
                 }}
               >
-                + {locale === "mn" ? "Рилс нэмэх" : locale === "ko" ? "릴 추가" : "Add Reel"}
+                + {t("gymIdAddReel")}
               </button>
             )}
           </div>
@@ -611,7 +611,7 @@ export default function GymProfilePage() {
               }}>
                 <span style={{ fontSize: 28 }}>🎥</span>
                 <p style={{ margin: 0, fontSize: 13, color: "#777", fontWeight: 700 }}>
-                  {locale === "mn" ? "Танай жимд рилс байхгүй байна" : locale === "ko" ? "아직 릴이 없습니다" : "No reels yet"}
+                  {t("gymIdNoReels")}
                 </p>
                 <button
                   onClick={() => router.push(`/${locale}/upload`)}
@@ -622,7 +622,7 @@ export default function GymProfilePage() {
                     border: "none",
                   }}
                 >
-                  {locale === "mn" ? "+ Анхны рилсаа оруулах" : locale === "ko" ? "+ 첫 릴 올리기" : "+ Upload First Reel"}
+                  {t("gymIdUploadFirstReel")}
                 </button>
               </div>
             ) : (

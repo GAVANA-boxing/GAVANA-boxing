@@ -242,7 +242,7 @@ export default function ProgramsPage() {
         <div>
           <p style={s.kicker}>GAVANA BOXING</p>
           <h1 style={s.title}>
-            {locale === "mn" ? "Хөтөлбөр" : locale === "ko" ? "트레이닝 프로그램" : "Training Programs"}
+            {t("programsTitle")}
           </h1>
         </div>
       </header>
@@ -280,7 +280,7 @@ export default function ProgramsPage() {
           {enrolledPrograms.length > 0 && (
             <section style={s.section}>
               <h2 style={s.sectionTitle}>
-                {locale === "mn" ? "Миний хөтөлбөр" : locale === "ko" ? "내 프로그램" : "My Programs"}
+                {t("programsMy")}
               </h2>
               {enrolledPrograms.map((program) => {
                 const enrollment = enrollments[program.id];
@@ -298,11 +298,11 @@ export default function ProgramsPage() {
                         <p style={{ margin: 0, fontSize: 18 }}>{program.emoji || "🥊"}</p>
                         <p style={s.enrolledTitle}>{program.title}</p>
                         <p style={{ margin: "2px 0 0", fontSize: 11, color: "#888" }}>
-                          {completedDays.length}/{total} {locale === "mn" ? "өдөр" : locale === "ko" ? "일" : "days"}
+                          {completedDays.length}/{total} {t("programsDaysUnit")}
                         </p>
                         {streak > 0 && (
                           <div style={s.streakBadge}>
-                            🔥 {streak} {locale === "mn" ? "өдрийн дараалал" : locale === "ko" ? "일 연속" : "day streak"}
+                            🔥 {streak} {t("programsDayStreak")}
                           </div>
                         )}
                       </div>
@@ -320,12 +320,10 @@ export default function ProgramsPage() {
                         onClick={() => { if (!doneToday) { setTodayChecked({}); setSelectedProgram(program); } }}
                         disabled={doneToday}
                       >
-                        {doneToday
-                          ? (locale === "mn" ? "✓ Өнөөдөр дууслаа" : locale === "ko" ? "✓ 오늘 완료" : "✓ Done today")
-                          : (locale === "mn" ? "Үргэлжлүүлэх →" : locale === "ko" ? "계속하기 →" : "Continue →")}
+                        {doneToday ? t("programsDoneToday") : t("programsContinue")}
                       </button>
                       <button type="button" style={s.unenrollBtn} onClick={() => handleUnenroll(program.id)}>
-                        {locale === "mn" ? "Гарах" : locale === "ko" ? "탈퇴" : "Leave"}
+                        {t("programsLeave")}
                       </button>
                     </div>
                   </div>
@@ -338,7 +336,7 @@ export default function ProgramsPage() {
           {discoverPrograms.length > 0 && (
             <section style={s.section}>
               <h2 style={s.sectionTitle}>
-                {locale === "mn" ? "Хөтөлбөр сонгох" : locale === "ko" ? "프로그램 찾기" : "Discover Programs"}
+                {t("programsDiscover")}
               </h2>
               {discoverPrograms.map((program) => {
                 const color = program.color || LEVEL_COLOR[program.level] || "#C1121F";
@@ -360,7 +358,7 @@ export default function ProgramsPage() {
                             <span style={s.metaChip}>{program.category}</span>
                           )}
                           <span style={s.metaChip}>
-                            📅 {program.duration || program.durationDays || 30} {locale === "mn" ? "өдөр" : locale === "ko" ? "일" : "d"}
+                            📅 {program.duration || program.durationDays || 30} {t("programsDayShort")}
                           </span>
                         </div>
                         {program.description && (
@@ -376,9 +374,7 @@ export default function ProgramsPage() {
                       onClick={() => handleEnroll(program)}
                       disabled={!!enrolling}
                     >
-                      {enrolling === program.id
-                        ? "…"
-                        : (locale === "mn" ? "Бүртгүүлэх →" : locale === "ko" ? "등록하기 →" : "Enroll →")}
+                      {enrolling === program.id ? "…" : t("programsEnroll")}
                     </button>
                   </div>
                 );
@@ -390,7 +386,7 @@ export default function ProgramsPage() {
             <div style={s.empty}>
               <p style={{ fontSize: 40, margin: 0 }}>🥊</p>
               <p style={{ color: "#666", margin: "12px 0 0", fontSize: 14 }}>
-                {locale === "mn" ? "Хөтөлбөр байхгүй байна" : locale === "ko" ? "프로그램이 없습니다" : "No programs available yet"}
+                {t("programsNone")}
               </p>
             </div>
           )}
@@ -406,7 +402,7 @@ export default function ProgramsPage() {
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16 }}>
               <div>
                 <p style={s.sheetKicker}>
-                  {locale === "mn" ? "Өнөөдрийн хичээл" : locale === "ko" ? "오늘의 세션" : "Today's Sessions"}
+                  {t("programsTodaySessions")}
                 </p>
                 <p style={s.sheetTitle}>{selectedProgram.title}</p>
               </div>
@@ -455,9 +451,7 @@ export default function ProgramsPage() {
               onClick={handleCompleteDay}
               disabled={completingDay}
             >
-              {completingDay
-                ? "…"
-                : (locale === "mn" ? "🏆 Өдрийг дуусгах" : locale === "ko" ? "🏆 오늘 완료" : "🏆 Complete Day")}
+              {completingDay ? "…" : t("programsCompleteDay")}
             </button>
           </div>
         </div>

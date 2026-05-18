@@ -165,7 +165,7 @@ export default function GymDashboardPage() {
 
   const handleRegister = async () => {
     if (!gymName.trim()) {
-      setRegisterError(locale === "mn" ? "Gym-ийн нэр заавал шаардлагатай." : locale === "ko" ? "체육관 이름은 필수입니다." : "Gym name is required.");
+      setRegisterError(t("gymDashNameRequired"));
       return;
     }
     setRegisterError("");
@@ -346,7 +346,7 @@ export default function GymDashboardPage() {
               )}
             </div>
             <button type="button" style={styles.logoLabel} onClick={() => logoInputRef.current?.click()}>
-              {locale === "mn" ? "Лого оруулах" : locale === "ko" ? "로고 업로드" : "Upload Logo"}
+              {t("gymDashUploadLogo")}
             </button>
             <input ref={logoInputRef} type="file" accept="image/*" onChange={handleLogoSelect} style={{ display: "none" }} />
           </div>
@@ -446,7 +446,7 @@ export default function GymDashboardPage() {
             <div style={{ fontSize: 52 }}>🏋️</div>
             <h2 style={styles.successTitle}>{t("gymRegisterSuccess")}</h2>
             <button type="button" style={styles.submitBtn} onClick={() => router.push(`/${locale}/gyms/${gym.id}`)}>
-              {locale === "mn" ? "Gym харах" : locale === "ko" ? "체육관 보기" : "View Gym"}
+              {t("gymDashViewGym")}
             </button>
           </div>
         </div>
@@ -466,7 +466,7 @@ export default function GymDashboardPage() {
           <h1 style={styles.title}>{t("gymDashboard")}</h1>
           {(() => {
             const pct = getCompleteness(gym);
-            const label = locale === "mn" ? "Профайл дүүргэлт" : locale === "ko" ? "프로필 완성도" : "Profile completeness";
+            const label = t("gymDashProfileComplete");
             const color = pct >= 80 ? "#34D399" : pct >= 50 ? "#D4AF37" : "#C1121F";
             return (
               <div style={{ marginTop: 12, background: "rgba(255,255,255,0.04)", borderRadius: 12, padding: "10px 14px" }}>
@@ -479,7 +479,7 @@ export default function GymDashboardPage() {
                 </div>
                 {pct < 100 && (
                   <p style={{ margin: "6px 0 0", fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
-                    {locale === "mn" ? "Gym профайлаа бөглөж илүү олон гишүүн татаарай." : locale === "ko" ? "프로필을 완성하면 더 많은 회원을 유치할 수 있습니다." : "Complete your profile to attract more members."}
+                    {t("gymDashProfileHint")}
                   </p>
                 )}
               </div>
@@ -514,9 +514,9 @@ export default function GymDashboardPage() {
         <div style={{ ...styles.tabs, flexWrap: "wrap" }}>
           {[
             { key: "requests", label: t("gymJoinRequests"), badge: joinRequests.length > 0 ? joinRequests.length : null },
-            { key: "members", label: locale === "mn" ? `👥 Гишүүд (${members.length})` : locale === "ko" ? `👥 회원 (${members.length})` : `👥 Members (${members.length})` },
-            { key: "sessions", label: locale === "mn" ? "📅 Хичээл" : locale === "ko" ? "📅 세션" : "📅 Sessions" },
-            { key: "announce", label: locale === "mn" ? "📢 Мэдэгдэл" : locale === "ko" ? "📢 공지" : "📢 Announce" },
+            { key: "members", label: `${t("gymDashMembersTab")} (${members.length})` },
+            { key: "sessions", label: t("gymDashSessionsTab") },
+            { key: "announce", label: t("gymDashAnnounceTab") },
           ].map(({ key, label, badge }) => (
             <button
               key={key}
@@ -606,7 +606,7 @@ export default function GymDashboardPage() {
               <div style={styles.emptyState}>
                 <span style={{ fontSize: 44, opacity: 0.7 }}>👥</span>
                 <p style={styles.emptyText}>
-                  {locale === "mn" ? "Одоогоор гишүүн байхгүй" : locale === "ko" ? "아직 회원이 없습니다" : "No members yet"}
+                  {t("gymDashNoMembers")}
                 </p>
               </div>
             ) : (
@@ -639,7 +639,7 @@ export default function GymDashboardPage() {
                         </div>
                         <div style={styles.memberJoinedChip}>
                           <span style={styles.memberJoinedLabel}>
-                            {locale === "mn" ? "Нэгдсэн" : locale === "ko" ? "가입" : "Joined"}
+                            {t("gymDashJoined")}
                           </span>
                           <span style={styles.memberJoinedDate}>{joinedAt}</span>
                         </div>
@@ -657,13 +657,13 @@ export default function GymDashboardPage() {
           <div style={styles.emptyState}>
             <span style={{ fontSize: 48, opacity: 0.5 }}>📅</span>
             <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#fff" }}>
-              {locale === "mn" ? "Хичээлийн хуваарь" : locale === "ko" ? "세션 일정" : "Session Schedule"}
+              {t("gymDashSessionSchedule")}
             </p>
             <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.45)", textAlign: "center", maxWidth: 280, lineHeight: 1.6 }}>
-              {locale === "mn" ? "Coach-ууд таны gym дээр хичээл зааж эхлэхэд энд харагдана." : locale === "ko" ? "코치들이 체육관에서 세션을 시작하면 여기에 표시됩니다." : "When coaches schedule sessions at your gym, they will appear here."}
+              {t("gymDashSessionHint")}
             </p>
             <button type="button" style={{ padding: "11px 24px", borderRadius: 999, border: "none", background: "linear-gradient(135deg,#C1121F,#7d0812)", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", marginTop: 4 }} onClick={() => router.push(`/${locale}/coach`)}>
-              {locale === "mn" ? "🎓 Coach хайх" : locale === "ko" ? "🎓 코치 찾기" : "🎓 Find Coaches"}
+              {t("gymDashFindCoaches")}
             </button>
           </div>
         )}
@@ -700,7 +700,7 @@ export default function GymDashboardPage() {
 
             {announcements.length > 0 && (
               <div style={styles.annList}>
-                <p style={styles.sectionLabel}>{locale === "mn" ? "Нийтэлсэн мэдэгдлүүд" : locale === "ko" ? "게시된 공지" : "Posted announcements"}</p>
+                <p style={styles.sectionLabel}>{t("gymDashPostedAnnouncements")}</p>
                 {announcements.map((ann) => (
                   <div key={ann.id} style={styles.annCard}>
                     <p style={styles.annTitle}>{ann.title}</p>
