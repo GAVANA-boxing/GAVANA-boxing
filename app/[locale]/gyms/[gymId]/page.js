@@ -316,13 +316,27 @@ export default function GymProfilePage() {
   };
 
   if (loading || authLoading) {
-    return <div style={styles.loading}>{t("loading")}</div>;
+    return (
+      <div style={{ minHeight: "100vh", background: "#0A0A0A", padding: "calc(28px + env(safe-area-inset-top)) 16px 40px" }}>
+        <div style={{ maxWidth: 520, margin: "0 auto", display: "grid", gap: 14 }}>
+          <div className="shimmer" style={{ width: 40, height: 40, borderRadius: 10 }} />
+          <div className="shimmer" style={{ height: 200, borderRadius: 18 }} />
+          <div className="shimmer" style={{ height: 80, borderRadius: 14 }} />
+          <div className="shimmer" style={{ height: 60, borderRadius: 14 }} />
+          <div className="shimmer" style={{ height: 120, borderRadius: 14 }} />
+        </div>
+      </div>
+    );
   }
   if (!gym) {
     return (
       <div style={styles.page}>
         <div style={styles.content}>
-          <button type="button" style={styles.backBtn} onClick={() => router.push(`/${locale}/gyms`)}>← {t("back")}</button>
+          <button type="button" style={styles.backBtn} onClick={() => router.push(`/${locale}/gyms`)} aria-label="Back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
           <p style={{ color: "rgba(255,255,255,0.62)", textAlign: "center", padding: "60px 0" }}>
             {locale === "mn" ? "Gym олдсонгүй." : locale === "ko" ? "체육관을 찾을 수 없습니다." : "Gym not found."}
           </p>
@@ -677,7 +691,7 @@ const styles = {
   loading: { display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#0A0A0A", color: "#fff", fontFamily: "system-ui, sans-serif" },
   page: { minHeight: "100vh", background: "#0A0A0A", color: "#fff", fontFamily: "system-ui, sans-serif" },
   content: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },
-  backBtn: { background: "none", border: "none", color: "rgba(255,255,255,0.65)", fontSize: 14, cursor: "pointer", padding: "16px 0", display: "block" },
+  backBtn: { width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.055)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", borderRadius: 10, cursor: "pointer", padding: 0 },
   hero: { position: "relative", height: 200, borderRadius: 16, overflow: "hidden", background: "linear-gradient(135deg,#1a1a1a,#111)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 0 },
   heroImg: { width: "100%", height: "100%", objectFit: "cover" },
   heroPlaceholder: { display: "flex", alignItems: "center", justifyContent: "center" },

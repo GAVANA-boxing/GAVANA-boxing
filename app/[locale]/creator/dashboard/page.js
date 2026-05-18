@@ -259,7 +259,11 @@ export default function CreatorDashboard() {
   return (
     <div style={styles.page}>
       <header style={styles.header}>
-        <button type="button" style={styles.backBtn} onClick={() => router.back()}>←</button>
+        <button type="button" style={styles.backBtn} onClick={() => router.back()} aria-label="Back">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
         <div>
           <p style={styles.kicker}>{t("creatorDashboard")}</p>
           <p style={styles.sub}>{t("creatorDashboardSub")}</p>
@@ -489,14 +493,18 @@ const styles = {
     borderBottom: "1px solid rgba(255,255,255,0.08)",
   },
   backBtn: {
-    background: "none",
-    border: "none",
+    width: 40,
+    height: 40,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "rgba(255,255,255,0.055)",
+    border: "1px solid rgba(255,255,255,0.12)",
     color: "#fff",
-    fontSize: 20,
+    borderRadius: 10,
     cursor: "pointer",
-    padding: "4px 8px",
-    borderRadius: 8,
-    lineHeight: 1,
+    padding: 0,
+    flexShrink: 0,
   },
   kicker: {
     margin: 0,
