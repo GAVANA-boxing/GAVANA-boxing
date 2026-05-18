@@ -45,7 +45,11 @@ export default function FightersPage() {
 
       {/* Header */}
       <div style={s.header}>
-        <button style={s.backPill} onClick={() => router.back()}>← {t("back")}</button>
+        <button type="button" style={s.backPill} onClick={() => router.back()} aria-label="Back">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
         <p style={s.kicker}>GAVANA · FIGHTER STUDY</p>
         <h1 style={s.title}>{t("fighterAllTitle")}</h1>
         <p style={s.subtitle}>{t("fighterAllSubtitle")}</p>
@@ -94,16 +98,17 @@ const s = {
     zIndex: 1,
   },
   backPill: {
-    display: "inline-flex",
+    width: 40,
+    height: 40,
+    display: "flex",
     alignItems: "center",
-    gap: 4,
-    background: "rgba(255,255,255,0.05)",
-    border: "none",
-    color: "rgba(255,255,255,0.4)",
-    fontSize: 12,
-    padding: "6px 14px",
-    borderRadius: 20,
+    justifyContent: "center",
+    background: "rgba(255,255,255,0.055)",
+    border: "1px solid rgba(255,255,255,0.12)",
+    color: "#fff",
+    borderRadius: 10,
     cursor: "pointer",
+    padding: 0,
     marginBottom: 18,
   },
   kicker: {

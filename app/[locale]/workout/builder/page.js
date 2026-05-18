@@ -213,8 +213,10 @@ export default function WorkoutBuilderPage() {
       <div style={s.inner}>
         {/* Header */}
         <div style={s.header}>
-          <button type="button" style={s.backBtn} onClick={() => step > 0 && step < 3 ? setStep(step - 1) : router.push(`/${locale}/programs`)}>
-            {T.back}
+          <button type="button" style={s.backBtn} onClick={() => step > 0 && step < 3 ? setStep(step - 1) : router.push(`/${locale}/programs`)} aria-label="Back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </button>
           <div style={s.kicker}>GAVANA AI</div>
         </div>
@@ -417,7 +419,7 @@ const s = {
   page: { minHeight: "100vh", background: "#080808", color: "#fff", fontFamily: "system-ui, sans-serif" },
   inner: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },
   header: { display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "calc(16px + env(safe-area-inset-top))", paddingBottom: 8 },
-  backBtn: { background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 14, cursor: "pointer", padding: 0 },
+  backBtn: { width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.055)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", borderRadius: 10, cursor: "pointer", padding: 0 },
   kicker: { fontSize: 10, letterSpacing: 2.5, color: "#D4AF37", textTransform: "uppercase", fontWeight: 900 },
   heroSection: { textAlign: "center", padding: "20px 0 24px" },
   heroEmoji: { fontSize: 48, marginBottom: 12 },

@@ -580,57 +580,43 @@ export default function UserProfilePage() {
 
     async function loadChallengeRanks() {
       try {
-        const { collection, getDocs } = await import("firebase/firestore");
-        const snap = await getDocs(collection(db, "challenge_results"));
-        if (!active) return;
-
+        const { collection, getDocs, query, where } = await import("firebase/firestore");
         const currentSeasonId = getCurrentSeasonId();
 
-        // Collect all results
-        const allResults = [];
-        snap.forEach((docSnap) => {
+        // Load only this season's results (not all history) + user's own all-time results
+        const [seasonSnap, userSnap] = await Promise.all([
+          getDocs(query(collection(db, "challenge_results"), where("seasonId", "==", currentSeasonId))),
+          getDocs(query(collection(db, "challenge_results"), where("userId", "==", userId))),
+        ]);
+        if (!active) return;
+
+        // Weekly rank: rank among all users in current season
+        const weeklyByUser = {};
+        seasonSnap.forEach((docSnap) => {
           const d = docSnap.data();
-          if (d.userId && d.score != null) {
-            allResults.push({
-              userId: d.userId,
-              score: Number(d.score),
-              seasonId: d.seasonId || null,
-            });
+          if (!d.userId || d.score == null) return;
+          const score = Number(d.score);
+          if (Number.isNaN(score)) return;
+          if (!weeklyByUser[d.userId] || score > weeklyByUser[d.userId]) {
+            weeklyByUser[d.userId] = score;
           }
         });
-
-        // Weekly: filter by current season, dedupe per user (best score)
-        const weeklyByUser = {};
-        for (const r of allResults) {
-          if (r.seasonId !== currentSeasonId) continue;
-          const score = r.score;
-          if (Number.isNaN(score)) continue;
-          if (!weeklyByUser[r.userId] || score > weeklyByUser[r.userId]) {
-            weeklyByUser[r.userId] = score;
-          }
-        }
-        const weeklySorted = Object.entries(weeklyByUser)
-          .sort((a, b) => b[1] - a[1]);
+        const weeklySorted = Object.entries(weeklyByUser).sort((a, b) => b[1] - a[1]);
         const weeklyRankIdx = weeklySorted.findIndex(([uid]) => uid === userId);
         const weeklyRank = weeklyRankIdx >= 0 ? weeklyRankIdx + 1 : null;
         const bestWeeklyScore = weeklyByUser[userId] ?? null;
 
-        // All-time: dedupe per user (best score across all results)
-        const allTimeByUser = {};
-        for (const r of allResults) {
-          const score = r.score;
-          if (Number.isNaN(score)) continue;
-          if (!allTimeByUser[r.userId] || score > allTimeByUser[r.userId]) {
-            allTimeByUser[r.userId] = score;
+        // All-time: user's own best score only (no global rank to avoid full collection scan)
+        let allTimeBest = null;
+        userSnap.forEach((docSnap) => {
+          const score = Number(docSnap.data().score);
+          if (!Number.isNaN(score) && (allTimeBest === null || score > allTimeBest)) {
+            allTimeBest = score;
           }
-        }
-        const allTimeSorted = Object.entries(allTimeByUser)
-          .sort((a, b) => b[1] - a[1]);
-        const allTimeRankIdx = allTimeSorted.findIndex(([uid]) => uid === userId);
-        const allTimeRank = allTimeRankIdx >= 0 ? allTimeRankIdx + 1 : null;
+        });
 
         if (active) {
-          setChallengeRanks({ weeklyRank, allTimeRank, bestWeeklyScore, currentSeasonId });
+          setChallengeRanks({ weeklyRank, allTimeRank: null, bestWeeklyScore, currentSeasonId, allTimeBest });
         }
       } catch (e) {
         if (active) setChallengeRanks(null);
@@ -1278,15 +1264,17 @@ export default function UserProfilePage() {
 
   if (loading) {
     return (
-      <div style={{
-        minHeight: "100vh",
-        background: "var(--background)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        color: "var(--text-primary)"
-      }}>
-        {t("loadingProfile")}
+      <div style={{ minHeight: "100vh", background: "#080808", padding: "calc(28px + env(safe-area-inset-top)) 16px 40px" }}>
+        <div style={{ maxWidth: 760, margin: "0 auto", display: "grid", gap: 14 }}>
+          <div className="shimmer" style={{ width: 40, height: 40, borderRadius: 10 }} />
+          <div className="shimmer" style={{ height: 220, borderRadius: 20 }} />
+          <div className="shimmer" style={{ height: 80, borderRadius: 16 }} />
+          <div className="shimmer" style={{ height: 60, borderRadius: 14 }} />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+            {[1,2,3].map((i) => <div key={i} className="shimmer" style={{ height: 70, borderRadius: 14 }} />)}
+          </div>
+          <div className="shimmer" style={{ height: 160, borderRadius: 16 }} />
+        </div>
       </div>
     );
   }
@@ -1345,8 +1333,11 @@ export default function UserProfilePage() {
           type="button"
           style={styles.backBtnProfile}
           onClick={() => router.back()}
+          aria-label="Back"
         >
-          {t("back")}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </button>
       </header>
       <section style={styles.fighterCard}>
@@ -2681,14 +2672,17 @@ const styles = {
     WebkitBackdropFilter: "blur(20px)",
   },
   backBtnProfile: {
-    border: "1px solid rgba(212,175,55,0.28)",
-    background: "transparent",
+    width: 40,
+    height: 40,
+    border: "1px solid rgba(255,255,255,0.12)",
+    background: "rgba(255,255,255,0.055)",
     color: "#fff",
     borderRadius: 10,
-    padding: "8px 14px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     cursor: "pointer",
-    fontSize: 13,
-    fontWeight: 700,
+    padding: 0,
   },
   fighterCard: {
     width: "100%",
