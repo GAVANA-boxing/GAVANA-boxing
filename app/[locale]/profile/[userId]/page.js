@@ -43,12 +43,6 @@ function getTimestampMs(timestamp) {
   return Number.isNaN(time) ? 0 : time;
 }
 
-function formatFeedbackDate(timestamp) {
-  const time = getTimestampMs(timestamp);
-  if (!time) return "";
-  return new Date(time).toLocaleDateString();
-}
-
 function formatScore(score) {
   const numericScore = Number(score);
   if (!Number.isFinite(numericScore)) return "0";
