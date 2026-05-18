@@ -19,6 +19,7 @@ import { RED, GOLD } from "@/lib/tokens";
 import RankBeltModal from "@/components/profile/RankBeltModal";
 import StreakDetailModal from "@/components/profile/StreakDetailModal";
 import FighterShareCard from "@/components/profile/FighterShareCard";
+import { WeeklyRecapModal, WeeklyLeaderboardModal } from "@/components/profile/WeeklyModals";
 
 function getSafeReelLikes(reel) {
   const fieldLikes = typeof reel.likes === "number" && !Number.isNaN(reel.likes)
@@ -2098,41 +2099,14 @@ export default function UserProfilePage() {
         />
       )}
 
-      {showWeeklyRecap && (() => {
-        const sevenDaysAgo = Date.now() - 7 * 24 * 3600 * 1000;
-        const getMs = (ts) => { if (!ts) return 0; if (ts.toMillis) return ts.toMillis(); return Number(ts) || 0; };
-        const weekFeedback = (aiFeedbackHistory || []).filter((f) => getMs(f.createdAt) >= sevenDaysAgo);
-        const weekXP = weekFeedback.reduce((s, f) => s + Math.round((Number(f.score) || 0) * (Number(f.score) || 0) * 10), 0);
-        const weekChallenges = weekFeedback.length;
-        return (
-          <div style={styles.modalOverlay} onClick={() => setShowWeeklyRecap(false)}>
-            <div style={styles.weeklyModalSheet} onClick={(e) => e.stopPropagation()}>
-              <div style={styles.weeklyModalHandle} />
-              <div style={styles.weeklyModalHeader}>
-                <span style={styles.weeklyModalTitle}>📅 {t("weeklyRecapTitle")}</span>
-                <button type="button" style={styles.weeklyModalClose} onClick={() => setShowWeeklyRecap(false)}>✕</button>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, padding: "4px 0 8px" }}>
-                <div style={styles.weeklyRankItem}>
-                  <span style={{ ...styles.weeklyRankNum, color: GOLD }}>+{weekXP}</span>
-                  <span style={styles.weeklyRankLbl}>{t("weeklyRecapXP")}</span>
-                </div>
-                <div style={styles.weeklyRankItem}>
-                  <span style={{ ...styles.weeklyRankNum, color: "#34D399" }}>{weekChallenges}</span>
-                  <span style={styles.weeklyRankLbl}>{t("weeklyRecapChallenges")}</span>
-                </div>
-                <div style={styles.weeklyRankItem}>
-                  <span style={{ ...styles.weeklyRankNum, color: "#FB923C" }}>{profileUser?.challengeStreak || 0}</span>
-                  <span style={styles.weeklyRankLbl}>{t("dayStreak").replace("{n}", "")}</span>
-                </div>
-              </div>
-              <button type="button" style={{ ...styles.weeklyModalClose, width: "100%", padding: "11px 0", borderRadius: 12, background: "rgba(255,255,255,0.07)", border: "none", color: "#fff", fontFamily: "inherit", fontSize: 14, fontWeight: 700, cursor: "pointer", marginTop: 6 }} onClick={() => setShowWeeklyRecap(false)}>
-                {t("weeklyRecapClose")}
-              </button>
-            </div>
-          </div>
-        );
-      })()}
+      {showWeeklyRecap && (
+        <WeeklyRecapModal
+          aiFeedbackHistory={aiFeedbackHistory}
+          profileUser={profileUser}
+          t={t}
+          onClose={() => setShowWeeklyRecap(false)}
+        />
+      )}
 
       {showChallengeModal && !isOwnProfile && (
         <BottomSheet
@@ -2204,60 +2178,12 @@ export default function UserProfilePage() {
       )}
 
       {showWeeklyModal && challengeRanks && (
-        <div style={styles.modalOverlay} onClick={() => setShowWeeklyModal(false)}>
-          <div style={styles.weeklyModalSheet} onClick={(e) => e.stopPropagation()}>
-            <div style={styles.weeklyModalHandle} />
-            <div style={styles.weeklyModalHeader}>
-              <span style={styles.weeklyModalTitle}>🏆 {t("weeklySeasonModalTitle")}</span>
-              <button type="button" style={styles.weeklyModalClose} onClick={() => setShowWeeklyModal(false)}>✕</button>
-            </div>
-
-            {challengeRanks.weeklyRank && challengeRanks.weeklyRank <= 3 && (
-              <div style={styles.weeklyModalBadgeBlock}>
-                <div style={styles.weeklyModalBadgeEmoji}>
-                  {challengeRanks.weeklyRank === 1 ? "🥇" : challengeRanks.weeklyRank === 2 ? "🥈" : "🥉"}
-                </div>
-                <div style={{
-                  ...styles.weeklyModalBadgeName,
-                  color: challengeRanks.weeklyRank === 1 ? GOLD : challengeRanks.weeklyRank === 2 ? "#9CA3AF" : "#FB923C",
-                }}>
-                  {challengeRanks.weeklyRank === 1
-                    ? t("weeklyChampionBadge")
-                    : challengeRanks.weeklyRank === 2
-                    ? t("weeklySilverBadge")
-                    : t("weeklyBronzeBadge")}
-                </div>
-              </div>
-            )}
-
-            <div style={styles.weeklyModalStats}>
-              {challengeRanks.weeklyRank && (
-                <div style={styles.weeklyModalStat}>
-                  <span style={styles.weeklyModalStatVal}>#{challengeRanks.weeklyRank}</span>
-                  <span style={styles.weeklyModalStatLbl}>{t("seasonCurrentWeek")}</span>
-                </div>
-              )}
-              {challengeRanks.bestWeeklyScore != null && (
-                <div style={styles.weeklyModalStat}>
-                  <span style={{ ...styles.weeklyModalStatVal, color: GOLD }}>{challengeRanks.bestWeeklyScore}/10</span>
-                  <span style={styles.weeklyModalStatLbl}>{t("seasonBestWeeklyScore")}</span>
-                </div>
-              )}
-              {challengeRanks.allTimeRank && (
-                <div style={styles.weeklyModalStat}>
-                  <span style={styles.weeklyModalStatVal}>#{challengeRanks.allTimeRank}</span>
-                  <span style={styles.weeklyModalStatLbl}>{t("seasonAllTime")}</span>
-                </div>
-              )}
-            </div>
-
-            <p style={styles.weeklyModalDesc}>{t("weeklySeasonModalDesc")}</p>
-
-            <button type="button" style={styles.weeklyModalBtn} onClick={() => { setShowWeeklyModal(false); router.push(`/${locale}/challenges`); }}>
-              {t("weeklySeasonModalCta")}
-            </button>
-          </div>
-        </div>
+        <WeeklyLeaderboardModal
+          challengeRanks={challengeRanks}
+          t={t}
+          onClose={() => setShowWeeklyModal(false)}
+          onGoToChallenges={() => { setShowWeeklyModal(false); router.push(`/${locale}/challenges`); }}
+        />
       )}
     </div>
   );
@@ -3343,141 +3269,6 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: 12,
-  },
-  weeklyRankItem: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 2,
-  },
-  weeklyRankNum: {
-    fontSize: 16,
-    fontWeight: 900,
-    color: "#fff",
-    lineHeight: 1,
-  },
-  weeklyRankLbl: {
-    fontSize: 9,
-    color: "#888",
-    fontWeight: 700,
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
-  },
-  weeklyRankDivider: {
-    width: 1,
-    height: 28,
-    background: "rgba(255,255,255,0.12)",
-  },
-  modalOverlay: {
-    position: "fixed",
-    inset: 0,
-    background: "rgba(0,0,0,0.78)",
-    backdropFilter: "blur(10px)",
-    WebkitBackdropFilter: "blur(10px)",
-    zIndex: 300,
-    display: "flex",
-    alignItems: "flex-end",
-  },
-  weeklyModalSheet: {
-    width: "100%",
-    background: "#111",
-    borderRadius: "18px 18px 0 0",
-    padding: "20px 20px 40px",
-    maxHeight: "60vh",
-    overflowY: "auto",
-  },
-  weeklyModalHandle: {
-    width: 40,
-    height: 4,
-    borderRadius: 99,
-    background: "rgba(255,255,255,0.18)",
-    margin: "0 auto 16px",
-  },
-  weeklyModalHeader: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  weeklyModalTitle: {
-    fontSize: 16,
-    fontWeight: 900,
-    color: "#fff",
-  },
-  weeklyModalClose: {
-    background: "transparent",
-    border: "none",
-    color: "#888",
-    fontSize: 18,
-    cursor: "pointer",
-    padding: "4px 8px",
-  },
-  weeklyModalBadgeBlock: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 20,
-    padding: "16px 0",
-    background: "rgba(212,175,55,0.06)",
-    borderRadius: 12,
-    border: "1px solid rgba(212,175,55,0.2)",
-  },
-  weeklyModalBadgeEmoji: {
-    fontSize: 44,
-    lineHeight: 1,
-  },
-  weeklyModalBadgeName: {
-    fontSize: 16,
-    fontWeight: 900,
-    letterSpacing: 0.5,
-  },
-  weeklyModalStats: {
-    display: "flex",
-    justifyContent: "space-around",
-    gap: 12,
-    marginBottom: 16,
-    padding: "14px 12px",
-    background: "rgba(255,255,255,0.04)",
-    borderRadius: 12,
-  },
-  weeklyModalStat: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 4,
-  },
-  weeklyModalStatVal: {
-    fontSize: 22,
-    fontWeight: 900,
-    color: "#fff",
-    lineHeight: 1,
-  },
-  weeklyModalStatLbl: {
-    fontSize: 10,
-    color: "#888",
-    fontWeight: 700,
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
-  },
-  weeklyModalDesc: {
-    margin: "0 0 16px",
-    fontSize: 13,
-    color: "#888",
-    lineHeight: 1.55,
-    textAlign: "center",
-  },
-  weeklyModalBtn: {
-    width: "100%",
-    padding: "14px 0",
-    borderRadius: 12,
-    background: "linear-gradient(135deg, #C1121F, #9B0D18)",
-    border: "none",
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: 900,
-    cursor: "pointer",
-    letterSpacing: 0.5,
   },
   sessionsCard: {
     width: "100%",
