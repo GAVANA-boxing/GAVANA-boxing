@@ -21,12 +21,12 @@ export default function BattleSection({ pvpStats, sparringRecord, isOwnProfile, 
             </p>
             <div style={{ display: "flex", gap: 8, justifyContent: "space-around" }}>
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 42, fontWeight: 900, color: "#34D399", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{pvpStats.wins}</div>
+                <div style={{ fontSize: 42, fontWeight: 900, color: pvpStats.wins > 0 ? "#34D399" : "#444", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{pvpStats.wins}</div>
                 <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>{t("profileWinsLabel")}</div>
               </div>
               <div style={{ width: 1, background: "rgba(255,255,255,0.07)" }} />
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 42, fontWeight: 900, color: "#F87171", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{pvpStats.losses}</div>
+                <div style={{ fontSize: 42, fontWeight: 900, color: pvpStats.losses > 0 ? "#F87171" : "#444", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{pvpStats.losses}</div>
                 <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>{t("profileLossesLabel")}</div>
               </div>
               {pvpStats.bestWinScore !== null && (
@@ -50,11 +50,11 @@ export default function BattleSection({ pvpStats, sparringRecord, isOwnProfile, 
                     </span>
                     <span style={{ fontSize: 13, fontWeight: 900, color: winPct >= 50 ? "#34D399" : "#F87171" }}>{winPct}%</span>
                   </div>
-                  <div style={{ height: 6, borderRadius: 99, background: "rgba(248,113,113,0.25)", overflow: "hidden" }}>
+                  <div style={{ height: 6, borderRadius: 99, background: "rgba(248,113,113,0.35)", overflow: "hidden" }}>
                     <div style={{
                       height: "100%", borderRadius: 99,
                       width: `${winPct}%`,
-                      background: winPct >= 50 ? "linear-gradient(90deg, #34D399, #059669)" : "linear-gradient(90deg, #F87171, #dc2626)",
+                      background: "linear-gradient(90deg, #34D399, #059669)",
                       transition: "width 0.6s ease",
                     }} />
                   </div>

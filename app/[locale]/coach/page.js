@@ -457,7 +457,7 @@ export default function CoachPage() {
             style={styles.cancelBtn}
             onClick={() => setShowSparringForm(false)}
           >
-            Cancel
+            {t("cancel")}
           </button>
           <button
             type="button"

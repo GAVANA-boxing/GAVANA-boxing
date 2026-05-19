@@ -254,7 +254,7 @@ export default function ChallengesPage() {
         {seasonTab === "week" && (
           <div style={{ ...styles.seasonLabel, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 2px" }}>
             <span style={styles.seasonLabelText}>🗓 {seasonLabel}</span>
-            <span style={{ fontSize: 11, fontWeight: 900, color: GOLD, fontVariantNumeric: "tabular-nums", letterSpacing: 0.5 }}>
+            <span style={{ fontSize: 10, fontWeight: 900, color: GOLD, fontVariantNumeric: "tabular-nums", letterSpacing: 0.5, padding: "3px 8px", borderRadius: 999, background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.3)" }}>
               ⏱ {countdown}
             </span>
           </div>

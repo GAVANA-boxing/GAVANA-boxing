@@ -12,7 +12,7 @@ import Image from "next/image";
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
 function HomeIcon({ active }) {
   return (
-    <svg style={{ ...ic, color: active ? "#fff" : "#3a3a3a" }} viewBox="0 0 24 24" aria-hidden="true">
+    <svg style={{ ...ic, color: active ? RED : "#3a3a3a" }} viewBox="0 0 24 24" aria-hidden="true">
       <path d="M3 12L12 4l9 8" />
       <path d="M5 10v9a1 1 0 0 0 1 1h4v-5h4v5h4a1 1 0 0 0 1-1v-9" />
     </svg>
@@ -21,7 +21,7 @@ function HomeIcon({ active }) {
 
 function DiscoverIcon({ active }) {
   return (
-    <svg style={{ ...ic, color: active ? "#fff" : "#3a3a3a" }} viewBox="0 0 24 24" aria-hidden="true">
+    <svg style={{ ...ic, color: active ? RED : "#3a3a3a" }} viewBox="0 0 24 24" aria-hidden="true">
       <circle cx="11" cy="11" r="6" />
       <path d="m17 17 3.5 3.5" />
     </svg>
@@ -30,7 +30,7 @@ function DiscoverIcon({ active }) {
 
 function AlertsIcon({ active }) {
   return (
-    <svg style={{ ...ic, color: active ? "#fff" : "#3a3a3a" }} viewBox="0 0 24 24" aria-hidden="true">
+    <svg style={{ ...ic, color: active ? RED : "#3a3a3a" }} viewBox="0 0 24 24" aria-hidden="true">
       <path d="M18 10.5V9a6 6 0 0 0-12 0v1.5c0 2.7-1.2 3.8-2.2 5h16.4c-1-1.2-2.2-2.3-2.2-5Z" />
       <path d="M9.7 18.5a2.5 2.5 0 0 0 4.6 0" />
     </svg>

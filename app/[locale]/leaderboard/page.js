@@ -377,7 +377,7 @@ export default function LeaderboardPage() {
                   }
                   <span style={{ fontSize: isFirst ? 11 : 10, fontWeight: 800, color: isFirst ? "#fff" : "rgba(255,255,255,0.7)", maxWidth: 72, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>{name.split(" ")[0]}</span>
                   <span style={{ fontSize: isFirst ? 13 : 11, fontWeight: 900, color: colors[rank - 1], textAlign: "center" }}>{entry.bestScore}/10</span>
-                  <div style={{ width: "100%", height: podiumH, borderRadius: "8px 8px 0 0", background: isFirst ? `linear-gradient(180deg, ${colors[0]}2a, ${colors[0]}08)` : `linear-gradient(180deg, ${colors[rank - 1]}18, ${colors[rank - 1]}06)`, border: `1px solid ${colors[rank - 1]}${isFirst ? "55" : "28"}`, borderBottom: "none", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: isFirst ? `0 -4px 20px ${colors[0]}22` : "none" }}>
+                  <div style={{ width: "100%", height: podiumH, borderRadius: "8px 8px 0 0", background: isFirst ? `linear-gradient(180deg, ${colors[0]}44, ${colors[0]}18)` : `linear-gradient(180deg, ${colors[rank - 1]}2a, ${colors[rank - 1]}0e)`, border: `1px solid ${colors[rank - 1]}${isFirst ? "88" : "44"}`, borderBottom: "none", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: isFirst ? `0 -4px 20px ${colors[0]}33` : `0 -2px 10px ${colors[rank-1]}18` }}>
                     <span style={{ fontSize: isFirst ? 22 : 18, fontWeight: 900, color: colors[rank - 1], opacity: isFirst ? 0.8 : 0.5 }}>#{rank}</span>
                   </div>
                 </div>
