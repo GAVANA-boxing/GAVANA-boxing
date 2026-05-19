@@ -2,6 +2,7 @@ import { Geist, Geist_Mono, Anton } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/AuthContext";
 import InAppBrowserWarning from "@/components/InAppBrowserWarning";
+import WebVitals from "@/components/WebVitals";
 import dynamic from "next/dynamic";
 
 const OnboardingModal = dynamic(() => import("@/components/OnboardingModal"));
@@ -66,6 +67,7 @@ export default function RootLayout({ children }) {
     >
       <body className="min-h-full flex flex-col">
         <AuthProvider>
+          <WebVitals />
           <InAppBrowserWarning />
           <OnboardingModal />
           {children}
