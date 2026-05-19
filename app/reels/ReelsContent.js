@@ -7,10 +7,9 @@ import BottomNav from "@/components/BottomNav";
 import DailyMission from "@/components/DailyMission";
 import { createNotification } from "@/lib/notifications";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { updateLeaderboard } from "@/components/Leaderboard";
 import { computeFeedScore } from "@/lib/analytics";
 import AIBreakdownSheet from "@/components/AIBreakdownSheet";
-import { RED, GOLD, PURPLE, redAlpha, goldAlpha } from "@/lib/tokens";
+import { GOLD, goldAlpha } from "@/lib/tokens";
 import {
   DEMO_REEL,
   getSafeLikeCount,
@@ -20,7 +19,6 @@ import {
   getCreatorName,
   getCreatorPhoto,
   cleanCaption,
-  extractFeedbackScore,
 } from "@/lib/reelHelpers";
 import {
   BackArrowIcon,
@@ -32,29 +30,11 @@ import FilterSheet from "@/components/reels/FilterSheet";
 import CaptionSheet from "@/components/reels/CaptionSheet";
 import ReelItem from "@/components/reels/ReelItem";
 import { useReelFeed } from "@/hooks/useReelFeed";
+import { useVideoControls } from "@/hooks/useVideoControls";
+import { useCommentActions } from "@/hooks/useCommentActions";
+import { useReelFeedback } from "@/hooks/useReelFeedback";
+import { getFirebase } from "@/lib/lazyFirebase";
 import styles from "@/components/reels/reelStyles";
-
-// Dynamic import for Firebase to avoid SSR issues
-let db = null;
-async function getFirebase() {
-  if (!db) {
-    const { getFirestore } = await import("firebase/firestore");
-    const { getApps, getApp, initializeApp } = await import("firebase/app");
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyDwVdR5oVYSXQbWL4jqNSNx9cqKuKxqt6c",
-      authDomain: "gavana-boxing-89a22.firebaseapp.com",
-      projectId: "gavana-boxing-89a22",
-      storageBucket: "gavana-boxing-89a22.firebasestorage.app",
-      messagingSenderId: "1062689232574",
-      appId: "1:1062689232574:web:1c362a4577072e51c9f0ef",
-    };
-
-    const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-    db = getFirestore(app);
-  }
-  return { db };
-}
 
 export default function ReelsContent() {
   const router = useRouter();
@@ -69,45 +49,21 @@ export default function ReelsContent() {
   const t = (key) => translate(currentLocale, key);
   const { user, loading: authLoading } = useAuth();
   const [feedMode, setFeedMode] = useState("forYou");
-  const [diffFilter, setDiffFilter] = useState("all"); // "all" | "beginner"
-  const [ctFilter, setCtFilter] = useState("all"); // "all" | "training" | "lifestyle" | "educational"
+  const [diffFilter, setDiffFilter] = useState("all");
+  const [ctFilter, setCtFilter] = useState("all");
   const [showFilterSheet, setShowFilterSheet] = useState(false);
   const [reels, setReels] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [soundEnabled, setSoundEnabled] = useState(false);
-  const [showControls, setShowControls] = useState(false);
-  const [expandedCaptionIds, setExpandedCaptionIds] = useState(new Set()); // kept for compat
-  const [videoLoading, setVideoLoading] = useState({});
-  const [showComments, setShowComments] = useState(false);
-  const [comments, setComments] = useState([]);
-  const [commentProfiles, setCommentProfiles] = useState({});
-  const [newComment, setNewComment] = useState("");
-  const [replyingTo, setReplyingTo] = useState(null); // { commentId, username }
-  const [expandedReplies, setExpandedReplies] = useState(new Set());
-  const [selectedReelId, setSelectedReelId] = useState(null);
-  const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const [feedbackLoading, setFeedbackLoading] = useState(false);
-  const [feedbackError, setFeedbackError] = useState("");
-  const [feedbackResult, setFeedbackResult] = useState("");
-  const [feedbackSaved, setFeedbackSaved] = useState(false);
-  const [feedbackReel, setFeedbackReel] = useState(null);
-  const [sessionXPData, setSessionXPData] = useState(null);
-  const [videoErrors, setVideoErrors] = useState({});
+  const [expandedCaptionIds, setExpandedCaptionIds] = useState(new Set());
   const [captionSheetReelId, setCaptionSheetReelId] = useState(null);
   const [breakdownReel, setBreakdownReel] = useState(null);
-  const videoRefs = useRef({});
-  const feedbackCacheRef = useRef({});
-  const lastTapRef = useRef({ time: 0, reelId: null });
-  const singleTapTimerRef = useRef(null);
-  const [heartBursts, setHeartBursts] = useState([]);
-  const [videoProgress, setVideoProgress] = useState(0);
+  const [localProfileProgress, setProfileReelProgress] = useState(null);
   const feedRef = useRef(null);
   const reelItemRefs = useRef({});
   const viewTimers = useRef({});
-  const controlsTimer = useRef(null);
-  const commentsUnsubscribeRef = useRef(null);
-  const commentProfileRequests = useRef(new Set());
+  const lastTapRef = useRef({ time: 0, reelId: null });
   const lastScrolledReelId = useRef(null);
+
   const {
     allReels, setAllReels,
     reelsLoading,
@@ -122,6 +78,32 @@ export default function ReelsContent() {
     userTrainingProfile,
     profileReelProgress,
   } = useReelFeed({ user, authLoading, isProfileSource, profileSourceUserId, currentReelId: reels[currentIndex]?.id || null });
+
+  const {
+    soundEnabled, showControls, setShowControls,
+    videoLoading, videoErrors, videoProgress, setVideoProgress,
+    heartBursts, setHeartBursts,
+    videoRefs, singleTapTimerRef,
+    pauseInactiveVideos, togglePlay, clearControlsTimer,
+    scheduleControlsHide, revealControls,
+    muteAllVideos, toggleMute,
+    handleVideoLoadStart, handleVideoLoaded, handleVideoError,
+  } = useVideoControls({ reels, currentIndex });
+
+  const {
+    showComments, comments, commentProfiles,
+    newComment, setNewComment,
+    replyingTo, setReplyingTo,
+    expandedReplies, setExpandedReplies,
+    selectedReelId,
+    handleOpenComments, handleAddComment, handleDeleteComment, handleCloseComments,
+  } = useCommentActions({ user, router, currentLocale, reels });
+
+  const {
+    feedbackOpen, feedbackLoading, feedbackError, feedbackResult,
+    feedbackSaved, feedbackReel, sessionXPData,
+    handleGetFeedback, handleCloseFeedback,
+  } = useReelFeedback({ user, router, currentLocale, t, creatorProfiles });
 
   useEffect(() => {
     if (authLoading || allReels === null) {
@@ -367,150 +349,11 @@ export default function ReelsContent() {
     };
   }, [reels]);
 
-  const pauseInactiveVideos = useCallback((activeReelId, reset = true) => {
-    Object.entries(videoRefs.current).forEach(([reelId, video]) => {
-      if (!video || reelId === activeReelId) return;
-
-      video.pause();
-      video.muted = true;
-
-      if (reset) {
-        try {
-          video.currentTime = 0;
-        } catch {
-          // Some mobile browsers can reject currentTime changes before metadata is ready.
-        }
-      }
-    });
-  }, []);
-
-  // Play/pause current video
-  const togglePlay = useCallback(() => {
-    const video = videoRefs.current[reels[currentIndex]?.id];
-    if (video) {
-      if (video.paused) {
-        video.play();
-        setShowControls(false);
-      } else {
-        video.pause();
-        setShowControls(true);
-      }
-    }
-  }, [currentIndex, reels]);
-
-  // Reset video progress when switching reels
-  useEffect(() => { setVideoProgress(0); }, [currentIndex]);
-
-  const clearControlsTimer = useCallback(() => {
-    if (controlsTimer.current) {
-      clearTimeout(controlsTimer.current);
-      controlsTimer.current = null;
-    }
-  }, []);
-
-  const scheduleControlsHide = useCallback(() => {
-    clearControlsTimer();
-    const video = videoRefs.current[reels[currentIndex]?.id];
-
-    if (video && !video.paused) {
-      controlsTimer.current = setTimeout(() => {
-        setShowControls(false);
-        controlsTimer.current = null;
-      }, 2500);
-    }
-  }, [clearControlsTimer, currentIndex, reels]);
-
-  const revealControls = useCallback(() => {
-    setShowControls(true);
-    scheduleControlsHide();
-  }, [scheduleControlsHide]);
-
-  const enableSound = useCallback(() => {
-    const activeReelId = reels[currentIndex]?.id;
-    const video = videoRefs.current[activeReelId];
-
-    setSoundEnabled(true);
-    pauseInactiveVideos(activeReelId, false);
-
-    if (video) {
-      video.muted = false;
-      video.volume = 1;
-      video.play().catch(() => {
-        // If a browser still blocks sound, the control remains visible for another tap.
-      });
-    }
-
-    setShowControls(true);
-    scheduleControlsHide();
-  }, [currentIndex, pauseInactiveVideos, reels, scheduleControlsHide]);
-
-  const muteAllVideos = useCallback(() => {
-    setSoundEnabled(false);
-    Object.values(videoRefs.current).forEach((video) => {
-      if (video) {
-        video.muted = true;
-      }
-    });
-    setShowControls(true);
-  }, []);
-
-  const handleVideoTap = useCallback(() => {
-    revealControls();
-    togglePlay();
-  }, [revealControls, togglePlay]);
-
-  useEffect(() => {
-    const currentReel = reels[currentIndex];
-    const activeReelId = currentReel?.isDemo ? null : currentReel?.id;
-
-    pauseInactiveVideos(activeReelId);
-
-    if (!currentReel || currentReel.isDemo || !activeReelId) return;
-
-    const video = videoRefs.current[activeReelId];
-    if (!video) return;
-
-    setVideoErrors((prev) => ({ ...prev, [activeReelId]: false }));
-    if (video.readyState < 3) {
-      setVideoLoading((prev) => ({ ...prev, [activeReelId]: true }));
-    }
-    video.muted = !soundEnabled;
-    video.playsInline = true;
-    video.setAttribute("playsinline", "");
-    video.setAttribute("webkit-playsinline", "");
-    video.play().catch(() => {
-      // Browsers can still block autoplay; the tap-to-play overlay remains available.
-    });
-    setShowControls(true);
-    scheduleControlsHide();
-  }, [reels, currentIndex, pauseInactiveVideos, scheduleControlsHide, soundEnabled]);
-
   useEffect(() => {
     return () => {
-      if (controlsTimer.current) {
-        clearTimeout(controlsTimer.current);
-      }
-      if (singleTapTimerRef.current) {
-        clearTimeout(singleTapTimerRef.current);
-      }
-
-      Object.values(videoRefs.current).forEach((video) => {
-        if (!video) return;
-        video.pause();
-        video.muted = true;
-      });
+      if (singleTapTimerRef.current) clearTimeout(singleTapTimerRef.current);
     };
   }, []);
-
-  // Toggle global sound
-  const toggleMute = useCallback(() => {
-    if (soundEnabled) {
-      muteAllVideos();
-      return;
-    }
-
-    enableSound();
-  }, [enableSound, muteAllVideos, soundEnabled]);
 
   // Handle like/unlike
   const handleLike = useCallback(async (reelId) => {
@@ -720,413 +563,6 @@ export default function ReelsContent() {
     }
   }, [pathname, currentLocale]);
 
-  const handleGetFeedback = useCallback(async (reel) => {
-    if (!user?.uid) {
-      router.push(`/${currentLocale}/login`);
-      return;
-    }
-
-    setFeedbackOpen(true);
-    setFeedbackReel(reel);
-    setSessionXPData(null);
-
-    const cached = feedbackCacheRef.current[reel?.id];
-    if (cached) {
-      setFeedbackResult(cached);
-      setFeedbackLoading(false);
-      setFeedbackError("");
-      setFeedbackSaved(false);
-      return;
-    }
-
-    setFeedbackLoading(true);
-    setFeedbackError("");
-    setFeedbackResult("");
-    setFeedbackSaved(false);
-
-    try {
-      const caption = reel?.description || reel?.caption || "No caption provided";
-      const username = reel?.username || "fighter";
-      const likes = getSafeLikeCount(reel);
-      const views = getSafeViewCount(reel);
-      const ownerId = reel?.userId;
-
-      if (!ownerId || reel?.isDemo) {
-        throw new Error("AI feedback is only available for real reels");
-      }
-
-      const isOwner = user.uid === ownerId;
-      const { db } = await getFirebase();
-      const { doc, getDoc, serverTimestamp, setDoc } = await import("firebase/firestore");
-      const feedbackRef = doc(db, "ai_feedback", reel.id);
-      const existingFeedbackSnap = await getDoc(feedbackRef);
-      const existingFeedback = existingFeedbackSnap.exists() ? {
-        id: existingFeedbackSnap.id,
-        ...existingFeedbackSnap.data(),
-      } : null;
-
-      if (existingFeedback?.feedbackText) {
-        feedbackCacheRef.current[reel.id] = existingFeedback.feedbackText;
-        setFeedbackResult(existingFeedback.feedbackText);
-        setFeedbackSaved(false);
-        return;
-      }
-
-      if (!isOwner) {
-        setFeedbackResult(t("reelOwnerNoFeedback"));
-        setFeedbackSaved(false);
-        return;
-      }
-
-      const context = [
-        `Username: @${username}`,
-        `Caption: ${caption}`,
-        `Likes: ${likes}`,
-        `Views: ${views}`,
-      ].join("\n");
-
-      const feedbackFormatLabels = currentLocale === "mn"
-        ? { strength: "Давуу тал", improve: "Сайжруулах", drill: "Дараагийн дасгал" }
-        : currentLocale === "ko"
-        ? { strength: "강점", improve: "개선점", drill: "다음 훈련" }
-        : { strength: "Strength", improve: "Improve", drill: "Next drill" };
-
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          persona: "analyst",
-          locale: currentLocale,
-          messages: [
-            {
-              role: "user",
-              content: [
-                "Give personalized boxing feedback using only the reel metadata below.",
-                context,
-                "Important: You cannot see the actual video, so do not claim you observed punches, footwork, guard, stance, speed, or technique directly.",
-                "Infer likely training focus from the caption and engagement only. If the caption is vague, say what to check rather than pretending to know.",
-                "Make the advice feel specific to the username, caption, likes, and views.",
-                "Keep it realistic, natural, direct, and coach-like.",
-                "Give a realistic score out of 10. Do not make the score too perfect unless the context strongly supports it.",
-                "Return exactly this plain format with no markdown, no bold symbols, and no bullet points:",
-                "Score: 6.5/10",
-                `${feedbackFormatLabels.strength}: one specific strength or positive signal based on the caption/context.`,
-                `${feedbackFormatLabels.improve}: one practical thing to watch or refine next time.`,
-                `${feedbackFormatLabels.drill}: one simple boxing drill with a clear rep/time target.`,
-              ].join("\n"),
-            },
-          ],
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || data?.fallback) {
-        setFeedbackResult(data?.message || t("feedbackUnavailable"));
-        setFeedbackSaved(false);
-        return;
-      }
-
-      const text = data?.content?.find((item) => item?.type === "text")?.text || data?.content?.[0]?.text || "";
-
-      if (!text.trim()) {
-        setFeedbackResult(t("feedbackUnavailable"));
-        setFeedbackSaved(false);
-        return;
-      }
-
-      const feedbackText = text.trim();
-      feedbackCacheRef.current[reel.id] = feedbackText;
-      setFeedbackResult(feedbackText);
-
-      try {
-        const parsedScore = extractFeedbackScore(feedbackText);
-        const feedbackDoc = {
-          userId: ownerId,
-          reelId: reel.id,
-          feedbackText,
-          reelCaption: caption,
-          createdAt: serverTimestamp(),
-          locale: currentLocale,
-        };
-
-        if (typeof parsedScore === "number") {
-          feedbackDoc.score = parsedScore;
-        }
-
-        await setDoc(feedbackRef, feedbackDoc);
-
-        // Update leaderboard if score exists
-        if (typeof parsedScore === "number") {
-          try {
-            const { doc, getDoc } = await import("firebase/firestore");
-            const userDoc = await getDoc(doc(db, "users", ownerId));
-            const userData = userDoc.exists() ? userDoc.data() : {};
-            const username = userData.displayName || userData.username || "Anonymous";
-            const photoURL = userData.photoURL || userData.profileImageUrl || "";
-            await updateLeaderboard(ownerId, parsedScore, username, photoURL);
-          } catch (leaderboardError) {
-            console.error("Failed to update leaderboard:", leaderboardError);
-          }
-        }
-
-        setFeedbackSaved(true);
-
-        // Compute XP breakdown for the feedback card
-        if (typeof parsedScore === "number") {
-          try {
-            const { calculateSessionXP, calculateUserXP, getFighterRank, getNextRank, getRankProgress } = await import("@/lib/xp");
-            const { collection, getDocs, query, where } = await import("firebase/firestore");
-
-            const allSnap = await getDocs(query(collection(db, "ai_feedback"), where("userId", "==", ownerId)));
-            const allDocs = allSnap.docs.map((d) => ({ score: d.data().score, createdAt: d.data().createdAt }));
-
-            // Sort ascending to find previous score (second-to-last after current save)
-            const sorted = [...allDocs]
-              .filter((d) => Number.isFinite(Number(d.score)))
-              .sort((a, b) => (a.createdAt?.toMillis?.() || 0) - (b.createdAt?.toMillis?.() || 0));
-            const prevScore = sorted.length >= 2 ? Number(sorted[sorted.length - 2].score) : null;
-
-            const streakDays = creatorProfiles[ownerId]?.streakCount || 0;
-            const reelLikes = getSafeLikeCount(reel);
-            const likeXP = Math.round(reelLikes) * 2;
-
-            const breakdown = calculateSessionXP(parsedScore, prevScore, streakDays);
-            const totalXP = calculateUserXP({ aiFeedbackDocs: allDocs, streakDays, likesReceived: reelLikes });
-            const currentRank = getFighterRank(totalXP);
-            const nextRankTier = getNextRank(totalXP);
-            const progress = getRankProgress(totalXP);
-
-            setSessionXPData({
-              ...breakdown,
-              likeXP,
-              totalXP,
-              currentRank,
-              nextRank: nextRankTier,
-              rankProgress: progress,
-              xpToNext: nextRankTier ? nextRankTier.minXP - totalXP : 0,
-            });
-          } catch (xpErr) {
-            console.error("XP breakdown error:", xpErr);
-          }
-        }
-      } catch (saveError) {
-        console.error("Failed to save AI feedback:", saveError);
-      }
-    } catch (err) {
-      console.error("Failed to generate AI feedback:", err);
-      setFeedbackError(t("feedbackGenerateError"));
-    } finally {
-      setFeedbackLoading(false);
-    }
-  }, [currentLocale, router, user?.uid]);
-
-  const handleCloseFeedback = useCallback(() => {
-    setFeedbackOpen(false);
-    setFeedbackLoading(false);
-    setFeedbackError("");
-    setFeedbackResult("");
-    setFeedbackSaved(false);
-    setFeedbackReel(null);
-    setSessionXPData(null);
-  }, []);
-
-  // Handle opening comments
-  const handleOpenComments = useCallback(async (reelId) => {
-    const targetReel = reels.find((reel) => reel.id === reelId);
-    if (targetReel?.isDemo) {
-      setSelectedReelId(reelId);
-      setShowComments(true);
-      setNewComment("");
-      setComments([
-        {
-          id: "demo-comment",
-          username: "coach",
-          userId: null,
-          text: "Hook them early: start with the punch, then show the lesson.",
-        },
-      ]);
-      return;
-    }
-
-    if (!user?.uid) {
-      router.push(`/${currentLocale}/login`);
-      return;
-    }
-
-    setSelectedReelId(reelId);
-    setShowComments(true);
-    setComments([]);
-    setNewComment("");
-
-    try {
-      if (commentsUnsubscribeRef.current) {
-        commentsUnsubscribeRef.current();
-        commentsUnsubscribeRef.current = null;
-      }
-
-      const { db } = await getFirebase();
-      const { collection, query, orderBy, onSnapshot } = await import("firebase/firestore");
-
-      const commentsQuery = query(
-        collection(db, "reels", reelId, "comments"),
-        orderBy("createdAt", "desc")
-      );
-
-      commentsUnsubscribeRef.current = onSnapshot(commentsQuery, (snapshot) => {
-        const commentsData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setComments(commentsData);
-      }, (err) => {
-        console.error("Failed to listen for comments:", err);
-        setComments([]);
-      });
-    } catch (err) {
-      console.error("Failed to load comments:", err);
-    }
-  }, [user?.uid, router, currentLocale, reels]);
-
-  // Handle adding comment
-  const handleAddComment = useCallback(async () => {
-    if (!user || !newComment.trim() || !selectedReelId) return;
-    const selectedReel = reels.find((reel) => reel.id === selectedReelId);
-    if (selectedReel?.isDemo) return;
-
-    try {
-      const { db } = await getFirebase();
-      const { collection, addDoc, serverTimestamp, increment, doc, updateDoc } = await import("firebase/firestore");
-
-      // Add comment to subcollection
-      await addDoc(collection(db, "reels", selectedReelId, "comments"), {
-        userId: user.uid,
-        username: user.displayName || user.email.split("@")[0],
-        userPhotoURL: user.photoURL || "",
-        text: newComment.trim(),
-        createdAt: serverTimestamp(),
-        parentId: replyingTo?.commentId || null,
-      });
-
-      // Update comment count on reel
-      const reelRef = doc(db, "reels", selectedReelId);
-      await updateDoc(reelRef, {
-        commentsCount: increment(1)
-      });
-      await createNotification({
-        recipientId: selectedReel?.userId,
-        actorId: user.uid,
-        actorName: user.email?.split("@")[0],
-        type: "comment",
-        reelId: selectedReelId,
-        text: newComment.trim(),
-      });
-
-      setNewComment("");
-      setReplyingTo(null);
-    } catch (err) {
-      console.error("Failed to add comment:", err);
-    }
-  }, [user, newComment, selectedReelId, reels, replyingTo]);
-
-  const handleDeleteComment = useCallback(async (comment) => {
-    if (!user || comment.userId !== user.uid || !selectedReelId) return;
-    try {
-      const { db } = await getFirebase();
-      const { doc, deleteDoc, updateDoc, increment } = await import("firebase/firestore");
-      await deleteDoc(doc(db, "reels", selectedReelId, "comments", comment.id));
-      await updateDoc(doc(db, "reels", selectedReelId), { commentsCount: increment(-1) });
-    } catch (err) {
-      console.error("Failed to delete comment:", err);
-    }
-  }, [user, selectedReelId]);
-
-  // Handle closing comments
-  const handleCloseComments = useCallback(() => {
-    if (commentsUnsubscribeRef.current) {
-      commentsUnsubscribeRef.current();
-      commentsUnsubscribeRef.current = null;
-    }
-
-    setShowComments(false);
-    setSelectedReelId(null);
-    setComments([]);
-    setNewComment("");
-    setReplyingTo(null);
-    setExpandedReplies(new Set());
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (commentsUnsubscribeRef.current) {
-        commentsUnsubscribeRef.current();
-        commentsUnsubscribeRef.current = null;
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!comments.length) return;
-
-    let isActive = true;
-    const missingUserIds = [...new Set(comments
-      .map((comment) => comment.userId)
-      .filter((commentUserId) => commentUserId && !commentProfiles[commentUserId] && !commentProfileRequests.current.has(commentUserId))
-    )];
-
-    if (!missingUserIds.length) return;
-
-    async function loadCommentProfiles() {
-      try {
-        const { db } = await getFirebase();
-        const { doc, getDoc } = await import("firebase/firestore");
-
-        await Promise.all(missingUserIds.map(async (commentUserId) => {
-          commentProfileRequests.current.add(commentUserId);
-          const userSnap = await getDoc(doc(db, "users", commentUserId));
-          const userData = userSnap.exists() ? userSnap.data() : {};
-
-          if (!isActive) return;
-
-          setCommentProfiles((prev) => ({
-            ...prev,
-            [commentUserId]: {
-              displayName: userData.displayName || userData.username || "",
-              photoURL: userData.photoURL || userData.profileImageUrl || userData.profileImage || userData.avatarUrl || "",
-            },
-          }));
-        }));
-      } catch (error) {
-        console.error("Failed to load comment profiles:", error);
-      }
-    }
-
-    loadCommentProfiles();
-
-    return () => {
-      isActive = false;
-    };
-  }, [comments, commentProfiles]);
-
-  // Handle video load start
-  const handleVideoLoadStart = (reelId) => {
-    setVideoLoading(prev => ({ ...prev, [reelId]: true }));
-    setVideoErrors(prev => ({ ...prev, [reelId]: false }));
-  };
-
-  // Handle video loaded
-  const handleVideoLoaded = (reelId) => {
-    setVideoLoading(prev => ({ ...prev, [reelId]: false }));
-    setVideoErrors(prev => ({ ...prev, [reelId]: false }));
-  };
-
-  const handleVideoError = (reelId) => {
-    setVideoLoading(prev => ({ ...prev, [reelId]: false }));
-    setVideoErrors(prev => ({ ...prev, [reelId]: true }));
-  };
-
   const toggleCaption = useCallback((reelId) => {
     setExpandedCaptionIds((prev) => {
       const next = new Set(prev);
@@ -1286,7 +722,7 @@ export default function ReelsContent() {
               showControls={showControls}
               isPvpSource={isPvpSource}
               isProfileSource={isProfileSource}
-              profileReelProgress={profileReelProgress}
+              profileReelProgress={isProfileSource ? localProfileProgress : profileReelProgress}
               creatorName={creatorName}
               creatorPhoto={creatorPhoto}
               creatorInitial={creatorInitial}
