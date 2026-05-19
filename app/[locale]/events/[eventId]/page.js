@@ -2,30 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  documentId,
-  getDoc,
-  getDocs,
-  increment,
-  query,
-  serverTimestamp,
-  setDoc,
-  updateDoc,
-  where,
-} from "firebase/firestore";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
-import { db } from "@/lib/firebase";
 import { getLocale, translate } from "@/lib/i18n";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , PURPLE, redAlpha, goldAlpha} from "@/lib/tokens";
+import { useEventData } from "@/hooks/useEventData";
+import Image from "next/image";
 
 const TYPE_META = {
   boxing:     { mn: "Бокс",     ko: "복싱",    en: "Boxing",     color: RED, emoji: "🥊" },
-  mma:        { mn: "MMA",      ko: "MMA",     en: "MMA",        color: "#A78BFA", emoji: "⚔️" },
+  mma:        { mn: "MMA",      ko: "MMA",     en: "MMA",        color: PURPLE, emoji: "⚔️" },
   muay_thai:  { mn: "Муай Тай", ko: "무에타이", en: "Muay Thai",  color: "#F97316", emoji: "🦵" },
   sparring:   { mn: "Спарринг", ko: "스파링",   en: "Sparring",   color: "#34D399", emoji: "🤜" },
   tournament: { mn: "Тэмцээн",  ko: "토너먼트", en: "Tournament", color: GOLD, emoji: "🏆" },
@@ -95,125 +81,24 @@ export default function EventDetailPage() {
 
   const t = (key) => translate(locale, key);
 
-  const [event, setEvent] = useState(null);
-  const [rsvps, setRsvps] = useState([]);
-  const [participants, setParticipants] = useState({});
-  const [isGoing, setIsGoing] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [rsvping, setRsvping] = useState(false);
-  const [reminderSet, setReminderSet] = useState(false);
-  const [settingReminder, setSettingReminder] = useState(false);
+  const {
+    event, setEvent,
+    rsvps,
+    participants,
+    isGoing,
+    loading,
+    rsvping,
+    reminderSet,
+    settingReminder,
+    handleRsvp,
+    handleReminder,
+  } = useEventData({ eventId, user, authLoading, locale, router });
   const [shareCopied, setShareCopied] = useState(false);
   const countdown = useCountdown(event?.date);
 
   useEffect(() => {
     if (!authLoading && !user) router.push(`/${locale}/login`);
   }, [authLoading, user, router, locale]);
-
-  useEffect(() => {
-    if (!eventId || !user?.uid) return;
-    let active = true;
-    async function load() {
-      try {
-        const [eventDoc, rsvpSnap] = await Promise.all([
-          getDoc(doc(db, "events", eventId)),
-          getDocs(query(collection(db, "event_rsvps"), where("eventId", "==", eventId))),
-        ]);
-        if (!active) return;
-        if (!eventDoc.exists()) { setLoading(false); return; }
-        setEvent({ id: eventDoc.id, ...eventDoc.data() });
-
-        const rsvpList = rsvpSnap.docs.map((d) => d.data());
-        setRsvps(rsvpList);
-        setIsGoing(rsvpList.some((r) => r.userId === user.uid));
-
-        // Batch-load participant profiles
-        const uids = [...new Set(rsvpList.map((r) => r.userId).filter(Boolean))];
-        if (uids.length > 0) {
-          const chunks = [];
-          for (let i = 0; i < uids.length; i += 10) chunks.push(uids.slice(i, i + 10));
-          const userMap = {};
-          await Promise.all(chunks.map(async (chunk) => {
-            const uSnap = await getDocs(query(collection(db, "users"), where(documentId(), "in", chunk)));
-            uSnap.docs.forEach((d) => { userMap[d.id] = d.data(); });
-          }));
-          if (active) setParticipants(userMap);
-        }
-      } catch (e) {
-        console.error("event detail load error", e);
-      } finally {
-        if (active) setLoading(false);
-      }
-    }
-    load();
-    return () => { active = false; };
-  }, [eventId, user?.uid, authLoading]);
-
-  const handleRsvp = async () => {
-    if (!user || rsvping || !event) return;
-    setRsvping(true);
-    const rsvpDocId = `${user.uid}_${eventId}`;
-    try {
-      if (isGoing) {
-        await deleteDoc(doc(db, "event_rsvps", rsvpDocId));
-        await updateDoc(doc(db, "events", eventId), { participantCount: increment(-1) });
-        setIsGoing(false);
-        setRsvps((prev) => prev.filter((r) => r.userId !== user.uid));
-        setEvent((prev) => ({ ...prev, participantCount: Math.max(0, (prev.participantCount || 1) - 1) }));
-      } else {
-        await setDoc(doc(db, "event_rsvps", rsvpDocId), {
-          eventId,
-          userId: user.uid,
-          createdAt: serverTimestamp(),
-        });
-        await updateDoc(doc(db, "events", eventId), { participantCount: increment(1) });
-        setIsGoing(true);
-        setRsvps((prev) => [...prev, { eventId, userId: user.uid }]);
-        setEvent((prev) => ({ ...prev, participantCount: (prev.participantCount || 0) + 1 }));
-        if (event.organizerId && event.organizerId !== user.uid) {
-          await addDoc(collection(db, "notifications"), {
-            recipientId: event.organizerId,
-            actorId: user.uid,
-            actorName: user.displayName || user.email?.split("@")[0] || "Fighter",
-            fromUserId: user.uid,
-            fromUsername: user.displayName || user.email?.split("@")[0] || "Fighter",
-            fromUserPhotoURL: user.photoURL || "",
-            type: "event_rsvp",
-            message: `${user.displayName || "Fighter"} ${locale === "mn" ? "таны event-д RSVP хийлээ" : locale === "ko" ? "님이 이벤트에 참가 신청했습니다" : "RSVP'd to your event"}: ${event.title}`,
-            eventId,
-            read: false,
-            createdAt: serverTimestamp(),
-          });
-        }
-      }
-    } catch (e) {
-      console.error("rsvp error", e);
-    } finally {
-      setRsvping(false);
-    }
-  };
-
-  const handleReminder = async () => {
-    if (!user || settingReminder || reminderSet || !event) return;
-    setSettingReminder(true);
-    try {
-      await addDoc(collection(db, "notifications"), {
-        recipientId: user.uid,
-        actorId: "system",
-        type: "event_reminder",
-        message: locale === "mn"
-          ? `📅 Сануулга: ${event.title} — ${formatEventDate(event.date, locale)}`
-          : locale === "ko"
-          ? `📅 알림: ${event.title} — ${formatEventDate(event.date, locale)}`
-          : `📅 Reminder: ${event.title} — ${formatEventDate(event.date, locale)}`,
-        eventId,
-        read: false,
-        createdAt: serverTimestamp(),
-      });
-      setReminderSet(true);
-    } catch {}
-    finally { setSettingReminder(false); }
-  };
 
   const handleShare = async () => {
     if (!event) return;
@@ -409,7 +294,7 @@ export default function EventDetailPage() {
         <button
           type="button"
           onClick={handleShare}
-          style={{ width: "100%", padding: "11px 0", borderRadius: 12, border: "1px solid rgba(212,175,55,0.25)", background: "rgba(212,175,55,0.06)", color: shareCopied ? "#34D399" : GOLD, fontSize: 13, fontWeight: 800, cursor: "pointer", marginBottom: 8 }}
+          style={{ width: "100%", padding: "11px 0", borderRadius: 12, border: `1px solid ${goldAlpha(0.25)}`, background: `${goldAlpha(0.06)}`, color: shareCopied ? "#34D399" : GOLD, fontSize: 13, fontWeight: 800, cursor: "pointer", marginBottom: 8 }}
         >
           {shareCopied ? t("eventLinkCopied") : t("eventShare")}
         </button>
@@ -436,7 +321,7 @@ export default function EventDetailPage() {
                     onClick={() => router.push(`/${locale}/profile/${r.userId}`)}>
                     <div style={s.partAvatar}>
                       {photo
-                        ? <img src={photo} alt="" style={s.partAvatarImg} />
+                        ? <Image src={photo} alt="" width={34} height={34} style={{ objectFit: "cover" }} />
                         : <span style={s.partAvatarInitial}>{name[0]?.toUpperCase()}</span>}
                     </div>
                     <span style={s.partName}>{name}</span>
@@ -470,22 +355,22 @@ const s = {
   detailIcon: { fontSize: 18, flexShrink: 0, marginTop: 1 },
   detailLabel: { margin: "0 0 2px", fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 },
   detailValue: { margin: 0, fontSize: 14, color: "#fff", fontWeight: 700 },
-  rsvpBtn: { width: "100%", padding: 16, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#C1121F,#7d0812)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: "0 8px 28px rgba(193,18,31,0.32)", marginBottom: 10 },
+  rsvpBtn: { width: "100%", padding: 16, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#C1121F,#7d0812)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 28px ${redAlpha(0.32)}`, marginBottom: 10 },
   cancelRsvpBtn: { width: "100%", padding: 16, borderRadius: 14, border: "1px solid rgba(52,211,153,0.3)", background: "rgba(52,211,153,0.08)", color: "#34D399", fontSize: 15, fontWeight: 900, cursor: "pointer", marginBottom: 10 },
   fullBtn: { width: "100%", padding: 16, borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.3)", fontSize: 15, fontWeight: 700, cursor: "not-allowed", marginBottom: 10 },
-  reminderBtn: { width: "100%", padding: 13, borderRadius: 14, border: "1px solid rgba(212,175,55,0.3)", background: "rgba(212,175,55,0.06)", color: GOLD, fontSize: 14, fontWeight: 800, cursor: "pointer", marginBottom: 16 },
+  reminderBtn: { width: "100%", padding: 13, borderRadius: 14, border: `1px solid ${goldAlpha(0.3)}`, background: `${goldAlpha(0.06)}`, color: GOLD, fontSize: 14, fontWeight: 800, cursor: "pointer", marginBottom: 16 },
   reminderSetBtn: { width: "100%", padding: 13, borderRadius: 14, border: "1px solid rgba(52,211,153,0.2)", background: "rgba(52,211,153,0.05)", color: "rgba(52,211,153,0.7)", fontSize: 14, fontWeight: 800, cursor: "not-allowed", marginBottom: 16 },
-  countdownBox: { marginTop: 14, padding: "10px 14px", borderRadius: 12, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.2)", display: "flex", alignItems: "center", justifyContent: "space-between" },
+  countdownBox: { marginTop: 14, padding: "10px 14px", borderRadius: 12, background: `${goldAlpha(0.06)}`, border: `1px solid ${goldAlpha(0.2)}`, display: "flex", alignItems: "center", justifyContent: "space-between" },
   countdownLabel: { fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 },
   countdownValue: { fontSize: 18, fontWeight: 1000, color: GOLD, fontVariantNumeric: "tabular-nums", letterSpacing: 0.5 },
   liveBadge: { display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 12px", borderRadius: 999, background: "rgba(52,211,153,0.15)", border: "1px solid rgba(52,211,153,0.4)", color: "#34D399", fontSize: 11, fontWeight: 900, letterSpacing: 1.2 },
   liveDot: { width: 7, height: 7, borderRadius: "50%", background: "#34D399", boxShadow: "0 0 6px #34D399" },
-  organizerBanner: { padding: "12px 16px", borderRadius: 12, background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.2)", color: GOLD, fontSize: 13, fontWeight: 700, marginBottom: 16, textAlign: "center" },
+  organizerBanner: { padding: "12px 16px", borderRadius: 12, background: `${goldAlpha(0.08)}`, border: `1px solid ${goldAlpha(0.2)}`, color: GOLD, fontSize: 13, fontWeight: 700, marginBottom: 16, textAlign: "center" },
   participantSection: { marginTop: 4 },
   sectionLabel: { margin: "0 0 10px", fontSize: 10, color: "rgba(255,255,255,0.45)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 },
   participantGrid: { display: "flex", flexDirection: "column", gap: 8 },
   participantChip: { display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 12, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", cursor: "pointer" },
-  partAvatar: { width: 34, height: 34, borderRadius: "50%", background: "rgba(193,18,31,0.2)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 },
+  partAvatar: { width: 34, height: 34, borderRadius: "50%", background: `${redAlpha(0.2)}`, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 },
   partAvatarImg: { width: "100%", height: "100%", objectFit: "cover" },
   partAvatarInitial: { fontSize: 13, fontWeight: 900, color: "#fff" },
   partName: { fontSize: 14, fontWeight: 700, color: "#fff" },

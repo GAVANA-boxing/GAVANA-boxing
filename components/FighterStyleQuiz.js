@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
 
 export const ARCHETYPE_DISPLAY = {
   pressure: { emoji: "🔴", name: "Pressure Fighter", color: RED },
@@ -128,7 +128,7 @@ export default function FighterStyleQuiz({ user, onComplete }) {
           ...Q.glow,
           background: isResult && arch
             ? `radial-gradient(circle, ${arch.color}28, transparent 65%)`
-            : "radial-gradient(circle, rgba(193,18,31,0.22), transparent 65%)",
+            : `radial-gradient(circle, ${redAlpha(0.22)}, transparent 65%)`,
         }} />
 
         <div style={Q.brand}>GAVANA · FIGHTER IDENTITY</div>
@@ -211,7 +211,7 @@ const Q = {
     position: "relative", overflow: "hidden",
     width: "min(100%, 460px)", borderRadius: 28,
     padding: "32px 24px 28px",
-    background: "linear-gradient(145deg, rgba(193,18,31,0.14), rgba(8,8,8,0.98) 45%, rgba(212,175,55,0.07))",
+    background: `linear-gradient(145deg, ${redAlpha(0.14)}, rgba(8,8,8,0.98) 45%, ${goldAlpha(0.07)})`,
     border: "1px solid rgba(255,255,255,0.1)",
     boxShadow: "0 32px 96px rgba(0,0,0,0.7)",
     color: "#fff", textAlign: "center",
@@ -253,8 +253,8 @@ const Q = {
     transition: "all 150ms ease",
   },
   optBtnActive: {
-    background: "rgba(193,18,31,0.18)",
-    border: "1px solid rgba(193,18,31,0.5)",
+    background: `${redAlpha(0.18)}`,
+    border: `1px solid ${redAlpha(0.5)}`,
     transform: "translateX(4px)",
   },
   nextBtn: {
@@ -263,7 +263,7 @@ const Q = {
     background: "linear-gradient(135deg, #C1121F, #8f0d17)",
     color: "#fff", fontSize: 15, fontWeight: 900,
     cursor: "pointer",
-    boxShadow: "0 8px 28px rgba(193,18,31,0.3)",
+    boxShadow: `0 8px 28px ${redAlpha(0.3)}`,
     position: "relative",
   },
   // Result

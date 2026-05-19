@@ -1,103 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, increment, query, serverTimestamp, updateDoc, where } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
 import EmptyState from "@/components/EmptyState";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { RED, GOLD } from "@/lib/tokens";
-import { snapToDocs } from "@/lib/firestore";
+import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import styles from "@/components/coach/coachIdStyles";
+import { StarRating, ReviewCard } from "@/components/shared/ReviewCard";
+import { SPECIALTY_COLORS, getCoachInsight } from "@/lib/coachConstants";
+import { useCoachProfileData } from "@/hooks/useCoachProfileData";
+import { useCoachProfileActions } from "@/hooks/useCoachProfileActions";
+import Image from "next/image";
 
-const SPECIALTY_COLORS = {
-  Amateur:      "#34D399",
-  Pro:          RED,
-  Sparring:     "#FB923C",
-  Defense:      "#60A5FA",
-  Counter:      "#60A5FA",
-  Footwork:     "#A78BFA",
-  "Pad work":   "#F59E0B",
-  Conditioning: "#34D399",
-  Beginners:    "#34D399",
-  Pressure:     "#F87171",
-};
 
-const BEST_FOR_MAP = {
-  Footwork: { en: "Fighters wanting better ring movement & pivots", mn: "Хөдөлгөөн, хөлийн ажлаа сайжруулахыг хүсэгчид", ko: "이동 동작을 향상시키려는 선수" },
-  Pressure: { en: "Brawlers building aggressive pressure fighting", mn: "Дайралтын арга барилаа хөгжүүлэхийг хүсэгчид", ko: "압박 파이팅을 구사하려는 선수" },
-  Counter: { en: "Defensive fighters learning counter-punching", mn: "Тохой үхэлт тоглогч болохыг хүсэгчид", ko: "카운터펀치를 익히려는 수비 지향 선수" },
-  Beginners: { en: "First-time boxers — all levels welcome", mn: "Анх удаа боксыг эзэмшигчид", ko: "처음 복싱을 시작하는 입문자" },
-  Sparring: { en: "Fighters ready to test themselves in the ring", mn: "Рингд сорилоо туршихад бэлэн тамирчид", ko: "실전 훈련을 하고 싶은 선수" },
-  Conditioning: { en: "Athletes improving fitness and endurance", mn: "Бие бялдараа сайжруулахыг хүсэгчид", ko: "체력과 지구력을 강화하려는 운동선수" },
-  Defense: { en: "Fighters wanting a tighter guard and better slipping", mn: "Хамгаалалтаа бат бэх болгохыг хүсэгчид", ko: "가드와 슬리핑을 개선하고 싶은 선수" },
-  "Pad work": { en: "Anyone wanting sharper, faster hands", mn: "Гарын хурд, нарийвчлалаа дээшлүүлэхийг хүсэгчид", ko: "더 빠르고 정확한 손기술을 원하는 선수" },
-  Amateur: { en: "Competitors training for amateur fights", mn: "Аматур тэмцээнд бэлтгэж буй тамирчид", ko: "아마추어 대회를 준비하는 선수" },
-  Pro: { en: "Professional-level fighters and competitors", mn: "Мэргэжлийн түвшний тамирчид", ko: "프로 레벨의 파이터" },
-};
-
-const IMPROVE_MAP = {
-  Footwork: ["Footwork & Pivots", "Ring positioning", "Defensive movement"],
-  Pressure: ["Forward pressure", "Body work", "Cutting off the ring"],
-  Counter: ["Timing & counters", "Head movement", "Defensive IQ"],
-  Beginners: ["Basic stance & guard", "Punching mechanics", "Confidence"],
-  Sparring: ["Timing & reaction", "Ring generalship", "Composure"],
-  Conditioning: ["Endurance", "Core strength", "Recovery speed"],
-  Defense: ["Slipping & rolling", "Guard stability", "Block mechanics"],
-  "Pad work": ["Hand speed", "Combination flow", "Accuracy"],
-  Amateur: ["Fight IQ", "Scoring punches", "Amateur tactics"],
-  Pro: ["Advanced tactics", "Mental game", "Peak conditioning"],
-};
-
-function getCoachInsight(coach) {
-  const specs = coach.coachSpecialties || [];
-  const first = specs[0];
-  const bestFor = first ? BEST_FOR_MAP[first] : null;
-  const improves = specs
-    .flatMap((s) => IMPROVE_MAP[s] || [])
-    .filter((v, i, a) => a.indexOf(v) === i)
-    .slice(0, 4);
-  return { bestFor, improves };
-}
-
-function StarRating({ value, onChange, readonly = false }) {
-  return (
-    <div style={{ display: "flex", gap: 6 }}>
-      {[1, 2, 3, 4, 5].map((n) => (
-        <button
-          key={n}
-          type="button"
-          onClick={() => !readonly && onChange && onChange(n)}
-          style={{
-            background: "none",
-            border: "none",
-            fontSize: 24,
-            cursor: readonly ? "default" : "pointer",
-            color: n <= value ? GOLD : "rgba(255,255,255,0.2)",
-            padding: "2px 1px",
-          }}
-        >
-          ★
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function ReviewCard({ review }) {
-  return (
-    <div style={styles.reviewCard}>
-      <div style={styles.reviewTop}>
-        <StarRating value={review.rating} readonly />
-        <span style={styles.reviewDate}>
-          {review.createdAt?.toDate ? new Date(review.createdAt.toDate()).toLocaleDateString() : ""}
-        </span>
-      </div>
-      {review.review && <p style={styles.reviewText}>{review.review}</p>}
-    </div>
-  );
-}
 
 export default function CoachProfilePage() {
   const params = useParams();
@@ -108,255 +24,33 @@ export default function CoachProfilePage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
 
-  const [coach, setCoach] = useState(null);
-  const [reviews, setReviews] = useState([]);
-  const [reels, setReels] = useState([]);
-  const [completedSessions, setCompletedSessions] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [requested, setRequested] = useState(false);
-  const [pendingRequestId, setPendingRequestId] = useState(null);
-  const [requesting, setRequesting] = useState(false);
+  const {
+    coach,
+    reviews, setReviews,
+    reels,
+    completedSessions,
+    loading,
+    requested, setRequested,
+    pendingRequestId, setPendingRequestId,
+    eligibleBooking, setEligibleBooking,
+    programs, setPrograms,
+    enrolledIds, setEnrolledIds,
+  } = useCoachProfileData({ coachId, user });
 
-  // Review form
-  const [showReviewForm, setShowReviewForm] = useState(false);
-  const [reviewBookingId, setReviewBookingId] = useState(null);
-  const [reviewRating, setReviewRating] = useState(5);
-  const [reviewText, setReviewText] = useState("");
-  const [reviewSubmitting, setReviewSubmitting] = useState(false);
-  const [reviewSuccess, setReviewSuccess] = useState(false);
-  const [reviewError, setReviewError] = useState("");
-
-  // Completed booking eligible for review
-  const [eligibleBooking, setEligibleBooking] = useState(null);
-
-  // Training programs
-  const [programs, setPrograms] = useState([]);
-  const [enrolledIds, setEnrolledIds] = useState(new Set()); // programIds user is enrolled in
-  const [enrolling, setEnrolling] = useState(null); // programId being toggled
-
-  useEffect(() => {
-    if (!coachId) return;
-    let active = true;
-
-    async function load() {
-      try {
-        const [coachSnap, reviewsSnap, reelsSnap, bookingsSnap] = await Promise.all([
-          getDoc(doc(db, "users", coachId)),
-          getDocs(query(collection(db, "coach_reviews"), where("coachId", "==", coachId))),
-          getDocs(query(collection(db, "reels"), where("userId", "==", coachId))),
-          getDocs(query(collection(db, "coach_bookings"), where("coachId", "==", coachId), where("status", "==", "completed"))),
-        ]);
-        if (!active) return;
-
-        setCoach(coachSnap.exists() ? { id: coachSnap.id, ...coachSnap.data() } : null);
-        setReviews(snapToDocs(reviewsSnap));
-        setReels(snapToDocs(reelsSnap));
-        setCompletedSessions(bookingsSnap.size);
-      } catch (e) {
-        console.error("Coach profile load error:", e);
-      } finally {
-        if (active) setLoading(false);
-      }
-    }
-
-    load();
-    return () => { active = false; };
-  }, [coachId]);
-
-  // Check if current user has a completed booking eligible for review
-  useEffect(() => {
-    if (!user?.uid || !coachId) return;
-    let active = true;
-
-    async function checkEligible() {
-      try {
-        const [bookingsSnap, existingReviewSnap, pendingReqSnap] = await Promise.all([
-          getDocs(query(
-            collection(db, "coach_bookings"),
-            where("userId", "==", user.uid),
-            where("coachId", "==", coachId),
-            where("status", "==", "completed")
-          )),
-          getDocs(query(
-            collection(db, "coach_reviews"),
-            where("userId", "==", user.uid),
-            where("coachId", "==", coachId)
-          )),
-          getDocs(query(
-            collection(db, "coach_requests"),
-            where("userId", "==", user.uid),
-            where("coachId", "==", coachId),
-            where("status", "==", "pending")
-          )),
-        ]);
-        if (!active) return;
-
-        if (!bookingsSnap.empty && existingReviewSnap.empty) {
-          setEligibleBooking(bookingsSnap.docs[0].id);
-        }
-        if (!pendingReqSnap.empty) {
-          setRequested(true);
-          setPendingRequestId(pendingReqSnap.docs[0].id);
-        }
-      } catch { /* silent */ }
-    }
-
-    checkEligible();
-    return () => { active = false; };
-  }, [user?.uid, coachId]);
-
-  const handleRequest = async () => {
-    if (!user?.uid) { router.push(`/${locale}/login`); return; }
-    setRequesting(true);
-    try {
-      const reqDoc = await addDoc(collection(db, "coach_requests"), {
-        coachId,
-        userId: user.uid,
-        status: "pending",
-        createdAt: serverTimestamp(),
-        message: "",
-        locale,
-      });
-      setRequested(true);
-      setPendingRequestId(reqDoc.id);
-      // Notify the coach
-      await addDoc(collection(db, "notifications"), {
-        recipientId: coachId,
-        actorId: user.uid,
-        actorName: user.displayName || "Someone",
-        fromUserId: user.uid,
-        fromUsername: user.displayName || "Someone",
-        fromUserPhotoURL: user.photoURL || "",
-        type: "coach_request",
-        message: t("notifCoachRequest").replace("{actor}", user.displayName || "Someone"),
-        read: false,
-        createdAt: serverTimestamp(),
-      });
-    } catch (e) {
-      console.error("Request error:", e);
-    } finally {
-      setRequesting(false);
-    }
-  };
-
-  const handleCancelCoachRequest = async () => {
-    if (!pendingRequestId) return;
-    try {
-      await deleteDoc(doc(db, "coach_requests", pendingRequestId));
-      setRequested(false);
-      setPendingRequestId(null);
-    } catch (e) {
-      console.error("Cancel request error:", e);
-    }
-  };
-
-  const handleReviewSubmit = async () => {
-    if (!user?.uid || !eligibleBooking) return;
-    setReviewSubmitting(true);
-    setReviewError("");
-    try {
-      // Double-check no existing review for this booking
-      const existing = await getDocs(query(
-        collection(db, "coach_reviews"),
-        where("bookingId", "==", eligibleBooking),
-        where("userId", "==", user.uid)
-      ));
-      if (!existing.empty) {
-        setReviewError(t("coachReviewAlreadyReviewed"));
-        setReviewSubmitting(false);
-        return;
-      }
-
-      await addDoc(collection(db, "coach_reviews"), {
-        coachId,
-        userId: user.uid,
-        bookingId: eligibleBooking,
-        rating: reviewRating,
-        review: reviewText.trim(),
-        createdAt: serverTimestamp(),
-      });
-
-      // Recalculate average rating
-      const allReviews = await getDocs(query(collection(db, "coach_reviews"), where("coachId", "==", coachId)));
-      const ratings = allReviews.docs.map((d) => Number(d.data().rating)).filter(Number.isFinite);
-      const avg = ratings.length ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 5;
-
-      const { updateDoc } = await import("firebase/firestore");
-      await updateDoc(doc(db, "users", coachId), {
-        coachRating: Number(avg.toFixed(1)),
-        coachTotalReviews: ratings.length,
-      });
-
-      setReviews((prev) => [{ id: Date.now(), coachId, userId: user.uid, bookingId: eligibleBooking, rating: reviewRating, review: reviewText.trim(), createdAt: null }, ...prev]);
-      setReviewSuccess(true);
-      setEligibleBooking(null);
-      setShowReviewForm(false);
-    } catch (e) {
-      console.error("Review submit error:", e);
-      setReviewError(t("coachReviewError"));
-    } finally {
-      setReviewSubmitting(false);
-    }
-  };
-
-  // Load training programs for this coach + own enrollments
-  useEffect(() => {
-    if (!coachId) return;
-    let active = true;
-    async function loadPrograms() {
-      try {
-        const snap = await getDocs(query(collection(db, "training_programs"), where("coachId", "==", coachId)));
-        if (!active) return;
-        setPrograms(snapToDocs(snap).sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0)));
-      } catch { if (active) setPrograms([]); }
-    }
-    loadPrograms();
-    return () => { active = false; };
-  }, [coachId]);
-
-  useEffect(() => {
-    if (!user?.uid) { setEnrolledIds(new Set()); return; }
-    let active = true;
-    async function loadEnrollments() {
-      try {
-        const snap = await getDocs(query(collection(db, "program_enrollments"), where("userId", "==", user.uid)));
-        if (!active) return;
-        setEnrolledIds(new Set(snap.docs.map((d) => d.data().programId)));
-      } catch { if (active) setEnrolledIds(new Set()); }
-    }
-    loadEnrollments();
-    return () => { active = false; };
-  }, [user?.uid]);
-
-  const handleEnroll = async (program) => {
-    if (!user) { router.push(`/${locale}/login`); return; }
-    if (enrolling) return;
-    setEnrolling(program.id);
-    const alreadyEnrolled = enrolledIds.has(program.id);
-    try {
-      if (alreadyEnrolled) {
-        const snap = await getDocs(query(collection(db, "program_enrollments"), where("userId", "==", user.uid), where("programId", "==", program.id)));
-        await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)));
-        await updateDoc(doc(db, "training_programs", program.id), { enrolledCount: increment(-1) }).catch(() => {});
-        setEnrolledIds((prev) => { const next = new Set(prev); next.delete(program.id); return next; });
-        setPrograms((prev) => prev.map((p) => p.id === program.id ? { ...p, enrolledCount: Math.max(0, (p.enrolledCount || 1) - 1) } : p));
-      } else {
-        await addDoc(collection(db, "program_enrollments"), {
-          userId: user.uid,
-          programId: program.id,
-          coachId: program.coachId,
-          enrolledAt: serverTimestamp(),
-        });
-        await updateDoc(doc(db, "training_programs", program.id), { enrolledCount: increment(1) }).catch(() => {});
-        setEnrolledIds((prev) => new Set([...prev, program.id]));
-        setPrograms((prev) => prev.map((p) => p.id === program.id ? { ...p, enrolledCount: (p.enrolledCount || 0) + 1 } : p));
-      }
-    } catch (e) {
-      console.error("Enroll error:", e);
-    } finally {
-      setEnrolling(null);
-    }
-  };
+  const {
+    requesting,
+    showReviewForm, setShowReviewForm,
+    reviewRating, setReviewRating,
+    reviewText, setReviewText,
+    reviewSubmitting, reviewSuccess, reviewError,
+    enrolling,
+    handleRequest, handleCancelCoachRequest, handleReviewSubmit, handleEnroll,
+  } = useCoachProfileActions({
+    user, router, locale, t, coachId,
+    setRequested, setPendingRequestId, pendingRequestId,
+    setReviews, setEligibleBooking, eligibleBooking,
+    setEnrolledIds, setPrograms, enrolledIds,
+  });
 
   if (authLoading || loading) {
     return <div style={styles.loading}>{t("loading")}</div>;
@@ -388,7 +82,7 @@ export default function CoachProfilePage() {
         {/* Avatar */}
         <div style={styles.avatarWrap}>
           {coach.photoURL || coach.profileImageUrl ? (
-            <img src={coach.photoURL || coach.profileImageUrl} alt="" style={styles.avatar} />
+            <Image src={coach.photoURL || coach.profileImageUrl} alt="" width={88} height={88} style={{ borderRadius: 44, objectFit: "cover" }} />
           ) : (
             <div style={styles.avatarInitials}>{initials}</div>
           )}
@@ -642,7 +336,7 @@ export default function CoachProfilePage() {
             <EmptyState emoji="⭐" title={t("coachReviewsEmpty")} hint={t("coachIdReviewsEmpty")} padding="28px 16px" />
           </div>
         ) : (
-          reviews.map((r) => <ReviewCard key={r.id} review={r} />)
+          reviews.map((r) => <ReviewCard key={r.id} review={r} styles={styles} />)
         )}
       </div>
 
@@ -730,7 +424,9 @@ export default function CoachProfilePage() {
                 onClick={() => router.push(`/${locale}/reels?reelId=${reel.id}`)}
               >
                 {reel.thumbnailUrl ? (
-                  <img src={reel.thumbnailUrl} alt="" style={styles.reelThumbImg} />
+                  <div style={{ position: "relative", width: "100%", height: "100%" }}>
+                    <Image src={reel.thumbnailUrl} alt="" fill style={{ objectFit: "cover" }} />
+                  </div>
                 ) : (
                   <div style={styles.reelThumbPlaceholder}>▶</div>
                 )}
@@ -745,67 +441,3 @@ export default function CoachProfilePage() {
   );
 }
 
-const styles = {
-  loading: { display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#0A0A0A", color: "#fff", fontFamily: "system-ui, sans-serif", flexDirection: "column", gap: 12 },
-  page: { minHeight: "100vh", background: "#0A0A0A", fontFamily: "system-ui, sans-serif", color: "#fff", paddingBottom: 80 },
-  headerBar: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 16px 8px" },
-  backBtn: { background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 14, cursor: "pointer", padding: 0 },
-  headerTitle: { fontSize: 15, fontWeight: 600, color: "#fff" },
-  profileSection: { padding: "8px 20px 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: 10 },
-  avatarWrap: { position: "relative", width: 88, height: 88 },
-  avatar: { width: 88, height: 88, borderRadius: 44, objectFit: "cover", border: "2px solid rgba(212,175,55,0.4)" },
-  avatarInitials: { width: 88, height: 88, borderRadius: 44, background: "rgba(193,18,31,0.2)", border: "2px solid rgba(193,18,31,0.4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30, fontWeight: 700, color: "#fff" },
-  verifiedDot: { position: "absolute", bottom: 2, right: 2, width: 24, height: 24, borderRadius: "50%", background: GOLD, color: "#000", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 0 2.5px #0A0A0A, 0 2px 8px rgba(212,175,55,0.5)" },
-  name: { fontSize: 22, fontWeight: 700, margin: 0, textAlign: "center" },
-  verifiedBadge: { display: "flex", alignItems: "center", gap: 6, background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 20, padding: "5px 13px", fontSize: 12, fontWeight: 700, color: GOLD, letterSpacing: "0.02em" },
-  location: { fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0 },
-  trustRow: { display: "flex", gap: 20, flexWrap: "wrap", justifyContent: "center", margin: "4px 0" },
-  trustStat: { display: "flex", flexDirection: "column", alignItems: "center", gap: 2 },
-  trustNum: { fontSize: 17, fontWeight: 700, color: "#fff" },
-  trustLbl: { fontSize: 10, color: "rgba(255,255,255,0.62)", textTransform: "uppercase", letterSpacing: 0.5 },
-  specialtyRow: { display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center" },
-  specialtyChip: { background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20, padding: "4px 12px", fontSize: 12, color: "rgba(255,255,255,0.7)" },
-  bio: { fontSize: 14, color: "rgba(255,255,255,0.65)", textAlign: "center", lineHeight: 1.55, maxWidth: 380, margin: 0 },
-  cert: { fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0 },
-  socialRow: { display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" },
-  socialLink: { display: "inline-flex", alignItems: "center", gap: 5, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 20, padding: "6px 14px", fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.75)", textDecoration: "none", cursor: "pointer", transition: "background 150ms ease" },
-  priceRow: { display: "flex", alignItems: "baseline", gap: 6 },
-  price: { fontSize: 22, fontWeight: 700, color: GOLD },
-  priceLbl: { fontSize: 13, color: "rgba(255,255,255,0.62)" },
-  ctaRow: { display: "flex", gap: 10, width: "100%", maxWidth: 360, marginTop: 4 },
-  requestBtn: { flex: 1, padding: "14px", background: RED, border: "none", borderRadius: 12, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" },
-  requestedBtn: { flex: 1, padding: "14px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, color: "rgba(255,255,255,0.5)", fontSize: 15, fontWeight: 600, cursor: "default" },
-  submitBtn: { flex: 1, padding: "12px", background: RED, border: "none", borderRadius: 10, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" },
-  submitBtnDisabled: { flex: 1, padding: "12px", background: "rgba(193,18,31,0.4)", border: "none", borderRadius: 10, color: "rgba(255,255,255,0.62)", fontSize: 14, cursor: "not-allowed" },
-  cancelBtn: { flex: 1, padding: "12px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, color: "rgba(255,255,255,0.6)", fontSize: 14, cursor: "pointer" },
-  reviewPrompt: { margin: "0 16px 16px", padding: "14px 16px", background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "space-between" },
-  reviewPromptText: { fontSize: 13, color: GOLD, margin: 0 },
-  leaveReviewBtn: { background: GOLD, border: "none", borderRadius: 8, padding: "8px 14px", color: "#000", fontSize: 13, fontWeight: 700, cursor: "pointer" },
-  reviewFormCard: { margin: "0 16px 16px", padding: "18px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, display: "flex", flexDirection: "column", gap: 12 },
-  reviewFormTitle: { fontSize: 16, fontWeight: 700, margin: 0, color: "#fff" },
-  ratingRow: { display: "flex", alignItems: "center", gap: 12 },
-  fieldLabel: { fontSize: 12, color: "rgba(255,255,255,0.65)", textTransform: "uppercase", letterSpacing: 0.5 },
-  reviewTextarea: { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "12px 14px", color: "#fff", fontSize: 14, outline: "none", width: "100%", resize: "vertical", boxSizing: "border-box", fontFamily: "inherit" },
-  reviewErr: { color: "#F87171", fontSize: 13, margin: 0 },
-  reviewFormActions: { display: "flex", gap: 10 },
-  section: { padding: "0 16px 24px" },
-  sectionTitle: { fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.85)", marginBottom: 12 },
-  empty: { fontSize: 14, color: "rgba(255,255,255,0.55)", textAlign: "center", padding: "20px 0" },
-  reviewCard: { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "14px", marginBottom: 10 },
-  reviewTop: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
-  reviewDate: { fontSize: 12, color: "rgba(255,255,255,0.55)" },
-  reviewText: { fontSize: 14, color: "rgba(255,255,255,0.7)", margin: 0, lineHeight: 1.5 },
-  reelsGrid: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 4 },
-  reelThumb: { aspectRatio: "9/16", background: "rgba(255,255,255,0.05)", border: "none", borderRadius: 8, cursor: "pointer", overflow: "hidden", padding: 0 },
-  reelThumbImg: { width: "100%", height: "100%", objectFit: "cover" },
-  reelThumbPlaceholder: { width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.65)", fontSize: 20 },
-  vibeChip: { background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.28)", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 800, color: "#F87171", letterSpacing: 0.3 },
-  pendingRow: { display: "flex", flexDirection: "column", gap: 8, width: "100%" },
-  pendingBadge: { display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 16px", borderRadius: 12, background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.35)", color: "#F59E0B", fontSize: 14, fontWeight: 800 },
-  cancelReqBtn: { width: "100%", padding: "10px", border: "1px solid rgba(248,113,113,0.35)", borderRadius: 12, background: "rgba(248,113,113,0.08)", color: "#F87171", fontSize: 14, fontWeight: 700, cursor: "pointer" },
-  insightCard: { width: "100%", maxWidth: 360, background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.18)", borderRadius: 12, padding: "12px 14px", display: "flex", flexDirection: "column", gap: 6 },
-  insightLabel: { fontSize: 10, fontWeight: 900, color: GOLD, textTransform: "uppercase", letterSpacing: 1 },
-  insightText: { fontSize: 13, color: "rgba(255,255,255,0.75)", lineHeight: 1.4 },
-  improveList: { display: "flex", flexWrap: "wrap", gap: 5 },
-  improveChip: { fontSize: 12, color: "rgba(255,255,255,0.6)", background: "rgba(255,255,255,0.05)", borderRadius: 6, padding: "3px 8px" },
-};

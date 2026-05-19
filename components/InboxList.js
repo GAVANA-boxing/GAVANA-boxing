@@ -8,7 +8,8 @@ import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname } from "@/lib/i18n";
 import { startConversation } from "@/lib/messaging";
 import BottomNav from "@/components/BottomNav";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
+import Image from "next/image";
 
 function getTs(ts) {
   if (!ts) return 0;
@@ -209,7 +210,7 @@ export default function InboxList() {
               >
                 <div style={s.avatarWrap}>
                   {other.photoURL
-                    ? <img src={other.photoURL} alt="" style={{ ...s.avatar, ...(isCoach ? { border: "2px solid #D4AF37" } : {}) }} />
+                    ? <Image src={other.photoURL} alt="" width={48} height={48} style={{ borderRadius: "50%", objectFit: "cover", ...(isCoach ? { border: "2px solid #D4AF37" } : {}) }} />
                     : <div style={{ ...s.avatarFallback, ...(isCoach ? { border: "2px solid #D4AF37", background: "#1a1500" } : {}) }}>
                         {(other.displayName || "?").charAt(0).toUpperCase()}
                       </div>
@@ -288,7 +289,7 @@ export default function InboxList() {
                   >
                     <div style={{ position: "relative", flexShrink: 0 }}>
                       {u.photoURL || u.profileImageUrl
-                        ? <img src={u.photoURL || u.profileImageUrl} alt="" style={{ width: 42, height: 42, borderRadius: "50%", objectFit: "cover", display: "block", border: isCoach ? "2px solid #D4AF37" : "none" }} />
+                        ? <Image src={u.photoURL || u.profileImageUrl} alt="" width={42} height={42} style={{ borderRadius: "50%", objectFit: "cover", border: isCoach ? "2px solid #D4AF37" : "none" }} />
                         : <div style={{ width: 42, height: 42, borderRadius: "50%", background: "#1a1a1a", border: isCoach ? "2px solid #D4AF37" : "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 900, color: "#fff" }}>
                             {(u.displayName || u.username || "?").charAt(0).toUpperCase()}
                           </div>
@@ -325,7 +326,7 @@ const s = {
   title: { fontSize: 16, fontWeight: 900, color: "#fff", letterSpacing: -0.2 },
   list: { display: "flex", flexDirection: "column" },
   row: { display: "flex", alignItems: "center", gap: 13, padding: "13px 16px", background: "transparent", border: "none", borderBottom: "1px solid rgba(255,255,255,0.04)", cursor: "pointer", width: "100%", textAlign: "left", WebkitTapHighlightColor: "transparent" },
-  rowUnread: { background: "rgba(193,18,31,0.04)", borderBottomColor: "rgba(193,18,31,0.07)" },
+  rowUnread: { background: `${redAlpha(0.04)}`, borderBottomColor: `${redAlpha(0.07)}` },
   avatarWrap: { position: "relative", flexShrink: 0 },
   avatar: { width: 48, height: 48, borderRadius: "50%", objectFit: "cover", display: "block", background: "#1a1a1a" },
   avatarFallback: { width: 48, height: 48, borderRadius: "50%", background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 900, color: "#fff" },
@@ -334,7 +335,7 @@ const s = {
   rowBody: { flex: 1, minWidth: 0 },
   rowTop: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 3 },
   name: { fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.85)", lineHeight: 1 },
-  coachTag: { fontSize: 9, fontWeight: 900, color: GOLD, background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 999, padding: "1px 5px", letterSpacing: 0.3 },
+  coachTag: { fontSize: 9, fontWeight: 900, color: GOLD, background: `${goldAlpha(0.1)}`, border: `1px solid ${goldAlpha(0.3)}`, borderRadius: 999, padding: "1px 5px", letterSpacing: 0.3 },
   time: { fontSize: 11, color: "rgba(255,255,255,0.3)", fontWeight: 600, flexShrink: 0 },
   preview: { fontSize: 13, color: "rgba(255,255,255,0.38)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", lineHeight: 1.3 },
   badge: { flexShrink: 0, minWidth: 20, height: 20, borderRadius: 999, background: RED, color: "#fff", fontSize: 10, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 5px" },

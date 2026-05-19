@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
 
 const personaMap = {
   strict: "Drill Sergeant",
@@ -105,14 +105,15 @@ export default function OnboardingModal() {
 
     checkOnboarding();
     return () => { active = false; };
-  }, [authLoading, user?.uid, pathname]);
+  }, [authLoading, user?.uid, pathname, locale, router]);
 
   const selectedValues = useMemo(
     () => ({ goal, experience, coachStyle }),
     [goal, experience, coachStyle]
   );
 
-  const questions = useMemo(() => getQuestions(t), [locale]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const questions = useMemo(() => getQuestions(t), [locale]); // t omitted — recreated every render, locale covers it
   const currentQuestion = questions[stepIndex];
   const isSummaryStep = stepIndex >= questions.length;
   const recommendedPersona = personaMap[coachStyle] || "Coach";
@@ -275,7 +276,7 @@ const styles = {
     overflow: "hidden",
     borderRadius: 28,
     padding: "32px 26px",
-    background: "linear-gradient(145deg, rgba(193,18,31,0.16), rgba(11,11,11,0.98) 42%, rgba(212,175,55,0.08))",
+    background: `linear-gradient(145deg, ${redAlpha(0.16)}, rgba(11,11,11,0.98) 42%, ${goldAlpha(0.08)})`,
     border: "1px solid rgba(255,255,255,0.1)",
     boxShadow: "0 28px 90px rgba(0,0,0,0.58)",
     color: "#fff",
@@ -285,7 +286,7 @@ const styles = {
     position: "absolute",
     inset: "-40% -20% auto",
     height: 180,
-    background: "radial-gradient(circle, rgba(212,175,55,0.2), transparent 62%)",
+    background: `radial-gradient(circle, ${goldAlpha(0.2)}, transparent 62%)`,
     pointerEvents: "none",
   },
   brand: {
@@ -302,8 +303,8 @@ const styles = {
     borderRadius: "50%",
     display: "grid",
     placeItems: "center",
-    background: "rgba(193,18,31,0.2)",
-    border: "1px solid rgba(193,18,31,0.42)",
+    background: `${redAlpha(0.2)}`,
+    border: `1px solid ${redAlpha(0.42)}`,
     color: "#fff",
     fontSize: 13,
     fontWeight: 950,
@@ -341,8 +342,8 @@ const styles = {
     transition: "transform 160ms ease, background 160ms ease, border-color 160ms ease",
   },
   optionButtonSelected: {
-    background: "rgba(193,18,31,0.18)",
-    borderColor: "rgba(193,18,31,0.5)",
+    background: `${redAlpha(0.18)}`,
+    borderColor: `${redAlpha(0.5)}`,
     transform: "scale(1.01)",
   },
   summaryCard: {
@@ -383,7 +384,7 @@ const styles = {
     fontSize: 15,
     fontWeight: 900,
     cursor: "pointer",
-    boxShadow: "0 18px 44px rgba(193,18,31,0.28)",
+    boxShadow: `0 18px 44px ${redAlpha(0.28)}`,
   },
   secondaryButton: {
     minHeight: 52,

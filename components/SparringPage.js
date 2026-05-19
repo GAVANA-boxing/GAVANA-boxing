@@ -1,229 +1,21 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import {
-  addDoc, doc, getDoc, getDocs, setDoc, deleteDoc, updateDoc,
-  collection, query, where, onSnapshot,
-  serverTimestamp,
-} from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { startConversation } from "@/lib/messaging";
-import { createNotification } from "@/lib/notifications";
-import { getFighterRank } from "@/lib/xp";
+import { useSparringActions } from "@/hooks/useSparringActions";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import BottomNav from "@/components/BottomNav";
-import { RED, GOLD } from "@/lib/tokens";
-import { snapToDocs } from "@/lib/firestore";
+import { RED, GOLD, redAlpha } from "@/lib/tokens";
+import s, { c } from "@/components/sparring/sparringStyles";
+import { FighterCard, IncomingRequestCard } from "@/components/sparring/SparringCards";
+import { formatAgo } from "@/lib/utils";
+import { useSparringData } from "@/hooks/useSparringData";
+import Image from "next/image";
 
 const ARCHETYPE_KEYS = ["all", "pressure", "counter", "technical", "brawler"];
-
-const ARCHETYPE_STATS = {
-  pressure:  { SPD: 75, PWR: 80, TEC: 55, STAM: 90 },
-  counter:   { SPD: 85, PWR: 65, TEC: 90, STAM: 70 },
-  technical: { SPD: 80, PWR: 50, TEC: 95, STAM: 72 },
-  brawler:   { SPD: 60, PWR: 95, TEC: 50, STAM: 80 },
-};
-
-const WEIGHT_OPTS = [
-  "all",
-  "Flyweight", "Bantamweight", "Featherweight", "Lightweight",
-  "Welterweight", "Middleweight", "Light Heavyweight", "Heavyweight",
-];
-
-function getTs(ts) {
-  if (!ts) return 0;
-  if (typeof ts.toMillis === "function") return ts.toMillis();
-  if (typeof ts.toDate === "function") return ts.toDate().getTime();
-  return Number(ts) || 0;
-}
-
-function formatAgo(ts, locale) {
-  const ms = getTs(ts);
-  if (!ms) return "";
-  const diff = Math.floor((Date.now() - ms) / 1000);
-  if (diff < 60) return locale === "mn" ? "Одоо" : locale === "ko" ? "방금" : "Just now";
-  const m = Math.floor(diff / 60);
-  if (m < 60) return locale === "mn" ? `${m}мин өмнө` : locale === "ko" ? `${m}분 전` : `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return locale === "mn" ? `${h}ц өмнө` : locale === "ko" ? `${h}시간 전` : `${h}h ago`;
-  const d = Math.floor(h / 24);
-  return locale === "mn" ? `${d} өдрийн өмнө` : locale === "ko" ? `${d}일 전` : `${d}d ago`;
-}
-
-// ─── Fighter card (Discover tab) ──────────────────────────────────────────────
-function FighterCard({ post, isMe, onRequest, sent, requesting, locale }) {
-  const arch = ARCHETYPE_DISPLAY[post.archetype];
-  const t = (key) => translate(locale, key);
-  const isBusy = requesting === post.userId;
-  const stats = ARCHETYPE_STATS[post.archetype] || null;
-  const rankGlow = post.rankColor && post.rankKey !== "rankRookieGloves" && post.rankKey !== "rankAmateurBelt"
-    ? `0 0 12px ${post.rankColor}35, 0 2px 8px rgba(0,0,0,0.5)`
-    : "0 2px 8px rgba(0,0,0,0.4)";
-
-  return (
-    <div style={{
-      ...c.card,
-      borderLeft: `2.5px solid ${post.rankColor || arch?.color || RED}`,
-      boxShadow: rankGlow,
-      opacity: isMe ? 0.55 : 1,
-    }}>
-      <div style={c.cardTop}>
-        <div style={c.avatarWrap}>
-          {post.photoURL
-            ? <img src={post.photoURL} alt="" style={c.avatar} />
-            : <div style={{ ...c.avatarFallback, background: arch?.color ? `${arch.color}22` : "#1a1a1a" }}>
-                {(post.displayName || "?").charAt(0).toUpperCase()}
-              </div>
-          }
-          {arch && (
-            <span style={{ position: "absolute", bottom: -3, right: -3, fontSize: 13, lineHeight: 1, filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.7))" }}>
-              {arch.emoji}
-            </span>
-          )}
-        </div>
-
-        <div style={c.infoBlock}>
-          <div style={c.name}>{post.displayName || "Fighter"}</div>
-          <div style={c.chips}>
-            {post.rankKey && (
-              <span style={{ ...c.chip, color: post.rankColor || "#fff", background: `${post.rankColor || "#fff"}14`, borderColor: `${post.rankColor || "#fff"}44` }}>
-                {t(post.rankKey)}
-              </span>
-            )}
-            {post.weightClass && (
-              <span style={c.chip}>{post.weightClass.split(" ")[0]}</span>
-            )}
-            {arch && (
-              <span style={{ ...c.chip, color: arch.color, borderColor: `${arch.color}44` }}>
-                {arch.name}
-              </span>
-            )}
-          </div>
-          {post.location && <div style={c.location}>📍 {post.location}</div>}
-          {post.bio && <div style={c.bio}>{post.bio.slice(0, 72)}{post.bio.length > 72 ? "…" : ""}</div>}
-          {stats && (
-            <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-              {[["SPD", stats.SPD, "#60A5FA"], ["PWR", stats.PWR, "#F87171"], ["TEC", stats.TEC, "#34D399"], ["STAM", stats.STAM, "#FB923C"]].map(([label, val, col]) => (
-                <div key={label} style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
-                  <span style={{ fontSize: 8, fontWeight: 900, color: col, letterSpacing: "0.05em", textAlign: "center" }}>{label}</span>
-                  <div style={{ height: 3, borderRadius: 99, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
-                    <div style={{ height: "100%", width: `${val}%`, borderRadius: 99, background: col }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {!isMe && (
-        <button
-          type="button"
-          onClick={() => !sent && !isBusy && onRequest(post)}
-          disabled={sent || isBusy}
-          style={{
-            ...c.msgBtn,
-            background: sent
-              ? "rgba(52,211,153,0.1)"
-              : isBusy
-              ? "rgba(255,255,255,0.06)"
-              : arch?.color
-              ? `linear-gradient(135deg, ${arch.color}, ${arch.color}bb)`
-              : "linear-gradient(135deg, #C1121F, #8f0d17)",
-            border: sent ? "1px solid rgba(52,211,153,0.3)" : "none",
-            color: sent ? "#34D399" : "#fff",
-            cursor: sent ? "not-allowed" : isBusy ? "wait" : "pointer",
-          }}
-        >
-          {isBusy ? "…"
-            : sent
-            ? (locale === "mn" ? "✓ Хүсэлт илгээсэн" : locale === "ko" ? "✓ 요청 전송됨" : "✓ Request Sent")
-            : <>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
-                {locale === "mn" ? "Sparring хүс" : locale === "ko" ? "스파링 요청" : "Request Sparring"}
-              </>
-          }
-        </button>
-      )}
-      {isMe && <div style={c.myLabel}>👆 {locale === "mn" ? "Таны бичлэг" : locale === "ko" ? "내 게시물" : "Your post"}</div>}
-    </div>
-  );
-}
-
-// ─── Incoming request card ─────────────────────────────────────────────────────
-function IncomingRequestCard({ req, onAccept, onDecline, onMessage, accepting, declining, locale }) {
-  const arch = ARCHETYPE_DISPLAY[req.fromArchetype];
-  const isBusy = accepting === req.id || declining === req.id;
-  const timeAgo = formatAgo(req.createdAt, locale);
-
-  return (
-    <div style={{
-      ...c.card,
-      borderLeft: "2.5px solid #D4AF37",
-    }}>
-      <div style={c.cardTop}>
-        <div style={c.avatarWrap}>
-          {req.fromPhotoURL
-            ? <img src={req.fromPhotoURL} alt="" style={c.avatar} />
-            : <div style={{ ...c.avatarFallback, background: "#1a1a1a" }}>
-                {(req.fromDisplayName || "?").charAt(0).toUpperCase()}
-              </div>
-          }
-          {arch && (
-            <span style={{ position: "absolute", bottom: -3, right: -3, fontSize: 13, lineHeight: 1 }}>
-              {arch.emoji}
-            </span>
-          )}
-        </div>
-        <div style={c.infoBlock}>
-          <div style={c.name}>{req.fromDisplayName || "Fighter"}</div>
-          <div style={c.chips}>
-            {arch && <span style={{ ...c.chip, color: arch.color, borderColor: `${arch.color}44` }}>{arch.name}</span>}
-            {req.fromWeightClass && <span style={c.chip}>{req.fromWeightClass.split(" ")[0]}</span>}
-          </div>
-          {timeAgo && <div style={c.location}>🕐 {timeAgo}</div>}
-        </div>
-      </div>
-
-      <div style={{ display: "flex", gap: 8 }}>
-        <button
-          type="button"
-          onClick={() => !isBusy && onAccept(req)}
-          disabled={isBusy}
-          style={{
-            flex: 1, padding: "10px 0", borderRadius: 10, border: "none",
-            background: isBusy && accepting === req.id ? "rgba(52,211,153,0.08)" : "linear-gradient(135deg, #34D399, #22a870)",
-            color: "#fff", fontSize: 13, fontWeight: 900,
-            cursor: isBusy ? "wait" : "pointer",
-            opacity: isBusy ? 0.7 : 1,
-          }}
-        >
-          {accepting === req.id ? "…" : locale === "mn" ? "✓ Зөвшөөрөх" : locale === "ko" ? "✓ 수락" : "✓ Accept"}
-        </button>
-        <button
-          type="button"
-          onClick={() => !isBusy && onDecline(req)}
-          disabled={isBusy}
-          style={{
-            flex: 1, padding: "10px 0", borderRadius: 10,
-            border: "1px solid rgba(248,113,113,0.3)",
-            background: "rgba(248,113,113,0.07)",
-            color: "#F87171", fontSize: 13, fontWeight: 900,
-            cursor: isBusy ? "wait" : "pointer",
-            opacity: isBusy ? 0.7 : 1,
-          }}
-        >
-          {declining === req.id ? "…" : locale === "mn" ? "✕ Татгалзах" : locale === "ko" ? "✕ 거절" : "✕ Decline"}
-        </button>
-      </div>
-    </div>
-  );
-}
+const WEIGHT_OPTS = ["all", "-54", "-60", "-67", "-75", "-81", "+91"];
 
 // ─── Main ──────────────────────────────────────────────────────────────────────
 export default function SparringPage() {
@@ -234,227 +26,23 @@ export default function SparringPage() {
   const t = (key) => translate(locale, key);
 
   const [tab, setTab] = useState("discover");
-  const [posts, setPosts] = useState([]);
-  const [myPost, setMyPost] = useState(null);
-  const [incomingRequests, setIncomingRequests] = useState([]);
-  const [sentRequestToIds, setSentRequestToIds] = useState(new Set());
-  const [sentRequests, setSentRequests] = useState([]);
   const [requestsSubTab, setRequestsSubTab] = useState("received");
-  const [cancelling, setCancelling] = useState(null);
-  const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [toggling, setToggling] = useState(false);
-  const [requesting, setRequesting] = useState(null);
-  const [accepting, setAccepting] = useState(null);
-  const [declining, setDeclining] = useState(null);
   const [filterArchetype, setFilterArchetype] = useState("all");
   const [filterWeight, setFilterWeight] = useState("all");
-  const [matchHistory, setMatchHistory] = useState([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
 
-  // Own user data
-  useEffect(() => {
-    if (!user?.uid) return;
-    getDoc(doc(db, "users", user.uid)).then((snap) => {
-      if (snap.exists()) setUserData(snap.data());
-    }).catch(() => {});
-  }, [user?.uid]);
+  const {
+    posts,
+    myPost,
+    incomingRequests,
+    sentRequestToIds,
+    sentRequests,
+    userData,
+    loading,
+    matchHistory,
+    historyLoading,
+  } = useSparringData({ user, tab });
 
-  // Real-time sparring posts
-  useEffect(() => {
-    const q = query(collection(db, "sparring_posts"), where("lookingForSparring", "==", true));
-    const unsub = onSnapshot(q, (snap) => {
-      const uid = user?.uid;
-      const all = snapToDocs(snap).sort((a, b) => getTs(b.createdAt) - getTs(a.createdAt));
-      setMyPost(uid ? (all.find((p) => p.userId === uid) || null) : null);
-      setPosts(all.filter((p) => p.userId !== uid));
-      setLoading(false);
-    }, () => setLoading(false));
-    return () => unsub();
-  }, [user?.uid]);
-
-  // Real-time incoming requests
-  useEffect(() => {
-    if (!user?.uid) return;
-    const q = query(collection(db, "sparring_requests"), where("toUserId", "==", user.uid));
-    const unsub = onSnapshot(q, (snap) => {
-      setIncomingRequests(
-        snapToDocs(snap).sort((a, b) => getTs(b.createdAt) - getTs(a.createdAt))
-      );
-    }, () => {});
-    return () => unsub();
-  }, [user?.uid]);
-
-  // Real-time sent requests — track which users already have a request + full docs
-  useEffect(() => {
-    if (!user?.uid) return;
-    const q = query(collection(db, "sparring_requests"), where("fromUserId", "==", user.uid));
-    const unsub = onSnapshot(q, (snap) => {
-      const docs = snapToDocs(snap).sort((a, b) => getTs(b.createdAt) - getTs(a.createdAt));
-      // Only mark as "sent" if the request is still pending — declined requests allow re-sending
-      setSentRequestToIds(new Set(docs.filter((d) => !d.status || d.status === "pending").map((d) => d.toUserId)));
-      setSentRequests(docs);
-    }, () => {});
-    return () => unsub();
-  }, [user?.uid]);
-
-  // Load match history when history tab opened (challenger + opponent)
-  useEffect(() => {
-    if (tab !== "history" || !user?.uid) return;
-    let active = true;
-    setHistoryLoading(true);
-    Promise.all([
-      getDocs(query(collection(db, "pvp_results"), where("challengerId", "==", user.uid))),
-      getDocs(query(collection(db, "pvp_results"), where("opponentId", "==", user.uid))),
-    ]).then(([asChallenger, asOpponent]) => {
-      if (!active) return;
-      const fromChallenger = snapToDocs(asChallenger);
-      const fromOpponent = asOpponent.docs.map((d) => {
-        const data = d.data();
-        const result = data.result === "win" ? "loss" : data.result === "loss" ? "win" : data.result;
-        return {
-          id: d.id,
-          ...data,
-          result,
-          opponentName: data.challengerName || data.challengerDisplayName || "Opponent",
-          challengerScore: data.opponentScore,
-          opponentScore: data.challengerScore,
-        };
-      });
-      const seen = new Set(fromChallenger.map((d) => d.id));
-      const unique = [...fromChallenger, ...fromOpponent.filter((d) => !seen.has(d.id))];
-      unique.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
-      setMatchHistory(unique);
-    }).catch(() => {}).finally(() => { if (active) setHistoryLoading(false); });
-    return () => { active = false; };
-  }, [tab, user?.uid]);
-
-  const handleToggle = async () => {
-    if (!user) { router.push(`/${locale}/login`); return; }
-    if (toggling) return;
-    setToggling(true);
-    try {
-      const ref = doc(db, "sparring_posts", user.uid);
-      if (myPost) {
-        await deleteDoc(ref);
-      } else {
-        const xp = Number(userData?.xp) || 0;
-        const rank = getFighterRank(xp);
-        await setDoc(ref, {
-          userId: user.uid,
-          displayName: user.displayName || userData?.username || userData?.displayName || "",
-          photoURL: user.photoURL || userData?.profileImageUrl || userData?.photoURL || "",
-          archetype: userData?.fighterArchetype || null,
-          weightClass: userData?.weightClass || null,
-          bio: userData?.bio || "",
-          rankKey: rank.key,
-          rankColor: rank.color,
-          location: userData?.location || null,
-          lookingForSparring: true,
-          createdAt: serverTimestamp(),
-        });
-      }
-    } catch (e) {
-      console.error("Sparring toggle error:", e);
-    } finally {
-      setToggling(false);
-    }
-  };
-
-  const handleRequest = async (post) => {
-    if (!user) { router.push(`/${locale}/login`); return; }
-    if (requesting) return;
-    setRequesting(post.userId);
-    try {
-      const xp = Number(userData?.xp) || 0;
-      const rank = getFighterRank(xp);
-      await addDoc(collection(db, "sparring_requests"), {
-        fromUserId: user.uid,
-        fromDisplayName: user.displayName || userData?.username || userData?.displayName || "",
-        fromPhotoURL: user.photoURL || userData?.profileImageUrl || userData?.photoURL || "",
-        fromArchetype: userData?.fighterArchetype || null,
-        fromWeightClass: userData?.weightClass || null,
-        fromRankKey: rank.key,
-        toUserId: post.userId,
-        status: "pending",
-        createdAt: serverTimestamp(),
-      });
-      await createNotification({
-        recipientId: post.userId,
-        actorId: user.uid,
-        actorName: user.displayName || userData?.username || "",
-        actorPhotoURL: user.photoURL || userData?.photoURL || "",
-        type: "sparring_request",
-        text: locale === "mn"
-          ? `${user.displayName || userData?.username || "Тулаанч"} sparring хүсэлт илгээлээ`
-          : locale === "ko"
-          ? `${user.displayName || userData?.username || "파이터"}님이 스파링을 요청했습니다`
-          : `${user.displayName || userData?.username || "A fighter"} wants to spar with you`,
-      });
-    } catch (e) {
-      console.error("Sparring request error:", e);
-    } finally {
-      setRequesting(null);
-    }
-  };
-
-  const handleAccept = async (req) => {
-    if (accepting) return;
-    setAccepting(req.id);
-    try {
-      await updateDoc(doc(db, "sparring_requests", req.id), { status: "accepted" });
-      // Mark both users as having a sparring partner (FighterPath step)
-      await Promise.all([
-        updateDoc(doc(db, "users", user.uid), { hasSparringPartner: true }),
-        updateDoc(doc(db, "users", req.fromUserId), { hasSparringPartner: true }).catch(() => {}),
-      ]);
-      await createNotification({
-        recipientId: req.fromUserId,
-        actorId: user.uid,
-        actorName: user.displayName || userData?.username || "",
-        actorPhotoURL: user.photoURL || userData?.photoURL || "",
-        type: "sparring_accepted",
-        text: locale === "mn"
-          ? `${user.displayName || userData?.username || "Тулаанч"} sparring хүсэлтийг зөвшөөрлөө`
-          : locale === "ko"
-          ? `${user.displayName || userData?.username || "파이터"}님이 스파링을 수락했습니다`
-          : `${user.displayName || userData?.username || "A fighter"} accepted your sparring request`,
-      });
-      const convoId = await startConversation(user, req.fromUserId, {
-        displayName: req.fromDisplayName,
-        photoURL: req.fromPhotoURL,
-      });
-      router.push(`/${locale}/inbox/${convoId}`);
-    } catch (e) {
-      console.error("Accept sparring error:", e);
-    } finally {
-      setAccepting(null);
-    }
-  };
-
-  const handleDecline = async (req) => {
-    if (declining) return;
-    setDeclining(req.id);
-    try {
-      await updateDoc(doc(db, "sparring_requests", req.id), { status: "declined" });
-    } catch (e) {
-      console.error("Decline sparring error:", e);
-    } finally {
-      setDeclining(null);
-    }
-  };
-
-  const handleCancelSparringRequest = async (req) => {
-    if (cancelling) return;
-    setCancelling(req.id);
-    try {
-      await deleteDoc(doc(db, "sparring_requests", req.id));
-    } catch (e) {
-      console.error("Cancel sparring request error:", e);
-    } finally {
-      setCancelling(null);
-    }
-  };
+  const { cancelling, toggling, requesting, accepting, declining, handleToggle, handleRequest, handleAccept, handleDecline, handleCancelSparringRequest } = useSparringActions({ user, router, locale, userData, myPost });
 
   const filtered = posts.filter((p) => {
     if (filterArchetype !== "all" && p.archetype !== filterArchetype) return false;
@@ -479,7 +67,6 @@ export default function SparringPage() {
 
   return (
     <div style={s.page}>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
       {/* Header */}
       <div style={s.header}>
@@ -529,7 +116,7 @@ export default function SparringPage() {
                 return (
                   <button key={key} type="button" onClick={() => setFilterArchetype(key)} style={{
                     ...s.filterChip,
-                    ...(active ? { background: arch ? `${arch.color}18` : "rgba(193,18,31,0.15)", border: `1px solid ${arch ? arch.color : RED}55`, color: arch ? arch.color : "#fff" } : {}),
+                    ...(active ? { background: arch ? `${arch.color}18` : `${redAlpha(0.15)}`, border: `1px solid ${arch ? arch.color : RED}55`, color: arch ? arch.color : "#fff" } : {}),
                   }}>
                     {key === "all" ? (locale === "mn" ? "Бүгд" : locale === "ko" ? "전체" : "All") : `${arch?.emoji} ${arch?.name.split(" ")[0]}`}
                   </button>
@@ -598,7 +185,7 @@ export default function SparringPage() {
                 onClick={() => setRequestsSubTab(key)}
                 style={{
                   flex: 1, padding: "10px 8px", border: "none",
-                  background: requestsSubTab === key ? "rgba(193,18,31,0.2)" : "transparent",
+                  background: requestsSubTab === key ? `${redAlpha(0.2)}` : "transparent",
                   color: requestsSubTab === key ? "#fff" : "rgba(255,255,255,0.4)",
                   fontSize: 12, fontWeight: 800, cursor: "pointer",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
@@ -661,7 +248,7 @@ export default function SparringPage() {
                             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                 {req.fromPhotoURL
-                                  ? <img src={req.fromPhotoURL} alt="" style={{ ...c.avatar, width: 36, height: 36 }} />
+                                  ? <Image src={req.fromPhotoURL} alt="" width={36} height={36} style={{ ...c.avatar, width: 36, height: 36 }} />
                                   : <div style={{ ...c.avatarFallback, width: 36, height: 36, fontSize: 14 }}>{(req.fromDisplayName || "?").charAt(0).toUpperCase()}</div>
                                 }
                                 <div>
@@ -891,116 +478,4 @@ export default function SparringPage() {
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
-const s = {
-  page: { minHeight: "100dvh", background: "#070707", color: "#fff", fontFamily: "system-ui, sans-serif", display: "flex", flexDirection: "column" },
-  loadWrap: { minHeight: "100dvh", background: "#070707", display: "flex", alignItems: "center", justifyContent: "center" },
-  spinner: { width: 26, height: 26, border: "2px solid #C1121F", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" },
-  header: {
-    position: "sticky", top: 0, zIndex: 20,
-    display: "flex", alignItems: "center", justifyContent: "space-between",
-    padding: "calc(14px + env(safe-area-inset-top)) 16px 12px",
-    background: "rgba(7,7,7,0.96)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
-    borderBottom: "1px solid rgba(255,255,255,0.06)",
-  },
-  backBtn: {
-    width: 40, height: 40, borderRadius: "50%",
-    border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)",
-    color: "rgba(255,255,255,0.7)", cursor: "pointer",
-    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-  },
-  headerCenter: { textAlign: "center" },
-  headerKicker: { fontSize: 9, fontWeight: 900, color: "rgba(193,18,31,0.7)", letterSpacing: 3, textTransform: "uppercase" },
-  headerTitle: { fontSize: 15, fontWeight: 900, color: "#fff" },
-  tabBar: {
-    display: "flex", borderBottom: "1px solid rgba(255,255,255,0.07)",
-    background: "rgba(7,7,7,0.96)", position: "sticky", top: "calc(52px + env(safe-area-inset-top))", zIndex: 19,
-  },
-  tabBtn: {
-    flex: 1, padding: "12px 4px", border: "none", background: "transparent",
-    color: "rgba(255,255,255,0.35)", fontSize: 12, fontWeight: 800,
-    cursor: "pointer", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
-    borderBottom: "2px solid transparent", transition: "all 200ms ease",
-  },
-  tabBtnActive: { color: "#fff", borderBottom: "2px solid #C1121F" },
-  tabBadge: {
-    minWidth: 16, height: 16, borderRadius: 999,
-    background: RED, color: "#fff",
-    fontSize: 9, fontWeight: 900, display: "inline-flex", alignItems: "center", justifyContent: "center",
-    padding: "0 4px",
-  },
-  toggleBanner: {
-    borderRadius: 14, border: "1px solid",
-    padding: "12px 14px",
-    display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
-    transition: "all 300ms ease",
-  },
-  toggleLeft: { display: "flex", alignItems: "flex-start", gap: 10, flex: 1, minWidth: 0 },
-  toggleDot: { width: 8, height: 8, borderRadius: "50%", flexShrink: 0, marginTop: 4, transition: "all 300ms ease" },
-  toggleTitle: { fontSize: 13, fontWeight: 800, marginBottom: 2, transition: "color 300ms ease" },
-  toggleSub: { fontSize: 11, color: "rgba(255,255,255,0.3)", lineHeight: 1.45 },
-  toggleBtn: {
-    flexShrink: 0, padding: "8px 14px", borderRadius: 999,
-    fontSize: 12, fontWeight: 900, cursor: "pointer",
-    whiteSpace: "nowrap", transition: "all 200ms ease",
-  },
-  filterSection: { padding: "10px 16px 0", display: "flex", flexDirection: "column", gap: 8 },
-  filterRow: { display: "flex", gap: 6, overflowX: "auto", scrollbarWidth: "none" },
-  filterChip: {
-    flexShrink: 0, padding: "6px 12px", borderRadius: 999,
-    border: "1px solid rgba(255,255,255,0.09)", background: "rgba(255,255,255,0.03)",
-    color: "rgba(255,255,255,0.38)", fontSize: 12, fontWeight: 700,
-    cursor: "pointer", whiteSpace: "nowrap",
-  },
-  weightSelect: {
-    width: "100%", padding: "9px 12px", borderRadius: 10,
-    border: "1px solid rgba(255,255,255,0.09)", background: "rgba(255,255,255,0.04)",
-    color: "rgba(255,255,255,0.55)", fontSize: 12, outline: "none", appearance: "none",
-  },
-  countBar: { padding: "10px 16px 4px" },
-  countTxt: { fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.28)", letterSpacing: 0.4 },
-  list: { flex: 1, display: "flex", flexDirection: "column", padding: "4px 0 0" },
-  sectionLabel: { padding: "12px 16px 4px", fontSize: 9, fontWeight: 900, color: "rgba(255,255,255,0.28)", letterSpacing: 2, textTransform: "uppercase" },
-  empty: {
-    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-    padding: "48px 32px", gap: 10,
-  },
-  emptyTitle: { margin: 0, fontSize: 16, fontWeight: 900, color: "#fff", textAlign: "center" },
-  emptySub: { margin: 0, fontSize: 13, color: "rgba(255,255,255,0.35)", textAlign: "center", lineHeight: 1.55, maxWidth: 280 },
-};
 
-const c = {
-  card: {
-    background: "linear-gradient(145deg, #111012 0%, #0a0a0a 100%)",
-    border: "1px solid rgba(255,255,255,0.07)",
-    borderRadius: "3px 14px 14px 3px",
-    boxShadow: "0 4px 24px rgba(0,0,0,0.45)",
-    padding: "13px 13px 10px",
-    display: "flex", flexDirection: "column", gap: 10,
-  },
-  cardTop: { display: "flex", gap: 12, alignItems: "flex-start" },
-  avatarWrap: { position: "relative", flexShrink: 0 },
-  avatar: { width: 48, height: 48, borderRadius: "50%", objectFit: "cover", display: "block" },
-  avatarFallback: {
-    width: 48, height: 48, borderRadius: "50%",
-    border: "1px solid rgba(255,255,255,0.08)",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    fontSize: 18, fontWeight: 900, color: "#fff",
-  },
-  infoBlock: { flex: 1, minWidth: 0 },
-  name: { fontSize: 15, fontWeight: 900, color: "#fff", marginBottom: 5, lineHeight: 1 },
-  chips: { display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 4 },
-  chip: {
-    fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.45)",
-    background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
-    borderRadius: 999, padding: "2px 8px",
-  },
-  location: { fontSize: 11, color: "rgba(255,255,255,0.3)", marginBottom: 3 },
-  bio: { fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.45 },
-  msgBtn: {
-    width: "100%", padding: "10px", borderRadius: 10, border: "none",
-    color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer",
-    display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-    boxShadow: "0 4px 16px rgba(193,18,31,0.25)",
-  },
-  myLabel: { textAlign: "center", fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.28)", padding: "2px 0" },
-};

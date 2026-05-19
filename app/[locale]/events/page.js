@@ -23,13 +23,13 @@ import SkeletonBlock from "@/components/SkeletonBlock";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname } from "@/lib/i18n";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , PURPLE, redAlpha, goldAlpha} from "@/lib/tokens";
 
 const EVENT_TYPES = ["boxing", "mma", "muay_thai", "sparring", "tournament", "seminar"];
 
 const TYPE_META = {
   boxing:     { mn: "Бокс",     ko: "복싱",    en: "Boxing",      color: RED, emoji: "🥊" },
-  mma:        { mn: "MMA",      ko: "MMA",     en: "MMA",         color: "#A78BFA", emoji: "⚔️" },
+  mma:        { mn: "MMA",      ko: "MMA",     en: "MMA",         color: PURPLE, emoji: "⚔️" },
   muay_thai:  { mn: "Муай Тай", ko: "무에타이", en: "Muay Thai",   color: "#F97316", emoji: "🦵" },
   sparring:   { mn: "Спарринг", ko: "스파링",   en: "Sparring",    color: "#34D399", emoji: "🤜" },
   tournament: { mn: "Тэмцээн",  ko: "토너먼트", en: "Tournament",  color: GOLD, emoji: "🏆" },
@@ -418,8 +418,8 @@ const s = {
   pageHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", paddingTop: "calc(20px + env(safe-area-inset-top))", paddingBottom: 16 },
   kicker: { margin: "0 0 4px", fontSize: 10, letterSpacing: 2.5, color: GOLD, textTransform: "uppercase", fontWeight: 900 },
   title: { margin: 0, fontSize: 24, fontWeight: 1000, lineHeight: 1.1 },
-  createBtn: { padding: "8px 16px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.4)", background: "rgba(193,18,31,0.1)", color: "#F87171", fontSize: 13, fontWeight: 900, cursor: "pointer", flexShrink: 0, marginTop: 4 },
-  createForm: { background: "linear-gradient(145deg, #111012, #0a0a0a)", border: "1px solid rgba(212,175,55,0.2)", borderLeft: "2.5px solid #D4AF37", borderRadius: "3px 16px 16px 3px", padding: "16px", marginBottom: 18, display: "flex", flexDirection: "column", gap: 10 },
+  createBtn: { padding: "8px 16px", borderRadius: 999, border: `1px solid ${redAlpha(0.4)}`, background: `${redAlpha(0.1)}`, color: "#F87171", fontSize: 13, fontWeight: 900, cursor: "pointer", flexShrink: 0, marginTop: 4 },
+  createForm: { background: "linear-gradient(145deg, #111012, #0a0a0a)", border: `1px solid ${goldAlpha(0.2)}`, borderLeft: "2.5px solid #D4AF37", borderRadius: "3px 16px 16px 3px", padding: "16px", marginBottom: 18, display: "flex", flexDirection: "column", gap: 10 },
   formTitle: { margin: 0, fontSize: 12, fontWeight: 900, color: GOLD, letterSpacing: 1.5, textTransform: "uppercase" },
   formRow: { display: "flex", gap: 8 },
   fieldLabel: { display: "block", fontSize: 10, color: "rgba(255,255,255,0.45)", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 4 },
@@ -427,14 +427,14 @@ const s = {
   textarea: { width: "100%", boxSizing: "border-box", padding: "11px 13px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "#fff", fontSize: 14, outline: "none", resize: "vertical", fontFamily: "inherit" },
   select: { width: "100%", padding: "11px 13px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "#fff", fontSize: 14, outline: "none", colorScheme: "dark" },
   submitBtn: { width: "100%", padding: 13, borderRadius: 12, border: "none", background: "linear-gradient(135deg,#C1121F,#7d0812)", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" },
-  submitBtnDisabled: { width: "100%", padding: 13, borderRadius: 12, border: "none", background: "rgba(193,18,31,0.3)", color: "rgba(255,255,255,0.5)", fontSize: 14, fontWeight: 900, cursor: "not-allowed" },
+  submitBtnDisabled: { width: "100%", padding: 13, borderRadius: 12, border: "none", background: `${redAlpha(0.3)}`, color: "rgba(255,255,255,0.5)", fontSize: 14, fontWeight: 900, cursor: "not-allowed" },
   errorText: { margin: 0, fontSize: 12, color: "#F87171" },
   tabs: { display: "flex", gap: 6, marginBottom: 12 },
   tab: { flex: 1, padding: "9px 0", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", background: "transparent", color: "rgba(255,255,255,0.55)", fontSize: 12, fontWeight: 700, cursor: "pointer" },
-  tabActive: { flex: 1, padding: "9px 0", borderRadius: 10, border: "1px solid rgba(212,175,55,0.3)", background: "rgba(212,175,55,0.08)", color: GOLD, fontSize: 12, fontWeight: 900, cursor: "pointer" },
+  tabActive: { flex: 1, padding: "9px 0", borderRadius: 10, border: `1px solid ${goldAlpha(0.3)}`, background: `${goldAlpha(0.08)}`, color: GOLD, fontSize: 12, fontWeight: 900, cursor: "pointer" },
   typeFilters: { display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4, marginBottom: 14, scrollbarWidth: "none" },
   typePill: { padding: "5px 12px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 },
-  typePillActive: { padding: "5px 12px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.4)", background: "rgba(212,175,55,0.12)", color: GOLD, fontSize: 11, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 },
+  typePillActive: { padding: "5px 12px", borderRadius: 999, border: `1px solid ${goldAlpha(0.4)}`, background: `${goldAlpha(0.12)}`, color: GOLD, fontSize: 11, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 },
   eventList: { display: "flex", flexDirection: "column", gap: 12 },
   eventCard: { background: "linear-gradient(145deg, #111012, #0a0a0a)", border: "1px solid rgba(255,255,255,0.07)", borderLeft: "2.5px solid #C1121F", borderRadius: "3px 16px 16px 3px", padding: "14px 16px", cursor: "pointer", transition: "border-color 0.2s" },
   eventCardTop: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },

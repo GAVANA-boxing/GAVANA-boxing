@@ -7,7 +7,7 @@ import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale, translate } from "@/lib/i18n";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
 
 function getFriendlyAuthError(error, isSignUp, t) {
   switch (error?.code) {
@@ -246,7 +246,7 @@ export default function LoginPage() {
               fontWeight: 900,
               cursor: loading ? "not-allowed" : "pointer",
               letterSpacing: 0.2,
-              boxShadow: loading ? "none" : "0 16px 42px rgba(193,18,31,0.28)",
+              boxShadow: loading ? "none" : `0 16px 42px ${redAlpha(0.28)}`,
               transition: "transform 0.18s ease, background 0.2s ease"
             }}
           >
@@ -280,7 +280,7 @@ export default function LoginPage() {
 const styles = {
   page: {
     minHeight: "100vh",
-    background: "radial-gradient(circle at 50% 0%, rgba(193,18,31,0.22), transparent 30%), radial-gradient(circle at 15% 85%, rgba(212,175,55,0.12), transparent 24%), linear-gradient(180deg, #070707 0%, #0B0B0B 100%)",
+    background: `radial-gradient(circle at 50% 0%, ${redAlpha(0.22)}, transparent 30%), radial-gradient(circle at 15% 85%, ${goldAlpha(0.12)}, transparent 24%), linear-gradient(180deg, #070707 0%, #0B0B0B 100%)`,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -297,8 +297,8 @@ const styles = {
     boxShadow: "0 24px 80px rgba(0,0,0,0.42)"
   },
   signUpCard: {
-    border: "1px solid rgba(212,175,55,0.26)",
-    boxShadow: "0 18px 60px rgba(193,18,31,0.18), 0 14px 40px rgba(0,0,0,0.18)",
+    border: `1px solid ${goldAlpha(0.26)}`,
+    boxShadow: `0 18px 60px ${redAlpha(0.18)}, 0 14px 40px rgba(0,0,0,0.18)`,
   },
   modeBadge: {
     display: "inline-flex",
@@ -316,8 +316,8 @@ const styles = {
     textTransform: "uppercase",
   },
   signUpBadge: {
-    background: "rgba(212,175,55,0.1)",
-    border: "1px solid rgba(212,175,55,0.24)",
+    background: `${goldAlpha(0.1)}`,
+    border: `1px solid ${goldAlpha(0.24)}`,
     color: GOLD,
   },
   helperText: {
@@ -350,7 +350,7 @@ const styles = {
   },
   errorBox: {
     background: "#3a0a0a",
-    border: "1px solid rgba(193,18,31,0.5)",
+    border: `1px solid ${redAlpha(0.5)}`,
     color: "#ff8b8b",
     padding: 12,
     borderRadius: 8,

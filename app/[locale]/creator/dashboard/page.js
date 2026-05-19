@@ -9,7 +9,9 @@ import { getLocale, translate } from "@/lib/i18n";
 import BottomNav from "@/components/BottomNav";
 import EmptyState from "@/components/EmptyState";
 import SkeletonBlock from "@/components/SkeletonBlock";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import styles from "@/components/creator/creatorDashboardStyles";
+import { formatCompact } from "@/lib/utils";
 
 function getCreatedAtMs(obj) {
   const ts = obj?.createdAt;
@@ -19,12 +21,6 @@ function getCreatedAtMs(obj) {
   return Number(ts) || 0;
 }
 
-function formatCompact(n) {
-  const num = Number(n) || 0;
-  if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + "M";
-  if (num >= 1_000) return (num / 1_000).toFixed(1) + "K";
-  return String(num);
-}
 
 function StatCard({ label, value, color = GOLD, icon }) {
   return (
@@ -175,6 +171,28 @@ export default function CreatorDashboard() {
     return () => { active = false; };
   }, [authLoading, user?.uid]);
 
+  // Best post day analysis — must be before any early return (Rules of Hooks)
+  const bestPostDay = useMemo(() => {
+    const dayLabels = locale === "mn"
+      ? ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"]
+      : locale === "ko"
+      ? ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]
+      : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const byDay = {};
+    reels.forEach((r) => {
+      if (!r.createdAt?.toDate) return;
+      const day = r.createdAt.toDate().getDay();
+      const v = reelStats[r.id]?.views || r.views || 0;
+      if (!byDay[day]) byDay[day] = { count: 0, views: 0 };
+      byDay[day].count += 1;
+      byDay[day].views += v;
+    });
+    return Object.entries(byDay).reduce((best, [day, data]) => {
+      const avg = data.count > 0 ? data.views / data.count : 0;
+      return avg > (best?.avg || 0) ? { day: dayLabels[Number(day)], avg: Math.round(avg) } : best;
+    }, null);
+  }, [reels, reelStats, locale]);
+
   if (authLoading || (!user && !authLoading)) {
     return <div style={styles.page}><div style={styles.loadingText}>...</div></div>;
   }
@@ -206,28 +224,6 @@ export default function CreatorDashboard() {
     return acc;
   }, {});
   const ctTotal = reels.length || 1;
-
-  // Best post day analysis
-  const bestPostDay = useMemo(() => {
-    const dayLabels = locale === "mn"
-      ? ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"]
-      : locale === "ko"
-      ? ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]
-      : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    const byDay = {};
-    reels.forEach((r) => {
-      if (!r.createdAt?.toDate) return;
-      const day = r.createdAt.toDate().getDay();
-      const v = reelStats[r.id]?.views || r.views || 0;
-      if (!byDay[day]) byDay[day] = { count: 0, views: 0 };
-      byDay[day].count += 1;
-      byDay[day].views += v;
-    });
-    return Object.entries(byDay).reduce((best, [day, data]) => {
-      const avg = data.count > 0 ? data.views / data.count : 0;
-      return avg > (best?.avg || 0) ? { day: dayLabels[Number(day)], avg: Math.round(avg) } : best;
-    }, null);
-  }, [reels, reelStats, locale]);
 
   // Growth tip
   const hasNoChallengeReels = reels.every((r) => !r.challengeEnabled && r.type !== "training");
@@ -358,7 +354,7 @@ export default function CreatorDashboard() {
               <section style={styles.section}>
                 <h2 style={styles.sectionTitle}>🔥 {t("creatorMostChallenged")}</h2>
                 <div
-                  style={{ background: "linear-gradient(145deg, #1c0202, #0e0000)", border: "1px solid rgba(193,18,31,0.2)", borderLeft: "3px solid #C1121F", borderRadius: "3px 14px 14px 3px", padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
+                  style={{ background: "linear-gradient(145deg, #1c0202, #0e0000)", border: `1px solid ${redAlpha(0.2)}`, borderLeft: "3px solid #C1121F", borderRadius: "3px 14px 14px 3px", padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
                   onClick={() => router.push(`/${locale}/reels?reelId=${mostChallengedReel.id}`)}
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -474,305 +470,3 @@ export default function CreatorDashboard() {
   );
 }
 
-const styles = {
-  page: {
-    minHeight: "100dvh",
-    background: "#050505",
-    color: "#fff",
-    fontFamily: "inherit",
-    display: "flex",
-    flexDirection: "column",
-    paddingBottom: "calc(64px + env(safe-area-inset-bottom))",
-  },
-  header: {
-    display: "flex",
-    alignItems: "center",
-    gap: 14,
-    padding: "calc(16px + env(safe-area-inset-top)) 16px 16px",
-    borderBottom: "1px solid rgba(255,255,255,0.08)",
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: "rgba(255,255,255,0.055)",
-    border: "1px solid rgba(255,255,255,0.12)",
-    color: "#fff",
-    borderRadius: 10,
-    cursor: "pointer",
-    padding: 0,
-    flexShrink: 0,
-  },
-  kicker: {
-    margin: 0,
-    fontSize: 11,
-    fontWeight: 900,
-    letterSpacing: 2,
-    textTransform: "uppercase",
-    color: GOLD,
-  },
-  sub: {
-    margin: "2px 0 0",
-    fontSize: 13,
-    color: "#888",
-  },
-  featuredBadge: {
-    marginLeft: "auto",
-    padding: "5px 12px",
-    borderRadius: 999,
-    background: "rgba(212,175,55,0.15)",
-    border: "1px solid rgba(212,175,55,0.4)",
-    color: GOLD,
-    fontSize: 12,
-    fontWeight: 900,
-  },
-  content: {
-    flex: 1,
-    overflowY: "auto",
-    padding: "16px 16px 0",
-    display: "flex",
-    flexDirection: "column",
-    gap: 20,
-  },
-  loadingText: {
-    textAlign: "center",
-    color: "#555",
-    padding: 40,
-    fontSize: 24,
-  },
-  statsGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: 10,
-  },
-  statCard: {
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: 14,
-    padding: "16px 14px",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 4,
-  },
-  statIcon: {
-    fontSize: 20,
-    lineHeight: 1,
-  },
-  statValue: {
-    fontSize: 26,
-    fontWeight: 900,
-    lineHeight: 1.1,
-  },
-  statLabel: {
-    fontSize: 11,
-    color: "#888",
-    fontWeight: 700,
-    letterSpacing: 0.3,
-    textAlign: "center",
-  },
-  growthRow: {
-    display: "flex",
-    gap: 10,
-    flexWrap: "wrap",
-  },
-  growthItem: {
-    flex: 1,
-    minWidth: 90,
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: 12,
-    padding: "12px 10px",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 4,
-  },
-  growthNum: {
-    fontSize: 20,
-    fontWeight: 900,
-    color: "#34D399",
-    lineHeight: 1,
-  },
-  growthLbl: {
-    fontSize: 10,
-    color: "#888",
-    fontWeight: 700,
-    letterSpacing: 0.3,
-    textAlign: "center",
-  },
-  section: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-  },
-  sectionTitle: {
-    margin: 0,
-    fontSize: 13,
-    fontWeight: 900,
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
-    color: "#888",
-  },
-  breakdown: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-  },
-  breakdownRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-  },
-  breakdownLabel: {
-    width: 110,
-    fontSize: 12,
-    fontWeight: 700,
-    flexShrink: 0,
-  },
-  breakdownBar: {
-    flex: 1,
-    height: 6,
-    borderRadius: 999,
-    background: "rgba(255,255,255,0.07)",
-    overflow: "hidden",
-  },
-  breakdownFill: {
-    height: "100%",
-    borderRadius: 999,
-    transition: "width 0.4s ease",
-    opacity: 0.85,
-  },
-  breakdownCount: {
-    width: 20,
-    textAlign: "right",
-    fontSize: 12,
-    fontWeight: 700,
-    color: "#888",
-    flexShrink: 0,
-  },
-  tip: {
-    display: "flex",
-    alignItems: "flex-start",
-    gap: 10,
-    padding: "14px 16px",
-    borderRadius: 14,
-    background: "rgba(212,175,55,0.07)",
-    border: "1px solid rgba(212,175,55,0.2)",
-  },
-  tipIcon: {
-    fontSize: 16,
-    flexShrink: 0,
-    marginTop: 1,
-  },
-  tipText: {
-    fontSize: 13,
-    color: "rgba(255,255,255,0.75)",
-    lineHeight: 1.5,
-  },
-  reelList: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 6,
-  },
-  reelBar: {
-    height: 3,
-    borderRadius: 999,
-    background: "rgba(255,255,255,0.07)",
-    overflow: "hidden",
-    margin: "2px 0",
-  },
-  reelBarFill: {
-    height: "100%",
-    borderRadius: 999,
-    background: "linear-gradient(90deg, #C1121F, #D4AF37)",
-  },
-  reelRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    padding: "12px 14px",
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: 12,
-    cursor: "pointer",
-  },
-  reelRank: {
-    width: 28,
-    textAlign: "center",
-    fontSize: 12,
-    fontWeight: 900,
-    color: "#555",
-    flexShrink: 0,
-  },
-  reelInfo: {
-    flex: 1,
-    minWidth: 0,
-    display: "flex",
-    flexDirection: "column",
-    gap: 4,
-  },
-  reelCaption: {
-    fontSize: 13,
-    fontWeight: 700,
-    color: "#eee",
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-  },
-  reelMeta: {
-    display: "flex",
-    gap: 12,
-    fontSize: 11,
-    color: "#666",
-    fontWeight: 700,
-  },
-  uploadBtn: {
-    padding: "12px 28px",
-    borderRadius: 999,
-    background: RED,
-    border: "none",
-    color: "#fff",
-    fontFamily: "inherit",
-    fontSize: 14,
-    fontWeight: 900,
-    cursor: "pointer",
-  },
-  reelThumb: {
-    width: 52,
-    height: 72,
-    borderRadius: 8,
-    overflow: "hidden",
-    flexShrink: 0,
-    background: "#111",
-  },
-  tabBar: {
-    display: "flex",
-    borderBottom: "1px solid rgba(255,255,255,0.07)",
-    background: "rgba(5,5,5,0.98)",
-  },
-  tabActive: {
-    flex: 1,
-    padding: "12px 0",
-    border: "none",
-    borderBottom: "2px solid #C1121F",
-    background: "transparent",
-    color: "#fff",
-    fontSize: 13,
-    fontWeight: 900,
-    cursor: "pointer",
-  },
-  tabInactive: {
-    flex: 1,
-    padding: "12px 0",
-    border: "none",
-    borderBottom: "2px solid transparent",
-    background: "transparent",
-    color: "rgba(255,255,255,0.4)",
-    fontSize: 13,
-    fontWeight: 700,
-    cursor: "pointer",
-  },
-};

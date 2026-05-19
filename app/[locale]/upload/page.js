@@ -1,125 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { storage, db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { checkAndAwardBadges } from "@/lib/badges";
-import { createRemixNotification } from "@/lib/notifications";
-import { RED, GOLD } from "@/lib/tokens";
+import { GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import S from "@/components/upload/uploadStyles";
+import { UField, UChips, UToggle } from "@/components/upload/UploadFormFields";
+import { useUploadForm } from "@/hooks/useUploadForm";
 
 const CATEGORIES = ["boxing", "gym", "running", "street_workout", "sparring"];
 const DIFFICULTIES = ["beginner", "intermediate", "pro"];
 const CAT_KEY = { boxing: "catBoxing", gym: "catGym", running: "catRunning", street_workout: "catStreetWorkout", sparring: "catSparring" };
 const DIFF_KEY = { beginner: "diffBeginner", intermediate: "diffIntermediate", pro: "diffPro" };
-
-function cleanCaptionLine(line) {
-  return line.replace(/\*\*/g, "").replace(/__/g, "").replace(/^\s*[-*•]\s*/, "").replace(/^\s*\d+[\).:-]\s*/, "").trim();
-}
-function stripCaptionLabel(line) {
-  return cleanCaptionLine(line).replace(/^(hook|caption|hashtags?)\s*[:\-–—]\s*/i, "").trim();
-}
-function extractHashtags(text) {
-  return (text.match(/#[\p{L}\p{N}_]+/gu) || []).join(" ");
-}
-function removeHashtags(text) {
-  return text.replace(/#[\p{L}\p{N}_]+/gu, "").replace(/\s{2,}/g, " ").trim();
-}
-function parseAiCaptionResult(text = "") {
-  const sections = { hook: "", caption: "", hashtags: "" };
-  let currentSection = null;
-  text.split(/\r?\n/).map(cleanCaptionLine).filter(Boolean).forEach((line) => {
-    const match = line.match(/^(hook|caption|hashtags?)\s*[:\-–—]\s*(.*)$/i);
-    if (match) {
-      const key = match[1].toLowerCase().startsWith("hashtag") ? "hashtags" : match[1].toLowerCase();
-      const value = match[2].trim();
-      if (key === "hashtags") {
-        sections.hashtags = [sections.hashtags, extractHashtags(value) || stripCaptionLabel(value)].filter(Boolean).join(" ");
-      } else {
-        sections[key] = [sections[key], removeHashtags(value)].filter(Boolean).join(" ");
-        const ht = extractHashtags(value);
-        if (ht) sections.hashtags = [sections.hashtags, ht].filter(Boolean).join(" ");
-      }
-      currentSection = key;
-      return;
-    }
-    if (line.includes("#")) { sections.hashtags = [sections.hashtags, extractHashtags(line) || stripCaptionLabel(line)].filter(Boolean).join(" "); return; }
-    if (currentSection) { sections[currentSection] = [sections[currentSection], removeHashtags(stripCaptionLabel(line))].filter(Boolean).join(" "); return; }
-    if (!sections.caption) sections.caption = stripCaptionLabel(line);
-  });
-  const fallback = text.split(/\r?\n/).map(stripCaptionLabel).filter(Boolean).join("\n").trim();
-  const description = [removeHashtags(sections.caption).trim(), (extractHashtags(sections.hashtags) || sections.hashtags).trim()].filter(Boolean).join("\n").trim();
-  return {
-    hook: removeHashtags(sections.hook).trim(),
-    caption: removeHashtags(sections.caption).trim(),
-    hashtags: (extractHashtags(sections.hashtags) || sections.hashtags).trim(),
-    description: description || fallback,
-  };
-}
-
-function UField({ label, children }) {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-      <label style={S.fieldLabel}>{label}</label>
-      {children}
-    </div>
-  );
-}
-
-function UChips({ options, keyMap, t, selected, onSelect, colorMap }) {
-  return (
-    <div style={S.chipRow}>
-      {options.map((opt) => {
-        const active = selected === opt;
-        const activeStyle = active ? (colorMap ? colorMap(opt) : S.chipActive) : {};
-        return (
-          <button key={opt} type="button" style={{ ...S.chip, ...(active ? activeStyle : {}) }} onClick={() => onSelect(opt)}>
-            {t(keyMap[opt])}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-function UToggle({ label, description, value, onChange, locked }) {
-  return (
-    <div style={S.toggleRow}>
-      <div style={{ flex: 1 }}>
-        <div style={S.toggleLabel}>{label}</div>
-        {description && <div style={S.toggleDesc}>{description}</div>}
-      </div>
-      <button
-        type="button"
-        disabled={!!locked}
-        onClick={() => !locked && onChange && onChange(!value)}
-        aria-checked={value}
-        role="switch"
-        style={{
-          flexShrink: 0,
-          width: 46, height: 26, borderRadius: 999, border: "none", cursor: locked ? "default" : "pointer",
-          background: value ? RED : "rgba(255,255,255,0.12)",
-          opacity: locked ? 0.45 : 1,
-          position: "relative",
-          transition: "background 180ms ease",
-          padding: 0,
-          outline: "none",
-        }}
-      >
-        <span style={{
-          position: "absolute",
-          top: 3, left: value ? "calc(100% - 23px)" : 3,
-          width: 20, height: 20, borderRadius: "50%",
-          background: "#fff", transition: "left 180ms ease",
-          boxShadow: "0 1px 4px rgba(0,0,0,0.5)",
-        }} />
-      </button>
-    </div>
-  );
-}
 
 export default function UploadPage() {
   const pathname = usePathname();
@@ -127,216 +20,26 @@ export default function UploadPage() {
   const t = (key) => translate(locale, key);
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const fileInputRef = useRef(null);
-
-  const [step, setStep] = useState("video"); // "video" | "setup"
-  const [contentType, setContentType] = useState("training");
-
-  const [remixOfId, setRemixOfId] = useState(null);
-  const [remixOfCreatorId, setRemixOfCreatorId] = useState(null);
-  const [remixOfCreatorName, setRemixOfCreatorName] = useState(null);
-
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [error, setError] = useState("");
-  const [videoDuration, setVideoDuration] = useState(null);
-
-  // Common
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("boxing");
-  const [difficulty, setDifficulty] = useState("beginner");
-  const [tags, setTags] = useState("");
-
-  // Challenge
-  const [challengeLabel, setChallengeLabel] = useState("");
-  const [targetHits, setTargetHits] = useState("");
-  const [aiScoringEnabled, setAiScoringEnabled] = useState(true);
-  const [challengeEnabled, setChallengeEnabled] = useState(false);
-
-  // Educational
-  const [techniqueTitle, setTechniqueTitle] = useState("");
-  const [mistakeNote, setMistakeNote] = useState("");
-  const [fixNote, setFixNote] = useState("");
-  const [coachNote, setCoachNote] = useState("");
-  const [eduChallengeEnabled, setEduChallengeEnabled] = useState(false);
-
-  // Gym + AI caption
-  const [gymId, setGymId] = useState("");
-  const [gyms, setGyms] = useState([]);
-  const [captionOpen, setCaptionOpen] = useState(false);
-  const [detailsOpen, setDetailsOpen] = useState(false);
-  const [captionContext, setCaptionContext] = useState("");
-  const [captionLoading, setCaptionLoading] = useState(false);
-  const [captionError, setCaptionError] = useState("");
-  const [captionResult, setCaptionResult] = useState("");
 
   useEffect(() => {
     if (!authLoading && !user) router.push(`/${locale}/login`);
   }, [authLoading, user, router, locale]);
 
-  useEffect(() => {
-    if (!user?.uid) return;
-    import("firebase/firestore").then(({ collection: col, getDocs: gd, query: q }) => {
-      gd(q(col(db, "gyms"))).then((snap) => {
-        setGyms(snap.docs.map((d) => ({ id: d.id, gymName: d.data().gymName })));
-      }).catch(() => {});
-    });
-  }, [user?.uid]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    const rid = params.get("remixOf");
-    if (rid) {
-      setRemixOfId(rid);
-      setRemixOfCreatorId(params.get("remixOfCreatorId") || null);
-      setRemixOfCreatorName(params.get("remixOfCreatorName") || null);
-      setContentType("training");
-    }
-  }, []);
+  const {
+    fileInputRef, step, setStep, contentType, setContentType,
+    remixOfId, remixOfCreatorId, remixOfCreatorName,
+    selectedFile, previewUrl, uploading, uploadProgress, error, videoDuration, setVideoDuration,
+    description, setDescription, category, setCategory, difficulty, setDifficulty, tags, setTags,
+    challengeLabel, setChallengeLabel, targetHits, setTargetHits, aiScoringEnabled, setAiScoringEnabled, challengeEnabled, setChallengeEnabled,
+    techniqueTitle, setTechniqueTitle, mistakeNote, setMistakeNote, fixNote, setFixNote, coachNote, setCoachNote, eduChallengeEnabled, setEduChallengeEnabled,
+    gymId, setGymId, gyms, captionOpen, setCaptionOpen, detailsOpen, setDetailsOpen,
+    captionContext, setCaptionContext, captionLoading, captionError, captionResult, setCaptionResult,
+    handleFileSelect, formatDuration, handleUpload, handleGenerateCaption, parsedCaption, fileSizeMB,
+  } = useUploadForm({ user, locale, t, router });
 
   if (authLoading) return <div style={S.loading}>...</div>;
   if (!user) return null;
 
-  const handleFileSelect = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (!file.type.startsWith("video/")) { alert(t("uploadSelectVideo")); return; }
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setSelectedFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
-    setVideoDuration(null);
-  };
-
-  const formatDuration = (secs) => {
-    if (!secs || isNaN(secs)) return null;
-    const m = Math.floor(secs / 60);
-    const s = Math.floor(secs % 60);
-    return `${m}:${String(s).padStart(2, "0")}`;
-  };
-
-  const fileSizeMB = selectedFile ? (selectedFile.size / (1024 * 1024)).toFixed(1) : null;
-
-  const handleUpload = async () => {
-    if (!selectedFile) return;
-    const isEdu = contentType === "educational";
-    const isTraining = contentType === "training";
-    if (isEdu && !techniqueTitle.trim()) { setError("Please add a technique title."); return; }
-    if (!isEdu && !description.trim()) { setError(t("uploadMissingFields")); return; }
-
-    setUploading(true);
-    setUploadProgress(0);
-    setError("");
-    try {
-      const videoRef = ref(storage, `reels/${user.uid}/${Date.now()}_${selectedFile.name}`);
-      const snapshot = await new Promise((resolve, reject) => {
-        const task = uploadBytesResumable(videoRef, selectedFile);
-        task.on("state_changed", (s) => setUploadProgress(Math.round((s.bytesTransferred / s.totalBytes) * 100)), reject, () => resolve(task.snapshot));
-      });
-      const videoUrl = await getDownloadURL(snapshot.ref);
-      const tagList = tags.split(",").map((tg) => tg.trim()).filter(Boolean);
-
-      const reelDoc = {
-        userId: user.uid,
-        username: user.displayName || user.email?.split("@")[0] || "user",
-        videoUrl,
-        thumbnailUrl: videoUrl,
-        description: isEdu ? (techniqueTitle.trim() || description.trim()) : description.trim(),
-        type: isTraining ? "training" : "content",
-        contentType,
-        category,
-        difficulty,
-        tags: tagList,
-        challengeEnabled: isTraining ? true : (isEdu ? eduChallengeEnabled : challengeEnabled),
-        challengeLabel: isTraining ? (challengeLabel.trim() || description.trim().slice(0, 60)) : (isEdu ? techniqueTitle.trim() : ""),
-        targetHits: isTraining && targetHits ? Number(targetHits) : null,
-        aiScoringEnabled: isTraining ? aiScoringEnabled : false,
-        likes: 0,
-        commentsCount: 0,
-        shares: 0,
-        createdAt: serverTimestamp(),
-      };
-
-      if (isEdu) {
-        if (mistakeNote.trim()) reelDoc.mistakeNote = mistakeNote.trim();
-        if (fixNote.trim()) reelDoc.fixNote = fixNote.trim();
-        if (coachNote.trim()) reelDoc.coachNote = coachNote.trim();
-        reelDoc.ctaType = "save";
-      }
-      if (remixOfId) {
-        reelDoc.remixOf = remixOfId;
-        if (remixOfCreatorId) reelDoc.remixOfCreatorId = remixOfCreatorId;
-        if (remixOfCreatorName) reelDoc.remixOfCreatorName = remixOfCreatorName;
-      }
-      if (gymId) reelDoc.gymId = gymId;
-
-      const newReelRef = await addDoc(collection(db, "reels"), reelDoc);
-      checkAndAwardBadges(user.uid, { hasUploaded: true }).catch(() => {});
-      if (remixOfId && remixOfCreatorId) {
-        createRemixNotification({
-          originalCreatorId: remixOfCreatorId,
-          actorId: user.uid,
-          actorName: user.displayName || user.email?.split("@")[0] || "Someone",
-          actorPhotoURL: user.photoURL || "",
-          originalReelId: remixOfId,
-          newReelId: newReelRef.id,
-        }).catch(() => {});
-      }
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-      router.push(`/${locale}/reels`);
-    } catch (err) {
-      console.error("Upload error:", err);
-      setError(t("uploadFailed"));
-    } finally {
-      setUploading(false);
-      setUploadProgress(0);
-    }
-  };
-
-  const handleGenerateCaption = async () => {
-    const context = captionContext.trim();
-    if (!context) { setCaptionError(t("captionContextRequired")); return; }
-    setCaptionLoading(true);
-    setCaptionError("");
-    setCaptionResult("");
-    const typeLabel = isTraining ? "challenge" : isEdu ? "educational" : "lifestyle";
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          persona: "analyst",
-          locale,
-          messages: [{
-            role: "user",
-            content: [
-              "Generate a GAVANA boxing reel caption.",
-              `Content type: ${typeLabel}. Context: ${context}`,
-              "GAVANA tone: modern fighter/athlete social media — short, sharp, confident. No cringe, no over-explaining.",
-              `Good hook examples: 'Sharp. Fast. Focused.' / 'Clean work.' / 'Ghost-оо давах хүртэл зогсохгүй.' / 'Tempo sain baina.'`,
-              "Return exactly three plain-text sections, no markdown, no bullets:",
-              "Hook: one punchy viral line, max 8 words.",
-              "Caption: one tight fighter-voice caption, max 16 words.",
-              "Hashtags: 5 to 7 relevant hashtags including #gavana.",
-            ].join("\n"),
-          }],
-        }),
-      });
-      if (!res.ok) throw new Error("Caption request failed");
-      const data = await res.json();
-      const text = data?.content?.find((i) => i?.type === "text")?.text || data?.content?.[0]?.text || "";
-      if (!text.trim()) throw new Error("Empty response");
-      setCaptionResult(text.trim());
-    } catch {
-      setCaptionError(t("captionGenerateFailed"));
-    } finally {
-      setCaptionLoading(false);
-    }
-  };
-
-  const parsedCaption = captionResult ? parseAiCaptionResult(captionResult) : null;
   const isTraining = contentType === "training";
   const isEdu = contentType === "educational";
   const isLifestyle = contentType === "lifestyle";
@@ -465,9 +168,9 @@ export default function UploadPage() {
         {/* Content type tabs */}
         <div style={S.typeTabs}>
           {[
-            { id: "training", emoji: "🥊", label: "Challenge", color: "#F87171", border: "rgba(193,18,31,0.5)" },
+            { id: "training", emoji: "🥊", label: "Challenge", color: "#F87171", border: `${redAlpha(0.5)}` },
             { id: "lifestyle", emoji: "🎬", label: "Lifestyle", color: "#60A5FA", border: "rgba(96,165,250,0.45)" },
-            { id: "educational", emoji: "📚", label: "Education", color: GOLD, border: "rgba(212,175,55,0.5)" },
+            { id: "educational", emoji: "📚", label: "Education", color: GOLD, border: `${goldAlpha(0.5)}` },
           ].map(({ id, emoji, label, color, border }) => {
             const active = contentType === id;
             return (
@@ -640,109 +343,3 @@ export default function UploadPage() {
   );
 }
 
-const S = {
-  loading: { minHeight: "100vh", background: "#070707", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontFamily: "sans-serif" },
-
-  // ── Video step
-  videoPage: { minHeight: "100vh", background: "#000", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" },
-  videoHeader: {
-    position: "absolute", top: 0, left: 0, right: 0, zIndex: 20,
-    display: "flex", alignItems: "center", justifyContent: "space-between",
-    padding: "calc(16px + env(safe-area-inset-top)) 20px 16px",
-    background: "linear-gradient(180deg, rgba(0,0,0,0.72) 0%, transparent 100%)",
-  },
-  remixBar: {
-    position: "absolute", top: 108, left: 0, right: 0, zIndex: 20,
-    textAlign: "center", background: "rgba(193,18,31,0.2)",
-    borderBottom: "1px solid rgba(193,18,31,0.3)",
-    padding: "8px 16px", color: "#F87171", fontSize: 13, fontWeight: 800,
-  },
-  videoPicker: {
-    flex: 1, position: "relative",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    minHeight: "calc(100vh - 88px)", cursor: "pointer",
-  },
-  videoFull: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, width: "100%", height: "100%", objectFit: "cover" },
-  videoEmptyState: { display: "flex", flexDirection: "column", alignItems: "center", gap: 18, padding: 40, zIndex: 1 },
-  videoEmptyIconWrap: { width: 96, height: 96, borderRadius: "50%", background: "rgba(212,175,55,0.1)", border: "1.5px solid rgba(212,175,55,0.25)", display: "flex", alignItems: "center", justifyContent: "center" },
-  videoEmptyLabel: { margin: 0, color: "rgba(255,255,255,0.88)", fontSize: 20, fontWeight: 900, textAlign: "center" },
-  videoEmptySub: { margin: 0, color: "rgba(255,255,255,0.35)", fontSize: 13, textAlign: "center" },
-  videoBottomBar: {
-    position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 20,
-    display: "flex", alignItems: "center", justifyContent: "space-between",
-    padding: "20px 24px 44px",
-    background: "linear-gradient(0deg, rgba(0,0,0,0.82) 0%, transparent 100%)",
-  },
-  galleryBtn: { padding: "10px 20px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(0,0,0,0.4)", cursor: "pointer" },
-  nextBtn: { padding: "12px 28px", borderRadius: 999, border: "none", background: "linear-gradient(135deg, #C1121F, #8f0d17)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: "0 4px 20px rgba(193,18,31,0.45)" },
-
-  // ── Setup step
-  setupPage: { minHeight: "100vh", background: "#070707", display: "flex", flexDirection: "column", fontFamily: "sans-serif" },
-  setupHeader: {
-    position: "sticky", top: 0, zIndex: 20,
-    display: "flex", alignItems: "center", justifyContent: "space-between",
-    padding: "calc(16px + env(safe-area-inset-top)) 20px 14px",
-    background: "rgba(7,7,7,0.96)", backdropFilter: "blur(16px)",
-    borderBottom: "1px solid rgba(255,255,255,0.06)",
-  },
-  iconBtn: { width: 40, height: 40, borderRadius: 999, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", color: "#fff", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
-  headerTitle: { flex: 1, color: "#fff", fontSize: 16, fontWeight: 900, textAlign: "center" },
-  postBtn: { padding: "10px 24px", borderRadius: 999, border: "none", background: "linear-gradient(135deg, #C1121F, #8f0d17)", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: "0 4px 16px rgba(193,18,31,0.35)" },
-  setupScroll: { flex: 1, overflowY: "auto", padding: "20px 20px 40px", display: "flex", flexDirection: "column", gap: 20, maxWidth: 600, width: "100%", margin: "0 auto", boxSizing: "border-box" },
-
-  // Video strip
-  videoStrip: { display: "flex", gap: 14, alignItems: "center", padding: "12px 14px", background: "rgba(255,255,255,0.04)", borderRadius: 16, border: "1px solid rgba(255,255,255,0.08)" },
-  videoThumb: { width: 63, height: 84, borderRadius: 10, objectFit: "cover", background: "#111", flexShrink: 0, display: "block" },
-  changeVideoBtn: { background: "none", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 999, color: "rgba(255,255,255,0.45)", fontSize: 12, fontWeight: 700, padding: "5px 12px", cursor: "pointer", alignSelf: "flex-start" },
-
-  // Type tabs
-  typeTabs: { display: "flex", gap: 6, padding: 5, background: "rgba(255,255,255,0.04)", borderRadius: 14, border: "1px solid rgba(255,255,255,0.06)" },
-  typeTab: { flex: 1, padding: "10px 4px", borderRadius: 10, border: "1px solid transparent", background: "none", color: "rgba(255,255,255,0.38)", fontSize: 12, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap" },
-
-  // Fields
-  fields: { display: "flex", flexDirection: "column", gap: 18 },
-  fieldLabel: { fontSize: 11, fontWeight: 900, color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: 1 },
-  input: { background: "#111", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 12, padding: "13px 16px", color: "#fff", fontSize: 14, outline: "none", width: "100%", boxSizing: "border-box" },
-  textarea: { background: "#111", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 12, padding: "13px 16px", color: "#fff", fontSize: 14, minHeight: 82, resize: "vertical", outline: "none", width: "100%", boxSizing: "border-box" },
-  chipRow: { display: "flex", flexWrap: "wrap", gap: 8 },
-  chip: { padding: "8px 16px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.45)", fontSize: 13, fontWeight: 800, cursor: "pointer" },
-  chipActive: { background: "rgba(193,18,31,0.18)", border: "1px solid rgba(193,18,31,0.5)", color: "#F87171" },
-  chipGreen: { background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.4)", color: "#34D399" },
-  chipGold: { background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.4)", color: GOLD },
-  chipRed: { background: "rgba(193,18,31,0.18)", border: "1px solid rgba(193,18,31,0.5)", color: "#F87171" },
-
-  // Toggles
-  toggleRow: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "14px 16px", borderRadius: 14, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" },
-  toggleLabel: { fontSize: 14, fontWeight: 800, color: "#fff" },
-  toggleDesc: { fontSize: 12, color: "rgba(255,255,255,0.38)", marginTop: 3 },
-  toggleBtn: { flexShrink: 0, minWidth: 52, padding: "7px 14px", borderRadius: 999, border: "none", color: "#fff", fontSize: 12, fontWeight: 900 },
-
-  // Details accordion
-  detailsBox: { borderRadius: 14, border: "1px solid rgba(255,255,255,0.07)", overflow: "hidden", background: "rgba(255,255,255,0.02)" },
-  detailsToggle: { width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: "none", border: "none", cursor: "pointer" },
-  detailsLabel: { color: "rgba(255,255,255,0.45)", fontSize: 11, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase" },
-
-  // AI box
-  aiBox: { borderRadius: 16, background: "linear-gradient(145deg, rgba(193,18,31,0.08), rgba(11,11,11,0.9) 50%, rgba(212,175,55,0.05))", border: "1px solid rgba(255,255,255,0.07)" },
-  aiBoxBtn: { width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "15px 16px", background: "none", border: "none", cursor: "pointer" },
-  aiBoxLabel: { color: GOLD, fontSize: 13, fontWeight: 900, letterSpacing: 0.6 },
-  aiBoxHelp: { margin: 0, color: "#888", fontSize: 13, lineHeight: 1.5 },
-
-  // Caption result
-  captionResult: { display: "flex", flexDirection: "column", gap: 10, padding: 14, borderRadius: 14, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(212,175,55,0.14)" },
-  captionSection: { display: "grid", gap: 4, padding: 10, borderRadius: 10, background: "rgba(255,255,255,0.04)" },
-  captionLbl: { color: GOLD, fontSize: 10, fontWeight: 900, letterSpacing: 1.2, textTransform: "uppercase" },
-  captionHook: { color: "#fff", fontSize: 14, fontWeight: 900, lineHeight: 1.45 },
-  captionBody: { color: "#fff", fontSize: 14, lineHeight: 1.55, whiteSpace: "pre-wrap" },
-  captionActionBtn: { padding: "9px 14px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.34)", background: "rgba(212,175,55,0.1)", color: GOLD, fontSize: 13, fontWeight: 800, cursor: "pointer" },
-
-  primaryBtn: { padding: "14px 20px", borderRadius: 14, border: "none", background: "linear-gradient(135deg, #C1121F, #8f0d17)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: "0 8px 24px rgba(193,18,31,0.28)" },
-
-  errBox: { background: "#3a0a0a", border: "1px solid rgba(193,18,31,0.5)", color: "#ff8b8b", padding: "12px 14px", borderRadius: 10, fontSize: 13 },
-  errTxt: { margin: 0, color: "#ff8b8b", fontSize: 13 },
-  remixBox: { background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.35)", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#F87171" },
-
-  progressWrap: { display: "flex", flexDirection: "column", gap: 6 },
-  progressTrack: { height: 6, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" },
-  progressFill: { height: "100%", borderRadius: 999, background: "linear-gradient(90deg, #C1121F, #D4AF37)", transition: "width 180ms ease" },
-};

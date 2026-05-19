@@ -1,146 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  limit,
-  orderBy,
-  query,
-  where,
-} from "firebase/firestore";
 import BottomNav from "@/components/BottomNav";
 import EmptyState from "@/components/EmptyState";
 import { useAuth } from "@/lib/AuthContext";
-import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { RED, GOLD } from "@/lib/tokens";
-import { snapToDocs } from "@/lib/firestore";
-
-const GYM_TYPES = [
-  "Boxing", "MMA", "Muay Thai", "Fitness",
-  "Crossfit", "Street Workout", "Powerlifting", "Running Club",
-];
-
-const GYM_TYPE_KEYS = {
-  Boxing: "gymTypeBoxing",
-  MMA: "gymTypeMMA",
-  "Muay Thai": "gymTypeMuayThai",
-  Fitness: "gymTypeFitness",
-  Crossfit: "gymTypeCrossfit",
-  "Street Workout": "gymTypeStreetWorkout",
-  Powerlifting: "gymTypePowerlifting",
-  "Running Club": "gymTypeRunningClub",
-};
-
-const VIBE_FILTERS = ["Beginner-Friendly", "Technical", "Competitive", "Traditional"];
-
-const VIBE_LABELS = {
-  "Beginner-Friendly": { mn: "Анхлан суралцагч", ko: "입문자 친화적" },
-  "Technical": { mn: "Техникийн", ko: "기술적" },
-  "Competitive": { mn: "Өрсөлдөөнт", ko: "경쟁적" },
-  "Traditional": { mn: "Уламжлалт", ko: "전통적" },
-};
-
-function getDefaultVibes(gymType) {
-  const map = {
-    Boxing: ["Technical", "Sparring"],
-    MMA: ["Hard training", "Competitive"],
-    "Muay Thai": ["Traditional", "Technical"],
-    Fitness: ["Beginner-Friendly", "Conditioning"],
-    Crossfit: ["High intensity", "Competitive"],
-  };
-  return map[gymType] || [];
-}
-
-function StarDisplay({ rating }) {
-  const r = Number(rating) || 0;
-  return (
-    <span style={{ color: GOLD, fontSize: 12, fontWeight: 700 }}>
-      {"★".repeat(Math.round(r))}{"☆".repeat(5 - Math.round(r))} {r > 0 ? r.toFixed(1) : ""}
-    </span>
-  );
-}
-
-function GymCard({ gym, t, router, locale }) {
-  const vibes = gym.vibes || getDefaultVibes(gym.gymType);
-  return (
-    <div style={styles.card}>
-      <div style={styles.cardImageWrap} onClick={() => router.push(`/${locale}/gyms/${gym.id}`)}>
-        {gym.logo ? (
-          <img src={gym.logo} alt="" style={styles.cardLogo} />
-        ) : (
-          <div style={styles.cardLogoFallback}>
-            <span style={{ fontSize: 32, filter: "drop-shadow(0 2px 12px rgba(193,18,31,0.6))" }}>🥊</span>
-          </div>
-        )}
-        {gym.verified && (
-          <span style={styles.verifiedBadge}>✓ {t("gymVerified")}</span>
-        )}
-        {gym.memberCount > 0 && (
-          <span style={styles.memberCountBadge}>👥 {gym.memberCount}</span>
-        )}
-      </div>
-
-      <div style={styles.cardBody}>
-        <div style={styles.cardNameRow}>
-          <span style={styles.cardName}>{gym.gymName}</span>
-          {gym.gymType && (
-            <span style={styles.typeChip}>{t(GYM_TYPE_KEYS[gym.gymType]) || gym.gymType}</span>
-          )}
-        </div>
-
-        {(gym.city || gym.country) && (
-          <div style={styles.cardLocation}>
-            📍 {[gym.city, gym.country].filter(Boolean).join(", ")}
-          </div>
-        )}
-
-        {gym.rating > 0 && (
-          <div style={styles.cardRating}>
-            <StarDisplay rating={gym.rating} />
-            {gym.totalReviews > 0 && (
-              <span style={styles.reviewCount}>({gym.totalReviews})</span>
-            )}
-          </div>
-        )}
-
-        {gym.specialties?.length > 0 && (
-          <div style={styles.cardStats}>
-            {gym.specialties.slice(0, 3).map((sp) => (
-              <span key={sp} style={styles.statChip}>{sp}</span>
-            ))}
-          </div>
-        )}
-
-        {vibes.length > 0 && (
-          <div style={styles.cardVibeRow}>
-            {vibes.slice(0, 3).map((v) => (
-              <span key={v} style={styles.cardVibeBadge}>{v}</span>
-            ))}
-          </div>
-        )}
-
-        {gym.description && (
-          <p style={styles.cardDesc}>
-            {gym.description.length > 90 ? gym.description.slice(0, 90) + "…" : gym.description}
-          </p>
-        )}
-
-        <button
-          type="button"
-          style={styles.joinBtn}
-          onClick={() => router.push(`/${locale}/gyms/${gym.id}`)}
-        >
-          {t("gymViewJoin")}
-        </button>
-      </div>
-    </div>
-  );
-}
+import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import styles from "@/components/gyms/gymsStyles";
+import { GymCard } from "@/components/gyms/GymCard";
+import { useGymsPageData } from "@/hooks/useGymsPageData";
+import Image from "next/image";
+import { GYM_TYPES, GYM_TYPE_KEYS, VIBE_FILTERS, VIBE_LABELS, getDefaultVibes } from "@/lib/gymConstants";
 
 export default function GymsPage() {
   const pathname = usePathname();
@@ -150,70 +21,17 @@ export default function GymsPage() {
   const { user, loading: authLoading } = useAuth();
 
   const [tab, setTab] = useState("all");
-  const [gyms, setGyms] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [myMemberships, setMyMemberships] = useState([]);
-  const [myMembershipsLoading, setMyMembershipsLoading] = useState(false);
-  const myMembershipsLoadedRef = useRef(false);
-  const [ownedGym, setOwnedGym] = useState(null);
   const [searchText, setSearchText] = useState("");
   const [selectedType, setSelectedType] = useState("all");
-  const [sortMode, setSortMode] = useState("topRated"); // topRated | newest | nearby
+  const [sortMode, setSortMode] = useState("topRated");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [cityFilter, setCityFilter] = useState("");
   const [filterVibe, setFilterVibe] = useState("");
   const [nearbyCoords, setNearbyCoords] = useState(null);
   const [nearbyLoading, setNearbyLoading] = useState(false);
 
-  useEffect(() => {
-    let active = true;
-    async function load() {
-      setLoading(true);
-      try {
-        const snap = await getDocs(query(collection(db, "gyms"), orderBy("createdAt", "desc"), limit(50)));
-        if (active) {
-          setGyms(snapToDocs(snap));
-        }
-      } catch (e) {
-        console.error("gyms load error", e);
-      } finally {
-        if (active) setLoading(false);
-      }
-    }
-    load();
-    return () => { active = false; };
-  }, []);
-
-  useEffect(() => {
-    if (tab !== "mine" || myMembershipsLoadedRef.current || !user?.uid) return;
-    myMembershipsLoadedRef.current = true;
-    let active = true;
-    setMyMembershipsLoading(true);
-    Promise.all([
-      getDocs(query(collection(db, "gym_join_requests"), where("userId", "==", user.uid))),
-      getDocs(query(collection(db, "gyms"), where("ownerId", "==", user.uid))),
-    ])
-      .then(async ([reqSnap, ownedSnap]) => {
-        if (!active) return;
-        if (!ownedSnap.empty) {
-          const od = ownedSnap.docs[0];
-          setOwnedGym({ id: od.id, ...od.data() });
-        }
-        const reqs = reqSnap.docs
-          .map((d) => ({ id: d.id, ...d.data() }))
-          .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
-        const gymIds = [...new Set(reqs.map((r) => r.gymId).filter(Boolean))];
-        const gymMap = {};
-        await Promise.all(gymIds.map(async (gid) => {
-          const s = await getDoc(doc(db, "gyms", gid));
-          if (s.exists()) gymMap[gid] = { id: gid, ...s.data() };
-        }));
-        if (active) setMyMemberships(reqs.map((r) => ({ ...r, gym: gymMap[r.gymId] || null })));
-      })
-      .catch(() => {})
-      .finally(() => { if (active) setMyMembershipsLoading(false); });
-    return () => { active = false; };
-  }, [tab, user?.uid]);
+  const { gyms, loading, myMemberships, myMembershipsLoading, ownedGym } =
+    useGymsPageData({ tab, userId: user?.uid });
 
   const handleNearby = () => {
     if (!navigator.geolocation) return;
@@ -283,7 +101,7 @@ export default function GymsPage() {
       });
     }
     return list;
-  }, [gyms, verifiedOnly, selectedType, cityFilter, searchText, sortMode, nearbyCoords]);
+  }, [gyms, verifiedOnly, selectedType, cityFilter, filterVibe, searchText, sortMode, nearbyCoords]);
 
   const GYM_STATUS = {
     pending:  { color: "#F59E0B", bg: "rgba(245,158,11,0.1)",  border: "rgba(245,158,11,0.35)",  label: t("gymStatusPending") },
@@ -353,10 +171,10 @@ export default function GymsPage() {
                   >
                     <div style={styles.cardImageWrap}>
                       {ownedGym.logo
-                        ? <img src={ownedGym.logo} alt="" style={styles.cardLogo} />
+                        ? <Image src={ownedGym.logo} alt="" width={64} height={64} style={{ objectFit: "cover", borderRadius: 14 }} />
                         : <div style={styles.cardLogoFallback}><span style={{ fontSize: 28 }}>🥊</span></div>
                       }
-                      <span style={{ position: "absolute", bottom: 8, right: 10, padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 900, background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.5)", color: GOLD }}>
+                      <span style={{ position: "absolute", bottom: 8, right: 10, padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 900, background: `${goldAlpha(0.15)}`, border: `1px solid ${goldAlpha(0.5)}`, color: GOLD }}>
                         {t("gymOwnerLabel")}
                       </span>
                     </div>
@@ -371,7 +189,7 @@ export default function GymsPage() {
                       {ownedGym.gymType && <span style={styles.typeChip}>{t(GYM_TYPE_KEYS[ownedGym.gymType]) || ownedGym.gymType}</span>}
                       <button
                         type="button"
-                        style={{ marginTop: 10, padding: "8px 16px", borderRadius: 10, border: "1px solid rgba(212,175,55,0.4)", background: "rgba(212,175,55,0.1)", color: GOLD, fontSize: 12, fontWeight: 900, cursor: "pointer" }}
+                        style={{ marginTop: 10, padding: "8px 16px", borderRadius: 10, border: `1px solid ${goldAlpha(0.4)}`, background: `${goldAlpha(0.1)}`, color: GOLD, fontSize: 12, fontWeight: 900, cursor: "pointer" }}
                         onClick={(e) => { e.stopPropagation(); router.push(`/${locale}/gyms/dashboard`); }}
                       >
                         {t("gymManageBtn")}
@@ -391,7 +209,7 @@ export default function GymsPage() {
                     >
                       <div style={styles.cardImageWrap}>
                         {gym.logo
-                          ? <img src={gym.logo} alt="" style={styles.cardLogo} />
+                          ? <Image src={gym.logo} alt="" width={64} height={64} style={{ objectFit: "cover", borderRadius: 14 }} />
                           : <div style={styles.cardLogoFallback}><span style={{ fontSize: 28 }}>🥊</span></div>
                         }
                         <span style={{ position: "absolute", bottom: 8, right: 10, padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 900, background: st.bg, border: `1px solid ${st.border}`, color: st.color }}>
@@ -443,7 +261,7 @@ export default function GymsPage() {
                   onClick={() => router.push(`/${locale}/gyms/${gym.id}`)}
                 >
                   {gym.logo ? (
-                    <img src={gym.logo} alt="" style={styles.featuredLogo} />
+                    <Image src={gym.logo} alt="" width={48} height={48} style={{ objectFit: "cover", borderRadius: 12, marginBottom: 2 }} />
                   ) : (
                     <div style={styles.featuredLogoFallback}>🥊</div>
                   )}
@@ -583,82 +401,7 @@ export default function GymsPage() {
         currentLocale={locale}
         activeTab="discover"
       />
-      <style>{`
-        @keyframes skPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-        .sk-pulse { animation: skPulse 1.4s ease infinite; }
-      `}</style>
     </div>
   );
 }
 
-const styles = {
-  page: { minHeight: "100vh", background: "#0A0A0A", color: "#fff", fontFamily: "system-ui, sans-serif" },
-  tabBar: {
-    position: "sticky", top: 0, zIndex: 50,
-    display: "flex", background: "rgba(8,8,8,0.95)",
-    backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
-    borderBottom: "1px solid rgba(255,255,255,0.07)",
-    paddingTop: "env(safe-area-inset-top)",
-  },
-  tabActive: {
-    flex: 1, minHeight: 46, border: "none",
-    borderBottom: "2px solid #C1121F", background: "transparent",
-    color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", letterSpacing: 0.3,
-  },
-  tabInactive: {
-    flex: 1, minHeight: 46, border: "none",
-    borderBottom: "2px solid transparent", background: "transparent",
-    color: "rgba(255,255,255,0.45)", fontSize: 13, fontWeight: 700, cursor: "pointer",
-  },
-  content: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },
-  header: { paddingTop: "calc(18px + env(safe-area-inset-top))", paddingBottom: 20, display: "flex", flexDirection: "column", gap: 4 },
-  kicker: { margin: 0, fontSize: 11, letterSpacing: 2, color: "rgba(255,255,255,0.55)", textTransform: "uppercase" },
-  title: { margin: 0, fontSize: 28, fontWeight: 1000, lineHeight: 1.1, fontFamily: "var(--font-display, 'Anton', sans-serif)" },
-  subtitle: { margin: 0, fontSize: 14, color: "rgba(255,255,255,0.65)" },
-  registerBtn: { alignSelf: "flex-start", marginTop: 8, padding: "8px 16px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.45)", background: "rgba(212,175,55,0.1)", color: GOLD, fontSize: 13, fontWeight: 900, cursor: "pointer" },
-  searchInput: { width: "100%", boxSizing: "border-box", padding: "12px 16px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 14, outline: "none", marginBottom: 14 },
-  sortRow: { display: "flex", gap: 8, marginBottom: 12 },
-  sortBtn: { padding: "7px 14px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.12)", background: "transparent", color: "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: 700, cursor: "pointer" },
-  sortBtnActive: { padding: "7px 14px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.5)", background: "rgba(193,18,31,0.15)", color: "#F87171", fontSize: 13, fontWeight: 700, cursor: "pointer" },
-  filtersRow: { display: "flex", alignItems: "center", gap: 10, marginBottom: 12 },
-  filterSelect: { flex: 1, height: 38, padding: "0 12px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 13, outline: "none", colorScheme: "dark", appearance: "none", WebkitAppearance: "none" },
-  verifiedToggle: { display: "flex", alignItems: "center", height: 38, gap: 6, padding: "0 12px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.09)", background: "rgba(255,255,255,0.04)", fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.65)", cursor: "pointer", whiteSpace: "nowrap" },
-  catRow: { display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8, marginBottom: 16, scrollbarWidth: "none" },
-  catBtn: { flexShrink: 0, padding: "6px 14px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 700, cursor: "pointer" },
-  catActive: { flexShrink: 0, padding: "6px 14px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.5)", background: "rgba(212,175,55,0.12)", color: GOLD, fontSize: 12, fontWeight: 700, cursor: "pointer" },
-  loadingText: { textAlign: "center", padding: "60px 0", color: "rgba(255,255,255,0.55)", fontSize: 14 },
-  skeletonList: { display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 },
-  skeletonCard: { height: 200, borderRadius: 16, background: "rgba(255,255,255,0.06)" },
-  cardList: { display: "flex", flexDirection: "column", gap: 12 },
-  card: { borderRadius: 16, border: "1px solid rgba(255,255,255,0.08)", background: "linear-gradient(145deg, #131313, #0a0a0a)", overflow: "hidden", cursor: "pointer", boxShadow: "0 4px 20px rgba(0,0,0,0.3)" },
-  cardImageWrap: { position: "relative", height: 100, background: "radial-gradient(ellipse at 50% 0%, rgba(193,18,31,0.18) 0%, transparent 60%), linear-gradient(160deg, #141010, #0d0d0d)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" },
-  cardLogo: { width: 64, height: 64, objectFit: "cover", borderRadius: 14, boxShadow: "0 8px 24px rgba(0,0,0,0.5)" },
-  cardLogoFallback: { width: 68, height: 68, borderRadius: 16, background: "radial-gradient(ellipse at 50% 30%, rgba(193,18,31,0.3), rgba(10,5,5,0.9))", border: "1px solid rgba(193,18,31,0.2)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 24px rgba(193,18,31,0.12)" },
-  verifiedBadge: { position: "absolute", top: 10, right: 10, fontSize: 10, fontWeight: 900, color: GOLD, background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 999, padding: "3px 8px" },
-  cardBody: { padding: "12px 14px 14px" },
-  cardNameRow: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 },
-  cardName: { fontSize: 16, fontWeight: 1000, color: "#fff" },
-  typeChip: { fontSize: 10, fontWeight: 900, color: RED, background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.25)", borderRadius: 999, padding: "2px 8px" },
-  cardLocation: { fontSize: 12, color: "rgba(255,255,255,0.65)", marginBottom: 6 },
-  cardRating: { display: "flex", alignItems: "center", gap: 6, marginBottom: 6 },
-  reviewCount: { fontSize: 11, color: "rgba(255,255,255,0.55)" },
-  cardStats: { display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 6 },
-  statChip: { fontSize: 11, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: "3px 8px" },
-  cardDesc: { margin: 0, fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.5 },
-  cardVibeRow: { display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 8 },
-  cardVibeBadge: { fontSize: 10, fontWeight: 800, color: "#F87171", background: "rgba(193,18,31,0.08)", border: "1px solid rgba(193,18,31,0.2)", borderRadius: 999, padding: "2px 8px" },
-  vibeRow: { display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8, marginBottom: 12, scrollbarWidth: "none" },
-  vibeBtn: { flexShrink: 0, padding: "5px 14px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.2)", background: "rgba(193,18,31,0.05)", color: "rgba(255,165,130,0.65)", fontSize: 12, fontWeight: 700, cursor: "pointer" },
-  vibeActive: { flexShrink: 0, padding: "5px 14px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.6)", background: "rgba(193,18,31,0.18)", color: "#F87171", fontSize: 12, fontWeight: 900, cursor: "pointer" },
-  memberCountBadge: { position: "absolute", bottom: 8, left: 10, fontSize: 10, fontWeight: 900, color: "#fff", background: "rgba(0,0,0,0.65)", borderRadius: 999, padding: "2px 8px" },
-  joinBtn: { display: "block", width: "100%", marginTop: 10, padding: "10px 0", borderRadius: 12, border: "none", background: RED, color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", letterSpacing: 0.3, boxShadow: "0 6px 20px rgba(193,18,31,0.22)" },
-  sectionLabel: { margin: "0 0 10px", fontSize: 11, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" },
-  featuredScroll: { display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none", WebkitOverflowScrolling: "touch" },
-  featuredCard: { flexShrink: 0, width: 116, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "linear-gradient(145deg, #131313, #0a0a0a)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "12px 8px", cursor: "pointer", textAlign: "center", WebkitTapHighlightColor: "transparent" },
-  featuredLogo: { width: 48, height: 48, borderRadius: 12, objectFit: "cover", marginBottom: 2 },
-  featuredLogoFallback: { width: 48, height: 48, borderRadius: 12, background: "rgba(193,18,31,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, marginBottom: 2 },
-  featuredName: { margin: 0, fontSize: 12, fontWeight: 900, color: "#fff", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "100%" },
-  featuredCity: { margin: 0, fontSize: 10, color: "#666", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "100%" },
-  featuredRating: { fontSize: 10, color: GOLD, fontWeight: 800 },
-  featuredMembers: { fontSize: 10, color: "#888" },
-};

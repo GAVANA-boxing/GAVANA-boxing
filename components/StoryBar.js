@@ -6,6 +6,8 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import StoryViewer from "./StoryViewer";
 import { translate } from "@/lib/i18n";
+import { redAlpha, goldAlpha } from "@/lib/tokens";
+import Image from "next/image";
 
 const RING_GRADIENTS = [
   "linear-gradient(135deg, #C1121F, #D4AF37)",
@@ -84,7 +86,7 @@ export default function StoryBar({ locale, router }) {
         >
           <div style={ownGroup ? st.ownRingActive : st.ownRingEmpty}>
             {user?.photoURL
-              ? <img src={user.photoURL} style={st.avatar} alt="" />
+              ? <Image src={user.photoURL} alt="" width={56} height={56} style={{ objectFit: "cover", borderRadius: "50%" }} />
               : <div style={st.avatarFallback}>{user?.displayName?.[0]?.toUpperCase() || "+"}</div>
             }
             {!ownGroup && <div style={st.addBadge}>+</div>}
@@ -108,7 +110,7 @@ export default function StoryBar({ locale, router }) {
               <div style={{ ...st.ring, background: isSeen ? "rgba(255,255,255,0.08)" : RING_GRADIENTS[i % RING_GRADIENTS.length], opacity: isSeen ? 0.7 : 1 }}>
                 <div style={st.avatarFrame}>
                   {grp.photoURL
-                    ? <img src={grp.photoURL} style={st.avatar} alt="" />
+                    ? <Image src={grp.photoURL} alt="" width={56} height={56} style={{ objectFit: "cover", borderRadius: "50%" }} />
                     : <div style={st.avatarFallback}>{grp.displayName[0]?.toUpperCase()}</div>
                   }
                 </div>
@@ -167,15 +169,15 @@ const st = {
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
-    boxShadow: "0 0 0 0 rgba(193,18,31,0), 0 0 22px rgba(193,18,31,0.45), 0 0 8px rgba(212,175,55,0.22)",
+    boxShadow: `0 0 0 0 ${redAlpha(0)}, 0 0 22px ${redAlpha(0.45)}, 0 0 8px ${goldAlpha(0.22)}`,
   },
   // Empty own ring — GAVANA-styled dashed add indicator
   ownRingEmpty: {
     width: RING_SIZE,
     height: RING_SIZE,
     borderRadius: "50%",
-    background: "rgba(193,18,31,0.08)",
-    border: "1.5px dashed rgba(193,18,31,0.45)",
+    background: `${redAlpha(0.08)}`,
+    border: `1.5px dashed ${redAlpha(0.45)}`,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -190,7 +192,7 @@ const st = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    boxShadow: "0 0 16px rgba(193,18,31,0.28), 0 0 6px rgba(212,175,55,0.12)",
+    boxShadow: `0 0 16px ${redAlpha(0.28)}, 0 0 6px ${goldAlpha(0.12)}`,
   },
   avatarFrame: {
     width: INNER,
@@ -209,7 +211,7 @@ const st = {
     width: INNER,
     height: INNER,
     borderRadius: "50%",
-    background: "radial-gradient(ellipse at 50% 30%, rgba(193,18,31,0.35), rgba(10,2,2,0.95))",
+    background: `radial-gradient(ellipse at 50% 30%, ${redAlpha(0.35)}, rgba(10,2,2,0.95))`,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -233,7 +235,7 @@ const st = {
     alignItems: "center",
     justifyContent: "center",
     border: "2px solid #080808",
-    boxShadow: "0 2px 10px rgba(193,18,31,0.65)",
+    boxShadow: `0 2px 10px ${redAlpha(0.65)}`,
   },
   label: {
     fontSize: 9,

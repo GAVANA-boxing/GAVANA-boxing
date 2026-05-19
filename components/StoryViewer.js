@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { addDoc, collection, getDocs, query, serverTimestamp, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { translate } from "@/lib/i18n";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , redAlpha} from "@/lib/tokens";
+import Image from "next/image";
 
 function getTypeLabel(type, locale) {
   const labels = {
@@ -83,7 +84,8 @@ export default function StoryViewer({ stories, onClose, locale, currentUser }) {
       });
     }, 100);
     return () => clearInterval(timerRef.current);
-  }, [idx, stories.length]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idx, stories.length]); // onClose omitted — not memoized by parent, adding would restart timer on each render
 
   const react = async (reaction) => {
     if (!currentUser?.uid) return;
@@ -133,7 +135,7 @@ export default function StoryViewer({ stories, onClose, locale, currentUser }) {
       {story.mediaUrl ? (
         isVideo
           ? <video key={`v-${idx}`} src={story.mediaUrl} style={{ ...s.media, animation: "storyFadeIn 380ms ease forwards" }} autoPlay muted playsInline loop />
-          : <img key={`i-${idx}`} src={story.mediaUrl} style={{ ...s.media, animation: "storyFadeIn 380ms ease forwards" }} alt="" />
+          : <Image key={`i-${idx}`} src={story.mediaUrl} fill alt="" style={{ objectFit: "cover", animation: "storyFadeIn 380ms ease forwards" }} />
       ) : isProgress
         ? <div key={`p-${idx}`} style={{ ...s.progressBg, animation: "storyFadeIn 380ms ease forwards" }}><ProgressCard data={story.progressData || {}} /></div>
         : <div key={`d-${idx}`} style={{ ...s.defaultBg, animation: "storyFadeIn 380ms ease forwards" }} />
@@ -154,7 +156,7 @@ export default function StoryViewer({ stories, onClose, locale, currentUser }) {
         </div>
         <div style={s.metaRow}>
           <div style={s.userRow}>
-            {story.photoURL && <img src={story.photoURL} style={s.userAvatar} alt="" />}
+            {story.photoURL && <Image src={story.photoURL} alt="" width={32} height={32} style={{ borderRadius: "50%", objectFit: "cover", border: "1.5px solid rgba(255,255,255,0.6)", boxShadow: "0 2px 8px rgba(0,0,0,0.6)" }} />}
             <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
               <span style={s.userName}>{story.displayName || story.username || "Boxer"}</span>
               {story.type && (
@@ -227,7 +229,7 @@ const s = {
   media: { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" },
   progressBg: {
     position: "absolute", inset: 0,
-    background: "radial-gradient(ellipse at 50% 35%, rgba(193,18,31,0.28), transparent 65%), linear-gradient(180deg, #0e0808 0%, #070707 100%)",
+    background: `radial-gradient(ellipse at 50% 35%, ${redAlpha(0.28)}, transparent 65%), linear-gradient(180deg, #0e0808 0%, #070707 100%)`,
     display: "flex", alignItems: "center", justifyContent: "center",
   },
   defaultBg: {
@@ -338,6 +340,6 @@ const s = {
   sendBtn: {
     height: 44, padding: "0 18px", border: "none", borderRadius: 22,
     background: RED, color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
-    boxShadow: "0 4px 16px rgba(193,18,31,0.4)",
+    boxShadow: `0 4px 16px ${redAlpha(0.4)}`,
   },
 };

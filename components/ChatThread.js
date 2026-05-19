@@ -9,7 +9,8 @@ import {
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname } from "@/lib/i18n";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , redAlpha} from "@/lib/tokens";
+import Image from "next/image";
 
 function getTs(ts) {
   if (!ts) return 0;
@@ -216,7 +217,7 @@ export default function ChatThread({ conversationId }) {
         >
           <div style={{ position: "relative" }}>
             {recipientInfo.photoURL
-              ? <img src={recipientInfo.photoURL} alt="" style={{ ...s.headerAvatar, ...(recipientIsCoach ? { border: "2px solid #D4AF37" } : {}) }} />
+              ? <Image src={recipientInfo.photoURL} alt="" width={34} height={34} style={{ borderRadius: "50%", objectFit: "cover", ...(recipientIsCoach ? { border: "2px solid #D4AF37" } : {}) }} />
               : <div style={{ ...s.headerAvatarFallback, ...(recipientIsCoach ? { border: "2px solid #D4AF37", background: "#1a1500" } : {}) }}>
                   {(recipientInfo.displayName || "?").charAt(0).toUpperCase()}
                 </div>
@@ -338,7 +339,7 @@ const s = {
   bubbleMe: { alignSelf: "flex-end", alignItems: "flex-end" },
   bubbleThem: { alignSelf: "flex-start", alignItems: "flex-start" },
   bubbleText: { padding: "10px 14px", borderRadius: 18, fontSize: 14, lineHeight: 1.5, wordBreak: "break-word" },
-  bubbleTextMe: { background: "linear-gradient(135deg, #C1121F, #8f0d17)", color: "#fff", borderBottomRightRadius: 4, boxShadow: "0 4px 16px rgba(193,18,31,0.3)" },
+  bubbleTextMe: { background: "linear-gradient(135deg, #C1121F, #8f0d17)", color: "#fff", borderBottomRightRadius: 4, boxShadow: `0 4px 16px ${redAlpha(0.3)}` },
   bubbleTextThem: { background: "rgba(255,255,255,0.07)", color: "#fff", borderBottomLeftRadius: 4, border: "1px solid rgba(255,255,255,0.07)" },
   bubbleTime: { fontSize: 10, color: "rgba(255,255,255,0.28)", marginTop: 3, padding: "0 4px", fontWeight: 600 },
   quickRepliesWrap: { flexShrink: 0, borderTop: "1px solid rgba(255,255,255,0.05)", background: "rgba(7,7,7,0.97)" },
@@ -346,5 +347,5 @@ const s = {
   quickChip: { flexShrink: 0, padding: "7px 14px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.75)", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" },
   inputBar: { flexShrink: 0, display: "flex", alignItems: "flex-end", gap: 10, padding: "10px 14px calc(10px + env(safe-area-inset-bottom))", background: "rgba(7,7,7,0.97)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", borderTop: "1px solid rgba(255,255,255,0.06)" },
   input: { flex: 1, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 22, padding: "11px 16px", color: "#fff", fontSize: 14, lineHeight: 1.4, outline: "none", resize: "none", fontFamily: "system-ui, sans-serif", maxHeight: 120, overflowY: "auto" },
-  sendBtn: { flexShrink: 0, width: 44, height: 44, borderRadius: "50%", border: "none", background: "linear-gradient(135deg, #C1121F, #8f0d17)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 4px 16px rgba(193,18,31,0.35)" },
+  sendBtn: { flexShrink: 0, width: 44, height: 44, borderRadius: "50%", border: "none", background: "linear-gradient(135deg, #C1121F, #8f0d17)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: `0 4px 16px ${redAlpha(0.35)}` },
 };

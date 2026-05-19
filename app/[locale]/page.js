@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getLocale, translate } from "@/lib/i18n";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , redAlpha} from "@/lib/tokens";
 
 export default async function LocalizedHomePage({ params }) {
   const { locale: rawLocale } = await params;
@@ -27,7 +27,7 @@ export default async function LocalizedHomePage({ params }) {
 const styles = {
   page: {
     minHeight: "100vh",
-    background: "radial-gradient(circle at 50% 20%, rgba(193,18,31,0.18), transparent 34%), linear-gradient(180deg, #070707, #0B0B0B)",
+    background: `radial-gradient(circle at 50% 20%, ${redAlpha(0.18)}, transparent 34%), linear-gradient(180deg, #070707, #0B0B0B)`,
     color: "#fff",
     display: "grid",
     placeItems: "center",

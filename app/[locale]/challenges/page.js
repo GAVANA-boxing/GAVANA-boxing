@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { collection, doc, getDoc, getDocs, onSnapshot, query, where } from "firebase/firestore";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
-import { db } from "@/lib/firebase";
+import { useChallengesData } from "@/hooks/useChallengesData";
 import { getLocale, translate } from "@/lib/i18n";
 import { getCurrentSeasonId, getSeasonLabel } from "@/lib/season";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD, PURPLE, redAlpha, goldAlpha } from "@/lib/tokens";
+import styles from "@/components/challenges/challengesStyles";
+import { getLocalDateKey, getPreviousLocalDateKey, getTimestampMs, formatScore, getActiveChallengeStreak, getChallengeRank } from "@/lib/utils";
+import Image from "next/image";
 
 const CHALLENGES = [
   { id: "jab-minute",   titleKey: "challengeJabTitle",   descKey: "challengeJabDesc",   emoji: "🥊" },
@@ -37,28 +39,6 @@ function formatCountdown(msLeft) {
 
 const SEASON_BADGE = ["🥇", "🥈", "🥉"];
 
-function getTimestampMs(timestamp) {
-  if (!timestamp) return 0;
-  if (timestamp.toMillis) return timestamp.toMillis();
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  const time = date.getTime();
-  return Number.isNaN(time) ? 0 : time;
-}
-
-function formatScore(score) {
-  const n = Number(score);
-  if (!Number.isFinite(n)) return "0";
-  return n.toFixed(1).replace(/\.0$/, "");
-}
-
-function getChallengeRank(score) {
-  const n = Number(score);
-  if (n >= 9) return "S";
-  if (n >= 8) return "A";
-  if (n >= 7) return "B";
-  if (n >= 6) return "C";
-  return "D";
-}
 
 function getResultXP(result) {
   const stored = Number(result?.xpGained);
@@ -77,21 +57,6 @@ function getRankIcon(index) {
   return `#${index + 1}`;
 }
 
-function getLocalDateKey(date = new Date()) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
-
-function getPreviousLocalDateKey(date = new Date()) {
-  const prev = new Date(date);
-  prev.setDate(prev.getDate() - 1);
-  return getLocalDateKey(prev);
-}
-
-function getActiveChallengeStreak(profile) {
-  const lastDate = String(profile?.lastChallengeDate || "");
-  if (lastDate !== getLocalDateKey() && lastDate !== getPreviousLocalDateKey()) return 0;
-  return Number(profile?.challengeStreak) || 0;
-}
 
 // Deduplicate: keep only best score per user per challenge
 function dedupeByUser(results) {
@@ -114,15 +79,10 @@ export default function ChallengesPage() {
   const t = (key) => translate(locale, key);
   const { user, loading: authLoading } = useAuth();
 
-  const [results, setResults] = useState([]);
-  const [resultsLoading, setResultsLoading] = useState(true);
-  const [profiles, setProfiles] = useState({});
-  const profileRequestsRef = useRef(new Set());
   const [seasonTab, setSeasonTab] = useState("week"); // "week" | "alltime"
   const [mainTab, setMainTab] = useState("leaderboard"); // "leaderboard" | "battles"
-  const [myBattles, setMyBattles] = useState([]);
-  const [battlesLoading, setBattlesLoading] = useState(false);
   const [countdown, setCountdown] = useState(() => formatCountdown(getWeekEndMs() - Date.now()));
+  const { results, resultsLoading, profiles, myBattles, battlesLoading } = useChallengesData({ user, authLoading, mainTab });
 
   const currentSeasonId = useMemo(() => getCurrentSeasonId(), []);
   const seasonLabel = useMemo(() => getSeasonLabel(currentSeasonId), [currentSeasonId]);
@@ -133,100 +93,8 @@ export default function ChallengesPage() {
   }, []);
 
   useEffect(() => {
-    if (!user?.uid || mainTab !== "battles") return;
-    let active = true;
-    setBattlesLoading(true);
-    async function loadBattles() {
-      try {
-        const [asChal, asOpp] = await Promise.all([
-          getDocs(query(collection(db, "pvp_challenges"), where("challengerId", "==", user.uid))),
-          getDocs(query(collection(db, "pvp_challenges"), where("opponentId", "==", user.uid))),
-        ]);
-        if (!active) return;
-        const all = [
-          ...asChal.docs.map((d) => ({ id: d.id, ...d.data(), role: "challenger" })),
-          ...asOpp.docs.map((d) => ({ id: d.id, ...d.data(), role: "opponent" })),
-        ].sort((a, b) => {
-          const aMs = a.createdAt?.toMillis?.() || 0;
-          const bMs = b.createdAt?.toMillis?.() || 0;
-          return bMs - aMs;
-        });
-        setMyBattles(all);
-      } catch (e) {
-        console.error("battles load error", e);
-      } finally {
-        if (active) setBattlesLoading(false);
-      }
-    }
-    loadBattles();
-    return () => { active = false; };
-  }, [user?.uid, mainTab]);
-
-  useEffect(() => {
     if (!authLoading && !user) router.push(`/${locale}/login`);
   }, [authLoading, user, router, locale]);
-
-  // Load current user's own profile for streak display
-  useEffect(() => {
-    if (!user?.uid || profiles[user.uid]) return;
-    let active = true;
-    getDoc(doc(db, "users", user.uid)).then((snap) => {
-      if (!active || !snap.exists()) return;
-      const data = snap.data();
-      setProfiles((prev) => ({
-        ...prev,
-        [user.uid]: {
-          name: data.displayName || data.username || "",
-          photoURL: data.photoURL || data.profileImageUrl || "",
-          challengeStreak: Number(data.challengeStreak) || 0,
-          lastChallengeDate: data.lastChallengeDate || "",
-        },
-      }));
-    }).catch(() => {});
-    return () => { active = false; };
-  }, [user?.uid]);
-
-  useEffect(() => {
-    const unsub = onSnapshot(collection(db, "challenge_results"), (snap) => {
-      setResults(
-        snap.docs
-          .map((d) => ({ id: d.id, ...d.data() }))
-          .filter((r) => r.challengeId && Number.isFinite(Number(r.score)))
-      );
-      setResultsLoading(false);
-    }, (err) => { console.error(err); setResults([]); setResultsLoading(false); });
-    return () => unsub();
-  }, []);
-
-  // Load only profiles for users who appear in results (not entire users collection)
-  useEffect(() => {
-    if (!results.length) return;
-    const uids = [...new Set(results.map((r) => r.userId).filter(Boolean))];
-    const missing = uids.filter((uid) => !profiles[uid] && !profileRequestsRef.current.has(uid));
-    if (!missing.length) return;
-    let active = true;
-    missing.forEach((uid) => profileRequestsRef.current.add(uid));
-    Promise.all(missing.map(async (uid) => {
-      try {
-        const snap = await getDoc(doc(db, "users", uid));
-        const data = snap.exists() ? snap.data() : {};
-        return [uid, {
-          name: data.displayName || data.username || "",
-          photoURL: data.photoURL || data.profileImageUrl || data.profileImage || data.avatarUrl || "",
-          challengeStreak: Number(data.challengeStreak) || 0,
-          lastChallengeDate: data.lastChallengeDate || "",
-        }];
-      } catch { return [uid, {}]; }
-    })).then((entries) => {
-      if (!active) return;
-      setProfiles((prev) => {
-        const next = { ...prev };
-        entries.forEach(([uid, data]) => { next[uid] = data; });
-        return next;
-      });
-    });
-    return () => { active = false; };
-  }, [results]);
 
   // All results grouped and ranked per challenge (best score per user)
   const allTimeByChallenge = useMemo(() => {
@@ -303,9 +171,9 @@ export default function ChallengesPage() {
           <button type="button" style={{ ...styles.seasonTab, ...(mainTab === "leaderboard" ? styles.seasonTabActive : {}) }} onClick={() => setMainTab("leaderboard")}>
             {t("battleLeaderboardTab")}
           </button>
-          <button type="button" style={{ ...styles.seasonTab, ...(mainTab === "battles" ? styles.seasonTabActive : {}), ...(myBattles.some((b) => b.status === "pending" && b.role === "opponent") ? { color: "#A78BFA" } : {}) }} onClick={() => setMainTab("battles")}>
+          <button type="button" style={{ ...styles.seasonTab, ...(mainTab === "battles" ? styles.seasonTabActive : {}), ...(myBattles.some((b) => b.status === "pending" && b.role === "opponent") ? { color: PURPLE } : {}) }} onClick={() => setMainTab("battles")}>
             {t("battleMyBattlesTab")}
-            {myBattles.some((b) => b.status === "pending" && b.role === "opponent") && <span style={{ marginLeft: 4, display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: "#A78BFA", verticalAlign: "middle" }} />}
+            {myBattles.some((b) => b.status === "pending" && b.role === "opponent") && <span style={{ marginLeft: 4, display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: PURPLE, verticalAlign: "middle" }} />}
           </button>
         </div>
 
@@ -465,7 +333,7 @@ export default function ChallengesPage() {
                         const displayName = isCurrentUser ? t("challengeYou") : profile.name || t("fighter");
                         const initial = (displayName || "F").charAt(0).toUpperCase();
                         const rankLetter = result.rank || getChallengeRank(result.score);
-                        const rankColor = rankLetter === "S" ? GOLD : rankLetter === "A" ? "#60A5FA" : rankLetter === "B" ? "#A78BFA" : rankLetter === "C" ? "#34D399" : "#888";
+                        const rankColor = rankLetter === "S" ? GOLD : rankLetter === "A" ? "#60A5FA" : rankLetter === "B" ? PURPLE : rankLetter === "C" ? "#34D399" : "#888";
 
                         return (
                           <div
@@ -480,7 +348,7 @@ export default function ChallengesPage() {
                             <span style={styles.fighterCell}>
                               <span style={styles.avatar}>
                                 {profile.photoURL
-                                  ? <img src={profile.photoURL} alt="" style={styles.avatarImg} />
+                                  ? <Image src={profile.photoURL} alt="" width={26} height={26} style={{ objectFit: "cover" }} />
                                   : initial}
                               </span>
                               <span style={styles.fighterText}>
@@ -519,246 +387,3 @@ export default function ChallengesPage() {
   );
 }
 
-const styles = {
-  page: {
-    minHeight: "100vh",
-    background: "radial-gradient(circle at 50% 0%, rgba(193,18,31,0.2), transparent 34%), linear-gradient(180deg, #080808 0%, #0B0B0B 100%)",
-    color: "#fff",
-    padding: "calc(28px + env(safe-area-inset-top)) 16px calc(92px + env(safe-area-inset-bottom))",
-    fontFamily: "sans-serif",
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    border: "1px solid rgba(255,255,255,0.12)",
-    background: "rgba(255,255,255,0.055)",
-    borderRadius: 10,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    cursor: "pointer",
-    padding: 0,
-    color: "#fff",
-    justifySelf: "start",
-  },
-  loading: {
-    minHeight: "100vh",
-    background: "#070707",
-    color: "#fff",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  shell: {
-    maxWidth: 760,
-    margin: "0 auto",
-    display: "grid",
-    gap: 14,
-  },
-  header: { display: "grid", gap: 8 },
-  kicker: { margin: 0, color: GOLD, fontSize: 11, fontWeight: 950, letterSpacing: 2 },
-  title: { margin: 0, fontSize: 38, lineHeight: 1, fontWeight: 1000, fontFamily: "var(--font-display, 'Anton', sans-serif)" },
-  subtitle: { margin: 0, color: "rgba(255,255,255,0.66)", fontSize: 14, lineHeight: 1.45 },
-  streakPill: {
-    width: "fit-content",
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 8,
-    minHeight: 34,
-    padding: "0 12px",
-    borderRadius: 999,
-    background: "rgba(251,146,60,0.13)",
-    border: "1px solid rgba(251,146,60,0.3)",
-    color: "#FED7AA",
-    fontSize: 13,
-    fontWeight: 950,
-  },
-  streakFlame: { fontSize: 16, lineHeight: 1 },
-  seasonTabRow: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: 6,
-    padding: 5,
-    borderRadius: 16,
-    background: "rgba(0,0,0,0.48)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    backdropFilter: "blur(14px)",
-    WebkitBackdropFilter: "blur(14px)",
-    position: "sticky",
-    top: "calc(10px + env(safe-area-inset-top))",
-    zIndex: 8,
-  },
-  seasonTab: {
-    minHeight: 38,
-    border: "none",
-    borderRadius: 12,
-    background: "transparent",
-    color: "rgba(255,255,255,0.55)",
-    fontSize: 13,
-    fontWeight: 950,
-    cursor: "pointer",
-  },
-  seasonTabActive: {
-    background: "linear-gradient(135deg, rgba(193,18,31,0.9), rgba(212,175,55,0.18))",
-    color: "#fff",
-    boxShadow: "0 10px 30px rgba(193,18,31,0.18)",
-  },
-  seasonLabel: {
-    textAlign: "center",
-    paddingBottom: 2,
-  },
-  seasonLabelText: {
-    fontSize: 11,
-    color: "#888",
-    fontWeight: 700,
-    letterSpacing: 0.4,
-  },
-  champBanner: {
-    padding: "14px 16px",
-    borderRadius: 18,
-    background: "linear-gradient(135deg, rgba(212,175,55,0.16), rgba(11,11,11,0.95))",
-    border: "1px solid rgba(212,175,55,0.3)",
-    boxShadow: "0 8px 28px rgba(212,175,55,0.1)",
-    display: "grid",
-    gap: 10,
-  },
-  champBannerTitle: {
-    margin: 0,
-    color: GOLD,
-    fontSize: 11,
-    fontWeight: 950,
-    letterSpacing: 1.5,
-    textTransform: "uppercase",
-  },
-  champList: { display: "grid", gap: 8 },
-  champItem: {
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-  },
-  champBadge: { fontSize: 20, flexShrink: 0, lineHeight: 1 },
-  champInfo: { display: "grid", gap: 2, flex: 1, minWidth: 0 },
-  champName: { fontSize: 13, fontWeight: 900, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-  champChallenge: { fontSize: 10, color: "#888", fontWeight: 700 },
-  champScore: { fontSize: 14, fontWeight: 1000, color: GOLD, flexShrink: 0 },
-  yourRankBar: {
-    position: "sticky",
-    top: "calc(62px + env(safe-area-inset-top))",
-    zIndex: 7,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-    minHeight: 44,
-    padding: "0 14px",
-    borderRadius: 16,
-    background: "linear-gradient(135deg, rgba(212,175,55,0.16), rgba(10,10,10,0.76))",
-    border: "1px solid rgba(212,175,55,0.25)",
-    backdropFilter: "blur(16px)",
-    WebkitBackdropFilter: "blur(16px)",
-    boxShadow: "0 14px 36px rgba(0,0,0,0.26)",
-  },
-  yourRankLabel: { color: "#fff", fontSize: 14, fontWeight: 1000 },
-  yourRankChallenge: {
-    minWidth: 0,
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-    color: GOLD,
-    fontSize: 12,
-    fontWeight: 900,
-  },
-  challengeList: { display: "grid", gap: 20 },
-  card: {
-    borderRadius: 20,
-    padding: 16,
-    background: "linear-gradient(145deg, rgba(193,18,31,0.13), rgba(11,11,11,0.98) 48%, rgba(212,175,55,0.08))",
-    border: "1px solid rgba(255,255,255,0.09)",
-    boxShadow: "0 18px 50px rgba(0,0,0,0.28)",
-  },
-  cardTop: { display: "grid", gap: 16 },
-  cardTitle: { margin: 0, color: "#fff", fontSize: 20, fontWeight: 950, fontFamily: "var(--font-display, 'Anton', sans-serif)" },
-  cardDesc: { margin: "7px 0 0", color: "rgba(255,255,255,0.64)", fontSize: 13, lineHeight: 1.45 },
-  startButton: {
-    width: "100%",
-    minHeight: 58,
-    padding: "0 20px",
-    border: "1px solid rgba(255,255,255,0.14)",
-    borderRadius: 16,
-    background: "linear-gradient(135deg, #F02234, #B80F1D 48%, #7d0812)",
-    boxShadow: "0 18px 42px rgba(193,18,31,0.36)",
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: 1000,
-    whiteSpace: "nowrap",
-    cursor: "pointer",
-    textTransform: "uppercase",
-  },
-  leaderboard: { marginTop: 16, display: "grid", gap: 9 },
-  leaderboardTitle: {
-    margin: 0,
-    color: GOLD,
-    fontSize: 11,
-    fontWeight: 950,
-    letterSpacing: 1.4,
-    textTransform: "uppercase",
-  },
-  scoreRows: { display: "grid", gap: 7 },
-  scoreRow: {
-    minHeight: 62,
-    display: "grid",
-    gridTemplateColumns: "42px minmax(0, 1fr) auto",
-    alignItems: "center",
-    gap: 10,
-    padding: "9px 11px",
-    borderRadius: 14,
-    background: "rgba(255,255,255,0.045)",
-    border: "1px solid rgba(255,255,255,0.07)",
-  },
-  scoreRowCurrent: {
-    background: "rgba(212,175,55,0.14)",
-    borderColor: "rgba(212,175,55,0.38)",
-    boxShadow: "0 0 0 1px rgba(212,175,55,0.1), 0 14px 32px rgba(212,175,55,0.12)",
-  },
-  emptyLeaderboard: {
-    padding: "14px 12px",
-    borderRadius: 12,
-    background: "rgba(255,255,255,0.035)",
-    border: "1px solid rgba(255,255,255,0.07)",
-    color: "rgba(255,255,255,0.58)",
-    fontSize: 13,
-    fontWeight: 800,
-    textAlign: "center",
-  },
-  rankNum: { color: GOLD, fontSize: 18, fontWeight: 950, textAlign: "center" },
-  fighterCell: { minWidth: 0, display: "flex", alignItems: "center", gap: 9 },
-  avatar: {
-    width: 26,
-    height: 26,
-    borderRadius: "50%",
-    display: "grid",
-    placeItems: "center",
-    flexShrink: 0,
-    overflow: "hidden",
-    background: "rgba(193,18,31,0.28)",
-    border: "1px solid rgba(212,175,55,0.24)",
-    color: "#fff",
-    fontSize: 11,
-    fontWeight: 950,
-  },
-  avatarImg: { width: "100%", height: "100%", objectFit: "cover", display: "block" },
-  fighterText: { minWidth: 0, display: "grid", gap: 3 },
-  fighterName: {
-    minWidth: 0,
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-    color: "rgba(255,255,255,0.76)",
-    fontSize: 13,
-    fontWeight: 850,
-  },
-  resultMeta: { color: "rgba(255,255,255,0.52)", fontSize: 11, fontWeight: 850 },
-  scoreStack: { display: "grid", justifyItems: "end", gap: 4 },
-  scoreValue: { color: "#fff", fontSize: 16, fontWeight: 1000, textShadow: "0 0 18px rgba(212,175,55,0.3)" },
-  xpValue: { color: GOLD, fontSize: 11, fontWeight: 950 },
-};

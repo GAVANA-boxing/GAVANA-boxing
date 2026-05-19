@@ -6,7 +6,8 @@ import { usePathname, useRouter as useNextRouter } from "next/navigation";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { translate } from "@/lib/i18n";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
+import Image from "next/image";
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
 function HomeIcon({ active }) {
@@ -57,7 +58,7 @@ function ProfileTab({ user, active, onClick, dmUnread }) {
           boxShadow: active ? "0 0 0 2px #C1121F" : "0 0 0 1.5px rgba(255,255,255,0.08)",
         }}>
           {photo
-            ? <img src={photo} alt="" style={s.avatarImg} />
+            ? <Image src={photo} alt="" width={30} height={30} style={{ objectFit: "cover" }} />
             : <span style={{ ...s.avatarInitial, background: active ? RED : "#222" }}>{initial}</span>
           }
         </span>
@@ -79,8 +80,8 @@ function IconTab({ active, onClick, badge, children, label }) {
     <button type="button" onClick={onClick} style={s.iconTab} aria-label={label}>
       <span style={{
         ...s.iconGlow,
-        background: active ? "rgba(193,18,31,0.12)" : "transparent",
-        boxShadow: active ? "0 0 16px rgba(193,18,31,0.18)" : "none",
+        background: active ? `${redAlpha(0.12)}` : "transparent",
+        boxShadow: active ? `0 0 16px ${redAlpha(0.18)}` : "none",
       }}>
         {children}
         {badge > 0 && (
@@ -345,7 +346,7 @@ const s = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    boxShadow: "0 4px 16px rgba(193,18,31,0.4)",
+    boxShadow: `0 4px 16px ${redAlpha(0.4)}`,
   },
   // Profile avatar
   avatarWrap: {
@@ -398,7 +399,7 @@ const h = {
     width: "100%",
     maxWidth: 520,
     background: "linear-gradient(180deg, #181010 0%, #0d0d0d 100%)",
-    border: "1px solid rgba(193,18,31,0.15)",
+    border: `1px solid ${redAlpha(0.15)}`,
     borderBottom: "none",
     borderRadius: "24px 24px 0 0",
     padding: "12px 20px calc(20px + env(safe-area-inset-bottom))",
@@ -475,8 +476,8 @@ const h = {
     fontSize: 8,
     fontWeight: 900,
     color: GOLD,
-    background: "rgba(212,175,55,0.1)",
-    border: "1px solid rgba(212,175,55,0.25)",
+    background: `${goldAlpha(0.1)}`,
+    border: `1px solid ${goldAlpha(0.25)}`,
     borderRadius: 999,
     padding: "1px 6px",
     letterSpacing: 1,

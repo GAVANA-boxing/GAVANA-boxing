@@ -7,7 +7,9 @@ import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale } from "@/lib/i18n";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, redAlpha } from "@/lib/tokens";
+import styles from "@/components/profile/editProfileStyles";
+import Image from "next/image";
 
 const WEIGHT_CLASSES = [
   { value: "-54", label: "-54kg" },
@@ -80,7 +82,8 @@ export default function EditProfilePage() {
     }
     load();
     return () => { active = false; };
-  }, [authLoading, user?.uid]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, user?.uid]); // t omitted (recreated every render); user.email stable within session
 
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0];
@@ -194,7 +197,7 @@ export default function EditProfilePage() {
             aria-label={t("Зураг солих", "사진 변경", "Change photo")}
           >
             {avatarSrc ? (
-              <img src={avatarSrc} alt="Profile" style={styles.avatarImage} />
+              <Image src={avatarSrc} alt="Profile" width={120} height={120} style={{ objectFit: "cover" }} unoptimized />
             ) : (
               <span style={styles.avatarInitial}>
                 {(displayName || user.email || "U").charAt(0).toUpperCase()}
@@ -341,219 +344,3 @@ export default function EditProfilePage() {
   );
 }
 
-const styles = {
-  page: {
-    minHeight: "100vh",
-    background: "radial-gradient(circle at 50% 0%, rgba(193,18,31,0.14), transparent 32%), linear-gradient(180deg, #070707, #0B0B0B)",
-    color: "#fff",
-    padding: "calc(20px + env(safe-area-inset-top)) 16px 48px",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-  },
-  shell: {
-    width: "min(100%, 560px)",
-    margin: "0 auto",
-    display: "grid",
-    gap: 22,
-  },
-  backButton: {
-    justifySelf: "start",
-    width: 40,
-    height: 40,
-    border: "1px solid rgba(255,255,255,0.12)",
-    background: "rgba(255,255,255,0.055)",
-    color: "#fff",
-    borderRadius: 10,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    cursor: "pointer",
-    padding: 0,
-  },
-  header: {
-    textAlign: "center",
-  },
-  kicker: {
-    margin: 0,
-    color: GOLD,
-    fontSize: 12,
-    fontWeight: 900,
-    letterSpacing: 2,
-  },
-  title: {
-    margin: "8px 0 0",
-    fontSize: 34,
-    lineHeight: 1,
-    fontWeight: 900,
-  },
-  avatarBlock: {
-    display: "grid",
-    justifyItems: "center",
-    gap: 12,
-  },
-  avatarButton: {
-    position: "relative",
-    width: 120,
-    height: 120,
-    borderRadius: "50%",
-    border: "2.5px solid rgba(212,175,55,0.6)",
-    background: "linear-gradient(145deg, #C1121F, #5b0710)",
-    boxShadow: "0 0 0 6px rgba(193,18,31,0.14), 0 20px 54px rgba(0,0,0,0.4)",
-    overflow: "hidden",
-    cursor: "pointer",
-    padding: 0,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    transition: "box-shadow 0.2s",
-  },
-  avatarImage: {
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-    display: "block",
-  },
-  avatarInitial: {
-    color: "#fff",
-    fontSize: 44,
-    fontWeight: 900,
-  },
-  avatarOverlay: {
-    position: "absolute",
-    inset: 0,
-    background: "rgba(0,0,0,0.52)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    transition: "opacity 0.18s",
-    pointerEvents: "none",
-  },
-  photoButton: {
-    border: "1px solid rgba(212,175,55,0.28)",
-    background: "rgba(212,175,55,0.08)",
-    color: GOLD,
-    borderRadius: 999,
-    padding: "9px 16px",
-    fontSize: 13,
-    fontWeight: 800,
-    cursor: "pointer",
-    maxWidth: 260,
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-  },
-  form: {
-    display: "grid",
-    gap: 18,
-    padding: "20px 18px",
-    borderRadius: 20,
-    background: "rgba(11,11,11,0.9)",
-    border: "1px solid rgba(255,255,255,0.07)",
-    boxShadow: "0 20px 60px rgba(0,0,0,0.34)",
-  },
-  field: {
-    display: "grid",
-    gap: 8,
-  },
-  label: {
-    color: "#888",
-    fontSize: 11,
-    fontWeight: 900,
-    letterSpacing: 1.2,
-    textTransform: "uppercase",
-  },
-  usernameWrap: {
-    position: "relative",
-  },
-  usernameAt: {
-    position: "absolute",
-    left: 14,
-    top: "50%",
-    transform: "translateY(-50%)",
-    color: "#555",
-    fontSize: 15,
-    fontWeight: 700,
-    pointerEvents: "none",
-    zIndex: 1,
-  },
-  input: {
-    width: "100%",
-    boxSizing: "border-box",
-    border: "1px solid rgba(255,255,255,0.1)",
-    borderRadius: 12,
-    background: "rgba(7,7,7,0.9)",
-    color: "#fff",
-    padding: "13px 14px",
-    fontSize: 15,
-    outline: "none",
-    fontFamily: "inherit",
-    transition: "border-color 0.15s",
-  },
-  textarea: {
-    width: "100%",
-    boxSizing: "border-box",
-    border: "1px solid rgba(255,255,255,0.1)",
-    borderRadius: 12,
-    background: "rgba(7,7,7,0.9)",
-    color: "#fff",
-    padding: "13px 14px",
-    fontSize: 15,
-    lineHeight: 1.55,
-    resize: "none",
-    outline: "none",
-    fontFamily: "inherit",
-  },
-  count: {
-    justifySelf: "end",
-    fontSize: 11,
-    fontWeight: 700,
-    transition: "color 0.15s",
-  },
-  chips: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  chip: {
-    padding: "8px 14px",
-    borderRadius: 999,
-    border: "1px solid rgba(255,255,255,0.1)",
-    background: "rgba(255,255,255,0.04)",
-    color: "rgba(255,255,255,0.5)",
-    fontSize: 13,
-    fontWeight: 700,
-    cursor: "pointer",
-    transition: "all 0.15s",
-    whiteSpace: "nowrap",
-  },
-  fieldHint: {
-    color: "#555",
-    fontSize: 11,
-  },
-  fieldError: {
-    color: "#F87171",
-    fontSize: 11,
-    fontWeight: 700,
-  },
-  error: {
-    color: "#fca5a5",
-    background: "rgba(193,18,31,0.12)",
-    border: "1px solid rgba(193,18,31,0.3)",
-    borderRadius: 12,
-    padding: "12px 14px",
-    fontSize: 13,
-    lineHeight: 1.5,
-  },
-  saveButton: {
-    width: "100%",
-    border: "none",
-    borderRadius: 14,
-    background: RED,
-    color: "#fff",
-    minHeight: 52,
-    fontSize: 15,
-    fontWeight: 900,
-    boxShadow: "0 16px 44px rgba(193,18,31,0.24)",
-    transition: "background 0.3s, box-shadow 0.3s",
-    fontFamily: "inherit",
-  },
-};
