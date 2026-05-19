@@ -13,7 +13,6 @@ import {
   serverTimestamp,
   updateDoc,
   where,
-  increment,
 } from "firebase/firestore";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
@@ -22,7 +21,7 @@ import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/gyms/gymIdStyles";
 import { StarRating, ReviewCard } from "@/components/shared/ReviewCard";
-import { snapToDocs } from "@/lib/firestore";
+import { useGymData } from "@/hooks/useGymData";
 
 const AMENITY_ICONS = {
   Shower: "🚿", Showers: "🚿",
@@ -108,12 +107,7 @@ export default function GymProfilePage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
 
-  const [gym, setGym] = useState(null);
-  const [reels, setReels] = useState([]);
-  const [reviews, setReviews] = useState([]);
-  const [announcements, setAnnouncements] = useState([]);
-  const [coaches, setCoaches] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { gym, setGym, reels, reviews, setReviews, announcements, members, loading } = useGymData({ gymId });
 
   // Join request
   const [joinMessage, setJoinMessage] = useState("");
@@ -123,9 +117,6 @@ export default function GymProfilePage() {
   const [joinError, setJoinError] = useState("");
   const [showJoinForm, setShowJoinForm] = useState(false);
 
-  // Members
-  const [members, setMembers] = useState([]);
-
   // Review form
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
@@ -134,55 +125,6 @@ export default function GymProfilePage() {
   const [reviewSuccess, setReviewSuccess] = useState(false);
   const [reviewError, setReviewError] = useState("");
   const [alreadyReviewed, setAlreadyReviewed] = useState(false);
-
-  useEffect(() => {
-    if (!gymId) return;
-    let active = true;
-    async function load() {
-      try {
-        const byTs = (a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0);
-        const [gymSnap, reelsSnap, reviewsSnap, announcementsSnap] = await Promise.all([
-          getDoc(doc(db, "gyms", gymId)),
-          getDocs(query(collection(db, "reels"), where("gymId", "==", gymId))),
-          getDocs(query(collection(db, "gym_reviews"), where("gymId", "==", gymId))),
-          getDocs(query(collection(db, "gym_announcements"), where("gymId", "==", gymId))),
-        ]);
-        if (!active) return;
-        if (gymSnap.exists()) setGym({ id: gymSnap.id, ...gymSnap.data() });
-        setReels(snapToDocs(reelsSnap).sort(byTs));
-        setReviews(snapToDocs(reviewsSnap).sort(byTs));
-        setAnnouncements(snapToDocs(announcementsSnap).sort(byTs));
-
-        // Load approved members
-        const membersSnap = await getDocs(query(
-          collection(db, "gym_join_requests"),
-          where("gymId", "==", gymId),
-          where("status", "==", "approved")
-        ));
-        const memberDocs = snapToDocs(membersSnap);
-        const memberUserIds = [...new Set(memberDocs.map((m) => m.userId).filter(Boolean))];
-        const memberUserMap = {};
-        if (memberUserIds.length > 0) {
-          await Promise.all(memberUserIds.map(async (uid) => {
-            const uSnap = await getDoc(doc(db, "users", uid));
-            if (uSnap.exists()) memberUserMap[uid] = uSnap.data();
-          }));
-        }
-        if (active) {
-          setMembers(memberDocs.map((m) => ({
-            ...m,
-            user: memberUserMap[m.userId] || null,
-          })));
-        }
-      } catch (e) {
-        console.error("gym profile load error", e);
-      } finally {
-        if (active) setLoading(false);
-      }
-    }
-    load();
-    return () => { active = false; };
-  }, [gymId]);
 
   // Check join/review status after user loads
   useEffect(() => {
