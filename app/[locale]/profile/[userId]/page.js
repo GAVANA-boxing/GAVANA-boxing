@@ -3,10 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { useParams, useRouter } from "next/navigation";
-import { signOut } from "firebase/auth";
-import { auth, db } from "@/lib/firebase";
-import { createNotification, createNewFollowerNotification } from "@/lib/notifications";
-import { startConversation } from "@/lib/messaging";
+import { db } from "@/lib/firebase";
 import { getLocale, translate } from "@/lib/i18n";
 import { RANK_TIERS, calculateSessionXP, calculateUserXP, getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
 import ProfileFighterCard from "@/components/profile/ProfileFighterCard";
@@ -27,6 +24,7 @@ import { getLocalDateKey, getPreviousLocalDateKey, getTimestampMs, formatScore, 
 import ProfileRivalComparison from "@/components/profile/ProfileRivalComparison";
 import ProfileReelsGrid from "@/components/profile/ProfileReelsGrid";
 import { useProfileData } from "@/hooks/useProfileData";
+import { useProfileActions } from "@/hooks/useProfileActions";
 
 export default function UserProfilePage() {
   const { user, loading: authLoading } = useAuth();
@@ -79,6 +77,19 @@ export default function UserProfilePage() {
   const [cardShareCopied, setCardShareCopied] = useState(false);
   const [expandedTrainingGroups, setExpandedTrainingGroups] = useState(new Set());
 
+  const { handleMessage, handleFollow, handleLogout, handleSwitchAccount, handleSendChallenge } = useProfileActions({
+    user, userId, locale, router,
+    isOwnProfile, isFollowing, setIsFollowing,
+    stats, setStats,
+    profileUser,
+    followLoading, setFollowLoading,
+    signingOut, setSigningOut,
+    setIsMutual,
+    challengeSending, setChallengeSending,
+    setChallengeSent, setShowChallengeModal,
+    loadFollowStats,
+  });
+
   // Redirect if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
@@ -87,144 +98,6 @@ export default function UserProfilePage() {
     }
   }, [user, authLoading, locale, router]);
 
-
-  // Handle message
-  const handleMessage = async () => {
-    if (!user) { router.push(`/${locale || "en"}/login`); return; }
-    if (isOwnProfile) { router.push(`/${locale || "en"}/inbox`); return; }
-    try {
-      const convoId = await startConversation(user, userId, {
-        displayName: profileUser?.displayName || profileUser?.username || "",
-        photoURL: profileUser?.photoURL || "",
-      });
-      router.push(`/${locale || "en"}/inbox/${convoId}`);
-    } catch (e) {
-      console.error("Message error:", e);
-    }
-  };
-
-  // Handle follow/unfollow
-  const handleFollow = async () => {
-    if (!user) {
-      router.push(`/${locale || "en"}/login`);
-      return;
-    }
-
-    if (isOwnProfile || followLoading) return;
-
-    setFollowLoading(true);
-    const wasFollowing = isFollowing;
-    const previousStats = stats;
-    setIsFollowing(!wasFollowing);
-    setStats((prev) => ({
-      ...prev,
-      followers: Math.max(0, prev.followers + (wasFollowing ? -1 : 1))
-    }));
-
-    try {
-      const { doc, setDoc, deleteDoc, getDoc, serverTimestamp } = await import("firebase/firestore");
-
-      const followRef = doc(db, "follows", `${user.uid}_${userId}`);
-
-      if (wasFollowing) {
-        // Unfollow
-        await deleteDoc(followRef);
-        setIsMutual(false);
-        // Reload follow stats to ensure accuracy
-        await loadFollowStats(userId);
-      } else {
-        // Follow
-        await setDoc(followRef, {
-          followerId: user.uid,
-          followingId: userId,
-          createdAt: serverTimestamp()
-        });
-        createNewFollowerNotification({
-          recipientId: userId,
-          actorId: user.uid,
-          actorName: user.displayName || user.email?.split("@")[0],
-          actorPhotoURL: user.photoURL || "",
-        });
-        // Check if now mutual
-        const reverseDoc = await getDoc(doc(db, "follows", `${userId}_${user.uid}`));
-        setIsMutual(reverseDoc.exists());
-        // Reload follow stats to ensure accuracy
-        await loadFollowStats(userId);
-      }
-    } catch (error) {
-      console.error("Error following user:", error);
-      setIsFollowing(wasFollowing);
-      setStats(previousStats);
-    } finally {
-      setFollowLoading(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    if (signingOut) return;
-
-    setSigningOut(true);
-    try {
-      await signOut(auth);
-      router.push(`/${locale}/login`);
-    } catch (error) {
-      console.error("Error signing out:", error);
-    } finally {
-      setSigningOut(false);
-    }
-  };
-
-  const handleSendChallenge = async (challengeId) => {
-    if (!user?.uid || !userId || challengeSending) return;
-    setChallengeSending(true);
-    try {
-      const { addDoc, collection, serverTimestamp } = await import("firebase/firestore");
-      await addDoc(collection(db, "pvp_challenges"), {
-        challengerId: user.uid,
-        opponentId: userId,
-        challengeId,
-        status: "pending",
-        createdAt: serverTimestamp(),
-      });
-      await addDoc(collection(db, "notifications"), {
-        recipientId: userId,
-        actorId: user.uid,
-        actorName: user.displayName || "Fighter",
-        fromUserId: user.uid,
-        fromUsername: user.displayName || "Fighter",
-        fromUserPhotoURL: user.photoURL || "",
-        type: "pvp_challenge",
-        challengeId,
-        message: locale === "mn"
-          ? `${user.displayName || "Fighter"} тан руу тулааны шийдэл илгээлээ!`
-          : locale === "ko"
-          ? `${user.displayName || "Fighter"}님이 PvP 배틀을 신청했습니다!`
-          : `${user.displayName || "Fighter"} challenged you to a battle!`,
-        read: false,
-        createdAt: serverTimestamp(),
-      });
-      setChallengeSent(true);
-      setTimeout(() => { setChallengeSent(false); setShowChallengeModal(false); }, 2000);
-    } catch (e) {
-      console.error("challenge send error", e);
-    } finally {
-      setChallengeSending(false);
-    }
-  };
-
-  const handleSwitchAccount = async () => {
-    if (signingOut) return;
-
-    setSigningOut(true);
-    try {
-      await signOut(auth);
-      router.push(`/${locale}/login`);
-    } catch (error) {
-      console.error("Error switching account:", error);
-    } finally {
-      setSigningOut(false);
-    }
-  };
 
   const handleDeleteReel = async (event, reel) => {
     event.stopPropagation();
