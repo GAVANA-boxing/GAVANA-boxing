@@ -10,6 +10,7 @@ import EmptyState from "@/components/EmptyState";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { RED, GOLD, PURPLE, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/coach/coachIdStyles";
+import { StarRating, ReviewCard } from "@/components/shared/ReviewCard";
 import { snapToDocs } from "@/lib/firestore";
 
 const SPECIALTY_COLORS = {
@@ -62,43 +63,7 @@ function getCoachInsight(coach) {
   return { bestFor, improves };
 }
 
-function StarRating({ value, onChange, readonly = false }) {
-  return (
-    <div style={{ display: "flex", gap: 6 }}>
-      {[1, 2, 3, 4, 5].map((n) => (
-        <button
-          key={n}
-          type="button"
-          onClick={() => !readonly && onChange && onChange(n)}
-          style={{
-            background: "none",
-            border: "none",
-            fontSize: 24,
-            cursor: readonly ? "default" : "pointer",
-            color: n <= value ? GOLD : "rgba(255,255,255,0.2)",
-            padding: "2px 1px",
-          }}
-        >
-          ★
-        </button>
-      ))}
-    </div>
-  );
-}
 
-function ReviewCard({ review }) {
-  return (
-    <div style={styles.reviewCard}>
-      <div style={styles.reviewTop}>
-        <StarRating value={review.rating} readonly />
-        <span style={styles.reviewDate}>
-          {review.createdAt?.toDate ? new Date(review.createdAt.toDate()).toLocaleDateString() : ""}
-        </span>
-      </div>
-      {review.review && <p style={styles.reviewText}>{review.review}</p>}
-    </div>
-  );
-}
 
 export default function CoachProfilePage() {
   const params = useParams();
@@ -643,7 +608,7 @@ export default function CoachProfilePage() {
             <EmptyState emoji="⭐" title={t("coachReviewsEmpty")} hint={t("coachIdReviewsEmpty")} padding="28px 16px" />
           </div>
         ) : (
-          reviews.map((r) => <ReviewCard key={r.id} review={r} />)
+          reviews.map((r) => <ReviewCard key={r.id} review={r} styles={styles} />)
         )}
       </div>
 

@@ -21,6 +21,7 @@ import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/gyms/gymIdStyles";
+import { StarRating, ReviewCard } from "@/components/shared/ReviewCard";
 import { snapToDocs } from "@/lib/firestore";
 
 const AMENITY_ICONS = {
@@ -81,43 +82,7 @@ function getGymGoodFor(gym) {
   return map[gym.gymType] || gym.specialties?.slice(0, 3) || [];
 }
 
-function StarRating({ value, onChange, readonly = false }) {
-  return (
-    <div style={{ display: "flex", gap: 4 }}>
-      {[1, 2, 3, 4, 5].map((n) => (
-        <button
-          key={n}
-          type="button"
-          onClick={() => !readonly && onChange?.(n)}
-          style={{
-            background: "none",
-            border: "none",
-            fontSize: 22,
-            cursor: readonly ? "default" : "pointer",
-            color: n <= value ? GOLD : "rgba(255,255,255,0.2)",
-            padding: "1px",
-          }}
-        >
-          ★
-        </button>
-      ))}
-    </div>
-  );
-}
 
-function ReviewCard({ review }) {
-  return (
-    <div style={styles.reviewCard}>
-      <div style={styles.reviewTop}>
-        <StarRating value={review.rating} readonly />
-        <span style={styles.reviewDate}>
-          {review.createdAt?.toDate ? new Date(review.createdAt.toDate()).toLocaleDateString() : ""}
-        </span>
-      </div>
-      {review.review && <p style={styles.reviewText}>{review.review}</p>}
-    </div>
-  );
-}
 
 function ReelThumb({ reel, router, locale }) {
   return (
@@ -679,7 +644,7 @@ export default function GymProfilePage() {
             <p style={styles.emptyText}>{t("gymReviewEmpty")}</p>
           ) : (
             <div style={styles.reviewList}>
-              {reviews.map((r) => <ReviewCard key={r.id} review={r} />)}
+              {reviews.map((r) => <ReviewCard key={r.id} review={r} styles={styles} />)}
             </div>
           )}
         </section>
