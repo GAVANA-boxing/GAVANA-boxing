@@ -1,11 +1,14 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import BottomSheet from "@/components/BottomSheet";
-import RankUpModal from "@/components/RankUpModal";
-import RankBeltModal from "@/components/profile/RankBeltModal";
-import StreakDetailModal from "@/components/profile/StreakDetailModal";
-import FighterShareCard from "@/components/profile/FighterShareCard";
-import { WeeklyRecapModal, WeeklyLeaderboardModal } from "@/components/profile/WeeklyModals";
+
+const RankUpModal = dynamic(() => import("@/components/RankUpModal"), { ssr: false });
+const RankBeltModal = dynamic(() => import("@/components/profile/RankBeltModal"), { ssr: false });
+const StreakDetailModal = dynamic(() => import("@/components/profile/StreakDetailModal"), { ssr: false });
+const FighterShareCard = dynamic(() => import("@/components/profile/FighterShareCard"), { ssr: false });
+const WeeklyRecapModal = dynamic(() => import("@/components/profile/WeeklyModals").then(m => m.WeeklyRecapModal), { ssr: false });
+const WeeklyLeaderboardModal = dynamic(() => import("@/components/profile/WeeklyModals").then(m => m.WeeklyLeaderboardModal), { ssr: false });
 import { PURPLE } from "@/lib/tokens";
 import { getActiveChallengeStreak } from "@/lib/utils";
 

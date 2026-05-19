@@ -2,7 +2,9 @@ import { Geist, Geist_Mono, Anton } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/AuthContext";
 import InAppBrowserWarning from "@/components/InAppBrowserWarning";
-import OnboardingModal from "@/components/OnboardingModal";
+import dynamic from "next/dynamic";
+
+const OnboardingModal = dynamic(() => import("@/components/OnboardingModal"));
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
