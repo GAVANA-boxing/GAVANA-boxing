@@ -46,16 +46,38 @@ export default function UserProfilePage() {
   };
   const {
     profileUser, setProfileUser,
-    userReels, savedUserReels, aiFeedbackHistory, trainingSessions,
-    loading, totalLikes, stats,
+    userReels, setUserReels,
+    savedUserReels, setSavedUserReels,
+    aiFeedbackHistory, trainingSessions,
+    loading, setLoading,
+    totalLikes, setTotalLikes,
+    stats, setStats,
     isFollowing, setIsFollowing,
     isMutual, setIsMutual,
     isOwnProfile,
     challengeRanks, pvpStats, sparringRecord, myStats,
     userBadges, coachBookings,
     rankUpRank, setRankUpRank,
+    loadFollowStats,
   } = useProfileData({ user, userId, authLoading, locale });
 
+  const tabContentRef = useRef(null);
+  const [profileTab, setProfileTab] = useState("posts");
+  const [followLoading, setFollowLoading] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const [challengeSending, setChallengeSending] = useState(false);
+  const [challengeSent, setChallengeSent] = useState(false);
+  const [showChallengeModal, setShowChallengeModal] = useState(false);
+  const [deletingReelIds, setDeletingReelIds] = useState(new Set());
+  const [previewFailures, setPreviewFailures] = useState({});
+  const [deleteConfirmReel, setDeleteConfirmReel] = useState(null);
+  const [showStreakModal, setShowStreakModal] = useState(false);
+  const [showRankModal, setShowRankModal] = useState(false);
+  const [showWeeklyRecap, setShowWeeklyRecap] = useState(false);
+  const [showFighterCard, setShowFighterCard] = useState(false);
+  const [showWeeklyModal, setShowWeeklyModal] = useState(false);
+  const [cardShareCopied, setCardShareCopied] = useState(false);
+  const [expandedTrainingGroups, setExpandedTrainingGroups] = useState(new Set());
 
   // Redirect if not logged in
   useEffect(() => {

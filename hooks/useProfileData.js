@@ -545,13 +545,13 @@ export function useProfileData({ user, userId, authLoading, locale }) {
 
   return {
     profileUser, setProfileUser,
-    userReels,
-    savedUserReels,
+    userReels, setUserReels,
+    savedUserReels, setSavedUserReels,
     aiFeedbackHistory,
     trainingSessions,
-    loading,
-    totalLikes,
-    stats,
+    loading, setLoading,
+    totalLikes, setTotalLikes,
+    stats, setStats,
     isFollowing, setIsFollowing,
     isMutual, setIsMutual,
     isOwnProfile,
@@ -562,5 +562,6 @@ export function useProfileData({ user, userId, authLoading, locale }) {
     userBadges,
     coachBookings,
     rankUpRank, setRankUpRank,
+    loadFollowStats,
   };
 }
