@@ -11,9 +11,7 @@ import AIBreakdownSheet from "@/components/AIBreakdownSheet";
 import { GOLD, goldAlpha } from "@/lib/tokens";
 import {
   DEMO_REEL,
-  getSafeViewCount,
   getCreatedAtMs,
-  sortReelsByEngagement,
   getCreatorName,
   getCreatorPhoto,
   cleanCaption,
@@ -32,7 +30,7 @@ import { useVideoControls } from "@/hooks/useVideoControls";
 import { useCommentActions } from "@/hooks/useCommentActions";
 import { useReelFeedback } from "@/hooks/useReelFeedback";
 import { useReelInteractions } from "@/hooks/useReelInteractions";
-import { getFirebase } from "@/lib/lazyFirebase";
+import { useReelViewTracking } from "@/hooks/useReelViewTracking";
 import styles from "@/components/reels/reelStyles";
 
 export default function ReelsContent() {
@@ -58,7 +56,6 @@ export default function ReelsContent() {
   const [breakdownReel, setBreakdownReel] = useState(null);
   const feedRef = useRef(null);
   const reelItemRefs = useRef({});
-  const viewTimers = useRef({});
   const lastTapRef = useRef({ time: 0, reelId: null });
   const lastScrolledReelId = useRef(null);
 
@@ -171,85 +168,7 @@ export default function ReelsContent() {
     });
   }, [reels, targetReelId]);
 
-  // Track view when reel is active for 3 seconds
-  useEffect(() => {
-    if (!user || !reels.length || currentIndex < 0 || currentIndex >= reels.length) return;
-    
-    const currentReel = reels[currentIndex];
-    if (!currentReel || !currentReel.id || currentReel.isDemo) return;
-    
-    // If already viewed, don't track again
-    if (userViews.has(currentReel.id)) return;
-    
-    // Clear any existing timer for this reel
-    if (viewTimers.current[currentReel.id]) {
-      clearTimeout(viewTimers.current[currentReel.id]);
-    }
-    
-    // Set a 3 second timer to record view
-    viewTimers.current[currentReel.id] = setTimeout(async () => {
-      if (!user?.uid) return;
-
-      try {
-        const { db } = await getFirebase();
-        const { collection, addDoc, doc, setDoc, updateDoc, increment, serverTimestamp } = await import("firebase/firestore");
-
-        // Record view in reel_views collection
-        await addDoc(collection(db, "reel_views"), {
-          reelId: currentReel.id,
-          userId: user.uid,
-          createdAt: serverTimestamp()
-        });
-
-        // Increment views on reel doc and reel_stats in parallel
-        await Promise.all([
-          updateDoc(doc(db, "reels", currentReel.id), { views: increment(1) }),
-          setDoc(doc(db, "reel_stats", currentReel.id), { reelId: currentReel.id, views: increment(1), updatedAt: serverTimestamp() }, { merge: true }),
-        ]);
-        
-        // Update local state and persist to sessionStorage so next load skips re-fetch
-        setUserViews(prev => {
-          const newViews = new Set(prev);
-          newViews.add(currentReel.id);
-          try {
-            const sessionKey = `gavana_views_${user.uid}`;
-            const stored = sessionStorage.getItem(sessionKey);
-            const arr = stored ? JSON.parse(stored) : [];
-            arr.push(currentReel.id);
-            // Keep only last 500 to prevent unbounded growth
-            sessionStorage.setItem(sessionKey, JSON.stringify(arr.slice(-500)));
-          } catch { /* sessionStorage unavailable */ }
-          return newViews;
-        });
-        
-        // Update reel data locally
-        const updateViewedReel = (prev) => sortReelsByEngagement(prev.map(reel => 
-          reel.id === currentReel.id 
-            ? { ...reel, views: getSafeViewCount(reel) + 1 }
-            : reel
-        ));
-        setAllReels(updateViewedReel);
-      } catch (err) {
-        console.error("Failed to record view:", err);
-      }
-    }, 3000);
-    
-    // Cleanup timer on unmount or index change
-    return () => {
-      if (viewTimers.current[currentReel.id]) {
-        clearTimeout(viewTimers.current[currentReel.id]);
-        delete viewTimers.current[currentReel.id];
-      }
-    };
-  }, [user, currentIndex, reels, userViews]);
-
-  useEffect(() => {
-    const timers = viewTimers.current;
-
-    return () => {
-      Object.values(timers).forEach((timer) => clearTimeout(timer));
-    };
-  }, []);
+  useReelViewTracking({ user, reels, currentIndex, userViews, setUserViews, setAllReels });
 
   // Handle scroll to change current video
   const handleScroll = useCallback((e) => {

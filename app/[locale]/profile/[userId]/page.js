@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { useParams, useRouter } from "next/navigation";
-import { db } from "@/lib/firebase";
 import { getLocale, translate } from "@/lib/i18n";
 import { RANK_TIERS, calculateSessionXP, calculateUserXP, getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
 import ProfileFighterCard from "@/components/profile/ProfileFighterCard";
@@ -20,11 +19,12 @@ import FighterShareCard from "@/components/profile/FighterShareCard";
 import { WeeklyRecapModal, WeeklyLeaderboardModal } from "@/components/profile/WeeklyModals";
 import BattleSection from "@/components/profile/BattleSection";
 import TrainingProgressSection from "@/components/profile/TrainingProgressSection";
-import { getLocalDateKey, getPreviousLocalDateKey, getTimestampMs, formatScore, getActiveChallengeStreak, getSafeReelLikes } from "@/lib/utils";
+import { getLocalDateKey, getPreviousLocalDateKey, getTimestampMs, formatScore, getActiveChallengeStreak } from "@/lib/utils";
 import ProfileRivalComparison from "@/components/profile/ProfileRivalComparison";
 import ProfileReelsGrid from "@/components/profile/ProfileReelsGrid";
 import { useProfileData } from "@/hooks/useProfileData";
 import { useProfileActions } from "@/hooks/useProfileActions";
+import { useReelDeletion } from "@/hooks/useReelDeletion";
 
 export default function UserProfilePage() {
   const { user, loading: authLoading } = useAuth();
@@ -66,9 +66,7 @@ export default function UserProfilePage() {
   const [challengeSending, setChallengeSending] = useState(false);
   const [challengeSent, setChallengeSent] = useState(false);
   const [showChallengeModal, setShowChallengeModal] = useState(false);
-  const [deletingReelIds, setDeletingReelIds] = useState(new Set());
   const [previewFailures, setPreviewFailures] = useState({});
-  const [deleteConfirmReel, setDeleteConfirmReel] = useState(null);
   const [showStreakModal, setShowStreakModal] = useState(false);
   const [showRankModal, setShowRankModal] = useState(false);
   const [showWeeklyRecap, setShowWeeklyRecap] = useState(false);
@@ -98,79 +96,11 @@ export default function UserProfilePage() {
     }
   }, [user, authLoading, locale, router]);
 
-
-  const handleDeleteReel = async (event, reel) => {
-    event.stopPropagation();
-
-    if (!user?.uid || reel.userId !== user.uid || deletingReelIds.has(reel.id)) {
-      return;
-    }
-
-    const previousUserReels = userReels;
-    const previousSavedReels = savedUserReels;
-
-    setDeletingReelIds((prev) => new Set(prev).add(reel.id));
-    setUserReels((prev) => prev.filter((item) => item.id !== reel.id));
-    setSavedUserReels((prev) => prev.filter((item) => item.id !== reel.id));
-    setTotalLikes((prev) => Math.max(0, prev - getSafeReelLikes(reel)));
-
-    try {
-      const {
-        collection,
-        deleteDoc,
-        doc,
-        getDocs,
-        query,
-        where,
-        writeBatch,
-      } = await import("firebase/firestore");
-
-      const deleteDocsInBatches = async (docs) => {
-        for (let i = 0; i < docs.length; i += 450) {
-          const batch = writeBatch(db);
-          docs.slice(i, i + 450).forEach((snapshotDoc) => {
-            batch.delete(snapshotDoc.ref);
-          });
-          await batch.commit();
-        }
-      };
-
-      const commentsSnapshot = await getDocs(collection(db, "reels", reel.id, "comments"));
-      await deleteDocsInBatches(commentsSnapshot.docs);
-
-      const likesSnapshot = await getDocs(query(
-        collection(db, "user_likes"),
-        where("reelId", "==", reel.id)
-      ));
-      await deleteDocsInBatches(likesSnapshot.docs);
-
-      const savedSnapshot = await getDocs(query(
-        collection(db, "saved_reels"),
-        where("reelId", "==", reel.id)
-      ));
-      await deleteDocsInBatches(savedSnapshot.docs);
-
-      const notificationsSnapshot = await getDocs(query(
-        collection(db, "notifications"),
-        where("reelId", "==", reel.id)
-      ));
-      await deleteDocsInBatches(notificationsSnapshot.docs);
-
-      await deleteDoc(doc(db, "reels", reel.id));
-    } catch (error) {
-      console.error("Error deleting reel:", error);
-      setUserReels(previousUserReels);
-      setSavedUserReels(previousSavedReels);
-      setTotalLikes(previousUserReels.reduce((sum, item) => sum + getSafeReelLikes(item), 0));
-      alert(t("deleteReelError"));
-    } finally {
-      setDeletingReelIds((prev) => {
-        const next = new Set(prev);
-        next.delete(reel.id);
-        return next;
-      });
-    }
-  };
+  const {
+    deletingReelIds,
+    deleteConfirmReel, setDeleteConfirmReel,
+    handleDeleteReel,
+  } = useReelDeletion({ user, t, userReels, setUserReels, savedUserReels, setSavedUserReels, setTotalLikes });
 
   // Per-session XP breakdowns — must be before any early return (Rules of Hooks)
   const xpBreakdowns = useMemo(() => {
