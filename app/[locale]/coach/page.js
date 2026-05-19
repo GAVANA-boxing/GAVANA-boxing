@@ -2,23 +2,18 @@
 
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  addDoc,
-  collection,
-  serverTimestamp,
-} from "firebase/firestore";
 import AICoach from "@/components/AICoach";
 import BottomNav from "@/components/BottomNav";
 import BottomSheet from "@/components/BottomSheet";
 import EmptyState from "@/components/EmptyState";
 import SkeletonBlock from "@/components/SkeletonBlock";
 import { useAuth } from "@/lib/AuthContext";
-import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/coach/coachStyles";
 import { CoachCard, MyRequestCard, SparringPostCard } from "@/components/coach/CoachCards";
 import { useCoachPageData } from "@/hooks/useCoachPageData";
+import { useCoachPageActions } from "@/hooks/useCoachPageActions";
 import { SPECIALTIES, VIBE_FILTERS, LEVELS } from "@/lib/coachConstants";
 
 export default function CoachPage() {
@@ -33,14 +28,7 @@ export default function CoachPage() {
   const [filterVibe, setFilterVibe] = useState("");
   const [filterLocation, setFilterLocation] = useState("");
   const [sortBy, setSortBy] = useState("rating");
-  const [requestedIds, setRequestedIds] = useState(new Set());
   const [showCoachFilterSheet, setShowCoachFilterSheet] = useState(false);
-  const [showSparringForm, setShowSparringForm] = useState(false);
-  const [sparringForm, setSparringForm] = useState({
-    weight: "", level: "", location: "", availableTime: "", note: "",
-  });
-  const [sparringSaving, setSpSaving] = useState(false);
-  const [sparringSaved, setSpSaved] = useState(false);
 
   const {
     coaches, sparringPosts, setSparringPosts,
@@ -48,70 +36,13 @@ export default function CoachPage() {
     myRequests, myRequestsLoading, myRequestCoaches,
   } = useCoachPageData({ tab, userId: user?.uid });
 
-  const handleCoachRequest = async (coachId) => {
-    if (!user?.uid) { router.push(`/${locale}/login`); return; }
-    try {
-      await addDoc(collection(db, "coach_requests"), {
-        coachId,
-        userId: user.uid,
-        status: "pending",
-        createdAt: serverTimestamp(),
-        message: "",
-        locale,
-      });
-      setRequestedIds((prev) => new Set(prev).add(coachId));
-    } catch (e) {
-      console.error("Failed to send coach request:", e);
-    }
-  };
-
-  const handleSparringRequest = async (postId) => {
-    if (!user?.uid) { router.push(`/${locale}/login`); return; }
-    try {
-      await addDoc(collection(db, "coach_requests"), {
-        sparringPostId: postId,
-        userId: user.uid,
-        type: "sparring",
-        status: "pending",
-        createdAt: serverTimestamp(),
-        locale,
-      });
-      setRequestedIds((prev) => new Set(prev).add(postId));
-    } catch (e) {
-      console.error("Failed to send sparring request:", e);
-    }
-  };
-
-  const handleCreateSparringPost = async () => {
-    if (!user?.uid) { router.push(`/${locale}/login`); return; }
-    setSpSaving(true);
-    try {
-      const docRef = await addDoc(collection(db, "sparring_posts"), {
-        userId: user.uid,
-        weight: sparringForm.weight,
-        level: sparringForm.level,
-        location: sparringForm.location,
-        availableTime: sparringForm.availableTime,
-        note: sparringForm.note,
-        active: true,
-        createdAt: serverTimestamp(),
-        locale,
-      });
-      setSparringPosts((prev) => [{
-        id: docRef.id,
-        userId: user.uid,
-        ...sparringForm,
-        active: true,
-      }, ...prev]);
-      setSpSaved(true);
-      setSparringForm({ weight: "", level: "", location: "", availableTime: "", note: "" });
-      setShowSparringForm(false);
-    } catch (e) {
-      console.error("Failed to create sparring post:", e);
-    } finally {
-      setSpSaving(false);
-    }
-  };
+  const {
+    requestedIds,
+    showSparringForm, setShowSparringForm,
+    sparringForm, setSparringForm,
+    sparringSaving, sparringSaved,
+    handleCoachRequest, handleSparringRequest, handleCreateSparringPost,
+  } = useCoachPageActions({ user, router, locale, setSparringPosts });
 
   const filteredCoaches = coaches
     .filter((c) => !filterSpecialty || (c.coachSpecialties || []).includes(filterSpecialty))

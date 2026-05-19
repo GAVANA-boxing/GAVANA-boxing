@@ -56,7 +56,6 @@ export default function ReelsContent() {
   const [expandedCaptionIds, setExpandedCaptionIds] = useState(new Set());
   const [captionSheetReelId, setCaptionSheetReelId] = useState(null);
   const [breakdownReel, setBreakdownReel] = useState(null);
-  const [localProfileProgress, setProfileReelProgress] = useState(null);
   const feedRef = useRef(null);
   const reelItemRefs = useRef({});
   const viewTimers = useRef({});
@@ -171,66 +170,6 @@ export default function ReelsContent() {
       });
     });
   }, [reels, targetReelId]);
-
-  // Load profile-source progress for current reel
-  const currentReelId = reels[currentIndex]?.id || null;
-  useEffect(() => {
-    if (!isProfileSource || !profileSourceUserId || !currentReelId) {
-      setProfileReelProgress(null);
-      return;
-    }
-
-    let isActive = true;
-    setProfileReelProgress(null); // reset while loading
-
-    async function loadProgress() {
-      try {
-        const { db } = await getFirebase();
-        const { collection, query, where, getDocs } = await import("firebase/firestore");
-        const snap = await getDocs(query(
-          collection(db, "training_sessions"),
-          where("userId", "==", profileSourceUserId),
-          where("reelId", "==", currentReelId)
-        ));
-
-        if (!isActive) return;
-
-        if (snap.empty) {
-          setProfileReelProgress({ empty: true });
-          return;
-        }
-
-        const sessions = snap.docs
-          .map((d) => ({ ...d.data(), id: d.id }))
-          .filter((s) => s.type === "training" && Number.isFinite(Number(s.score)))
-          .sort((a, b) => {
-            const ta = a.createdAt?.toMillis?.() || 0;
-            const tb = b.createdAt?.toMillis?.() || 0;
-            return tb - ta;
-          });
-
-        if (!sessions.length) {
-          setProfileReelProgress({ empty: true });
-          return;
-        }
-
-        const scores = sessions.map((s) => Number(s.score));
-        setProfileReelProgress({
-          empty: false,
-          attempts: sessions.length,
-          bestScore: Math.max(...scores),
-          latestScore: scores[0],
-        });
-      } catch (err) {
-        console.error("Failed to load profile reel progress:", err);
-        if (isActive) setProfileReelProgress(null);
-      }
-    }
-
-    loadProgress();
-    return () => { isActive = false; };
-  }, [isProfileSource, profileSourceUserId, currentReelId]);
-
 
   // Track view when reel is active for 3 seconds
   useEffect(() => {

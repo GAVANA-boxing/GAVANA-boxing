@@ -1,15 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
-import { RANK_TIERS, calculateUserXP, getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
+import { RANK_TIERS, getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
 import { getLocale, translate } from "@/lib/i18n";
 import RankIcon from "@/components/RankIcon";
 import BottomNav from "@/components/BottomNav";
 import { RED, GOLD , PURPLE, goldAlpha} from "@/lib/tokens";
+import { useRankData } from "@/hooks/useRankData";
 
 const HOW_TO_EARN = [
   {
@@ -72,43 +70,7 @@ export default function RankPage() {
   const t = (key) => translate(locale, key);
   const lbl = (mn, ko, en) => locale === "mn" ? mn : locale === "ko" ? ko : en;
 
-  const [xp, setXp] = useState(null);
-  const [sessionCount, setSessionCount] = useState(0);
-  const [dataLoading, setDataLoading] = useState(true);
-
-  useEffect(() => {
-    if (authLoading) return;
-    if (!user?.uid) { setXp(0); setDataLoading(false); return; }
-
-    let active = true;
-    async function loadXP() {
-      try {
-        const [feedbackSnap, profileSnap] = await Promise.all([
-          getDocs(query(collection(db, "ai_feedback"), where("userId", "==", user.uid))),
-          getDoc(doc(db, "users", user.uid)),
-        ]);
-
-        const docs = feedbackSnap.docs.map((d) => ({ score: d.data().score, createdAt: d.data().createdAt }));
-        const profileData = profileSnap.exists() ? profileSnap.data() : {};
-        const storedXP = Number(profileData.xp) || 0;
-        const streak = Number(profileData.dailyStreak) || 0;
-        const likes = Number(profileData.likesReceived) || 0;
-        const aiXP = calculateUserXP({ aiFeedbackDocs: docs, streakDays: streak, likesReceived: likes });
-
-        if (active) {
-          setXp(storedXP + aiXP);
-          setSessionCount(feedbackSnap.docs.length);
-        }
-      } catch {
-        if (active) setXp(0);
-      } finally {
-        if (active) setDataLoading(false);
-      }
-    }
-
-    loadXP();
-    return () => { active = false; };
-  }, [user?.uid, authLoading]);
+  const { xp, sessionCount, dataLoading } = useRankData({ user, authLoading });
 
   const currentXP = xp ?? 0;
   const fighterRank = getFighterRank(currentXP);
