@@ -15,39 +15,22 @@ import {
   DEMO_REEL,
   getSafeLikeCount,
   getSafeViewCount,
-  getSafeCommentsCount,
-  getEngagementScore,
   getCreatedAtMs,
-  formatCompactCount,
-  formatViews,
   sortReelsByEngagement,
   getCreatorName,
   getCreatorPhoto,
-  getCaptionToggleLabel,
   cleanCaption,
   extractFeedbackScore,
-  getFirstValue,
-  formatSpeedMetric,
-  formatComboCountMetric,
 } from "@/lib/reelHelpers";
 import {
-  LikeIcon,
   BackArrowIcon,
   SpeakerIcon,
-  CommentIcon,
-  ShareIcon,
-  ViewIcon,
-  BookmarkIcon,
-  RobotIcon,
-  AISparkIcon,
-  CenterPlayIcon,
-  DemoReelVisual,
-  ReelFallbackVisual,
 } from "@/components/reels/ReelIcons";
 import CommentsModal from "@/components/reels/CommentsModal";
 import FeedbackModal from "@/components/reels/FeedbackModal";
 import FilterSheet from "@/components/reels/FilterSheet";
 import CaptionSheet from "@/components/reels/CaptionSheet";
+import ReelItem from "@/components/reels/ReelItem";
 import styles from "@/components/reels/reelStyles";
 
 // Dynamic import for Firebase to avoid SSR issues
@@ -1714,12 +1697,6 @@ export default function ReelsContent() {
           const captionText = cleanCaption(reel.description || reel.caption || "");
           const stats = reel.userId ? creatorStats[reel.userId] : null;
           const hasBestScore = typeof stats?.bestScore === "number" && Number.isFinite(stats.bestScore) && stats.bestScore > 0;
-          const metrics = [
-            typeof stats?.xp === "number" ? { label: t("reels.xp"), value: stats.xp.toLocaleString() } : null,
-            { label: t("reels.speed"), value: formatSpeedMetric(reel) },
-            { label: t("reels.combo"), value: formatComboCountMetric(reel) },
-            stats?.rank ? { label: t("reels.rank"), value: t(stats.rank.key) } : null,
-          ].filter(Boolean);
           const creatorStatLine = stats
             ? [
                 stats.rank ? t(stats.rank.key) : null,
@@ -1727,365 +1704,51 @@ export default function ReelsContent() {
                 hasBestScore ? `${t("reels.bestScore")} ${stats.bestScore.toFixed(1)}/10` : null,
               ].filter(Boolean).join(" · ")
             : "";
-          const openCreatorProfile = () => {
-            if (reel.userId) {
-              router.push(`/${currentLocale}/profile/${reel.userId}`);
-            }
-          };
           const hasStory = !!(creatorProfile?.storyActive || creatorProfile?.hasActiveStory);
-
           return (
-          <div
-            key={reel.id}
-            data-reel-index={index}
-            ref={(el) => {
-              if (el) {
-                reelItemRefs.current[reel.id] = el;
-              } else {
-                delete reelItemRefs.current[reel.id];
-              }
-            }}
-            style={{
-              ...styles.videoContainer,
-              ...(index === currentIndex ? styles.activeVideo : {})
-            }}
-          >
-            {reel.isDemo ? (
-              <DemoReelVisual
-                onUpload={() => router.push(`/${currentLocale}/upload`)}
-              />
-            ) : videoErrors[reel.id] || !reel.videoUrl ? (
-              <ReelFallbackVisual reel={reel} />
-            ) : (
-              <video
-                ref={(el) => {
-                  if (el) {
-                    videoRefs.current[reel.id] = el;
-                    el.muted = index !== currentIndex || !soundEnabled;
-                    el.playsInline = true;
-                    el.setAttribute("playsinline", "");
-                    el.setAttribute("webkit-playsinline", "");
-                  } else {
-                    delete videoRefs.current[reel.id];
-                  }
-                }}
-                src={reel.videoUrl}
-                style={styles.video}
-                className={index === currentIndex ? "cinematic-video" : ""}
-                autoPlay={index === currentIndex}
-                loop
-                muted={index !== currentIndex || !soundEnabled}
-                playsInline
-                webkit-playsinline="true"
-                poster={reel.thumbnailUrl || undefined}
-                onClick={(e) => handleVideoClick(e, reel)}
-                onLoadStart={() => handleVideoLoadStart(reel.id)}
-                onLoadedData={() => {
-                  handleVideoLoaded(reel.id);
-                  if (index === currentIndex) {
-                    const video = videoRefs.current[reel.id];
-                    if (video) {
-                      video.muted = !soundEnabled;
-                      video.play().catch(() => {});
-                    }
-                  }
-                }}
-                onLoadedMetadata={() => {
-                  if (index === currentIndex) {
-                    const video = videoRefs.current[reel.id];
-                    if (video) {
-                      video.muted = !soundEnabled;
-                      video.play().catch(() => {});
-                    }
-                  }
-                }}
-                onCanPlay={() => {
-                  handleVideoLoaded(reel.id);
-                  if (index === currentIndex) {
-                    const video = videoRefs.current[reel.id];
-                    if (video) {
-                      video.muted = !soundEnabled;
-                      video.play().catch(() => {});
-                    }
-                  }
-                }}
-                onError={() => handleVideoError(reel.id)}
-                onTimeUpdate={(e) => {
-                  if (index === currentIndex) {
-                    const v = e.currentTarget;
-                    if (v.duration) setVideoProgress(v.currentTime / v.duration);
-                  }
-                }}
-                preload={index === currentIndex ? "auto" : index === currentIndex + 1 ? "metadata" : "none"}
-              />
-            )}
-
-            {!reel.isDemo && !videoErrors[reel.id] && videoLoading[reel.id] && (
-              <div style={styles.videoLoadingOverlay}>
-                <div style={styles.spinner}></div>
-                <span style={styles.videoLoadingText}>{t("loadingReel")}</span>
-              </div>
-            )}
-
-            <div style={styles.vignette} />
-            <div style={styles.bottomGradient} />
-
-            {/* Video progress bar */}
-            {index === currentIndex && !reel.isDemo && (
-              <div style={styles.videoProgressBar}>
-                <div style={{ ...styles.videoProgressFill, width: `${videoProgress * 100}%` }} />
-              </div>
-            )}
-
-            {/* Double-tap heart + fire bursts */}
-            {heartBursts.filter((b) => b.reelId === reel.id).map((b) => (
-              <div key={b.id} style={{ position: "absolute", left: b.x - 40, top: b.y - 40, zIndex: 60, pointerEvents: "none", width: 80, height: 80 }}>
-                <span className="heart-burst" style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 80, lineHeight: 1 }}>❤️</span>
-                {[...Array(6)].map((_, i) => (
-                  <span
-                    key={i}
-                    className={`fire-spark fire-spark-${i}`}
-                    style={{ position: "absolute", left: "50%", top: "50%", fontSize: 18, lineHeight: 1 }}
-                  >
-                    {["🔥", "✨", "🔥", "💥", "✨", "🔥"][i]}
-                  </span>
-                ))}
-              </div>
-            ))}
-
-            {isPvpSource && index === currentIndex && !reel.isDemo && (
-              <div style={styles.pvpSourceBanner}>
-                <span style={styles.pvpSourceIcon}>⚔️</span>
-                <span style={styles.pvpSourceText}>{t("pvpChallengeBanner")}</span>
-              </div>
-            )}
-
-            {isProfileSource && index === currentIndex && !reel.isDemo && (
-              <div style={styles.profileProgressCard}>
-                <span style={styles.profileProgressTitle}>{t("reelProgressTitle")}</span>
-                {profileReelProgress === null ? (
-                  <span style={{ ...styles.profileProgressEmpty, opacity: 0.4 }}>…</span>
-                ) : profileReelProgress.empty ? (
-                  <span style={styles.profileProgressEmpty}>{t("reelNoAttempts")}</span>
-                ) : (
-                  <div style={styles.profileProgressStats}>
-                    <div style={styles.profileProgressStat}>
-                      <span style={styles.profileProgressStatVal}>{profileReelProgress.bestScore?.toFixed(1)}</span>
-                      <span style={styles.profileProgressStatLbl}>{t("best")}</span>
-                    </div>
-                    <div style={styles.profileProgressDivider} />
-                    <div style={styles.profileProgressStat}>
-                      <span style={styles.profileProgressStatVal}>{profileReelProgress.latestScore?.toFixed(1)}</span>
-                      <span style={styles.profileProgressStatLbl}>{t("reelLatestAttempt")}</span>
-                    </div>
-                    <div style={styles.profileProgressDivider} />
-                    <div style={styles.profileProgressStat}>
-                      <span style={styles.profileProgressStatVal}>{profileReelProgress.attempts}</span>
-                      <span style={styles.profileProgressStatLbl}>{t("reelAttemptCount")}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div style={styles.info}>
-              <div style={styles.creatorRow}>
-                <button
-                  type="button"
-                  style={{
-                    ...styles.creatorAvatarButton,
-                    cursor: reel.userId ? "pointer" : "default",
-                    ...(hasStory ? {
-                      borderColor: RED,
-                      boxShadow: `0 0 0 2px #C1121F, 0 0 0 4px ${goldAlpha(0.35)}`,
-                    } : {}),
-                  }}
-                  onClick={openCreatorProfile}
-                  aria-label={`Open ${creatorName}'s profile`}
-                >
-                  {creatorPhoto ? (
-                    <img src={creatorPhoto} alt="" style={styles.creatorAvatarImage} />
-                  ) : (
-                    <span style={styles.creatorAvatarFallback}>{creatorInitial}</span>
-                  )}
-                </button>
-                <div style={styles.creatorInfo}>
-                  <button
-                    type="button"
-                    style={{
-                      ...styles.username,
-                      cursor: reel.userId ? "pointer" : "default",
-                    }}
-                    onClick={openCreatorProfile}
-                  >
-                    @{creatorName}
-                    {creatorProfile?.streakCount >= 5 && (
-                      <span style={styles.onFireBadge}>{"🔥"}</span>
-                    )}
-                  </button>
-                  {creatorStatLine ? (
-                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", fontWeight: 700, marginTop: 2, letterSpacing: 0.2 }}>
-                      {creatorStatLine}
-                    </div>
-                  ) : null}
-                  {reel.gymId && gymNames[reel.gymId] ? (
-                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 600, marginTop: 1 }}>
-                      🏋️ {gymNames[reel.gymId]}
-                    </div>
-                  ) : null}
-                </div>
-              </div>
-              {captionText && (
-                <button
-                  type="button"
-                  style={styles.descriptionLine}
-                  onClick={() => setCaptionSheetReelId(reel.id)}
-                  aria-label={t("captionExpand")}
-                >
-                  {captionText}
-                </button>
-              )}
-              {/* Primary CTA — single, type-aware, no duplicates */}
-              {!reel.isDemo && (() => {
-                const effectiveType = reel.contentType || reel.type || "lifestyle";
-                const isChallenge = effectiveType === "training";
-                const isEducational = effectiveType === "educational";
-                const showChallengeCta = isChallenge || reel.challengeEnabled;
-                const showLearnCta = isEducational && !reel.challengeEnabled;
-                if (!showChallengeCta && !showLearnCta) return null;
-                const handleChallengeClick = async () => {
-                  try {
-                    const { db: fdb } = await getFirebase();
-                    const { doc, setDoc, increment: fsIncrement, serverTimestamp: fsts } = await import("firebase/firestore");
-                    await setDoc(doc(fdb, "reel_stats", reel.id), { reelId: reel.id, challengeClicks: fsIncrement(1), updatedAt: fsts() }, { merge: true });
-                  } catch { /* non-critical */ }
-                  const trainParams = new URLSearchParams({ reelId: reel.id });
-                  if (reel.userId) trainParams.set("reelCreatorId", reel.userId);
-                  if (stats?.bestScore != null && Number.isFinite(stats.bestScore) && stats.bestScore > 0) {
-                    trainParams.set("creatorBestScore", stats.bestScore.toFixed(1));
-                  }
-                  router.push(`/${currentLocale}/train?${trainParams.toString()}`);
-                };
-                return (
-                  <div style={styles.trainButtonRow}>
-                    {showChallengeCta && (
-                      <button type="button" style={styles.tryThisButton} onClick={handleChallengeClick}>
-                        {t("reelChallenge")}
-                      </button>
-                    )}
-                    {showLearnCta && (
-                      <button type="button" style={styles.learnButton} onClick={() => setCaptionSheetReelId(reel.id)}>
-                        {t("reelLearnMore")}
-                      </button>
-                    )}
-                  </div>
-                );
-              })()}
-              {/* Remix origin banner */}
-              {!reel.isDemo && reel.remixOf && (
-                <div style={styles.remixBanner}>
-                  🔀 {t("remixOf").replace("{username}", reel.remixOfCreatorName || "creator")}
-                </div>
-              )}
-            </div>
-
-            <div style={styles.actions}>
-              <div
-                className="reel-action"
-                style={{
-                  ...styles.actionItem,
-                  ...(userLikes.has(reel.id) ? styles.actionItemLiked : {})
-                }}
-                onClick={() => handleLike(reel.id)}
-              >
-                <div
-                  className="reel-action-circle"
-                  style={{
-                    ...styles.actionCircle,
-                    ...(userLikes.has(reel.id) ? styles.actionCircleLiked : {})
-                  }}
-                >
-                  <span style={{
-                    ...styles.actionIcon,
-                    ...(userLikes.has(reel.id) ? styles.actionIconLiked : {})
-                  }}>
-                    <LikeIcon filled={userLikes.has(reel.id)} />
-                  </span>
-                </div>
-                <span style={styles.actionText}>{formatCompactCount(getSafeLikeCount(reel))}</span>
-              </div>
-              <div className="reel-action" style={styles.actionItem} onClick={() => handleOpenComments(reel.id)} title={t("comment")}>
-                <div className="reel-action-circle" style={styles.actionCircle}>
-                  <CommentIcon />
-                </div>
-                <span style={styles.actionText}>{formatCompactCount(getSafeCommentsCount(reel))}</span>
-              </div>
-              <div className="reel-action" style={styles.actionItem} onClick={() => handleShare(reel)} title={t("share") || "Share"}>
-                <div className="reel-action-circle" style={styles.actionCircle}>
-                  <ShareIcon />
-                </div>
-                <span style={styles.actionText}>{formatCompactCount(reel.shares || 0)}</span>
-              </div>
-              <div
-                className="reel-action"
-                role="button"
-                title={savedReels.has(reel.id) ? t("saved") : t("save")}
-                style={{
-                  ...styles.actionItem,
-                  ...(savedReels.has(reel.id) ? styles.actionItemSaved : {})
-                }}
-                onClick={() => handleSave(reel.id)}
-              >
-                <div
-                  className="reel-action-circle"
-                  style={{
-                    ...styles.actionCircle,
-                    ...(savedReels.has(reel.id) ? styles.actionCircleSaved : {})
-                  }}
-                >
-                  <span style={{
-                    ...styles.actionIcon,
-                    ...(savedReels.has(reel.id) ? styles.actionIconSaved : {})
-                  }}>
-                    <BookmarkIcon filled={savedReels.has(reel.id)} />
-                  </span>
-                </div>
-              </div>
-              <div
-                className="reel-action"
-                style={styles.actionItem}
-                onClick={() => handleGetFeedback(reel)}
-                title={t("getAiFeedback")}
-              >
-                <div className="reel-action-circle" style={styles.actionCircle}>
-                  <RobotIcon />
-                </div>
-                <span style={{ fontSize: 8, color: "rgba(255,255,255,0.35)", fontWeight: 700, textShadow: "0 2px 8px rgba(0,0,0,0.95)", textAlign: "center", lineHeight: 1.2 }}>
-                  {currentLocale === "mn" ? "AI" : currentLocale === "ko" ? "AI" : "AI"}
-                </span>
-              </div>
-              <div
-                className="reel-action"
-                style={styles.actionItem}
-                onClick={() => setBreakdownReel(reel)}
-                title={t("aiBreakdownBtn")}
-              >
-                <div className="reel-action-circle" style={styles.actionCircle}>
-                  <AISparkIcon />
-                </div>
-                <span style={{ fontSize: 7, color: "rgba(255,255,255,0.35)", fontWeight: 700, textShadow: "0 2px 8px rgba(0,0,0,0.95)", textAlign: "center", lineHeight: 1.2, maxWidth: 40 }}>
-                  {currentLocale === "mn" ? "Шинж" : currentLocale === "ko" ? "분석" : "Breakdown"}
-                </span>
-              </div>
-            </div>
-
-            {/* Play/Pause indicator — shown only when paused */}
-            {!reel.isDemo && showControls && index === currentIndex && videoRefs.current[reel.id]?.paused && (
-              <div style={styles.playIndicator}>
-                <CenterPlayIcon />
-              </div>
-            )}
-          </div>
+            <ReelItem
+              key={reel.id}
+              reel={reel}
+              index={index}
+              currentIndex={currentIndex}
+              reelItemRefs={reelItemRefs}
+              videoRefs={videoRefs}
+              soundEnabled={soundEnabled}
+              hasVideoError={!!videoErrors[reel.id]}
+              isVideoLoading={!!videoLoading[reel.id]}
+              videoProgress={videoProgress}
+              isLiked={userLikes.has(reel.id)}
+              isSaved={savedReels.has(reel.id)}
+              heartBursts={heartBursts.filter((b) => b.reelId === reel.id)}
+              showControls={showControls}
+              isPvpSource={isPvpSource}
+              isProfileSource={isProfileSource}
+              profileReelProgress={profileReelProgress}
+              creatorName={creatorName}
+              creatorPhoto={creatorPhoto}
+              creatorInitial={creatorInitial}
+              creatorStreakCount={creatorProfile?.streakCount || 0}
+              captionText={captionText}
+              creatorStatLine={creatorStatLine}
+              hasStory={hasStory}
+              stats={stats}
+              gymName={reel.gymId ? gymNames[reel.gymId] : null}
+              currentLocale={currentLocale}
+              t={t}
+              router={router}
+              setVideoProgress={setVideoProgress}
+              onVideoClick={handleVideoClick}
+              onVideoLoadStart={handleVideoLoadStart}
+              onVideoLoaded={handleVideoLoaded}
+              onVideoError={handleVideoError}
+              onLike={handleLike}
+              onOpenComments={handleOpenComments}
+              onShare={handleShare}
+              onSave={handleSave}
+              onGetFeedback={handleGetFeedback}
+              onBreakdown={setBreakdownReel}
+              onCaptionSheet={setCaptionSheetReelId}
+            />
           );
         })}
       </div>
