@@ -10,7 +10,7 @@ import { getLocale, translate } from "@/lib/i18n";
 import { getCurrentSeasonId, getSeasonLabel } from "@/lib/season";
 import { RED, GOLD, PURPLE, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/challenges/challengesStyles";
-import { getLocalDateKey, getPreviousLocalDateKey, getTimestampMs, formatScore, getActiveChallengeStreak } from "@/lib/utils";
+import { getLocalDateKey, getPreviousLocalDateKey, getTimestampMs, formatScore, getActiveChallengeStreak, getChallengeRank } from "@/lib/utils";
 
 const CHALLENGES = [
   { id: "jab-minute",   titleKey: "challengeJabTitle",   descKey: "challengeJabDesc",   emoji: "🥊" },
@@ -39,15 +39,6 @@ function formatCountdown(msLeft) {
 
 const SEASON_BADGE = ["🥇", "🥈", "🥉"];
 
-
-function getChallengeRank(score) {
-  const n = Number(score);
-  if (n >= 9) return "S";
-  if (n >= 8) return "A";
-  if (n >= 7) return "B";
-  if (n >= 6) return "C";
-  return "D";
-}
 
 function getResultXP(result) {
   const stored = Number(result?.xpGained);

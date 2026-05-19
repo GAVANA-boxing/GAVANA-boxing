@@ -11,6 +11,8 @@ import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { createChallengeAttemptNotification, createChallengeBeatenNotification, createPvpNotification } from "@/lib/notifications";
 import { getCurrentSeasonId } from "@/lib/season";
 import { calculateChallengeXP, calculateUserXP, getFighterRank, getRankProgress } from "@/lib/xp";
+import { getChallengeRank } from "@/lib/utils";
+import { calculateTrainingScore, computeScoreBreakdown, getChallengeComparisonPercent, getChallengeStreakBonus } from "@/lib/trainHelpers";
 import { writeChallengeAttempt, updateUserTrainingProfile } from "@/lib/analytics";
 import { checkAndAwardBadges } from "@/lib/badges";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
@@ -23,43 +25,6 @@ const CHALLENGES = {
   "speed-test": { titleKey: "challengeSpeedTitle", seconds: 20 },
   "combo-master": { titleKey: "challengeComboTitle", seconds: 30 },
 };
-
-function calculateTrainingScore(hits, sessionSeconds) {
-  const targetHits = Math.max(1, Math.round(sessionSeconds * 1.5));
-  const ratio = Math.min(1, hits / targetHits);
-  return Number((ratio * 10).toFixed(1));
-}
-
-function computeScoreBreakdown(score, hitCount, sessionSeconds) {
-  const maxHits = Math.max(1, sessionSeconds * 2);
-  const hitRate = hitCount / maxHits;
-  const hitsPerSec = hitCount / Math.max(1, sessionSeconds);
-  const accuracy = Number(Math.min(10, hitRate * 12).toFixed(1));
-  const speed = Number(Math.min(10, hitsPerSec * 5).toFixed(1));
-  const power = Number(Math.min(10, score * 1.05).toFixed(1));
-  const consistency = Number(Math.min(10, Math.max(0, score - (10 - score) * 0.15)).toFixed(1));
-  return { accuracy, speed, power, consistency };
-}
-
-function getChallengeRank(score) {
-  if (score >= 9) return "S";
-  if (score >= 8) return "A";
-  if (score >= 7) return "B";
-  if (score >= 6) return "C";
-  return "D";
-}
-
-function getChallengeComparisonPercent(score) {
-  return Math.min(99, Math.max(42, Math.round(score * 10 + 3)));
-}
-
-
-function getChallengeStreakBonus(streak) {
-  if (streak === 14) return 300;
-  if (streak === 7) return 150;
-  if (streak === 3) return 50;
-  return 0;
-}
 
 export default function TrainPage() {
   const router = useRouter();
