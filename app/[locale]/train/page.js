@@ -64,6 +64,7 @@ export default function TrainPage() {
     isFlashing,
     liveFeedback,
     showGo,
+    lastPunchType,
     ghostScore,
     ghostEnabled, setGhostEnabled,
     handleStart,
@@ -243,6 +244,7 @@ export default function TrainPage() {
               ghostEnabled={ghostEnabled}
               ghostScore={ghostScore}
               liveFeedback={liveFeedback}
+              lastPunchType={lastPunchType}
               t={t}
             />
           )}

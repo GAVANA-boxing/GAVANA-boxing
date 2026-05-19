@@ -383,6 +383,12 @@ p {
   100% { opacity: 0; transform: translateX(-50%) translateY(-10px);}
 }
 
+@keyframes punchBadgePop {
+  0%   { transform: scale(0.7); opacity: 0; }
+  60%  { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1);   opacity: 1; }
+}
+
 .streak-burst { animation: streakBurst 500ms cubic-bezier(0.34,1.56,0.64,1) both; }
 @keyframes streakBurst {
   0%   { transform: scale(0.82); opacity: 0; }
