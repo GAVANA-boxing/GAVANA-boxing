@@ -10,7 +10,7 @@ import { getLocale, translate } from "@/lib/i18n";
 import { getCurrentSeasonId, getSeasonLabel } from "@/lib/season";
 import { RED, GOLD, PURPLE, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/challenges/challengesStyles";
-import { getLocalDateKey, getTimestampMs } from "@/lib/utils";
+import { getLocalDateKey, getPreviousLocalDateKey, getTimestampMs, formatScore, getActiveChallengeStreak } from "@/lib/utils";
 
 const CHALLENGES = [
   { id: "jab-minute",   titleKey: "challengeJabTitle",   descKey: "challengeJabDesc",   emoji: "🥊" },
@@ -40,12 +40,6 @@ function formatCountdown(msLeft) {
 const SEASON_BADGE = ["🥇", "🥈", "🥉"];
 
 
-function formatScore(score) {
-  const n = Number(score);
-  if (!Number.isFinite(n)) return "0";
-  return n.toFixed(1).replace(/\.0$/, "");
-}
-
 function getChallengeRank(score) {
   const n = Number(score);
   if (n >= 9) return "S";
@@ -72,18 +66,6 @@ function getRankIcon(index) {
   return `#${index + 1}`;
 }
 
-
-function getPreviousLocalDateKey(date = new Date()) {
-  const prev = new Date(date);
-  prev.setDate(prev.getDate() - 1);
-  return getLocalDateKey(prev);
-}
-
-function getActiveChallengeStreak(profile) {
-  const lastDate = String(profile?.lastChallengeDate || "");
-  if (lastDate !== getLocalDateKey() && lastDate !== getPreviousLocalDateKey()) return 0;
-  return Number(profile?.challengeStreak) || 0;
-}
 
 // Deduplicate: keep only best score per user per challenge
 function dedupeByUser(results) {

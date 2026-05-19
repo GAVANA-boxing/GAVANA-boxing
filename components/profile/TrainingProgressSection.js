@@ -2,14 +2,8 @@
 
 import { GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
 import { calculateSessionXP } from "@/lib/xp";
-import { getTimestampMs } from "@/lib/utils";
+import { getTimestampMs, formatScore } from "@/lib/utils";
 
-
-function formatScore(score) {
-  const n = Number(score);
-  if (!Number.isFinite(n)) return "0";
-  return n.toFixed(1).replace(/\.0$/, "");
-}
 
 const sectionStyle = {
   width: "min(100%, 680px)",

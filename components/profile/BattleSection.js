@@ -1,14 +1,8 @@
 "use client";
 
 import { RED, GOLD , PURPLE, redAlpha} from "@/lib/tokens";
-import { getTimestampMs } from "@/lib/utils";
+import { getTimestampMs, formatScore } from "@/lib/utils";
 
-
-function formatScore(score) {
-  const n = Number(score);
-  if (!Number.isFinite(n)) return "0";
-  return n.toFixed(1).replace(/\.0$/, "");
-}
 
 export default function BattleSection({ pvpStats, sparringRecord, isOwnProfile, locale, t, onGoToSparring }) {
   return (

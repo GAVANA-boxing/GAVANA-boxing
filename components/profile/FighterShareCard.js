@@ -1,15 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { formatScore } from "@/lib/utils";
 import RankIcon from "@/components/RankIcon";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import { RED, GOLD , goldAlpha} from "@/lib/tokens";
-
-function formatScore(score) {
-  const n = Number(score);
-  if (!Number.isFinite(n)) return "0";
-  return n.toFixed(1).replace(/\.0$/, "");
-}
 
 export default function FighterShareCard({
   profileUser,

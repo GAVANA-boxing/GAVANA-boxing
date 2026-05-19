@@ -17,7 +17,8 @@ import MediaCover from "@/components/MediaCover";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import { s, feed } from "@/components/discover/discoverStyles";
 import { snapToDocs } from "@/lib/firestore";
-import { formatCompact, getTimestampMs } from "@/lib/utils";
+import { formatCompact, getTimestampMs, formatAgo } from "@/lib/utils";
+import { cleanCaption } from "@/lib/reelHelpers";
 
 // ─── Legendary fighter mini card (for Fighter Study row) ─────────────────────
 function FighterStudyCard({ fighter, onClick }) {
@@ -74,41 +75,6 @@ const LEARN_CATS = [
 ];
 
 
-
-function formatAgo(ts, locale) {
-  const ms = getTimestampMs(ts);
-  if (!ms) return "";
-  const diff = Date.now() - ms;
-  const mins = Math.floor(diff / 60000);
-  const hrs = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-  if (locale === "mn") {
-    if (mins < 1) return "Дөнгөж сая";
-    if (mins < 60) return `${mins}м өмнө`;
-    if (hrs < 24) return `${hrs}ц өмнө`;
-    return `${days}өдр өмнө`;
-  }
-  if (locale === "ko") {
-    if (mins < 1) return "방금";
-    if (mins < 60) return `${mins}분 전`;
-    if (hrs < 24) return `${hrs}시간 전`;
-    return `${days}일 전`;
-  }
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${days}d ago`;
-}
-
-function cleanCaption(text) {
-  if (!text) return "";
-  return text
-    .replace(/^Hook:\s*/i, "")
-    .replace(/\nCaption:\s*/i, " — ")
-    .replace(/\nHashtags:.*$/is, "")
-    .replace(/\nCaption:.*/is, "")
-    .trim();
-}
 
 function reelMatchesKeywords(reel, keywords) {
   const text = [

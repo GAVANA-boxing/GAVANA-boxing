@@ -23,7 +23,7 @@ import FighterShareCard from "@/components/profile/FighterShareCard";
 import { WeeklyRecapModal, WeeklyLeaderboardModal } from "@/components/profile/WeeklyModals";
 import BattleSection from "@/components/profile/BattleSection";
 import TrainingProgressSection from "@/components/profile/TrainingProgressSection";
-import { getLocalDateKey, getPreviousLocalDateKey, getTimestampMs } from "@/lib/utils";
+import { getLocalDateKey, getPreviousLocalDateKey, getTimestampMs, formatScore, getActiveChallengeStreak } from "@/lib/utils";
 
 function getSafeReelLikes(reel) {
   const fieldLikes = typeof reel.likes === "number" && !Number.isNaN(reel.likes)
@@ -37,19 +37,6 @@ function getSafeReelLikes(reel) {
   return Math.max(0, fieldLikes);
 }
 
-
-function formatScore(score) {
-  const numericScore = Number(score);
-  if (!Number.isFinite(numericScore)) return "0";
-  return numericScore.toFixed(1).replace(/\.0$/, "");
-}
-
-
-function getActiveChallengeStreak(profile) {
-  const lastDate = String(profile?.lastChallengeDate || "");
-  if (lastDate !== getLocalDateKey() && lastDate !== getPreviousLocalDateKey()) return 0;
-  return Number(profile?.challengeStreak) || 0;
-}
 
 export default function UserProfilePage() {
   const { user, loading: authLoading } = useAuth();
