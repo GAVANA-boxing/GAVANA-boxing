@@ -1,11 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import {
-  collection, documentId, getDocs, query as fsQuery, where,
-  orderBy, limit, Timestamp,
-} from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
@@ -14,32 +11,10 @@ import { getLocale, translate } from "@/lib/i18n";
 import { FIGHTERS } from "@/lib/fighters";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import { s, feed } from "@/components/discover/discoverStyles";
-import { snapToDocs } from "@/lib/firestore";
-import { formatCompact, getTimestampMs, formatAgo } from "@/lib/utils";
-import { cleanCaption } from "@/lib/reelHelpers";
+import { formatCompact } from "@/lib/utils";
 import { FighterStudyCard, ReelRow, HubCard, FeedPostCard, reelMatchesKeywords } from "@/components/discover/DiscoverCards";
-
-// ─── Fighter style identity chips ────────────────────────────────────────────
-const FIGHTER_STYLES = [
-  { key: "all", labelKey: "discoverStyleAll", emoji: "🥊" },
-  { key: "counter", labelKey: "discoverStyleCounter", emoji: "🎯", keywords: ["counter", "technique", "technical", "parry"] },
-  { key: "pressure", labelKey: "discoverStylePressure", emoji: "💥", keywords: ["pressure", "conditioning", "bag", "power", "heavy"] },
-  { key: "fastHands", labelKey: "discoverStyleFastHands", emoji: "⚡", keywords: ["speed", "fast", "combo", "rapid", "jab"] },
-  { key: "footwork", labelKey: "discoverStyleFootwork", emoji: "👟", keywords: ["footwork", "movement", "pivot", "step", "shadow"] },
-  { key: "technical", labelKey: "discoverStyleTechnical", emoji: "📐", keywords: ["technical", "technique", "timing", "rhythm"] },
-];
-
-// ─── Learn sub-categories ─────────────────────────────────────────────────────
-const LEARN_CATS = [
-  { key: "all", emoji: "📚", label: "All", mn: "Бүгд", ko: "전체" },
-  { key: "combo", emoji: "💥", label: "Combo", mn: "Комбо", ko: "콤보", keywords: ["combo", "combination", "1-2", "sequence"] },
-  { key: "timing", emoji: "⏱️", label: "Timing", mn: "Цаг хугацаа", ko: "타이밍", keywords: ["timing", "rhythm", "tempo", "reaction"] },
-  { key: "footwork", emoji: "👟", label: "Footwork", mn: "Хөл хөдөлгөөн", ko: "풋워크", keywords: ["footwork", "movement", "pivot", "step", "angle"] },
-  { key: "defense", emoji: "🛡️", label: "Defense", mn: "Хамгаалалт", ko: "방어", keywords: ["defense", "guard", "block", "slip", "roll", "parry"] },
-  { key: "jab", emoji: "👊", label: "Jab", mn: "Жаб", ko: "잽", keywords: ["jab", "lead hand", "straight", "jab cross"] },
-  { key: "pressure", emoji: "🔥", label: "Pressure", mn: "Дарамт", ko: "압박", keywords: ["pressure", "forward", "cut off", "body"] },
-  { key: "counter", emoji: "🎯", label: "Counter", mn: "Контр", ko: "카운터", keywords: ["counter", "counterpunch", "parry", "check"] },
-];
+import { useDiscoverData } from "@/hooks/useDiscoverData";
+import { FIGHTER_STYLES, LEARN_CATS } from "@/lib/discoverConstants";
 
 
 
@@ -50,22 +25,12 @@ export default function DiscoverPage() {
   const locale = getLocale(params?.locale);
   const t = (key) => translate(locale, key);
 
-  const [allReels, setAllReels] = useState([]);
-  const [exploreLoading, setExploreLoading] = useState(true);
-  const [exploreError, setExploreError] = useState(false);
   const [selectedStyle, setSelectedStyle] = useState("all");
   const [learnOpen, setLearnOpen] = useState(false);
   const [learnCat, setLearnCat] = useState("all");
   const [challengesOpen, setChallengesOpen] = useState(false);
   const [exploreOpen, setExploreOpen] = useState(false);
-  const [topCoaches, setTopCoaches] = useState([]);
-
-  // Feed tabs
-  const [feedTab, setFeedTab] = useState("explore"); // "explore" | "following"
-  const [followingReels, setFollowingReels] = useState([]);
-  const [followingUsers, setFollowingUsers] = useState({});
-  const [feedLoading, setFeedLoading] = useState(false);
-  const [feedLoaded, setFeedLoaded] = useState(false);
+  const [feedTab, setFeedTab] = useState("explore");
 
   // Search
   const [query, setQuery] = useState("");
@@ -75,66 +40,12 @@ export default function DiscoverPage() {
   const [reelResults, setReelResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
 
-  const loadExplore = useCallback(async () => {
-    setExploreLoading(true);
-    setExploreError(false);
-    let active = true;
-    try {
-      const [reelsSnap, coachSnap] = await Promise.all([
-        getDocs(fsQuery(collection(db, "reels"), orderBy("createdAt", "desc"), limit(80))),
-        getDocs(fsQuery(collection(db, "users"), where("isCoach", "==", true), limit(4))),
-      ]);
-      if (!active) return;
-      setAllReels(snapToDocs(reelsSnap));
-      setTopCoaches(snapToDocs(coachSnap));
-    } catch {
-      if (active) setExploreError(true);
-    }
-    if (active) setExploreLoading(false);
-    return () => { active = false; };
-  }, []);
+  const {
+    allReels, exploreLoading, exploreError, loadExplore,
+    topCoaches, followingReels, followingUsers, feedLoading, feedLoaded,
+  } = useDiscoverData({ userId: user?.uid, feedTab });
 
-  useEffect(() => { loadExplore(); }, [loadExplore]);
-
-  // Following feed — lazy-loaded on first tab switch
-  useEffect(() => {
-    if (feedTab !== "following" || feedLoaded || !user?.uid) return;
-    let active = true;
-    async function loadFollowing() {
-      setFeedLoading(true);
-      try {
-        const followsSnap = await getDocs(fsQuery(collection(db, "follows"), where("followerId", "==", user.uid)));
-        const followingIds = followsSnap.docs.map((d) => d.data().followingId).filter(Boolean);
-        if (!followingIds.length) { if (active) { setFeedLoaded(true); setFeedLoading(false); } return; }
-        const reels = [];
-        const chunks = [];
-        for (let i = 0; i < followingIds.length; i += 10) chunks.push(followingIds.slice(i, i + 10));
-        await Promise.all(chunks.map(async (chunk) => {
-          const snap = await getDocs(fsQuery(collection(db, "reels"), where("userId", "in", chunk)));
-          snap.docs.forEach((d) => reels.push({ id: d.id, ...d.data() }));
-        }));
-        reels.sort((a, b) => getTimestampMs(b.createdAt) - getTimestampMs(a.createdAt));
-        if (!active) return;
-        setFollowingReels(reels.slice(0, 60));
-        const authorIds = [...new Set(reels.map((r) => r.userId).filter(Boolean))];
-        if (authorIds.length > 0) {
-          const uChunks = [];
-          for (let i = 0; i < authorIds.length; i += 10) uChunks.push(authorIds.slice(i, i + 10));
-          const uMap = {};
-          await Promise.all(uChunks.map(async (chunk) => {
-            const uSnap = await getDocs(fsQuery(collection(db, "users"), where(documentId(), "in", chunk)));
-            uSnap.docs.forEach((d) => { uMap[d.id] = d.data(); });
-          }));
-          if (active) setFollowingUsers(uMap);
-        }
-      } catch (e) { console.error("following feed error", e); }
-      finally { if (active) { setFeedLoaded(true); setFeedLoading(false); } }
-    }
-    loadFollowing();
-    return () => { active = false; };
-  }, [feedTab, feedLoaded, user?.uid]);
-
-  const handleSearch = useCallback(async (e) => {
+  const handleSearch = async (e) => {
     e?.preventDefault();
     const term = query.trim().toLowerCase();
     if (!term) return;
@@ -166,7 +77,7 @@ export default function DiscoverPage() {
       setSearchError(true);
     }
     setSearching(false);
-  }, [query]);
+  };
 
   const clearSearch = () => {
     setQuery("");
