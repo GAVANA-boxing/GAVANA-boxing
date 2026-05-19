@@ -279,10 +279,10 @@ export function useReelFeed({ user, authLoading, isProfileSource, profileSourceU
     async function loadReels() {
       try {
         const { db } = await getFirebase();
-        const { collection, query, orderBy, onSnapshot } = await import("firebase/firestore");
+        const { collection, query, orderBy, limit, onSnapshot } = await import("firebase/firestore");
         if (!isActive) return;
 
-        const reelsQuery = query(collection(db, "reels"), orderBy("createdAt", "desc"));
+        const reelsQuery = query(collection(db, "reels"), orderBy("createdAt", "desc"), limit(120));
 
         // Use onSnapshot for real-time updates
         unsubscribe = onSnapshot(reelsQuery, (snapshot) => {

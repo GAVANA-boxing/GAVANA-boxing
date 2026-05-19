@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, query, where, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { dedupeWeeklyByUser } from "@/lib/leaderboardHelpers";
 
@@ -23,9 +23,9 @@ export function useLeaderboardData({ user, currentSeasonId }) {
 
         const [challengeSnapshot, usersSnapshot, trainingSnapshot, reelsSnapshot] = await Promise.all([
           getDocs(query(collection(db, "challenge_results"), where("seasonId", "==", currentSeasonId))),
-          getDocs(collection(db, "users")),
-          getDocs(query(collection(db, "training_sessions"), where("createdAt", ">", twentyEightDaysAgo))),
-          getDocs(collection(db, "reels")),
+          getDocs(query(collection(db, "users"), limit(500))),
+          getDocs(query(collection(db, "training_sessions"), where("createdAt", ">", twentyEightDaysAgo), limit(1000))),
+          getDocs(query(collection(db, "reels"), limit(500))),
         ]);
 
         const profileMap = {};

@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 export function useDiscoverSearch() {
@@ -20,8 +20,8 @@ export function useDiscoverSearch() {
     setSearchError(false);
     try {
       const [usersSnap, reelsSnap] = await Promise.all([
-        getDocs(collection(db, "users")),
-        getDocs(collection(db, "reels")),
+        getDocs(query(collection(db, "users"), limit(400))),
+        getDocs(query(collection(db, "reels"), limit(400))),
       ]);
       const users = [];
       usersSnap.forEach((doc) => {

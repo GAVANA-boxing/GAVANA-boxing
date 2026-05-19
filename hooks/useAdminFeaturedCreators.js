@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { collection, getDocs, addDoc, deleteDoc, doc, query, where, Timestamp, serverTimestamp } from "firebase/firestore";
+import { collection, getDocs, addDoc, deleteDoc, doc, getDoc, query, where, limit, Timestamp, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { createFeaturedNotification } from "@/lib/notifications";
 
@@ -49,18 +49,17 @@ export function useAdminFeaturedCreators({ user, authLoading }) {
       const now = Timestamp.now();
       const snap = await getDocs(query(collection(db, "featured_creators"), where("featuredUntil", ">=", now)));
       const items = [];
-      for (const d of snap.docs) {
+      await Promise.all(snap.docs.map(async (d) => {
         const data = d.data();
-        // Load user profile
-        const userSnap = await getDocs(query(collection(db, "users"), where("__name__", "==", data.userId)));
-        const profile = userSnap.docs[0]?.data() || {};
+        const userSnap = await getDoc(doc(db, "users", data.userId));
+        const profile = userSnap.exists() ? userSnap.data() : {};
         items.push({
           docId: d.id,
           ...data,
           displayName: profile.displayName || profile.username || data.userId,
           photoURL: profile.photoURL || profile.profileImageUrl || "",
         });
-      }
+      }));
       setFeaturedList(items);
     } catch { /* silent */ }
     setLoadingFeatured(false);
@@ -71,7 +70,7 @@ export function useAdminFeaturedCreators({ user, authLoading }) {
     const term = searchTerm.trim().toLowerCase();
     if (!term) return;
     try {
-      const snap = await getDocs(collection(db, "users"));
+      const snap = await getDocs(query(collection(db, "users"), limit(300)));
       const results = [];
       snap.forEach((d) => {
         const data = d.data();
