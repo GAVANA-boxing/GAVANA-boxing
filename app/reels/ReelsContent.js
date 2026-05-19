@@ -8,6 +8,7 @@ import DailyMission from "@/components/DailyMission";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { computeFeedScore } from "@/lib/analytics";
 import dynamic from "next/dynamic";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import { GOLD, goldAlpha } from "@/lib/tokens";
 import {
   DEMO_REEL,
@@ -364,6 +365,7 @@ export default function ReelsContent() {
             : "";
           const hasStory = !!(creatorProfile?.storyActive || creatorProfile?.hasActiveStory);
           return (
+            <ErrorBoundary key={reel.id}>
             <ReelItem
               key={reel.id}
               reel={reel}
@@ -407,6 +409,7 @@ export default function ReelsContent() {
               onBreakdown={setBreakdownReel}
               onCaptionSheet={setCaptionSheetReelId}
             />
+            </ErrorBoundary>
           );
         })}
       </div>
