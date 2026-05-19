@@ -177,7 +177,7 @@ export default function InboxList() {
           </svg>
         </button>
         <span style={s.title}>{T.title}</span>
-        <button type="button" onClick={() => setShowCompose(true)} style={s.composeBtn} title={T.newMsg}>
+        <button type="button" aria-label="New message" onClick={() => setShowCompose(true)} style={s.composeBtn} title={T.newMsg}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
           </svg>
@@ -248,7 +248,7 @@ export default function InboxList() {
             <div style={s.composeHandle} />
             <div style={s.composeHeader}>
               <span style={s.composeTitle}>{T.newMsg}</span>
-              <button type="button" onClick={() => setShowCompose(false)} style={s.composeClose}>
+              <button type="button" aria-label="Close" onClick={() => setShowCompose(false)} style={s.composeClose}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
               </button>
             </div>

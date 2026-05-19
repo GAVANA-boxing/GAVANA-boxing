@@ -45,7 +45,7 @@ export default class ErrorBoundary extends Component {
           <div style={styles.icon}>⚠️</div>
           <div style={styles.title}>{this.props.title || "Алдаа гарлаа"}</div>
           <div style={styles.msg}>{this.props.message || "Дахин оролдоно уу"}</div>
-          <button style={styles.btn} onClick={() => this.setState({ hasError: false })}>
+          <button type="button" style={styles.btn} onClick={() => this.setState({ hasError: false })}>
             Дахин оролдох
           </button>
         </div>

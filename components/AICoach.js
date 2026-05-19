@@ -240,6 +240,7 @@ export default function AICoach() {
               style={styles.input}
             />
             <button
+              type="button"
               onClick={() => handleSend()}
               disabled={!input.trim() || loading}
               style={{

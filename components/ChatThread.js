@@ -205,7 +205,7 @@ export default function ChatThread({ conversationId }) {
 
       {/* Header */}
       <div style={s.header}>
-        <button type="button" onClick={() => router.push(`/${locale}/inbox`)} style={s.backBtn}>
+        <button type="button" aria-label="Back" onClick={() => router.push(`/${locale}/inbox`)} style={s.backBtn}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <path d="m15 18-6-6 6-6" />
           </svg>
@@ -309,6 +309,7 @@ export default function ChatThread({ conversationId }) {
         />
         <button
           type="button"
+          aria-label="Send message"
           onClick={() => handleSend()}
           disabled={!text.trim() || sending}
           style={{ ...s.sendBtn, opacity: text.trim() && !sending ? 1 : 0.35 }}
