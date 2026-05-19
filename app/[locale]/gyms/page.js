@@ -1,14 +1,5 @@
 "use client";
 
-export const metadata = {
-  title: "Gyms | Gavana Boxing",
-  description: "Find boxing gyms, join communities, and train with the best.",
-  openGraph: {
-    title: "Gyms | Gavana Boxing",
-    description: "Find boxing gyms, join communities, and train with the best.",
-    type: "website",
-  },
-};
 
 import { useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
