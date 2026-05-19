@@ -41,10 +41,10 @@ export default function TrainPage() {
   const sessionSeconds = activeChallenge?.seconds || RECORD_SECONDS;
   const activeChallengeName = activeChallenge ? t(activeChallenge.titleKey) : "";
 
+  const pvpSavedRef = useRef(false);
   const resetForNewSessionRef = useRef(null);
   const setPvpResultRef = useRef(null);
   const setPvpSavedRef = useRef(null);
-  const pvpSavedRefFwd = useRef(null);
 
   const {
     videoRef,
@@ -76,7 +76,7 @@ export default function TrainPage() {
     ghostBestScoreRef,
     setPvpResult: (...args) => setPvpResultRef.current?.(...args),
     setPvpSaved: (...args) => setPvpSavedRef.current?.(...args),
-    pvpSavedRef: pvpSavedRefFwd,
+    pvpSavedRef,
     t,
   });
 
@@ -95,14 +95,13 @@ export default function TrainPage() {
     t, router, setError,
   });
 
-  const { pvpResult, pvpSaved, setPvpResult, setPvpSaved, pvpSavedRef } = usePvpResult({
-    result, challengeUserId, targetScore, user, reelId, opponentUsername, locale,
+  const { pvpResult, pvpSaved, setPvpResult, setPvpSaved } = usePvpResult({
+    result, challengeUserId, targetScore, user, reelId, opponentUsername, locale, pvpSavedRef,
   });
 
   resetForNewSessionRef.current = resetForNewSession;
   setPvpResultRef.current = setPvpResult;
   setPvpSavedRef.current = setPvpSaved;
-  pvpSavedRefFwd.current = pvpSavedRef?.current;
 
   const goBack = () => {
     if (typeof window !== "undefined" && window.history.length > 1) {

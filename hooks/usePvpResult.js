@@ -6,10 +6,11 @@ import { db } from "@/lib/firebase";
 import { createPvpNotification } from "@/lib/notifications";
 import { getCurrentSeasonId } from "@/lib/season";
 
-export function usePvpResult({ result, challengeUserId, targetScore, user, reelId, opponentUsername, locale }) {
+export function usePvpResult({ result, challengeUserId, targetScore, user, reelId, opponentUsername, locale, pvpSavedRef: externalPvpSavedRef }) {
   const [pvpResult, setPvpResult] = useState(null);
   const [pvpSaved, setPvpSaved] = useState(false);
-  const pvpSavedRef = useRef(false);
+  const internalPvpSavedRef = useRef(false);
+  const pvpSavedRef = externalPvpSavedRef ?? internalPvpSavedRef;
 
   useEffect(() => {
     if (!result || !challengeUserId || !targetScore || !user?.uid || pvpSavedRef.current) return;
