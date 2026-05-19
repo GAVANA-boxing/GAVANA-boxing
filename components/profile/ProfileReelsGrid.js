@@ -47,7 +47,8 @@ export default function ProfileReelsGrid({
       {visibleReels.map((reel) => {
         const imageFailed = previewFailures[`${reel.id}:image`];
         const videoFailed = previewFailures[`${reel.id}:video`];
-        const showImage = reel.thumbnailUrl && !imageFailed;
+        const isVideoSrc = (u) => { const p = (u || "").split("?")[0].toLowerCase(); return p.endsWith(".mp4") || p.endsWith(".mov") || p.endsWith(".webm"); };
+        const showImage = reel.thumbnailUrl && !imageFailed && !isVideoSrc(reel.thumbnailUrl);
         const showVideo = !showImage && reel.videoUrl && !videoFailed;
         const likeCount = getSafeReelLikes(reel);
         const canDeleteReel = user?.uid && reel.userId === user.uid;

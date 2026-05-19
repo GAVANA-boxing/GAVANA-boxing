@@ -1,6 +1,6 @@
 "use client";
 
-import { redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 
 const STEPS = [
   {
