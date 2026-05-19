@@ -55,21 +55,13 @@ export default function ScrollRow({ children, cardWidth = 220, gap = 10 }) {
           msOverflowStyle: "none",
           WebkitOverflowScrolling: "touch",
           paddingBottom: 8,
-          // Fade edges on desktop to hint more content
-          WebkitMaskImage: canLeft && canRight
-            ? "linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent)"
-            : canLeft
-              ? "linear-gradient(to right, transparent, black 40px)"
-              : canRight
-                ? "linear-gradient(to right, black calc(100% - 40px), transparent)"
-                : "none",
-          maskImage: canLeft && canRight
-            ? "linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent)"
-            : canLeft
-              ? "linear-gradient(to right, transparent, black 40px)"
-              : canRight
-                ? "linear-gradient(to right, black calc(100% - 40px), transparent)"
-                : "none",
+          // Subtle fade on right edge only to hint more content — short so cards aren't hidden
+          WebkitMaskImage: canRight
+            ? "linear-gradient(to right, black calc(100% - 20px), transparent)"
+            : "none",
+          maskImage: canRight
+            ? "linear-gradient(to right, black calc(100% - 20px), transparent)"
+            : "none",
         }}
       >
         {children}

@@ -45,10 +45,19 @@ function PlusIcon() {
   );
 }
 
+function InboxIcon({ active }) {
+  return (
+    <svg style={{ ...ic, color: active ? RED : "#3a3a3a" }} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
+  );
+}
+
 // ─── Profile avatar tab ───────────────────────────────────────────────────────
-function ProfileTab({ user, active, onClick, dmUnread }) {
+function ProfileTab({ user, active, onClick }) {
   const photo = user?.photoURL || user?.profileImageUrl || "";
-  const initial = (user?.displayName || user?.username || "?").charAt(0).toUpperCase();
+  const initial = (user?.displayName || user?.username || "U").charAt(0).toUpperCase();
+  const [imgError, setImgError] = useState(false);
 
   return (
     <button type="button" onClick={onClick} style={s.iconTab} aria-label="Profile">
@@ -57,18 +66,11 @@ function ProfileTab({ user, active, onClick, dmUnread }) {
           ...s.avatarWrap,
           boxShadow: active ? "0 0 0 2px #C1121F" : "0 0 0 1.5px rgba(255,255,255,0.08)",
         }}>
-          {photo
-            ? <Image src={photo} alt="Profile photo" width={30} height={30} style={{ objectFit: "cover" }} />
+          {photo && !imgError
+            ? <Image src={photo} alt="Profile photo" width={30} height={30} style={{ objectFit: "cover" }} onError={() => setImgError(true)} />
             : <span style={{ ...s.avatarInitial, background: active ? RED : "#222" }}>{initial}</span>
           }
         </span>
-        {dmUnread > 0 && (
-          <span style={{
-            position: "absolute", top: -2, right: -2,
-            width: 10, height: 10, borderRadius: "50%",
-            background: RED, border: "2px solid rgba(8,8,8,0.97)",
-          }} />
-        )}
       </span>
     </button>
   );
@@ -142,10 +144,15 @@ export default function BottomNav({
     r.push(user?.uid ? `/${currentLocale}/profile/${user.uid}` : `/${currentLocale}/login`);
   };
 
+  const goToInbox = () => {
+    r.push(user?.uid ? `/${currentLocale}/inbox` : `/${currentLocale}/login`);
+  };
+
   const HUB_OPTIONS = [
     { icon: "🎬", label: t("hubReel"), sub: t("hubReelSub"), path: `/${currentLocale}/upload`, accent: RED },
     { icon: "⚡", label: t("hubStory"), sub: t("hubStorySub"), path: `/${currentLocale}/story/upload`, accent: GOLD },
     { icon: "📈", label: t("hubProgress"), sub: t("hubProgressSub"), path: `/${currentLocale}/story/upload?type=progress_update`, accent: "#34D399" },
+    { icon: "📅", label: currentLocale === "mn" ? "Арга хэмжээ" : currentLocale === "ko" ? "이벤트" : "Events", sub: currentLocale === "mn" ? "Ойрын тэмцээн, арга хэмжээ" : currentLocale === "ko" ? "다가오는 이벤트 보기" : "View upcoming events", path: `/${currentLocale}/events`, accent: GOLD },
   ];
 
   const hubOverlay = (
@@ -172,15 +179,6 @@ export default function BottomNav({
             <svg style={h.optArrow} viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg>
           </button>
         ))}
-
-        {/* Live — Coming Soon */}
-        <div style={{ ...h.option, opacity: 0.35, cursor: "not-allowed" }}>
-          <div style={{ ...h.optIcon, background: "rgba(255,255,255,0.04)", color: "#888" }}>🔴</div>
-          <div style={h.optText}>
-            <span style={h.optLabel}>{t("hubLive")}  <span style={h.soonBadge}>{t("hubLiveSoon")}</span></span>
-            <span style={h.optSub}>{t("hubLiveSoonSub")}</span>
-          </div>
-        </div>
 
         <button type="button" style={h.cancelBtn} onClick={() => setHubOpen(false)}>
           {t("cancel")}
@@ -224,8 +222,13 @@ export default function BottomNav({
           <AlertsIcon active={resolvedActiveTab === "alerts"} />
         </IconTab>
 
+        {/* Inbox */}
+        <IconTab active={resolvedActiveTab === "inbox"} onClick={goToInbox} badge={dmUnread} label="Inbox">
+          <InboxIcon active={resolvedActiveTab === "inbox"} />
+        </IconTab>
+
         {/* Profile */}
-        <ProfileTab user={user} active={resolvedActiveTab === "profile"} onClick={goToProfile} dmUnread={dmUnread} />
+        <ProfileTab user={user} active={resolvedActiveTab === "profile"} onClick={goToProfile} />
       </nav>
     </>
   );
@@ -240,7 +243,7 @@ function getActiveTab(pathname = "") {
   if (pathname.includes("/coach")) return "profile";
   if (pathname.includes("/gyms")) return "profile";
   if (pathname.includes("/notifications")) return "alerts";
-  if (pathname.includes("/inbox")) return "profile";
+  if (pathname.includes("/inbox")) return "inbox";
   if (pathname.includes("/sparring")) return "discover";
   if (pathname.includes("/profile")) return "profile";
   return "reels";
@@ -284,7 +287,7 @@ const s = {
     backdropFilter: "blur(20px)",
     WebkitBackdropFilter: "blur(20px)",
     display: "grid",
-    gridTemplateColumns: "repeat(5, 1fr)",
+    gridTemplateColumns: "repeat(6, 1fr)",
     alignItems: "center",
     boxSizing: "border-box",
   },
