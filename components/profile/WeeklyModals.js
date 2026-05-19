@@ -38,7 +38,7 @@ export function WeeklyRecapModal({ aiFeedbackHistory, profileUser, t, onClose })
         <div style={handle} />
         <div style={header}>
           <span style={title}>📅 {t("weeklyRecapTitle")}</span>
-          <button type="button" style={closeBtn} onClick={onClose}>✕</button>
+          <button type="button" style={closeBtn} aria-label="Close" onClick={onClose}>✕</button>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, padding: "4px 0 8px" }}>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
@@ -73,7 +73,7 @@ export function WeeklyLeaderboardModal({ challengeRanks, t, onClose, onGoToChall
         <div style={handle} />
         <div style={header}>
           <span style={title}>🏆 {t("weeklySeasonModalTitle")}</span>
-          <button type="button" style={closeBtn} onClick={onClose}>✕</button>
+          <button type="button" style={closeBtn} aria-label="Close" onClick={onClose}>✕</button>
         </div>
 
         {challengeRanks.weeklyRank && challengeRanks.weeklyRank <= 3 && (

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale } from "@/lib/i18n";
 import BottomNav from "@/components/BottomNav";
@@ -138,9 +138,13 @@ export default function WorkoutBuilderPage() {
     const prompt = buildPrompt(goal, level, days, duration, locale);
 
     try {
+      const token = await auth.currentUser?.getIdToken();
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           messages: [{ role: "user", content: prompt }],
           persona: "analyst",

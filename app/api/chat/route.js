@@ -1,5 +1,6 @@
 // app/api/chat/route.js
 import { getLocale } from "@/lib/i18n";
+import { verifyIdToken } from "@/lib/verifyAuth";
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_VERSION = "2023-06-01";
@@ -153,6 +154,9 @@ function getFallback(locale, messages) {
 }
 
 export async function POST(req) {
+  const uid = await verifyIdToken(req);
+  if (!uid) return Response.json({ error: "Unauthorized" }, { status: 401 });
+
   let body;
   try { body = await req.json(); } catch { return Response.json({ error: "Invalid JSON" }, { status: 400 }); }
   let { messages, persona = "drill", locale = "en" } = body;

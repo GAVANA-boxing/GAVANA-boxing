@@ -37,7 +37,7 @@ export default function CommentsModal({
       <div key={comment.id} style={isReply ? styles.replyItem : styles.commentItem}>
         <button type="button" style={isReply ? styles.replyAvatar : styles.commentAvatar}
           onClick={() => comment.userId && router.push(`/${currentLocale}/profile/${comment.userId}`)}>
-          {photo ? <Image src={photo} alt="" width={38} height={38} style={{ objectFit: "cover" }} /> : name.charAt(0).toUpperCase()}
+          {photo ? <Image src={photo} alt={name || "User"} width={38} height={38} style={{ objectFit: "cover" }} /> : name.charAt(0).toUpperCase()}
         </button>
         <div style={styles.commentContent}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -128,7 +128,7 @@ export default function CommentsModal({
             {replyingTo && (
               <div style={styles.replyPill}>
                 <span style={styles.replyPillText}>↩ @{replyingTo.username}</span>
-                <button type="button" style={styles.replyPillClose} onClick={() => setReplyingTo(null)}>✕</button>
+                <button type="button" style={styles.replyPillClose} aria-label="Cancel reply" onClick={() => setReplyingTo(null)}>✕</button>
               </div>
             )}
             <div style={styles.commentInputRow}>

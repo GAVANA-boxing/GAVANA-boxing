@@ -20,7 +20,7 @@ export function GymCard({ gym, t, router, locale }) {
     <div style={styles.card}>
       <div style={styles.cardImageWrap} onClick={() => router.push(`/${locale}/gyms/${gym.id}`)}>
         {gym.logo ? (
-          <Image src={gym.logo} alt="" width={64} height={64} style={{ objectFit: "cover", borderRadius: 14 }} />
+          <Image src={gym.logo} alt={gym.gymName || "Gym"} width={64} height={64} style={{ objectFit: "cover", borderRadius: 14 }} />
         ) : (
           <div style={styles.cardLogoFallback}>
             <span style={{ fontSize: 32, filter: `drop-shadow(0 2px 12px ${redAlpha(0.6)})` }}>🥊</span>
