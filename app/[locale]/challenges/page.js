@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { collection, doc, getDoc, getDocs, onSnapshot, query, where } from "firebase/firestore";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
-import { db } from "@/lib/firebase";
+import { useChallengesData } from "@/hooks/useChallengesData";
 import { getLocale, translate } from "@/lib/i18n";
 import { getCurrentSeasonId, getSeasonLabel } from "@/lib/season";
 import { RED, GOLD, PURPLE, redAlpha, goldAlpha } from "@/lib/tokens";
@@ -79,15 +78,10 @@ export default function ChallengesPage() {
   const t = (key) => translate(locale, key);
   const { user, loading: authLoading } = useAuth();
 
-  const [results, setResults] = useState([]);
-  const [resultsLoading, setResultsLoading] = useState(true);
-  const [profiles, setProfiles] = useState({});
-  const profileRequestsRef = useRef(new Set());
   const [seasonTab, setSeasonTab] = useState("week"); // "week" | "alltime"
   const [mainTab, setMainTab] = useState("leaderboard"); // "leaderboard" | "battles"
-  const [myBattles, setMyBattles] = useState([]);
-  const [battlesLoading, setBattlesLoading] = useState(false);
   const [countdown, setCountdown] = useState(() => formatCountdown(getWeekEndMs() - Date.now()));
+  const { results, resultsLoading, profiles, myBattles, battlesLoading } = useChallengesData({ user, authLoading, mainTab });
 
   const currentSeasonId = useMemo(() => getCurrentSeasonId(), []);
   const seasonLabel = useMemo(() => getSeasonLabel(currentSeasonId), [currentSeasonId]);
@@ -98,100 +92,8 @@ export default function ChallengesPage() {
   }, []);
 
   useEffect(() => {
-    if (!user?.uid || mainTab !== "battles") return;
-    let active = true;
-    setBattlesLoading(true);
-    async function loadBattles() {
-      try {
-        const [asChal, asOpp] = await Promise.all([
-          getDocs(query(collection(db, "pvp_challenges"), where("challengerId", "==", user.uid))),
-          getDocs(query(collection(db, "pvp_challenges"), where("opponentId", "==", user.uid))),
-        ]);
-        if (!active) return;
-        const all = [
-          ...asChal.docs.map((d) => ({ id: d.id, ...d.data(), role: "challenger" })),
-          ...asOpp.docs.map((d) => ({ id: d.id, ...d.data(), role: "opponent" })),
-        ].sort((a, b) => {
-          const aMs = a.createdAt?.toMillis?.() || 0;
-          const bMs = b.createdAt?.toMillis?.() || 0;
-          return bMs - aMs;
-        });
-        setMyBattles(all);
-      } catch (e) {
-        console.error("battles load error", e);
-      } finally {
-        if (active) setBattlesLoading(false);
-      }
-    }
-    loadBattles();
-    return () => { active = false; };
-  }, [user?.uid, mainTab]);
-
-  useEffect(() => {
     if (!authLoading && !user) router.push(`/${locale}/login`);
   }, [authLoading, user, router, locale]);
-
-  // Load current user's own profile for streak display
-  useEffect(() => {
-    if (!user?.uid || profiles[user.uid]) return;
-    let active = true;
-    getDoc(doc(db, "users", user.uid)).then((snap) => {
-      if (!active || !snap.exists()) return;
-      const data = snap.data();
-      setProfiles((prev) => ({
-        ...prev,
-        [user.uid]: {
-          name: data.displayName || data.username || "",
-          photoURL: data.photoURL || data.profileImageUrl || "",
-          challengeStreak: Number(data.challengeStreak) || 0,
-          lastChallengeDate: data.lastChallengeDate || "",
-        },
-      }));
-    }).catch(() => {});
-    return () => { active = false; };
-  }, [user?.uid]);
-
-  useEffect(() => {
-    const unsub = onSnapshot(collection(db, "challenge_results"), (snap) => {
-      setResults(
-        snap.docs
-          .map((d) => ({ id: d.id, ...d.data() }))
-          .filter((r) => r.challengeId && Number.isFinite(Number(r.score)))
-      );
-      setResultsLoading(false);
-    }, (err) => { console.error(err); setResults([]); setResultsLoading(false); });
-    return () => unsub();
-  }, []);
-
-  // Load only profiles for users who appear in results (not entire users collection)
-  useEffect(() => {
-    if (!results.length) return;
-    const uids = [...new Set(results.map((r) => r.userId).filter(Boolean))];
-    const missing = uids.filter((uid) => !profiles[uid] && !profileRequestsRef.current.has(uid));
-    if (!missing.length) return;
-    let active = true;
-    missing.forEach((uid) => profileRequestsRef.current.add(uid));
-    Promise.all(missing.map(async (uid) => {
-      try {
-        const snap = await getDoc(doc(db, "users", uid));
-        const data = snap.exists() ? snap.data() : {};
-        return [uid, {
-          name: data.displayName || data.username || "",
-          photoURL: data.photoURL || data.profileImageUrl || data.profileImage || data.avatarUrl || "",
-          challengeStreak: Number(data.challengeStreak) || 0,
-          lastChallengeDate: data.lastChallengeDate || "",
-        }];
-      } catch { return [uid, {}]; }
-    })).then((entries) => {
-      if (!active) return;
-      setProfiles((prev) => {
-        const next = { ...prev };
-        entries.forEach(([uid, data]) => { next[uid] = data; });
-        return next;
-      });
-    });
-    return () => { active = false; };
-  }, [results]);
 
   // All results grouped and ranked per challenge (best score per user)
   const allTimeByChallenge = useMemo(() => {

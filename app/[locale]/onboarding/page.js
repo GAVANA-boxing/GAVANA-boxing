@@ -1,26 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  addDoc,
-  collection,
-  doc,
-  getDocs,
-  limit,
-  query,
-  serverTimestamp,
-  updateDoc,
-} from "firebase/firestore";
 import { useAuth } from "@/lib/AuthContext";
-import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import EmptyState from "@/components/EmptyState";
 import { RED, redAlpha } from "@/lib/tokens";
-import { snapToDocs } from "@/lib/firestore";
 import s from "@/components/onboarding/onboardingStyles";
 import { WEIGHT_CLASSES, ARCHETYPE_DESCS, TOTAL_STEPS, WEEKLY_GOALS } from "@/lib/onboardingConstants";
+import { useOnboardingActions } from "@/hooks/useOnboardingActions";
 
 export default function OnboardingPage() {
   const pathname = usePathname();
@@ -30,105 +19,29 @@ export default function OnboardingPage() {
 
   const t = (key) => translate(locale, key);
 
-  const [step, setStep] = useState(0);
-  const [role, setRole] = useState(null);
-  const [archetype, setArchetype] = useState(null);
-  const [weightClass, setWeightClass] = useState("");
-  const [weeklyGoal, setWeeklyGoal] = useState(null);
-  const [saving, setSaving] = useState(false);
-  const [animDir, setAnimDir] = useState(1); // 1=forward, -1=back
-
-  const [gyms, setGyms] = useState([]);
-  const [gymsLoading, setGymsLoading] = useState(false);
-  const [requestedGymId, setRequestedGymId] = useState(null);
-  const [joining, setJoining] = useState(null);
+  const {
+    step, setStep,
+    role,
+    archetype, setArchetype,
+    weightClass, setWeightClass,
+    weeklyGoal, setWeeklyGoal,
+    saving,
+    animDir,
+    gyms,
+    gymsLoading,
+    requestedGymId,
+    joining,
+    goTo,
+    handleRoleNext,
+    handleStep1Next,
+    handleStep2Next,
+    handleJoinGym,
+    finishOnboarding,
+  } = useOnboardingActions({ user, locale, router });
 
   useEffect(() => {
     if (!authLoading && !user) router.replace(`/${locale}/login`);
   }, [authLoading, user, router, locale]);
-
-  const goTo = (nextStep) => {
-    setAnimDir(nextStep > step ? 1 : -1);
-    setStep(nextStep);
-  };
-
-  const handleRoleNext = async (selectedRole) => {
-    setRole(selectedRole);
-    setSaving(true);
-    try {
-      await updateDoc(doc(db, "users", user.uid), { role: selectedRole });
-    } catch (e) { console.error("role save", e); }
-    setSaving(false);
-    goTo(selectedRole === "fighter" ? 1 : 4);
-  };
-
-  const handleStep1Next = async () => {
-    if (!archetype) return;
-    setSaving(true);
-    try {
-      await updateDoc(doc(db, "users", user.uid), {
-        role: "fighter",
-        archetype,
-        fighterArchetype: archetype,
-        weightClass: weightClass || null,
-      });
-    } catch (e) {
-      console.error("onboarding step1", e);
-    } finally {
-      setSaving(false);
-    }
-    goTo(2);
-  };
-
-  const handleStep2Next = async () => {
-    if (!weeklyGoal) return;
-    setSaving(true);
-    try {
-      await updateDoc(doc(db, "users", user.uid), { weeklyGoal });
-    } catch (e) {
-      console.error("weeklyGoal save", e);
-    } finally {
-      setSaving(false);
-    }
-    setGymsLoading(true);
-    try {
-      const snap = await getDocs(query(collection(db, "gyms"), limit(12)));
-      setGyms(snapToDocs(snap));
-    } catch {}
-    setGymsLoading(false);
-    goTo(3);
-  };
-
-  const handleJoinGym = async (gym) => {
-    if (joining || requestedGymId) return;
-    setJoining(gym.id);
-    try {
-      await addDoc(collection(db, "gym_join_requests"), {
-        gymId: gym.id,
-        gymName: gym.gymName || "",
-        userId: user.uid,
-        message: "",
-        status: "pending",
-        createdAt: serverTimestamp(),
-      });
-      setRequestedGymId(gym.id);
-    } catch (e) {
-      console.error("gym join error", e);
-    } finally {
-      setJoining(null);
-    }
-  };
-
-  const finishOnboarding = async (dest) => {
-    setSaving(true);
-    try {
-      await updateDoc(doc(db, "users", user.uid), {
-        onboardingComplete: true,
-        "onboarding.completed": true,
-      });
-    } catch {}
-    router.replace(dest || `/${locale}/reels`);
-  };
 
   if (authLoading || !user) {
     return <div style={s.loading}>…</div>;

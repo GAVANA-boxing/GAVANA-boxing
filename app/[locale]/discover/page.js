@@ -2,8 +2,6 @@
 
 import { useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
 import StoryBar from "@/components/StoryBar";
@@ -15,8 +13,7 @@ import { formatCompact } from "@/lib/utils";
 import { FighterStudyCard, ReelRow, HubCard, FeedPostCard, reelMatchesKeywords } from "@/components/discover/DiscoverCards";
 import { useDiscoverData } from "@/hooks/useDiscoverData";
 import { FIGHTER_STYLES, LEARN_CATS } from "@/lib/discoverConstants";
-
-
+import { useDiscoverSearch } from "@/hooks/useDiscoverSearch";
 
 export default function DiscoverPage() {
   const params = useParams();
@@ -32,59 +29,21 @@ export default function DiscoverPage() {
   const [exploreOpen, setExploreOpen] = useState(false);
   const [feedTab, setFeedTab] = useState("explore");
 
-  // Search
-  const [query, setQuery] = useState("");
-  const [searching, setSearching] = useState(false);
-  const [searchError, setSearchError] = useState(false);
-  const [userResults, setUserResults] = useState([]);
-  const [reelResults, setReelResults] = useState([]);
-  const [hasSearched, setHasSearched] = useState(false);
+  const {
+    query, setQuery,
+    searching,
+    searchError,
+    userResults,
+    reelResults,
+    hasSearched,
+    handleSearch,
+    clearSearch,
+  } = useDiscoverSearch();
 
   const {
     allReels, exploreLoading, exploreError, loadExplore,
     topCoaches, followingReels, followingUsers, feedLoading, feedLoaded,
   } = useDiscoverData({ userId: user?.uid, feedTab });
-
-  const handleSearch = async (e) => {
-    e?.preventDefault();
-    const term = query.trim().toLowerCase();
-    if (!term) return;
-    setSearching(true);
-    setHasSearched(true);
-    setSearchError(false);
-    try {
-      const [usersSnap, reelsSnap] = await Promise.all([
-        getDocs(collection(db, "users")),
-        getDocs(collection(db, "reels")),
-      ]);
-      const users = [];
-      usersSnap.forEach((doc) => {
-        const d = doc.data();
-        if (
-          String(d.username || "").toLowerCase().includes(term) ||
-          String(d.displayName || "").toLowerCase().includes(term)
-        ) users.push({ id: doc.id, ...d });
-      });
-      const reels = [];
-      reelsSnap.forEach((doc) => {
-        const d = doc.data();
-        if (String(d.caption || d.description || "").toLowerCase().includes(term))
-          reels.push({ id: doc.id, ...d });
-      });
-      setUserResults(users.slice(0, 20));
-      setReelResults(reels.slice(0, 20));
-    } catch {
-      setSearchError(true);
-    }
-    setSearching(false);
-  };
-
-  const clearSearch = () => {
-    setQuery("");
-    setUserResults([]);
-    setReelResults([]);
-    setHasSearched(false);
-  };
 
   // Derived sections
   const nonDemoReels = useMemo(() => allReels.filter((r) => !r.isDemo), [allReels]);
