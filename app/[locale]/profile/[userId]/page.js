@@ -9,7 +9,7 @@ import { createNotification, createNewFollowerNotification } from "@/lib/notific
 import { startConversation } from "@/lib/messaging";
 import { getLocale, translate } from "@/lib/i18n";
 import { RANK_TIERS, calculateSessionXP, calculateUserXP, getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
-import RankIcon from "@/components/RankIcon";
+import ProfileFighterCard from "@/components/profile/ProfileFighterCard";
 import RankUpModal from "@/components/RankUpModal";
 import { getCurrentSeasonId } from "@/lib/season";
 import MediaCover from "@/components/MediaCover";
@@ -1047,268 +1047,35 @@ export default function UserProfilePage() {
           </svg>
         </button>
       </header>
-      <section style={styles.fighterCard}>
-        {/* ── Cover Photo ── */}
-        <div style={styles.coverPhotoSection}>
-          {(profileUser.coverPhotoURL || profileUser.coverPhoto) ? (
-            <img src={profileUser.coverPhotoURL || profileUser.coverPhoto} alt="" style={styles.coverPhotoImg} />
-          ) : (
-            <div style={styles.coverPhotoFallback} />
-          )}
-          <div style={styles.coverPhotoGradient} />
-          {isOwnProfile && (
-            <button type="button" style={styles.coverPhotoEditBtn} onClick={() => router.push(`/${locale}/profile/edit`)}>
-              📷
-            </button>
-          )}
-        </div>
-
-        <div style={styles.fighterCardInner}>
-        {/* Avatar */}
-        <div
-          className={streakCount >= 10 ? "avatar-on-fire" : undefined}
-          style={{
-            ...styles.avatarFrame,
-            ...(streakCount >= 5 ? {
-              boxShadow: `0 0 0 1px ${goldAlpha(0.55)}, 0 22px 70px rgba(0,0,0,0.5), 0 0 28px rgba(251,146,60,0.6), 0 0 56px rgba(251,146,60,0.28)`,
-              border: "3px solid #FB923C",
-            } : {}),
-          }}
-        >
-          {profileUser.photoURL ? (
-            <img
-              src={profileUser.photoURL}
-              alt={profileUser.displayName || profileUser.username || "Profile"}
-              style={styles.avatarImage}
-            />
-          ) : (
-            profileUser.displayName?.charAt(0).toUpperCase() || profileUser.username?.charAt(0).toUpperCase() || "U"
-          )}
-        </div>
-
-        {/* "Add Story" shortcut — own profile only */}
-        {isOwnProfile && (
-          <button
-            type="button"
-            onClick={() => router.push(`/${locale}/story/upload`)}
-            style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 6, padding: "5px 12px", borderRadius: 999, border: `1px solid ${redAlpha(0.35)}`, background: `${redAlpha(0.08)}`, color: "rgba(255,255,255,0.7)", fontSize: 11, fontWeight: 800, cursor: "pointer", letterSpacing: 0.3 }}
-          >
-            <span style={{ fontSize: 13 }}>+</span>
-            {t("profileAddStory")}
-          </button>
-        )}
-
-        {/* Name + username */}
-        <h1 style={styles.fighterName}>
-          {profileUser.displayName || profileUser.username}
-        </h1>
-        <div style={styles.fighterUsername}>@{profileUser.username}</div>
-
-        {/* Bio */}
-        {profileUser.bio && (
-          <p style={styles.bio}>{profileUser.bio}</p>
-        )}
-
-        {/* Archetype badge */}
-        {profileUser.fighterArchetype && ARCHETYPE_DISPLAY[profileUser.fighterArchetype] && (() => {
-          const arch = ARCHETYPE_DISPLAY[profileUser.fighterArchetype];
-          return (
-            <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
-              <span style={{
-                display: "inline-flex", alignItems: "center", gap: 6,
-                padding: "5px 14px", borderRadius: 999,
-                background: `${arch.color}15`,
-                border: `1px solid ${arch.color}44`,
-                color: arch.color, fontSize: 13, fontWeight: 800,
-              }}>
-                {arch.emoji} {arch.name}
-              </span>
-            </div>
-          );
-        })()}
-
-        {/* Gym + weight class metadata */}
-        {(profileUser.gym || profileUser.weightClass) && (
-          <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
-            {profileUser.gym && (
-              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", padding: "3px 10px", borderRadius: 999, fontWeight: 700 }}>
-                🏋️ {profileUser.gym}
-              </span>
-            )}
-            {profileUser.weightClass && (
-              <span style={{ fontSize: 11, color: "#60A5FA", background: "rgba(96,165,250,0.08)", border: "1px solid rgba(96,165,250,0.2)", padding: "3px 10px", borderRadius: 999, fontWeight: 700 }}>
-                ⚖️ {profileUser.weightClass}kg
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Fighter identity tags — derived from data */}
-        {(() => {
-          const tags = [];
-          tags.push({ label: t(fighterRank.key), color: fighterRank.color, bg: `${fighterRank.color}18`, border: `${fighterRank.color}44` });
-          const challengeStreak = getActiveChallengeStreak(profileUser);
-          if (challengeStreak > 0) tags.push({ label: `🔥 ${challengeStreak}d`, color: "#FB923C", bg: "rgba(251,146,60,0.12)", border: "rgba(251,146,60,0.35)" });
-          if (bestScore !== null) tags.push({ label: `⭐ ${formatScore(bestScore)}/10`, color: GOLD, bg: `${goldAlpha(0.12)}`, border: `${goldAlpha(0.35)}` });
-          if (userReels.length > 0) tags.push({ label: `🎬 ${t("creatorTag")}`, color: "#60A5FA", bg: "rgba(96,165,250,0.10)", border: "rgba(96,165,250,0.28)" });
-          if (challengeRanks?.weeklyRank && challengeRanks.weeklyRank <= 10) tags.push({ label: `#${challengeRanks.weeklyRank} ${t("seasonCurrentWeek")}`, color: GOLD, bg: `${goldAlpha(0.12)}`, border: `${goldAlpha(0.32)}` });
-          if (pvpStats && pvpStats.wins > 0) tags.push({ label: `⚔️ ${pvpStats.wins}W ${pvpStats.losses}L`, color: PURPLE, bg: "rgba(167,139,250,0.10)", border: "rgba(167,139,250,0.28)" });
-          return (
-            <div style={styles.fighterTagsRow}>
-              {tags.map((tag, i) => (
-                <span key={i} style={{ ...styles.fighterTag, color: tag.color, background: tag.bg, borderColor: tag.border }}>
-                  {tag.label}
-                </span>
-              ))}
-            </div>
-          );
-        })()}
-
-        {/* Rank row — tappable, opens rank modal */}
-        <button type="button" onClick={() => setShowRankModal(true)} style={styles.rankRow}>
-          <RankIcon rank={fighterRank} size={30} animated />
-          <span style={{ ...styles.rankLabel, color: fighterRank.color }}>{t(fighterRank.key)}</span>
-        </button>
-
-        {/* XP progress bar */}
-        <div style={styles.xpWrap}>
-          <div style={styles.xpTopRow}>
-            <span style={{ ...styles.xpAmount, color: fighterRank.color }}>
-              {xp.toLocaleString()} {t("xpLabel")}
-            </span>
-            <span style={styles.xpNextLabel}>
-              {nextRank
-                ? t("xpToNext").replace("{xp}", xpToNextVal.toLocaleString()).replace("{rank}", t(nextRank.key))
-                : t("atMaxRank")}
-            </span>
-          </div>
-          <div style={styles.xpTrack}>
-            <div style={{ ...styles.xpFill, width: `${rankProgress}%`, background: fighterRank.gradient }} />
-          </div>
-        </div>
-
-        {/* Achievements Shelf */}
-        {userBadges.length > 0 && (
-          <div style={styles.achievementsShelf}>
-            {userBadges.map((b) => {
-              const meta = BADGE_META[b.badgeId] || { icon: "🏅", label: b.badgeId, color: GOLD };
-              return (
-                <div key={b.badgeId} style={{ ...styles.achievementCard, borderColor: meta.color + "44" }}>
-                  <span style={{ fontSize: 22 }}>{meta.icon}</span>
-                  <span style={{ fontSize: 9, fontWeight: 900, color: meta.color, marginTop: 4, textAlign: "center", lineHeight: 1.2, letterSpacing: 0.3 }}>
-                    {meta.label}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Stats row: posts / followers / following */}
-        <div style={styles.statsRow}>
-          <button type="button" onClick={() => handleStatNavigate("posts")} style={styles.statButton}>
-            <span style={styles.statNumber}>{userReels.length}</span>
-            <span style={styles.statLabel}>{t("posts")}</span>
-          </button>
-          <button type="button" onClick={() => handleStatNavigate("followers")} style={styles.statButton}>
-            <span style={styles.statNumber}>{stats.followers}</span>
-            <span style={styles.statLabel}>{t("followers")}</span>
-          </button>
-          <button type="button" onClick={() => handleStatNavigate("following")} style={styles.statButton}>
-            <span style={styles.statNumber}>{stats.following}</span>
-            <span style={styles.statLabel}>{t("followingCount")}</span>
-          </button>
-        </div>
-
-        {/* Action buttons */}
-        {isOwnProfile ? (
-          <div style={styles.actionRow}>
-            <button onClick={() => router.push(`/${locale}/profile/edit`)} style={styles.ghostAction}>
-              {t("editProfile")}
-            </button>
-            <button
-              onClick={() => router.push(`/${locale}/dashboard`)}
-              style={{ ...styles.ghostAction, color: GOLD, borderColor: `${goldAlpha(0.3)}` }}
-            >
-              {t("dashboardViewProgress")}
-            </button>
-            {userReels.length > 0 && (
-              <button onClick={() => router.push(`/${locale}/creator/dashboard`)} style={styles.ghostAction}>
-                {t("creatorDashboard")}
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => setShowFighterCard(true)}
-              style={{ ...styles.ghostAction, color: GOLD, borderColor: `${goldAlpha(0.3)}` }}
-            >
-              🥊 {t("profileFighterCard")}
-            </button>
-            <button
-              onClick={handleLogout}
-              disabled={signingOut}
-              style={{ ...styles.ghostAction, opacity: signingOut ? 0.7 : 1, cursor: signingOut ? "not-allowed" : "pointer" }}
-            >
-              {signingOut ? t("signingOut") : t("logout")}
-            </button>
-          </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button
-                onClick={handleFollow}
-                disabled={followLoading}
-                style={{
-                  ...styles.followAction,
-                  background: followLoading ? "#555" : (isFollowing ? "#151515" : RED),
-                  cursor: followLoading ? "not-allowed" : "pointer",
-                  opacity: followLoading ? 0.7 : 1
-                }}
-              >
-                {followLoading ? t("followLoading") : (isFollowing ? t("unfollow") : t("follow"))}
-              </button>
-              <button
-                type="button"
-                onClick={handleMessage}
-                style={{
-                  height: 38, padding: "0 18px", borderRadius: 999,
-                  border: "1px solid rgba(255,255,255,0.14)",
-                  background: "rgba(255,255,255,0.05)",
-                  color: "#fff", fontSize: 13, fontWeight: 800,
-                  cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
-                }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
-                {t("profileMessageBtn")}
-              </button>
-            </div>
-            {isMutual && (
-              <span style={{ fontSize: 11, fontWeight: 700, color: GOLD, letterSpacing: 0.5 }}>
-                ⇄ {t("mutual")}
-              </span>
-            )}
-            <div style={{ display: "flex", gap: 8, marginTop: 2 }}>
-              <button
-                type="button"
-                onClick={() => { setShowChallengeModal(true); setChallengeSent(false); }}
-                style={{ ...styles.ghostAction, color: PURPLE, borderColor: "rgba(167,139,250,0.3)", flex: 1 }}
-              >
-                ⚔️ {t("profileChallengeBtn")}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowFighterCard(true)}
-                style={{ ...styles.ghostAction, color: GOLD, borderColor: `${goldAlpha(0.3)}`, flex: 1 }}
-              >
-                🥊 {t("profileFighterCard")}
-              </button>
-            </div>
-          </div>
-        )}
-        </div>
-      </section>
+      <ProfileFighterCard
+        profileUser={profileUser}
+        isOwnProfile={isOwnProfile}
+        userReels={userReels}
+        stats={stats}
+        fighterRank={fighterRank}
+        nextRank={nextRank}
+        xp={xp}
+        xpToNextVal={xpToNextVal}
+        rankProgress={rankProgress}
+        bestScore={bestScore}
+        userBadges={userBadges}
+        challengeRanks={challengeRanks}
+        pvpStats={pvpStats}
+        isMutual={isMutual}
+        isFollowing={isFollowing}
+        followLoading={followLoading}
+        signingOut={signingOut}
+        t={t}
+        locale={locale}
+        router={router}
+        onShowRankModal={() => setShowRankModal(true)}
+        onShowFighterCard={() => setShowFighterCard(true)}
+        onShowChallengeModal={() => { setShowChallengeModal(true); setChallengeSent(false); }}
+        onFollow={handleFollow}
+        onMessage={handleMessage}
+        onLogout={handleLogout}
+        onStatNavigate={handleStatNavigate}
+      />
 
       {/* ── Rival Comparison ── */}
       <ProfileRivalComparison

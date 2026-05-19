@@ -19,6 +19,7 @@ import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/train/trainStyles";
 import TrainResultModal from "@/components/train/TrainResultModal";
 import PreGameCard from "@/components/train/PreGameCard";
+import RecordingHud from "@/components/train/RecordingHud";
 import { getLocalDateKey, getPreviousLocalDateKey } from "@/lib/utils";
 
 const RECORD_SECONDS = 10;
@@ -1032,85 +1033,20 @@ export default function TrainPage() {
           )}
 
           {isRecording && (
-            <>
-              {/* Recording HUD — top bar */}
-              <div style={styles.recordingHud}>
-                <span style={styles.recordDot} />
-                <span>{t("trainRecording")}</span>
-                <span style={styles.liveScoreHud}>{liveScore.toFixed(1)}</span>
-                <strong style={{ marginLeft: "auto" }}>{secondsLeft}s</strong>
-              </div>
-
-              {/* Hit progress counter */}
-              <div style={styles.hitCounter}>
-                <span style={styles.hitCountNum}>{hitCount}</span>
-                <span style={styles.hitCountSep}>/</span>
-                <span style={styles.hitCountTarget}>{Math.round(sessionSeconds * 1.2)}</span>
-                <span style={styles.hitCountLabel}>hits</span>
-              </div>
-
-              {/* Combo counter — bottom-center */}
-              {comboCount > 0 && (
-                <div key={comboCount} style={styles.comboCounter} className="combo-pop">
-                  <span style={styles.comboLabel}>COMBO</span>
-                  <span style={styles.comboNum}>{comboCount}</span>
-                </div>
-              )}
-
-              {/* PvP target HUD — top-right (replaces ghost HUD in PvP mode) */}
-              {challengeUserId && targetScore && (
-                <div style={styles.ghostHud}>
-                  <div style={styles.ghostHudRow}>
-                    <span style={styles.ghostHudYouLabel}>{t("pvpYouLabel")}</span>
-                    <span style={{
-                      ...styles.ghostHudYouScore,
-                      color: liveScore >= targetScore ? "#34D399" : GOLD,
-                    }}>
-                      {liveScore.toFixed(1)}
-                    </span>
-                  </div>
-                  <span style={styles.ghostHudSep}>vs</span>
-                  <div style={styles.ghostHudRow}>
-                    <span style={styles.ghostHudGhostLabel}>🎯</span>
-                    <span style={styles.ghostHudGhostScore}>{targetScore.toFixed(1)}</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Ghost vs You HUD — top-right */}
-              {!challengeUserId && ghostBestScore !== null && ghostEnabled && (
-                <div style={styles.ghostHud}>
-                  <div style={styles.ghostHudRow}>
-                    <span style={styles.ghostHudYouLabel}>YOU</span>
-                    <span style={styles.ghostHudYouScore}>{liveScore.toFixed(1)}</span>
-                  </div>
-                  <span style={styles.ghostHudSep}>vs</span>
-                  <div style={styles.ghostHudRow}>
-                    <span style={styles.ghostHudGhostLabel}>👻</span>
-                    <span style={styles.ghostHudGhostScore}>{ghostScore.toFixed(1)}</span>
-                  </div>
-                  <span style={{
-                    ...styles.ghostHudState,
-                    color: liveScore > ghostBestScore ? "#34D399"
-                      : liveScore >= ghostBestScore - 0.5 ? "#FB923C"
-                      : liveScore > ghostScore ? GOLD
-                      : "rgba(255,255,255,0.4)",
-                  }}>
-                    {liveScore > ghostBestScore ? "NEW BEST"
-                      : liveScore >= ghostBestScore - 0.5 ? "ALMOST!"
-                      : liveScore > ghostScore ? "AHEAD"
-                      : "BEHIND"}
-                  </span>
-                </div>
-              )}
-
-              {/* Floating feedback toast — mid-screen */}
-              {liveFeedback && (
-                <div key={liveFeedback.id} style={styles.liveFeedbackBox} className="feedback-fade">
-                  {liveFeedback.text}
-                </div>
-              )}
-            </>
+            <RecordingHud
+              hitCount={hitCount}
+              secondsLeft={secondsLeft}
+              totalSeconds={sessionSeconds}
+              comboCount={comboCount}
+              challengeUserId={challengeUserId}
+              targetScore={targetScore}
+              liveScore={liveScore}
+              ghostBestScore={ghostBestScore}
+              ghostEnabled={ghostEnabled}
+              ghostScore={ghostScore}
+              liveFeedback={liveFeedback}
+              t={t}
+            />
           )}
         </div>
 
