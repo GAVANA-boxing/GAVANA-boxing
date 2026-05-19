@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   addDoc,
   collection,
   doc,
-  documentId,
   getDoc,
   getDocs,
   query,
@@ -19,11 +18,10 @@ import BottomSheet from "@/components/BottomSheet";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, GOLD } from "@/lib/tokens";
 import styles from "@/components/coach/coachDashboardStyles";
-import { RequesterAvatar, StatusBadge, RequestCard } from "@/components/coach/DashboardCards";
-import { snapToDocs } from "@/lib/firestore";
-import { formatAgo } from "@/lib/utils";
+import { RequesterAvatar, RequestCard } from "@/components/coach/DashboardCards";
+import { useCoachDashboardData } from "@/hooks/useCoachDashboardData";
 
 export default function CoachDashboardPage() {
   const router = useRouter();
@@ -32,15 +30,18 @@ export default function CoachDashboardPage() {
   const t = (key) => translate(locale, key);
   const { user, loading: authLoading } = useAuth();
 
-  const [requests, setRequests] = useState([]);
-  const [requesterUsers, setRequesterUsers] = useState({});
-  const [loadingRequests, setLoadingRequests] = useState(true);
+  const {
+    requests, setRequests,
+    requesterUsers,
+    loadingRequests,
+    accessDenied,
+    completedSessions, setCompletedSessions,
+    programs, setPrograms,
+  } = useCoachDashboardData({ user, authLoading, router, locale });
+
   const [updating, setUpdating] = useState(null);
-  const [accessDenied, setAccessDenied] = useState(false);
-  const loadedRef = useRef(false);
 
   // Programs
-  const [programs, setPrograms] = useState([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [progTitle, setProgTitle] = useState("");
   const [progDesc, setProgDesc] = useState("");
@@ -56,84 +57,11 @@ export default function CoachDashboardPage() {
   const [bookingSubmitting, setBookingSubmitting] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [completingId, setCompletingId] = useState(null);
-  const [completedSessions, setCompletedSessions] = useState(0);
   const [activeFilter, setActiveFilter] = useState("all");
 
   // Profile quick-view modal
   const [profileModal, setProfileModal] = useState(null);
 
-  // Auth + coach guard
-  useEffect(() => {
-    if (authLoading) return;
-    if (!user) {
-      router.replace(`/${locale}/login`);
-      return;
-    }
-    async function checkCoach() {
-      try {
-        const snap = await getDoc(doc(db, "users", user.uid));
-        if (!snap.exists() || !snap.data().isCoach) {
-          setAccessDenied(true);
-          router.replace(`/${locale}/coach`);
-          return;
-        }
-        setCompletedSessions(Number(snap.data().completedSessions) || 0);
-      } catch {
-        setAccessDenied(true);
-        router.replace(`/${locale}/coach`);
-      }
-    }
-    checkCoach();
-  }, [authLoading, user, router, locale]);
-
-  // Load requests
-  useEffect(() => {
-    if (!user?.uid || loadedRef.current) return;
-    loadedRef.current = true;
-    let active = true;
-
-    async function loadRequests() {
-      setLoadingRequests(true);
-      try {
-        const snap = await getDocs(
-          query(collection(db, "coach_requests"), where("coachId", "==", user.uid))
-        );
-        if (!active) return;
-
-        const docs = snap.docs
-          .map((d) => ({ id: d.id, ...d.data() }))
-          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-        setRequests(docs);
-
-        // Batch-load requester profiles
-        const uniqueIds = [...new Set(docs.map((r) => r.userId).filter(Boolean))];
-        if (uniqueIds.length === 0) return;
-
-        // Split into chunks of 10 (Firestore `in` limit per query)
-        const chunks = [];
-        for (let i = 0; i < uniqueIds.length; i += 10) {
-          chunks.push(uniqueIds.slice(i, i + 10));
-        }
-        const userMap = {};
-        await Promise.all(
-          chunks.map(async (chunk) => {
-            const uSnap = await getDocs(
-              query(collection(db, "users"), where(documentId(), "in", chunk))
-            );
-            uSnap.docs.forEach((d) => { userMap[d.id] = d.data(); });
-          })
-        );
-        if (active) setRequesterUsers(userMap);
-      } catch (e) {
-        console.error("Failed to load coach requests:", e);
-      } finally {
-        if (active) setLoadingRequests(false);
-      }
-    }
-
-    loadRequests();
-    return () => { active = false; };
-  }, [user?.uid]);
 
   const handleAccept = async (requestId, requesterId) => {
     setUpdating(requestId);
@@ -313,17 +241,6 @@ export default function CoachDashboardPage() {
     }
   };
 
-  // Load own programs
-  useEffect(() => {
-    if (!user?.uid) return;
-    let active = true;
-    getDocs(query(collection(db, "training_programs"), where("coachId", "==", user.uid)))
-      .then((snap) => {
-        if (!active) return;
-        setPrograms(snapToDocs(snap).sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0)));
-      }).catch(() => {});
-    return () => { active = false; };
-  }, [user?.uid]);
 
   const handleCreateProgram = async () => {
     if (!progTitle.trim() || progSaving) return;

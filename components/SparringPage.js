@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import {
-  addDoc, doc, getDoc, getDocs, setDoc, deleteDoc, updateDoc,
-  collection, query, where, onSnapshot,
-  serverTimestamp,
+  addDoc, doc, setDoc, deleteDoc, updateDoc,
+  collection, serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
@@ -18,8 +17,8 @@ import BottomNav from "@/components/BottomNav";
 import { RED, GOLD, redAlpha } from "@/lib/tokens";
 import s from "@/components/sparring/sparringStyles";
 import { FighterCard, IncomingRequestCard } from "@/components/sparring/SparringCards";
-import { snapToDocs } from "@/lib/firestore";
-import { formatAgo, getTimestampMs } from "@/lib/utils";
+import { formatAgo } from "@/lib/utils";
+import { useSparringData } from "@/hooks/useSparringData";
 
 const ARCHETYPE_KEYS = ["all", "pressure", "counter", "technical", "brawler"];
 
@@ -32,100 +31,26 @@ export default function SparringPage() {
   const t = (key) => translate(locale, key);
 
   const [tab, setTab] = useState("discover");
-  const [posts, setPosts] = useState([]);
-  const [myPost, setMyPost] = useState(null);
-  const [incomingRequests, setIncomingRequests] = useState([]);
-  const [sentRequestToIds, setSentRequestToIds] = useState(new Set());
-  const [sentRequests, setSentRequests] = useState([]);
   const [requestsSubTab, setRequestsSubTab] = useState("received");
   const [cancelling, setCancelling] = useState(null);
-  const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState(false);
   const [requesting, setRequesting] = useState(null);
   const [accepting, setAccepting] = useState(null);
   const [declining, setDeclining] = useState(null);
   const [filterArchetype, setFilterArchetype] = useState("all");
   const [filterWeight, setFilterWeight] = useState("all");
-  const [matchHistory, setMatchHistory] = useState([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
 
-  // Own user data
-  useEffect(() => {
-    if (!user?.uid) return;
-    getDoc(doc(db, "users", user.uid)).then((snap) => {
-      if (snap.exists()) setUserData(snap.data());
-    }).catch(() => {});
-  }, [user?.uid]);
-
-  // Real-time sparring posts
-  useEffect(() => {
-    const q = query(collection(db, "sparring_posts"), where("lookingForSparring", "==", true));
-    const unsub = onSnapshot(q, (snap) => {
-      const uid = user?.uid;
-      const all = snapToDocs(snap).sort((a, b) => getTimestampMs(b.createdAt) - getTimestampMs(a.createdAt));
-      setMyPost(uid ? (all.find((p) => p.userId === uid) || null) : null);
-      setPosts(all.filter((p) => p.userId !== uid));
-      setLoading(false);
-    }, () => setLoading(false));
-    return () => unsub();
-  }, [user?.uid]);
-
-  // Real-time incoming requests
-  useEffect(() => {
-    if (!user?.uid) return;
-    const q = query(collection(db, "sparring_requests"), where("toUserId", "==", user.uid));
-    const unsub = onSnapshot(q, (snap) => {
-      setIncomingRequests(
-        snapToDocs(snap).sort((a, b) => getTimestampMs(b.createdAt) - getTimestampMs(a.createdAt))
-      );
-    }, () => {});
-    return () => unsub();
-  }, [user?.uid]);
-
-  // Real-time sent requests — track which users already have a request + full docs
-  useEffect(() => {
-    if (!user?.uid) return;
-    const q = query(collection(db, "sparring_requests"), where("fromUserId", "==", user.uid));
-    const unsub = onSnapshot(q, (snap) => {
-      const docs = snapToDocs(snap).sort((a, b) => getTimestampMs(b.createdAt) - getTimestampMs(a.createdAt));
-      // Only mark as "sent" if the request is still pending — declined requests allow re-sending
-      setSentRequestToIds(new Set(docs.filter((d) => !d.status || d.status === "pending").map((d) => d.toUserId)));
-      setSentRequests(docs);
-    }, () => {});
-    return () => unsub();
-  }, [user?.uid]);
-
-  // Load match history when history tab opened (challenger + opponent)
-  useEffect(() => {
-    if (tab !== "history" || !user?.uid) return;
-    let active = true;
-    setHistoryLoading(true);
-    Promise.all([
-      getDocs(query(collection(db, "pvp_results"), where("challengerId", "==", user.uid))),
-      getDocs(query(collection(db, "pvp_results"), where("opponentId", "==", user.uid))),
-    ]).then(([asChallenger, asOpponent]) => {
-      if (!active) return;
-      const fromChallenger = snapToDocs(asChallenger);
-      const fromOpponent = asOpponent.docs.map((d) => {
-        const data = d.data();
-        const result = data.result === "win" ? "loss" : data.result === "loss" ? "win" : data.result;
-        return {
-          id: d.id,
-          ...data,
-          result,
-          opponentName: data.challengerName || data.challengerDisplayName || "Opponent",
-          challengerScore: data.opponentScore,
-          opponentScore: data.challengerScore,
-        };
-      });
-      const seen = new Set(fromChallenger.map((d) => d.id));
-      const unique = [...fromChallenger, ...fromOpponent.filter((d) => !seen.has(d.id))];
-      unique.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
-      setMatchHistory(unique);
-    }).catch(() => {}).finally(() => { if (active) setHistoryLoading(false); });
-    return () => { active = false; };
-  }, [tab, user?.uid]);
+  const {
+    posts,
+    myPost,
+    incomingRequests,
+    sentRequestToIds,
+    sentRequests,
+    userData,
+    loading,
+    matchHistory,
+    historyLoading,
+  } = useSparringData({ user, tab });
 
   const handleToggle = async () => {
     if (!user) { router.push(`/${locale}/login`); return; }
