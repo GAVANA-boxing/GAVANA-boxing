@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import FighterPortrait from "@/components/FighterPortrait";
 import MediaCover from "@/components/MediaCover";
 import { RED, GOLD } from "@/lib/tokens";
@@ -50,7 +50,7 @@ export function reelMatchesKeywords(reel, keywords) {
   return keywords.some((k) => text.includes(k.toLowerCase()));
 }
 
-export function ReelCard({ reel, onClick }) {
+const ReelCard = memo(function ReelCard({ reel, onClick }) {
   const [mediaErr, setMediaErr] = useState(false);
   const src = reel.thumbnailUrl || reel.thumbnail || reel.coverUrl || reel.videoUrl || "";
   const typeEmoji = reel.contentType === "educational" ? "📚" : reel.contentType === "lifestyle" ? "🎬" : "🥊";
@@ -90,7 +90,8 @@ export function ReelCard({ reel, onClick }) {
       </div>
     </button>
   );
-}
+});
+export { ReelCard };
 
 export function ReelRow({ reels, router, locale, loading }) {
   if (loading) {
@@ -131,7 +132,7 @@ export function HubCard({ emoji, title, accent, expanded, onToggle, children }) 
   );
 }
 
-export function FeedPostCard({ reel, authorUser, t, router, locale }) {
+const FeedPostCard = memo(function FeedPostCard({ reel, authorUser, t, router, locale }) {
   const [mediaErr, setMediaErr] = useState(false);
   const src = reel.thumbnailUrl || reel.thumbnail || reel.videoUrl || "";
   const typeEmoji = reel.contentType === "educational" ? "📚" : reel.contentType === "lifestyle" ? "🎬" : "🥊";
@@ -172,4 +173,5 @@ export function FeedPostCard({ reel, authorUser, t, router, locale }) {
       </div>
     </div>
   );
-}
+});
+export { FeedPostCard };

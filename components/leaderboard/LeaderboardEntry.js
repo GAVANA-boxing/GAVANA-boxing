@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { getFighterRank } from "@/lib/xp";
 import RankIcon from "@/components/RankIcon";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
@@ -7,7 +8,7 @@ import { formatCompact } from "@/lib/utils";
 import { getRankMedal, getScoreColor, getAvatarUrl, getEntryBadges } from "@/lib/leaderboardHelpers";
 import Image from "next/image";
 
-export function LeaderboardEntry({ entry, index, profiles, user, entries, weeklyEntries, streakEntries, improvementEntries, leaderboardTab, locale, router, t, styles }) {
+const LeaderboardEntry = memo(function LeaderboardEntry({ entry, index, profiles, user, entries, weeklyEntries, streakEntries, improvementEntries, leaderboardTab, locale, router, t, styles }) {
   const rank = index + 1;
   const medal = getRankMedal(rank);
   const profile = profiles[entry.userId] || {};
@@ -165,4 +166,5 @@ export function LeaderboardEntry({ entry, index, profiles, user, entries, weekly
       </div>
     </div>
   );
-}
+});
+export { LeaderboardEntry };

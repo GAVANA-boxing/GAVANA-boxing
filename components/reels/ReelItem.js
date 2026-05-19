@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import {
   getSafeLikeCount,
@@ -39,7 +40,7 @@ async function getFirebase() {
   return { db: _db };
 }
 
-export default function ReelItem({
+const ReelItem = memo(function ReelItem({
   reel,
   index,
   currentIndex,
@@ -396,4 +397,5 @@ export default function ReelItem({
       )}
     </div>
   );
-}
+});
+export default ReelItem;

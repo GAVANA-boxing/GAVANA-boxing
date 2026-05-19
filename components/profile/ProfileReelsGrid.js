@@ -1,10 +1,11 @@
 "use client";
 
+import { memo } from "react";
 import MediaCover from "@/components/MediaCover";
 import { getSafeReelLikes } from "@/lib/utils";
 import Image from "next/image";
 
-export default function ProfileReelsGrid({
+const ProfileReelsGrid = memo(function ProfileReelsGrid({
   visibleReels,
   previewFailures,
   deletingReelIds,
@@ -159,4 +160,5 @@ export default function ProfileReelsGrid({
       })}
     </>
   );
-}
+});
+export default ProfileReelsGrid;
