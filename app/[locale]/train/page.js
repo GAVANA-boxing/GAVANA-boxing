@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import DailyMission from "@/components/DailyMission";
@@ -41,6 +41,45 @@ export default function TrainPage() {
   const sessionSeconds = activeChallenge?.seconds || RECORD_SECONDS;
   const activeChallengeName = activeChallenge ? t(activeChallenge.titleKey) : "";
 
+  const resetForNewSessionRef = useRef(null);
+  const setPvpResultRef = useRef(null);
+  const setPvpSavedRef = useRef(null);
+  const pvpSavedRefFwd = useRef(null);
+
+  const {
+    videoRef,
+    streamRef,
+    recorderRef,
+    chunksRef,
+    cameraState, setCameraState,
+    cameraRetryKey, setCameraRetryKey,
+    phase,
+    countdown,
+    secondsLeft,
+    result, setResult,
+    error, setError,
+    comboCount,
+    hitCount,
+    liveScore,
+    isFlashing,
+    liveFeedback,
+    showGo,
+    ghostScore,
+    ghostEnabled, setGhostEnabled,
+    handleStart,
+    handleTryAgain,
+    finishRecording,
+  } = useCameraSession({
+    sessionSeconds,
+    currentXP,
+    resetForNewSession: (...args) => resetForNewSessionRef.current?.(...args),
+    ghostBestScoreRef,
+    setPvpResult: (...args) => setPvpResultRef.current?.(...args),
+    setPvpSaved: (...args) => setPvpSavedRef.current?.(...args),
+    pvpSavedRef: pvpSavedRefFwd,
+    t,
+  });
+
   const {
     saving, saved, savedAttemptNumber,
     challengeSaving, challengeSaved, challengeSavedRef,
@@ -59,6 +98,11 @@ export default function TrainPage() {
   const { pvpResult, pvpSaved, setPvpResult, setPvpSaved, pvpSavedRef } = usePvpResult({
     result, challengeUserId, targetScore, user, reelId, opponentUsername, locale,
   });
+
+  resetForNewSessionRef.current = resetForNewSession;
+  setPvpResultRef.current = setPvpResult;
+  setPvpSavedRef.current = setPvpSaved;
+  pvpSavedRefFwd.current = pvpSavedRef?.current;
 
   const goBack = () => {
     if (typeof window !== "undefined" && window.history.length > 1) {
@@ -288,4 +332,3 @@ export default function TrainPage() {
     </main>
   );
 }
-
