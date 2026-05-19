@@ -379,7 +379,7 @@ export default function ReelsContent() {
               showControls={showControls}
               isPvpSource={isPvpSource}
               isProfileSource={isProfileSource}
-              profileReelProgress={isProfileSource ? localProfileProgress : profileReelProgress}
+              profileReelProgress={profileReelProgress}
               creatorName={creatorName}
               creatorPhoto={creatorPhoto}
               creatorInitial={creatorInitial}
