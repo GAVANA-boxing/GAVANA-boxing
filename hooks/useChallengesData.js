@@ -32,7 +32,7 @@ export function useChallengesData({ user, authLoading, mainTab }) {
         });
         setMyBattles(all);
       } catch (e) {
-        console.error("battles load error", e);
+        if (process.env.NODE_ENV !== "production") console.error("battles load error", e);
       } finally {
         if (active) setBattlesLoading(false);
       }
