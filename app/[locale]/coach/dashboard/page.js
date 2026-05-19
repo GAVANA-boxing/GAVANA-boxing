@@ -349,7 +349,7 @@ export default function CoachDashboardPage() {
         </div>
         {profileModal?.request?.message && (
           <div style={{ padding: "10px 14px", borderRadius: 12, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.5, fontStyle: "italic" }}>
-            "{profileModal.request.message}"
+            &ldquo;{profileModal.request.message}&rdquo;
           </div>
         )}
         <button

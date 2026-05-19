@@ -319,7 +319,7 @@ export default function GymDashboardPage() {
                           </p>
                         </div>
                       </div>
-                      {req.message && <p style={styles.reqMessage}>"{req.message}"</p>}
+                      {req.message && <p style={styles.reqMessage}>&ldquo;{req.message}&rdquo;</p>}
                       <div style={styles.reqActions}>
                         <button
                           type="button"

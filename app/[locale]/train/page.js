@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import DailyMission from "@/components/DailyMission";
@@ -99,9 +99,11 @@ export default function TrainPage() {
     result, challengeUserId, targetScore, user, reelId, opponentUsername, locale, pvpSavedRef,
   });
 
-  resetForNewSessionRef.current = resetForNewSession;
-  setPvpResultRef.current = setPvpResult;
-  setPvpSavedRef.current = setPvpSaved;
+  useLayoutEffect(() => {
+    resetForNewSessionRef.current = resetForNewSession;
+    setPvpResultRef.current = setPvpResult;
+    setPvpSavedRef.current = setPvpSaved;
+  });
 
   const goBack = () => {
     if (typeof window !== "undefined" && window.history.length > 1) {

@@ -123,7 +123,7 @@ export default function FighterDetailPage() {
           <h1 style={{ ...s.heroNameBig, textShadow: `0 0 40px ${acc}44` }}>
             {fighter.name.toUpperCase()}
           </h1>
-          <p style={s.heroNickname}>"{fighter.nickname}"</p>
+          <p style={s.heroNickname}>&ldquo;{fighter.nickname}&rdquo;</p>
           <div style={s.heroMeta}>
             <span style={{ ...s.heroStyleBadge, background: acc + "1e", color: acc, borderColor: acc + "40" }}>
               {fighter.style}

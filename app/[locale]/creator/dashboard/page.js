@@ -171,6 +171,28 @@ export default function CreatorDashboard() {
     return () => { active = false; };
   }, [authLoading, user?.uid]);
 
+  // Best post day analysis — must be before any early return (Rules of Hooks)
+  const bestPostDay = useMemo(() => {
+    const dayLabels = locale === "mn"
+      ? ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"]
+      : locale === "ko"
+      ? ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]
+      : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const byDay = {};
+    reels.forEach((r) => {
+      if (!r.createdAt?.toDate) return;
+      const day = r.createdAt.toDate().getDay();
+      const v = reelStats[r.id]?.views || r.views || 0;
+      if (!byDay[day]) byDay[day] = { count: 0, views: 0 };
+      byDay[day].count += 1;
+      byDay[day].views += v;
+    });
+    return Object.entries(byDay).reduce((best, [day, data]) => {
+      const avg = data.count > 0 ? data.views / data.count : 0;
+      return avg > (best?.avg || 0) ? { day: dayLabels[Number(day)], avg: Math.round(avg) } : best;
+    }, null);
+  }, [reels, reelStats, locale]);
+
   if (authLoading || (!user && !authLoading)) {
     return <div style={styles.page}><div style={styles.loadingText}>...</div></div>;
   }
@@ -202,28 +224,6 @@ export default function CreatorDashboard() {
     return acc;
   }, {});
   const ctTotal = reels.length || 1;
-
-  // Best post day analysis
-  const bestPostDay = useMemo(() => {
-    const dayLabels = locale === "mn"
-      ? ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"]
-      : locale === "ko"
-      ? ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]
-      : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    const byDay = {};
-    reels.forEach((r) => {
-      if (!r.createdAt?.toDate) return;
-      const day = r.createdAt.toDate().getDay();
-      const v = reelStats[r.id]?.views || r.views || 0;
-      if (!byDay[day]) byDay[day] = { count: 0, views: 0 };
-      byDay[day].count += 1;
-      byDay[day].views += v;
-    });
-    return Object.entries(byDay).reduce((best, [day, data]) => {
-      const avg = data.count > 0 ? data.views / data.count : 0;
-      return avg > (best?.avg || 0) ? { day: dayLabels[Number(day)], avg: Math.round(avg) } : best;
-    }, null);
-  }, [reels, reelStats, locale]);
 
   // Growth tip
   const hasNoChallengeReels = reels.every((r) => !r.challengeEnabled && r.type !== "training");
