@@ -289,6 +289,53 @@ service cloud.firestore {
       allow update, delete: if isAuth() && resource.data.userId == request.auth.uid;
     }
 
+    // ─── Sparring requests ────────────────────────────────────────
+    match /sparring_requests/{requestId} {
+      allow read: if isAuth() && (
+        resource.data.fromUserId == request.auth.uid ||
+        resource.data.toUserId == request.auth.uid
+      );
+      allow create: if isAuth() && request.resource.data.fromUserId == request.auth.uid;
+      allow update: if isAuth() && (
+        resource.data.fromUserId == request.auth.uid ||
+        resource.data.toUserId == request.auth.uid
+      );
+      allow delete: if isAuth() && resource.data.fromUserId == request.auth.uid;
+    }
+
+    // ─── Events ───────────────────────────────────────────────────
+    match /events/{eventId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if isAuth() && resource.data.createdBy == request.auth.uid;
+    }
+
+    // ─── Event RSVPs ──────────────────────────────────────────────
+    match /event_rsvps/{rsvpId} {
+      allow read: if isAuth();
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow delete: if isAuth() && resource.data.userId == request.auth.uid;
+      allow update: if false;
+    }
+
+    // ─── Training programs (coach-created) ───────────────────────
+    match /training_programs/{programId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if isAuth() && resource.data.coachId == request.auth.uid;
+    }
+
+    // ─── Program enrollments ──────────────────────────────────────
+    match /program_enrollments/{enrollmentId} {
+      allow read: if isAuth() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.coachId == request.auth.uid
+      );
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow delete: if isAuth() && resource.data.userId == request.auth.uid;
+      allow update: if false;
+    }
+
     // ─── Body progress (private — own data only) ──────────────────
     match /body_progress/{docId} {
       allow read: if isAuth() && resource.data.userId == request.auth.uid;

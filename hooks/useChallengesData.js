@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { collection, doc, getDoc, getDocs, onSnapshot, query, where } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, onSnapshot, query, where, limit, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 export function useChallengesData({ user, authLoading, mainTab }) {
@@ -62,7 +62,7 @@ export function useChallengesData({ user, authLoading, mainTab }) {
   }, [user?.uid]); // profiles omitted — adding it would cause infinite loop with profile batch loader
 
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, "challenge_results"), (snap) => {
+    const unsub = onSnapshot(query(collection(db, "challenge_results"), orderBy("createdAt", "desc"), limit(500)), (snap) => {
       setResults(
         snap.docs
           .map((d) => ({ id: d.id, ...d.data() }))
