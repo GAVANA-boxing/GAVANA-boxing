@@ -20,6 +20,7 @@ import styles from "@/components/train/trainStyles";
 import TrainResultModal from "@/components/train/TrainResultModal";
 import PreGameCard from "@/components/train/PreGameCard";
 import RecordingHud from "@/components/train/RecordingHud";
+import { useTrainingData } from "@/hooks/useTrainingData";
 import { getLocalDateKey, getPreviousLocalDateKey } from "@/lib/utils";
 
 const RECORD_SECONDS = 10;
@@ -49,18 +50,9 @@ export default function TrainPage() {
   const [countdown, setCountdown] = useState(null);
   const [secondsLeft, setSecondsLeft] = useState(RECORD_SECONDS);
   const [result, setResult] = useState(null);
-  const [currentXP, setCurrentXP] = useState(0);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [savedAttemptNumber, setSavedAttemptNumber] = useState(null);
-  const [reelId, setReelId] = useState(null);
-  const [challengeId, setChallengeId] = useState(null);
-  const [targetScore, setTargetScore] = useState(null);
-  const [trainSource, setTrainSource] = useState(null);
-  const [trainSourceUserId, setTrainSourceUserId] = useState(null);
-  const [creatorBestScore, setCreatorBestScore] = useState(null);
-  const [challengeUserId, setChallengeUserId] = useState(null);
-  const [opponentUsername, setOpponentUsername] = useState(null);
   const [pvpResult, setPvpResult] = useState(null);
   const [pvpSaved, setPvpSaved] = useState(false);
   const pvpSavedRef = useRef(false);
@@ -73,9 +65,6 @@ export default function TrainPage() {
   const [missionNewStreak, setMissionNewStreak] = useState(0);
 
   // Session stats for pre-session panel & sparkline
-  const [sessionHistory, setSessionHistory] = useState([]);
-  const [weeklySessionCount, setWeeklySessionCount] = useState(0);
-  const [userStreak, setUserStreak] = useState(0);
 
   // Live game state
   const [comboCount, setComboCount] = useState(0);
@@ -91,11 +80,16 @@ export default function TrainPage() {
   const audioCtxRef = useRef(null);
 
   // Ghost AI state
-  const [ghostBestScore, setGhostBestScore] = useState(null);
   const [ghostScore, setGhostScore] = useState(0);
   const [ghostEnabled, setGhostEnabled] = useState(true);
-  const ghostBestScoreRef = useRef(null);
   const ghostIntervalRef = useRef(null);
+
+  const {
+    reelId, challengeId, trainSource, trainSourceUserId,
+    challengeUserId, creatorBestScore, targetScore,
+    currentXP, sessionHistory, weeklySessionCount, userStreak,
+    opponentUsername, ghostBestScore, setGhostBestScore, ghostBestScoreRef,
+  } = useTrainingData({ user });
 
   const activeChallenge = challengeId ? CHALLENGES[challengeId] : null;
   const sessionSeconds = activeChallenge?.seconds || RECORD_SECONDS;
@@ -127,19 +121,6 @@ export default function TrainPage() {
     router.push(`/${locale}/challenges`);
   };
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    setReelId(params.get("reelId") || null);
-    setChallengeId(params.get("challengeId") || null);
-    setTrainSource(params.get("source") || null);
-    setTrainSourceUserId(params.get("reelCreatorId") || params.get("userId") || null);
-    setChallengeUserId(params.get("challengeUserId") || null);
-    const parsedCreatorBest = Number(params.get("creatorBestScore"));
-    setCreatorBestScore(Number.isFinite(parsedCreatorBest) && parsedCreatorBest > 0 ? parsedCreatorBest : null);
-    const parsedTargetScore = Number(params.get("score") || params.get("targetScore"));
-    setTargetScore(Number.isFinite(parsedTargetScore) && parsedTargetScore > 0 ? parsedTargetScore : null);
-  }, []);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -147,157 +128,8 @@ export default function TrainPage() {
     }
   }, [authLoading, user, router, locale]);
 
-  useEffect(() => {
-    if (!user?.uid) return;
 
-    let active = true;
 
-    async function loadCurrentXP() {
-      try {
-        const snap = await getDocs(query(collection(db, "ai_feedback"), where("userId", "==", user.uid)));
-        const docs = snap.docs.map((doc) => ({
-          score: doc.data().score,
-          createdAt: doc.data().createdAt,
-        }));
-
-        if (active) {
-          setCurrentXP(calculateUserXP({ aiFeedbackDocs: docs }));
-        }
-      } catch (err) {
-        console.error("Failed to load training XP baseline:", err);
-      }
-    }
-
-    loadCurrentXP();
-
-    return () => {
-      active = false;
-    };
-  }, [user?.uid]);
-
-  // Load session history, weekly count, and streak for pre-session panel
-  useEffect(() => {
-    if (!user?.uid) return;
-    let active = true;
-
-    async function loadSessionStats() {
-      try {
-        const [userSnap, sessSnap] = await Promise.all([
-          getDoc(doc(db, "users", user.uid)),
-          getDocs(query(collection(db, "training_sessions"), where("userId", "==", user.uid))),
-        ]);
-        if (!active) return;
-
-        const userData = userSnap.exists() ? userSnap.data() : {};
-        setUserStreak(Number(userData.dailyStreak) || 0);
-
-        const sessions = sessSnap.docs
-          .map(d => d.data())
-          .filter(d => d.type === "training" && Number.isFinite(Number(d.score)));
-
-        sessions.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-
-        setSessionHistory(sessions.slice(0, 5).map(d => Number(d.score)));
-
-        const now = new Date();
-        const dayOfWeek = now.getDay();
-        const monday = new Date(now);
-        monday.setDate(now.getDate() - ((dayOfWeek + 6) % 7));
-        monday.setHours(0, 0, 0, 0);
-
-        const weeklyCount = sessions.filter(d => {
-          const ts = d.createdAt?.seconds ? new Date(d.createdAt.seconds * 1000) : null;
-          return ts && ts >= monday;
-        }).length;
-        setWeeklySessionCount(weeklyCount);
-      } catch {
-        // silent
-      }
-    }
-
-    loadSessionStats();
-    return () => { active = false; };
-  }, [user?.uid]);
-
-  // Load PvP opponent username
-  useEffect(() => {
-    if (!challengeUserId) return;
-    let active = true;
-
-    async function loadOpponent() {
-      try {
-        const snap = await getDoc(doc(db, "users", challengeUserId));
-        if (!active) return;
-        const data = snap.exists() ? snap.data() : {};
-        setOpponentUsername(data.username || data.displayName || "Opponent");
-      } catch (e) {
-        if (active) setOpponentUsername("Opponent");
-      }
-    }
-
-    loadOpponent();
-    return () => { active = false; };
-  }, [challengeUserId]);
-
-  // Load ghost — best training session for this reelId
-  useEffect(() => {
-    if (!user?.uid || !reelId || challengeUserId) return;
-    let active = true;
-
-    async function loadGhost() {
-      try {
-        const snap = await getDocs(query(
-          collection(db, "training_sessions"),
-          where("userId", "==", user.uid),
-          where("reelId", "==", reelId)
-        ));
-        if (!active) return;
-        const scores = snap.docs
-          .map(d => d.data())
-          .filter(d => d.type === "training" && Number.isFinite(Number(d.score)))
-          .map(d => Number(d.score));
-        if (!scores.length) return;
-        const best = Math.max(...scores);
-        setGhostBestScore(best);
-        ghostBestScoreRef.current = best;
-      } catch (e) {
-        // silent — ghost won't show
-      }
-    }
-
-    loadGhost();
-    return () => { active = false; };
-  }, [user?.uid, reelId, challengeUserId]);
-
-  // Load ghost — best challenge result for challengeId-based flow
-  useEffect(() => {
-    if (!user?.uid || !challengeId || challengeUserId) return;
-    let active = true;
-
-    async function loadChallengeGhost() {
-      try {
-        const snap = await getDocs(query(
-          collection(db, "challenge_results"),
-          where("userId", "==", user.uid),
-          where("challengeId", "==", challengeId)
-        ));
-        if (!active) return;
-        const scores = snap.docs
-          .map(d => d.data())
-          .filter(d => Number.isFinite(Number(d.score)))
-          .map(d => Number(d.score));
-        if (!scores.length) return;
-        const best = Math.max(...scores);
-        setGhostBestScore(best);
-        ghostBestScoreRef.current = best;
-      } catch (e) {
-        // silent — ghost won't show
-      }
-    }
-
-    loadChallengeGhost();
-    return () => { active = false; };
-  }, [user?.uid, challengeId, challengeUserId]);
 
   // Auto-save PvP result and notify opponent when training finishes in PvP mode
   useEffect(() => {
