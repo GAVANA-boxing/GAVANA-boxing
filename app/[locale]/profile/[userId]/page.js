@@ -23,20 +23,9 @@ import FighterShareCard from "@/components/profile/FighterShareCard";
 import { WeeklyRecapModal, WeeklyLeaderboardModal } from "@/components/profile/WeeklyModals";
 import BattleSection from "@/components/profile/BattleSection";
 import TrainingProgressSection from "@/components/profile/TrainingProgressSection";
-import { getLocalDateKey, getPreviousLocalDateKey, getTimestampMs, formatScore, getActiveChallengeStreak } from "@/lib/utils";
-
-function getSafeReelLikes(reel) {
-  const fieldLikes = typeof reel.likes === "number" && !Number.isNaN(reel.likes)
-    ? reel.likes
-    : reel.likesCount;
-
-  if (typeof fieldLikes !== "number" || Number.isNaN(fieldLikes)) {
-    return 0;
-  }
-
-  return Math.max(0, fieldLikes);
-}
-
+import { getLocalDateKey, getPreviousLocalDateKey, getTimestampMs, formatScore, getActiveChallengeStreak, getSafeReelLikes } from "@/lib/utils";
+import ProfileRivalComparison from "@/components/profile/ProfileRivalComparison";
+import ProfileReelsGrid from "@/components/profile/ProfileReelsGrid";
 
 export default function UserProfilePage() {
   const { user, loading: authLoading } = useAuth();
@@ -1322,49 +1311,14 @@ export default function UserProfilePage() {
       </section>
 
       {/* ── Rival Comparison ── */}
-      {!isOwnProfile && myStats && (
-        <div style={{ padding: "0 16px 4px" }}>
-          <div style={{ background: "linear-gradient(145deg, #0d0b0d, #0a0a0a)", border: "1px solid rgba(167,139,250,0.15)", borderLeft: `3px solid ${PURPLE}`, borderRadius: "3px 16px 16px 3px", padding: "14px 16px" }}>
-            <p style={{ margin: "0 0 10px", fontSize: 9, fontWeight: 900, color: PURPLE, letterSpacing: 2, textTransform: "uppercase" }}>
-              ⚔️ {t("profileYouVs")}{(profileUser.displayName || profileUser.username || "Fighter").split(" ")[0]}
-            </p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 0 }}>
-              {/* Headers */}
-              <div style={{ textAlign: "center", fontSize: 9, fontWeight: 900, color: RED, letterSpacing: 0.5, paddingBottom: 8 }}>
-                {t("profileYouLabel")}
-              </div>
-              <div />
-              <div style={{ textAlign: "center", fontSize: 9, fontWeight: 900, color: "rgba(255,255,255,0.35)", letterSpacing: 0.5, paddingBottom: 8 }}>
-                {(profileUser.displayName || profileUser.username || "Fighter").split(" ")[0].toUpperCase().slice(0, 8)}
-              </div>
-              {[
-                { label: "XP", my: myStats.xp, their: xp, fmt: v => v.toLocaleString() },
-                { label: t("profileStatBest"), my: myStats.bestScore, their: bestScore, fmt: v => v !== null ? `${formatScore(v)}/10` : "—" },
-                { label: t("profileStatStreak"), my: myStats.streak, their: getActiveChallengeStreak(profileUser), fmt: v => v > 0 ? `🔥${v}d` : "—" },
-              ].map((stat, i) => {
-                const myNum = Number(stat.my) || 0;
-                const theirNum = Number(stat.their) || 0;
-                const myWins = myNum > theirNum;
-                const theirWins = theirNum > myNum;
-                const sep = i > 0 ? "1px solid rgba(255,255,255,0.04)" : "none";
-                return (
-                  <div key={i} style={{ display: "contents" }}>
-                    <div style={{ textAlign: "center", padding: "7px 0", borderTop: sep }}>
-                      <span style={{ fontSize: 15, fontWeight: 900, color: myWins ? "#34D399" : "#fff" }}>{stat.fmt(stat.my)}</span>
-                    </div>
-                    <div style={{ textAlign: "center", fontSize: 9, fontWeight: 700, color: "#555", paddingTop: i > 0 ? 7 : 0, borderTop: sep }}>
-                      {stat.label}
-                    </div>
-                    <div style={{ textAlign: "center", padding: "7px 0", borderTop: sep }}>
-                      <span style={{ fontSize: 15, fontWeight: 900, color: theirWins ? "#34D399" : "#fff" }}>{stat.fmt(stat.their)}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
+      <ProfileRivalComparison
+        isOwnProfile={isOwnProfile}
+        myStats={myStats}
+        profileUser={profileUser}
+        xp={xp}
+        bestScore={bestScore}
+        t={t}
+      />
 
       <div style={styles.profileTabs}>
         <button
@@ -1446,143 +1400,21 @@ export default function UserProfilePage() {
         gap: 2,
         width: "100%"
       }}>
-        {visibleReels.length === 0 ? (
-          <div style={styles.reelGridEmpty}>
-            <div style={styles.reelGridEmptyIcon}>🥊</div>
-            <p style={styles.reelGridEmptyTitle}>
-              {profileTab === "saved" ? t("noSavedReelsYet") : t("noReelsYet")}
-            </p>
-            <p style={styles.reelGridEmptyText}>
-              {profileTab === "saved" ? t("bookmarkedReelsEmpty") : t("trainingClipsEmpty")}
-            </p>
-            {profileTab !== "saved" && isOwnProfile && (
-              <button
-                type="button"
-                style={styles.reelGridEmptyCta}
-                onClick={() => router.push(`/${locale}/upload`)}
-              >
-                {t("uploadFirstReel")}
-              </button>
-            )}
-          </div>
-        ) : (
-          visibleReels.map((reel) => {
-            const imageFailed = previewFailures[`${reel.id}:image`];
-            const videoFailed = previewFailures[`${reel.id}:video`];
-            const showImage = reel.thumbnailUrl && !imageFailed;
-            const showVideo = !showImage && reel.videoUrl && !videoFailed;
-            const likeCount = getSafeReelLikes(reel);
-            const canDeleteReel = user?.uid && reel.userId === user.uid;
-            const isDeletingReel = deletingReelIds.has(reel.id);
-            const effectiveType = reel.contentType || reel.type || "lifestyle";
-
-            return (
-              <div
-                key={reel.id}
-                className="profile-reel-tile"
-                style={{
-                  aspectRatio: "9/16",
-                  overflow: "hidden",
-                  background: "#0a0a0a",
-                  cursor: "pointer",
-                  position: "relative",
-                  borderRadius: 2,
-                }}
-                onClick={() => router.push(`/${locale}/reels?reelId=${reel.id}&source=profile&userId=${userId}`)}
-                onMouseEnter={(e) => {
-                  const video = e.currentTarget.querySelector("video");
-                  if (video) video.play().catch(() => {});
-                }}
-                onMouseLeave={(e) => {
-                  const video = e.currentTarget.querySelector("video");
-                  if (video) { video.pause(); video.currentTime = 0; }
-                }}
-              >
-                {showImage ? (
-                  <img
-                    src={reel.thumbnailUrl}
-                    alt={reel.description || t("trainingReel")}
-                    className="profile-reel-media"
-                    style={styles.reelPreviewMedia}
-                    loading="lazy"
-                    onError={() => markPreviewFailed(reel.id, "image")}
-                  />
-                ) : showVideo ? (
-                  <video
-                    src={reel.videoUrl}
-                    className="profile-reel-media"
-                    style={styles.reelPreviewMedia}
-                    muted
-                    playsInline
-                    loop
-                    preload="metadata"
-                    poster={reel.thumbnailUrl || undefined}
-                    onLoadedMetadata={(event) => {
-                      try {
-                        if (event.currentTarget.currentTime === 0) {
-                          event.currentTarget.currentTime = 0.05;
-                        }
-                      } catch {
-                        // Some mobile browsers do not allow seeking before enough data is ready.
-                      }
-                    }}
-                    onError={() => markPreviewFailed(reel.id, "video")}
-                  />
-                ) : (
-                  <MediaCover
-                    contentType={effectiveType}
-                    caption={reel.description || reel.caption}
-                    style={{ position: "absolute", inset: 0 }}
-                  />
-                )}
-
-                {/* Hover play hint (desktop only via CSS) */}
-                {showVideo && (
-                  <div className="reel-play-hint">
-                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
-                    </div>
-                  </div>
-                )}
-
-                {/* Content type indicator — top-left */}
-                <div style={styles.reelTileTypeBadge}>
-                  {effectiveType === "training" ? "🥊" : effectiveType === "educational" ? "📚" : "🎬"}
-                </div>
-
-                {canDeleteReel && (
-                  <button
-                    type="button"
-                    aria-label={t("deleteReel")}
-                    title={t("deleteReel")}
-                    onClick={(event) => { event.stopPropagation(); if (!isDeletingReel) setDeleteConfirmReel(reel); }}
-                    disabled={isDeletingReel}
-                    style={{
-                      ...styles.deleteReelButton,
-                      opacity: isDeletingReel ? 0.55 : 1,
-                      cursor: isDeletingReel ? "not-allowed" : "pointer",
-                    }}
-                  >
-                    {isDeletingReel
-                      ? <span style={{ fontSize: 11, fontWeight: 900 }}>...</span>
-                      : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-                    }
-                  </button>
-                )}
-                <div style={styles.reelTileOverlay}>
-                  <div style={styles.reelTileLikes}>
-                    ♥ {likeCount}
-                  </div>
-                  {reel.description && (
-                    <div style={styles.reelTileCaption}>
-                      {reel.description}
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })
-        )}
+        <ProfileReelsGrid
+          visibleReels={visibleReels}
+          previewFailures={previewFailures}
+          deletingReelIds={deletingReelIds}
+          isOwnProfile={isOwnProfile}
+          profileTab={profileTab}
+          userId={userId}
+          locale={locale}
+          router={router}
+          user={user}
+          styles={styles}
+          t={t}
+          markPreviewFailed={markPreviewFailed}
+          setDeleteConfirmReel={setDeleteConfirmReel}
+        />
       </div>
       )}
 
