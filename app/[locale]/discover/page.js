@@ -17,6 +17,7 @@ import MediaCover from "@/components/MediaCover";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import { s, feed } from "@/components/discover/discoverStyles";
 import { snapToDocs } from "@/lib/firestore";
+import { formatCompact, getTimestampMs } from "@/lib/utils";
 
 // ─── Legendary fighter mini card (for Fighter Study row) ─────────────────────
 function FighterStudyCard({ fighter, onClick }) {
@@ -72,19 +73,7 @@ const LEARN_CATS = [
   { key: "counter", emoji: "🎯", label: "Counter", mn: "Контр", ko: "카운터", keywords: ["counter", "counterpunch", "parry", "check"] },
 ];
 
-function formatCompact(n) {
-  const num = Number(n) || 0;
-  if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + "M";
-  if (num >= 1_000) return (num / 1_000).toFixed(1) + "K";
-  return String(num);
-}
 
-function getTimestampMs(ts) {
-  if (!ts) return 0;
-  if (ts.toMillis) return ts.toMillis();
-  const d = ts.toDate ? ts.toDate() : new Date(ts);
-  return Number.isNaN(d.getTime()) ? 0 : d.getTime();
-}
 
 function formatAgo(ts, locale) {
   const ms = getTimestampMs(ts);

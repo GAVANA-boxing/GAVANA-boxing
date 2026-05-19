@@ -19,6 +19,7 @@ import BottomNav from "@/components/BottomNav";
 import SkeletonBlock from "@/components/SkeletonBlock";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/notifications/notificationsStyles";
+import { getTimestampMs } from "@/lib/utils";
 
 function getActorName(notification) {
   return notification.fromUsername || notification.actorName || "Someone";
@@ -128,13 +129,6 @@ function getTypeIcon(type) {
   return "•";
 }
 
-function getTimestampMs(timestamp) {
-  if (!timestamp) return 0;
-  if (timestamp.toMillis) return timestamp.toMillis();
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  const time = date.getTime();
-  return Number.isNaN(time) ? 0 : time;
-}
 
 function formatRelativeTime(timestamp, locale = "en", t = (k) => k) {
   const time = getTimestampMs(timestamp);

@@ -10,6 +10,7 @@ import { getLocale, translate } from "@/lib/i18n";
 import { getCurrentSeasonId, getSeasonLabel } from "@/lib/season";
 import { RED, GOLD, PURPLE, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/challenges/challengesStyles";
+import { getLocalDateKey, getTimestampMs } from "@/lib/utils";
 
 const CHALLENGES = [
   { id: "jab-minute",   titleKey: "challengeJabTitle",   descKey: "challengeJabDesc",   emoji: "🥊" },
@@ -38,13 +39,6 @@ function formatCountdown(msLeft) {
 
 const SEASON_BADGE = ["🥇", "🥈", "🥉"];
 
-function getTimestampMs(timestamp) {
-  if (!timestamp) return 0;
-  if (timestamp.toMillis) return timestamp.toMillis();
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  const time = date.getTime();
-  return Number.isNaN(time) ? 0 : time;
-}
 
 function formatScore(score) {
   const n = Number(score);
@@ -78,9 +72,6 @@ function getRankIcon(index) {
   return `#${index + 1}`;
 }
 
-function getLocalDateKey(date = new Date()) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
 
 function getPreviousLocalDateKey(date = new Date()) {
   const prev = new Date(date);

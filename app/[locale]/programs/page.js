@@ -15,6 +15,7 @@ import SkeletonBlock from "@/components/SkeletonBlock";
 import { RED, GOLD, goldAlpha } from "@/lib/tokens";
 import s from "@/components/programs/programsStyles";
 import { snapToDocs } from "@/lib/firestore";
+import { getLocalDateKey } from "@/lib/utils";
 
 const DEMO_PROGRAMS = [
   {
@@ -66,12 +67,6 @@ const DEMO_PROGRAMS = [
 
 const LEVEL_COLOR = { beginner: "#34D399", intermediate: GOLD, advanced: RED };
 
-function getLocalDateKey(date = new Date()) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
 
 function ProgressRing({ pct = 0, size = 56, stroke = 5, color = RED }) {
   const r = (size - stroke * 2) / 2;

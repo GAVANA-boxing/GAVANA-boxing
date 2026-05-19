@@ -2,14 +2,8 @@
 
 import { GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
 import { calculateSessionXP } from "@/lib/xp";
+import { getTimestampMs } from "@/lib/utils";
 
-function getTimestampMs(timestamp) {
-  if (!timestamp) return 0;
-  if (timestamp.toMillis) return timestamp.toMillis();
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  const time = date.getTime();
-  return Number.isNaN(time) ? 0 : time;
-}
 
 function formatScore(score) {
   const n = Number(score);

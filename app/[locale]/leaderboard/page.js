@@ -41,6 +41,7 @@ import { getCurrentSeasonId, getSeasonLabel } from "@/lib/season";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import { RED, GOLD, PURPLE, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/leaderboard/leaderboardStyles";
+import { formatCompact } from "@/lib/utils";
 
 function getRankMedal(rank) {
   if (rank === 1) return "🥇";
@@ -49,12 +50,6 @@ function getRankMedal(rank) {
   return null;
 }
 
-function formatCompact(n) {
-  const num = Number(n) || 0;
-  if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + "M";
-  if (num >= 1_000) return (num / 1_000).toFixed(1) + "K";
-  return String(num);
-}
 
 function getEntryBadges({ entry, rank, weeklyEntries, streakEntries, improvementEntries }) {
   const badges = [];

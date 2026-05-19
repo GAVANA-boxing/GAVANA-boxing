@@ -15,6 +15,7 @@ import { writeChallengeAttempt, updateUserTrainingProfile } from "@/lib/analytic
 import { checkAndAwardBadges } from "@/lib/badges";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/train/trainStyles";
+import { getLocalDateKey, getPreviousLocalDateKey } from "@/lib/utils";
 
 const RECORD_SECONDS = 10;
 const CHALLENGES = {
@@ -52,18 +53,6 @@ function getChallengeComparisonPercent(score) {
   return Math.min(99, Math.max(42, Math.round(score * 10 + 3)));
 }
 
-function getLocalDateKey(date = new Date()) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function getPreviousLocalDateKey(date = new Date()) {
-  const previous = new Date(date);
-  previous.setDate(previous.getDate() - 1);
-  return getLocalDateKey(previous);
-}
 
 function getChallengeStreakBonus(streak) {
   if (streak === 14) return 300;

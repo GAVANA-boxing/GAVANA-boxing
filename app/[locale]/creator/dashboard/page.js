@@ -11,6 +11,7 @@ import EmptyState from "@/components/EmptyState";
 import SkeletonBlock from "@/components/SkeletonBlock";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/creator/creatorDashboardStyles";
+import { formatCompact } from "@/lib/utils";
 
 function getCreatedAtMs(obj) {
   const ts = obj?.createdAt;
@@ -20,12 +21,6 @@ function getCreatedAtMs(obj) {
   return Number(ts) || 0;
 }
 
-function formatCompact(n) {
-  const num = Number(n) || 0;
-  if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + "M";
-  if (num >= 1_000) return (num / 1_000).toFixed(1) + "K";
-  return String(num);
-}
 
 function StatCard({ label, value, color = GOLD, icon }) {
   return (

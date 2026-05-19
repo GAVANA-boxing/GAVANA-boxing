@@ -23,6 +23,7 @@ import FighterShareCard from "@/components/profile/FighterShareCard";
 import { WeeklyRecapModal, WeeklyLeaderboardModal } from "@/components/profile/WeeklyModals";
 import BattleSection from "@/components/profile/BattleSection";
 import TrainingProgressSection from "@/components/profile/TrainingProgressSection";
+import { getLocalDateKey, getPreviousLocalDateKey, getTimestampMs } from "@/lib/utils";
 
 function getSafeReelLikes(reel) {
   const fieldLikes = typeof reel.likes === "number" && !Number.isNaN(reel.likes)
@@ -36,13 +37,6 @@ function getSafeReelLikes(reel) {
   return Math.max(0, fieldLikes);
 }
 
-function getTimestampMs(timestamp) {
-  if (!timestamp) return 0;
-  if (timestamp.toMillis) return timestamp.toMillis();
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  const time = date.getTime();
-  return Number.isNaN(time) ? 0 : time;
-}
 
 function formatScore(score) {
   const numericScore = Number(score);
@@ -50,18 +44,6 @@ function formatScore(score) {
   return numericScore.toFixed(1).replace(/\.0$/, "");
 }
 
-function getLocalDateKey(date = new Date()) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function getPreviousLocalDateKey(date = new Date()) {
-  const previous = new Date(date);
-  previous.setDate(previous.getDate() - 1);
-  return getLocalDateKey(previous);
-}
 
 function getActiveChallengeStreak(profile) {
   const lastDate = String(profile?.lastChallengeDate || "");

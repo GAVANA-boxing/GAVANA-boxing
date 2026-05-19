@@ -18,6 +18,7 @@ import BottomNav from "@/components/BottomNav";
 import { RED, GOLD, redAlpha } from "@/lib/tokens";
 import s from "@/components/sparring/sparringStyles";
 import { snapToDocs } from "@/lib/firestore";
+import { formatAgo } from "@/lib/utils";
 
 const ARCHETYPE_KEYS = ["all", "pressure", "counter", "technical", "brawler"];
 
@@ -41,18 +42,6 @@ function getTs(ts) {
   return Number(ts) || 0;
 }
 
-function formatAgo(ts, locale) {
-  const ms = getTs(ts);
-  if (!ms) return "";
-  const diff = Math.floor((Date.now() - ms) / 1000);
-  if (diff < 60) return locale === "mn" ? "Одоо" : locale === "ko" ? "방금" : "Just now";
-  const m = Math.floor(diff / 60);
-  if (m < 60) return locale === "mn" ? `${m}мин өмнө` : locale === "ko" ? `${m}분 전` : `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return locale === "mn" ? `${h}ц өмнө` : locale === "ko" ? `${h}시간 전` : `${h}h ago`;
-  const d = Math.floor(h / 24);
-  return locale === "mn" ? `${d} өдрийн өмнө` : locale === "ko" ? `${d}일 전` : `${d}d ago`;
-}
 
 // ─── Fighter card (Discover tab) ──────────────────────────────────────────────
 function FighterCard({ post, isMe, onRequest, sent, requesting, locale }) {
