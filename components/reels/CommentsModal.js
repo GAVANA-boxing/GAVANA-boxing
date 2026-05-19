@@ -1,6 +1,6 @@
 "use client";
 
-import styles from "./reelStyles";
+import styles from "./commentsStyles";
 
 export default function CommentsModal({
   showComments,

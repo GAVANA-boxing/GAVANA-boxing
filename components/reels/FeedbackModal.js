@@ -1,6 +1,6 @@
 "use client";
 
-import styles from "./reelStyles";
+import styles from "./feedbackStyles";
 
 export default function FeedbackModal({
   feedbackOpen,
