@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "@/lib/AuthContext";
 import InAppBrowserWarning from "@/components/InAppBrowserWarning";
 import WebVitals from "@/components/WebVitals";
+import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
 import dynamic from "next/dynamic";
 
 const OnboardingModal = dynamic(() => import("@/components/OnboardingModal"));
@@ -67,6 +68,7 @@ export default function RootLayout({ children }) {
     >
       <body className="min-h-full flex flex-col">
         <AuthProvider>
+          <ServiceWorkerRegistrar />
           <WebVitals />
           <InAppBrowserWarning />
           <OnboardingModal />
