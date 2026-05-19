@@ -22,8 +22,9 @@ import FighterStyleQuiz, { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQu
 import FighterPath from "@/components/FighterPath";
 import {
   RadarChart, StyleDNA, FighterHero, StatPill, ScoreChart,
-  SessionRow, BodyProgressSection, PanelCard, ghostBtnStyle,
+  SessionRow, PanelCard, ghostBtnStyle,
 } from "@/components/dashboard/DashboardWidgets";
+import { BodyProgressSection } from "@/components/dashboard/BodyProgressSection";
 
 function getTs(ts) {
   if (!ts) return 0;
