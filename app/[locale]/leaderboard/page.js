@@ -9,6 +9,12 @@ import BottomNav from "@/components/BottomNav";
 import SkeletonBlock from "@/components/SkeletonBlock";
 import { getLocale, translate } from "@/lib/i18n";
 import { getFighterRank } from "@/lib/xp";
+import RankIcon from "@/components/RankIcon";
+import { getCurrentSeasonId, getSeasonLabel } from "@/lib/season";
+import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
+import { RED, GOLD, PURPLE, redAlpha, goldAlpha } from "@/lib/tokens";
+import styles from "@/components/leaderboard/leaderboardStyles";
+import { formatCompact } from "@/lib/utils";
 
 function useWeeklyCountdown() {
   const [ms, setMs] = useState(null);
@@ -36,12 +42,6 @@ function formatCountdown(ms, locale) {
   if (locale === "ko") return d > 0 ? `${d}일 ${h}시 ${m}분` : `${h}시간 ${m}분 ${s}초`;
   return d > 0 ? `${d}d ${h}h ${m}m` : `${h}h ${m}m ${s}s`;
 }
-import RankIcon from "@/components/RankIcon";
-import { getCurrentSeasonId, getSeasonLabel } from "@/lib/season";
-import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
-import { RED, GOLD, PURPLE, redAlpha, goldAlpha } from "@/lib/tokens";
-import styles from "@/components/leaderboard/leaderboardStyles";
-import { formatCompact } from "@/lib/utils";
 
 function getRankMedal(rank) {
   if (rank === 1) return "🥇";
