@@ -39,7 +39,6 @@ export default function DailyMission({ locale = "en" }) {
   const containerRef = useRef(null);
   const posRef = useRef(null);
 
-  // eslint-disable-next-line react-hooks/refs
   const [pos, setPos] = useState(() => {
     try {
       const saved = typeof window !== "undefined" && localStorage.getItem("gavana_mission_pos");

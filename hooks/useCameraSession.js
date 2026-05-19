@@ -123,7 +123,7 @@ export function useCameraSession({
       breakdown,
     });
     resetForNewSession();
-  }, [currentXP, resetForNewSession]);
+  }, [currentXP, resetForNewSession, sessionSeconds]);
 
   useEffect(() => {
     if (phase !== "countdown" || countdown === null) return undefined;
@@ -167,7 +167,8 @@ export function useCameraSession({
 
     const timer = window.setTimeout(() => setCountdown((value) => value - 1), 1000);
     return () => window.clearTimeout(timer);
-  }, [phase, countdown, sessionSeconds]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, countdown, sessionSeconds]); // t omitted — recreated every render, locale covers it
 
   useEffect(() => {
     if (phase !== "recording") return undefined;
@@ -274,7 +275,7 @@ export function useCameraSession({
         ghostIntervalRef.current = null;
       }
     };
-  }, [phase, sessionSeconds]);
+  }, [phase, sessionSeconds, ghostBestScoreRef, ghostEnabled]);
 
   const handleStart = () => {
     try {

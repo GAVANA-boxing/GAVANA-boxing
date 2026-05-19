@@ -14,11 +14,14 @@ export function useReelViewTracking({ user, reels, currentIndex, userViews, setU
 
     if (userViews.has(currentReel.id)) return;
 
-    if (viewTimers.current[currentReel.id]) {
-      clearTimeout(viewTimers.current[currentReel.id]);
+    const timers = viewTimers.current; // capture stable ref object for cleanup
+    const reelId = currentReel.id;
+
+    if (timers[reelId]) {
+      clearTimeout(timers[reelId]);
     }
 
-    viewTimers.current[currentReel.id] = setTimeout(async () => {
+    timers[reelId] = setTimeout(async () => {
       if (!user?.uid) return;
 
       try {
@@ -61,12 +64,12 @@ export function useReelViewTracking({ user, reels, currentIndex, userViews, setU
     }, 3000);
 
     return () => {
-      if (viewTimers.current[currentReel.id]) {
-        clearTimeout(viewTimers.current[currentReel.id]);
-        delete viewTimers.current[currentReel.id];
+      if (timers[reelId]) {
+        clearTimeout(timers[reelId]);
+        delete timers[reelId];
       }
     };
-  }, [user, currentIndex, reels, userViews]);
+  }, [user, currentIndex, reels, userViews, setUserViews, setAllReels]);
 
   useEffect(() => {
     const timers = viewTimers.current;

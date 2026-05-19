@@ -105,14 +105,15 @@ export default function OnboardingModal() {
 
     checkOnboarding();
     return () => { active = false; };
-  }, [authLoading, user?.uid, pathname]);
+  }, [authLoading, user?.uid, pathname, locale, router]);
 
   const selectedValues = useMemo(
     () => ({ goal, experience, coachStyle }),
     [goal, experience, coachStyle]
   );
 
-  const questions = useMemo(() => getQuestions(t), [locale]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const questions = useMemo(() => getQuestions(t), [locale]); // t omitted — recreated every render, locale covers it
   const currentQuestion = questions[stepIndex];
   const isSummaryStep = stepIndex >= questions.length;
   const recommendedPersona = personaMap[coachStyle] || "Coach";

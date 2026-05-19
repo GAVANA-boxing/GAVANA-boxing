@@ -57,7 +57,7 @@ export function usePvpResult({ result, challengeUserId, targetScore, user, reelI
     }
 
     savePvpAndNotify();
-  }, [result, challengeUserId, targetScore, user?.uid, reelId, opponentUsername, locale]);
+  }, [result, challengeUserId, targetScore, user?.uid, user?.displayName, reelId, opponentUsername, locale, pvpSavedRef]);
 
   return { pvpResult, pvpSaved, setPvpResult, setPvpSaved, pvpSavedRef };
 }

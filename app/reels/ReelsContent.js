@@ -214,10 +214,11 @@ export default function ReelsContent() {
   }, [reels]);
 
   useEffect(() => {
+    const timerRef = singleTapTimerRef;
     return () => {
-      if (singleTapTimerRef.current) clearTimeout(singleTapTimerRef.current);
+      if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, []);
+  }, [singleTapTimerRef]);
 
   const toggleCaption = useCallback((reelId) => {
     setExpandedCaptionIds((prev) => {

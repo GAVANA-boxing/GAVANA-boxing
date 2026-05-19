@@ -256,7 +256,8 @@ export default function AIBreakdownSheet({ reel, locale, onClose }) {
       });
 
     return () => { cancelled = true; };
-  }, [reel?.id]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reel?.id, locale]); // full reel object omitted — reel.id covers identity, adding reel causes excessive re-fetches
 
   return (
     <>

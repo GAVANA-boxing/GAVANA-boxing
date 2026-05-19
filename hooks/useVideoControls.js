@@ -132,21 +132,19 @@ export function useVideoControls({ reels, currentIndex }) {
   }, [reels, currentIndex, pauseInactiveVideos, scheduleControlsHide, soundEnabled]);
 
   useEffect(() => {
+    const ctRef = controlsTimer;
+    const tapRef = singleTapTimerRef;
+    const vidRef = videoRefs;
     return () => {
-      if (controlsTimer.current) {
-        clearTimeout(controlsTimer.current);
-      }
-      if (singleTapTimerRef.current) {
-        clearTimeout(singleTapTimerRef.current);
-      }
-
-      Object.values(videoRefs.current).forEach((video) => {
+      if (ctRef.current) clearTimeout(ctRef.current);
+      if (tapRef.current) clearTimeout(tapRef.current);
+      Object.values(vidRef.current).forEach((video) => {
         if (!video) return;
         video.pause();
         video.muted = true;
       });
     };
-  }, []);
+  }, [controlsTimer, singleTapTimerRef, videoRefs]);
 
   // Toggle global sound
   const toggleMute = useCallback(() => {

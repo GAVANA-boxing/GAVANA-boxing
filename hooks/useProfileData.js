@@ -202,7 +202,8 @@ export function useProfileData({ user, userId, authLoading, locale }) {
         unsubscribeReels();
       }
     };
-  }, [user, userId, authLoading]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, userId, authLoading]); // loadFollowStats/loadSavedReels omitted — defined without useCallback, adding would cause infinite loop
 
   // Listen to AI feedback in real time
   useEffect(() => {
@@ -329,7 +330,7 @@ export function useProfileData({ user, userId, authLoading, locale }) {
     if (typeof window !== "undefined") {
       localStorage.setItem("gavana_rank_key", currentRank.key);
     }
-  }, [loading, aiFeedbackHistory, userReels.length, stats.followers, profileUser?.streakCount, totalLikes, isOwnProfile]);
+  }, [loading, aiFeedbackHistory, userReels.length, stats.followers, profileUser?.streakCount, profileUser?.xp, totalLikes, isOwnProfile]);
 
   return {
     profileUser, setProfileUser,

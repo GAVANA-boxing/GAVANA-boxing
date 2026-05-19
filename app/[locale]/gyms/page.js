@@ -100,7 +100,7 @@ export default function GymsPage() {
       });
     }
     return list;
-  }, [gyms, verifiedOnly, selectedType, cityFilter, searchText, sortMode, nearbyCoords]);
+  }, [gyms, verifiedOnly, selectedType, cityFilter, filterVibe, searchText, sortMode, nearbyCoords]);
 
   const GYM_STATUS = {
     pending:  { color: "#F59E0B", bg: "rgba(245,158,11,0.1)",  border: "rgba(245,158,11,0.35)",  label: t("gymStatusPending") },

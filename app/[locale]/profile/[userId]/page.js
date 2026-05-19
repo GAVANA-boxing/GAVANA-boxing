@@ -86,7 +86,7 @@ export default function UserProfilePage() {
       setLoading(false);
       router.push(`/${locale}/login`);
     }
-  }, [user, authLoading, locale, router]);
+  }, [user, authLoading, locale, router, setLoading]);
 
   const {
     deletingReelIds,
@@ -179,7 +179,8 @@ export default function UserProfilePage() {
         };
       })
       .sort((a, b) => b.latestAt - a.latestAt);
-  }, [trainingSessions, t]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trainingSessions, locale]); // t omitted — recreated every render, locale covers it
 
   const toggleTrainingGroup = (groupKey) => {
     setExpandedTrainingGroups((prev) => {
@@ -249,7 +250,8 @@ export default function UserProfilePage() {
       weeklySequence,
       comboProgress: [...comboMap.values()].sort((a, b) => b.bestScore - a.bestScore),
     };
-  }, [aiFeedbackHistory, t]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aiFeedbackHistory, locale]); // t omitted — recreated every render, locale covers it
 
   if (loading) {
     return (

@@ -58,7 +58,8 @@ export function useChallengesData({ user, authLoading, mainTab }) {
       }));
     }).catch(() => {});
     return () => { active = false; };
-  }, [user?.uid]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid]); // profiles omitted — adding it would cause infinite loop with profile batch loader
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "challenge_results"), (snap) => {
@@ -99,7 +100,8 @@ export function useChallengesData({ user, authLoading, mainTab }) {
       });
     });
     return () => { active = false; };
-  }, [results]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [results]); // profiles omitted — used only to check already-loaded keys, adding causes infinite loop
 
   return {
     results, resultsLoading,

@@ -81,7 +81,8 @@ export default function EditProfilePage() {
     }
     load();
     return () => { active = false; };
-  }, [authLoading, user?.uid]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, user?.uid]); // t omitted (recreated every render); user.email stable within session
 
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0];

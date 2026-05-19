@@ -83,7 +83,8 @@ export default function StoryViewer({ stories, onClose, locale, currentUser }) {
       });
     }, 100);
     return () => clearInterval(timerRef.current);
-  }, [idx, stories.length]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idx, stories.length]); // onClose omitted — not memoized by parent, adding would restart timer on each render
 
   const react = async (reaction) => {
     if (!currentUser?.uid) return;

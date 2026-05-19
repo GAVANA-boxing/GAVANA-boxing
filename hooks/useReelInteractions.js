@@ -84,7 +84,7 @@ export function useReelInteractions({
     } catch (err) {
       console.error("Failed to toggle like:", err);
     }
-  }, [user, router, currentLocale, reels]);
+  }, [user, router, currentLocale, reels, setAllReels, setUserLikes]);
 
   const handleVideoClick = useCallback((e, reel) => {
     const now = Date.now();
@@ -111,7 +111,7 @@ export function useReelInteractions({
         singleTapTimerRef.current = null;
       }, 250);
     }
-  }, [handleLike, revealControls, togglePlay, userLikes]);
+  }, [handleLike, revealControls, togglePlay, userLikes, lastTapRef, singleTapTimerRef, setHeartBursts]);
 
   const handleSave = useCallback(async (reelId) => {
     const targetReel = reels.find((reel) => reel.id === reelId);
@@ -165,7 +165,7 @@ export function useReelInteractions({
         return next;
       });
     }
-  }, [currentLocale, reels, router, savedReels, user?.uid]);
+  }, [currentLocale, reels, router, savedReels, user?.uid, setSavedReels]);
 
   const handleShare = useCallback(async (reel) => {
     try {
@@ -215,7 +215,8 @@ export function useReelInteractions({
       console.error("Failed to share:", err);
       alert(t("shareFailed"));
     }
-  }, [pathname, currentLocale]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, currentLocale]); // t intentionally omitted — recreated every render, locale covers it
 
   return { handleLike, handleVideoClick, handleSave, handleShare };
 }
