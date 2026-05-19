@@ -12,6 +12,7 @@ import { s, feed } from "@/components/discover/discoverStyles";
 import { formatCompact } from "@/lib/utils";
 import { FighterStudyCard, ReelRow, HubCard, FeedPostCard, reelMatchesKeywords } from "@/components/discover/DiscoverCards";
 import { useDiscoverData } from "@/hooks/useDiscoverData";
+import Image from "next/image";
 import { FIGHTER_STYLES, LEARN_CATS } from "@/lib/discoverConstants";
 import { useDiscoverSearch } from "@/hooks/useDiscoverSearch";
 
@@ -171,7 +172,7 @@ export default function DiscoverPage() {
                   const initial = (u.displayName || u.username || "U").charAt(0).toUpperCase();
                   return (
                     <button key={u.id} type="button" onClick={() => router.push(`/${locale}/profile/${u.id}`)} style={s.listCard}>
-                      <div style={s.listAvatar}>{photo ? <img src={photo} alt="" style={s.listAvatarImg} /> : initial}</div>
+                      <div style={s.listAvatar}>{photo ? <Image src={photo} alt="" width={40} height={40} style={{ objectFit: "cover" }} /> : initial}</div>
                       <div style={s.listCardText}>
                         <span style={s.listCardName}>{u.displayName || u.username || t("fallbackUnnamed")}</span>
                         {u.username && <span style={s.listCardSub}>@{u.username}</span>}
@@ -453,7 +454,7 @@ export default function DiscoverPage() {
                         style={s.coachCard}
                       >
                         <div style={s.coachAvatar}>
-                          {photo ? <img src={photo} alt="" style={s.coachAvatarImg} /> : initial}
+                          {photo ? <Image src={photo} alt="" width={52} height={52} style={{ objectFit: "cover" }} /> : initial}
                         </div>
                         <span style={s.coachName}>{(coach.displayName || coach.username || t("fallbackCoach")).split(" ")[0]}</span>
                         <span style={s.coachSpec}>{coach.coachSpecialties?.[0] || (locale === "mn" ? "Тренер" : locale === "ko" ? "코치" : "Coach")}</span>

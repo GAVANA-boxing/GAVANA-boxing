@@ -14,6 +14,7 @@ import BottomNav from "@/components/BottomNav";
 import SkeletonBlock from "@/components/SkeletonBlock";
 import { GOLD, redAlpha } from "@/lib/tokens";
 import styles from "@/components/notifications/notificationsStyles";
+import Image from "next/image";
 import {
   getActorName, getActorId, getActorPhoto,
   getTypeIcon, getTranslatedNotificationText,
@@ -320,7 +321,7 @@ export default function NotificationsPage() {
                           } : {}),
                         }}>
                           {actorPhoto
-                            ? <img src={actorPhoto} alt="" style={styles.avatarImage} />
+                            ? <Image src={actorPhoto} alt="" width={46} height={46} style={{ objectFit: "cover" }} />
                             : actor.charAt(0).toUpperCase()}
                         </div>
                         <span style={styles.typeBadge}>{typeIcon}</span>

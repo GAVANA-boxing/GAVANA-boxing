@@ -12,6 +12,7 @@ import { GymFormField } from "@/components/gyms/GymFormField";
 import { GYM_TYPES, GYM_TYPE_KEYS, SPECIALTIES, AMENITIES, AMENITY_KEYS, getCompleteness } from "@/lib/gymConstants";
 import { useGymDashboardData } from "@/hooks/useGymDashboardData";
 import { useGymDashboardActions } from "@/hooks/useGymDashboardActions";
+import Image from "next/image";
 
 export default function GymDashboardPage() {
   const pathname = usePathname();
@@ -90,7 +91,7 @@ export default function GymDashboardPage() {
           <div style={styles.logoSection}>
             <div style={styles.logoCircle} onClick={() => logoInputRef.current?.click()}>
               {logoPreview ? (
-                <img src={logoPreview} alt="" style={styles.logoImg} />
+                <Image src={logoPreview} alt="" width={80} height={80} style={{ objectFit: "cover" }} unoptimized />
               ) : (
                 <span style={{ fontSize: 32 }}>🥊</span>
               )}
@@ -308,7 +309,7 @@ export default function GymDashboardPage() {
                       <div style={styles.requestTop}>
                         <div style={styles.reqAvatar}>
                           {photo
-                            ? <img src={photo} alt="" style={styles.reqAvatarImg} />
+                            ? <Image src={photo} alt="" width={40} height={40} style={{ objectFit: "cover" }} />
                             : <span style={styles.reqAvatarInitial}>{name[0]?.toUpperCase()}</span>
                           }
                         </div>
@@ -369,7 +370,7 @@ export default function GymDashboardPage() {
                       <div style={styles.requestTop}>
                         <div style={styles.reqAvatar}>
                           {photo
-                            ? <img src={photo} alt="" style={styles.reqAvatarImg} />
+                            ? <Image src={photo} alt="" width={40} height={40} style={{ objectFit: "cover" }} />
                             : <span style={styles.reqAvatarInitial}>{name[0]?.toUpperCase()}</span>
                           }
                         </div>

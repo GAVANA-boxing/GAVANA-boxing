@@ -2,6 +2,7 @@
 
 import styles from "@/components/coach/coachDashboardStyles";
 import { formatAgo } from "@/lib/utils";
+import Image from "next/image";
 
 export function RequesterAvatar({ user: u }) {
   if (!u) {
@@ -10,7 +11,7 @@ export function RequesterAvatar({ user: u }) {
   const initials = (u.displayName || u.username || "?")
     .split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
   if (u.photoURL) {
-    return <img src={u.photoURL} alt="" style={styles.avatar} />;
+    return <Image src={u.photoURL} alt="" width={42} height={42} style={{ borderRadius: "50%", objectFit: "cover" }} />;
   }
   return <div style={styles.avatarFallback}>{initials}</div>;
 }

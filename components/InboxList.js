@@ -9,6 +9,7 @@ import { getLocaleFromPathname } from "@/lib/i18n";
 import { startConversation } from "@/lib/messaging";
 import BottomNav from "@/components/BottomNav";
 import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
+import Image from "next/image";
 
 function getTs(ts) {
   if (!ts) return 0;
@@ -209,7 +210,7 @@ export default function InboxList() {
               >
                 <div style={s.avatarWrap}>
                   {other.photoURL
-                    ? <img src={other.photoURL} alt="" style={{ ...s.avatar, ...(isCoach ? { border: "2px solid #D4AF37" } : {}) }} />
+                    ? <Image src={other.photoURL} alt="" width={48} height={48} style={{ borderRadius: "50%", objectFit: "cover", ...(isCoach ? { border: "2px solid #D4AF37" } : {}) }} />
                     : <div style={{ ...s.avatarFallback, ...(isCoach ? { border: "2px solid #D4AF37", background: "#1a1500" } : {}) }}>
                         {(other.displayName || "?").charAt(0).toUpperCase()}
                       </div>
@@ -288,7 +289,7 @@ export default function InboxList() {
                   >
                     <div style={{ position: "relative", flexShrink: 0 }}>
                       {u.photoURL || u.profileImageUrl
-                        ? <img src={u.photoURL || u.profileImageUrl} alt="" style={{ width: 42, height: 42, borderRadius: "50%", objectFit: "cover", display: "block", border: isCoach ? "2px solid #D4AF37" : "none" }} />
+                        ? <Image src={u.photoURL || u.profileImageUrl} alt="" width={42} height={42} style={{ borderRadius: "50%", objectFit: "cover", border: isCoach ? "2px solid #D4AF37" : "none" }} />
                         : <div style={{ width: 42, height: 42, borderRadius: "50%", background: "#1a1a1a", border: isCoach ? "2px solid #D4AF37" : "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 900, color: "#fff" }}>
                             {(u.displayName || u.username || "?").charAt(0).toUpperCase()}
                           </div>

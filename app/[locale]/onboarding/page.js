@@ -10,6 +10,7 @@ import { RED, redAlpha } from "@/lib/tokens";
 import s from "@/components/onboarding/onboardingStyles";
 import { WEIGHT_CLASSES, ARCHETYPE_DESCS, TOTAL_STEPS, WEEKLY_GOALS } from "@/lib/onboardingConstants";
 import { useOnboardingActions } from "@/hooks/useOnboardingActions";
+import Image from "next/image";
 
 export default function OnboardingPage() {
   const pathname = usePathname();
@@ -289,7 +290,7 @@ export default function OnboardingPage() {
                     <div key={gym.id} style={s.gymCard}>
                       <div style={s.gymCardLeft}>
                         {gym.logo ? (
-                          <img src={gym.logo} alt="" style={s.gymLogo} />
+                          <Image src={gym.logo} alt="" width={40} height={40} style={{ borderRadius: 10, objectFit: "cover", flexShrink: 0 }} />
                         ) : (
                           <div style={s.gymLogoFallback}>🥊</div>
                         )}

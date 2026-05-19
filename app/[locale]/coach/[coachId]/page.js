@@ -11,6 +11,7 @@ import { StarRating, ReviewCard } from "@/components/shared/ReviewCard";
 import { SPECIALTY_COLORS, getCoachInsight } from "@/lib/coachConstants";
 import { useCoachProfileData } from "@/hooks/useCoachProfileData";
 import { useCoachProfileActions } from "@/hooks/useCoachProfileActions";
+import Image from "next/image";
 
 
 
@@ -81,7 +82,7 @@ export default function CoachProfilePage() {
         {/* Avatar */}
         <div style={styles.avatarWrap}>
           {coach.photoURL || coach.profileImageUrl ? (
-            <img src={coach.photoURL || coach.profileImageUrl} alt="" style={styles.avatar} />
+            <Image src={coach.photoURL || coach.profileImageUrl} alt="" width={88} height={88} style={{ borderRadius: 44, objectFit: "cover" }} />
           ) : (
             <div style={styles.avatarInitials}>{initials}</div>
           )}
@@ -423,7 +424,9 @@ export default function CoachProfilePage() {
                 onClick={() => router.push(`/${locale}/reels?reelId=${reel.id}`)}
               >
                 {reel.thumbnailUrl ? (
-                  <img src={reel.thumbnailUrl} alt="" style={styles.reelThumbImg} />
+                  <div style={{ position: "relative", width: "100%", height: "100%" }}>
+                    <Image src={reel.thumbnailUrl} alt="" fill style={{ objectFit: "cover" }} />
+                  </div>
                 ) : (
                   <div style={styles.reelThumbPlaceholder}>▶</div>
                 )}

@@ -10,6 +10,7 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname } from "@/lib/i18n";
 import { RED, GOLD , redAlpha} from "@/lib/tokens";
+import Image from "next/image";
 
 function getTs(ts) {
   if (!ts) return 0;
@@ -216,7 +217,7 @@ export default function ChatThread({ conversationId }) {
         >
           <div style={{ position: "relative" }}>
             {recipientInfo.photoURL
-              ? <img src={recipientInfo.photoURL} alt="" style={{ ...s.headerAvatar, ...(recipientIsCoach ? { border: "2px solid #D4AF37" } : {}) }} />
+              ? <Image src={recipientInfo.photoURL} alt="" width={34} height={34} style={{ borderRadius: "50%", objectFit: "cover", ...(recipientIsCoach ? { border: "2px solid #D4AF37" } : {}) }} />
               : <div style={{ ...s.headerAvatarFallback, ...(recipientIsCoach ? { border: "2px solid #D4AF37", background: "#1a1500" } : {}) }}>
                   {(recipientInfo.displayName || "?").charAt(0).toUpperCase()}
                 </div>

@@ -7,6 +7,7 @@ import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { translate } from "@/lib/i18n";
 import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
+import Image from "next/image";
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
 function HomeIcon({ active }) {
@@ -57,7 +58,7 @@ function ProfileTab({ user, active, onClick, dmUnread }) {
           boxShadow: active ? "0 0 0 2px #C1121F" : "0 0 0 1.5px rgba(255,255,255,0.08)",
         }}>
           {photo
-            ? <img src={photo} alt="" style={s.avatarImg} />
+            ? <Image src={photo} alt="" width={30} height={30} style={{ objectFit: "cover" }} />
             : <span style={{ ...s.avatarInitial, background: active ? RED : "#222" }}>{initial}</span>
           }
         </span>

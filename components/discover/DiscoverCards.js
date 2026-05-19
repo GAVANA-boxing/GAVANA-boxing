@@ -7,6 +7,7 @@ import { RED, GOLD } from "@/lib/tokens";
 import { s, feed } from "@/components/discover/discoverStyles";
 import { formatCompact, formatAgo } from "@/lib/utils";
 import { cleanCaption } from "@/lib/reelHelpers";
+import Image from "next/image";
 
 const fs = {
   card: {
@@ -143,7 +144,7 @@ export function FeedPostCard({ reel, authorUser, t, router, locale }) {
       <div style={feed.cardHeader}>
         <div style={feed.avatar} onClick={() => router.push(`/${locale}/profile/${reel.userId}`)}>
           {photo
-            ? <img src={photo} alt="" style={feed.avatarImg} />
+            ? <Image src={photo} alt="" width={38} height={38} style={{ objectFit: "cover" }} />
             : <span style={feed.avatarInitial}>{name[0]?.toUpperCase()}</span>}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>

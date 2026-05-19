@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/AuthContext";
 import StoryViewer from "./StoryViewer";
 import { translate } from "@/lib/i18n";
 import { redAlpha, goldAlpha } from "@/lib/tokens";
+import Image from "next/image";
 
 const RING_GRADIENTS = [
   "linear-gradient(135deg, #C1121F, #D4AF37)",
@@ -85,7 +86,7 @@ export default function StoryBar({ locale, router }) {
         >
           <div style={ownGroup ? st.ownRingActive : st.ownRingEmpty}>
             {user?.photoURL
-              ? <img src={user.photoURL} style={st.avatar} alt="" />
+              ? <Image src={user.photoURL} alt="" width={56} height={56} style={{ objectFit: "cover", borderRadius: "50%" }} />
               : <div style={st.avatarFallback}>{user?.displayName?.[0]?.toUpperCase() || "+"}</div>
             }
             {!ownGroup && <div style={st.addBadge}>+</div>}
@@ -109,7 +110,7 @@ export default function StoryBar({ locale, router }) {
               <div style={{ ...st.ring, background: isSeen ? "rgba(255,255,255,0.08)" : RING_GRADIENTS[i % RING_GRADIENTS.length], opacity: isSeen ? 0.7 : 1 }}>
                 <div style={st.avatarFrame}>
                   {grp.photoURL
-                    ? <img src={grp.photoURL} style={st.avatar} alt="" />
+                    ? <Image src={grp.photoURL} alt="" width={56} height={56} style={{ objectFit: "cover", borderRadius: "50%" }} />
                     : <div style={st.avatarFallback}>{grp.displayName[0]?.toUpperCase()}</div>
                   }
                 </div>

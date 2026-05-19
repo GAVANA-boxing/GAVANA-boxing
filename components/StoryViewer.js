@@ -5,6 +5,7 @@ import { addDoc, collection, getDocs, query, serverTimestamp, where } from "fire
 import { db } from "@/lib/firebase";
 import { translate } from "@/lib/i18n";
 import { RED, GOLD , redAlpha} from "@/lib/tokens";
+import Image from "next/image";
 
 function getTypeLabel(type, locale) {
   const labels = {
@@ -134,7 +135,7 @@ export default function StoryViewer({ stories, onClose, locale, currentUser }) {
       {story.mediaUrl ? (
         isVideo
           ? <video key={`v-${idx}`} src={story.mediaUrl} style={{ ...s.media, animation: "storyFadeIn 380ms ease forwards" }} autoPlay muted playsInline loop />
-          : <img key={`i-${idx}`} src={story.mediaUrl} style={{ ...s.media, animation: "storyFadeIn 380ms ease forwards" }} alt="" />
+          : <Image key={`i-${idx}`} src={story.mediaUrl} fill alt="" style={{ objectFit: "cover", animation: "storyFadeIn 380ms ease forwards" }} />
       ) : isProgress
         ? <div key={`p-${idx}`} style={{ ...s.progressBg, animation: "storyFadeIn 380ms ease forwards" }}><ProgressCard data={story.progressData || {}} /></div>
         : <div key={`d-${idx}`} style={{ ...s.defaultBg, animation: "storyFadeIn 380ms ease forwards" }} />
@@ -155,7 +156,7 @@ export default function StoryViewer({ stories, onClose, locale, currentUser }) {
         </div>
         <div style={s.metaRow}>
           <div style={s.userRow}>
-            {story.photoURL && <img src={story.photoURL} style={s.userAvatar} alt="" />}
+            {story.photoURL && <Image src={story.photoURL} alt="" width={32} height={32} style={{ borderRadius: "50%", objectFit: "cover", border: "1.5px solid rgba(255,255,255,0.6)", boxShadow: "0 2px 8px rgba(0,0,0,0.6)" }} />}
             <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
               <span style={s.userName}>{story.displayName || story.username || "Boxer"}</span>
               {story.type && (

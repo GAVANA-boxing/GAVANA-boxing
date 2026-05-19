@@ -5,6 +5,7 @@ import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import { RED, redAlpha } from "@/lib/tokens";
 import { c } from "@/components/sparring/sparringStyles";
 import { formatAgo } from "@/lib/utils";
+import Image from "next/image";
 
 const ARCHETYPE_STATS = {
   pressure:  { SPD: 75, PWR: 80, TEC: 55, STAM: 90 },
@@ -32,7 +33,7 @@ export function FighterCard({ post, isMe, onRequest, sent, requesting, locale })
       <div style={c.cardTop}>
         <div style={c.avatarWrap}>
           {post.photoURL
-            ? <img src={post.photoURL} alt="" style={c.avatar} />
+            ? <Image src={post.photoURL} alt="" width={48} height={48} style={{ borderRadius: "50%", objectFit: "cover" }} />
             : <div style={{ ...c.avatarFallback, background: arch?.color ? `${arch.color}22` : "#1a1a1a" }}>
                 {(post.displayName || "?").charAt(0).toUpperCase()}
               </div>
@@ -124,7 +125,7 @@ export function IncomingRequestCard({ req, onAccept, onDecline, onMessage, accep
       <div style={c.cardTop}>
         <div style={c.avatarWrap}>
           {req.fromPhotoURL
-            ? <img src={req.fromPhotoURL} alt="" style={c.avatar} />
+            ? <Image src={req.fromPhotoURL} alt="" width={48} height={48} style={{ borderRadius: "50%", objectFit: "cover" }} />
             : <div style={{ ...c.avatarFallback, background: "#1a1a1a" }}>
                 {(req.fromDisplayName || "?").charAt(0).toUpperCase()}
               </div>

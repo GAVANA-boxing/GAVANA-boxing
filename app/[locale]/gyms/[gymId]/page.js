@@ -9,6 +9,7 @@ import styles from "@/components/gyms/gymIdStyles";
 import { StarRating, ReviewCard } from "@/components/shared/ReviewCard";
 import { useGymData } from "@/hooks/useGymData";
 import { useGymActions } from "@/hooks/useGymActions";
+import Image from "next/image";
 
 const AMENITY_ICONS = {
   Shower: "🚿", Showers: "🚿",
@@ -77,7 +78,9 @@ function ReelThumb({ reel, router, locale }) {
       onClick={() => router.push(`/${locale}/reels?reelId=${reel.id}`)}
     >
       {reel.thumbnailUrl ? (
-        <img src={reel.thumbnailUrl} alt="" style={styles.reelThumbImg} />
+        <div style={{ position: "relative", width: "100%", height: "100%" }}>
+          <Image src={reel.thumbnailUrl} alt="" fill style={{ objectFit: "cover" }} />
+        </div>
       ) : (
         <div style={styles.reelThumbPlaceholder}>🥊</div>
       )}
@@ -162,14 +165,14 @@ export default function GymProfilePage() {
         {/* Hero */}
         <div style={styles.hero}>
           {gym.images?.[0] ? (
-            <img src={gym.images[0]} alt="" style={styles.heroImg} />
+            <Image src={gym.images[0]} alt="" fill style={{ objectFit: "cover" }} />
           ) : (
             <div style={styles.heroPlaceholder}>
               <span style={{ fontSize: 52 }}>🥊</span>
             </div>
           )}
           {gym.logo && (
-            <img src={gym.logo} alt="" style={styles.logoOverlay} />
+            <Image src={gym.logo} alt="" width={60} height={60} style={{ position: "absolute", bottom: -20, left: 20, borderRadius: 12, objectFit: "cover" }} />
           )}
         </div>
 
@@ -354,7 +357,7 @@ export default function GymProfilePage() {
                   <div key={m.id} style={styles.memberSlot}>
                     <div style={styles.memberAvatar}>
                       {photo
-                        ? <img src={photo} alt="" style={styles.memberAvatarImg} />
+                        ? <Image src={photo} alt="" width={44} height={44} style={{ objectFit: "cover" }} />
                         : <span style={styles.memberAvatarInitial}>{name[0]?.toUpperCase()}</span>
                       }
                     </div>

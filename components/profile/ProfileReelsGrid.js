@@ -2,6 +2,7 @@
 
 import MediaCover from "@/components/MediaCover";
 import { getSafeReelLikes } from "@/lib/utils";
+import Image from "next/image";
 
 export default function ProfileReelsGrid({
   visibleReels,
@@ -76,12 +77,13 @@ export default function ProfileReelsGrid({
             }}
           >
             {showImage ? (
-              <img
+              <Image
                 src={reel.thumbnailUrl}
                 alt={reel.description || t("trainingReel")}
+                fill
                 className="profile-reel-media"
-                style={styles.reelPreviewMedia}
-                loading="lazy"
+                style={{ objectFit: "cover" }}
+                sizes="33vw"
                 onError={() => markPreviewFailed(reel.id, "image")}
               />
             ) : showVideo ? (

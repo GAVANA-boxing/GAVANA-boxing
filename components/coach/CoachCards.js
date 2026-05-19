@@ -2,6 +2,7 @@
 
 import { GOLD, PURPLE, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/coach/coachStyles";
+import Image from "next/image";
 
 function formatTimeAgo(date, locale) {
   const diff = Date.now() - date.getTime();
@@ -56,7 +57,7 @@ export function CoachCard({ coach, t, locale, onRequest, requested, router }) {
       <div style={styles.cardTop}>
         <div style={styles.avatarWrap}>
           {coach.photoURL ? (
-            <img src={coach.photoURL} alt="" style={styles.avatar} />
+            <Image src={coach.photoURL} alt="" width={52} height={52} style={{ borderRadius: "50%", objectFit: "cover" }} />
           ) : (
             <div style={styles.avatarInitials}>{initials}</div>
           )}
@@ -138,7 +139,7 @@ export function MyRequestCard({ req, coachProfile, t, locale, router }) {
       <div style={styles.cardTop}>
         <div style={styles.avatarWrap}>
           {photo
-            ? <img src={photo} alt="" style={styles.avatar} />
+            ? <Image src={photo} alt="" width={52} height={52} style={{ borderRadius: "50%", objectFit: "cover" }} />
             : <div style={styles.avatarInitials}>{initials}</div>
           }
         </div>

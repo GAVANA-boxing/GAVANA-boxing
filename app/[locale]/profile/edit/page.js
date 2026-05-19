@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { getLocale } from "@/lib/i18n";
 import { RED, redAlpha } from "@/lib/tokens";
 import styles from "@/components/profile/editProfileStyles";
+import Image from "next/image";
 
 const WEIGHT_CLASSES = [
   { value: "-54", label: "-54kg" },
@@ -196,7 +197,7 @@ export default function EditProfilePage() {
             aria-label={t("Зураг солих", "사진 변경", "Change photo")}
           >
             {avatarSrc ? (
-              <img src={avatarSrc} alt="Profile" style={styles.avatarImage} />
+              <Image src={avatarSrc} alt="Profile" width={120} height={120} style={{ objectFit: "cover" }} unoptimized />
             ) : (
               <span style={styles.avatarInitial}>
                 {(displayName || user.email || "U").charAt(0).toUpperCase()}

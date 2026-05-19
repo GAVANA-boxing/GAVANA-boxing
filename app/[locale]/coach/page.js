@@ -13,6 +13,7 @@ import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/coach/coachStyles";
 import { CoachCard, MyRequestCard, SparringPostCard } from "@/components/coach/CoachCards";
 import { useCoachPageData } from "@/hooks/useCoachPageData";
+import Image from "next/image";
 import { useCoachPageActions } from "@/hooks/useCoachPageActions";
 import { SPECIALTIES, VIBE_FILTERS, LEVELS } from "@/lib/coachConstants";
 
@@ -137,7 +138,7 @@ export default function CoachPage() {
                       onClick={() => router.push(`/${locale}/coach/${coach.id}`)}
                     >
                       {coach.photoURL ? (
-                        <img src={coach.photoURL} alt="" style={styles.featuredAvatar} />
+                        <Image src={coach.photoURL} alt="" width={40} height={40} style={{ borderRadius: "50%", objectFit: "cover" }} />
                       ) : (
                         <div style={styles.featuredAvatarInitials}>{initials}</div>
                       )}

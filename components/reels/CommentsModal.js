@@ -1,6 +1,7 @@
 "use client";
 
 import styles from "./commentsStyles";
+import Image from "next/image";
 
 export default function CommentsModal({
   showComments,
@@ -36,7 +37,7 @@ export default function CommentsModal({
       <div key={comment.id} style={isReply ? styles.replyItem : styles.commentItem}>
         <button type="button" style={isReply ? styles.replyAvatar : styles.commentAvatar}
           onClick={() => comment.userId && router.push(`/${currentLocale}/profile/${comment.userId}`)}>
-          {photo ? <img src={photo} alt="" style={styles.commentAvatarImage} /> : name.charAt(0).toUpperCase()}
+          {photo ? <Image src={photo} alt="" width={38} height={38} style={{ objectFit: "cover" }} /> : name.charAt(0).toUpperCase()}
         </button>
         <div style={styles.commentContent}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>

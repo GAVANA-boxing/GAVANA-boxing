@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { getLocale, translate } from "@/lib/i18n";
 import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
 import { useAdminFeaturedCreators } from "@/hooks/useAdminFeaturedCreators";
+import Image from "next/image";
 
 export default function AdminFeaturedCreatorsPage() {
   const params = useParams();
@@ -76,7 +77,7 @@ export default function AdminFeaturedCreatorsPage() {
                   style={{ ...styles.resultItem, ...(isSelected ? styles.resultItemSelected : {}) }}
                 >
                   <div style={styles.avatar}>
-                    {photo ? <img src={photo} alt={initial} style={styles.avatarImg} /> : initial}
+                    {photo ? <Image src={photo} alt={initial} width={38} height={38} style={{ objectFit: "cover" }} /> : initial}
                   </div>
                   <div>
                     <div style={styles.resultName}>{u.displayName || u.username || "Unnamed"}</div>
@@ -141,7 +142,7 @@ export default function AdminFeaturedCreatorsPage() {
                 <div key={item.docId} style={styles.featuredItem}>
                   <div style={styles.avatar}>
                     {item.photoURL
-                      ? <img src={item.photoURL} alt={initial} style={styles.avatarImg} />
+                      ? <Image src={item.photoURL} alt={initial} width={38} height={38} style={{ objectFit: "cover" }} />
                       : initial}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>

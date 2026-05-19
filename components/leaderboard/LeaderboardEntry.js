@@ -5,6 +5,7 @@ import RankIcon from "@/components/RankIcon";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import { formatCompact } from "@/lib/utils";
 import { getRankMedal, getScoreColor, getAvatarUrl, getEntryBadges } from "@/lib/leaderboardHelpers";
+import Image from "next/image";
 
 export function LeaderboardEntry({ entry, index, profiles, user, entries, weeklyEntries, streakEntries, improvementEntries, leaderboardTab, locale, router, t, styles }) {
   const rank = index + 1;
@@ -55,7 +56,7 @@ export function LeaderboardEntry({ entry, index, profiles, user, entries, weekly
         }}
       >
         {avatarUrl ? (
-          <img src={avatarUrl} alt="" style={styles.avatarImg} />
+          <Image src={avatarUrl} alt="" width={44} height={44} style={{ objectFit: "cover" }} />
         ) : (
           <span style={styles.avatarInitial}>
             {displayName.charAt(0).toUpperCase()}

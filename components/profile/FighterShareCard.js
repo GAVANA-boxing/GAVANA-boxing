@@ -5,6 +5,7 @@ import { formatScore } from "@/lib/utils";
 import RankIcon from "@/components/RankIcon";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import { RED, GOLD , goldAlpha} from "@/lib/tokens";
+import Image from "next/image";
 
 export default function FighterShareCard({
   profileUser,
@@ -61,7 +62,7 @@ export default function FighterShareCard({
         <div style={{ position: "relative", marginBottom: 14 }}>
           <div style={{ width: 88, height: 88, borderRadius: "50%", overflow: "hidden", border: `2.5px solid ${accentColor}66`, background: "#111" }}>
             {profileUser.photoURL
-              ? <img src={profileUser.photoURL} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ? <Image src={profileUser.photoURL} alt="" width={88} height={88} style={{ objectFit: "cover" }} />
               : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: `${accentColor}22`, fontSize: 32, fontWeight: 900 }}>
                   {(profileUser.displayName || profileUser.username || "?")[0].toUpperCase()}
                 </div>}

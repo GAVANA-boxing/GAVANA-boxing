@@ -13,6 +13,7 @@ import styles from "@/components/leaderboard/leaderboardStyles";
 import { useWeeklyCountdown, formatCountdown, getScoreColor, getAvatarUrl } from "@/lib/leaderboardHelpers";
 import { useLeaderboardData } from "@/hooks/useLeaderboardData";
 import { LeaderboardEntry } from "@/components/leaderboard/LeaderboardEntry";
+import Image from "next/image";
 
 export default function LeaderboardPage() {
   const params = useParams();
@@ -370,7 +371,7 @@ export default function LeaderboardPage() {
                 <div key={rank} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer" }} onClick={() => router.push(`/${locale}/profile/${entry.userId}`)}>
                   <span style={{ fontSize: isFirst ? 20 : 16 }}>{medals[rank - 1]}</span>
                   {photo
-                    ? <img src={photo} alt="" style={{ width: avatarSize, height: avatarSize, borderRadius: "50%", objectFit: "cover", border: `2.5px solid ${colors[rank - 1]}`, boxShadow: glowShadow }} />
+                    ? <Image src={photo} alt="" width={avatarSize} height={avatarSize} style={{ borderRadius: "50%", objectFit: "cover", border: `2.5px solid ${colors[rank - 1]}`, boxShadow: glowShadow }} />
                     : <div style={{ width: avatarSize, height: avatarSize, borderRadius: "50%", background: "rgba(255,255,255,0.08)", border: `2.5px solid ${colors[rank - 1]}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: isFirst ? 22 : 16, fontWeight: 900, color: "#fff", boxShadow: glowShadow }}>{name[0]?.toUpperCase()}</div>
                   }
                   <span style={{ fontSize: isFirst ? 11 : 10, fontWeight: 800, color: isFirst ? "#fff" : "rgba(255,255,255,0.7)", maxWidth: 72, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>{name.split(" ")[0]}</span>

@@ -5,6 +5,7 @@ import RankIcon from "@/components/RankIcon";
 import styles from "@/components/profile/profilePageStyles";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import { formatScore, getActiveChallengeStreak } from "@/lib/utils";
+import Image from "next/image";
 
 export default function ProfileFighterCard({
   profileUser,
@@ -51,7 +52,7 @@ export default function ProfileFighterCard({
       {/* ── Cover Photo ── */}
       <div style={styles.coverPhotoSection}>
         {(profileUser.coverPhotoURL || profileUser.coverPhoto) ? (
-          <img src={profileUser.coverPhotoURL || profileUser.coverPhoto} alt="" style={styles.coverPhotoImg} />
+          <Image src={profileUser.coverPhotoURL || profileUser.coverPhoto} alt="" fill style={{ objectFit: "cover" }} />
         ) : (
           <div style={styles.coverPhotoFallback} />
         )}
@@ -76,10 +77,12 @@ export default function ProfileFighterCard({
         }}
       >
         {profileUser.photoURL ? (
-          <img
+          <Image
             src={profileUser.photoURL}
             alt={profileUser.displayName || profileUser.username || "Profile"}
-            style={styles.avatarImage}
+            width={148}
+            height={148}
+            style={{ borderRadius: "50%", objectFit: "cover" }}
           />
         ) : (
           profileUser.displayName?.charAt(0).toUpperCase() || profileUser.username?.charAt(0).toUpperCase() || "U"

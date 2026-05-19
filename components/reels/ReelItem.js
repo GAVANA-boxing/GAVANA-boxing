@@ -18,6 +18,7 @@ import {
   ReelFallbackVisual,
 } from "@/components/reels/ReelIcons";
 import styles from "@/components/reels/reelStyles";
+import Image from "next/image";
 
 let _db = null;
 async function getFirebase() {
@@ -262,7 +263,7 @@ export default function ReelItem({
             aria-label={`Open ${creatorName}'s profile`}
           >
             {creatorPhoto ? (
-              <img src={creatorPhoto} alt="" style={styles.creatorAvatarImage} />
+              <Image src={creatorPhoto} alt="" width={44} height={44} style={{ objectFit: "cover" }} />
             ) : (
               <span style={styles.creatorAvatarFallback}>{creatorInitial}</span>
             )}

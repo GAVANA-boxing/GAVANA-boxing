@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { getLocale, translate } from "@/lib/i18n";
 import { RED, GOLD , PURPLE, redAlpha, goldAlpha} from "@/lib/tokens";
 import { useEventData } from "@/hooks/useEventData";
+import Image from "next/image";
 
 const TYPE_META = {
   boxing:     { mn: "Бокс",     ko: "복싱",    en: "Boxing",     color: RED, emoji: "🥊" },
@@ -320,7 +321,7 @@ export default function EventDetailPage() {
                     onClick={() => router.push(`/${locale}/profile/${r.userId}`)}>
                     <div style={s.partAvatar}>
                       {photo
-                        ? <img src={photo} alt="" style={s.partAvatarImg} />
+                        ? <Image src={photo} alt="" width={34} height={34} style={{ objectFit: "cover" }} />
                         : <span style={s.partAvatarInitial}>{name[0]?.toUpperCase()}</span>}
                     </div>
                     <span style={s.partName}>{name}</span>

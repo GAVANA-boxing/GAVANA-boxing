@@ -10,6 +10,7 @@ import { getCurrentSeasonId, getSeasonLabel } from "@/lib/season";
 import { RED, GOLD, PURPLE, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/challenges/challengesStyles";
 import { getLocalDateKey, getPreviousLocalDateKey, getTimestampMs, formatScore, getActiveChallengeStreak, getChallengeRank } from "@/lib/utils";
+import Image from "next/image";
 
 const CHALLENGES = [
   { id: "jab-minute",   titleKey: "challengeJabTitle",   descKey: "challengeJabDesc",   emoji: "🥊" },
@@ -347,7 +348,7 @@ export default function ChallengesPage() {
                             <span style={styles.fighterCell}>
                               <span style={styles.avatar}>
                                 {profile.photoURL
-                                  ? <img src={profile.photoURL} alt="" style={styles.avatarImg} />
+                                  ? <Image src={profile.photoURL} alt="" width={26} height={26} style={{ objectFit: "cover" }} />
                                   : initial}
                               </span>
                               <span style={styles.fighterText}>

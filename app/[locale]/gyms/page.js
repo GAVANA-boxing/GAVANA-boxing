@@ -10,6 +10,7 @@ import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/gyms/gymsStyles";
 import { GymCard } from "@/components/gyms/GymCard";
 import { useGymsPageData } from "@/hooks/useGymsPageData";
+import Image from "next/image";
 import { GYM_TYPES, GYM_TYPE_KEYS, VIBE_FILTERS, VIBE_LABELS, getDefaultVibes } from "@/lib/gymConstants";
 
 export default function GymsPage() {
@@ -170,7 +171,7 @@ export default function GymsPage() {
                   >
                     <div style={styles.cardImageWrap}>
                       {ownedGym.logo
-                        ? <img src={ownedGym.logo} alt="" style={styles.cardLogo} />
+                        ? <Image src={ownedGym.logo} alt="" width={64} height={64} style={{ objectFit: "cover", borderRadius: 14 }} />
                         : <div style={styles.cardLogoFallback}><span style={{ fontSize: 28 }}>🥊</span></div>
                       }
                       <span style={{ position: "absolute", bottom: 8, right: 10, padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 900, background: `${goldAlpha(0.15)}`, border: `1px solid ${goldAlpha(0.5)}`, color: GOLD }}>
@@ -208,7 +209,7 @@ export default function GymsPage() {
                     >
                       <div style={styles.cardImageWrap}>
                         {gym.logo
-                          ? <img src={gym.logo} alt="" style={styles.cardLogo} />
+                          ? <Image src={gym.logo} alt="" width={64} height={64} style={{ objectFit: "cover", borderRadius: 14 }} />
                           : <div style={styles.cardLogoFallback}><span style={{ fontSize: 28 }}>🥊</span></div>
                         }
                         <span style={{ position: "absolute", bottom: 8, right: 10, padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 900, background: st.bg, border: `1px solid ${st.border}`, color: st.color }}>
@@ -260,7 +261,7 @@ export default function GymsPage() {
                   onClick={() => router.push(`/${locale}/gyms/${gym.id}`)}
                 >
                   {gym.logo ? (
-                    <img src={gym.logo} alt="" style={styles.featuredLogo} />
+                    <Image src={gym.logo} alt="" width={48} height={48} style={{ objectFit: "cover", borderRadius: 12, marginBottom: 2 }} />
                   ) : (
                     <div style={styles.featuredLogoFallback}>🥊</div>
                   )}

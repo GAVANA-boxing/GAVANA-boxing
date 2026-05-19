@@ -8,6 +8,7 @@ import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { RED, GOLD , redAlpha} from "@/lib/tokens";
+import Image from "next/image";
 
 const SPECIALTIES = [
   "Jab", "Footwork", "Defense", "Conditioning",
@@ -212,7 +213,7 @@ export default function CoachApplyPage() {
             onClick={() => fileInputRef.current?.click()}
           >
             {photoPreview ? (
-              <img src={photoPreview} alt="" style={styles.photoImg} />
+              <Image src={photoPreview} alt="" width={80} height={80} style={{ objectFit: "cover" }} unoptimized />
             ) : (
               <span style={styles.photoPlus}>+</span>
             )}

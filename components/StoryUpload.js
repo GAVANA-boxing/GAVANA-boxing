@@ -8,6 +8,7 @@ import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { translate } from "@/lib/i18n";
 import { redAlpha } from "@/lib/tokens";
+import Image from "next/image";
 
 const STORY_TYPES = [
   { key: "training_clip", emoji: "🥊", labelKey: "storyTrainingClip" },
@@ -189,7 +190,7 @@ export default function StoryUpload({ locale, initialType = "training_clip" }) {
             <div style={s.previewWrap}>
               {preview.type === "video"
                 ? <video src={preview.url} style={s.previewMedia} controls muted playsInline />
-                : <img src={preview.url} style={s.previewMedia} alt="" />
+                : <Image src={preview.url} alt="" width={400} height={360} style={{ width: "100%", maxHeight: 360, objectFit: "cover", display: "block" }} unoptimized />
               }
               <button type="button" style={s.changeBtn} onClick={() => fileRef.current?.click()}>Change</button>
             </div>

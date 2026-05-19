@@ -12,6 +12,7 @@ import s, { c } from "@/components/sparring/sparringStyles";
 import { FighterCard, IncomingRequestCard } from "@/components/sparring/SparringCards";
 import { formatAgo } from "@/lib/utils";
 import { useSparringData } from "@/hooks/useSparringData";
+import Image from "next/image";
 
 const ARCHETYPE_KEYS = ["all", "pressure", "counter", "technical", "brawler"];
 const WEIGHT_OPTS = ["all", "-54", "-60", "-67", "-75", "-81", "+91"];
@@ -247,7 +248,7 @@ export default function SparringPage() {
                             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                 {req.fromPhotoURL
-                                  ? <img src={req.fromPhotoURL} alt="" style={{ ...c.avatar, width: 36, height: 36 }} />
+                                  ? <Image src={req.fromPhotoURL} alt="" width={36} height={36} style={{ ...c.avatar, width: 36, height: 36 }} />
                                   : <div style={{ ...c.avatarFallback, width: 36, height: 36, fontSize: 14 }}>{(req.fromDisplayName || "?").charAt(0).toUpperCase()}</div>
                                 }
                                 <div>

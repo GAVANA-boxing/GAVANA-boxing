@@ -3,6 +3,7 @@
 import { GOLD, redAlpha } from "@/lib/tokens";
 import styles from "@/components/gyms/gymsStyles";
 import { GYM_TYPE_KEYS, getDefaultVibes } from "@/lib/gymConstants";
+import Image from "next/image";
 
 function StarDisplay({ rating }) {
   const r = Number(rating) || 0;
@@ -19,7 +20,7 @@ export function GymCard({ gym, t, router, locale }) {
     <div style={styles.card}>
       <div style={styles.cardImageWrap} onClick={() => router.push(`/${locale}/gyms/${gym.id}`)}>
         {gym.logo ? (
-          <img src={gym.logo} alt="" style={styles.cardLogo} />
+          <Image src={gym.logo} alt="" width={64} height={64} style={{ objectFit: "cover", borderRadius: 14 }} />
         ) : (
           <div style={styles.cardLogoFallback}>
             <span style={{ fontSize: 32, filter: `drop-shadow(0 2px 12px ${redAlpha(0.6)})` }}>🥊</span>
