@@ -1,147 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  limit,
-  orderBy,
-  query,
-  where,
-} from "firebase/firestore";
 import BottomNav from "@/components/BottomNav";
 import EmptyState from "@/components/EmptyState";
 import { useAuth } from "@/lib/AuthContext";
-import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/gyms/gymsStyles";
-import { snapToDocs } from "@/lib/firestore";
-
-const GYM_TYPES = [
-  "Boxing", "MMA", "Muay Thai", "Fitness",
-  "Crossfit", "Street Workout", "Powerlifting", "Running Club",
-];
-
-const GYM_TYPE_KEYS = {
-  Boxing: "gymTypeBoxing",
-  MMA: "gymTypeMMA",
-  "Muay Thai": "gymTypeMuayThai",
-  Fitness: "gymTypeFitness",
-  Crossfit: "gymTypeCrossfit",
-  "Street Workout": "gymTypeStreetWorkout",
-  Powerlifting: "gymTypePowerlifting",
-  "Running Club": "gymTypeRunningClub",
-};
-
-const VIBE_FILTERS = ["Beginner-Friendly", "Technical", "Competitive", "Traditional"];
-
-const VIBE_LABELS = {
-  "Beginner-Friendly": { mn: "Анхлан суралцагч", ko: "입문자 친화적" },
-  "Technical": { mn: "Техникийн", ko: "기술적" },
-  "Competitive": { mn: "Өрсөлдөөнт", ko: "경쟁적" },
-  "Traditional": { mn: "Уламжлалт", ko: "전통적" },
-};
-
-function getDefaultVibes(gymType) {
-  const map = {
-    Boxing: ["Technical", "Sparring"],
-    MMA: ["Hard training", "Competitive"],
-    "Muay Thai": ["Traditional", "Technical"],
-    Fitness: ["Beginner-Friendly", "Conditioning"],
-    Crossfit: ["High intensity", "Competitive"],
-  };
-  return map[gymType] || [];
-}
-
-function StarDisplay({ rating }) {
-  const r = Number(rating) || 0;
-  return (
-    <span style={{ color: GOLD, fontSize: 12, fontWeight: 700 }}>
-      {"★".repeat(Math.round(r))}{"☆".repeat(5 - Math.round(r))} {r > 0 ? r.toFixed(1) : ""}
-    </span>
-  );
-}
-
-function GymCard({ gym, t, router, locale }) {
-  const vibes = gym.vibes || getDefaultVibes(gym.gymType);
-  return (
-    <div style={styles.card}>
-      <div style={styles.cardImageWrap} onClick={() => router.push(`/${locale}/gyms/${gym.id}`)}>
-        {gym.logo ? (
-          <img src={gym.logo} alt="" style={styles.cardLogo} />
-        ) : (
-          <div style={styles.cardLogoFallback}>
-            <span style={{ fontSize: 32, filter: `drop-shadow(0 2px 12px ${redAlpha(0.6)})` }}>🥊</span>
-          </div>
-        )}
-        {gym.verified && (
-          <span style={styles.verifiedBadge}>✓ {t("gymVerified")}</span>
-        )}
-        {gym.memberCount > 0 && (
-          <span style={styles.memberCountBadge}>👥 {gym.memberCount}</span>
-        )}
-      </div>
-
-      <div style={styles.cardBody}>
-        <div style={styles.cardNameRow}>
-          <span style={styles.cardName}>{gym.gymName}</span>
-          {gym.gymType && (
-            <span style={styles.typeChip}>{t(GYM_TYPE_KEYS[gym.gymType]) || gym.gymType}</span>
-          )}
-        </div>
-
-        {(gym.city || gym.country) && (
-          <div style={styles.cardLocation}>
-            📍 {[gym.city, gym.country].filter(Boolean).join(", ")}
-          </div>
-        )}
-
-        {gym.rating > 0 && (
-          <div style={styles.cardRating}>
-            <StarDisplay rating={gym.rating} />
-            {gym.totalReviews > 0 && (
-              <span style={styles.reviewCount}>({gym.totalReviews})</span>
-            )}
-          </div>
-        )}
-
-        {gym.specialties?.length > 0 && (
-          <div style={styles.cardStats}>
-            {gym.specialties.slice(0, 3).map((sp) => (
-              <span key={sp} style={styles.statChip}>{sp}</span>
-            ))}
-          </div>
-        )}
-
-        {vibes.length > 0 && (
-          <div style={styles.cardVibeRow}>
-            {vibes.slice(0, 3).map((v) => (
-              <span key={v} style={styles.cardVibeBadge}>{v}</span>
-            ))}
-          </div>
-        )}
-
-        {gym.description && (
-          <p style={styles.cardDesc}>
-            {gym.description.length > 90 ? gym.description.slice(0, 90) + "…" : gym.description}
-          </p>
-        )}
-
-        <button
-          type="button"
-          style={styles.joinBtn}
-          onClick={() => router.push(`/${locale}/gyms/${gym.id}`)}
-        >
-          {t("gymViewJoin")}
-        </button>
-      </div>
-    </div>
-  );
-}
+import { GymCard } from "@/components/gyms/GymCard";
+import { useGymsPageData } from "@/hooks/useGymsPageData";
+import { GYM_TYPES, GYM_TYPE_KEYS, VIBE_FILTERS, VIBE_LABELS, getDefaultVibes } from "@/lib/gymConstants";
 
 export default function GymsPage() {
   const pathname = usePathname();
@@ -151,70 +20,17 @@ export default function GymsPage() {
   const { user, loading: authLoading } = useAuth();
 
   const [tab, setTab] = useState("all");
-  const [gyms, setGyms] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [myMemberships, setMyMemberships] = useState([]);
-  const [myMembershipsLoading, setMyMembershipsLoading] = useState(false);
-  const myMembershipsLoadedRef = useRef(false);
-  const [ownedGym, setOwnedGym] = useState(null);
   const [searchText, setSearchText] = useState("");
   const [selectedType, setSelectedType] = useState("all");
-  const [sortMode, setSortMode] = useState("topRated"); // topRated | newest | nearby
+  const [sortMode, setSortMode] = useState("topRated");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [cityFilter, setCityFilter] = useState("");
   const [filterVibe, setFilterVibe] = useState("");
   const [nearbyCoords, setNearbyCoords] = useState(null);
   const [nearbyLoading, setNearbyLoading] = useState(false);
 
-  useEffect(() => {
-    let active = true;
-    async function load() {
-      setLoading(true);
-      try {
-        const snap = await getDocs(query(collection(db, "gyms"), orderBy("createdAt", "desc"), limit(50)));
-        if (active) {
-          setGyms(snapToDocs(snap));
-        }
-      } catch (e) {
-        console.error("gyms load error", e);
-      } finally {
-        if (active) setLoading(false);
-      }
-    }
-    load();
-    return () => { active = false; };
-  }, []);
-
-  useEffect(() => {
-    if (tab !== "mine" || myMembershipsLoadedRef.current || !user?.uid) return;
-    myMembershipsLoadedRef.current = true;
-    let active = true;
-    setMyMembershipsLoading(true);
-    Promise.all([
-      getDocs(query(collection(db, "gym_join_requests"), where("userId", "==", user.uid))),
-      getDocs(query(collection(db, "gyms"), where("ownerId", "==", user.uid))),
-    ])
-      .then(async ([reqSnap, ownedSnap]) => {
-        if (!active) return;
-        if (!ownedSnap.empty) {
-          const od = ownedSnap.docs[0];
-          setOwnedGym({ id: od.id, ...od.data() });
-        }
-        const reqs = reqSnap.docs
-          .map((d) => ({ id: d.id, ...d.data() }))
-          .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
-        const gymIds = [...new Set(reqs.map((r) => r.gymId).filter(Boolean))];
-        const gymMap = {};
-        await Promise.all(gymIds.map(async (gid) => {
-          const s = await getDoc(doc(db, "gyms", gid));
-          if (s.exists()) gymMap[gid] = { id: gid, ...s.data() };
-        }));
-        if (active) setMyMemberships(reqs.map((r) => ({ ...r, gym: gymMap[r.gymId] || null })));
-      })
-      .catch(() => {})
-      .finally(() => { if (active) setMyMembershipsLoading(false); });
-    return () => { active = false; };
-  }, [tab, user?.uid]);
+  const { gyms, loading, myMemberships, myMembershipsLoading, ownedGym } =
+    useGymsPageData({ tab, userId: user?.uid });
 
   const handleNearby = () => {
     if (!navigator.geolocation) return;
