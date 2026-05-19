@@ -1,5 +1,15 @@
 "use client";
 
+export const metadata = {
+  title: "Leaderboard | Gavana Boxing",
+  description: "Top fighters ranked by score, XP, and training performance.",
+  openGraph: {
+    title: "Leaderboard | Gavana Boxing",
+    description: "Top fighters ranked by score, XP, and training performance.",
+    type: "website",
+  },
+};
+
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";

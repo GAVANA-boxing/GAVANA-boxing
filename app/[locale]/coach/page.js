@@ -1,5 +1,15 @@
 "use client";
 
+export const metadata = {
+  title: "Coaches | Gavana Boxing",
+  description: "Find certified boxing coaches and book personalized training sessions.",
+  openGraph: {
+    title: "Coaches | Gavana Boxing",
+    description: "Find certified boxing coaches and book personalized training sessions.",
+    type: "website",
+  },
+};
+
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import AICoach from "@/components/AICoach";

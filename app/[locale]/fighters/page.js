@@ -1,5 +1,15 @@
 "use client";
 
+export const metadata = {
+  title: "Fighters | Gavana Boxing",
+  description: "Browse fighter profiles, stats, and rankings on Gavana Boxing.",
+  openGraph: {
+    title: "Fighters | Gavana Boxing",
+    description: "Browse fighter profiles, stats, and rankings on Gavana Boxing.",
+    type: "website",
+  },
+};
+
 import { useParams, useRouter } from "next/navigation";
 import { getLocale, translate } from "@/lib/i18n";
 import { FIGHTERS } from "@/lib/fighters";
