@@ -6,13 +6,9 @@ import {
   addDoc,
   collection,
   doc,
-  documentId,
-  getDocs,
   increment,
-  query,
   serverTimestamp,
   updateDoc,
-  where,
 } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import BottomNav from "@/components/BottomNav";
@@ -22,40 +18,9 @@ import { db, storage } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/gyms/gymsDashboardStyles";
-import { snapToDocs } from "@/lib/firestore";
-
-function getCompleteness(gym) {
-  if (!gym) return 0;
-  let score = 0;
-  if (gym.gymName) score += 20;
-  if (gym.description) score += 15;
-  if (gym.logo) score += 15;
-  if (gym.city && gym.country) score += 10;
-  if (gym.district || gym.address) score += 10;
-  if (gym.specialties?.length > 0) score += 10;
-  if (gym.amenities?.length > 0) score += 10;
-  if (gym.phone) score += 5;
-  if (gym.instagram || gym.website) score += 5;
-  return Math.min(100, score);
-}
-
-const GYM_TYPES = [
-  "Boxing", "MMA", "Muay Thai", "Fitness",
-  "Crossfit", "Street Workout", "Powerlifting", "Running Club",
-];
-const GYM_TYPE_KEYS = {
-  Boxing: "gymTypeBoxing", MMA: "gymTypeMMA", "Muay Thai": "gymTypeMuayThai",
-  Fitness: "gymTypeFitness", Crossfit: "gymTypeCrossfit",
-  "Street Workout": "gymTypeStreetWorkout", Powerlifting: "gymTypePowerlifting",
-  "Running Club": "gymTypeRunningClub",
-};
-const SPECIALTIES = ["Boxing", "MMA", "Muay Thai", "Kickboxing", "Jab", "Footwork", "Defense", "Conditioning", "Sparring", "Strength"];
-const AMENITIES = ["Showers", "Lockers", "Parking", "WiFi", "Punching Bags", "Boxing Ring", "Weights", "Cardio"];
-const AMENITY_KEYS = {
-  Showers: "gymAmenityShowers", Lockers: "gymAmenityLockers", Parking: "gymAmenityParking",
-  WiFi: "gymAmenityWifi", "Punching Bags": "gymAmenityBag", "Boxing Ring": "gymAmenityRing",
-  Weights: "gymAmenityWeights", Cardio: "gymAmenityCardio",
-};
+import { GymFormField } from "@/components/gyms/GymFormField";
+import { GYM_TYPES, GYM_TYPE_KEYS, SPECIALTIES, AMENITIES, AMENITY_KEYS, getCompleteness } from "@/lib/gymConstants";
+import { useGymDashboardData } from "@/hooks/useGymDashboardData";
 
 export default function GymDashboardPage() {
   const pathname = usePathname();
@@ -65,14 +30,9 @@ export default function GymDashboardPage() {
   const { user, loading: authLoading } = useAuth();
   const logoInputRef = useRef(null);
 
-  const [checking, setChecking] = useState(true);
-  const [gym, setGym] = useState(null); // null = not registered yet
-  const [joinRequests, setJoinRequests] = useState([]);
-  const [members, setMembers] = useState([]);
-  const [requesterUsers, setRequesterUsers] = useState({});
-  const [announcements, setAnnouncements] = useState([]);
+  const { checking, gym, joinRequests, members, requesterUsers, announcements, setGym, setJoinRequests, setMembers, setAnnouncements } = useGymDashboardData({ user });
   const [updatingId, setUpdatingId] = useState(null);
-  const [activeTab, setActiveTab] = useState("requests"); // requests | announce | manage
+  const [activeTab, setActiveTab] = useState("requests");
 
   // Register form state
   const [gymName, setGymName] = useState("");
@@ -105,57 +65,6 @@ export default function GymDashboardPage() {
   useEffect(() => {
     if (!authLoading && !user) router.push(`/${locale}/login`);
   }, [authLoading, user, router, locale]);
-
-  useEffect(() => {
-    if (!user?.uid) return;
-    let active = true;
-    async function check() {
-      try {
-        const gymSnap = await getDocs(query(collection(db, "gyms"), where("ownerId", "==", user.uid)));
-        if (!active) return;
-        if (!gymSnap.empty) {
-          const gymDoc = { id: gymSnap.docs[0].id, ...gymSnap.docs[0].data() };
-          setGym(gymDoc);
-          // Load join requests and announcements for this gym
-          const [reqSnap, annSnap] = await Promise.all([
-            getDocs(query(collection(db, "gym_join_requests"), where("gymId", "==", gymDoc.id))),
-            getDocs(query(collection(db, "gym_announcements"), where("gymId", "==", gymDoc.id))),
-          ]);
-          if (active) {
-            const allReqDocs = snapToDocs(reqSnap);
-            const pendingDocs = allReqDocs.filter((r) => r.status === "pending" || !r.status);
-            const approvedDocs = allReqDocs.filter((r) => r.status === "approved");
-            setJoinRequests(pendingDocs);
-            setMembers(approvedDocs);
-            setAnnouncements(snapToDocs(annSnap).sort((a, b) => {
-              const aMs = a.createdAt?.toMillis?.() || a.createdAt?.toDate?.()?.getTime?.() || 0;
-              const bMs = b.createdAt?.toMillis?.() || b.createdAt?.toDate?.()?.getTime?.() || 0;
-              return bMs - aMs;
-            }));
-
-            // Batch-load profiles for pending requesters and approved members
-            const uniqueIds = [...new Set(allReqDocs.map((r) => r.userId).filter(Boolean))];
-            if (uniqueIds.length > 0) {
-              const chunks = [];
-              for (let i = 0; i < uniqueIds.length; i += 10) chunks.push(uniqueIds.slice(i, i + 10));
-              const userMap = {};
-              await Promise.all(chunks.map(async (chunk) => {
-                const uSnap = await getDocs(query(collection(db, "users"), where(documentId(), "in", chunk)));
-                uSnap.docs.forEach((d) => { userMap[d.id] = d.data(); });
-              }));
-              if (active) setRequesterUsers(userMap);
-            }
-          }
-        }
-      } catch (e) {
-        console.error("gym dashboard check error", e);
-      } finally {
-        if (active) setChecking(false);
-      }
-    }
-    check();
-    return () => { active = false; };
-  }, [user?.uid]);
 
   const toggleSpecialty = (s) => setSpecialties((p) => p.includes(s) ? p.filter((x) => x !== s) : [...p, s]);
   const toggleAmenity = (a) => setAmenities((p) => p.includes(a) ? p.filter((x) => x !== a) : [...p, a]);
@@ -357,40 +266,40 @@ export default function GymDashboardPage() {
           {registerError && <div style={styles.errBox}>{registerError}</div>}
 
           <div style={styles.fields}>
-            <FormField label={t("gymRegisterName") + " *"}>
+            <GymFormField label={t("gymRegisterName") + " *"}>
               <input type="text" value={gymName} onChange={(e) => setGymName(e.target.value)} placeholder={t("gymRegisterNamePlaceholder")} style={styles.input} />
-            </FormField>
+            </GymFormField>
 
-            <FormField label={t("gymRegisterDesc")}>
+            <GymFormField label={t("gymRegisterDesc")}>
               <textarea value={gymDesc} onChange={(e) => setGymDesc(e.target.value)} placeholder={t("gymRegisterDescPlaceholder")} style={styles.textarea} rows={3} />
-            </FormField>
+            </GymFormField>
 
             <div style={styles.fieldRow}>
-              <FormField label={t("gymRegisterCountry")} style={{ flex: 1 }}>
+              <GymFormField label={t("gymRegisterCountry")} style={{ flex: 1 }}>
                 <input type="text" value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Mongolia" style={styles.input} />
-              </FormField>
-              <FormField label={t("gymRegisterCity")} style={{ flex: 1 }}>
+              </GymFormField>
+              <GymFormField label={t("gymRegisterCity")} style={{ flex: 1 }}>
                 <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ulaanbaatar" style={styles.input} />
-              </FormField>
+              </GymFormField>
             </div>
 
-            <FormField label={t("gymRegisterDistrict")}>
+            <GymFormField label={t("gymRegisterDistrict")}>
               <input type="text" value={district} onChange={(e) => setDistrict(e.target.value)} placeholder="Bayangol" style={styles.input} />
-            </FormField>
+            </GymFormField>
 
-            <FormField label={t("gymRegisterAddress")}>
+            <GymFormField label={t("gymRegisterAddress")}>
               <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Street, building..." style={styles.input} />
-            </FormField>
+            </GymFormField>
 
-            <FormField label={t("gymRegisterType")}>
+            <GymFormField label={t("gymRegisterType")}>
               <select value={gymType} onChange={(e) => setGymType(e.target.value)} style={styles.select}>
                 {GYM_TYPES.map((gt) => (
                   <option key={gt} value={gt}>{t(GYM_TYPE_KEYS[gt])}</option>
                 ))}
               </select>
-            </FormField>
+            </GymFormField>
 
-            <FormField label={t("gymRegisterSpecialties")}>
+            <GymFormField label={t("gymRegisterSpecialties")}>
               <div style={styles.pillsGrid}>
                 {SPECIALTIES.map((s) => (
                   <button key={s} type="button"
@@ -399,9 +308,9 @@ export default function GymDashboardPage() {
                   >{s}</button>
                 ))}
               </div>
-            </FormField>
+            </GymFormField>
 
-            <FormField label={t("gymRegisterAmenities")}>
+            <GymFormField label={t("gymRegisterAmenities")}>
               <div style={styles.pillsGrid}>
                 {AMENITIES.map((a) => (
                   <button key={a} type="button"
@@ -410,20 +319,20 @@ export default function GymDashboardPage() {
                   >{t(AMENITY_KEYS[a])}</button>
                 ))}
               </div>
-            </FormField>
+            </GymFormField>
 
             <div style={styles.fieldRow}>
-              <FormField label={t("gymRegisterPhone")} style={{ flex: 1 }}>
+              <GymFormField label={t("gymRegisterPhone")} style={{ flex: 1 }}>
                 <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+976..." style={styles.input} />
-              </FormField>
-              <FormField label={t("gymRegisterInstagram")} style={{ flex: 1 }}>
+              </GymFormField>
+              <GymFormField label={t("gymRegisterInstagram")} style={{ flex: 1 }}>
                 <input type="text" value={instagram} onChange={(e) => setInstagram(e.target.value)} placeholder="@handle" style={styles.input} />
-              </FormField>
+              </GymFormField>
             </div>
 
-            <FormField label={t("gymRegisterWebsite")}>
+            <GymFormField label={t("gymRegisterWebsite")}>
               <input type="url" value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://..." style={styles.input} />
-            </FormField>
+            </GymFormField>
           </div>
 
           {uploading && (
@@ -711,14 +620,4 @@ export default function GymDashboardPage() {
   );
 }
 
-function FormField({ label, children, style }) {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 6, ...style }}>
-      <label style={fieldLabelStyle}>{label}</label>
-      {children}
-    </div>
-  );
-}
-
-const fieldLabelStyle = { fontSize: 11, color: "rgba(255,255,255,0.65)", letterSpacing: 0.5, textTransform: "uppercase", fontWeight: 700 };
 

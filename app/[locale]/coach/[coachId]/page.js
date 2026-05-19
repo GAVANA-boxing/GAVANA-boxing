@@ -1,67 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, increment, query, serverTimestamp, updateDoc, where } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDocs, increment, query, serverTimestamp, updateDoc, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
 import EmptyState from "@/components/EmptyState";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { RED, GOLD, PURPLE, redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/coach/coachIdStyles";
 import { StarRating, ReviewCard } from "@/components/shared/ReviewCard";
-import { snapToDocs } from "@/lib/firestore";
-
-const SPECIALTY_COLORS = {
-  Amateur:      "#34D399",
-  Pro:          RED,
-  Sparring:     "#FB923C",
-  Defense:      "#60A5FA",
-  Counter:      "#60A5FA",
-  Footwork:     PURPLE,
-  "Pad work":   "#F59E0B",
-  Conditioning: "#34D399",
-  Beginners:    "#34D399",
-  Pressure:     "#F87171",
-};
-
-const BEST_FOR_MAP = {
-  Footwork: { en: "Fighters wanting better ring movement & pivots", mn: "Хөдөлгөөн, хөлийн ажлаа сайжруулахыг хүсэгчид", ko: "이동 동작을 향상시키려는 선수" },
-  Pressure: { en: "Brawlers building aggressive pressure fighting", mn: "Дайралтын арга барилаа хөгжүүлэхийг хүсэгчид", ko: "압박 파이팅을 구사하려는 선수" },
-  Counter: { en: "Defensive fighters learning counter-punching", mn: "Тохой үхэлт тоглогч болохыг хүсэгчид", ko: "카운터펀치를 익히려는 수비 지향 선수" },
-  Beginners: { en: "First-time boxers — all levels welcome", mn: "Анх удаа боксыг эзэмшигчид", ko: "처음 복싱을 시작하는 입문자" },
-  Sparring: { en: "Fighters ready to test themselves in the ring", mn: "Рингд сорилоо туршихад бэлэн тамирчид", ko: "실전 훈련을 하고 싶은 선수" },
-  Conditioning: { en: "Athletes improving fitness and endurance", mn: "Бие бялдараа сайжруулахыг хүсэгчид", ko: "체력과 지구력을 강화하려는 운동선수" },
-  Defense: { en: "Fighters wanting a tighter guard and better slipping", mn: "Хамгаалалтаа бат бэх болгохыг хүсэгчид", ko: "가드와 슬리핑을 개선하고 싶은 선수" },
-  "Pad work": { en: "Anyone wanting sharper, faster hands", mn: "Гарын хурд, нарийвчлалаа дээшлүүлэхийг хүсэгчид", ko: "더 빠르고 정확한 손기술을 원하는 선수" },
-  Amateur: { en: "Competitors training for amateur fights", mn: "Аматур тэмцээнд бэлтгэж буй тамирчид", ko: "아마추어 대회를 준비하는 선수" },
-  Pro: { en: "Professional-level fighters and competitors", mn: "Мэргэжлийн түвшний тамирчид", ko: "프로 레벨의 파이터" },
-};
-
-const IMPROVE_MAP = {
-  Footwork: ["Footwork & Pivots", "Ring positioning", "Defensive movement"],
-  Pressure: ["Forward pressure", "Body work", "Cutting off the ring"],
-  Counter: ["Timing & counters", "Head movement", "Defensive IQ"],
-  Beginners: ["Basic stance & guard", "Punching mechanics", "Confidence"],
-  Sparring: ["Timing & reaction", "Ring generalship", "Composure"],
-  Conditioning: ["Endurance", "Core strength", "Recovery speed"],
-  Defense: ["Slipping & rolling", "Guard stability", "Block mechanics"],
-  "Pad work": ["Hand speed", "Combination flow", "Accuracy"],
-  Amateur: ["Fight IQ", "Scoring punches", "Amateur tactics"],
-  Pro: ["Advanced tactics", "Mental game", "Peak conditioning"],
-};
-
-function getCoachInsight(coach) {
-  const specs = coach.coachSpecialties || [];
-  const first = specs[0];
-  const bestFor = first ? BEST_FOR_MAP[first] : null;
-  const improves = specs
-    .flatMap((s) => IMPROVE_MAP[s] || [])
-    .filter((v, i, a) => a.indexOf(v) === i)
-    .slice(0, 4);
-  return { bestFor, improves };
-}
+import { SPECIALTY_COLORS, getCoachInsight } from "@/lib/coachConstants";
+import { useCoachProfileData } from "@/hooks/useCoachProfileData";
 
 
 
@@ -74,102 +25,30 @@ export default function CoachProfilePage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
 
-  const [coach, setCoach] = useState(null);
-  const [reviews, setReviews] = useState([]);
-  const [reels, setReels] = useState([]);
-  const [completedSessions, setCompletedSessions] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [requested, setRequested] = useState(false);
-  const [pendingRequestId, setPendingRequestId] = useState(null);
+  const {
+    coach,
+    reviews, setReviews,
+    reels,
+    completedSessions,
+    loading,
+    requested, setRequested,
+    pendingRequestId, setPendingRequestId,
+    eligibleBooking, setEligibleBooking,
+    programs, setPrograms,
+    enrolledIds, setEnrolledIds,
+  } = useCoachProfileData({ coachId, user });
+
   const [requesting, setRequesting] = useState(false);
 
   // Review form
   const [showReviewForm, setShowReviewForm] = useState(false);
-  const [reviewBookingId, setReviewBookingId] = useState(null);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewText, setReviewText] = useState("");
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewSuccess, setReviewSuccess] = useState(false);
   const [reviewError, setReviewError] = useState("");
 
-  // Completed booking eligible for review
-  const [eligibleBooking, setEligibleBooking] = useState(null);
-
-  // Training programs
-  const [programs, setPrograms] = useState([]);
-  const [enrolledIds, setEnrolledIds] = useState(new Set()); // programIds user is enrolled in
-  const [enrolling, setEnrolling] = useState(null); // programId being toggled
-
-  useEffect(() => {
-    if (!coachId) return;
-    let active = true;
-
-    async function load() {
-      try {
-        const [coachSnap, reviewsSnap, reelsSnap, bookingsSnap] = await Promise.all([
-          getDoc(doc(db, "users", coachId)),
-          getDocs(query(collection(db, "coach_reviews"), where("coachId", "==", coachId))),
-          getDocs(query(collection(db, "reels"), where("userId", "==", coachId))),
-          getDocs(query(collection(db, "coach_bookings"), where("coachId", "==", coachId), where("status", "==", "completed"))),
-        ]);
-        if (!active) return;
-
-        setCoach(coachSnap.exists() ? { id: coachSnap.id, ...coachSnap.data() } : null);
-        setReviews(snapToDocs(reviewsSnap));
-        setReels(snapToDocs(reelsSnap));
-        setCompletedSessions(bookingsSnap.size);
-      } catch (e) {
-        console.error("Coach profile load error:", e);
-      } finally {
-        if (active) setLoading(false);
-      }
-    }
-
-    load();
-    return () => { active = false; };
-  }, [coachId]);
-
-  // Check if current user has a completed booking eligible for review
-  useEffect(() => {
-    if (!user?.uid || !coachId) return;
-    let active = true;
-
-    async function checkEligible() {
-      try {
-        const [bookingsSnap, existingReviewSnap, pendingReqSnap] = await Promise.all([
-          getDocs(query(
-            collection(db, "coach_bookings"),
-            where("userId", "==", user.uid),
-            where("coachId", "==", coachId),
-            where("status", "==", "completed")
-          )),
-          getDocs(query(
-            collection(db, "coach_reviews"),
-            where("userId", "==", user.uid),
-            where("coachId", "==", coachId)
-          )),
-          getDocs(query(
-            collection(db, "coach_requests"),
-            where("userId", "==", user.uid),
-            where("coachId", "==", coachId),
-            where("status", "==", "pending")
-          )),
-        ]);
-        if (!active) return;
-
-        if (!bookingsSnap.empty && existingReviewSnap.empty) {
-          setEligibleBooking(bookingsSnap.docs[0].id);
-        }
-        if (!pendingReqSnap.empty) {
-          setRequested(true);
-          setPendingRequestId(pendingReqSnap.docs[0].id);
-        }
-      } catch { /* silent */ }
-    }
-
-    checkEligible();
-    return () => { active = false; };
-  }, [user?.uid, coachId]);
+  const [enrolling, setEnrolling] = useState(null);
 
   const handleRequest = async () => {
     if (!user?.uid) { router.push(`/${locale}/login`); return; }
@@ -265,34 +144,6 @@ export default function CoachProfilePage() {
     }
   };
 
-  // Load training programs for this coach + own enrollments
-  useEffect(() => {
-    if (!coachId) return;
-    let active = true;
-    async function loadPrograms() {
-      try {
-        const snap = await getDocs(query(collection(db, "training_programs"), where("coachId", "==", coachId)));
-        if (!active) return;
-        setPrograms(snapToDocs(snap).sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0)));
-      } catch { if (active) setPrograms([]); }
-    }
-    loadPrograms();
-    return () => { active = false; };
-  }, [coachId]);
-
-  useEffect(() => {
-    if (!user?.uid) { setEnrolledIds(new Set()); return; }
-    let active = true;
-    async function loadEnrollments() {
-      try {
-        const snap = await getDocs(query(collection(db, "program_enrollments"), where("userId", "==", user.uid)));
-        if (!active) return;
-        setEnrolledIds(new Set(snap.docs.map((d) => d.data().programId)));
-      } catch { if (active) setEnrolledIds(new Set()); }
-    }
-    loadEnrollments();
-    return () => { active = false; };
-  }, [user?.uid]);
 
   const handleEnroll = async (program) => {
     if (!user) { router.push(`/${locale}/login`); return; }
