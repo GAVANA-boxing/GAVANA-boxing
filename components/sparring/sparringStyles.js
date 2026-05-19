@@ -114,4 +114,5 @@ const c = {
   myLabel: { textAlign: "center", fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.28)", padding: "2px 0" },
 };
 
+export { c };
 export default s;
