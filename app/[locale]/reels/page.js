@@ -4,6 +4,16 @@ import ReelsContent from "@/app/reels/ReelsContent";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+export const metadata = {
+  title: "Reels | Gavana Boxing",
+  description: "Watch boxing training reels, technique breakdowns, and fighter highlights.",
+  openGraph: {
+    title: "Reels | Gavana Boxing",
+    description: "Watch boxing training reels, technique breakdowns, and fighter highlights.",
+    type: "website",
+  },
+};
+
 function LoadingFallback() {
   return (
     <div style={{

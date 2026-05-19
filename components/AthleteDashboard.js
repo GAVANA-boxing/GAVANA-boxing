@@ -236,6 +236,7 @@ export default function AthleteDashboard() {
           }}>
             <button
               type="button"
+              aria-label="Dismiss"
               onClick={dismissRecap}
               style={{ position: "absolute", top: 10, right: 12, background: "none", border: "none", color: "rgba(255,255,255,0.25)", fontSize: 18, cursor: "pointer", lineHeight: 1, padding: 0 }}
             >×</button>

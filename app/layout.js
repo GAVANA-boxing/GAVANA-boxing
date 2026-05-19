@@ -2,7 +2,10 @@ import { Geist, Geist_Mono, Anton } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/AuthContext";
 import InAppBrowserWarning from "@/components/InAppBrowserWarning";
-import OnboardingModal from "@/components/OnboardingModal";
+import WebVitals from "@/components/WebVitals";
+import dynamic from "next/dynamic";
+
+const OnboardingModal = dynamic(() => import("@/components/OnboardingModal"));
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -59,10 +62,12 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} ${anton.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <AuthProvider>
+          <WebVitals />
           <InAppBrowserWarning />
           <OnboardingModal />
           {children}

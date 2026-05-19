@@ -7,7 +7,8 @@ import BottomNav from "@/components/BottomNav";
 import DailyMission from "@/components/DailyMission";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { computeFeedScore } from "@/lib/analytics";
-import AIBreakdownSheet from "@/components/AIBreakdownSheet";
+import dynamic from "next/dynamic";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import { GOLD, goldAlpha } from "@/lib/tokens";
 import {
   DEMO_REEL,
@@ -20,10 +21,12 @@ import {
   BackArrowIcon,
   SpeakerIcon,
 } from "@/components/reels/ReelIcons";
-import CommentsModal from "@/components/reels/CommentsModal";
-import FeedbackModal from "@/components/reels/FeedbackModal";
-import FilterSheet from "@/components/reels/FilterSheet";
-import CaptionSheet from "@/components/reels/CaptionSheet";
+
+const AIBreakdownSheet = dynamic(() => import("@/components/AIBreakdownSheet"), { ssr: false });
+const CommentsModal = dynamic(() => import("@/components/reels/CommentsModal"), { ssr: false });
+const FeedbackModal = dynamic(() => import("@/components/reels/FeedbackModal"), { ssr: false });
+const FilterSheet = dynamic(() => import("@/components/reels/FilterSheet"), { ssr: false });
+const CaptionSheet = dynamic(() => import("@/components/reels/CaptionSheet"), { ssr: false });
 import ReelItem from "@/components/reels/ReelItem";
 import { useReelFeed } from "@/hooks/useReelFeed";
 import { useVideoControls } from "@/hooks/useVideoControls";
@@ -362,6 +365,7 @@ export default function ReelsContent() {
             : "";
           const hasStory = !!(creatorProfile?.storyActive || creatorProfile?.hasActiveStory);
           return (
+            <ErrorBoundary key={reel.id}>
             <ReelItem
               key={reel.id}
               reel={reel}
@@ -405,6 +409,7 @@ export default function ReelsContent() {
               onBreakdown={setBreakdownReel}
               onCaptionSheet={setCaptionSheetReelId}
             />
+            </ErrorBoundary>
           );
         })}
       </div>

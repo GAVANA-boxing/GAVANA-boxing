@@ -11,27 +11,7 @@ import {
 import { computeFeedScore } from "@/lib/analytics";
 import { useUserReelData } from "@/hooks/useUserReelData";
 
-// Dynamic import for Firebase to avoid SSR issues
-let db = null;
-async function getFirebase() {
-  if (!db) {
-    const { getFirestore } = await import("firebase/firestore");
-    const { getApps, getApp, initializeApp } = await import("firebase/app");
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyDwVdR5oVYSXQbWL4jqNSNx9cqKuKxqt6c",
-      authDomain: "gavana-boxing-89a22.firebaseapp.com",
-      projectId: "gavana-boxing-89a22",
-      storageBucket: "gavana-boxing-89a22.firebasestorage.app",
-      messagingSenderId: "1062689232574",
-      appId: "1:1062689232574:web:1c362a4577072e51c9f0ef",
-    };
-
-    const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-    db = getFirestore(app);
-  }
-  return { db };
-}
+import { getFirebase } from "@/lib/lazyFirebase";
 
 export function useReelFeed({ user, authLoading, isProfileSource, profileSourceUserId, currentReelId }) {
   const [allReels, setAllReels] = useState(null);
@@ -279,10 +259,10 @@ export function useReelFeed({ user, authLoading, isProfileSource, profileSourceU
     async function loadReels() {
       try {
         const { db } = await getFirebase();
-        const { collection, query, orderBy, onSnapshot } = await import("firebase/firestore");
+        const { collection, query, orderBy, limit, onSnapshot } = await import("firebase/firestore");
         if (!isActive) return;
 
-        const reelsQuery = query(collection(db, "reels"), orderBy("createdAt", "desc"));
+        const reelsQuery = query(collection(db, "reels"), orderBy("createdAt", "desc"), limit(120));
 
         // Use onSnapshot for real-time updates
         unsubscribe = onSnapshot(reelsQuery, (snapshot) => {

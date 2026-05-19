@@ -1,3 +1,13 @@
+export const metadata = {
+  title: "Gavana Boxing – Train, Compete, Grow",
+  description: "The boxing community app for fighters, coaches, and gyms. Share reels, get AI feedback, and compete.",
+  openGraph: {
+    title: "Gavana Boxing – Train, Compete, Grow",
+    description: "The boxing community app for fighters, coaches, and gyms. Share reels, get AI feedback, and compete.",
+    type: "website",
+  },
+};
+
 import Link from "next/link";
 import { getLocale, translate } from "@/lib/i18n";
 import { RED, GOLD , redAlpha} from "@/lib/tokens";

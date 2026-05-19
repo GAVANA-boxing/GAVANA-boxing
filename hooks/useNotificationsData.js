@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  collection, doc, getDoc, onSnapshot, query, updateDoc, where,
+  collection, doc, getDoc, onSnapshot, query, updateDoc, where, writeBatch,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { getActorId } from "@/lib/notificationHelpers";
@@ -42,13 +42,14 @@ export function useNotificationsData({ user, authLoading }) {
       setNotifications(nextNotifications);
       setLoading(false);
 
-      snapshot.docs
-        .filter((notificationDoc) => notificationDoc.data().read === false)
-        .forEach((notificationDoc) => {
-          updateDoc(doc(db, "notifications", notificationDoc.id), { read: true }).catch((error) => {
-            console.error("Failed to mark notification as read:", error);
-          });
+      const unread = snapshot.docs.filter((d) => d.data().read === false);
+      if (unread.length > 0) {
+        const batch = writeBatch(db);
+        unread.forEach((d) => batch.update(doc(db, "notifications", d.id), { read: true }));
+        batch.commit().catch((error) => {
+          console.error("Failed to mark notifications as read:", error);
         });
+      }
     }, (error) => {
       if (!isActive) return;
       console.error("Failed to listen for notifications:", error);

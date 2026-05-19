@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { doc, getDoc, getDocs, query, collection, where } from "firebase/firestore";
+import { doc, getDoc, getDocs, query, collection, where, documentId } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { snapToDocs } from "@/lib/firestore";
 
@@ -41,9 +41,13 @@ export function useGymData({ gymId }) {
         const memberUserIds = [...new Set(memberDocs.map((m) => m.userId).filter(Boolean))];
         const memberUserMap = {};
         if (memberUserIds.length > 0) {
-          await Promise.all(memberUserIds.map(async (uid) => {
-            const uSnap = await getDoc(doc(db, "users", uid));
-            if (uSnap.exists()) memberUserMap[uid] = uSnap.data();
+          const batches = [];
+          for (let i = 0; i < memberUserIds.length; i += 10) {
+            batches.push(memberUserIds.slice(i, i + 10));
+          }
+          await Promise.all(batches.map(async (batch) => {
+            const snap = await getDocs(query(collection(db, "users"), where(documentId(), "in", batch)));
+            snap.forEach((d) => { memberUserMap[d.id] = d.data(); });
           }));
         }
         if (active) {

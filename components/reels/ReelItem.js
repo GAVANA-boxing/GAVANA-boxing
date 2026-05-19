@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import {
   getSafeLikeCount,
@@ -19,27 +20,9 @@ import {
 } from "@/components/reels/ReelIcons";
 import styles from "@/components/reels/reelStyles";
 import Image from "next/image";
+import { getFirebase } from "@/lib/lazyFirebase";
 
-let _db = null;
-async function getFirebase() {
-  if (!_db) {
-    const { getFirestore } = await import("firebase/firestore");
-    const { getApps, getApp, initializeApp } = await import("firebase/app");
-    const firebaseConfig = {
-      apiKey: "AIzaSyDwVdR5oVYSXQbWL4jqNSNx9cqKuKxqt6c",
-      authDomain: "gavana-boxing-89a22.firebaseapp.com",
-      projectId: "gavana-boxing-89a22",
-      storageBucket: "gavana-boxing-89a22.firebasestorage.app",
-      messagingSenderId: "1062689232574",
-      appId: "1:1062689232574:web:1c362a4577072e51c9f0ef",
-    };
-    const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-    _db = getFirestore(app);
-  }
-  return { db: _db };
-}
-
-export default function ReelItem({
+const ReelItem = memo(function ReelItem({
   reel,
   index,
   currentIndex,
@@ -396,4 +379,5 @@ export default function ReelItem({
       )}
     </div>
   );
-}
+});
+export default ReelItem;
