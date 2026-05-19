@@ -2,26 +2,24 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { addDoc, collection, doc, getDoc, getDocs, query, runTransaction, serverTimestamp, setDoc, where } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, serverTimestamp } from "firebase/firestore";
 import BottomNav from "@/components/BottomNav";
 import DailyMission from "@/components/DailyMission";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { createChallengeAttemptNotification, createChallengeBeatenNotification, createPvpNotification } from "@/lib/notifications";
+import { createPvpNotification } from "@/lib/notifications";
 import { getCurrentSeasonId } from "@/lib/season";
-import { calculateChallengeXP, calculateUserXP, getFighterRank, getRankProgress } from "@/lib/xp";
+import { calculateChallengeXP, getRankProgress } from "@/lib/xp";
 import { getChallengeRank } from "@/lib/utils";
-import { calculateTrainingScore, computeScoreBreakdown, getChallengeComparisonPercent, getChallengeStreakBonus } from "@/lib/trainHelpers";
-import { writeChallengeAttempt, updateUserTrainingProfile } from "@/lib/analytics";
-import { checkAndAwardBadges } from "@/lib/badges";
+import { calculateTrainingScore, computeScoreBreakdown } from "@/lib/trainHelpers";
+import { useTrainingActions } from "@/hooks/useTrainingActions";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/train/trainStyles";
 import TrainResultModal from "@/components/train/TrainResultModal";
 import PreGameCard from "@/components/train/PreGameCard";
 import RecordingHud from "@/components/train/RecordingHud";
 import { useTrainingData } from "@/hooks/useTrainingData";
-import { getLocalDateKey, getPreviousLocalDateKey } from "@/lib/utils";
 
 const RECORD_SECONDS = 10;
 const CHALLENGES = {
@@ -42,7 +40,6 @@ export default function TrainPage() {
   const recorderRef = useRef(null);
   const chunksRef = useRef([]);
   const stopHandledRef = useRef(false);
-  const challengeSavedRef = useRef(false);
 
   const [cameraState, setCameraState] = useState("checking");
   const [cameraRetryKey, setCameraRetryKey] = useState(0);
@@ -50,19 +47,10 @@ export default function TrainPage() {
   const [countdown, setCountdown] = useState(null);
   const [secondsLeft, setSecondsLeft] = useState(RECORD_SECONDS);
   const [result, setResult] = useState(null);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [savedAttemptNumber, setSavedAttemptNumber] = useState(null);
   const [pvpResult, setPvpResult] = useState(null);
   const [pvpSaved, setPvpSaved] = useState(false);
   const pvpSavedRef = useRef(false);
-  const [challengeSaving, setChallengeSaving] = useState(false);
-  const [challengeSaved, setChallengeSaved] = useState(false);
-  const [rankUpInfo, setRankUpInfo] = useState(null);
   const [error, setError] = useState("");
-  const [missionJustCompleted, setMissionJustCompleted] = useState(false);
-  const [missionStreakBonus, setMissionStreakBonus] = useState(0);
-  const [missionNewStreak, setMissionNewStreak] = useState(0);
 
   // Session stats for pre-session panel & sparkline
 
@@ -94,6 +82,21 @@ export default function TrainPage() {
   const activeChallenge = challengeId ? CHALLENGES[challengeId] : null;
   const sessionSeconds = activeChallenge?.seconds || RECORD_SECONDS;
   const activeChallengeName = activeChallenge ? t(activeChallenge.titleKey) : "";
+
+  const {
+    saving, saved, savedAttemptNumber,
+    challengeSaving, challengeSaved, challengeSavedRef,
+    missionJustCompleted, missionStreakBonus, missionNewStreak,
+    rankUpInfo,
+    handleSave, handleSaveChallengeResult,
+    handleShareChallenge, handleChallengeFriend, handleShareTraining,
+    resetForNewSession,
+  } = useTrainingActions({
+    user, locale, result, reelId, challengeId,
+    activeChallenge, activeChallengeName,
+    creatorBestScore, trainSourceUserId, currentXP,
+    t, router, setError,
+  });
 
   const goBack = () => {
     if (typeof window !== "undefined" && window.history.length > 1) {
@@ -257,9 +260,8 @@ export default function TrainPage() {
       hitCount: hitCountRef.current,
       breakdown,
     });
-    setSaved(false);
-    setSavedAttemptNumber(null);
-  }, [currentXP]);
+    resetForNewSession();
+  }, [currentXP, resetForNewSession]);
 
   useEffect(() => {
     if (phase !== "countdown" || countdown === null) return undefined;
@@ -433,10 +435,7 @@ export default function TrainPage() {
     }
     setError("");
     setResult(null);
-    setSaved(false);
-    setSavedAttemptNumber(null);
-    setChallengeSaved(false);
-    challengeSavedRef.current = false;
+    resetForNewSession();
     setPvpResult(null);
     setPvpSaved(false);
     pvpSavedRef.current = false;
@@ -456,10 +455,7 @@ export default function TrainPage() {
   const handleTryAgain = () => {
     setError("");
     setResult(null);
-    setSaved(false);
-    setSavedAttemptNumber(null);
-    setChallengeSaved(false);
-    challengeSavedRef.current = false;
+    resetForNewSession();
     setPvpResult(null);
     setPvpSaved(false);
     pvpSavedRef.current = false;
@@ -475,300 +471,6 @@ export default function TrainPage() {
     setShowGo(false);
     hitCountRef.current = 0;
     liveScoreRef.current = 0;
-  };
-
-  const handleShareChallenge = async () => {
-    if (!result) return;
-
-    const text = t("challengeShareText")
-      .replace("{score}", result.score.toFixed(1))
-      .replace("{challengeName}", activeChallengeName);
-
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: activeChallengeName || t("challengesTitle"),
-          text,
-        });
-        return;
-      }
-
-      await navigator.clipboard.writeText(text);
-      setError(t("shareLinkCopied"));
-    } catch (err) {
-      console.error("Challenge share failed:", err);
-      setError(t("shareFailed"));
-    }
-  };
-
-  const handleChallengeFriend = async () => {
-    if (!result || !activeChallenge || !challengeId) return;
-
-    const scoreText = result.score.toFixed(1);
-    const url = typeof window !== "undefined"
-      ? `${window.location.origin}/${locale}/train?challengeId=${encodeURIComponent(challengeId)}&score=${encodeURIComponent(scoreText)}`
-      : "";
-    const text = t("challengeFriendShareText")
-      .replace("{score}", scoreText)
-      .replace("{challengeName}", activeChallengeName);
-    const fallbackText = url ? `${text}\n${url}` : text;
-
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: activeChallengeName || t("challengesTitle"),
-          text,
-          url,
-        });
-        return;
-      }
-
-      await navigator.clipboard.writeText(fallbackText);
-      setError(t("shareLinkCopied"));
-    } catch (err) {
-      console.error("Friend challenge share failed:", err);
-      setError(t("shareFailed"));
-    }
-  };
-
-  const handleSaveChallengeResult = async () => {
-    if (!activeChallenge || !challengeId || !result) return;
-
-    if (!user?.uid) {
-      router.push(`/${locale}/login`);
-      return;
-    }
-
-    if (challengeSavedRef.current || challengeSaved) return;
-
-    challengeSavedRef.current = true;
-    setChallengeSaving(true);
-    setError("");
-
-    try {
-      const rank = getChallengeRank(result.score);
-      const comparisonPercent = getChallengeComparisonPercent(result.score);
-      const xpGained = calculateChallengeXP(result.score, rank);
-
-      let rankUpData = null;
-      await runTransaction(db, async (transaction) => {
-        const userRef = doc(db, "users", user.uid);
-        const challengeResultRef = doc(collection(db, "challenge_results"));
-        const userSnap = await transaction.get(userRef);
-        const userData = userSnap.exists() ? userSnap.data() : {};
-        const todayKey = getLocalDateKey();
-        const yesterdayKey = getPreviousLocalDateKey();
-        const lastChallengeDate = String(userData.lastChallengeDate || "");
-        const currentStreak = Number(userData.challengeStreak) || 0;
-        const isSameDay = lastChallengeDate === todayKey;
-        const nextStreak = isSameDay
-          ? currentStreak
-          : lastChallengeDate === yesterdayKey
-            ? currentStreak + 1
-            : 1;
-        const streakBonusXP = isSameDay ? 0 : getChallengeStreakBonus(nextStreak);
-        const totalChallengeXP = xpGained + streakBonusXP;
-        const nextXP = Math.round((Number(userData.xp) || 0) + totalChallengeXP);
-        const nextCompleted = Math.round((Number(userData.totalChallengesCompleted) || 0) + 1);
-        const prevRank = getFighterRank(Number(userData.xp) || 0);
-        const nextRank = getFighterRank(nextXP);
-        if (prevRank.key !== nextRank.key) rankUpData = nextRank;
-
-        transaction.set(challengeResultRef, {
-          userId: user.uid,
-          challengeId,
-          score: result.score,
-          rank,
-          comparisonPercent,
-          xpGained: totalChallengeXP,
-          baseXP: xpGained,
-          streakBonusXP,
-          challengeStreak: nextStreak,
-          seasonId: getCurrentSeasonId(),
-          createdAt: serverTimestamp(),
-          locale,
-        });
-
-        transaction.set(userRef, {
-          xp: nextXP,
-          rank: nextRank.key,
-          rankName: nextRank.key.replace(/^rank/, ""),
-          totalChallengesCompleted: nextCompleted,
-          challengeStreak: nextStreak,
-          lastChallengeDate: todayKey,
-          updatedAt: serverTimestamp(),
-        }, { merge: true });
-      });
-
-      setChallengeSaved(true);
-      if (rankUpData) setRankUpInfo(rankUpData);
-    } catch (err) {
-      challengeSavedRef.current = false;
-      console.error("Failed to save challenge result:", err);
-      setError(t("challengeSaveFailed"));
-    } finally {
-      setChallengeSaving(false);
-    }
-  };
-
-  const handleShareTraining = async () => {
-    if (!result) return;
-
-    const scoreStr = result.score.toFixed(1);
-    const baseText = t("shareChallengeResult")
-      ? `${t("shareChallengeResult")} — ${scoreStr}/10 🥊`
-      : `I scored ${scoreStr}/10 in GAVANA 🥊 Can you beat me?`;
-
-    const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
-    const params = new URLSearchParams({ score: scoreStr });
-    if (reelId) params.set("reelId", reelId);
-    if (user?.uid) params.set("challengeUserId", user.uid);
-    const challengeUrl = reelId ? `${baseUrl}/${locale}/train?${params.toString()}` : "";
-    const fullText = challengeUrl ? `${baseText}\n${challengeUrl}` : baseText;
-
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: "GAVANA Boxing", text: baseText, ...(challengeUrl ? { url: challengeUrl } : {}) });
-        return;
-      }
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(fullText);
-        setError(t("shareLinkCopied"));
-        return;
-      }
-      setError(t("shareFailed"));
-    } catch (err) {
-      console.error("Training share failed:", err);
-      setError(t("shareFailed"));
-    }
-  };
-
-  const handleSave = async () => {
-    if (!user?.uid || !result) return;
-
-    setSaving(true);
-    setError("");
-
-    try {
-      const previousSessionsSnap = await getDocs(query(
-        collection(db, "training_sessions"),
-        where("userId", "==", user.uid),
-        where("reelId", "==", reelId)
-      ));
-      const previousAttempts = previousSessionsSnap.docs
-        .map((d) => d.data())
-        .filter((session) => session.type === "training").length;
-      const attemptNumber = previousAttempts + 1;
-
-      await addDoc(collection(db, "training_sessions"), {
-        userId: user.uid,
-        reelId,
-        score: result.score,
-        xpGained: result.xpGained,
-        attemptNumber,
-        rankProgress: result.rankProgress,
-        breakdown: result.breakdown || null,
-        hitCount: result.hitCount || 0,
-        createdAt: serverTimestamp(),
-        type: "training",
-        locale,
-        source: "train_screen",
-      });
-
-      // Daily mission completion
-      const todayKey = getLocalDateKey();
-      const yesterdayKey = getPreviousLocalDateKey();
-      const userRef = doc(db, "users", user.uid);
-      const userSnap = await getDoc(userRef);
-      const userData = userSnap.exists() ? userSnap.data() : {};
-      const alreadyCompleted = userData.dailyMissionCompleted === todayKey;
-
-      if (!alreadyCompleted) {
-        const MISSION_XP = 50;
-        const lastDate = String(userData.lastTrainingDate || "");
-        const currentStreak = Number(userData.dailyStreak) || 0;
-        const newStreak = lastDate === yesterdayKey ? currentStreak + 1 : 1;
-        const streakBonus = newStreak === 3 ? 100 : newStreak === 7 ? 250 : 0;
-        const totalBonus = MISSION_XP + streakBonus;
-        const currentStoredXP = Number(userData.xp) || 0;
-        const newBest = Math.max(newStreak, Number(userData.bestDailyStreak) || 0);
-
-        await setDoc(userRef, {
-          dailyMissionCompleted: todayKey,
-          lastTrainingDate: todayKey,
-          dailyStreak: newStreak,
-          bestDailyStreak: newBest,
-          xp: currentStoredXP + totalBonus,
-          updatedAt: serverTimestamp(),
-        }, { merge: true });
-
-        setMissionJustCompleted(true);
-        setMissionStreakBonus(streakBonus);
-        setMissionNewStreak(newStreak);
-      } else {
-        // Still update lastTrainingDate even if mission already completed today
-        await setDoc(userRef, { lastTrainingDate: todayKey }, { merge: true });
-      }
-
-      setSaved(true);
-      setSavedAttemptNumber(attemptNumber);
-
-      // Analytics + badges (non-critical, fire and forget)
-      if (reelId) {
-        writeChallengeAttempt({
-          userId: user.uid,
-          reelId,
-          score: result.score,
-          hitCount: result.hitCount || 0,
-          attemptNumber,
-        }).catch(() => {});
-      }
-
-      const newStreak = Number((await getDoc(doc(db, "users", user.uid))).data()?.dailyStreak) || 1;
-      const breakdown = result.breakdown || {};
-      updateUserTrainingProfile(user.uid, {
-        lastScore: result.score,
-        dailyStreak: newStreak,
-        totalAttempts: attemptNumber,
-      }).catch(() => {});
-
-      checkAndAwardBadges(user.uid, {
-        totalAttempts: attemptNumber,
-        dailyStreak: newStreak,
-        accuracy: breakdown.accuracy,
-        speed: breakdown.speed,
-        category: "boxing",
-      }).catch(() => {});
-
-      // Notify the reel creator that someone attempted their challenge
-      if (reelId && trainSourceUserId) {
-        createChallengeAttemptNotification({
-          reelCreatorId: trainSourceUserId,
-          actorId: user.uid,
-          actorName: user.displayName || user.email?.split("@")[0] || "Someone",
-          actorPhotoURL: user.photoURL || "",
-          reelId,
-          score: result.score,
-        }).catch(() => {});
-
-        // Notify creator if challenger beats their best score
-        if (creatorBestScore != null && result.score > creatorBestScore) {
-          createChallengeBeatenNotification({
-            reelCreatorId: trainSourceUserId,
-            actorId: user.uid,
-            actorName: user.displayName || user.email?.split("@")[0] || "Someone",
-            actorPhotoURL: user.photoURL || "",
-            reelId,
-            score: result.score,
-          }).catch(() => {});
-        }
-      }
-    } catch (err) {
-      console.error("Failed to save training session:", err);
-      setError(t("trainSaveFailed"));
-    } finally {
-      setSaving(false);
-    }
   };
 
   if (authLoading) {
