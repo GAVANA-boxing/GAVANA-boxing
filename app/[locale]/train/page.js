@@ -2,15 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { addDoc, collection, doc, getDoc, serverTimestamp } from "firebase/firestore";
 import BottomNav from "@/components/BottomNav";
 import DailyMission from "@/components/DailyMission";
 import { useAuth } from "@/lib/AuthContext";
-import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { createPvpNotification } from "@/lib/notifications";
-import { getCurrentSeasonId } from "@/lib/season";
 import { calculateChallengeXP, getRankProgress } from "@/lib/xp";
+import { usePvpResult } from "@/hooks/usePvpResult";
 import { getChallengeRank } from "@/lib/utils";
 import { calculateTrainingScore, computeScoreBreakdown } from "@/lib/trainHelpers";
 import { useTrainingActions } from "@/hooks/useTrainingActions";
@@ -47,9 +44,6 @@ export default function TrainPage() {
   const [countdown, setCountdown] = useState(null);
   const [secondsLeft, setSecondsLeft] = useState(RECORD_SECONDS);
   const [result, setResult] = useState(null);
-  const [pvpResult, setPvpResult] = useState(null);
-  const [pvpSaved, setPvpSaved] = useState(false);
-  const pvpSavedRef = useRef(false);
   const [error, setError] = useState("");
 
   // Session stats for pre-session panel & sparkline
@@ -98,6 +92,10 @@ export default function TrainPage() {
     t, router, setError,
   });
 
+  const { pvpResult, pvpSaved, setPvpResult, setPvpSaved, pvpSavedRef } = usePvpResult({
+    result, challengeUserId, targetScore, user, reelId, opponentUsername, locale,
+  });
+
   const goBack = () => {
     if (typeof window !== "undefined" && window.history.length > 1) {
       router.back();
@@ -130,57 +128,6 @@ export default function TrainPage() {
       router.push(`/${locale}/login`);
     }
   }, [authLoading, user, router, locale]);
-
-
-
-
-  // Auto-save PvP result and notify opponent when training finishes in PvP mode
-  useEffect(() => {
-    if (!result || !challengeUserId || !targetScore || !user?.uid || pvpSavedRef.current) return;
-
-    pvpSavedRef.current = true;
-    const won = result.score > targetScore;
-    const pvpRes = won ? "win" : "lose";
-    setPvpResult(pvpRes);
-
-    async function savePvpAndNotify() {
-      try {
-        const challengerSnap = await getDoc(doc(db, "users", user.uid));
-        const challengerData = challengerSnap.exists() ? challengerSnap.data() : {};
-        const challengerName = challengerData.username || challengerData.displayName || user.displayName || "Fighter";
-        const opponentName = opponentUsername || "Opponent";
-
-        await addDoc(collection(db, "pvp_results"), {
-          challengerId: user.uid,
-          challengerName,
-          opponentId: challengeUserId,
-          opponentName,
-          reelId: reelId || null,
-          challengerScore: result.score,
-          opponentScore: targetScore,
-          result: pvpRes,
-          seasonId: getCurrentSeasonId(),
-          createdAt: serverTimestamp(),
-          locale,
-        });
-        setPvpSaved(true);
-
-        createPvpNotification({
-          opponentId: challengeUserId,
-          challengerId: user.uid,
-          challengerName,
-          reelId: reelId || null,
-          challengerScore: result.score,
-          opponentScore: targetScore,
-          result: pvpRes,
-        }).catch(console.error);
-      } catch (err) {
-        console.error("Failed to save PvP result:", err);
-      }
-    }
-
-    savePvpAndNotify();
-  }, [result, challengeUserId, targetScore, user?.uid, reelId, opponentUsername]);
 
   useEffect(() => {
     let active = true;

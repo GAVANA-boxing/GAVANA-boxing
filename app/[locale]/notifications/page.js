@@ -1,16 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   deleteDoc,
   doc,
-  onSnapshot,
-  collection,
-  query,
   updateDoc,
-  where,
-  getDoc,
 } from "firebase/firestore";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
@@ -26,6 +21,7 @@ import {
   SOCIAL_TYPES, COACH_TYPES, GYM_TYPES_NOTIF,
 } from "@/lib/notificationHelpers";
 import { getTimestampMs } from "@/lib/utils";
+import { useNotificationsData } from "@/hooks/useNotificationsData";
 
 export default function NotificationsPage() {
   const { user, loading: authLoading } = useAuth();
@@ -33,121 +29,11 @@ export default function NotificationsPage() {
   const locale = getLocale(params?.locale);
   const t = (key) => translate(locale, key);
   const router = useRouter();
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState("all");
   const [clearing, setClearing] = useState(false);
   const [toast, setToast] = useState(null);
-  const [actorProfiles, setActorProfiles] = useState({});
-  const actorProfileRequests = useRef(new Set());
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push(`/${locale}/login`);
-    }
-  }, [authLoading, user, router, locale]);
-
-  useEffect(() => {
-    if (authLoading) {
-      return;
-    }
-
-    if (!user?.uid) {
-      setNotifications([]);
-      setLoading(false);
-      return;
-    }
-
-    const notificationsQuery = query(
-      collection(db, "notifications"),
-      where("recipientId", "==", user.uid)
-    );
-    let isActive = true;
-
-    const unsubscribe = onSnapshot(notificationsQuery, (snapshot) => {
-      if (!isActive) return;
-
-      const nextNotifications = snapshot.docs
-        .map((notificationDoc) => ({
-          id: notificationDoc.id,
-          ...notificationDoc.data(),
-        }))
-        .sort((a, b) => getTimestampMs(b.createdAt) - getTimestampMs(a.createdAt));
-
-      setNotifications(nextNotifications);
-      setLoading(false);
-
-      snapshot.docs
-        .filter((notificationDoc) => notificationDoc.data().read === false)
-        .forEach((notificationDoc) => {
-          updateDoc(doc(db, "notifications", notificationDoc.id), { read: true }).catch((error) => {
-            console.error("Failed to mark notification as read:", error);
-          });
-        });
-    }, (error) => {
-      if (!isActive) return;
-      console.error("Failed to listen for notifications:", error);
-      setNotifications([]);
-      setLoading(false);
-    });
-
-    return () => {
-      isActive = false;
-      unsubscribe();
-    };
-  }, [authLoading, user?.uid]);
-
-  useEffect(() => {
-    if (!notifications.length) return;
-
-    let isActive = true;
-    const missingActorIds = [...new Set(
-      notifications
-        .filter((notification) => !notification.fromUserPhotoURL && !notification.actorPhotoURL)
-        .map((notification) => getActorId(notification))
-        .filter((actorId) => actorId && !actorProfiles[actorId] && !actorProfileRequests.current.has(actorId))
-    )];
-
-    if (!missingActorIds.length) return;
-
-    async function loadMissingActorProfiles() {
-      await Promise.all(missingActorIds.map(async (actorId) => {
-        actorProfileRequests.current.add(actorId);
-
-        try {
-          const actorSnap = await getDoc(doc(db, "users", actorId));
-          const actorData = actorSnap.exists() ? actorSnap.data() : {};
-
-          if (!isActive) return;
-
-          setActorProfiles((prev) => ({
-            ...prev,
-            [actorId]: {
-              photoURL: actorData.photoURL || "",
-              profileImageUrl: actorData.profileImageUrl || "",
-              profileImage: actorData.profileImage || "",
-              avatarUrl: actorData.avatarUrl || "",
-            },
-          }));
-        } catch (error) {
-          console.error("Failed to load notification actor profile:", error);
-
-          if (!isActive) return;
-
-          setActorProfiles((prev) => ({
-            ...prev,
-            [actorId]: {},
-          }));
-        }
-      }));
-    }
-
-    loadMissingActorProfiles();
-
-    return () => {
-      isActive = false;
-    };
-  }, [notifications, actorProfiles]);
+  const { notifications, loading, actorProfiles } = useNotificationsData({ user, authLoading });
 
   const unreadCount = useMemo(() => {
     return notifications.filter((notification) => notification.read === false).length;
