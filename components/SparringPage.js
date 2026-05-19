@@ -18,7 +18,7 @@ import BottomNav from "@/components/BottomNav";
 import { RED, GOLD, redAlpha } from "@/lib/tokens";
 import s from "@/components/sparring/sparringStyles";
 import { snapToDocs } from "@/lib/firestore";
-import { formatAgo } from "@/lib/utils";
+import { formatAgo, getTimestampMs } from "@/lib/utils";
 
 const ARCHETYPE_KEYS = ["all", "pressure", "counter", "technical", "brawler"];
 
@@ -34,14 +34,6 @@ const WEIGHT_OPTS = [
   "Flyweight", "Bantamweight", "Featherweight", "Lightweight",
   "Welterweight", "Middleweight", "Light Heavyweight", "Heavyweight",
 ];
-
-function getTs(ts) {
-  if (!ts) return 0;
-  if (typeof ts.toMillis === "function") return ts.toMillis();
-  if (typeof ts.toDate === "function") return ts.toDate().getTime();
-  return Number(ts) || 0;
-}
-
 
 // ─── Fighter card (Discover tab) ──────────────────────────────────────────────
 function FighterCard({ post, isMe, onRequest, sent, requesting, locale }) {
@@ -255,7 +247,7 @@ export default function SparringPage() {
     const q = query(collection(db, "sparring_posts"), where("lookingForSparring", "==", true));
     const unsub = onSnapshot(q, (snap) => {
       const uid = user?.uid;
-      const all = snapToDocs(snap).sort((a, b) => getTs(b.createdAt) - getTs(a.createdAt));
+      const all = snapToDocs(snap).sort((a, b) => getTimestampMs(b.createdAt) - getTimestampMs(a.createdAt));
       setMyPost(uid ? (all.find((p) => p.userId === uid) || null) : null);
       setPosts(all.filter((p) => p.userId !== uid));
       setLoading(false);
@@ -269,7 +261,7 @@ export default function SparringPage() {
     const q = query(collection(db, "sparring_requests"), where("toUserId", "==", user.uid));
     const unsub = onSnapshot(q, (snap) => {
       setIncomingRequests(
-        snapToDocs(snap).sort((a, b) => getTs(b.createdAt) - getTs(a.createdAt))
+        snapToDocs(snap).sort((a, b) => getTimestampMs(b.createdAt) - getTimestampMs(a.createdAt))
       );
     }, () => {});
     return () => unsub();
@@ -280,7 +272,7 @@ export default function SparringPage() {
     if (!user?.uid) return;
     const q = query(collection(db, "sparring_requests"), where("fromUserId", "==", user.uid));
     const unsub = onSnapshot(q, (snap) => {
-      const docs = snapToDocs(snap).sort((a, b) => getTs(b.createdAt) - getTs(a.createdAt));
+      const docs = snapToDocs(snap).sort((a, b) => getTimestampMs(b.createdAt) - getTimestampMs(a.createdAt));
       // Only mark as "sent" if the request is still pending — declined requests allow re-sending
       setSentRequestToIds(new Set(docs.filter((d) => !d.status || d.status === "pending").map((d) => d.toUserId)));
       setSentRequests(docs);

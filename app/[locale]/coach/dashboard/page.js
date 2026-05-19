@@ -22,31 +22,7 @@ import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/coach/coachDashboardStyles";
 import { snapToDocs } from "@/lib/firestore";
-
-function formatTimeAgo(timestamp, locale = "en") {
-  if (!timestamp) return "";
-  const ms = timestamp.toMillis ? timestamp.toMillis() : new Date(timestamp).getTime();
-  const diff = Date.now() - ms;
-  const m = Math.floor(diff / 60000);
-  const h = Math.floor(diff / 3600000);
-  const d = Math.floor(diff / 86400000);
-  if (locale === "mn") {
-    if (m < 1) return "Дөнгөж сая";
-    if (m < 60) return `${m}м өмнө`;
-    if (h < 24) return `${h}ц өмнө`;
-    return `${d}өдр өмнө`;
-  }
-  if (locale === "ko") {
-    if (m < 1) return "방금";
-    if (m < 60) return `${m}분 전`;
-    if (h < 24) return `${h}시간 전`;
-    return `${d}일 전`;
-  }
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
-  if (h < 24) return `${h}h ago`;
-  return `${d}d ago`;
-}
+import { formatAgo } from "@/lib/utils";
 
 function RequesterAvatar({ user: u }) {
   if (!u) {
@@ -88,7 +64,7 @@ function RequestCard({ request, requesterUser, t, locale, onAccept, onDecline, o
               {typeLbl}
             </span>
           </div>
-          <span style={styles.cardTime}>{formatTimeAgo(request.createdAt, locale)}</span>
+          <span style={styles.cardTime}>{formatAgo(request.createdAt, locale)}</span>
         </div>
         <StatusBadge status={request.status} t={t} />
       </div>
