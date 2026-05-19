@@ -120,7 +120,7 @@ const styles = {
   },
   fighterUsername: {
     marginTop: 10,
-    color: "#AAAAAA",
+    color: "#C8C8C8",
     fontSize: 14,
     fontWeight: 750,
   },
