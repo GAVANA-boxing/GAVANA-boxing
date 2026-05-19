@@ -1,16 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   addDoc,
   collection,
-  doc,
-  getDoc,
-  getDocs,
-  query,
   serverTimestamp,
-  where,
 } from "firebase/firestore";
 import AICoach from "@/components/AICoach";
 import BottomNav from "@/components/BottomNav";
@@ -20,19 +15,11 @@ import SkeletonBlock from "@/components/SkeletonBlock";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { RED, GOLD, PURPLE, redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/coach/coachStyles";
 import { CoachCard, MyRequestCard, SparringPostCard } from "@/components/coach/CoachCards";
-import { snapToDocs } from "@/lib/firestore";
-
-const SPECIALTIES = [
-  "Footwork", "Pressure", "Counter", "Beginners",
-  "Sparring", "Conditioning", "Defense", "Pad work", "Amateur", "Pro",
-];
-
-const VIBE_FILTERS = ["Friendly", "Technical", "Hard sparring", "Competitive"];
-
-const LEVELS = ["Amateur", "Fighter", "Pro", "Elite", "Champion"];
+import { useCoachPageData } from "@/hooks/useCoachPageData";
+import { SPECIALTIES, VIBE_FILTERS, LEVELS } from "@/lib/coachConstants";
 
 export default function CoachPage() {
   const router = useRouter();
@@ -42,10 +29,6 @@ export default function CoachPage() {
   const { user } = useAuth();
 
   const [tab, setTab] = useState("ai");
-  const [coaches, setCoaches] = useState([]);
-  const [sparringPosts, setSparringPosts] = useState([]);
-  const [coachesLoading, setCoachesLoading] = useState(false);
-  const [sparringLoading, setSparringLoading] = useState(false);
   const [filterSpecialty, setFilterSpecialty] = useState("");
   const [filterVibe, setFilterVibe] = useState("");
   const [filterLocation, setFilterLocation] = useState("");
@@ -58,70 +41,12 @@ export default function CoachPage() {
   });
   const [sparringSaving, setSpSaving] = useState(false);
   const [sparringSaved, setSpSaved] = useState(false);
-  const [myRequests, setMyRequests] = useState([]);
-  const [myRequestsLoading, setMyRequestsLoading] = useState(false);
-  const [myRequestCoaches, setMyRequestCoaches] = useState({});
-  const coachesLoadedRef = useRef(false);
-  const sparringLoadedRef = useRef(false);
-  const myRequestsLoadedRef = useRef(false);
 
-  useEffect(() => {
-    if (tab !== "coaches" || coachesLoadedRef.current) return;
-    coachesLoadedRef.current = true;
-    let active = true;
-    setCoachesLoading(true);
-    getDocs(query(collection(db, "users"), where("isCoach", "==", true)))
-      .then((snap) => {
-        if (!active) return;
-        setCoaches(snapToDocs(snap));
-      })
-      .catch(() => {})
-      .finally(() => { if (active) setCoachesLoading(false); });
-    return () => { active = false; };
-  }, [tab]);
-
-  useEffect(() => {
-    if (tab !== "sparring" || sparringLoadedRef.current) return;
-    sparringLoadedRef.current = true;
-    let active = true;
-    setSparringLoading(true);
-    getDocs(query(collection(db, "sparring_posts"), where("active", "==", true)))
-      .then((snap) => {
-        if (!active) return;
-        setSparringPosts(snapToDocs(snap));
-      })
-      .catch(() => {})
-      .finally(() => { if (active) setSparringLoading(false); });
-    return () => { active = false; };
-  }, [tab]);
-
-  useEffect(() => {
-    if (tab !== "mine" || myRequestsLoadedRef.current || !user?.uid) return;
-    myRequestsLoadedRef.current = true;
-    let active = true;
-    setMyRequestsLoading(true);
-    getDocs(query(collection(db, "coach_requests"), where("userId", "==", user.uid)))
-      .then(async (snap) => {
-        if (!active) return;
-        const reqs = snap.docs
-          .map((d) => ({ id: d.id, ...d.data() }))
-          .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
-        setMyRequests(reqs);
-
-        const coachIds = [...new Set(reqs.map((r) => r.coachId).filter(Boolean))];
-        if (coachIds.length) {
-          const profiles = await Promise.all(
-            coachIds.map((cid) => getDoc(doc(db, "users", cid)).then((s) => s.exists() ? { id: cid, ...s.data() } : null))
-          );
-          const map = {};
-          profiles.forEach((p) => { if (p) map[p.id] = p; });
-          if (active) setMyRequestCoaches(map);
-        }
-      })
-      .catch(() => {})
-      .finally(() => { if (active) setMyRequestsLoading(false); });
-    return () => { active = false; };
-  }, [tab, user?.uid]);
+  const {
+    coaches, sparringPosts, setSparringPosts,
+    coachesLoading, sparringLoading,
+    myRequests, myRequestsLoading, myRequestCoaches,
+  } = useCoachPageData({ tab, userId: user?.uid });
 
   const handleCoachRequest = async (coachId) => {
     if (!user?.uid) { router.push(`/${locale}/login`); return; }
