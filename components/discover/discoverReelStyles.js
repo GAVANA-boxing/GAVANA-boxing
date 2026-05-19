@@ -112,7 +112,7 @@ export const discoverReelStyles = {
     textShadow: "0 1px 4px rgba(0,0,0,0.9)",
     overflow: "hidden",
     display: "-webkit-box",
-    WebkitLineClamp: 3,
+    WebkitLineClamp: 2,
     WebkitBoxOrient: "vertical",
     zIndex: 2,
   },

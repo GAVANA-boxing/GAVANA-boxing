@@ -151,7 +151,7 @@ const styles = {
   bio: {
     maxWidth: 360,
     margin: "12px auto 0",
-    color: "rgba(255,255,255,0.38)",
+    color: "rgba(255,255,255,0.62)",
     fontSize: 12,
     lineHeight: 1.65,
     fontWeight: 400,
