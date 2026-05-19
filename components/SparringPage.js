@@ -479,7 +479,6 @@ export default function SparringPage() {
 
   return (
     <div style={s.page}>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
       {/* Header */}
       <div style={s.header}>

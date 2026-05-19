@@ -822,7 +822,6 @@ export default function DiscoverPage() {
       )}
 
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="discover" />
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 }
