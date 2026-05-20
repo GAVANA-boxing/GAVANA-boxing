@@ -83,12 +83,13 @@ function IconTab({ active, onClick, badge, children, label }) {
       <span style={{
         ...s.iconGlow,
         background: active ? `${redAlpha(0.12)}` : "transparent",
-        boxShadow: active ? `0 0 16px ${redAlpha(0.18)}` : "none",
+        boxShadow: active ? `0 0 20px ${redAlpha(0.25)}` : "none",
       }}>
         {children}
         {badge > 0 && (
           <span style={s.badge}>{badge > 9 ? "9+" : badge}</span>
         )}
+        {active && <span className="nav-active-dot" />}
       </span>
     </button>
   );

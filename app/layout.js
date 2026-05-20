@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono, Anton } from "next/font/google";
+import { Geist, Geist_Mono, Anton, Barlow_Condensed } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/AuthContext";
 import InAppBrowserWarning from "@/components/InAppBrowserWarning";
@@ -20,6 +20,12 @@ const anton = Anton({
   variable: "--font-anton",
   subsets: ["latin"],
   weight: "400",
+});
+
+const barlowCondensed = Barlow_Condensed({
+  variable: "--font-barlow",
+  subsets: ["latin"],
+  weight: ["400", "600", "700", "900"],
 });
 
 export const metadata = {
@@ -62,7 +68,7 @@ export default function RootLayout({ children }) {
     <html
       lang="en"
       data-scroll-behavior="smooth"
-      className={`${geistSans.variable} ${geistMono.variable} ${anton.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${anton.variable} ${barlowCondensed.variable} h-full antialiased`}
     >
       <head>
         <link rel="preconnect" href="https://firebasestorage.googleapis.com" />

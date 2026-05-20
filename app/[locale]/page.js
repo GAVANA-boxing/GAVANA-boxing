@@ -95,7 +95,8 @@ export default async function LocalizedHomePage({ params }) {
         <p style={s.sectionKicker}>FIGHTER CARD</p>
         <h2 style={s.sectionTitle}>{t("landingCardTitle")}</h2>
         <p style={s.sectionSub}>{t("landingCardSub")}</p>
-        <div style={s.mockCard}>
+        <div style={{ ...s.mockCard, position: "relative", overflow: "hidden" }}>
+          <div className="fighter-card-foil" />
           <div style={s.mockCardHeader}>
             <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 3, color: RED }}>GAVANA</span>
             <span style={{ fontSize: 7, color: "rgba(255,255,255,0.3)", letterSpacing: 2 }}>AI COACH</span>

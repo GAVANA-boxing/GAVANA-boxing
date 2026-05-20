@@ -1,6 +1,7 @@
 "use client";
 
 import styles from "./feedbackStyles";
+import RankBadge from "@/components/RankBadge";
 
 // Parse the structured AI feedback into sections
 function parseFeedback(text) {
@@ -180,7 +181,8 @@ export default function FeedbackModal({
 
                   <div style={styles.xpRankWrap}>
                     <div style={styles.xpRankRow}>
-                      <span style={{ fontWeight: 900, fontSize: 12, color: sessionXPData.currentRank.color }}>
+                      <span style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 900, fontSize: 12, color: sessionXPData.currentRank.color }}>
+                        <RankBadge rank={sessionXPData.currentRank} size={18} />
                         {t(sessionXPData.currentRank.key)}
                       </span>
                       <span style={styles.xpTotalLabel}>
