@@ -48,6 +48,7 @@ export default function ProfileFighterCard({
 
   const streakCount = profileUser?.streakCount || 0;
   const [avatarError, setAvatarError] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const avatarInitial = profileUser.displayName?.charAt(0).toUpperCase() || profileUser.username?.charAt(0).toUpperCase() || "🥊";
 
   return (
@@ -229,35 +230,75 @@ export default function ProfileFighterCard({
 
       {/* Action buttons */}
       {isOwnProfile ? (
-        <div style={styles.actionRow}>
-          <button onClick={() => router.push(`/${locale}/profile/edit`)} style={styles.ghostAction}>
-            {t("editProfile")}
-          </button>
-          <button
-            onClick={() => router.push(`/${locale}/dashboard`)}
-            style={{ ...styles.ghostAction, color: GOLD, borderColor: `${goldAlpha(0.3)}` }}
-          >
-            {t("dashboardViewProgress")}
-          </button>
-          {userReels.length > 0 && (
-            <button onClick={() => router.push(`/${locale}/creator/dashboard`)} style={styles.ghostAction}>
-              {t("creatorDashboard")}
+        <div style={{ position: "relative" }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <button
+              onClick={() => router.push(`/${locale}/profile/edit`)}
+              style={{ ...styles.ghostAction, flex: 1 }}
+            >
+              {t("editProfile")}
             </button>
+            <button
+              type="button"
+              onClick={onShowFighterCard}
+              style={{ ...styles.ghostAction, color: GOLD, borderColor: `${goldAlpha(0.3)}`, flexShrink: 0 }}
+            >
+              🥊 {t("profileFighterCard")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setMoreOpen(v => !v)}
+              style={{
+                width: 38, height: 38, borderRadius: 999,
+                border: "1px solid rgba(255,255,255,0.12)",
+                background: moreOpen ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.05)",
+                color: "#fff", fontSize: 18, cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0, letterSpacing: 1,
+              }}
+              aria-label="More options"
+            >
+              ···
+            </button>
+          </div>
+          {moreOpen && (
+            <>
+              <div
+                style={{ position: "fixed", inset: 0, zIndex: 9 }}
+                onClick={() => setMoreOpen(false)}
+              />
+              <div style={{
+                position: "absolute", top: "calc(100% + 8px)", right: 0,
+                background: "#1c1c1e", border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: 14, padding: 6, minWidth: 200,
+                boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
+                zIndex: 10, animation: "dropDown 160ms ease",
+              }}>
+                <button
+                  onClick={() => { router.push(`/${locale}/dashboard`); setMoreOpen(false); }}
+                  style={moreItemStyle}
+                >
+                  {t("dashboardViewProgress")}
+                </button>
+                {userReels.length > 0 && (
+                  <button
+                    onClick={() => { router.push(`/${locale}/creator/dashboard`); setMoreOpen(false); }}
+                    style={moreItemStyle}
+                  >
+                    {t("creatorDashboard")}
+                  </button>
+                )}
+                <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "4px 0" }} />
+                <button
+                  onClick={() => { onLogout(); setMoreOpen(false); }}
+                  disabled={signingOut}
+                  style={{ ...moreItemStyle, color: "#f87171", opacity: signingOut ? 0.6 : 1, cursor: signingOut ? "not-allowed" : "pointer" }}
+                >
+                  {signingOut ? t("signingOut") : t("logout")}
+                </button>
+              </div>
+            </>
           )}
-          <button
-            type="button"
-            onClick={onShowFighterCard}
-            style={{ ...styles.ghostAction, color: GOLD, borderColor: `${goldAlpha(0.3)}` }}
-          >
-            🥊 {t("profileFighterCard")}
-          </button>
-          <button
-            onClick={onLogout}
-            disabled={signingOut}
-            style={{ ...styles.ghostAction, opacity: signingOut ? 0.7 : 1, cursor: signingOut ? "not-allowed" : "pointer" }}
-          >
-            {signingOut ? t("signingOut") : t("logout")}
-          </button>
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
@@ -318,3 +359,17 @@ export default function ProfileFighterCard({
     </section>
   );
 }
+
+const moreItemStyle = {
+  display: "block",
+  width: "100%",
+  padding: "11px 14px",
+  borderRadius: 10,
+  border: "none",
+  background: "transparent",
+  color: "#fff",
+  fontSize: 14,
+  fontWeight: 700,
+  textAlign: "left",
+  cursor: "pointer",
+};
