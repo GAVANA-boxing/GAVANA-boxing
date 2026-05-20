@@ -13,6 +13,7 @@ import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/creator/creatorDashboardStyles";
 import { formatCompact } from "@/lib/utils";
 import { cleanCaption } from "@/lib/reelHelpers";
+import SubscriptionTiers from "@/components/creator/SubscriptionTiers";
 
 function getCreatedAtMs(obj) {
   const ts = obj?.createdAt;
@@ -85,7 +86,7 @@ export default function CreatorDashboard() {
   const locale = getLocale(params?.locale);
   const t = (key) => translate(locale, key);
 
-  const [activeTab, setActiveTab] = useState("overview"); // overview | reels | audience
+  const [activeTab, setActiveTab] = useState("overview"); // overview | reels | audience | monetize
   const [loading, setLoading] = useState(true);
   const [reels, setReels] = useState([]);
   const [reelStats, setReelStats] = useState({});       // reelId → stats doc
@@ -273,9 +274,10 @@ export default function CreatorDashboard() {
       {/* ── Tab bar ── */}
       <div style={styles.tabBar}>
         {[
-          { key: "overview", label: t("creatorOverviewTab") },
-          { key: "reels",    label: t("creatorReelsTab") },
-          { key: "audience", label: t("creatorAudienceTab") },
+          { key: "overview",  label: t("creatorOverviewTab") },
+          { key: "reels",     label: t("creatorReelsTab") },
+          { key: "audience",  label: t("creatorAudienceTab") },
+          { key: "monetize",  label: t("creatorMonetizeTab") },
         ].map(({ key, label }) => (
           <button
             key={key}
@@ -461,6 +463,39 @@ export default function CreatorDashboard() {
             {externalAttempts.length === 0 && followerCount === 0 && (
               <EmptyState emoji="👥" title={t("creatorNoAudience")} />
             )}
+          </>)}
+
+          {/* ══ MONETIZE TAB ══ */}
+          {activeTab === "monetize" && (<>
+            <section style={styles.section}>
+              <h2 style={styles.sectionTitle}>💰 {t("creatorMonetizeTitle")}</h2>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: "0 0 16px 0", lineHeight: 1.5 }}>
+                {t("creatorMonetizeSub")}
+              </p>
+              <SubscriptionTiers t={t} locale={locale} />
+            </section>
+
+            <section style={styles.section}>
+              <h2 style={styles.sectionTitle}>🎁 {t("creatorTipsTitle")}</h2>
+              <div style={{ padding: "14px 16px", borderRadius: 14, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>{t("creatorTipsEnable")}</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{t("creatorTipsSub")}</div>
+                </div>
+                <span style={{
+                  padding: "6px 12px",
+                  borderRadius: 10,
+                  border: "1px solid rgba(212,175,55,0.2)",
+                  color: "rgba(212,175,55,0.5)",
+                  fontSize: 10,
+                  fontWeight: 900,
+                  letterSpacing: 1.5,
+                  fontFamily: "var(--font-condensed)",
+                }}>
+                  COMING SOON
+                </span>
+              </div>
+            </section>
           </>)}
 
         </div>

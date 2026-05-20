@@ -22,6 +22,12 @@
   --radius-sm: 12px;
   --radius-md: 18px;
   --motion-fast: 180ms ease;
+  --page-margin: 20px;
+  --section-gap: 24px;
+  --section-top: 24px;
+  --card-radius: 18px;
+  --card-radius-sm: 12px;
+  --card-radius-lg: 24px;
 }
 
 @theme inline {
@@ -30,6 +36,7 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-display: var(--font-anton);
+  --font-condensed: var(--font-barlow, 'Barlow Condensed', sans-serif);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -437,3 +444,321 @@ p {
   50%      { box-shadow: 0 0 0 1px rgba(212,175,55,0.75), 0 22px 70px rgba(0,0,0,0.5), 0 0 44px rgba(251,146,60,1.0), 0 0 88px rgba(251,146,60,0.55); border-color: #FFA040; }
 }
 .avatar-on-fire { animation: avatarFire 1.6s ease-in-out infinite; }
+
+/* ══════════════════════════════════════════
+   CINEMATIC SYSTEM — Phase 40
+   "Minimal luxury combat OS"
+══════════════════════════════════════════ */
+
+/* Grain / film texture overlay */
+@keyframes grain-shift {
+  0%,100% { transform: translate(0,0); }
+  10%  { transform: translate(-1%,-2%); }
+  20%  { transform: translate(2%,-1%); }
+  30%  { transform: translate(-2%, 2%); }
+  40%  { transform: translate(1%, 1%); }
+  50%  { transform: translate(-1%, 3%); }
+  60%  { transform: translate(2%,-2%); }
+  70%  { transform: translate(-3%, 1%); }
+  80%  { transform: translate(1%, 2%); }
+  90%  { transform: translate(3%,-1%); }
+}
+
+/* Scan line sweep */
+@keyframes scanline-sweep {
+  0%   { transform: translateY(-8px); opacity: 0; }
+  5%   { opacity: 0.55; }
+  95%  { opacity: 0.4; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+
+/* Ambient glow pulse */
+@keyframes ambient-pulse {
+  0%,100% { opacity: 0.45; transform: scale(1); }
+  50%      { opacity: 0.75; transform: scale(1.08); }
+}
+
+/* Float drift for background orbs */
+@keyframes float-drift {
+  0%,100% { transform: translate(0, 0) scale(1); }
+  33%  { transform: translate(12px,-18px) scale(1.04); }
+  66%  { transform: translate(-8px, 10px) scale(0.97); }
+}
+
+/* HUD corner flicker on load */
+@keyframes hud-flicker {
+  0%  { opacity: 0; }
+  60% { opacity: 1; }
+  70% { opacity: 0.6; }
+  80% { opacity: 1; }
+  100%{ opacity: 1; }
+}
+
+/* Input glow pulse on focus */
+@keyframes input-glow-pulse {
+  0%,100% { box-shadow: 0 0 0 1px rgba(193,18,31,0.6), 0 0 16px rgba(193,18,31,0.18); }
+  50%      { box-shadow: 0 0 0 1.5px rgba(193,18,31,0.9), 0 0 28px rgba(193,18,31,0.32); }
+}
+
+/* Vignette class — apply to any page wrapper */
+.vignette::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse 120% 100% at 50% 50%, transparent 40%, rgba(0,0,0,0.72) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Grain overlay — film texture */
+.grain-overlay::before {
+  content: '';
+  position: fixed;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 180px 180px;
+  opacity: 0.028;
+  animation: grain-shift 0.7s steps(1) infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Scan line — red sweep */
+.scanline {
+  position: fixed;
+  left: 0; right: 0;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent 0%, rgba(193,18,31,0.0) 10%, rgba(193,18,31,0.55) 40%, rgba(193,18,31,0.55) 60%, rgba(193,18,31,0.0) 90%, transparent 100%);
+  animation: scanline-sweep 7s linear infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* HUD card — glass panel with corner accents */
+.hud-card {
+  position: relative;
+  background: rgba(9,7,9,0.88);
+  backdrop-filter: blur(28px) saturate(130%);
+  -webkit-backdrop-filter: blur(28px) saturate(130%);
+  border: 1px solid rgba(193,18,31,0.22);
+  border-radius: 16px;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.04) inset,
+    0 32px 80px rgba(0,0,0,0.6),
+    0 0 60px rgba(193,18,31,0.08);
+}
+
+.hud-card::before,
+.hud-card::after {
+  content: '';
+  position: absolute;
+  width: 18px; height: 18px;
+  border-color: rgba(193,18,31,0.7);
+  border-style: solid;
+  animation: hud-flicker 0.6s ease both;
+}
+.hud-card::before {
+  top: -1px; left: -1px;
+  border-width: 2px 0 0 2px;
+  border-radius: 4px 0 0 0;
+}
+.hud-card::after {
+  bottom: -1px; right: -1px;
+  border-width: 0 2px 2px 0;
+  border-radius: 0 0 4px 0;
+}
+
+/* Combat input */
+.combat-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 14px 16px;
+  color: #fff;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: inherit;
+}
+.combat-input::placeholder { color: rgba(255,255,255,0.22); letter-spacing: 0; }
+.combat-input:focus {
+  border-color: rgba(193,18,31,0.7);
+  animation: input-glow-pulse 2s ease-in-out infinite;
+}
+
+/* Ambient background orb */
+.ambient-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  animation: float-drift 12s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Glass stats row */
+.glass-stats {
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(20px) saturate(120%);
+  -webkit-backdrop-filter: blur(20px) saturate(120%);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 20px;
+}
+
+/* Feature card hover glow */
+.feature-card-glow {
+  transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+}
+.feature-card-glow:hover {
+  border-color: rgba(193,18,31,0.3) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 20px rgba(193,18,31,0.08);
+  transform: translateY(-2px);
+}
+
+/* ─── Phase 41: Reel skeleton shimmer ──────────────────────────────────────── */
+@keyframes skeleton-shimmer {
+  0%   { opacity: 0.4; }
+  50%  { opacity: 0.7; }
+  100% { opacity: 0.4; }
+}
+.reel-skeleton {
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+}
+
+/* ─── Phase 42: Premium Motion System ─────────────────────────────────────── */
+
+/* Lift card — any card with pointer hover */
+.lift-card {
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+.lift-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45), 0 0 20px rgba(193,18,31,0.07) !important;
+}
+
+/* Red glow button */
+.btn-red-glow {
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+.btn-red-glow:hover {
+  box-shadow: 0 0 28px rgba(193,18,31,0.55), 0 8px 24px rgba(193,18,31,0.3) !important;
+  transform: translateY(-1px);
+}
+.btn-red-glow:active { transform: scale(0.97); }
+
+/* Nav item hover glow */
+.nav-item-hover {
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+.nav-item-hover:hover {
+  background: rgba(255,255,255,0.07) !important;
+  transform: translateY(-1px);
+}
+.nav-item-hover:active { transform: scale(0.93); }
+
+/* Leaderboard / list row hover */
+.list-row-hover {
+  transition: background 0.18s ease, border-color 0.18s ease;
+  cursor: pointer;
+}
+.list-row-hover:hover {
+  background: rgba(255,255,255,0.04) !important;
+  border-color: rgba(193,18,31,0.2) !important;
+}
+
+/* Stat badge glow on hover */
+.stat-badge-glow {
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.stat-badge-glow:hover {
+  border-color: rgba(212,175,55,0.35) !important;
+  box-shadow: 0 0 14px rgba(212,175,55,0.12) !important;
+}
+
+/* ─── Phase 43: Mobile Polish ──────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .landing-hero {
+    padding: 90px 20px 64px !important;
+  }
+  .landing-title {
+    font-size: clamp(52px, 18vw, 80px) !important;
+    letter-spacing: -2px !important;
+  }
+  .landing-subtitle {
+    font-size: 15px !important;
+    line-height: 1.6 !important;
+  }
+  .landing-cta-row {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+  .landing-cta-row a {
+    width: 100% !important;
+    max-width: 320px !important;
+    text-align: center !important;
+  }
+  .landing-social-proof {
+    gap: 24px !important;
+    padding: 28px 20px !important;
+  }
+  .landing-features {
+    padding: 64px 16px !important;
+  }
+}
+
+/* ─── Design #1: Barlow Condensed — condensed font utilities ─────────────────*/
+.font-condensed {
+  font-family: var(--font-condensed);
+}
+/* Auto-apply to kicker/label patterns via attribute or tag combination */
+.kicker-text,
+.label-caps {
+  font-family: var(--font-condensed);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ─── Design #5: Fighter Card foil/holographic shimmer ───────────────────────*/
+@keyframes foil-pan {
+  0%   { background-position: 200% 50%; }
+  100% { background-position: -200% 50%; }
+}
+.fighter-card-foil {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    108deg,
+    transparent       15%,
+    rgba(255,255,255,0.04) 28%,
+    rgba(212,175,55,0.09)  38%,
+    rgba(193,18,31,0.06)   48%,
+    rgba(255,255,255,0.05) 58%,
+    transparent       72%
+  );
+  background-size: 300% 100%;
+  animation: foil-pan 6s linear infinite;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  border-radius: 22px;
+}
+
+/* ─── Design #4: Nav active dot ─────────────────────────────────────────────*/
+.nav-active-dot {
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #C1121F;
+  box-shadow: 0 0 6px #C1121F, 0 0 12px rgba(193,18,31,0.6);
+}

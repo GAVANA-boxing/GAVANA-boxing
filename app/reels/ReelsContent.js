@@ -11,7 +11,6 @@ import dynamic from "next/dynamic";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { GOLD, goldAlpha } from "@/lib/tokens";
 import {
-  DEMO_REEL,
   getCreatedAtMs,
   getCreatorName,
   getCreatorPhoto,
@@ -27,6 +26,7 @@ const CommentsModal = dynamic(() => import("@/components/reels/CommentsModal"), 
 const FeedbackModal = dynamic(() => import("@/components/reels/FeedbackModal"), { ssr: false });
 const FilterSheet = dynamic(() => import("@/components/reels/FilterSheet"), { ssr: false });
 const CaptionSheet = dynamic(() => import("@/components/reels/CaptionSheet"), { ssr: false });
+const ReportModal = dynamic(() => import("@/components/ReportModal"), { ssr: false });
 import ReelItem from "@/components/reels/ReelItem";
 import { useReelFeed } from "@/hooks/useReelFeed";
 import { useVideoControls } from "@/hooks/useVideoControls";
@@ -57,6 +57,7 @@ export default function ReelsContent() {
   const [expandedCaptionIds, setExpandedCaptionIds] = useState(new Set());
   const [captionSheetReelId, setCaptionSheetReelId] = useState(null);
   const [breakdownReel, setBreakdownReel] = useState(null);
+  const [reportReel, setReportReel] = useState(null);
   const feedRef = useRef(null);
   const reelItemRefs = useRef({});
   const lastTapRef = useRef({ time: 0, reelId: null });
@@ -126,7 +127,7 @@ export default function ReelsContent() {
     const isFeatured = (r) => featuredCreatorIds.has(r.userId);
 
     if (feedMode !== "following") {
-      const base = allReels.length > 0 ? allReels : [DEMO_REEL];
+      const base = allReels;
       const diffFiltered = diffFilter === "beginner" ? base.filter((r) => r.difficulty === "beginner" || !r.difficulty) : base;
       const filtered = ctFilter !== "all" ? diffFiltered.filter((r) => (r.contentType || "training") === ctFilter) : diffFiltered;
       const scored = [...filtered].sort((a, b) =>
@@ -245,11 +246,17 @@ export default function ReelsContent() {
   if (authLoading || reelsLoading) {
     return (
       <div style={styles.container}>
-        <div style={styles.loading}>
-          <div style={styles.spinner}></div>
-          <div style={styles.loadingTitle}>{t("loadingReels")}</div>
-          <div style={styles.loadingMeta}>
-            {authLoading ? t("checkingSession") : t("fetchingFeed")}
+        <div style={styles.loadingCinematic}>
+          <div style={styles.loadingOrb} />
+          <div className="reel-skeleton" style={styles.skeletonBack} />
+          <div className="reel-skeleton" style={styles.skeletonMid} />
+          <div className="reel-skeleton" style={styles.skeletonFront} />
+          <div style={styles.loadingStatus}>
+            <div style={styles.spinner} />
+            <div style={styles.loadingTitle}>{t("loadingReels")}</div>
+            <div style={styles.loadingMeta}>
+              {authLoading ? t("checkingSession") : t("fetchingFeed")}
+            </div>
           </div>
         </div>
         <BottomNav router={router} user={user} currentLocale={currentLocale} />
@@ -408,6 +415,7 @@ export default function ReelsContent() {
               onGetFeedback={handleGetFeedback}
               onBreakdown={setBreakdownReel}
               onCaptionSheet={setCaptionSheetReelId}
+              onReport={setReportReel}
             />
             </ErrorBoundary>
           );
@@ -480,6 +488,16 @@ export default function ReelsContent() {
         currentLocale={currentLocale}
         onInteractStart={clearControlsTimer}
         onInteractEnd={scheduleControlsHide}
-      />    </div>
+      />
+
+      {reportReel && (
+        <ReportModal
+          targetId={reportReel.id}
+          targetType="reel"
+          onClose={() => setReportReel(null)}
+          t={t}
+        />
+      )}
+    </div>
   );
 }

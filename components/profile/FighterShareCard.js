@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { GOLD, RED } from "@/lib/tokens";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
-import RankIcon from "@/components/RankIcon";
+import RankBadge from "@/components/RankBadge";
 import { formatScore } from "@/lib/utils";
 
 // Derive SPD / ACC / STA / STR (1–99) from available profile data
@@ -98,10 +98,26 @@ function StatPill({ label, value, color }) {
   );
 }
 
-// ── Profile URL block (replaces QR canvas — no external package) ──────────────
+// ── QR Code + URL block ────────────────────────────────────────────────────────
 function ProfileUrlBlock({ url, color }) {
   const [copied, setCopied] = useState(false);
+  const canvasRef = useRef(null);
   const short = url.replace(/^https?:\/\//, "");
+
+  useEffect(() => {
+    if (!url || !canvasRef.current) return;
+    let cancelled = false;
+    import("qrcode").then((QRCode) => {
+      if (cancelled || !canvasRef.current) return;
+      QRCode.toCanvas(canvasRef.current, url, {
+        width: 72,
+        margin: 1,
+        color: { dark: "#ffffff", light: "#00000000" },
+        errorCorrectionLevel: "M",
+      }).catch(() => {});
+    });
+    return () => { cancelled = true; };
+  }, [url]);
 
   const handleCopy = () => {
     if (typeof navigator !== "undefined" && navigator.clipboard) {
@@ -114,24 +130,25 @@ function ProfileUrlBlock({ url, color }) {
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 12, width: "100%" }}>
-      {/* Decorative QR-style block */}
+      {/* Real QR code canvas */}
       <div style={{
-        width: 64, height: 64, borderRadius: 10, flexShrink: 0,
-        border: `2px solid ${color}40`,
-        background: `${color}08`,
+        width: 72, height: 72, borderRadius: 10, flexShrink: 0,
+        border: `1.5px solid ${color}44`,
+        background: "rgba(0,0,0,0.6)",
         display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: 28,
+        overflow: "hidden",
+        padding: 2,
       }}>
-        🔗
+        <canvas ref={canvasRef} style={{ borderRadius: 6 }} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 11, fontWeight: 900, color: "#fff", marginBottom: 4 }}>
-          Scan to Challenge Me
+        <div style={{ fontSize: 10, fontWeight: 900, color: "#fff", marginBottom: 3, fontFamily: "var(--font-condensed)", letterSpacing: "0.08em" }}>
+          SCAN TO CHALLENGE
         </div>
         <div style={{
-          fontSize: 9, color: "rgba(255,255,255,0.3)", fontWeight: 600,
+          fontSize: 9, color: "rgba(255,255,255,0.28)", fontWeight: 600,
           whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-          marginBottom: 6,
+          marginBottom: 7,
         }}>
           {short}
         </div>
@@ -139,11 +156,12 @@ function ProfileUrlBlock({ url, color }) {
           type="button"
           onClick={handleCopy}
           style={{
-            padding: "4px 10px", borderRadius: 6, border: `1px solid ${color}30`,
-            background: `${color}10`, color: color, fontSize: 10, fontWeight: 900, cursor: "pointer",
+            padding: "5px 12px", borderRadius: 7, border: `1px solid ${color}35`,
+            background: `${color}12`, color: color, fontSize: 10, fontWeight: 900, cursor: "pointer",
+            fontFamily: "var(--font-condensed)", letterSpacing: "0.05em",
           }}
         >
-          {copied ? "✓ Copied!" : "Copy Link"}
+          {copied ? "✓ COPIED" : "COPY LINK"}
         </button>
       </div>
     </div>
@@ -236,7 +254,7 @@ export default function FighterShareCard({
             }
           </div>
           <div style={{ position: "absolute", bottom: -4, right: -4, width: 30, height: 30, borderRadius: "50%", background: "#0c0a0c", border: `1.5px solid ${accentColor}55`, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2 }}>
-            <RankIcon rank={fighterRank} size={18} animated={false} />
+            <RankBadge rank={fighterRank} size={18} glowEnabled={false} />
           </div>
         </div>
 

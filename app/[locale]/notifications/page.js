@@ -101,6 +101,7 @@ export default function NotificationsPage() {
     e.stopPropagation();
     deleteDoc(doc(db, "notifications", notificationId)).catch((err) => {
       console.error("Dismiss notification error:", err);
+      showToast(t("notifClearError"));
     });
   };
 

@@ -13,6 +13,8 @@ import { FighterCard, IncomingRequestCard } from "@/components/sparring/Sparring
 import { formatAgo } from "@/lib/utils";
 import { useSparringData } from "@/hooks/useSparringData";
 import Image from "next/image";
+import { Toast, useToast } from "@/components/ui/Toast";
+import { HUDCard } from "@/components/ui";
 
 const ARCHETYPE_KEYS = ["all", "pressure", "counter", "technical", "brawler"];
 const WEIGHT_OPTS = ["all", "-54", "-60", "-67", "-75", "-81", "+91"];
@@ -42,7 +44,8 @@ export default function SparringPage() {
     historyLoading,
   } = useSparringData({ user, tab });
 
-  const { cancelling, toggling, requesting, accepting, declining, handleToggle, handleRequest, handleAccept, handleDecline, handleCancelSparringRequest } = useSparringActions({ user, router, locale, userData, myPost });
+  const { toast, showToast, hideToast } = useToast();
+  const { cancelling, toggling, requesting, accepting, declining, handleToggle, handleRequest, handleAccept, handleDecline, handleCancelSparringRequest } = useSparringActions({ user, router, locale, userData, myPost, onError: showToast });
 
   const filtered = posts.filter((p) => {
     if (filterArchetype !== "all" && p.archetype !== filterArchetype) return false;
@@ -426,16 +429,16 @@ export default function SparringPage() {
                 const total = matchHistory.length;
                 const winPct = total > 0 ? Math.round((wins / total) * 100) : 0;
                 return (
-                  <div style={{ display: "flex", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
                     {[
                       { label: locale === "mn" ? "Нийт" : locale === "ko" ? "총" : "Matches", value: total, color: "#fff" },
                       { label: locale === "mn" ? "Ялалт" : locale === "ko" ? "승리" : "Wins", value: wins, color: "#34D399" },
                       { label: locale === "mn" ? "Ялалт %" : locale === "ko" ? "승률" : "Win rate", value: `${winPct}%`, color: GOLD },
                     ].map(({ label, value, color }) => (
-                      <div key={label} style={{ flex: 1, minWidth: 80, padding: "10px 12px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12, textAlign: "center" }}>
-                        <p style={{ margin: 0, fontSize: 18, fontWeight: 900, color }}>{value}</p>
-                        <p style={{ margin: "2px 0 0", fontSize: 10, fontWeight: 700, color: "#888" }}>{label}</p>
-                      </div>
+                      <HUDCard key={label} corners style={{ flex: 1, minWidth: 80, padding: "12px 10px", textAlign: "center" }}>
+                        <p style={{ margin: 0, fontSize: 20, fontWeight: 900, color, fontFamily: "var(--font-display)" }}>{value}</p>
+                        <p style={{ margin: "3px 0 0", fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.35)", letterSpacing: 1.5, textTransform: "uppercase", fontFamily: "var(--font-condensed)" }}>{label}</p>
+                      </HUDCard>
                     ))}
                   </div>
                 );
@@ -472,6 +475,7 @@ export default function SparringPage() {
         </div>
       )}
 
+      <Toast message={toast?.message} type={toast?.type} onDismiss={hideToast} />
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="reels" />
     </div>
   );

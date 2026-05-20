@@ -1,9 +1,28 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import styles from "@/components/train/trainStyles";
 import { GOLD, RED, redAlpha } from "@/lib/tokens";
 import { getChallengeRank } from "@/lib/utils";
 import { getChallengeComparisonPercent } from "@/lib/trainHelpers";
+import RankBadge from "@/components/RankBadge";
+
+function useCountUp(target, duration = 1100) {
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    if (target == null) return;
+    setDisplay(0);
+    const start = performance.now();
+    function tick(now) {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(eased * target);
+      if (progress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }, [target, duration]);
+  return display;
+}
 
 export default function TrainResultModal({
   result,
@@ -34,6 +53,7 @@ export default function TrainResultModal({
   onShareChallenge,
   onShareTraining,
 }) {
+  const displayScore = useCountUp(result?.score);
   if (!result) return null;
 
   return (
@@ -43,7 +63,7 @@ export default function TrainResultModal({
         {/* TOP — score hero */}
         <div style={styles.modalTop}>
           <p style={styles.modalKicker}>{t("trainResult")}</p>
-          <div style={styles.score}>{result.score.toFixed(1)}</div>
+          <div style={styles.score}>{displayScore.toFixed(1)}</div>
           <span style={styles.scoreUnit}>/10</span>
           <div style={styles.resultGrid}>
             {activeChallenge ? (
@@ -207,7 +227,9 @@ export default function TrainResultModal({
               boxShadow: `0 0 28px ${rankUpInfo.color}30`,
               animation: "rankUpPulse 2s ease-in-out infinite",
             }}>
-              <div style={{ fontSize: 36, marginBottom: 6 }}>🎖️</div>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
+                <RankBadge rank={rankUpInfo} size={48} />
+              </div>
               <div style={{ fontSize: 16, fontWeight: 900, color: rankUpInfo.color, marginBottom: 4 }}>
                 {t("trainRankUp")}
               </div>

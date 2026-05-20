@@ -234,14 +234,15 @@ export function PanelCard({ label, accent = RED, tag, children, style: styleProp
           boxShadow: `0 0 7px ${accent}, 0 0 14px ${accent}55`,
         }} />
         <span style={{
-          fontSize: 9, fontWeight: 900, flex: 1,
+          fontSize: 10, fontWeight: 900, flex: 1,
           color: "rgba(255,255,255,0.55)",
-          letterSpacing: "0.2em", textTransform: "uppercase",
+          letterSpacing: "0.18em", textTransform: "uppercase",
+          fontFamily: "var(--font-condensed)",
         }}>
           {label}
         </span>
         {tag && (
-          <span style={{ fontSize: 8, color: "rgba(255,255,255,0.2)", fontWeight: 700, letterSpacing: "0.08em" }}>
+          <span style={{ fontSize: 9, color: "rgba(255,255,255,0.22)", fontWeight: 700, letterSpacing: "0.1em", fontFamily: "var(--font-condensed)" }}>
             {tag}
           </span>
         )}

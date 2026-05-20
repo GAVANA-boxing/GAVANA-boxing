@@ -187,12 +187,15 @@ export function useReelFeed({ user, authLoading, isProfileSource, profileSourceU
             const userData = userDoc.exists() ? userDoc.data() : {};
             const streakDays = Number(userData.streakCount) || 0;
 
-            // Calculate XP and rank (without likesReceived for now)
-            const totalXP = calculateUserXP({
-              aiFeedbackDocs: feedbackDocs,
-              streakDays,
-              likesReceived: 0 // TODO: Calculate total likes received
-            });
+            // Count total likes received from reels
+            const reelsQuery = query(
+              collection(db, "reels"),
+              where("userId", "==", creatorId)
+            );
+            const reelsSnap = await getDocs(reelsQuery);
+            const likesReceived = reelsSnap.docs.reduce((sum, d) => sum + (Number(d.data().likes) || 0), 0);
+
+            const totalXP = calculateUserXP({ aiFeedbackDocs: feedbackDocs, streakDays, likesReceived });
             const rank = getFighterRank(totalXP);
 
             // Get best AI score
@@ -248,7 +251,6 @@ export function useReelFeed({ user, authLoading, isProfileSource, profileSourceU
 
     if (!user?.uid) {
       setAllReels([]);
-      setFollowingIds(new Set());
       setReelsLoading(false);
       return;
     }

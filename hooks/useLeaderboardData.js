@@ -117,7 +117,8 @@ export function useLeaderboardData({ user, currentSeasonId }) {
     }
 
     load();
-    return () => { active = false; };
+    const refreshTimer = setInterval(load, 90_000);
+    return () => { active = false; clearInterval(refreshTimer); };
   }, [currentSeasonId]);
 
   useEffect(() => {

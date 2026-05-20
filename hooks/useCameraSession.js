@@ -74,7 +74,11 @@ export function useCameraSession({
           videoRef.current.srcObject = stream;
         }
       } catch (err) {
-        console.error("Camera permission error:", err);
+        if (err.name === "NotFoundError") {
+          console.warn("Camera not found on this device:", err.message);
+        } else {
+          console.warn("Camera unavailable:", err.name, err.message);
+        }
         if (active) setCameraState("denied");
       }
     }

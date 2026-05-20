@@ -5,8 +5,9 @@ import { db } from "@/lib/firebase";
 import { createNotification } from "@/lib/notifications";
 import { startConversation } from "@/lib/messaging";
 import { getFighterRank } from "@/lib/xp";
+import { sendPushNotification } from "@/lib/pushNotification";
 
-export function useSparringActions({ user, router, locale, userData, myPost }) {
+export function useSparringActions({ user, router, locale, userData, myPost, onError }) {
   const [cancelling, setCancelling] = useState(null);
   const [toggling, setToggling] = useState(false);
   const [requesting, setRequesting] = useState(null);
@@ -40,6 +41,7 @@ export function useSparringActions({ user, router, locale, userData, myPost }) {
       }
     } catch (e) {
       console.error("Sparring toggle error:", e);
+      onError?.(locale === "mn" ? "Алдаа гарлаа. Дахин оролдоно уу." : locale === "ko" ? "오류가 발생했습니다. 다시 시도해주세요." : "Something went wrong. Please try again.");
     } finally {
       setToggling(false);
     }
@@ -63,20 +65,32 @@ export function useSparringActions({ user, router, locale, userData, myPost }) {
         status: "pending",
         createdAt: serverTimestamp(),
       });
+      const actorName = user.displayName || userData?.username || "";
+      const notifText = locale === "mn"
+        ? `${actorName || "Тулаанч"} sparring хүсэлт илгээлээ`
+        : locale === "ko"
+        ? `${actorName || "파이터"}님이 스파링을 요청했습니다`
+        : `${actorName || "A fighter"} wants to spar with you`;
       await createNotification({
         recipientId: post.userId,
         actorId: user.uid,
-        actorName: user.displayName || userData?.username || "",
+        actorName,
         actorPhotoURL: user.photoURL || userData?.photoURL || "",
         type: "sparring_request",
-        text: locale === "mn"
-          ? `${user.displayName || userData?.username || "Тулаанч"} sparring хүсэлт илгээлээ`
-          : locale === "ko"
-          ? `${user.displayName || userData?.username || "파이터"}님이 스파링을 요청했습니다`
-          : `${user.displayName || userData?.username || "A fighter"} wants to spar with you`,
+        text: notifText,
+      });
+      // Fire-and-forget push notification
+      const token = await user.getIdToken?.().catch(() => null);
+      sendPushNotification({
+        recipientId: post.userId,
+        title: "🥊 " + (locale === "mn" ? "Sparring хүсэлт" : locale === "ko" ? "스파링 요청" : "Sparring Request"),
+        body: notifText,
+        url: `/${locale}/sparring`,
+        token,
       });
     } catch (e) {
       console.error("Sparring request error:", e);
+      onError?.(locale === "mn" ? "Хүсэлт илгээхэд алдаа гарлаа." : locale === "ko" ? "요청 전송에 실패했습니다." : "Failed to send request. Try again.");
     } finally {
       setRequesting(null);
     }
@@ -92,17 +106,28 @@ export function useSparringActions({ user, router, locale, userData, myPost }) {
         updateDoc(doc(db, "users", user.uid), { hasSparringPartner: true }),
         updateDoc(doc(db, "users", req.fromUserId), { hasSparringPartner: true }).catch(() => {}),
       ]);
+      const actorName = user.displayName || userData?.username || "";
+      const acceptText = locale === "mn"
+        ? `${actorName || "Тулаанч"} sparring хүсэлтийг зөвшөөрлөө`
+        : locale === "ko"
+        ? `${actorName || "파이터"}님이 스파링을 수락했습니다`
+        : `${actorName || "A fighter"} accepted your sparring request`;
       await createNotification({
         recipientId: req.fromUserId,
         actorId: user.uid,
-        actorName: user.displayName || userData?.username || "",
+        actorName,
         actorPhotoURL: user.photoURL || userData?.photoURL || "",
         type: "sparring_accepted",
-        text: locale === "mn"
-          ? `${user.displayName || userData?.username || "Тулаанч"} sparring хүсэлтийг зөвшөөрлөө`
-          : locale === "ko"
-          ? `${user.displayName || userData?.username || "파이터"}님이 스파링을 수락했습니다`
-          : `${user.displayName || userData?.username || "A fighter"} accepted your sparring request`,
+        text: acceptText,
+      });
+      // Fire-and-forget push — requester needs to know immediately
+      const token = await user.getIdToken?.().catch(() => null);
+      sendPushNotification({
+        recipientId: req.fromUserId,
+        title: "✅ " + (locale === "mn" ? "Sparring зөвшөөрлөө!" : locale === "ko" ? "스파링 수락됨!" : "Sparring Accepted!"),
+        body: acceptText,
+        url: `/${locale}/sparring`,
+        token,
       });
       const convoId = await startConversation(user, req.fromUserId, {
         displayName: req.fromDisplayName,
@@ -111,6 +136,7 @@ export function useSparringActions({ user, router, locale, userData, myPost }) {
       router.push(`/${locale}/inbox/${convoId}`);
     } catch (e) {
       console.error("Accept sparring error:", e);
+      onError?.(locale === "mn" ? "Зөвшөөрөхөд алдаа гарлаа." : locale === "ko" ? "수락 중 오류가 발생했습니다." : "Failed to accept. Try again.");
     } finally {
       setAccepting(null);
     }
@@ -123,6 +149,7 @@ export function useSparringActions({ user, router, locale, userData, myPost }) {
       await updateDoc(doc(db, "sparring_requests", req.id), { status: "declined" });
     } catch (e) {
       console.error("Decline sparring error:", e);
+      onError?.(locale === "mn" ? "Татгалзахад алдаа гарлаа." : locale === "ko" ? "거절 중 오류가 발생했습니다." : "Failed to decline. Try again.");
     } finally {
       setDeclining(null);
     }
@@ -135,6 +162,7 @@ export function useSparringActions({ user, router, locale, userData, myPost }) {
       await deleteDoc(doc(db, "sparring_requests", req.id));
     } catch (e) {
       console.error("Cancel sparring request error:", e);
+      onError?.(locale === "mn" ? "Цуцлахад алдаа гарлаа." : locale === "ko" ? "취소 중 오류가 발생했습니다." : "Failed to cancel. Try again.");
     } finally {
       setCancelling(null);
     }

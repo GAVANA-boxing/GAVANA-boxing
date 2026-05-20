@@ -49,9 +49,10 @@ export const feedbackSheetStyles = {
     margin: 0,
     color: "var(--accent-gold)",
     fontSize: 11,
-    fontWeight: 950,
-    letterSpacing: 1.8,
+    fontWeight: 900,
+    letterSpacing: 3,
     textTransform: "uppercase",
+    fontFamily: "var(--font-condensed)",
   },
   feedbackTitle: {
     margin: "5px 0 0",

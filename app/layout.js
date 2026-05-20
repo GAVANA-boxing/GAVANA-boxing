@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono, Anton } from "next/font/google";
+import { Geist, Geist_Mono, Anton, Barlow_Condensed } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/AuthContext";
 import InAppBrowserWarning from "@/components/InAppBrowserWarning";
@@ -22,29 +22,44 @@ const anton = Anton({
   weight: "400",
 });
 
+const barlowCondensed = Barlow_Condensed({
+  variable: "--font-barlow",
+  subsets: ["latin"],
+  weight: ["400", "600", "700", "900"],
+});
+
 export const metadata = {
-  applicationName: "Gavana Boxing",
+  applicationName: "GAVANA Boxing",
   title: {
-    default: "Gavana Boxing",
-    template: "%s | Gavana Boxing",
+    default: "GAVANA Boxing — AI Punch Scoring for Fighters",
+    template: "%s | GAVANA Boxing",
   },
-  description: "Boxing reels, AI coach, and fighter community.",
+  description: "AI-powered punch scoring, fighter reels, rank system, sparring matchmaking, and coach connections. The boxing app built for serious fighters.",
+  keywords: ["boxing", "AI coach", "punch scoring", "fighter training", "sparring", "boxing reels", "combat sports"],
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
-    title: "Gavana Boxing",
+    title: "GAVANA Boxing",
     statusBarStyle: "black-translucent",
   },
   formatDetection: {
     telephone: false,
   },
+  openGraph: {
+    type: "website",
+    siteName: "GAVANA Boxing",
+    title: "GAVANA Boxing — AI Punch Scoring for Fighters",
+    description: "AI-powered punch scoring, fighter reels, rank system, sparring matchmaking, and coach connections.",
+    images: [{ url: "/icons/gavana-icon.svg", width: 512, height: 512, alt: "GAVANA Boxing" }],
+  },
+  twitter: {
+    card: "summary",
+    title: "GAVANA Boxing",
+    description: "AI-powered punch scoring, fighter reels, rank system, sparring matchmaking, and coach connections.",
+  },
   icons: {
-    icon: [
-      { url: "/icons/gavana-icon.svg", type: "image/svg+xml" },
-    ],
-    apple: [
-      { url: "/icons/gavana-icon.svg", type: "image/svg+xml" },
-    ],
+    icon: [{ url: "/icons/gavana-icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/icons/gavana-icon.svg", type: "image/svg+xml" }],
   },
 };
 
@@ -62,8 +77,14 @@ export default function RootLayout({ children }) {
     <html
       lang="en"
       data-scroll-behavior="smooth"
-      className={`${geistSans.variable} ${geistMono.variable} ${anton.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${anton.variable} ${barlowCondensed.variable} h-full antialiased`}
     >
+      <head>
+        <link rel="preconnect" href="https://firebasestorage.googleapis.com" />
+        <link rel="preconnect" href="https://identitytoolkit.googleapis.com" />
+        <link rel="preconnect" href="https://fcm.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      </head>
       <body className="min-h-full flex flex-col">
         <AuthProvider>
           <ServiceWorkerRegistrar />

@@ -14,6 +14,8 @@ import styles from "@/components/leaderboard/leaderboardStyles";
 import { useWeeklyCountdown, formatCountdown, getScoreColor, getAvatarUrl } from "@/lib/leaderboardHelpers";
 import { useLeaderboardData } from "@/hooks/useLeaderboardData";
 import { LeaderboardEntry } from "@/components/leaderboard/LeaderboardEntry";
+import RankBadge from "@/components/RankBadge";
+import { getFighterRank } from "@/lib/xp";
 import Image from "next/image";
 
 export default function LeaderboardPage() {
@@ -368,6 +370,7 @@ export default function LeaderboardPage() {
               const glowShadow = isFirst
                 ? `0 0 0 2.5px ${colors[0]}, 0 0 22px ${colors[0]}88`
                 : `0 0 8px ${colors[rank - 1]}44`;
+              const fighterRank = getFighterRank(entry.xp ?? 0);
               return (
                 <div key={rank} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, cursor: "pointer" }} onClick={() => router.push(`/${locale}/profile/${entry.userId}`)}>
                   <span style={{ fontSize: isFirst ? 20 : 16 }}>{medals[rank - 1]}</span>
@@ -375,10 +378,14 @@ export default function LeaderboardPage() {
                     ? <Image src={photo} alt="" width={avatarSize} height={avatarSize} style={{ borderRadius: "50%", objectFit: "cover", border: `2.5px solid ${colors[rank - 1]}`, boxShadow: glowShadow }} />
                     : <div style={{ width: avatarSize, height: avatarSize, borderRadius: "50%", background: "rgba(255,255,255,0.08)", border: `2.5px solid ${colors[rank - 1]}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: isFirst ? 22 : 16, fontWeight: 900, color: "#fff", boxShadow: glowShadow }}>{name[0]?.toUpperCase()}</div>
                   }
-                  <span style={{ fontSize: isFirst ? 11 : 10, fontWeight: 800, color: isFirst ? "#fff" : "rgba(255,255,255,0.7)", maxWidth: 72, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>{name.split(" ")[0]}</span>
-                  <span style={{ fontSize: isFirst ? 13 : 11, fontWeight: 900, color: colors[rank - 1], textAlign: "center" }}>{entry.bestScore}/10</span>
+                  <span style={{ fontSize: isFirst ? 11 : 10, fontWeight: 800, color: isFirst ? "#fff" : "rgba(255,255,255,0.7)", maxWidth: 72, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center", fontFamily: "var(--font-condensed)" }}>{name.split(" ")[0]}</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
+                    <RankBadge rank={fighterRank} size={isFirst ? 14 : 12} glowEnabled={isFirst} />
+                    <span style={{ fontSize: 9, fontWeight: 700, color: fighterRank.color, fontFamily: "var(--font-condensed)", letterSpacing: "0.05em", maxWidth: 60, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t(fighterRank.key)}</span>
+                  </div>
+                  <span style={{ fontSize: isFirst ? 13 : 11, fontWeight: 900, color: colors[rank - 1], textAlign: "center", fontFamily: "var(--font-display)" }}>{entry.bestScore}/10</span>
                   <div style={{ width: "100%", height: podiumH, borderRadius: "8px 8px 0 0", background: isFirst ? `linear-gradient(180deg, ${colors[0]}44, ${colors[0]}18)` : `linear-gradient(180deg, ${colors[rank - 1]}2a, ${colors[rank - 1]}0e)`, border: `1px solid ${colors[rank - 1]}${isFirst ? "88" : "44"}`, borderBottom: "none", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: isFirst ? `0 -4px 20px ${colors[0]}33` : `0 -2px 10px ${colors[rank-1]}18` }}>
-                    <span style={{ fontSize: isFirst ? 22 : 18, fontWeight: 900, color: colors[rank - 1], opacity: isFirst ? 0.8 : 0.5 }}>#{rank}</span>
+                    <span style={{ fontSize: isFirst ? 22 : 18, fontWeight: 900, color: colors[rank - 1], opacity: isFirst ? 0.8 : 0.5, fontFamily: "var(--font-display)" }}>#{rank}</span>
                   </div>
                 </div>
               );

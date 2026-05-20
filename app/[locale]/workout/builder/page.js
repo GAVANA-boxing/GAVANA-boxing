@@ -5,9 +5,10 @@ import { useParams, useRouter } from "next/navigation";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
-import { getLocale } from "@/lib/i18n";
+import { getLocale, translate } from "@/lib/i18n";
 import BottomNav from "@/components/BottomNav";
 import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
+import { CombatCard, GlassCard } from "@/components/ui";
 
 const GOALS = [
   { key: "conditioning",   emoji: "🏋️", mn: "Нийт бэлтгэл",  ko: "체력 훈련",    en: "Conditioning" },
@@ -114,6 +115,7 @@ function parsePlan(text) {
 export default function WorkoutBuilderPage() {
   const params = useParams();
   const locale = getLocale(params?.locale);
+  const t = (key) => translate(locale, key);
   const router = useRouter();
   const { user } = useAuth();
 
@@ -344,7 +346,11 @@ export default function WorkoutBuilderPage() {
 
             {/* Day cards */}
             {plan.days.map((day, i) => (
-              <div key={i} style={{ ...s.dayCard, ...(day.isRest ? s.dayCardRest : {}) }}>
+              <CombatCard
+                key={i}
+                accent={!day.isRest}
+                style={{ marginBottom: 8, padding: "14px 16px", ...(day.isRest ? { borderColor: "rgba(255,255,255,0.08)" } : {}) }}
+              >
                 <div style={s.dayTitle}>{day.title}</div>
                 {day.isRest ? (
                   <p style={s.restText}>{t("wbRest")} 💤</p>
@@ -358,17 +364,17 @@ export default function WorkoutBuilderPage() {
                     ))}
                   </ul>
                 )}
-              </div>
+              </CombatCard>
             ))}
 
             {/* Tips */}
             {plan.tips.length > 0 && (
-              <div style={s.tipsCard}>
+              <GlassCard style={{ padding: "14px 16px", marginBottom: 8, border: `1px solid ${goldAlpha(0.18)}`, background: goldAlpha(0.06) }}>
                 <p style={s.tipsTitle}>💡 {t("wbTips")}</p>
                 {plan.tips.map((tip, i) => (
                   <p key={i} style={s.tipRow}>• {tip}</p>
                 ))}
-              </div>
+              </GlassCard>
             )}
 
             {error && <p style={s.errorText}>{error}</p>}

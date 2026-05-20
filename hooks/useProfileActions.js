@@ -4,6 +4,7 @@ import { signOut } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { createNewFollowerNotification } from "@/lib/notifications";
 import { startConversation } from "@/lib/messaging";
+import { sendPushNotification } from "@/lib/pushNotification";
 
 export function useProfileActions({
   user, userId, locale, router,
@@ -66,11 +67,25 @@ export function useProfileActions({
           followingId: userId,
           createdAt: serverTimestamp()
         });
+        const actorName = user.displayName || user.email?.split("@")[0] || "";
         createNewFollowerNotification({
           recipientId: userId,
           actorId: user.uid,
-          actorName: user.displayName || user.email?.split("@")[0],
+          actorName,
           actorPhotoURL: user.photoURL || "",
+        });
+        // Push notification — fire-and-forget
+        const token = await auth.currentUser?.getIdToken().catch(() => null);
+        sendPushNotification({
+          recipientId: userId,
+          title: "👤 " + (locale === "mn" ? "Шинэ дагагч" : locale === "ko" ? "새 팔로워" : "New Follower"),
+          body: locale === "mn"
+            ? `${actorName || "Нэг хэрэглэгч"} таныг дагаж эхэллээ`
+            : locale === "ko"
+            ? `${actorName || "누군가"}님이 팔로우했습니다`
+            : `${actorName || "Someone"} started following you`,
+          url: `/${locale || "en"}/profile/${user.uid}`,
+          token,
         });
         // Check if now mutual
         const reverseDoc = await getDoc(doc(db, "follows", `${userId}_${user.uid}`));
@@ -147,22 +162,19 @@ export function useProfileActions({
       setChallengeSent(true);
       setTimeout(() => { setChallengeSent(false); setShowChallengeModal(false); }, 2000);
 
-      // Fire-and-forget push notification — fails silently if FCM not configured
-      try {
-        const token = await import("@/lib/firebase").then(({ auth }) => auth.currentUser?.getIdToken());
-        if (token) {
-          fetch("/api/push-notify", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-            body: JSON.stringify({
-              recipientId: userId,
-              title: "⚔️ New Challenge!",
-              body: `${user.displayName || "A fighter"} challenged you on GAVANA`,
-              url: `/${locale}/train`,
-            }),
-          }).catch(() => {});
-        }
-      } catch { /* push is optional */ }
+      // Fire-and-forget push notification
+      const pushToken = await auth.currentUser?.getIdToken().catch(() => null);
+      sendPushNotification({
+        recipientId: userId,
+        title: "⚔️ " + (locale === "mn" ? "Шинэ тулаан!" : locale === "ko" ? "새 챌린지!" : "New Challenge!"),
+        body: locale === "mn"
+          ? `${user.displayName || "Тулаанч"} тан руу тулааны шийдэл илгээлээ`
+          : locale === "ko"
+          ? `${user.displayName || "파이터"}님이 PvP를 신청했습니다`
+          : `${user.displayName || "A fighter"} challenged you on GAVANA`,
+        url: `/${locale}/train`,
+        token: pushToken,
+      });
     } catch (e) {
       console.error("challenge send error", e);
     } finally {

@@ -10,6 +10,7 @@ import { startConversation } from "@/lib/messaging";
 import BottomNav from "@/components/BottomNav";
 import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
 import Image from "next/image";
+import { Toast, useToast } from "@/components/ui/Toast";
 
 function getTs(ts) {
   if (!ts) return 0;
@@ -40,6 +41,7 @@ export default function InboxList() {
   const pathname = usePathname();
   const locale = getLocaleFromPathname(pathname);
 
+  const { toast, showToast, hideToast } = useToast();
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -132,6 +134,7 @@ export default function InboxList() {
       router.push(`/${locale}/inbox/${convoId}`);
     } catch (e) {
       console.error("Start convo error:", e);
+      showToast(locale === "mn" ? "Мессеж эхлүүлэхэд алдаа гарлаа." : locale === "ko" ? "대화를 시작하는 데 실패했습니다." : "Failed to start conversation. Try again.");
     } finally {
       setStarting(null);
     }
@@ -313,6 +316,7 @@ export default function InboxList() {
         </div>
       )}
 
+      <Toast message={toast?.message} type={toast?.type} onDismiss={hideToast} />
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="alerts" />
     </div>
   );
