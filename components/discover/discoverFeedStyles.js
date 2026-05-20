@@ -124,7 +124,9 @@ export const discoverFeedStyles = {
     cursor: "pointer",
   },
   card: {
-    background: "linear-gradient(145deg, #111012, #0a0a0a)",
+    background: "rgba(255,255,255,0.025)",
+    backdropFilter: "blur(18px)",
+    WebkitBackdropFilter: "blur(18px)",
     border: "1px solid rgba(255,255,255,0.06)",
     borderLeft: "2.5px solid #C1121F",
     borderRadius: "3px 16px 16px 3px",

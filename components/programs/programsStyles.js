@@ -1,10 +1,10 @@
 import { goldAlpha, GOLD } from "@/lib/tokens";
 
 const s = {
-  aiBuilderBanner: { width: "100%", boxSizing: "border-box", display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderRadius: "3px 14px 14px 3px", background: "linear-gradient(145deg, #111012, #0a0a0a)", border: `1px solid ${goldAlpha(0.18)}`, borderLeft: "2.5px solid #D4AF37", cursor: "pointer", marginBottom: 20, textAlign: "left" },
+  aiBuilderBanner: { width: "100%", boxSizing: "border-box", display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderRadius: "3px 14px 14px 3px", background: `${goldAlpha(0.08)}`, backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", border: `1px solid ${goldAlpha(0.22)}`, borderLeft: `2.5px solid ${GOLD}`, cursor: "pointer", marginBottom: 20, textAlign: "left" },
   page: {
     minHeight: "100dvh",
-    background: "#050505",
+    background: `radial-gradient(ellipse at 50% 0%, ${goldAlpha(0.1)} 0%, transparent 40%), #050505`,
     color: "#fff",
     display: "flex",
     flexDirection: "column",
@@ -72,8 +72,10 @@ const s = {
     paddingBottom: 2,
   },
   enrolledCard: {
-    background: "linear-gradient(145deg, #111012, #0a0a0a)",
-    border: "1px solid rgba(255,255,255,0.07)",
+    background: "rgba(255,255,255,0.025)",
+    backdropFilter: "blur(18px)",
+    WebkitBackdropFilter: "blur(18px)",
+    border: "1px solid rgba(255,255,255,0.08)",
     borderRadius: "3px 14px 14px 3px",
     padding: "14px 16px",
     display: "flex",
@@ -119,8 +121,10 @@ const s = {
     cursor: "pointer",
   },
   discoverCard: {
-    background: "linear-gradient(145deg, #111012, #0a0a0a)",
-    border: "1px solid rgba(255,255,255,0.07)",
+    background: "rgba(255,255,255,0.025)",
+    backdropFilter: "blur(18px)",
+    WebkitBackdropFilter: "blur(18px)",
+    border: "1px solid rgba(255,255,255,0.08)",
     borderRadius: "3px 14px 14px 3px",
     padding: "14px 16px",
     display: "flex",

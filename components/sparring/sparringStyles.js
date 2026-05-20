@@ -1,7 +1,7 @@
 import { redAlpha, RED } from "@/lib/tokens";
 
 const s = {
-  page: { minHeight: "100dvh", background: "#070707", color: "#fff", display: "flex", flexDirection: "column" },
+  page: { minHeight: "100dvh", background: `radial-gradient(ellipse at 50% 0%, ${redAlpha(0.12)} 0%, transparent 40%), #070707`, color: "#fff", display: "flex", flexDirection: "column" },
   loadWrap: { minHeight: "100dvh", background: "#070707", display: "flex", alignItems: "center", justifyContent: "center" },
   spinner: { width: 26, height: 26, border: "2px solid #C1121F", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" },
   header: {
@@ -79,10 +79,12 @@ const s = {
 
 const c = {
   card: {
-    background: "linear-gradient(145deg, #111012 0%, #0a0a0a 100%)",
+    background: "rgba(255,255,255,0.025)",
+    backdropFilter: "blur(18px)",
+    WebkitBackdropFilter: "blur(18px)",
     border: "1px solid rgba(255,255,255,0.07)",
     borderRadius: "3px 14px 14px 3px",
-    boxShadow: "0 4px 24px rgba(0,0,0,0.45)",
+    boxShadow: "0 0 0 0.5px rgba(0,0,0,0.5) inset, 0 12px 40px rgba(0,0,0,0.2)",
     padding: "13px 13px 10px",
     display: "flex", flexDirection: "column", gap: 10,
   },

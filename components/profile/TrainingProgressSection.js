@@ -129,7 +129,9 @@ export default function TrainingProgressSection({
       {aiFeedbackHistory.length === 0 && (
         <div style={{
           marginTop: 14,
-          background: "linear-gradient(145deg, #111012, #0a0a0a)",
+          background: "rgba(255,255,255,0.025)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
           border: `1px solid ${goldAlpha(0.18)}`,
           borderLeft: "3px solid #D4AF37",
           borderRadius: "3px 16px 16px 3px",
@@ -163,7 +165,9 @@ export default function TrainingProgressSection({
       {aiFeedbackHistory.length > 0 && (
         <div style={{
           marginTop: 14,
-          background: "linear-gradient(145deg, #111012, #0a0a0a)",
+          background: "rgba(255,255,255,0.025)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
           border: "1px solid rgba(255,255,255,0.06)",
           borderLeft: "2.5px solid #D4AF37",
           borderRadius: "3px 16px 16px 3px",

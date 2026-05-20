@@ -20,7 +20,7 @@ const S = {
   videoPicker: {
     flex: 1, position: "relative",
     display: "flex", alignItems: "center", justifyContent: "center",
-    minHeight: "calc(100vh - 88px)", cursor: "pointer",
+    minHeight: "calc(100dvh - 88px)", cursor: "pointer",
   },
   videoFull: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, width: "100%", height: "100%", objectFit: "cover" },
   videoEmptyState: { display: "flex", flexDirection: "column", alignItems: "center", gap: 18, padding: 40, zIndex: 1 },

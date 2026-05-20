@@ -76,7 +76,9 @@ export default function BattleSection({ pvpStats, sparringRecord, isOwnProfile, 
                   : "";
                 return (
                   <div key={battle.id} style={{
-                    background: "linear-gradient(145deg, #111012, #0a0a0a)",
+                    background: "rgba(255,255,255,0.025)",
+                    backdropFilter: "blur(16px)",
+                    WebkitBackdropFilter: "blur(16px)",
                     border: `1px solid ${col}22`,
                     borderLeft: `3px solid ${col}`,
                     borderRadius: "3px 14px 14px 3px",

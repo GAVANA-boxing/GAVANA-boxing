@@ -136,11 +136,13 @@ export default function FighterPath({ pathData = {}, locale = "en", router }) {
 
 const fp = {
   wrap: {
-    background: "linear-gradient(145deg, #111012 0%, #0a0a0a 100%)",
+    background: "rgba(255,255,255,0.025)",
+    backdropFilter: "blur(18px)",
+    WebkitBackdropFilter: "blur(18px)",
     border: "1px solid rgba(255,255,255,0.07)",
     borderLeft: "2.5px solid #D4AF37",
     borderRadius: "3px 16px 16px 3px",
-    boxShadow: "0 0 0 1px rgba(0,0,0,0.4), 0 12px 40px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.025)",
+    boxShadow: "0 0 0 0.5px rgba(0,0,0,0.5) inset, 0 12px 40px rgba(0,0,0,0.2)",
     overflow: "hidden",
     marginBottom: 28,
   },
