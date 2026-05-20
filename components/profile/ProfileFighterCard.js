@@ -6,6 +6,7 @@ import styles from "@/components/profile/profilePageStyles";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import { formatScore, getActiveChallengeStreak } from "@/lib/utils";
 import Image from "next/image";
+import { useState } from "react";
 
 export default function ProfileFighterCard({
   profileUser,
@@ -46,6 +47,8 @@ export default function ProfileFighterCard({
   };
 
   const streakCount = profileUser?.streakCount || 0;
+  const [avatarError, setAvatarError] = useState(false);
+  const avatarInitial = profileUser.displayName?.charAt(0).toUpperCase() || profileUser.username?.charAt(0).toUpperCase() || "🥊";
 
   return (
     <section style={styles.fighterCard}>
@@ -76,16 +79,17 @@ export default function ProfileFighterCard({
           } : {}),
         }}
       >
-        {profileUser.photoURL ? (
+        {profileUser.photoURL && !avatarError ? (
           <Image
             src={profileUser.photoURL}
             alt={profileUser.displayName || profileUser.username || "Profile"}
             width={148}
             height={148}
             style={{ borderRadius: "50%", objectFit: "cover" }}
+            onError={() => setAvatarError(true)}
           />
         ) : (
-          profileUser.displayName?.charAt(0).toUpperCase() || profileUser.username?.charAt(0).toUpperCase() || "U"
+          avatarInitial
         )}
       </div>
 

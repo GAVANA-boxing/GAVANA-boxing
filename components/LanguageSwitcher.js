@@ -49,7 +49,6 @@ export default function LanguageSwitcher({ currentLocale }) {
         aria-label="Switch language"
         aria-expanded={open}
       >
-        <span style={s.flag}>{FLAG[activeLocale]}</span>
         <span style={s.code}>{CODE[activeLocale]}</span>
         <span style={{ ...s.chevron, transform: open ? "rotate(180deg)" : "none" }}>▾</span>
       </button>

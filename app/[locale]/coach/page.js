@@ -2,8 +2,8 @@
 
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
-import AICoach from "@/components/AICoach";
 import BottomNav from "@/components/BottomNav";
 import BottomSheet from "@/components/BottomSheet";
 import EmptyState from "@/components/EmptyState";
@@ -17,6 +17,8 @@ import { useCoachPageData } from "@/hooks/useCoachPageData";
 import Image from "next/image";
 import { useCoachPageActions } from "@/hooks/useCoachPageActions";
 import { SPECIALTIES, VIBE_FILTERS, LEVELS } from "@/lib/coachConstants";
+
+const AICoach = dynamic(() => import("@/components/AICoach"), { ssr: false });
 
 export default function CoachPage() {
   const router = useRouter();
@@ -457,7 +459,7 @@ export default function CoachPage() {
             style={styles.cancelBtn}
             onClick={() => setShowSparringForm(false)}
           >
-            Cancel
+            {t("cancel")}
           </button>
           <button
             type="button"

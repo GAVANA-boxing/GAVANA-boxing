@@ -120,7 +120,7 @@ const styles = {
   },
   fighterUsername: {
     marginTop: 10,
-    color: "#AAAAAA",
+    color: "#C8C8C8",
     fontSize: 14,
     fontWeight: 750,
   },
@@ -151,7 +151,7 @@ const styles = {
   bio: {
     maxWidth: 360,
     margin: "12px auto 0",
-    color: "rgba(255,255,255,0.38)",
+    color: "rgba(255,255,255,0.62)",
     fontSize: 12,
     lineHeight: 1.65,
     fontWeight: 400,

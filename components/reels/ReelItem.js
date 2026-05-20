@@ -246,7 +246,7 @@ const ReelItem = memo(function ReelItem({
             aria-label={`Open ${creatorName}'s profile`}
           >
             {creatorPhoto ? (
-              <Image src={creatorPhoto} alt="" width={44} height={44} style={{ objectFit: "cover" }} />
+              <Image src={creatorPhoto} alt={creatorName || "Creator"} width={44} height={44} style={{ objectFit: "cover" }} />
             ) : (
               <span style={styles.creatorAvatarFallback}>{creatorInitial}</span>
             )}

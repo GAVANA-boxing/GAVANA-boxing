@@ -63,7 +63,7 @@ const S = {
   fields: { display: "flex", flexDirection: "column", gap: 18 },
   fieldLabel: { fontSize: 11, fontWeight: 900, color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: 1 },
   input: { background: "#111", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 12, padding: "13px 16px", color: "#fff", fontSize: 14, outline: "none", width: "100%", boxSizing: "border-box" },
-  textarea: { background: "#111", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 12, padding: "13px 16px", color: "#fff", fontSize: 14, minHeight: 82, resize: "vertical", outline: "none", width: "100%", boxSizing: "border-box" },
+  textarea: { background: "#111", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 12, padding: "13px 16px", color: "#fff", fontSize: 14, minHeight: 82, resize: "none", outline: "none", width: "100%", boxSizing: "border-box" },
   chipRow: { display: "flex", flexWrap: "wrap", gap: 8 },
   chip: { padding: "8px 16px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.45)", fontSize: 13, fontWeight: 800, cursor: "pointer" },
   chipActive: { background: `${redAlpha(0.18)}`, border: `1px solid ${redAlpha(0.5)}`, color: "#F87171" },

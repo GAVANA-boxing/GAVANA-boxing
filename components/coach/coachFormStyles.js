@@ -42,7 +42,7 @@ export const coachFormStyles = {
     color: "#fff",
     fontSize: 14,
     outline: "none",
-    resize: "vertical",
+    resize: "none",
     fontFamily: "sans-serif",
     lineHeight: 1.5,
     boxSizing: "border-box",

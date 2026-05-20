@@ -123,7 +123,7 @@ export default function StoryUpload({ locale, initialType = "training_clip" }) {
       <style>{`.story-type-row::-webkit-scrollbar{display:none}`}</style>
       {/* Header */}
       <div style={s.header}>
-        <button type="button" style={s.closeBtn} onClick={() => router.back()}>✕</button>
+        <button type="button" style={s.closeBtn} aria-label="Close" onClick={() => router.back()}>✕</button>
         <span style={s.title}>{t("storyAdd")}</span>
         <button
           type="button"

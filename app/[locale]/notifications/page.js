@@ -40,6 +40,13 @@ export default function NotificationsPage() {
     return notifications.filter((notification) => notification.read === false).length;
   }, [notifications]);
 
+  const tabUnreadCounts = useMemo(() => ({
+    all:    notifications.filter((n) => !n.read).length,
+    social: notifications.filter((n) => !n.read && SOCIAL_TYPES.has(n.type)).length,
+    coach:  notifications.filter((n) => !n.read && COACH_TYPES.has(n.type)).length,
+    gym:    notifications.filter((n) => !n.read && GYM_TYPES_NOTIF.has(n.type)).length,
+  }), [notifications]);
+
   const filteredNotifications = useMemo(() => {
     if (filterType === "all") return notifications;
     if (filterType === "social") return notifications.filter((n) => SOCIAL_TYPES.has(n.type));
@@ -254,9 +261,14 @@ export default function NotificationsPage() {
               key={key}
               type="button"
               onClick={() => setFilterType(key)}
-              style={{ ...styles.filterChip, ...(filterType === key ? styles.filterChipActive : {}) }}
+              style={{ ...styles.filterChip, ...(filterType === key ? styles.filterChipActive : {}), display: "flex", alignItems: "center", gap: 5 }}
             >
               {label}
+              {tabUnreadCounts[key] > 0 && (
+                <span style={{ minWidth: 16, height: 16, padding: "0 4px", borderRadius: 999, background: "#C1121F", color: "#fff", fontSize: 9, fontWeight: 900, lineHeight: "16px", textAlign: "center", boxSizing: "border-box" }}>
+                  {tabUnreadCounts[key] > 9 ? "9+" : tabUnreadCounts[key]}
+                </span>
+              )}
             </button>
           ))}
         </div>

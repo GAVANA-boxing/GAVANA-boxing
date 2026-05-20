@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
@@ -13,10 +13,15 @@ import { useOnboardingActions } from "@/hooks/useOnboardingActions";
 import Image from "next/image";
 
 export default function OnboardingPage() {
-  const pathname = usePathname();
-  const locale = getLocaleFromPathname(pathname);
-  const router = useRouter();
+  const pathname     = usePathname();
+  const locale       = getLocaleFromPathname(pathname);
+  const router       = useRouter();
+  const searchParams = useSearchParams();
   const { user, loading: authLoading } = useAuth();
+
+  // Preserve original challenge/reel deep-link through onboarding
+  const rawRedirect    = searchParams.get("redirect") || "";
+  const redirectAfter  = rawRedirect.startsWith(`/${locale}/`) ? rawRedirect : null;
 
   const t = (key) => translate(locale, key);
 
@@ -386,12 +391,14 @@ export default function OnboardingPage() {
                   </>
                 ) : (
                   <>
-                    <button type="button" style={s.primaryBtn} disabled={saving} onClick={() => finishOnboarding(`/${locale}/train`)}>
-                      🥊 {t("onboardingStartTraining")}
+                    <button type="button" style={s.primaryBtn} disabled={saving} onClick={() => finishOnboarding(redirectAfter || `/${locale}/train`)}>
+                      🥊 {redirectAfter ? t("onboardingStartTraining") : t("onboardingStartTraining")}
                     </button>
-                    <button type="button" style={s.ghostBtn} disabled={saving} onClick={() => finishOnboarding(`/${locale}/reels`)}>
-                      {t("onboardingBrowseReels")}
-                    </button>
+                    {!redirectAfter && (
+                      <button type="button" style={s.ghostBtn} disabled={saving} onClick={() => finishOnboarding(`/${locale}/reels`)}>
+                        {t("onboardingBrowseReels")}
+                      </button>
+                    )}
                   </>
                 )}
               </div>

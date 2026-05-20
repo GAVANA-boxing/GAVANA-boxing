@@ -113,7 +113,8 @@ const styles = {
     padding: "14px 16px",
     borderRadius: 16,
     background: `${redAlpha(0.12)}`,
-    border: `1px solid ${redAlpha(0.3)}`,
+    border: `1.5px solid ${redAlpha(0.55)}`,
+    boxShadow: `0 0 0 1px ${redAlpha(0.08)}, 0 4px 20px ${redAlpha(0.12)}`,
     marginBottom: 20,
   },
   yourRankTop: {

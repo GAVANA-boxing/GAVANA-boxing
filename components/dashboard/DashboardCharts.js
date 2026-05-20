@@ -133,6 +133,12 @@ export function FighterHero({ displayScore, xp, rank, nextRank, xpProgress, insi
   const ic = INSIGHT_COLOR[insight.type];
   const rankIcon = rank.icon === "crown" ? "👑" : rank.icon === "diamond" ? "💎" : rank.icon === "star5" ? "⭐" : "🥊";
 
+  // Circular progress ring
+  const R = 54, CX = 70, CY = 70;
+  const CIRC = 2 * Math.PI * R;
+  const pct = Math.min(100, Math.max(0, displayScore)) / 100;
+  const dashoffset = CIRC * (1 - pct);
+
   return (
     <div style={{
       position: "relative",
@@ -145,41 +151,57 @@ export function FighterHero({ displayScore, xp, rank, nextRank, xpProgress, insi
     }}>
       <div style={{
         position: "absolute", inset: 0, pointerEvents: "none",
-        background: `radial-gradient(ellipse at 18% 25%, ${redAlpha(0.24)} 0%, transparent 58%)`,
+        background: `radial-gradient(ellipse at 50% 30%, ${redAlpha(0.22)} 0%, transparent 60%)`,
       }} />
       <div style={{ position: "relative", padding: "22px 22px 20px" }}>
-        <p style={{ margin: "0 0 18px", fontSize: 9, fontWeight: 900, color: `${redAlpha(0.75)}`, letterSpacing: 3.5, textTransform: "uppercase" }}>
+        <p style={{ margin: "0 0 16px", fontSize: 9, fontWeight: 900, color: `${redAlpha(0.75)}`, letterSpacing: 3.5, textTransform: "uppercase", textAlign: "center" }}>
           GAVANA · FIGHTER SCORE
         </p>
 
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16 }}>
-          <div>
-            <div style={{ display: "flex", alignItems: "flex-end", gap: 3, lineHeight: 1 }}>
-              <span style={{
-                fontSize: 72, fontWeight: 900, color: "#fff",
-                letterSpacing: "-0.045em", lineHeight: 0.92,
-                fontFamily: "var(--font-display, 'Anton', sans-serif)",
-                textShadow: `0 0 60px ${redAlpha(0.35)}, 0 4px 24px rgba(0,0,0,0.8)`,
-              }}>
+        {/* Circular progress ring */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 14 }}>
+          <div style={{ position: "relative", width: 140, height: 140 }}>
+            <svg viewBox="0 0 140 140" width="140" height="140" style={{ display: "block" }}>
+              <defs>
+                <linearGradient id="scoreRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor={rank.color} />
+                  <stop offset="100%" stopColor="#C1121F" />
+                </linearGradient>
+              </defs>
+              {/* Track */}
+              <circle
+                cx={CX} cy={CY} r={R}
+                fill="none"
+                stroke="rgba(255,255,255,0.06)"
+                strokeWidth="8"
+              />
+              {/* Progress */}
+              <circle
+                cx={CX} cy={CY} r={R}
+                fill="none"
+                stroke="url(#scoreRingGrad)"
+                strokeWidth="8"
+                strokeLinecap="round"
+                strokeDasharray={CIRC.toFixed(2)}
+                strokeDashoffset={dashoffset.toFixed(2)}
+                transform={`rotate(-90 ${CX} ${CY})`}
+                style={{ transition: "stroke-dashoffset 1.1s cubic-bezier(0.16,1,0.3,1)" }}
+              />
+            </svg>
+            {/* Score text centered inside ring */}
+            <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ fontSize: 52, fontWeight: 900, color: "#fff", letterSpacing: "-0.04em", lineHeight: 1, fontFamily: "var(--font-display,'Anton',sans-serif)", textShadow: `0 0 40px ${redAlpha(0.4)}` }}>
                 {displayScore}
               </span>
-              <span style={{ fontSize: 19, color: "rgba(255,255,255,0.22)", fontWeight: 700, paddingBottom: 8 }}>/100</span>
-            </div>
-            <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 14, fontWeight: 900, color: rank.color, letterSpacing: 0.2 }}>{t(rank.key)}</span>
-              <span style={{ color: "rgba(255,255,255,0.12)", fontSize: 12 }}>·</span>
-              <span style={{ fontSize: 12, color: GOLD, fontWeight: 800 }}>{xp.toLocaleString()} XP</span>
+              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.28)", fontWeight: 700, marginTop: -2 }}>/100</span>
+              <span style={{ fontSize: 18, marginTop: 2 }}>{rankIcon}</span>
             </div>
           </div>
-
-          <div style={{
-            width: 62, height: 62, borderRadius: "50%", flexShrink: 0,
-            background: `radial-gradient(ellipse at 40% 30%, ${rank.color}1e, rgba(0,0,0,0.55))`,
-            border: `1.5px solid ${rank.color}3a`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: `0 0 28px ${rank.color}28`,
-          }}>
-            <span style={{ fontSize: 28 }}>{rankIcon}</span>
+          {/* Rank + XP below ring */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
+            <span style={{ fontSize: 14, fontWeight: 900, color: rank.color, letterSpacing: 0.2 }}>{t(rank.key)}</span>
+            <span style={{ color: "rgba(255,255,255,0.12)", fontSize: 12 }}>·</span>
+            <span style={{ fontSize: 12, color: GOLD, fontWeight: 800 }}>{xp.toLocaleString()} XP</span>
           </div>
         </div>
 

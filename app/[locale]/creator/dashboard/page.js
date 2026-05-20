@@ -12,6 +12,7 @@ import SkeletonBlock from "@/components/SkeletonBlock";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/creator/creatorDashboardStyles";
 import { formatCompact } from "@/lib/utils";
+import { cleanCaption } from "@/lib/reelHelpers";
 
 function getCreatedAtMs(obj) {
   const ts = obj?.createdAt;
@@ -40,7 +41,7 @@ function ReelRow({ reel, stats, rank, maxViews, t, locale, router }) {
   const likes = stats?.likes || reel.likes || 0;
   const attempts = stats?.challengeAttempts || 0;
   const engRate = views > 0 ? ((likes + attempts) / views * 100).toFixed(1) : "0.0";
-  const barPct = maxViews > 0 ? Math.max(4, Math.round((views / maxViews) * 100)) : 4;
+  const barPct = maxViews > 0 ? Math.min(100, Math.max(4, Math.round((views / maxViews) * 100))) : 4;
   const typeEmoji = reel.contentType === "educational" ? "📚" : reel.contentType === "lifestyle" ? "🎬" : "🥊";
   const typeColor = reel.contentType === "educational" ? GOLD : reel.contentType === "lifestyle" ? "#60A5FA" : RED;
   const dateStr = reel.createdAt?.toDate ? reel.createdAt.toDate().toLocaleDateString() : "";
@@ -59,7 +60,7 @@ function ReelRow({ reel, stats, rank, maxViews, t, locale, router }) {
         <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 2 }}>
           <span style={{ fontSize: 10, color: typeColor, fontWeight: 900 }}>{typeEmoji}</span>
           <span style={styles.reelCaption} title={reel.description || reel.caption || ""}>
-            {(reel.description || reel.caption || t("trainingReel")).slice(0, 46) || t("trainingReel")}
+            {cleanCaption(reel.description || reel.caption || "").slice(0, 46) || t("trainingReel")}
           </span>
         </div>
         <div style={styles.reelBar}>
@@ -359,7 +360,7 @@ export default function CreatorDashboard() {
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", marginBottom: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {mostChallengedReel.description || mostChallengedReel.caption || t("trainingReel")}
+                      {cleanCaption(mostChallengedReel.description || mostChallengedReel.caption || "") || t("trainingReel")}
                     </div>
                     <div style={{ fontSize: 11, color: "#888" }}>
                       🥊 {attemptsByReel[mostChallengedReel.id]} {locale === "mn" ? "оролдлого" : locale === "ko" ? "도전" : "challenges"}

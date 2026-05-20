@@ -6,6 +6,7 @@ import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import KnowledgeLibrary from "@/components/KnowledgeLibrary";
 import { RED, GOLD } from "@/lib/tokens";
 import styles from "@/components/aiCoachStyles";
+import { auth } from "@/lib/firebase";
 
 export default function AICoach() {
   const pathname = usePathname();
@@ -72,10 +73,12 @@ export default function AICoach() {
     setLoading(true);
 
     try {
+      const token = await auth.currentUser?.getIdToken();
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           messages: newMessages,

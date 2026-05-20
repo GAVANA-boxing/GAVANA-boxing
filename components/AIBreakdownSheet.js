@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { translate } from "@/lib/i18n";
+import { auth } from "@/lib/firebase";
 
 // ─── Skeleton shimmer row ────────────────────────────────────────────────────
 
@@ -234,12 +235,16 @@ export default function AIBreakdownSheet({ reel, locale, onClose }) {
     setError(false);
     setData(null);
 
-    fetch("/api/ai-breakdown", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reel, locale }),
-    })
-      .then((r) => r.json())
+    auth.currentUser?.getIdToken().then((token) =>
+      fetch("/api/ai-breakdown", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ reel, locale }),
+      })
+    ).then((r) => r?.json())
       .then((json) => {
         if (cancelled) return;
         if (json?.style) {

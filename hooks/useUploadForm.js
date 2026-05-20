@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { storage, db } from "@/lib/firebase";
+import { storage, db, auth } from "@/lib/firebase";
 import { checkAndAwardBadges } from "@/lib/badges";
 import { createRemixNotification } from "@/lib/notifications";
 import { parseAiCaptionResult } from "@/lib/captionHelpers";
@@ -176,9 +176,13 @@ export function useUploadForm({ user, locale, t, router }) {
     const isEdu = contentType === "educational";
     const typeLabel = isTraining ? "challenge" : isEdu ? "educational" : "lifestyle";
     try {
+      const token = await auth.currentUser?.getIdToken();
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           persona: "analyst",
           locale,

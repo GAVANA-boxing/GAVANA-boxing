@@ -234,7 +234,12 @@ Return ONLY valid JSON with exactly these keys, no other text:
 
 // ─── Route handler ────────────────────────────────────────────────────────────
 
+import { verifyIdToken } from "@/lib/verifyAuth";
+
 export async function POST(req) {
+  const uid = await verifyIdToken(req);
+  if (!uid) return Response.json({ error: "Unauthorized" }, { status: 401 });
+
   try {
     const body = await req.json();
     const { reel, locale } = body;

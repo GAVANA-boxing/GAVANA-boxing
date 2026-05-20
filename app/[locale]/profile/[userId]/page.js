@@ -16,7 +16,11 @@ import ProfileReelsGrid from "@/components/profile/ProfileReelsGrid";
 import { useProfileData } from "@/hooks/useProfileData";
 import { useProfileActions } from "@/hooks/useProfileActions";
 import { useReelDeletion } from "@/hooks/useReelDeletion";
-import { ProfileModals } from "@/components/profile/ProfileModals";
+import dynamic from "next/dynamic";
+const ProfileModals = dynamic(
+  () => import("@/components/profile/ProfileModals").then((m) => ({ default: m.ProfileModals })),
+  { ssr: false }
+);
 
 export default function UserProfilePage() {
   const { user, loading: authLoading } = useAuth();

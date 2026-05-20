@@ -57,7 +57,7 @@ export function CoachCard({ coach, t, locale, onRequest, requested, router }) {
       <div style={styles.cardTop}>
         <div style={styles.avatarWrap}>
           {coach.photoURL ? (
-            <Image src={coach.photoURL} alt="" width={52} height={52} style={{ borderRadius: "50%", objectFit: "cover" }} />
+            <Image src={coach.photoURL} alt={coach.displayName || coach.username || "Coach"} width={52} height={52} style={{ borderRadius: "50%", objectFit: "cover" }} />
           ) : (
             <div style={styles.avatarInitials}>{initials}</div>
           )}
@@ -139,7 +139,7 @@ export function MyRequestCard({ req, coachProfile, t, locale, router }) {
       <div style={styles.cardTop}>
         <div style={styles.avatarWrap}>
           {photo
-            ? <Image src={photo} alt="" width={52} height={52} style={{ borderRadius: "50%", objectFit: "cover" }} />
+            ? <Image src={photo} alt={name} width={52} height={52} style={{ borderRadius: "50%", objectFit: "cover" }} />
             : <div style={styles.avatarInitials}>{initials}</div>
           }
         </div>

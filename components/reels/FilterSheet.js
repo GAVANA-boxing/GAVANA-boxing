@@ -22,7 +22,7 @@ export default function FilterSheet({
           <span style={styles.filterSheetTitle}>
             {t("filterSheetTitle") || (currentLocale === "mn" ? "ШҮҮЛТҮҮР" : currentLocale === "ko" ? "필터" : "FILTERS")}
           </span>
-          <button type="button" style={styles.filterSheetClose} onClick={() => setShowFilterSheet(false)}>✕</button>
+          <button type="button" style={styles.filterSheetClose} aria-label="Close" onClick={() => setShowFilterSheet(false)}>✕</button>
         </div>
         <div style={styles.filterSheetBody}>
           <p style={styles.filterSheetLabel}>

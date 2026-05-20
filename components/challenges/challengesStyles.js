@@ -71,10 +71,10 @@ const styles = {
   },
   seasonTab: {
     minHeight: 38,
-    border: "none",
+    border: "1px solid transparent",
     borderRadius: 12,
     background: "transparent",
-    color: "rgba(255,255,255,0.55)",
+    color: "rgba(255,255,255,0.4)",
     fontSize: 13,
     fontWeight: 950,
     cursor: "pointer",
@@ -83,6 +83,7 @@ const styles = {
     background: `linear-gradient(135deg, ${redAlpha(0.9)}, ${goldAlpha(0.18)})`,
     color: "#fff",
     boxShadow: `0 10px 30px ${redAlpha(0.18)}`,
+    border: `1px solid ${redAlpha(0.55)}`,
   },
   seasonLabel: {
     textAlign: "center",

@@ -98,6 +98,7 @@ export default function BottomSheet({
             {onClose && (
               <button
                 type="button"
+                aria-label="Close"
                 style={{
                   background: "none",
                   border: "none",

@@ -39,6 +39,7 @@ export const discoverPageStyles = {
   // ── Search ──
   searchRow: {
     display: "flex",
+    alignItems: "center",
     gap: 8,
     padding: "0 16px 14px",
     position: "sticky",
@@ -91,6 +92,7 @@ export const discoverPageStyles = {
   },
   searchBtn: {
     height: 44,
+    boxSizing: "border-box",
     padding: "0 18px",
     borderRadius: 999,
     border: "none",
@@ -101,6 +103,9 @@ export const discoverPageStyles = {
     cursor: "pointer",
     flexShrink: 0,
     opacity: 1,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   // ── Main content ──

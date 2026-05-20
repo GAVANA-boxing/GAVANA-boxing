@@ -146,6 +146,23 @@ export function useProfileActions({
       });
       setChallengeSent(true);
       setTimeout(() => { setChallengeSent(false); setShowChallengeModal(false); }, 2000);
+
+      // Fire-and-forget push notification — fails silently if FCM not configured
+      try {
+        const token = await import("@/lib/firebase").then(({ auth }) => auth.currentUser?.getIdToken());
+        if (token) {
+          fetch("/api/push-notify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify({
+              recipientId: userId,
+              title: "⚔️ New Challenge!",
+              body: `${user.displayName || "A fighter"} challenged you on GAVANA`,
+              url: `/${locale}/train`,
+            }),
+          }).catch(() => {});
+        }
+      } catch { /* push is optional */ }
     } catch (e) {
       console.error("challenge send error", e);
     } finally {

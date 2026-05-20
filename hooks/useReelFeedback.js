@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import { updateLeaderboard } from "@/components/Leaderboard";
 import { getSafeLikeCount, getSafeViewCount, extractFeedbackScore } from "@/lib/reelHelpers";
 import { getFirebase } from "@/lib/lazyFirebase";
+import { auth } from "@/lib/firebase";
 
 export function useReelFeedback({ user, router, currentLocale, t, creatorProfiles }) {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -86,9 +87,13 @@ export function useReelFeedback({ user, router, currentLocale, t, creatorProfile
         ? { strength: "강점", improve: "개선점", drill: "다음 훈련" }
         : { strength: "Strength", improve: "Improve", drill: "Next drill" };
 
+      const token = await auth.currentUser?.getIdToken();
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           persona: "analyst",
           locale: currentLocale,

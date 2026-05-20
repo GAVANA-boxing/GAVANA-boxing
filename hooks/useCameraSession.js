@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { calculateChallengeXP, getRankProgress } from "@/lib/xp";
 import { calculateTrainingScore, computeScoreBreakdown } from "@/lib/trainHelpers";
 import { getChallengeRank } from "@/lib/utils";
+import { usePunchDetector } from "@/hooks/usePunchDetector";
 
 export function useCameraSession({
   sessionSeconds,
@@ -35,6 +36,7 @@ export function useCameraSession({
   const [isFlashing, setIsFlashing] = useState(false);
   const [liveFeedback, setLiveFeedback] = useState(null);
   const [showGo, setShowGo] = useState(false);
+  const [lastPunchType, setLastPunchType] = useState(null);
   const isRecordingRef = useRef(false);
   const hitTimerRef = useRef(null);
   const hitCountRef = useRef(0);
@@ -104,7 +106,6 @@ export function useCameraSession({
     }
 
     isRecordingRef.current = false;
-    if (hitTimerRef.current) window.clearTimeout(hitTimerRef.current);
     if (ghostIntervalRef.current) {
       window.clearInterval(ghostIntervalRef.current);
       ghostIntervalRef.current = null;
@@ -182,10 +183,66 @@ export function useCameraSession({
     return () => window.clearTimeout(timer);
   }, [phase, secondsLeft, finishRecording]);
 
+  // Play a short impact sound when a punch is detected
+  const playPunchSound = useCallback((speed = 0.5) => {
+    try {
+      const ctx = audioCtxRef.current;
+      if (!ctx) return;
+      if (ctx.state === "suspended") ctx.resume();
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = "sine";
+      const freq = 140 + speed * 80; // faster punch = higher pitch
+      osc.frequency.setValueAtTime(freq, now);
+      osc.frequency.exponentialRampToValueAtTime(50, now + 0.08);
+      gain.gain.setValueAtTime(0.3 + speed * 0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+      osc.start(now);
+      osc.stop(now + 0.09);
+    } catch { /* fail silently */ }
+  }, []);
+
+  // Called by punch detector when real motion punch is detected
+  const onPunch = useCallback(({ type, speed }) => {
+    if (!isRecordingRef.current) return;
+
+    hitCountRef.current += 1;
+    const newScore = calculateTrainingScore(hitCountRef.current, sessionSeconds);
+    liveScoreRef.current = newScore;
+    setLiveScore(newScore);
+    setComboCount((c) => c + 1);
+    setHitCount((c) => c + 1);
+    setLastPunchType(type);
+    setIsFlashing(true);
+    window.setTimeout(() => setIsFlashing(false), 130);
+    playPunchSound(speed);
+    if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(25);
+
+    const FEEDBACK_BY_TYPE = {
+      jab:   ["Snap it! ✓", "Double jab!", "Jab faster!", "Clean jab!", "Speed! ⚡"],
+      cross:  ["Power! 💥", "Drive through!", "Rotate! 💪", "Nice cross!", "Hip into it!"],
+    };
+    const FEEDBACK_GENERIC = ["Guard up! 🛡", "Keep going!", "Stay tight!", "Breathe!", "Combo! 🔥"];
+    const pool = FEEDBACK_BY_TYPE[type] || FEEDBACK_GENERIC;
+    const text = pool[Math.floor(Math.random() * pool.length)];
+    const id = Date.now();
+    setLiveFeedback({ text, id });
+    window.setTimeout(() => setLiveFeedback((prev) => (prev?.id === id ? null : prev)), 1200);
+  }, [sessionSeconds, playPunchSound]);
+
+  // Wire up real punch detection during recording
+  usePunchDetector({
+    videoRef,
+    isActive: phase === "recording",
+    onPunch,
+  });
+
   useEffect(() => {
     if (phase !== "recording") {
       isRecordingRef.current = false;
-      if (hitTimerRef.current) window.clearTimeout(hitTimerRef.current);
       return;
     }
 
@@ -196,6 +253,7 @@ export function useCameraSession({
     setHitCount(0);
     setLiveScore(0);
     setGhostScore(0);
+    setLastPunchType(null);
 
     if (ghostBestScoreRef.current !== null && ghostEnabled) {
       const ghostTarget = ghostBestScoreRef.current;
@@ -214,62 +272,8 @@ export function useCameraSession({
       }, intervalMs);
     }
 
-    const FEEDBACK = [
-      "Faster! 💨", "Good! ✓", "Guard up!", "Nice combo!",
-      "Keep going!", "Power! 💪", "Speed up!", "Snap it!", "Nice jab!", "Stay tight!",
-    ];
-
-    function playPunchSound() {
-      try {
-        const ctx = audioCtxRef.current;
-        if (!ctx) return;
-        if (ctx.state === "suspended") ctx.resume();
-        const now = ctx.currentTime;
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(180, now);
-        osc.frequency.exponentialRampToValueAtTime(60, now + 0.07);
-        gain.gain.setValueAtTime(0.35, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-        osc.start(now);
-        osc.stop(now + 0.08);
-      } catch (e) {
-        // Fail silently
-      }
-    }
-
-    function scheduleHit() {
-      const delay = 500 + Math.floor(Math.random() * 400);
-      hitTimerRef.current = window.setTimeout(() => {
-        if (!isRecordingRef.current) return;
-        hitCountRef.current += 1;
-        const newScore = calculateTrainingScore(hitCountRef.current, sessionSeconds);
-        liveScoreRef.current = newScore;
-        setLiveScore(newScore);
-        setComboCount((c) => c + 1);
-        setHitCount((c) => c + 1);
-        setIsFlashing(true);
-        window.setTimeout(() => setIsFlashing(false), 130);
-        playPunchSound();
-        if (typeof navigator !== "undefined" && navigator.vibrate) {
-          navigator.vibrate(30);
-        }
-        const id = Date.now();
-        const text = FEEDBACK[Math.floor(Math.random() * FEEDBACK.length)];
-        setLiveFeedback({ text, id });
-        window.setTimeout(() => setLiveFeedback((prev) => (prev?.id === id ? null : prev)), 1300);
-        if (isRecordingRef.current) scheduleHit();
-      }, delay);
-    }
-
-    scheduleHit();
-
     return () => {
       isRecordingRef.current = false;
-      if (hitTimerRef.current) window.clearTimeout(hitTimerRef.current);
       if (ghostIntervalRef.current) {
         window.clearInterval(ghostIntervalRef.current);
         ghostIntervalRef.current = null;
@@ -350,6 +354,7 @@ export function useCameraSession({
     isFlashing,
     liveFeedback,
     showGo,
+    lastPunchType,
     ghostScore,
     ghostEnabled, setGhostEnabled,
     handleStart,
