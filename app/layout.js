@@ -29,6 +29,7 @@ const barlowCondensed = Barlow_Condensed({
 });
 
 export const metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://gavana-boxing.vercel.app"),
   applicationName: "GAVANA Boxing",
   title: {
     default: "GAVANA Boxing — AI Punch Scoring for Fighters",
