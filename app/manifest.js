@@ -1,8 +1,8 @@
 export default function manifest() {
   return {
-    name: "Gavana Boxing",
-    short_name: "Gavana",
-    description: "Boxing reels, AI coach, and fighter community.",
+    name: "GAVANA Boxing",
+    short_name: "GAVANA",
+    description: "AI punch scoring, Fighter Card, real-time challenges — the boxing app built for fighters.",
     start_url: "/en/reels",
     scope: "/",
     display: "standalone",
@@ -31,12 +31,19 @@ export default function manifest() {
       {
         name: "Reels",
         short_name: "Reels",
-        description: "Watch boxing reels",
+        description: "Watch boxing training reels",
         url: "/en/reels",
         icons: [{ src: "/icons/gavana-icon.svg", sizes: "any" }],
       },
       {
-        name: "Upload Reel",
+        name: "Train",
+        short_name: "Train",
+        description: "Start an AI training session",
+        url: "/en/train",
+        icons: [{ src: "/icons/gavana-icon.svg", sizes: "any" }],
+      },
+      {
+        name: "Upload",
         short_name: "Upload",
         description: "Upload a new boxing reel",
         url: "/en/upload",
@@ -49,12 +56,21 @@ export default function manifest() {
         url: "/en/dashboard",
         icons: [{ src: "/icons/gavana-icon.svg", sizes: "any" }],
       },
+    ],
+    screenshots: [
       {
-        name: "Challenges",
-        short_name: "Challenges",
-        description: "Weekly boxing challenges",
-        url: "/en/challenges",
-        icons: [{ src: "/icons/gavana-icon.svg", sizes: "any" }],
+        src: "/icons/gavana-icon.svg",
+        sizes: "512x512",
+        type: "image/svg+xml",
+        form_factor: "narrow",
+        label: "GAVANA Boxing — AI-powered boxing training",
+      },
+      {
+        src: "/icons/gavana-icon.svg",
+        sizes: "512x512",
+        type: "image/svg+xml",
+        form_factor: "wide",
+        label: "GAVANA Boxing — Fighter community & reels",
       },
     ],
   };
