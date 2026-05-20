@@ -88,10 +88,11 @@ export default function SubscriptionTiers({ t, locale }) {
       if (data.url) {
         window.location.href = data.url;
       } else {
+        // Show actual server error (e.g. "got prod_... must be price_...")
         setError(data.error || l(LABEL.error, locale));
       }
-    } catch {
-      setError(l(LABEL.error, locale));
+    } catch (e) {
+      setError(e?.message || l(LABEL.error, locale));
     } finally {
       setLoading(false);
     }
