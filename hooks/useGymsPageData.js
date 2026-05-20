@@ -21,7 +21,6 @@ export function useGymsPageData({ tab, userId }) {
         const snap = await getDocs(query(collection(db, "gyms"), orderBy("createdAt", "desc"), limit(50)));
         if (active) setGyms(snapToDocs(snap));
       } catch (e) {
-        console.error("gyms load error", e);
       } finally {
         if (active) setLoading(false);
       }

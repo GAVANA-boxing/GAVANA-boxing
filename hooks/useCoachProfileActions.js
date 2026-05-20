@@ -49,7 +49,6 @@ export function useCoachProfileActions({
         createdAt: serverTimestamp(),
       });
     } catch (e) {
-      console.error("Request error:", e);
     } finally {
       setRequesting(false);
     }
@@ -62,7 +61,6 @@ export function useCoachProfileActions({
       setRequested(false);
       setPendingRequestId(null);
     } catch (e) {
-      console.error("Cancel request error:", e);
     }
   };
 
@@ -108,7 +106,6 @@ export function useCoachProfileActions({
       setEligibleBooking(null);
       setShowReviewForm(false);
     } catch (e) {
-      console.error("Review submit error:", e);
       setReviewError(t("coachReviewError"));
     } finally {
       setReviewSubmitting(false);
@@ -139,7 +136,6 @@ export function useCoachProfileActions({
         setPrograms((prev) => prev.map((p) => p.id === program.id ? { ...p, enrolledCount: (p.enrolledCount || 0) + 1 } : p));
       }
     } catch (e) {
-      console.error("Enroll error:", e);
     } finally {
       setEnrolling(null);
     }

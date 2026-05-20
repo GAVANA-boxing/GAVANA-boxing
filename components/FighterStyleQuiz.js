@@ -109,7 +109,6 @@ export default function FighterStyleQuiz({ user, onComplete }) {
         fighterArchetypeSetAt: new Date().toISOString(),
       }, { merge: true });
     } catch (e) {
-      console.error("FighterStyleQuiz save error:", e);
     } finally {
       setSaving(false);
       onComplete?.(result);

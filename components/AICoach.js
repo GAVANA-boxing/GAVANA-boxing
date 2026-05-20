@@ -99,7 +99,6 @@ export default function AICoach() {
         ]);
       }
     } catch (error) {
-      console.error("Error:", error);
       setMessages([
         ...newMessages,
         {

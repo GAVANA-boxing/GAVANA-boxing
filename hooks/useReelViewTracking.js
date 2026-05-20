@@ -59,7 +59,6 @@ export function useReelViewTracking({ user, reels, currentIndex, userViews, setU
         ));
         setAllReels(updateViewedReel);
       } catch (err) {
-        console.error("Failed to record view:", err);
       }
     }, 3000);
 

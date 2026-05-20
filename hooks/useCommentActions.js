@@ -63,11 +63,9 @@ export function useCommentActions({ user, router, currentLocale, reels }) {
         }));
         setComments(commentsData);
       }, (err) => {
-        console.error("Failed to listen for comments:", err);
         setComments([]);
       });
     } catch (err) {
-      console.error("Failed to load comments:", err);
     }
   }, [user?.uid, router, currentLocale, reels]);
 
@@ -103,7 +101,6 @@ export function useCommentActions({ user, router, currentLocale, reels }) {
       setNewComment("");
       setReplyingTo(null);
     } catch (err) {
-      console.error("Failed to add comment:", err);
     }
   }, [user, newComment, selectedReelId, reels, replyingTo]);
 
@@ -115,7 +112,6 @@ export function useCommentActions({ user, router, currentLocale, reels }) {
       await deleteDoc(doc(db, "reels", selectedReelId, "comments", comment.id));
       await updateDoc(doc(db, "reels", selectedReelId), { commentsCount: increment(-1) });
     } catch (err) {
-      console.error("Failed to delete comment:", err);
     }
   }, [user, selectedReelId]);
 
@@ -173,7 +169,6 @@ export function useCommentActions({ user, router, currentLocale, reels }) {
           }));
         }));
       } catch (error) {
-        console.error("Failed to load comment profiles:", error);
       }
     }
 

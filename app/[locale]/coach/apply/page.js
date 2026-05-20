@@ -130,7 +130,6 @@ export default function CoachApplyPage() {
 
       setSubmitted(true);
     } catch (e) {
-      console.error("Coach application error:", e);
       setError(t("coachApplyError"));
     } finally {
       setSubmitting(false);

@@ -81,7 +81,6 @@ export function useCoachDashboardData({ user, authLoading, router, locale }) {
         );
         if (active) setRequesterUsers(userMap);
       } catch (e) {
-        console.error("Failed to load coach requests:", e);
       } finally {
         if (active) setLoadingRequests(false);
       }

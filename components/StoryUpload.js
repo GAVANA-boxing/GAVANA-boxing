@@ -102,7 +102,6 @@ export default function StoryUpload({ locale, initialType = "training_clip" }) {
       setSuccess(true);
       setTimeout(() => router.back(), 1400);
     } catch (e) {
-      console.error(e);
       setError(t("storyPostError"));
     } finally {
       setUploading(false);

@@ -162,7 +162,6 @@ export default function ChatThread({ conversationId }) {
         ...(recipientId ? { [`unreadCount.${recipientId}`]: increment(1) } : {}),
       });
     } catch (e) {
-      console.error("Send message error:", e);
       setText(trimmed);
     } finally {
       setSending(false);

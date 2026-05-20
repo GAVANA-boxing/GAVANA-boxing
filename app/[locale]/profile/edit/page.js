@@ -74,7 +74,6 @@ export default function EditProfilePage() {
         setWeightClass(d.weightClass || "");
         setArchetype(d.fighterArchetype || "");
       } catch (e) {
-        console.error("Failed to load profile:", e);
         if (active) setError(t("Профайл ачаалахад алдаа гарлаа", "프로필 로드 실패", "Could not load your profile"));
       } finally {
         if (active) setLoading(false);
@@ -139,7 +138,6 @@ export default function EditProfilePage() {
       setSaved(true);
       setTimeout(() => router.push(`/${locale}/profile/${user.uid}`), 900);
     } catch (e) {
-      console.error("Failed to save profile:", e);
       setError(t("Хадгалахад алдаа гарлаа. Дахин оролдоно уу.", "저장 실패. 다시 시도하세요.", "Could not save profile. Please try again."));
     } finally {
       setSaving(false);

@@ -109,7 +109,6 @@ export default function EventsPage() {
         setEvents(evs);
         setMyRsvpIds(new Set(rsvpSnap.docs.map((d) => d.data().eventId)));
       } catch (e) {
-        console.error("events load error", e);
       } finally {
         if (active) setLoading(false);
       }
@@ -156,7 +155,6 @@ export default function EventsPage() {
         }
       }
     } catch (e) {
-      console.error("rsvp error", e);
     } finally {
       setRsvping(null);
     }
@@ -197,7 +195,6 @@ export default function EventsPage() {
       setCfTitle(""); setCfDesc(""); setCfType("boxing"); setCfDate(""); setCfLocation(""); setCfCity(""); setCfMax("");
       setShowCreate(false);
     } catch (e) {
-      console.error("create event error", e);
       setCreateError(t("eventErrorGeneric"));
     } finally {
       setCreating(false);

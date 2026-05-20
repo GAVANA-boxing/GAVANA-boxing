@@ -28,7 +28,7 @@ export function useOnboardingActions({ user, locale, router }) {
     setSaving(true);
     try {
       await updateDoc(doc(db, "users", user.uid), { role: selectedRole });
-    } catch (e) { console.error("role save", e); }
+    } catch (e) { }
     setSaving(false);
     goTo(selectedRole === "fighter" ? 1 : 4);
   };
@@ -44,7 +44,6 @@ export function useOnboardingActions({ user, locale, router }) {
         weightClass: weightClass || null,
       });
     } catch (e) {
-      console.error("onboarding step1", e);
     } finally {
       setSaving(false);
     }
@@ -57,7 +56,6 @@ export function useOnboardingActions({ user, locale, router }) {
     try {
       await updateDoc(doc(db, "users", user.uid), { weeklyGoal });
     } catch (e) {
-      console.error("weeklyGoal save", e);
     } finally {
       setSaving(false);
     }
@@ -84,7 +82,6 @@ export function useOnboardingActions({ user, locale, router }) {
       });
       setRequestedGymId(gym.id);
     } catch (e) {
-      console.error("gym join error", e);
     } finally {
       setJoining(null);
     }

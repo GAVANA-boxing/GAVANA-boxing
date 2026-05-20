@@ -62,7 +62,6 @@ export function useProfileData({ user, userId, authLoading, locale }) {
 
       setSavedUserReels(savedReels);
     } catch (error) {
-      console.error("Error loading saved reels:", error);
       setSavedUserReels([]);
     }
   };
@@ -92,7 +91,6 @@ export function useProfileData({ user, userId, authLoading, locale }) {
 
       setStats({ followers: followersCount, following: followingCount });
     } catch (error) {
-      console.error("Error loading follow stats:", error);
     }
   };
 
@@ -110,7 +108,6 @@ export function useProfileData({ user, userId, authLoading, locale }) {
       setIsFollowing(followDoc.exists());
       setIsMutual(followDoc.exists() && reverseDoc.exists());
     } catch (error) {
-      console.error("Error checking follow status:", error);
     }
   };
 
@@ -169,7 +166,6 @@ export function useProfileData({ user, userId, authLoading, locale }) {
           setLoading(false);
         }, (error) => {
           if (!isActive) return;
-          console.error("Error listening to profile reels:", error);
           setUserReels([]);
           setTotalLikes(0);
           setLoading(false);
@@ -186,7 +182,6 @@ export function useProfileData({ user, userId, authLoading, locale }) {
         }
 
       } catch (error) {
-        console.error("Error loading profile:", error);
         if (isActive) {
           setLoading(false);
         }
@@ -237,12 +232,10 @@ export function useProfileData({ user, userId, authLoading, locale }) {
           setAiFeedbackHistory(feedbackItems);
         }, (error) => {
           if (!isActive) return;
-          console.error("Error listening to AI feedback:", error);
           setAiFeedbackHistory([]);
         });
       } catch (error) {
         if (!isActive) return;
-        console.error("Error loading AI feedback:", error);
         setAiFeedbackHistory([]);
       }
     }
@@ -289,12 +282,10 @@ export function useProfileData({ user, userId, authLoading, locale }) {
           setTrainingSessions(sessions);
         }, (error) => {
           if (!isActive) return;
-          console.error("Error listening to training sessions:", error);
           setTrainingSessions([]);
         });
       } catch (error) {
         if (!isActive) return;
-        console.error("Error loading training sessions:", error);
         setTrainingSessions([]);
       }
     }

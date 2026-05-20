@@ -55,7 +55,6 @@ export function useCoachDashboardActions({ user, locale, t, requests, setRequest
         prev.map((r) => r.id === requestId ? { ...r, status: "accepted" } : r)
       );
     } catch (e) {
-      console.error("Failed to accept request:", e);
     } finally {
       setUpdating(null);
     }
@@ -87,7 +86,6 @@ export function useCoachDashboardActions({ user, locale, t, requests, setRequest
         prev.map((r) => r.id === requestId ? { ...r, status: "declined" } : r)
       );
     } catch (e) {
-      console.error("Failed to decline request:", e);
     } finally {
       setUpdating(null);
     }
@@ -143,7 +141,6 @@ export function useCoachDashboardActions({ user, locale, t, requests, setRequest
       setBookingSuccess(true);
       setTimeout(() => setBookingRequest(null), 1400);
     } catch (e) {
-      console.error("Failed to create booking:", e);
     } finally {
       setBookingSubmitting(false);
     }
@@ -199,7 +196,6 @@ export function useCoachDashboardActions({ user, locale, t, requests, setRequest
         prev.map((r) => r.id === request.id ? { ...r, sessionCompleted: true } : r)
       );
     } catch (e) {
-      console.error("Failed to mark complete:", e);
     } finally {
       setCompletingId(null);
     }
@@ -226,7 +222,6 @@ export function useCoachDashboardActions({ user, locale, t, requests, setRequest
       setProgTitle(""); setProgDesc(""); setProgDuration(7); setProgLevel("beginner");
       setShowCreateForm(false);
     } catch (e) {
-      console.error("Create program error:", e);
     } finally {
       setProgSaving(false);
     }

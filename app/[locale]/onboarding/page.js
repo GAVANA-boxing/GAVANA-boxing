@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import EmptyState from "@/components/EmptyState";
-import { RED, redAlpha } from "@/lib/tokens";
+import { RED, GOLD, redAlpha } from "@/lib/tokens";
 import s from "@/components/onboarding/onboardingStyles";
 import { WEIGHT_CLASSES, ARCHETYPE_DESCS, TOTAL_STEPS, WEEKLY_GOALS } from "@/lib/onboardingConstants";
 import { useOnboardingActions } from "@/hooks/useOnboardingActions";

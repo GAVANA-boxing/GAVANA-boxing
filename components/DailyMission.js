@@ -69,7 +69,6 @@ export default function DailyMission({ locale = "en" }) {
         setBestDailyStreak(Number(data.bestDailyStreak) || 0);
         setMissionCompleted(data.dailyMissionCompleted === todayKey);
       } catch (e) {
-        console.error("DailyMission load error:", e);
       }
     }
     load();

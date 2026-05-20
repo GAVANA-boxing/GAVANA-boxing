@@ -133,7 +133,6 @@ export default function InboxList() {
       setShowCompose(false);
       router.push(`/${locale}/inbox/${convoId}`);
     } catch (e) {
-      console.error("Start convo error:", e);
       showToast(locale === "mn" ? "Мессеж эхлүүлэхэд алдаа гарлаа." : locale === "ko" ? "대화를 시작하는 데 실패했습니다." : "Failed to start conversation. Try again.");
     } finally {
       setStarting(null);

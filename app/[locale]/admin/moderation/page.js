@@ -106,7 +106,6 @@ export default function ModerationPage() {
         if (!active) return;
         setReports(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
       } catch (err) {
-        console.error("Moderation load error:", err);
       } finally {
         if (active) setLoading(false);
       }

@@ -12,7 +12,7 @@ import { db } from "@/lib/firebase";
 import { getLocale, translate } from "@/lib/i18n";
 import BottomNav from "@/components/BottomNav";
 import SkeletonBlock from "@/components/SkeletonBlock";
-import { GOLD, redAlpha } from "@/lib/tokens";
+import { GOLD, RED, redAlpha } from "@/lib/tokens";
 import styles from "@/components/notifications/notificationsStyles";
 import Image from "next/image";
 import {
@@ -79,7 +79,6 @@ export default function NotificationsPage() {
     try {
       await Promise.all(staleReadIds.map((id) => deleteDoc(doc(db, "notifications", id))));
     } catch (e) {
-      console.error("Clear read notifications error:", e);
       showToast(t("notifClearError"));
     } finally {
       setClearing(false);
@@ -92,7 +91,6 @@ export default function NotificationsPage() {
     try {
       await Promise.all(unreadIds.map((id) => updateDoc(doc(db, "notifications", id), { read: true })));
     } catch (e) {
-      console.error("Mark all read error:", e);
       showToast(t("notifMarkReadError"));
     }
   };
@@ -100,7 +98,6 @@ export default function NotificationsPage() {
   const handleDismissNotification = (e, notificationId) => {
     e.stopPropagation();
     deleteDoc(doc(db, "notifications", notificationId)).catch((err) => {
-      console.error("Dismiss notification error:", err);
       showToast(t("notifClearError"));
     });
   };
@@ -108,7 +105,6 @@ export default function NotificationsPage() {
   const handleOpenNotification = async (notification) => {
     if (notification.read === false) {
       updateDoc(doc(db, "notifications", notification.id), { read: true }).catch((error) => {
-        console.error("Failed to mark notification as read:", error);
       });
     }
 
@@ -266,7 +262,7 @@ export default function NotificationsPage() {
             >
               {label}
               {tabUnreadCounts[key] > 0 && (
-                <span style={{ minWidth: 16, height: 16, padding: "0 4px", borderRadius: 999, background: "#C1121F", color: "#fff", fontSize: 9, fontWeight: 900, lineHeight: "16px", textAlign: "center", boxSizing: "border-box" }}>
+                <span style={{ minWidth: 16, height: 16, padding: "0 4px", borderRadius: 999, background: RED, color: "#fff", fontSize: 9, fontWeight: 900, lineHeight: "16px", textAlign: "center", boxSizing: "border-box" }}>
                   {tabUnreadCounts[key] > 9 ? "9+" : tabUnreadCounts[key]}
                 </span>
               )}

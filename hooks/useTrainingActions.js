@@ -56,7 +56,6 @@ export function useTrainingActions({
       await navigator.clipboard.writeText(text);
       setError(t("shareLinkCopied"));
     } catch (err) {
-      console.error("Challenge share failed:", err);
       setError(t("shareFailed"));
     }
   }, [result, t, activeChallengeName, setError]);
@@ -86,7 +85,6 @@ export function useTrainingActions({
       await navigator.clipboard.writeText(fallbackText);
       setError(t("shareLinkCopied"));
     } catch (err) {
-      console.error("Friend challenge share failed:", err);
       setError(t("shareFailed"));
     }
   }, [result, activeChallenge, challengeId, locale, t, activeChallengeName, setError]);
@@ -164,7 +162,6 @@ export function useTrainingActions({
       if (rankUpData) setRankUpInfo(rankUpData);
     } catch (err) {
       challengeSavedRef.current = false;
-      console.error("Failed to save challenge result:", err);
       setError(t("challengeSaveFailed"));
     } finally {
       setChallengeSaving(false);
@@ -198,7 +195,6 @@ export function useTrainingActions({
       }
       setError(t("shareFailed"));
     } catch (err) {
-      console.error("Training share failed:", err);
       setError(t("shareFailed"));
     }
   }, [result, t, reelId, user, locale, setError]);
@@ -324,7 +320,6 @@ export function useTrainingActions({
         }
       }
     } catch (err) {
-      console.error("Failed to save training session:", err);
       setError(t("trainSaveFailed"));
     } finally {
       setSaving(false);

@@ -32,7 +32,6 @@ export function useChallengesData({ user, authLoading, mainTab }) {
         });
         setMyBattles(all);
       } catch (e) {
-        if (process.env.NODE_ENV !== "production") console.error("battles load error", e);
       } finally {
         if (active) setBattlesLoading(false);
       }
@@ -69,7 +68,7 @@ export function useChallengesData({ user, authLoading, mainTab }) {
           .filter((r) => r.challengeId && Number.isFinite(Number(r.score)))
       );
       setResultsLoading(false);
-    }, (err) => { console.error(err); setResults([]); setResultsLoading(false); });
+    }, () => { setResults([]); setResultsLoading(false); });
     return () => unsub();
   }, []);
 

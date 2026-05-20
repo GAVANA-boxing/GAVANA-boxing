@@ -97,7 +97,6 @@ export default function OnboardingModal() {
           setVisible(false);
         }
       } catch (err) {
-        console.error("Failed to load onboarding state:", err);
       } finally {
         if (active) setChecking(false);
       }
@@ -138,7 +137,6 @@ export default function OnboardingModal() {
       );
       setVisible(false);
     } catch (err) {
-      console.error("Failed to save onboarding:", err);
       setError(t("onboardingErrSave"));
     } finally {
       setSaving(false);

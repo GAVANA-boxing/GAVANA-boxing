@@ -125,7 +125,6 @@ export default function AthleteDashboard() {
           .catch(() => {});
         setSessionsReady(true);
       } catch (e) {
-        console.error("Dashboard load error:", e);
         if (active) setRankReady(true);
       }
     }

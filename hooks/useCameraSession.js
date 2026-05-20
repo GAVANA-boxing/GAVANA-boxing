@@ -75,9 +75,7 @@ export function useCameraSession({
         }
       } catch (err) {
         if (err.name === "NotFoundError") {
-          console.warn("Camera not found on this device:", err.message);
         } else {
-          console.warn("Camera unavailable:", err.name, err.message);
         }
         if (active) setCameraState("denied");
       }
@@ -155,7 +153,6 @@ export function useCameraSession({
             recorder.start();
             recorderRef.current = recorder;
           } catch (err) {
-            console.error("MediaRecorder start failed:", err);
             setError(t("trainRecordError"));
           }
         }
