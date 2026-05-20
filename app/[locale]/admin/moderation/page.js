@@ -133,7 +133,7 @@ export default function ModerationPage() {
   }
 
   return (
-    <div style={{ minHeight: "100dvh", background: "#070707", color: "#fff", fontFamily: "var(--font-geist-sans)", paddingBottom: 80 }}>
+    <div style={{ minHeight: "100dvh", background: "#070707", color: "#fff", paddingBottom: "calc(40px + env(safe-area-inset-bottom))" }}>
       <header style={{ position: "sticky", top: 0, zIndex: 100, background: "rgba(7,7,7,0.95)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "14px 16px", display: "flex", alignItems: "center", gap: 12 }}>
         <button type="button" onClick={() => router.back()} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", padding: 4 }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
