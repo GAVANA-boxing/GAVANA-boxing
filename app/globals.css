@@ -22,7 +22,7 @@
   --radius-sm: 12px;
   --radius-md: 18px;
   --motion-fast: 180ms ease;
-  --page-margin: 20px;
+  --page-margin: 16px;
   --section-gap: 24px;
   --section-top: 24px;
   --card-radius: 18px;
@@ -765,9 +765,9 @@ p {
 
 /* ── Layout utilities ── */
 .gavana-page {
-  max-width: 480px;
+  max-width: 540px;
   margin: 0 auto;
-  padding: 0 var(--page-margin);
+  padding: 0 16px;
   position: relative;
 }
 
