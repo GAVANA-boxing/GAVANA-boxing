@@ -50,7 +50,7 @@ export default async function LocalizedHomePage({ params }) {
       {/* Nav */}
       <nav style={s.nav}>
         <span style={s.navLogo}>🥊 GAVANA</span>
-        <div style={{ display: "flex", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, paddingRight: 52 }}>
           <Link href={`/${locale}/login`} style={s.navLink}>{t("login")}</Link>
           <Link href={`/${locale}/login?mode=signup`} style={s.navCta}>{t("loginSignUp")}</Link>
         </div>
@@ -71,10 +71,10 @@ export default async function LocalizedHomePage({ params }) {
             : "AI punch scoring, Fighter Card, real-time challenges — the boxing app built for fighters."}
         </p>
         <div className="landing-cta-row" style={s.ctaRow}>
-          <Link href={`/${locale}/login?mode=signup`} style={s.primaryCta}>
+          <Link href={`/${locale}/login?mode=signup`} className="landing-primary-cta" style={s.primaryCta}>
             {t("loginSignUp")} →
           </Link>
-          <Link href={`/${locale}/reels`} style={s.secondaryCta}>
+          <Link href={`/${locale}/reels`} className="landing-secondary-cta" style={s.secondaryCta}>
             {t("reels")}
           </Link>
         </div>
@@ -214,8 +214,8 @@ const s = {
     zIndex: 100,
   },
   navLogo: { fontSize: 16, fontWeight: 900, color: "#fff", letterSpacing: 1 },
-  navLink: { padding: "8px 14px", borderRadius: 10, color: "rgba(255,255,255,0.6)", textDecoration: "none", fontSize: 13, fontWeight: 700 },
-  navCta:  { padding: "8px 16px", borderRadius: 10, background: RED, color: "#fff", textDecoration: "none", fontSize: 13, fontWeight: 900 },
+  navLink: { padding: "7px 12px", borderRadius: 8, color: "rgba(255,255,255,0.55)", textDecoration: "none", fontSize: 12, fontWeight: 700, whiteSpace: "nowrap", flexShrink: 0 },
+  navCta:  { padding: "7px 14px", borderRadius: 999, background: RED, color: "#fff", textDecoration: "none", fontSize: 12, fontWeight: 900, whiteSpace: "nowrap", flexShrink: 0, letterSpacing: "0.02em" },
   hero: {
     maxWidth: 640,
     margin: "0 auto",
@@ -227,11 +227,12 @@ const s = {
   kicker: {
     margin: "0 0 20px",
     color: GOLD,
-    fontSize: 11,
+    fontSize: 9,
     fontWeight: 900,
-    letterSpacing: 4,
+    letterSpacing: "0.28em",
     textTransform: "uppercase",
     fontFamily: "var(--font-condensed)",
+    opacity: 0.75,
   },
   title: {
     margin: "0 0 28px",
@@ -253,26 +254,30 @@ const s = {
   },
   ctaRow: { display: "flex", justifyContent: "center", flexWrap: "wrap", gap: 14 },
   primaryCta: {
-    padding: "16px 32px",
-    borderRadius: 14,
-    background: `linear-gradient(135deg, ${RED}, #c0392b)`,
+    padding: "11px 28px",
+    borderRadius: 12,
+    background: `linear-gradient(135deg, #d4192a 0%, ${RED} 40%, #a01020 100%)`,
     color: "#fff",
     textDecoration: "none",
     fontWeight: 900,
-    fontSize: 14,
-    letterSpacing: 0.5,
-    boxShadow: `0 0 24px ${redAlpha(0.45)}, 0 12px 32px ${redAlpha(0.3)}`,
+    fontSize: 12,
+    letterSpacing: "0.1em",
+    textTransform: "uppercase",
+    boxShadow: `0 0 20px ${redAlpha(0.4)}, 0 8px 24px ${redAlpha(0.25)}`,
   },
   secondaryCta: {
-    padding: "16px 32px",
-    borderRadius: 14,
-    background: "rgba(255,255,255,0.05)",
-    border: "1px solid rgba(255,255,255,0.10)",
-    color: "rgba(255,255,255,0.8)",
+    padding: "11px 24px",
+    borderRadius: 12,
+    background: "rgba(18,18,20,0.5)",
+    border: "1px solid rgba(255,255,255,0.07)",
+    color: "rgba(255,255,255,0.45)",
     textDecoration: "none",
     fontWeight: 800,
-    fontSize: 14,
-    backdropFilter: "blur(8px)",
+    fontSize: 12,
+    letterSpacing: "0.1em",
+    textTransform: "uppercase",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
   },
   socialProof: {
     display: "flex",
