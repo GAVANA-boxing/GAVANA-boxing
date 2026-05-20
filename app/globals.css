@@ -780,6 +780,29 @@ p {
   border-radius: 24px;
 }
 
+/* ── Reels Dashboard ── */
+.dashboard-nav-btn:hover {
+  background: rgba(255,255,255,0.06) !important;
+  color: rgba(255,255,255,0.85) !important;
+}
+
+.reel-action-btn:hover {
+  background: rgba(255,255,255,0.1) !important;
+  color: #fff !important;
+  transform: scale(1.08);
+}
+
+.reel-ai-btn:hover {
+  box-shadow: 0 0 18px rgba(193,18,31,0.45) !important;
+  transform: scale(1.08);
+}
+
+/* Reel card hover — red glow border */
+.reels-dashboard-card:hover {
+  border-color: rgba(193,18,31,0.25) !important;
+  box-shadow: 0 0 24px rgba(193,18,31,0.12), 0 12px 40px rgba(0,0,0,0.35) !important;
+}
+
 /* ── Fighter Study interactive hover effects ── */
 .fighter-combo-card {
   transition: box-shadow 200ms ease, border-color 200ms ease;

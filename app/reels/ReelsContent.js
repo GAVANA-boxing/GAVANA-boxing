@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
 import DailyMission from "@/components/DailyMission";
+import ReelsDashboard from "@/components/reels/ReelsDashboard";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { computeFeedScore } from "@/lib/analytics";
 import dynamic from "next/dynamic";
@@ -40,6 +41,15 @@ export default function ReelsContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    setIsDesktop(mq.matches);
+    const handler = (e) => setIsDesktop(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
   const targetReelId = searchParams.get("reelId");
   const source = searchParams.get("source");
   const profileSourceUserId = searchParams.get("userId");
@@ -275,6 +285,70 @@ export default function ReelsContent() {
         </div>
         <BottomNav router={router} user={user} currentLocale={currentLocale} />
       </div>
+    );
+  }
+
+  // ── Desktop 3-column dashboard ────────────────────────────────────────────
+  if (isDesktop) {
+    return (
+      <>
+        <ReelsDashboard
+          reels={reels}
+          feedMode={feedMode}
+          setFeedMode={setFeedMode}
+          videoRefs={videoRefs}
+          soundEnabled={soundEnabled}
+          videoProgress={videoProgress}
+          userLikes={userLikes}
+          savedReels={savedReels}
+          heartBursts={heartBursts}
+          creatorProfiles={creatorProfiles}
+          creatorStats={creatorStats}
+          gymNames={gymNames}
+          isProfileSource={isProfileSource}
+          profileSourceUserId={profileSourceUserId}
+          user={user}
+          router={router}
+          currentLocale={currentLocale}
+          t={t}
+          handleLike={handleLike}
+          handleOpenComments={handleOpenComments}
+          handleShare={handleShare}
+          handleSave={handleSave}
+          handleGetFeedback={handleGetFeedback}
+          setBreakdownReel={setBreakdownReel}
+          feedRef={feedRef}
+        />
+        <CommentsModal
+          showComments={showComments}
+          comments={comments}
+          commentProfiles={commentProfiles}
+          newComment={newComment}
+          setNewComment={setNewComment}
+          replyingTo={replyingTo}
+          setReplyingTo={setReplyingTo}
+          expandedReplies={expandedReplies}
+          setExpandedReplies={setExpandedReplies}
+          user={user}
+          currentLocale={currentLocale}
+          t={t}
+          router={router}
+          onClose={handleCloseComments}
+          onAddComment={handleAddComment}
+          onDeleteComment={handleDeleteComment}
+        />
+        <FeedbackModal
+          feedbackOpen={feedbackOpen}
+          feedbackLoading={feedbackLoading}
+          feedbackError={feedbackError}
+          feedbackResult={feedbackResult}
+          feedbackSaved={feedbackSaved}
+          sessionXPData={sessionXPData}
+          feedbackReel={feedbackReel}
+          t={t}
+          onClose={handleCloseFeedback}
+        />
+      </>
     );
   }
 
