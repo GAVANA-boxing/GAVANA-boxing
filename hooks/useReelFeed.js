@@ -248,7 +248,6 @@ export function useReelFeed({ user, authLoading, isProfileSource, profileSourceU
 
     if (!user?.uid) {
       setAllReels([]);
-      setFollowingIds(new Set());
       setReelsLoading(false);
       return;
     }
