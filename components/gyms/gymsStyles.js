@@ -1,6 +1,7 @@
 import { redAlpha, goldAlpha, RED, GOLD } from "@/lib/tokens";
 
 const styles = {
+  page: { minHeight: "100dvh", background: "#070707", color: "#fff" },
   tabBar: {
     position: "sticky", top: 0, zIndex: 50,
     display: "flex", background: "rgba(8,8,8,0.95)",
