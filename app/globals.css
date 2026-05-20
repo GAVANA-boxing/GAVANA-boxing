@@ -360,6 +360,9 @@ p {
 .sk-pulse { animation: skPulse 1.4s ease infinite; }
 .skeleton-pulse { animation: skPulse 1.4s ease infinite; }
 
+@keyframes livePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.75)} }
+.live-pulse { animation: livePulse 1.2s ease-in-out infinite; }
+
 /* ── Train page animations ── */
 
 @keyframes flashFade {
