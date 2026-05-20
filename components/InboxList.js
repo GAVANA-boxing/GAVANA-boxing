@@ -323,7 +323,7 @@ export default function InboxList() {
 }
 
 const s = {
-  page: { minHeight: "100dvh", background: "#070707", color: "#fff", fontFamily: "system-ui, sans-serif", display: "flex", flexDirection: "column", paddingBottom: "calc(64px + env(safe-area-inset-bottom))" },
+  page: { minHeight: "100dvh", background: "#070707", color: "#fff", display: "flex", flexDirection: "column", paddingBottom: "calc(64px + env(safe-area-inset-bottom))" },
   header: { position: "sticky", top: 0, zIndex: 20, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "calc(16px + env(safe-area-inset-top)) 16px 14px", background: "rgba(7,7,7,0.96)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.06)" },
   backBtn: { width: 40, height: 40, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.7)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
   composeBtn: { width: 40, height: 40, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.8)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
@@ -356,7 +356,7 @@ const s = {
   composeTitle: { fontSize: 15, fontWeight: 900, color: "#fff" },
   composeClose: { width: 30, height: 30, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.6)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
   composeSearchWrap: { display: "flex", alignItems: "center", gap: 10, margin: "0 16px 6px", padding: "10px 14px", borderRadius: 14, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)" },
-  composeSearch: { flex: 1, background: "none", border: "none", outline: "none", color: "#fff", fontSize: 14, fontFamily: "system-ui, sans-serif" },
+  composeSearch: { flex: 1, background: "none", border: "none", outline: "none", color: "#fff", fontSize: 14 },
   searchSpinner: { width: 14, height: 14, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.15)", borderTopColor: "rgba(255,255,255,0.6)", animation: "spin 0.7s linear infinite", flexShrink: 0 },
   composeResults: { flex: 1, overflowY: "auto", padding: "4px 0 12px" },
   composeHint: { margin: "24px 0", fontSize: 13, color: "rgba(255,255,255,0.3)", textAlign: "center" },

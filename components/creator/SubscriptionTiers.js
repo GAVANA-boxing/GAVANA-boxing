@@ -197,7 +197,7 @@ export default function SubscriptionTiers({ t, locale }) {
       {/* Sticky CTA */}
       <div style={{
         position: "sticky",
-        bottom: 72,
+        bottom: "calc(72px + env(safe-area-inset-bottom))",
         zIndex: 10,
         marginTop: 6,
       }}>

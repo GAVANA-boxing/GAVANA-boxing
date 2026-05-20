@@ -5,7 +5,6 @@ const styles = {
     minHeight: "100vh",
     background: `radial-gradient(circle at 50% 0%, ${redAlpha(0.18)}, transparent 30%), linear-gradient(180deg, #080808 0%, #0B0B0B 100%)`,
     color: "#fff",
-    fontFamily: "sans-serif",
   },
   content: {
     maxWidth: 520,

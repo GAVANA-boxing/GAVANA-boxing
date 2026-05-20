@@ -53,7 +53,6 @@ export const trainPageStyles = {
     background: `radial-gradient(circle at 50% 0%, ${redAlpha(0.2)}, transparent 34%), linear-gradient(180deg, #080808 0%, #0B0B0B 100%)`,
     color: "#fff",
     padding: "calc(68px + env(safe-area-inset-top)) 16px calc(92px + env(safe-area-inset-bottom))",
-    fontFamily: "sans-serif",
   },
   loading: {
     minHeight: "100vh",
