@@ -63,10 +63,14 @@ service cloud.firestore {
       allow delete: if (isAuth() && resource.data.userId == request.auth.uid) || isReelOwner(reelId);
     }
 
-    // ─── Reel stats (public read; any auth user may increment) ──
+    // ─── Reel stats (public read; auth users may increment counters only) ──
     match /reel_stats/{reelId} {
       allow read: if true;
-      allow write: if isAuth();
+      allow create: if isAuth();
+      allow update: if isAuth() && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        "views", "likes", "likesCount", "commentsCount", "shares", "saves"
+      ]);
+      allow delete: if false;
     }
 
     // ─── Reel views (owner-read; any auth user may write own) ───
@@ -318,11 +322,15 @@ service cloud.firestore {
       allow update: if false;
     }
 
-    // ─── Training programs (coach-created) ───────────────────────
+    // ─── Training programs (coach-created or AI-builder) ─────────
     match /training_programs/{programId} {
       allow read: if true;
       allow create: if isAuth();
-      allow update, delete: if isAuth() && resource.data.coachId == request.auth.uid;
+      // Coaches own programs by coachId; users own AI-builder programs by userId.
+      allow update, delete: if isAuth() && (
+        resource.data.coachId == request.auth.uid ||
+        resource.data.userId == request.auth.uid
+      );
     }
 
     // ─── Program enrollments ──────────────────────────────────────
@@ -333,7 +341,11 @@ service cloud.firestore {
       );
       allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
       allow delete: if isAuth() && resource.data.userId == request.auth.uid;
-      allow update: if false;
+      // Users update their own enrollment progress (completedDays, streak, lastCompletedDate).
+      allow update: if isAuth() && resource.data.userId == request.auth.uid &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "completedDays", "streak", "lastCompletedDate", "updatedAt"
+        ]);
     }
 
     // ─── Body progress (private — own data only) ──────────────────
