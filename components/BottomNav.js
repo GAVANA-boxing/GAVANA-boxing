@@ -192,6 +192,7 @@ export default function BottomNav({
       {mounted && hubOpen && createPortal(hubOverlay, document.body)}
 
       <nav
+        className="app-bottom-nav"
         style={s.nav}
         onPointerEnter={onInteractStart}
         onPointerDown={onInteractStart}

@@ -365,6 +365,13 @@ p {
 @keyframes livePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.75)} }
 .live-pulse { animation: livePulse 1.2s ease-in-out infinite; }
 
+/* ─── Desktop dashboard: hide bottom nav, remove scrollbar ───────────────── */
+@media (min-width: 1024px) {
+  .app-bottom-nav { display: none !important; }
+  .dash-center { scrollbar-width: none; }
+  .dash-center::-webkit-scrollbar { display: none; }
+}
+
 /* ── Train page animations ── */
 
 @keyframes flashFade {
