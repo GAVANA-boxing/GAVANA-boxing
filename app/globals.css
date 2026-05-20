@@ -779,3 +779,26 @@ p {
   -webkit-backdrop-filter: blur(18px);
   border-radius: 24px;
 }
+
+/* ── Fighter Study interactive hover effects ── */
+.fighter-combo-card {
+  transition: box-shadow 200ms ease, border-color 200ms ease;
+}
+.fighter-combo-card:hover {
+  border-color: rgba(193, 18, 31, 0.35) !important;
+  box-shadow: 0 0 18px rgba(193, 18, 31, 0.2), 0 8px 28px rgba(0,0,0,0.35) !important;
+}
+
+.fighter-drill-row:hover {
+  background: rgba(16, 185, 129, 0.1) !important;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.18) !important;
+}
+
+.fighter-style-pill {
+  transition: transform 160ms ease, box-shadow 200ms ease;
+  cursor: default;
+}
+.fighter-style-pill:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3) !important;
+}

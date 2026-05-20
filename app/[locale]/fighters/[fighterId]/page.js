@@ -15,6 +15,9 @@ import FighterPortrait from "@/components/FighterPortrait";
 import { RED, GOLD } from "@/lib/tokens";
 import s from "@/components/fighters/fighterStyles";
 
+// ─── Style identity pill icons (cycles by index) ──────────────────────────────
+const PILL_ICONS = ["⚡", "🛡️", "🥊", "💪", "👊", "🎯", "🔥", "⚔️"];
+
 // ─── Combo step pills ─────────────────────────────────────────────────────────
 function ComboSteps({ steps }) {
   return (
@@ -152,9 +155,17 @@ export default function FighterDetailPage() {
         <Section title={t("fighterStyleIdentity")} emoji="🎯" accent={acc} defaultOpen>
           <div style={s.pillGrid}>
             {styleIdentity.map((item, i) => (
-              <span key={i} style={{ ...s.stylePill, borderColor: acc + "35", background: acc + "0d" }}>
-                <span style={{ ...s.pillDot, background: acc }} />
-                {item}
+              <span
+                key={i}
+                className="fighter-style-pill"
+                style={{
+                  ...s.stylePill,
+                  borderColor: acc + "35",
+                  boxShadow: `0 0 0 1px ${acc}10 inset`,
+                }}
+              >
+                <span style={{ ...s.pillIcon }}>{PILL_ICONS[i % PILL_ICONS.length]}</span>
+                <span style={{ fontSize: 12, color: "#ddd", lineHeight: 1.4 }}>{item}</span>
               </span>
             ))}
           </div>
@@ -163,7 +174,7 @@ export default function FighterDetailPage() {
         {/* ── Signature Combos ── */}
         <Section title={t("fighterSignatureCombos")} emoji="💥" accent={acc} defaultOpen>
           {combos.map((combo, i) => (
-            <div key={i} style={s.comboCard}>
+            <div key={i} style={s.comboCard} className="fighter-combo-card">
               <p style={{ ...s.comboName, color: acc }}>{combo.name}</p>
               <ComboSteps steps={combo.steps} />
             </div>
@@ -208,7 +219,7 @@ export default function FighterDetailPage() {
         {/* ── Drills ── */}
         <Section title={t("fighterDrills")} emoji="🏋️" accent="#10B981">
           {drills.map((drill, i) => (
-            <div key={i} style={s.drillRow}>
+            <div key={i} style={s.drillRow} className="fighter-drill-row">
               <span style={s.drillNum}>{i + 1}</span>
               <span style={s.drillText}>{drill}</span>
             </div>
@@ -217,11 +228,21 @@ export default function FighterDetailPage() {
 
         {/* ── Weaknesses ── */}
         <Section title={t("fighterWeaknesses")} emoji="⚠️" accent="#F87171">
-          <div style={{ background: "rgba(248,113,113,0.04)", border: "1px solid rgba(248,113,113,0.12)", borderRadius: 10, padding: "10px 12px", display: "flex", flexDirection: "column", gap: 7 }}>
+          <div style={{
+            background: "rgba(248,113,113,0.04)",
+            backgroundImage: "repeating-linear-gradient(-45deg, transparent, transparent 5px, rgba(248,113,113,0.03) 5px, rgba(248,113,113,0.03) 10px)",
+            border: "1px solid rgba(248,113,113,0.18)",
+            borderLeft: "3px solid rgba(248,113,113,0.55)",
+            borderRadius: "3px 12px 12px 3px",
+            padding: "12px 14px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 9,
+          }}>
             {weaknesses.map((item, i) => (
               <div key={i} style={{ ...s.dotRow, marginBottom: 0 }}>
-                <span style={{ ...s.dotMark, background: "#F87171", opacity: 0.7 }} />
-                <span style={{ ...s.rowText, color: "#aaa", fontStyle: "italic" }}>{item}</span>
+                <span style={{ fontSize: 12, flexShrink: 0, marginTop: 1, opacity: 0.8 }}>⚠️</span>
+                <span style={{ ...s.rowText, color: "#c8a0a0", fontStyle: "italic" }}>{item}</span>
               </div>
             ))}
           </div>

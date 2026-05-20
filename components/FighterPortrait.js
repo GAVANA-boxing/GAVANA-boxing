@@ -75,11 +75,12 @@ function BoxerSilhouette({ color }) {
       style={{
         position: "absolute",
         bottom: 0,
-        right: "2%",
-        width: "50%",
-        height: "88%",
-        opacity: 0.1,
+        right: "0%",
+        width: "60%",
+        height: "95%",
+        opacity: 0.22,
         pointerEvents: "none",
+        filter: `drop-shadow(0 0 18px ${color})`,
       }}
       aria-hidden="true"
     >
@@ -99,6 +100,8 @@ function BoxerSilhouette({ color }) {
       <path d="M34 96 L26 165 Q24 178 36 178 L42 96 Z" fill={color} />
       {/* Right leg */}
       <path d="M58 96 L68 163 Q70 176 58 176 L52 96 Z" fill={color} />
+      {/* Glow under feet */}
+      <ellipse cx="46" cy="175" rx="30" ry="5" fill={color} opacity="0.3" />
     </svg>
   );
 }
@@ -146,17 +149,21 @@ export default function FighterPortrait({
       {/* Boxer silhouette — right side atmosphere */}
       <BoxerSilhouette color={acc} />
 
-      {/* Flag — centered hero visual */}
+      {/* Flag — small badge top-right corner */}
       <div style={{
         position: "absolute",
-        top: "50%",
-        left: showName ? "44%" : "50%",
-        transform: showName ? "translate(-50%, -60%)" : "translate(-50%, -54%)",
-        fontSize: flagSize,
+        top: "calc(10px + env(safe-area-inset-top))",
+        right: 12,
+        fontSize: Math.round(flagSize * 0.38),
         lineHeight: 1,
-        filter: `drop-shadow(0 6px 20px rgba(0,0,0,0.85)) drop-shadow(0 0 ${Math.round(flagSize * 0.5)}px ${visual.glowColor})`,
-        zIndex: 2,
+        zIndex: 4,
         pointerEvents: "none",
+        background: "rgba(0,0,0,0.45)",
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
+        borderRadius: 8,
+        padding: "4px 7px",
+        border: `1px solid ${acc}30`,
       }}>
         {fighter?.country}
       </div>
