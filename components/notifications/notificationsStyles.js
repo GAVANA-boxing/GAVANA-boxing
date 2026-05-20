@@ -5,7 +5,7 @@ const styles = {
     minHeight: "100vh",
     background: `radial-gradient(ellipse at top center, ${redAlpha(0.06)} 0%, transparent 50%), linear-gradient(180deg, #070707 0%, #0a0a0a 100%)`,
     color: "#fff",
-    paddingBottom: "calc(64px + env(safe-area-inset-bottom))",
+    paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
   },
   centered: {
     minHeight: "100vh",
