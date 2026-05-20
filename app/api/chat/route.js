@@ -1,14 +1,9 @@
 // app/api/chat/route.js
 import { getLocale } from "@/lib/i18n";
 import { verifyIdToken } from "@/lib/verifyAuth";
+import OpenAI from "openai";
 
-const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
-const ANTHROPIC_VERSION = "2023-06-01";
-const ANTHROPIC_BETA = "prompt-caching-2024-07-31";
-const MODEL = "claude-haiku-4-5-20251001";
-
-let loggedMissingKey = false;
-let loggedApiFailure = false;
+const MODEL = "gpt-4o-mini";
 
 // GAVANA platform context injected into every request
 const GAVANA_CONTEXT =
@@ -52,7 +47,7 @@ const LANGUAGE_INSTRUCTIONS = {
   ko: "IMPORTANT: Reply in natural Korean. Be concise. Keep widely-used combat terms (combo, timing, guard, jab, footwork, score) in English when it sounds more natural.",
 };
 
-// Fallback pools — 3 variants per category, randomly selected to avoid repetition
+// Fallback pools — only used when OPENAI_API_KEY is not set
 const FALLBACK_POOLS = {
   en: {
     coach: [
@@ -114,14 +109,20 @@ function textResponse(text, fallback = false) {
   }, { status: 200 });
 }
 
+function errorResponse(locale) {
+  const msg = locale === "mn"
+    ? "AI үйлчилгээ алдаа гарлаа. Дахин оролдоно уу."
+    : locale === "ko"
+    ? "AI 서비스 오류가 발생했습니다. 다시 시도해주세요."
+    : "AI service error. Please try again.";
+  return Response.json({ aiError: true, message: msg, content: [{ type: "text", text: msg }] }, { status: 200 });
+}
+
 function getMessageText(message) {
   if (typeof message?.content === "string") return message.content;
   if (Array.isArray(message?.content)) {
     return message.content
-      .map((item) => {
-        if (typeof item === "string") return item;
-        return item?.text || item?.content || "";
-      })
+      .map((item) => (typeof item === "string" ? item : item?.text || item?.content || ""))
       .filter(Boolean)
       .join("\n");
   }
@@ -142,7 +143,7 @@ function normalizeMessages(messages) {
 function detectFallbackType(messages) {
   const combined = normalizeMessages(messages).map((m) => m.content).join("\n").toLowerCase();
   if (combined.includes("caption") || combined.includes("hashtags")) return "caption";
-  if (combined.includes("score:") || combined.includes("strength:") || combined.includes("next drill") || combined.includes("score /10") || combined.includes("/10")) return "feedback";
+  if (combined.includes("score:") || combined.includes("strength:") || combined.includes("next drill") || combined.includes("/10")) return "feedback";
   return "coach";
 }
 
@@ -162,7 +163,6 @@ export async function POST(req) {
   try { body = await req.json(); } catch { return Response.json({ error: "Invalid JSON" }, { status: 400 }); }
   let { messages, persona = "drill", locale = "en" } = body;
 
-  // Cap message history to prevent excessively large Claude context calls
   const MAX_MESSAGES = 20;
   const MAX_MSG_LEN = 800;
   if (!Array.isArray(messages)) messages = [];
@@ -170,67 +170,41 @@ export async function POST(req) {
     ...m,
     content: typeof m?.content === "string" ? m.content.slice(0, MAX_MSG_LEN) : m?.content,
   }));
+
   const safeLocale = getLocale(locale);
   const selectedPersona = PERSONAS[persona] || PERSONAS.drill;
   const languageInstruction = LANGUAGE_INSTRUCTIONS[safeLocale] || LANGUAGE_INSTRUCTIONS.en;
   const normalizedMessages = normalizeMessages(messages);
-  const fallbackText = getFallback(safeLocale, messages);
 
-  if (!process.env.ANTHROPIC_API_KEY) {
-    if (!loggedMissingKey) {
-      console.warn("[chat/route] ANTHROPIC_API_KEY is not set; returning fallback response.");
-      loggedMissingKey = true;
-    }
-    return textResponse(fallbackText, true);
+  // No API key — return static fallback (demo mode)
+  if (!process.env.OPENAI_API_KEY) {
+    console.warn("[chat/route] OPENAI_API_KEY is not set — returning static fallback.");
+    return textResponse(getFallback(safeLocale, messages), true);
   }
 
-  // Static persona+platform block is cached across requests (saves tokens on repeated calls)
-  const systemBlocks = [
-    {
-      type: "text",
-      text: [selectedPersona.systemPrompt, GAVANA_CONTEXT].join("\n\n"),
-      cache_control: { type: "ephemeral" },
-    },
-    {
-      type: "text",
-      text: "The following language rule overrides all persona style and prior instructions.\n\n" + languageInstruction,
-    },
-  ];
+  const systemPrompt = [
+    selectedPersona.systemPrompt,
+    GAVANA_CONTEXT,
+    "The following language rule overrides all persona style and prior instructions.",
+    languageInstruction,
+  ].join("\n\n");
 
   try {
-    const response = await fetch(ANTHROPIC_URL, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-api-key": process.env.ANTHROPIC_API_KEY,
-        "anthropic-version": ANTHROPIC_VERSION,
-        "anthropic-beta": ANTHROPIC_BETA,
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 600,
-        system: systemBlocks,
-        messages: normalizedMessages,
-      }),
+    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const completion = await client.chat.completions.create({
+      model: MODEL,
+      max_tokens: 600,
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...normalizedMessages,
+      ],
     });
 
-    const data = await response.json().catch(() => ({}));
-
-    if (!response.ok) {
-      if (!loggedApiFailure) {
-        console.warn("[chat/route] Anthropic request failed; returning fallback.", data?.error?.message || response.status);
-        loggedApiFailure = true;
-      }
-      return textResponse(fallbackText, true);
-    }
-
-    const text = data?.content?.[0]?.text?.trim();
-    return textResponse(text || fallbackText, !text);
+    const text = completion.choices[0]?.message?.content?.trim();
+    if (!text) return errorResponse(safeLocale);
+    return textResponse(text);
   } catch (err) {
-    if (!loggedApiFailure) {
-      console.warn("[chat/route] Anthropic request error; returning fallback.", err?.message || err);
-      loggedApiFailure = true;
-    }
-    return textResponse(fallbackText, true);
+    console.error("[chat/route] OpenAI error:", err?.message);
+    return errorResponse(safeLocale);
   }
 }
