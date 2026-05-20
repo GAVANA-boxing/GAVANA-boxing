@@ -22,6 +22,12 @@
   --radius-sm: 12px;
   --radius-md: 18px;
   --motion-fast: 180ms ease;
+  --page-margin: 20px;
+  --section-gap: 24px;
+  --section-top: 24px;
+  --card-radius: 18px;
+  --card-radius-sm: 12px;
+  --card-radius-lg: 24px;
 }
 
 @theme inline {
