@@ -17,54 +17,6 @@ import s from "@/components/programs/programsStyles";
 import { snapToDocs } from "@/lib/firestore";
 import { getLocalDateKey } from "@/lib/utils";
 
-const DEMO_PROGRAMS = [
-  {
-    id: "demo-1",
-    title: "Boxing Fundamentals",
-    description: "Master stance, jab, cross, and footwork in 30 days.",
-    duration: 30,
-    level: "beginner",
-    category: "Boxing",
-    emoji: "🥊",
-    color: RED,
-    sessions: [
-      { name: "Warm-up & Footwork", duration: "10 min" },
-      { name: "Jab–Cross Drill", duration: "15 min" },
-      { name: "Shadow Boxing", duration: "10 min" },
-    ],
-  },
-  {
-    id: "demo-2",
-    title: "Fighter Conditioning",
-    description: "Build stamina and strength for peak performance.",
-    duration: 21,
-    level: "intermediate",
-    category: "Conditioning",
-    emoji: "💪",
-    color: GOLD,
-    sessions: [
-      { name: "HIIT Cardio", duration: "15 min" },
-      { name: "Core Circuit", duration: "12 min" },
-      { name: "Cool-down Stretch", duration: "8 min" },
-    ],
-  },
-  {
-    id: "demo-3",
-    title: "Advanced Combinations",
-    description: "Elite combo sequences for experienced fighters.",
-    duration: 14,
-    level: "advanced",
-    category: "Boxing",
-    emoji: "⚡",
-    color: "#34D399",
-    sessions: [
-      { name: "Combination Warm-up", duration: "10 min" },
-      { name: "Combo Speed Drill", duration: "20 min" },
-      { name: "Heavy Bag Work", duration: "15 min" },
-    ],
-  },
-];
-
 const LEVEL_COLOR = { beginner: "#34D399", intermediate: GOLD, advanced: RED };
 
 
@@ -120,7 +72,7 @@ export default function ProgramsPage() {
       try {
         const progSnap = await getDocs(query(collection(db, "training_programs"), limit(50)));
         const progDocs = snapToDocs(progSnap);
-        const allPrograms = progDocs.length > 0 ? progDocs : DEMO_PROGRAMS;
+        const allPrograms = progDocs;
         if (!active) return;
         setPrograms(allPrograms);
 
@@ -134,7 +86,7 @@ export default function ProgramsPage() {
         setEnrollments(enrollMap);
       } catch (err) {
         console.error("Programs load error:", err);
-        if (active) setPrograms(DEMO_PROGRAMS);
+        if (active) setPrograms([]);
       } finally {
         if (active) setLoading(false);
       }
@@ -379,9 +331,30 @@ export default function ProgramsPage() {
           )}
 
           {programs.length === 0 && !loading && (
-            <div style={s.empty}>
-              <p style={{ fontSize: 40, margin: 0 }}>🥊</p>
-              <p style={{ color: "#666", margin: "12px 0 0", fontSize: 14 }}>
+            <div style={{
+              margin: "32px 0",
+              padding: "40px 24px",
+              borderRadius: 18,
+              border: "1px solid rgba(193,18,31,0.15)",
+              background: "rgba(7,7,7,0.85)",
+              textAlign: "center",
+              position: "relative",
+              overflow: "hidden",
+            }}>
+              <div style={{
+                position: "absolute", top: -20, left: "50%", transform: "translateX(-50%)",
+                width: 160, height: 80, background: "rgba(193,18,31,0.08)",
+                filter: "blur(30px)", borderRadius: "50%", pointerEvents: "none",
+              }} />
+              <p style={{ fontSize: 44, margin: "0 0 12px", position: "relative" }}>🥊</p>
+              <p style={{
+                margin: "0 0 6px", fontSize: 13, fontWeight: 900,
+                letterSpacing: 2, textTransform: "uppercase",
+                color: "var(--primary-red)", fontFamily: "var(--font-condensed)",
+              }}>
+                NO PROGRAMS YET
+              </p>
+              <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.35)", lineHeight: 1.5 }}>
                 {t("programsNone")}
               </p>
             </div>

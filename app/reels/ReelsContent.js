@@ -11,7 +11,6 @@ import dynamic from "next/dynamic";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { GOLD, goldAlpha } from "@/lib/tokens";
 import {
-  DEMO_REEL,
   getCreatedAtMs,
   getCreatorName,
   getCreatorPhoto,
@@ -128,7 +127,7 @@ export default function ReelsContent() {
     const isFeatured = (r) => featuredCreatorIds.has(r.userId);
 
     if (feedMode !== "following") {
-      const base = allReels.length > 0 ? allReels : [DEMO_REEL];
+      const base = allReels;
       const diffFiltered = diffFilter === "beginner" ? base.filter((r) => r.difficulty === "beginner" || !r.difficulty) : base;
       const filtered = ctFilter !== "all" ? diffFiltered.filter((r) => (r.contentType || "training") === ctFilter) : diffFiltered;
       const scored = [...filtered].sort((a, b) =>

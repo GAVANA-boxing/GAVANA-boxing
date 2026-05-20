@@ -482,13 +482,18 @@ export default function CreatorDashboard() {
                   <div style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>{t("creatorTipsEnable")}</div>
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{t("creatorTipsSub")}</div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => alert("Coming soon")}
-                  style={{ padding: "8px 14px", borderRadius: 10, border: "none", background: "rgba(212,175,55,0.15)", color: "#D4AF37", fontSize: 12, fontWeight: 900, cursor: "pointer" }}
-                >
-                  {t("creatorTipsSetup")}
-                </button>
+                <span style={{
+                  padding: "6px 12px",
+                  borderRadius: 10,
+                  border: "1px solid rgba(212,175,55,0.2)",
+                  color: "rgba(212,175,55,0.5)",
+                  fontSize: 10,
+                  fontWeight: 900,
+                  letterSpacing: 1.5,
+                  fontFamily: "var(--font-condensed)",
+                }}>
+                  COMING SOON
+                </span>
               </div>
             </section>
           </>)}

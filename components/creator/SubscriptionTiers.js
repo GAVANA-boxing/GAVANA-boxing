@@ -113,24 +113,33 @@ export default function SubscriptionTiers({ t, locale }) {
         );
       })}
       {selected && (
-        <button
-          type="button"
-          onClick={() => alert("Coming soon — payment integration")}
+        <div
           style={{
             marginTop: 4,
             padding: "14px",
             borderRadius: 14,
-            border: "none",
-            background: `linear-gradient(135deg, ${GOLD}, #b8860b)`,
-            color: "#000",
-            fontSize: 14,
-            fontWeight: 900,
-            cursor: "pointer",
-            letterSpacing: 0.5,
+            border: `1px solid rgba(212,175,55,0.2)`,
+            background: "rgba(212,175,55,0.05)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
           }}
         >
-          {t("tierActivateBtn")} →
-        </button>
+          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>
+            {t("tierActivateBtn")}
+          </span>
+          <span style={{
+            fontSize: 10,
+            fontWeight: 900,
+            letterSpacing: 1.5,
+            color: GOLD,
+            fontFamily: "var(--font-condensed)",
+            opacity: 0.7,
+          }}>
+            COMING SOON
+          </span>
+        </div>
       )}
     </div>
   );
