@@ -1,7 +1,5 @@
 import Stripe from "stripe";
 
-export const config = { api: { bodyParser: false } };
-
 async function updateUserSubscription(uid, tierId, status) {
   const PROJECT = "gavana-boxing-89a22";
   const API_KEY = process.env.FIREBASE_API_KEY || "AIzaSyDwVdR5oVYSXQbWL4jqNSNx9cqKuKxqt6c";
