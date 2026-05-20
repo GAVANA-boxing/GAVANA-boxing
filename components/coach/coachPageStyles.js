@@ -42,7 +42,7 @@ export const coachPageStyles = {
     cursor: "pointer",
   },
   aiWrap: {
-    minHeight: "calc(100vh - 46px)",
+    minHeight: "calc(100dvh - 46px)",
   },
   content: {
     maxWidth: 520,
