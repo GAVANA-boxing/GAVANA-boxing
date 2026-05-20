@@ -335,6 +335,7 @@ export default function CoachApplyPage() {
 }
 
 const styles = {
+  page: { minHeight: "100dvh", background: "#070707", color: "#fff" },
   inner: { maxWidth: 480, margin: "0 auto", padding: "0 16px 40px" },
   backBtn: { background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 14, cursor: "pointer", padding: "16px 0", display: "block" },
   header: { textAlign: "center", padding: "8px 0 24px" },

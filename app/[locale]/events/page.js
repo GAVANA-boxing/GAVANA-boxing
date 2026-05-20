@@ -412,6 +412,7 @@ export default function EventsPage() {
 }
 
 const s = {
+  page: { minHeight: "100dvh", background: "#070707", color: "#fff" },
   content: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },
   pageHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", paddingTop: "calc(20px + env(safe-area-inset-top))", paddingBottom: 16 },
   kicker: { margin: "0 0 4px", fontSize: 10, letterSpacing: 2.5, color: GOLD, textTransform: "uppercase", fontWeight: 900 },
