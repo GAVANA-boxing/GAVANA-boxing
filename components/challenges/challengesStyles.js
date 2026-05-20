@@ -30,7 +30,7 @@ const styles = {
     justifyContent: "center",
   },
   shell: {
-    maxWidth: 760,
+    maxWidth: 540,
     margin: "0 auto",
     display: "grid",
     gap: 14,

@@ -260,7 +260,7 @@ export default function UserProfilePage() {
   if (loading) {
     return (
       <div style={{ minHeight: "100vh", background: "#080808", padding: "calc(28px + env(safe-area-inset-top)) 16px 40px" }}>
-        <div style={{ maxWidth: 760, margin: "0 auto", display: "grid", gap: 14 }}>
+        <div style={{ maxWidth: 540, margin: "0 auto", display: "grid", gap: 14 }}>
           <div className="shimmer" style={{ width: 40, height: 40, borderRadius: 10 }} />
           <div className="shimmer" style={{ height: 220, borderRadius: 20 }} />
           <div className="shimmer" style={{ height: 80, borderRadius: 16 }} />
