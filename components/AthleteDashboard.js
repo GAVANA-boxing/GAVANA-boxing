@@ -18,6 +18,7 @@ import {
   deriveRadarStats, computeFighterScore, getInsight,
 } from "@/lib/dashboardHelpers";
 import BottomNav from "@/components/BottomNav";
+import ActivityFeed from "@/components/ActivityFeed";
 import FighterStyleQuiz, { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import FighterPath from "@/components/FighterPath";
 import {
@@ -418,6 +419,11 @@ export default function AthleteDashboard() {
           accent="#60A5FA"
         >
           <BodyProgressSection userId={user?.uid} t={t} />
+        </PanelCard>
+
+        {/* ── Activity Feed ── */}
+        <PanelCard label={t("activityFeedTitle") || "Following Activity"} accent="#60A5FA">
+          <ActivityFeed user={user} t={t} maxItems={10} />
         </PanelCard>
 
       </div>
