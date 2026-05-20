@@ -1,7 +1,7 @@
 "use client";
 
 import { RED, GOLD, PURPLE, redAlpha, goldAlpha } from "@/lib/tokens";
-import RankIcon from "@/components/RankIcon";
+import RankBadge from "@/components/RankBadge";
 import styles from "@/components/profile/profilePageStyles";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import { formatScore, getActiveChallengeStreak } from "@/lib/utils";
@@ -173,8 +173,8 @@ export default function ProfileFighterCard({
 
       {/* Rank row — tappable, opens rank modal */}
       <button type="button" onClick={onShowRankModal} style={styles.rankRow}>
-        <RankIcon rank={fighterRank} size={30} animated />
-        <span style={{ ...styles.rankLabel, color: fighterRank.color }}>{t(fighterRank.key)}</span>
+        <RankBadge rank={fighterRank} size={32} glowEnabled />
+        <span style={{ ...styles.rankLabel, color: fighterRank.color, fontFamily: "var(--font-condensed)", letterSpacing: "0.08em" }}>{t(fighterRank.key)}</span>
       </button>
 
       {/* XP progress bar */}

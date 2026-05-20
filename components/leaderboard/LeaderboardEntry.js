@@ -2,7 +2,7 @@
 
 import { memo } from "react";
 import { getFighterRank } from "@/lib/xp";
-import RankIcon from "@/components/RankIcon";
+import RankBadge from "@/components/RankBadge";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import { formatCompact } from "@/lib/utils";
 import { getRankMedal, getScoreColor, getAvatarUrl, getEntryBadges } from "@/lib/leaderboardHelpers";
@@ -90,8 +90,8 @@ const LeaderboardEntry = memo(function LeaderboardEntry({ entry, index, profiles
         </div>
         {username ? <div style={styles.username}>{username}</div> : null}
         <div style={styles.entryRankRow}>
-          <RankIcon rank={entryRank} size={15} animated={false} />
-          <span style={{ color: entryRank.color, fontSize: 9, fontWeight: 900, letterSpacing: 0.5, textTransform: "uppercase" }}>
+          <RankBadge rank={entryRank} size={15} glowEnabled={false} />
+          <span style={{ color: entryRank.color, fontSize: 9, fontWeight: 900, letterSpacing: 0.5, textTransform: "uppercase", fontFamily: "var(--font-condensed)" }}>
             {t(entryRank.key)}
           </span>
           {leaderboardTab === "week" && allTimeRank >= 0 && (

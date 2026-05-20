@@ -88,9 +88,10 @@ export const trainModalStyles = {
     margin: 0,
     color: GOLD,
     fontSize: 11,
-    fontWeight: 950,
-    letterSpacing: 2,
+    fontWeight: 900,
+    letterSpacing: 3,
     textTransform: "uppercase",
+    fontFamily: "var(--font-condensed)",
   },
   score: {
     marginTop: 8,

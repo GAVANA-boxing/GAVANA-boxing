@@ -233,6 +233,7 @@ const s = {
     fontWeight: 900,
     letterSpacing: 4,
     textTransform: "uppercase",
+    fontFamily: "var(--font-condensed)",
   },
   title: {
     margin: "0 0 28px",
@@ -315,6 +316,7 @@ const s = {
     fontWeight: 900,
     letterSpacing: 4,
     textTransform: "uppercase",
+    fontFamily: "var(--font-condensed)",
   },
   sectionTitle: { margin: "0 0 12px", fontSize: "clamp(28px, 6vw, 42px)", fontWeight: 1000, lineHeight: 1.1 },
   sectionSub: { margin: "0 auto 36px", maxWidth: 380, color: "rgba(150,150,150,0.7)", fontSize: 14, lineHeight: 1.6 },
