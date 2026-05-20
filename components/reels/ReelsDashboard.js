@@ -87,7 +87,7 @@ const FEATURED_CARDS = [
 ];
 
 // ─── Left Sidebar ─────────────────────────────────────────────────────────────
-function Sidebar({ router, user, currentLocale }) {
+function Sidebar({ router, user, profilePhotoUrl, currentLocale }) {
   const NAV = [
     { Icon: IcoHome,    label: "Нүүр",     path: "" },
     { Icon: IcoPlay,    label: "Рилс",     path: "reels", active: true },
@@ -132,9 +132,9 @@ function Sidebar({ router, user, currentLocale }) {
           onClick={() => router.push(`/${currentLocale}/profile/${user.uid}`)}
         >
           <div style={d.sidebarProfileAva}>
-            {user.photoURL
-              ? <img src={user.photoURL} alt="" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
-              : <span style={{ fontSize: 13, fontWeight: 900 }}>{(user.displayName || "U").charAt(0).toUpperCase()}</span>
+            {(profilePhotoUrl || user.photoURL)
+              ? <img src={profilePhotoUrl || user.photoURL} alt="" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+              : <span style={{ fontSize: 13, fontWeight: 900 }}>{(user.displayName || user.email || "U").charAt(0).toUpperCase()}</span>
             }
           </div>
           <div style={d.sidebarProfileInfo}>
@@ -148,13 +148,14 @@ function Sidebar({ router, user, currentLocale }) {
 }
 
 // ─── Quick Post Bar ───────────────────────────────────────────────────────────
-function QuickPostBar({ user, router, currentLocale }) {
+function QuickPostBar({ user, profilePhotoUrl, router, currentLocale }) {
+  const photo = profilePhotoUrl || user?.photoURL;
   return (
     <div style={d.quickPost}>
       <div style={d.quickAva}>
-        {user?.photoURL
-          ? <img src={user.photoURL} alt="" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
-          : <span style={{ fontSize: 12, fontWeight: 900 }}>{(user?.displayName || "U").charAt(0).toUpperCase()}</span>
+        {photo
+          ? <img src={photo} alt="" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+          : <span style={{ fontSize: 12, fontWeight: 900 }}>{(user?.displayName || user?.email || "U").charAt(0).toUpperCase()}</span>
         }
       </div>
       <button style={d.quickInput} onClick={() => router.push(`/${currentLocale}/upload`)}>
@@ -204,7 +205,7 @@ function DesktopReelCard({
       <div style={d.reelRow}>
         {/* Video — portrait 9:16, no text overlay */}
         <div style={d.reelVideoWrap}>
-          <video ref={videoRef} src={reel.videoURL} autoPlay muted loop playsInline style={d.reelVideo} />
+          <video ref={videoRef} src={reel.videoUrl} poster={reel.thumbnailUrl || undefined} autoPlay muted loop playsInline style={d.reelVideo} />
           {!hovered && (
             <div style={d.videoOverlay}>
               <div style={d.playCircle}><IcoPlay /></div>
@@ -339,14 +340,14 @@ function RightPanel({ user, router, currentLocale }) {
 
         const [sparringSnap, reqSnap] = await Promise.all([
           getDocs(query(
-            collection(db, "sparring_requests"),
-            where("status", "==", "open"),
+            collection(db, "sparring_posts"),
+            where("lookingForSparring", "==", true),
             orderBy("createdAt", "desc"),
             limit(5)
           )).catch(() => ({ docs: [] })),
           user?.uid ? getDocs(query(
             collection(db, "sparring_requests"),
-            where("fromUid", "==", user.uid),
+            where("fromUserId", "==", user.uid),
             orderBy("createdAt", "desc"),
             limit(4)
           )).catch(() => ({ docs: [] })) : Promise.resolve({ docs: [] }),
@@ -374,7 +375,7 @@ function RightPanel({ user, router, currentLocale }) {
           placeholder="ТУЛААНЧ, ЗААЛ ХАЙХ..."
           style={d.searchInput}
           readOnly
-          onClick={() => router.push(`/${currentLocale}/rank`)}
+          onClick={() => router.push(`/${currentLocale}/discover`)}
         />
       </div>
 
@@ -393,9 +394,9 @@ function RightPanel({ user, router, currentLocale }) {
             <div key={item.id} style={d.lobbyRow} className="lobby-row">
               <div style={d.lobbyActiveDot} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={d.lobbyName}>{(item.fromName || "Тулаанч").toUpperCase()}</div>
+                <div style={d.lobbyName}>{(item.displayName || item.fromName || "Тулаанч").toUpperCase()}</div>
                 <div style={d.lobbyMeta}>
-                  {[item.weightClass, item.gym || item.time].filter(Boolean).join(" · ")}
+                  {[item.weightClass, item.location || item.gym].filter(Boolean).join(" · ")}
                 </div>
               </div>
               <button style={d.joinBtn} onClick={() => router.push(`/${currentLocale}/sparring`)}>
@@ -437,7 +438,7 @@ function RightPanel({ user, router, currentLocale }) {
               const label = isAccepted ? "ЗӨВШӨӨРСӨН" : isDeclined ? "ТАТГАЛЗСАН" : "ХҮЛЭЭЖ БАЙНА";
               return (
                 <div key={req.id} style={d.requestRow}>
-                  <span style={d.requestTo}>{(req.toName || "Тулаанч").toUpperCase()}</span>
+                  <span style={d.requestTo}>{(req.toDisplayName || req.toName || "Тулаанч").toUpperCase()}</span>
                   <span style={{ ...d.statusBadge, color, background: bg, border: `1px solid ${border}` }}>
                     {label}
                   </span>
@@ -466,9 +467,27 @@ export default function ReelsDashboard({
   handleLike, handleOpenComments, handleShare, handleSave, handleGetFeedback,
   feedRef,
 }) {
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    if (user.photoURL) { setProfilePhotoUrl(user.photoURL); return; }
+    import("@/lib/firebase").then(({ db }) => {
+      if (!db) return;
+      import("firebase/firestore").then(({ doc, getDoc }) => {
+        getDoc(doc(db, "users", user.uid)).then((snap) => {
+          if (snap.exists()) {
+            const data = snap.data();
+            const photo = data.profileImageUrl || data.photoURL || data.avatarUrl || null;
+            if (photo) setProfilePhotoUrl(photo);
+          }
+        }).catch(() => {});
+      });
+    });
+  }, [user?.uid, user?.photoURL]);
   return (
     <div style={d.page}>
-      <Sidebar router={router} user={user} currentLocale={currentLocale} />
+      <Sidebar router={router} user={user} profilePhotoUrl={profilePhotoUrl} currentLocale={currentLocale} />
 
       <main style={d.center}>
         <div style={d.centerInner}>
@@ -492,7 +511,7 @@ export default function ReelsDashboard({
             </div>
           )}
 
-          <QuickPostBar user={user} router={router} currentLocale={currentLocale} />
+          <QuickPostBar user={user} profilePhotoUrl={profilePhotoUrl} router={router} currentLocale={currentLocale} />
 
           <div ref={feedRef} style={d.cardsFeed}>
             {reels.length === 0 ? (
