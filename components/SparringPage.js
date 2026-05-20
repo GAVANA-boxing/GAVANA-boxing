@@ -8,6 +8,7 @@ import { useSparringActions } from "@/hooks/useSparringActions";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import BottomNav from "@/components/BottomNav";
 import { RED, GOLD, redAlpha } from "@/lib/tokens";
+import PageTopBar from "@/components/PageTopBar";
 import s, { c } from "@/components/sparring/sparringStyles";
 import { FighterCard, IncomingRequestCard } from "@/components/sparring/SparringCards";
 import { formatAgo } from "@/lib/utils";
@@ -71,19 +72,13 @@ export default function SparringPage() {
   return (
     <div style={s.page}>
 
-      {/* Header */}
-      <div style={s.header}>
-        <button type="button" onClick={() => router.back()} style={s.backBtn}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-        </button>
-        <div style={s.headerCenter}>
-          <div style={s.headerKicker}>GAVANA</div>
-          <div style={s.headerTitle}>{t("sparringMatchmaking")}</div>
-        </div>
-        <div style={{ width: 40 }} />
-      </div>
+      <PageTopBar
+        kicker="GAVANA"
+        title={locale === "mn" ? "СПАРРИНГ" : locale === "ko" ? "스파링" : "SPARRING"}
+        user={user}
+        currentLocale={locale}
+        showBack
+      />
 
       {/* Tab bar */}
       <div style={s.tabBar}>

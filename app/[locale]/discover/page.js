@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
 import StoryBar from "@/components/StoryBar";
+import PageTopBar from "@/components/PageTopBar";
 import { getLocale, translate } from "@/lib/i18n";
 import { FIGHTERS } from "@/lib/fighters";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
@@ -84,12 +85,7 @@ export default function DiscoverPage() {
 
   return (
     <div style={s.page} className="page-enter">
-      {/* ── Header ── */}
-      <div style={s.header}>
-        <p style={s.kicker}>GAVANA · EXPLORE</p>
-        <h1 style={s.title}>{t("discoverTitle")}</h1>
-        <p style={s.subtitle}>{t("discoverSubtitle") || "Fighters. Techniques. Community."}</p>
-      </div>
+      <PageTopBar kicker="EXPLORE" title={t("discoverTitle") || "DISCOVER"} user={user} currentLocale={locale} />
 
       {/* ── Stories ── */}
       <StoryBar locale={locale} router={router} />

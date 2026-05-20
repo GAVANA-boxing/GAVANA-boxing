@@ -6,6 +6,7 @@ import { RANK_TIERS, getFighterRank, getNextRank, getRankProgress } from "@/lib/
 import { getLocale, translate } from "@/lib/i18n";
 import RankIcon from "@/components/RankIcon";
 import BottomNav from "@/components/BottomNav";
+import PageTopBar from "@/components/PageTopBar";
 import { RED, GOLD , PURPLE, goldAlpha} from "@/lib/tokens";
 import { useRankData } from "@/hooks/useRankData";
 
@@ -84,18 +85,7 @@ export default function RankPage() {
 
   return (
     <main style={styles.page}>
-      <header style={styles.header}>
-        <button type="button" style={styles.backBtn} onClick={() => router.back()} aria-label="Back">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
-        <div style={styles.headerCenter}>
-          <p style={styles.eyebrow}>GAVANA BOXING</p>
-          <h1 style={styles.title}>{t("rankPageTitle")}</h1>
-        </div>
-        <div style={{ width: 44 }} />
-      </header>
+      <PageTopBar kicker="GAVANA BOXING" title={t("rankPageTitle") || "RANK"} user={user} currentLocale={locale} showBack />
 
       <div style={styles.content}>
 
