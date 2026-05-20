@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import { getCreatorName, getCreatorPhoto, cleanCaption } from "@/lib/reelHelpers";
+import AppSidebar from "@/components/AppSidebar";
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
 const IcoHome = () => (
@@ -65,6 +66,15 @@ const IcoZap = () => (
     <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
   </svg>
 );
+const IcoVolume = ({ muted }) => muted ? (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>
+  </svg>
+) : (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+  </svg>
+);
 const IcoSearch = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -76,6 +86,12 @@ const FALLBACK_SPARRING = [
   { id: "f1", fromName: "Бат-Эрдэнэ", weightClass: "75кг", gym: "Gavana Gym", time: "Өнөөдөр 19:00" },
   { id: "f2", fromName: "Анхбаяр", weightClass: "69кг", gym: "Khan Boxing", time: "Маргааш 10:00" },
   { id: "f3", fromName: "Дэлгэрмаа", weightClass: "60кг", gym: "Эрдэнэт Клуб", time: "Өнөөдөр 21:00" },
+];
+
+const FALLBACK_COACHES = [
+  { id: "c1", name: "Оюунаа Н.",   specialty: "Техник",    rating: "5.0", exp: "12 жил", accent: GOLD },
+  { id: "c2", name: "Болд Г.",      specialty: "Хурд",      rating: "4.9", exp: "8 жил",  accent: "#A855F7" },
+  { id: "c3", name: "Мөнхбат С.",   specialty: "Контр",     rating: "4.8", exp: "15 жил", accent: "#3B82F6" },
 ];
 
 const FEATURED_CARDS = [
@@ -176,6 +192,7 @@ function DesktopReelCard({
   onLike, onOpenComments, onShare, onSave, onGetFeedback,
 }) {
   const [hovered, setHovered] = useState(false);
+  const [localMuted, setLocalMuted] = useState(true);
   const videoRef = useRef(null);
 
   useEffect(() => {
@@ -186,13 +203,21 @@ function DesktopReelCard({
     const el = videoRef.current;
     if (!el) return;
     if (hovered) {
-      el.muted = !soundEnabled;
+      el.muted = localMuted;
       el.play().catch(() => {});
     } else {
       el.pause();
       el.currentTime = 0;
     }
-  }, [hovered, soundEnabled]);
+  }, [hovered, localMuted]);
+
+  const toggleMute = (e) => {
+    e.stopPropagation();
+    const el = videoRef.current;
+    const next = !localMuted;
+    setLocalMuted(next);
+    if (el) el.muted = next;
+  };
 
   const progress = videoProgress[reel.id] || 0;
 
@@ -210,6 +235,11 @@ function DesktopReelCard({
             <div style={d.videoOverlay}>
               <div style={d.playCircle}><IcoPlay /></div>
             </div>
+          )}
+          {hovered && (
+            <button style={d.muteBtn} onClick={toggleMute} aria-label={localMuted ? "Дуу асаах" : "Дуу унтраах"}>
+              <IcoVolume muted={localMuted} />
+            </button>
           )}
           {hovered && progress > 0 && (
             <div style={d.progressBarWrap}>
@@ -287,6 +317,47 @@ function SkeletonRow() {
         <div style={{ ...d.skeletonPulse, height: 9, width: "45%", borderRadius: 6 }} />
       </div>
       <div style={{ ...d.skeletonPulse, width: 52, height: 28, borderRadius: 8 }} />
+    </div>
+  );
+}
+
+// ─── Coach Section ────────────────────────────────────────────────────────────
+function CoachSection({ router, currentLocale }) {
+  return (
+    <div style={d.rightCard}>
+      <div style={d.rightCardHeader}>
+        <div style={{ ...d.liveDot, background: GOLD, boxShadow: `0 0 7px ${GOLD}` }} />
+        <span style={d.rightCardTitle}>САНАЛ БОЛГОХ КОАЧ</span>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        {FALLBACK_COACHES.map((coach) => (
+          <div key={coach.id} style={d.coachRow}>
+            <div style={{ ...d.coachAva, borderColor: coach.accent + "55", background: coach.accent + "22" }}>
+              <span style={{ fontSize: 11, fontWeight: 900, color: coach.accent }}>
+                {coach.name.charAt(0)}
+              </span>
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={d.coachName}>{coach.name.toUpperCase()}</div>
+              <div style={d.coachMeta}>
+                <span style={{ color: coach.accent }}>★ {coach.rating}</span>
+                {" · "}{coach.specialty}{" · "}{coach.exp}
+              </div>
+            </div>
+            <button
+              style={{ ...d.joinBtn, borderColor: coach.accent + "50", color: coach.accent, background: coach.accent + "10" }}
+              onClick={() => router.push(`/${currentLocale}/coach`)}
+            >
+              ДЭЛГЭРЭНГҮЙ
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <button style={d.viewAllBtn} onClick={() => router.push(`/${currentLocale}/coach`)}>
+        БҮГДИЙГ ХАРАХ →
+      </button>
     </div>
   );
 }
@@ -411,7 +482,10 @@ function RightPanel({ user, router, currentLocale }) {
         </button>
       </div>
 
-      {/* Featured Gyms & Coaches */}
+      {/* Coaches */}
+      <CoachSection router={router} currentLocale={currentLocale} />
+
+      {/* Featured Gyms */}
       <FeaturedSection router={router} currentLocale={currentLocale} />
 
       {/* My Requests */}
@@ -487,7 +561,7 @@ export default function ReelsDashboard({
   }, [user?.uid, user?.photoURL]);
   return (
     <div style={d.page}>
-      <Sidebar router={router} user={user} profilePhotoUrl={profilePhotoUrl} currentLocale={currentLocale} />
+      <AppSidebar currentLocale={currentLocale} />
 
       <main style={d.center}>
         <div style={d.centerInner}>
@@ -894,6 +968,24 @@ const d = {
     color: "rgba(255,255,255,0.85)",
     paddingLeft: 2,
   },
+  muteBtn: {
+    position: "absolute",
+    bottom: 10,
+    right: 10,
+    width: 32,
+    height: 32,
+    borderRadius: "50%",
+    background: "rgba(0,0,0,0.55)",
+    backdropFilter: "blur(8px)",
+    WebkitBackdropFilter: "blur(8px)",
+    border: "1px solid rgba(255,255,255,0.2)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "rgba(255,255,255,0.85)",
+    cursor: "pointer",
+    zIndex: 4,
+  },
   progressBarWrap: {
     position: "absolute",
     bottom: 0,
@@ -1201,6 +1293,40 @@ const d = {
     padding: "3px 8px",
     flexShrink: 0,
     whiteSpace: "nowrap",
+  },
+
+  // ── Coach rows ──
+  coachRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    padding: "10px 14px",
+    borderBottom: "1px solid rgba(255,255,255,0.04)",
+    cursor: "pointer",
+  },
+  coachAva: {
+    width: 34,
+    height: 34,
+    borderRadius: "50%",
+    border: "1.5px solid",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  coachName: {
+    fontSize: 11,
+    fontWeight: 900,
+    letterSpacing: "0.06em",
+    color: "#ddd",
+    textTransform: "uppercase",
+  },
+  coachMeta: {
+    fontSize: 10,
+    color: "rgba(255,255,255,0.32)",
+    fontWeight: 700,
+    marginTop: 2,
+    letterSpacing: "0.02em",
   },
 
   // ── Featured cards ──

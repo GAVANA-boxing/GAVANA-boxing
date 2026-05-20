@@ -9,6 +9,7 @@ import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import BottomNav from "@/components/BottomNav";
 import { RED, GOLD, redAlpha } from "@/lib/tokens";
 import PageTopBar from "@/components/PageTopBar";
+import DashboardLayout from "@/components/DashboardLayout";
 import s, { c } from "@/components/sparring/sparringStyles";
 import { FighterCard, IncomingRequestCard } from "@/components/sparring/SparringCards";
 import { formatAgo } from "@/lib/utils";
@@ -70,6 +71,7 @@ export default function SparringPage() {
   const isOn = !!myPost;
 
   return (
+    <DashboardLayout currentLocale={locale}>
     <div style={s.page}>
 
       <PageTopBar
@@ -473,6 +475,7 @@ export default function SparringPage() {
       <Toast message={toast?.message} type={toast?.type} onDismiss={hideToast} />
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="reels" />
     </div>
+    </DashboardLayout>
   );
 }
 

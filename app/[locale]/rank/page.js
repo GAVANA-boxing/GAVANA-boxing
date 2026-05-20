@@ -7,6 +7,7 @@ import { getLocale, translate } from "@/lib/i18n";
 import RankIcon from "@/components/RankIcon";
 import BottomNav from "@/components/BottomNav";
 import PageTopBar from "@/components/PageTopBar";
+import DashboardLayout from "@/components/DashboardLayout";
 import { RED, GOLD , PURPLE, goldAlpha} from "@/lib/tokens";
 import { useRankData } from "@/hooks/useRankData";
 
@@ -84,6 +85,7 @@ export default function RankPage() {
   const tierXPRange = tierXPEnd - tierXPStart;
 
   return (
+    <DashboardLayout currentLocale={locale}>
     <main style={styles.page}>
       <PageTopBar kicker="GAVANA BOXING" title={t("rankPageTitle") || "RANK"} user={user} currentLocale={locale} showBack />
 
@@ -237,6 +239,7 @@ export default function RankPage() {
 
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
     </main>
+    </DashboardLayout>
   );
 }
 
