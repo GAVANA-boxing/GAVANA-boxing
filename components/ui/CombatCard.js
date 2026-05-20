@@ -38,10 +38,7 @@ const CombatCard = forwardRef(function CombatCard(
         <div
           style={{
             position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 2,
+            top: 0, left: 0, right: 0, height: 2,
             background: "linear-gradient(90deg, transparent, rgba(193,18,31,0.7), transparent)",
             pointerEvents: "none",
           }}

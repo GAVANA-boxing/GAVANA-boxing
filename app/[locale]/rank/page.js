@@ -34,7 +34,7 @@ const HOW_TO_EARN = [
     icon: "⚔️",
     en: "Challenge",
     mn: "Тэмцээн",
-    ko: "챌린지",
+    ko: "찼린지",
     detailEn: "Up to 500 XP per attempt",
     detailMn: "Нэг оролдлогод хамгийн ихдээ 500 XP",
     detailKo: "시도당 최대 500 XP",
