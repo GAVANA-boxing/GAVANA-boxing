@@ -109,12 +109,13 @@ function textResponse(text, fallback = false) {
   }, { status: 200 });
 }
 
-function errorResponse(locale) {
-  const msg = locale === "mn"
-    ? "AI үйлчилгээ алдаа гарлаа. Дахин оролдоно уу."
+function errorResponse(locale, detail = "") {
+  const base = locale === "mn"
+    ? "AI үйлчилгээ алдаа гарлаа."
     : locale === "ko"
-    ? "AI 서비스 오류가 발생했습니다. 다시 시도해주세요."
-    : "AI service error. Please try again.";
+    ? "AI 서비스 오류가 발생했습니다."
+    : "AI service error.";
+  const msg = detail ? `${base} (${detail})` : base;
   return Response.json({ aiError: true, message: msg, content: [{ type: "text", text: msg }] }, { status: 200 });
 }
 
@@ -201,10 +202,11 @@ export async function POST(req) {
     });
 
     const text = completion.choices[0]?.message?.content?.trim();
-    if (!text) return errorResponse(safeLocale);
+    if (!text) return errorResponse(safeLocale, "Empty response from OpenAI");
     return textResponse(text);
   } catch (err) {
-    console.error("[chat/route] OpenAI error:", err?.message);
-    return errorResponse(safeLocale);
+    const msg = err?.message || String(err);
+    console.error("[chat/route] OpenAI error:", msg);
+    return errorResponse(safeLocale, msg);
   }
 }
