@@ -6,7 +6,9 @@ import WebVitals from "@/components/WebVitals";
 import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
 import dynamic from "next/dynamic";
 
-const OnboardingModal = dynamic(() => import("@/components/OnboardingModal"));
+const OnboardingModal      = dynamic(() => import("@/components/OnboardingModal"));
+const PWAInstallBanner     = dynamic(() => import("@/components/PWAInstallBanner"),     { ssr: false });
+const PushPermissionBanner = dynamic(() => import("@/components/PushPermissionBanner"), { ssr: false });
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -72,6 +74,8 @@ export default function RootLayout({ children }) {
           <WebVitals />
           <InAppBrowserWarning />
           <OnboardingModal />
+          <PWAInstallBanner />
+          <PushPermissionBanner />
           {children}
         </AuthProvider>
       </body>
