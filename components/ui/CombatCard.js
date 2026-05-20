@@ -22,7 +22,9 @@ const CombatCard = forwardRef(function CombatCard(
       onClick={onClick}
       className={className}
       style={{
-        background: "linear-gradient(145deg, #111111, #0a0a0a)",
+        background: "rgba(255,255,255,0.025)",
+        backdropFilter: "blur(18px)",
+        WebkitBackdropFilter: "blur(18px)",
         border: `1px solid ${borderColor}`,
         borderRadius: "var(--card-radius-sm)",
         overflow: "hidden",

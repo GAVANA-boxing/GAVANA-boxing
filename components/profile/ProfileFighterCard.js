@@ -241,7 +241,14 @@ export default function ProfileFighterCard({
             <button
               type="button"
               onClick={onShowFighterCard}
-              style={{ ...styles.ghostAction, color: GOLD, borderColor: `${goldAlpha(0.3)}`, flexShrink: 0 }}
+              style={{
+                ...styles.ghostAction,
+                color: GOLD,
+                borderColor: `${goldAlpha(0.45)}`,
+                background: `${goldAlpha(0.1)}`,
+                flexShrink: 0,
+                fontWeight: 900,
+              }}
             >
               🥊 {t("profileFighterCard")}
             </button>
@@ -348,7 +355,14 @@ export default function ProfileFighterCard({
             <button
               type="button"
               onClick={onShowFighterCard}
-              style={{ ...styles.ghostAction, color: GOLD, borderColor: `${goldAlpha(0.3)}`, flex: 1 }}
+              style={{
+                ...styles.ghostAction,
+                color: GOLD,
+                borderColor: `${goldAlpha(0.45)}`,
+                background: `${goldAlpha(0.1)}`,
+                flex: 1,
+                fontWeight: 900,
+              }}
             >
               🥊 {t("profileFighterCard")}
             </button>

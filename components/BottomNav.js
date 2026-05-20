@@ -163,23 +163,22 @@ export default function BottomNav({
         <div style={h.handle} />
         <p style={h.sheetTitle}>{t("hubCreate")}</p>
 
-        {HUB_OPTIONS.map(opt => (
-          <button
-            key={opt.label}
-            type="button"
-            style={h.option}
-            onClick={() => { r.push(opt.path); setHubOpen(false); }}
-          >
-            <div style={{ ...h.optIcon, background: opt.accent + "1a", color: opt.accent }}>
-              {opt.icon}
-            </div>
-            <div style={h.optText}>
-              <span style={h.optLabel}>{opt.label}</span>
-              <span style={h.optSub}>{opt.sub}</span>
-            </div>
-            <svg style={h.optArrow} viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg>
-          </button>
-        ))}
+        <div style={h.grid}>
+          {HUB_OPTIONS.map(opt => (
+            <button
+              key={opt.label}
+              type="button"
+              style={h.gridCard}
+              onClick={() => { r.push(opt.path); setHubOpen(false); }}
+            >
+              <div style={{ ...h.gridIcon, background: opt.accent + "22", color: opt.accent }}>
+                {opt.icon}
+              </div>
+              <span style={h.gridLabel}>{opt.label}</span>
+              <span style={h.gridSub}>{opt.sub}</span>
+            </button>
+          ))}
+        </div>
 
         <button type="button" style={h.cancelBtn} onClick={() => setHubOpen(false)}>
           {t("cancel")}
@@ -429,52 +428,45 @@ const h = {
     letterSpacing: 2,
     paddingLeft: 4,
   },
-  option: {
-    display: "flex",
-    alignItems: "center",
-    gap: 14,
-    padding: "14px 12px",
-    borderRadius: 14,
-    border: "none",
-    background: "transparent",
-    cursor: "pointer",
-    width: "100%",
-    textAlign: "left",
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: 10,
+    marginBottom: 4,
   },
-  optIcon: {
+  gridCard: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 8,
+    padding: "18px 12px 14px",
+    borderRadius: 18,
+    border: "1px solid rgba(255,255,255,0.07)",
+    background: "rgba(255,255,255,0.035)",
+    cursor: "pointer",
+    textAlign: "center",
+    transition: "border-color 150ms ease",
+  },
+  gridIcon: {
     width: 52,
     height: 52,
     borderRadius: 16,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: 24,
+    fontSize: 26,
     flexShrink: 0,
   },
-  optText: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 2,
-    flex: 1,
-  },
-  optLabel: {
-    fontSize: 16,
-    fontWeight: 800,
+  gridLabel: {
+    fontSize: 14,
+    fontWeight: 900,
     color: "#fff",
+    lineHeight: 1.2,
   },
-  optSub: {
-    fontSize: 12,
+  gridSub: {
+    fontSize: 11,
     color: "rgba(255,255,255,0.35)",
-  },
-  optArrow: {
-    width: 18,
-    height: 18,
-    fill: "none",
-    stroke: "rgba(255,255,255,0.18)",
-    strokeWidth: 2,
-    strokeLinecap: "round",
-    strokeLinejoin: "round",
-    flexShrink: 0,
+    lineHeight: 1.35,
   },
   soonBadge: {
     fontSize: 8,

@@ -217,12 +217,14 @@ export default function FighterDetailPage() {
 
         {/* ── Weaknesses ── */}
         <Section title={t("fighterWeaknesses")} emoji="⚠️" accent="#F87171">
-          {weaknesses.map((item, i) => (
-            <div key={i} style={s.dotRow}>
-              <span style={{ ...s.dotMark, background: "#F87171" }} />
-              <span style={{ ...s.rowText, color: "#999" }}>{item}</span>
-            </div>
-          ))}
+          <div style={{ background: "rgba(248,113,113,0.04)", border: "1px solid rgba(248,113,113,0.12)", borderRadius: 10, padding: "10px 12px", display: "flex", flexDirection: "column", gap: 7 }}>
+            {weaknesses.map((item, i) => (
+              <div key={i} style={{ ...s.dotRow, marginBottom: 0 }}>
+                <span style={{ ...s.dotMark, background: "#F87171", opacity: 0.7 }} />
+                <span style={{ ...s.rowText, color: "#aaa", fontStyle: "italic" }}>{item}</span>
+              </div>
+            ))}
+          </div>
         </Section>
 
         {/* ── Famous Fights ── */}

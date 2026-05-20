@@ -1,7 +1,7 @@
 import { redAlpha, goldAlpha, RED, GOLD } from "@/lib/tokens";
 
 const styles = {
-  page: { minHeight: "100dvh", background: "#070707", color: "#fff" },
+  page: { minHeight: "100dvh", background: `radial-gradient(ellipse at 50% 0%, ${redAlpha(0.12)} 0%, transparent 38%), #070707`, color: "#fff" },
   tabBar: {
     position: "sticky", top: 0, zIndex: 50,
     display: "flex", background: "rgba(8,8,8,0.95)",
@@ -39,7 +39,7 @@ const styles = {
   skeletonList: { display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 },
   skeletonCard: { height: 200, borderRadius: 16, background: "rgba(255,255,255,0.06)" },
   cardList: { display: "flex", flexDirection: "column", gap: 12 },
-  card: { borderRadius: 16, border: "1px solid rgba(255,255,255,0.08)", background: "linear-gradient(145deg, #131313, #0a0a0a)", overflow: "hidden", cursor: "pointer", boxShadow: "0 4px 20px rgba(0,0,0,0.3)" },
+  card: { borderRadius: 16, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.025)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", overflow: "hidden", cursor: "pointer", boxShadow: "0 0 0 0.5px rgba(0,0,0,0.5) inset, 0 12px 40px rgba(0,0,0,0.2)" },
   cardImageWrap: { position: "relative", height: 100, background: `radial-gradient(ellipse at 50% 0%, ${redAlpha(0.18)} 0%, transparent 60%), linear-gradient(160deg, #141010, #0d0d0d)`, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" },
   cardLogo: { width: 64, height: 64, objectFit: "cover", borderRadius: 14, boxShadow: "0 8px 24px rgba(0,0,0,0.5)" },
   cardLogoFallback: { width: 68, height: 68, borderRadius: 16, background: `radial-gradient(ellipse at 50% 30%, ${redAlpha(0.3)}, rgba(10,5,5,0.9))`, border: `1px solid ${redAlpha(0.2)}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 24px ${redAlpha(0.12)}` },
@@ -61,9 +61,9 @@ const styles = {
   vibeActive: { flexShrink: 0, padding: "5px 14px", borderRadius: 999, border: `1px solid ${redAlpha(0.6)}`, background: `${redAlpha(0.18)}`, color: "#F87171", fontSize: 12, fontWeight: 900, cursor: "pointer" },
   memberCountBadge: { position: "absolute", bottom: 8, left: 10, fontSize: 10, fontWeight: 900, color: "#fff", background: "rgba(0,0,0,0.65)", borderRadius: 999, padding: "2px 8px" },
   joinBtn: { display: "block", width: "100%", marginTop: 10, padding: "10px 0", borderRadius: 12, border: "none", background: RED, color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", letterSpacing: 0.3, boxShadow: `0 6px 20px ${redAlpha(0.22)}` },
-  sectionLabel: { margin: "0 0 10px", fontSize: 11, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" },
+  sectionLabel: { margin: "0 0 10px", fontSize: 11, fontWeight: 950, letterSpacing: 1.5, color: GOLD, textTransform: "uppercase" },
   featuredScroll: { display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none", WebkitOverflowScrolling: "touch" },
-  featuredCard: { flexShrink: 0, width: 116, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "linear-gradient(145deg, #131313, #0a0a0a)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "12px 8px", cursor: "pointer", textAlign: "center", WebkitTapHighlightColor: "transparent" },
+  featuredCard: { flexShrink: 0, width: 116, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "rgba(255,255,255,0.04)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", border: `1px solid ${goldAlpha(0.15)}`, borderRadius: 14, padding: "12px 8px", cursor: "pointer", textAlign: "center", WebkitTapHighlightColor: "transparent" },
   featuredLogo: { width: 48, height: 48, borderRadius: 12, objectFit: "cover", marginBottom: 2 },
   featuredLogoFallback: { width: 48, height: 48, borderRadius: 12, background: `${redAlpha(0.2)}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, marginBottom: 2 },
   featuredName: { margin: 0, fontSize: 12, fontWeight: 900, color: "#fff", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "100%" },

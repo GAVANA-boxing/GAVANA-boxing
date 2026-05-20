@@ -450,7 +450,7 @@ export default function SparringPage() {
                 return (
                   <div
                     key={match.id}
-                    style={{ background: "linear-gradient(145deg, #111012, #0a0a0a)", border: "1px solid rgba(255,255,255,0.07)", borderLeft: `3px solid ${col}`, borderRadius: "3px 12px 12px 3px", padding: "12px 14px", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, cursor: match.reelId ? "pointer" : "default" }}
+                    style={{ background: "rgba(255,255,255,0.025)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid rgba(255,255,255,0.07)", borderLeft: `3px solid ${col}`, borderRadius: "3px 12px 12px 3px", padding: "12px 14px", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, cursor: match.reelId ? "pointer" : "default" }}
                     onClick={() => match.reelId && router.push(`/${locale}/reels?reelId=${match.reelId}&source=pvp`)}
                   >
                     <div style={{ flex: 1, minWidth: 0 }}>
