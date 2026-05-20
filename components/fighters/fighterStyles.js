@@ -205,26 +205,27 @@ const s = {
 
   // ── Style identity pills ──
   pillGrid: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 6,
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: 8,
   },
   stylePill: {
     display: "flex",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: 8,
     border: "1px solid",
-    borderRadius: 8,
-    padding: "6px 10px",
+    borderRadius: 12,
+    padding: "10px 10px",
     fontSize: 12,
     color: "#ddd",
-    lineHeight: 1.3,
+    lineHeight: 1.4,
   },
   pillDot: {
-    width: 5,
-    height: 5,
+    width: 6,
+    height: 6,
     borderRadius: "50%",
     flexShrink: 0,
+    marginTop: 4,
   },
 
   // ── Combos ──
@@ -253,17 +254,20 @@ const s = {
     gap: 4,
   },
   comboStep: {
-    background: "rgba(255,255,255,0.07)",
-    border: "1px solid rgba(255,255,255,0.1)",
-    borderRadius: 6,
-    padding: "2px 7px",
+    background: "rgba(255,255,255,0.09)",
+    border: "1px solid rgba(255,255,255,0.14)",
+    borderRadius: 8,
+    padding: "3px 9px",
     fontSize: 11,
-    fontWeight: 600,
-    color: "#e0e0e0",
+    fontWeight: 700,
+    color: "#e8e8e8",
+    letterSpacing: 0.1,
   },
   comboArrow: {
-    color: "#444",
-    fontSize: 11,
+    color: "#C1121F",
+    fontSize: 12,
+    fontWeight: 900,
+    opacity: 0.85,
   },
 
   // ── Movement DNA ──

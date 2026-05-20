@@ -202,23 +202,21 @@ export default function ChallengesPage() {
                 const isReceived = battle.role === "opponent";
                 const isPending = battle.status === "pending";
                 return (
-                  <div key={battle.id} style={{ borderRadius: 16, border: `1px solid ${isPending && isReceived ? "rgba(167,139,250,0.35)" : "rgba(255,255,255,0.08)"}`, background: isPending && isReceived ? "rgba(167,139,250,0.07)" : "rgba(255,255,255,0.03)", padding: "14px 16px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                      <span style={{ fontSize: 24 }}>{isPending && isReceived ? "⚔️" : battle.status === "completed" ? "✅" : "🕐"}</span>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 14, fontWeight: 900, color: "#fff" }}>{challengeInfo ? t(challengeInfo.titleKey) : battle.challengeId}</div>
-                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 2 }}>
-                          {isReceived ? t("battleChallengeReceived") : t("battleChallengeSent")}
-                          {" · "}
-                          {battle.status === "pending"
-                            ? t("battlePending")
-                            : battle.status === "completed"
-                            ? t("battleCompleted")
-                            : battle.status}
+                  <div key={battle.id} style={{ borderRadius: 16, border: `1px solid ${isPending && isReceived ? "rgba(167,139,250,0.35)" : "rgba(255,255,255,0.07)"}`, background: isPending && isReceived ? "rgba(124,58,237,0.08)" : "rgba(255,255,255,0.025)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", padding: "14px 16px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <span style={{ fontSize: 22, flexShrink: 0 }}>{isPending && isReceived ? "⚔️" : battle.status === "completed" ? "✅" : "🕐"}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 14, fontWeight: 900, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{challengeInfo ? t(challengeInfo.titleKey) : battle.challengeId}</div>
+                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 3, display: "flex", alignItems: "center", gap: 6 }}>
+                          <span>{isReceived ? t("battleChallengeReceived") : t("battleChallengeSent")}</span>
+                          <span style={{ width: 2, height: 2, borderRadius: "50%", background: "rgba(255,255,255,0.25)", flexShrink: 0 }} />
+                          <span style={{ color: battle.status === "pending" ? "#FBBF24" : battle.status === "completed" ? "#34D399" : "rgba(255,255,255,0.45)" }}>
+                            {battle.status === "pending" ? t("battlePending") : battle.status === "completed" ? t("battleCompleted") : battle.status}
+                          </span>
                         </div>
                       </div>
                       {isPending && isReceived && (
-                        <button type="button" style={{ padding: "8px 16px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#7C3AED,#4C1D95)", color: "#fff", fontSize: 12, fontWeight: 900, cursor: "pointer", flexShrink: 0 }} onClick={() => router.push(`/${locale}/train?challengeId=${battle.challengeId}`)}>
+                        <button type="button" style={{ padding: "9px 16px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#7C3AED,#4C1D95)", color: "#fff", fontSize: 12, fontWeight: 900, cursor: "pointer", flexShrink: 0, boxShadow: "0 4px 14px rgba(124,58,237,0.35)" }} onClick={() => router.push(`/${locale}/train?challengeId=${battle.challengeId}`)}>
                           {t("battleCompete")}
                         </button>
                       )}
@@ -232,33 +230,30 @@ export default function ChallengesPage() {
 
         {mainTab === "leaderboard" && (
           <>
-        {/* Season tabs */}
-        <div style={styles.seasonTabRow}>
-          <button
-            type="button"
-            style={{ ...styles.seasonTab, ...(seasonTab === "week" ? styles.seasonTabActive : {}) }}
-            onClick={() => setSeasonTab("week")}
-          >
-            {t("seasonCurrentWeek")}
-          </button>
-          <button
-            type="button"
-            style={{ ...styles.seasonTab, ...(seasonTab === "alltime" ? styles.seasonTabActive : {}) }}
-            onClick={() => setSeasonTab("alltime")}
-          >
-            {t("seasonAllTime")}
-          </button>
-        </div>
-
-        {/* Season label + countdown */}
-        {seasonTab === "week" && (
-          <div style={{ ...styles.seasonLabel, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 2px" }}>
-            <span style={styles.seasonLabelText}>🗓 {seasonLabel}</span>
-            <span style={{ fontSize: 10, fontWeight: 900, color: GOLD, fontVariantNumeric: "tabular-nums", letterSpacing: 0.5, padding: "3px 8px", borderRadius: 999, background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.3)" }}>
+        {/* Season filter row — compact inline */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+          <div style={styles.seasonTabRow}>
+            <button
+              type="button"
+              style={{ ...styles.seasonTab, ...(seasonTab === "week" ? styles.seasonTabActive : {}) }}
+              onClick={() => setSeasonTab("week")}
+            >
+              {t("seasonCurrentWeek")}
+            </button>
+            <button
+              type="button"
+              style={{ ...styles.seasonTab, ...(seasonTab === "alltime" ? styles.seasonTabActive : {}) }}
+              onClick={() => setSeasonTab("alltime")}
+            >
+              {t("seasonAllTime")}
+            </button>
+          </div>
+          {seasonTab === "week" && (
+            <span style={{ fontSize: 10, fontWeight: 900, color: GOLD, fontVariantNumeric: "tabular-nums", letterSpacing: 0.5, padding: "3px 10px", borderRadius: 999, background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.3)", whiteSpace: "nowrap", flexShrink: 0 }}>
               ⏱ {countdown}
             </span>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Weekly champions banner */}
         {seasonTab === "week" && weeklyChampions.length > 0 && (
@@ -303,10 +298,10 @@ export default function ChallengesPage() {
             return (
               <article key={challenge.id} style={styles.card}>
                 <div style={styles.cardTop}>
-                  <div>
+                  <div style={styles.cardTitleGroup}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                      <span style={{ fontSize: 28 }}>{challenge.emoji}</span>
-                      <h2 style={{ ...styles.cardTitle, margin: 0 }}>{t(challenge.titleKey)}</h2>
+                      <span style={{ fontSize: 24 }}>{challenge.emoji}</span>
+                      <h2 style={styles.cardTitle}>{t(challenge.titleKey)}</h2>
                     </div>
                     <p style={styles.cardDesc}>{t(challenge.descKey)}</p>
                   </div>
