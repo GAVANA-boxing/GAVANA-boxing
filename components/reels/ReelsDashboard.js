@@ -192,8 +192,12 @@ function DesktopReelCard({
   onLike, onOpenComments, onShare, onSave, onGetFeedback,
 }) {
   const [hovered, setHovered] = useState(false);
+  const [playing, setPlaying] = useState(false);
   const [localMuted, setLocalMuted] = useState(true);
+  const [heartBurst, setHeartBurst] = useState(false);
   const videoRef = useRef(null);
+  const heartTimerRef = useRef(null);
+  const clickTimerRef = useRef(null);
 
   useEffect(() => {
     if (videoRef.current) videoRefs.current[reel.id] = videoRef.current;
@@ -202,14 +206,32 @@ function DesktopReelCard({
   useEffect(() => {
     const el = videoRef.current;
     if (!el) return;
-    if (hovered) {
+    if (hovered && playing) {
       el.muted = localMuted;
       el.play().catch(() => {});
     } else {
       el.pause();
-      el.currentTime = 0;
+      if (!hovered) el.currentTime = 0;
     }
-  }, [hovered, localMuted]);
+  }, [hovered, playing, localMuted]);
+
+  const handleMouseEnter = () => { setHovered(true); setPlaying(true); };
+  const handleMouseLeave = () => { setHovered(false); setPlaying(false); };
+
+  const handleVideoClick = (e) => {
+    e.stopPropagation();
+    clearTimeout(clickTimerRef.current);
+    clickTimerRef.current = setTimeout(() => setPlaying((p) => !p), 220);
+  };
+
+  const handleDoubleClick = (e) => {
+    e.stopPropagation();
+    clearTimeout(clickTimerRef.current);
+    setHeartBurst(true);
+    onLike(reel.id);
+    clearTimeout(heartTimerRef.current);
+    heartTimerRef.current = setTimeout(() => setHeartBurst(false), 800);
+  };
 
   const toggleMute = (e) => {
     e.stopPropagation();
@@ -224,16 +246,27 @@ function DesktopReelCard({
   return (
     <div
       style={d.reelCard}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <div style={d.reelRow}>
         {/* Video — portrait 9:16, no text overlay */}
-        <div style={d.reelVideoWrap}>
-          <video ref={videoRef} src={reel.videoUrl} poster={reel.thumbnailUrl || undefined} autoPlay muted loop playsInline style={d.reelVideo} />
-          {!hovered && (
+        <div
+          style={d.reelVideoWrap}
+          onClick={handleVideoClick}
+          onDoubleClick={handleDoubleClick}
+        >
+          <video ref={videoRef} src={reel.videoUrl} poster={reel.thumbnailUrl || undefined} loop playsInline style={d.reelVideo} />
+          {(!hovered || !playing) && (
             <div style={d.videoOverlay}>
               <div style={d.playCircle}><IcoPlay /></div>
+            </div>
+          )}
+          {heartBurst && (
+            <div style={d.heartBurstWrap}>
+              <svg className="heart-burst" width="76" height="76" viewBox="0 0 24 24" fill="#f87171" style={{ filter: "drop-shadow(0 0 18px rgba(248,113,113,0.9))" }}>
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
             </div>
           )}
           {hovered && (
@@ -501,7 +534,7 @@ function RightPanel({ user, router, currentLocale }) {
               {[0,1].map((i) => <SkeletonRow key={i} />)}
             </div>
           ) : requests.length === 0 ? (
-            <div style={d.rightEmpty}>Идэвхтэй хүсэлт алга</div>
+            <div style={d.rightEmpty}>Одоогоор илгээсэн{"\n"}хүсэлт байхгүй байна</div>
           ) : (
             requests.map((req) => {
               const isAccepted = req.status === "accepted";
@@ -986,6 +1019,14 @@ const d = {
     cursor: "pointer",
     zIndex: 4,
   },
+  heartBurstWrap: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    pointerEvents: "none",
+    zIndex: 5,
+  },
   progressBarWrap: {
     position: "absolute",
     bottom: 0,
@@ -1172,10 +1213,10 @@ const d = {
   },
   rightCardTitle: {
     flex: 1,
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 900,
-    color: "rgba(255,255,255,0.5)",
-    letterSpacing: "0.18em",
+    color: "rgba(255,255,255,0.35)",
+    letterSpacing: "0.22em",
     textTransform: "uppercase",
   },
   liveBadge: {
@@ -1185,17 +1226,21 @@ const d = {
     letterSpacing: "0.1em",
     background: `${redAlpha(0.12)}`,
     border: `1px solid ${redAlpha(0.3)}`,
-    borderRadius: 6,
-    padding: "2px 7px",
+    borderRadius: 999,
+    padding: "2px 8px",
   },
   rightEmpty: {
-    padding: "22px 14px",
-    fontSize: 11,
+    margin: "12px 14px",
+    padding: "16px 12px",
+    border: "1px dashed rgba(255,255,255,0.1)",
+    borderRadius: 12,
+    fontSize: 10,
     fontWeight: 700,
-    letterSpacing: "0.08em",
-    color: "rgba(255,255,255,0.2)",
+    letterSpacing: "0.1em",
+    color: "rgba(255,255,255,0.28)",
     textAlign: "center",
     textTransform: "uppercase",
+    lineHeight: 1.5,
   },
   lobbyList: {
     display: "flex",
@@ -1236,17 +1281,18 @@ const d = {
     letterSpacing: "0.04em",
   },
   joinBtn: {
-    padding: "6px 12px",
+    padding: "5px 10px",
     borderRadius: 9,
     border: `1px solid ${redAlpha(0.4)}`,
     background: `${redAlpha(0.1)}`,
     color: RED,
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 900,
     letterSpacing: "0.1em",
     textTransform: "uppercase",
     cursor: "pointer",
     flexShrink: 0,
+    whiteSpace: "nowrap",
     transition: "background 150ms ease, box-shadow 150ms ease",
   },
   viewAllBtn: {
@@ -1331,14 +1377,13 @@ const d = {
 
   // ── Featured cards ──
   featuredScroll: {
-    display: "flex",
-    gap: 8,
-    overflowX: "auto",
-    padding: "12px 12px 14px",
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: 10,
+    padding: "12px",
   },
   featuredCard: {
-    flexShrink: 0,
-    width: 150,
+    width: "100%",
     height: 88,
     borderRadius: 14,
     border: "1px solid rgba(255,255,255,0.07)",
@@ -1365,13 +1410,16 @@ const d = {
     padding: "2px 6px",
   },
   featuredName: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: 900,
     color: "#fff",
     letterSpacing: "0.04em",
     textTransform: "uppercase",
     lineHeight: 1.2,
     marginBottom: 3,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
   },
   featuredSub: {
     fontSize: 9,
