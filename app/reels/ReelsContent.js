@@ -27,6 +27,7 @@ const CommentsModal = dynamic(() => import("@/components/reels/CommentsModal"), 
 const FeedbackModal = dynamic(() => import("@/components/reels/FeedbackModal"), { ssr: false });
 const FilterSheet = dynamic(() => import("@/components/reels/FilterSheet"), { ssr: false });
 const CaptionSheet = dynamic(() => import("@/components/reels/CaptionSheet"), { ssr: false });
+const ReportModal = dynamic(() => import("@/components/ReportModal"), { ssr: false });
 import ReelItem from "@/components/reels/ReelItem";
 import { useReelFeed } from "@/hooks/useReelFeed";
 import { useVideoControls } from "@/hooks/useVideoControls";
@@ -57,6 +58,7 @@ export default function ReelsContent() {
   const [expandedCaptionIds, setExpandedCaptionIds] = useState(new Set());
   const [captionSheetReelId, setCaptionSheetReelId] = useState(null);
   const [breakdownReel, setBreakdownReel] = useState(null);
+  const [reportReel, setReportReel] = useState(null);
   const feedRef = useRef(null);
   const reelItemRefs = useRef({});
   const lastTapRef = useRef({ time: 0, reelId: null });
@@ -408,6 +410,7 @@ export default function ReelsContent() {
               onGetFeedback={handleGetFeedback}
               onBreakdown={setBreakdownReel}
               onCaptionSheet={setCaptionSheetReelId}
+              onReport={setReportReel}
             />
             </ErrorBoundary>
           );
@@ -480,6 +483,16 @@ export default function ReelsContent() {
         currentLocale={currentLocale}
         onInteractStart={clearControlsTimer}
         onInteractEnd={scheduleControlsHide}
-      />    </div>
+      />
+
+      {reportReel && (
+        <ReportModal
+          targetId={reportReel.id}
+          targetType="reel"
+          onClose={() => setReportReel(null)}
+          t={t}
+        />
+      )}
+    </div>
   );
 }

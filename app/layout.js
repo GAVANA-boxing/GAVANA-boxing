@@ -64,6 +64,12 @@ export default function RootLayout({ children }) {
       data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} ${anton.variable} h-full antialiased`}
     >
+      <head>
+        <link rel="preconnect" href="https://firebasestorage.googleapis.com" />
+        <link rel="preconnect" href="https://identitytoolkit.googleapis.com" />
+        <link rel="preconnect" href="https://fcm.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      </head>
       <body className="min-h-full flex flex-col">
         <AuthProvider>
           <ServiceWorkerRegistrar />
