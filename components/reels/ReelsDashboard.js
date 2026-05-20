@@ -78,6 +78,14 @@ const FALLBACK_SPARRING = [
   { id: "f3", fromName: "Дэлгэрмаа", weightClass: "60кг", gym: "Эрдэнэт Клуб", time: "Өнөөдөр 21:00" },
 ];
 
+const FEATURED_CARDS = [
+  { type: "GYM",   id: "g1", name: "GAVANA GYM",      sub: "Улаанбаатар",     rating: null, accent: RED,    bg: "linear-gradient(160deg,#3d0007 0%,#150002 100%)" },
+  { type: "GYM",   id: "g2", name: "KHAN BOXING",      sub: "Дархан",          rating: null, accent: "#3B82F6", bg: "linear-gradient(160deg,#0a1e3d 0%,#030a18 100%)" },
+  { type: "COACH", id: "c1", name: "ОЮУНАА БАГШ",      sub: "Чемпион • 12 жил",  rating: "5.0", accent: GOLD,   bg: "linear-gradient(160deg,#2d1e00 0%,#100b00 100%)" },
+  { type: "COACH", id: "c2", name: "БОЛД ТРЕНЕР",      sub: "ОХУ-ын экс-про",   rating: "4.9", accent: "#A855F7", bg: "linear-gradient(160deg,#1e0833 0%,#0a0315 100%)" },
+  { type: "GYM",   id: "g3", name: "ЭРДЭНЭТ КЛУБ",    sub: "Эрдэнэт хот",     rating: null, accent: "#10B981", bg: "linear-gradient(160deg,#00200f 0%,#000d06 100%)" },
+];
+
 // ─── Left Sidebar ─────────────────────────────────────────────────────────────
 function Sidebar({ router, user, currentLocale }) {
   const NAV = [
@@ -120,7 +128,7 @@ function Sidebar({ router, user, currentLocale }) {
 
       {user && (
         <button
-          style={d.sidebarProfile}
+          style={{ ...d.sidebarProfile, position: "relative", zIndex: 2 }}
           onClick={() => router.push(`/${currentLocale}/profile/${user.uid}`)}
         >
           <div style={d.sidebarProfileAva}>
@@ -196,7 +204,7 @@ function DesktopReelCard({
       <div style={d.reelRow}>
         {/* Video — portrait 9:16, no text overlay */}
         <div style={d.reelVideoWrap}>
-          <video ref={videoRef} src={reel.videoURL} muted loop playsInline style={d.reelVideo} />
+          <video ref={videoRef} src={reel.videoURL} autoPlay muted loop playsInline style={d.reelVideo} />
           {!hovered && (
             <div style={d.videoOverlay}>
               <div style={d.playCircle}><IcoPlay /></div>
@@ -278,6 +286,41 @@ function SkeletonRow() {
         <div style={{ ...d.skeletonPulse, height: 9, width: "45%", borderRadius: 6 }} />
       </div>
       <div style={{ ...d.skeletonPulse, width: 52, height: 28, borderRadius: 8 }} />
+    </div>
+  );
+}
+
+// ─── Featured Gyms & Coaches ─────────────────────────────────────────────────
+function FeaturedSection({ router, currentLocale }) {
+  return (
+    <div style={d.rightCard}>
+      <div style={d.rightCardHeader}>
+        <span style={{ ...d.liveDot, background: GOLD, boxShadow: `0 0 7px ${GOLD}` }} />
+        <span style={d.rightCardTitle}>ОНЦЛОХ ЗААЛ & ТРЕНЕР</span>
+      </div>
+
+      <div className="no-scrollbar" style={d.featuredScroll}>
+        {FEATURED_CARDS.map((item) => (
+          <button
+            key={item.id}
+            className="featured-card"
+            style={{ ...d.featuredCard, background: item.bg }}
+            onClick={() => router.push(`/${currentLocale}/${item.type === "GYM" ? "gyms" : "coach"}`)}
+          >
+            <div style={{ ...d.featuredTopBadge, color: item.accent, borderColor: item.accent + "40", background: item.accent + "18" }}>
+              {item.type}
+            </div>
+            <div style={d.featuredName}>{item.name}</div>
+            <div style={d.featuredSub}>
+              {item.rating
+                ? <><span style={{ color: item.accent }}>★ {item.rating}</span>{" · "}{item.sub}</>
+                : item.sub
+              }
+            </div>
+            <div style={{ ...d.featuredAccentLine, background: item.accent + "60" }} />
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -366,6 +409,9 @@ function RightPanel({ user, router, currentLocale }) {
           БҮГДИЙГ ХАРАХ →
         </button>
       </div>
+
+      {/* Featured Gyms & Coaches */}
+      <FeaturedSection router={router} currentLocale={currentLocale} />
 
       {/* My Requests */}
       {user && (
@@ -715,7 +761,7 @@ const d = {
     WebkitBackdropFilter: "blur(18px)",
     border: "1px solid rgba(255,255,255,0.07)",
     boxShadow: "0 4px 24px rgba(0,0,0,0.25)",
-    marginBottom: 18,
+    marginBottom: 28,
   },
   quickAva: {
     width: 38,
@@ -1136,6 +1182,65 @@ const d = {
     padding: "3px 8px",
     flexShrink: 0,
     whiteSpace: "nowrap",
+  },
+
+  // ── Featured cards ──
+  featuredScroll: {
+    display: "flex",
+    gap: 8,
+    overflowX: "auto",
+    padding: "12px 12px 14px",
+  },
+  featuredCard: {
+    flexShrink: 0,
+    width: 150,
+    height: 88,
+    borderRadius: 14,
+    border: "1px solid rgba(255,255,255,0.07)",
+    padding: "10px 10px 8px",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "flex-end",
+    cursor: "pointer",
+    position: "relative",
+    overflow: "hidden",
+    textAlign: "left",
+    transition: "transform 180ms ease, box-shadow 180ms ease",
+  },
+  featuredTopBadge: {
+    position: "absolute",
+    top: 8,
+    left: 8,
+    fontSize: 8,
+    fontWeight: 900,
+    letterSpacing: "0.14em",
+    textTransform: "uppercase",
+    border: "1px solid",
+    borderRadius: 5,
+    padding: "2px 6px",
+  },
+  featuredName: {
+    fontSize: 11,
+    fontWeight: 900,
+    color: "#fff",
+    letterSpacing: "0.04em",
+    textTransform: "uppercase",
+    lineHeight: 1.2,
+    marginBottom: 3,
+  },
+  featuredSub: {
+    fontSize: 9,
+    color: "rgba(255,255,255,0.38)",
+    fontWeight: 700,
+    letterSpacing: "0.02em",
+  },
+  featuredAccentLine: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 2,
+    borderRadius: "0 0 14px 14px",
   },
 
   // ── Skeleton ──

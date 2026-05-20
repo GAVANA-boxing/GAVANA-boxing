@@ -342,6 +342,8 @@ p {
 
 .reels-feed { scrollbar-width: none; }
 .reels-feed::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
 
 .reel-action:active { animation: iconTap 220ms ease; }
 .reel-action:active .reel-action-circle { transform: scale(0.88); }
@@ -638,6 +640,11 @@ p {
   background: rgba(255,255,255,0.06) !important;
   color: rgba(255,255,255,0.65) !important;
 }
+
+.lobby-row:hover { background: rgba(255,255,255,0.04); }
+
+.featured-card { transition: transform 180ms ease, box-shadow 180ms ease; }
+.featured-card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.55) !important; }
 
 /* ─── Phase 41: Reel skeleton shimmer ──────────────────────────────────────── */
 @keyframes skeleton-shimmer {
