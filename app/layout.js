@@ -29,28 +29,37 @@ const barlowCondensed = Barlow_Condensed({
 });
 
 export const metadata = {
-  applicationName: "Gavana Boxing",
+  applicationName: "GAVANA Boxing",
   title: {
-    default: "Gavana Boxing",
-    template: "%s | Gavana Boxing",
+    default: "GAVANA Boxing — AI Punch Scoring for Fighters",
+    template: "%s | GAVANA Boxing",
   },
-  description: "Boxing reels, AI coach, and fighter community.",
+  description: "AI-powered punch scoring, fighter reels, rank system, sparring matchmaking, and coach connections. The boxing app built for serious fighters.",
+  keywords: ["boxing", "AI coach", "punch scoring", "fighter training", "sparring", "boxing reels", "combat sports"],
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
-    title: "Gavana Boxing",
+    title: "GAVANA Boxing",
     statusBarStyle: "black-translucent",
   },
   formatDetection: {
     telephone: false,
   },
+  openGraph: {
+    type: "website",
+    siteName: "GAVANA Boxing",
+    title: "GAVANA Boxing — AI Punch Scoring for Fighters",
+    description: "AI-powered punch scoring, fighter reels, rank system, sparring matchmaking, and coach connections.",
+    images: [{ url: "/icons/gavana-icon.svg", width: 512, height: 512, alt: "GAVANA Boxing" }],
+  },
+  twitter: {
+    card: "summary",
+    title: "GAVANA Boxing",
+    description: "AI-powered punch scoring, fighter reels, rank system, sparring matchmaking, and coach connections.",
+  },
   icons: {
-    icon: [
-      { url: "/icons/gavana-icon.svg", type: "image/svg+xml" },
-    ],
-    apple: [
-      { url: "/icons/gavana-icon.svg", type: "image/svg+xml" },
-    ],
+    icon: [{ url: "/icons/gavana-icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/icons/gavana-icon.svg", type: "image/svg+xml" }],
   },
 };
 
