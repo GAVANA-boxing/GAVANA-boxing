@@ -7,9 +7,9 @@ export async function generateMetadata({ params }) {
   const locale = getLocale(rawLocale);
   const title = "GAVANA Boxing — Train. Fight. Evolve.";
   const description = locale === "mn"
-    ? "Боксын нийгэмлэг апп. AI тренер, Fighter Card, тулааны challenge."
+    ? "Боксын нийгэмлэл апп. AI тренэр, Fighter Card, тулааны чалленге."
     : locale === "ko"
-    ? "복싱 커뮤니티 앱. AI 코치, 파이터 카드, 배틀 챌린지."
+    ? "복싱 커뮤니티 앱. AI 코치, 파이터 카드, 배틀 쳌린지."
     : "The boxing community app. AI coach, Fighter Card, real punch scoring, and live challenges.";
   return {
     title,
@@ -65,9 +65,9 @@ export default async function LocalizedHomePage({ params }) {
         </h1>
         <p className="landing-subtitle" style={s.subtitle}>
           {locale === "mn"
-            ? "AI тренер, бодит цохилт тоолох систем, Fighter Card болон шууд тулааны challenge."
+            ? "AI тренэр, бодит цохилт тоолох систем, Fighter Card болон шууд тулааны чалленге."
             : locale === "ko"
-            ? "AI 코치, 실시간 펀치 감지, 파이터 카드, 실시간 배틀 챌린지."
+            ? "AI 코치, 실시간 펀치 감지, 파이터 카드, 실시간 배틀 쳌린지."
             : "AI punch scoring, Fighter Card, real-time challenges — the boxing app built for fighters."}
         </p>
         <div className="landing-cta-row" style={s.ctaRow}>
@@ -137,7 +137,7 @@ export default async function LocalizedHomePage({ params }) {
       <section style={s.bottomCta}>
         <p style={s.bottomKicker}>FIGHT STARTS NOW</p>
         <h2 style={s.bottomCtaTitle}>
-          {locale === "mn" ? "Бэлэн үү?" : locale === "ko" ? "준비됐나요?" : "Ready to fight?"}
+          {locale === "mn" ? "Бэлэн үү?" : locale === "ko" ? "준비됩나요?" : "Ready to fight?"}
         </h2>
         <Link href={`/${locale}/login?mode=signup`} style={s.bottomCtaBtn}>
           {t("loginSignUp")} — {locale === "mn" ? "Үнэгүй" : locale === "ko" ? "무료" : "It's Free"}
@@ -169,7 +169,6 @@ const s = {
     overflowX: "hidden",
     position: "relative",
   },
-  // Ambient orbs
   orb1: {
     width: 600,
     height: 600,
@@ -275,7 +274,6 @@ const s = {
     fontSize: 14,
     backdropFilter: "blur(8px)",
   },
-  // glass-stats class handles backdrop blur; these are layout styles
   socialProof: {
     display: "flex",
     justifyContent: "center",
@@ -374,7 +372,6 @@ const s = {
     marginTop: 44,
     textAlign: "left",
   },
-  // feature-card-glow class handles hover; these are base styles
   featureCard: {
     background: "rgba(255,255,255,0.025)",
     border: "1px solid rgba(255,255,255,0.07)",

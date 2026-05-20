@@ -162,7 +162,6 @@ export default function EventDetailPage() {
           ← {t("eventBackToList")}
         </button>
 
-        {/* Hero */}
         <div style={{ ...s.heroCard, borderLeftColor: live ? "#34D399" : meta.color }}>
           <div style={s.heroTop}>
             <span style={{ ...s.typeBadge, background: `${meta.color}18`, color: meta.color, borderColor: `${meta.color}35` }}>
@@ -179,25 +178,19 @@ export default function EventDetailPage() {
           <h1 style={s.eventTitle}>{event.title}</h1>
           {event.description && <p style={s.eventDesc}>{event.description}</p>}
 
-          {/* Countdown */}
           {upcoming && !live && countdown !== null && (
             <div style={s.countdownBox}>
-              <span style={s.countdownLabel}>
-                {t("eventStartsIn")}
-              </span>
+              <span style={s.countdownLabel}>{t("eventStartsIn")}</span>
               <span style={s.countdownValue}>{formatCountdown(countdown, locale)}</span>
             </div>
           )}
           {live && (
             <div style={{ ...s.countdownBox, borderColor: "rgba(52,211,153,0.3)", background: "rgba(52,211,153,0.08)" }}>
-              <span style={{ ...s.countdownValue, color: "#34D399" }}>
-                {t("eventHappeningNow")}
-              </span>
+              <span style={{ ...s.countdownValue, color: "#34D399" }}>{t("eventHappeningNow")}</span>
             </div>
           )}
         </div>
 
-        {/* Details */}
         <div style={s.detailsCard}>
           {event.date && (
             <div style={s.detailRow}>
@@ -244,8 +237,7 @@ export default function EventDetailPage() {
                       <div style={{ height: "100%", width: `${pct}%`, borderRadius: 999, background: barColor, transition: "width 600ms ease" }} />
                     </div>
                     <p style={{ margin: "3px 0 0", fontSize: 9, color: barColor, fontWeight: 900 }}>
-                      {pct >= 90 ? t("eventAlmostFull")
-                        : `${event.maxParticipants - (event.participantCount || 0)} ${t("eventSpotsLeft")}`}
+                      {pct >= 90 ? t("eventAlmostFull") : `${event.maxParticipants - (event.participantCount || 0)} ${t("eventSpotsLeft")}`}
                     </p>
                   </div>
                 );
@@ -261,7 +253,6 @@ export default function EventDetailPage() {
           </div>
         </div>
 
-        {/* RSVP button */}
         {upcoming && !isOrganizer && (
           <button
             type="button"
@@ -269,13 +260,9 @@ export default function EventDetailPage() {
             onClick={handleRsvp}
             style={isGoing ? s.cancelRsvpBtn : isFull ? s.fullBtn : s.rsvpBtn}
           >
-            {rsvping ? "…"
-              : isGoing ? t("eventCancelRsvp")
-              : isFull ? t("eventFull")
-              : t("eventRsvp")}
+            {rsvping ? "…" : isGoing ? t("eventCancelRsvp") : isFull ? t("eventFull") : t("eventRsvp")}
           </button>
         )}
-        {/* Reminder button */}
         {upcoming && (
           <button
             type="button"
@@ -283,14 +270,10 @@ export default function EventDetailPage() {
             onClick={handleReminder}
             style={reminderSet ? s.reminderSetBtn : s.reminderBtn}
           >
-            {settingReminder ? "…"
-              : reminderSet
-              ? t("eventReminderSet")
-              : t("eventSetReminder")}
+            {settingReminder ? "…" : reminderSet ? t("eventReminderSet") : t("eventSetReminder")}
           </button>
         )}
 
-        {/* Share event */}
         <button
           type="button"
           onClick={handleShare}
@@ -300,17 +283,12 @@ export default function EventDetailPage() {
         </button>
 
         {isOrganizer && (
-          <div style={s.organizerBanner}>
-            🎤 {t("eventYouAreOrganizer")}
-          </div>
+          <div style={s.organizerBanner}>🎤 {t("eventYouAreOrganizer")}</div>
         )}
 
-        {/* Participants list */}
         {rsvps.length > 0 && (
           <div style={s.participantSection}>
-            <p style={s.sectionLabel}>
-              {t("eventParticipantsList")} ({rsvps.length})
-            </p>
+            <p style={s.sectionLabel}>{t("eventParticipantsList")} ({rsvps.length})</p>
             <div style={s.participantGrid}>
               {rsvps.map((r) => {
                 const pu = participants[r.userId] || {};
