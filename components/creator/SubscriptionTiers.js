@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { GOLD, RED, redAlpha, goldAlpha } from "@/lib/tokens";
+import { useAuth } from "@/lib/AuthContext";
+import { GOLD, RED } from "@/lib/tokens";
 
 const TIERS = [
   {
@@ -35,7 +36,29 @@ const TIERS = [
 ];
 
 export default function SubscriptionTiers({ t, locale }) {
+  const { user } = useAuth();
   const [selected, setSelected] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const stripeEnabled = !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+
+  const handleSubscribe = async () => {
+    if (!selected || !user || loading) return;
+    setLoading(true);
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ tierId: selected }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    } catch {
+      // silent — Stripe may not be configured
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -113,21 +136,29 @@ export default function SubscriptionTiers({ t, locale }) {
         );
       })}
       {selected && (
-        <div
+        <button
+          onClick={stripeEnabled ? handleSubscribe : undefined}
+          disabled={loading}
           style={{
             marginTop: 4,
             padding: "14px",
             borderRadius: 14,
-            border: `1px solid rgba(212,175,55,0.2)`,
-            background: "rgba(212,175,55,0.05)",
+            border: `1px solid rgba(212,175,55,${stripeEnabled ? "0.4" : "0.2"})`,
+            background: stripeEnabled
+              ? loading ? "rgba(212,175,55,0.15)" : "rgba(212,175,55,0.08)"
+              : "rgba(212,175,55,0.05)",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
             gap: 12,
+            width: "100%",
+            cursor: stripeEnabled && !loading ? "pointer" : "default",
           }}
         >
-          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>
-            {t("tierActivateBtn")}
+          <span style={{ fontSize: 12, color: stripeEnabled ? GOLD : "rgba(255,255,255,0.4)", fontWeight: 700 }}>
+            {loading
+              ? (locale === "mn" ? "Уншиж байна..." : locale === "ko" ? "로딩 중..." : "Loading...")
+              : t("tierActivateBtn")}
           </span>
           <span style={{
             fontSize: 10,
@@ -135,11 +166,11 @@ export default function SubscriptionTiers({ t, locale }) {
             letterSpacing: 1.5,
             color: GOLD,
             fontFamily: "var(--font-condensed)",
-            opacity: 0.7,
+            opacity: stripeEnabled ? 1 : 0.5,
           }}>
-            COMING SOON
+            {stripeEnabled ? (locale === "mn" ? "ҮРГЭЛЖЛҮҮЛЭХ →" : locale === "ko" ? "계속하기 →" : "CONTINUE →") : "COMING SOON"}
           </span>
-        </div>
+        </button>
       )}
     </div>
   );

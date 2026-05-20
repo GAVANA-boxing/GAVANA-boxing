@@ -4,6 +4,7 @@ import { verifyIdToken } from "@/lib/verifyAuth";
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_VERSION = "2023-06-01";
+const ANTHROPIC_BETA = "prompt-caching-2024-07-31";
 const MODEL = "claude-haiku-4-5-20251001";
 
 let loggedMissingKey = false;
@@ -183,12 +184,18 @@ export async function POST(req) {
     return textResponse(fallbackText, true);
   }
 
-  const systemPrompt = [
-    selectedPersona.systemPrompt,
-    GAVANA_CONTEXT,
-    "The following language rule overrides all persona style and prior instructions.",
-    languageInstruction,
-  ].join("\n\n");
+  // Static persona+platform block is cached across requests (saves tokens on repeated calls)
+  const systemBlocks = [
+    {
+      type: "text",
+      text: [selectedPersona.systemPrompt, GAVANA_CONTEXT].join("\n\n"),
+      cache_control: { type: "ephemeral" },
+    },
+    {
+      type: "text",
+      text: "The following language rule overrides all persona style and prior instructions.\n\n" + languageInstruction,
+    },
+  ];
 
   try {
     const response = await fetch(ANTHROPIC_URL, {
@@ -197,11 +204,12 @@ export async function POST(req) {
         "content-type": "application/json",
         "x-api-key": process.env.ANTHROPIC_API_KEY,
         "anthropic-version": ANTHROPIC_VERSION,
+        "anthropic-beta": ANTHROPIC_BETA,
       },
       body: JSON.stringify({
         model: MODEL,
         max_tokens: 600,
-        system: systemPrompt,
+        system: systemBlocks,
         messages: normalizedMessages,
       }),
     });
