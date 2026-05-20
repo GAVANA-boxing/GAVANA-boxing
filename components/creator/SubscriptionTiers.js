@@ -35,14 +35,47 @@ const TIERS = [
   },
 ];
 
+const LABEL = {
+  subscribe: { en: "Subscribe to", mn: "Захиалах:", ko: "구독하기:" },
+  loading:   { en: "Redirecting to checkout…", mn: "Уншиж байна…", ko: "로딩 중…" },
+  select:    { en: "Select a plan above", mn: "Дээрээс план сонгоно уу", ko: "위에서 플랜을 선택하세요" },
+  notConfigured: {
+    en: "Stripe is not configured yet — add keys to .env.local to activate payments.",
+    mn: "Stripe тохируулагдаагүй байна — .env.local файлд key нэмнэ үү.",
+    ko: "Stripe가 설정되지 않았습니다 — .env.local에 키를 추가하세요.",
+  },
+  error: {
+    en: "Could not start checkout. Please try again.",
+    mn: "Checkout эхлүүлж чадсангүй. Дахин оролдоно уу.",
+    ko: "결제를 시작할 수 없습니다. 다시 시도해주세요.",
+  },
+};
+
+function l(obj, locale) {
+  return obj[locale] || obj.en;
+}
+
 export default function SubscriptionTiers({ t, locale }) {
   const { user } = useAuth();
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(false);
-  const stripeEnabled = !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+  const [error, setError] = useState("");
+  const stripeReady = !!(
+    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY &&
+    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY.startsWith("pk_")
+  );
+
+  const selectedTier = TIERS.find((t) => t.id === selected);
 
   const handleSubscribe = async () => {
     if (!selected || !user || loading) return;
+    setError("");
+
+    if (!stripeReady) {
+      setError(l(LABEL.notConfigured, locale));
+      return;
+    }
+
     setLoading(true);
     try {
       const token = await user.getIdToken();
@@ -52,39 +85,44 @@ export default function SubscriptionTiers({ t, locale }) {
         body: JSON.stringify({ tierId: selected }),
       });
       const data = await res.json();
-      if (data.url) window.location.href = data.url;
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setError(data.error || l(LABEL.error, locale));
+      }
     } catch {
-      // silent — Stripe may not be configured
+      setError(l(LABEL.error, locale));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       {TIERS.map((tier) => {
         const isSelected = selected === tier.id;
         return (
           <div
             key={tier.id}
-            onClick={() => setSelected(isSelected ? null : tier.id)}
+            onClick={() => { setSelected(isSelected ? null : tier.id); setError(""); }}
             style={{
               position: "relative",
               borderRadius: 16,
-              border: `1.5px solid ${isSelected ? tier.color : "rgba(255,255,255,0.08)"}`,
+              border: `2px solid ${isSelected ? tier.color : "rgba(255,255,255,0.09)"}`,
               background: isSelected
-                ? `linear-gradient(145deg, ${tier.color}18, #0a0a0a)`
+                ? `linear-gradient(145deg, ${tier.color}22, #111)`
                 : "rgba(255,255,255,0.03)",
               padding: "14px 16px",
               cursor: "pointer",
-              transition: "border-color 0.2s, background 0.2s",
+              transition: "border-color 0.15s, background 0.15s",
+              boxShadow: isSelected ? `0 0 18px ${tier.color}33` : "none",
             }}
           >
             {tier.popular && (
               <div style={{
                 position: "absolute",
                 top: -10,
-                left: 16,
+                left: 14,
                 background: GOLD,
                 color: "#000",
                 fontSize: 9,
@@ -96,82 +134,101 @@ export default function SubscriptionTiers({ t, locale }) {
                 {locale === "mn" ? "АЛДАРТАЙ" : locale === "ko" ? "인기" : "POPULAR"}
               </div>
             )}
+
+            {/* Header row */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 22 }}>{tier.emoji}</span>
+                <span style={{ fontSize: 24 }}>{tier.emoji}</span>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 900, color: tier.color }}>
+                  <div style={{ fontSize: 14, fontWeight: 900, color: isSelected ? tier.color : "#fff" }}>
                     {t(tier.nameKey)}
                   </div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 1 }}>
+                  <div style={{ fontSize: 12, color: isSelected ? tier.color : "rgba(255,255,255,0.45)", marginTop: 1, fontWeight: 700 }}>
                     {t(tier.priceKey)}
                   </div>
                 </div>
               </div>
+              {/* Selection indicator */}
               <div style={{
-                width: 20,
-                height: 20,
+                width: 22,
+                height: 22,
                 borderRadius: "50%",
-                border: `2px solid ${isSelected ? tier.color : "rgba(255,255,255,0.2)"}`,
+                border: `2.5px solid ${isSelected ? tier.color : "rgba(255,255,255,0.2)"}`,
                 background: isSelected ? tier.color : "transparent",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 flexShrink: 0,
+                transition: "all 0.15s",
               }}>
-                {isSelected && <span style={{ fontSize: 10, color: "#000", fontWeight: 900 }}>✓</span>}
+                {isSelected && <span style={{ fontSize: 11, color: "#000", fontWeight: 900 }}>✓</span>}
               </div>
             </div>
-            {isSelected && (
-              <ul style={{ margin: "10px 0 0 0", padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 5 }}>
-                {tier.perks.map((perkKey) => (
-                  <li key={perkKey} style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ color: tier.color, fontSize: 10 }}>✦</span>
-                    {t(perkKey)}
-                  </li>
-                ))}
-              </ul>
-            )}
+
+            {/* Perks — always visible */}
+            <ul style={{ margin: "10px 0 0 0", padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 5 }}>
+              {tier.perks.map((perkKey) => (
+                <li key={perkKey} style={{ fontSize: 11, color: isSelected ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.4)", display: "flex", alignItems: "center", gap: 7 }}>
+                  <span style={{ color: tier.color, fontSize: 10, flexShrink: 0 }}>✦</span>
+                  {t(perkKey)}
+                </li>
+              ))}
+            </ul>
           </div>
         );
       })}
-      {selected && (
+
+      {/* Error message */}
+      {error && (
+        <div style={{
+          padding: "10px 14px",
+          borderRadius: 10,
+          background: "rgba(193,18,31,0.12)",
+          border: "1px solid rgba(193,18,31,0.3)",
+          fontSize: 12,
+          color: "#ff6b6b",
+          lineHeight: 1.5,
+        }}>
+          {error}
+        </div>
+      )}
+
+      {/* Sticky CTA */}
+      <div style={{
+        position: "sticky",
+        bottom: 72,
+        zIndex: 10,
+        marginTop: 6,
+      }}>
         <button
-          onClick={stripeEnabled ? handleSubscribe : undefined}
-          disabled={loading}
+          onClick={handleSubscribe}
+          disabled={!selected || loading}
           style={{
-            marginTop: 4,
-            padding: "14px",
-            borderRadius: 14,
-            border: `1px solid rgba(212,175,55,${stripeEnabled ? "0.4" : "0.2"})`,
-            background: stripeEnabled
-              ? loading ? "rgba(212,175,55,0.15)" : "rgba(212,175,55,0.08)"
-              : "rgba(212,175,55,0.05)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 12,
             width: "100%",
-            cursor: stripeEnabled && !loading ? "pointer" : "default",
+            padding: "16px",
+            borderRadius: 14,
+            border: "none",
+            background: selected
+              ? loading
+                ? "rgba(193,18,31,0.5)"
+                : RED
+              : "rgba(255,255,255,0.07)",
+            color: selected ? "#fff" : "rgba(255,255,255,0.3)",
+            fontSize: 14,
+            fontWeight: 900,
+            letterSpacing: 0.5,
+            cursor: selected && !loading ? "pointer" : "default",
+            transition: "background 0.15s, color 0.15s",
+            boxShadow: selected && !loading ? `0 4px 20px rgba(193,18,31,0.4)` : "none",
           }}
         >
-          <span style={{ fontSize: 12, color: stripeEnabled ? GOLD : "rgba(255,255,255,0.4)", fontWeight: 700 }}>
-            {loading
-              ? (locale === "mn" ? "Уншиж байна..." : locale === "ko" ? "로딩 중..." : "Loading...")
-              : t("tierActivateBtn")}
-          </span>
-          <span style={{
-            fontSize: 10,
-            fontWeight: 900,
-            letterSpacing: 1.5,
-            color: GOLD,
-            fontFamily: "var(--font-condensed)",
-            opacity: stripeEnabled ? 1 : 0.5,
-          }}>
-            {stripeEnabled ? (locale === "mn" ? "ҮРГЭЛЖЛҮҮЛЭХ →" : locale === "ko" ? "계속하기 →" : "CONTINUE →") : "COMING SOON"}
-          </span>
+          {loading
+            ? l(LABEL.loading, locale)
+            : selected
+            ? `${l(LABEL.subscribe, locale)} ${t(selectedTier.nameKey)} — ${t(selectedTier.priceKey)}`
+            : l(LABEL.select, locale)}
         </button>
-      )}
+      </div>
     </div>
   );
 }
