@@ -2,7 +2,7 @@ const s = {
   page: {
     minHeight: "100vh",
     color: "#fff",
-    paddingBottom: 100,
+    paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
     position: "relative",
   },
 

@@ -148,7 +148,7 @@ const s = {
     background: "#070707",
     color: "#fff",
     position: "relative",
-    paddingBottom: 80,
+    paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
   },
   ambientGlow: {
     position: "fixed",

@@ -5,7 +5,7 @@ const styles = {
     minHeight: "100vh",
     background: "linear-gradient(180deg, #070707 0%, #0A0A0A 100%)",
     color: "#fff",
-    paddingBottom: 90,
+    paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
   },
   header: {
     position: "sticky",

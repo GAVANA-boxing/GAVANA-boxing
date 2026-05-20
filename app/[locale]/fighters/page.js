@@ -79,7 +79,7 @@ const s = {
     minHeight: "100vh",
     background: `radial-gradient(ellipse at top center, ${redAlpha(0.1)} 0%, transparent 45%), #080808`,
     color: "#fff",
-    paddingBottom: 100,
+    paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
     position: "relative",
   },
   ambientGlow: {
