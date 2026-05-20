@@ -2,6 +2,55 @@
 
 import styles from "./feedbackStyles";
 
+// Parse the structured AI feedback into sections
+function parseFeedback(text) {
+  if (!text) return null;
+  const scoreMatch = text.match(/Score:\s*([\d.]+)\s*\/\s*10/i);
+  const score = scoreMatch ? parseFloat(scoreMatch[1]) : null;
+
+  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+  let strength = null, improve = null, drill = null;
+
+  for (const line of lines) {
+    if (!strength && /^(strength|давуу тал|강점)\s*:/i.test(line)) {
+      strength = line.replace(/^[^:]+:\s*/i, "");
+    } else if (!improve && /^(improve|сайжруулах|개선점)\s*:/i.test(line)) {
+      improve = line.replace(/^[^:]+:\s*/i, "");
+    } else if (!drill && /^(next drill|дараагийн дасгал|다음 훈련)\s*:/i.test(line)) {
+      drill = line.replace(/^[^:]+:\s*/i, "");
+    }
+  }
+
+  // If we couldn't parse sections, fall back to raw text
+  if (!strength && !improve && !drill) return { raw: text, score };
+  return { score, strength, improve, drill };
+}
+
+function ScoreMeter({ score }) {
+  const pct = Math.min(100, Math.max(0, (score / 10) * 100));
+  const color = score >= 8 ? "#34D399" : score >= 6 ? "#FBBF24" : "#F87171";
+  return (
+    <div style={fm.scoreWrap}>
+      <div style={fm.scoreRow}>
+        <span style={fm.scoreLabel}>SCORE</span>
+        <span style={{ ...fm.scoreVal, color }}>{score.toFixed(1)}<span style={fm.scoreMax}>/10</span></span>
+      </div>
+      <div style={fm.scoreTrack}>
+        <div style={{ ...fm.scoreFill, width: `${pct}%`, background: color }} />
+      </div>
+    </div>
+  );
+}
+
+function FeedbackSection({ icon, label, text, accentColor }) {
+  return (
+    <div style={{ ...fm.section, borderLeftColor: accentColor }}>
+      <p style={{ ...fm.sectionLabel, color: accentColor }}>{icon} {label}</p>
+      <p style={fm.sectionText}>{text}</p>
+    </div>
+  );
+}
+
 export default function FeedbackModal({
   feedbackOpen,
   feedbackLoading,
@@ -14,6 +63,8 @@ export default function FeedbackModal({
   onClose,
 }) {
   if (!feedbackOpen) return null;
+
+  const parsed = parseFeedback(feedbackResult);
 
   return (
     <div style={styles.feedbackModal}>
@@ -35,9 +86,12 @@ export default function FeedbackModal({
 
         <div style={styles.feedbackBody}>
           {feedbackLoading && (
-            <div style={styles.feedbackLoading}>
+            <div style={fm.loadingWrap}>
               <div style={styles.feedbackSpinner} />
-              <span>{t("analyzingRound")}</span>
+              <div style={fm.loadingText}>
+                <span style={fm.loadingTitle}>AI ANALYZING</span>
+                <span style={fm.loadingMeta}>{t("analyzingRound")}</span>
+              </div>
             </div>
           )}
 
@@ -45,7 +99,7 @@ export default function FeedbackModal({
             <div style={styles.feedbackError}>{feedbackError}</div>
           )}
 
-          {feedbackResult && (
+          {feedbackResult && parsed && (
             <>
               {feedbackSaved && (
                 <div style={styles.feedbackSaved}>
@@ -53,6 +107,42 @@ export default function FeedbackModal({
                 </div>
               )}
 
+              {/* Score meter */}
+              {parsed.score !== null && <ScoreMeter score={parsed.score} />}
+
+              {/* Structured sections */}
+              {parsed.raw ? (
+                <pre style={styles.feedbackResult}>{parsed.raw}</pre>
+              ) : (
+                <div style={fm.sections}>
+                  {parsed.strength && (
+                    <FeedbackSection
+                      icon="✦"
+                      label="STRENGTH"
+                      text={parsed.strength}
+                      accentColor="#34D399"
+                    />
+                  )}
+                  {parsed.improve && (
+                    <FeedbackSection
+                      icon="↑"
+                      label="IMPROVE"
+                      text={parsed.improve}
+                      accentColor="#FBBF24"
+                    />
+                  )}
+                  {parsed.drill && (
+                    <FeedbackSection
+                      icon="⚡"
+                      label="NEXT DRILL"
+                      text={parsed.drill}
+                      accentColor="#C8102E"
+                    />
+                  )}
+                </div>
+              )}
+
+              {/* XP breakdown */}
               {sessionXPData && (
                 <div style={styles.xpCard}>
                   <p style={styles.xpCardTitle}>{t("xpEarned")}</p>
@@ -115,8 +205,6 @@ export default function FeedbackModal({
                   </div>
                 </div>
               )}
-
-              <pre style={styles.feedbackResult}>{feedbackResult}</pre>
             </>
           )}
         </div>
@@ -124,3 +212,93 @@ export default function FeedbackModal({
     </div>
   );
 }
+
+// Phase 45 local styles
+const fm = {
+  loadingWrap: {
+    display: "flex",
+    alignItems: "center",
+    gap: 14,
+    padding: "8px 0 16px",
+  },
+  loadingText: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 2,
+  },
+  loadingTitle: {
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: 900,
+    letterSpacing: 2,
+  },
+  loadingMeta: {
+    color: "rgba(255,255,255,0.45)",
+    fontSize: 12,
+  },
+  scoreWrap: {
+    marginBottom: 16,
+    padding: "14px 16px",
+    borderRadius: 14,
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.08)",
+  },
+  scoreRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "baseline",
+    marginBottom: 10,
+  },
+  scoreLabel: {
+    fontSize: 10,
+    fontWeight: 900,
+    letterSpacing: 2,
+    color: "rgba(255,255,255,0.4)",
+  },
+  scoreVal: {
+    fontSize: 28,
+    fontWeight: 1000,
+    lineHeight: 1,
+  },
+  scoreMax: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: "rgba(255,255,255,0.35)",
+  },
+  scoreTrack: {
+    height: 4,
+    borderRadius: 999,
+    background: "rgba(255,255,255,0.08)",
+    overflow: "hidden",
+  },
+  scoreFill: {
+    height: "100%",
+    borderRadius: 999,
+    transition: "width 0.8s ease",
+  },
+  sections: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+    marginBottom: 16,
+  },
+  section: {
+    padding: "12px 14px",
+    borderRadius: 12,
+    background: "rgba(255,255,255,0.035)",
+    border: "1px solid rgba(255,255,255,0.06)",
+    borderLeft: "3px solid",
+  },
+  sectionLabel: {
+    margin: "0 0 5px",
+    fontSize: 10,
+    fontWeight: 900,
+    letterSpacing: 1.5,
+  },
+  sectionText: {
+    margin: 0,
+    fontSize: 13,
+    color: "rgba(255,255,255,0.75)",
+    lineHeight: 1.55,
+  },
+};

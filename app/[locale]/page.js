@@ -57,20 +57,20 @@ export default async function LocalizedHomePage({ params }) {
       </nav>
 
       {/* Hero */}
-      <section style={s.hero}>
+      <section className="landing-hero" style={s.hero}>
         <p style={s.kicker}>GAVANA BOXING</p>
-        <h1 style={s.title}>
+        <h1 className="landing-title" style={s.title}>
           Train.<br />Fight.<br />
           <span style={s.titleAccent}>Evolve.</span>
         </h1>
-        <p style={s.subtitle}>
+        <p className="landing-subtitle" style={s.subtitle}>
           {locale === "mn"
             ? "AI тренер, бодит цохилт тоолох систем, Fighter Card болон шууд тулааны challenge."
             : locale === "ko"
             ? "AI 코치, 실시간 펀치 감지, 파이터 카드, 실시간 배틀 챌린지."
             : "AI punch scoring, Fighter Card, real-time challenges — the boxing app built for fighters."}
         </p>
-        <div style={s.ctaRow}>
+        <div className="landing-cta-row" style={s.ctaRow}>
           <Link href={`/${locale}/login?mode=signup`} style={s.primaryCta}>
             {t("loginSignUp")} →
           </Link>
@@ -81,7 +81,7 @@ export default async function LocalizedHomePage({ params }) {
       </section>
 
       {/* Social proof — glass blur panel */}
-      <section className="glass-stats" style={s.socialProof}>
+      <section className="glass-stats landing-social-proof" style={s.socialProof}>
         {SOCIAL_PROOF.map(({ value, labelKey }) => (
           <div key={labelKey} style={s.proofItem}>
             <span style={s.proofValue}>{value}</span>
@@ -118,7 +118,7 @@ export default async function LocalizedHomePage({ params }) {
       </section>
 
       {/* Features */}
-      <section style={s.features}>
+      <section className="landing-features" style={s.features}>
         <p style={s.sectionKicker}>WHY GAVANA</p>
         <h2 style={s.sectionTitle}>{t("landingFeaturesTitle")}</h2>
         <div style={s.featureGrid}>

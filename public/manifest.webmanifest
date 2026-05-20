@@ -1,0 +1,27 @@
+{
+  "name": "GAVANA Boxing",
+  "short_name": "GAVANA",
+  "description": "AI punch scoring, Fighter Card, real-time challenges — the boxing app built for fighters.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070707",
+  "theme_color": "#070707",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icons/gavana-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/gavana-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "categories": ["sports", "fitness", "health"],
+  "lang": "en"
+}

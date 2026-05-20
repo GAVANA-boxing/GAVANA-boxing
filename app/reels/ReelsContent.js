@@ -247,11 +247,17 @@ export default function ReelsContent() {
   if (authLoading || reelsLoading) {
     return (
       <div style={styles.container}>
-        <div style={styles.loading}>
-          <div style={styles.spinner}></div>
-          <div style={styles.loadingTitle}>{t("loadingReels")}</div>
-          <div style={styles.loadingMeta}>
-            {authLoading ? t("checkingSession") : t("fetchingFeed")}
+        <div style={styles.loadingCinematic}>
+          <div style={styles.loadingOrb} />
+          <div className="reel-skeleton" style={styles.skeletonBack} />
+          <div className="reel-skeleton" style={styles.skeletonMid} />
+          <div className="reel-skeleton" style={styles.skeletonFront} />
+          <div style={styles.loadingStatus}>
+            <div style={styles.spinner} />
+            <div style={styles.loadingTitle}>{t("loadingReels")}</div>
+            <div style={styles.loadingMeta}>
+              {authLoading ? t("checkingSession") : t("fetchingFeed")}
+            </div>
           </div>
         </div>
         <BottomNav router={router} user={user} currentLocale={currentLocale} />

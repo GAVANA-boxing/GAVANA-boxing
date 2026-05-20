@@ -612,3 +612,95 @@ p {
   box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 20px rgba(193,18,31,0.08);
   transform: translateY(-2px);
 }
+
+/* ─── Phase 41: Reel skeleton shimmer ──────────────────────────────────────── */
+@keyframes skeleton-shimmer {
+  0%   { opacity: 0.4; }
+  50%  { opacity: 0.7; }
+  100% { opacity: 0.4; }
+}
+.reel-skeleton {
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+}
+
+/* ─── Phase 42: Premium Motion System ─────────────────────────────────────── */
+
+/* Lift card — any card with pointer hover */
+.lift-card {
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+.lift-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45), 0 0 20px rgba(193,18,31,0.07) !important;
+}
+
+/* Red glow button */
+.btn-red-glow {
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+.btn-red-glow:hover {
+  box-shadow: 0 0 28px rgba(193,18,31,0.55), 0 8px 24px rgba(193,18,31,0.3) !important;
+  transform: translateY(-1px);
+}
+.btn-red-glow:active { transform: scale(0.97); }
+
+/* Nav item hover glow */
+.nav-item-hover {
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+.nav-item-hover:hover {
+  background: rgba(255,255,255,0.07) !important;
+  transform: translateY(-1px);
+}
+.nav-item-hover:active { transform: scale(0.93); }
+
+/* Leaderboard / list row hover */
+.list-row-hover {
+  transition: background 0.18s ease, border-color 0.18s ease;
+  cursor: pointer;
+}
+.list-row-hover:hover {
+  background: rgba(255,255,255,0.04) !important;
+  border-color: rgba(193,18,31,0.2) !important;
+}
+
+/* Stat badge glow on hover */
+.stat-badge-glow {
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.stat-badge-glow:hover {
+  border-color: rgba(212,175,55,0.35) !important;
+  box-shadow: 0 0 14px rgba(212,175,55,0.12) !important;
+}
+
+/* ─── Phase 43: Mobile Polish ──────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .landing-hero {
+    padding: 90px 20px 64px !important;
+  }
+  .landing-title {
+    font-size: clamp(52px, 18vw, 80px) !important;
+    letter-spacing: -2px !important;
+  }
+  .landing-subtitle {
+    font-size: 15px !important;
+    line-height: 1.6 !important;
+  }
+  .landing-cta-row {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+  .landing-cta-row a {
+    width: 100% !important;
+    max-width: 320px !important;
+    text-align: center !important;
+  }
+  .landing-social-proof {
+    gap: 24px !important;
+    padding: 28px 20px !important;
+  }
+  .landing-features {
+    padding: 64px 16px !important;
+  }
+}
