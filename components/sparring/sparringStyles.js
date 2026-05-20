@@ -1,7 +1,7 @@
 import { redAlpha, RED } from "@/lib/tokens";
 
 const s = {
-  page: { minHeight: "100dvh", background: "#070707", color: "#fff", fontFamily: "system-ui, sans-serif", display: "flex", flexDirection: "column" },
+  page: { minHeight: "100dvh", background: "#070707", color: "#fff", display: "flex", flexDirection: "column" },
   loadWrap: { minHeight: "100dvh", background: "#070707", display: "flex", alignItems: "center", justifyContent: "center" },
   spinner: { width: 26, height: 26, border: "2px solid #C1121F", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" },
   header: {
