@@ -178,7 +178,6 @@ const styles = {
     background: "linear-gradient(180deg, #070707 0%, #090909 100%)",
     color: "#fff",
     padding: "28px 20px 60px",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   },
   header: {
     display: "flex",

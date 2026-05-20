@@ -8,7 +8,6 @@ export const reelVideoStyles = {
     minHeight: "100dvh",
     background: "#000",
     overflow: "hidden",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   },
   loading: {
     display: "flex",

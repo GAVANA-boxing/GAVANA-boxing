@@ -269,7 +269,6 @@ const pillStyles = {
     WebkitBackdropFilter: "blur(22px)",
     boxShadow: "0 10px 36px rgba(0,0,0,0.6)",
     color: "#fff",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     display: "grid",
     gap: 8,
     cursor: "grab",

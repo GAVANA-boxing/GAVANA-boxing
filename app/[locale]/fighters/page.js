@@ -79,7 +79,6 @@ const s = {
     minHeight: "100vh",
     background: `radial-gradient(ellipse at top center, ${redAlpha(0.1)} 0%, transparent 45%), #080808`,
     color: "#fff",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     paddingBottom: 100,
     position: "relative",
   },

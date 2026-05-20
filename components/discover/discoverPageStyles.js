@@ -6,7 +6,6 @@ export const discoverPageStyles = {
     background: `radial-gradient(ellipse at top center, ${redAlpha(0.07)} 0%, transparent 55%), #080808`,
     color: "#fff",
     paddingBottom: 100,
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   },
   header: {
     padding: "calc(28px + env(safe-area-inset-top)) 20px 14px",

@@ -5,7 +5,6 @@ const styles = {
     minHeight: "100vh",
     background: `radial-gradient(ellipse at top center, ${redAlpha(0.06)} 0%, transparent 50%), linear-gradient(180deg, #070707 0%, #0a0a0a 100%)`,
     color: "#fff",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     paddingBottom: "calc(64px + env(safe-area-inset-bottom))",
   },
   centered: {

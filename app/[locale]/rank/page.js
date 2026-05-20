@@ -255,7 +255,6 @@ const styles = {
     minHeight: "100vh",
     background: "linear-gradient(180deg, #070707 0%, #0A0A0A 100%)",
     color: "#fff",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     paddingBottom: 90,
   },
   header: {

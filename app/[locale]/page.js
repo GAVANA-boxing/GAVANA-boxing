@@ -166,7 +166,6 @@ const s = {
       linear-gradient(180deg, #060608 0%, #09090B 60%, #070709 100%)
     `,
     color: "#fff",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     overflowX: "hidden",
     position: "relative",
   },

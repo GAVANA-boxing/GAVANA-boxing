@@ -2,7 +2,6 @@ const s = {
   page: {
     minHeight: "100vh",
     color: "#fff",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     paddingBottom: 100,
     position: "relative",
   },

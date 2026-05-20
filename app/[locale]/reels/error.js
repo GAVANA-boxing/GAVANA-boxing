@@ -49,7 +49,6 @@ const s = {
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   },
   orb: {
     position: "absolute",

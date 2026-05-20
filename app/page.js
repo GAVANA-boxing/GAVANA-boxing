@@ -108,7 +108,6 @@ export default function HomePage() {
           min-height: 100vh;
           background: #070707;
           color: #fff;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
           overflow-x: hidden;
         }
 

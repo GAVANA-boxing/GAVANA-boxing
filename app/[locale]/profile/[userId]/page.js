@@ -319,7 +319,6 @@ export default function UserProfilePage() {
       minHeight: "100vh",
       background: `radial-gradient(ellipse at top center, ${redAlpha(0.08)} 0%, transparent 50%), var(--background)`,
       color: "var(--text-primary)",
-      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
       padding: 0,
       overflowX: "hidden"
     }}>

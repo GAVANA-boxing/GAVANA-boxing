@@ -6,7 +6,6 @@ const styles = {
     background: `radial-gradient(circle at 50% 0%, ${redAlpha(0.14)}, transparent 32%), linear-gradient(180deg, #070707, #0B0B0B)`,
     color: "#fff",
     padding: "calc(20px + env(safe-area-inset-top)) 16px 48px",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   },
   shell: {
     width: "min(100%, 560px)",
