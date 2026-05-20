@@ -1,4 +1,4 @@
-export const metadata = { title: "Offline — GAVANA Boxing" };
+"use client";
 
 export default function OfflinePage() {
   return (
@@ -26,7 +26,7 @@ export default function OfflinePage() {
       </p>
       <button
         type="button"
-        onClick={() => { if (typeof window !== "undefined") window.location.reload(); }}
+        onClick={() => window.location.reload()}
         style={{ marginTop: 32, padding: "14px 32px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.07)", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer" }}
       >
         Retry
