@@ -3,7 +3,6 @@
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
-import DashboardLayout from "@/components/DashboardLayout";
 import DailyMission from "@/components/DailyMission";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
@@ -150,7 +149,6 @@ export default function TrainPage() {
   const canStart = phase === "idle" || phase === "result";
 
   return (
-    <DashboardLayout currentLocale={locale}>
     <main style={styles.page}>
       <button type="button" style={styles.backButton} onClick={goBack} aria-label="Back">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -335,6 +333,5 @@ export default function TrainPage() {
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="reels" />
 
     </main>
-    </DashboardLayout>
   );
 }

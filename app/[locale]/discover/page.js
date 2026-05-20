@@ -7,7 +7,6 @@ import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
 import StoryBar from "@/components/StoryBar";
 import PageTopBar from "@/components/PageTopBar";
-import DashboardLayout from "@/components/DashboardLayout";
 import { getLocale, translate } from "@/lib/i18n";
 import { FIGHTERS } from "@/lib/fighters";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
@@ -85,7 +84,6 @@ export default function DiscoverPage() {
   const showSearch = hasSearched && query.trim();
 
   return (
-    <DashboardLayout currentLocale={locale}>
     <div style={s.page} className="page-enter">
       <PageTopBar kicker="EXPLORE" title={t("discoverTitle") || "DISCOVER"} user={user} currentLocale={locale} />
 
@@ -472,7 +470,6 @@ export default function DiscoverPage() {
 
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="discover" />
     </div>
-    </DashboardLayout>
   );
 }
 

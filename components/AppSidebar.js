@@ -42,7 +42,7 @@ const IcoMessage = () => (
 );
 
 const NAV_ITEMS = [
-  { Icon: IcoHome,    label: "Нүүр",     path: "" },
+  { Icon: IcoHome,    label: "Нүүр",     path: "discover" },
   { Icon: IcoPlay,    label: "Рилс",     path: "reels" },
   { Icon: IcoBrain,   label: "AI Коач",  path: "train" },
   { Icon: IcoTrophy,  label: "Чансаа",   path: "rank" },
@@ -76,11 +76,7 @@ export default function AppSidebar({ currentLocale }) {
     });
   }, [user?.uid, user?.photoURL]);
 
-  const isActive = (path) => {
-    const segment = `/${locale}/${path}`;
-    if (path === "") return pathname === `/${locale}` || pathname === `/${locale}/dashboard`;
-    return pathname?.startsWith(segment);
-  };
+  const isActive = (path) => pathname?.startsWith(`/${locale}/${path}`);
 
   const go = (path) => router.push(`/${locale}/${path}`);
 

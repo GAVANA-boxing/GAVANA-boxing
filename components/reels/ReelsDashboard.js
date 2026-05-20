@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import { getCreatorName, getCreatorPhoto, cleanCaption } from "@/lib/reelHelpers";
-import AppSidebar from "@/components/AppSidebar";
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
 const IcoHome = () => (
@@ -594,8 +593,6 @@ export default function ReelsDashboard({
   }, [user?.uid, user?.photoURL]);
   return (
     <div style={d.page}>
-      <AppSidebar currentLocale={currentLocale} />
-
       <main style={d.center}>
         <div style={d.centerInner}>
           {!isProfileSource && (

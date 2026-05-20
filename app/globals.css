@@ -372,6 +372,15 @@ p {
   .dash-center::-webkit-scrollbar { display: none; }
 }
 
+/* ─── SPA panel transition — content fades in on route change ─────────────── */
+@keyframes panelIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.dash-center > * {
+  animation: panelIn 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 /* ── Train page animations ── */
 
 @keyframes flashFade {
