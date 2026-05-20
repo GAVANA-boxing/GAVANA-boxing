@@ -123,8 +123,9 @@ function DesktopReelCard({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
+      {/* Video + Actions: side by side, actions OUTSIDE video */}
       <div style={d.reelRow}>
-        {/* Video */}
+        {/* Video — portrait 9:16, max 520px tall, NO text overlay */}
         <div style={d.reelVideoWrap}>
           <video
             ref={videoRef}
@@ -134,13 +135,11 @@ function DesktopReelCard({
             playsInline
             style={d.reelVideo}
           />
-          {/* Hover overlay */}
           {!hovered && (
             <div style={d.videoOverlay}>
               <div style={d.playCircle}>▶</div>
             </div>
           )}
-          {/* Progress bar */}
           {hovered && progress > 0 && (
             <div style={d.progressBarWrap}>
               <div style={{ ...d.progressFill, width: `${progress * 100}%` }} />
@@ -148,54 +147,54 @@ function DesktopReelCard({
           )}
         </div>
 
-        {/* Action buttons — right side, outside video */}
+        {/* Round action buttons — outside video, right side */}
         <div style={d.reelActions}>
           <button
             className="reel-action-btn"
-            style={{ ...d.actionBtn, ...(isLiked ? d.actionBtnLiked : {}) }}
+            style={{ ...d.roundBtn, ...(isLiked ? d.roundBtnLiked : {}) }}
             onClick={() => onLike(reel.id)}
           >
-            <span style={d.actionIcon}>❤️</span>
-            {reel.likes > 0 && <span style={d.actionCount}>{reel.likes}</span>}
+            <span style={{ fontSize: 17 }}>❤️</span>
+            {reel.likes > 0 && <span style={d.roundBtnCount}>{reel.likes}</span>}
           </button>
 
           <button
             className="reel-action-btn"
-            style={d.actionBtn}
+            style={d.roundBtn}
             onClick={() => onOpenComments(reel.id)}
           >
-            <span style={d.actionIcon}>💬</span>
-            {reel.commentsCount > 0 && <span style={d.actionCount}>{reel.commentsCount}</span>}
+            <span style={{ fontSize: 17 }}>💬</span>
+            {reel.commentsCount > 0 && <span style={d.roundBtnCount}>{reel.commentsCount}</span>}
           </button>
 
           <button
             className="reel-action-btn"
-            style={d.actionBtn}
+            style={d.roundBtn}
             onClick={() => onShare(reel.id)}
           >
-            <span style={d.actionIcon}>🔗</span>
+            <span style={{ fontSize: 17 }}>🔗</span>
           </button>
 
           <button
             className="reel-action-btn"
-            style={{ ...d.actionBtn, ...(isSaved ? d.actionBtnSaved : {}) }}
+            style={{ ...d.roundBtn, ...(isSaved ? d.roundBtnSaved : {}) }}
             onClick={() => onSave(reel.id)}
           >
-            <span style={d.actionIcon}>💾</span>
+            <span style={{ fontSize: 17 }}>💾</span>
           </button>
 
           <button
             className="reel-action-btn reel-ai-btn"
-            style={d.aiActionBtn}
+            style={d.aiRoundBtn}
             onClick={() => onGetFeedback(reel)}
           >
-            <span style={{ fontSize: 14 }}>⚡</span>
-            <span style={d.actionCount}>AI</span>
+            <span style={{ fontSize: 15 }}>⚡</span>
+            <span style={d.roundBtnCount}>AI</span>
           </button>
         </div>
       </div>
 
-      {/* Info below video */}
+      {/* Creator info + caption — below video, clean */}
       <div style={d.reelInfo}>
         <button
           style={d.creatorBtn}
@@ -373,7 +372,8 @@ export default function ReelsDashboard({
       <Sidebar router={router} user={user} currentLocale={currentLocale} />
 
       <main style={d.center}>
-        {/* Feed tabs */}
+        <div style={d.centerInner}>
+        {/* Feed tabs — sticky */}
         {!isProfileSource && (
           <div style={d.tabs}>
             {[
@@ -444,6 +444,7 @@ export default function ReelsDashboard({
             );
           })}
         </div>
+        </div>
       </main>
 
       <RightPanel user={user} router={router} currentLocale={currentLocale} />
@@ -455,7 +456,8 @@ export default function ReelsDashboard({
 const d = {
   page: {
     display: "flex",
-    minHeight: "100dvh",
+    height: "100dvh",
+    overflow: "hidden",
     background: `radial-gradient(ellipse 60% 40% at 50% 0%, ${redAlpha(0.1)} 0%, transparent 60%), #070707`,
     color: "#fff",
   },
@@ -606,18 +608,26 @@ const d = {
   // ── Center column ──
   center: {
     flex: 1,
-    display: "flex",
-    flexDirection: "column",
-    maxWidth: 700,
-    margin: "0 auto",
-    padding: "28px 24px",
+    overflowY: "auto",
+    scrollbarWidth: "none",
     minWidth: 0,
-    width: "100%",
+  },
+  centerInner: {
+    maxWidth: 600,
+    margin: "0 auto",
+    padding: "0 24px 40px",
   },
   tabs: {
+    position: "sticky",
+    top: 0,
+    zIndex: 30,
     display: "flex",
     gap: 6,
-    marginBottom: 18,
+    padding: "16px 0 14px",
+    background: "rgba(7,7,7,0.75)",
+    backdropFilter: "blur(18px)",
+    WebkitBackdropFilter: "blur(18px)",
+    marginBottom: 4,
   },
   tab: {
     padding: "7px 18px",
@@ -649,7 +659,7 @@ const d = {
     WebkitBackdropFilter: "blur(18px)",
     border: "1px solid rgba(255,255,255,0.08)",
     boxShadow: "0 4px 24px rgba(0,0,0,0.25)",
-    marginBottom: 22,
+    marginBottom: 18,
   },
   quickAva: {
     width: 38,
@@ -707,22 +717,25 @@ const d = {
     backdropFilter: "blur(18px)",
     WebkitBackdropFilter: "blur(18px)",
     border: "1px solid rgba(255,255,255,0.07)",
-    borderRadius: 22,
+    borderRadius: 24,
     overflow: "hidden",
     boxShadow: "0 8px 36px rgba(0,0,0,0.3)",
     transition: "border-color 200ms ease, box-shadow 200ms ease",
   },
   reelRow: {
     display: "flex",
-    alignItems: "stretch",
+    alignItems: "flex-end",
+    gap: 10,
+    padding: "14px 14px 0",
   },
   reelVideoWrap: {
     flex: 1,
     position: "relative",
     background: "#000",
+    borderRadius: 18,
     overflow: "hidden",
-    aspectRatio: "16/9",
-    maxHeight: 380,
+    aspectRatio: "9/16",
+    maxHeight: 520,
     cursor: "pointer",
   },
   reelVideo: {
@@ -737,23 +750,22 @@ const d = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "rgba(0,0,0,0.25)",
-    transition: "opacity 200ms ease",
+    background: "rgba(0,0,0,0.22)",
   },
   playCircle: {
-    width: 48,
-    height: 48,
+    width: 52,
+    height: 52,
     borderRadius: "50%",
-    background: "rgba(0,0,0,0.55)",
-    backdropFilter: "blur(8px)",
-    WebkitBackdropFilter: "blur(8px)",
-    border: "1.5px solid rgba(255,255,255,0.25)",
+    background: "rgba(0,0,0,0.5)",
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)",
+    border: "1.5px solid rgba(255,255,255,0.22)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: 16,
+    fontSize: 18,
     color: "rgba(255,255,255,0.9)",
-    paddingLeft: 3,
+    paddingLeft: 4,
   },
   progressBarWrap: {
     position: "absolute",
@@ -769,70 +781,74 @@ const d = {
     transition: "width 200ms linear",
   },
 
-  // ── Action buttons ──
+  // ── Round action buttons (outside video) ──
   reelActions: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    padding: "16px 10px",
-    borderLeft: "1px solid rgba(255,255,255,0.05)",
-    minWidth: 60,
-    background: "rgba(0,0,0,0.18)",
+    gap: 8,
+    paddingBottom: 4,
+    flexShrink: 0,
   },
-  actionBtn: {
+  roundBtn: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: 2,
-    padding: "9px 8px",
-    borderRadius: 13,
-    border: "none",
-    background: "rgba(255,255,255,0.05)",
-    color: "rgba(255,255,255,0.5)",
+    gap: 3,
+    width: 44,
+    height: 44,
+    borderRadius: "50%",
+    border: "1px solid rgba(255,255,255,0.1)",
+    background: "rgba(18,18,20,0.75)",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
     cursor: "pointer",
-    width: 46,
-    transition: "background 150ms ease, color 150ms ease, box-shadow 150ms ease, transform 100ms ease",
+    justifyContent: "center",
+    color: "rgba(255,255,255,0.7)",
+    transition: "border-color 150ms ease, box-shadow 150ms ease, transform 100ms ease",
   },
-  actionBtnLiked: {
-    color: "#f87171",
-    background: "rgba(248,113,113,0.15)",
+  roundBtnLiked: {
+    borderColor: "rgba(248,113,113,0.5)",
+    background: "rgba(248,113,113,0.12)",
     boxShadow: "0 0 14px rgba(248,113,113,0.3)",
   },
-  actionBtnSaved: {
-    color: GOLD,
-    background: `${goldAlpha(0.15)}`,
+  roundBtnSaved: {
+    borderColor: `${goldAlpha(0.5)}`,
+    background: `${goldAlpha(0.12)}`,
   },
-  actionIcon: { fontSize: 17 },
-  actionCount: {
+  roundBtnCount: {
     fontSize: 10,
-    fontWeight: 700,
+    fontWeight: 800,
+    color: "rgba(255,255,255,0.6)",
     lineHeight: 1,
+    marginTop: -2,
   },
-  aiActionBtn: {
+  aiRoundBtn: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
+    justifyContent: "center",
     gap: 2,
-    padding: "9px 8px",
-    borderRadius: 13,
-    border: `1px solid ${redAlpha(0.45)}`,
-    background: `${redAlpha(0.12)}`,
+    width: 44,
+    height: 44,
+    borderRadius: "50%",
+    border: `1px solid ${redAlpha(0.5)}`,
+    background: `${redAlpha(0.14)}`,
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
     color: RED,
     cursor: "pointer",
-    width: 46,
     fontWeight: 900,
+    boxShadow: `0 0 10px ${redAlpha(0.2)}`,
     transition: "box-shadow 150ms ease, transform 100ms ease",
   },
 
-  // ── Reel info ──
+  // ── Reel info (below video, clean) ──
   reelInfo: {
-    padding: "12px 16px 14px",
+    padding: "14px 16px 16px",
     display: "flex",
     flexDirection: "column",
     gap: 8,
-    borderTop: "1px solid rgba(255,255,255,0.05)",
   },
   creatorBtn: {
     display: "flex",

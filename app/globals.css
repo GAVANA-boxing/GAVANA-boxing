@@ -787,14 +787,16 @@ p {
 }
 
 .reel-action-btn:hover {
-  background: rgba(255,255,255,0.1) !important;
+  border-color: rgba(255,255,255,0.28) !important;
+  background: rgba(255,255,255,0.12) !important;
   color: #fff !important;
-  transform: scale(1.08);
+  transform: scale(1.1);
 }
 
 .reel-ai-btn:hover {
-  box-shadow: 0 0 18px rgba(193,18,31,0.45) !important;
-  transform: scale(1.08);
+  box-shadow: 0 0 20px rgba(193,18,31,0.5), 0 0 40px rgba(193,18,31,0.2) !important;
+  border-color: rgba(193,18,31,0.7) !important;
+  transform: scale(1.1);
 }
 
 /* Reel card hover — red glow border */
