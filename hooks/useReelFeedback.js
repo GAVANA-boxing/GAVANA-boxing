@@ -165,7 +165,6 @@ export function useReelFeedback({ user, router, currentLocale, t, creatorProfile
             const photoURL = userData.photoURL || userData.profileImageUrl || "";
             await updateLeaderboard(ownerId, parsedScore, uname, photoURL);
           } catch (leaderboardError) {
-            console.error("Failed to update leaderboard:", leaderboardError);
           }
         }
 
@@ -204,14 +203,11 @@ export function useReelFeedback({ user, router, currentLocale, t, creatorProfile
               xpToNext: nextRankTier ? nextRankTier.minXP - totalXP : 0,
             });
           } catch (xpErr) {
-            console.error("XP breakdown error:", xpErr);
           }
         }
       } catch (saveError) {
-        console.error("Failed to save AI feedback:", saveError);
       }
     } catch (err) {
-      console.error("Failed to generate AI feedback:", err);
       setFeedbackError(t("feedbackGenerateError"));
     } finally {
       setFeedbackLoading(false);

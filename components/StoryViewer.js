@@ -222,7 +222,6 @@ const s = {
     position: "fixed", inset: 0, zIndex: 500,
     background: "#000",
     display: "flex", flexDirection: "column",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
   },
   tapL: { position: "absolute", left: 0, top: 0, width: "35%", height: "100%", zIndex: 10, cursor: "pointer" },
   tapR: { position: "absolute", right: 0, top: 0, width: "65%", height: "100%", zIndex: 10, cursor: "pointer" },

@@ -50,9 +50,8 @@ export function usePvpResult({ result, challengeUserId, targetScore, user, reelI
           challengerScore: result.score,
           opponentScore: targetScore,
           result: pvpRes,
-        }).catch(console.error);
+        }).catch(() => {});
       } catch (err) {
-        console.error("Failed to save PvP result:", err);
       }
     }
 

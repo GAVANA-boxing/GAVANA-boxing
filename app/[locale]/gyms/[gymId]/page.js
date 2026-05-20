@@ -103,7 +103,7 @@ export default function GymProfilePage() {
 
   if (loading || authLoading) {
     return (
-      <div style={{ minHeight: "100vh", background: "#0A0A0A", padding: "calc(28px + env(safe-area-inset-top)) 16px 40px" }}>
+      <div style={{ minHeight: "100dvh", background: "#0A0A0A", padding: "calc(28px + env(safe-area-inset-top)) 16px 40px" }}>
         <div style={{ maxWidth: 520, margin: "0 auto", display: "grid", gap: 14 }}>
           <div className="shimmer" style={{ width: 40, height: 40, borderRadius: 10 }} />
           <div className="shimmer" style={{ height: 200, borderRadius: 18 }} />

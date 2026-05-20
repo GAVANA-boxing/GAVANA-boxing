@@ -8,7 +8,7 @@ const s = {
     color: "#fff",
     display: "flex",
     flexDirection: "column",
-    paddingBottom: "calc(64px + env(safe-area-inset-bottom))",
+    paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
   },
   header: {
     display: "flex",

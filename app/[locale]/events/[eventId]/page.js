@@ -121,7 +121,7 @@ export default function EventDetailPage() {
   if (!user && !authLoading) return null;
   if (authLoading || loading) {
     return (
-      <div style={{ minHeight: "100vh", background: "#0A0A0A", color: "#fff", fontFamily: "system-ui, sans-serif" }}>
+      <div style={{ minHeight: "100dvh", background: "#0A0A0A", color: "#fff" }}>
         <div style={{ maxWidth: 520, margin: "0 auto", padding: "0 16px" }}>
           <div style={{ height: 44, paddingTop: 16, marginBottom: 20 }}>
             <div className="shimmer" style={{ width: 100, height: 20, borderRadius: 8, background: "rgba(255,255,255,0.06)" }} />
@@ -339,8 +339,8 @@ export default function EventDetailPage() {
 }
 
 const s = {
-  loading: { minHeight: "100vh", background: "#0A0A0A", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "system-ui, sans-serif" },
-  page: { minHeight: "100vh", color: "#fff", fontFamily: "system-ui, sans-serif" },
+  loading: { minHeight: "100dvh", background: "#0A0A0A", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" },
+  page: { minHeight: "100dvh", background: "#070707", color: "#fff" },
   inner: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },
   backBtn: { background: "none", border: "none", color: "rgba(255,255,255,0.55)", fontSize: 14, cursor: "pointer", padding: "16px 0", display: "block" },
   notFound: { display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "80px 0", textAlign: "center" },

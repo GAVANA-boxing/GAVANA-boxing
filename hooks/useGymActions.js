@@ -85,7 +85,6 @@ export function useGymActions({ user, gymId, gym, locale, router, setReviews, t 
       setJoinRequested(false);
       setPendingJoinRequestId(null);
     } catch (e) {
-      console.error("Cancel join request error:", e);
     }
   };
 

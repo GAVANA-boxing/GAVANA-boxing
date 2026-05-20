@@ -66,7 +66,6 @@ export function useReelDeletion({ user, t, userReels, setUserReels, savedUserRee
 
       await deleteDoc(doc(db, "reels", reel.id));
     } catch (error) {
-      console.error("Error deleting reel:", error);
       setUserReels(previousUserReels);
       setSavedUserReels(previousSavedReels);
       setTotalLikes(previousUserReels.reduce((sum, item) => sum + getSafeReelLikes(item), 0));

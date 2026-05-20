@@ -22,7 +22,7 @@
   --radius-sm: 12px;
   --radius-md: 18px;
   --motion-fast: 180ms ease;
-  --page-margin: 20px;
+  --page-margin: 16px;
   --section-gap: 24px;
   --section-top: 24px;
   --card-radius: 18px;
@@ -469,7 +469,7 @@ p {
   0%   { transform: translateY(-8px); opacity: 0; }
   5%   { opacity: 0.55; }
   95%  { opacity: 0.4; }
-  100% { transform: translateY(100vh); opacity: 0; }
+  100% { transform: translateY(100dvh); opacity: 0; }
 }
 
 /* Ambient glow pulse */
@@ -761,4 +761,21 @@ p {
   border-radius: 50%;
   background: #C1121F;
   box-shadow: 0 0 6px #C1121F, 0 0 12px rgba(193,18,31,0.6);
+}
+
+/* ── Layout utilities ── */
+.gavana-page {
+  max-width: 540px;
+  margin: 0 auto;
+  padding: 0 16px;
+  position: relative;
+}
+
+/* Unified dark glass card — use instead of ad-hoc background/border combos */
+.gavana-card {
+  background: rgba(18, 18, 20, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-radius: 24px;
 }

@@ -1,8 +1,7 @@
 import { redAlpha, goldAlpha, RED, GOLD } from "@/lib/tokens";
 
 const styles = {
-  loading: { display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#0A0A0A", color: "#fff", fontFamily: "system-ui, sans-serif" },
-  page: { minHeight: "100vh", background: "#0A0A0A", color: "#fff", fontFamily: "system-ui, sans-serif" },
+  page: { minHeight: "100dvh", background: "#070707", color: "#fff" },
   content: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },
   backBtn: { width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.055)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", borderRadius: 10, cursor: "pointer", padding: 0 },
   hero: { position: "relative", height: 200, borderRadius: 16, overflow: "hidden", background: "linear-gradient(135deg,#1a1a1a,#111)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 0 },

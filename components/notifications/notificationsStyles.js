@@ -2,14 +2,13 @@ import { RED, redAlpha, GOLD, goldAlpha } from "@/lib/tokens";
 
 const styles = {
   page: {
-    minHeight: "100vh",
+    minHeight: "100dvh",
     background: `radial-gradient(ellipse at top center, ${redAlpha(0.06)} 0%, transparent 50%), linear-gradient(180deg, #070707 0%, #0a0a0a 100%)`,
     color: "#fff",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-    paddingBottom: "calc(64px + env(safe-area-inset-bottom))",
+    paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
   },
   centered: {
-    minHeight: "100vh",
+    minHeight: "100dvh",
     background: "#070707",
     color: "#fff",
     display: "flex",
@@ -86,7 +85,7 @@ const styles = {
     fontWeight: 800,
   },
   list: {
-    maxWidth: 640,
+    maxWidth: 540,
     margin: "0 auto",
     padding: "12px 16px",
   },
@@ -252,7 +251,7 @@ const styles = {
     alignItems: "center",
     gap: 8,
     padding: "10px 16px 4px",
-    maxWidth: 640,
+    maxWidth: 540,
     margin: "0 auto",
   },
   filterChips: {

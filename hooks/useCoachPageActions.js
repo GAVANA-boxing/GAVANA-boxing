@@ -25,7 +25,6 @@ export function useCoachPageActions({ user, router, locale, setSparringPosts }) 
       });
       setRequestedIds((prev) => new Set(prev).add(coachId));
     } catch (e) {
-      console.error("Failed to send coach request:", e);
     }
   };
 
@@ -42,7 +41,6 @@ export function useCoachPageActions({ user, router, locale, setSparringPosts }) 
       });
       setRequestedIds((prev) => new Set(prev).add(postId));
     } catch (e) {
-      console.error("Failed to send sparring request:", e);
     }
   };
 
@@ -71,7 +69,6 @@ export function useCoachPageActions({ user, router, locale, setSparringPosts }) 
       setSparringForm({ weight: "", level: "", location: "", availableTime: "", note: "" });
       setShowSparringForm(false);
     } catch (e) {
-      console.error("Failed to create sparring post:", e);
     } finally {
       setSpSaving(false);
     }

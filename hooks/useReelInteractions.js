@@ -82,7 +82,6 @@ export function useReelInteractions({
         setAllReels(updateLikedReel);
       }
     } catch (err) {
-      console.error("Failed to toggle like:", err);
     }
   }, [user, router, currentLocale, reels, setAllReels, setUserLikes]);
 
@@ -154,7 +153,6 @@ export function useReelInteractions({
         setDoc(statsRef, { reelId, saves: increment(1), updatedAt: serverTimestamp() }, { merge: true }).catch(() => {});
       }
     } catch (err) {
-      console.error("Failed to toggle saved reel:", err);
       setSavedReels((prev) => {
         const next = new Set(prev);
         if (wasSaved) {
@@ -186,7 +184,6 @@ export function useReelInteractions({
           score = feedbackDoc.score;
         }
       } catch (err) {
-        console.error("Failed to fetch feedback for share:", err);
       }
 
       const baseUrl = window.location.origin;
@@ -212,7 +209,6 @@ export function useReelInteractions({
         alert(t("shareLinkCopied"));
       }
     } catch (err) {
-      console.error("Failed to share:", err);
       alert(t("shareFailed"));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps

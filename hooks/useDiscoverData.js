@@ -70,7 +70,7 @@ export function useDiscoverData({ userId, feedTab }) {
           }));
           if (active) setFollowingUsers(uMap);
         }
-      } catch (e) { console.error("following feed error", e); }
+      } catch (e) { }
       finally { if (active) { setFeedLoaded(true); setFeedLoading(false); } }
     }
     loadFollowing();

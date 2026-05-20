@@ -85,7 +85,6 @@ export default function ProgramsPage() {
         if (!active) return;
         setEnrollments(enrollMap);
       } catch (err) {
-        console.error("Programs load error:", err);
         if (active) setPrograms([]);
       } finally {
         if (active) setLoading(false);
@@ -113,7 +112,6 @@ export default function ProgramsPage() {
         [program.id]: { id: ref.id, userId: user.uid, programId: program.id, completedDays: [], streak: 0 },
       }));
     } catch (err) {
-      console.error("Enroll error:", err);
     } finally {
       setEnrolling(null);
     }
@@ -127,7 +125,6 @@ export default function ProgramsPage() {
       setEnrollments((prev) => { const n = { ...prev }; delete n[programId]; return n; });
       if (selectedProgram?.id === programId) setSelectedProgram(null);
     } catch (err) {
-      console.error("Unenroll error:", err);
     }
   };
 
@@ -161,7 +158,6 @@ export default function ProgramsPage() {
       setTodayChecked({});
       setSelectedProgram(null);
     } catch (err) {
-      console.error("Complete day error:", err);
     } finally {
       setCompletingDay(false);
     }

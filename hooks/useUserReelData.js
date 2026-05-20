@@ -27,7 +27,6 @@ export function useUserReelData({ user, authLoading }) {
         setFollowingIds(nextFollowing);
       } catch (err) {
         if (!isActive) return;
-        console.error("Failed to load following:", err);
         setFollowingIds(new Set());
       }
     }
@@ -51,7 +50,6 @@ export function useUserReelData({ user, authLoading }) {
         likesSnapshot.forEach((doc) => { const data = doc.data(); likesSet.add(data.reelId); });
         if (isActive) setUserLikes(likesSet);
       } catch (err) {
-        console.error("Failed to load likes:", err);
       }
     }
     loadUserLikes();
@@ -74,7 +72,6 @@ export function useUserReelData({ user, authLoading }) {
         savedSnapshot.forEach((doc) => { const data = doc.data(); if (data.reelId) savedSet.add(data.reelId); });
         if (isActive) setSavedReels(savedSet);
       } catch (err) {
-        console.error("Failed to load saved reels:", err);
       }
     }
     loadSavedReels();
@@ -107,7 +104,6 @@ export function useUserReelData({ user, authLoading }) {
         snap.forEach((doc) => viewsSet.add(doc.data().reelId));
         if (isActive) setUserViews(viewsSet);
       } catch (err) {
-        console.error("Failed to load views:", err);
       }
     }
     loadUserViews();

@@ -158,7 +158,7 @@ export default async function LocalizedHomePage({ params }) {
 
 const s = {
   page: {
-    minHeight: "100vh",
+    minHeight: "100dvh",
     background: `
       radial-gradient(ellipse 70% 40% at 50% -5%, ${redAlpha(0.28)} 0%, transparent 55%),
       radial-gradient(ellipse 50% 30% at 10% 60%, ${redAlpha(0.10)} 0%, transparent 50%),
@@ -166,7 +166,6 @@ const s = {
       linear-gradient(180deg, #060608 0%, #09090B 60%, #070709 100%)
     `,
     color: "#fff",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     overflowX: "hidden",
     position: "relative",
   },

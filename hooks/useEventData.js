@@ -53,7 +53,6 @@ export function useEventData({ eventId, user, authLoading, locale, router }) {
           if (active) setParticipants(userMap);
         }
       } catch (e) {
-        console.error("event detail load error", e);
       } finally {
         if (active) setLoading(false);
       }
@@ -100,7 +99,6 @@ export function useEventData({ eventId, user, authLoading, locale, router }) {
         }
       }
     } catch (e) {
-      console.error("rsvp error", e);
     } finally {
       setRsvping(false);
     }

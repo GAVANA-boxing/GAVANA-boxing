@@ -130,7 +130,6 @@ export default function CoachApplyPage() {
 
       setSubmitted(true);
     } catch (e) {
-      console.error("Coach application error:", e);
       setError(t("coachApplyError"));
     } finally {
       setSubmitting(false);
@@ -335,8 +334,7 @@ export default function CoachApplyPage() {
 }
 
 const styles = {
-  loading: { display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#0A0A0A", color: "#fff", fontFamily: "system-ui, sans-serif" },
-  page: { minHeight: "100vh", background: "#0A0A0A", fontFamily: "system-ui, sans-serif", color: "#fff", paddingBottom: 40 },
+  page: { minHeight: "100dvh", background: "#070707", color: "#fff" },
   inner: { maxWidth: 480, margin: "0 auto", padding: "0 16px 40px" },
   backBtn: { background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 14, cursor: "pointer", padding: "16px 0", display: "block" },
   header: { textAlign: "center", padding: "8px 0 24px" },

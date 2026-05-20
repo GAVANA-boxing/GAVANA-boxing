@@ -1,6 +1,6 @@
 "use client";
 
-import { redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, redAlpha, goldAlpha } from "@/lib/tokens";
 
 // Cinematic visual identity per fighter — gradients, aura, label
 export const FIGHTER_VISUALS = {

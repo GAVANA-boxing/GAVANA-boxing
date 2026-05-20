@@ -57,7 +57,6 @@ export function useGymData({ gymId }) {
           })));
         }
       } catch (e) {
-        console.error("gym profile load error", e);
       } finally {
         if (active) setLoading(false);
       }

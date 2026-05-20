@@ -35,7 +35,6 @@ export default function Leaderboard({ locale = "en" }) {
           setCurrentUserRank(userIndex >= 0 ? userIndex + 1 : null);
         }
       } catch (error) {
-        console.error("Error fetching leaderboard:", error);
       } finally {
         setLoading(false);
       }
@@ -94,6 +93,5 @@ export async function updateLeaderboard(userId, score, username, photoURL) {
       });
     }
   } catch (error) {
-    console.error("Error updating leaderboard:", error);
   }
 }

@@ -52,7 +52,6 @@ export function useGymDashboardData({ user }) {
           }
         }
       } catch (e) {
-        console.error("gym dashboard check error", e);
       } finally {
         if (active) setChecking(false);
       }

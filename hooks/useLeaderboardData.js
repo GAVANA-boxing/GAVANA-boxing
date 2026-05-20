@@ -110,7 +110,6 @@ export function useLeaderboardData({ user, currentSeasonId }) {
         setTrainingSessions(sessions);
         setReelsStats(reelsMap);
       } catch (err) {
-        console.error("Leaderboard load error:", err);
       } finally {
         if (active) setLoading(false);
       }

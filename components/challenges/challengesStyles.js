@@ -2,11 +2,10 @@ import { redAlpha, goldAlpha, GOLD } from "@/lib/tokens";
 
 const styles = {
   page: {
-    minHeight: "100vh",
+    minHeight: "100dvh",
     background: `radial-gradient(circle at 50% 0%, ${redAlpha(0.2)}, transparent 34%), linear-gradient(180deg, #080808 0%, #0B0B0B 100%)`,
     color: "#fff",
     padding: "calc(28px + env(safe-area-inset-top)) 16px calc(92px + env(safe-area-inset-bottom))",
-    fontFamily: "sans-serif",
   },
   backBtn: {
     width: 40,
@@ -23,7 +22,7 @@ const styles = {
     justifySelf: "start",
   },
   loading: {
-    minHeight: "100vh",
+    minHeight: "100dvh",
     background: "#070707",
     color: "#fff",
     display: "flex",
@@ -31,7 +30,7 @@ const styles = {
     justifyContent: "center",
   },
   shell: {
-    maxWidth: 760,
+    maxWidth: 540,
     margin: "0 auto",
     display: "grid",
     gap: 14,

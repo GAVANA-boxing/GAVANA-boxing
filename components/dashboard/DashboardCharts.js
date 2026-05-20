@@ -1,6 +1,6 @@
 "use client";
 
-import { GOLD, redAlpha } from "@/lib/tokens";
+import { GOLD, RED, redAlpha } from "@/lib/tokens";
 import {
   RADAR_KEYS, RADAR_ANGLES, INSIGHT_COLOR, DNA_ATTRS, radPolar,
 } from "@/lib/dashboardHelpers";
@@ -77,7 +77,7 @@ export function RadarChart({ stats }) {
         const p = radPolar(RADAR_ANGLES[i], maxR + 17, cx, cy);
         const ta = p.x < cx - 8 ? "end" : p.x > cx + 8 ? "start" : "middle";
         const val = Math.max(0, Math.min(10, stats[key] || 0));
-        const valColor = val >= 7 ? GOLD : val >= 5 ? "rgba(255,255,255,0.45)" : "#C1121F";
+        const valColor = val >= 7 ? GOLD : val >= 5 ? "rgba(255,255,255,0.45)" : RED;
         return (
           <g key={key}>
             <text x={p.x.toFixed(1)} y={(p.y - 4).toFixed(1)}
@@ -165,7 +165,7 @@ export function FighterHero({ displayScore, xp, rank, nextRank, xpProgress, insi
               <defs>
                 <linearGradient id="scoreRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stopColor={rank.color} />
-                  <stop offset="100%" stopColor="#C1121F" />
+                  <stop offset="100%" stopColor={RED} />
                 </linearGradient>
               </defs>
               {/* Track */}

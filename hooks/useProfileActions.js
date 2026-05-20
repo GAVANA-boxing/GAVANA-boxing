@@ -28,7 +28,6 @@ export function useProfileActions({
       });
       router.push(`/${locale || "en"}/inbox/${convoId}`);
     } catch (e) {
-      console.error("Message error:", e);
     }
   }, [user, userId, locale, router, isOwnProfile, profileUser]);
 
@@ -94,7 +93,6 @@ export function useProfileActions({
         await loadFollowStats(userId);
       }
     } catch (error) {
-      console.error("Error following user:", error);
       setIsFollowing(wasFollowing);
       setStats(previousStats);
     } finally {
@@ -110,7 +108,6 @@ export function useProfileActions({
       await signOut(auth);
       router.push(`/${locale}/login`);
     } catch (error) {
-      console.error("Error signing out:", error);
     } finally {
       setSigningOut(false);
     }
@@ -124,7 +121,6 @@ export function useProfileActions({
       await signOut(auth);
       router.push(`/${locale}/login`);
     } catch (error) {
-      console.error("Error switching account:", error);
     } finally {
       setSigningOut(false);
     }
@@ -176,7 +172,6 @@ export function useProfileActions({
         token: pushToken,
       });
     } catch (e) {
-      console.error("challenge send error", e);
     } finally {
       setChallengeSending(false);
     }

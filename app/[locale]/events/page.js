@@ -109,7 +109,6 @@ export default function EventsPage() {
         setEvents(evs);
         setMyRsvpIds(new Set(rsvpSnap.docs.map((d) => d.data().eventId)));
       } catch (e) {
-        console.error("events load error", e);
       } finally {
         if (active) setLoading(false);
       }
@@ -156,7 +155,6 @@ export default function EventsPage() {
         }
       }
     } catch (e) {
-      console.error("rsvp error", e);
     } finally {
       setRsvping(null);
     }
@@ -197,7 +195,6 @@ export default function EventsPage() {
       setCfTitle(""); setCfDesc(""); setCfType("boxing"); setCfDate(""); setCfLocation(""); setCfCity(""); setCfMax("");
       setShowCreate(false);
     } catch (e) {
-      console.error("create event error", e);
       setCreateError(t("eventErrorGeneric"));
     } finally {
       setCreating(false);
@@ -412,8 +409,7 @@ export default function EventsPage() {
 }
 
 const s = {
-  loading: { minHeight: "100vh", background: "#0A0A0A", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "system-ui, sans-serif" },
-  page: { minHeight: "100vh", background: "#0A0A0A", color: "#fff", fontFamily: "system-ui, sans-serif" },
+  page: { minHeight: "100dvh", background: "#070707", color: "#fff" },
   content: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },
   pageHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", paddingTop: "calc(20px + env(safe-area-inset-top))", paddingBottom: 16 },
   kicker: { margin: "0 0 4px", fontSize: 10, letterSpacing: 2.5, color: GOLD, textTransform: "uppercase", fontWeight: 900 },

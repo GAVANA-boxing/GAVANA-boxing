@@ -2,11 +2,10 @@ import { redAlpha } from "@/lib/tokens";
 
 export const discoverPageStyles = {
   page: {
-    minHeight: "100vh",
+    minHeight: "100dvh",
     background: `radial-gradient(ellipse at top center, ${redAlpha(0.07)} 0%, transparent 55%), #080808`,
     color: "#fff",
-    paddingBottom: 100,
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
   },
   header: {
     padding: "calc(28px + env(safe-area-inset-top)) 20px 14px",

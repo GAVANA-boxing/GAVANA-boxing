@@ -78,7 +78,6 @@ export function useReelFeed({ user, authLoading, isProfileSource, profileSourceU
           latestScore: scores[0],
         });
       } catch (err) {
-        console.error("Failed to load profile reel progress:", err);
         if (isActive) setProfileReelProgress(null);
       }
     }
@@ -126,7 +125,6 @@ export function useReelFeed({ user, authLoading, isProfileSource, profileSourceU
               },
             }));
           } catch (err) {
-            console.error("Failed to load creator profile:", err);
 
             if (!isActive) return;
 
@@ -137,7 +135,6 @@ export function useReelFeed({ user, authLoading, isProfileSource, profileSourceU
           }
         }));
       } catch (err) {
-        console.error("Failed to prepare creator profile reads:", err);
       }
     }
 
@@ -215,7 +212,6 @@ export function useReelFeed({ user, authLoading, isProfileSource, profileSourceU
               },
             }));
           } catch (err) {
-            console.error("Failed to load creator stats:", err);
 
             if (!isActive) return;
 
@@ -231,7 +227,6 @@ export function useReelFeed({ user, authLoading, isProfileSource, profileSourceU
           }
         }));
       } catch (err) {
-        console.error("Failed to prepare creator stats reads:", err);
       }
     }
 
@@ -285,13 +280,11 @@ export function useReelFeed({ user, authLoading, isProfileSource, profileSourceU
           setReelsLoading(false);
         }, (err) => {
           if (!isActive) return;
-          console.error("Failed to listen for reels:", err);
           setAllReels([]);
           setReelsLoading(false);
         });
       } catch (err) {
         if (!isActive) return;
-        console.error("Failed to load reels:", err);
         setAllReels([]);
         setReelsLoading(false);
       }

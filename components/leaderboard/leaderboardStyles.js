@@ -2,11 +2,10 @@ import { RED, redAlpha, GOLD, goldAlpha } from "@/lib/tokens";
 
 const styles = {
   page: {
-    minHeight: "100vh",
+    minHeight: "100dvh",
     background: "linear-gradient(180deg, #070707 0%, #0A0A0A 100%)",
     color: "#fff",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-    paddingBottom: 90,
+    paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
   },
   header: {
     position: "sticky",

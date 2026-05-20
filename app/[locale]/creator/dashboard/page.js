@@ -163,7 +163,6 @@ export default function CreatorDashboard() {
         });
         setIsFeatured(isCurrentlyFeatured);
       } catch (err) {
-        console.error("Creator dashboard load error:", err);
       } finally {
         if (active) setLoading(false);
       }

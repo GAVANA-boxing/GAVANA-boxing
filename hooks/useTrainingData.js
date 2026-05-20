@@ -44,7 +44,6 @@ export function useTrainingData({ user }) {
         const docs = snap.docs.map((d) => ({ score: d.data().score, createdAt: d.data().createdAt }));
         if (active) setCurrentXP(calculateUserXP({ aiFeedbackDocs: docs }));
       } catch (err) {
-        console.error("Failed to load training XP baseline:", err);
       }
     }
     loadCurrentXP();

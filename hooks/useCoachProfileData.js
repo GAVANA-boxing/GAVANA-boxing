@@ -34,7 +34,6 @@ export function useCoachProfileData({ coachId, user }) {
         setReels(snapToDocs(reelsSnap));
         setCompletedSessions(bookingsSnap.size);
       } catch (e) {
-        console.error("Coach profile load error:", e);
       } finally {
         if (active) setLoading(false);
       }

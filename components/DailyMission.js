@@ -69,7 +69,6 @@ export default function DailyMission({ locale = "en" }) {
         setBestDailyStreak(Number(data.bestDailyStreak) || 0);
         setMissionCompleted(data.dailyMissionCompleted === todayKey);
       } catch (e) {
-        console.error("DailyMission load error:", e);
       }
     }
     load();
@@ -269,7 +268,6 @@ const pillStyles = {
     WebkitBackdropFilter: "blur(22px)",
     boxShadow: "0 10px 36px rgba(0,0,0,0.6)",
     color: "#fff",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     display: "grid",
     gap: 8,
     cursor: "grab",

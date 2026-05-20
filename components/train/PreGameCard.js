@@ -39,7 +39,7 @@ export default function PreGameCard({
                     transform="rotate(-90 28 28)"
                     style={{ transition: "stroke-dasharray 0.6s ease" }}
                   />
-                  <text x="28" y="32" textAnchor="middle" fill="#fff" fontSize="11" fontWeight="900" fontFamily="sans-serif">
+                  <text x="28" y="32" textAnchor="middle" fill="#fff" fontSize="11" fontWeight="900" style={{ fontFamily: "inherit" }}>
                     {weeklySessionCount}/{weeklyGoal}
                   </text>
                 </svg>

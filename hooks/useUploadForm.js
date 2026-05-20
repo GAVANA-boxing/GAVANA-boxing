@@ -158,7 +158,6 @@ export function useUploadForm({ user, locale, t, router }) {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       router.push(`/${locale}/reels`);
     } catch (err) {
-      console.error("Upload error:", err);
       setError(t("uploadFailed"));
     } finally {
       setUploading(false);

@@ -90,7 +90,6 @@ export function useGymDashboardActions({ gym, setGym, setJoinRequests, setAnnoun
       setGym({ id: gymDoc.id, gymName: gymName.trim(), ownerId: user.uid });
       setRegisterSuccess(true);
     } catch (e) {
-      console.error("gym register error", e);
       setRegisterError(t("gymRegisterError"));
     } finally {
       setSubmitting(false);
@@ -140,7 +139,6 @@ export function useGymDashboardActions({ gym, setGym, setJoinRequests, setAnnoun
       }
       setJoinRequests((prev) => prev.filter((r) => r.id !== req.id));
     } catch (e) {
-      console.error("join action error", e);
     } finally {
       setUpdatingId(null);
     }

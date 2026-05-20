@@ -103,7 +103,6 @@ export default function LoginPage() {
       }
       router.push(redirectTo);
     } catch (err) {
-      console.error("Auth error:", err);
       setError(getFriendlyAuthError(err, isSignUp, t));
     } finally {
       setLoading(false);
@@ -133,7 +132,6 @@ export default function LoginPage() {
       const userData = snap.data();
       router.push(!userData.onboardingComplete ? onboardingUrl : redirectTo);
     } catch (err) {
-      console.error("Google sign-in error:", err);
       if (err.code !== "auth/popup-closed-by-user") setError(t("loginGoogleError"));
     } finally {
       setGoogleLoading(false);

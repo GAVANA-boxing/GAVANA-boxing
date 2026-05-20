@@ -7,7 +7,6 @@ const s = {
     height: "100dvh",
     background: "#080808",
     color: "#fff",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     overflow: "hidden",
   },
 

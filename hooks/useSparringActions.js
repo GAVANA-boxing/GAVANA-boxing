@@ -40,7 +40,6 @@ export function useSparringActions({ user, router, locale, userData, myPost, onE
         });
       }
     } catch (e) {
-      console.error("Sparring toggle error:", e);
       onError?.(locale === "mn" ? "Алдаа гарлаа. Дахин оролдоно уу." : locale === "ko" ? "오류가 발생했습니다. 다시 시도해주세요." : "Something went wrong. Please try again.");
     } finally {
       setToggling(false);
@@ -89,7 +88,6 @@ export function useSparringActions({ user, router, locale, userData, myPost, onE
         token,
       });
     } catch (e) {
-      console.error("Sparring request error:", e);
       onError?.(locale === "mn" ? "Хүсэлт илгээхэд алдаа гарлаа." : locale === "ko" ? "요청 전송에 실패했습니다." : "Failed to send request. Try again.");
     } finally {
       setRequesting(null);
@@ -135,7 +133,6 @@ export function useSparringActions({ user, router, locale, userData, myPost, onE
       });
       router.push(`/${locale}/inbox/${convoId}`);
     } catch (e) {
-      console.error("Accept sparring error:", e);
       onError?.(locale === "mn" ? "Зөвшөөрөхөд алдаа гарлаа." : locale === "ko" ? "수락 중 오류가 발생했습니다." : "Failed to accept. Try again.");
     } finally {
       setAccepting(null);
@@ -148,7 +145,6 @@ export function useSparringActions({ user, router, locale, userData, myPost, onE
     try {
       await updateDoc(doc(db, "sparring_requests", req.id), { status: "declined" });
     } catch (e) {
-      console.error("Decline sparring error:", e);
       onError?.(locale === "mn" ? "Татгалзахад алдаа гарлаа." : locale === "ko" ? "거절 중 오류가 발생했습니다." : "Failed to decline. Try again.");
     } finally {
       setDeclining(null);
@@ -161,7 +157,6 @@ export function useSparringActions({ user, router, locale, userData, myPost, onE
     try {
       await deleteDoc(doc(db, "sparring_requests", req.id));
     } catch (e) {
-      console.error("Cancel sparring request error:", e);
       onError?.(locale === "mn" ? "Цуцлахад алдаа гарлаа." : locale === "ko" ? "취소 중 오류가 발생했습니다." : "Failed to cancel. Try again.");
     } finally {
       setCancelling(null);

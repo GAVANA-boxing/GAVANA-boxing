@@ -122,7 +122,7 @@ export default function ChallengesPage() {
 
   if (authLoading) return (
     <div style={styles.page}>
-      <div style={{ maxWidth: 760, margin: "0 auto", display: "grid", gap: 14 }}>
+      <div style={{ maxWidth: 540, margin: "0 auto", display: "grid", gap: 14 }}>
         <div className="shimmer" style={{ height: 40, width: 40, borderRadius: 10 }} />
         <div className="shimmer" style={{ height: 100, borderRadius: 16 }} />
         <div className="shimmer" style={{ height: 48, borderRadius: 14 }} />

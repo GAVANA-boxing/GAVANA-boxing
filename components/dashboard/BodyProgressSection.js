@@ -5,6 +5,7 @@ import { collection, query, where, limit, getDocs, addDoc, serverTimestamp } fro
 import { db } from "@/lib/firebase";
 import { WEIGHT_CLASSES } from "@/lib/dashboardHelpers";
 import { labelStyle, inputStyle, primaryBtnStyle, ghostBtnStyle, InputField } from "./DashboardWidgets";
+import { GOLD } from "@/lib/tokens";
 
 function getTs(ts) {
   if (!ts) return 0;
@@ -39,7 +40,6 @@ export function BodyProgressSection({ userId, t }) {
           .sort((a, b) => getTs(b.createdAt) - getTs(a.createdAt));
         setHistory(docs);
       } catch (e) {
-        console.error("Body progress load error:", e);
       }
     }
     load();
@@ -61,7 +61,6 @@ export function BodyProgressSection({ userId, t }) {
       setForm({ weight: "", height: "", reach: "", weightClass: "", notes: "" });
       setShowForm(false);
     } catch (e) {
-      console.error("Body progress save error:", e);
     } finally {
       setSaving(false);
     }
@@ -87,7 +86,7 @@ export function BodyProgressSection({ userId, t }) {
           {latest.height && <span style={{ fontSize: 12, color: "rgba(255,255,255,0.38)" }}>{latest.height} cm</span>}
           {latest.reach && <span style={{ fontSize: 12, color: "rgba(255,255,255,0.38)" }}>reach {latest.reach}</span>}
           {latest.weightClass && (
-            <span style={{ fontSize: 11, color: "#D4AF37", fontWeight: 700 }}>
+            <span style={{ fontSize: 11, color: GOLD, fontWeight: 700 }}>
               {latest.weightClass.split(" ")[0]}
             </span>
           )}

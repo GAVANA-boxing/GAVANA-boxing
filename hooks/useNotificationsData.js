@@ -47,12 +47,10 @@ export function useNotificationsData({ user, authLoading }) {
         const batch = writeBatch(db);
         unread.forEach((d) => batch.update(doc(db, "notifications", d.id), { read: true }));
         batch.commit().catch((error) => {
-          console.error("Failed to mark notifications as read:", error);
         });
       }
     }, (error) => {
       if (!isActive) return;
-      console.error("Failed to listen for notifications:", error);
       setNotifications([]);
       setLoading(false);
     });
@@ -96,7 +94,6 @@ export function useNotificationsData({ user, authLoading }) {
             },
           }));
         } catch (error) {
-          console.error("Failed to load notification actor profile:", error);
 
           if (!isActive) return;
 
