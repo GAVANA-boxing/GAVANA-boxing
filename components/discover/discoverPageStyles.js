@@ -5,7 +5,7 @@ export const discoverPageStyles = {
     minHeight: "100vh",
     background: `radial-gradient(ellipse at top center, ${redAlpha(0.07)} 0%, transparent 55%), #080808`,
     color: "#fff",
-    paddingBottom: 100,
+    paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
   },
   header: {
     padding: "calc(28px + env(safe-area-inset-top)) 20px 14px",

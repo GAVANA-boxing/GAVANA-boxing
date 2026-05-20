@@ -300,7 +300,7 @@ const styles = {
     lineHeight: 1.1,
   },
   content: {
-    maxWidth: 600,
+    maxWidth: 540,
     margin: "0 auto",
     padding: "20px 16px",
   },

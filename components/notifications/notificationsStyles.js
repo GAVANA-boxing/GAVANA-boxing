@@ -85,7 +85,7 @@ const styles = {
     fontWeight: 800,
   },
   list: {
-    maxWidth: 640,
+    maxWidth: 540,
     margin: "0 auto",
     padding: "12px 16px",
   },
@@ -251,7 +251,7 @@ const styles = {
     alignItems: "center",
     gap: 8,
     padding: "10px 16px 4px",
-    maxWidth: 640,
+    maxWidth: 540,
     margin: "0 auto",
   },
   filterChips: {
