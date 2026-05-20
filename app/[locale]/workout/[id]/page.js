@@ -42,10 +42,7 @@ export default function WorkoutDetail() {
 
   return (
     <div style={s.page}>
-      {/* Ambient glow */}
       <div style={s.ambientGlow} />
-
-      {/* Header */}
       <div style={s.header}>
         <button type="button" onClick={() => router.back()} style={s.backBtn} aria-label="Back">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -58,19 +55,15 @@ export default function WorkoutDetail() {
         </div>
       </div>
 
-      {/* Progress bar */}
       {totalCount > 0 && (
         <div style={s.progressWrap}>
           <div style={s.progressTrack}>
             <div style={{ ...s.progressFill, width: `${progress * 100}%`, background: allDone ? "#34D399" : RED }} />
           </div>
-          <span style={s.progressLabel}>
-            {completedCount}/{totalCount}
-          </span>
+          <span style={s.progressLabel}>{completedCount}/{totalCount}</span>
         </div>
       )}
 
-      {/* Exercise list */}
       <div style={s.list}>
         {exercises.length === 0 ? (
           <div style={{ textAlign: "center", padding: "48px 24px", color: "rgba(255,255,255,0.3)", fontSize: 14 }}>
@@ -123,7 +116,6 @@ export default function WorkoutDetail() {
         )}
       </div>
 
-      {/* Done state */}
       {allDone && (
         <div style={s.doneCard}>
           <p style={{ fontSize: 36, margin: "0 0 8px" }}>🏆</p>
@@ -167,91 +159,32 @@ const s = {
     zIndex: 1,
   },
   backBtn: {
-    width: 40,
-    height: 40,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
+    width: 40, height: 40,
+    display: "flex", alignItems: "center", justifyContent: "center",
     background: "rgba(255,255,255,0.055)",
     border: "1px solid rgba(255,255,255,0.1)",
     borderRadius: 10,
-    color: "#fff",
-    cursor: "pointer",
-    padding: 0,
-    marginBottom: 16,
+    color: "#fff", cursor: "pointer", padding: 0, marginBottom: 16,
   },
-  kicker: {
-    margin: "0 0 6px",
-    fontSize: 9,
-    fontWeight: 900,
-    letterSpacing: 3,
-    textTransform: "uppercase",
-    color: RED,
-    fontFamily: "var(--font-condensed)",
-  },
-  title: {
-    margin: 0,
-    fontSize: "clamp(28px, 9vw, 44px)",
-    fontWeight: 900,
-    lineHeight: 1,
-    fontFamily: "var(--font-display)",
-  },
-  progressWrap: {
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-    padding: "0 20px 16px",
-    position: "relative",
-    zIndex: 1,
-  },
-  progressTrack: {
-    flex: 1,
-    height: 4,
-    borderRadius: 999,
-    background: "rgba(255,255,255,0.08)",
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: "100%",
-    borderRadius: 999,
-    transition: "width 400ms cubic-bezier(0.16,1,0.3,1)",
-  },
-  progressLabel: {
-    fontSize: 11,
-    fontWeight: 800,
-    color: "rgba(255,255,255,0.4)",
-    fontFamily: "var(--font-condensed)",
-    flexShrink: 0,
-  },
-  list: {
-    padding: "0 16px",
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-    position: "relative",
-    zIndex: 1,
-  },
+  kicker: { margin: "0 0 6px", fontSize: 9, fontWeight: 900, letterSpacing: 3, textTransform: "uppercase", color: RED, fontFamily: "var(--font-condensed)" },
+  title: { margin: 0, fontSize: "clamp(28px, 9vw, 44px)", fontWeight: 900, lineHeight: 1, fontFamily: "var(--font-display)" },
+  progressWrap: { display: "flex", alignItems: "center", gap: 10, padding: "0 20px 16px", position: "relative", zIndex: 1 },
+  progressTrack: { flex: 1, height: 4, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" },
+  progressFill: { height: "100%", borderRadius: 999, transition: "width 400ms cubic-bezier(0.16,1,0.3,1)" },
+  progressLabel: { fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.4)", fontFamily: "var(--font-condensed)", flexShrink: 0 },
+  list: { padding: "0 16px", display: "flex", flexDirection: "column", gap: 8, position: "relative", zIndex: 1 },
   exerciseRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
+    display: "flex", alignItems: "center", gap: 12,
     padding: "14px 16px",
     borderRadius: "3px 14px 14px 3px",
-    cursor: "pointer",
-    border: "none",
-    color: "#fff",
+    cursor: "pointer", border: "none", color: "#fff",
     transition: "background 200ms ease, opacity 200ms ease",
-    width: "100%",
-    textAlign: "left",
+    width: "100%", textAlign: "left",
   },
   doneCard: {
-    margin: "20px 16px",
-    padding: "28px 20px",
-    borderRadius: 18,
-    border: "1px solid rgba(52,211,153,0.25)",
+    margin: "20px 16px", padding: "28px 20px",
+    borderRadius: 18, border: "1px solid rgba(52,211,153,0.25)",
     background: "rgba(52,211,153,0.06)",
-    textAlign: "center",
-    position: "relative",
-    zIndex: 1,
+    textAlign: "center", position: "relative", zIndex: 1,
   },
 };
