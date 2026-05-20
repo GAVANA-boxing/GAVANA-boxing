@@ -174,7 +174,7 @@ export default function AdminFeaturedCreatorsPage() {
 
 const styles = {
   page: {
-    minHeight: "100vh",
+    minHeight: "100dvh",
     background: "linear-gradient(180deg, #070707 0%, #090909 100%)",
     color: "#fff",
     padding: "28px 20px 60px",

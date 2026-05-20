@@ -2,7 +2,7 @@ import { GOLD, redAlpha } from "@/lib/tokens";
 
 const s = {
   page: { minHeight: "100dvh", background: "#080808", color: "#fff", position: "relative", overflowX: "hidden" },
-  loading: { minHeight: "100vh", background: "#080808", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" },
+  loading: { minHeight: "100dvh", background: "#080808", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" },
   bgGlow: { position: "fixed", top: "-20%", left: "50%", transform: "translateX(-50%)", width: 600, height: 400, background: `radial-gradient(ellipse, ${redAlpha(0.14)} 0%, transparent 65%)`, pointerEvents: "none", zIndex: 0 },
   progressWrap: { position: "sticky", top: 0, zIndex: 10, paddingTop: "calc(12px + env(safe-area-inset-top))", paddingBottom: 12, background: "rgba(8,8,8,0.85)", backdropFilter: "blur(12px)" },
   progressRow: { display: "flex", gap: 5, justifyContent: "center", padding: "0 20px" },

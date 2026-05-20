@@ -76,7 +76,7 @@ export default function FightersPage() {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const s = {
   page: {
-    minHeight: "100vh",
+    minHeight: "100dvh",
     background: `radial-gradient(ellipse at top center, ${redAlpha(0.1)} 0%, transparent 45%), #080808`,
     color: "#fff",
     paddingBottom: "calc(88px + env(safe-area-inset-bottom))",

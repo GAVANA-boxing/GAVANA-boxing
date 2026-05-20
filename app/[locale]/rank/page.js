@@ -252,7 +252,7 @@ export default function RankPage() {
 
 const styles = {
   page: {
-    minHeight: "100vh",
+    minHeight: "100dvh",
     background: "linear-gradient(180deg, #070707 0%, #0A0A0A 100%)",
     color: "#fff",
     paddingBottom: "calc(88px + env(safe-area-inset-bottom))",

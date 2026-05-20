@@ -20,7 +20,7 @@ export default function WorkoutDetail() {
 
   if (!workout) {
     return (
-      <div style={{ minHeight: "100vh", background: "#070707", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 12, color: "#fff" }}>
+      <div style={{ minHeight: "100dvh", background: "#070707", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 12, color: "#fff" }}>
         <p style={{ fontSize: 40 }}>🥊</p>
         <p style={{ fontSize: 15, fontWeight: 800 }}>Workout not found</p>
         <button type="button" onClick={() => router.back()} style={{ padding: "10px 20px", borderRadius: 12, border: "none", background: RED, color: "#fff", fontWeight: 800, cursor: "pointer" }}>
@@ -144,7 +144,7 @@ export default function WorkoutDetail() {
 
 const s = {
   page: {
-    minHeight: "100vh",
+    minHeight: "100dvh",
     background: "#070707",
     color: "#fff",
     position: "relative",

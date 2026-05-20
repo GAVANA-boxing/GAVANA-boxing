@@ -4,7 +4,7 @@ export default function DashboardError({ reset }) {
   return (
     <div style={{
       display: "flex", flexDirection: "column", alignItems: "center",
-      justifyContent: "center", minHeight: "100vh", background: "#000",
+      justifyContent: "center", minHeight: "100dvh", background: "#000",
       color: "#fff", textAlign: "center", padding: 24,
     }}>
       <div style={{ fontSize: 48, marginBottom: 16 }}>📊</div>

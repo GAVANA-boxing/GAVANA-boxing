@@ -1,6 +1,6 @@
 const s = {
   page: {
-    minHeight: "100vh",
+    minHeight: "100dvh",
     color: "#fff",
     paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
     position: "relative",

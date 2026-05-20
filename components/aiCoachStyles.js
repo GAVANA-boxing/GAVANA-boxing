@@ -2,7 +2,7 @@ import { RED, redAlpha } from "@/lib/tokens";
 
 const aiCoachStyles = {
   page: {
-    minHeight: "100vh",
+    minHeight: "100dvh",
     background: `radial-gradient(ellipse at top center, ${redAlpha(0.05)} 0%, transparent 50%), #080808`,
     color: "var(--text-primary)",
   },

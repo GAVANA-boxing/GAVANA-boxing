@@ -40,7 +40,7 @@ const RED = "#C8102E";
 const s = {
   page: {
     position: "relative",
-    minHeight: "100vh",
+    minHeight: "100dvh",
     background: `
       radial-gradient(ellipse 60% 40% at 50% 30%, rgba(200,16,46,0.18) 0%, transparent 60%),
       linear-gradient(180deg, #060608 0%, #090709 100%)

@@ -1,10 +1,10 @@
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 
 const S = {
-  loading: { minHeight: "100vh", background: "#070707", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" },
+  loading: { minHeight: "100dvh", background: "#070707", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" },
 
   // ── Video step
-  videoPage: { minHeight: "100vh", background: "#000", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" },
+  videoPage: { minHeight: "100dvh", background: "#000", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" },
   videoHeader: {
     position: "absolute", top: 0, left: 0, right: 0, zIndex: 20,
     display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -37,7 +37,7 @@ const S = {
   nextBtn: { padding: "12px 28px", borderRadius: 999, border: "none", background: "linear-gradient(135deg, #C1121F, #8f0d17)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: `0 4px 20px ${redAlpha(0.45)}` },
 
   // ── Setup step
-  setupPage: { minHeight: "100vh", background: "#070707", display: "flex", flexDirection: "column" },
+  setupPage: { minHeight: "100dvh", background: "#070707", display: "flex", flexDirection: "column" },
   setupHeader: {
     position: "sticky", top: 0, zIndex: 20,
     display: "flex", alignItems: "center", justifyContent: "space-between",
