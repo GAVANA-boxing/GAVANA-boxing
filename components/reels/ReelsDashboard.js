@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import { getCreatorName, getCreatorPhoto, cleanCaption } from "@/lib/reelHelpers";
 
@@ -38,6 +38,26 @@ const IcoSwords = () => (
 const IcoMessage = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </svg>
+);
+const IcoBars = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+  </svg>
+);
+const IcoBuilding = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+  </svg>
+);
+const IcoUsers = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+  </svg>
+);
+const IcoFlash = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
   </svg>
 );
 const IcoHeart = ({ filled }) => (
@@ -102,13 +122,17 @@ const COACHES = [
 // ─── Left Sidebar ─────────────────────────────────────────────────────────────
 function Sidebar({ router, user, profilePhotoUrl, currentLocale }) {
   const NAV = [
-    { Icon: IcoHome,    label: "Нүүр",     path: "" },
-    { Icon: IcoPlay,    label: "Рилс",     path: "reels", active: true },
-    { Icon: IcoBrain,   label: "AI Коач",  path: "train" },
-    { Icon: IcoTrophy,  label: "Чансаа",   path: "rank" },
-    { Icon: IcoTarget,  label: "Тренер",   path: "coach" },
-    { Icon: IcoSwords,  label: "Спарринг", path: "sparring" },
-    { Icon: IcoMessage, label: "Мессеж",   path: "inbox" },
+    { Icon: IcoHome,     label: "Нүүр",            path: "" },
+    { Icon: IcoPlay,     label: "Рилс",             path: "reels", active: true },
+    { Icon: IcoBrain,    label: "AI Коач",          path: "train" },
+    { Icon: IcoTrophy,   label: "Чансаа",           path: "rank" },
+    { Icon: IcoBars,     label: "Дэлхийн рейтинг",  path: "leaderboard" },
+    { Icon: IcoTarget,   label: "Тренер",           path: "coach" },
+    { Icon: IcoSwords,   label: "Спарринг",         path: "sparring" },
+    { Icon: IcoBuilding, label: "Заал",             path: "gyms" },
+    { Icon: IcoUsers,    label: "Тулаанчид",        path: "fighters" },
+    { Icon: IcoFlash,    label: "Чэлэнж",           path: "challenges" },
+    { Icon: IcoMessage,  label: "Мессеж",           path: "inbox" },
   ];
 
   return (
@@ -130,6 +154,7 @@ function Sidebar({ router, user, profilePhotoUrl, currentLocale }) {
               <Icon />
             </span>
             <span style={d.navLabel}>{label}</span>
+            <span style={d.navChevron}>›</span>
             {active && <div style={d.navActiveBar} />}
           </button>
         ))}
@@ -353,6 +378,34 @@ function SkeletonRow() {
 
 // ─── Coach Section ────────────────────────────────────────────────────────────
 function CoachSection({ router, currentLocale }) {
+  const [coaches, setCoaches] = useState(null);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const { db } = await import("@/lib/firebase");
+        const { collection, query, where, limit, getDocs } = await import("firebase/firestore");
+        if (!db) { setCoaches(COACHES); return; }
+        const snap = await getDocs(query(collection(db, "users"), where("isCoach", "==", true), limit(6))).catch(() => ({ docs: [] }));
+        const data = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setCoaches(data.length ? data : COACHES);
+      } catch {
+        setCoaches(COACHES);
+      }
+    }
+    load();
+  }, []);
+
+  const ACCENT_COLORS = [GOLD, "#A855F7", "#3B82F6", "#10B981", "#F97316", "#EC4899"];
+  const BG_COLORS = [
+    "linear-gradient(160deg,#2d1e00 0%,#100b00 100%)",
+    "linear-gradient(160deg,#1e0833 0%,#0a0315 100%)",
+    "linear-gradient(160deg,#0a1e3d 0%,#030a18 100%)",
+    "linear-gradient(160deg,#00200f 0%,#000d06 100%)",
+    "linear-gradient(160deg,#2d1000 0%,#100600 100%)",
+    "linear-gradient(160deg,#2d0027 0%,#100010 100%)",
+  ];
+
   return (
     <div style={d.rightCard}>
       <div style={d.rightCardHeader}>
@@ -361,22 +414,37 @@ function CoachSection({ router, currentLocale }) {
       </div>
 
       <div className="no-scrollbar" style={d.hScroll}>
-        {COACHES.map((coach) => (
-          <button
-            key={coach.id}
-            className="featured-card"
-            style={{ ...d.hCardWide, background: coach.bg }}
-            onClick={() => router.push(`/${currentLocale}/coach`)}
-          >
-            <div style={{ ...d.hCardBadge, color: coach.accent, borderColor: coach.accent + "40", background: coach.accent + "18" }}>
-              КОАЧ
+        {coaches === null ? (
+          [0,1,2].map((i) => (
+            <div key={i} style={{ ...d.hCardWide, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+              <div style={{ ...d.skeletonPulse, height: 9, width: "60%", borderRadius: 5, marginBottom: 6 }} />
+              <div style={{ ...d.skeletonPulse, height: 11, width: "80%", borderRadius: 5, marginBottom: 4 }} />
+              <div style={{ ...d.skeletonPulse, height: 9, width: "55%", borderRadius: 5 }} />
             </div>
-            <div style={{ ...d.hCardStat, color: coach.accent }}>★ {coach.rating}</div>
-            <div style={d.hCardName}>{coach.name}</div>
-            <div style={d.hCardSub}>{coach.sub}</div>
-            <div style={{ ...d.hCardLine, background: coach.accent + "60" }} />
-          </button>
-        ))}
+          ))
+        ) : coaches.map((coach, i) => {
+          const accent = coach.accent || ACCENT_COLORS[i % ACCENT_COLORS.length];
+          const bg = coach.bg || BG_COLORS[i % BG_COLORS.length];
+          const name = (coach.displayName || coach.username || coach.name || "КОАЧ").toUpperCase();
+          const sub = coach.coachSpecialties?.[0] || coach.sub || "Тренер";
+          const rating = coach.rating || "5.0";
+          return (
+            <button
+              key={coach.id}
+              className="featured-card"
+              style={{ ...d.hCardWide, background: bg }}
+              onClick={() => router.push(`/${currentLocale}/coach/${coach.id}`)}
+            >
+              <div style={{ ...d.hCardBadge, color: accent, borderColor: accent + "40", background: accent + "18" }}>
+                КОАЧ
+              </div>
+              <div style={{ ...d.hCardStat, color: accent }}>★ {rating}</div>
+              <div style={d.hCardName}>{name}</div>
+              <div style={d.hCardSub}>{sub}</div>
+              <div style={{ ...d.hCardLine, background: accent + "60" }} />
+            </button>
+          );
+        })}
       </div>
 
       <button style={d.viewAllBtn} onClick={() => router.push(`/${currentLocale}/coach`)}>
@@ -388,6 +456,34 @@ function CoachSection({ router, currentLocale }) {
 
 // ─── Gym Section ─────────────────────────────────────────────────────────────
 function GymSection({ router, currentLocale }) {
+  const [gyms, setGyms] = useState(null);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const { db } = await import("@/lib/firebase");
+        const { collection, query, limit, getDocs, orderBy } = await import("firebase/firestore");
+        if (!db) { setGyms(GYMS); return; }
+        const snap = await getDocs(query(collection(db, "gyms"), orderBy("memberCount", "desc"), limit(6))).catch(() => ({ docs: [] }));
+        const data = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setGyms(data.length ? data : GYMS);
+      } catch {
+        setGyms(GYMS);
+      }
+    }
+    load();
+  }, []);
+
+  const GYM_ACCENTS = [RED, "#3B82F6", "#10B981", GOLD, "#A855F7", "#F97316"];
+  const GYM_BGS = [
+    "linear-gradient(160deg,#3d0007 0%,#150002 100%)",
+    "linear-gradient(160deg,#0a1e3d 0%,#030a18 100%)",
+    "linear-gradient(160deg,#00200f 0%,#000d06 100%)",
+    "linear-gradient(160deg,#2d1e00 0%,#100b00 100%)",
+    "linear-gradient(160deg,#1e0833 0%,#0a0315 100%)",
+    "linear-gradient(160deg,#2d1000 0%,#100600 100%)",
+  ];
+
   return (
     <div style={d.rightCard}>
       <div style={d.rightCardHeader}>
@@ -396,22 +492,37 @@ function GymSection({ router, currentLocale }) {
       </div>
 
       <div className="no-scrollbar" style={d.hScroll}>
-        {GYMS.map((gym) => (
-          <button
-            key={gym.id}
-            className="featured-card"
-            style={{ ...d.hCardWide, background: gym.bg }}
-            onClick={() => router.push(`/${currentLocale}/gyms`)}
-          >
-            <div style={{ ...d.hCardBadge, color: gym.accent, borderColor: gym.accent + "40", background: gym.accent + "18" }}>
-              ЗАА
+        {gyms === null ? (
+          [0,1,2].map((i) => (
+            <div key={i} style={{ ...d.hCardWide, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+              <div style={{ ...d.skeletonPulse, height: 9, width: "60%", borderRadius: 5, marginBottom: 6 }} />
+              <div style={{ ...d.skeletonPulse, height: 11, width: "80%", borderRadius: 5, marginBottom: 4 }} />
+              <div style={{ ...d.skeletonPulse, height: 9, width: "55%", borderRadius: 5 }} />
             </div>
-            <div style={{ ...d.hCardStat, color: gym.accent }}>{gym.members} гишүүн</div>
-            <div style={d.hCardName}>{gym.name}</div>
-            <div style={d.hCardSub}>{gym.city}</div>
-            <div style={{ ...d.hCardLine, background: gym.accent + "60" }} />
-          </button>
-        ))}
+          ))
+        ) : gyms.map((gym, i) => {
+          const accent = gym.accent || GYM_ACCENTS[i % GYM_ACCENTS.length];
+          const bg = gym.bg || GYM_BGS[i % GYM_BGS.length];
+          const name = (gym.name || gym.gymName || "ЗААЛ").toUpperCase();
+          const city = gym.city || gym.location || "";
+          const members = gym.memberCount || gym.members || 0;
+          return (
+            <button
+              key={gym.id}
+              className="featured-card"
+              style={{ ...d.hCardWide, background: bg }}
+              onClick={() => router.push(`/${currentLocale}/gyms/${gym.id}`)}
+            >
+              <div style={{ ...d.hCardBadge, color: accent, borderColor: accent + "40", background: accent + "18" }}>
+                ЗААЛ
+              </div>
+              <div style={{ ...d.hCardStat, color: accent }}>{members} гишүүн</div>
+              <div style={d.hCardName}>{name}</div>
+              <div style={d.hCardSub}>{city}</div>
+              <div style={{ ...d.hCardLine, background: accent + "60" }} />
+            </button>
+          );
+        })}
       </div>
 
       <button style={d.viewAllBtn} onClick={() => router.push(`/${currentLocale}/gyms`)}>
@@ -771,6 +882,7 @@ const d = {
     flexShrink: 0,
   },
   navLabel: { flex: 1 },
+  navChevron: { fontSize: 12, color: "rgba(255,255,255,0.18)", flexShrink: 0 },
   navActiveBar: {
     position: "absolute",
     left: 0,
@@ -1208,7 +1320,7 @@ const d = {
     background: "#141416",
     border: "1px solid rgba(255,255,255,0.06)",
     borderRadius: 14,
-    overflow: "hidden",
+    overflow: "clip",
   },
   rightCardHeader: {
     display: "flex",
