@@ -1,7 +1,7 @@
 import { GOLD, RED, BORDER, MUTED, redAlpha, goldAlpha } from "@/lib/tokens";
 
 export const discoverHubStyles = {
-  hubSection: { marginBottom: 28, padding: "0 16px" },
+  hubSection: { marginBottom: 40, padding: "0 16px" },
   forYouHeader: {
     display: "flex",
     alignItems: "center",
@@ -194,7 +194,7 @@ export const discoverHubStyles = {
     transition: "background 150ms",
   },
 
-  exploreSection: { padding: "20px 16px 8px" },
+  exploreSection: { padding: "28px 16px 12px" },
   exploreSectionLabel: {
     margin: "0 0 10px",
     fontSize: 10,

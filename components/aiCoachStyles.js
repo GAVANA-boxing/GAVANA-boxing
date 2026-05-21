@@ -14,7 +14,7 @@ const aiCoachStyles = {
   sectionTabRow: {
     display: "flex",
     gap: 6,
-    marginBottom: 24,
+    marginBottom: 16,
     background: "rgba(255,255,255,0.03)",
     borderRadius: 12,
     padding: 4,
@@ -53,7 +53,8 @@ const aiCoachStyles = {
   },
   header: {
     textAlign: "center",
-    marginBottom: 16,
+    marginBottom: 32,
+    paddingTop: 8,
   },
   kicker: {
     margin: 0,
@@ -73,11 +74,11 @@ const aiCoachStyles = {
   personas: {
     display: "grid",
     gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-    gap: 10,
-    marginBottom: 16,
+    gap: 8,
+    marginBottom: 12,
   },
   personaButton: {
-    minHeight: 56,
+    minHeight: 52,
     padding: "10px 10px",
     borderRadius: 12,
     borderWidth: "1px",
@@ -122,7 +123,7 @@ const aiCoachStyles = {
   quickActions: {
     display: "flex",
     gap: 8,
-    marginBottom: 20,
+    marginBottom: 14,
     justifyContent: "flex-start",
     flexWrap: "wrap",
   },
@@ -138,15 +139,15 @@ const aiCoachStyles = {
     transition: "opacity 150ms ease",
   },
   chatBox: {
-    background: "rgba(255,255,255,0.02)",
-    borderRadius: 16,
-    padding: "18px 16px 14px",
+    background: "transparent",
+    borderRadius: 0,
+    padding: "16px 0 14px",
     marginBottom: 20,
-    height: 500,
+    height: 480,
     overflow: "hidden",
     display: "flex",
     flexDirection: "column",
-    borderTop: "1px solid rgba(255,255,255,0.05)",
+    borderTop: "1px solid rgba(255,255,255,0.06)",
   },
   messages: {
     flex: 1,

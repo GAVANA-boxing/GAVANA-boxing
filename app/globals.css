@@ -385,6 +385,22 @@ p {
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 
+/* Subtle tactical scan atmosphere — almost invisible, just depth */
+.reels-feed::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 3px,
+    rgba(0,0,0,0.014) 3px,
+    rgba(0,0,0,0.014) 4px
+  );
+}
+
 .reel-action:active { animation: iconTap 220ms ease; }
 .reel-action:active .reel-action-circle { transform: scale(0.88); }
 .reel-action-circle { transition: transform 160ms ease, background 160ms ease, border-color 160ms ease; }

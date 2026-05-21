@@ -87,6 +87,6 @@ export const discoverPageStyles = {
 
   // ── Main content ──
   content: {
-    padding: "8px 0 0",
+    padding: "12px 0 0",
   },
 };

@@ -1,12 +1,12 @@
 import { GOLD, RED, RED_DARK, MUTED, redAlpha, goldAlpha } from "@/lib/tokens";
 
 export const discoverFeedStyles = {
-  fighterStudySection: { marginBottom: 4 },
+  fighterStudySection: { marginBottom: 20 },
   fighterStudyHeader: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: 16,
   },
   fighterStudyLabel: {
     fontSize: 10,
@@ -35,8 +35,8 @@ export const discoverFeedStyles = {
   },
   learnDivider: {
     height: 1,
-    background: "rgba(255,255,255,0.06)",
-    margin: "14px 0",
+    background: "rgba(255,255,255,0.05)",
+    margin: "24px 0",
   },
 
   feedTabs: {

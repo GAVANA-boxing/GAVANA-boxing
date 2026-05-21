@@ -620,8 +620,12 @@ export default function ReelsDashboard({
           <div ref={feedRef} style={d.cardsFeed}>
             {reels.length === 0 ? (
               <div style={d.emptyFeed}>
-                <p style={{ color: "rgba(255,255,255,0.25)", fontSize: 13, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
-                  РИЛС ОЛДСОНГҮЙ
+                <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: 3, textTransform: "uppercase", color: RED, opacity: 0.6 }}>GAVANA BOXING</span>
+                <p style={{ margin: 0, color: "rgba(255,255,255,0.32)", fontSize: 22, fontWeight: 950, letterSpacing: "-0.02em", textTransform: "uppercase" }}>
+                  NO REELS FOUND
+                </p>
+                <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.2)", letterSpacing: "0.05em" }}>
+                  Try a different filter
                 </p>
               </div>
             ) : reels.map((reel, index) => {
@@ -675,7 +679,7 @@ const d = {
     display: "flex",
     height: "100dvh",
     overflow: "hidden",
-    background: "#0B0B0C",
+    background: `radial-gradient(ellipse 55% 70% at 38% 50%, ${redAlpha(0.06)} 0%, transparent 65%), #0B0B0C`,
     color: "#fff",
   },
 
@@ -838,7 +842,7 @@ const d = {
   centerInner: {
     maxWidth: 600,
     margin: "0 auto",
-    padding: "0 24px 40px",
+    padding: "16px 24px 40px",
   },
   tabs: {
     position: "sticky",
@@ -936,9 +940,14 @@ const d = {
   },
   emptyFeed: {
     display: "flex",
+    flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    padding: "80px 0",
+    padding: "80px 24px",
+    gap: 10,
+    borderRadius: 20,
+    background: `radial-gradient(ellipse 60% 50% at 50% 40%, ${redAlpha(0.08)} 0%, transparent 70%)`,
+    border: "1px solid rgba(255,255,255,0.04)",
   },
 
   // ── Reel card ──
