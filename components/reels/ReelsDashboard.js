@@ -87,18 +87,16 @@ const FALLBACK_SPARRING = [
   { id: "f3", fromName: "Дэлгэрмаа", weightClass: "60кг", gym: "Эрдэнэт Клуб", time: "Өнөөдөр 21:00" },
 ];
 
-const FALLBACK_COACHES = [
-  { id: "c1", name: "Оюунаа Н.",   specialty: "Техник",    rating: "5.0", exp: "12 жил", accent: GOLD },
-  { id: "c2", name: "Болд Г.",      specialty: "Хурд",      rating: "4.9", exp: "8 жил",  accent: "#A855F7" },
-  { id: "c3", name: "Мөнхбат С.",   specialty: "Контр",     rating: "4.8", exp: "15 жил", accent: "#3B82F6" },
+const GYMS = [
+  { id: "g1", name: "GAVANA GYM", city: "Улаанбаатар", members: 142, accent: RED, bg: "linear-gradient(160deg,#3d0007 0%,#150002 100%)" },
+  { id: "g2", name: "KHAN BOXING", city: "Дархан", members: 68, accent: "#3B82F6", bg: "linear-gradient(160deg,#0a1e3d 0%,#030a18 100%)" },
+  { id: "g3", name: "ЭРДЭНЭТ КЛУБ", city: "Эрдэнэт хот", members: 34, accent: "#10B981", bg: "linear-gradient(160deg,#00200f 0%,#000d06 100%)" },
 ];
 
-const FEATURED_CARDS = [
-  { type: "GYM",   id: "g1", name: "GAVANA GYM",      sub: "Улаанбаатар",     rating: null, accent: RED,    bg: "linear-gradient(160deg,#3d0007 0%,#150002 100%)" },
-  { type: "GYM",   id: "g2", name: "KHAN BOXING",      sub: "Дархан",          rating: null, accent: "#3B82F6", bg: "linear-gradient(160deg,#0a1e3d 0%,#030a18 100%)" },
-  { type: "COACH", id: "c1", name: "ОЮУНАА БАГШ",      sub: "Чемпион • 12 жил",  rating: "5.0", accent: GOLD,   bg: "linear-gradient(160deg,#2d1e00 0%,#100b00 100%)" },
-  { type: "COACH", id: "c2", name: "БОЛД ТРЕНЕР",      sub: "ОХУ-ын экс-про",   rating: "4.9", accent: "#A855F7", bg: "linear-gradient(160deg,#1e0833 0%,#0a0315 100%)" },
-  { type: "GYM",   id: "g3", name: "ЭРДЭНЭТ КЛУБ",    sub: "Эрдэнэт хот",     rating: null, accent: "#10B981", bg: "linear-gradient(160deg,#00200f 0%,#000d06 100%)" },
+const COACHES = [
+  { id: "c1", name: "ОЮУНАА БАГШ", sub: "Чемпион • 12 жил", rating: "5.0", accent: GOLD, bg: "linear-gradient(160deg,#2d1e00 0%,#100b00 100%)" },
+  { id: "c2", name: "БОЛД ТРЕНЕР", sub: "ОХУ-ын экс-про", rating: "4.9", accent: "#A855F7", bg: "linear-gradient(160deg,#1e0833 0%,#0a0315 100%)" },
+  { id: "c3", name: "МӨНХБАТ", sub: "Контр техник", rating: "4.8", accent: "#3B82F6", bg: "linear-gradient(160deg,#0a1e3d 0%,#030a18 100%)" },
 ];
 
 // ─── Left Sidebar ─────────────────────────────────────────────────────────────
@@ -362,28 +360,22 @@ function CoachSection({ router, currentLocale }) {
         <span style={d.rightCardTitle}>САНАЛ БОЛГОХ КОАЧ</span>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column" }}>
-        {FALLBACK_COACHES.map((coach) => (
-          <div key={coach.id} style={d.coachRow}>
-            <div style={{ ...d.coachAva, borderColor: coach.accent + "55", background: coach.accent + "22" }}>
-              <span style={{ fontSize: 11, fontWeight: 900, color: coach.accent }}>
-                {coach.name.charAt(0)}
-              </span>
+      <div className="no-scrollbar" style={d.hScroll}>
+        {COACHES.map((coach) => (
+          <button
+            key={coach.id}
+            className="featured-card"
+            style={{ ...d.hCardWide, background: coach.bg }}
+            onClick={() => router.push(`/${currentLocale}/coach`)}
+          >
+            <div style={{ ...d.hCardBadge, color: coach.accent, borderColor: coach.accent + "40", background: coach.accent + "18" }}>
+              КОАЧ
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={d.coachName}>{coach.name.toUpperCase()}</div>
-              <div style={d.coachMeta}>
-                <span style={{ color: coach.accent }}>★ {coach.rating}</span>
-                {" · "}{coach.specialty}{" · "}{coach.exp}
-              </div>
-            </div>
-            <button
-              style={{ ...d.joinBtn, borderColor: coach.accent + "50", color: coach.accent, background: coach.accent + "10" }}
-              onClick={() => router.push(`/${currentLocale}/coach`)}
-            >
-              ДЭЛГЭРЭНГҮЙ
-            </button>
-          </div>
+            <div style={{ ...d.hCardStat, color: coach.accent }}>★ {coach.rating}</div>
+            <div style={d.hCardName}>{coach.name}</div>
+            <div style={d.hCardSub}>{coach.sub}</div>
+            <div style={{ ...d.hCardLine, background: coach.accent + "60" }} />
+          </button>
         ))}
       </div>
 
@@ -394,37 +386,37 @@ function CoachSection({ router, currentLocale }) {
   );
 }
 
-// ─── Featured Gyms & Coaches ─────────────────────────────────────────────────
-function FeaturedSection({ router, currentLocale }) {
+// ─── Gym Section ─────────────────────────────────────────────────────────────
+function GymSection({ router, currentLocale }) {
   return (
     <div style={d.rightCard}>
       <div style={d.rightCardHeader}>
         <span style={{ ...d.liveDot, background: GOLD, boxShadow: `0 0 7px ${GOLD}` }} />
-        <span style={d.rightCardTitle}>ОНЦЛОХ ЗААЛ & ТРЕНЕР</span>
+        <span style={d.rightCardTitle}>ОНЦЛОХ ЗААЛ</span>
       </div>
 
-      <div className="no-scrollbar" style={d.featuredScroll}>
-        {FEATURED_CARDS.map((item) => (
+      <div className="no-scrollbar" style={d.hScroll}>
+        {GYMS.map((gym) => (
           <button
-            key={item.id}
+            key={gym.id}
             className="featured-card"
-            style={{ ...d.featuredCard, background: item.bg }}
-            onClick={() => router.push(`/${currentLocale}/${item.type === "GYM" ? "gyms" : "coach"}`)}
+            style={{ ...d.hCardWide, background: gym.bg }}
+            onClick={() => router.push(`/${currentLocale}/gyms`)}
           >
-            <div style={{ ...d.featuredTopBadge, color: item.accent, borderColor: item.accent + "40", background: item.accent + "18" }}>
-              {item.type}
+            <div style={{ ...d.hCardBadge, color: gym.accent, borderColor: gym.accent + "40", background: gym.accent + "18" }}>
+              ЗАА
             </div>
-            <div style={d.featuredName}>{item.name}</div>
-            <div style={d.featuredSub}>
-              {item.rating
-                ? <><span style={{ color: item.accent }}>★ {item.rating}</span>{" · "}{item.sub}</>
-                : item.sub
-              }
-            </div>
-            <div style={{ ...d.featuredAccentLine, background: item.accent + "60" }} />
+            <div style={{ ...d.hCardStat, color: gym.accent }}>{gym.members} гишүүн</div>
+            <div style={d.hCardName}>{gym.name}</div>
+            <div style={d.hCardSub}>{gym.city}</div>
+            <div style={{ ...d.hCardLine, background: gym.accent + "60" }} />
           </button>
         ))}
       </div>
+
+      <button style={d.viewAllBtn} onClick={() => router.push(`/${currentLocale}/gyms`)}>
+        БҮГДИЙГ ХАРАХ →
+      </button>
     </div>
   );
 }
@@ -490,21 +482,34 @@ function RightPanel({ user, router, currentLocale }) {
           <span style={d.liveBadge}>{isLoading ? "—" : `${displaySparring?.length || 0} LIVE`}</span>
         </div>
 
-        <div style={d.lobbyList}>
+        <div className="no-scrollbar" style={d.hScroll}>
           {isLoading ? (
-            <>{[0,1,2].map((i) => <SkeletonRow key={i} />)}</>
-          ) : displaySparring.map((item) => (
-            <div key={item.id} style={d.lobbyRow} className="lobby-row">
-              <div style={d.lobbyActiveDot} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={d.lobbyName}>{(item.displayName || item.fromName || "Тулаанч").toUpperCase()}</div>
-                <div style={d.lobbyMeta}>
-                  {[item.weightClass, item.location || item.gym].filter(Boolean).join(" · ")}
-                </div>
+            [0,1,2].map((i) => (
+              <div key={i} style={{ ...d.sparringCard, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <div style={{ ...d.skeletonPulse, width: 7, height: 7, borderRadius: "50%", marginBottom: 6 }} />
+                <div style={{ ...d.skeletonPulse, height: 9, width: "70%", borderRadius: 5, marginBottom: 4 }} />
+                <div style={{ ...d.skeletonPulse, height: 11, width: "85%", borderRadius: 5, marginBottom: 4 }} />
+                <div style={{ ...d.skeletonPulse, height: 9, width: "60%", borderRadius: 5, marginBottom: 6 }} />
+                <div style={{ ...d.skeletonPulse, width: 52, height: 22, borderRadius: 7 }} />
               </div>
-              <button style={d.joinBtn} onClick={() => router.push(`/${currentLocale}/sparring`)}>
-                НЭГДЭХ
-              </button>
+            ))
+          ) : displaySparring.map((item) => (
+            <div
+              key={item.id}
+              style={d.sparringCard}
+              onClick={() => router.push(`/${currentLocale}/sparring`)}
+            >
+              <div style={d.sparringCardDot} />
+              <div style={{ ...d.sparringCardWeight, color: RED }}>
+                {item.weightClass || "—"}
+              </div>
+              <div style={d.sparringCardName}>
+                {(item.displayName || item.fromName || "Тулаанч").toUpperCase()}
+              </div>
+              <div style={d.sparringCardMeta}>
+                {item.location || item.gym || ""}
+              </div>
+              <div style={d.sparringCardJoin}>НЭГДЭХ</div>
             </div>
           ))}
         </div>
@@ -517,8 +522,8 @@ function RightPanel({ user, router, currentLocale }) {
       {/* Coaches */}
       <CoachSection router={router} currentLocale={currentLocale} />
 
-      {/* Featured Gyms */}
-      <FeaturedSection router={router} currentLocale={currentLocale} />
+      {/* Gyms */}
+      <GymSection router={router} currentLocale={currentLocale} />
 
       {/* My Requests */}
       {user && (
@@ -1348,6 +1353,56 @@ const d = {
     padding: "3px 8px",
     flexShrink: 0,
     whiteSpace: "nowrap",
+  },
+
+  // ── Horizontal scroll card styles ──
+  hScroll: {
+    display: "flex", gap: 8, padding: "8px 12px 12px",
+    overflowX: "auto", scrollbarWidth: "none",
+  },
+  hCardWide: {
+    width: 220, flexShrink: 0, height: 110, borderRadius: 14,
+    border: "1px solid rgba(255,255,255,0.07)", padding: "10px 10px 8px",
+    display: "flex", flexDirection: "column", justifyContent: "flex-end",
+    cursor: "pointer", position: "relative", overflow: "hidden",
+    textAlign: "left", transition: "transform 180ms ease",
+  },
+  hCardBadge: {
+    position: "absolute", top: 8, left: 8, fontSize: 8, fontWeight: 900,
+    letterSpacing: "0.14em", textTransform: "uppercase",
+    border: "1px solid", borderRadius: 5, padding: "2px 6px",
+  },
+  hCardStat: { fontSize: 9, fontWeight: 700, marginBottom: 2, letterSpacing: "0.02em" },
+  hCardName: {
+    fontSize: 12, fontWeight: 900, color: "#fff", letterSpacing: "-0.01em",
+    lineHeight: 1.1, textTransform: "uppercase", marginBottom: 2,
+  },
+  hCardSub: { fontSize: 10, color: "rgba(255,255,255,0.45)", fontWeight: 700 },
+  hCardLine: { position: "absolute", bottom: 0, left: 0, right: 0, height: 2 },
+  sparringCard: {
+    width: 130, flexShrink: 0, height: 130, borderRadius: 14,
+    background: "linear-gradient(160deg, rgba(255,59,48,0.12) 0%, #0d0507 100%)",
+    border: "1px solid rgba(255,59,48,0.18)", padding: "10px 10px 8px",
+    display: "flex", flexDirection: "column", cursor: "pointer",
+    position: "relative", overflow: "hidden", transition: "transform 180ms ease",
+    textAlign: "left",
+  },
+  sparringCardDot: {
+    width: 7, height: 7, borderRadius: "50%", background: "#34D399",
+    boxShadow: "0 0 7px #34D399", marginBottom: 6, flexShrink: 0,
+  },
+  sparringCardWeight: {
+    fontSize: 9, fontWeight: 900, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 4,
+  },
+  sparringCardName: {
+    fontSize: 11, fontWeight: 900, color: "#fff", letterSpacing: "-0.01em",
+    lineHeight: 1.2, flex: 1,
+  },
+  sparringCardMeta: { fontSize: 9, color: "rgba(255,255,255,0.3)", fontWeight: 700, marginBottom: 2 },
+  sparringCardJoin: {
+    alignSelf: "flex-start", padding: "3px 9px", borderRadius: 7,
+    border: "1px solid rgba(255,59,48,0.4)", background: "rgba(255,59,48,0.1)",
+    color: RED, fontSize: 8, fontWeight: 900, letterSpacing: "0.1em", textTransform: "uppercase",
   },
 
   // ── Coach rows ──
