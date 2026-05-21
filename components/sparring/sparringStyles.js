@@ -129,14 +129,14 @@ const s = {
     appearance: "none",
   },
   countBar: { padding: "10px 16px 4px" },
-  countTxt: { fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.28)", letterSpacing: 0.4 },
+  countTxt: { fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.28)", letterSpacing: 0.8, textTransform: "uppercase" },
   list: { flex: 1, display: "flex", flexDirection: "column", padding: "4px 0 0", minHeight: "55dvh" },
   sectionLabel: {
     padding: "12px 16px 4px",
     fontSize: 9,
     fontWeight: 900,
     color: RED,
-    letterSpacing: 2.5,
+    letterSpacing: 3.5,
     textTransform: "uppercase",
   },
   empty: {

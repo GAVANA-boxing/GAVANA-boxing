@@ -9,10 +9,10 @@ export const discoverFeedStyles = {
     marginBottom: 16,
   },
   fighterStudyLabel: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 900,
     color: GOLD,
-    letterSpacing: 2.5,
+    letterSpacing: 3.5,
     textTransform: "uppercase",
   },
   fighterStudySeeAll: {
@@ -93,8 +93,8 @@ export const discoverFeedStyles = {
     padding: "52px 24px",
     gap: 10,
   },
-  emptyTitle: { margin: 0, fontSize: 17, fontWeight: 900, color: "#fff" },
-  emptyText: { margin: 0, fontSize: 13, color: MUTED, lineHeight: 1.5, maxWidth: 260 },
+  emptyTitle: { margin: 0, fontSize: 17, fontWeight: 900, color: "#fff", letterSpacing: "-0.01em" },
+  emptyText: { margin: 0, fontSize: 13, color: "rgba(255,255,255,0.35)", lineHeight: 1.6, maxWidth: 260 },
   emptyBtn: {
     marginTop: 8,
     padding: "11px 22px",
@@ -140,14 +140,15 @@ export const discoverFeedStyles = {
   avatarInitial: { fontSize: 15, fontWeight: 900, color: "#fff" },
   authorName: {
     margin: 0,
-    fontSize: 14,
-    fontWeight: 800,
+    fontSize: 13,
+    fontWeight: 900,
     color: "#fff",
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
+    letterSpacing: "-0.01em",
   },
-  timeAgo: { margin: 0, fontSize: 11, color: MUTED, fontWeight: 600 },
+  timeAgo: { margin: 0, fontSize: 11, color: MUTED, fontWeight: 700 },
   typeBadge: { fontSize: 18, lineHeight: 1, flexShrink: 0 },
   thumb: {
     position: "relative",
