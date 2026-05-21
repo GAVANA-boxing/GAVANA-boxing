@@ -149,7 +149,7 @@ export default function ChallengesPage() {
   }).filter(Boolean);
 
   return (
-    <main style={styles.page}>
+    <main style={styles.page} className="page-enter">
       <section style={styles.shell}>
         <button type="button" style={styles.backBtn} onClick={() => router.back()} aria-label="Back">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -157,7 +157,7 @@ export default function ChallengesPage() {
           </svg>
         </button>
         <header style={styles.header}>
-          <p style={styles.kicker}>GAVANA</p>
+          <p style={styles.kicker}>COMBAT · MISSIONS</p>
           <h1 style={styles.title}>{t("challengesTitle")}</h1>
           <p style={styles.subtitle}>{t("challengesSubtitle")}</p>
           <div style={styles.streakPill}>
