@@ -12,18 +12,17 @@ export const discoverHubStyles = {
   forYouKicker: {
     margin: "0 0 2px",
     color: RED,
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 900,
-    letterSpacing: 3,
+    letterSpacing: 3.5,
     textTransform: "uppercase",
   },
   forYouTitle: {
     fontSize: 18,
-    fontWeight: 1000,
+    fontWeight: 900,
     color: "#fff",
     letterSpacing: "-0.01em",
     fontFamily: "var(--font-display, 'Anton', sans-serif)",
-    textTransform: "uppercase",
   },
   seeAllBtn: {
     background: "none",
@@ -107,7 +106,7 @@ export const discoverHubStyles = {
     fontSize: 15,
     fontWeight: 900,
     color: "#fff",
-    letterSpacing: 0.1,
+    letterSpacing: "-0.01em",
   },
   hubChevron: {
     width: 18,
@@ -197,11 +196,11 @@ export const discoverHubStyles = {
   exploreSection: { padding: "28px 16px 12px" },
   exploreSectionLabel: {
     margin: "0 0 10px",
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 900,
-    letterSpacing: 2,
+    letterSpacing: 3.5,
     textTransform: "uppercase",
-    color: MUTED,
+    color: "rgba(255,255,255,0.35)",
   },
   explorePills: { display: "flex", gap: 8, flexWrap: "wrap" },
   explorePill: {

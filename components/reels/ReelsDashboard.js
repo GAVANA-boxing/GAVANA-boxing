@@ -620,11 +620,11 @@ export default function ReelsDashboard({
           <div ref={feedRef} style={d.cardsFeed}>
             {reels.length === 0 ? (
               <div style={d.emptyFeed}>
-                <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: 3, textTransform: "uppercase", color: RED, opacity: 0.6 }}>GAVANA BOXING</span>
-                <p style={{ margin: 0, color: "rgba(255,255,255,0.32)", fontSize: 22, fontWeight: 950, letterSpacing: "-0.02em", textTransform: "uppercase" }}>
+                <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: 3.5, textTransform: "uppercase", color: RED, opacity: 0.55 }}>GAVANA BOXING</span>
+                <p style={{ margin: 0, color: "rgba(255,255,255,0.28)", fontSize: 20, fontWeight: 900, letterSpacing: "-0.02em", textTransform: "uppercase" }}>
                   NO REELS FOUND
                 </p>
-                <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.2)", letterSpacing: "0.05em" }}>
+                <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.18)", letterSpacing: "0.04em" }}>
                   Try a different filter
                 </p>
               </div>
