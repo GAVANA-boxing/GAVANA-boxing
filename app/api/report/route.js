@@ -17,6 +17,8 @@ function isReportRateLimited(uid) {
 const VALID_TARGET_TYPES = ["reel", "user", "comment", "event"];
 
 export async function POST(req) {
+  const authHeader = req.headers.get("Authorization") || "";
+  const idToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
   const reporterId = await verifyIdToken(req);
   if (!reporterId) return Response.json({ error: "Unauthorized" }, { status: 401 });
   if (isReportRateLimited(reporterId)) return Response.json({ error: "Rate limited" }, { status: 429 });
@@ -49,7 +51,10 @@ export async function POST(req) {
 
   const res = await fetch(`${FS_BASE}/reports?key=${API_KEY}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+    },
     body: JSON.stringify(body),
   });
 

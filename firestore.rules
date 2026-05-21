@@ -172,6 +172,13 @@ service cloud.firestore {
       allow delete: if (isAuth() && resource.data.recipientId == request.auth.uid) || isRelatedReelOwner();
     }
 
+    // ─── Reports ─────────────────────────────────────────────────
+    match /reports/{reportId} {
+      allow create: if isAuth() && request.resource.data.reporterId == request.auth.uid;
+      allow read, update: if isAuth() && request.auth.token.admin == true;
+      allow delete: if false;
+    }
+
     // ─── Featured creators ────────────────────────────────────────
     // Public read; writes restricted to admins.
     // TODO: replace with your project's admin check once admin custom claims are set up.
