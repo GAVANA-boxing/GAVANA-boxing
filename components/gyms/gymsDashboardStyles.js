@@ -1,7 +1,7 @@
-import { redAlpha, goldAlpha, RED, GOLD, BG } from "@/lib/tokens";
+import { redAlpha, goldAlpha, RED, GOLD, BG, pageBg } from "@/lib/tokens";
 
 const styles = {
-  page: { minHeight: "100dvh", background: `radial-gradient(ellipse at 50% -8%, ${redAlpha(0.14)} 0%, transparent 50%), ${BG}`, color: "#fff" },
+  page: { minHeight: "100dvh", background: pageBg(), color: "#fff" },
   inner: { maxWidth: 480, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },
   content: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },
   backBtn: { background: "none", border: "none", color: "rgba(255,255,255,0.65)", fontSize: 14, cursor: "pointer", padding: "16px 0", display: "block" },

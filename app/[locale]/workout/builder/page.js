@@ -7,7 +7,7 @@ import { db, auth } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale, translate } from "@/lib/i18n";
 import BottomNav from "@/components/BottomNav";
-import { RED, GOLD, BG, redAlpha, goldAlpha} from "@/lib/tokens";
+import { RED, GOLD, BG, redAlpha, goldAlpha, pageBg } from "@/lib/tokens";
 import { CombatCard, GlassCard } from "@/components/ui";
 
 const GOALS = [
@@ -407,7 +407,7 @@ export default function WorkoutBuilderPage() {
 }
 
 const s = {
-  page: { minHeight: "100dvh", background: `radial-gradient(ellipse at 50% -8%, ${redAlpha(0.14)} 0%, transparent 50%), ${BG}`, color: "#fff" },
+  page: { minHeight: "100dvh", background: pageBg(), color: "#fff" },
   inner: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },
   header: { display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "calc(16px + env(safe-area-inset-top))", paddingBottom: 8 },
   backBtn: { width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.055)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", borderRadius: 10, cursor: "pointer", padding: 0 },

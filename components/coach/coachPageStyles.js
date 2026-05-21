@@ -1,9 +1,9 @@
-import { RED, BG, redAlpha, GOLD, goldAlpha } from "@/lib/tokens";
+import { RED, BG, redAlpha, GOLD, goldAlpha, pageBg } from "@/lib/tokens";
 
 export const coachPageStyles = {
   page: {
     minHeight: "100dvh",
-    background: `radial-gradient(ellipse at 50% -8%, ${redAlpha(0.15)} 0%, transparent 50%), ${BG}`,
+    background: pageBg(0.15),
     color: "#fff",
   },
   tabStrip: {

@@ -7,7 +7,7 @@ import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { RED, GOLD, BG, redAlpha } from "@/lib/tokens";
+import { RED, GOLD, BG, redAlpha, pageBg } from "@/lib/tokens";
 import Image from "next/image";
 
 const SPECIALTIES = [
@@ -334,7 +334,7 @@ export default function CoachApplyPage() {
 }
 
 const styles = {
-  page: { minHeight: "100dvh", background: `radial-gradient(ellipse at 50% -8%, ${redAlpha(0.14)} 0%, transparent 50%), ${BG}`, color: "#fff" },
+  page: { minHeight: "100dvh", background: pageBg(), color: "#fff" },
   inner: { maxWidth: 480, margin: "0 auto", padding: "0 16px 40px" },
   backBtn: { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)", fontSize: 14, cursor: "pointer", padding: "10px 14px", display: "inline-flex", alignItems: "center", borderRadius: 10, marginTop: "calc(16px + env(safe-area-inset-top))" },
   header: { textAlign: "center", padding: "8px 0 24px" },

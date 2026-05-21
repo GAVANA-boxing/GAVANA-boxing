@@ -1,9 +1,9 @@
-import { RED, BG, redAlpha } from "@/lib/tokens";
+import { RED, BG, redAlpha, pageBg } from "@/lib/tokens";
 
 const aiCoachStyles = {
   page: {
     minHeight: "100dvh",
-    background: `radial-gradient(ellipse at 50% -8%, ${redAlpha(0.14)} 0%, transparent 50%), ${BG}`,
+    background: pageBg(),
     color: "var(--text-primary)",
   },
   shell: {

@@ -7,7 +7,7 @@ import { FIGHTERS } from "@/lib/fighters";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
 import FighterPortrait from "@/components/FighterPortrait";
-import { RED, GOLD , redAlpha} from "@/lib/tokens";
+import { RED, GOLD , redAlpha, pageBg } from "@/lib/tokens";
 
 function FighterGridCard({ fighter, onClick }) {
   const acc = fighter.accent;
@@ -77,7 +77,7 @@ export default function FightersPage() {
 const s = {
   page: {
     minHeight: "100dvh",
-    background: `radial-gradient(ellipse at 50% -8%, ${redAlpha(0.16)} 0%, transparent 50%), #0B0B0C`,
+    background: pageBg(0.16),
     color: "#fff",
     paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
     position: "relative",

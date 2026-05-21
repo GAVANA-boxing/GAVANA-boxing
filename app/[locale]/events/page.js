@@ -23,7 +23,7 @@ import SkeletonBlock from "@/components/SkeletonBlock";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname } from "@/lib/i18n";
-import { RED, GOLD, BG, PURPLE, redAlpha, goldAlpha} from "@/lib/tokens";
+import { RED, GOLD, BG, PURPLE, redAlpha, goldAlpha, pageBg } from "@/lib/tokens";
 
 const EVENT_TYPES = ["boxing", "mma", "muay_thai", "sparring", "tournament", "seminar"];
 
@@ -411,7 +411,7 @@ export default function EventsPage() {
 const s = {
   page: {
     minHeight: "100dvh",
-    background: `radial-gradient(ellipse at 50% -8%, ${redAlpha(0.15)} 0%, transparent 50%), ${BG}`,
+    background: pageBg(0.15),
     color: "#fff",
   },
   content: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },

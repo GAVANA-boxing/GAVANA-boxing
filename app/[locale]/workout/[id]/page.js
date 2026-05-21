@@ -6,7 +6,7 @@ import { WORKOUTS } from "@/lib/data";
 import { getLocale, translate } from "@/lib/i18n";
 import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
-import { RED, GOLD, BG, redAlpha } from "@/lib/tokens";
+import { RED, GOLD, BG, redAlpha, pageBg } from "@/lib/tokens";
 
 export default function WorkoutDetail() {
   const { id, locale: localeParam } = useParams();
@@ -137,7 +137,7 @@ export default function WorkoutDetail() {
 const s = {
   page: {
     minHeight: "100dvh",
-    background: `radial-gradient(ellipse at 50% -8%, ${redAlpha(0.14)} 0%, transparent 50%), ${BG}`,
+    background: pageBg(),
     color: "#fff",
     position: "relative",
     paddingBottom: "calc(88px + env(safe-area-inset-bottom))",

@@ -1,4 +1,4 @@
-import { RED, RED_DARK, GOLD, BG, redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, BG, redAlpha, goldAlpha, pageBg } from "@/lib/tokens";
 
 const S = {
   loading: { minHeight: "100dvh", background: BG, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" },
@@ -37,7 +37,7 @@ const S = {
   nextBtn: { padding: "12px 28px", borderRadius: 999, border: "none", background: "#FF3B30", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: `0 4px 20px ${redAlpha(0.45)}` },
 
   // ── Setup step
-  setupPage: { minHeight: "100dvh", background: `radial-gradient(ellipse at 50% -8%, ${redAlpha(0.12)} 0%, transparent 50%), ${BG}`, display: "flex", flexDirection: "column" },
+  setupPage: { minHeight: "100dvh", background: pageBg(0.12), display: "flex", flexDirection: "column" },
   setupHeader: {
     position: "sticky", top: 0, zIndex: 20,
     display: "flex", alignItems: "center", justifyContent: "space-between",

@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname } from "@/lib/i18n";
 import { startConversation } from "@/lib/messaging";
 import BottomNav from "@/components/BottomNav";
-import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
+import { RED, GOLD , redAlpha, goldAlpha, pageBg } from "@/lib/tokens";
 import Image from "next/image";
 import { Toast, useToast } from "@/components/ui/Toast";
 

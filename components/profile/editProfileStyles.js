@@ -1,9 +1,9 @@
-import { GOLD, RED, BG, redAlpha, goldAlpha } from "@/lib/tokens";
+import { GOLD, RED, BG, redAlpha, goldAlpha, pageBg } from "@/lib/tokens";
 
 const styles = {
   page: {
     minHeight: "100dvh",
-    background: `radial-gradient(ellipse at 50% -8%, ${redAlpha(0.14)} 0%, transparent 50%), ${BG}`,
+    background: pageBg(),
     color: "#fff",
     padding: "calc(20px + env(safe-area-inset-top)) 16px 48px",
   },
