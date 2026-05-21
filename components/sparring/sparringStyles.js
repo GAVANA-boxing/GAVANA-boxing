@@ -4,9 +4,9 @@ const s = {
   page: {
     minHeight: "100dvh",
     background: `
-      radial-gradient(ellipse 90% 40% at 50% 0%, ${redAlpha(0.14)} 0%, transparent 52%),
-      radial-gradient(ellipse 55% 50% at 8%  80%, ${redAlpha(0.05)} 0%, transparent 60%),
-      radial-gradient(ellipse 40% 35% at 92% 65%, rgba(255,255,255,0.018) 0%, transparent 55%),
+      radial-gradient(ellipse 90% 40% at 50% 0%, ${redAlpha(0.07)} 0%, transparent 52%),
+      radial-gradient(ellipse 55% 50% at 8%  80%, ${redAlpha(0.025)} 0%, transparent 60%),
+      radial-gradient(ellipse 40% 35% at 92% 65%, rgba(255,255,255,0.009) 0%, transparent 55%),
       ${BG}
     `,
     color: "#fff",

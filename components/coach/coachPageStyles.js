@@ -3,7 +3,7 @@ import { RED, BG, redAlpha, GOLD, goldAlpha, pageBg } from "@/lib/tokens";
 export const coachPageStyles = {
   page: {
     minHeight: "100dvh",
-    background: pageBg(0.15),
+    background: pageBg(0.08),
     color: "#fff",
   },
   tabStrip: {

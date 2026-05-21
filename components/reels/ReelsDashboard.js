@@ -796,9 +796,9 @@ const d = {
     height: "100dvh",
     overflow: "hidden",
     background: `
-      radial-gradient(ellipse 60% 70% at 38% 42%, ${redAlpha(0.09)} 0%, transparent 62%),
+      radial-gradient(ellipse 60% 70% at 38% 42%, ${redAlpha(0.05)} 0%, transparent 62%),
       radial-gradient(ellipse 35% 45% at 82% 18%, rgba(255,255,255,0.025) 0%, transparent 55%),
-      radial-gradient(ellipse 30% 40% at 88% 88%, ${redAlpha(0.04)} 0%, transparent 55%),
+      radial-gradient(ellipse 30% 40% at 88% 88%, ${redAlpha(0.02)} 0%, transparent 55%),
       #0B0B0C
     `,
     color: "#fff",
@@ -813,7 +813,7 @@ const d = {
     padding: "28px 14px 24px",
     borderRight: "1px solid rgba(255,255,255,0.05)",
     background: `
-      radial-gradient(ellipse 100% 40% at 50% 0%, ${redAlpha(0.07)} 0%, transparent 60%),
+      radial-gradient(ellipse 100% 40% at 50% 0%, ${redAlpha(0.04)} 0%, transparent 60%),
       rgba(11,11,12,0.96)
     `,
     position: "sticky",
@@ -891,7 +891,7 @@ const d = {
     width: 3,
     borderRadius: "0 3px 3px 0",
     background: RED,
-    boxShadow: `0 0 10px ${RED}`,
+    boxShadow: `0 0 8px ${redAlpha(0.7)}`,
   },
   createBtn: {
     display: "flex",
@@ -910,7 +910,7 @@ const d = {
     textTransform: "uppercase",
     cursor: "pointer",
     marginTop: 10,
-    boxShadow: `0 6px 22px ${redAlpha(0.4)}`,
+    boxShadow: `0 6px 22px ${redAlpha(0.24)}`,
   },
   sidebarProfile: {
     display: "flex",
@@ -1225,7 +1225,7 @@ const d = {
     WebkitBackdropFilter: "blur(12px)",
     color: RED,
     cursor: "pointer",
-    boxShadow: `0 0 12px ${redAlpha(0.25)}`,
+    boxShadow: `0 0 12px ${redAlpha(0.14)}`,
     transition: "box-shadow 150ms ease, transform 100ms ease",
   },
 
@@ -1288,7 +1288,7 @@ const d = {
     padding: "20px 14px 20px",
     borderLeft: "1px solid rgba(255,255,255,0.05)",
     background: `
-      radial-gradient(ellipse 100% 35% at 50% 100%, ${redAlpha(0.05)} 0%, transparent 60%),
+      radial-gradient(ellipse 100% 35% at 50% 100%, ${redAlpha(0.03)} 0%, transparent 60%),
       rgba(11,11,12,0.98)
     `,
     height: "100dvh",

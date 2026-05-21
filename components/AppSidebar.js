@@ -153,10 +153,10 @@ export default function AppSidebar({ currentLocale }) {
                   className="tap-bounce"
                 >
                   {active && <div style={s.activeBar} />}
-                  <span style={{ ...s.navIcon, color: active ? RED : "rgba(255,255,255,0.35)" }}>
+                  <span style={{ ...s.navIcon, color: active ? RED : "rgba(255,255,255,0.22)" }}>
                     <Icon />
                   </span>
-                  <span style={{ ...s.navLabel, color: active ? "#fff" : "rgba(255,255,255,0.5)", fontWeight: active ? 700 : 500 }}>
+                  <span style={{ ...s.navLabel, color: active ? "#fff" : "rgba(255,255,255,0.32)", fontWeight: active ? 700 : 500 }}>
                     {label}
                   </span>
                   {active && (
@@ -308,7 +308,7 @@ const s = {
   groupLabel: {
     fontSize: 8,
     fontWeight: 900,
-    color: "rgba(255,255,255,0.18)",
+    color: "rgba(255,255,255,0.11)",
     letterSpacing: 2,
     textTransform: "uppercase",
     padding: "0 10px",
@@ -330,8 +330,7 @@ const s = {
     WebkitTapHighlightColor: "transparent",
   },
   navBtnActive: {
-    background: `rgba(255,59,48,0.07)`,
-    boxShadow: `inset 0 0 0 1px ${redAlpha(0.12)}`,
+    background: `rgba(255,59,48,0.10)`,
   },
   activeBar: {
     position: "absolute",
@@ -363,7 +362,7 @@ const s = {
     borderRadius: "50%",
     background: RED,
     flexShrink: 0,
-    boxShadow: `0 0 6px ${redAlpha(0.9)}`,
+    boxShadow: `0 0 6px ${redAlpha(0.55)}`,
   },
   createBtn: {
     display: "flex",
@@ -380,7 +379,7 @@ const s = {
     fontWeight: 700,
     cursor: "pointer",
     marginTop: 8,
-    boxShadow: `0 4px 18px ${redAlpha(0.35)}, inset 0 1px 0 rgba(255,255,255,0.12)`,
+    boxShadow: `0 4px 18px ${redAlpha(0.22)}, inset 0 1px 0 rgba(255,255,255,0.12)`,
     letterSpacing: 0.3,
   },
   footer: {
@@ -415,7 +414,6 @@ const s = {
     justifyContent: "center",
     flexShrink: 0,
     overflow: "hidden",
-    boxShadow: `0 0 0 2px ${redAlpha(0.1)}`,
   },
   avaInitial: { fontSize: 13, fontWeight: 700, color: "#fff" },
   profileInfo: { flex: 1, minWidth: 0 },

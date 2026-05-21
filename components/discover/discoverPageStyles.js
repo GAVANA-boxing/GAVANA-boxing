@@ -3,7 +3,7 @@ import { BG, RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 export const discoverPageStyles = {
   page: {
     minHeight: "100dvh",
-    background: `radial-gradient(ellipse at 50% -10%, ${redAlpha(0.14)} 0%, transparent 50%), ${BG}`,
+    background: `radial-gradient(ellipse at 50% -10%, ${redAlpha(0.07)} 0%, transparent 50%), ${BG}`,
     color: "#fff",
     paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
   },

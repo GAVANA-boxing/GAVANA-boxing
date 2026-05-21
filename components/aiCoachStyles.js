@@ -35,7 +35,7 @@ const aiCoachStyles = {
     cursor: "pointer",
     letterSpacing: "0.04em",
     textTransform: "uppercase",
-    boxShadow: `0 4px 16px ${redAlpha(0.3)}`,
+    boxShadow: `0 4px 16px ${redAlpha(0.18)}`,
   },
   sectionTabInactive: {
     flex: 1,
@@ -166,7 +166,7 @@ const aiCoachStyles = {
     fontSize: 14,
     lineHeight: 1.5,
     border: "none",
-    boxShadow: `0 8px 24px ${redAlpha(0.2)}`,
+    boxShadow: `0 8px 24px ${redAlpha(0.12)}`,
   },
   assistantBubble: {
     maxWidth: "78%",
