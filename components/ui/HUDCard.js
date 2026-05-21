@@ -13,8 +13,8 @@ const HUDCard = forwardRef(function HUDCard(
       className={className}
       style={{
         position: "relative",
-        background: "rgba(7,7,7,0.92)",
-        border: "1px solid rgba(193,18,31,0.18)",
+        background: "rgba(11,11,12,0.92)",
+        border: "1px solid rgba(255,59,48,0.18)",
         borderRadius: "var(--card-radius-sm)",
         overflow: "hidden",
         ...style,
@@ -30,7 +30,7 @@ const HUDCard = forwardRef(function HUDCard(
           transform: "translateX(-50%)",
           width: 160,
           height: 60,
-          background: "rgba(193,18,31,0.08)",
+          background: "rgba(255,59,48,0.08)",
           filter: "blur(24px)",
           pointerEvents: "none",
           borderRadius: "50%",
@@ -47,8 +47,8 @@ const HUDCard = forwardRef(function HUDCard(
               left: 6,
               width: 10,
               height: 10,
-              borderTop: "1.5px solid rgba(193,18,31,0.5)",
-              borderLeft: "1.5px solid rgba(193,18,31,0.5)",
+              borderTop: "1.5px solid rgba(255,59,48,0.5)",
+              borderLeft: "1.5px solid rgba(255,59,48,0.5)",
               borderRadius: "2px 0 0 0",
               pointerEvents: "none",
             }}
@@ -60,8 +60,8 @@ const HUDCard = forwardRef(function HUDCard(
               right: 6,
               width: 10,
               height: 10,
-              borderBottom: "1.5px solid rgba(193,18,31,0.5)",
-              borderRight: "1.5px solid rgba(193,18,31,0.5)",
+              borderBottom: "1.5px solid rgba(255,59,48,0.5)",
+              borderRight: "1.5px solid rgba(255,59,48,0.5)",
               borderRadius: "0 0 2px 0",
               pointerEvents: "none",
             }}

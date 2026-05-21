@@ -34,11 +34,11 @@ const s = {
     display: "inline-flex",
     alignItems: "center",
     gap: 4,
-    background: "rgba(0,0,0,0.45)",
-    backdropFilter: "blur(12px)",
-    WebkitBackdropFilter: "blur(12px)",
-    border: "none",
-    color: "rgba(255,255,255,0.75)",
+    background: "rgba(0,0,0,0.5)",
+    backdropFilter: "blur(16px)",
+    WebkitBackdropFilter: "blur(16px)",
+    border: "1px solid rgba(255,255,255,0.12)",
+    color: "rgba(255,255,255,0.85)",
     fontSize: 12,
     padding: "7px 16px",
     borderRadius: 20,
@@ -59,10 +59,10 @@ const s = {
   },
   heroKicker: {
     margin: "0 0 16px",
-    fontSize: 8,
+    fontSize: 10,
     fontWeight: 900,
     letterSpacing: 3,
-    color: "rgba(255,255,255,0.25)",
+    color: "#FF3B30",
     textTransform: "uppercase",
   },
   heroFlagDisplay: {
@@ -122,7 +122,7 @@ const s = {
   heroIdentity: {
     margin: "0 20px 12px",
     fontSize: 13,
-    color: "rgba(255,255,255,0.62)",
+    color: "rgba(255,255,255,0.55)",
     lineHeight: 1.65,
     fontWeight: 400,
     textAlign: "center",
@@ -161,15 +161,15 @@ const s = {
 
   // ── Section ──
   section: {
-    background: "rgba(255,255,255,0.025)",
-    backdropFilter: "blur(18px)",
-    WebkitBackdropFilter: "blur(18px)",
+    background: "rgba(255,255,255,0.03)",
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
     border: "1px solid rgba(255,255,255,0.07)",
     borderLeft: "2.5px solid",
-    borderRadius: "3px 16px 16px 3px",
+    borderRadius: "3px 18px 18px 3px",
     overflow: "hidden",
     transition: "border-color 220ms ease, box-shadow 220ms ease",
-    boxShadow: "0 0 0 0.5px rgba(0,0,0,0.5) inset, 0 6px 24px rgba(0,0,0,0.18)",
+    boxShadow: "0 8px 28px rgba(0,0,0,0.25)",
   },
   sectionBtn: {
     width: "100%",
@@ -219,7 +219,7 @@ const s = {
     borderRadius: 13,
     padding: "12px 11px",
     fontSize: 12,
-    color: "#ddd",
+    color: "rgba(255,255,255,0.85)",
     lineHeight: 1.4,
     background: "rgba(255,255,255,0.02)",
     position: "relative",
@@ -239,14 +239,14 @@ const s = {
 
   // ── Combos ──
   comboCard: {
-    background: "rgba(255,255,255,0.025)",
+    background: "rgba(255,255,255,0.03)",
     backdropFilter: "blur(12px)",
     WebkitBackdropFilter: "blur(12px)",
     border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: 13,
+    borderRadius: 14,
     padding: "12px 14px",
     marginBottom: 8,
-    boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
+    boxShadow: "0 4px 20px rgba(0,0,0,0.28)",
   },
   comboName: {
     margin: "0 0 8px",
@@ -268,19 +268,19 @@ const s = {
   },
   comboStep: {
     background: "rgba(255,255,255,0.07)",
-    border: "1px solid rgba(255,255,255,0.14)",
+    border: "1px solid rgba(255,255,255,0.12)",
     borderRadius: 8,
     padding: "5px 11px",
     fontSize: 12,
     fontWeight: 700,
-    color: "#ececec",
+    color: "#fff",
     letterSpacing: 0.1,
   },
   comboArrow: {
-    color: "#C1121F",
+    color: "#FF3B30",
     fontSize: 14,
     fontWeight: 900,
-    textShadow: "0 0 8px rgba(193,18,31,0.9)",
+    textShadow: "0 0 8px rgba(255,59,48,0.9)",
   },
 
   // ── Movement DNA ──
@@ -323,7 +323,7 @@ const s = {
   dnaDesc: {
     margin: 0,
     fontSize: 12,
-    color: "#bbb",
+    color: "rgba(255,255,255,0.62)",
     lineHeight: 1.55,
   },
 
@@ -361,7 +361,7 @@ const s = {
   },
   rowText: {
     fontSize: 13,
-    color: "#d0d0d0",
+    color: "rgba(255,255,255,0.78)",
     lineHeight: 1.45,
   },
 
@@ -392,7 +392,7 @@ const s = {
   },
   drillText: {
     fontSize: 12,
-    color: "#c8c8c8",
+    color: "rgba(255,255,255,0.72)",
     lineHeight: 1.45,
   },
 
@@ -400,7 +400,7 @@ const s = {
   fightRow: {
     paddingBottom: 10,
     marginBottom: 4,
-    borderBottom: "1px solid rgba(255,255,255,0.05)",
+    borderBottom: "1px solid rgba(255,255,255,0.06)",
   },
   fightMeta: {
     display: "flex",
@@ -410,16 +410,16 @@ const s = {
   fightName: {
     fontSize: 13,
     fontWeight: 700,
-    color: "#eee",
+    color: "#fff",
   },
   fightYear: {
     fontSize: 11,
-    color: "#555",
+    color: "rgba(255,255,255,0.35)",
   },
   fightNote: {
     margin: 0,
     fontSize: 12,
-    color: "#888",
+    color: "rgba(255,255,255,0.45)",
     lineHeight: 1.4,
   },
 
@@ -430,7 +430,7 @@ const s = {
   tagsLabel: {
     margin: "0 0 6px",
     fontSize: 9,
-    color: "#444",
+    color: "rgba(255,255,255,0.28)",
     textTransform: "uppercase",
     letterSpacing: 1.5,
   },
@@ -441,11 +441,11 @@ const s = {
   },
   tagChip: {
     background: "none",
-    border: "1px solid rgba(255,255,255,0.07)",
+    border: "1px solid rgba(255,255,255,0.08)",
     borderRadius: 20,
     padding: "3px 10px",
     fontSize: 10,
-    color: "rgba(255,255,255,0.28)",
+    color: "rgba(255,255,255,0.3)",
     letterSpacing: 0.2,
   },
 
@@ -479,7 +479,7 @@ const s = {
     background: "rgba(255,255,255,0.05)",
     border: "1px solid rgba(255,255,255,0.1)",
     borderRadius: 20,
-    color: "#aaa",
+    color: "rgba(255,255,255,0.65)",
     fontSize: 12,
     cursor: "pointer",
   },

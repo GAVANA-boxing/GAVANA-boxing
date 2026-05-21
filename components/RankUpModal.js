@@ -117,7 +117,7 @@ export default function RankUpModal({ rank, onClose, t }) {
 
         <p style={{
           margin: "0 0 30px",
-          color: "#777",
+          color: "rgba(255,255,255,0.45)",
           fontSize: 13,
           lineHeight: 1.55,
         }}>

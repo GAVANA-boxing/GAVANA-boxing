@@ -3,6 +3,16 @@ import { getLocale } from "@/lib/i18n";
 import { verifyIdToken } from "@/lib/verifyAuth";
 import OpenAI from "openai";
 
+const _chatRateMap = new Map();
+function isChatRateLimited(uid) {
+  const now = Date.now();
+  const entry = _chatRateMap.get(uid) || { count: 0, reset: now + 3_600_000 };
+  if (now > entry.reset) { entry.count = 0; entry.reset = now + 3_600_000; }
+  entry.count++;
+  _chatRateMap.set(uid, entry);
+  return entry.count > 30;
+}
+
 const MODEL = "gpt-4o-mini";
 
 // GAVANA platform context injected into every request
@@ -159,6 +169,7 @@ function getFallback(locale, messages) {
 export async function POST(req) {
   const uid = await verifyIdToken(req);
   if (!uid) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  if (isChatRateLimited(uid)) return Response.json({ error: "Rate limited" }, { status: 429 });
 
   let body;
   try { body = await req.json(); } catch { return Response.json({ error: "Invalid JSON" }, { status: 400 }); }

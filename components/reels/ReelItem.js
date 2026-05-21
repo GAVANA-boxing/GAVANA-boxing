@@ -240,7 +240,7 @@ const ReelItem = memo(function ReelItem({
               cursor: reel.userId ? "pointer" : "default",
               ...(hasStory ? {
                 borderColor: RED,
-                boxShadow: `0 0 0 2px #C1121F, 0 0 0 4px ${goldAlpha(0.35)}`,
+                boxShadow: `0 0 0 2px ${RED}, 0 0 0 4px ${goldAlpha(0.35)}`,
               } : {}),
             }}
             onClick={openCreatorProfile}
@@ -353,36 +353,15 @@ const ReelItem = memo(function ReelItem({
           </div>
         </div>
 
-        <div className="reel-action" style={styles.actionItem} onClick={() => onGetFeedback(reel)} title={t("getAiFeedback")}>
-          <div className="reel-action-circle" style={styles.actionCircle}>
-            <RobotIcon />
+        {/* AI Insight — single entry point for all AI analysis */}
+        <div className="reel-action" style={{ ...styles.actionItem, ...styles.actionItemAI }} onClick={() => onBreakdown(reel)} title="AI Insight">
+          <div className="reel-action-circle" style={{ ...styles.actionCircle, ...styles.actionCircleAI }}>
+            <AISparkIcon />
           </div>
-          <span style={{ fontSize: 8, color: "rgba(255,255,255,0.35)", fontWeight: 700, textShadow: "0 2px 8px rgba(0,0,0,0.95)", textAlign: "center", lineHeight: 1.2 }}>
+          <span style={{ ...styles.actionText, ...styles.actionTextAI }}>
             AI
           </span>
         </div>
-
-        <div className="reel-action" style={styles.actionItem} onClick={() => onBreakdown(reel)} title={t("aiBreakdownBtn")}>
-          <div className="reel-action-circle" style={styles.actionCircle}>
-            <AISparkIcon />
-          </div>
-          <span style={{ fontSize: 7, color: "rgba(255,255,255,0.35)", fontWeight: 700, textShadow: "0 2px 8px rgba(0,0,0,0.95)", textAlign: "center", lineHeight: 1.2, maxWidth: 40 }}>
-            {currentLocale === "mn" ? "Шинж" : currentLocale === "ko" ? "분석" : "Breakdown"}
-          </span>
-        </div>
-
-        {!reel.isDemo && onReport && (
-          <div className="reel-action" style={styles.actionItem} onClick={() => onReport(reel)} title={t("reportTitle") || "Report"}>
-            <div className="reel-action-circle" style={styles.actionCircle}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "rgba(255,255,255,0.55)" }}>
-                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>
-              </svg>
-            </div>
-            <span style={{ fontSize: 8, color: "rgba(255,255,255,0.35)", fontWeight: 700, textShadow: "0 2px 8px rgba(0,0,0,0.95)" }}>
-              {currentLocale === "mn" ? "Мэд" : currentLocale === "ko" ? "신고" : "Report"}
-            </span>
-          </div>
-        )}
       </div>
 
       {/* Play/Pause indicator */}

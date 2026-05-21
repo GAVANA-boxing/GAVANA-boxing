@@ -42,7 +42,12 @@ service cloud.firestore {
         (isAuth() && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           "coachRating",
           "coachTotalReviews"
-        ]));
+        ]) &&
+        request.resource.data.coachRating is number &&
+        request.resource.data.coachRating >= 0 &&
+        request.resource.data.coachRating <= 5 &&
+        request.resource.data.coachTotalReviews is number &&
+        request.resource.data.coachTotalReviews >= 0);
       allow delete: if false;
     }
 
@@ -81,9 +86,9 @@ service cloud.firestore {
     }
 
     // ─── Challenge attempts ──────────────────────────────────────
-    // isAuth() read allows creator dashboard to query attempts on their reels.
+    // Own attempts + reel owner can read (creator dashboard).
     match /challenge_attempts/{attemptId} {
-      allow read: if true;
+      allow read: if isAuth() && (resource.data.userId == request.auth.uid || isRelatedReelOwner());
       allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
       allow update: if isAuth() && resource.data.userId == request.auth.uid;
       allow delete: if false;
@@ -165,6 +170,13 @@ service cloud.firestore {
       allow create: if isAuth() && request.resource.data.actorId == request.auth.uid;
       allow update: if isAuth() && resource.data.recipientId == request.auth.uid;
       allow delete: if (isAuth() && resource.data.recipientId == request.auth.uid) || isRelatedReelOwner();
+    }
+
+    // ─── Reports ─────────────────────────────────────────────────
+    match /reports/{reportId} {
+      allow create: if isAuth() && request.resource.data.reporterId == request.auth.uid;
+      allow read, update: if isAuth() && request.auth.token.admin == true;
+      allow delete: if false;
     }
 
     // ─── Featured creators ────────────────────────────────────────

@@ -222,9 +222,20 @@ Return ONLY valid JSON with exactly these keys:
 
 import { verifyIdToken } from "@/lib/verifyAuth";
 
+const _breakdownRateMap = new Map();
+function isBreakdownRateLimited(uid) {
+  const now = Date.now();
+  const entry = _breakdownRateMap.get(uid) || { count: 0, reset: now + 3_600_000 };
+  if (now > entry.reset) { entry.count = 0; entry.reset = now + 3_600_000; }
+  entry.count++;
+  _breakdownRateMap.set(uid, entry);
+  return entry.count > 15;
+}
+
 export async function POST(req) {
   const uid = await verifyIdToken(req);
   if (!uid) return Response.json({ error: "Unauthorized" }, { status: 401 });
+  if (isBreakdownRateLimited(uid)) return Response.json({ error: "Rate limited" }, { status: 429 });
 
   try {
     const body = await req.json();

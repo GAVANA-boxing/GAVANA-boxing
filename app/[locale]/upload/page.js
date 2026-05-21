@@ -331,7 +331,7 @@ export default function UploadPage() {
               <span>{t("uploading")}</span><span>{uploadProgress}%</span>
             </div>
             <div style={{ height: 6, borderRadius: 999, background: "rgba(255,255,255,0.1)", overflow: "hidden" }}>
-              <div style={{ height: "100%", borderRadius: 999, background: "linear-gradient(90deg,#C1121F,#D4AF37)", width: `${uploadProgress}%`, transition: "width 200ms ease" }} />
+              <div style={{ height: "100%", borderRadius: 999, background: "linear-gradient(90deg,#FF3B30,#F5C451)", width: `${uploadProgress}%`, transition: "width 200ms ease" }} />
             </div>
           </div>
           <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.35)", textAlign: "center" }}>

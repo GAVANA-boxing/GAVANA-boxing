@@ -75,7 +75,7 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
         <div style={{
           background: `${goldAlpha(0.07)}`,
           border: `1px solid ${goldAlpha(0.2)}`,
-          borderLeft: "3px solid #D4AF37",
+          borderLeft: "3px solid #F5C451",
           borderRadius: 14,
           padding: "14px 16px",
         }}>
@@ -99,7 +99,7 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
             style={{
               marginTop: 10, width: "100%", padding: "9px 0", borderRadius: 9,
               background: todayHover ? `${goldAlpha(0.16)}` : `${goldAlpha(0.08)}`,
-              border: `1px solid rgba(212,175,55,${todayHover ? "0.5" : "0.2"})`,
+              border: `1px solid rgba(245,196,81,${todayHover ? "0.5" : "0.2"})`,
               color: GOLD, fontSize: 12, fontWeight: 800, cursor: "pointer",
               transition: "background 130ms ease, border-color 130ms ease",
               transform: todayHover ? "translateY(-1px)" : "none",
@@ -166,7 +166,7 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
             marginTop: 12, width: "100%", padding: "9px 0", borderRadius: 9,
             background: mistakesHover ? `${redAlpha(0.1)}` : "rgba(255,255,255,0.03)",
             border: `1px solid ${mistakesHover ? `${redAlpha(0.35)}` : "rgba(255,255,255,0.08)"}`,
-            color: mistakesHover ? "#f87171" : "#777",
+            color: mistakesHover ? "#f87171" : "rgba(255,255,255,0.45)",
             fontSize: 12, fontWeight: 700, cursor: "pointer",
             transition: "background 130ms ease, border-color 130ms ease, color 130ms ease",
           }}

@@ -176,7 +176,7 @@ const s = {
     padding: "8px 16px",
     borderRadius: 10,
     border: "none",
-    background: `linear-gradient(135deg, #C1121F, #a00f1a)`,
+    background: `linear-gradient(135deg, #FF3B30, #cc2820)`,
     color: "#fff",
     fontSize: 11,
     fontWeight: 900,

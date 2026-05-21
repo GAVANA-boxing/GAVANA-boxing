@@ -8,11 +8,28 @@ import { formatScore, getActiveChallengeStreak } from "@/lib/utils";
 import Image from "next/image";
 import { useState } from "react";
 
+// ─── XP Ring ──────────────────────────────────────────────────────────────────
+
+function XPRing({ progress, color, size = 56 }) {
+  const R = (size - 6) / 2;
+  const circ = 2 * Math.PI * R;
+  const dash = Math.min(Math.max(progress / 100, 0), 1) * circ;
+  return (
+    <svg width={size} height={size} style={{ transform: "rotate(-90deg)", flexShrink: 0 }}>
+      <circle cx={size / 2} cy={size / 2} r={R} fill="none" stroke={`${color}20`} strokeWidth={4} />
+      <circle cx={size / 2} cy={size / 2} r={R} fill="none" stroke={color} strokeWidth={4}
+        strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
+        style={{ filter: `drop-shadow(0 0 4px ${color}aa)` }}
+      />
+    </svg>
+  );
+}
+
 export default function ProfileFighterCard({
   profileUser,
   isOwnProfile,
   userReels,
-  stats,       // { followers, following }
+  stats,
   fighterRank,
   nextRank,
   xp,
@@ -47,13 +64,16 @@ export default function ProfileFighterCard({
   };
 
   const streakCount = profileUser?.streakCount || 0;
+  const challengeStreak = getActiveChallengeStreak(profileUser);
+  const arch = profileUser.fighterArchetype ? ARCHETYPE_DISPLAY[profileUser.fighterArchetype] : null;
   const [avatarError, setAvatarError] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const avatarInitial = profileUser.displayName?.charAt(0).toUpperCase() || profileUser.username?.charAt(0).toUpperCase() || "🥊";
 
   return (
     <section style={styles.fighterCard}>
-      {/* ── Cover Photo ── */}
+
+      {/* ── Hero: Cover + Avatar overlay ─────────────────────────────────── */}
       <div style={styles.coverPhotoSection}>
         {(profileUser.coverPhotoURL || profileUser.coverPhoto) ? (
           <Image src={profileUser.coverPhotoURL || profileUser.coverPhoto} alt="" fill style={{ objectFit: "cover" }} />
@@ -61,149 +81,160 @@ export default function ProfileFighterCard({
           <div style={styles.coverPhotoFallback} />
         )}
         <div style={styles.coverPhotoGradient} />
+
+        {/* Edit cover button */}
         {isOwnProfile && (
           <button type="button" style={styles.coverPhotoEditBtn} onClick={() => router.push(`/${locale}/profile/edit`)}>
-            📷
+            <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+          </button>
+        )}
+
+        {/* Avatar — anchored bottom-left */}
+        <div style={styles.avatarAnchor}>
+          <div
+            className={streakCount >= 10 ? "avatar-on-fire" : undefined}
+            style={{
+              ...styles.avatarFrame,
+              ...(streakCount >= 5 ? {
+                boxShadow: `0 0 0 2px #FB923C, 0 0 0 4px rgba(251,146,60,0.2), 0 16px 48px rgba(0,0,0,0.7)`,
+                border: "3px solid #FB923C",
+              } : {}),
+            }}
+          >
+            {profileUser.photoURL && !avatarError ? (
+              <Image
+                src={profileUser.photoURL}
+                alt={profileUser.displayName || profileUser.username || "Profile"}
+                width={96}
+                height={96}
+                style={{ borderRadius: "50%", objectFit: "cover" }}
+                onError={() => setAvatarError(true)}
+              />
+            ) : (
+              avatarInitial
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Identity row: name + actions ─────────────────────────────────── */}
+      <div style={styles.identityRow}>
+        <div style={styles.identityLeft}>
+          <h1 style={styles.fighterName}>
+            {profileUser.displayName || profileUser.username}
+            {streakCount >= 5 && <span style={{ fontSize: 20, marginLeft: 6, verticalAlign: "middle" }}>🔥</span>}
+          </h1>
+          <div style={styles.fighterUsername}>@{profileUser.username}</div>
+        </div>
+
+        {/* Compact action — own profile: edit | other: follow */}
+        {isOwnProfile ? (
+          <button
+            onClick={() => router.push(`/${locale}/profile/edit`)}
+            style={styles.identityActionBtn}
+          >
+            {t("editProfile")}
+          </button>
+        ) : (
+          <button
+            onClick={onFollow}
+            disabled={followLoading}
+            style={{
+              ...styles.identityActionBtn,
+              background: isFollowing ? "rgba(255,255,255,0.06)" : RED,
+              borderColor: isFollowing ? "rgba(255,255,255,0.15)" : redAlpha(0.5),
+              opacity: followLoading ? 0.7 : 1,
+              cursor: followLoading ? "not-allowed" : "pointer",
+            }}
+          >
+            {followLoading ? "…" : (isFollowing ? t("unfollow") : t("follow"))}
           </button>
         )}
       </div>
 
-      <div style={styles.fighterCardInner}>
-      {/* Avatar */}
-      <div
-        className={streakCount >= 10 ? "avatar-on-fire" : undefined}
-        style={{
-          ...styles.avatarFrame,
-          ...(streakCount >= 5 ? {
-            boxShadow: `0 0 0 1px ${goldAlpha(0.55)}, 0 22px 70px rgba(0,0,0,0.5), 0 0 28px rgba(251,146,60,0.6), 0 0 56px rgba(251,146,60,0.28)`,
-            border: "3px solid #FB923C",
-          } : {}),
-        }}
-      >
-        {profileUser.photoURL && !avatarError ? (
-          <Image
-            src={profileUser.photoURL}
-            alt={profileUser.displayName || profileUser.username || "Profile"}
-            width={148}
-            height={148}
-            style={{ borderRadius: "50%", objectFit: "cover" }}
-            onError={() => setAvatarError(true)}
-          />
-        ) : (
-          avatarInitial
-        )}
-      </div>
-
-      {/* "Add Story" shortcut — own profile only */}
-      {isOwnProfile && (
-        <button
-          type="button"
-          onClick={() => router.push(`/${locale}/story/upload`)}
-          style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 6, padding: "5px 12px", borderRadius: 999, border: `1px solid ${redAlpha(0.35)}`, background: `${redAlpha(0.08)}`, color: "rgba(255,255,255,0.7)", fontSize: 11, fontWeight: 800, cursor: "pointer", letterSpacing: 0.3 }}
-        >
-          <span style={{ fontSize: 13 }}>+</span>
-          {t("profileAddStory")}
-        </button>
-      )}
-
-      {/* Name + username */}
-      <h1 style={styles.fighterName}>
-        {profileUser.displayName || profileUser.username}
-      </h1>
-      <div style={styles.fighterUsername}>@{profileUser.username}</div>
-
-      {/* Bio */}
+      {/* ── Bio ──────────────────────────────────────────────────────────── */}
       {profileUser.bio && (
         <p style={styles.bio}>{profileUser.bio}</p>
       )}
 
-      {/* Archetype badge */}
-      {profileUser.fighterArchetype && ARCHETYPE_DISPLAY[profileUser.fighterArchetype] && (() => {
-        const arch = ARCHETYPE_DISPLAY[profileUser.fighterArchetype];
-        return (
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
-            <span style={{
-              display: "inline-flex", alignItems: "center", gap: 6,
-              padding: "5px 14px", borderRadius: 999,
-              background: `${arch.color}15`,
-              border: `1px solid ${arch.color}44`,
-              color: arch.color, fontSize: 13, fontWeight: 800,
-            }}>
-              {arch.emoji} {arch.name}
-            </span>
+      {/* ── Digital License Card ─────────────────────────────────────────── */}
+      <div style={styles.licenseCard} className="license-enter">
+        {/* Left: XP ring + rank */}
+        <button type="button" onClick={onShowRankModal} style={styles.licenseRankBlock}>
+          <div style={{ position: "relative", width: 56, height: 56 }}>
+            <XPRing progress={rankProgress} color={fighterRank.color} size={56} />
+            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <RankBadge rank={fighterRank} size={28} glowEnabled />
+            </div>
           </div>
-        );
-      })()}
-
-      {/* Gym + weight class metadata */}
-      {(profileUser.gym || profileUser.weightClass) && (
-        <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
-          {profileUser.gym && (
-            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", padding: "3px 10px", borderRadius: 999, fontWeight: 700 }}>
-              🏋️ {profileUser.gym}
+          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <span style={{ fontSize: 12, fontWeight: 900, color: fighterRank.color, letterSpacing: 0.5, lineHeight: 1 }}>{t(fighterRank.key)}</span>
+            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>
+              {xp.toLocaleString()} XP
             </span>
+            {nextRank && (
+              <span style={{ fontSize: 9, color: "rgba(255,255,255,0.28)" }}>
+                {xpToNextVal.toLocaleString()} to {t(nextRank.key)}
+              </span>
+            )}
+          </div>
+        </button>
+
+        {/* Divider */}
+        <div style={styles.licenseDivider} />
+
+        {/* Right: tags grid */}
+        <div style={styles.licenseTagsGrid}>
+          {arch && (
+            <div style={{ ...styles.licenseTag, color: arch.color, background: `${arch.color}12`, borderColor: `${arch.color}35` }}>
+              {arch.emoji} {arch.name}
+            </div>
+          )}
+          {bestScore !== null && (
+            <div style={{ ...styles.licenseTag, color: GOLD, background: goldAlpha(0.08), borderColor: goldAlpha(0.28) }}>
+              ⭐ {formatScore(bestScore)}/10
+            </div>
+          )}
+          {challengeStreak > 0 && (
+            <div style={{ ...styles.licenseTag, color: "#FB923C", background: "rgba(251,146,60,0.1)", borderColor: "rgba(251,146,60,0.3)" }}>
+              🔥 {challengeStreak}d
+            </div>
           )}
           {profileUser.weightClass && (
-            <span style={{ fontSize: 11, color: "#60A5FA", background: "rgba(96,165,250,0.08)", border: "1px solid rgba(96,165,250,0.2)", padding: "3px 10px", borderRadius: 999, fontWeight: 700 }}>
+            <div style={{ ...styles.licenseTag, color: "#60A5FA", background: "rgba(96,165,250,0.08)", borderColor: "rgba(96,165,250,0.22)" }}>
               ⚖️ {profileUser.weightClass}kg
-            </span>
+            </div>
           )}
-        </div>
-      )}
-
-      {/* Fighter identity tags — derived from data */}
-      {(() => {
-        const tags = [];
-        tags.push({ label: t(fighterRank.key), color: fighterRank.color, bg: `${fighterRank.color}18`, border: `${fighterRank.color}44` });
-        const challengeStreak = getActiveChallengeStreak(profileUser);
-        if (challengeStreak > 0) tags.push({ label: `🔥 ${challengeStreak}d`, color: "#FB923C", bg: "rgba(251,146,60,0.12)", border: "rgba(251,146,60,0.35)" });
-        if (bestScore !== null) tags.push({ label: `⭐ ${formatScore(bestScore)}/10`, color: GOLD, bg: `${goldAlpha(0.12)}`, border: `${goldAlpha(0.35)}` });
-        if (userReels.length > 0) tags.push({ label: `🎬 ${t("creatorTag")}`, color: "#60A5FA", bg: "rgba(96,165,250,0.10)", border: "rgba(96,165,250,0.28)" });
-        if (challengeRanks?.weeklyRank && challengeRanks.weeklyRank <= 10) tags.push({ label: `#${challengeRanks.weeklyRank} ${t("seasonCurrentWeek")}`, color: GOLD, bg: `${goldAlpha(0.12)}`, border: `${goldAlpha(0.32)}` });
-        if (pvpStats && pvpStats.wins > 0) tags.push({ label: `⚔️ ${pvpStats.wins}W ${pvpStats.losses}L`, color: PURPLE, bg: "rgba(167,139,250,0.10)", border: "rgba(167,139,250,0.28)" });
-        return (
-          <div style={styles.fighterTagsRow}>
-            {tags.map((tag, i) => (
-              <span key={i} style={{ ...styles.fighterTag, color: tag.color, background: tag.bg, borderColor: tag.border }}>
-                {tag.label}
-              </span>
-            ))}
-          </div>
-        );
-      })()}
-
-      {/* Rank row — tappable, opens rank modal */}
-      <button type="button" onClick={onShowRankModal} style={styles.rankRow}>
-        <RankBadge rank={fighterRank} size={32} glowEnabled />
-        <span style={{ ...styles.rankLabel, color: fighterRank.color, fontFamily: "var(--font-condensed)", letterSpacing: "0.08em" }}>{t(fighterRank.key)}</span>
-      </button>
-
-      {/* XP progress bar */}
-      <div style={styles.xpWrap}>
-        <div style={styles.xpTopRow}>
-          <span style={{ ...styles.xpAmount, color: fighterRank.color }}>
-            {xp.toLocaleString()} {t("xpLabel")}
-          </span>
-          <span style={styles.xpNextLabel}>
-            {nextRank
-              ? t("xpToNext").replace("{xp}", xpToNextVal.toLocaleString()).replace("{rank}", t(nextRank.key))
-              : t("atMaxRank")}
-          </span>
-        </div>
-        <div style={styles.xpTrack}>
-          <div style={{ ...styles.xpFill, width: `${rankProgress}%`, background: fighterRank.gradient }} />
+          {profileUser.gym && (
+            <div style={{ ...styles.licenseTag, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.1)" }}>
+              🏋️ {profileUser.gym}
+            </div>
+          )}
+          {pvpStats?.wins > 0 && (
+            <div style={{ ...styles.licenseTag, color: PURPLE, background: "rgba(167,139,250,0.08)", borderColor: "rgba(167,139,250,0.25)" }}>
+              ⚔️ {pvpStats.wins}W {pvpStats.losses}L
+            </div>
+          )}
+          {challengeRanks?.weeklyRank <= 10 && challengeRanks?.weeklyRank > 0 && (
+            <div style={{ ...styles.licenseTag, color: GOLD, background: goldAlpha(0.08), borderColor: goldAlpha(0.28) }}>
+              #{challengeRanks.weeklyRank} Week
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Achievements Shelf */}
+      {/* ── Badges shelf ─────────────────────────────────────────────────── */}
       {userBadges.length > 0 && (
         <div style={styles.achievementsShelf}>
           {userBadges.map((b) => {
             const meta = BADGE_META[b.badgeId] || { icon: "🏅", label: b.badgeId, color: GOLD };
             return (
-              <div key={b.badgeId} style={{ ...styles.achievementCard, borderColor: meta.color + "44" }}>
-                <span style={{ fontSize: 22 }}>{meta.icon}</span>
-                <span style={{ fontSize: 9, fontWeight: 900, color: meta.color, marginTop: 4, textAlign: "center", lineHeight: 1.2, letterSpacing: 0.3 }}>
+              <div key={b.badgeId} style={{ ...styles.achievementCard, borderColor: `${meta.color}44` }}>
+                <span style={{ fontSize: 20 }}>{meta.icon}</span>
+                <span style={{ fontSize: 9, fontWeight: 900, color: meta.color, marginTop: 3, textAlign: "center", lineHeight: 1.2, letterSpacing: 0.3 }}>
                   {meta.label}
                 </span>
               </div>
@@ -212,8 +243,8 @@ export default function ProfileFighterCard({
         </div>
       )}
 
-      {/* Stats row: posts / followers / following */}
-      <div style={styles.statsRow}>
+      {/* ── Stats row ────────────────────────────────────────────────────── */}
+      <div style={styles.statsRow} className="section-enter stagger-3">
         <button type="button" onClick={() => onStatNavigate("posts")} style={styles.statButton}>
           <span style={styles.statNumber}>{userReels.length}</span>
           <span style={styles.statLabel}>{t("posts")}</span>
@@ -228,148 +259,81 @@ export default function ProfileFighterCard({
         </button>
       </div>
 
-      {/* Action buttons */}
-      {isOwnProfile ? (
-        <div style={{ position: "relative" }}>
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <button
-              onClick={() => router.push(`/${locale}/profile/edit`)}
-              style={{ ...styles.ghostAction, flex: 1 }}
-            >
-              {t("editProfile")}
-            </button>
-            <button
-              type="button"
-              onClick={onShowFighterCard}
-              style={{
-                ...styles.ghostAction,
-                color: GOLD,
-                borderColor: `${goldAlpha(0.45)}`,
-                background: `${goldAlpha(0.1)}`,
-                flexShrink: 0,
-                fontWeight: 900,
-              }}
-            >
-              🥊 {t("profileFighterCard")}
-            </button>
-            <button
-              type="button"
-              onClick={() => setMoreOpen(v => !v)}
-              style={{
-                width: 38, height: 38, borderRadius: 999,
-                border: "1px solid rgba(255,255,255,0.12)",
-                background: moreOpen ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.05)",
-                color: "#fff", fontSize: 18, cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                flexShrink: 0, letterSpacing: 1,
-              }}
-              aria-label="More options"
-            >
-              ···
-            </button>
-          </div>
-          {moreOpen && (
-            <>
-              <div
-                style={{ position: "fixed", inset: 0, zIndex: 9 }}
-                onClick={() => setMoreOpen(false)}
-              />
-              <div style={{
-                position: "absolute", top: "calc(100% + 8px)", right: 0,
-                background: "#1c1c1e", border: "1px solid rgba(255,255,255,0.1)",
-                borderRadius: 14, padding: 6, minWidth: 200,
-                boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
-                zIndex: 10, animation: "dropDown 160ms ease",
-              }}>
-                <button
-                  onClick={() => { router.push(`/${locale}/dashboard`); setMoreOpen(false); }}
-                  style={moreItemStyle}
-                >
-                  {t("dashboardViewProgress")}
-                </button>
-                {userReels.length > 0 && (
-                  <button
-                    onClick={() => { router.push(`/${locale}/creator/dashboard`); setMoreOpen(false); }}
-                    style={moreItemStyle}
-                  >
-                    {t("creatorDashboard")}
+      {/* ── Secondary actions ────────────────────────────────────────────── */}
+      <div style={styles.actionRow}>
+        {isOwnProfile ? (
+          <div style={{ position: "relative", width: "100%" }}>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                type="button"
+                onClick={onShowFighterCard}
+                style={{ ...styles.ghostAction, color: GOLD, borderColor: goldAlpha(0.4), background: goldAlpha(0.08), flex: 1 }}
+              >
+                🥊 {t("profileFighterCard")}
+              </button>
+              <button
+                onClick={() => router.push(`/${locale}/story/upload`)}
+                style={{ ...styles.ghostAction, flexShrink: 0 }}
+              >
+                + Story
+              </button>
+              <button
+                type="button"
+                onClick={() => setMoreOpen(v => !v)}
+                style={{
+                  width: 38, height: 38, borderRadius: 12,
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  background: moreOpen ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.05)",
+                  color: "#fff", fontSize: 18, cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  flexShrink: 0, letterSpacing: 1,
+                }}
+                aria-label="More options"
+              >
+                ···
+              </button>
+            </div>
+            {moreOpen && (
+              <>
+                <div style={{ position: "fixed", inset: 0, zIndex: 9 }} onClick={() => setMoreOpen(false)} />
+                <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, background: "#1c1c1e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: 6, minWidth: 200, boxShadow: "0 8px 32px rgba(0,0,0,0.6)", zIndex: 10, animation: "dropDown 160ms ease" }}>
+                  <button onClick={() => { router.push(`/${locale}/dashboard`); setMoreOpen(false); }} style={moreItemStyle}>{t("dashboardViewProgress")}</button>
+                  {userReels.length > 0 && (
+                    <button onClick={() => { router.push(`/${locale}/creator/dashboard`); setMoreOpen(false); }} style={moreItemStyle}>{t("creatorDashboard")}</button>
+                  )}
+                  <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "4px 0" }} />
+                  <button onClick={() => { onLogout(); setMoreOpen(false); }} disabled={signingOut} style={{ ...moreItemStyle, color: "#f87171", opacity: signingOut ? 0.6 : 1, cursor: signingOut ? "not-allowed" : "pointer" }}>
+                    {signingOut ? t("signingOut") : t("logout")}
                   </button>
-                )}
-                <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "4px 0" }} />
-                <button
-                  onClick={() => { onLogout(); setMoreOpen(false); }}
-                  disabled={signingOut}
-                  style={{ ...moreItemStyle, color: "#f87171", opacity: signingOut ? 0.6 : 1, cursor: signingOut ? "not-allowed" : "pointer" }}
-                >
-                  {signingOut ? t("signingOut") : t("logout")}
-                </button>
+                </div>
+              </>
+            )}
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%" }}>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button type="button" onClick={onMessage} style={{ ...styles.ghostAction, flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                {t("profileMessageBtn")}
+              </button>
+              <button type="button" onClick={onShowChallengeModal} style={{ ...styles.ghostAction, flex: 1, color: PURPLE, borderColor: "rgba(167,139,250,0.3)" }}>
+                ⚔️ {t("profileChallengeBtn")}
+              </button>
+              <button type="button" onClick={onShowFighterCard} style={{ ...styles.ghostAction, color: GOLD, borderColor: goldAlpha(0.4), background: goldAlpha(0.08), flexShrink: 0 }}>
+                🥊
+              </button>
+            </div>
+            {isMutual && (
+              <div style={{ textAlign: "center", fontSize: 11, fontWeight: 700, color: GOLD, letterSpacing: 0.5 }}>
+                ⇄ {t("mutual")}
               </div>
-            </>
-          )}
-        </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button
-              onClick={onFollow}
-              disabled={followLoading}
-              style={{
-                ...styles.followAction,
-                background: followLoading ? "#555" : (isFollowing ? "#151515" : RED),
-                cursor: followLoading ? "not-allowed" : "pointer",
-                opacity: followLoading ? 0.7 : 1
-              }}
-            >
-              {followLoading ? t("followLoading") : (isFollowing ? t("unfollow") : t("follow"))}
-            </button>
-            <button
-              type="button"
-              onClick={onMessage}
-              style={{
-                height: 38, padding: "0 18px", borderRadius: 999,
-                border: "1px solid rgba(255,255,255,0.14)",
-                background: "rgba(255,255,255,0.05)",
-                color: "#fff", fontSize: 13, fontWeight: 800,
-                cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              </svg>
-              {t("profileMessageBtn")}
-            </button>
+            )}
           </div>
-          {isMutual && (
-            <span style={{ fontSize: 11, fontWeight: 700, color: GOLD, letterSpacing: 0.5 }}>
-              ⇄ {t("mutual")}
-            </span>
-          )}
-          <div style={{ display: "flex", gap: 8, marginTop: 2 }}>
-            <button
-              type="button"
-              onClick={onShowChallengeModal}
-              style={{ ...styles.ghostAction, color: PURPLE, borderColor: "rgba(167,139,250,0.3)", flex: 1 }}
-            >
-              ⚔️ {t("profileChallengeBtn")}
-            </button>
-            <button
-              type="button"
-              onClick={onShowFighterCard}
-              style={{
-                ...styles.ghostAction,
-                color: GOLD,
-                borderColor: `${goldAlpha(0.45)}`,
-                background: `${goldAlpha(0.1)}`,
-                flex: 1,
-                fontWeight: 900,
-              }}
-            >
-              🥊 {t("profileFighterCard")}
-            </button>
-          </div>
-        </div>
-      )}
+        )}
       </div>
+
     </section>
   );
 }

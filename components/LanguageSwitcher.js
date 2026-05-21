@@ -109,7 +109,7 @@ const s = {
   code: { fontSize: 10, fontWeight: 900, letterSpacing: "0.08em", color: "#fff" },
   chevron: {
     fontSize: 8,
-    color: "#555",
+    color: "rgba(255,255,255,0.35)",
     transition: "transform 180ms ease",
     lineHeight: 1,
   },

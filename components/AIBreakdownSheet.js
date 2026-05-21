@@ -73,7 +73,7 @@ function BulletRow({ items, type = "strength" }) {
 function LoadingState({ t }) {
   return (
     <div style={{ padding: "0 20px 20px" }}>
-      <p style={{ fontSize: 12, color: "#666", margin: "0 0 18px", textAlign: "center" }}>
+      <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: "0 0 18px", textAlign: "center" }}>
         {t("aiBreakdownLoading")}
       </p>
       {/* Style + technique chips */}
@@ -120,16 +120,16 @@ function BreakdownContent({ data, t }) {
         {data.aiError && (
           <Chip
             label="AI service error"
-            bg="rgba(193,18,31,0.12)"
+            bg="rgba(255,59,48,0.12)"
             color="#ff6b6b"
-            border="rgba(193,18,31,0.3)"
+            border="rgba(255,59,48,0.3)"
           />
         )}
         {data.isFallback && !data.aiError && (
           <Chip
             label="AI estimated"
             bg="#1a1a1a"
-            color="#555"
+            color="rgba(255,255,255,0.35)"
             border="#333"
           />
         )}
@@ -156,7 +156,7 @@ function BreakdownContent({ data, t }) {
           padding: "11px 14px",
           marginBottom: 12,
         }}>
-          <p style={{ fontSize: 10, fontWeight: 700, color: "#555", margin: "0 0 4px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+          <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.45)", margin: "0 0 4px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
             {t("aiBreakdownTechniqueCue")}
           </p>
           <p style={{ fontSize: 13, color: "#bbb", margin: 0, lineHeight: 1.5 }}>
@@ -204,7 +204,7 @@ function BreakdownContent({ data, t }) {
 const sectionLabel = {
   fontSize: 10,
   fontWeight: 700,
-  color: "#555",
+  color: "rgba(255,255,255,0.45)",
   textTransform: "uppercase",
   letterSpacing: "0.06em",
   margin: "0 0 8px",
@@ -293,7 +293,9 @@ export default function AIBreakdownSheet({ reel, locale, onClose }) {
         right: 0,
         maxHeight: "82vh",
         overflowY: "auto",
-        background: "#111",
+        background: "rgba(14,14,18,0.98)",
+        backdropFilter: "blur(24px)",
+        WebkitBackdropFilter: "blur(24px)",
         borderRadius: "18px 18px 0 0",
         zIndex: 9001,
         animation: "slideUp 220ms ease",
@@ -301,7 +303,7 @@ export default function AIBreakdownSheet({ reel, locale, onClose }) {
       }}>
         {/* Handle */}
         <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 0" }}>
-          <div style={{ width: 36, height: 4, borderRadius: 2, background: "#333" }} />
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.12)" }} />
         </div>
 
         {/* Header */}
@@ -343,7 +345,7 @@ export default function AIBreakdownSheet({ reel, locale, onClose }) {
         {loading && <LoadingState t={t} />}
         {!loading && error && (
           <div style={{ padding: "12px 20px 24px", textAlign: "center" }}>
-            <p style={{ color: "#555", fontSize: 14 }}>{t("aiBreakdownError")}</p>
+            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 14 }}>{t("aiBreakdownError")}</p>
           </div>
         )}
         {!loading && !error && data && <BreakdownContent data={data} t={t} />}

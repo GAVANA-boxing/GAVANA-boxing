@@ -97,7 +97,7 @@ export default function LeaderboardPage() {
   };
 
   return (
-    <main style={styles.page}>
+    <main style={styles.page} className="page-enter">
       <header style={styles.header}>
         <button
           type="button"
@@ -108,7 +108,7 @@ export default function LeaderboardPage() {
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
         <div style={styles.headerCenter}>
-          <p style={styles.eyebrow}>GAVANA BOXING</p>
+          <p style={styles.eyebrow}>COMBAT · BOARD</p>
           <h1 style={styles.title}>{t("leaderboardTitle")}</h1>
         </div>
         <div style={styles.trophyBadge} aria-hidden="true">🏆</div>

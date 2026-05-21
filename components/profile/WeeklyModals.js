@@ -23,7 +23,7 @@ const sheet = {
 const handle = { width: 40, height: 4, borderRadius: 99, background: "rgba(255,255,255,0.18)", margin: "0 auto 16px" };
 const header = { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 };
 const title = { fontSize: 16, fontWeight: 900, color: "#fff" };
-const closeBtn = { background: "transparent", border: "none", color: "#888", fontSize: 18, cursor: "pointer", padding: "4px 8px" };
+const closeBtn = { background: "transparent", border: "none", color: "rgba(255,255,255,0.45)", fontSize: 18, cursor: "pointer", padding: "4px 8px" };
 
 export function WeeklyRecapModal({ aiFeedbackHistory, profileUser, t, onClose }) {
   const sevenDaysAgo = Date.now() - 7 * 24 * 3600 * 1000;
@@ -43,15 +43,15 @@ export function WeeklyRecapModal({ aiFeedbackHistory, profileUser, t, onClose })
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, padding: "4px 0 8px" }}>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
             <span style={{ fontSize: 16, fontWeight: 900, lineHeight: 1, color: GOLD }}>+{weekXP}</span>
-            <span style={{ fontSize: 9, color: "#888", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{t("weeklyRecapXP")}</span>
+            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.45)", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{t("weeklyRecapXP")}</span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
             <span style={{ fontSize: 16, fontWeight: 900, lineHeight: 1, color: "#34D399" }}>{weekChallenges}</span>
-            <span style={{ fontSize: 9, color: "#888", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{t("weeklyRecapChallenges")}</span>
+            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.45)", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{t("weeklyRecapChallenges")}</span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
             <span style={{ fontSize: 16, fontWeight: 900, lineHeight: 1, color: "#FB923C" }}>{profileUser?.challengeStreak || 0}</span>
-            <span style={{ fontSize: 9, color: "#888", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{t("dayStreak").replace("{n}", "")}</span>
+            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.45)", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{t("dayStreak").replace("{n}", "")}</span>
           </div>
         </div>
         <button
@@ -98,28 +98,28 @@ export function WeeklyLeaderboardModal({ challengeRanks, t, onClose, onGoToChall
           {challengeRanks.weeklyRank && (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: 22, fontWeight: 900, color: "#fff", lineHeight: 1 }}>#{challengeRanks.weeklyRank}</span>
-              <span style={{ fontSize: 10, color: "#888", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{t("seasonCurrentWeek")}</span>
+              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{t("seasonCurrentWeek")}</span>
             </div>
           )}
           {challengeRanks.bestWeeklyScore != null && (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: 22, fontWeight: 900, color: GOLD, lineHeight: 1 }}>{challengeRanks.bestWeeklyScore}/10</span>
-              <span style={{ fontSize: 10, color: "#888", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{t("seasonBestWeeklyScore")}</span>
+              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{t("seasonBestWeeklyScore")}</span>
             </div>
           )}
           {challengeRanks.allTimeRank && (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: 22, fontWeight: 900, color: "#fff", lineHeight: 1 }}>#{challengeRanks.allTimeRank}</span>
-              <span style={{ fontSize: 10, color: "#888", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{t("seasonAllTime")}</span>
+              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{t("seasonAllTime")}</span>
             </div>
           )}
         </div>
 
-        <p style={{ margin: "0 0 16px", fontSize: 13, color: "#888", lineHeight: 1.55, textAlign: "center" }}>{t("weeklySeasonModalDesc")}</p>
+        <p style={{ margin: "0 0 16px", fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.55, textAlign: "center" }}>{t("weeklySeasonModalDesc")}</p>
 
         <button
           type="button"
-          style={{ width: "100%", padding: "14px 0", borderRadius: 12, background: "linear-gradient(135deg, #C1121F, #9B0D18)", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", letterSpacing: 0.5 }}
+          style={{ width: "100%", padding: "14px 0", borderRadius: 12, background: "linear-gradient(135deg, #FF3B30, #cc2820)", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", letterSpacing: 0.5 }}
           onClick={onGoToChallenges}
         >
           {t("weeklySeasonModalCta")}

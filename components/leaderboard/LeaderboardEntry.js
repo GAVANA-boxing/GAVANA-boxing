@@ -7,6 +7,7 @@ import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import { formatCompact } from "@/lib/utils";
 import { getRankMedal, getScoreColor, getAvatarUrl, getEntryBadges } from "@/lib/leaderboardHelpers";
 import Image from "next/image";
+import { RED, GOLD } from "@/lib/tokens";
 
 const LeaderboardEntry = memo(function LeaderboardEntry({ entry, index, profiles, user, entries, weeklyEntries, streakEntries, improvementEntries, leaderboardTab, locale, router, t, styles }) {
   const rank = index + 1;
@@ -50,10 +51,10 @@ const LeaderboardEntry = memo(function LeaderboardEntry({ entry, index, profiles
       <div
         style={{
           ...styles.avatar,
-          ...(rank === 1 ? { border: "2px solid #D4AF37" } : {}),
+          ...(rank === 1 ? { border: `2px solid ${GOLD}` } : {}),
           ...(rank === 2 ? { border: "2px solid #9CA3AF" } : {}),
           ...(rank === 3 ? { border: "2px solid #FB923C" } : {}),
-          ...(isCurrentUser ? { border: "2px solid #C1121F" } : {}),
+          ...(isCurrentUser ? { border: `2px solid ${RED}` } : {}),
         }}
       >
         {avatarUrl ? (

@@ -1,6 +1,6 @@
 "use client";
 
-import { GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
+import { GOLD, RED, redAlpha, goldAlpha } from "@/lib/tokens";
 import { calculateSessionXP } from "@/lib/xp";
 import { getTimestampMs, formatScore } from "@/lib/utils";
 
@@ -64,9 +64,9 @@ export default function TrainingProgressSection({
     <section style={sectionStyle}>
       <div style={{
         position: "relative",
-        background: "linear-gradient(145deg, #1c0202 0%, #0e0000 40%, #080808 100%)",
+        background: "linear-gradient(145deg, #141416 0%, #0B0B0C 40%, #0B0B0C 100%)",
         border: `1px solid ${redAlpha(0.18)}`,
-        borderLeft: "3px solid #C1121F",
+        borderLeft: `3px solid ${RED}`,
         borderRadius: "3px 20px 20px 3px",
         padding: "20px 18px 18px",
         boxShadow: "0 8px 40px rgba(0,0,0,0.55)",
@@ -114,7 +114,7 @@ export default function TrainingProgressSection({
               onClick={onGoToDashboard}
               style={{
                 width: "100%", padding: "13px 0", borderRadius: 13,
-                background: "linear-gradient(135deg, #C1121F, #7d0812)",
+                background: RED,
                 border: "none", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
                 boxShadow: `0 4px 18px ${redAlpha(0.38)}`,
                 letterSpacing: 0.3,
@@ -133,7 +133,7 @@ export default function TrainingProgressSection({
           backdropFilter: "blur(16px)",
           WebkitBackdropFilter: "blur(16px)",
           border: `1px solid ${goldAlpha(0.18)}`,
-          borderLeft: "3px solid #D4AF37",
+          borderLeft: `3px solid ${GOLD}`,
           borderRadius: "3px 16px 16px 3px",
           padding: "20px 18px",
           textAlign: "center",
@@ -151,7 +151,7 @@ export default function TrainingProgressSection({
               onClick={onGoToReels}
               style={{
                 padding: "11px 24px",
-                background: "linear-gradient(135deg, #D4AF37, #b8942a)",
+                background: GOLD,
                 border: "none", color: "#000", fontSize: 12, fontWeight: 900,
                 borderRadius: 10, cursor: "pointer", letterSpacing: 0.3,
               }}
@@ -169,7 +169,7 @@ export default function TrainingProgressSection({
           backdropFilter: "blur(16px)",
           WebkitBackdropFilter: "blur(16px)",
           border: "1px solid rgba(255,255,255,0.06)",
-          borderLeft: "2.5px solid #D4AF37",
+          borderLeft: `2.5px solid ${GOLD}`,
           borderRadius: "3px 16px 16px 3px",
           padding: "14px 16px",
         }}>
@@ -190,7 +190,7 @@ export default function TrainingProgressSection({
               }}>
                 <div>
                   <span style={{ fontSize: 13, color: "#fff", fontWeight: 700 }}>⭐ {formatScore(session.score)}/10</span>
-                  <span style={{ fontSize: 10, color: "#444", marginLeft: 8 }}>{dateLabel}</span>
+                  <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginLeft: 8 }}>{dateLabel}</span>
                 </div>
                 <span style={{ fontSize: 13, fontWeight: 900, color: GOLD }}>+{xpResult.total} XP</span>
               </div>

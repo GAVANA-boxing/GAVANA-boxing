@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { addDoc, collection, getDocs, query, serverTimestamp, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { translate } from "@/lib/i18n";
-import { RED, GOLD , redAlpha} from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, redAlpha } from "@/lib/tokens";
 import Image from "next/image";
 
 function getTypeLabel(type, locale) {
@@ -228,12 +228,12 @@ const s = {
   media: { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" },
   progressBg: {
     position: "absolute", inset: 0,
-    background: `radial-gradient(ellipse at 50% 35%, ${redAlpha(0.28)}, transparent 65%), linear-gradient(180deg, #0e0808 0%, #070707 100%)`,
+    background: `radial-gradient(ellipse at 50% 35%, ${redAlpha(0.28)}, transparent 65%), linear-gradient(180deg, #0B0B0C 0%, #0B0B0C 100%)`,
     display: "flex", alignItems: "center", justifyContent: "center",
   },
   defaultBg: {
     position: "absolute", inset: 0,
-    background: "linear-gradient(160deg, #0e0808 0%, #080808 50%, #050505 100%)",
+    background: "linear-gradient(160deg, #0B0B0C 0%, #0B0B0C 50%, #0B0B0C 100%)",
   },
   // Stronger top gradient for better readability
   topGrad: {
@@ -338,7 +338,7 @@ const s = {
   },
   sendBtn: {
     height: 44, padding: "0 18px", border: "none", borderRadius: 22,
-    background: RED, color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
-    boxShadow: `0 4px 16px ${redAlpha(0.4)}`,
+    background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`, color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
+    boxShadow: `0 4px 16px ${redAlpha(0.35)}, inset 0 1px 0 rgba(255,255,255,0.1)`,
   },
 };

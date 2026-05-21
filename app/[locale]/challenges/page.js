@@ -149,7 +149,7 @@ export default function ChallengesPage() {
   }).filter(Boolean);
 
   return (
-    <main style={styles.page}>
+    <main style={styles.page} className="page-enter">
       <section style={styles.shell}>
         <button type="button" style={styles.backBtn} onClick={() => router.back()} aria-label="Back">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -157,7 +157,7 @@ export default function ChallengesPage() {
           </svg>
         </button>
         <header style={styles.header}>
-          <p style={styles.kicker}>GAVANA</p>
+          <p style={styles.kicker}>COMBAT · MISSIONS</p>
           <h1 style={styles.title}>{t("challengesTitle")}</h1>
           <p style={styles.subtitle}>{t("challengesSubtitle")}</p>
           <div style={styles.streakPill}>
@@ -249,7 +249,7 @@ export default function ChallengesPage() {
             </button>
           </div>
           {seasonTab === "week" && (
-            <span style={{ fontSize: 10, fontWeight: 900, color: GOLD, fontVariantNumeric: "tabular-nums", letterSpacing: 0.5, padding: "3px 10px", borderRadius: 999, background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.3)", whiteSpace: "nowrap", flexShrink: 0 }}>
+            <span style={{ fontSize: 10, fontWeight: 900, color: GOLD, fontVariantNumeric: "tabular-nums", letterSpacing: 0.5, padding: "3px 10px", borderRadius: 999, background: "rgba(245,196,81,0.12)", border: "1px solid rgba(245,196,81,0.3)", whiteSpace: "nowrap", flexShrink: 0 }}>
               ⏱ {countdown}
             </span>
           )}
@@ -374,8 +374,8 @@ export default function ChallengesPage() {
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="discover" />
       <style>{`
         @keyframes challengeScoreGlow {
-          0%, 100% { box-shadow: 0 0 0 rgba(212,175,55,0); }
-          50% { box-shadow: 0 0 24px rgba(212,175,55,0.28); }
+          0%, 100% { box-shadow: 0 0 0 rgba(245,196,81,0); }
+          50% { box-shadow: 0 0 24px rgba(245,196,81,0.28); }
         }
       `}</style>
     </main>

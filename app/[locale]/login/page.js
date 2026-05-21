@@ -22,6 +22,9 @@ function getFriendlyAuthError(error, isSignUp, t) {
     case "auth/email-already-in-use": return t("loginErrEmailInUse");
     case "auth/weak-password":    return t("loginErrWeakPassword");
     case "auth/invalid-email":    return t("loginErrInvalidEmail");
+    case "auth/network-request-failed":
+    case "auth/internal-error":   return t("loginErrNetwork") || "Network error — check your connection and try again.";
+    case "auth/too-many-requests": return t("loginErrTooMany") || "Too many attempts. Please wait a moment.";
     default: return isSignUp ? t("loginErrCreateAccount") : t("loginErrSignIn");
   }
 }
@@ -61,7 +64,7 @@ export default function LoginPage() {
     <div style={S.page} className="grain-overlay">
       <div className="scanline" />
       <div style={S.loadingWrap}>
-        <p style={{ color: GOLD, letterSpacing: 3, fontSize: 11, fontWeight: 900 }}>GAVANA BOXING</p>
+        <p style={{ color: RED, letterSpacing: 3, fontSize: 10, fontWeight: 900, textTransform: "uppercase" }}>COMBAT · BOXING</p>
         <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>{t("loading")}</p>
       </div>
     </div>
@@ -71,7 +74,7 @@ export default function LoginPage() {
     <div style={S.page} className="grain-overlay">
       <div className="scanline" />
       <div style={S.loadingWrap}>
-        <p style={{ color: GOLD, letterSpacing: 3, fontSize: 11, fontWeight: 900 }}>GAVANA BOXING</p>
+        <p style={{ color: RED, letterSpacing: 3, fontSize: 10, fontWeight: 900, textTransform: "uppercase" }}>COMBAT · BOXING</p>
         <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 14 }}>{t("loginAlreadyLoggedIn")}</p>
       </div>
     </div>
@@ -140,9 +143,9 @@ export default function LoginPage() {
 
   const inputStyle = (field) => ({
     ...S.input,
-    borderColor: focusedField === field ? "rgba(193,18,31,0.7)" : "rgba(255,255,255,0.1)",
+    borderColor: focusedField === field ? "rgba(255,59,48,0.7)" : "rgba(255,255,255,0.1)",
     boxShadow: focusedField === field
-      ? "0 0 0 1px rgba(193,18,31,0.35), 0 0 20px rgba(193,18,31,0.15)"
+      ? "0 0 0 1px rgba(255,59,48,0.35), 0 0 20px rgba(255,59,48,0.15)"
       : "none",
   });
 
@@ -278,9 +281,9 @@ export default function LoginPage() {
               style={{
                 ...S.submitBtn,
                 background: loading
-                  ? "rgba(193,18,31,0.3)"
-                  : `linear-gradient(135deg, #C1121F 0%, #8b0d15 100%)`,
-                boxShadow: loading ? "none" : `0 12px 36px rgba(193,18,31,0.35), 0 0 0 1px rgba(193,18,31,0.2) inset`,
+                  ? "rgba(255,59,48,0.3)"
+                  : "#FF3B30",
+                boxShadow: loading ? "none" : `0 12px 36px rgba(255,59,48,0.3), 0 0 0 1px rgba(255,59,48,0.2) inset`,
               }}
             >
               {loading ? (
@@ -323,36 +326,35 @@ const S = {
     padding: "24px 20px",
     overflow: "hidden",
     background: `
-      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(193,18,31,0.28) 0%, transparent 60%),
-      radial-gradient(ellipse 50% 40% at 20% 80%, rgba(193,18,31,0.10) 0%, transparent 50%),
-      radial-gradient(ellipse 40% 30% at 80% 90%, rgba(212,175,55,0.06) 0%, transparent 50%),
-      linear-gradient(180deg, #050305 0%, #070707 50%, #060306 100%)
+      radial-gradient(ellipse 90% 65% at 50% -10%, rgba(255,59,48,0.22) 0%, transparent 58%),
+      radial-gradient(ellipse 55% 45% at 15% 85%, rgba(255,59,48,0.07) 0%, transparent 55%),
+      #0B0B0C
     `,
   },
   orb1: {
     position: "absolute",
     top: "-15%", left: "50%",
     transform: "translateX(-50%)",
-    width: 480, height: 320,
+    width: 520, height: 340,
     borderRadius: "50%",
-    background: "radial-gradient(ellipse, rgba(193,18,31,0.22) 0%, transparent 70%)",
-    filter: "blur(40px)",
+    background: "radial-gradient(ellipse, rgba(255,59,48,0.26) 0%, transparent 70%)",
+    filter: "blur(50px)",
     animation: "float-drift 14s ease-in-out infinite",
     pointerEvents: "none",
   },
   orb2: {
     position: "absolute",
     bottom: "5%", right: "-10%",
-    width: 280, height: 200,
+    width: 300, height: 220,
     borderRadius: "50%",
-    background: "radial-gradient(ellipse, rgba(193,18,31,0.10) 0%, transparent 70%)",
+    background: "radial-gradient(ellipse, rgba(255,59,48,0.1) 0%, transparent 70%)",
     filter: "blur(60px)",
     animation: "float-drift 18s ease-in-out infinite reverse",
     pointerEvents: "none",
   },
   systemBar: {
     position: "absolute",
-    top: 20,
+    top: "calc(16px + env(safe-area-inset-top))",
     display: "flex",
     alignItems: "center",
     gap: 8,
@@ -360,19 +362,21 @@ const S = {
     borderRadius: 999,
     background: "rgba(255,255,255,0.04)",
     border: "1px solid rgba(255,255,255,0.07)",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
   },
   systemDot: {
     width: 5, height: 5,
     borderRadius: "50%",
     background: RED,
-    boxShadow: `0 0 6px rgba(193,18,31,0.8)`,
+    boxShadow: `0 0 8px rgba(255,59,48,0.9)`,
     animation: "ambient-pulse 2s ease-in-out infinite",
   },
   systemText: {
     fontSize: 9,
     fontWeight: 900,
-    color: "rgba(255,255,255,0.35)",
-    letterSpacing: 2,
+    color: "rgba(255,255,255,0.38)",
+    letterSpacing: 2.5,
     textTransform: "uppercase",
   },
   cardWrap: {
@@ -384,51 +388,54 @@ const S = {
   cornerTL: {
     position: "absolute",
     top: -1, left: -1,
-    width: 22, height: 22,
-    borderTop: `2px solid rgba(193,18,31,0.8)`,
-    borderLeft: `2px solid rgba(193,18,31,0.8)`,
-    borderRadius: "4px 0 0 0",
+    width: 24, height: 24,
+    borderTop: `2px solid rgba(255,59,48,0.85)`,
+    borderLeft: `2px solid rgba(255,59,48,0.85)`,
+    borderRadius: "5px 0 0 0",
     zIndex: 2,
     animation: "hud-flicker 0.5s ease both",
   },
   cornerBR: {
     position: "absolute",
     bottom: -1, right: -1,
-    width: 22, height: 22,
-    borderBottom: `2px solid rgba(193,18,31,0.8)`,
-    borderRight: `2px solid rgba(193,18,31,0.8)`,
-    borderRadius: "0 0 4px 0",
+    width: 24, height: 24,
+    borderBottom: `2px solid rgba(255,59,48,0.85)`,
+    borderRight: `2px solid rgba(255,59,48,0.85)`,
+    borderRadius: "0 0 5px 0",
     zIndex: 2,
     animation: "hud-flicker 0.5s ease 0.15s both",
   },
   card: {
-    background: "rgba(9,7,9,0.90)",
-    backdropFilter: "blur(32px) saturate(140%)",
-    WebkitBackdropFilter: "blur(32px) saturate(140%)",
-    border: "1px solid rgba(193,18,31,0.18)",
-    borderRadius: 16,
-    padding: "32px 28px 28px",
+    background: "rgba(8,6,8,0.92)",
+    backdropFilter: "blur(40px) saturate(160%)",
+    WebkitBackdropFilter: "blur(40px) saturate(160%)",
+    border: "1px solid rgba(255,59,48,0.2)",
+    borderRadius: 20,
+    padding: "34px 28px 30px",
     boxShadow: `
       0 0 0 1px rgba(255,255,255,0.04) inset,
-      0 40px 100px rgba(0,0,0,0.7),
-      0 0 80px rgba(193,18,31,0.07)
+      0 48px 120px rgba(0,0,0,0.75),
+      0 0 100px rgba(255,59,48,0.08)
     `,
   },
   arenaLabel: {
-    margin: "0 0 8px",
+    margin: "0 0 10px",
     fontSize: 9,
     fontWeight: 900,
     letterSpacing: 4,
     color: RED,
     textTransform: "uppercase",
-    textShadow: "0 0 12px rgba(193,18,31,0.6)",
+    textShadow: "0 0 14px rgba(255,59,48,0.65)",
   },
   mainTitle: {
     margin: "0 0 8px",
-    fontSize: 30,
-    fontWeight: 900,
+    fontSize: 34,
+    fontWeight: 1000,
     color: "#fff",
-    letterSpacing: -0.5,
+    letterSpacing: "-0.02em",
+    lineHeight: 1,
+    fontFamily: "var(--font-display, 'Anton', sans-serif)",
+    textTransform: "uppercase",
   },
   helperText: {
     margin: 0,
@@ -443,14 +450,16 @@ const S = {
     justifyContent: "center",
     gap: 10,
     padding: "13px 16px",
-    borderRadius: 11,
-    border: "1px solid rgba(255,255,255,0.1)",
-    background: "rgba(255,255,255,0.05)",
-    color: "rgba(255,255,255,0.8)",
+    borderRadius: 13,
+    border: "1px solid rgba(255,255,255,0.12)",
+    background: "rgba(255,255,255,0.06)",
+    color: "rgba(255,255,255,0.85)",
     fontSize: 13,
-    fontWeight: 700,
+    fontWeight: 800,
     cursor: "pointer",
     transition: "background 0.2s, border-color 0.2s",
+    backdropFilter: "blur(8px)",
+    WebkitBackdropFilter: "blur(8px)",
   },
   divider: {
     display: "flex",
@@ -470,55 +479,56 @@ const S = {
   label: {
     fontSize: 10,
     fontWeight: 900,
-    color: "rgba(255,255,255,0.35)",
+    color: "rgba(255,255,255,0.38)",
     letterSpacing: 2,
     textTransform: "uppercase",
   },
   input: {
     width: "100%",
     boxSizing: "border-box",
-    background: "rgba(255,255,255,0.04)",
-    borderRadius: 10,
+    background: "rgba(255,255,255,0.05)",
+    borderRadius: 12,
     padding: "13px 15px",
     color: "#fff",
     fontSize: 14,
     outline: "none",
     transition: "border-color 0.2s, box-shadow 0.2s",
     fontFamily: "inherit",
-    border: "1px solid rgba(255,255,255,0.1)",
+    border: "1px solid rgba(255,255,255,0.09)",
   },
   errorBox: {
-    background: "rgba(193,18,31,0.12)",
-    border: "1px solid rgba(193,18,31,0.35)",
+    background: "rgba(255,59,48,0.11)",
+    border: "1px solid rgba(255,59,48,0.32)",
     color: "#ff8b8b",
     padding: "11px 14px",
-    borderRadius: 9,
+    borderRadius: 12,
     fontSize: 13,
     lineHeight: 1.4,
   },
   submitBtn: {
     width: "100%",
     padding: "15px",
-    borderRadius: 12,
+    borderRadius: 14,
     border: "none",
     color: "#fff",
     fontSize: 14,
     fontWeight: 900,
     cursor: "pointer",
     transition: "opacity 0.2s, transform 0.15s, box-shadow 0.2s",
-    letterSpacing: 0.5,
+    letterSpacing: 1,
+    textTransform: "uppercase",
   },
   switchBtn: {
     background: "none",
     border: "none",
-    color: "rgba(255,255,255,0.3)",
+    color: GOLD,
     cursor: "pointer",
     fontSize: 13,
-    textDecoration: "underline",
-    textDecorationColor: "rgba(255,255,255,0.15)",
+    fontWeight: 700,
     display: "block",
     margin: "20px auto 0",
     padding: 0,
+    opacity: 0.7,
   },
   loadingWrap: {
     textAlign: "center",

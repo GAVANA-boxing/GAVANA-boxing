@@ -98,7 +98,7 @@ export default function FighterDetailPage() {
   const fights         = getLocalizedFights(fighter, locale);
 
   return (
-    <div style={{ ...s.page, background: `radial-gradient(ellipse at top center, ${acc}12 0%, transparent 40%), #080808` }} className="page-enter">
+    <div style={{ ...s.page, background: `radial-gradient(ellipse at top center, ${acc}12 0%, transparent 40%), #0B0B0C` }} className="page-enter">
 
       {/* ══════════ HERO ══════════ */}
       <div style={s.hero} className="hero-enter">
@@ -113,7 +113,7 @@ export default function FighterDetailPage() {
             showLabel={false}
           />
           {/* Overlay gradient — fades to page bg at bottom */}
-          <div style={{ ...s.heroPortraitFade, background: `linear-gradient(to bottom, transparent 40%, ${acc}08 65%, #080808 100%)` }} />
+          <div style={{ ...s.heroPortraitFade, background: `linear-gradient(to bottom, transparent 40%, ${acc}08 65%, #0B0B0C 100%)` }} />
           {/* Back button — floats over portrait */}
           <button style={s.backPill} onClick={() => router.back()}>← {t("back")}</button>
           {/* Top accent bar */}
@@ -122,7 +122,7 @@ export default function FighterDetailPage() {
 
         {/* Text block below portrait */}
         <div style={s.heroCenter}>
-          <p style={s.heroKicker}>GAVANA · FIGHTER STUDY</p>
+          <p style={s.heroKicker}>COMBAT · FIGHTER</p>
           <h1 style={{ ...s.heroNameBig, textShadow: `0 0 40px ${acc}44` }}>
             {fighter.name.toUpperCase()}
           </h1>

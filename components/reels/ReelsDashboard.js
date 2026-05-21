@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import { getCreatorName, getCreatorPhoto, cleanCaption } from "@/lib/reelHelpers";
-import AppSidebar from "@/components/AppSidebar";
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
 const IcoHome = () => (
@@ -593,9 +592,7 @@ export default function ReelsDashboard({
     });
   }, [user?.uid, user?.photoURL]);
   return (
-    <div style={d.page}>
-      <AppSidebar currentLocale={currentLocale} />
-
+    <div style={d.page} className="cinematic-bg">
       <main style={d.center}>
         <div style={d.centerInner}>
           {!isProfileSource && (
@@ -623,8 +620,12 @@ export default function ReelsDashboard({
           <div ref={feedRef} style={d.cardsFeed}>
             {reels.length === 0 ? (
               <div style={d.emptyFeed}>
-                <p style={{ color: "rgba(255,255,255,0.25)", fontSize: 13, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
-                  РИЛС ОЛДСОНГҮЙ
+                <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: 3, textTransform: "uppercase", color: RED, opacity: 0.6 }}>GAVANA BOXING</span>
+                <p style={{ margin: 0, color: "rgba(255,255,255,0.32)", fontSize: 22, fontWeight: 950, letterSpacing: "-0.02em", textTransform: "uppercase" }}>
+                  NO REELS FOUND
+                </p>
+                <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.2)", letterSpacing: "0.05em" }}>
+                  Try a different filter
                 </p>
               </div>
             ) : reels.map((reel, index) => {
@@ -678,7 +679,12 @@ const d = {
     display: "flex",
     height: "100dvh",
     overflow: "hidden",
-    background: `radial-gradient(ellipse 60% 40% at 50% 0%, ${redAlpha(0.1)} 0%, transparent 60%), #070707`,
+    background: `
+      radial-gradient(ellipse 60% 70% at 38% 42%, ${redAlpha(0.09)} 0%, transparent 62%),
+      radial-gradient(ellipse 35% 45% at 82% 18%, rgba(255,255,255,0.025) 0%, transparent 55%),
+      radial-gradient(ellipse 30% 40% at 88% 88%, ${redAlpha(0.04)} 0%, transparent 55%),
+      #0B0B0C
+    `,
     color: "#fff",
   },
 
@@ -689,8 +695,11 @@ const d = {
     display: "flex",
     flexDirection: "column",
     padding: "28px 14px 24px",
-    borderRight: "1px solid rgba(255,255,255,0.06)",
-    background: "rgba(255,255,255,0.015)",
+    borderRight: "1px solid rgba(255,255,255,0.05)",
+    background: `
+      radial-gradient(ellipse 100% 40% at 50% 0%, ${redAlpha(0.07)} 0%, transparent 60%),
+      rgba(11,11,12,0.96)
+    `,
     position: "sticky",
     top: 0,
     height: "100dvh",
@@ -776,7 +785,7 @@ const d = {
     padding: "13px",
     borderRadius: 14,
     border: "none",
-    background: `linear-gradient(135deg, ${RED}, #8f0d17)`,
+    background: `linear-gradient(135deg, ${RED}, #cc2820)`,
     color: "#fff",
     fontSize: 12,
     fontWeight: 900,
@@ -803,7 +812,7 @@ const d = {
     width: 36,
     height: 36,
     borderRadius: "50%",
-    background: "linear-gradient(135deg, #C1121F, #7d0812)",
+    background: RED,
     border: `2px solid ${goldAlpha(0.4)}`,
     display: "flex",
     alignItems: "center",
@@ -841,38 +850,36 @@ const d = {
   centerInner: {
     maxWidth: 600,
     margin: "0 auto",
-    padding: "0 24px 40px",
+    padding: "16px 24px 40px",
   },
   tabs: {
     position: "sticky",
     top: 0,
     zIndex: 30,
     display: "flex",
-    gap: 6,
-    padding: "16px 0 14px",
-    background: "rgba(7,7,7,0.8)",
-    backdropFilter: "blur(20px)",
-    WebkitBackdropFilter: "blur(20px)",
+    gap: 4,
+    padding: "14px 0 12px",
+    background: "rgba(11,11,12,0.92)",
+    backdropFilter: "blur(24px)",
+    WebkitBackdropFilter: "blur(24px)",
     marginBottom: 4,
+    borderBottom: "1px solid rgba(255,255,255,0.05)",
   },
   tab: {
-    padding: "7px 18px",
+    padding: "6px 16px",
     borderRadius: 999,
-    border: "1px solid rgba(255,255,255,0.1)",
-    background: "rgba(255,255,255,0.04)",
-    color: "rgba(255,255,255,0.45)",
-    fontSize: 11,
-    fontWeight: 900,
-    letterSpacing: "0.12em",
-    textTransform: "uppercase",
+    border: "1px solid rgba(255,255,255,0.06)",
+    background: "transparent",
+    color: "#9CA3AF",
+    fontSize: 12,
+    fontWeight: 500,
     cursor: "pointer",
-    transition: "background 150ms ease, color 150ms ease",
+    transition: "all 150ms ease",
   },
   tabActive: {
     background: RED,
     border: `1px solid ${RED}`,
     color: "#fff",
-    boxShadow: `0 4px 16px ${redAlpha(0.35)}`,
   },
 
   // ── Quick post ──
@@ -893,7 +900,7 @@ const d = {
     width: 38,
     height: 38,
     borderRadius: "50%",
-    background: "linear-gradient(135deg, #C1121F, #7d0812)",
+    background: RED,
     border: `2px solid ${goldAlpha(0.35)}`,
     display: "flex",
     alignItems: "center",
@@ -941,21 +948,24 @@ const d = {
   },
   emptyFeed: {
     display: "flex",
+    flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    padding: "80px 0",
+    padding: "80px 24px",
+    gap: 10,
+    borderRadius: 20,
+    background: `radial-gradient(ellipse 60% 50% at 50% 40%, ${redAlpha(0.08)} 0%, transparent 70%)`,
+    border: "1px solid rgba(255,255,255,0.04)",
   },
 
   // ── Reel card ──
   reelCard: {
-    background: "rgba(255,255,255,0.025)",
-    backdropFilter: "blur(18px)",
-    WebkitBackdropFilter: "blur(18px)",
-    border: "1px solid rgba(255,255,255,0.07)",
-    borderRadius: 24,
+    background: "#141416",
+    border: "1px solid rgba(255,255,255,0.06)",
+    borderRadius: 20,
     overflow: "hidden",
-    boxShadow: "0 0 0 0.5px rgba(0,0,0,0.6) inset, 0 12px 40px rgba(0,0,0,0.35)",
-    transition: "border-color 200ms ease, box-shadow 200ms ease",
+    boxShadow: "0 2px 12px rgba(0,0,0,0.35)",
+    transition: "border-color 180ms ease, box-shadow 180ms ease",
   },
   reelRow: {
     display: "flex",
@@ -1123,7 +1133,7 @@ const d = {
     width: 32,
     height: 32,
     borderRadius: "50%",
-    background: "linear-gradient(135deg, #C1121F, #7d0812)",
+    background: RED,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -1153,14 +1163,17 @@ const d = {
 
   // ── Right panel ──
   rightPanel: {
-    width: 360,
+    width: 320,
     flexShrink: 0,
     display: "flex",
     flexDirection: "column",
-    gap: 14,
-    padding: "28px 16px 24px",
-    borderLeft: "1px solid rgba(255,255,255,0.06)",
-    background: "rgba(255,255,255,0.015)",
+    gap: 12,
+    padding: "20px 14px 20px",
+    borderLeft: "1px solid rgba(255,255,255,0.05)",
+    background: `
+      radial-gradient(ellipse 100% 35% at 50% 100%, ${redAlpha(0.05)} 0%, transparent 60%),
+      rgba(11,11,12,0.98)
+    `,
     height: "100dvh",
     overflowY: "auto",
     scrollbarWidth: "none",
@@ -1187,21 +1200,17 @@ const d = {
     cursor: "pointer",
   },
   rightCard: {
-    background: "rgba(255,255,255,0.025)",
-    backdropFilter: "blur(18px)",
-    WebkitBackdropFilter: "blur(18px)",
-    border: "1px solid rgba(255,255,255,0.07)",
-    borderRadius: 18,
+    background: "#141416",
+    border: "1px solid rgba(255,255,255,0.06)",
+    borderRadius: 14,
     overflow: "hidden",
-    boxShadow: "0 0 0 0.5px rgba(0,0,0,0.5) inset, 0 6px 24px rgba(0,0,0,0.2)",
   },
   rightCardHeader: {
     display: "flex",
     alignItems: "center",
     gap: 8,
-    padding: "12px 14px 10px",
+    padding: "10px 14px 8px",
     borderBottom: "1px solid rgba(255,255,255,0.05)",
-    background: "rgba(0,0,0,0.2)",
   },
   liveDot: {
     width: 7,

@@ -2,7 +2,7 @@ import Stripe from "stripe";
 
 async function updateUserSubscription(uid, tierId, status) {
   const PROJECT = "gavana-boxing-89a22";
-  const API_KEY = process.env.FIREBASE_API_KEY || "AIzaSyDwVdR5oVYSXQbWL4jqNSNx9cqKuKxqt6c";
+  const API_KEY = process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyDwVdR5oVYSXQbWL4jqNSNx9cqKuKxqt6c";
   const url = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents/users/${uid}?key=${API_KEY}&updateMask.fieldPaths=subscription&updateMask.fieldPaths=subscriptionTier&updateMask.fieldPaths=subscriptionUpdatedAt`;
   await fetch(url, {
     method: "PATCH",

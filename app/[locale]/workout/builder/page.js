@@ -7,7 +7,7 @@ import { db, auth } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale, translate } from "@/lib/i18n";
 import BottomNav from "@/components/BottomNav";
-import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
+import { RED, GOLD, BG, redAlpha, goldAlpha, pageBg } from "@/lib/tokens";
 import { CombatCard, GlassCard } from "@/components/ui";
 
 const GOALS = [
@@ -196,7 +196,7 @@ export default function WorkoutBuilderPage() {
   };
 
   return (
-    <div style={s.page}>
+    <div style={s.page} className="page-enter">
       <div style={s.inner}>
         {/* Header */}
         <div style={s.header}>
@@ -205,7 +205,7 @@ export default function WorkoutBuilderPage() {
               <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
-          <div style={s.kicker}>GAVANA AI</div>
+          <div style={s.kicker}>COMBAT · AI</div>
         </div>
 
         <div style={s.heroSection}>
@@ -407,11 +407,11 @@ export default function WorkoutBuilderPage() {
 }
 
 const s = {
-  page: { minHeight: "100dvh", background: "#070707", color: "#fff" },
+  page: { minHeight: "100dvh", background: pageBg(), color: "#fff" },
   inner: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },
   header: { display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "calc(16px + env(safe-area-inset-top))", paddingBottom: 8 },
   backBtn: { width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.055)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", borderRadius: 10, cursor: "pointer", padding: 0 },
-  kicker: { fontSize: 10, letterSpacing: 2.5, color: GOLD, textTransform: "uppercase", fontWeight: 900 },
+  kicker: { fontSize: 10, letterSpacing: 3, color: RED, textTransform: "uppercase", fontWeight: 900 },
   heroSection: { textAlign: "center", padding: "20px 0 24px" },
   heroEmoji: { fontSize: 48, marginBottom: 12 },
   title: { margin: "0 0 8px", fontSize: 24, fontWeight: 1000, lineHeight: 1.1 },
@@ -434,15 +434,15 @@ const s = {
   durationCardActive: { border: `1.5px solid ${redAlpha(0.7)}`, background: `${redAlpha(0.1)}`, boxShadow: `0 0 0 1px ${redAlpha(0.2)}` },
   durationValue: { fontSize: 28, fontWeight: 1000, color: "#fff" },
   durationUnit: { fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 700 },
-  nextBtn: { marginTop: 8, width: "100%", padding: 15, borderRadius: 14, border: "none", background: "linear-gradient(135deg, #C1121F, #7d0812)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 24px ${redAlpha(0.28)}` },
+  nextBtn: { marginTop: 8, width: "100%", padding: 15, borderRadius: 14, border: "none", background: `linear-gradient(145deg, ${RED}, #cc2820)`, color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 24px ${redAlpha(0.32)}, inset 0 1px 0 rgba(255,255,255,0.1)` },
   nextBtnDisabled: { marginTop: 8, width: "100%", padding: 15, borderRadius: 14, border: "none", background: `${redAlpha(0.25)}`, color: "rgba(255,255,255,0.4)", fontSize: 15, fontWeight: 900, cursor: "not-allowed" },
-  generateBtn: { marginTop: 8, width: "100%", padding: 15, borderRadius: 14, border: "none", background: "linear-gradient(135deg, #C1121F, #7d0812)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 24px ${redAlpha(0.28)}` },
+  generateBtn: { marginTop: 8, width: "100%", padding: 15, borderRadius: 14, border: "none", background: `linear-gradient(145deg, ${RED}, #cc2820)`, color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 24px ${redAlpha(0.32)}, inset 0 1px 0 rgba(255,255,255,0.1)` },
   errorText: { margin: "10px 0 0", fontSize: 12, color: "#F87171", textAlign: "center" },
   resultWrap: { display: "flex", flexDirection: "column", gap: 12 },
   summaryStrip: { display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 4 },
   summaryChip: { display: "flex", alignItems: "center", gap: 5, padding: "4px 10px", borderRadius: 999, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" },
   summaryText: { fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.7)" },
-  dayCard: { background: "linear-gradient(145deg, #111012, #0a0a0a)", border: "1px solid rgba(255,255,255,0.07)", borderLeft: "2.5px solid #C1121F", borderRadius: "3px 14px 14px 3px", padding: "14px 16px" },
+  dayCard: { background: "#141416", border: "1px solid rgba(255,255,255,0.06)", borderLeft: "2.5px solid #FF3B30", borderRadius: "3px 14px 14px 3px", padding: "14px 16px" },
   dayCardRest: { borderLeftColor: "rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.02)" },
   dayTitle: { fontSize: 13, fontWeight: 900, color: "#fff", marginBottom: 10, letterSpacing: 0.2 },
   restText: { margin: 0, fontSize: 13, color: "rgba(255,255,255,0.35)", fontStyle: "italic" },
@@ -454,7 +454,7 @@ const s = {
   tipsTitle: { margin: "0 0 10px", fontSize: 12, fontWeight: 900, color: GOLD, textTransform: "uppercase", letterSpacing: 0.5 },
   tipRow: { margin: "0 0 6px", fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.45 },
   actionRow: { display: "flex", gap: 8, marginTop: 4 },
-  saveBtn: { flex: 2, padding: 14, borderRadius: 14, border: "none", background: "linear-gradient(135deg, #C1121F, #7d0812)", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" },
+  saveBtn: { flex: 2, padding: 14, borderRadius: 14, border: "none", background: `linear-gradient(145deg, ${RED}, #cc2820)`, color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: `0 6px 18px ${redAlpha(0.28)}` },
   savedBtn: { flex: 2, padding: 14, borderRadius: 14, border: "1px solid rgba(52,211,153,0.3)", background: "rgba(52,211,153,0.08)", color: "#34D399", fontSize: 14, fontWeight: 900, cursor: "not-allowed" },
   rebuildBtn: { flex: 1, padding: 14, borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.55)", fontSize: 14, fontWeight: 700, cursor: "pointer" },
 };

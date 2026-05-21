@@ -67,7 +67,7 @@ export function StyleCard({ style, onAsk, t }) {
         <p style={{ fontSize: 11, color: "#fca5a5", margin: 0, lineHeight: 1.4 }}>{style.practice}</p>
       </div>
       {examples && (
-        <p style={{ margin: 0, fontSize: 10, color: "#555", fontStyle: "italic", lineHeight: 1.3 }}>{examples}</p>
+        <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.4)", fontStyle: "italic", lineHeight: 1.3 }}>{examples}</p>
       )}
       <button
         onClick={() => onAsk(`Tell me more about the ${style.name} style and what I should work on`)}
@@ -124,7 +124,7 @@ export function TechCard({ tech, onAsk, t }) {
         <p style={{ fontSize: 11, color: "#fde68a", margin: 0, lineHeight: 1.4 }}>{tech.drill}</p>
       </div>
       {examples && (
-        <p style={{ margin: 0, fontSize: 10, color: "#555", fontStyle: "italic", lineHeight: 1.3 }}>{examples}</p>
+        <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.4)", fontStyle: "italic", lineHeight: 1.3 }}>{examples}</p>
       )}
       <button
         onClick={() => onAsk(`How do I improve my ${tech.name}?`)}
@@ -168,7 +168,7 @@ export function CountryCard({ cs }) {
           <p style={{ margin: 0, fontSize: 10, color: cs.color, fontWeight: 700 }}>{cs.tagline}</p>
         </div>
       </div>
-      <p style={{ fontSize: 11, color: "#888", margin: 0, lineHeight: 1.5 }}>{cs.desc}</p>
+      <p style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", margin: 0, lineHeight: 1.5 }}>{cs.desc}</p>
     </div>
   );
 }
@@ -193,7 +193,7 @@ export function MovementCard({ card, t }) {
         <span style={{ fontSize: 20 }}>{card.emoji}</span>
         <span style={{ fontSize: 13, fontWeight: 900, color: "#fff", lineHeight: 1.2 }}>{card.name}</span>
       </div>
-      <p style={{ fontSize: 11, color: "#888", margin: 0, lineHeight: 1.5 }}>{card.desc}</p>
+      <p style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", margin: 0, lineHeight: 1.5 }}>{card.desc}</p>
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         {card.teaches.map((item, i) => (
           <div key={i} style={{ display: "flex", gap: 5, alignItems: "flex-start" }}>

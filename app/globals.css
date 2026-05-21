@@ -1,33 +1,77 @@
 @import "tailwindcss";
 
 :root {
-  --background: #070707;
+  /* ── Motion ── */
+  --motion-spring: 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  --motion-bounce: 260ms cubic-bezier(0.34, 1.8, 0.64, 1);
+
+  /* ── Background ── */
+  --bg:        #0B0B0C;
+  --surface:   #141416;
+  --surface-2: #1C1C1E;
+  --background: #0B0B0C;
   --foreground: #ffffff;
+
+  /* ── Border ── */
+  --border:   rgba(255,255,255,0.06);
+  --border-2: rgba(255,255,255,0.12);
+  --line: rgba(255, 255, 255, 0.06);
+
+  /* ── Brand ── */
+  --red:  #FF3B30;
+  --gold: #F5C451;
+  --brand-red: #FF3B30;
+  --brand-gold: #F5C451;
+  --primary-red: #FF3B30;
+  --accent-gold: #F5C451;
+
+  /* ── Text ── */
+  --text:       #FFFFFF;
+  --text-muted: #9CA3AF;
+  --text-faint: #4B5563;
   --text-primary: #ffffff;
-  --text-secondary: #aaaaaa;
-  --brand-red: #C1121F;
-  --brand-gold: #D4AF37;
-  --primary-red: #C1121F;
-  --accent-gold: #D4AF37;
-  --surface: #0b0b0b;
-  --surface-soft: #111111;
-  --line: rgba(255, 255, 255, 0.1);
-  --glass: rgba(11, 11, 11, 0.52);
-  --glass-strong: rgba(11, 11, 11, 0.7);
-  --shadow-soft: 0 18px 60px rgba(0, 0, 0, 0.32);
-  --shadow-glow-red: 0 0 28px rgba(193, 18, 31, 0.3);
-  --space-4: 16px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --radius-sm: 12px;
-  --radius-md: 18px;
-  --motion-fast: 180ms ease;
+  --text-secondary: #9CA3AF;
+
+  /* ── Status ── */
+  --success: #22C55E;
+
+  /* ── Spacing (4/8/12/16/24/32/48/64) ── */
+  --sp-1:  4px;
+  --sp-2:  8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-6:  24px;
+  --sp-8:  32px;
+  --sp-12: 48px;
+  --sp-16: 64px;
   --page-margin: 16px;
   --section-gap: 24px;
-  --section-top: 24px;
-  --card-radius: 18px;
-  --card-radius-sm: 12px;
-  --card-radius-lg: 24px;
+
+  /* ── Radius ── */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --card-radius: 16px;
+  --card-radius-sm: 8px;
+  --card-radius-lg: 20px;
+
+  /* ── Motion ── */
+  --ease-hover: 180ms ease;
+  --ease-page:  220ms cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-modal: 260ms cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-fast: 180ms ease;
+
+  /* ── Shadows ── */
+  --shadow-soft: 0 8px 32px rgba(0,0,0,0.4);
+  --shadow-card: 0 2px 12px rgba(0,0,0,0.3);
+  --shadow-glow-red: 0 0 20px rgba(255,59,48,0.25);
+
+  /* ── Glass ── */
+  --glass: rgba(11, 11, 11, 0.52);
+  --glass-strong: rgba(11, 11, 11, 0.7);
 }
 
 @theme inline {
@@ -35,22 +79,18 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-anton);
+  --font-display: var(--font-display, 'Bebas Neue', 'Anton', sans-serif);
   --font-condensed: var(--font-barlow, 'Barlow Condensed', sans-serif);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #070707;
-    --foreground: #ffffff;
-  }
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
-  font-weight: 500;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-geist-sans), 'Inter', system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
 html {
@@ -345,6 +385,22 @@ p {
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 
+/* Subtle tactical scan atmosphere — almost invisible, just depth */
+.reels-feed::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 3px,
+    rgba(0,0,0,0.014) 3px,
+    rgba(0,0,0,0.014) 4px
+  );
+}
+
 .reel-action:active { animation: iconTap 220ms ease; }
 .reel-action:active .reel-action-circle { transform: scale(0.88); }
 .reel-action-circle { transition: transform 160ms ease, background 160ms ease, border-color 160ms ease; }
@@ -362,6 +418,48 @@ p {
 .sk-pulse { animation: skPulse 1.4s ease infinite; }
 .skeleton-pulse { animation: skPulse 1.4s ease infinite; }
 
+/* ── Cinematic depth system ─────────────────────────────────────────────────
+   Ultra-subtle grain + vignette for premium combat atmosphere.
+   Apply .cinematic-bg to full-page containers that need tactile depth.
+   Almost invisible — just enough to feel alive, not a gaming effect.
+─────────────────────────────────────────────────────────────────────────── */
+@keyframes grainDrift {
+  0%   { transform: translate(0, 0); }
+  20%  { transform: translate(-0.8%, 0.4%); }
+  40%  { transform: translate(0.4%, -0.6%); }
+  60%  { transform: translate(-0.4%, 0.8%); }
+  80%  { transform: translate(0.6%, -0.4%); }
+  100% { transform: translate(0, 0); }
+}
+
+.cinematic-bg {
+  position: relative;
+  isolation: isolate;
+}
+
+/* Grain layer — SVG fractal noise, drifts imperceptibly */
+.cinematic-bg::before {
+  content: '';
+  position: fixed;
+  inset: -20%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.032;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  animation: grainDrift 12s ease-in-out infinite;
+}
+
+/* Cinematic edge vignette — soft, not dramatic */
+.cinematic-bg::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.28) 85%, rgba(0,0,0,0.52) 100%);
+}
+
 @keyframes livePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.75)} }
 .live-pulse { animation: livePulse 1.2s ease-in-out infinite; }
 
@@ -370,6 +468,15 @@ p {
   .app-bottom-nav { display: none !important; }
   .dash-center { scrollbar-width: none; }
   .dash-center::-webkit-scrollbar { display: none; }
+}
+
+/* ─── SPA panel transition — content fades in on route change ─────────────── */
+@keyframes panelIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.dash-center > * {
+  animation: panelIn 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* ── Train page animations ── */
@@ -859,4 +966,152 @@ p {
 .fighter-style-pill:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0,0,0,0.3) !important;
+}
+
+/* ─── Phase 6: Train screen HUD corners ──────────────────────────────────── */
+.train-stage {
+  position: relative;
+}
+.train-stage::before,
+.train-stage::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-color: rgba(255,59,48,0.55);
+  border-style: solid;
+  z-index: 4;
+  pointer-events: none;
+}
+.train-stage::before {
+  top: 12px; left: 12px;
+  border-width: 2px 0 0 2px;
+  border-radius: 6px 0 0 0;
+}
+.train-stage::after {
+  bottom: 12px; right: 12px;
+  border-width: 0 2px 2px 0;
+  border-radius: 0 0 6px 0;
+}
+
+/* Train start button hover glow */
+.train-start-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 48px rgba(255,59,48,0.45), inset 0 1px 0 rgba(255,255,255,0.14) !important;
+}
+.train-start-btn:active {
+  transform: scale(0.98);
+}
+
+/* ─── Phase 4: Polish + Micro-interactions ────────────────────────────────── */
+
+/* Spring press — satisfying bounce on tap */
+@keyframes tapBounce {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(0.91); }
+  65%  { transform: scale(1.07); }
+  82%  { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+.tap-bounce:active { animation: tapBounce var(--motion-spring) both; }
+
+/* Nav icon active pop-in */
+@keyframes navActivePop {
+  0%   { transform: scale(0.82); opacity: 0.5; }
+  60%  { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+.nav-active-pop { animation: navActivePop 300ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+/* Nav active dot — pulsing red glow */
+@keyframes navDotPulse {
+  0%, 100% { box-shadow: 0 0 4px #FF3B30, 0 0 8px rgba(255,59,48,0.5);  opacity: 1; }
+  50%       { box-shadow: 0 0 8px #FF3B30, 0 0 18px rgba(255,59,48,0.7); opacity: 0.75; }
+}
+
+/* Plus button ambient pulse */
+@keyframes plusAmbient {
+  0%, 100% { box-shadow: 0 4px 16px rgba(255,59,48,0.32), inset 0 1px 0 rgba(255,255,255,0.12); }
+  50%       { box-shadow: 0 4px 20px rgba(255,59,48,0.48), inset 0 1px 0 rgba(255,255,255,0.16); }
+}
+.plus-ambient { animation: plusAmbient 2.8s ease-in-out infinite; }
+
+/* Stagger delays — use with page-enter / section-reveal */
+.stagger-1 { animation-delay: 50ms !important; }
+.stagger-2 { animation-delay: 100ms !important; }
+.stagger-3 { animation-delay: 160ms !important; }
+.stagger-4 { animation-delay: 220ms !important; }
+.stagger-5 { animation-delay: 290ms !important; }
+
+/* Number reveal — for stats, scores */
+@keyframes numReveal {
+  from { opacity: 0; transform: translateY(6px) scale(0.92); }
+  to   { opacity: 1; transform: translateY(0)  scale(1); }
+}
+.num-reveal { animation: numReveal 380ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* AI scan load bar — horizontal sweep */
+@keyframes scanLoadX {
+  0%   { transform: translateX(-110%); opacity: 0; }
+  8%   { opacity: 1; }
+  92%  { opacity: 0.9; }
+  100% { transform: translateX(110%); opacity: 0; }
+}
+.scan-load-bar {
+  height: 1px;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  background: transparent;
+}
+.scan-load-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(34,211,238,0.8) 50%, transparent 100%);
+  animation: scanLoadX 1.4s ease-in-out infinite;
+}
+
+/* Page section staggered entrance */
+.section-enter {
+  animation: pageEnter 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Reel action — improved spring press */
+.reel-action:active {
+  animation: tapBounce var(--motion-spring) both;
+}
+.reel-action:active .reel-action-circle {
+  transform: scale(0.86);
+  transition: transform 120ms ease;
+}
+
+/* Active nav item icon scale */
+.nav-icon-active {
+  transform: scale(1.1);
+  transition: transform var(--motion-spring);
+}
+
+/* Profile stat number — entrance when tab switches */
+.stat-num-enter {
+  animation: numReveal 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* License card entrance */
+.license-enter {
+  animation: pageEnter 420ms cubic-bezier(0.16, 1, 0.3, 1) 80ms both;
+}
+
+/* Fix nav-active-dot color (was old red) */
+.nav-active-dot {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #FF3B30;
+  box-shadow: 0 0 6px #FF3B30, 0 0 12px rgba(255,59,48,0.6);
+  animation: navDotPulse 2.2s ease-in-out infinite;
 }

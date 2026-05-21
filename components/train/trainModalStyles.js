@@ -1,4 +1,4 @@
-import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 
 export const trainModalStyles = {
   modalSaved: {
@@ -38,7 +38,7 @@ export const trainModalStyles = {
   },
   missionCompleteSub: {
     fontSize: 11,
-    color: "#888",
+    color: "rgba(255,255,255,0.45)",
     fontWeight: 700,
   },
   modalWrap: {
@@ -53,19 +53,22 @@ export const trainModalStyles = {
   modalOverlay: {
     position: "absolute",
     inset: 0,
-    background: "rgba(0,0,0,0.64)",
-    backdropFilter: "blur(8px)",
+    background: "rgba(0,0,0,0.72)",
+    backdropFilter: "blur(14px)",
+    WebkitBackdropFilter: "blur(14px)",
   },
   modal: {
     position: "relative",
     width: "100%",
     maxWidth: 460,
-    borderRadius: 22,
-    background: "linear-gradient(180deg, #151111, #080808)",
-    border: `1px solid ${goldAlpha(0.2)}`,
-    boxShadow: "0 -24px 70px rgba(0,0,0,0.54)",
+    borderRadius: 28,
+    background: "rgba(16,14,18,0.97)",
+    border: `1px solid ${goldAlpha(0.18)}`,
+    boxShadow: `0 -32px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.03), 0 0 60px ${redAlpha(0.08)}`,
+    backdropFilter: "blur(28px)",
+    WebkitBackdropFilter: "blur(28px)",
     textAlign: "center",
-    maxHeight: "min(600px, calc(100dvh - 120px))",
+    maxHeight: "min(620px, calc(100dvh - 120px))",
     display: "flex",
     flexDirection: "column",
     overflow: "hidden",
@@ -139,7 +142,7 @@ export const trainModalStyles = {
   progressFill: {
     height: "100%",
     borderRadius: 999,
-    background: "linear-gradient(90deg, #C1121F, #D4AF37)",
+    background: RED,
   },
   shareResultButton: {
     width: "100%",
@@ -163,11 +166,12 @@ export const trainModalStyles = {
     minHeight: 46,
     border: "none",
     borderRadius: 14,
-    background: RED,
+    background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
     color: "#fff",
     fontSize: 14,
     fontWeight: 950,
     cursor: "pointer",
+    boxShadow: `0 8px 24px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)`,
   },
   saveButtonDone: {
     background: "#17664b",

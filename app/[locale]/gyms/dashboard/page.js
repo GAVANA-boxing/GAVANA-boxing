@@ -208,12 +208,12 @@ export default function GymDashboardPage() {
 
   // Owner dashboard
   return (
-    <div style={styles.page}>
+    <div style={styles.page} className="page-enter">
       <div style={styles.content}>
         <button type="button" style={styles.backBtn} onClick={() => router.push(`/${locale}/gyms/${gym.id}`)}>← {gym.gymName}</button>
 
         <div style={styles.dashHeader}>
-          <p style={styles.kicker}>{t("gymDashboardKicker")}</p>
+          <p style={styles.kicker}>COMBAT · GYM</p>
           <h1 style={styles.title}>{t("gymDashboard")}</h1>
           {(() => {
             const pct = getCompleteness(gym);
@@ -402,7 +402,7 @@ export default function GymDashboardPage() {
             title={t("gymDashSessionSchedule")}
             hint={t("gymDashSessionHint")}
             action={
-              <button type="button" style={{ padding: "11px 24px", borderRadius: 999, border: "none", background: "linear-gradient(135deg,#C1121F,#7d0812)", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", marginTop: 4 }} onClick={() => router.push(`/${locale}/coach`)}>
+              <button type="button" style={{ padding: "11px 24px", borderRadius: 999, border: "none", background: "linear-gradient(135deg, #FF3B30, #cc2820)", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", marginTop: 4 }} onClick={() => router.push(`/${locale}/coach`)}>
                 {t("gymDashFindCoaches")}
               </button>
             }

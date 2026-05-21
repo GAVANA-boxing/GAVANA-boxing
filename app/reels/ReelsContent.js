@@ -67,6 +67,9 @@ export default function ReelsContent() {
   const [expandedCaptionIds, setExpandedCaptionIds] = useState(new Set());
   const [captionSheetReelId, setCaptionSheetReelId] = useState(null);
   const [breakdownReel, setBreakdownReel] = useState(null);
+  const handleBreakdown = useCallback((reel) => {
+    router.push(`/${currentLocale}/ai-analysis/${reel.id}`);
+  }, [router, currentLocale]);
   const [reportReel, setReportReel] = useState(null);
   const feedRef = useRef(null);
   const reelItemRefs = useRef({});
@@ -277,11 +280,33 @@ export default function ReelsContent() {
   if (reels.length === 0 && feedMode !== "following" && !isProfileSource) {
     return (
       <div style={styles.container}>
-        <div style={styles.empty}>
-          <p>{t("noReelsYet")}</p>
-          <button style={styles.uploadBtn} onClick={() => router.push(`/${currentLocale}/upload`)}>
-            {t("upload")}
-          </button>
+        <div style={styles.arenaEmpty}>
+          <div style={styles.arenaOrb} />
+          <div style={styles.arenaFigure}>
+            <div style={styles.arenaFigHead} />
+            <div style={styles.arenaFigTorso} />
+            <div style={styles.arenaFigGloveL} />
+            <div style={styles.arenaFigGloveR} />
+          </div>
+          <div className="page-enter" style={styles.arenaCopy}>
+            <span style={styles.arenaKicker}>YOUR TRAINING FEED</span>
+            <h2 style={styles.arenaHeadline}>{`THE ARENA\nAWAITS`}</h2>
+            <p style={styles.arenaDesc}>
+              {currentLocale === "mn"
+                ? "Эхний видеогоо upload хий. AI техникийг задлан шинжилж, ахицыг чинь rank болгоно."
+                : currentLocale === "ko"
+                ? "첫 번째 릴을 업로드하세요. AI가 기술을 분석하고 발전을 랭크로 전환합니다."
+                : "Drop your first reel. AI breaks down your technique and turns your progress into rank."}
+            </p>
+            <button
+              type="button"
+              className="btn-red-glow"
+              style={styles.arenaUploadBtn}
+              onClick={() => router.push(`/${currentLocale}/upload`)}
+            >
+              {currentLocale === "mn" ? "ЭХНИЙ ВИДЕОГОО UPLOAD ХИЙ" : currentLocale === "ko" ? "첫 릴 업로드" : "UPLOAD YOUR FIRST REEL"}
+            </button>
+          </div>
         </div>
         <BottomNav router={router} user={user} currentLocale={currentLocale} />
       </div>
@@ -417,16 +442,19 @@ export default function ReelsContent() {
       <div ref={feedRef} style={styles.feed} className="reels-feed" onScroll={handleScroll}>
         {reels.length === 0 ? (
           <div style={{...styles.videoContainer, ...styles.followingEmpty}}>
-            <div style={styles.followingEmptyTitle}>{t("noReelsYet")}</div>
+            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 3, textTransform: "uppercase", color: "rgba(255,255,255,0.28)", marginBottom: 4 }}>FOLLOWING</div>
+            <div style={styles.followingEmptyTitle}>
+              {currentLocale === "mn" ? "Feed хоосон байна" : currentLocale === "ko" ? "피드가 비어 있습니다" : "YOUR FEED IS QUIET"}
+            </div>
             <div style={styles.followingEmptyText}>
-              {t("followingEmptyHelp")}
+              {currentLocale === "mn" ? "Тулаанчдыг дага — тэдний видео энд гарч ирнэ." : currentLocale === "ko" ? "파이터를 팔로우하면 그들의 릴이 여기에 표시됩니다." : "Follow fighters — their reels will appear here."}
             </div>
             <button
               type="button"
               onClick={() => setFeedMode("forYou")}
               style={styles.uploadBtn}
             >
-              {t("reels")}
+              {currentLocale === "mn" ? "FOR YOU руу очих" : currentLocale === "ko" ? "추천 피드 보기" : "BROWSE FOR YOU"}
             </button>
           </div>
         ) : reels.map((reel, index) => {
@@ -487,7 +515,7 @@ export default function ReelsContent() {
               onShare={handleShare}
               onSave={handleSave}
               onGetFeedback={handleGetFeedback}
-              onBreakdown={setBreakdownReel}
+              onBreakdown={handleBreakdown}
               onCaptionSheet={setCaptionSheetReelId}
               onReport={setReportReel}
             />

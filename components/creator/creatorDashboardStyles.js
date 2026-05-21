@@ -1,9 +1,9 @@
-import { goldAlpha, RED, GOLD } from "@/lib/tokens";
+import { goldAlpha, redAlpha, RED, RED_DARK, GOLD, BG, pageBg } from "@/lib/tokens";
 
 const styles = {
   page: {
     minHeight: "100dvh",
-    background: "#050505",
+    background: pageBg(),
     color: "#fff",
     fontFamily: "inherit",
     display: "flex",
@@ -33,16 +33,16 @@ const styles = {
   },
   kicker: {
     margin: 0,
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: 900,
-    letterSpacing: 2,
+    letterSpacing: 3,
     textTransform: "uppercase",
-    color: GOLD,
+    color: RED,
   },
   sub: {
     margin: "2px 0 0",
     fontSize: 13,
-    color: "#888",
+    color: "rgba(255,255,255,0.45)",
   },
   featuredBadge: {
     marginLeft: "auto",
@@ -64,7 +64,7 @@ const styles = {
   },
   loadingText: {
     textAlign: "center",
-    color: "#555",
+    color: "rgba(255,255,255,0.35)",
     padding: 40,
     fontSize: 24,
   },
@@ -94,7 +94,7 @@ const styles = {
   },
   statLabel: {
     fontSize: 11,
-    color: "#888",
+    color: "rgba(255,255,255,0.45)",
     fontWeight: 700,
     letterSpacing: 0.3,
     textAlign: "center",
@@ -124,7 +124,7 @@ const styles = {
   },
   growthLbl: {
     fontSize: 10,
-    color: "#888",
+    color: "rgba(255,255,255,0.45)",
     fontWeight: 700,
     letterSpacing: 0.3,
     textAlign: "center",
@@ -140,7 +140,7 @@ const styles = {
     fontWeight: 900,
     letterSpacing: 0.5,
     textTransform: "uppercase",
-    color: "#888",
+    color: "rgba(255,255,255,0.45)",
   },
   breakdown: {
     display: "flex",
@@ -176,7 +176,7 @@ const styles = {
     textAlign: "right",
     fontSize: 12,
     fontWeight: 700,
-    color: "#888",
+    color: "rgba(255,255,255,0.45)",
     flexShrink: 0,
   },
   tip: {
@@ -213,7 +213,7 @@ const styles = {
   reelBarFill: {
     height: "100%",
     borderRadius: 999,
-    background: "linear-gradient(90deg, #C1121F, #D4AF37)",
+    background: RED,
   },
   reelRow: {
     display: "flex",
@@ -230,7 +230,7 @@ const styles = {
     textAlign: "center",
     fontSize: 12,
     fontWeight: 900,
-    color: "#555",
+    color: "rgba(255,255,255,0.35)",
     flexShrink: 0,
   },
   reelInfo: {
@@ -243,7 +243,7 @@ const styles = {
   reelCaption: {
     fontSize: 13,
     fontWeight: 700,
-    color: "#eee",
+    color: "rgba(255,255,255,0.9)",
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
@@ -252,19 +252,20 @@ const styles = {
     display: "flex",
     gap: 12,
     fontSize: 11,
-    color: "#666",
+    color: "rgba(255,255,255,0.4)",
     fontWeight: 700,
   },
   uploadBtn: {
     padding: "12px 28px",
     borderRadius: 999,
-    background: RED,
+    background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
     border: "none",
     color: "#fff",
     fontFamily: "inherit",
     fontSize: 14,
     fontWeight: 900,
     cursor: "pointer",
+    boxShadow: `0 8px 24px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)`,
   },
   reelThumb: {
     width: 52,
@@ -283,7 +284,7 @@ const styles = {
     flex: 1,
     padding: "12px 0",
     border: "none",
-    borderBottom: "2px solid #C1121F",
+    borderBottom: `2px solid ${RED}`,
     background: "transparent",
     color: "#fff",
     fontSize: 13,

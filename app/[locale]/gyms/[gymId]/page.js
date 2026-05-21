@@ -103,7 +103,7 @@ export default function GymProfilePage() {
 
   if (loading || authLoading) {
     return (
-      <div style={{ minHeight: "100dvh", background: "#0A0A0A", padding: "calc(28px + env(safe-area-inset-top)) 16px 40px" }}>
+      <div style={{ minHeight: "100dvh", background: "#0B0B0C", padding: "calc(28px + env(safe-area-inset-top)) 16px 40px" }}>
         <div style={{ maxWidth: 520, margin: "0 auto", display: "grid", gap: 14 }}>
           <div className="shimmer" style={{ width: 40, height: 40, borderRadius: 10 }} />
           <div className="shimmer" style={{ height: 200, borderRadius: 18 }} />
@@ -158,7 +158,7 @@ export default function GymProfilePage() {
   const isOwner = user?.uid === gym.ownerId;
 
   return (
-    <div style={styles.page}>
+    <div style={styles.page} className="page-enter">
       <div style={styles.content}>
         <button type="button" style={styles.backBtn} onClick={() => router.push(`/${locale}/gyms`)}>← {t("back")}</button>
 
@@ -403,7 +403,7 @@ export default function GymProfilePage() {
                   onClick={() => router.push(`/${locale}/upload`)}
                   style={{
                     padding: "8px 20px", borderRadius: 999,
-                    background: "linear-gradient(135deg, #C1121F, #8f0d17)",
+                    background: "linear-gradient(135deg, #FF3B30, #cc2820)",
                     color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer",
                     border: "none",
                   }}

@@ -7,7 +7,7 @@ import { FIGHTERS } from "@/lib/fighters";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
 import FighterPortrait from "@/components/FighterPortrait";
-import { RED, GOLD , redAlpha} from "@/lib/tokens";
+import { RED, GOLD , redAlpha, pageBg } from "@/lib/tokens";
 
 function FighterGridCard({ fighter, onClick }) {
   const acc = fighter.accent;
@@ -52,7 +52,7 @@ export default function FightersPage() {
             <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
-        <p style={s.kicker}>GAVANA · FIGHTER STUDY</p>
+        <p style={s.kicker}>COMBAT · FIGHTERS</p>
         <h1 style={s.title}>{t("fighterAllTitle")}</h1>
         <p style={s.subtitle}>{t("fighterAllSubtitle")}</p>
       </div>
@@ -77,89 +77,69 @@ export default function FightersPage() {
 const s = {
   page: {
     minHeight: "100dvh",
-    background: `radial-gradient(ellipse at top center, ${redAlpha(0.1)} 0%, transparent 45%), #080808`,
+    background: pageBg(0.16),
     color: "#fff",
     paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
     position: "relative",
   },
   ambientGlow: {
     position: "absolute",
-    top: 0,
-    left: "50%",
+    top: 0, left: "50%",
     transform: "translateX(-50%)",
-    width: "80%",
-    height: 300,
-    background: `radial-gradient(ellipse at top, ${redAlpha(0.08)} 0%, transparent 70%)`,
-    pointerEvents: "none",
-    zIndex: 0,
+    width: "90%", height: 340,
+    background: `radial-gradient(ellipse at top, ${redAlpha(0.14)} 0%, transparent 68%)`,
+    pointerEvents: "none", zIndex: 0,
   },
   header: {
     padding: "calc(36px + env(safe-area-inset-top)) 20px 24px",
-    position: "relative",
-    zIndex: 1,
+    position: "relative", zIndex: 1,
   },
   backPill: {
-    width: 40,
-    height: 40,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: "rgba(255,255,255,0.055)",
-    border: "1px solid rgba(255,255,255,0.12)",
-    color: "#fff",
-    borderRadius: 10,
-    cursor: "pointer",
-    padding: 0,
-    marginBottom: 18,
+    width: 40, height: 40,
+    display: "flex", alignItems: "center", justifyContent: "center",
+    background: "rgba(0,0,0,0.5)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+    color: "#fff", borderRadius: 12, cursor: "pointer", padding: 0, marginBottom: 18,
   },
   kicker: {
-    margin: "0 0 8px",
-    color: RED,
-    fontSize: 9,
-    fontWeight: 900,
-    letterSpacing: 3.5,
-    textTransform: "uppercase",
+    margin: "0 0 8px", color: RED, fontSize: 9,
+    fontWeight: 900, letterSpacing: 3.5, textTransform: "uppercase",
   },
   title: {
     margin: "0 0 8px",
     fontSize: "clamp(34px, 10vw, 52px)",
-    fontWeight: 900,
-    letterSpacing: -0.5,
-    lineHeight: 0.95,
+    fontWeight: 1000,
+    letterSpacing: "-0.03em",
+    lineHeight: 0.92,
     color: "#fff",
     fontFamily: "var(--font-display, 'Anton', sans-serif)",
+    textTransform: "uppercase",
   },
   subtitle: {
-    margin: 0,
-    fontSize: 13,
-    color: "rgba(255,255,255,0.35)",
-    lineHeight: 1.5,
+    margin: 0, fontSize: 13,
+    color: "rgba(255,255,255,0.4)", lineHeight: 1.5,
   },
   grid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: 10,
-    padding: "0 14px",
-    position: "relative",
-    zIndex: 1,
+    display: "grid", gridTemplateColumns: "1fr 1fr",
+    gap: 12, padding: "0 14px",
+    position: "relative", zIndex: 1,
   },
   card: {
-    background: "rgba(255,255,255,0.02)",
-    border: "none",
-    borderRadius: 16,
-    overflow: "hidden",
-    cursor: "pointer",
-    textAlign: "left",
-    padding: 0,
+    background: "rgba(255,255,255,0.03)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: 20, overflow: "hidden",
+    cursor: "pointer", textAlign: "left", padding: 0,
+    boxShadow: "0 8px 28px rgba(0,0,0,0.45)",
+    transition: "transform 180ms ease, box-shadow 180ms ease",
   },
   cardBottom: {
-    padding: "7px 10px 9px",
-    background: "rgba(0,0,0,0.4)",
+    padding: "8px 11px 10px",
+    background: "rgba(0,0,0,0.55)",
+    borderTop: "1px solid rgba(255,255,255,0.05)",
   },
   cardWeapon: {
-    margin: 0,
-    fontSize: 10,
-    color: "rgba(255,255,255,0.35)",
-    lineHeight: 1.4,
+    margin: 0, fontSize: 10,
+    color: "rgba(255,255,255,0.38)", lineHeight: 1.4,
   },
 };

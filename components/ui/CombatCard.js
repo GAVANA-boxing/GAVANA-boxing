@@ -9,7 +9,7 @@ const CombatCard = forwardRef(function CombatCard(
   const borderColor = glowColor
     ? glowColor.replace(")", ", 0.3)").replace("rgb(", "rgba(")
     : accent
-    ? "rgba(193,18,31,0.3)"
+    ? "rgba(255,59,48,0.3)"
     : "rgba(255,255,255,0.06)";
 
   const shadow = glowColor
@@ -39,7 +39,7 @@ const CombatCard = forwardRef(function CombatCard(
           style={{
             position: "absolute",
             top: 0, left: 0, right: 0, height: 2,
-            background: "linear-gradient(90deg, transparent, rgba(193,18,31,0.7), transparent)",
+            background: "linear-gradient(90deg, transparent, rgba(255,59,48,0.7), transparent)",
             pointerEvents: "none",
           }}
         />

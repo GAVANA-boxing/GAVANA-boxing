@@ -7,8 +7,7 @@ import { getLocale, translate } from "@/lib/i18n";
 import RankIcon from "@/components/RankIcon";
 import BottomNav from "@/components/BottomNav";
 import PageTopBar from "@/components/PageTopBar";
-import DashboardLayout from "@/components/DashboardLayout";
-import { RED, GOLD , PURPLE, goldAlpha} from "@/lib/tokens";
+import { RED, GOLD, PURPLE, BG, BORDER, goldAlpha, redAlpha, pageBg } from "@/lib/tokens";
 import { useRankData } from "@/hooks/useRankData";
 
 const HOW_TO_EARN = [
@@ -85,9 +84,8 @@ export default function RankPage() {
   const tierXPRange = tierXPEnd - tierXPStart;
 
   return (
-    <DashboardLayout currentLocale={locale}>
-    <main style={styles.page}>
-      <PageTopBar kicker="GAVANA BOXING" title={t("rankPageTitle") || "RANK"} user={user} currentLocale={locale} showBack />
+    <main style={styles.page} className="page-enter">
+      <PageTopBar kicker="COMBAT · RANK" title={t("rankPageTitle") || "RANK"} user={user} currentLocale={locale} showBack />
 
       <div style={styles.content}>
 
@@ -239,14 +237,13 @@ export default function RankPage() {
 
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
     </main>
-    </DashboardLayout>
   );
 }
 
 const styles = {
   page: {
     minHeight: "100dvh",
-    background: "linear-gradient(180deg, #070707 0%, #0A0A0A 100%)",
+    background: pageBg(),
     color: "#fff",
     paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
   },
@@ -259,16 +256,16 @@ const styles = {
     alignItems: "center",
     gap: 12,
     padding: "calc(env(safe-area-inset-top) + 14px) 16px 14px",
-    background: "rgba(7,7,7,0.94)",
-    backdropFilter: "blur(14px)",
-    WebkitBackdropFilter: "blur(14px)",
-    borderBottom: `1px solid ${goldAlpha(0.18)}`,
+    background: "rgba(11,11,12,0.92)",
+    backdropFilter: "blur(28px)",
+    WebkitBackdropFilter: "blur(28px)",
+    borderBottom: `1px solid ${goldAlpha(0.14)}`,
   },
   backBtn: {
     border: `1px solid ${goldAlpha(0.28)}`,
     background: "transparent",
     color: "#fff",
-    borderRadius: 10,
+    borderRadius: 12,
     width: 40,
     height: 40,
     display: "flex",
@@ -281,16 +278,20 @@ const styles = {
   headerCenter: { textAlign: "center" },
   eyebrow: {
     margin: 0,
-    color: GOLD,
-    fontSize: 11,
-    fontWeight: 800,
-    letterSpacing: 1.5,
+    color: RED,
+    fontSize: 10,
+    fontWeight: 900,
+    letterSpacing: 3,
+    textTransform: "uppercase",
   },
   title: {
-    margin: "4px 0 0",
+    margin: "3px 0 0",
     fontSize: 26,
-    fontWeight: 950,
-    lineHeight: 1.1,
+    fontWeight: 1000,
+    lineHeight: 1,
+    fontFamily: "var(--font-display, 'Anton', sans-serif)",
+    textTransform: "uppercase",
+    letterSpacing: "-0.02em",
   },
   content: {
     maxWidth: 540,
@@ -299,10 +300,12 @@ const styles = {
   },
   currentCard: {
     padding: "20px 18px",
-    borderRadius: 20,
+    borderRadius: 22,
     border: "1px solid",
     marginBottom: 28,
     transition: "box-shadow 0.4s",
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
   },
   currentTop: {
     display: "flex",
@@ -315,28 +318,29 @@ const styles = {
     margin: "0 0 3px",
     fontSize: 10,
     fontWeight: 900,
-    letterSpacing: 2,
-    color: "#888",
+    letterSpacing: 2.5,
+    color: "rgba(255,255,255,0.4)",
     textTransform: "uppercase",
   },
   currentName: {
     margin: "0 0 5px",
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 1000,
     lineHeight: 1,
     textTransform: "uppercase",
-    letterSpacing: -0.3,
+    letterSpacing: "-0.01em",
+    fontFamily: "var(--font-display, 'Anton', sans-serif)",
   },
   currentXP: {
     margin: 0,
     fontSize: 13,
-    color: "#888",
+    color: "rgba(255,255,255,0.45)",
     fontWeight: 700,
   },
   xpBarWrap: {},
   xpTrack: {
     width: "100%",
-    height: 7,
+    height: 8,
     borderRadius: 999,
     background: "rgba(255,255,255,0.08)",
     overflow: "hidden",
@@ -350,21 +354,21 @@ const styles = {
   xpBarLabel: {
     margin: 0,
     fontSize: 11,
-    color: "#666",
+    color: "rgba(255,255,255,0.38)",
     textAlign: "right",
     fontWeight: 700,
   },
   ladderHeading: {
     margin: "0 0 12px",
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: 900,
-    letterSpacing: 2.5,
+    letterSpacing: 3,
     color: GOLD,
     textTransform: "uppercase",
   },
   ladder: {
     display: "grid",
-    gap: 8,
+    gap: 7,
   },
   row: {
     display: "flex",
@@ -376,12 +380,15 @@ const styles = {
     border: "1px solid rgba(255,255,255,0.07)",
     position: "relative",
     overflow: "hidden",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
   },
   rowCurrent: {
     border: "1px solid",
+    boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
   },
   rowLocked: {
-    opacity: 0.42,
+    opacity: 0.38,
   },
   rowIcon: { flexShrink: 0 },
   rowInfo: { flex: 1, minWidth: 0 },
@@ -411,6 +418,7 @@ const styles = {
     margin: "3px 0 0",
     fontSize: 11,
     fontWeight: 700,
+    color: "rgba(255,255,255,0.4)",
   },
   rowProgress: {
     position: "absolute",
@@ -434,10 +442,12 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: 14,
-    padding: "13px 15px",
-    borderRadius: 14,
-    background: "rgba(255,255,255,0.025)",
+    padding: "14px 16px",
+    borderRadius: 16,
+    background: "rgba(255,255,255,0.03)",
     border: "1px solid",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
   },
   earnInfo: {
     display: "flex",
@@ -451,7 +461,7 @@ const styles = {
   },
   earnDetail: {
     fontSize: 11,
-    color: "#666",
+    color: "rgba(255,255,255,0.38)",
     lineHeight: 1.4,
   },
 };

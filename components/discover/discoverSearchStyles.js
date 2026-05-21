@@ -1,3 +1,5 @@
+import { GOLD, redAlpha } from "@/lib/tokens";
+
 export const discoverSearchStyles = {
   // ── Top coaches ──
   coachStrip: {
@@ -16,7 +18,7 @@ export const discoverSearchStyles = {
   },
   coachScroll: {
     display: "flex",
-    gap: 12,
+    gap: 14,
     overflowX: "auto",
     scrollbarWidth: "none",
     paddingBottom: 4,
@@ -38,8 +40,8 @@ export const discoverSearchStyles = {
     width: 52,
     height: 52,
     borderRadius: "50%",
-    background: "rgba(96,165,250,0.15)",
-    border: "2px solid rgba(96,165,250,0.3)",
+    background: "rgba(96,165,250,0.12)",
+    border: "2px solid rgba(96,165,250,0.28)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -47,6 +49,7 @@ export const discoverSearchStyles = {
     fontSize: 18,
     fontWeight: 800,
     color: "#fff",
+    boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
   },
   coachAvatarImg: {
     width: "100%",
@@ -79,31 +82,34 @@ export const discoverSearchStyles = {
   // ── Search results ──
   sectionLabel: {
     margin: "0 0 10px",
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: 900,
-    letterSpacing: 1.2,
+    letterSpacing: 2,
     textTransform: "uppercase",
-    color: "#666",
+    color: "rgba(255,255,255,0.4)",
   },
   listStack: {
     display: "flex",
     flexDirection: "column",
-    gap: 2,
+    gap: 4,
   },
   listCard: {
     display: "flex",
     alignItems: "center",
     gap: 12,
     padding: "11px 14px",
-    borderRadius: 12,
-    border: "none",
-    background: "rgba(255,255,255,0.03)",
+    borderRadius: 14,
+    border: "1px solid rgba(255,255,255,0.07)",
+    background: "rgba(255,255,255,0.035)",
     cursor: "pointer",
     color: "#fff",
     textAlign: "left",
     width: "100%",
     boxSizing: "border-box",
     WebkitTapHighlightColor: "transparent",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
+    transition: "background 150ms",
   },
   listAvatar: {
     width: 40,
@@ -117,6 +123,7 @@ export const discoverSearchStyles = {
     fontWeight: 800,
     flexShrink: 0,
     overflow: "hidden",
+    border: "1px solid rgba(255,255,255,0.1)",
   },
   listAvatarImg: {
     width: "100%",
@@ -140,13 +147,13 @@ export const discoverSearchStyles = {
   },
   listCardSub: {
     fontSize: 12,
-    color: "#666",
+    color: "rgba(255,255,255,0.4)",
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
   },
   listArrow: {
-    color: "#444",
+    color: "rgba(255,255,255,0.25)",
     fontSize: 18,
     flexShrink: 0,
   },

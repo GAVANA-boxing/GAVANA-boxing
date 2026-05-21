@@ -5,7 +5,7 @@ import BottomNav from "@/components/BottomNav";
 import BottomSheet from "@/components/BottomSheet";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, redAlpha } from "@/lib/tokens";
 import styles from "@/components/coach/coachDashboardStyles";
 import { RequesterAvatar, RequestCard } from "@/components/coach/DashboardCards";
 import { useCoachDashboardData } from "@/hooks/useCoachDashboardData";
@@ -62,7 +62,7 @@ export default function CoachDashboardPage() {
   ];
 
   return (
-    <main style={styles.page}>
+    <main style={styles.page} className="page-enter">
       <div style={styles.content}>
         {/* Header */}
         <header style={styles.header}>
@@ -174,14 +174,14 @@ export default function CoachDashboardPage() {
             <button
               type="button"
               onClick={() => setShowCreateForm((v) => !v)}
-              style={{ padding: "7px 14px", borderRadius: 999, border: "none", background: "linear-gradient(135deg, #C1121F, #8f0d17)", color: "#fff", fontSize: 12, fontWeight: 900, cursor: "pointer" }}
+              style={{ padding: "7px 14px", borderRadius: 999, border: "none", background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`, color: "#fff", fontSize: 12, fontWeight: 900, cursor: "pointer", boxShadow: `0 4px 16px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)` }}
             >
               {showCreateForm ? "✕" : "+ " + t("coachDashNew")}
             </button>
           </div>
 
           {showCreateForm && (
-            <div style={{ background: "linear-gradient(145deg, #111012, #0a0a0a)", border: "1px solid rgba(255,255,255,0.09)", borderLeft: "2.5px solid #C1121F", borderRadius: "3px 14px 14px 3px", padding: "16px", marginBottom: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ background: "#141416", border: "1px solid rgba(255,255,255,0.06)", borderLeft: "2.5px solid #FF3B30", borderRadius: "3px 14px 14px 3px", padding: "16px", marginBottom: 16, display: "flex", flexDirection: "column", gap: 12 }}>
               <input
                 value={progTitle}
                 onChange={(e) => setProgTitle(e.target.value)}
@@ -220,7 +220,7 @@ export default function CoachDashboardPage() {
                 type="button"
                 onClick={handleCreateProgram}
                 disabled={!progTitle.trim() || progSaving}
-                style={{ padding: "11px 0", borderRadius: 10, border: "none", background: progTitle.trim() ? "linear-gradient(135deg, #C1121F, #8f0d17)" : "rgba(255,255,255,0.06)", color: "#fff", fontSize: 13, fontWeight: 900, cursor: progTitle.trim() ? "pointer" : "not-allowed", opacity: progSaving ? 0.6 : 1 }}
+                style={{ padding: "11px 0", borderRadius: 10, border: "none", background: progTitle.trim() ? "linear-gradient(135deg, #FF3B30, ${RED_DARK})" : "rgba(255,255,255,0.06)", color: "#fff", fontSize: 13, fontWeight: 900, cursor: progTitle.trim() ? "pointer" : "not-allowed", opacity: progSaving ? 0.6 : 1 }}
               >
                 {progSaving ? "…" : t("coachDashSaveProgram")}
               </button>

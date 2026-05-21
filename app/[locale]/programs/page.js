@@ -184,7 +184,7 @@ export default function ProgramsPage() {
           </svg>
         </button>
         <div>
-          <p style={s.kicker}>GAVANA BOXING</p>
+          <p style={s.kicker}>COMBAT · PROGRAMS</p>
           <h1 style={s.title}>
             {t("programsTitle")}
           </h1>
@@ -331,15 +331,15 @@ export default function ProgramsPage() {
               margin: "32px 0",
               padding: "40px 24px",
               borderRadius: 18,
-              border: "1px solid rgba(193,18,31,0.15)",
-              background: "rgba(7,7,7,0.85)",
+              border: "1px solid rgba(255,59,48,0.15)",
+              background: "rgba(11,11,12,0.85)",
               textAlign: "center",
               position: "relative",
               overflow: "hidden",
             }}>
               <div style={{
                 position: "absolute", top: -20, left: "50%", transform: "translateX(-50%)",
-                width: 160, height: 80, background: "rgba(193,18,31,0.08)",
+                width: 160, height: 80, background: "rgba(255,59,48,0.08)",
                 filter: "blur(30px)", borderRadius: "50%", pointerEvents: "none",
               }} />
               <p style={{ fontSize: 44, margin: "0 0 12px", position: "relative" }}>🥊</p>

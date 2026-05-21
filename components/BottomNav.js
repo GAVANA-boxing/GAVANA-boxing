@@ -12,7 +12,7 @@ import Image from "next/image";
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
 function HomeIcon({ active }) {
   return (
-    <svg style={{ ...ic, color: active ? RED : "#3a3a3a" }} viewBox="0 0 24 24" aria-hidden="true">
+    <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.38)" }} viewBox="0 0 24 24" aria-hidden="true">
       <path d="M3 12L12 4l9 8" />
       <path d="M5 10v9a1 1 0 0 0 1 1h4v-5h4v5h4a1 1 0 0 0 1-1v-9" />
     </svg>
@@ -21,7 +21,7 @@ function HomeIcon({ active }) {
 
 function DiscoverIcon({ active }) {
   return (
-    <svg style={{ ...ic, color: active ? RED : "#3a3a3a" }} viewBox="0 0 24 24" aria-hidden="true">
+    <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.38)" }} viewBox="0 0 24 24" aria-hidden="true">
       <circle cx="11" cy="11" r="6" />
       <path d="m17 17 3.5 3.5" />
     </svg>
@@ -30,7 +30,7 @@ function DiscoverIcon({ active }) {
 
 function AlertsIcon({ active }) {
   return (
-    <svg style={{ ...ic, color: active ? RED : "#3a3a3a" }} viewBox="0 0 24 24" aria-hidden="true">
+    <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.38)" }} viewBox="0 0 24 24" aria-hidden="true">
       <path d="M18 10.5V9a6 6 0 0 0-12 0v1.5c0 2.7-1.2 3.8-2.2 5h16.4c-1-1.2-2.2-2.3-2.2-5Z" />
       <path d="M9.7 18.5a2.5 2.5 0 0 0 4.6 0" />
     </svg>
@@ -47,7 +47,7 @@ function PlusIcon() {
 
 function InboxIcon({ active }) {
   return (
-    <svg style={{ ...ic, color: active ? RED : "#3a3a3a" }} viewBox="0 0 24 24" aria-hidden="true">
+    <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.38)" }} viewBox="0 0 24 24" aria-hidden="true">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
     </svg>
   );
@@ -64,11 +64,11 @@ function ProfileTab({ user, active, onClick }) {
       <span style={{ position: "relative", display: "inline-flex" }}>
         <span style={{
           ...s.avatarWrap,
-          boxShadow: active ? "0 0 0 2px #C1121F" : "0 0 0 1.5px rgba(255,255,255,0.08)",
+          boxShadow: active ? `0 0 0 2px ${RED}` : "0 0 0 1.5px rgba(255,255,255,0.08)",
         }}>
           {photo && !imgError
             ? <Image src={photo} alt="Profile photo" width={30} height={30} style={{ objectFit: "cover" }} onError={() => setImgError(true)} />
-            : <span style={{ ...s.avatarInitial, background: active ? RED : "#222" }}>{initial}</span>
+            : <span style={{ ...s.avatarInitial, background: active ? RED : "rgba(255,255,255,0.08)" }}>{initial}</span>
           }
         </span>
       </span>
@@ -79,17 +79,21 @@ function ProfileTab({ user, active, onClick }) {
 // ─── Icon tab ─────────────────────────────────────────────────────────────────
 function IconTab({ active, onClick, badge, children, label }) {
   return (
-    <button type="button" onClick={onClick} style={s.iconTab} aria-label={label}>
-      <span style={{
-        ...s.iconGlow,
-        background: active ? `${redAlpha(0.12)}` : "transparent",
-        boxShadow: active ? `0 0 20px ${redAlpha(0.25)}` : "none",
-      }}>
-        {children}
+    <button type="button" onClick={onClick} style={s.iconTab} aria-label={label} className="tap-bounce">
+      <span
+        key={active ? "active" : "inactive"}
+        className={active ? "nav-active-pop" : undefined}
+        style={{
+          ...s.iconGlow,
+          background: active ? `${redAlpha(0.11)}` : "transparent",
+        }}
+      >
+        <span style={{ transform: active ? "scale(1.06)" : "scale(1)", transition: "transform 220ms cubic-bezier(0.34,1.56,0.64,1)", display: "flex" }}>
+          {children}
+        </span>
         {badge > 0 && (
           <span style={s.badge}>{badge > 9 ? "9+" : badge}</span>
         )}
-        {active && <span className="nav-active-dot" />}
       </span>
     </button>
   );
@@ -212,8 +216,8 @@ export default function BottomNav({
         </IconTab>
 
         {/* Upload + */}
-        <button type="button" onClick={() => setHubOpen(true)} style={s.plusTab} aria-label={t("navUpload")}>
-          <span style={s.plusCircle}>
+        <button type="button" onClick={() => setHubOpen(true)} style={s.plusTab} aria-label={t("navUpload")} className="tap-bounce">
+          <span style={s.plusCircle} className="plus-ambient">
             <PlusIcon />
           </span>
         </button>
@@ -275,18 +279,21 @@ const icPlus = {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const s = {
+  // ── Floating glass tactical navigation ───────────────────────────────────
   nav: {
     position: "fixed",
-    left: 0,
-    right: 0,
-    bottom: 0,
+    bottom: "calc(12px + env(safe-area-inset-bottom))",
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: "min(calc(100vw - 32px), 420px)",
+    height: 60,
     zIndex: 100,
-    height: "calc(72px + env(safe-area-inset-bottom))",
-    paddingBottom: "env(safe-area-inset-bottom)",
-    background: "rgba(8,8,8,0.97)",
-    borderTop: "1px solid rgba(255,255,255,0.06)",
-    backdropFilter: "blur(28px)",
-    WebkitBackdropFilter: "blur(28px)",
+    background: "rgba(11,11,13,0.74)",
+    backdropFilter: "blur(36px) saturate(160%)",
+    WebkitBackdropFilter: "blur(36px) saturate(160%)",
+    borderRadius: 26,
+    border: "1px solid rgba(255,255,255,0.07)",
+    boxShadow: "0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)",
     display: "grid",
     gridTemplateColumns: "repeat(6, 1fr)",
     alignItems: "center",
@@ -299,19 +306,19 @@ const s = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    height: 72,
+    height: 60,
     WebkitTapHighlightColor: "transparent",
     padding: 0,
   },
   iconGlow: {
-    width: 40,
-    height: 40,
+    width: 38,
+    height: 38,
     borderRadius: 12,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
-    transition: "background 200ms ease, box-shadow 200ms ease",
+    transition: "background 180ms ease",
   },
   badge: {
     position: "absolute",
@@ -330,7 +337,6 @@ const s = {
     textAlign: "center",
     boxSizing: "border-box",
   },
-  // Plus tab
   plusTab: {
     border: "none",
     background: "transparent",
@@ -338,21 +344,21 @@ const s = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    height: 72,
+    height: 60,
     WebkitTapHighlightColor: "transparent",
     padding: 0,
   },
   plusCircle: {
-    width: 44,
-    height: 44,
+    width: 42,
+    height: 42,
     borderRadius: 14,
-    background: RED,
+    background: `linear-gradient(145deg, ${RED}, #cc2820)`,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    boxShadow: `0 4px 16px ${redAlpha(0.4)}`,
+    boxShadow: `0 4px 16px ${redAlpha(0.32)}, inset 0 1px 0 rgba(255,255,255,0.12)`,
+    border: "none",
   },
-  // Profile avatar
   avatarWrap: {
     width: 30,
     height: 30,
@@ -402,8 +408,10 @@ const h = {
     position: "relative",
     width: "100%",
     maxWidth: 520,
-    background: "linear-gradient(180deg, #181010 0%, #0d0d0d 100%)",
-    border: `1px solid ${redAlpha(0.15)}`,
+    background: "rgba(14,14,18,0.97)",
+    backdropFilter: "blur(24px) saturate(160%)",
+    WebkitBackdropFilter: "blur(24px) saturate(160%)",
+    border: "1px solid rgba(255,255,255,0.08)",
     borderBottom: "none",
     borderRadius: "24px 24px 0 0",
     padding: "12px 20px calc(20px + env(safe-area-inset-bottom))",
@@ -424,9 +432,9 @@ const h = {
     margin: "0 0 8px",
     fontSize: 11,
     fontWeight: 900,
-    color: "rgba(255,255,255,0.3)",
+    color: RED,
     textTransform: "uppercase",
-    letterSpacing: 2,
+    letterSpacing: 3,
     paddingLeft: 4,
   },
   grid: {

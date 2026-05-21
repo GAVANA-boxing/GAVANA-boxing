@@ -254,7 +254,7 @@ export default function CreatorDashboard() {
   const distribTotal = externalAttempts.length || 1;
 
   return (
-    <div style={styles.page}>
+    <div style={styles.page} className="page-enter">
       <header style={styles.header}>
         <button type="button" style={styles.backBtn} onClick={() => router.back()} aria-label="Back">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -356,7 +356,7 @@ export default function CreatorDashboard() {
               <section style={styles.section}>
                 <h2 style={styles.sectionTitle}>🔥 {t("creatorMostChallenged")}</h2>
                 <div
-                  style={{ background: "linear-gradient(145deg, #1c0202, #0e0000)", border: `1px solid ${redAlpha(0.2)}`, borderLeft: "3px solid #C1121F", borderRadius: "3px 14px 14px 3px", padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
+                  style={{ background: "#141416", border: `1px solid ${redAlpha(0.2)}`, borderLeft: "3px solid #FF3B30", borderRadius: "3px 14px 14px 3px", padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
                   onClick={() => router.push(`/${locale}/reels?reelId=${mostChallengedReel.id}`)}
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -441,7 +441,7 @@ export default function CreatorDashboard() {
             {externalAttempts.length > 0 && (
               <section style={styles.section}>
                 <h2 style={styles.sectionTitle}>🎯 {t("creatorScoreDistrib")}</h2>
-                <div style={{ background: "linear-gradient(145deg, #111012, #0a0a0a)", border: "1px solid rgba(255,255,255,0.07)", borderLeft: "2.5px solid #D4AF37", borderRadius: "3px 14px 14px 3px", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+                <div style={{ background: "#141416", border: "1px solid rgba(255,255,255,0.06)", borderLeft: "2.5px solid #F5C451", borderRadius: "3px 14px 14px 3px", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
                   {[
                     { key: "excellent", label: t("creatorScoreExcellent"), count: scoreDistrib.excellent, color: "#34D399" },
                     { key: "good",      label: t("creatorScoreGood"),      count: scoreDistrib.good,      color: GOLD },
@@ -484,8 +484,8 @@ export default function CreatorDashboard() {
                 <span style={{
                   padding: "6px 12px",
                   borderRadius: 10,
-                  border: "1px solid rgba(212,175,55,0.2)",
-                  color: "rgba(212,175,55,0.5)",
+                  border: "1px solid rgba(245,196,81,0.2)",
+                  color: "rgba(245,196,81,0.5)",
                   fontSize: 10,
                   fontWeight: 900,
                   letterSpacing: 1.5,

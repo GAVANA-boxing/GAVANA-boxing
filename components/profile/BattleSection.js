@@ -1,6 +1,6 @@
 "use client";
 
-import { RED, GOLD , PURPLE, redAlpha} from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, PURPLE, redAlpha } from "@/lib/tokens";
 import { getTimestampMs, formatScore } from "@/lib/utils";
 
 
@@ -21,20 +21,20 @@ export default function BattleSection({ pvpStats, sparringRecord, isOwnProfile, 
             </p>
             <div style={{ display: "flex", gap: 8, justifyContent: "space-around" }}>
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 42, fontWeight: 900, color: pvpStats.wins > 0 ? "#34D399" : "#444", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{pvpStats.wins}</div>
-                <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>{t("profileWinsLabel")}</div>
+                <div style={{ fontSize: 42, fontWeight: 900, color: pvpStats.wins > 0 ? "#34D399" : "rgba(255,255,255,0.25)", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{pvpStats.wins}</div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>{t("profileWinsLabel")}</div>
               </div>
               <div style={{ width: 1, background: "rgba(255,255,255,0.07)" }} />
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 42, fontWeight: 900, color: pvpStats.losses > 0 ? "#F87171" : "#444", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{pvpStats.losses}</div>
-                <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>{t("profileLossesLabel")}</div>
+                <div style={{ fontSize: 42, fontWeight: 900, color: pvpStats.losses > 0 ? "#F87171" : "rgba(255,255,255,0.25)", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{pvpStats.losses}</div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>{t("profileLossesLabel")}</div>
               </div>
               {pvpStats.bestWinScore !== null && (
                 <>
                   <div style={{ width: 1, background: "rgba(255,255,255,0.07)" }} />
                   <div style={{ textAlign: "center" }}>
                     <div style={{ fontSize: 42, fontWeight: 900, color: GOLD, fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{formatScore(pvpStats.bestWinScore)}</div>
-                    <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>{t("profileBestLabel")}</div>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>{t("profileBestLabel")}</div>
                   </div>
                 </>
               )}
@@ -45,7 +45,7 @@ export default function BattleSection({ pvpStats, sparringRecord, isOwnProfile, 
               return (
                 <div style={{ marginTop: 14 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
-                    <span style={{ fontSize: 9, fontWeight: 800, color: "#555", letterSpacing: 1.5, textTransform: "uppercase" }}>
+                    <span style={{ fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.35)", letterSpacing: 1.5, textTransform: "uppercase" }}>
                       {t("profileWinRate")}
                     </span>
                     <span style={{ fontSize: 13, fontWeight: 900, color: winPct >= 50 ? "#34D399" : "#F87171" }}>{winPct}%</span>
@@ -65,7 +65,7 @@ export default function BattleSection({ pvpStats, sparringRecord, isOwnProfile, 
 
           {pvpStats.recentBattles?.length > 0 && (
             <div style={{ display: "grid", gap: 8 }}>
-              <p style={{ margin: "0 0 6px", fontSize: 9, fontWeight: 900, color: "#555", letterSpacing: 2, textTransform: "uppercase" }}>
+              <p style={{ margin: "0 0 6px", fontSize: 9, fontWeight: 900, color: "rgba(255,255,255,0.35)", letterSpacing: 2, textTransform: "uppercase" }}>
                 {t("profileRecentBattles")}
               </p>
               {pvpStats.recentBattles.map((battle) => {
@@ -87,7 +87,7 @@ export default function BattleSection({ pvpStats, sparringRecord, isOwnProfile, 
                   }}>
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", marginBottom: 2 }}>vs {battle.opponentName}</div>
-                      <div style={{ fontSize: 10, color: "#444" }}>{dateLabel}</div>
+                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{dateLabel}</div>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       {battle.reelId && (
@@ -107,7 +107,7 @@ export default function BattleSection({ pvpStats, sparringRecord, isOwnProfile, 
                         <div style={{ fontSize: 13, fontWeight: 900, color: col }}>
                           {isWin ? t("profileWinResult") : t("profileLossResult")}
                         </div>
-                        <div style={{ fontSize: 11, color: "#555" }}>{formatScore(battle.challengerScore)} vs {formatScore(battle.opponentScore)}</div>
+                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>{formatScore(battle.challengerScore)} vs {formatScore(battle.opponentScore)}</div>
                       </div>
                     </div>
                   </div>
@@ -133,7 +133,7 @@ export default function BattleSection({ pvpStats, sparringRecord, isOwnProfile, 
       ) : (
         <div style={{ textAlign: "center", padding: "52px 20px 40px" }}>
           <div style={{ fontSize: 44, marginBottom: 14 }}>⚔️</div>
-          <p style={{ color: "#555", fontSize: 14, fontWeight: 800, margin: "0 0 6px" }}>
+          <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 14, fontWeight: 800, margin: "0 0 6px" }}>
             {t("profileNoFightRecord")}
           </p>
           <p style={{ color: "#333", fontSize: 12, margin: "0 0 20px" }}>
@@ -157,9 +157,11 @@ export default function BattleSection({ pvpStats, sparringRecord, isOwnProfile, 
       {sparringRecord !== null && (
         <div style={{
           marginTop: 14,
-          background: "linear-gradient(145deg, #0a0a0a, #111)",
-          border: `1px solid ${redAlpha(0.15)}`,
-          borderLeft: "3px solid #C1121F",
+          background: "rgba(255,255,255,0.03)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          border: `1px solid ${redAlpha(0.2)}`,
+          borderLeft: `3px solid ${RED}`,
           borderRadius: "3px 16px 16px 3px",
           padding: "18px 16px",
         }}>
@@ -171,7 +173,7 @@ export default function BattleSection({ pvpStats, sparringRecord, isOwnProfile, 
               <div style={{ fontSize: 36, fontWeight: 900, color: RED, fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>
                 {sparringRecord.totalAccepted}
               </div>
-              <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>
                 {t("profileSparringLabel")}
               </div>
             </div>
@@ -180,13 +182,13 @@ export default function BattleSection({ pvpStats, sparringRecord, isOwnProfile, 
               <div style={{ fontSize: 36, fontWeight: 900, color: GOLD, fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>
                 {sparringRecord.sentPending}
               </div>
-              <div style={{ fontSize: 10, color: "#555", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>
                 {t("profilePendingLabel")}
               </div>
             </div>
           </div>
           {sparringRecord.totalAccepted === 0 && sparringRecord.sentPending === 0 && (
-            <p style={{ margin: "0 0 12px", fontSize: 12, color: "#444", textAlign: "center" }}>
+            <p style={{ margin: "0 0 12px", fontSize: 12, color: "rgba(255,255,255,0.3)", textAlign: "center" }}>
               {t("profileNoSparring")}
             </p>
           )}
@@ -196,8 +198,9 @@ export default function BattleSection({ pvpStats, sparringRecord, isOwnProfile, 
               onClick={onGoToSparring}
               style={{
                 width: "100%", padding: "11px 0", borderRadius: 11,
-                background: "linear-gradient(135deg, #C1121F, #7d0812)",
+                background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
                 border: "none", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
+                boxShadow: `0 6px 20px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)`,
               }}
             >
               {t("profileFindSparring")}

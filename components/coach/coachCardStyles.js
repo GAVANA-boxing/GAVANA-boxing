@@ -3,11 +3,11 @@ import { RED, redAlpha, GOLD, goldAlpha } from "@/lib/tokens";
 export const coachCardStyles = {
   cardList: { display: "flex", flexDirection: "column", gap: 14 },
   card: {
-    borderRadius: 18, padding: "16px",
-    background: "rgba(255,255,255,0.025)",
-    backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
+    borderRadius: 20, padding: "16px",
+    background: "rgba(255,255,255,0.03)",
+    backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
     border: "1px solid rgba(255,255,255,0.08)",
-    boxShadow: "0 0 0 0.5px rgba(0,0,0,0.6) inset, 0 18px 50px rgba(0,0,0,0.22)",
+    boxShadow: "0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05)",
     display: "flex", flexDirection: "column", gap: 10,
   },
   cardTop: { display: "flex", gap: 12, alignItems: "flex-start" },
@@ -15,7 +15,7 @@ export const coachCardStyles = {
   avatar: { width: 52, height: 52, borderRadius: "50%", objectFit: "cover", border: `2px solid ${goldAlpha(0.4)}` },
   avatarInitials: {
     width: 52, height: 52, borderRadius: "50%",
-    background: "linear-gradient(135deg, #C1121F, #7d0812)",
+    background: RED,
     border: `2px solid ${goldAlpha(0.4)}`,
     display: "flex", alignItems: "center", justifyContent: "center",
     fontSize: 18, fontWeight: 1000, color: "#fff",
@@ -25,7 +25,7 @@ export const coachCardStyles = {
     width: 18, height: 18, borderRadius: "50%",
     background: GOLD, color: "#000", fontSize: 10, fontWeight: 1000,
     display: "flex", alignItems: "center", justifyContent: "center",
-    border: "2px solid #0a0a0a",
+    border: "2px solid #0b0b0c",
   },
   cardInfo: { flex: 1, display: "flex", flexDirection: "column", gap: 3, minWidth: 0 },
   cardNameRow: { display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" },
@@ -40,7 +40,7 @@ export const coachCardStyles = {
   specialtyRow: { display: "flex", flexWrap: "wrap", gap: 5 },
   specialtyChip: {
     fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.75)",
-    background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.13)",
+    background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)",
     borderRadius: 999, padding: "3px 9px",
   },
   cardBio: {
@@ -53,15 +53,16 @@ export const coachCardStyles = {
   cardStatLbl: { fontSize: 10, color: "rgba(255,255,255,0.65)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 },
   cardActions: { display: "flex", gap: 8, marginTop: 2 },
   viewProfileBtn: {
-    flex: 1, minHeight: 38, border: "1px solid rgba(255,255,255,0.18)",
-    borderRadius: 10, background: "rgba(255,255,255,0.07)",
+    flex: 1, minHeight: 38, border: "1px solid rgba(255,255,255,0.12)",
+    borderRadius: 10, background: "rgba(255,255,255,0.05)",
     color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
+    backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
   },
   requestBtn: {
     flex: 1, minHeight: 38, border: "none", borderRadius: 10,
-    background: "linear-gradient(135deg, #C1121F, #7d0812)",
+    background: `linear-gradient(145deg, ${RED}, #cc2820)`,
     color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer",
-    boxShadow: `0 8px 24px ${redAlpha(0.28)}`,
+    boxShadow: `0 6px 20px ${redAlpha(0.32)}, inset 0 1px 0 rgba(255,255,255,0.1)`,
   },
   requestedBtn: {
     flex: 1, minHeight: 38, border: "1px solid rgba(52,211,153,0.3)",

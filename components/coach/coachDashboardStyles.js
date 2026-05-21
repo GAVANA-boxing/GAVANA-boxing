@@ -1,9 +1,9 @@
-import { RED, redAlpha, GOLD, goldAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, BG, redAlpha, GOLD, goldAlpha, pageBg } from "@/lib/tokens";
 
 const styles = {
   page: {
     minHeight: "100dvh",
-    background: `radial-gradient(circle at 50% 0%, ${redAlpha(0.18)}, transparent 30%), linear-gradient(180deg, #080808 0%, #0B0B0B 100%)`,
+    background: pageBg(),
     color: "#fff",
   },
   content: {
@@ -18,8 +18,8 @@ const styles = {
     background: "rgba(0,0,0,0.4)", color: GOLD,
     fontSize: 13, fontWeight: 900, cursor: "pointer", marginBottom: 4,
   },
-  kicker: { margin: 0, color: GOLD, fontSize: 11, fontWeight: 950, letterSpacing: 2, textTransform: "uppercase" },
-  title: { margin: 0, fontSize: 28, fontWeight: 1000, lineHeight: 1.1 },
+  kicker: { margin: 0, color: RED, fontSize: 10, fontWeight: 900, letterSpacing: 3, textTransform: "uppercase" },
+  title: { margin: 0, fontSize: 28, fontWeight: 1000, lineHeight: 1.1, fontFamily: "var(--font-display, 'Anton', sans-serif)", textTransform: "uppercase", letterSpacing: "-0.02em" },
   statsPanel: {
     display: "flex", alignItems: "center",
     borderRadius: 18, background: "rgba(255,255,255,0.03)",
@@ -57,7 +57,7 @@ const styles = {
   avatar: { width: 42, height: 42, borderRadius: "50%", objectFit: "cover", border: `2px solid ${goldAlpha(0.35)}`, flexShrink: 0 },
   avatarFallback: {
     width: 42, height: 42, borderRadius: "50%",
-    background: "linear-gradient(135deg, #C1121F, #7d0812)",
+    background: RED,
     border: `2px solid ${goldAlpha(0.35)}`,
     display: "flex", alignItems: "center", justifyContent: "center",
     fontSize: 16, fontWeight: 1000, color: "#fff", flexShrink: 0,
@@ -104,7 +104,7 @@ const styles = {
     border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)",
     color: "rgba(255,255,255,0.65)", fontSize: 12, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap",
   },
-  filterTabActive: { background: RED, border: "1px solid #C1121F", color: "#fff" },
+  filterTabActive: { background: RED, border: `1px solid ${RED}`, color: "#fff" },
   filterTabCount: {
     fontSize: 10, fontWeight: 900, background: "rgba(255,255,255,0.16)",
     borderRadius: 999, padding: "1px 6px", lineHeight: 1.4,
@@ -133,9 +133,9 @@ const styles = {
   },
   confirmBtn: {
     minHeight: 48, borderRadius: 14, border: "none",
-    background: "linear-gradient(135deg, #C1121F, #7d0812)",
+    background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
     color: "#fff", fontSize: 15, fontWeight: 1000, cursor: "pointer",
-    boxShadow: `0 8px 24px ${redAlpha(0.35)}`, marginTop: 4,
+    boxShadow: `0 8px 24px ${redAlpha(0.35)}, inset 0 1px 0 rgba(255,255,255,0.1)`, marginTop: 4,
   },
   bookingSuccessMsg: { textAlign: "center", padding: "24px 0", fontSize: 18, fontWeight: 1000, color: "#34D399" },
   declineBtn: {

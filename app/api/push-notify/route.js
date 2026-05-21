@@ -1,6 +1,17 @@
 import { verifyIdToken } from "@/lib/verifyAuth";
 
 const PROJECT_ID = "gavana-boxing-89a22";
+
+// In-memory rate limit: max 20 push notifications per uid per minute.
+const _rateMap = new Map();
+function isRateLimited(uid) {
+  const now = Date.now();
+  const entry = _rateMap.get(uid) || { count: 0, reset: now + 60_000 };
+  if (now > entry.reset) { entry.count = 0; entry.reset = now + 60_000; }
+  entry.count++;
+  _rateMap.set(uid, entry);
+  return entry.count > 20;
+}
 const FCM_V1_URL = `https://fcm.googleapis.com/v1/projects/${PROJECT_ID}/messages:send`;
 
 let _cachedToken = null;
@@ -48,8 +59,13 @@ export async function POST(req) {
   const accessToken = await getFcmAccessToken();
   if (!accessToken) return Response.json({ sent: 0, note: "FCM service account not configured" });
 
+  if (isRateLimited(uid)) return Response.json({ error: "Rate limited" }, { status: 429 });
+
   const { recipientId, title, body, url } = await req.json();
   if (!recipientId || !title) return Response.json({ error: "Missing recipientId or title" }, { status: 400 });
+  if (typeof title !== "string" || title.length > 120) return Response.json({ error: "Invalid title" }, { status: 400 });
+  if (body && (typeof body !== "string" || body.length > 300)) return Response.json({ error: "Invalid body" }, { status: 400 });
+  if (recipientId === uid) return Response.json({ sent: 0 }); // no self-notify
 
   const tokens = await getFcmTokens(recipientId);
   if (tokens.length === 0) return Response.json({ sent: 0 });

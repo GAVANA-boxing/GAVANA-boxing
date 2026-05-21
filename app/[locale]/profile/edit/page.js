@@ -168,7 +168,7 @@ export default function EditProfilePage() {
   const avatarSrc = previewUrl || photoURL;
 
   return (
-    <main style={styles.page}>
+    <main style={styles.page} className="page-enter">
       <section style={styles.shell}>
 
         {/* Back */}
@@ -180,7 +180,7 @@ export default function EditProfilePage() {
 
         {/* Header */}
         <header style={styles.header}>
-          <p style={styles.kicker}>GAVANA BOXING</p>
+          <p style={styles.kicker}>COMBAT · PROFILE</p>
           <h1 style={styles.title}>{t("Профайл засах", "프로필 수정", "Edit Profile")}</h1>
         </header>
 

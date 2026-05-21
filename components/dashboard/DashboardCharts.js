@@ -144,7 +144,7 @@ export function FighterHero({ displayScore, xp, rank, nextRank, xpProgress, insi
       position: "relative",
       borderRadius: 22,
       overflow: "hidden",
-      background: "linear-gradient(160deg, #1c0202 0%, #0e0000 45%, #080808 100%)",
+      background: "linear-gradient(160deg, #141416 0%, #0B0B0C 45%, #0B0B0C 100%)",
       border: `1px solid ${redAlpha(0.18)}`,
       boxShadow: `0 0 0 1px ${redAlpha(0.07)}, 0 28px 64px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.035)`,
       marginBottom: 20,

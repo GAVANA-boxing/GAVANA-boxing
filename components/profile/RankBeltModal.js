@@ -23,7 +23,9 @@ export default function RankBeltModal({ xp, fighterRank, nextRank, rankProgress,
         style={{
           width: "min(100%, 430px)",
           borderRadius: 24,
-          background: "linear-gradient(160deg, #111 0%, #0b0b0b 100%)",
+          background: "rgba(14,14,18,0.98)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
           border: `1px solid ${fighterRank.color}44`,
           boxShadow: fighterRank.glowColor ? `0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px ${fighterRank.color}22, 0 0 40px ${fighterRank.glowColor}` : "0 32px 80px rgba(0,0,0,0.6)",
           padding: "26px 22px 22px",
@@ -38,7 +40,7 @@ export default function RankBeltModal({ xp, fighterRank, nextRank, rankProgress,
           <div>
             <p style={{ margin: 0, color: fighterRank.color, fontSize: 10, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase" }}>{t("rankBeltModalTitle")}</p>
             <h2 style={{ margin: "5px 0 0", color: "#fff", fontSize: 26, fontWeight: 1000, lineHeight: 1 }}>{t(fighterRank.key)}</h2>
-            <p style={{ margin: "8px 0 0", color: "#888", fontSize: 13, lineHeight: 1.4 }}>{t("rankBeltMotivation")}</p>
+            <p style={{ margin: "8px 0 0", color: "rgba(255,255,255,0.45)", fontSize: 13, lineHeight: 1.4 }}>{t("rankBeltMotivation")}</p>
           </div>
           <button
             type="button"
@@ -51,7 +53,7 @@ export default function RankBeltModal({ xp, fighterRank, nextRank, rankProgress,
 
         <div style={{ display: "grid", gap: 8 }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-            <span style={{ color: "#888", fontSize: 11, fontWeight: 800 }}>{xp.toLocaleString()} XP</span>
+            <span style={{ color: "rgba(255,255,255,0.45)", fontSize: 11, fontWeight: 800 }}>{xp.toLocaleString()} XP</span>
             {nextRank ? (
               <span style={{ color: fighterRank.color, fontSize: 11, fontWeight: 800 }}>
                 {nextRank.minXP - xp} XP → {t(nextRank.key)}
@@ -63,11 +65,11 @@ export default function RankBeltModal({ xp, fighterRank, nextRank, rankProgress,
           <div style={{ height: 8, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
             <div style={{ height: "100%", width: `${rankProgress}%`, borderRadius: 999, background: fighterRank.gradient, transition: "width 600ms ease", boxShadow: fighterRank.glowColor ? `0 0 12px ${fighterRank.glowColor}` : "none" }} />
           </div>
-          <p style={{ margin: 0, color: "#555", fontSize: 10, fontWeight: 700, textAlign: "right" }}>{rankProgress}%</p>
+          <p style={{ margin: 0, color: "rgba(255,255,255,0.35)", fontSize: 10, fontWeight: 700, textAlign: "right" }}>{rankProgress}%</p>
         </div>
 
         <div style={{ display: "grid", gap: 6 }}>
-          <p style={{ margin: "0 0 6px", color: "#666", fontSize: 10, fontWeight: 900, letterSpacing: 1.4, textTransform: "uppercase" }}>{t("rankBeltAllRanks")}</p>
+          <p style={{ margin: "0 0 6px", color: "rgba(255,255,255,0.4)", fontSize: 10, fontWeight: 900, letterSpacing: 1.4, textTransform: "uppercase" }}>{t("rankBeltAllRanks")}</p>
           {RANK_TIERS.map((tier) => {
             const isCurrent = tier.key === fighterRank.key;
             const isReached = xp >= tier.minXP;
@@ -83,11 +85,11 @@ export default function RankBeltModal({ xp, fighterRank, nextRank, rankProgress,
                 opacity: isReached ? 1 : 0.38,
               }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: isReached ? tier.color : "#333", boxShadow: isReached && tier.glowColor ? `0 0 8px ${tier.glowColor}` : "none" }} />
-                  <span style={{ color: isReached ? "#fff" : "#555", fontSize: 13, fontWeight: isCurrent ? 900 : 700 }}>{t(tier.key)}</span>
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: isReached ? tier.color : "rgba(255,255,255,0.12)", boxShadow: isReached && tier.glowColor ? `0 0 8px ${tier.glowColor}` : "none" }} />
+                  <span style={{ color: isReached ? "#fff" : "rgba(255,255,255,0.35)", fontSize: 13, fontWeight: isCurrent ? 900 : 700 }}>{t(tier.key)}</span>
                   {isCurrent && <span style={{ fontSize: 9, fontWeight: 900, color: tier.color, letterSpacing: 1, textTransform: "uppercase" }}>{t("rankBeltCurrent")}</span>}
                 </div>
-                <span style={{ color: "#555", fontSize: 11, fontWeight: 700 }}>{tier.minXP.toLocaleString()} XP</span>
+                <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 11, fontWeight: 700 }}>{tier.minXP.toLocaleString()} XP</span>
               </div>
             );
           })}
