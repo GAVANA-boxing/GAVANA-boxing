@@ -186,6 +186,7 @@ const ReelItem = memo(function ReelItem({
         </div>
       )}
 
+      <div style={styles.topFade} />
       <div style={styles.vignette} />
       <div style={styles.bottomGradient} />
 
