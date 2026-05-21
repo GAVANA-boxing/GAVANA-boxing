@@ -406,10 +406,10 @@ const S = {
     animation: "hud-flicker 0.5s ease 0.15s both",
   },
   card: {
-    background: "rgba(8,6,8,0.92)",
+    background: `radial-gradient(ellipse at 50% 0%, rgba(255,59,48,0.16) 0%, rgba(255,59,48,0.04) 45%, transparent 70%), linear-gradient(180deg, #141416 0%, #0B0B0C 100%)`,
     backdropFilter: "blur(40px) saturate(160%)",
     WebkitBackdropFilter: "blur(40px) saturate(160%)",
-    border: "1px solid rgba(255,59,48,0.2)",
+    border: "1px solid rgba(255,59,48,0.18)",
     borderRadius: 20,
     padding: "34px 28px 30px",
     boxShadow: `

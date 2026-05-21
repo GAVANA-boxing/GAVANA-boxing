@@ -12,11 +12,11 @@ import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { RED, RED_DARK, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/coach/coachStyles";
-import { CoachCard, MyRequestCard, SparringPostCard } from "@/components/coach/CoachCards";
+import { CoachCard, MyRequestCard } from "@/components/coach/CoachCards";
 import { useCoachPageData } from "@/hooks/useCoachPageData";
 import Image from "next/image";
 import { useCoachPageActions } from "@/hooks/useCoachPageActions";
-import { SPECIALTIES, VIBE_FILTERS, LEVELS } from "@/lib/coachConstants";
+import { SPECIALTIES, VIBE_FILTERS } from "@/lib/coachConstants";
 
 const AICoach = dynamic(() => import("@/components/AICoach"), { ssr: false });
 
@@ -35,18 +35,15 @@ export default function CoachPage() {
   const [showCoachFilterSheet, setShowCoachFilterSheet] = useState(false);
 
   const {
-    coaches, sparringPosts, setSparringPosts,
-    coachesLoading, sparringLoading,
+    coaches,
+    coachesLoading,
     myRequests, myRequestsLoading, myRequestCoaches,
   } = useCoachPageData({ tab, userId: user?.uid });
 
   const {
     requestedIds,
-    showSparringForm, setShowSparringForm,
-    sparringForm, setSparringForm,
-    sparringSaving, sparringSaved,
-    handleCoachRequest, handleSparringRequest, handleCreateSparringPost,
-  } = useCoachPageActions({ user, router, locale, setSparringPosts });
+    handleCoachRequest,
+  } = useCoachPageActions({ user, router, locale });
 
   const filteredCoaches = coaches
     .filter((c) => !filterSpecialty || (c.coachSpecialties || []).includes(filterSpecialty))
@@ -66,7 +63,6 @@ export default function CoachPage() {
         {[
           { key: "ai", label: t("coachTabAI") },
           { key: "coaches", label: t("coachTabCoaches") },
-          { key: "sparring", label: t("coachTabSparring") },
           { key: "mine", label: t("coachFilterMyRequests") },
         ].map(({ key, label }) => (
           <button
@@ -292,57 +288,6 @@ export default function CoachPage() {
         </div>
       )}
 
-      {/* Sparring tab */}
-      {tab === "sparring" && (
-        <div style={styles.content}>
-          <header style={styles.pageHeader}>
-            <p style={styles.kicker}>COMBAT · TRAINING</p>
-            <h1 style={styles.pageTitle}>{t("sparringFinder")}</h1>
-          </header>
-
-          <button
-            type="button"
-            style={styles.createPostBtn}
-            onClick={() => { setShowSparringForm(true); setSpSaved(false); }}
-          >
-            + {t("createSparringPost")}
-          </button>
-
-          {sparringSaved && (
-            <div style={styles.savedBanner}>✓ {t("requestSent")}</div>
-          )}
-
-          {sparringLoading && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "0 0 12px" }}>
-              {[1, 2, 3].map((i) => (
-                <SkeletonBlock key={i} height={88} radius={16} />
-              ))}
-            </div>
-          )}
-
-          {!sparringLoading && sparringPosts.length === 0 && (
-            <EmptyState emoji="🥊" title={t("sparringNoPosts")} />
-          )}
-
-          <div style={styles.cardList}>
-            {sparringPosts.map((post) => (
-              <SparringPostCard
-                key={post.id}
-                post={post}
-                t={t}
-                user={user}
-                locale={locale}
-                router={router}
-                requested={requestedIds.has(post.id)}
-                onRequest={handleSparringRequest}
-              />
-            ))}
-          </div>
-
-          <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
-        </div>
-      )}
-
       {/* My Requests tab */}
       {tab === "mine" && (
         <div style={styles.content}>
@@ -397,80 +342,6 @@ export default function CoachPage() {
         </div>
       )}
 
-      {/* Sparring create form modal */}
-      <BottomSheet
-        open={showSparringForm}
-        onClose={() => setShowSparringForm(false)}
-        title={t("createSparringPost")}
-        zIndex={300}
-        accent={GOLD}
-      >
-        <label style={styles.fieldLabel}>{t("weightClass")}</label>
-        <input
-          type="text"
-          placeholder={t("coachWeightPlaceholder")}
-          value={sparringForm.weight}
-          onChange={(e) => setSparringForm((f) => ({ ...f, weight: e.target.value }))}
-          style={styles.fieldInput}
-        />
-
-        <label style={styles.fieldLabel}>{t("boxingLevel")}</label>
-        <select
-          value={sparringForm.level}
-          onChange={(e) => setSparringForm((f) => ({ ...f, level: e.target.value }))}
-          style={styles.fieldSelect}
-        >
-          <option value="">—</option>
-          {LEVELS.map((lv) => (
-            <option key={lv} value={lv}>{lv}</option>
-          ))}
-        </select>
-
-        <label style={styles.fieldLabel}>{t("coachLocation")}</label>
-        <input
-          type="text"
-          placeholder={t("coachLocationPlaceholder")}
-          value={sparringForm.location}
-          onChange={(e) => setSparringForm((f) => ({ ...f, location: e.target.value }))}
-          style={styles.fieldInput}
-        />
-
-        <label style={styles.fieldLabel}>{t("availableTime")}</label>
-        <input
-          type="text"
-          placeholder={t("coachAvailPlaceholder")}
-          value={sparringForm.availableTime}
-          onChange={(e) => setSparringForm((f) => ({ ...f, availableTime: e.target.value }))}
-          style={styles.fieldInput}
-        />
-
-        <label style={styles.fieldLabel}>{t("sparringNote")}</label>
-        <textarea
-          placeholder={t("coachNotesPlaceholder")}
-          value={sparringForm.note}
-          onChange={(e) => setSparringForm((f) => ({ ...f, note: e.target.value }))}
-          style={styles.fieldTextarea}
-          rows={3}
-        />
-
-        <div style={styles.modalActions}>
-          <button
-            type="button"
-            style={styles.cancelBtn}
-            onClick={() => setShowSparringForm(false)}
-          >
-            {t("cancel")}
-          </button>
-          <button
-            type="button"
-            style={styles.submitBtn}
-            disabled={sparringSaving}
-            onClick={handleCreateSparringPost}
-          >
-            {sparringSaving ? "…" : t("sendRequest")}
-          </button>
-        </div>
-      </BottomSheet>
     </main>
   );
 }
