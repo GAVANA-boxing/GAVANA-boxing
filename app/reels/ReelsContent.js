@@ -67,6 +67,9 @@ export default function ReelsContent() {
   const [expandedCaptionIds, setExpandedCaptionIds] = useState(new Set());
   const [captionSheetReelId, setCaptionSheetReelId] = useState(null);
   const [breakdownReel, setBreakdownReel] = useState(null);
+  const handleBreakdown = useCallback((reel) => {
+    router.push(`/${currentLocale}/ai-analysis/${reel.id}`);
+  }, [router, currentLocale]);
   const [reportReel, setReportReel] = useState(null);
   const feedRef = useRef(null);
   const reelItemRefs = useRef({});
@@ -487,7 +490,7 @@ export default function ReelsContent() {
               onShare={handleShare}
               onSave={handleSave}
               onGetFeedback={handleGetFeedback}
-              onBreakdown={setBreakdownReel}
+              onBreakdown={handleBreakdown}
               onCaptionSheet={setCaptionSheetReelId}
               onReport={setReportReel}
             />
