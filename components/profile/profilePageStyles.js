@@ -211,11 +211,13 @@ const styles = {
   profileTabs: {
     display: "flex", width: "100%",
     borderBottom: "1px solid rgba(255,255,255,0.08)",
-    background: BG, position: "sticky", top: 0, zIndex: 8,
+    background: "rgba(11,11,12,0.9)",
+    backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+    position: "sticky", top: 0, zIndex: 8,
   },
   profileTab: {
     flex: 1, minHeight: 50, border: "none", background: "transparent",
-    color: "#777", fontSize: 11, fontWeight: 900,
+    color: "rgba(255,255,255,0.45)", fontSize: 11, fontWeight: 900,
     letterSpacing: 1.2, textTransform: "uppercase", cursor: "pointer",
   },
   profileTabActive: {

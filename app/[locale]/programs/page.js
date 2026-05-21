@@ -184,7 +184,7 @@ export default function ProgramsPage() {
           </svg>
         </button>
         <div>
-          <p style={s.kicker}>GAVANA BOXING</p>
+          <p style={s.kicker}>COMBAT · PROGRAMS</p>
           <h1 style={s.title}>
             {t("programsTitle")}
           </h1>

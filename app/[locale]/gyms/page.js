@@ -111,7 +111,7 @@ export default function GymsPage() {
   };
 
   return (
-    <div style={styles.page}>
+    <div style={styles.page} className="page-enter">
       {/* Sticky tab bar */}
       <div style={styles.tabBar}>
         {[
@@ -134,7 +134,7 @@ export default function GymsPage() {
         {tab === "mine" && (
           <>
             <div style={{ ...styles.header, paddingTop: 20 }}>
-              <p style={styles.kicker}>GAVANA</p>
+              <p style={styles.kicker}>COMBAT · GYMS</p>
               <h1 style={styles.title}>{t("gymMyTitle")}</h1>
             </div>
 
