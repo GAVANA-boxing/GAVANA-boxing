@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import AppSidebar from "./AppSidebar";
-import { redAlpha } from "@/lib/tokens";
+import { BG } from "@/lib/tokens";
 
 // Routes that must NOT have the dashboard shell
 const NO_SHELL = new Set(["", "login", "signup", "onboarding", "register"]);
@@ -35,7 +35,7 @@ export default function AppShell({ children }) {
       display: "flex",
       height: "100dvh",
       overflow: "hidden",
-      background: `radial-gradient(ellipse 60% 40% at 50% 0%, ${redAlpha(0.1)} 0%, transparent 60%), #070707`,
+      background: BG,
       color: "#fff",
     }}>
       <AppSidebar currentLocale={locale} />
