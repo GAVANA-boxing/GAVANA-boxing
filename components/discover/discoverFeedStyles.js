@@ -1,4 +1,4 @@
-import { GOLD, RED, SURFACE, BORDER, MUTED, redAlpha } from "@/lib/tokens";
+import { GOLD, RED, MUTED, redAlpha, goldAlpha } from "@/lib/tokens";
 
 export const discoverFeedStyles = {
   fighterStudySection: { marginBottom: 4 },
@@ -12,7 +12,7 @@ export const discoverFeedStyles = {
     fontSize: 10,
     fontWeight: 900,
     color: GOLD,
-    letterSpacing: 2,
+    letterSpacing: 2.5,
     textTransform: "uppercase",
   },
   fighterStudySeeAll: {
@@ -22,6 +22,7 @@ export const discoverFeedStyles = {
     fontSize: 11,
     cursor: "pointer",
     padding: 0,
+    fontWeight: 700,
   },
   fighterStudyScroll: {
     display: "flex",
@@ -34,24 +35,24 @@ export const discoverFeedStyles = {
   },
   learnDivider: {
     height: 1,
-    background: BORDER,
+    background: "rgba(255,255,255,0.06)",
     margin: "14px 0",
   },
 
   feedTabs: {
     display: "flex",
     gap: 0,
-    padding: "0 16px 10px",
-    borderBottom: `1px solid ${BORDER}`,
+    padding: "0 16px 0",
+    borderBottom: "1px solid rgba(255,255,255,0.07)",
     marginBottom: 2,
   },
   feedTabBtn: {
     flex: 1,
-    padding: "10px 0",
+    padding: "12px 0",
     background: "none",
     border: "none",
     borderBottom: "2px solid transparent",
-    color: "rgba(255,255,255,0.4)",
+    color: "rgba(255,255,255,0.38)",
     fontSize: 13,
     fontWeight: 700,
     cursor: "pointer",
@@ -64,7 +65,7 @@ export const discoverFeedStyles = {
   },
   feedTabActive: {
     flex: 1,
-    padding: "10px 0",
+    padding: "12px 0",
     background: "none",
     border: "none",
     borderBottom: `2px solid ${RED}`,
@@ -81,7 +82,7 @@ export const discoverFeedStyles = {
 
   skeleton: {
     height: 320,
-    borderRadius: 16,
+    borderRadius: 18,
     background: "rgba(255,255,255,0.04)",
   },
   emptyWrap: {
@@ -97,34 +98,37 @@ export const discoverFeedStyles = {
   emptyBtn: {
     marginTop: 8,
     padding: "11px 22px",
-    borderRadius: 10,
+    borderRadius: 12,
     border: "none",
     background: RED,
     color: "#fff",
     fontSize: 14,
-    fontWeight: 700,
+    fontWeight: 800,
     cursor: "pointer",
+    boxShadow: `0 8px 24px ${redAlpha(0.32)}`,
   },
 
   card: {
-    background: "rgba(255,255,255,0.025)",
-    border: `1px solid ${BORDER}`,
+    background: "rgba(255,255,255,0.03)",
+    border: "1px solid rgba(255,255,255,0.07)",
     borderLeft: `2.5px solid ${RED}`,
-    borderRadius: "3px 16px 16px 3px",
+    borderRadius: "4px 18px 18px 4px",
     overflow: "hidden",
+    backdropFilter: "blur(16px)",
+    WebkitBackdropFilter: "blur(16px)",
   },
   cardHeader: {
     display: "flex",
     alignItems: "center",
     gap: 10,
-    padding: "12px 14px 10px",
+    padding: "13px 14px 10px",
   },
   avatar: {
     width: 38,
     height: 38,
     borderRadius: "50%",
     background: redAlpha(0.15),
-    border: `1.5px solid ${redAlpha(0.3)}`,
+    border: `1.5px solid ${redAlpha(0.32)}`,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -157,7 +161,7 @@ export const discoverFeedStyles = {
   thumbGrad: {
     position: "absolute",
     inset: 0,
-    background: "linear-gradient(0deg, rgba(0,0,0,0.65) 0%, transparent 50%)",
+    background: "linear-gradient(0deg, rgba(0,0,0,0.7) 0%, transparent 55%)",
     pointerEvents: "none",
   },
   thumbCaption: {
@@ -183,13 +187,14 @@ export const discoverFeedStyles = {
   },
   likes: { fontSize: 13, color: "rgba(255,255,255,0.5)", fontWeight: 600 },
   watchBtn: {
-    padding: "7px 14px",
+    padding: "7px 16px",
     borderRadius: 10,
     border: "none",
-    background: RED,
+    background: `linear-gradient(135deg, ${RED}, #cc2820)`,
     color: "#fff",
     fontSize: 12,
-    fontWeight: 700,
+    fontWeight: 800,
     cursor: "pointer",
+    boxShadow: `0 4px 14px ${redAlpha(0.28)}`,
   },
 };

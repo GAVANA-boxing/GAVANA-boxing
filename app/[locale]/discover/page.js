@@ -282,7 +282,10 @@ export default function DiscoverPage() {
           ════════════════════════════════════════ */}
           <div style={s.hubSection}>
             <div style={s.forYouHeader}>
-              <span style={s.forYouTitle}>🥊 {t("discoverForYou")}</span>
+              <div>
+                <p style={s.forYouKicker}>FOR YOU</p>
+                <span style={s.forYouTitle}>{t("discoverForYou")}</span>
+              </div>
               <button type="button" onClick={() => router.push(`/${locale}/reels`)} style={s.seeAllBtn}>
                 {t("discoverViewAll")} ›
               </button>
