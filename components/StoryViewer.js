@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { addDoc, collection, getDocs, query, serverTimestamp, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { translate } from "@/lib/i18n";
-import { RED, GOLD , redAlpha} from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, redAlpha } from "@/lib/tokens";
 import Image from "next/image";
 
 function getTypeLabel(type, locale) {
@@ -338,7 +338,7 @@ const s = {
   },
   sendBtn: {
     height: 44, padding: "0 18px", border: "none", borderRadius: 22,
-    background: `linear-gradient(145deg, ${RED}, #cc2820)`, color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
+    background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`, color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
     boxShadow: `0 4px 16px ${redAlpha(0.35)}, inset 0 1px 0 rgba(255,255,255,0.1)`,
   },
 };

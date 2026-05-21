@@ -1,4 +1,4 @@
-import { RED, GOLD, PURPLE, BG, redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, PURPLE, BG, redAlpha, goldAlpha } from "@/lib/tokens";
 
 const styles = {
   // ── Page header ────────────────────────────────────────────────────────────
@@ -257,7 +257,7 @@ const styles = {
   },
   reelGridEmptyCta: {
     marginTop: 8, padding: "12px 26px", borderRadius: 999,
-    border: "none", background: `linear-gradient(145deg, ${RED}, #cc2820)`, color: "#fff",
+    border: "none", background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`, color: "#fff",
     fontSize: 14, fontWeight: 900, cursor: "pointer", letterSpacing: 0.2,
     boxShadow: `0 6px 20px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)`,
   },

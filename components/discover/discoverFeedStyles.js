@@ -1,4 +1,4 @@
-import { GOLD, RED, MUTED, redAlpha, goldAlpha } from "@/lib/tokens";
+import { GOLD, RED, RED_DARK, MUTED, redAlpha, goldAlpha } from "@/lib/tokens";
 
 export const discoverFeedStyles = {
   fighterStudySection: { marginBottom: 4 },
@@ -100,7 +100,7 @@ export const discoverFeedStyles = {
     padding: "11px 22px",
     borderRadius: 12,
     border: "none",
-    background: `linear-gradient(145deg, ${RED}, #cc2820)`,
+    background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
     color: "#fff",
     fontSize: 14,
     fontWeight: 800,
@@ -190,7 +190,7 @@ export const discoverFeedStyles = {
     padding: "7px 16px",
     borderRadius: 10,
     border: "none",
-    background: `linear-gradient(135deg, ${RED}, #cc2820)`,
+    background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`,
     color: "#fff",
     fontSize: 12,
     fontWeight: 800,

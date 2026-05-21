@@ -1,6 +1,6 @@
 "use client";
 
-import { RED, GOLD , PURPLE, redAlpha} from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, PURPLE, redAlpha } from "@/lib/tokens";
 import { getTimestampMs, formatScore } from "@/lib/utils";
 
 
@@ -198,7 +198,7 @@ export default function BattleSection({ pvpStats, sparringRecord, isOwnProfile, 
               onClick={onGoToSparring}
               style={{
                 width: "100%", padding: "11px 0", borderRadius: 11,
-                background: `linear-gradient(145deg, ${RED}, #cc2820)`,
+                background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
                 border: "none", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
                 boxShadow: `0 6px 20px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)`,
               }}

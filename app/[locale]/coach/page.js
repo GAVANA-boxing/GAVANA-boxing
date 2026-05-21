@@ -10,7 +10,7 @@ import EmptyState from "@/components/EmptyState";
 import SkeletonBlock from "@/components/SkeletonBlock";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/coach/coachStyles";
 import { CoachCard, MyRequestCard, SparringPostCard } from "@/components/coach/CoachCards";
 import { useCoachPageData } from "@/hooks/useCoachPageData";
@@ -93,7 +93,7 @@ export default function CoachPage() {
                 padding: "10px 20px",
                 borderRadius: 12,
                 border: "none",
-                background: `linear-gradient(145deg, ${RED}, #cc2820)`,
+                background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
                 color: "#fff",
                 fontSize: 14,
                 fontWeight: 900,
@@ -267,7 +267,7 @@ export default function CoachPage() {
               title={t("coachNoCoaches")}
               hint={t("coachNoCoachesSub")}
               action={
-                <button type="button" onClick={() => router.push(`/${locale}/coach/apply`)} style={{ padding: "12px 28px", borderRadius: 14, background: `linear-gradient(145deg, ${RED}, #cc2820)`, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 24px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)` }}>
+                <button type="button" onClick={() => router.push(`/${locale}/coach/apply`)} style={{ padding: "12px 28px", borderRadius: 14, background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 24px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)` }}>
                   {t("becomeCoach")}
                 </button>
               }
@@ -356,7 +356,7 @@ export default function CoachPage() {
               emoji="🔒"
               title={t("coachSignInRequired")}
               action={
-                <button type="button" onClick={() => router.push(`/${locale}/login`)} style={{ padding: "12px 28px", borderRadius: 14, background: `linear-gradient(145deg, ${RED}, #cc2820)`, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 24px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)` }}>
+                <button type="button" onClick={() => router.push(`/${locale}/login`)} style={{ padding: "12px 28px", borderRadius: 14, background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 24px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)` }}>
                   {t("coachSignInBtn")}
                 </button>
               }
@@ -373,7 +373,7 @@ export default function CoachPage() {
               title={t("coachNoRequests")}
               hint={t("coachNoRequestsHint")}
               action={
-                <button type="button" onClick={() => setTab("coaches")} style={{ padding: "12px 28px", borderRadius: 14, background: `linear-gradient(145deg, ${RED}, #cc2820)`, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", marginTop: 4, boxShadow: `0 8px 24px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)` }}>
+                <button type="button" onClick={() => setTab("coaches")} style={{ padding: "12px 28px", borderRadius: 14, background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", marginTop: 4, boxShadow: `0 8px 24px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)` }}>
                   {t("coachFindCoach")}
                 </button>
               }

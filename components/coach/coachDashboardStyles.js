@@ -1,4 +1,4 @@
-import { RED, BG, redAlpha, GOLD, goldAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, BG, redAlpha, GOLD, goldAlpha } from "@/lib/tokens";
 
 const styles = {
   page: {
@@ -133,7 +133,7 @@ const styles = {
   },
   confirmBtn: {
     minHeight: 48, borderRadius: 14, border: "none",
-    background: `linear-gradient(145deg, ${RED}, #cc2820)`,
+    background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
     color: "#fff", fontSize: 15, fontWeight: 1000, cursor: "pointer",
     boxShadow: `0 8px 24px ${redAlpha(0.35)}, inset 0 1px 0 rgba(255,255,255,0.1)`, marginTop: 4,
   },

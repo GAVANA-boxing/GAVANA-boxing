@@ -1,4 +1,4 @@
-import { goldAlpha, redAlpha, RED, GOLD, BG } from "@/lib/tokens";
+import { goldAlpha, redAlpha, RED, RED_DARK, GOLD, BG } from "@/lib/tokens";
 
 const styles = {
   page: {
@@ -258,7 +258,7 @@ const styles = {
   uploadBtn: {
     padding: "12px 28px",
     borderRadius: 999,
-    background: `linear-gradient(145deg, ${RED}, #cc2820)`,
+    background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
     border: "none",
     color: "#fff",
     fontFamily: "inherit",

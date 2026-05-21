@@ -1,4 +1,4 @@
-import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 
 export const trainModalStyles = {
   modalSaved: {
@@ -166,7 +166,7 @@ export const trainModalStyles = {
     minHeight: 46,
     border: "none",
     borderRadius: 14,
-    background: `linear-gradient(145deg, ${RED}, #cc2820)`,
+    background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
     color: "#fff",
     fontSize: 14,
     fontWeight: 950,

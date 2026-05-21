@@ -1,4 +1,4 @@
-import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 
 const commentsStyles = {
   commentsModal: {
@@ -108,7 +108,7 @@ const commentsStyles = {
     borderWidth: "1px",
     borderStyle: "solid",
     borderColor: `${goldAlpha(0.32)}`,
-    background: "linear-gradient(145deg, #FF3B30, #cc2820)",
+    background: "linear-gradient(145deg, #FF3B30, ${RED_DARK})",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -261,7 +261,7 @@ const commentsStyles = {
     paddingRight: 18,
     borderRadius: 999,
     border: "none",
-    background: `linear-gradient(145deg, ${RED}, #cc2820)`,
+    background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
     color: "#fff",
     fontSize: 13,
     fontWeight: 800,
