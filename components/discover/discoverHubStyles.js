@@ -1,36 +1,26 @@
-import { GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import { GOLD, RED, BORDER, MUTED, SURFACE, redAlpha, goldAlpha } from "@/lib/tokens";
 
 export const discoverHubStyles = {
-  // ── Hub Section (For You) ──
-  hubSection: {
-    marginBottom: 32,
-    padding: "0 16px",
-  },
+  hubSection: { marginBottom: 32, padding: "0 16px" },
   forYouHeader: {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 14,
     paddingTop: 8,
-    borderTop: "1px solid rgba(255,255,255,0.06)",
+    borderTop: `1px solid ${BORDER}`,
   },
-  forYouTitle: {
-    fontSize: 16,
-    fontWeight: 900,
-    color: "#fff",
-    letterSpacing: 0.2,
-  },
+  forYouTitle: { fontSize: 16, fontWeight: 900, color: "#fff", letterSpacing: 0.2 },
   seeAllBtn: {
     background: "none",
     border: "none",
     color: GOLD,
     fontSize: 12,
-    fontWeight: 800,
+    fontWeight: 700,
     cursor: "pointer",
     padding: 0,
   },
 
-  // ── Fighter style chips ──
   styleChips: {
     display: "flex",
     gap: 6,
@@ -42,9 +32,9 @@ export const discoverHubStyles = {
     flexShrink: 0,
     padding: "7px 13px",
     borderRadius: 999,
-    border: "1px solid rgba(255,255,255,0.1)",
+    border: `1px solid ${BORDER}`,
     background: "rgba(255,255,255,0.04)",
-    color: "#888",
+    color: MUTED,
     fontSize: 12,
     fontWeight: 700,
     cursor: "pointer",
@@ -55,16 +45,13 @@ export const discoverHubStyles = {
     gap: 5,
   },
   styleChipActive: {
-    background: `${redAlpha(0.85)}`,
-    borderColor: `${redAlpha(0.6)}`,
+    background: redAlpha(0.85),
+    borderColor: redAlpha(0.6),
     color: "#fff",
     fontWeight: 900,
   },
 
-  // ── Expandable hub ──
-  hubWrap: {
-    marginBottom: 4,
-  },
+  hubWrap: { marginBottom: 4 },
   hubRow: {
     width: "100%",
     display: "flex",
@@ -73,18 +60,14 @@ export const discoverHubStyles = {
     padding: "16px 20px",
     borderRadius: 0,
     border: "none",
-    borderTop: "1px solid rgba(255,255,255,0.06)",
+    borderTop: `1px solid ${BORDER}`,
     background: "none",
     cursor: "pointer",
     WebkitTapHighlightColor: "transparent",
     boxSizing: "border-box",
     transition: "background 180ms",
   },
-  hubLeft: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-  },
+  hubLeft: { display: "flex", alignItems: "center", gap: 12 },
   hubEmoji: {
     width: 34,
     height: 34,
@@ -95,12 +78,7 @@ export const discoverHubStyles = {
     fontSize: 17,
     flexShrink: 0,
   },
-  hubTitle: {
-    fontSize: 15,
-    fontWeight: 900,
-    color: "#fff",
-    letterSpacing: 0.1,
-  },
+  hubTitle: { fontSize: 15, fontWeight: 900, color: "#fff", letterSpacing: 0.1 },
   hubChevron: {
     width: 18,
     height: 18,
@@ -112,14 +90,8 @@ export const discoverHubStyles = {
     transition: "transform 200ms ease",
     flexShrink: 0,
   },
-  hubBody: {
-    padding: "4px 16px 20px",
-    display: "flex",
-    flexDirection: "column",
-    gap: 12,
-  },
+  hubBody: { padding: "4px 16px 20px", display: "flex", flexDirection: "column", gap: 12 },
 
-  // ── Learn sub-cats ──
   learnChips: {
     display: "flex",
     gap: 6,
@@ -132,7 +104,7 @@ export const discoverHubStyles = {
     padding: "6px 12px",
     borderRadius: 999,
     border: `1px solid ${goldAlpha(0.18)}`,
-    background: `${goldAlpha(0.04)}`,
+    background: goldAlpha(0.04),
     color: "rgba(255,255,255,0.5)",
     fontSize: 12,
     fontWeight: 700,
@@ -144,44 +116,32 @@ export const discoverHubStyles = {
     WebkitTapHighlightColor: "transparent",
   },
   learnChipActive: {
-    background: `${goldAlpha(0.18)}`,
-    borderColor: `${goldAlpha(0.55)}`,
+    background: goldAlpha(0.18),
+    borderColor: goldAlpha(0.55),
     color: GOLD,
     fontWeight: 900,
   },
-  hubEmpty: {
-    padding: "20px 0",
-    textAlign: "center",
-  },
-  hubEmptyText: {
-    margin: 0,
-    fontSize: 13,
-    color: "#555",
-  },
+  hubEmpty: { padding: "20px 0", textAlign: "center" },
+  hubEmptyText: { margin: 0, fontSize: 13, color: MUTED },
   hubFooterBtn: {
     background: "none",
-    border: "1px solid rgba(255,255,255,0.1)",
+    border: `1px solid ${BORDER}`,
     borderRadius: 12,
     padding: "11px 16px",
     color: GOLD,
     fontSize: 13,
-    fontWeight: 800,
+    fontWeight: 700,
     cursor: "pointer",
     width: "100%",
     textAlign: "center",
   },
 
-  // ── Challenge grid ──
-  challengeGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(2, 1fr)",
-    gap: 8,
-  },
+  challengeGrid: { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8 },
   challengeChip: {
     padding: "12px 8px",
     borderRadius: 12,
     border: `1px solid ${redAlpha(0.2)}`,
-    background: `${redAlpha(0.06)}`,
+    background: redAlpha(0.06),
     color: "rgba(255,255,255,0.7)",
     fontSize: 13,
     fontWeight: 800,
@@ -193,27 +153,20 @@ export const discoverHubStyles = {
     WebkitTapHighlightColor: "transparent",
   },
 
-  // ── Explore section ──
-  exploreSection: {
-    padding: "20px 16px 8px",
-  },
+  exploreSection: { padding: "20px 16px 8px" },
   exploreSectionLabel: {
     margin: "0 0 10px",
     fontSize: 10,
     fontWeight: 900,
     letterSpacing: 2,
     textTransform: "uppercase",
-    color: "#444",
+    color: MUTED,
   },
-  explorePills: {
-    display: "flex",
-    gap: 8,
-    flexWrap: "wrap",
-  },
+  explorePills: { display: "flex", gap: 8, flexWrap: "wrap" },
   explorePill: {
     padding: "9px 14px",
     borderRadius: 999,
-    border: "1px solid rgba(255,255,255,0.12)",
+    border: `1px solid ${BORDER}`,
     background: "rgba(255,255,255,0.04)",
     color: "rgba(255,255,255,0.6)",
     fontSize: 13,

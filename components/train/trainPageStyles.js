@@ -1,4 +1,4 @@
-import { GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import { GOLD, BG, BORDER, redAlpha, goldAlpha } from "@/lib/tokens";
 
 export const trainPageStyles = {
   breakdownCard: { marginTop: 14, padding: "14px 16px", borderRadius: 16, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)" },
@@ -9,8 +9,8 @@ export const trainPageStyles = {
   breakdownVal: { fontSize: 20, fontWeight: 1000, lineHeight: 1 },
   breakdownTrack: { height: 4, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden", marginTop: 2 },
   breakdownFill: { height: "100%", borderRadius: 999, transition: "width 0.6s ease" },
-  page: { minHeight: "100dvh", background: `radial-gradient(circle at 50% 0%, ${redAlpha(0.2)}, transparent 34%), linear-gradient(180deg, #080808 0%, #0B0B0B 100%)`, color: "#fff", padding: "calc(68px + env(safe-area-inset-top)) 16px calc(92px + env(safe-area-inset-bottom))" },
-  loading: { minHeight: "100dvh", background: "#070707", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" },
+  page: { minHeight: "100dvh", background: BG, color: "#fff", padding: "calc(68px + env(safe-area-inset-top)) 16px calc(92px + env(safe-area-inset-bottom))" },
+  loading: { minHeight: "100dvh", background: BG, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" },
   backButton: { position: "fixed", top: "calc(14px + env(safe-area-inset-top))", left: "max(14px, env(safe-area-inset-left))", zIndex: 40, width: 40, height: 40, padding: 0, borderRadius: 999, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(0,0,0,0.44)", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)" },
   backIcon: { fontSize: 24, lineHeight: 1, color: GOLD },
   shell: { maxWidth: 520, margin: "0 auto", display: "grid", gap: 18 },

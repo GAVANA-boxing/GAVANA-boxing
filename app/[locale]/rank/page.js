@@ -7,7 +7,7 @@ import { getLocale, translate } from "@/lib/i18n";
 import RankIcon from "@/components/RankIcon";
 import BottomNav from "@/components/BottomNav";
 import PageTopBar from "@/components/PageTopBar";
-import { RED, GOLD , PURPLE, goldAlpha} from "@/lib/tokens";
+import { RED, GOLD, PURPLE, BG, BORDER, goldAlpha } from "@/lib/tokens";
 import { useRankData } from "@/hooks/useRankData";
 
 const HOW_TO_EARN = [
@@ -243,7 +243,7 @@ export default function RankPage() {
 const styles = {
   page: {
     minHeight: "100dvh",
-    background: "linear-gradient(180deg, #070707 0%, #0A0A0A 100%)",
+    background: BG,
     color: "#fff",
     paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
   },

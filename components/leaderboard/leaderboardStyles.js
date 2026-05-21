@@ -1,20 +1,20 @@
-import { RED, redAlpha, GOLD, goldAlpha } from "@/lib/tokens";
+import { RED, redAlpha, GOLD, goldAlpha, BG, BORDER, SURFACE, MUTED } from "@/lib/tokens";
 
 const styles = {
-  page: { minHeight: "100dvh", background: "linear-gradient(180deg, #070707 0%, #0A0A0A 100%)", color: "#fff", paddingBottom: "calc(88px + env(safe-area-inset-bottom))" },
+  page: { minHeight: "100dvh", background: BG, color: "#fff", paddingBottom: "calc(88px + env(safe-area-inset-bottom))" },
   header: {
     position: "sticky", top: 0, zIndex: 10,
     display: "grid", gridTemplateColumns: "64px 1fr 44px", alignItems: "center", gap: 12,
     padding: "calc(18px + env(safe-area-inset-top)) 16px 18px",
-    background: "rgba(7,7,7,0.94)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
-    borderBottom: `1px solid ${goldAlpha(0.18)}`,
+    background: "rgba(11,11,12,0.95)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
+    borderBottom: `1px solid ${BORDER}`,
   },
   backBtn: { border: `1px solid ${goldAlpha(0.28)}`, background: "transparent", color: "#fff", borderRadius: 10, width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 },
   headerCenter: { textAlign: "center" },
   eyebrow: { margin: 0, color: GOLD, fontSize: 11, fontWeight: 800, letterSpacing: 1.5 },
   title: { margin: "4px 0 0", fontSize: 28, fontWeight: 950, lineHeight: 1.1, fontFamily: "var(--font-display, 'Anton', sans-serif)" },
   trophyBadge: { fontSize: 22, textAlign: "right" },
-  tabsWrap: { background: "rgba(7,7,7,0.94)", position: "sticky", top: 90, zIndex: 9, borderBottom: "1px solid rgba(255,255,255,0.07)", padding: "10px 16px 8px" },
+  tabsWrap: { background: "rgba(11,11,12,0.95)", position: "sticky", top: 90, zIndex: 9, borderBottom: `1px solid ${BORDER}`, padding: "10px 16px 8px" },
   tabsRow: { display: "flex", gap: 8, maxWidth: 640, margin: "0 auto" },
   tabBtn: { flex: 1, padding: "9px 0", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.04)", color: "#aaa", fontSize: 13, fontWeight: 700, cursor: "pointer", transition: "all 0.18s" },
   tabBtnActive: { background: `${goldAlpha(0.16)}`, border: `1px solid ${goldAlpha(0.45)}`, color: GOLD },
@@ -63,7 +63,7 @@ const styles = {
   entryRankRow: { display: "flex", alignItems: "center", gap: 4, marginTop: 3 },
   sessionsBadge: { fontSize: 10, color: "#666" },
   allTimeRankBadge: { fontSize: 10, color: "#60A5FA" },
-  filterWrap: { background: "rgba(7,7,7,0.92)", padding: "8px 16px 10px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", flexDirection: "column", gap: 6 },
+  filterWrap: { background: "rgba(11,11,12,0.95)", padding: "8px 16px 10px", borderBottom: `1px solid ${BORDER}`, display: "flex", flexDirection: "column", gap: 6 },
   filterRow: { display: "flex", gap: 6, overflowX: "auto", WebkitOverflowScrolling: "touch", scrollbarWidth: "none", msOverflowStyle: "none" },
   filterChip: { flexShrink: 0, padding: "6px 12px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.45)", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.15s ease" },
   filterChipActiveWeight: { background: "rgba(96,165,250,0.15)", border: "1px solid #60A5FA", color: "#60A5FA" },
