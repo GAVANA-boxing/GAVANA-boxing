@@ -14,7 +14,7 @@ export const coachPageStyles = {
     borderBottom: "1px solid rgba(255,255,255,0.08)",
     padding: "0 4px", paddingTop: "env(safe-area-inset-top)",
   },
-  tabActive: { flex: 1, minHeight: 46, border: "none", borderBottom: "2px solid #C1121F", background: "transparent", color: "#fff", fontSize: 13, fontWeight: 1000, letterSpacing: 0.5, cursor: "pointer" },
+  tabActive: { flex: 1, minHeight: 46, border: "none", borderBottom: "2px solid #FF3B30", background: "transparent", color: "#fff", fontSize: 13, fontWeight: 1000, letterSpacing: 0.5, cursor: "pointer" },
   tabInactive: { flex: 1, minHeight: 46, border: "none", borderBottom: "2px solid transparent", background: "transparent", color: "rgba(255,255,255,0.65)", fontSize: 13, fontWeight: 700, cursor: "pointer" },
   aiWrap: { minHeight: "calc(100dvh - 46px)" },
   content: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(104px + env(safe-area-inset-bottom))" },

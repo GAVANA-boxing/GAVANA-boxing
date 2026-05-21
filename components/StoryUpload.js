@@ -222,11 +222,11 @@ export default function StoryUpload({ locale, initialType = "training_clip" }) {
 }
 
 const s = {
-  page: { minHeight: "100dvh", background: "linear-gradient(180deg, #0d0005 0%, #070707 60%)", color: "#fff", display: "flex", flexDirection: "column" },
-  header: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "calc(16px + env(safe-area-inset-top)) max(88px, calc(12px + 76px)) 14px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(7,7,7,0.88)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", position: "sticky", top: 0, zIndex: 10 },
+  page: { minHeight: "100dvh", background: "#0B0B0C", color: "#fff", display: "flex", flexDirection: "column" },
+  header: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "calc(16px + env(safe-area-inset-top)) max(88px, calc(12px + 76px)) 14px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(11,11,12,0.88)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", position: "sticky", top: 0, zIndex: 10 },
   closeBtn: { width: 36, height: 36, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.6)", fontSize: 15, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
   title: { fontSize: 15, fontWeight: 800, color: "#fff", letterSpacing: 0.3 },
-  postBtn: { background: "linear-gradient(135deg, #C1121F, #8f0d17)", border: "none", borderRadius: 999, padding: "9px 22px", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", boxShadow: `0 4px 16px ${redAlpha(0.35)}` },
+  postBtn: { background: "linear-gradient(135deg, #FF3B30, #cc2820)", border: "none", borderRadius: 999, padding: "9px 22px", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", boxShadow: `0 4px 16px ${redAlpha(0.35)}` },
   postBtnGray: { background: `${redAlpha(0.2)}`, border: `1px solid ${redAlpha(0.2)}`, borderRadius: 999, padding: "9px 22px", color: "rgba(255,255,255,0.3)", fontSize: 13, cursor: "not-allowed" },
   typeRow: { display: "flex", flexWrap: "nowrap", gap: 6, overflowX: "auto", padding: "10px 16px", paddingRight: 88, scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch", borderBottom: "1px solid rgba(255,255,255,0.05)" },
   typeChip: { flexShrink: 0, display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.09)", background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.4)", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" },
@@ -247,6 +247,6 @@ const s = {
   fieldLabel: { margin: "0 0 8px", fontSize: 10, fontWeight: 900, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: 1.5 },
   input: { width: "100%", boxSizing: "border-box", padding: "12px 14px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.09)", background: "rgba(255,255,255,0.03)", color: "#fff", fontSize: 14, outline: "none", marginBottom: 12, fontFamily: "inherit" },
   error: { margin: "0 16px 16px", padding: "10px 14px", borderRadius: 10, background: "rgba(248,113,113,0.07)", border: "1px solid rgba(248,113,113,0.25)", color: "#F87171", fontSize: 13 },
-  successPage: { minHeight: "100dvh", background: "#070707", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 },
+  successPage: { minHeight: "100dvh", background: "#0B0B0C", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 },
   successText: { fontSize: 18, fontWeight: 800, color: "#fff", margin: 0 },
 };

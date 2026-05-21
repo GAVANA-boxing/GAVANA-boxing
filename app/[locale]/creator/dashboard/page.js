@@ -484,8 +484,8 @@ export default function CreatorDashboard() {
                 <span style={{
                   padding: "6px 12px",
                   borderRadius: 10,
-                  border: "1px solid rgba(212,175,55,0.2)",
-                  color: "rgba(212,175,55,0.5)",
+                  border: "1px solid rgba(245,196,81,0.2)",
+                  color: "rgba(245,196,81,0.5)",
                   fontSize: 10,
                   fontWeight: 900,
                   letterSpacing: 1.5,

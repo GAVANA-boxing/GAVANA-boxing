@@ -193,8 +193,8 @@ export default function AthleteDashboard() {
 
   if (authLoading || !rankReady) {
     return (
-      <div style={{ minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", background: "#070707" }}>
-        <div style={{ width: 28, height: 28, border: "2px solid #C1121F", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+      <div style={{ minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0B0B0C" }}>
+        <div style={{ width: 28, height: 28, border: "2px solid #FF3B30", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
       </div>
     );
   }
@@ -202,7 +202,7 @@ export default function AthleteDashboard() {
   return (
     <div
       className="page-enter"
-      style={{ background: `radial-gradient(ellipse at top center, rgba(193,18,31,0.07) 0%, transparent 48%), #070707`, minHeight: "100dvh", color: "#fff" }}
+      style={{ background: `radial-gradient(ellipse at top center, rgba(255,59,48,0.07) 0%, transparent 48%), #0B0B0C`, minHeight: "100dvh", color: "#fff" }}
     >
       <style>{`
         @keyframes rankFill { from { width: 0 !important; } }
@@ -214,7 +214,7 @@ export default function AthleteDashboard() {
       <div style={{ maxWidth: 540, margin: "0 auto", padding: "calc(20px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom))" }}>
 
         <div style={{ marginBottom: 22 }}>
-          <p style={{ margin: "0 0 2px", fontSize: 9, fontWeight: 900, color: "rgba(193,18,31,0.7)", letterSpacing: 3, textTransform: "uppercase" }}>
+          <p style={{ margin: "0 0 2px", fontSize: 9, fontWeight: 900, color: "rgba(255,59,48,0.7)", letterSpacing: 3, textTransform: "uppercase" }}>
             GAVANA
           </p>
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: "#fff", letterSpacing: "-0.025em", lineHeight: 1, fontFamily: "var(--font-display, 'Anton', sans-serif)" }}>
@@ -359,7 +359,7 @@ export default function AthleteDashboard() {
           accent={RED}
           tag="6 METRICS"
         >
-          <div style={{ background: `radial-gradient(ellipse at center, rgba(193,18,31,0.06) 0%, transparent 70%)`, padding: "4px 0 0" }}>
+          <div style={{ background: `radial-gradient(ellipse at center, rgba(255,59,48,0.06) 0%, transparent 70%)`, padding: "4px 0 0" }}>
             <RadarChart stats={radarStats} />
           </div>
         </PanelCard>

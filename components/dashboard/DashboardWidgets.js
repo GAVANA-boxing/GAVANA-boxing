@@ -25,7 +25,7 @@ export const inputStyle = {
 
 export const primaryBtnStyle = {
   flex: 1, padding: "10px 0", borderRadius: 9,
-  background: "linear-gradient(135deg, #C1121F, #7d0812)",
+  background: "linear-gradient(135deg, #FF3B30, #cc2820)",
   border: "none", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer",
 };
 
@@ -117,7 +117,7 @@ export function ScoreChart({ scores, t }) {
           stroke="rgba(255,255,255,0.13)" strokeWidth="0.6" strokeDasharray="2,3" />
         <polygon
           points={`${pts} ${toX(scores.length - 1).toFixed(1)},${PAD.top + ph} ${PAD.left},${PAD.top + ph}`}
-          fill="rgba(193,18,31,0.07)"
+          fill="rgba(255,59,48,0.07)"
         />
         <polyline points={pts} fill="none" stroke={RED} strokeWidth="1.8"
           strokeLinejoin="round" strokeLinecap="round" className="graph-line" />
@@ -182,7 +182,7 @@ export function SessionRow({ session, t }) {
         <span style={{ fontSize: 10, color: "rgba(255,255,255,0.28)" }}>{formatWidgetDate(session.createdAt)}</span>
       </div>
       {session.xpGained != null && (
-        <div style={{ fontSize: 10, fontWeight: 800, color: "#D4AF3788", flexShrink: 0 }}>
+        <div style={{ fontSize: 10, fontWeight: 800, color: "#F5C45188", flexShrink: 0 }}>
           +{session.xpGained}
         </div>
       )}

@@ -187,7 +187,7 @@ export default function FighterStyleQuiz({ user, onComplete }) {
                 marginTop: 24,
                 background: arch?.color
                   ? `linear-gradient(135deg, ${arch.color}, ${arch.color}bb)`
-                  : "linear-gradient(135deg, #C1121F, #8f0d17)",
+                  : "linear-gradient(135deg, #FF3B30, #cc2820)",
               }}
             >
               {saving ? "Хадгалж байна..." : "Fighter identity хадгалах ✓"}
@@ -231,7 +231,7 @@ const Q = {
   },
   fill: {
     height: "100%", borderRadius: 999,
-    background: "linear-gradient(90deg, #C1121F, #D4AF37)",
+    background: "linear-gradient(90deg, #FF3B30, #F5C451)",
     transition: "width 420ms cubic-bezier(0.4,0,0.2,1)",
   },
   stepCount: {
@@ -259,7 +259,7 @@ const Q = {
   nextBtn: {
     marginTop: 20, width: "100%", padding: "15px",
     borderRadius: 14, border: "none",
-    background: "linear-gradient(135deg, #C1121F, #8f0d17)",
+    background: "linear-gradient(135deg, #FF3B30, #cc2820)",
     color: "#fff", fontSize: 15, fontWeight: 900,
     cursor: "pointer",
     boxShadow: `0 8px 28px ${redAlpha(0.3)}`,

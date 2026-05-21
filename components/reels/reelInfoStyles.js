@@ -24,7 +24,7 @@ export const reelInfoStyles = {
     borderWidth: "1px",
     borderStyle: "solid",
     borderColor: `${goldAlpha(0.64)}`,
-    background: `linear-gradient(145deg, ${redAlpha(0.9)}, rgba(7,7,7,0.78))`,
+    background: `linear-gradient(145deg, ${redAlpha(0.9)}, rgba(11,11,12,0.78))`,
     boxShadow: `0 0 0 3px ${redAlpha(0.2)}, 0 10px 26px rgba(0,0,0,0.55)`,
     paddingTop: 0,
     paddingBottom: 0,

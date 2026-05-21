@@ -120,9 +120,9 @@ function BreakdownContent({ data, t }) {
         {data.aiError && (
           <Chip
             label="AI service error"
-            bg="rgba(193,18,31,0.12)"
+            bg="rgba(255,59,48,0.12)"
             color="#ff6b6b"
-            border="rgba(193,18,31,0.3)"
+            border="rgba(255,59,48,0.3)"
           />
         )}
         {data.isFallback && !data.aiError && (

@@ -256,7 +256,7 @@ const styles = {
     alignItems: "center",
     gap: 12,
     padding: "calc(env(safe-area-inset-top) + 14px) 16px 14px",
-    background: "rgba(7,7,7,0.94)",
+    background: "rgba(11,11,12,0.94)",
     backdropFilter: "blur(14px)",
     WebkitBackdropFilter: "blur(14px)",
     borderBottom: `1px solid ${goldAlpha(0.18)}`,

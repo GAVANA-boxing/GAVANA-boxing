@@ -64,7 +64,7 @@ export default function TrainingProgressSection({
     <section style={sectionStyle}>
       <div style={{
         position: "relative",
-        background: "linear-gradient(145deg, #1c0202 0%, #0e0000 40%, #080808 100%)",
+        background: "linear-gradient(145deg, #141416 0%, #0B0B0C 40%, #0B0B0C 100%)",
         border: `1px solid ${redAlpha(0.18)}`,
         borderLeft: `3px solid ${RED}`,
         borderRadius: "3px 20px 20px 3px",

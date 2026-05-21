@@ -42,7 +42,7 @@ const S = {
     position: "sticky", top: 0, zIndex: 20,
     display: "flex", alignItems: "center", justifyContent: "space-between",
     padding: "calc(16px + env(safe-area-inset-top)) 20px 14px",
-    background: "rgba(7,7,7,0.96)", backdropFilter: "blur(16px)",
+    background: "rgba(11,11,12,0.96)", backdropFilter: "blur(16px)",
     borderBottom: "1px solid rgba(255,255,255,0.06)",
   },
   iconBtn: { width: 40, height: 40, borderRadius: 999, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", color: "#fff", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },

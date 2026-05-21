@@ -291,8 +291,8 @@ export default function InboxList() {
                   >
                     <div style={{ position: "relative", flexShrink: 0 }}>
                       {u.photoURL || u.profileImageUrl
-                        ? <Image src={u.photoURL || u.profileImageUrl} alt="" width={42} height={42} style={{ borderRadius: "50%", objectFit: "cover", border: isCoach ? "2px solid #D4AF37" : "none" }} />
-                        : <div style={{ width: 42, height: 42, borderRadius: "50%", background: "#1a1a1a", border: isCoach ? "2px solid #D4AF37" : "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 900, color: "#fff" }}>
+                        ? <Image src={u.photoURL || u.profileImageUrl} alt="" width={42} height={42} style={{ borderRadius: "50%", objectFit: "cover", border: isCoach ? "2px solid #F5C451" : "none" }} />
+                        : <div style={{ width: 42, height: 42, borderRadius: "50%", background: "#1a1a1a", border: isCoach ? "2px solid #F5C451" : "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 900, color: "#fff" }}>
                             {(u.displayName || u.username || "?").charAt(0).toUpperCase()}
                           </div>
                       }
@@ -323,7 +323,7 @@ export default function InboxList() {
 
 const s = {
   page: { minHeight: "100dvh", background: "#0B0B0C", color: "#fff", display: "flex", flexDirection: "column", paddingBottom: "calc(88px + env(safe-area-inset-bottom))" },
-  header: { position: "sticky", top: 0, zIndex: 20, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "calc(16px + env(safe-area-inset-top)) 16px 14px", background: "rgba(7,7,7,0.92)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.07)" },
+  header: { position: "sticky", top: 0, zIndex: 20, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "calc(16px + env(safe-area-inset-top)) 16px 14px", background: "rgba(11,11,12,0.92)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.07)" },
   backBtn: { width: 40, height: 40, borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.75)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
   composeBtn: { width: 40, height: 40, borderRadius: 12, border: `1px solid ${redAlpha(0.45)}`, background: `${redAlpha(0.12)}`, color: RED, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
   title: { fontSize: 17, fontWeight: 950, color: "#fff", letterSpacing: -0.3 },
@@ -341,12 +341,12 @@ const s = {
   coachTag: { fontSize: 9, fontWeight: 900, color: GOLD, background: `${goldAlpha(0.12)}`, border: `1px solid ${goldAlpha(0.35)}`, borderRadius: 999, padding: "2px 6px", letterSpacing: 0.3 },
   time: { fontSize: 11, color: "rgba(255,255,255,0.28)", fontWeight: 600, flexShrink: 0 },
   preview: { fontSize: 13, color: "rgba(255,255,255,0.36)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", lineHeight: 1.3 },
-  badge: { flexShrink: 0, minWidth: 22, height: 22, borderRadius: 999, background: `linear-gradient(135deg, ${RED}, #7d0812)`, color: "#fff", fontSize: 10, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 6px", boxShadow: `0 2px 8px ${redAlpha(0.5)}` },
+  badge: { flexShrink: 0, minWidth: 22, height: 22, borderRadius: 999, background: `linear-gradient(135deg, ${RED}, #cc2820)`, color: "#fff", fontSize: 10, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 6px", boxShadow: `0 2px 8px ${redAlpha(0.5)}` },
   empty: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 32px", gap: 12 },
   emptyIcon: { fontSize: 56, marginBottom: 6, filter: `drop-shadow(0 4px 16px ${redAlpha(0.4)})` },
   emptyTitle: { margin: 0, fontSize: 18, fontWeight: 950, color: "#fff" },
   emptySub: { margin: 0, fontSize: 13, color: "rgba(255,255,255,0.38)", textAlign: "center", lineHeight: 1.65, maxWidth: 270 },
-  findCoachBtn: { padding: "12px 26px", borderRadius: 999, border: "none", background: `linear-gradient(135deg, ${RED}, #7d0812)`, color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", marginTop: 6, boxShadow: `0 6px 20px ${redAlpha(0.35)}` },
+  findCoachBtn: { padding: "12px 26px", borderRadius: 999, border: "none", background: `linear-gradient(135deg, ${RED}, #cc2820)`, color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", marginTop: 6, boxShadow: `0 6px 20px ${redAlpha(0.35)}` },
   // Compose sheet
   composeOverlay: { position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)", display: "flex", alignItems: "flex-end" },
   composeSheet: { width: "100%", maxHeight: "85dvh", background: "#0f0f0f", borderRadius: "24px 24px 0 0", border: "1px solid rgba(255,255,255,0.09)", borderBottom: "none", display: "flex", flexDirection: "column", animation: "sheetUp 0.28s cubic-bezier(0.25,0.46,0.45,0.94) forwards", paddingBottom: "env(safe-area-inset-bottom)" },

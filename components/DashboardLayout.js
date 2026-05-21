@@ -37,7 +37,7 @@ const s = {
     display: "flex",
     height: "100dvh",
     overflow: "hidden",
-    background: "radial-gradient(ellipse 60% 40% at 50% 0%, rgba(193,18,31,0.1) 0%, transparent 60%), #070707",
+    background: "radial-gradient(ellipse 60% 40% at 50% 0%, rgba(255,59,48,0.1) 0%, transparent 60%), #0B0B0C",
     color: "#fff",
   },
   center: {

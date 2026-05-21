@@ -167,7 +167,7 @@ export default function GymsPage() {
               <div style={styles.cardList}>
                 {ownedGym && (
                   <div
-                    style={{ ...styles.card, borderLeft: "2.5px solid #D4AF37", borderRadius: "3px 16px 16px 3px", cursor: "pointer" }}
+                    style={{ ...styles.card, borderLeft: "2.5px solid #F5C451", borderRadius: "3px 16px 16px 3px", cursor: "pointer" }}
                     onClick={() => router.push(`/${locale}/gyms/${ownedGym.id}`)}
                   >
                     <div style={styles.cardImageWrap}>

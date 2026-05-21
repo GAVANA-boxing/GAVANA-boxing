@@ -24,7 +24,7 @@ const styles = {
     alignItems: "center",
     gap: 12,
     padding: "calc(env(safe-area-inset-top) + 14px) 16px 14px",
-    background: "rgba(7,7,7,0.94)",
+    background: "rgba(11,11,12,0.94)",
     backdropFilter: "blur(20px)",
     WebkitBackdropFilter: "blur(20px)",
     borderBottom: "1px solid rgba(255,255,255,0.05)",

@@ -184,8 +184,8 @@ export default function SubscriptionTiers({ t, locale }) {
         <div style={{
           padding: "10px 14px",
           borderRadius: 10,
-          background: "rgba(193,18,31,0.12)",
-          border: "1px solid rgba(193,18,31,0.3)",
+          background: "rgba(255,59,48,0.12)",
+          border: "1px solid rgba(255,59,48,0.3)",
           fontSize: 12,
           color: "#ff6b6b",
           lineHeight: 1.5,
@@ -211,7 +211,7 @@ export default function SubscriptionTiers({ t, locale }) {
             border: "none",
             background: selected
               ? loading
-                ? "rgba(193,18,31,0.5)"
+                ? "rgba(255,59,48,0.5)"
                 : RED
               : "rgba(255,255,255,0.07)",
             color: selected ? "#fff" : "rgba(255,255,255,0.3)",
@@ -220,7 +220,7 @@ export default function SubscriptionTiers({ t, locale }) {
             letterSpacing: 0.5,
             cursor: selected && !loading ? "pointer" : "default",
             transition: "background 0.15s, color 0.15s",
-            boxShadow: selected && !loading ? `0 4px 20px rgba(193,18,31,0.4)` : "none",
+            boxShadow: selected && !loading ? `0 4px 20px rgba(255,59,48,0.4)` : "none",
           }}
         >
           {loading

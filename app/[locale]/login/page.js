@@ -140,9 +140,9 @@ export default function LoginPage() {
 
   const inputStyle = (field) => ({
     ...S.input,
-    borderColor: focusedField === field ? "rgba(193,18,31,0.7)" : "rgba(255,255,255,0.1)",
+    borderColor: focusedField === field ? "rgba(255,59,48,0.7)" : "rgba(255,255,255,0.1)",
     boxShadow: focusedField === field
-      ? "0 0 0 1px rgba(193,18,31,0.35), 0 0 20px rgba(193,18,31,0.15)"
+      ? "0 0 0 1px rgba(255,59,48,0.35), 0 0 20px rgba(255,59,48,0.15)"
       : "none",
   });
 
@@ -334,7 +334,7 @@ const S = {
     transform: "translateX(-50%)",
     width: 480, height: 320,
     borderRadius: "50%",
-    background: "radial-gradient(ellipse, rgba(193,18,31,0.22) 0%, transparent 70%)",
+    background: "radial-gradient(ellipse, rgba(255,59,48,0.22) 0%, transparent 70%)",
     filter: "blur(40px)",
     animation: "float-drift 14s ease-in-out infinite",
     pointerEvents: "none",
@@ -344,7 +344,7 @@ const S = {
     bottom: "5%", right: "-10%",
     width: 280, height: 200,
     borderRadius: "50%",
-    background: "radial-gradient(ellipse, rgba(193,18,31,0.10) 0%, transparent 70%)",
+    background: "radial-gradient(ellipse, rgba(255,59,48,0.10) 0%, transparent 70%)",
     filter: "blur(60px)",
     animation: "float-drift 18s ease-in-out infinite reverse",
     pointerEvents: "none",
@@ -364,7 +364,7 @@ const S = {
     width: 5, height: 5,
     borderRadius: "50%",
     background: RED,
-    boxShadow: `0 0 6px rgba(193,18,31,0.8)`,
+    boxShadow: `0 0 6px rgba(255,59,48,0.8)`,
     animation: "ambient-pulse 2s ease-in-out infinite",
   },
   systemText: {
@@ -384,8 +384,8 @@ const S = {
     position: "absolute",
     top: -1, left: -1,
     width: 22, height: 22,
-    borderTop: `2px solid rgba(193,18,31,0.8)`,
-    borderLeft: `2px solid rgba(193,18,31,0.8)`,
+    borderTop: `2px solid rgba(255,59,48,0.8)`,
+    borderLeft: `2px solid rgba(255,59,48,0.8)`,
     borderRadius: "4px 0 0 0",
     zIndex: 2,
     animation: "hud-flicker 0.5s ease both",
@@ -394,8 +394,8 @@ const S = {
     position: "absolute",
     bottom: -1, right: -1,
     width: 22, height: 22,
-    borderBottom: `2px solid rgba(193,18,31,0.8)`,
-    borderRight: `2px solid rgba(193,18,31,0.8)`,
+    borderBottom: `2px solid rgba(255,59,48,0.8)`,
+    borderRight: `2px solid rgba(255,59,48,0.8)`,
     borderRadius: "0 0 4px 0",
     zIndex: 2,
     animation: "hud-flicker 0.5s ease 0.15s both",
@@ -404,13 +404,13 @@ const S = {
     background: "rgba(9,7,9,0.90)",
     backdropFilter: "blur(32px) saturate(140%)",
     WebkitBackdropFilter: "blur(32px) saturate(140%)",
-    border: "1px solid rgba(193,18,31,0.18)",
+    border: "1px solid rgba(255,59,48,0.18)",
     borderRadius: 16,
     padding: "32px 28px 28px",
     boxShadow: `
       0 0 0 1px rgba(255,255,255,0.04) inset,
       0 40px 100px rgba(0,0,0,0.7),
-      0 0 80px rgba(193,18,31,0.07)
+      0 0 80px rgba(255,59,48,0.07)
     `,
   },
   arenaLabel: {
@@ -420,7 +420,7 @@ const S = {
     letterSpacing: 4,
     color: RED,
     textTransform: "uppercase",
-    textShadow: "0 0 12px rgba(193,18,31,0.6)",
+    textShadow: "0 0 12px rgba(255,59,48,0.6)",
   },
   mainTitle: {
     margin: "0 0 8px",
@@ -487,8 +487,8 @@ const S = {
     border: "1px solid rgba(255,255,255,0.1)",
   },
   errorBox: {
-    background: "rgba(193,18,31,0.12)",
-    border: "1px solid rgba(193,18,31,0.35)",
+    background: "rgba(255,59,48,0.12)",
+    border: "1px solid rgba(255,59,48,0.35)",
     color: "#ff8b8b",
     padding: "11px 14px",
     borderRadius: 9,

@@ -228,12 +228,12 @@ const s = {
   media: { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" },
   progressBg: {
     position: "absolute", inset: 0,
-    background: `radial-gradient(ellipse at 50% 35%, ${redAlpha(0.28)}, transparent 65%), linear-gradient(180deg, #0e0808 0%, #070707 100%)`,
+    background: `radial-gradient(ellipse at 50% 35%, ${redAlpha(0.28)}, transparent 65%), linear-gradient(180deg, #0B0B0C 0%, #0B0B0C 100%)`,
     display: "flex", alignItems: "center", justifyContent: "center",
   },
   defaultBg: {
     position: "absolute", inset: 0,
-    background: "linear-gradient(160deg, #0e0808 0%, #080808 50%, #050505 100%)",
+    background: "linear-gradient(160deg, #0B0B0C 0%, #0B0B0C 50%, #0B0B0C 100%)",
   },
   // Stronger top gradient for better readability
   topGrad: {

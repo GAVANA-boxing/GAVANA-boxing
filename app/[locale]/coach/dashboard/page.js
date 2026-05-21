@@ -220,7 +220,7 @@ export default function CoachDashboardPage() {
                 type="button"
                 onClick={handleCreateProgram}
                 disabled={!progTitle.trim() || progSaving}
-                style={{ padding: "11px 0", borderRadius: 10, border: "none", background: progTitle.trim() ? "linear-gradient(135deg, #C1121F, #8f0d17)" : "rgba(255,255,255,0.06)", color: "#fff", fontSize: 13, fontWeight: 900, cursor: progTitle.trim() ? "pointer" : "not-allowed", opacity: progSaving ? 0.6 : 1 }}
+                style={{ padding: "11px 0", borderRadius: 10, border: "none", background: progTitle.trim() ? "linear-gradient(135deg, #FF3B30, #cc2820)" : "rgba(255,255,255,0.06)", color: "#fff", fontSize: 13, fontWeight: 900, cursor: progTitle.trim() ? "pointer" : "not-allowed", opacity: progSaving ? 0.6 : 1 }}
               >
                 {progSaving ? "…" : t("coachDashSaveProgram")}
               </button>

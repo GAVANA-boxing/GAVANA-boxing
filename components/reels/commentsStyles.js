@@ -108,7 +108,7 @@ const commentsStyles = {
     borderWidth: "1px",
     borderStyle: "solid",
     borderColor: `${goldAlpha(0.32)}`,
-    background: "linear-gradient(145deg, #C1121F, #520711)",
+    background: "linear-gradient(145deg, #FF3B30, #cc2820)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",

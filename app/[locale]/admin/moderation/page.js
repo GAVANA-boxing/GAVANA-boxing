@@ -128,12 +128,12 @@ export default function ModerationPage() {
   const counts = { pending: reports.filter((r) => r.status === "pending").length, all: reports.length };
 
   if (authLoading || (!user && !authLoading)) {
-    return <div style={{ minHeight: "100dvh", background: "#070707" }} />;
+    return <div style={{ minHeight: "100dvh", background: "#0B0B0C" }} />;
   }
 
   return (
-    <div style={{ minHeight: "100dvh", background: "#070707", color: "#fff", paddingBottom: "calc(40px + env(safe-area-inset-bottom))" }}>
-      <header style={{ position: "sticky", top: 0, zIndex: 100, background: "rgba(7,7,7,0.95)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "14px 16px", display: "flex", alignItems: "center", gap: 12 }}>
+    <div style={{ minHeight: "100dvh", background: "#0B0B0C", color: "#fff", paddingBottom: "calc(40px + env(safe-area-inset-bottom))" }}>
+      <header style={{ position: "sticky", top: 0, zIndex: 100, background: "rgba(11,11,12,0.95)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "14px 16px", display: "flex", alignItems: "center", gap: 12 }}>
         <button type="button" onClick={() => router.back()} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", padding: 4 }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
@@ -160,7 +160,7 @@ export default function ModerationPage() {
               key={key}
               type="button"
               onClick={() => setFilter(key)}
-              style={{ padding: "6px 14px", borderRadius: 999, border: `1px solid ${filter === key ? GOLD : "rgba(255,255,255,0.1)"}`, background: filter === key ? "rgba(212,175,55,0.1)" : "transparent", color: filter === key ? GOLD : "rgba(255,255,255,0.45)", fontSize: 12, fontWeight: 800, cursor: "pointer" }}
+              style={{ padding: "6px 14px", borderRadius: 999, border: `1px solid ${filter === key ? GOLD : "rgba(255,255,255,0.1)"}`, background: filter === key ? "rgba(245,196,81,0.1)" : "transparent", color: filter === key ? GOLD : "rgba(255,255,255,0.45)", fontSize: 12, fontWeight: 800, cursor: "pointer" }}
             >
               {label}
             </button>

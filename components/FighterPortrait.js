@@ -6,13 +6,13 @@ import { RED, redAlpha, goldAlpha } from "@/lib/tokens";
 export const FIGHTER_VISUALS = {
   "mike-tyson": {
     bg: "radial-gradient(ellipse at 50% 15%, #6e0004 0%, #2a0002 48%, #060101 100%)",
-    spotLight: "radial-gradient(ellipse at 50% 110%, #C1121F60 0%, transparent 65%)",
+    spotLight: "radial-gradient(ellipse at 50% 110%, #FF3B3060 0%, transparent 65%)",
     glowColor: `${redAlpha(0.65)}`,
     label: "PRESSURE",
   },
   "muhammad-ali": {
     bg: "radial-gradient(ellipse at 50% 15%, #6b4d00 0%, #2d2000 48%, #060400 100%)",
-    spotLight: "radial-gradient(ellipse at 50% 110%, #D4AF3760 0%, transparent 65%)",
+    spotLight: "radial-gradient(ellipse at 50% 110%, #F5C45160 0%, transparent 65%)",
     glowColor: `${goldAlpha(0.6)}`,
     label: "FLOAT",
   },
@@ -116,7 +116,7 @@ export default function FighterPortrait({
 }) {
   const visual = FIGHTER_VISUALS[fighterId] || {
     bg: "radial-gradient(ellipse at 50% 15%, #3d0000 0%, #150000 48%, #050000 100%)",
-    spotLight: "radial-gradient(ellipse at 50% 110%, #C1121F50 0%, transparent 65%)",
+    spotLight: "radial-gradient(ellipse at 50% 110%, #FF3B3050 0%, transparent 65%)",
     glowColor: `${redAlpha(0.5)}`,
     label: "FIGHTER",
   };

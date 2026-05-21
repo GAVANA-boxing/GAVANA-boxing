@@ -10,10 +10,10 @@ import { redAlpha, goldAlpha } from "@/lib/tokens";
 import Image from "next/image";
 
 const RING_GRADIENTS = [
-  "linear-gradient(135deg, #C1121F, #D4AF37)",
-  "linear-gradient(135deg, #D4AF37, #F87171)",
-  "linear-gradient(135deg, #7d0812, #D4AF37)",
-  "linear-gradient(135deg, #F87171, #C1121F)",
+  "linear-gradient(135deg, #FF3B30, #F5C451)",
+  "linear-gradient(135deg, #F5C451, #F87171)",
+  "linear-gradient(135deg, #FF3B30, #F5C451)",
+  "linear-gradient(135deg, #F87171, #FF3B30)",
 ];
 
 function isAlive(story) {
@@ -163,7 +163,7 @@ const st = {
     width: RING_SIZE,
     height: RING_SIZE,
     borderRadius: "50%",
-    background: "linear-gradient(135deg, #C1121F 0%, #D4AF37 50%, #C1121F 100%)",
+    background: "linear-gradient(135deg, #FF3B30 0%, #F5C451 50%, #FF3B30 100%)",
     padding: 3,
     display: "flex",
     alignItems: "center",
@@ -198,7 +198,7 @@ const st = {
     width: INNER,
     height: INNER,
     borderRadius: "50%",
-    border: "2.5px solid #080808",
+    border: "2.5px solid #0B0B0C",
     overflow: "hidden",
     display: "flex",
     alignItems: "center",
@@ -227,14 +227,14 @@ const st = {
     width: 20,
     height: 20,
     borderRadius: "50%",
-    background: "linear-gradient(135deg, #C1121F, #8B000D)",
+    background: "linear-gradient(135deg, #FF3B30, #cc2820)",
     color: "#fff",
     fontSize: 13,
     fontWeight: 900,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    border: "2px solid #080808",
+    border: "2px solid #0B0B0C",
     boxShadow: `0 2px 10px ${redAlpha(0.65)}`,
   },
   label: {

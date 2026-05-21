@@ -325,7 +325,7 @@ export default function ChatThread({ conversationId }) {
 
 const s = {
   page: { height: "100dvh", background: "#0B0B0C", color: "#fff", display: "flex", flexDirection: "column", overflow: "hidden" },
-  header: { flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "calc(14px + env(safe-area-inset-top)) 16px 12px", background: "rgba(7,7,7,0.96)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.06)", zIndex: 10 },
+  header: { flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "calc(14px + env(safe-area-inset-top)) 16px 12px", background: "rgba(11,11,12,0.96)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.06)", zIndex: 10 },
   backBtn: { width: 40, height: 40, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.7)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
   headerUser: { display: "flex", alignItems: "center", gap: 9, background: "none", border: "none", cursor: "pointer", padding: 0 },
   headerAvatar: { width: 34, height: 34, borderRadius: "50%", objectFit: "cover", display: "block" },
@@ -342,10 +342,10 @@ const s = {
   bubbleTextMe: { background: "#FF3B30", color: "#fff", borderBottomRightRadius: 4, boxShadow: `0 4px 16px ${redAlpha(0.3)}` },
   bubbleTextThem: { background: "rgba(255,255,255,0.07)", color: "#fff", borderBottomLeftRadius: 4, border: "1px solid rgba(255,255,255,0.07)" },
   bubbleTime: { fontSize: 10, color: "rgba(255,255,255,0.28)", marginTop: 3, padding: "0 4px", fontWeight: 600 },
-  quickRepliesWrap: { flexShrink: 0, borderTop: "1px solid rgba(255,255,255,0.05)", background: "rgba(7,7,7,0.97)" },
+  quickRepliesWrap: { flexShrink: 0, borderTop: "1px solid rgba(255,255,255,0.05)", background: "rgba(11,11,12,0.97)" },
   quickRepliesScroll: { display: "flex", gap: 8, overflowX: "auto", padding: "10px 14px", scrollbarWidth: "none" },
   quickChip: { flexShrink: 0, padding: "7px 14px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.75)", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" },
-  inputBar: { flexShrink: 0, display: "flex", alignItems: "flex-end", gap: 10, padding: "10px 14px calc(10px + env(safe-area-inset-bottom))", background: "rgba(7,7,7,0.97)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", borderTop: "1px solid rgba(255,255,255,0.06)" },
+  inputBar: { flexShrink: 0, display: "flex", alignItems: "flex-end", gap: 10, padding: "10px 14px calc(10px + env(safe-area-inset-bottom))", background: "rgba(11,11,12,0.97)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", borderTop: "1px solid rgba(255,255,255,0.06)" },
   input: { flex: 1, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 22, padding: "11px 16px", color: "#fff", fontSize: 14, lineHeight: 1.4, outline: "none", resize: "none", maxHeight: 120, overflowY: "auto" },
   sendBtn: { flexShrink: 0, width: 44, height: 44, borderRadius: "50%", border: "none", background: "#FF3B30", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: `0 4px 16px ${redAlpha(0.35)}` },
 };

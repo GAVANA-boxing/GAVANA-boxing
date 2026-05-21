@@ -44,7 +44,7 @@ const styles = {
   list: { display: "grid", gap: 8 },
   row: { display: "grid", gridTemplateColumns: "44px 48px 1fr auto", alignItems: "center", gap: 12, padding: "14px 14px", borderRadius: 16, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" },
   rowHighlight: { background: `${redAlpha(0.1)}`, border: `1px solid ${redAlpha(0.28)}` },
-  rowFirst: { background: `linear-gradient(145deg, ${goldAlpha(0.1)}, ${goldAlpha(0.03)})`, border: `1px solid ${goldAlpha(0.28)}`, borderLeft: "3px solid #D4AF37", borderRadius: "3px 16px 16px 3px" },
+  rowFirst: { background: `linear-gradient(145deg, ${goldAlpha(0.1)}, ${goldAlpha(0.03)})`, border: `1px solid ${goldAlpha(0.28)}`, borderLeft: "3px solid #F5C451", borderRadius: "3px 16px 16px 3px" },
   rowSecond: { background: "linear-gradient(145deg, rgba(156,163,175,0.08), rgba(156,163,175,0.02))", border: "1px solid rgba(156,163,175,0.2)", borderLeft: "3px solid #9CA3AF", borderRadius: "3px 16px 16px 3px" },
   rowThird: { background: "linear-gradient(145deg, rgba(251,146,60,0.08), rgba(251,146,60,0.02))", border: "1px solid rgba(251,146,60,0.2)", borderLeft: "3px solid #FB923C", borderRadius: "3px 16px 16px 3px" },
   rankWrap: { display: "flex", alignItems: "center", justifyContent: "center" },

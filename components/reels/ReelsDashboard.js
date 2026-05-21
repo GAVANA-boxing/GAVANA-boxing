@@ -773,7 +773,7 @@ const d = {
     padding: "13px",
     borderRadius: 14,
     border: "none",
-    background: `linear-gradient(135deg, ${RED}, #8f0d17)`,
+    background: `linear-gradient(135deg, ${RED}, #cc2820)`,
     color: "#fff",
     fontSize: 12,
     fontWeight: 900,

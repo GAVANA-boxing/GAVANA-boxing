@@ -23,7 +23,7 @@ export default function ProfileRedirectClient() {
     <div
       style={{
         minHeight: "100dvh",
-        background: "#070707",
+        background: "#0B0B0C",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

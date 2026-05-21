@@ -402,7 +402,7 @@ export default function GymDashboardPage() {
             title={t("gymDashSessionSchedule")}
             hint={t("gymDashSessionHint")}
             action={
-              <button type="button" style={{ padding: "11px 24px", borderRadius: 999, border: "none", background: "linear-gradient(135deg,#C1121F,#7d0812)", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", marginTop: 4 }} onClick={() => router.push(`/${locale}/coach`)}>
+              <button type="button" style={{ padding: "11px 24px", borderRadius: 999, border: "none", background: "linear-gradient(135deg, #FF3B30, #cc2820)", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", marginTop: 4 }} onClick={() => router.push(`/${locale}/coach`)}>
                 {t("gymDashFindCoaches")}
               </button>
             }

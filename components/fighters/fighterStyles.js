@@ -277,10 +277,10 @@ const s = {
     letterSpacing: 0.1,
   },
   comboArrow: {
-    color: "#C1121F",
+    color: "#FF3B30",
     fontSize: 14,
     fontWeight: 900,
-    textShadow: "0 0 8px rgba(193,18,31,0.9)",
+    textShadow: "0 0 8px rgba(255,59,48,0.9)",
   },
 
   // ── Movement DNA ──

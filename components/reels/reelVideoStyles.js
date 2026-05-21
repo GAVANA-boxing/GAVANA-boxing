@@ -277,7 +277,7 @@ export const reelVideoStyles = {
     gap: 12,
     alignItems: "center",
     justifyContent: "center",
-    background: `radial-gradient(circle at 50% 42%, ${redAlpha(0.16)}, transparent 34%), linear-gradient(180deg, rgba(7,7,7,0.82), rgba(7,7,7,0.94))`,
+    background: `radial-gradient(circle at 50% 42%, ${redAlpha(0.16)}, transparent 34%), linear-gradient(180deg, rgba(11,11,12,0.82), rgba(11,11,12,0.94))`,
     zIndex: 10,
   },
   videoLoadingText: {

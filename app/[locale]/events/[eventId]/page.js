@@ -156,7 +156,7 @@ export default function EventDetailPage() {
   const isOrganizer = event.organizerId === user.uid;
 
   return (
-    <div style={{ ...s.page, background: `radial-gradient(ellipse at top, ${meta.color}10 0%, transparent 40%), #0A0A0A` }}>
+    <div style={{ ...s.page, background: `radial-gradient(ellipse at top, ${meta.color}10 0%, transparent 40%), #0B0B0C` }}>
       <div style={s.inner}>
         <button type="button" style={s.backBtn} onClick={() => router.push(`/${locale}/events`)}>
           ← {t("eventBackToList")}

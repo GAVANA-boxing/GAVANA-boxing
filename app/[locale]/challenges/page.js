@@ -249,7 +249,7 @@ export default function ChallengesPage() {
             </button>
           </div>
           {seasonTab === "week" && (
-            <span style={{ fontSize: 10, fontWeight: 900, color: GOLD, fontVariantNumeric: "tabular-nums", letterSpacing: 0.5, padding: "3px 10px", borderRadius: 999, background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.3)", whiteSpace: "nowrap", flexShrink: 0 }}>
+            <span style={{ fontSize: 10, fontWeight: 900, color: GOLD, fontVariantNumeric: "tabular-nums", letterSpacing: 0.5, padding: "3px 10px", borderRadius: 999, background: "rgba(245,196,81,0.12)", border: "1px solid rgba(245,196,81,0.3)", whiteSpace: "nowrap", flexShrink: 0 }}>
               ⏱ {countdown}
             </span>
           )}
@@ -374,8 +374,8 @@ export default function ChallengesPage() {
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="discover" />
       <style>{`
         @keyframes challengeScoreGlow {
-          0%, 100% { box-shadow: 0 0 0 rgba(212,175,55,0); }
-          50% { box-shadow: 0 0 24px rgba(212,175,55,0.28); }
+          0%, 100% { box-shadow: 0 0 0 rgba(245,196,81,0); }
+          50% { box-shadow: 0 0 24px rgba(245,196,81,0.28); }
         }
       `}</style>
     </main>

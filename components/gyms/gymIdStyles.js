@@ -7,7 +7,7 @@ const styles = {
   hero: { position: "relative", height: 200, borderRadius: 16, overflow: "hidden", background: "linear-gradient(135deg,#1a1a1a,#111)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 0 },
   heroImg: { width: "100%", height: "100%", objectFit: "cover" },
   heroPlaceholder: { display: "flex", alignItems: "center", justifyContent: "center" },
-  logoOverlay: { position: "absolute", bottom: -20, left: 20, width: 60, height: 60, borderRadius: 12, border: "3px solid #0A0A0A", objectFit: "cover", background: "#111" },
+  logoOverlay: { position: "absolute", bottom: -20, left: 20, width: 60, height: 60, borderRadius: 12, border: "3px solid #0B0B0C", objectFit: "cover", background: "#111" },
   gymHeader: { paddingTop: 28, paddingBottom: 12 },
   gymNameRow: { display: "flex", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 6 },
   gymName: { margin: 0, fontSize: 26, fontWeight: 1000, lineHeight: 1.1 },
