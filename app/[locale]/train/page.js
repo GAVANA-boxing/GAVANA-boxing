@@ -181,7 +181,7 @@ export default function TrainPage() {
           )}
         </header>
 
-        <div style={styles.stage}>
+        <div style={styles.stage} className="train-stage">
           {cameraState === "ready" ? (
             <video
               ref={videoRef}
@@ -277,7 +277,7 @@ export default function TrainPage() {
 
         <div style={styles.controls}>
           {canStart && (
-            <button type="button" style={styles.startButton} onClick={handleStart}>
+            <button type="button" style={styles.startButton} className="train-start-btn tap-bounce" onClick={handleStart}>
               {t("trainStart")}
             </button>
           )}

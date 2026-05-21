@@ -910,6 +910,41 @@ p {
   box-shadow: 0 6px 20px rgba(0,0,0,0.3) !important;
 }
 
+/* ─── Phase 6: Train screen HUD corners ──────────────────────────────────── */
+.train-stage {
+  position: relative;
+}
+.train-stage::before,
+.train-stage::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-color: rgba(255,59,48,0.55);
+  border-style: solid;
+  z-index: 4;
+  pointer-events: none;
+}
+.train-stage::before {
+  top: 12px; left: 12px;
+  border-width: 2px 0 0 2px;
+  border-radius: 6px 0 0 0;
+}
+.train-stage::after {
+  bottom: 12px; right: 12px;
+  border-width: 0 2px 2px 0;
+  border-radius: 0 0 6px 0;
+}
+
+/* Train start button hover glow */
+.train-start-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 48px rgba(255,59,48,0.45), inset 0 1px 0 rgba(255,255,255,0.14) !important;
+}
+.train-start-btn:active {
+  transform: scale(0.98);
+}
+
 /* ─── Phase 4: Polish + Micro-interactions ────────────────────────────────── */
 
 /* Spring press — satisfying bounce on tap */
