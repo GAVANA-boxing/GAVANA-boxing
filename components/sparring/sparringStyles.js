@@ -3,7 +3,7 @@ import { RED, BORDER, MUTED, SURFACE, BG, redAlpha } from "@/lib/tokens";
 const s = {
   page: {
     minHeight: "100dvh",
-    background: BG,
+    background: `radial-gradient(ellipse at 50% -8%, ${redAlpha(0.14)} 0%, transparent 50%), ${BG}`,
     color: "#fff",
     display: "flex",
     flexDirection: "column",
@@ -27,6 +27,8 @@ const s = {
     display: "flex",
     borderBottom: `1px solid ${BORDER}`,
     background: "rgba(11,11,12,0.96)",
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
     position: "sticky",
     top: "calc(52px + env(safe-area-inset-top))",
     zIndex: 19,
@@ -128,8 +130,8 @@ const s = {
     padding: "12px 16px 4px",
     fontSize: 9,
     fontWeight: 900,
-    color: "rgba(255,255,255,0.28)",
-    letterSpacing: 2,
+    color: RED,
+    letterSpacing: 2.5,
     textTransform: "uppercase",
   },
   empty: {
@@ -153,13 +155,16 @@ const s = {
 
 const c = {
   card: {
-    background: SURFACE,
-    border: `1px solid ${BORDER}`,
+    background: "rgba(255,255,255,0.03)",
+    backdropFilter: "blur(16px)",
+    WebkitBackdropFilter: "blur(16px)",
+    border: `1px solid rgba(255,255,255,0.07)`,
     borderRadius: "3px 14px 14px 3px",
     padding: "13px 13px 10px",
     display: "flex",
     flexDirection: "column",
     gap: 10,
+    boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
   },
   cardTop: { display: "flex", gap: 12, alignItems: "flex-start" },
   avatarWrap: { position: "relative", flexShrink: 0 },

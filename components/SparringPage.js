@@ -70,10 +70,10 @@ export default function SparringPage() {
   const isOn = !!myPost;
 
   return (
-    <div style={s.page}>
+    <div style={s.page} className="page-enter">
 
       <PageTopBar
-        kicker="GAVANA"
+        kicker="COMBAT · SPARRING"
         title={locale === "mn" ? "СПАРРИНГ" : locale === "ko" ? "스파링" : "SPARRING"}
         user={user}
         currentLocale={locale}

@@ -210,7 +210,7 @@ export default function AthleteDashboard() {
   return (
     <div
       className="page-enter"
-      style={{ background: `radial-gradient(ellipse at top center, rgba(255,59,48,0.07) 0%, transparent 48%), #0B0B0C`, minHeight: "100dvh", color: "#fff" }}
+      style={{ background: `radial-gradient(ellipse at 50% -8%, rgba(255,59,48,0.14) 0%, transparent 50%), #0B0B0C`, minHeight: "100dvh", color: "#fff" }}
     >
       <style>{`
         @keyframes rankFill { from { width: 0 !important; } }
@@ -222,8 +222,8 @@ export default function AthleteDashboard() {
       <div style={{ maxWidth: isDesktop ? "100%" : 540, margin: "0 auto", padding: isDesktop ? "28px 32px calc(32px)" : "calc(20px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom))" }}>
 
         <div style={{ marginBottom: 22 }}>
-          <p style={{ margin: "0 0 2px", fontSize: 9, fontWeight: 900, color: "rgba(255,59,48,0.7)", letterSpacing: 3, textTransform: "uppercase" }}>
-            GAVANA
+          <p style={{ margin: "0 0 2px", fontSize: 10, fontWeight: 900, color: "#FF3B30", letterSpacing: 3, textTransform: "uppercase" }}>
+            COMBAT · OS
           </p>
           <h1 style={{ margin: 0, fontSize: isDesktop ? 28 : 22, fontWeight: 900, color: "#fff", letterSpacing: "-0.025em", lineHeight: 1, fontFamily: "var(--font-display, 'Anton', sans-serif)" }}>
             {userData?.username || user?.displayName || (locale === "mn" ? "Тамирчны ахиц" : locale === "ko" ? "선수 현황" : "My Progress")}

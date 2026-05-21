@@ -6,7 +6,7 @@ import { WORKOUTS } from "@/lib/data";
 import { getLocale, translate } from "@/lib/i18n";
 import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
-import { RED, GOLD, redAlpha } from "@/lib/tokens";
+import { RED, GOLD, BG, redAlpha } from "@/lib/tokens";
 
 export default function WorkoutDetail() {
   const { id, locale: localeParam } = useParams();
@@ -41,7 +41,7 @@ export default function WorkoutDetail() {
   const allDone = totalCount > 0 && completedCount === totalCount;
 
   return (
-    <div style={s.page}>
+    <div style={s.page} className="page-enter">
       <div style={s.ambientGlow} />
       <div style={s.header}>
         <button type="button" onClick={() => router.back()} style={s.backBtn} aria-label="Back">
@@ -50,7 +50,7 @@ export default function WorkoutDetail() {
           </svg>
         </button>
         <div>
-          <p style={s.kicker}>GAVANA · {(workout.level || "workout").toUpperCase()}</p>
+          <p style={s.kicker}>COMBAT · {(workout.level || "workout").toUpperCase()}</p>
           <h1 style={s.title}>{workout.title}</h1>
         </div>
       </div>
@@ -137,7 +137,7 @@ export default function WorkoutDetail() {
 const s = {
   page: {
     minHeight: "100dvh",
-    background: "#0B0B0C",
+    background: `radial-gradient(ellipse at 50% -8%, ${redAlpha(0.14)} 0%, transparent 50%), ${BG}`,
     color: "#fff",
     position: "relative",
     paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
@@ -166,7 +166,7 @@ const s = {
     borderRadius: 10,
     color: "#fff", cursor: "pointer", padding: 0, marginBottom: 16,
   },
-  kicker: { margin: "0 0 6px", fontSize: 9, fontWeight: 900, letterSpacing: 3, textTransform: "uppercase", color: RED, fontFamily: "var(--font-condensed)" },
+  kicker: { margin: "0 0 6px", fontSize: 10, fontWeight: 900, letterSpacing: 3, textTransform: "uppercase", color: RED },
   title: { margin: 0, fontSize: "clamp(28px, 9vw, 44px)", fontWeight: 900, lineHeight: 1, fontFamily: "var(--font-display)" },
   progressWrap: { display: "flex", alignItems: "center", gap: 10, padding: "0 20px 16px", position: "relative", zIndex: 1 },
   progressTrack: { flex: 1, height: 4, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" },
