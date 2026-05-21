@@ -3,7 +3,7 @@ import { RED, BG, redAlpha } from "@/lib/tokens";
 const aiCoachStyles = {
   page: {
     minHeight: "100dvh",
-    background: BG,
+    background: `radial-gradient(ellipse at 50% -8%, ${redAlpha(0.14)} 0%, transparent 50%), ${BG}`,
     color: "var(--text-primary)",
   },
   shell: {
@@ -57,9 +57,9 @@ const aiCoachStyles = {
   },
   kicker: {
     margin: 0,
-    color: `${redAlpha(0.8)}`,
+    color: RED,
     letterSpacing: 3,
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: 900,
     textTransform: "uppercase",
   },

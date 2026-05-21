@@ -7,7 +7,7 @@ import { getLocale, translate } from "@/lib/i18n";
 import RankIcon from "@/components/RankIcon";
 import BottomNav from "@/components/BottomNav";
 import PageTopBar from "@/components/PageTopBar";
-import { RED, GOLD, PURPLE, BG, BORDER, goldAlpha } from "@/lib/tokens";
+import { RED, GOLD, PURPLE, BG, BORDER, goldAlpha, redAlpha } from "@/lib/tokens";
 import { useRankData } from "@/hooks/useRankData";
 
 const HOW_TO_EARN = [
@@ -85,7 +85,7 @@ export default function RankPage() {
 
   return (
     <main style={styles.page} className="page-enter">
-      <PageTopBar kicker="GAVANA BOXING" title={t("rankPageTitle") || "RANK"} user={user} currentLocale={locale} showBack />
+      <PageTopBar kicker="COMBAT · RANK" title={t("rankPageTitle") || "RANK"} user={user} currentLocale={locale} showBack />
 
       <div style={styles.content}>
 
@@ -243,7 +243,7 @@ export default function RankPage() {
 const styles = {
   page: {
     minHeight: "100dvh",
-    background: `radial-gradient(ellipse at 50% -10%, ${goldAlpha(0.1)} 0%, transparent 48%), ${BG}`,
+    background: `radial-gradient(ellipse at 50% -8%, ${redAlpha(0.14)} 0%, transparent 50%), ${BG}`,
     color: "#fff",
     paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
   },
@@ -278,10 +278,10 @@ const styles = {
   headerCenter: { textAlign: "center" },
   eyebrow: {
     margin: 0,
-    color: GOLD,
+    color: RED,
     fontSize: 10,
     fontWeight: 900,
-    letterSpacing: 2.5,
+    letterSpacing: 3,
     textTransform: "uppercase",
   },
   title: {

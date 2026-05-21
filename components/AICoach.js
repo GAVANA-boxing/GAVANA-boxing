@@ -119,10 +119,10 @@ export default function AICoach() {
   };
 
   return (
-    <div style={styles.page}>
+    <div style={styles.page} className="page-enter">
       <div style={styles.shell}>
         <div style={styles.header}>
-          <p style={styles.kicker}>GAVANA</p>
+          <p style={styles.kicker}>COMBAT · AI</p>
           <h1 style={styles.title}>{t("aiCoach")}</h1>
         </div>
 

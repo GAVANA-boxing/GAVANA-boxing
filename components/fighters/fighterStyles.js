@@ -59,10 +59,10 @@ const s = {
   },
   heroKicker: {
     margin: "0 0 16px",
-    fontSize: 8,
+    fontSize: 10,
     fontWeight: 900,
     letterSpacing: 3,
-    color: "rgba(255,255,255,0.28)",
+    color: "#FF3B30",
     textTransform: "uppercase",
   },
   heroFlagDisplay: {

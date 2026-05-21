@@ -52,7 +52,7 @@ export default function FightersPage() {
             <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
-        <p style={s.kicker}>GAVANA · FIGHTER STUDY</p>
+        <p style={s.kicker}>COMBAT · FIGHTERS</p>
         <h1 style={s.title}>{t("fighterAllTitle")}</h1>
         <p style={s.subtitle}>{t("fighterAllSubtitle")}</p>
       </div>

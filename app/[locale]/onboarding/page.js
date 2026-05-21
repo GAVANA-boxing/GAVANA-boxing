@@ -137,7 +137,7 @@ export default function OnboardingPage() {
         {step === 1 && (
           <div className="ob-step">
             <div style={s.header}>
-              <p style={s.kicker}>GAVANA · FIGHTER</p>
+              <p style={s.kicker}>COMBAT · FIGHTER</p>
               <h1 style={s.title}>
                 {t("onboardingFighterStyle")}
               </h1>
@@ -205,7 +205,7 @@ export default function OnboardingPage() {
         {step === 2 && (
           <div className="ob-step">
             <div style={s.header}>
-              <p style={s.kicker}>GAVANA · FIGHTER</p>
+              <p style={s.kicker}>COMBAT · FIGHTER</p>
               <h1 style={s.title}>
                 {t("onboardingWeeklyGoal")}
               </h1>
@@ -266,7 +266,7 @@ export default function OnboardingPage() {
         {step === 3 && (
           <div className="ob-step">
             <div style={s.header}>
-              <p style={s.kicker}>GAVANA · FIGHTER</p>
+              <p style={s.kicker}>COMBAT · FIGHTER</p>
               <h1 style={s.title}>
                 {t("onboardingFindGym")}
               </h1>

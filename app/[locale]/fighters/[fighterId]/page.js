@@ -122,7 +122,7 @@ export default function FighterDetailPage() {
 
         {/* Text block below portrait */}
         <div style={s.heroCenter}>
-          <p style={s.heroKicker}>GAVANA · FIGHTER STUDY</p>
+          <p style={s.heroKicker}>COMBAT · FIGHTER</p>
           <h1 style={{ ...s.heroNameBig, textShadow: `0 0 40px ${acc}44` }}>
             {fighter.name.toUpperCase()}
           </h1>

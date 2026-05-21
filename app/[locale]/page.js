@@ -58,7 +58,7 @@ export default async function LocalizedHomePage({ params }) {
 
       {/* Hero */}
       <section className="landing-hero" style={s.hero}>
-        <p style={s.kicker}>GAVANA BOXING</p>
+        <p style={s.kicker}>COMBAT · BOXING</p>
         <h1 className="landing-title" style={s.title}>
           Train.<br />Fight.<br />
           <span style={s.titleAccent}>Evolve.</span>
@@ -226,13 +226,11 @@ const s = {
   },
   kicker: {
     margin: "0 0 20px",
-    color: GOLD,
-    fontSize: 9,
+    color: RED,
+    fontSize: 10,
     fontWeight: 900,
-    letterSpacing: "0.28em",
+    letterSpacing: "0.2em",
     textTransform: "uppercase",
-    fontFamily: "var(--font-condensed)",
-    opacity: 0.75,
   },
   title: {
     margin: "0 0 28px",
