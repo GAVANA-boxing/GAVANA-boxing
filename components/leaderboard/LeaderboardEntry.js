@@ -29,6 +29,7 @@ const LeaderboardEntry = memo(function LeaderboardEntry({ entry, index, profiles
       key={entry.userId}
       role="button"
       tabIndex={0}
+      className={`list-row-hover section-reveal${index < 5 ? ` stagger-${index + 1}` : ""}`}
       style={{
         ...styles.row,
         ...(isCurrentUser ? styles.rowHighlight : {}),

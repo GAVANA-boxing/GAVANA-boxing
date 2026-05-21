@@ -387,7 +387,7 @@ export default function GymsPage() {
             }
           />
         ) : (
-          <div style={styles.cardList}>
+          <div style={styles.cardList} className="section-reveal">
             {filtered.map((gym) => (
               <GymCard key={gym.id} gym={gym} t={t} router={router} locale={locale} />
             ))}

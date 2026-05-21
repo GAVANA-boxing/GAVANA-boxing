@@ -24,12 +24,15 @@ export function FighterCard({ post, isMe, onRequest, sent, requesting, locale })
     : "0 2px 8px rgba(0,0,0,0.4)";
 
   return (
-    <div style={{
-      ...c.card,
-      borderLeft: `2.5px solid ${post.rankColor || arch?.color || RED}`,
-      boxShadow: rankGlow,
-      opacity: isMe ? 0.55 : 1,
-    }}>
+    <div
+      className="lift-card"
+      style={{
+        ...c.card,
+        borderLeft: `2.5px solid ${post.rankColor || arch?.color || RED}`,
+        boxShadow: rankGlow,
+        opacity: isMe ? 0.55 : 1,
+      }}
+    >
       <div style={c.cardTop}>
         <div style={c.avatarWrap}>
           {post.photoURL

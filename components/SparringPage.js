@@ -136,7 +136,7 @@ export default function SparringPage() {
             </span>
           </div>
 
-          <div style={s.list}>
+          <div key={tab} style={s.list} className="section-reveal">
             {filtered.length === 0 ? (
               <div style={s.empty}>
                 <div style={{ width: 44, height: 44, borderRadius: 13, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, marginBottom: 4 }}>🥊</div>

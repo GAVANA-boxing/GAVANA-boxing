@@ -263,7 +263,7 @@ export default function LeaderboardPage() {
       <div style={styles.content}>
         {/* Current user rank card */}
         {hasUserData && (
-          <div style={styles.yourRankCard}>
+          <div style={styles.yourRankCard} className="section-reveal stagger-1">
             <div style={styles.yourRankTop}>
               <span style={styles.yourRankLabel}>
                 {leaderboardTab === "week"
@@ -330,7 +330,7 @@ export default function LeaderboardPage() {
 
         {/* Weekly champion banner */}
         {leaderboardTab === "week" && !loading && weeklyChampion && (
-          <div style={styles.weeklyChampionBanner}>
+          <div style={styles.weeklyChampionBanner} className="section-reveal stagger-2">
             <div style={styles.weeklyChampionTop}>
               <span style={styles.weeklyChampionCrown}>👑</span>
               <span style={styles.weeklyChampionTitle}>{t("leaderboardWeeklyChampion")}</span>
@@ -423,7 +423,7 @@ export default function LeaderboardPage() {
 
         {/* Leaderboard list */}
         {!loading && filteredDisplayEntries.length > 0 && (
-          <div style={styles.list}>
+          <div key={leaderboardTab} style={styles.list}>
             {filteredDisplayEntries.slice(0, visibleCount).map((entry, index) => (
               <LeaderboardEntry
                 key={entry.userId}
