@@ -161,7 +161,7 @@ export default function ProfileFighterCard({
       )}
 
       {/* ── Digital License Card ─────────────────────────────────────────── */}
-      <div style={styles.licenseCard}>
+      <div style={styles.licenseCard} className="license-enter">
         {/* Left: XP ring + rank */}
         <button type="button" onClick={onShowRankModal} style={styles.licenseRankBlock}>
           <div style={{ position: "relative", width: 56, height: 56 }}>
@@ -244,7 +244,7 @@ export default function ProfileFighterCard({
       )}
 
       {/* ── Stats row ────────────────────────────────────────────────────── */}
-      <div style={styles.statsRow}>
+      <div style={styles.statsRow} className="section-enter stagger-3">
         <button type="button" onClick={() => onStatNavigate("posts")} style={styles.statButton}>
           <span style={styles.statNumber}>{userReels.length}</span>
           <span style={styles.statLabel}>{t("posts")}</span>

@@ -79,13 +79,19 @@ function ProfileTab({ user, active, onClick }) {
 // ─── Icon tab ─────────────────────────────────────────────────────────────────
 function IconTab({ active, onClick, badge, children, label }) {
   return (
-    <button type="button" onClick={onClick} style={s.iconTab} aria-label={label}>
-      <span style={{
-        ...s.iconGlow,
-        background: active ? `${redAlpha(0.12)}` : "transparent",
-        boxShadow: active ? `0 0 20px ${redAlpha(0.25)}` : "none",
-      }}>
-        {children}
+    <button type="button" onClick={onClick} style={s.iconTab} aria-label={label} className="tap-bounce">
+      <span
+        key={active ? "active" : "inactive"}
+        className={active ? "nav-active-pop" : undefined}
+        style={{
+          ...s.iconGlow,
+          background: active ? `${redAlpha(0.14)}` : "transparent",
+          boxShadow: active ? `0 0 22px ${redAlpha(0.28)}, inset 0 0 0 1px ${redAlpha(0.18)}` : "none",
+        }}
+      >
+        <span style={{ transform: active ? "scale(1.08)" : "scale(1)", transition: "transform 260ms cubic-bezier(0.34,1.56,0.64,1)", display: "flex" }}>
+          {children}
+        </span>
         {badge > 0 && (
           <span style={s.badge}>{badge > 9 ? "9+" : badge}</span>
         )}
@@ -212,8 +218,8 @@ export default function BottomNav({
         </IconTab>
 
         {/* Upload + */}
-        <button type="button" onClick={() => setHubOpen(true)} style={s.plusTab} aria-label={t("navUpload")}>
-          <span style={s.plusCircle}>
+        <button type="button" onClick={() => setHubOpen(true)} style={s.plusTab} aria-label={t("navUpload")} className="tap-bounce">
+          <span style={s.plusCircle} className="plus-ambient">
             <PlusIcon />
           </span>
         </button>

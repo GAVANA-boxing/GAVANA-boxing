@@ -272,7 +272,7 @@ export default function AIAnalysisPage() {
   const footwork = aiData ? Math.min(10, 5.5 + (aiData.strengths?.length || 0) * 0.3) : 0;
 
   return (
-    <div style={{ minHeight: "100dvh", background: "#0B0B0C", display: "flex", flexDirection: "column" }}>
+    <div className="page-enter" style={{ minHeight: "100dvh", background: "#0B0B0C", display: "flex", flexDirection: "column" }}>
 
       {/* Header */}
       <div style={{
@@ -355,7 +355,7 @@ export default function AIAnalysisPage() {
 
         {/* Score + Metrics */}
         {aiData ? (
-          <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+          <div className="section-enter stagger-1" style={{ display: "flex", gap: 16, alignItems: "center" }}>
             <ScoreRing score={score} />
             <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
               <MetricBar label="GUARD" value={guard} />
@@ -397,7 +397,7 @@ export default function AIAnalysisPage() {
 
         {/* Strengths */}
         {aiData?.strengths?.length > 0 && (
-          <div style={{ borderRadius: 16, background: "rgba(74,222,128,0.05)", border: "1px solid rgba(74,222,128,0.15)", padding: 16 }}>
+          <div className="section-enter stagger-2" style={{ borderRadius: 16, background: "rgba(74,222,128,0.05)", border: "1px solid rgba(74,222,128,0.15)", padding: 16 }}>
             <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.5, color: "rgba(74,222,128,0.7)", marginBottom: 10 }}>STRENGTHS</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
               {aiData.strengths.map((s, i) => (
@@ -412,7 +412,7 @@ export default function AIAnalysisPage() {
 
         {/* Weaknesses */}
         {aiData?.weaknesses?.length > 0 && (
-          <div style={{ borderRadius: 16, background: "rgba(248,113,113,0.05)", border: "1px solid rgba(248,113,113,0.15)", padding: 16 }}>
+          <div className="section-enter stagger-3" style={{ borderRadius: 16, background: "rgba(248,113,113,0.05)", border: "1px solid rgba(248,113,113,0.15)", padding: 16 }}>
             <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.5, color: "rgba(248,113,113,0.7)", marginBottom: 10 }}>WEAKNESSES</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
               {aiData.weaknesses.map((w, i) => (
@@ -427,7 +427,7 @@ export default function AIAnalysisPage() {
 
         {/* Key Fix */}
         {aiData?.improve && (
-          <div style={{ borderRadius: 16, background: `${goldAlpha(0.06)}`, border: `1px solid ${goldAlpha(0.25)}`, padding: 16 }}>
+          <div className="section-enter stagger-4" style={{ borderRadius: 16, background: `${goldAlpha(0.06)}`, border: `1px solid ${goldAlpha(0.25)}`, padding: 16 }}>
             <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.5, color: goldAlpha(0.7), marginBottom: 8 }}>KEY FIX</div>
             <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", lineHeight: 1.5 }}>{aiData.improve}</div>
           </div>
@@ -435,7 +435,7 @@ export default function AIAnalysisPage() {
 
         {/* Next Drill */}
         {aiData?.nextDrill && (
-          <div style={{ borderRadius: 16, background: cA(0.05), border: `1px solid ${cA(0.2)}`, padding: 16 }}>
+          <div className="section-enter stagger-5" style={{ borderRadius: 16, background: cA(0.05), border: `1px solid ${cA(0.2)}`, padding: 16 }}>
             <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.5, color: cA(0.7), marginBottom: 8 }}>NEXT DRILL</div>
             <div style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", lineHeight: 1.5 }}>{aiData.nextDrill}</div>
           </div>
@@ -450,9 +450,11 @@ export default function AIAnalysisPage() {
 
         {/* Loading state */}
         {aiLoading && !aiData && (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: 24 }}>
-            <div style={{ width: 28, height: 28, borderRadius: "50%", border: `2px solid ${cA(0.2)}`, borderTopColor: CYAN, animation: "spin 0.8s linear infinite" }} />
-            <span style={{ fontSize: 12, color: cA(0.5), fontWeight: 700, letterSpacing: 1 }}>ANALYZING TECHNIQUE...</span>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, padding: "28px 0" }}>
+            <div className="scan-load-bar" style={{ width: 180 }} />
+            <div style={{ width: 28, height: 28, borderRadius: "50%", border: `2px solid ${cA(0.15)}`, borderTopColor: CYAN, animation: "spin 0.8s linear infinite" }} />
+            <div className="scan-load-bar" style={{ width: 120 }} />
+            <span style={{ fontSize: 11, color: cA(0.45), fontWeight: 900, letterSpacing: 1.5 }}>ANALYZING TECHNIQUE...</span>
           </div>
         )}
 

@@ -1,6 +1,10 @@
 @import "tailwindcss";
 
 :root {
+  /* ── Motion ── */
+  --motion-spring: 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  --motion-bounce: 260ms cubic-bezier(0.34, 1.8, 0.64, 1);
+
   /* ── Background ── */
   --bg:        #0B0B0C;
   --surface:   #141416;
@@ -904,4 +908,117 @@ p {
 .fighter-style-pill:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0,0,0,0.3) !important;
+}
+
+/* ─── Phase 4: Polish + Micro-interactions ────────────────────────────────── */
+
+/* Spring press — satisfying bounce on tap */
+@keyframes tapBounce {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(0.91); }
+  65%  { transform: scale(1.07); }
+  82%  { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+.tap-bounce:active { animation: tapBounce var(--motion-spring) both; }
+
+/* Nav icon active pop-in */
+@keyframes navActivePop {
+  0%   { transform: scale(0.82); opacity: 0.5; }
+  60%  { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+.nav-active-pop { animation: navActivePop 300ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+/* Nav active dot — pulsing red glow */
+@keyframes navDotPulse {
+  0%, 100% { box-shadow: 0 0 4px #FF3B30, 0 0 8px rgba(255,59,48,0.5);  opacity: 1; }
+  50%       { box-shadow: 0 0 8px #FF3B30, 0 0 18px rgba(255,59,48,0.7); opacity: 0.75; }
+}
+
+/* Plus button ambient pulse */
+@keyframes plusAmbient {
+  0%, 100% { box-shadow: 0 6px 20px rgba(255,59,48,0.42), inset 0 1px 0 rgba(255,255,255,0.14); }
+  50%       { box-shadow: 0 6px 28px rgba(255,59,48,0.65), inset 0 1px 0 rgba(255,255,255,0.18); }
+}
+.plus-ambient { animation: plusAmbient 2.8s ease-in-out infinite; }
+
+/* Stagger delays — use with page-enter / section-reveal */
+.stagger-1 { animation-delay: 50ms !important; }
+.stagger-2 { animation-delay: 100ms !important; }
+.stagger-3 { animation-delay: 160ms !important; }
+.stagger-4 { animation-delay: 220ms !important; }
+.stagger-5 { animation-delay: 290ms !important; }
+
+/* Number reveal — for stats, scores */
+@keyframes numReveal {
+  from { opacity: 0; transform: translateY(6px) scale(0.92); }
+  to   { opacity: 1; transform: translateY(0)  scale(1); }
+}
+.num-reveal { animation: numReveal 380ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* AI scan load bar — horizontal sweep */
+@keyframes scanLoadX {
+  0%   { transform: translateX(-110%); opacity: 0; }
+  8%   { opacity: 1; }
+  92%  { opacity: 0.9; }
+  100% { transform: translateX(110%); opacity: 0; }
+}
+.scan-load-bar {
+  height: 1px;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  background: transparent;
+}
+.scan-load-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(34,211,238,0.8) 50%, transparent 100%);
+  animation: scanLoadX 1.4s ease-in-out infinite;
+}
+
+/* Page section staggered entrance */
+.section-enter {
+  animation: pageEnter 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Reel action — improved spring press */
+.reel-action:active {
+  animation: tapBounce var(--motion-spring) both;
+}
+.reel-action:active .reel-action-circle {
+  transform: scale(0.86);
+  transition: transform 120ms ease;
+}
+
+/* Active nav item icon scale */
+.nav-icon-active {
+  transform: scale(1.1);
+  transition: transform var(--motion-spring);
+}
+
+/* Profile stat number — entrance when tab switches */
+.stat-num-enter {
+  animation: numReveal 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* License card entrance */
+.license-enter {
+  animation: pageEnter 420ms cubic-bezier(0.16, 1, 0.3, 1) 80ms both;
+}
+
+/* Fix nav-active-dot color (was old red) */
+.nav-active-dot {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #FF3B30;
+  box-shadow: 0 0 6px #FF3B30, 0 0 12px rgba(255,59,48,0.6);
+  animation: navDotPulse 2.2s ease-in-out infinite;
 }
