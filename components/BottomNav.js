@@ -12,7 +12,7 @@ import Image from "next/image";
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
 function HomeIcon({ active }) {
   return (
-    <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.22)" }} viewBox="0 0 24 24" aria-hidden="true">
+    <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.38)" }} viewBox="0 0 24 24" aria-hidden="true">
       <path d="M3 12L12 4l9 8" />
       <path d="M5 10v9a1 1 0 0 0 1 1h4v-5h4v5h4a1 1 0 0 0 1-1v-9" />
     </svg>
@@ -21,7 +21,7 @@ function HomeIcon({ active }) {
 
 function DiscoverIcon({ active }) {
   return (
-    <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.22)" }} viewBox="0 0 24 24" aria-hidden="true">
+    <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.38)" }} viewBox="0 0 24 24" aria-hidden="true">
       <circle cx="11" cy="11" r="6" />
       <path d="m17 17 3.5 3.5" />
     </svg>
@@ -30,7 +30,7 @@ function DiscoverIcon({ active }) {
 
 function AlertsIcon({ active }) {
   return (
-    <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.22)" }} viewBox="0 0 24 24" aria-hidden="true">
+    <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.38)" }} viewBox="0 0 24 24" aria-hidden="true">
       <path d="M18 10.5V9a6 6 0 0 0-12 0v1.5c0 2.7-1.2 3.8-2.2 5h16.4c-1-1.2-2.2-2.3-2.2-5Z" />
       <path d="M9.7 18.5a2.5 2.5 0 0 0 4.6 0" />
     </svg>
@@ -47,7 +47,7 @@ function PlusIcon() {
 
 function InboxIcon({ active }) {
   return (
-    <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.22)" }} viewBox="0 0 24 24" aria-hidden="true">
+    <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.38)" }} viewBox="0 0 24 24" aria-hidden="true">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
     </svg>
   );
@@ -85,17 +85,15 @@ function IconTab({ active, onClick, badge, children, label }) {
         className={active ? "nav-active-pop" : undefined}
         style={{
           ...s.iconGlow,
-          background: active ? `${redAlpha(0.14)}` : "transparent",
-          boxShadow: active ? `0 0 22px ${redAlpha(0.28)}, inset 0 0 0 1px ${redAlpha(0.18)}` : "none",
+          background: active ? `${redAlpha(0.11)}` : "transparent",
         }}
       >
-        <span style={{ transform: active ? "scale(1.08)" : "scale(1)", transition: "transform 260ms cubic-bezier(0.34,1.56,0.64,1)", display: "flex" }}>
+        <span style={{ transform: active ? "scale(1.06)" : "scale(1)", transition: "transform 220ms cubic-bezier(0.34,1.56,0.64,1)", display: "flex" }}>
           {children}
         </span>
         {badge > 0 && (
           <span style={s.badge}>{badge > 9 ? "9+" : badge}</span>
         )}
-        {active && <span className="nav-active-dot" />}
       </span>
     </button>
   );
@@ -281,19 +279,21 @@ const icPlus = {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const s = {
+  // ── Floating glass tactical navigation ───────────────────────────────────
   nav: {
     position: "fixed",
-    left: 0,
-    right: 0,
-    bottom: 0,
+    bottom: "calc(12px + env(safe-area-inset-bottom))",
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: "min(calc(100vw - 32px), 420px)",
+    height: 60,
     zIndex: 100,
-    height: "calc(68px + env(safe-area-inset-bottom))",
-    paddingBottom: "env(safe-area-inset-bottom)",
-    background: "rgba(11,11,12,0.78)",
-    borderTop: "1px solid rgba(255,255,255,0.07)",
-    backdropFilter: "blur(40px) saturate(180%)",
-    WebkitBackdropFilter: "blur(40px) saturate(180%)",
-    boxShadow: "0 -1px 0 rgba(255,255,255,0.04), 0 -24px 48px rgba(0,0,0,0.22)",
+    background: "rgba(11,11,13,0.74)",
+    backdropFilter: "blur(36px) saturate(160%)",
+    WebkitBackdropFilter: "blur(36px) saturate(160%)",
+    borderRadius: 26,
+    border: "1px solid rgba(255,255,255,0.07)",
+    boxShadow: "0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)",
     display: "grid",
     gridTemplateColumns: "repeat(6, 1fr)",
     alignItems: "center",
@@ -306,19 +306,19 @@ const s = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    height: 68,
+    height: 60,
     WebkitTapHighlightColor: "transparent",
     padding: 0,
   },
   iconGlow: {
-    width: 42,
-    height: 42,
-    borderRadius: 13,
+    width: 38,
+    height: 38,
+    borderRadius: 12,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
-    transition: "background 200ms ease, box-shadow 200ms ease",
+    transition: "background 180ms ease",
   },
   badge: {
     position: "absolute",
@@ -337,7 +337,6 @@ const s = {
     textAlign: "center",
     boxSizing: "border-box",
   },
-  // Plus tab
   plusTab: {
     border: "none",
     background: "transparent",
@@ -345,22 +344,21 @@ const s = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    height: 68,
+    height: 60,
     WebkitTapHighlightColor: "transparent",
     padding: 0,
   },
   plusCircle: {
-    width: 46,
-    height: 46,
-    borderRadius: 15,
+    width: 42,
+    height: 42,
+    borderRadius: 14,
     background: `linear-gradient(145deg, ${RED}, #cc2820)`,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    boxShadow: `0 6px 20px ${redAlpha(0.42)}, inset 0 1px 0 rgba(255,255,255,0.14)`,
-    border: "1px solid rgba(255,255,255,0.1)",
+    boxShadow: `0 4px 16px ${redAlpha(0.32)}, inset 0 1px 0 rgba(255,255,255,0.12)`,
+    border: "none",
   },
-  // Profile avatar
   avatarWrap: {
     width: 30,
     height: 30,

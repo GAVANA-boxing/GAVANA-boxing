@@ -234,7 +234,7 @@ const s = {
     height: 32,
     borderRadius: "50%",
     overflow: "hidden",
-    border: `1.5px solid ${goldAlpha(0.35)}`,
+    border: `1.5px solid ${goldAlpha(0.2)}`,
     cursor: "pointer",
     background: `linear-gradient(135deg, ${RED}, #cc2820)`,
     display: "flex",
