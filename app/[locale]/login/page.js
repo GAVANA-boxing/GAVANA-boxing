@@ -22,6 +22,9 @@ function getFriendlyAuthError(error, isSignUp, t) {
     case "auth/email-already-in-use": return t("loginErrEmailInUse");
     case "auth/weak-password":    return t("loginErrWeakPassword");
     case "auth/invalid-email":    return t("loginErrInvalidEmail");
+    case "auth/network-request-failed":
+    case "auth/internal-error":   return t("loginErrNetwork") || "Network error — check your connection and try again.";
+    case "auth/too-many-requests": return t("loginErrTooMany") || "Too many attempts. Please wait a moment.";
     default: return isSignUp ? t("loginErrCreateAccount") : t("loginErrSignIn");
   }
 }
