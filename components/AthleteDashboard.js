@@ -164,6 +164,14 @@ export default function AthleteDashboard() {
 
   const displayScore = useCountUp(fighterScore, rankReady);
   const visibleSessions = showAllSessions ? trainingSessions : trainingSessions.slice(0, 5);
+  const [isDesktop, setIsDesktop] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    setIsDesktop(mq.matches);
+    const h = (e) => setIsDesktop(e.matches);
+    mq.addEventListener("change", h);
+    return () => mq.removeEventListener("change", h);
+  }, []);
 
   // Weekly recap
   const weekNumber = Math.floor(Date.now() / (7 * 24 * 3600 * 1000));
@@ -211,13 +219,13 @@ export default function AthleteDashboard() {
         .graph-line { animation: radarFade 600ms cubic-bezier(0.16,1,0.3,1) both; }
       `}</style>
 
-      <div style={{ maxWidth: 540, margin: "0 auto", padding: "calc(20px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom))" }}>
+      <div style={{ maxWidth: isDesktop ? "100%" : 540, margin: "0 auto", padding: isDesktop ? "28px 32px calc(32px)" : "calc(20px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom))" }}>
 
         <div style={{ marginBottom: 22 }}>
           <p style={{ margin: "0 0 2px", fontSize: 9, fontWeight: 900, color: "rgba(255,59,48,0.7)", letterSpacing: 3, textTransform: "uppercase" }}>
             GAVANA
           </p>
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: "#fff", letterSpacing: "-0.025em", lineHeight: 1, fontFamily: "var(--font-display, 'Anton', sans-serif)" }}>
+          <h1 style={{ margin: 0, fontSize: isDesktop ? 28 : 22, fontWeight: 900, color: "#fff", letterSpacing: "-0.025em", lineHeight: 1, fontFamily: "var(--font-display, 'Anton', sans-serif)" }}>
             {userData?.username || user?.displayName || (locale === "mn" ? "Тамирчны ахиц" : locale === "ko" ? "선수 현황" : "My Progress")}
           </h1>
         </div>
@@ -270,6 +278,10 @@ export default function AthleteDashboard() {
             </div>
           </div>
         )}
+
+        {/* ── Desktop: 2-col grid ── */}
+        <div style={isDesktop ? { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 28px", alignItems: "start" } : {}}>
+        <div> {/* Left col */}
 
         {/* ── Fighter Score Hero ── */}
         <FighterHero
@@ -373,6 +385,9 @@ export default function AthleteDashboard() {
           <StyleDNA radarStats={radarStats} />
         </PanelCard>
 
+        </div> {/* /Left col */}
+        <div> {/* Right col */}
+
         {/* ── Score Trend ── */}
         <PanelCard
           label={locale === "mn" ? "Оноогийн чиглэл" : locale === "ko" ? "점수 추세" : "Score Trend"}
@@ -424,6 +439,9 @@ export default function AthleteDashboard() {
         <PanelCard label={t("activityFeedTitle") || "Following Activity"} accent="#60A5FA">
           <ActivityFeed user={user} t={t} maxItems={10} />
         </PanelCard>
+
+        </div> {/* /Right col */}
+        </div> {/* /Desktop grid */}
 
       </div>
 
