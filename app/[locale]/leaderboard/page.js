@@ -97,7 +97,7 @@ export default function LeaderboardPage() {
   };
 
   return (
-    <main style={styles.page}>
+    <main style={styles.page} className="page-enter">
       <header style={styles.header}>
         <button
           type="button"
