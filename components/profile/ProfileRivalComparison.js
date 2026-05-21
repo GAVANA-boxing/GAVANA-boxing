@@ -10,7 +10,7 @@ export default function ProfileRivalComparison({ isOwnProfile, myStats, profileU
 
   return (
     <div style={{ padding: "0 16px 4px" }}>
-      <div style={{ background: "linear-gradient(145deg, #0d0b0d, #0a0a0a)", border: "1px solid rgba(167,139,250,0.15)", borderLeft: `3px solid ${PURPLE}`, borderRadius: "3px 16px 16px 3px", padding: "14px 16px" }}>
+      <div style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid rgba(167,139,250,0.18)", borderLeft: `3px solid ${PURPLE}`, borderRadius: "3px 16px 16px 3px", padding: "14px 16px" }}>
         <p style={{ margin: "0 0 10px", fontSize: 9, fontWeight: 900, color: PURPLE, letterSpacing: 2, textTransform: "uppercase" }}>
           ⚔️ {t("profileYouVs")}{opponentName}
         </p>
@@ -37,7 +37,7 @@ export default function ProfileRivalComparison({ isOwnProfile, myStats, profileU
                 <div style={{ textAlign: "center", padding: "7px 0", borderTop: sep }}>
                   <span style={{ fontSize: 15, fontWeight: 900, color: myWins ? "#34D399" : "#fff" }}>{stat.fmt(stat.my)}</span>
                 </div>
-                <div style={{ textAlign: "center", fontSize: 9, fontWeight: 700, color: "#555", paddingTop: i > 0 ? 7 : 0, borderTop: sep }}>
+                <div style={{ textAlign: "center", fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.35)", paddingTop: i > 0 ? 7 : 0, borderTop: sep }}>
                   {stat.label}
                 </div>
                 <div style={{ textAlign: "center", padding: "7px 0", borderTop: sep }}>

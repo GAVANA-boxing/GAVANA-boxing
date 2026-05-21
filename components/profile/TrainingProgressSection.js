@@ -190,7 +190,7 @@ export default function TrainingProgressSection({
               }}>
                 <div>
                   <span style={{ fontSize: 13, color: "#fff", fontWeight: 700 }}>⭐ {formatScore(session.score)}/10</span>
-                  <span style={{ fontSize: 10, color: "#444", marginLeft: 8 }}>{dateLabel}</span>
+                  <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginLeft: 8 }}>{dateLabel}</span>
                 </div>
                 <span style={{ fontSize: 13, fontWeight: 900, color: GOLD }}>+{xpResult.total} XP</span>
               </div>

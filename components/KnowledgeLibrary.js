@@ -166,7 +166,7 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
             marginTop: 12, width: "100%", padding: "9px 0", borderRadius: 9,
             background: mistakesHover ? `${redAlpha(0.1)}` : "rgba(255,255,255,0.03)",
             border: `1px solid ${mistakesHover ? `${redAlpha(0.35)}` : "rgba(255,255,255,0.08)"}`,
-            color: mistakesHover ? "#f87171" : "#777",
+            color: mistakesHover ? "#f87171" : "rgba(255,255,255,0.45)",
             fontSize: 12, fontWeight: 700, cursor: "pointer",
             transition: "background 130ms ease, border-color 130ms ease, color 130ms ease",
           }}

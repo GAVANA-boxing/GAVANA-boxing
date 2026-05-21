@@ -293,7 +293,9 @@ export default function AIBreakdownSheet({ reel, locale, onClose }) {
         right: 0,
         maxHeight: "82vh",
         overflowY: "auto",
-        background: "#111",
+        background: "rgba(14,14,18,0.98)",
+        backdropFilter: "blur(24px)",
+        WebkitBackdropFilter: "blur(24px)",
         borderRadius: "18px 18px 0 0",
         zIndex: 9001,
         animation: "slideUp 220ms ease",
@@ -301,7 +303,7 @@ export default function AIBreakdownSheet({ reel, locale, onClose }) {
       }}>
         {/* Handle */}
         <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 0" }}>
-          <div style={{ width: 36, height: 4, borderRadius: 2, background: "#333" }} />
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.12)" }} />
         </div>
 
         {/* Header */}
@@ -343,7 +345,7 @@ export default function AIBreakdownSheet({ reel, locale, onClose }) {
         {loading && <LoadingState t={t} />}
         {!loading && error && (
           <div style={{ padding: "12px 20px 24px", textAlign: "center" }}>
-            <p style={{ color: "#555", fontSize: 14 }}>{t("aiBreakdownError")}</p>
+            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 14 }}>{t("aiBreakdownError")}</p>
           </div>
         )}
         {!loading && !error && data && <BreakdownContent data={data} t={t} />}

@@ -235,12 +235,12 @@ export default function DailyMission({ locale = "en" }) {
 
       <div style={pillStyles.milestoneRow}>
         <div style={{ ...pillStyles.milestone, borderColor: dailyStreak >= 3 ? "#34D399" : "rgba(255,255,255,0.1)" }}>
-          <span style={{ color: dailyStreak >= 3 ? "#34D399" : "#888", fontSize: 10, fontWeight: 900 }}>
+          <span style={{ color: dailyStreak >= 3 ? "#34D399" : "rgba(255,255,255,0.4)", fontSize: 10, fontWeight: 900 }}>
             {dailyStreak >= 3 ? "✓" : `${next3}d`} 3🔥 +100
           </span>
         </div>
         <div style={{ ...pillStyles.milestone, borderColor: dailyStreak >= 7 ? GOLD : "rgba(255,255,255,0.1)" }}>
-          <span style={{ color: dailyStreak >= 7 ? GOLD : "#888", fontSize: 10, fontWeight: 900 }}>
+          <span style={{ color: dailyStreak >= 7 ? GOLD : "rgba(255,255,255,0.4)", fontSize: 10, fontWeight: 900 }}>
             {dailyStreak >= 7 ? "✓" : `${next7}d`} 7🔥 +250
           </span>
         </div>
@@ -297,17 +297,17 @@ const pillStyles = {
   fireStreak: { fontSize: 12, fontWeight: 900 },
   pillTop: { display: "flex", alignItems: "center", justifyContent: "space-between" },
   pillLabel: { color: GOLD, fontSize: 9, fontWeight: 900, letterSpacing: 1.1, textTransform: "uppercase" },
-  closeBtn: { background: "none", border: "none", color: "#666", fontSize: 12, cursor: "pointer", padding: 0 },
+  closeBtn: { background: "none", border: "none", color: "rgba(255,255,255,0.35)", fontSize: 12, cursor: "pointer", padding: 0 },
   missionRow: { display: "flex", alignItems: "flex-start", gap: 8 },
   missionIcon: { fontSize: 18, lineHeight: 1, flexShrink: 0 },
   missionText: { display: "grid", gap: 2 },
   missionTitle: { fontSize: 12, fontWeight: 900, lineHeight: 1.3 },
-  missionHint: { fontSize: 10, color: "#888", lineHeight: 1.3 },
+  missionHint: { fontSize: 10, color: "rgba(255,255,255,0.45)", lineHeight: 1.3 },
   divider: { height: 1, background: "rgba(255,255,255,0.07)" },
   streakRow: { display: "flex", gap: 12 },
   streakStat: { display: "grid", gap: 2 },
   streakNum: { fontSize: 14, fontWeight: 1000, lineHeight: 1 },
-  streakLbl: { fontSize: 9, color: "#888", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.6 },
+  streakLbl: { fontSize: 9, color: "rgba(255,255,255,0.45)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.6 },
   milestoneRow: { display: "flex", gap: 6 },
   milestone: {
     flex: 1, padding: "5px 6px", borderRadius: 8, border: "1px solid",

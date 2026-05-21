@@ -38,7 +38,7 @@ export const trainModalStyles = {
   },
   missionCompleteSub: {
     fontSize: 11,
-    color: "#888",
+    color: "rgba(255,255,255,0.45)",
     fontWeight: 700,
   },
   modalWrap: {

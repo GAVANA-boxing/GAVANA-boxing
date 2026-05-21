@@ -11,11 +11,11 @@ const streakCardStyle = {
   gap: 4,
   justifyItems: "center",
 };
-const streakCardLabel = { color: "#888", fontSize: 10, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase" };
+const streakCardLabel = { color: "rgba(255,255,255,0.45)", fontSize: 10, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase" };
 const streakCardValue = { fontSize: 36, fontWeight: 1000, lineHeight: 1, fontFamily: "var(--font-display, 'Anton', sans-serif)" };
-const streakCardUnit = { color: "#888", fontSize: 11, fontWeight: 700 };
+const streakCardUnit = { color: "rgba(255,255,255,0.45)", fontSize: 11, fontWeight: 700 };
 const streakRowStyle = { display: "flex", justifyContent: "space-between", alignItems: "center" };
-const streakRowLabel = { color: "#888", fontSize: 13, fontWeight: 700 };
+const streakRowLabel = { color: "rgba(255,255,255,0.45)", fontSize: 13, fontWeight: 700 };
 const streakRowValue = { color: "#fff", fontSize: 13, fontWeight: 900 };
 
 export default function StreakDetailModal({ profile, trainingSessions, t, onClose }) {
@@ -83,7 +83,7 @@ export default function StreakDetailModal({ profile, trainingSessions, t, onClos
         </div>
 
         {!hasAnyStreak ? (
-          <div style={{ textAlign: "center", padding: "20px 0", color: "#888", fontSize: 14 }}>
+          <div style={{ textAlign: "center", padding: "20px 0", color: "rgba(255,255,255,0.45)", fontSize: 14 }}>
             {t("streakNoStreak")}
           </div>
         ) : (
@@ -115,7 +115,7 @@ export default function StreakDetailModal({ profile, trainingSessions, t, onClos
             </div>
             <div style={{ marginTop: 8 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                <span style={{ color: "#888", fontSize: 11, fontWeight: 700 }}>Streak progress</span>
+                <span style={{ color: "rgba(255,255,255,0.45)", fontSize: 11, fontWeight: 700 }}>Streak progress</span>
                 <span style={{ color: "#FB923C", fontSize: 11, fontWeight: 900 }}>{Math.min(100, Math.round((challengeStreak / 7) * 100))}%</span>
               </div>
               <div style={{ height: 6, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>

@@ -37,13 +37,13 @@ export const feedbackXpStyles = {
   },
   xpCardLabel: {
     fontSize: 12,
-    color: "#888",
+    color: "rgba(255,255,255,0.45)",
     fontWeight: 600,
   },
   xpCardVal: {
     fontSize: 13,
     fontWeight: 900,
-    color: "#ccc",
+    color: "rgba(255,255,255,0.78)",
   },
   xpCardTotalLabel: {
     fontSize: 12,
@@ -73,7 +73,7 @@ export const feedbackXpStyles = {
   },
   xpTotalLabel: {
     fontSize: 11,
-    color: "#888",
+    color: "rgba(255,255,255,0.45)",
     fontWeight: 700,
   },
   xpRankTrack: {
@@ -91,7 +91,7 @@ export const feedbackXpStyles = {
   xpNextLabel: {
     margin: 0,
     fontSize: 10,
-    color: "#888",
+    color: "rgba(255,255,255,0.45)",
     textAlign: "right",
   },
 };

@@ -292,7 +292,7 @@ const styles = {
   xpWrap: { maxWidth: 430, margin: "12px auto 0", padding: "0 4px" },
   xpTopRow: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 },
   xpAmount: { fontSize: 13, fontWeight: 900, letterSpacing: 0.3 },
-  xpNextLabel: { fontSize: 11, color: "#888", textAlign: "right" },
+  xpNextLabel: { fontSize: 11, color: "rgba(255,255,255,0.45)", textAlign: "right" },
   xpTrack: { width: "100%", height: 8, borderRadius: 999, background: "rgba(255,255,255,0.07)", overflow: "visible", position: "relative" },
   xpFill: { height: "100%", borderRadius: 999, transition: "width 600ms cubic-bezier(0.34, 1.56, 0.64, 1)", boxShadow: `0 0 12px 2px ${redAlpha(0.5)}`, position: "relative" },
 
