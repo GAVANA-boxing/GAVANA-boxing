@@ -334,7 +334,7 @@ export default function CoachApplyPage() {
 }
 
 const styles = {
-  page: { minHeight: "100dvh", background: "#070707", color: "#fff" },
+  page: { minHeight: "100dvh", background: "#0B0B0C", color: "#fff" },
   inner: { maxWidth: 480, margin: "0 auto", padding: "0 16px 40px" },
   backBtn: { background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 14, cursor: "pointer", padding: "16px 0", display: "block" },
   header: { textAlign: "center", padding: "8px 0 24px" },
@@ -355,7 +355,7 @@ const styles = {
   textarea: { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "12px 14px", color: "#fff", fontSize: 15, outline: "none", width: "100%", resize: "vertical", boxSizing: "border-box", fontFamily: "inherit" },
   specialtyGrid: { display: "flex", flexWrap: "wrap", gap: 8 },
   specialtyBtn: { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20, padding: "6px 14px", color: "rgba(255,255,255,0.55)", fontSize: 13, cursor: "pointer", transition: "all 140ms ease" },
-  specialtyActive: { background: `${redAlpha(0.25)}`, border: "2px solid #C1121F", borderRadius: 20, padding: "5px 13px", color: "#ff6b6b", fontSize: 13, fontWeight: 800, cursor: "pointer", boxShadow: `0 0 10px ${redAlpha(0.25)}`, transition: "all 140ms ease" },
+  specialtyActive: { background: `${redAlpha(0.25)}`, border: "2px solid #FF3B30", borderRadius: 20, padding: "5px 13px", color: "#ff6b6b", fontSize: 13, fontWeight: 800, cursor: "pointer", boxShadow: `0 0 10px ${redAlpha(0.25)}`, transition: "all 140ms ease" },
   progressWrap: { height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 2, marginBottom: 16, overflow: "hidden" },
   progressBar: { height: "100%", background: RED, borderRadius: 2, transition: "width 0.2s" },
   submitBtn: { width: "100%", padding: "16px", background: RED, border: "none", borderRadius: 12, color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer", letterSpacing: 0.5 },

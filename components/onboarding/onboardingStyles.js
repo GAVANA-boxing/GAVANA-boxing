@@ -1,8 +1,8 @@
-import { GOLD, redAlpha } from "@/lib/tokens";
+import { GOLD, RED, BG, redAlpha } from "@/lib/tokens";
 
 const s = {
-  page: { minHeight: "100dvh", background: "#080808", color: "#fff", position: "relative", overflowX: "hidden" },
-  loading: { minHeight: "100dvh", background: "#080808", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" },
+  page: { minHeight: "100dvh", background: BG, color: "#fff", position: "relative", overflowX: "hidden" },
+  loading: { minHeight: "100dvh", background: BG, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" },
   bgGlow: { position: "fixed", top: "-20%", left: "50%", transform: "translateX(-50%)", width: 600, height: 400, background: `radial-gradient(ellipse, ${redAlpha(0.14)} 0%, transparent 65%)`, pointerEvents: "none", zIndex: 0 },
   progressWrap: { position: "sticky", top: 0, zIndex: 10, paddingTop: "calc(12px + env(safe-area-inset-top))", paddingBottom: 12, background: "rgba(8,8,8,0.85)", backdropFilter: "blur(12px)" },
   progressRow: { display: "flex", gap: 5, justifyContent: "center", padding: "0 20px" },
@@ -22,7 +22,7 @@ const s = {
   weightSection: { marginBottom: 20 },
   fieldLabel: { display: "block", fontSize: 11, color: "rgba(255,255,255,0.55)", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 8 },
   select: { width: "100%", padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", color: "#fff", fontSize: 14, outline: "none", colorScheme: "dark", boxSizing: "border-box" },
-  primaryBtn: { width: "100%", padding: 15, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#C1121F,#8d0e17)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 28px ${redAlpha(0.3)}`, letterSpacing: 0.2 },
+  primaryBtn: { width: "100%", padding: 15, borderRadius: 14, border: "none", background: RED, color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 28px ${redAlpha(0.3)}`, letterSpacing: 0.2 },
   primaryBtnDisabled: { width: "100%", padding: 15, borderRadius: 14, border: "none", background: `${redAlpha(0.18)}`, color: "rgba(255,255,255,0.3)", fontSize: 15, fontWeight: 900, cursor: "not-allowed" },
   successBanner: { background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.25)", borderRadius: 12, padding: "10px 14px", fontSize: 13, fontWeight: 800, color: "#34D399", marginBottom: 14 },
   gymList: { display: "flex", flexDirection: "column", gap: 8, marginBottom: 18 },

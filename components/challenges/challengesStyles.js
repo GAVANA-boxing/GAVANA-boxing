@@ -1,9 +1,9 @@
-import { redAlpha, goldAlpha, GOLD } from "@/lib/tokens";
+import { redAlpha, goldAlpha, GOLD, BG } from "@/lib/tokens";
 
 const styles = {
   page: {
     minHeight: "100dvh",
-    background: `radial-gradient(circle at 50% 0%, ${redAlpha(0.2)}, transparent 34%), linear-gradient(180deg, #080808 0%, #0B0B0B 100%)`,
+    background: BG,
     color: "#fff",
     padding: "calc(28px + env(safe-area-inset-top)) 16px calc(92px + env(safe-area-inset-bottom))",
   },
@@ -15,7 +15,7 @@ const styles = {
     display: "flex", alignItems: "center", justifyContent: "center",
     cursor: "pointer", padding: 0, color: "#fff", justifySelf: "start",
   },
-  loading: { minHeight: "100dvh", background: "#070707", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" },
+  loading: { minHeight: "100dvh", background: BG, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" },
   shell: { maxWidth: 540, margin: "0 auto", display: "grid", gap: 14 },
   header: { display: "grid", gap: 8 },
   kicker: { margin: 0, color: GOLD, fontSize: 11, fontWeight: 950, letterSpacing: 2 },

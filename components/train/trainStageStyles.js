@@ -213,7 +213,7 @@ export const trainStageStyles = {
     minHeight: 58,
     border: `1px solid ${goldAlpha(0.34)}`,
     borderRadius: 16,
-    background: "linear-gradient(135deg, #C1121F, #7d0812 58%, #9a6a18)",
+    background: RED,
     color: "#fff",
     fontSize: 15,
     fontWeight: 1000,

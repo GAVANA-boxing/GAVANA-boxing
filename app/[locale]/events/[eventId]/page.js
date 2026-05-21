@@ -121,7 +121,7 @@ export default function EventDetailPage() {
   if (!user && !authLoading) return null;
   if (authLoading || loading) {
     return (
-      <div style={{ minHeight: "100dvh", background: "#0A0A0A", color: "#fff" }}>
+      <div style={{ minHeight: "100dvh", background: "#0B0B0C", color: "#fff" }}>
         <div style={{ maxWidth: 520, margin: "0 auto", padding: "0 16px" }}>
           <div style={{ height: 44, paddingTop: 16, marginBottom: 20 }}>
             <div className="shimmer" style={{ width: 100, height: 20, borderRadius: 8, background: "rgba(255,255,255,0.06)" }} />
@@ -317,12 +317,12 @@ export default function EventDetailPage() {
 }
 
 const s = {
-  loading: { minHeight: "100dvh", background: "#0A0A0A", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" },
-  page: { minHeight: "100dvh", background: "#070707", color: "#fff" },
+  loading: { minHeight: "100dvh", background: "#0B0B0C", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" },
+  page: { minHeight: "100dvh", background: "#0B0B0C", color: "#fff" },
   inner: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },
   backBtn: { background: "none", border: "none", color: "rgba(255,255,255,0.55)", fontSize: 14, cursor: "pointer", padding: "16px 0", display: "block" },
   notFound: { display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "80px 0", textAlign: "center" },
-  heroCard: { background: "linear-gradient(145deg, #111012, #0a0a0a)", border: "1px solid rgba(255,255,255,0.07)", borderLeft: "3px solid #C1121F", borderRadius: "3px 20px 20px 3px", padding: "18px 18px 20px", marginBottom: 12 },
+  heroCard: { background: "#141416", border: "1px solid rgba(255,255,255,0.06)", borderLeft: "3px solid #FF3B30", borderRadius: "3px 20px 20px 3px", padding: "18px 18px 20px", marginBottom: 12 },
   heroTop: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
   typeBadge: { display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 12px", borderRadius: 999, border: "1px solid", fontSize: 11, fontWeight: 900, letterSpacing: 0.3 },
   pastLabel: { fontSize: 11, color: "rgba(255,255,255,0.3)", fontWeight: 700 },
@@ -333,7 +333,7 @@ const s = {
   detailIcon: { fontSize: 18, flexShrink: 0, marginTop: 1 },
   detailLabel: { margin: "0 0 2px", fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 },
   detailValue: { margin: 0, fontSize: 14, color: "#fff", fontWeight: 700 },
-  rsvpBtn: { width: "100%", padding: 16, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#C1121F,#7d0812)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 28px ${redAlpha(0.32)}`, marginBottom: 10 },
+  rsvpBtn: { width: "100%", padding: 16, borderRadius: 14, border: "none", background: "#FF3B30", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 28px ${redAlpha(0.32)}`, marginBottom: 10 },
   cancelRsvpBtn: { width: "100%", padding: 16, borderRadius: 14, border: "1px solid rgba(52,211,153,0.3)", background: "rgba(52,211,153,0.08)", color: "#34D399", fontSize: 15, fontWeight: 900, cursor: "pointer", marginBottom: 10 },
   fullBtn: { width: "100%", padding: 16, borderRadius: 14, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.3)", fontSize: 15, fontWeight: 700, cursor: "not-allowed", marginBottom: 10 },
   reminderBtn: { width: "100%", padding: 13, borderRadius: 14, border: `1px solid ${goldAlpha(0.3)}`, background: `${goldAlpha(0.06)}`, color: GOLD, fontSize: 14, fontWeight: 800, cursor: "pointer", marginBottom: 16 },

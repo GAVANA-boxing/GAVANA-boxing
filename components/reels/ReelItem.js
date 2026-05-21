@@ -240,7 +240,7 @@ const ReelItem = memo(function ReelItem({
               cursor: reel.userId ? "pointer" : "default",
               ...(hasStory ? {
                 borderColor: RED,
-                boxShadow: `0 0 0 2px #C1121F, 0 0 0 4px ${goldAlpha(0.35)}`,
+                boxShadow: `0 0 0 2px ${RED}, 0 0 0 4px ${goldAlpha(0.35)}`,
               } : {}),
             }}
             onClick={openCreatorProfile}

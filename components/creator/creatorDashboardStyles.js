@@ -213,7 +213,7 @@ const styles = {
   reelBarFill: {
     height: "100%",
     borderRadius: 999,
-    background: "linear-gradient(90deg, #C1121F, #D4AF37)",
+    background: RED,
   },
   reelRow: {
     display: "flex",
@@ -283,7 +283,7 @@ const styles = {
     flex: 1,
     padding: "12px 0",
     border: "none",
-    borderBottom: "2px solid #C1121F",
+    borderBottom: `2px solid ${RED}`,
     background: "transparent",
     color: "#fff",
     fontSize: 13,

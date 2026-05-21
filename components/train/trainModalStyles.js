@@ -61,7 +61,7 @@ export const trainModalStyles = {
     width: "100%",
     maxWidth: 460,
     borderRadius: 22,
-    background: "linear-gradient(180deg, #151111, #080808)",
+    background: "#141416",
     border: `1px solid ${goldAlpha(0.2)}`,
     boxShadow: "0 -24px 70px rgba(0,0,0,0.54)",
     textAlign: "center",
@@ -139,7 +139,7 @@ export const trainModalStyles = {
   progressFill: {
     height: "100%",
     borderRadius: 999,
-    background: "linear-gradient(90deg, #C1121F, #D4AF37)",
+    background: RED,
   },
   shareResultButton: {
     width: "100%",

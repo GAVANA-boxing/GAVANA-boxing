@@ -174,14 +174,14 @@ export default function CoachDashboardPage() {
             <button
               type="button"
               onClick={() => setShowCreateForm((v) => !v)}
-              style={{ padding: "7px 14px", borderRadius: 999, border: "none", background: "linear-gradient(135deg, #C1121F, #8f0d17)", color: "#fff", fontSize: 12, fontWeight: 900, cursor: "pointer" }}
+              style={{ padding: "7px 14px", borderRadius: 999, border: "none", background: "#FF3B30", color: "#fff", fontSize: 12, fontWeight: 900, cursor: "pointer" }}
             >
               {showCreateForm ? "✕" : "+ " + t("coachDashNew")}
             </button>
           </div>
 
           {showCreateForm && (
-            <div style={{ background: "linear-gradient(145deg, #111012, #0a0a0a)", border: "1px solid rgba(255,255,255,0.09)", borderLeft: "2.5px solid #C1121F", borderRadius: "3px 14px 14px 3px", padding: "16px", marginBottom: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ background: "#141416", border: "1px solid rgba(255,255,255,0.06)", borderLeft: "2.5px solid #FF3B30", borderRadius: "3px 14px 14px 3px", padding: "16px", marginBottom: 16, display: "flex", flexDirection: "column", gap: 12 }}>
               <input
                 value={progTitle}
                 onChange={(e) => setProgTitle(e.target.value)}
