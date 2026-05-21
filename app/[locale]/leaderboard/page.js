@@ -263,7 +263,7 @@ export default function LeaderboardPage() {
       <div style={styles.content}>
         {/* Current user rank card */}
         {hasUserData && (
-          <div style={styles.yourRankCard} className="section-reveal stagger-1">
+          <div style={styles.yourRankCard} className="hud-corners section-reveal stagger-1">
             <div style={styles.yourRankTop}>
               <span style={styles.yourRankLabel}>
                 {leaderboardTab === "week"

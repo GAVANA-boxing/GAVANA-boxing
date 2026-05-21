@@ -84,7 +84,7 @@ export default function RankPage() {
   const tierXPRange = tierXPEnd - tierXPStart;
 
   return (
-    <main style={styles.page} className="page-enter">
+    <main style={styles.page} className="page-enter cinematic-bg">
       <PageTopBar kicker="COMBAT · RANK" title={t("rankPageTitle") || "RANK"} user={user} currentLocale={locale} showBack />
 
       <div style={styles.content}>
@@ -95,18 +95,21 @@ export default function RankPage() {
             <div className="shimmer" style={{ height: 160, borderRadius: 20 }} />
           </div>
         ) : (
-          <div style={{
-            ...styles.currentCard,
-            borderColor: fighterRank.glowColor
-              ? fighterRank.glowColor.replace(/[\d.]+\)$/, "0.5)")
-              : `${fighterRank.color}55`,
-            background: fighterRank.glowColor
-              ? fighterRank.glowColor.replace(/[\d.]+\)$/, "0.08)")
-              : `${fighterRank.color}12`,
-            boxShadow: fighterRank.pulse
-              ? `0 0 32px ${fighterRank.glowColor?.replace(/[\d.]+\)$/, "0.22)")}`
-              : "none",
-          }}>
+          <div
+            className="hud-corners section-reveal"
+            style={{
+              ...styles.currentCard,
+              borderColor: fighterRank.glowColor
+                ? fighterRank.glowColor.replace(/[\d.]+\)$/, "0.5)")
+                : `${fighterRank.color}55`,
+              background: fighterRank.glowColor
+                ? fighterRank.glowColor.replace(/[\d.]+\)$/, "0.08)")
+                : `${fighterRank.color}12`,
+              boxShadow: fighterRank.pulse
+                ? `0 0 32px ${fighterRank.glowColor?.replace(/[\d.]+\)$/, "0.22)")}`
+                : "none",
+            }}
+          >
             <div style={styles.currentTop}>
               <RankIcon rank={fighterRank} size={64} animated />
               <div style={styles.currentInfo}>
@@ -115,7 +118,7 @@ export default function RankPage() {
                   {t(fighterRank.key)}
                 </h2>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                  <p style={styles.currentXP}>
+                  <p style={styles.currentXP} className="num-reveal">
                     {currentXP.toLocaleString()} {t("xpLabel")}
                   </p>
                   {sessionCount > 0 && (
@@ -138,7 +141,7 @@ export default function RankPage() {
                 </span>
               </div>
               <div style={styles.xpTrack}>
-                <div style={{
+                <div className="xp-fill-anim" style={{
                   ...styles.xpFill,
                   width: `${rankProgress}%`,
                   background: fighterRank.gradient,

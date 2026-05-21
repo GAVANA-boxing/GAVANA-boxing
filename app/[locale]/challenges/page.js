@@ -149,7 +149,7 @@ export default function ChallengesPage() {
   }).filter(Boolean);
 
   return (
-    <main style={styles.page} className="page-enter">
+    <main style={styles.page} className="page-enter cinematic-bg">
       <section style={styles.shell}>
         <button type="button" style={styles.backBtn} onClick={() => router.back()} aria-label="Back">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
