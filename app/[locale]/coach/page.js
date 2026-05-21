@@ -93,12 +93,12 @@ export default function CoachPage() {
                 padding: "10px 20px",
                 borderRadius: 12,
                 border: "none",
-                background: RED,
+                background: `linear-gradient(145deg, ${RED}, #cc2820)`,
                 color: "#fff",
                 fontSize: 14,
                 fontWeight: 900,
                 cursor: "pointer",
-                boxShadow: `0 8px 28px ${redAlpha(0.32)}`,
+                boxShadow: `0 8px 28px ${redAlpha(0.32)}, inset 0 1px 0 rgba(255,255,255,0.1)`,
               }}
               onClick={() => router.push(`/${locale}/coach/chat`)}
             >
@@ -267,7 +267,7 @@ export default function CoachPage() {
               title={t("coachNoCoaches")}
               hint={t("coachNoCoachesSub")}
               action={
-                <button type="button" onClick={() => router.push(`/${locale}/coach/apply`)} style={{ padding: "12px 28px", borderRadius: 14, background: RED, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}>
+                <button type="button" onClick={() => router.push(`/${locale}/coach/apply`)} style={{ padding: "12px 28px", borderRadius: 14, background: `linear-gradient(145deg, ${RED}, #cc2820)`, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 24px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)` }}>
                   {t("becomeCoach")}
                 </button>
               }
@@ -356,7 +356,7 @@ export default function CoachPage() {
               emoji="🔒"
               title={t("coachSignInRequired")}
               action={
-                <button type="button" onClick={() => router.push(`/${locale}/login`)} style={{ padding: "12px 28px", borderRadius: 14, background: RED, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" }}>
+                <button type="button" onClick={() => router.push(`/${locale}/login`)} style={{ padding: "12px 28px", borderRadius: 14, background: `linear-gradient(145deg, ${RED}, #cc2820)`, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 24px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)` }}>
                   {t("coachSignInBtn")}
                 </button>
               }
@@ -373,7 +373,7 @@ export default function CoachPage() {
               title={t("coachNoRequests")}
               hint={t("coachNoRequestsHint")}
               action={
-                <button type="button" onClick={() => setTab("coaches")} style={{ padding: "12px 28px", borderRadius: 14, background: RED, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", marginTop: 4 }}>
+                <button type="button" onClick={() => setTab("coaches")} style={{ padding: "12px 28px", borderRadius: 14, background: `linear-gradient(145deg, ${RED}, #cc2820)`, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", marginTop: 4, boxShadow: `0 8px 24px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)` }}>
                   {t("coachFindCoach")}
                 </button>
               }

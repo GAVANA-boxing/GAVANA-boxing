@@ -34,7 +34,7 @@ export default function AppButton({
   };
 
   const variants = {
-    primary: { background: RED, color: "#fff" },
+    primary: { background: `linear-gradient(145deg, ${RED}, #cc2820)`, color: "#fff", boxShadow: `0 6px 20px rgba(255,59,48,0.28), inset 0 1px 0 rgba(255,255,255,0.1)` },
     ghost: { background: "transparent", border: `1px solid ${BORDER}`, color: "#fff" },
     muted: { background: SURFACE, color: MUTED },
   };

@@ -258,13 +258,14 @@ const styles = {
   uploadBtn: {
     padding: "12px 28px",
     borderRadius: 999,
-    background: RED,
+    background: `linear-gradient(145deg, ${RED}, #cc2820)`,
     border: "none",
     color: "#fff",
     fontFamily: "inherit",
     fontSize: 14,
     fontWeight: 900,
     cursor: "pointer",
+    boxShadow: `0 8px 24px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)`,
   },
   reelThumb: {
     width: 52,

@@ -198,8 +198,9 @@ export default function BattleSection({ pvpStats, sparringRecord, isOwnProfile, 
               onClick={onGoToSparring}
               style={{
                 width: "100%", padding: "11px 0", borderRadius: 11,
-                background: RED,
+                background: `linear-gradient(145deg, ${RED}, #cc2820)`,
                 border: "none", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
+                boxShadow: `0 6px 20px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)`,
               }}
             >
               {t("profileFindSparring")}

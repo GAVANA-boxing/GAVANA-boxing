@@ -100,12 +100,12 @@ export const discoverFeedStyles = {
     padding: "11px 22px",
     borderRadius: 12,
     border: "none",
-    background: RED,
+    background: `linear-gradient(145deg, ${RED}, #cc2820)`,
     color: "#fff",
     fontSize: 14,
     fontWeight: 800,
     cursor: "pointer",
-    boxShadow: `0 8px 24px ${redAlpha(0.32)}`,
+    boxShadow: `0 8px 24px ${redAlpha(0.32)}, inset 0 1px 0 rgba(255,255,255,0.1)`,
   },
 
   card: {

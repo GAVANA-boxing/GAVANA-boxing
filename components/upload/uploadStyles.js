@@ -47,7 +47,7 @@ const S = {
   },
   iconBtn: { width: 40, height: 40, borderRadius: 999, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", color: "#fff", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
   headerTitle: { flex: 1, color: "#fff", fontSize: 16, fontWeight: 900, textAlign: "center" },
-  postBtn: { padding: "10px 24px", borderRadius: 999, border: "none", background: "#FF3B30", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: `0 4px 16px ${redAlpha(0.35)}` },
+  postBtn: { padding: "10px 24px", borderRadius: 999, border: "none", background: `linear-gradient(145deg, ${RED}, #cc2820)`, color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: `0 4px 16px ${redAlpha(0.35)}, inset 0 1px 0 rgba(255,255,255,0.1)` },
   setupScroll: { flex: 1, overflowY: "auto", padding: "20px 20px 40px", display: "flex", flexDirection: "column", gap: 20, maxWidth: 600, width: "100%", margin: "0 auto", boxSizing: "border-box" },
 
   // Video strip
@@ -96,7 +96,7 @@ const S = {
   captionBody: { color: "#fff", fontSize: 14, lineHeight: 1.55, whiteSpace: "pre-wrap" },
   captionActionBtn: { padding: "9px 14px", borderRadius: 999, border: `1px solid ${goldAlpha(0.34)}`, background: `${goldAlpha(0.1)}`, color: GOLD, fontSize: 13, fontWeight: 800, cursor: "pointer" },
 
-  primaryBtn: { padding: "14px 20px", borderRadius: 14, border: "none", background: "#FF3B30", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 24px ${redAlpha(0.28)}` },
+  primaryBtn: { padding: "14px 20px", borderRadius: 14, border: "none", background: `linear-gradient(145deg, ${RED}, #cc2820)`, color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 24px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)` },
 
   errBox: { background: "#3a0a0a", border: `1px solid ${redAlpha(0.5)}`, color: "#ff8b8b", padding: "12px 14px", borderRadius: 10, fontSize: 13 },
   errTxt: { margin: 0, color: "#ff8b8b", fontSize: 13 },

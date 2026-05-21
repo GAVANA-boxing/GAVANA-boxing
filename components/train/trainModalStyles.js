@@ -166,11 +166,12 @@ export const trainModalStyles = {
     minHeight: 46,
     border: "none",
     borderRadius: 14,
-    background: RED,
+    background: `linear-gradient(145deg, ${RED}, #cc2820)`,
     color: "#fff",
     fontSize: 14,
     fontWeight: 950,
     cursor: "pointer",
+    boxShadow: `0 8px 24px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)`,
   },
   saveButtonDone: {
     background: "#17664b",

@@ -338,7 +338,7 @@ const s = {
   },
   sendBtn: {
     height: 44, padding: "0 18px", border: "none", borderRadius: 22,
-    background: RED, color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
-    boxShadow: `0 4px 16px ${redAlpha(0.4)}`,
+    background: `linear-gradient(145deg, ${RED}, #cc2820)`, color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
+    boxShadow: `0 4px 16px ${redAlpha(0.35)}, inset 0 1px 0 rgba(255,255,255,0.1)`,
   },
 };

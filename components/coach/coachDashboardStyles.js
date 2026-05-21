@@ -133,9 +133,9 @@ const styles = {
   },
   confirmBtn: {
     minHeight: 48, borderRadius: 14, border: "none",
-    background: RED,
+    background: `linear-gradient(145deg, ${RED}, #cc2820)`,
     color: "#fff", fontSize: 15, fontWeight: 1000, cursor: "pointer",
-    boxShadow: `0 8px 24px ${redAlpha(0.35)}`, marginTop: 4,
+    boxShadow: `0 8px 24px ${redAlpha(0.35)}, inset 0 1px 0 rgba(255,255,255,0.1)`, marginTop: 4,
   },
   bookingSuccessMsg: { textAlign: "center", padding: "24px 0", fontSize: 18, fontWeight: 1000, color: "#34D399" },
   declineBtn: {
