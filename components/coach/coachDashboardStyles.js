@@ -3,7 +3,7 @@ import { RED, BG, redAlpha, GOLD, goldAlpha } from "@/lib/tokens";
 const styles = {
   page: {
     minHeight: "100dvh",
-    background: BG,
+    background: `radial-gradient(ellipse at 50% -8%, ${redAlpha(0.14)} 0%, transparent 50%), ${BG}`,
     color: "#fff",
   },
   content: {
@@ -18,8 +18,8 @@ const styles = {
     background: "rgba(0,0,0,0.4)", color: GOLD,
     fontSize: 13, fontWeight: 900, cursor: "pointer", marginBottom: 4,
   },
-  kicker: { margin: 0, color: GOLD, fontSize: 11, fontWeight: 950, letterSpacing: 2, textTransform: "uppercase" },
-  title: { margin: 0, fontSize: 28, fontWeight: 1000, lineHeight: 1.1 },
+  kicker: { margin: 0, color: RED, fontSize: 10, fontWeight: 900, letterSpacing: 3, textTransform: "uppercase" },
+  title: { margin: 0, fontSize: 28, fontWeight: 1000, lineHeight: 1.1, fontFamily: "var(--font-display, 'Anton', sans-serif)", textTransform: "uppercase", letterSpacing: "-0.02em" },
   statsPanel: {
     display: "flex", alignItems: "center",
     borderRadius: 18, background: "rgba(255,255,255,0.03)",

@@ -208,12 +208,12 @@ export default function GymDashboardPage() {
 
   // Owner dashboard
   return (
-    <div style={styles.page}>
+    <div style={styles.page} className="page-enter">
       <div style={styles.content}>
         <button type="button" style={styles.backBtn} onClick={() => router.push(`/${locale}/gyms/${gym.id}`)}>← {gym.gymName}</button>
 
         <div style={styles.dashHeader}>
-          <p style={styles.kicker}>{t("gymDashboardKicker")}</p>
+          <p style={styles.kicker}>COMBAT · GYM</p>
           <h1 style={styles.title}>{t("gymDashboard")}</h1>
           {(() => {
             const pct = getCompleteness(gym);

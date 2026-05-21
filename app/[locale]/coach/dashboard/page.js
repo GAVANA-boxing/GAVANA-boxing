@@ -62,7 +62,7 @@ export default function CoachDashboardPage() {
   ];
 
   return (
-    <main style={styles.page}>
+    <main style={styles.page} className="page-enter">
       <div style={styles.content}>
         {/* Header */}
         <header style={styles.header}>

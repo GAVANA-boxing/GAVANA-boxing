@@ -1,9 +1,9 @@
-import { goldAlpha, RED, GOLD } from "@/lib/tokens";
+import { goldAlpha, redAlpha, RED, GOLD, BG } from "@/lib/tokens";
 
 const styles = {
   page: {
     minHeight: "100dvh",
-    background: "#050505",
+    background: `radial-gradient(ellipse at 50% -8%, ${redAlpha(0.14)} 0%, transparent 50%), ${BG}`,
     color: "#fff",
     fontFamily: "inherit",
     display: "flex",
@@ -33,16 +33,16 @@ const styles = {
   },
   kicker: {
     margin: 0,
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: 900,
-    letterSpacing: 2,
+    letterSpacing: 3,
     textTransform: "uppercase",
-    color: GOLD,
+    color: RED,
   },
   sub: {
     margin: "2px 0 0",
     fontSize: 13,
-    color: "#888",
+    color: "rgba(255,255,255,0.45)",
   },
   featuredBadge: {
     marginLeft: "auto",

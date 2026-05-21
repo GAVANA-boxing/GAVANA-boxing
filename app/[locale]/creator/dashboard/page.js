@@ -254,7 +254,7 @@ export default function CreatorDashboard() {
   const distribTotal = externalAttempts.length || 1;
 
   return (
-    <div style={styles.page}>
+    <div style={styles.page} className="page-enter">
       <header style={styles.header}>
         <button type="button" style={styles.backBtn} onClick={() => router.back()} aria-label="Back">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
