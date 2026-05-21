@@ -43,7 +43,7 @@ const styles = {
   },
   tabBtnActive: {
     background: goldAlpha(0.14), border: `1px solid ${goldAlpha(0.42)}`,
-    color: GOLD, fontWeight: 900, boxShadow: `0 0 14px ${goldAlpha(0.12)}`,
+    color: GOLD, fontWeight: 900,
   },
   tabBtnViews: { background: "rgba(96,165,250,0.14)", border: "1px solid rgba(96,165,250,0.42)", color: "#60A5FA" },
   tabBtnLikes: { background: "rgba(244,114,182,0.14)", border: "1px solid rgba(244,114,182,0.42)", color: "#F472B6" },
@@ -63,7 +63,7 @@ const styles = {
   filterChipActiveWeight: { background: "rgba(96,165,250,0.14)", border: "1px solid #60A5FA", color: "#60A5FA" },
   archetypeChip: { flexShrink: 0, width: 20, height: 20, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11 },
 
-  content: { maxWidth: 640, margin: "0 auto", padding: "20px 16px" },
+  content: { maxWidth: 640, margin: "0 auto", padding: "28px 16px" },
 
   yourRankCard: {
     padding: "16px 18px", borderRadius: 18,
@@ -108,7 +108,7 @@ const styles = {
   emptyTitle: { margin: "0 0 8px", fontSize: 18, fontWeight: 800, color: "#fff" },
   emptyText: { margin: 0, fontSize: 14, color: "rgba(255,255,255,0.4)", maxWidth: 260, lineHeight: 1.55 },
 
-  list: { display: "grid", gap: 7 },
+  list: { display: "grid", gap: 10 },
   row: {
     display: "grid", gridTemplateColumns: "44px 48px 1fr auto", alignItems: "center", gap: 12,
     padding: "14px 14px", borderRadius: 16,
