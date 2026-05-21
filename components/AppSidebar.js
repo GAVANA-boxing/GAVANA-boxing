@@ -19,6 +19,10 @@ const IcoSwords  = () => <svg style={ic} viewBox="0 0 24 24"><polyline points="1
 const IcoMessage = () => <svg style={ic} viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>;
 const IcoPlus    = () => <svg style={{ ...ic, width: 15, height: 15, strokeWidth: 2.5 }} viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
 const IcoDash    = () => <svg style={ic} viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>;
+const IcoBars    = () => <svg style={ic} viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>;
+const IcoBuilding= () => <svg style={ic} viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>;
+const IcoUsers   = () => <svg style={ic} viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
+const IcoFlash   = () => <svg style={ic} viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>;
 
 // ─── Nav groups ───────────────────────────────────────────────────────────────
 const NAV = [
@@ -40,14 +44,23 @@ const NAV = [
   {
     group: "COMPETE",
     items: [
-      { Icon: IcoTrophy, label: "Rank",       path: "rank" },
-      { Icon: IcoSwords, label: "Sparring",   path: "sparring" },
+      { Icon: IcoTrophy,   label: "Rank",        path: "rank" },
+      { Icon: IcoSwords,   label: "Sparring",    path: "sparring" },
+      { Icon: IcoBars,     label: "Leaderboard", path: "leaderboard" },
+      { Icon: IcoFlash,    label: "Challenges",  path: "challenges" },
+    ],
+  },
+  {
+    group: "EXPLORE",
+    items: [
+      { Icon: IcoUsers,    label: "Fighters",    path: "fighters" },
+      { Icon: IcoBuilding, label: "Gyms",        path: "gyms" },
     ],
   },
   {
     group: "SOCIAL",
     items: [
-      { Icon: IcoMessage, label: "Inbox",     path: "inbox" },
+      { Icon: IcoMessage, label: "Inbox",        path: "inbox" },
     ],
   },
 ];
