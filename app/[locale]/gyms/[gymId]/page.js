@@ -158,7 +158,7 @@ export default function GymProfilePage() {
   const isOwner = user?.uid === gym.ownerId;
 
   return (
-    <div style={styles.page}>
+    <div style={styles.page} className="page-enter">
       <div style={styles.content}>
         <button type="button" style={styles.backBtn} onClick={() => router.push(`/${locale}/gyms`)}>← {t("back")}</button>
 
