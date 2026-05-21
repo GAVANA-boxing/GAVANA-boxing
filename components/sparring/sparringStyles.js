@@ -3,7 +3,12 @@ import { RED, BORDER, MUTED, SURFACE, BG, redAlpha, pageBg } from "@/lib/tokens"
 const s = {
   page: {
     minHeight: "100dvh",
-    background: pageBg(),
+    background: `
+      radial-gradient(ellipse 90% 40% at 50% 0%, ${redAlpha(0.14)} 0%, transparent 52%),
+      radial-gradient(ellipse 55% 50% at 8%  80%, ${redAlpha(0.05)} 0%, transparent 60%),
+      radial-gradient(ellipse 40% 35% at 92% 65%, rgba(255,255,255,0.018) 0%, transparent 55%),
+      ${BG}
+    `,
     color: "#fff",
     display: "flex",
     flexDirection: "column",
@@ -125,7 +130,7 @@ const s = {
   },
   countBar: { padding: "10px 16px 4px" },
   countTxt: { fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.28)", letterSpacing: 0.4 },
-  list: { flex: 1, display: "flex", flexDirection: "column", padding: "4px 0 0" },
+  list: { flex: 1, display: "flex", flexDirection: "column", padding: "4px 0 0", minHeight: "55dvh" },
   sectionLabel: {
     padding: "12px 16px 4px",
     fontSize: 9,
@@ -139,17 +144,19 @@ const s = {
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
+    flex: 1,
+    minHeight: "48dvh",
     padding: "48px 32px",
-    gap: 10,
+    gap: 12,
   },
-  emptyTitle: { margin: 0, fontSize: 16, fontWeight: 900, color: "#fff", textAlign: "center" },
+  emptyTitle: { margin: 0, fontSize: 17, fontWeight: 900, color: "rgba(255,255,255,0.88)", textAlign: "center", letterSpacing: "-0.01em" },
   emptySub: {
     margin: 0,
     fontSize: 13,
-    color: MUTED,
+    color: "rgba(255,255,255,0.3)",
     textAlign: "center",
-    lineHeight: 1.55,
-    maxWidth: 280,
+    lineHeight: 1.6,
+    maxWidth: 260,
   },
 };
 

@@ -592,7 +592,7 @@ export default function ReelsDashboard({
     });
   }, [user?.uid, user?.photoURL]);
   return (
-    <div style={d.page}>
+    <div style={d.page} className="cinematic-bg">
       <main style={d.center}>
         <div style={d.centerInner}>
           {!isProfileSource && (
@@ -679,7 +679,12 @@ const d = {
     display: "flex",
     height: "100dvh",
     overflow: "hidden",
-    background: `radial-gradient(ellipse 55% 70% at 38% 50%, ${redAlpha(0.06)} 0%, transparent 65%), #0B0B0C`,
+    background: `
+      radial-gradient(ellipse 60% 70% at 38% 42%, ${redAlpha(0.09)} 0%, transparent 62%),
+      radial-gradient(ellipse 35% 45% at 82% 18%, rgba(255,255,255,0.025) 0%, transparent 55%),
+      radial-gradient(ellipse 30% 40% at 88% 88%, ${redAlpha(0.04)} 0%, transparent 55%),
+      #0B0B0C
+    `,
     color: "#fff",
   },
 
@@ -690,8 +695,11 @@ const d = {
     display: "flex",
     flexDirection: "column",
     padding: "28px 14px 24px",
-    borderRight: "1px solid rgba(255,255,255,0.06)",
-    background: "rgba(255,255,255,0.015)",
+    borderRight: "1px solid rgba(255,255,255,0.05)",
+    background: `
+      radial-gradient(ellipse 100% 40% at 50% 0%, ${redAlpha(0.07)} 0%, transparent 60%),
+      rgba(11,11,12,0.96)
+    `,
     position: "sticky",
     top: 0,
     height: "100dvh",
@@ -1161,8 +1169,11 @@ const d = {
     flexDirection: "column",
     gap: 12,
     padding: "20px 14px 20px",
-    borderLeft: "1px solid rgba(255,255,255,0.06)",
-    background: "#0B0B0C",
+    borderLeft: "1px solid rgba(255,255,255,0.05)",
+    background: `
+      radial-gradient(ellipse 100% 35% at 50% 100%, ${redAlpha(0.05)} 0%, transparent 60%),
+      rgba(11,11,12,0.98)
+    `,
     height: "100dvh",
     overflowY: "auto",
     scrollbarWidth: "none",

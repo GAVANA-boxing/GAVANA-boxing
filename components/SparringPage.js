@@ -70,7 +70,7 @@ export default function SparringPage() {
   const isOn = !!myPost;
 
   return (
-    <div style={s.page} className="page-enter">
+    <div style={s.page} className="page-enter cinematic-bg">
 
       <PageTopBar
         kicker="COMBAT · SPARRING"
