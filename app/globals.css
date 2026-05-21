@@ -5,17 +5,18 @@
   --motion-spring: 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
   --motion-bounce: 260ms cubic-bezier(0.34, 1.8, 0.64, 1);
 
-  /* ── Background ── */
-  --bg:        #0B0B0C;
-  --surface:   #141416;
-  --surface-2: #1C1C1E;
-  --background: #0B0B0C;
+  /* ── Background — 4-level surface hierarchy ── */
+  --bg:        #090909;
+  --surface-1: #0d0d0f;
+  --surface:   #111113;
+  --surface-2: #161618;
+  --background: #090909;
   --foreground: #ffffff;
 
-  /* ── Border ── */
+  /* ── Border — ultra-subtle ── */
   --border:   rgba(255,255,255,0.06);
-  --border-2: rgba(255,255,255,0.12);
-  --line: rgba(255, 255, 255, 0.06);
+  --border-2: rgba(255,255,255,0.08);
+  --line: rgba(255,255,255,0.05);
 
   /* ── Brand ── */
   --red:  #FF3B30;
@@ -70,8 +71,8 @@
   --shadow-glow-red: 0 0 20px rgba(255,59,48,0.12);
 
   /* ── Glass ── */
-  --glass: rgba(11, 11, 11, 0.52);
-  --glass-strong: rgba(11, 11, 11, 0.7);
+  --glass: rgba(5, 5, 5, 0.58);
+  --glass-strong: rgba(5, 5, 5, 0.76);
 }
 
 @theme inline {

@@ -11,8 +11,8 @@ const styles = {
     position: "sticky", top: 0, zIndex: 10,
     display: "grid", gridTemplateColumns: "64px 1fr 44px", alignItems: "center", gap: 12,
     padding: "calc(18px + env(safe-area-inset-top)) 16px 18px",
-    background: "rgba(11,11,12,0.92)", backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)",
-    borderBottom: `1px solid ${goldAlpha(0.12)}`,
+    background: "rgba(5,5,5,0.94)", backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)",
+    borderBottom: `1px solid ${goldAlpha(0.1)}`,
   },
   backBtn: {
     border: `1px solid ${goldAlpha(0.28)}`, background: "transparent", color: "#fff",
@@ -30,14 +30,14 @@ const styles = {
   trophyBadge: { fontSize: 22, textAlign: "right" },
 
   tabsWrap: {
-    background: "rgba(11,11,12,0.92)", position: "sticky", top: 90, zIndex: 9,
-    borderBottom: `1px solid ${goldAlpha(0.1)}`, padding: "10px 16px 8px",
+    background: "rgba(5,5,5,0.94)", position: "sticky", top: 90, zIndex: 9,
+    borderBottom: `1px solid ${goldAlpha(0.08)}`, padding: "10px 16px 8px",
     backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
   },
   tabsRow: { display: "flex", gap: 7, maxWidth: 640, margin: "0 auto" },
   tabBtn: {
     flex: 1, padding: "9px 0", borderRadius: 10,
-    border: "1px solid rgba(255,255,255,0.09)", background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.04)",
     color: "rgba(255,255,255,0.4)", fontSize: 12, fontWeight: 700, cursor: "pointer",
     transition: "all 0.18s", whiteSpace: "nowrap",
   },
@@ -50,13 +50,13 @@ const styles = {
   seasonLabel: { margin: "6px auto 0", textAlign: "center", fontSize: 11, color: "rgba(255,255,255,0.35)", maxWidth: 640, fontWeight: 700 },
 
   filterWrap: {
-    background: "rgba(11,11,12,0.88)", padding: "8px 16px 10px",
-    borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", flexDirection: "column", gap: 6,
+    background: "rgba(5,5,5,0.92)", padding: "8px 16px 10px",
+    borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", flexDirection: "column", gap: 6,
   },
   filterRow: { display: "flex", gap: 6, overflowX: "auto", WebkitOverflowScrolling: "touch", scrollbarWidth: "none", msOverflowStyle: "none" },
   filterChip: {
     flexShrink: 0, padding: "6px 12px", borderRadius: 999,
-    border: "1px solid rgba(255,255,255,0.09)", background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.04)",
     color: "rgba(255,255,255,0.4)", fontSize: 12, fontWeight: 700,
     cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.15s ease",
   },
@@ -112,7 +112,7 @@ const styles = {
   row: {
     display: "grid", gridTemplateColumns: "44px 48px 1fr auto", alignItems: "center", gap: 12,
     padding: "14px 14px", borderRadius: 16,
-    background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)",
+    background: "rgba(255,255,255,0.045)", border: "1px solid rgba(255,255,255,0.06)",
     backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
   },
   rowHighlight: {
