@@ -1,11 +1,11 @@
-import { redAlpha, RED } from "@/lib/tokens";
+import { redAlpha, RED, BG } from "@/lib/tokens";
 
 const s = {
   page: {
     display: "flex",
     flexDirection: "column",
     height: "100dvh",
-    background: "#080808",
+    background: BG,
     color: "#fff",
     overflow: "hidden",
   },

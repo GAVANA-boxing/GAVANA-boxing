@@ -1,4 +1,4 @@
-import { RED, redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, BG, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 
 export const reelVideoStyles = {
   container: {
@@ -149,7 +149,7 @@ export const reelVideoStyles = {
     color: "var(--text-primary)",
     fontSize: 17,
     fontWeight: 700,
-    borderBottom: "2px solid #C1121F",
+    borderBottom: `2px solid ${RED}`,
     paddingBottom: 4,
   },
   profileBackButton: {
@@ -305,7 +305,7 @@ export const reelVideoStyles = {
     position: "absolute",
     inset: 0,
     overflow: "hidden",
-    background: `radial-gradient(circle at 52% 34%, ${goldAlpha(0.16)}, transparent 28%), radial-gradient(circle at 46% 62%, ${redAlpha(0.2)}, transparent 30%), linear-gradient(145deg, #070707 0%, #171010 48%, #050505 100%)`,
+    background: `radial-gradient(circle at 52% 34%, ${goldAlpha(0.16)}, transparent 28%), radial-gradient(circle at 46% 62%, ${redAlpha(0.2)}, transparent 30%), #0B0B0C`,
   },
   demoVignette: {
     position: "absolute",
@@ -316,7 +316,7 @@ export const reelVideoStyles = {
     position: "absolute",
     inset: 0,
     overflow: "hidden",
-    background: `radial-gradient(circle at 50% 38%, ${redAlpha(0.22)}, transparent 32%), radial-gradient(circle at 58% 56%, ${goldAlpha(0.12)}, transparent 30%), linear-gradient(145deg, #070707, #13090b 48%, #050505)`,
+    background: `radial-gradient(circle at 50% 38%, ${redAlpha(0.22)}, transparent 32%), radial-gradient(circle at 58% 56%, ${goldAlpha(0.12)}, transparent 30%), #0B0B0C`,
   },
   reelFallbackLight: {
     position: "absolute",
@@ -363,7 +363,7 @@ export const reelVideoStyles = {
     width: 54,
     height: 54,
     borderRadius: "50%",
-    background: "linear-gradient(145deg, #D4AF37, #70501a)",
+    background: GOLD,
   },
   demoTorso: {
     position: "absolute",
@@ -382,7 +382,7 @@ export const reelVideoStyles = {
     width: 86,
     height: 58,
     borderRadius: "34px 30px 28px 28px",
-    background: "linear-gradient(145deg, #C1121F, #770111)",
+    background: RED,
     boxShadow: "0 20px 48px rgba(0,0,0,0.36)",
   },
   demoGloveRear: {
@@ -392,7 +392,7 @@ export const reelVideoStyles = {
     width: 66,
     height: 54,
     borderRadius: "30px",
-    background: "linear-gradient(145deg, #D4AF37, #70501a)",
+    background: GOLD,
   },
   demoHook: {
     position: "absolute",

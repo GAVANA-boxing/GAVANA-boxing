@@ -1,7 +1,7 @@
-import { redAlpha, goldAlpha, RED, GOLD } from "@/lib/tokens";
+import { redAlpha, goldAlpha, RED, GOLD, BG } from "@/lib/tokens";
 
 const styles = {
-  page: { minHeight: "100dvh", background: "#070707", color: "#fff" },
+  page: { minHeight: "100dvh", background: BG, color: "#fff" },
   headerBar: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 16px 8px" },
   backBtn: { background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 14, cursor: "pointer", padding: 0 },
   headerTitle: { fontSize: 15, fontWeight: 600, color: "#fff" },
@@ -9,7 +9,7 @@ const styles = {
   avatarWrap: { position: "relative", width: 88, height: 88 },
   avatar: { width: 88, height: 88, borderRadius: 44, objectFit: "cover", border: `2px solid ${goldAlpha(0.4)}` },
   avatarInitials: { width: 88, height: 88, borderRadius: 44, background: `${redAlpha(0.2)}`, border: `2px solid ${redAlpha(0.4)}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30, fontWeight: 700, color: "#fff" },
-  verifiedDot: { position: "absolute", bottom: 2, right: 2, width: 24, height: 24, borderRadius: "50%", background: GOLD, color: "#000", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 0 2.5px #0A0A0A, 0 2px 8px ${goldAlpha(0.5)}` },
+  verifiedDot: { position: "absolute", bottom: 2, right: 2, width: 24, height: 24, borderRadius: "50%", background: GOLD, color: "#000", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 0 2.5px #0B0B0C, 0 2px 8px ${goldAlpha(0.5)}` },
   name: { fontSize: 22, fontWeight: 700, margin: 0, textAlign: "center" },
   verifiedBadge: { display: "flex", alignItems: "center", gap: 6, background: `${goldAlpha(0.15)}`, border: `1px solid ${goldAlpha(0.4)}`, borderRadius: 20, padding: "5px 13px", fontSize: 12, fontWeight: 700, color: GOLD, letterSpacing: "0.02em" },
   location: { fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0 },

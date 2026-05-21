@@ -159,7 +159,7 @@ export default function BattleSection({ pvpStats, sparringRecord, isOwnProfile, 
           marginTop: 14,
           background: "linear-gradient(145deg, #0a0a0a, #111)",
           border: `1px solid ${redAlpha(0.15)}`,
-          borderLeft: "3px solid #C1121F",
+          borderLeft: `3px solid ${RED}`,
           borderRadius: "3px 16px 16px 3px",
           padding: "18px 16px",
         }}>
@@ -196,7 +196,7 @@ export default function BattleSection({ pvpStats, sparringRecord, isOwnProfile, 
               onClick={onGoToSparring}
               style={{
                 width: "100%", padding: "11px 0", borderRadius: 11,
-                background: "linear-gradient(135deg, #C1121F, #7d0812)",
+                background: RED,
                 border: "none", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
               }}
             >

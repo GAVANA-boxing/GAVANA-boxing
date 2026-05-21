@@ -1,9 +1,9 @@
-import { RED, redAlpha, GOLD, goldAlpha } from "@/lib/tokens";
+import { RED, BG, redAlpha, GOLD, goldAlpha } from "@/lib/tokens";
 
 export const coachPageStyles = {
   page: {
     minHeight: "100dvh",
-    background: `radial-gradient(circle at 50% 0%, ${redAlpha(0.18)}, transparent 30%), linear-gradient(180deg, #080808 0%, #0B0B0B 100%)`,
+    background: BG,
     color: "#fff",
   },
   tabStrip: {
@@ -29,7 +29,7 @@ export const coachPageStyles = {
   filterBarCompact: { display: "flex", gap: 6, flexWrap: "nowrap", overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none", marginBottom: 20, alignItems: "center" },
   filterMoreBtn: { flexShrink: 0, padding: "5px 12px", borderRadius: 999, border: `1px solid ${goldAlpha(0.3)}`, background: `${goldAlpha(0.06)}`, color: GOLD, fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" },
   filterSheetSectionLabel: { margin: "0 0 8px", fontSize: 10, fontWeight: 900, color: GOLD, letterSpacing: 1.5 },
-  filterSheetDone: { marginTop: 16, width: "100%", minHeight: 46, border: "none", borderRadius: 14, background: "linear-gradient(135deg, #C1121F, #7d0812)", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 24px ${redAlpha(0.25)}` },
+  filterSheetDone: { marginTop: 16, width: "100%", minHeight: 46, border: "none", borderRadius: 14, background: RED, color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 24px ${redAlpha(0.25)}` },
   cardRatingInline: { fontSize: 12, fontWeight: 800, color: GOLD },
   specialtyScroll: { display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" },
   chip: { flexShrink: 0, padding: "5px 12px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.16)", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.7)", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" },

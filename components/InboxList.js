@@ -322,7 +322,7 @@ export default function InboxList() {
 }
 
 const s = {
-  page: { minHeight: "100dvh", background: `radial-gradient(ellipse at 50% 0%, ${redAlpha(0.1)} 0%, transparent 40%), #070707`, color: "#fff", display: "flex", flexDirection: "column", paddingBottom: "calc(88px + env(safe-area-inset-bottom))" },
+  page: { minHeight: "100dvh", background: "#0B0B0C", color: "#fff", display: "flex", flexDirection: "column", paddingBottom: "calc(88px + env(safe-area-inset-bottom))" },
   header: { position: "sticky", top: 0, zIndex: 20, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "calc(16px + env(safe-area-inset-top)) 16px 14px", background: "rgba(7,7,7,0.92)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.07)" },
   backBtn: { width: 40, height: 40, borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.75)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
   composeBtn: { width: 40, height: 40, borderRadius: 12, border: `1px solid ${redAlpha(0.45)}`, background: `${redAlpha(0.12)}`, color: RED, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
@@ -333,8 +333,8 @@ const s = {
   avatarWrap: { position: "relative", flexShrink: 0 },
   avatar: { width: 52, height: 52, borderRadius: "50%", objectFit: "cover", display: "block", background: "#1a1a1a" },
   avatarFallback: { width: 52, height: 52, borderRadius: "50%", background: `linear-gradient(145deg, ${redAlpha(0.6)}, #1a1a1a)`, border: `1px solid ${redAlpha(0.3)}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 900, color: "#fff" },
-  coachBadge: { position: "absolute", bottom: -2, right: -2, width: 20, height: 20, borderRadius: "50%", background: GOLD, border: "2px solid #070707", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10 },
-  unreadDot: { position: "absolute", bottom: 1, right: 1, width: 12, height: 12, borderRadius: "50%", background: RED, border: "2px solid #070707", boxShadow: `0 0 6px ${redAlpha(0.8)}` },
+  coachBadge: { position: "absolute", bottom: -2, right: -2, width: 20, height: 20, borderRadius: "50%", background: GOLD, border: "2px solid #0B0B0C", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10 },
+  unreadDot: { position: "absolute", bottom: 1, right: 1, width: 12, height: 12, borderRadius: "50%", background: RED, border: "2px solid #0B0B0C", boxShadow: `0 0 6px ${redAlpha(0.8)}` },
   rowBody: { flex: 1, minWidth: 0 },
   rowTop: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 },
   name: { fontSize: 14, fontWeight: 750, color: "rgba(255,255,255,0.82)", lineHeight: 1 },

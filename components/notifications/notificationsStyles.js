@@ -1,15 +1,15 @@
-import { RED, redAlpha, GOLD, goldAlpha } from "@/lib/tokens";
+import { RED, BG, redAlpha, GOLD, goldAlpha } from "@/lib/tokens";
 
 const styles = {
   page: {
     minHeight: "100dvh",
-    background: `radial-gradient(ellipse at top center, ${redAlpha(0.06)} 0%, transparent 50%), linear-gradient(180deg, #070707 0%, #0a0a0a 100%)`,
+    background: BG,
     color: "#fff",
     paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
   },
   centered: {
     minHeight: "100dvh",
-    background: "#070707",
+    background: BG,
     color: "#fff",
     display: "flex",
     alignItems: "center",
@@ -158,7 +158,7 @@ const styles = {
     left: 0,
     width: 3,
     bottom: 0,
-    background: `linear-gradient(180deg, #C1121F, ${redAlpha(0.4)})`,
+    background: RED,
     borderRadius: "3px 0 0 3px",
   },
   avatarWrap: {
