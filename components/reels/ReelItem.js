@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useEffect } from "react";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import {
   getSafeLikeCount,
@@ -66,6 +66,18 @@ const ReelItem = memo(function ReelItem({
   setVideoProgress,
 }) {
   const isActive = index === currentIndex;
+
+  useEffect(() => {
+    const video = videoRefs.current[reel.id];
+    if (!video || reel.isDemo || hasVideoError || !reel.videoUrl) return;
+    if (isActive) {
+      video.muted = !soundEnabled;
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isActive, soundEnabled]);
 
   const openCreatorProfile = () => {
     if (reel.userId) router.push(`/${currentLocale}/profile/${reel.userId}`);
