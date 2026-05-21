@@ -259,7 +259,7 @@ export default function UserProfilePage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: "100dvh", background: "#0B0B0C", padding: "calc(28px + env(safe-area-inset-top)) 16px 40px" }}>
+      <div style={{ minHeight: "100dvh", background: "#0B0B0C", padding: "calc(28px + env(safe-area-inset-top)) 16px 40px" }} className="page-enter">
         <div style={{ maxWidth: 540, margin: "0 auto", display: "grid", gap: 14 }}>
           <div className="shimmer" style={{ width: 40, height: 40, borderRadius: 10 }} />
           <div className="shimmer" style={{ height: 220, borderRadius: 20 }} />
@@ -317,7 +317,7 @@ export default function UserProfilePage() {
   return (
     <div className="page-enter" style={{
       minHeight: "100dvh",
-      background: `radial-gradient(ellipse at top center, ${redAlpha(0.08)} 0%, transparent 50%), var(--background)`,
+      background: `radial-gradient(ellipse at 50% -8%, ${redAlpha(0.14)} 0%, transparent 50%), var(--background)`,
       color: "var(--text-primary)",
       padding: 0,
       overflowX: "hidden"

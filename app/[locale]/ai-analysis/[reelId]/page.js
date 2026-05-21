@@ -272,7 +272,7 @@ export default function AIAnalysisPage() {
   const footwork = aiData ? Math.min(10, 5.5 + (aiData.strengths?.length || 0) * 0.3) : 0;
 
   return (
-    <div className="page-enter" style={{ minHeight: "100dvh", background: "#0B0B0C", display: "flex", flexDirection: "column" }}>
+    <div className="page-enter" style={{ minHeight: "100dvh", background: `radial-gradient(ellipse at 50% -8%, ${redAlpha(0.14)} 0%, transparent 50%), #0B0B0C`, display: "flex", flexDirection: "column" }}>
 
       {/* Header */}
       <div style={{
