@@ -60,7 +60,7 @@ export default function CoachPage() {
     });
 
   return (
-    <main style={styles.page}>
+    <main style={styles.page} className="page-enter">
       {/* Tab strip */}
       <div style={styles.tabStrip}>
         {[
@@ -113,7 +113,7 @@ export default function CoachPage() {
       {tab === "coaches" && (
         <div style={styles.content}>
           <header style={styles.pageHeader}>
-            <p style={styles.kicker}>GAVANA BOXING</p>
+            <p style={styles.kicker}>COMBAT · TRAINING</p>
             <h1 style={styles.pageTitle}>{t("coachMarketplace")}</h1>
             {user && (
               <button
@@ -296,7 +296,7 @@ export default function CoachPage() {
       {tab === "sparring" && (
         <div style={styles.content}>
           <header style={styles.pageHeader}>
-            <p style={styles.kicker}>GAVANA BOXING</p>
+            <p style={styles.kicker}>COMBAT · TRAINING</p>
             <h1 style={styles.pageTitle}>{t("sparringFinder")}</h1>
           </header>
 
@@ -347,7 +347,7 @@ export default function CoachPage() {
       {tab === "mine" && (
         <div style={styles.content}>
           <header style={styles.pageHeader}>
-            <p style={styles.kicker}>GAVANA BOXING</p>
+            <p style={styles.kicker}>COMBAT · TRAINING</p>
             <h1 style={styles.pageTitle}>{t("coachMyRequestsTitle")}</h1>
           </header>
 
