@@ -1,9 +1,9 @@
-import { GOLD, RED, redAlpha, goldAlpha } from "@/lib/tokens";
+import { GOLD, RED, BG, redAlpha, goldAlpha } from "@/lib/tokens";
 
 const styles = {
   page: {
     minHeight: "100dvh",
-    background: "#0B0B0C",
+    background: `radial-gradient(ellipse at 50% -8%, ${redAlpha(0.14)} 0%, transparent 50%), ${BG}`,
     color: "#fff",
     padding: "calc(20px + env(safe-area-inset-top)) 16px 48px",
   },
@@ -17,10 +17,10 @@ const styles = {
     justifySelf: "start",
     width: 40,
     height: 40,
-    border: "1px solid rgba(255,255,255,0.12)",
-    background: "rgba(255,255,255,0.055)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    background: "rgba(255,255,255,0.05)",
     color: "#fff",
-    borderRadius: 10,
+    borderRadius: 12,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -32,16 +32,20 @@ const styles = {
   },
   kicker: {
     margin: 0,
-    color: GOLD,
-    fontSize: 12,
+    color: RED,
+    fontSize: 10,
     fontWeight: 900,
-    letterSpacing: 2,
+    letterSpacing: 3,
+    textTransform: "uppercase",
   },
   title: {
     margin: "8px 0 0",
-    fontSize: 34,
+    fontSize: 32,
     lineHeight: 1,
-    fontWeight: 900,
+    fontWeight: 1000,
+    fontFamily: "var(--font-display, 'Anton', sans-serif)",
+    textTransform: "uppercase",
+    letterSpacing: "-0.02em",
   },
   avatarBlock: {
     display: "grid",
@@ -104,8 +108,10 @@ const styles = {
     gap: 18,
     padding: "20px 18px",
     borderRadius: 20,
-    background: "rgba(11,11,11,0.9)",
+    background: "rgba(255,255,255,0.03)",
     border: "1px solid rgba(255,255,255,0.07)",
+    backdropFilter: "blur(16px)",
+    WebkitBackdropFilter: "blur(16px)",
     boxShadow: "0 20px 60px rgba(0,0,0,0.34)",
   },
   field: {
@@ -113,10 +119,10 @@ const styles = {
     gap: 8,
   },
   label: {
-    color: "#888",
-    fontSize: 11,
+    color: RED,
+    fontSize: 10,
     fontWeight: 900,
-    letterSpacing: 1.2,
+    letterSpacing: 2,
     textTransform: "uppercase",
   },
   usernameWrap: {
@@ -127,7 +133,7 @@ const styles = {
     left: 14,
     top: "50%",
     transform: "translateY(-50%)",
-    color: "#555",
+    color: "rgba(255,255,255,0.3)",
     fontSize: 15,
     fontWeight: 700,
     pointerEvents: "none",
@@ -184,7 +190,7 @@ const styles = {
     whiteSpace: "nowrap",
   },
   fieldHint: {
-    color: "#555",
+    color: "rgba(255,255,255,0.35)",
     fontSize: 11,
   },
   fieldError: {
@@ -205,14 +211,15 @@ const styles = {
     width: "100%",
     border: "none",
     borderRadius: 14,
-    background: RED,
+    background: `linear-gradient(145deg, ${RED}, #cc2820)`,
     color: "#fff",
     minHeight: 52,
     fontSize: 15,
     fontWeight: 900,
-    boxShadow: `0 16px 44px ${redAlpha(0.24)}`,
-    transition: "background 0.3s, box-shadow 0.3s",
+    boxShadow: `0 10px 32px ${redAlpha(0.32)}, inset 0 1px 0 rgba(255,255,255,0.1)`,
+    transition: "box-shadow 0.3s",
     fontFamily: "inherit",
+    cursor: "pointer",
   },
 };
 

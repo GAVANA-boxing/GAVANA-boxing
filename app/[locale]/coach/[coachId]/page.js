@@ -70,7 +70,7 @@ export default function CoachProfilePage() {
   const isOwnProfile = user?.uid === coachId;
 
   return (
-    <main style={styles.page}>
+    <main style={styles.page} className="page-enter">
       {/* Header */}
       <div style={styles.headerBar}>
         <button type="button" style={styles.backBtn} onClick={() => router.back()}>← {t("back")}</button>
