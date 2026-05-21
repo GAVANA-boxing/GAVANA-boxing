@@ -2,7 +2,7 @@
 
 import { translate } from "@/lib/i18n";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
-import { RED, redAlpha } from "@/lib/tokens";
+import { RED, GOLD, redAlpha } from "@/lib/tokens";
 import { c } from "@/components/sparring/sparringStyles";
 import { formatAgo } from "@/lib/utils";
 import Image from "next/image";
@@ -92,7 +92,7 @@ export function FighterCard({ post, isMe, onRequest, sent, requesting, locale })
               ? "rgba(255,255,255,0.06)"
               : arch?.color
               ? `linear-gradient(135deg, ${arch.color}, ${arch.color}bb)`
-              : "linear-gradient(135deg, #C1121F, #8f0d17)",
+              : RED,
             border: sent ? "1px solid rgba(52,211,153,0.3)" : "none",
             color: sent ? "#34D399" : "#fff",
             cursor: sent ? "not-allowed" : isBusy ? "wait" : "pointer",
@@ -121,7 +121,7 @@ export function IncomingRequestCard({ req, onAccept, onDecline, onMessage, accep
   const timeAgo = formatAgo(req.createdAt, locale);
 
   return (
-    <div style={{ ...c.card, borderLeft: "2.5px solid #D4AF37" }}>
+    <div style={{ ...c.card, borderLeft: `2.5px solid ${GOLD}` }}>
       <div style={c.cardTop}>
         <div style={c.avatarWrap}>
           {req.fromPhotoURL

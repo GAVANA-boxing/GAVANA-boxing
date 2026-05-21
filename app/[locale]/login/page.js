@@ -278,9 +278,9 @@ export default function LoginPage() {
               style={{
                 ...S.submitBtn,
                 background: loading
-                  ? "rgba(193,18,31,0.3)"
-                  : `linear-gradient(135deg, #C1121F 0%, #8b0d15 100%)`,
-                boxShadow: loading ? "none" : `0 12px 36px rgba(193,18,31,0.35), 0 0 0 1px rgba(193,18,31,0.2) inset`,
+                  ? "rgba(255,59,48,0.3)"
+                  : "#FF3B30",
+                boxShadow: loading ? "none" : `0 12px 36px rgba(255,59,48,0.3), 0 0 0 1px rgba(255,59,48,0.2) inset`,
               }}
             >
               {loading ? (
@@ -323,10 +323,9 @@ const S = {
     padding: "24px 20px",
     overflow: "hidden",
     background: `
-      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(193,18,31,0.28) 0%, transparent 60%),
-      radial-gradient(ellipse 50% 40% at 20% 80%, rgba(193,18,31,0.10) 0%, transparent 50%),
-      radial-gradient(ellipse 40% 30% at 80% 90%, rgba(212,175,55,0.06) 0%, transparent 50%),
-      linear-gradient(180deg, #050305 0%, #070707 50%, #060306 100%)
+      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(255,59,48,0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 20% 80%, rgba(255,59,48,0.06) 0%, transparent 50%),
+      #0B0B0C
     `,
   },
   orb1: {

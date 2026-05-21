@@ -355,7 +355,7 @@ export default function SparringPage() {
                   disabled={toggling}
                   style={{
                     ...s.toggleBtn,
-                    background: isOn ? "rgba(52,211,153,0.15)" : "linear-gradient(135deg, #C1121F, #8f0d17)",
+                    background: isOn ? "rgba(52,211,153,0.15)" : RED,
                     border: isOn ? "1px solid rgba(52,211,153,0.3)" : "none",
                     color: isOn ? "#34D399" : "#fff",
                     opacity: toggling ? 0.6 : 1,

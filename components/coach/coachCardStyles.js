@@ -15,7 +15,7 @@ export const coachCardStyles = {
   avatar: { width: 52, height: 52, borderRadius: "50%", objectFit: "cover", border: `2px solid ${goldAlpha(0.4)}` },
   avatarInitials: {
     width: 52, height: 52, borderRadius: "50%",
-    background: "linear-gradient(135deg, #C1121F, #7d0812)",
+    background: RED,
     border: `2px solid ${goldAlpha(0.4)}`,
     display: "flex", alignItems: "center", justifyContent: "center",
     fontSize: 18, fontWeight: 1000, color: "#fff",
@@ -25,7 +25,7 @@ export const coachCardStyles = {
     width: 18, height: 18, borderRadius: "50%",
     background: GOLD, color: "#000", fontSize: 10, fontWeight: 1000,
     display: "flex", alignItems: "center", justifyContent: "center",
-    border: "2px solid #0a0a0a",
+    border: "2px solid #0b0b0c",
   },
   cardInfo: { flex: 1, display: "flex", flexDirection: "column", gap: 3, minWidth: 0 },
   cardNameRow: { display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" },
@@ -59,7 +59,7 @@ export const coachCardStyles = {
   },
   requestBtn: {
     flex: 1, minHeight: 38, border: "none", borderRadius: 10,
-    background: "linear-gradient(135deg, #C1121F, #7d0812)",
+    background: RED,
     color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer",
     boxShadow: `0 8px 24px ${redAlpha(0.28)}`,
   },

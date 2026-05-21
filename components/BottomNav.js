@@ -12,7 +12,7 @@ import Image from "next/image";
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
 function HomeIcon({ active }) {
   return (
-    <svg style={{ ...ic, color: active ? RED : "#3a3a3a" }} viewBox="0 0 24 24" aria-hidden="true">
+    <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.22)" }} viewBox="0 0 24 24" aria-hidden="true">
       <path d="M3 12L12 4l9 8" />
       <path d="M5 10v9a1 1 0 0 0 1 1h4v-5h4v5h4a1 1 0 0 0 1-1v-9" />
     </svg>
@@ -21,7 +21,7 @@ function HomeIcon({ active }) {
 
 function DiscoverIcon({ active }) {
   return (
-    <svg style={{ ...ic, color: active ? RED : "#3a3a3a" }} viewBox="0 0 24 24" aria-hidden="true">
+    <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.22)" }} viewBox="0 0 24 24" aria-hidden="true">
       <circle cx="11" cy="11" r="6" />
       <path d="m17 17 3.5 3.5" />
     </svg>
@@ -30,7 +30,7 @@ function DiscoverIcon({ active }) {
 
 function AlertsIcon({ active }) {
   return (
-    <svg style={{ ...ic, color: active ? RED : "#3a3a3a" }} viewBox="0 0 24 24" aria-hidden="true">
+    <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.22)" }} viewBox="0 0 24 24" aria-hidden="true">
       <path d="M18 10.5V9a6 6 0 0 0-12 0v1.5c0 2.7-1.2 3.8-2.2 5h16.4c-1-1.2-2.2-2.3-2.2-5Z" />
       <path d="M9.7 18.5a2.5 2.5 0 0 0 4.6 0" />
     </svg>
@@ -47,7 +47,7 @@ function PlusIcon() {
 
 function InboxIcon({ active }) {
   return (
-    <svg style={{ ...ic, color: active ? RED : "#3a3a3a" }} viewBox="0 0 24 24" aria-hidden="true">
+    <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.22)" }} viewBox="0 0 24 24" aria-hidden="true">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
     </svg>
   );
@@ -64,7 +64,7 @@ function ProfileTab({ user, active, onClick }) {
       <span style={{ position: "relative", display: "inline-flex" }}>
         <span style={{
           ...s.avatarWrap,
-          boxShadow: active ? "0 0 0 2px #C1121F" : "0 0 0 1.5px rgba(255,255,255,0.08)",
+          boxShadow: active ? `0 0 0 2px ${RED}` : "0 0 0 1.5px rgba(255,255,255,0.08)",
         }}>
           {photo && !imgError
             ? <Image src={photo} alt="Profile photo" width={30} height={30} style={{ objectFit: "cover" }} onError={() => setImgError(true)} />
@@ -283,7 +283,7 @@ const s = {
     zIndex: 100,
     height: "calc(72px + env(safe-area-inset-bottom))",
     paddingBottom: "env(safe-area-inset-bottom)",
-    background: "rgba(8,8,8,0.97)",
+    background: "rgba(11,11,12,0.97)",
     borderTop: "1px solid rgba(255,255,255,0.06)",
     backdropFilter: "blur(28px)",
     WebkitBackdropFilter: "blur(28px)",
@@ -402,8 +402,8 @@ const h = {
     position: "relative",
     width: "100%",
     maxWidth: 520,
-    background: "linear-gradient(180deg, #181010 0%, #0d0d0d 100%)",
-    border: `1px solid ${redAlpha(0.15)}`,
+    background: "#141416",
+    border: "1px solid rgba(255,255,255,0.08)",
     borderBottom: "none",
     borderRadius: "24px 24px 0 0",
     padding: "12px 20px calc(20px + env(safe-area-inset-bottom))",

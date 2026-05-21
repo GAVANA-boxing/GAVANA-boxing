@@ -1,9 +1,9 @@
-import { RED, redAlpha, GOLD, goldAlpha } from "@/lib/tokens";
+import { RED, BG, redAlpha, GOLD, goldAlpha } from "@/lib/tokens";
 
 const styles = {
   page: {
     minHeight: "100dvh",
-    background: `radial-gradient(circle at 50% 0%, ${redAlpha(0.18)}, transparent 30%), linear-gradient(180deg, #080808 0%, #0B0B0B 100%)`,
+    background: BG,
     color: "#fff",
   },
   content: {
@@ -57,7 +57,7 @@ const styles = {
   avatar: { width: 42, height: 42, borderRadius: "50%", objectFit: "cover", border: `2px solid ${goldAlpha(0.35)}`, flexShrink: 0 },
   avatarFallback: {
     width: 42, height: 42, borderRadius: "50%",
-    background: "linear-gradient(135deg, #C1121F, #7d0812)",
+    background: RED,
     border: `2px solid ${goldAlpha(0.35)}`,
     display: "flex", alignItems: "center", justifyContent: "center",
     fontSize: 16, fontWeight: 1000, color: "#fff", flexShrink: 0,
@@ -104,7 +104,7 @@ const styles = {
     border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)",
     color: "rgba(255,255,255,0.65)", fontSize: 12, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap",
   },
-  filterTabActive: { background: RED, border: "1px solid #C1121F", color: "#fff" },
+  filterTabActive: { background: RED, border: `1px solid ${RED}`, color: "#fff" },
   filterTabCount: {
     fontSize: 10, fontWeight: 900, background: "rgba(255,255,255,0.16)",
     borderRadius: 999, padding: "1px 6px", lineHeight: 1.4,
@@ -133,7 +133,7 @@ const styles = {
   },
   confirmBtn: {
     minHeight: 48, borderRadius: 14, border: "none",
-    background: "linear-gradient(135deg, #C1121F, #7d0812)",
+    background: RED,
     color: "#fff", fontSize: 15, fontWeight: 1000, cursor: "pointer",
     boxShadow: `0 8px 24px ${redAlpha(0.35)}`, marginTop: 4,
   },

@@ -1,4 +1,4 @@
-import { RED, GOLD, PURPLE, redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, GOLD, PURPLE, BG, redAlpha, goldAlpha } from "@/lib/tokens";
 
 const styles = {
   backHeader: {
@@ -6,7 +6,7 @@ const styles = {
     display: "flex", alignItems: "center",
     paddingTop: "calc(12px + env(safe-area-inset-top))",
     paddingBottom: 12, paddingLeft: 16, paddingRight: 16,
-    background: "rgba(7,7,7,0.88)",
+    background: "rgba(11,11,12,0.95)",
     backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
   },
   backBtnProfile: { width: 40, height: 40, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.055)", color: "#fff", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", padding: 0 },
@@ -17,7 +17,7 @@ const styles = {
   coverPhotoGradient: { position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.3) 60%, rgba(7,7,7,0.88) 100%)", pointerEvents: "none" },
   coverPhotoEditBtn: { position: "absolute", bottom: 12, right: 14, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.22)", borderRadius: 10, color: "#fff", width: 36, height: 36, cursor: "pointer", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center" },
   fighterCardInner: { width: "min(100%, 520px)", margin: "0 auto", textAlign: "center" },
-  avatarFrame: { width: 148, height: 148, borderRadius: "50%", background: "linear-gradient(145deg, #C1121F, #310408)", border: `3px solid ${redAlpha(0.85)}`, boxShadow: `0 0 0 1px ${goldAlpha(0.5)}, 0 0 0 4px ${redAlpha(0.15)}, 0 24px 80px rgba(0,0,0,0.6), 0 0 48px ${redAlpha(0.25)}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 52, fontWeight: 1000, margin: "-52px auto 20px", color: "#FFFFFF", overflow: "hidden", position: "relative", zIndex: 1 },
+  avatarFrame: { width: 148, height: 148, borderRadius: "50%", background: RED, border: `3px solid ${redAlpha(0.85)}`, boxShadow: `0 0 0 1px ${goldAlpha(0.5)}, 0 0 0 4px ${redAlpha(0.15)}, 0 24px 80px rgba(0,0,0,0.6), 0 0 48px ${redAlpha(0.25)}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 52, fontWeight: 1000, margin: "-52px auto 20px", color: "#FFFFFF", overflow: "hidden", position: "relative", zIndex: 1 },
   avatarImage: { width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", display: "block" },
   fighterName: { margin: "8px 0 0", color: "#FFFFFF", fontSize: "clamp(36px, 11vw, 56px)", lineHeight: 0.92, fontWeight: 1000, letterSpacing: -0.5, fontFamily: "var(--font-display, 'Anton', sans-serif)" },
   fighterUsername: { marginTop: 10, color: "#C8C8C8", fontSize: 14, fontWeight: 750 },
@@ -31,9 +31,9 @@ const styles = {
   actionRow: { display: "flex", justifyContent: "center", flexWrap: "wrap", gap: 10 },
   ghostAction: { padding: "10px 17px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 999, background: "rgba(255,255,255,0.055)", color: "#FFFFFF", fontSize: 13, fontWeight: 800, cursor: "pointer" },
   followAction: { padding: "12px 34px", border: "none", borderRadius: 999, color: "#FFFFFF", fontSize: 14, fontWeight: 900 },
-  profileTabs: { display: "flex", width: "100%", borderBottom: "1px solid rgba(255,255,255,0.08)", background: "#070707", position: "sticky", top: 0, zIndex: 8 },
+  profileTabs: { display: "flex", width: "100%", borderBottom: "1px solid rgba(255,255,255,0.08)", background: BG, position: "sticky", top: 0, zIndex: 8 },
   profileTab: { flex: 1, minHeight: 50, border: "none", background: "transparent", color: "#777", fontSize: 11, fontWeight: 900, letterSpacing: 1.2, textTransform: "uppercase", cursor: "pointer" },
-  profileTabActive: { color: "#FFFFFF", boxShadow: "inset 0 -2px 0 #C1121F" },
+  profileTabActive: { color: "#FFFFFF", boxShadow: `inset 0 -2px 0 ${RED}` },
   reelPreviewMedia: { width: "100%", height: "100%", objectFit: "cover", display: "block", background: "linear-gradient(145deg, #070707, #18090c)" },
   deleteReelButton: { position: "absolute", top: 8, right: 8, zIndex: 3, width: 30, height: 30, borderRadius: 999, border: "1px solid rgba(255,255,255,0.16)", background: "rgba(7,7,7,0.72)", color: "#fff", fontSize: 20, fontWeight: 800, lineHeight: "26px", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 24px rgba(0,0,0,0.36)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)" },
   fighterTagsRow: { display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center", margin: "14px auto 4px", maxWidth: 430 },

@@ -1,7 +1,7 @@
-import { redAlpha, goldAlpha, RED, GOLD } from "@/lib/tokens";
+import { redAlpha, goldAlpha, RED, GOLD, BG } from "@/lib/tokens";
 
 const styles = {
-  page: { minHeight: "100dvh", background: `radial-gradient(ellipse at 50% 0%, ${redAlpha(0.12)} 0%, transparent 38%), #070707`, color: "#fff" },
+  page: { minHeight: "100dvh", background: BG, color: "#fff" },
   tabBar: {
     position: "sticky", top: 0, zIndex: 50,
     display: "flex", background: "rgba(8,8,8,0.95)",
@@ -11,7 +11,7 @@ const styles = {
   },
   tabActive: {
     flex: 1, minHeight: 46, border: "none",
-    borderBottom: "2px solid #C1121F", background: "transparent",
+    borderBottom: `2px solid ${RED}`, background: "transparent",
     color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", letterSpacing: 0.3,
   },
   tabInactive: {

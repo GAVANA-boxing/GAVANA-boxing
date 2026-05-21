@@ -186,7 +186,7 @@ const s = {
     position: "relative",
     width: "100%",
     maxWidth: 480,
-    background: "linear-gradient(180deg, #151111, #080808)",
+    background: "#141416",
     border: "1px solid rgba(255,255,255,0.1)",
     borderRadius: "24px 24px 0 0",
     padding: "20px 20px calc(32px + env(safe-area-inset-bottom))",

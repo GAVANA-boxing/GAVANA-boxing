@@ -1,7 +1,7 @@
-import { redAlpha, goldAlpha, RED, GOLD } from "@/lib/tokens";
+import { redAlpha, goldAlpha, RED, GOLD, BG } from "@/lib/tokens";
 
 const styles = {
-  page: { minHeight: "100dvh", background: "#070707", color: "#fff" },
+  page: { minHeight: "100dvh", background: BG, color: "#fff" },
   content: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },
   backBtn: { width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.055)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff", borderRadius: 10, cursor: "pointer", padding: 0 },
   hero: { position: "relative", height: 200, borderRadius: 16, overflow: "hidden", background: "linear-gradient(135deg,#1a1a1a,#111)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 0 },
@@ -20,7 +20,7 @@ const styles = {
   statNum: { fontSize: 17, fontWeight: 1000, color: "#fff" },
   statLbl: { fontSize: 10, color: "rgba(255,255,255,0.62)", fontWeight: 700, textTransform: "uppercase" },
   ctaRow: { display: "flex", gap: 8, marginBottom: 20, alignItems: "flex-start", flexWrap: "wrap" },
-  joinBtn: { flex: 1, minHeight: 44, border: "none", borderRadius: 12, background: "linear-gradient(135deg,#C1121F,#7d0812)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer" },
+  joinBtn: { flex: 1, minHeight: 44, border: "none", borderRadius: 12, background: RED, color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer" },
   requestedBtn: { flex: 1, minHeight: 44, border: "1px solid rgba(52,211,153,0.35)", borderRadius: 12, background: "rgba(52,211,153,0.08)", color: "#34D399", fontSize: 15, fontWeight: 900, cursor: "default" },
   manageBtn: { flex: 1, minHeight: 44, border: `1px solid ${goldAlpha(0.4)}`, borderRadius: 12, background: `${goldAlpha(0.1)}`, color: GOLD, fontSize: 15, fontWeight: 900, cursor: "pointer" },
   contactBtn: { width: 44, height: 44, borderRadius: 12, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: "#fff", textDecoration: "none" },
@@ -32,7 +32,7 @@ const styles = {
   pill: { fontSize: 12, color: "#F87171", background: `${redAlpha(0.12)}`, border: `1px solid ${redAlpha(0.2)}`, borderRadius: 999, padding: "4px 12px", fontWeight: 700 },
   amenityPill: { fontSize: 12, color: "rgba(255,255,255,0.6)", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 999, padding: "4px 12px" },
   announcementList: { display: "flex", flexDirection: "column", gap: 10 },
-  announcementCard: { borderRadius: "3px 12px 12px 3px", background: `${goldAlpha(0.06)}`, border: `1px solid ${goldAlpha(0.18)}`, borderLeft: "3px solid #D4AF37", padding: "12px 14px" },
+  announcementCard: { borderRadius: "3px 12px 12px 3px", background: `${goldAlpha(0.06)}`, border: `1px solid ${goldAlpha(0.18)}`, borderLeft: `3px solid ${GOLD}`, padding: "12px 14px" },
   annTitle: { margin: "0 0 4px", fontSize: 14, fontWeight: 900, color: GOLD },
   annBody: { margin: "0 0 6px", fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.5 },
   annDate: { fontSize: 11, color: "rgba(255,255,255,0.55)" },
@@ -50,7 +50,7 @@ const styles = {
   reviewText: { margin: 0, fontSize: 13, color: "rgba(255,255,255,0.65)", lineHeight: 1.5 },
   textarea: { width: "100%", boxSizing: "border-box", padding: "10px 12px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 14, resize: "none", outline: "none", fontFamily: "inherit" },
   cancelBtn: { flex: 1, minHeight: 40, border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, background: "transparent", color: "rgba(255,255,255,0.55)", fontSize: 14, fontWeight: 700, cursor: "pointer" },
-  submitBtn: { flex: 2, minHeight: 40, border: "none", borderRadius: 10, background: "linear-gradient(135deg,#C1121F,#7d0812)", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" },
+  submitBtn: { flex: 2, minHeight: 40, border: "none", borderRadius: 10, background: RED, color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer" },
   errorText: { margin: 0, fontSize: 13, color: "#F87171" },
   successText: { margin: "0 0 10px", fontSize: 13, color: "#34D399", fontWeight: 700 },
   emptyText: { margin: 0, fontSize: 13, color: "rgba(255,255,255,0.55)" },

@@ -1,7 +1,7 @@
-import { redAlpha, goldAlpha, RED, GOLD } from "@/lib/tokens";
+import { redAlpha, goldAlpha, RED, GOLD, BG } from "@/lib/tokens";
 
 const styles = {
-  page: { minHeight: "100dvh", background: "#070707", color: "#fff" },
+  page: { minHeight: "100dvh", background: BG, color: "#fff" },
   inner: { maxWidth: 480, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },
   content: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },
   backBtn: { background: "none", border: "none", color: "rgba(255,255,255,0.65)", fontSize: 14, cursor: "pointer", padding: "16px 0", display: "block" },
@@ -25,7 +25,7 @@ const styles = {
   pillActive: { padding: "5px 12px", borderRadius: 999, border: `1px solid ${redAlpha(0.5)}`, background: `${redAlpha(0.15)}`, color: "#F87171", fontSize: 12, fontWeight: 700, cursor: "pointer" },
   progressWrap: { height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 2, marginBottom: 14, overflow: "hidden" },
   progressBar: { height: "100%", background: RED, borderRadius: 2, transition: "width 0.2s" },
-  submitBtn: { width: "100%", padding: "15px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#C1121F,#7d0812)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer" },
+  submitBtn: { width: "100%", padding: "15px", borderRadius: 12, border: "none", background: RED, color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer" },
   submitBtnDisabled: { width: "100%", padding: "15px", borderRadius: 12, border: "none", background: `${redAlpha(0.35)}`, color: "rgba(255,255,255,0.65)", fontSize: 15, fontWeight: 900, cursor: "not-allowed" },
   successCard: { display: "flex", flexDirection: "column", alignItems: "center", gap: 16, padding: "60px 24px", textAlign: "center" },
   successTitle: { margin: 0, fontSize: 22, fontWeight: 1000, color: "#fff" },
@@ -37,7 +37,7 @@ const styles = {
   statDivider: { width: 1, background: "rgba(255,255,255,0.07)", alignSelf: "stretch" },
   tabs: { display: "flex", gap: 8, marginBottom: 16 },
   tab: { flex: 1, padding: "10px 0", borderRadius: 10, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.65)", fontSize: 13, fontWeight: 700, cursor: "pointer" },
-  tabActive: { flex: 1, padding: "10px 0", borderRadius: 10, border: `1px solid ${goldAlpha(0.4)}`, background: `${goldAlpha(0.1)}`, color: GOLD, fontSize: 13, fontWeight: 900, cursor: "pointer", boxShadow: "inset 0 -2px 0 #D4AF37" },
+  tabActive: { flex: 1, padding: "10px 0", borderRadius: 10, border: `1px solid ${goldAlpha(0.4)}`, background: `${goldAlpha(0.1)}`, color: GOLD, fontSize: 13, fontWeight: 900, cursor: "pointer", boxShadow: `inset 0 -2px 0 ${GOLD}` },
   cardList: { display: "flex", flexDirection: "column", gap: 10 },
   requestCard: { borderRadius: 14, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "14px" },
   memberCard: { borderRadius: 14, border: "1px solid rgba(52,211,153,0.12)", background: "rgba(52,211,153,0.04)", padding: "14px" },
