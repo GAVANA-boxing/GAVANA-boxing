@@ -371,7 +371,7 @@ export default function ChallengesPage() {
         )}
       </section>
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="discover" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="home" />
       <style>{`
         @keyframes challengeScoreGlow {
           0%, 100% { box-shadow: 0 0 0 rgba(245,196,81,0); }

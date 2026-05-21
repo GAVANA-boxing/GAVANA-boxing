@@ -403,7 +403,7 @@ export default function EventsPage() {
         ) : null}
       </div>
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="discover" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="home" />
     </div>
   );
 }

@@ -345,7 +345,7 @@ export default function DiscoverPage() {
         </div>
       )}
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="discover" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="home" />
     </div>
   );
 }
