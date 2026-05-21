@@ -193,8 +193,8 @@ export function SessionRow({ session, t }) {
 export function BodyStat({ label, value }) {
   return (
     <div>
-      <div style={{ fontSize: 9, fontWeight: 700, color: "#444", textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</div>
-      <div style={{ fontSize: 14, fontWeight: 800, color: "#ddd" }}>{value}</div>
+      <div style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.38)", textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</div>
+      <div style={{ fontSize: 14, fontWeight: 800, color: "rgba(255,255,255,0.88)" }}>{value}</div>
     </div>
   );
 }

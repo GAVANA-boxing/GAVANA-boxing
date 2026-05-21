@@ -86,7 +86,7 @@ const S = {
   aiBox: { borderRadius: 16, background: `linear-gradient(145deg, ${redAlpha(0.08)}, rgba(11,11,11,0.9) 50%, ${goldAlpha(0.05)})`, border: "1px solid rgba(255,255,255,0.07)" },
   aiBoxBtn: { width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "15px 16px", background: "none", border: "none", cursor: "pointer" },
   aiBoxLabel: { color: GOLD, fontSize: 13, fontWeight: 900, letterSpacing: 0.6 },
-  aiBoxHelp: { margin: 0, color: "#888", fontSize: 13, lineHeight: 1.5 },
+  aiBoxHelp: { margin: 0, color: "rgba(255,255,255,0.45)", fontSize: 13, lineHeight: 1.5 },
 
   // Caption result
   captionResult: { display: "flex", flexDirection: "column", gap: 10, padding: 14, borderRadius: 14, background: "rgba(255,255,255,0.05)", border: `1px solid ${goldAlpha(0.14)}` },

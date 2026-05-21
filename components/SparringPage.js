@@ -251,7 +251,7 @@ export default function SparringPage() {
                                 }
                                 <div>
                                   <span style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>{req.fromDisplayName || "Fighter"}</span>
-                                  {ago && <div style={{ fontSize: 10, color: "#666", marginTop: 2 }}>🕐 {ago}</div>}
+                                  {ago && <div style={{ fontSize: 10, color: "rgba(255,255,255,0.38)", marginTop: 2 }}>🕐 {ago}</div>}
                                 </div>
                               </div>
                               <span style={{ fontSize: 11, fontWeight: 900, color: col }}>
@@ -296,7 +296,7 @@ export default function SparringPage() {
                                   : isPending ? (locale === "mn" ? "⏳ Хүлээгдэж байна" : locale === "ko" ? "⏳ 대기 중" : "⏳ Pending")
                                   : (locale === "mn" ? "✕ Татгалзсан" : locale === "ko" ? "✕ 거절됨" : "✕ Declined")}
                               </span>
-                              {ago && <span style={{ fontSize: 10, color: "#666" }}>· {ago}</span>}
+                              {ago && <span style={{ fontSize: 10, color: "rgba(255,255,255,0.38)" }}>· {ago}</span>}
                             </div>
                           </div>
                           {isPending && (
@@ -452,7 +452,7 @@ export default function SparringPage() {
                       <div style={{ fontSize: 13, fontWeight: 900, color: "#fff", marginBottom: 3 }}>
                         vs {match.opponentName || "Opponent"}
                       </div>
-                      <div style={{ display: "flex", gap: 8, fontSize: 11, color: "#888", flexWrap: "wrap" }}>
+                      <div style={{ display: "flex", gap: 8, fontSize: 11, color: "rgba(255,255,255,0.45)", flexWrap: "wrap" }}>
                         <span style={{ color: col, fontWeight: 800 }}>{won ? (locale === "mn" ? "✓ Ялалт" : locale === "ko" ? "✓ 승리" : "✓ Win") : (locale === "mn" ? "✕ Ялагдлт" : locale === "ko" ? "✕ 패배" : "✕ Loss")}</span>
                         <span>{match.challengerScore?.toFixed(1)} vs {match.opponentScore?.toFixed(1)}</span>
                         {ago && <span>{ago}</span>}

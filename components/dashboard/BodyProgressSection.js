@@ -100,7 +100,7 @@ export function BodyProgressSection({ userId, t }) {
           {showForm ? t("dashboardCancel") : `+ ${t("dashboardAddBodyStats")}`}
         </button>
         {history.length > 1 && (
-          <button onClick={() => { setShowHistory(!showHistory); setShowForm(false); }} style={{ ...ghostBtnStyle, fontSize: 11, color: "#555" }}>
+          <button onClick={() => { setShowHistory(!showHistory); setShowForm(false); }} style={{ ...ghostBtnStyle, fontSize: 11, color: "rgba(255,255,255,0.4)" }}>
             {showHistory ? "Hide" : `${t("dashboardBodyHistory")} ›`}
           </button>
         )}

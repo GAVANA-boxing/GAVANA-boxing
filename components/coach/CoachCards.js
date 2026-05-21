@@ -84,7 +84,7 @@ export function CoachCard({ coach, t, locale, onRequest, requested, router }) {
             )}
             {Number.isFinite(coach.coachPricePerSession) && coach.coachPricePerSession > 0 && (
               <span style={{ fontSize: 13, fontWeight: 900, color: GOLD }}>
-                ${coach.coachPricePerSession}<span style={{ fontSize: 10, color: "#888", fontWeight: 600 }}>/sess</span>
+                ${coach.coachPricePerSession}<span style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", fontWeight: 600 }}>/sess</span>
               </span>
             )}
           </div>

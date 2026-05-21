@@ -68,7 +68,7 @@ function ProfileTab({ user, active, onClick }) {
         }}>
           {photo && !imgError
             ? <Image src={photo} alt="Profile photo" width={30} height={30} style={{ objectFit: "cover" }} onError={() => setImgError(true)} />
-            : <span style={{ ...s.avatarInitial, background: active ? RED : "#222" }}>{initial}</span>
+            : <span style={{ ...s.avatarInitial, background: active ? RED : "rgba(255,255,255,0.08)" }}>{initial}</span>
           }
         </span>
       </span>
@@ -410,7 +410,9 @@ const h = {
     position: "relative",
     width: "100%",
     maxWidth: 520,
-    background: "#141416",
+    background: "rgba(14,14,18,0.97)",
+    backdropFilter: "blur(24px) saturate(160%)",
+    WebkitBackdropFilter: "blur(24px) saturate(160%)",
     border: "1px solid rgba(255,255,255,0.08)",
     borderBottom: "none",
     borderRadius: "24px 24px 0 0",
@@ -432,9 +434,9 @@ const h = {
     margin: "0 0 8px",
     fontSize: 11,
     fontWeight: 900,
-    color: "rgba(255,255,255,0.3)",
+    color: RED,
     textTransform: "uppercase",
-    letterSpacing: 2,
+    letterSpacing: 3,
     paddingLeft: 4,
   },
   grid: {

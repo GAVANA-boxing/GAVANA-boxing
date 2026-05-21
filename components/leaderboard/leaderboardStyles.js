@@ -102,7 +102,7 @@ const styles = {
     textTransform: "uppercase", letterSpacing: "-0.02em",
   },
 
-  loading: { textAlign: "center", color: "#888", padding: 40, fontSize: 14 },
+  loading: { textAlign: "center", color: "rgba(255,255,255,0.45)", padding: 40, fontSize: 14 },
   emptyWrap: { display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 60, paddingBottom: 40, textAlign: "center" },
   emptyIcon: { fontSize: 48, marginBottom: 16 },
   emptyTitle: { margin: "0 0 8px", fontSize: 18, fontWeight: 800, color: "#fff" },

@@ -64,7 +64,7 @@ const styles = {
   },
   loadingText: {
     textAlign: "center",
-    color: "#555",
+    color: "rgba(255,255,255,0.35)",
     padding: 40,
     fontSize: 24,
   },
@@ -94,7 +94,7 @@ const styles = {
   },
   statLabel: {
     fontSize: 11,
-    color: "#888",
+    color: "rgba(255,255,255,0.45)",
     fontWeight: 700,
     letterSpacing: 0.3,
     textAlign: "center",
@@ -124,7 +124,7 @@ const styles = {
   },
   growthLbl: {
     fontSize: 10,
-    color: "#888",
+    color: "rgba(255,255,255,0.45)",
     fontWeight: 700,
     letterSpacing: 0.3,
     textAlign: "center",
@@ -140,7 +140,7 @@ const styles = {
     fontWeight: 900,
     letterSpacing: 0.5,
     textTransform: "uppercase",
-    color: "#888",
+    color: "rgba(255,255,255,0.45)",
   },
   breakdown: {
     display: "flex",
@@ -176,7 +176,7 @@ const styles = {
     textAlign: "right",
     fontSize: 12,
     fontWeight: 700,
-    color: "#888",
+    color: "rgba(255,255,255,0.45)",
     flexShrink: 0,
   },
   tip: {
@@ -230,7 +230,7 @@ const styles = {
     textAlign: "center",
     fontSize: 12,
     fontWeight: 900,
-    color: "#555",
+    color: "rgba(255,255,255,0.35)",
     flexShrink: 0,
   },
   reelInfo: {
@@ -243,7 +243,7 @@ const styles = {
   reelCaption: {
     fontSize: 13,
     fontWeight: 700,
-    color: "#eee",
+    color: "rgba(255,255,255,0.9)",
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
@@ -252,7 +252,7 @@ const styles = {
     display: "flex",
     gap: 12,
     fontSize: 11,
-    color: "#666",
+    color: "rgba(255,255,255,0.4)",
     fontWeight: 700,
   },
   uploadBtn: {

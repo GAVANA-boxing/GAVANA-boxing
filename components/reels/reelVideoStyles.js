@@ -203,7 +203,7 @@ export const reelVideoStyles = {
     border: "none",
     borderRadius: 999,
     background: "transparent",
-    color: "#888",
+    color: "rgba(255,255,255,0.45)",
     minHeight: 34,
     paddingTop: 0,
     paddingBottom: 0,

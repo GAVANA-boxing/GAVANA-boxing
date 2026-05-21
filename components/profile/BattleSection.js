@@ -21,12 +21,12 @@ export default function BattleSection({ pvpStats, sparringRecord, isOwnProfile, 
             </p>
             <div style={{ display: "flex", gap: 8, justifyContent: "space-around" }}>
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 42, fontWeight: 900, color: pvpStats.wins > 0 ? "#34D399" : "#444", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{pvpStats.wins}</div>
+                <div style={{ fontSize: 42, fontWeight: 900, color: pvpStats.wins > 0 ? "#34D399" : "rgba(255,255,255,0.25)", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{pvpStats.wins}</div>
                 <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>{t("profileWinsLabel")}</div>
               </div>
               <div style={{ width: 1, background: "rgba(255,255,255,0.07)" }} />
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 42, fontWeight: 900, color: pvpStats.losses > 0 ? "#F87171" : "#444", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{pvpStats.losses}</div>
+                <div style={{ fontSize: 42, fontWeight: 900, color: pvpStats.losses > 0 ? "#F87171" : "rgba(255,255,255,0.25)", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{pvpStats.losses}</div>
                 <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>{t("profileLossesLabel")}</div>
               </div>
               {pvpStats.bestWinScore !== null && (

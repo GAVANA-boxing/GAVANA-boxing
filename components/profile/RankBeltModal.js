@@ -86,7 +86,7 @@ export default function RankBeltModal({ xp, fighterRank, nextRank, rankProgress,
               }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <div style={{ width: 8, height: 8, borderRadius: "50%", background: isReached ? tier.color : "rgba(255,255,255,0.12)", boxShadow: isReached && tier.glowColor ? `0 0 8px ${tier.glowColor}` : "none" }} />
-                  <span style={{ color: isReached ? "#fff" : "#555", fontSize: 13, fontWeight: isCurrent ? 900 : 700 }}>{t(tier.key)}</span>
+                  <span style={{ color: isReached ? "#fff" : "rgba(255,255,255,0.35)", fontSize: 13, fontWeight: isCurrent ? 900 : 700 }}>{t(tier.key)}</span>
                   {isCurrent && <span style={{ fontSize: 9, fontWeight: 900, color: tier.color, letterSpacing: 1, textTransform: "uppercase" }}>{t("rankBeltCurrent")}</span>}
                 </div>
                 <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 11, fontWeight: 700 }}>{tier.minXP.toLocaleString()} XP</span>

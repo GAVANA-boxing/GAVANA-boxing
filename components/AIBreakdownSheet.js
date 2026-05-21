@@ -73,7 +73,7 @@ function BulletRow({ items, type = "strength" }) {
 function LoadingState({ t }) {
   return (
     <div style={{ padding: "0 20px 20px" }}>
-      <p style={{ fontSize: 12, color: "#666", margin: "0 0 18px", textAlign: "center" }}>
+      <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: "0 0 18px", textAlign: "center" }}>
         {t("aiBreakdownLoading")}
       </p>
       {/* Style + technique chips */}
@@ -129,7 +129,7 @@ function BreakdownContent({ data, t }) {
           <Chip
             label="AI estimated"
             bg="#1a1a1a"
-            color="#555"
+            color="rgba(255,255,255,0.35)"
             border="#333"
           />
         )}
@@ -156,7 +156,7 @@ function BreakdownContent({ data, t }) {
           padding: "11px 14px",
           marginBottom: 12,
         }}>
-          <p style={{ fontSize: 10, fontWeight: 700, color: "#555", margin: "0 0 4px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+          <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.45)", margin: "0 0 4px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
             {t("aiBreakdownTechniqueCue")}
           </p>
           <p style={{ fontSize: 13, color: "#bbb", margin: 0, lineHeight: 1.5 }}>
@@ -204,7 +204,7 @@ function BreakdownContent({ data, t }) {
 const sectionLabel = {
   fontSize: 10,
   fontWeight: 700,
-  color: "#555",
+  color: "rgba(255,255,255,0.45)",
   textTransform: "uppercase",
   letterSpacing: "0.06em",
   margin: "0 0 8px",
