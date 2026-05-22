@@ -282,7 +282,7 @@ const styles = {
   reelTileTypeBadge: {
     position: "absolute", top: 6, right: 6, fontSize: 14, lineHeight: 1,
     pointerEvents: "none", zIndex: 4,
-    filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.95))",
+    filter: `drop-shadow(0 2px 6px ${blackAlpha(0.95)})`,
   },
   reelTileOverlay: {
     position: "absolute", bottom: 0, left: 0, right: 0,

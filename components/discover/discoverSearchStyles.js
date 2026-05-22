@@ -1,4 +1,4 @@
-import { GOLD, BORDER, RADIUS, redAlpha, whiteAlpha } from "@/lib/tokens";
+import { GOLD, BORDER, RADIUS, redAlpha, whiteAlpha, blackAlpha } from "@/lib/tokens";
 
 export const discoverSearchStyles = {
   // ── Top coaches ──
@@ -49,7 +49,7 @@ export const discoverSearchStyles = {
     fontSize: 18,
     fontWeight: 800,
     color: "#fff",
-    boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
+    boxShadow: `0 4px 16px ${blackAlpha(0.4)}`,
   },
   coachAvatarImg: {
     width: "100%",
