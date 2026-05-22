@@ -14,45 +14,55 @@ const ARCHETYPE_STATS = {
   brawler:   { SPD: 60, PWR: 95, TEC: 50, STAM: 80 },
 };
 
+const STAT_DEFS = [
+  { key: "SPD", label: "SPD", color: "#60A5FA" },
+  { key: "PWR", label: "PWR", color: "#F87171" },
+  { key: "TEC", label: "TEC", color: "#34D399" },
+  { key: "STAM", label: "STA", color: "#FB923C" },
+];
+
 export function FighterCard({ post, isMe, onRequest, sent, requesting, locale }) {
   const arch = ARCHETYPE_DISPLAY[post.archetype];
   const t = (key) => translate(locale, key);
   const isBusy = requesting === post.userId;
   const stats = ARCHETYPE_STATS[post.archetype] || null;
-  const rankGlow = post.rankColor && post.rankKey !== "rankRookieGloves" && post.rankKey !== "rankAmateurBelt"
-    ? `0 0 12px ${post.rankColor}35, 0 2px 8px rgba(0,0,0,0.5)`
-    : "0 2px 8px rgba(0,0,0,0.4)";
+  const accentColor = post.rankColor || arch?.color || RED;
+  const rankGlow = post.rankKey !== "rankRookieGloves" && post.rankKey !== "rankAmateurBelt"
+    ? `0 0 18px ${accentColor}30, 0 4px 16px rgba(0,0,0,0.5)`
+    : "0 4px 16px rgba(0,0,0,0.45)";
 
   return (
     <div
       className="lift-card"
       style={{
         ...c.card,
-        borderLeft: `2.5px solid ${post.rankColor || arch?.color || RED}`,
+        borderLeft: `3px solid ${accentColor}`,
         boxShadow: rankGlow,
-        opacity: isMe ? 0.55 : 1,
+        opacity: isMe ? 0.5 : 1,
       }}
     >
       <div style={c.cardTop}>
+        {/* Avatar */}
         <div style={c.avatarWrap}>
           {post.photoURL
-            ? <Image src={post.photoURL} alt="" width={48} height={48} style={{ borderRadius: "50%", objectFit: "cover" }} />
-            : <div style={{ ...c.avatarFallback, background: arch?.color ? `${arch.color}22` : "#1a1a1a" }}>
+            ? <Image src={post.photoURL} alt="" width={56} height={56} style={{ borderRadius: "50%", objectFit: "cover", border: `1.5px solid ${accentColor}40` }} />
+            : <div style={{ ...c.avatarFallback, background: arch?.color ? `${arch.color}1A` : "rgba(255,255,255,0.06)", border: `1.5px solid ${accentColor}40` }}>
                 {(post.displayName || "?").charAt(0).toUpperCase()}
               </div>
           }
           {arch && (
-            <span style={{ position: "absolute", bottom: -3, right: -3, fontSize: 13, lineHeight: 1, filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.7))" }}>
+            <span style={{ position: "absolute", bottom: -4, right: -4, fontSize: 14, lineHeight: 1, filter: "drop-shadow(0 1px 4px rgba(0,0,0,0.8))" }}>
               {arch.emoji}
             </span>
           )}
         </div>
 
+        {/* Info */}
         <div style={c.infoBlock}>
           <div style={c.name}>{post.displayName || "Fighter"}</div>
           <div style={c.chips}>
             {post.rankKey && (
-              <span style={{ ...c.chip, color: post.rankColor || "#fff", background: `${post.rankColor || "#fff"}14`, borderColor: `${post.rankColor || "#fff"}44` }}>
+              <span style={{ ...c.chip, color: post.rankColor || "#fff", background: `${post.rankColor || "#fff"}12`, borderColor: `${post.rankColor || "#fff"}40` }}>
                 {t(post.rankKey)}
               </span>
             )}
@@ -60,81 +70,98 @@ export function FighterCard({ post, isMe, onRequest, sent, requesting, locale })
               <span style={c.chip}>{post.weightClass.split(" ")[0]}</span>
             )}
             {arch && (
-              <span style={{ ...c.chip, color: arch.color, borderColor: `${arch.color}44` }}>
-                {arch.name}
+              <span style={{ ...c.chip, color: arch.color, background: `${arch.color}12`, borderColor: `${arch.color}40` }}>
+                {arch.emoji} {arch.name.split(" ")[0]}
               </span>
             )}
           </div>
           {post.location && <div style={c.location}>📍 {post.location}</div>}
-          {post.bio && <div style={c.bio}>{post.bio.slice(0, 72)}{post.bio.length > 72 ? "…" : ""}</div>}
-          {stats && (
-            <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-              {[["SPD", stats.SPD, "#60A5FA"], ["PWR", stats.PWR, "#F87171"], ["TEC", stats.TEC, "#34D399"], ["STAM", stats.STAM, "#FB923C"]].map(([label, val, col]) => (
-                <div key={label} style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
-                  <span style={{ fontSize: 8, fontWeight: 900, color: col, letterSpacing: "0.05em", textAlign: "center" }}>{label}</span>
-                  <div style={{ height: 3, borderRadius: 99, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
-                    <div style={{ height: "100%", width: `${val}%`, borderRadius: 99, background: col }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          {post.bio && <div style={c.bio}>{post.bio.slice(0, 80)}{post.bio.length > 80 ? "…" : ""}</div>}
         </div>
       </div>
 
-      {!isMe && (
+      {/* Stat bars */}
+      {stats && (
+        <div style={c.statBarsRow}>
+          {STAT_DEFS.map(({ key, label, color }) => (
+            <div key={key} style={c.statBar}>
+              <span style={{ ...c.statLabel, color }}>{label}</span>
+              <div style={c.statTrack}>
+                <div style={{ ...c.statFill, width: `${stats[key]}%`, background: color, boxShadow: `0 0 6px ${color}60` }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* CTA */}
+      {!isMe ? (
         <button
           type="button"
           onClick={() => !sent && !isBusy && onRequest(post)}
           disabled={sent || isBusy}
           style={{
-            ...c.msgBtn,
+            ...c.requestBtn,
             background: sent
               ? "rgba(52,211,153,0.1)"
               : isBusy
               ? "rgba(255,255,255,0.06)"
               : arch?.color
-              ? `linear-gradient(135deg, ${arch.color}, ${arch.color}bb)`
-              : RED,
+              ? `linear-gradient(135deg, ${arch.color}, ${arch.color}cc)`
+              : `linear-gradient(135deg, ${RED}, #cc2820)`,
             border: sent ? "1px solid rgba(52,211,153,0.3)" : "none",
             color: sent ? "#34D399" : "#fff",
+            boxShadow: sent || isBusy ? "none" : `0 6px 20px ${arch?.color ? arch.color + "30" : redAlpha(0.28)}`,
             cursor: sent ? "not-allowed" : isBusy ? "wait" : "pointer",
+            opacity: isBusy ? 0.6 : 1,
           }}
         >
-          {isBusy ? "…"
-            : sent
-            ? (locale === "mn" ? "✓ Хүсэлт илгээсэн" : locale === "ko" ? "✓ 요청 전송됨" : "✓ Request Sent")
-            : <>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
-                {locale === "mn" ? "Sparring хүс" : locale === "ko" ? "스파링 요청" : "Request Sparring"}
-              </>
-          }
+          {isBusy ? "…" : sent ? (
+            locale === "mn" ? "✓ Хүсэлт илгээсэн" : locale === "ko" ? "✓ 요청 전송됨" : "✓ Request Sent"
+          ) : (
+            <>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+              {locale === "mn" ? "Sparring хүс" : locale === "ko" ? "스파링 요청" : "Request Sparring"}
+            </>
+          )}
         </button>
+      ) : (
+        <div style={c.myLabel}>👆 {locale === "mn" ? "Таны бичлэг" : locale === "ko" ? "내 게시물" : "Your listing"}</div>
       )}
-      {isMe && <div style={c.myLabel}>👆 {locale === "mn" ? "Таны бичлэг" : locale === "ko" ? "내 게시물" : "Your post"}</div>}
     </div>
   );
 }
 
-export function IncomingRequestCard({ req, onAccept, onDecline, onMessage, accepting, declining, locale }) {
+export function IncomingRequestCard({ req, onAccept, onDecline, accepting, declining, locale }) {
   const arch = ARCHETYPE_DISPLAY[req.fromArchetype];
   const isBusy = accepting === req.id || declining === req.id;
   const timeAgo = formatAgo(req.createdAt, locale);
 
   return (
-    <div style={{ ...c.card, borderLeft: `2.5px solid ${GOLD}` }}>
+    <div style={{
+      ...c.card,
+      borderLeft: `3px solid ${GOLD}`,
+      boxShadow: `0 0 20px rgba(245,196,81,0.12), 0 4px 20px rgba(0,0,0,0.5)`,
+      background: "rgba(245,196,81,0.03)",
+    }}>
+      {/* "Challenge received" kicker */}
+      <p style={c.incomingKicker}>
+        <span style={c.incomingKickerDot} />
+        {locale === "mn" ? "CHALLENGE ирсэн" : locale === "ko" ? "챌린지 받음" : "CHALLENGE RECEIVED"}
+      </p>
+
       <div style={c.cardTop}>
         <div style={c.avatarWrap}>
           {req.fromPhotoURL
-            ? <Image src={req.fromPhotoURL} alt="" width={48} height={48} style={{ borderRadius: "50%", objectFit: "cover" }} />
-            : <div style={{ ...c.avatarFallback, background: "#1a1a1a" }}>
+            ? <Image src={req.fromPhotoURL} alt="" width={56} height={56} style={{ borderRadius: "50%", objectFit: "cover", border: `1.5px solid rgba(245,196,81,0.35)` }} />
+            : <div style={{ ...c.avatarFallback, background: "rgba(245,196,81,0.08)", border: "1.5px solid rgba(245,196,81,0.25)" }}>
                 {(req.fromDisplayName || "?").charAt(0).toUpperCase()}
               </div>
           }
           {arch && (
-            <span style={{ position: "absolute", bottom: -3, right: -3, fontSize: 13, lineHeight: 1 }}>
+            <span style={{ position: "absolute", bottom: -4, right: -4, fontSize: 14, lineHeight: 1 }}>
               {arch.emoji}
             </span>
           )}
@@ -142,7 +169,7 @@ export function IncomingRequestCard({ req, onAccept, onDecline, onMessage, accep
         <div style={c.infoBlock}>
           <div style={c.name}>{req.fromDisplayName || "Fighter"}</div>
           <div style={c.chips}>
-            {arch && <span style={{ ...c.chip, color: arch.color, borderColor: `${arch.color}44` }}>{arch.name}</span>}
+            {arch && <span style={{ ...c.chip, color: arch.color, background: `${arch.color}12`, borderColor: `${arch.color}40` }}>{arch.emoji} {arch.name.split(" ")[0]}</span>}
             {req.fromWeightClass && <span style={c.chip}>{req.fromWeightClass.split(" ")[0]}</span>}
           </div>
           {timeAgo && <div style={c.location}>🕐 {timeAgo}</div>}
@@ -155,11 +182,12 @@ export function IncomingRequestCard({ req, onAccept, onDecline, onMessage, accep
           onClick={() => !isBusy && onAccept(req)}
           disabled={isBusy}
           style={{
-            flex: 1, padding: "10px 0", borderRadius: 10, border: "none",
+            ...c.requestBtn,
+            flex: 1,
             background: isBusy && accepting === req.id ? "rgba(52,211,153,0.08)" : "linear-gradient(135deg, #34D399, #22a870)",
-            color: "#fff", fontSize: 13, fontWeight: 900,
+            boxShadow: isBusy ? "none" : "0 6px 18px rgba(52,211,153,0.25)",
+            opacity: isBusy ? 0.65 : 1,
             cursor: isBusy ? "wait" : "pointer",
-            opacity: isBusy ? 0.7 : 1,
           }}
         >
           {accepting === req.id ? "…" : locale === "mn" ? "✓ Зөвшөөрөх" : locale === "ko" ? "✓ 수락" : "✓ Accept"}
@@ -169,12 +197,14 @@ export function IncomingRequestCard({ req, onAccept, onDecline, onMessage, accep
           onClick={() => !isBusy && onDecline(req)}
           disabled={isBusy}
           style={{
-            flex: 1, padding: "10px 0", borderRadius: 10,
-            border: "1px solid rgba(248,113,113,0.3)",
-            background: "rgba(248,113,113,0.07)",
-            color: "#F87171", fontSize: 13, fontWeight: 900,
+            ...c.requestBtn,
+            flex: 1,
+            background: "rgba(248,113,113,0.08)",
+            border: "1px solid rgba(248,113,113,0.28)",
+            color: "#F87171",
+            boxShadow: "none",
+            opacity: isBusy ? 0.65 : 1,
             cursor: isBusy ? "wait" : "pointer",
-            opacity: isBusy ? 0.7 : 1,
           }}
         >
           {declining === req.id ? "…" : locale === "mn" ? "✕ Татгалзах" : locale === "ko" ? "✕ 거절" : "✕ Decline"}
