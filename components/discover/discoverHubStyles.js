@@ -1,4 +1,4 @@
-import { GOLD, RED, BORDER, MUTED, redAlpha, goldAlpha } from "@/lib/tokens";
+import { GOLD, RED, BORDER, BORDER_2, RADIUS, MUTED, redAlpha, goldAlpha, whiteAlpha } from "@/lib/tokens";
 
 export const discoverHubStyles = {
   hubSection: { marginBottom: 40, padding: "0 16px" },
@@ -45,10 +45,10 @@ export const discoverHubStyles = {
   styleChip: {
     flexShrink: 0,
     padding: "7px 13px",
-    borderRadius: 999,
-    border: "1px solid rgba(255,255,255,0.09)",
-    background: "rgba(255,255,255,0.04)",
-    color: "rgba(255,255,255,0.5)",
+    borderRadius: RADIUS.full,
+    border: `1px solid ${whiteAlpha(0.09)}`,
+    background: whiteAlpha(0.04),
+    color: whiteAlpha(0.5),
     fontSize: 12,
     fontWeight: 700,
     cursor: "pointer",
@@ -71,8 +71,8 @@ export const discoverHubStyles = {
   hubWrap: {
     margin: "0 16px 8px",
     borderRadius: 20,
-    border: "1px solid rgba(255,255,255,0.07)",
-    background: "rgba(255,255,255,0.025)",
+    border: `1px solid ${BORDER}`,
+    background: whiteAlpha(0.025),
     backdropFilter: "blur(16px)",
     WebkitBackdropFilter: "blur(16px)",
     overflow: "hidden",
@@ -95,7 +95,7 @@ export const discoverHubStyles = {
   hubEmoji: {
     width: 36,
     height: 36,
-    borderRadius: 10,
+    borderRadius: RADIUS.sm,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -112,7 +112,7 @@ export const discoverHubStyles = {
     width: 18,
     height: 18,
     fill: "none",
-    stroke: "rgba(255,255,255,0.3)",
+    stroke: whiteAlpha(0.3),
     strokeWidth: 2.2,
     strokeLinecap: "round",
     strokeLinejoin: "round",
@@ -124,7 +124,7 @@ export const discoverHubStyles = {
     display: "flex",
     flexDirection: "column",
     gap: 12,
-    borderTop: "1px solid rgba(255,255,255,0.06)",
+    borderTop: `1px solid ${BORDER}`,
   },
 
   learnChips: {
@@ -138,10 +138,10 @@ export const discoverHubStyles = {
   learnChip: {
     flexShrink: 0,
     padding: "6px 12px",
-    borderRadius: 999,
+    borderRadius: RADIUS.full,
     border: `1px solid ${goldAlpha(0.18)}`,
     background: goldAlpha(0.04),
-    color: "rgba(255,255,255,0.5)",
+    color: whiteAlpha(0.5),
     fontSize: 12,
     fontWeight: 700,
     cursor: "pointer",
@@ -162,9 +162,9 @@ export const discoverHubStyles = {
   hubEmpty: { padding: "20px 0", textAlign: "center" },
   hubEmptyText: { margin: 0, fontSize: 13, color: MUTED },
   hubFooterBtn: {
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.09)",
-    borderRadius: 14,
+    background: whiteAlpha(0.04),
+    border: `1px solid ${whiteAlpha(0.09)}`,
+    borderRadius: RADIUS.md,
     padding: "11px 16px",
     color: GOLD,
     fontSize: 13,
@@ -178,10 +178,10 @@ export const discoverHubStyles = {
   challengeGrid: { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8 },
   challengeChip: {
     padding: "13px 8px",
-    borderRadius: 14,
+    borderRadius: RADIUS.md,
     border: `1px solid ${redAlpha(0.25)}`,
     background: redAlpha(0.07),
-    color: "rgba(255,255,255,0.75)",
+    color: whiteAlpha(0.75),
     fontSize: 13,
     fontWeight: 800,
     cursor: "pointer",
@@ -200,15 +200,15 @@ export const discoverHubStyles = {
     fontWeight: 900,
     letterSpacing: 3.5,
     textTransform: "uppercase",
-    color: "rgba(255,255,255,0.35)",
+    color: whiteAlpha(0.35),
   },
   explorePills: { display: "flex", gap: 8, flexWrap: "wrap" },
   explorePill: {
     padding: "10px 16px",
-    borderRadius: 999,
-    border: "1px solid rgba(255,255,255,0.09)",
-    background: "rgba(255,255,255,0.04)",
-    color: "rgba(255,255,255,0.65)",
+    borderRadius: RADIUS.full,
+    border: `1px solid ${whiteAlpha(0.09)}`,
+    background: whiteAlpha(0.04),
+    color: whiteAlpha(0.65),
     fontSize: 13,
     fontWeight: 700,
     cursor: "pointer",

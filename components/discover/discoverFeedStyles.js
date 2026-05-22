@@ -1,4 +1,4 @@
-import { GOLD, RED, RED_DARK, MUTED, SUCCESS, redAlpha, goldAlpha } from "@/lib/tokens";
+import { BG, SURFACE_1, GOLD, RED, RED_DARK, BORDER, BORDER_2, RADIUS, MUTED, SUCCESS, redAlpha, goldAlpha, whiteAlpha, blackAlpha } from "@/lib/tokens";
 
 export const discoverFeedStyles = {
   fighterStudySection: { marginBottom: 20 },
@@ -35,7 +35,7 @@ export const discoverFeedStyles = {
   },
   learnDivider: {
     height: 1,
-    background: "rgba(255,255,255,0.05)",
+    background: whiteAlpha(0.05),
     margin: "24px 0",
   },
 
@@ -55,10 +55,10 @@ export const discoverFeedStyles = {
     alignItems: "center",
     gap: 6,
     padding: "6px 12px",
-    borderRadius: 999,
-    border: "1px solid rgba(255,255,255,0.08)",
-    background: "rgba(255,255,255,0.04)",
-    color: "rgba(255,255,255,0.6)",
+    borderRadius: RADIUS.full,
+    border: `1px solid ${BORDER_2}`,
+    background: whiteAlpha(0.04),
+    color: whiteAlpha(0.6),
     fontSize: 12,
     fontWeight: 700,
     whiteSpace: "nowrap",
@@ -195,7 +195,7 @@ export const discoverFeedStyles = {
     fontSize: 22,
     fontWeight: 900,
     color: "#fff",
-    boxShadow: `0 4px 16px rgba(0,0,0,0.4), 0 0 0 1px ${goldAlpha(0.12)}`,
+    boxShadow: `0 4px 16px ${blackAlpha(0.4)}, 0 0 0 1px ${goldAlpha(0.12)}`,
   },
   championName: {
     fontSize: 11,
@@ -223,7 +223,7 @@ export const discoverFeedStyles = {
     height: 12,
     borderRadius: "50%",
     background: SUCCESS,
-    border: "2px solid #090909",
+    border: `2px solid ${BG}`,
     boxShadow: `0 0 5px rgba(34,197,94,0.7)`,
   },
 
@@ -231,7 +231,7 @@ export const discoverFeedStyles = {
     display: "flex",
     gap: 0,
     padding: "0 16px 0",
-    borderBottom: "1px solid rgba(255,255,255,0.07)",
+    borderBottom: `1px solid ${BORDER}`,
     marginBottom: 2,
   },
   feedTabBtn: {
@@ -240,7 +240,7 @@ export const discoverFeedStyles = {
     background: "none",
     border: "none",
     borderBottom: "2px solid transparent",
-    color: "rgba(255,255,255,0.38)",
+    color: whiteAlpha(0.38),
     fontSize: 13,
     fontWeight: 700,
     cursor: "pointer",
@@ -270,8 +270,8 @@ export const discoverFeedStyles = {
 
   skeleton: {
     height: 320,
-    borderRadius: 18,
-    background: "rgba(255,255,255,0.04)",
+    borderRadius: RADIUS.lg,
+    background: whiteAlpha(0.04),
   },
   emptyWrap: {
     display: "flex",
@@ -282,25 +282,25 @@ export const discoverFeedStyles = {
     gap: 10,
   },
   emptyTitle: { margin: 0, fontSize: 17, fontWeight: 900, color: "#fff", letterSpacing: "-0.01em" },
-  emptyText: { margin: 0, fontSize: 13, color: "rgba(255,255,255,0.35)", lineHeight: 1.6, maxWidth: 260 },
+  emptyText: { margin: 0, fontSize: 13, color: whiteAlpha(0.35), lineHeight: 1.6, maxWidth: 260 },
   emptyBtn: {
     marginTop: 8,
     padding: "11px 22px",
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     border: "none",
     background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
     color: "#fff",
     fontSize: 14,
     fontWeight: 800,
     cursor: "pointer",
-    boxShadow: `0 8px 24px ${redAlpha(0.32)}, inset 0 1px 0 rgba(255,255,255,0.1)`,
+    boxShadow: `0 8px 24px ${redAlpha(0.32)}, inset 0 1px 0 ${whiteAlpha(0.1)}`,
   },
 
   card: {
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.07)",
+    background: whiteAlpha(0.03),
+    border: `1px solid ${BORDER}`,
     borderLeft: `2.5px solid ${RED}`,
-    borderRadius: "4px 18px 18px 4px",
+    borderRadius: `4px ${RADIUS.lg}px ${RADIUS.lg}px 4px`,
     overflow: "hidden",
     backdropFilter: "blur(16px)",
     WebkitBackdropFilter: "blur(16px)",
@@ -342,7 +342,7 @@ export const discoverFeedStyles = {
     position: "relative",
     width: "100%",
     aspectRatio: "16/9",
-    background: "#0d0d0d",
+    background: SURFACE_1,
     overflow: "hidden",
     cursor: "pointer",
   },
@@ -350,7 +350,7 @@ export const discoverFeedStyles = {
   thumbGrad: {
     position: "absolute",
     inset: 0,
-    background: "linear-gradient(0deg, rgba(0,0,0,0.7) 0%, transparent 55%)",
+    background: `linear-gradient(0deg, ${blackAlpha(0.7)} 0%, transparent 55%)`,
     pointerEvents: "none",
   },
   thumbCaption: {
@@ -362,7 +362,7 @@ export const discoverFeedStyles = {
     fontSize: 12,
     fontWeight: 800,
     color: "#fff",
-    textShadow: "0 1px 4px rgba(0,0,0,0.9)",
+    textShadow: `0 1px 4px ${blackAlpha(0.9)}`,
     display: "-webkit-box",
     WebkitLineClamp: 2,
     WebkitBoxOrient: "vertical",
@@ -374,10 +374,10 @@ export const discoverFeedStyles = {
     justifyContent: "space-between",
     padding: "10px 14px 12px",
   },
-  likes: { fontSize: 13, color: "rgba(255,255,255,0.5)", fontWeight: 600 },
+  likes: { fontSize: 13, color: whiteAlpha(0.5), fontWeight: 600 },
   watchBtn: {
     padding: "7px 16px",
-    borderRadius: 10,
+    borderRadius: RADIUS.sm,
     border: "none",
     background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`,
     color: "#fff",

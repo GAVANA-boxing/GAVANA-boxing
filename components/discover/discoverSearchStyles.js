@@ -1,4 +1,4 @@
-import { GOLD, redAlpha } from "@/lib/tokens";
+import { GOLD, BORDER, RADIUS, redAlpha, whiteAlpha } from "@/lib/tokens";
 
 export const discoverSearchStyles = {
   // ── Top coaches ──
@@ -86,7 +86,7 @@ export const discoverSearchStyles = {
     fontWeight: 900,
     letterSpacing: 2,
     textTransform: "uppercase",
-    color: "rgba(255,255,255,0.4)",
+    color: whiteAlpha(0.4),
   },
   listStack: {
     display: "flex",
@@ -98,9 +98,9 @@ export const discoverSearchStyles = {
     alignItems: "center",
     gap: 12,
     padding: "11px 14px",
-    borderRadius: 14,
-    border: "1px solid rgba(255,255,255,0.07)",
-    background: "rgba(255,255,255,0.035)",
+    borderRadius: RADIUS.md,
+    border: `1px solid ${BORDER}`,
+    background: whiteAlpha(0.035),
     cursor: "pointer",
     color: "#fff",
     textAlign: "left",
@@ -115,7 +115,7 @@ export const discoverSearchStyles = {
     width: 40,
     height: 40,
     borderRadius: "50%",
-    background: "rgba(255,255,255,0.08)",
+    background: whiteAlpha(0.08),
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -123,7 +123,7 @@ export const discoverSearchStyles = {
     fontWeight: 800,
     flexShrink: 0,
     overflow: "hidden",
-    border: "1px solid rgba(255,255,255,0.1)",
+    border: `1px solid ${whiteAlpha(0.1)}`,
   },
   listAvatarImg: {
     width: "100%",
@@ -147,13 +147,13 @@ export const discoverSearchStyles = {
   },
   listCardSub: {
     fontSize: 12,
-    color: "rgba(255,255,255,0.4)",
+    color: whiteAlpha(0.4),
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
   },
   listArrow: {
-    color: "rgba(255,255,255,0.25)",
+    color: whiteAlpha(0.25),
     fontSize: 18,
     flexShrink: 0,
   },

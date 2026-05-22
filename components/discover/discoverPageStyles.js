@@ -1,4 +1,4 @@
-import { BG, RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import { BG, RED, RED_DARK, GOLD, BORDER, RADIUS, redAlpha, goldAlpha, whiteAlpha, blackAlpha } from "@/lib/tokens";
 
 export const discoverPageStyles = {
   page: {
@@ -17,10 +17,10 @@ export const discoverPageStyles = {
     position: "sticky",
     top: 56,
     zIndex: 40,
-    background: "rgba(11,11,12,0.88)",
+    background: blackAlpha(0.88),
     backdropFilter: "blur(28px)",
     WebkitBackdropFilter: "blur(28px)",
-    borderBottom: "1px solid rgba(255,255,255,0.06)",
+    borderBottom: `1px solid ${BORDER}`,
   },
   searchWrap: {
     flex: 1,
@@ -34,7 +34,7 @@ export const discoverPageStyles = {
     width: 15,
     height: 15,
     fill: "none",
-    stroke: "rgba(255,255,255,0.3)",
+    stroke: whiteAlpha(0.3),
     strokeWidth: 2,
     strokeLinecap: "round",
     pointerEvents: "none",
@@ -42,9 +42,9 @@ export const discoverPageStyles = {
   searchInput: {
     width: "100%",
     height: 40,
-    borderRadius: 12,
-    border: "1px solid rgba(255,255,255,0.09)",
-    background: "rgba(255,255,255,0.06)",
+    borderRadius: RADIUS.md,
+    border: `1px solid ${whiteAlpha(0.09)}`,
+    background: whiteAlpha(0.06),
     color: "#fff",
     padding: "0 34px 0 38px",
     fontSize: 13,
@@ -59,7 +59,7 @@ export const discoverPageStyles = {
     right: 10,
     background: "none",
     border: "none",
-    color: "rgba(255,255,255,0.35)",
+    color: whiteAlpha(0.35),
     cursor: "pointer",
     padding: 4,
     display: "flex",
@@ -70,9 +70,9 @@ export const discoverPageStyles = {
     height: 40,
     boxSizing: "border-box",
     padding: "0 16px",
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     border: `1px solid ${redAlpha(0.4)}`,
-    background: `linear-gradient(135deg, ${RED}, #cc2820)`,
+    background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`,
     color: "#fff",
     fontSize: 13,
     fontWeight: 800,
