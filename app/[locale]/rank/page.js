@@ -1,10 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 import { RANK_TIERS, getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
 import { getLocale, translate } from "@/lib/i18n";
 import RankIcon from "@/components/RankIcon";
+import RankPromotionModal from "@/components/RankPromotionModal";
 import BottomNav from "@/components/BottomNav";
 import PageTopBar from "@/components/PageTopBar";
 import { RED, GOLD, PURPLE, BG, BORDER, goldAlpha, redAlpha, pageBg } from "@/lib/tokens";
@@ -78,6 +80,21 @@ export default function RankPage() {
   const nextRank = getNextRank(currentXP);
   const rankProgress = getRankProgress(currentXP);
   const xpToNext = nextRank ? nextRank.minXP - currentXP : 0;
+
+  const [showPromotion, setShowPromotion] = useState(false);
+  const [promotionRank, setPromotionRank] = useState(null);
+
+  useEffect(() => {
+    if (dataLoading || !user?.uid || !fighterRank) return;
+    const storageKey = `gavana_rank_${user.uid}`;
+    const lastRankKey = typeof window !== "undefined" ? localStorage.getItem(storageKey) : null;
+    if (lastRankKey && lastRankKey !== fighterRank.key) {
+      setPromotionRank(fighterRank);
+      setShowPromotion(true);
+    }
+    localStorage.setItem(storageKey, fighterRank.key);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dataLoading, user?.uid, fighterRank?.key]);
   const tierXPStart = fighterRank.minXP;
   const tierXPEnd = nextRank?.minXP ?? fighterRank.minXP;
   const tierXPDone = currentXP - tierXPStart;
@@ -85,6 +102,14 @@ export default function RankPage() {
 
   return (
     <main style={styles.page} className="page-enter cinematic-bg">
+      {showPromotion && promotionRank && (
+        <RankPromotionModal
+          rank={promotionRank}
+          rankName={t(promotionRank.key)}
+          onDismiss={() => setShowPromotion(false)}
+        />
+      )}
+
       <PageTopBar kicker="COMBAT · RANK" title={t("rankPageTitle") || "RANK"} user={user} currentLocale={locale} showBack />
 
       <div style={styles.content}>
@@ -159,7 +184,7 @@ export default function RankPage() {
         {/* All-rank ladder */}
         <h2 style={styles.ladderHeading}>{t("rankPageKicker")}</h2>
 
-        <div style={styles.ladder}>
+        <div style={styles.ladder} className="stagger-list">
           {RANK_TIERS.map((tier) => {
             const isCurrent = fighterRank.key === tier.key;
             const isUnlocked = !dataLoading && currentXP >= tier.minXP;

@@ -1329,3 +1329,116 @@ p {
   box-shadow: 0 0 6px #FF3B30, 0 0 12px rgba(255,59,48,0.6);
   animation: navDotPulse 2.2s ease-in-out infinite;
 }
+
+/* ── Phase 10: Cinematic Polish ─────────────────────────────────────────── */
+
+/* Rank promotion overlay */
+@keyframes promotionOverlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.promotion-card-enter {
+  animation: promotionCardIn 500ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes promotionCardIn {
+  from { transform: scale(0.82) translateY(24px); opacity: 0; }
+  to   { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.promotion-badge-enter {
+  animation: promotionBadgePop 580ms cubic-bezier(0.34, 1.56, 0.64, 1) 160ms both;
+}
+@keyframes promotionBadgePop {
+  0%   { transform: scale(0.25) rotate(-18deg); opacity: 0; }
+  60%  { transform: scale(1.22) rotate(6deg);   opacity: 1; }
+  80%  { transform: scale(0.94) rotate(-2deg); }
+  100% { transform: scale(1) rotate(0deg);      opacity: 1; }
+}
+
+.promotion-title-enter {
+  animation: promotionTitleIn 420ms ease 340ms both;
+}
+@keyframes promotionTitleIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Spinning gold ray burst */
+.promo-rays {
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,    transparent 14deg,
+    rgba(245,196,81,0.07) 14deg, rgba(245,196,81,0.07) 22deg,
+    transparent 22deg,   transparent 44deg,
+    rgba(245,196,81,0.05) 44deg, rgba(245,196,81,0.05) 50deg,
+    transparent 50deg,   transparent 74deg,
+    rgba(245,196,81,0.07) 74deg, rgba(245,196,81,0.07) 82deg,
+    transparent 82deg,   transparent 104deg,
+    rgba(245,196,81,0.05) 104deg, rgba(245,196,81,0.05) 110deg,
+    transparent 110deg,  transparent 134deg,
+    rgba(245,196,81,0.07) 134deg, rgba(245,196,81,0.07) 142deg,
+    transparent 142deg,  transparent 164deg,
+    rgba(245,196,81,0.05) 164deg, rgba(245,196,81,0.05) 170deg,
+    transparent 170deg,  transparent 194deg,
+    rgba(245,196,81,0.07) 194deg, rgba(245,196,81,0.07) 202deg,
+    transparent 202deg,  transparent 224deg,
+    rgba(245,196,81,0.05) 224deg, rgba(245,196,81,0.05) 230deg,
+    transparent 230deg,  transparent 254deg,
+    rgba(245,196,81,0.07) 254deg, rgba(245,196,81,0.07) 262deg,
+    transparent 262deg,  transparent 284deg,
+    rgba(245,196,81,0.05) 284deg, rgba(245,196,81,0.05) 290deg,
+    transparent 290deg,  transparent 314deg,
+    rgba(245,196,81,0.07) 314deg, rgba(245,196,81,0.07) 322deg,
+    transparent 322deg,  transparent 344deg,
+    rgba(245,196,81,0.05) 344deg, rgba(245,196,81,0.05) 350deg,
+    transparent 350deg,  transparent 360deg
+  );
+  animation: promoRaysSpin 10s linear infinite;
+}
+@keyframes promoRaysSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Expanding ring */
+.promo-ring {
+  position: absolute;
+  animation: promoRingExpand 1.5s ease-out forwards;
+}
+@keyframes promoRingExpand {
+  0%   { transform: scale(1); opacity: 0.65; }
+  100% { transform: scale(5.5); opacity: 0; }
+}
+
+/* Gold particles shoot out */
+.promo-particle {
+  position: absolute;
+  animation: promoParticle 0.85s cubic-bezier(0.2, 1, 0.4, 1) forwards;
+}
+@keyframes promoParticle {
+  0%   { transform: scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+}
+
+/* Staggered list reveal — add class to parent, children animate in sequence */
+.stagger-list > * {
+  animation: sectionReveal 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  opacity: 0;
+}
+.stagger-list > *:nth-child(1)  { animation-delay: 0ms; }
+.stagger-list > *:nth-child(2)  { animation-delay: 55ms; }
+.stagger-list > *:nth-child(3)  { animation-delay: 110ms; }
+.stagger-list > *:nth-child(4)  { animation-delay: 165ms; }
+.stagger-list > *:nth-child(5)  { animation-delay: 220ms; }
+.stagger-list > *:nth-child(6)  { animation-delay: 275ms; }
+.stagger-list > *:nth-child(7)  { animation-delay: 330ms; }
+.stagger-list > *:nth-child(8)  { animation-delay: 385ms; }
+.stagger-list > *:nth-child(9)  { animation-delay: 440ms; }
+.stagger-list > *:nth-child(10) { animation-delay: 495ms; }
+
+/* Global button active press — fighter-grade tap feedback */
+button:not(:disabled):not([style*="cursor: default"]):active {
+  transform: scale(0.95);
+  transition: transform var(--motion-press);
+}
