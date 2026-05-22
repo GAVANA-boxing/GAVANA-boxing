@@ -423,7 +423,7 @@ export default function LeaderboardPage() {
 
         {/* Leaderboard list */}
         {!loading && filteredDisplayEntries.length > 0 && (
-          <div key={leaderboardTab} style={styles.list}>
+          <div key={leaderboardTab} style={styles.list} className="stagger-list">
             {filteredDisplayEntries.slice(0, visibleCount).map((entry, index) => (
               <LeaderboardEntry
                 key={entry.userId}
