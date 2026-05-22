@@ -25,7 +25,7 @@ const commentsStyles = {
     position: "relative",
     zIndex: 1001,
     borderTop: `1px solid ${BORDER}`,
-    boxShadow: "0 -24px 70px rgba(0,0,0,0.65)",
+    boxShadow: `0 -24px 70px ${blackAlpha(0.65)}`,
   },
   commentsHandle: {
     width: 36,

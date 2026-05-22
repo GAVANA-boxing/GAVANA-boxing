@@ -1,4 +1,4 @@
-import { RED, GOLD, MOTION, BORDER_2, redAlpha, goldAlpha, whiteAlpha } from "@/lib/tokens";
+import { RED, GOLD, MOTION, BORDER_2, RADIUS, redAlpha, goldAlpha, whiteAlpha, blackAlpha } from "@/lib/tokens";
 
 export const reelInfoStyles = {
   info: {
@@ -25,7 +25,7 @@ export const reelInfoStyles = {
     borderStyle: "solid",
     borderColor: goldAlpha(0.5),
     background: `linear-gradient(145deg, ${redAlpha(0.9)}, rgba(11,11,12,0.78))`,
-    boxShadow: "0 8px 22px rgba(0,0,0,0.5)",
+    boxShadow: `0 8px 22px ${blackAlpha(0.5)}`,
     paddingTop: 0,
     paddingBottom: 0,
     paddingLeft: 0,
@@ -136,7 +136,7 @@ export const reelInfoStyles = {
     paddingBottom: 0,
     paddingLeft: 16,
     paddingRight: 16,
-    borderRadius: 999,
+    borderRadius: RADIUS.full,
     borderWidth: "1px",
     borderStyle: "solid",
     borderColor: BORDER_2,

@@ -1,4 +1,4 @@
-import { RED, GOLD, MOTION, redAlpha, goldAlpha, whiteAlpha, blackAlpha } from "@/lib/tokens";
+import { RED, GOLD, MOTION, RADIUS, redAlpha, goldAlpha, whiteAlpha, blackAlpha } from "@/lib/tokens";
 
 export const reelActionsStyles = {
   actions: {
@@ -13,10 +13,10 @@ export const reelActionsStyles = {
     paddingBottom: 10,
     paddingLeft: 7,
     paddingRight: 7,
-    borderRadius: 999,
+    borderRadius: RADIUS.full,
     background: blackAlpha(0.42),
     border: `1px solid ${whiteAlpha(0.1)}`,
-    boxShadow: `0 8px 40px rgba(0,0,0,0.6), inset 0 1px 0 ${whiteAlpha(0.08)}`,
+    boxShadow: `0 8px 40px ${blackAlpha(0.6)}, inset 0 1px 0 ${whiteAlpha(0.08)}`,
     backdropFilter: "blur(36px) saturate(180%)",
     WebkitBackdropFilter: "blur(36px) saturate(180%)",
     animation: "fadeScale 220ms ease both",
@@ -54,7 +54,7 @@ export const reelActionsStyles = {
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 0,
-    boxShadow: "0 2px 12px rgba(0,0,0,0.5)",
+    boxShadow: `0 2px 12px ${blackAlpha(0.5)}`,
     transition: `transform ${MOTION.fast}, background ${MOTION.fast}, border-color ${MOTION.fast}, box-shadow ${MOTION.fast}`,
   },
   actionCircleLiked: {
@@ -152,7 +152,7 @@ export const reelActionsStyles = {
     right: "max(14px, env(safe-area-inset-right))",
     background: blackAlpha(0.42),
     border: `1px solid ${whiteAlpha(0.18)}`,
-    borderRadius: 999,
+    borderRadius: RADIUS.full,
     minWidth: 52,
     height: 30,
     color: "#fff",

@@ -449,8 +449,8 @@ export const reelVideoStyles = {
     inset: 0,
     pointerEvents: "none",
     background: [
-      "radial-gradient(ellipse 110% 110% at 50% 50%, transparent 36%, rgba(0,0,0,0.28) 62%, rgba(0,0,0,0.72) 100%)",
-      "linear-gradient(to bottom, rgba(0,0,0,0.38) 0%, transparent 18%)",
+      `radial-gradient(ellipse 110% 110% at 50% 50%, transparent 36%, ${blackAlpha(0.28)} 62%, ${blackAlpha(0.72)} 100%)`,
+      `linear-gradient(to bottom, ${blackAlpha(0.38)} 0%, transparent 18%)`,
     ].join(", "),
     zIndex: 2,
   },
@@ -461,7 +461,7 @@ export const reelVideoStyles = {
     right: 0,
     height: "22%",
     pointerEvents: "none",
-    background: "linear-gradient(to bottom, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.18) 55%, transparent 100%)",
+    background: `linear-gradient(to bottom, ${blackAlpha(0.62)} 0%, ${blackAlpha(0.18)} 55%, transparent 100%)`,
     zIndex: 3,
   },
   demoReel: {
@@ -546,7 +546,7 @@ export const reelVideoStyles = {
     height: 58,
     borderRadius: "34px 30px 28px 28px",
     background: RED,
-    boxShadow: "0 20px 48px rgba(0,0,0,0.36)",
+    boxShadow: `0 20px 48px ${blackAlpha(0.36)}`,
   },
   demoGloveRear: {
     position: "absolute",
@@ -602,7 +602,7 @@ export const reelVideoStyles = {
     fontSize: 15,
     fontWeight: 900,
     cursor: "pointer",
-    boxShadow: "0 14px 32px rgba(0,0,0,0.34)",
+    boxShadow: `0 14px 32px ${blackAlpha(0.34)}`,
   },
   overlay: {
     position: "absolute",
@@ -613,7 +613,7 @@ export const reelVideoStyles = {
     paddingRight: 18,
     paddingBottom: "calc(80px + env(safe-area-inset-bottom))",
     paddingLeft: 18,
-    background: "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.38) 46%, transparent 78%)",
+    background: `linear-gradient(to top, ${blackAlpha(0.88)} 0%, ${blackAlpha(0.38)} 46%, transparent 78%)`,
     display: "flex",
     justifyContent: "space-between",
     alignItems: "flex-end",
@@ -625,7 +625,7 @@ export const reelVideoStyles = {
     bottom: 0,
     height: "68vh",
     pointerEvents: "none",
-    background: "linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.82) 22%, rgba(0,0,0,0.48) 52%, rgba(0,0,0,0.12) 78%, transparent 100%)",
+    background: `linear-gradient(to top, ${blackAlpha(0.97)} 0%, ${blackAlpha(0.82)} 22%, ${blackAlpha(0.48)} 52%, ${blackAlpha(0.12)} 78%, transparent 100%)`,
     zIndex: 2,
   },
   videoProgressBar: {

@@ -22,7 +22,7 @@ export const feedbackMetricsStyles = {
     border: `1px solid ${BORDER_2}`,
     backdropFilter: "blur(18px) saturate(150%)",
     WebkitBackdropFilter: "blur(18px) saturate(150%)",
-    boxShadow: `0 18px 46px rgba(0,0,0,0.35), inset 0 1px 0 ${BORDER_2}`,
+    boxShadow: `0 18px 46px ${blackAlpha(0.35)}, inset 0 1px 0 ${BORDER_2}`,
   },
   metricItem: {
     minWidth: 0,

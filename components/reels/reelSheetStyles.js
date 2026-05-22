@@ -17,7 +17,7 @@ export const reelSheetStyles = {
     borderRadius: `${RADIUS.lg}px ${RADIUS.lg}px 0 0`,
     padding: "10px 20px calc(32px + env(safe-area-inset-bottom))",
     border: `1px solid ${goldAlpha(0.12)}`,
-    boxShadow: "0 -16px 48px rgba(0,0,0,0.7)",
+    boxShadow: `0 -16px 48px ${blackAlpha(0.7)}`,
     display: "flex",
     flexDirection: "column",
   },
@@ -118,7 +118,7 @@ export const reelSheetStyles = {
     padding: "12px 20px 32px",
     display: "flex",
     flexDirection: "column",
-    boxShadow: "0 -4px 32px rgba(0,0,0,0.7)",
+    boxShadow: `0 -4px 32px ${blackAlpha(0.7)}`,
   },
   captionSheetHandle: {
     width: 40,
