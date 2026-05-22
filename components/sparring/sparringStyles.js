@@ -1,4 +1,4 @@
-import { RED, GOLD, BORDER, MUTED, SURFACE, BG, redAlpha, goldAlpha, pageBg } from "@/lib/tokens";
+import { RED, GOLD, BORDER, BORDER_2, MUTED, SURFACE, BG, RADIUS, redAlpha, goldAlpha, whiteAlpha, blackAlpha, pageBg } from "@/lib/tokens";
 
 const s = {
   page: {
@@ -6,7 +6,7 @@ const s = {
     background: `
       radial-gradient(ellipse 90% 40% at 50% 0%, ${redAlpha(0.07)} 0%, transparent 52%),
       radial-gradient(ellipse 55% 50% at 8%  80%, ${redAlpha(0.025)} 0%, transparent 60%),
-      radial-gradient(ellipse 40% 35% at 92% 65%, rgba(255,255,255,0.009) 0%, transparent 55%),
+      radial-gradient(ellipse 40% 35% at 92% 65%, ${whiteAlpha(0.009)} 0%, transparent 55%),
       ${BG}
     `,
     color: "#fff",
@@ -30,8 +30,8 @@ const s = {
   },
   tabBar: {
     display: "flex",
-    borderBottom: "1px solid rgba(255,255,255,0.05)",
-    background: "rgba(5,5,5,0.96)",
+    borderBottom: `1px solid ${BORDER}`,
+    background: blackAlpha(0.96),
     backdropFilter: "blur(20px)",
     WebkitBackdropFilter: "blur(20px)",
     position: "sticky",
@@ -43,7 +43,7 @@ const s = {
     padding: "12px 4px",
     border: "none",
     background: "transparent",
-    color: "rgba(255,255,255,0.35)",
+    color: whiteAlpha(0.35),
     fontSize: 12,
     fontWeight: 800,
     cursor: "pointer",
@@ -62,7 +62,7 @@ const s = {
   tabBadge: {
     minWidth: 16,
     height: 16,
-    borderRadius: 999,
+    borderRadius: RADIUS.full,
     background: RED,
     color: "#fff",
     fontSize: 9,
@@ -73,7 +73,7 @@ const s = {
     padding: "0 4px",
   },
   toggleBanner: {
-    borderRadius: 14,
+    borderRadius: RADIUS.md,
     border: "1px solid",
     padding: "12px 14px",
     display: "flex",
@@ -92,11 +92,11 @@ const s = {
     transition: "all 300ms ease",
   },
   toggleTitle: { fontSize: 13, fontWeight: 800, marginBottom: 2, transition: "color 300ms ease" },
-  toggleSub: { fontSize: 11, color: "rgba(255,255,255,0.3)", lineHeight: 1.45 },
+  toggleSub: { fontSize: 11, color: whiteAlpha(0.3), lineHeight: 1.45 },
   toggleBtn: {
     flexShrink: 0,
     padding: "8px 14px",
-    borderRadius: 999,
+    borderRadius: RADIUS.full,
     fontSize: 12,
     fontWeight: 900,
     cursor: "pointer",
@@ -108,10 +108,10 @@ const s = {
   filterChip: {
     flexShrink: 0,
     padding: "6px 12px",
-    borderRadius: 999,
+    borderRadius: RADIUS.full,
     border: `1px solid ${BORDER}`,
-    background: "rgba(255,255,255,0.03)",
-    color: "rgba(255,255,255,0.38)",
+    background: whiteAlpha(0.03),
+    color: whiteAlpha(0.38),
     fontSize: 12,
     fontWeight: 700,
     cursor: "pointer",
@@ -120,10 +120,10 @@ const s = {
   weightSelect: {
     width: "100%",
     padding: "9px 12px",
-    borderRadius: 10,
+    borderRadius: RADIUS.sm,
     border: `1px solid ${BORDER}`,
-    background: "rgba(255,255,255,0.04)",
-    color: "rgba(255,255,255,0.55)",
+    background: whiteAlpha(0.04),
+    color: whiteAlpha(0.55),
     fontSize: 12,
     outline: "none",
     appearance: "none",
@@ -132,7 +132,7 @@ const s = {
   arenaBanner: {
     margin: "14px 16px 0",
     padding: "16px",
-    borderRadius: 18,
+    borderRadius: RADIUS.lg,
     border: `1px solid ${redAlpha(0.18)}`,
     background: `linear-gradient(145deg, ${redAlpha(0.07)} 0%, transparent 100%)`,
     backdropFilter: "blur(12px)",
@@ -187,7 +187,7 @@ const s = {
   arenaLiveSub: {
     fontSize: 12,
     fontWeight: 600,
-    color: "rgba(255,255,255,0.35)",
+    color: whiteAlpha(0.35),
   },
   arenaToggleBtn: {
     flexShrink: 0,
@@ -203,7 +203,7 @@ const s = {
   },
 
   countBar: { padding: "12px 16px 4px" },
-  countTxt: { fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.25)", letterSpacing: 0.8, textTransform: "uppercase" },
+  countTxt: { fontSize: 10, fontWeight: 700, color: whiteAlpha(0.25), letterSpacing: 0.8, textTransform: "uppercase" },
   list: { flex: 1, display: "flex", flexDirection: "column", padding: "12px 0 0", minHeight: "55dvh" },
   sectionLabel: {
     padding: "20px 16px 6px",
@@ -223,11 +223,11 @@ const s = {
     padding: "48px 32px",
     gap: 12,
   },
-  emptyTitle: { margin: 0, fontSize: 17, fontWeight: 900, color: "rgba(255,255,255,0.88)", textAlign: "center", letterSpacing: "-0.01em" },
+  emptyTitle: { margin: 0, fontSize: 17, fontWeight: 900, color: whiteAlpha(0.88), textAlign: "center", letterSpacing: "-0.01em" },
   emptySub: {
     margin: 0,
     fontSize: 13,
-    color: "rgba(255,255,255,0.3)",
+    color: whiteAlpha(0.3),
     textAlign: "center",
     lineHeight: 1.6,
     maxWidth: 260,
@@ -236,16 +236,16 @@ const s = {
 
 const c = {
   card: {
-    background: "rgba(255,255,255,0.04)",
+    background: whiteAlpha(0.04),
     backdropFilter: "blur(16px)",
     WebkitBackdropFilter: "blur(16px)",
-    border: `1px solid rgba(255,255,255,0.07)`,
-    borderRadius: "3px 18px 18px 3px",
+    border: `1px solid ${BORDER}`,
+    borderRadius: `3px ${RADIUS.lg}px ${RADIUS.lg}px 3px`,
     padding: "16px 14px 14px",
     display: "flex",
     flexDirection: "column",
     gap: 12,
-    boxShadow: "0 4px 28px rgba(0,0,0,0.4)",
+    boxShadow: `0 4px 28px ${blackAlpha(0.4)}`,
     transition: "box-shadow 200ms ease, border-color 200ms ease",
   },
   cardTop: { display: "flex", gap: 12, alignItems: "flex-start" },
@@ -255,7 +255,7 @@ const c = {
     width: 56,
     height: 56,
     borderRadius: "50%",
-    border: "1.5px solid rgba(255,255,255,0.08)",
+    border: `1.5px solid ${BORDER_2}`,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -270,19 +270,19 @@ const c = {
     fontSize: 10,
     fontWeight: 800,
     color: MUTED,
-    background: "rgba(255,255,255,0.05)",
+    background: whiteAlpha(0.05),
     border: `1px solid ${BORDER}`,
-    borderRadius: 999,
+    borderRadius: RADIUS.full,
     padding: "3px 9px",
   },
   location: { fontSize: 11, color: MUTED, marginBottom: 3 },
-  bio: { fontSize: 12, color: "rgba(255,255,255,0.38)", lineHeight: 1.45 },
+  bio: { fontSize: 12, color: whiteAlpha(0.38), lineHeight: 1.45 },
 
   // Stat bars — upgraded
   statBarsRow: { display: "flex", gap: 8, marginTop: 4 },
   statBar: { flex: 1, display: "flex", flexDirection: "column", gap: 4 },
   statLabel: { fontSize: 8, fontWeight: 900, letterSpacing: "0.06em", textAlign: "center" },
-  statTrack: { height: 5, borderRadius: 99, background: "rgba(255,255,255,0.07)", overflow: "hidden" },
+  statTrack: { height: 5, borderRadius: 99, background: whiteAlpha(0.07), overflow: "hidden" },
   statFill: { height: "100%", borderRadius: 99 },
 
   // Request / action buttons
@@ -305,7 +305,7 @@ const c = {
   },
   myLabel: {
     fontSize: 11,
-    color: "rgba(255,255,255,0.25)",
+    color: whiteAlpha(0.25),
     fontWeight: 700,
     textAlign: "center",
     padding: "4px 0 2px",
