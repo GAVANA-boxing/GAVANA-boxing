@@ -45,6 +45,97 @@ function TrainIcon() {
   );
 }
 
+function GridIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ display: "block" }}>
+      <rect x="1" y="1" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.9"/>
+      <rect x="9" y="1" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.9"/>
+      <rect x="1" y="9" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.9"/>
+      <rect x="9" y="9" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.9"/>
+    </svg>
+  );
+}
+
+// ─── Combat OS Sheet ──────────────────────────────────────────────────────────
+const COMBAT_OS_ITEMS = [
+  { key: "coach",      emoji: "🥊", labelEn: "AI Coach",   labelMn: "AI Дасгалжуулагч", path: "/coach" },
+  { key: "sparring",   emoji: "⚡",  labelEn: "Sparring",   labelMn: "Спарринг",          path: "/sparring" },
+  { key: "fighters",   emoji: "👊",  labelEn: "Fighters",   labelMn: "Тамирчид",          path: "/fighters" },
+  { key: "gyms",       emoji: "🏟",  labelEn: "Gyms",       labelMn: "Заалнууд",          path: "/gyms" },
+  { key: "challenges", emoji: "🎯",  labelEn: "Challenges", labelMn: "Даалгаврууд",       path: "/challenges" },
+  { key: "inbox",      emoji: "💬",  labelEn: "Inbox",      labelMn: "Мессэж",            path: "/inbox" },
+  { key: "upload",     emoji: "📹",  labelEn: "Upload",     labelMn: "Видео оруулах",     path: "/upload" },
+];
+
+function CombatOSSheet({ onClose, router, locale }) {
+  return (
+    <div
+      style={{
+        position: "fixed", inset: 0, zIndex: 300,
+        background: blackAlpha(0.72),
+        backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+        display: "flex", alignItems: "flex-end", justifyContent: "center",
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          width: "min(100%, 480px)",
+          borderRadius: "24px 24px 0 0",
+          background: "linear-gradient(180deg, #161618 0%, #0f0f10 100%)",
+          border: "1px solid rgba(255,255,255,0.09)",
+          borderBottom: "none",
+          boxShadow: `0 -24px 60px ${blackAlpha(0.55)}`,
+          padding: `16px 20px calc(24px + env(safe-area-inset-bottom))`,
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Handle */}
+        <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.16)", margin: "0 auto 16px" }} />
+
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
+          <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: 2.5, textTransform: "uppercase", color: "rgba(255,255,255,0.45)" }}>
+            Combat OS
+          </span>
+          <button
+            onClick={onClose}
+            style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 18, cursor: "pointer", padding: 4, lineHeight: 1 }}
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Grid */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          {COMBAT_OS_ITEMS.map((item) => (
+            <button
+              key={item.key}
+              className="tap-bounce"
+              onClick={() => { onClose(); router.push(`/${locale}${item.path}`); }}
+              style={{
+                display: "flex", alignItems: "center", gap: 12,
+                padding: "14px 16px",
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.07)",
+                borderRadius: 16,
+                cursor: "pointer", color: "#fff",
+                textAlign: "left",
+                WebkitTapHighlightColor: "transparent",
+              }}
+            >
+              <span style={{ fontSize: 22, lineHeight: 1, flexShrink: 0 }}>{item.emoji}</span>
+              <span style={{ fontSize: 13, fontWeight: 800, lineHeight: 1.2 }}>
+                {locale === "mn" ? item.labelMn : item.labelEn}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Profile tab ──────────────────────────────────────────────────────────────
 function ProfileTab({ user, active, onClick, badge, locale }) {
   const photo = user?.photoURL || user?.profileImageUrl || "";
@@ -130,6 +221,7 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
   const [unreadCount, setUnreadCount] = useState(0);
   const [dmUnread, setDmUnread] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const [combatOSOpen, setCombatOSOpen] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
   const resolvedActiveTab = activeTab || getActiveTab(pathname);
@@ -167,43 +259,61 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
   if (!mounted) return null;
 
   return (
-    <nav
-      className="app-bottom-nav"
-      style={s.nav}
-      onPointerEnter={onInteractStart}
-      onPointerDown={onInteractStart}
-      onPointerLeave={onInteractEnd}
-      onPointerUp={onInteractEnd}
-      onPointerCancel={onInteractEnd}
-      aria-label="Primary navigation"
-    >
-      {/* Home */}
-      <IconTab active={resolvedActiveTab === "home"} onClick={() => r.push(`/${locale}/discover`)} label={homeLabel}>
-        <HomeIcon active={resolvedActiveTab === "home"} />
-      </IconTab>
+    <>
+      {/* Combat OS floating trigger */}
+      <button
+        className="tap-bounce"
+        aria-label="More"
+        onClick={() => setCombatOSOpen(true)}
+        style={s.combatOSBtn}
+      >
+        <GridIcon />
+        <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.8, textTransform: "uppercase" }}>More</span>
+      </button>
 
-      {/* Reels */}
-      <IconTab active={resolvedActiveTab === "reels"} onClick={() => r.push(`/${locale}/reels`)} label={reelsLabel}>
-        <ReelIcon active={resolvedActiveTab === "reels"} />
-      </IconTab>
+      {/* Combat OS sheet */}
+      {combatOSOpen && (
+        <CombatOSSheet onClose={() => setCombatOSOpen(false)} router={r} locale={locale} />
+      )}
 
-      {/* Train — center action */}
-      <TrainTab active={resolvedActiveTab === "train"} onClick={() => r.push(`/${locale}/train`)} locale={locale} />
+      <nav
+        className="app-bottom-nav"
+        style={s.nav}
+        onPointerEnter={onInteractStart}
+        onPointerDown={onInteractStart}
+        onPointerLeave={onInteractEnd}
+        onPointerUp={onInteractEnd}
+        onPointerCancel={onInteractEnd}
+        aria-label="Primary navigation"
+      >
+        {/* Home */}
+        <IconTab active={resolvedActiveTab === "home"} onClick={() => r.push(`/${locale}/discover`)} label={homeLabel}>
+          <HomeIcon active={resolvedActiveTab === "home"} />
+        </IconTab>
 
-      {/* Rank */}
-      <IconTab active={resolvedActiveTab === "rank"} onClick={() => r.push(`/${locale}/rank`)} label={rankLabel}>
-        <RankIcon active={resolvedActiveTab === "rank"} />
-      </IconTab>
+        {/* Reels */}
+        <IconTab active={resolvedActiveTab === "reels"} onClick={() => r.push(`/${locale}/reels`)} label={reelsLabel}>
+          <ReelIcon active={resolvedActiveTab === "reels"} />
+        </IconTab>
 
-      {/* Profile — carries notification badge */}
-      <ProfileTab
-        user={user}
-        active={resolvedActiveTab === "profile"}
-        onClick={goToProfile}
-        badge={unreadCount + dmUnread}
-        locale={locale}
-      />
-    </nav>
+        {/* Train — center action */}
+        <TrainTab active={resolvedActiveTab === "train"} onClick={() => r.push(`/${locale}/train`)} locale={locale} />
+
+        {/* Rank */}
+        <IconTab active={resolvedActiveTab === "rank"} onClick={() => r.push(`/${locale}/rank`)} label={rankLabel}>
+          <RankIcon active={resolvedActiveTab === "rank"} />
+        </IconTab>
+
+        {/* Profile — carries notification badge */}
+        <ProfileTab
+          user={user}
+          active={resolvedActiveTab === "profile"}
+          onClick={goToProfile}
+          badge={unreadCount + dmUnread}
+          locale={locale}
+        />
+      </nav>
+    </>
   );
 }
 
@@ -240,6 +350,25 @@ const ic = {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const s = {
+  combatOSBtn: {
+    position: "fixed",
+    bottom: "calc(88px + env(safe-area-inset-bottom))",
+    right: 18,
+    zIndex: 99,
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    padding: "8px 13px",
+    borderRadius: RADIUS.full,
+    background: "rgba(18,18,20,0.88)",
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    color: "rgba(255,255,255,0.75)",
+    boxShadow: `0 4px 20px ${blackAlpha(0.45)}`,
+    cursor: "pointer",
+    WebkitTapHighlightColor: "transparent",
+  },
   nav: {
     position: "fixed",
     bottom: "calc(10px + env(safe-area-inset-bottom))",
