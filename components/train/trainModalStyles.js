@@ -1,4 +1,4 @@
-import { RED, RED_DARK, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, BORDER, BORDER_2, RADIUS, redAlpha, goldAlpha, whiteAlpha, blackAlpha } from "@/lib/tokens";
 
 export const trainModalStyles = {
   modalSaved: {
@@ -14,7 +14,7 @@ export const trainModalStyles = {
   missionCompleteBanner: {
     marginTop: 14,
     padding: "12px 14px",
-    borderRadius: 14,
+    borderRadius: RADIUS.md,
     background: `linear-gradient(135deg, ${goldAlpha(0.15)}, rgba(52,211,153,0.10))`,
     border: `1px solid ${goldAlpha(0.35)}`,
     display: "grid",
@@ -38,7 +38,7 @@ export const trainModalStyles = {
   },
   missionCompleteSub: {
     fontSize: 11,
-    color: "rgba(255,255,255,0.45)",
+    color: whiteAlpha(0.45),
     fontWeight: 700,
   },
   modalWrap: {
@@ -53,7 +53,7 @@ export const trainModalStyles = {
   modalOverlay: {
     position: "absolute",
     inset: 0,
-    background: "rgba(0,0,0,0.72)",
+    background: blackAlpha(0.72),
     backdropFilter: "blur(14px)",
     WebkitBackdropFilter: "blur(14px)",
   },
@@ -64,7 +64,7 @@ export const trainModalStyles = {
     borderRadius: 28,
     background: "rgba(16,14,18,0.97)",
     border: `1px solid ${goldAlpha(0.18)}`,
-    boxShadow: `0 -32px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.03), 0 0 60px ${redAlpha(0.08)}`,
+    boxShadow: `0 -32px 80px ${blackAlpha(0.65)}, 0 0 0 1px ${whiteAlpha(0.03)}, 0 0 60px ${redAlpha(0.08)}`,
     backdropFilter: "blur(28px)",
     WebkitBackdropFilter: "blur(28px)",
     textAlign: "center",
@@ -85,7 +85,7 @@ export const trainModalStyles = {
   modalBottom: {
     padding: "12px 20px 16px",
     flexShrink: 0,
-    borderTop: "1px solid rgba(255,255,255,0.06)",
+    borderTop: `1px solid ${BORDER}`,
   },
   modalKicker: {
     margin: 0,
@@ -104,7 +104,7 @@ export const trainModalStyles = {
     fontFamily: "var(--font-display, 'Anton', sans-serif)",
   },
   scoreUnit: {
-    color: "rgba(255,255,255,0.52)",
+    color: whiteAlpha(0.52),
     fontSize: 16,
     fontWeight: 900,
   },
@@ -118,10 +118,10 @@ export const trainModalStyles = {
     display: "grid",
     gap: 6,
     padding: 14,
-    borderRadius: 14,
-    background: "rgba(255,255,255,0.055)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    color: "rgba(255,255,255,0.62)",
+    borderRadius: RADIUS.md,
+    background: whiteAlpha(0.055),
+    border: `1px solid ${BORDER_2}`,
+    color: whiteAlpha(0.62),
     fontSize: 12,
     fontWeight: 800,
   },
@@ -134,14 +134,14 @@ export const trainModalStyles = {
   },
   progressTrack: {
     height: 8,
-    borderRadius: 999,
+    borderRadius: RADIUS.full,
     marginTop: 16,
-    background: "rgba(255,255,255,0.09)",
+    background: whiteAlpha(0.09),
     overflow: "hidden",
   },
   progressFill: {
     height: "100%",
-    borderRadius: 999,
+    borderRadius: RADIUS.full,
     background: RED,
   },
   shareResultButton: {
@@ -149,7 +149,7 @@ export const trainModalStyles = {
     minHeight: 46,
     marginTop: 14,
     border: `1px solid ${goldAlpha(0.36)}`,
-    borderRadius: 14,
+    borderRadius: RADIUS.md,
     background: `linear-gradient(135deg, ${goldAlpha(0.18)}, ${redAlpha(0.18)})`,
     color: GOLD,
     fontSize: 14,
@@ -165,13 +165,13 @@ export const trainModalStyles = {
   saveButton: {
     minHeight: 46,
     border: "none",
-    borderRadius: 14,
+    borderRadius: RADIUS.md,
     background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
     color: "#fff",
     fontSize: 14,
     fontWeight: 950,
     cursor: "pointer",
-    boxShadow: `0 8px 24px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)`,
+    boxShadow: `0 8px 24px ${redAlpha(0.28)}, inset 0 1px 0 ${whiteAlpha(0.1)}`,
   },
   saveButtonDone: {
     background: "#17664b",
@@ -179,9 +179,9 @@ export const trainModalStyles = {
   },
   tryAgainButton: {
     minHeight: 46,
-    border: "1px solid rgba(255,255,255,0.14)",
-    borderRadius: 14,
-    background: "rgba(255,255,255,0.06)",
+    border: `1px solid ${whiteAlpha(0.14)}`,
+    borderRadius: RADIUS.md,
+    background: whiteAlpha(0.06),
     color: "#fff",
     fontSize: 14,
     fontWeight: 900,
@@ -190,7 +190,7 @@ export const trainModalStyles = {
   reelsButton: {
     minHeight: 46,
     border: `1px solid ${goldAlpha(0.32)}`,
-    borderRadius: 14,
+    borderRadius: RADIUS.md,
     background: `${goldAlpha(0.1)}`,
     color: GOLD,
     fontSize: 14,
@@ -200,7 +200,7 @@ export const trainModalStyles = {
   challengeFriendButton: {
     minHeight: 46,
     border: `1px solid ${goldAlpha(0.42)}`,
-    borderRadius: 14,
+    borderRadius: RADIUS.md,
     background: `linear-gradient(135deg, ${redAlpha(0.92)}, ${goldAlpha(0.28)})`,
     color: "#fff",
     fontSize: 14,

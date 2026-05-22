@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import styles from "@/components/train/trainStyles";
-import { GOLD, RED, redAlpha } from "@/lib/tokens";
+import { GOLD, RED, redAlpha, whiteAlpha } from "@/lib/tokens";
 import { getChallengeRank } from "@/lib/utils";
 import { getChallengeComparisonPercent } from "@/lib/trainHelpers";
 import RankBadge from "@/components/RankBadge";
@@ -212,7 +212,7 @@ export default function TrainResultModal({
                 )}
               </div>
               {missionStreakBonus > 0 && (
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", fontWeight: 700, marginTop: 2 }}>
+                <div style={{ fontSize: 10, color: whiteAlpha(0.45), fontWeight: 700, marginTop: 2 }}>
                   {locale === "mn" ? `${missionNewStreak} өдрийн дараалал — бонус XP авлаа!` : locale === "ko" ? `${missionNewStreak}일 연속 — 보너스 XP 획득!` : `${missionNewStreak}-day streak — bonus XP earned!`}
                 </div>
               )}
@@ -236,7 +236,7 @@ export default function TrainResultModal({
               <div style={{ fontSize: 13, color: "#fff", fontWeight: 800 }}>
                 {t(rankUpInfo.key)}
               </div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 4 }}>
+              <div style={{ fontSize: 11, color: whiteAlpha(0.45), marginTop: 4 }}>
                 {t("trainNewRank")}
               </div>
             </div>
@@ -251,12 +251,12 @@ export default function TrainResultModal({
                     <div style={{
                       width: "100%",
                       height: `${Math.max(8, (s / 10) * 44)}px`,
-                      background: i === arr.length - 1 ? RED : "rgba(255,255,255,0.16)",
+                      background: i === arr.length - 1 ? RED : whiteAlpha(0.16),
                       borderRadius: "3px 3px 0 0",
                       transition: "height 0.5s ease",
                       alignSelf: "flex-end",
                     }} />
-                    <span style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>
+                    <span style={{ fontSize: 9, color: whiteAlpha(0.4), fontWeight: 700 }}>
                       {s.toFixed(1)}
                     </span>
                   </div>

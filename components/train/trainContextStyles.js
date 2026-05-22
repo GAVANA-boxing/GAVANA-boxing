@@ -1,4 +1,4 @@
-import { GOLD } from "@/lib/tokens";
+import { GOLD, BORDER, BORDER_2, RADIUS, whiteAlpha, blackAlpha } from "@/lib/tokens";
 
 export const trainContextStyles = {
   ghostHud: {
@@ -9,12 +9,12 @@ export const trainContextStyles = {
     flexDirection: "column",
     alignItems: "center",
     gap: 3,
-    background: "rgba(0,0,0,0.62)",
+    background: blackAlpha(0.62),
     backdropFilter: "blur(12px)",
     WebkitBackdropFilter: "blur(12px)",
-    borderRadius: 14,
+    borderRadius: RADIUS.md,
     padding: "8px 14px",
-    border: "1px solid rgba(255,255,255,0.14)",
+    border: `1px solid ${whiteAlpha(0.14)}`,
     zIndex: 5,
     minWidth: 60,
   },
@@ -38,26 +38,26 @@ export const trainContextStyles = {
     lineHeight: 1,
   },
   ghostHudSep: {
-    color: "rgba(255,255,255,0.58)",
+    color: whiteAlpha(0.58),
     fontSize: 10,
     fontWeight: 700,
   },
   ghostHudGhostLabel: {
-    color: "rgba(255,255,255,0.6)",
+    color: whiteAlpha(0.6),
     fontSize: 12,
     lineHeight: 1,
   },
   ghostHudGhostScore: {
-    color: "rgba(255,255,255,0.85)",
+    color: whiteAlpha(0.85),
     fontSize: 20,
     fontWeight: 1000,
     lineHeight: 1,
   },
   ghostToggleOn: {
     minHeight: 40,
-    border: "1px solid rgba(255,255,255,0.2)",
+    border: `1px solid ${whiteAlpha(0.2)}`,
     borderRadius: 12,
-    background: "rgba(255,255,255,0.08)",
+    background: whiteAlpha(0.08),
     color: "#fff",
     fontSize: 13,
     fontWeight: 900,
@@ -65,10 +65,10 @@ export const trainContextStyles = {
   },
   ghostToggleOff: {
     minHeight: 40,
-    border: "1px solid rgba(255,255,255,0.08)",
+    border: `1px solid ${BORDER_2}`,
     borderRadius: 12,
     background: "transparent",
-    color: "rgba(255,255,255,0.58)",
+    color: whiteAlpha(0.58),
     fontSize: 13,
     fontWeight: 700,
     cursor: "pointer",
@@ -76,7 +76,7 @@ export const trainContextStyles = {
   ghostWinBanner: {
     margin: "14px 0 0",
     padding: "12px 16px",
-    borderRadius: 14,
+    borderRadius: RADIUS.md,
     background: "rgba(52,211,153,0.12)",
     border: "1px solid rgba(52,211,153,0.35)",
     textAlign: "center",
@@ -87,18 +87,18 @@ export const trainContextStyles = {
   ghostLoseBanner: {
     margin: "14px 0 0",
     padding: "12px 16px",
-    borderRadius: 14,
-    background: "rgba(255,255,255,0.05)",
-    border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: RADIUS.md,
+    background: whiteAlpha(0.05),
+    border: `1px solid ${whiteAlpha(0.1)}`,
     textAlign: "center",
     fontSize: 15,
     fontWeight: 1000,
-    color: "rgba(255,255,255,0.65)",
+    color: whiteAlpha(0.65),
   },
   ghostBestScoreRow: {
     marginTop: 4,
     fontSize: 12,
-    color: "rgba(255,255,255,0.65)",
+    color: whiteAlpha(0.65),
     fontWeight: 700,
   },
   ghostHudState: {
@@ -113,8 +113,8 @@ export const trainContextStyles = {
   contextCard: {
     padding: "14px 16px",
     borderRadius: 16,
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.08)",
+    background: whiteAlpha(0.04),
+    border: `1px solid ${BORDER_2}`,
     display: "flex",
     flexDirection: "column",
     gap: 8,
@@ -133,7 +133,7 @@ export const trainContextStyles = {
   contextStatLabel: {
     fontSize: 10,
     fontWeight: 900,
-    color: "rgba(255,255,255,0.45)",
+    color: whiteAlpha(0.45),
     textTransform: "uppercase",
     letterSpacing: 1,
   },
@@ -147,21 +147,21 @@ export const trainContextStyles = {
   contextStatUnit: {
     fontSize: 13,
     fontWeight: 700,
-    color: "rgba(255,255,255,0.5)",
+    color: whiteAlpha(0.5),
     marginLeft: 2,
   },
   contextEmptyMsg: {
     fontSize: 13,
-    color: "rgba(255,255,255,0.5)",
+    color: whiteAlpha(0.5),
     fontWeight: 700,
     textAlign: "center",
     padding: "4px 0",
   },
   contextGhostNote: {
     fontSize: 11,
-    color: "rgba(255,255,255,0.38)",
+    color: whiteAlpha(0.38),
     fontWeight: 700,
-    borderTop: "1px solid rgba(255,255,255,0.07)",
+    borderTop: `1px solid ${BORDER}`,
     paddingTop: 8,
   },
   preSessionStrip: {
@@ -169,7 +169,7 @@ export const trainContextStyles = {
     alignItems: "center",
     gap: 14,
     paddingBottom: 10,
-    borderBottom: "1px solid rgba(255,255,255,0.07)",
+    borderBottom: `1px solid ${BORDER}`,
     marginBottom: 4,
   },
   weeklyRingWrap: {
@@ -182,7 +182,7 @@ export const trainContextStyles = {
   weeklyRingLabel: {
     fontSize: 9,
     fontWeight: 900,
-    color: "rgba(255,255,255,0.4)",
+    color: whiteAlpha(0.4),
     textTransform: "uppercase",
     letterSpacing: 0.8,
   },
@@ -203,7 +203,7 @@ export const trainContextStyles = {
   preSessionStatLbl: {
     fontSize: 9,
     fontWeight: 900,
-    color: "rgba(255,255,255,0.4)",
+    color: whiteAlpha(0.4),
     textTransform: "uppercase",
     letterSpacing: 0.8,
     textAlign: "center",
@@ -229,15 +229,15 @@ export const trainContextStyles = {
   resultSparklineCard: {
     marginTop: 14,
     padding: "12px 14px",
-    borderRadius: 14,
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: RADIUS.md,
+    background: whiteAlpha(0.03),
+    border: `1px solid ${BORDER_2}`,
   },
   resultSparklineTitle: {
     margin: "0 0 10px",
     fontSize: 10,
     fontWeight: 900,
-    color: "rgba(255,255,255,0.45)",
+    color: whiteAlpha(0.45),
     textTransform: "uppercase",
     letterSpacing: 1,
   },
@@ -265,8 +265,8 @@ export const trainContextStyles = {
     margin: "14px 0 0",
     padding: "14px 16px",
     borderRadius: 16,
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.1)",
+    background: whiteAlpha(0.04),
+    border: `1px solid ${whiteAlpha(0.1)}`,
     textAlign: "center",
     display: "flex",
     flexDirection: "column",
@@ -295,7 +295,7 @@ export const trainContextStyles = {
   vsCompareLbl: {
     fontSize: 9,
     fontWeight: 900,
-    color: "rgba(255,255,255,0.45)",
+    color: whiteAlpha(0.45),
     textTransform: "uppercase",
     letterSpacing: 1,
   },
@@ -314,7 +314,7 @@ export const trainContextStyles = {
   },
   almostMsg: {
     fontSize: 12,
-    color: "rgba(255,255,255,0.55)",
+    color: whiteAlpha(0.55),
     fontWeight: 700,
   },
 };
