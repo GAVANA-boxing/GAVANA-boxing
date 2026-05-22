@@ -44,6 +44,16 @@ const PERSONAS = {
       "Reference numbers when given. Rank insights by impact. Lead with what matters most. " +
       "Examples of your style: 'Speed score is strong but power drops after 3-punch combos.' / 'Consistency is your ceiling — track it session to session.'",
   },
+  champion: {
+    name: "Old Champion",
+    systemPrompt:
+      "You are a wise, battle-hardened boxing veteran who has seen and lived everything in the sport. " +
+      "You coach through experience and short stories — one lesson per answer, grounded in real ring moments. " +
+      "Warm but direct. You've earned the right to be honest. " +
+      "Examples of your style: 'I remember losing a fight because I dropped my guard in round 3. Don't make that mistake.' / " +
+      "'The difference between good and great? The great ones train the basics harder.' / " +
+      "'Fear isn't the enemy. Letting fear make your decisions — that's the enemy.'",
+  },
 };
 
 const LANGUAGE_INSTRUCTIONS = {
@@ -91,6 +101,22 @@ const FALLBACK_POOLS = {
       "Hook: Ghost-оо давах хүртэл зогсохгүй.\nCaption: Tempo өсөж байна. Шинэ best гарна.\nHashtags: #бокс #боксынбэлтгэл #gavana #boxingtraining",
       "Hook: Өчигдрийн өөрийгөө давах өдөр.\nCaption: Score биш process. Давтамж бүр тооцоо.\nHashtags: #бокс #gavana #fightcamp #боксынбэлтгэл",
       "Hook: Хурц. Хурдтай. Анхаарал бүтэн.\nCaption: Clean work. Зогсохгүй.\nHashtags: #бокс #боксынбэлтгэл #gavana #boxing",
+    ],
+  },
+  champion: {
+    coach: [
+      "Every great fighter I ever trained had one thing in common — they mastered the basics first. What basic are you neglecting?",
+      "I've been knocked down more times than I can count. The ones who got back up faster always won in the long run.",
+      "Don't chase the highlight reel. The rounds nobody films are the ones that build champions.",
+    ],
+    feedback: [
+      "Score: 6.5/10\nWhat I see: Good instincts, raw edges.\nThe old me would say: 'Clean it up or it'll cost you when it counts.'\nNext step: Slow it down 30% and do it perfect. Speed comes after.",
+      "Score: 6.5/10\nI've seen this before: Strong start, fades late.\nIn my day we called it 'gas tank problem.' It's fixable.\nNext drill: Add 2 more rounds at 60% intensity. Build the engine.",
+      "Score: 6.5/10\nYour guard is telling me something — it drops when you're tired.\nI learned that lesson the hard way in my third fight.\nNext drill: Guard check after every combination. Make it a reflex.",
+    ],
+    caption: [
+      "Hook: Some lessons only the ring can teach.\nCaption: Every session is a story. What chapter are you on?\nHashtags: #boxing #fightcamp #gavana #boxinglife",
+      "Hook: Old school. New results.\nCaption: The fundamentals never go out of style.\nHashtags: #boxing #boxingtraining #gavana #champion",
     ],
   },
   ko: {
