@@ -1,7 +1,7 @@
 import {
   RED, RED_DARK, GOLD, BG, SURFACE_1, SURFACE, SURFACE_2,
   BORDER, BORDER_2, MUTED, SP, RADIUS, MOTION,
-  redAlpha, goldAlpha, whiteAlpha, pageBg,
+  redAlpha, goldAlpha, whiteAlpha, blackAlpha, pageBg,
 } from "@/lib/tokens";
 
 const S = {
@@ -13,7 +13,7 @@ const S = {
     position: "absolute", top: 0, left: 0, right: 0, zIndex: 20,
     display: "flex", alignItems: "center", justifyContent: "space-between",
     padding: "calc(16px + env(safe-area-inset-top)) 20px 16px",
-    background: "linear-gradient(180deg, rgba(0,0,0,0.72) 0%, transparent 100%)",
+    background: `linear-gradient(180deg, ${blackAlpha(0.72)} 0%, transparent 100%)`,
   },
   remixBar: {
     position: "absolute", top: 108, left: 0, right: 0, zIndex: 20,
@@ -42,11 +42,11 @@ const S = {
     position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 20,
     display: "flex", alignItems: "center", justifyContent: "space-between",
     padding: "20px 24px 44px",
-    background: "linear-gradient(0deg, rgba(0,0,0,0.85) 0%, transparent 100%)",
+    background: `linear-gradient(0deg, ${blackAlpha(0.85)} 0%, transparent 100%)`,
   },
   galleryBtn: {
     padding: "11px 22px", borderRadius: RADIUS.full,
-    border: `1px solid ${whiteAlpha(0.2)}`, background: "rgba(0,0,0,0.4)",
+    border: `1px solid ${whiteAlpha(0.2)}`, background: blackAlpha(0.4),
     color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
   },
   nextBtn: {
@@ -62,7 +62,7 @@ const S = {
     position: "sticky", top: 0, zIndex: 20,
     display: "flex", alignItems: "center", justifyContent: "space-between",
     padding: "calc(14px + env(safe-area-inset-top)) 16px 14px",
-    background: "rgba(9,9,9,0.96)", backdropFilter: "blur(20px)",
+    background: blackAlpha(0.96), backdropFilter: "blur(20px)",
     WebkitBackdropFilter: "blur(20px)",
     borderBottom: `1px solid ${BORDER}`,
   },

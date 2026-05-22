@@ -1,7 +1,7 @@
 import {
   RED, RED_DARK, GOLD, BG, SURFACE_1, SURFACE_2,
   BORDER, BORDER_2, RADIUS, MOTION,
-  redAlpha, goldAlpha, whiteAlpha, pageBg,
+  redAlpha, goldAlpha, whiteAlpha, blackAlpha, pageBg,
 } from "@/lib/tokens";
 
 const s = {
@@ -16,7 +16,7 @@ const s = {
     position: "sticky", top: 0, zIndex: 10,
     display: "flex", alignItems: "center", justifyContent: "space-between",
     padding: "calc(14px + env(safe-area-inset-top)) 16px 14px",
-    background: "rgba(9,9,9,0.92)",
+    background: blackAlpha(0.92),
     backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
     borderBottom: `1px solid ${BORDER}`,
   },
@@ -48,7 +48,7 @@ const s = {
     borderLeft: `2.5px solid ${GOLD}`, borderRadius: `3px ${RADIUS.lg}px ${RADIUS.lg}px 3px`,
     padding: 16, marginBottom: 18, display: "flex", flexDirection: "column", gap: 10,
     backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
-    boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+    boxShadow: `0 8px 32px ${blackAlpha(0.3)}`,
   },
   formTitle: { margin: 0, fontSize: 12, fontWeight: 900, color: GOLD, letterSpacing: 1.5, textTransform: "uppercase" },
   formRow: { display: "flex", gap: 8 },
@@ -124,7 +124,7 @@ const s = {
     padding: "14px 16px", cursor: "pointer",
     transition: `border-color ${MOTION.fast}, transform ${MOTION.press}`,
     backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
-    boxShadow: "0 8px 28px rgba(0,0,0,0.35)",
+    boxShadow: `0 8px 28px ${blackAlpha(0.35)}`,
   },
   eventCardTop: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
   typeBadge: {

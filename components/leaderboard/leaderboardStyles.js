@@ -1,4 +1,4 @@
-import { RED, redAlpha, GOLD, goldAlpha, BG, SURFACE_1, BORDER, BORDER_2, RADIUS, MOTION, pageBg, whiteAlpha } from "@/lib/tokens";
+import { RED, redAlpha, GOLD, goldAlpha, BG, SURFACE_1, BORDER, BORDER_2, RADIUS, MOTION, pageBg, whiteAlpha, blackAlpha } from "@/lib/tokens";
 
 const styles = {
   page: {
@@ -11,7 +11,7 @@ const styles = {
     position: "sticky", top: 0, zIndex: 10,
     display: "grid", gridTemplateColumns: "64px 1fr 44px", alignItems: "center", gap: 12,
     padding: "calc(18px + env(safe-area-inset-top)) 16px 18px",
-    background: "rgba(5,5,5,0.94)", backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)",
+    background: blackAlpha(0.94), backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)",
     borderBottom: `1px solid ${goldAlpha(0.1)}`,
   },
   backBtn: {
@@ -30,7 +30,7 @@ const styles = {
   trophyBadge: { fontSize: 22, textAlign: "right" },
 
   tabsWrap: {
-    background: "rgba(5,5,5,0.94)", position: "sticky", top: 90, zIndex: 9,
+    background: blackAlpha(0.94), position: "sticky", top: 90, zIndex: 9,
     borderBottom: `1px solid ${goldAlpha(0.08)}`, padding: "10px 16px 8px",
     backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
   },
@@ -50,12 +50,12 @@ const styles = {
   seasonLabel: { margin: "6px auto 0", textAlign: "center", fontSize: 11, color: whiteAlpha(0.35), maxWidth: 640, fontWeight: 700 },
 
   filterWrap: {
-    background: "rgba(5,5,5,0.92)", padding: "8px 16px 10px",
+    background: blackAlpha(0.92), padding: "8px 16px 10px",
     borderBottom: `1px solid ${BORDER}`, display: "flex", flexDirection: "column", gap: 6,
   },
   filterRow: { display: "flex", gap: 6, overflowX: "auto", WebkitOverflowScrolling: "touch", scrollbarWidth: "none", msOverflowStyle: "none" },
   filterChip: {
-    flexShrink: 0, padding: "6px 12px", borderRadius: 999,
+    flexShrink: 0, padding: "6px 12px", borderRadius: RADIUS.full,
     border: `1px solid ${BORDER}`, background: whiteAlpha(0.04),
     color: whiteAlpha(0.4), fontSize: 12, fontWeight: 700,
     cursor: "pointer", whiteSpace: "nowrap", transition: `all ${MOTION.fast}`,
@@ -73,7 +73,7 @@ const styles = {
   },
   yourRankTop: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 },
   yourRankLabel: { fontSize: 14, fontWeight: 900, color: "#fff" },
-  scorePill: { padding: "3px 10px", borderRadius: 999, fontSize: 12, fontWeight: 900, color: "#fff" },
+  scorePill: { padding: "3px 10px", borderRadius: RADIUS.full, fontSize: 12, fontWeight: 900, color: "#fff" },
   yourRankSub: { fontSize: 12, color: whiteAlpha(0.42), lineHeight: 1.4, fontWeight: 600 },
 
   weeklyChampionBanner: {
@@ -155,7 +155,7 @@ const styles = {
   sessionsBadge: { fontSize: 10, color: whiteAlpha(0.28) },
   allTimeRankBadge: { fontSize: 10, color: "#60A5FA" },
   badgeRow: { display: "flex", gap: 4, marginTop: 5, flexWrap: "wrap" },
-  badge: { display: "inline-flex", alignItems: "center", gap: 3, padding: "2px 7px", borderRadius: 999, border: "1px solid", fontSize: 10, fontWeight: 800, letterSpacing: 0.2, whiteSpace: "nowrap" },
+  badge: { display: "inline-flex", alignItems: "center", gap: 3, padding: "2px 7px", borderRadius: RADIUS.full, border: "1px solid", fontSize: 10, fontWeight: 800, letterSpacing: 0.2, whiteSpace: "nowrap" },
 };
 
 export default styles;
