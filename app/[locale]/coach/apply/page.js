@@ -7,6 +7,8 @@ import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
+import { RED, GOLD, BG, redAlpha, pageBg } from "@/lib/tokens";
+import Image from "next/image";
 
 const SPECIALTIES = [
   "Jab", "Footwork", "Defense", "Conditioning",
@@ -33,6 +35,7 @@ export default function CoachApplyPage() {
   const [certifications, setCertifications] = useState("");
   const [instagram, setInstagram] = useState("");
   const [youtube, setYoutube] = useState("");
+  const [phone, setPhone] = useState("");
   const [bio, setBio] = useState("");
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
@@ -118,6 +121,7 @@ export default function CoachApplyPage() {
         certifications: certifications.trim(),
         instagram: instagram.trim(),
         youtube: youtube.trim(),
+        phone: phone.trim(),
         bio: bio.trim(),
         profileImage: profileImageUrl,
         submittedAt: serverTimestamp(),
@@ -126,7 +130,6 @@ export default function CoachApplyPage() {
 
       setSubmitted(true);
     } catch (e) {
-      console.error("Coach application error:", e);
       setError(t("coachApplyError"));
     } finally {
       setSubmitting(false);
@@ -145,7 +148,7 @@ export default function CoachApplyPage() {
           <div style={styles.successCard}>
             <div style={styles.successIcon}>🥊</div>
             <h2 style={styles.successTitle}>{t("verifiedCoach")}</h2>
-            <p style={styles.successDesc}>You are already a verified coach on GAVANA.</p>
+            <p style={styles.successDesc}>{t("coachAlreadyVerified")}</p>
             <button type="button" style={styles.submitBtn} onClick={() => router.push(`/${locale}/coach/dashboard`)}>
               {t("coachDashboard")}
             </button>
@@ -188,14 +191,14 @@ export default function CoachApplyPage() {
   }
 
   return (
-    <div style={styles.page}>
+    <div style={styles.page} className="page-enter">
       <div style={styles.inner}>
         <button type="button" style={styles.backBtn} onClick={() => router.push(`/${locale}/coach`)}>
           ← {t("back")}
         </button>
 
         <div style={styles.header}>
-          <p style={styles.eyebrow}>GAVANA BOXING</p>
+          <p style={styles.eyebrow}>COMBAT · TRAINING</p>
           <h1 style={styles.title}>{t("coachApplyTitle")}</h1>
           <p style={styles.subtitle}>{t("coachApplySubtitle")}</p>
         </div>
@@ -209,7 +212,7 @@ export default function CoachApplyPage() {
             onClick={() => fileInputRef.current?.click()}
           >
             {photoPreview ? (
-              <img src={photoPreview} alt="" style={styles.photoImg} />
+              <Image src={photoPreview} alt="" width={80} height={80} style={{ objectFit: "cover" }} unoptimized />
             ) : (
               <span style={styles.photoPlus}>+</span>
             )}
@@ -295,6 +298,11 @@ export default function CoachApplyPage() {
           </div>
 
           <div style={styles.field}>
+            <label style={styles.fieldLabel}>{t("coachPhoneLabel")}</label>
+            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+976 9999 0000" style={styles.input} />
+          </div>
+
+          <div style={styles.field}>
             <label style={styles.fieldLabel}>{t("coachApplyBio")} *</label>
             <textarea
               value={bio}
@@ -326,33 +334,32 @@ export default function CoachApplyPage() {
 }
 
 const styles = {
-  loading: { display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#0A0A0A", color: "#fff", fontFamily: "system-ui, sans-serif" },
-  page: { minHeight: "100vh", background: "#0A0A0A", fontFamily: "system-ui, sans-serif", color: "#fff", paddingBottom: 40 },
+  page: { minHeight: "100dvh", background: pageBg(), color: "#fff" },
   inner: { maxWidth: 480, margin: "0 auto", padding: "0 16px 40px" },
-  backBtn: { background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 14, cursor: "pointer", padding: "16px 0", display: "block" },
+  backBtn: { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)", fontSize: 14, cursor: "pointer", padding: "10px 14px", display: "inline-flex", alignItems: "center", borderRadius: 10, marginTop: "calc(16px + env(safe-area-inset-top))" },
   header: { textAlign: "center", padding: "8px 0 24px" },
-  eyebrow: { fontSize: 11, letterSpacing: 2, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", margin: "0 0 8px" },
-  title: { fontSize: 26, fontWeight: 700, margin: "0 0 8px", color: "#fff" },
+  eyebrow: { fontSize: 10, letterSpacing: 3, color: RED, textTransform: "uppercase", margin: "0 0 8px", fontWeight: 900 },
+  title: { fontSize: 28, fontWeight: 1000, margin: "0 0 8px", color: "#fff", fontFamily: "var(--font-display, 'Anton', sans-serif)", textTransform: "uppercase", letterSpacing: "-0.02em" },
   subtitle: { fontSize: 14, color: "rgba(255,255,255,0.5)", margin: 0 },
-  errBox: { background: "rgba(193,18,31,0.15)", border: "1px solid rgba(193,18,31,0.4)", borderRadius: 10, padding: "10px 14px", color: "#F87171", fontSize: 13, marginBottom: 16 },
+  errBox: { background: `${redAlpha(0.15)}`, border: `1px solid ${redAlpha(0.4)}`, borderRadius: 10, padding: "10px 14px", color: "#F87171", fontSize: 13, marginBottom: 16 },
   photoSection: { display: "flex", flexDirection: "column", alignItems: "center", gap: 10, marginBottom: 24 },
   photoCircle: { width: 80, height: 80, borderRadius: 40, background: "rgba(255,255,255,0.07)", border: "2px dashed rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", overflow: "hidden" },
   photoImg: { width: "100%", height: "100%", objectFit: "cover" },
-  photoPlus: { fontSize: 28, color: "rgba(255,255,255,0.3)" },
-  photoLabel: { background: "none", border: "none", color: "rgba(255,255,255,0.45)", fontSize: 13, cursor: "pointer", padding: 0 },
+  photoPlus: { fontSize: 28, color: "rgba(255,255,255,0.55)" },
+  photoLabel: { background: "none", border: "none", color: "rgba(255,255,255,0.65)", fontSize: 13, cursor: "pointer", padding: 0 },
   fields: { display: "flex", flexDirection: "column", gap: 16, marginBottom: 24 },
   field: { display: "flex", flexDirection: "column", gap: 6 },
   fieldRow: { display: "flex", gap: 12 },
-  fieldLabel: { fontSize: 12, color: "rgba(255,255,255,0.5)", letterSpacing: 0.5, textTransform: "uppercase" },
+  fieldLabel: { fontSize: 10, fontWeight: 900, color: RED, letterSpacing: 2, textTransform: "uppercase" },
   input: { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "12px 14px", color: "#fff", fontSize: 15, outline: "none", width: "100%", boxSizing: "border-box" },
   textarea: { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "12px 14px", color: "#fff", fontSize: 15, outline: "none", width: "100%", resize: "vertical", boxSizing: "border-box", fontFamily: "inherit" },
   specialtyGrid: { display: "flex", flexWrap: "wrap", gap: 8 },
-  specialtyBtn: { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20, padding: "6px 14px", color: "rgba(255,255,255,0.6)", fontSize: 13, cursor: "pointer" },
-  specialtyActive: { background: "rgba(193,18,31,0.2)", border: "1px solid rgba(193,18,31,0.5)", borderRadius: 20, padding: "6px 14px", color: "#F87171", fontSize: 13, cursor: "pointer" },
+  specialtyBtn: { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20, padding: "6px 14px", color: "rgba(255,255,255,0.55)", fontSize: 13, cursor: "pointer", transition: "all 140ms ease" },
+  specialtyActive: { background: `${redAlpha(0.25)}`, border: "2px solid #FF3B30", borderRadius: 20, padding: "5px 13px", color: "#ff6b6b", fontSize: 13, fontWeight: 800, cursor: "pointer", boxShadow: `0 0 10px ${redAlpha(0.25)}`, transition: "all 140ms ease" },
   progressWrap: { height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 2, marginBottom: 16, overflow: "hidden" },
-  progressBar: { height: "100%", background: "#C1121F", borderRadius: 2, transition: "width 0.2s" },
-  submitBtn: { width: "100%", padding: "16px", background: "#C1121F", border: "none", borderRadius: 12, color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer", letterSpacing: 0.5 },
-  submitBtnDisabled: { width: "100%", padding: "16px", background: "rgba(193,18,31,0.4)", border: "none", borderRadius: 12, color: "rgba(255,255,255,0.5)", fontSize: 16, fontWeight: 700, cursor: "not-allowed", letterSpacing: 0.5 },
+  progressBar: { height: "100%", background: RED, borderRadius: 2, transition: "width 0.2s" },
+  submitBtn: { width: "100%", padding: "16px", background: `linear-gradient(145deg, ${RED}, #cc2820)`, border: "none", borderRadius: 12, color: "#fff", fontSize: 16, fontWeight: 900, cursor: "pointer", letterSpacing: 0.5, boxShadow: `0 8px 24px ${redAlpha(0.32)}, inset 0 1px 0 rgba(255,255,255,0.1)` },
+  submitBtnDisabled: { width: "100%", padding: "16px", background: `${redAlpha(0.4)}`, border: "none", borderRadius: 12, color: "rgba(255,255,255,0.5)", fontSize: 16, fontWeight: 700, cursor: "not-allowed", letterSpacing: 0.5 },
   successCard: { textAlign: "center", padding: "60px 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 },
   successIcon: { fontSize: 56 },
   successTitle: { fontSize: 24, fontWeight: 700, margin: 0, color: "#fff" },

@@ -1,50 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { addDoc, collection, doc, getDoc, getDocs, query, serverTimestamp, where } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
+import EmptyState from "@/components/EmptyState";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
+import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import styles from "@/components/coach/coachIdStyles";
+import { StarRating, ReviewCard } from "@/components/shared/ReviewCard";
+import { SPECIALTY_COLORS, getCoachInsight } from "@/lib/coachConstants";
+import { useCoachProfileData } from "@/hooks/useCoachProfileData";
+import { useCoachProfileActions } from "@/hooks/useCoachProfileActions";
+import Image from "next/image";
 
-function StarRating({ value, onChange, readonly = false }) {
-  return (
-    <div style={{ display: "flex", gap: 6 }}>
-      {[1, 2, 3, 4, 5].map((n) => (
-        <button
-          key={n}
-          type="button"
-          onClick={() => !readonly && onChange && onChange(n)}
-          style={{
-            background: "none",
-            border: "none",
-            fontSize: 24,
-            cursor: readonly ? "default" : "pointer",
-            color: n <= value ? "#D4AF37" : "rgba(255,255,255,0.2)",
-            padding: "2px 1px",
-          }}
-        >
-          ★
-        </button>
-      ))}
-    </div>
-  );
-}
 
-function ReviewCard({ review }) {
-  return (
-    <div style={styles.reviewCard}>
-      <div style={styles.reviewTop}>
-        <StarRating value={review.rating} readonly />
-        <span style={styles.reviewDate}>
-          {review.createdAt?.toDate ? new Date(review.createdAt.toDate()).toLocaleDateString() : ""}
-        </span>
-      </div>
-      {review.review && <p style={styles.reviewText}>{review.review}</p>}
-    </div>
-  );
-}
 
 export default function CoachProfilePage() {
   const params = useParams();
@@ -55,155 +24,33 @@ export default function CoachProfilePage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
 
-  const [coach, setCoach] = useState(null);
-  const [reviews, setReviews] = useState([]);
-  const [reels, setReels] = useState([]);
-  const [completedSessions, setCompletedSessions] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [requested, setRequested] = useState(false);
-  const [requesting, setRequesting] = useState(false);
+  const {
+    coach,
+    reviews, setReviews,
+    reels,
+    completedSessions,
+    loading,
+    requested, setRequested,
+    pendingRequestId, setPendingRequestId,
+    eligibleBooking, setEligibleBooking,
+    programs, setPrograms,
+    enrolledIds, setEnrolledIds,
+  } = useCoachProfileData({ coachId, user });
 
-  // Review form
-  const [showReviewForm, setShowReviewForm] = useState(false);
-  const [reviewBookingId, setReviewBookingId] = useState(null);
-  const [reviewRating, setReviewRating] = useState(5);
-  const [reviewText, setReviewText] = useState("");
-  const [reviewSubmitting, setReviewSubmitting] = useState(false);
-  const [reviewSuccess, setReviewSuccess] = useState(false);
-  const [reviewError, setReviewError] = useState("");
-
-  // Completed booking eligible for review
-  const [eligibleBooking, setEligibleBooking] = useState(null);
-
-  useEffect(() => {
-    if (!coachId) return;
-    let active = true;
-
-    async function load() {
-      try {
-        const [coachSnap, reviewsSnap, reelsSnap, bookingsSnap] = await Promise.all([
-          getDoc(doc(db, "users", coachId)),
-          getDocs(query(collection(db, "coach_reviews"), where("coachId", "==", coachId))),
-          getDocs(query(collection(db, "reels"), where("userId", "==", coachId))),
-          getDocs(query(collection(db, "coach_bookings"), where("coachId", "==", coachId), where("status", "==", "completed"))),
-        ]);
-        if (!active) return;
-
-        setCoach(coachSnap.exists() ? { id: coachSnap.id, ...coachSnap.data() } : null);
-        setReviews(reviewsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
-        setReels(reelsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
-        setCompletedSessions(bookingsSnap.size);
-      } catch (e) {
-        console.error("Coach profile load error:", e);
-      } finally {
-        if (active) setLoading(false);
-      }
-    }
-
-    load();
-    return () => { active = false; };
-  }, [coachId]);
-
-  // Check if current user has a completed booking eligible for review
-  useEffect(() => {
-    if (!user?.uid || !coachId) return;
-    let active = true;
-
-    async function checkEligible() {
-      try {
-        const [bookingsSnap, existingReviewSnap] = await Promise.all([
-          getDocs(query(
-            collection(db, "coach_bookings"),
-            where("userId", "==", user.uid),
-            where("coachId", "==", coachId),
-            where("status", "==", "completed")
-          )),
-          getDocs(query(
-            collection(db, "coach_reviews"),
-            where("userId", "==", user.uid),
-            where("coachId", "==", coachId)
-          )),
-        ]);
-        if (!active) return;
-
-        if (!bookingsSnap.empty && existingReviewSnap.empty) {
-          setEligibleBooking(bookingsSnap.docs[0].id);
-        }
-      } catch { /* silent */ }
-    }
-
-    checkEligible();
-    return () => { active = false; };
-  }, [user?.uid, coachId]);
-
-  const handleRequest = async () => {
-    if (!user?.uid) { router.push(`/${locale}/login`); return; }
-    setRequesting(true);
-    try {
-      await addDoc(collection(db, "coach_requests"), {
-        coachId,
-        userId: user.uid,
-        status: "pending",
-        createdAt: serverTimestamp(),
-        message: "",
-        locale,
-      });
-      setRequested(true);
-    } catch (e) {
-      console.error("Request error:", e);
-    } finally {
-      setRequesting(false);
-    }
-  };
-
-  const handleReviewSubmit = async () => {
-    if (!user?.uid || !eligibleBooking) return;
-    setReviewSubmitting(true);
-    setReviewError("");
-    try {
-      // Double-check no existing review for this booking
-      const existing = await getDocs(query(
-        collection(db, "coach_reviews"),
-        where("bookingId", "==", eligibleBooking),
-        where("userId", "==", user.uid)
-      ));
-      if (!existing.empty) {
-        setReviewError(t("coachReviewAlreadyReviewed"));
-        setReviewSubmitting(false);
-        return;
-      }
-
-      await addDoc(collection(db, "coach_reviews"), {
-        coachId,
-        userId: user.uid,
-        bookingId: eligibleBooking,
-        rating: reviewRating,
-        review: reviewText.trim(),
-        createdAt: serverTimestamp(),
-      });
-
-      // Recalculate average rating
-      const allReviews = await getDocs(query(collection(db, "coach_reviews"), where("coachId", "==", coachId)));
-      const ratings = allReviews.docs.map((d) => Number(d.data().rating)).filter(Number.isFinite);
-      const avg = ratings.length ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 5;
-
-      const { updateDoc } = await import("firebase/firestore");
-      await updateDoc(doc(db, "users", coachId), {
-        coachRating: Number(avg.toFixed(1)),
-        coachTotalReviews: ratings.length,
-      });
-
-      setReviews((prev) => [{ id: Date.now(), coachId, userId: user.uid, bookingId: eligibleBooking, rating: reviewRating, review: reviewText.trim(), createdAt: null }, ...prev]);
-      setReviewSuccess(true);
-      setEligibleBooking(null);
-      setShowReviewForm(false);
-    } catch (e) {
-      console.error("Review submit error:", e);
-      setReviewError(t("coachReviewError"));
-    } finally {
-      setReviewSubmitting(false);
-    }
-  };
+  const {
+    requesting,
+    showReviewForm, setShowReviewForm,
+    reviewRating, setReviewRating,
+    reviewText, setReviewText,
+    reviewSubmitting, reviewSuccess, reviewError,
+    enrolling,
+    handleRequest, handleCancelCoachRequest, handleReviewSubmit, handleEnroll,
+  } = useCoachProfileActions({
+    user, router, locale, t, coachId,
+    setRequested, setPendingRequestId, pendingRequestId,
+    setReviews, setEligibleBooking, eligibleBooking,
+    setEnrolledIds, setPrograms, enrolledIds,
+  });
 
   if (authLoading || loading) {
     return <div style={styles.loading}>{t("loading")}</div>;
@@ -223,7 +70,7 @@ export default function CoachProfilePage() {
   const isOwnProfile = user?.uid === coachId;
 
   return (
-    <main style={styles.page}>
+    <main style={styles.page} className="page-enter">
       {/* Header */}
       <div style={styles.headerBar}>
         <button type="button" style={styles.backBtn} onClick={() => router.back()}>← {t("back")}</button>
@@ -235,20 +82,35 @@ export default function CoachProfilePage() {
         {/* Avatar */}
         <div style={styles.avatarWrap}>
           {coach.photoURL || coach.profileImageUrl ? (
-            <img src={coach.photoURL || coach.profileImageUrl} alt="" style={styles.avatar} />
+            <Image src={coach.photoURL || coach.profileImageUrl} alt="" width={88} height={88} style={{ borderRadius: 44, objectFit: "cover" }} />
           ) : (
             <div style={styles.avatarInitials}>{initials}</div>
           )}
           {coach.coachVerified && (
-            <span style={styles.verifiedDot} title={t("verifiedCoach")}>✓</span>
+            <span style={styles.verifiedDot} title={t("verifiedCoach")}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M20 6L9 17l-5-5" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
           )}
         </div>
 
         {/* Name + verified */}
-        <h1 style={styles.name}>{displayName}</h1>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
+          <h1 style={{ ...styles.name, margin: 0 }}>{displayName}</h1>
+          {coach.coachVerified && (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" title={t("verifiedCoach")} aria-label={t("verifiedCoach")}>
+              <circle cx="12" cy="12" r="11" fill={GOLD} />
+              <path d="M7 12.5l3.5 3.5 6.5-7" stroke="#000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          )}
+        </div>
         {coach.coachVerified && (
           <div style={styles.verifiedBadge}>
-            <span style={styles.verifiedIcon}>✓</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="11" fill={GOLD} />
+              <path d="M7 12.5l3.5 3.5 6.5-7" stroke="#000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
             {t("verifiedCoach")}
           </div>
         )}
@@ -287,8 +149,30 @@ export default function CoachProfilePage() {
         {/* Specialties */}
         {coach.coachSpecialties?.length > 0 && (
           <div style={styles.specialtyRow}>
-            {coach.coachSpecialties.map((s) => (
-              <span key={s} style={styles.specialtyChip}>{s}</span>
+            {coach.coachSpecialties.map((sp) => {
+              const spColor = SPECIALTY_COLORS[sp] || null;
+              return (
+                <span
+                  key={sp}
+                  style={spColor ? {
+                    ...styles.specialtyChip,
+                    color: spColor,
+                    background: `${spColor}14`,
+                    border: `1px solid ${spColor}44`,
+                  } : styles.specialtyChip}
+                >
+                  {sp}
+                </span>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Vibe tags */}
+        {coach.coachVibes?.length > 0 && (
+          <div style={styles.specialtyRow}>
+            {coach.coachVibes.map((v) => (
+              <span key={v} style={styles.vibeChip}>{v}</span>
             ))}
           </div>
         )}
@@ -303,14 +187,59 @@ export default function CoachProfilePage() {
           <p style={styles.cert}>🏅 {coach.coachCertifications}</p>
         )}
 
+        {/* Best for + What you'll improve */}
+        {(() => {
+          const { bestFor, improves } = getCoachInsight(coach);
+          if (!bestFor && !improves.length) return null;
+          return (
+            <>
+              {bestFor && (
+                <div style={styles.insightCard}>
+                  <span style={styles.insightLabel}>{t("coachBestFor")}</span>
+                  <span style={styles.insightText}>{bestFor[locale] || bestFor.en}</span>
+                </div>
+              )}
+              {improves.length > 0 && (
+                <div style={styles.insightCard}>
+                  <span style={styles.insightLabel}>{t("coachWillImprove")}</span>
+                  <div style={styles.improveList}>
+                    {improves.map((imp) => (
+                      <span key={imp} style={styles.improveChip}>✓ {imp}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          );
+        })()}
+
         {/* Social links */}
-        {(coach.coachInstagram || coach.coachYoutube) && (
+        {(coach.coachInstagram || coach.coachYoutube || coach.coachPhone) && (
           <div style={styles.socialRow}>
             {coach.coachInstagram && (
-              <span style={styles.socialChip}>📸 @{coach.coachInstagram.replace("@", "")}</span>
+              <a
+                href={`https://instagram.com/${coach.coachInstagram.replace("@", "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={styles.socialLink}
+              >
+                📸 @{coach.coachInstagram.replace("@", "")}
+              </a>
             )}
             {coach.coachYoutube && (
-              <span style={styles.socialChip}>▶ YouTube</span>
+              <a
+                href={coach.coachYoutube.startsWith("http") ? coach.coachYoutube : `https://youtube.com/@${coach.coachYoutube.replace("@", "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={styles.socialLink}
+              >
+                ▶ YouTube
+              </a>
+            )}
+            {coach.coachPhone && (
+              <a href={`tel:${coach.coachPhone}`} style={styles.socialLink}>
+                📞 {coach.coachPhone}
+              </a>
             )}
           </div>
         )}
@@ -326,14 +255,23 @@ export default function CoachProfilePage() {
         {/* CTA buttons */}
         {!isOwnProfile && (
           <div style={styles.ctaRow}>
-            <button
-              type="button"
-              style={requested ? styles.requestedBtn : styles.requestBtn}
-              onClick={handleRequest}
-              disabled={requested || requesting}
-            >
-              {requested ? t("requestSent") : requesting ? "..." : t("requestCoach")}
-            </button>
+            {pendingRequestId ? (
+              <div style={styles.pendingRow}>
+                <span style={styles.pendingBadge}>⏳ {t("requestPendingLabel")}</span>
+                <button type="button" style={styles.cancelReqBtn} onClick={handleCancelCoachRequest}>
+                  {t("cancelRequest")}
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                style={requesting ? styles.requestedBtn : styles.requestBtn}
+                onClick={handleRequest}
+                disabled={requesting}
+              >
+                {requesting ? "..." : t("requestCoach")}
+              </button>
+            )}
           </div>
         )}
         {isOwnProfile && (
@@ -394,11 +332,84 @@ export default function CoachProfilePage() {
       <div style={styles.section}>
         <h2 style={styles.sectionTitle}>{t("coachReviews")}</h2>
         {reviews.length === 0 ? (
-          <p style={styles.empty}>{t("coachReviewsEmpty")}</p>
+          <div style={{ borderRadius: 16, background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.1)" }}>
+            <EmptyState emoji="⭐" title={t("coachReviewsEmpty")} hint={t("coachIdReviewsEmpty")} padding="28px 16px" />
+          </div>
         ) : (
-          reviews.map((r) => <ReviewCard key={r.id} review={r} />)
+          reviews.map((r) => <ReviewCard key={r.id} review={r} styles={styles} />)
         )}
       </div>
+
+      {/* Training Programs section */}
+      {programs.length > 0 && (
+        <div style={styles.section}>
+          <h2 style={styles.sectionTitle}>
+            📋 {t("coachIdTrainingPrograms")}
+          </h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {programs.map((prog) => {
+              const enrolled = enrolledIds.has(prog.id);
+              const isBusy = enrolling === prog.id;
+              const LEVEL_COLOR = { beginner: "#34D399", intermediate: GOLD, advanced: RED };
+              const levelColor = LEVEL_COLOR[prog.level] || "#888";
+              return (
+                <div key={prog.id} style={{
+                  background: "linear-gradient(145deg, #111012, #0a0a0a)",
+                  border: "1px solid rgba(255,255,255,0.07)",
+                  borderLeft: `2.5px solid ${levelColor}`,
+                  borderRadius: "3px 14px 14px 3px",
+                  padding: "14px 14px 12px",
+                  display: "flex", flexDirection: "column", gap: 10,
+                }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 900, color: "#fff", marginBottom: 4 }}>{prog.title}</div>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: prog.description ? 6 : 0 }}>
+                        <span style={{ fontSize: 10, fontWeight: 800, color: levelColor, background: `${levelColor}15`, border: `1px solid ${levelColor}44`, borderRadius: 999, padding: "2px 8px" }}>
+                          {prog.level ? prog.level.charAt(0).toUpperCase() + prog.level.slice(1) : ""}
+                        </span>
+                        {prog.duration && (
+                          <span style={{ fontSize: 10, fontWeight: 700, color: "#888", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 999, padding: "2px 8px" }}>
+                            📅 {prog.duration} {t("coachIdDaysUnit")}
+                          </span>
+                        )}
+                        {prog.enrolledCount > 0 && (
+                          <span style={{ fontSize: 10, fontWeight: 700, color: "#888", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 999, padding: "2px 8px" }}>
+                            👥 {prog.enrolledCount}
+                          </span>
+                        )}
+                      </div>
+                      {prog.description && (
+                        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>
+                          {prog.description.slice(0, 100)}{prog.description.length > 100 ? "…" : ""}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {!isOwnProfile && (
+                    <button
+                      type="button"
+                      onClick={() => handleEnroll(prog)}
+                      disabled={isBusy}
+                      style={{
+                        padding: "9px 0", borderRadius: 10, border: enrolled ? `1px solid ${levelColor}44` : "none",
+                        background: enrolled ? `${levelColor}12` : `linear-gradient(135deg, ${levelColor}, ${levelColor}bb)`,
+                        color: enrolled ? levelColor : "#fff",
+                        fontSize: 12, fontWeight: 900, cursor: isBusy ? "wait" : "pointer",
+                        opacity: isBusy ? 0.6 : 1,
+                      }}
+                    >
+                      {isBusy ? "…" : enrolled
+                        ? t("coachIdEnrolled")
+                        : t("coachIdFollowProgram")}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Reels section */}
       {reels.length > 0 && (
@@ -413,7 +424,9 @@ export default function CoachProfilePage() {
                 onClick={() => router.push(`/${locale}/reels?reelId=${reel.id}`)}
               >
                 {reel.thumbnailUrl ? (
-                  <img src={reel.thumbnailUrl} alt="" style={styles.reelThumbImg} />
+                  <div style={{ position: "relative", width: "100%", height: "100%" }}>
+                    <Image src={reel.thumbnailUrl} alt="" fill style={{ objectFit: "cover" }} />
+                  </div>
                 ) : (
                   <div style={styles.reelThumbPlaceholder}>▶</div>
                 )}
@@ -423,64 +436,8 @@ export default function CoachProfilePage() {
         </div>
       )}
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
     </main>
   );
 }
 
-const styles = {
-  loading: { display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#0A0A0A", color: "#fff", fontFamily: "system-ui, sans-serif", flexDirection: "column", gap: 12 },
-  page: { minHeight: "100vh", background: "#0A0A0A", fontFamily: "system-ui, sans-serif", color: "#fff", paddingBottom: 80 },
-  headerBar: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 16px 8px" },
-  backBtn: { background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 14, cursor: "pointer", padding: 0 },
-  headerTitle: { fontSize: 15, fontWeight: 600, color: "#fff" },
-  profileSection: { padding: "8px 20px 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: 10 },
-  avatarWrap: { position: "relative", width: 88, height: 88 },
-  avatar: { width: 88, height: 88, borderRadius: 44, objectFit: "cover", border: "2px solid rgba(212,175,55,0.4)" },
-  avatarInitials: { width: 88, height: 88, borderRadius: 44, background: "rgba(193,18,31,0.2)", border: "2px solid rgba(193,18,31,0.4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30, fontWeight: 700, color: "#fff" },
-  verifiedDot: { position: "absolute", bottom: 2, right: 2, width: 22, height: 22, borderRadius: 11, background: "#D4AF37", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, boxShadow: "0 0 0 2px #0A0A0A" },
-  name: { fontSize: 22, fontWeight: 700, margin: 0, textAlign: "center" },
-  verifiedBadge: { display: "flex", alignItems: "center", gap: 5, background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.4)", borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 600, color: "#D4AF37" },
-  verifiedIcon: { fontSize: 11, fontWeight: 700 },
-  location: { fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0 },
-  trustRow: { display: "flex", gap: 20, flexWrap: "wrap", justifyContent: "center", margin: "4px 0" },
-  trustStat: { display: "flex", flexDirection: "column", alignItems: "center", gap: 2 },
-  trustNum: { fontSize: 17, fontWeight: 700, color: "#fff" },
-  trustLbl: { fontSize: 10, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: 0.5 },
-  specialtyRow: { display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center" },
-  specialtyChip: { background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20, padding: "4px 12px", fontSize: 12, color: "rgba(255,255,255,0.7)" },
-  bio: { fontSize: 14, color: "rgba(255,255,255,0.65)", textAlign: "center", lineHeight: 1.55, maxWidth: 380, margin: 0 },
-  cert: { fontSize: 13, color: "rgba(255,255,255,0.5)", margin: 0 },
-  socialRow: { display: "flex", gap: 8 },
-  socialChip: { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, padding: "4px 12px", fontSize: 12, color: "rgba(255,255,255,0.6)" },
-  priceRow: { display: "flex", alignItems: "baseline", gap: 6 },
-  price: { fontSize: 22, fontWeight: 700, color: "#D4AF37" },
-  priceLbl: { fontSize: 13, color: "rgba(255,255,255,0.4)" },
-  ctaRow: { display: "flex", gap: 10, width: "100%", maxWidth: 360, marginTop: 4 },
-  requestBtn: { flex: 1, padding: "14px", background: "#C1121F", border: "none", borderRadius: 12, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" },
-  requestedBtn: { flex: 1, padding: "14px", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 12, color: "rgba(255,255,255,0.5)", fontSize: 15, fontWeight: 600, cursor: "default" },
-  submitBtn: { flex: 1, padding: "12px", background: "#C1121F", border: "none", borderRadius: 10, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" },
-  submitBtnDisabled: { flex: 1, padding: "12px", background: "rgba(193,18,31,0.4)", border: "none", borderRadius: 10, color: "rgba(255,255,255,0.4)", fontSize: 14, cursor: "not-allowed" },
-  cancelBtn: { flex: 1, padding: "12px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, color: "rgba(255,255,255,0.6)", fontSize: 14, cursor: "pointer" },
-  reviewPrompt: { margin: "0 16px 16px", padding: "14px 16px", background: "rgba(212,175,55,0.08)", border: "1px solid rgba(212,175,55,0.3)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "space-between" },
-  reviewPromptText: { fontSize: 13, color: "#D4AF37", margin: 0 },
-  leaveReviewBtn: { background: "#D4AF37", border: "none", borderRadius: 8, padding: "8px 14px", color: "#000", fontSize: 13, fontWeight: 700, cursor: "pointer" },
-  reviewFormCard: { margin: "0 16px 16px", padding: "18px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, display: "flex", flexDirection: "column", gap: 12 },
-  reviewFormTitle: { fontSize: 16, fontWeight: 700, margin: 0, color: "#fff" },
-  ratingRow: { display: "flex", alignItems: "center", gap: 12 },
-  fieldLabel: { fontSize: 12, color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: 0.5 },
-  reviewTextarea: { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "12px 14px", color: "#fff", fontSize: 14, outline: "none", width: "100%", resize: "vertical", boxSizing: "border-box", fontFamily: "inherit" },
-  reviewErr: { color: "#F87171", fontSize: 13, margin: 0 },
-  reviewFormActions: { display: "flex", gap: 10 },
-  section: { padding: "0 16px 24px" },
-  sectionTitle: { fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.85)", marginBottom: 12 },
-  empty: { fontSize: 14, color: "rgba(255,255,255,0.35)", textAlign: "center", padding: "20px 0" },
-  reviewCard: { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "14px", marginBottom: 10 },
-  reviewTop: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
-  reviewDate: { fontSize: 12, color: "rgba(255,255,255,0.35)" },
-  reviewText: { fontSize: 14, color: "rgba(255,255,255,0.7)", margin: 0, lineHeight: 1.5 },
-  reelsGrid: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 4 },
-  reelThumb: { aspectRatio: "9/16", background: "rgba(255,255,255,0.05)", border: "none", borderRadius: 8, cursor: "pointer", overflow: "hidden", padding: 0 },
-  reelThumbImg: { width: "100%", height: "100%", objectFit: "cover" },
-  reelThumbPlaceholder: { width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.2)", fontSize: 20 },
-};

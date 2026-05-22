@@ -1,22 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import {
-  collection,
-  getDocs,
-  addDoc,
-  deleteDoc,
-  doc,
-  query,
-  where,
-  Timestamp,
-  serverTimestamp,
-} from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale, translate } from "@/lib/i18n";
-import { createFeaturedNotification } from "@/lib/notifications";
+import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
+import { useAdminFeaturedCreators } from "@/hooks/useAdminFeaturedCreators";
+import Image from "next/image";
 
 export default function AdminFeaturedCreatorsPage() {
   const params = useParams();
@@ -25,119 +14,17 @@ export default function AdminFeaturedCreatorsPage() {
   const locale = getLocale(params?.locale);
   const t = (key) => translate(locale, key);
 
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [adminChecked, setAdminChecked] = useState(false);
-  const [featuredList, setFeaturedList] = useState([]);
-  const [loadingFeatured, setLoadingFeatured] = useState(true);
-
-  // Search / feature form
-  const [searchTerm, setSearchTerm] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [reason, setReason] = useState("");
-  const [daysUntil, setDaysUntil] = useState(7);
-  const [submitting, setSubmitting] = useState(false);
-  const [removing, setRemoving] = useState(null);
-
-  // Check admin status
-  useEffect(() => {
-    if (authLoading) return;
-    if (!user) {
-      setAdminChecked(true);
-      return;
-    }
-    async function check() {
-      try {
-        const snap = await getDocs(query(collection(db, "users"), where("__name__", "==", user.uid)));
-        const data = snap.docs[0]?.data() || {};
-        setIsAdmin(!!data.isAdmin || !!data.admin);
-      } catch { /* silent */ }
-      setAdminChecked(true);
-    }
-    check();
-  }, [user, authLoading]);
-
-  // Load current featured creators
-  useEffect(() => {
-    if (!adminChecked || !isAdmin) return;
-    loadFeatured();
-  }, [adminChecked, isAdmin]);
-
-  async function loadFeatured() {
-    setLoadingFeatured(true);
-    try {
-      const now = Timestamp.now();
-      const snap = await getDocs(query(collection(db, "featured_creators"), where("featuredUntil", ">=", now)));
-      const items = [];
-      for (const d of snap.docs) {
-        const data = d.data();
-        // Load user profile
-        const userSnap = await getDocs(query(collection(db, "users"), where("__name__", "==", data.userId)));
-        const profile = userSnap.docs[0]?.data() || {};
-        items.push({
-          docId: d.id,
-          ...data,
-          displayName: profile.displayName || profile.username || data.userId,
-          photoURL: profile.photoURL || profile.profileImageUrl || "",
-        });
-      }
-      setFeaturedList(items);
-    } catch { /* silent */ }
-    setLoadingFeatured(false);
-  }
-
-  async function handleSearch(e) {
-    e.preventDefault();
-    const term = searchTerm.trim().toLowerCase();
-    if (!term) return;
-    try {
-      const snap = await getDocs(collection(db, "users"));
-      const results = [];
-      snap.forEach((d) => {
-        const data = d.data();
-        const name = String(data.displayName || "").toLowerCase();
-        const uname = String(data.username || "").toLowerCase();
-        if (name.includes(term) || uname.includes(term)) {
-          results.push({ id: d.id, ...data });
-        }
-      });
-      setSearchResults(results.slice(0, 12));
-    } catch { /* silent */ }
-  }
-
-  async function handleFeature() {
-    if (!selectedUser || submitting) return;
-    setSubmitting(true);
-    try {
-      const featuredUntil = Timestamp.fromDate(
-        new Date(Date.now() + Number(daysUntil) * 24 * 60 * 60 * 1000)
-      );
-      await addDoc(collection(db, "featured_creators"), {
-        userId: selectedUser.id,
-        reason: reason.trim() || "",
-        featuredUntil,
-        createdAt: serverTimestamp(),
-      });
-      createFeaturedNotification({ creatorId: selectedUser.id }).catch(() => {});
-      setSelectedUser(null);
-      setReason("");
-      setDaysUntil(7);
-      setSearchResults([]);
-      setSearchTerm("");
-      await loadFeatured();
-    } catch { /* silent */ }
-    setSubmitting(false);
-  }
-
-  async function handleRemove(docId) {
-    if (removing) return;
-    setRemoving(docId);
-    try {
-      await deleteDoc(doc(db, "featured_creators", docId));
-      setFeaturedList((prev) => prev.filter((f) => f.docId !== docId));
-    } catch { /* silent */ }
-    setRemoving(null);
-  }
+  const {
+    isAdmin, adminChecked,
+    featuredList, loadingFeatured,
+    searchTerm, setSearchTerm,
+    searchResults,
+    selectedUser, setSelectedUser,
+    reason, setReason,
+    daysUntil, setDaysUntil,
+    submitting, removing,
+    handleSearch, handleFeature, handleRemove,
+  } = useAdminFeaturedCreators({ user, authLoading });
 
   if (authLoading || !adminChecked) {
     return <div style={styles.page}><p style={styles.msg}>Loading…</p></div>;
@@ -190,7 +77,7 @@ export default function AdminFeaturedCreatorsPage() {
                   style={{ ...styles.resultItem, ...(isSelected ? styles.resultItemSelected : {}) }}
                 >
                   <div style={styles.avatar}>
-                    {photo ? <img src={photo} alt={initial} style={styles.avatarImg} /> : initial}
+                    {photo ? <Image src={photo} alt={initial} width={38} height={38} style={{ objectFit: "cover" }} /> : initial}
                   </div>
                   <div>
                     <div style={styles.resultName}>{u.displayName || u.username || "Unnamed"}</div>
@@ -255,7 +142,7 @@ export default function AdminFeaturedCreatorsPage() {
                 <div key={item.docId} style={styles.featuredItem}>
                   <div style={styles.avatar}>
                     {item.photoURL
-                      ? <img src={item.photoURL} alt={initial} style={styles.avatarImg} />
+                      ? <Image src={item.photoURL} alt={initial} width={38} height={38} style={{ objectFit: "cover" }} />
                       : initial}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -287,11 +174,10 @@ export default function AdminFeaturedCreatorsPage() {
 
 const styles = {
   page: {
-    minHeight: "100vh",
-    background: "linear-gradient(180deg, #070707 0%, #090909 100%)",
+    minHeight: "100dvh",
+    background: "#0B0B0C",
     color: "#fff",
     padding: "28px 20px 60px",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   },
   header: {
     display: "flex",
@@ -303,7 +189,7 @@ const styles = {
   backLink: {
     background: "none",
     border: "none",
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 22,
     cursor: "pointer",
     padding: "4px 0",
@@ -312,7 +198,7 @@ const styles = {
   },
   kicker: {
     margin: 0,
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 11,
     fontWeight: 900,
     letterSpacing: 2,
@@ -338,7 +224,7 @@ const styles = {
     fontWeight: 900,
     letterSpacing: 1,
     textTransform: "uppercase",
-    color: "#D4AF37",
+    color: GOLD,
   },
   searchRow: {
     display: "flex",
@@ -361,7 +247,7 @@ const styles = {
     padding: "0 18px",
     borderRadius: 12,
     border: "none",
-    background: "#C1121F",
+    background: RED,
     color: "#fff",
     fontSize: 14,
     fontWeight: 800,
@@ -386,14 +272,14 @@ const styles = {
     width: "100%",
   },
   resultItemSelected: {
-    background: "rgba(212,175,55,0.1)",
-    border: "1px solid rgba(212,175,55,0.35)",
+    background: `${goldAlpha(0.1)}`,
+    border: `1px solid ${goldAlpha(0.35)}`,
   },
   avatar: {
     width: 38,
     height: 38,
     borderRadius: "50%",
-    background: "rgba(193,18,31,0.3)",
+    background: `${redAlpha(0.3)}`,
     display: "grid",
     placeItems: "center",
     fontSize: 15,
@@ -418,7 +304,7 @@ const styles = {
   },
   checkmark: {
     marginLeft: "auto",
-    color: "#D4AF37",
+    color: GOLD,
     fontWeight: 900,
     fontSize: 16,
   },
@@ -427,8 +313,8 @@ const styles = {
     gap: 10,
     padding: "14px",
     borderRadius: 14,
-    background: "rgba(212,175,55,0.06)",
-    border: "1px solid rgba(212,175,55,0.2)",
+    background: `${goldAlpha(0.06)}`,
+    border: `1px solid ${goldAlpha(0.2)}`,
     marginTop: 8,
   },
   selectedLabel: {
@@ -450,7 +336,7 @@ const styles = {
     padding: "11px 0",
     borderRadius: 12,
     border: "none",
-    background: "#D4AF37",
+    background: GOLD,
     color: "#000",
     fontSize: 14,
     fontWeight: 900,
@@ -466,14 +352,14 @@ const styles = {
     gap: 12,
     padding: "12px 14px",
     borderRadius: 14,
-    background: "rgba(212,175,55,0.05)",
-    border: "1px solid rgba(212,175,55,0.15)",
+    background: `${goldAlpha(0.05)}`,
+    border: `1px solid ${goldAlpha(0.15)}`,
   },
   removeBtn: {
     padding: "8px 14px",
     borderRadius: 10,
-    border: "1px solid rgba(193,18,31,0.4)",
-    background: "rgba(193,18,31,0.12)",
+    border: `1px solid ${redAlpha(0.4)}`,
+    background: `${redAlpha(0.12)}`,
     color: "#ff4444",
     fontSize: 12,
     fontWeight: 700,

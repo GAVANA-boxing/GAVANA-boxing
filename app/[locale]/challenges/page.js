@@ -2,48 +2,47 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { collection, onSnapshot } from "firebase/firestore";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
-import { db } from "@/lib/firebase";
+import { useChallengesData } from "@/hooks/useChallengesData";
 import { getLocale, translate } from "@/lib/i18n";
 import { getCurrentSeasonId, getSeasonLabel } from "@/lib/season";
+import { RED, GOLD, PURPLE, redAlpha, goldAlpha } from "@/lib/tokens";
+import styles from "@/components/challenges/challengesStyles";
+import { getLocalDateKey, getPreviousLocalDateKey, getTimestampMs, formatScore, getActiveChallengeStreak, getChallengeRank } from "@/lib/utils";
+import Image from "next/image";
 
 const CHALLENGES = [
-  { id: "jab-minute",   titleKey: "challengeJabTitle",   descKey: "challengeJabDesc" },
-  { id: "speed-test",   titleKey: "challengeSpeedTitle",  descKey: "challengeSpeedDesc" },
-  { id: "combo-master", titleKey: "challengeComboTitle",  descKey: "challengeComboDesc" },
+  { id: "jab-minute",   titleKey: "challengeJabTitle",   descKey: "challengeJabDesc",   emoji: "🥊" },
+  { id: "speed-test",   titleKey: "challengeSpeedTitle",  descKey: "challengeSpeedDesc",  emoji: "⚡" },
+  { id: "combo-master", titleKey: "challengeComboTitle",  descKey: "challengeComboDesc",  emoji: "🎯" },
 ];
+
+function getWeekEndMs() {
+  const now = new Date();
+  const day = now.getUTCDay();
+  const daysUntilMonday = day === 0 ? 1 : 8 - day;
+  const weekEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + daysUntilMonday));
+  return weekEnd.getTime();
+}
+
+function formatCountdown(msLeft) {
+  if (msLeft <= 0) return "00:00:00";
+  const totalSecs = Math.floor(msLeft / 1000);
+  const d = Math.floor(totalSecs / 86400);
+  const h = Math.floor((totalSecs % 86400) / 3600);
+  const m = Math.floor((totalSecs % 3600) / 60);
+  const s = totalSecs % 60;
+  if (d > 0) return `${d}d ${String(h).padStart(2, "0")}h`;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
 
 const SEASON_BADGE = ["🥇", "🥈", "🥉"];
 
-function getTimestampMs(timestamp) {
-  if (!timestamp) return 0;
-  if (timestamp.toMillis) return timestamp.toMillis();
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-  const time = date.getTime();
-  return Number.isNaN(time) ? 0 : time;
-}
-
-function formatScore(score) {
-  const n = Number(score);
-  if (!Number.isFinite(n)) return "0";
-  return n.toFixed(1).replace(/\.0$/, "");
-}
-
-function getChallengeRank(score) {
-  const n = Number(score);
-  if (n >= 9) return "S";
-  if (n >= 8) return "A";
-  if (n >= 7) return "B";
-  if (n >= 6) return "C";
-  return "D";
-}
 
 function getResultXP(result) {
-  const storedXP = Number(result?.xpGained);
-  if (Number.isFinite(storedXP)) return Math.max(0, Math.round(storedXP));
-
+  const stored = Number(result?.xpGained);
+  if (Number.isFinite(stored) && stored > 0) return Math.round(stored);
   const score = Number(result?.score);
   const rank = String(result?.rank || getChallengeRank(score)).toUpperCase();
   const base = Number.isFinite(score) ? Math.round(score * 50) : 0;
@@ -58,21 +57,6 @@ function getRankIcon(index) {
   return `#${index + 1}`;
 }
 
-function getLocalDateKey(date = new Date()) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
-
-function getPreviousLocalDateKey(date = new Date()) {
-  const prev = new Date(date);
-  prev.setDate(prev.getDate() - 1);
-  return getLocalDateKey(prev);
-}
-
-function getActiveChallengeStreak(profile) {
-  const lastDate = String(profile?.lastChallengeDate || "");
-  if (lastDate !== getLocalDateKey() && lastDate !== getPreviousLocalDateKey()) return 0;
-  return Number(profile?.challengeStreak) || 0;
-}
 
 // Deduplicate: keep only best score per user per challenge
 function dedupeByUser(results) {
@@ -95,45 +79,22 @@ export default function ChallengesPage() {
   const t = (key) => translate(locale, key);
   const { user, loading: authLoading } = useAuth();
 
-  const [results, setResults] = useState([]);
-  const [profiles, setProfiles] = useState({});
-  const [showStreakInfo, setShowStreakInfo] = useState(false);
   const [seasonTab, setSeasonTab] = useState("week"); // "week" | "alltime"
+  const [mainTab, setMainTab] = useState("leaderboard"); // "leaderboard" | "battles"
+  const [countdown, setCountdown] = useState(() => formatCountdown(getWeekEndMs() - Date.now()));
+  const { results, resultsLoading, profiles, myBattles, battlesLoading } = useChallengesData({ user, authLoading, mainTab });
 
   const currentSeasonId = useMemo(() => getCurrentSeasonId(), []);
   const seasonLabel = useMemo(() => getSeasonLabel(currentSeasonId), [currentSeasonId]);
 
   useEffect(() => {
+    const id = setInterval(() => setCountdown(formatCountdown(getWeekEndMs() - Date.now())), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
     if (!authLoading && !user) router.push(`/${locale}/login`);
   }, [authLoading, user, router, locale]);
-
-  useEffect(() => {
-    const unsub = onSnapshot(collection(db, "challenge_results"), (snap) => {
-      setResults(
-        snap.docs
-          .map((d) => ({ id: d.id, ...d.data() }))
-          .filter((r) => r.challengeId && Number.isFinite(Number(r.score)))
-      );
-    }, (err) => { console.error(err); setResults([]); });
-    return () => unsub();
-  }, []);
-
-  useEffect(() => {
-    const unsub = onSnapshot(collection(db, "users"), (snap) => {
-      const next = {};
-      snap.docs.forEach((d) => {
-        const data = d.data();
-        next[d.id] = {
-          name: data.displayName || data.username || "",
-          photoURL: data.photoURL || data.profileImageUrl || data.profileImage || data.avatarUrl || "",
-          challengeStreak: Number(data.challengeStreak) || 0,
-          lastChallengeDate: data.lastChallengeDate || "",
-        };
-      });
-      setProfiles(next);
-    }, (err) => { console.error(err); setProfiles({}); });
-    return () => unsub();
-  }, []);
 
   // All results grouped and ranked per challenge (best score per user)
   const allTimeByChallenge = useMemo(() => {
@@ -159,7 +120,16 @@ export default function ChallengesPage() {
 
   const displayByChallenge = seasonTab === "week" ? weeklyByChallenge : allTimeByChallenge;
 
-  if (authLoading) return <div style={styles.loading}>{t("loading")}</div>;
+  if (authLoading) return (
+    <div style={styles.page}>
+      <div style={{ maxWidth: 540, margin: "0 auto", display: "grid", gap: 14 }}>
+        <div className="shimmer" style={{ height: 40, width: 40, borderRadius: 10 }} />
+        <div className="shimmer" style={{ height: 100, borderRadius: 16 }} />
+        <div className="shimmer" style={{ height: 48, borderRadius: 14 }} />
+        {[1,2,3].map((i) => <div key={i} className="shimmer" style={{ height: 220, borderRadius: 20 }} />)}
+      </div>
+    </div>
+  );
   if (!user) return null;
 
   const currentChallengeStreak = getActiveChallengeStreak(profiles[user.uid]);
@@ -179,42 +149,111 @@ export default function ChallengesPage() {
   }).filter(Boolean);
 
   return (
-    <main style={styles.page}>
+    <main style={styles.page} className="page-enter cinematic-bg">
       <section style={styles.shell}>
+        <button type="button" style={styles.backBtn} onClick={() => router.back()} aria-label="Back">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
         <header style={styles.header}>
-          <p style={styles.kicker}>GAVANA</p>
+          <p style={styles.kicker}>COMBAT · MISSIONS</p>
           <h1 style={styles.title}>{t("challengesTitle")}</h1>
           <p style={styles.subtitle}>{t("challengesSubtitle")}</p>
-          <button type="button" style={styles.streakPill} onClick={() => setShowStreakInfo(true)}>
+          <div style={styles.streakPill}>
             <span style={styles.streakFlame}>🔥</span>
-            {t("challenge.streak")} · {currentChallengeStreak}
-          </button>
+            {t("challengeStreak").replace("{n}", currentChallengeStreak)}
+          </div>
         </header>
 
-        {/* Season tabs */}
-        <div style={styles.seasonTabRow}>
-          <button
-            type="button"
-            style={{ ...styles.seasonTab, ...(seasonTab === "week" ? styles.seasonTabActive : {}) }}
-            onClick={() => setSeasonTab("week")}
-          >
-            {t("seasonCurrentWeek")}
+        {/* Main tabs: Leaderboard | My Battles */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, padding: 5, borderRadius: 16, background: "rgba(0,0,0,0.48)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)" }}>
+          <button type="button" style={{ ...styles.seasonTab, ...(mainTab === "leaderboard" ? styles.seasonTabActive : {}) }} onClick={() => setMainTab("leaderboard")}>
+            {t("battleLeaderboardTab")}
           </button>
-          <button
-            type="button"
-            style={{ ...styles.seasonTab, ...(seasonTab === "alltime" ? styles.seasonTabActive : {}) }}
-            onClick={() => setSeasonTab("alltime")}
-          >
-            {t("seasonAllTime")}
+          <button type="button" style={{ ...styles.seasonTab, ...(mainTab === "battles" ? styles.seasonTabActive : {}), ...(myBattles.some((b) => b.status === "pending" && b.role === "opponent") ? { color: PURPLE } : {}) }} onClick={() => setMainTab("battles")}>
+            {t("battleMyBattlesTab")}
+            {myBattles.some((b) => b.status === "pending" && b.role === "opponent") && <span style={{ marginLeft: 4, display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: PURPLE, verticalAlign: "middle" }} />}
           </button>
         </div>
 
-        {/* Season label */}
-        {seasonTab === "week" && (
-          <div style={styles.seasonLabel}>
-            <span style={styles.seasonLabelText}>🗓 {seasonLabel}</span>
+        {mainTab === "battles" ? (
+          <div style={{ display: "grid", gap: 10 }}>
+            {battlesLoading ? (
+              <div style={{ display: "grid", gap: 10 }}>
+                {[1,2,3].map((i) => <div key={i} className="shimmer" style={{ height: 80, borderRadius: 16 }} />)}
+              </div>
+            ) : myBattles.length === 0 ? (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "40px 16px", textAlign: "center" }}>
+                <span style={{ fontSize: 48, opacity: 0.5 }}>⚔️</span>
+                <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#fff" }}>
+                  {t("battleNoneYet")}
+                </p>
+                <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.45)", maxWidth: 260, lineHeight: 1.6 }}>
+                  {t("battleNoneDesc")}
+                </p>
+                <button type="button" style={{ padding: "11px 24px", borderRadius: 999, border: "none", background: "linear-gradient(135deg,#7C3AED,#4C1D95)", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer" }} onClick={() => router.push(`/${locale}/rank`)}>
+                  {t("battleFindFighters")}
+                </button>
+              </div>
+            ) : (
+              myBattles.map((battle) => {
+                const challengeInfo = CHALLENGES.find((c) => c.id === battle.challengeId);
+                const isReceived = battle.role === "opponent";
+                const isPending = battle.status === "pending";
+                return (
+                  <div key={battle.id} style={{ borderRadius: 16, border: `1px solid ${isPending && isReceived ? "rgba(167,139,250,0.35)" : "rgba(255,255,255,0.07)"}`, background: isPending && isReceived ? "rgba(124,58,237,0.08)" : "rgba(255,255,255,0.025)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", padding: "14px 16px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <span style={{ fontSize: 22, flexShrink: 0 }}>{isPending && isReceived ? "⚔️" : battle.status === "completed" ? "✅" : "🕐"}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 14, fontWeight: 900, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{challengeInfo ? t(challengeInfo.titleKey) : battle.challengeId}</div>
+                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 3, display: "flex", alignItems: "center", gap: 6 }}>
+                          <span>{isReceived ? t("battleChallengeReceived") : t("battleChallengeSent")}</span>
+                          <span style={{ width: 2, height: 2, borderRadius: "50%", background: "rgba(255,255,255,0.25)", flexShrink: 0 }} />
+                          <span style={{ color: battle.status === "pending" ? "#FBBF24" : battle.status === "completed" ? "#34D399" : "rgba(255,255,255,0.45)" }}>
+                            {battle.status === "pending" ? t("battlePending") : battle.status === "completed" ? t("battleCompleted") : battle.status}
+                          </span>
+                        </div>
+                      </div>
+                      {isPending && isReceived && (
+                        <button type="button" style={{ padding: "9px 16px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#7C3AED,#4C1D95)", color: "#fff", fontSize: 12, fontWeight: 900, cursor: "pointer", flexShrink: 0, boxShadow: "0 4px 14px rgba(124,58,237,0.35)" }} onClick={() => router.push(`/${locale}/train?challengeId=${battle.challengeId}`)}>
+                          {t("battleCompete")}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
-        )}
+        ) : null}
+
+        {mainTab === "leaderboard" && (
+          <>
+        {/* Season filter row — compact inline */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+          <div style={styles.seasonTabRow}>
+            <button
+              type="button"
+              style={{ ...styles.seasonTab, ...(seasonTab === "week" ? styles.seasonTabActive : {}) }}
+              onClick={() => setSeasonTab("week")}
+            >
+              {t("seasonCurrentWeek")}
+            </button>
+            <button
+              type="button"
+              style={{ ...styles.seasonTab, ...(seasonTab === "alltime" ? styles.seasonTabActive : {}) }}
+              onClick={() => setSeasonTab("alltime")}
+            >
+              {t("seasonAllTime")}
+            </button>
+          </div>
+          {seasonTab === "week" && (
+            <span style={{ fontSize: 10, fontWeight: 900, color: GOLD, fontVariantNumeric: "tabular-nums", letterSpacing: 0.5, padding: "3px 10px", borderRadius: 999, background: "rgba(245,196,81,0.12)", border: "1px solid rgba(245,196,81,0.3)", whiteSpace: "nowrap", flexShrink: 0 }}>
+              ⏱ {countdown}
+            </span>
+          )}
+        </div>
 
         {/* Weekly champions banner */}
         {seasonTab === "week" && weeklyChampions.length > 0 && (
@@ -259,8 +298,11 @@ export default function ChallengesPage() {
             return (
               <article key={challenge.id} style={styles.card}>
                 <div style={styles.cardTop}>
-                  <div>
-                    <h2 style={styles.cardTitle}>{t(challenge.titleKey)}</h2>
+                  <div style={styles.cardTitleGroup}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                      <span style={{ fontSize: 24 }}>{challenge.emoji}</span>
+                      <h2 style={styles.cardTitle}>{t(challenge.titleKey)}</h2>
+                    </div>
                     <p style={styles.cardDesc}>{t(challenge.descKey)}</p>
                   </div>
                   <button
@@ -285,23 +327,29 @@ export default function ChallengesPage() {
                         const profile = profiles[result.userId] || {};
                         const displayName = isCurrentUser ? t("challengeYou") : profile.name || t("fighter");
                         const initial = (displayName || "F").charAt(0).toUpperCase();
+                        const rankLetter = result.rank || getChallengeRank(result.score);
+                        const rankColor = rankLetter === "S" ? GOLD : rankLetter === "A" ? "#60A5FA" : rankLetter === "B" ? PURPLE : rankLetter === "C" ? "#34D399" : "#888";
 
                         return (
                           <div
                             key={result.id}
-                            style={{ ...styles.scoreRow, ...(isCurrentUser ? styles.scoreRowCurrent : {}) }}
+                            role="button"
+                            tabIndex={0}
+                            style={{ ...styles.scoreRow, ...(isCurrentUser ? styles.scoreRowCurrent : {}), cursor: "pointer" }}
+                            onClick={() => !isCurrentUser && router.push(`/${locale}/profile/${result.userId}`)}
+                            onKeyDown={(e) => { if (e.key === "Enter" && !isCurrentUser) router.push(`/${locale}/profile/${result.userId}`); }}
                           >
                             <span style={styles.rankNum}>{getRankIcon(index)}</span>
                             <span style={styles.fighterCell}>
                               <span style={styles.avatar}>
                                 {profile.photoURL
-                                  ? <img src={profile.photoURL} alt="" style={styles.avatarImg} />
+                                  ? <Image src={profile.photoURL} alt="" width={26} height={26} style={{ objectFit: "cover" }} />
                                   : initial}
                               </span>
                               <span style={styles.fighterText}>
                                 <span style={styles.fighterName}>{displayName}</span>
                                 <span style={styles.resultMeta}>
-                                  {t("challengeRank")}: {result.rank || getChallengeRank(result.score)}
+                                  {t("challengeRank")}: <span style={{ color: rankColor, fontWeight: 900 }}>{rankLetter}</span>
                                 </span>
                               </span>
                             </span>
@@ -319,339 +367,18 @@ export default function ChallengesPage() {
             );
           })}
         </div>
+          </>
+        )}
       </section>
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="discover" />
-      {showStreakInfo && (
-        <div style={styles.streakModalWrap}>
-          <div style={styles.streakModalOverlay} onClick={() => setShowStreakInfo(false)} />
-          <section style={styles.streakModal}>
-            <div style={styles.streakModalHeader}>
-              <h2 style={styles.streakModalTitle}>{t("challenge.streak")}</h2>
-              <button type="button" style={styles.streakCloseButton} onClick={() => setShowStreakInfo(false)}>
-                ×
-              </button>
-            </div>
-            <div style={styles.streakInfoList}>
-              <p>{t("challengeStreakExplain1")}</p>
-              <p>{t("challengeStreakExplain2")}</p>
-              <p>{t("challengeStreakExplain3")}</p>
-            </div>
-          </section>
-        </div>
-      )}
-      <style jsx global>{`
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="home" />
+      <style>{`
         @keyframes challengeScoreGlow {
-          0%, 100% { box-shadow: 0 0 0 rgba(212,175,55,0); }
-          50% { box-shadow: 0 0 24px rgba(212,175,55,0.28); }
+          0%, 100% { box-shadow: 0 0 0 rgba(245,196,81,0); }
+          50% { box-shadow: 0 0 24px rgba(245,196,81,0.28); }
         }
       `}</style>
     </main>
   );
 }
 
-const styles = {
-  page: {
-    minHeight: "100vh",
-    background: "radial-gradient(circle at 50% 0%, rgba(193,18,31,0.2), transparent 34%), linear-gradient(180deg, #080808 0%, #0B0B0B 100%)",
-    color: "#fff",
-    padding: "calc(28px + env(safe-area-inset-top)) 16px calc(92px + env(safe-area-inset-bottom))",
-    fontFamily: "sans-serif",
-  },
-  loading: {
-    minHeight: "100vh",
-    background: "#070707",
-    color: "#fff",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  shell: {
-    maxWidth: 760,
-    margin: "0 auto",
-    display: "grid",
-    gap: 14,
-  },
-  header: { display: "grid", gap: 8 },
-  kicker: { margin: 0, color: "#D4AF37", fontSize: 11, fontWeight: 950, letterSpacing: 2 },
-  title: { margin: 0, fontSize: 38, lineHeight: 1, fontWeight: 1000 },
-  subtitle: { margin: 0, color: "rgba(255,255,255,0.66)", fontSize: 14, lineHeight: 1.45 },
-  streakPill: {
-    width: "fit-content",
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 8,
-    minHeight: 34,
-    padding: "0 12px",
-    borderRadius: 999,
-    background: "rgba(251,146,60,0.13)",
-    border: "1px solid rgba(251,146,60,0.3)",
-    color: "#FED7AA",
-    fontSize: 13,
-    fontWeight: 950,
-    cursor: "pointer",
-  },
-  streakFlame: { fontSize: 16, lineHeight: 1 },
-  seasonTabRow: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: 6,
-    padding: 5,
-    borderRadius: 16,
-    background: "rgba(0,0,0,0.48)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    backdropFilter: "blur(14px)",
-    WebkitBackdropFilter: "blur(14px)",
-    position: "sticky",
-    top: "calc(10px + env(safe-area-inset-top))",
-    zIndex: 8,
-  },
-  seasonTab: {
-    minHeight: 38,
-    border: "none",
-    borderRadius: 12,
-    background: "transparent",
-    color: "rgba(255,255,255,0.55)",
-    fontSize: 13,
-    fontWeight: 950,
-    cursor: "pointer",
-  },
-  seasonTabActive: {
-    background: "linear-gradient(135deg, rgba(193,18,31,0.9), rgba(212,175,55,0.18))",
-    color: "#fff",
-    boxShadow: "0 10px 30px rgba(193,18,31,0.18)",
-  },
-  seasonLabel: {
-    textAlign: "center",
-    paddingBottom: 2,
-  },
-  seasonLabelText: {
-    fontSize: 11,
-    color: "#888",
-    fontWeight: 700,
-    letterSpacing: 0.4,
-  },
-  champBanner: {
-    padding: "14px 16px",
-    borderRadius: 18,
-    background: "linear-gradient(135deg, rgba(212,175,55,0.16), rgba(11,11,11,0.95))",
-    border: "1px solid rgba(212,175,55,0.3)",
-    boxShadow: "0 8px 28px rgba(212,175,55,0.1)",
-    display: "grid",
-    gap: 10,
-  },
-  champBannerTitle: {
-    margin: 0,
-    color: "#D4AF37",
-    fontSize: 11,
-    fontWeight: 950,
-    letterSpacing: 1.5,
-    textTransform: "uppercase",
-  },
-  champList: { display: "grid", gap: 8 },
-  champItem: {
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-  },
-  champBadge: { fontSize: 20, flexShrink: 0, lineHeight: 1 },
-  champInfo: { display: "grid", gap: 2, flex: 1, minWidth: 0 },
-  champName: { fontSize: 13, fontWeight: 900, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-  champChallenge: { fontSize: 10, color: "#888", fontWeight: 700 },
-  champScore: { fontSize: 14, fontWeight: 1000, color: "#D4AF37", flexShrink: 0 },
-  yourRankBar: {
-    position: "sticky",
-    top: "calc(62px + env(safe-area-inset-top))",
-    zIndex: 7,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-    minHeight: 44,
-    padding: "0 14px",
-    borderRadius: 16,
-    background: "linear-gradient(135deg, rgba(212,175,55,0.16), rgba(10,10,10,0.76))",
-    border: "1px solid rgba(212,175,55,0.25)",
-    backdropFilter: "blur(16px)",
-    WebkitBackdropFilter: "blur(16px)",
-    boxShadow: "0 14px 36px rgba(0,0,0,0.26)",
-  },
-  yourRankLabel: { color: "#fff", fontSize: 14, fontWeight: 1000 },
-  yourRankChallenge: {
-    minWidth: 0,
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-    color: "#D4AF37",
-    fontSize: 12,
-    fontWeight: 900,
-  },
-  challengeList: { display: "grid", gap: 20 },
-  card: {
-    borderRadius: 20,
-    padding: 16,
-    background: "linear-gradient(145deg, rgba(193,18,31,0.13), rgba(11,11,11,0.98) 48%, rgba(212,175,55,0.08))",
-    border: "1px solid rgba(255,255,255,0.09)",
-    boxShadow: "0 18px 50px rgba(0,0,0,0.28)",
-  },
-  cardTop: { display: "grid", gap: 16 },
-  cardTitle: { margin: 0, color: "#fff", fontSize: 20, fontWeight: 950 },
-  cardDesc: { margin: "7px 0 0", color: "rgba(255,255,255,0.64)", fontSize: 13, lineHeight: 1.45 },
-  startButton: {
-    width: "100%",
-    minHeight: 58,
-    padding: "0 20px",
-    border: "1px solid rgba(255,255,255,0.14)",
-    borderRadius: 16,
-    background: "linear-gradient(135deg, #F02234, #B80F1D 48%, #7d0812)",
-    boxShadow: "0 18px 42px rgba(193,18,31,0.36)",
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: 1000,
-    whiteSpace: "nowrap",
-    cursor: "pointer",
-    textTransform: "uppercase",
-  },
-  leaderboard: { marginTop: 16, display: "grid", gap: 9 },
-  leaderboardTitle: {
-    margin: 0,
-    color: "#D4AF37",
-    fontSize: 11,
-    fontWeight: 950,
-    letterSpacing: 1.4,
-    textTransform: "uppercase",
-  },
-  scoreRows: { display: "grid", gap: 7 },
-  scoreRow: {
-    minHeight: 62,
-    display: "grid",
-    gridTemplateColumns: "42px minmax(0, 1fr) auto",
-    alignItems: "center",
-    gap: 10,
-    padding: "9px 11px",
-    borderRadius: 14,
-    background: "rgba(255,255,255,0.045)",
-    border: "1px solid rgba(255,255,255,0.07)",
-    animation: "challengeScoreGlow 2.8s ease-in-out infinite",
-  },
-  scoreRowCurrent: {
-    background: "rgba(212,175,55,0.14)",
-    borderColor: "rgba(212,175,55,0.38)",
-    boxShadow: "0 0 0 1px rgba(212,175,55,0.1), 0 14px 32px rgba(212,175,55,0.12)",
-  },
-  emptyLeaderboard: {
-    padding: "14px 12px",
-    borderRadius: 12,
-    background: "rgba(255,255,255,0.035)",
-    border: "1px solid rgba(255,255,255,0.07)",
-    color: "rgba(255,255,255,0.58)",
-    fontSize: 13,
-    fontWeight: 800,
-    textAlign: "center",
-  },
-  rankNum: { color: "#D4AF37", fontSize: 18, fontWeight: 950, textAlign: "center" },
-  fighterCell: { minWidth: 0, display: "flex", alignItems: "center", gap: 9 },
-  avatar: {
-    width: 26,
-    height: 26,
-    borderRadius: "50%",
-    display: "grid",
-    placeItems: "center",
-    flexShrink: 0,
-    overflow: "hidden",
-    background: "rgba(193,18,31,0.28)",
-    border: "1px solid rgba(212,175,55,0.24)",
-    color: "#fff",
-    fontSize: 11,
-    fontWeight: 950,
-  },
-  avatarImg: { width: "100%", height: "100%", objectFit: "cover", display: "block" },
-  fighterText: { minWidth: 0, display: "grid", gap: 3 },
-  fighterName: {
-    minWidth: 0,
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-    color: "rgba(255,255,255,0.76)",
-    fontSize: 13,
-    fontWeight: 850,
-  },
-  resultMeta: {
-    color: "rgba(255,255,255,0.52)",
-    fontSize: 11,
-    fontWeight: 850,
-  },
-  scoreStack: {
-    display: "grid",
-    justifyItems: "end",
-    gap: 4,
-  },
-  scoreValue: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: 1000,
-    textShadow: "0 0 18px rgba(212,175,55,0.3)",
-  },
-  xpValue: {
-    color: "#D4AF37",
-    fontSize: 11,
-    fontWeight: 950,
-  },
-  streakModalWrap: {
-    position: "fixed",
-    inset: 0,
-    zIndex: 80,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 18,
-  },
-  streakModalOverlay: {
-    position: "absolute",
-    inset: 0,
-    background: "rgba(0,0,0,0.68)",
-    backdropFilter: "blur(8px)",
-    WebkitBackdropFilter: "blur(8px)",
-  },
-  streakModal: {
-    position: "relative",
-    width: "100%",
-    maxWidth: 420,
-    padding: 18,
-    borderRadius: 20,
-    background: "linear-gradient(180deg, #151111, #080808)",
-    border: "1px solid rgba(212,175,55,0.22)",
-    boxShadow: "0 24px 70px rgba(0,0,0,0.5)",
-  },
-  streakModalHeader: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-    marginBottom: 12,
-  },
-  streakModalTitle: {
-    margin: 0,
-    color: "#D4AF37",
-    fontSize: 18,
-    fontWeight: 1000,
-  },
-  streakCloseButton: {
-    width: 34,
-    height: 34,
-    border: "1px solid rgba(255,255,255,0.12)",
-    borderRadius: 999,
-    background: "rgba(255,255,255,0.06)",
-    color: "#fff",
-    fontSize: 20,
-    lineHeight: 1,
-    cursor: "pointer",
-  },
-  streakInfoList: {
-    display: "grid",
-    gap: 10,
-    color: "rgba(255,255,255,0.78)",
-    fontSize: 14,
-    lineHeight: 1.5,
-  },
-};

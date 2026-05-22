@@ -1,0 +1,213 @@
+"use client";
+
+import { RED, RED_DARK, GOLD, PURPLE, redAlpha } from "@/lib/tokens";
+import { getTimestampMs, formatScore } from "@/lib/utils";
+
+
+export default function BattleSection({ pvpStats, sparringRecord, isOwnProfile, locale, t, onGoToSparring }) {
+  return (
+    <section style={{ padding: "16px 16px 32px" }}>
+      {pvpStats && (pvpStats.wins > 0 || pvpStats.losses > 0) ? (
+        <>
+          <div style={{
+            background: "linear-gradient(145deg, #0a0a0a, #111)",
+            border: "1px solid rgba(167,139,250,0.15)",
+            borderLeft: `3px solid ${PURPLE}`,
+            borderRadius: "3px 16px 16px 3px",
+            padding: "18px 16px", marginBottom: 14,
+          }}>
+            <p style={{ margin: "0 0 14px", fontSize: 9, fontWeight: 900, color: PURPLE, letterSpacing: 2.5, textTransform: "uppercase" }}>
+              ⚔️ {t("profilePvpRecord")}
+            </p>
+            <div style={{ display: "flex", gap: 8, justifyContent: "space-around" }}>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 42, fontWeight: 900, color: pvpStats.wins > 0 ? "#34D399" : "rgba(255,255,255,0.25)", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{pvpStats.wins}</div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>{t("profileWinsLabel")}</div>
+              </div>
+              <div style={{ width: 1, background: "rgba(255,255,255,0.07)" }} />
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 42, fontWeight: 900, color: pvpStats.losses > 0 ? "#F87171" : "rgba(255,255,255,0.25)", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{pvpStats.losses}</div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>{t("profileLossesLabel")}</div>
+              </div>
+              {pvpStats.bestWinScore !== null && (
+                <>
+                  <div style={{ width: 1, background: "rgba(255,255,255,0.07)" }} />
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: 42, fontWeight: 900, color: GOLD, fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{formatScore(pvpStats.bestWinScore)}</div>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>{t("profileBestLabel")}</div>
+                  </div>
+                </>
+              )}
+            </div>
+            {(() => {
+              const total = pvpStats.wins + pvpStats.losses;
+              const winPct = total > 0 ? Math.round((pvpStats.wins / total) * 100) : 0;
+              return (
+                <div style={{ marginTop: 14 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
+                    <span style={{ fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.35)", letterSpacing: 1.5, textTransform: "uppercase" }}>
+                      {t("profileWinRate")}
+                    </span>
+                    <span style={{ fontSize: 13, fontWeight: 900, color: winPct >= 50 ? "#34D399" : "#F87171" }}>{winPct}%</span>
+                  </div>
+                  <div style={{ height: 6, borderRadius: 99, background: "rgba(248,113,113,0.35)", overflow: "hidden" }}>
+                    <div style={{
+                      height: "100%", borderRadius: 99,
+                      width: `${winPct}%`,
+                      background: "linear-gradient(90deg, #34D399, #059669)",
+                      transition: "width 0.6s ease",
+                    }} />
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          {pvpStats.recentBattles?.length > 0 && (
+            <div style={{ display: "grid", gap: 8 }}>
+              <p style={{ margin: "0 0 6px", fontSize: 9, fontWeight: 900, color: "rgba(255,255,255,0.35)", letterSpacing: 2, textTransform: "uppercase" }}>
+                {t("profileRecentBattles")}
+              </p>
+              {pvpStats.recentBattles.map((battle) => {
+                const isWin = battle.result === "win";
+                const col = isWin ? "#34D399" : "#F87171";
+                const dateLabel = battle.createdAt
+                  ? new Date(getTimestampMs(battle.createdAt)).toLocaleDateString()
+                  : "";
+                return (
+                  <div key={battle.id} style={{
+                    background: "rgba(255,255,255,0.025)",
+                    backdropFilter: "blur(16px)",
+                    WebkitBackdropFilter: "blur(16px)",
+                    border: `1px solid ${col}22`,
+                    borderLeft: `3px solid ${col}`,
+                    borderRadius: "3px 14px 14px 3px",
+                    padding: "12px 14px",
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                  }}>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", marginBottom: 2 }}>vs {battle.opponentName}</div>
+                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{dateLabel}</div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      {battle.reelId && (
+                        <a
+                          href={`/${locale}/reels?id=${battle.reelId}`}
+                          style={{
+                            fontSize: 10, fontWeight: 800, color: PURPLE,
+                            textDecoration: "none", padding: "3px 8px",
+                            border: "1px solid rgba(167,139,250,0.3)",
+                            borderRadius: 6, background: "rgba(167,139,250,0.08)",
+                          }}
+                        >
+                          {t("profileWatchBtn")}
+                        </a>
+                      )}
+                      <div style={{ textAlign: "right" }}>
+                        <div style={{ fontSize: 13, fontWeight: 900, color: col }}>
+                          {isWin ? t("profileWinResult") : t("profileLossResult")}
+                        </div>
+                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>{formatScore(battle.challengerScore)} vs {formatScore(battle.opponentScore)}</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <a
+            href={`/${locale}/sparring`}
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              marginTop: 14, padding: "11px 0", borderRadius: 12,
+              background: "linear-gradient(135deg, rgba(167,139,250,0.12), rgba(167,139,250,0.06))",
+              border: "1px solid rgba(167,139,250,0.25)",
+              color: PURPLE, fontSize: 13, fontWeight: 800,
+              textDecoration: "none", letterSpacing: "0.02em",
+            }}
+          >
+            ⚔️ {t("profileFindOpponent")}
+          </a>
+        </>
+      ) : (
+        <div style={{ textAlign: "center", padding: "52px 20px 40px" }}>
+          <div style={{ fontSize: 44, marginBottom: 14 }}>⚔️</div>
+          <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 14, fontWeight: 800, margin: "0 0 6px" }}>
+            {t("profileNoFightRecord")}
+          </p>
+          <p style={{ color: "#333", fontSize: 12, margin: "0 0 20px" }}>
+            {t("profileFightRecordHint")}
+          </p>
+          <a
+            href={`/${locale}/sparring`}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              padding: "10px 22px", borderRadius: 12,
+              background: `linear-gradient(135deg, ${PURPLE}, #7c3aed)`,
+              color: "#fff", fontSize: 13, fontWeight: 800,
+              textDecoration: "none", letterSpacing: "0.02em",
+            }}
+          >
+            ⚔️ {t("profileFindOpponent")}
+          </a>
+        </div>
+      )}
+
+      {sparringRecord !== null && (
+        <div style={{
+          marginTop: 14,
+          background: "rgba(255,255,255,0.03)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          border: `1px solid ${redAlpha(0.2)}`,
+          borderLeft: `3px solid ${RED}`,
+          borderRadius: "3px 16px 16px 3px",
+          padding: "18px 16px",
+        }}>
+          <p style={{ margin: "0 0 14px", fontSize: 9, fontWeight: 900, color: RED, letterSpacing: 2.5, textTransform: "uppercase" }}>
+            🥊 {t("profileSparringRecord")}
+          </p>
+          <div style={{ display: "flex", gap: 8, justifyContent: "space-around", marginBottom: 14 }}>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 36, fontWeight: 900, color: RED, fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>
+                {sparringRecord.totalAccepted}
+              </div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>
+                {t("profileSparringLabel")}
+              </div>
+            </div>
+            <div style={{ width: 1, background: "rgba(255,255,255,0.07)" }} />
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 36, fontWeight: 900, color: GOLD, fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>
+                {sparringRecord.sentPending}
+              </div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>
+                {t("profilePendingLabel")}
+              </div>
+            </div>
+          </div>
+          {sparringRecord.totalAccepted === 0 && sparringRecord.sentPending === 0 && (
+            <p style={{ margin: "0 0 12px", fontSize: 12, color: "rgba(255,255,255,0.3)", textAlign: "center" }}>
+              {t("profileNoSparring")}
+            </p>
+          )}
+          {isOwnProfile && (
+            <button
+              type="button"
+              onClick={onGoToSparring}
+              style={{
+                width: "100%", padding: "11px 0", borderRadius: 11,
+                background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
+                border: "none", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
+                boxShadow: `0 6px 20px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)`,
+              }}
+            >
+              {t("profileFindSparring")}
+            </button>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}

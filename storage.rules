@@ -1,0 +1,45 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ─── Stories ─────────────────────────────────────────────────────────────
+    // Authenticated users may read any story media (needed for StoryViewer).
+    // Only the owning user may write or delete their own story files.
+    match /stories/{uid}/{file} {
+      allow read:   if request.auth != null;
+      allow write:  if request.auth != null && request.auth.uid == uid;
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // ─── Reels ───────────────────────────────────────────────────────────────
+    // Public read (reel thumbnails/videos are publicly accessible).
+    // Only the owning user may upload or delete their reel media.
+    match /reels/{uid}/{file} {
+      allow read:   if true;
+      allow write:  if request.auth != null && request.auth.uid == uid;
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // ─── Profile images ───────────────────────────────────────────────────────
+    match /profile-images/{uid}/{file} {
+      allow read:   if true;
+      allow write:  if request.auth != null && request.auth.uid == uid;
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // ─── Gym logos ────────────────────────────────────────────────────────────
+    match /gyms/{uid}/{file} {
+      allow read:   if true;
+      allow write:  if request.auth != null && request.auth.uid == uid;
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // ─── Coach application photos ─────────────────────────────────────────────
+    match /coach_applications/{uid}/{file} {
+      allow read:   if request.auth != null;
+      allow write:  if request.auth != null && request.auth.uid == uid;
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+
+  }
+}

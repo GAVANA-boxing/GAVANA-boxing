@@ -1,12 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { collection, getDocs, query as fsQuery, where, Timestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
+import StoryBar from "@/components/StoryBar";
+import PageTopBar from "@/components/PageTopBar";
 import { getLocale, translate } from "@/lib/i18n";
+import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import { s, feed } from "@/components/discover/discoverStyles";
+import { formatCompact } from "@/lib/utils";
+import { ReelRow, HubCard, FeedPostCard, reelMatchesKeywords } from "@/components/discover/DiscoverCards";
+import { useDiscoverData } from "@/hooks/useDiscoverData";
+import { useDiscoverSearch } from "@/hooks/useDiscoverSearch";
+import Image from "next/image";
+import { FIGHTER_STYLES, LEARN_CATS } from "@/lib/discoverConstants";
 
 export default function DiscoverPage() {
   const params = useParams();
@@ -14,510 +22,418 @@ export default function DiscoverPage() {
   const { user } = useAuth();
   const locale = getLocale(params?.locale);
   const t = (key) => translate(locale, key);
-  const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [userResults, setUserResults] = useState([]);
-  const [reelResults, setReelResults] = useState([]);
-  const [message, setMessage] = useState(() => translate(locale, "discoverSubtitle"));
-  const [featuredCreators, setFeaturedCreators] = useState([]);
 
-  // Load featured creators on mount
-  useEffect(() => {
-    let active = true;
-    async function load() {
-      try {
-        const now = Timestamp.now();
-        const featuredSnap = await getDocs(fsQuery(collection(db, "featured_creators"), where("featuredUntil", ">=", now)));
-        if (!active || featuredSnap.empty) return;
-        const creatorIds = featuredSnap.docs.map((d) => d.data().userId).filter(Boolean);
-        if (!creatorIds.length) return;
-        // Load user profiles for featured creators
-        const usersSnap = await getDocs(collection(db, "users"));
-        const profiles = [];
-        usersSnap.forEach((d) => {
-          if (creatorIds.includes(d.id)) {
-            const featured = featuredSnap.docs.find((f) => f.data().userId === d.id);
-            profiles.push({ id: d.id, ...d.data(), reason: featured?.data().reason || "" });
-          }
-        });
-        if (active) setFeaturedCreators(profiles.slice(0, 6));
-      } catch { /* non-critical */ }
+  const [selectedStyle, setSelectedStyle] = useState("all");
+  const [learnOpen, setLearnOpen] = useState(false);
+  const [learnCat, setLearnCat] = useState("all");
+  const [feedTab, setFeedTab] = useState("explore");
+
+  const {
+    query, setQuery,
+    searching,
+    searchError,
+    userResults,
+    reelResults,
+    hasSearched,
+    handleSearch,
+    clearSearch,
+  } = useDiscoverSearch();
+
+  const {
+    allReels, exploreLoading, exploreError, loadExplore,
+    topCoaches, followingReels, followingUsers, feedLoading, feedLoaded,
+  } = useDiscoverData({ userId: user?.uid, feedTab });
+
+  const nonDemoReels = useMemo(() => allReels.filter((r) => !r.isDemo), [allReels]);
+
+  const forYouReels = useMemo(() => {
+    if (selectedStyle === "all") return nonDemoReels;
+    const style = FIGHTER_STYLES.find((st) => st.key === selectedStyle);
+    if (!style?.keywords) return nonDemoReels;
+    const matched = nonDemoReels.filter((r) => reelMatchesKeywords(r, style.keywords));
+    return matched.length ? matched : nonDemoReels;
+  }, [nonDemoReels, selectedStyle]);
+
+  const educationalReels = useMemo(
+    () => nonDemoReels.filter((r) => r.contentType === "educational"),
+    [nonDemoReels]
+  );
+
+  const filteredLearnReels = useMemo(() => {
+    if (learnCat === "all") return educationalReels;
+    const cat = LEARN_CATS.find((c) => c.key === learnCat);
+    if (!cat?.keywords) return educationalReels;
+    const filtered = educationalReels.filter((r) => reelMatchesKeywords(r, cat.keywords));
+    if (!filtered.length) {
+      return nonDemoReels.filter((r) => reelMatchesKeywords(r, cat.keywords));
     }
-    load();
-    return () => { active = false; };
-  }, []);
+    return filtered;
+  }, [educationalReels, nonDemoReels, learnCat]);
 
-  const handleSearch = async (event) => {
-    event.preventDefault();
-    const term = query.trim().toLowerCase();
-    if (!term) {
-      setUserResults([]);
-      setReelResults([]);
-      setMessage(t("discoverTypeKeyword"));
-      return;
+  const activityChips = useMemo(() => {
+    const chips = [
+      { key: "live", label: "Live scoring", live: true },
+      { key: "ai", label: "AI Coach active", live: true },
+      { key: "clips", label: `${nonDemoReels.length || "—"} clips` },
+      { key: "trending", label: "Trending today" },
+      { key: "new", label: "New fighters" },
+      { key: "pvp", label: "PVP active", live: true },
+    ];
+    if (topCoaches.length > 0) {
+      chips.splice(2, 0, { key: "coaches", label: `${topCoaches.length} coaches online`, live: true });
     }
+    return chips;
+  }, [nonDemoReels.length, topCoaches.length]);
 
-    setLoading(true);
-    setMessage(t("discoverSearching"));
-
-    try {
-      const [usersSnapshot, reelsSnapshot] = await Promise.all([
-        getDocs(collection(db, "users")),
-        getDocs(collection(db, "reels")),
-      ]);
-
-      const users = [];
-      usersSnapshot.forEach((doc) => {
-        const data = doc.data();
-        const username = String(data.username || "").toLowerCase();
-        const displayName = String(data.displayName || "").toLowerCase();
-        if (username.includes(term) || displayName.includes(term)) {
-          users.push({ id: doc.id, ...data });
-        }
-      });
-
-      const reels = [];
-      reelsSnapshot.forEach((doc) => {
-        const data = doc.data();
-        const caption = String(data.caption || data.description || "").toLowerCase();
-        if (caption.includes(term)) {
-          reels.push({ id: doc.id, ...data });
-        }
-      });
-
-      setUserResults(users.slice(0, 24));
-      setReelResults(reels.slice(0, 24));
-      setMessage(users.length + reels.length === 0 ? t("discoverNoMatches") : "");
-    } catch (error) {
-      console.error("Discover search failed:", error);
-      setMessage(t("discoverError"));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleProfileClick = (userId) => {
-    router.push(`/${locale}/profile/${userId}`);
-  };
-
-  const handleReelClick = (reelId) => {
-    router.push(`/${locale}/reels?reelId=${reelId}`);
-  };
+  const sparringCount = Math.max(5, (topCoaches.length || 0) + 7);
+  const showSearch = hasSearched && query.trim();
 
   return (
-    <div style={styles.page}>
-      <div style={styles.header}>
-        <div>
-          <p style={styles.kicker}>{t("discoverKicker")}</p>
-          <h1 style={styles.title}>{t("discoverTitle")}</h1>
-          {message ? <p style={styles.subtitle}>{message}</p> : null}
-        </div>
+    <div style={s.page} className="page-enter">
+      <PageTopBar kicker="EXPLORE" title={t("discoverTitle") || "DISCOVER"} user={user} currentLocale={locale} />
 
-        {/* Leaderboard shortcut */}
+      <StoryBar locale={locale} router={router} />
+
+      {/* ── Feed Tabs ── */}
+      <div style={s.feedTabs}>
         <button
           type="button"
-          onClick={() => router.push(`/${locale}/leaderboard`)}
-          style={styles.leaderboardCard}
+          style={feedTab === "explore" ? s.feedTabActive : s.feedTabBtn}
+          onClick={() => setFeedTab("explore")}
         >
-          <span style={styles.leaderboardCardIcon}>🏆</span>
-          <div style={styles.leaderboardCardText}>
-            <span style={styles.leaderboardCardTitle}>{t("leaderboardTitle")}</span>
-            <span style={styles.leaderboardCardSub}>{t("leaderboardTopFighters")}</span>
-          </div>
-          <span style={styles.leaderboardCardArrow}>›</span>
+          {t("discoverExploreTab")}
         </button>
-
         <button
           type="button"
-          onClick={() => router.push(`/${locale}/challenges`)}
-          style={styles.challengeCard}
+          style={feedTab === "following" ? s.feedTabActive : s.feedTabBtn}
+          onClick={() => setFeedTab("following")}
         >
-          <span style={styles.challengeCardIcon}>GO</span>
-          <div style={styles.leaderboardCardText}>
-            <span style={styles.challengeCardTitle}>{t("challengesTitle")}</span>
-            <span style={styles.challengeCardSub}>{t("challengesSubtitle")}</span>
-          </div>
-          <span style={styles.challengeCardArrow}>{">"}</span>
+          {t("discoverFollowingTab")}
         </button>
+      </div>
 
-        <form onSubmit={handleSearch} style={styles.searchForm}>
+      {/* ── Search (sticky) ── */}
+      <form onSubmit={handleSearch} style={s.searchRow}>
+        <div style={s.searchWrap}>
+          <svg style={s.searchIconSvg} viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" /><path d="m16.5 16.5 4 4" />
+          </svg>
           <input
             type="search"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder={t("discoverPlaceholder")}
-            style={styles.searchInput}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder=""
+            style={s.searchInput}
           />
-          <button type="submit" style={styles.searchButton} disabled={loading}>
-            {loading ? t("discoverSearching") : t("discoverSearch")}
-          </button>
-        </form>
-      </div>
+          {query && (
+            <button type="button" onClick={clearSearch} style={s.clearBtn} aria-label="Clear search">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+              </svg>
+            </button>
+          )}
+        </div>
+        <button
+          type="submit"
+          style={{ ...s.searchBtn, opacity: searching || !query.trim() ? 0.55 : 1, cursor: searching || !query.trim() ? "default" : "pointer" }}
+          disabled={searching || !query.trim()}
+        >
+          {searching ? (
+            <span style={{ display: "inline-block", width: 14, height: 14, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
+          ) : t("discoverSearch")}
+        </button>
+      </form>
 
-      {featuredCreators.length > 0 && (
-        <div style={{ padding: "0 0 4px" }}>
-          <h2 style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase", color: "#D4AF37" }}>
-            ⭐ {t("discoverFeatured")}
-          </h2>
-          <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4 }}>
-            {featuredCreators.map((creator) => {
-              const photo = creator.photoURL || creator.profileImageUrl || "";
-              const initial = (creator.displayName || creator.username || "C").charAt(0).toUpperCase();
-              return (
-                <button
-                  key={creator.id}
-                  type="button"
-                  onClick={() => router.push(`/${locale}/profile/${creator.id}`)}
-                  style={{ flexShrink: 0, width: 120, background: "rgba(212,175,55,0.07)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 14, padding: "12px 10px", display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer" }}
+      {/* ══════════════════════════════════════════════
+          SEARCH RESULTS
+      ══════════════════════════════════════════════ */}
+      {showSearch ? (
+        <div style={s.content}>
+          {searching && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "12px 16px" }}>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="shimmer" style={{ height: 60, borderRadius: 12 }} />
+              ))}
+            </div>
+          )}
+          {searchError && !searching && (
+            <div style={s.emptyState}>
+              <span style={{ fontSize: 32 }}>⚠️</span>
+              <p style={{ margin: "8px 0 4px", color: "#fff", fontSize: 14, fontWeight: 800 }}>
+                {t("discoverSearchFailed")}
+              </p>
+              <button type="button" onClick={() => handleSearch()} style={{ marginTop: 8, padding: "8px 18px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
+                {t("discoverRetry")}
+              </button>
+            </div>
+          )}
+          {!searching && !searchError && userResults.length > 0 && (
+            <div style={{ padding: "0 16px", marginBottom: 28 }}>
+              <p style={s.sectionLabel}>{t("discoverFighters")}</p>
+              <div style={s.listStack}>
+                {userResults.map((u) => {
+                  const photo = u.photoURL || u.profileImageUrl || "";
+                  const initial = (u.displayName || u.username || "U").charAt(0).toUpperCase();
+                  return (
+                    <button key={u.id} type="button" onClick={() => router.push(`/${locale}/profile/${u.id}`)} style={s.listCard}>
+                      <div style={s.listAvatar}>{photo ? <Image src={photo} alt="" width={40} height={40} style={{ objectFit: "cover" }} /> : initial}</div>
+                      <div style={s.listCardText}>
+                        <span style={s.listCardName}>{u.displayName || u.username || t("fallbackUnnamed")}</span>
+                        {u.username && <span style={s.listCardSub}>@{u.username}</span>}
+                      </div>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ color: "#444", flexShrink: 0 }} aria-hidden="true"><path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {!searching && !searchError && reelResults.length > 0 && (
+            <div style={{ padding: "0 16px", marginBottom: 28 }}>
+              <p style={s.sectionLabel}>{t("discoverReels")}</p>
+              <div style={s.listStack}>
+                {reelResults.map((r) => (
+                  <button key={r.id} type="button" onClick={() => router.push(`/${locale}/reels?reelId=${r.id}`)} style={s.listCard}>
+                    <div style={{ ...s.listAvatar, background: `${goldAlpha(0.15)}`, color: GOLD, fontSize: 18 }}>🎬</div>
+                    <div style={s.listCardText}>
+                      <span style={s.listCardName}>{r.caption || r.description || t("fallbackReel")}</span>
+                      <span style={s.listCardSub}>{formatCompact(r.views || 0)} {t("views")}</span>
+                    </div>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ color: "#444", flexShrink: 0 }} aria-hidden="true"><path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {!searching && !searchError && userResults.length === 0 && reelResults.length === 0 && (
+            <div style={s.emptyState}>
+              <span style={{ fontSize: 40 }}>🔍</span>
+              <p style={{ margin: "10px 0 4px", color: "#fff", fontSize: 15, fontWeight: 800 }}>
+                {t("discoverNoResults")}
+              </p>
+              <p style={{ margin: 0, color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
+                {t("discoverNoResultsSub")}
+              </p>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div style={s.content}>
+
+          {/* ════════════════════════════════════════
+              FOLLOWING FEED
+          ════════════════════════════════════════ */}
+          {feedTab === "following" && (
+            <div style={{ padding: "8px 16px 0" }}>
+              {feedLoading && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} style={feed.skeleton} />
+                  ))}
+                </div>
+              )}
+              {!feedLoading && !user?.uid && (
+                <div style={feed.emptyWrap}>
+                  <span style={{ fontSize: 40 }}>🔒</span>
+                  <p style={feed.emptyTitle}>{t("discoverSignInRequired")}</p>
+                  <p style={feed.emptyText}>{t("discoverSignInDesc")}</p>
+                  <button type="button" style={feed.emptyBtn} onClick={() => router.push(`/${locale}/login`)}>
+                    {t("discoverSignIn")}
+                  </button>
+                </div>
+              )}
+              {!feedLoading && user?.uid && feedLoaded && followingReels.length === 0 && (
+                <div style={feed.emptyWrap}>
+                  <span style={{ fontSize: 40 }}>👥</span>
+                  <p style={feed.emptyTitle}>{t("discoverNoFollowing")}</p>
+                  <p style={feed.emptyText}>{t("discoverNoFollowingDesc")}</p>
+                  <button type="button" style={feed.emptyBtn} onClick={() => setFeedTab("explore")}>
+                    {t("discoverExploreFighters")}
+                  </button>
+                </div>
+              )}
+              {!feedLoading && followingReels.length > 0 && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  {followingReels.map((reel) => (
+                    <FeedPostCard
+                      key={reel.id}
+                      reel={reel}
+                      authorUser={followingUsers[reel.userId]}
+                      t={t}
+                      router={router}
+                      locale={locale}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ════════════════════════════════════════
+              EXPLORE — LIVING ARENA
+          ════════════════════════════════════════ */}
+          {feedTab === "explore" && (<>
+
+            {/* Activity pulse strip */}
+            <div style={s.activityStrip}>
+              {activityChips.map((chip) => (
+                <span
+                  key={chip.key}
+                  style={{ ...s.activityChip, ...(chip.live ? s.activityChipLive : {}) }}
                 >
-                  <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#1a1a1a", border: "2px solid #D4AF37", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 900, overflow: "hidden", flexShrink: 0 }}>
-                    {photo ? <img src={photo} alt={initial} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : initial}
-                  </div>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: "#eee", textAlign: "center", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {creator.displayName || creator.username || "Creator"}
-                  </span>
-                  <span style={{ fontSize: 10, color: "#D4AF37", fontWeight: 900, letterSpacing: 0.5 }}>⭐ {t("featuredBadge")}</span>
+                  {chip.live && <span style={s.activityLiveDot} />}
+                  {chip.label}
+                </span>
+              ))}
+            </div>
+
+            {/* Sparring lobby banner */}
+            <div
+              style={s.lobbyBanner}
+              role="button"
+              tabIndex={0}
+              onClick={() => router.push(`/${locale}/sparring`)}
+            >
+              <span style={s.lobbyGreenDot} />
+              <p style={s.lobbyText}>
+                <span style={s.lobbyCountBadge}>{sparringCount} fighters</span>{" "}
+                looking to spar right now
+              </p>
+              <span style={s.lobbyArrow}>›</span>
+            </div>
+
+            {/* Explore error */}
+            {exploreError && !exploreLoading && (
+              <div style={{ padding: "20px 16px", textAlign: "center" }}>
+                <p style={{ margin: "0 0 10px", color: "#888", fontSize: 14 }}>
+                  {t("discoverLoadError")}
+                </p>
+                <button type="button" onClick={loadExplore} style={{ padding: "9px 20px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
+                  {t("discoverRetry")}
                 </button>
-              );
-            })}
-          </div>
+              </div>
+            )}
+
+            {/* ── Section: 🔥 TRENDING ── */}
+            <div style={{ padding: "0 16px", marginBottom: 32 }}>
+              <div style={s.sectionHeader}>
+                <div>
+                  <p style={{ ...s.sectionKicker, color: RED }}>🔥 TRENDING NOW</p>
+                  <h2 style={s.sectionTitle}>{t("discoverForYou")}</h2>
+                </div>
+                <button type="button" onClick={() => router.push(`/${locale}/reels`)} style={s.sectionSeeAll}>
+                  {t("discoverViewAll")} ›
+                </button>
+              </div>
+
+              <div style={s.styleChips}>
+                {FIGHTER_STYLES.map((style) => (
+                  <button
+                    key={style.key}
+                    type="button"
+                    onClick={() => setSelectedStyle(style.key)}
+                    style={{ ...s.styleChip, ...(selectedStyle === style.key ? s.styleChipActive : {}) }}
+                  >
+                    {style.emoji} {t(style.labelKey)}
+                  </button>
+                ))}
+              </div>
+
+              <ReelRow reels={forYouReels} router={router} locale={locale} loading={exploreLoading} />
+              {!exploreLoading && forYouReels.length === 0 && (
+                <div style={s.hubEmpty}>
+                  <p style={s.hubEmptyText}>{t("discoverNoContent")}</p>
+                </div>
+              )}
+            </div>
+
+            {/* ── Section: 🏆 CHAMPIONS ── */}
+            {topCoaches.length > 0 && (
+              <div style={{ padding: "0 16px", marginBottom: 32 }}>
+                <div style={s.sectionHeader}>
+                  <div>
+                    <p style={{ ...s.sectionKicker, color: GOLD }}>🏆 TOP FIGHTERS</p>
+                    <h2 style={s.sectionTitle}>{t("discoverChampions") || "Champions"}</h2>
+                  </div>
+                </div>
+                <div style={s.championStrip}>
+                  {topCoaches.map((coach, i) => {
+                    const name = coach.displayName || coach.username || "Fighter";
+                    const photo = coach.photoURL || coach.profileImageUrl || "";
+                    const initial = name.charAt(0).toUpperCase();
+                    return (
+                      <button
+                        key={coach.id}
+                        type="button"
+                        style={s.championCard}
+                        onClick={() => router.push(`/${locale}/profile/${coach.id}`)}
+                      >
+                        <div style={s.championAvatarWrap}>
+                          <div style={s.championAvatar}>
+                            {photo
+                              ? <Image src={photo} alt={name} width={58} height={58} style={{ objectFit: "cover" }} />
+                              : initial}
+                          </div>
+                          {i < 2 && <span style={s.championOnlineDot} />}
+                        </div>
+                        <span style={s.championName}>{name}</span>
+                        <span style={s.championRole}>{coach.specialty || "Coach"}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* ── Section: 🧠 LEARN ── */}
+            <div style={{ padding: "0 16px", marginBottom: 16 }}>
+              <div style={s.sectionHeader}>
+                <div>
+                  <p style={{ ...s.sectionKicker, color: GOLD }}>🧠 EDUCATION</p>
+                  <h2 style={s.sectionTitle}>{t("discoverLearnHub")}</h2>
+                </div>
+              </div>
+            </div>
+
+            <HubCard
+              emoji="🧠"
+              title={t("discoverLearnHub")}
+              accent={GOLD}
+              expanded={learnOpen}
+              onToggle={() => setLearnOpen((v) => !v)}
+            >
+              <div style={s.learnChips}>
+                {LEARN_CATS.map((cat) => (
+                  <button
+                    key={cat.key}
+                    type="button"
+                    onClick={() => setLearnCat(cat.key)}
+                    style={{ ...s.learnChip, ...(learnCat === cat.key ? s.learnChipActive : {}) }}
+                  >
+                    {cat.emoji} {locale === "mn" ? cat.mn : locale === "ko" ? cat.ko : cat.label}
+                  </button>
+                ))}
+              </div>
+
+              {filteredLearnReels.length > 0 ? (
+                <ReelRow reels={filteredLearnReels} router={router} locale={locale} loading={false} />
+              ) : (
+                <div style={s.hubEmpty}>
+                  <p style={s.hubEmptyText}>{t("discoverNoCategoryContent")}</p>
+                </div>
+              )}
+
+              <button type="button" style={s.hubFooterBtn} onClick={() => router.push(`/${locale}/reels`)}>
+                {t("discoverBrowseReels")}
+              </button>
+            </HubCard>
+
+          </>)}
+
         </div>
       )}
 
-      <div style={styles.resultsGrid}>
-        <section style={styles.resultSection}>
-          <h2 style={styles.sectionTitle}>{t("discoverFighters")}</h2>
-          {userResults.length === 0 ? (
-            <div style={styles.emptyState}>{t("discoverNoFighters")}</div>
-          ) : (
-            <div style={styles.cardsGrid}>
-              {userResults.map((profile) => {
-                const photoURL = profile.photoURL || profile.profileImageUrl || profile.profileImage || profile.avatarUrl || "";
-                const initial = (profile.displayName || profile.username || "U").charAt(0).toUpperCase();
-                return (
-                  <button
-                    key={profile.id}
-                    type="button"
-                    onClick={() => handleProfileClick(profile.id)}
-                    style={styles.card}
-                  >
-                    <div style={styles.cardHeader}>
-                      <div style={styles.avatar}>
-                        {photoURL
-                          ? <img src={photoURL} alt={initial} style={styles.avatarImg} />
-                          : initial}
-                      </div>
-                      <div>
-                        <div style={styles.cardTitle}>{profile.displayName || profile.username || "Unnamed"}</div>
-                        <div style={styles.cardSubtitle}>{profile.username ? `@${profile.username}` : t("fighterProfile")}</div>
-                      </div>
-                    </div>
-                    {profile.bio ? <p style={styles.cardText}>{profile.bio}</p> : null}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </section>
-
-        <section style={styles.resultSection}>
-          <h2 style={styles.sectionTitle}>{t("discoverReels")}</h2>
-          {reelResults.length === 0 ? (
-            <div style={styles.emptyState}>{t("discoverNoReels")}</div>
-          ) : (
-            <div style={styles.cardsGrid}>
-              {reelResults.map((reel) => {
-                const thumbnailUrl = reel.thumbnailUrl || reel.posterUrl || "";
-                const caption = reel.caption || reel.description || "";
-                const views = Number(reel.views);
-
-                return (
-                  <button
-                    key={reel.id}
-                    type="button"
-                    onClick={() => handleReelClick(reel.id)}
-                    style={styles.card}
-                  >
-                    <div style={styles.cardHeader}>
-                      <div style={styles.reelPreview}>
-                        {thumbnailUrl ? (
-                          <img src={thumbnailUrl} alt={caption || "Reel"} style={styles.reelPreviewImg} />
-                        ) : (
-                          <span>{(reel.username || "R").charAt(0).toUpperCase()}</span>
-                        )}
-                      </div>
-                      <div>
-                        <div style={styles.cardTitle}>{reel.username ? `@${reel.username}` : t("navReels")}</div>
-                        <div style={styles.cardSubtitle}>{Number.isFinite(views) ? `${Math.round(views)} ${t("views")}` : ""}</div>
-                      </div>
-                    </div>
-                    <p style={styles.cardText}>{caption}</p>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </section>
-      </div>
-
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="discover" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="home" />
     </div>
   );
 }
-
-const styles = {
-  page: {
-    minHeight: "100vh",
-    paddingBottom: "90px",
-    background: "radial-gradient(circle at top, rgba(255,255,255,0.04), transparent 25%), linear-gradient(180deg, #070707 0%, #090909 100%)",
-    color: "#fff",
-    padding: "28px 20px 24px",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-  },
-  header: {
-    display: "grid",
-    gap: 18,
-    maxWidth: 900,
-    margin: "0 auto 24px",
-  },
-  kicker: {
-    margin: 0,
-    color: "#D4AF37",
-    fontSize: 12,
-    fontWeight: 900,
-    letterSpacing: 2,
-  },
-  title: {
-    margin: 0,
-    fontSize: 32,
-    lineHeight: 1.05,
-    fontWeight: 900,
-  },
-  subtitle: {
-    margin: 0,
-    color: "#AAA",
-    fontSize: 15,
-    lineHeight: 1.6,
-  },
-  searchForm: {
-    display: "grid",
-    gap: 12,
-    width: "100%",
-    maxWidth: 900,
-    gridTemplateColumns: "1fr auto",
-  },
-  searchInput: {
-    width: "100%",
-    minHeight: 52,
-    borderRadius: 16,
-    border: "1px solid rgba(255,255,255,0.08)",
-    background: "rgba(255,255,255,0.04)",
-    color: "#fff",
-    padding: "0 18px",
-    fontSize: 15,
-    outline: "none",
-  },
-  searchButton: {
-    minWidth: 120,
-    minHeight: 52,
-    borderRadius: 16,
-    border: "none",
-    background: "#C1121F",
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: 800,
-    cursor: "pointer",
-  },
-  resultsGrid: {
-    display: "grid",
-    gap: 24,
-    maxWidth: 1080,
-    margin: "0 auto",
-  },
-  resultSection: {
-    background: "rgba(255,255,255,0.02)",
-    border: "1px solid rgba(255,255,255,0.06)",
-    borderRadius: 24,
-    padding: 20,
-  },
-  sectionTitle: {
-    margin: "0 0 16px",
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: 800,
-  },
-  cardsGrid: {
-    display: "grid",
-    gap: 16,
-  },
-  card: {
-    display: "grid",
-    gap: 12,
-    padding: 18,
-    borderRadius: 20,
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.06)",
-    textAlign: "left",
-    cursor: "pointer",
-    color: "#fff",
-    width: "100%",
-    font: "inherit",
-  },
-  cardHeader: {
-    display: "flex",
-    gap: 14,
-    alignItems: "center",
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: "50%",
-    display: "grid",
-    placeItems: "center",
-    background: "rgba(193,18,31,0.24)",
-    color: "#fff",
-    fontWeight: 900,
-    fontSize: 16,
-    flexShrink: 0,
-    overflow: "hidden",
-  },
-  avatarImg: {
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-    display: "block",
-    borderRadius: "50%",
-  },
-  reelPreview: {
-    width: 44,
-    height: 58,
-    borderRadius: 12,
-    display: "grid",
-    placeItems: "center",
-    background: "linear-gradient(145deg, rgba(193,18,31,0.28), rgba(212,175,55,0.14))",
-    border: "1px solid rgba(255,255,255,0.08)",
-    color: "#fff",
-    fontWeight: 900,
-    fontSize: 16,
-    flexShrink: 0,
-    overflow: "hidden",
-  },
-  reelPreviewImg: {
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-    display: "block",
-  },
-  cardTitle: {
-    margin: 0,
-    fontSize: 16,
-    fontWeight: 800,
-  },
-  cardSubtitle: {
-    margin: 0,
-    color: "#AAA",
-    fontSize: 13,
-  },
-  cardText: {
-    margin: 0,
-    color: "#ddd",
-    fontSize: 14,
-    lineHeight: 1.6,
-  },
-  emptyState: {
-    color: "#888",
-    fontSize: 14,
-    padding: 20,
-    textAlign: "center",
-    borderRadius: 16,
-    background: "rgba(255,255,255,0.02)",
-  },
-  leaderboardCard: {
-    display: "flex",
-    alignItems: "center",
-    gap: 14,
-    width: "100%",
-    padding: "14px 16px",
-    borderRadius: 16,
-    background: "rgba(212,175,55,0.07)",
-    border: "1px solid rgba(212,175,55,0.22)",
-    color: "#fff",
-    cursor: "pointer",
-    textAlign: "left",
-  },
-  leaderboardCardIcon: {
-    fontSize: 26,
-    lineHeight: 1,
-    flexShrink: 0,
-  },
-  leaderboardCardText: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 2,
-    flex: 1,
-    minWidth: 0,
-  },
-  leaderboardCardTitle: {
-    fontSize: 15,
-    fontWeight: 900,
-    color: "#D4AF37",
-    lineHeight: 1.2,
-  },
-  leaderboardCardSub: {
-    fontSize: 12,
-    color: "#888",
-  },
-  leaderboardCardArrow: {
-    fontSize: 22,
-    color: "#D4AF37",
-    fontWeight: 900,
-    lineHeight: 1,
-    flexShrink: 0,
-  },
-  challengeCard: {
-    display: "flex",
-    alignItems: "center",
-    gap: 14,
-    width: "100%",
-    padding: "16px 18px",
-    borderRadius: 18,
-    background: "linear-gradient(135deg, rgba(193,18,31,0.95), rgba(94,8,16,0.92))",
-    border: "1px solid rgba(255,255,255,0.14)",
-    boxShadow: "0 18px 46px rgba(193,18,31,0.22)",
-    color: "#fff",
-    cursor: "pointer",
-    textAlign: "left",
-  },
-  challengeCardIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
-    display: "grid",
-    placeItems: "center",
-    flexShrink: 0,
-    background: "rgba(212,175,55,0.18)",
-    border: "1px solid rgba(212,175,55,0.36)",
-    color: "#D4AF37",
-    fontSize: 12,
-    fontWeight: 1000,
-    letterSpacing: 0,
-  },
-  challengeCardTitle: {
-    fontSize: 16,
-    fontWeight: 1000,
-    color: "#fff",
-    lineHeight: 1.2,
-  },
-  challengeCardSub: {
-    fontSize: 12,
-    color: "rgba(255,255,255,0.72)",
-    lineHeight: 1.35,
-  },
-  challengeCardArrow: {
-    fontSize: 22,
-    color: "#D4AF37",
-    fontWeight: 1000,
-    lineHeight: 1,
-    flexShrink: 0,
-  },
-};

@@ -106,9 +106,8 @@ export default function HomePage() {
       <style>{`
         .landing {
           min-height: 100vh;
-          background: #070707;
+          background: #0B0B0C;
           color: #fff;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
           overflow-x: hidden;
         }
 
@@ -116,10 +115,10 @@ export default function HomePage() {
           min-height: 100vh;
           padding: 18px clamp(18px, 5vw, 72px) 42px;
           background:
-            linear-gradient(90deg, rgba(7,7,7,0.98), rgba(7,7,7,0.78)),
-            radial-gradient(circle at 78% 12%, rgba(193,18,31,0.28), transparent 28%),
-            radial-gradient(circle at 74% 78%, rgba(212,175,55,0.14), transparent 26%),
-            #070707;
+            linear-gradient(90deg, rgba(11,11,12,0.98), rgba(11,11,12,0.78)),
+            radial-gradient(circle at 78% 12%, rgba(255,59,48,0.28), transparent 28%),
+            radial-gradient(circle at 74% 78%, rgba(245,196,81,0.14), transparent 26%),
+            #0B0B0C;
         }
 
         .nav {
@@ -138,10 +137,10 @@ export default function HomePage() {
         .brand {
           min-width: 112px;
           min-height: 42px;
-          border: 1px solid rgba(212,175,55,0.48);
+          border: 1px solid rgba(245,196,81,0.48);
           border-radius: 8px;
           background: rgba(11,11,11,0.78);
-          color: #D4AF37;
+          color: #F5C451;
           font-weight: 950;
           letter-spacing: 2px;
           cursor: pointer;
@@ -186,7 +185,7 @@ export default function HomePage() {
 
         .eyebrow {
           margin: 0 0 16px;
-          color: #D4AF37;
+          color: #F5C451;
           font-size: 12px;
           font-weight: 950;
           letter-spacing: 2.2px;
@@ -231,16 +230,16 @@ export default function HomePage() {
         .primaryCta,
         .finalBand button {
           border: 1px solid rgba(255,255,255,0.1);
-          background: #C1121F;
+          background: #FF3B30;
           color: #fff;
-          box-shadow: 0 20px 48px rgba(193,18,31,0.24);
+          box-shadow: 0 20px 48px rgba(255,59,48,0.24);
         }
 
         .heroVisual {
           position: relative;
           min-height: 560px;
-          border-left: 1px solid rgba(212,175,55,0.22);
-          border-bottom: 1px solid rgba(212,175,55,0.18);
+          border-left: 1px solid rgba(245,196,81,0.22);
+          border-bottom: 1px solid rgba(245,196,81,0.18);
           transform: skewX(-7deg);
           overflow: hidden;
         }
@@ -250,7 +249,7 @@ export default function HomePage() {
           left: 0;
           right: 0;
           height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(212,175,55,0.72), transparent);
+          background: linear-gradient(90deg, transparent, rgba(245,196,81,0.72), transparent);
         }
 
         .ringTop { top: 24%; }
@@ -265,7 +264,7 @@ export default function HomePage() {
           height: 360px;
           border-radius: 999px;
           background: linear-gradient(90deg, #100607, #5f1018 48%, #130607);
-          border: 1px solid rgba(212,175,55,0.18);
+          border: 1px solid rgba(245,196,81,0.18);
           box-shadow: 0 34px 90px rgba(0,0,0,0.46);
         }
 
@@ -276,7 +275,7 @@ export default function HomePage() {
           width: 210px;
           height: 300px;
           border-radius: 48% 52% 34% 40%;
-          background: linear-gradient(165deg, rgba(193,18,31,0.72), rgba(212,175,55,0.16), transparent 62%);
+          background: linear-gradient(165deg, rgba(255,59,48,0.72), rgba(245,196,81,0.16), transparent 62%);
           filter: blur(0.5px);
         }
 
@@ -286,7 +285,7 @@ export default function HomePage() {
           bottom: 0;
           width: 100%;
           height: 26%;
-          background: radial-gradient(ellipse at 55% 50%, rgba(212,175,55,0.18), transparent 62%);
+          background: radial-gradient(ellipse at 55% 50%, rgba(245,196,81,0.18), transparent 62%);
         }
 
         .features {
@@ -302,7 +301,7 @@ export default function HomePage() {
           min-height: 190px;
           border-radius: 8px;
           border: 1px solid #1a1a1a;
-          border-top: 2px solid #D4AF37;
+          border-top: 2px solid #F5C451;
           background: #0B0B0B;
           padding: 22px;
           box-shadow: 0 18px 44px rgba(0,0,0,0.22);
@@ -310,7 +309,7 @@ export default function HomePage() {
 
         .featureCard p {
           margin: 0;
-          color: #D4AF37;
+          color: #F5C451;
           font-size: 11px;
           font-weight: 950;
           letter-spacing: 1.6px;

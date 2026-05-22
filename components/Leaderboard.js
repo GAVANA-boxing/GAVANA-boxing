@@ -5,6 +5,7 @@ import { collection, getDocs, doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { translate } from "@/lib/i18n";
+import Image from "next/image";
 
 export default function Leaderboard({ locale = "en" }) {
   const t = (key) => translate(locale, key);
@@ -34,7 +35,6 @@ export default function Leaderboard({ locale = "en" }) {
           setCurrentUserRank(userIndex >= 0 ? userIndex + 1 : null);
         }
       } catch (error) {
-        console.error("Error fetching leaderboard:", error);
       } finally {
         setLoading(false);
       }
@@ -62,10 +62,12 @@ export default function Leaderboard({ locale = "en" }) {
             }`}
           >
             <span className="w-8 text-center font-bold">#{index + 1}</span>
-            <img
+            <Image
               src={entry.photoURL || "/default-avatar.png"}
               alt={entry.username}
-              className="w-8 h-8 rounded-full ml-2"
+              width={32}
+              height={32}
+              className="rounded-full ml-2"
             />
             <span className="ml-2 flex-1">{entry.username}</span>
             <span className="font-bold">{entry.bestScore}/10</span>
@@ -91,6 +93,5 @@ export async function updateLeaderboard(userId, score, username, photoURL) {
       });
     }
   } catch (error) {
-    console.error("Error updating leaderboard:", error);
   }
 }

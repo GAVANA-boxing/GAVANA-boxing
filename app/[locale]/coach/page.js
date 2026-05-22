@@ -1,168 +1,24 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+
+import { useState } from "react";
+import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  addDoc,
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  serverTimestamp,
-  where,
-} from "firebase/firestore";
-import AICoach from "@/components/AICoach";
 import BottomNav from "@/components/BottomNav";
+import BottomSheet from "@/components/BottomSheet";
+import EmptyState from "@/components/EmptyState";
+import SkeletonBlock from "@/components/SkeletonBlock";
 import { useAuth } from "@/lib/AuthContext";
-import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
+import { RED, RED_DARK, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import styles from "@/components/coach/coachStyles";
+import { CoachCard, MyRequestCard } from "@/components/coach/CoachCards";
+import { useCoachPageData } from "@/hooks/useCoachPageData";
+import Image from "next/image";
+import { useCoachPageActions } from "@/hooks/useCoachPageActions";
+import { SPECIALTIES, VIBE_FILTERS } from "@/lib/coachConstants";
 
-const SPECIALTIES = [
-  "Jab", "Footwork", "Defense", "Conditioning",
-  "Technique", "Sparring", "Amateur", "Pro",
-];
-
-const LEVELS = ["Amateur", "Fighter", "Pro", "Elite", "Champion"];
-
-function CoachCard({ coach, t, locale, onRequest, requested, router }) {
-  const initials = (coach.displayName || coach.username || "?")
-    .split(" ")
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-
-  return (
-    <div style={styles.card}>
-      <div style={styles.cardTop}>
-        <div style={styles.avatarWrap}>
-          {coach.photoURL ? (
-            <img src={coach.photoURL} alt="" style={styles.avatar} />
-          ) : (
-            <div style={styles.avatarInitials}>{initials}</div>
-          )}
-          {coach.coachVerified && (
-            <span style={styles.verifiedDot} title={t("verifiedCoach")}>✓</span>
-          )}
-        </div>
-
-        <div style={styles.cardInfo}>
-          <div style={styles.cardNameRow}>
-            <span style={styles.cardName}>
-              {coach.displayName || coach.username || "Coach"}
-            </span>
-            {coach.coachVerified && (
-              <span style={styles.verifiedBadge}>{t("verifiedCoach")}</span>
-            )}
-          </div>
-          {coach.coachLocation && (
-            <div style={styles.cardLocation}>📍 {coach.coachLocation}</div>
-          )}
-          {Number.isFinite(coach.coachExperienceYears) && coach.coachExperienceYears > 0 && (
-            <div style={styles.cardExp}>
-              {t("coachExperience").replace("{n}", coach.coachExperienceYears)}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {coach.coachSpecialties?.length > 0 && (
-        <div style={styles.specialtyRow}>
-          {coach.coachSpecialties.slice(0, 4).map((s) => (
-            <span key={s} style={styles.specialtyChip}>{s}</span>
-          ))}
-        </div>
-      )}
-
-      {coach.coachBio && (
-        <p style={styles.cardBio}>{coach.coachBio}</p>
-      )}
-
-      <div style={styles.cardStats}>
-        {Number.isFinite(coach.coachRating) && (
-          <div style={styles.cardStat}>
-            <span style={styles.cardStatNum}>⭐ {coach.coachRating.toFixed(1)}</span>
-            <span style={styles.cardStatLbl}>{t("coachRating")}</span>
-          </div>
-        )}
-        {Number.isFinite(coach.coachTotalReviews) && coach.coachTotalReviews > 0 && (
-          <div style={styles.cardStat}>
-            <span style={styles.cardStatNum}>{coach.coachTotalReviews}</span>
-            <span style={styles.cardStatLbl}>{t("coachTotalReviews")}</span>
-          </div>
-        )}
-        {Number.isFinite(coach.completedSessions) && coach.completedSessions > 0 && (
-          <div style={styles.cardStat}>
-            <span style={styles.cardStatNum}>{coach.completedSessions}</span>
-            <span style={styles.cardStatLbl}>{t("coachCompletedSessions")}</span>
-          </div>
-        )}
-        {Number.isFinite(coach.coachStudentsCount) && (
-          <div style={styles.cardStat}>
-            <span style={styles.cardStatNum}>{coach.coachStudentsCount}</span>
-            <span style={styles.cardStatLbl}>{t("coachStudents")}</span>
-          </div>
-        )}
-        {Number.isFinite(coach.coachPricePerSession) && (
-          <div style={styles.cardStat}>
-            <span style={styles.cardStatNum}>${coach.coachPricePerSession}</span>
-            <span style={styles.cardStatLbl}>{t("coachPrice")}</span>
-          </div>
-        )}
-      </div>
-
-      <div style={styles.cardActions}>
-        <button
-          type="button"
-          style={styles.viewProfileBtn}
-          onClick={() => router.push(`/${locale}/coach/${coach.id}`)}
-        >
-          {t("viewProfile")}
-        </button>
-        <button
-          type="button"
-          style={requested ? styles.requestedBtn : styles.requestBtn}
-          disabled={requested}
-          onClick={() => onRequest(coach.id)}
-        >
-          {requested ? t("requestSent") : t("requestCoach")}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function SparringPostCard({ post, t, onRequest, requested, user, router, locale }) {
-  return (
-    <div style={styles.card}>
-      <div style={styles.sparringCardHead}>
-        <span style={styles.sparringLevel}>{post.level || "—"}</span>
-        {post.weight && <span style={styles.sparringWeight}>{post.weight}</span>}
-        {post.location && <span style={styles.sparringLocation}>📍 {post.location}</span>}
-      </div>
-      {post.availableTime && (
-        <div style={styles.sparringTime}>🕐 {post.availableTime}</div>
-      )}
-      {post.note && <p style={styles.cardBio}>{post.note}</p>}
-      <button
-        type="button"
-        style={requested ? styles.requestedBtn : styles.requestBtn}
-        disabled={requested || post.userId === user?.uid}
-        onClick={() => {
-          if (!user?.uid) { router.push(`/${locale}/login`); return; }
-          onRequest(post.id);
-        }}
-      >
-        {post.userId === user?.uid
-          ? "Your post"
-          : requested
-            ? t("requestSent")
-            : t("sendRequest")}
-      </button>
-    </div>
-  );
-}
+const AICoach = dynamic(() => import("@/components/AICoach"), { ssr: false });
 
 export default function CoachPage() {
   const router = useRouter();
@@ -172,142 +28,26 @@ export default function CoachPage() {
   const { user } = useAuth();
 
   const [tab, setTab] = useState("ai");
-  const [coaches, setCoaches] = useState([]);
-  const [sparringPosts, setSparringPosts] = useState([]);
-  const [coachesLoading, setCoachesLoading] = useState(false);
-  const [sparringLoading, setSparringLoading] = useState(false);
   const [filterSpecialty, setFilterSpecialty] = useState("");
+  const [filterVibe, setFilterVibe] = useState("");
   const [filterLocation, setFilterLocation] = useState("");
   const [sortBy, setSortBy] = useState("rating");
-  const [requestedIds, setRequestedIds] = useState(new Set());
-  const [currentUserProfile, setCurrentUserProfile] = useState(null);
-  const [showSparringForm, setShowSparringForm] = useState(false);
-  const [sparringForm, setSparringForm] = useState({
-    weight: "", level: "", location: "", availableTime: "", note: "",
-  });
-  const [sparringSaving, setSpSaving] = useState(false);
-  const [sparringSaved, setSpSaved] = useState(false);
-  const coachesLoadedRef = useRef(false);
-  const sparringLoadedRef = useRef(false);
+  const [showCoachFilterSheet, setShowCoachFilterSheet] = useState(false);
 
-  useEffect(() => {
-    if (!user?.uid) {
-      setCurrentUserProfile(null);
-      return;
-    }
-    let active = true;
-    async function loadUser() {
-      try {
-        const snap = await getDoc(doc(db, "users", user.uid));
-        if (!active) return;
-        setCurrentUserProfile(snap.exists() ? snap.data() : null);
-      } catch (err) {
-        console.error("Failed to load current user profile:", err);
-      }
-    }
-    loadUser();
-    return () => { active = false; };
-  }, [user?.uid]);
+  const {
+    coaches,
+    coachesLoading,
+    myRequests, myRequestsLoading, myRequestCoaches,
+  } = useCoachPageData({ tab, userId: user?.uid });
 
-  const isUserCoach = Boolean(currentUserProfile?.isCoach);
-
-  useEffect(() => {
-    if (tab !== "coaches" || coachesLoadedRef.current) return;
-    coachesLoadedRef.current = true;
-    let active = true;
-    setCoachesLoading(true);
-    getDocs(query(collection(db, "users"), where("isCoach", "==", true)))
-      .then((snap) => {
-        if (!active) return;
-        setCoaches(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-      })
-      .catch(() => {})
-      .finally(() => { if (active) setCoachesLoading(false); });
-    return () => { active = false; };
-  }, [tab]);
-
-  useEffect(() => {
-    if (tab !== "sparring" || sparringLoadedRef.current) return;
-    sparringLoadedRef.current = true;
-    let active = true;
-    setSparringLoading(true);
-    getDocs(query(collection(db, "sparring_posts"), where("active", "==", true)))
-      .then((snap) => {
-        if (!active) return;
-        setSparringPosts(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-      })
-      .catch(() => {})
-      .finally(() => { if (active) setSparringLoading(false); });
-    return () => { active = false; };
-  }, [tab]);
-
-  const handleCoachRequest = async (coachId) => {
-    if (!user?.uid) { router.push(`/${locale}/login`); return; }
-    try {
-      await addDoc(collection(db, "coach_requests"), {
-        coachId,
-        userId: user.uid,
-        status: "pending",
-        createdAt: serverTimestamp(),
-        message: "",
-        locale,
-      });
-      setRequestedIds((prev) => new Set(prev).add(coachId));
-    } catch (e) {
-      console.error("Failed to send coach request:", e);
-    }
-  };
-
-  const handleSparringRequest = async (postId) => {
-    if (!user?.uid) { router.push(`/${locale}/login`); return; }
-    try {
-      await addDoc(collection(db, "coach_requests"), {
-        sparringPostId: postId,
-        userId: user.uid,
-        type: "sparring",
-        status: "pending",
-        createdAt: serverTimestamp(),
-        locale,
-      });
-      setRequestedIds((prev) => new Set(prev).add(postId));
-    } catch (e) {
-      console.error("Failed to send sparring request:", e);
-    }
-  };
-
-  const handleCreateSparringPost = async () => {
-    if (!user?.uid) { router.push(`/${locale}/login`); return; }
-    setSpSaving(true);
-    try {
-      const docRef = await addDoc(collection(db, "sparring_posts"), {
-        userId: user.uid,
-        weight: sparringForm.weight,
-        level: sparringForm.level,
-        location: sparringForm.location,
-        availableTime: sparringForm.availableTime,
-        note: sparringForm.note,
-        active: true,
-        createdAt: serverTimestamp(),
-        locale,
-      });
-      setSparringPosts((prev) => [{
-        id: docRef.id,
-        userId: user.uid,
-        ...sparringForm,
-        active: true,
-      }, ...prev]);
-      setSpSaved(true);
-      setSparringForm({ weight: "", level: "", location: "", availableTime: "", note: "" });
-      setShowSparringForm(false);
-    } catch (e) {
-      console.error("Failed to create sparring post:", e);
-    } finally {
-      setSpSaving(false);
-    }
-  };
+  const {
+    requestedIds,
+    handleCoachRequest,
+  } = useCoachPageActions({ user, router, locale });
 
   const filteredCoaches = coaches
     .filter((c) => !filterSpecialty || (c.coachSpecialties || []).includes(filterSpecialty))
+    .filter((c) => !filterVibe || (c.coachVibes || []).includes(filterVibe))
     .filter((c) => !filterLocation || (c.coachLocation || "").toLowerCase().includes(filterLocation.toLowerCase()))
     .sort((a, b) => {
       if (sortBy === "rating") return (b.coachRating || 0) - (a.coachRating || 0);
@@ -317,13 +57,13 @@ export default function CoachPage() {
     });
 
   return (
-    <main style={styles.page}>
+    <main style={styles.page} className="page-enter">
       {/* Tab strip */}
       <div style={styles.tabStrip}>
         {[
           { key: "ai", label: t("coachTabAI") },
           { key: "coaches", label: t("coachTabCoaches") },
-          { key: "sparring", label: t("coachTabSparring") },
+          { key: "mine", label: t("coachFilterMyRequests") },
         ].map(({ key, label }) => (
           <button
             key={key}
@@ -336,32 +76,31 @@ export default function CoachPage() {
         ))}
       </div>
 
-      <div style={styles.dashboardBanner}>
-        <div style={styles.dashboardBannerContent}>
-          <span style={styles.dashboardBannerTitle}>
-            {isUserCoach ? t("coachDashboard") : t("coachBecomeCoachTitle")}
-          </span>
-          <span style={styles.dashboardBannerSubtitle}>
-            {isUserCoach ? t("coachDashboardSubtitle") : t("coachBecomeCoachSubtitle")}
-          </span>
-        </div>
-        <button
-          type="button"
-          style={isUserCoach ? styles.dashboardBtn : styles.dashboardPlaceholderBtn}
-          onClick={() => {
-            if (isUserCoach) {
-              router.push(`/${locale}/coach/dashboard`);
-            }
-          }}
-          disabled={!isUserCoach}
-        >
-          {isUserCoach ? t("coachDashboardButton") : t("coachBecomeCoachButton")}
-        </button>
-      </div>
-
       {/* AI Coach tab */}
       {tab === "ai" && (
         <div style={styles.aiWrap}>
+          <div style={{ padding: "0 0 12px", textAlign: "center" }}>
+            <button
+              type="button"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "10px 20px",
+                borderRadius: 12,
+                border: "none",
+                background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
+                color: "#fff",
+                fontSize: 14,
+                fontWeight: 900,
+                cursor: "pointer",
+                boxShadow: `0 8px 28px ${redAlpha(0.32)}, inset 0 1px 0 rgba(255,255,255,0.1)`,
+              }}
+              onClick={() => router.push(`/${locale}/coach/chat`)}
+            >
+              💬 {t("coachOpenFullChat")}
+            </button>
+          </div>
           <AICoach />
         </div>
       )}
@@ -370,7 +109,7 @@ export default function CoachPage() {
       {tab === "coaches" && (
         <div style={styles.content}>
           <header style={styles.pageHeader}>
-            <p style={styles.kicker}>GAVANA BOXING</p>
+            <p style={styles.kicker}>COMBAT · TRAINING</p>
             <h1 style={styles.pageTitle}>{t("coachMarketplace")}</h1>
             {user && (
               <button
@@ -383,55 +122,152 @@ export default function CoachPage() {
             )}
           </header>
 
-          {/* Filters */}
-          <div style={styles.filterBar}>
-            <div style={styles.specialtyScroll}>
+          {/* Featured coaches row */}
+          {coaches.filter((c) => c.coachVerified || c.coachFeatured).length > 0 && (
+            <div style={styles.featuredSection}>
+              <p style={styles.featuredLabel}>{t("marketplaceFeatured")}</p>
+              <div style={styles.featuredScroll}>
+                {coaches.filter((c) => c.coachVerified || c.coachFeatured).slice(0, 6).map((coach) => {
+                  const initials = (coach.displayName || coach.username || "?").split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+                  return (
+                    <button
+                      key={coach.id}
+                      type="button"
+                      style={styles.featuredChip}
+                      onClick={() => router.push(`/${locale}/coach/${coach.id}`)}
+                    >
+                      {coach.photoURL ? (
+                        <Image src={coach.photoURL} alt="" width={40} height={40} style={{ borderRadius: "50%", objectFit: "cover" }} />
+                      ) : (
+                        <div style={styles.featuredAvatarInitials}>{initials}</div>
+                      )}
+                      <span style={styles.featuredName}>{coach.displayName || coach.username || "Coach"}</span>
+                      {coach.coachVerified && <span style={styles.featuredVerified}>✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Specialty filter chips — full horizontal scroll */}
+          <div style={styles.specialtyChipsRow}>
+            <button
+              type="button"
+              style={filterSpecialty === "" ? styles.specChipActive : styles.specChip}
+              onClick={() => setFilterSpecialty("")}
+            >
+              🥊 {t("coachFilterAll")}
+            </button>
+            {SPECIALTIES.map((s) => (
               <button
+                key={s}
                 type="button"
-                style={filterSpecialty === "" ? styles.chipActive : styles.chip}
-                onClick={() => setFilterSpecialty("")}
+                style={filterSpecialty === s ? styles.specChipActive : styles.specChip}
+                onClick={() => setFilterSpecialty((prev) => prev === s ? "" : s)}
               >
+                {s}
+              </button>
+            ))}
+          </div>
+
+          {/* Sort + advanced filter row */}
+          <div style={{ display: "flex", gap: 8, marginBottom: 16, alignItems: "center" }}>
+            {[
+              { key: "rating", label: t("coachSortRating") },
+              { key: "students", label: t("coachSortStudents") },
+              { key: "verified", label: t("coachSortVerified") },
+            ].map(({ key, label }) => (
+              <button
+                key={key}
+                type="button"
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: 999,
+                  border: sortBy === key ? `1px solid ${goldAlpha(0.6)}` : "1px solid rgba(255,255,255,0.1)",
+                  background: sortBy === key ? `${goldAlpha(0.15)}` : "rgba(255,255,255,0.03)",
+                  color: sortBy === key ? GOLD : "rgba(255,255,255,0.4)",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  flexShrink: 0,
+                }}
+                onClick={() => setSortBy(key)}
+              >
+                {label}
+              </button>
+            ))}
+            <button
+              type="button"
+              style={{ marginLeft: "auto", padding: "6px 12px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.4)", fontSize: 12, fontWeight: 700, cursor: "pointer", flexShrink: 0 }}
+              onClick={() => setShowCoachFilterSheet(true)}
+            >
+              {filterVibe || filterLocation ? "● More" : "More ›"}
+            </button>
+          </div>
+
+          {/* Full filter sheet */}
+          <BottomSheet
+            open={showCoachFilterSheet}
+            onClose={() => setShowCoachFilterSheet(false)}
+            zIndex={300}
+            accent={GOLD}
+          >
+            <p style={styles.filterSheetSectionLabel}>SPECIALTY</p>
+            <div style={styles.specialtyScroll}>
+              <button type="button" style={filterSpecialty === "" ? styles.chipActive : styles.chip} onClick={() => setFilterSpecialty("")}>
                 {t("coachFilterAll")}
               </button>
               {SPECIALTIES.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  style={filterSpecialty === s ? styles.chipActive : styles.chip}
-                  onClick={() => setFilterSpecialty((prev) => prev === s ? "" : s)}
-                >
+                <button key={s} type="button" style={filterSpecialty === s ? styles.chipActive : styles.chip} onClick={() => setFilterSpecialty((prev) => prev === s ? "" : s)}>
                   {s}
                 </button>
               ))}
             </div>
-
-            <div style={styles.filterRow}>
-              <input
-                type="text"
-                placeholder={t("coachLocation")}
-                value={filterLocation}
-                onChange={(e) => setFilterLocation(e.target.value)}
-                style={styles.filterInput}
-              />
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                style={styles.filterSelect}
-              >
-                <option value="rating" style={styles.optionStyle}>{t("coachSortRating")}</option>
-                <option value="students" style={styles.optionStyle}>{t("coachSortStudents")}</option>
-                <option value="verified" style={styles.optionStyle}>{t("coachSortVerified")}</option>
-              </select>
+            <p style={{ ...styles.filterSheetSectionLabel, marginTop: 16 }}>VIBE</p>
+            <div style={styles.specialtyScroll}>
+              {VIBE_FILTERS.map((v) => (
+                <button key={v} type="button" style={filterVibe === v ? styles.vibeChipActive : styles.vibeChip} onClick={() => setFilterVibe((prev) => (prev === v ? "" : v))}>
+                  {v}
+                </button>
+              ))}
             </div>
-          </div>
+            <p style={{ ...styles.filterSheetSectionLabel, marginTop: 16 }}>LOCATION</p>
+            <input
+              type="text"
+              placeholder={t("coachLocation")}
+              value={filterLocation}
+              onChange={(e) => setFilterLocation(e.target.value)}
+              style={{ ...styles.filterInput, marginBottom: 12 }}
+            />
+            <p style={styles.filterSheetSectionLabel}>SORT BY</p>
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} style={styles.filterSelect}>
+              <option value="rating">{t("coachSortRating")}</option>
+              <option value="students">{t("coachSortStudents")}</option>
+              <option value="verified">{t("coachSortVerified")}</option>
+            </select>
+            <button type="button" style={styles.filterSheetDone} onClick={() => setShowCoachFilterSheet(false)}>{t("coachFilterDone")}</button>
+          </BottomSheet>
 
-          {coachesLoading && <div style={styles.loadingText}>Loading…</div>}
+          {coachesLoading && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "0 0 12px" }}>
+              {[1, 2, 3].map((i) => (
+                <SkeletonBlock key={i} height={88} radius={16} />
+              ))}
+            </div>
+          )}
 
           {!coachesLoading && filteredCoaches.length === 0 && (
-            <div style={styles.emptyState}>
-              <div style={styles.emptyIcon}>🥊</div>
-              <div style={styles.emptyText}>{t("coachNoCoaches")}</div>
-            </div>
+            <EmptyState
+              emoji="🥊"
+              title={t("coachNoCoaches")}
+              hint={t("coachNoCoachesSub")}
+              action={
+                <button type="button" onClick={() => router.push(`/${locale}/coach/apply`)} style={{ padding: "12px 28px", borderRadius: 14, background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 24px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)` }}>
+                  {t("becomeCoach")}
+                </button>
+              }
+            />
           )}
 
           <div style={styles.cardList}>
@@ -448,721 +284,65 @@ export default function CoachPage() {
             ))}
           </div>
 
-          <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
+          <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
         </div>
       )}
 
-      {/* Sparring tab */}
-      {tab === "sparring" && (
+      {/* My Requests tab */}
+      {tab === "mine" && (
         <div style={styles.content}>
           <header style={styles.pageHeader}>
-            <p style={styles.kicker}>GAVANA BOXING</p>
-            <h1 style={styles.pageTitle}>{t("sparringFinder")}</h1>
+            <p style={styles.kicker}>COMBAT · TRAINING</p>
+            <h1 style={styles.pageTitle}>{t("coachMyRequestsTitle")}</h1>
           </header>
 
-          <button
-            type="button"
-            style={styles.createPostBtn}
-            onClick={() => { setShowSparringForm(true); setSpSaved(false); }}
-          >
-            + {t("createSparringPost")}
-          </button>
-
-          {sparringSaved && (
-            <div style={styles.savedBanner}>✓ {t("requestSent")}</div>
-          )}
-
-          {sparringLoading && <div style={styles.loadingText}>Loading…</div>}
-
-          {!sparringLoading && sparringPosts.length === 0 && (
-            <div style={styles.emptyState}>
-              <div style={styles.emptyIcon}>🥊</div>
-              <div style={styles.emptyText}>{t("sparringNoPosts")}</div>
-            </div>
-          )}
-
-          <div style={styles.cardList}>
-            {sparringPosts.map((post) => (
-              <SparringPostCard
-                key={post.id}
-                post={post}
-                t={t}
-                user={user}
-                locale={locale}
-                router={router}
-                requested={requestedIds.has(post.id)}
-                onRequest={handleSparringRequest}
-              />
-            ))}
-          </div>
-
-          <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
-        </div>
-      )}
-
-      {/* Sparring create form modal */}
-      {showSparringForm && (
-        <div style={styles.modalWrap}>
-          <div
-            style={styles.modalOverlay}
-            onClick={() => setShowSparringForm(false)}
-          />
-          <div style={styles.modal}>
-            <h2 style={styles.modalTitle}>{t("createSparringPost")}</h2>
-
-            <label style={styles.fieldLabel}>{t("weightClass")}</label>
-            <input
-              type="text"
-              placeholder="e.g. Lightweight, 135 lbs"
-              value={sparringForm.weight}
-              onChange={(e) => setSparringForm((f) => ({ ...f, weight: e.target.value }))}
-              style={styles.fieldInput}
+          {!user?.uid ? (
+            <EmptyState
+              emoji="🔒"
+              title={t("coachSignInRequired")}
+              action={
+                <button type="button" onClick={() => router.push(`/${locale}/login`)} style={{ padding: "12px 28px", borderRadius: 14, background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 24px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)` }}>
+                  {t("coachSignInBtn")}
+                </button>
+              }
             />
-
-            <label style={styles.fieldLabel}>{t("boxingLevel")}</label>
-            <select
-              value={sparringForm.level}
-              onChange={(e) => setSparringForm((f) => ({ ...f, level: e.target.value }))}
-              style={styles.fieldSelect}
-            >
-              <option value="" style={styles.optionStyle}>—</option>
-              {LEVELS.map((lv) => (
-                <option key={lv} value={lv} style={styles.optionStyle}>{lv}</option>
+          ) : myRequestsLoading ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "0 0 12px" }}>
+              {[1, 2, 3].map((i) => (
+                <SkeletonBlock key={i} height={88} radius={16} />
               ))}
-            </select>
-
-            <label style={styles.fieldLabel}>{t("coachLocation")}</label>
-            <input
-              type="text"
-              placeholder="City / Gym name"
-              value={sparringForm.location}
-              onChange={(e) => setSparringForm((f) => ({ ...f, location: e.target.value }))}
-              style={styles.fieldInput}
-            />
-
-            <label style={styles.fieldLabel}>{t("availableTime")}</label>
-            <input
-              type="text"
-              placeholder="e.g. Weekends, evenings"
-              value={sparringForm.availableTime}
-              onChange={(e) => setSparringForm((f) => ({ ...f, availableTime: e.target.value }))}
-              style={styles.fieldInput}
-            />
-
-            <label style={styles.fieldLabel}>{t("sparringNote")}</label>
-            <textarea
-              placeholder="Any additional details…"
-              value={sparringForm.note}
-              onChange={(e) => setSparringForm((f) => ({ ...f, note: e.target.value }))}
-              style={styles.fieldTextarea}
-              rows={3}
-            />
-
-            <div style={styles.modalActions}>
-              <button
-                type="button"
-                style={styles.cancelBtn}
-                onClick={() => setShowSparringForm(false)}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                style={styles.submitBtn}
-                disabled={sparringSaving}
-                onClick={handleCreateSparringPost}
-              >
-                {sparringSaving ? "…" : t("sendRequest")}
-              </button>
             </div>
-          </div>
+          ) : myRequests.length === 0 ? (
+            <EmptyState
+              emoji="📋"
+              title={t("coachNoRequests")}
+              hint={t("coachNoRequestsHint")}
+              action={
+                <button type="button" onClick={() => setTab("coaches")} style={{ padding: "12px 28px", borderRadius: 14, background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", marginTop: 4, boxShadow: `0 8px 24px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)` }}>
+                  {t("coachFindCoach")}
+                </button>
+              }
+            />
+          ) : (
+            <div style={styles.cardList}>
+              {myRequests.map((req) => (
+                <MyRequestCard
+                  key={req.id}
+                  req={req}
+                  coachProfile={myRequestCoaches[req.coachId]}
+                  t={t}
+                  locale={locale}
+                  router={router}
+                />
+              ))}
+            </div>
+          )}
+
+          <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
         </div>
       )}
+
     </main>
   );
 }
 
-const styles = {
-  page: {
-    minHeight: "100vh",
-    background: "radial-gradient(circle at 50% 0%, rgba(193,18,31,0.18), transparent 30%), linear-gradient(180deg, #080808 0%, #0B0B0B 100%)",
-    color: "#fff",
-    fontFamily: "sans-serif",
-  },
-  tabStrip: {
-    position: "sticky",
-    top: 0,
-    zIndex: 50,
-    display: "flex",
-    background: "rgba(8,8,8,0.92)",
-    backdropFilter: "blur(14px)",
-    WebkitBackdropFilter: "blur(14px)",
-    borderBottom: "1px solid rgba(255,255,255,0.08)",
-    padding: "0 4px",
-    paddingTop: "env(safe-area-inset-top)",
-  },
-  tabActive: {
-    flex: 1,
-    minHeight: 46,
-    border: "none",
-    borderBottom: "2px solid #C1121F",
-    background: "transparent",
-    color: "#fff",
-    fontSize: 13,
-    fontWeight: 1000,
-    letterSpacing: 0.5,
-    cursor: "pointer",
-  },
-  tabInactive: {
-    flex: 1,
-    minHeight: 46,
-    border: "none",
-    borderBottom: "2px solid transparent",
-    background: "transparent",
-    color: "rgba(255,255,255,0.45)",
-    fontSize: 13,
-    fontWeight: 700,
-    cursor: "pointer",
-  },
-  aiWrap: {
-    minHeight: "calc(100vh - 46px)",
-  },
-  content: {
-    maxWidth: 520,
-    margin: "0 auto",
-    padding: "0 16px calc(104px + env(safe-area-inset-bottom))",
-  },
-  pageHeader: {
-    padding: "22px 0 12px",
-    display: "flex",
-    flexDirection: "column",
-    gap: 10,
-  },
-  becomeCoachBtn: {
-    alignSelf: "flex-start",
-    background: "rgba(212,175,55,0.12)",
-    border: "1px solid rgba(212,175,55,0.4)",
-    borderRadius: 20,
-    padding: "7px 16px",
-    color: "#D4AF37",
-    fontSize: 13,
-    fontWeight: 600,
-    cursor: "pointer",
-  },
-  kicker: {
-    margin: 0,
-    color: "#D4AF37",
-    fontSize: 11,
-    fontWeight: 950,
-    letterSpacing: 2,
-    textTransform: "uppercase",
-  },
-  pageTitle: {
-    margin: "4px 0 0",
-    fontSize: 28,
-    fontWeight: 1000,
-    lineHeight: 1.1,
-  },
-  filterBar: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 10,
-    marginBottom: 20,
-  },
-  specialtyScroll: {
-    display: "flex",
-    gap: 6,
-    overflowX: "auto",
-    paddingBottom: 4,
-    scrollbarWidth: "none",
-  },
-  chip: {
-    flexShrink: 0,
-    padding: "5px 12px",
-    borderRadius: 999,
-    border: "1px solid rgba(255,255,255,0.16)",
-    background: "rgba(255,255,255,0.05)",
-    color: "rgba(255,255,255,0.7)",
-    fontSize: 12,
-    fontWeight: 700,
-    cursor: "pointer",
-    whiteSpace: "nowrap",
-  },
-  chipActive: {
-    flexShrink: 0,
-    padding: "5px 12px",
-    borderRadius: 999,
-    border: "1px solid rgba(193,18,31,0.6)",
-    background: "rgba(193,18,31,0.18)",
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: 900,
-    cursor: "pointer",
-    whiteSpace: "nowrap",
-  },
-  filterRow: {
-    display: "flex",
-    gap: 8,
-  },
-  filterInput: {
-    flex: 1,
-    minHeight: 38,
-    padding: "0 12px",
-    borderRadius: 10,
-    border: "1px solid rgba(255,255,255,0.14)",
-    background: "rgba(255,255,255,0.07)",
-    color: "#fff",
-    fontSize: 13,
-    outline: "none",
-  },
-  filterSelect: {
-    minHeight: 38,
-    padding: "0 10px",
-    borderRadius: 10,
-    border: "1px solid rgba(255,255,255,0.14)",
-    background: "rgba(18,18,18,0.96)",
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: 700,
-    outline: "none",
-    cursor: "pointer",
-  },
-  dashboardBanner: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-    padding: "14px 16px",
-    margin: "12px 16px 8px",
-    borderRadius: 18,
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.08)",
-  },
-  dashboardBannerContent: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 4,
-  },
-  dashboardBannerTitle: {
-    fontSize: 14,
-    fontWeight: 900,
-    color: "#fff",
-  },
-  dashboardBannerSubtitle: {
-    fontSize: 12,
-    color: "rgba(255,255,255,0.65)",
-    lineHeight: 1.4,
-  },
-  dashboardBtn: {
-    minHeight: 40,
-    padding: "0 16px",
-    borderRadius: 999,
-    border: "none",
-    background: "linear-gradient(135deg, #C1121F, #7d0812)",
-    color: "#fff",
-    fontSize: 13,
-    fontWeight: 900,
-    cursor: "pointer",
-  },
-  dashboardPlaceholderBtn: {
-    minHeight: 40,
-    padding: "0 16px",
-    borderRadius: 999,
-    border: "1px solid rgba(255,255,255,0.18)",
-    background: "rgba(255,255,255,0.04)",
-    color: "rgba(255,255,255,0.65)",
-    fontSize: 13,
-    fontWeight: 900,
-    cursor: "not-allowed",
-  },
-  optionStyle: {
-    background: "#111",
-    color: "#fff",
-  },
-  fieldSelect: {
-    width: "100%",
-    minHeight: 42,
-    padding: "0 12px",
-    borderRadius: 10,
-    border: "1px solid rgba(255,255,255,0.14)",
-    background: "rgba(18,18,18,0.96)",
-    color: "#fff",
-    fontSize: 14,
-    outline: "none",
-    cursor: "pointer",
-    boxSizing: "border-box",
-  },
-  cardList: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 14,
-  },
-  card: {
-    borderRadius: 18,
-    padding: "16px",
-    background: "linear-gradient(145deg, #131313, #0a0a0a)",
-    border: "1px solid rgba(255,255,255,0.09)",
-    boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-    display: "flex",
-    flexDirection: "column",
-    gap: 10,
-  },
-  cardTop: {
-    display: "flex",
-    gap: 12,
-    alignItems: "flex-start",
-  },
-  avatarWrap: {
-    position: "relative",
-    flexShrink: 0,
-  },
-  avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: "50%",
-    objectFit: "cover",
-    border: "2px solid rgba(212,175,55,0.4)",
-  },
-  avatarInitials: {
-    width: 52,
-    height: 52,
-    borderRadius: "50%",
-    background: "linear-gradient(135deg, #C1121F, #7d0812)",
-    border: "2px solid rgba(212,175,55,0.4)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: 18,
-    fontWeight: 1000,
-    color: "#fff",
-  },
-  verifiedDot: {
-    position: "absolute",
-    bottom: 0,
-    right: 0,
-    width: 18,
-    height: 18,
-    borderRadius: "50%",
-    background: "#D4AF37",
-    color: "#000",
-    fontSize: 10,
-    fontWeight: 1000,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    border: "2px solid #0a0a0a",
-  },
-  cardInfo: {
-    flex: 1,
-    display: "flex",
-    flexDirection: "column",
-    gap: 3,
-    minWidth: 0,
-  },
-  cardNameRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: 6,
-    flexWrap: "wrap",
-  },
-  cardName: {
-    fontSize: 16,
-    fontWeight: 1000,
-    color: "#fff",
-  },
-  verifiedBadge: {
-    fontSize: 10,
-    fontWeight: 900,
-    color: "#D4AF37",
-    background: "rgba(212,175,55,0.12)",
-    border: "1px solid rgba(212,175,55,0.3)",
-    borderRadius: 999,
-    padding: "1px 7px",
-    letterSpacing: 0.5,
-  },
-  cardLocation: {
-    fontSize: 12,
-    color: "rgba(255,255,255,0.55)",
-    fontWeight: 600,
-  },
-  cardExp: {
-    fontSize: 12,
-    color: "#D4AF37",
-    fontWeight: 700,
-  },
-  specialtyRow: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: 5,
-  },
-  specialtyChip: {
-    fontSize: 11,
-    fontWeight: 800,
-    color: "rgba(255,255,255,0.75)",
-    background: "rgba(255,255,255,0.07)",
-    border: "1px solid rgba(255,255,255,0.13)",
-    borderRadius: 999,
-    padding: "3px 9px",
-  },
-  cardBio: {
-    margin: 0,
-    fontSize: 13,
-    color: "rgba(255,255,255,0.62)",
-    lineHeight: 1.5,
-    display: "-webkit-box",
-    WebkitLineClamp: 2,
-    WebkitBoxOrient: "vertical",
-    overflow: "hidden",
-  },
-  cardStats: {
-    display: "flex",
-    gap: 16,
-  },
-  cardStat: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 1,
-  },
-  cardStatNum: {
-    fontSize: 14,
-    fontWeight: 1000,
-    color: "#fff",
-  },
-  cardStatLbl: {
-    fontSize: 10,
-    color: "rgba(255,255,255,0.45)",
-    fontWeight: 700,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  cardActions: {
-    display: "flex",
-    gap: 8,
-    marginTop: 2,
-  },
-  viewProfileBtn: {
-    flex: 1,
-    minHeight: 38,
-    border: "1px solid rgba(255,255,255,0.18)",
-    borderRadius: 10,
-    background: "rgba(255,255,255,0.07)",
-    color: "#fff",
-    fontSize: 13,
-    fontWeight: 800,
-    cursor: "pointer",
-  },
-  requestBtn: {
-    flex: 1,
-    minHeight: 38,
-    border: "none",
-    borderRadius: 10,
-    background: "linear-gradient(135deg, #C1121F, #7d0812)",
-    color: "#fff",
-    fontSize: 13,
-    fontWeight: 900,
-    cursor: "pointer",
-    boxShadow: "0 8px 24px rgba(193,18,31,0.28)",
-  },
-  requestedBtn: {
-    flex: 1,
-    minHeight: 38,
-    border: "1px solid rgba(52,211,153,0.3)",
-    borderRadius: 10,
-    background: "rgba(52,211,153,0.1)",
-    color: "#34D399",
-    fontSize: 13,
-    fontWeight: 900,
-    cursor: "default",
-  },
-  createPostBtn: {
-    width: "100%",
-    minHeight: 48,
-    border: "1px solid rgba(212,175,55,0.35)",
-    borderRadius: 14,
-    background: "linear-gradient(135deg, rgba(193,18,31,0.9), rgba(212,175,55,0.2))",
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: 1000,
-    cursor: "pointer",
-    marginBottom: 16,
-    boxShadow: "0 12px 30px rgba(193,18,31,0.22)",
-  },
-  savedBanner: {
-    padding: "10px 14px",
-    borderRadius: 12,
-    background: "rgba(52,211,153,0.12)",
-    border: "1px solid rgba(52,211,153,0.28)",
-    color: "#A7F3D0",
-    fontSize: 13,
-    fontWeight: 800,
-    marginBottom: 12,
-  },
-  sparringCardHead: {
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    flexWrap: "wrap",
-  },
-  sparringLevel: {
-    fontSize: 13,
-    fontWeight: 1000,
-    color: "#D4AF37",
-    background: "rgba(212,175,55,0.12)",
-    border: "1px solid rgba(212,175,55,0.25)",
-    borderRadius: 999,
-    padding: "3px 10px",
-  },
-  sparringWeight: {
-    fontSize: 13,
-    fontWeight: 800,
-    color: "#fff",
-    background: "rgba(255,255,255,0.07)",
-    border: "1px solid rgba(255,255,255,0.12)",
-    borderRadius: 999,
-    padding: "3px 10px",
-  },
-  sparringLocation: {
-    fontSize: 12,
-    color: "rgba(255,255,255,0.55)",
-    fontWeight: 600,
-  },
-  sparringTime: {
-    fontSize: 12,
-    color: "rgba(255,255,255,0.55)",
-    fontWeight: 600,
-  },
-  loadingText: {
-    textAlign: "center",
-    padding: "40px 0",
-    color: "rgba(255,255,255,0.4)",
-    fontSize: 14,
-  },
-  emptyState: {
-    textAlign: "center",
-    padding: "48px 0",
-    display: "flex",
-    flexDirection: "column",
-    gap: 10,
-    alignItems: "center",
-  },
-  emptyIcon: {
-    fontSize: 40,
-    opacity: 0.4,
-  },
-  emptyText: {
-    color: "rgba(255,255,255,0.4)",
-    fontSize: 15,
-    fontWeight: 700,
-  },
-  modalWrap: {
-    position: "fixed",
-    inset: 0,
-    zIndex: 300,
-    display: "flex",
-    alignItems: "flex-end",
-    justifyContent: "center",
-    padding: "0 0 env(safe-area-inset-bottom)",
-  },
-  modalOverlay: {
-    position: "absolute",
-    inset: 0,
-    background: "rgba(0,0,0,0.7)",
-    backdropFilter: "blur(6px)",
-  },
-  modal: {
-    position: "relative",
-    width: "100%",
-    maxWidth: 520,
-    maxHeight: "85vh",
-    overflowY: "auto",
-    borderRadius: "22px 22px 0 0",
-    padding: "20px 20px calc(20px + env(safe-area-inset-bottom))",
-    background: "linear-gradient(180deg, #161212, #0a0a0a)",
-    border: "1px solid rgba(212,175,55,0.18)",
-    boxShadow: "0 -24px 60px rgba(0,0,0,0.6)",
-    display: "flex",
-    flexDirection: "column",
-    gap: 10,
-  },
-  modalTitle: {
-    margin: 0,
-    fontSize: 20,
-    fontWeight: 1000,
-    color: "#fff",
-    marginBottom: 4,
-  },
-  fieldLabel: {
-    fontSize: 11,
-    fontWeight: 900,
-    color: "#D4AF37",
-    letterSpacing: 1,
-    textTransform: "uppercase",
-  },
-  fieldInput: {
-    width: "100%",
-    minHeight: 42,
-    padding: "0 12px",
-    borderRadius: 10,
-    border: "1px solid rgba(255,255,255,0.14)",
-    background: "rgba(255,255,255,0.07)",
-    color: "#fff",
-    fontSize: 14,
-    outline: "none",
-    boxSizing: "border-box",
-  },
-  fieldSelect: {
-    width: "100%",
-    minHeight: 42,
-    padding: "0 12px",
-    borderRadius: 10,
-    border: "1px solid rgba(255,255,255,0.14)",
-    background: "rgba(18,18,18,0.96)",
-    color: "#fff",
-    fontSize: 14,
-    outline: "none",
-    cursor: "pointer",
-    boxSizing: "border-box",
-  },
-  fieldTextarea: {
-    width: "100%",
-    padding: "10px 12px",
-    borderRadius: 10,
-    border: "1px solid rgba(255,255,255,0.14)",
-    background: "rgba(255,255,255,0.07)",
-    color: "#fff",
-    fontSize: 14,
-    outline: "none",
-    resize: "vertical",
-    fontFamily: "sans-serif",
-    lineHeight: 1.5,
-    boxSizing: "border-box",
-  },
-  modalActions: {
-    display: "flex",
-    gap: 10,
-    marginTop: 6,
-  },
-  cancelBtn: {
-    flex: 1,
-    minHeight: 46,
-    border: "1px solid rgba(255,255,255,0.14)",
-    borderRadius: 12,
-    background: "rgba(255,255,255,0.06)",
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: 800,
-    cursor: "pointer",
-  },
-  submitBtn: {
-    flex: 2,
-    minHeight: 46,
-    border: "none",
-    borderRadius: 12,
-    background: "linear-gradient(135deg, #C1121F, #7d0812 60%, #9a6a18)",
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: 1000,
-    cursor: "pointer",
-    boxShadow: "0 12px 30px rgba(193,18,31,0.28)",
-  },
-};

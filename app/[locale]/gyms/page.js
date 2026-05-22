@@ -1,101 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+
+import { useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  collection,
-  getDocs,
-  orderBy,
-  query,
-  where,
-} from "firebase/firestore";
 import BottomNav from "@/components/BottomNav";
+import EmptyState from "@/components/EmptyState";
 import { useAuth } from "@/lib/AuthContext";
-import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-
-const GYM_TYPES = [
-  "Boxing", "MMA", "Muay Thai", "Fitness",
-  "Crossfit", "Street Workout", "Powerlifting", "Running Club",
-];
-
-const GYM_TYPE_KEYS = {
-  Boxing: "gymTypeBoxing",
-  MMA: "gymTypeMMA",
-  "Muay Thai": "gymTypeMuayThai",
-  Fitness: "gymTypeFitness",
-  Crossfit: "gymTypeCrossfit",
-  "Street Workout": "gymTypeStreetWorkout",
-  Powerlifting: "gymTypePowerlifting",
-  "Running Club": "gymTypeRunningClub",
-};
-
-function StarDisplay({ rating }) {
-  const r = Number(rating) || 0;
-  return (
-    <span style={{ color: "#D4AF37", fontSize: 12, fontWeight: 700 }}>
-      {"★".repeat(Math.round(r))}{"☆".repeat(5 - Math.round(r))} {r > 0 ? r.toFixed(1) : ""}
-    </span>
-  );
-}
-
-function GymCard({ gym, t, router, locale }) {
-  return (
-    <div style={styles.card} onClick={() => router.push(`/${locale}/gyms/${gym.id}`)}>
-      <div style={styles.cardImageWrap}>
-        {gym.logo ? (
-          <img src={gym.logo} alt="" style={styles.cardLogo} />
-        ) : (
-          <div style={styles.cardLogoFallback}>
-            <span style={{ fontSize: 28 }}>🥊</span>
-          </div>
-        )}
-        {gym.verified && (
-          <span style={styles.verifiedBadge}>✓ {t("gymVerified")}</span>
-        )}
-      </div>
-
-      <div style={styles.cardBody}>
-        <div style={styles.cardNameRow}>
-          <span style={styles.cardName}>{gym.gymName}</span>
-          {gym.gymType && (
-            <span style={styles.typeChip}>{t(GYM_TYPE_KEYS[gym.gymType]) || gym.gymType}</span>
-          )}
-        </div>
-
-        {(gym.city || gym.country) && (
-          <div style={styles.cardLocation}>
-            📍 {[gym.city, gym.country].filter(Boolean).join(", ")}
-          </div>
-        )}
-
-        {gym.rating > 0 && (
-          <div style={styles.cardRating}>
-            <StarDisplay rating={gym.rating} />
-            {gym.totalReviews > 0 && (
-              <span style={styles.reviewCount}>({gym.totalReviews})</span>
-            )}
-          </div>
-        )}
-
-        <div style={styles.cardStats}>
-          {gym.memberCount > 0 && (
-            <span style={styles.statChip}>👥 {gym.memberCount} {t("gymMembers")}</span>
-          )}
-          {gym.specialties?.length > 0 && (
-            <span style={styles.statChip}>{gym.specialties.slice(0, 2).join(" · ")}</span>
-          )}
-        </div>
-
-        {gym.description && (
-          <p style={styles.cardDesc}>
-            {gym.description.length > 100 ? gym.description.slice(0, 100) + "…" : gym.description}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
+import { RED, RED_DARK, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import styles from "@/components/gyms/gymsStyles";
+import { GymCard } from "@/components/gyms/GymCard";
+import { useGymsPageData } from "@/hooks/useGymsPageData";
+import Image from "next/image";
+import { GYM_TYPES, GYM_TYPE_KEYS, VIBE_FILTERS, VIBE_LABELS, getDefaultVibes } from "@/lib/gymConstants";
 
 export default function GymsPage() {
   const pathname = usePathname();
@@ -104,35 +21,18 @@ export default function GymsPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
 
-  const [gyms, setGyms] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState("all");
   const [searchText, setSearchText] = useState("");
   const [selectedType, setSelectedType] = useState("all");
-  const [sortMode, setSortMode] = useState("topRated"); // topRated | newest | nearby
+  const [sortMode, setSortMode] = useState("topRated");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [cityFilter, setCityFilter] = useState("");
+  const [filterVibe, setFilterVibe] = useState("");
   const [nearbyCoords, setNearbyCoords] = useState(null);
   const [nearbyLoading, setNearbyLoading] = useState(false);
 
-  useEffect(() => {
-    let active = true;
-    async function load() {
-      setLoading(true);
-      try {
-        const q = query(collection(db, "gyms"), orderBy("createdAt", "desc"));
-        const snap = await getDocs(q);
-        if (active) {
-          setGyms(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-        }
-      } catch (e) {
-        console.error("gyms load error", e);
-      } finally {
-        if (active) setLoading(false);
-      }
-    }
-    load();
-    return () => { active = false; };
-  }, []);
+  const { gyms, loading, myMemberships, myMembershipsLoading, ownedGym } =
+    useGymsPageData({ tab, userId: user?.uid });
 
   const handleNearby = () => {
     if (!navigator.geolocation) return;
@@ -160,11 +60,24 @@ export default function GymsPage() {
     return Array.from(set).sort();
   }, [gyms]);
 
+  const featuredGyms = useMemo(() =>
+    [...gyms]
+      .filter((g) => g.rating > 0 || g.featured || (g.memberCount || 0) > 0)
+      .sort((a, b) => {
+        if (b.featured && !a.featured) return 1;
+        if (a.featured && !b.featured) return -1;
+        return (b.rating || 0) - (a.rating || 0);
+      })
+      .slice(0, 8),
+    [gyms]
+  );
+
   const filtered = useMemo(() => {
     let list = [...gyms];
     if (verifiedOnly) list = list.filter((g) => g.verified);
     if (selectedType !== "all") list = list.filter((g) => g.gymType === selectedType);
     if (cityFilter) list = list.filter((g) => g.city === cityFilter);
+    if (filterVibe) list = list.filter((g) => (g.vibes || getDefaultVibes(g.gymType)).includes(filterVibe));
     if (searchText.trim()) {
       const q = searchText.toLowerCase();
       list = list.filter((g) =>
@@ -189,11 +102,141 @@ export default function GymsPage() {
       });
     }
     return list;
-  }, [gyms, verifiedOnly, selectedType, cityFilter, searchText, sortMode, nearbyCoords]);
+  }, [gyms, verifiedOnly, selectedType, cityFilter, filterVibe, searchText, sortMode, nearbyCoords]);
+
+  const GYM_STATUS = {
+    pending:  { color: "#F59E0B", bg: "rgba(245,158,11,0.1)",  border: "rgba(245,158,11,0.35)",  label: t("gymStatusPending") },
+    approved: { color: "#34D399", bg: "rgba(52,211,153,0.1)",  border: "rgba(52,211,153,0.35)",  label: t("gymStatusMember") },
+    declined: { color: "#F87171", bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.35)", label: t("gymStatusDeclined") },
+  };
 
   return (
-    <div style={styles.page}>
+    <div style={styles.page} className="page-enter">
+      {/* Sticky tab bar */}
+      <div style={styles.tabBar}>
+        {[
+          { key: "all",  label: t("gymAllTab") },
+          { key: "mine", label: t("gymMyTab") },
+        ].map(({ key, label }) => (
+          <button
+            key={key}
+            type="button"
+            style={tab === key ? styles.tabActive : styles.tabInactive}
+            onClick={() => setTab(key)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       <div style={styles.content}>
+        {/* My Gym tab */}
+        {tab === "mine" && (
+          <>
+            <div style={{ ...styles.header, paddingTop: 20 }}>
+              <p style={styles.kicker}>COMBAT · GYMS</p>
+              <h1 style={styles.title}>{t("gymMyTitle")}</h1>
+            </div>
+
+            {!user?.uid ? (
+              <EmptyState
+                emoji="🔒"
+                title={t("gymLoginRequired")}
+                action={
+                  <button type="button" onClick={() => router.push(`/${locale}/login`)} style={{ padding: "12px 28px", borderRadius: 14, background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 24px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)` }}>
+                    {t("gymLoginBtn")}
+                  </button>
+                }
+              />
+            ) : myMembershipsLoading ? (
+              <div style={styles.skeletonList}>
+                {[0, 1].map((i) => <div key={i} style={styles.skeletonCard} className="sk-pulse" />)}
+              </div>
+            ) : myMemberships.length === 0 && !ownedGym ? (
+              <EmptyState
+                emoji="🏋️"
+                title={t("gymNotMember")}
+                hint={t("gymJoinHint")}
+                action={
+                  <button type="button" onClick={() => setTab("all")} style={{ padding: "12px 28px", borderRadius: 14, background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", marginTop: 4, boxShadow: `0 8px 24px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)` }}>
+                    {t("gymFindBtn")}
+                  </button>
+                }
+              />
+            ) : (
+              <div style={styles.cardList}>
+                {ownedGym && (
+                  <div
+                    style={{ ...styles.card, borderLeft: "2.5px solid #F5C451", borderRadius: "3px 16px 16px 3px", cursor: "pointer" }}
+                    onClick={() => router.push(`/${locale}/gyms/${ownedGym.id}`)}
+                  >
+                    <div style={styles.cardImageWrap}>
+                      {ownedGym.logo
+                        ? <Image src={ownedGym.logo} alt="" width={64} height={64} style={{ objectFit: "cover", borderRadius: 14 }} />
+                        : <div style={styles.cardLogoFallback}><span style={{ fontSize: 28 }}>🥊</span></div>
+                      }
+                      <span style={{ position: "absolute", bottom: 8, right: 10, padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 900, background: `${goldAlpha(0.15)}`, border: `1px solid ${goldAlpha(0.5)}`, color: GOLD }}>
+                        {t("gymOwnerLabel")}
+                      </span>
+                    </div>
+                    <div style={styles.cardBody}>
+                      <div style={styles.cardNameRow}>
+                        <span style={styles.cardName}>{ownedGym.gymName}</span>
+                        {ownedGym.verified && <span style={styles.verifiedBadge}>✓</span>}
+                      </div>
+                      {(ownedGym.city || ownedGym.country) && (
+                        <div style={styles.cardLocation}>📍 {[ownedGym.city, ownedGym.country].filter(Boolean).join(", ")}</div>
+                      )}
+                      {ownedGym.gymType && <span style={styles.typeChip}>{t(GYM_TYPE_KEYS[ownedGym.gymType]) || ownedGym.gymType}</span>}
+                      <button
+                        type="button"
+                        style={{ marginTop: 10, padding: "8px 16px", borderRadius: 10, border: `1px solid ${goldAlpha(0.4)}`, background: `${goldAlpha(0.1)}`, color: GOLD, fontSize: 12, fontWeight: 900, cursor: "pointer" }}
+                        onClick={(e) => { e.stopPropagation(); router.push(`/${locale}/gyms/dashboard`); }}
+                      >
+                        {t("gymManageBtn")}
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {myMemberships.map((mem) => {
+                  const gym = mem.gym;
+                  const st = GYM_STATUS[mem.status] || GYM_STATUS.pending;
+                  if (!gym) return null;
+                  return (
+                    <div
+                      key={mem.id}
+                      style={{ ...styles.card, borderLeft: `2.5px solid ${st.color}`, borderRadius: "3px 16px 16px 3px", cursor: "pointer" }}
+                      onClick={() => router.push(`/${locale}/gyms/${gym.id}`)}
+                    >
+                      <div style={styles.cardImageWrap}>
+                        {gym.logo
+                          ? <Image src={gym.logo} alt="" width={64} height={64} style={{ objectFit: "cover", borderRadius: 14 }} />
+                          : <div style={styles.cardLogoFallback}><span style={{ fontSize: 28 }}>🥊</span></div>
+                        }
+                        <span style={{ position: "absolute", bottom: 8, right: 10, padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 900, background: st.bg, border: `1px solid ${st.border}`, color: st.color }}>
+                          {st.label}
+                        </span>
+                      </div>
+                      <div style={styles.cardBody}>
+                        <div style={styles.cardNameRow}>
+                          <span style={styles.cardName}>{gym.gymName}</span>
+                          {gym.verified && <span style={styles.verifiedBadge}>✓</span>}
+                        </div>
+                        {(gym.city || gym.country) && (
+                          <div style={styles.cardLocation}>📍 {[gym.city, gym.country].filter(Boolean).join(", ")}</div>
+                        )}
+                        {gym.gymType && <span style={styles.typeChip}>{t(GYM_TYPE_KEYS[gym.gymType]) || gym.gymType}</span>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* All Gyms tab */}
+        {tab === "all" && (<>
         {/* Header */}
         <div style={styles.header}>
           <p style={styles.kicker}>GAVANA</p>
@@ -203,6 +246,39 @@ export default function GymsPage() {
             + {t("gymsRegister")}
           </button>
         </div>
+
+        {/* Featured Gyms horizontal scroll */}
+        {!loading && featuredGyms.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
+            <p style={styles.sectionLabel}>
+              {t("gymFeatured")}
+            </p>
+            <div style={styles.featuredScroll}>
+              {featuredGyms.map((gym) => (
+                <button
+                  key={gym.id}
+                  type="button"
+                  style={styles.featuredCard}
+                  onClick={() => router.push(`/${locale}/gyms/${gym.id}`)}
+                >
+                  {gym.logo ? (
+                    <Image src={gym.logo} alt="" width={48} height={48} style={{ objectFit: "cover", borderRadius: 12, marginBottom: 2 }} />
+                  ) : (
+                    <div style={styles.featuredLogoFallback}>🥊</div>
+                  )}
+                  <p style={styles.featuredName}>{gym.gymName}</p>
+                  <p style={styles.featuredCity}>{gym.city || ""}</p>
+                  {gym.rating > 0 && (
+                    <span style={styles.featuredRating}>⭐ {Number(gym.rating).toFixed(1)}</span>
+                  )}
+                  {gym.memberCount > 0 && (
+                    <span style={styles.featuredMembers}>👥 {gym.memberCount}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Search */}
         <input
@@ -250,10 +326,27 @@ export default function GymsPage() {
               type="checkbox"
               checked={verifiedOnly}
               onChange={(e) => setVerifiedOnly(e.target.checked)}
-              style={{ marginRight: 6, accentColor: "#D4AF37" }}
+              style={{ marginRight: 6, accentColor: GOLD }}
             />
             {t("gymsVerifiedOnly")}
           </label>
+        </div>
+
+        {/* Vibe filter chips */}
+        <div style={styles.vibeRow}>
+          {VIBE_FILTERS.map((v) => {
+            const lbl = locale === "mn" ? (VIBE_LABELS[v]?.mn || v) : locale === "ko" ? (VIBE_LABELS[v]?.ko || v) : v;
+            return (
+              <button
+                key={v}
+                type="button"
+                style={filterVibe === v ? styles.vibeActive : styles.vibeBtn}
+                onClick={() => setFilterVibe((prev) => (prev === v ? "" : v))}
+              >
+                {lbl}
+              </button>
+            );
+          })}
         </div>
 
         {/* Category pills */}
@@ -279,66 +372,37 @@ export default function GymsPage() {
 
         {/* List */}
         {loading ? (
-          <div style={styles.loadingText}>{t("gymsLoading")}</div>
-        ) : filtered.length === 0 ? (
-          <div style={styles.emptyState}>
-            <div style={{ fontSize: 44, opacity: 0.4 }}>🏋️</div>
-            <p style={styles.emptyText}>{t("gymsNoGyms")}</p>
+          <div style={styles.skeletonList}>
+            {[0, 1, 2].map((i) => <div key={i} style={styles.skeletonCard} className="sk-pulse" />)}
           </div>
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            emoji="🏋️"
+            title={t("gymsNoGyms")}
+            hint={t("gymsNoGymsSub")}
+            action={
+              <button type="button" onClick={() => router.push(`/${locale}/gyms/dashboard`)} style={{ padding: "12px 28px", borderRadius: 14, background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 24px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)` }}>
+                + {t("gymsRegister")}
+              </button>
+            }
+          />
         ) : (
-          <div style={styles.cardList}>
+          <div style={styles.cardList} className="section-reveal">
             {filtered.map((gym) => (
               <GymCard key={gym.id} gym={gym} t={t} router={router} locale={locale} />
             ))}
           </div>
         )}
+        </>)}
       </div>
 
       <BottomNav
         router={router}
         user={user}
         currentLocale={locale}
-        activeTab="coach"
+        activeTab="home"
       />
     </div>
   );
 }
 
-const styles = {
-  page: { minHeight: "100vh", background: "#0A0A0A", color: "#fff", fontFamily: "system-ui, sans-serif" },
-  content: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },
-  header: { paddingTop: "calc(18px + env(safe-area-inset-top))", paddingBottom: 20, display: "flex", flexDirection: "column", gap: 4 },
-  kicker: { margin: 0, fontSize: 11, letterSpacing: 2, color: "rgba(255,255,255,0.35)", textTransform: "uppercase" },
-  title: { margin: 0, fontSize: 28, fontWeight: 1000, lineHeight: 1.1 },
-  subtitle: { margin: 0, fontSize: 14, color: "rgba(255,255,255,0.45)" },
-  registerBtn: { alignSelf: "flex-start", marginTop: 8, padding: "8px 16px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.45)", background: "rgba(212,175,55,0.1)", color: "#D4AF37", fontSize: 13, fontWeight: 900, cursor: "pointer" },
-  searchInput: { width: "100%", boxSizing: "border-box", padding: "12px 16px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 15, outline: "none", marginBottom: 12 },
-  sortRow: { display: "flex", gap: 8, marginBottom: 12 },
-  sortBtn: { padding: "7px 14px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.12)", background: "transparent", color: "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: 700, cursor: "pointer" },
-  sortBtnActive: { padding: "7px 14px", borderRadius: 999, border: "1px solid rgba(193,18,31,0.5)", background: "rgba(193,18,31,0.15)", color: "#F87171", fontSize: 13, fontWeight: 700, cursor: "pointer" },
-  filtersRow: { display: "flex", alignItems: "center", gap: 12, marginBottom: 12 },
-  filterSelect: { flex: 1, padding: "8px 12px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 13, outline: "none", colorScheme: "dark" },
-  verifiedToggle: { display: "flex", alignItems: "center", fontSize: 13, color: "rgba(255,255,255,0.6)", cursor: "pointer", whiteSpace: "nowrap" },
-  catRow: { display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8, marginBottom: 16, scrollbarWidth: "none" },
-  catBtn: { flexShrink: 0, padding: "6px 14px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 700, cursor: "pointer" },
-  catActive: { flexShrink: 0, padding: "6px 14px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.5)", background: "rgba(212,175,55,0.12)", color: "#D4AF37", fontSize: 12, fontWeight: 700, cursor: "pointer" },
-  loadingText: { textAlign: "center", padding: "60px 0", color: "rgba(255,255,255,0.35)", fontSize: 14 },
-  emptyState: { display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "60px 24px", textAlign: "center" },
-  emptyText: { margin: 0, color: "rgba(255,255,255,0.4)", fontSize: 15 },
-  cardList: { display: "flex", flexDirection: "column", gap: 12 },
-  card: { borderRadius: 16, border: "1px solid rgba(255,255,255,0.08)", background: "linear-gradient(145deg, #131313, #0a0a0a)", overflow: "hidden", cursor: "pointer", boxShadow: "0 4px 20px rgba(0,0,0,0.3)" },
-  cardImageWrap: { position: "relative", height: 90, background: "linear-gradient(135deg, #1a1a1a, #111)", display: "flex", alignItems: "center", justifyContent: "center" },
-  cardLogo: { width: 60, height: 60, objectFit: "cover", borderRadius: 12 },
-  cardLogoFallback: { width: 60, height: 60, borderRadius: 12, background: "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center" },
-  verifiedBadge: { position: "absolute", top: 10, right: 10, fontSize: 10, fontWeight: 900, color: "#D4AF37", background: "rgba(212,175,55,0.15)", border: "1px solid rgba(212,175,55,0.35)", borderRadius: 999, padding: "3px 8px" },
-  cardBody: { padding: "12px 14px 14px" },
-  cardNameRow: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 },
-  cardName: { fontSize: 16, fontWeight: 1000, color: "#fff" },
-  typeChip: { fontSize: 10, fontWeight: 900, color: "#C1121F", background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.25)", borderRadius: 999, padding: "2px 8px" },
-  cardLocation: { fontSize: 12, color: "rgba(255,255,255,0.45)", marginBottom: 6 },
-  cardRating: { display: "flex", alignItems: "center", gap: 6, marginBottom: 6 },
-  reviewCount: { fontSize: 11, color: "rgba(255,255,255,0.35)" },
-  cardStats: { display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 6 },
-  statChip: { fontSize: 11, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: "3px 8px" },
-  cardDesc: { margin: 0, fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 },
-};

@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
+import { RED, RED_DARK, GOLD, redAlpha, goldAlpha , blackAlpha} from "@/lib/tokens";
 
 const personaMap = {
   strict: "Drill Sergeant",
@@ -50,6 +51,7 @@ function getQuestions(t) {
 
 export default function OnboardingModal() {
   const pathname = usePathname();
+  const router = useRouter();
   const locale = getLocaleFromPathname(pathname);
   const t = (key) => translate(locale, key);
   const { user, loading: authLoading } = useAuth();
@@ -64,16 +66,15 @@ export default function OnboardingModal() {
 
   useEffect(() => {
     if (authLoading) return;
-
-    setChecking(true);
-    setError("");
-    setStepIndex(0);
-
     if (!user?.uid) {
       setVisible(false);
-      setGoal("");
-      setExperience("");
-      setCoachStyle("");
+      setChecking(false);
+      return;
+    }
+
+    // Don't show on the onboarding page itself
+    if (pathname?.includes("/onboarding")) {
+      setVisible(false);
       setChecking(false);
       return;
     }
@@ -84,18 +85,18 @@ export default function OnboardingModal() {
         const userRef = doc(db, "users", user.uid);
         const snapshot = await getDoc(userRef);
         const data = snapshot.exists() ? snapshot.data() : {};
-        const onboarding = data?.onboarding;
 
-        if (onboarding?.completed) {
+        // Check both field names (onboardingComplete = new page, onboarding.completed = old modal)
+        const isDone = data?.onboardingComplete === true || data?.onboarding?.completed === true;
+
+        if (isDone) {
           setVisible(false);
         } else {
-          setGoal(onboarding?.goal || "");
-          setExperience(onboarding?.experience || "");
-          setCoachStyle(personaMap[onboarding?.coachStyle] ? onboarding?.coachStyle : "");
-          setVisible(true);
+          // Redirect to full onboarding page instead of showing modal questions
+          router.replace(`/${locale}/onboarding`);
+          setVisible(false);
         }
       } catch (err) {
-        console.error("Failed to load onboarding state:", err);
       } finally {
         if (active) setChecking(false);
       }
@@ -103,14 +104,15 @@ export default function OnboardingModal() {
 
     checkOnboarding();
     return () => { active = false; };
-  }, [authLoading, user?.uid]);
+  }, [authLoading, user?.uid, pathname, locale, router]);
 
   const selectedValues = useMemo(
     () => ({ goal, experience, coachStyle }),
     [goal, experience, coachStyle]
   );
 
-  const questions = useMemo(() => getQuestions(t), [locale]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const questions = useMemo(() => getQuestions(t), [locale]); // t omitted — recreated every render, locale covers it
   const currentQuestion = questions[stepIndex];
   const isSummaryStep = stepIndex >= questions.length;
   const recommendedPersona = personaMap[coachStyle] || "Coach";
@@ -129,14 +131,12 @@ export default function OnboardingModal() {
             ...payload,
             coachPersona: payload.coachStyle ? personaMap[payload.coachStyle] : null,
             completed: true,
-            completedAt: new Date().toISOString(),
           },
         },
         { merge: true }
       );
       setVisible(false);
     } catch (err) {
-      console.error("Failed to save onboarding:", err);
       setError(t("onboardingErrSave"));
     } finally {
       setSaving(false);
@@ -264,7 +264,7 @@ const styles = {
     display: "grid",
     placeItems: "center",
     padding: 18,
-    background: "rgba(0,0,0,0.72)",
+    background: blackAlpha(0.72),
     backdropFilter: "blur(10px)",
     WebkitBackdropFilter: "blur(10px)",
   },
@@ -274,9 +274,9 @@ const styles = {
     overflow: "hidden",
     borderRadius: 28,
     padding: "32px 26px",
-    background: "linear-gradient(145deg, rgba(193,18,31,0.16), rgba(11,11,11,0.98) 42%, rgba(212,175,55,0.08))",
+    background: `linear-gradient(145deg, ${redAlpha(0.16)}, rgba(11,11,11,0.98) 42%, ${goldAlpha(0.08)})`,
     border: "1px solid rgba(255,255,255,0.1)",
-    boxShadow: "0 28px 90px rgba(0,0,0,0.58)",
+    boxShadow: `0 28px 90px ${blackAlpha(0.58)}`,
     color: "#fff",
     textAlign: "center",
   },
@@ -284,12 +284,12 @@ const styles = {
     position: "absolute",
     inset: "-40% -20% auto",
     height: 180,
-    background: "radial-gradient(circle, rgba(212,175,55,0.2), transparent 62%)",
+    background: `radial-gradient(circle, ${goldAlpha(0.2)}, transparent 62%)`,
     pointerEvents: "none",
   },
   brand: {
     margin: 0,
-    color: "#D4AF37",
+    color: GOLD,
     fontSize: 11,
     fontWeight: 900,
     letterSpacing: 2,
@@ -301,8 +301,8 @@ const styles = {
     borderRadius: "50%",
     display: "grid",
     placeItems: "center",
-    background: "rgba(193,18,31,0.2)",
-    border: "1px solid rgba(193,18,31,0.42)",
+    background: `${redAlpha(0.2)}`,
+    border: `1px solid ${redAlpha(0.42)}`,
     color: "#fff",
     fontSize: 13,
     fontWeight: 950,
@@ -340,8 +340,8 @@ const styles = {
     transition: "transform 160ms ease, background 160ms ease, border-color 160ms ease",
   },
   optionButtonSelected: {
-    background: "rgba(193,18,31,0.18)",
-    borderColor: "rgba(193,18,31,0.5)",
+    background: `${redAlpha(0.18)}`,
+    borderColor: `${redAlpha(0.5)}`,
     transform: "scale(1.01)",
   },
   summaryCard: {
@@ -377,12 +377,12 @@ const styles = {
     minHeight: 52,
     border: "none",
     borderRadius: 16,
-    background: "#C1121F",
+    background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
     color: "#fff",
     fontSize: 15,
     fontWeight: 900,
     cursor: "pointer",
-    boxShadow: "0 18px 44px rgba(193,18,31,0.28)",
+    boxShadow: `0 18px 44px ${redAlpha(0.28)}, inset 0 1px 0 rgba(255,255,255,0.1)`,
   },
   secondaryButton: {
     minHeight: 52,

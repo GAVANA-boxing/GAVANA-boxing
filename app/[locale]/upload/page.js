@@ -1,63 +1,24 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { storage, db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { checkAndAwardBadges } from "@/lib/badges";
-import { createRemixNotification } from "@/lib/notifications";
+import { GOLD, RED, redAlpha, goldAlpha } from "@/lib/tokens";
+import S from "@/components/upload/uploadStyles";
+import { UField, UChips, UToggle } from "@/components/upload/UploadFormFields";
+import { useUploadForm } from "@/hooks/useUploadForm";
 
 const CATEGORIES = ["boxing", "gym", "running", "street_workout", "sparring"];
 const DIFFICULTIES = ["beginner", "intermediate", "pro"];
 const CAT_KEY = { boxing: "catBoxing", gym: "catGym", running: "catRunning", street_workout: "catStreetWorkout", sparring: "catSparring" };
 const DIFF_KEY = { beginner: "diffBeginner", intermediate: "diffIntermediate", pro: "diffPro" };
 
-function cleanCaptionLine(line) {
-  return line.replace(/\*\*/g, "").replace(/__/g, "").replace(/^\s*[-*•]\s*/, "").replace(/^\s*\d+[\).:-]\s*/, "").trim();
-}
-function stripCaptionLabel(line) {
-  return cleanCaptionLine(line).replace(/^(hook|caption|hashtags?)\s*[:\-–—]\s*/i, "").trim();
-}
-function extractHashtags(text) {
-  return (text.match(/#[\p{L}\p{N}_]+/gu) || []).join(" ");
-}
-function removeHashtags(text) {
-  return text.replace(/#[\p{L}\p{N}_]+/gu, "").replace(/\s{2,}/g, " ").trim();
-}
-function parseAiCaptionResult(text = "") {
-  const sections = { hook: "", caption: "", hashtags: "" };
-  let currentSection = null;
-  text.split(/\r?\n/).map(cleanCaptionLine).filter(Boolean).forEach((line) => {
-    const match = line.match(/^(hook|caption|hashtags?)\s*[:\-–—]\s*(.*)$/i);
-    if (match) {
-      const key = match[1].toLowerCase().startsWith("hashtag") ? "hashtags" : match[1].toLowerCase();
-      const value = match[2].trim();
-      if (key === "hashtags") {
-        sections.hashtags = [sections.hashtags, extractHashtags(value) || stripCaptionLabel(value)].filter(Boolean).join(" ");
-      } else {
-        sections[key] = [sections[key], removeHashtags(value)].filter(Boolean).join(" ");
-        const ht = extractHashtags(value);
-        if (ht) sections.hashtags = [sections.hashtags, ht].filter(Boolean).join(" ");
-      }
-      currentSection = key;
-      return;
-    }
-    if (line.includes("#")) { sections.hashtags = [sections.hashtags, extractHashtags(line) || stripCaptionLabel(line)].filter(Boolean).join(" "); return; }
-    if (currentSection) { sections[currentSection] = [sections[currentSection], removeHashtags(stripCaptionLabel(line))].filter(Boolean).join(" "); return; }
-    if (!sections.caption) sections.caption = stripCaptionLabel(line);
-  });
-  const fallback = text.split(/\r?\n/).map(stripCaptionLabel).filter(Boolean).join("\n").trim();
-  const description = [removeHashtags(sections.caption).trim(), (extractHashtags(sections.hashtags) || sections.hashtags).trim()].filter(Boolean).join("\n").trim();
-  return {
-    hook: removeHashtags(sections.hook).trim(),
-    caption: removeHashtags(sections.caption).trim(),
-    hashtags: (extractHashtags(sections.hashtags) || sections.hashtags).trim(),
-    description: description || fallback,
-  };
-}
+const CONTENT_TYPES = [
+  { id: "training",     emoji: "🥊", label: "Challenge",  color: "#F87171", border: redAlpha(0.5) },
+  { id: "lifestyle",    emoji: "🎬", label: "Lifestyle",  color: "#60A5FA", border: "rgba(96,165,250,0.45)" },
+  { id: "educational",  emoji: "📚", label: "Education",  color: GOLD,      border: goldAlpha(0.5) },
+];
 
 export default function UploadPage() {
   const pathname = usePathname();
@@ -65,447 +26,387 @@ export default function UploadPage() {
   const t = (key) => translate(locale, key);
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const fileInputRef = useRef(null);
-
-  // Step: "choose" | "form"
-  const [step, setStep] = useState("choose");
-  const [reelType, setReelType] = useState("training"); // "training" | "content"
-
-  // Remix context (populated from ?remixOf URL param)
-  const [remixOfId, setRemixOfId] = useState(null);
-  const [remixOfCreatorId, setRemixOfCreatorId] = useState(null);
-  const [remixOfCreatorName, setRemixOfCreatorName] = useState(null);
-
-  // Video
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [error, setError] = useState("");
-
-  // Common fields
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("boxing");
-  const [difficulty, setDifficulty] = useState("beginner");
-  const [tags, setTags] = useState("");
-
-  // Training-only fields
-  const [challengeLabel, setChallengeLabel] = useState("");
-  const [targetHits, setTargetHits] = useState("");
-
-  // Content-only fields
-  const [challengeEnabled, setChallengeEnabled] = useState(false);
-
-  // Gym tag
-  const [gymId, setGymId] = useState("");
-  const [gyms, setGyms] = useState([]);
-
-  // AI caption
-  const [captionContext, setCaptionContext] = useState("");
-  const [captionLoading, setCaptionLoading] = useState(false);
-  const [captionError, setCaptionError] = useState("");
-  const [captionResult, setCaptionResult] = useState("");
 
   useEffect(() => {
     if (!authLoading && !user) router.push(`/${locale}/login`);
   }, [authLoading, user, router, locale]);
 
-  useEffect(() => {
-    if (!user?.uid) return;
-    import("firebase/firestore").then(({ collection: col, getDocs: gd, query: q, where: wh }) => {
-      gd(q(col(db, "gyms"))).then((snap) => {
-        setGyms(snap.docs.map((d) => ({ id: d.id, gymName: d.data().gymName })));
-      }).catch(() => {});
-    });
-  }, [user?.uid]);
+  const {
+    fileInputRef, step, setStep, contentType, setContentType,
+    remixOfId, remixOfCreatorId, remixOfCreatorName,
+    selectedFile, previewUrl, uploading, uploadProgress, error, videoDuration, setVideoDuration,
+    description, setDescription, category, setCategory, difficulty, setDifficulty, tags, setTags,
+    challengeLabel, setChallengeLabel, targetHits, setTargetHits, aiScoringEnabled, setAiScoringEnabled, challengeEnabled, setChallengeEnabled,
+    techniqueTitle, setTechniqueTitle, mistakeNote, setMistakeNote, fixNote, setFixNote, coachNote, setCoachNote, eduChallengeEnabled, setEduChallengeEnabled,
+    gymId, setGymId, gyms, captionOpen, setCaptionOpen, detailsOpen, setDetailsOpen,
+    captionContext, setCaptionContext, captionLoading, captionError, captionResult, setCaptionResult,
+    handleFileSelect, formatDuration, handleUpload, handleGenerateCaption, parsedCaption, fileSizeMB,
+  } = useUploadForm({ user, locale, t, router });
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    const rid = params.get("remixOf");
-    if (rid) {
-      setRemixOfId(rid);
-      setRemixOfCreatorId(params.get("remixOfCreatorId") || null);
-      setRemixOfCreatorName(params.get("remixOfCreatorName") || null);
-      setReelType("training");
-      setStep("form");
-    }
-  }, []);
-
-  if (authLoading) return <div style={styles.loading}>{t("loading")}</div>;
+  if (authLoading) return <div style={S.loading}>...</div>;
   if (!user) return null;
 
-  const handleTypeSelect = (type) => {
-    setReelType(type);
-    setStep("form");
-  };
+  const isTraining = contentType === "training";
+  const isEdu = contentType === "educational";
+  const isLifestyle = contentType === "lifestyle";
+  const diffColorMap = (d) => d === "beginner" ? S.chipGreen : d === "intermediate" ? S.chipGold : S.chipRed;
+  const activeType = CONTENT_TYPES.find((ct) => ct.id === contentType);
 
-  const handleFileSelect = (e) => {
-    const file = e.target.files[0];
-    if (file && file.type.startsWith("video/")) {
-      setSelectedFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
-    } else {
-      alert(t("uploadSelectVideo"));
-    }
-  };
-
-  const handleCancel = () => {
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setSelectedFile(null);
-    setPreviewUrl(null);
-    setDescription("");
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
-
-  const handleUpload = async () => {
-    if (!selectedFile || !description.trim()) { alert(t("uploadMissingFields")); return; }
-    setUploading(true);
-    setUploadProgress(0);
-    setError("");
-    try {
-      const videoRef = ref(storage, `reels/${user.uid}/${Date.now()}_${selectedFile.name}`);
-      const snapshot = await new Promise((resolve, reject) => {
-        const task = uploadBytesResumable(videoRef, selectedFile);
-        task.on("state_changed", (s) => setUploadProgress(Math.round((s.bytesTransferred / s.totalBytes) * 100)), reject, () => resolve(task.snapshot));
-      });
-      const videoUrl = await getDownloadURL(snapshot.ref);
-      const thumbnailUrl = videoUrl;
-
-      const tagList = tags.split(",").map((t) => t.trim()).filter(Boolean);
-
-      const reelDoc = {
-        userId: user.uid,
-        username: user.displayName || user.email?.split("@")[0] || "user",
-        videoUrl,
-        thumbnailUrl,
-        description: description.trim(),
-        type: reelType,
-        category,
-        difficulty,
-        tags: tagList,
-        challengeEnabled: reelType === "training" ? true : challengeEnabled,
-        challengeLabel: reelType === "training" ? (challengeLabel.trim() || description.trim().slice(0, 60)) : "",
-        targetHits: reelType === "training" && targetHits ? Number(targetHits) : null,
-        likes: 0,
-        commentsCount: 0,
-        shares: 0,
-        createdAt: serverTimestamp(),
-      };
-      if (remixOfId) {
-        reelDoc.remixOf = remixOfId;
-        if (remixOfCreatorId) reelDoc.remixOfCreatorId = remixOfCreatorId;
-        if (remixOfCreatorName) reelDoc.remixOfCreatorName = remixOfCreatorName;
-      }
-      if (gymId) reelDoc.gymId = gymId;
-      const newReelRef = await addDoc(collection(db, "reels"), reelDoc);
-
-      // Award creator_starter badge (fire-and-forget)
-      checkAndAwardBadges(user.uid, { hasUploaded: true }).catch(() => {});
-
-      // Notify original creator when this is a remix
-      if (remixOfId && remixOfCreatorId) {
-        createRemixNotification({
-          originalCreatorId: remixOfCreatorId,
-          actorId: user.uid,
-          actorName: user.displayName || user.email?.split("@")[0] || "Someone",
-          actorPhotoURL: user.photoURL || "",
-          originalReelId: remixOfId,
-          newReelId: newReelRef.id,
-        }).catch(() => {});
-      }
-
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-      router.push(`/${locale}/reels`);
-    } catch (err) {
-      console.error("Upload error:", err);
-      setError(t("uploadFailed"));
-    } finally {
-      setUploading(false);
-      setUploadProgress(0);
-    }
-  };
-
-  const handleGenerateCaption = async () => {
-    const context = captionContext.trim();
-    if (!context) { setCaptionError(t("captionContextRequired")); return; }
-    setCaptionLoading(true);
-    setCaptionError("");
-    setCaptionResult("");
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          persona: "analyst",
-          locale,
-          messages: [{
-            role: "user",
-            content: [
-              "Generate a premium boxing reel caption.",
-              `Context: ${context}`,
-              "Return exactly three plain-text sections with no markdown, no bullets:",
-              "Hook: one short viral hook, maximum 8 words.",
-              "Caption: one punchy caption, maximum 18 words.",
-              "Hashtags: 5 to 8 relevant hashtags.",
-            ].join("\n"),
-          }],
-        }),
-      });
-      if (!res.ok) throw new Error("Caption request failed");
-      const data = await res.json();
-      const text = data?.content?.find((i) => i?.type === "text")?.text || data?.content?.[0]?.text || "";
-      if (!text.trim()) throw new Error("Empty response");
-      setCaptionResult(text.trim());
-    } catch {
-      setCaptionError(t("captionGenerateFailed"));
-    } finally {
-      setCaptionLoading(false);
-    }
-  };
-
-  // ── Type-choose screen ─────────────────────────────────────────────────────
-  if (step === "choose") {
+  // ── VIDEO STEP ─────────────────────────────────────────────────────────────
+  if (step === "video") {
     return (
-      <div style={styles.page}>
-        <div style={styles.inner}>
-          <div style={styles.topBar}>
-            <p style={styles.eyebrow}>GAVANA BOXING</p>
-            <h1 style={styles.headline}>{t("uploadReel")}</h1>
-            <p style={styles.chooseSubtitle}>{t("uploadTypeChoose")}</p>
-          </div>
-          <div style={styles.typeGrid}>
-            <button type="button" style={styles.typeCard} onClick={() => handleTypeSelect("training")}>
-              <span style={styles.typeCardEmoji}>🥊</span>
-              <span style={styles.typeCardTitle}>{t("uploadTypeTraining")}</span>
-              <span style={styles.typeCardDesc}>Challenge, score, compete</span>
-            </button>
-            <button type="button" style={{ ...styles.typeCard, borderColor: "rgba(96,165,250,0.4)" }} onClick={() => handleTypeSelect("content")}>
-              <span style={styles.typeCardEmoji}>🎬</span>
-              <span style={{ ...styles.typeCardTitle, color: "#60A5FA" }}>{t("uploadTypeContent")}</span>
-              <span style={styles.typeCardDesc}>Share knowledge & technique</span>
-            </button>
-          </div>
+      <div style={S.videoPage}>
+        <div style={S.videoHeader}>
+          <button onClick={() => router.back()} style={S.iconBtn}>✕</button>
+          <span style={S.headerTitle}>{t("uploadNewReel")}</span>
+          <div style={{ width: 40 }} />
         </div>
+
+        {remixOfId && (
+          <div style={S.remixBar}>
+            🔀 Remixing {remixOfCreatorName ? `@${remixOfCreatorName}` : "a challenge"}
+          </div>
+        )}
+
+        <div style={S.videoPicker} onClick={() => !selectedFile && fileInputRef.current?.click()}>
+          {selectedFile ? (
+            <video
+              src={previewUrl}
+              controls
+              playsInline
+              preload="metadata"
+              style={S.videoFull}
+              onLoadedMetadata={(e) => setVideoDuration(e.currentTarget.duration)}
+            />
+          ) : (
+            <div style={S.videoEmptyState}>
+              <div style={S.videoEmptyIconWrap}>
+                <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.89L15 14"/>
+                  <rect x="3" y="6" width="12" height="12" rx="2"/>
+                  <path d="M9 10v4M7 12h4" stroke={GOLD} strokeWidth="1.8"/>
+                </svg>
+              </div>
+              <p style={S.videoEmptyKicker}>
+                {locale === "mn" ? "Рил бичлэг" : locale === "ko" ? "릴 영상" : "Reel Video"}
+              </p>
+              <p style={S.videoEmptyLabel}>{t("uploadTapSelect")}</p>
+              <p style={S.videoEmptySub}>MP4, MOV · {t("uploadSizeLimit")}</p>
+            </div>
+          )}
+        </div>
+
+        <div style={S.videoBottomBar}>
+          <button style={S.galleryBtn} onClick={() => fileInputRef.current?.click()}>
+            <span style={{ fontSize: 13, fontWeight: 800, color: selectedFile ? GOLD : "rgba(255,255,255,0.75)" }}>
+              {selectedFile ? t("uploadChange") : t("uploadGallery")}
+            </span>
+          </button>
+          {selectedFile && (
+            <span style={{ color: "rgba(255,255,255,0.45)", fontSize: 11, maxWidth: 130, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {selectedFile.name}
+            </span>
+          )}
+          <button
+            onClick={() => selectedFile ? setStep("setup") : fileInputRef.current?.click()}
+            style={{ ...S.nextBtn, opacity: selectedFile ? 1 : 0.42 }}
+          >
+            {t("uploadNext")}
+          </button>
+        </div>
+
+        <input ref={fileInputRef} type="file" accept="video/*" onChange={handleFileSelect} style={{ display: "none" }} />
       </div>
     );
   }
 
-  // ── Form screen ────────────────────────────────────────────────────────────
-  const parsedCaption = captionResult ? parseAiCaptionResult(captionResult) : null;
-  const isTraining = reelType === "training";
-
+  // ── SETUP STEP ─────────────────────────────────────────────────────────────
   return (
-    <div style={styles.page}>
-      <div style={styles.inner}>
-        {/* Header */}
-        <div style={styles.topBar}>
-          <button type="button" style={styles.backBtn} onClick={() => setStep("choose")}>← {t("back")}</button>
-          <p style={styles.eyebrow}>GAVANA BOXING</p>
-          <h1 style={styles.headline}>{t("uploadReel")}</h1>
-          <span style={{ ...styles.typePill, background: isTraining ? "rgba(193,18,31,0.18)" : "rgba(96,165,250,0.12)", border: isTraining ? "1px solid rgba(193,18,31,0.4)" : "1px solid rgba(96,165,250,0.3)", color: isTraining ? "#F87171" : "#60A5FA" }}>
-            {isTraining ? `🥊 ${t("uploadTypeTraining")}` : `🎬 ${t("uploadTypeContent")}`}
-          </span>
-        </div>
+    <div style={S.setupPage}>
+      <div style={S.setupHeader}>
+        <button onClick={() => setStep("video")} style={S.iconBtn}>←</button>
+        <span style={S.headerTitle}>{t("uploadPostReel")}</span>
+        <button onClick={handleUpload} disabled={uploading} style={{ ...S.postBtn, opacity: uploading ? 0.6 : 1 }}>
+          {uploading ? `${uploadProgress}%` : t("uploadPost")}
+        </button>
+      </div>
 
-        {remixOfId && (
-          <div style={{ background: "rgba(193,18,31,0.12)", border: "1px solid rgba(193,18,31,0.35)", borderRadius: 10, padding: "10px 14px", marginBottom: 12, fontSize: 13, color: "#F87171" }}>
-            🔀 {t("remixChallenge")}{remixOfCreatorName ? ` — ${t("remixOf").replace("{username}", remixOfCreatorName)}` : ""}
-          </div>
-        )}
-        {error && <div style={styles.errBox}>{error}</div>}
-
-        {/* Video picker / preview */}
-        {!selectedFile ? (
-          <div style={styles.dropZone} onClick={() => fileInputRef.current?.click()}>
-            <div style={styles.dropIcon}>▣</div>
-            <p style={styles.dropLabel}>{t("selectBoxingVideo")}</p>
-            <p style={styles.dropSub}>{t("videoFormats")}</p>
-          </div>
-        ) : (
-          <div style={styles.videoWrap}>
-            <video src={previewUrl} controls muted playsInline style={styles.videoPreview} />
-            <div style={styles.videoFooter}>
-              <span style={styles.videoName}>{selectedFile.name}</span>
-              <span style={styles.videoPreviewLabel}>Preview</span>
-            </div>
-          </div>
-        )}
-
-        <input ref={fileInputRef} type="file" accept="video/*" onChange={handleFileSelect} style={{ display: "none" }} />
-
-        {/* Form fields (only after video chosen) */}
-        {selectedFile && (
-          <div style={styles.fields}>
-            {/* Description */}
-            <div style={styles.field}>
-              <label style={styles.fieldLabel}>{t("description")}</label>
-              <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t("describeReelPlaceholder")} style={styles.textarea} />
-            </div>
-
-            {/* Category */}
-            <div style={styles.field}>
-              <label style={styles.fieldLabel}>{t("uploadCategory")}</label>
-              <div style={styles.chipRow}>
-                {CATEGORIES.map((c) => (
-                  <button key={c} type="button" style={{ ...styles.chip, ...(category === c ? styles.chipActive : {}) }} onClick={() => setCategory(c)}>
-                    {t(CAT_KEY[c])}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Difficulty */}
-            <div style={styles.field}>
-              <label style={styles.fieldLabel}>{t("uploadDifficulty")}</label>
-              <div style={styles.chipRow}>
-                {DIFFICULTIES.map((d) => (
-                  <button key={d} type="button" style={{ ...styles.chip, ...(difficulty === d ? (d === "beginner" ? styles.chipGreen : d === "intermediate" ? styles.chipGold : styles.chipRed) : {}) }} onClick={() => setDifficulty(d)}>
-                    {t(DIFF_KEY[d])}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Training-specific fields */}
-            {isTraining && (
-              <>
-                <div style={styles.field}>
-                  <label style={styles.fieldLabel}>{t("uploadChallengeLabel")}</label>
-                  <input value={challengeLabel} onChange={(e) => setChallengeLabel(e.target.value)} placeholder="e.g. 100 jabs in 60 seconds" style={styles.input} />
-                </div>
-                <div style={styles.field}>
-                  <label style={styles.fieldLabel}>{t("uploadTargetHits")}</label>
-                  <input type="number" value={targetHits} onChange={(e) => setTargetHits(e.target.value)} placeholder="e.g. 100" style={{ ...styles.input, width: 120 }} min={1} />
-                </div>
-              </>
-            )}
-
-            {/* Content-specific: challenge toggle + tags */}
-            {!isTraining && (
-              <>
-                <div style={styles.field}>
-                  <label style={styles.fieldLabel}>{t("uploadTags")}</label>
-                  <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder={t("uploadTagsPlaceholder")} style={styles.input} />
-                </div>
-                <div style={styles.toggleRow}>
-                  <span style={styles.toggleLabel}>Enable challenge mode</span>
-                  <button type="button" style={{ ...styles.toggleBtn, background: challengeEnabled ? "#166534" : "rgba(255,255,255,0.07)" }} onClick={() => setChallengeEnabled(!challengeEnabled)}>
-                    {challengeEnabled ? "ON" : "OFF"}
-                  </button>
-                </div>
-              </>
-            )}
-
-            {/* Gym tag */}
-            {gyms.length > 0 && (
-              <div style={styles.field}>
-                <label style={styles.fieldLabel}>{t("uploadGymTag")}</label>
-                <select value={gymId} onChange={(e) => setGymId(e.target.value)} style={styles.input}>
-                  <option value="">{t("uploadGymNone")}</option>
-                  {gyms.map((g) => <option key={g.id} value={g.id}>{g.gymName}</option>)}
-                </select>
+      <div style={S.setupScroll}>
+        {/* Video thumbnail strip */}
+        <div style={S.videoStrip} className="section-reveal">
+          <div style={{ position: "relative", flexShrink: 0 }}>
+            <video
+              src={previewUrl}
+              muted
+              playsInline
+              style={S.videoThumb}
+              onLoadedMetadata={(e) => setVideoDuration(e.currentTarget.duration)}
+            />
+            {videoDuration && (
+              <div style={{ position: "absolute", bottom: 4, right: 4, background: "rgba(0,0,0,0.72)", borderRadius: 4, padding: "2px 5px", fontSize: 10, fontWeight: 800, color: "#fff" }}>
+                {formatDuration(videoDuration)}
               </div>
             )}
-
-            {/* AI Caption generator */}
-            <div style={styles.aiBox}>
-              <span style={styles.aiBoxLabel}>{t("aiCaptionGenerator")}</span>
-              <p style={styles.aiBoxHelp}>{t("aiCaptionHelp")}</p>
-              <input value={captionContext} onChange={(e) => setCaptionContext(e.target.value)} placeholder={t("captionContextPlaceholder")} style={styles.input} />
-              <button type="button" onClick={handleGenerateCaption} disabled={captionLoading} style={{ ...styles.primaryBtn, opacity: captionLoading ? 0.6 : 1 }}>
-                {captionLoading ? t("generating") : t("generateCaption")}
-              </button>
-              {captionError && <p style={styles.errTxt}>{captionError}</p>}
-              {parsedCaption && (
-                <div style={styles.captionResult}>
-                  {parsedCaption.hook && <div style={styles.captionSection}><span style={styles.captionLbl}>{t("hook")}</span><div style={styles.captionHook}>{parsedCaption.hook}</div></div>}
-                  {parsedCaption.caption && <div style={styles.captionSection}><span style={styles.captionLbl}>{t("caption")}</span><div style={styles.captionBody}>{parsedCaption.caption}</div></div>}
-                  {parsedCaption.hashtags && <div style={styles.captionSection}><span style={styles.captionLbl}>{t("hashtags")}</span><div style={styles.captionBody}>{parsedCaption.hashtags}</div></div>}
-                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 4 }}>
-                    <button type="button" style={styles.captionActionBtn} onClick={() => setDescription(parsedCaption.description)}>{t("useCaption")}</button>
-                    <button type="button" style={{ ...styles.captionActionBtn, background: "rgba(255,255,255,0.05)", color: "#fff", borderColor: "rgba(255,255,255,0.12)" }} onClick={() => navigator.clipboard?.writeText(parsedCaption.hashtags)}>{t("copyHashtags")}</button>
-                  </div>
-                </div>
+          </div>
+          <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}>
+            <div style={{ color: "#fff", fontSize: 13, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {selectedFile?.name}
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {fileSizeMB && (
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", background: "rgba(255,255,255,0.06)", borderRadius: 6, padding: "2px 7px", fontWeight: 700 }}>
+                  {fileSizeMB} MB
+                </span>
+              )}
+              {videoDuration && (
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", background: "rgba(255,255,255,0.06)", borderRadius: 6, padding: "2px 7px", fontWeight: 700 }}>
+                  {formatDuration(videoDuration)}
+                </span>
               )}
             </div>
+            <button onClick={() => setStep("video")} style={S.changeVideoBtn}>
+              {t("uploadChangeVideo")}
+            </button>
+          </div>
+        </div>
 
-            {/* Actions */}
-            <div style={styles.actionsRow}>
-              <button type="button" onClick={handleCancel} disabled={uploading} style={styles.cancelBtn}>{t("cancel")}</button>
-              <button type="button" onClick={handleUpload} disabled={uploading || !description.trim()} style={{ ...styles.primaryBtn, flex: 1, opacity: (uploading || !description.trim()) ? 0.5 : 1 }}>
-                {uploading ? t("uploading") : t("upload")}
-              </button>
-            </div>
+        {error && <div style={S.errBox}>{error}</div>}
+        {remixOfId && <div style={S.remixBox}>🔀 Remixing {remixOfCreatorName ? `@${remixOfCreatorName}` : "a challenge"}</div>}
 
-            {uploading && (
-              <div style={styles.progressWrap}>
-                <div style={{ display: "flex", justifyContent: "space-between", color: "#aaa", fontSize: 12, fontWeight: 800 }}>
-                  <span>{t("uploading")}</span><span>{uploadProgress}%</span>
+        {/* Section — Content Type */}
+        <div className="stagger-list" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={S.sectionBlock}>
+            <p style={S.sectionKicker}>
+              {locale === "mn" ? "Контентын төрөл" : locale === "ko" ? "콘텐츠 유형" : "Content Type"}
+            </p>
+            <h2 style={S.sectionTitle}>
+              {locale === "mn" ? "Юу нийтлэх вэ?" : locale === "ko" ? "무엇을 올리나요?" : "What are you posting?"}
+            </h2>
+          </div>
+
+          <div style={S.typeTabs}>
+            {CONTENT_TYPES.map(({ id, emoji, label, color, border }) => {
+              const active = contentType === id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => setContentType(id)}
+                  style={{
+                    ...S.typeTab,
+                    ...(active ? {
+                      color,
+                      border: `1px solid ${border}`,
+                      background: `${color}18`,
+                      boxShadow: `0 0 16px ${color}22`,
+                    } : {}),
+                  }}
+                >
+                  <span style={S.typeTabEmoji}>{emoji}</span>
+                  <span style={S.typeTabLabel}>{label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Section — Caption / Title */}
+        <div className="stagger-list" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={S.sectionBlock}>
+            <p style={S.sectionKicker}>
+              {locale === "mn" ? "Тайлбар" : locale === "ko" ? "캡션" : "Description"}
+            </p>
+            <h2 style={S.sectionTitle}>
+              {isEdu
+                ? (locale === "mn" ? "Техникийн нэр" : locale === "ko" ? "기술 제목" : "Technique Title")
+                : (locale === "mn" ? "Чиний хэлэх зүйл" : locale === "ko" ? "내용 작성" : "Tell Your Story")}
+            </h2>
+          </div>
+
+          <div style={S.fields}>
+            {(isTraining || isLifestyle) && (
+              <UField label={t("caption")}>
+                <div style={{ position: "relative" }}>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder={isTraining ? t("uploadChallengePlaceholder") : t("uploadLifestylePlaceholder")}
+                    maxLength={300}
+                    style={{ ...S.textarea, minHeight: 96, paddingBottom: 28 }}
+                  />
+                  <span style={{ position: "absolute", bottom: 10, right: 12, fontSize: 11, color: description.length > 260 ? "#F87171" : "rgba(255,255,255,0.25)", fontWeight: 700, pointerEvents: "none" }}>
+                    {description.length}/300
+                  </span>
                 </div>
-                <div style={styles.progressTrack}><div style={{ ...styles.progressFill, width: `${uploadProgress}%` }} /></div>
+              </UField>
+            )}
+            {isEdu && (
+              <UField label={t("uploadTechniqueTitle")}>
+                <input value={techniqueTitle} onChange={(e) => setTechniqueTitle(e.target.value)} placeholder={t("uploadTechniquePlaceholder")} style={S.input} />
+              </UField>
+            )}
+          </div>
+        </div>
+
+        {/* Section — Details accordion */}
+        <div className="stagger-list" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={S.sectionBlock}>
+            <p style={S.sectionKicker}>
+              {locale === "mn" ? "Дэлгэрэнгүй" : locale === "ko" ? "세부 정보" : "Details"}
+            </p>
+            <h2 style={S.sectionTitle}>
+              {locale === "mn" ? "Нэмэлт тохиргоо" : locale === "ko" ? "추가 설정" : "Advanced Options"}
+            </h2>
+          </div>
+
+          <div style={S.detailsBox}>
+            <button type="button" onClick={() => setDetailsOpen(!detailsOpen)} style={S.detailsToggle}>
+              <span style={S.detailsLabel}>⚙ {locale === "mn" ? "Тохиргоо" : locale === "ko" ? "설정" : "Settings"}</span>
+              <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 16, lineHeight: 1 }}>{detailsOpen ? "∧" : "∨"}</span>
+            </button>
+            {detailsOpen && (
+              <div style={{ padding: "4px 16px 16px", display: "flex", flexDirection: "column", gap: 16 }}>
+                {isTraining && (
+                  <>
+                    <UField label={t("uploadChallengeLabel")}>
+                      <input value={challengeLabel} onChange={(e) => setChallengeLabel(e.target.value)} placeholder={t("uploadChallengeLabelPlaceholder")} style={S.input} />
+                    </UField>
+                    <UField label={t("uploadTargetHits")}>
+                      <input type="number" value={targetHits} onChange={(e) => setTargetHits(e.target.value)} placeholder="e.g. 100" style={{ ...S.input, width: 140 }} min={1} />
+                    </UField>
+                    <UField label={t("uploadDifficulty")}>
+                      <UChips options={DIFFICULTIES} keyMap={DIFF_KEY} t={t} selected={difficulty} onSelect={setDifficulty} colorMap={diffColorMap} />
+                    </UField>
+                    <UToggle label={t("uploadAiScoring")} description={t("uploadAiScoringDesc")} value={aiScoringEnabled} onChange={setAiScoringEnabled} />
+                    <UToggle label={t("uploadChallengeCta")} description={t("uploadChallengeCtaDesc")} value={true} locked />
+                  </>
+                )}
+                {isLifestyle && (
+                  <>
+                    <UField label={t("uploadCategory")}>
+                      <UChips options={CATEGORIES} keyMap={CAT_KEY} t={t} selected={category} onSelect={setCategory} colorMap={() => S.chipActive} />
+                    </UField>
+                    <UField label={t("uploadTags")}>
+                      <input value={tags} onChange={(e) => setTags(e.target.value)} placeholder={t("uploadTagsPlaceholder")} style={S.input} />
+                    </UField>
+                  </>
+                )}
+                {isEdu && (
+                  <>
+                    <UField label={t("uploadMistakeLabel")}>
+                      <textarea value={mistakeNote} onChange={(e) => setMistakeNote(e.target.value)} placeholder={t("uploadMistakePlaceholder")} style={{ ...S.textarea, minHeight: 60 }} />
+                    </UField>
+                    <UField label={t("uploadFixLabel")}>
+                      <textarea value={fixNote} onChange={(e) => setFixNote(e.target.value)} placeholder={t("uploadFixPlaceholder")} style={{ ...S.textarea, minHeight: 60 }} />
+                    </UField>
+                    <UField label={t("uploadCoachNoteLabel")}>
+                      <textarea value={coachNote} onChange={(e) => setCoachNote(e.target.value)} placeholder={t("uploadCoachNotePlaceholder")} style={{ ...S.textarea, minHeight: 60 }} />
+                    </UField>
+                    <UField label={t("uploadDifficulty")}>
+                      <UChips options={DIFFICULTIES} keyMap={DIFF_KEY} t={t} selected={difficulty} onSelect={setDifficulty} colorMap={diffColorMap} />
+                    </UField>
+                    <UToggle label={t("uploadSaveCta")} description={t("uploadSaveCtaDesc")} value={true} locked />
+                    <UToggle label={t("uploadEduChallengeCta")} description={t("uploadEduChallengeCtaDesc")} value={eduChallengeEnabled} onChange={setEduChallengeEnabled} />
+                  </>
+                )}
               </div>
             )}
           </div>
-        )}
+
+          {/* Gym tag */}
+          {gyms.length > 0 && (
+            <UField label={t("uploadGymTag")}>
+              <div style={{ position: "relative" }}>
+                <select
+                  value={gymId}
+                  onChange={(e) => setGymId(e.target.value)}
+                  style={{ ...S.input, appearance: "none", WebkitAppearance: "none", paddingRight: 36, color: gymId ? "#fff" : "rgba(255,255,255,0.38)" }}
+                >
+                  <option value="" style={{ color: "#aaa" }}>{t("uploadGymNone")}</option>
+                  {gyms.map((g) => <option key={g.id} value={g.id} style={{ color: "#fff", background: "#111" }}>{g.gymName}</option>)}
+                </select>
+                <span style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "rgba(255,255,255,0.38)", fontSize: 11 }}>▾</span>
+              </div>
+            </UField>
+          )}
+        </div>
+
+        {/* Section — AI Caption */}
+        <div className="stagger-list" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={S.sectionBlock}>
+            <p style={S.sectionKicker}>
+              {locale === "mn" ? "AI тусламж" : locale === "ko" ? "AI 도우미" : "AI Tools"}
+            </p>
+            <h2 style={S.sectionTitle}>
+              {locale === "mn" ? "Caption үүсгэх" : locale === "ko" ? "캡션 생성" : "Generate Caption"}
+            </h2>
+          </div>
+
+          <div style={S.aiBox}>
+            <button onClick={() => setCaptionOpen(!captionOpen)} style={S.aiBoxBtn}>
+              <span style={S.aiBoxLabel}>✨ {t("aiCaptionGenerator")}</span>
+              <span style={{ color: GOLD, fontSize: 18, lineHeight: 1 }}>{captionOpen ? "∧" : "∨"}</span>
+            </button>
+            {captionOpen && (
+              <div style={{ padding: "0 16px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+                <p style={S.aiBoxHelp}>{t("aiCaptionHelp")}</p>
+                <input value={captionContext} onChange={(e) => setCaptionContext(e.target.value)} placeholder={t("captionContextPlaceholder")} style={S.input} />
+                <button onClick={handleGenerateCaption} disabled={captionLoading} style={{ ...S.primaryBtn, marginTop: 4, opacity: captionLoading ? 0.6 : 1 }}>
+                  {captionLoading ? t("generating") : t("generateCaption")}
+                </button>
+                {captionError && <p style={S.errTxt}>{captionError}</p>}
+                {parsedCaption && (
+                  <div style={S.captionResult}>
+                    {parsedCaption.hook && <div style={S.captionSection}><span style={S.captionLbl}>{t("hook")}</span><div style={S.captionHook}>{parsedCaption.hook}</div></div>}
+                    {parsedCaption.caption && <div style={S.captionSection}><span style={S.captionLbl}>{t("caption")}</span><div style={S.captionBody}>{parsedCaption.caption}</div></div>}
+                    {parsedCaption.hashtags && <div style={S.captionSection}><span style={S.captionLbl}>{t("hashtags")}</span><div style={S.captionBody}>{parsedCaption.hashtags}</div></div>}
+                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 4 }}>
+                      <button style={S.captionActionBtn} onClick={() => setDescription(parsedCaption.description)}>{t("useCaption")}</button>
+                      <button style={{ ...S.captionActionBtn, background: "rgba(255,255,255,0.05)", color: "#fff", border: "1px solid rgba(255,255,255,0.12)" }} onClick={() => navigator.clipboard?.writeText(parsedCaption.hashtags)}>{t("copyHashtags")}</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Post button */}
+        <button onClick={handleUpload} disabled={uploading} style={{ ...S.primaryBtn, opacity: uploading ? 0.45 : 1, marginBottom: 32 }}>
+          {t("uploadPostReel")}
+        </button>
       </div>
+
+      {/* Upload progress overlay */}
+      {uploading && (
+        <div
+          className="page-enter"
+          style={{
+            position: "fixed", inset: 0, zIndex: 999,
+            background: "rgba(0,0,0,0.92)",
+            backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+            display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center",
+            gap: 20, padding: 32,
+          }}
+        >
+          <div style={{ fontSize: 52 }}>🥊</div>
+          <div style={{ fontSize: 18, fontWeight: 900, color: "#fff", letterSpacing: "-0.01em" }}>
+            {t("uploadUploading")}
+          </div>
+          <div style={{ width: "100%", maxWidth: 280 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 12, color: "rgba(255,255,255,0.5)", fontWeight: 700 }}>
+              <span>{t("uploading")}</span>
+              <span style={{ color: uploadProgress > 66 ? "#34D399" : "#fff" }}>{uploadProgress}%</span>
+            </div>
+            <div style={S.progressTrack}>
+              <div style={{ ...S.progressFill, width: `${uploadProgress}%` }} />
+            </div>
+          </div>
+          <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.3)", textAlign: "center" }}>
+            {t("uploadDontClose")}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
-
-const styles = {
-  page: { minHeight: "100vh", background: "linear-gradient(180deg, #070707 0%, #0B0B0B 100%)", fontFamily: "sans-serif", padding: "20px 16px" },
-  inner: { maxWidth: 600, margin: "0 auto", display: "flex", flexDirection: "column", gap: 20 },
-  loading: { minHeight: "100vh", background: "#070707", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontFamily: "sans-serif" },
-  topBar: { display: "flex", flexDirection: "column", alignItems: "center", gap: 6, textAlign: "center" },
-  eyebrow: { margin: 0, color: "#D4AF37", fontSize: 11, fontWeight: 900, letterSpacing: 2.2, textTransform: "uppercase" },
-  headline: { margin: 0, fontSize: 36, fontWeight: 950, color: "#fff" },
-  chooseSubtitle: { margin: 0, color: "rgba(255,255,255,0.45)", fontSize: 14 },
-  typePill: { alignSelf: "center", fontSize: 12, fontWeight: 900, borderRadius: 999, padding: "4px 14px", letterSpacing: 0.4 },
-  backBtn: { alignSelf: "flex-start", background: "none", border: "1px solid rgba(255,255,255,0.12)", color: "#D4AF37", borderRadius: 999, padding: "6px 14px", fontSize: 13, fontWeight: 800, cursor: "pointer" },
-  typeGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 8 },
-  typeCard: { display: "flex", flexDirection: "column", alignItems: "center", gap: 10, padding: "28px 16px", borderRadius: 20, background: "linear-gradient(145deg, #131313, #0a0a0a)", border: "1px solid rgba(193,18,31,0.35)", cursor: "pointer", transition: "transform 0.15s" },
-  typeCardEmoji: { fontSize: 40 },
-  typeCardTitle: { fontSize: 15, fontWeight: 1000, color: "#F87171" },
-  typeCardDesc: { fontSize: 12, color: "rgba(255,255,255,0.4)", textAlign: "center", lineHeight: 1.4 },
-  dropZone: { border: "1px dashed rgba(212,175,55,0.36)", borderRadius: 18, padding: "52px 24px", textAlign: "center", cursor: "pointer", background: "#0B0B0B" },
-  dropIcon: { fontSize: 44, marginBottom: 12, color: "#D4AF37" },
-  dropLabel: { color: "#888", fontSize: 15, margin: 0 },
-  dropSub: { color: "#555", fontSize: 13, margin: "8px 0 0" },
-  videoWrap: { position: "relative", borderRadius: 18, overflow: "hidden", background: "#000", border: "1px solid rgba(255,255,255,0.1)" },
-  videoPreview: { width: "100%", aspectRatio: "9/16", maxHeight: "60vh", objectFit: "cover", display: "block" },
-  videoFooter: { position: "absolute", left: 14, right: 14, bottom: 14, display: "flex", justifyContent: "space-between", pointerEvents: "none" },
-  videoName: { color: "#fff", fontSize: 11, fontWeight: 800, textShadow: "0 2px 8px rgba(0,0,0,0.9)" },
-  videoPreviewLabel: { color: "#D4AF37", fontSize: 11, fontWeight: 900 },
-  fields: { display: "flex", flexDirection: "column", gap: 18 },
-  field: { display: "flex", flexDirection: "column", gap: 8 },
-  fieldLabel: { fontSize: 11, fontWeight: 900, color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: 1 },
-  input: { background: "#111", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, padding: "12px 14px", color: "#fff", fontSize: 14, outline: "none" },
-  textarea: { background: "#111", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, padding: "12px 14px", color: "#fff", fontSize: 14, minHeight: 72, resize: "vertical", outline: "none" },
-  chipRow: { display: "flex", flexWrap: "wrap", gap: 8 },
-  chip: { padding: "7px 14px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.55)", fontSize: 13, fontWeight: 800, cursor: "pointer" },
-  chipActive: { background: "rgba(193,18,31,0.18)", border: "1px solid rgba(193,18,31,0.5)", color: "#F87171" },
-  chipGreen: { background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.4)", color: "#34D399" },
-  chipGold: { background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.4)", color: "#D4AF37" },
-  chipRed: { background: "rgba(193,18,31,0.18)", border: "1px solid rgba(193,18,31,0.5)", color: "#F87171" },
-  toggleRow: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: 12, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" },
-  toggleLabel: { fontSize: 14, fontWeight: 800, color: "#fff" },
-  toggleBtn: { minWidth: 52, padding: "6px 12px", borderRadius: 999, border: "none", color: "#fff", fontSize: 12, fontWeight: 900, cursor: "pointer" },
-  aiBox: { display: "flex", flexDirection: "column", gap: 12, padding: 16, borderRadius: 16, background: "linear-gradient(145deg, rgba(193,18,31,0.12), rgba(11,11,11,0.96) 46%, rgba(212,175,55,0.07))", border: "1px solid rgba(255,255,255,0.08)" },
-  aiBoxLabel: { color: "#D4AF37", fontSize: 12, fontWeight: 900, letterSpacing: 1.4, textTransform: "uppercase" },
-  aiBoxHelp: { margin: 0, color: "#888", fontSize: 13, lineHeight: 1.5 },
-  captionResult: { display: "flex", flexDirection: "column", gap: 10, padding: 14, borderRadius: 14, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(212,175,55,0.14)" },
-  captionSection: { display: "grid", gap: 4, padding: 10, borderRadius: 10, background: "rgba(255,255,255,0.04)" },
-  captionLbl: { color: "#D4AF37", fontSize: 10, fontWeight: 900, letterSpacing: 1.2, textTransform: "uppercase" },
-  captionHook: { color: "#fff", fontSize: 14, fontWeight: 900, lineHeight: 1.45 },
-  captionBody: { color: "#fff", fontSize: 14, lineHeight: 1.55, whiteSpace: "pre-wrap" },
-  captionActionBtn: { padding: "9px 14px", borderRadius: 999, border: "1px solid rgba(212,175,55,0.34)", background: "rgba(212,175,55,0.1)", color: "#D4AF37", fontSize: 13, fontWeight: 800, cursor: "pointer" },
-  actionsRow: { display: "flex", gap: 12 },
-  cancelBtn: { flex: 1, padding: 14, borderRadius: 12, border: "1px solid rgba(212,175,55,0.25)", background: "transparent", color: "#D4AF37", fontSize: 15, fontWeight: 700, cursor: "pointer" },
-  primaryBtn: { padding: "14px 20px", borderRadius: 12, border: "none", background: "linear-gradient(135deg, #C1121F, #8f0d17)", color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: "0 8px 24px rgba(193,18,31,0.28)" },
-  errBox: { background: "#3a0a0a", border: "1px solid rgba(193,18,31,0.5)", color: "#ff8b8b", padding: 12, borderRadius: 8 },
-  errTxt: { margin: 0, color: "#ff8b8b", fontSize: 13 },
-  progressWrap: { display: "flex", flexDirection: "column", gap: 6 },
-  progressTrack: { height: 8, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" },
-  progressFill: { height: "100%", borderRadius: 999, background: "linear-gradient(90deg, #C1121F, #D4AF37)", transition: "width 180ms ease" },
-};
