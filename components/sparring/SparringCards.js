@@ -2,7 +2,7 @@
 
 import { translate } from "@/lib/i18n";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
-import { RED, GOLD, redAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, redAlpha } from "@/lib/tokens";
 import { c } from "@/components/sparring/sparringStyles";
 import { formatAgo } from "@/lib/utils";
 import Image from "next/image";
@@ -108,7 +108,7 @@ export function FighterCard({ post, isMe, onRequest, sent, requesting, locale })
               ? "rgba(255,255,255,0.06)"
               : arch?.color
               ? `linear-gradient(135deg, ${arch.color}, ${arch.color}cc)`
-              : `linear-gradient(135deg, ${RED}, #cc2820)`,
+              : `linear-gradient(135deg, ${RED}, ${RED_DARK})`,
             border: sent ? "1px solid rgba(52,211,153,0.3)" : "none",
             color: sent ? "#34D399" : "#fff",
             boxShadow: sent || isBusy ? "none" : `0 6px 20px ${arch?.color ? arch.color + "30" : redAlpha(0.28)}`,

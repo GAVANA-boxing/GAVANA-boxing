@@ -1,6 +1,6 @@
 "use client";
 
-import { RED, GOLD, PURPLE, goldAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, PURPLE, goldAlpha } from "@/lib/tokens";
 import { formatWidgetDate, formatWidgetScore } from "@/lib/dashboardHelpers";
 
 export { RadarChart, StyleDNA, FighterHero } from "./DashboardCharts";
@@ -25,7 +25,7 @@ export const inputStyle = {
 
 export const primaryBtnStyle = {
   flex: 1, padding: "10px 0", borderRadius: 9,
-  background: "linear-gradient(135deg, #FF3B30, #cc2820)",
+  background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`,
   border: "none", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer",
 };
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { goldAlpha } from "@/lib/tokens";
+import { goldAlpha, RADIUS} from "@/lib/tokens";
 
 function isSocialInAppBrowser(userAgent) {
   return /FBAN|FBAV|FB_IAB|FB4A|FBIOS|Instagram/i.test(userAgent || "");
@@ -87,7 +87,7 @@ const styles = {
     height: 32,
     flex: "0 0 32px",
     border: "1px solid rgba(255,255,255,0.12)",
-    borderRadius: 999,
+    borderRadius: RADIUS.full,
     background: "rgba(255,255,255,0.06)",
     color: "#fff",
     fontSize: 20,

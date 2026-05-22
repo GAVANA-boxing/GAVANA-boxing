@@ -1,6 +1,6 @@
 "use client";
 
-import { GOLD } from "@/lib/tokens";
+import { GOLD, RADIUS} from "@/lib/tokens";
 
 const streakCardStyle = {
   borderRadius: 16,
@@ -118,8 +118,8 @@ export default function StreakDetailModal({ profile, trainingSessions, t, onClos
                 <span style={{ color: "rgba(255,255,255,0.45)", fontSize: 11, fontWeight: 700 }}>Streak progress</span>
                 <span style={{ color: "#FB923C", fontSize: 11, fontWeight: 900 }}>{Math.min(100, Math.round((challengeStreak / 7) * 100))}%</span>
               </div>
-              <div style={{ height: 6, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
-                <div style={{ height: "100%", width: `${Math.min(100, Math.round((challengeStreak / 7) * 100))}%`, borderRadius: 999, background: "linear-gradient(90deg, #EA580C, #FB923C)", transition: "width 500ms ease" }} />
+              <div style={{ height: 6, borderRadius: RADIUS.full, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${Math.min(100, Math.round((challengeStreak / 7) * 100))}%`, borderRadius: RADIUS.full, background: "linear-gradient(90deg, #EA580C, #FB923C)", transition: "width 500ms ease" }} />
               </div>
             </div>
           </div>

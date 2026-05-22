@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import AppSidebar from "./AppSidebar";
-import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import { useAuth } from "@/lib/AuthContext";
 import { getFighterRank } from "@/lib/xp";
 
@@ -114,7 +114,7 @@ function RightPanel({ locale }) {
 
       {/* ── Quick actions ── */}
       <div style={rp.actions}>
-        <button style={{ ...rp.actionBtn, background: `linear-gradient(135deg, ${RED}, #cc2820)`, border: `1px solid ${redAlpha(0.4)}`, boxShadow: `0 4px 16px ${redAlpha(0.3)}` }} onClick={() => router.push(`/${locale}/reels`)} className="tap-bounce">
+        <button style={{ ...rp.actionBtn, background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`, border: `1px solid ${redAlpha(0.4)}`, boxShadow: `0 4px 16px ${redAlpha(0.3)}` }} onClick={() => router.push(`/${locale}/reels`)} className="tap-bounce">
           <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           Train Now
         </button>

@@ -7,7 +7,7 @@ import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { useSparringActions } from "@/hooks/useSparringActions";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import BottomNav from "@/components/BottomNav";
-import { RED, GOLD, redAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, redAlpha, RADIUS} from "@/lib/tokens";
 import PageTopBar from "@/components/PageTopBar";
 import s, { c } from "@/components/sparring/sparringStyles";
 import { FighterCard, IncomingRequestCard } from "@/components/sparring/SparringCards";
@@ -128,7 +128,7 @@ export default function SparringPage() {
                 ...s.arenaToggleBtn,
                 background: isOn
                   ? "rgba(52,211,153,0.12)"
-                  : `linear-gradient(135deg, ${RED}, #cc2820)`,
+                  : `linear-gradient(135deg, ${RED}, ${RED_DARK})`,
                 border: isOn ? "1px solid rgba(52,211,153,0.3)" : "none",
                 color: isOn ? "#34D399" : "#fff",
                 boxShadow: isOn ? "none" : `0 6px 18px ${redAlpha(0.3)}`,
@@ -227,7 +227,7 @@ export default function SparringPage() {
               >
                 {label}
                 {count > 0 && (
-                  <span style={{ minWidth: 16, height: 16, borderRadius: 999, background: RED, color: "#fff", fontSize: 9, fontWeight: 900, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>
+                  <span style={{ minWidth: 16, height: 16, borderRadius: RADIUS.full, background: RED, color: "#fff", fontSize: 9, fontWeight: 900, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>
                     {count}
                   </span>
                 )}

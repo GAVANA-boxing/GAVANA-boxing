@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import styles from "@/components/train/trainStyles";
-import { GOLD, RED, redAlpha, whiteAlpha } from "@/lib/tokens";
+import { GOLD, RED, redAlpha, whiteAlpha, RADIUS} from "@/lib/tokens";
 import { getChallengeRank } from "@/lib/utils";
 import { getChallengeComparisonPercent } from "@/lib/trainHelpers";
 import RankBadge from "@/components/RankBadge";
@@ -136,7 +136,7 @@ export default function TrainResultModal({
                 <button
                   type="button"
                   onClick={() => router.push(`/${locale}/reels?id=${reelId}`)}
-                  style={{ marginTop: 12, padding: "8px 18px", borderRadius: 999, border: "1px solid rgba(168,85,247,0.4)", background: "rgba(168,85,247,0.12)", color: "#C084FC", fontSize: 12, fontWeight: 900, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}
+                  style={{ marginTop: 12, padding: "8px 18px", borderRadius: RADIUS.full, border: "1px solid rgba(168,85,247,0.4)", background: "rgba(168,85,247,0.12)", color: "#C084FC", fontSize: 12, fontWeight: 900, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}
                 >
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                   {t("trainWatchMatchReel")}

@@ -1,6 +1,6 @@
 "use client";
 
-import { GOLD, RED, redAlpha, goldAlpha } from "@/lib/tokens";
+import { GOLD, RED, redAlpha, goldAlpha, RADIUS} from "@/lib/tokens";
 import { calculateSessionXP } from "@/lib/xp";
 import { getTimestampMs, formatScore } from "@/lib/utils";
 
@@ -100,8 +100,8 @@ export default function TrainingProgressSection({
             </div>
           </div>
 
-          <div style={{ height: 4, borderRadius: 999, background: "rgba(255,255,255,0.07)", overflow: "hidden", marginBottom: 14 }}>
-            <div style={{ height: "100%", width: `${rankProgress}%`, borderRadius: 999, background: fighterRank.gradient || fighterRank.color, boxShadow: `0 0 10px ${fighterRank.color}55`, transition: "width 800ms cubic-bezier(0.16,1,0.3,1)" }} />
+          <div style={{ height: 4, borderRadius: RADIUS.full, background: "rgba(255,255,255,0.07)", overflow: "hidden", marginBottom: 14 }}>
+            <div style={{ height: "100%", width: `${rankProgress}%`, borderRadius: RADIUS.full, background: fighterRank.gradient || fighterRank.color, boxShadow: `0 0 10px ${fighterRank.color}55`, transition: "width 800ms cubic-bezier(0.16,1,0.3,1)" }} />
           </div>
 
           <p style={{ margin: "0 0 18px", fontSize: 12, color: insightColor, fontStyle: "italic", lineHeight: 1.55, borderLeft: `2px solid ${insightColor}44`, paddingLeft: 10 }}>

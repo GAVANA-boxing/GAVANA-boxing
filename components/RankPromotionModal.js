@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { GOLD, goldAlpha } from "@/lib/tokens";
+import { GOLD, goldAlpha, RADIUS} from "@/lib/tokens";
 import RankIcon from "@/components/RankIcon";
 
 const PARTICLES = [
@@ -134,7 +134,7 @@ export default function RankPromotionModal({ rank, rankName, onDismiss }) {
 
         <div style={{
           display: "flex", alignItems: "center", gap: 7,
-          padding: "6px 18px", borderRadius: 999, marginTop: 2,
+          padding: "6px 18px", borderRadius: RADIUS.full, marginTop: 2,
           background: goldAlpha(0.08),
           border: `1px solid ${goldAlpha(0.22)}`,
         }}>

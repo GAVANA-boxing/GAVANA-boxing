@@ -1,6 +1,7 @@
 "use client";
 
 import styles from "./feedbackStyles";
+import { RADIUS } from "@/lib/tokens";
 import RankBadge from "@/components/RankBadge";
 
 // Parse the structured AI feedback into sections
@@ -269,13 +270,13 @@ const fm = {
   },
   scoreTrack: {
     height: 4,
-    borderRadius: 999,
+    borderRadius: RADIUS.full,
     background: "rgba(255,255,255,0.08)",
     overflow: "hidden",
   },
   scoreFill: {
     height: "100%",
-    borderRadius: 999,
+    borderRadius: RADIUS.full,
     transition: "width 0.8s ease",
   },
   sections: {

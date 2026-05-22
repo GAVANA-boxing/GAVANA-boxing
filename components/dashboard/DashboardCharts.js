@@ -1,6 +1,6 @@
 "use client";
 
-import { GOLD, RED, redAlpha } from "@/lib/tokens";
+import { GOLD, RED, redAlpha, RADIUS} from "@/lib/tokens";
 import {
   RADAR_KEYS, RADAR_ANGLES, INSIGHT_COLOR, DNA_ATTRS, radPolar,
 } from "@/lib/dashboardHelpers";
@@ -114,9 +114,9 @@ export function StyleDNA({ radarStats }) {
             </span>
             <span style={{ fontSize: 10, fontWeight: 900, color: item.color }}>{item.pct}%</span>
           </div>
-          <div style={{ height: 4, borderRadius: 999, background: "rgba(255,255,255,0.055)", overflow: "hidden" }}>
+          <div style={{ height: 4, borderRadius: RADIUS.full, background: "rgba(255,255,255,0.055)", overflow: "hidden" }}>
             <div style={{
-              height: "100%", borderRadius: 999,
+              height: "100%", borderRadius: RADIUS.full,
               width: `${item.pct}%`,
               background: `linear-gradient(90deg, ${item.color}88, ${item.color})`,
               boxShadow: `0 0 8px ${item.color}44`,
@@ -215,9 +215,9 @@ export function FighterHero({ displayScore, xp, rank, nextRank, xpProgress, insi
                 {(nextRank.minXP - xp).toLocaleString()} {t("dashboardToGo")} → {t(nextRank.key)}
               </span>
             </div>
-            <div style={{ height: 5, borderRadius: 999, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+            <div style={{ height: 5, borderRadius: RADIUS.full, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
               <div style={{
-                height: "100%", borderRadius: 999,
+                height: "100%", borderRadius: RADIUS.full,
                 background: rank.gradient || rank.color,
                 width: `${xpProgress}%`,
                 boxShadow: `0 0 14px ${rank.color}55`,

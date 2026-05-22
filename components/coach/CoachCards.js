@@ -1,6 +1,6 @@
 "use client";
 
-import { GOLD, PURPLE, goldAlpha } from "@/lib/tokens";
+import { GOLD, PURPLE, goldAlpha, RADIUS} from "@/lib/tokens";
 import styles from "@/components/coach/coachStyles";
 import Image from "next/image";
 
@@ -147,10 +147,10 @@ export function MyRequestCard({ req, coachProfile, t, locale, router }) {
           <div style={styles.cardNameRow}>
             <span style={styles.cardName}>{name}</span>
             {req.type === "sparring" && (
-              <span style={{ fontSize: 10, fontWeight: 900, color: GOLD, background: `${goldAlpha(0.12)}`, border: `1px solid ${goldAlpha(0.28)}`, borderRadius: 999, padding: "1px 7px" }}>🥊 Sparring</span>
+              <span style={{ fontSize: 10, fontWeight: 900, color: GOLD, background: `${goldAlpha(0.12)}`, border: `1px solid ${goldAlpha(0.28)}`, borderRadius: RADIUS.full, padding: "1px 7px" }}>🥊 Sparring</span>
             )}
           </div>
-          <span style={{ display: "inline-flex", marginTop: 4, padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 900, background: st.bg, border: `1px solid ${st.border}`, color: st.color }}>
+          <span style={{ display: "inline-flex", marginTop: 4, padding: "3px 10px", borderRadius: RADIUS.full, fontSize: 11, fontWeight: 900, background: st.bg, border: `1px solid ${st.border}`, color: st.color }}>
             {statusLabel}
           </span>
           {timeAgo && <div style={{ ...styles.cardLocation, marginTop: 4 }}>{timeAgo}</div>}

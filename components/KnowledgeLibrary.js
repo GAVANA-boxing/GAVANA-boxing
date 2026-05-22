@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { translate } from "@/lib/i18n";
 import ScrollRow from "@/components/ScrollRow";
-import { GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import { GOLD, redAlpha, goldAlpha, RADIUS} from "@/lib/tokens";
 import {
   getStyles, getTechniques, getCountryStyles, getCommonMistakes, getWeeklyFocus, getMovement,
   QUICK_PROMPTS,
@@ -52,7 +52,7 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
               onMouseLeave={() => setHoveredPrompt(null)}
               style={{
                 display: "flex", alignItems: "center", gap: 5,
-                padding: "7px 12px", borderRadius: 999,
+                padding: "7px 12px", borderRadius: RADIUS.full,
                 background: hoveredPrompt === p.key ? `${goldAlpha(0.12)}` : "rgba(255,255,255,0.05)",
                 border: `1px solid ${hoveredPrompt === p.key ? `${goldAlpha(0.4)}` : "rgba(255,255,255,0.1)"}`,
                 color: hoveredPrompt === p.key ? GOLD : "#ddd",

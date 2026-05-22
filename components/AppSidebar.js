@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
-import { RED, GOLD, BG, BORDER, MUTED, redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, BG, BORDER, MUTED, redAlpha, goldAlpha } from "@/lib/tokens";
 import { getFighterRank, getRankProgress } from "@/lib/xp";
 import Image from "next/image";
 
@@ -239,7 +239,7 @@ const s = {
     width: 34,
     height: 34,
     borderRadius: 10,
-    background: `linear-gradient(145deg, ${RED}, #cc2820)`,
+    background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -373,7 +373,7 @@ const s = {
     padding: "11px",
     borderRadius: 10,
     border: `1px solid ${redAlpha(0.35)}`,
-    background: `linear-gradient(135deg, ${RED}, #cc2820)`,
+    background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`,
     color: "#fff",
     fontSize: 13,
     fontWeight: 700,

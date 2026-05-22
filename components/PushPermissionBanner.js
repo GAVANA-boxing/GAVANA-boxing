@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import { useAuth } from "@/lib/AuthContext";
 import { useFcmToken } from "@/hooks/useFcmToken";
 
@@ -176,7 +176,7 @@ const s = {
     padding: "8px 16px",
     borderRadius: 10,
     border: "none",
-    background: `linear-gradient(135deg, #FF3B30, #cc2820)`,
+    background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`,
     color: "#fff",
     fontSize: 11,
     fontWeight: 900,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, redAlpha, goldAlpha, RADIUS} from "@/lib/tokens";
 import { getCreatorName, getCreatorPhoto, cleanCaption } from "@/lib/reelHelpers";
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
@@ -902,7 +902,7 @@ const d = {
     padding: "13px",
     borderRadius: 14,
     border: "none",
-    background: `linear-gradient(135deg, ${RED}, #cc2820)`,
+    background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`,
     color: "#fff",
     fontSize: 12,
     fontWeight: 900,
@@ -984,7 +984,7 @@ const d = {
   },
   tab: {
     padding: "6px 16px",
-    borderRadius: 999,
+    borderRadius: RADIUS.full,
     border: "1px solid rgba(255,255,255,0.06)",
     background: "transparent",
     color: "#9CA3AF",
@@ -1352,7 +1352,7 @@ const d = {
     letterSpacing: "0.1em",
     background: `${redAlpha(0.12)}`,
     border: `1px solid ${redAlpha(0.3)}`,
-    borderRadius: 999,
+    borderRadius: RADIUS.full,
     padding: "2px 8px",
   },
   rightEmpty: {

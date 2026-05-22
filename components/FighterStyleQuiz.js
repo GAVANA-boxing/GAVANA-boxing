@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, redAlpha, goldAlpha, RADIUS} from "@/lib/tokens";
 
 export const ARCHETYPE_DISPLAY = {
   pressure: { emoji: "🔴", name: "Pressure Fighter", color: RED },
@@ -187,7 +187,7 @@ export default function FighterStyleQuiz({ user, onComplete }) {
                 marginTop: 24,
                 background: arch?.color
                   ? `linear-gradient(135deg, ${arch.color}, ${arch.color}bb)`
-                  : "linear-gradient(135deg, #FF3B30, #cc2820)",
+                  : `linear-gradient(135deg, ${RED}, ${RED_DARK})`,
               }}
             >
               {saving ? "Хадгалж байна..." : "Fighter identity хадгалах ✓"}
@@ -226,11 +226,11 @@ const Q = {
     position: "relative",
   },
   track: {
-    height: 3, borderRadius: 999, background: "rgba(255,255,255,0.08)",
+    height: 3, borderRadius: RADIUS.full, background: "rgba(255,255,255,0.08)",
     overflow: "hidden", marginBottom: 8, position: "relative",
   },
   fill: {
-    height: "100%", borderRadius: 999,
+    height: "100%", borderRadius: RADIUS.full,
     background: "linear-gradient(90deg, #FF3B30, #F5C451)",
     transition: "width 420ms cubic-bezier(0.4,0,0.2,1)",
   },
@@ -259,7 +259,7 @@ const Q = {
   nextBtn: {
     marginTop: 20, width: "100%", padding: "15px",
     borderRadius: 14, border: "none",
-    background: "linear-gradient(135deg, #FF3B30, #cc2820)",
+    background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`,
     color: "#fff", fontSize: 15, fontWeight: 900,
     cursor: "pointer",
     boxShadow: `0 8px 28px ${redAlpha(0.3)}`,

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter as useNextRouter } from "next/navigation";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { RED, redAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, redAlpha, RADIUS} from "@/lib/tokens";
 import Image from "next/image";
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
@@ -251,7 +251,7 @@ const s = {
     background: "rgba(7,7,8,0.82)",
     backdropFilter: "blur(40px) saturate(180%)",
     WebkitBackdropFilter: "blur(40px) saturate(180%)",
-    borderRadius: 999,
+    borderRadius: RADIUS.full,
     border: "1px solid rgba(255,255,255,0.06)",
     boxShadow: "0 8px 48px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05)",
     display: "grid",
@@ -305,7 +305,7 @@ const s = {
     width: 46,
     height: 46,
     borderRadius: 14,
-    background: `linear-gradient(145deg, ${RED}, #cc2820)`,
+    background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",

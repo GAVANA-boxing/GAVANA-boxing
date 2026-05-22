@@ -1,6 +1,7 @@
 "use client";
 
 import RankIcon from "@/components/RankIcon";
+import { RADIUS } from "@/lib/tokens";
 
 if (typeof window !== "undefined") {
   if (!document.getElementById("rank-modal-kf")) {
@@ -132,7 +133,7 @@ export default function RankUpModal({ rank, onClose, t }) {
             padding: "15px 0",
             background: rank.gradient,
             border: "none",
-            borderRadius: 999,
+            borderRadius: RADIUS.full,
             color: "#fff",
             fontSize: 14,
             fontWeight: 900,

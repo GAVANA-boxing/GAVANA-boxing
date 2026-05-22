@@ -1,6 +1,6 @@
 "use client";
 
-import { GOLD , goldAlpha} from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, goldAlpha } from "@/lib/tokens";
 
 const overlay = {
   position: "fixed",
@@ -119,7 +119,7 @@ export function WeeklyLeaderboardModal({ challengeRanks, t, onClose, onGoToChall
 
         <button
           type="button"
-          style={{ width: "100%", padding: "14px 0", borderRadius: 12, background: "linear-gradient(135deg, #FF3B30, #cc2820)", border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", letterSpacing: 0.5 }}
+          style={{ width: "100%", padding: "14px 0", borderRadius: 12, background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", letterSpacing: 0.5 }}
           onClick={onGoToChallenges}
         >
           {t("weeklySeasonModalCta")}

@@ -1,4 +1,4 @@
-import { redAlpha, goldAlpha, RED, RED_DARK, GOLD, BG, BORDER, BORDER_2, RADIUS, whiteAlpha, blackAlpha, pageBg } from "@/lib/tokens";
+import { redAlpha, goldAlpha, RED, RED_DARK, GOLD, BG, BORDER, BORDER_2, RADIUS, MOTION, whiteAlpha, blackAlpha, pageBg } from "@/lib/tokens";
 
 const styles = {
   page: { minHeight: "100dvh", background: pageBg(0.08), color: "#fff" },
@@ -21,8 +21,8 @@ const styles = {
   sortBtn: { padding: "7px 14px", borderRadius: RADIUS.full, border: `1px solid ${BORDER_2}`, background: "transparent", color: whiteAlpha(0.45), fontSize: 13, fontWeight: 700, cursor: "pointer" },
   sortBtnActive: { padding: "7px 14px", borderRadius: RADIUS.full, border: `1px solid ${redAlpha(0.5)}`, background: redAlpha(0.15), color: "#F87171", fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: `0 0 12px ${redAlpha(0.12)}` },
   filtersRow: { display: "flex", alignItems: "center", gap: 10, marginBottom: 12 },
-  filterSelect: { flex: 1, height: 38, padding: "0 12px", borderRadius: RADIUS.sm, border: `1px solid ${BORDER_2}`, background: whiteAlpha(0.04), color: "#fff", fontSize: 13, outline: "none", colorScheme: "dark", appearance: "none", WebkitAppearance: "none", transition: "border-color var(--motion-hover)" },
-  verifiedToggle: { display: "flex", alignItems: "center", height: 38, gap: 6, padding: "0 12px", borderRadius: RADIUS.sm, border: `1px solid ${whiteAlpha(0.07)}`, background: whiteAlpha(0.04), fontSize: 12, fontWeight: 700, color: whiteAlpha(0.65), cursor: "pointer", whiteSpace: "nowrap", transition: "background var(--motion-hover), border-color var(--motion-hover)" },
+  filterSelect: { flex: 1, height: 38, padding: "0 12px", borderRadius: RADIUS.sm, border: `1px solid ${BORDER_2}`, background: whiteAlpha(0.04), color: "#fff", fontSize: 13, outline: "none", colorScheme: "dark", appearance: "none", WebkitAppearance: "none", transition: `border-color ${MOTION.hover}` },
+  verifiedToggle: { display: "flex", alignItems: "center", height: 38, gap: 6, padding: "0 12px", borderRadius: RADIUS.sm, border: `1px solid ${whiteAlpha(0.07)}`, background: whiteAlpha(0.04), fontSize: 12, fontWeight: 700, color: whiteAlpha(0.65), cursor: "pointer", whiteSpace: "nowrap", transition: `background ${MOTION.hover}, border-color ${MOTION.hover}` },
   catRow: { display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8, marginBottom: 16, scrollbarWidth: "none" },
   catBtn: { flexShrink: 0, padding: "6px 14px", borderRadius: RADIUS.full, border: `1px solid ${whiteAlpha(0.07)}`, background: "transparent", color: whiteAlpha(0.45), fontSize: 12, fontWeight: 700, cursor: "pointer" },
   catActive: { flexShrink: 0, padding: "6px 14px", borderRadius: RADIUS.full, border: `1px solid ${goldAlpha(0.5)}`, background: goldAlpha(0.12), color: GOLD, fontSize: 12, fontWeight: 700, cursor: "pointer" },
