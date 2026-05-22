@@ -214,10 +214,12 @@ function DesktopReelCard({
   onLike, onOpenComments, onShare, onSave, onGetFeedback,
 }) {
   const [hovered, setHovered] = useState(false);
-  const [playing, setPlaying] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const [playing, setPlaying] = useState(true);
   const [localMuted, setLocalMuted] = useState(true);
   const [heartBurst, setHeartBurst] = useState(false);
   const videoRef = useRef(null);
+  const containerRef = useRef(null);
   const heartTimerRef = useRef(null);
   const clickTimerRef = useRef(null);
 
@@ -225,20 +227,32 @@ function DesktopReelCard({
     if (videoRef.current) videoRefs.current[reel.id] = videoRef.current;
   }, [reel.id, videoRefs]);
 
+  // Autoplay when card scrolls into view — no hover needed
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setVisible(entry.isIntersecting),
+      { threshold: 0.5 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   useEffect(() => {
     const el = videoRef.current;
     if (!el) return;
-    if (hovered && playing) {
+    if (visible && playing) {
       el.muted = localMuted;
       el.play().catch(() => {});
     } else {
       el.pause();
-      if (!hovered) el.currentTime = 0;
     }
-  }, [hovered, playing, localMuted]);
+  }, [visible, playing, localMuted]);
 
-  const handleMouseEnter = () => { setHovered(true); setPlaying(true); };
-  const handleMouseLeave = () => { setHovered(false); setPlaying(false); };
+  // Hover only reveals controls — does not drive playback
+  const handleMouseEnter = () => setHovered(true);
+  const handleMouseLeave = () => setHovered(false);
 
   const handleVideoClick = (e) => {
     e.stopPropagation();
@@ -267,6 +281,7 @@ function DesktopReelCard({
 
   return (
     <div
+      ref={containerRef}
       style={d.reelCard}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -278,8 +293,8 @@ function DesktopReelCard({
           onClick={handleVideoClick}
           onDoubleClick={handleDoubleClick}
         >
-          <video ref={videoRef} src={reel.videoUrl} poster={reel.thumbnailUrl || undefined} loop playsInline style={d.reelVideo} />
-          {(!hovered || !playing) && (
+          <video ref={videoRef} src={reel.videoUrl} poster={reel.thumbnailUrl || undefined} loop muted playsInline style={d.reelVideo} />
+          {!playing && (
             <div style={d.videoOverlay}>
               <div style={d.playCircle}><IcoPlay /></div>
             </div>
