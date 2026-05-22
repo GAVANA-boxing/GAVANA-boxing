@@ -36,7 +36,7 @@
   /* ── Status ── */
   --success: #22C55E;
 
-  /* ── Spacing (4/8/12/16/24/32/48/64) ── */
+  /* ── Spacing (8pt grid) ── */
   --sp-1:  4px;
   --sp-2:  8px;
   --sp-3:  12px;
@@ -45,6 +45,37 @@
   --sp-8:  32px;
   --sp-12: 48px;
   --sp-16: 64px;
+
+  /* ── Typography scale ── */
+  --text-xs:   9px;
+  --text-sm:   11px;
+  --text-base: 13px;
+  --text-md:   15px;
+  --text-lg:   17px;
+  --text-xl:   22px;
+  --text-2xl:  28px;
+  --text-3xl:  36px;
+  --text-4xl:  48px;
+
+  /* ── Font weights ── */
+  --fw-regular: 400;
+  --fw-medium:  600;
+  --fw-bold:    800;
+  --fw-black:   900;
+  --fw-ultra:   1000;
+
+  /* ── Line heights ── */
+  --lh-tight:   1.0;
+  --lh-snug:    1.2;
+  --lh-normal:  1.45;
+  --lh-relaxed: 1.6;
+
+  /* ── Letter spacing ── */
+  --ls-tight:   -0.02em;
+  --ls-normal:  0;
+  --ls-wide:    0.04em;
+  --ls-wider:   0.08em;
+  --ls-widest:  0.28em;
   --page-margin: 16px;
   --section-gap: 24px;
 
@@ -285,6 +316,80 @@ p {
   50%       { box-shadow: 0 0 0 2px rgba(193,18,31,0.45), 0 0 40px rgba(193,18,31,0.22); }
 }
 
+/* ─── Phase 7A: Typography System ──────────────────────────────────────────── */
+
+/* Kicker — smallest label, all-caps, brand red */
+.type-kicker {
+  font-size: var(--text-xs);
+  font-weight: var(--fw-black);
+  letter-spacing: var(--ls-widest);
+  text-transform: uppercase;
+  line-height: var(--lh-tight);
+  color: var(--red);
+}
+
+/* Eyebrow — section intro label, muted */
+.type-eyebrow {
+  font-size: var(--text-xs);
+  font-weight: var(--fw-black);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  line-height: var(--lh-tight);
+  color: rgba(255,255,255,0.35);
+}
+
+/* Display — hero, rank number, impact heading */
+.type-display {
+  font-family: var(--font-display, 'Anton', sans-serif);
+  font-size: clamp(var(--text-2xl), 9vw, var(--text-4xl));
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-tight);
+  text-transform: uppercase;
+}
+
+/* Heading — section title */
+.type-heading {
+  font-size: var(--text-xl);
+  font-weight: var(--fw-ultra);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--ls-tight);
+}
+
+/* Title — card title, list item name */
+.type-title {
+  font-size: var(--text-md);
+  font-weight: var(--fw-black);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--ls-normal);
+}
+
+/* Body — default readable text */
+.type-body {
+  font-size: var(--text-base);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-normal);
+  color: rgba(255,255,255,0.72);
+}
+
+/* Caption — meta info, timestamps, secondary */
+.type-caption {
+  font-size: var(--text-sm);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-normal);
+  color: rgba(255,255,255,0.38);
+  letter-spacing: var(--ls-wide);
+}
+
+/* Label — small uppercase navigation, tags */
+.type-label {
+  font-size: var(--text-xs);
+  font-weight: var(--fw-black);
+  letter-spacing: var(--ls-wider);
+  text-transform: uppercase;
+  line-height: var(--lh-tight);
+}
+
 /* ── Utility animation classes ── */
 
 .page-enter {
@@ -386,7 +491,12 @@ p {
 .fire-spark-4 { animation: sparkFly4 650ms ease-out 140ms forwards; }
 .fire-spark-5 { animation: sparkFly5 650ms ease-out 160ms forwards; }
 
-.reels-feed { scrollbar-width: none; }
+.reels-feed {
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: auto;
+}
 .reels-feed::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -601,6 +711,18 @@ p {
 @keyframes ambient-pulse {
   0%,100% { opacity: 0.45; transform: scale(1); }
   50%      { opacity: 0.75; transform: scale(1.08); }
+}
+
+/* Reel active ambient glow */
+@keyframes ambientReelPulse {
+  0%,100% { opacity: 0.6; transform: translateX(-50%) scale(1); }
+  50%     { opacity: 1;   transform: translateX(-50%) scale(1.15); }
+}
+
+/* Next reel hint bar */
+@keyframes nextHintPulse {
+  0%,100% { opacity: 0.3; }
+  50%     { opacity: 0.7; }
 }
 
 /* Float drift for background orbs */
