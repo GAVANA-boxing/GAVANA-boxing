@@ -222,8 +222,16 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
   const [dmUnread, setDmUnread] = useState(0);
   const [mounted, setMounted] = useState(false);
   const [combatOSOpen, setCombatOSOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+    const mq = window.matchMedia("(min-width: 1024px)");
+    setIsDesktop(mq.matches);
+    const handler = (e) => setIsDesktop(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
   const resolvedActiveTab = activeTab || getActiveTab(pathname);
 
   // Unread DMs
@@ -260,16 +268,18 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
 
   return (
     <>
-      {/* Combat OS floating trigger */}
-      <button
-        className="tap-bounce"
-        aria-label="More"
-        onClick={() => setCombatOSOpen(true)}
-        style={s.combatOSBtn}
-      >
-        <GridIcon />
-        <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.8, textTransform: "uppercase" }}>More</span>
-      </button>
+      {/* Combat OS floating trigger — mobile only */}
+      {!isDesktop && (
+        <button
+          className="tap-bounce"
+          aria-label="More"
+          onClick={() => setCombatOSOpen(true)}
+          style={s.combatOSBtn}
+        >
+          <GridIcon />
+          <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.8, textTransform: "uppercase" }}>More</span>
+        </button>
+      )}
 
       {/* Combat OS sheet */}
       {combatOSOpen && (
