@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import { GOLD, RED, redAlpha, goldAlpha } from "@/lib/tokens";
 import S from "@/components/upload/uploadStyles";
 import { UField, UChips, UToggle } from "@/components/upload/UploadFormFields";
 import { useUploadForm } from "@/hooks/useUploadForm";
@@ -13,6 +13,12 @@ const CATEGORIES = ["boxing", "gym", "running", "street_workout", "sparring"];
 const DIFFICULTIES = ["beginner", "intermediate", "pro"];
 const CAT_KEY = { boxing: "catBoxing", gym: "catGym", running: "catRunning", street_workout: "catStreetWorkout", sparring: "catSparring" };
 const DIFF_KEY = { beginner: "diffBeginner", intermediate: "diffIntermediate", pro: "diffPro" };
+
+const CONTENT_TYPES = [
+  { id: "training",     emoji: "🥊", label: "Challenge",  color: "#F87171", border: redAlpha(0.5) },
+  { id: "lifestyle",    emoji: "🎬", label: "Lifestyle",  color: "#60A5FA", border: "rgba(96,165,250,0.45)" },
+  { id: "educational",  emoji: "📚", label: "Education",  color: GOLD,      border: goldAlpha(0.5) },
+];
 
 export default function UploadPage() {
   const pathname = usePathname();
@@ -44,6 +50,7 @@ export default function UploadPage() {
   const isEdu = contentType === "educational";
   const isLifestyle = contentType === "lifestyle";
   const diffColorMap = (d) => d === "beginner" ? S.chipGreen : d === "intermediate" ? S.chipGold : S.chipRed;
+  const activeType = CONTENT_TYPES.find((ct) => ct.id === contentType);
 
   // ── VIDEO STEP ─────────────────────────────────────────────────────────────
   if (step === "video") {
@@ -74,12 +81,15 @@ export default function UploadPage() {
           ) : (
             <div style={S.videoEmptyState}>
               <div style={S.videoEmptyIconWrap}>
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.89L15 14"/>
                   <rect x="3" y="6" width="12" height="12" rx="2"/>
                   <path d="M9 10v4M7 12h4" stroke={GOLD} strokeWidth="1.8"/>
                 </svg>
               </div>
+              <p style={S.videoEmptyKicker}>
+                {locale === "mn" ? "Рил бичлэг" : locale === "ko" ? "릴 영상" : "Reel Video"}
+              </p>
               <p style={S.videoEmptyLabel}>{t("uploadTapSelect")}</p>
               <p style={S.videoEmptySub}>MP4, MOV · {t("uploadSizeLimit")}</p>
             </div>
@@ -123,7 +133,7 @@ export default function UploadPage() {
 
       <div style={S.setupScroll}>
         {/* Video thumbnail strip */}
-        <div style={S.videoStrip}>
+        <div style={S.videoStrip} className="section-reveal">
           <div style={{ position: "relative", flexShrink: 0 }}>
             <video
               src={previewUrl}
@@ -161,61 +171,96 @@ export default function UploadPage() {
         </div>
 
         {error && <div style={S.errBox}>{error}</div>}
-        {remixOfId && (
-          <div style={S.remixBox}>🔀 Remixing {remixOfCreatorName ? `@${remixOfCreatorName}` : "a challenge"}</div>
-        )}
+        {remixOfId && <div style={S.remixBox}>🔀 Remixing {remixOfCreatorName ? `@${remixOfCreatorName}` : "a challenge"}</div>}
 
-        {/* Content type tabs */}
-        <div style={S.typeTabs}>
-          {[
-            { id: "training", emoji: "🥊", label: "Challenge", color: "#F87171", border: `${redAlpha(0.5)}` },
-            { id: "lifestyle", emoji: "🎬", label: "Lifestyle", color: "#60A5FA", border: "rgba(96,165,250,0.45)" },
-            { id: "educational", emoji: "📚", label: "Education", color: GOLD, border: `${goldAlpha(0.5)}` },
-          ].map(({ id, emoji, label, color, border }) => {
-            const active = contentType === id;
-            return (
-              <button
-                key={id}
-                onClick={() => setContentType(id)}
-                style={{
-                  ...S.typeTab,
-                  ...(active ? { color, border: `1px solid ${border}`, background: `${color}1a` } : {}),
-                }}
-              >
-                {emoji} {label}
-              </button>
-            );
-          })}
+        {/* Section — Content Type */}
+        <div className="stagger-list" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={S.sectionBlock}>
+            <p style={S.sectionKicker}>
+              {locale === "mn" ? "Контентын төрөл" : locale === "ko" ? "콘텐츠 유형" : "Content Type"}
+            </p>
+            <h2 style={S.sectionTitle}>
+              {locale === "mn" ? "Юу нийтлэх вэ?" : locale === "ko" ? "무엇을 올리나요?" : "What are you posting?"}
+            </h2>
+          </div>
+
+          <div style={S.typeTabs}>
+            {CONTENT_TYPES.map(({ id, emoji, label, color, border }) => {
+              const active = contentType === id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => setContentType(id)}
+                  style={{
+                    ...S.typeTab,
+                    ...(active ? {
+                      color,
+                      border: `1px solid ${border}`,
+                      background: `${color}18`,
+                      boxShadow: `0 0 16px ${color}22`,
+                    } : {}),
+                  }}
+                >
+                  <span style={S.typeTabEmoji}>{emoji}</span>
+                  <span style={S.typeTabLabel}>{label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        <div style={S.fields}>
-          {/* Primary field — caption or technique title (always visible) */}
-          {(isTraining || isLifestyle) && (
-            <UField label={t("caption")}>
-              <div style={{ position: "relative" }}>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder={isTraining ? t("uploadChallengePlaceholder") : t("uploadLifestylePlaceholder")}
-                  maxLength={300}
-                  style={{ ...S.textarea, minHeight: 96, paddingBottom: 28 }}
-                />
-                <span style={{ position: "absolute", bottom: 10, right: 12, fontSize: 11, color: description.length > 260 ? "#F87171" : "rgba(255,255,255,0.25)", fontWeight: 700, pointerEvents: "none" }}>
-                  {description.length}/300
-                </span>
-              </div>
-            </UField>
-          )}
-          {isEdu && (
-            <UField label={t("uploadTechniqueTitle")}>
-              <input value={techniqueTitle} onChange={(e) => setTechniqueTitle(e.target.value)} placeholder={t("uploadTechniquePlaceholder")} style={S.input} />
-            </UField>
-          )}
+        {/* Section — Caption / Title */}
+        <div className="stagger-list" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={S.sectionBlock}>
+            <p style={S.sectionKicker}>
+              {locale === "mn" ? "Тайлбар" : locale === "ko" ? "캡션" : "Description"}
+            </p>
+            <h2 style={S.sectionTitle}>
+              {isEdu
+                ? (locale === "mn" ? "Техникийн нэр" : locale === "ko" ? "기술 제목" : "Technique Title")
+                : (locale === "mn" ? "Чиний хэлэх зүйл" : locale === "ko" ? "내용 작성" : "Tell Your Story")}
+            </h2>
+          </div>
 
-          {/* Details accordion — advanced options collapsed by default */}
+          <div style={S.fields}>
+            {(isTraining || isLifestyle) && (
+              <UField label={t("caption")}>
+                <div style={{ position: "relative" }}>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder={isTraining ? t("uploadChallengePlaceholder") : t("uploadLifestylePlaceholder")}
+                    maxLength={300}
+                    style={{ ...S.textarea, minHeight: 96, paddingBottom: 28 }}
+                  />
+                  <span style={{ position: "absolute", bottom: 10, right: 12, fontSize: 11, color: description.length > 260 ? "#F87171" : "rgba(255,255,255,0.25)", fontWeight: 700, pointerEvents: "none" }}>
+                    {description.length}/300
+                  </span>
+                </div>
+              </UField>
+            )}
+            {isEdu && (
+              <UField label={t("uploadTechniqueTitle")}>
+                <input value={techniqueTitle} onChange={(e) => setTechniqueTitle(e.target.value)} placeholder={t("uploadTechniquePlaceholder")} style={S.input} />
+              </UField>
+            )}
+          </div>
+        </div>
+
+        {/* Section — Details accordion */}
+        <div className="stagger-list" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={S.sectionBlock}>
+            <p style={S.sectionKicker}>
+              {locale === "mn" ? "Дэлгэрэнгүй" : locale === "ko" ? "세부 정보" : "Details"}
+            </p>
+            <h2 style={S.sectionTitle}>
+              {locale === "mn" ? "Нэмэлт тохиргоо" : locale === "ko" ? "추가 설정" : "Advanced Options"}
+            </h2>
+          </div>
+
           <div style={S.detailsBox}>
             <button type="button" onClick={() => setDetailsOpen(!detailsOpen)} style={S.detailsToggle}>
-              <span style={S.detailsLabel}>⚙ Details</span>
+              <span style={S.detailsLabel}>⚙ {locale === "mn" ? "Тохиргоо" : locale === "ko" ? "설정" : "Settings"}</span>
               <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 16, lineHeight: 1 }}>{detailsOpen ? "∧" : "∨"}</span>
             </button>
             {detailsOpen && (
@@ -283,8 +328,19 @@ export default function UploadPage() {
               </div>
             </UField>
           )}
+        </div>
 
-          {/* AI Caption accordion */}
+        {/* Section — AI Caption */}
+        <div className="stagger-list" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={S.sectionBlock}>
+            <p style={S.sectionKicker}>
+              {locale === "mn" ? "AI тусламж" : locale === "ko" ? "AI 도우미" : "AI Tools"}
+            </p>
+            <h2 style={S.sectionTitle}>
+              {locale === "mn" ? "Caption үүсгэх" : locale === "ko" ? "캡션 생성" : "Generate Caption"}
+            </h2>
+          </div>
+
           <div style={S.aiBox}>
             <button onClick={() => setCaptionOpen(!captionOpen)} style={S.aiBoxBtn}>
               <span style={S.aiBoxLabel}>✨ {t("aiCaptionGenerator")}</span>
@@ -314,6 +370,7 @@ export default function UploadPage() {
           </div>
         </div>
 
+        {/* Post button */}
         <button onClick={handleUpload} disabled={uploading} style={{ ...S.primaryBtn, opacity: uploading ? 0.45 : 1, marginBottom: 32 }}>
           {t("uploadPostReel")}
         </button>
@@ -321,20 +378,31 @@ export default function UploadPage() {
 
       {/* Upload progress overlay */}
       {uploading && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.88)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, padding: 32 }}>
-          <div style={{ fontSize: 48 }}>🥊</div>
-          <div style={{ fontSize: 17, fontWeight: 900, color: "#fff" }}>
+        <div
+          className="page-enter"
+          style={{
+            position: "fixed", inset: 0, zIndex: 999,
+            background: "rgba(0,0,0,0.92)",
+            backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+            display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center",
+            gap: 20, padding: 32,
+          }}
+        >
+          <div style={{ fontSize: 52 }}>🥊</div>
+          <div style={{ fontSize: 18, fontWeight: 900, color: "#fff", letterSpacing: "-0.01em" }}>
             {t("uploadUploading")}
           </div>
           <div style={{ width: "100%", maxWidth: 280 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 12, color: "rgba(255,255,255,0.55)", fontWeight: 700 }}>
-              <span>{t("uploading")}</span><span>{uploadProgress}%</span>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 12, color: "rgba(255,255,255,0.5)", fontWeight: 700 }}>
+              <span>{t("uploading")}</span>
+              <span style={{ color: uploadProgress > 66 ? "#34D399" : "#fff" }}>{uploadProgress}%</span>
             </div>
-            <div style={{ height: 6, borderRadius: 999, background: "rgba(255,255,255,0.1)", overflow: "hidden" }}>
-              <div style={{ height: "100%", borderRadius: 999, background: "linear-gradient(90deg,#FF3B30,#F5C451)", width: `${uploadProgress}%`, transition: "width 200ms ease" }} />
+            <div style={S.progressTrack}>
+              <div style={{ ...S.progressFill, width: `${uploadProgress}%` }} />
             </div>
           </div>
-          <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.35)", textAlign: "center" }}>
+          <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.3)", textAlign: "center" }}>
             {t("uploadDontClose")}
           </p>
         </div>
@@ -342,4 +410,3 @@ export default function UploadPage() {
     </div>
   );
 }
-
