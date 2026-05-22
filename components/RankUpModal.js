@@ -1,6 +1,7 @@
 "use client";
 
 import RankIcon from "@/components/RankIcon";
+import { RADIUS , blackAlpha} from "@/lib/tokens";
 
 if (typeof window !== "undefined") {
   if (!document.getElementById("rank-modal-kf")) {
@@ -51,7 +52,7 @@ export default function RankUpModal({ rank, onClose, t }) {
         alignItems: "center",
         justifyContent: "center",
         padding: 24,
-        background: "rgba(0,0,0,0.85)",
+        background: blackAlpha(0.85),
         backdropFilter: "blur(10px)",
         WebkitBackdropFilter: "blur(10px)",
         animation: "rankOverlayIn 300ms ease forwards",
@@ -68,7 +69,7 @@ export default function RankUpModal({ rank, onClose, t }) {
           maxWidth: 320,
           width: "100%",
           textAlign: "center",
-          boxShadow: `0 0 70px ${shadowColor}, 0 36px 90px rgba(0,0,0,0.75)`,
+          boxShadow: `0 0 70px ${shadowColor}, 0 36px 90px ${blackAlpha(0.75)}`,
           animation: "rankModalIn 500ms cubic-bezier(0.34,1.56,0.64,1) forwards",
           overflow: "hidden",
         }}
@@ -132,7 +133,7 @@ export default function RankUpModal({ rank, onClose, t }) {
             padding: "15px 0",
             background: rank.gradient,
             border: "none",
-            borderRadius: 999,
+            borderRadius: RADIUS.full,
             color: "#fff",
             fontSize: 14,
             fontWeight: 900,

@@ -13,7 +13,7 @@ import {
   calculateUserXP, getFighterRank,
   getNextRank, getRankProgress,
 } from "@/lib/xp";
-import { RED, GOLD, goldAlpha } from "@/lib/tokens";
+import { RED, GOLD, goldAlpha, RADIUS} from "@/lib/tokens";
 import {
   deriveRadarStats, computeFighterScore, getInsight,
 } from "@/lib/dashboardHelpers";
@@ -252,26 +252,26 @@ export default function AthleteDashboard() {
               🗓 {locale === "mn" ? "7 хоногийн ахиц" : locale === "ko" ? "주간 요약" : "Weekly Recap"}
             </p>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 11px", borderRadius: 999, background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.25)", color: "#34D399", fontSize: 12, fontWeight: 900 }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 11px", borderRadius: RADIUS.full, background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.25)", color: "#34D399", fontSize: 12, fontWeight: 900 }}>
                 🥊 {weekSessions.length} {locale === "mn" ? "сесс" : locale === "ko" ? "세션" : "sessions"}
               </span>
               {weekXP > 0 && (
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 11px", borderRadius: 999, background: `${goldAlpha(0.1)}`, border: `1px solid ${goldAlpha(0.25)}`, color: GOLD, fontSize: 12, fontWeight: 900 }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 11px", borderRadius: RADIUS.full, background: `${goldAlpha(0.1)}`, border: `1px solid ${goldAlpha(0.25)}`, color: GOLD, fontSize: 12, fontWeight: 900 }}>
                   ⚡ +{weekXP} XP
                 </span>
               )}
               {weekScores.length > 0 && (
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 11px", borderRadius: 999, background: "rgba(96,165,250,0.1)", border: "1px solid rgba(96,165,250,0.25)", color: "#60A5FA", fontSize: 12, fontWeight: 900 }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 11px", borderRadius: RADIUS.full, background: "rgba(96,165,250,0.1)", border: "1px solid rgba(96,165,250,0.25)", color: "#60A5FA", fontSize: 12, fontWeight: 900 }}>
                   ⭐ {weekAvg?.toFixed(1)}/10 avg
                 </span>
               )}
               {scoreTrend !== null && (
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 11px", borderRadius: 999, background: scoreTrend >= 0 ? "rgba(52,211,153,0.1)" : "rgba(248,113,113,0.1)", border: `1px solid ${scoreTrend >= 0 ? "rgba(52,211,153,0.25)" : "rgba(248,113,113,0.25)"}`, color: scoreTrend >= 0 ? "#34D399" : "#F87171", fontSize: 12, fontWeight: 900 }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 11px", borderRadius: RADIUS.full, background: scoreTrend >= 0 ? "rgba(52,211,153,0.1)" : "rgba(248,113,113,0.1)", border: `1px solid ${scoreTrend >= 0 ? "rgba(52,211,153,0.25)" : "rgba(248,113,113,0.25)"}`, color: scoreTrend >= 0 ? "#34D399" : "#F87171", fontSize: 12, fontWeight: 900 }}>
                   {scoreTrend >= 0 ? "📈" : "📉"} {scoreTrend >= 0 ? "+" : ""}{scoreTrend.toFixed(1)} {locale === "mn" ? "оноо" : locale === "ko" ? "점" : "pts"}
                 </span>
               )}
               {dailyStreak >= 3 && (
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 11px", borderRadius: 999, background: "rgba(251,146,60,0.1)", border: "1px solid rgba(251,146,60,0.25)", color: "#FB923C", fontSize: 12, fontWeight: 900 }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 11px", borderRadius: RADIUS.full, background: "rgba(251,146,60,0.1)", border: "1px solid rgba(251,146,60,0.25)", color: "#FB923C", fontSize: 12, fontWeight: 900 }}>
                   🔥 {dailyStreak}{locale === "mn" ? "ш streak" : locale === "ko" ? "일 스트릭" : "d streak"}
                 </span>
               )}

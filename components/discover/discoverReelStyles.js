@@ -1,3 +1,5 @@
+import { SURFACE_1, BORDER_2, RADIUS, whiteAlpha, blackAlpha } from "@/lib/tokens";
+
 export const discoverReelStyles = {
   // ── Reel scroll ──
   reelScroll: {
@@ -18,19 +20,19 @@ export const discoverReelStyles = {
     overflow: "hidden",
     cursor: "pointer",
     background: "none",
-    border: "1px solid rgba(255,255,255,0.08)",
+    border: `1px solid ${BORDER_2}`,
     padding: 0,
     display: "block",
     position: "relative",
     WebkitTapHighlightColor: "transparent",
-    boxShadow: "0 8px 28px rgba(0,0,0,0.55)",
+    boxShadow: `0 8px 28px ${blackAlpha(0.55)}`,
     transition: "transform 180ms ease, box-shadow 180ms ease",
   },
   reelThumbWrap: {
     width: "100%",
     height: "100%",
     position: "relative",
-    background: "linear-gradient(160deg, #1a0808 0%, #0d0d0d 100%)",
+    background: `linear-gradient(160deg, #1a0808 0%, ${SURFACE_1} 100%)`,
     borderRadius: 16,
     overflow: "hidden",
   },
@@ -55,7 +57,7 @@ export const discoverReelStyles = {
   reelFallbackCaption: {
     margin: 0,
     fontSize: 9,
-    color: "rgba(255,255,255,0.55)",
+    color: whiteAlpha(0.55),
     lineHeight: 1.3,
     textAlign: "center",
     display: "-webkit-box",
@@ -69,7 +71,7 @@ export const discoverReelStyles = {
     left: 0,
     right: 0,
     height: 70,
-    background: "linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 100%)",
+    background: `linear-gradient(180deg, ${blackAlpha(0.6)} 0%, transparent 100%)`,
     pointerEvents: "none",
   },
   reelGradBottom: {
@@ -78,7 +80,7 @@ export const discoverReelStyles = {
     left: 0,
     right: 0,
     height: 100,
-    background: "linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.45) 55%, transparent 100%)",
+    background: `linear-gradient(0deg, ${blackAlpha(0.9)} 0%, ${blackAlpha(0.45)} 55%, transparent 100%)`,
     pointerEvents: "none",
   },
   reelTypeBadge: {
@@ -87,7 +89,7 @@ export const discoverReelStyles = {
     left: 9,
     fontSize: 13,
     lineHeight: 1,
-    filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.9))",
+    filter: `drop-shadow(0 1px 3px ${blackAlpha(0.9)})`,
     zIndex: 2,
   },
   reelViews: {
@@ -96,10 +98,10 @@ export const discoverReelStyles = {
     right: 9,
     fontSize: 9,
     fontWeight: 900,
-    color: "rgba(255,255,255,0.75)",
+    color: whiteAlpha(0.75),
     letterSpacing: 0.3,
     zIndex: 2,
-    textShadow: "0 1px 4px rgba(0,0,0,0.8)",
+    textShadow: `0 1px 4px ${blackAlpha(0.8)}`,
   },
   reelCaptionOverlay: {
     position: "absolute",
@@ -112,7 +114,7 @@ export const discoverReelStyles = {
     color: "#fff",
     lineHeight: 1.3,
     letterSpacing: 0.1,
-    textShadow: "0 1px 6px rgba(0,0,0,0.95)",
+    textShadow: `0 1px 6px ${blackAlpha(0.95)}`,
     overflow: "hidden",
     display: "-webkit-box",
     WebkitLineClamp: 2,

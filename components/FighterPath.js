@@ -1,6 +1,6 @@
 "use client";
 
-import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, redAlpha, goldAlpha, RADIUS, blackAlpha} from "@/lib/tokens";
 
 const STEPS = [
   { id: "profile", icon: "👤", label: "Fighter Profile", desc: "Зураг, bio нэмэх", check: (d) => !!(d.photoURL && d.bio), cta: "Profile засах", link: "profile/edit" },
@@ -69,16 +69,16 @@ const fp = {
     border: "1px solid rgba(255,255,255,0.07)",
     borderLeft: "2.5px solid #F5C451",
     borderRadius: "3px 16px 16px 3px",
-    boxShadow: "0 0 0 0.5px rgba(0,0,0,0.5) inset, 0 12px 40px rgba(0,0,0,0.2)",
+    boxShadow: `0 0 0 0.5px ${blackAlpha(0.5)} inset, 0 12px 40px ${blackAlpha(0.2)}`,
     overflow: "hidden", marginBottom: 28,
   },
   header: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px 0" },
   left: { display: "flex", alignItems: "center", gap: 8 },
   dot: { width: 5, height: 5, borderRadius: "50%", flexShrink: 0, background: GOLD, boxShadow: "0 0 7px #F5C451, 0 0 14px #F5C45155" },
   label: { fontSize: 9, fontWeight: 900, color: "rgba(255,255,255,0.5)", letterSpacing: "0.2em", textTransform: "uppercase" },
-  pctBadge: { fontSize: 11, fontWeight: 900, color: GOLD, background: `${goldAlpha(0.1)}`, border: `1px solid ${goldAlpha(0.2)}`, borderRadius: 999, padding: "2px 10px" },
-  track: { height: 3, borderRadius: 999, background: "rgba(255,255,255,0.07)", overflow: "hidden", marginBottom: 5 },
-  fill: { height: "100%", borderRadius: 999, background: "linear-gradient(90deg, #FF3B30, #F5C451)", transition: "width 700ms cubic-bezier(0.4,0,0.2,1)" },
+  pctBadge: { fontSize: 11, fontWeight: 900, color: GOLD, background: `${goldAlpha(0.1)}`, border: `1px solid ${goldAlpha(0.2)}`, borderRadius: RADIUS.full, padding: "2px 10px" },
+  track: { height: 3, borderRadius: RADIUS.full, background: "rgba(255,255,255,0.07)", overflow: "hidden", marginBottom: 5 },
+  fill: { height: "100%", borderRadius: RADIUS.full, background: "linear-gradient(90deg, #FF3B30, #F5C451)", transition: "width 700ms cubic-bezier(0.4,0,0.2,1)" },
   sub: { fontSize: 10, color: "rgba(255,255,255,0.28)", fontWeight: 700, letterSpacing: 0.4 },
   stepList: { borderTop: "1px solid rgba(255,255,255,0.045)" },
   step: { display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.03)" },
@@ -95,10 +95,10 @@ const fp = {
   labelIdle: { color: "rgba(255,255,255,0.35)" },
   stepDesc: { fontSize: 11, color: "rgba(255,255,255,0.28)", marginTop: 2 },
   ctaBtn: {
-    flexShrink: 0, padding: "6px 12px", borderRadius: 999, border: "none",
-    background: "linear-gradient(135deg, #FF3B30, #cc2820)",
+    flexShrink: 0, padding: "6px 12px", borderRadius: RADIUS.full, border: "none",
+    background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`,
     color: "#fff", fontSize: 11, fontWeight: 900, cursor: "pointer",
     boxShadow: `0 2px 10px ${redAlpha(0.3)}`, whiteSpace: "nowrap",
   },
-  soonTag: { flexShrink: 0, padding: "3px 9px", borderRadius: 999, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.22)", fontSize: 10, fontWeight: 700 },
+  soonTag: { flexShrink: 0, padding: "3px 9px", borderRadius: RADIUS.full, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.22)", fontSize: 10, fontWeight: 700 },
 };

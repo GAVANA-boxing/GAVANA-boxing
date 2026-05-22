@@ -1,5 +1,6 @@
 "use client";
 
+import { blackAlpha } from "@/lib/tokens";
 import { useState, useEffect } from "react";
 import { translate } from "@/lib/i18n";
 import { auth } from "@/lib/firebase";
@@ -280,7 +281,7 @@ export default function AIBreakdownSheet({ reel, locale, onClose }) {
         style={{
           position: "fixed",
           inset: 0,
-          background: "rgba(0,0,0,0.65)",
+          background: blackAlpha(0.65),
           zIndex: 9000,
         }}
       />

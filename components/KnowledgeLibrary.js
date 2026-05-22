@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { translate } from "@/lib/i18n";
 import ScrollRow from "@/components/ScrollRow";
-import { GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import { GOLD, redAlpha, goldAlpha, RADIUS, blackAlpha} from "@/lib/tokens";
 import {
   getStyles, getTechniques, getCountryStyles, getCommonMistakes, getWeeklyFocus, getMovement,
   QUICK_PROMPTS,
@@ -52,7 +52,7 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
               onMouseLeave={() => setHoveredPrompt(null)}
               style={{
                 display: "flex", alignItems: "center", gap: 5,
-                padding: "7px 12px", borderRadius: 999,
+                padding: "7px 12px", borderRadius: RADIUS.full,
                 background: hoveredPrompt === p.key ? `${goldAlpha(0.12)}` : "rgba(255,255,255,0.05)",
                 border: `1px solid ${hoveredPrompt === p.key ? `${goldAlpha(0.4)}` : "rgba(255,255,255,0.1)"}`,
                 color: hoveredPrompt === p.key ? GOLD : "#ddd",
@@ -87,7 +87,7 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
             </div>
           </div>
           <p style={{ margin: "0 0 10px", fontSize: 12, color: "#aaa", lineHeight: 1.5 }}>{todayFocus.desc}</p>
-          <div style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 9, padding: "9px 11px" }}>
+          <div style={{ background: blackAlpha(0.3), border: "1px solid rgba(255,255,255,0.07)", borderRadius: 9, padding: "9px 11px" }}>
             <p style={{ margin: 0, fontSize: 12, color: "#fde68a", lineHeight: 1.5 }}>
               <strong style={{ color: GOLD }}>Drill: </strong>{todayFocus.drill}
             </p>

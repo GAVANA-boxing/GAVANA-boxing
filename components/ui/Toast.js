@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { redAlpha } from "@/lib/tokens";
+import { redAlpha , blackAlpha} from "@/lib/tokens";
 
 export function Toast({ message, type = "error", onDismiss, duration = 3500 }) {
   const timerRef = useRef(null);
@@ -35,7 +35,7 @@ export function Toast({ message, type = "error", onDismiss, duration = 3500 }) {
         display: "flex",
         alignItems: "center",
         gap: 10,
-        boxShadow: `0 0 32px ${glow}, 0 12px 40px rgba(0,0,0,0.7)`,
+        boxShadow: `0 0 32px ${glow}, 0 12px 40px ${blackAlpha(0.7)}`,
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
         animation: "toastIn 240ms cubic-bezier(0.16,1,0.3,1)",

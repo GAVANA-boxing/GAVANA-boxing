@@ -1,7 +1,7 @@
 "use client";
 
 import styles from "@/components/train/trainStyles";
-import { GOLD, RED } from "@/lib/tokens";
+import { GOLD, RED, whiteAlpha } from "@/lib/tokens";
 
 export default function PreGameCard({
   phase,
@@ -32,7 +32,7 @@ export default function PreGameCard({
             return (
               <div style={styles.weeklyRingWrap}>
                 <svg width="56" height="56" viewBox="0 0 56 56" style={{ display: "block" }}>
-                  <circle cx="28" cy="28" r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="4" />
+                  <circle cx="28" cy="28" r={r} fill="none" stroke={whiteAlpha(0.08)} strokeWidth="4" />
                   <circle cx="28" cy="28" r={r} fill="none" stroke={GOLD} strokeWidth="4"
                     strokeDasharray={`${filled} ${circ - filled}`}
                     strokeLinecap="round"
@@ -71,7 +71,7 @@ export default function PreGameCard({
                     style={{
                       ...styles.preSessionSparkBar,
                       height: `${Math.max(12, (s / 10) * 36)}px`,
-                      background: i === arr.length - 1 ? RED : "rgba(255,255,255,0.18)",
+                      background: i === arr.length - 1 ? RED : whiteAlpha(0.18),
                     }}
                   />
                 ))}

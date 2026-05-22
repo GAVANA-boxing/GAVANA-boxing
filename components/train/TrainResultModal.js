@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import styles from "@/components/train/trainStyles";
-import { GOLD, RED, redAlpha } from "@/lib/tokens";
+import { GOLD, RED, redAlpha, whiteAlpha, RADIUS, blackAlpha} from "@/lib/tokens";
 import { getChallengeRank } from "@/lib/utils";
 import { getChallengeComparisonPercent } from "@/lib/trainHelpers";
 import RankBadge from "@/components/RankBadge";
@@ -136,7 +136,7 @@ export default function TrainResultModal({
                 <button
                   type="button"
                   onClick={() => router.push(`/${locale}/reels?id=${reelId}`)}
-                  style={{ marginTop: 12, padding: "8px 18px", borderRadius: 999, border: "1px solid rgba(168,85,247,0.4)", background: "rgba(168,85,247,0.12)", color: "#C084FC", fontSize: 12, fontWeight: 900, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}
+                  style={{ marginTop: 12, padding: "8px 18px", borderRadius: RADIUS.full, border: "1px solid rgba(168,85,247,0.4)", background: "rgba(168,85,247,0.12)", color: "#C084FC", fontSize: 12, fontWeight: 900, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}
                 >
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                   {t("trainWatchMatchReel")}
@@ -212,7 +212,7 @@ export default function TrainResultModal({
                 )}
               </div>
               {missionStreakBonus > 0 && (
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", fontWeight: 700, marginTop: 2 }}>
+                <div style={{ fontSize: 10, color: whiteAlpha(0.45), fontWeight: 700, marginTop: 2 }}>
                   {locale === "mn" ? `${missionNewStreak} өдрийн дараалал — бонус XP авлаа!` : locale === "ko" ? `${missionNewStreak}일 연속 — 보너스 XP 획득!` : `${missionNewStreak}-day streak — bonus XP earned!`}
                 </div>
               )}
@@ -222,7 +222,7 @@ export default function TrainResultModal({
           {rankUpInfo && (
             <div style={{
               borderRadius: 16, padding: "18px 20px", textAlign: "center",
-              background: `linear-gradient(135deg, ${rankUpInfo.color}18, rgba(0,0,0,0.8))`,
+              background: `linear-gradient(135deg, ${rankUpInfo.color}18, ${blackAlpha(0.8)})`,
               border: `1px solid ${rankUpInfo.color}55`,
               boxShadow: `0 0 28px ${rankUpInfo.color}30`,
               animation: "rankUpPulse 2s ease-in-out infinite",
@@ -236,7 +236,7 @@ export default function TrainResultModal({
               <div style={{ fontSize: 13, color: "#fff", fontWeight: 800 }}>
                 {t(rankUpInfo.key)}
               </div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 4 }}>
+              <div style={{ fontSize: 11, color: whiteAlpha(0.45), marginTop: 4 }}>
                 {t("trainNewRank")}
               </div>
             </div>
@@ -251,12 +251,12 @@ export default function TrainResultModal({
                     <div style={{
                       width: "100%",
                       height: `${Math.max(8, (s / 10) * 44)}px`,
-                      background: i === arr.length - 1 ? RED : "rgba(255,255,255,0.16)",
+                      background: i === arr.length - 1 ? RED : whiteAlpha(0.16),
                       borderRadius: "3px 3px 0 0",
                       transition: "height 0.5s ease",
                       alignSelf: "flex-end",
                     }} />
-                    <span style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>
+                    <span style={{ fontSize: 9, color: whiteAlpha(0.4), fontWeight: 700 }}>
                       {s.toFixed(1)}
                     </span>
                   </div>

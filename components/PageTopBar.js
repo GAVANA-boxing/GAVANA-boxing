@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 
 function IcoChevron() {
   return (
@@ -236,7 +236,7 @@ const s = {
     overflow: "hidden",
     border: `1.5px solid ${goldAlpha(0.2)}`,
     cursor: "pointer",
-    background: `linear-gradient(135deg, ${RED}, #cc2820)`,
+    background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",

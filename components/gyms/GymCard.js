@@ -17,8 +17,8 @@ function StarDisplay({ rating }) {
 export function GymCard({ gym, t, router, locale }) {
   const vibes = gym.vibes || getDefaultVibes(gym.gymType);
   return (
-    <div style={styles.card}>
-      <div style={styles.cardImageWrap} onClick={() => router.push(`/${locale}/gyms/${gym.id}`)}>
+    <div style={{ ...styles.card, cursor: "pointer" }} className="lift-card" onClick={() => router.push(`/${locale}/gyms/${gym.id}`)}>
+      <div style={styles.cardImageWrap}>
         {gym.logo ? (
           <Image src={gym.logo} alt={gym.gymName || "Gym"} width={64} height={64} style={{ objectFit: "cover", borderRadius: 14 }} />
         ) : (
@@ -82,7 +82,7 @@ export function GymCard({ gym, t, router, locale }) {
         <button
           type="button"
           style={styles.joinBtn}
-          onClick={() => router.push(`/${locale}/gyms/${gym.id}`)}
+          onClick={(e) => { e.stopPropagation(); router.push(`/${locale}/gyms/${gym.id}`); }}
         >
           {t("gymViewJoin")}
         </button>

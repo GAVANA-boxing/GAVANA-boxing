@@ -1,10 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 import { RANK_TIERS, getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
 import { getLocale, translate } from "@/lib/i18n";
 import RankIcon from "@/components/RankIcon";
+import RankPromotionModal from "@/components/RankPromotionModal";
 import BottomNav from "@/components/BottomNav";
 import PageTopBar from "@/components/PageTopBar";
 import { RED, GOLD, PURPLE, BG, BORDER, goldAlpha, redAlpha, pageBg } from "@/lib/tokens";
@@ -78,13 +80,36 @@ export default function RankPage() {
   const nextRank = getNextRank(currentXP);
   const rankProgress = getRankProgress(currentXP);
   const xpToNext = nextRank ? nextRank.minXP - currentXP : 0;
+
+  const [showPromotion, setShowPromotion] = useState(false);
+  const [promotionRank, setPromotionRank] = useState(null);
+
+  useEffect(() => {
+    if (dataLoading || !user?.uid || !fighterRank) return;
+    const storageKey = `gavana_rank_${user.uid}`;
+    const lastRankKey = typeof window !== "undefined" ? localStorage.getItem(storageKey) : null;
+    if (lastRankKey && lastRankKey !== fighterRank.key) {
+      setPromotionRank(fighterRank);
+      setShowPromotion(true);
+    }
+    localStorage.setItem(storageKey, fighterRank.key);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dataLoading, user?.uid, fighterRank?.key]);
   const tierXPStart = fighterRank.minXP;
   const tierXPEnd = nextRank?.minXP ?? fighterRank.minXP;
   const tierXPDone = currentXP - tierXPStart;
   const tierXPRange = tierXPEnd - tierXPStart;
 
   return (
-    <main style={styles.page} className="page-enter">
+    <main style={styles.page} className="page-enter cinematic-bg">
+      {showPromotion && promotionRank && (
+        <RankPromotionModal
+          rank={promotionRank}
+          rankName={t(promotionRank.key)}
+          onDismiss={() => setShowPromotion(false)}
+        />
+      )}
+
       <PageTopBar kicker="COMBAT · RANK" title={t("rankPageTitle") || "RANK"} user={user} currentLocale={locale} showBack />
 
       <div style={styles.content}>
@@ -95,18 +120,21 @@ export default function RankPage() {
             <div className="shimmer" style={{ height: 160, borderRadius: 20 }} />
           </div>
         ) : (
-          <div style={{
-            ...styles.currentCard,
-            borderColor: fighterRank.glowColor
-              ? fighterRank.glowColor.replace(/[\d.]+\)$/, "0.5)")
-              : `${fighterRank.color}55`,
-            background: fighterRank.glowColor
-              ? fighterRank.glowColor.replace(/[\d.]+\)$/, "0.08)")
-              : `${fighterRank.color}12`,
-            boxShadow: fighterRank.pulse
-              ? `0 0 32px ${fighterRank.glowColor?.replace(/[\d.]+\)$/, "0.22)")}`
-              : "none",
-          }}>
+          <div
+            className="hud-corners section-reveal"
+            style={{
+              ...styles.currentCard,
+              borderColor: fighterRank.glowColor
+                ? fighterRank.glowColor.replace(/[\d.]+\)$/, "0.5)")
+                : `${fighterRank.color}55`,
+              background: fighterRank.glowColor
+                ? fighterRank.glowColor.replace(/[\d.]+\)$/, "0.08)")
+                : `${fighterRank.color}12`,
+              boxShadow: fighterRank.pulse
+                ? `0 0 32px ${fighterRank.glowColor?.replace(/[\d.]+\)$/, "0.22)")}`
+                : "none",
+            }}
+          >
             <div style={styles.currentTop}>
               <RankIcon rank={fighterRank} size={64} animated />
               <div style={styles.currentInfo}>
@@ -115,7 +143,7 @@ export default function RankPage() {
                   {t(fighterRank.key)}
                 </h2>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                  <p style={styles.currentXP}>
+                  <p style={styles.currentXP} className="num-reveal">
                     {currentXP.toLocaleString()} {t("xpLabel")}
                   </p>
                   {sessionCount > 0 && (
@@ -138,7 +166,7 @@ export default function RankPage() {
                 </span>
               </div>
               <div style={styles.xpTrack}>
-                <div style={{
+                <div className="xp-fill-anim" style={{
                   ...styles.xpFill,
                   width: `${rankProgress}%`,
                   background: fighterRank.gradient,
@@ -156,7 +184,7 @@ export default function RankPage() {
         {/* All-rank ladder */}
         <h2 style={styles.ladderHeading}>{t("rankPageKicker")}</h2>
 
-        <div style={styles.ladder}>
+        <div style={styles.ladder} className="stagger-list">
           {RANK_TIERS.map((tier) => {
             const isCurrent = fighterRank.key === tier.key;
             const isUnlocked = !dataLoading && currentXP >= tier.minXP;
@@ -300,7 +328,7 @@ const styles = {
   },
   currentCard: {
     padding: "20px 18px",
-    borderRadius: 22,
+    borderRadius: "var(--r-xl)",
     border: "1px solid",
     marginBottom: 28,
     transition: "box-shadow 0.4s",
@@ -316,26 +344,26 @@ const styles = {
   currentInfo: { flex: 1, minWidth: 0 },
   currentKicker: {
     margin: "0 0 3px",
-    fontSize: 10,
-    fontWeight: 900,
-    letterSpacing: 2.5,
+    fontSize: "var(--text-xs)",
+    fontWeight: "var(--fw-black)",
+    letterSpacing: "0.22em",
     color: "rgba(255,255,255,0.4)",
     textTransform: "uppercase",
   },
   currentName: {
     margin: "0 0 5px",
-    fontSize: 26,
-    fontWeight: 1000,
-    lineHeight: 1,
+    fontSize: "var(--text-2xl)",
+    fontWeight: "var(--fw-ultra)",
+    lineHeight: "var(--lh-tight)",
     textTransform: "uppercase",
-    letterSpacing: "-0.01em",
+    letterSpacing: "var(--ls-tight)",
     fontFamily: "var(--font-display, 'Anton', sans-serif)",
   },
   currentXP: {
     margin: 0,
-    fontSize: 13,
+    fontSize: "var(--text-base)",
     color: "rgba(255,255,255,0.45)",
-    fontWeight: 700,
+    fontWeight: "var(--fw-bold)",
   },
   xpBarWrap: {},
   xpTrack: {
@@ -353,16 +381,17 @@ const styles = {
   },
   xpBarLabel: {
     margin: 0,
-    fontSize: 11,
+    fontSize: "var(--text-sm)",
     color: "rgba(255,255,255,0.38)",
     textAlign: "right",
-    fontWeight: 700,
+    fontWeight: "var(--fw-bold)",
+    letterSpacing: "var(--ls-wide)",
   },
   ladderHeading: {
     margin: "0 0 12px",
-    fontSize: 10,
-    fontWeight: 900,
-    letterSpacing: 3,
+    fontSize: "var(--text-xs)",
+    fontWeight: "var(--fw-black)",
+    letterSpacing: "0.3em",
     color: GOLD,
     textTransform: "uppercase",
   },
@@ -375,7 +404,7 @@ const styles = {
     alignItems: "center",
     gap: 14,
     padding: "13px 15px",
-    borderRadius: 16,
+    borderRadius: "var(--r-lg)",
     background: "rgba(255,255,255,0.03)",
     border: "1px solid rgba(255,255,255,0.07)",
     position: "relative",
@@ -399,26 +428,27 @@ const styles = {
     flexWrap: "wrap",
   },
   rowName: {
-    fontSize: 14,
-    fontWeight: 900,
+    fontSize: "var(--text-md)",
+    fontWeight: "var(--fw-black)",
     textTransform: "uppercase",
-    letterSpacing: 0.4,
+    letterSpacing: "var(--ls-wide)",
   },
   currentBadge: {
     padding: "2px 8px",
-    borderRadius: 999,
-    fontSize: 9,
-    fontWeight: 900,
+    borderRadius: "var(--r-full)",
+    fontSize: "var(--text-xs)",
+    fontWeight: "var(--fw-black)",
     color: "#fff",
-    letterSpacing: 0.8,
+    letterSpacing: "var(--ls-wider)",
     textTransform: "uppercase",
   },
   lockIcon: { fontSize: 12 },
   rowXP: {
     margin: "3px 0 0",
-    fontSize: 11,
-    fontWeight: 700,
+    fontSize: "var(--text-sm)",
+    fontWeight: "var(--fw-bold)",
     color: "rgba(255,255,255,0.4)",
+    letterSpacing: "var(--ls-wide)",
   },
   rowProgress: {
     position: "absolute",

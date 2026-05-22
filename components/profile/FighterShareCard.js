@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import { GOLD, RED } from "@/lib/tokens";
+import { GOLD, RED, RADIUS, blackAlpha} from "@/lib/tokens";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import RankBadge from "@/components/RankBadge";
 import { formatScore } from "@/lib/utils";
@@ -134,7 +134,7 @@ function ProfileUrlBlock({ url, color }) {
       <div style={{
         width: 72, height: 72, borderRadius: 10, flexShrink: 0,
         border: `1.5px solid ${color}44`,
-        background: "rgba(0,0,0,0.6)",
+        background: blackAlpha(0.6),
         display: "flex", alignItems: "center", justifyContent: "center",
         overflow: "hidden",
         padding: 2,
@@ -216,7 +216,7 @@ export default function FighterShareCard({
 
   return (
     <div
-      style={{ position: "fixed", inset: 0, zIndex: 9500, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "16px 16px 24px", background: "rgba(0,0,0,0.92)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", overflowY: "auto" }}
+      style={{ position: "fixed", inset: 0, zIndex: 9500, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "16px 16px 24px", background: blackAlpha(0.92), backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", overflowY: "auto" }}
       onClick={onClose}
     >
       {/* ── Card ──────────────────────────────────────────────────────────── */}
@@ -225,7 +225,7 @@ export default function FighterShareCard({
           width: 340, minHeight: 600, borderRadius: 22,
           background: `radial-gradient(ellipse 80% 50% at 50% 0%, ${accentColor}1a 0%, transparent 60%), linear-gradient(180deg, #141014 0%, #0c0a0c 100%)`,
           border: `1px solid ${accentColor}2e`,
-          boxShadow: `0 0 0 1px ${accentColor}12, 0 40px 100px rgba(0,0,0,0.8)`,
+          boxShadow: `0 0 0 1px ${accentColor}12, 0 40px 100px ${blackAlpha(0.8)}`,
           padding: "22px 22px 20px",
           display: "flex", flexDirection: "column", alignItems: "center", gap: 0,
           flexShrink: 0,
@@ -238,7 +238,7 @@ export default function FighterShareCard({
             <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: "3px", color: accentColor, textTransform: "uppercase", lineHeight: 1 }}>GAVANA</span>
             <span style={{ fontSize: 7, fontWeight: 700, letterSpacing: "2px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase" }}>AI COACH</span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 10px", borderRadius: 999, background: `${accentColor}15`, border: `1px solid ${accentColor}30` }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 10px", borderRadius: RADIUS.full, background: `${accentColor}15`, border: `1px solid ${accentColor}30` }}>
             <span style={{ fontSize: 8, color: accentColor }}>✦</span>
             <span style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: "1.5px", color: accentColor, textTransform: "uppercase" }}>VERIFIED FIGHTER</span>
           </div>
@@ -268,11 +268,11 @@ export default function FighterShareCard({
 
         {/* Rank + Archetype badges */}
         <div style={{ display: "flex", gap: 6, marginBottom: 20 }}>
-          <span style={{ padding: "4px 12px", borderRadius: 999, background: `${fighterRank?.color || accentColor}18`, border: `1px solid ${fighterRank?.color || accentColor}44`, color: fighterRank?.color || accentColor, fontSize: 10.5, fontWeight: 900 }}>
+          <span style={{ padding: "4px 12px", borderRadius: RADIUS.full, background: `${fighterRank?.color || accentColor}18`, border: `1px solid ${fighterRank?.color || accentColor}44`, color: fighterRank?.color || accentColor, fontSize: 10.5, fontWeight: 900 }}>
             {t(fighterRank?.key || "")}
           </span>
           {arch && (
-            <span style={{ padding: "4px 12px", borderRadius: 999, background: `${arch.color}15`, border: `1px solid ${arch.color}44`, color: arch.color, fontSize: 10.5, fontWeight: 900 }}>
+            <span style={{ padding: "4px 12px", borderRadius: RADIUS.full, background: `${arch.color}15`, border: `1px solid ${arch.color}44`, color: arch.color, fontSize: 10.5, fontWeight: 900 }}>
               {arch.emoji} {arch.name}
             </span>
           )}
@@ -311,8 +311,8 @@ export default function FighterShareCard({
             <span style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.8px" }}>{xp.toLocaleString()} XP</span>
             <span style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.25)" }}>{rankProgress}% → next rank</span>
           </div>
-          <div style={{ height: 4, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${rankProgress}%`, borderRadius: 999, background: `linear-gradient(90deg, ${accentColor}aa, ${accentColor})` }} />
+          <div style={{ height: 4, borderRadius: RADIUS.full, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${rankProgress}%`, borderRadius: RADIUS.full, background: `linear-gradient(90deg, ${accentColor}aa, ${accentColor})` }} />
           </div>
         </div>
 

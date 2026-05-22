@@ -1,139 +1,152 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import { usePathname, useRouter as useNextRouter } from "next/navigation";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { translate } from "@/lib/i18n";
-import { RED, GOLD , redAlpha, goldAlpha} from "@/lib/tokens";
+import { RED, RED_DARK, redAlpha, RADIUS, MOTION , blackAlpha} from "@/lib/tokens";
 import Image from "next/image";
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
 function HomeIcon({ active }) {
   return (
     <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.38)" }} viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M3 12L12 4l9 8" />
-      <path d="M5 10v9a1 1 0 0 0 1 1h4v-5h4v5h4a1 1 0 0 0 1-1v-9" />
+      <circle cx="11" cy="11" r="7" /><path d="m17 17 3.5 3.5" />
     </svg>
   );
 }
 
-function DiscoverIcon({ active }) {
+function ReelIcon({ active }) {
   return (
     <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.38)" }} viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="11" cy="11" r="6" />
-      <path d="m17 17 3.5 3.5" />
+      <rect x="2" y="2" width="20" height="20" rx="4" />
+      <path d="m10 8 6 4-6 4V8Z" fill="currentColor" strokeWidth="0" />
     </svg>
   );
 }
 
-function AlertsIcon({ active }) {
+function RankIcon({ active }) {
   return (
     <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.38)" }} viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M18 10.5V9a6 6 0 0 0-12 0v1.5c0 2.7-1.2 3.8-2.2 5h16.4c-1-1.2-2.2-2.3-2.2-5Z" />
-      <path d="M9.7 18.5a2.5 2.5 0 0 0 4.6 0" />
+      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" /><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+      <path d="M4 22h16" />
+      <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+      <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+      <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
     </svg>
   );
 }
 
-function PlusIcon() {
+function TrainIcon() {
   return (
-    <svg style={icPlus} viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 5v14M5 12h14" />
+    <svg style={{ width: 20, height: 20, display: "block", fill: "#fff", strokeWidth: 0 }} viewBox="0 0 24 24" aria-hidden="true">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
     </svg>
   );
 }
 
-function InboxIcon({ active }) {
-  return (
-    <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.38)" }} viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-    </svg>
-  );
-}
-
-// ─── Profile avatar tab ───────────────────────────────────────────────────────
-function ProfileTab({ user, active, onClick }) {
+// ─── Profile tab ──────────────────────────────────────────────────────────────
+function ProfileTab({ user, active, onClick, badge, locale }) {
   const photo = user?.photoURL || user?.profileImageUrl || "";
   const initial = (user?.displayName || user?.username || "U").charAt(0).toUpperCase();
   const [imgError, setImgError] = useState(false);
+  const label = locale === "mn" ? "Профайл" : locale === "ko" ? "프로필" : "Profile";
 
   return (
-    <button type="button" onClick={onClick} style={s.iconTab} aria-label="Profile">
-      <span style={{ position: "relative", display: "inline-flex" }}>
-        <span style={{
-          ...s.avatarWrap,
-          boxShadow: active ? `0 0 0 2px ${RED}` : "0 0 0 1.5px rgba(255,255,255,0.08)",
-        }}>
-          {photo && !imgError
-            ? <Image src={photo} alt="Profile photo" width={30} height={30} style={{ objectFit: "cover" }} onError={() => setImgError(true)} />
-            : <span style={{ ...s.avatarInitial, background: active ? RED : "rgba(255,255,255,0.08)" }}>{initial}</span>
-          }
+    <button type="button" onClick={onClick} style={s.iconTab} aria-label={label} className="tap-bounce">
+      <span style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", gap: 4, position: "relative" }}>
+        <span style={{ position: "relative", display: "inline-flex" }}>
+          <span style={{
+            ...s.avatarWrap,
+            boxShadow: active ? `0 0 0 2px ${RED}` : "0 0 0 1.5px rgba(255,255,255,0.08)",
+          }}>
+            {photo && !imgError
+              ? <Image src={photo} alt="Profile" width={28} height={28} style={{ objectFit: "cover" }} onError={() => setImgError(true)} />
+              : <span style={{ ...s.avatarInitial, background: active ? RED : "rgba(255,255,255,0.08)" }}>{initial}</span>
+            }
+          </span>
+          {badge > 0 && (
+            <span style={{ ...s.badge, top: -3, right: -3 }}>{badge > 9 ? "9+" : badge}</span>
+          )}
         </span>
+        <span style={{ ...s.tabLabel, color: active ? "#fff" : "rgba(255,255,255,0.32)" }}>{label}</span>
       </span>
     </button>
   );
 }
 
-// ─── Icon tab ─────────────────────────────────────────────────────────────────
-function IconTab({ active, onClick, badge, children, label }) {
+// ─── Standard icon tab ────────────────────────────────────────────────────────
+function IconTab({ active, onClick, children, label }) {
   return (
     <button type="button" onClick={onClick} style={s.iconTab} aria-label={label} className="tap-bounce">
-      <span
-        key={active ? "active" : "inactive"}
-        className={active ? "nav-active-pop" : undefined}
-        style={{
-          ...s.iconGlow,
-          background: active ? `${redAlpha(0.11)}` : "transparent",
-        }}
-      >
-        <span style={{ transform: active ? "scale(1.06)" : "scale(1)", transition: "transform 220ms cubic-bezier(0.34,1.56,0.64,1)", display: "flex" }}>
-          {children}
+      <span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+        <span
+          key={active ? "a" : "i"}
+          className={active ? "nav-active-pop" : undefined}
+          style={{
+            ...s.iconGlow,
+            background: active ? redAlpha(0.11) : "transparent",
+          }}
+        >
+          <span style={{ transform: active ? "scale(1.06)" : "scale(1)", transition: "transform 220ms cubic-bezier(0.34,1.56,0.64,1)", display: "flex" }}>
+            {children}
+          </span>
         </span>
-        {badge > 0 && (
-          <span style={s.badge}>{badge > 9 ? "9+" : badge}</span>
-        )}
+        <span style={{ ...s.tabLabel, color: active ? RED : "rgba(255,255,255,0.32)" }}>{label}</span>
+      </span>
+    </button>
+  );
+}
+
+// ─── Center Train tab ─────────────────────────────────────────────────────────
+function TrainTab({ onClick, active, locale }) {
+  const label = locale === "mn" ? "Дасгал" : locale === "ko" ? "훈련" : "Train";
+  return (
+    <button type="button" onClick={onClick} style={s.trainTab} aria-label={label} className="tap-bounce btn-press">
+      <span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+        <span style={{
+          ...s.trainCircle,
+          boxShadow: active
+            ? `0 4px 24px ${redAlpha(0.6)}, inset 0 1px 0 rgba(255,255,255,0.18)`
+            : `0 4px 16px ${redAlpha(0.32)}, inset 0 1px 0 rgba(255,255,255,0.12)`,
+        }}
+          className="plus-ambient"
+        >
+          <TrainIcon />
+        </span>
+        <span style={{ ...s.tabLabel, color: active ? "#fff" : "rgba(255,255,255,0.5)" }}>{label}</span>
       </span>
     </button>
   );
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
-export default function BottomNav({
-  router,
-  user,
-  currentLocale = "en",
-  activeTab,
-  onInteractStart,
-  onInteractEnd,
-}) {
+export default function BottomNav({ router, user, currentLocale = "en", activeTab, onInteractStart, onInteractEnd }) {
   const pathname = usePathname();
   const nextRouter = useNextRouter();
   const r = router ?? nextRouter;
+  const locale = currentLocale;
+
   const [unreadCount, setUnreadCount] = useState(0);
   const [dmUnread, setDmUnread] = useState(0);
-  const [hubOpen, setHubOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
   const resolvedActiveTab = activeTab || getActiveTab(pathname);
-  const t = (key) => translate(currentLocale, key);
 
-  // Unread DM count
+  // Unread DMs
   useEffect(() => {
     if (!user?.uid) { setDmUnread(0); return; }
     let active = true;
-    const qDm = query(collection(db, "conversations"), where("members", "array-contains", user.uid));
-    const unsub = onSnapshot(qDm, (snap) => {
+    const q = query(collection(db, "conversations"), where("members", "array-contains", user.uid));
+    const unsub = onSnapshot(q, (snap) => {
       if (!active) return;
-      const total = snap.docs.reduce((sum, d) => sum + (d.data().unreadCount?.[user.uid] || 0), 0);
-      setDmUnread(total);
+      setDmUnread(snap.docs.reduce((sum, d) => sum + (d.data().unreadCount?.[user.uid] || 0), 0));
     }, () => { if (active) setDmUnread(0); });
     return () => { active = false; unsub(); };
   }, [user?.uid]);
 
-  // Unread notification count — single-field query + JS filter avoids composite index
+  // Unread notifications
   useEffect(() => {
     if (!user?.uid) { setUnreadCount(0); return; }
     let active = true;
@@ -145,159 +158,107 @@ export default function BottomNav({
     return () => { active = false; unsub(); };
   }, [user?.uid]);
 
-  const goToProfile = () => {
-    r.push(user?.uid ? `/${currentLocale}/profile/${user.uid}` : `/${currentLocale}/login`);
-  };
+  const goToProfile = () => r.push(user?.uid ? `/${locale}/profile/${user.uid}` : `/${locale}/login`);
 
-  const goToInbox = () => {
-    r.push(user?.uid ? `/${currentLocale}/inbox` : `/${currentLocale}/login`);
-  };
+  const homeLabel  = locale === "mn" ? "Нүүр"   : locale === "ko" ? "홈"   : "Home";
+  const reelsLabel = locale === "mn" ? "Видео"   : locale === "ko" ? "릴"   : "Reels";
+  const rankLabel  = locale === "mn" ? "Rank"    : locale === "ko" ? "랭크" : "Rank";
 
-  const HUB_OPTIONS = [
-    { icon: "🎬", label: t("hubReel"), sub: t("hubReelSub"), path: `/${currentLocale}/upload`, accent: RED },
-    { icon: "⚡", label: t("hubStory"), sub: t("hubStorySub"), path: `/${currentLocale}/story/upload`, accent: GOLD },
-    { icon: "📈", label: t("hubProgress"), sub: t("hubProgressSub"), path: `/${currentLocale}/story/upload?type=progress_update`, accent: "#34D399" },
-    { icon: "📅", label: currentLocale === "mn" ? "Арга хэмжээ" : currentLocale === "ko" ? "이벤트" : "Events", sub: currentLocale === "mn" ? "Ойрын тэмцээн, арга хэмжээ" : currentLocale === "ko" ? "다가오는 이벤트 보기" : "View upcoming events", path: `/${currentLocale}/events`, accent: GOLD },
-  ];
-
-  const hubOverlay = (
-    <div style={h.overlay}>
-      <div style={h.backdrop} onClick={() => setHubOpen(false)} />
-      <div style={h.sheet}>
-        <div style={h.handle} />
-        <p style={h.sheetTitle}>{t("hubCreate")}</p>
-
-        <div style={h.grid}>
-          {HUB_OPTIONS.map(opt => (
-            <button
-              key={opt.label}
-              type="button"
-              style={h.gridCard}
-              onClick={() => { r.push(opt.path); setHubOpen(false); }}
-            >
-              <div style={{ ...h.gridIcon, background: opt.accent + "22", color: opt.accent }}>
-                {opt.icon}
-              </div>
-              <span style={h.gridLabel}>{opt.label}</span>
-              <span style={h.gridSub}>{opt.sub}</span>
-            </button>
-          ))}
-        </div>
-
-        <button type="button" style={h.cancelBtn} onClick={() => setHubOpen(false)}>
-          {t("cancel")}
-        </button>
-      </div>
-    </div>
-  );
+  if (!mounted) return null;
 
   return (
-    <>
-      {mounted && hubOpen && createPortal(hubOverlay, document.body)}
+    <nav
+      className="app-bottom-nav"
+      style={s.nav}
+      onPointerEnter={onInteractStart}
+      onPointerDown={onInteractStart}
+      onPointerLeave={onInteractEnd}
+      onPointerUp={onInteractEnd}
+      onPointerCancel={onInteractEnd}
+      aria-label="Primary navigation"
+    >
+      {/* Home */}
+      <IconTab active={resolvedActiveTab === "home"} onClick={() => r.push(`/${locale}/discover`)} label={homeLabel}>
+        <HomeIcon active={resolvedActiveTab === "home"} />
+      </IconTab>
 
-      <nav
-        className="app-bottom-nav"
-        style={s.nav}
-        onPointerEnter={onInteractStart}
-        onPointerDown={onInteractStart}
-        onPointerLeave={onInteractEnd}
-        onPointerUp={onInteractEnd}
-        onPointerCancel={onInteractEnd}
-        aria-label="Primary navigation"
-      >
-        {/* Home */}
-        <IconTab active={resolvedActiveTab === "reels"} onClick={() => r.push(`/${currentLocale}/reels`)} label="Home">
-          <HomeIcon active={resolvedActiveTab === "reels"} />
-        </IconTab>
+      {/* Reels */}
+      <IconTab active={resolvedActiveTab === "reels"} onClick={() => r.push(`/${locale}/reels`)} label={reelsLabel}>
+        <ReelIcon active={resolvedActiveTab === "reels"} />
+      </IconTab>
 
-        {/* Discover */}
-        <IconTab active={resolvedActiveTab === "discover"} onClick={() => r.push(`/${currentLocale}/discover`)} label="Discover">
-          <DiscoverIcon active={resolvedActiveTab === "discover"} />
-        </IconTab>
+      {/* Train — center action */}
+      <TrainTab active={resolvedActiveTab === "train"} onClick={() => r.push(`/${locale}/train`)} locale={locale} />
 
-        {/* Upload + */}
-        <button type="button" onClick={() => setHubOpen(true)} style={s.plusTab} aria-label={t("navUpload")} className="tap-bounce">
-          <span style={s.plusCircle} className="plus-ambient">
-            <PlusIcon />
-          </span>
-        </button>
+      {/* Rank */}
+      <IconTab active={resolvedActiveTab === "rank"} onClick={() => r.push(`/${locale}/rank`)} label={rankLabel}>
+        <RankIcon active={resolvedActiveTab === "rank"} />
+      </IconTab>
 
-        {/* Alerts */}
-        <IconTab active={resolvedActiveTab === "alerts"} onClick={() => r.push(`/${currentLocale}/notifications`)} badge={unreadCount} label="Alerts">
-          <AlertsIcon active={resolvedActiveTab === "alerts"} />
-        </IconTab>
-
-        {/* Inbox */}
-        <IconTab active={resolvedActiveTab === "inbox"} onClick={goToInbox} badge={dmUnread} label="Inbox">
-          <InboxIcon active={resolvedActiveTab === "inbox"} />
-        </IconTab>
-
-        {/* Profile */}
-        <ProfileTab user={user} active={resolvedActiveTab === "profile"} onClick={goToProfile} />
-      </nav>
-    </>
+      {/* Profile — carries notification badge */}
+      <ProfileTab
+        user={user}
+        active={resolvedActiveTab === "profile"}
+        onClick={goToProfile}
+        badge={unreadCount + dmUnread}
+        locale={locale}
+      />
+    </nav>
   );
 }
 
+// ─── Active tab resolver ──────────────────────────────────────────────────────
 function getActiveTab(pathname = "") {
-  if (pathname.includes("/upload")) return "upload";
-  if (pathname.includes("/discover")) return "discover";
-  if (pathname.includes("/leaderboard")) return "discover";
-  if (pathname.includes("/fighters")) return "discover";
-  if (pathname.includes("/rank")) return "profile";
-  if (pathname.includes("/coach")) return "profile";
-  if (pathname.includes("/gyms")) return "profile";
-  if (pathname.includes("/notifications")) return "alerts";
-  if (pathname.includes("/inbox")) return "inbox";
-  if (pathname.includes("/sparring")) return "discover";
-  if (pathname.includes("/profile")) return "profile";
-  return "reels";
+  if (pathname.includes("/reels") || pathname.includes("/ai-analysis")) return "reels";
+  if (
+    pathname.includes("/train") ||
+    pathname.includes("/coach") ||
+    pathname.includes("/sparring") ||
+    pathname.includes("/challenges")
+  ) return "train";
+  if (pathname.includes("/rank") || pathname.includes("/leaderboard")) return "rank";
+  if (
+    pathname.includes("/profile") ||
+    pathname.includes("/inbox") ||
+    pathname.includes("/notifications")
+  ) return "profile";
+  return "home";
 }
 
 // ─── Shared icon style ────────────────────────────────────────────────────────
 const ic = {
-  width: 24,
-  height: 24,
+  width: 22,
+  height: 22,
   display: "block",
   fill: "none",
   stroke: "currentColor",
-  strokeWidth: 1.8,
+  strokeWidth: 1.75,
   strokeLinecap: "round",
   strokeLinejoin: "round",
   transition: "color 160ms ease",
 };
 
-const icPlus = {
-  width: 22,
-  height: 22,
-  display: "block",
-  fill: "none",
-  stroke: "#fff",
-  strokeWidth: 2.2,
-  strokeLinecap: "round",
-};
-
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const s = {
-  // ── Floating glass tactical navigation ───────────────────────────────────
   nav: {
     position: "fixed",
-    bottom: "calc(12px + env(safe-area-inset-bottom))",
+    bottom: "calc(10px + env(safe-area-inset-bottom))",
     left: "50%",
     transform: "translateX(-50%)",
-    width: "min(calc(100vw - 32px), 420px)",
-    height: 60,
+    width: "min(calc(100vw - 28px), 400px)",
+    height: 68,
     zIndex: 100,
-    background: "rgba(11,11,13,0.74)",
-    backdropFilter: "blur(36px) saturate(160%)",
-    WebkitBackdropFilter: "blur(36px) saturate(160%)",
-    borderRadius: 26,
-    border: "1px solid rgba(255,255,255,0.07)",
-    boxShadow: "0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)",
+    background: "rgba(7,7,8,0.82)",
+    backdropFilter: "blur(40px) saturate(180%)",
+    WebkitBackdropFilter: "blur(40px) saturate(180%)",
+    borderRadius: RADIUS.full,
+    border: "1px solid rgba(255,255,255,0.06)",
+    boxShadow: `0 8px 48px ${blackAlpha(0.6)}, inset 0 1px 0 rgba(255,255,255,0.05)`,
     display: "grid",
-    gridTemplateColumns: "repeat(6, 1fr)",
+    gridTemplateColumns: "1fr 1fr 1.3fr 1fr 1fr",
     alignItems: "center",
     boxSizing: "border-box",
+    padding: "0 4px",
   },
   iconTab: {
     border: "none",
@@ -306,62 +267,68 @@ const s = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    height: 60,
+    height: 68,
     WebkitTapHighlightColor: "transparent",
     padding: 0,
   },
   iconGlow: {
-    width: 38,
-    height: 38,
+    width: 36,
+    height: 36,
     borderRadius: 12,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
-    transition: "background 180ms ease",
+    transition: `background ${MOTION.hover}`,
   },
-  badge: {
-    position: "absolute",
-    top: 2,
-    right: 2,
-    minWidth: 14,
-    height: 14,
-    padding: "0 3px",
-    borderRadius: 7,
-    background: RED,
-    color: "#fff",
-    border: "1.5px solid rgba(8,8,8,0.97)",
-    fontSize: 8,
-    fontWeight: 900,
-    lineHeight: "11px",
-    textAlign: "center",
-    boxSizing: "border-box",
+  tabLabel: {
+    fontSize: 9,
+    fontWeight: 700,
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
+    lineHeight: 1,
+    transition: "color 160ms ease",
+    fontFamily: "var(--font-geist-sans, system-ui)",
   },
-  plusTab: {
+  trainTab: {
     border: "none",
     background: "transparent",
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    height: 60,
+    height: 68,
     WebkitTapHighlightColor: "transparent",
     padding: 0,
   },
-  plusCircle: {
-    width: 42,
-    height: 42,
+  trainCircle: {
+    width: 46,
+    height: 46,
     borderRadius: 14,
-    background: `linear-gradient(145deg, ${RED}, #cc2820)`,
+    background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    boxShadow: `0 4px 16px ${redAlpha(0.32)}, inset 0 1px 0 rgba(255,255,255,0.12)`,
-    border: "none",
+    transition: `box-shadow ${MOTION.hover}, transform ${MOTION.press}`,
+  },
+  badge: {
+    position: "absolute",
+    minWidth: 14,
+    height: 14,
+    padding: "0 3px",
+    borderRadius: 7,
+    background: RED,
+    color: "#fff",
+    border: "1.5px solid rgba(6,6,7,0.97)",
+    fontSize: 8,
+    fontWeight: 900,
+    lineHeight: "11px",
+    textAlign: "center",
+    boxSizing: "border-box",
   },
   avatarWrap: {
-    width: 30,
-    height: 30,
+    width: 28,
+    height: 28,
     borderRadius: "50%",
     overflow: "hidden",
     display: "flex",
@@ -369,12 +336,6 @@ const s = {
     justifyContent: "center",
     transition: "box-shadow 200ms ease",
     flexShrink: 0,
-  },
-  avatarImg: {
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-    display: "block",
   },
   avatarInitial: {
     width: "100%",
@@ -385,119 +346,5 @@ const s = {
     fontSize: 12,
     fontWeight: 800,
     color: "#fff",
-  },
-};
-
-const h = {
-  overlay: {
-    position: "fixed",
-    inset: 0,
-    zIndex: 999,
-    display: "flex",
-    alignItems: "flex-end",
-    justifyContent: "center",
-  },
-  backdrop: {
-    position: "absolute",
-    inset: 0,
-    background: "rgba(0,0,0,0.75)",
-    backdropFilter: "blur(12px)",
-    WebkitBackdropFilter: "blur(12px)",
-  },
-  sheet: {
-    position: "relative",
-    width: "100%",
-    maxWidth: 520,
-    background: "rgba(14,14,18,0.97)",
-    backdropFilter: "blur(24px) saturate(160%)",
-    WebkitBackdropFilter: "blur(24px) saturate(160%)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    borderBottom: "none",
-    borderRadius: "24px 24px 0 0",
-    padding: "12px 20px calc(20px + env(safe-area-inset-bottom))",
-    display: "flex",
-    flexDirection: "column",
-    gap: 4,
-    boxShadow: "0 -20px 60px rgba(0,0,0,0.8)",
-  },
-  handle: {
-    width: 32,
-    height: 4,
-    borderRadius: 2,
-    background: "rgba(255,255,255,0.12)",
-    alignSelf: "center",
-    marginBottom: 12,
-  },
-  sheetTitle: {
-    margin: "0 0 8px",
-    fontSize: 11,
-    fontWeight: 900,
-    color: RED,
-    textTransform: "uppercase",
-    letterSpacing: 3,
-    paddingLeft: 4,
-  },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: 10,
-    marginBottom: 4,
-  },
-  gridCard: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 8,
-    padding: "18px 12px 14px",
-    borderRadius: 18,
-    border: "1px solid rgba(255,255,255,0.07)",
-    background: "rgba(255,255,255,0.035)",
-    cursor: "pointer",
-    textAlign: "center",
-    transition: "border-color 150ms ease",
-  },
-  gridIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: 26,
-    flexShrink: 0,
-  },
-  gridLabel: {
-    fontSize: 14,
-    fontWeight: 900,
-    color: "#fff",
-    lineHeight: 1.2,
-  },
-  gridSub: {
-    fontSize: 11,
-    color: "rgba(255,255,255,0.35)",
-    lineHeight: 1.35,
-  },
-  soonBadge: {
-    fontSize: 8,
-    fontWeight: 900,
-    color: GOLD,
-    background: `${goldAlpha(0.1)}`,
-    border: `1px solid ${goldAlpha(0.25)}`,
-    borderRadius: 999,
-    padding: "1px 6px",
-    letterSpacing: 1,
-    marginLeft: 6,
-  },
-  cancelBtn: {
-    marginTop: 8,
-    width: "100%",
-    padding: "14px",
-    borderRadius: 14,
-    border: "1px solid rgba(255,255,255,0.07)",
-    background: "rgba(255,255,255,0.03)",
-    color: "rgba(255,255,255,0.4)",
-    fontSize: 14,
-    fontWeight: 700,
-    cursor: "pointer",
   },
 };

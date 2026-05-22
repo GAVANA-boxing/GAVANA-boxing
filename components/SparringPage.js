@@ -7,7 +7,7 @@ import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { useSparringActions } from "@/hooks/useSparringActions";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import BottomNav from "@/components/BottomNav";
-import { RED, GOLD, redAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, redAlpha, RADIUS} from "@/lib/tokens";
 import PageTopBar from "@/components/PageTopBar";
 import s, { c } from "@/components/sparring/sparringStyles";
 import { FighterCard, IncomingRequestCard } from "@/components/sparring/SparringCards";
@@ -105,6 +105,42 @@ export default function SparringPage() {
       {/* ── DISCOVER TAB ── */}
       {tab === "discover" && (
         <>
+          {/* Arena live banner */}
+          <div style={s.arenaBanner}>
+            <div style={s.arenaBannerLeft}>
+              <p style={s.arenaKicker}>⚔️ LIVE ARENA</p>
+              <h2 style={s.arenaTitle}>
+                {locale === "mn" ? "Дасгалын Тал" : locale === "ko" ? "체육관 플로어" : "The Gym Floor"}
+              </h2>
+              <div style={s.arenaLiveRow}>
+                <span style={s.arenaLiveDot} className="live-pulse" />
+                <span style={s.arenaLiveCount}>{posts.length}</span>
+                <span style={s.arenaLiveSub}>
+                  {locale === "mn" ? "тулаанч идэвхтэй" : locale === "ko" ? "명 활성" : "fighters active"}
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleToggle}
+              disabled={toggling}
+              style={{
+                ...s.arenaToggleBtn,
+                background: isOn
+                  ? "rgba(52,211,153,0.12)"
+                  : `linear-gradient(135deg, ${RED}, ${RED_DARK})`,
+                border: isOn ? "1px solid rgba(52,211,153,0.3)" : "none",
+                color: isOn ? "#34D399" : "#fff",
+                boxShadow: isOn ? "none" : `0 6px 18px ${redAlpha(0.3)}`,
+                opacity: toggling ? 0.6 : 1,
+              }}
+            >
+              {toggling ? "…" : isOn
+                ? (locale === "mn" ? "🟢 Идэвхтэй" : locale === "ko" ? "🟢 활성" : "🟢 Active")
+                : (locale === "mn" ? "Нэмэгдэх" : locale === "ko" ? "참여하기" : "Join")}
+            </button>
+          </div>
+
           {/* Filters */}
           <div style={s.filterSection}>
             <div style={s.filterRow}>
@@ -136,7 +172,7 @@ export default function SparringPage() {
             </span>
           </div>
 
-          <div style={s.list}>
+          <div key={tab} style={s.list} className="section-reveal stagger-list">
             {filtered.length === 0 ? (
               <div style={s.empty}>
                 <div style={{ width: 44, height: 44, borderRadius: 13, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, marginBottom: 4 }}>🥊</div>
@@ -191,7 +227,7 @@ export default function SparringPage() {
               >
                 {label}
                 {count > 0 && (
-                  <span style={{ minWidth: 16, height: 16, borderRadius: 999, background: RED, color: "#fff", fontSize: 9, fontWeight: 900, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>
+                  <span style={{ minWidth: 16, height: 16, borderRadius: RADIUS.full, background: RED, color: "#fff", fontSize: 9, fontWeight: 900, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>
                     {count}
                   </span>
                 )}
@@ -333,7 +369,7 @@ export default function SparringPage() {
           {/* Toggle banner */}
           {user && (
             <div style={{ padding: "12px 16px 4px" }}>
-              <div style={{ ...s.toggleBanner, background: isOn ? "rgba(52,211,153,0.07)" : "rgba(255,255,255,0.03)", borderColor: isOn ? "rgba(52,211,153,0.2)" : "rgba(255,255,255,0.07)" }}>
+              <div className="hud-corners" style={{ ...s.toggleBanner, background: isOn ? "rgba(52,211,153,0.07)" : "rgba(255,255,255,0.03)", borderColor: isOn ? "rgba(52,211,153,0.2)" : "rgba(255,255,255,0.07)" }}>
                 <div style={s.toggleLeft}>
                   <div style={{ ...s.toggleDot, background: isOn ? "#34D399" : "rgba(255,255,255,0.2)", boxShadow: isOn ? "0 0 8px #34D399" : "none" }} />
                   <div>

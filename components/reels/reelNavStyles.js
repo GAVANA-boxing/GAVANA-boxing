@@ -1,4 +1,4 @@
-import { redAlpha } from "@/lib/tokens";
+import { RED, BORDER, BORDER_2, RADIUS, MOTION, redAlpha, whiteAlpha, blackAlpha } from "@/lib/tokens";
 
 export const reelNavStyles = {
   bottomNav: {
@@ -8,10 +8,10 @@ export const reelNavStyles = {
     width: "min(calc(100vw - 28px), 440px)",
     minHeight: 58,
     transform: "translateX(-50%)",
-    background: "var(--glass)",
-    border: "1px solid var(--line)",
-    borderRadius: 24,
-    boxShadow: "var(--shadow-soft), inset 0 1px 0 rgba(255,255,255,0.11)",
+    background: blackAlpha(0.55),
+    border: `1px solid ${BORDER}`,
+    borderRadius: RADIUS.xl,
+    boxShadow: `0 8px 40px ${blackAlpha(0.6)}, inset 0 1px 0 ${whiteAlpha(0.11)}`,
     backdropFilter: "blur(30px) saturate(165%)",
     WebkitBackdropFilter: "blur(30px) saturate(165%)",
     display: "flex",
@@ -38,9 +38,9 @@ export const reelNavStyles = {
     minWidth: 43,
     minHeight: 44,
     borderRadius: 16,
-    color: "rgba(255,255,255,0.62)",
+    color: whiteAlpha(0.62),
     WebkitTapHighlightColor: "transparent",
-    transition: "color var(--motion-fast), transform var(--motion-fast), background var(--motion-fast), opacity var(--motion-fast)",
+    transition: `color ${MOTION.fast}, transform ${MOTION.fast}, background ${MOTION.fast}, opacity ${MOTION.fast}`,
   },
   navItemActive: {
     display: "flex",
@@ -56,15 +56,13 @@ export const reelNavStyles = {
     minWidth: 48,
     minHeight: 44,
     borderRadius: 16,
-    color: "var(--text-primary)",
-    background: `${redAlpha(0.14)}`,
+    color: "#fff",
+    background: redAlpha(0.14),
     boxShadow: `0 0 20px ${redAlpha(0.24)}, inset 0 0 0 1px ${redAlpha(0.2)}`,
     WebkitTapHighlightColor: "transparent",
-    transition: "color var(--motion-fast), transform var(--motion-fast), background var(--motion-fast), box-shadow var(--motion-fast)",
+    transition: `color ${MOTION.fast}, transform ${MOTION.fast}, background ${MOTION.fast}, box-shadow ${MOTION.fast}`,
   },
-  navIcon: {
-    fontSize: 20,
-  },
+  navIcon: { fontSize: 20 },
   navSvg: {
     width: 20,
     height: 20,
@@ -106,17 +104,15 @@ export const reelNavStyles = {
     paddingLeft: 4,
     paddingRight: 4,
     borderRadius: 8,
-    background: "var(--primary-red)",
-    color: "var(--text-primary)",
-    border: "1px solid rgba(0,0,0,0.9)",
+    background: RED,
+    color: "#fff",
+    border: `1px solid ${blackAlpha(0.9)}`,
     fontSize: 10,
     fontWeight: 700,
     lineHeight: "14px",
     textAlign: "center",
   },
-  navIconActive: {
-    fontSize: 21,
-  },
+  navIconActive: { fontSize: 21 },
   navLabel: {
     color: "currentColor",
     fontSize: 8,
@@ -124,7 +120,7 @@ export const reelNavStyles = {
     letterSpacing: 0,
   },
   navLabelActive: {
-    color: "var(--text-primary)",
+    color: "#fff",
     fontSize: 8,
     fontWeight: 800,
     letterSpacing: 0,
@@ -133,8 +129,8 @@ export const reelNavStyles = {
   navUpload: {
     width: 42,
     height: 42,
-    background: `${redAlpha(0.82)}`,
-    border: "1px solid rgba(255,255,255,0.14)",
+    background: redAlpha(0.82),
+    border: `1px solid ${BORDER_2}`,
     borderRadius: 16,
     display: "flex",
     alignItems: "center",
@@ -142,10 +138,10 @@ export const reelNavStyles = {
     cursor: "pointer",
     boxShadow: `0 8px 22px ${redAlpha(0.24)}`,
     WebkitTapHighlightColor: "transparent",
-    transition: "transform 180ms ease, box-shadow 180ms ease, background 180ms ease",
+    transition: `transform ${MOTION.press}, box-shadow ${MOTION.press}, background ${MOTION.press}`,
   },
   navUploadIcon: {
-    color: "var(--text-primary)",
+    color: "#fff",
     fontSize: 22,
     fontWeight: 300,
   },
@@ -158,6 +154,6 @@ export const reelNavStyles = {
     strokeWidth: 2,
     strokeLinecap: "round",
     strokeLinejoin: "round",
-    filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.35))",
+    filter: `drop-shadow(0 2px 8px ${blackAlpha(0.35)})`,
   },
 };

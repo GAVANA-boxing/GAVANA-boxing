@@ -1,6 +1,6 @@
 "use client";
 
-import { GOLD, RED, redAlpha, goldAlpha } from "@/lib/tokens";
+import { GOLD, RED, redAlpha, goldAlpha, RADIUS, blackAlpha} from "@/lib/tokens";
 import { calculateSessionXP } from "@/lib/xp";
 import { getTimestampMs, formatScore } from "@/lib/utils";
 
@@ -69,7 +69,7 @@ export default function TrainingProgressSection({
         borderLeft: `3px solid ${RED}`,
         borderRadius: "3px 20px 20px 3px",
         padding: "20px 18px 18px",
-        boxShadow: "0 8px 40px rgba(0,0,0,0.55)",
+        boxShadow: `0 8px 40px ${blackAlpha(0.55)}`,
         overflow: "hidden",
       }}>
         <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: `radial-gradient(ellipse at 10% 30%, ${redAlpha(0.18)} 0%, transparent 55%)` }} />
@@ -100,8 +100,8 @@ export default function TrainingProgressSection({
             </div>
           </div>
 
-          <div style={{ height: 4, borderRadius: 999, background: "rgba(255,255,255,0.07)", overflow: "hidden", marginBottom: 14 }}>
-            <div style={{ height: "100%", width: `${rankProgress}%`, borderRadius: 999, background: fighterRank.gradient || fighterRank.color, boxShadow: `0 0 10px ${fighterRank.color}55`, transition: "width 800ms cubic-bezier(0.16,1,0.3,1)" }} />
+          <div style={{ height: 4, borderRadius: RADIUS.full, background: "rgba(255,255,255,0.07)", overflow: "hidden", marginBottom: 14 }}>
+            <div style={{ height: "100%", width: `${rankProgress}%`, borderRadius: RADIUS.full, background: fighterRank.gradient || fighterRank.color, boxShadow: `0 0 10px ${fighterRank.color}55`, transition: "width 800ms cubic-bezier(0.16,1,0.3,1)" }} />
           </div>
 
           <p style={{ margin: "0 0 18px", fontSize: 12, color: insightColor, fontStyle: "italic", lineHeight: 1.55, borderLeft: `2px solid ${insightColor}44`, paddingLeft: 10 }}>

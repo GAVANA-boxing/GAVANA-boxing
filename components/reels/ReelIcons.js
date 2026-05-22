@@ -1,5 +1,6 @@
 "use client";
 
+import { blackAlpha } from "@/lib/tokens";
 import styles from "./reelStyles";
 
 export function LikeIcon({ filled }) {
@@ -147,7 +148,7 @@ export function CenterPlayIcon() {
   return (
     <div style={{
       width: 72, height: 72, borderRadius: "50%",
-      background: "rgba(0,0,0,0.55)",
+      background: blackAlpha(0.55),
       border: "2px solid rgba(255,255,255,0.32)",
       display: "flex", alignItems: "center", justifyContent: "center",
       backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",

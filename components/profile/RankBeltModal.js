@@ -1,6 +1,7 @@
 "use client";
 
 import { RANK_TIERS } from "@/lib/xp";
+import { RADIUS , blackAlpha} from "@/lib/tokens";
 
 export default function RankBeltModal({ xp, fighterRank, nextRank, rankProgress, t, onClose }) {
   return (
@@ -13,7 +14,7 @@ export default function RankBeltModal({ xp, fighterRank, nextRank, rankProgress,
         alignItems: "center",
         justifyContent: "center",
         padding: "20px 16px",
-        background: "rgba(0,0,0,0.78)",
+        background: blackAlpha(0.78),
         backdropFilter: "blur(12px)",
         WebkitBackdropFilter: "blur(12px)",
       }}
@@ -27,7 +28,7 @@ export default function RankBeltModal({ xp, fighterRank, nextRank, rankProgress,
           backdropFilter: "blur(24px)",
           WebkitBackdropFilter: "blur(24px)",
           border: `1px solid ${fighterRank.color}44`,
-          boxShadow: fighterRank.glowColor ? `0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px ${fighterRank.color}22, 0 0 40px ${fighterRank.glowColor}` : "0 32px 80px rgba(0,0,0,0.6)",
+          boxShadow: fighterRank.glowColor ? `0 32px 80px ${blackAlpha(0.6)}, 0 0 0 1px ${fighterRank.color}22, 0 0 40px ${fighterRank.glowColor}` : `0 32px 80px ${blackAlpha(0.6)}`,
           padding: "26px 22px 22px",
           display: "grid",
           gap: 18,
@@ -62,8 +63,8 @@ export default function RankBeltModal({ xp, fighterRank, nextRank, rankProgress,
               <span style={{ color: fighterRank.color, fontSize: 11, fontWeight: 800 }}>{t("rankBeltMaxed")}</span>
             )}
           </div>
-          <div style={{ height: 8, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${rankProgress}%`, borderRadius: 999, background: fighterRank.gradient, transition: "width 600ms ease", boxShadow: fighterRank.glowColor ? `0 0 12px ${fighterRank.glowColor}` : "none" }} />
+          <div style={{ height: 8, borderRadius: RADIUS.full, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${rankProgress}%`, borderRadius: RADIUS.full, background: fighterRank.gradient, transition: "width 600ms ease", boxShadow: fighterRank.glowColor ? `0 0 12px ${fighterRank.glowColor}` : "none" }} />
           </div>
           <p style={{ margin: 0, color: "rgba(255,255,255,0.35)", fontSize: 10, fontWeight: 700, textAlign: "right" }}>{rankProgress}%</p>
         </div>

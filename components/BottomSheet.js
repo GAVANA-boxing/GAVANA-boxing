@@ -1,5 +1,6 @@
 "use client";
 
+import { blackAlpha } from "@/lib/tokens";
 /**
  * BottomSheet — reusable bottom-sheet / centered-dialog component.
  *
@@ -33,7 +34,7 @@ export default function BottomSheet({
         position: "fixed",
         inset: 0,
         zIndex,
-        background: "rgba(0,0,0,0.72)",
+        background: blackAlpha(0.72),
         backdropFilter: "blur(10px)",
         WebkitBackdropFilter: "blur(10px)",
         display: "flex",
@@ -53,8 +54,8 @@ export default function BottomSheet({
           border: `1px solid ${borderColor}`,
           borderBottom: centered ? undefined : "none",
           boxShadow: centered
-            ? "0 8px 40px rgba(0,0,0,0.6)"
-            : "0 -20px 50px rgba(0,0,0,0.5)",
+            ? `0 8px 40px ${blackAlpha(0.6)}`
+            : `0 -20px 50px ${blackAlpha(0.5)}`,
           padding: centered
             ? "20px 20px"
             : `12px 20px calc(28px + env(safe-area-inset-bottom))`,

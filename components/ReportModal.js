@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { RED, redAlpha } from "@/lib/tokens";
+import { RED, redAlpha , blackAlpha} from "@/lib/tokens";
 import { useAuth } from "@/lib/AuthContext";
 
 const REASONS = [
@@ -38,10 +38,10 @@ export default function ReportModal({ targetId, targetType = "reel", onClose, t 
 
   return (
     <div
-      style={{ position: "fixed", inset: 0, zIndex: 9800, display: "flex", alignItems: "flex-end", background: "rgba(0,0,0,0.7)" }}
+      style={{ position: "fixed", inset: 0, zIndex: 9800, display: "flex", alignItems: "flex-end", background: blackAlpha(0.7) }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div style={{ width: "100%", maxWidth: 480, margin: "0 auto", background: "#111", borderRadius: "24px 24px 0 0", padding: "24px 20px 36px", boxShadow: "0 -8px 40px rgba(0,0,0,0.6)" }}>
+      <div style={{ width: "100%", maxWidth: 480, margin: "0 auto", background: "#111", borderRadius: "24px 24px 0 0", padding: "24px 20px 36px", boxShadow: `0 -8px 40px ${blackAlpha(0.6)}` }}>
         {done ? (
           <div style={{ textAlign: "center", padding: "24px 0" }}>
             <div style={{ fontSize: 36, marginBottom: 12 }}>✅</div>

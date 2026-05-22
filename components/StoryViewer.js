@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { addDoc, collection, getDocs, query, serverTimestamp, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { translate } from "@/lib/i18n";
-import { RED, RED_DARK, GOLD, redAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, redAlpha , blackAlpha} from "@/lib/tokens";
 import Image from "next/image";
 
 function getTypeLabel(type, locale) {
@@ -156,7 +156,7 @@ export default function StoryViewer({ stories, onClose, locale, currentUser }) {
         </div>
         <div style={s.metaRow}>
           <div style={s.userRow}>
-            {story.photoURL && <Image src={story.photoURL} alt="" width={32} height={32} style={{ borderRadius: "50%", objectFit: "cover", border: "1.5px solid rgba(255,255,255,0.6)", boxShadow: "0 2px 8px rgba(0,0,0,0.6)" }} />}
+            {story.photoURL && <Image src={story.photoURL} alt="" width={32} height={32} style={{ borderRadius: "50%", objectFit: "cover", border: "1.5px solid rgba(255,255,255,0.6)", boxShadow: `0 2px 8px ${blackAlpha(0.6)}` }} />}
             <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
               <span style={s.userName}>{story.displayName || story.username || "Boxer"}</span>
               {story.type && (
@@ -238,12 +238,12 @@ const s = {
   // Stronger top gradient for better readability
   topGrad: {
     position: "absolute", top: 0, left: 0, right: 0, height: 200,
-    background: "linear-gradient(180deg, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.3) 60%, transparent 100%)",
+    background: `linear-gradient(180deg, ${blackAlpha(0.82)} 0%, ${blackAlpha(0.3)} 60%, transparent 100%)`,
     zIndex: 5, pointerEvents: "none",
   },
   bottomGrad: {
     position: "absolute", bottom: 0, left: 0, right: 0, height: 240,
-    background: "linear-gradient(0deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.5) 50%, transparent 100%)",
+    background: `linear-gradient(0deg, ${blackAlpha(0.88)} 0%, ${blackAlpha(0.5)} 50%, transparent 100%)`,
     zIndex: 5, pointerEvents: "none",
   },
   topBar: {
@@ -271,7 +271,7 @@ const s = {
   userAvatar: {
     width: 32, height: 32, borderRadius: "50%", objectFit: "cover",
     border: "1.5px solid rgba(255,255,255,0.6)",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.6)",
+    boxShadow: `0 2px 8px ${blackAlpha(0.6)}`,
   },
   userName: {
     fontSize: 13, fontWeight: 800, color: "#fff",
@@ -279,7 +279,7 @@ const s = {
     letterSpacing: 0.1,
   },
   closeBtn: {
-    background: "rgba(0,0,0,0.3)",
+    background: blackAlpha(0.3),
     backdropFilter: "blur(8px)",
     border: "none",
     color: "rgba(255,255,255,0.8)",
@@ -307,7 +307,7 @@ const s = {
   reactBtn: {
     width: 44, height: 44, borderRadius: "50%",
     border: "1.5px solid rgba(255,255,255,0.18)",
-    background: "rgba(0,0,0,0.45)",
+    background: blackAlpha(0.45),
     backdropFilter: "blur(10px)",
     fontSize: 20, display: "flex", alignItems: "center", justifyContent: "center",
     cursor: "pointer", transition: "transform 150ms ease",
@@ -321,7 +321,7 @@ const s = {
     flex: 1, height: 44,
     border: "1px solid rgba(255,255,255,0.18)",
     borderRadius: 22,
-    background: "rgba(0,0,0,0.35)",
+    background: blackAlpha(0.35),
     backdropFilter: "blur(10px)",
     color: "rgba(255,255,255,0.5)",
     fontSize: 13, fontWeight: 600,
@@ -332,7 +332,7 @@ const s = {
     flex: 1, height: 44,
     border: "1px solid rgba(255,255,255,0.2)",
     borderRadius: 22,
-    background: "rgba(0,0,0,0.5)",
+    background: blackAlpha(0.5),
     backdropFilter: "blur(10px)",
     color: "#fff", fontSize: 14, paddingLeft: 18, outline: "none", fontFamily: "inherit",
   },

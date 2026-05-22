@@ -6,7 +6,7 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import StoryViewer from "./StoryViewer";
 import { translate } from "@/lib/i18n";
-import { redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, redAlpha, goldAlpha } from "@/lib/tokens";
 import Image from "next/image";
 
 const RING_GRADIENTS = [
@@ -227,7 +227,7 @@ const st = {
     width: 20,
     height: 20,
     borderRadius: "50%",
-    background: "linear-gradient(135deg, #FF3B30, #cc2820)",
+    background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`,
     color: "#fff",
     fontSize: 13,
     fontWeight: 900,

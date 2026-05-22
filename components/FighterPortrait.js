@@ -1,6 +1,6 @@
 "use client";
 
-import { RED, redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, redAlpha, goldAlpha , blackAlpha} from "@/lib/tokens";
 
 // Cinematic visual identity per fighter — gradients, aura, label
 export const FIGHTER_VISUALS = {
@@ -158,7 +158,7 @@ export default function FighterPortrait({
         lineHeight: 1,
         zIndex: 4,
         pointerEvents: "none",
-        background: "rgba(0,0,0,0.45)",
+        background: blackAlpha(0.45),
         backdropFilter: "blur(8px)",
         WebkitBackdropFilter: "blur(8px)",
         borderRadius: 8,
@@ -208,7 +208,7 @@ export default function FighterPortrait({
           left: 0,
           right: 0,
           padding: "22px 10px 9px",
-          background: "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.0) 100%)",
+          background: `linear-gradient(to top, ${blackAlpha(0.92)} 0%, ${blackAlpha(0.0)} 100%)`,
           zIndex: 3,
         }}>
           <p style={{

@@ -149,7 +149,7 @@ export default function ChallengesPage() {
   }).filter(Boolean);
 
   return (
-    <main style={styles.page} className="page-enter">
+    <main style={styles.page} className="page-enter cinematic-bg">
       <section style={styles.shell}>
         <button type="button" style={styles.backBtn} onClick={() => router.back()} aria-label="Back">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -371,7 +371,7 @@ export default function ChallengesPage() {
         )}
       </section>
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="discover" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="home" />
       <style>{`
         @keyframes challengeScoreGlow {
           0%, 100% { box-shadow: 0 0 0 rgba(245,196,81,0); }

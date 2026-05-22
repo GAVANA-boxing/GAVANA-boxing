@@ -1,6 +1,6 @@
 "use client";
 
-import { GOLD } from "@/lib/tokens";
+import { GOLD, RADIUS, blackAlpha} from "@/lib/tokens";
 
 const streakCardStyle = {
   borderRadius: 16,
@@ -47,7 +47,7 @@ export default function StreakDetailModal({ profile, trainingSessions, t, onClos
         alignItems: "center",
         justifyContent: "center",
         padding: "20px 16px",
-        background: "rgba(0,0,0,0.72)",
+        background: blackAlpha(0.72),
         backdropFilter: "blur(10px)",
         WebkitBackdropFilter: "blur(10px)",
       }}
@@ -59,7 +59,7 @@ export default function StreakDetailModal({ profile, trainingSessions, t, onClos
           borderRadius: 24,
           background: "linear-gradient(160deg, #111 0%, #0b0b0b 100%)",
           border: "1px solid rgba(251,146,60,0.28)",
-          boxShadow: "0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(251,146,60,0.12)",
+          boxShadow: `0 32px 80px ${blackAlpha(0.6)}, 0 0 0 1px rgba(251,146,60,0.12)`,
           padding: "28px 24px 24px",
           display: "grid",
           gap: 20,
@@ -118,8 +118,8 @@ export default function StreakDetailModal({ profile, trainingSessions, t, onClos
                 <span style={{ color: "rgba(255,255,255,0.45)", fontSize: 11, fontWeight: 700 }}>Streak progress</span>
                 <span style={{ color: "#FB923C", fontSize: 11, fontWeight: 900 }}>{Math.min(100, Math.round((challengeStreak / 7) * 100))}%</span>
               </div>
-              <div style={{ height: 6, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
-                <div style={{ height: "100%", width: `${Math.min(100, Math.round((challengeStreak / 7) * 100))}%`, borderRadius: 999, background: "linear-gradient(90deg, #EA580C, #FB923C)", transition: "width 500ms ease" }} />
+              <div style={{ height: 6, borderRadius: RADIUS.full, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${Math.min(100, Math.round((challengeStreak / 7) * 100))}%`, borderRadius: RADIUS.full, background: "linear-gradient(90deg, #EA580C, #FB923C)", transition: "width 500ms ease" }} />
               </div>
             </div>
           </div>

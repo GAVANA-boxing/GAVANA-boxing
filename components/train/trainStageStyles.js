@@ -1,4 +1,4 @@
-import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, GOLD, BG, RADIUS, redAlpha, goldAlpha, whiteAlpha, blackAlpha } from "@/lib/tokens";
 
 export const trainStageStyles = {
   // ── Camera stage ──────────────────────────────────────────────────────────
@@ -8,9 +8,9 @@ export const trainStageStyles = {
     borderRadius: 28,
     minHeight: 460,
     aspectRatio: "9 / 14",
-    background: "#050505",
-    border: "1px solid rgba(255,255,255,0.07)",
-    boxShadow: `0 32px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.03)`,
+    background: BG,
+    border: `1px solid ${whiteAlpha(0.07)}`,
+    boxShadow: `0 32px 80px ${blackAlpha(0.55)}, 0 0 0 1px ${whiteAlpha(0.03)}`,
   },
   preview: {
     width: "100%",
@@ -30,7 +30,7 @@ export const trainStageStyles = {
     gap: 12,
     padding: 28,
     textAlign: "center",
-    background: `radial-gradient(ellipse at 50% 35%, ${goldAlpha(0.1)}, transparent 55%), linear-gradient(160deg, #0e0608, #050505)`,
+    background: `radial-gradient(ellipse at 50% 35%, ${goldAlpha(0.1)}, transparent 55%), linear-gradient(160deg, #0e0608, ${BG})`,
   },
   fallbackMark: {
     border: `1px solid ${redAlpha(0.5)}`,
@@ -43,14 +43,14 @@ export const trainStageStyles = {
     textTransform: "uppercase",
   },
   fallbackTitle: { margin: 0, fontSize: 20, fontWeight: 950 },
-  fallbackText: { margin: 0, color: "rgba(255,255,255,0.55)", fontSize: 13, lineHeight: 1.55 },
+  fallbackText: { margin: 0, color: whiteAlpha(0.55), fontSize: 13, lineHeight: 1.55 },
 
   // ── Overlays ──────────────────────────────────────────────────────────────
   stageShade: {
     position: "absolute",
     inset: 0,
     pointerEvents: "none",
-    background: "linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 45%)",
+    background: `linear-gradient(to top, ${blackAlpha(0.5)} 0%, transparent 45%)`,
   },
   flashOverlay: {
     position: "absolute",
@@ -72,7 +72,7 @@ export const trainStageStyles = {
     fontWeight: 1000,
     fontFamily: "var(--font-display, 'Anton', sans-serif)",
     color: "#fff",
-    textShadow: `0 0 80px ${redAlpha(0.75)}, 0 20px 60px rgba(0,0,0,0.95)`,
+    textShadow: `0 0 80px ${redAlpha(0.75)}, 0 20px 60px ${blackAlpha(0.95)}`,
     zIndex: 10,
     pointerEvents: "none",
     letterSpacing: "-0.04em",
@@ -80,7 +80,7 @@ export const trainStageStyles = {
   countdownGo: {
     fontSize: 104,
     color: "#34D399",
-    textShadow: "0 0 80px rgba(52,211,153,0.7), 0 20px 60px rgba(0,0,0,0.95)",
+    textShadow: `0 0 80px rgba(52,211,153,0.7), 0 20px 60px ${blackAlpha(0.95)}`,
     letterSpacing: "0.04em",
   },
 
@@ -96,14 +96,14 @@ export const trainStageStyles = {
     gap: 8,
     borderRadius: 20,
     padding: "0 14px",
-    background: "rgba(0,0,0,0.6)",
-    border: "1px solid rgba(255,255,255,0.1)",
+    background: blackAlpha(0.6),
+    border: `1px solid ${whiteAlpha(0.1)}`,
     backdropFilter: "blur(16px)",
     WebkitBackdropFilter: "blur(16px)",
     fontSize: 12,
     fontWeight: 900,
     zIndex: 5,
-    boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
+    boxShadow: `0 4px 20px ${blackAlpha(0.4)}`,
   },
   recordDot: {
     width: 8,
@@ -132,12 +132,12 @@ export const trainStageStyles = {
     display: "flex",
     alignItems: "baseline",
     gap: 3,
-    background: "rgba(0,0,0,0.55)",
+    background: blackAlpha(0.55),
     backdropFilter: "blur(14px)",
     WebkitBackdropFilter: "blur(14px)",
-    borderRadius: 999,
+    borderRadius: RADIUS.full,
     padding: "6px 18px",
-    border: "1px solid rgba(255,255,255,0.12)",
+    border: `1px solid ${whiteAlpha(0.12)}`,
     zIndex: 5,
     whiteSpace: "nowrap",
   },
@@ -149,9 +149,9 @@ export const trainStageStyles = {
     fontFamily: "var(--font-display, 'Anton', sans-serif)",
     textShadow: `0 0 20px ${goldAlpha(0.55)}`,
   },
-  hitCountSep:    { color: "rgba(255,255,255,0.5)", fontSize: 14, fontWeight: 700, margin: "0 1px" },
-  hitCountTarget: { color: "rgba(255,255,255,0.55)", fontSize: 16, fontWeight: 800 },
-  hitCountLabel:  { color: "rgba(255,255,255,0.45)", fontSize: 10, fontWeight: 800, marginLeft: 4, textTransform: "uppercase", letterSpacing: 0.8 },
+  hitCountSep:    { color: whiteAlpha(0.5), fontSize: 14, fontWeight: 700, margin: "0 1px" },
+  hitCountTarget: { color: whiteAlpha(0.55), fontSize: 16, fontWeight: 800 },
+  hitCountLabel:  { color: whiteAlpha(0.45), fontSize: 10, fontWeight: 800, marginLeft: 4, textTransform: "uppercase", letterSpacing: 0.8 },
 
   // ── Combo counter ─────────────────────────────────────────────────────────
   comboCounter: {
@@ -170,7 +170,7 @@ export const trainStageStyles = {
     fontSize: 10,
     fontWeight: 1000,
     letterSpacing: 3,
-    textShadow: "0 2px 8px rgba(0,0,0,0.95)",
+    textShadow: `0 2px 8px ${blackAlpha(0.95)}`,
     textTransform: "uppercase",
   },
   comboNum: {
@@ -179,7 +179,7 @@ export const trainStageStyles = {
     fontWeight: 1000,
     fontFamily: "var(--font-display, 'Anton', sans-serif)",
     lineHeight: 0.95,
-    textShadow: `0 0 50px ${goldAlpha(0.65)}, 0 4px 20px rgba(0,0,0,0.95)`,
+    textShadow: `0 0 50px ${goldAlpha(0.65)}, 0 4px 20px ${blackAlpha(0.95)}`,
     letterSpacing: "-0.03em",
   },
 
@@ -189,19 +189,19 @@ export const trainStageStyles = {
     top: "34%",
     left: "50%",
     transform: "translateX(-50%)",
-    background: "rgba(0,0,0,0.75)",
+    background: blackAlpha(0.75),
     backdropFilter: "blur(16px)",
     WebkitBackdropFilter: "blur(16px)",
-    border: "1px solid rgba(255,255,255,0.18)",
-    borderRadius: 999,
+    border: `1px solid ${whiteAlpha(0.18)}`,
+    borderRadius: RADIUS.full,
     padding: "10px 24px",
     color: "#fff",
     fontSize: 14,
     fontWeight: 900,
     whiteSpace: "nowrap",
     zIndex: 9,
-    textShadow: "0 2px 8px rgba(0,0,0,0.9)",
+    textShadow: `0 2px 8px ${blackAlpha(0.9)}`,
     pointerEvents: "none",
-    boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+    boxShadow: `0 8px 32px ${blackAlpha(0.5)}`,
   },
 };

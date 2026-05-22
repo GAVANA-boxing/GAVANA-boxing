@@ -186,8 +186,11 @@ const ReelItem = memo(function ReelItem({
         </div>
       )}
 
+      {isActive && !reel.isDemo && <div style={styles.activeAmbient} />}
+      <div style={styles.topFade} />
       <div style={styles.vignette} />
       <div style={styles.bottomGradient} />
+      {!reel.isDemo && <div style={styles.nextReelHint} />}
 
       {/* Video progress bar */}
       {isActive && !reel.isDemo && (

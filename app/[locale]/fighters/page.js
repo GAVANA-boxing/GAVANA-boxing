@@ -68,7 +68,7 @@ export default function FightersPage() {
         ))}
       </div>
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="discover" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="home" />
     </div>
   );
 }

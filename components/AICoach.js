@@ -4,9 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import KnowledgeLibrary from "@/components/KnowledgeLibrary";
-import { RED, GOLD } from "@/lib/tokens";
+import { RED, GOLD, PURPLE , blackAlpha} from "@/lib/tokens";
 import styles from "@/components/aiCoachStyles";
 import { auth } from "@/lib/firebase";
+
+const BLUE = "#3B82F6";
 
 export default function AICoach() {
   const pathname = usePathname();
@@ -22,27 +24,47 @@ export default function AICoach() {
   const personas = [
     {
       id: "drill",
+      emoji: "🎯",
       name: t("drillSergeant"),
-      icon: "!",
-      label: t("intense"),
+      tagline: t("drillTagline") || "Sharp. Zero fluff.",
+      tags: [t("intense") || "Intense", t("direct") || "Direct"],
       color: RED,
+      intro: t("drillIntro") || "Listen up. I don't do motivational speeches. Tell me your problem — I'll fix it. What are you working on?",
       quickActions: [t("drillQuick1"), t("drillQuick2"), t("drillQuick3")],
     },
     {
       id: "zen",
+      emoji: "🌊",
       name: t("zenMaster"),
-      icon: "Z",
-      label: t("calm"),
-      color: "#3B82F6",
+      tagline: t("zenTagline") || "Breathe first. Then punch.",
+      tags: [t("calm") || "Calm", t("flow") || "Flow"],
+      color: BLUE,
+      intro: t("zenIntro") || "Close your eyes for a second. Feel your feet on the ground. Now — what do you want to work on today?",
       quickActions: [t("zenQuick1"), t("zenQuick2"), t("zenQuick3")],
     },
     {
       id: "analyst",
+      emoji: "📊",
       name: t("analyst"),
-      icon: "%",
-      label: t("data"),
+      tagline: t("analystTagline") || "Data doesn't lie.",
+      tags: [t("data") || "Data", t("patterns") || "Patterns"],
       color: GOLD,
+      intro: t("analystIntro") || "Let's look at the numbers. Share your session data or describe what you're struggling with — I'll find the pattern.",
       quickActions: [t("analystQuick1"), t("analystQuick2"), t("analystQuick3")],
+    },
+    {
+      id: "champion",
+      emoji: "🥊",
+      name: t("oldChampion") || "Old Champion",
+      tagline: t("championTagline") || "I've been in that ring.",
+      tags: [t("wisdom") || "Wisdom", t("stories") || "Stories"],
+      color: PURPLE,
+      intro: t("championIntro") || "I've taken every punch you're about to face. Ask me anything — there's nothing in that gym I haven't seen before.",
+      quickActions: [
+        t("championQuick1") || "How do I handle pressure?",
+        t("championQuick2") || "What separates good from great?",
+        t("championQuick3") || "How did you stay motivated?",
+      ],
     },
   ];
 
@@ -80,32 +102,16 @@ export default function AICoach() {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({
-          messages: newMessages,
-          persona,
-          locale,
-        }),
+        body: JSON.stringify({ messages: newMessages, persona, locale }),
       });
 
       const data = await response.json();
 
       if (data.content && data.content[0]) {
-        setMessages([
-          ...newMessages,
-          {
-            role: "assistant",
-            content: data.content[0].text,
-          },
-        ]);
+        setMessages([...newMessages, { role: "assistant", content: data.content[0].text }]);
       }
-    } catch (error) {
-      setMessages([
-        ...newMessages,
-        {
-          role: "assistant",
-          content: t("coachError"),
-        },
-      ]);
+    } catch {
+      setMessages([...newMessages, { role: "assistant", content: t("coachError") }]);
     } finally {
       setLoading(false);
     }
@@ -126,7 +132,7 @@ export default function AICoach() {
           <h1 style={styles.title}>{t("aiCoach")}</h1>
         </div>
 
-        {/* Section sub-tabs: Library / Chat */}
+        {/* Section sub-tabs */}
         <div style={styles.sectionTabRow}>
           {[
             { key: "library", label: t("libraryTabLabel"), emoji: "📚" },
@@ -143,122 +149,154 @@ export default function AICoach() {
           ))}
         </div>
 
-        {/* Library section */}
         {activeSection === "library" && (
           <KnowledgeLibrary locale={locale} onAsk={handleAskFromLibrary} />
         )}
 
-        {/* Chat section */}
-        {activeSection === "chat" && (
-          <>
-        <div style={styles.personas}>
-          {personas.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => handlePersonaChange(item.id)}
-              style={{
-                ...styles.personaButton,
-                ...(persona === item.id ? {
-                  borderColor: item.color,
-                  background: `linear-gradient(180deg, ${item.color}24, rgba(11,11,11,0.96))`,
-                  boxShadow: `0 0 0 1px ${item.color}55, 0 0 28px ${item.color}33`,
-                  opacity: 1,
-                  transform: "translateY(-2px)",
-                } : {}),
-              }}
-            >
-              <span style={{ ...styles.personaIcon, color: item.color }}>{item.icon}</span>
-              <span style={styles.personaText}>
-                <span style={styles.personaName}>{item.name}</span>
-                <span style={{ ...styles.personaLabel, color: item.color }}>{item.label}</span>
-              </span>
-            </button>
-          ))}
-        </div>
+        {activeSection === "chat" && (<>
 
-        <div style={styles.quickActions}>
-          {activePersona.quickActions.map((action) => (
-            <button
-              key={action}
-              onClick={() => handleSend(action)}
-              disabled={loading}
-              style={{
-                ...styles.quickAction,
-                opacity: loading ? 0.55 : 1,
-                cursor: loading ? "not-allowed" : "pointer",
-              }}
-            >
-              {action}
-            </button>
-          ))}
-        </div>
-
-        <div style={styles.chatBox}>
-          <div style={styles.messages}>
-            {messages.length === 0 ? (
-              <div style={styles.emptyState}>
-                <div style={styles.emptyTitle}>{t("askYourCoach")}</div>
-                <div style={styles.exampleThread}>
-                  <div style={styles.exampleAssistant}>{t("coachExampleAssistant1")}</div>
-                  <div style={styles.exampleUser}>{t("coachExampleUser")}</div>
-                  <div style={styles.exampleAssistant}>{t("coachExampleAssistant2")}</div>
-                </div>
-              </div>
-            ) : (
-              messages.map((message, index) => (
-                <div
-                  key={index}
-                  style={{
-                    marginBottom: 16,
-                    display: "flex",
-                    justifyContent: message.role === "user" ? "flex-end" : "flex-start",
-                  }}
-                >
-                  <div
-                    style={{
-                      ...(message.role === "user" ? styles.userBubble : styles.assistantBubble),
-                      ...(message.role === "assistant" ? {
-                        borderLeftColor: activePersona.color,
-                        boxShadow: `inset 3px 0 0 ${activePersona.color}, 0 14px 34px rgba(0,0,0,0.24)`,
-                      } : {}),
-                    }}
-                  >
-                    {message.content}
+          {/* ── Persona character cards ── */}
+          <p style={styles.personaSectionLabel}>CHOOSE YOUR COACH</p>
+          <div style={styles.personaGrid}>
+            {personas.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => handlePersonaChange(p.id)}
+                style={{
+                  ...styles.personaCard,
+                  ...(persona === p.id ? {
+                    ...styles.personaCardActive,
+                    borderColor: p.color,
+                    background: `linear-gradient(145deg, ${p.color}20, rgba(11,11,12,0.98))`,
+                    boxShadow: `0 0 0 1px ${p.color}44, 0 8px 24px ${p.color}18`,
+                  } : {}),
+                }}
+              >
+                <span style={{ ...styles.personaAvatar, background: `${p.color}1A`, color: p.color }}>
+                  {p.emoji}
+                </span>
+                <div style={styles.personaCardContent}>
+                  <span style={styles.personaCardName}>{p.name}</span>
+                  <span style={styles.personaCardTagline}>{p.tagline}</span>
+                  <div style={styles.personaCardTags}>
+                    {p.tags.map((tag) => (
+                      <span key={tag} style={{ ...styles.personaCardTag, color: p.color, borderColor: `${p.color}40` }}>
+                        {tag}
+                      </span>
+                    ))}
                   </div>
                 </div>
-              ))
-            )}
-            <div ref={messagesEndRef} />
+                {persona === p.id && (
+                  <span style={{ ...styles.personaCheckBadge, background: p.color }}>✓</span>
+                )}
+              </button>
+            ))}
           </div>
 
-          <div style={styles.inputRow}>
-            <input
-              type="text"
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder={t("coachPlaceholder")}
-              disabled={loading}
-              style={styles.input}
-            />
-            <button
-              type="button"
-              onClick={() => handleSend()}
-              disabled={!input.trim() || loading}
-              style={{
-                ...styles.sendButton,
-                background: loading ? "#4d1117" : activePersona.color,
-                cursor: loading || !input.trim() ? "not-allowed" : "pointer",
-                opacity: loading || !input.trim() ? 0.7 : 1,
-              }}
-              aria-label={t("sendMessage")}
-            >
-              {loading ? "..." : <SendIcon />}
-            </button>
+          {/* ── Active coach banner ── */}
+          <div style={{ ...styles.personaBanner, borderColor: `${activePersona.color}30`, background: `${activePersona.color}08` }}>
+            <span style={{ ...styles.personaBannerEmoji, background: `${activePersona.color}1A` }}>
+              {activePersona.emoji}
+            </span>
+            <div style={styles.personaBannerInfo}>
+              <p style={{ ...styles.personaBannerName, color: activePersona.color }}>{activePersona.name}</p>
+              <p style={styles.personaBannerSub}>Coaching you now</p>
+            </div>
+            <span style={styles.personaBannerDot} />
           </div>
-        </div>
-          </>
-        )}
+
+          {/* ── Quick actions ── */}
+          <div style={styles.quickActions}>
+            {activePersona.quickActions.map((action) => (
+              <button
+                key={action}
+                type="button"
+                onClick={() => handleSend(action)}
+                disabled={loading}
+                style={{
+                  ...styles.quickAction,
+                  borderColor: `${activePersona.color}30`,
+                  opacity: loading ? 0.45 : 1,
+                  cursor: loading ? "not-allowed" : "pointer",
+                }}
+              >
+                {action}
+              </button>
+            ))}
+          </div>
+
+          {/* ── Chat box ── */}
+          <div style={styles.chatBox}>
+            <div style={styles.messages}>
+              {messages.length === 0 ? (
+                <div style={styles.emptyState}>
+                  <div style={styles.introWrap}>
+                    <div style={{
+                      ...styles.introBubble,
+                      borderLeftColor: activePersona.color,
+                      boxShadow: `inset 2px 0 0 ${activePersona.color}`,
+                    }}>
+                      {activePersona.intro}
+                    </div>
+                    <p style={styles.introHint}>TAP A QUICK ACTION OR TYPE BELOW</p>
+                  </div>
+                </div>
+              ) : (
+                messages.map((message, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      marginBottom: 16,
+                      display: "flex",
+                      justifyContent: message.role === "user" ? "flex-end" : "flex-start",
+                    }}
+                  >
+                    <div
+                      style={{
+                        ...(message.role === "user" ? styles.userBubble : styles.assistantBubble),
+                        ...(message.role === "assistant" ? {
+                          borderLeftColor: activePersona.color,
+                          boxShadow: `inset 3px 0 0 ${activePersona.color}, 0 14px 34px ${blackAlpha(0.24)}`,
+                        } : {}),
+                      }}
+                    >
+                      {message.content}
+                    </div>
+                  </div>
+                ))
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            <div style={styles.inputRow}>
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder={t("coachPlaceholder")}
+                disabled={loading}
+                style={{ ...styles.input, borderColor: input ? `${activePersona.color}40` : "rgba(255,255,255,0.08)" }}
+              />
+              <button
+                type="button"
+                onClick={() => handleSend()}
+                disabled={!input.trim() || loading}
+                style={{
+                  ...styles.sendButton,
+                  background: loading ? "#4d1117" : activePersona.color,
+                  cursor: loading || !input.trim() ? "not-allowed" : "pointer",
+                  opacity: loading || !input.trim() ? 0.65 : 1,
+                }}
+                aria-label={t("sendMessage")}
+              >
+                {loading ? "…" : <SendIcon />}
+              </button>
+            </div>
+          </div>
+
+        </>)}
       </div>
     </div>
   );
