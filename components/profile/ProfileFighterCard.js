@@ -1,6 +1,6 @@
 "use client";
 
-import { RED, GOLD, PURPLE, redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, PURPLE, redAlpha, goldAlpha, whiteAlpha } from "@/lib/tokens";
 import RankBadge from "@/components/RankBadge";
 import styles from "@/components/profile/profilePageStyles";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
@@ -144,8 +144,11 @@ export default function ProfileFighterCard({
             disabled={followLoading}
             style={{
               ...styles.identityActionBtn,
-              background: isFollowing ? "rgba(255,255,255,0.06)" : RED,
-              borderColor: isFollowing ? "rgba(255,255,255,0.15)" : redAlpha(0.5),
+              background: isFollowing
+                ? whiteAlpha(0.06)
+                : `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
+              borderColor: isFollowing ? whiteAlpha(0.15) : redAlpha(0.5),
+              boxShadow: isFollowing ? "none" : `0 6px 20px ${redAlpha(0.3)}`,
               opacity: followLoading ? 0.7 : 1,
               cursor: followLoading ? "not-allowed" : "pointer",
             }}
@@ -160,8 +163,13 @@ export default function ProfileFighterCard({
         <p style={styles.bio}>{profileUser.bio}</p>
       )}
 
+      {/* ── License eyebrow ──────────────────────────────────────────────── */}
+      <p style={styles.statsSectionKicker}>
+        {locale === "mn" ? "Тэмцэгчийн лиценз" : locale === "ko" ? "파이터 라이선스" : "Fighter License"}
+      </p>
+
       {/* ── Digital License Card ─────────────────────────────────────────── */}
-      <div style={styles.licenseCard} className="license-enter">
+      <div style={styles.licenseCard} className="section-reveal">
         {/* Left: XP ring + rank */}
         <button type="button" onClick={onShowRankModal} style={styles.licenseRankBlock}>
           <div style={{ position: "relative", width: 56, height: 56 }}>
@@ -228,7 +236,7 @@ export default function ProfileFighterCard({
 
       {/* ── Badges shelf ─────────────────────────────────────────────────── */}
       {userBadges.length > 0 && (
-        <div style={styles.achievementsShelf}>
+        <div style={styles.achievementsShelf} className="stagger-list">
           {userBadges.map((b) => {
             const meta = BADGE_META[b.badgeId] || { icon: "🏅", label: b.badgeId, color: GOLD };
             return (
@@ -244,7 +252,7 @@ export default function ProfileFighterCard({
       )}
 
       {/* ── Stats row ────────────────────────────────────────────────────── */}
-      <div style={styles.statsRow} className="section-enter stagger-3">
+      <div style={styles.statsRow} className="section-reveal stagger-3">
         <button type="button" onClick={() => onStatNavigate("posts")} style={styles.statButton}>
           <span style={styles.statNumber}>{userReels.length}</span>
           <span style={styles.statLabel}>{t("posts")}</span>
