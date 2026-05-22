@@ -102,7 +102,7 @@ function IconTab({ active, onClick, children, label }) {
 function TrainTab({ onClick, active, locale }) {
   const label = locale === "mn" ? "Дасгал" : locale === "ko" ? "훈련" : "Train";
   return (
-    <button type="button" onClick={onClick} style={s.trainTab} aria-label={label} className="tap-bounce">
+    <button type="button" onClick={onClick} style={s.trainTab} aria-label={label} className="tap-bounce btn-press">
       <span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
         <span style={{
           ...s.trainCircle,
@@ -251,7 +251,7 @@ const s = {
     background: "rgba(7,7,8,0.82)",
     backdropFilter: "blur(40px) saturate(180%)",
     WebkitBackdropFilter: "blur(40px) saturate(180%)",
-    borderRadius: 28,
+    borderRadius: 999,
     border: "1px solid rgba(255,255,255,0.06)",
     boxShadow: "0 8px 48px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05)",
     display: "grid",
@@ -274,12 +274,12 @@ const s = {
   iconGlow: {
     width: 36,
     height: 36,
-    borderRadius: 11,
+    borderRadius: 12,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
-    transition: "background 180ms ease",
+    transition: "background var(--motion-hover)",
   },
   tabLabel: {
     fontSize: 9,
@@ -304,12 +304,12 @@ const s = {
   trainCircle: {
     width: 46,
     height: 46,
-    borderRadius: 15,
+    borderRadius: 14,
     background: `linear-gradient(145deg, ${RED}, #cc2820)`,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    transition: "box-shadow 200ms ease",
+    transition: "box-shadow var(--motion-hover), transform var(--motion-press)",
   },
   badge: {
     position: "absolute",

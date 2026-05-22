@@ -166,7 +166,7 @@ const c = {
     backdropFilter: "blur(16px)",
     WebkitBackdropFilter: "blur(16px)",
     border: `1px solid rgba(255,255,255,0.06)`,
-    borderRadius: "3px 14px 14px 3px",
+    borderRadius: "3px 18px 18px 3px",
     padding: "16px 14px 14px",
     display: "flex",
     flexDirection: "column",

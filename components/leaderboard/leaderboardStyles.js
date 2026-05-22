@@ -16,7 +16,7 @@ const styles = {
   },
   backBtn: {
     border: `1px solid ${goldAlpha(0.28)}`, background: "transparent", color: "#fff",
-    borderRadius: 12, width: 40, height: 40,
+    borderRadius: 14, width: 40, height: 40,
     display: "flex", alignItems: "center", justifyContent: "center",
     cursor: "pointer", flexShrink: 0,
   },
@@ -39,7 +39,7 @@ const styles = {
     flex: 1, padding: "9px 0", borderRadius: 10,
     border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.04)",
     color: "rgba(255,255,255,0.4)", fontSize: 12, fontWeight: 700, cursor: "pointer",
-    transition: "all 0.18s", whiteSpace: "nowrap",
+    transition: "all var(--motion-hover)", whiteSpace: "nowrap",
   },
   tabBtnActive: {
     background: goldAlpha(0.14), border: `1px solid ${goldAlpha(0.42)}`,
@@ -66,7 +66,7 @@ const styles = {
   content: { maxWidth: 640, margin: "0 auto", padding: "28px 16px" },
 
   yourRankCard: {
-    padding: "16px 18px", borderRadius: 18,
+    padding: "16px 18px", borderRadius: "var(--r-lg)",
     background: redAlpha(0.1), border: `1.5px solid ${redAlpha(0.42)}`,
     boxShadow: `0 0 0 1px ${redAlpha(0.05)}, 0 8px 28px ${redAlpha(0.12)}, 0 0 40px ${redAlpha(0.06)}`,
     marginBottom: 20, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
@@ -77,7 +77,7 @@ const styles = {
   yourRankSub: { fontSize: 12, color: "rgba(255,255,255,0.42)", lineHeight: 1.4, fontWeight: 600 },
 
   weeklyChampionBanner: {
-    padding: "18px 20px", borderRadius: 20,
+    padding: "18px 20px", borderRadius: "var(--r-xl)",
     background: `linear-gradient(135deg, ${goldAlpha(0.18)} 0%, ${goldAlpha(0.06)} 100%)`,
     border: `1px solid ${goldAlpha(0.36)}`,
     boxShadow: `0 0 40px ${goldAlpha(0.1)}, inset 0 1px 0 ${goldAlpha(0.18)}`,
@@ -111,7 +111,7 @@ const styles = {
   list: { display: "grid", gap: 10 },
   row: {
     display: "grid", gridTemplateColumns: "44px 48px 1fr auto", alignItems: "center", gap: 12,
-    padding: "14px 14px", borderRadius: 16,
+    padding: "14px 14px", borderRadius: "var(--r-lg)",
     background: "rgba(255,255,255,0.045)", border: "1px solid rgba(255,255,255,0.06)",
     backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
   },
@@ -122,17 +122,17 @@ const styles = {
   rowFirst: {
     background: `linear-gradient(145deg, ${goldAlpha(0.12)}, ${goldAlpha(0.04)})`,
     border: `1px solid ${goldAlpha(0.28)}`, borderLeft: `3px solid ${GOLD}`,
-    borderRadius: "3px 16px 16px 3px", boxShadow: `0 4px 24px ${goldAlpha(0.1)}`,
+    borderRadius: "3px 18px 18px 3px", boxShadow: `0 4px 24px ${goldAlpha(0.1)}`,
   },
   rowSecond: {
     background: "linear-gradient(145deg, rgba(156,163,175,0.07), rgba(156,163,175,0.02))",
     border: "1px solid rgba(156,163,175,0.18)", borderLeft: "3px solid #9CA3AF",
-    borderRadius: "3px 16px 16px 3px",
+    borderRadius: "3px 18px 18px 3px",
   },
   rowThird: {
     background: "linear-gradient(145deg, rgba(251,146,60,0.07), rgba(251,146,60,0.02))",
     border: "1px solid rgba(251,146,60,0.18)", borderLeft: "3px solid #FB923C",
-    borderRadius: "3px 16px 16px 3px",
+    borderRadius: "3px 18px 18px 3px",
   },
   rankWrap: { display: "flex", alignItems: "center", justifyContent: "center" },
   medal: { fontSize: 22, lineHeight: 1 },
