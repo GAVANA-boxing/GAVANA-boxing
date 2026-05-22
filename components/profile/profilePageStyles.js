@@ -1,7 +1,7 @@
 import {
   RED, RED_DARK, GOLD, PURPLE, BG, SURFACE_1, SURFACE_2,
   BORDER, BORDER_2, RADIUS, SP, MOTION,
-  redAlpha, goldAlpha, whiteAlpha,
+  redAlpha, goldAlpha, whiteAlpha, blackAlpha,
 } from "@/lib/tokens";
 
 const styles = {
@@ -11,7 +11,7 @@ const styles = {
     display: "flex", alignItems: "center",
     paddingTop: "calc(12px + env(safe-area-inset-top))",
     paddingBottom: 12, paddingLeft: 16, paddingRight: 16,
-    background: "rgba(9,9,9,0.92)",
+    background: blackAlpha(0.92),
     backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
   },
   backBtnProfile: {
@@ -46,12 +46,12 @@ const styles = {
   },
   coverPhotoGradient: {
     position: "absolute", inset: 0,
-    background: "linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.22) 50%, rgba(11,11,12,0.95) 100%)",
+    background: `linear-gradient(to bottom, ${blackAlpha(0.05)} 0%, ${blackAlpha(0.22)} 50%, ${blackAlpha(0.95)} 100%)`,
     pointerEvents: "none",
   },
   coverPhotoEditBtn: {
     position: "absolute", bottom: 72, right: 14,
-    background: "rgba(0,0,0,0.55)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+    background: blackAlpha(0.55), backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
     border: `1px solid ${whiteAlpha(0.22)}`, borderRadius: RADIUS.sm,
     color: "#fff", width: 34, height: 34, cursor: "pointer",
     display: "flex", alignItems: "center", justifyContent: "center",
@@ -69,7 +69,7 @@ const styles = {
     borderRadius: "50%",
     background: RED,
     border: `3px solid ${redAlpha(0.9)}`,
-    boxShadow: `0 0 0 2px ${goldAlpha(0.45)}, 0 0 0 4px ${redAlpha(0.12)}, 0 16px 56px rgba(0,0,0,0.7), 0 0 36px ${redAlpha(0.28)}`,
+    boxShadow: `0 0 0 2px ${goldAlpha(0.45)}, 0 0 0 4px ${redAlpha(0.12)}, 0 16px 56px ${blackAlpha(0.7)}, 0 0 36px ${redAlpha(0.28)}`,
     display: "flex", alignItems: "center", justifyContent: "center",
     fontSize: 38, fontWeight: 1000,
     color: "#FFFFFF", overflow: "hidden", position: "relative",
@@ -129,7 +129,7 @@ const styles = {
     background: `linear-gradient(145deg, ${whiteAlpha(0.04)}, ${SURFACE_1})`,
     border: `1px solid ${BORDER_2}`,
     backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-    boxShadow: `0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 ${whiteAlpha(0.05)}`,
+    boxShadow: `0 4px 24px ${blackAlpha(0.3)}, inset 0 1px 0 ${whiteAlpha(0.05)}`,
     display: "flex",
     alignItems: "flex-start",
     gap: 0,
@@ -171,7 +171,7 @@ const styles = {
     padding: "9px 10px", borderRadius: RADIUS.sm,
     background: whiteAlpha(0.04), border: "1px solid",
     minWidth: 68, gap: 4, flexShrink: 0,
-    boxShadow: "0 2px 12px rgba(0,0,0,0.25)",
+    boxShadow: `0 2px 12px ${blackAlpha(0.25)}`,
   },
 
   // ── Stats row ─────────────────────────────────────────────────────────────
@@ -228,7 +228,7 @@ const styles = {
   profileTabs: {
     display: "flex", width: "100%",
     borderBottom: `1px solid ${BORDER}`,
-    background: "rgba(11,11,12,0.92)",
+    background: blackAlpha(0.92),
     backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
     position: "sticky", top: 0, zIndex: 8,
   },
@@ -245,32 +245,32 @@ const styles = {
   // ── Reel grid tiles ───────────────────────────────────────────────────────
   reelPreviewMedia: {
     width: "100%", height: "100%", objectFit: "cover", display: "block",
-    background: "linear-gradient(145deg, #0B0B0C, #141416)",
+    background: `linear-gradient(145deg, ${BG}, #141416)`,
   },
   deleteReelButton: {
     position: "absolute", top: 8, right: 8, zIndex: 3,
     width: 30, height: 30, borderRadius: RADIUS.full,
     border: `1px solid ${whiteAlpha(0.16)}`,
-    background: "rgba(11,11,12,0.72)", color: "#fff",
+    background: blackAlpha(0.72), color: "#fff",
     fontSize: 20, fontWeight: 800, lineHeight: "26px",
     display: "flex", alignItems: "center", justifyContent: "center",
-    boxShadow: "0 10px 24px rgba(0,0,0,0.36)",
+    boxShadow: `0 10px 24px ${blackAlpha(0.36)}`,
     backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
   },
   reelGridEmpty: {
     gridColumn: "1 / -1", display: "flex", flexDirection: "column",
     alignItems: "center", justifyContent: "center",
-    padding: "72px 24px 80px", gap: 12, background: "var(--background)",
+    padding: "72px 24px 80px", gap: 12, background: BG,
   },
   reelGridEmptyIcon: {
     fontSize: 52, lineHeight: 1, marginBottom: 4,
     filter: `drop-shadow(0 4px 16px ${redAlpha(0.4)})`,
   },
   reelGridEmptyTitle: {
-    margin: 0, color: "var(--text-primary)", fontWeight: 950, fontSize: 20, textAlign: "center",
+    margin: 0, color: "#fff", fontWeight: 950, fontSize: 20, textAlign: "center",
   },
   reelGridEmptyText: {
-    margin: 0, fontSize: 14, color: "var(--text-secondary)",
+    margin: 0, fontSize: 14, color: whiteAlpha(0.55),
     textAlign: "center", maxWidth: 280, lineHeight: 1.5,
   },
   reelGridEmptyCta: {
@@ -287,17 +287,17 @@ const styles = {
   reelTileOverlay: {
     position: "absolute", bottom: 0, left: 0, right: 0,
     padding: "20px 6px 6px",
-    background: "linear-gradient(to top, rgba(0,0,0,0.85), transparent)",
+    background: `linear-gradient(to top, ${blackAlpha(0.85)}, transparent)`,
     pointerEvents: "none", zIndex: 3,
   },
   reelTileLikes: {
     color: whiteAlpha(0.9), fontSize: 11, fontWeight: 800,
-    letterSpacing: 0.2, textShadow: "0 1px 6px rgba(0,0,0,0.9)", marginBottom: 2,
+    letterSpacing: 0.2, textShadow: `0 1px 6px ${blackAlpha(0.9)}`, marginBottom: 2,
   },
   reelTileCaption: {
     overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
     color: whiteAlpha(0.65), fontSize: 10, fontWeight: 600,
-    textShadow: "0 1px 4px rgba(0,0,0,0.9)",
+    textShadow: `0 1px 4px ${blackAlpha(0.9)}`,
   },
 
   // ── XP section ────────────────────────────────────────────────────────────

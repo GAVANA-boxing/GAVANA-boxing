@@ -1,4 +1,4 @@
-import { RED, redAlpha, goldAlpha, GOLD, BG, pageBg } from "@/lib/tokens";
+import { RED, RED_DARK, redAlpha, goldAlpha, GOLD, BG, BORDER, BORDER_2, RADIUS, whiteAlpha, blackAlpha, pageBg } from "@/lib/tokens";
 
 const styles = {
   page: {
@@ -9,8 +9,8 @@ const styles = {
   },
   backBtn: {
     width: 40, height: 40,
-    border: "1px solid rgba(255,255,255,0.1)",
-    background: "rgba(0,0,0,0.5)",
+    border: `1px solid ${whiteAlpha(0.1)}`,
+    background: blackAlpha(0.5),
     borderRadius: 12,
     display: "flex", alignItems: "center", justifyContent: "center",
     cursor: "pointer", padding: 0, color: "#fff", justifySelf: "start",
@@ -36,11 +36,11 @@ const styles = {
     letterSpacing: "-0.02em",
   },
   subtitle: {
-    margin: 0, color: "rgba(255,255,255,0.5)", fontSize: 13, lineHeight: 1.5,
+    margin: 0, color: whiteAlpha(0.5), fontSize: 13, lineHeight: 1.5,
   },
   streakPill: {
     width: "fit-content", display: "inline-flex", alignItems: "center", gap: 8,
-    minHeight: 34, padding: "0 12px", borderRadius: 999,
+    minHeight: 34, padding: "0 12px", borderRadius: RADIUS.full,
     background: "rgba(251,146,60,0.12)", border: "1px solid rgba(251,146,60,0.28)",
     color: "#FED7AA", fontSize: 13, fontWeight: 900,
   },
@@ -49,13 +49,13 @@ const styles = {
   // ── Main tabs ──
   seasonTabRow: {
     display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4, padding: 4,
-    borderRadius: 14, background: "rgba(0,0,0,0.48)",
-    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: RADIUS.md, background: blackAlpha(0.48),
+    border: `1px solid ${BORDER_2}`,
     backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
   },
   seasonTab: {
-    minHeight: 36, border: "1px solid transparent", borderRadius: 10,
-    background: "transparent", color: "rgba(255,255,255,0.38)",
+    minHeight: 36, border: "1px solid transparent", borderRadius: RADIUS.sm,
+    background: "transparent", color: whiteAlpha(0.38),
     fontSize: 12, fontWeight: 900, cursor: "pointer",
     transition: "all 180ms",
   },
@@ -66,7 +66,7 @@ const styles = {
     border: `1px solid ${redAlpha(0.5)}`,
   },
   seasonLabel: { textAlign: "center", paddingBottom: 2 },
-  seasonLabelText: { fontSize: 11, color: "rgba(255,255,255,0.38)", fontWeight: 700, letterSpacing: 0.4 },
+  seasonLabelText: { fontSize: 11, color: whiteAlpha(0.38), fontWeight: 700, letterSpacing: 0.4 },
 
   // ── Champion banner ──
   champBanner: {
@@ -89,18 +89,18 @@ const styles = {
     fontSize: 14, fontWeight: 900, color: "#fff",
     overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
   },
-  champChallenge: { fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 700 },
+  champChallenge: { fontSize: 10, color: whiteAlpha(0.4), fontWeight: 700 },
   champScore: { fontSize: 15, fontWeight: 1000, color: GOLD, flexShrink: 0 },
 
   // ── Your rank bar ──
   yourRankBar: {
     position: "sticky", top: "calc(62px + env(safe-area-inset-top))", zIndex: 7,
     display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
-    minHeight: 46, padding: "0 16px", borderRadius: 16,
+    minHeight: 46, padding: "0 16px", borderRadius: RADIUS.lg,
     background: `linear-gradient(135deg, ${goldAlpha(0.14)}, rgba(10,10,10,0.82))`,
     border: `1px solid ${goldAlpha(0.24)}`,
     backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-    boxShadow: `0 14px 36px rgba(0,0,0,0.3), 0 0 24px ${goldAlpha(0.06)}`,
+    boxShadow: `0 14px 36px ${blackAlpha(0.3)}, 0 0 24px ${goldAlpha(0.06)}`,
   },
   yourRankLabel: { color: "#fff", fontSize: 14, fontWeight: 1000 },
   yourRankChallenge: {
@@ -111,13 +111,13 @@ const styles = {
   // ── Challenge cards ──
   challengeList: { display: "grid", gap: 14 },
   card: {
-    borderRadius: 22, padding: "18px 16px 16px",
-    background: "rgba(255,255,255,0.025)",
-    backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    borderLeft: `3px solid ${RED}`,
     borderRadius: "4px 22px 22px 4px",
-    boxShadow: `0 0 0 0.5px rgba(0,0,0,0.5) inset, 0 20px 52px rgba(0,0,0,0.28), 0 0 24px ${redAlpha(0.04)}`,
+    padding: "18px 16px 16px",
+    background: whiteAlpha(0.025),
+    backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+    border: `1px solid ${BORDER_2}`,
+    borderLeft: `3px solid ${RED}`,
+    boxShadow: `0 0 0 0.5px ${blackAlpha(0.5)} inset, 0 20px 52px ${blackAlpha(0.28)}, 0 0 24px ${redAlpha(0.04)}`,
   },
   cardTop: {
     display: "flex", alignItems: "flex-start",
@@ -130,13 +130,13 @@ const styles = {
     textTransform: "uppercase", letterSpacing: "-0.01em",
   },
   cardDesc: {
-    margin: "5px 0 0", color: "rgba(255,255,255,0.48)",
+    margin: "5px 0 0", color: whiteAlpha(0.48),
     fontSize: 12, lineHeight: 1.45,
   },
   startButton: {
     flexShrink: 0, padding: "10px 18px", border: "none", borderRadius: 12,
-    background: `linear-gradient(145deg, ${RED}, #cc2820)`,
-    boxShadow: `0 6px 22px ${redAlpha(0.35)}, inset 0 1px 0 rgba(255,255,255,0.12)`,
+    background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
+    boxShadow: `0 6px 22px ${redAlpha(0.35)}, inset 0 1px 0 ${whiteAlpha(0.12)}`,
     color: "#fff", fontSize: 12, fontWeight: 1000, whiteSpace: "nowrap",
     cursor: "pointer", letterSpacing: 1, textTransform: "uppercase",
   },
@@ -151,9 +151,9 @@ const styles = {
   scoreRow: {
     minHeight: 60, display: "grid", gridTemplateColumns: "42px minmax(0, 1fr) auto",
     alignItems: "center", gap: 10, padding: "9px 12px",
-    borderRadius: 14,
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.07)",
+    borderRadius: RADIUS.md,
+    background: whiteAlpha(0.04),
+    border: `1px solid ${BORDER}`,
     backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
   },
   scoreRowCurrent: {
@@ -163,8 +163,8 @@ const styles = {
   },
   emptyLeaderboard: {
     padding: "14px 12px", borderRadius: 12,
-    background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)",
-    color: "rgba(255,255,255,0.45)", fontSize: 13, fontWeight: 800, textAlign: "center",
+    background: whiteAlpha(0.03), border: `1px solid ${BORDER}`,
+    color: whiteAlpha(0.45), fontSize: 13, fontWeight: 800, textAlign: "center",
   },
   rankNum: { color: GOLD, fontSize: 18, fontWeight: 950, textAlign: "center" },
   fighterCell: { minWidth: 0, display: "flex", alignItems: "center", gap: 9 },
@@ -178,9 +178,9 @@ const styles = {
   fighterText: { minWidth: 0, display: "grid", gap: 2 },
   fighterName: {
     minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-    color: "rgba(255,255,255,0.82)", fontSize: 13, fontWeight: 800,
+    color: whiteAlpha(0.82), fontSize: 13, fontWeight: 800,
   },
-  resultMeta: { color: "rgba(255,255,255,0.42)", fontSize: 11, fontWeight: 800 },
+  resultMeta: { color: whiteAlpha(0.42), fontSize: 11, fontWeight: 800 },
   scoreStack: { display: "grid", justifyItems: "end", gap: 3 },
   scoreValue: {
     color: "#fff", fontSize: 16, fontWeight: 1000,
