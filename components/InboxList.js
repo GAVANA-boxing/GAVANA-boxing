@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname } from "@/lib/i18n";
 import { startConversation } from "@/lib/messaging";
 import BottomNav from "@/components/BottomNav";
-import { RED, GOLD , redAlpha, goldAlpha, pageBg } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, SURFACE_1, BORDER, BORDER_2, RADIUS, redAlpha, goldAlpha, whiteAlpha, pageBg } from "@/lib/tokens";
 import Image from "next/image";
 import { Toast, useToast } from "@/components/ui/Toast";
 
@@ -178,7 +178,12 @@ export default function InboxList() {
             <path d="m15 18-6-6 6-6" />
           </svg>
         </button>
-        <span style={s.title}>{T.title}</span>
+        <div style={s.headerCenter}>
+          <p style={s.headerEyebrow}>
+            {locale === "mn" ? "ТЭМЦЭГЧИД" : locale === "ko" ? "파이터스" : "COMBAT · COMMS"}
+          </p>
+          <span style={s.title}>{T.title}</span>
+        </div>
         <button type="button" aria-label="New message" onClick={() => setShowCompose(true)} style={s.composeBtn} title={T.newMsg}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
@@ -197,7 +202,7 @@ export default function InboxList() {
           </button>
         </div>
       ) : (
-        <div style={s.list}>
+        <div style={s.list} className="stagger-list">
           {conversations.map((convo) => {
             const other = getOther(convo);
             const isCoach = other.isCoach || other.coachVerified;
@@ -322,42 +327,58 @@ export default function InboxList() {
 }
 
 const s = {
-  page: { minHeight: "100dvh", background: `radial-gradient(ellipse at 50% -8%, ${redAlpha(0.06)} 0%, transparent 48%), #0B0B0C`, color: "#fff", display: "flex", flexDirection: "column", paddingBottom: "calc(88px + env(safe-area-inset-bottom))" },
-  header: { position: "sticky", top: 0, zIndex: 20, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "calc(16px + env(safe-area-inset-top)) 16px 14px", background: "rgba(11,11,12,0.92)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.07)" },
-  backBtn: { width: 40, height: 40, borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.75)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
-  composeBtn: { width: 40, height: 40, borderRadius: 12, border: `1px solid ${redAlpha(0.45)}`, background: `${redAlpha(0.12)}`, color: RED, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  page: { minHeight: "100dvh", background: `radial-gradient(ellipse at 50% -8%, ${redAlpha(0.08)} 0%, transparent 48%), #090909`, color: "#fff", display: "flex", flexDirection: "column", paddingBottom: "calc(88px + env(safe-area-inset-bottom))" },
+  header: { position: "sticky", top: 0, zIndex: 20, display: "grid", gridTemplateColumns: "44px 1fr 44px", alignItems: "center", gap: 8, padding: "calc(14px + env(safe-area-inset-top)) 16px 14px", background: "rgba(9,9,9,0.94)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", borderBottom: `1px solid ${BORDER}` },
+  headerCenter: { display: "flex", flexDirection: "column", alignItems: "center", gap: 1 },
+  headerEyebrow: { margin: 0, fontSize: 9, fontWeight: 900, letterSpacing: "3.5px", textTransform: "uppercase", color: RED },
+  backBtn: { width: 40, height: 40, borderRadius: RADIUS.sm, border: `1px solid ${BORDER_2}`, background: whiteAlpha(0.05), color: whiteAlpha(0.75), cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  composeBtn: { width: 40, height: 40, borderRadius: RADIUS.sm, border: `1px solid ${redAlpha(0.45)}`, background: redAlpha(0.12), color: RED, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, justifySelf: "end" },
   title: { fontSize: 17, fontWeight: 950, color: "#fff", letterSpacing: -0.3 },
-  list: { display: "flex", flexDirection: "column", padding: "8px 0" },
-  row: { display: "flex", alignItems: "center", gap: 13, padding: "11px 16px", background: "transparent", border: "none", borderBottom: "1px solid rgba(255,255,255,0.035)", cursor: "pointer", width: "100%", textAlign: "left", WebkitTapHighlightColor: "transparent", transition: "background 120ms ease" },
-  rowUnread: { background: `${redAlpha(0.06)}`, borderBottomColor: `${redAlpha(0.08)}` },
+  list: { display: "flex", flexDirection: "column", padding: "8px 16px", gap: 8 },
+  row: {
+    display: "flex", alignItems: "center", gap: 13,
+    padding: "13px 14px",
+    background: SURFACE_1, border: `1px solid ${BORDER}`,
+    borderLeft: "2.5px solid transparent",
+    borderRadius: `2px ${RADIUS.lg}px ${RADIUS.lg}px 2px`,
+    cursor: "pointer", width: "100%", textAlign: "left",
+    WebkitTapHighlightColor: "transparent",
+    transition: "background 120ms ease",
+    boxShadow: "0 2px 12px rgba(0,0,0,0.2)",
+  },
+  rowUnread: {
+    background: `linear-gradient(90deg, ${redAlpha(0.1)}, ${SURFACE_1})`,
+    borderLeftColor: RED,
+    borderColor: redAlpha(0.12),
+  },
   avatarWrap: { position: "relative", flexShrink: 0 },
   avatar: { width: 52, height: 52, borderRadius: "50%", objectFit: "cover", display: "block", background: "#1a1a1a" },
   avatarFallback: { width: 52, height: 52, borderRadius: "50%", background: `linear-gradient(145deg, ${redAlpha(0.6)}, #1a1a1a)`, border: `1px solid ${redAlpha(0.3)}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 900, color: "#fff" },
-  coachBadge: { position: "absolute", bottom: -2, right: -2, width: 20, height: 20, borderRadius: "50%", background: GOLD, border: "2px solid #0B0B0C", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10 },
-  unreadDot: { position: "absolute", bottom: 1, right: 1, width: 12, height: 12, borderRadius: "50%", background: RED, border: "2px solid #0B0B0C", boxShadow: `0 0 6px ${redAlpha(0.8)}` },
+  coachBadge: { position: "absolute", bottom: -2, right: -2, width: 20, height: 20, borderRadius: "50%", background: GOLD, border: "2px solid #090909", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10 },
+  unreadDot: { position: "absolute", bottom: 1, right: 1, width: 12, height: 12, borderRadius: "50%", background: RED, border: "2px solid #090909", boxShadow: `0 0 8px ${redAlpha(0.9)}` },
   rowBody: { flex: 1, minWidth: 0 },
   rowTop: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 },
-  name: { fontSize: 14, fontWeight: 750, color: "rgba(255,255,255,0.82)", lineHeight: 1 },
-  coachTag: { fontSize: 9, fontWeight: 900, color: GOLD, background: `${goldAlpha(0.12)}`, border: `1px solid ${goldAlpha(0.35)}`, borderRadius: 999, padding: "2px 6px", letterSpacing: 0.3 },
-  time: { fontSize: 11, color: "rgba(255,255,255,0.28)", fontWeight: 600, flexShrink: 0 },
-  preview: { fontSize: 13, color: "rgba(255,255,255,0.36)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", lineHeight: 1.3 },
-  badge: { flexShrink: 0, minWidth: 22, height: 22, borderRadius: 999, background: `linear-gradient(135deg, ${RED}, #cc2820)`, color: "#fff", fontSize: 10, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 6px", boxShadow: `0 2px 8px ${redAlpha(0.5)}` },
-  empty: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 32px", gap: 12 },
-  emptyIcon: { fontSize: 56, marginBottom: 6, filter: `drop-shadow(0 4px 16px ${redAlpha(0.4)})` },
+  name: { fontSize: 14, fontWeight: 800, color: "#fff", lineHeight: 1 },
+  coachTag: { fontSize: 9, fontWeight: 900, color: GOLD, background: goldAlpha(0.12), border: `1px solid ${goldAlpha(0.35)}`, borderRadius: 999, padding: "2px 6px", letterSpacing: 0.3 },
+  time: { fontSize: 11, color: whiteAlpha(0.3), fontWeight: 600, flexShrink: 0 },
+  preview: { fontSize: 13, color: whiteAlpha(0.38), overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", lineHeight: 1.3 },
+  badge: { flexShrink: 0, minWidth: 22, height: 22, borderRadius: 999, background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`, color: "#fff", fontSize: 10, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 6px", boxShadow: `0 2px 8px ${redAlpha(0.5)}` },
+  empty: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 32px", gap: 14 },
+  emptyIcon: { width: 80, height: 80, borderRadius: "50%", background: redAlpha(0.08), border: `1px solid ${redAlpha(0.18)}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, marginBottom: 6, boxShadow: `0 0 40px ${redAlpha(0.12)}` },
   emptyTitle: { margin: 0, fontSize: 18, fontWeight: 950, color: "#fff" },
-  emptySub: { margin: 0, fontSize: 13, color: "rgba(255,255,255,0.38)", textAlign: "center", lineHeight: 1.65, maxWidth: 270 },
-  findCoachBtn: { padding: "12px 26px", borderRadius: 999, border: "none", background: `linear-gradient(135deg, ${RED}, #cc2820)`, color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", marginTop: 6, boxShadow: `0 6px 20px ${redAlpha(0.35)}` },
+  emptySub: { margin: 0, fontSize: 13, color: whiteAlpha(0.38), textAlign: "center", lineHeight: 1.65, maxWidth: 270 },
+  findCoachBtn: { padding: "12px 26px", borderRadius: RADIUS.full, border: "none", background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`, color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", marginTop: 6, boxShadow: `0 6px 20px ${redAlpha(0.35)}` },
   // Compose sheet
-  composeOverlay: { position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)", display: "flex", alignItems: "flex-end" },
-  composeSheet: { width: "100%", maxHeight: "85dvh", background: "#0f0f0f", borderRadius: "24px 24px 0 0", border: "1px solid rgba(255,255,255,0.09)", borderBottom: "none", display: "flex", flexDirection: "column", animation: "sheetUp 0.28s cubic-bezier(0.25,0.46,0.45,0.94) forwards", paddingBottom: "env(safe-area-inset-bottom)" },
-  composeHandle: { width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.18)", margin: "12px auto 0" },
+  composeOverlay: { position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)", display: "flex", alignItems: "flex-end" },
+  composeSheet: { width: "100%", maxHeight: "85dvh", background: "#0d0d0f", borderRadius: "24px 24px 0 0", border: `1px solid ${BORDER_2}`, borderBottom: "none", display: "flex", flexDirection: "column", animation: "sheetUp 0.28s cubic-bezier(0.25,0.46,0.45,0.94) forwards", paddingBottom: "env(safe-area-inset-bottom)" },
+  composeHandle: { width: 36, height: 4, borderRadius: 2, background: whiteAlpha(0.18), margin: "12px auto 0" },
   composeHeader: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px 10px" },
   composeTitle: { fontSize: 15, fontWeight: 950, color: "#fff" },
-  composeClose: { width: 32, height: 32, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.6)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
-  composeSearchWrap: { display: "flex", alignItems: "center", gap: 10, margin: "0 16px 6px", padding: "11px 14px", borderRadius: 14, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)" },
+  composeClose: { width: 32, height: 32, borderRadius: "50%", border: `1px solid ${BORDER_2}`, background: whiteAlpha(0.05), color: whiteAlpha(0.6), cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
+  composeSearchWrap: { display: "flex", alignItems: "center", gap: 10, margin: "0 16px 6px", padding: "11px 14px", borderRadius: RADIUS.md, background: whiteAlpha(0.05), border: `1px solid ${BORDER_2}` },
   composeSearch: { flex: 1, background: "none", border: "none", outline: "none", color: "#fff", fontSize: 14 },
-  searchSpinner: { width: 14, height: 14, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.15)", borderTopColor: "rgba(255,255,255,0.6)", animation: "spin 0.7s linear infinite", flexShrink: 0 },
+  searchSpinner: { width: 14, height: 14, borderRadius: "50%", border: `2px solid ${whiteAlpha(0.15)}`, borderTopColor: whiteAlpha(0.6), animation: "spin 0.7s linear infinite", flexShrink: 0 },
   composeResults: { flex: 1, overflowY: "auto", padding: "4px 0 12px" },
-  composeHint: { margin: "24px 0", fontSize: 13, color: "rgba(255,255,255,0.3)", textAlign: "center" },
+  composeHint: { margin: "24px 0", fontSize: 13, color: whiteAlpha(0.3), textAlign: "center" },
   composeUserRow: { display: "flex", alignItems: "center", gap: 12, padding: "11px 18px", width: "100%", background: "none", border: "none", cursor: "pointer", WebkitTapHighlightColor: "transparent" },
 };

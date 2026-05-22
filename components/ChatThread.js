@@ -9,7 +9,7 @@ import {
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname } from "@/lib/i18n";
-import { RED, GOLD , redAlpha} from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, SURFACE_1, SURFACE_2, BORDER, BORDER_2, RADIUS, redAlpha, goldAlpha, whiteAlpha } from "@/lib/tokens";
 import Image from "next/image";
 
 function getTs(ts) {
@@ -239,12 +239,11 @@ export default function ChatThread({ conversationId }) {
       <div style={s.messages}>
         {messages.length === 0 && (
           <div style={s.emptyThread}>
-            <div style={{ fontSize: 36, marginBottom: 8 }}>
-              {recipientIsCoach ? "🎓" : "🥊"}
+            <div style={s.emptyThreadIcon}>
+              <span style={{ fontSize: 36 }}>{recipientIsCoach ? "🎓" : "🥊"}</span>
             </div>
-            <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.35)", textAlign: "center" }}>
-              {T.startChat}
-            </p>
+            <p style={s.emptyThreadTitle}>{recipientInfo.displayName || "Fighter"}</p>
+            <p style={s.emptyThreadSub}>{T.startChat}</p>
           </div>
         )}
 
@@ -324,28 +323,77 @@ export default function ChatThread({ conversationId }) {
 }
 
 const s = {
-  page: { height: "100dvh", background: "#0B0B0C", color: "#fff", display: "flex", flexDirection: "column", overflow: "hidden" },
-  header: { flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "calc(14px + env(safe-area-inset-top)) 16px 12px", background: "rgba(11,11,12,0.96)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.06)", zIndex: 10 },
-  backBtn: { width: 40, height: 40, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.7)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  page: { height: "100dvh", background: "#090909", color: "#fff", display: "flex", flexDirection: "column", overflow: "hidden" },
+  header: {
+    flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "space-between",
+    padding: "calc(14px + env(safe-area-inset-top)) 16px 12px",
+    background: "rgba(9,9,9,0.96)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+    borderBottom: `1px solid ${BORDER}`, zIndex: 10,
+  },
+  backBtn: {
+    width: 40, height: 40, borderRadius: RADIUS.full,
+    border: `1px solid ${BORDER_2}`, background: whiteAlpha(0.04),
+    color: whiteAlpha(0.7), cursor: "pointer",
+    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+  },
   headerUser: { display: "flex", alignItems: "center", gap: 9, background: "none", border: "none", cursor: "pointer", padding: 0 },
   headerAvatar: { width: 34, height: 34, borderRadius: "50%", objectFit: "cover", display: "block" },
-  headerAvatarFallback: { width: 34, height: 34, borderRadius: "50%", background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 900, color: "#fff" },
+  headerAvatarFallback: { width: 34, height: 34, borderRadius: "50%", background: "#1a1a1a", border: `1px solid ${BORDER_2}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 900, color: "#fff" },
   headerName: { fontSize: 15, fontWeight: 900, color: "#fff" },
   messages: { flex: 1, overflowY: "auto", padding: "16px 16px 8px", display: "flex", flexDirection: "column", gap: 2 },
-  emptyThread: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "60px 20px", gap: 8 },
-  dateDivider: { display: "flex", alignItems: "center", justifyContent: "center", padding: "12px 0" },
-  dateLabel: { fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.28)", background: "rgba(255,255,255,0.04)", padding: "3px 10px", borderRadius: 999, letterSpacing: 0.4 },
+  emptyThread: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "60px 20px", gap: 10 },
+  emptyThreadIcon: {
+    width: 80, height: 80, borderRadius: "50%",
+    background: redAlpha(0.08), border: `1px solid ${redAlpha(0.18)}`,
+    display: "flex", alignItems: "center", justifyContent: "center",
+    boxShadow: `0 0 40px ${redAlpha(0.1)}`, marginBottom: 4,
+  },
+  emptyThreadTitle: { margin: 0, fontSize: 17, fontWeight: 900, color: "#fff" },
+  emptyThreadSub: { margin: 0, fontSize: 13, color: whiteAlpha(0.35), textAlign: "center" },
+  dateDivider: { display: "flex", alignItems: "center", gap: 10, padding: "14px 0" },
+  dateLabel: {
+    fontSize: 11, fontWeight: 700, color: whiteAlpha(0.28),
+    background: whiteAlpha(0.04), padding: "3px 10px",
+    borderRadius: RADIUS.full, letterSpacing: 0.4, flexShrink: 0,
+  },
   bubble: { display: "flex", flexDirection: "column", maxWidth: "75%", marginBottom: 4 },
   bubbleMe: { alignSelf: "flex-end", alignItems: "flex-end" },
   bubbleThem: { alignSelf: "flex-start", alignItems: "flex-start" },
-  bubbleText: { padding: "10px 14px", borderRadius: 18, fontSize: 14, lineHeight: 1.5, wordBreak: "break-word" },
-  bubbleTextMe: { background: "#FF3B30", color: "#fff", borderBottomRightRadius: 4, boxShadow: `0 4px 16px ${redAlpha(0.3)}` },
-  bubbleTextThem: { background: "rgba(255,255,255,0.07)", color: "#fff", borderBottomLeftRadius: 4, border: "1px solid rgba(255,255,255,0.07)" },
-  bubbleTime: { fontSize: 10, color: "rgba(255,255,255,0.28)", marginTop: 3, padding: "0 4px", fontWeight: 600 },
-  quickRepliesWrap: { flexShrink: 0, borderTop: "1px solid rgba(255,255,255,0.05)", background: "rgba(11,11,12,0.97)" },
+  bubbleText: { padding: "11px 15px", borderRadius: 20, fontSize: 14, lineHeight: 1.5, wordBreak: "break-word" },
+  bubbleTextMe: {
+    background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`,
+    color: "#fff", borderBottomRightRadius: 5,
+    boxShadow: `0 4px 20px ${redAlpha(0.32)}`,
+  },
+  bubbleTextThem: {
+    background: SURFACE_2, color: "#fff",
+    borderBottomLeftRadius: 5, border: `1px solid ${BORDER_2}`,
+  },
+  bubbleTime: { fontSize: 10, color: whiteAlpha(0.28), marginTop: 3, padding: "0 4px", fontWeight: 600 },
+  quickRepliesWrap: { flexShrink: 0, borderTop: `1px solid ${BORDER}`, background: "rgba(9,9,9,0.98)" },
   quickRepliesScroll: { display: "flex", gap: 8, overflowX: "auto", padding: "10px 14px", scrollbarWidth: "none" },
-  quickChip: { flexShrink: 0, padding: "7px 14px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.75)", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" },
-  inputBar: { flexShrink: 0, display: "flex", alignItems: "flex-end", gap: 10, padding: "10px 14px calc(10px + env(safe-area-inset-bottom))", background: "rgba(11,11,12,0.97)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", borderTop: "1px solid rgba(255,255,255,0.06)" },
-  input: { flex: 1, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 22, padding: "11px 16px", color: "#fff", fontSize: 14, lineHeight: 1.4, outline: "none", resize: "none", maxHeight: 120, overflowY: "auto" },
-  sendBtn: { flexShrink: 0, width: 44, height: 44, borderRadius: "50%", border: "none", background: "#FF3B30", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: `0 4px 16px ${redAlpha(0.35)}` },
+  quickChip: {
+    flexShrink: 0, padding: "7px 14px", borderRadius: RADIUS.full,
+    border: `1px solid ${BORDER_2}`, background: SURFACE_1,
+    color: whiteAlpha(0.75), fontSize: 12, fontWeight: 700,
+    cursor: "pointer", whiteSpace: "nowrap",
+  },
+  inputBar: {
+    flexShrink: 0, display: "flex", alignItems: "flex-end", gap: 10,
+    padding: "10px 14px calc(10px + env(safe-area-inset-bottom))",
+    background: "rgba(9,9,9,0.98)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+    borderTop: `1px solid ${BORDER}`,
+  },
+  input: {
+    flex: 1, background: SURFACE_1, border: `1px solid ${BORDER_2}`,
+    borderRadius: 22, padding: "11px 16px", color: "#fff",
+    fontSize: 14, lineHeight: 1.4, outline: "none",
+    resize: "none", maxHeight: 120, overflowY: "auto",
+  },
+  sendBtn: {
+    flexShrink: 0, width: 44, height: 44, borderRadius: "50%", border: "none",
+    background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`,
+    color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+    cursor: "pointer", boxShadow: `0 4px 16px ${redAlpha(0.4)}`,
+  },
 };
