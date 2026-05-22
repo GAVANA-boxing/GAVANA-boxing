@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import KnowledgeLibrary from "@/components/KnowledgeLibrary";
-import { RED, GOLD, PURPLE } from "@/lib/tokens";
+import { RED, GOLD, PURPLE , blackAlpha} from "@/lib/tokens";
 import styles from "@/components/aiCoachStyles";
 import { auth } from "@/lib/firebase";
 
@@ -257,7 +257,7 @@ export default function AICoach() {
                         ...(message.role === "user" ? styles.userBubble : styles.assistantBubble),
                         ...(message.role === "assistant" ? {
                           borderLeftColor: activePersona.color,
-                          boxShadow: `inset 3px 0 0 ${activePersona.color}, 0 14px 34px rgba(0,0,0,0.24)`,
+                          boxShadow: `inset 3px 0 0 ${activePersona.color}, 0 14px 34px ${blackAlpha(0.24)}`,
                         } : {}),
                       }}
                     >

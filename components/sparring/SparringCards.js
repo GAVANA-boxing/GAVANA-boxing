@@ -2,7 +2,7 @@
 
 import { translate } from "@/lib/i18n";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
-import { RED, RED_DARK, GOLD, redAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, redAlpha , blackAlpha} from "@/lib/tokens";
 import { c } from "@/components/sparring/sparringStyles";
 import { formatAgo } from "@/lib/utils";
 import Image from "next/image";
@@ -28,8 +28,8 @@ export function FighterCard({ post, isMe, onRequest, sent, requesting, locale })
   const stats = ARCHETYPE_STATS[post.archetype] || null;
   const accentColor = post.rankColor || arch?.color || RED;
   const rankGlow = post.rankKey !== "rankRookieGloves" && post.rankKey !== "rankAmateurBelt"
-    ? `0 0 18px ${accentColor}30, 0 4px 16px rgba(0,0,0,0.5)`
-    : "0 4px 16px rgba(0,0,0,0.45)";
+    ? `0 0 18px ${accentColor}30, 0 4px 16px ${blackAlpha(0.5)}`
+    : `0 4px 16px ${blackAlpha(0.45)}`;
 
   return (
     <div
@@ -51,7 +51,7 @@ export function FighterCard({ post, isMe, onRequest, sent, requesting, locale })
               </div>
           }
           {arch && (
-            <span style={{ position: "absolute", bottom: -4, right: -4, fontSize: 14, lineHeight: 1, filter: "drop-shadow(0 1px 4px rgba(0,0,0,0.8))" }}>
+            <span style={{ position: "absolute", bottom: -4, right: -4, fontSize: 14, lineHeight: 1, filter: `drop-shadow(0 1px 4px ${blackAlpha(0.8)})` }}>
               {arch.emoji}
             </span>
           )}
@@ -143,7 +143,7 @@ export function IncomingRequestCard({ req, onAccept, onDecline, accepting, decli
     <div style={{
       ...c.card,
       borderLeft: `3px solid ${GOLD}`,
-      boxShadow: `0 0 20px rgba(245,196,81,0.12), 0 4px 20px rgba(0,0,0,0.5)`,
+      boxShadow: `0 0 20px rgba(245,196,81,0.12), 0 4px 20px ${blackAlpha(0.5)}`,
       background: "rgba(245,196,81,0.03)",
     }}>
       {/* "Challenge received" kicker */}

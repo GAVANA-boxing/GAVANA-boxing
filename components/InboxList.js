@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname } from "@/lib/i18n";
 import { startConversation } from "@/lib/messaging";
 import BottomNav from "@/components/BottomNav";
-import { RED, RED_DARK, GOLD, SURFACE_1, BORDER, BORDER_2, RADIUS, redAlpha, goldAlpha, whiteAlpha, pageBg } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, SURFACE_1, BORDER, BORDER_2, RADIUS, redAlpha, goldAlpha, whiteAlpha, pageBg , blackAlpha} from "@/lib/tokens";
 import Image from "next/image";
 import { Toast, useToast } from "@/components/ui/Toast";
 
@@ -344,7 +344,7 @@ const s = {
     cursor: "pointer", width: "100%", textAlign: "left",
     WebkitTapHighlightColor: "transparent",
     transition: "background 120ms ease",
-    boxShadow: "0 2px 12px rgba(0,0,0,0.2)",
+    boxShadow: `0 2px 12px ${blackAlpha(0.2)}`,
   },
   rowUnread: {
     background: `linear-gradient(90deg, ${redAlpha(0.1)}, ${SURFACE_1})`,
@@ -369,7 +369,7 @@ const s = {
   emptySub: { margin: 0, fontSize: 13, color: whiteAlpha(0.38), textAlign: "center", lineHeight: 1.65, maxWidth: 270 },
   findCoachBtn: { padding: "12px 26px", borderRadius: RADIUS.full, border: "none", background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`, color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", marginTop: 6, boxShadow: `0 6px 20px ${redAlpha(0.35)}` },
   // Compose sheet
-  composeOverlay: { position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)", display: "flex", alignItems: "flex-end" },
+  composeOverlay: { position: "fixed", inset: 0, zIndex: 200, background: blackAlpha(0.7), backdropFilter: "blur(8px)", display: "flex", alignItems: "flex-end" },
   composeSheet: { width: "100%", maxHeight: "85dvh", background: "#0d0d0f", borderRadius: "24px 24px 0 0", border: `1px solid ${BORDER_2}`, borderBottom: "none", display: "flex", flexDirection: "column", animation: "sheetUp 0.28s cubic-bezier(0.25,0.46,0.45,0.94) forwards", paddingBottom: "env(safe-area-inset-bottom)" },
   composeHandle: { width: 36, height: 4, borderRadius: 2, background: whiteAlpha(0.18), margin: "12px auto 0" },
   composeHeader: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px 10px" },

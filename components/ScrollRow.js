@@ -1,5 +1,6 @@
 "use client";
 
+import { blackAlpha } from "@/lib/tokens";
 import { useEffect, useRef, useState } from "react";
 
 // Horizontally scrollable row with:
@@ -102,7 +103,7 @@ function ArrowBtn({ dir, onClick }) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+        boxShadow: `0 4px 12px ${blackAlpha(0.4)}`,
         backdropFilter: "blur(8px)",
         transition: "background 150ms, color 150ms",
       }}

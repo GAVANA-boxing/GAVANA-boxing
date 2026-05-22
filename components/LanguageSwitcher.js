@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { locales, getLocale } from "@/lib/i18n";
-import { RED, GOLD , goldAlpha, RADIUS} from "@/lib/tokens";
+import { RED, GOLD , goldAlpha, RADIUS, blackAlpha} from "@/lib/tokens";
 
 const FLAG = { en: "🇺🇸", mn: "🇲🇳", ko: "🇰🇷" };
 const CODE = { en: "EN", mn: "MN", ko: "KO" };
@@ -102,7 +102,7 @@ const s = {
     cursor: "pointer",
     backdropFilter: "blur(20px) saturate(160%)",
     WebkitBackdropFilter: "blur(20px) saturate(160%)",
-    boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
+    boxShadow: `0 2px 12px ${blackAlpha(0.4)}`,
     transition: "background 150ms",
   },
   flag: { fontSize: 13, lineHeight: 1 },
@@ -121,7 +121,7 @@ const s = {
     borderRadius: 12,
     background: "rgba(10,10,10,0.97)",
     border: "1px solid rgba(255,255,255,0.08)",
-    boxShadow: "0 16px 48px rgba(0,0,0,0.6)",
+    boxShadow: `0 16px 48px ${blackAlpha(0.6)}`,
     backdropFilter: "blur(24px)",
     WebkitBackdropFilter: "blur(24px)",
     minWidth: 72,

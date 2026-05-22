@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import styles from "@/components/train/trainStyles";
-import { GOLD, RED, redAlpha, whiteAlpha, RADIUS} from "@/lib/tokens";
+import { GOLD, RED, redAlpha, whiteAlpha, RADIUS, blackAlpha} from "@/lib/tokens";
 import { getChallengeRank } from "@/lib/utils";
 import { getChallengeComparisonPercent } from "@/lib/trainHelpers";
 import RankBadge from "@/components/RankBadge";
@@ -222,7 +222,7 @@ export default function TrainResultModal({
           {rankUpInfo && (
             <div style={{
               borderRadius: 16, padding: "18px 20px", textAlign: "center",
-              background: `linear-gradient(135deg, ${rankUpInfo.color}18, rgba(0,0,0,0.8))`,
+              background: `linear-gradient(135deg, ${rankUpInfo.color}18, ${blackAlpha(0.8)})`,
               border: `1px solid ${rankUpInfo.color}55`,
               boxShadow: `0 0 28px ${rankUpInfo.color}30`,
               animation: "rankUpPulse 2s ease-in-out infinite",

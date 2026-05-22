@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
-import { RED, RED_DARK, GOLD, BG, BORDER, MUTED, redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, BG, BORDER, MUTED, redAlpha, goldAlpha , blackAlpha} from "@/lib/tokens";
 import { getFighterRank, getRankProgress } from "@/lib/xp";
 import Image from "next/image";
 
@@ -221,7 +221,7 @@ const s = {
     scrollbarWidth: "none",
     position: "sticky",
     top: 0,
-    boxShadow: "1px 0 0 rgba(255,255,255,0.03), 4px 0 24px rgba(0,0,0,0.4)",
+    boxShadow: `1px 0 0 rgba(255,255,255,0.03), 4px 0 24px ${blackAlpha(0.4)}`,
   },
   logoBtn: {
     display: "flex",

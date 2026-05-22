@@ -1,6 +1,6 @@
 "use client";
 
-import { RED, RED_DARK, GOLD, PURPLE, redAlpha, goldAlpha, whiteAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, PURPLE, redAlpha, goldAlpha, whiteAlpha , blackAlpha} from "@/lib/tokens";
 import RankBadge from "@/components/RankBadge";
 import styles from "@/components/profile/profilePageStyles";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
@@ -99,7 +99,7 @@ export default function ProfileFighterCard({
             style={{
               ...styles.avatarFrame,
               ...(streakCount >= 5 ? {
-                boxShadow: `0 0 0 2px #FB923C, 0 0 0 4px rgba(251,146,60,0.2), 0 16px 48px rgba(0,0,0,0.7)`,
+                boxShadow: `0 0 0 2px #FB923C, 0 0 0 4px rgba(251,146,60,0.2), 0 16px 48px ${blackAlpha(0.7)}`,
                 border: "3px solid #FB923C",
               } : {}),
             }}
@@ -304,7 +304,7 @@ export default function ProfileFighterCard({
             {moreOpen && (
               <>
                 <div style={{ position: "fixed", inset: 0, zIndex: 9 }} onClick={() => setMoreOpen(false)} />
-                <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, background: "#1c1c1e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: 6, minWidth: 200, boxShadow: "0 8px 32px rgba(0,0,0,0.6)", zIndex: 10, animation: "dropDown 160ms ease" }}>
+                <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, background: "#1c1c1e", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: 6, minWidth: 200, boxShadow: `0 8px 32px ${blackAlpha(0.6)}`, zIndex: 10, animation: "dropDown 160ms ease" }}>
                   <button onClick={() => { router.push(`/${locale}/dashboard`); setMoreOpen(false); }} style={moreItemStyle}>{t("dashboardViewProgress")}</button>
                   {userReels.length > 0 && (
                     <button onClick={() => { router.push(`/${locale}/creator/dashboard`); setMoreOpen(false); }} style={moreItemStyle}>{t("creatorDashboard")}</button>

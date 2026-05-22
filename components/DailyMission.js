@@ -5,7 +5,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale, translate } from "@/lib/i18n";
-import { RED, GOLD, RADIUS} from "@/lib/tokens";
+import { RED, GOLD, RADIUS, blackAlpha} from "@/lib/tokens";
 
 const DRAG_THRESHOLD = 8;
 const EDGE_MARGIN = 12;
@@ -266,7 +266,7 @@ const pillStyles = {
     border: "1px solid rgba(255,255,255,0.11)",
     backdropFilter: "blur(22px)",
     WebkitBackdropFilter: "blur(22px)",
-    boxShadow: "0 10px 36px rgba(0,0,0,0.6)",
+    boxShadow: `0 10px 36px ${blackAlpha(0.6)}`,
     color: "#fff",
     display: "grid",
     gap: 8,
@@ -285,7 +285,7 @@ const pillStyles = {
     paddingRight: 10,
     borderRadius: RADIUS.full,
     border: "1px solid rgba(255,255,255,0.14)",
-    background: "rgba(0,0,0,0.72)",
+    background: blackAlpha(0.72),
     color: "#fff",
     cursor: "grab",
     backdropFilter: "blur(16px)",

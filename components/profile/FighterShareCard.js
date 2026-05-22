@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import { GOLD, RED, RADIUS} from "@/lib/tokens";
+import { GOLD, RED, RADIUS, blackAlpha} from "@/lib/tokens";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import RankBadge from "@/components/RankBadge";
 import { formatScore } from "@/lib/utils";
@@ -134,7 +134,7 @@ function ProfileUrlBlock({ url, color }) {
       <div style={{
         width: 72, height: 72, borderRadius: 10, flexShrink: 0,
         border: `1.5px solid ${color}44`,
-        background: "rgba(0,0,0,0.6)",
+        background: blackAlpha(0.6),
         display: "flex", alignItems: "center", justifyContent: "center",
         overflow: "hidden",
         padding: 2,
@@ -216,7 +216,7 @@ export default function FighterShareCard({
 
   return (
     <div
-      style={{ position: "fixed", inset: 0, zIndex: 9500, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "16px 16px 24px", background: "rgba(0,0,0,0.92)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", overflowY: "auto" }}
+      style={{ position: "fixed", inset: 0, zIndex: 9500, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "16px 16px 24px", background: blackAlpha(0.92), backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", overflowY: "auto" }}
       onClick={onClose}
     >
       {/* ── Card ──────────────────────────────────────────────────────────── */}
@@ -225,7 +225,7 @@ export default function FighterShareCard({
           width: 340, minHeight: 600, borderRadius: 22,
           background: `radial-gradient(ellipse 80% 50% at 50% 0%, ${accentColor}1a 0%, transparent 60%), linear-gradient(180deg, #141014 0%, #0c0a0c 100%)`,
           border: `1px solid ${accentColor}2e`,
-          boxShadow: `0 0 0 1px ${accentColor}12, 0 40px 100px rgba(0,0,0,0.8)`,
+          boxShadow: `0 0 0 1px ${accentColor}12, 0 40px 100px ${blackAlpha(0.8)}`,
           padding: "22px 22px 20px",
           display: "flex", flexDirection: "column", alignItems: "center", gap: 0,
           flexShrink: 0,

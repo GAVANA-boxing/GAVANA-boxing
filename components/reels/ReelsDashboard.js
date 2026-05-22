@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { RED, RED_DARK, GOLD, redAlpha, goldAlpha, RADIUS} from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, redAlpha, goldAlpha, RADIUS, blackAlpha} from "@/lib/tokens";
 import { getCreatorName, getCreatorPhoto, cleanCaption } from "@/lib/reelHelpers";
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
@@ -1010,7 +1010,7 @@ const d = {
     backdropFilter: "blur(18px)",
     WebkitBackdropFilter: "blur(18px)",
     border: "1px solid rgba(255,255,255,0.07)",
-    boxShadow: "0 4px 24px rgba(0,0,0,0.25)",
+    boxShadow: `0 4px 24px ${blackAlpha(0.25)}`,
     marginBottom: 28,
   },
   quickAva: {
@@ -1081,7 +1081,7 @@ const d = {
     border: "1px solid rgba(255,255,255,0.06)",
     borderRadius: 20,
     overflow: "hidden",
-    boxShadow: "0 2px 12px rgba(0,0,0,0.35)",
+    boxShadow: `0 2px 12px ${blackAlpha(0.35)}`,
     transition: "border-color 180ms ease, box-shadow 180ms ease",
   },
   reelRow: {
@@ -1112,13 +1112,13 @@ const d = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "rgba(0,0,0,0.22)",
+    background: blackAlpha(0.22),
   },
   playCircle: {
     width: 52,
     height: 52,
     borderRadius: "50%",
-    background: "rgba(0,0,0,0.5)",
+    background: blackAlpha(0.5),
     backdropFilter: "blur(10px)",
     WebkitBackdropFilter: "blur(10px)",
     border: "1.5px solid rgba(255,255,255,0.2)",
@@ -1135,7 +1135,7 @@ const d = {
     width: 32,
     height: 32,
     borderRadius: "50%",
-    background: "rgba(0,0,0,0.55)",
+    background: blackAlpha(0.55),
     backdropFilter: "blur(8px)",
     WebkitBackdropFilter: "blur(8px)",
     border: "1px solid rgba(255,255,255,0.2)",

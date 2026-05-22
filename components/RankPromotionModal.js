@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { GOLD, goldAlpha, RADIUS} from "@/lib/tokens";
+import { GOLD, goldAlpha, RADIUS, blackAlpha} from "@/lib/tokens";
 import RankIcon from "@/components/RankIcon";
 
 const PARTICLES = [
@@ -29,7 +29,7 @@ export default function RankPromotionModal({ rank, rankName, onDismiss }) {
     <div
       style={{
         position: "fixed", inset: 0, zIndex: 200,
-        background: "rgba(0,0,0,0.9)",
+        background: blackAlpha(0.9),
         backdropFilter: "blur(8px)",
         WebkitBackdropFilter: "blur(8px)",
         display: "flex",
@@ -100,10 +100,10 @@ export default function RankPromotionModal({ rank, rankName, onDismiss }) {
           width: "88%",
           borderRadius: 24,
           border: `1px solid ${goldAlpha(0.22)}`,
-          background: `linear-gradient(160deg, ${goldAlpha(0.09)} 0%, rgba(0,0,0,0.7) 100%)`,
+          background: `linear-gradient(160deg, ${goldAlpha(0.09)} 0%, ${blackAlpha(0.7)} 100%)`,
           backdropFilter: "blur(24px)",
           WebkitBackdropFilter: "blur(24px)",
-          boxShadow: `0 0 80px ${goldAlpha(0.15)}, 0 32px 64px rgba(0,0,0,0.7)`,
+          boxShadow: `0 0 80px ${goldAlpha(0.15)}, 0 32px 64px ${blackAlpha(0.7)}`,
         }}
         onClick={(e) => e.stopPropagation()}
       >

@@ -1,7 +1,7 @@
 "use client";
 
 import { RANK_TIERS } from "@/lib/xp";
-import { RADIUS } from "@/lib/tokens";
+import { RADIUS , blackAlpha} from "@/lib/tokens";
 
 export default function RankBeltModal({ xp, fighterRank, nextRank, rankProgress, t, onClose }) {
   return (
@@ -14,7 +14,7 @@ export default function RankBeltModal({ xp, fighterRank, nextRank, rankProgress,
         alignItems: "center",
         justifyContent: "center",
         padding: "20px 16px",
-        background: "rgba(0,0,0,0.78)",
+        background: blackAlpha(0.78),
         backdropFilter: "blur(12px)",
         WebkitBackdropFilter: "blur(12px)",
       }}
@@ -28,7 +28,7 @@ export default function RankBeltModal({ xp, fighterRank, nextRank, rankProgress,
           backdropFilter: "blur(24px)",
           WebkitBackdropFilter: "blur(24px)",
           border: `1px solid ${fighterRank.color}44`,
-          boxShadow: fighterRank.glowColor ? `0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px ${fighterRank.color}22, 0 0 40px ${fighterRank.glowColor}` : "0 32px 80px rgba(0,0,0,0.6)",
+          boxShadow: fighterRank.glowColor ? `0 32px 80px ${blackAlpha(0.6)}, 0 0 0 1px ${fighterRank.color}22, 0 0 40px ${fighterRank.glowColor}` : `0 32px 80px ${blackAlpha(0.6)}`,
           padding: "26px 22px 22px",
           display: "grid",
           gap: 18,

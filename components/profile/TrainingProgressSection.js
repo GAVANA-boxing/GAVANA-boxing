@@ -1,6 +1,6 @@
 "use client";
 
-import { GOLD, RED, redAlpha, goldAlpha, RADIUS} from "@/lib/tokens";
+import { GOLD, RED, redAlpha, goldAlpha, RADIUS, blackAlpha} from "@/lib/tokens";
 import { calculateSessionXP } from "@/lib/xp";
 import { getTimestampMs, formatScore } from "@/lib/utils";
 
@@ -69,7 +69,7 @@ export default function TrainingProgressSection({
         borderLeft: `3px solid ${RED}`,
         borderRadius: "3px 20px 20px 3px",
         padding: "20px 18px 18px",
-        boxShadow: "0 8px 40px rgba(0,0,0,0.55)",
+        boxShadow: `0 8px 40px ${blackAlpha(0.55)}`,
         overflow: "hidden",
       }}>
         <div style={{ position: "absolute", inset: 0, pointerEvents: "none", background: `radial-gradient(ellipse at 10% 30%, ${redAlpha(0.18)} 0%, transparent 55%)` }} />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { RED, redAlpha } from "@/lib/tokens";
+import { RED, redAlpha , blackAlpha} from "@/lib/tokens";
 
 // Captures the beforeinstallprompt event and shows a banner to add GAVANA to the home screen.
 export default function PWAInstallBanner() {
@@ -56,7 +56,7 @@ export default function PWAInstallBanner() {
       display: "flex",
       alignItems: "center",
       gap: 12,
-      boxShadow: `0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px ${redAlpha(0.15)}`,
+      boxShadow: `0 8px 32px ${blackAlpha(0.6)}, 0 0 0 1px ${redAlpha(0.15)}`,
     }}>
       <div style={{ fontSize: 32, flexShrink: 0 }}>🥊</div>
       <div style={{ flex: 1, minWidth: 0 }}>

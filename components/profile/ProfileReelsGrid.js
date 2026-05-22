@@ -1,5 +1,6 @@
 "use client";
 
+import { blackAlpha } from "@/lib/tokens";
 import { memo } from "react";
 import MediaCover from "@/components/MediaCover";
 import { getSafeReelLikes } from "@/lib/utils";
@@ -119,7 +120,7 @@ const ProfileReelsGrid = memo(function ProfileReelsGrid({
 
             {showVideo && (
               <div className="reel-play-hint">
-                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ width: 36, height: 36, borderRadius: "50%", background: blackAlpha(0.55), backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
                 </div>
               </div>

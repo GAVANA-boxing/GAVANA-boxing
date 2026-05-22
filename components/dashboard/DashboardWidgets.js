@@ -1,6 +1,6 @@
 "use client";
 
-import { RED, RED_DARK, GOLD, PURPLE, goldAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, PURPLE, goldAlpha , blackAlpha} from "@/lib/tokens";
 import { formatWidgetDate, formatWidgetScore } from "@/lib/dashboardHelpers";
 
 export { RadarChart, StyleDNA, FighterHero } from "./DashboardCharts";
@@ -43,7 +43,7 @@ export function StatPill({ label, value, sub, color }) {
       borderTop: `2px solid ${color || "rgba(255,255,255,0.18)"}`,
       borderRadius: 13,
       padding: "12px 11px 10px",
-      boxShadow: `0 0 14px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.025)`,
+      boxShadow: `0 0 14px ${blackAlpha(0.4)}, inset 0 1px 0 rgba(255,255,255,0.025)`,
     }}>
       <div style={{
         fontSize: 20, fontWeight: 900, color: color || "#fff",
@@ -219,7 +219,7 @@ export function PanelCard({ label, accent = RED, tag, children, style: styleProp
       border: "1px solid rgba(255,255,255,0.07)",
       borderLeft: `2.5px solid ${accent}`,
       borderRadius: "3px 16px 16px 3px",
-      boxShadow: "0 0 0 0.5px rgba(0,0,0,0.5) inset, 0 12px 40px rgba(0,0,0,0.2)",
+      boxShadow: `0 0 0 0.5px ${blackAlpha(0.5)} inset, 0 12px 40px ${blackAlpha(0.2)}`,
       overflow: "hidden",
       marginBottom: 28,
       ...styleProp,
@@ -228,7 +228,7 @@ export function PanelCard({ label, accent = RED, tag, children, style: styleProp
         display: "flex", alignItems: "center", gap: 8,
         padding: "9px 14px 8px",
         borderBottom: "1px solid rgba(255,255,255,0.045)",
-        background: "rgba(0,0,0,0.18)",
+        background: blackAlpha(0.18),
       }}>
         <div style={{
           width: 5, height: 5, borderRadius: "50%", flexShrink: 0,

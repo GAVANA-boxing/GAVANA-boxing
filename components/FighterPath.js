@@ -1,6 +1,6 @@
 "use client";
 
-import { RED, RED_DARK, GOLD, redAlpha, goldAlpha, RADIUS} from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, redAlpha, goldAlpha, RADIUS, blackAlpha} from "@/lib/tokens";
 
 const STEPS = [
   { id: "profile", icon: "👤", label: "Fighter Profile", desc: "Зураг, bio нэмэх", check: (d) => !!(d.photoURL && d.bio), cta: "Profile засах", link: "profile/edit" },
@@ -69,7 +69,7 @@ const fp = {
     border: "1px solid rgba(255,255,255,0.07)",
     borderLeft: "2.5px solid #F5C451",
     borderRadius: "3px 16px 16px 3px",
-    boxShadow: "0 0 0 0.5px rgba(0,0,0,0.5) inset, 0 12px 40px rgba(0,0,0,0.2)",
+    boxShadow: `0 0 0 0.5px ${blackAlpha(0.5)} inset, 0 12px 40px ${blackAlpha(0.2)}`,
     overflow: "hidden", marginBottom: 28,
   },
   header: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px 0" },

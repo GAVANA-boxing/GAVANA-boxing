@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { RED, RED_DARK, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, redAlpha, goldAlpha , blackAlpha} from "@/lib/tokens";
 import { useAuth } from "@/lib/AuthContext";
 import { useFcmToken } from "@/hooks/useFcmToken";
 
@@ -85,7 +85,7 @@ const s = {
     display: "flex",
     alignItems: "center",
     gap: 12,
-    boxShadow: `0 0 40px ${redAlpha(0.12)}, 0 16px 48px rgba(0,0,0,0.7)`,
+    boxShadow: `0 0 40px ${redAlpha(0.12)}, 0 16px 48px ${blackAlpha(0.7)}`,
     backdropFilter: "blur(20px)",
     WebkitBackdropFilter: "blur(20px)",
     overflow: "hidden",

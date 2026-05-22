@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter as useNextRouter } from "next/navigation";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { RED, RED_DARK, redAlpha, RADIUS} from "@/lib/tokens";
+import { RED, RED_DARK, redAlpha, RADIUS, MOTION , blackAlpha} from "@/lib/tokens";
 import Image from "next/image";
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
@@ -253,7 +253,7 @@ const s = {
     WebkitBackdropFilter: "blur(40px) saturate(180%)",
     borderRadius: RADIUS.full,
     border: "1px solid rgba(255,255,255,0.06)",
-    boxShadow: "0 8px 48px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05)",
+    boxShadow: `0 8px 48px ${blackAlpha(0.6)}, inset 0 1px 0 rgba(255,255,255,0.05)`,
     display: "grid",
     gridTemplateColumns: "1fr 1fr 1.3fr 1fr 1fr",
     alignItems: "center",
@@ -279,7 +279,7 @@ const s = {
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
-    transition: "background var(--motion-hover)",
+    transition: `background ${MOTION.hover}`,
   },
   tabLabel: {
     fontSize: 9,
@@ -309,7 +309,7 @@ const s = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    transition: "box-shadow var(--motion-hover), transform var(--motion-press)",
+    transition: `box-shadow ${MOTION.hover}, transform ${MOTION.press}`,
   },
   badge: {
     position: "absolute",

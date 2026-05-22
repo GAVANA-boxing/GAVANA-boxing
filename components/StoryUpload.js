@@ -7,7 +7,7 @@ import { ref as storageRef, uploadBytesResumable, getDownloadURL } from "firebas
 import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { translate } from "@/lib/i18n";
-import { RED, RED_DARK, redAlpha, RADIUS} from "@/lib/tokens";
+import { RED, RED_DARK, redAlpha, RADIUS, blackAlpha} from "@/lib/tokens";
 import Image from "next/image";
 
 const STORY_TYPES = [
@@ -237,7 +237,7 @@ const s = {
   zoneSub: { fontSize: 12, color: "rgba(255,255,255,0.25)", marginTop: -4 },
   previewWrap: { position: "relative", width: "100%", maxHeight: 360, borderRadius: 14, overflow: "hidden", background: "#0d0d0d", border: "1px solid rgba(255,255,255,0.08)" },
   previewMedia: { width: "100%", maxHeight: 360, objectFit: "cover", display: "block" },
-  changeBtn: { position: "absolute", top: 10, right: 10, padding: "6px 14px", borderRadius: RADIUS.full, background: "rgba(0,0,0,0.7)", border: "1px solid rgba(255,255,255,0.18)", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer", backdropFilter: "blur(8px)" },
+  changeBtn: { position: "absolute", top: 10, right: 10, padding: "6px 14px", borderRadius: RADIUS.full, background: blackAlpha(0.7), border: "1px solid rgba(255,255,255,0.18)", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer", backdropFilter: "blur(8px)" },
   progressArea: { flex: 1, padding: "16px 16px 0" },
   progressGrid: { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8, marginBottom: 16 },
   ptBtn: { padding: "16px 10px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.4)", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 6, transition: "all 160ms ease" },

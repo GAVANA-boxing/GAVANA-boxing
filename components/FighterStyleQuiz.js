@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { RED, RED_DARK, GOLD, redAlpha, goldAlpha, RADIUS} from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, redAlpha, goldAlpha, RADIUS, blackAlpha} from "@/lib/tokens";
 
 export const ARCHETYPE_DISPLAY = {
   pressure: { emoji: "🔴", name: "Pressure Fighter", color: RED },
@@ -203,7 +203,7 @@ const Q = {
   overlay: {
     position: "fixed", inset: 0, zIndex: 1800,
     display: "grid", placeItems: "center", padding: 16,
-    background: "rgba(0,0,0,0.84)",
+    background: blackAlpha(0.84),
     backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
   },
   card: {
@@ -212,7 +212,7 @@ const Q = {
     padding: "32px 24px 28px",
     background: `linear-gradient(145deg, ${redAlpha(0.14)}, rgba(8,8,8,0.98) 45%, ${goldAlpha(0.07)})`,
     border: "1px solid rgba(255,255,255,0.1)",
-    boxShadow: "0 32px 96px rgba(0,0,0,0.7)",
+    boxShadow: `0 32px 96px ${blackAlpha(0.7)}`,
     color: "#fff", textAlign: "center",
   },
   glow: {

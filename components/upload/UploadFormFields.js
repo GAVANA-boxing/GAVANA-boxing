@@ -1,6 +1,6 @@
 "use client";
 
-import { RED, RADIUS} from "@/lib/tokens";
+import { RED, RADIUS, blackAlpha} from "@/lib/tokens";
 import S from "./uploadStyles";
 
 export function UField({ label, children }) {
@@ -57,7 +57,7 @@ export function UToggle({ label, description, value, onChange, locked }) {
           top: 3, left: value ? "calc(100% - 23px)" : 3,
           width: 20, height: 20, borderRadius: "50%",
           background: "#fff", transition: "left 180ms ease",
-          boxShadow: "0 1px 4px rgba(0,0,0,0.5)",
+          boxShadow: `0 1px 4px ${blackAlpha(0.5)}`,
         }} />
       </button>
     </div>

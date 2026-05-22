@@ -1,6 +1,7 @@
 "use client";
 
 import { forwardRef } from "react";
+import { RED, RADIUS, redAlpha, blackAlpha } from "@/lib/tokens";
 
 const HUDCard = forwardRef(function HUDCard(
   { children, style, className = "", label, value, corners = true, onClick, as: Tag = "div", ...props },
@@ -13,9 +14,9 @@ const HUDCard = forwardRef(function HUDCard(
       className={className}
       style={{
         position: "relative",
-        background: "rgba(11,11,12,0.92)",
-        border: "1px solid rgba(255,59,48,0.18)",
-        borderRadius: "var(--card-radius-sm)",
+        background: blackAlpha(0.92),
+        border: `1px solid ${redAlpha(0.18)}`,
+        borderRadius: RADIUS.sm,
         overflow: "hidden",
         ...style,
       }}
@@ -30,7 +31,7 @@ const HUDCard = forwardRef(function HUDCard(
           transform: "translateX(-50%)",
           width: 160,
           height: 60,
-          background: "rgba(255,59,48,0.08)",
+          background: redAlpha(0.08),
           filter: "blur(24px)",
           pointerEvents: "none",
           borderRadius: "50%",
@@ -47,8 +48,8 @@ const HUDCard = forwardRef(function HUDCard(
               left: 6,
               width: 10,
               height: 10,
-              borderTop: "1.5px solid rgba(255,59,48,0.5)",
-              borderLeft: "1.5px solid rgba(255,59,48,0.5)",
+              borderTop: `1.5px solid ${redAlpha(0.5)}`,
+              borderLeft: `1.5px solid ${redAlpha(0.5)}`,
               borderRadius: "2px 0 0 0",
               pointerEvents: "none",
             }}
@@ -60,8 +61,8 @@ const HUDCard = forwardRef(function HUDCard(
               right: 6,
               width: 10,
               height: 10,
-              borderBottom: "1.5px solid rgba(255,59,48,0.5)",
-              borderRight: "1.5px solid rgba(255,59,48,0.5)",
+              borderBottom: `1.5px solid ${redAlpha(0.5)}`,
+              borderRight: `1.5px solid ${redAlpha(0.5)}`,
               borderRadius: "0 0 2px 0",
               pointerEvents: "none",
             }}
@@ -88,7 +89,7 @@ const HUDCard = forwardRef(function HUDCard(
                 fontWeight: 900,
                 letterSpacing: 2.5,
                 textTransform: "uppercase",
-                color: "var(--primary-red)",
+                color: RED,
                 fontFamily: "var(--font-condensed)",
               }}
             >

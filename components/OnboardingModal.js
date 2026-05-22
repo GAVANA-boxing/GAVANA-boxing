@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { RED, RED_DARK, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, redAlpha, goldAlpha , blackAlpha} from "@/lib/tokens";
 
 const personaMap = {
   strict: "Drill Sergeant",
@@ -264,7 +264,7 @@ const styles = {
     display: "grid",
     placeItems: "center",
     padding: 18,
-    background: "rgba(0,0,0,0.72)",
+    background: blackAlpha(0.72),
     backdropFilter: "blur(10px)",
     WebkitBackdropFilter: "blur(10px)",
   },
@@ -276,7 +276,7 @@ const styles = {
     padding: "32px 26px",
     background: `linear-gradient(145deg, ${redAlpha(0.16)}, rgba(11,11,11,0.98) 42%, ${goldAlpha(0.08)})`,
     border: "1px solid rgba(255,255,255,0.1)",
-    boxShadow: "0 28px 90px rgba(0,0,0,0.58)",
+    boxShadow: `0 28px 90px ${blackAlpha(0.58)}`,
     color: "#fff",
     textAlign: "center",
   },

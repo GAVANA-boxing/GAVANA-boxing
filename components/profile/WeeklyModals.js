@@ -1,11 +1,11 @@
 "use client";
 
-import { RED, RED_DARK, GOLD, goldAlpha } from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, goldAlpha , blackAlpha} from "@/lib/tokens";
 
 const overlay = {
   position: "fixed",
   inset: 0,
-  background: "rgba(0,0,0,0.78)",
+  background: blackAlpha(0.78),
   backdropFilter: "blur(10px)",
   WebkitBackdropFilter: "blur(10px)",
   zIndex: 300,
