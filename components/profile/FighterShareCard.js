@@ -138,12 +138,13 @@ const SHARE_MSG = {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function FighterShareCard({
-  profileUser, fighterRank, xp, rankProgress, locale, t, onClose,
+  profileUser, fighterRank, xp, rankProgress, trainingSessions = [], locale, t, onClose,
 }) {
+  const [avatarSrc, setAvatarSrc]         = useState(null);
   const [avatarError, setAvatarError]     = useState(false);
   const [isDesktop, setIsDesktop]         = useState(false);
   const [shareState, setShareState]       = useState(null);
-  const [previewDataUrl, setPreviewDataUrl] = useState(null); // mobile long-press fallback
+  const [previewDataUrl, setPreviewDataUrl] = useState(null);
   const cardRef = useRef(null);
 
   useEffect(() => {
@@ -154,47 +155,41 @@ export default function FighterShareCard({
     return () => mq.removeEventListener("change", h);
   }, []);
 
+  // Pre-fetch avatar as data URL — avoids CORS issues with html2canvas
+  useEffect(() => {
+    const url = profileUser?.photoURL;
+    if (!url) return;
+    let cancelled = false;
+    fetch(url)
+      .then((r) => r.blob())
+      .then((blob) => new Promise((res, rej) => {
+        const reader = new FileReader();
+        reader.onload = (e) => res(e.target.result);
+        reader.onerror = rej;
+        reader.readAsDataURL(blob);
+      }))
+      .then((dataUrl) => { if (!cancelled) setAvatarSrc(dataUrl); })
+      .catch(() => { if (!cancelled) setAvatarError(true); });
+    return () => { cancelled = true; };
+  }, [profileUser?.photoURL]);
+
   // ── Combat identity (from combat memory sessions) ────────────────────────
   const { sessions } = useCombatMemory({ user: profileUser, maxSessions: 30 });
   const profile  = computeMovementProfile(sessions);
   const identity = profile ? deriveCombatIdentity(profile, sessions) : null;
 
-  // ── Radar stats: same source as Dashboard (all training_sessions, no type filter) ──
-  const [dashSessions, setDashSessions] = useState([]);
-  useEffect(() => {
-    if (!profileUser?.uid) return;
-    let active = true;
-    (async () => {
-      try {
-        const { collection, getDocs, query, where } = await import("firebase/firestore");
-        const { db } = await import("@/lib/firebase");
-        const snap = await getDocs(query(
-          collection(db, "training_sessions"),
-          where("userId", "==", profileUser.uid)
-        ));
-        if (!active) return;
-        setDashSessions(
-          snap.docs
-            .map((d) => ({ id: d.id, ...d.data() }))
-            .filter((d) => typeof d.score === "number")
-            .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
-        );
-      } catch { /* silent */ }
-    })();
-    return () => { active = false; };
-  }, [profileUser?.uid]);
-
-  const dashScores    = dashSessions.map((s) => Number(s.score)).filter(Number.isFinite);
+  // ── Radar stats: same source as Dashboard (trainingSessions prop, type="training") ──
+  const dashScores    = trainingSessions.map((s) => Number(s.score)).filter(Number.isFinite);
   const streakDays    = Number(profileUser?.dailyStreak || profileUser?.streakCount) || 0;
-  const radarStats    = deriveRadarStats(dashScores, dashSessions, streakDays);
+  const radarStats    = deriveRadarStats(dashScores, trainingSessions, streakDays);
   const isPlaceholder = dashScores.length < 3;
 
   // ── Session summary stats ────────────────────────────────────────────────
-  const totalSessions = dashSessions.length;
+  const totalSessions = trainingSessions.length;
   const avgScore = totalSessions
-    ? (dashSessions.reduce((a, s) => a + (s.score || 0), 0) / totalSessions).toFixed(1) : "—";
+    ? (trainingSessions.reduce((a, s) => a + (Number(s.score) || 0), 0) / totalSessions).toFixed(1) : "—";
   const bestScore = totalSessions
-    ? Math.max(...dashSessions.map((s) => s.score || 0)).toFixed(1) : "—";
+    ? Math.max(...trainingSessions.map((s) => Number(s.score) || 0)).toFixed(1) : "—";
 
   const profileUrl = typeof window !== "undefined"
     ? `${window.location.origin}/${locale}/profile/${profileUser.username || profileUser.uid}`
@@ -395,10 +390,10 @@ export default function FighterShareCard({
                   width: avatarSize, height: avatarSize, borderRadius: "50%",
                   overflow: "hidden", border: `2px solid rgba(176,24,16,0.4)`, background: "#111",
                 }}>
-                  {profileUser.photoURL && !avatarError
-                    ? <img src={profileUser.photoURL} alt="" width={avatarSize} height={avatarSize}
+                  {avatarSrc && !avatarError
+                    ? <img src={avatarSrc} alt="" width={avatarSize} height={avatarSize}
                         style={{ objectFit: "cover", width: "100%", height: "100%" }}
-                        onError={() => setAvatarError(true)} crossOrigin="anonymous" />
+                        onError={() => setAvatarError(true)} />
                     : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(176,24,16,0.12)", fontSize: avatarSize * 0.36, fontWeight: 900, color: "rgba(215,95,85,0.8)" }}>
                         {avatarInitial}
                       </div>

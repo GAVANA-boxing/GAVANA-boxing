@@ -146,6 +146,7 @@ export function ProfileModals({
           fighterRank={fighterRank}
           xp={xp}
           rankProgress={rankProgress}
+          trainingSessions={trainingSessions}
           pvpStats={pvpStats}
           bestScore={bestScore}
           challengeStreak={getActiveChallengeStreak(profileUser)}
