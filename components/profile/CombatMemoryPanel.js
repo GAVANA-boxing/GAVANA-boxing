@@ -5,6 +5,8 @@ import {
   computeMovementProfile,
   topMovementType,
   MOVEMENT_LABELS,
+  interpretMovementProfile,
+  deriveArchiveLabel,
 } from "@/lib/combatMemory";
 import { GOLD, RED, RADIUS, redAlpha, goldAlpha, whiteAlpha, blackAlpha } from "@/lib/tokens";
 
@@ -185,7 +187,22 @@ export default function CombatMemoryPanel({ sessions = [], tendency, trends, loa
             <TraitBar label="Balance"     value={profile.balanceShift} />
           </div>
 
-          <p style={{ margin: "12px 0 0", fontSize: 9, color: whiteAlpha(0.2), fontWeight: 700, letterSpacing: 0.8 }}>
+          {/* Human-readable interpretation */}
+          {(() => {
+            const lines = interpretMovementProfile(profile);
+            return lines.length > 0 ? (
+              <div style={{ margin: "10px 0 0", display: "flex", flexDirection: "column", gap: 4 }}>
+                {lines.map((line, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ width: 3, height: 3, borderRadius: "50%", background: whiteAlpha(0.2), flexShrink: 0 }} />
+                    <span style={{ fontSize: 10, color: whiteAlpha(0.38), fontWeight: 700 }}>{line}</span>
+                  </div>
+                ))}
+              </div>
+            ) : null;
+          })()}
+
+          <p style={{ margin: "10px 0 0", fontSize: 9, color: whiteAlpha(0.2), fontWeight: 700, letterSpacing: 0.8 }}>
             Avg per session · {miCount} session{miCount !== 1 ? "s" : ""} analyzed
           </p>
         </div>
@@ -279,12 +296,12 @@ export default function CombatMemoryPanel({ sessions = [], tendency, trends, loa
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 3 }}>
                     <span style={{
                       fontSize: 11, fontWeight: 900,
-                      color: s.sessionIdentity ? whiteAlpha(isLatest ? 0.82 : 0.65) : whiteAlpha(0.32),
+                      color: whiteAlpha(isLatest ? 0.82 : 0.65),
                       letterSpacing: 0.3, textTransform: "uppercase",
                       overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                       maxWidth: "calc(100% - 48px)",
                     }}>
-                      {s.sessionIdentity || "TRAINING SESSION"}
+                      {deriveArchiveLabel(s)}
                     </span>
                     <span style={{ fontSize: 9, color: whiteAlpha(0.22), fontWeight: 700, flexShrink: 0, fontFamily: "monospace", marginLeft: 8 }}>
                       {formatSessionAge(s.createdAt?.seconds)}

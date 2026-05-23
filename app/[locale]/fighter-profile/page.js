@@ -60,7 +60,7 @@ export default function FighterProfilePage() {
     <main style={{
       minHeight: "100dvh",
       background: BG,
-      paddingBottom: "calc(100px + env(safe-area-inset-bottom))",
+      paddingBottom: "calc(100px + max(env(safe-area-inset-bottom), 16px))",
     }}>
 
       {/* ── Hero header ─────────────────────────────────────────── */}

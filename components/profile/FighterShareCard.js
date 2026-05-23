@@ -1,97 +1,49 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import { GOLD, RED, RADIUS, blackAlpha} from "@/lib/tokens";
+import { GOLD, RED, RADIUS, blackAlpha, whiteAlpha } from "@/lib/tokens";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import RankBadge from "@/components/RankBadge";
-import { formatScore } from "@/lib/utils";
+import { useCombatMemory } from "@/hooks/useCombatMemory";
+import { computeMovementProfile } from "@/lib/combatMemory";
 
-// Derive SPD / ACC / STA / STR (1–99) from available profile data
-function deriveStats({ bestScore, aiFeedbackHistory, pvpStats, challengeStreak }) {
-  const recent = (aiFeedbackHistory || []).slice(0, 5);
-  const avgRecent = recent.length
-    ? recent.reduce((s, f) => s + Number(f.score || 0), 0) / recent.length
-    : 0;
-  const wins  = pvpStats?.wins  || 0;
-  const total = wins + (pvpStats?.losses || 0);
-  const best  = bestScore || 0;
-
-  const spd = clamp(Math.round((avgRecent / 10) * 65 + 20));
-  const acc = clamp(total > 0
-    ? Math.round((wins / total) * 65 + 25)
-    : Math.round((best / 10) * 55 + 25));
-  const sta = clamp(Math.round(Math.min(recent.length * 4 + challengeStreak * 5, 79) + 20));
-  const str = clamp(Math.round((best / 10) * 65 + 20));
-  return { SPD: spd, ACC: acc, STA: sta, STR: str };
-}
-
-function clamp(n) { return Math.max(10, Math.min(99, n)); }
-
-// ── Radar / spider chart (4 axes, pure SVG) ───────────────────────────────────
-function RadarChart({ stats, size = 148, color }) {
-  const { SPD, ACC, STA, STR } = stats;
-  const vals   = [SPD / 99, ACC / 99, STA / 99, STR / 99];
-  const labels = ["SPD", "ACC", "STA", "STR"];
-  const cx = size / 2, cy = size / 2;
-  const R  = (size / 2) * 0.72;
-  const angles = [-Math.PI / 2, 0, Math.PI / 2, Math.PI];
-
-  const pt = (angle, frac) => ({
-    x: cx + Math.cos(angle) * R * frac,
-    y: cy + Math.sin(angle) * R * frac,
-  });
-
-  const polygon = (frac) =>
-    angles.map((a) => pt(a, frac))
-      .map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`)
-      .join(" ") + " Z";
-
-  const dataPts  = angles.map((a, i) => pt(a, vals[i]));
-  const dataPath = dataPts.map((p, i) =>
-    `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`
-  ).join(" ") + " Z";
+// ── Movement signature bar ─────────────────────────────────────────────────────
+function MovementBar({ label, value, cap = 3, invertGood = false }) {
+  const pct     = Math.min(100, (value / cap) * 100);
+  const isEmpty = value === 0;
+  const level   = value >= 2 ? "HIGH" : value >= 1 ? "MED" : "LOW";
+  const goodHigh = !invertGood;
+  const levelColor = isEmpty
+    ? whiteAlpha(0.18)
+    : goodHigh
+      ? (value >= 2 ? GOLD : value >= 1 ? "rgba(255,255,255,0.55)" : whiteAlpha(0.28))
+      : (value >= 2 ? "#F87171" : value >= 1 ? "rgba(255,180,60,0.8)" : "#34D399");
 
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      {[0.25, 0.5, 0.75, 1].map((lv) => (
-        <path key={lv} d={polygon(lv)} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="1" />
-      ))}
-      {angles.map((a, i) => {
-        const end = pt(a, 1);
-        return <line key={i} x1={cx} y1={cy} x2={end.x.toFixed(1)} y2={end.y.toFixed(1)} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />;
-      })}
-      <path d={dataPath} fill={`${color}28`} stroke={color} strokeWidth="2" strokeLinejoin="round" />
-      {dataPts.map((p, i) => (
-        <circle key={i} cx={p.x.toFixed(1)} cy={p.y.toFixed(1)} r="3.5" fill={color} />
-      ))}
-      {angles.map((a, i) => {
-        const lp = pt(a, 1.22);
-        const vp = pt(a, vals[i] < 0.25 ? vals[i] + 0.22 : vals[i] - 0.16);
-        return (
-          <g key={i}>
-            <text x={lp.x.toFixed(1)} y={lp.y.toFixed(1)} textAnchor="middle" dominantBaseline="middle"
-              fill="rgba(255,255,255,0.45)" fontSize="8.5" fontWeight="900" letterSpacing="1.2">
-              {labels[i]}
-            </text>
-            <text x={vp.x.toFixed(1)} y={vp.y.toFixed(1)} textAnchor="middle" dominantBaseline="middle"
-              fill={color} fontSize="8" fontWeight="900">
-              {[SPD, ACC, STA, STR][i]}
-            </text>
-          </g>
-        );
-      })}
-    </svg>
+    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 0" }}>
+      <span style={{ width: 72, fontSize: 8.5, fontWeight: 800, letterSpacing: 1, color: whiteAlpha(0.35), textTransform: "uppercase", textAlign: "right", flexShrink: 0 }}>
+        {label}
+      </span>
+      <div style={{ flex: 1, height: 2, background: whiteAlpha(0.06), borderRadius: 2, overflow: "hidden" }}>
+        {!isEmpty && (
+          <div style={{ height: "100%", width: `${pct}%`, background: levelColor, borderRadius: 2 }} />
+        )}
+      </div>
+      <span style={{ width: 26, fontSize: 8, fontWeight: 900, color: levelColor, textAlign: "right", flexShrink: 0, letterSpacing: 0.5 }}>
+        {isEmpty ? "—" : level}
+      </span>
+    </div>
   );
 }
 
-// ── Stat pill ─────────────────────────────────────────────────────────────────
-function StatPill({ label, value, color }) {
+// ── Session stat chip ─────────────────────────────────────────────────────────
+function StatChip({ label, value, accent }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, flex: 1 }}>
-      <div style={{ fontSize: 22, fontWeight: 1000, color, lineHeight: 1, textShadow: `0 0 10px ${color}99` }}>
+    <div style={{ flex: 1, textAlign: "center", padding: "7px 4px", borderRadius: RADIUS.md, background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.06)}` }}>
+      <div style={{ fontSize: 16, fontWeight: 1000, color: accent || "#fff", lineHeight: 1, marginBottom: 3, fontFamily: "var(--font-display, 'Anton', sans-serif)" }}>
         {value}
       </div>
-      <div style={{ fontSize: 8, fontWeight: 900, color: "rgba(255,255,255,0.38)", letterSpacing: "1.5px", textTransform: "uppercase" }}>
+      <div style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 1.5, color: whiteAlpha(0.28), textTransform: "uppercase" }}>
         {label}
       </div>
     </div>
@@ -130,7 +82,6 @@ function ProfileUrlBlock({ url, color }) {
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 12, width: "100%" }}>
-      {/* Real QR code canvas */}
       <div style={{
         width: 72, height: 72, borderRadius: 10, flexShrink: 0,
         border: `1.5px solid ${color}44`,
@@ -142,11 +93,11 @@ function ProfileUrlBlock({ url, color }) {
         <canvas ref={canvasRef} style={{ borderRadius: 6 }} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 10, fontWeight: 900, color: "#fff", marginBottom: 3, fontFamily: "var(--font-condensed)", letterSpacing: "0.08em" }}>
+        <div style={{ fontSize: 10, fontWeight: 900, color: "#fff", marginBottom: 3, letterSpacing: "0.08em" }}>
           SCAN TO CHALLENGE
         </div>
         <div style={{
-          fontSize: 9, color: "rgba(255,255,255,0.28)", fontWeight: 600,
+          fontSize: 9, color: whiteAlpha(0.28), fontWeight: 600,
           whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
           marginBottom: 7,
         }}>
@@ -158,7 +109,7 @@ function ProfileUrlBlock({ url, color }) {
           style={{
             padding: "5px 12px", borderRadius: 7, border: `1px solid ${color}35`,
             background: `${color}12`, color: color, fontSize: 10, fontWeight: 900, cursor: "pointer",
-            fontFamily: "var(--font-condensed)", letterSpacing: "0.05em",
+            letterSpacing: "0.05em",
           }}
         >
           {copied ? "✓ COPIED" : "COPY LINK"}
@@ -174,13 +125,6 @@ export default function FighterShareCard({
   fighterRank,
   xp,
   rankProgress,
-  pvpStats,
-  bestScore,
-  challengeStreak,
-  challengeRanks,
-  aiFeedbackHistory,
-  userBadges,
-  badgeMeta,
   locale,
   t,
   cardShareCopied,
@@ -191,8 +135,17 @@ export default function FighterShareCard({
 
   const arch        = profileUser.fighterArchetype ? ARCHETYPE_DISPLAY[profileUser.fighterArchetype] : null;
   const accentColor = arch?.color || fighterRank?.color || RED;
-  const stats       = deriveStats({ bestScore, aiFeedbackHistory, pvpStats, challengeStreak });
-  const lastScore   = (aiFeedbackHistory || [])[0]?.score;
+
+  const { sessions, tendency, loading } = useCombatMemory({ user: profileUser, maxSessions: 20 });
+
+  const profile     = computeMovementProfile(sessions);
+  const totalSessions = sessions.length;
+  const avgScore = totalSessions
+    ? (sessions.reduce((a, s) => a + (s.score || 0), 0) / totalSessions).toFixed(1)
+    : "—";
+  const bestScore = totalSessions
+    ? Math.max(...sessions.map((s) => s.score || 0)).toFixed(1)
+    : "—";
 
   const profileUrl = typeof window !== "undefined"
     ? `${window.location.origin}/${locale}/profile/${profileUser.username || profileUser.uid}`
@@ -216,13 +169,13 @@ export default function FighterShareCard({
 
   return (
     <div
-      style={{ position: "fixed", inset: 0, zIndex: 9500, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "16px 16px 24px", background: blackAlpha(0.92), backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", overflowY: "auto" }}
+      style={{ position: "fixed", inset: 0, zIndex: 9500, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", padding: `max(env(safe-area-inset-top), 20px) 16px calc(max(env(safe-area-inset-bottom), 16px) + 16px)`, background: blackAlpha(0.92), backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", overflowY: "auto", WebkitOverflowScrolling: "touch" }}
       onClick={onClose}
     >
       {/* ── Card ──────────────────────────────────────────────────────────── */}
       <div
         style={{
-          width: 340, minHeight: 600, borderRadius: 22,
+          width: "min(340px, calc(100vw - 32px))", borderRadius: 22,
           background: `radial-gradient(ellipse 80% 50% at 50% 0%, ${accentColor}1a 0%, transparent 60%), linear-gradient(180deg, #141014 0%, #0c0a0c 100%)`,
           border: `1px solid ${accentColor}2e`,
           boxShadow: `0 0 0 1px ${accentColor}12, 0 40px 100px ${blackAlpha(0.8)}`,
@@ -236,7 +189,7 @@ export default function FighterShareCard({
         <div style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: "3px", color: accentColor, textTransform: "uppercase", lineHeight: 1 }}>GAVANA</span>
-            <span style={{ fontSize: 7, fontWeight: 700, letterSpacing: "2px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase" }}>AI COACH</span>
+            <span style={{ fontSize: 7, fontWeight: 700, letterSpacing: "2px", color: whiteAlpha(0.3), textTransform: "uppercase" }}>AI COACH</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 10px", borderRadius: RADIUS.full, background: `${accentColor}15`, border: `1px solid ${accentColor}30` }}>
             <span style={{ fontSize: 8, color: accentColor }}>✦</span>
@@ -262,12 +215,12 @@ export default function FighterShareCard({
         <div style={{ fontSize: 21, fontWeight: 1000, color: "#fff", textAlign: "center", lineHeight: 1.1, marginBottom: 3 }}>
           {profileUser.displayName || profileUser.username}
         </div>
-        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 600, marginBottom: 10 }}>
+        <div style={{ fontSize: 11, color: whiteAlpha(0.35), fontWeight: 600, marginBottom: 10 }}>
           @{profileUser.username}
         </div>
 
         {/* Rank + Archetype badges */}
-        <div style={{ display: "flex", gap: 6, marginBottom: 20 }}>
+        <div style={{ display: "flex", gap: 6, marginBottom: 18 }}>
           <span style={{ padding: "4px 12px", borderRadius: RADIUS.full, background: `${fighterRank?.color || accentColor}18`, border: `1px solid ${fighterRank?.color || accentColor}44`, color: fighterRank?.color || accentColor, fontSize: 10.5, fontWeight: 900 }}>
             {t(fighterRank?.key || "")}
           </span>
@@ -278,40 +231,55 @@ export default function FighterShareCard({
           )}
         </div>
 
-        <div style={{ width: "100%", height: 1, background: `linear-gradient(90deg, transparent, ${accentColor}40, transparent)`, marginBottom: 18 }} />
+        <div style={{ width: "100%", height: 1, background: `linear-gradient(90deg, transparent, ${accentColor}40, transparent)`, marginBottom: 16 }} />
 
-        {/* Stat row */}
-        <div style={{ width: "100%", display: "flex", gap: 6, justifyContent: "space-between", marginBottom: 18 }}>
-          {Object.entries(stats).map(([label, value]) => (
-            <StatPill key={label} label={label} value={value} color={accentColor} />
-          ))}
-        </div>
+        {/* Session stats */}
+        {!loading && totalSessions > 0 && (
+          <div style={{ width: "100%", display: "flex", gap: 6, marginBottom: 16 }}>
+            <StatChip label="Sessions" value={totalSessions} />
+            <StatChip label="Avg Score" value={avgScore} accent={whiteAlpha(0.85)} />
+            <StatChip label="Best" value={bestScore} accent={GOLD} />
+          </div>
+        )}
 
-        {/* Radar chart */}
-        <RadarChart stats={stats} size={148} color={accentColor} />
-
-        <div style={{ width: "100%", height: 1, background: `linear-gradient(90deg, transparent, ${accentColor}30, transparent)`, margin: "14px 0" }} />
-
-        {/* Last score neon */}
-        {lastScore != null && (
-          <div style={{ textAlign: "center", marginBottom: 14 }}>
-            <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: "2.5px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 6 }}>
-              LAST SCORE
+        {/* Combat style label from tendency */}
+        {tendency && (
+          <div style={{ width: "100%", marginBottom: 14 }}>
+            <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.28), textTransform: "uppercase", marginBottom: 5 }}>
+              Combat Style
             </div>
-            <div style={{ fontSize: 42, fontWeight: 1000, lineHeight: 1, color: accentColor, textShadow: `0 0 18px ${accentColor}cc, 0 0 40px ${accentColor}66` }}>
-              {formatScore(lastScore)}
-              <span style={{ fontSize: 16, color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>/10</span>
+            <div style={{ padding: "8px 12px", borderRadius: RADIUS.md, background: `${accentColor}0f`, border: `1px solid ${accentColor}22` }}>
+              <div style={{ fontSize: 13, fontWeight: 1000, color: accentColor, letterSpacing: "-0.01em", fontFamily: "var(--font-display, 'Anton', sans-serif)", wordBreak: "break-word", lineHeight: 1.15 }}>
+                {tendency.title}
+              </div>
+              <div style={{ fontSize: 9.5, color: whiteAlpha(0.35), fontWeight: 700, marginTop: 2 }}>
+                {tendency.sub}
+              </div>
             </div>
+          </div>
+        )}
+
+        {/* Movement signature bars */}
+        {profile && (
+          <div style={{ width: "100%", marginBottom: 14 }}>
+            <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.28), textTransform: "uppercase", marginBottom: 8 }}>
+              Movement Signature
+            </div>
+            <MovementBar label="Pressure"    value={profile.pressure} />
+            <MovementBar label="Lateral"     value={profile.lateral} />
+            <MovementBar label="Head Mvmt"   value={profile.headMovement} />
+            <MovementBar label="Guard"       value={profile.guardUnstable} invertGood />
+            <MovementBar label="Balance"     value={profile.balanceShift} invertGood />
           </div>
         )}
 
         {/* XP bar */}
         <div style={{ width: "100%", marginBottom: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-            <span style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.8px" }}>{xp.toLocaleString()} XP</span>
-            <span style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.25)" }}>{rankProgress}% → next rank</span>
+            <span style={{ fontSize: 9, fontWeight: 700, color: whiteAlpha(0.3), textTransform: "uppercase", letterSpacing: "0.8px" }}>{xp.toLocaleString()} XP</span>
+            <span style={{ fontSize: 9, fontWeight: 700, color: whiteAlpha(0.25) }}>{rankProgress}% → next rank</span>
           </div>
-          <div style={{ height: 4, borderRadius: RADIUS.full, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+          <div style={{ height: 4, borderRadius: RADIUS.full, background: whiteAlpha(0.08), overflow: "hidden" }}>
             <div style={{ height: "100%", width: `${rankProgress}%`, borderRadius: RADIUS.full, background: `linear-gradient(90deg, ${accentColor}aa, ${accentColor})` }} />
           </div>
         </div>
@@ -323,7 +291,7 @@ export default function FighterShareCard({
       </div>
 
       {/* Action buttons */}
-      <div style={{ width: 340, display: "flex", gap: 8, marginTop: 14 }}>
+      <div style={{ width: "min(340px, calc(100vw - 32px))", display: "flex", gap: 8, marginTop: 14 }}>
         <button
           type="button"
           onClick={handleShare}
@@ -334,7 +302,7 @@ export default function FighterShareCard({
         <button
           type="button"
           onClick={onClose}
-          style={{ flex: 1, padding: "13px 0", borderRadius: 14, border: "1px solid rgba(255,255,255,0.08)", background: "transparent", color: "rgba(255,255,255,0.4)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
+          style={{ flex: 1, padding: "13px 0", borderRadius: 14, border: `1px solid ${whiteAlpha(0.08)}`, background: "transparent", color: whiteAlpha(0.4), fontSize: 13, fontWeight: 700, cursor: "pointer" }}
         >
           Close
         </button>

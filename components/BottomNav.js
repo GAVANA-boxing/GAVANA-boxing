@@ -145,7 +145,7 @@ function CombatOSSheet({ onClose, router, locale }) {
           border: "1px solid rgba(255,255,255,0.09)",
           borderBottom: "none",
           boxShadow: `0 -20px 50px ${blackAlpha(0.55)}`,
-          padding: `12px 16px calc(20px + env(safe-area-inset-bottom))`,
+          padding: `12px 16px calc(20px + max(env(safe-area-inset-bottom), 8px))`,
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -424,7 +424,7 @@ const ic = {
 const s = {
   combatOSBtn: {
     position: "fixed",
-    bottom: "calc(88px + env(safe-area-inset-bottom))",
+    bottom: "calc(88px + max(env(safe-area-inset-bottom), 0px))",
     right: 18,
     zIndex: 99,
     display: "flex",
@@ -443,7 +443,7 @@ const s = {
   },
   nav: {
     position: "fixed",
-    bottom: "calc(10px + env(safe-area-inset-bottom))",
+    bottom: "calc(10px + max(env(safe-area-inset-bottom), 0px))",
     left: "50%",
     transform: "translateX(-50%)",
     width: "min(calc(100vw - 28px), 400px)",
