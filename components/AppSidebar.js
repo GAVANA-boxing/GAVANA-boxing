@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
-import { RED, RED_DARK, GOLD, BG, BORDER, MUTED, redAlpha, goldAlpha , blackAlpha} from "@/lib/tokens";
+import { RED, RED_DARK, GOLD, BG, BORDER, MUTED, redAlpha, goldAlpha , blackAlpha, whiteAlpha} from "@/lib/tokens";
 import { getFighterRank, getRankProgress } from "@/lib/xp";
+import { locales } from "@/lib/i18n";
 import Image from "next/image";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
@@ -23,6 +24,7 @@ const IcoBars    = () => <svg style={ic} viewBox="0 0 24 24"><line x1="18" y1="2
 const IcoBuilding= () => <svg style={ic} viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>;
 const IcoUsers   = () => <svg style={ic} viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
 const IcoFlash   = () => <svg style={ic} viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>;
+const IcoFighter = () => <svg style={ic} viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/><path d="M17 8h3M4 8h3"/><path d="M19 11l1.5 1.5M3.5 11 5 12.5"/></svg>;
 
 // ─── Nav groups ───────────────────────────────────────────────────────────────
 const NAV = [
@@ -37,8 +39,9 @@ const NAV = [
   {
     group: "TRAIN",
     items: [
-      { Icon: IcoBrain,  label: "AI Coach",   path: "train" },
-      { Icon: IcoTarget, label: "Coach",      path: "coach" },
+      { Icon: IcoBrain,   label: "AI Coach",        path: "train" },
+      { Icon: IcoTarget,  label: "Coach",           path: "coach" },
+      { Icon: IcoFighter, label: "Fighter Intel",   path: "fighter-profile" },
     ],
   },
   {
@@ -201,6 +204,36 @@ export default function AppSidebar({ currentLocale }) {
           </div>
         </div>
       )}
+
+      {/* ── Language switcher ── */}
+      <div style={{ padding: "10px 8px 4px", borderTop: "1px solid rgba(255,255,255,0.04)", marginTop: 4 }}>
+        <div style={{ fontSize: 8, fontWeight: 900, color: "rgba(255,255,255,0.11)", letterSpacing: 2, textTransform: "uppercase", paddingLeft: 2, marginBottom: 6 }}>Language</div>
+        <div style={{ display: "flex", gap: 4 }}>
+          {["mn", "en", "ko"].map((lng) => {
+            const active = locale === lng;
+            const segments = (pathname || "/").split("/");
+            const target = locales.includes(segments[1])
+              ? segments.map((s, i) => (i === 1 ? lng : s)).join("/") || `/${lng}`
+              : `/${lng}${pathname === "/" ? "" : pathname}`;
+            return (
+              <button
+                key={lng}
+                onClick={() => router.push(target)}
+                style={{
+                  flex: 1, padding: "5px 0", borderRadius: 7, border: "none",
+                  background: active ? redAlpha(0.18) : "rgba(255,255,255,0.04)",
+                  color: active ? RED : "rgba(255,255,255,0.3)",
+                  fontSize: 9, fontWeight: 900, letterSpacing: 1.2,
+                  textTransform: "uppercase", cursor: "pointer",
+                  transition: "background 140ms, color 140ms",
+                }}
+              >
+                {lng.toUpperCase()}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
     </aside>
   );

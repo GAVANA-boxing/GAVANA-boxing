@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter as useNextRouter } from "next/navigation";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { RED, RED_DARK, redAlpha, RADIUS, MOTION , blackAlpha} from "@/lib/tokens";
+import { RED, RED_DARK, redAlpha, RADIUS, MOTION , blackAlpha, whiteAlpha} from "@/lib/tokens";
+import { locales } from "@/lib/i18n";
 import Image from "next/image";
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
@@ -126,7 +127,8 @@ const COMBAT_OS_ITEMS = [
   { key: "upload",         labelEn: "Upload",          labelMn: "Видео оруулах",     labelKo: "업로드",     path: "/upload" },
 ];
 
-function CombatOSSheet({ onClose, router, locale }) {
+function CombatOSSheet({ onClose, router, locale, pathname }) {
+  const LANG_LABELS = { mn: "🇲🇳 MN", en: "🇺🇸 EN", ko: "🇰🇷 KO" };
   return (
     <div
       style={{
@@ -163,6 +165,33 @@ function CombatOSSheet({ onClose, router, locale }) {
           >
             ✕
           </button>
+        </div>
+
+        {/* Language row */}
+        <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+          {locales.map((lng) => {
+            const active = locale === lng;
+            const segments = (pathname || "/").split("/");
+            const target = locales.includes(segments[1])
+              ? segments.map((s, i) => (i === 1 ? lng : s)).join("/") || `/${lng}`
+              : `/${lng}${pathname === "/" ? "" : pathname}`;
+            return (
+              <button
+                key={lng}
+                onClick={() => { onClose(); router.push(target); }}
+                style={{
+                  flex: 1, padding: "8px 0", borderRadius: 12,
+                  background: active ? redAlpha(0.18) : "rgba(255,255,255,0.04)",
+                  border: active ? `1px solid ${redAlpha(0.4)}` : "1px solid rgba(255,255,255,0.07)",
+                  color: active ? RED : "rgba(255,255,255,0.45)",
+                  fontSize: 12, fontWeight: 900, cursor: "pointer",
+                  WebkitTapHighlightColor: "transparent",
+                }}
+              >
+                {LANG_LABELS[lng]}
+              </button>
+            );
+          })}
         </div>
 
         {/* Grid */}
@@ -344,7 +373,7 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
 
       {/* Combat OS sheet */}
       {combatOSOpen && (
-        <CombatOSSheet onClose={() => setCombatOSOpen(false)} router={r} locale={locale} />
+        <CombatOSSheet onClose={() => setCombatOSOpen(false)} router={r} locale={locale} pathname={pathname} />
       )}
 
       <nav

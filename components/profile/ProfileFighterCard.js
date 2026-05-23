@@ -1,6 +1,7 @@
 "use client";
 
 import { RED, RED_DARK, GOLD, PURPLE, redAlpha, goldAlpha, whiteAlpha , blackAlpha} from "@/lib/tokens";
+import { getWeightClassDisplay } from "@/lib/weightClasses";
 import RankBadge from "@/components/RankBadge";
 import styles from "@/components/profile/profilePageStyles";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
@@ -240,7 +241,7 @@ export default function ProfileFighterCard({
           )}
           {profileUser.weightClass && (
             <div style={{ ...styles.licenseTag, color: "#60A5FA", background: "rgba(96,165,250,0.08)", borderColor: "rgba(96,165,250,0.22)" }}>
-              ⚖️ {profileUser.weightClass}kg
+              ⚖️ {getWeightClassDisplay(profileUser.weightClass)}
             </div>
           )}
           {profileUser.gym && (
