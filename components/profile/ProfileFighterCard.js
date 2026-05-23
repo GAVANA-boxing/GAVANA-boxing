@@ -8,6 +8,28 @@ import { formatScore, getActiveChallengeStreak } from "@/lib/utils";
 import Image from "next/image";
 import { useState } from "react";
 
+// ─── Badge Icon SVGs ──────────────────────────────────────────────────────────
+
+function BadgeIcon({ badgeId, color, size = 16 }) {
+  const p = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color, strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" };
+  if (badgeId === "first_challenge") return (
+    <svg {...p}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+  );
+  if (badgeId === "streak_3" || badgeId === "streak_7") return (
+    <svg {...p}><path d="M8.5 14.5A4.5 4.5 0 0 0 13 19a4.5 4.5 0 0 0 4.5-4.5c0-4-3-6-4.5-11.5C11.5 8 8.5 10 8.5 14.5z"/></svg>
+  );
+  if (badgeId === "jab_master") return (
+    <svg {...p}><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/></svg>
+  );
+  if (badgeId === "speed_king") return (
+    <svg {...p}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+  );
+  if (badgeId === "creator_starter") return (
+    <svg {...p}><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+  );
+  return <svg {...p}><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>;
+}
+
 // ─── XP Ring ──────────────────────────────────────────────────────────────────
 
 function XPRing({ progress, color, size = 56 }) {
@@ -55,12 +77,12 @@ export default function ProfileFighterCard({
   onStatNavigate,
 }) {
   const BADGE_META = {
-    first_challenge: { icon: "🥊", label: t("profileBadgeFirstChallenge"), color: RED },
-    streak_3:        { icon: "🔥", label: t("profileBadgeStreak3"), color: "#FB923C" },
-    streak_7:        { icon: "⚡", label: t("profileBadgeStreak7"), color: "#F59E0B" },
-    jab_master:      { icon: "🎯", label: t("profileBadgeJabMaster"), color: "#60A5FA" },
-    speed_king:      { icon: "💨", label: t("profileBadgeSpeedKing"), color: PURPLE },
-    creator_starter: { icon: "🎬", label: t("creatorTag"), color: "#34D399" },
+    first_challenge: { label: t("profileBadgeFirstChallenge"), color: RED },
+    streak_3:        { label: t("profileBadgeStreak3"), color: "#FB923C" },
+    streak_7:        { label: t("profileBadgeStreak7"), color: "#F59E0B" },
+    jab_master:      { label: t("profileBadgeJabMaster"), color: "#60A5FA" },
+    speed_king:      { label: t("profileBadgeSpeedKing"), color: PURPLE },
+    creator_starter: { label: t("creatorTag"), color: "#34D399" },
   };
 
   const streakCount = profileUser?.streakCount || 0;
@@ -74,25 +96,28 @@ export default function ProfileFighterCard({
     <section style={styles.fighterCard}>
 
       {/* ── Hero: Cover + Avatar overlay ─────────────────────────────────── */}
-      <div style={styles.coverPhotoSection}>
-        {(profileUser.coverPhotoURL || profileUser.coverPhoto) ? (
-          <Image src={profileUser.coverPhotoURL || profileUser.coverPhoto} alt="" fill style={{ objectFit: "cover" }} />
-        ) : (
-          <div style={styles.coverPhotoFallback} />
-        )}
-        <div style={styles.coverPhotoGradient} />
+      {/* Wrapper is position:relative so avatarAnchor can escape coverPhotoSection's overflow:hidden */}
+      <div style={{ position: "relative" }}>
+        <div style={styles.coverPhotoSection}>
+          {(profileUser.coverPhotoURL || profileUser.coverPhoto) ? (
+            <Image src={profileUser.coverPhotoURL || profileUser.coverPhoto} alt="" fill style={{ objectFit: "cover" }} />
+          ) : (
+            <div style={styles.coverPhotoFallback} />
+          )}
+          <div style={styles.coverPhotoGradient} />
 
-        {/* Edit cover button */}
-        {isOwnProfile && (
-          <button type="button" style={styles.coverPhotoEditBtn} onClick={() => router.push(`/${locale}/profile/edit`)}>
-            <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-              <circle cx="12" cy="13" r="4"/>
-            </svg>
-          </button>
-        )}
+          {/* Edit cover button */}
+          {isOwnProfile && (
+            <button type="button" style={styles.coverPhotoEditBtn} onClick={() => router.push(`/${locale}/profile/edit`)}>
+              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+            </button>
+          )}
+        </div>
 
-        {/* Avatar — anchored bottom-left */}
+        {/* Avatar — outside coverPhotoSection so overflow:hidden doesn't clip it */}
         <div style={styles.avatarAnchor}>
           <div
             className={streakCount >= 10 ? "avatar-on-fire" : undefined}
@@ -169,7 +194,9 @@ export default function ProfileFighterCard({
       </p>
 
       {/* ── Digital License Card ─────────────────────────────────────────── */}
-      <div style={styles.licenseCard} className="section-reveal">
+      <div style={{ ...styles.licenseCard, position: "relative" }} className="section-reveal">
+        {/* Belt stripe — rank color accent at top */}
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, ${fighterRank.color} 0%, ${fighterRank.color}66 55%, transparent 100%)`, pointerEvents: "none" }} />
         {/* Left: XP ring + rank */}
         <button type="button" onClick={onShowRankModal} style={styles.licenseRankBlock}>
           <div style={{ position: "relative", width: 56, height: 56 }}>
@@ -238,10 +265,12 @@ export default function ProfileFighterCard({
       {userBadges.length > 0 && (
         <div style={styles.achievementsShelf} className="stagger-list">
           {userBadges.map((b) => {
-            const meta = BADGE_META[b.badgeId] || { icon: "🏅", label: b.badgeId, color: GOLD };
+            const meta = BADGE_META[b.badgeId] || { label: b.badgeId, color: GOLD };
             return (
-              <div key={b.badgeId} style={{ ...styles.achievementCard, borderColor: `${meta.color}44` }}>
-                <span style={{ fontSize: 20 }}>{meta.icon}</span>
+              <div key={b.badgeId} style={{ ...styles.achievementCard, borderColor: `${meta.color}44`, background: `linear-gradient(145deg, ${meta.color}08, rgba(0,0,0,0))` }}>
+                <div style={{ width: 32, height: 32, borderRadius: "50%", background: `${meta.color}18`, border: `1px solid ${meta.color}38`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <BadgeIcon badgeId={b.badgeId} color={meta.color} size={16} />
+                </div>
                 <span style={{ fontSize: 9, fontWeight: 900, color: meta.color, marginTop: 3, textAlign: "center", lineHeight: 1.2, letterSpacing: 0.3 }}>
                   {meta.label}
                 </span>
