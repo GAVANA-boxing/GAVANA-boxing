@@ -22,7 +22,6 @@ export function ProfileModals({
   showFighterCard, setShowFighterCard, pvpStats, bestScore, challengeRanks, userBadges, badgeMeta,
   showWeeklyModal, setShowWeeklyModal,
   locale, router, t,
-  cardShareCopied, setCardShareCopied,
 }) {
   return (
     <>
@@ -156,8 +155,6 @@ export function ProfileModals({
           badgeMeta={badgeMeta}
           locale={locale}
           t={t}
-          cardShareCopied={cardShareCopied}
-          onShareCopied={setCardShareCopied}
           onClose={() => setShowFighterCard(false)}
         />
       )}
