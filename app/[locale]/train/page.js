@@ -352,6 +352,8 @@ export default function TrainPage() {
         missionJustCompleted={missionJustCompleted}
         missionStreakBonus={missionStreakBonus}
         missionNewStreak={missionNewStreak}
+        movementEvents={movementEvents}
+        sessionStartTime={sessionStartTime}
         error={error}
         saving={saving}
         saved={saved}
