@@ -7,7 +7,103 @@ import { getLocaleFromPathname } from "@/lib/i18n";
 import { useCombatMemory } from "@/hooks/useCombatMemory";
 import BottomNav from "@/components/BottomNav";
 import CombatMemoryPanel from "@/components/profile/CombatMemoryPanel";
-import { RED, GOLD, RADIUS, goldAlpha, whiteAlpha, BG } from "@/lib/tokens";
+import { RED, GOLD, RADIUS, goldAlpha, whiteAlpha, BG, redAlpha } from "@/lib/tokens";
+import { computeMovementProfile } from "@/lib/combatMemory";
+import { deriveCombatIdentity } from "@/lib/combatIdentity";
+
+function CombatIdentitySection({ identity, sessionCount }) {
+  if (sessionCount === 0) {
+    return (
+      <div style={{
+        borderRadius: RADIUS.lg, padding: "16px 18px",
+        background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.05)}`,
+        marginBottom: 4,
+      }}>
+        <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: whiteAlpha(0.3), lineHeight: 1.5 }}>
+          Train to build your combat identity.
+        </p>
+      </div>
+    );
+  }
+
+  if (sessionCount < 3 || !identity) {
+    return (
+      <div style={{
+        borderRadius: RADIUS.lg, padding: "16px 18px",
+        background: whiteAlpha(0.025), border: `1px solid ${whiteAlpha(0.06)}`,
+        marginBottom: 4,
+      }}>
+        <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.28), textTransform: "uppercase", marginBottom: 6 }}>
+          Movement Identity · Early Read
+        </div>
+        {identity && (
+          <div style={{ fontSize: 17, fontWeight: 1000, color: whiteAlpha(0.6), letterSpacing: "-0.015em", fontFamily: "var(--font-display, 'Anton', sans-serif)", marginBottom: 6 }}>
+            {identity.primary}
+          </div>
+        )}
+        <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: whiteAlpha(0.3) }}>
+          Early read — train more sessions to improve confidence.
+        </p>
+      </div>
+    );
+  }
+
+  const confidencePct = Math.round(identity.confidence * 100);
+
+  return (
+    <div style={{
+      borderRadius: RADIUS.lg, padding: "18px 18px 14px",
+      background: "rgba(255,255,255,0.022)",
+      border: `1px solid ${whiteAlpha(0.07)}`,
+      marginBottom: 4,
+    }}>
+      {/* Eyebrow */}
+      <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.28), textTransform: "uppercase", marginBottom: 6 }}>
+        Movement-based identity
+      </div>
+
+      {/* Primary identity */}
+      <div style={{ fontSize: 22, fontWeight: 1000, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.0, fontFamily: "var(--font-display, 'Anton', sans-serif)", marginBottom: 10 }}>
+        {identity.primary}
+      </div>
+
+      {/* Confidence bar */}
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
+          <span style={{ fontSize: 9, fontWeight: 800, color: whiteAlpha(0.3), letterSpacing: 1, textTransform: "uppercase" }}>Signal confidence</span>
+          <span style={{ fontSize: 10, fontWeight: 900, color: confidencePct >= 70 ? GOLD : whiteAlpha(0.45), fontFamily: "monospace" }}>
+            {confidencePct}%
+          </span>
+        </div>
+        <div style={{ height: 2, borderRadius: 2, background: whiteAlpha(0.07), overflow: "hidden" }}>
+          <div style={{
+            height: "100%", width: `${confidencePct}%`, borderRadius: 2,
+            background: confidencePct >= 70 ? `linear-gradient(90deg, ${GOLD}80, ${GOLD})` : whiteAlpha(0.3),
+            transition: "width 1s cubic-bezier(0.16,1,0.3,1)",
+          }} />
+        </div>
+      </div>
+
+      {/* Secondary traits */}
+      {identity.secondary.length > 0 && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+          {identity.secondary.map((trait, i) => (
+            <span key={i} style={{
+              fontSize: 9.5, fontWeight: 800,
+              color: whiteAlpha(0.42),
+              background: whiteAlpha(0.04),
+              border: `1px solid ${whiteAlpha(0.07)}`,
+              borderRadius: RADIUS.full,
+              padding: "3px 10px",
+            }}>
+              {trait}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function StatCell({ value, label, accent }) {
   return (
@@ -32,6 +128,8 @@ export default function FighterProfilePage() {
   const locale   = getLocaleFromPathname(pathname);
   const { user, loading: authLoading } = useAuth();
   const { sessions, tendency, trends, loading } = useCombatMemory({ user });
+  const profile  = computeMovementProfile(sessions);
+  const identity = profile ? deriveCombatIdentity(profile, sessions) : null;
 
   useEffect(() => {
     if (!authLoading && !user) router.push(`/${locale}/login`);
@@ -119,7 +217,12 @@ export default function FighterProfilePage() {
         )}
 
         {/* Divider */}
-        <div style={{ height: 1, background: whiteAlpha(0.05), marginBottom: 4 }} />
+        <div style={{ height: 1, background: whiteAlpha(0.05), marginBottom: 16 }} />
+
+        {/* Combat Identity */}
+        {!loading && (
+          <CombatIdentitySection identity={identity} sessionCount={sessions.length} />
+        )}
       </div>
 
       {/* ── Panel ───────────────────────────────────────────────── */}
