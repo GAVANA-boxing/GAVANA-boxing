@@ -14,6 +14,8 @@ import { useAuth } from "@/lib/AuthContext";
 import FighterPortrait from "@/components/FighterPortrait";
 import { RED, GOLD } from "@/lib/tokens";
 import s from "@/components/fighters/fighterStyles";
+import TechniqueLessonCard from "@/components/fighters/TechniqueLessonCard";
+import { FIGHTER_TECHNIQUES } from "@/lib/fighterTechniques";
 
 // ─── Style identity pill icons — SVG line icons cycle by index ────────────────
 const PILL_SVGS = [
@@ -37,6 +39,7 @@ const SI = {
   drills:   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>,
   warn:     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
   award:    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>,
+  lessons:  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>,
 };
 
 // ─── Combo step pills ─────────────────────────────────────────────────────────
@@ -208,6 +211,23 @@ export default function FighterDetailPage() {
             </div>
           ))}
         </Section>
+
+        {/* ── Technique Lessons ── */}
+        {FIGHTER_TECHNIQUES[fighter.id]?.length > 0 && (
+          <Section title={t("fighterTechniqueLesson")} icon={SI.lessons} accent={acc} defaultOpen>
+            {FIGHTER_TECHNIQUES[fighter.id].map((lesson, i) => (
+              <TechniqueLessonCard
+                key={i}
+                title={lesson.title}
+                explanation={lesson.explanation}
+                coachNotes={lesson.coachNotes}
+                drillSteps={lesson.drillSteps}
+                diagramLabel={lesson.diagramLabel}
+                accent={acc}
+              />
+            ))}
+          </Section>
+        )}
 
         {/* ── Movement DNA ── */}
         <Section title={t("fighterMovementDNA")} icon={SI.dna} accent={acc}>
