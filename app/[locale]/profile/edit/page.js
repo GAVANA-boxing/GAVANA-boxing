@@ -11,14 +11,7 @@ import { RED, redAlpha } from "@/lib/tokens";
 import styles from "@/components/profile/editProfileStyles";
 import Image from "next/image";
 
-const WEIGHT_CLASSES = [
-  { value: "-54", label: "-54kg" },
-  { value: "-60", label: "-60kg" },
-  { value: "-67", label: "-67kg" },
-  { value: "-75", label: "-75kg" },
-  { value: "-81", label: "-81kg" },
-  { value: "+91", label: "+91kg" },
-];
+import { WEIGHT_CLASSES } from "@/lib/weightClasses";
 
 const ARCHETYPES = [
   { value: "pressure", emoji: "⚡", label: "Pressure", color: "#F87171" },
@@ -275,7 +268,7 @@ export default function EditProfilePage() {
           <div style={styles.field}>
             <label style={styles.label}>{t("Жингийн ангилал", "체급", "Weight class")}</label>
             <div style={styles.chips}>
-              {WEIGHT_CLASSES.map(({ value, label }) => {
+              {WEIGHT_CLASSES.map(({ value, label, kg }) => {
                 const active = weightClass === value;
                 return (
                   <button
@@ -288,6 +281,7 @@ export default function EditProfilePage() {
                     }}
                   >
                     {label}
+                    <span style={{ opacity: 0.55, fontSize: "0.9em", marginLeft: 3 }}>{kg} kg</span>
                   </button>
                 );
               })}

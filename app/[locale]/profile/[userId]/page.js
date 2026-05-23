@@ -21,6 +21,7 @@ const ProfileModals = dynamic(
   () => import("@/components/profile/ProfileModals").then((m) => ({ default: m.ProfileModals })),
   { ssr: false }
 );
+const FollowListModal = dynamic(() => import("@/components/profile/FollowListModal"), { ssr: false });
 
 export default function UserProfilePage() {
   const { user, loading: authLoading } = useAuth();
@@ -70,6 +71,7 @@ export default function UserProfilePage() {
   const [showWeeklyModal, setShowWeeklyModal] = useState(false);
   const [cardShareCopied, setCardShareCopied] = useState(false);
   const [expandedTrainingGroups, setExpandedTrainingGroups] = useState(new Set());
+  const [followListView, setFollowListView] = useState(null); // "followers" | "following" | null
 
   const { handleMessage, handleFollow, handleLogout, handleSwitchAccount, handleSendChallenge } = useProfileActions({
     user, userId, locale, router,
@@ -307,11 +309,9 @@ export default function UserProfilePage() {
   const handleStatNavigate = (target) => {
     if (target === "posts") {
       setProfileTab("posts");
-      router.push(`/${locale}/profile/${userId}`);
       return;
     }
-
-    router.push(`/${locale}/profile/${userId}?view=${target}`);
+    setFollowListView(target); // "followers" | "following"
   };
 
   return (
@@ -485,6 +485,15 @@ export default function UserProfilePage() {
         locale={locale} router={router} t={t}
         cardShareCopied={cardShareCopied} setCardShareCopied={setCardShareCopied}
       />
+
+      {followListView && (
+        <FollowListModal
+          type={followListView}
+          userId={userId}
+          locale={locale}
+          onClose={() => setFollowListView(null)}
+        />
+      )}
     </div>
   );
 }

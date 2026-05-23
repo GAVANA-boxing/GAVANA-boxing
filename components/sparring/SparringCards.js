@@ -3,6 +3,7 @@
 import { translate } from "@/lib/i18n";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import { RED, RED_DARK, GOLD, redAlpha , blackAlpha} from "@/lib/tokens";
+import { getWeightClassLabel } from "@/lib/weightClasses";
 import { c } from "@/components/sparring/sparringStyles";
 import { formatAgo } from "@/lib/utils";
 import Image from "next/image";
@@ -67,7 +68,7 @@ export function FighterCard({ post, isMe, onRequest, sent, requesting, locale })
               </span>
             )}
             {post.weightClass && (
-              <span style={c.chip}>{post.weightClass.split(" ")[0]}</span>
+              <span style={c.chip}>{getWeightClassLabel(post.weightClass)}</span>
             )}
             {arch && (
               <span style={{ ...c.chip, color: arch.color, background: `${arch.color}12`, borderColor: `${arch.color}40` }}>
