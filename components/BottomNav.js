@@ -57,14 +57,64 @@ function GridIcon() {
 }
 
 // ─── Combat OS Sheet ──────────────────────────────────────────────────────────
+const osIc = { width: 20, height: 20, display: "block", fill: "none", stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round", strokeLinejoin: "round" };
+
+const OS_ICONS = {
+  coach: (
+    <svg style={osIc} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 6l-.7 2H9l-.7-2A7 7 0 0 1 12 2Z"/>
+      <path d="M9 17v1a3 3 0 0 0 6 0v-1"/>
+      <path d="M9.5 9.5 12 12l2.5-2.5"/>
+    </svg>
+  ),
+  sparring: (
+    <svg style={osIc} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/>
+    </svg>
+  ),
+  fighters: (
+    <svg style={osIc} viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="5" r="2.5"/>
+      <path d="M8 22v-6l-2-4h12l-2 4v6"/>
+      <path d="M8 14h8"/>
+    </svg>
+  ),
+  gyms: (
+    <svg style={osIc} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M6 5H4.5a2.5 2.5 0 0 0 0 5H6M18 5h1.5a2.5 2.5 0 0 1 0 5H18"/>
+      <rect x="6" y="3" width="12" height="14" rx="2"/>
+      <path d="M10 21h4M12 17v4"/>
+    </svg>
+  ),
+  challenges: (
+    <svg style={osIc} viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="9"/>
+      <circle cx="12" cy="12" r="4"/>
+      <circle cx="12" cy="12" r="1" fill="currentColor" strokeWidth="0"/>
+    </svg>
+  ),
+  inbox: (
+    <svg style={osIc} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/>
+    </svg>
+  ),
+  upload: (
+    <svg style={osIc} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="17 8 12 3 7 8"/>
+      <line x1="12" y1="3" x2="12" y2="15"/>
+    </svg>
+  ),
+};
+
 const COMBAT_OS_ITEMS = [
-  { key: "coach",      emoji: "🥊", labelEn: "AI Coach",   labelMn: "AI Дасгалжуулагч", path: "/coach" },
-  { key: "sparring",   emoji: "⚡",  labelEn: "Sparring",   labelMn: "Спарринг",          path: "/sparring" },
-  { key: "fighters",   emoji: "👊",  labelEn: "Fighters",   labelMn: "Тамирчид",          path: "/fighters" },
-  { key: "gyms",       emoji: "🏟",  labelEn: "Gyms",       labelMn: "Заалнууд",          path: "/gyms" },
-  { key: "challenges", emoji: "🎯",  labelEn: "Challenges", labelMn: "Даалгаврууд",       path: "/challenges" },
-  { key: "inbox",      emoji: "💬",  labelEn: "Inbox",      labelMn: "Мессэж",            path: "/inbox" },
-  { key: "upload",     emoji: "📹",  labelEn: "Upload",     labelMn: "Видео оруулах",     path: "/upload" },
+  { key: "coach",      labelEn: "AI Coach",   labelMn: "AI Дасгалжуулагч", path: "/coach" },
+  { key: "sparring",   labelEn: "Sparring",   labelMn: "Спарринг",          path: "/sparring" },
+  { key: "fighters",   labelEn: "Fighters",   labelMn: "Тамирчид",          path: "/fighters" },
+  { key: "gyms",       labelEn: "Gyms",       labelMn: "Заалнууд",          path: "/gyms" },
+  { key: "challenges", labelEn: "Challenges", labelMn: "Даалгаврууд",       path: "/challenges" },
+  { key: "inbox",      labelEn: "Inbox",      labelMn: "Мессэж",            path: "/inbox" },
+  { key: "upload",     labelEn: "Upload",     labelMn: "Видео оруулах",     path: "/upload" },
 ];
 
 function CombatOSSheet({ onClose, router, locale }) {
@@ -124,7 +174,7 @@ function CombatOSSheet({ onClose, router, locale }) {
                 WebkitTapHighlightColor: "transparent",
               }}
             >
-              <span style={{ fontSize: 22, lineHeight: 1, flexShrink: 0 }}>{item.emoji}</span>
+              <span style={{ flexShrink: 0, display: "flex", color: "rgba(255,255,255,0.7)" }}>{OS_ICONS[item.key]}</span>
               <span style={{ fontSize: 13, fontWeight: 800, lineHeight: 1.2 }}>
                 {locale === "mn" ? item.labelMn : item.labelEn}
               </span>

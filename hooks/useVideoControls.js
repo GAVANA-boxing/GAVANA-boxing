@@ -2,6 +2,15 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+const SOUND_KEY = "reel-sound-on";
+
+function readSoundPref() {
+  try { return localStorage.getItem(SOUND_KEY) === "1"; } catch { return false; }
+}
+function writeSoundPref(val) {
+  try { localStorage.setItem(SOUND_KEY, val ? "1" : "0"); } catch {}
+}
+
 export function useVideoControls({ reels, currentIndex }) {
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [showControls, setShowControls] = useState(false);
@@ -12,6 +21,29 @@ export function useVideoControls({ reels, currentIndex }) {
   const videoRefs = useRef({});
   const controlsTimer = useRef(null);
   const singleTapTimerRef = useRef(null);
+
+  // Restore sound preference from localStorage on mount
+  useEffect(() => {
+    setSoundEnabled(readSoundPref());
+  }, []);
+
+  // Listen for hardware volume-button presses (Android Chrome; silently ignored on iOS)
+  useEffect(() => {
+    const handleVolumeChange = () => {
+      if (!readSoundPref()) {
+        writeSoundPref(true);
+        setSoundEnabled(true);
+        // Unmute the current video immediately
+        const activeId = reels[currentIndex]?.id;
+        const video = videoRefs.current[activeId];
+        if (video) { video.muted = false; video.volume = 1; }
+      }
+    };
+    // Attach to a scratch audio element — only way to receive volumechange cross-browser
+    const audio = document.createElement("audio");
+    audio.addEventListener("volumechange", handleVolumeChange);
+    return () => audio.removeEventListener("volumechange", handleVolumeChange);
+  }, [currentIndex, reels]);
 
   const pauseInactiveVideos = useCallback((activeReelId, reset = true) => {
     Object.entries(videoRefs.current).forEach(([reelId, video]) => {
@@ -76,6 +108,7 @@ export function useVideoControls({ reels, currentIndex }) {
     const video = videoRefs.current[activeReelId];
 
     setSoundEnabled(true);
+    writeSoundPref(true);
     pauseInactiveVideos(activeReelId, false);
 
     if (video) {
@@ -92,6 +125,7 @@ export function useVideoControls({ reels, currentIndex }) {
 
   const muteAllVideos = useCallback(() => {
     setSoundEnabled(false);
+    writeSoundPref(false);
     Object.values(videoRefs.current).forEach((video) => {
       if (video) {
         video.muted = true;
