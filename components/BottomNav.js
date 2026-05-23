@@ -105,16 +105,25 @@ const OS_ICONS = {
       <line x1="12" y1="3" x2="12" y2="15"/>
     </svg>
   ),
+  "fighter-profile": (
+    <svg style={osIc} viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="8" r="3.5"/>
+      <path d="M5 20a7 7 0 0 1 14 0"/>
+      <path d="M17 8h3M4 8h3"/>
+      <path d="M19 11l1.5 1.5M3.5 11 5 12.5"/>
+    </svg>
+  ),
 };
 
 const COMBAT_OS_ITEMS = [
-  { key: "coach",      labelEn: "AI Coach",   labelMn: "AI Дасгалжуулагч", labelKo: "AI 코치",   path: "/coach" },
-  { key: "sparring",   labelEn: "Sparring",   labelMn: "Спарринг",          labelKo: "스파링",     path: "/sparring" },
-  { key: "fighters",   labelEn: "Fighters",   labelMn: "Тамирчид",          labelKo: "파이터",     path: "/fighters" },
-  { key: "gyms",       labelEn: "Gyms",       labelMn: "Заалнууд",          labelKo: "체육관",     path: "/gyms" },
-  { key: "challenges", labelEn: "Challenges", labelMn: "Даалгаврууд",       labelKo: "챌린지",     path: "/challenges" },
-  { key: "inbox",      labelEn: "Inbox",      labelMn: "Мессэж",            labelKo: "메시지",     path: "/inbox" },
-  { key: "upload",     labelEn: "Upload",     labelMn: "Видео оруулах",     labelKo: "업로드",     path: "/upload" },
+  { key: "coach",          labelEn: "AI Coach",        labelMn: "AI Дасгалжуулагч", labelKo: "AI 코치",   path: "/coach" },
+  { key: "fighter-profile",labelEn: "Fighter Profile", labelMn: "Тэмцэгч профайл",  labelKo: "파이터 프로필", path: "/fighter-profile" },
+  { key: "sparring",       labelEn: "Sparring",        labelMn: "Спарринг",          labelKo: "스파링",     path: "/sparring" },
+  { key: "fighters",       labelEn: "Fighters",        labelMn: "Тамирчид",          labelKo: "파이터",     path: "/fighters" },
+  { key: "gyms",           labelEn: "Gyms",            labelMn: "Заалнууд",          labelKo: "체육관",     path: "/gyms" },
+  { key: "challenges",     labelEn: "Challenges",      labelMn: "Даалгаврууд",       labelKo: "챌린지",     path: "/challenges" },
+  { key: "inbox",          labelEn: "Inbox",           labelMn: "Мессэж",            labelKo: "메시지",     path: "/inbox" },
+  { key: "upload",         labelEn: "Upload",          labelMn: "Видео оруулах",     labelKo: "업로드",     path: "/upload" },
 ];
 
 function CombatOSSheet({ onClose, router, locale }) {
@@ -391,6 +400,7 @@ function getActiveTab(pathname = "") {
   if (pathname.includes("/rank") || pathname.includes("/leaderboard")) return "rank";
   if (
     pathname.includes("/profile") ||
+    pathname.includes("/fighter-profile") ||
     pathname.includes("/inbox") ||
     pathname.includes("/notifications")
   ) return "profile";

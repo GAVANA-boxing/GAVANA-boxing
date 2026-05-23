@@ -10,12 +10,15 @@ import { getChallengeComparisonPercent, getChallengeStreakBonus } from "@/lib/tr
 import { writeChallengeAttempt, updateUserTrainingProfile } from "@/lib/analytics";
 import { checkAndAwardBadges } from "@/lib/badges";
 import { getLocalDateKey, getPreviousLocalDateKey } from "@/lib/utils";
+import { getSessionIdentity, buildMovementCounts, buildMovementMetrics } from "@/lib/combatMemory";
 
 export function useTrainingActions({
   user,
   locale,
   result,
   reelId,
+  drillId,
+  drillConfig,
   challengeId,
   activeChallenge,
   activeChallengeName,
@@ -199,7 +202,7 @@ export function useTrainingActions({
     }
   }, [result, t, reelId, user, locale, setError]);
 
-  const handleSave = useCallback(async () => {
+  const handleSave = useCallback(async ({ movementEvents = [] } = {}) => {
     if (!user?.uid || !result) return;
 
     setSaving(true);
@@ -216,6 +219,11 @@ export function useTrainingActions({
         .filter((session) => session.type === "training").length;
       const attemptNumber = previousAttempts + 1;
 
+      // Enriched combat memory fields
+      const sessionIdentity  = getSessionIdentity(result.score, movementEvents);
+      const movementCounts   = buildMovementCounts(movementEvents);
+      const movementMetrics  = buildMovementMetrics(movementCounts);
+
       await addDoc(collection(db, "training_sessions"), {
         userId: user.uid,
         reelId,
@@ -229,6 +237,12 @@ export function useTrainingActions({
         type: "training",
         locale,
         source: "train_screen",
+        // Combat memory
+        sessionIdentity,
+        drillId: drillId || "default",
+        durationSeconds: drillConfig?.durationSeconds || 10,
+        movementCounts,
+        ...movementMetrics,
       });
 
       // Daily mission completion
@@ -324,7 +338,7 @@ export function useTrainingActions({
     } finally {
       setSaving(false);
     }
-  }, [user, result, reelId, locale, t, setError, trainSourceUserId, creatorBestScore]);
+  }, [user, result, reelId, drillId, drillConfig, locale, t, setError, trainSourceUserId, creatorBestScore]);
 
   const resetForNewSession = useCallback(() => {
     setSaving(false);
