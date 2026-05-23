@@ -168,7 +168,9 @@ function CombatOSSheet({ onClose, router, locale, pathname }) {
         </div>
 
         {/* Language row */}
-        <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+        <div style={{ marginBottom: 12 }}>
+        <div style={{ fontSize: 8, fontWeight: 900, color: "rgba(255,255,255,0.28)", letterSpacing: 2, textTransform: "uppercase", marginBottom: 7 }}>Language</div>
+        <div style={{ display: "flex", gap: 6 }}>
           {locales.map((lng) => {
             const active = locale === lng;
             const segments = (pathname || "/").split("/");
@@ -192,6 +194,7 @@ function CombatOSSheet({ onClose, router, locale, pathname }) {
               </button>
             );
           })}
+        </div>
         </div>
 
         {/* Grid */}
