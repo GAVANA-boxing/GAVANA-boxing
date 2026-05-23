@@ -73,6 +73,8 @@ export default function TrainPage() {
     lastPunchType,
     ghostScore,
     ghostEnabled, setGhostEnabled,
+    movementEvents,
+    sessionStartTime,
     handleStart,
     handleTryAgain,
     finishRecording,
@@ -277,6 +279,8 @@ export default function TrainPage() {
               ghostEnabled={ghostEnabled}
               ghostScore={ghostScore}
               liveFeedback={liveFeedback}
+              movementEvents={movementEvents}
+              sessionStartTime={sessionStartTime}
               t={t}
             />
           )}

@@ -5,6 +5,7 @@ import { calculateChallengeXP, getRankProgress } from "@/lib/xp";
 import { calculateTrainingScore, computeScoreBreakdown } from "@/lib/trainHelpers";
 import { getChallengeRank } from "@/lib/utils";
 import { usePunchDetector } from "@/hooks/usePunchDetector";
+import { useMovementAnalyzer } from "@/hooks/useMovementAnalyzer";
 import { DEFAULT_DRILL } from "@/lib/drillConfig";
 
 export function useCameraSession({
@@ -49,6 +50,10 @@ export function useCameraSession({
   const [ghostScore, setGhostScore] = useState(0);
   const [ghostEnabled, setGhostEnabled] = useState(true);
   const ghostIntervalRef = useRef(null);
+
+  const [movementEvents, setMovementEvents] = useState([]);
+  const [sessionStartTime, setSessionStartTime] = useState(null);
+  const movementEventIdRef = useRef(0);
 
   // Wall-clock timer refs — completely independent of React renders
   const sessionEndTimeRef = useRef(null);
@@ -261,6 +266,23 @@ export function useCameraSession({
     onPunch,
   });
 
+  const onMovementEvent = useCallback((events) => {
+    if (!isRecordingRef.current) return;
+    setMovementEvents((prev) => [
+      ...prev,
+      ...events.map((ev) => ({
+        ...ev,
+        id: `${ev.type}-${++movementEventIdRef.current}`,
+      })),
+    ]);
+  }, []);
+
+  useMovementAnalyzer({
+    videoRef,
+    isActive: phase === "recording",
+    onEvent: onMovementEvent,
+  });
+
   // ── Recording phase init ─────────────────────────────────────────────────
   useEffect(() => {
     if (phase !== "recording") {
@@ -276,6 +298,9 @@ export function useCameraSession({
     setLiveScore(0);
     setGhostScore(0);
     setLastPunchType(null);
+    setMovementEvents([]);
+    movementEventIdRef.current = 0;
+    setSessionStartTime(Date.now());
 
     if (ghostBestScoreRef.current !== null && ghostEnabled) {
       const ghostTarget = ghostBestScoreRef.current;
@@ -378,6 +403,8 @@ export function useCameraSession({
     lastPunchType,
     ghostScore,
     ghostEnabled, setGhostEnabled,
+    movementEvents,
+    sessionStartTime,
     handleStart,
     handleTryAgain,
     finishRecording,

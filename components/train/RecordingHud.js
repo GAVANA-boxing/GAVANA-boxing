@@ -3,6 +3,7 @@
 import { GOLD } from "@/lib/tokens";
 import { FOCUS_COLORS } from "@/lib/drillConfig";
 import styles from "@/components/train/trainStyles";
+import MovementTimeline from "@/components/train/MovementTimeline";
 
 export default function RecordingHud({
   hitCount,
@@ -17,6 +18,8 @@ export default function RecordingHud({
   ghostEnabled,
   ghostScore,
   liveFeedback,
+  movementEvents,
+  sessionStartTime,
   t,
 }) {
   const focusColor = drillConfig?.focusType ? (FOCUS_COLORS[drillConfig.focusType] || "rgba(255,255,255,0.4)") : null;
@@ -126,6 +129,9 @@ export default function RecordingHud({
           {liveFeedback.text}
         </div>
       )}
+
+      {/* Movement timeline */}
+      <MovementTimeline events={movementEvents} sessionStartTime={sessionStartTime} />
     </>
   );
 }
