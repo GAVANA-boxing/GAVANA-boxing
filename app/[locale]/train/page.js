@@ -98,7 +98,7 @@ export default function TrainPage() {
     handleShareChallenge, handleChallengeFriend, handleShareTraining,
     resetForNewSession,
   } = useTrainingActions({
-    user, locale, result, reelId, challengeId,
+    user, locale, result, reelId, drillId, drillConfig, challengeId,
     activeChallenge, activeChallengeName,
     creatorBestScore, trainSourceUserId, currentXP,
     t, router, setError,

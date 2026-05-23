@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { GOLD, RED, RADIUS, redAlpha, goldAlpha, whiteAlpha, blackAlpha } from "@/lib/tokens";
 import { getChallengeRank } from "@/lib/utils";
 import { getChallengeComparisonPercent } from "@/lib/trainHelpers";
+import { getSessionIdentity } from "@/lib/combatMemory";
 import RankBadge from "@/components/RankBadge";
 import styles from "@/components/train/trainStyles";
 
@@ -23,26 +24,23 @@ function useCountUp(target, duration = 1000) {
   return display;
 }
 
-function getSessionIdentity(score, movementEvents = []) {
-  const c = {};
-  for (const ev of movementEvents) c[ev.type] = (c[ev.type] || 0) + 1;
-  const p = c.FORWARD_PRESSURE || 0;
-  const l = c.LATERAL_MOVEMENT || 0;
-  const h = c.HEAD_MOVEMENT || 0;
-  const g = c.GUARD_UNSTABLE || 0;
-  const b = c.BALANCE_SHIFT || 0;
-  const x = c.OVEREXTENSION || 0;
+// Sub-labels for result modal display
+const IDENTITY_SUBS = {
+  "PRESSURE INITIATOR": "Forward-dominant pressure style",
+  "MOBILE OUTBOXER":    "Strong lateral movement control",
+  "REACTIVE COUNTER":   "Movement-reactive defensive reads",
+  "GUARD INSTABILITY":  "Guard line needs consolidation",
+  "BALANCE BREAKER":    "Dynamic weight transfer detected",
+  "FORWARD HUNTER":     "Aggressive entry pattern detected",
+  "SHARP EXECUTION":    "High-efficiency movement session",
+  "SOLID FOUNDATION":   "Consistent movement quality",
+  "DEVELOPING STYLE":   "Pattern emerging — keep building",
+  "RAW ENERGY":         "Pure intensity — structure coming",
+};
 
-  if (p >= 2 && score >= 6) return { title: "PRESSURE INITIATOR",   sub: "Forward-dominant pressure style" };
-  if (l >= 3)               return { title: "MOBILE OUTBOXER",      sub: "Strong lateral movement control" };
-  if (h >= 3 && score >= 5) return { title: "REACTIVE COUNTER",     sub: "Movement-reactive defensive reads" };
-  if (g >= 2)               return { title: "GUARD INSTABILITY",    sub: "Guard line needs consolidation" };
-  if (b >= 2)               return { title: "BALANCE BREAKER",      sub: "Dynamic weight transfer detected" };
-  if (x >= 1 && score >= 5) return { title: "FORWARD HUNTER",       sub: "Aggressive entry pattern detected" };
-  if (score >= 8)            return { title: "SHARP EXECUTION",      sub: "High-efficiency movement session" };
-  if (score >= 6)            return { title: "SOLID FOUNDATION",     sub: "Consistent movement quality" };
-  if (score >= 4)            return { title: "DEVELOPING STYLE",     sub: "Pattern emerging — keep building" };
-  return                          { title: "RAW ENERGY",            sub: "Pure intensity — structure coming" };
+function getIdentityWithSub(score, movementEvents) {
+  const title = getSessionIdentity(score, movementEvents);
+  return { title, sub: IDENTITY_SUBS[title] || "" };
 }
 
 function getMovementSummary(movementEvents = []) {
@@ -123,7 +121,7 @@ export default function TrainResultModal({
   if (!result) return null;
 
   const events = movementEvents || [];
-  const identity = getSessionIdentity(result.score, events);
+  const identity = getIdentityWithSub(result.score, events);
   const movementSummary = getMovementSummary(events);
   const timelineEvents = events.slice(-8);
   const hasMI = movementSummary.length > 0;
@@ -434,7 +432,7 @@ export default function TrainResultModal({
               <button
                 type="button"
                 style={{ ...styles.saveButton, ...(saved ? styles.saveButtonDone : {}), opacity: saving || saved ? 0.65 : 1, cursor: saving || saved ? "default" : "pointer" }}
-                onClick={onSave}
+                onClick={() => onSave({ movementEvents: events })}
                 disabled={saving || saved}
               >
                 {saving
@@ -459,6 +457,24 @@ export default function TrainResultModal({
             <button type="button" style={styles.shareResultButton} onClick={activeChallenge ? onShareChallenge : onShareTraining}>
               {t("share") || "Share"}
             </button>
+
+            {/* Fighter Profile link — shown after saving */}
+            {(saved || challengeSaved) && (
+              <button
+                type="button"
+                onClick={() => router.push(`/${locale}/fighter-profile`)}
+                style={{
+                  width: "100%", minHeight: 40,
+                  background: "none", border: `1px solid ${whiteAlpha(0.08)}`,
+                  borderRadius: RADIUS.md,
+                  color: whiteAlpha(0.35), fontSize: 11, fontWeight: 800,
+                  cursor: "pointer", letterSpacing: 1,
+                  textTransform: "uppercase",
+                }}
+              >
+                View Fighter Profile →
+              </button>
+            )}
           </div>
         </div>
 
