@@ -169,13 +169,13 @@ export default function FighterShareCard({
 
   return (
     <div
-      style={{ position: "fixed", inset: 0, zIndex: 9500, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "16px 16px 24px", background: blackAlpha(0.92), backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", overflowY: "auto" }}
+      style={{ position: "fixed", inset: 0, zIndex: 9500, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", padding: `max(env(safe-area-inset-top), 20px) 16px calc(max(env(safe-area-inset-bottom), 16px) + 16px)`, background: blackAlpha(0.92), backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", overflowY: "auto", WebkitOverflowScrolling: "touch" }}
       onClick={onClose}
     >
       {/* ── Card ──────────────────────────────────────────────────────────── */}
       <div
         style={{
-          width: 340, borderRadius: 22,
+          width: "min(340px, calc(100vw - 32px))", borderRadius: 22,
           background: `radial-gradient(ellipse 80% 50% at 50% 0%, ${accentColor}1a 0%, transparent 60%), linear-gradient(180deg, #141014 0%, #0c0a0c 100%)`,
           border: `1px solid ${accentColor}2e`,
           boxShadow: `0 0 0 1px ${accentColor}12, 0 40px 100px ${blackAlpha(0.8)}`,
@@ -249,7 +249,7 @@ export default function FighterShareCard({
               Combat Style
             </div>
             <div style={{ padding: "8px 12px", borderRadius: RADIUS.md, background: `${accentColor}0f`, border: `1px solid ${accentColor}22` }}>
-              <div style={{ fontSize: 13, fontWeight: 1000, color: accentColor, letterSpacing: "-0.01em", fontFamily: "var(--font-display, 'Anton', sans-serif)" }}>
+              <div style={{ fontSize: 13, fontWeight: 1000, color: accentColor, letterSpacing: "-0.01em", fontFamily: "var(--font-display, 'Anton', sans-serif)", wordBreak: "break-word", lineHeight: 1.15 }}>
                 {tendency.title}
               </div>
               <div style={{ fontSize: 9.5, color: whiteAlpha(0.35), fontWeight: 700, marginTop: 2 }}>
@@ -291,7 +291,7 @@ export default function FighterShareCard({
       </div>
 
       {/* Action buttons */}
-      <div style={{ width: 340, display: "flex", gap: 8, marginTop: 14 }}>
+      <div style={{ width: "min(340px, calc(100vw - 32px))", display: "flex", gap: 8, marginTop: 14 }}>
         <button
           type="button"
           onClick={handleShare}
