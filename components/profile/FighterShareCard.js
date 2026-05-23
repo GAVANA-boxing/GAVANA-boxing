@@ -7,72 +7,102 @@ import RankBadge from "@/components/RankBadge";
 import { useCombatMemory } from "@/hooks/useCombatMemory";
 import { computeMovementProfile } from "@/lib/combatMemory";
 import { deriveCombatIdentity } from "@/lib/combatIdentity";
+import { RADAR_KEYS, RADAR_ANGLES, radPolar, deriveRadarStats } from "@/lib/dashboardHelpers";
 
-// ── Movement radar SVG ────────────────────────────────────────────────────────
-function MovementRadar({ profile, color, size = 120 }) {
-  if (!profile) return null;
+// ── Combat profile radar ──────────────────────────────────────────────────────
+// 6-axis: Speed, Timing, Guard, Footwork, Power, Accuracy
+// uid must be unique per page to avoid SVG filter/gradient ID collisions.
+function CombatRadar({ stats, size = 130, accentColor, uid = "share" }) {
   const cx = size / 2, cy = size / 2;
-  const R  = (size / 2) * 0.72;
-  const keys   = ["pressure", "lateral", "headMovement", "guardUnstable", "balanceShift"];
-  const labels = ["PRESS", "LAT", "HEAD", "GUARD", "BAL"];
-  const cap    = 3;
-  const angles = keys.map((_, i) => -Math.PI / 2 + (2 * Math.PI * i) / keys.length);
-  const pt = (a, f) => ({ x: cx + Math.cos(a) * R * f, y: cy + Math.sin(a) * R * f });
-  const poly = (f) => angles.map((a) => pt(a, f))
-    .map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ") + " Z";
-  const vals    = keys.map((k) => Math.min(1, (profile[k] || 0) / cap));
-  const dataPts = angles.map((a, i) => pt(a, Math.max(0.06, vals[i])));
-  const dataPath = dataPts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ") + " Z";
+  const maxR = (size / 2) * 0.62;
+  const angles = RADAR_ANGLES.map((d) => (d * Math.PI) / 180);
+
+  const pt = (angleRad, r) => ({
+    x: cx + r * Math.cos(angleRad),
+    y: cy + r * Math.sin(angleRad),
+  });
+
+  const gridPoly = (scale) =>
+    angles.map((a) => {
+      const p = pt(a, maxR * scale);
+      return `${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+    }).join(" ");
+
+  const dataPoints = RADAR_KEYS.map((key, i) => {
+    const val = Math.max(0, Math.min(10, stats[key] || 0));
+    return pt(angles[i], (val / 10) * maxR);
+  });
+  const dataPoly = dataPoints.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+  const labelR = maxR + (size <= 120 ? 13 : 18);
+  const fs = size <= 120 ? 6 : 7.5;
 
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
-      {[0.25, 0.5, 0.75, 1].map((lv) => (
-        <path key={lv} d={poly(lv)} fill="none" stroke={whiteAlpha(lv === 1 ? 0.1 : 0.045)} strokeWidth="1" />
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}
+      style={{ display: "block", overflow: "visible" }} aria-hidden="true">
+      <defs>
+        <radialGradient id={`rdg-${uid}`} cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor={`${accentColor}38`} />
+          <stop offset="100%" stopColor={`${accentColor}06`} />
+        </radialGradient>
+        <filter id={`rdGlow-${uid}`} x="-25%" y="-25%" width="150%" height="150%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+      </defs>
+
+      {/* Grid rings */}
+      {[0.25, 0.5, 0.75, 1.0].map((scale) => (
+        <polygon key={scale} points={gridPoly(scale)} fill="none"
+          stroke={scale === 1.0 ? "rgba(255,255,255,0.13)" : "rgba(255,255,255,0.05)"}
+          strokeWidth={scale === 1.0 ? 0.8 : 0.5}
+        />
       ))}
+
+      {/* Spokes */}
       {angles.map((a, i) => {
-        const e = pt(a, 1);
-        return <line key={i} x1={cx} y1={cy} x2={e.x.toFixed(1)} y2={e.y.toFixed(1)} stroke={whiteAlpha(0.07)} strokeWidth="1" />;
+        const outer = pt(a, maxR);
+        return <line key={i} x1={cx.toFixed(1)} y1={cy.toFixed(1)}
+          x2={outer.x.toFixed(1)} y2={outer.y.toFixed(1)}
+          stroke="rgba(255,255,255,0.055)" strokeWidth="0.8" />;
       })}
-      <path d={dataPath} fill={`${color}1e`} stroke={color} strokeWidth="1.5" strokeLinejoin="round" />
-      {dataPts.map((p, i) => (
-        <circle key={i} cx={p.x.toFixed(1)} cy={p.y.toFixed(1)} r="2.5"
-          fill={color} style={{ filter: `drop-shadow(0 0 4px ${color})` }} />
+
+      {/* Data polygon */}
+      <polygon points={dataPoly}
+        fill={`url(#rdg-${uid})`}
+        stroke={accentColor}
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+        filter={`url(#rdGlow-${uid})`}
+      />
+
+      {/* Data dots */}
+      {dataPoints.map((p, i) => (
+        <circle key={i} cx={p.x.toFixed(1)} cy={p.y.toFixed(1)}
+          r="2.5" fill={accentColor} stroke="rgba(0,0,0,0.55)" strokeWidth="0.5" opacity="0.92" />
       ))}
-      {angles.map((a, i) => {
-        const lp = pt(a, 1.3);
+
+      {/* Labels */}
+      {RADAR_KEYS.map((key, i) => {
+        const lp = pt(angles[i], labelR);
+        const ta = lp.x < cx - 6 ? "end" : lp.x > cx + 6 ? "start" : "middle";
+        const val = Math.max(0, Math.min(10, stats[key] || 0));
+        const valColor = val >= 7 ? GOLD : val >= 5 ? "rgba(255,255,255,0.45)" : "#F87171";
         return (
-          <text key={i} x={lp.x.toFixed(1)} y={lp.y.toFixed(1)}
-            textAnchor="middle" dominantBaseline="middle"
-            fill={whiteAlpha(0.3)} fontSize="6" fontWeight="800" letterSpacing="0.5">
-            {labels[i]}
-          </text>
+          <g key={key}>
+            <text x={lp.x.toFixed(1)} y={(lp.y - 3).toFixed(1)}
+              textAnchor={ta} dominantBaseline="auto"
+              fontSize={fs} fontWeight="900" fill="rgba(255,255,255,0.52)" letterSpacing="0.5">
+              {key.toUpperCase()}
+            </text>
+            <text x={lp.x.toFixed(1)} y={(lp.y + fs - 1).toFixed(1)}
+              textAnchor={ta} dominantBaseline="auto"
+              fontSize={fs - 1} fontWeight="700" fill={valColor}>
+              {val.toFixed(1)}
+            </text>
+          </g>
         );
       })}
     </svg>
-  );
-}
-
-// ── Signature bar ─────────────────────────────────────────────────────────────
-function SignatureBar({ label, value, cap = 3, invert = false, compact = false }) {
-  const pct      = Math.min(100, (value / cap) * 100);
-  const isEmpty  = value === 0;
-  const lvl      = value >= 2 ? "HIGH" : value >= 1 ? "MED" : "LOW";
-  const barColor = isEmpty ? whiteAlpha(0.07)
-    : !invert
-      ? (value >= 2 ? GOLD : value >= 1 ? "rgba(255,255,255,0.38)" : whiteAlpha(0.12))
-      : (value >= 2 ? "#F87171" : value >= 1 ? "rgba(255,180,60,0.7)" : "#34D399");
-  const labelW = compact ? 46 : 54;
-
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "2.5px 0" }}>
-      <span style={{ width: labelW, fontSize: compact ? 7 : 7.5, fontWeight: 800, letterSpacing: 0.8, color: whiteAlpha(0.28), textTransform: "uppercase", textAlign: "right", flexShrink: 0 }}>{label}</span>
-      <div style={{ flex: 1, height: 2, background: whiteAlpha(0.06), borderRadius: 2, overflow: "hidden" }}>
-        {!isEmpty && <div style={{ height: "100%", width: `${pct}%`, background: barColor, borderRadius: 2 }} />}
-      </div>
-      <span style={{ width: 20, fontSize: 7, fontWeight: 900, color: isEmpty ? whiteAlpha(0.18) : barColor, textAlign: "right", flexShrink: 0 }}>
-        {isEmpty ? "—" : lvl}
-      </span>
-    </div>
   );
 }
 
@@ -137,6 +167,11 @@ export default function FighterShareCard({
   const { sessions, loading } = useCombatMemory({ user: profileUser, maxSessions: 20 });
   const profile   = computeMovementProfile(sessions);
   const identity  = profile ? deriveCombatIdentity(profile, sessions) : null;
+
+  const scores       = sessions.map((s) => s.score).filter((v) => v != null && Number.isFinite(Number(v))).map(Number);
+  const streakDays   = profileUser.streakCount || 0;
+  const radarStats   = deriveRadarStats(scores, sessions, streakDays);
+  const isPlaceholder = scores.length < 3;
   const totalSessions = sessions.length;
   const avgScore  = totalSessions ? (sessions.reduce((a, s) => a + (s.score || 0), 0) / totalSessions).toFixed(1) : "—";
   const bestScore = totalSessions ? Math.max(...sessions.map((s) => s.score || 0)).toFixed(1) : "—";
@@ -162,9 +197,8 @@ export default function FighterShareCard({
   }, [profileUser, fighterRank, xp, profileUrl, t, onShareCopied]);
 
   // Responsive widths
-  const cardW   = isDesktop ? "min(580px, calc(100vw - 64px))" : "min(360px, calc(100vw - 32px))";
-  const btnW    = isDesktop ? "min(580px, calc(100vw - 64px))" : "min(360px, calc(100vw - 32px))";
-  const radarSz = isDesktop ? 150 : 112;
+  const cardW = isDesktop ? "min(580px, calc(100vw - 64px))" : "min(360px, calc(100vw - 32px))";
+  const btnW  = isDesktop ? "min(580px, calc(100vw - 64px))" : "min(360px, calc(100vw - 32px))";
 
   return (
     <div
@@ -320,22 +354,55 @@ export default function FighterShareCard({
           </div>
         )}
 
-        {/* ── Radar + movement bars ── */}
-        {profile && (
-          <div style={{ display: "flex", gap: isDesktop ? 20 : 14, alignItems: "center", marginBottom: isDesktop ? 20 : 14 }}>
-            <div style={{ flexShrink: 0 }}>
-              <MovementRadar profile={profile} color={accentColor} size={radarSz} />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: isDesktop ? 8.5 : 7.5, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.24), textTransform: "uppercase", marginBottom: isDesktop ? 8 : 5 }}>Movement Signature</div>
-              <SignatureBar label="Pressure" value={profile.pressure}     compact={!isDesktop} />
-              <SignatureBar label="Lateral"  value={profile.lateral}      compact={!isDesktop} />
-              <SignatureBar label="Head"     value={profile.headMovement} compact={!isDesktop} />
-              <SignatureBar label="Guard"    value={profile.guardUnstable} invert compact={!isDesktop} />
-              <SignatureBar label="Balance"  value={profile.balanceShift} invert compact={!isDesktop} />
-            </div>
+        {/* ── Combat profile radar ── */}
+        <div style={{
+          display: "flex", gap: isDesktop ? 20 : 14,
+          alignItems: "center",
+          marginBottom: isDesktop ? 20 : 14,
+          padding: isDesktop ? "14px 16px" : "10px 12px",
+          borderRadius: RADIUS.lg,
+          background: `${accentColor}07`,
+          border: `1px solid ${accentColor}18`,
+        }}>
+          <div style={{ flexShrink: 0 }}>
+            <CombatRadar
+              stats={radarStats}
+              size={isDesktop ? 160 : 118}
+              accentColor={accentColor}
+              uid="fc"
+            />
           </div>
-        )}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: isDesktop ? 10 : 7 }}>
+              <span style={{ fontSize: isDesktop ? 8.5 : 7.5, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.28), textTransform: "uppercase" }}>
+                Combat Profile
+              </span>
+              {isPlaceholder && (
+                <span style={{ fontSize: isDesktop ? 7.5 : 6.5, fontWeight: 700, color: whiteAlpha(0.2), letterSpacing: 0.5 }}>
+                  · building
+                </span>
+              )}
+            </div>
+            {RADAR_KEYS.map((key) => {
+              const val = Math.max(0, Math.min(10, radarStats[key] || 0));
+              const pct = (val / 10) * 100;
+              const valColor = val >= 7 ? GOLD : val >= 5 ? "rgba(255,255,255,0.45)" : "#F87171";
+              return (
+                <div key={key} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: isDesktop ? 4 : 3 }}>
+                  <span style={{ width: isDesktop ? 50 : 42, fontSize: isDesktop ? 8 : 7, fontWeight: 800, letterSpacing: 0.8, color: whiteAlpha(0.3), textTransform: "uppercase", textAlign: "right", flexShrink: 0 }}>
+                    {key}
+                  </span>
+                  <div style={{ flex: 1, height: 2, background: whiteAlpha(0.07), borderRadius: 1, overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${pct}%`, background: `linear-gradient(90deg, ${accentColor}70, ${accentColor})`, borderRadius: 1 }} />
+                  </div>
+                  <span style={{ width: 20, fontSize: isDesktop ? 8 : 7, fontWeight: 900, color: valColor, textAlign: "right", flexShrink: 0, fontFamily: "monospace" }}>
+                    {val.toFixed(1)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
         {/* ── XP progress ── */}
         <div style={{ width: "100%", marginBottom: isDesktop ? 20 : 14 }}>
