@@ -206,8 +206,8 @@ export default function AppSidebar({ currentLocale }) {
       )}
 
       {/* ── Language switcher ── */}
-      <div style={{ padding: "10px 8px 4px", borderTop: "1px solid rgba(255,255,255,0.04)", marginTop: 4 }}>
-        <div style={{ fontSize: 8, fontWeight: 900, color: "rgba(255,255,255,0.11)", letterSpacing: 2, textTransform: "uppercase", paddingLeft: 2, marginBottom: 6 }}>Language</div>
+      <div style={{ padding: "10px 8px 6px", borderTop: "1px solid rgba(255,255,255,0.05)", marginTop: 4 }}>
+        <div style={{ fontSize: 8, fontWeight: 900, color: "rgba(255,255,255,0.28)", letterSpacing: 2, textTransform: "uppercase", paddingLeft: 2, marginBottom: 6 }}>Language</div>
         <div style={{ display: "flex", gap: 4 }}>
           {["mn", "en", "ko"].map((lng) => {
             const active = locale === lng;
@@ -220,12 +220,14 @@ export default function AppSidebar({ currentLocale }) {
                 key={lng}
                 onClick={() => router.push(target)}
                 style={{
-                  flex: 1, padding: "5px 0", borderRadius: 7, border: "none",
-                  background: active ? redAlpha(0.18) : "rgba(255,255,255,0.04)",
+                  flex: 1, padding: "5px 0", borderRadius: 7,
+                  border: active ? `1px solid ${redAlpha(0.45)}` : "1px solid transparent",
+                  background: active ? redAlpha(0.15) : "rgba(255,255,255,0.04)",
                   color: active ? RED : "rgba(255,255,255,0.3)",
                   fontSize: 9, fontWeight: 900, letterSpacing: 1.2,
                   textTransform: "uppercase", cursor: "pointer",
-                  transition: "background 140ms, color 140ms",
+                  transition: "background 140ms, color 140ms, border-color 140ms",
+                  boxShadow: active ? `0 0 8px ${redAlpha(0.18)}` : "none",
                 }}
               >
                 {lng.toUpperCase()}
