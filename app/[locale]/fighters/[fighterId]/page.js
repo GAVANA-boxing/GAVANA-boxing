@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getLocale, translate } from "@/lib/i18n";
 import { getFighter } from "@/lib/fighters";
@@ -16,6 +16,8 @@ import { RED, GOLD } from "@/lib/tokens";
 import s from "@/components/fighters/fighterStyles";
 import TechniqueLessonCard from "@/components/fighters/TechniqueLessonCard";
 import { FIGHTER_TECHNIQUES } from "@/lib/fighterTechniques";
+import { buildCoachSnapshot } from "@/lib/buildCoachContext";
+import { getPersonalConnection } from "@/lib/fighterPersonalConnection";
 
 // ─── Style identity pill icons — SVG line icons cycle by index ────────────────
 const PILL_SVGS = [
@@ -98,6 +100,31 @@ export default function FighterDetailPage() {
 
   const fighter = getFighter(params?.fighterId);
 
+  const [personalConnection, setPersonalConnection] = useState(null);
+
+  useEffect(() => {
+    if (!user?.uid || !fighter) return;
+    let active = true;
+    (async () => {
+      try {
+        const { collection, getDocs, query, where } = await import("firebase/firestore");
+        const { db } = await import("@/lib/firebase");
+        const snap = await getDocs(query(
+          collection(db, "training_sessions"),
+          where("userId", "==", user.uid)
+        ));
+        if (!active) return;
+        const sessions = snap.docs
+          .map((d) => ({ id: d.id, ...d.data() }))
+          .filter((d) => d.type === "training" && d.score != null)
+          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        const snapshot = buildCoachSnapshot({ sessions, profileData: {} });
+        setPersonalConnection(getPersonalConnection(snapshot, fighter));
+      } catch { /* silent */ }
+    })();
+    return () => { active = false; };
+  }, [user?.uid, fighter?.id]);
+
   if (!fighter) {
     return (
       <div style={s.page}>
@@ -179,6 +206,59 @@ export default function FighterDetailPage() {
 
       {/* ══════════ CONTENT ══════════ */}
       <div style={s.content}>
+
+        {/* ── Personal Connection panel ── */}
+        {personalConnection && (
+          <div style={{
+            marginBottom: 16,
+            padding: "14px 16px",
+            borderRadius: 14,
+            background: `linear-gradient(135deg, ${acc}0a 0%, rgba(0,0,0,0) 100%)`,
+            border: `1px solid ${acc}30`,
+            borderLeft: `3px solid ${acc}`,
+          }}>
+            <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: acc, textTransform: "uppercase", marginBottom: 8 }}>
+              {personalConnection.isDirectlyRelevant ? "Your Focus" : "What to learn"}
+            </div>
+
+            <p style={{ margin: "0 0 10px", fontSize: 13, fontWeight: 800, color: "#fff", lineHeight: 1.4 }}>
+              {personalConnection.isDirectlyRelevant
+                ? `Your ${personalConnection.primaryFocus} is ${personalConnection.primaryValue?.toFixed(1)} — ${fighter.name} is one of the best at this.`
+                : `${fighter.name} excels at ${personalConnection.teaches.slice(0, 2).join(" & ")}.`}
+            </p>
+
+            {(personalConnection.focusStudy.length > 0 || personalConnection.focusDrills.length > 0) && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {personalConnection.focusStudy.map((item, i) => (
+                  <div key={`s${i}`} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                    <span style={{ color: acc, fontSize: 10, flexShrink: 0, marginTop: 2 }}>→</span>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.4 }}>{item}</span>
+                  </div>
+                ))}
+                {personalConnection.focusDrills.map((item, i) => (
+                  <div key={`d${i}`} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                    <span style={{ color: GOLD, fontSize: 10, flexShrink: 0, marginTop: 2 }}>▸</span>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.4 }}>{item}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {personalConnection.relevantWeak.length > 1 && (
+              <div style={{ marginTop: 10, display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {personalConnection.relevantWeak.map((area) => (
+                  <span key={area} style={{
+                    fontSize: 9, fontWeight: 800, padding: "2px 8px",
+                    borderRadius: 999, background: `${acc}14`,
+                    border: `1px solid ${acc}30`, color: acc,
+                  }}>
+                    {area} {personalConnection.teaches.includes(area) ? "↑" : ""}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* ── Style Identity ── */}
         <Section title={t("fighterStyleIdentity")} icon={SI.target} accent={acc} defaultOpen>
