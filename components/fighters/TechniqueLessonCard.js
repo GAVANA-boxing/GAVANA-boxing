@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { RED, GOLD, RADIUS, redAlpha, goldAlpha, whiteAlpha } from "@/lib/tokens";
+import { RED, GOLD, PURPLE, RADIUS, redAlpha } from "@/lib/tokens";
+
+const ORANGE = "#FB923C";
 
 // ─── Difficulty ────────────────────────────────────────────────────────────────
 const DIFF = {
@@ -18,31 +20,78 @@ const BLOCK_LABEL = {
   GUARD:  "GUARD LINE",
 };
 
-// ─── Teaching block SVG icons (12px) ──────────────────────────────────────────
+// ─── Teaching block icons ──────────────────────────────────────────────────────
 function BlockIcon({ type, color, size = 12 }) {
   const p = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: color, strokeWidth: "2.5", strokeLinecap: "round", strokeLinejoin: "round" };
-  if (type === "FOOT") return (
-    <svg {...p}><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-  );
-  if (type === "WEIGHT") return (
-    <svg {...p}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-  );
-  if (type === "ANGLE") return (
-    <svg {...p}><polyline points="15 10 20 15 15 20"/><path d="M4 4h7a9 9 0 0 1 9 9v2"/></svg>
-  );
-  if (type === "GUARD") return (
-    <svg {...p}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-  );
+  if (type === "FOOT")   return <svg {...p}><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>;
+  if (type === "WEIGHT") return <svg {...p}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>;
+  if (type === "ANGLE")  return <svg {...p}><polyline points="15 10 20 15 15 20"/><path d="M4 4h7a9 9 0 0 1 9 9v2"/></svg>;
+  if (type === "GUARD")  return <svg {...p}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
   return <svg {...p}><circle cx="12" cy="12" r="10"/></svg>;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Section divider ──────────────────────────────────────────────────────────
+function SectionDivider({ label }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7 }}>
+      <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1.8, color: "rgba(255,255,255,0.22)", textTransform: "uppercase", flexShrink: 0 }}>
+        {label}
+      </span>
+      <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.05)" }} />
+    </div>
+  );
+}
+
+// ─── Info block (feel / mistake / coach) ──────────────────────────────────────
+function CueBlock({ icon, label, color, italic = false, children }) {
+  return (
+    <div style={{
+      padding: "9px 11px",
+      background: `${color}09`, border: `1px solid ${color}1e`,
+      borderLeft: `2px solid ${color}`,
+      borderRadius: "2px 8px 8px 2px",
+      marginBottom: 9,
+      display: "flex", alignItems: "flex-start", gap: 8,
+    }}>
+      <span style={{ flexShrink: 0, marginTop: 1 }}>{icon}</span>
+      <div>
+        <div style={{ fontSize: 7, fontWeight: 900, color, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>
+          {label}
+        </div>
+        <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.62)", lineHeight: 1.55, fontStyle: italic ? "italic" : "normal" }}>
+          {children}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Icon constants for cue blocks ────────────────────────────────────────────
+const ICON_FEEL = (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={PURPLE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+  </svg>
+);
+const ICON_MISTAKE = (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={ORANGE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+  </svg>
+);
+const ICON_COACH = (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </svg>
+);
+
+// ─── Main component ───────────────────────────────────────────────────────────
 export default function TechniqueLessonCard({
   index = 1,
   title,
   difficulty = "intermediate",
   teachingBlocks = [],
   explanation,
+  bodyCue,
+  commonMistake,
   coachNotes,
   drillSteps = [],
   accent = RED,
@@ -67,7 +116,7 @@ export default function TechniqueLessonCard({
       transition: "background 240ms ease, border-color 240ms ease",
     }}>
 
-      {/* ── Header — always visible, tap to expand ────────────────────────── */}
+      {/* ── Header — always visible ───────────────────────────────────────── */}
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
@@ -136,9 +185,9 @@ export default function TechniqueLessonCard({
       {open && (
         <div style={{ padding: "2px 13px 13px" }}>
 
-          {/* Teaching blocks — 2×2 grid */}
+          {/* Biomechanics grid */}
           {teachingBlocks.length > 0 && (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 13 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 14 }}>
               {teachingBlocks.map(b => (
                 <div key={b.type} style={{
                   padding: "9px 10px",
@@ -159,49 +208,41 @@ export default function TechniqueLessonCard({
             </div>
           )}
 
-          {/* Explanation */}
+          {/* Why it works */}
           {explanation && (
-            <p style={{ margin: "0 0 12px", fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.65 }}>
-              {explanation}
-            </p>
+            <>
+              <SectionDivider label="Why it works" />
+              <p style={{ margin: "0 0 12px", fontSize: 13, color: "rgba(255,255,255,0.72)", lineHeight: 1.65 }}>
+                {explanation}
+              </p>
+            </>
+          )}
+
+          {/* Feel this */}
+          {bodyCue && (
+            <CueBlock icon={ICON_FEEL} label="Feel This" color={PURPLE} italic>
+              {bodyCue}
+            </CueBlock>
+          )}
+
+          {/* Common mistake */}
+          {commonMistake && (
+            <CueBlock icon={ICON_MISTAKE} label="Common Mistake" color={ORANGE}>
+              {commonMistake}
+            </CueBlock>
           )}
 
           {/* Coach cue */}
           {coachNotes && (
-            <div style={{
-              padding: "9px 11px",
-              background: `${GOLD}07`, border: `1px solid ${GOLD}1e`,
-              borderLeft: `2px solid ${GOLD}`,
-              borderRadius: "2px 8px 8px 2px",
-              marginBottom: 12,
-              display: "flex", alignItems: "flex-start", gap: 8,
-            }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}>
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-              </svg>
-              <div>
-                <div style={{ fontSize: 7, fontWeight: 900, color: GOLD, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>
-                  Coach Cue
-                </div>
-                <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.6)", lineHeight: 1.5, fontStyle: "italic" }}>
-                  {coachNotes}
-                </p>
-              </div>
-            </div>
+            <CueBlock icon={ICON_COACH} label="Coach Cue" color={GOLD} italic>
+              {coachNotes}
+            </CueBlock>
           )}
 
           {/* Drill steps */}
           {drillSteps.length > 0 && (
-            <div style={{ marginBottom: coachNotes || router ? 12 : 0 }}>
-              <div style={{
-                fontSize: 7, fontWeight: 900, color: RED, letterSpacing: 1.5, textTransform: "uppercase",
-                marginBottom: 8, display: "flex", alignItems: "center", gap: 6,
-              }}>
-                <svg width="9" height="9" viewBox="0 0 24 24" fill={RED} stroke="none">
-                  <polygon points="5 3 19 12 5 21 5 3"/>
-                </svg>
-                DRILL STEPS
-              </div>
+            <div style={{ marginBottom: router ? 12 : 0 }}>
+              <SectionDivider label="Drill Steps" />
               {drillSteps.map((step, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 9, marginBottom: i < drillSteps.length - 1 ? 7 : 0 }}>
                   <div style={{
@@ -220,13 +261,13 @@ export default function TechniqueLessonCard({
             </div>
           )}
 
-          {/* DRILL THIS CTA */}
+          {/* Drill This CTA */}
           {router && locale && (
             <button
               type="button"
               onClick={() => router.push(`/${locale}/train?fighter=${fighterId || ""}&lesson=${encodeURIComponent(title.toLowerCase().replace(/\s+/g, "-"))}`)}
               style={{
-                width: "100%", padding: "11px",
+                width: "100%", padding: "11px", marginTop: 12,
                 background: `${accent}1a`, border: `1px solid ${accent}38`,
                 borderRadius: RADIUS.md,
                 color: accent, fontSize: 10, fontWeight: 900,
