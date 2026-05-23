@@ -7,6 +7,7 @@ import { calculateUserXP } from "@/lib/xp";
 
 export function useTrainingData({ user }) {
   const [reelId, setReelId] = useState(null);
+  const [drillId, setDrillId] = useState(null);
   const [challengeId, setChallengeId] = useState(null);
   const [trainSource, setTrainSource] = useState(null);
   const [trainSourceUserId, setTrainSourceUserId] = useState(null);
@@ -25,6 +26,7 @@ export function useTrainingData({ user }) {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     setReelId(params.get("reelId") || null);
+    setDrillId(params.get("drill") || null);
     setChallengeId(params.get("challengeId") || null);
     setTrainSource(params.get("source") || null);
     setTrainSourceUserId(params.get("reelCreatorId") || params.get("userId") || null);
@@ -152,6 +154,7 @@ export function useTrainingData({ user }) {
 
   return {
     reelId,
+    drillId,
     challengeId,
     trainSource,
     trainSourceUserId,

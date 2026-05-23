@@ -1,6 +1,7 @@
 "use client";
 
 import { GOLD } from "@/lib/tokens";
+import { FOCUS_COLORS } from "@/lib/drillConfig";
 import styles from "@/components/train/trainStyles";
 
 export default function RecordingHud({
@@ -8,6 +9,7 @@ export default function RecordingHud({
   secondsLeft,
   totalSeconds,
   comboCount,
+  drillConfig,
   challengeUserId,
   targetScore,
   liveScore,
@@ -17,17 +19,34 @@ export default function RecordingHud({
   liveFeedback,
   t,
 }) {
+  const focusColor = drillConfig?.focusType ? (FOCUS_COLORS[drillConfig.focusType] || "rgba(255,255,255,0.4)") : null;
+
   return (
     <>
-      {/* Recording HUD — top bar */}
+      {/* Recording bar */}
       <div style={styles.recordingHud}>
         <span style={styles.recordDot} />
         <span>{t("trainRecording")}</span>
+
+        {/* Drill focus label */}
+        {drillConfig?.focusLabel && focusColor && (
+          <span style={{
+            fontSize: 8, fontWeight: 900, letterSpacing: 1.2,
+            color: focusColor,
+            background: `${focusColor}16`,
+            border: `1px solid ${focusColor}28`,
+            borderRadius: 4, padding: "2px 6px",
+            textTransform: "uppercase",
+          }}>
+            {drillConfig.focusLabel}
+          </span>
+        )}
+
         <span style={styles.liveScoreHud}>{liveScore.toFixed(1)}</span>
         <strong style={{ marginLeft: "auto" }}>{Math.ceil(secondsLeft)}s</strong>
       </div>
 
-      {/* Hit counter — neutral until first hit lands */}
+      {/* Movement counter — no hardcoded max, target from drillConfig only */}
       <div style={styles.hitCounter}>
         {hitCount === 0 ? (
           <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", letterSpacing: 0.3 }}>
@@ -36,9 +55,15 @@ export default function RecordingHud({
         ) : (
           <>
             <span style={styles.hitCountNum}>{hitCount}</span>
-            <span style={styles.hitCountSep}>/</span>
-            <span style={styles.hitCountTarget}>{Math.round(totalSeconds * 1.2)}</span>
-            <span style={styles.hitCountLabel}>hits</span>
+            {drillConfig?.targetMovements != null && (
+              <>
+                <span style={styles.hitCountSep}>/</span>
+                <span style={styles.hitCountTarget}>{drillConfig.targetMovements}</span>
+              </>
+            )}
+            <span style={styles.hitCountLabel}>
+              {drillConfig?.targetMovements != null ? "hits" : "movements"}
+            </span>
           </>
         )}
       </div>
@@ -51,15 +76,12 @@ export default function RecordingHud({
         </div>
       )}
 
-      {/* PvP target HUD */}
+      {/* PvP target */}
       {challengeUserId && targetScore && (
         <div style={styles.ghostHud}>
           <div style={styles.ghostHudRow}>
             <span style={styles.ghostHudYouLabel}>{t("pvpYouLabel")}</span>
-            <span style={{
-              ...styles.ghostHudYouScore,
-              color: liveScore >= targetScore ? "#34D399" : GOLD,
-            }}>
+            <span style={{ ...styles.ghostHudYouScore, color: liveScore >= targetScore ? "#34D399" : GOLD }}>
               {liveScore.toFixed(1)}
             </span>
           </div>
@@ -71,7 +93,7 @@ export default function RecordingHud({
         </div>
       )}
 
-      {/* Ghost vs You HUD */}
+      {/* Ghost vs You */}
       {!challengeUserId && ghostBestScore !== null && ghostEnabled && (
         <div style={styles.ghostHud}>
           <div style={styles.ghostHudRow}>
@@ -98,7 +120,7 @@ export default function RecordingHud({
         </div>
       )}
 
-      {/* Floating feedback toast */}
+      {/* Feedback toast */}
       {liveFeedback && (
         <div key={liveFeedback.id} style={styles.liveFeedbackBox} className="feedback-fade">
           {liveFeedback.text}

@@ -18,12 +18,13 @@ import { useCameraSession } from "@/hooks/useCameraSession";
 import { FIGHTERS } from "@/lib/fighters";
 import { FIGHTER_TECHNIQUES } from "@/lib/fighterTechniques";
 import TrainingFocusCard from "@/components/train/TrainingFocusCard";
+import { getDrillConfig } from "@/lib/drillConfig";
 
-const RECORD_SECONDS = 10;
+// titleKey only — duration/target now live in drillConfig
 const CHALLENGES = {
-  "jab-minute": { titleKey: "challengeJabTitle", seconds: 60 },
-  "speed-test": { titleKey: "challengeSpeedTitle", seconds: 20 },
-  "combo-master": { titleKey: "challengeComboTitle", seconds: 30 },
+  "jab-minute":  { titleKey: "challengeJabTitle" },
+  "speed-test":  { titleKey: "challengeSpeedTitle" },
+  "combo-master": { titleKey: "challengeComboTitle" },
 };
 
 export default function TrainPage() {
@@ -34,15 +35,17 @@ export default function TrainPage() {
   const { user, loading: authLoading } = useAuth();
 
   const {
-    reelId, challengeId, trainSource, trainSourceUserId,
+    reelId, drillId, challengeId, trainSource, trainSourceUserId,
     challengeUserId, creatorBestScore, targetScore,
     currentXP, sessionHistory, weeklySessionCount, userStreak,
     opponentUsername, ghostBestScore, setGhostBestScore, ghostBestScoreRef,
   } = useTrainingData({ user });
 
   const activeChallenge = challengeId ? CHALLENGES[challengeId] : null;
-  const sessionSeconds = activeChallenge?.seconds || RECORD_SECONDS;
   const activeChallengeName = activeChallenge ? t(activeChallenge.titleKey) : "";
+
+  // Drill config: challenge > standalone drill > default
+  const drillConfig = getDrillConfig(challengeId || drillId || "default");
 
   const pvpSavedRef = useRef(false);
   const resetForNewSessionRef = useRef(null);
@@ -74,7 +77,7 @@ export default function TrainPage() {
     handleTryAgain,
     finishRecording,
   } = useCameraSession({
-    sessionSeconds,
+    drillConfig,
     currentXP,
     resetForNewSession: (...args) => resetForNewSessionRef.current?.(...args),
     ghostBestScoreRef,
@@ -264,7 +267,8 @@ export default function TrainPage() {
             <RecordingHud
               hitCount={hitCount}
               secondsLeft={secondsLeft}
-              totalSeconds={sessionSeconds}
+              totalSeconds={drillConfig.durationSeconds}
+              drillConfig={drillConfig}
               comboCount={comboCount}
               challengeUserId={challengeUserId}
               targetScore={targetScore}
@@ -273,7 +277,6 @@ export default function TrainPage() {
               ghostEnabled={ghostEnabled}
               ghostScore={ghostScore}
               liveFeedback={liveFeedback}
-              lastPunchType={lastPunchType}
               t={t}
             />
           )}
