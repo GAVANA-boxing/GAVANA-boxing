@@ -483,7 +483,6 @@ export default function UserProfilePage() {
         showFighterCard={showFighterCard} setShowFighterCard={setShowFighterCard} pvpStats={pvpStats} bestScore={bestScore} challengeRanks={challengeRanks} userBadges={userBadges} badgeMeta={BADGE_META}
         showWeeklyModal={showWeeklyModal} setShowWeeklyModal={setShowWeeklyModal}
         locale={locale} router={router} t={t}
-        cardShareCopied={cardShareCopied} setCardShareCopied={setCardShareCopied}
       />
 
       {followListView && (
