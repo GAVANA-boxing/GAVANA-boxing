@@ -12,20 +12,29 @@ import { RED, GOLD , redAlpha, pageBg } from "@/lib/tokens";
 function FighterGridCard({ fighter, onClick }) {
   const acc = fighter.accent;
   return (
-    <button type="button" onClick={onClick} style={s.card}>
-      {/* Portrait area — cinematic visual identity */}
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        ...s.card,
+        border: "1px solid rgba(255,255,255,0.08)",
+        borderBottom: `3px solid ${acc}55`,
+        boxShadow: `0 8px 28px rgba(0,0,0,0.5), inset 0 0 0 1px ${acc}12`,
+      }}
+    >
       <FighterPortrait
         fighterId={fighter.id}
         fighter={fighter}
-        height={130}
+        height={155}
         flagSize={46}
         showName
         showLabel
       />
-      {/* Key weapon hint at bottom */}
       <div style={s.cardBottom}>
-        <p style={{ ...s.cardWeapon, color: "rgba(255,255,255,0.38)" }}>
-          <span style={{ color: acc + "cc", marginRight: 4, fontSize: 9 }}>⚡</span>
+        <p style={{ ...s.cardWeapon, color: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center" }}>
+          <svg width="8" height="10" viewBox="0 0 13 16" fill={acc} style={{ marginRight: 5, flexShrink: 0 }}>
+            <path d="M7 0L0 9h6l-1 7 7-9H6L7 0z"/>
+          </svg>
           {fighter.keyWeapon}
         </p>
       </div>

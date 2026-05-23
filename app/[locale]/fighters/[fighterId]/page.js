@@ -14,9 +14,33 @@ import { useAuth } from "@/lib/AuthContext";
 import FighterPortrait from "@/components/FighterPortrait";
 import { RED, GOLD } from "@/lib/tokens";
 import s from "@/components/fighters/fighterStyles";
+import TechniqueLessonCard from "@/components/fighters/TechniqueLessonCard";
+import { FIGHTER_TECHNIQUES } from "@/lib/fighterTechniques";
 
-// ─── Style identity pill icons (cycles by index) ──────────────────────────────
-const PILL_ICONS = ["⚡", "🛡️", "🥊", "💪", "👊", "🎯", "🔥", "⚔️"];
+// ─── Style identity pill icons — SVG line icons cycle by index ────────────────
+const PILL_SVGS = [
+  <svg key="zap" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+  <svg key="shield" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+  <svg key="activity" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
+  <svg key="trending" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>,
+  <svg key="arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
+  <svg key="crosshair" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/></svg>,
+  <svg key="refresh" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>,
+  <svg key="maximize" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>,
+];
+
+// ─── Section SVG icons ────────────────────────────────────────────────────────
+const SI = {
+  target:   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/></svg>,
+  combos:   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+  dna:      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
+  study:    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>,
+  habits:   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>,
+  drills:   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>,
+  warn:     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
+  award:    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>,
+  lessons:  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>,
+};
 
 // ─── Combo step pills ─────────────────────────────────────────────────────────
 function ComboSteps({ steps }) {
@@ -33,7 +57,7 @@ function ComboSteps({ steps }) {
 }
 
 // ─── Tap-to-expand section ────────────────────────────────────────────────────
-function Section({ title, emoji, accent, children, defaultOpen = false }) {
+function Section({ title, icon, accent, children, defaultOpen = false }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div style={{ ...s.section, borderLeftColor: open ? accent : "rgba(255,255,255,0.08)" }}>
@@ -42,8 +66,11 @@ function Section({ title, emoji, accent, children, defaultOpen = false }) {
         onClick={() => setOpen((v) => !v)}
         style={s.sectionBtn}
       >
-        <span style={{ ...s.sectionTitle, color: open ? accent : "#888" }}>
-          {emoji} {title}
+        <span style={{ ...s.sectionTitle, color: open ? accent : "#888", display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ color: open ? accent : "#555", display: "flex", alignItems: "center", flexShrink: 0 }}>
+            {icon}
+          </span>
+          {title}
         </span>
         <svg
           style={{
@@ -140,7 +167,9 @@ export default function FighterDetailPage() {
 
         {/* Key weapon */}
         <div style={s.heroWeapon}>
-          <span style={s.heroWeaponDot}>⚡</span>
+          <svg width="11" height="14" viewBox="0 0 13 16" fill={acc} style={{ flexShrink: 0, opacity: 0.8 }}>
+            <path d="M7 0L0 9h6l-1 7 7-9H6L7 0z"/>
+          </svg>
           <span style={{ ...s.heroWeaponText, color: acc }}>{fighter.keyWeapon}</span>
         </div>
 
@@ -152,7 +181,7 @@ export default function FighterDetailPage() {
       <div style={s.content}>
 
         {/* ── Style Identity ── */}
-        <Section title={t("fighterStyleIdentity")} emoji="🎯" accent={acc} defaultOpen>
+        <Section title={t("fighterStyleIdentity")} icon={SI.target} accent={acc} defaultOpen>
           <div style={s.pillGrid}>
             {styleIdentity.map((item, i) => (
               <span
@@ -164,7 +193,9 @@ export default function FighterDetailPage() {
                   boxShadow: `0 0 0 1px ${acc}10 inset`,
                 }}
               >
-                <span style={{ ...s.pillIcon }}>{PILL_ICONS[i % PILL_ICONS.length]}</span>
+                <span style={{ color: acc, display: "flex", alignItems: "center", lineHeight: 1 }}>
+                  {PILL_SVGS[i % PILL_SVGS.length]}
+                </span>
                 <span style={{ fontSize: 12, color: "#ddd", lineHeight: 1.4 }}>{item}</span>
               </span>
             ))}
@@ -172,7 +203,7 @@ export default function FighterDetailPage() {
         </Section>
 
         {/* ── Signature Combos ── */}
-        <Section title={t("fighterSignatureCombos")} emoji="💥" accent={acc} defaultOpen>
+        <Section title={t("fighterSignatureCombos")} icon={SI.combos} accent={acc} defaultOpen>
           {combos.map((combo, i) => (
             <div key={i} style={s.comboCard} className="fighter-combo-card">
               <p style={{ ...s.comboName, color: acc }}>{combo.name}</p>
@@ -181,8 +212,31 @@ export default function FighterDetailPage() {
           ))}
         </Section>
 
+        {/* ── Technique Lessons ── */}
+        {FIGHTER_TECHNIQUES[fighter.id]?.length > 0 && (
+          <Section title={t("fighterTechniqueLesson")} icon={SI.lessons} accent={acc} defaultOpen>
+            {FIGHTER_TECHNIQUES[fighter.id].map((lesson, i) => (
+              <TechniqueLessonCard
+                key={i}
+                index={i + 1}
+                title={lesson.title}
+                difficulty={lesson.difficulty}
+                teachingBlocks={lesson.teachingBlocks}
+                explanation={lesson.explanation}
+                coachNotes={lesson.coachNotes}
+                drillSteps={lesson.drillSteps}
+                accent={acc}
+                defaultOpen={i === 0}
+                locale={locale}
+                fighterId={fighter.id}
+                router={router}
+              />
+            ))}
+          </Section>
+        )}
+
         {/* ── Movement DNA ── */}
-        <Section title={t("fighterMovementDNA")} emoji="🧬" accent={acc}>
+        <Section title={t("fighterMovementDNA")} icon={SI.dna} accent={acc}>
           <div style={{ ...s.dnaBox, borderColor: acc + "35", background: acc + "0a" }}>
             <div style={s.dnaHeader}>
               <span style={{ ...s.dnaType, color: acc }}>{fighter.movementDNA.type}</span>
@@ -197,7 +251,7 @@ export default function FighterDetailPage() {
         </Section>
 
         {/* ── What to Study ── */}
-        <Section title={t("fighterWhatToStudy")} emoji="📚" accent={acc}>
+        <Section title={t("fighterWhatToStudy")} icon={SI.study} accent={acc}>
           {whatToStudy.map((item, i) => (
             <div key={i} style={s.numRow}>
               <span style={{ ...s.numBadge, background: acc + "22", color: acc }}>{i + 1}</span>
@@ -207,7 +261,7 @@ export default function FighterDetailPage() {
         </Section>
 
         {/* ── Habits to Copy ── */}
-        <Section title={t("fighterHabits")} emoji="🔄" accent={GOLD}>
+        <Section title={t("fighterHabits")} icon={SI.habits} accent={GOLD}>
           {habits.map((item, i) => (
             <div key={i} style={s.dotRow}>
               <span style={{ ...s.dotMark, background: GOLD }} />
@@ -217,7 +271,7 @@ export default function FighterDetailPage() {
         </Section>
 
         {/* ── Drills ── */}
-        <Section title={t("fighterDrills")} emoji="🏋️" accent="#10B981">
+        <Section title={t("fighterDrills")} icon={SI.drills} accent="#10B981">
           {drills.map((drill, i) => (
             <div key={i} style={s.drillRow} className="fighter-drill-row">
               <span style={s.drillNum}>{i + 1}</span>
@@ -227,7 +281,7 @@ export default function FighterDetailPage() {
         </Section>
 
         {/* ── Weaknesses ── */}
-        <Section title={t("fighterWeaknesses")} emoji="⚠️" accent="#F87171">
+        <Section title={t("fighterWeaknesses")} icon={SI.warn} accent="#F87171">
           <div style={{
             background: "rgba(248,113,113,0.04)",
             backgroundImage: "repeating-linear-gradient(-45deg, transparent, transparent 5px, rgba(248,113,113,0.03) 5px, rgba(248,113,113,0.03) 10px)",
@@ -249,7 +303,7 @@ export default function FighterDetailPage() {
         </Section>
 
         {/* ── Famous Fights ── */}
-        <Section title={t("fighterFamousFights")} emoji="🎬" accent={GOLD}>
+        <Section title={t("fighterFamousFights")} icon={SI.award} accent={GOLD}>
           {fights.map((f, i) => (
             <div key={i} style={s.fightRow}>
               <div style={s.fightMeta}>
