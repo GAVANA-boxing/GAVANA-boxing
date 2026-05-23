@@ -223,6 +223,8 @@ export default function FighterDetailPage() {
                 difficulty={lesson.difficulty}
                 teachingBlocks={lesson.teachingBlocks}
                 explanation={lesson.explanation}
+                bodyCue={lesson.bodyCue}
+                commonMistake={lesson.commonMistake}
                 coachNotes={lesson.coachNotes}
                 drillSteps={lesson.drillSteps}
                 accent={acc}

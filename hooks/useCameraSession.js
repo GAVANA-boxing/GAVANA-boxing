@@ -206,8 +206,8 @@ export function useCameraSession({
     } catch { /* fail silently */ }
   }, []);
 
-  // Called by punch detector when real motion punch is detected
-  const onPunch = useCallback(({ type, speed }) => {
+  // Called by punch detector when real motion spike is detected
+  const onPunch = useCallback(({ speed }) => {
     if (!isRecordingRef.current) return;
 
     hitCountRef.current += 1;
@@ -216,19 +216,13 @@ export function useCameraSession({
     setLiveScore(newScore);
     setComboCount((c) => c + 1);
     setHitCount((c) => c + 1);
-    setLastPunchType(type);
     setIsFlashing(true);
     window.setTimeout(() => setIsFlashing(false), 130);
     playPunchSound(speed);
     if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(25);
 
-    const FEEDBACK_BY_TYPE = {
-      jab:   ["Snap it! ✓", "Double jab!", "Jab faster!", "Clean jab!", "Speed! ⚡"],
-      cross:  ["Power! 💥", "Drive through!", "Rotate! 💪", "Nice cross!", "Hip into it!"],
-    };
-    const FEEDBACK_GENERIC = ["Guard up! 🛡", "Keep going!", "Stay tight!", "Breathe!", "Combo! 🔥"];
-    const pool = FEEDBACK_BY_TYPE[type] || FEEDBACK_GENERIC;
-    const text = pool[Math.floor(Math.random() * pool.length)];
+    const FEEDBACK = ["Guard up! 🛡", "Keep going!", "Stay tight!", "Breathe!", "Move! 👊", "Hands up!", "Combo! 🔥", "Drive through!", "Rotate! 💪", "Speed! ⚡"];
+    const text = FEEDBACK[Math.floor(Math.random() * FEEDBACK.length)];
     const id = Date.now();
     setLiveFeedback({ text, id });
     window.setTimeout(() => setLiveFeedback((prev) => (prev?.id === id ? null : prev)), 1200);

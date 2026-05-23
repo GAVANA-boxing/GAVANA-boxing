@@ -5,11 +5,11 @@ import { useCallback, useEffect, useRef } from "react";
 // Off-screen canvas resolution — small enough to be fast on mobile
 const W = 160;
 const H = 120;
-const FRAME_MS = 80;          // ~12fps analysis
-const MOTION_THRESHOLD = 0.05; // 5% of sampled pixels must change
-const SPIKE_MULT = 1.8;        // spike must be 1.8× rolling avg to count
-const COOLDOWN_MS = 380;       // min ms between punches
-const HISTORY_SIZE = 4;
+const FRAME_MS = 80;           // ~12fps analysis
+const MOTION_THRESHOLD = 0.13; // 13% of pixels must change (was 0.05 — too sensitive to body sway)
+const SPIKE_MULT = 2.3;        // spike must be 2.3× rolling avg (was 1.8 — too many false positives)
+const COOLDOWN_MS = 550;       // min ms between detected punches (was 380)
+const HISTORY_SIZE = 6;        // longer rolling window for stable baseline (was 4)
 
 // Detect punches by analyzing motion spikes in camera frames.
 // Uses pure Canvas pixel diff — no ML libraries, instant startup.
@@ -54,8 +54,7 @@ export function usePunchDetector({ videoRef, isActive, onPunch }) {
 
       if (prevDataRef.current) {
         const prev = prevDataRef.current;
-        let changed = 0, leftChanged = 0, rightChanged = 0, sampled = 0;
-        const midX = W / 2;
+        let changed = 0, sampled = 0;
 
         // Sample every 3rd pixel for performance
         for (let y = 0; y < H; y += 3) {
@@ -63,10 +62,7 @@ export function usePunchDetector({ videoRef, isActive, onPunch }) {
             const i = (y * W + x) * 4;
             const g1 = (prev[i] * 77 + prev[i+1] * 150 + prev[i+2] * 29) >> 8;
             const g2 = (curr[i] * 77 + curr[i+1] * 150 + curr[i+2] * 29) >> 8;
-            if (Math.abs(g1 - g2) > 22) {
-              changed++;
-              if (x < midX) leftChanged++; else rightChanged++;
-            }
+            if (Math.abs(g1 - g2) > 22) changed++;
             sampled++;
           }
         }
@@ -85,10 +81,8 @@ export function usePunchDetector({ videoRef, isActive, onPunch }) {
           now - lastPunchRef.current > COOLDOWN_MS
         ) {
           lastPunchRef.current = now;
-          // Camera mirrors: left side of frame = user's right hand = cross
-          const type = leftChanged > rightChanged ? "cross" : "jab";
           const speed = Math.min(1, ratio / (MOTION_THRESHOLD * 2.5));
-          stableOnPunch.current({ type, speed, intensity: ratio });
+          stableOnPunch.current({ speed, intensity: ratio });
         }
       }
 

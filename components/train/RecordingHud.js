@@ -15,7 +15,6 @@ export default function RecordingHud({
   ghostEnabled,
   ghostScore,
   liveFeedback,
-  lastPunchType,
   t,
 }) {
   return (
@@ -28,27 +27,19 @@ export default function RecordingHud({
         <strong style={{ marginLeft: "auto" }}>{Math.ceil(secondsLeft)}s</strong>
       </div>
 
-      {/* Hit progress counter + punch type badge */}
+      {/* Hit counter — neutral until first hit lands */}
       <div style={styles.hitCounter}>
-        <span style={styles.hitCountNum}>{hitCount}</span>
-        <span style={styles.hitCountSep}>/</span>
-        <span style={styles.hitCountTarget}>{Math.round(totalSeconds * 1.2)}</span>
-        <span style={styles.hitCountLabel}>hits</span>
-        {lastPunchType && (
-          <span key={hitCount} style={{
-            marginLeft: 10,
-            fontSize: 11,
-            fontWeight: 900,
-            color: lastPunchType === "jab" ? "#60A5FA" : "#f87171",
-            background: lastPunchType === "jab" ? "rgba(96,165,250,0.12)" : "rgba(248,113,113,0.12)",
-            border: `1px solid ${lastPunchType === "jab" ? "rgba(96,165,250,0.3)" : "rgba(248,113,113,0.3)"}`,
-            borderRadius: 6,
-            padding: "2px 7px",
-            letterSpacing: "0.05em",
-            animation: "punchBadgePop 0.25s ease",
-          }}>
-            {lastPunchType === "jab" ? "JAB" : "CROSS"}
+        {hitCount === 0 ? (
+          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", letterSpacing: 0.3 }}>
+            AI watching movement
           </span>
+        ) : (
+          <>
+            <span style={styles.hitCountNum}>{hitCount}</span>
+            <span style={styles.hitCountSep}>/</span>
+            <span style={styles.hitCountTarget}>{Math.round(totalSeconds * 1.2)}</span>
+            <span style={styles.hitCountLabel}>hits</span>
+          </>
         )}
       </div>
 
