@@ -5,9 +5,11 @@ import { calculateChallengeXP, getRankProgress } from "@/lib/xp";
 import { calculateTrainingScore, computeScoreBreakdown } from "@/lib/trainHelpers";
 import { getChallengeRank } from "@/lib/utils";
 import { usePunchDetector } from "@/hooks/usePunchDetector";
+import { useMovementAnalyzer } from "@/hooks/useMovementAnalyzer";
+import { DEFAULT_DRILL } from "@/lib/drillConfig";
 
 export function useCameraSession({
-  sessionSeconds,
+  drillConfig = DEFAULT_DRILL,
   currentXP,
   resetForNewSession,
   ghostBestScoreRef,
@@ -16,6 +18,9 @@ export function useCameraSession({
   pvpSavedRef,
   t,
 }) {
+  const sessionSeconds = drillConfig.durationSeconds;
+  const targetMovements = drillConfig.targetMovements ?? null;
+
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const recorderRef = useRef(null);
@@ -38,7 +43,6 @@ export function useCameraSession({
   const [showGo, setShowGo] = useState(false);
   const [lastPunchType, setLastPunchType] = useState(null);
   const isRecordingRef = useRef(false);
-  const hitTimerRef = useRef(null);
   const hitCountRef = useRef(0);
   const liveScoreRef = useRef(0);
   const audioCtxRef = useRef(null);
@@ -47,6 +51,17 @@ export function useCameraSession({
   const [ghostEnabled, setGhostEnabled] = useState(true);
   const ghostIntervalRef = useRef(null);
 
+  const [movementEvents, setMovementEvents] = useState([]);
+  const [sessionStartTime, setSessionStartTime] = useState(null);
+  const movementEventIdRef = useRef(0);
+
+  // Wall-clock timer refs — completely independent of React renders
+  const sessionEndTimeRef = useRef(null);
+  const timerIntervalRef = useRef(null);
+  // Keep finishRecording accessible inside the interval without re-creating it
+  const finishRecordingRef = useRef(null);
+
+  // ── Camera setup ────────────────────────────────────────────────────────
   useEffect(() => {
     let active = true;
     setCameraState("checking");
@@ -56,27 +71,19 @@ export function useCameraSession({
         if (active) setCameraState("unsupported");
         return;
       }
-
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: "user" },
           audio: false,
         });
-
         if (!active) {
           stream.getTracks().forEach((track) => track.stop());
           return;
         }
-
         streamRef.current = stream;
         setCameraState("ready");
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      } catch (err) {
-        if (err.name === "NotFoundError") {
-        } else {
-        }
+        if (videoRef.current) videoRef.current.srcObject = stream;
+      } catch {
         if (active) setCameraState("denied");
       }
     }
@@ -85,9 +92,7 @@ export function useCameraSession({
 
     return () => {
       active = false;
-      if (recorderRef.current?.state === "recording") {
-        recorderRef.current.stop();
-      }
+      if (recorderRef.current?.state === "recording") recorderRef.current.stop();
       streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     };
@@ -99,17 +104,21 @@ export function useCameraSession({
     }
   }, [cameraState]);
 
+  // ── Finish recording ─────────────────────────────────────────────────────
   const finishRecording = useCallback(() => {
     if (stopHandledRef.current) return;
     stopHandledRef.current = true;
 
-    if (recorderRef.current?.state === "recording") {
-      recorderRef.current.stop();
-    }
+    if (recorderRef.current?.state === "recording") recorderRef.current.stop();
 
     isRecordingRef.current = false;
+
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
     if (ghostIntervalRef.current) {
-      window.clearInterval(ghostIntervalRef.current);
+      clearInterval(ghostIntervalRef.current);
       ghostIntervalRef.current = null;
     }
 
@@ -117,7 +126,7 @@ export function useCameraSession({
     setPhase("result");
     const finalScore = liveScoreRef.current;
     const xpGained = calculateChallengeXP(finalScore, getChallengeRank(finalScore));
-    const breakdown = computeScoreBreakdown(finalScore, hitCountRef.current, sessionSeconds);
+    const breakdown = computeScoreBreakdown(finalScore, hitCountRef.current, sessionSeconds, targetMovements);
     setResult({
       score: finalScore,
       xpGained,
@@ -126,16 +135,18 @@ export function useCameraSession({
       breakdown,
     });
     resetForNewSession();
-  }, [currentXP, resetForNewSession, sessionSeconds]);
+  }, [currentXP, resetForNewSession, sessionSeconds, targetMovements]);
 
+  // Always keep the ref current so the wall-clock interval can call it
+  useEffect(() => { finishRecordingRef.current = finishRecording; }, [finishRecording]);
+
+  // ── Countdown ────────────────────────────────────────────────────────────
   useEffect(() => {
     if (phase !== "countdown" || countdown === null) return undefined;
 
     if (countdown <= 0) {
       setShowGo(true);
-      if (typeof navigator !== "undefined" && navigator.vibrate) {
-        navigator.vibrate([60, 30, 60]);
-      }
+      if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate([60, 30, 60]);
       setIsFlashing(true);
       const flashTimer = window.setTimeout(() => setIsFlashing(false), 300);
 
@@ -152,7 +163,7 @@ export function useCameraSession({
             };
             recorder.start();
             recorderRef.current = recorder;
-          } catch (err) {
+          } catch {
             setError(t("trainRecordError"));
           }
         }
@@ -167,24 +178,45 @@ export function useCameraSession({
       };
     }
 
-    const timer = window.setTimeout(() => setCountdown((value) => value - 1), 1000);
+    const timer = window.setTimeout(() => setCountdown((v) => v - 1), 1000);
     return () => window.clearTimeout(timer);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, countdown, sessionSeconds]); // t omitted — recreated every render, locale covers it
+  }, [phase, countdown, sessionSeconds]);
 
+  // ── Wall-clock session timer ─────────────────────────────────────────────
+  // Uses Date.now() as source of truth — unaffected by React renders or
+  // punch detection state updates. Checks every 250ms for smooth display.
   useEffect(() => {
-    if (phase !== "recording") return undefined;
-
-    if (secondsLeft <= 0) {
-      finishRecording();
-      return undefined;
+    if (phase !== "recording") {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+      return;
     }
 
-    const timer = window.setTimeout(() => setSecondsLeft((value) => value - 1), 1000);
-    return () => window.clearTimeout(timer);
-  }, [phase, secondsLeft, finishRecording]);
+    sessionEndTimeRef.current = Date.now() + sessionSeconds * 1000;
 
-  // Play a short impact sound when a punch is detected
+    timerIntervalRef.current = setInterval(() => {
+      const msRemaining = sessionEndTimeRef.current - Date.now();
+      const secsRemaining = Math.max(0, Math.ceil(msRemaining / 1000));
+      setSecondsLeft(secsRemaining);
+      if (msRemaining <= 0) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+        finishRecordingRef.current?.();
+      }
+    }, 250);
+
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+    };
+  }, [phase, sessionSeconds]); // no secondsLeft dep, no finishRecording dep
+
+  // ── Punch sound ──────────────────────────────────────────────────────────
   const playPunchSound = useCallback((speed = 0.5) => {
     try {
       const ctx = audioCtxRef.current;
@@ -196,7 +228,7 @@ export function useCameraSession({
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.type = "sine";
-      const freq = 140 + speed * 80; // faster punch = higher pitch
+      const freq = 140 + speed * 80;
       osc.frequency.setValueAtTime(freq, now);
       osc.frequency.exponentialRampToValueAtTime(50, now + 0.08);
       gain.gain.setValueAtTime(0.3 + speed * 0.15, now);
@@ -206,12 +238,12 @@ export function useCameraSession({
     } catch { /* fail silently */ }
   }, []);
 
-  // Called by punch detector when real motion spike is detected
+  // ── Punch detection callback ─────────────────────────────────────────────
   const onPunch = useCallback(({ speed }) => {
     if (!isRecordingRef.current) return;
 
     hitCountRef.current += 1;
-    const newScore = calculateTrainingScore(hitCountRef.current, sessionSeconds);
+    const newScore = calculateTrainingScore(hitCountRef.current, sessionSeconds, targetMovements);
     liveScoreRef.current = newScore;
     setLiveScore(newScore);
     setComboCount((c) => c + 1);
@@ -226,15 +258,32 @@ export function useCameraSession({
     const id = Date.now();
     setLiveFeedback({ text, id });
     window.setTimeout(() => setLiveFeedback((prev) => (prev?.id === id ? null : prev)), 1200);
-  }, [sessionSeconds, playPunchSound]);
+  }, [sessionSeconds, targetMovements, playPunchSound]);
 
-  // Wire up real punch detection during recording
   usePunchDetector({
     videoRef,
     isActive: phase === "recording",
     onPunch,
   });
 
+  const onMovementEvent = useCallback((events) => {
+    if (!isRecordingRef.current) return;
+    setMovementEvents((prev) => [
+      ...prev,
+      ...events.map((ev) => ({
+        ...ev,
+        id: `${ev.type}-${++movementEventIdRef.current}`,
+      })),
+    ]);
+  }, []);
+
+  useMovementAnalyzer({
+    videoRef,
+    isActive: phase === "recording",
+    onEvent: onMovementEvent,
+  });
+
+  // ── Recording phase init ─────────────────────────────────────────────────
   useEffect(() => {
     if (phase !== "recording") {
       isRecordingRef.current = false;
@@ -249,6 +298,9 @@ export function useCameraSession({
     setLiveScore(0);
     setGhostScore(0);
     setLastPunchType(null);
+    setMovementEvents([]);
+    movementEventIdRef.current = 0;
+    setSessionStartTime(Date.now());
 
     if (ghostBestScoreRef.current !== null && ghostEnabled) {
       const ghostTarget = ghostBestScoreRef.current;
@@ -256,9 +308,9 @@ export function useCameraSession({
       const steps = (sessionSeconds * 1000) / intervalMs;
       const increment = ghostTarget / steps;
       let ghostProgress = 0;
-      ghostIntervalRef.current = window.setInterval(() => {
+      ghostIntervalRef.current = setInterval(() => {
         if (!isRecordingRef.current) {
-          window.clearInterval(ghostIntervalRef.current);
+          clearInterval(ghostIntervalRef.current);
           return;
         }
         ghostProgress = Math.min(ghostTarget, ghostProgress + increment);
@@ -270,12 +322,13 @@ export function useCameraSession({
     return () => {
       isRecordingRef.current = false;
       if (ghostIntervalRef.current) {
-        window.clearInterval(ghostIntervalRef.current);
+        clearInterval(ghostIntervalRef.current);
         ghostIntervalRef.current = null;
       }
     };
   }, [phase, sessionSeconds, ghostBestScoreRef, ghostEnabled]);
 
+  // ── Start / Try again ────────────────────────────────────────────────────
   const handleStart = () => {
     try {
       if (typeof window !== "undefined") {
@@ -288,9 +341,7 @@ export function useCameraSession({
           }
         }
       }
-    } catch (e) {
-      // Fail silently
-    }
+    } catch { /* fail silently */ }
     setError("");
     setResult(null);
     resetForNewSession();
@@ -352,6 +403,8 @@ export function useCameraSession({
     lastPunchType,
     ghostScore,
     ghostEnabled, setGhostEnabled,
+    movementEvents,
+    sessionStartTime,
     handleStart,
     handleTryAgain,
     finishRecording,
