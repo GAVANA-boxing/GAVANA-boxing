@@ -265,6 +265,9 @@ export default function CombatMemoryPanel({ sessions = [], tendency, trends, loa
           const isLatest = i === 0;
           const drill = s.drillId && s.drillId !== "default" ? s.drillId.replace(/-/g, " ") : null;
           const dur = s.durationSeconds ? `${s.durationSeconds}s` : null;
+          const sessionLabel = (s.movementCounts || s.sessionIdentity)
+            ? deriveArchiveLabel(s)
+            : "Building profile";
 
           return (
             <div key={s.id || i} style={{
@@ -296,12 +299,14 @@ export default function CombatMemoryPanel({ sessions = [], tendency, trends, loa
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 3 }}>
                     <span style={{
                       fontSize: 11, fontWeight: 900,
-                      color: whiteAlpha(isLatest ? 0.82 : 0.65),
+                      color: sessionLabel === "Building profile"
+                        ? whiteAlpha(0.25)
+                        : whiteAlpha(isLatest ? 0.82 : 0.65),
                       letterSpacing: 0.3, textTransform: "uppercase",
                       overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                       maxWidth: "calc(100% - 48px)",
                     }}>
-                      {deriveArchiveLabel(s)}
+                      {sessionLabel}
                     </span>
                     <span style={{ fontSize: 9, color: whiteAlpha(0.22), fontWeight: 700, flexShrink: 0, fontFamily: "monospace", marginLeft: 8 }}>
                       {formatSessionAge(s.createdAt?.seconds)}

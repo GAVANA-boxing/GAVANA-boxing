@@ -6,6 +6,7 @@ import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import RankBadge from "@/components/RankBadge";
 import { useCombatMemory } from "@/hooks/useCombatMemory";
 import { computeMovementProfile } from "@/lib/combatMemory";
+import { deriveCombatIdentity } from "@/lib/combatIdentity";
 
 // ── Movement radar SVG ────────────────────────────────────────────────────────
 function MovementRadar({ profile, color, size = 120 }) {
@@ -133,8 +134,9 @@ export default function FighterShareCard({
   const arch        = profileUser.fighterArchetype ? ARCHETYPE_DISPLAY[profileUser.fighterArchetype] : null;
   const accentColor = arch?.color || fighterRank?.color || RED;
 
-  const { sessions, tendency, loading } = useCombatMemory({ user: profileUser, maxSessions: 20 });
-  const profile     = computeMovementProfile(sessions);
+  const { sessions, loading } = useCombatMemory({ user: profileUser, maxSessions: 20 });
+  const profile   = computeMovementProfile(sessions);
+  const identity  = profile ? deriveCombatIdentity(profile, sessions) : null;
   const totalSessions = sessions.length;
   const avgScore  = totalSessions ? (sessions.reduce((a, s) => a + (s.score || 0), 0) / totalSessions).toFixed(1) : "—";
   const bestScore = totalSessions ? Math.max(...sessions.map((s) => s.score || 0)).toFixed(1) : "—";
@@ -249,15 +251,22 @@ export default function FighterShareCard({
             </div>
           </div>
 
-          {/* Right (desktop only): combat style */}
-          {isDesktop && tendency && (
+          {/* Right (desktop only): combat identity */}
+          {isDesktop && identity && (
             <div style={{ flex: 1, minWidth: 0, padding: "14px 16px", borderRadius: RADIUS.lg, background: `${accentColor}0a`, border: `1px solid ${accentColor}1c`, position: "relative", overflow: "hidden" }}>
               <div style={{ position: "absolute", top: -20, right: -20, width: 80, height: 80, background: `radial-gradient(circle, ${accentColor}18 0%, transparent 70%)`, pointerEvents: "none" }} />
-              <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: accentColor, textTransform: "uppercase", marginBottom: 5 }}>Combat Style</div>
-              <div style={{ fontSize: 16, fontWeight: 1000, color: "#fff", letterSpacing: "-0.015em", fontFamily: "var(--font-display, 'Anton', sans-serif)", wordBreak: "break-word", lineHeight: 1.2, marginBottom: 4 }}>
-                {tendency.title}
+              <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: accentColor, textTransform: "uppercase", marginBottom: 5 }}>Movement Identity</div>
+              <div style={{ fontSize: 16, fontWeight: 1000, color: "#fff", letterSpacing: "-0.015em", fontFamily: "var(--font-display, 'Anton', sans-serif)", wordBreak: "break-word", lineHeight: 1.2, marginBottom: 6 }}>
+                {identity.primary}
               </div>
-              <div style={{ fontSize: 11, color: whiteAlpha(0.32), fontWeight: 700 }}>{tendency.sub}</div>
+              <div style={{ fontSize: 9, color: accentColor, fontWeight: 800, marginBottom: 6, fontFamily: "monospace" }}>
+                {Math.round(identity.confidence * 100)}% signal confidence
+              </div>
+              {identity.secondary.slice(0, 2).map((trait, i) => (
+                <span key={i} style={{ display: "inline-block", fontSize: 8.5, fontWeight: 800, color: whiteAlpha(0.38), background: whiteAlpha(0.05), border: `1px solid ${whiteAlpha(0.08)}`, borderRadius: RADIUS.full, padding: "2px 8px", marginRight: 4, marginBottom: 4 }}>
+                  {trait}
+                </span>
+              ))}
             </div>
           )}
         </div>
@@ -265,20 +274,29 @@ export default function FighterShareCard({
         {/* ── Divider ── */}
         <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${accentColor}30, transparent)`, marginBottom: isDesktop ? 20 : 14 }} />
 
-        {/* ── Combat style — mobile only ── */}
-        {!isDesktop && tendency && (
+        {/* ── Movement identity — mobile only ── */}
+        {!isDesktop && identity && (
           <div style={{ marginBottom: 14, padding: "12px 14px", borderRadius: RADIUS.lg, background: `${accentColor}0a`, border: `1px solid ${accentColor}1c`, position: "relative", overflow: "hidden" }}>
             <div style={{ position: "absolute", top: 0, right: 0, width: 60, height: 60, background: `radial-gradient(circle, ${accentColor}12 0%, transparent 70%)`, pointerEvents: "none" }} />
-            <div style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 2, color: accentColor, textTransform: "uppercase", marginBottom: 4 }}>Combat Style</div>
-            <div style={{ fontSize: 14, fontWeight: 1000, color: "#fff", letterSpacing: "-0.015em", fontFamily: "var(--font-display, 'Anton', sans-serif)", wordBreak: "break-word", lineHeight: 1.2, marginBottom: 2 }}>
-              {tendency.title}
+            <div style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 2, color: accentColor, textTransform: "uppercase", marginBottom: 4 }}>Movement Identity</div>
+            <div style={{ fontSize: 14, fontWeight: 1000, color: "#fff", letterSpacing: "-0.015em", fontFamily: "var(--font-display, 'Anton', sans-serif)", wordBreak: "break-word", lineHeight: 1.2, marginBottom: 4 }}>
+              {identity.primary}
             </div>
-            <div style={{ fontSize: 9.5, color: whiteAlpha(0.32), fontWeight: 700 }}>{tendency.sub}</div>
+            <div style={{ fontSize: 8.5, color: accentColor, fontWeight: 800, marginBottom: 5, fontFamily: "monospace" }}>
+              {Math.round(identity.confidence * 100)}% signal confidence
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+              {identity.secondary.slice(0, 2).map((trait, i) => (
+                <span key={i} style={{ fontSize: 8, fontWeight: 800, color: whiteAlpha(0.35), background: whiteAlpha(0.05), border: `1px solid ${whiteAlpha(0.07)}`, borderRadius: RADIUS.full, padding: "2px 7px" }}>
+                  {trait}
+                </span>
+              ))}
+            </div>
           </div>
         )}
-        {!isDesktop && !loading && !tendency && (
+        {!isDesktop && !loading && !identity && (
           <div style={{ marginBottom: 14, padding: "10px 14px", borderRadius: RADIUS.lg, background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.05)}` }}>
-            <div style={{ fontSize: 9.5, color: whiteAlpha(0.25), fontWeight: 700 }}>Train more sessions to unlock combat style</div>
+            <div style={{ fontSize: 9.5, color: whiteAlpha(0.25), fontWeight: 700 }}>Train more sessions to build your movement identity</div>
           </div>
         )}
 
