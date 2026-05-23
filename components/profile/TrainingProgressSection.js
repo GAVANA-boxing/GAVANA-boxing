@@ -1,6 +1,7 @@
 "use client";
 
-import { GOLD, RED, redAlpha, goldAlpha, RADIUS, blackAlpha} from "@/lib/tokens";
+import { useRouter } from "next/navigation";
+import { GOLD, RED, redAlpha, goldAlpha, RADIUS, blackAlpha, whiteAlpha } from "@/lib/tokens";
 import { calculateSessionXP } from "@/lib/xp";
 import { getTimestampMs, formatScore } from "@/lib/utils";
 
@@ -27,6 +28,7 @@ export default function TrainingProgressSection({
   onGoToDashboard,
   onGoToReels,
 }) {
+  const router = useRouter();
   const scores = feedbackScores;
   const best = progressStats.bestScore ?? 0;
   const avg = progressStats.averageScore ?? 0;
@@ -197,6 +199,40 @@ export default function TrainingProgressSection({
             );
           })}
         </div>
+      )}
+
+      {/* ── Fighter Intelligence entry ─────────────────────────────── */}
+      {isOwnProfile && (
+        <button
+          type="button"
+          onClick={() => router.push(`/${locale}/fighter-profile`)}
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            width: "100%", marginTop: 10,
+            padding: "14px 16px",
+            background: "rgba(255,255,255,0.022)",
+            border: `1px solid ${whiteAlpha(0.07)}`,
+            borderLeft: `3px solid ${GOLD}`,
+            borderRadius: "3px 16px 16px 3px",
+            cursor: "pointer", textAlign: "left",
+            boxSizing: "border-box",
+          }}
+        >
+          <div>
+            <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 2.5, color: goldAlpha(0.6), textTransform: "uppercase", marginBottom: 4 }}>
+              Fighter Intelligence
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", marginBottom: 2 }}>
+              Movement Profile & Trends
+            </div>
+            <div style={{ fontSize: 11, color: whiteAlpha(0.35), fontWeight: 700 }}>
+              Session archive · Week comparison · Combat style
+            </div>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={goldAlpha(0.5)} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginLeft: 12 }}>
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </button>
       )}
     </section>
   );
