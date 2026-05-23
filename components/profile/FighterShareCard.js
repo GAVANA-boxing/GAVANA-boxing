@@ -140,10 +140,8 @@ const SHARE_MSG = {
 export default function FighterShareCard({
   profileUser, fighterRank, xp, rankProgress, trainingSessions = [], locale, t, onClose,
 }) {
-  const [avatarSrc, setAvatarSrc]         = useState(null);
-  const [avatarError, setAvatarError]     = useState(false);
-  const [isDesktop, setIsDesktop]         = useState(false);
-  const [shareState, setShareState]       = useState(null);
+  const [isDesktop, setIsDesktop]           = useState(false);
+  const [shareState, setShareState]         = useState(null);
   const [previewDataUrl, setPreviewDataUrl] = useState(null);
   const cardRef = useRef(null);
 
@@ -154,24 +152,6 @@ export default function FighterShareCard({
     mq.addEventListener("change", h);
     return () => mq.removeEventListener("change", h);
   }, []);
-
-  // Pre-fetch avatar as data URL — avoids CORS issues with html2canvas
-  useEffect(() => {
-    const url = profileUser?.photoURL;
-    if (!url) return;
-    let cancelled = false;
-    fetch(url)
-      .then((r) => r.blob())
-      .then((blob) => new Promise((res, rej) => {
-        const reader = new FileReader();
-        reader.onload = (e) => res(e.target.result);
-        reader.onerror = rej;
-        reader.readAsDataURL(blob);
-      }))
-      .then((dataUrl) => { if (!cancelled) setAvatarSrc(dataUrl); })
-      .catch(() => { if (!cancelled) setAvatarError(true); });
-    return () => { cancelled = true; };
-  }, [profileUser?.photoURL]);
 
   // ── Combat identity (from combat memory sessions) ────────────────────────
   const { sessions } = useCombatMemory({ user: profileUser, maxSessions: 30 });
@@ -204,8 +184,14 @@ export default function FighterShareCard({
   const captureCard = useCallback(async () => {
     const el = cardRef.current;
     if (!el) throw new Error("no ref");
+
+    // Swap cross-origin avatar img → initial letter div to prevent canvas taint
+    const avatarImg = el.querySelector("[data-capture-hide]");
+    const avatarFallback = el.querySelector("[data-capture-show]");
+    if (avatarImg) avatarImg.style.display = "none";
+    if (avatarFallback) avatarFallback.style.display = "flex";
+
     const html2canvas = (await import("html2canvas")).default;
-    // Temporarily flatten box-shadow (can cause capture artifacts on some browsers)
     const prev = { shadow: el.style.boxShadow, overflow: el.style.overflow };
     el.style.boxShadow = "none";
     el.style.overflow = "hidden";
@@ -213,7 +199,7 @@ export default function FighterShareCard({
       return await html2canvas(el, {
         scale: 2,
         backgroundColor: "#0a0a0b",
-        useCORS: true,
+        useCORS: false,
         logging: false,
         allowTaint: false,
         removeContainer: true,
@@ -221,6 +207,8 @@ export default function FighterShareCard({
     } finally {
       el.style.boxShadow = prev.shadow;
       el.style.overflow = prev.overflow;
+      if (avatarImg) avatarImg.style.display = "";
+      if (avatarFallback) avatarFallback.style.display = avatarImg ? "none" : "flex";
     }
   }, []);
 
@@ -390,14 +378,13 @@ export default function FighterShareCard({
                   width: avatarSize, height: avatarSize, borderRadius: "50%",
                   overflow: "hidden", border: `2px solid rgba(176,24,16,0.4)`, background: "#111",
                 }}>
-                  {avatarSrc && !avatarError
-                    ? <img src={avatarSrc} alt="" width={avatarSize} height={avatarSize}
-                        style={{ objectFit: "cover", width: "100%", height: "100%" }}
-                        onError={() => setAvatarError(true)} />
-                    : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(176,24,16,0.12)", fontSize: avatarSize * 0.36, fontWeight: 900, color: "rgba(215,95,85,0.8)" }}>
-                        {avatarInitial}
-                      </div>
-                  }
+                  {profileUser.photoURL
+                    ? <img data-capture-hide src={profileUser.photoURL} alt="" width={avatarSize} height={avatarSize}
+                        style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+                    : null}
+                  <div data-capture-show style={{ display: profileUser.photoURL ? "none" : "flex", width: "100%", height: "100%", alignItems: "center", justifyContent: "center", background: "rgba(176,24,16,0.12)", fontSize: avatarSize * 0.36, fontWeight: 900, color: "rgba(215,95,85,0.8)" }}>
+                    {avatarInitial}
+                  </div>
                 </div>
                 <div style={{ position: "absolute", bottom: -3, right: -3, width: 22, height: 22, borderRadius: "50%", background: "#0c0c0e", border: `1px solid ${CSTEEL}`, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2 }}>
                   <RankBadge rank={fighterRank} size={13} glowEnabled={false} />
