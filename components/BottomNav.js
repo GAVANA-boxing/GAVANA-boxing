@@ -108,13 +108,13 @@ const OS_ICONS = {
 };
 
 const COMBAT_OS_ITEMS = [
-  { key: "coach",      labelEn: "AI Coach",   labelMn: "AI Дасгалжуулагч", path: "/coach" },
-  { key: "sparring",   labelEn: "Sparring",   labelMn: "Спарринг",          path: "/sparring" },
-  { key: "fighters",   labelEn: "Fighters",   labelMn: "Тамирчид",          path: "/fighters" },
-  { key: "gyms",       labelEn: "Gyms",       labelMn: "Заалнууд",          path: "/gyms" },
-  { key: "challenges", labelEn: "Challenges", labelMn: "Даалгаврууд",       path: "/challenges" },
-  { key: "inbox",      labelEn: "Inbox",      labelMn: "Мессэж",            path: "/inbox" },
-  { key: "upload",     labelEn: "Upload",     labelMn: "Видео оруулах",     path: "/upload" },
+  { key: "coach",      labelEn: "AI Coach",   labelMn: "AI Дасгалжуулагч", labelKo: "AI 코치",   path: "/coach" },
+  { key: "sparring",   labelEn: "Sparring",   labelMn: "Спарринг",          labelKo: "스파링",     path: "/sparring" },
+  { key: "fighters",   labelEn: "Fighters",   labelMn: "Тамирчид",          labelKo: "파이터",     path: "/fighters" },
+  { key: "gyms",       labelEn: "Gyms",       labelMn: "Заалнууд",          labelKo: "체육관",     path: "/gyms" },
+  { key: "challenges", labelEn: "Challenges", labelMn: "Даалгаврууд",       labelKo: "챌린지",     path: "/challenges" },
+  { key: "inbox",      labelEn: "Inbox",      labelMn: "Мессэж",            labelKo: "메시지",     path: "/inbox" },
+  { key: "upload",     labelEn: "Upload",     labelMn: "Видео оруулах",     labelKo: "업로드",     path: "/upload" },
 ];
 
 function CombatOSSheet({ onClose, router, locale }) {
@@ -131,20 +131,20 @@ function CombatOSSheet({ onClose, router, locale }) {
       <div
         style={{
           width: "min(100%, 480px)",
-          borderRadius: "24px 24px 0 0",
+          borderRadius: "20px 20px 0 0",
           background: "linear-gradient(180deg, #161618 0%, #0f0f10 100%)",
           border: "1px solid rgba(255,255,255,0.09)",
           borderBottom: "none",
-          boxShadow: `0 -24px 60px ${blackAlpha(0.55)}`,
-          padding: `16px 20px calc(24px + env(safe-area-inset-bottom))`,
+          boxShadow: `0 -20px 50px ${blackAlpha(0.55)}`,
+          padding: `12px 16px calc(20px + env(safe-area-inset-bottom))`,
         }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Handle */}
-        <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.16)", margin: "0 auto 16px" }} />
+        <div style={{ width: 32, height: 3, borderRadius: 2, background: "rgba(255,255,255,0.14)", margin: "0 auto 12px" }} />
 
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
           <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: 2.5, textTransform: "uppercase", color: "rgba(255,255,255,0.45)" }}>
             Combat OS
           </span>
@@ -157,15 +157,15 @@ function CombatOSSheet({ onClose, router, locale }) {
         </div>
 
         {/* Grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
           {COMBAT_OS_ITEMS.map((item) => (
             <button
               key={item.key}
               className="tap-bounce"
               onClick={() => { onClose(); router.push(`/${locale}${item.path}`); }}
               style={{
-                display: "flex", alignItems: "center", gap: 12,
-                padding: "14px 16px",
+                display: "flex", alignItems: "center", gap: 10,
+                padding: "11px 14px",
                 background: "rgba(255,255,255,0.04)",
                 border: "1px solid rgba(255,255,255,0.07)",
                 borderRadius: 16,
@@ -176,7 +176,7 @@ function CombatOSSheet({ onClose, router, locale }) {
             >
               <span style={{ flexShrink: 0, display: "flex", color: "rgba(255,255,255,0.7)" }}>{OS_ICONS[item.key]}</span>
               <span style={{ fontSize: 13, fontWeight: 800, lineHeight: 1.2 }}>
-                {locale === "mn" ? item.labelMn : item.labelEn}
+                {locale === "mn" ? item.labelMn : locale === "ko" ? item.labelKo : item.labelEn}
               </span>
             </button>
           ))}
@@ -327,7 +327,9 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
           style={s.combatOSBtn}
         >
           <GridIcon />
-          <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.8, textTransform: "uppercase" }}>More</span>
+          <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.8, textTransform: "uppercase" }}>
+            {locale === "mn" ? "Цэс" : locale === "ko" ? "더보기" : "More"}
+          </span>
         </button>
       )}
 

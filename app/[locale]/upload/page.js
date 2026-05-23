@@ -15,9 +15,9 @@ const CAT_KEY = { boxing: "catBoxing", gym: "catGym", running: "catRunning", str
 const DIFF_KEY = { beginner: "diffBeginner", intermediate: "diffIntermediate", pro: "diffPro" };
 
 const CONTENT_TYPES = [
-  { id: "training",     emoji: "🥊", label: "Challenge",  color: "#F87171", border: redAlpha(0.5) },
-  { id: "lifestyle",    emoji: "🎬", label: "Lifestyle",  color: "#60A5FA", border: "rgba(96,165,250,0.45)" },
-  { id: "educational",  emoji: "📚", label: "Education",  color: GOLD,      border: goldAlpha(0.5) },
+  { id: "training",     emoji: "🥊", labelKey: "ctFilterTraining",    color: "#F87171", border: redAlpha(0.5) },
+  { id: "lifestyle",    emoji: "🎬", labelKey: "ctFilterLifestyle",   color: "#60A5FA", border: "rgba(96,165,250,0.45)" },
+  { id: "educational",  emoji: "📚", labelKey: "ctFilterEducational", color: GOLD,      border: goldAlpha(0.5) },
 ];
 
 export default function UploadPage() {
@@ -185,7 +185,8 @@ export default function UploadPage() {
           </div>
 
           <div style={S.typeTabs}>
-            {CONTENT_TYPES.map(({ id, emoji, label, color, border }) => {
+            {CONTENT_TYPES.map(({ id, emoji, labelKey, color, border }) => {
+              const label = t(labelKey);
               const active = contentType === id;
               return (
                 <button
