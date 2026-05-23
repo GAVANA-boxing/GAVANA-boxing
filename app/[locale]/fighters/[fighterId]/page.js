@@ -218,12 +218,18 @@ export default function FighterDetailPage() {
             {FIGHTER_TECHNIQUES[fighter.id].map((lesson, i) => (
               <TechniqueLessonCard
                 key={i}
+                index={i + 1}
                 title={lesson.title}
+                difficulty={lesson.difficulty}
+                teachingBlocks={lesson.teachingBlocks}
                 explanation={lesson.explanation}
                 coachNotes={lesson.coachNotes}
                 drillSteps={lesson.drillSteps}
-                diagramLabel={lesson.diagramLabel}
                 accent={acc}
+                defaultOpen={i === 0}
+                locale={locale}
+                fighterId={fighter.id}
+                router={router}
               />
             ))}
           </Section>
