@@ -208,7 +208,7 @@ function QuickPostBar({ user, profilePhotoUrl, router, currentLocale }) {
 
 // ─── Desktop Reel Card ────────────────────────────────────────────────────────
 function DesktopReelCard({
-  reel, videoRefs, soundEnabled, isLiked, isSaved,
+  reel, videoRefs, soundEnabled, onSoundChange, isLiked, isSaved,
   videoProgress, creatorName, creatorPhoto, creatorInitial,
   captionText, stats, currentLocale, router,
   onLike, onOpenComments, onShare, onSave, onGetFeedback,
@@ -216,7 +216,6 @@ function DesktopReelCard({
   const [hovered, setHovered] = useState(false);
   const [visible, setVisible] = useState(false);
   const [playing, setPlaying] = useState(true);
-  const [localMuted, setLocalMuted] = useState(true);
   const [heartBurst, setHeartBurst] = useState(false);
   const videoRef = useRef(null);
   const containerRef = useRef(null);
@@ -239,16 +238,17 @@ function DesktopReelCard({
     return () => observer.disconnect();
   }, []);
 
+  // Sync play/pause and mute state with visibility and global sound preference
   useEffect(() => {
     const el = videoRef.current;
     if (!el) return;
     if (visible && playing) {
-      el.muted = localMuted;
+      el.muted = !soundEnabled;
       el.play().catch(() => {});
     } else {
       el.pause();
     }
-  }, [visible, playing, localMuted]);
+  }, [visible, playing, soundEnabled]);
 
   // Hover only reveals controls — does not drive playback
   const handleMouseEnter = () => setHovered(true);
@@ -269,12 +269,9 @@ function DesktopReelCard({
     heartTimerRef.current = setTimeout(() => setHeartBurst(false), 800);
   };
 
-  const toggleMute = (e) => {
+  const handleToggleMute = (e) => {
     e.stopPropagation();
-    const el = videoRef.current;
-    const next = !localMuted;
-    setLocalMuted(next);
-    if (el) el.muted = next;
+    onSoundChange(!soundEnabled);
   };
 
   const progress = videoProgress[reel.id] || 0;
@@ -307,8 +304,8 @@ function DesktopReelCard({
             </div>
           )}
           {hovered && (
-            <button style={d.muteBtn} onClick={toggleMute} aria-label={localMuted ? "Дуу асаах" : "Дуу унтраах"}>
-              <IcoVolume muted={localMuted} />
+            <button style={d.muteBtn} onClick={handleToggleMute} aria-label={soundEnabled ? "Дуу унтраах" : "Дуу асаах"}>
+              <IcoVolume muted={!soundEnabled} />
             </button>
           )}
           {hovered && progress > 0 && (
@@ -706,6 +703,15 @@ export default function ReelsDashboard({
 }) {
   const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
 
+  // Shared desktop sound state — persisted to localStorage, in sync with mobile pref
+  const [desktopSound, setDesktopSound] = useState(() => {
+    try { return localStorage.getItem("reel-sound-on") === "1"; } catch { return false; }
+  });
+  const handleDesktopSoundChange = (next) => {
+    setDesktopSound(next);
+    try { localStorage.setItem("reel-sound-on", next ? "1" : "0"); } catch {}
+  };
+
   useEffect(() => {
     if (!user?.uid) return;
     if (user.photoURL) { setProfilePhotoUrl(user.photoURL); return; }
@@ -773,7 +779,8 @@ export default function ReelsDashboard({
                   reel={reel}
                   index={index}
                   videoRefs={videoRefs}
-                  soundEnabled={soundEnabled}
+                  soundEnabled={desktopSound}
+                  onSoundChange={handleDesktopSoundChange}
                   videoProgress={videoProgress}
                   isLiked={userLikes.has(reel.id)}
                   isSaved={savedReels.has(reel.id)}

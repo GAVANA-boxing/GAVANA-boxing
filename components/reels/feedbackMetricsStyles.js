@@ -1,4 +1,4 @@
-import { GOLD, PURPLE, BORDER, BORDER_2, RADIUS, redAlpha, goldAlpha, whiteAlpha, blackAlpha } from "@/lib/tokens";
+import { RED, GOLD, PURPLE, BORDER, BORDER_2, RADIUS, redAlpha, goldAlpha, whiteAlpha, blackAlpha } from "@/lib/tokens";
 
 export const feedbackMetricsStyles = {
   metricsOverlay: {
@@ -131,17 +131,16 @@ export const feedbackMetricsStyles = {
     paddingLeft: 10,
     paddingRight: 10,
     borderRadius: RADIUS.full,
-    border: `1px solid ${redAlpha(0.4)}`,
-    background: blackAlpha(0.38),
-    color: "rgba(255,100,100,0.88)",
+    border: "none",
+    background: RED,
+    color: "#fff",
     fontFamily: "inherit",
     fontSize: 10,
     lineHeight: 1,
     fontWeight: 900,
     letterSpacing: 0.5,
     cursor: "pointer",
-    backdropFilter: "blur(10px)",
-    WebkitBackdropFilter: "blur(10px)",
+    boxShadow: `0 2px 10px ${redAlpha(0.4)}`,
     boxShadow: "none",
     textShadow: "none",
     transition: "transform 180ms ease, background 180ms ease",
