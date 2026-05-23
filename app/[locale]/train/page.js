@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import DailyMission from "@/components/DailyMission";
@@ -15,6 +15,9 @@ import PreGameCard from "@/components/train/PreGameCard";
 import RecordingHud from "@/components/train/RecordingHud";
 import { useTrainingData } from "@/hooks/useTrainingData";
 import { useCameraSession } from "@/hooks/useCameraSession";
+import { FIGHTERS } from "@/lib/fighters";
+import { FIGHTER_TECHNIQUES } from "@/lib/fighterTechniques";
+import TrainingFocusCard from "@/components/train/TrainingFocusCard";
 
 const RECORD_SECONDS = 10;
 const CHALLENGES = {
@@ -138,6 +141,22 @@ export default function TrainPage() {
     }
   }, [authLoading, user, router, locale]);
 
+  // ── Lesson context from query params ─────────────────────────────────────
+  const [lessonContext, setLessonContext] = useState(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const fighterId = params.get("fighter");
+    const lessonSlug = params.get("lesson");
+    if (!fighterId || !lessonSlug) return;
+    const fighter = FIGHTERS.find(f => f.id === fighterId);
+    const lessons = FIGHTER_TECHNIQUES[fighterId] || [];
+    const lesson = lessons.find(l =>
+      l.title.toLowerCase().replace(/\s+/g, "-") === lessonSlug
+    );
+    if (fighter && lesson) setLessonContext({ fighter, lesson });
+  }, []);
+
   if (authLoading) {
     return <div style={styles.loading}>{t("loading")}</div>;
   }
@@ -180,6 +199,16 @@ export default function TrainPage() {
             </div>
           )}
         </header>
+
+        {/* Training Focus — shown when arriving from a fighter technique lesson */}
+        {lessonContext && canStart && (
+          <TrainingFocusCard
+            fighterName={lessonContext.fighter.name}
+            lesson={lessonContext.lesson}
+            accent={lessonContext.fighter.accent}
+            onStart={handleStart}
+          />
+        )}
 
         <div style={styles.stage} className="train-stage">
           {cameraState === "ready" ? (
