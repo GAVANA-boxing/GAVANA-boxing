@@ -115,6 +115,11 @@ export default function FighterDetailPage() {
       } catch { /* silent */ }
     })();
   }, [user?.uid, fighter?.id]);
+
+  // Build personal connection from training history
+  useEffect(() => {
+    if (!user?.uid || !fighter) return;
+    let active = true;
     (async () => {
       try {
         const { collection, getDocs, query, where } = await import("firebase/firestore");
