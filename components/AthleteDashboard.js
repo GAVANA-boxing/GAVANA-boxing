@@ -30,6 +30,7 @@ import { FIGHTERS } from "@/lib/fighters";
 import { getPersonalConnection } from "@/lib/fighterPersonalConnection";
 import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
 import WeeklyPlanSection from "@/components/dashboard/WeeklyPlanSection";
+import BadgesSection from "@/components/dashboard/BadgesSection";
 
 function getTs(ts) {
   if (!ts) return 0;
@@ -550,6 +551,17 @@ export default function AthleteDashboard() {
         >
           <BodyProgressSection userId={user?.uid} t={t} />
         </PanelCard>
+
+        {/* ── Achievements ── */}
+        <BadgesSection
+          sessionCount={trainingSessions.length}
+          bestScore={stats.bestScore ?? 0}
+          streakDays={dailyStreak}
+          studiedCount={(userData?.studiedFighters || []).length}
+          totalFighters={FIGHTERS.length}
+          radarStats={radarStats}
+          locale={locale}
+        />
 
         {/* ── Activity Feed ── */}
         <PanelCard label={t("activityFeedTitle") || "Following Activity"} accent="#60A5FA">
