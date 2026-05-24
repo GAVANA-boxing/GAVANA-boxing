@@ -159,6 +159,15 @@ export default function AthleteDashboard() {
     [stats.scores, trainingSessions, dailyStreak]
   );
 
+  // Older half of sessions for radar progress comparison
+  const prevRadarStats = useMemo(() => {
+    if (trainingSessions.length < 6) return null;
+    const half = Math.floor(trainingSessions.length / 2);
+    const older = trainingSessions.slice(half);
+    const olderScores = older.map((s) => Number(s.score)).filter(Number.isFinite);
+    return deriveRadarStats(olderScores, older, 0);
+  }, [trainingSessions]);
+
   const fighterScore = useMemo(() =>
     computeFighterScore(stats.scores, xp, dailyStreak),
     [stats.scores, xp, dailyStreak]
@@ -432,7 +441,7 @@ export default function AthleteDashboard() {
           tag="6 METRICS"
         >
           <div style={{ background: `radial-gradient(ellipse at center, rgba(255,59,48,0.06) 0%, transparent 70%)`, padding: "4px 0 0" }}>
-            <RadarChart stats={radarStats} />
+            <RadarChart stats={radarStats} prevStats={prevRadarStats} />
           </div>
         </PanelCard>
 

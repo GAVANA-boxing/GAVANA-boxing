@@ -92,6 +92,7 @@ export default function AIChatPage() {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const activePersona = PERSONAS.find((p) => p.id === persona) || PERSONAS[0];
+  const greetingInjectedRef = useRef(new Set());
 
   useEffect(() => {
     if (user === null) router.replace(`/${locale}/login`);
@@ -142,6 +143,32 @@ export default function AIChatPage() {
       setMessages([]);
     }
   }, [persona]);
+
+  // Proactive greeting when snapshot loads and no prior chat
+  useEffect(() => {
+    if (!coachSnapshot) return;
+    if (greetingInjectedRef.current.has(persona)) return;
+    setMessages((prev) => {
+      if (prev.length > 0) return prev;
+      greetingInjectedRef.current.add(persona);
+      const weakArea = coachSnapshot.weakAreas[0]?.[0];
+      const weakVal = coachSnapshot.weakAreas[0]?.[1]?.toFixed(1);
+      const strong = coachSnapshot.strongAreas[0]?.[0];
+      let text = "";
+      if (locale === "mn") {
+        text = `Сайн уу! Таны өгөгдлийг харлаа.\n\n` +
+          (weakArea ? `⚠ **${weakArea}** — ${weakVal}/10. Энэ хэсэгт илүү анхаарал хэрэгтэй байна.\n` : "") +
+          (strong ? `⚡ **${strong}** хүчтэй байна — үргэлжлүүл.\n\n` : "\n") +
+          `Юу дадлагажуулах, хэрхэн сайжруулах талаар асуугаарай.`;
+      } else {
+        text = `Hey! I checked your training data.\n\n` +
+          (weakArea ? `⚠ **${weakArea}** is at ${weakVal}/10 — that's your main growth area right now.\n` : "") +
+          (strong ? `⚡ **${strong}** is looking strong — keep building on it.\n\n` : "\n") +
+          `Ask me anything about drills, technique, or your next session.`;
+      }
+      return [{ role: "assistant", content: text, ts: Date.now() }];
+    });
+  }, [coachSnapshot, persona, locale]);
 
   // Persist messages (cap at 40 to keep storage light)
   useEffect(() => {

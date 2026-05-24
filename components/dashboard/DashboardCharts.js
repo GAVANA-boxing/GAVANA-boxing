@@ -5,7 +5,7 @@ import {
   RADAR_KEYS, RADAR_ANGLES, INSIGHT_COLOR, DNA_ATTRS, radPolar,
 } from "@/lib/dashboardHelpers";
 
-export function RadarChart({ stats }) {
+export function RadarChart({ stats, prevStats }) {
   const SIZE = 230;
   const cx = SIZE / 2;
   const cy = SIZE / 2;
@@ -22,6 +22,12 @@ export function RadarChart({ stats }) {
     return radPolar(RADAR_ANGLES[i], (val / 10) * maxR, cx, cy);
   });
   const dataPoly = dataPoints.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+
+  const prevPoints = prevStats ? RADAR_KEYS.map((key, i) => {
+    const val = Math.max(0, Math.min(10, prevStats[key] || 0));
+    return radPolar(RADAR_ANGLES[i], (val / 10) * maxR, cx, cy);
+  }) : null;
+  const prevPoly = prevPoints?.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
 
   return (
     <svg viewBox={`0 0 ${SIZE} ${SIZE}`} width="100%" style={{ display: "block", overflow: "visible" }}>
@@ -57,6 +63,17 @@ export function RadarChart({ stats }) {
         );
       })}
 
+      {/* Ghost polygon: previous period stats */}
+      {prevPoly && (
+        <polygon points={prevPoly}
+          fill="none"
+          stroke="rgba(255,255,255,0.18)"
+          strokeWidth="1.1"
+          strokeDasharray="3,3"
+          strokeLinejoin="round"
+        />
+      )}
+
       <polygon points={dataPoly}
         fill="url(#rdg)"
         stroke={GOLD}
@@ -78,6 +95,9 @@ export function RadarChart({ stats }) {
         const ta = p.x < cx - 8 ? "end" : p.x > cx + 8 ? "start" : "middle";
         const val = Math.max(0, Math.min(10, stats[key] || 0));
         const valColor = val >= 7 ? GOLD : val >= 5 ? "rgba(255,255,255,0.45)" : RED;
+        const prev = prevStats?.[key];
+        const delta = prev != null ? val - prev : null;
+        const hasDelta = delta != null && Math.abs(delta) >= 0.2;
         return (
           <g key={key}>
             <text x={p.x.toFixed(1)} y={(p.y - 4).toFixed(1)}
@@ -90,6 +110,13 @@ export function RadarChart({ stats }) {
               fontSize="7" fontWeight="700" fill={valColor}>
               {val.toFixed(1)}
             </text>
+            {hasDelta && (
+              <text x={p.x.toFixed(1)} y={(p.y + 17).toFixed(1)}
+                textAnchor={ta} dominantBaseline="auto"
+                fontSize="6.5" fontWeight="800" fill={delta > 0 ? "#4ade80" : "#f87171"}>
+                {delta > 0 ? "+" : ""}{delta.toFixed(1)}
+              </text>
+            )}
           </g>
         );
       })}
