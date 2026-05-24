@@ -8,6 +8,7 @@ import BottomNav from "@/components/BottomNav";
 import { getLocale, translate } from "@/lib/i18n";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import s from "@/components/coach/coachChatStyles";
+import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
 
 // ─── Persona config ───────────────────────────────────────────────────────────
 const PERSONAS = [
@@ -84,13 +85,54 @@ export default function AIChatPage() {
   const [streamingIdx, setStreamingIdx] = useState(-1);
   const [streamingText, setStreamingText] = useState("");
 
+  // Fighter profile context for AI personalization
+  const [coachContextStr, setCoachContextStr] = useState(null);
+  const [coachSnapshot, setCoachSnapshot] = useState(null);
+
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const activePersona = PERSONAS.find((p) => p.id === persona) || PERSONAS[0];
+  const greetingInjectedRef = useRef(new Set());
 
   useEffect(() => {
     if (user === null) router.replace(`/${locale}/login`);
   }, [user, locale, router]);
+
+  // Fetch fighter data and build coach context
+  useEffect(() => {
+    if (!user?.uid) return;
+    let active = true;
+    (async () => {
+      try {
+        const { collection, getDocs, doc, getDoc, query, where } = await import("firebase/firestore");
+        const { db } = await import("@/lib/firebase");
+
+        const [sessSnap, userSnap] = await Promise.all([
+          getDocs(query(
+            collection(db, "training_sessions"),
+            where("userId", "==", user.uid)
+          )),
+          getDoc(doc(db, "users", user.uid)),
+        ]);
+
+        if (!active) return;
+
+        const sessions = sessSnap.docs
+          .map((d) => ({ id: d.id, ...d.data() }))
+          .filter((d) => d.type === "training" && typeof d.score !== "undefined")
+          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+        const profileData = userSnap.exists() ? userSnap.data() : {};
+
+        const snapshot = buildCoachSnapshot({ sessions, profileData });
+        const ctx = buildCoachContext({ snapshot, profileData, locale });
+
+        setCoachSnapshot(snapshot);
+        setCoachContextStr(ctx);
+      } catch { /* silent — chat still works without context */ }
+    })();
+    return () => { active = false; };
+  }, [user?.uid, locale]);
 
   // Load chat history for current persona
   useEffect(() => {
@@ -101,6 +143,32 @@ export default function AIChatPage() {
       setMessages([]);
     }
   }, [persona]);
+
+  // Proactive greeting when snapshot loads and no prior chat
+  useEffect(() => {
+    if (!coachSnapshot) return;
+    if (greetingInjectedRef.current.has(persona)) return;
+    setMessages((prev) => {
+      if (prev.length > 0) return prev;
+      greetingInjectedRef.current.add(persona);
+      const weakArea = coachSnapshot.weakAreas[0]?.[0];
+      const weakVal = coachSnapshot.weakAreas[0]?.[1]?.toFixed(1);
+      const strong = coachSnapshot.strongAreas[0]?.[0];
+      let text = "";
+      if (locale === "mn") {
+        text = `Сайн уу! Таны өгөгдлийг харлаа.\n\n` +
+          (weakArea ? `⚠ **${weakArea}** — ${weakVal}/10. Энэ хэсэгт илүү анхаарал хэрэгтэй байна.\n` : "") +
+          (strong ? `⚡ **${strong}** хүчтэй байна — үргэлжлүүл.\n\n` : "\n") +
+          `Юу дадлагажуулах, хэрхэн сайжруулах талаар асуугаарай.`;
+      } else {
+        text = `Hey! I checked your training data.\n\n` +
+          (weakArea ? `⚠ **${weakArea}** is at ${weakVal}/10 — that's your main growth area right now.\n` : "") +
+          (strong ? `⚡ **${strong}** is looking strong — keep building on it.\n\n` : "\n") +
+          `Ask me anything about drills, technique, or your next session.`;
+      }
+      return [{ role: "assistant", content: text, ts: Date.now() }];
+    });
+  }, [coachSnapshot, persona, locale]);
 
   // Persist messages (cap at 40 to keep storage light)
   useEffect(() => {
@@ -144,7 +212,7 @@ export default function AIChatPage() {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ messages: next, persona, locale }),
+        body: JSON.stringify({ messages: next, persona, locale, coachContext: coachContextStr }),
       });
       const data = await res.json();
       const reply = data.content?.[0]?.text || data.message || t("coachError");
@@ -261,6 +329,41 @@ export default function AIChatPage() {
           </button>
         ))}
       </div>
+
+      {/* ── Coach Memory panel ── */}
+      {coachSnapshot && (
+        <div style={{
+          margin: "0 14px 8px",
+          padding: "9px 12px",
+          borderRadius: 11,
+          background: "rgba(255,255,255,0.025)",
+          border: "1px solid rgba(255,255,255,0.07)",
+        }}>
+          <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.8, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", marginBottom: 7 }}>
+            Coach sees
+          </div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+            {coachSnapshot.identity && (
+              <span style={{ fontSize: 10, fontWeight: 900, color: "rgba(255,255,255,0.7)", background: "rgba(255,255,255,0.06)", borderRadius: 999, padding: "3px 9px" }}>
+                {coachSnapshot.identity.primary}
+              </span>
+            )}
+            {coachSnapshot.weakAreas.slice(0, 2).map(([k, v]) => (
+              <span key={k} style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,80,70,0.85)", background: "rgba(255,60,48,0.08)", borderRadius: 999, padding: "3px 8px" }}>
+                ⚠ {k} {v.toFixed(1)}
+              </span>
+            ))}
+            {coachSnapshot.strongAreas.slice(0, 1).map(([k, v]) => (
+              <span key={k} style={{ fontSize: 10, fontWeight: 800, color: "rgba(245,196,81,0.85)", background: "rgba(245,196,81,0.07)", borderRadius: 999, padding: "3px 8px" }}>
+                ⚡ {k} {v.toFixed(1)}
+              </span>
+            ))}
+            <span style={{ fontSize: 9.5, color: "rgba(255,255,255,0.22)", fontWeight: 700 }}>
+              {coachSnapshot.totalSessions} sessions · avg {coachSnapshot.avgScore.toFixed(1)}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* ── Messages ── */}
       <div style={s.messages}>

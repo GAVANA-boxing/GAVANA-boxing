@@ -199,7 +199,7 @@ export async function POST(req) {
 
   let body;
   try { body = await req.json(); } catch { return Response.json({ error: "Invalid JSON" }, { status: 400 }); }
-  let { messages, persona = "drill", locale = "en" } = body;
+  let { messages, persona = "drill", locale = "en", coachContext = null } = body;
 
   const MAX_MESSAGES = 20;
   const MAX_MSG_LEN = 800;
@@ -223,9 +223,10 @@ export async function POST(req) {
   const systemPrompt = [
     selectedPersona.systemPrompt,
     GAVANA_CONTEXT,
+    coachContext && typeof coachContext === "string" ? coachContext.slice(0, 1200) : null,
     "The following language rule overrides all persona style and prior instructions.",
     languageInstruction,
-  ].join("\n\n");
+  ].filter(Boolean).join("\n\n");
 
   try {
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });

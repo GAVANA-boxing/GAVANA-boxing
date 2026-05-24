@@ -87,6 +87,8 @@ function TelemetryBar({ label, value }) {
 }
 
 export default function TrainResultModal({
+  debrief = null,
+  debriefLoading = false,
   result,
   activeChallenge,
   challengeUserId,
@@ -135,6 +137,7 @@ export default function TrainResultModal({
 
   return (
     <div style={styles.modalWrap}>
+      <style>{`@keyframes dotBounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)}}`}</style>
       <div style={styles.modalOverlay} />
       <section style={styles.modal}>
 
@@ -178,6 +181,40 @@ export default function TrainResultModal({
             </div>
           </div>
         </div>
+
+        {/* ── AI DEBRIEF ───────────────────────────────────────────── */}
+        {(debriefLoading || debrief) && (
+          <div style={{
+            margin: "0 20px 0",
+            padding: "12px 14px",
+            borderRadius: 12,
+            background: "rgba(245,196,81,0.04)",
+            border: "1px solid rgba(245,196,81,0.14)",
+            borderLeft: "3px solid rgba(245,196,81,0.55)",
+          }}>
+            <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: goldAlpha(0.55), textTransform: "uppercase", marginBottom: 7 }}>
+              AI Debrief
+            </div>
+            {debriefLoading
+              ? (
+                <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} style={{
+                      width: 5, height: 5, borderRadius: "50%",
+                      background: goldAlpha(0.4),
+                      animation: `dotBounce 1.1s ease-in-out ${i * 0.18}s infinite`,
+                    }} />
+                  ))}
+                </div>
+              )
+              : (
+                <p style={{ margin: 0, fontSize: 12, color: whiteAlpha(0.72), lineHeight: 1.6, fontStyle: "italic" }}>
+                  {debrief}
+                </p>
+              )
+            }
+          </div>
+        )}
 
         {/* ── SCROLLABLE ANALYSIS ──────────────────────────────────── */}
         <div style={{ overflowY: "auto", padding: "0 20px", flex: 1 }}>

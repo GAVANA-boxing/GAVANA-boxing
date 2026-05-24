@@ -19,6 +19,7 @@ import { FIGHTERS } from "@/lib/fighters";
 import { FIGHTER_TECHNIQUES } from "@/lib/fighterTechniques";
 import TrainingFocusCard from "@/components/train/TrainingFocusCard";
 import { getDrillConfig } from "@/lib/drillConfig";
+import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
 
 // titleKey only — duration/target now live in drillConfig
 const CHALLENGES = {
@@ -146,6 +147,87 @@ export default function TrainPage() {
     }
   }, [authLoading, user, router, locale]);
 
+  // ── Post-session AI debrief ───────────────────────────────────────────────
+  const [debrief, setDebrief]             = useState(null);
+  const [debriefLoading, setDebriefLoading] = useState(false);
+  const [focusTip, setFocusTip] = useState(null);
+  const coachSnapshotRef = useRef(null);
+
+  // Fetch training sessions once → build coach snapshot for debrief + focus tip
+  useEffect(() => {
+    if (!user?.uid) return;
+    let active = true;
+    (async () => {
+      try {
+        const { collection, getDocs, query, where } = await import("firebase/firestore");
+        const { db } = await import("@/lib/firebase");
+        const snap = await getDocs(query(
+          collection(db, "training_sessions"),
+          where("userId", "==", user.uid)
+        ));
+        if (!active) return;
+        const sessions = snap.docs
+          .map((d) => ({ id: d.id, ...d.data() }))
+          .filter((d) => d.type === "training" && d.score != null)
+          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        const snapshot = buildCoachSnapshot({ sessions, profileData: {} });
+        coachSnapshotRef.current = snapshot;
+        if (snapshot && sessions.length >= 3) {
+          const weakAreas = Object.entries(snapshot.radarStats).sort(([, a], [, b]) => a - b);
+          const miniSnap = { weakAreas, radarStats: snapshot.radarStats };
+          const top = FIGHTERS
+            .map((f) => ({ fighter: f, connection: getPersonalConnection(miniSnap, f) }))
+            .filter((x) => x.connection?.isDirectlyRelevant)
+            .sort((a, b) => (b.connection?.relevantWeak?.length || 0) - (a.connection?.relevantWeak?.length || 0))[0];
+          if (top && active) setFocusTip({ fighter: top.fighter, connection: top.connection });
+        }
+      } catch { /* silent */ }
+    })();
+    return () => { active = false; };
+  }, [user?.uid]);
+
+  // Generate debrief when result appears
+  useEffect(() => {
+    if (!result?.score) { setDebrief(null); return; }
+    setDebrief(null);
+    setDebriefLoading(true);
+    let active = true;
+    (async () => {
+      try {
+        const snapshot = coachSnapshotRef.current;
+        const ctx = buildCoachContext({ snapshot, profileData: {}, locale });
+        const prev = sessionHistory.slice(0, 5);
+        const prevStr = prev.length
+          ? `Previous scores: ${prev.map(s => s.toFixed(1)).join(", ")}.`
+          : "";
+        const { auth } = await import("@/lib/firebase");
+        const token = await auth.currentUser?.getIdToken();
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            messages: [{
+              role: "user",
+              content: `Session complete. Score: ${result.score.toFixed(1)}/10. ${prevStr} Give a 2-3 sentence debrief: what performed well, what to improve, one specific drill.`,
+            }],
+            persona: "analyst",
+            locale,
+            coachContext: ctx,
+          }),
+        });
+        const data = await res.json();
+        const text = data.content?.[0]?.text || data.message || null;
+        if (active) setDebrief(text);
+      } catch { /* silent — debrief is optional */ } finally {
+        if (active) setDebriefLoading(false);
+      }
+    })();
+    return () => { active = false; };
+  }, [result?.score]);
+
   // ── Lesson context from query params ─────────────────────────────────────
   const [lessonContext, setLessonContext] = useState(null);
   useEffect(() => {
@@ -214,6 +296,50 @@ export default function TrainPage() {
             onStart={handleStart}
           />
         )}
+
+        {/* Pre-session personalized focus tip */}
+        {focusTip && canStart && !lessonContext && !challengeUserId && !challengeId && (() => {
+          const { fighter, connection } = focusTip;
+          const acc = fighter.accent;
+          const drill = connection.focusDrills?.[0] || connection.focusStudy?.[0];
+          return (
+            <div style={{
+              margin: "0 0 14px",
+              padding: "11px 14px",
+              borderRadius: 14,
+              background: `linear-gradient(135deg, ${acc}10 0%, rgba(0,0,0,0) 100%)`,
+              border: `1px solid ${acc}28`,
+              borderLeft: `3px solid ${acc}`,
+            }}>
+              <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: acc, textTransform: "uppercase", marginBottom: 7 }}>
+                {locale === "mn" ? "⚡ Өнөөдрийн анхаарал" : "⚡ Today's Focus"}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: drill ? 8 : 0 }}>
+                <div style={{ flex: 1 }}>
+                  <span style={{ fontSize: 12.5, fontWeight: 900, color: "#fff" }}>{fighter.name}</span>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.38)", marginLeft: 8 }}>
+                    {connection.primaryFocus} · {connection.primaryValue?.toFixed(1)}/10
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => router.push(`/${locale}/fighters/${fighter.id}`)}
+                  style={{ background: `${acc}18`, border: `1px solid ${acc}40`, borderRadius: 8, padding: "5px 11px", color: acc, fontSize: 10.5, fontWeight: 900, cursor: "pointer", flexShrink: 0 }}
+                >
+                  {locale === "mn" ? "Судлах" : "Study"}
+                </button>
+              </div>
+              {drill && (
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.4, paddingLeft: 2 }}>
+                  <svg width="8" height="10" viewBox="0 0 13 16" fill={acc} style={{ marginRight: 5, verticalAlign: "middle" }}>
+                    <path d="M7 0L0 9h6l-1 7 7-9H6L7 0z"/>
+                  </svg>
+                  {drill}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         <div style={styles.stage} className="train-stage">
           {cameraState === "ready" ? (
@@ -337,6 +463,8 @@ export default function TrainPage() {
       </section>
 
       <TrainResultModal
+        debrief={debrief}
+        debriefLoading={debriefLoading}
         result={result}
         activeChallenge={activeChallenge}
         challengeUserId={challengeUserId}

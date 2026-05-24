@@ -16,6 +16,7 @@ import { useSparringData } from "@/hooks/useSparringData";
 import Image from "next/image";
 import { Toast, useToast } from "@/components/ui/Toast";
 import { HUDCard } from "@/components/ui";
+import SparringIntelligence from "@/components/sparring/SparringIntelligence";
 
 const ARCHETYPE_KEYS = ["all", "pressure", "counter", "technical", "brawler"];
 const WEIGHT_OPTS = ["all", "-54", "-60", "-67", "-75", "-81", "+91"];
@@ -105,6 +106,11 @@ export default function SparringPage() {
       {/* ── DISCOVER TAB ── */}
       {tab === "discover" && (
         <>
+          {/* Sparring Intelligence (8B) */}
+          <div style={{ padding: "0 16px", maxWidth: 640, margin: "0 auto" }}>
+            <SparringIntelligence user={user} locale={locale} />
+          </div>
+
           {/* Arena live banner */}
           <div style={s.arenaBanner}>
             <div style={s.arenaBannerLeft}>

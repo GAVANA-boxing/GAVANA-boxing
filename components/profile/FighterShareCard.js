@@ -185,30 +185,38 @@ export default function FighterShareCard({
     const el = cardRef.current;
     if (!el) throw new Error("no ref");
 
-    // Swap cross-origin avatar img → initial letter div to prevent canvas taint
-    const avatarImg = el.querySelector("[data-capture-hide]");
-    const avatarFallback = el.querySelector("[data-capture-show]");
-    if (avatarImg) avatarImg.style.display = "none";
+    const html2canvas = (await import("html2canvas")).default;
+    const rect = el.getBoundingClientRect();
+
+    // Clone card into document.body — avoids fixed-position parent capture issues
+    const wrapper = document.createElement("div");
+    wrapper.style.cssText = `position:absolute;top:0;left:0;width:${Math.round(rect.width)}px;visibility:hidden;pointer-events:none;z-index:-1;`;
+    const clone = el.cloneNode(true);
+    clone.style.boxShadow = "none";
+    clone.style.overflow = "hidden";
+    clone.style.position = "relative";
+
+    // Swap cross-origin avatar img → initial letter in clone (prevent canvas taint)
+    const avatarImg = clone.querySelector("[data-capture-hide]");
+    const avatarFallback = clone.querySelector("[data-capture-show]");
+    if (avatarImg) avatarImg.remove();
     if (avatarFallback) avatarFallback.style.display = "flex";
 
-    const html2canvas = (await import("html2canvas")).default;
-    const prev = { shadow: el.style.boxShadow, overflow: el.style.overflow };
-    el.style.boxShadow = "none";
-    el.style.overflow = "hidden";
+    wrapper.appendChild(clone);
+    document.body.appendChild(wrapper);
+
     try {
-      return await html2canvas(el, {
+      return await html2canvas(clone, {
         scale: 2,
         backgroundColor: "#0a0a0b",
         useCORS: false,
         logging: false,
         allowTaint: false,
         removeContainer: true,
+        width: Math.round(rect.width),
       });
     } finally {
-      el.style.boxShadow = prev.shadow;
-      el.style.overflow = prev.overflow;
-      if (avatarImg) avatarImg.style.display = "";
-      if (avatarFallback) avatarFallback.style.display = avatarImg ? "none" : "flex";
+      document.body.removeChild(wrapper);
     }
   }, []);
 
