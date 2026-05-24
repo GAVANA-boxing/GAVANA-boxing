@@ -33,6 +33,8 @@ import WeeklyPlanSection from "@/components/dashboard/WeeklyPlanSection";
 import BadgesSection from "@/components/dashboard/BadgesSection";
 import FourWeekProgram from "@/components/dashboard/FourWeekProgram";
 import WelcomeBanner from "@/components/dashboard/WelcomeBanner";
+import LastSessionRecap from "@/components/dashboard/LastSessionRecap";
+import GoalTracker from "@/components/dashboard/GoalTracker";
 
 function getTs(ts) {
   if (!ts) return 0;
@@ -266,6 +268,56 @@ export default function AthleteDashboard() {
           );
         })()}
 
+        {/* ── Last Session Recap (7A) ── */}
+        {sessionsReady && trainingSessions.length >= 1 && (
+          <LastSessionRecap
+            trainingSessions={trainingSessions}
+            coachSnapshot={coachSnapshot}
+            coachContextStr={coachContextStr}
+            locale={locale}
+            router={router}
+            userId={user?.uid}
+          />
+        )}
+
+        {/* ── Smart Reminder Banner (7C) ── */}
+        {sessionsReady && trainingSessions.length >= 1 && (() => {
+          const lastTs = getTs(trainingSessions[0]?.createdAt);
+          const daysSince = lastTs ? (Date.now() - lastTs) / (24 * 3600 * 1000) : 99;
+          if (daysSince < 2) return null;
+          const mn = locale === "mn";
+          const ko = locale === "ko";
+          const days = Math.floor(daysSince);
+          return (
+            <div style={{
+              marginBottom: 20,
+              padding: "12px 14px",
+              borderRadius: "3px 14px 14px 3px",
+              background: "rgba(251,146,60,0.07)",
+              border: "1px solid rgba(251,146,60,0.2)",
+              borderLeft: "3px solid #FB923C",
+              display: "flex", alignItems: "center", gap: 12,
+            }}>
+              <span style={{ fontSize: 20 }}>🔥</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 12, fontWeight: 900, color: "#FB923C", marginBottom: 2 }}>
+                  {mn ? `${days} өдөр болж байна` : ko ? `${days}일 지났습니다` : `${days} days since your last session`}
+                </div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>
+                  {mn ? "Streak алдахгүйн тулд өнөөдөр дасгал хийгээрэй" : "Train today to keep your momentum going"}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => router.push(`/${locale}/train`)}
+                style={{ padding: "8px 14px", borderRadius: 10, background: "#FB923C", border: "none", color: "#fff", fontSize: 12, fontWeight: 900, cursor: "pointer", whiteSpace: "nowrap" }}
+              >
+                {mn ? "Дасгал" : "Train"}
+              </button>
+            </div>
+          );
+        })()}
+
         {/* ── Weekly Recap Card ── */}
         {showRecap && (
           <div style={{
@@ -396,6 +448,16 @@ export default function AthleteDashboard() {
           locale={locale}
           router={router}
         />
+
+        {/* ── Goal Tracker (8A) ── */}
+        {sessionsReady && (
+          <GoalTracker
+            userId={user?.uid}
+            radarStats={radarStats}
+            locale={locale}
+            coachSnapshot={coachSnapshot}
+          />
+        )}
 
         {/* ── Desktop: 2-col grid ── */}
         <div style={isDesktop ? { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 28px", alignItems: "start" } : {}}>
