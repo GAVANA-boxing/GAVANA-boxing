@@ -37,6 +37,7 @@ import LastSessionRecap from "@/components/dashboard/LastSessionRecap";
 import GoalTracker from "@/components/dashboard/GoalTracker";
 import TrainingCalendar from "@/components/dashboard/TrainingCalendar";
 import MonthlyReport from "@/components/dashboard/MonthlyReport";
+import AdaptiveRecommendations from "@/components/dashboard/AdaptiveRecommendations";
 import dynamic from "next/dynamic";
 const ProgressShareCard = dynamic(() => import("@/components/dashboard/ProgressShareCard"), { ssr: false });
 
@@ -485,7 +486,19 @@ export default function AthleteDashboard() {
           router={router}
         />
 
+        {/* ── Adaptive Recommendations (11A) ── */}
+        {sessionsReady && coachSnapshot && (
+          <AdaptiveRecommendations
+            coachSnapshot={coachSnapshot}
+            locale={locale}
+            router={router}
+            userId={user?.uid}
+            trainingSessions={trainingSessions}
+          />
+        )}
+
         {/* ── Goal Tracker (8A) ── */}
+        <div id="goal-tracker-section">
         {sessionsReady && (
           <GoalTracker
             userId={user?.uid}
@@ -494,6 +507,8 @@ export default function AthleteDashboard() {
             coachSnapshot={coachSnapshot}
           />
         )}
+
+        </div>{/* /goal-tracker-section */}
 
         {/* ── Training Calendar (8C) ── */}
         {sessionsReady && trainingSessions.length > 0 && (
