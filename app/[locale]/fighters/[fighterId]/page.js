@@ -473,9 +473,6 @@ export default function FighterDetailPage() {
           </div>
         </Section>
 
-
-        </div>
-
         {/* ── Back to all ── */}
         <button style={s.allBtn} onClick={() => router.push(`/${locale}/fighters`)}>
           ← {t("fighterBackToAll")}
