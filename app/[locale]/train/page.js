@@ -151,7 +151,9 @@ export default function TrainPage() {
   const [debrief, setDebrief]             = useState(null);
   const [debriefLoading, setDebriefLoading] = useState(false);
   const [focusTip, setFocusTip] = useState(null);
+  const [newBadges, setNewBadges] = useState([]);
   const coachSnapshotRef = useRef(null);
+  const prevSessionCountRef = useRef(null);
 
   // Fetch training sessions once → build coach snapshot for debrief + focus tip
   useEffect(() => {
@@ -172,6 +174,7 @@ export default function TrainPage() {
           .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
         const snapshot = buildCoachSnapshot({ sessions, profileData: {} });
         coachSnapshotRef.current = snapshot;
+        prevSessionCountRef.current = sessions.length;
         if (snapshot && sessions.length >= 3) {
           const weakAreas = Object.entries(snapshot.radarStats).sort(([, a], [, b]) => a - b);
           const miniSnap = { weakAreas, radarStats: snapshot.radarStats };
@@ -227,6 +230,23 @@ export default function TrainPage() {
     })();
     return () => { active = false; };
   }, [result?.score]);
+
+  // ── Badge celebration after session save ─────────────────────────────────
+  useEffect(() => {
+    if (!saved || !savedAttemptNumber) return;
+    const { computeEarnedBadges, ACHIEVEMENT_BADGES } = require("@/lib/badges");
+    const snap = coachSnapshotRef.current;
+    const radarStats = snap?.radarStats || {};
+    const before = computeEarnedBadges({ sessionCount: savedAttemptNumber - 1, bestScore: snap?.bestScore || 0, streakDays: snap?.streakDays || 0, studiedCount: 0, totalFighters: 10, radarStats });
+    const after  = computeEarnedBadges({ sessionCount: savedAttemptNumber,     bestScore: Math.max(snap?.bestScore || 0, result?.score || 0), streakDays: snap?.streakDays || 0, studiedCount: 0, totalFighters: 10, radarStats });
+    const earned = after.filter((id) => !before.includes(id));
+    if (earned.length > 0) {
+      const meta = ACHIEVEMENT_BADGES.filter((b) => earned.includes(b.id));
+      setNewBadges(meta);
+      const timer = setTimeout(() => setNewBadges([]), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [saved, savedAttemptNumber]);
 
   // ── Lesson context from query params ─────────────────────────────────────
   const [lessonContext, setLessonContext] = useState(null);
@@ -497,6 +517,31 @@ export default function TrainPage() {
       />
       <DailyMission locale={locale} />
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="reels" />
+
+      {/* Badge celebration toast */}
+      {newBadges.map((badge, i) => (
+        <div key={badge.id} style={{
+          position: "fixed", bottom: `calc(${100 + i * 70}px + env(safe-area-inset-bottom))`,
+          left: "50%", transform: "translateX(-50%)",
+          zIndex: 9000, pointerEvents: "none",
+          display: "flex", alignItems: "center", gap: 10,
+          padding: "11px 18px", borderRadius: 20,
+          background: "rgba(12,12,14,0.95)",
+          border: `1px solid ${badge.tier === "gold" ? GOLD : badge.tier === "silver" ? "#A8A9AD" : "#CD7F32"}40`,
+          boxShadow: `0 8px 32px rgba(0,0,0,0.6)`,
+          backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+          animation: "slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1)",
+          whiteSpace: "nowrap",
+        }}>
+          <span style={{ fontSize: 22 }}>{badge.icon}</span>
+          <div>
+            <div style={{ fontSize: 9, fontWeight: 900, color: badge.tier === "gold" ? GOLD : badge.tier === "silver" ? "#A8A9AD" : "#CD7F32", letterSpacing: 1.5, textTransform: "uppercase" }}>
+              {locale === "mn" ? "Шинэ badge!" : "Badge Unlocked!"}
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 900, color: "#fff" }}>{badge.name}</div>
+          </div>
+        </div>
+      ))}
 
     </main>
   );

@@ -7,32 +7,41 @@ import { FIGHTERS } from "@/lib/fighters";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
 import FighterPortrait from "@/components/FighterPortrait";
-import { RED, GOLD, redAlpha, pageBg } from "@/lib/tokens";
+import { RED, GOLD, redAlpha, goldAlpha, pageBg } from "@/lib/tokens";
 import { buildCoachSnapshot } from "@/lib/buildCoachContext";
 import { getPersonalConnection } from "@/lib/fighterPersonalConnection";
+import FighterCompareModal from "@/components/fighters/FighterCompareModal";
 
-function FighterGridCard({ fighter, onClick, badge, studied }) {
+function FighterGridCard({ fighter, onClick, badge, studied, compareMode, selected, onToggle }) {
   const acc = fighter.accent;
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={compareMode ? onToggle : onClick}
       style={{
         ...s.card,
-        border: badge ? `1px solid ${acc}50` : studied ? `1px solid rgba(52,211,153,0.2)` : "1px solid rgba(255,255,255,0.08)",
-        borderBottom: `3px solid ${acc}55`,
-        boxShadow: badge
+        border: selected ? `2px solid ${GOLD}` : badge ? `1px solid ${acc}50` : studied ? `1px solid rgba(52,211,153,0.2)` : "1px solid rgba(255,255,255,0.08)",
+        borderBottom: selected ? `2px solid ${GOLD}` : `3px solid ${acc}55`,
+        boxShadow: selected
+          ? `0 8px 28px rgba(0,0,0,0.5), 0 0 0 2px ${GOLD}44`
+          : badge
           ? `0 8px 28px rgba(0,0,0,0.5), 0 0 0 1px ${acc}22`
           : `0 8px 28px rgba(0,0,0,0.5), inset 0 0 0 1px ${acc}12`,
+        position: "relative",
       }}
     >
       <FighterPortrait fighterId={fighter.id} fighter={fighter} height={155} flagSize={46} showName showLabel />
-      {badge && (
+      {selected && (
+        <div style={{ position: "absolute", top: 8, right: 8, width: 22, height: 22, borderRadius: "50%", background: GOLD, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 8px ${GOLD}` }}>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+      )}
+      {!selected && badge && (
         <div style={{ position: "absolute", top: 8, right: 8, padding: "2px 7px", borderRadius: 999, background: `${acc}22`, border: `1px solid ${acc}55`, fontSize: 8, fontWeight: 900, color: acc, letterSpacing: 1, textTransform: "uppercase" }}>
           {badge}
         </div>
       )}
-      {studied && !badge && (
+      {!selected && studied && !badge && (
         <div style={{ position: "absolute", top: 8, right: 8, width: 20, height: 20, borderRadius: "50%", background: "rgba(52,211,153,0.18)", border: "1px solid rgba(52,211,153,0.45)", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="20 6 9 17 4 12"/>
@@ -93,6 +102,16 @@ export default function FightersPage() {
   const t = (key) => translate(locale, key);
 
   const [snapshot, setSnapshot] = useState(null);
+  const [compareMode, setCompareMode] = useState(false);
+  const [compareIds, setCompareIds] = useState([]);
+
+  const toggleCompare = (id) => {
+    setCompareIds((prev) => {
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
+      if (prev.length >= 2) return [prev[1], id];
+      return [...prev, id];
+    });
+  };
   const [studiedFighters, setStudiedFighters] = useState([]);
 
   useEffect(() => {
@@ -143,9 +162,40 @@ export default function FightersPage() {
             <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
-        <p style={s.kicker}>COMBAT · FIGHTERS</p>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
+          <p style={{ ...s.kicker, margin: 0 }}>COMBAT · FIGHTERS</p>
+          <button
+            type="button"
+            onClick={() => { setCompareMode((c) => !c); setCompareIds([]); }}
+            style={{
+              padding: "5px 12px", borderRadius: 20,
+              background: compareMode ? goldAlpha(0.15) : "rgba(255,255,255,0.05)",
+              border: compareMode ? `1px solid ${GOLD}40` : "1px solid rgba(255,255,255,0.1)",
+              color: compareMode ? GOLD : "rgba(255,255,255,0.4)",
+              fontSize: 11, fontWeight: 900, cursor: "pointer",
+            }}
+          >
+            {locale === "mn" ? "⚖ Харьцуулах" : "⚖ Compare"}
+          </button>
+        </div>
         <h1 style={s.title}>{t("fighterAllTitle")}</h1>
         <p style={s.subtitle}>{t("fighterAllSubtitle")}</p>
+
+        {compareMode && (
+          <div style={{ marginTop: 10, padding: "10px 13px", borderRadius: 12, background: goldAlpha(0.07), border: `1px solid ${GOLD}22`, fontSize: 12, color: "rgba(255,255,255,0.5)", fontWeight: 700 }}>
+            {compareIds.length === 0 && (locale === "mn" ? "2 тулаанч сонгоно уу" : "Select 2 fighters to compare")}
+            {compareIds.length === 1 && (locale === "mn" ? "Нэг тулаанч сонгосон — дараагийг сонго" : "1 selected — pick one more")}
+            {compareIds.length === 2 && (
+              <button
+                type="button"
+                onClick={() => {/* show modal - handled below */}}
+                style={{ width: "100%", padding: "9px 0", borderRadius: 10, background: GOLD, border: "none", color: "#000", fontSize: 13, fontWeight: 900, cursor: "pointer" }}
+              >
+                {locale === "mn" ? "⚖ Харьцуулах" : "⚖ Compare Now"}
+              </button>
+            )}
+          </div>
+        )}
 
         {/* ── Fighter Mastery progress ── */}
         {studiedFighters.length > 0 && (
@@ -210,11 +260,24 @@ export default function FightersPage() {
             badge={connection?.isDirectlyRelevant && !recommendedIds.has(fighter.id) ? connection.primaryFocus : null}
             studied={studiedFighters.includes(fighter.id)}
             onClick={() => router.push(`/${locale}/fighters/${fighter.id}`)}
+            compareMode={compareMode}
+            selected={compareIds.includes(fighter.id)}
+            onToggle={() => toggleCompare(fighter.id)}
           />
         ))}
       </div>
 
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="home" />
+
+      {compareMode && compareIds.length === 2 && (
+        <FighterCompareModal
+          fighterIds={compareIds}
+          snapshot={snapshot}
+          locale={locale}
+          router={router}
+          onClose={() => { setCompareIds([]); setCompareMode(false); }}
+        />
+      )}
     </div>
   );
 }

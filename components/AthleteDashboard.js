@@ -37,6 +37,12 @@ import LastSessionRecap from "@/components/dashboard/LastSessionRecap";
 import GoalTracker from "@/components/dashboard/GoalTracker";
 import TrainingCalendar from "@/components/dashboard/TrainingCalendar";
 import MonthlyReport from "@/components/dashboard/MonthlyReport";
+import AdaptiveRecommendations from "@/components/dashboard/AdaptiveRecommendations";
+import FighterStudyRoadmap from "@/components/dashboard/FighterStudyRoadmap";
+import TrainingLoadStatus from "@/components/dashboard/TrainingLoadStatus";
+import SkillVelocity from "@/components/dashboard/SkillVelocity";
+import DailyTip from "@/components/dashboard/DailyTip";
+import WeeklyChallenge from "@/components/dashboard/WeeklyChallenge";
 import dynamic from "next/dynamic";
 const ProgressShareCard = dynamic(() => import("@/components/dashboard/ProgressShareCard"), { ssr: false });
 
@@ -339,6 +345,15 @@ export default function AthleteDashboard() {
           );
         })()}
 
+        {/* ── Training Load Status (11C) ── */}
+        {sessionsReady && trainingSessions.length >= 1 && (
+          <TrainingLoadStatus
+            trainingSessions={trainingSessions}
+            locale={locale}
+            router={router}
+          />
+        )}
+
         {/* ── Weekly Recap Card ── */}
         {showRecap && (
           <div style={{
@@ -442,13 +457,28 @@ export default function AthleteDashboard() {
                   <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.7)", lineHeight: 1.4 }}>{drill}</span>
                 </div>
               )}
-              <button
-                type="button"
-                onClick={() => router.push(`/${locale}/drills`)}
-                style={{ width: "100%", padding: "9px 0", borderRadius: 10, background: `${acc}12`, border: `1px solid ${acc}30`, color: acc, fontSize: 12, fontWeight: 900, cursor: "pointer", letterSpacing: 0.3 }}
-              >
-                {locale === "mn" ? "⚡ AI Дасгал үүсгэх" : locale === "ko" ? "⚡ AI 드릴 생성" : "⚡ Generate AI Drills"}
-              </button>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => router.push(`/${locale}/drills`)}
+                  style={{ padding: "9px 0", borderRadius: 10, background: `${acc}12`, border: `1px solid ${acc}30`, color: acc, fontSize: 11, fontWeight: 900, cursor: "pointer" }}
+                >
+                  {locale === "mn" ? "⚡ Дасгал" : "⚡ Drills"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const area = connection.primaryFocus || weakAreas[0]?.[0] || "Guard";
+                    const q = locale === "mn"
+                      ? `Миний ${area} оноог хэрхэн сайжруулах вэ?`
+                      : `How can I improve my ${area} score?`;
+                    router.push(`/${locale}/coach/chat?q=${encodeURIComponent(q)}`);
+                  }}
+                  style={{ padding: "9px 0", borderRadius: 10, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontSize: 11, fontWeight: 900, cursor: "pointer" }}
+                >
+                  {locale === "mn" ? "💬 Coach" : "💬 Ask Coach"}
+                </button>
+              </div>
             </div>
           );
         })()}
@@ -470,7 +500,49 @@ export default function AthleteDashboard() {
           router={router}
         />
 
+        {/* ── Daily Tip (12B) ── */}
+        {sessionsReady && coachSnapshot && trainingSessions.length >= 1 && (
+          <DailyTip coachSnapshot={coachSnapshot} locale={locale} />
+        )}
+
+        {/* ── Weekly Challenge (12C) ── */}
+        {sessionsReady && coachSnapshot && (
+          <WeeklyChallenge
+            coachSnapshot={coachSnapshot}
+            trainingSessions={trainingSessions}
+            locale={locale}
+            userId={user?.uid}
+          />
+        )}
+
+        {/* ── Adaptive Recommendations (11A) ── */}
+        {sessionsReady && coachSnapshot && (
+          <AdaptiveRecommendations
+            coachSnapshot={coachSnapshot}
+            locale={locale}
+            router={router}
+            userId={user?.uid}
+            trainingSessions={trainingSessions}
+          />
+        )}
+
+        {/* ── Skill Velocity (12A) ── */}
+        {sessionsReady && trainingSessions.length >= 6 && (
+          <SkillVelocity trainingSessions={trainingSessions} locale={locale} />
+        )}
+
+        {/* ── Fighter Study Roadmap (11B) ── */}
+        {sessionsReady && coachSnapshot && trainingSessions.length >= 3 && (
+          <FighterStudyRoadmap
+            coachSnapshot={coachSnapshot}
+            locale={locale}
+            router={router}
+            userId={user?.uid}
+          />
+        )}
+
         {/* ── Goal Tracker (8A) ── */}
+        <div id="goal-tracker-section">
         {sessionsReady && (
           <GoalTracker
             userId={user?.uid}
@@ -479,6 +551,8 @@ export default function AthleteDashboard() {
             coachSnapshot={coachSnapshot}
           />
         )}
+
+        </div>{/* /goal-tracker-section */}
 
         {/* ── Training Calendar (8C) ── */}
         {sessionsReady && trainingSessions.length > 0 && (
