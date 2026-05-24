@@ -36,6 +36,7 @@ import WelcomeBanner from "@/components/dashboard/WelcomeBanner";
 import LastSessionRecap from "@/components/dashboard/LastSessionRecap";
 import GoalTracker from "@/components/dashboard/GoalTracker";
 import TrainingCalendar from "@/components/dashboard/TrainingCalendar";
+import MonthlyReport from "@/components/dashboard/MonthlyReport";
 import dynamic from "next/dynamic";
 const ProgressShareCard = dynamic(() => import("@/components/dashboard/ProgressShareCard"), { ssr: false });
 
@@ -484,6 +485,17 @@ export default function AthleteDashboard() {
           <TrainingCalendar
             trainingSessions={trainingSessions}
             locale={locale}
+          />
+        )}
+
+        {/* ── Monthly Report (9A) ── */}
+        {sessionsReady && (
+          <MonthlyReport
+            coachSnapshot={coachSnapshot}
+            coachContextStr={coachContextStr}
+            locale={locale}
+            userId={user?.uid}
+            trainingSessions={trainingSessions}
           />
         )}
 
