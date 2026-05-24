@@ -57,7 +57,7 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive }) {
   const {
     status, error, frameError, fps, framesAttempted, framesWithBody,
     totalPoseFrames, landmarksDetected, landmarkCount, lowerBodyVisible,
-    jointPresence, metricValidity, latestMetrics,
+    jointPresence, metricValidity, latestMetrics, cameraQuality,
   } = info;
 
   const statusColor =
@@ -84,6 +84,13 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive }) {
       <Row label="Lower body"
            value={isActive ? (lowerBodyVisible ? "VISIBLE" : landmarksDetected ? "NOT VISIBLE" : "—") : "—"}
            color={!isActive ? "rgba(255,255,255,0.3)" : lowerBodyVisible ? "#34D399" : landmarksDetected ? "#F59E0B" : "rgba(255,255,255,0.3)"} />
+      <Row label="Camera"
+           value={isActive && landmarksDetected ? (cameraQuality || "—").replace(/_/g, " ").toUpperCase() : "—"}
+           color={
+             !isActive || !landmarksDetected ? "rgba(255,255,255,0.3)" :
+             cameraQuality === "full_body"    ? "#34D399" :
+             cameraQuality === "too_close"    ? "#F87171" : "#F59E0B"
+           } />
       <Row label="FPS"          value={isActive ? (fps || "—") : "—"} />
       <Row label="Frames tried" value={framesAttempted} />
       <Row label="With body"    value={framesWithBody} />

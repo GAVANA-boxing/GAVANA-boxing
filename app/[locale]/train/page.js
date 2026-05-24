@@ -259,17 +259,19 @@ export default function TrainPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result?.score]);
 
-  // ── Setup cue: poll during recording to detect lower-body framing issues ──
+  // ── Setup cue: poll during recording to detect camera framing issues ──
   useEffect(() => {
     if (phase !== "recording") { setPositionCue(null); return; }
     const id = setInterval(() => {
       const info = getDebugInfo();
-      if (
-        info.status === "ready" &&
-        info.landmarksDetected &&
-        !info.lowerBodyVisible
-      ) {
+      if (info.status !== "ready" || !info.landmarksDetected) { setPositionCue(null); return; }
+      const q = info.cameraQuality;
+      if (q === "too_close") {
+        setPositionCue("Too close — step back so full torso is visible");
+      } else if (q === "upper_body_only") {
         setPositionCue("Step back — hips and feet must be visible for full analysis");
+      } else if (q === "upper_body_hips") {
+        setPositionCue("Feet not visible — step back for stance and balance analysis");
       } else {
         setPositionCue(null);
       }

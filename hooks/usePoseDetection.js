@@ -190,6 +190,9 @@ export function usePoseDetection({ videoRef, isActive }) {
       { key: "balance",        valKey: "drift" },
     ];
 
+    // Extension and rotation are peak metrics — session value = MAX (not average)
+    const PEAK_KEYS = new Set(["punchExtension", "rotation"]);
+
     const summary = {};
     for (const { key, valKey } of METRIC_KEYS) {
       const valid = frames.filter((f) => f[key] !== null);
@@ -198,17 +201,27 @@ export function usePoseDetection({ videoRef, isActive }) {
       const statusCounts = {};
       for (const f of valid) statusCounts[f[key].status] = (statusCounts[f[key].status] || 0) + 1;
       const dominantStatus = Object.entries(statusCounts).sort((a, b) => b[1] - a[1])[0][0];
-      const avgVal = valid.reduce((s, f) => s + f[key][valKey], 0) / valid.length;
+      const aggVal = PEAK_KEYS.has(key)
+        ? Math.max(...valid.map((f) => f[key][valKey]))
+        : valid.reduce((s, f) => s + f[key][valKey], 0) / valid.length;
 
       summary[key] = {
         ...valid[0][key],
-        [valKey]: Math.round(avgVal * 100) / 100,
+        [valKey]: Math.round(aggVal * 100) / 100,
         status: dominantStatus,
       };
     }
 
     summary.score = poseMetricsScore(summary);
     summary.frameCount = frames.length;
+
+    // Dominant camera quality across session frames
+    const qualityCounts = {};
+    for (const f of frames) {
+      const q = f._cameraQuality;
+      if (q) qualityCounts[q] = (qualityCounts[q] || 0) + 1;
+    }
+    summary.cameraQuality = Object.entries(qualityCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "unknown";
 
     // Track which metrics were null for ALL frames (visibility-gated, not a real reading)
     summary.visibilityGaps = METRIC_KEYS
@@ -234,6 +247,8 @@ export function usePoseDetection({ videoRef, isActive }) {
       ? frameMetricsRef.current[frameMetricsRef.current.length - 1]
       : null;
 
+    const cameraQuality = latestMetrics?._cameraQuality || "unknown";
+
     // Per-metric validity: "valid" | "skipped" | "unknown"
     const metricValidity = {
       stanceWidth:    latestMetrics ? (latestMetrics.stanceWidth    !== null ? "valid" : "skipped") : "unknown",
@@ -257,6 +272,7 @@ export function usePoseDetection({ videoRef, isActive }) {
       jointPresence,
       metricValidity,
       latestMetrics,
+      cameraQuality,
     };
   }, [poseStatus, poseError]);
 

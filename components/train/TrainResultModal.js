@@ -343,10 +343,36 @@ export default function TrainResultModal({
             </>
           )}
 
-          {/* Form Focus — only shown when pose data is from real visible landmarks */}
+          {/* Camera quality context — shown when analysis was limited by framing */}
+          {(() => {
+            const q = poseMetrics?.cameraQuality;
+            if (!q || q === "full_body" || q === "unknown") return null;
+            const label =
+              q === "too_close"        ? "Too Close" :
+              q === "upper_body_only"  ? "Upper Body Only" :
+              q === "upper_body_hips"  ? "Upper Body + Hips" : null;
+            if (!label) return null;
+            return (
+              <div style={{
+                marginTop: 10, display: "flex", alignItems: "center", gap: 7,
+                padding: "6px 12px", borderRadius: RADIUS.md,
+                background: whiteAlpha(0.025), border: `1px solid ${whiteAlpha(0.07)}`,
+              }}>
+                <span style={{ fontSize: 13, flexShrink: 0 }}>📷</span>
+                <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1, color: "rgba(245,196,81,0.6)", textTransform: "uppercase" }}>
+                  {label}
+                </span>
+                <span style={{ fontSize: 10, color: whiteAlpha(0.28), fontWeight: 700 }}>
+                  — pose analysis partial
+                </span>
+              </div>
+            );
+          })()}
+
+          {/* Technique Finding — only shown when pose data is from real visible landmarks */}
           {worstPose && (
             <>
-              <SectionLabel label="Form Focus" />
+              <SectionLabel label="Technique Finding" />
               <div style={{
                 borderRadius: RADIUS.md, padding: "12px 14px",
                 background: "rgba(245,196,81,0.04)", border: `1px solid rgba(245,196,81,0.14)`,
@@ -378,9 +404,9 @@ export default function TrainResultModal({
                 padding: "9px 12px", borderRadius: RADIUS.md,
                 background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.07)}`,
               }}>
-                <span style={{ fontSize: 14, flexShrink: 0 }}>📷</span>
+                <span style={{ fontSize: 13, flexShrink: 0 }}>⚠️</span>
                 <span style={{ fontSize: 11, color: whiteAlpha(0.38), fontWeight: 700, lineHeight: 1.45 }}>
-                  {skipped.charAt(0).toUpperCase() + skipped.slice(1)} analysis skipped — lower body was not visible. Step back next session for full pose feedback.
+                  {skipped.charAt(0).toUpperCase() + skipped.slice(1)} could not be analyzed — lower body was not in frame. Step back next session for complete technique feedback.
                 </span>
               </div>
             );
