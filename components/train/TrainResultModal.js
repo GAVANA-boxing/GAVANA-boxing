@@ -121,6 +121,7 @@ export default function TrainResultModal({
 }) {
   const displayScore = useCountUp(result?.score);
   const [sessionTag, setSessionTag] = useState(null);
+  const [readiness, setReadiness] = useState({ energy: null, focus: null });
   if (!result) return null;
 
   const events = movementEvents || [];
@@ -466,6 +467,33 @@ export default function TrainResultModal({
             <button type="button" style={styles.tryAgainButton} onClick={onTryAgain}>
               {activeChallenge ? t("challengeTryAgain") : t("trainTryAgain")}
             </button>
+            {/* Readiness quick-check */}
+            {!activeChallenge && !saved && (
+              <div style={{ display: "flex", gap: 10, marginBottom: 8, padding: "9px 11px", borderRadius: 11, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                {[
+                  { key: "energy", label: locale === "mn" ? "Энерги" : "Energy", opts: [{ v: "low", e: "😴" }, { v: "mid", e: "😐" }, { v: "high", e: "⚡" }] },
+                  { key: "focus",  label: locale === "mn" ? "Анхаарал" : "Focus",  opts: [{ v: "low", e: "😵" }, { v: "mid", e: "😐" }, { v: "high", e: "🎯" }] },
+                ].map(({ key, label, opts }) => (
+                  <div key={key} style={{ flex: 1 }}>
+                    <div style={{ fontSize: 8, fontWeight: 900, color: "rgba(255,255,255,0.3)", letterSpacing: 1.2, marginBottom: 5 }}>{label}</div>
+                    <div style={{ display: "flex", gap: 4 }}>
+                      {opts.map(({ v, e }) => (
+                        <button
+                          key={v}
+                          type="button"
+                          onClick={() => setReadiness((r) => ({ ...r, [key]: v }))}
+                          style={{
+                            flex: 1, padding: "5px 0", borderRadius: 8, fontSize: 16, cursor: "pointer",
+                            background: readiness[key] === v ? goldAlpha(0.18) : "rgba(255,255,255,0.04)",
+                            border: `1px solid ${readiness[key] === v ? goldAlpha(0.45) : "rgba(255,255,255,0.08)"}`,
+                          }}
+                        >{e}</button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
             {!activeChallenge && !saved && (
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 2 }}>
                 {["Bag", "Shadow", "Mitts", "Sparring", "Conditioning"].map((tag) => (
@@ -488,7 +516,7 @@ export default function TrainResultModal({
               <button
                 type="button"
                 style={{ ...styles.saveButton, ...(saved ? styles.saveButtonDone : {}), opacity: saving || saved ? 0.65 : 1, cursor: saving || saved ? "default" : "pointer" }}
-                onClick={() => onSave({ movementEvents: events, tag: sessionTag })}
+                onClick={() => onSave({ movementEvents: events, tag: sessionTag, readiness })}
                 disabled={saving || saved}
               >
                 {saving

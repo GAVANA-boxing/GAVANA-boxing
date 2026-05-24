@@ -131,6 +131,7 @@ const COMBAT_OS_ITEMS = [
   { key: "inbox",          labelEn: "Inbox",           labelMn: "Мессэж",            labelKo: "메시지",     path: "/inbox" },
   { key: "upload",         labelEn: "Upload",          labelMn: "Видео оруулах",     labelKo: "업로드",     path: "/upload" },
   { key: "drills",         labelEn: "Drills",          labelMn: "Дасгалууд",         labelKo: "드릴",       path: "/drills" },
+  { key: "history",        labelEn: "History",         labelMn: "Түүх",              labelKo: "기록",       path: "/history" },
 ];
 
 function CombatOSSheet({ onClose, router, locale, pathname }) {

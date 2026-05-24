@@ -20,6 +20,7 @@ import { FIGHTER_TECHNIQUES } from "@/lib/fighterTechniques";
 import TrainingFocusCard from "@/components/train/TrainingFocusCard";
 import { getDrillConfig } from "@/lib/drillConfig";
 import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
+import MilestoneCelebration from "@/components/MilestoneCelebration";
 
 // titleKey only — duration/target now live in drillConfig
 const CHALLENGES = {
@@ -518,6 +519,15 @@ export default function TrainPage() {
       />
       <DailyMission locale={locale} />
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="reels" />
+
+      {/* Milestone celebration (15B) */}
+      {saved && savedAttemptNumber && (
+        <MilestoneCelebration
+          sessionCount={savedAttemptNumber}
+          userId={user?.uid}
+          locale={locale}
+        />
+      )}
 
       {/* Badge celebration toast */}
       {newBadges.map((badge, i) => (
