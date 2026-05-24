@@ -43,6 +43,8 @@ import TrainingLoadStatus from "@/components/dashboard/TrainingLoadStatus";
 import SkillVelocity from "@/components/dashboard/SkillVelocity";
 import DailyTip from "@/components/dashboard/DailyTip";
 import WeeklyChallenge from "@/components/dashboard/WeeklyChallenge";
+import PersonalRecords from "@/components/dashboard/PersonalRecords";
+import ScoreProjection from "@/components/dashboard/ScoreProjection";
 import dynamic from "next/dynamic";
 const ProgressShareCard = dynamic(() => import("@/components/dashboard/ProgressShareCard"), { ssr: false });
 
@@ -524,6 +526,16 @@ export default function AthleteDashboard() {
             userId={user?.uid}
             trainingSessions={trainingSessions}
           />
+        )}
+
+        {/* ── Personal Records (13A) ── */}
+        {sessionsReady && (
+          <PersonalRecords trainingSessions={trainingSessions} locale={locale} />
+        )}
+
+        {/* ── Score Projection (13C) ── */}
+        {sessionsReady && trainingSessions.length >= 4 && (
+          <ScoreProjection trainingSessions={trainingSessions} locale={locale} />
         )}
 
         {/* ── Skill Velocity (12A) ── */}

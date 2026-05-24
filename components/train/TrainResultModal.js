@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { GOLD, RED, RADIUS, redAlpha, goldAlpha, whiteAlpha, blackAlpha } from "@/lib/tokens";
 import { getChallengeRank } from "@/lib/utils";
 import { getChallengeComparisonPercent } from "@/lib/trainHelpers";
@@ -120,6 +120,7 @@ export default function TrainResultModal({
   onShareTraining,
 }) {
   const displayScore = useCountUp(result?.score);
+  const [sessionTag, setSessionTag] = useState(null);
   if (!result) return null;
 
   const events = movementEvents || [];
@@ -465,11 +466,29 @@ export default function TrainResultModal({
             <button type="button" style={styles.tryAgainButton} onClick={onTryAgain}>
               {activeChallenge ? t("challengeTryAgain") : t("trainTryAgain")}
             </button>
+            {!activeChallenge && !saved && (
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 2 }}>
+                {["Bag", "Shadow", "Mitts", "Sparring", "Conditioning"].map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => setSessionTag((t) => t === tag ? null : tag)}
+                    style={{
+                      padding: "4px 10px", borderRadius: 20, fontSize: 10, fontWeight: 800, cursor: "pointer",
+                      background: sessionTag === tag ? goldAlpha(0.2) : "rgba(255,255,255,0.05)",
+                      border: `1px solid ${sessionTag === tag ? goldAlpha(0.5) : "rgba(255,255,255,0.1)"}`,
+                      color: sessionTag === tag ? GOLD : "rgba(255,255,255,0.4)",
+                      transition: "all 0.15s",
+                    }}
+                  >{tag}</button>
+                ))}
+              </div>
+            )}
             {!activeChallenge && (
               <button
                 type="button"
                 style={{ ...styles.saveButton, ...(saved ? styles.saveButtonDone : {}), opacity: saving || saved ? 0.65 : 1, cursor: saving || saved ? "default" : "pointer" }}
-                onClick={() => onSave({ movementEvents: events })}
+                onClick={() => onSave({ movementEvents: events, tag: sessionTag })}
                 disabled={saving || saved}
               >
                 {saving

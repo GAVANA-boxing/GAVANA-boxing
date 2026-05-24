@@ -202,7 +202,7 @@ export function useTrainingActions({
     }
   }, [result, t, reelId, user, locale, setError]);
 
-  const handleSave = useCallback(async ({ movementEvents = [] } = {}) => {
+  const handleSave = useCallback(async ({ movementEvents = [], tag = null } = {}) => {
     if (!user?.uid || !result) return;
 
     setSaving(true);
@@ -237,6 +237,7 @@ export function useTrainingActions({
         type: "training",
         locale,
         source: "train_screen",
+        ...(tag ? { sessionTag: tag } : {}),
         // Combat memory
         sessionIdentity,
         drillId: drillId || "default",
