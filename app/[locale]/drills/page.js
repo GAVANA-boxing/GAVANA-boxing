@@ -4,9 +4,9 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { collection, query, where, getDocs, orderBy, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { useAuth } from "@/lib/useAuth";
-import { buildCoachSnapshot, buildCoachContext } from "@/lib/dashboardHelpers";
-import { RED, GOLD, redAlpha, goldAlpha, blackAlpha, whiteAlpha, RADIUS } from "@/lib/tokens";
+import { useAuth } from "@/lib/AuthContext";
+import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
+import { RED, GOLD, redAlpha, goldAlpha, RADIUS } from "@/lib/tokens";
 
 const AREAS = ["Power", "Speed", "Timing", "Footwork", "Guard", "Accuracy"];
 const AREA_COLOR = {
@@ -70,7 +70,7 @@ export default function DrillsPage() {
         const snap = await getDocs(q);
         const sessions = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
         if (!active) return;
-        const snapshot = buildCoachSnapshot(sessions);
+        const snapshot = buildCoachSnapshot({ sessions });
         setCoachSnapshot(snapshot);
         // Auto-select weakest area
         if (snapshot?.weakAreas?.[0]?.[0]) {
@@ -93,7 +93,7 @@ export default function DrillsPage() {
     setError(null);
     setDrills(null);
 
-    const contextStr = coachSnapshot ? buildCoachContext(coachSnapshot) : "";
+    const contextStr = coachSnapshot ? buildCoachContext({ snapshot: coachSnapshot, locale }) : "";
     const prompt = `${contextStr ? contextStr + "\n\n" : ""}Generate exactly 5 boxing drills for the area: ${selectedArea}, drill type: ${selectedType}.
 Return ONLY valid JSON array, no markdown, no explanation:
 [{"name":"...","difficulty":"Beginner|Intermediate|Advanced","duration":"...","steps":["step1","step2","step3"]}]`;
