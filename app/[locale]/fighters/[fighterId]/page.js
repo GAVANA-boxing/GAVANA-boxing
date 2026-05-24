@@ -58,6 +58,69 @@ function ComboSteps({ steps }) {
   );
 }
 
+// ─── Interactive Combo Trainer ────────────────────────────────────────────────
+function ComboTrainer({ combo, acc, locale }) {
+  const [active, setActive] = useState(false);
+  const [step, setStep] = useState(0);
+  const [done, setDone] = useState(false);
+  const mn = locale === "mn";
+
+  function start() { setActive(true); setStep(0); setDone(false); }
+  function next() {
+    if (step < combo.steps.length - 1) { setStep((s) => s + 1); }
+    else { setDone(true); setActive(false); }
+  }
+  function reset() { setActive(false); setStep(0); setDone(false); }
+
+  return (
+    <div style={{ ...s.comboCard, borderColor: active ? `${acc}40` : undefined }} className="fighter-combo-card">
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+        <p style={{ ...s.comboName, color: acc, margin: 0 }}>{combo.name}</p>
+        {!active && !done && (
+          <button type="button" onClick={start} style={{ fontSize: 9, fontWeight: 900, color: acc, background: `${acc}18`, border: `1px solid ${acc}35`, borderRadius: 20, padding: "3px 10px", cursor: "pointer" }}>
+            {mn ? "Дасгал" : "Practice"}
+          </button>
+        )}
+        {done && (
+          <button type="button" onClick={reset} style={{ fontSize: 9, fontWeight: 900, color: "#34D399", background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.3)", borderRadius: 20, padding: "3px 10px", cursor: "pointer" }}>
+            {mn ? "Дахих" : "Again"}
+          </button>
+        )}
+      </div>
+
+      {!active && !done && <ComboSteps steps={combo.steps} />}
+
+      {active && (
+        <div style={{ textAlign: "center", padding: "10px 0" }}>
+          <div style={{ fontSize: 8, fontWeight: 900, color: "rgba(255,255,255,0.3)", letterSpacing: 1.5, marginBottom: 8 }}>
+            {step + 1} / {combo.steps.length}
+          </div>
+          <div style={{ fontSize: 22, fontWeight: 900, color: acc, marginBottom: 14, lineHeight: 1.1 }}>
+            {combo.steps[step]}
+          </div>
+          <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
+            {combo.steps.map((_, i) => (
+              <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: i <= step ? acc : "rgba(255,255,255,0.12)" }} />
+            ))}
+          </div>
+          <button type="button" onClick={next} style={{ marginTop: 14, padding: "9px 28px", borderRadius: 12, background: acc, border: "none", color: "#000", fontSize: 13, fontWeight: 900, cursor: "pointer" }}>
+            {step < combo.steps.length - 1 ? (mn ? "Дараах" : "Next") : (mn ? "Дуусгах" : "Done")}
+          </button>
+        </div>
+      )}
+
+      {done && (
+        <div style={{ textAlign: "center", padding: "8px 0 4px" }}>
+          <div style={{ fontSize: 18, marginBottom: 4 }}>✅</div>
+          <div style={{ fontSize: 11, fontWeight: 900, color: "#34D399" }}>
+            {mn ? "Гайхалтай! Дахин хий." : "Nice! Keep drilling it."}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Tap-to-expand section ────────────────────────────────────────────────────
 function Section({ title, icon, accent, children, defaultOpen = false }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -311,10 +374,7 @@ export default function FighterDetailPage() {
         {/* ── Signature Combos ── */}
         <Section title={t("fighterSignatureCombos")} icon={SI.combos} accent={acc} defaultOpen>
           {combos.map((combo, i) => (
-            <div key={i} style={s.comboCard} className="fighter-combo-card">
-              <p style={{ ...s.comboName, color: acc }}>{combo.name}</p>
-              <ComboSteps steps={combo.steps} />
-            </div>
+            <ComboTrainer key={i} combo={combo} acc={acc} locale={locale} />
           ))}
         </Section>
 
@@ -344,7 +404,7 @@ export default function FighterDetailPage() {
         )}
 
         {/* ── Movement DNA ── */}
-        <Section title={t("fighterMovementDNA")} icon={SI.dna} accent={acc}>
+        <Section title={t("fighterMovementDNA")} icon={SI.dna} accent={acc} defaultOpen>
           <div style={{ ...s.dnaBox, borderColor: acc + "35", background: acc + "0a" }}>
             <div style={s.dnaHeader}>
               <span style={{ ...s.dnaType, color: acc }}>{fighter.movementDNA.type}</span>
@@ -358,7 +418,7 @@ export default function FighterDetailPage() {
           </div>
         </Section>
 
-        {/* ── What to Study ── */}
+        {/* ── What to Study + Habits ── */}
         <Section title={t("fighterWhatToStudy")} icon={SI.study} accent={acc}>
           {whatToStudy.map((item, i) => (
             <div key={i} style={s.numRow}>
@@ -366,16 +426,19 @@ export default function FighterDetailPage() {
               <span style={s.rowText}>{item}</span>
             </div>
           ))}
-        </Section>
-
-        {/* ── Habits to Copy ── */}
-        <Section title={t("fighterHabits")} icon={SI.habits} accent={GOLD}>
-          {habits.map((item, i) => (
-            <div key={i} style={s.dotRow}>
-              <span style={{ ...s.dotMark, background: GOLD }} />
-              <span style={s.rowText}>{item}</span>
+          {habits.length > 0 && (
+            <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+              <div style={{ fontSize: 8, fontWeight: 900, color: "rgba(255,255,255,0.25)", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
+                {locale === "mn" ? "Дуурайх зуршлууд" : "Habits to copy"}
+              </div>
+              {habits.map((item, i) => (
+                <div key={i} style={s.dotRow}>
+                  <span style={{ ...s.dotMark, background: GOLD }} />
+                  <span style={s.rowText}>{item}</span>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </Section>
 
         {/* ── Drills ── */}
@@ -409,29 +472,6 @@ export default function FighterDetailPage() {
             ))}
           </div>
         </Section>
-
-        {/* ── Famous Fights ── */}
-        <Section title={t("fighterFamousFights")} icon={SI.award} accent={GOLD}>
-          {fights.map((f, i) => (
-            <div key={i} style={s.fightRow}>
-              <div style={s.fightMeta}>
-                <span style={s.fightName}>{f.fight}</span>
-                <span style={s.fightYear}>{f.year}</span>
-              </div>
-              <p style={s.fightNote}>{f.note}</p>
-            </div>
-          ))}
-        </Section>
-
-        {/* ── Related tags ── */}
-        <div style={s.tagsBlock}>
-          <p style={s.tagsLabel}>Tags</p>
-          <div style={s.tagsRow}>
-            {fighter.relatedKeywords.map((kw) => (
-              <span key={kw} style={s.tagChip}>{kw}</span>
-            ))}
-          </div>
-        </div>
 
         {/* ── Back to all ── */}
         <button style={s.allBtn} onClick={() => router.push(`/${locale}/fighters`)}>

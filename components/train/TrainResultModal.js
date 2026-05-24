@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { GOLD, RED, RADIUS, redAlpha, goldAlpha, whiteAlpha, blackAlpha } from "@/lib/tokens";
 import { getChallengeRank } from "@/lib/utils";
 import { getChallengeComparisonPercent } from "@/lib/trainHelpers";
@@ -31,6 +31,7 @@ const IDENTITY_SUBS = {
   "REACTIVE COUNTER":   "Movement-reactive defensive reads",
   "GUARD INSTABILITY":  "Guard line needs consolidation",
   "BALANCE BREAKER":    "Dynamic weight transfer detected",
+  "NARROW BASE":        "Stance too narrow — widen your base",
   "FORWARD HUNTER":     "Aggressive entry pattern detected",
   "SHARP EXECUTION":    "High-efficiency movement session",
   "SOLID FOUNDATION":   "Consistent movement quality",
@@ -38,9 +39,19 @@ const IDENTITY_SUBS = {
   "RAW ENERGY":         "Pure intensity — structure coming",
 };
 
-function getIdentityWithSub(score, movementEvents) {
-  const title = getSessionIdentity(score, movementEvents);
+function getIdentityWithSub(score, movementEvents, poseMetrics) {
+  const title = getSessionIdentity(score, movementEvents, poseMetrics);
   return { title, sub: IDENTITY_SUBS[title] || "" };
+}
+
+function getWorstPoseMetric(poseMetrics) {
+  if (!poseMetrics) return null;
+  const PRIORITY = ["guardHeight", "balance", "stanceWidth", "punchExtension", "rotation"];
+  for (const key of PRIORITY) {
+    const m = poseMetrics[key];
+    if (m && m.status !== "good") return m;
+  }
+  return null;
 }
 
 function getMovementSummary(movementEvents = []) {
@@ -106,6 +117,7 @@ export default function TrainResultModal({
   missionNewStreak,
   movementEvents,
   sessionStartTime,
+  poseMetrics = null,
   error,
   saving,
   saved,
@@ -120,10 +132,13 @@ export default function TrainResultModal({
   onShareTraining,
 }) {
   const displayScore = useCountUp(result?.score);
+  const [sessionTag, setSessionTag] = useState(null);
+  const [showDetails, setShowDetails] = useState(false);
   if (!result) return null;
 
   const events = movementEvents || [];
-  const identity = getIdentityWithSub(result.score, events);
+  const identity = getIdentityWithSub(result.score, events, poseMetrics);
+  const worstPose = getWorstPoseMetric(poseMetrics);
   const movementSummary = getMovementSummary(events);
   const timelineEvents = events.slice(-8);
   const hasMI = movementSummary.length > 0;
@@ -327,39 +342,66 @@ export default function TrainResultModal({
             </>
           )}
 
-          {/* Session Timeline */}
-          {hasTimeline && (
+          {/* Form Focus — worst pose metric cue */}
+          {worstPose && (
             <>
-              <SectionLabel label="Session Timeline" />
+              <SectionLabel label="Form Focus" />
               <div style={{
-                borderRadius: RADIUS.md, padding: "10px 14px",
-                background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.05)}`,
-                display: "flex", flexDirection: "column", gap: 5,
+                borderRadius: RADIUS.md, padding: "12px 14px",
+                background: "rgba(245,196,81,0.04)", border: `1px solid rgba(245,196,81,0.14)`,
+                borderLeft: `3px solid rgba(245,196,81,0.5)`,
               }}>
-                {timelineEvents.map((ev) => (
-                  <div key={ev.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ fontSize: 9, fontFamily: "monospace", color: goldAlpha(0.5), fontWeight: 700, flexShrink: 0 }}>
-                      [{fmtTime(ev.timestamp - (sessionStartTime || ev.timestamp))}]
-                    </span>
-                    <span style={{ fontSize: 10, color: whiteAlpha(0.35), fontWeight: 800 }}>
-                      {ev.label}
-                    </span>
-                  </div>
-                ))}
+                <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.5, color: GOLD, marginBottom: 5 }}>
+                  {worstPose.ideal}
+                </div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: whiteAlpha(0.7), lineHeight: 1.4 }}>
+                  {worstPose.cue}
+                </div>
               </div>
             </>
           )}
 
-          {/* Combat Telemetry */}
-          {!activeChallenge && result.breakdown && (
+          {/* Session Details (collapsible) */}
+          {(hasTimeline || (!activeChallenge && result.breakdown) || sessionHistory.length > 0) && (
             <>
-              <SectionLabel label="Combat Telemetry" />
-              <div style={{ borderRadius: RADIUS.md, padding: "10px 14px", background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.05)}` }}>
-                <TelemetryBar label="Accuracy"    value={result.breakdown.accuracy} />
-                <TelemetryBar label="Speed"       value={result.breakdown.speed} />
-                <TelemetryBar label="Power"       value={result.breakdown.power} />
-                <TelemetryBar label="Consistency" value={result.breakdown.consistency} />
-              </div>
+              <button
+                type="button"
+                onClick={() => setShowDetails((v) => !v)}
+                style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", padding: "8px 0 4px", cursor: "pointer", color: whiteAlpha(0.3), fontSize: 10, fontWeight: 800, letterSpacing: 1 }}
+              >
+                <span>{showDetails ? "▾" : "▸"}</span>
+                {showDetails ? "HIDE DETAILS" : "SESSION DETAILS"}
+              </button>
+              {showDetails && (
+                <>
+                  {hasTimeline && (
+                    <>
+                      <SectionLabel label="Session Timeline" />
+                      <div style={{ borderRadius: RADIUS.md, padding: "10px 14px", background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.05)}`, display: "flex", flexDirection: "column", gap: 5 }}>
+                        {timelineEvents.map((ev) => (
+                          <div key={ev.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                            <span style={{ fontSize: 9, fontFamily: "monospace", color: goldAlpha(0.5), fontWeight: 700, flexShrink: 0 }}>
+                              [{fmtTime(ev.timestamp - (sessionStartTime || ev.timestamp))}]
+                            </span>
+                            <span style={{ fontSize: 10, color: whiteAlpha(0.35), fontWeight: 800 }}>{ev.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                  {!activeChallenge && result.breakdown && (
+                    <>
+                      <SectionLabel label="Combat Telemetry" />
+                      <div style={{ borderRadius: RADIUS.md, padding: "10px 14px", background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.05)}` }}>
+                        <TelemetryBar label="Accuracy"    value={result.breakdown.accuracy} />
+                        <TelemetryBar label="Speed"       value={result.breakdown.speed} />
+                        <TelemetryBar label="Power"       value={result.breakdown.power} />
+                        <TelemetryBar label="Consistency" value={result.breakdown.consistency} />
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
             </>
           )}
 
@@ -426,31 +468,6 @@ export default function TrainResultModal({
             </>
           )}
 
-          {/* Session History */}
-          {sessionHistory.length > 0 && (
-            <>
-              <SectionLabel label="Recent Sessions" />
-              <div style={{ borderRadius: RADIUS.md, padding: "10px 14px 8px", background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.05)}` }}>
-                <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: 40 }}>
-                  {[...sessionHistory].reverse().map((s, i, arr) => (
-                    <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, height: "100%", justifyContent: "flex-end" }}>
-                      <div style={{
-                        width: "100%",
-                        height: `${Math.max(3, (s / 10) * 40)}px`,
-                        background: i === arr.length - 1 ? "rgba(255,59,48,0.82)" : whiteAlpha(0.1),
-                        borderRadius: "2px 2px 0 0",
-                        transition: "height 0.5s ease",
-                      }} />
-                      <span style={{ fontSize: 8, color: whiteAlpha(0.28), fontWeight: 700, fontFamily: "monospace" }}>
-                        {s.toFixed(1)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-
           <div style={{ height: 10 }} />
         </div>
 
@@ -465,11 +482,29 @@ export default function TrainResultModal({
             <button type="button" style={styles.tryAgainButton} onClick={onTryAgain}>
               {activeChallenge ? t("challengeTryAgain") : t("trainTryAgain")}
             </button>
+            {!activeChallenge && !saved && (
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 2 }}>
+                {["Bag", "Shadow", "Mitts", "Sparring", "Conditioning"].map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => setSessionTag((t) => t === tag ? null : tag)}
+                    style={{
+                      padding: "4px 10px", borderRadius: 20, fontSize: 10, fontWeight: 800, cursor: "pointer",
+                      background: sessionTag === tag ? goldAlpha(0.2) : "rgba(255,255,255,0.05)",
+                      border: `1px solid ${sessionTag === tag ? goldAlpha(0.5) : "rgba(255,255,255,0.1)"}`,
+                      color: sessionTag === tag ? GOLD : "rgba(255,255,255,0.4)",
+                      transition: "all 0.15s",
+                    }}
+                  >{tag}</button>
+                ))}
+              </div>
+            )}
             {!activeChallenge && (
               <button
                 type="button"
                 style={{ ...styles.saveButton, ...(saved ? styles.saveButtonDone : {}), opacity: saving || saved ? 0.65 : 1, cursor: saving || saved ? "default" : "pointer" }}
-                onClick={() => onSave({ movementEvents: events })}
+                onClick={() => onSave({ movementEvents: events, tag: sessionTag, poseMetrics })}
                 disabled={saving || saved}
               >
                 {saving

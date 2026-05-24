@@ -131,8 +131,9 @@ export default function WeeklyChallenge({ coachSnapshot, trainingSessions, local
         completed: false,
       };
       setChallenge(newChallenge);
-      // Persist
-      await setDoc(ref, { weeklyChallenge: newChallenge }, { merge: true }).catch(() => {});
+      // Persist — strip functions before saving to Firestore
+      const { enProgress, mnProgress, ...storable } = newChallenge;
+      await setDoc(ref, { weeklyChallenge: storable }, { merge: true }).catch(() => {});
     }
 
     load();

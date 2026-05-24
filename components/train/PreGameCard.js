@@ -3,6 +3,15 @@
 import styles from "@/components/train/trainStyles";
 import { GOLD, RED, whiteAlpha } from "@/lib/tokens";
 
+const AREA_COLOR = {
+  Power: RED, Speed: "#FB923C", Timing: GOLD,
+  Footwork: "#60A5FA", Guard: "#A78BFA", Accuracy: "#34D399",
+};
+const AREA_MN = {
+  Power: "Хүч", Speed: "Хурд", Timing: "Цаг",
+  Footwork: "Хөл", Guard: "Хамгаалалт", Accuracy: "Нарийвчлал",
+};
+
 export default function PreGameCard({
   phase,
   challengeUserId,
@@ -16,6 +25,7 @@ export default function PreGameCard({
   reelId,
   locale,
   t,
+  focusTip,
 }) {
   if (phase !== "idle") return null;
 
@@ -118,6 +128,32 @@ export default function PreGameCard({
           👻 {locale === "mn" ? `Ghost горим идэвхтэй — ${ghostBestScore.toFixed(1)}/10 давах` : locale === "ko" ? `고스트 모드 활성화 — ${ghostBestScore.toFixed(1)}/10 넘기` : `Ghost mode active — beat ${ghostBestScore.toFixed(1)}/10`}
         </div>
       )}
+
+      {/* ── Pre-session focus tip (14A) ── */}
+      {focusTip && !challengeUserId && (() => {
+        const { fighter, connection } = focusTip;
+        const area = connection?.primaryFocus;
+        const col = AREA_COLOR[area] || GOLD;
+        const drill = connection?.focusDrills?.[0] || connection?.focusStudy?.[0];
+        const areaLabel = locale === "mn" ? (AREA_MN[area] || area) : area;
+        return (
+          <div style={{
+            marginTop: 10,
+            padding: "10px 12px",
+            borderRadius: "3px 12px 12px 3px",
+            background: `${col}0a`,
+            border: `1px solid ${col}22`,
+            borderLeft: `3px solid ${col}`,
+          }}>
+            <div style={{ fontSize: 8, fontWeight: 900, color: col, letterSpacing: 1.8, textTransform: "uppercase", marginBottom: 5 }}>
+              ⚡ {locale === "mn" ? "Өнөөдрийн анхаарал" : "Today's Focus"} · {areaLabel}
+            </div>
+            <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.55)", fontWeight: 700, lineHeight: 1.4 }}>
+              {drill || (locale === "mn" ? `${areaLabel} дасгалд анхаарал тавь` : `Focus on ${area} today`)}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

@@ -202,7 +202,7 @@ export function useTrainingActions({
     }
   }, [result, t, reelId, user, locale, setError]);
 
-  const handleSave = useCallback(async ({ movementEvents = [] } = {}) => {
+  const handleSave = useCallback(async ({ movementEvents = [], tag = null, readiness = null, poseMetrics = null } = {}) => {
     if (!user?.uid || !result) return;
 
     setSaving(true);
@@ -220,7 +220,7 @@ export function useTrainingActions({
       const attemptNumber = previousAttempts + 1;
 
       // Enriched combat memory fields
-      const sessionIdentity  = getSessionIdentity(result.score, movementEvents);
+      const sessionIdentity  = getSessionIdentity(result.score, movementEvents, poseMetrics);
       const movementCounts   = buildMovementCounts(movementEvents);
       const movementMetrics  = buildMovementMetrics(movementCounts);
 
@@ -237,12 +237,16 @@ export function useTrainingActions({
         type: "training",
         locale,
         source: "train_screen",
+        ...(tag ? { sessionTag: tag } : {}),
+        ...(readiness?.energy ? { readiness } : {}),
         // Combat memory
         sessionIdentity,
         drillId: drillId || "default",
         durationSeconds: drillConfig?.durationSeconds || 10,
         movementCounts,
         ...movementMetrics,
+        // Pose metrics (null if MediaPipe unavailable)
+        ...(poseMetrics ? { poseMetrics } : {}),
       });
 
       // Daily mission completion

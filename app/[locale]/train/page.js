@@ -20,6 +20,10 @@ import { FIGHTER_TECHNIQUES } from "@/lib/fighterTechniques";
 import TrainingFocusCard from "@/components/train/TrainingFocusCard";
 import { getDrillConfig } from "@/lib/drillConfig";
 import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
+import MilestoneCelebration from "@/components/MilestoneCelebration";
+import { usePoseDetection } from "@/hooks/usePoseDetection";
+import dynamic from "next/dynamic";
+const PoseDebugOverlay = dynamic(() => import("@/components/train/PoseDebugOverlay"), { ssr: false });
 
 // titleKey only — duration/target now live in drillConfig
 const CHALLENGES = {
@@ -90,6 +94,11 @@ export default function TrainPage() {
     t,
   });
 
+  const { isReady: poseReady, computeSessionSummary, getLatestMetrics } = usePoseDetection({
+    videoRef,
+    isActive: phase === "recording",
+  });
+
   const {
     saving, saved, savedAttemptNumber,
     challengeSaving, challengeSaved, challengeSavedRef,
@@ -152,6 +161,7 @@ export default function TrainPage() {
   const [debriefLoading, setDebriefLoading] = useState(false);
   const [focusTip, setFocusTip] = useState(null);
   const [newBadges, setNewBadges] = useState([]);
+  const [poseSessionSummary, setPoseSessionSummary] = useState(null);
   const coachSnapshotRef = useRef(null);
   const prevSessionCountRef = useRef(null);
 
@@ -189,9 +199,14 @@ export default function TrainPage() {
     return () => { active = false; };
   }, [user?.uid]);
 
-  // Generate debrief when result appears
+  // Generate debrief when result appears; compute pose summary at the same time
   useEffect(() => {
-    if (!result?.score) { setDebrief(null); return; }
+    if (!result?.score) { setDebrief(null); setPoseSessionSummary(null); return; }
+
+    // Capture pose summary synchronously before any async work
+    const poseSummary = computeSessionSummary();
+    setPoseSessionSummary(poseSummary);
+
     setDebrief(null);
     setDebriefLoading(true);
     let active = true;
@@ -203,6 +218,17 @@ export default function TrainPage() {
         const prevStr = prev.length
           ? `Previous scores: ${prev.map(s => s.toFixed(1)).join(", ")}.`
           : "";
+
+        // Pose context for richer debrief
+        let poseStr = "";
+        if (poseSummary) {
+          const issues = Object.entries(poseSummary)
+            .filter(([k, v]) => v && typeof v === "object" && v.status && v.status !== "good")
+            .map(([, v]) => v.cue)
+            .slice(0, 2);
+          if (issues.length) poseStr = ` Pose issues detected: ${issues.join("; ")}.`;
+        }
+
         const { auth } = await import("@/lib/firebase");
         const token = await auth.currentUser?.getIdToken();
         const res = await fetch("/api/chat", {
@@ -214,7 +240,7 @@ export default function TrainPage() {
           body: JSON.stringify({
             messages: [{
               role: "user",
-              content: `Session complete. Score: ${result.score.toFixed(1)}/10. ${prevStr} Give a 2-3 sentence debrief: what performed well, what to improve, one specific drill.`,
+              content: `Session complete. Score: ${result.score.toFixed(1)}/10. ${prevStr}${poseStr} Give a 2-3 sentence debrief: what performed well, what to improve, one specific drill.`,
             }],
             persona: "analyst",
             locale,
@@ -229,6 +255,7 @@ export default function TrainPage() {
       }
     })();
     return () => { active = false; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result?.score]);
 
   // ── Badge celebration after session save ─────────────────────────────────
@@ -430,6 +457,9 @@ export default function TrainPage() {
               t={t}
             />
           )}
+
+          {/* Pose debug overlay — dev only, stripped in production */}
+          <PoseDebugOverlay getLatestMetrics={getLatestMetrics} isActive={phase === "recording"} />
         </div>
 
         <PreGameCard
@@ -445,6 +475,7 @@ export default function TrainPage() {
           reelId={reelId}
           locale={locale}
           t={t}
+          focusTip={focusTip}
         />
 
         {error && <div style={styles.error}>{error}</div>}
@@ -502,6 +533,7 @@ export default function TrainPage() {
         missionNewStreak={missionNewStreak}
         movementEvents={movementEvents}
         sessionStartTime={sessionStartTime}
+        poseMetrics={poseSessionSummary}
         error={error}
         saving={saving}
         saved={saved}
@@ -517,6 +549,15 @@ export default function TrainPage() {
       />
       <DailyMission locale={locale} />
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="reels" />
+
+      {/* Milestone celebration (15B) */}
+      {saved && savedAttemptNumber && (
+        <MilestoneCelebration
+          sessionCount={savedAttemptNumber}
+          userId={user?.uid}
+          locale={locale}
+        />
+      )}
 
       {/* Badge celebration toast */}
       {newBadges.map((badge, i) => (

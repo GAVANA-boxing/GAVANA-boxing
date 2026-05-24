@@ -31,18 +31,8 @@ import { getPersonalConnection } from "@/lib/fighterPersonalConnection";
 import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
 import WeeklyPlanSection from "@/components/dashboard/WeeklyPlanSection";
 import BadgesSection from "@/components/dashboard/BadgesSection";
-import FourWeekProgram from "@/components/dashboard/FourWeekProgram";
 import WelcomeBanner from "@/components/dashboard/WelcomeBanner";
 import LastSessionRecap from "@/components/dashboard/LastSessionRecap";
-import GoalTracker from "@/components/dashboard/GoalTracker";
-import TrainingCalendar from "@/components/dashboard/TrainingCalendar";
-import MonthlyReport from "@/components/dashboard/MonthlyReport";
-import AdaptiveRecommendations from "@/components/dashboard/AdaptiveRecommendations";
-import FighterStudyRoadmap from "@/components/dashboard/FighterStudyRoadmap";
-import TrainingLoadStatus from "@/components/dashboard/TrainingLoadStatus";
-import SkillVelocity from "@/components/dashboard/SkillVelocity";
-import DailyTip from "@/components/dashboard/DailyTip";
-import WeeklyChallenge from "@/components/dashboard/WeeklyChallenge";
 import dynamic from "next/dynamic";
 const ProgressShareCard = dynamic(() => import("@/components/dashboard/ProgressShareCard"), { ssr: false });
 
@@ -210,31 +200,8 @@ export default function AthleteDashboard() {
     return () => mq.removeEventListener("change", h);
   }, []);
 
-  // Weekly recap
+  // Week number used by WeeklyPlanSection
   const weekNumber = Math.floor(Date.now() / (7 * 24 * 3600 * 1000));
-  const recapDismissKey = `gavana_recap_dismissed_W${weekNumber}`;
-  const [recapDismissed, setRecapDismissed] = useState(() => {
-    if (typeof window === "undefined") return true;
-    return localStorage.getItem(recapDismissKey) === "1";
-  });
-  const weekAgoMs = Date.now() - 7 * 24 * 3600 * 1000;
-  const prevWeekAgoMs = weekAgoMs - 7 * 24 * 3600 * 1000;
-  const weekSessions = trainingSessions.filter((s) => getTs(s.createdAt) >= weekAgoMs);
-  const prevWeekSessions = trainingSessions.filter((s) => {
-    const ts = getTs(s.createdAt);
-    return ts >= prevWeekAgoMs && ts < weekAgoMs;
-  });
-  const weekXP = weekSessions.reduce((s, sess) => s + (Number(sess.xpGained) || 0), 0);
-  const weekScores = weekSessions.map((s) => Number(s.score)).filter(Number.isFinite);
-  const prevWeekScores = prevWeekSessions.map((s) => Number(s.score)).filter(Number.isFinite);
-  const weekAvg = weekScores.length ? weekScores.reduce((a, b) => a + b, 0) / weekScores.length : null;
-  const prevAvg = prevWeekScores.length ? prevWeekScores.reduce((a, b) => a + b, 0) / prevWeekScores.length : null;
-  const scoreTrend = weekAvg !== null && prevAvg !== null ? weekAvg - prevAvg : null;
-  const showRecap = weekSessions.length > 0 && !recapDismissed;
-  const dismissRecap = () => {
-    localStorage.setItem(recapDismissKey, "1");
-    setRecapDismissed(true);
-  };
 
   if (authLoading || !rankReady) {
     return (
@@ -345,63 +312,6 @@ export default function AthleteDashboard() {
           );
         })()}
 
-        {/* ── Training Load Status (11C) ── */}
-        {sessionsReady && trainingSessions.length >= 1 && (
-          <TrainingLoadStatus
-            trainingSessions={trainingSessions}
-            locale={locale}
-            router={router}
-          />
-        )}
-
-        {/* ── Weekly Recap Card ── */}
-        {showRecap && (
-          <div style={{
-            position: "relative",
-            background: "linear-gradient(145deg, #0e1a12 0%, #080d09 100%)",
-            border: "1px solid rgba(52,211,153,0.18)",
-            borderLeft: "3px solid #34D399",
-            borderRadius: "3px 16px 16px 3px",
-            padding: "14px 14px 12px",
-            marginBottom: 20,
-            boxShadow: "0 4px 24px rgba(52,211,153,0.08)",
-          }}>
-            <button
-              type="button"
-              aria-label="Dismiss"
-              onClick={dismissRecap}
-              style={{ position: "absolute", top: 10, right: 12, background: "none", border: "none", color: "rgba(255,255,255,0.25)", fontSize: 18, cursor: "pointer", lineHeight: 1, padding: 0 }}
-            >×</button>
-            <p style={{ margin: "0 0 10px", fontSize: 9, fontWeight: 900, color: "#34D399", letterSpacing: 2.5, textTransform: "uppercase" }}>
-              🗓 {locale === "mn" ? "7 хоногийн ахиц" : locale === "ko" ? "주간 요약" : "Weekly Recap"}
-            </p>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 11px", borderRadius: RADIUS.full, background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.25)", color: "#34D399", fontSize: 12, fontWeight: 900 }}>
-                🥊 {weekSessions.length} {locale === "mn" ? "сесс" : locale === "ko" ? "세션" : "sessions"}
-              </span>
-              {weekXP > 0 && (
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 11px", borderRadius: RADIUS.full, background: `${goldAlpha(0.1)}`, border: `1px solid ${goldAlpha(0.25)}`, color: GOLD, fontSize: 12, fontWeight: 900 }}>
-                  ⚡ +{weekXP} XP
-                </span>
-              )}
-              {weekScores.length > 0 && (
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 11px", borderRadius: RADIUS.full, background: "rgba(96,165,250,0.1)", border: "1px solid rgba(96,165,250,0.25)", color: "#60A5FA", fontSize: 12, fontWeight: 900 }}>
-                  ⭐ {weekAvg?.toFixed(1)}/10 avg
-                </span>
-              )}
-              {scoreTrend !== null && (
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 11px", borderRadius: RADIUS.full, background: scoreTrend >= 0 ? "rgba(52,211,153,0.1)" : "rgba(248,113,113,0.1)", border: `1px solid ${scoreTrend >= 0 ? "rgba(52,211,153,0.25)" : "rgba(248,113,113,0.25)"}`, color: scoreTrend >= 0 ? "#34D399" : "#F87171", fontSize: 12, fontWeight: 900 }}>
-                  {scoreTrend >= 0 ? "📈" : "📉"} {scoreTrend >= 0 ? "+" : ""}{scoreTrend.toFixed(1)} {locale === "mn" ? "оноо" : locale === "ko" ? "점" : "pts"}
-                </span>
-              )}
-              {dailyStreak >= 3 && (
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 11px", borderRadius: RADIUS.full, background: "rgba(251,146,60,0.1)", border: "1px solid rgba(251,146,60,0.25)", color: "#FB923C", fontSize: 12, fontWeight: 900 }}>
-                  🔥 {dailyStreak}{locale === "mn" ? "ш streak" : locale === "ko" ? "일 스트릭" : "d streak"}
-                </span>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* ── Today's Focus ── */}
         {sessionsReady && stats.scores.length >= 3 && (() => {
@@ -493,84 +403,20 @@ export default function AthleteDashboard() {
           userId={user?.uid}
         />
 
-        {/* ── 4-Week Program ── */}
-        <FourWeekProgram
-          coachSnapshot={coachSnapshot}
-          locale={locale}
-          router={router}
-        />
-
-        {/* ── Daily Tip (12B) ── */}
-        {sessionsReady && coachSnapshot && trainingSessions.length >= 1 && (
-          <DailyTip coachSnapshot={coachSnapshot} locale={locale} />
-        )}
-
-        {/* ── Weekly Challenge (12C) ── */}
-        {sessionsReady && coachSnapshot && (
-          <WeeklyChallenge
-            coachSnapshot={coachSnapshot}
-            trainingSessions={trainingSessions}
-            locale={locale}
-            userId={user?.uid}
-          />
-        )}
-
-        {/* ── Adaptive Recommendations (11A) ── */}
-        {sessionsReady && coachSnapshot && (
-          <AdaptiveRecommendations
-            coachSnapshot={coachSnapshot}
-            locale={locale}
-            router={router}
-            userId={user?.uid}
-            trainingSessions={trainingSessions}
-          />
-        )}
-
-        {/* ── Skill Velocity (12A) ── */}
-        {sessionsReady && trainingSessions.length >= 6 && (
-          <SkillVelocity trainingSessions={trainingSessions} locale={locale} />
-        )}
-
-        {/* ── Fighter Study Roadmap (11B) ── */}
-        {sessionsReady && coachSnapshot && trainingSessions.length >= 3 && (
-          <FighterStudyRoadmap
-            coachSnapshot={coachSnapshot}
-            locale={locale}
-            router={router}
-            userId={user?.uid}
-          />
-        )}
-
-        {/* ── Goal Tracker (8A) ── */}
-        <div id="goal-tracker-section">
-        {sessionsReady && (
-          <GoalTracker
-            userId={user?.uid}
-            radarStats={radarStats}
-            locale={locale}
-            coachSnapshot={coachSnapshot}
-          />
-        )}
-
-        </div>{/* /goal-tracker-section */}
-
-        {/* ── Training Calendar (8C) ── */}
-        {sessionsReady && trainingSessions.length > 0 && (
-          <TrainingCalendar
-            trainingSessions={trainingSessions}
-            locale={locale}
-          />
-        )}
-
-        {/* ── Monthly Report (9A) ── */}
-        {sessionsReady && (
-          <MonthlyReport
-            coachSnapshot={coachSnapshot}
-            coachContextStr={coachContextStr}
-            locale={locale}
-            userId={user?.uid}
-            trainingSessions={trainingSessions}
-          />
+        {/* ── Session history link ── */}
+        {sessionsReady && trainingSessions.length >= 1 && (
+          <button
+            type="button"
+            onClick={() => router.push(`/${locale}/history`)}
+            style={{
+              display: "block", width: "100%", marginBottom: 20,
+              padding: "10px 0", borderRadius: 12, fontSize: 12, fontWeight: 900,
+              background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
+              color: "rgba(255,255,255,0.35)", cursor: "pointer",
+            }}
+          >
+            {locale === "mn" ? `📋 Бүх ${trainingSessions.length} дасгал харах` : `📋 View All ${trainingSessions.length} Sessions`}
+          </button>
         )}
 
         {/* ── Desktop: 2-col grid ── */}
