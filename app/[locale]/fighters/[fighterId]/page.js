@@ -404,7 +404,7 @@ export default function FighterDetailPage() {
         )}
 
         {/* ── Movement DNA ── */}
-        <Section title={t("fighterMovementDNA")} icon={SI.dna} accent={acc}>
+        <Section title={t("fighterMovementDNA")} icon={SI.dna} accent={acc} defaultOpen>
           <div style={{ ...s.dnaBox, borderColor: acc + "35", background: acc + "0a" }}>
             <div style={s.dnaHeader}>
               <span style={{ ...s.dnaType, color: acc }}>{fighter.movementDNA.type}</span>
@@ -418,7 +418,7 @@ export default function FighterDetailPage() {
           </div>
         </Section>
 
-        {/* ── What to Study ── */}
+        {/* ── What to Study + Habits ── */}
         <Section title={t("fighterWhatToStudy")} icon={SI.study} accent={acc}>
           {whatToStudy.map((item, i) => (
             <div key={i} style={s.numRow}>
@@ -426,16 +426,19 @@ export default function FighterDetailPage() {
               <span style={s.rowText}>{item}</span>
             </div>
           ))}
-        </Section>
-
-        {/* ── Habits to Copy ── */}
-        <Section title={t("fighterHabits")} icon={SI.habits} accent={GOLD}>
-          {habits.map((item, i) => (
-            <div key={i} style={s.dotRow}>
-              <span style={{ ...s.dotMark, background: GOLD }} />
-              <span style={s.rowText}>{item}</span>
+          {habits.length > 0 && (
+            <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+              <div style={{ fontSize: 8, fontWeight: 900, color: "rgba(255,255,255,0.25)", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
+                {locale === "mn" ? "Дуурайх зуршлууд" : "Habits to copy"}
+              </div>
+              {habits.map((item, i) => (
+                <div key={i} style={s.dotRow}>
+                  <span style={{ ...s.dotMark, background: GOLD }} />
+                  <span style={s.rowText}>{item}</span>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </Section>
 
         {/* ── Drills ── */}
@@ -470,27 +473,7 @@ export default function FighterDetailPage() {
           </div>
         </Section>
 
-        {/* ── Famous Fights ── */}
-        <Section title={t("fighterFamousFights")} icon={SI.award} accent={GOLD}>
-          {fights.map((f, i) => (
-            <div key={i} style={s.fightRow}>
-              <div style={s.fightMeta}>
-                <span style={s.fightName}>{f.fight}</span>
-                <span style={s.fightYear}>{f.year}</span>
-              </div>
-              <p style={s.fightNote}>{f.note}</p>
-            </div>
-          ))}
-        </Section>
 
-        {/* ── Related tags ── */}
-        <div style={s.tagsBlock}>
-          <p style={s.tagsLabel}>Tags</p>
-          <div style={s.tagsRow}>
-            {fighter.relatedKeywords.map((kw) => (
-              <span key={kw} style={s.tagChip}>{kw}</span>
-            ))}
-          </div>
         </div>
 
         {/* ── Back to all ── */}

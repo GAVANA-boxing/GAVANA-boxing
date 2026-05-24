@@ -121,7 +121,7 @@ export default function TrainResultModal({
 }) {
   const displayScore = useCountUp(result?.score);
   const [sessionTag, setSessionTag] = useState(null);
-  const [readiness, setReadiness] = useState({ energy: null, focus: null });
+  const [showDetails, setShowDetails] = useState(false);
   if (!result) return null;
 
   const events = movementEvents || [];
@@ -329,39 +329,47 @@ export default function TrainResultModal({
             </>
           )}
 
-          {/* Session Timeline */}
-          {hasTimeline && (
+          {/* Session Details (collapsible) */}
+          {(hasTimeline || (!activeChallenge && result.breakdown) || sessionHistory.length > 0) && (
             <>
-              <SectionLabel label="Session Timeline" />
-              <div style={{
-                borderRadius: RADIUS.md, padding: "10px 14px",
-                background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.05)}`,
-                display: "flex", flexDirection: "column", gap: 5,
-              }}>
-                {timelineEvents.map((ev) => (
-                  <div key={ev.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ fontSize: 9, fontFamily: "monospace", color: goldAlpha(0.5), fontWeight: 700, flexShrink: 0 }}>
-                      [{fmtTime(ev.timestamp - (sessionStartTime || ev.timestamp))}]
-                    </span>
-                    <span style={{ fontSize: 10, color: whiteAlpha(0.35), fontWeight: 800 }}>
-                      {ev.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-
-          {/* Combat Telemetry */}
-          {!activeChallenge && result.breakdown && (
-            <>
-              <SectionLabel label="Combat Telemetry" />
-              <div style={{ borderRadius: RADIUS.md, padding: "10px 14px", background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.05)}` }}>
-                <TelemetryBar label="Accuracy"    value={result.breakdown.accuracy} />
-                <TelemetryBar label="Speed"       value={result.breakdown.speed} />
-                <TelemetryBar label="Power"       value={result.breakdown.power} />
-                <TelemetryBar label="Consistency" value={result.breakdown.consistency} />
-              </div>
+              <button
+                type="button"
+                onClick={() => setShowDetails((v) => !v)}
+                style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", padding: "8px 0 4px", cursor: "pointer", color: whiteAlpha(0.3), fontSize: 10, fontWeight: 800, letterSpacing: 1 }}
+              >
+                <span>{showDetails ? "▾" : "▸"}</span>
+                {showDetails ? "HIDE DETAILS" : "SESSION DETAILS"}
+              </button>
+              {showDetails && (
+                <>
+                  {hasTimeline && (
+                    <>
+                      <SectionLabel label="Session Timeline" />
+                      <div style={{ borderRadius: RADIUS.md, padding: "10px 14px", background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.05)}`, display: "flex", flexDirection: "column", gap: 5 }}>
+                        {timelineEvents.map((ev) => (
+                          <div key={ev.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                            <span style={{ fontSize: 9, fontFamily: "monospace", color: goldAlpha(0.5), fontWeight: 700, flexShrink: 0 }}>
+                              [{fmtTime(ev.timestamp - (sessionStartTime || ev.timestamp))}]
+                            </span>
+                            <span style={{ fontSize: 10, color: whiteAlpha(0.35), fontWeight: 800 }}>{ev.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                  {!activeChallenge && result.breakdown && (
+                    <>
+                      <SectionLabel label="Combat Telemetry" />
+                      <div style={{ borderRadius: RADIUS.md, padding: "10px 14px", background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.05)}` }}>
+                        <TelemetryBar label="Accuracy"    value={result.breakdown.accuracy} />
+                        <TelemetryBar label="Speed"       value={result.breakdown.speed} />
+                        <TelemetryBar label="Power"       value={result.breakdown.power} />
+                        <TelemetryBar label="Consistency" value={result.breakdown.consistency} />
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
             </>
           )}
 
@@ -428,31 +436,6 @@ export default function TrainResultModal({
             </>
           )}
 
-          {/* Session History */}
-          {sessionHistory.length > 0 && (
-            <>
-              <SectionLabel label="Recent Sessions" />
-              <div style={{ borderRadius: RADIUS.md, padding: "10px 14px 8px", background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.05)}` }}>
-                <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: 40 }}>
-                  {[...sessionHistory].reverse().map((s, i, arr) => (
-                    <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, height: "100%", justifyContent: "flex-end" }}>
-                      <div style={{
-                        width: "100%",
-                        height: `${Math.max(3, (s / 10) * 40)}px`,
-                        background: i === arr.length - 1 ? "rgba(255,59,48,0.82)" : whiteAlpha(0.1),
-                        borderRadius: "2px 2px 0 0",
-                        transition: "height 0.5s ease",
-                      }} />
-                      <span style={{ fontSize: 8, color: whiteAlpha(0.28), fontWeight: 700, fontFamily: "monospace" }}>
-                        {s.toFixed(1)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-
           <div style={{ height: 10 }} />
         </div>
 
@@ -467,33 +450,6 @@ export default function TrainResultModal({
             <button type="button" style={styles.tryAgainButton} onClick={onTryAgain}>
               {activeChallenge ? t("challengeTryAgain") : t("trainTryAgain")}
             </button>
-            {/* Readiness quick-check */}
-            {!activeChallenge && !saved && (
-              <div style={{ display: "flex", gap: 10, marginBottom: 8, padding: "9px 11px", borderRadius: 11, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                {[
-                  { key: "energy", label: locale === "mn" ? "Энерги" : "Energy", opts: [{ v: "low", e: "😴" }, { v: "mid", e: "😐" }, { v: "high", e: "⚡" }] },
-                  { key: "focus",  label: locale === "mn" ? "Анхаарал" : "Focus",  opts: [{ v: "low", e: "😵" }, { v: "mid", e: "😐" }, { v: "high", e: "🎯" }] },
-                ].map(({ key, label, opts }) => (
-                  <div key={key} style={{ flex: 1 }}>
-                    <div style={{ fontSize: 8, fontWeight: 900, color: "rgba(255,255,255,0.3)", letterSpacing: 1.2, marginBottom: 5 }}>{label}</div>
-                    <div style={{ display: "flex", gap: 4 }}>
-                      {opts.map(({ v, e }) => (
-                        <button
-                          key={v}
-                          type="button"
-                          onClick={() => setReadiness((r) => ({ ...r, [key]: v }))}
-                          style={{
-                            flex: 1, padding: "5px 0", borderRadius: 8, fontSize: 16, cursor: "pointer",
-                            background: readiness[key] === v ? goldAlpha(0.18) : "rgba(255,255,255,0.04)",
-                            border: `1px solid ${readiness[key] === v ? goldAlpha(0.45) : "rgba(255,255,255,0.08)"}`,
-                          }}
-                        >{e}</button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
             {!activeChallenge && !saved && (
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 2 }}>
                 {["Bag", "Shadow", "Mitts", "Sparring", "Conditioning"].map((tag) => (
@@ -516,7 +472,7 @@ export default function TrainResultModal({
               <button
                 type="button"
                 style={{ ...styles.saveButton, ...(saved ? styles.saveButtonDone : {}), opacity: saving || saved ? 0.65 : 1, cursor: saving || saved ? "default" : "pointer" }}
-                onClick={() => onSave({ movementEvents: events, tag: sessionTag, readiness })}
+                onClick={() => onSave({ movementEvents: events, tag: sessionTag })}
                 disabled={saving || saved}
               >
                 {saving
