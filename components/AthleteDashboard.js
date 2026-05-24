@@ -31,6 +31,8 @@ import { getPersonalConnection } from "@/lib/fighterPersonalConnection";
 import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
 import WeeklyPlanSection from "@/components/dashboard/WeeklyPlanSection";
 import BadgesSection from "@/components/dashboard/BadgesSection";
+import FourWeekProgram from "@/components/dashboard/FourWeekProgram";
+import WelcomeBanner from "@/components/dashboard/WelcomeBanner";
 
 function getTs(ts) {
   if (!ts) return 0;
@@ -252,6 +254,18 @@ export default function AthleteDashboard() {
           </h1>
         </div>
 
+        {/* ── Welcome Banner (first-time users) ── */}
+        {sessionsReady && trainingSessions.length === 0 && (() => {
+          try { if (localStorage.getItem("gavana_welcome_dismissed") === "1") return null; } catch { /* */ }
+          return (
+            <WelcomeBanner
+              locale={locale}
+              router={router}
+              username={userData?.username || user?.displayName}
+            />
+          );
+        })()}
+
         {/* ── Weekly Recap Card ── */}
         {showRecap && (
           <div style={{
@@ -367,6 +381,13 @@ export default function AthleteDashboard() {
           router={router}
           weekNumber={weekNumber}
           userId={user?.uid}
+        />
+
+        {/* ── 4-Week Program ── */}
+        <FourWeekProgram
+          coachSnapshot={coachSnapshot}
+          locale={locale}
+          router={router}
         />
 
         {/* ── Desktop: 2-col grid ── */}

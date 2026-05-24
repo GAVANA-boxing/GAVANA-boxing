@@ -8,6 +8,9 @@ import { calculateSessionXP, calculateUserXP, getFighterRank, getNextRank, getRa
 import ProfileFighterCard from "@/components/profile/ProfileFighterCard";
 import { RED, GOLD, PURPLE, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/profile/profilePageStyles";
+import { FIGHTERS } from "@/lib/fighters";
+import { deriveRadarStats } from "@/lib/dashboardHelpers";
+import BadgesSection from "@/components/dashboard/BadgesSection";
 import BattleSection from "@/components/profile/BattleSection";
 import TrainingProgressSection from "@/components/profile/TrainingProgressSection";
 import { getTimestampMs, formatScore } from "@/lib/utils";
@@ -285,6 +288,12 @@ export default function UserProfilePage() {
     .filter((score) => Number.isFinite(score));
 
   const streakCount = profileUser?.streakCount || 0;
+
+  const profileRadarStats = useMemo(() => {
+    if (!trainingSessions?.length) return null;
+    const scores = trainingSessions.map((s) => Number(s.score)).filter(Number.isFinite);
+    return deriveRadarStats(scores, trainingSessions, streakCount);
+  }, [trainingSessions, streakCount]);
   const storedChallengeXP = Number(profileUser?.xp) || 0;
   const trainingSessionXP = trainingSessions.reduce((sum, s) => sum + (Number(s.xpGained) || 0), 0);
   const xp = storedChallengeXP + trainingSessionXP + calculateUserXP({
@@ -422,21 +431,34 @@ export default function UserProfilePage() {
       <div ref={tabContentRef} />
 
       {profileTab === "progress" ? (
-        <TrainingProgressSection
-          feedbackScores={feedbackScores}
-          progressStats={progressStats}
-          streakCount={streakCount}
-          fighterRank={fighterRank}
-          xp={xp}
-          nextRank={nextRank}
-          rankProgress={rankProgress}
-          aiFeedbackHistory={aiFeedbackHistory}
-          isOwnProfile={isOwnProfile}
-          locale={locale}
-          t={t}
-          onGoToDashboard={() => router.push(`/${locale}/dashboard`)}
-          onGoToReels={() => router.push(`/${locale}/reels`)}
-        />
+        <>
+          <TrainingProgressSection
+            feedbackScores={feedbackScores}
+            progressStats={progressStats}
+            streakCount={streakCount}
+            fighterRank={fighterRank}
+            xp={xp}
+            nextRank={nextRank}
+            rankProgress={rankProgress}
+            aiFeedbackHistory={aiFeedbackHistory}
+            isOwnProfile={isOwnProfile}
+            locale={locale}
+            t={t}
+            onGoToDashboard={() => router.push(`/${locale}/dashboard`)}
+            onGoToReels={() => router.push(`/${locale}/reels`)}
+          />
+          <div style={{ padding: "0 16px 32px", maxWidth: 680, margin: "0 auto", boxSizing: "border-box" }}>
+            <BadgesSection
+              sessionCount={trainingSessions.length}
+              bestScore={progressStats.bestScore ?? 0}
+              streakDays={streakCount}
+              studiedCount={(profileUser?.studiedFighters || []).length}
+              totalFighters={FIGHTERS.length}
+              radarStats={profileRadarStats}
+              locale={locale}
+            />
+          </div>
+        </>
       ) : profileTab === "record" ? (
         <BattleSection
           pvpStats={pvpStats}
