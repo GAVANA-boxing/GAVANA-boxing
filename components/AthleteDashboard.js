@@ -36,6 +36,8 @@ import WelcomeBanner from "@/components/dashboard/WelcomeBanner";
 import LastSessionRecap from "@/components/dashboard/LastSessionRecap";
 import GoalTracker from "@/components/dashboard/GoalTracker";
 import TrainingCalendar from "@/components/dashboard/TrainingCalendar";
+import dynamic from "next/dynamic";
+const ProgressShareCard = dynamic(() => import("@/components/dashboard/ProgressShareCard"), { ssr: false });
 
 function getTs(ts) {
   if (!ts) return 0;
@@ -84,6 +86,7 @@ export default function AthleteDashboard() {
   const [challengeCount, setChallengeCount] = useState(0);
   const [sessionsReady, setSessionsReady] = useState(false);
   const [showAllSessions, setShowAllSessions] = useState(false);
+  const [showShareCard, setShowShareCard] = useState(false);
   const [fighterArchetype, setFighterArchetype] = useState(null);
   const [showQuiz, setShowQuiz] = useState(false);
   const [reelsCount, setReelsCount] = useState(0);
@@ -248,13 +251,29 @@ export default function AthleteDashboard() {
 
       <div style={{ maxWidth: isDesktop ? "100%" : 540, margin: "0 auto", padding: isDesktop ? "28px 32px calc(32px)" : "calc(20px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom))" }}>
 
-        <div style={{ marginBottom: 22 }}>
-          <p style={{ margin: "0 0 2px", fontSize: 10, fontWeight: 900, color: "#FF3B30", letterSpacing: 3, textTransform: "uppercase" }}>
-            COMBAT · OS
-          </p>
-          <h1 style={{ margin: 0, fontSize: isDesktop ? 28 : 22, fontWeight: 900, color: "#fff", letterSpacing: "-0.025em", lineHeight: 1, fontFamily: "var(--font-display, 'Anton', sans-serif)" }}>
-            {userData?.username || user?.displayName || (locale === "mn" ? "Тамирчны ахиц" : locale === "ko" ? "선수 현황" : "My Progress")}
-          </h1>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 22 }}>
+          <div>
+            <p style={{ margin: "0 0 2px", fontSize: 10, fontWeight: 900, color: "#FF3B30", letterSpacing: 3, textTransform: "uppercase" }}>
+              COMBAT · OS
+            </p>
+            <h1 style={{ margin: 0, fontSize: isDesktop ? 28 : 22, fontWeight: 900, color: "#fff", letterSpacing: "-0.025em", lineHeight: 1, fontFamily: "var(--font-display, 'Anton', sans-serif)" }}>
+              {userData?.username || user?.displayName || (locale === "mn" ? "Тамирчны ахиц" : locale === "ko" ? "선수 현황" : "My Progress")}
+            </h1>
+          </div>
+          {sessionsReady && trainingSessions.length >= 3 && (
+            <button
+              type="button"
+              onClick={() => setShowShareCard(true)}
+              style={{
+                marginTop: 4, padding: "7px 12px", borderRadius: 10,
+                background: goldAlpha(0.1), border: `1px solid ${goldAlpha(0.3)}`,
+                color: GOLD, fontSize: 11, fontWeight: 900, cursor: "pointer",
+                letterSpacing: 0.3, whiteSpace: "nowrap",
+              }}
+            >
+              {locale === "mn" ? "📤 Share" : "📤 Share"}
+            </button>
+          )}
         </div>
 
         {/* ── Welcome Banner (first-time users) ── */}
@@ -683,6 +702,32 @@ export default function AthleteDashboard() {
           }}
         />
       )}
+
+      {showShareCard && (() => {
+        const { computeEarnedBadges } = require("@/lib/badges");
+        const earned = computeEarnedBadges({
+          sessionCount: trainingSessions.length,
+          bestScore: stats.bestScore ?? 0,
+          streakDays: dailyStreak,
+          studiedCount: (userData?.studiedFighters || []).length,
+          totalFighters: FIGHTERS.length,
+          radarStats,
+        });
+        return (
+          <ProgressShareCard
+            username={userData?.username || user?.displayName || "Fighter"}
+            fighterScore={fighterScore}
+            rank={rank}
+            xp={xp}
+            dailyStreak={dailyStreak}
+            radarStats={radarStats}
+            badgeCount={earned.length}
+            weekSessions={weekSessions.length}
+            locale={locale}
+            onClose={() => setShowShareCard(false)}
+          />
+        );
+      })()}
     </div>
   );
 }
