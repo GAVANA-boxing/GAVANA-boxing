@@ -343,7 +343,7 @@ export default function TrainResultModal({
             </>
           )}
 
-          {/* Form Focus — worst pose metric cue */}
+          {/* Form Focus — only shown when pose data is from real visible landmarks */}
           {worstPose && (
             <>
               <SectionLabel label="Form Focus" />
@@ -361,6 +361,30 @@ export default function TrainResultModal({
               </div>
             </>
           )}
+
+          {/* Framing note — shown when lower-body metrics were skipped due to visibility */}
+          {(() => {
+            const gaps = poseMetrics?.visibilityGaps || [];
+            const lowerGap = gaps.some((k) => ["stanceWidth", "balance"].includes(k));
+            const rotGap   = gaps.includes("rotation");
+            if (!lowerGap && !rotGap) return null;
+            const skipped = [
+              lowerGap && "stance & balance",
+              rotGap && !lowerGap && "hip rotation",
+            ].filter(Boolean).join(", ");
+            return (
+              <div style={{
+                marginTop: 6, display: "flex", alignItems: "flex-start", gap: 8,
+                padding: "9px 12px", borderRadius: RADIUS.md,
+                background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.07)}`,
+              }}>
+                <span style={{ fontSize: 14, flexShrink: 0 }}>📷</span>
+                <span style={{ fontSize: 11, color: whiteAlpha(0.38), fontWeight: 700, lineHeight: 1.45 }}>
+                  {skipped.charAt(0).toUpperCase() + skipped.slice(1)} analysis skipped — lower body was not visible. Step back next session for full pose feedback.
+                </span>
+              </div>
+            );
+          })()}
 
           {/* Session Details (collapsible) */}
           {(hasTimeline || (!activeChallenge && result.breakdown) || sessionHistory.length > 0) && (

@@ -162,6 +162,7 @@ export default function TrainPage() {
   const [focusTip, setFocusTip] = useState(null);
   const [newBadges, setNewBadges] = useState([]);
   const [poseSessionSummary, setPoseSessionSummary] = useState(null);
+  const [positionCue, setPositionCue] = useState(null); // setup cue during recording
   const coachSnapshotRef = useRef(null);
   const prevSessionCountRef = useRef(null);
 
@@ -257,6 +258,24 @@ export default function TrainPage() {
     return () => { active = false; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result?.score]);
+
+  // ── Setup cue: poll during recording to detect lower-body framing issues ──
+  useEffect(() => {
+    if (phase !== "recording") { setPositionCue(null); return; }
+    const id = setInterval(() => {
+      const info = getDebugInfo();
+      if (
+        info.status === "ready" &&
+        info.landmarksDetected &&
+        !info.lowerBodyVisible
+      ) {
+        setPositionCue("Step back — hips and feet must be visible for full analysis");
+      } else {
+        setPositionCue(null);
+      }
+    }, 1200);
+    return () => { clearInterval(id); setPositionCue(null); };
+  }, [phase, getDebugInfo]);
 
   // ── Badge celebration after session save ─────────────────────────────────
   useEffect(() => {
@@ -460,6 +479,25 @@ export default function TrainPage() {
 
           {/* Pose debug overlay — dev only, stripped in production */}
           <PoseDebugOverlay getDebugInfo={getDebugInfo} isActive={phase === "recording"} />
+
+          {/* Position cue — shown when lower body not in frame during recording */}
+          {positionCue && (
+            <div style={{
+              position: "absolute", bottom: 56, left: 0, right: 0,
+              display: "flex", justifyContent: "center", pointerEvents: "none",
+            }}>
+              <div style={{
+                background: "rgba(245,196,81,0.13)",
+                border: "1px solid rgba(245,196,81,0.45)",
+                borderRadius: 20, padding: "5px 16px",
+                fontSize: 11.5, fontWeight: 800,
+                color: "rgba(245,196,81,0.95)",
+                letterSpacing: 0.2,
+              }}>
+                {positionCue}
+              </div>
+            </div>
+          )}
         </div>
 
         <PreGameCard

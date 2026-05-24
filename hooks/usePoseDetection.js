@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { computePoseMetrics, poseMetricsScore } from "@/lib/mediapipePoseMetrics";
+import { computePoseMetrics, poseMetricsScore, lowerBodyVisible } from "@/lib/mediapipePoseMetrics";
 
 /**
  * MediaPipe files are served from /public/mediapipe/ (local static assets).
@@ -83,12 +83,13 @@ export function usePoseDetection({ videoRef, isActive }) {
   const latestLandmarksRef = useRef(null);
 
   // Diagnostic counters (refs — never cause re-renders)
-  const frameAttemptRef  = useRef(0);
-  const detectCountRef   = useRef(0);
-  const fpsCountRef      = useRef(0);
-  const fpsRef           = useRef(0);
-  const lastFpsTickRef   = useRef(0);
-  const frameErrorRef    = useRef(null);
+  const frameAttemptRef    = useRef(0);
+  const detectCountRef     = useRef(0);
+  const fpsCountRef        = useRef(0);
+  const fpsRef             = useRef(0);
+  const lastFpsTickRef     = useRef(0);
+  const frameErrorRef      = useRef(null);
+  const lowerBodyVisRef    = useRef(false); // hips + ankles visible this frame
 
   // ── Load PoseLandmarker ──────────────────────────────────────────────────
   useEffect(() => {
@@ -148,10 +149,12 @@ export function usePoseDetection({ videoRef, isActive }) {
           latestLandmarksRef.current = landmarks;
           detectCountRef.current++;
           frameErrorRef.current = null;
+          lowerBodyVisRef.current = lowerBodyVisible(landmarks);
           const metrics = computePoseMetrics(landmarks);
           if (metrics) frameMetricsRef.current.push(metrics);
         } else {
           latestLandmarksRef.current = null;
+          lowerBodyVisRef.current = false;
         }
       } catch (err) {
         frameErrorRef.current = err?.message || String(err);
@@ -206,6 +209,12 @@ export function usePoseDetection({ videoRef, isActive }) {
 
     summary.score = poseMetricsScore(summary);
     summary.frameCount = frames.length;
+
+    // Track which metrics were null for ALL frames (visibility-gated, not a real reading)
+    summary.visibilityGaps = METRIC_KEYS
+      .filter(({ key }) => summary[key] === null)
+      .map(({ key }) => key);
+
     return summary;
   }, []);
 
@@ -221,6 +230,19 @@ export function usePoseDetection({ videoRef, isActive }) {
       }
     }
 
+    const latestMetrics = frameMetricsRef.current.length
+      ? frameMetricsRef.current[frameMetricsRef.current.length - 1]
+      : null;
+
+    // Per-metric validity: "valid" | "skipped" | "unknown"
+    const metricValidity = {
+      stanceWidth:    latestMetrics ? (latestMetrics.stanceWidth    !== null ? "valid" : "skipped") : "unknown",
+      guardHeight:    latestMetrics ? (latestMetrics.guardHeight    !== null ? "valid" : "skipped") : "unknown",
+      punchExtension: latestMetrics ? (latestMetrics.punchExtension !== null ? "valid" : "skipped") : "unknown",
+      rotation:       latestMetrics ? (latestMetrics.rotation       !== null ? "valid" : "skipped") : "unknown",
+      balance:        latestMetrics ? (latestMetrics.balance        !== null ? "valid" : "skipped") : "unknown",
+    };
+
     return {
       status:            poseStatus,
       error:             poseError,
@@ -231,10 +253,10 @@ export function usePoseDetection({ videoRef, isActive }) {
       totalPoseFrames:   frameMetricsRef.current.length,
       landmarksDetected: hasLm,
       landmarkCount:     hasLm ? lm.length : 0,
+      lowerBodyVisible:  lowerBodyVisRef.current,
       jointPresence,
-      latestMetrics:     frameMetricsRef.current.length
-        ? frameMetricsRef.current[frameMetricsRef.current.length - 1]
-        : null,
+      metricValidity,
+      latestMetrics,
     };
   }, [poseStatus, poseError]);
 
