@@ -39,6 +39,7 @@ import TrainingCalendar from "@/components/dashboard/TrainingCalendar";
 import MonthlyReport from "@/components/dashboard/MonthlyReport";
 import AdaptiveRecommendations from "@/components/dashboard/AdaptiveRecommendations";
 import FighterStudyRoadmap from "@/components/dashboard/FighterStudyRoadmap";
+import TrainingLoadStatus from "@/components/dashboard/TrainingLoadStatus";
 import dynamic from "next/dynamic";
 const ProgressShareCard = dynamic(() => import("@/components/dashboard/ProgressShareCard"), { ssr: false });
 
@@ -340,6 +341,15 @@ export default function AthleteDashboard() {
             </div>
           );
         })()}
+
+        {/* ── Training Load Status (11C) ── */}
+        {sessionsReady && trainingSessions.length >= 1 && (
+          <TrainingLoadStatus
+            trainingSessions={trainingSessions}
+            locale={locale}
+            router={router}
+          />
+        )}
 
         {/* ── Weekly Recap Card ── */}
         {showRecap && (
