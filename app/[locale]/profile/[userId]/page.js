@@ -262,6 +262,14 @@ export default function UserProfilePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [aiFeedbackHistory, locale]); // t omitted — recreated every render, locale covers it
 
+  // ── All hooks must be above conditional returns ──────────────────────────
+  const profileRadarStats = useMemo(() => {
+    if (!trainingSessions?.length) return null;
+    const scores = trainingSessions.map((s) => Number(s.score)).filter(Number.isFinite);
+    const sc = profileUser?.streakCount || 0;
+    return deriveRadarStats(scores, trainingSessions, sc);
+  }, [trainingSessions, profileUser?.streakCount]);
+
   if (loading) {
     return (
       <div style={{ minHeight: "100dvh", background: "#0B0B0C", padding: "calc(28px + env(safe-area-inset-top)) 16px 40px" }} className="page-enter">
@@ -289,11 +297,6 @@ export default function UserProfilePage() {
 
   const streakCount = profileUser?.streakCount || 0;
 
-  const profileRadarStats = useMemo(() => {
-    if (!trainingSessions?.length) return null;
-    const scores = trainingSessions.map((s) => Number(s.score)).filter(Number.isFinite);
-    return deriveRadarStats(scores, trainingSessions, streakCount);
-  }, [trainingSessions, streakCount]);
   const storedChallengeXP = Number(profileUser?.xp) || 0;
   const trainingSessionXP = trainingSessions.reduce((sum, s) => sum + (Number(s.xpGained) || 0), 0);
   const xp = storedChallengeXP + trainingSessionXP + calculateUserXP({
