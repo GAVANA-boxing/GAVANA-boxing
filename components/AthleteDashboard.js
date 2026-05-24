@@ -38,6 +38,7 @@ import GoalTracker from "@/components/dashboard/GoalTracker";
 import TrainingCalendar from "@/components/dashboard/TrainingCalendar";
 import MonthlyReport from "@/components/dashboard/MonthlyReport";
 import AdaptiveRecommendations from "@/components/dashboard/AdaptiveRecommendations";
+import FighterStudyRoadmap from "@/components/dashboard/FighterStudyRoadmap";
 import dynamic from "next/dynamic";
 const ProgressShareCard = dynamic(() => import("@/components/dashboard/ProgressShareCard"), { ssr: false });
 
@@ -494,6 +495,16 @@ export default function AthleteDashboard() {
             router={router}
             userId={user?.uid}
             trainingSessions={trainingSessions}
+          />
+        )}
+
+        {/* ── Fighter Study Roadmap (11B) ── */}
+        {sessionsReady && coachSnapshot && trainingSessions.length >= 3 && (
+          <FighterStudyRoadmap
+            coachSnapshot={coachSnapshot}
+            locale={locale}
+            router={router}
+            userId={user?.uid}
           />
         )}
 
