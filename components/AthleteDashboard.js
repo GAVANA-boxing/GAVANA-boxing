@@ -45,6 +45,7 @@ import DailyTip from "@/components/dashboard/DailyTip";
 import WeeklyChallenge from "@/components/dashboard/WeeklyChallenge";
 import PersonalRecords from "@/components/dashboard/PersonalRecords";
 import ScoreProjection from "@/components/dashboard/ScoreProjection";
+import PerformancePattern from "@/components/dashboard/PerformancePattern";
 import dynamic from "next/dynamic";
 const ProgressShareCard = dynamic(() => import("@/components/dashboard/ProgressShareCard"), { ssr: false });
 
@@ -536,6 +537,11 @@ export default function AthleteDashboard() {
         {/* ── Score Projection (13C) ── */}
         {sessionsReady && trainingSessions.length >= 4 && (
           <ScoreProjection trainingSessions={trainingSessions} locale={locale} />
+        )}
+
+        {/* ── Performance Pattern by Day (14B) ── */}
+        {sessionsReady && trainingSessions.length >= 5 && (
+          <PerformancePattern trainingSessions={trainingSessions} locale={locale} />
         )}
 
         {/* ── Skill Velocity (12A) ── */}

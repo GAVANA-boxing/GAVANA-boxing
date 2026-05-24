@@ -445,6 +445,7 @@ export default function TrainPage() {
           reelId={reelId}
           locale={locale}
           t={t}
+          focusTip={focusTip}
         />
 
         {error && <div style={styles.error}>{error}</div>}
