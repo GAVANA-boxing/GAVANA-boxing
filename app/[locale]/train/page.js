@@ -19,6 +19,7 @@ import { FIGHTERS } from "@/lib/fighters";
 import { FIGHTER_TECHNIQUES } from "@/lib/fighterTechniques";
 import TrainingFocusCard from "@/components/train/TrainingFocusCard";
 import { getDrillConfig } from "@/lib/drillConfig";
+import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
 
 // titleKey only — duration/target now live in drillConfig
 const CHALLENGES = {
@@ -145,6 +146,76 @@ export default function TrainPage() {
       router.push(`/${locale}/login`);
     }
   }, [authLoading, user, router, locale]);
+
+  // ── Post-session AI debrief ───────────────────────────────────────────────
+  const [debrief, setDebrief]             = useState(null);
+  const [debriefLoading, setDebriefLoading] = useState(false);
+  const coachSnapshotRef = useRef(null);
+
+  // Fetch training sessions once → build coach snapshot for debrief context
+  useEffect(() => {
+    if (!user?.uid) return;
+    let active = true;
+    (async () => {
+      try {
+        const { collection, getDocs, query, where } = await import("firebase/firestore");
+        const { db } = await import("@/lib/firebase");
+        const snap = await getDocs(query(
+          collection(db, "training_sessions"),
+          where("userId", "==", user.uid)
+        ));
+        if (!active) return;
+        const sessions = snap.docs
+          .map((d) => ({ id: d.id, ...d.data() }))
+          .filter((d) => d.type === "training" && d.score != null)
+          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        coachSnapshotRef.current = buildCoachSnapshot({ sessions, profileData: {} });
+      } catch { /* silent */ }
+    })();
+    return () => { active = false; };
+  }, [user?.uid]);
+
+  // Generate debrief when result appears
+  useEffect(() => {
+    if (!result?.score) { setDebrief(null); return; }
+    setDebrief(null);
+    setDebriefLoading(true);
+    let active = true;
+    (async () => {
+      try {
+        const snapshot = coachSnapshotRef.current;
+        const ctx = buildCoachContext({ snapshot, profileData: {}, locale });
+        const prev = sessionHistory.slice(0, 5);
+        const prevStr = prev.length
+          ? `Previous scores: ${prev.map(s => s.toFixed(1)).join(", ")}.`
+          : "";
+        const { auth } = await import("@/lib/firebase");
+        const token = await auth.currentUser?.getIdToken();
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            messages: [{
+              role: "user",
+              content: `Session complete. Score: ${result.score.toFixed(1)}/10. ${prevStr} Give a 2-3 sentence debrief: what performed well, what to improve, one specific drill.`,
+            }],
+            persona: "analyst",
+            locale,
+            coachContext: ctx,
+          }),
+        });
+        const data = await res.json();
+        const text = data.content?.[0]?.text || data.message || null;
+        if (active) setDebrief(text);
+      } catch { /* silent — debrief is optional */ } finally {
+        if (active) setDebriefLoading(false);
+      }
+    })();
+    return () => { active = false; };
+  }, [result?.score]);
 
   // ── Lesson context from query params ─────────────────────────────────────
   const [lessonContext, setLessonContext] = useState(null);
@@ -337,6 +408,8 @@ export default function TrainPage() {
       </section>
 
       <TrainResultModal
+        debrief={debrief}
+        debriefLoading={debriefLoading}
         result={result}
         activeChallenge={activeChallenge}
         challengeUserId={challengeUserId}
