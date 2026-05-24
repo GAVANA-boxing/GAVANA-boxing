@@ -94,7 +94,7 @@ export default function TrainPage() {
     t,
   });
 
-  const { isReady: poseReady, computeSessionSummary, getLatestMetrics } = usePoseDetection({
+  const { computeSessionSummary, getDebugInfo } = usePoseDetection({
     videoRef,
     isActive: phase === "recording",
   });
@@ -459,7 +459,7 @@ export default function TrainPage() {
           )}
 
           {/* Pose debug overlay — dev only, stripped in production */}
-          <PoseDebugOverlay getLatestMetrics={getLatestMetrics} isActive={phase === "recording"} />
+          <PoseDebugOverlay getDebugInfo={getDebugInfo} isActive={phase === "recording"} />
         </div>
 
         <PreGameCard
