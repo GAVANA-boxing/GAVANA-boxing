@@ -11,7 +11,7 @@ import { RED, GOLD, redAlpha, pageBg } from "@/lib/tokens";
 import { buildCoachSnapshot } from "@/lib/buildCoachContext";
 import { getPersonalConnection } from "@/lib/fighterPersonalConnection";
 
-function FighterGridCard({ fighter, onClick, badge }) {
+function FighterGridCard({ fighter, onClick, badge, studied }) {
   const acc = fighter.accent;
   return (
     <button
@@ -19,7 +19,7 @@ function FighterGridCard({ fighter, onClick, badge }) {
       onClick={onClick}
       style={{
         ...s.card,
-        border: badge ? `1px solid ${acc}50` : "1px solid rgba(255,255,255,0.08)",
+        border: badge ? `1px solid ${acc}50` : studied ? `1px solid rgba(52,211,153,0.2)` : "1px solid rgba(255,255,255,0.08)",
         borderBottom: `3px solid ${acc}55`,
         boxShadow: badge
           ? `0 8px 28px rgba(0,0,0,0.5), 0 0 0 1px ${acc}22`
@@ -30,6 +30,13 @@ function FighterGridCard({ fighter, onClick, badge }) {
       {badge && (
         <div style={{ position: "absolute", top: 8, right: 8, padding: "2px 7px", borderRadius: 999, background: `${acc}22`, border: `1px solid ${acc}55`, fontSize: 8, fontWeight: 900, color: acc, letterSpacing: 1, textTransform: "uppercase" }}>
           {badge}
+        </div>
+      )}
+      {studied && !badge && (
+        <div style={{ position: "absolute", top: 8, right: 8, width: 20, height: 20, borderRadius: "50%", background: "rgba(52,211,153,0.18)", border: "1px solid rgba(52,211,153,0.45)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
         </div>
       )}
       <div style={s.cardBottom}>
@@ -86,24 +93,26 @@ export default function FightersPage() {
   const t = (key) => translate(locale, key);
 
   const [snapshot, setSnapshot] = useState(null);
+  const [studiedFighters, setStudiedFighters] = useState([]);
 
   useEffect(() => {
     if (!user?.uid) return;
     let active = true;
     (async () => {
       try {
-        const { collection, getDocs, query, where } = await import("firebase/firestore");
+        const { collection, getDocs, doc, getDoc, query, where } = await import("firebase/firestore");
         const { db } = await import("@/lib/firebase");
-        const snap = await getDocs(query(
-          collection(db, "training_sessions"),
-          where("userId", "==", user.uid)
-        ));
+        const [sessSnap, userSnap] = await Promise.all([
+          getDocs(query(collection(db, "training_sessions"), where("userId", "==", user.uid))),
+          getDoc(doc(db, "users", user.uid)),
+        ]);
         if (!active) return;
-        const sessions = snap.docs
+        const sessions = sessSnap.docs
           .map((d) => ({ id: d.id, ...d.data() }))
           .filter((d) => d.type === "training" && d.score != null)
           .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
         setSnapshot(buildCoachSnapshot({ sessions, profileData: {} }));
+        setStudiedFighters(userSnap.data()?.studiedFighters || []);
       } catch { /* silent */ }
     })();
     return () => { active = false; };
@@ -137,6 +146,23 @@ export default function FightersPage() {
         <p style={s.kicker}>COMBAT · FIGHTERS</p>
         <h1 style={s.title}>{t("fighterAllTitle")}</h1>
         <p style={s.subtitle}>{t("fighterAllSubtitle")}</p>
+
+        {/* ── Fighter Mastery progress ── */}
+        {studiedFighters.length > 0 && (
+          <div style={{ marginTop: 16, padding: "10px 14px", borderRadius: 12, background: "rgba(52,211,153,0.06)", border: "1px solid rgba(52,211,153,0.15)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 7 }}>
+              <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.8, color: "#34D399", textTransform: "uppercase" }}>
+                ⚔️ {locale === "mn" ? "Fighter Mastery" : "Fighter Mastery"}
+              </span>
+              <span style={{ fontSize: 11, fontWeight: 900, color: "#34D399" }}>
+                {studiedFighters.length}/{FIGHTERS.length}
+              </span>
+            </div>
+            <div style={{ height: 4, borderRadius: 999, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+              <div style={{ width: `${(studiedFighters.length / FIGHTERS.length) * 100}%`, height: "100%", borderRadius: 999, background: "linear-gradient(90deg, #34D399, #10B981)", transition: "width 0.6s ease" }} />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Recommended for you ── */}
@@ -182,6 +208,7 @@ export default function FightersPage() {
             key={fighter.id}
             fighter={fighter}
             badge={connection?.isDirectlyRelevant && !recommendedIds.has(fighter.id) ? connection.primaryFocus : null}
+            studied={studiedFighters.includes(fighter.id)}
             onClick={() => router.push(`/${locale}/fighters/${fighter.id}`)}
           />
         ))}

@@ -101,10 +101,20 @@ export default function FighterDetailPage() {
   const fighter = getFighter(params?.fighterId);
 
   const [personalConnection, setPersonalConnection] = useState(null);
+  const [studied, setStudied] = useState(false);
 
+  // Mark fighter as studied in Firestore
   useEffect(() => {
-    if (!user?.uid || !fighter) return;
-    let active = true;
+    if (!user?.uid || !fighter?.id) return;
+    (async () => {
+      try {
+        const { doc, setDoc, arrayUnion } = await import("firebase/firestore");
+        const { db } = await import("@/lib/firebase");
+        await setDoc(doc(db, "users", user.uid), { studiedFighters: arrayUnion(fighter.id) }, { merge: true });
+        setStudied(true);
+      } catch { /* silent */ }
+    })();
+  }, [user?.uid, fighter?.id]);
     (async () => {
       try {
         const { collection, getDocs, query, where } = await import("firebase/firestore");
@@ -170,6 +180,17 @@ export default function FighterDetailPage() {
           <div style={{ ...s.heroPortraitFade, background: `linear-gradient(to bottom, transparent 40%, ${acc}08 65%, #0B0B0C 100%)` }} />
           {/* Back button — floats over portrait */}
           <button style={s.backPill} onClick={() => router.back()}>← {t("back")}</button>
+          {/* Studied badge */}
+          {studied && (
+            <div style={{ position: "absolute", top: 14, right: 14, display: "flex", alignItems: "center", gap: 5, padding: "4px 10px", borderRadius: 999, background: "rgba(52,211,153,0.15)", border: "1px solid rgba(52,211,153,0.4)", backdropFilter: "blur(8px)" }}>
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span style={{ fontSize: 9.5, fontWeight: 900, color: "#34D399", letterSpacing: 0.8 }}>
+                {locale === "mn" ? "Судалсан" : "Studied"}
+              </span>
+            </div>
+          )}
           {/* Top accent bar */}
           <div style={{ ...s.heroTopBar, background: `linear-gradient(90deg, ${acc} 0%, ${acc}66 60%, transparent 100%)` }} />
         </div>
