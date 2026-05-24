@@ -45,7 +45,8 @@ function getIdentityWithSub(score, movementEvents, poseMetrics) {
 }
 
 function getWorstPoseMetric(poseMetrics) {
-  if (!poseMetrics) return null;
+  // Require a meaningful number of frames before trusting the data
+  if (!poseMetrics || (poseMetrics.frameCount && poseMetrics.frameCount < 5)) return null;
   const PRIORITY = ["guardHeight", "balance", "stanceWidth", "punchExtension", "rotation"];
   for (const key of PRIORITY) {
     const m = poseMetrics[key];
