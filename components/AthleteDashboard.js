@@ -28,6 +28,8 @@ import {
 import { BodyProgressSection } from "@/components/dashboard/BodyProgressSection";
 import { FIGHTERS } from "@/lib/fighters";
 import { getPersonalConnection } from "@/lib/fighterPersonalConnection";
+import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
+import WeeklyPlanSection from "@/components/dashboard/WeeklyPlanSection";
 
 function getTs(ts) {
   if (!ts) return 0;
@@ -79,6 +81,8 @@ export default function AthleteDashboard() {
   const [fighterArchetype, setFighterArchetype] = useState(null);
   const [showQuiz, setShowQuiz] = useState(false);
   const [reelsCount, setReelsCount] = useState(0);
+  const [coachSnapshot, setCoachSnapshot] = useState(null);
+  const [coachContextStr, setCoachContextStr] = useState(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -126,6 +130,12 @@ export default function AthleteDashboard() {
           .then((snap) => { if (active) setReelsCount(snap.size); })
           .catch(() => {});
         setSessionsReady(true);
+
+        // Build coach snapshot for weekly plan
+        const snap = buildCoachSnapshot({ sessions: allSessions, profileData: uData });
+        const ctx = buildCoachContext({ snapshot: snap, profileData: uData, locale });
+        setCoachSnapshot(snap);
+        setCoachContextStr(ctx);
       } catch (e) {
         if (active) setRankReady(true);
       }
@@ -347,6 +357,16 @@ export default function AthleteDashboard() {
             </div>
           );
         })()}
+
+        {/* ── Weekly Training Plan ── */}
+        <WeeklyPlanSection
+          coachSnapshot={coachSnapshot}
+          coachContextStr={coachContextStr}
+          locale={locale}
+          router={router}
+          weekNumber={weekNumber}
+          userId={user?.uid}
+        />
 
         {/* ── Desktop: 2-col grid ── */}
         <div style={isDesktop ? { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 28px", alignItems: "start" } : {}}>
