@@ -35,6 +35,7 @@ import FourWeekProgram from "@/components/dashboard/FourWeekProgram";
 import WelcomeBanner from "@/components/dashboard/WelcomeBanner";
 import LastSessionRecap from "@/components/dashboard/LastSessionRecap";
 import GoalTracker from "@/components/dashboard/GoalTracker";
+import TrainingCalendar from "@/components/dashboard/TrainingCalendar";
 
 function getTs(ts) {
   if (!ts) return 0;
@@ -456,6 +457,14 @@ export default function AthleteDashboard() {
             radarStats={radarStats}
             locale={locale}
             coachSnapshot={coachSnapshot}
+          />
+        )}
+
+        {/* ── Training Calendar (8C) ── */}
+        {sessionsReady && trainingSessions.length > 0 && (
+          <TrainingCalendar
+            trainingSessions={trainingSessions}
+            locale={locale}
           />
         )}
 
