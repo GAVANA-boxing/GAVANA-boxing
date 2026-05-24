@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "postinstall": "node scripts/copy-mediapipe.js",
+    "prebuild": "node scripts/copy-mediapipe.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.91.1",
