@@ -31,6 +31,7 @@ const IDENTITY_SUBS = {
   "REACTIVE COUNTER":   "Movement-reactive defensive reads",
   "GUARD INSTABILITY":  "Guard line needs consolidation",
   "BALANCE BREAKER":    "Dynamic weight transfer detected",
+  "NARROW BASE":        "Stance too narrow — widen your base",
   "FORWARD HUNTER":     "Aggressive entry pattern detected",
   "SHARP EXECUTION":    "High-efficiency movement session",
   "SOLID FOUNDATION":   "Consistent movement quality",
@@ -38,9 +39,19 @@ const IDENTITY_SUBS = {
   "RAW ENERGY":         "Pure intensity — structure coming",
 };
 
-function getIdentityWithSub(score, movementEvents) {
-  const title = getSessionIdentity(score, movementEvents);
+function getIdentityWithSub(score, movementEvents, poseMetrics) {
+  const title = getSessionIdentity(score, movementEvents, poseMetrics);
   return { title, sub: IDENTITY_SUBS[title] || "" };
+}
+
+function getWorstPoseMetric(poseMetrics) {
+  if (!poseMetrics) return null;
+  const PRIORITY = ["guardHeight", "balance", "stanceWidth", "punchExtension", "rotation"];
+  for (const key of PRIORITY) {
+    const m = poseMetrics[key];
+    if (m && m.status !== "good") return m;
+  }
+  return null;
 }
 
 function getMovementSummary(movementEvents = []) {
@@ -106,6 +117,7 @@ export default function TrainResultModal({
   missionNewStreak,
   movementEvents,
   sessionStartTime,
+  poseMetrics = null,
   error,
   saving,
   saved,
@@ -125,7 +137,8 @@ export default function TrainResultModal({
   if (!result) return null;
 
   const events = movementEvents || [];
-  const identity = getIdentityWithSub(result.score, events);
+  const identity = getIdentityWithSub(result.score, events, poseMetrics);
+  const worstPose = getWorstPoseMetric(poseMetrics);
   const movementSummary = getMovementSummary(events);
   const timelineEvents = events.slice(-8);
   const hasMI = movementSummary.length > 0;
@@ -329,6 +342,25 @@ export default function TrainResultModal({
             </>
           )}
 
+          {/* Form Focus — worst pose metric cue */}
+          {worstPose && (
+            <>
+              <SectionLabel label="Form Focus" />
+              <div style={{
+                borderRadius: RADIUS.md, padding: "12px 14px",
+                background: "rgba(245,196,81,0.04)", border: `1px solid rgba(245,196,81,0.14)`,
+                borderLeft: `3px solid rgba(245,196,81,0.5)`,
+              }}>
+                <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.5, color: GOLD, marginBottom: 5 }}>
+                  {worstPose.ideal}
+                </div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: whiteAlpha(0.7), lineHeight: 1.4 }}>
+                  {worstPose.cue}
+                </div>
+              </div>
+            </>
+          )}
+
           {/* Session Details (collapsible) */}
           {(hasTimeline || (!activeChallenge && result.breakdown) || sessionHistory.length > 0) && (
             <>
@@ -472,7 +504,7 @@ export default function TrainResultModal({
               <button
                 type="button"
                 style={{ ...styles.saveButton, ...(saved ? styles.saveButtonDone : {}), opacity: saving || saved ? 0.65 : 1, cursor: saving || saved ? "default" : "pointer" }}
-                onClick={() => onSave({ movementEvents: events, tag: sessionTag })}
+                onClick={() => onSave({ movementEvents: events, tag: sessionTag, poseMetrics })}
                 disabled={saving || saved}
               >
                 {saving
