@@ -88,9 +88,11 @@ export default function AIChatPage() {
   // Fighter profile context for AI personalization
   const [coachContextStr, setCoachContextStr] = useState(null);
   const [coachSnapshot, setCoachSnapshot] = useState(null);
+  const [coachMemory, setCoachMemory] = useState(null); // persisted insights from past sessions
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const memorySavedRef = useRef(false);
   const activePersona = PERSONAS.find((p) => p.id === persona) || PERSONAS[0];
   const greetingInjectedRef = useRef(new Set());
 
@@ -128,7 +130,24 @@ export default function AIChatPage() {
         const ctx = buildCoachContext({ snapshot, profileData, locale });
 
         setCoachSnapshot(snapshot);
-        setCoachContextStr(ctx);
+
+        // Load coach memory from Firestore
+        let memoryStr = null;
+        try {
+          const memRef = doc(db, "coach_memory", user.uid);
+          const memSnap = await getDoc(memRef);
+          if (memSnap.exists()) {
+            const insights = memSnap.data().insights || [];
+            if (insights.length > 0) {
+              const recent = insights.slice(-4).map((m) => `• ${m.text}`).join("\n");
+              memoryStr = `── COACH MEMORY (insights from past sessions) ──\n${recent}`;
+              setCoachMemory(memoryStr);
+            }
+          }
+        } catch { /* ignore — memory is optional */ }
+
+        const fullCtx = [ctx, memoryStr].filter(Boolean).join("\n\n");
+        setCoachContextStr(fullCtx);
       } catch { /* silent — chat still works without context */ }
     })();
     return () => { active = false; };
@@ -223,6 +242,29 @@ export default function AIChatPage() {
         setStreamingText("");
         return updated;
       });
+
+      // Save insight to Firestore memory every 4th assistant message
+      if (user?.uid && reply && reply.length > 30) {
+        const allMsgs = [...messages, { role: "user", content: text }, newMsg];
+        const assistantCount = allMsgs.filter((m) => m.role === "assistant").length;
+        if (assistantCount % 4 === 0) {
+          (async () => {
+            try {
+              const { doc, setDoc, arrayUnion, serverTimestamp } = await import("firebase/firestore");
+              const { db } = await import("@/lib/firebase");
+              const snippet = reply.slice(0, 180).replace(/\n+/g, " ").trim();
+              await setDoc(
+                doc(db, "coach_memory", user.uid),
+                {
+                  insights: arrayUnion({ text: snippet, ts: Date.now(), persona }),
+                  updatedAt: serverTimestamp(),
+                },
+                { merge: true }
+              );
+            } catch { /* silent */ }
+          })();
+        }
+      }
     } catch {
       setMessages((prev) => [...prev, { role: "assistant", content: t("coachError"), ts: Date.now() }]);
     } finally {
