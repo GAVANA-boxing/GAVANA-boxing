@@ -163,6 +163,20 @@ export default function AIChatPage() {
     }
   }, [persona]);
 
+  // Auto-send from ?q= URL param (deep link from dashboard)
+  const autoSentRef = useRef(false);
+  useEffect(() => {
+    if (autoSentRef.current) return;
+    if (typeof window === "undefined") return;
+    const q = new URLSearchParams(window.location.search).get("q");
+    if (!q) return;
+    autoSentRef.current = true;
+    window.history.replaceState({}, "", window.location.pathname);
+    const timer = setTimeout(() => sendMessage(q), 900);
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Proactive greeting when snapshot loads and no prior chat
   useEffect(() => {
     if (!coachSnapshot) return;

@@ -442,13 +442,28 @@ export default function AthleteDashboard() {
                   <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.7)", lineHeight: 1.4 }}>{drill}</span>
                 </div>
               )}
-              <button
-                type="button"
-                onClick={() => router.push(`/${locale}/drills`)}
-                style={{ width: "100%", padding: "9px 0", borderRadius: 10, background: `${acc}12`, border: `1px solid ${acc}30`, color: acc, fontSize: 12, fontWeight: 900, cursor: "pointer", letterSpacing: 0.3 }}
-              >
-                {locale === "mn" ? "⚡ AI Дасгал үүсгэх" : locale === "ko" ? "⚡ AI 드릴 생성" : "⚡ Generate AI Drills"}
-              </button>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => router.push(`/${locale}/drills`)}
+                  style={{ padding: "9px 0", borderRadius: 10, background: `${acc}12`, border: `1px solid ${acc}30`, color: acc, fontSize: 11, fontWeight: 900, cursor: "pointer" }}
+                >
+                  {locale === "mn" ? "⚡ Дасгал" : "⚡ Drills"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const area = connection.primaryFocus || weakAreas[0]?.[0] || "Guard";
+                    const q = locale === "mn"
+                      ? `Миний ${area} оноог хэрхэн сайжруулах вэ?`
+                      : `How can I improve my ${area} score?`;
+                    router.push(`/${locale}/coach/chat?q=${encodeURIComponent(q)}`);
+                  }}
+                  style={{ padding: "9px 0", borderRadius: 10, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontSize: 11, fontWeight: 900, cursor: "pointer" }}
+                >
+                  {locale === "mn" ? "💬 Coach" : "💬 Ask Coach"}
+                </button>
+              </div>
             </div>
           );
         })()}
