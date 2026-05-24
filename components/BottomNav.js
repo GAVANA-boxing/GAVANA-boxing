@@ -106,6 +106,11 @@ const OS_ICONS = {
       <line x1="12" y1="3" x2="12" y2="15"/>
     </svg>
   ),
+  drills: (
+    <svg style={osIc} viewBox="0 0 24 24" aria-hidden="true">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+    </svg>
+  ),
   "fighter-profile": (
     <svg style={osIc} viewBox="0 0 24 24" aria-hidden="true">
       <circle cx="12" cy="8" r="3.5"/>
@@ -125,6 +130,7 @@ const COMBAT_OS_ITEMS = [
   { key: "challenges",     labelEn: "Challenges",      labelMn: "Даалгаврууд",       labelKo: "챌린지",     path: "/challenges" },
   { key: "inbox",          labelEn: "Inbox",           labelMn: "Мессэж",            labelKo: "메시지",     path: "/inbox" },
   { key: "upload",         labelEn: "Upload",          labelMn: "Видео оруулах",     labelKo: "업로드",     path: "/upload" },
+  { key: "drills",         labelEn: "Drills",          labelMn: "Дасгалууд",         labelKo: "드릴",       path: "/drills" },
 ];
 
 function CombatOSSheet({ onClose, router, locale, pathname }) {

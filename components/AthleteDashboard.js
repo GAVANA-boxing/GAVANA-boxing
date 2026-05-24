@@ -362,13 +362,20 @@ export default function AthleteDashboard() {
                 </button>
               </div>
               {drill && (
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "9px 11px", borderRadius: 10, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "9px 11px", borderRadius: 10, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.06)", marginBottom: 8 }}>
                   <svg width="9" height="11" viewBox="0 0 13 16" fill={acc} style={{ marginTop: 1.5, flexShrink: 0 }}>
                     <path d="M7 0L0 9h6l-1 7 7-9H6L7 0z"/>
                   </svg>
                   <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.7)", lineHeight: 1.4 }}>{drill}</span>
                 </div>
               )}
+              <button
+                type="button"
+                onClick={() => router.push(`/${locale}/drills`)}
+                style={{ width: "100%", padding: "9px 0", borderRadius: 10, background: `${acc}12`, border: `1px solid ${acc}30`, color: acc, fontSize: 12, fontWeight: 900, cursor: "pointer", letterSpacing: 0.3 }}
+              >
+                {locale === "mn" ? "⚡ AI Дасгал үүсгэх" : locale === "ko" ? "⚡ AI 드릴 생성" : "⚡ Generate AI Drills"}
+              </button>
             </div>
           );
         })()}
