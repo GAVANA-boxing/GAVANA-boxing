@@ -162,11 +162,12 @@ export default function TrainPage() {
   const [focusTip, setFocusTip] = useState(null);
   const [newBadges, setNewBadges] = useState([]);
   const [poseSessionSummary, setPoseSessionSummary] = useState(null);
-  const [positionCue, setPositionCue] = useState(null); // setup cue during recording
+  const [prevPoseMetrics, setPrevPoseMetrics] = useState(null);
+  const [positionCue, setPositionCue] = useState(null);
   const coachSnapshotRef = useRef(null);
   const prevSessionCountRef = useRef(null);
 
-  // Fetch training sessions once → build coach snapshot for debrief + focus tip
+  // Fetch training sessions once → build coach snapshot + grab last session's pose metrics
   useEffect(() => {
     if (!user?.uid) return;
     let active = true;
@@ -186,6 +187,8 @@ export default function TrainPage() {
         const snapshot = buildCoachSnapshot({ sessions, profileData: {} });
         coachSnapshotRef.current = snapshot;
         prevSessionCountRef.current = sessions.length;
+        // Most recent past session's pose metrics for comparison
+        if (sessions[0]?.poseMetrics) setPrevPoseMetrics(sessions[0].poseMetrics);
         if (snapshot && sessions.length >= 3) {
           const weakAreas = Object.entries(snapshot.radarStats).sort(([, a], [, b]) => a - b);
           const miniSnap = { weakAreas, radarStats: snapshot.radarStats };
@@ -574,6 +577,7 @@ export default function TrainPage() {
         movementEvents={movementEvents}
         sessionStartTime={sessionStartTime}
         poseMetrics={poseSessionSummary}
+        prevPoseMetrics={prevPoseMetrics}
         error={error}
         saving={saving}
         saved={saved}

@@ -47,15 +47,52 @@ function getIdentityWithSub(score, movementEvents, poseMetrics) {
   return { title, sub: IDENTITY_SUBS[title] || "" };
 }
 
-function getWorstPoseMetric(poseMetrics) {
-  // Require a meaningful number of frames before trusting the data
-  if (!poseMetrics || (poseMetrics.frameCount && poseMetrics.frameCount < 5)) return null;
-  const PRIORITY = ["guardHeight", "balance", "stanceWidth", "punchExtension", "rotation"];
-  for (const key of PRIORITY) {
-    const m = poseMetrics[key];
-    if (m && m.status !== "good") return m;
+function computeComparison(curr, prev) {
+  if (!curr || !prev || (curr.frameCount ?? 0) < 5) return [];
+  const rows = [];
+
+  // Extension angle — higher = more reach
+  const cExt = curr.punchExtension?.angleDeg;
+  const pExt = prev.punchExtension?.angleDeg;
+  if (cExt != null && pExt != null) {
+    const d = Math.round(cExt - pExt);
+    if (Math.abs(d) >= 3) rows.push({ label: "Extension", value: `${d > 0 ? "+" : ""}${d}°`, improved: d > 0 });
   }
-  return null;
+
+  // Guard — compare dominant status
+  const gScore = (s) => s === "good" ? 1 : 0;
+  const cG = curr.guardHeight?.status;
+  const pG = prev.guardHeight?.status;
+  if (cG && pG && cG !== pG) {
+    const imp = gScore(cG) > gScore(pG);
+    rows.push({ label: "Guard", value: imp ? "Better" : "Dropped more", improved: imp });
+  }
+
+  // Hand speed — higher avgSnapVelocity = faster
+  const cSnap = curr.velocityStats?.avgSnapVelocity;
+  const pSnap = prev.velocityStats?.avgSnapVelocity;
+  if (cSnap != null && pSnap != null && pSnap > 0) {
+    const pct = Math.round(((cSnap - pSnap) / pSnap) * 100);
+    if (Math.abs(pct) >= 8) rows.push({ label: "Hand speed", value: `${pct > 0 ? "+" : ""}${pct}%`, improved: pct > 0 });
+  }
+
+  // Punch count
+  const cCnt = curr.punchCount;
+  const pCnt = prev.punchCount;
+  if (cCnt != null && pCnt != null) {
+    const d = cCnt - pCnt;
+    if (Math.abs(d) >= 3) rows.push({ label: "Punches", value: `${d > 0 ? "+" : ""}${d}`, improved: d > 0 });
+  }
+
+  // Guard recovery — lower avgRecoilMs = faster = better
+  const cMs = curr.velocityStats?.avgRecoilMs;
+  const pMs = prev.velocityStats?.avgRecoilMs;
+  if (cMs != null && pMs != null) {
+    const d = Math.round(pMs - cMs); // positive = faster
+    if (Math.abs(d) >= 40) rows.push({ label: "Recovery", value: `${d > 0 ? "-" : "+"}${Math.abs(d)}ms`, improved: d > 0 });
+  }
+
+  return rows;
 }
 
 function getMovementSummary(movementEvents = []) {
@@ -122,6 +159,7 @@ export default function TrainResultModal({
   movementEvents,
   sessionStartTime,
   poseMetrics = null,
+  prevPoseMetrics = null,
   error,
   saving,
   saved,
@@ -142,8 +180,8 @@ export default function TrainResultModal({
 
   const events = movementEvents || [];
   const identity = getIdentityWithSub(result.score, events, poseMetrics);
-  const worstPose = getWorstPoseMetric(poseMetrics);
   const movementSummary = getMovementSummary(events);
+  const comparison = computeComparison(poseMetrics, prevPoseMetrics);
   const timelineEvents = events.slice(-8);
   const hasMI = movementSummary.length > 0;
   const hasTimeline = timelineEvents.length > 0;
@@ -237,6 +275,29 @@ export default function TrainResultModal({
 
         {/* ── SCROLLABLE ANALYSIS ──────────────────────────────────── */}
         <div style={{ overflowY: "auto", padding: "0 20px", flex: 1 }}>
+
+          {/* vs Last Session */}
+          {comparison.length > 0 && (
+            <>
+              <SectionLabel label="vs Last Session" />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+                {comparison.map((c, i) => (
+                  <div key={i} style={{
+                    padding: "9px 12px", borderRadius: RADIUS.md,
+                    background: c.improved ? "rgba(52,211,153,0.04)" : "rgba(248,113,113,0.04)",
+                    border: `1px solid ${c.improved ? "rgba(52,211,153,0.12)" : "rgba(248,113,113,0.12)"}`,
+                  }}>
+                    <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: whiteAlpha(0.28), textTransform: "uppercase", marginBottom: 4 }}>
+                      {c.label}
+                    </div>
+                    <div style={{ fontSize: 18, fontWeight: 1000, color: c.improved ? "#34D399" : "#F87171", fontFamily: "var(--font-display, 'Anton', sans-serif)", lineHeight: 1 }}>
+                      {c.value}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
 
           {/* PvP */}
           {challengeUserId && pvpResult && (
@@ -651,7 +712,11 @@ export default function TrainResultModal({
               <button
                 type="button"
                 style={{ ...styles.saveButton, ...(saved ? styles.saveButtonDone : {}), opacity: saving || saved ? 0.65 : 1, cursor: saving || saved ? "default" : "pointer" }}
-                onClick={() => onSave({ movementEvents: events, tag: sessionTag, poseMetrics })}
+                onClick={() => {
+                  // Strip heavy frame-by-frame arrays before saving to Firestore
+                  const { motionHistory: _mh, punchEvents: _pe, coaching: _co, ...poseMetricsForSave } = poseMetrics || {};
+                  onSave({ movementEvents: events, tag: sessionTag, poseMetrics: poseMetrics ? poseMetricsForSave : null });
+                }}
                 disabled={saving || saved}
               >
                 {saving
