@@ -1,8 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 
-const IS_DEV = process.env.NODE_ENV === "development";
-
 const STATUS_COLOR = {
   good:           "#34D399",
   too_narrow:     "#F59E0B",
@@ -19,8 +17,8 @@ const STATUS_COLOR = {
 function Row({ label, value, color }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "1px 0" }}>
-      <span style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", fontWeight: 700, flexShrink: 0 }}>{label}</span>
-      <span style={{ fontSize: 9, color: color || "rgba(255,255,255,0.75)", fontWeight: 900, textAlign: "right" }}>{value}</span>
+      <span style={{ fontSize: 8, color: "rgba(255,255,255,0.4)", fontWeight: 700, flexShrink: 0 }}>{label}</span>
+      <span style={{ fontSize: 8, color: color || "rgba(255,255,255,0.75)", fontWeight: 900, textAlign: "right" }}>{value}</span>
     </div>
   );
 }
@@ -51,17 +49,16 @@ function MetricRow({ label, metric, validity }) {
   return <Row label={label} value={metric.status} color={STATUS_COLOR[metric.status]} />;
 }
 
-export default function PoseDebugOverlay({ getDebugInfo, isActive }) {
-  if (!IS_DEV) return null;
-
+export default function PoseDebugOverlay({ getDebugInfo, isActive, debugEnabled }) {
   const [info, setInfo] = useState(null);
 
   useEffect(() => {
+    if (!debugEnabled) return;
     const id = setInterval(() => setInfo(getDebugInfo?.()), 300);
     return () => clearInterval(id);
-  }, [getDebugInfo]);
+  }, [getDebugInfo, debugEnabled]);
 
-  if (!info) return null;
+  if (!debugEnabled || !info) return null;
 
   const {
     status, error, frameError, fps, framesAttempted, framesWithBody,
@@ -81,11 +78,13 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive }) {
 
   return (
     <div style={{
-      position: "absolute", top: 8, left: 8, zIndex: 50, pointerEvents: "none",
-      background: "rgba(0,0,0,0.88)", borderRadius: 8, padding: "8px 11px",
-      border: `1px solid ${statusColor}50`, minWidth: 190,
+      position: "absolute", top: 6, left: 6, zIndex: 50, pointerEvents: "none",
+      background: "rgba(0,0,0,0.92)", borderRadius: 8, padding: "7px 10px",
+      border: `1px solid ${statusColor}50`, minWidth: 175, maxWidth: 210,
+      maxHeight: "calc(100vh - 80px)", overflowY: "auto",
+      WebkitOverflowScrolling: "touch",
     }}>
-      <div style={{ fontSize: 7, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.25)", marginBottom: 6 }}>
+      <div style={{ fontSize: 6.5, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.25)", marginBottom: 5 }}>
         POSE DEBUG
       </div>
 

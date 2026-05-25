@@ -39,6 +39,11 @@ export default function TrainPage() {
   const t = (key) => translate(locale, key);
   const { user, loading: authLoading } = useAuth();
 
+  const [debugEnabled, setDebugEnabled] = useState(false);
+  useEffect(() => {
+    setDebugEnabled(new URLSearchParams(window.location.search).get("debug") === "1");
+  }, []);
+
   const {
     reelId, drillId, challengeId, trainSource, trainSourceUserId,
     challengeUserId, creatorBestScore, targetScore,
@@ -482,8 +487,8 @@ export default function TrainPage() {
             />
           )}
 
-          {/* Pose debug overlay — dev only, stripped in production */}
-          <PoseDebugOverlay getDebugInfo={getDebugInfo} isActive={phase === "recording"} />
+          {/* Pose debug overlay — enabled via ?debug=1 query param */}
+          <PoseDebugOverlay getDebugInfo={getDebugInfo} isActive={phase === "recording"} debugEnabled={debugEnabled} />
 
           {/* Position cue — shown when lower body not in frame during recording */}
           {positionCue && (
