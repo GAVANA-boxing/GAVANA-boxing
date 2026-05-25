@@ -5,6 +5,7 @@ import { GOLD, RED, RADIUS, redAlpha, goldAlpha, whiteAlpha, blackAlpha } from "
 import { getChallengeRank } from "@/lib/utils";
 import { getChallengeComparisonPercent } from "@/lib/trainHelpers";
 import { getSessionIdentity } from "@/lib/combatMemory";
+import { cameraQualityScore } from "@/lib/cinematicCoaching";
 import RankBadge from "@/components/RankBadge";
 import styles from "@/components/train/trainStyles";
 
@@ -343,74 +344,90 @@ export default function TrainResultModal({
             </>
           )}
 
-          {/* Camera quality context — shown when analysis was limited by framing */}
-          {(() => {
-            const q = poseMetrics?.cameraQuality;
-            if (!q || q === "full_body" || q === "unknown") return null;
-            const label =
-              q === "too_close"        ? "Too Close" :
-              q === "upper_body_only"  ? "Upper Body Only" :
-              q === "upper_body_hips"  ? "Upper Body + Hips" : null;
-            if (!label) return null;
-            return (
-              <div style={{
-                marginTop: 10, display: "flex", alignItems: "center", gap: 7,
-                padding: "6px 12px", borderRadius: RADIUS.md,
-                background: whiteAlpha(0.025), border: `1px solid ${whiteAlpha(0.07)}`,
-              }}>
-                <span style={{ fontSize: 13, flexShrink: 0 }}>📷</span>
-                <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1, color: "rgba(245,196,81,0.6)", textTransform: "uppercase" }}>
-                  {label}
-                </span>
-                <span style={{ fontSize: 10, color: whiteAlpha(0.28), fontWeight: 700 }}>
-                  — pose analysis partial
-                </span>
-              </div>
-            );
-          })()}
-
-          {/* Technique Finding — only shown when pose data is from real visible landmarks */}
-          {worstPose && (
+          {/* Coaching Notes — cinematic coaching from session analysis */}
+          {poseMetrics?.coaching?.length > 0 && (
             <>
-              <SectionLabel label="Technique Finding" />
-              <div style={{
-                borderRadius: RADIUS.md, padding: "12px 14px",
-                background: "rgba(245,196,81,0.04)", border: `1px solid rgba(245,196,81,0.14)`,
-                borderLeft: `3px solid rgba(245,196,81,0.5)`,
-              }}>
-                <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.5, color: GOLD, marginBottom: 5 }}>
-                  {worstPose.ideal}
-                </div>
-                <div style={{ fontSize: 12, fontWeight: 800, color: whiteAlpha(0.7), lineHeight: 1.4 }}>
-                  {worstPose.cue}
-                </div>
+              <SectionLabel label="Coaching Notes" />
+
+              {/* Camera quality + punch count header */}
+              {(() => {
+                const score = cameraQualityScore(poseMetrics.cameraQuality);
+                const scoreColor =
+                  score === "PERFECT" ? "#34D399" :
+                  score === "GOOD"    ? "#34D399" :
+                  score === "LIMITED" ? "#F59E0B" : "#F87171";
+                return (
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 10,
+                    marginBottom: 8, padding: "5px 0",
+                  }}>
+                    {score && score !== null && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                        <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.5, color: scoreColor }}>
+                          {score}
+                        </span>
+                        <span style={{ fontSize: 9, color: whiteAlpha(0.22), fontWeight: 700 }}>CAMERA</span>
+                      </div>
+                    )}
+                    {poseMetrics.punchCount > 0 && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                        <span style={{ fontSize: 9, color: whiteAlpha(0.22) }}>·</span>
+                        <span style={{ fontSize: 9, fontWeight: 900, color: whiteAlpha(0.45) }}>
+                          {poseMetrics.punchCount} PUNCHES DETECTED
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {poseMetrics.coaching.map((c, i) => (
+                  <div key={i} style={{
+                    display: "flex", alignItems: "flex-start", gap: 10,
+                    padding: "10px 14px", borderRadius: RADIUS.md,
+                    background: c.type === "strength"
+                      ? "rgba(52,211,153,0.04)"
+                      : "rgba(245,196,81,0.04)",
+                    border: `1px solid ${c.type === "strength" ? "rgba(52,211,153,0.14)" : "rgba(245,196,81,0.14)"}`,
+                    borderLeft: `3px solid ${c.type === "strength" ? "rgba(52,211,153,0.45)" : "rgba(245,196,81,0.45)"}`,
+                  }}>
+                    <span style={{
+                      fontSize: 10, fontWeight: 900, flexShrink: 0, marginTop: 1,
+                      color: c.type === "strength" ? "rgba(52,211,153,0.8)" : "rgba(245,196,81,0.7)",
+                    }}>
+                      {c.type === "strength" ? "✓" : "→"}
+                    </span>
+                    <span style={{
+                      fontSize: 12, fontWeight: 800, lineHeight: 1.45,
+                      color: c.type === "strength" ? "rgba(52,211,153,0.8)" : whiteAlpha(0.72),
+                    }}>
+                      {c.message}
+                    </span>
+                  </div>
+                ))}
               </div>
+
+              {/* Framing note — only when key lower-body metrics were completely invisible */}
+              {(() => {
+                const gaps = poseMetrics?.visibilityGaps || [];
+                const lowerGap = gaps.some((k) => ["stanceWidth", "balance"].includes(k));
+                if (!lowerGap) return null;
+                return (
+                  <div style={{
+                    marginTop: 6, display: "flex", alignItems: "flex-start", gap: 8,
+                    padding: "8px 12px", borderRadius: RADIUS.md,
+                    background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.06)}`,
+                  }}>
+                    <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1, color: whiteAlpha(0.3), flexShrink: 0, marginTop: 1 }}>📷</span>
+                    <span style={{ fontSize: 10.5, color: whiteAlpha(0.3), fontWeight: 700, lineHeight: 1.45 }}>
+                      Stance & balance not analyzed — lower body was outside the frame. Step back next session for full feedback.
+                    </span>
+                  </div>
+                );
+              })()}
             </>
           )}
-
-          {/* Framing note — shown when lower-body metrics were skipped due to visibility */}
-          {(() => {
-            const gaps = poseMetrics?.visibilityGaps || [];
-            const lowerGap = gaps.some((k) => ["stanceWidth", "balance"].includes(k));
-            const rotGap   = gaps.includes("rotation");
-            if (!lowerGap && !rotGap) return null;
-            const skipped = [
-              lowerGap && "stance & balance",
-              rotGap && !lowerGap && "hip rotation",
-            ].filter(Boolean).join(", ");
-            return (
-              <div style={{
-                marginTop: 6, display: "flex", alignItems: "flex-start", gap: 8,
-                padding: "9px 12px", borderRadius: RADIUS.md,
-                background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.07)}`,
-              }}>
-                <span style={{ fontSize: 13, flexShrink: 0 }}>⚠️</span>
-                <span style={{ fontSize: 11, color: whiteAlpha(0.38), fontWeight: 700, lineHeight: 1.45 }}>
-                  {skipped.charAt(0).toUpperCase() + skipped.slice(1)} could not be analyzed — lower body was not in frame. Step back next session for complete technique feedback.
-                </span>
-              </div>
-            );
-          })()}
 
           {/* Session Details (collapsible) */}
           {(hasTimeline || (!activeChallenge && result.breakdown) || sessionHistory.length > 0) && (

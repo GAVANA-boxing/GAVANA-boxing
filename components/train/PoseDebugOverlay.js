@@ -58,6 +58,7 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive }) {
     status, error, frameError, fps, framesAttempted, framesWithBody,
     totalPoseFrames, landmarksDetected, landmarkCount, lowerBodyVisible,
     jointPresence, metricValidity, latestMetrics, cameraQuality,
+    punchPhase, punchCount, elbowAngle, velocity,
   } = info;
 
   const statusColor =
@@ -95,6 +96,23 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive }) {
       <Row label="Frames tried" value={framesAttempted} />
       <Row label="With body"    value={framesWithBody} />
       <Row label="Pose frames"  value={totalPoseFrames} />
+
+      {/* ── Punch phase ── */}
+      {isActive && landmarksDetected && (
+        <>
+          <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "5px 0" }} />
+          <div style={{ fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 800, marginBottom: 3 }}>PUNCH PHASE</div>
+          <Row label="Phase"
+               value={(punchPhase || "—").toUpperCase()}
+               color={
+                 punchPhase === "extending" ? "#34D399" :
+                 punchPhase === "recoiling" ? "#F59E0B" : "rgba(255,255,255,0.5)"
+               } />
+          <Row label="Elbow °"  value={isActive ? (elbowAngle ?? "—") : "—"} />
+          <Row label="Velocity" value={isActive ? (velocity ?? "—") : "—"} />
+          <Row label="Punches"  value={punchCount ?? 0} color={punchCount > 0 ? "#34D399" : "rgba(255,255,255,0.3)"} />
+        </>
+      )}
 
       {(error || frameError) && (
         <div style={{ marginTop: 5, fontSize: 7.5, color: "#F87171", lineHeight: 1.35, wordBreak: "break-word" }}>

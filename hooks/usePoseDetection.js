@@ -1,6 +1,8 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { computePoseMetrics, poseMetricsScore, lowerBodyVisible } from "@/lib/mediapipePoseMetrics";
+import { PunchPhaseDetector } from "@/lib/punchPhaseDetector";
+import { generateCoachingMessages } from "@/lib/cinematicCoaching";
 
 /**
  * MediaPipe files are served from /public/mediapipe/ (local static assets).
@@ -16,7 +18,10 @@ const LOCAL_WASM   = "/mediapipe/wasm";
 const MODEL_URL    =
   "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task";
 
-const THROTTLE_MS = 100; // ~10fps
+const THROTTLE_MS  = 100;  // ~10fps
+const SMOOTH_ALPHA = 0.35; // EMA weight for landmark smoothing
+// Key joint indices smoothed before metric computation
+const SMOOTH_IDX   = new Set([0, 11, 12, 13, 14, 15, 16, 23, 24, 27, 28]);
 
 // Key landmark indices for joint-presence checks in debug overlay
 const KEY_JOINTS = {
@@ -81,15 +86,18 @@ export function usePoseDetection({ videoRef, isActive }) {
   const rafRef             = useRef(null);
   const frameMetricsRef    = useRef([]);
   const latestLandmarksRef = useRef(null);
+  const smoothedLmRef      = useRef(null); // EMA-smoothed landmark array
+  const detectorRef        = useRef(new PunchPhaseDetector());
+  const currentPhaseRef    = useRef({ phase: "guard", elbowAngle: 0, velocity: 0 });
 
   // Diagnostic counters (refs — never cause re-renders)
-  const frameAttemptRef    = useRef(0);
-  const detectCountRef     = useRef(0);
-  const fpsCountRef        = useRef(0);
-  const fpsRef             = useRef(0);
-  const lastFpsTickRef     = useRef(0);
-  const frameErrorRef      = useRef(null);
-  const lowerBodyVisRef    = useRef(false); // hips + ankles visible this frame
+  const frameAttemptRef = useRef(0);
+  const detectCountRef  = useRef(0);
+  const fpsCountRef     = useRef(0);
+  const fpsRef          = useRef(0);
+  const lastFpsTickRef  = useRef(0);
+  const frameErrorRef   = useRef(null);
+  const lowerBodyVisRef = useRef(false);
 
   // ── Load PoseLandmarker ──────────────────────────────────────────────────
   useEffect(() => {
@@ -146,11 +154,36 @@ export function usePoseDetection({ videoRef, isActive }) {
         const res = landmarkerRef.current.detectForVideo(video, now);
         const landmarks = res.landmarks?.[0];
         if (landmarks && landmarks.length >= 29) {
-          latestLandmarksRef.current = landmarks;
+          // ── EMA smoothing on key joint positions ──
+          if (!smoothedLmRef.current || smoothedLmRef.current.length !== landmarks.length) {
+            smoothedLmRef.current = landmarks.map((lm) => ({ ...lm }));
+          } else {
+            const s = smoothedLmRef.current;
+            for (let i = 0; i < landmarks.length; i++) {
+              if (SMOOTH_IDX.has(i)) {
+                s[i] = {
+                  ...landmarks[i],
+                  x: SMOOTH_ALPHA * landmarks[i].x + (1 - SMOOTH_ALPHA) * s[i].x,
+                  y: SMOOTH_ALPHA * landmarks[i].y + (1 - SMOOTH_ALPHA) * s[i].y,
+                };
+              } else {
+                s[i] = landmarks[i];
+              }
+            }
+          }
+
+          const smoothed = smoothedLmRef.current;
+          latestLandmarksRef.current = smoothed;
           detectCountRef.current++;
           frameErrorRef.current = null;
-          lowerBodyVisRef.current = lowerBodyVisible(landmarks);
-          const metrics = computePoseMetrics(landmarks);
+          lowerBodyVisRef.current = lowerBodyVisible(smoothed);
+
+          // Punch phase detection (uses raw landmarks — detector has own smoothing)
+          const phaseInfo = detectorRef.current.update(landmarks);
+          if (phaseInfo) currentPhaseRef.current = phaseInfo;
+
+          // Metrics computed from smoothed landmarks
+          const metrics = computePoseMetrics(smoothed);
           if (metrics) frameMetricsRef.current.push(metrics);
         } else {
           latestLandmarksRef.current = null;
@@ -172,8 +205,11 @@ export function usePoseDetection({ videoRef, isActive }) {
     if (isActive) {
       frameMetricsRef.current = [];
       latestLandmarksRef.current = null;
+      smoothedLmRef.current = null;
       detectCountRef.current = 0;
       frameAttemptRef.current = 0;
+      detectorRef.current.reset();
+      currentPhaseRef.current = { phase: "guard", elbowAngle: 0, velocity: 0 };
     }
   }, [isActive]);
 
@@ -212,7 +248,7 @@ export function usePoseDetection({ videoRef, isActive }) {
       };
     }
 
-    summary.score = poseMetricsScore(summary);
+    summary.score      = poseMetricsScore(summary);
     summary.frameCount = frames.length;
 
     // Dominant camera quality across session frames
@@ -227,6 +263,14 @@ export function usePoseDetection({ videoRef, isActive }) {
     summary.visibilityGaps = METRIC_KEYS
       .filter(({ key }) => summary[key] === null)
       .map(({ key }) => key);
+
+    // Punch events from state machine
+    const punchEvents = detectorRef.current.getPunchEvents();
+    summary.punchEvents = punchEvents;
+    summary.punchCount  = punchEvents.length;
+
+    // Cinematic coaching messages
+    summary.coaching = generateCoachingMessages(summary, punchEvents);
 
     return summary;
   }, []);
@@ -258,6 +302,8 @@ export function usePoseDetection({ videoRef, isActive }) {
       balance:        latestMetrics ? (latestMetrics.balance        !== null ? "valid" : "skipped") : "unknown",
     };
 
+    const { phase: punchPhase, elbowAngle, velocity } = currentPhaseRef.current;
+
     return {
       status:            poseStatus,
       error:             poseError,
@@ -273,6 +319,10 @@ export function usePoseDetection({ videoRef, isActive }) {
       metricValidity,
       latestMetrics,
       cameraQuality,
+      punchPhase,
+      punchCount:        detectorRef.current.punchCount,
+      elbowAngle,
+      velocity,
     };
   }, [poseStatus, poseError]);
 
