@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { computePoseMetrics, poseMetricsScore, lowerBodyVisible } from "@/lib/mediapipePoseMetrics";
 import { PunchPhaseDetector } from "@/lib/punchPhaseDetector";
 import { generateCoachingMessages, computeVelocityStats, computePunchBreakdown, computeSessionConfidence } from "@/lib/cinematicCoaching";
+import { analyzeSession } from "@/lib/boxingIntelligence";
 
 /**
  * MediaPipe files are served from /public/mediapipe/ (local static assets).
@@ -98,6 +99,7 @@ export function usePoseDetection({ videoRef, isActive }) {
   const lastFpsTickRef  = useRef(0);
   const frameErrorRef   = useRef(null);
   const lowerBodyVisRef = useRef(false);
+  const visSamplesRef   = useRef([]);  // per-frame avg arm joint visibility for debug stats
 
   // ── Load PoseLandmarker ──────────────────────────────────────────────────
   useEffect(() => {
@@ -179,6 +181,11 @@ export function usePoseDetection({ videoRef, isActive }) {
           frameErrorRef.current = null;
           lowerBodyVisRef.current = lowerBodyVisible(smoothed);
 
+          // Track arm visibility for debug session report
+          const armVis = [11, 12, 13, 14, 15, 16]
+            .reduce((s, i) => s + (landmarks[i]?.visibility ?? 0), 0) / 6;
+          visSamplesRef.current.push(armVis);
+
           // Punch phase detection (uses raw landmarks — detector has own smoothing)
           const phaseInfo = detectorRef.current.update(landmarks);
           if (phaseInfo) currentPhaseRef.current = phaseInfo;
@@ -209,6 +216,7 @@ export function usePoseDetection({ videoRef, isActive }) {
       smoothedLmRef.current = null;
       detectCountRef.current = 0;
       frameAttemptRef.current = 0;
+      visSamplesRef.current = [];
       detectorRef.current.reset();
       currentPhaseRef.current = { leftPhase: "guard", rightPhase: "guard", leftElbow: 0, rightElbow: 0, velocity: 0 };
     }
@@ -327,6 +335,43 @@ export function usePoseDetection({ videoRef, isActive }) {
     // Cinematic coaching messages
     summary.coaching = generateCoachingMessages(summary, punchEvents);
 
+    // Boxing intelligence — style detection, per-type quality, weakness
+    summary.boxingIntelligence = analyzeSession(summary, punchEvents);
+    if (summary.boxingIntelligence?.coaching?.length) {
+      summary.coaching = [...summary.coaching, ...summary.boxingIntelligence.coaching];
+    }
+
+    // Debug session stats — only populated when debugEnabled (but computed always so no perf branch)
+    const visSamples     = visSamplesRef.current;
+    const avgVis         = visSamples.length
+      ? visSamples.reduce((s, v) => s + v, 0) / visSamples.length : 0;
+    const unstableFrames = visSamples.filter((v) => v < 0.38).length;
+    const sessionDurMs   = frames.length >= 2 ? frames[frames.length - 1]._ts - frames[0]._ts : 0;
+    const estimatedFps   = sessionDurMs > 0
+      ? Math.round((frames.length / sessionDurMs) * 1000 * 10) / 10 : 0;
+    const detectorStats  = detectorRef.current.getSessionStats?.() ?? { rejects: {} };
+    const jabCount       = punchEvents.filter((e) => e.type === "jab").length;
+    const crossCount     = punchEvents.filter((e) => e.type === "cross").length;
+    const hookCount      = punchEvents.filter((e) => e.type === "hook").length;
+    const avgConf        = punchEvents.length
+      ? punchEvents.reduce((s, e) => s + (e.confidence ?? 1), 0) / punchEvents.length : 0;
+    const lowConfCount   = punchEvents.filter((e) => (e.confidence ?? 1) < 0.45).length;
+
+    summary.debugStats = {
+      rejects:             detectorStats.rejects,
+      totalPunches:        punchEvents.length,
+      jabCount,
+      crossCount,
+      hookCount,
+      avgConfidencePct:    Math.round(avgConf * 100),
+      lowConfCount,
+      avgVisPct:           Math.round(avgVis * 100),
+      unstablePct:         visSamples.length ? Math.round((unstableFrames / visSamples.length) * 100) : 0,
+      cameraQualityBreakdown: qualityCounts,
+      frameCount:          frames.length,
+      estimatedFps,
+    };
+
     return summary;
   }, []);
 
@@ -396,6 +441,7 @@ export function usePoseDetection({ videoRef, isActive }) {
       lastPunchLateralPct:      lastPunch?.lateralRatio     ?? null,
       lastPunchReasons:         lastPunch?.classifyReasons  ?? null,
       handLiveData,
+      trackingQuality: detectorRef.current.getTrackingQuality?.() ?? "unknown",
     };
   }, [poseStatus, poseError]);
 

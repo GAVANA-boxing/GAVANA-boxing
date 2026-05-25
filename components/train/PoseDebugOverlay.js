@@ -67,7 +67,7 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive, debugEnabled 
     punchPhase, leftPhase, rightPhase, punchCount, leftElbow, rightElbow, velocity,
     lastPunchType, lastPunchHand, lastSnapVelocity, lastRecoilVelocity, lastRecoilMs,
     lastPunchConfidence, lastPunchConfidenceLabel, lastPunchLateralPct,
-    handLiveData,
+    handLiveData, trackingQuality,
   } = info;
 
   const statusColor =
@@ -122,6 +122,9 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive, debugEnabled 
           <Row label="L elbow °"   value={leftElbow  ?? "—"} />
           <Row label="R elbow °"   value={rightElbow ?? "—"} />
           <Row label="Vel now"     value={isActive ? (velocity ?? "—") : "—"} />
+          <Row label="Tracking"
+               value={(trackingQuality || "—").toUpperCase()}
+               color={trackingQuality === "good" ? "#34D399" : trackingQuality === "degraded" ? "#F59E0B" : "#F87171"} />
           <Row label="Punches" value={punchCount ?? 0} color={punchCount > 0 ? "#34D399" : "rgba(255,255,255,0.3)"} />
 
           {/* ── Last punch summary (human-readable) ── */}
@@ -208,26 +211,32 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive, debugEnabled 
                   {side === "L" ? "LEFT (JAB)" : "RIGHT (CROSS)"}
                 </div>
                 <Row label="Phase"      value={h.phase.toUpperCase()} color={phaseColor} />
-                <Row label="Elbow °"    value={h.elbowAngle ?? "—"} color={
+                <Row label="Elbow°"     value={h.elbowAngle ?? "—"} color={
                   h.elbowAngle > 130 ? "#34D399" : h.elbowAngle > 110 ? "#F59E0B" : "rgba(255,255,255,0.5)"
                 } />
-                <Row label="relVel"     value={h.relVel ?? "—"} color={
-                  h.relVel >= 0.020 ? "#34D399" : h.relVel >= 0.010 ? "#F59E0B" : "rgba(255,255,255,0.35)"
+                <Row label="rate°/f"    value={h.angleRate ?? "—"} color={
+                  h.angleRate >= 4.0 ? "#34D399" : h.angleRate >= 2.0 ? "#F59E0B" : "rgba(255,255,255,0.35)"
                 } />
                 <Row label="normVel"    value={h.normVel ?? "—"} color={
                   h.normVel >= 0.050 ? "#34D399" : h.normVel >= 0.025 ? "#F59E0B" : "rgba(255,255,255,0.35)"
                 } />
-                <Row label="extDelta"   value={h.extDelta ?? "—"} />
                 <Row label="extDeltaN"  value={h.extDeltaNorm ?? "—"} color={
                   h.extDeltaNorm >= 0.12 ? "#34D399" : h.extDeltaNorm >= 0.06 ? "#F59E0B" : "rgba(255,255,255,0.35)"
                 } />
+                <Row label="smoothZ"    value={h.smoothZRel != null ? h.smoothZRel.toFixed(3) : "—"} color={
+                  h.smoothZRel < -0.018 ? "#34D399" : h.smoothZRel < -0.008 ? "#F59E0B" : "rgba(255,255,255,0.35)"
+                } />
+                <Row label="vis%"       value={h.rollingVis != null ? `${h.rollingVis}%` : "—"} color={
+                  h.rollingVis >= 65 ? "#34D399" : h.rollingVis >= 45 ? "#F59E0B" : "#F87171"
+                } />
+                <Row label="calib"      value={h.calibrated ? "READY" : `wait`} color={
+                  h.calibrated ? "#34D399" : "#F59E0B"
+                } />
+                <Row label="cooldown"   value={h.cooldownLeft > 0 ? `${h.cooldownLeft}ms` : "—"} color={
+                  h.cooldownLeft > 0 ? "#F59E0B" : "rgba(255,255,255,0.25)"
+                } />
                 <Row label="guardBase"  value={h.guardBase ?? "—"} color="rgba(255,255,255,0.3)" />
                 <Row label="shWidth"    value={h.shoulderWidth ?? "—"} color="rgba(255,255,255,0.3)" />
-                <Row label="sh↔wr"      value={h.shoulderWristDist ?? "—"} />
-                <Row label="zRelΔ"      value={h.zRelDelta != null ? h.zRelDelta.toFixed(3) : "—"} color={
-                  h.zRelDelta < -0.005 ? "#34D399" : "rgba(255,255,255,0.35)"
-                } />
-                <Row label="relX / relY" value={`${h.relWristX ?? "—"} / ${h.relWristY ?? "—"}`} color="rgba(255,255,255,0.3)" />
                 {h.phase === "extending" && (
                   <>
                     <div style={{ height: 1, background: "rgba(255,255,255,0.04)", margin: "2px 0" }} />
