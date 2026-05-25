@@ -396,6 +396,7 @@ export function usePoseDetection({ videoRef, isActive }) {
       lastPunchLateralPct:      lastPunch?.lateralRatio     ?? null,
       lastPunchReasons:         lastPunch?.classifyReasons  ?? null,
       handLiveData,
+      trackingQuality: detectorRef.current.getTrackingQuality?.() ?? "unknown",
     };
   }, [poseStatus, poseError]);
 
