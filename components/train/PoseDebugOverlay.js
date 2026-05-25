@@ -58,8 +58,8 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive }) {
     status, error, frameError, fps, framesAttempted, framesWithBody,
     totalPoseFrames, landmarksDetected, landmarkCount, lowerBodyVisible,
     jointPresence, metricValidity, latestMetrics, cameraQuality,
-    punchPhase, punchCount, elbowAngle, velocity,
-    lastSnapVelocity, lastRecoilVelocity, lastRecoilMs,
+    punchPhase, leftPhase, rightPhase, punchCount, leftElbow, rightElbow, velocity,
+    lastPunchType, lastPunchHand, lastSnapVelocity, lastRecoilVelocity, lastRecoilMs,
   } = info;
 
   const statusColor =
@@ -103,15 +103,21 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive }) {
         <>
           <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "5px 0" }} />
           <div style={{ fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 800, marginBottom: 3 }}>PUNCH PHASE</div>
-          <Row label="Phase"
-               value={(punchPhase || "—").toUpperCase()}
-               color={
-                 punchPhase === "extending" ? "#34D399" :
-                 punchPhase === "recoiling" ? "#F59E0B" : "rgba(255,255,255,0.5)"
-               } />
-          <Row label="Elbow °"     value={isActive ? (elbowAngle ?? "—") : "—"} />
+          <Row label="L (jab)"
+               value={(leftPhase || "guard").toUpperCase()}
+               color={leftPhase === "extending" ? "#34D399" : leftPhase === "recoiling" ? "#F59E0B" : "rgba(255,255,255,0.35)"} />
+          <Row label="R (cross)"
+               value={(rightPhase || "guard").toUpperCase()}
+               color={rightPhase === "extending" ? "#34D399" : rightPhase === "recoiling" ? "#F59E0B" : "rgba(255,255,255,0.35)"} />
+          <Row label="L elbow °"   value={leftElbow  ?? "—"} />
+          <Row label="R elbow °"   value={rightElbow ?? "—"} />
           <Row label="Vel now"     value={isActive ? (velocity ?? "—") : "—"} />
           <Row label="Punches"     value={punchCount ?? 0} color={punchCount > 0 ? "#34D399" : "rgba(255,255,255,0.3)"} />
+          {lastPunchType && (
+            <Row label="Last type"
+                 value={`${(lastPunchHand || "").toUpperCase()[0] || "?"} ${(lastPunchType || "").toUpperCase()}`}
+                 color="#F59E0B" />
+          )}
           {lastSnapVelocity != null && (
             <>
               <div style={{ height: 1, background: "rgba(255,255,255,0.05)", margin: "3px 0" }} />

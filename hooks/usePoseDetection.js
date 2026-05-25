@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { computePoseMetrics, poseMetricsScore, lowerBodyVisible } from "@/lib/mediapipePoseMetrics";
 import { PunchPhaseDetector } from "@/lib/punchPhaseDetector";
-import { generateCoachingMessages, computeVelocityStats } from "@/lib/cinematicCoaching";
+import { generateCoachingMessages, computeVelocityStats, computePunchBreakdown } from "@/lib/cinematicCoaching";
 
 /**
  * MediaPipe files are served from /public/mediapipe/ (local static assets).
@@ -88,7 +88,7 @@ export function usePoseDetection({ videoRef, isActive }) {
   const latestLandmarksRef = useRef(null);
   const smoothedLmRef      = useRef(null); // EMA-smoothed landmark array
   const detectorRef        = useRef(new PunchPhaseDetector());
-  const currentPhaseRef    = useRef({ phase: "guard", elbowAngle: 0, velocity: 0 });
+  const currentPhaseRef    = useRef({ leftPhase: "guard", rightPhase: "guard", leftElbow: 0, rightElbow: 0, velocity: 0 });
 
   // Diagnostic counters (refs — never cause re-renders)
   const frameAttemptRef = useRef(0);
@@ -209,7 +209,7 @@ export function usePoseDetection({ videoRef, isActive }) {
       detectCountRef.current = 0;
       frameAttemptRef.current = 0;
       detectorRef.current.reset();
-      currentPhaseRef.current = { phase: "guard", elbowAngle: 0, velocity: 0 };
+      currentPhaseRef.current = { leftPhase: "guard", rightPhase: "guard", leftElbow: 0, rightElbow: 0, velocity: 0 };
     }
   }, [isActive]);
 
@@ -264,10 +264,11 @@ export function usePoseDetection({ videoRef, isActive }) {
       .filter(({ key }) => summary[key] === null)
       .map(({ key }) => key);
 
-    // Punch events + velocity stats from state machine
+    // Punch events, breakdown by type, velocity stats
     const punchEvents      = detectorRef.current.getPunchEvents();
     summary.punchEvents    = punchEvents;
     summary.punchCount     = punchEvents.length;
+    summary.punchBreakdown = computePunchBreakdown(punchEvents);
     summary.velocityStats  = computeVelocityStats(punchEvents);
 
     // Cinematic coaching messages
@@ -303,7 +304,7 @@ export function usePoseDetection({ videoRef, isActive }) {
       balance:        latestMetrics ? (latestMetrics.balance        !== null ? "valid" : "skipped") : "unknown",
     };
 
-    const { phase: punchPhase, elbowAngle, velocity } = currentPhaseRef.current;
+    const { leftPhase, rightPhase, leftElbow, rightElbow, velocity } = currentPhaseRef.current;
 
     // Last completed punch — for live debug display
     const allEvents   = detectorRef.current.getPunchEvents();
@@ -324,10 +325,15 @@ export function usePoseDetection({ videoRef, isActive }) {
       metricValidity,
       latestMetrics,
       cameraQuality,
-      punchPhase,
+      punchPhase:        detectorRef.current.phase,
+      leftPhase,
+      rightPhase,
       punchCount:        detectorRef.current.punchCount,
-      elbowAngle,
+      leftElbow,
+      rightElbow,
       velocity,
+      lastPunchType:     lastPunch?.type        ?? null,
+      lastPunchHand:     lastPunch?.hand        ?? null,
       lastSnapVelocity:  lastPunch?.snapVelocity  ?? null,
       lastRecoilVelocity: lastPunch?.recoilVelocity ?? null,
       lastRecoilMs:      lastPunch?.recoilMs       ?? null,

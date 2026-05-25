@@ -432,6 +432,37 @@ export default function TrainResultModal({
                 ))}
               </div>
 
+              {/* Punch breakdown by type */}
+              {(() => {
+                const bd = poseMetrics?.punchBreakdown;
+                if (!bd || !Object.keys(bd).length) return null;
+                const TYPE_LABEL = { jab: "JAB", cross: "CROSS", hook: "HOOK" };
+                return (
+                  <div style={{
+                    marginTop: 8, display: "flex", gap: 6, flexWrap: "wrap",
+                  }}>
+                    {["jab", "cross", "hook"].filter((t) => bd[t]).map((t) => (
+                      <div key={t} style={{
+                        flex: 1, minWidth: 64,
+                        padding: "7px 10px", borderRadius: RADIUS.md,
+                        background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.07)}`,
+                        textAlign: "center",
+                      }}>
+                        <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: whiteAlpha(0.3), marginBottom: 3 }}>
+                          {TYPE_LABEL[t]}
+                        </div>
+                        <div style={{ fontSize: 18, fontWeight: 1000, color: "#fff", fontFamily: "var(--font-display, 'Anton', sans-serif)" }}>
+                          {bd[t].count}
+                        </div>
+                        <div style={{ fontSize: 9, color: whiteAlpha(0.28), fontWeight: 700 }}>
+                          avg {bd[t].avgAngle}°
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+
               {/* Framing note — only when key lower-body metrics were completely invisible */}
               {(() => {
                 const gaps = poseMetrics?.visibilityGaps || [];
