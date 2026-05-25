@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { computePoseMetrics, poseMetricsScore, lowerBodyVisible } from "@/lib/mediapipePoseMetrics";
 import { PunchPhaseDetector } from "@/lib/punchPhaseDetector";
 import { generateCoachingMessages, computeVelocityStats, computePunchBreakdown, computeSessionConfidence } from "@/lib/cinematicCoaching";
+import { analyzeSession } from "@/lib/boxingIntelligence";
 
 /**
  * MediaPipe files are served from /public/mediapipe/ (local static assets).
@@ -333,6 +334,12 @@ export function usePoseDetection({ videoRef, isActive }) {
 
     // Cinematic coaching messages
     summary.coaching = generateCoachingMessages(summary, punchEvents);
+
+    // Boxing intelligence — style detection, per-type quality, weakness
+    summary.boxingIntelligence = analyzeSession(summary, punchEvents);
+    if (summary.boxingIntelligence?.coaching?.length) {
+      summary.coaching = [...summary.coaching, ...summary.boxingIntelligence.coaching];
+    }
 
     // Debug session stats — only populated when debugEnabled (but computed always so no perf branch)
     const visSamples     = visSamplesRef.current;

@@ -475,6 +475,38 @@ export default function TrainResultModal({
                 );
               })()}
 
+              {/* Boxing intelligence — style + weakness */}
+              {(() => {
+                const bi = poseMetrics.boxingIntelligence;
+                if (!bi) return null;
+                const styleColor =
+                  bi.style === "explosive" ? "#F59E0B" :
+                  bi.style === "pressure"  ? "#F87171" :
+                  bi.style === "outboxer"  ? "#34D399" : "#94A3B8";
+                return (
+                  <div style={{
+                    marginBottom: 8, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
+                  }}>
+                    {bi.styleLabel && bi.styleConfidence >= 0.3 && (
+                      <div style={{
+                        padding: "3px 10px", borderRadius: 20,
+                        background: `${styleColor}14`,
+                        border: `1px solid ${styleColor}35`,
+                        fontSize: 9, fontWeight: 900, letterSpacing: 1.5,
+                        color: styleColor, textTransform: "uppercase",
+                      }}>
+                        {bi.styleLabel}
+                      </div>
+                    )}
+                    {bi.weakness && (
+                      <div style={{ fontSize: 9, color: whiteAlpha(0.32), fontWeight: 700 }}>
+                        Focus: <span style={{ color: "#F59E0B", fontWeight: 900 }}>{bi.weakness.label}</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
               {/* Session confidence indicator */}
               {poseMetrics.sessionConfidence && poseMetrics.sessionConfidence !== "high" && (
                 <div style={{
