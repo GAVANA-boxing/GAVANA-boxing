@@ -23,7 +23,8 @@ import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
 import MilestoneCelebration from "@/components/MilestoneCelebration";
 import { usePoseDetection } from "@/hooks/usePoseDetection";
 import dynamic from "next/dynamic";
-const PoseDebugOverlay = dynamic(() => import("@/components/train/PoseDebugOverlay"), { ssr: false });
+const PoseDebugOverlay   = dynamic(() => import("@/components/train/PoseDebugOverlay"),   { ssr: false });
+const DebugSessionPanel  = dynamic(() => import("@/components/train/DebugSessionPanel"),  { ssr: false });
 
 // titleKey only — duration/target now live in drillConfig
 const CHALLENGES = {
@@ -596,6 +597,12 @@ export default function TrainPage() {
         onShareChallenge={handleShareChallenge}
         onShareTraining={handleShareTraining}
       />
+      {/* Debug session report — only visible when ?debug=1, appears after session */}
+      <DebugSessionPanel
+        stats={poseSessionSummary?.debugStats ?? null}
+        debugEnabled={debugEnabled}
+      />
+
       <DailyMission locale={locale} />
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="reels" />
 
