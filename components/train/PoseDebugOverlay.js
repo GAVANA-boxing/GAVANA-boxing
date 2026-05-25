@@ -229,6 +229,9 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive, debugEnabled 
                 {h.bodyApproach && (
                   <Row label="body→cam" value="BLOCKED" color="#F87171" />
                 )}
+                {h.phoneJerk && (
+                  <Row label="phone jerk" value="BLOCKED" color="#F87171" />
+                )}
                 <Row label="vis%"       value={h.rollingVis != null ? `${h.rollingVis}%` : "—"} color={
                   h.rollingVis >= 65 ? "#34D399" : h.rollingVis >= 45 ? "#F59E0B" : "#F87171"
                 } />
