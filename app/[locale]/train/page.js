@@ -39,6 +39,11 @@ export default function TrainPage() {
   const t = (key) => translate(locale, key);
   const { user, loading: authLoading } = useAuth();
 
+  const [debugEnabled, setDebugEnabled] = useState(false);
+  useEffect(() => {
+    setDebugEnabled(new URLSearchParams(window.location.search).get("debug") === "1");
+  }, []);
+
   const {
     reelId, drillId, challengeId, trainSource, trainSourceUserId,
     challengeUserId, creatorBestScore, targetScore,
@@ -162,10 +167,12 @@ export default function TrainPage() {
   const [focusTip, setFocusTip] = useState(null);
   const [newBadges, setNewBadges] = useState([]);
   const [poseSessionSummary, setPoseSessionSummary] = useState(null);
+  const [prevPoseMetrics, setPrevPoseMetrics] = useState(null);
+  const [positionCue, setPositionCue] = useState(null);
   const coachSnapshotRef = useRef(null);
   const prevSessionCountRef = useRef(null);
 
-  // Fetch training sessions once → build coach snapshot for debrief + focus tip
+  // Fetch training sessions once → build coach snapshot + grab last session's pose metrics
   useEffect(() => {
     if (!user?.uid) return;
     let active = true;
@@ -185,6 +192,8 @@ export default function TrainPage() {
         const snapshot = buildCoachSnapshot({ sessions, profileData: {} });
         coachSnapshotRef.current = snapshot;
         prevSessionCountRef.current = sessions.length;
+        // Most recent past session's pose metrics for comparison
+        if (sessions[0]?.poseMetrics) setPrevPoseMetrics(sessions[0].poseMetrics);
         if (snapshot && sessions.length >= 3) {
           const weakAreas = Object.entries(snapshot.radarStats).sort(([, a], [, b]) => a - b);
           const miniSnap = { weakAreas, radarStats: snapshot.radarStats };
@@ -257,6 +266,26 @@ export default function TrainPage() {
     return () => { active = false; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result?.score]);
+
+  // ── Setup cue: poll during recording to detect camera framing issues ──
+  useEffect(() => {
+    if (phase !== "recording") { setPositionCue(null); return; }
+    const id = setInterval(() => {
+      const info = getDebugInfo();
+      if (info.status !== "ready" || !info.landmarksDetected) { setPositionCue(null); return; }
+      const q = info.cameraQuality;
+      if (q === "too_close") {
+        setPositionCue("Too close — step back so full torso is visible");
+      } else if (q === "upper_body_only") {
+        setPositionCue("Step back — hips and feet must be visible for full analysis");
+      } else if (q === "upper_body_hips") {
+        setPositionCue("Feet not visible — step back for stance and balance analysis");
+      } else {
+        setPositionCue(null);
+      }
+    }, 1200);
+    return () => { clearInterval(id); setPositionCue(null); };
+  }, [phase, getDebugInfo]);
 
   // ── Badge celebration after session save ─────────────────────────────────
   useEffect(() => {
@@ -458,8 +487,27 @@ export default function TrainPage() {
             />
           )}
 
-          {/* Pose debug overlay — dev only, stripped in production */}
-          <PoseDebugOverlay getDebugInfo={getDebugInfo} isActive={phase === "recording"} />
+          {/* Pose debug overlay — enabled via ?debug=1 query param */}
+          <PoseDebugOverlay getDebugInfo={getDebugInfo} isActive={phase === "recording"} debugEnabled={debugEnabled} />
+
+          {/* Position cue — shown when lower body not in frame during recording */}
+          {positionCue && (
+            <div style={{
+              position: "absolute", bottom: 56, left: 0, right: 0,
+              display: "flex", justifyContent: "center", pointerEvents: "none",
+            }}>
+              <div style={{
+                background: "rgba(245,196,81,0.13)",
+                border: "1px solid rgba(245,196,81,0.45)",
+                borderRadius: 20, padding: "5px 16px",
+                fontSize: 11.5, fontWeight: 800,
+                color: "rgba(245,196,81,0.95)",
+                letterSpacing: 0.2,
+              }}>
+                {positionCue}
+              </div>
+            </div>
+          )}
         </div>
 
         <PreGameCard
@@ -534,6 +582,7 @@ export default function TrainPage() {
         movementEvents={movementEvents}
         sessionStartTime={sessionStartTime}
         poseMetrics={poseSessionSummary}
+        prevPoseMetrics={prevPoseMetrics}
         error={error}
         saving={saving}
         saved={saved}
