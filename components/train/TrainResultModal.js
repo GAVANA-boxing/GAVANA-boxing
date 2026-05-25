@@ -468,8 +468,31 @@ export default function TrainResultModal({
                 );
               })()}
 
+              {/* Session confidence indicator */}
+              {poseMetrics.sessionConfidence && poseMetrics.sessionConfidence !== "high" && (
+                <div style={{
+                  marginBottom: 8, display: "flex", alignItems: "center", gap: 6,
+                  padding: "5px 10px", borderRadius: RADIUS.md,
+                  background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)",
+                }}>
+                  <span style={{
+                    fontSize: 8, fontWeight: 900, letterSpacing: 1.5,
+                    color: poseMetrics.sessionConfidence === "medium" ? "#F59E0B" : "#F87171",
+                  }}>
+                    {poseMetrics.sessionConfidence === "medium" ? "MEDIUM" : "LOW"} CONFIDENCE
+                  </span>
+                  <span style={{ fontSize: 9, color: whiteAlpha(0.28), fontWeight: 700 }}>
+                    {poseMetrics.sessionConfidence === "medium"
+                      ? "— findings directional, not definitive"
+                      : "— session too short or framing limited"}
+                  </span>
+                </div>
+              )}
+
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {poseMetrics.coaching.map((c, i) => (
+                {poseMetrics.coaching
+                  .filter((c) => c.type !== "caution")
+                  .map((c, i) => (
                   <div key={i} style={{
                     display: "flex", alignItems: "flex-start", gap: 10,
                     padding: "10px 14px", borderRadius: RADIUS.md,
@@ -489,6 +512,20 @@ export default function TrainResultModal({
                       fontSize: 12, fontWeight: 800, lineHeight: 1.45,
                       color: c.type === "strength" ? "rgba(52,211,153,0.8)" : whiteAlpha(0.72),
                     }}>
+                      {c.message}
+                    </span>
+                  </div>
+                ))}
+
+                {/* Caution messages — shown only when session confidence warrants it */}
+                {poseMetrics.coaching.filter((c) => c.type === "caution").map((c, i) => (
+                  <div key={`caution-${i}`} style={{
+                    display: "flex", alignItems: "flex-start", gap: 8,
+                    padding: "8px 12px", borderRadius: RADIUS.md,
+                    background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)",
+                  }}>
+                    <span style={{ fontSize: 9, color: whiteAlpha(0.28), flexShrink: 0, marginTop: 1 }}>⚠</span>
+                    <span style={{ fontSize: 10.5, color: whiteAlpha(0.32), fontWeight: 700, lineHeight: 1.45 }}>
                       {c.message}
                     </span>
                   </div>

@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { computePoseMetrics, poseMetricsScore, lowerBodyVisible } from "@/lib/mediapipePoseMetrics";
 import { PunchPhaseDetector } from "@/lib/punchPhaseDetector";
-import { generateCoachingMessages, computeVelocityStats, computePunchBreakdown } from "@/lib/cinematicCoaching";
+import { generateCoachingMessages, computeVelocityStats, computePunchBreakdown, computeSessionConfidence } from "@/lib/cinematicCoaching";
 
 /**
  * MediaPipe files are served from /public/mediapipe/ (local static assets).
@@ -276,25 +276,52 @@ export function usePoseDetection({ videoRef, isActive }) {
     summary.punchBreakdown = computePunchBreakdown(punchEvents);
     summary.velocityStats  = computeVelocityStats(punchEvents);
 
-    // Motion history for timeline chart
-    summary.motionHistory = durationMs > 1000 ? {
-      durationMs,
-      guardTimeline: frames
-        .filter((f) => f.guardHeight?.deltaY != null && f._ts != null)
-        .map((f) => ({
+    // Motion history for timeline chart — with EMA smoothing + status debounce
+    if (durationMs > 1000) {
+      const TIMELINE_ALPHA = 0.4;
+      const DEBOUNCE       = 3;
+      const rawGuard = frames.filter((f) => f.guardHeight?.deltaY != null && f._ts != null);
+      let smoothDeltaY = null;
+
+      const guardTimeline = rawGuard.map((f, i) => {
+        smoothDeltaY = smoothDeltaY === null
+          ? f.guardHeight.deltaY
+          : TIMELINE_ALPHA * f.guardHeight.deltaY + (1 - TIMELINE_ALPHA) * smoothDeltaY;
+
+        // 3-frame majority vote to suppress status flicker
+        const start = Math.max(0, i - DEBOUNCE + 1);
+        const counts = {};
+        for (const w of rawGuard.slice(start, i + 1)) {
+          const s = w.guardHeight.status;
+          if (s) counts[s] = (counts[s] || 0) + 1;
+        }
+        const status = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || f.guardHeight.status;
+
+        return {
           t:      (f._ts - sessionStart) / durationMs,
-          deltaY: f.guardHeight.deltaY,
-          status: f.guardHeight.status,
-        })),
-      punchTimeline: punchEvents
-        .map((e) => ({
-          t:         (e.ts - sessionStart) / durationMs,
-          type:      e.type,
-          hand:      e.hand,
-          peakAngle: e.peakAngle,
-        }))
-        .filter((e) => e.t >= 0 && e.t <= 1.05),
-    } : null;
+          deltaY: smoothDeltaY,
+          status,
+        };
+      });
+
+      summary.motionHistory = {
+        durationMs,
+        guardTimeline,
+        punchTimeline: punchEvents
+          .map((e) => ({
+            t:         (e.ts - sessionStart) / durationMs,
+            type:      e.type,
+            hand:      e.hand,
+            peakAngle: e.peakAngle,
+          }))
+          .filter((e) => e.t >= 0 && e.t <= 1.05),
+      };
+    } else {
+      summary.motionHistory = null;
+    }
+
+    // Session confidence: "high" | "medium" | "low"
+    summary.sessionConfidence = computeSessionConfidence(summary, punchEvents);
 
     // Cinematic coaching messages
     summary.coaching = generateCoachingMessages(summary, punchEvents);
@@ -336,32 +363,35 @@ export function usePoseDetection({ videoRef, isActive }) {
     const lastPunch   = allEvents.length ? allEvents[allEvents.length - 1] : null;
 
     return {
-      status:            poseStatus,
-      error:             poseError,
-      frameError:        frameErrorRef.current,
-      fps:               fpsRef.current,
-      framesAttempted:   frameAttemptRef.current,
-      framesWithBody:    detectCountRef.current,
-      totalPoseFrames:   frameMetricsRef.current.length,
-      landmarksDetected: hasLm,
-      landmarkCount:     hasLm ? lm.length : 0,
-      lowerBodyVisible:  lowerBodyVisRef.current,
+      status:             poseStatus,
+      error:              poseError,
+      frameError:         frameErrorRef.current,
+      fps:                fpsRef.current,
+      framesAttempted:    frameAttemptRef.current,
+      framesWithBody:     detectCountRef.current,
+      totalPoseFrames:    frameMetricsRef.current.length,
+      landmarksDetected:  hasLm,
+      landmarkCount:      hasLm ? lm.length : 0,
+      lowerBodyVisible:   lowerBodyVisRef.current,
       jointPresence,
       metricValidity,
       latestMetrics,
       cameraQuality,
-      punchPhase:        detectorRef.current.phase,
+      punchPhase:         detectorRef.current.phase,
       leftPhase,
       rightPhase,
-      punchCount:        detectorRef.current.punchCount,
+      punchCount:         detectorRef.current.punchCount,
       leftElbow,
       rightElbow,
       velocity,
-      lastPunchType:     lastPunch?.type        ?? null,
-      lastPunchHand:     lastPunch?.hand        ?? null,
-      lastSnapVelocity:  lastPunch?.snapVelocity  ?? null,
-      lastRecoilVelocity: lastPunch?.recoilVelocity ?? null,
-      lastRecoilMs:      lastPunch?.recoilMs       ?? null,
+      lastPunchType:          lastPunch?.type            ?? null,
+      lastPunchHand:          lastPunch?.hand            ?? null,
+      lastSnapVelocity:       lastPunch?.snapVelocity    ?? null,
+      lastRecoilVelocity:     lastPunch?.recoilVelocity  ?? null,
+      lastRecoilMs:           lastPunch?.recoilMs        ?? null,
+      lastPunchConfidence:    lastPunch?.confidence      ?? null,
+      lastPunchConfidenceLabel: lastPunch?.confidenceLabel ?? null,
+      lastPunchLateralPct:    lastPunch?.lateralRatio    ?? null,
     };
   }, [poseStatus, poseError]);
 

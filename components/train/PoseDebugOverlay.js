@@ -60,6 +60,7 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive }) {
     jointPresence, metricValidity, latestMetrics, cameraQuality,
     punchPhase, leftPhase, rightPhase, punchCount, leftElbow, rightElbow, velocity,
     lastPunchType, lastPunchHand, lastSnapVelocity, lastRecoilVelocity, lastRecoilMs,
+    lastPunchConfidence, lastPunchConfidenceLabel, lastPunchLateralPct,
   } = info;
 
   const statusColor =
@@ -125,6 +126,17 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive }) {
               <Row label="Last recoil" value={lastRecoilVelocity ?? "—"} />
               <Row label="Recoil ms"   value={lastRecoilMs != null ? `${lastRecoilMs}ms` : "—"}
                    color={lastRecoilMs != null ? (lastRecoilMs < 280 ? "#34D399" : lastRecoilMs > 520 ? "#F87171" : "#F59E0B") : undefined} />
+              {lastPunchConfidence != null && (
+                <>
+                  <div style={{ height: 1, background: "rgba(255,255,255,0.05)", margin: "3px 0" }} />
+                  <Row label="Confidence"
+                       value={`${Math.round(lastPunchConfidence * 100)}% ${(lastPunchConfidenceLabel || "").toUpperCase()}`}
+                       color={lastPunchConfidenceLabel === "high" ? "#34D399" : lastPunchConfidenceLabel === "medium" ? "#F59E0B" : "#F87171"} />
+                  <Row label="Lateral %"
+                       value={lastPunchLateralPct != null ? `${lastPunchLateralPct}%` : "—"}
+                       color={lastPunchLateralPct != null && lastPunchLateralPct >= 35 ? "#34D399" : "rgba(255,255,255,0.35)"} />
+                </>
+              )}
             </>
           )}
         </>
