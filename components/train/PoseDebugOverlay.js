@@ -181,16 +181,19 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive }) {
             const phaseColor =
               h.phase === "extending" ? "#34D399" :
               h.phase === "recoiling" ? "#F59E0B" : "rgba(255,255,255,0.35)";
+            const hintColor =
+              h.classifyHint?.includes("jab") || h.classifyHint?.includes("cross")
+                ? "#34D399" : h.classifyHint === "hook?" ? "#F59E0B" : "rgba(255,255,255,0.25)";
             return (
-              <div key={side} style={{ marginBottom: 4 }}>
+              <div key={side} style={{ marginBottom: 5 }}>
                 <div style={{ fontSize: 7.5, fontWeight: 900, color: "rgba(255,255,255,0.25)", letterSpacing: 1.5, marginBottom: 2 }}>
                   {side === "L" ? "LEFT (JAB)" : "RIGHT (CROSS)"}
                 </div>
                 <Row label="Phase"    value={h.phase.toUpperCase()} color={phaseColor} />
                 <Row label="Elbow °"  value={h.elbowAngle ?? "—"} color={
-                  h.elbowAngle > 130 ? "#34D399" : h.elbowAngle > 115 ? "#F59E0B" : "rgba(255,255,255,0.5)"
+                  h.elbowAngle > 130 ? "#34D399" : h.elbowAngle > 110 ? "#F59E0B" : "rgba(255,255,255,0.5)"
                 } />
-                <Row label="Vel"      value={h.velocity ?? "—"} color={
+                <Row label="Vel (xy)" value={h.velocity ?? "—"} color={
                   h.velocity >= 0.012 ? "#34D399" : h.velocity >= 0.006 ? "#F59E0B" : "rgba(255,255,255,0.35)"
                 } />
                 <Row label="zΔ"       value={h.zDelta != null ? h.zDelta.toFixed(3) : "—"} color={
@@ -198,9 +201,26 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive }) {
                 } />
                 <Row label="Sh↔Wr"   value={h.shoulderWristDist ?? "—"} />
                 <Row label="X / Y"    value={`${h.wristX ?? "—"} / ${h.wristY ?? "—"}`} color="rgba(255,255,255,0.3)" />
+                {h.phase === "extending" && (
+                  <>
+                    <div style={{ height: 1, background: "rgba(255,255,255,0.04)", margin: "2px 0" }} />
+                    <Row label="Str score" value={h.straightScore ?? 0} color={h.straightScore > h.hookScore ? "#34D399" : "rgba(255,255,255,0.4)"} />
+                    <Row label="Hook score" value={h.hookScore ?? 0}   color={h.hookScore > h.straightScore ? "#F59E0B" : "rgba(255,255,255,0.4)"} />
+                    <Row label="Fwd Δz"   value={h.forwardDelta != null ? h.forwardDelta.toFixed(3) : "—"} color={h.forwardDelta < -0.02 ? "#34D399" : "rgba(255,255,255,0.35)"} />
+                    <Row label="Lateral%" value={h.lateralPct != null ? `${h.lateralPct}%` : "—"}        color={h.lateralPct > 42 ? "#F59E0B" : h.lateralPct < 28 ? "#34D399" : "rgba(255,255,255,0.4)"} />
+                    <Row label="→ Type"   value={h.classifyHint ?? "—"} color={hintColor} />
+                  </>
+                )}
               </div>
             );
           })}
+
+          {/* Last punch classify reason */}
+          {lastPunchType && info.lastPunchReasons && (
+            <div style={{ fontSize: 7, color: "rgba(255,255,255,0.25)", lineHeight: 1.4, marginTop: 2, wordBreak: "break-all" }}>
+              {info.lastPunchReasons}
+            </div>
+          )}
         </>
       )}
 

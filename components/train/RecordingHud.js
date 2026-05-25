@@ -24,6 +24,15 @@ export default function RecordingHud({
 }) {
   const focusColor = drillConfig?.focusType ? (FOCUS_COLORS[drillConfig.focusType] || "rgba(255,255,255,0.4)") : null;
 
+  // Elapsed time counting up — user controls stop, timer shows progress
+  const elapsed    = Math.max(0, totalSeconds - Math.ceil(secondsLeft));
+  const eMin       = Math.floor(elapsed / 60);
+  const eSec       = elapsed % 60;
+  const maxMin     = Math.floor(totalSeconds / 60);
+  const maxSec     = totalSeconds % 60;
+  const elapsedStr = `${eMin}:${String(eSec).padStart(2, "0")}`;
+  const maxStr     = `${maxMin}:${String(maxSec).padStart(2, "0")}`;
+
   return (
     <>
       {/* Recording bar */}
@@ -46,7 +55,10 @@ export default function RecordingHud({
         )}
 
         <span style={styles.liveScoreHud}>{liveScore.toFixed(1)}</span>
-        <strong style={{ marginLeft: "auto" }}>{Math.ceil(secondsLeft)}s</strong>
+        <span style={{ marginLeft: "auto", display: "flex", alignItems: "baseline", gap: 3 }}>
+          <strong style={{ fontFamily: "monospace", letterSpacing: 0.5 }}>{elapsedStr}</strong>
+          <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>/ {maxStr}</span>
+        </span>
       </div>
 
       {/* Movement counter — no hardcoded max, target from drillConfig only */}

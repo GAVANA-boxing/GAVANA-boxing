@@ -496,6 +496,26 @@ export default function TrainResultModal({
                 </div>
               )}
 
+              {/* When type is uncertain, suppress type-specific coaching */}
+              {(() => {
+                const hasTypeUncertain = poseMetrics.coaching.some(
+                  (c) => c.type === "caution" && c.message.includes("type uncertain")
+                );
+                if (hasTypeUncertain && poseMetrics.punchCount > 0) {
+                  return (
+                    <div style={{
+                      marginBottom: 8, padding: "8px 12px", borderRadius: RADIUS.md,
+                      background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)",
+                    }}>
+                      <span style={{ fontSize: 11, color: whiteAlpha(0.35), fontWeight: 700 }}>
+                        {poseMetrics.punchCount} punches detected — type classification uncertain. Punch more directly toward camera for technique feedback.
+                      </span>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {poseMetrics.coaching
                   .filter((c) => c.type !== "caution")

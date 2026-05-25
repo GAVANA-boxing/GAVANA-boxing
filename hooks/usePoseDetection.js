@@ -165,6 +165,7 @@ export function usePoseDetection({ videoRef, isActive }) {
                   ...landmarks[i],
                   x: SMOOTH_ALPHA * landmarks[i].x + (1 - SMOOTH_ALPHA) * s[i].x,
                   y: SMOOTH_ALPHA * landmarks[i].y + (1 - SMOOTH_ALPHA) * s[i].y,
+                  z: SMOOTH_ALPHA * (landmarks[i].z ?? 0) + (1 - SMOOTH_ALPHA) * (s[i].z ?? 0),
                 };
               } else {
                 s[i] = landmarks[i];
@@ -390,9 +391,10 @@ export function usePoseDetection({ videoRef, isActive }) {
       lastSnapVelocity:       lastPunch?.snapVelocity    ?? null,
       lastRecoilVelocity:     lastPunch?.recoilVelocity  ?? null,
       lastRecoilMs:           lastPunch?.recoilMs        ?? null,
-      lastPunchConfidence:      lastPunch?.confidence      ?? null,
-      lastPunchConfidenceLabel: lastPunch?.confidenceLabel ?? null,
-      lastPunchLateralPct:      lastPunch?.lateralRatio    ?? null,
+      lastPunchConfidence:      lastPunch?.confidence       ?? null,
+      lastPunchConfidenceLabel: lastPunch?.confidenceLabel  ?? null,
+      lastPunchLateralPct:      lastPunch?.lateralRatio     ?? null,
+      lastPunchReasons:         lastPunch?.classifyReasons  ?? null,
       handLiveData,
     };
   }, [poseStatus, poseError]);
