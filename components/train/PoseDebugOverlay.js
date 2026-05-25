@@ -189,26 +189,35 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive }) {
                 <div style={{ fontSize: 7.5, fontWeight: 900, color: "rgba(255,255,255,0.25)", letterSpacing: 1.5, marginBottom: 2 }}>
                   {side === "L" ? "LEFT (JAB)" : "RIGHT (CROSS)"}
                 </div>
-                <Row label="Phase"    value={h.phase.toUpperCase()} color={phaseColor} />
-                <Row label="Elbow °"  value={h.elbowAngle ?? "—"} color={
+                <Row label="Phase"      value={h.phase.toUpperCase()} color={phaseColor} />
+                <Row label="Elbow °"    value={h.elbowAngle ?? "—"} color={
                   h.elbowAngle > 130 ? "#34D399" : h.elbowAngle > 110 ? "#F59E0B" : "rgba(255,255,255,0.5)"
                 } />
-                <Row label="Vel (xy)" value={h.velocity ?? "—"} color={
-                  h.velocity >= 0.012 ? "#34D399" : h.velocity >= 0.006 ? "#F59E0B" : "rgba(255,255,255,0.35)"
+                <Row label="relVel"     value={h.relVel ?? "—"} color={
+                  h.relVel >= 0.020 ? "#34D399" : h.relVel >= 0.010 ? "#F59E0B" : "rgba(255,255,255,0.35)"
                 } />
-                <Row label="zΔ"       value={h.zDelta != null ? h.zDelta.toFixed(3) : "—"} color={
-                  h.zDelta < -0.005 ? "#34D399" : "rgba(255,255,255,0.35)"
+                <Row label="normVel"    value={h.normVel ?? "—"} color={
+                  h.normVel >= 0.050 ? "#34D399" : h.normVel >= 0.025 ? "#F59E0B" : "rgba(255,255,255,0.35)"
                 } />
-                <Row label="Sh↔Wr"   value={h.shoulderWristDist ?? "—"} />
-                <Row label="X / Y"    value={`${h.wristX ?? "—"} / ${h.wristY ?? "—"}`} color="rgba(255,255,255,0.3)" />
+                <Row label="extDelta"   value={h.extDelta ?? "—"} />
+                <Row label="extDeltaN"  value={h.extDeltaNorm ?? "—"} color={
+                  h.extDeltaNorm >= 0.12 ? "#34D399" : h.extDeltaNorm >= 0.06 ? "#F59E0B" : "rgba(255,255,255,0.35)"
+                } />
+                <Row label="guardBase"  value={h.guardBase ?? "—"} color="rgba(255,255,255,0.3)" />
+                <Row label="shWidth"    value={h.shoulderWidth ?? "—"} color="rgba(255,255,255,0.3)" />
+                <Row label="sh↔wr"      value={h.shoulderWristDist ?? "—"} />
+                <Row label="zRelΔ"      value={h.zRelDelta != null ? h.zRelDelta.toFixed(3) : "—"} color={
+                  h.zRelDelta < -0.005 ? "#34D399" : "rgba(255,255,255,0.35)"
+                } />
+                <Row label="relX / relY" value={`${h.relWristX ?? "—"} / ${h.relWristY ?? "—"}`} color="rgba(255,255,255,0.3)" />
                 {h.phase === "extending" && (
                   <>
                     <div style={{ height: 1, background: "rgba(255,255,255,0.04)", margin: "2px 0" }} />
-                    <Row label="Str score" value={h.straightScore ?? 0} color={h.straightScore > h.hookScore ? "#34D399" : "rgba(255,255,255,0.4)"} />
-                    <Row label="Hook score" value={h.hookScore ?? 0}   color={h.hookScore > h.straightScore ? "#F59E0B" : "rgba(255,255,255,0.4)"} />
-                    <Row label="Fwd Δz"   value={h.forwardDelta != null ? h.forwardDelta.toFixed(3) : "—"} color={h.forwardDelta < -0.02 ? "#34D399" : "rgba(255,255,255,0.35)"} />
-                    <Row label="Lateral%" value={h.lateralPct != null ? `${h.lateralPct}%` : "—"}        color={h.lateralPct > 42 ? "#F59E0B" : h.lateralPct < 28 ? "#34D399" : "rgba(255,255,255,0.4)"} />
-                    <Row label="→ Type"   value={h.classifyHint ?? "—"} color={hintColor} />
+                    <Row label="Str score"  value={h.straightScore ?? 0} color={h.straightScore > h.hookScore ? "#34D399" : "rgba(255,255,255,0.4)"} />
+                    <Row label="Hook score" value={h.hookScore ?? 0}     color={h.hookScore > h.straightScore ? "#F59E0B" : "rgba(255,255,255,0.4)"} />
+                    <Row label="Fwd Δz"     value={h.forwardDelta != null ? h.forwardDelta.toFixed(3) : "—"} color={h.forwardDelta < -0.02 ? "#34D399" : "rgba(255,255,255,0.35)"} />
+                    <Row label="Lateral%"   value={h.lateralPct != null ? `${h.lateralPct}%` : "—"}         color={h.lateralPct > 42 ? "#F59E0B" : h.lateralPct < 28 ? "#34D399" : "rgba(255,255,255,0.4)"} />
+                    <Row label="→ Type"     value={h.classifyHint ?? "—"} color={hintColor} />
                   </>
                 )}
               </div>
@@ -221,6 +230,15 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive }) {
               {info.lastPunchReasons}
             </div>
           )}
+
+          {/* Trigger reason (why the last extend was entered) */}
+          {[["L", handLiveData?.left], ["R", handLiveData?.right]].map(([side, h]) => (
+            h?.triggerReason && h.triggerReason !== "—" ? (
+              <div key={side} style={{ fontSize: 7, color: "#F59E0B", lineHeight: 1.35, marginTop: 2, wordBreak: "break-all" }}>
+                {side}: {h.triggerReason}
+              </div>
+            ) : null
+          ))}
         </>
       )}
 
