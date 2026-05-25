@@ -59,6 +59,7 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive }) {
     totalPoseFrames, landmarksDetected, landmarkCount, lowerBodyVisible,
     jointPresence, metricValidity, latestMetrics, cameraQuality,
     punchPhase, punchCount, elbowAngle, velocity,
+    lastSnapVelocity, lastRecoilVelocity, lastRecoilMs,
   } = info;
 
   const statusColor =
@@ -108,9 +109,18 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive }) {
                  punchPhase === "extending" ? "#34D399" :
                  punchPhase === "recoiling" ? "#F59E0B" : "rgba(255,255,255,0.5)"
                } />
-          <Row label="Elbow °"  value={isActive ? (elbowAngle ?? "—") : "—"} />
-          <Row label="Velocity" value={isActive ? (velocity ?? "—") : "—"} />
-          <Row label="Punches"  value={punchCount ?? 0} color={punchCount > 0 ? "#34D399" : "rgba(255,255,255,0.3)"} />
+          <Row label="Elbow °"     value={isActive ? (elbowAngle ?? "—") : "—"} />
+          <Row label="Vel now"     value={isActive ? (velocity ?? "—") : "—"} />
+          <Row label="Punches"     value={punchCount ?? 0} color={punchCount > 0 ? "#34D399" : "rgba(255,255,255,0.3)"} />
+          {lastSnapVelocity != null && (
+            <>
+              <div style={{ height: 1, background: "rgba(255,255,255,0.05)", margin: "3px 0" }} />
+              <Row label="Last snap"   value={lastSnapVelocity}   color={lastSnapVelocity >= 0.032 ? "#34D399" : lastSnapVelocity >= 0.016 ? "#F59E0B" : "#F87171"} />
+              <Row label="Last recoil" value={lastRecoilVelocity ?? "—"} />
+              <Row label="Recoil ms"   value={lastRecoilMs != null ? `${lastRecoilMs}ms` : "—"}
+                   color={lastRecoilMs != null ? (lastRecoilMs < 280 ? "#34D399" : lastRecoilMs > 520 ? "#F87171" : "#F59E0B") : undefined} />
+            </>
+          )}
         </>
       )}
 

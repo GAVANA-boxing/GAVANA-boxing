@@ -373,8 +373,32 @@ export default function TrainResultModal({
                       <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                         <span style={{ fontSize: 9, color: whiteAlpha(0.22) }}>·</span>
                         <span style={{ fontSize: 9, fontWeight: 900, color: whiteAlpha(0.45) }}>
-                          {poseMetrics.punchCount} PUNCHES DETECTED
+                          {poseMetrics.punchCount} PUNCHES
                         </span>
+                      </div>
+                    )}
+                    {poseMetrics.velocityStats?.snapRating && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                        <span style={{ fontSize: 9, color: whiteAlpha(0.22) }}>·</span>
+                        <span style={{ fontSize: 9, fontWeight: 900, color:
+                          poseMetrics.velocityStats.snapRating === "FAST"     ? "#34D399" :
+                          poseMetrics.velocityStats.snapRating === "MODERATE" ? "#F59E0B" : "#F87171",
+                        }}>
+                          {poseMetrics.velocityStats.snapRating}
+                        </span>
+                        <span style={{ fontSize: 9, color: whiteAlpha(0.22), fontWeight: 700 }}>SNAP</span>
+                      </div>
+                    )}
+                    {poseMetrics.velocityStats?.recoilRating && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                        <span style={{ fontSize: 9, color: whiteAlpha(0.22) }}>·</span>
+                        <span style={{ fontSize: 9, fontWeight: 900, color:
+                          poseMetrics.velocityStats.recoilRating === "QUICK"    ? "#34D399" :
+                          poseMetrics.velocityStats.recoilRating === "MODERATE" ? "#F59E0B" : "#F87171",
+                        }}>
+                          {poseMetrics.velocityStats.recoilRating}
+                        </span>
+                        <span style={{ fontSize: 9, color: whiteAlpha(0.22), fontWeight: 700 }}>RECOVERY</span>
                       </div>
                     )}
                   </div>

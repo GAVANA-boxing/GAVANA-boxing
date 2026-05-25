@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { computePoseMetrics, poseMetricsScore, lowerBodyVisible } from "@/lib/mediapipePoseMetrics";
 import { PunchPhaseDetector } from "@/lib/punchPhaseDetector";
-import { generateCoachingMessages } from "@/lib/cinematicCoaching";
+import { generateCoachingMessages, computeVelocityStats } from "@/lib/cinematicCoaching";
 
 /**
  * MediaPipe files are served from /public/mediapipe/ (local static assets).
@@ -264,10 +264,11 @@ export function usePoseDetection({ videoRef, isActive }) {
       .filter(({ key }) => summary[key] === null)
       .map(({ key }) => key);
 
-    // Punch events from state machine
-    const punchEvents = detectorRef.current.getPunchEvents();
-    summary.punchEvents = punchEvents;
-    summary.punchCount  = punchEvents.length;
+    // Punch events + velocity stats from state machine
+    const punchEvents      = detectorRef.current.getPunchEvents();
+    summary.punchEvents    = punchEvents;
+    summary.punchCount     = punchEvents.length;
+    summary.velocityStats  = computeVelocityStats(punchEvents);
 
     // Cinematic coaching messages
     summary.coaching = generateCoachingMessages(summary, punchEvents);
@@ -304,6 +305,10 @@ export function usePoseDetection({ videoRef, isActive }) {
 
     const { phase: punchPhase, elbowAngle, velocity } = currentPhaseRef.current;
 
+    // Last completed punch — for live debug display
+    const allEvents   = detectorRef.current.getPunchEvents();
+    const lastPunch   = allEvents.length ? allEvents[allEvents.length - 1] : null;
+
     return {
       status:            poseStatus,
       error:             poseError,
@@ -323,6 +328,9 @@ export function usePoseDetection({ videoRef, isActive }) {
       punchCount:        detectorRef.current.punchCount,
       elbowAngle,
       velocity,
+      lastSnapVelocity:  lastPunch?.snapVelocity  ?? null,
+      lastRecoilVelocity: lastPunch?.recoilVelocity ?? null,
+      lastRecoilMs:      lastPunch?.recoilMs       ?? null,
     };
   }, [poseStatus, poseError]);
 
