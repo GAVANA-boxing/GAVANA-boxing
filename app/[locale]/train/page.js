@@ -600,6 +600,7 @@ export default function TrainPage() {
       {/* Debug session report — only visible when ?debug=1, appears after session */}
       <DebugSessionPanel
         stats={poseSessionSummary?.debugStats ?? null}
+        boxing={poseSessionSummary?.boxingIntelligence ?? null}
         debugEnabled={debugEnabled}
       />
 

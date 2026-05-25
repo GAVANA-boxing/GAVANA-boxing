@@ -46,7 +46,14 @@ function computeGrade({ avgConfidencePct = 0, avgVisPct = 0, unstablePct = 100, 
   return "D";
 }
 
-export default function DebugSessionPanel({ stats, debugEnabled }) {
+const STYLE_COLOR = {
+  pressure:  "#F87171",
+  outboxer:  "#34D399",
+  explosive: "#F59E0B",
+  counter:   "#94A3B8",
+};
+
+export default function DebugSessionPanel({ stats, boxing, debugEnabled }) {
   if (!debugEnabled || !stats) return null;
 
   const grade      = computeGrade(stats);
@@ -167,6 +174,108 @@ export default function DebugSessionPanel({ stats, debugEnabled }) {
           }
         />
       </SSection>
+
+      {/* ── Boxing intelligence ── */}
+      {boxing && (
+        <SSection title="4. BOXING INTELLIGENCE">
+          {/* Style */}
+          <SRow
+            label="Style"
+            value={boxing.styleLabel ?? "—"}
+            color={STYLE_COLOR[boxing.style] ?? "rgba(255,255,255,0.85)"}
+          />
+          <SRow
+            label="└ confidence"
+            value={boxing.styleConfidence != null ? `${Math.round(boxing.styleConfidence * 100)}%` : "—"}
+            color={
+              (boxing.styleConfidence ?? 0) >= 0.55 ? "#34D399" :
+              (boxing.styleConfidence ?? 0) >= 0.3  ? "#F59E0B" : "#F87171"
+            }
+          />
+          {/* Weakness */}
+          <SRow
+            label="Weakness"
+            value={boxing.weakness?.label ?? "—"}
+            color="#F59E0B"
+          />
+          {boxing.weakness?.score != null && (
+            <SRow
+              label="└ score"
+              value={boxing.weakness.score}
+              color={boxing.weakness.score < 35 ? "#F87171" : "#F59E0B"}
+            />
+          )}
+          {/* Scores */}
+          <SRow
+            label="Guard recovery"
+            value={boxing.scores?.guardRecovery != null ? `${boxing.scores.guardRecovery.score} (${boxing.scores.guardRecovery.rating})` : "—"}
+            color={
+              (boxing.scores?.guardRecovery?.score ?? 0) >= 70 ? "#34D399" :
+              (boxing.scores?.guardRecovery?.score ?? 0) >= 40 ? "#F59E0B" : "#F87171"
+            }
+          />
+          <SRow
+            label="Rhythm"
+            value={boxing.scores?.comboRhythm != null ? `${boxing.scores.comboRhythm.score} (${boxing.scores.comboRhythm.rating})` : "—"}
+            color={
+              (boxing.scores?.comboRhythm?.score ?? 0) >= 65 ? "#34D399" :
+              (boxing.scores?.comboRhythm?.score ?? 0) >= 38 ? "#F59E0B" : "#F87171"
+            }
+          />
+          <SRow
+            label="Jab quality"
+            value={boxing.scores?.jabQuality != null ? `${boxing.scores.jabQuality.score} (ext:${boxing.scores.jabQuality.extension} snap:${boxing.scores.jabQuality.snap})` : "—"}
+            color={
+              (boxing.scores?.jabQuality?.score ?? 0) >= 65 ? "#34D399" :
+              (boxing.scores?.jabQuality?.score ?? 0) >= 40 ? "#F59E0B" : "#F87171"
+            }
+          />
+          <SRow
+            label="Cross quality"
+            value={boxing.scores?.crossQuality != null ? `${boxing.scores.crossQuality.score} (ext:${boxing.scores.crossQuality.extension} snap:${boxing.scores.crossQuality.snap})` : "—"}
+            color={
+              (boxing.scores?.crossQuality?.score ?? 0) >= 65 ? "#34D399" :
+              (boxing.scores?.crossQuality?.score ?? 0) >= 40 ? "#F59E0B" : "#F87171"
+            }
+          />
+          <SRow
+            label="Hook quality"
+            value={boxing.scores?.hookQuality != null ? `${boxing.scores.hookQuality.score} (elbow:${boxing.scores.hookQuality.elbowAngle} arc:${boxing.scores.hookQuality.arc})` : "—"}
+            color={
+              (boxing.scores?.hookQuality?.score ?? 0) >= 65 ? "#34D399" :
+              (boxing.scores?.hookQuality?.score ?? 0) >= 40 ? "#F59E0B" : "#F87171"
+            }
+          />
+          <SRow
+            label="Balance"
+            value={boxing.scores?.balance != null ? `${boxing.scores.balance.score} (${boxing.scores.balance.status})` : "—"}
+            color={(boxing.scores?.balance?.score ?? 0) >= 65 ? "#34D399" : "#F59E0B"}
+          />
+          <SRow
+            label="Hip rotation"
+            value={boxing.scores?.hipRotation != null ? `${boxing.scores.hipRotation.score} (${boxing.scores.hipRotation.status})` : "—"}
+            color={(boxing.scores?.hipRotation?.score ?? 0) >= 65 ? "#34D399" : "#F59E0B"}
+          />
+          {/* Top coaching reasons */}
+          {boxing.coaching?.length > 0 && (
+            <div style={{ marginTop: 5 }}>
+              <div style={{ fontSize: 6.5, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.22)", marginBottom: 4 }}>
+                COACHING
+              </div>
+              {boxing.coaching.slice(0, 3).map((c, i) => (
+                <div key={i} style={{ display: "flex", gap: 5, padding: "2px 0", alignItems: "flex-start" }}>
+                  <span style={{ fontSize: 8, flexShrink: 0, color: c.type === "strength" ? "#34D399" : "#F59E0B", fontWeight: 900 }}>
+                    {c.type === "strength" ? "✓" : "→"}
+                  </span>
+                  <span style={{ fontSize: 7, color: "rgba(255,255,255,0.55)", lineHeight: 1.4 }}>
+                    {c.message}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </SSection>
+      )}
 
       {/* ── Grade explanation ── */}
       <div style={{
