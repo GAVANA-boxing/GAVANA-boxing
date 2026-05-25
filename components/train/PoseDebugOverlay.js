@@ -61,6 +61,7 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive }) {
     punchPhase, leftPhase, rightPhase, punchCount, leftElbow, rightElbow, velocity,
     lastPunchType, lastPunchHand, lastSnapVelocity, lastRecoilVelocity, lastRecoilMs,
     lastPunchConfidence, lastPunchConfidenceLabel, lastPunchLateralPct,
+    handLiveData,
   } = info;
 
   const statusColor =
@@ -168,6 +169,38 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive }) {
               </div>
             ))}
           </div>
+        </>
+      )}
+
+      {/* ── Per-hand live data (calibration) ── */}
+      {isActive && handLiveData && (
+        <>
+          <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "5px 0" }} />
+          <div style={{ fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 800, marginBottom: 3 }}>HANDS</div>
+          {[["L", handLiveData.left], ["R", handLiveData.right]].map(([side, h]) => {
+            const phaseColor =
+              h.phase === "extending" ? "#34D399" :
+              h.phase === "recoiling" ? "#F59E0B" : "rgba(255,255,255,0.35)";
+            return (
+              <div key={side} style={{ marginBottom: 4 }}>
+                <div style={{ fontSize: 7.5, fontWeight: 900, color: "rgba(255,255,255,0.25)", letterSpacing: 1.5, marginBottom: 2 }}>
+                  {side === "L" ? "LEFT (JAB)" : "RIGHT (CROSS)"}
+                </div>
+                <Row label="Phase"    value={h.phase.toUpperCase()} color={phaseColor} />
+                <Row label="Elbow °"  value={h.elbowAngle ?? "—"} color={
+                  h.elbowAngle > 130 ? "#34D399" : h.elbowAngle > 115 ? "#F59E0B" : "rgba(255,255,255,0.5)"
+                } />
+                <Row label="Vel"      value={h.velocity ?? "—"} color={
+                  h.velocity >= 0.012 ? "#34D399" : h.velocity >= 0.006 ? "#F59E0B" : "rgba(255,255,255,0.35)"
+                } />
+                <Row label="zΔ"       value={h.zDelta != null ? h.zDelta.toFixed(3) : "—"} color={
+                  h.zDelta < -0.005 ? "#34D399" : "rgba(255,255,255,0.35)"
+                } />
+                <Row label="Sh↔Wr"   value={h.shoulderWristDist ?? "—"} />
+                <Row label="X / Y"    value={`${h.wristX ?? "—"} / ${h.wristY ?? "—"}`} color="rgba(255,255,255,0.3)" />
+              </div>
+            );
+          })}
         </>
       )}
 

@@ -432,14 +432,21 @@ export default function TrainResultModal({
                         <span style={{ fontSize: 9, color: whiteAlpha(0.22), fontWeight: 700 }}>CAMERA</span>
                       </div>
                     )}
-                    {poseMetrics.punchCount > 0 && (
+                    {poseMetrics.punchCount > 0 ? (
                       <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                         <span style={{ fontSize: 9, color: whiteAlpha(0.22) }}>·</span>
-                        <span style={{ fontSize: 9, fontWeight: 900, color: whiteAlpha(0.45) }}>
+                        <span style={{ fontSize: 9, fontWeight: 900, color: whiteAlpha(0.55) }}>
                           {poseMetrics.punchCount} PUNCHES
                         </span>
                       </div>
-                    )}
+                    ) : poseMetrics?.frameCount >= 20 ? (
+                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                        <span style={{ fontSize: 9, color: whiteAlpha(0.22) }}>·</span>
+                        <span style={{ fontSize: 9, fontWeight: 700, color: whiteAlpha(0.28) }}>
+                          movement detected, punch unclear
+                        </span>
+                      </div>
+                    ) : null}
                     {poseMetrics.velocityStats?.snapRating && (
                       <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                         <span style={{ fontSize: 9, color: whiteAlpha(0.22) }}>·</span>

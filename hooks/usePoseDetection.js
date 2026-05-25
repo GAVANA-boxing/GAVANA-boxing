@@ -361,6 +361,7 @@ export function usePoseDetection({ videoRef, isActive }) {
     // Last completed punch — for live debug display
     const allEvents   = detectorRef.current.getPunchEvents();
     const lastPunch   = allEvents.length ? allEvents[allEvents.length - 1] : null;
+    const handLiveData = detectorRef.current.getHandLiveData();
 
     return {
       status:             poseStatus,
@@ -389,9 +390,10 @@ export function usePoseDetection({ videoRef, isActive }) {
       lastSnapVelocity:       lastPunch?.snapVelocity    ?? null,
       lastRecoilVelocity:     lastPunch?.recoilVelocity  ?? null,
       lastRecoilMs:           lastPunch?.recoilMs        ?? null,
-      lastPunchConfidence:    lastPunch?.confidence      ?? null,
+      lastPunchConfidence:      lastPunch?.confidence      ?? null,
       lastPunchConfidenceLabel: lastPunch?.confidenceLabel ?? null,
-      lastPunchLateralPct:    lastPunch?.lateralRatio    ?? null,
+      lastPunchLateralPct:      lastPunch?.lateralRatio    ?? null,
+      handLiveData,
     };
   }, [poseStatus, poseError]);
 
