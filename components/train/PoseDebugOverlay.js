@@ -226,6 +226,9 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive, debugEnabled 
                 <Row label="smoothZ"    value={h.smoothZRel != null ? h.smoothZRel.toFixed(3) : "—"} color={
                   h.smoothZRel < -0.018 ? "#34D399" : h.smoothZRel < -0.008 ? "#F59E0B" : "rgba(255,255,255,0.35)"
                 } />
+                {h.bodyApproach && (
+                  <Row label="body→cam" value="BLOCKED" color="#F87171" />
+                )}
                 <Row label="vis%"       value={h.rollingVis != null ? `${h.rollingVis}%` : "—"} color={
                   h.rollingVis >= 65 ? "#34D399" : h.rollingVis >= 45 ? "#F59E0B" : "#F87171"
                 } />
