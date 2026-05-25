@@ -182,9 +182,9 @@ export function usePoseDetection({ videoRef, isActive }) {
           const phaseInfo = detectorRef.current.update(landmarks);
           if (phaseInfo) currentPhaseRef.current = phaseInfo;
 
-          // Metrics computed from smoothed landmarks
+          // Metrics computed from smoothed landmarks — store with timestamp
           const metrics = computePoseMetrics(smoothed);
-          if (metrics) frameMetricsRef.current.push(metrics);
+          if (metrics) frameMetricsRef.current.push({ ...metrics, _ts: Date.now() });
         } else {
           latestLandmarksRef.current = null;
           lowerBodyVisRef.current = false;
@@ -264,12 +264,37 @@ export function usePoseDetection({ videoRef, isActive }) {
       .filter(({ key }) => summary[key] === null)
       .map(({ key }) => key);
 
+    // Motion history — guard timeline + punch markers for canvas visualization
+    const sessionStart = frames[0]?._ts;
+    const sessionEnd   = frames[frames.length - 1]?._ts;
+    const durationMs   = sessionStart && sessionEnd ? sessionEnd - sessionStart : 0;
+
     // Punch events, breakdown by type, velocity stats
     const punchEvents      = detectorRef.current.getPunchEvents();
     summary.punchEvents    = punchEvents;
     summary.punchCount     = punchEvents.length;
     summary.punchBreakdown = computePunchBreakdown(punchEvents);
     summary.velocityStats  = computeVelocityStats(punchEvents);
+
+    // Motion history for timeline chart
+    summary.motionHistory = durationMs > 1000 ? {
+      durationMs,
+      guardTimeline: frames
+        .filter((f) => f.guardHeight?.deltaY != null && f._ts != null)
+        .map((f) => ({
+          t:      (f._ts - sessionStart) / durationMs,
+          deltaY: f.guardHeight.deltaY,
+          status: f.guardHeight.status,
+        })),
+      punchTimeline: punchEvents
+        .map((e) => ({
+          t:         (e.ts - sessionStart) / durationMs,
+          type:      e.type,
+          hand:      e.hand,
+          peakAngle: e.peakAngle,
+        }))
+        .filter((e) => e.t >= 0 && e.t <= 1.05),
+    } : null;
 
     // Cinematic coaching messages
     summary.coaching = generateCoachingMessages(summary, punchEvents);

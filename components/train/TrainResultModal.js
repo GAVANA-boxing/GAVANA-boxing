@@ -6,6 +6,8 @@ import { getChallengeRank } from "@/lib/utils";
 import { getChallengeComparisonPercent } from "@/lib/trainHelpers";
 import { getSessionIdentity } from "@/lib/combatMemory";
 import { cameraQualityScore } from "@/lib/cinematicCoaching";
+import dynamic from "next/dynamic";
+const MotionChart = dynamic(() => import("@/components/train/MotionChart"), { ssr: false });
 import RankBadge from "@/components/RankBadge";
 import styles from "@/components/train/trainStyles";
 
@@ -481,6 +483,28 @@ export default function TrainResultModal({
                   </div>
                 );
               })()}
+            </>
+          )}
+
+          {/* Motion Analysis — guard timeline + punch event chart */}
+          {poseMetrics?.motionHistory && (
+            <>
+              <SectionLabel label="Motion Analysis" />
+              <MotionChart motionHistory={poseMetrics.motionHistory} />
+              <div style={{ display: "flex", gap: 14, marginTop: 6, paddingLeft: 2 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  <div style={{ width: 20, height: 1.5, background: "rgba(255,255,255,0.6)", borderRadius: 2 }} />
+                  <span style={{ fontSize: 8.5, color: "rgba(255,255,255,0.25)", fontWeight: 700 }}>GUARD</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  <div style={{ width: 2, height: 10, background: "rgba(245,196,81,0.6)", borderRadius: 2 }} />
+                  <span style={{ fontSize: 8.5, color: "rgba(255,255,255,0.25)", fontWeight: 700 }}>RIGHT PUNCH</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  <div style={{ width: 2, height: 10, background: "rgba(148,163,184,0.55)", borderRadius: 2 }} />
+                  <span style={{ fontSize: 8.5, color: "rgba(255,255,255,0.25)", fontWeight: 700 }}>LEFT PUNCH</span>
+                </div>
+              </div>
             </>
           )}
 
