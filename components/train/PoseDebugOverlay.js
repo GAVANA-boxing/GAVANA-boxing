@@ -34,6 +34,15 @@ function Dot({ ok }) {
   );
 }
 
+function CheckRow({ ok, text }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "1px 0" }}>
+      <span style={{ fontSize: 9, color: ok ? "#34D399" : "#F87171", fontWeight: 900, flexShrink: 0 }}>{ok ? "✔" : "✗"}</span>
+      <span style={{ fontSize: 8, color: ok ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.3)", fontWeight: 700 }}>{text}</span>
+    </div>
+  );
+}
+
 // Shows metric status when valid, "SKIPPED" (dim) when visibility-gated, "—" when no data yet
 function MetricRow({ label, metric, validity }) {
   if (validity === "unknown") return <Row label={label} value="—" color="rgba(255,255,255,0.2)" />;
@@ -114,32 +123,42 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive }) {
           <Row label="L elbow °"   value={leftElbow  ?? "—"} />
           <Row label="R elbow °"   value={rightElbow ?? "—"} />
           <Row label="Vel now"     value={isActive ? (velocity ?? "—") : "—"} />
-          <Row label="Punches"     value={punchCount ?? 0} color={punchCount > 0 ? "#34D399" : "rgba(255,255,255,0.3)"} />
-          {lastPunchType && (
-            <Row label="Last type"
-                 value={`${(lastPunchHand || "").toUpperCase()[0] || "?"} ${(lastPunchType || "").toUpperCase()}`}
-                 color="#F59E0B" />
-          )}
-          {lastSnapVelocity != null && (
-            <>
-              <div style={{ height: 1, background: "rgba(255,255,255,0.05)", margin: "3px 0" }} />
-              <Row label="Last snap"   value={lastSnapVelocity}   color={lastSnapVelocity >= 0.032 ? "#34D399" : lastSnapVelocity >= 0.016 ? "#F59E0B" : "#F87171"} />
-              <Row label="Last recoil" value={lastRecoilVelocity ?? "—"} />
-              <Row label="Recoil ms"   value={lastRecoilMs != null ? `${lastRecoilMs}ms` : "—"}
-                   color={lastRecoilMs != null ? (lastRecoilMs < 280 ? "#34D399" : lastRecoilMs > 520 ? "#F87171" : "#F59E0B") : undefined} />
-              {lastPunchConfidence != null && (
-                <>
-                  <div style={{ height: 1, background: "rgba(255,255,255,0.05)", margin: "3px 0" }} />
-                  <Row label="Confidence"
-                       value={`${Math.round(lastPunchConfidence * 100)}% ${(lastPunchConfidenceLabel || "").toUpperCase()}`}
-                       color={lastPunchConfidenceLabel === "high" ? "#34D399" : lastPunchConfidenceLabel === "medium" ? "#F59E0B" : "#F87171"} />
-                  <Row label="Lateral %"
-                       value={lastPunchLateralPct != null ? `${lastPunchLateralPct}%` : "—"}
-                       color={lastPunchLateralPct != null && lastPunchLateralPct >= 35 ? "#34D399" : "rgba(255,255,255,0.35)"} />
-                </>
-              )}
-            </>
-          )}
+          <Row label="Punches" value={punchCount ?? 0} color={punchCount > 0 ? "#34D399" : "rgba(255,255,255,0.3)"} />
+
+          {/* ── Last punch summary (human-readable) ── */}
+          {lastPunchType && lastPunchConfidence != null && (() => {
+            const reasons     = info.lastPunchReasons || "";
+            const confColor   = lastPunchConfidenceLabel === "high" ? "#34D399" : lastPunchConfidenceLabel === "medium" ? "#F59E0B" : "#F87171";
+            const hasForward  = reasons.includes("zf");
+            const hasExtended = reasons.includes("dist s1");
+            const hasFastSnap = (lastSnapVelocity ?? 0) >= 0.020;
+            const hasStraight = (lastPunchLateralPct ?? 100) < 55;
+            return (
+              <>
+                <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "5px 0" }} />
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                  <span style={{ fontSize: 12, fontWeight: 900, color: "#F59E0B", letterSpacing: 0.5 }}>
+                    {(lastPunchHand || "").toUpperCase()[0]} {(lastPunchType || "").toUpperCase()}
+                  </span>
+                  <span style={{ fontSize: 9, fontWeight: 900, color: confColor, background: `${confColor}22`, padding: "1px 5px", borderRadius: 3 }}>
+                    {Math.round(lastPunchConfidence * 100)}%
+                  </span>
+                </div>
+                <div style={{ fontSize: 7.5, color: "rgba(255,255,255,0.3)", marginBottom: 2, fontWeight: 700 }}>WHY:</div>
+                <CheckRow ok={hasForward}  text="forward z (camera)" />
+                <CheckRow ok={hasExtended} text="arm extended" />
+                <CheckRow ok={hasFastSnap} text="fast snap" />
+                <CheckRow ok={hasStraight} text="straight path" />
+                <div style={{ fontSize: 6.5, color: "rgba(255,255,255,0.18)", marginTop: 3, wordBreak: "break-all", lineHeight: 1.35 }}>
+                  {reasons}
+                </div>
+                {lastRecoilMs != null && (
+                  <Row label="Recoil ms" value={`${lastRecoilMs}ms`}
+                       color={lastRecoilMs < 280 ? "#34D399" : lastRecoilMs > 520 ? "#F87171" : "#F59E0B"} />
+                )}
+              </>
+            );
+          })()}
         </>
       )}
 
