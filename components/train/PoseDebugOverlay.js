@@ -232,6 +232,9 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive, debugEnabled 
                 {h.phoneJerk && (
                   <Row label="phone jerk" value="BLOCKED" color="#F87171" />
                 )}
+                {h.cameraTooClose && (
+                  <Row label="too close" value="z-gate OFF" color="#F59E0B" />
+                )}
                 <Row label="vis%"       value={h.rollingVis != null ? `${h.rollingVis}%` : "—"} color={
                   h.rollingVis >= 65 ? "#34D399" : h.rollingVis >= 45 ? "#F59E0B" : "#F87171"
                 } />
