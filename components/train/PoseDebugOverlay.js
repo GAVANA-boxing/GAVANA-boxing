@@ -235,6 +235,9 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive, debugEnabled 
                 {h.cameraTooClose && (
                   <Row label="too close" value="z-gate OFF" color="#F59E0B" />
                 )}
+                {h.shoulderMoving && (
+                  <Row label="shoulder" value="BLOCKED" color="#F87171" />
+                )}
                 <Row label="vis%"       value={h.rollingVis != null ? `${h.rollingVis}%` : "—"} color={
                   h.rollingVis >= 65 ? "#34D399" : h.rollingVis >= 45 ? "#F59E0B" : "#F87171"
                 } />
