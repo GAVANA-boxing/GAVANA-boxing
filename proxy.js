@@ -12,7 +12,7 @@ export function proxy(req) {
     return NextResponse.redirect(new URL(`/${locale}/login`, req.url));
   }
 
-  const adminUids = (process.env.ADMIN_UIDS || "")
+  const adminUids = (process.env.ADMIN_UIDS || process.env.NEXT_PUBLIC_ADMIN_UIDS || "")
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
