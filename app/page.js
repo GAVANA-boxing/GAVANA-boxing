@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import DailyMission from "@/components/DailyMission";
 import { useAuth } from "@/lib/AuthContext";
@@ -12,6 +13,13 @@ export default function HomePage() {
   const locale = "en";
   const t = (key) => translate(locale, key);
   const isLoggedIn = Boolean(user?.uid);
+
+  useEffect(() => {
+    const lang = navigator.language || "";
+    if (lang.startsWith("mn")) { router.replace("/mn"); return; }
+    if (lang.startsWith("ko")) { router.replace("/ko"); return; }
+    router.replace("/en");
+  }, [router]);
 
   const features = [
     {

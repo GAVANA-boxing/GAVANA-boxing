@@ -45,10 +45,15 @@ export default function TrainPage() {
 
   const [debugEnabled, setDebugEnabled] = useState(false);
   const [autoStart, setAutoStart] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setDebugEnabled(params.get("debug") === "1");
     setAutoStart(params.get("autostart") === "1");
+    if (!localStorage.getItem("gavana_train_seen")) {
+      setShowOnboarding(true);
+      localStorage.setItem("gavana_train_seen", "1");
+    }
   }, []);
 
   const {
@@ -386,6 +391,39 @@ export default function TrainPage() {
               }}
             >
               {locale === "mn" ? "Бүртгүүлэх" : locale === "ko" ? "가입" : "Sign up"}
+            </button>
+          </div>
+        )}
+
+        {/* First-time onboarding hint */}
+        {showOnboarding && phase === "idle" && (
+          <div style={{
+            margin: "0 0 14px",
+            padding: "12px 14px",
+            borderRadius: 12,
+            background: "rgba(255,59,48,0.07)",
+            border: "1px solid rgba(255,59,48,0.22)",
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: 10,
+          }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.8, color: "rgba(255,59,48,0.8)", textTransform: "uppercase", marginBottom: 5 }}>
+                {locale === "mn" ? "Хэрхэн ажилладаг вэ" : "How it works"}
+              </div>
+              <p style={{ margin: 0, fontSize: 11.5, color: "rgba(255,255,255,0.65)", lineHeight: 1.5 }}>
+                {locale === "mn"
+                  ? "① Камер зөвшөөрнө → ② Start дарна → ③ Цохилт хийнэ → ④ AI таны хэв маягийг шинжилнэ"
+                  : "① Allow camera → ② Press Start → ③ Throw punches → ④ AI reads your style"}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowOnboarding(false)}
+              style={{ flexShrink: 0, background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 16, cursor: "pointer", lineHeight: 1, padding: 2 }}
+            >
+              ✕
             </button>
           </div>
         )}
