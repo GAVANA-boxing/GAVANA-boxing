@@ -25,6 +25,7 @@ import { usePoseDetection } from "@/hooks/usePoseDetection";
 import dynamic from "next/dynamic";
 const PoseDebugOverlay   = dynamic(() => import("@/components/train/PoseDebugOverlay"),   { ssr: false });
 const DebugSessionPanel  = dynamic(() => import("@/components/train/DebugSessionPanel"),  { ssr: false });
+const LivePunchCounter   = dynamic(() => import("@/components/train/LivePunchCounter"),   { ssr: false });
 
 // titleKey only — duration/target now live in drillConfig
 const CHALLENGES = {
@@ -487,6 +488,9 @@ export default function TrainPage() {
               t={t}
             />
           )}
+
+          {/* Live punch counter — shown during recording */}
+          <LivePunchCounter getDebugInfo={getDebugInfo} isActive={phase === "recording"} punchTarget={drillConfig?.punchTarget ?? null} />
 
           {/* Pose debug overlay — enabled via ?debug=1 query param */}
           <PoseDebugOverlay getDebugInfo={getDebugInfo} isActive={phase === "recording"} debugEnabled={debugEnabled} />

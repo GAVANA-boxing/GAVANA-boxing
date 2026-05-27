@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { computePoseMetrics, poseMetricsScore, lowerBodyVisible } from "@/lib/mediapipePoseMetrics";
+import { computePoseMetrics, poseMetricsScore, computeFinalScore, lowerBodyVisible } from "@/lib/mediapipePoseMetrics";
 import { PunchPhaseDetector } from "@/lib/punchPhaseDetector";
 import { generateCoachingMessages, computeVelocityStats, computePunchBreakdown, computeSessionConfidence } from "@/lib/cinematicCoaching";
 import { analyzeSession } from "@/lib/boxingIntelligence";
@@ -257,7 +257,6 @@ export function usePoseDetection({ videoRef, isActive }) {
       };
     }
 
-    summary.score      = poseMetricsScore(summary);
     summary.frameCount = frames.length;
 
     // Dominant camera quality across session frames
@@ -341,6 +340,14 @@ export function usePoseDetection({ videoRef, isActive }) {
       summary.coaching = [...summary.coaching, ...summary.boxingIntelligence.coaching];
     }
 
+    // avgConfidencePct needed by computeFinalScore (also used by debugStats below)
+    const avgConf = punchEvents.length
+      ? punchEvents.reduce((s, e) => s + (e.confidence ?? 1), 0) / punchEvents.length : 0;
+    summary.avgConfidencePct = Math.round(avgConf * 100);
+
+    // Final score — blends punch quality, guard recovery, rhythm, confidence, pose metrics
+    summary.score = computeFinalScore(summary);
+
     // Debug session stats — only populated when debugEnabled (but computed always so no perf branch)
     const visSamples     = visSamplesRef.current;
     const avgVis         = visSamples.length
@@ -350,12 +357,10 @@ export function usePoseDetection({ videoRef, isActive }) {
     const estimatedFps   = sessionDurMs > 0
       ? Math.round((frames.length / sessionDurMs) * 1000 * 10) / 10 : 0;
     const detectorStats  = detectorRef.current.getSessionStats?.() ?? { rejects: {} };
-    const jabCount       = punchEvents.filter((e) => e.type === "jab").length;
-    const crossCount     = punchEvents.filter((e) => e.type === "cross").length;
-    const hookCount      = punchEvents.filter((e) => e.type === "hook").length;
-    const avgConf        = punchEvents.length
-      ? punchEvents.reduce((s, e) => s + (e.confidence ?? 1), 0) / punchEvents.length : 0;
-    const lowConfCount   = punchEvents.filter((e) => (e.confidence ?? 1) < 0.45).length;
+    const jabCount     = punchEvents.filter((e) => e.type === "jab").length;
+    const crossCount   = punchEvents.filter((e) => e.type === "cross").length;
+    const hookCount    = punchEvents.filter((e) => e.type === "hook").length;
+    const lowConfCount = punchEvents.filter((e) => (e.confidence ?? 1) < 0.45).length;
 
     summary.debugStats = {
       rejects:             detectorStats.rejects,
