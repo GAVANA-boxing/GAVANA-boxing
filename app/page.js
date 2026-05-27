@@ -63,7 +63,7 @@ export default function HomePage() {
             <h1>{t("landingHeroTitle")}</h1>
             <p className="subtitle">{t("landingSubtitle")}</p>
             <div className="ctaRow">
-              <button type="button" className="primaryCta" onClick={() => goTo(`/${locale}/train`, false)}>
+              <button type="button" className="primaryCta" onClick={() => goTo(`/${locale}/train?autostart=1`, false)}>
                 Start AI Assessment
               </button>
               <button type="button" className="secondaryCta" onClick={() => goTo(`/${locale}/fighters`, false)}>

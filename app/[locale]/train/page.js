@@ -42,8 +42,11 @@ export default function TrainPage() {
   const { user, loading: authLoading } = useAuth();
 
   const [debugEnabled, setDebugEnabled] = useState(false);
+  const [autoStart, setAutoStart] = useState(false);
   useEffect(() => {
-    setDebugEnabled(new URLSearchParams(window.location.search).get("debug") === "1");
+    const params = new URLSearchParams(window.location.search);
+    setDebugEnabled(params.get("debug") === "1");
+    setAutoStart(params.get("autostart") === "1");
   }, []);
 
   const {
@@ -315,6 +318,13 @@ export default function TrainPage() {
     );
     if (fighter && lesson) setLessonContext({ fighter, lesson });
   }, []);
+
+  // Auto-start when coming from landing with ?autostart=1
+  useEffect(() => {
+    if (!autoStart || cameraState !== "ready" || phase !== "idle") return;
+    const id = setTimeout(() => handleStart(), 1400);
+    return () => clearTimeout(id);
+  }, [autoStart, cameraState, phase, handleStart]);
 
   if (authLoading) {
     return <div style={styles.loading}>{t("loading")}</div>;

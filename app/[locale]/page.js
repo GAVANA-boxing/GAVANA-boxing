@@ -67,7 +67,7 @@ export default async function LocalizedHomePage({ params }) {
             : "Throw a few punches. GAVANA reads your boxing style in real time — no signup needed."}
         </p>
         <div className="landing-cta-row" style={s.ctaRow}>
-          <Link href={`/${locale}/train`} className="landing-primary-cta" style={s.primaryCta}>
+          <Link href={`/${locale}/train?autostart=1`} className="landing-primary-cta" style={s.primaryCta}>
             {locale === "mn" ? "AI Боксын үнэлгээ →" : locale === "ko" ? "AI 복싱 분석 시작 →" : "Start AI Assessment →"}
           </Link>
           <Link href={`/${locale}/fighters`} className="landing-secondary-cta" style={s.secondaryCta}>
