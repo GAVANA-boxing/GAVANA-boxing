@@ -172,12 +172,6 @@ export default function AppSidebar({ currentLocale }) {
         ))}
       </nav>
 
-      {/* ── Create button ── */}
-      <button style={s.createBtn} onClick={() => go("upload")} className="tap-bounce">
-        <IcoPlus />
-        <span>Create Reel</span>
-      </button>
-
       {/* ── Fighter identity footer ── */}
       {user && (
         <div style={s.footer}>

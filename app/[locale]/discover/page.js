@@ -4,7 +4,6 @@ import { useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "@/components/BottomNav";
-import StoryBar from "@/components/StoryBar";
 import PageTopBar from "@/components/PageTopBar";
 import { getLocale, translate } from "@/lib/i18n";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
@@ -92,7 +91,6 @@ export default function DiscoverPage() {
     <div style={s.page} className="page-enter">
       <PageTopBar kicker="EXPLORE" title={t("discoverTitle") || "DISCOVER"} user={user} currentLocale={locale} />
 
-      <StoryBar locale={locale} router={router} />
 
       {/* ── Feed Tabs ── */}
       <div style={s.feedTabs}>

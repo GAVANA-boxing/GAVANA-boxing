@@ -127,8 +127,6 @@ const COMBAT_OS_ITEMS = [
   { key: "fighters",       labelEn: "Fighters",        labelMn: "Тамирчид",          labelKo: "파이터",     path: "/fighters" },
   { key: "gyms",           labelEn: "Gyms",            labelMn: "Заалнууд",          labelKo: "체육관",     path: "/gyms" },
   { key: "challenges",     labelEn: "Challenges",      labelMn: "Даалгаврууд",       labelKo: "챌린지",     path: "/challenges" },
-  { key: "inbox",          labelEn: "Inbox",           labelMn: "Мессэж",            labelKo: "메시지",     path: "/inbox" },
-  { key: "upload",         labelEn: "Upload",          labelMn: "Видео оруулах",     labelKo: "업로드",     path: "/upload" },
   { key: "drills",         labelEn: "Drills",          labelMn: "Дасгалууд",         labelKo: "드릴",       path: "/drills" },
   { key: "history",        labelEn: "History",         labelMn: "Түүх",              labelKo: "기록",       path: "/history" },
 ];
