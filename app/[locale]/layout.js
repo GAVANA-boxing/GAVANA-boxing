@@ -1,4 +1,3 @@
-import { NextIntlClientProvider } from "next-intl";
 import { notFound } from "next/navigation";
 import { locales } from "@/lib/i18n";
 import AppShell from "@/components/AppShell";
@@ -10,16 +9,5 @@ export default async function LocaleLayout({ children, params }) {
     notFound();
   }
 
-  let messages;
-  try {
-    messages = (await import(`@/messages/${locale}.json`)).default;
-  } catch {
-    notFound();
-  }
-
-  return (
-    <NextIntlClientProvider messages={messages}>
-      <AppShell>{children}</AppShell>
-    </NextIntlClientProvider>
-  );
+  return <AppShell>{children}</AppShell>;
 }

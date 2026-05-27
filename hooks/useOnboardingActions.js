@@ -95,7 +95,7 @@ export function useOnboardingActions({ user, locale, router }) {
         "onboarding.completed": true,
       });
     } catch {}
-    router.replace(dest || `/${locale}/reels`);
+    router.replace(dest || `/${locale}/train`);
   };
 
   return {

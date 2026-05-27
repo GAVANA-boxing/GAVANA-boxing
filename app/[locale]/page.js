@@ -26,11 +26,7 @@ const FEATURES = [
   { emoji: "🏆", titleKey: "landingFeature4Title", textKey: "landingFeature4Text" },
 ];
 
-const SOCIAL_PROOF = [
-  { value: "10K+", labelKey: "landingSocialFighters" },
-  { value: "50K+", labelKey: "landingSocialReels" },
-  { value: "200K+", labelKey: "landingSocialChallenges" },
-];
+const SOCIAL_PROOF = null; // removed hardcoded fake stats
 
 export default async function LocalizedHomePage({ params }) {
   const { locale: rawLocale } = await params;
@@ -80,15 +76,6 @@ export default async function LocalizedHomePage({ params }) {
         </div>
       </section>
 
-      {/* Social proof — glass blur panel */}
-      <section className="glass-stats landing-social-proof" style={s.socialProof}>
-        {SOCIAL_PROOF.map(({ value, labelKey }) => (
-          <div key={labelKey} style={s.proofItem}>
-            <span style={s.proofValue}>{value}</span>
-            <span style={s.proofLabel}>{t(labelKey)}</span>
-          </div>
-        ))}
-      </section>
 
       {/* Fighter Card preview */}
       <section style={s.cardPreviewSection}>

@@ -94,6 +94,17 @@ export default function ModerationPage() {
     if (!authLoading && user && !isAdmin) { router.push(`/${locale}/train`); return; }
   }, [authLoading, user, isAdmin, router, locale]);
 
+  // Establish httpOnly admin session cookie so middleware can guard this route
+  useEffect(() => {
+    if (!isAdmin || !user) return;
+    user.getIdToken().then((token) => {
+      fetch("/api/admin/session", {
+        method:  "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => {});
+    });
+  }, [isAdmin, user]);
+
   useEffect(() => {
     if (!isAdmin) return;
     let active = true;
