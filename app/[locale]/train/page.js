@@ -157,12 +157,6 @@ export default function TrainPage() {
     router.push(`/${locale}/challenges`);
   };
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push(`/${locale}/login`);
-    }
-  }, [authLoading, user, router, locale]);
-
   // ── Post-session AI debrief ───────────────────────────────────────────────
   const [debrief, setDebrief]             = useState(null);
   const [debriefLoading, setDebriefLoading] = useState(false);
@@ -326,7 +320,7 @@ export default function TrainPage() {
     return <div style={styles.loading}>{t("loading")}</div>;
   }
 
-  if (!user) return null;
+  const isGuest = !user;
 
   const isCountingDown = phase === "countdown";
   const isRecording = phase === "recording";
@@ -341,6 +335,47 @@ export default function TrainPage() {
       </button>
 
       <section style={styles.shell}>
+        {/* Guest mode banner */}
+        {isGuest && (
+          <div style={{
+            margin: "0 0 14px",
+            padding: "10px 14px",
+            borderRadius: 12,
+            background: "rgba(245,196,81,0.07)",
+            border: "1px solid rgba(245,196,81,0.22)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 10,
+          }}>
+            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", lineHeight: 1.4 }}>
+              {locale === "mn"
+                ? "Хэдэн цохилт хий — AI таны хэв маягийг шинжилнэ. Дүнг хадгалахын тулд бүртгүүл."
+                : locale === "ko"
+                ? "몇 번 펀치해보세요 — AI가 스타일을 분석합니다. 저장하려면 가입하세요."
+                : "Throw a few punches — AI reads your style. Sign up to save your progress."}
+            </span>
+            <button
+              type="button"
+              onClick={() => router.push(`/${locale}/login?mode=signup`)}
+              style={{
+                flexShrink: 0,
+                padding: "6px 12px",
+                borderRadius: 8,
+                border: "none",
+                background: "rgba(245,196,81,0.18)",
+                color: "#F5C451",
+                fontSize: 11,
+                fontWeight: 900,
+                cursor: "pointer",
+                letterSpacing: 0.5,
+              }}
+            >
+              {locale === "mn" ? "Бүртгүүлэх" : locale === "ko" ? "가입" : "Sign up"}
+            </button>
+          </div>
+        )}
+
         <header style={styles.header}>
           <p style={styles.kicker}>
             {challengeUserId ? t("pvpChallengeMode") : activeChallenge ? t("challengeMode") : t("trainKicker")}
@@ -570,6 +605,7 @@ export default function TrainPage() {
         debrief={debrief}
         debriefLoading={debriefLoading}
         result={result}
+        isGuest={isGuest}
         activeChallenge={activeChallenge}
         challengeUserId={challengeUserId}
         challengeSaving={challengeSaving}

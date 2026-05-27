@@ -172,6 +172,7 @@ export default function TrainResultModal({
   onSaveChallengeResult,
   onShareChallenge,
   onShareTraining,
+  isGuest = false,
 }) {
   const displayScore = useCountUp(result?.score);
   const [sessionTag, setSessionTag] = useState(null);
@@ -804,7 +805,7 @@ export default function TrainResultModal({
                 ))}
               </div>
             )}
-            {!activeChallenge && (
+            {!activeChallenge && !isGuest && (
               <button
                 type="button"
                 style={{ ...styles.saveButton, ...(saved ? styles.saveButtonDone : {}), opacity: saving || saved ? 0.65 : 1, cursor: saving || saved ? "default" : "pointer" }}
@@ -822,6 +823,15 @@ export default function TrainResultModal({
                     : saved
                       ? t("trainSavedShort")
                       : t("trainSaveProgress")}
+              </button>
+            )}
+            {isGuest && (
+              <button
+                type="button"
+                style={{ ...styles.saveButton, background: "linear-gradient(135deg, #F5C451 0%, #FF3B30 100%)", color: "#000", fontWeight: 900 }}
+                onClick={() => router.push(`/${locale}/login?mode=signup`)}
+              >
+                {locale === "mn" ? "Дүнг хадгалах — Бүртгүүлэх →" : locale === "ko" ? "결과 저장 — 가입하기 →" : "Save Your Progress — Sign Up →"}
               </button>
             )}
             {activeChallenge && (

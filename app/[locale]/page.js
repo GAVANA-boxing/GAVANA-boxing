@@ -61,17 +61,17 @@ export default async function LocalizedHomePage({ params }) {
         </h1>
         <p className="landing-subtitle" style={s.subtitle}>
           {locale === "mn"
-            ? "AI тренэр, бодит цохилт тоолох систем, Fighter Card болон шууд тулааны чалленге."
+            ? "Хэдэн цохилт хий — GAVANA таны боксын хэв маягийг AI-р бодит цаг хугацаанд шинжилнэ."
             : locale === "ko"
-            ? "AI 코치, 실시간 펀치 감지, 파이터 카드, 실시간 배틀 쳌린지."
-            : "AI punch scoring, Fighter Card, real-time challenges — the boxing app built for fighters."}
+            ? "몇 번 펀치해보세요 — GAVANA가 AI로 복싱 스타일을 실시간 분석합니다."
+            : "Throw a few punches. GAVANA reads your boxing style in real time — no signup needed."}
         </p>
         <div className="landing-cta-row" style={s.ctaRow}>
-          <Link href={`/${locale}/login?mode=signup`} className="landing-primary-cta" style={s.primaryCta}>
-            {t("loginSignUp")} →
+          <Link href={`/${locale}/train`} className="landing-primary-cta" style={s.primaryCta}>
+            {locale === "mn" ? "AI Боксын үнэлгээ →" : locale === "ko" ? "AI 복싱 분석 시작 →" : "Start AI Assessment →"}
           </Link>
-          <Link href={`/${locale}/reels`} className="landing-secondary-cta" style={s.secondaryCta}>
-            {t("reels")}
+          <Link href={`/${locale}/fighters`} className="landing-secondary-cta" style={s.secondaryCta}>
+            {locale === "mn" ? "Тулаанчид харах" : locale === "ko" ? "파이터 보기" : "Watch Fighters"}
           </Link>
         </div>
       </section>

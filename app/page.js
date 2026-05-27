@@ -50,8 +50,8 @@ export default function HomePage() {
             GAVANA
           </button>
           <div className="navLinks">
-            <button type="button" onClick={() => goTo(`/${locale}/reels`, false)}>{t("landingWatchReels")}</button>
-            <button type="button" onClick={() => goTo(`/${locale}/upload`)}>{t("landingStartTraining")}</button>
+            <button type="button" onClick={() => goTo(`/${locale}/fighters`, false)}>Watch Fighters</button>
+            <button type="button" onClick={() => goTo(`/${locale}/train`, false)}>Start Training</button>
           </div>
         </nav>
 
@@ -63,11 +63,11 @@ export default function HomePage() {
             <h1>{t("landingHeroTitle")}</h1>
             <p className="subtitle">{t("landingSubtitle")}</p>
             <div className="ctaRow">
-              <button type="button" className="primaryCta" onClick={() => goTo(`/${locale}/reels`, false)}>
-                {t("landingWatchReels")}
+              <button type="button" className="primaryCta" onClick={() => goTo(`/${locale}/train`, false)}>
+                Start AI Assessment
               </button>
-              <button type="button" className="secondaryCta" onClick={() => goTo(`/${locale}/upload`)}>
-                {t("landingStartTraining")}
+              <button type="button" className="secondaryCta" onClick={() => goTo(`/${locale}/fighters`, false)}>
+                Watch Fighters
               </button>
             </div>
           </div>
