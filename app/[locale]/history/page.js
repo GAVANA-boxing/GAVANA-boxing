@@ -29,6 +29,13 @@ const TAG_COLORS = {
   Sparring: "#A78BFA", Conditioning: "#34D399",
 };
 
+const STYLE_COLOR = {
+  pressure:  "#F87171",
+  outboxer:  "#34D399",
+  explosive: "#F59E0B",
+  counter:   "#94A3B8",
+};
+
 const SCORE_RANGES = [
   { label: "All", mn: "Бүгд", min: 0, max: 10 },
   { label: "8–10", mn: "8–10", min: 8, max: 10 },
@@ -85,6 +92,10 @@ export default function HistoryPage() {
     return scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : null;
   }, [filtered]);
 
+  const totalPunches = useMemo(() => {
+    return filtered.reduce((sum, s) => sum + (s.poseMetrics?.punchCount || 0), 0);
+  }, [filtered]);
+
   if (loading || authLoading) {
     return (
       <div style={{ minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0B0B0C" }}>
@@ -112,7 +123,7 @@ export default function HistoryPage() {
         <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
           {[
             { label: mn ? "Нийт" : "Total", value: sessions.length, unit: mn ? "дасгал" : "sessions", col: GOLD },
-            { label: mn ? "Шүүлсэн" : "Filtered", value: filtered.length, unit: "", col: "#60A5FA" },
+            { label: mn ? "Цохилт" : "Punches", value: totalPunches || "—", unit: "", col: "#F87171" },
             { label: mn ? "Дундаж" : "Avg Score", value: avgScore?.toFixed(1) ?? "—", unit: "/10", col: "#34D399" },
           ].map(({ label, value, unit, col }) => (
             <div key={label} style={{ flex: 1, padding: "9px 10px", borderRadius: 12, background: `${col}09`, border: `1px solid ${col}20` }}>
@@ -188,51 +199,90 @@ export default function HistoryPage() {
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {filtered.map((s) => {
-              const score = Number(s.score);
-              const col = score >= 8 ? "#34D399" : score >= 6 ? GOLD : "#F87171";
+              const score  = Number(s.score);
+              const col    = score >= 8 ? "#34D399" : score >= 6 ? GOLD : "#F87171";
               const tagCol = TAG_COLORS[s.sessionTag] || null;
-              const xp = Number(s.xpGained) || 0;
+              const xp     = Number(s.xpGained) || 0;
+
+              const pm       = s.poseMetrics;
+              const bi       = pm?.boxingIntelligence;
+              const pc       = pm?.punchCount || 0;
+              const pb       = pm?.punchBreakdown || {};
+              const jabC     = pb.jab?.count   || 0;
+              const crossC   = pb.cross?.count  || 0;
+              const hookC    = pb.hook?.count   || 0;
+              const conf     = pm?.avgConfidencePct ?? pm?.debugStats?.avgConfidencePct;
+              const styleKey = bi?.style;
+              const styleCol = STYLE_COLOR[styleKey];
+              const showStyle = bi?.styleLabel && (bi.styleConfidence ?? 0) >= 0.3;
+
               return (
                 <div key={s.id} style={{
-                  display: "flex", alignItems: "center", gap: 12,
                   padding: "11px 13px", borderRadius: 14,
                   background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)",
                 }}>
-                  {/* Score circle */}
-                  <div style={{
-                    width: 44, height: 44, borderRadius: "50%", flexShrink: 0,
-                    background: `${col}14`, border: `2px solid ${col}35`,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 13, fontWeight: 900, color: col,
-                  }}>
-                    {score.toFixed(1)}
-                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    {/* Score circle */}
+                    <div style={{
+                      width: 44, height: 44, borderRadius: "50%", flexShrink: 0,
+                      background: `${col}14`, border: `2px solid ${col}35`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 13, fontWeight: 900, color: col,
+                    }}>
+                      {score.toFixed(1)}
+                    </div>
 
-                  {/* Info */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
-                      <span style={{ fontSize: 12, fontWeight: 800, color: "#fff" }}>
-                        {formatDate(s.createdAt, locale)}
-                      </span>
-                      {s.sessionTag && tagCol && (
-                        <span style={{ fontSize: 9, fontWeight: 900, color: tagCol, background: `${tagCol}18`, border: `1px solid ${tagCol}30`, borderRadius: RADIUS.full, padding: "1px 7px" }}>
-                          {s.sessionTag}
+                    {/* Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      {/* Date + tags */}
+                      <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 4, flexWrap: "wrap" }}>
+                        <span style={{ fontSize: 12, fontWeight: 800, color: "#fff" }}>
+                          {formatDate(s.createdAt, locale)}
                         </span>
+                        {s.sessionTag && tagCol && (
+                          <span style={{ fontSize: 8, fontWeight: 900, color: tagCol, background: `${tagCol}18`, border: `1px solid ${tagCol}30`, borderRadius: RADIUS.full, padding: "1px 6px" }}>
+                            {s.sessionTag}
+                          </span>
+                        )}
+                        {showStyle && (
+                          <span style={{ fontSize: 8, fontWeight: 900, color: styleCol, background: `${styleCol}14`, border: `1px solid ${styleCol}30`, borderRadius: RADIUS.full, padding: "1px 6px", letterSpacing: 0.8 }}>
+                            {bi.styleLabel}
+                          </span>
+                        )}
+                      </div>
+                      {/* Score bar */}
+                      <div style={{ height: 3, borderRadius: 2, background: "rgba(255,255,255,0.07)", overflow: "hidden", marginBottom: pc > 0 ? 5 : 0 }}>
+                        <div style={{ height: "100%", width: `${(score / 10) * 100}%`, borderRadius: 2, background: col }} />
+                      </div>
+                      {/* Punch stats */}
+                      {pc > 0 && (
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.55)" }}>
+                            {pc} {mn ? "цохилт" : "punches"}
+                          </span>
+                          <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>
+                            {jabC > 0 ? `${jabC}J` : ""}{crossC > 0 ? ` ${crossC}C` : ""}{hookC > 0 ? ` ${hookC}H` : ""}
+                          </span>
+                          {conf != null && (
+                            <span style={{
+                              fontSize: 9, fontWeight: 800,
+                              color: conf >= 70 ? "#34D399" : conf >= 45 ? GOLD : "#F87171",
+                            }}>
+                              {conf}%
+                            </span>
+                          )}
+                        </div>
                       )}
                     </div>
-                    {/* Score bar */}
-                    <div style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
-                      <div style={{ height: "100%", width: `${(score / 10) * 100}%`, borderRadius: 2, background: col }} />
-                    </div>
-                  </div>
 
-                  {/* XP */}
-                  {xp > 0 && (
-                    <div style={{ flexShrink: 0, textAlign: "right" }}>
-                      <div style={{ fontSize: 11, fontWeight: 900, color: GOLD }}>+{xp}</div>
-                      <div style={{ fontSize: 8, fontWeight: 700, color: "rgba(255,255,255,0.25)" }}>XP</div>
-                    </div>
-                  )}
+                    {/* XP */}
+                    {xp > 0 && (
+                      <div style={{ flexShrink: 0, textAlign: "right" }}>
+                        <div style={{ fontSize: 11, fontWeight: 900, color: GOLD }}>+{xp}</div>
+                        <div style={{ fontSize: 8, fontWeight: 700, color: "rgba(255,255,255,0.25)" }}>XP</div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}
