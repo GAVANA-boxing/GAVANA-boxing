@@ -20,6 +20,7 @@ import { useProfileData } from "@/hooks/useProfileData";
 import { useProfileActions } from "@/hooks/useProfileActions";
 import { useReelDeletion } from "@/hooks/useReelDeletion";
 import dynamic from "next/dynamic";
+import BottomNav from "@/components/BottomNav";
 const ProfileModals = dynamic(
   () => import("@/components/profile/ProfileModals").then((m) => ({ default: m.ProfileModals })),
   { ssr: false }
@@ -518,6 +519,8 @@ export default function UserProfilePage() {
           onClose={() => setFollowListView(null)}
         />
       )}
+
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
     </div>
   );
 }
