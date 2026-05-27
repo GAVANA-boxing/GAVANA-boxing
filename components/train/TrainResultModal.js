@@ -179,8 +179,11 @@ export default function TrainResultModal({
   const [showDetails, setShowDetails] = useState(false);
   if (!result) return null;
 
+  const MIN_PUNCHES = 5;
+  const tooFewPunches = (result.hitCount ?? 0) < MIN_PUNCHES;
+
   const events = movementEvents || [];
-  const identity = getIdentityWithSub(result.score, events, poseMetrics);
+  const identity = tooFewPunches ? null : getIdentityWithSub(result.score, events, poseMetrics);
   const movementSummary = getMovementSummary(events);
   const comparison = computeComparison(poseMetrics, prevPoseMetrics);
   const timelineEvents = events.slice(-8);
@@ -205,43 +208,59 @@ export default function TrainResultModal({
             {analysisLabel}
           </p>
 
-          <h2 style={{
-            margin: "8px 0 2px", fontSize: 24, fontWeight: 1000,
-            letterSpacing: "-0.02em", color: "#fff", lineHeight: 1.0,
-            fontFamily: "var(--font-display, 'Anton', sans-serif)",
-          }}>
-            {identity.title}
-          </h2>
-          <p style={{ margin: "0 0 14px", fontSize: 11, color: whiteAlpha(0.35), fontWeight: 700 }}>
-            {identity.sub}
-          </p>
-
-          {/* Score telemetry bar */}
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ flex: 1, height: 3, background: whiteAlpha(0.07), borderRadius: 2, overflow: "hidden" }}>
-              <div style={{
-                height: "100%",
-                width: `${(displayScore / 10) * 100}%`,
-                background: `linear-gradient(90deg, ${RED}, ${GOLD})`,
-                borderRadius: 2,
-                transition: "width 0.04s linear",
-              }} />
+          {tooFewPunches ? (
+            /* ── Not enough data ── */
+            <div style={{ margin: "16px 0 10px" }}>
+              <h2 style={{ margin: "0 0 6px", fontSize: 22, fontWeight: 1000, color: whiteAlpha(0.55), letterSpacing: "-0.01em" }}>
+                {locale === "mn" ? "Хангалтгүй өгөгдөл" : "Not Enough Data"}
+              </h2>
+              <p style={{ margin: 0, fontSize: 12, color: whiteAlpha(0.35), lineHeight: 1.5 }}>
+                {locale === "mn"
+                  ? `AI шинжилгээнд хамгийн багадаа ${MIN_PUNCHES} цохилт хэрэгтэй. Та ${result.hitCount ?? 0} цохилт хийсэн.`
+                  : `AI analysis needs at least ${MIN_PUNCHES} punches. You threw ${result.hitCount ?? 0}.`}
+              </p>
             </div>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 2, flexShrink: 0 }}>
-              <span style={{
-                fontSize: 32, fontWeight: 1000, lineHeight: 1,
+          ) : (
+            <>
+              <h2 style={{
+                margin: "8px 0 2px", fontSize: 24, fontWeight: 1000,
+                letterSpacing: "-0.02em", color: "#fff", lineHeight: 1.0,
                 fontFamily: "var(--font-display, 'Anton', sans-serif)",
-                letterSpacing: "-0.02em", color: "#fff",
               }}>
-                {displayScore.toFixed(1)}
-              </span>
-              <span style={{ fontSize: 12, color: whiteAlpha(0.28), fontWeight: 800 }}>/10</span>
-            </div>
-          </div>
+                {identity.title}
+              </h2>
+              <p style={{ margin: "0 0 14px", fontSize: 11, color: whiteAlpha(0.35), fontWeight: 700 }}>
+                {identity.sub}
+              </p>
+
+              {/* Score telemetry bar */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ flex: 1, height: 3, background: whiteAlpha(0.07), borderRadius: 2, overflow: "hidden" }}>
+                  <div style={{
+                    height: "100%",
+                    width: `${(displayScore / 10) * 100}%`,
+                    background: `linear-gradient(90deg, ${RED}, ${GOLD})`,
+                    borderRadius: 2,
+                    transition: "width 0.04s linear",
+                  }} />
+                </div>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 2, flexShrink: 0 }}>
+                  <span style={{
+                    fontSize: 32, fontWeight: 1000, lineHeight: 1,
+                    fontFamily: "var(--font-display, 'Anton', sans-serif)",
+                    letterSpacing: "-0.02em", color: "#fff",
+                  }}>
+                    {displayScore.toFixed(1)}
+                  </span>
+                  <span style={{ fontSize: 12, color: whiteAlpha(0.28), fontWeight: 800 }}>/10</span>
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* ── AI DEBRIEF ───────────────────────────────────────────── */}
-        {(debriefLoading || debrief) && (
+        {!tooFewPunches && (debriefLoading || debrief) && (
           <div style={{
             margin: "0 20px 0",
             padding: "12px 14px",
@@ -805,7 +824,7 @@ export default function TrainResultModal({
                 ))}
               </div>
             )}
-            {!activeChallenge && !isGuest && (
+            {!tooFewPunches && !activeChallenge && !isGuest && (
               <button
                 type="button"
                 style={{ ...styles.saveButton, ...(saved ? styles.saveButtonDone : {}), opacity: saving || saved ? 0.65 : 1, cursor: saving || saved ? "default" : "pointer" }}
@@ -825,7 +844,7 @@ export default function TrainResultModal({
                       : t("trainSaveProgress")}
               </button>
             )}
-            {isGuest && (
+            {!tooFewPunches && isGuest && (
               <button
                 type="button"
                 style={{ ...styles.saveButton, background: "linear-gradient(135deg, #F5C451 0%, #FF3B30 100%)", color: "#000", fontWeight: 900 }}

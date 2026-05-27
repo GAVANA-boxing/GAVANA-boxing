@@ -212,6 +212,8 @@ export default function TrainPage() {
   // Generate debrief when result appears; compute pose summary at the same time
   useEffect(() => {
     if (!result?.score) { setDebrief(null); setPoseSessionSummary(null); return; }
+    // Skip debrief when punch count is too low — AI has nothing real to say
+    if ((result.hitCount ?? 0) < 5) { setDebrief(null); setDebriefLoading(false); setPoseSessionSummary(null); return; }
 
     // Capture pose summary synchronously before any async work
     const poseSummary = computeSessionSummary();
