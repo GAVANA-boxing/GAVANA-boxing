@@ -211,7 +211,7 @@ export default function FighterDetailPage() {
           <p style={{ color: "#aaa", marginTop: 12, fontSize: 14 }}>{t("fighterNotFound")}</p>
           <button style={s.backBtn} onClick={() => router.back()}>← {t("back")}</button>
         </div>
-        <BottomNav router={router} user={user} currentLocale={locale} activeTab="home" />
+        <BottomNav router={router} user={user} currentLocale={locale} activeTab="fighters" />
       </div>
     );
   }
@@ -480,7 +480,7 @@ export default function FighterDetailPage() {
 
       </div>
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="home" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="fighters" />
     </div>
   );
 }

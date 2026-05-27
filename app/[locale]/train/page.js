@@ -23,6 +23,7 @@ import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
 import MilestoneCelebration from "@/components/MilestoneCelebration";
 import { usePoseDetection } from "@/hooks/usePoseDetection";
 import TechniquePicker from "@/components/train/TechniquePicker";
+import { getPersonalConnection } from "@/lib/fighterPersonalConnection";
 import dynamic from "next/dynamic";
 const PoseDebugOverlay   = dynamic(() => import("@/components/train/PoseDebugOverlay"),   { ssr: false });
 const DebugSessionPanel  = dynamic(() => import("@/components/train/DebugSessionPanel"),  { ssr: false });
@@ -699,7 +700,7 @@ export default function TrainPage() {
       />
 
       <DailyMission locale={locale} />
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="reels" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="train" />
 
       {/* Milestone celebration (15B) */}
       {saved && savedAttemptNumber && (

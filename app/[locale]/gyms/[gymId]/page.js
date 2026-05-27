@@ -127,7 +127,7 @@ export default function GymProfilePage() {
             {t("gymIdNotFound")}
           </p>
         </div>
-        <BottomNav router={router} user={user} currentLocale={locale} activeTab="home" />
+        <BottomNav router={router} user={user} currentLocale={locale} activeTab="" />
       </div>
     );
   }
@@ -468,7 +468,7 @@ export default function GymProfilePage() {
         </section>
       </div>
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="home" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="" />
     </div>
   );
 }

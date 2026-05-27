@@ -404,7 +404,7 @@ export default function EventsPage() {
         ) : null}
       </div>
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="home" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="" />
     </div>
   );
 }

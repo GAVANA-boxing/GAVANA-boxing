@@ -267,7 +267,7 @@ export default function FightersPage() {
         ))}
       </div>
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="home" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="fighters" />
 
       {compareMode && compareIds.length === 2 && (
         <FighterCompareModal

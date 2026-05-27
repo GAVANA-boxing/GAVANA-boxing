@@ -144,7 +144,7 @@ export default function EventDetailPage() {
             <p style={{ color: "rgba(255,255,255,0.45)", margin: 0 }}>{t("eventNotFound")}</p>
           </div>
         </div>
-        <BottomNav router={router} user={user} currentLocale={locale} activeTab="home" />
+        <BottomNav router={router} user={user} currentLocale={locale} activeTab="" />
       </div>
     );
   }
@@ -311,7 +311,7 @@ export default function EventDetailPage() {
         )}
       </div>
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="home" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="" />
     </div>
   );
 }

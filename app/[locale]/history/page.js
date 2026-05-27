@@ -290,7 +290,7 @@ export default function HistoryPage() {
         )}
       </div>
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="history" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="" />
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );

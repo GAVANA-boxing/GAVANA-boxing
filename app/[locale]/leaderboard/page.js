@@ -459,7 +459,7 @@ export default function LeaderboardPage() {
         router={router}
         user={user}
         currentLocale={locale}
-        activeTab="rank"
+        activeTab=""
       />
     </main>
   );
