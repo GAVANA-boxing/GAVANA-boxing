@@ -58,7 +58,7 @@ export default function LivePunchCounter({ getDebugInfo, isActive, punchTarget }
 
   return (
     <div style={{
-      position: "absolute", bottom: 64, left: 0, right: 0,
+      position: "absolute", bottom: 96, left: 0, right: 0,
       display: "flex", justifyContent: "center",
       pointerEvents: "none", zIndex: 20,
     }}>

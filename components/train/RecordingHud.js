@@ -61,27 +61,29 @@ export default function RecordingHud({
         </span>
       </div>
 
-      {/* Movement counter — no hardcoded max, target from drillConfig only */}
-      <div style={styles.hitCounter}>
-        {hitCount === 0 ? (
-          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", letterSpacing: 0.3 }}>
-            AI watching movement
-          </span>
-        ) : (
-          <>
-            <span style={styles.hitCountNum}>{hitCount}</span>
-            {drillConfig?.targetMovements != null && (
-              <>
-                <span style={styles.hitCountSep}>/</span>
-                <span style={styles.hitCountTarget}>{drillConfig.targetMovements}</span>
-              </>
-            )}
-            <span style={styles.hitCountLabel}>
-              {drillConfig?.targetMovements != null ? "hits" : "movements"}
+      {/* Movement counter — hidden for punch-target drills (LivePunchCounter handles those) */}
+      {!drillConfig?.punchTarget && (
+        <div style={styles.hitCounter}>
+          {hitCount === 0 ? (
+            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", letterSpacing: 0.3 }}>
+              AI watching movement
             </span>
-          </>
-        )}
-      </div>
+          ) : (
+            <>
+              <span style={styles.hitCountNum}>{hitCount}</span>
+              {drillConfig?.targetMovements != null && (
+                <>
+                  <span style={styles.hitCountSep}>/</span>
+                  <span style={styles.hitCountTarget}>{drillConfig.targetMovements}</span>
+                </>
+              )}
+              <span style={styles.hitCountLabel}>
+                {drillConfig?.targetMovements != null ? "hits" : "movements"}
+              </span>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Combo counter */}
       {comboCount > 0 && (

@@ -156,13 +156,13 @@ export const trainStageStyles = {
   // ── Combo counter ─────────────────────────────────────────────────────────
   comboCounter: {
     position: "absolute",
-    bottom: 72,
+    bottom: 144,
     left: "50%",
     transform: "translateX(-50%)",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    zIndex: 6,
+    zIndex: 21,
     pointerEvents: "none",
   },
   comboLabel: {
