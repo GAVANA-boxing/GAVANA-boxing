@@ -22,6 +22,7 @@ import { getDrillConfig } from "@/lib/drillConfig";
 import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
 import MilestoneCelebration from "@/components/MilestoneCelebration";
 import { usePoseDetection } from "@/hooks/usePoseDetection";
+import TechniquePicker from "@/components/train/TechniquePicker";
 import dynamic from "next/dynamic";
 const PoseDebugOverlay   = dynamic(() => import("@/components/train/PoseDebugOverlay"),   { ssr: false });
 const DebugSessionPanel  = dynamic(() => import("@/components/train/DebugSessionPanel"),  { ssr: false });
@@ -540,6 +541,41 @@ export default function TrainPage() {
           {/* Pose debug overlay — enabled via ?debug=1 query param */}
           <PoseDebugOverlay getDebugInfo={getDebugInfo} isActive={phase === "recording"} debugEnabled={debugEnabled} />
 
+          {/* Live technique coaching cue — shown during recording when a lesson is active */}
+          {isRecording && lessonContext?.lesson?.bodyCue && (
+            <div style={{
+              position: "absolute", top: 12, left: 0, right: 0,
+              display: "flex", justifyContent: "center", pointerEvents: "none",
+              padding: "0 14px",
+            }}>
+              <div style={{
+                background: `${lessonContext.fighter.accent}18`,
+                border: `1px solid ${lessonContext.fighter.accent}55`,
+                borderRadius: 20,
+                padding: "6px 14px",
+                maxWidth: 320,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}>
+                <span style={{
+                  width: 5, height: 5, borderRadius: "50%",
+                  background: lessonContext.fighter.accent,
+                  flexShrink: 0,
+                  boxShadow: `0 0 6px ${lessonContext.fighter.accent}`,
+                }} />
+                <span style={{
+                  fontSize: 11, fontWeight: 700,
+                  color: "rgba(255,255,255,0.88)",
+                  lineHeight: 1.35,
+                  textAlign: "center",
+                }}>
+                  {lessonContext.lesson.bodyCue}
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Position cue — shown when lower body not in frame during recording */}
           {positionCue && (
             <div style={{
@@ -575,6 +611,14 @@ export default function TrainPage() {
           t={t}
           focusTip={focusTip}
         />
+
+        {/* Technique picker — only when idle and no lesson already selected */}
+        {canStart && !lessonContext && !challengeId && !challengeUserId && (
+          <TechniquePicker
+            locale={locale}
+            onSelect={({ fighter, lesson }) => setLessonContext({ fighter, lesson })}
+          />
+        )}
 
         {error && <div style={styles.error}>{error}</div>}
         {saved && (
