@@ -329,11 +329,15 @@ export default function TrainPage() {
   }, []);
 
   // Auto-start when coming from landing with ?autostart=1
+  const autoStartFiredRef = useRef(false);
   useEffect(() => {
-    if (!autoStart || cameraState !== "ready" || phase !== "idle") return;
+    if (!autoStart || cameraState !== "ready" || phase !== "idle" || autoStartFiredRef.current) return;
+    autoStartFiredRef.current = true;
     const id = setTimeout(() => handleStart(), 1400);
     return () => clearTimeout(id);
-  }, [autoStart, cameraState, phase, handleStart]);
+  // handleStart is intentionally omitted — it's recreated every render but behaviorally stable
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart, cameraState, phase]);
 
   if (authLoading) {
     return <div style={styles.loading}>{t("loading")}</div>;

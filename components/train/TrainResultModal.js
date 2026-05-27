@@ -848,7 +848,7 @@ export default function TrainResultModal({
               <button
                 type="button"
                 style={{ ...styles.saveButton, background: "linear-gradient(135deg, #F5C451 0%, #FF3B30 100%)", color: "#000", fontWeight: 900 }}
-                onClick={() => router.push(`/${locale}/login?mode=signup`)}
+                onClick={() => router.push(`/${locale}/login?mode=signup&redirect=${encodeURIComponent(`/${locale}/train`)}`)}
               >
                 {locale === "mn" ? "Дүнг хадгалах — Бүртгүүлэх →" : locale === "ko" ? "결과 저장 — 가입하기 →" : "Save Your Progress — Sign Up →"}
               </button>
