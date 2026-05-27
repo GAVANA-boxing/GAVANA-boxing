@@ -44,6 +44,7 @@ export function useCameraSession({
   const [lastPunchType, setLastPunchType] = useState(null);
   const isRecordingRef = useRef(false);
   const hitCountRef = useRef(0);
+  const speedSumRef = useRef(0);
   const liveScoreRef = useRef(0);
   const audioCtxRef = useRef(null);
 
@@ -243,7 +244,9 @@ export function useCameraSession({
     if (!isRecordingRef.current) return;
 
     hitCountRef.current += 1;
-    const newScore = calculateTrainingScore(hitCountRef.current, sessionSeconds, targetMovements);
+    speedSumRef.current += (speed ?? 0.5);
+    const avgSpeed = speedSumRef.current / hitCountRef.current;
+    const newScore = calculateTrainingScore(hitCountRef.current, sessionSeconds, targetMovements, avgSpeed);
     liveScoreRef.current = newScore;
     setLiveScore(newScore);
     setComboCount((c) => c + 1);
@@ -292,6 +295,7 @@ export function useCameraSession({
 
     isRecordingRef.current = true;
     hitCountRef.current = 0;
+    speedSumRef.current = 0;
     liveScoreRef.current = 0;
     setComboCount(0);
     setHitCount(0);
@@ -356,6 +360,7 @@ export function useCameraSession({
     setLiveFeedback(null);
     setShowGo(false);
     hitCountRef.current = 0;
+    speedSumRef.current = 0;
     liveScoreRef.current = 0;
     setCountdown(3);
     setPhase("countdown");
@@ -379,6 +384,7 @@ export function useCameraSession({
     setLiveFeedback(null);
     setShowGo(false);
     hitCountRef.current = 0;
+    speedSumRef.current = 0;
     liveScoreRef.current = 0;
   };
 

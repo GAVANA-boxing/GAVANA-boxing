@@ -276,23 +276,30 @@ export default function TrainPage() {
   }, [result?.score]);
 
   // ── Setup cue: poll during recording to detect camera framing issues ──
+  // Only shown after 20s so it doesn't disrupt the session start
   useEffect(() => {
     if (phase !== "recording") { setPositionCue(null); return; }
-    const id = setInterval(() => {
-      const info = getDebugInfo();
-      if (info.status !== "ready" || !info.landmarksDetected) { setPositionCue(null); return; }
-      const q = info.cameraQuality;
-      if (q === "too_close") {
-        setPositionCue("Too close — step back so full torso is visible");
-      } else if (q === "upper_body_only") {
-        setPositionCue("Step back — hips and feet must be visible for full analysis");
-      } else if (q === "upper_body_hips") {
-        setPositionCue("Feet not visible — step back for stance and balance analysis");
-      } else {
-        setPositionCue(null);
-      }
-    }, 1200);
-    return () => { clearInterval(id); setPositionCue(null); };
+    let active = true;
+    const delayId = setTimeout(() => {
+      if (!active) return;
+      const id = setInterval(() => {
+        if (!active) { clearInterval(id); return; }
+        const info = getDebugInfo();
+        if (info.status !== "ready" || !info.landmarksDetected) { setPositionCue(null); return; }
+        const q = info.cameraQuality;
+        if (q === "too_close") {
+          setPositionCue("Step back a little for better tracking");
+        } else if (q === "upper_body_only") {
+          setPositionCue("Move back to show more of your body");
+        } else if (q === "upper_body_hips") {
+          setPositionCue("Try to show your full stance");
+        } else {
+          setPositionCue(null);
+        }
+      }, 1200);
+      return () => clearInterval(id);
+    }, 20000);
+    return () => { active = false; clearTimeout(delayId); setPositionCue(null); };
   }, [phase, getDebugInfo]);
 
   // ── Badge celebration after session save ─────────────────────────────────
@@ -432,7 +439,7 @@ export default function TrainPage() {
           </div>
         )}
 
-        <header style={styles.header}>
+        <header style={{ ...styles.header, display: (isCountingDown || isRecording) ? "none" : undefined }}>
           <p style={styles.kicker}>
             {challengeUserId ? t("pvpChallengeMode") : activeChallenge ? t("challengeMode") : t("trainKicker")}
           </p>
