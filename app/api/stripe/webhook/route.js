@@ -30,8 +30,7 @@ async function getFirestoreAccessToken() {
 async function updateUserSubscription(uid, tierId, status) {
   const accessToken = await getFirestoreAccessToken();
   if (!accessToken) {
-    console.error("stripe/webhook: no service account token — FIREBASE_SERVICE_ACCOUNT_BASE64 not set");
-    return;
+    throw new Error("FIREBASE_SERVICE_ACCOUNT_BASE64 not configured — cannot write subscription");
   }
 
   const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/users/${uid}?updateMask.fieldPaths=subscription&updateMask.fieldPaths=subscriptionTier&updateMask.fieldPaths=subscriptionUpdatedAt`;
@@ -71,19 +70,24 @@ export async function POST(req) {
   const uid    = obj.metadata?.uid || obj.subscription_data?.metadata?.uid;
   const tierId = obj.metadata?.tierId || obj.subscription_data?.metadata?.tierId;
 
-  switch (event.type) {
-    case "customer.subscription.created":
-    case "customer.subscription.updated":
-      await updateUserSubscription(uid, tierId, obj.status === "active" ? "active" : obj.status);
-      break;
-    case "customer.subscription.deleted":
-      await updateUserSubscription(uid, "", "cancelled");
-      break;
-    case "checkout.session.completed":
-      if (obj.mode === "subscription" && obj.metadata?.uid) {
-        await updateUserSubscription(obj.metadata.uid, obj.metadata.tierId, "active");
-      }
-      break;
+  try {
+    switch (event.type) {
+      case "customer.subscription.created":
+      case "customer.subscription.updated":
+        await updateUserSubscription(uid, tierId, obj.status === "active" ? "active" : obj.status);
+        break;
+      case "customer.subscription.deleted":
+        await updateUserSubscription(uid, "", "cancelled");
+        break;
+      case "checkout.session.completed":
+        if (obj.mode === "subscription" && obj.metadata?.uid) {
+          await updateUserSubscription(obj.metadata.uid, obj.metadata.tierId, "active");
+        }
+        break;
+    }
+  } catch (err) {
+    console.error("stripe/webhook: Firestore write failed:", err.message);
+    return new Response("Service unavailable — retry later", { status: 503 });
   }
 
   return new Response("ok");

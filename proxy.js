@@ -12,7 +12,12 @@ export function proxy(req) {
     return NextResponse.redirect(new URL(`/${locale}/login`, req.url));
   }
 
-  const adminUids = (process.env.ADMIN_UIDS || process.env.NEXT_PUBLIC_ADMIN_UIDS || "")
+  const adminUids = (
+    process.env.ADMIN_UIDS ||
+    // Dev-only fallback: NEXT_PUBLIC_ADMIN_UIDS is never authoritative in production.
+    // Set ADMIN_UIDS in your server environment instead.
+    (process.env.NODE_ENV !== "production" ? process.env.NEXT_PUBLIC_ADMIN_UIDS : "")
+  || "")
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
