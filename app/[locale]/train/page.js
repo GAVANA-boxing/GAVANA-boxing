@@ -490,7 +490,7 @@ export default function TrainPage() {
           )}
 
           {/* Live punch counter — shown during recording */}
-          <LivePunchCounter getDebugInfo={getDebugInfo} isActive={phase === "recording"} />
+          <LivePunchCounter getDebugInfo={getDebugInfo} isActive={phase === "recording"} punchTarget={drillConfig?.punchTarget ?? null} />
 
           {/* Pose debug overlay — enabled via ?debug=1 query param */}
           <PoseDebugOverlay getDebugInfo={getDebugInfo} isActive={phase === "recording"} debugEnabled={debugEnabled} />
