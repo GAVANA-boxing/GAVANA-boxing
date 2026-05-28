@@ -291,8 +291,10 @@ export default function TrainResultModal({
           const delta = lastScore != null ? result.score - lastScore : null;
           const bestPunch = getBestPunchType(poseMetrics);
           const nextFocus = getNextFocus(result, poseMetrics);
+          // Use missionNewStreak (post-save) if higher than the at-mount snapshot
+          const effectiveStreak = Math.max(userStreak || 0, missionNewStreak || 0);
           return (
-            <div style={{ padding: "12px 20px 0", display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ padding: "12px 20px 0", display: "flex", flexDirection: "column", gap: 8, textAlign: "left" }}>
               {/* Score row */}
               <div style={{ display: "flex", gap: 6 }}>
                 <div style={{ flex: 1, padding: "8px 10px", borderRadius: 10, background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.07)}` }}>
@@ -324,10 +326,10 @@ export default function TrainResultModal({
                     <span style={{ fontSize: 13, fontWeight: 900, color: GOLD }}>{bestPunch}</span>
                   </div>
                 )}
-                {userStreak > 0 && (
+                {effectiveStreak > 0 && (
                   <div style={{ padding: "6px 11px", borderRadius: 8, background: "rgba(251,146,60,0.06)", border: "1px solid rgba(251,146,60,0.16)", display: "flex", gap: 5, alignItems: "center" }}>
                     <span style={{ fontSize: 14 }}>🔥</span>
-                    <span style={{ fontSize: 13, fontWeight: 900, color: "#FB923C" }}>{userStreak}d</span>
+                    <span style={{ fontSize: 13, fontWeight: 900, color: "#FB923C" }}>{effectiveStreak}d</span>
                   </div>
                 )}
               </div>
