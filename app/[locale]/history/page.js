@@ -216,7 +216,18 @@ export default function HistoryPage() {
               const styleCol = STYLE_COLOR[styleKey];
               const showStyle = bi?.styleLabel && (bi.styleConfidence ?? 0) >= 0.3;
               const identity = s.sessionIdentity;
-              const weakness = pm?.coaching?.weaknesses?.[0] ?? null;
+              // Saved weaknesses (new sessions) or derived from breakdown (old sessions)
+              const weakness = (() => {
+                if (pm?.weaknesses?.length) return pm.weaknesses[0];
+                const bd = s.breakdown;
+                if (!bd) return null;
+                const entries = Object.entries(bd).filter(([, v]) => typeof v === "number");
+                if (!entries.length) return null;
+                const [key, val] = entries.reduce((a, b) => b[1] < a[1] ? b : a);
+                if (val >= 6.5) return null;
+                const labels = { accuracy: mn ? "Нарийвчлал" : "Accuracy", speed: mn ? "Хурд" : "Speed", power: mn ? "Хүч" : "Power", consistency: mn ? "Тогтвортой байдал" : "Consistency" };
+                return labels[key] ? `${mn ? "Сайжруулах:" : "Improve:"} ${labels[key]} (${val.toFixed(1)}/10)` : null;
+              })();
 
               return (
                 <div key={s.id} style={{

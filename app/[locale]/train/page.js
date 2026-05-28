@@ -695,12 +695,12 @@ export default function TrainPage() {
           />
         )}
 
-        {/* Daily mission strip — shown when idle */}
-        {canStart && (() => {
+        {/* Daily mission strip — shown when idle only */}
+        {phase === "idle" && (() => {
           const today = new Date().toISOString().split("T")[0];
           const mission = dailyMission?.date === today ? dailyMission : null;
           const missionText = mission?.text ?? (locale === "mn" ? "Өнөөдөр: анхны AI дасгалаа хий" : "Today: complete your first AI boxing assessment");
-          const missionDone = userStreak > 0 && mission !== null;
+          const missionDone = mission !== null;
           return (
             <div style={{
               margin: "8px 0 0",

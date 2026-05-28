@@ -911,8 +911,10 @@ export default function TrainResultModal({
                 type="button"
                 style={{ ...styles.saveButton, ...(saved ? styles.saveButtonDone : {}), opacity: saving || saved ? 0.65 : 1, cursor: saving || saved ? "default" : "pointer" }}
                 onClick={() => {
-                  // Strip heavy frame-by-frame arrays before saving to Firestore
-                  const { motionHistory: _mh, punchEvents: _pe, coaching: _co, ...poseMetricsForSave } = poseMetrics || {};
+                  // Strip heavy frame-by-frame arrays, keep compact weakness list for history
+                  const { motionHistory: _mh, punchEvents: _pe, coaching, ...poseMetricsForSave } = poseMetrics || {};
+                  const weaknesses = (coaching || []).filter(c => c.type === "improve").map(c => c.message).slice(0, 2);
+                  if (weaknesses.length) poseMetricsForSave.weaknesses = weaknesses;
                   onSave({ movementEvents: events, tag: sessionTag, poseMetrics: poseMetrics ? poseMetricsForSave : null });
                 }}
                 disabled={saving || saved}
