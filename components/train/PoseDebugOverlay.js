@@ -67,6 +67,8 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive, debugEnabled 
     punchPhase, leftPhase, rightPhase, punchCount, leftElbow, rightElbow, velocity,
     lastPunchType, lastPunchHand, lastSnapVelocity, lastRecoilVelocity, lastRecoilMs,
     lastPunchConfidence, lastPunchConfidenceLabel, lastPunchLateralPct,
+    lastPunchAcceptReason, lastPunchFramingMode, lastPunchConfReasons,
+    liveFramingMode, liveSnapBypass, stanceHint,
     handLiveData, trackingQuality,
   } = info;
 
@@ -107,6 +109,15 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive, debugEnabled 
       <Row label="Frames tried" value={framesAttempted} />
       <Row label="With body"    value={framesWithBody} />
       <Row label="Pose frames"  value={totalPoseFrames} />
+      <Row label="Framing"
+           value={isActive ? (liveFramingMode || "full").toUpperCase().replace("_", " ") : "—"}
+           color={liveFramingMode === "upper_body" ? "#F59E0B" : "#34D399"} />
+      <Row label="Snap bypass"
+           value={isActive ? (liveSnapBypass ? "ON" : "off") : "—"}
+           color={liveSnapBypass ? "#F59E0B" : "rgba(255,255,255,0.25)"} />
+      <Row label="Stance"
+           value={isActive ? (stanceHint || "unknown").toUpperCase() : "—"}
+           color={stanceHint === "orthodox" || stanceHint === "southpaw" ? "#34D399" : "rgba(255,255,255,0.3)"} />
 
       {/* ── Punch phase ── */}
       {isActive && landmarksDetected && (
@@ -135,24 +146,37 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive, debugEnabled 
             const hasExtended = reasons.includes("dist s1");
             const hasFastSnap = (lastSnapVelocity ?? 0) >= 0.020;
             const hasStraight = (lastPunchLateralPct ?? 100) < 55;
+            const acceptColor =
+              lastPunchAcceptReason === "snap_bypass" ? "#F59E0B" :
+              lastPunchAcceptReason === "upper_body"  ? "#94A3B8" : "#34D399";
             return (
               <>
                 <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "5px 0" }} />
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4, flexWrap: "wrap" }}>
                   <span style={{ fontSize: 12, fontWeight: 900, color: "#F59E0B", letterSpacing: 0.5 }}>
                     {(lastPunchHand || "").toUpperCase()[0]} {(lastPunchType || "").toUpperCase()}
                   </span>
                   <span style={{ fontSize: 9, fontWeight: 900, color: confColor, background: `${confColor}22`, padding: "1px 5px", borderRadius: 3 }}>
                     {Math.round(lastPunchConfidence * 100)}%
                   </span>
+                  {lastPunchAcceptReason && lastPunchAcceptReason !== "full" && (
+                    <span style={{ fontSize: 7.5, fontWeight: 900, color: acceptColor, background: `${acceptColor}22`, padding: "1px 4px", borderRadius: 3 }}>
+                      {lastPunchAcceptReason.replace("_", " ").toUpperCase()}
+                    </span>
+                  )}
                 </div>
-                <div style={{ fontSize: 7.5, color: "rgba(255,255,255,0.3)", marginBottom: 2, fontWeight: 700 }}>WHY:</div>
+                <div style={{ fontSize: 7.5, color: "rgba(255,255,255,0.3)", marginBottom: 2, fontWeight: 700 }}>WHY ACCEPTED:</div>
                 <CheckRow ok={hasForward}  text="forward z (camera)" />
                 <CheckRow ok={hasExtended} text="arm extended" />
                 <CheckRow ok={hasFastSnap} text="fast snap" />
                 <CheckRow ok={hasStraight} text="straight path" />
-                <div style={{ fontSize: 6.5, color: "rgba(255,255,255,0.18)", marginTop: 3, wordBreak: "break-all", lineHeight: 1.35 }}>
-                  {reasons}
+                {lastPunchConfReasons && (
+                  <div style={{ fontSize: 6.5, color: "rgba(255,255,255,0.25)", marginTop: 2, wordBreak: "break-all", lineHeight: 1.35 }}>
+                    conf: {lastPunchConfReasons}
+                  </div>
+                )}
+                <div style={{ fontSize: 6.5, color: "rgba(255,255,255,0.18)", marginTop: 2, wordBreak: "break-all", lineHeight: 1.35 }}>
+                  cls: {reasons}
                 </div>
                 {lastRecoilMs != null && (
                   <Row label="Recoil ms" value={`${lastRecoilMs}ms`}
