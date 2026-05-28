@@ -46,6 +46,7 @@ export default function TrainPage() {
   const [debugEnabled, setDebugEnabled] = useState(false);
   const [autoStart, setAutoStart] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [dailyMission, setDailyMission] = useState(null);
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setDebugEnabled(params.get("debug") === "1");
@@ -54,6 +55,10 @@ export default function TrainPage() {
       setShowOnboarding(true);
       localStorage.setItem("gavana_train_seen", "1");
     }
+    try {
+      const stored = localStorage.getItem("gavana_daily_mission");
+      if (stored) setDailyMission(JSON.parse(stored));
+    } catch {}
   }, []);
 
   const {
@@ -272,6 +277,24 @@ export default function TrainPage() {
       }
     })();
     return () => { active = false; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result?.score]);
+
+  // ── Write daily mission to localStorage after result ────────────────────
+  useEffect(() => {
+    if (!result?.breakdown) return;
+    const bd = result.breakdown;
+    const lowest = Object.entries(bd).reduce((a, [k, v]) => v < a[1] ? [k, v] : a, ["", 99]);
+    const missionMap = {
+      accuracy:    locale === "mn" ? "Өнөөдөр: 20 цэвэр цохилт хий" : "Today: land 20 clean punches",
+      speed:       locale === "mn" ? "Өнөөдөр: гарын хурдыг нэмэгдүүл" : "Today: throw 15 fast snap punches",
+      power:       locale === "mn" ? "Өнөөдөр: 10 хүчтэй combo хий" : "Today: throw 10 powerful combos",
+      consistency: locale === "mn" ? "Өнөөдөр: 30 секунд тогтвортой байлгаарай" : "Today: keep steady pace for 30 sec",
+    };
+    const text = missionMap[lowest[0]] || (locale === "mn" ? "Өнөөдрийн AI дасгалаа хий" : "Complete today's AI boxing assessment");
+    const mission = { text, date: new Date().toISOString().split("T")[0] };
+    try { localStorage.setItem("gavana_daily_mission", JSON.stringify(mission)); } catch {}
+    setDailyMission(mission);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result?.score]);
 
@@ -672,6 +695,32 @@ export default function TrainPage() {
           />
         )}
 
+        {/* Daily mission strip — shown when idle */}
+        {canStart && (() => {
+          const today = new Date().toISOString().split("T")[0];
+          const mission = dailyMission?.date === today ? dailyMission : null;
+          const missionText = mission?.text ?? (locale === "mn" ? "Өнөөдөр: анхны AI дасгалаа хий" : "Today: complete your first AI boxing assessment");
+          const missionDone = userStreak > 0 && mission !== null;
+          return (
+            <div style={{
+              margin: "8px 0 0",
+              padding: "9px 14px",
+              borderRadius: 12,
+              background: missionDone ? "rgba(52,211,153,0.05)" : "rgba(245,196,81,0.04)",
+              border: `1px solid ${missionDone ? "rgba(52,211,153,0.15)" : "rgba(245,196,81,0.13)"}`,
+              display: "flex", alignItems: "center", gap: 10,
+            }}>
+              <span style={{ fontSize: 16, flexShrink: 0 }}>{missionDone ? "✅" : "🎯"}</span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: missionDone ? "#34D399" : "rgba(245,196,81,0.85)", lineHeight: 1.4 }}>
+                {missionText}
+              </span>
+              {userStreak > 0 && (
+                <span style={{ marginLeft: "auto", flexShrink: 0, fontSize: 11, fontWeight: 900, color: "#FB923C" }}>🔥{userStreak}</span>
+              )}
+            </div>
+          );
+        })()}
+
         {error && <div style={styles.error}>{error}</div>}
         {saved && (
           <div style={styles.saved}>
@@ -723,6 +772,7 @@ export default function TrainPage() {
         opponentUsername={opponentUsername}
         targetScore={targetScore}
         reelId={reelId}
+        userStreak={userStreak}
         missionJustCompleted={missionJustCompleted}
         missionStreakBonus={missionStreakBonus}
         missionNewStreak={missionNewStreak}

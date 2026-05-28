@@ -215,6 +215,8 @@ export default function HistoryPage() {
               const styleKey = bi?.style;
               const styleCol = STYLE_COLOR[styleKey];
               const showStyle = bi?.styleLabel && (bi.styleConfidence ?? 0) >= 0.3;
+              const identity = s.sessionIdentity;
+              const weakness = pm?.coaching?.weaknesses?.[0] ?? null;
 
               return (
                 <div key={s.id} style={{
@@ -249,6 +251,11 @@ export default function HistoryPage() {
                             {bi.styleLabel}
                           </span>
                         )}
+                        {identity && !showStyle && (
+                          <span style={{ fontSize: 8, fontWeight: 900, color: "rgba(168,85,247,0.9)", background: "rgba(168,85,247,0.1)", border: "1px solid rgba(168,85,247,0.2)", borderRadius: RADIUS.full, padding: "1px 6px", letterSpacing: 0.5 }}>
+                            {identity}
+                          </span>
+                        )}
                       </div>
                       {/* Score bar */}
                       <div style={{ height: 3, borderRadius: 2, background: "rgba(255,255,255,0.07)", overflow: "hidden", marginBottom: pc > 0 ? 5 : 0 }}>
@@ -271,6 +278,12 @@ export default function HistoryPage() {
                               {conf}%
                             </span>
                           )}
+                        </div>
+                      )}
+                      {/* Weakness */}
+                      {weakness && (
+                        <div style={{ marginTop: 3, fontSize: 9, fontWeight: 700, color: "rgba(248,113,113,0.7)", lineHeight: 1.3 }}>
+                          ↳ {weakness}
                         </div>
                       )}
                     </div>
