@@ -211,7 +211,7 @@ export default function FighterDetailPage() {
           <p style={{ color: "#aaa", marginTop: 12, fontSize: 14 }}>{t("fighterNotFound")}</p>
           <button style={s.backBtn} onClick={() => router.back()}>← {t("back")}</button>
         </div>
-        <BottomNav router={router} user={user} currentLocale={locale} activeTab="home" />
+        <BottomNav router={router} user={user} currentLocale={locale} activeTab="fighters" />
       </div>
     );
   }
@@ -295,6 +295,35 @@ export default function FighterDetailPage() {
 
       {/* ══════════ CONTENT ══════════ */}
       <div style={s.content}>
+
+        {/* ── Train This Style CTA ── */}
+        {FIGHTER_TECHNIQUES[fighter.id]?.length > 0 && (() => {
+          const firstLesson = FIGHTER_TECHNIQUES[fighter.id][0];
+          const slug = firstLesson.title.toLowerCase().replace(/\s+/g, "-");
+          return (
+            <button
+              type="button"
+              onClick={() => router.push(`/${locale}/train?fighter=${fighter.id}&lesson=${encodeURIComponent(slug)}`)}
+              style={{
+                width: "100%", marginBottom: 16,
+                padding: "14px 20px",
+                borderRadius: 14,
+                background: `linear-gradient(135deg, ${acc} 0%, ${acc}cc 100%)`,
+                border: "none",
+                color: "#fff",
+                fontSize: 13, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase",
+                cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                boxShadow: `0 8px 32px ${acc}40`,
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="white" stroke="none">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+              {locale === "mn" ? `${fighter.name.split(" ").slice(-1)[0]}-ийн хэв маягаар дасгал хий` : `Train ${fighter.name.split(" ").slice(-1)[0]}'s Style`}
+            </button>
+          );
+        })()}
 
         {/* ── Personal Connection panel ── */}
         {personalConnection && (
@@ -480,7 +509,7 @@ export default function FighterDetailPage() {
 
       </div>
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="home" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="fighters" />
     </div>
   );
 }

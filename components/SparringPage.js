@@ -513,7 +513,7 @@ export default function SparringPage() {
       )}
 
       <Toast message={toast?.message} type={toast?.type} onDismiss={hideToast} />
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="reels" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="sparring" />
     </div>
   );
 }

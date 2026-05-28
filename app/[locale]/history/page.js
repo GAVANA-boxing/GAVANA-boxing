@@ -215,6 +215,19 @@ export default function HistoryPage() {
               const styleKey = bi?.style;
               const styleCol = STYLE_COLOR[styleKey];
               const showStyle = bi?.styleLabel && (bi.styleConfidence ?? 0) >= 0.3;
+              const identity = s.sessionIdentity;
+              // Saved weaknesses (new sessions) or derived from breakdown (old sessions)
+              const weakness = (() => {
+                if (pm?.weaknesses?.length) return pm.weaknesses[0];
+                const bd = s.breakdown;
+                if (!bd) return null;
+                const entries = Object.entries(bd).filter(([, v]) => typeof v === "number");
+                if (!entries.length) return null;
+                const [key, val] = entries.reduce((a, b) => b[1] < a[1] ? b : a);
+                if (val >= 6.5) return null;
+                const labels = { accuracy: mn ? "Нарийвчлал" : "Accuracy", speed: mn ? "Хурд" : "Speed", power: mn ? "Хүч" : "Power", consistency: mn ? "Тогтвортой байдал" : "Consistency" };
+                return labels[key] ? `${mn ? "Сайжруулах:" : "Improve:"} ${labels[key]} (${val.toFixed(1)}/10)` : null;
+              })();
 
               return (
                 <div key={s.id} style={{
@@ -249,6 +262,11 @@ export default function HistoryPage() {
                             {bi.styleLabel}
                           </span>
                         )}
+                        {identity && !showStyle && (
+                          <span style={{ fontSize: 8, fontWeight: 900, color: "rgba(168,85,247,0.9)", background: "rgba(168,85,247,0.1)", border: "1px solid rgba(168,85,247,0.2)", borderRadius: RADIUS.full, padding: "1px 6px", letterSpacing: 0.5 }}>
+                            {identity}
+                          </span>
+                        )}
                       </div>
                       {/* Score bar */}
                       <div style={{ height: 3, borderRadius: 2, background: "rgba(255,255,255,0.07)", overflow: "hidden", marginBottom: pc > 0 ? 5 : 0 }}>
@@ -273,6 +291,12 @@ export default function HistoryPage() {
                           )}
                         </div>
                       )}
+                      {/* Weakness */}
+                      {weakness && (
+                        <div style={{ marginTop: 3, fontSize: 9, fontWeight: 700, color: "rgba(248,113,113,0.7)", lineHeight: 1.3 }}>
+                          ↳ {weakness}
+                        </div>
+                      )}
                     </div>
 
                     {/* XP */}
@@ -290,7 +314,7 @@ export default function HistoryPage() {
         )}
       </div>
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="history" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="" />
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );

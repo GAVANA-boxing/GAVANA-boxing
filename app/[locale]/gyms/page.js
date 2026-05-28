@@ -400,7 +400,7 @@ export default function GymsPage() {
         router={router}
         user={user}
         currentLocale={locale}
-        activeTab="home"
+        activeTab=""
       />
     </div>
   );

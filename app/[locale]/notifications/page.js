@@ -376,7 +376,7 @@ export default function NotificationsPage() {
           ))
         )}
       </section>
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="alerts" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
 
       {toast && (
         <div style={styles.toast}>

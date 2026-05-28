@@ -22,6 +22,8 @@ import { getDrillConfig } from "@/lib/drillConfig";
 import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
 import MilestoneCelebration from "@/components/MilestoneCelebration";
 import { usePoseDetection } from "@/hooks/usePoseDetection";
+import TechniquePicker from "@/components/train/TechniquePicker";
+import { getPersonalConnection } from "@/lib/fighterPersonalConnection";
 import dynamic from "next/dynamic";
 const PoseDebugOverlay   = dynamic(() => import("@/components/train/PoseDebugOverlay"),   { ssr: false });
 const DebugSessionPanel  = dynamic(() => import("@/components/train/DebugSessionPanel"),  { ssr: false });
@@ -42,8 +44,21 @@ export default function TrainPage() {
   const { user, loading: authLoading } = useAuth();
 
   const [debugEnabled, setDebugEnabled] = useState(false);
+  const [autoStart, setAutoStart] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [dailyMission, setDailyMission] = useState(null);
   useEffect(() => {
-    setDebugEnabled(new URLSearchParams(window.location.search).get("debug") === "1");
+    const params = new URLSearchParams(window.location.search);
+    setDebugEnabled(params.get("debug") === "1");
+    setAutoStart(params.get("autostart") === "1");
+    if (!localStorage.getItem("gavana_train_seen")) {
+      setShowOnboarding(true);
+      localStorage.setItem("gavana_train_seen", "1");
+    }
+    try {
+      const stored = localStorage.getItem("gavana_daily_mission");
+      if (stored) setDailyMission(JSON.parse(stored));
+    } catch {}
   }, []);
 
   const {
@@ -157,12 +172,6 @@ export default function TrainPage() {
     router.push(`/${locale}/challenges`);
   };
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push(`/${locale}/login`);
-    }
-  }, [authLoading, user, router, locale]);
-
   // ── Post-session AI debrief ───────────────────────────────────────────────
   const [debrief, setDebrief]             = useState(null);
   const [debriefLoading, setDebriefLoading] = useState(false);
@@ -213,6 +222,8 @@ export default function TrainPage() {
   // Generate debrief when result appears; compute pose summary at the same time
   useEffect(() => {
     if (!result?.score) { setDebrief(null); setPoseSessionSummary(null); return; }
+    // Skip debrief when punch count is too low — AI has nothing real to say
+    if ((result.hitCount ?? 0) < 5) { setDebrief(null); setDebriefLoading(false); setPoseSessionSummary(null); return; }
 
     // Capture pose summary synchronously before any async work
     const poseSummary = computeSessionSummary();
@@ -269,24 +280,49 @@ export default function TrainPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result?.score]);
 
+  // ── Write daily mission to localStorage after result ────────────────────
+  useEffect(() => {
+    if (!result?.breakdown) return;
+    const bd = result.breakdown;
+    const lowest = Object.entries(bd).reduce((a, [k, v]) => v < a[1] ? [k, v] : a, ["", 99]);
+    const missionMap = {
+      accuracy:    locale === "mn" ? "Өнөөдөр: 20 цэвэр цохилт хий" : "Today: land 20 clean punches",
+      speed:       locale === "mn" ? "Өнөөдөр: гарын хурдыг нэмэгдүүл" : "Today: throw 15 fast snap punches",
+      power:       locale === "mn" ? "Өнөөдөр: 10 хүчтэй combo хий" : "Today: throw 10 powerful combos",
+      consistency: locale === "mn" ? "Өнөөдөр: 30 секунд тогтвортой байлгаарай" : "Today: keep steady pace for 30 sec",
+    };
+    const text = missionMap[lowest[0]] || (locale === "mn" ? "Өнөөдрийн AI дасгалаа хий" : "Complete today's AI boxing assessment");
+    const mission = { text, date: new Date().toISOString().split("T")[0] };
+    try { localStorage.setItem("gavana_daily_mission", JSON.stringify(mission)); } catch {}
+    setDailyMission(mission);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result?.score]);
+
   // ── Setup cue: poll during recording to detect camera framing issues ──
+  // Only shown after 20s so it doesn't disrupt the session start
   useEffect(() => {
     if (phase !== "recording") { setPositionCue(null); return; }
-    const id = setInterval(() => {
-      const info = getDebugInfo();
-      if (info.status !== "ready" || !info.landmarksDetected) { setPositionCue(null); return; }
-      const q = info.cameraQuality;
-      if (q === "too_close") {
-        setPositionCue("Too close — step back so full torso is visible");
-      } else if (q === "upper_body_only") {
-        setPositionCue("Step back — hips and feet must be visible for full analysis");
-      } else if (q === "upper_body_hips") {
-        setPositionCue("Feet not visible — step back for stance and balance analysis");
-      } else {
-        setPositionCue(null);
-      }
-    }, 1200);
-    return () => { clearInterval(id); setPositionCue(null); };
+    let active = true;
+    const delayId = setTimeout(() => {
+      if (!active) return;
+      const id = setInterval(() => {
+        if (!active) { clearInterval(id); return; }
+        const info = getDebugInfo();
+        if (info.status !== "ready" || !info.landmarksDetected) { setPositionCue(null); return; }
+        const q = info.cameraQuality;
+        if (q === "too_close") {
+          setPositionCue("Step back a little for better tracking");
+        } else if (q === "upper_body_only") {
+          setPositionCue("Move back to show more of your body");
+        } else if (q === "upper_body_hips") {
+          setPositionCue("Try to show your full stance");
+        } else {
+          setPositionCue(null);
+        }
+      }, 1200);
+      return () => clearInterval(id);
+    }, 20000);
+    return () => { active = false; clearTimeout(delayId); setPositionCue(null); };
   }, [phase, getDebugInfo]);
 
   // ── Badge celebration after session save ─────────────────────────────────
@@ -322,11 +358,22 @@ export default function TrainPage() {
     if (fighter && lesson) setLessonContext({ fighter, lesson });
   }, []);
 
+  // Auto-start when coming from landing with ?autostart=1
+  const autoStartFiredRef = useRef(false);
+  useEffect(() => {
+    if (!autoStart || cameraState !== "ready" || phase !== "idle" || autoStartFiredRef.current) return;
+    autoStartFiredRef.current = true;
+    const id = setTimeout(() => handleStart(), 1400);
+    return () => clearTimeout(id);
+  // handleStart is intentionally omitted — it's recreated every render but behaviorally stable
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart, cameraState, phase]);
+
   if (authLoading) {
     return <div style={styles.loading}>{t("loading")}</div>;
   }
 
-  if (!user) return null;
+  const isGuest = !user;
 
   const isCountingDown = phase === "countdown";
   const isRecording = phase === "recording";
@@ -341,7 +388,81 @@ export default function TrainPage() {
       </button>
 
       <section style={styles.shell}>
-        <header style={styles.header}>
+        {/* Guest mode banner */}
+        {isGuest && (
+          <div style={{
+            margin: "0 0 14px",
+            padding: "10px 14px",
+            borderRadius: 12,
+            background: "rgba(245,196,81,0.07)",
+            border: "1px solid rgba(245,196,81,0.22)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 10,
+          }}>
+            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", lineHeight: 1.4 }}>
+              {locale === "mn"
+                ? "Хэдэн цохилт хий — AI таны хэв маягийг шинжилнэ. Дүнг хадгалахын тулд бүртгүүл."
+                : locale === "ko"
+                ? "몇 번 펀치해보세요 — AI가 스타일을 분석합니다. 저장하려면 가입하세요."
+                : "Throw a few punches — AI reads your style. Sign up to save your progress."}
+            </span>
+            <button
+              type="button"
+              onClick={() => router.push(`/${locale}/login?mode=signup`)}
+              style={{
+                flexShrink: 0,
+                padding: "6px 12px",
+                borderRadius: 8,
+                border: "none",
+                background: "rgba(245,196,81,0.18)",
+                color: "#F5C451",
+                fontSize: 11,
+                fontWeight: 900,
+                cursor: "pointer",
+                letterSpacing: 0.5,
+              }}
+            >
+              {locale === "mn" ? "Бүртгүүлэх" : locale === "ko" ? "가입" : "Sign up"}
+            </button>
+          </div>
+        )}
+
+        {/* First-time onboarding hint */}
+        {showOnboarding && phase === "idle" && (
+          <div style={{
+            margin: "0 0 14px",
+            padding: "12px 14px",
+            borderRadius: 12,
+            background: "rgba(255,59,48,0.07)",
+            border: "1px solid rgba(255,59,48,0.22)",
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: 10,
+          }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.8, color: "rgba(255,59,48,0.8)", textTransform: "uppercase", marginBottom: 5 }}>
+                {locale === "mn" ? "Хэрхэн ажилладаг вэ" : "How it works"}
+              </div>
+              <p style={{ margin: 0, fontSize: 11.5, color: "rgba(255,255,255,0.65)", lineHeight: 1.5 }}>
+                {locale === "mn"
+                  ? "① Камер зөвшөөрнө → ② Start дарна → ③ Цохилт хийнэ → ④ AI таны хэв маягийг шинжилнэ"
+                  : "① Allow camera → ② Press Start → ③ Throw punches → ④ AI reads your style"}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowOnboarding(false)}
+              style={{ flexShrink: 0, background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 16, cursor: "pointer", lineHeight: 1, padding: 2 }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        <header style={{ ...styles.header, display: (isCountingDown || isRecording) ? "none" : undefined }}>
           <p style={styles.kicker}>
             {challengeUserId ? t("pvpChallengeMode") : activeChallenge ? t("challengeMode") : t("trainKicker")}
           </p>
@@ -495,6 +616,41 @@ export default function TrainPage() {
           {/* Pose debug overlay — enabled via ?debug=1 query param */}
           <PoseDebugOverlay getDebugInfo={getDebugInfo} isActive={phase === "recording"} debugEnabled={debugEnabled} />
 
+          {/* Live technique coaching cue — shown during recording when a lesson is active */}
+          {isRecording && lessonContext?.lesson?.bodyCue && (
+            <div style={{
+              position: "absolute", top: 12, left: 0, right: 0,
+              display: "flex", justifyContent: "center", pointerEvents: "none",
+              padding: "0 14px",
+            }}>
+              <div style={{
+                background: `${lessonContext.fighter.accent}18`,
+                border: `1px solid ${lessonContext.fighter.accent}55`,
+                borderRadius: 20,
+                padding: "6px 14px",
+                maxWidth: 320,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}>
+                <span style={{
+                  width: 5, height: 5, borderRadius: "50%",
+                  background: lessonContext.fighter.accent,
+                  flexShrink: 0,
+                  boxShadow: `0 0 6px ${lessonContext.fighter.accent}`,
+                }} />
+                <span style={{
+                  fontSize: 11, fontWeight: 700,
+                  color: "rgba(255,255,255,0.88)",
+                  lineHeight: 1.35,
+                  textAlign: "center",
+                }}>
+                  {lessonContext.lesson.bodyCue}
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Position cue — shown when lower body not in frame during recording */}
           {positionCue && (
             <div style={{
@@ -530,6 +686,40 @@ export default function TrainPage() {
           t={t}
           focusTip={focusTip}
         />
+
+        {/* Technique picker — only when idle and no lesson already selected */}
+        {canStart && !lessonContext && !challengeId && !challengeUserId && (
+          <TechniquePicker
+            locale={locale}
+            onSelect={({ fighter, lesson }) => setLessonContext({ fighter, lesson })}
+          />
+        )}
+
+        {/* Daily mission strip — shown when idle only */}
+        {phase === "idle" && (() => {
+          const today = new Date().toISOString().split("T")[0];
+          const mission = dailyMission?.date === today ? dailyMission : null;
+          const missionText = mission?.text ?? (locale === "mn" ? "Өнөөдөр: анхны AI дасгалаа хий" : "Today: complete your first AI boxing assessment");
+          const missionDone = mission !== null;
+          return (
+            <div style={{
+              margin: "8px 0 0",
+              padding: "9px 14px",
+              borderRadius: 12,
+              background: missionDone ? "rgba(52,211,153,0.05)" : "rgba(245,196,81,0.04)",
+              border: `1px solid ${missionDone ? "rgba(52,211,153,0.15)" : "rgba(245,196,81,0.13)"}`,
+              display: "flex", alignItems: "center", gap: 10,
+            }}>
+              <span style={{ fontSize: 16, flexShrink: 0 }}>{missionDone ? "✅" : "🎯"}</span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: missionDone ? "#34D399" : "rgba(245,196,81,0.85)", lineHeight: 1.4 }}>
+                {missionText}
+              </span>
+              {userStreak > 0 && (
+                <span style={{ marginLeft: "auto", flexShrink: 0, fontSize: 11, fontWeight: 900, color: "#FB923C" }}>🔥{userStreak}</span>
+              )}
+            </div>
+          );
+        })()}
 
         {error && <div style={styles.error}>{error}</div>}
         {saved && (
@@ -570,6 +760,7 @@ export default function TrainPage() {
         debrief={debrief}
         debriefLoading={debriefLoading}
         result={result}
+        isGuest={isGuest}
         activeChallenge={activeChallenge}
         challengeUserId={challengeUserId}
         challengeSaving={challengeSaving}
@@ -581,6 +772,7 @@ export default function TrainPage() {
         opponentUsername={opponentUsername}
         targetScore={targetScore}
         reelId={reelId}
+        userStreak={userStreak}
         missionJustCompleted={missionJustCompleted}
         missionStreakBonus={missionStreakBonus}
         missionNewStreak={missionNewStreak}
@@ -609,7 +801,7 @@ export default function TrainPage() {
       />
 
       <DailyMission locale={locale} />
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="reels" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="train" />
 
       {/* Milestone celebration (15B) */}
       {saved && savedAttemptNumber && (

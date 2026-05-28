@@ -284,7 +284,7 @@ export default function CoachPage() {
             ))}
           </div>
 
-          <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
+          <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
         </div>
       )}
 
@@ -338,7 +338,7 @@ export default function CoachPage() {
             </div>
           )}
 
-          <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
+          <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
         </div>
       )}
 

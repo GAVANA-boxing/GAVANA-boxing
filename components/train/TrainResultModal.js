@@ -95,6 +95,31 @@ function computeComparison(curr, prev) {
   return rows;
 }
 
+function getBestPunchType(poseMetrics) {
+  const pb = poseMetrics?.punchBreakdown;
+  if (!pb) return null;
+  const types = [
+    { key: "jab",   label: "Jab",   count: pb.jab?.count   || 0 },
+    { key: "cross", label: "Cross", count: pb.cross?.count || 0 },
+    { key: "hook",  label: "Hook",  count: pb.hook?.count  || 0 },
+  ];
+  const best = types.reduce((a, b) => b.count > a.count ? b : a, types[0]);
+  return best.count > 0 ? best.label : null;
+}
+
+function getNextFocus(result, poseMetrics) {
+  const bd = result?.breakdown;
+  if (!bd) return null;
+  const lowest = Object.entries(bd).reduce((a, [k, v]) => v < a[1] ? [k, v] : a, ["", 99]);
+  const focusMap = {
+    accuracy:    "Land cleaner punches next session",
+    speed:       "Work on snapping punches faster",
+    power:       "Drive through — rotate your hips",
+    consistency: "Keep your pace steady throughout",
+  };
+  return focusMap[lowest[0]] || null;
+}
+
 function getMovementSummary(movementEvents = []) {
   const seen = {};
   for (const ev of movementEvents) {
@@ -160,6 +185,7 @@ export default function TrainResultModal({
   sessionStartTime,
   poseMetrics = null,
   prevPoseMetrics = null,
+  userStreak = 0,
   error,
   saving,
   saved,
@@ -172,14 +198,18 @@ export default function TrainResultModal({
   onSaveChallengeResult,
   onShareChallenge,
   onShareTraining,
+  isGuest = false,
 }) {
   const displayScore = useCountUp(result?.score);
   const [sessionTag, setSessionTag] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
   if (!result) return null;
 
+  const MIN_PUNCHES = 5;
+  const tooFewPunches = (result.hitCount ?? 0) < MIN_PUNCHES;
+
   const events = movementEvents || [];
-  const identity = getIdentityWithSub(result.score, events, poseMetrics);
+  const identity = tooFewPunches ? null : getIdentityWithSub(result.score, events, poseMetrics);
   const movementSummary = getMovementSummary(events);
   const comparison = computeComparison(poseMetrics, prevPoseMetrics);
   const timelineEvents = events.slice(-8);
@@ -204,43 +234,117 @@ export default function TrainResultModal({
             {analysisLabel}
           </p>
 
-          <h2 style={{
-            margin: "8px 0 2px", fontSize: 24, fontWeight: 1000,
-            letterSpacing: "-0.02em", color: "#fff", lineHeight: 1.0,
-            fontFamily: "var(--font-display, 'Anton', sans-serif)",
-          }}>
-            {identity.title}
-          </h2>
-          <p style={{ margin: "0 0 14px", fontSize: 11, color: whiteAlpha(0.35), fontWeight: 700 }}>
-            {identity.sub}
-          </p>
-
-          {/* Score telemetry bar */}
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ flex: 1, height: 3, background: whiteAlpha(0.07), borderRadius: 2, overflow: "hidden" }}>
-              <div style={{
-                height: "100%",
-                width: `${(displayScore / 10) * 100}%`,
-                background: `linear-gradient(90deg, ${RED}, ${GOLD})`,
-                borderRadius: 2,
-                transition: "width 0.04s linear",
-              }} />
+          {tooFewPunches ? (
+            /* ── Not enough data ── */
+            <div style={{ margin: "16px 0 10px" }}>
+              <h2 style={{ margin: "0 0 6px", fontSize: 22, fontWeight: 1000, color: whiteAlpha(0.55), letterSpacing: "-0.01em" }}>
+                {locale === "mn" ? "Хангалтгүй өгөгдөл" : "Not Enough Data"}
+              </h2>
+              <p style={{ margin: 0, fontSize: 12, color: whiteAlpha(0.35), lineHeight: 1.5 }}>
+                {locale === "mn"
+                  ? `AI шинжилгээнд хамгийн багадаа ${MIN_PUNCHES} цохилт хэрэгтэй. Та ${result.hitCount ?? 0} цохилт хийсэн.`
+                  : `AI analysis needs at least ${MIN_PUNCHES} punches. You threw ${result.hitCount ?? 0}.`}
+              </p>
             </div>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 2, flexShrink: 0 }}>
-              <span style={{
-                fontSize: 32, fontWeight: 1000, lineHeight: 1,
+          ) : (
+            <>
+              <h2 style={{
+                margin: "8px 0 2px", fontSize: 24, fontWeight: 1000,
+                letterSpacing: "-0.02em", color: "#fff", lineHeight: 1.0,
                 fontFamily: "var(--font-display, 'Anton', sans-serif)",
-                letterSpacing: "-0.02em", color: "#fff",
               }}>
-                {displayScore.toFixed(1)}
-              </span>
-              <span style={{ fontSize: 12, color: whiteAlpha(0.28), fontWeight: 800 }}>/10</span>
-            </div>
-          </div>
+                {identity.title}
+              </h2>
+              <p style={{ margin: "0 0 14px", fontSize: 11, color: whiteAlpha(0.35), fontWeight: 700 }}>
+                {identity.sub}
+              </p>
+
+              {/* Score telemetry bar */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ flex: 1, height: 3, background: whiteAlpha(0.07), borderRadius: 2, overflow: "hidden" }}>
+                  <div style={{
+                    height: "100%",
+                    width: `${(displayScore / 10) * 100}%`,
+                    background: `linear-gradient(90deg, ${RED}, ${GOLD})`,
+                    borderRadius: 2,
+                    transition: "width 0.04s linear",
+                  }} />
+                </div>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 2, flexShrink: 0 }}>
+                  <span style={{
+                    fontSize: 32, fontWeight: 1000, lineHeight: 1,
+                    fontFamily: "var(--font-display, 'Anton', sans-serif)",
+                    letterSpacing: "-0.02em", color: "#fff",
+                  }}>
+                    {displayScore.toFixed(1)}
+                  </span>
+                  <span style={{ fontSize: 12, color: whiteAlpha(0.28), fontWeight: 800 }}>/10</span>
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
+        {/* ── RETURN SUMMARY ───────────────────────────────────────── */}
+        {!tooFewPunches && (() => {
+          const lastScore = Array.isArray(sessionHistory) && sessionHistory.length > 0 ? sessionHistory[0] : null;
+          const delta = lastScore != null ? result.score - lastScore : null;
+          const bestPunch = getBestPunchType(poseMetrics);
+          const nextFocus = getNextFocus(result, poseMetrics);
+          // Use missionNewStreak (post-save) if higher than the at-mount snapshot
+          const effectiveStreak = Math.max(userStreak || 0, missionNewStreak || 0);
+          return (
+            <div style={{ padding: "12px 20px 0", display: "flex", flexDirection: "column", gap: 8, textAlign: "left" }}>
+              {/* Score row */}
+              <div style={{ display: "flex", gap: 6 }}>
+                <div style={{ flex: 1, padding: "8px 10px", borderRadius: 10, background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.07)}` }}>
+                  <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.2, color: whiteAlpha(0.28), textTransform: "uppercase", marginBottom: 3 }}>Today</div>
+                  <div style={{ fontSize: 18, fontWeight: 1000, color: "#fff", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{result.score.toFixed(1)}</div>
+                </div>
+                {delta != null && (
+                  <div style={{ flex: 1, padding: "8px 10px", borderRadius: 10, background: delta >= 0 ? "rgba(52,211,153,0.04)" : "rgba(248,113,113,0.04)", border: `1px solid ${delta >= 0 ? "rgba(52,211,153,0.12)" : "rgba(248,113,113,0.12)"}` }}>
+                    <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.2, color: whiteAlpha(0.28), textTransform: "uppercase", marginBottom: 3 }}>vs Last</div>
+                    <div style={{ fontSize: 18, fontWeight: 1000, color: delta >= 0 ? "#34D399" : "#F87171", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{delta >= 0 ? "+" : ""}{delta.toFixed(1)}</div>
+                  </div>
+                )}
+                {ghostBestScore != null && (
+                  <div style={{ flex: 1, padding: "8px 10px", borderRadius: 10, background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.07)}` }}>
+                    <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.2, color: whiteAlpha(0.28), textTransform: "uppercase", marginBottom: 3 }}>Best</div>
+                    <div style={{ fontSize: 18, fontWeight: 1000, color: GOLD, fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{Math.max(ghostBestScore, result.score).toFixed(1)}</div>
+                  </div>
+                )}
+              </div>
+              {/* Punch info + next focus */}
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                <div style={{ padding: "6px 11px", borderRadius: 8, background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.06)}`, display: "flex", gap: 6, alignItems: "center" }}>
+                  <span style={{ fontSize: 9, fontWeight: 900, color: whiteAlpha(0.28), textTransform: "uppercase", letterSpacing: 1 }}>Punches</span>
+                  <span style={{ fontSize: 13, fontWeight: 900, color: "#fff" }}>{result.hitCount ?? 0}</span>
+                </div>
+                {bestPunch && (
+                  <div style={{ padding: "6px 11px", borderRadius: 8, background: "rgba(245,196,81,0.05)", border: `1px solid rgba(245,196,81,0.14)`, display: "flex", gap: 6, alignItems: "center" }}>
+                    <span style={{ fontSize: 9, fontWeight: 900, color: goldAlpha(0.55), textTransform: "uppercase", letterSpacing: 1 }}>Best weapon</span>
+                    <span style={{ fontSize: 13, fontWeight: 900, color: GOLD }}>{bestPunch}</span>
+                  </div>
+                )}
+                {effectiveStreak > 0 && (
+                  <div style={{ padding: "6px 11px", borderRadius: 8, background: "rgba(251,146,60,0.06)", border: "1px solid rgba(251,146,60,0.16)", display: "flex", gap: 5, alignItems: "center" }}>
+                    <span style={{ fontSize: 14 }}>🔥</span>
+                    <span style={{ fontSize: 13, fontWeight: 900, color: "#FB923C" }}>{effectiveStreak}d</span>
+                  </div>
+                )}
+              </div>
+              {nextFocus && (
+                <div style={{ padding: "7px 12px", borderRadius: 9, background: "rgba(168,85,247,0.05)", border: "1px solid rgba(168,85,247,0.13)", display: "flex", gap: 8, alignItems: "flex-start" }}>
+                  <span style={{ fontSize: 9, fontWeight: 900, color: "rgba(168,85,247,0.65)", textTransform: "uppercase", letterSpacing: 1, flexShrink: 0, paddingTop: 1 }}>Next focus</span>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: whiteAlpha(0.65), lineHeight: 1.4 }}>{nextFocus}</span>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
         {/* ── AI DEBRIEF ───────────────────────────────────────────── */}
-        {(debriefLoading || debrief) && (
+        {!tooFewPunches && (debriefLoading || debrief) && (
           <div style={{
             margin: "0 20px 0",
             padding: "12px 14px",
@@ -804,13 +908,15 @@ export default function TrainResultModal({
                 ))}
               </div>
             )}
-            {!activeChallenge && (
+            {!tooFewPunches && !activeChallenge && !isGuest && (
               <button
                 type="button"
                 style={{ ...styles.saveButton, ...(saved ? styles.saveButtonDone : {}), opacity: saving || saved ? 0.65 : 1, cursor: saving || saved ? "default" : "pointer" }}
                 onClick={() => {
-                  // Strip heavy frame-by-frame arrays before saving to Firestore
-                  const { motionHistory: _mh, punchEvents: _pe, coaching: _co, ...poseMetricsForSave } = poseMetrics || {};
+                  // Strip heavy frame-by-frame arrays, keep compact weakness list for history
+                  const { motionHistory: _mh, punchEvents: _pe, coaching, ...poseMetricsForSave } = poseMetrics || {};
+                  const weaknesses = (coaching || []).filter(c => c.type === "improve").map(c => c.message).slice(0, 2);
+                  if (weaknesses.length) poseMetricsForSave.weaknesses = weaknesses;
                   onSave({ movementEvents: events, tag: sessionTag, poseMetrics: poseMetrics ? poseMetricsForSave : null });
                 }}
                 disabled={saving || saved}
@@ -822,6 +928,15 @@ export default function TrainResultModal({
                     : saved
                       ? t("trainSavedShort")
                       : t("trainSaveProgress")}
+              </button>
+            )}
+            {!tooFewPunches && isGuest && (
+              <button
+                type="button"
+                style={{ ...styles.saveButton, background: "linear-gradient(135deg, #F5C451 0%, #FF3B30 100%)", color: "#000", fontWeight: 900 }}
+                onClick={() => router.push(`/${locale}/login?mode=signup&redirect=${encodeURIComponent(`/${locale}/train`)}`)}
+              >
+                {locale === "mn" ? "Профайл үүсгэж streak болон дэвшлийг хадгал →" : locale === "ko" ? "프로필 생성 — 스트릭과 진행 저장 →" : "Create profile to save streak and progress →"}
               </button>
             )}
             {activeChallenge && (

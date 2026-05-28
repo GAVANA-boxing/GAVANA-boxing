@@ -30,7 +30,17 @@ export function useAdminFeaturedCreators({ user, authLoading }) {
       try {
         const snap = await getDocs(query(collection(db, "users"), where("__name__", "==", user.uid)));
         const data = snap.docs[0]?.data() || {};
-        setIsAdmin(!!data.isAdmin || !!data.admin);
+        const admin = !!data.isAdmin || !!data.admin;
+        setIsAdmin(admin);
+        if (admin) {
+          // Establish httpOnly admin session cookie so middleware can guard admin routes
+          user.getIdToken().then((token) => {
+            fetch("/api/admin/session", {
+              method:  "POST",
+              headers: { Authorization: `Bearer ${token}` },
+            }).catch(() => {});
+          });
+        }
       } catch { /* silent */ }
       setAdminChecked(true);
     }

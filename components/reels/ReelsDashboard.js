@@ -160,10 +160,6 @@ function Sidebar({ router, user, profilePhotoUrl, currentLocale }) {
         ))}
       </nav>
 
-      <button style={d.createBtn} onClick={() => router.push(`/${currentLocale}/upload`)}>
-        <span style={{ fontSize: 16, fontWeight: 300, lineHeight: 1 }}>+</span> ҮҮСГЭХ
-      </button>
-
       {user && (
         <button
           style={{ ...d.sidebarProfile, position: "relative", zIndex: 2 }}
@@ -196,12 +192,6 @@ function QuickPostBar({ user, profilePhotoUrl, router, currentLocale }) {
           : <span style={{ fontSize: 12, fontWeight: 900 }}>{(user?.displayName || user?.email || "U").charAt(0).toUpperCase()}</span>
         }
       </div>
-      <button style={d.quickInput} onClick={() => router.push(`/${currentLocale}/upload`)}>
-        ӨНӨӨДРИЙН БЭЛТГЭЛ ЯМАР БАЙВ?
-      </button>
-      <button style={d.quickVideoBtn} onClick={() => router.push(`/${currentLocale}/upload`)}>
-        <IcoPlay /> ВИДЕО
-      </button>
     </div>
   );
 }

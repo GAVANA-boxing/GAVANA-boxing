@@ -310,12 +310,6 @@ export default function ProfileFighterCard({
                 🥊 {t("profileFighterCard")}
               </button>
               <button
-                onClick={() => router.push(`/${locale}/story/upload`)}
-                style={{ ...styles.ghostAction, flexShrink: 0 }}
-              >
-                + Story
-              </button>
-              <button
                 type="button"
                 onClick={() => setMoreOpen(v => !v)}
                 style={{

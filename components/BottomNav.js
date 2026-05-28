@@ -9,31 +9,30 @@ import { locales } from "@/lib/i18n";
 import Image from "next/image";
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
-function HomeIcon({ active }) {
+function FightersIcon({ active }) {
   return (
     <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.38)" }} viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="11" cy="11" r="7" /><path d="m17 17 3.5 3.5" />
+      <circle cx="12" cy="5" r="2.5"/>
+      <path d="M8 22v-6l-2-4h12l-2 4v6"/>
+      <path d="M8 14h8"/>
     </svg>
   );
 }
 
-function ReelIcon({ active }) {
+function CoachIcon({ active }) {
   return (
     <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.38)" }} viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="2" y="2" width="20" height="20" rx="4" />
-      <path d="m10 8 6 4-6 4V8Z" fill="currentColor" strokeWidth="0" />
+      <path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 6l-.7 2H9l-.7-2A7 7 0 0 1 12 2Z"/>
+      <path d="M9 17v1a3 3 0 0 0 6 0v-1"/>
+      <path d="M9.5 9.5 12 12l2.5-2.5"/>
     </svg>
   );
 }
 
-function RankIcon({ active }) {
+function SparringIcon({ active }) {
   return (
     <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.38)" }} viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" /><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
-      <path d="M4 22h16" />
-      <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
-      <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
-      <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+      <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/>
     </svg>
   );
 }
@@ -128,8 +127,6 @@ const COMBAT_OS_ITEMS = [
   { key: "fighters",       labelEn: "Fighters",        labelMn: "Тамирчид",          labelKo: "파이터",     path: "/fighters" },
   { key: "gyms",           labelEn: "Gyms",            labelMn: "Заалнууд",          labelKo: "체육관",     path: "/gyms" },
   { key: "challenges",     labelEn: "Challenges",      labelMn: "Даалгаврууд",       labelKo: "챌린지",     path: "/challenges" },
-  { key: "inbox",          labelEn: "Inbox",           labelMn: "Мессэж",            labelKo: "메시지",     path: "/inbox" },
-  { key: "upload",         labelEn: "Upload",          labelMn: "Видео оруулах",     labelKo: "업로드",     path: "/upload" },
   { key: "drills",         labelEn: "Drills",          labelMn: "Дасгалууд",         labelKo: "드릴",       path: "/drills" },
   { key: "history",        labelEn: "History",         labelMn: "Түүх",              labelKo: "기록",       path: "/history" },
 ];
@@ -358,9 +355,9 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
 
   const goToProfile = () => r.push(user?.uid ? `/${locale}/profile/${user.uid}` : `/${locale}/login`);
 
-  const homeLabel  = locale === "mn" ? "Нүүр"   : locale === "ko" ? "홈"   : "Home";
-  const reelsLabel = locale === "mn" ? "Видео"   : locale === "ko" ? "릴"   : "Reels";
-  const rankLabel  = locale === "mn" ? "Rank"    : locale === "ko" ? "랭크" : "Rank";
+  const fightersLabel = locale === "mn" ? "Тулаанч" : locale === "ko" ? "파이터" : "Fighters";
+  const coachLabel    = locale === "mn" ? "Коуч"    : locale === "ko" ? "코치"   : "Coach";
+  const sparringLabel = locale === "mn" ? "Спарринг": locale === "ko" ? "스파링" : "Sparring";
 
   if (!mounted) return null;
 
@@ -396,22 +393,22 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
         onPointerCancel={onInteractEnd}
         aria-label="Primary navigation"
       >
-        {/* Home */}
-        <IconTab active={resolvedActiveTab === "home"} onClick={() => r.push(`/${locale}/discover`)} label={homeLabel}>
-          <HomeIcon active={resolvedActiveTab === "home"} />
+        {/* Fighters */}
+        <IconTab active={resolvedActiveTab === "fighters"} onClick={() => r.push(`/${locale}/fighters`)} label={fightersLabel}>
+          <FightersIcon active={resolvedActiveTab === "fighters"} />
         </IconTab>
 
-        {/* Reels */}
-        <IconTab active={resolvedActiveTab === "reels"} onClick={() => r.push(`/${locale}/reels`)} label={reelsLabel}>
-          <ReelIcon active={resolvedActiveTab === "reels"} />
+        {/* Coach */}
+        <IconTab active={resolvedActiveTab === "coach"} onClick={() => r.push(`/${locale}/coach`)} label={coachLabel}>
+          <CoachIcon active={resolvedActiveTab === "coach"} />
         </IconTab>
 
         {/* Train — center action */}
         <TrainTab active={resolvedActiveTab === "train"} onClick={() => r.push(`/${locale}/train`)} locale={locale} />
 
-        {/* Rank */}
-        <IconTab active={resolvedActiveTab === "rank"} onClick={() => r.push(`/${locale}/rank`)} label={rankLabel}>
-          <RankIcon active={resolvedActiveTab === "rank"} />
+        {/* Sparring */}
+        <IconTab active={resolvedActiveTab === "sparring"} onClick={() => r.push(`/${locale}/sparring`)} label={sparringLabel}>
+          <SparringIcon active={resolvedActiveTab === "sparring"} />
         </IconTab>
 
         {/* Profile — carries notification badge */}
@@ -429,21 +426,17 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
 
 // ─── Active tab resolver ──────────────────────────────────────────────────────
 function getActiveTab(pathname = "") {
-  if (pathname.includes("/reels") || pathname.includes("/ai-analysis")) return "reels";
-  if (
-    pathname.includes("/train") ||
-    pathname.includes("/coach") ||
-    pathname.includes("/sparring") ||
-    pathname.includes("/challenges")
-  ) return "train";
-  if (pathname.includes("/rank") || pathname.includes("/leaderboard")) return "rank";
+  if (pathname.includes("/fighters")) return "fighters";
+  if (pathname.includes("/coach"))    return "coach";
+  if (pathname.includes("/sparring")) return "sparring";
+  if (pathname.includes("/train") || pathname.includes("/challenges")) return "train";
   if (
     pathname.includes("/profile") ||
     pathname.includes("/fighter-profile") ||
     pathname.includes("/inbox") ||
     pathname.includes("/notifications")
   ) return "profile";
-  return "home";
+  return "";
 }
 
 // ─── Shared icon style ────────────────────────────────────────────────────────

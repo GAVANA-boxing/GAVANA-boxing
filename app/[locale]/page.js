@@ -26,11 +26,7 @@ const FEATURES = [
   { emoji: "🏆", titleKey: "landingFeature4Title", textKey: "landingFeature4Text" },
 ];
 
-const SOCIAL_PROOF = [
-  { value: "10K+", labelKey: "landingSocialFighters" },
-  { value: "50K+", labelKey: "landingSocialReels" },
-  { value: "200K+", labelKey: "landingSocialChallenges" },
-];
+const SOCIAL_PROOF = null; // removed hardcoded fake stats
 
 export default async function LocalizedHomePage({ params }) {
   const { locale: rawLocale } = await params;
@@ -65,30 +61,21 @@ export default async function LocalizedHomePage({ params }) {
         </h1>
         <p className="landing-subtitle" style={s.subtitle}>
           {locale === "mn"
-            ? "AI тренэр, бодит цохилт тоолох систем, Fighter Card болон шууд тулааны чалленге."
+            ? "Хэдэн цохилт хий — GAVANA таны боксын хэв маягийг AI-р бодит цаг хугацаанд шинжилнэ."
             : locale === "ko"
-            ? "AI 코치, 실시간 펀치 감지, 파이터 카드, 실시간 배틀 쳌린지."
-            : "AI punch scoring, Fighter Card, real-time challenges — the boxing app built for fighters."}
+            ? "몇 번 펀치해보세요 — GAVANA가 AI로 복싱 스타일을 실시간 분석합니다."
+            : "Throw a few punches. GAVANA reads your boxing style in real time — no signup needed."}
         </p>
         <div className="landing-cta-row" style={s.ctaRow}>
-          <Link href={`/${locale}/login?mode=signup`} className="landing-primary-cta" style={s.primaryCta}>
-            {t("loginSignUp")} →
+          <Link href={`/${locale}/train?autostart=1`} className="landing-primary-cta" style={s.primaryCta}>
+            {locale === "mn" ? "AI Боксын үнэлгээ →" : locale === "ko" ? "AI 복싱 분석 시작 →" : "Start AI Assessment →"}
           </Link>
-          <Link href={`/${locale}/reels`} className="landing-secondary-cta" style={s.secondaryCta}>
-            {t("reels")}
+          <Link href={`/${locale}/fighters`} className="landing-secondary-cta" style={s.secondaryCta}>
+            {locale === "mn" ? "Тулаанчид харах" : locale === "ko" ? "파이터 보기" : "Watch Fighters"}
           </Link>
         </div>
       </section>
 
-      {/* Social proof — glass blur panel */}
-      <section className="glass-stats landing-social-proof" style={s.socialProof}>
-        {SOCIAL_PROOF.map(({ value, labelKey }) => (
-          <div key={labelKey} style={s.proofItem}>
-            <span style={s.proofValue}>{value}</span>
-            <span style={s.proofLabel}>{t(labelKey)}</span>
-          </div>
-        ))}
-      </section>
 
       {/* Fighter Card preview */}
       <section style={s.cardPreviewSection}>
