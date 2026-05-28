@@ -215,6 +215,15 @@
       ]
     },
     {
+      "collectionGroup": "gym_join_requests",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "gymOwnerId", "order": "ASCENDING" },
+        { "fieldPath": "gymId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "gym_announcements",
       "queryScope": "COLLECTION",
       "fields": [

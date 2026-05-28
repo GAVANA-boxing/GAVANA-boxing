@@ -92,5 +92,22 @@
     "youAreUnranked": "You are unranked",
     "friendShareText": "I scored {score} in {challengeName} 🥊 Can you beat me?",
     "shareText": "I scored {score} in {challengeName} 🥊 Can you beat me?"
+  },
+  "pvp": {
+    "challengeMode": "CHALLENGE MODE",
+    "beatThisScore": "Beat this score",
+    "youLabel": "YOU",
+    "vsLabel": "vs",
+    "wins": "Wins",
+    "losses": "Losses",
+    "battles": "Battles",
+    "recentBattles": "Recent Battles"
+  },
+  "ghost": {
+    "lastBest": "Last best: {score}",
+    "modeOn": "ON",
+    "modeOff": "OFF",
+    "modeLabel": "GHOST",
+    "noPrevious": "No previous session"
   }
 }
