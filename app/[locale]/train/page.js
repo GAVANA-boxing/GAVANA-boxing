@@ -223,11 +223,13 @@ export default function TrainPage() {
   // Generate debrief when result appears; compute pose summary at the same time
   useEffect(() => {
     if (!result?.score) { setDebrief(null); setPoseSessionSummary(null); return; }
-    // Skip debrief when punch count is too low — AI has nothing real to say
-    if ((result.hitCount ?? 0) < 5) { setDebrief(null); setDebriefLoading(false); setPoseSessionSummary(null); return; }
 
-    // Capture pose summary synchronously before any async work
+    // Capture pose summary synchronously — use MediaPipe punch count as authoritative
     const poseSummary = computeSessionSummary();
+    // Skip debrief when punch count is too low — AI has nothing real to say
+    const effectivePunchCount = poseSummary?.punchCount ?? result.hitCount ?? 0;
+    if (effectivePunchCount < 5) { setDebrief(null); setDebriefLoading(false); setPoseSessionSummary(null); return; }
+
     setPoseSessionSummary(poseSummary);
 
     setDebrief(null);
