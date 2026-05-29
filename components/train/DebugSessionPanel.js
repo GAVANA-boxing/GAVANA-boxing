@@ -191,6 +191,55 @@ export default function DebugSessionPanel({ stats, boxing, debugEnabled }) {
         />
       </SSection>
 
+      {/* ── Combo sequencing ── */}
+      {stats.comboStats && (
+        <SSection title="3B. COMBO SEQUENCING">
+          <SRow
+            label="Combos"
+            value={stats.comboStats.comboCount}
+            color={stats.comboStats.comboCount > 0 ? "#34D399" : undefined}
+          />
+          <SRow
+            label="Max length"
+            value={stats.comboStats.maxComboLength}
+            color={
+              stats.comboStats.maxComboLength >= 4 ? "#34D399" :
+              stats.comboStats.maxComboLength >= 3 ? "#F59E0B" : undefined
+            }
+          />
+          {(() => {
+            const lc = stats.comboStats.lastCombo;
+            if (!lc) return null;
+            const qc = lc.quality;
+            const qualColor = (v) => v >= 75 ? "#34D399" : v >= 50 ? "#F59E0B" : "#F87171";
+            return (
+              <>
+                <SRow label="Last" value={`${lc.name} (${lc.length})`} color="#60A5FA" />
+                <SRow label="└ avg gap"    value={`${lc.avgGapMs}ms`}
+                  color={lc.avgGapMs < 380 ? "#34D399" : lc.avgGapMs < 600 ? "#F59E0B" : "#F87171"} />
+                <SRow label="└ confidence" value={`${Math.round((lc.confidence ?? 0) * 100)}%`}
+                  color={qualColor(Math.round((lc.confidence ?? 0) * 100))} />
+                {qc && (
+                  <>
+                    <SRow label="└ quality"     value={qc.overall}    color={qualColor(qc.overall)} />
+                    <SRow label="  rhythm"       value={qc.rhythm}     color={qualColor(qc.rhythm)} />
+                    <SRow label="  smoothness"   value={qc.smoothness} color={qualColor(qc.smoothness)} />
+                    <SRow label="  recovery"     value={qc.recovery}   color={qualColor(qc.recovery)} />
+                    <SRow label="  continuity"   value={qc.continuity} color={qualColor(qc.continuity)} />
+                  </>
+                )}
+                {lc.validation?.issues?.length > 0 && (
+                  <SRow label="└ issues" value={lc.validation.issues.join(", ")} color="#F87171" />
+                )}
+                {lc.coaching?.length > 0 && (
+                  <SRow label="└ coach" value={lc.coaching[0]} color="#94A3B8" />
+                )}
+              </>
+            );
+          })()}
+        </SSection>
+      )}
+
       {/* ── Boxing intelligence ── */}
       {boxing && (
         <SSection title="4. BOXING INTELLIGENCE">

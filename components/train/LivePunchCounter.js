@@ -11,20 +11,26 @@ function speedLabel(snapVel) {
   return null;
 }
 
+const COMBO_TYPE_COLOR = { jab: "#60A5FA", cross: "#F87171", hook: "#F59E0B" };
+const COMBO_TYPE_NUM   = { jab: "1", cross: "2", hook: "3", uppercut: "4" };
+
 export default function LivePunchCounter({ getDebugInfo, isActive, punchTarget }) {
   const [count, setCount]         = useState(0);
   const [lastType, setLastType]   = useState(null);
   const [lastSnap, setLastSnap]   = useState(null);
   const [flash, setFlash]         = useState(0);
   const [goalFlash, setGoalFlash] = useState(false);
+  const [liveCombo, setLiveCombo] = useState(null);
+  const [comboFlash, setComboFlash] = useState(0);
   const prevCount                 = useRef(0);
+  const prevComboLen              = useRef(0);
   const goalFired                 = useRef(false);
 
   useEffect(() => {
     if (!isActive) {
       setCount(0); setLastType(null); setLastSnap(null);
-      setFlash(0); setGoalFlash(false);
-      prevCount.current = 0; goalFired.current = false;
+      setFlash(0); setGoalFlash(false); setLiveCombo(null);
+      prevCount.current = 0; prevComboLen.current = 0; goalFired.current = false;
       return;
     }
     const id = setInterval(() => {
@@ -44,6 +50,15 @@ export default function LivePunchCounter({ getDebugInfo, isActive, punchTarget }
           setTimeout(() => setGoalFlash(false), 1800);
         }
       }
+
+      // Update live combo display
+      const combo = info.liveCombo ?? null;
+      const comboLen = combo?.length ?? 0;
+      setLiveCombo(combo);
+      if (comboLen > prevComboLen.current) {
+        setComboFlash((f) => f + 1);
+      }
+      prevComboLen.current = comboLen;
     }, 150);
     return () => clearInterval(id);
   }, [getDebugInfo, isActive, punchTarget]);
@@ -55,11 +70,12 @@ export default function LivePunchCounter({ getDebugInfo, isActive, punchTarget }
   const hasTarget  = punchTarget != null;
   const goalDone   = hasTarget && count >= punchTarget;
   const pct        = hasTarget ? Math.min(1, count / punchTarget) : null;
+  const showCombo  = liveCombo && liveCombo.length >= 2;
 
   return (
     <div style={{
       position: "absolute", bottom: 96, left: 0, right: 0,
-      display: "flex", justifyContent: "center",
+      display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
       pointerEvents: "none", zIndex: 20,
     }}>
       {/* Goal celebration */}
@@ -144,6 +160,45 @@ export default function LivePunchCounter({ getDebugInfo, isActive, punchTarget }
         )}
       </div>
 
+      {/* Live combo sequence — shown when 2+ punches in buffer */}
+      {showCombo && (
+        <div
+          key={`combo-${comboFlash}`}
+          style={{
+            display: "flex", alignItems: "center", gap: 4,
+            padding: "4px 14px",
+            borderRadius: 20,
+            background: "rgba(0,0,0,0.70)",
+            backdropFilter: "blur(10px)",
+            border: "1px solid rgba(255,255,255,0.12)",
+            animation: "comboSlideIn 0.18s ease-out",
+          }}
+        >
+          {liveCombo.types.map((t, i) => (
+            <span
+              key={i}
+              style={{
+                fontSize: 17, fontWeight: 900,
+                color: COMBO_TYPE_COLOR[t] || "#fff",
+                lineHeight: 1,
+                opacity: i === liveCombo.types.length - 1 ? 1 : 0.65,
+              }}
+            >
+              {COMBO_TYPE_NUM[t] ?? "?"}
+            </span>
+          ))}
+          {liveCombo.name && (
+            <span style={{
+              fontSize: 8, fontWeight: 900, letterSpacing: 1.2,
+              color: "rgba(255,255,255,0.4)",
+              marginLeft: 4, textTransform: "uppercase",
+            }}>
+              {liveCombo.name}
+            </span>
+          )}
+        </div>
+      )}
+
       <style>{`
         @keyframes punchPop {
           0%   { transform: scale(1.4); }
@@ -158,6 +213,10 @@ export default function LivePunchCounter({ getDebugInfo, isActive, punchTarget }
           20%  { opacity: 1; transform: translateY(-8px) scale(1.1); }
           70%  { opacity: 1; transform: translateY(-10px) scale(1); }
           100% { opacity: 0; transform: translateY(-16px) scale(0.95); }
+        }
+        @keyframes comboSlideIn {
+          0%   { opacity: 0; transform: translateY(6px) scale(0.92); }
+          100% { opacity: 1; transform: translateY(0) scale(1); }
         }
       `}</style>
     </div>
