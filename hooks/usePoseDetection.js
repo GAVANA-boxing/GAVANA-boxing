@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { computePoseMetrics, poseMetricsScore, computeFinalScore, lowerBodyVisible } from "@/lib/mediapipePoseMetrics";
 import { PunchPhaseDetector } from "@/lib/punchPhaseDetector";
+import { ComboSequencer } from "@/lib/comboSequencer";
 import { generateCoachingMessages, computeVelocityStats, computePunchBreakdown, computeSessionConfidence } from "@/lib/cinematicCoaching";
 import { analyzeSession } from "@/lib/boxingIntelligence";
 
@@ -89,6 +90,8 @@ export function usePoseDetection({ videoRef, isActive }) {
   const latestLandmarksRef = useRef(null);
   const smoothedLmRef      = useRef(null); // EMA-smoothed landmark array
   const detectorRef        = useRef(new PunchPhaseDetector());
+  const comboRef           = useRef(new ComboSequencer());
+  const processedCountRef  = useRef(0);
   const currentPhaseRef    = useRef({ leftPhase: "guard", rightPhase: "guard", leftElbow: 0, rightElbow: 0, velocity: 0 });
 
   // Diagnostic counters (refs — never cause re-renders)
@@ -190,6 +193,14 @@ export function usePoseDetection({ videoRef, isActive }) {
           const phaseInfo = detectorRef.current.update(landmarks);
           if (phaseInfo) currentPhaseRef.current = phaseInfo;
 
+          // Feed new punch events into the combo sequencer
+          const allEvents = detectorRef.current.getPunchEvents();
+          while (processedCountRef.current < allEvents.length) {
+            comboRef.current.addPunch(allEvents[processedCountRef.current]);
+            processedCountRef.current++;
+          }
+          comboRef.current.tick();
+
           // Metrics computed from smoothed landmarks — store with timestamp
           const metrics = computePoseMetrics(smoothed);
           if (metrics) frameMetricsRef.current.push({ ...metrics, _ts: Date.now() });
@@ -218,6 +229,8 @@ export function usePoseDetection({ videoRef, isActive }) {
       frameAttemptRef.current = 0;
       visSamplesRef.current = [];
       detectorRef.current.reset();
+      comboRef.current.reset();
+      processedCountRef.current = 0;
       currentPhaseRef.current = { leftPhase: "guard", rightPhase: "guard", leftElbow: 0, rightElbow: 0, velocity: 0 };
     }
   }, [isActive]);
@@ -345,6 +358,10 @@ export function usePoseDetection({ videoRef, isActive }) {
       ? punchEvents.reduce((s, e) => s + (e.confidence ?? 1), 0) / punchEvents.length : 0;
     summary.avgConfidencePct = Math.round(avgConf * 100);
 
+    // Finalize combo sequencer — flush any open combo into session history
+    comboRef.current.finalize();
+    summary.comboStats = comboRef.current.getStats();
+
     // Final score — blends punch quality, guard recovery, rhythm, confidence, pose metrics
     summary.score = computeFinalScore(summary);
 
@@ -367,6 +384,7 @@ export function usePoseDetection({ videoRef, isActive }) {
       accepts:             detectorStats.accepts,
       stanceHint:          detectorStats.stanceHint,
       totalPunches:        punchEvents.length,
+      comboStats:          summary.comboStats,
       jabCount,
       crossCount,
       hookCount,
@@ -455,6 +473,8 @@ export function usePoseDetection({ videoRef, isActive }) {
       stanceHint:        detectorRef.current.getStanceHint?.() ?? "unknown",
       handLiveData,
       trackingQuality: detectorRef.current.getTrackingQuality?.() ?? "unknown",
+      liveCombo:  comboRef.current.getCurrentCombo(),
+      comboStats: comboRef.current.getStats(),
     };
   }, [poseStatus, poseError]);
 

@@ -191,6 +191,40 @@ export default function DebugSessionPanel({ stats, boxing, debugEnabled }) {
         />
       </SSection>
 
+      {/* ── Combo sequencing ── */}
+      {stats.comboStats && (
+        <SSection title="3B. COMBO SEQUENCING">
+          <SRow
+            label="Combos thrown"
+            value={stats.comboStats.comboCount}
+            color={stats.comboStats.comboCount > 0 ? "#34D399" : undefined}
+          />
+          <SRow
+            label="Max combo length"
+            value={stats.comboStats.maxComboLength}
+            color={
+              stats.comboStats.maxComboLength >= 4 ? "#34D399" :
+              stats.comboStats.maxComboLength >= 3 ? "#F59E0B" : undefined
+            }
+          />
+          {stats.comboStats.lastCombo && (
+            <>
+              <SRow label="Last combo"    value={stats.comboStats.lastCombo.name} color="#60A5FA" />
+              <SRow label="└ length"      value={stats.comboStats.lastCombo.length} />
+              <SRow label="└ avg gap"     value={`${stats.comboStats.lastCombo.avgGapMs}ms`}
+                color={
+                  stats.comboStats.lastCombo.avgGapMs < 380 ? "#34D399" :
+                  stats.comboStats.lastCombo.avgGapMs < 600 ? "#F59E0B" : "#F87171"
+                }
+              />
+              {stats.comboStats.lastCombo.coaching && (
+                <SRow label="└ coach" value={stats.comboStats.lastCombo.coaching} color="#94A3B8" />
+              )}
+            </>
+          )}
+        </SSection>
+      )}
+
       {/* ── Boxing intelligence ── */}
       {boxing && (
         <SSection title="4. BOXING INTELLIGENCE">
