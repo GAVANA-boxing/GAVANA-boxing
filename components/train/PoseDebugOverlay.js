@@ -143,7 +143,7 @@ export default function PoseDebugOverlay({ getDebugInfo, isActive, debugEnabled 
             const reasons     = info.lastPunchReasons || "";
             const confColor   = lastPunchConfidenceLabel === "high" ? "#34D399" : lastPunchConfidenceLabel === "medium" ? "#F59E0B" : "#F87171";
             const hasForward  = reasons.includes("zf");
-            const hasExtended = reasons.includes("dist s1");
+            const hasExtended = /dist[\d.]+s[1-3]/.test(reasons);
             const hasFastSnap = (lastSnapVelocity ?? 0) >= 0.020;
             const hasStraight = (lastPunchLateralPct ?? 100) < 55;
             const acceptColor =
