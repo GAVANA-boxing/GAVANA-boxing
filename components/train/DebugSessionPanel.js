@@ -348,6 +348,26 @@ export default function DebugSessionPanel({ stats, boxing, debugEnabled }) {
             </div>
           )}
 
+          {/* Defensive Intelligence — Phase 2 */}
+          {boxing.defensive && (
+            <div style={{ marginTop: 8, paddingTop: 6, borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+              <div style={{ fontSize: 6.5, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.22)", marginBottom: 4 }}>
+                6. DEFENSIVE INTELLIGENCE
+              </div>
+              <SRow label="Style" value={boxing.defensive.defensiveStyleLabel} color="#A78BFA" />
+              <SRow label="Slips" value={boxing.defensive.slipCount} />
+              <SRow label="Bobs"  value={boxing.defensive.bobCount} />
+              <SRow label="Total defensive" value={boxing.defensive.defensiveTotal} />
+              <SRow label="Freq /min" value={boxing.defensive.defensiveFreqPerMin} />
+              {boxing.defensive.defensiveCues?.map((cue, i) => (
+                <div key={i} style={{ display: "flex", gap: 5, padding: "2px 0", alignItems: "flex-start", marginTop: 2 }}>
+                  <span style={{ fontSize: 8, flexShrink: 0, color: "#A78BFA", fontWeight: 900 }}>→</span>
+                  <span style={{ fontSize: 7, color: "rgba(255,255,255,0.55)", lineHeight: 1.4 }}>{cue}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Tactical Identity — Phase 1 */}
           {boxing.tactical && (
             <div style={{ marginTop: 8, paddingTop: 6, borderTop: "1px solid rgba(255,255,255,0.07)" }}>

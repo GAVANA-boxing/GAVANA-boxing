@@ -639,6 +639,41 @@ export default function TrainResultModal({
                         ))}
                       </div>
                     )}
+                    {/* Defensive profile — Phase 2 */}
+                    {bi.defensive && (
+                      <div style={{ marginBottom: 8 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
+                          <div style={{
+                            padding: "3px 10px", borderRadius: 20,
+                            background: "rgba(167,139,250,0.10)",
+                            border: "1px solid rgba(167,139,250,0.28)",
+                            fontSize: 9, fontWeight: 900, letterSpacing: 1.2,
+                            color: "#A78BFA", textTransform: "uppercase",
+                          }}>
+                            {bi.defensive.defensiveStyleLabel}
+                          </div>
+                          <span style={{ fontSize: 9, color: whiteAlpha(0.32), fontWeight: 700 }}>
+                            {bi.defensive.slipCount}s {bi.defensive.bobCount}b defensive actions
+                          </span>
+                        </div>
+                        {bi.defensive.defensiveCues?.length > 0 && (
+                          <div style={{
+                            padding: "7px 10px", borderRadius: 8,
+                            background: "rgba(167,139,250,0.05)",
+                            border: "1px solid rgba(167,139,250,0.14)",
+                          }}>
+                            {bi.defensive.defensiveCues.map((cue, i) => (
+                              <div key={i} style={{
+                                fontSize: 10, color: whiteAlpha(0.65), lineHeight: 1.55,
+                                paddingBottom: i < bi.defensive.defensiveCues.length - 1 ? 4 : 0,
+                              }}>
+                                → {cue}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </>
                 );
               })()}

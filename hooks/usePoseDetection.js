@@ -5,6 +5,7 @@ import { PunchPhaseDetector } from "@/lib/punchPhaseDetector";
 import { ComboSequencer } from "@/lib/comboSequencer";
 import { generateCoachingMessages, computeVelocityStats, computePunchBreakdown, computeSessionConfidence } from "@/lib/cinematicCoaching";
 import { analyzeSession } from "@/lib/boxingIntelligence";
+import { DefensiveDetector } from "@/lib/defensiveDetector";
 
 /**
  * MediaPipe files are served from /public/mediapipe/ (local static assets).
@@ -91,6 +92,7 @@ export function usePoseDetection({ videoRef, isActive }) {
   const smoothedLmRef      = useRef(null); // EMA-smoothed landmark array
   const detectorRef        = useRef(new PunchPhaseDetector());
   const comboRef           = useRef(new ComboSequencer());
+  const defensiveRef       = useRef(new DefensiveDetector());
   const processedCountRef  = useRef(0);
   const currentPhaseRef    = useRef({ leftPhase: "guard", rightPhase: "guard", leftElbow: 0, rightElbow: 0, velocity: 0 });
 
@@ -193,6 +195,9 @@ export function usePoseDetection({ videoRef, isActive }) {
           const phaseInfo = detectorRef.current.update(landmarks);
           if (phaseInfo) currentPhaseRef.current = phaseInfo;
 
+          // Defensive head-movement detection (uses smoothed landmarks)
+          defensiveRef.current.addFrame(smoothed, now);
+
           // Feed new punch events into the combo sequencer
           const allEvents = detectorRef.current.getPunchEvents();
           while (processedCountRef.current < allEvents.length) {
@@ -230,6 +235,7 @@ export function usePoseDetection({ videoRef, isActive }) {
       visSamplesRef.current = [];
       detectorRef.current.reset();
       comboRef.current.reset();
+      defensiveRef.current.reset();
       processedCountRef.current = 0;
       currentPhaseRef.current = { leftPhase: "guard", rightPhase: "guard", leftElbow: 0, rightElbow: 0, velocity: 0 };
     }
@@ -346,6 +352,9 @@ export function usePoseDetection({ videoRef, isActive }) {
 
     // Cinematic coaching messages
     summary.coaching = generateCoachingMessages(summary, punchEvents);
+
+    // Defensive intelligence — slip / bob counts, defensive style
+    summary.defensiveStats = defensiveRef.current.getStats();
 
     // Boxing intelligence — style detection, per-type quality, weakness
     summary.boxingIntelligence = analyzeSession(summary, punchEvents);
