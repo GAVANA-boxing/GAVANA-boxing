@@ -17,7 +17,6 @@ export const trainStageStyles = {
     height: "100%",
     objectFit: "cover",
     display: "block",
-    transform: "scaleX(-1)",
   },
 
   // ── Fallback (no camera) ──────────────────────────────────────────────────

@@ -29,6 +29,7 @@ export function useCameraSession({
 
   const [cameraState, setCameraState] = useState("checking");
   const [cameraRetryKey, setCameraRetryKey] = useState(0);
+  const [facingMode, setFacingMode] = useState("user");
   const [phase, setPhase] = useState("idle");
   const [countdown, setCountdown] = useState(null);
   const [secondsLeft, setSecondsLeft] = useState(sessionSeconds);
@@ -74,7 +75,7 @@ export function useCameraSession({
       }
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "user" },
+          video: { facingMode },
           audio: false,
         });
         if (!active) {
@@ -97,7 +98,7 @@ export function useCameraSession({
       streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     };
-  }, [cameraRetryKey]);
+  }, [cameraRetryKey, facingMode]);
 
   useEffect(() => {
     if (cameraState === "ready" && videoRef.current && streamRef.current) {
@@ -388,6 +389,10 @@ export function useCameraSession({
     liveScoreRef.current = 0;
   };
 
+  const toggleCamera = useCallback(() => {
+    setFacingMode((m) => (m === "user" ? "environment" : "user"));
+  }, []);
+
   return {
     videoRef,
     streamRef,
@@ -395,6 +400,7 @@ export function useCameraSession({
     chunksRef,
     cameraState, setCameraState,
     cameraRetryKey, setCameraRetryKey,
+    facingMode, toggleCamera,
     phase,
     countdown,
     secondsLeft,
