@@ -348,6 +348,35 @@ export default function DebugSessionPanel({ stats, boxing, debugEnabled }) {
             </div>
           )}
 
+          {/* Ring IQ — Phase 3 */}
+          {boxing.ringIQ && (
+            <div style={{ marginTop: 8, paddingTop: 6, borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+              <div style={{ fontSize: 6.5, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.22)", marginBottom: 4 }}>
+                7. RING IQ
+              </div>
+              <SRow label="IQ Score" value={boxing.ringIQ.iqScore}
+                color={boxing.ringIQ.iqScore >= 80 ? "#34D399" : boxing.ringIQ.iqScore >= 60 ? "#F59E0B" : "#F87171"} />
+              <SRow label="Label" value={boxing.ringIQ.iqLabel} color="#F9A8D4" />
+              <SRow label="Panic flurries" value={boxing.ringIQ.panicFlurries.length}
+                color={boxing.ringIQ.panicFlurries.length > 0 ? "#F87171" : undefined} />
+              <SRow label="Calm pacing" value={boxing.ringIQ.calmPacing ? "yes" : "no"}
+                color={boxing.ringIQ.calmPacing ? "#34D399" : undefined} />
+              <SRow label="Overcommit %" value={`${boxing.ringIQ.overcommitRate}%`}
+                color={boxing.ringIQ.overcommitRate >= 20 ? "#F87171" : undefined} />
+              <SRow label="Predictable rhythm" value={boxing.ringIQ.predictableRhythm ? "yes" : "no"}
+                color={boxing.ringIQ.predictableRhythm ? "#F59E0B" : undefined} />
+              {boxing.ringIQ.repeatedCombos.length > 0 && (
+                <SRow label="Repeated combo" value={`${boxing.ringIQ.repeatedCombos[0].sequence} ×${boxing.ringIQ.repeatedCombos[0].count}`} />
+              )}
+              {boxing.ringIQ.cues?.map((cue, i) => (
+                <div key={i} style={{ display: "flex", gap: 5, padding: "2px 0", alignItems: "flex-start", marginTop: 2 }}>
+                  <span style={{ fontSize: 8, flexShrink: 0, color: "#F9A8D4", fontWeight: 900 }}>→</span>
+                  <span style={{ fontSize: 7, color: "rgba(255,255,255,0.55)", lineHeight: 1.4 }}>{cue}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Defensive Intelligence — Phase 2 */}
           {boxing.defensive && (
             <div style={{ marginTop: 8, paddingTop: 6, borderTop: "1px solid rgba(255,255,255,0.07)" }}>
