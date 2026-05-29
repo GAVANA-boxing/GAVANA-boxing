@@ -180,6 +180,7 @@ export default function TrainPage() {
   const [poseSessionSummary, setPoseSessionSummary] = useState(null);
   const [prevPoseMetrics, setPrevPoseMetrics] = useState(null);
   const [positionCue, setPositionCue] = useState(null);
+  const [trackingRing, setTrackingRing] = useState(null);
   const coachSnapshotRef = useRef(null);
   const prevSessionCountRef = useRef(null);
 
@@ -323,6 +324,20 @@ export default function TrainPage() {
       return () => clearInterval(id);
     }, 20000);
     return () => { active = false; clearTimeout(delayId); setPositionCue(null); };
+  }, [phase, getDebugInfo]);
+
+  // ── Tracking ring: live feedback on whether pose detector sees the user ──
+  useEffect(() => {
+    if (phase !== "recording") { setTrackingRing(null); return; }
+    let active = true;
+    const id = setInterval(() => {
+      if (!active) return;
+      const info = getDebugInfo();
+      if (!info || info.status !== "ready") { setTrackingRing("none"); return; }
+      if (!info.landmarksDetected) { setTrackingRing("none"); return; }
+      setTrackingRing(info.trackingQuality || "good");
+    }, 400);
+    return () => { active = false; clearInterval(id); setTrackingRing(null); };
   }, [phase, getDebugInfo]);
 
   // ── Badge celebration after session save ─────────────────────────────────
@@ -578,6 +593,22 @@ export default function TrainPage() {
 
           {/* Hit flash overlay — quick red burst on each simulated punch */}
           {isFlashing && <div style={styles.flashOverlay} />}
+
+          {/* Tracking ring — tells user whether pose detector sees them */}
+          {trackingRing && (() => {
+            const ringColor =
+              trackingRing === "good"     ? "#34D399" :
+              trackingRing === "degraded" ? "#F59E0B" : "#F87171";
+            return (
+              <div style={{
+                position: "absolute", inset: 0, borderRadius: 28,
+                border: `2px solid ${ringColor}`,
+                boxShadow: `inset 0 0 18px ${ringColor}30, 0 0 18px ${ringColor}30`,
+                pointerEvents: "none", zIndex: 9,
+                transition: "border-color 0.4s, box-shadow 0.4s",
+              }} />
+            );
+          })()}
 
           {/* Countdown with scale-pop animation */}
           {isCountingDown && (
