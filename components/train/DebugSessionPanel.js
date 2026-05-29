@@ -348,6 +348,34 @@ export default function DebugSessionPanel({ stats, boxing, debugEnabled }) {
             </div>
           )}
 
+          {/* Real Combat System — Phase 5 */}
+          {(boxing.roundBreakdown || boxing.cornerAdvice?.length > 0) && (
+            <div style={{ marginTop: 8, paddingTop: 6, borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+              <div style={{ fontSize: 6.5, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.22)", marginBottom: 4 }}>
+                9. COMBAT SYSTEM
+              </div>
+              {boxing.roundBreakdown && (() => {
+                const rb = boxing.roundBreakdown;
+                return (
+                  <>
+                    <SRow label="1st half" value={`${rb.round1.count}p  q${rb.round1.avgQuality}  ${rb.round1.pace}/min`} />
+                    <SRow label="2nd half" value={`${rb.round2.count}p  q${rb.round2.avgQuality}  ${rb.round2.pace}/min`} />
+                    <SRow label="Pace trend"    value={rb.paceTrend}
+                      color={rb.paceTrend === "accelerating" ? "#34D399" : rb.paceTrend === "decelerating" ? "#F87171" : undefined} />
+                    <SRow label="Quality trend" value={rb.qualityTrend}
+                      color={rb.qualityTrend === "fading" ? "#F87171" : rb.qualityTrend === "improving" ? "#34D399" : undefined} />
+                  </>
+                );
+              })()}
+              {boxing.cornerAdvice?.map((tip, i) => (
+                <div key={i} style={{ display: "flex", gap: 5, padding: "2px 0", alignItems: "flex-start", marginTop: 2 }}>
+                  <span style={{ fontSize: 8, flexShrink: 0, color: "#6EE7B7", fontWeight: 900 }}>▸</span>
+                  <span style={{ fontSize: 7, color: "rgba(255,255,255,0.55)", lineHeight: 1.4 }}>{tip}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Fighter DNA — Phase 4 */}
           {boxing.fighterDNA && (
             <div style={{ marginTop: 8, paddingTop: 6, borderTop: "1px solid rgba(255,255,255,0.07)" }}>
