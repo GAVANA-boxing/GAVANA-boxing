@@ -109,6 +109,14 @@ export default function DebugSessionPanel({ stats, boxing, debugEnabled }) {
           color={(r.noExt ?? 0) > 8 ? "#F59E0B" : undefined}
         />
         <SRow
+          label="└ phone jerk"
+          value={r.jerk ?? 0}
+        />
+        <SRow
+          label="└ low velocity"
+          value={r.lowVel ?? 0}
+        />
+        <SRow
           label="└ rate gate"
           value={r.rate ?? 0}
           color={(r.rate ?? 0) > 8 ? "#F59E0B" : undefined}
