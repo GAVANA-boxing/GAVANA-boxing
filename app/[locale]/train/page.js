@@ -86,6 +86,7 @@ export default function TrainPage() {
     chunksRef,
     cameraState, setCameraState,
     cameraRetryKey, setCameraRetryKey,
+    facingMode, toggleCamera,
     phase,
     countdown,
     secondsLeft,
@@ -564,7 +565,7 @@ export default function TrainPage() {
               autoPlay
               muted
               playsInline
-              style={styles.preview}
+              style={{ ...styles.preview, transform: facingMode === "user" ? "scaleX(-1)" : "none" }}
             />
           ) : (
             <div style={styles.fallback}>
@@ -592,6 +593,31 @@ export default function TrainPage() {
           )}
 
           <div style={styles.stageShade} />
+
+          {/* Camera flip button — only shown when idle, not recording */}
+          {phase === "idle" && cameraState === "ready" && (
+            <button
+              type="button"
+              onClick={toggleCamera}
+              style={{
+                position: "absolute", top: 12, right: 12,
+                width: 40, height: 40, borderRadius: "50%",
+                background: "rgba(0,0,0,0.55)", backdropFilter: "blur(10px)",
+                border: "1px solid rgba(255,255,255,0.18)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                cursor: "pointer", zIndex: 10,
+              }}
+              aria-label="Switch camera"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 7h-3a2 2 0 0 1-2-2V2" />
+                <path d="M9 2H5a2 2 0 0 0-2 2v4" />
+                <path d="M3 17v3a2 2 0 0 0 2 2h4" />
+                <path d="M20 17v3a2 2 0 0 1-2 2h-3" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </button>
+          )}
 
           {/* Hit flash overlay — quick red burst on each simulated punch */}
           {isFlashing && <div style={styles.flashOverlay} />}
