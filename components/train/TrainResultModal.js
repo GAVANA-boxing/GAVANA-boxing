@@ -206,7 +206,8 @@ export default function TrainResultModal({
   if (!result) return null;
 
   const MIN_PUNCHES = 5;
-  const tooFewPunches = (result.hitCount ?? 0) < MIN_PUNCHES;
+  const effectivePunchCount = poseMetrics?.punchCount ?? result.hitCount ?? 0;
+  const tooFewPunches = effectivePunchCount < MIN_PUNCHES;
 
   const events = movementEvents || [];
   const identity = tooFewPunches ? null : getIdentityWithSub(result.score, events, poseMetrics);
@@ -242,8 +243,8 @@ export default function TrainResultModal({
               </h2>
               <p style={{ margin: 0, fontSize: 12, color: whiteAlpha(0.35), lineHeight: 1.5 }}>
                 {locale === "mn"
-                  ? `AI шинжилгээнд хамгийн багадаа ${MIN_PUNCHES} цохилт хэрэгтэй. Та ${result.hitCount ?? 0} цохилт хийсэн.`
-                  : `AI analysis needs at least ${MIN_PUNCHES} punches. You threw ${result.hitCount ?? 0}.`}
+                  ? `AI шинжилгээнд хамгийн багадаа ${MIN_PUNCHES} цохилт хэрэгтэй. Та ${effectivePunchCount} цохилт хийсэн.`
+                  : `AI analysis needs at least ${MIN_PUNCHES} punches. You threw ${effectivePunchCount}.`}
               </p>
             </div>
           ) : (
