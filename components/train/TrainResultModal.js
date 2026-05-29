@@ -588,8 +588,9 @@ export default function TrainResultModal({
                   bi.style === "explosive" ? "#F59E0B" :
                   bi.style === "pressure"  ? "#F87171" :
                   bi.style === "outboxer"  ? "#34D399" : "#94A3B8";
-                const tactical  = bi.tactical;
-                const ringIQ   = bi.ringIQ;
+                const tactical   = bi.tactical;
+                const ringIQ    = bi.ringIQ;
+                const dna       = bi.fighterDNA;
                 return (
                   <>
                     <div style={{
@@ -708,6 +709,39 @@ export default function TrainResultModal({
                             ))}
                           </div>
                         )}
+                      </div>
+                    )}
+                    {/* Fighter DNA — Phase 4 */}
+                    {dna && (
+                      <div style={{ marginBottom: 8 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
+                          <div style={{
+                            padding: "3px 10px", borderRadius: 20,
+                            background: "rgba(252,211,77,0.10)",
+                            border: "1px solid rgba(252,211,77,0.28)",
+                            fontSize: 9, fontWeight: 900, letterSpacing: 1.2,
+                            color: "#FCD34D", textTransform: "uppercase",
+                          }}>
+                            {dna.archetypeLabel}
+                          </div>
+                          <span style={{ fontSize: 9, color: whiteAlpha(0.32), fontWeight: 700 }}>
+                            {dna.similarity}% match
+                          </span>
+                        </div>
+                        <div style={{
+                          padding: "7px 10px", borderRadius: 8,
+                          background: "rgba(252,211,77,0.04)",
+                          border: "1px solid rgba(252,211,77,0.14)",
+                        }}>
+                          {dna.archetypeTraits?.map((trait, i) => (
+                            <div key={i} style={{
+                              fontSize: 10, color: whiteAlpha(0.55), lineHeight: 1.55,
+                              paddingBottom: i < dna.archetypeTraits.length - 1 ? 3 : 0,
+                            }}>
+                              · {trait}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </>

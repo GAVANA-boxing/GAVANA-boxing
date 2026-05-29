@@ -348,6 +348,24 @@ export default function DebugSessionPanel({ stats, boxing, debugEnabled }) {
             </div>
           )}
 
+          {/* Fighter DNA — Phase 4 */}
+          {boxing.fighterDNA && (
+            <div style={{ marginTop: 8, paddingTop: 6, borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+              <div style={{ fontSize: 6.5, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.22)", marginBottom: 4 }}>
+                8. FIGHTER DNA
+              </div>
+              <SRow label="Archetype" value={boxing.fighterDNA.archetypeLabel} color="#FCD34D" />
+              <SRow label="Similarity" value={`${boxing.fighterDNA.similarity}%`}
+                color={boxing.fighterDNA.similarity >= 60 ? "#34D399" : boxing.fighterDNA.similarity >= 40 ? "#F59E0B" : "#F87171"} />
+              {boxing.fighterDNA.archetypeTraits?.map((t, i) => (
+                <div key={i} style={{ display: "flex", gap: 5, padding: "1.5px 0", alignItems: "flex-start" }}>
+                  <span style={{ fontSize: 8, flexShrink: 0, color: "#FCD34D", fontWeight: 900 }}>·</span>
+                  <span style={{ fontSize: 7, color: "rgba(255,255,255,0.45)", lineHeight: 1.4 }}>{t}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Ring IQ — Phase 3 */}
           {boxing.ringIQ && (
             <div style={{ marginTop: 8, paddingTop: 6, borderTop: "1px solid rgba(255,255,255,0.07)" }}>
