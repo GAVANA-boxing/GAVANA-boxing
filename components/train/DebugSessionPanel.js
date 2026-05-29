@@ -109,6 +109,14 @@ export default function DebugSessionPanel({ stats, boxing, debugEnabled }) {
           color={(r.noExt ?? 0) > 8 ? "#F59E0B" : undefined}
         />
         <SRow
+          label="└ phone jerk"
+          value={r.jerk ?? 0}
+        />
+        <SRow
+          label="└ low velocity"
+          value={r.lowVel ?? 0}
+        />
+        <SRow
           label="└ rate gate"
           value={r.rate ?? 0}
           color={(r.rate ?? 0) > 8 ? "#F59E0B" : undefined}
@@ -335,6 +343,38 @@ export default function DebugSessionPanel({ stats, boxing, debugEnabled }) {
                   <span style={{ fontSize: 7, color: "rgba(255,255,255,0.55)", lineHeight: 1.4 }}>
                     {c.message}
                   </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Tactical Identity — Phase 1 */}
+          {boxing.tactical && (
+            <div style={{ marginTop: 8, paddingTop: 6, borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+              <div style={{ fontSize: 6.5, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.22)", marginBottom: 4 }}>
+                5. TACTICAL IDENTITY
+              </div>
+              <SRow
+                label="Profile"
+                value={boxing.tactical.profileLabel}
+                color="#60A5FA"
+              />
+              <SRow label="Single shot %" value={`${boxing.tactical.singleShotPct}%`}
+                color={boxing.tactical.singleShotPct > 65 ? "#F59E0B" : "#34D399"} />
+              <SRow label="Pressure chain %" value={`${boxing.tactical.pressureChainPct}%`} />
+              <SRow label="Counter %"         value={`${boxing.tactical.counterPct}%`} />
+              <SRow label="Rhythm aggression" value={boxing.tactical.rhythmAggression}
+                color={boxing.tactical.rhythmAggression >= 65 ? "#34D399" : boxing.tactical.rhythmAggression >= 35 ? "#F59E0B" : undefined} />
+              {boxing.tactical.entryPreference && (
+                <SRow
+                  label="Entry pref"
+                  value={`J${boxing.tactical.entryPreference.jab}% C${boxing.tactical.entryPreference.cross}% H${boxing.tactical.entryPreference.hook}%`}
+                />
+              )}
+              {boxing.tactical.tacticalCues?.map((cue, i) => (
+                <div key={i} style={{ display: "flex", gap: 5, padding: "2px 0", alignItems: "flex-start", marginTop: 2 }}>
+                  <span style={{ fontSize: 8, flexShrink: 0, color: "#60A5FA", fontWeight: 900 }}>→</span>
+                  <span style={{ fontSize: 7, color: "rgba(255,255,255,0.55)", lineHeight: 1.4 }}>{cue}</span>
                 </div>
               ))}
             </div>

@@ -580,7 +580,7 @@ export default function TrainResultModal({
                 );
               })()}
 
-              {/* Boxing intelligence — style + weakness */}
+              {/* Boxing intelligence — style + weakness + tactical identity */}
               {(() => {
                 const bi = poseMetrics.boxingIntelligence;
                 if (!bi) return null;
@@ -588,27 +588,58 @@ export default function TrainResultModal({
                   bi.style === "explosive" ? "#F59E0B" :
                   bi.style === "pressure"  ? "#F87171" :
                   bi.style === "outboxer"  ? "#34D399" : "#94A3B8";
+                const tactical = bi.tactical;
                 return (
-                  <div style={{
-                    marginBottom: 8, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
-                  }}>
-                    {bi.styleLabel && bi.styleConfidence >= 0.3 && (
+                  <>
+                    <div style={{
+                      marginBottom: 8, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
+                    }}>
+                      {bi.styleLabel && bi.styleConfidence >= 0.3 && (
+                        <div style={{
+                          padding: "3px 10px", borderRadius: 20,
+                          background: `${styleColor}14`,
+                          border: `1px solid ${styleColor}35`,
+                          fontSize: 9, fontWeight: 900, letterSpacing: 1.5,
+                          color: styleColor, textTransform: "uppercase",
+                        }}>
+                          {bi.styleLabel}
+                        </div>
+                      )}
+                      {tactical?.profileLabel && (
+                        <div style={{
+                          padding: "3px 10px", borderRadius: 20,
+                          background: "rgba(96,165,250,0.10)",
+                          border: "1px solid rgba(96,165,250,0.28)",
+                          fontSize: 9, fontWeight: 900, letterSpacing: 1.2,
+                          color: "#60A5FA", textTransform: "uppercase",
+                        }}>
+                          {tactical.profileLabel}
+                        </div>
+                      )}
+                      {bi.weakness && (
+                        <div style={{ fontSize: 9, color: whiteAlpha(0.32), fontWeight: 700 }}>
+                          Focus: <span style={{ color: "#F59E0B", fontWeight: 900 }}>{bi.weakness.label}</span>
+                        </div>
+                      )}
+                    </div>
+                    {/* Tactical cues */}
+                    {tactical?.tacticalCues?.length > 0 && (
                       <div style={{
-                        padding: "3px 10px", borderRadius: 20,
-                        background: `${styleColor}14`,
-                        border: `1px solid ${styleColor}35`,
-                        fontSize: 9, fontWeight: 900, letterSpacing: 1.5,
-                        color: styleColor, textTransform: "uppercase",
+                        marginBottom: 8, padding: "7px 10px", borderRadius: 8,
+                        background: "rgba(96,165,250,0.05)",
+                        border: "1px solid rgba(96,165,250,0.14)",
                       }}>
-                        {bi.styleLabel}
+                        {tactical.tacticalCues.map((cue, i) => (
+                          <div key={i} style={{
+                            fontSize: 10, color: whiteAlpha(0.65), lineHeight: 1.55,
+                            paddingBottom: i < tactical.tacticalCues.length - 1 ? 4 : 0,
+                          }}>
+                            → {cue}
+                          </div>
+                        ))}
                       </div>
                     )}
-                    {bi.weakness && (
-                      <div style={{ fontSize: 9, color: whiteAlpha(0.32), fontWeight: 700 }}>
-                        Focus: <span style={{ color: "#F59E0B", fontWeight: 900 }}>{bi.weakness.label}</span>
-                      </div>
-                    )}
-                  </div>
+                  </>
                 );
               })()}
 
