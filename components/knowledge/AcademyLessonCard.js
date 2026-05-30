@@ -177,6 +177,46 @@ export default function AcademyLessonCard({ lesson, locale = "en", onStudyFighte
             </div>
           )}
 
+          {/* Train + Ask Coach CTAs */}
+          <div style={{ display: "flex", gap: 8, marginBottom: onStudyFighter ? 10 : 0 }}>
+            <button
+              type="button"
+              onClick={() => router.push(`/${locale}/train?academyLesson=${lesson.id}`)}
+              style={{
+                flex: 1, padding: "10px 14px",
+                background: `${acc}14`, border: `1px solid ${acc}30`,
+                borderRadius: RADIUS.md,
+                color: acc, fontSize: 10, fontWeight: 900,
+                letterSpacing: 1.5, textTransform: "uppercase",
+                cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+              }}
+            >
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              {locale === "mn" ? "Дасгалдах" : "Train This"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const q = locale === "mn"
+                  ? `Би "${lesson.title}" хичээлийг судалж байна. Яаж сайжруулах вэ?`
+                  : `I'm studying "${lesson.title}" from GAVANA Academy. How do I improve this technique?`;
+                router.push(`/${locale}/coach/chat?q=${encodeURIComponent(q)}`);
+              }}
+              style={{
+                flex: 1, padding: "10px 14px",
+                background: "rgba(96,165,250,0.09)", border: "1px solid rgba(96,165,250,0.22)",
+                borderRadius: RADIUS.md,
+                color: "#93C5FD", fontSize: 10, fontWeight: 900,
+                letterSpacing: 1.5, textTransform: "uppercase",
+                cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+              }}
+            >
+              💬 {locale === "mn" ? "Асуух" : "Ask Coach"}
+            </button>
+          </div>
+
           {/* Study more fighter CTA */}
           {onStudyFighter && (
             <button
