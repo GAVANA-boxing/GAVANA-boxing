@@ -221,26 +221,33 @@ export default function TrainPage() {
     return () => { active = false; };
   }, [user?.uid]);
 
-  // Generate debrief when result appears; compute pose summary at the same time
+  // Override pixel-detector score with MediaPipe score as soon as result appears.
+  // Runs on result.hitCount change (new session) — not on score change — to avoid loops.
+  useEffect(() => {
+    if (!result) return;
+    const poseSummary = computeSessionSummary();
+    if (poseSummary?.score != null) {
+      setPoseSessionSummary(poseSummary);
+      if (poseSummary.score !== result.score) {
+        setResult((prev) => prev ? { ...prev, score: poseSummary.score } : prev);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result?.hitCount]);
+
+  // Generate debrief when result appears
   useEffect(() => {
     if (!result?.score) { setDebrief(null); setPoseSessionSummary(null); return; }
 
-    // Capture pose summary synchronously — use MediaPipe punch count as authoritative
+    // Capture pose summary (may already be set by score-override effect above)
     const poseSummary = computeSessionSummary();
     // Skip debrief when punch count is too low — AI has nothing real to say
     const effectivePunchCount = poseSummary?.punchCount ?? result.hitCount ?? 0;
     if (effectivePunchCount < 5) { setDebrief(null); setDebriefLoading(false); setPoseSessionSummary(null); return; }
 
-    setPoseSessionSummary(poseSummary);
+    if (poseSummary && !poseSessionSummary) setPoseSessionSummary(poseSummary);
 
-    // Override game score with MediaPipe pose-based score — the pixel-diff detector
-    // (usePunchDetector) misses most punches on mobile, giving scores like 0.5/10
-    // even when 47 real punches were thrown. computeFinalScore uses actual MediaPipe
-    // punch data and boxing intelligence metrics for a meaningful score.
     const effectiveScore = poseSummary?.score ?? result.score;
-    if (poseSummary?.score != null) {
-      setResult((prev) => prev ? { ...prev, score: poseSummary.score } : prev);
-    }
 
     setDebrief(null);
     setDebriefLoading(true);
