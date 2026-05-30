@@ -110,7 +110,14 @@ export const trainPageStyles = {
   pvpResultSaved:     { fontSize: 11, color: "#34D399", fontWeight: 800, marginTop: 4 },
 
   // ── Controls ──────────────────────────────────────────────────────────────
-  controls: { display: "grid", gap: 10 },
+  controls: {
+    position: "sticky",
+    bottom: "calc(12px + env(safe-area-inset-bottom))",
+    zIndex: 20,
+    display: "grid",
+    gap: 10,
+    paddingTop: 6,
+  },
   startButton: {
     minHeight: 60,
     border: `1px solid ${redAlpha(0.4)}`,
