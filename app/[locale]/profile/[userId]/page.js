@@ -499,6 +499,8 @@ export default function UserProfilePage() {
       )}
 
 
+      <div style={{ height: "calc(88px + env(safe-area-inset-bottom))" }} />
+
       <ProfileModals
         rankUpRank={rankUpRank} setRankUpRank={setRankUpRank}
         deleteConfirmReel={deleteConfirmReel} setDeleteConfirmReel={setDeleteConfirmReel} handleDeleteReel={handleDeleteReel}
