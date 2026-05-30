@@ -14,7 +14,7 @@ export const FILTER_CHIPS = [
 // Exported so KnowledgeLibrary can use the same logic for memoized filtering
 export function matchesSearch(lesson, query, filter) {
   if (filter) {
-    const haystack = (lesson.id + " " + lesson.title + " " + (lesson.subtitle || "")).toLowerCase();
+    const haystack = (lesson.id + " " + lesson.title + " " + (lesson.subtitle || "") + " " + (lesson.keywordsMn || []).join(" ")).toLowerCase();
     const ok =
       filter === "beginner"      ? lesson.difficulty === "beginner"
       : filter === "footwork"    ? /footwork/.test(haystack)
@@ -32,6 +32,7 @@ export function matchesSearch(lesson, query, filter) {
     lesson.concept, lesson.explanation, lesson.commonMistake, lesson.coachCue,
     ...(lesson.keyCues || []),
     ...(lesson.bodyMechanics || []),
+    ...(lesson.keywordsMn || []),
   ].some(f => f?.toLowerCase().includes(q));
 }
 

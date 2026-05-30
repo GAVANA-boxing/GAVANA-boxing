@@ -316,6 +316,206 @@ function FootworkAngleDiagram({ accent, w, h }) {
   );
 }
 
+function SlipDiagram({ accent, w, h }) {
+  return (
+    <svg viewBox="0 0 120 76" width={w} height={h} style={{ display: "block" }} aria-hidden="true">
+      <rect width="120" height="76" fill="#050506" />
+      {[24,48,72,96].map((x) => (
+        <line key={`gx${x}`} x1={x} y1={0} x2={x} y2={76} stroke={accent} strokeWidth="0.3" opacity="0.12" />
+      ))}
+      {[19,38,57].map((y) => (
+        <line key={`gy${y}`} x1={0} y1={y} x2={120} y2={y} stroke={accent} strokeWidth="0.3" opacity="0.12" />
+      ))}
+      {/* Body */}
+      <ellipse cx="34" cy="46" rx="10" ry="13" fill={accent} opacity="0.08" stroke={accent} strokeWidth="0.8" />
+      {/* Center line (punch path) */}
+      <line x1="100" y1="26" x2="12" y2="26" stroke={accent} strokeWidth="0.5" strokeDasharray="3,3" opacity="0.18" />
+      {/* Ghost head — original on-line position */}
+      <circle cx="34" cy="26" r="7" fill="none" stroke={accent} strokeWidth="0.8" strokeDasharray="2,2" opacity="0.28" />
+      {/* Slipped head — moved off the punch line */}
+      <circle cx="24" cy="20" r="7" fill={accent} opacity="0.12" />
+      <circle cx="24" cy="20" r="7" fill="none" stroke={accent} strokeWidth="1.1" opacity="0.85" />
+      {/* Guard hands staying up */}
+      <circle cx="18" cy="16" r="3" fill={accent} opacity="0.28" />
+      <circle cx="28" cy="13" r="2.5" fill={accent} opacity="0.22" />
+      {/* Incoming punch from right — targeting ghost head */}
+      <path d="M100 26 L43 26" stroke={accent} strokeWidth="1.8" strokeLinecap="round" opacity="0.75" />
+      <path d="M46 22 L42 26 L46 30" stroke={accent} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.75" />
+      {/* Punch going past (missed) */}
+      <path d="M27 26 L10 26" stroke={accent} strokeWidth="0.8" strokeDasharray="2,2.5" opacity="0.22" />
+      {/* Head movement arrow */}
+      <path d="M32 24 L26 21" stroke={accent} strokeWidth="1.2" strokeLinecap="round" opacity="0.7" />
+      <path d="M22 18 L24 22 L28 19" stroke={accent} strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.7" />
+      {/* OFF LINE label */}
+      <text x="68" y="21" fill={accent} fontSize="5" fontFamily="monospace" fontWeight="bold" opacity="0.5">OFF LINE</text>
+      {/* Label */}
+      <text x="60" y="73" textAnchor="middle" fill={accent} fontSize="5.5" fontFamily="monospace" fontWeight="bold" opacity="0.45" letterSpacing="1">SLIP</text>
+    </svg>
+  );
+}
+
+function PullCounterDiagram({ accent, w, h }) {
+  return (
+    <svg viewBox="0 0 120 76" width={w} height={h} style={{ display: "block" }} aria-hidden="true">
+      <rect width="120" height="76" fill="#050506" />
+      {[24,48,72,96].map((x) => (
+        <line key={`gx${x}`} x1={x} y1={0} x2={x} y2={76} stroke={accent} strokeWidth="0.3" opacity="0.12" />
+      ))}
+      {[19,38,57].map((y) => (
+        <line key={`gy${y}`} x1={0} y1={y} x2={120} y2={y} stroke={accent} strokeWidth="0.3" opacity="0.12" />
+      ))}
+      {/* Fighter body — normal position (ghost = forward lean into pull) */}
+      <ellipse cx="40" cy="46" rx="10" ry="12" fill="none" stroke={accent} strokeWidth="0.8" strokeDasharray="2,2" opacity="0.28" />
+      <circle cx="40" cy="29" r="7" fill="none" stroke={accent} strokeWidth="0.8" strokeDasharray="2,2" opacity="0.28" />
+      {/* Fighter body — pulled back position */}
+      <ellipse cx="28" cy="46" rx="10" ry="12" fill={accent} opacity="0.08" stroke={accent} strokeWidth="0.9" />
+      <circle cx="28" cy="30" r="7" fill={accent} opacity="0.1" />
+      <circle cx="28" cy="30" r="7" fill="none" stroke={accent} strokeWidth="1.1" opacity="0.8" />
+      {/* Incoming punch (from opponent, passing forward body ghost) */}
+      <path d="M98 29 L48 29" stroke={accent} strokeWidth="1.6" strokeLinecap="round" opacity="0.6" />
+      <path d="M51 25 L47 29 L51 33" stroke={accent} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.6" />
+      {/* Punch passing through (missed — head pulled back) */}
+      <path d="M36 29 L20 29" stroke={accent} strokeWidth="0.8" strokeDasharray="2,2" opacity="0.2" />
+      {/* Pull arrow — backward weight shift */}
+      <path d="M40 48 L28 48" stroke={accent} strokeWidth="1.2" strokeLinecap="round" opacity="0.55" />
+      <path d="M31 44 L27 48 L31 52" stroke={accent} strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.55" />
+      {/* Counter punch arrow — forward */}
+      <path d="M35 38 L86 34" stroke={accent} strokeWidth="1.8" strokeLinecap="round" opacity="0.88" />
+      <path d="M82 30 L87 34 L82 38" stroke={accent} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.88" />
+      {/* Counter fist */}
+      <circle cx="89" cy="34" r="4" fill={accent} opacity="0.7" />
+      {/* PULL label */}
+      <text x="28" y="60" textAnchor="middle" fill={accent} fontSize="5" fontFamily="monospace" fontWeight="bold" opacity="0.48">PULL</text>
+      {/* COUNTER label */}
+      <text x="78" y="28" fill={accent} fontSize="5" fontFamily="monospace" fontWeight="bold" opacity="0.55">COUNTER</text>
+      {/* Label */}
+      <text x="60" y="73" textAnchor="middle" fill={accent} fontSize="5.5" fontFamily="monospace" fontWeight="bold" opacity="0.45" letterSpacing="1">PULL COUNTER</text>
+    </svg>
+  );
+}
+
+function BodyShotDiagram({ accent, w, h }) {
+  return (
+    <svg viewBox="0 0 120 76" width={w} height={h} style={{ display: "block" }} aria-hidden="true">
+      <rect width="120" height="76" fill="#050506" />
+      {[24,48,72,96].map((x) => (
+        <line key={`gx${x}`} x1={x} y1={0} x2={x} y2={76} stroke={accent} strokeWidth="0.3" opacity="0.12" />
+      ))}
+      {[19,38,57].map((y) => (
+        <line key={`gy${y}`} x1={0} y1={y} x2={120} y2={y} stroke={accent} strokeWidth="0.3" opacity="0.12" />
+      ))}
+      {/* Fighter at normal height (ghost) */}
+      <ellipse cx="30" cy="34" rx="9" ry="11" fill="none" stroke={accent} strokeWidth="0.8" strokeDasharray="2,2" opacity="0.25" />
+      <circle cx="30" cy="18" r="6" fill="none" stroke={accent} strokeWidth="0.7" strokeDasharray="2,2" opacity="0.25" />
+      {/* Fighter dropped to body level */}
+      <ellipse cx="30" cy="48" rx="9" ry="11" fill={accent} opacity="0.08" stroke={accent} strokeWidth="0.9" />
+      <circle cx="30" cy="34" r="6" fill={accent} opacity="0.1" />
+      <circle cx="30" cy="34" r="6" fill="none" stroke={accent} strokeWidth="1" opacity="0.75" />
+      {/* Level change arrow */}
+      <path d="M16 22 L16 40" stroke={accent} strokeWidth="1.2" strokeLinecap="round" opacity="0.55" />
+      <path d="M12 37 L16 41 L20 37" stroke={accent} strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.55" />
+      {/* KNEES label next to arrow */}
+      <text x="6" y="32" fill={accent} fontSize="4.5" fontFamily="monospace" fontWeight="bold" opacity="0.45" style={{ writingMode: "vertical-rl" }}>KNEES</text>
+      {/* Body shot punch arc */}
+      <path d="M36 47 Q62 40 88 52" stroke={accent} strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.88" />
+      <path d="M84 48 L89 52 L84 56" stroke={accent} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.88" />
+      {/* Fist at target */}
+      <circle cx="91" cy="52" r="4.5" fill={accent} opacity="0.7" />
+      {/* Body target zone */}
+      <ellipse cx="91" cy="52" rx="12" ry="8" fill="none" stroke={accent} strokeWidth="0.7" strokeDasharray="2,2" opacity="0.3" />
+      {/* Target label */}
+      <text x="91" y="66" textAnchor="middle" fill={accent} fontSize="5" fontFamily="monospace" fontWeight="bold" opacity="0.48">BODY</text>
+      {/* Hip rotation arc */}
+      <path d="M22 54 A14 8 0 0 1 40 54" fill="none" stroke={accent} strokeWidth="1" opacity="0.35" />
+      <path d="M37 51 L40 54 L38 58" stroke={accent} strokeWidth="0.9" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.35" />
+      {/* Label */}
+      <text x="60" y="73" textAnchor="middle" fill={accent} fontSize="5.5" fontFamily="monospace" fontWeight="bold" opacity="0.45" letterSpacing="1">BODY SHOT</text>
+    </svg>
+  );
+}
+
+function DoubleJabDiagram({ accent, w, h }) {
+  return (
+    <svg viewBox="0 0 120 76" width={w} height={h} style={{ display: "block" }} aria-hidden="true">
+      <rect width="120" height="76" fill="#050506" />
+      {[24,48,72,96].map((x) => (
+        <line key={`gx${x}`} x1={x} y1={0} x2={x} y2={76} stroke={accent} strokeWidth="0.3" opacity="0.12" />
+      ))}
+      {[19,38,57].map((y) => (
+        <line key={`gy${y}`} x1={0} y1={y} x2={120} y2={y} stroke={accent} strokeWidth="0.3" opacity="0.12" />
+      ))}
+      {/* Body top-down */}
+      <ellipse cx="30" cy="44" rx="10" ry="13" fill={accent} opacity="0.08" stroke={accent} strokeWidth="0.8" />
+      {/* Head */}
+      <circle cx="30" cy="26" r="6.5" fill="none" stroke={accent} strokeWidth="0.9" opacity="0.45" />
+      {/* Rear guard */}
+      <circle cx="36" cy="30" r="3" fill={accent} opacity="0.22" />
+      {/* First jab path */}
+      <path d="M37 30 L86 28" stroke={accent} strokeWidth="1.7" strokeLinecap="round" opacity="0.7" />
+      <path d="M82 24 L87 28 L82 32" stroke={accent} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.7" />
+      {/* First fist */}
+      <circle cx="89" cy="28" r="4" fill={accent} opacity="0.5" />
+      {/* JAB 1 label */}
+      <text x="89" y="22" textAnchor="middle" fill={accent} fontSize="5" fontFamily="monospace" fontWeight="bold" opacity="0.55">1</text>
+      {/* Return path dashed */}
+      <path d="M89 30 Q64 44 38 38" stroke={accent} strokeWidth="0.8" strokeDasharray="2,2.5" strokeLinecap="round" fill="none" opacity="0.22" />
+      {/* Second jab path — slightly different angle */}
+      <path d="M37 36 L86 40" stroke={accent} strokeWidth="1.9" strokeLinecap="round" opacity="0.9" />
+      <path d="M82 36 L87 40 L82 44" stroke={accent} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.9" />
+      {/* Second fist */}
+      <circle cx="89" cy="40" r="4.5" fill={accent} opacity="0.72" />
+      {/* JAB 2 label */}
+      <text x="89" y="52" textAnchor="middle" fill={accent} fontSize="5" fontFamily="monospace" fontWeight="bold" opacity="0.65">2</text>
+      {/* Timing break indicator */}
+      <rect x="50" y="28" width="22" height="10" rx="4" fill={accent} opacity="0.06" stroke={accent} strokeWidth="0.5" />
+      <text x="61" y="35" textAnchor="middle" fill={accent} fontSize="4.5" fontFamily="monospace" fontWeight="bold" opacity="0.45">VARY</text>
+      {/* Label */}
+      <text x="60" y="73" textAnchor="middle" fill={accent} fontSize="5.5" fontFamily="monospace" fontWeight="bold" opacity="0.45" letterSpacing="1">DOUBLE JAB</text>
+    </svg>
+  );
+}
+
+function ShoulderRollDiagram({ accent, w, h }) {
+  return (
+    <svg viewBox="0 0 120 76" width={w} height={h} style={{ display: "block" }} aria-hidden="true">
+      <rect width="120" height="76" fill="#050506" />
+      {[24,48,72,96].map((x) => (
+        <line key={`gx${x}`} x1={x} y1={0} x2={x} y2={76} stroke={accent} strokeWidth="0.3" opacity="0.12" />
+      ))}
+      {[19,38,57].map((y) => (
+        <line key={`gy${y}`} x1={0} y1={y} x2={120} y2={y} stroke={accent} strokeWidth="0.3" opacity="0.12" />
+      ))}
+      {/* Body */}
+      <ellipse cx="36" cy="46" rx="10" ry="13" fill={accent} opacity="0.08" stroke={accent} strokeWidth="0.8" />
+      {/* Head */}
+      <circle cx="36" cy="28" r="7" fill="none" stroke={accent} strokeWidth="0.9" opacity="0.45" />
+      {/* Raised front shoulder arc */}
+      <path d="M28 32 Q36 24 44 28" fill="none" stroke={accent} strokeWidth="2.2" strokeLinecap="round" opacity="0.85" />
+      {/* Chin tucked behind shoulder — small filled circle */}
+      <circle cx="36" cy="30" r="2.5" fill={accent} opacity="0.5" />
+      {/* Incoming punch from right — straight line to shoulder */}
+      <path d="M100 28 L50 28" stroke={accent} strokeWidth="1.8" strokeLinecap="round" opacity="0.7" />
+      <path d="M53 24 L49 28 L53 32" stroke={accent} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.7" />
+      {/* Deflection — punch bounces off shoulder at angle */}
+      <path d="M44 28 Q48 18 58 14" stroke={accent} strokeWidth="1.4" strokeDasharray="2.5,2" strokeLinecap="round" fill="none" opacity="0.55" />
+      <path d="M55 10 L59 14 L55 18" stroke={accent} strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.55" />
+      {/* DEFLECT label */}
+      <text x="60" y="12" fill={accent} fontSize="5" fontFamily="monospace" fontWeight="bold" opacity="0.55">DEFLECT</text>
+      {/* Counter punch arrow */}
+      <path d="M42 38 L92 36" stroke={accent} strokeWidth="1.8" strokeLinecap="round" opacity="0.88" />
+      <path d="M88 32 L93 36 L88 40" stroke={accent} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.88" />
+      {/* Counter fist */}
+      <circle cx="95" cy="36" r="4" fill={accent} opacity="0.7" />
+      {/* COUNTER label */}
+      <text x="95" y="48" textAnchor="middle" fill={accent} fontSize="5" fontFamily="monospace" fontWeight="bold" opacity="0.55">COUNTER</text>
+      {/* Shell arm (loose) */}
+      <path d="M30 34 L26 44" stroke={accent} strokeWidth="1.1" strokeLinecap="round" opacity="0.35" />
+      {/* Label */}
+      <text x="60" y="73" textAnchor="middle" fill={accent} fontSize="5.5" fontFamily="monospace" fontWeight="bold" opacity="0.45" letterSpacing="1">SHOULDER ROLL</text>
+    </svg>
+  );
+}
+
 function AnimalPlaceholder({ animalEmoji, animal, accent, w, h }) {
   return (
     <div style={{
@@ -357,6 +557,11 @@ export default function DiagramPlaceholder({
     case "hook":            diagram = <HookDiagram           {...props} />; break;
     case "guard-recovery":  diagram = <GuardRecoveryDiagram  {...props} />; break;
     case "footwork-angle":  diagram = <FootworkAngleDiagram  {...props} />; break;
+    case "slip":            diagram = <SlipDiagram           {...props} />; break;
+    case "pull-counter":    diagram = <PullCounterDiagram    {...props} />; break;
+    case "body-shot":       diagram = <BodyShotDiagram       {...props} />; break;
+    case "double-jab":      diagram = <DoubleJabDiagram      {...props} />; break;
+    case "shoulder-roll":   diagram = <ShoulderRollDiagram   {...props} />; break;
     case "animal":          diagram = <AnimalPlaceholder animalEmoji={animalEmoji} animal={animal} {...props} />; break;
     default:                diagram = <RingDiagram           {...props} />;
   }
