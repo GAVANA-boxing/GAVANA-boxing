@@ -1,7 +1,7 @@
 // app/api/chat/route.js
 import { getLocale } from "@/lib/i18n";
 import { verifyIdToken } from "@/lib/verifyAuth";
-import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 
 const _chatRateMap = new Map();
 function isChatRateLimited(uid) {
@@ -13,7 +13,7 @@ function isChatRateLimited(uid) {
   return entry.count > 30;
 }
 
-const MODEL = "gpt-4o-mini";
+const MODEL = "claude-haiku-4-5-20251001";
 
 // GAVANA platform context injected into every request
 const GAVANA_CONTEXT =
@@ -215,8 +215,8 @@ export async function POST(req) {
   const normalizedMessages = normalizeMessages(messages);
 
   // No API key — return static fallback (demo mode)
-  if (!process.env.OPENAI_API_KEY) {
-    console.warn("[chat/route] OPENAI_API_KEY is not set — returning static fallback.");
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.warn("[chat/route] ANTHROPIC_API_KEY is not set — returning static fallback.");
     return textResponse(getFallback(safeLocale, messages), true);
   }
 
@@ -229,22 +229,20 @@ export async function POST(req) {
   ].filter(Boolean).join("\n\n");
 
   try {
-    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    const completion = await client.chat.completions.create({
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const response = await client.messages.create({
       model: MODEL,
       max_tokens: 600,
-      messages: [
-        { role: "system", content: systemPrompt },
-        ...normalizedMessages,
-      ],
+      system: systemPrompt,
+      messages: normalizedMessages,
     });
 
-    const text = completion.choices[0]?.message?.content?.trim();
-    if (!text) return errorResponse(safeLocale, "Empty response from OpenAI");
+    const text = response.content[0]?.text?.trim();
+    if (!text) return errorResponse(safeLocale, "Empty response from Claude");
     return textResponse(text);
   } catch (err) {
     const msg = err?.message || String(err);
-    console.error("[chat/route] OpenAI error:", msg);
+    console.error("[chat/route] Anthropic error:", msg);
     return errorResponse(safeLocale, msg);
   }
 }
