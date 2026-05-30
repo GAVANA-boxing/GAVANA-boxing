@@ -1,15 +1,19 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname } from "@/lib/i18n";
 import { useCombatMemory } from "@/hooks/useCombatMemory";
 import BottomNav from "@/components/BottomNav";
 import CombatMemoryPanel from "@/components/profile/CombatMemoryPanel";
+import FighterDNACard from "@/components/profile/FighterDNACard";
 import { RED, GOLD, RADIUS, goldAlpha, whiteAlpha, BG, redAlpha } from "@/lib/tokens";
 import { computeMovementProfile } from "@/lib/combatMemory";
 import { deriveCombatIdentity } from "@/lib/combatIdentity";
+import { computeFighterDNA, dnaSnapshot } from "@/lib/fighterDNA";
+import { computeCombatProgress, progressSnapshot } from "@/lib/combatProgress";
+import CombatProgressCard from "@/components/profile/CombatProgressCard";
 
 function CombatIdentitySection({ identity, sessionCount }) {
   if (sessionCount === 0) {
@@ -130,10 +134,44 @@ export default function FighterProfilePage() {
   const { sessions, tendency, trends, loading } = useCombatMemory({ user });
   const profile  = computeMovementProfile(sessions);
   const identity = profile ? deriveCombatIdentity(profile, sessions) : null;
+  const dna      = computeFighterDNA({ sessions, locale });
+  const progress = computeCombatProgress({ sessions, streakDays: 0, locale });
+  const dnaSavedRef       = useRef(false);
+  const progressSavedRef  = useRef(false);
 
   useEffect(() => {
     if (!authLoading && !user) router.push(`/${locale}/login`);
   }, [authLoading, user, router, locale]);
+
+  // Persist DNA to Firestore once per page load after sessions settle
+  useEffect(() => {
+    if (loading || dnaSavedRef.current || !user?.uid || dna.building) return;
+    dnaSavedRef.current = true;
+    const snap = dnaSnapshot(dna);
+    if (!snap) return;
+    (async () => {
+      try {
+        const { doc, setDoc, serverTimestamp } = await import("firebase/firestore");
+        const { db } = await import("@/lib/firebase");
+        await setDoc(doc(db, "users", user.uid), { fighterDNA: snap, fighterDnaUpdatedAt: serverTimestamp() }, { merge: true });
+      } catch { /* non-critical */ }
+    })();
+  }, [loading, user?.uid, dna.building]);
+
+  // Persist combat progress to Firestore once per page load
+  useEffect(() => {
+    if (loading || progressSavedRef.current || !user?.uid || progress.building) return;
+    progressSavedRef.current = true;
+    const snap = progressSnapshot(progress);
+    if (!snap) return;
+    (async () => {
+      try {
+        const { doc, setDoc } = await import("firebase/firestore");
+        const { db } = await import("@/lib/firebase");
+        await setDoc(doc(db, "users", user.uid), { combatProgress: snap }, { merge: true });
+      } catch { /* non-critical */ }
+    })();
+  }, [loading, user?.uid, progress.building]);
 
   if (authLoading) {
     return (
@@ -222,6 +260,18 @@ export default function FighterProfilePage() {
         {/* Combat Identity */}
         {!loading && (
           <CombatIdentitySection identity={identity} sessionCount={sessions.length} />
+        )}
+
+        {/* Fighter DNA */}
+        {!loading && (
+          <div style={{ marginBottom: 4 }}>
+            <FighterDNACard dna={dna} locale={locale} />
+          </div>
+        )}
+
+        {/* Combat Progress */}
+        {!loading && (
+          <CombatProgressCard progress={progress} locale={locale} />
         )}
       </div>
 

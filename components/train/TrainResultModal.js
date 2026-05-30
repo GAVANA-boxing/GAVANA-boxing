@@ -2,8 +2,10 @@
 
 import { useEffect, useState, useRef } from "react";
 import { GOLD, RED, RADIUS, redAlpha, goldAlpha, whiteAlpha, blackAlpha } from "@/lib/tokens";
+import { ACADEMY_LESSONS } from "@/lib/academyLessons";
 import { getChallengeRank } from "@/lib/utils";
 import { getChallengeComparisonPercent } from "@/lib/trainHelpers";
+import { generateTechniqueReview } from "@/lib/techniqueReview";
 import { getSessionIdentity } from "@/lib/combatMemory";
 import { cameraQualityScore } from "@/lib/cinematicCoaching";
 import dynamic from "next/dynamic";
@@ -134,6 +136,126 @@ function fmtTime(ms) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
+const REVIEW_LABELS = {
+  en: { wellDone: "What went well", mainFix: "Main fix", drill: "Drill", nextGoal: "Next session goal", notEnough: "Not enough data", positionTip: "Tracking tip" },
+  mn: { wellDone: "Юу сайн байсан", mainFix: "Гол засах зүйл", drill: "Дасгал", nextGoal: "Дараагийн session-ийн зорилго", notEnough: "Хангалтгүй өгөгдөл", positionTip: "Tracking зөвлөгөө" },
+  ko: { wellDone: "잘한 점", mainFix: "주요 개선점", drill: "드릴", nextGoal: "다음 세션 목표", notEnough: "데이터 부족", positionTip: "트래킹 팁" },
+};
+
+function CoachReviewCard({ poseMetrics, result, locale }) {
+  const review = generateTechniqueReview({ poseMetrics, result, locale });
+  const RL = REVIEW_LABELS[locale] || REVIEW_LABELS.en;
+
+  if (review.lowData) {
+    return (
+      <div style={{
+        margin: "0 20px 8px",
+        padding: "12px 14px", borderRadius: 12,
+        background: "rgba(255,255,255,0.025)",
+        border: "1px solid rgba(255,255,255,0.07)",
+      }}>
+        <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.8, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 6 }}>
+          {RL.notEnough}
+        </div>
+        <p style={{ margin: "0 0 6px", fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>
+          {review.lowDataReason}
+        </p>
+        {review.positionAdvice && (
+          <div style={{
+            marginTop: 8, padding: "7px 10px", borderRadius: 8,
+            background: "rgba(245,196,81,0.06)", border: "1px solid rgba(245,196,81,0.16)",
+          }}>
+            <div style={{ fontSize: 8.5, fontWeight: 900, color: "rgba(245,196,81,0.65)", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 3 }}>
+              📷 {RL.positionTip}
+            </div>
+            <p style={{ margin: 0, fontSize: 11.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.5 }}>
+              {review.positionAdvice}
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  const toneAccent = review.coachTone === "positive" ? "#34D399" : review.coachTone === "critical" ? "#F87171" : "#F5C451";
+
+  return (
+    <div style={{
+      margin: "0 20px 8px",
+      padding: "12px 14px", borderRadius: 12,
+      background: "rgba(255,255,255,0.025)",
+      border: "1px solid rgba(255,255,255,0.07)",
+      borderLeft: `3px solid ${toneAccent}55`,
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+        <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.8, color: `${toneAccent}bb`, textTransform: "uppercase" }}>
+          COACH REVIEW
+        </div>
+        <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.05)" }} />
+        <div style={{ fontSize: 8.5, fontWeight: 900, color: "rgba(255,255,255,0.28)", letterSpacing: 1 }}>
+          {review.title}
+        </div>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {/* What went well */}
+        {review.strengths.length > 0 && (
+          <div style={{ padding: "8px 10px", borderRadius: 9, background: "rgba(52,211,153,0.06)", border: "1px solid rgba(52,211,153,0.14)" }}>
+            <div style={{ fontSize: 8.5, fontWeight: 900, color: "#6EE7B7", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 5 }}>
+              ✅ {RL.wellDone}
+            </div>
+            {review.strengths.map((s, i) => (
+              <div key={i} style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.45, paddingBottom: i < review.strengths.length - 1 ? 3 : 0 }}>
+                · {s}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Main fix */}
+        {review.fixes.length > 0 && (
+          <div style={{ padding: "8px 10px", borderRadius: 9, background: "rgba(255,80,70,0.06)", border: "1px solid rgba(255,80,70,0.16)" }}>
+            <div style={{ fontSize: 8.5, fontWeight: 900, color: "#FCA5A5", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 5 }}>
+              ⚠️ {RL.mainFix}
+            </div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.45 }}>
+              {review.fixes[0]}
+            </div>
+          </div>
+        )}
+
+        {/* Drill */}
+        {review.drill && (
+          <div style={{ padding: "8px 10px", borderRadius: 9, background: "rgba(245,196,81,0.06)", border: "1px solid rgba(245,196,81,0.16)" }}>
+            <div style={{ fontSize: 8.5, fontWeight: 900, color: "#FDE68A", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 5 }}>
+              🎯 {RL.drill}
+            </div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.45 }}>
+              {review.drill}
+            </div>
+          </div>
+        )}
+
+        {/* Next session goal */}
+        {review.nextSessionGoal && (
+          <div style={{
+            display: "flex", alignItems: "flex-start", gap: 8,
+            padding: "7px 10px", borderRadius: 9,
+            background: "rgba(96,165,250,0.06)", border: "1px solid rgba(96,165,250,0.16)",
+          }}>
+            <span style={{ fontSize: 8.5, fontWeight: 900, color: "#93C5FD", letterSpacing: 1.2, textTransform: "uppercase", flexShrink: 0, paddingTop: 1 }}>
+              🏆 {RL.nextGoal}
+            </span>
+            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.45, fontWeight: 700 }}>
+              {review.nextSessionGoal}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function SectionLabel({ label }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "16px 0 10px" }}>
@@ -200,6 +322,7 @@ export default function TrainResultModal({
   onShareChallenge,
   onShareTraining,
   isGuest = false,
+  academyLesson = null,
 }) {
   const displayScore = useCountUp(result?.score);
   const [sessionTag, setSessionTag] = useState(null);
@@ -339,6 +462,92 @@ export default function TrainResultModal({
                 <div style={{ padding: "7px 12px", borderRadius: 9, background: "rgba(168,85,247,0.05)", border: "1px solid rgba(168,85,247,0.13)", display: "flex", gap: 8, alignItems: "flex-start" }}>
                   <span style={{ fontSize: 9, fontWeight: 900, color: "rgba(168,85,247,0.65)", textTransform: "uppercase", letterSpacing: 1, flexShrink: 0, paddingTop: 1 }}>Next focus</span>
                   <span style={{ fontSize: 11, fontWeight: 800, color: whiteAlpha(0.65), lineHeight: 1.4 }}>{nextFocus}</span>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* ── COACH REVIEW ─────────────────────────────────────────── */}
+        {poseMetrics && (
+          <CoachReviewCard poseMetrics={poseMetrics} result={result} locale={locale} />
+        )}
+
+        {/* ── ACADEMY LESSON REVIEW ────────────────────────────────── */}
+        {academyLesson && !tooFewPunches && (() => {
+          const goalMet = (result?.score ?? 0) >= 6.5;
+          const acc = academyLesson.accentColor;
+          const currentIdx = ACADEMY_LESSONS.findIndex(l => l.id === academyLesson.id);
+          const nextLesson = currentIdx >= 0 ? ACADEMY_LESSONS[currentIdx + 1] : null;
+          return (
+            <div style={{
+              margin: "0 20px 8px",
+              padding: "12px 14px", borderRadius: 12,
+              background: `${acc}07`,
+              border: `1px solid ${acc}25`,
+              borderLeft: `3px solid ${acc}66`,
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                <span style={{ fontSize: 14 }}>{academyLesson.emoji}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.8, color: acc, textTransform: "uppercase" }}>
+                    ACADEMY LESSON · {locale === "mn" ? "Дэвшил хадгаласан ✓" : "Progress tracked ✓"}
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 900, color: "#fff", marginTop: 1 }}>
+                    {academyLesson.title}
+                  </div>
+                </div>
+                <div style={{ flexShrink: 0 }}>
+                  <div style={{
+                    display: "inline-flex", alignItems: "center", gap: 5,
+                    padding: "3px 10px", borderRadius: 20,
+                    background: goalMet ? "rgba(52,211,153,0.1)" : "rgba(248,113,113,0.1)",
+                    border: `1px solid ${goalMet ? "rgba(52,211,153,0.3)" : "rgba(248,113,113,0.3)"}`,
+                  }}>
+                    <span style={{ fontSize: 9, fontWeight: 900, color: goalMet ? "#34D399" : "#F87171", letterSpacing: 1 }}>
+                      {goalMet ? "✓ COMPLETE" : `${(result?.score ?? 0).toFixed(1)}/6.5`}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              {!goalMet && (
+                <div style={{
+                  marginBottom: 8, padding: "7px 10px", borderRadius: 8,
+                  background: "rgba(248,113,113,0.05)", border: "1px solid rgba(248,113,113,0.14)",
+                }}>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", lineHeight: 1.4 }}>
+                    {locale === "mn"
+                      ? `6.5/10 хүрвэл хичээл дуусна. Одоо ${(result?.score ?? 0).toFixed(1)} байна. Дахин дасгалдана уу.`
+                      : `Score 6.5/10 to complete this lesson. You got ${(result?.score ?? 0).toFixed(1)}. Train again to improve.`}
+                  </span>
+                </div>
+              )}
+              {nextLesson && (
+                <div style={{
+                  padding: "8px 10px", borderRadius: 8,
+                  background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)",
+                  display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
+                }}>
+                  <div>
+                    <div style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 1.2, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", marginBottom: 2 }}>
+                      {locale === "mn" ? "Дараагийн хичээл" : "Next Lesson"}
+                    </div>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.65)" }}>
+                      {nextLesson.emoji} {nextLesson.title}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/${locale}/train?academyLesson=${nextLesson.id}`)}
+                    style={{
+                      flexShrink: 0, padding: "5px 12px", borderRadius: 8,
+                      background: `${nextLesson.accentColor}18`, border: `1px solid ${nextLesson.accentColor}35`,
+                      color: nextLesson.accentColor, fontSize: 9, fontWeight: 900,
+                      cursor: "pointer", letterSpacing: 1, textTransform: "uppercase",
+                    }}
+                  >
+                    Train →
+                  </button>
                 </div>
               )}
             </div>

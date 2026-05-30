@@ -17,7 +17,9 @@ import { useTrainingData } from "@/hooks/useTrainingData";
 import { useCameraSession } from "@/hooks/useCameraSession";
 import { FIGHTERS } from "@/lib/fighters";
 import { FIGHTER_TECHNIQUES } from "@/lib/fighterTechniques";
+import { ACADEMY_LESSONS } from "@/lib/academyLessons";
 import TrainingFocusCard from "@/components/train/TrainingFocusCard";
+import { useAcademyProgress } from "@/hooks/useAcademyProgress";
 import { getDrillConfig } from "@/lib/drillConfig";
 import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
 import MilestoneCelebration from "@/components/MilestoneCelebration";
@@ -42,6 +44,7 @@ export default function TrainPage() {
   const locale = getLocaleFromPathname(pathname);
   const t = (key) => translate(locale, key);
   const { user, loading: authLoading } = useAuth();
+  const { recordSession } = useAcademyProgress({ user });
 
   const [debugEnabled, setDebugEnabled] = useState(false);
   const [autoStart, setAutoStart] = useState(false);
@@ -185,6 +188,7 @@ export default function TrainPage() {
   const [trackingRing, setTrackingRing] = useState(null);
   const coachSnapshotRef = useRef(null);
   const prevSessionCountRef = useRef(null);
+  const priorSessionsRef = useRef([]);
 
   // Fetch training sessions once → build coach snapshot + grab last session's pose metrics
   useEffect(() => {
@@ -206,6 +210,7 @@ export default function TrainPage() {
         const snapshot = buildCoachSnapshot({ sessions, profileData: {} });
         coachSnapshotRef.current = snapshot;
         prevSessionCountRef.current = sessions.length;
+        priorSessionsRef.current = sessions.slice(0, 9);
         // Most recent past session's pose metrics for comparison
         if (sessions[0]?.poseMetrics) setPrevPoseMetrics(sessions[0].poseMetrics);
         if (snapshot && sessions.length >= 3) {
@@ -380,9 +385,16 @@ export default function TrainPage() {
 
   // ── Lesson context from query params ─────────────────────────────────────
   const [lessonContext, setLessonContext] = useState(null);
+  const [activeCueIndex, setActiveCueIndex] = useState(0);
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
+    const academyLessonId = params.get("academyLesson");
+    if (academyLessonId) {
+      const al = ACADEMY_LESSONS.find(l => l.id === academyLessonId);
+      if (al) setLessonContext({ academyLesson: al });
+      return;
+    }
     const fighterId = params.get("fighter");
     const lessonSlug = params.get("lesson");
     if (!fighterId || !lessonSlug) return;
@@ -393,6 +405,30 @@ export default function TrainPage() {
     );
     if (fighter && lesson) setLessonContext({ fighter, lesson });
   }, []);
+
+  // ── Rotating cue for academy lessons during recording ────────────────────
+  useEffect(() => {
+    if (phase !== "recording" || !lessonContext?.academyLesson) {
+      setActiveCueIndex(0);
+      return;
+    }
+    const cues = lessonContext.academyLesson.keyCues;
+    if (cues.length <= 1) return;
+    const id = setInterval(() => setActiveCueIndex(i => (i + 1) % cues.length), 9000);
+    return () => clearInterval(id);
+  }, [phase, lessonContext]);
+
+  // ── Auto-record academy progress when result arrives ─────────────────────
+  const lastRecordedRef = useRef({ lessonId: null, score: null });
+  useEffect(() => {
+    if (!result?.score || !lessonContext?.academyLesson) return;
+    const lid = lessonContext.academyLesson.id;
+    const score = result.score;
+    if (lastRecordedRef.current.lessonId === lid && lastRecordedRef.current.score === score) return;
+    lastRecordedRef.current = { lessonId: lid, score };
+    recordSession(lid, score);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result?.score, lessonContext?.academyLesson?.id]);
 
   // Auto-start when coming from landing with ?autostart=1
   const autoStartFiredRef = useRef(false);
@@ -522,12 +558,15 @@ export default function TrainPage() {
           )}
         </header>
 
-        {/* Training Focus — shown when arriving from a fighter technique lesson */}
+        {/* Training Focus — shown when arriving from a fighter or academy lesson */}
         {lessonContext && canStart && (
           <TrainingFocusCard
-            fighterName={lessonContext.fighter.name}
+            fighterName={lessonContext.fighter?.name || lessonContext.academyLesson?.relatedFighterName}
             lesson={lessonContext.lesson}
-            accent={lessonContext.fighter.accent}
+            academyLesson={lessonContext.academyLesson}
+            accent={lessonContext.fighter?.accent || lessonContext.academyLesson?.accentColor}
+            locale={locale}
+            router={router}
             onStart={handleStart}
           />
         )}
@@ -694,39 +733,45 @@ export default function TrainPage() {
           <PoseDebugOverlay getDebugInfo={getDebugInfo} isActive={phase === "recording"} debugEnabled={debugEnabled} />
 
           {/* Live technique coaching cue — shown during recording when a lesson is active */}
-          {isRecording && lessonContext?.lesson?.bodyCue && (
-            <div style={{
-              position: "absolute", top: 12, left: 0, right: 0,
-              display: "flex", justifyContent: "center", pointerEvents: "none",
-              padding: "0 14px",
-            }}>
+          {isRecording && (lessonContext?.lesson?.bodyCue || lessonContext?.academyLesson?.keyCues?.length > 0) && (() => {
+            const acc = lessonContext.fighter?.accent || lessonContext.academyLesson?.accentColor || GOLD;
+            const cueText = lessonContext.academyLesson
+              ? (lessonContext.academyLesson.keyCues[activeCueIndex] || lessonContext.academyLesson.keyCues[0])
+              : lessonContext.lesson.bodyCue;
+            return (
               <div style={{
-                background: `${lessonContext.fighter.accent}18`,
-                border: `1px solid ${lessonContext.fighter.accent}55`,
-                borderRadius: 20,
-                padding: "6px 14px",
-                maxWidth: 320,
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
+                position: "absolute", top: 12, left: 0, right: 0,
+                display: "flex", justifyContent: "center", pointerEvents: "none",
+                padding: "0 14px",
               }}>
-                <span style={{
-                  width: 5, height: 5, borderRadius: "50%",
-                  background: lessonContext.fighter.accent,
-                  flexShrink: 0,
-                  boxShadow: `0 0 6px ${lessonContext.fighter.accent}`,
-                }} />
-                <span style={{
-                  fontSize: 11, fontWeight: 700,
-                  color: "rgba(255,255,255,0.88)",
-                  lineHeight: 1.35,
-                  textAlign: "center",
+                <div style={{
+                  background: `${acc}18`,
+                  border: `1px solid ${acc}55`,
+                  borderRadius: 20,
+                  padding: "6px 14px",
+                  maxWidth: 320,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
                 }}>
-                  {lessonContext.lesson.bodyCue}
-                </span>
+                  <span style={{
+                    width: 5, height: 5, borderRadius: "50%",
+                    background: acc,
+                    flexShrink: 0,
+                    boxShadow: `0 0 6px ${acc}`,
+                  }} />
+                  <span style={{
+                    fontSize: 11, fontWeight: 700,
+                    color: "rgba(255,255,255,0.88)",
+                    lineHeight: 1.35,
+                    textAlign: "center",
+                  }}>
+                    {cueText}
+                  </span>
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Position cue — shown when lower body not in frame during recording */}
           {positionCue && (
@@ -866,10 +911,11 @@ export default function TrainPage() {
         t={t}
         router={router}
         onTryAgain={handleTryAgain}
-        onSave={handleSave}
+        onSave={(params) => handleSave({ ...params, priorSessions: priorSessionsRef.current })}
         onSaveChallengeResult={handleSaveChallengeResult}
         onShareChallenge={handleShareChallenge}
         onShareTraining={handleShareTraining}
+        academyLesson={lessonContext?.academyLesson || null}
       />
       {/* Debug session report — only visible when ?debug=1, appears after session */}
       <DebugSessionPanel

@@ -1,65 +1,83 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { translate } from "@/lib/i18n";
 import ScrollRow from "@/components/ScrollRow";
-import { GOLD, redAlpha, goldAlpha, RADIUS, blackAlpha} from "@/lib/tokens";
+import { RED, GOLD, redAlpha, goldAlpha, blackAlpha, whiteAlpha } from "@/lib/tokens";
 import {
   getStyles, getTechniques, getCountryStyles, getCommonMistakes, getWeeklyFocus, getMovement,
   QUICK_PROMPTS,
 } from "@/lib/knowledgeData";
 import {
-  SectionHeader, StyleCard, TechCard, CountryCard, MovementCard, MistakeRow,
+  SectionHeader, StyleCard, TechCard, FighterCard, CountryCard, MovementCard, MistakeRow,
 } from "@/components/knowledge/KnowledgeCards";
+import TechniqueSheet from "@/components/knowledge/TechniqueSheet";
+import AcademyLessonCard from "@/components/knowledge/AcademyLessonCard";
+import AcademyPathCard from "@/components/academy/AcademyPathCard";
+import AcademySearchBar, { matchesSearch, FILTER_CHIPS } from "@/components/knowledge/AcademySearchBar";
+import AcademyRecommendations from "@/components/knowledge/AcademyRecommendations";
+import { FIGHTERS } from "@/lib/fighters";
+import { ACADEMY_LESSONS } from "@/lib/academyLessons";
+import { getLessonStatus } from "@/lib/academyPaths";
+import { useAcademyProgress } from "@/hooks/useAcademyProgress";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function KnowledgeLibrary({ locale, onAsk }) {
   const t = (key) => translate(locale, key);
-  const [hoveredPrompt, setHoveredPrompt] = useState(null);
-  const [todayHover, setTodayHover] = useState(false);
-  const [mistakesHover, setMistakesHover] = useState(false);
+  const router = useRouter();
+  const [activeFighter, setActiveFighter] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState(null);
+  const { user } = useAuth();
+  const { lessonProgress, currentPathId, guestPrompt, setGuestPrompt, setCurrentPath } = useAcademyProgress({ user });
 
-  const todayFocus = useMemo(() => {
-    return getWeeklyFocus(locale)[new Date().getDay()];
-  }, [locale]);
+  const todayFocus = useMemo(() => getWeeklyFocus(locale)[new Date().getDay()], [locale]);
+
+  const isSearchActive = searchQuery.trim() !== "" || activeFilter !== null;
+
+  const filteredLessons = useMemo(
+    () => ACADEMY_LESSONS.filter(l => matchesSearch(l, searchQuery, activeFilter)),
+    [searchQuery, activeFilter],
+  );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 28, paddingBottom: 32 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 32, paddingBottom: 32 }}>
 
-      {/* Hero Header */}
+      {/* ── Page identity ─────────────────────────────────────────────────── */}
+      <div style={{ padding: "0 0 4px" }}>
+        <p style={{ margin: "0 0 2px", fontSize: 10, fontWeight: 900, letterSpacing: 3, color: RED, textTransform: "uppercase" }}>
+          GAVANA ACADEMY
+        </p>
+        <h2 style={{ margin: 0, fontSize: 26, fontWeight: 1000, color: "#fff", lineHeight: 1, letterSpacing: "-0.02em", fontFamily: "var(--font-display, 'Anton', sans-serif)", textTransform: "uppercase" }}>
+          {locale === "mn" ? "Тулааны Мэдлэг" : locale === "ko" ? "컴뱃 지식" : "Combat Knowledge"}
+        </h2>
+        <p style={{ margin: "6px 0 0", fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.4 }}>
+          {locale === "mn" ? "Аварга тулаанчдаас суралц" : locale === "ko" ? "챔피언에게서 배우세요" : "Learn from champions. Train smarter every session."}
+        </p>
+      </div>
+
+      {/* ── Quick prompts ──────────────────────────────────────────────────── */}
       <div style={{
-        background: `linear-gradient(135deg, ${redAlpha(0.1)} 0%, ${goldAlpha(0.07)} 100%)`,
-        border: `1px solid ${goldAlpha(0.14)}`,
-        borderRadius: 16,
-        padding: "18px 16px 16px",
+        background: `linear-gradient(135deg, ${redAlpha(0.08)} 0%, ${goldAlpha(0.05)} 100%)`,
+        border: `1px solid ${goldAlpha(0.12)}`,
+        borderRadius: 14,
+        padding: "14px 14px 12px",
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 8 }}>
-          <span style={{ fontSize: 24 }}>📚</span>
-          <div>
-            <h2 style={{ margin: 0, fontSize: 17, fontWeight: 900, color: "#fff", lineHeight: 1, letterSpacing: "-0.01em" }}>
-              GAVANA Library
-            </h2>
-            <p style={{ margin: "3px 0 0", fontSize: 10, color: GOLD, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-              AI Coach Knowledge Base
-            </p>
-          </div>
-        </div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+        <p style={{ margin: "0 0 10px", fontSize: 9, fontWeight: 900, letterSpacing: 2, color: GOLD, textTransform: "uppercase" }}>
+          {locale === "mn" ? "Хурдан асуулт" : "Quick questions"}
+        </p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
           {QUICK_PROMPTS.map((p) => (
             <button
               key={p.key}
               onClick={() => onAsk(t(p.key))}
-              onMouseEnter={() => setHoveredPrompt(p.key)}
-              onMouseLeave={() => setHoveredPrompt(null)}
               style={{
                 display: "flex", alignItems: "center", gap: 5,
-                padding: "7px 12px", borderRadius: RADIUS.full,
-                background: hoveredPrompt === p.key ? `${goldAlpha(0.12)}` : "rgba(255,255,255,0.05)",
-                border: `1px solid ${hoveredPrompt === p.key ? `${goldAlpha(0.4)}` : "rgba(255,255,255,0.1)"}`,
-                color: hoveredPrompt === p.key ? GOLD : "#ddd",
-                fontSize: 11, fontWeight: 700,
+                padding: "7px 12px", borderRadius: 20,
+                background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+                color: "rgba(255,255,255,0.7)", fontSize: 11, fontWeight: 700,
                 cursor: "pointer", whiteSpace: "nowrap",
-                backdropFilter: "blur(6px)",
-                transition: "background 130ms ease, border-color 130ms ease, color 130ms ease",
               }}
             >
               <span>{p.emoji}</span>
@@ -69,88 +87,276 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
         </div>
       </div>
 
-      {/* Train Today */}
+      {/* ── Today's Lesson — full-width hero ──────────────────────────────── */}
       <div>
         <SectionHeader emoji="🔥" title={t("librarySectionToday")} />
         <div style={{
-          background: `${goldAlpha(0.07)}`,
-          border: `1px solid ${goldAlpha(0.2)}`,
-          borderLeft: "3px solid #F5C451",
-          borderRadius: 14,
-          padding: "14px 16px",
+          borderRadius: 18,
+          overflow: "hidden",
+          border: "1px solid rgba(255,255,255,0.07)",
+          background: "#0d0b0e",
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7 }}>
-            <span style={{ fontSize: 22 }}>{todayFocus.emoji}</span>
-            <div>
-              <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: "#fff" }}>{todayFocus.focus}</p>
-              <p style={{ margin: 0, fontSize: 10, color: GOLD, fontWeight: 700, letterSpacing: "0.04em" }}>{todayFocus.day}</p>
+          {/* Hero visual */}
+          <div style={{
+            height: 160,
+            position: "relative",
+            background: `linear-gradient(135deg, ${goldAlpha(0.22)} 0%, ${redAlpha(0.12)} 60%, transparent 100%), #0d0b0e`,
+            overflow: "hidden",
+          }}>
+            <div style={{
+              position: "absolute", inset: 0,
+              backgroundImage: `repeating-linear-gradient(55deg, rgba(245,196,81,0.06) 0, rgba(245,196,81,0.06) 1px, transparent 0, transparent 22px)`,
+            }} />
+            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 80, background: "linear-gradient(to top, #0d0b0e, transparent)" }} />
+            {/* Day badge */}
+            <div style={{
+              position: "absolute", top: 14, left: 14,
+              fontSize: 9, fontWeight: 900, letterSpacing: 1.5, color: GOLD,
+              background: `${goldAlpha(0.15)}`, border: `1px solid ${goldAlpha(0.3)}`,
+              borderRadius: 20, padding: "4px 10px", textTransform: "uppercase",
+            }}>
+              {todayFocus.day}
+            </div>
+            <span style={{
+              position: "absolute", bottom: 18, left: 16,
+              fontSize: 40, filter: "drop-shadow(0 6px 20px rgba(0,0,0,0.9))",
+            }}>
+              {todayFocus.emoji}
+            </span>
+          </div>
+          {/* Content */}
+          <div style={{ padding: "14px 16px 16px" }}>
+            <p style={{ margin: "0 0 5px", fontSize: 17, fontWeight: 900, color: "#fff", lineHeight: 1.2 }}>
+              {todayFocus.focus}
+            </p>
+            <p style={{ margin: "0 0 12px", fontSize: 12.5, color: "rgba(255,255,255,0.52)", lineHeight: 1.5 }}>
+              {todayFocus.desc}
+            </p>
+            <div style={{ background: blackAlpha(0.35), border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: "10px 12px", marginBottom: 12 }}>
+              <p style={{ margin: "0 0 2px", fontSize: 9, fontWeight: 900, color: GOLD, textTransform: "uppercase", letterSpacing: 1.5 }}>
+                {locale === "mn" ? "Дасгал" : "Drill"}
+              </p>
+              <p style={{ margin: 0, fontSize: 12.5, color: "#fde68a", lineHeight: 1.5 }}>{todayFocus.drill}</p>
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                onClick={() => onAsk(t("libPromptToday"))}
+                style={{
+                  flex: 1, padding: "10px 0", borderRadius: 10,
+                  background: `${goldAlpha(0.12)}`, border: `1px solid ${goldAlpha(0.28)}`,
+                  color: GOLD, fontSize: 12, fontWeight: 800, cursor: "pointer",
+                }}
+              >
+                {locale === "mn" ? "Асуух →" : "Ask Coach →"}
+              </button>
+              <button
+                onClick={() => router.push(`/${locale}/train`)}
+                style={{
+                  flex: 1, padding: "10px 0", borderRadius: 10,
+                  background: `${redAlpha(0.14)}`, border: `1px solid ${redAlpha(0.3)}`,
+                  color: "#ff6b6b", fontSize: 12, fontWeight: 800, cursor: "pointer",
+                }}
+              >
+                {locale === "mn" ? "⚡ Дасгалдах" : "⚡ Train Now"}
+              </button>
             </div>
           </div>
-          <p style={{ margin: "0 0 10px", fontSize: 12, color: "#aaa", lineHeight: 1.5 }}>{todayFocus.desc}</p>
-          <div style={{ background: blackAlpha(0.3), border: "1px solid rgba(255,255,255,0.07)", borderRadius: 9, padding: "9px 11px" }}>
-            <p style={{ margin: 0, fontSize: 12, color: "#fde68a", lineHeight: 1.5 }}>
-              <strong style={{ color: GOLD }}>Drill: </strong>{todayFocus.drill}
-            </p>
-          </div>
-          <button
-            onClick={() => onAsk(t("libPromptToday"))}
-            onMouseEnter={() => setTodayHover(true)}
-            onMouseLeave={() => setTodayHover(false)}
-            style={{
-              marginTop: 10, width: "100%", padding: "9px 0", borderRadius: 9,
-              background: todayHover ? `${goldAlpha(0.16)}` : `${goldAlpha(0.08)}`,
-              border: `1px solid rgba(245,196,81,${todayHover ? "0.5" : "0.2"})`,
-              color: GOLD, fontSize: 12, fontWeight: 800, cursor: "pointer",
-              transition: "background 130ms ease, border-color 130ms ease",
-              transform: todayHover ? "translateY(-1px)" : "none",
-            }}
-          >
-            {t("libraryAskCoach")} →
-          </button>
         </div>
       </div>
 
-      {/* Fighter Styles */}
+      {/* ── Your Path ────────────────────────────────────────────────────── */}
+      <div>
+        <SectionHeader emoji="🎯" title={locale === "mn" ? "Таны Зам" : locale === "ko" ? "내 경로" : "Your Path"} />
+        <AcademyPathCard
+          currentPathId={currentPathId}
+          lessonProgress={lessonProgress}
+          locale={locale}
+          onSelectPath={setCurrentPath}
+          onContinue={(lessonId) => router.push(`/${locale}/train?academyLesson=${lessonId}`)}
+        />
+        {/* Guest save prompt */}
+        {guestPrompt && !user && (
+          <div style={{
+            marginTop: 10, padding: "10px 14px", borderRadius: 10,
+            background: "rgba(245,196,81,0.06)", border: "1px solid rgba(245,196,81,0.18)",
+            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
+          }}>
+            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", lineHeight: 1.4 }}>
+              {locale === "mn" ? "Дэвшлийг хадгалахын тулд бүртгүүл." : "Sign up to save progress across devices."}
+            </span>
+            <button
+              type="button"
+              onClick={() => { setGuestPrompt(false); router.push(`/${locale}/login?mode=signup`); }}
+              style={{
+                flexShrink: 0, padding: "5px 12px", borderRadius: 7,
+                background: "rgba(245,196,81,0.16)", border: "1px solid rgba(245,196,81,0.3)",
+                color: "#F5C451", fontSize: 10, fontWeight: 900, cursor: "pointer",
+              }}
+            >
+              {locale === "mn" ? "Бүртгүүлэх →" : "Sign up →"}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ── Recommended for you (hidden when search active) ──────────────── */}
+      {!isSearchActive && (
+        <AcademyRecommendations
+          lessonProgress={lessonProgress}
+          currentPathId={currentPathId}
+          locale={locale}
+          router={router}
+        />
+      )}
+
+      {/* ── Foundation Skills ────────────────────────────────────────────── */}
+      <div>
+        <SectionHeader
+          emoji="📚"
+          title={locale === "mn" ? "Суурь Техникүүд" : locale === "ko" ? "기초 기술" : "Foundation Skills"}
+        />
+
+        {/* Search bar + filter chips — always visible */}
+        <div style={{ marginBottom: 12 }}>
+          <AcademySearchBar
+            query={searchQuery}
+            onQuery={setSearchQuery}
+            activeFilter={activeFilter}
+            onFilter={setActiveFilter}
+            locale={locale}
+          />
+        </div>
+
+        {/* Search active: filtered results or empty state */}
+        {isSearchActive ? (
+          filteredLessons.length > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              {filteredLessons.map(lesson => (
+                <AcademyLessonCard
+                  key={lesson.id}
+                  lesson={lesson}
+                  locale={locale}
+                  lessonStatus={getLessonStatus(lesson.id, lessonProgress)}
+                  bestScore={lessonProgress[lesson.id]?.bestScore}
+                  onStudyFighter={fid => router.push(`/${locale}/fighters/${fid}`)}
+                  router={router}
+                />
+              ))}
+            </div>
+          ) : (
+            /* Empty search state */
+            <div style={{
+              padding: "28px 16px 24px", borderRadius: 14,
+              background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)",
+              textAlign: "center",
+            }}>
+              <div style={{ fontSize: 32, marginBottom: 10 }}>🔍</div>
+              <p style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 800, color: "rgba(255,255,255,0.52)" }}>
+                {locale === "mn" ? "Үр дүн олдсонгүй" : locale === "ko" ? "결과 없음" : "No lessons found"}
+              </p>
+              <p style={{ margin: "0 0 16px", fontSize: 12, color: "rgba(255,255,255,0.3)", lineHeight: 1.5 }}>
+                {locale === "mn"
+                  ? "Коучоос асуугаарай:"
+                  : "Ask Coach about this topic:"}
+                {" "}
+                <strong style={{ color: "rgba(255,255,255,0.5)" }}>
+                  &ldquo;{searchQuery || (FILTER_CHIPS.find(c => c.key === activeFilter)?.[locale] || FILTER_CHIPS.find(c => c.key === activeFilter)?.en || activeFilter)}&rdquo;
+                </strong>
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  const chip = FILTER_CHIPS.find(c => c.key === activeFilter);
+                  const topic = searchQuery || chip?.en || activeFilter || "boxing technique";
+                  const q = locale === "mn"
+                    ? `"${topic}" техникийн талаар тайлбарлана уу?`
+                    : `Explain ${topic} and how to improve it in boxing`;
+                  router.push(`/${locale}/coach/chat?q=${encodeURIComponent(q)}`);
+                }}
+                style={{
+                  padding: "10px 22px", borderRadius: 22,
+                  background: "rgba(245,196,81,0.1)", border: "1px solid rgba(245,196,81,0.28)",
+                  color: "#F5C451", fontSize: 12, fontWeight: 900, cursor: "pointer",
+                }}
+              >
+                💬 {locale === "mn" ? "Коучоос асуух →" : locale === "ko" ? "코치에게 묻기 →" : "Ask Coach →"}
+              </button>
+            </div>
+          )
+        ) : (
+          /* Normal: all lessons */
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            {ACADEMY_LESSONS.map(lesson => (
+              <AcademyLessonCard
+                key={lesson.id}
+                lesson={lesson}
+                locale={locale}
+                lessonStatus={getLessonStatus(lesson.id, lessonProgress)}
+                bestScore={lessonProgress[lesson.id]?.bestScore}
+                onStudyFighter={fid => router.push(`/${locale}/fighters/${fid}`)}
+                router={router}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── Fighter Profiles ──────────────────────────────────────────────── */}
+      <div>
+        <SectionHeader emoji="⚡" title={locale === "mn" ? "Тулаанчдын Техник" : locale === "ko" ? "파이터 프로필" : "Fighter Profiles"} />
+        <ScrollRow cardWidth={200}>
+          {FIGHTERS.map((fighter) => (
+            <FighterCard
+              key={fighter.id}
+              fighter={fighter}
+              locale={locale}
+              onStudy={(f) => setActiveFighter(f)}
+            />
+          ))}
+        </ScrollRow>
+      </div>
+
+      {/* ── Fighter Styles ────────────────────────────────────────────────── */}
       <div>
         <SectionHeader emoji="🥊" title={t("librarySectionStyles")} />
-        <ScrollRow cardWidth={224}>
+        <ScrollRow cardWidth={260}>
           {getStyles(locale).map((s) => (
             <StyleCard key={s.key} style={s} onAsk={onAsk} t={t} />
           ))}
         </ScrollRow>
       </div>
 
-      {/* Techniques */}
+      {/* ── Techniques ───────────────────────────────────────────────────── */}
       <div>
         <SectionHeader emoji="🎯" title={t("librarySectionTechniques")} />
-        <ScrollRow cardWidth={204}>
+        <ScrollRow cardWidth={240}>
           {getTechniques(locale).map((tech) => (
             <TechCard key={tech.key} tech={tech} onAsk={onAsk} t={t} />
           ))}
         </ScrollRow>
       </div>
 
-      {/* Combat Movement Origins */}
+      {/* ── Combat Movement Origins ───────────────────────────────────────── */}
       <div>
         <SectionHeader emoji="🐆" title={t("librarySectionMovement")} />
-        <ScrollRow cardWidth={214}>
+        <ScrollRow cardWidth={220}>
           {getMovement(locale).map((card) => (
             <MovementCard key={card.key} card={card} t={t} />
           ))}
         </ScrollRow>
       </div>
 
-      {/* Country / Legacy Styles */}
+      {/* ── Country / Legacy Styles ───────────────────────────────────────── */}
       <div>
         <SectionHeader emoji="🌍" title={t("librarySectionCountries")} />
-        <ScrollRow cardWidth={184}>
+        <ScrollRow cardWidth={190}>
           {getCountryStyles(locale).map((cs) => (
             <CountryCard key={cs.name} cs={cs} />
           ))}
         </ScrollRow>
       </div>
 
-      {/* Common Mistakes */}
+      {/* ── Common Mistakes ───────────────────────────────────────────────── */}
       <div>
         <SectionHeader emoji="⚠️" title={t("librarySectionMistakes")} />
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
@@ -160,20 +366,25 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
         </div>
         <button
           onClick={() => onAsk("What are the most common boxing mistakes beginners make and how do I fix them?")}
-          onMouseEnter={() => setMistakesHover(true)}
-          onMouseLeave={() => setMistakesHover(false)}
           style={{
-            marginTop: 12, width: "100%", padding: "9px 0", borderRadius: 9,
-            background: mistakesHover ? `${redAlpha(0.1)}` : "rgba(255,255,255,0.03)",
-            border: `1px solid ${mistakesHover ? `${redAlpha(0.35)}` : "rgba(255,255,255,0.08)"}`,
-            color: mistakesHover ? "#f87171" : "rgba(255,255,255,0.45)",
-            fontSize: 12, fontWeight: 700, cursor: "pointer",
-            transition: "background 130ms ease, border-color 130ms ease, color 130ms ease",
+            marginTop: 10, width: "100%", padding: "10px 0", borderRadius: 10,
+            background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
+            color: "rgba(255,255,255,0.45)", fontSize: 12, fontWeight: 700, cursor: "pointer",
           }}
         >
-          Ask coach about my mistakes →
+          {locale === "mn" ? "Алдаагаа засах зөвлөгөө авах →" : "Ask coach about my mistakes →"}
         </button>
       </div>
+
+      {/* ── Technique sheet ───────────────────────────────────────────────── */}
+      {activeFighter && (
+        <TechniqueSheet
+          fighter={activeFighter}
+          locale={locale}
+          router={router}
+          onClose={() => setActiveFighter(null)}
+        />
+      )}
 
     </div>
   );

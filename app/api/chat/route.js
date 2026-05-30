@@ -75,9 +75,9 @@ const LANGUAGE_INSTRUCTIONS = {
 
 // ── Technique question detection ──────────────────────────────────────────────
 const TECHNIQUE_PATTERNS = [
-  /хэрхэн|яаж|яагаад|заа|тайлбарла/i,          // mn: how, teach, explain
-  /алхам|дасгал|техник/i,                         // mn: steps, drill, technique
-  /how\s+to|teach|explain|what\s+is|steps/i,       // en
+  /хэрхэн|яаж|яагаад|заа|тайлбарла/i,
+  /алхам|дасгал|техник/i,
+  /how\s+to|teach|explain|what\s+is|steps/i,
   /jab|cross|hook|uppercut|guard|footwork|stance|pivot|slip|roll|combo/i,
 ];
 
@@ -87,26 +87,68 @@ function isTechniqueQuestion(normalizedMsgs) {
   return TECHNIQUE_PATTERNS.some((re) => re.test(lastUser.content));
 }
 
-const TECHNIQUE_FORMAT = {
-  mn: [
-    "Техникийн асуултанд дараах бүтцээр хариулна:",
-    "1) Товч тайлбар (1-2 өгүүлбэр)",
-    "2) Алхам алхмаар зааварчилгаа (3-5 алхам)",
-    "3) Нийтлэг алдаа (1-2)",
-    "4) Дасгал (нэг тодорхой дасгал)",
-    "Шаардлагатай бол аюулгүй байдлын зөвлөгөө нэм.",
-  ].join(" "),
+// ── JSON schema instructions (json_mode = true) ───────────────────────────────
+const JSON_SCHEMA_INSTRUCTIONS = {
   en: [
-    "For technique questions use this structure:",
-    "1) Brief explanation (1-2 sentences)",
-    "2) Step-by-step cues (3-5 steps)",
-    "3) Common mistakes (1-2)",
-    "4) One drill",
-    "Add a safety note if relevant.",
+    "RESPONSE FORMAT — return ONLY a valid JSON object, no prose outside it:",
+    '{ "title": "2–5 word title with leading emoji, e.g. \'🥊 Fix Your Jab\'",',
+    '  "keyCues": ["cue 1 (max 10 words)", "cue 2", "cue 3"],',
+    '  "commonMistake": "One sentence: the most common mistake.",',
+    '  "drill": "One sentence: specific drill with reps/sets/time.",',
+    '  "nextAction": "One sentence: concrete next step." }',
+    "All field values must be in English. keyCues: 2–4 items max.",
   ].join(" "),
+
+  mn: [
+    "ХАРИУЛТ ФОРМАТ — Зөвхөн хүчинтэй JSON объект, гадна текст огт байхгүй:",
+    '{ "title": "2–5 үгтэй гарчиг, emoji-тэй. Жишээ: \'🥊 Jab засах\'",',
+    '  "keyCues": ["зааварчилгаа 1 (10 үгнээс бага)", "зааварчилгаа 2", "зааварчилгаа 3"],',
+    '  "commonMistake": "Нэг өгүүлбэр: хамгийн нийтлэг алдаа. МОНГОЛ КИРИЛЛЭЭР.",',
+    '  "drill": "Нэг өгүүлбэр: тодорхой дасгал, давталт/сет/хугацаатай. МОНГОЛ КИРИЛЛЭЭР.",',
+    '  "nextAction": "Нэг өгүүлбэр: дараагийн тодорхой алхам. МОНГОЛ КИРИЛЛЭЭР." }',
+    "keyCues: 2–4 ширхэг. Бүх утга МОНГОЛ КИРИЛЛЭЭР. Тулааны нэр томьёо АНГЛИАР: jab, cross, hook, guard, combo, drill.",
+  ].join(" "),
+
   ko: [
-    "기술 질문에는 다음 형식으로 답변하세요:",
-    "1) 간단한 설명, 2) 단계별 지침, 3) 흔한 실수, 4) 드릴 하나.",
+    "RESPONSE FORMAT — return ONLY valid JSON, no prose outside it:",
+    '{ "title": "2–5 word title with emoji",',
+    '  "keyCues": ["cue 1", "cue 2", "cue 3"],',
+    '  "commonMistake": "One sentence: most common mistake. In Korean.",',
+    '  "drill": "One sentence: specific drill. In Korean.",',
+    '  "nextAction": "One sentence: next step. In Korean." }',
+    "keyCues: 2–4 items. All values in Korean except boxing terms.",
+  ].join(" "),
+};
+
+// ── Structured output format ─────────────────────────────────────────────────
+// Applied to EVERY response so the bubble renderer can parse sections/bullets.
+const FORMAT_INSTRUCTIONS = {
+  en: [
+    "FORMAT — apply to every response without exception:",
+    "Line 1: emoji + short title (2–5 words). Example: '🥊 Fix Your Jab'",
+    "Then: bullet points starting with • for all cues, steps, observations. No paragraphs.",
+    "Blank line before ⚠️ mistake section and before 🎯 drill section.",
+    "⚠️ for mistakes/warnings (1 line), 🎯 for the drill/next step (1 line), 📊 for numbers/scores.",
+    "Max 5 bullet points. Max 10 words per bullet. Never write a paragraph.",
+    "Example:\n🥊 Fix Your Jab\n• Keep chin down\n• Extend from shoulder, not arm\n• Snap back to guard immediately\n\n⚠️ Mistake:\nPushing instead of snapping — kills power.\n\n🎯 Drill:\n30 jabs → guard each time. 3 sets.",
+  ].join(" "),
+
+  mn: [
+    "ФОРМАТЫН ДҮРЭМ — бүх хариулт заавал:",
+    "1-р мөр: emoji + богино гарчиг (2–5 үг). Жишээ: '🥊 Jab засах'",
+    "Дараа нь: бүх зааварчилгааг • цэгтэй мөрөөр бичнэ. Параграф ХОРИГЛОНО.",
+    "⚠️ алдаа болон 🎯 дасгал хэсгийн өмнө хоосон мөр.",
+    "⚠️ — алдаа (1 мөр), 🎯 — дасгал (1 мөр), 📊 — score/тоон мэдээлэл.",
+    "Хамгийн ихдээ 5 цэгт мөр. Мөр бүр 10-аас ихгүй үг.",
+    "Жишээ:\n🥊 Jab засах\n• Эрүүгээ хамгаал\n• Мөрөөрөө чиглүүл\n• Guard руу хурдан буцаа\n\n⚠️ Алдаа:\nТүлхэж цохих — хүч алдана.\n\n🎯 Дасгал:\n30 jab → guard болгон. 3 сет.",
+  ].join(" "),
+
+  ko: [
+    "FORMAT — apply to every response:",
+    "Line 1: emoji + short title (2–5 words).",
+    "Then: bullets (•) for all cues — no paragraphs.",
+    "⚠️ mistake (1 line), 🎯 drill (1 line), blank line between sections.",
+    "Max 5 bullets. Max 10 words per bullet.",
   ].join(" "),
 };
 
@@ -174,7 +216,7 @@ export async function POST(req) {
 
   let body;
   try { body = await req.json(); } catch { return Response.json({ error: "Invalid JSON" }, { status: 400 }); }
-  let { messages, persona = "drill", locale = "en", coachContext = null } = body;
+  let { messages, persona = "drill", locale = "en", coachContext = null, json_mode = false } = body;
 
   if (!Array.isArray(messages)) messages = [];
   messages = messages.slice(-20).map((m) => ({
@@ -188,7 +230,9 @@ export async function POST(req) {
   const selectedPersona = PERSONAS[persona] || PERSONAS.drill;
   const langInstruction = LANGUAGE_INSTRUCTIONS[safeLocale] || LANGUAGE_INSTRUCTIONS.en;
   const isTechQ = isTechniqueQuestion(normalizedMessages);
-  const techFormat = isTechQ ? (TECHNIQUE_FORMAT[safeLocale] || TECHNIQUE_FORMAT.en) : null;
+  const formatInstruction = json_mode
+    ? (JSON_SCHEMA_INSTRUCTIONS[safeLocale] || JSON_SCHEMA_INSTRUCTIONS.en)
+    : (FORMAT_INSTRUCTIONS[safeLocale] || FORMAT_INSTRUCTIONS.en);
 
   const hasKey = !!process.env.OPENAI_API_KEY;
   const keyHint = hasKey ? `sk-...${process.env.OPENAI_API_KEY.slice(-4)}` : "NOT SET";
@@ -199,20 +243,20 @@ export async function POST(req) {
     return errorResponse(safeLocale, "OPENAI_API_KEY not configured");
   }
 
-  // Language instruction goes FIRST in system prompt so it anchors the whole response
+  // Order: language → persona → platform context → user context → format (closest to completion)
   const systemParts = [
     langInstruction,
     selectedPersona.systemPrompt,
     GAVANA_CONTEXT,
     coachContext && typeof coachContext === "string" ? coachContext.slice(0, 1200) : null,
-    techFormat,
+    formatInstruction,
   ].filter(Boolean);
 
   const systemPrompt = systemParts.join("\n\n");
 
   try {
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    const completion = await client.chat.completions.create({
+    const callOpts = {
       model: MODEL,
       max_tokens: 700,
       temperature: 0.65,
@@ -220,15 +264,36 @@ export async function POST(req) {
         { role: "system", content: systemPrompt },
         ...normalizedMessages,
       ],
-    });
+    };
+    if (json_mode) callOpts.response_format = { type: "json_object" };
 
-    const text = completion.choices[0]?.message?.content?.trim();
-    if (!text) {
+    const completion = await client.chat.completions.create(callOpts);
+
+    const raw = completion.choices[0]?.message?.content?.trim();
+    if (!raw) {
       console.error("[chat/route] OpenAI returned empty response.");
       return errorResponse(safeLocale, "Empty response from OpenAI");
     }
-    console.log(`[chat/route] OpenAI success — tokens:${completion.usage?.total_tokens ?? "?"} locale:${safeLocale}`);
-    return textResponse(text);
+    console.log(`[chat/route] OpenAI success — tokens:${completion.usage?.total_tokens ?? "?"} locale:${safeLocale} json_mode:${json_mode}`);
+
+    if (json_mode) {
+      try {
+        const structured = JSON.parse(raw);
+        const cues = Array.isArray(structured.keyCues) ? structured.keyCues.map((c) => `• ${c}`).join("\n") : "";
+        const text = [
+          structured.title || "",
+          cues,
+          structured.commonMistake ? `\n⚠️ ${structured.commonMistake}` : "",
+          structured.drill ? `\n🎯 ${structured.drill}` : "",
+          structured.nextAction ? `\n✅ ${structured.nextAction}` : "",
+        ].filter(Boolean).join("\n");
+        return Response.json({ _source: "openai", structured, message: text, content: [{ type: "text", text }] }, { status: 200 });
+      } catch {
+        console.warn("[chat/route] JSON parse failed — falling back to plain text");
+      }
+    }
+
+    return textResponse(raw);
   } catch (err) {
     const status = err?.status ?? err?.statusCode ?? "?";
     const code = err?.code ?? "";

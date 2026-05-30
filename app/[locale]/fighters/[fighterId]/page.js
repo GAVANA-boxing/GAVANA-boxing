@@ -18,6 +18,10 @@ import TechniqueLessonCard from "@/components/fighters/TechniqueLessonCard";
 import { FIGHTER_TECHNIQUES } from "@/lib/fighterTechniques";
 import { buildCoachSnapshot } from "@/lib/buildCoachContext";
 import { getPersonalConnection } from "@/lib/fighterPersonalConnection";
+import DiagramPlaceholder from "@/components/visual/DiagramPlaceholder";
+import { getFighterAssets, punchIconFromStep, BLOCK_DIAGRAM_TYPE, MOVEMENT_ATTR_LABELS } from "@/lib/visualAssets";
+import FighterAcademyPanel from "@/components/fighters/FighterAcademyPanel";
+import { getFighterAcademy } from "@/lib/fighterAcademy";
 
 // ─── Style identity pill icons — SVG line icons cycle by index ────────────────
 const PILL_SVGS = [
@@ -42,18 +46,36 @@ const SI = {
   warn:     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
   award:    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>,
   lessons:  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>,
+  academy:  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/><line x1="12" y1="7" x2="12" y2="7"/></svg>,
 };
 
 // ─── Combo step pills ─────────────────────────────────────────────────────────
-function ComboSteps({ steps }) {
+function ComboSteps({ steps, accent }) {
   return (
     <div style={s.comboSteps}>
-      {steps.map((step, i) => (
-        <span key={i} style={s.comboStepWrap}>
-          <span style={s.comboStep}>{step}</span>
-          {i < steps.length - 1 && <span style={s.comboArrow}>›</span>}
-        </span>
-      ))}
+      {steps.map((step, i) => {
+        const pi = punchIconFromStep(step);
+        return (
+          <span key={i} style={s.comboStepWrap}>
+            <span style={{
+              ...s.comboStep,
+              display: "inline-flex", alignItems: "center", gap: 5,
+              borderColor: `${pi.color}28`,
+            }}>
+              <span style={{
+                fontSize: 7.5, fontWeight: 900, color: pi.color,
+                background: `${pi.color}18`, border: `1px solid ${pi.color}28`,
+                borderRadius: 3, padding: "1px 4px", letterSpacing: 0.5, lineHeight: 1,
+                flexShrink: 0,
+              }}>
+                {pi.code}
+              </span>
+              {step}
+            </span>
+            {i < steps.length - 1 && <span style={s.comboArrow}>›</span>}
+          </span>
+        );
+      })}
     </div>
   );
 }
@@ -88,7 +110,7 @@ function ComboTrainer({ combo, acc, locale }) {
         )}
       </div>
 
-      {!active && !done && <ComboSteps steps={combo.steps} />}
+      {!active && !done && <ComboSteps steps={combo.steps} accent={acc} />}
 
       {active && (
         <div style={{ textAlign: "center", padding: "10px 0" }}>
@@ -239,7 +261,7 @@ export default function FighterDetailPage() {
           <FighterPortrait
             fighterId={fighter.id}
             fighter={fighter}
-            height={260}
+            height={300}
             flagSize={80}
             showName={false}
             showLabel={false}
@@ -410,6 +432,36 @@ export default function FighterDetailPage() {
         {/* ── Technique Lessons ── */}
         {FIGHTER_TECHNIQUES[fighter.id]?.length > 0 && (
           <Section title={t("fighterTechniqueLesson")} icon={SI.lessons} accent={acc} defaultOpen>
+            {/* Technique visual thumbnail strip */}
+            {FIGHTER_TECHNIQUES[fighter.id].length > 1 && (
+              <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, marginBottom: 14, WebkitOverflowScrolling: "touch" }}>
+                {FIGHTER_TECHNIQUES[fighter.id].map((lesson, i) => {
+                  const diagramType = BLOCK_DIAGRAM_TYPE[lesson.teachingBlocks?.[0]?.type] || "ring";
+                  const DIFF_C = { beginner: "#10B981", intermediate: "#F59E0B", advanced: "#F87171" };
+                  const dc = DIFF_C[lesson.difficulty] || GOLD;
+                  return (
+                    <div key={i} style={{
+                      flexShrink: 0, width: 84, borderRadius: 10, overflow: "hidden",
+                      background: `${acc}08`, border: `1px solid ${acc}22`,
+                    }}>
+                      <div style={{ height: 54, overflow: "hidden" }}>
+                        <DiagramPlaceholder type={diagramType} accent={acc} width={84} height={54} />
+                      </div>
+                      <div style={{ padding: "5px 7px 7px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 2 }}>
+                          <span style={{ fontSize: 7, fontWeight: 900, color: dc, background: `${dc}18`, borderRadius: 3, padding: "1px 4px", letterSpacing: 0.5 }}>
+                            {lesson.difficulty?.slice(0, 3)?.toUpperCase()}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: 9.5, fontWeight: 800, color: "rgba(255,255,255,0.65)", lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {lesson.title}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
             {FIGHTER_TECHNIQUES[fighter.id].map((lesson, i) => (
               <TechniqueLessonCard
                 key={i}
@@ -432,8 +484,64 @@ export default function FighterDetailPage() {
           </Section>
         )}
 
+        {/* ── Fighter Academy ── */}
+        {(() => {
+          const academy = getFighterAcademy(fighter.id);
+          if (!academy) return null;
+          const academyTitle = locale === "mn" ? "Академийн гарын авлага" : locale === "ko" ? "아카데미 가이드" : "Academy Guide";
+          return (
+            <Section title={academyTitle} icon={SI.academy} accent={acc} defaultOpen>
+              <FighterAcademyPanel academy={academy} fighterId={fighter.id} locale={locale} />
+            </Section>
+          );
+        })()}
+
         {/* ── Movement DNA ── */}
         <Section title={t("fighterMovementDNA")} icon={SI.dna} accent={acc} defaultOpen>
+          {/* Visual movement profile + animal archetype */}
+          {(() => {
+            const assets = getFighterAssets(fighter.id);
+            const { movementProfile, animalEmoji, animal } = assets;
+            return (
+              <div style={{ marginBottom: 14 }}>
+                {/* Animal archetype badge */}
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12, padding: "9px 12px", borderRadius: 10, background: `${acc}08`, border: `1px solid ${acc}18` }}>
+                  <DiagramPlaceholder type="animal" accent={acc} width={48} height={48} animalEmoji={animalEmoji} animal={animal} />
+                  <div>
+                    <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: acc, textTransform: "uppercase", marginBottom: 3 }}>
+                      {animal} Archetype
+                    </div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.55)", lineHeight: 1.4 }}>
+                      {fighter.movementDNA.type}
+                    </div>
+                  </div>
+                </div>
+                {/* Movement profile bars */}
+                {Object.entries(movementProfile).map(([key, val]) => {
+                  const pct = Math.round(val * 100);
+                  const label = MOVEMENT_ATTR_LABELS[key]?.[locale] || key;
+                  return (
+                    <div key={key} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                      <span style={{ width: 64, fontSize: 8, fontWeight: 900, color: "rgba(255,255,255,0.32)", textTransform: "uppercase", letterSpacing: 0.8, flexShrink: 0 }}>
+                        {label}
+                      </span>
+                      <div style={{ flex: 1, height: 3, background: "rgba(255,255,255,0.07)", borderRadius: 3, overflow: "hidden" }}>
+                        <div style={{
+                          height: "100%", width: `${pct}%`, borderRadius: 3,
+                          background: acc,
+                          boxShadow: `0 0 6px ${acc}55`,
+                          transition: "width 1s cubic-bezier(0.16,1,0.3,1)",
+                        }} />
+                      </div>
+                      <span style={{ width: 26, textAlign: "right", fontSize: 9, fontWeight: 900, color: pct >= 60 ? acc : "rgba(255,255,255,0.3)", fontFamily: "monospace", flexShrink: 0 }}>
+                        {pct}%
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
           <div style={{ ...s.dnaBox, borderColor: acc + "35", background: acc + "0a" }}>
             <div style={s.dnaHeader}>
               <span style={{ ...s.dnaType, color: acc }}>{fighter.movementDNA.type}</span>

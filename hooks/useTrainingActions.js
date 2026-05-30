@@ -11,6 +11,9 @@ import { writeChallengeAttempt, updateUserTrainingProfile } from "@/lib/analytic
 import { checkAndAwardBadges } from "@/lib/badges";
 import { getLocalDateKey, getPreviousLocalDateKey } from "@/lib/utils";
 import { getSessionIdentity, buildMovementCounts, buildMovementMetrics } from "@/lib/combatMemory";
+import { generateTechniqueReview } from "@/lib/techniqueReview";
+import { computeFighterDNA, dnaSnapshot } from "@/lib/fighterDNA";
+import { computeCombatProgress, progressSnapshot } from "@/lib/combatProgress";
 
 export function useTrainingActions({
   user,
@@ -202,7 +205,7 @@ export function useTrainingActions({
     }
   }, [result, t, reelId, user, locale, setError]);
 
-  const handleSave = useCallback(async ({ movementEvents = [], tag = null, readiness = null, poseMetrics = null } = {}) => {
+  const handleSave = useCallback(async ({ movementEvents = [], tag = null, readiness = null, poseMetrics = null, priorSessions = [] } = {}) => {
     if (!user?.uid || !result) return;
 
     setSaving(true);
@@ -247,6 +250,21 @@ export function useTrainingActions({
         ...movementMetrics,
         // Pose metrics (null if MediaPipe unavailable)
         ...(poseMetrics ? { poseMetrics } : {}),
+        // Lightweight technique review (skip heavy arrays)
+        ...(() => {
+          if (!poseMetrics) return {};
+          const rev = generateTechniqueReview({ poseMetrics, result, locale });
+          if (rev.lowData) return {};
+          return {
+            techniqueReview: {
+              title: rev.title,
+              priorityWeakness: rev.priorityWeakness,
+              drill: rev.drill,
+              coachTone: rev.coachTone,
+              strengths: rev.strengths,
+            },
+          };
+        })(),
       });
 
       // Daily mission completion
@@ -286,6 +304,26 @@ export function useTrainingActions({
 
       setSaved(true);
       setSavedAttemptNumber(attemptNumber);
+
+      // Fighter DNA + Combat Progress — compute from prior sessions + this result and save to user doc
+      try {
+        const sessionsForStats = [
+          ...priorSessions.slice(0, 9),
+          { score: result.score, breakdown: result.breakdown, poseMetrics },
+        ].filter((s) => typeof s.score === "number");
+        if (sessionsForStats.length >= 3) {
+          const dna  = computeFighterDNA({ sessions: sessionsForStats, locale });
+          const snap = dnaSnapshot(dna);
+          if (snap) {
+            await setDoc(userRef, { fighterDNA: snap, fighterDnaUpdatedAt: serverTimestamp() }, { merge: true });
+          }
+          const prog     = computeCombatProgress({ sessions: sessionsForStats, streakDays: 0, locale });
+          const progSnap = progressSnapshot(prog);
+          if (progSnap) {
+            await setDoc(userRef, { combatProgress: progSnap }, { merge: true });
+          }
+        }
+      } catch { /* non-critical */ }
 
       // Analytics + badges (non-critical, fire and forget)
       if (reelId) {

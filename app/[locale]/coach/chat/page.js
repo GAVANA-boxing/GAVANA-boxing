@@ -9,6 +9,8 @@ import { getLocale, translate } from "@/lib/i18n";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import s from "@/components/coach/coachChatStyles";
 import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
+import CoachResponseCard from "@/components/coach/CoachResponseCard";
+import { buildLastSessionMessage } from "@/lib/techniqueReview";
 
 // ─── Persona config ───────────────────────────────────────────────────────────
 const PERSONAS = [
@@ -50,22 +52,97 @@ const PERSONAS = [
   },
 ];
 
-// ─── Typing indicator ─────────────────────────────────────────────────────────
-function TypingIndicator({ color }) {
+// ─── Coach bubble structured renderer ────────────────────────────────────────
+const SECTION_EMOJIS = ["🥊","⚠️","🎯","📊","🔥","💥","✅","❌","🧘","🏆","💡","📝","⚡","🔑","🩺"];
+function startsWithSectionEmoji(line) {
+  return SECTION_EMOJIS.some((e) => line.startsWith(e));
+}
+function CoachBubbleContent({ text, isStreaming, accentColor }) {
+  if (!text) return isStreaming ? <span style={{ opacity: 0.5, animation: "blink 0.7s step-end infinite" }}>▋</span> : null;
+  const lines = text.split("\n");
+  const nodes = [];
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i];
+    const line = raw.trim();
+    if (!line) {
+      nodes.push(<div key={i} style={{ height: 8 }} />);
+      continue;
+    }
+    // Bullet line
+    if (line.startsWith("•") || line.startsWith("·")) {
+      nodes.push(
+        <div key={i} style={{ display: "flex", gap: 9, marginBottom: 5, alignItems: "flex-start" }}>
+          <span style={{ color: accentColor, flexShrink: 0, fontSize: 15, lineHeight: 1.35, marginTop: 1 }}>•</span>
+          <span style={{ fontSize: 14, lineHeight: 1.45, color: "rgba(255,255,255,0.88)" }}>{line.slice(1).trim()}</span>
+        </div>
+      );
+      continue;
+    }
+    // Section header (emoji-led)
+    if (startsWithSectionEmoji(line)) {
+      const isWarning = line.startsWith("⚠️");
+      const isDrill  = line.startsWith("🎯");
+      nodes.push(
+        <div key={i} style={{
+          fontSize: 13,
+          fontWeight: 900,
+          color: isWarning ? "#FCA5A5" : isDrill ? "#6EE7B7" : "#fff",
+          marginTop: i > 0 ? 4 : 0,
+          marginBottom: 4,
+          letterSpacing: 0.1,
+        }}>
+          {line}
+        </div>
+      );
+      continue;
+    }
+    // Body text
+    nodes.push(
+      <div key={i} style={{ fontSize: 13.5, lineHeight: 1.5, color: "rgba(255,255,255,0.7)", marginBottom: 2 }}>
+        {line}
+      </div>
+    );
+  }
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "12px 16px" }}>
-      {[0, 1, 2].map((i) => (
-        <div
-          key={i}
-          style={{
-            width: 7,
-            height: 7,
-            borderRadius: "50%",
-            background: color,
+    <div style={{ display: "flex", flexDirection: "column", whiteSpace: "normal" }}>
+      {nodes}
+      {isStreaming && <span style={{ opacity: 0.5, animation: "blink 0.7s step-end infinite" }}>▋</span>}
+    </div>
+  );
+}
+
+// ─── Premium coach thinking indicator ────────────────────────────────────────
+function CoachThinking({ persona }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "12px 14px", width: "100%" }}>
+      <div style={{
+        height: 2, borderRadius: 99,
+        background: `linear-gradient(90deg, transparent 0%, ${persona.color} 50%, transparent 100%)`,
+        backgroundSize: "200% 100%",
+        animation: "shimmer 1.4s linear infinite",
+        marginBottom: 2,
+      }} />
+      <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+        <span style={{ fontSize: 11, fontWeight: 800, color: `${persona.color}cc`, letterSpacing: 0.3 }}>
+          {persona.emoji} Thinking
+        </span>
+        {[0, 1, 2].map((i) => (
+          <div key={i} style={{
+            width: 5, height: 5, borderRadius: "50%",
+            background: persona.color,
             animation: `dotBounce 1.1s ease-in-out ${i * 0.18}s infinite`,
-          }}
-        />
-      ))}
+          }} />
+        ))}
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+        {[75, 100, 55].map((w, i) => (
+          <div key={i} style={{
+            height: 9, width: `${w}%`, borderRadius: 5,
+            background: "rgba(255,255,255,0.055)",
+            animation: `shimmerFade 1.6s ease-in-out ${i * 0.22}s infinite`,
+          }} />
+        ))}
+      </div>
     </div>
   );
 }
@@ -89,6 +166,8 @@ export default function AIChatPage() {
   const [coachContextStr, setCoachContextStr] = useState(null);
   const [coachSnapshot, setCoachSnapshot] = useState(null);
   const [coachMemory, setCoachMemory] = useState(null); // persisted insights from past sessions
+  const [lastSessionData, setLastSessionData] = useState(null); // { poseMetrics, result } for "Review" action
+  const [reviewLoading, setReviewLoading] = useState(false);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -130,6 +209,19 @@ export default function AIChatPage() {
         const ctx = buildCoachContext({ snapshot, profileData, locale });
 
         setCoachSnapshot(snapshot);
+
+        // Store last session for "Review my last session" quick action
+        const lastSess = sessions[0];
+        if (lastSess?.poseMetrics && lastSess?.score != null) {
+          setLastSessionData({
+            poseMetrics: lastSess.poseMetrics,
+            result: {
+              score: lastSess.score,
+              breakdown: lastSess.breakdown || null,
+            },
+            techniqueReview: lastSess.techniqueReview || null,
+          });
+        }
 
         // Load coach memory from Firestore
         let memoryStr = null;
@@ -245,11 +337,15 @@ export default function AIChatPage() {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ messages: next, persona, locale, coachContext: coachContextStr }),
+        body: JSON.stringify({ messages: next, persona, locale, coachContext: coachContextStr, json_mode: true }),
       });
       const data = await res.json();
       const reply = data.content?.[0]?.text || data.message || t("coachError");
-      const newMsg = { role: "assistant", content: reply, ts: Date.now(), _source: data._source ?? (data.fallback ? "fallback" : data.aiError ? "error" : "openai") };
+      const newMsg = {
+        role: "assistant", content: reply, ts: Date.now(),
+        _source: data._source ?? (data.fallback ? "fallback" : data.aiError ? "error" : "openai"),
+        structured: data.structured ?? null,
+      };
       setMessages((prev) => {
         const updated = [...prev, newMsg];
         setStreamingIdx(updated.length - 1);
@@ -301,6 +397,15 @@ export default function AIChatPage() {
     return () => clearTimeout(timer);
   }, [streamingIdx, streamingText, messages]);
 
+  const sendReviewRequest = async () => {
+    if (!lastSessionData || reviewLoading || loading) return;
+    setReviewLoading(true);
+    setActiveSection?.("chat");
+    const msg = buildLastSessionMessage({ ...lastSessionData, locale });
+    if (msg) await sendMessage(msg);
+    setReviewLoading(false);
+  };
+
   const onKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -345,6 +450,8 @@ export default function AIChatPage() {
       <style>{`
         @keyframes blink { 0%,100%{opacity:0.5} 50%{opacity:0} }
         @keyframes dotBounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }
+        @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+        @keyframes shimmerFade { 0%,100%{opacity:0.4} 50%{opacity:0.9} }
       `}</style>
       {/* ── Header ── */}
       <div style={s.header}>
@@ -429,6 +536,26 @@ export default function AIChatPage() {
               <span style={{ fontSize: 32 }}>{activePersona.emoji}</span>
             </div>
             <p style={s.greeting}>{activePersona.greeting[locale] || activePersona.greeting.en}</p>
+
+            {/* Review my last session CTA */}
+            {lastSessionData && (
+              <button
+                type="button"
+                onClick={sendReviewRequest}
+                disabled={reviewLoading || loading}
+                style={{
+                  width: "100%", padding: "12px 16px", borderRadius: 12, marginBottom: 10,
+                  background: `${activePersona.color}14`, border: `1px solid ${activePersona.color}44`,
+                  color: activePersona.color, fontSize: 13, fontWeight: 900, cursor: "pointer",
+                  display: "flex", alignItems: "center", gap: 8, justifyContent: "center",
+                  opacity: reviewLoading ? 0.6 : 1,
+                }}
+              >
+                <span>📋</span>
+                {locale === "mn" ? "Сүүлийн session-аа шинжлүүл" : locale === "ko" ? "마지막 세션 리뷰" : "Review my last session"}
+              </button>
+            )}
+
             <div style={s.quickGrid}>
               {quickActions.map((qa) => (
                 <button key={qa} type="button" style={s.quickChip} onClick={() => sendMessage(qa)}>
@@ -457,9 +584,11 @@ export default function AIChatPage() {
                 <div style={s.userBubble}>{displayText}</div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 6, maxWidth: "85%" }}>
-                  <div style={{ ...s.aiBubble, maxWidth: "100%", borderLeftColor: activePersona.color, boxShadow: `inset 3px 0 0 ${activePersona.color}` }}>
-                    {displayText}
-                    {isStreaming && <span style={{ opacity: 0.5, animation: "blink 0.7s step-end infinite" }}>▋</span>}
+                  <div style={{ ...s.aiBubble, maxWidth: "100%", borderLeftColor: activePersona.color, boxShadow: `inset 3px 0 0 ${activePersona.color}`, whiteSpace: "normal" }}>
+                    {msg.structured && !isStreaming
+                      ? <CoachResponseCard structured={msg.structured} accentColor={activePersona.color} locale={locale} />
+                      : <CoachBubbleContent text={displayText} isStreaming={isStreaming} accentColor={activePersona.color} />
+                    }
                   </div>
                   {msg._source === "fallback" && (
                     <span style={{ alignSelf: "flex-start", fontSize: 9, fontWeight: 900, letterSpacing: 1.2, color: "rgba(245,196,81,0.5)", background: "rgba(245,196,81,0.07)", border: "1px solid rgba(245,196,81,0.18)", borderRadius: 4, padding: "2px 6px", textTransform: "uppercase" }}>
@@ -492,8 +621,8 @@ export default function AIChatPage() {
 
         {loading && (
           <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 10, padding: "0 16px" }}>
-            <div style={{ ...s.aiBubble, borderLeftColor: activePersona.color, boxShadow: `inset 3px 0 0 ${activePersona.color}`, padding: 0 }}>
-              <TypingIndicator color={activePersona.color} />
+            <div style={{ ...s.aiBubble, borderLeftColor: activePersona.color, boxShadow: `inset 3px 0 0 ${activePersona.color}`, padding: 0, minWidth: 200 }}>
+              <CoachThinking persona={activePersona} />
             </div>
           </div>
         )}
@@ -505,6 +634,16 @@ export default function AIChatPage() {
       <div style={s.inputArea}>
         {messages.length > 0 && (
           <div style={s.quickRow}>
+            {lastSessionData && (
+              <button
+                type="button"
+                style={{ ...s.quickChipSm, color: activePersona.color, borderColor: `${activePersona.color}44`, background: `${activePersona.color}0f` }}
+                disabled={loading || reviewLoading}
+                onClick={sendReviewRequest}
+              >
+                📋 {locale === "mn" ? "Session шинжилгээ" : locale === "ko" ? "세션 리뷰" : "Review session"}
+              </button>
+            )}
             {quickActions.map((qa) => (
               <button
                 key={qa}
