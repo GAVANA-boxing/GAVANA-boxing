@@ -233,6 +233,15 @@ export default function TrainPage() {
 
     setPoseSessionSummary(poseSummary);
 
+    // Override game score with MediaPipe pose-based score — the pixel-diff detector
+    // (usePunchDetector) misses most punches on mobile, giving scores like 0.5/10
+    // even when 47 real punches were thrown. computeFinalScore uses actual MediaPipe
+    // punch data and boxing intelligence metrics for a meaningful score.
+    const effectiveScore = poseSummary?.score ?? result.score;
+    if (poseSummary?.score != null) {
+      setResult((prev) => prev ? { ...prev, score: poseSummary.score } : prev);
+    }
+
     setDebrief(null);
     setDebriefLoading(true);
     let active = true;
@@ -266,7 +275,7 @@ export default function TrainPage() {
           body: JSON.stringify({
             messages: [{
               role: "user",
-            content: `Boxing session finished. Performance score: ${result.score.toFixed(1)}/10. ${prevStr}${poseStr} Give a 2-3 sentence coaching debrief — one strength observed, one specific thing to improve, and one concrete drill to do next. Do not repeat or mention any score number.`,
+              content: `Boxing session finished. Performance score: ${effectiveScore.toFixed(1)}/10. ${prevStr}${poseStr} Give a 2-3 sentence coaching debrief — one strength observed, one specific thing to improve, and one concrete drill to do next. Do not repeat or mention any score number.`,
             }],
             persona: "analyst",
             locale,
