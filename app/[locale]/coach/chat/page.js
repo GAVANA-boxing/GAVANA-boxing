@@ -10,6 +10,7 @@ import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import s from "@/components/coach/coachChatStyles";
 import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
 import CoachResponseCard from "@/components/coach/CoachResponseCard";
+import { buildLastSessionMessage } from "@/lib/techniqueReview";
 
 // ─── Persona config ───────────────────────────────────────────────────────────
 const PERSONAS = [
@@ -165,6 +166,8 @@ export default function AIChatPage() {
   const [coachContextStr, setCoachContextStr] = useState(null);
   const [coachSnapshot, setCoachSnapshot] = useState(null);
   const [coachMemory, setCoachMemory] = useState(null); // persisted insights from past sessions
+  const [lastSessionData, setLastSessionData] = useState(null); // { poseMetrics, result } for "Review" action
+  const [reviewLoading, setReviewLoading] = useState(false);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -206,6 +209,19 @@ export default function AIChatPage() {
         const ctx = buildCoachContext({ snapshot, profileData, locale });
 
         setCoachSnapshot(snapshot);
+
+        // Store last session for "Review my last session" quick action
+        const lastSess = sessions[0];
+        if (lastSess?.poseMetrics && lastSess?.score != null) {
+          setLastSessionData({
+            poseMetrics: lastSess.poseMetrics,
+            result: {
+              score: lastSess.score,
+              breakdown: lastSess.breakdown || null,
+            },
+            techniqueReview: lastSess.techniqueReview || null,
+          });
+        }
 
         // Load coach memory from Firestore
         let memoryStr = null;
@@ -381,6 +397,15 @@ export default function AIChatPage() {
     return () => clearTimeout(timer);
   }, [streamingIdx, streamingText, messages]);
 
+  const sendReviewRequest = async () => {
+    if (!lastSessionData || reviewLoading || loading) return;
+    setReviewLoading(true);
+    setActiveSection?.("chat");
+    const msg = buildLastSessionMessage({ ...lastSessionData, locale });
+    if (msg) await sendMessage(msg);
+    setReviewLoading(false);
+  };
+
   const onKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -511,6 +536,26 @@ export default function AIChatPage() {
               <span style={{ fontSize: 32 }}>{activePersona.emoji}</span>
             </div>
             <p style={s.greeting}>{activePersona.greeting[locale] || activePersona.greeting.en}</p>
+
+            {/* Review my last session CTA */}
+            {lastSessionData && (
+              <button
+                type="button"
+                onClick={sendReviewRequest}
+                disabled={reviewLoading || loading}
+                style={{
+                  width: "100%", padding: "12px 16px", borderRadius: 12, marginBottom: 10,
+                  background: `${activePersona.color}14`, border: `1px solid ${activePersona.color}44`,
+                  color: activePersona.color, fontSize: 13, fontWeight: 900, cursor: "pointer",
+                  display: "flex", alignItems: "center", gap: 8, justifyContent: "center",
+                  opacity: reviewLoading ? 0.6 : 1,
+                }}
+              >
+                <span>📋</span>
+                {locale === "mn" ? "Сүүлийн session-аа шинжлүүл" : locale === "ko" ? "마지막 세션 리뷰" : "Review my last session"}
+              </button>
+            )}
+
             <div style={s.quickGrid}>
               {quickActions.map((qa) => (
                 <button key={qa} type="button" style={s.quickChip} onClick={() => sendMessage(qa)}>
@@ -589,6 +634,16 @@ export default function AIChatPage() {
       <div style={s.inputArea}>
         {messages.length > 0 && (
           <div style={s.quickRow}>
+            {lastSessionData && (
+              <button
+                type="button"
+                style={{ ...s.quickChipSm, color: activePersona.color, borderColor: `${activePersona.color}44`, background: `${activePersona.color}0f` }}
+                disabled={loading || reviewLoading}
+                onClick={sendReviewRequest}
+              >
+                📋 {locale === "mn" ? "Session шинжилгээ" : locale === "ko" ? "세션 리뷰" : "Review session"}
+              </button>
+            )}
             {quickActions.map((qa) => (
               <button
                 key={qa}

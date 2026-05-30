@@ -11,6 +11,7 @@ import { writeChallengeAttempt, updateUserTrainingProfile } from "@/lib/analytic
 import { checkAndAwardBadges } from "@/lib/badges";
 import { getLocalDateKey, getPreviousLocalDateKey } from "@/lib/utils";
 import { getSessionIdentity, buildMovementCounts, buildMovementMetrics } from "@/lib/combatMemory";
+import { generateTechniqueReview } from "@/lib/techniqueReview";
 
 export function useTrainingActions({
   user,
@@ -247,6 +248,21 @@ export function useTrainingActions({
         ...movementMetrics,
         // Pose metrics (null if MediaPipe unavailable)
         ...(poseMetrics ? { poseMetrics } : {}),
+        // Lightweight technique review (skip heavy arrays)
+        ...(() => {
+          if (!poseMetrics) return {};
+          const rev = generateTechniqueReview({ poseMetrics, result, locale });
+          if (rev.lowData) return {};
+          return {
+            techniqueReview: {
+              title: rev.title,
+              priorityWeakness: rev.priorityWeakness,
+              drill: rev.drill,
+              coachTone: rev.coachTone,
+              strengths: rev.strengths,
+            },
+          };
+        })(),
       });
 
       // Daily mission completion
