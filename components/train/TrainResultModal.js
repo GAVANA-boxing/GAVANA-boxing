@@ -165,6 +165,7 @@ function TelemetryBar({ label, value }) {
 
 export default function TrainResultModal({
   debrief = null,
+  debriefSource = null,
   debriefLoading = false,
   result,
   activeChallenge,
@@ -354,8 +355,15 @@ export default function TrainResultModal({
             border: "1px solid rgba(245,196,81,0.14)",
             borderLeft: "3px solid rgba(245,196,81,0.55)",
           }}>
-            <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: goldAlpha(0.55), textTransform: "uppercase", marginBottom: 7 }}>
-              AI Debrief
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7 }}>
+              <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: goldAlpha(0.55), textTransform: "uppercase" }}>
+                AI Debrief
+              </div>
+              {!debriefLoading && debriefSource === "error" && (
+                <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1, color: "rgba(255,100,100,0.6)", background: "rgba(255,100,100,0.08)", border: "1px solid rgba(255,100,100,0.2)", borderRadius: 4, padding: "1px 5px", textTransform: "uppercase" }}>
+                  AI ERROR
+                </span>
+              )}
             </div>
             {debriefLoading
               ? (

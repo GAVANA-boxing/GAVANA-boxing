@@ -139,6 +139,7 @@ const FALLBACK_POOLS = {
 function textResponse(text, fallback = false) {
   return Response.json({
     fallback,
+    _source: fallback ? "fallback" : "openai",
     message: text,
     content: [{ type: "text", text }],
   }, { status: 200 });
@@ -146,12 +147,12 @@ function textResponse(text, fallback = false) {
 
 function errorResponse(locale, detail = "") {
   const base = locale === "mn"
-    ? "AI үйлчилгээ алдаа гарлаа."
+    ? "AI коуч одоогоор боломжгүй байна."
     : locale === "ko"
-    ? "AI 서비스 오류가 발생했습니다."
-    : "AI service error.";
+    ? "AI 코치를 현재 사용할 수 없습니다."
+    : "AI coach is currently unavailable.";
   const msg = detail ? `${base} (${detail})` : base;
-  return Response.json({ aiError: true, message: msg, content: [{ type: "text", text: msg }] }, { status: 200 });
+  return Response.json({ aiError: true, _source: "error", message: msg, content: [{ type: "text", text: msg }] }, { status: 200 });
 }
 
 function getMessageText(message) {
@@ -212,10 +213,14 @@ export async function POST(req) {
   const languageInstruction = LANGUAGE_INSTRUCTIONS[safeLocale] || LANGUAGE_INSTRUCTIONS.en;
   const normalizedMessages = normalizeMessages(messages);
 
-  // No API key — return static fallback (demo mode)
-  if (!process.env.OPENAI_API_KEY) {
-    console.warn("[chat/route] OPENAI_API_KEY is not set — returning static fallback.");
-    return textResponse(getFallback(safeLocale, messages), true);
+  const hasKey = !!process.env.OPENAI_API_KEY;
+  const keyHint = hasKey ? `sk-...${process.env.OPENAI_API_KEY.slice(-4)}` : "NOT SET";
+  console.log(`[chat/route] request — KEY:${keyHint} locale:${safeLocale} persona:${persona} msgs:${normalizedMessages.length}`);
+
+  // No API key — return error (never silently serve canned responses)
+  if (!hasKey) {
+    console.error("[chat/route] OPENAI_API_KEY is not configured. Set it in Vercel → Settings → Environment Variables.");
+    return errorResponse(safeLocale, "OPENAI_API_KEY not configured");
   }
 
   const systemPrompt = [
@@ -238,11 +243,21 @@ export async function POST(req) {
     });
 
     const text = completion.choices[0]?.message?.content?.trim();
-    if (!text) return errorResponse(safeLocale, "Empty response from OpenAI");
+    if (!text) {
+      console.error("[chat/route] OpenAI returned empty response.");
+      return errorResponse(safeLocale, "Empty response from OpenAI");
+    }
+    console.log(`[chat/route] OpenAI success — model:${MODEL} tokens:${completion.usage?.total_tokens ?? "?"}`);
     return textResponse(text);
   } catch (err) {
+    const status = err?.status ?? err?.statusCode ?? "?";
+    const code = err?.code ?? "";
     const msg = err?.message || String(err);
-    console.error("[chat/route] OpenAI error:", msg);
+    const isAuth = status === 401 || code === "invalid_api_key";
+    console.error(`[chat/route] OpenAI error [${isAuth ? "AUTH/KEY" : `HTTP ${status}`}]: ${msg}`);
+    if (isAuth) {
+      return errorResponse(safeLocale, "Invalid API key — check OPENAI_API_KEY in Vercel");
+    }
     return errorResponse(safeLocale, msg);
   }
 }

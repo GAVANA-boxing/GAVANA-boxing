@@ -175,6 +175,7 @@ export default function TrainPage() {
 
   // ── Post-session AI debrief ───────────────────────────────────────────────
   const [debrief, setDebrief]             = useState(null);
+  const [debriefSource, setDebriefSource] = useState(null);
   const [debriefLoading, setDebriefLoading] = useState(false);
   const [focusTip, setFocusTip] = useState(null);
   const [newBadges, setNewBadges] = useState([]);
@@ -237,7 +238,7 @@ export default function TrainPage() {
 
   // Generate debrief when result appears
   useEffect(() => {
-    if (!result?.score) { setDebrief(null); setPoseSessionSummary(null); return; }
+    if (!result?.score) { setDebrief(null); setDebriefSource(null); setPoseSessionSummary(null); return; }
 
     // Capture pose summary (may already be set by score-override effect above)
     const poseSummary = computeSessionSummary();
@@ -291,7 +292,8 @@ export default function TrainPage() {
         });
         const data = await res.json();
         const text = data.content?.[0]?.text || data.message || null;
-        if (active) setDebrief(text);
+        const src = data._source ?? (data.fallback ? "fallback" : data.aiError ? "error" : "openai");
+        if (active) { setDebrief(text); setDebriefSource(src); }
       } catch { /* silent — debrief is optional */ } finally {
         if (active) setDebriefLoading(false);
       }
@@ -833,6 +835,7 @@ export default function TrainPage() {
 
       <TrainResultModal
         debrief={debrief}
+        debriefSource={debriefSource}
         debriefLoading={debriefLoading}
         result={result}
         isGuest={isGuest}

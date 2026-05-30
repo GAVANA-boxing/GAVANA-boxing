@@ -249,7 +249,7 @@ export default function AIChatPage() {
       });
       const data = await res.json();
       const reply = data.content?.[0]?.text || data.message || t("coachError");
-      const newMsg = { role: "assistant", content: reply, ts: Date.now() };
+      const newMsg = { role: "assistant", content: reply, ts: Date.now(), _source: data._source ?? (data.fallback ? "fallback" : data.aiError ? "error" : "openai") };
       setMessages((prev) => {
         const updated = [...prev, newMsg];
         setStreamingIdx(updated.length - 1);
@@ -461,6 +461,16 @@ export default function AIChatPage() {
                     {displayText}
                     {isStreaming && <span style={{ opacity: 0.5, animation: "blink 0.7s step-end infinite" }}>▋</span>}
                   </div>
+                  {msg._source === "fallback" && (
+                    <span style={{ alignSelf: "flex-start", fontSize: 9, fontWeight: 900, letterSpacing: 1.2, color: "rgba(245,196,81,0.5)", background: "rgba(245,196,81,0.07)", border: "1px solid rgba(245,196,81,0.18)", borderRadius: 4, padding: "2px 6px", textTransform: "uppercase" }}>
+                      demo · ai unavailable
+                    </span>
+                  )}
+                  {msg._source === "error" && (
+                    <span style={{ alignSelf: "flex-start", fontSize: 9, fontWeight: 900, letterSpacing: 1.2, color: "rgba(255,100,100,0.6)", background: "rgba(255,100,100,0.07)", border: "1px solid rgba(255,100,100,0.18)", borderRadius: 4, padding: "2px 6px", textTransform: "uppercase" }}>
+                      ai error
+                    </span>
+                  )}
                   {isLastAI && !isStreaming && hasDrillContent(msg.content) && (
                     <button
                       onClick={() => addToCalendar(msg.content)}
