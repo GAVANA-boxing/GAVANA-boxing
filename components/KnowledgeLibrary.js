@@ -15,6 +15,8 @@ import {
 import TechniqueSheet from "@/components/knowledge/TechniqueSheet";
 import AcademyLessonCard from "@/components/knowledge/AcademyLessonCard";
 import AcademyPathCard from "@/components/academy/AcademyPathCard";
+import AcademySearchBar, { matchesSearch, FILTER_CHIPS } from "@/components/knowledge/AcademySearchBar";
+import AcademyRecommendations from "@/components/knowledge/AcademyRecommendations";
 import { FIGHTERS } from "@/lib/fighters";
 import { ACADEMY_LESSONS } from "@/lib/academyLessons";
 import { getLessonStatus } from "@/lib/academyPaths";
@@ -25,10 +27,19 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
   const t = (key) => translate(locale, key);
   const router = useRouter();
   const [activeFighter, setActiveFighter] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState(null);
   const { user } = useAuth();
   const { lessonProgress, currentPathId, guestPrompt, setGuestPrompt, setCurrentPath } = useAcademyProgress({ user });
 
   const todayFocus = useMemo(() => getWeeklyFocus(locale)[new Date().getDay()], [locale]);
+
+  const isSearchActive = searchQuery.trim() !== "" || activeFilter !== null;
+
+  const filteredLessons = useMemo(
+    () => ACADEMY_LESSONS.filter(l => matchesSearch(l, searchQuery, activeFilter)),
+    [searchQuery, activeFilter],
+  );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 32, paddingBottom: 32 }}>
@@ -188,22 +199,106 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
         )}
       </div>
 
+      {/* ── Recommended for you (hidden when search active) ──────────────── */}
+      {!isSearchActive && (
+        <AcademyRecommendations
+          lessonProgress={lessonProgress}
+          currentPathId={currentPathId}
+          locale={locale}
+          router={router}
+        />
+      )}
+
       {/* ── Foundation Skills ────────────────────────────────────────────── */}
       <div>
-        <SectionHeader emoji="📚" title={locale === "mn" ? "Суурь Техникүүд" : locale === "ko" ? "기초 기술" : "Foundation Skills"} />
-        <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-          {ACADEMY_LESSONS.map((lesson) => (
-            <AcademyLessonCard
-              key={lesson.id}
-              lesson={lesson}
-              locale={locale}
-              lessonStatus={getLessonStatus(lesson.id, lessonProgress)}
-              bestScore={lessonProgress[lesson.id]?.bestScore}
-              onStudyFighter={(fighterId) => router.push(`/${locale}/fighters/${fighterId}`)}
-              router={router}
-            />
-          ))}
+        <SectionHeader
+          emoji="📚"
+          title={locale === "mn" ? "Суурь Техникүүд" : locale === "ko" ? "기초 기술" : "Foundation Skills"}
+        />
+
+        {/* Search bar + filter chips — always visible */}
+        <div style={{ marginBottom: 12 }}>
+          <AcademySearchBar
+            query={searchQuery}
+            onQuery={setSearchQuery}
+            activeFilter={activeFilter}
+            onFilter={setActiveFilter}
+            locale={locale}
+          />
         </div>
+
+        {/* Search active: filtered results or empty state */}
+        {isSearchActive ? (
+          filteredLessons.length > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              {filteredLessons.map(lesson => (
+                <AcademyLessonCard
+                  key={lesson.id}
+                  lesson={lesson}
+                  locale={locale}
+                  lessonStatus={getLessonStatus(lesson.id, lessonProgress)}
+                  bestScore={lessonProgress[lesson.id]?.bestScore}
+                  onStudyFighter={fid => router.push(`/${locale}/fighters/${fid}`)}
+                  router={router}
+                />
+              ))}
+            </div>
+          ) : (
+            /* Empty search state */
+            <div style={{
+              padding: "28px 16px 24px", borderRadius: 14,
+              background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)",
+              textAlign: "center",
+            }}>
+              <div style={{ fontSize: 32, marginBottom: 10 }}>🔍</div>
+              <p style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 800, color: "rgba(255,255,255,0.52)" }}>
+                {locale === "mn" ? "Үр дүн олдсонгүй" : locale === "ko" ? "결과 없음" : "No lessons found"}
+              </p>
+              <p style={{ margin: "0 0 16px", fontSize: 12, color: "rgba(255,255,255,0.3)", lineHeight: 1.5 }}>
+                {locale === "mn"
+                  ? "Коучоос асуугаарай:"
+                  : "Ask Coach about this topic:"}
+                {" "}
+                <strong style={{ color: "rgba(255,255,255,0.5)" }}>
+                  &ldquo;{searchQuery || (FILTER_CHIPS.find(c => c.key === activeFilter)?.[locale] || FILTER_CHIPS.find(c => c.key === activeFilter)?.en || activeFilter)}&rdquo;
+                </strong>
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  const chip = FILTER_CHIPS.find(c => c.key === activeFilter);
+                  const topic = searchQuery || chip?.en || activeFilter || "boxing technique";
+                  const q = locale === "mn"
+                    ? `"${topic}" техникийн талаар тайлбарлана уу?`
+                    : `Explain ${topic} and how to improve it in boxing`;
+                  router.push(`/${locale}/coach/chat?q=${encodeURIComponent(q)}`);
+                }}
+                style={{
+                  padding: "10px 22px", borderRadius: 22,
+                  background: "rgba(245,196,81,0.1)", border: "1px solid rgba(245,196,81,0.28)",
+                  color: "#F5C451", fontSize: 12, fontWeight: 900, cursor: "pointer",
+                }}
+              >
+                💬 {locale === "mn" ? "Коучоос асуух →" : locale === "ko" ? "코치에게 묻기 →" : "Ask Coach →"}
+              </button>
+            </div>
+          )
+        ) : (
+          /* Normal: all lessons */
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            {ACADEMY_LESSONS.map(lesson => (
+              <AcademyLessonCard
+                key={lesson.id}
+                lesson={lesson}
+                locale={locale}
+                lessonStatus={getLessonStatus(lesson.id, lessonProgress)}
+                bestScore={lessonProgress[lesson.id]?.bestScore}
+                onStudyFighter={fid => router.push(`/${locale}/fighters/${fid}`)}
+                router={router}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ── Fighter Profiles ──────────────────────────────────────────────── */}
