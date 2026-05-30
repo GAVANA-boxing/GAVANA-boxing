@@ -6,7 +6,7 @@ export const trainStageStyles = {
     position: "relative",
     overflow: "hidden",
     borderRadius: 28,
-    height: "clamp(300px, 44vh, 460px)",
+    height: 360,
     background: BG,
     border: `1px solid ${whiteAlpha(0.07)}`,
     boxShadow: `0 32px 80px ${blackAlpha(0.55)}, 0 0 0 1px ${whiteAlpha(0.03)}`,
