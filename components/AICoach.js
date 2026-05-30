@@ -6,6 +6,7 @@ import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import KnowledgeLibrary from "@/components/KnowledgeLibrary";
 import { RED, GOLD, PURPLE , blackAlpha} from "@/lib/tokens";
 import styles from "@/components/aiCoachStyles";
+import CoachResponseCard from "@/components/coach/CoachResponseCard";
 import { auth } from "@/lib/firebase";
 
 const BLUE = "#3B82F6";
@@ -102,13 +103,18 @@ export default function AICoach() {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ messages: newMessages, persona, locale }),
+        body: JSON.stringify({ messages: newMessages, persona, locale, json_mode: true }),
       });
 
       const data = await response.json();
 
       if (data.content && data.content[0]) {
-        setMessages([...newMessages, { role: "assistant", content: data.content[0].text }]);
+        setMessages([...newMessages, {
+          role: "assistant",
+          content: data.content[0].text,
+          structured: data.structured ?? null,
+          _source: data._source ?? (data.aiError ? "error" : "openai"),
+        }]);
       }
     } catch {
       setMessages([...newMessages, { role: "assistant", content: t("coachError") }]);
@@ -258,10 +264,14 @@ export default function AICoach() {
                         ...(message.role === "assistant" ? {
                           borderLeftColor: activePersona.color,
                           boxShadow: `inset 3px 0 0 ${activePersona.color}, 0 14px 34px ${blackAlpha(0.24)}`,
+                          whiteSpace: "normal",
                         } : {}),
                       }}
                     >
-                      {message.content}
+                      {message.role === "assistant" && message.structured
+                        ? <CoachResponseCard structured={message.structured} accentColor={activePersona.color} locale={locale} />
+                        : message.content
+                      }
                     </div>
                   </div>
                 ))

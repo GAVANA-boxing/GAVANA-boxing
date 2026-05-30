@@ -87,6 +87,39 @@ function isTechniqueQuestion(normalizedMsgs) {
   return TECHNIQUE_PATTERNS.some((re) => re.test(lastUser.content));
 }
 
+// ── JSON schema instructions (json_mode = true) ───────────────────────────────
+const JSON_SCHEMA_INSTRUCTIONS = {
+  en: [
+    "RESPONSE FORMAT — return ONLY a valid JSON object, no prose outside it:",
+    '{ "title": "2–5 word title with leading emoji, e.g. \'🥊 Fix Your Jab\'",',
+    '  "keyCues": ["cue 1 (max 10 words)", "cue 2", "cue 3"],',
+    '  "commonMistake": "One sentence: the most common mistake.",',
+    '  "drill": "One sentence: specific drill with reps/sets/time.",',
+    '  "nextAction": "One sentence: concrete next step." }',
+    "All field values must be in English. keyCues: 2–4 items max.",
+  ].join(" "),
+
+  mn: [
+    "ХАРИУЛТ ФОРМАТ — Зөвхөн хүчинтэй JSON объект, гадна текст огт байхгүй:",
+    '{ "title": "2–5 үгтэй гарчиг, emoji-тэй. Жишээ: \'🥊 Jab засах\'",',
+    '  "keyCues": ["зааварчилгаа 1 (10 үгнээс бага)", "зааварчилгаа 2", "зааварчилгаа 3"],',
+    '  "commonMistake": "Нэг өгүүлбэр: хамгийн нийтлэг алдаа. МОНГОЛ КИРИЛЛЭЭР.",',
+    '  "drill": "Нэг өгүүлбэр: тодорхой дасгал, давталт/сет/хугацаатай. МОНГОЛ КИРИЛЛЭЭР.",',
+    '  "nextAction": "Нэг өгүүлбэр: дараагийн тодорхой алхам. МОНГОЛ КИРИЛЛЭЭР." }',
+    "keyCues: 2–4 ширхэг. Бүх утга МОНГОЛ КИРИЛЛЭЭР. Тулааны нэр томьёо АНГЛИАР: jab, cross, hook, guard, combo, drill.",
+  ].join(" "),
+
+  ko: [
+    "RESPONSE FORMAT — return ONLY valid JSON, no prose outside it:",
+    '{ "title": "2–5 word title with emoji",',
+    '  "keyCues": ["cue 1", "cue 2", "cue 3"],',
+    '  "commonMistake": "One sentence: most common mistake. In Korean.",',
+    '  "drill": "One sentence: specific drill. In Korean.",',
+    '  "nextAction": "One sentence: next step. In Korean." }',
+    "keyCues: 2–4 items. All values in Korean except boxing terms.",
+  ].join(" "),
+};
+
 // ── Structured output format ─────────────────────────────────────────────────
 // Applied to EVERY response so the bubble renderer can parse sections/bullets.
 const FORMAT_INSTRUCTIONS = {
@@ -183,7 +216,7 @@ export async function POST(req) {
 
   let body;
   try { body = await req.json(); } catch { return Response.json({ error: "Invalid JSON" }, { status: 400 }); }
-  let { messages, persona = "drill", locale = "en", coachContext = null } = body;
+  let { messages, persona = "drill", locale = "en", coachContext = null, json_mode = false } = body;
 
   if (!Array.isArray(messages)) messages = [];
   messages = messages.slice(-20).map((m) => ({
@@ -197,7 +230,9 @@ export async function POST(req) {
   const selectedPersona = PERSONAS[persona] || PERSONAS.drill;
   const langInstruction = LANGUAGE_INSTRUCTIONS[safeLocale] || LANGUAGE_INSTRUCTIONS.en;
   const isTechQ = isTechniqueQuestion(normalizedMessages);
-  const formatInstruction = FORMAT_INSTRUCTIONS[safeLocale] || FORMAT_INSTRUCTIONS.en;
+  const formatInstruction = json_mode
+    ? (JSON_SCHEMA_INSTRUCTIONS[safeLocale] || JSON_SCHEMA_INSTRUCTIONS.en)
+    : (FORMAT_INSTRUCTIONS[safeLocale] || FORMAT_INSTRUCTIONS.en);
 
   const hasKey = !!process.env.OPENAI_API_KEY;
   const keyHint = hasKey ? `sk-...${process.env.OPENAI_API_KEY.slice(-4)}` : "NOT SET";
@@ -221,7 +256,7 @@ export async function POST(req) {
 
   try {
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    const completion = await client.chat.completions.create({
+    const callOpts = {
       model: MODEL,
       max_tokens: 700,
       temperature: 0.65,
@@ -229,15 +264,36 @@ export async function POST(req) {
         { role: "system", content: systemPrompt },
         ...normalizedMessages,
       ],
-    });
+    };
+    if (json_mode) callOpts.response_format = { type: "json_object" };
 
-    const text = completion.choices[0]?.message?.content?.trim();
-    if (!text) {
+    const completion = await client.chat.completions.create(callOpts);
+
+    const raw = completion.choices[0]?.message?.content?.trim();
+    if (!raw) {
       console.error("[chat/route] OpenAI returned empty response.");
       return errorResponse(safeLocale, "Empty response from OpenAI");
     }
-    console.log(`[chat/route] OpenAI success — tokens:${completion.usage?.total_tokens ?? "?"} locale:${safeLocale}`);
-    return textResponse(text);
+    console.log(`[chat/route] OpenAI success — tokens:${completion.usage?.total_tokens ?? "?"} locale:${safeLocale} json_mode:${json_mode}`);
+
+    if (json_mode) {
+      try {
+        const structured = JSON.parse(raw);
+        const cues = Array.isArray(structured.keyCues) ? structured.keyCues.map((c) => `• ${c}`).join("\n") : "";
+        const text = [
+          structured.title || "",
+          cues,
+          structured.commonMistake ? `\n⚠️ ${structured.commonMistake}` : "",
+          structured.drill ? `\n🎯 ${structured.drill}` : "",
+          structured.nextAction ? `\n✅ ${structured.nextAction}` : "",
+        ].filter(Boolean).join("\n");
+        return Response.json({ _source: "openai", structured, message: text, content: [{ type: "text", text }] }, { status: 200 });
+      } catch {
+        console.warn("[chat/route] JSON parse failed — falling back to plain text");
+      }
+    }
+
+    return textResponse(raw);
   } catch (err) {
     const status = err?.status ?? err?.statusCode ?? "?";
     const code = err?.code ?? "";

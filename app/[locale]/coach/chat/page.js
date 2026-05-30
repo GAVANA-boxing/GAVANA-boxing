@@ -9,6 +9,7 @@ import { getLocale, translate } from "@/lib/i18n";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import s from "@/components/coach/coachChatStyles";
 import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
+import CoachResponseCard from "@/components/coach/CoachResponseCard";
 
 // ─── Persona config ───────────────────────────────────────────────────────────
 const PERSONAS = [
@@ -109,22 +110,38 @@ function CoachBubbleContent({ text, isStreaming, accentColor }) {
   );
 }
 
-// ─── Typing indicator ─────────────────────────────────────────────────────────
-function TypingIndicator({ color }) {
+// ─── Premium coach thinking indicator ────────────────────────────────────────
+function CoachThinking({ persona }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "12px 16px" }}>
-      {[0, 1, 2].map((i) => (
-        <div
-          key={i}
-          style={{
-            width: 7,
-            height: 7,
-            borderRadius: "50%",
-            background: color,
+    <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "12px 14px", width: "100%" }}>
+      <div style={{
+        height: 2, borderRadius: 99,
+        background: `linear-gradient(90deg, transparent 0%, ${persona.color} 50%, transparent 100%)`,
+        backgroundSize: "200% 100%",
+        animation: "shimmer 1.4s linear infinite",
+        marginBottom: 2,
+      }} />
+      <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+        <span style={{ fontSize: 11, fontWeight: 800, color: `${persona.color}cc`, letterSpacing: 0.3 }}>
+          {persona.emoji} Thinking
+        </span>
+        {[0, 1, 2].map((i) => (
+          <div key={i} style={{
+            width: 5, height: 5, borderRadius: "50%",
+            background: persona.color,
             animation: `dotBounce 1.1s ease-in-out ${i * 0.18}s infinite`,
-          }}
-        />
-      ))}
+          }} />
+        ))}
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+        {[75, 100, 55].map((w, i) => (
+          <div key={i} style={{
+            height: 9, width: `${w}%`, borderRadius: 5,
+            background: "rgba(255,255,255,0.055)",
+            animation: `shimmerFade 1.6s ease-in-out ${i * 0.22}s infinite`,
+          }} />
+        ))}
+      </div>
     </div>
   );
 }
@@ -304,11 +321,15 @@ export default function AIChatPage() {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ messages: next, persona, locale, coachContext: coachContextStr }),
+        body: JSON.stringify({ messages: next, persona, locale, coachContext: coachContextStr, json_mode: true }),
       });
       const data = await res.json();
       const reply = data.content?.[0]?.text || data.message || t("coachError");
-      const newMsg = { role: "assistant", content: reply, ts: Date.now(), _source: data._source ?? (data.fallback ? "fallback" : data.aiError ? "error" : "openai") };
+      const newMsg = {
+        role: "assistant", content: reply, ts: Date.now(),
+        _source: data._source ?? (data.fallback ? "fallback" : data.aiError ? "error" : "openai"),
+        structured: data.structured ?? null,
+      };
       setMessages((prev) => {
         const updated = [...prev, newMsg];
         setStreamingIdx(updated.length - 1);
@@ -404,6 +425,8 @@ export default function AIChatPage() {
       <style>{`
         @keyframes blink { 0%,100%{opacity:0.5} 50%{opacity:0} }
         @keyframes dotBounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }
+        @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+        @keyframes shimmerFade { 0%,100%{opacity:0.4} 50%{opacity:0.9} }
       `}</style>
       {/* ── Header ── */}
       <div style={s.header}>
@@ -517,7 +540,10 @@ export default function AIChatPage() {
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 6, maxWidth: "85%" }}>
                   <div style={{ ...s.aiBubble, maxWidth: "100%", borderLeftColor: activePersona.color, boxShadow: `inset 3px 0 0 ${activePersona.color}`, whiteSpace: "normal" }}>
-                    <CoachBubbleContent text={displayText} isStreaming={isStreaming} accentColor={activePersona.color} />
+                    {msg.structured && !isStreaming
+                      ? <CoachResponseCard structured={msg.structured} accentColor={activePersona.color} locale={locale} />
+                      : <CoachBubbleContent text={displayText} isStreaming={isStreaming} accentColor={activePersona.color} />
+                    }
                   </div>
                   {msg._source === "fallback" && (
                     <span style={{ alignSelf: "flex-start", fontSize: 9, fontWeight: 900, letterSpacing: 1.2, color: "rgba(245,196,81,0.5)", background: "rgba(245,196,81,0.07)", border: "1px solid rgba(245,196,81,0.18)", borderRadius: 4, padding: "2px 6px", textTransform: "uppercase" }}>
@@ -550,8 +576,8 @@ export default function AIChatPage() {
 
         {loading && (
           <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 10, padding: "0 16px" }}>
-            <div style={{ ...s.aiBubble, borderLeftColor: activePersona.color, boxShadow: `inset 3px 0 0 ${activePersona.color}`, padding: 0 }}>
-              <TypingIndicator color={activePersona.color} />
+            <div style={{ ...s.aiBubble, borderLeftColor: activePersona.color, boxShadow: `inset 3px 0 0 ${activePersona.color}`, padding: 0, minWidth: 200 }}>
+              <CoachThinking persona={activePersona} />
             </div>
           </div>
         )}
