@@ -588,7 +588,11 @@ export default function TrainResultModal({
                   bi.style === "explosive" ? "#F59E0B" :
                   bi.style === "pressure"  ? "#F87171" :
                   bi.style === "outboxer"  ? "#34D399" : "#94A3B8";
-                const tactical = bi.tactical;
+                const tactical      = bi.tactical;
+                const ringIQ       = bi.ringIQ;
+                const dna          = bi.fighterDNA;
+                const cornerAdvice = bi.cornerAdvice;
+                const rounds       = bi.roundBreakdown;
                 return (
                   <>
                     <div style={{
@@ -637,6 +641,149 @@ export default function TrainResultModal({
                             → {cue}
                           </div>
                         ))}
+                      </div>
+                    )}
+                    {/* Defensive profile — Phase 2 */}
+                    {bi.defensive && (
+                      <div style={{ marginBottom: 8 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
+                          <div style={{
+                            padding: "3px 10px", borderRadius: 20,
+                            background: "rgba(167,139,250,0.10)",
+                            border: "1px solid rgba(167,139,250,0.28)",
+                            fontSize: 9, fontWeight: 900, letterSpacing: 1.2,
+                            color: "#A78BFA", textTransform: "uppercase",
+                          }}>
+                            {bi.defensive.defensiveStyleLabel}
+                          </div>
+                          <span style={{ fontSize: 9, color: whiteAlpha(0.32), fontWeight: 700 }}>
+                            {bi.defensive.slipCount}s {bi.defensive.bobCount}b defensive actions
+                          </span>
+                        </div>
+                        {bi.defensive.defensiveCues?.length > 0 && (
+                          <div style={{
+                            padding: "7px 10px", borderRadius: 8,
+                            background: "rgba(167,139,250,0.05)",
+                            border: "1px solid rgba(167,139,250,0.14)",
+                          }}>
+                            {bi.defensive.defensiveCues.map((cue, i) => (
+                              <div key={i} style={{
+                                fontSize: 10, color: whiteAlpha(0.65), lineHeight: 1.55,
+                                paddingBottom: i < bi.defensive.defensiveCues.length - 1 ? 4 : 0,
+                              }}>
+                                → {cue}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {/* Ring IQ — Phase 3 */}
+                    {ringIQ && (
+                      <div style={{ marginBottom: 8 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
+                          <div style={{
+                            padding: "3px 10px", borderRadius: 20,
+                            background: "rgba(249,168,212,0.10)",
+                            border: "1px solid rgba(249,168,212,0.28)",
+                            fontSize: 9, fontWeight: 900, letterSpacing: 1.2,
+                            color: "#F9A8D4", textTransform: "uppercase",
+                          }}>
+                            {ringIQ.iqLabel}
+                          </div>
+                          <span style={{ fontSize: 9, color: whiteAlpha(0.32), fontWeight: 700 }}>
+                            IQ {ringIQ.iqScore}/100
+                          </span>
+                        </div>
+                        {ringIQ.cues?.length > 0 && (
+                          <div style={{
+                            padding: "7px 10px", borderRadius: 8,
+                            background: "rgba(249,168,212,0.04)",
+                            border: "1px solid rgba(249,168,212,0.14)",
+                          }}>
+                            {ringIQ.cues.map((cue, i) => (
+                              <div key={i} style={{
+                                fontSize: 10, color: whiteAlpha(0.65), lineHeight: 1.55,
+                                paddingBottom: i < ringIQ.cues.length - 1 ? 4 : 0,
+                              }}>
+                                → {cue}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {/* Fighter DNA — Phase 4 */}
+                    {dna && (
+                      <div style={{ marginBottom: 8 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
+                          <div style={{
+                            padding: "3px 10px", borderRadius: 20,
+                            background: "rgba(252,211,77,0.10)",
+                            border: "1px solid rgba(252,211,77,0.28)",
+                            fontSize: 9, fontWeight: 900, letterSpacing: 1.2,
+                            color: "#FCD34D", textTransform: "uppercase",
+                          }}>
+                            {dna.archetypeLabel}
+                          </div>
+                          <span style={{ fontSize: 9, color: whiteAlpha(0.32), fontWeight: 700 }}>
+                            {dna.similarity}% match
+                          </span>
+                        </div>
+                        <div style={{
+                          padding: "7px 10px", borderRadius: 8,
+                          background: "rgba(252,211,77,0.04)",
+                          border: "1px solid rgba(252,211,77,0.14)",
+                        }}>
+                          {dna.archetypeTraits?.map((trait, i) => (
+                            <div key={i} style={{
+                              fontSize: 10, color: whiteAlpha(0.55), lineHeight: 1.55,
+                              paddingBottom: i < dna.archetypeTraits.length - 1 ? 3 : 0,
+                            }}>
+                              · {trait}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {/* Corner advice — Phase 5 */}
+                    {cornerAdvice?.length > 0 && (
+                      <div style={{ marginBottom: 8 }}>
+                        <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.2, color: "#6EE7B7", textTransform: "uppercase", marginBottom: 5 }}>
+                          Corner Advice
+                        </div>
+                        <div style={{
+                          padding: "8px 10px", borderRadius: 8,
+                          background: "rgba(110,231,183,0.04)",
+                          border: "1px solid rgba(110,231,183,0.14)",
+                        }}>
+                          {cornerAdvice.map((tip, i) => (
+                            <div key={i} style={{
+                              fontSize: 10, color: whiteAlpha(0.7), lineHeight: 1.6,
+                              paddingBottom: i < cornerAdvice.length - 1 ? 5 : 0,
+                            }}>
+                              ▸ {tip}
+                            </div>
+                          ))}
+                        </div>
+                        {rounds && (
+                          <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+                            {[
+                              { label: "1st half", data: rounds.round1 },
+                              { label: "2nd half", data: rounds.round2 },
+                            ].map(({ label, data }, i) => (
+                              <div key={i} style={{
+                                flex: 1, padding: "5px 8px", borderRadius: 7,
+                                background: "rgba(255,255,255,0.03)",
+                                border: "1px solid rgba(255,255,255,0.07)",
+                              }}>
+                                <div style={{ fontSize: 8, color: whiteAlpha(0.35), fontWeight: 700, marginBottom: 2 }}>{label}</div>
+                                <div style={{ fontSize: 10, color: whiteAlpha(0.8), fontWeight: 900 }}>{data.count} punches</div>
+                                <div style={{ fontSize: 9, color: whiteAlpha(0.45), fontWeight: 700 }}>{data.pace}/min · q{data.avgQuality}</div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
                   </>
