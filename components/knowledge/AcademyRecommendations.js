@@ -4,18 +4,25 @@ import { useMemo } from "react";
 import { ACADEMY_LESSONS } from "@/lib/academyLessons";
 import { ACADEMY_PATHS, getPathProgress, getLessonStatus } from "@/lib/academyPaths";
 
-// Circular sequence: completing one punch naturally leads to the next skill
+// Circular sequence: completing one skill naturally leads to the next
 const SEQUENCE_NEXT = {
-  "jab-mechanics":        "cross-mechanics",
-  "cross-mechanics":      "hook-mechanics",
+  "jab-mechanics":        "double-jab",
+  "double-jab":           "cross-mechanics",
+  "cross-mechanics":      "body-shot",
+  "body-shot":            "hook-mechanics",
   "hook-mechanics":       "footwork-angle-exit",
-  "footwork-angle-exit":  "guard-recovery",
+  "footwork-angle-exit":  "slip-defense",
+  "slip-defense":         "pull-counter",
+  "pull-counter":         "shoulder-roll",
+  "shoulder-roll":        "guard-recovery",
   "guard-recovery":       "jab-mechanics",
 };
 
 // Fallback priority for weakness when no attempts exist
 const WEAKNESS_PRIORITY = [
-  "guard-recovery", "footwork-angle-exit", "cross-mechanics", "hook-mechanics", "jab-mechanics",
+  "guard-recovery", "footwork-angle-exit", "slip-defense",
+  "cross-mechanics", "hook-mechanics", "jab-mechanics",
+  "double-jab", "pull-counter", "body-shot", "shoulder-roll",
 ];
 
 const TYPE_META = {

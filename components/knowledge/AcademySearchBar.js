@@ -19,7 +19,7 @@ export function matchesSearch(lesson, query, filter) {
       filter === "beginner"      ? lesson.difficulty === "beginner"
       : filter === "footwork"    ? /footwork/.test(haystack)
       : filter === "guard"       ? /guard/.test(haystack)
-      : filter === "power"       ? /cross|hook|power|rotation/.test(haystack) || /cross|hook/.test(lesson.id)
+      : filter === "power"       ? /cross|hook|power|rotation|torque/.test(haystack) || /cross|hook|body/.test(lesson.id)
       : filter === "defense"     ? /guard|recovery|defense/.test(haystack)
       : filter === "fighter-style" ? !!lesson.relatedFighter
       : true;
