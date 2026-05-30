@@ -6,7 +6,7 @@ export const trainPageStyles = {
     minHeight: "100dvh",
     background: `radial-gradient(ellipse at 50% -5%, ${redAlpha(0.18)} 0%, transparent 48%), ${BG}`,
     color: "#fff",
-    padding: "calc(68px + env(safe-area-inset-top)) 16px calc(92px + env(safe-area-inset-bottom))",
+    padding: "calc(68px + env(safe-area-inset-top)) 16px calc(120px + env(safe-area-inset-bottom))",
   },
   loading: {
     minHeight: "100dvh",
@@ -40,7 +40,7 @@ export const trainPageStyles = {
   backIcon: { fontSize: 24, lineHeight: 1, color: GOLD },
 
   // ── Content shell ─────────────────────────────────────────────────────────
-  shell: { maxWidth: 500, margin: "0 auto", display: "grid", gap: 18 },
+  shell: { maxWidth: 500, margin: "0 auto", display: "flex", flexDirection: "column", gap: 18 },
 
   // ── Header ───────────────────────────────────────────────────────────────
   header: { display: "grid", gap: 6 },
