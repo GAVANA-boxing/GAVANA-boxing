@@ -13,7 +13,9 @@ import {
   SectionHeader, StyleCard, TechCard, FighterCard, CountryCard, MovementCard, MistakeRow,
 } from "@/components/knowledge/KnowledgeCards";
 import TechniqueSheet from "@/components/knowledge/TechniqueSheet";
+import AcademyLessonCard from "@/components/knowledge/AcademyLessonCard";
 import { FIGHTERS } from "@/lib/fighters";
+import { ACADEMY_LESSONS } from "@/lib/academyLessons";
 
 export default function KnowledgeLibrary({ locale, onAsk }) {
   const t = (key) => translate(locale, key);
@@ -142,6 +144,22 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
               </button>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* ── Foundation Skills ────────────────────────────────────────────── */}
+      <div>
+        <SectionHeader emoji="📚" title={locale === "mn" ? "Суурь Техникүүд" : locale === "ko" ? "기초 기술" : "Foundation Skills"} />
+        <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+          {ACADEMY_LESSONS.map((lesson) => (
+            <AcademyLessonCard
+              key={lesson.id}
+              lesson={lesson}
+              locale={locale}
+              onStudyFighter={(fighterId) => router.push(`/${locale}/fighters/${fighterId}`)}
+              router={router}
+            />
+          ))}
         </div>
       </div>
 
