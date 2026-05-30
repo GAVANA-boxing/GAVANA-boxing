@@ -185,6 +185,7 @@ export default function TrainPage() {
   const [trackingRing, setTrackingRing] = useState(null);
   const coachSnapshotRef = useRef(null);
   const prevSessionCountRef = useRef(null);
+  const priorSessionsRef = useRef([]);
 
   // Fetch training sessions once → build coach snapshot + grab last session's pose metrics
   useEffect(() => {
@@ -206,6 +207,7 @@ export default function TrainPage() {
         const snapshot = buildCoachSnapshot({ sessions, profileData: {} });
         coachSnapshotRef.current = snapshot;
         prevSessionCountRef.current = sessions.length;
+        priorSessionsRef.current = sessions.slice(0, 9);
         // Most recent past session's pose metrics for comparison
         if (sessions[0]?.poseMetrics) setPrevPoseMetrics(sessions[0].poseMetrics);
         if (snapshot && sessions.length >= 3) {
@@ -866,7 +868,7 @@ export default function TrainPage() {
         t={t}
         router={router}
         onTryAgain={handleTryAgain}
-        onSave={handleSave}
+        onSave={(params) => handleSave({ ...params, priorSessions: priorSessionsRef.current })}
         onSaveChallengeResult={handleSaveChallengeResult}
         onShareChallenge={handleShareChallenge}
         onShareTraining={handleShareTraining}

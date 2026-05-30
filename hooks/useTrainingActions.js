@@ -12,6 +12,7 @@ import { checkAndAwardBadges } from "@/lib/badges";
 import { getLocalDateKey, getPreviousLocalDateKey } from "@/lib/utils";
 import { getSessionIdentity, buildMovementCounts, buildMovementMetrics } from "@/lib/combatMemory";
 import { generateTechniqueReview } from "@/lib/techniqueReview";
+import { computeFighterDNA, dnaSnapshot } from "@/lib/fighterDNA";
 
 export function useTrainingActions({
   user,
@@ -203,7 +204,7 @@ export function useTrainingActions({
     }
   }, [result, t, reelId, user, locale, setError]);
 
-  const handleSave = useCallback(async ({ movementEvents = [], tag = null, readiness = null, poseMetrics = null } = {}) => {
+  const handleSave = useCallback(async ({ movementEvents = [], tag = null, readiness = null, poseMetrics = null, priorSessions = [] } = {}) => {
     if (!user?.uid || !result) return;
 
     setSaving(true);
@@ -302,6 +303,21 @@ export function useTrainingActions({
 
       setSaved(true);
       setSavedAttemptNumber(attemptNumber);
+
+      // Fighter DNA — compute from prior sessions + this result and save to user doc
+      try {
+        const sessionsForDNA = [
+          ...priorSessions.slice(0, 9),
+          { score: result.score, breakdown: result.breakdown, poseMetrics },
+        ].filter((s) => typeof s.score === "number");
+        if (sessionsForDNA.length >= 3) {
+          const dna = computeFighterDNA({ sessions: sessionsForDNA, locale });
+          const snap = dnaSnapshot(dna);
+          if (snap) {
+            await setDoc(userRef, { fighterDNA: snap, fighterDnaUpdatedAt: serverTimestamp() }, { merge: true });
+          }
+        }
+      } catch { /* non-critical */ }
 
       // Analytics + badges (non-critical, fire and forget)
       if (reelId) {
