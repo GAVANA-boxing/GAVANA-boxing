@@ -1,22 +1,83 @@
 "use client";
 
 import { useState } from "react";
-import { GOLD, RADIUS, whiteAlpha, goldAlpha } from "@/lib/tokens";
+import { GOLD, RADIUS, goldAlpha } from "@/lib/tokens";
 import DiagramPlaceholder from "@/components/visual/DiagramPlaceholder";
 
 const DIFF_COLOR = { beginner: "#10B981", intermediate: "#F59E0B", advanced: "#F87171" };
+const LEVEL_COLOR = { beginner: "#10B981", intermediate: "#F59E0B", advanced: "#F87171" };
+const LEVEL_EMOJI = { beginner: "🟢", intermediate: "🟡", advanced: "🔴" };
 
 const LABEL = {
-  en: { cues: "Key Cues", mistake: "Common Mistake", drill: "Drill", tip: "Coach Tip", fighter: "Study More", expand: "Show Lesson", collapse: "Hide" },
-  mn: { cues: "Гол зааварчилгаа", mistake: "Нийтлэг алдаа", drill: "Дасгал", tip: "Коучийн зөвлөгөө", fighter: "Дэлгэрэнгүй", expand: "Хичээл харах", collapse: "Хаах" },
-  ko: { cues: "핵심 포인트", mistake: "일반적인 실수", drill: "드릴", tip: "코치 팁", fighter: "더 공부하기", expand: "레슨 보기", collapse: "닫기" },
+  en: {
+    cues: "Key Cues", mistake: "Common Mistake", drill: "Drill", tip: "Coach Tip",
+    fighter: "Study More", expand: "Show Lesson", collapse: "Hide",
+    bodyMechanics: "Body Mechanics", whatFeel: "What You Should Feel",
+    drillProg: "Drill Progression", fighterEx: "Fighter Example",
+    animalEx: "Animal Analogy", scoring: "How GAVANA Scores This",
+    coachCue: "Coach Cue", concept: "The Concept",
+  },
+  mn: {
+    cues: "Гол зааварчилгаа", mistake: "Нийтлэг алдаа", drill: "Дасгал",
+    tip: "Коучийн зөвлөгөө", fighter: "Дэлгэрэнгүй", expand: "Хичээл харах", collapse: "Хаах",
+    bodyMechanics: "Биеийн механик", whatFeel: "Мэдрэмж",
+    drillProg: "Дасгалын шат", fighterEx: "Тулаанчийн жишээ",
+    animalEx: "Амьтны зүйр", scoring: "GAVANA хэрхэн оноолох вэ",
+    coachCue: "Коучийн заавар", concept: "Үндсэн ойлголт",
+  },
+  ko: {
+    cues: "핵심 포인트", mistake: "일반적인 실수", drill: "드릴",
+    tip: "코치 팁", fighter: "더 공부하기", expand: "레슨 보기", collapse: "닫기",
+    bodyMechanics: "신체 역학", whatFeel: "느껴야 할 것",
+    drillProg: "드릴 단계", fighterEx: "파이터 예시",
+    animalEx: "동물 유추", scoring: "GAVANA 채점 방식",
+    coachCue: "코치 큐", concept: "개념",
+  },
 };
+
+// ── Small inline section header ───────────────────────────────────────────────
+function SubHeader({ label, acc }) {
+  return (
+    <div style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 1.5, color: acc || "rgba(255,255,255,0.32)", textTransform: "uppercase", marginBottom: 8 }}>
+      {label}
+    </div>
+  );
+}
+
+// ── Collapsible wrapper ───────────────────────────────────────────────────────
+function Collapsible({ label, acc, defaultOpen = false, children }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          width: "100%", background: "none", border: "none", padding: "0 0 6px", cursor: "pointer",
+        }}
+      >
+        <SubHeader label={label} acc={acc} />
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+          stroke={acc || "rgba(255,255,255,0.3)"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 200ms", flexShrink: 0, marginBottom: 8 }}
+        >
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      {open && children}
+    </div>
+  );
+}
 
 export default function AcademyLessonCard({ lesson, locale = "en", lessonStatus = "not_started", bestScore, onStudyFighter, router }) {
   const [open, setOpen] = useState(false);
+  const [activeDrillLevel, setActiveDrillLevel] = useState("beginner");
   const L = LABEL[locale] || LABEL.en;
   const acc = lesson.accentColor;
   const diffColor = DIFF_COLOR[lesson.difficulty] || GOLD;
+
+  const activeDrill = lesson.drillProgression?.find(d => d.level === activeDrillLevel) || lesson.drillProgression?.[0];
 
   return (
     <div style={{
@@ -33,7 +94,7 @@ export default function AcademyLessonCard({ lesson, locale = "en", lessonStatus 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setOpen(v => !v)}
         style={{ width: "100%", textAlign: "left", padding: "12px 14px 10px", background: "transparent", border: "none", cursor: "pointer" }}
       >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 5 }}>
@@ -103,7 +164,7 @@ export default function AcademyLessonCard({ lesson, locale = "en", lessonStatus 
         </div>
       </button>
 
-      {/* ── Expanded body ────────────────────────────────────────────────────── */}
+      {/* ── Expanded body ──────────────────────────────────────────────────── */}
       {open && (
         <div style={{ padding: "0 14px 14px" }}>
 
@@ -112,81 +173,252 @@ export default function AcademyLessonCard({ lesson, locale = "en", lessonStatus 
             <DiagramPlaceholder type={lesson.diagramType} accent={acc} width="100%" height={90} />
           </div>
 
-          {/* Explanation */}
-          <p style={{ margin: "0 0 14px", fontSize: 12.5, color: "rgba(255,255,255,0.7)", lineHeight: 1.65 }}>
-            {lesson.explanation}
-          </p>
+          {/* Concept */}
+          {(lesson.concept || lesson.explanation) && (
+            <p style={{ margin: "0 0 14px", fontSize: 12.5, color: "rgba(255,255,255,0.72)", lineHeight: 1.65 }}>
+              {lesson.concept || lesson.explanation}
+            </p>
+          )}
 
-          {/* Key cues */}
-          <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 1.5, color: acc, textTransform: "uppercase", marginBottom: 8 }}>
-              {L.cues}
+          {/* Body Mechanics */}
+          {lesson.bodyMechanics?.length > 0 && (
+            <Collapsible label={L.bodyMechanics} acc={acc} defaultOpen={true}>
+              <div style={{ marginBottom: 10 }}>
+                {lesson.bodyMechanics.map((point, i) => (
+                  <div key={i} style={{ display: "flex", gap: 9, alignItems: "flex-start", marginBottom: 7 }}>
+                    <div style={{
+                      width: 18, height: 18, borderRadius: 5,
+                      background: `${acc}18`, border: `1px solid ${acc}30`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 9, fontWeight: 900, color: acc, flexShrink: 0,
+                    }}>
+                      {i + 1}
+                    </div>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.5, paddingTop: 1 }}>{point}</span>
+                  </div>
+                ))}
+              </div>
+            </Collapsible>
+          )}
+
+          {/* What You Should Feel */}
+          {lesson.whatYouShouldFeel?.length > 0 && (
+            <div style={{ marginBottom: 14 }}>
+              <SubHeader label={L.whatFeel} acc="#93C5FD" />
+              <div style={{
+                padding: "10px 12px", borderRadius: 9,
+                background: "rgba(96,165,250,0.06)", border: "1px solid rgba(96,165,250,0.18)",
+                borderLeft: "2.5px solid rgba(96,165,250,0.45)",
+              }}>
+                {lesson.whatYouShouldFeel.map((cue, i) => (
+                  <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", marginBottom: i < lesson.whatYouShouldFeel.length - 1 ? 6 : 0 }}>
+                    <span style={{ fontSize: 9, color: "#93C5FD", flexShrink: 0, marginTop: 2 }}>◦</span>
+                    <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.65)", lineHeight: 1.5, fontStyle: "italic" }}>{cue}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-            {lesson.keyCues.map((cue, i) => (
-              <div key={i} style={{ display: "flex", gap: 9, alignItems: "flex-start", marginBottom: 7 }}>
-                <div style={{
-                  width: 18, height: 18, borderRadius: 5,
-                  background: `${acc}18`, border: `1px solid ${acc}30`,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 9, fontWeight: 900, color: acc, flexShrink: 0,
-                }}>
-                  {i + 1}
+          )}
+
+          {/* Key Cues */}
+          {lesson.keyCues?.length > 0 && (
+            <div style={{ marginBottom: 14 }}>
+              <SubHeader label={L.cues} acc={acc} />
+              {lesson.keyCues.map((cue, i) => (
+                <div key={i} style={{ display: "flex", gap: 9, alignItems: "flex-start", marginBottom: 7 }}>
+                  <div style={{
+                    width: 18, height: 18, borderRadius: 5,
+                    background: `${acc}18`, border: `1px solid ${acc}30`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 9, fontWeight: 900, color: acc, flexShrink: 0,
+                  }}>
+                    {i + 1}
+                  </div>
+                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.68)", lineHeight: 1.5, paddingTop: 1 }}>{cue}</span>
                 </div>
-                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.68)", lineHeight: 1.5, paddingTop: 1 }}>
-                  {cue}
-                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Common Mistake */}
+          {lesson.commonMistake && (
+            <div style={{
+              padding: "10px 12px", borderRadius: 9, marginBottom: 14,
+              background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.2)",
+              borderLeft: "2.5px solid rgba(239,68,68,0.6)",
+            }}>
+              <div style={{ fontSize: 7.5, fontWeight: 900, color: "#F87171", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 5 }}>
+                ⚠️ {L.mistake}
               </div>
-            ))}
-          </div>
-
-          {/* Common mistake */}
-          <div style={{
-            padding: "10px 12px", borderRadius: 9, marginBottom: 14,
-            background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.2)",
-            borderLeft: "2.5px solid rgba(239,68,68,0.6)",
-          }}>
-            <div style={{ fontSize: 7.5, fontWeight: 900, color: "#F87171", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 5 }}>
-              ⚠️ {L.mistake}
+              <p style={{ margin: 0, fontSize: 12, color: "#fca5a5", lineHeight: 1.5 }}>{lesson.commonMistake}</p>
             </div>
-            <p style={{ margin: 0, fontSize: 12, color: "#fca5a5", lineHeight: 1.5 }}>{lesson.commonMistake}</p>
-          </div>
+          )}
 
-          {/* Drill */}
-          <div style={{
-            padding: "10px 12px", borderRadius: 9, marginBottom: 14,
-            background: `${goldAlpha(0.06)}`, border: `1px solid ${goldAlpha(0.18)}`,
-            borderLeft: "2.5px solid rgba(245,196,81,0.5)",
-          }}>
-            <div style={{ fontSize: 7.5, fontWeight: 900, color: GOLD, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8 }}>
-              🎯 {L.drill} · {lesson.drill.title}
-            </div>
-            {lesson.drill.steps.map((step, i) => (
-              <div key={i} style={{ display: "flex", gap: 9, alignItems: "flex-start", marginBottom: i < lesson.drill.steps.length - 1 ? 6 : 0 }}>
-                <span style={{
-                  width: 18, height: 18, borderRadius: 5,
-                  background: `${goldAlpha(0.14)}`, border: `1px solid ${goldAlpha(0.28)}`,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 9, fontWeight: 900, color: GOLD, flexShrink: 0,
+          {/* Drill Progression */}
+          {lesson.drillProgression?.length > 0 ? (
+            <div style={{ marginBottom: 14 }}>
+              <SubHeader label={L.drillProg} acc={GOLD} />
+              {/* Level selector */}
+              <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+                {lesson.drillProgression.map(d => {
+                  const isActive = activeDrillLevel === d.level;
+                  const lc = LEVEL_COLOR[d.level] || GOLD;
+                  return (
+                    <button
+                      key={d.level}
+                      type="button"
+                      onClick={() => setActiveDrillLevel(d.level)}
+                      style={{
+                        flex: 1, padding: "6px 8px", borderRadius: 8,
+                        background: isActive ? `${lc}18` : "rgba(255,255,255,0.04)",
+                        border: `1px solid ${isActive ? lc + "45" : "rgba(255,255,255,0.08)"}`,
+                        color: isActive ? lc : "rgba(255,255,255,0.35)",
+                        fontSize: 8.5, fontWeight: 900, cursor: "pointer",
+                        transition: "all 0.15s", textTransform: "uppercase", letterSpacing: 0.5,
+                      }}
+                    >
+                      {LEVEL_EMOJI[d.level]} {d.level}
+                    </button>
+                  );
+                })}
+              </div>
+              {/* Active drill content */}
+              {activeDrill && (
+                <div style={{
+                  padding: "10px 12px", borderRadius: 9,
+                  background: `${goldAlpha(0.06)}`, border: `1px solid ${goldAlpha(0.18)}`,
+                  borderLeft: "2.5px solid rgba(245,196,81,0.5)",
                 }}>
-                  {i + 1}
-                </span>
-                <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.65)", lineHeight: 1.5, paddingTop: 1 }}>{step}</span>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                    <div style={{ fontSize: 7.5, fontWeight: 900, color: GOLD, letterSpacing: 1.2, textTransform: "uppercase" }}>
+                      🎯 {activeDrill.title}
+                    </div>
+                    {activeDrill.duration && (
+                      <span style={{ fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>
+                        {activeDrill.duration}
+                      </span>
+                    )}
+                  </div>
+                  {activeDrill.steps.map((step, i) => (
+                    <div key={i} style={{ display: "flex", gap: 9, alignItems: "flex-start", marginBottom: i < activeDrill.steps.length - 1 ? 6 : 0 }}>
+                      <span style={{
+                        width: 18, height: 18, borderRadius: 5,
+                        background: `${goldAlpha(0.14)}`, border: `1px solid ${goldAlpha(0.28)}`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 9, fontWeight: 900, color: GOLD, flexShrink: 0,
+                      }}>
+                        {i + 1}
+                      </span>
+                      <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.65)", lineHeight: 1.5, paddingTop: 1 }}>{step}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : lesson.drill && (
+            /* Fallback: simple drill for lessons without drillProgression */
+            <div style={{
+              padding: "10px 12px", borderRadius: 9, marginBottom: 14,
+              background: `${goldAlpha(0.06)}`, border: `1px solid ${goldAlpha(0.18)}`,
+              borderLeft: "2.5px solid rgba(245,196,81,0.5)",
+            }}>
+              <div style={{ fontSize: 7.5, fontWeight: 900, color: GOLD, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8 }}>
+                🎯 {L.drill} · {lesson.drill.title}
               </div>
-            ))}
-          </div>
+              {lesson.drill.steps.map((step, i) => (
+                <div key={i} style={{ display: "flex", gap: 9, alignItems: "flex-start", marginBottom: i < lesson.drill.steps.length - 1 ? 6 : 0 }}>
+                  <span style={{
+                    width: 18, height: 18, borderRadius: 5,
+                    background: `${goldAlpha(0.14)}`, border: `1px solid ${goldAlpha(0.28)}`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 9, fontWeight: 900, color: GOLD, flexShrink: 0,
+                  }}>
+                    {i + 1}
+                  </span>
+                  <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.65)", lineHeight: 1.5, paddingTop: 1 }}>{step}</span>
+                </div>
+              ))}
+            </div>
+          )}
 
-          {/* Coach tip */}
-          {lesson.coachTip && (
+          {/* Fighter Example */}
+          {lesson.fighterExample && (
+            <div style={{ marginBottom: 14 }}>
+              <SubHeader label={L.fighterEx} acc={lesson.fighterExample.accent} />
+              <div style={{
+                padding: "10px 12px", borderRadius: 9,
+                background: `${lesson.fighterExample.accent}08`,
+                border: `1px solid ${lesson.fighterExample.accent}22`,
+              }}>
+                <div style={{ fontSize: 9.5, fontWeight: 900, color: lesson.fighterExample.accent, marginBottom: 5 }}>
+                  {lesson.fighterExample.name}
+                </div>
+                <p style={{ margin: 0, fontSize: 11.5, color: "rgba(255,255,255,0.6)", lineHeight: 1.55 }}>
+                  {lesson.fighterExample.observation}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Animal Analogy */}
+          {lesson.animalAnalogy && (
+            <div style={{ marginBottom: 14 }}>
+              <SubHeader label={L.animalEx} acc="rgba(255,255,255,0.35)" />
+              <div style={{
+                padding: "9px 12px", borderRadius: 9,
+                background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)",
+                display: "flex", alignItems: "flex-start", gap: 10,
+              }}>
+                <span style={{ fontSize: 20, flexShrink: 0 }}>{lesson.animalAnalogy.emoji}</span>
+                <div>
+                  <div style={{ fontSize: 9, fontWeight: 900, color: "rgba(255,255,255,0.45)", letterSpacing: 1, textTransform: "uppercase", marginBottom: 3 }}>
+                    {lesson.animalAnalogy.animal}
+                  </div>
+                  <p style={{ margin: 0, fontSize: 11.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.55 }}>
+                    {lesson.animalAnalogy.description}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* How GAVANA Scores This */}
+          {lesson.scoringMetrics?.length > 0 && (
+            <Collapsible label={L.scoring} acc="rgba(255,255,255,0.28)" defaultOpen={false}>
+              <div style={{ marginBottom: 10 }}>
+                {lesson.scoringMetrics.map((m, i) => (
+                  <div key={i} style={{
+                    display: "flex", gap: 10, alignItems: "flex-start",
+                    padding: "7px 10px", marginBottom: 5, borderRadius: 7,
+                    background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)",
+                  }}>
+                    <span style={{ width: 3, height: 3, borderRadius: "50%", background: acc, flexShrink: 0, marginTop: 6 }} />
+                    <div>
+                      <div style={{ fontSize: 8.5, fontWeight: 900, color: acc, letterSpacing: 0.8, marginBottom: 2 }}>
+                        {m.metric}
+                      </div>
+                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.4 }}>
+                        {m.description}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Collapsible>
+          )}
+
+          {/* Coach Cue */}
+          {(lesson.coachCue || lesson.coachTip) && (
             <div style={{
               padding: "9px 12px", borderRadius: 9, marginBottom: 14,
               background: "rgba(96,165,250,0.06)", border: "1px solid rgba(96,165,250,0.18)",
               borderLeft: "2.5px solid rgba(96,165,250,0.45)",
             }}>
               <div style={{ fontSize: 7.5, fontWeight: 900, color: "#93C5FD", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 4 }}>
-                💡 {L.tip}
+                💡 {L.coachCue}
               </div>
               <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.58)", lineHeight: 1.5, fontStyle: "italic" }}>
-                &ldquo;{lesson.coachTip}&rdquo;
+                &ldquo;{lesson.coachCue || lesson.coachTip}&rdquo;
               </p>
             </div>
           )}

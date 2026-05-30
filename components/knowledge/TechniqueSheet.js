@@ -207,6 +207,18 @@ function TechDetailSheet({ fighter, technique, onClose, onBack, locale, router }
             <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.65)", lineHeight: 1.5, fontStyle: "italic" }}>&ldquo;{technique.bodyCue}&rdquo;</p>
           )}
 
+          {/* What you should feel */}
+          {(technique.whatYouShouldFeel || []).length > 0 && SECTION("✋", locale === "mn" ? "Юу мэдрэх вэ" : "What you should feel",
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {technique.whatYouShouldFeel.map((cue, i) => (
+                <div key={i} style={{ display: "flex", gap: 8, padding: "8px 12px", borderRadius: 8, background: "rgba(59,130,246,0.07)", border: "1px solid rgba(59,130,246,0.18)" }}>
+                  <span style={{ color: "#60A5FA", flexShrink: 0, fontSize: 13 }}>·</span>
+                  <p style={{ margin: 0, fontSize: 12.5, color: "rgba(255,255,255,0.7)", lineHeight: 1.45, fontStyle: "italic" }}>{cue}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Common mistake */}
           {technique.commonMistake && SECTION("⚠️", locale === "mn" ? "Нийтлэг алдаа" : "Common mistake",
             <div style={{ padding: "10px 12px", borderRadius: 10, background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.22)" }}>
@@ -229,6 +241,18 @@ function TechDetailSheet({ fighter, technique, onClose, onBack, locale, router }
           {/* Coach notes */}
           {technique.coachNotes && SECTION("💡", locale === "mn" ? "Коучийн зөвлөгөө" : "Coach notes",
             <p style={{ margin: 0, fontSize: 12.5, color: GOLD, lineHeight: 1.5 }}>{technique.coachNotes}</p>
+          )}
+
+          {/* Scoring metrics */}
+          {(technique.scoringMetrics || []).length > 0 && SECTION("📊", locale === "mn" ? "GAVANA оноо өгөх аргачлал" : "How GAVANA scores this",
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {technique.scoringMetrics.map((m, i) => (
+                <div key={i} style={{ padding: "9px 12px", borderRadius: 8, background: "rgba(245,196,81,0.06)", border: "1px solid rgba(245,196,81,0.18)" }}>
+                  <p style={{ margin: "0 0 2px", fontSize: 11, fontWeight: 900, color: GOLD, letterSpacing: 0.5 }}>{m.metric}</p>
+                  <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.55)", lineHeight: 1.4 }}>{m.description}</p>
+                </div>
+              ))}
+            </div>
           )}
 
           <div style={{ height: "calc(80px + env(safe-area-inset-bottom))" }} />
