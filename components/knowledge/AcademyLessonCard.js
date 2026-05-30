@@ -12,7 +12,7 @@ const LABEL = {
   ko: { cues: "핵심 포인트", mistake: "일반적인 실수", drill: "드릴", tip: "코치 팁", fighter: "더 공부하기", expand: "레슨 보기", collapse: "닫기" },
 };
 
-export default function AcademyLessonCard({ lesson, locale = "en", onStudyFighter, router }) {
+export default function AcademyLessonCard({ lesson, locale = "en", lessonStatus = "not_started", bestScore, onStudyFighter, router }) {
   const [open, setOpen] = useState(false);
   const L = LABEL[locale] || LABEL.en;
   const acc = lesson.accentColor;
@@ -53,6 +53,20 @@ export default function AcademyLessonCard({ lesson, locale = "en", onStudyFighte
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+            {lessonStatus === "completed" && (
+              <span style={{
+                fontSize: 8, fontWeight: 900,
+                color: "#34D399", background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.28)",
+                borderRadius: 4, padding: "2px 6px",
+              }}>✓</span>
+            )}
+            {lessonStatus === "in_progress" && bestScore > 0 && (
+              <span style={{
+                fontSize: 7.5, fontWeight: 900,
+                color: "#F59E0B", background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.25)",
+                borderRadius: 4, padding: "2px 6px",
+              }}>{bestScore.toFixed(1)}</span>
+            )}
             <span style={{
               fontSize: 7.5, fontWeight: 900, letterSpacing: 0.8,
               color: diffColor, background: `${diffColor}16`, border: `1px solid ${diffColor}28`,

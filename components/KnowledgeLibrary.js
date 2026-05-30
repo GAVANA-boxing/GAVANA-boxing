@@ -14,13 +14,19 @@ import {
 } from "@/components/knowledge/KnowledgeCards";
 import TechniqueSheet from "@/components/knowledge/TechniqueSheet";
 import AcademyLessonCard from "@/components/knowledge/AcademyLessonCard";
+import AcademyPathCard from "@/components/academy/AcademyPathCard";
 import { FIGHTERS } from "@/lib/fighters";
 import { ACADEMY_LESSONS } from "@/lib/academyLessons";
+import { getLessonStatus } from "@/lib/academyPaths";
+import { useAcademyProgress } from "@/hooks/useAcademyProgress";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function KnowledgeLibrary({ locale, onAsk }) {
   const t = (key) => translate(locale, key);
   const router = useRouter();
   const [activeFighter, setActiveFighter] = useState(null);
+  const { user } = useAuth();
+  const { lessonProgress, currentPathId, guestPrompt, setGuestPrompt, setCurrentPath } = useAcademyProgress({ user });
 
   const todayFocus = useMemo(() => getWeeklyFocus(locale)[new Date().getDay()], [locale]);
 
@@ -147,6 +153,41 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
         </div>
       </div>
 
+      {/* ── Your Path ────────────────────────────────────────────────────── */}
+      <div>
+        <SectionHeader emoji="🎯" title={locale === "mn" ? "Таны Зам" : locale === "ko" ? "내 경로" : "Your Path"} />
+        <AcademyPathCard
+          currentPathId={currentPathId}
+          lessonProgress={lessonProgress}
+          locale={locale}
+          onSelectPath={setCurrentPath}
+          onContinue={(lessonId) => router.push(`/${locale}/train?academyLesson=${lessonId}`)}
+        />
+        {/* Guest save prompt */}
+        {guestPrompt && !user && (
+          <div style={{
+            marginTop: 10, padding: "10px 14px", borderRadius: 10,
+            background: "rgba(245,196,81,0.06)", border: "1px solid rgba(245,196,81,0.18)",
+            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
+          }}>
+            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", lineHeight: 1.4 }}>
+              {locale === "mn" ? "Дэвшлийг хадгалахын тулд бүртгүүл." : "Sign up to save progress across devices."}
+            </span>
+            <button
+              type="button"
+              onClick={() => { setGuestPrompt(false); router.push(`/${locale}/login?mode=signup`); }}
+              style={{
+                flexShrink: 0, padding: "5px 12px", borderRadius: 7,
+                background: "rgba(245,196,81,0.16)", border: "1px solid rgba(245,196,81,0.3)",
+                color: "#F5C451", fontSize: 10, fontWeight: 900, cursor: "pointer",
+              }}
+            >
+              {locale === "mn" ? "Бүртгүүлэх →" : "Sign up →"}
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* ── Foundation Skills ────────────────────────────────────────────── */}
       <div>
         <SectionHeader emoji="📚" title={locale === "mn" ? "Суурь Техникүүд" : locale === "ko" ? "기초 기술" : "Foundation Skills"} />
@@ -156,6 +197,8 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
               key={lesson.id}
               lesson={lesson}
               locale={locale}
+              lessonStatus={getLessonStatus(lesson.id, lessonProgress)}
+              bestScore={lessonProgress[lesson.id]?.bestScore}
               onStudyFighter={(fighterId) => router.push(`/${locale}/fighters/${fighterId}`)}
               router={router}
             />

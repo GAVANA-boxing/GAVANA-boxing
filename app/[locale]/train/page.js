@@ -19,6 +19,7 @@ import { FIGHTERS } from "@/lib/fighters";
 import { FIGHTER_TECHNIQUES } from "@/lib/fighterTechniques";
 import { ACADEMY_LESSONS } from "@/lib/academyLessons";
 import TrainingFocusCard from "@/components/train/TrainingFocusCard";
+import { useAcademyProgress } from "@/hooks/useAcademyProgress";
 import { getDrillConfig } from "@/lib/drillConfig";
 import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
 import MilestoneCelebration from "@/components/MilestoneCelebration";
@@ -43,6 +44,7 @@ export default function TrainPage() {
   const locale = getLocaleFromPathname(pathname);
   const t = (key) => translate(locale, key);
   const { user, loading: authLoading } = useAuth();
+  const { recordSession } = useAcademyProgress({ user });
 
   const [debugEnabled, setDebugEnabled] = useState(false);
   const [autoStart, setAutoStart] = useState(false);
@@ -415,6 +417,18 @@ export default function TrainPage() {
     const id = setInterval(() => setActiveCueIndex(i => (i + 1) % cues.length), 9000);
     return () => clearInterval(id);
   }, [phase, lessonContext]);
+
+  // ── Auto-record academy progress when result arrives ─────────────────────
+  const lastRecordedRef = useRef({ lessonId: null, score: null });
+  useEffect(() => {
+    if (!result?.score || !lessonContext?.academyLesson) return;
+    const lid = lessonContext.academyLesson.id;
+    const score = result.score;
+    if (lastRecordedRef.current.lessonId === lid && lastRecordedRef.current.score === score) return;
+    lastRecordedRef.current = { lessonId: lid, score };
+    recordSession(lid, score);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result?.score, lessonContext?.academyLesson?.id]);
 
   // Auto-start when coming from landing with ?autostart=1
   const autoStartFiredRef = useRef(false);

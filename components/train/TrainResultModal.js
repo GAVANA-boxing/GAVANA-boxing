@@ -479,9 +479,6 @@ export default function TrainResultModal({
           const acc = academyLesson.accentColor;
           const currentIdx = ACADEMY_LESSONS.findIndex(l => l.id === academyLesson.id);
           const nextLesson = currentIdx >= 0 ? ACADEMY_LESSONS[currentIdx + 1] : null;
-          const pathname = typeof window !== "undefined" ? window.location.pathname : "";
-          const localeMatch = pathname.match(/^\/([a-z]{2})\//);
-          const loc = localeMatch ? localeMatch[1] : "en";
           return (
             <div style={{
               margin: "0 20px 8px",
@@ -492,15 +489,15 @@ export default function TrainResultModal({
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                 <span style={{ fontSize: 14 }}>{academyLesson.emoji}</span>
-                <div>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.8, color: acc, textTransform: "uppercase" }}>
-                    ACADEMY LESSON
+                    ACADEMY LESSON · {locale === "mn" ? "Дэвшил хадгаласан ✓" : "Progress tracked ✓"}
                   </div>
                   <div style={{ fontSize: 12, fontWeight: 900, color: "#fff", marginTop: 1 }}>
                     {academyLesson.title}
                   </div>
                 </div>
-                <div style={{ marginLeft: "auto", flexShrink: 0, textAlign: "right" }}>
+                <div style={{ flexShrink: 0 }}>
                   <div style={{
                     display: "inline-flex", alignItems: "center", gap: 5,
                     padding: "3px 10px", borderRadius: 20,
@@ -508,13 +505,23 @@ export default function TrainResultModal({
                     border: `1px solid ${goalMet ? "rgba(52,211,153,0.3)" : "rgba(248,113,113,0.3)"}`,
                   }}>
                     <span style={{ fontSize: 9, fontWeight: 900, color: goalMet ? "#34D399" : "#F87171", letterSpacing: 1 }}>
-                      {goalMet
-                        ? (locale === "mn" ? "✓ ЗОРИЛГО ХАНГАСАН" : "✓ GOAL MET")
-                        : (locale === "mn" ? "ДАХИН ДАСГАЛДАХ" : "KEEP TRAINING")}
+                      {goalMet ? "✓ COMPLETE" : `${(result?.score ?? 0).toFixed(1)}/6.5`}
                     </span>
                   </div>
                 </div>
               </div>
+              {!goalMet && (
+                <div style={{
+                  marginBottom: 8, padding: "7px 10px", borderRadius: 8,
+                  background: "rgba(248,113,113,0.05)", border: "1px solid rgba(248,113,113,0.14)",
+                }}>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", lineHeight: 1.4 }}>
+                    {locale === "mn"
+                      ? `6.5/10 хүрвэл хичээл дуусна. Одоо ${(result?.score ?? 0).toFixed(1)} байна. Дахин дасгалдана уу.`
+                      : `Score 6.5/10 to complete this lesson. You got ${(result?.score ?? 0).toFixed(1)}. Train again to improve.`}
+                  </span>
+                </div>
+              )}
               {nextLesson && (
                 <div style={{
                   padding: "8px 10px", borderRadius: 8,
@@ -531,7 +538,7 @@ export default function TrainResultModal({
                   </div>
                   <button
                     type="button"
-                    onClick={() => router.push(`/${loc}/train?academyLesson=${nextLesson.id}`)}
+                    onClick={() => router.push(`/${locale}/train?academyLesson=${nextLesson.id}`)}
                     style={{
                       flexShrink: 0, padding: "5px 12px", borderRadius: 8,
                       background: `${nextLesson.accentColor}18`, border: `1px solid ${nextLesson.accentColor}35`,
