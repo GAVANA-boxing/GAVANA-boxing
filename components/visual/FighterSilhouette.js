@@ -138,8 +138,8 @@ function LomachenkoSilhouette({ accent, w, h }) {
       <path d="M20 64 L10 84 L6 102" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.65" />
       <path d="M60 64 L70 84 L74 102" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.55" />
       {/* Feet */}
-      <ellipse cx="5" cy="104" rx="7" ry="3" fill={accent} opacity="0.42" />
-      <ellipse cx="75" cy="104" rx="7" ry="3" fill={accent} opacity="0.32" />
+      <ellipse cx="8" cy="104" rx="7" ry="3" fill={accent} opacity="0.42" />
+      <ellipse cx="72" cy="104" rx="7" ry="3" fill={accent} opacity="0.32" />
       {/* Angle exit arrows from center */}
       <path d="M40 64 L14 44" stroke={accent} strokeWidth="1.3" strokeLinecap="round" opacity="0.5" />
       <path d="M11 47 L14 43 L18 46" stroke={accent} strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.5" />

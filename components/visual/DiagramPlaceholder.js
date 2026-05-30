@@ -278,7 +278,7 @@ function GuardRecoveryDiagram({ accent, w, h }) {
       <rect x="44" y="60" width="32" height="11" rx="5.5" fill={accent} opacity="0.1" stroke={accent} strokeWidth="0.6" />
       <text x="60" y="68" textAnchor="middle" fill={accent} fontSize="5.5" fontFamily="monospace" fontWeight="bold" opacity="0.7">{"< 0.3s"}</text>
       {/* Label */}
-      <text x="60" y="76" textAnchor="middle" fill={accent} fontSize="5" fontFamily="monospace" fontWeight="bold" opacity="0" letterSpacing="1">x</text>
+      <text x="60" y="73" textAnchor="middle" fill={accent} fontSize="5" fontFamily="monospace" fontWeight="bold" opacity="0.38" letterSpacing="1">GUARD RESET</text>
     </svg>
   );
 }

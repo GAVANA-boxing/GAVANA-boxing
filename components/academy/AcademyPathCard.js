@@ -150,7 +150,8 @@ export default function AcademyPathCard({ currentPathId, lessonProgress, locale,
       </div>
 
       {/* ── Path selector tabs ── */}
-      <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+      <style>{`.ap-scroll::-webkit-scrollbar{display:none}`}</style>
+      <div className="ap-scroll" style={{ overflowX: "auto", WebkitOverflowScrolling: "touch", scrollbarWidth: "none", msOverflowStyle: "none" }}>
         <div style={{ display: "flex", gap: 6, paddingBottom: 2 }}>
           {ACADEMY_PATHS.map(p => {
             const pp = getPathProgress(p, lessonProgress);

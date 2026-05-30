@@ -143,8 +143,8 @@ function TechDetailSheet({ fighter, technique, onClose, onBack, locale, router }
                   <FighterSilhouette fighterId={fighter.id} accent={fighter.accent} width={72} height={108} />
                 </div>
               </div>
-              {/* Gradient overlay */}
-              <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to right, rgba(15,12,13,0.72) 0%, transparent 40%, transparent 60%, rgba(15,12,13,0.72) 100%)`, pointerEvents: "none" }} />
+              {/* Gradient overlay — only left side; right is silhouette zone */}
+              <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to right, rgba(15,12,13,0.78) 0%, transparent 55%)`, pointerEvents: "none" }} />
               {/* Difficulty badge */}
               <div style={{ position: "absolute", top: 10, left: 14 }}>
                 <span style={{

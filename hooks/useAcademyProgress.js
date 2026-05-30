@@ -44,7 +44,7 @@ export function useAcademyProgress({ user }) {
     }
   }, [user?.uid]);
 
-  const persist = useCallback(async (nextLp, pathId) => {
+  const persist = useCallback(async (nextLp, pathId, showPrompt = false) => {
     if (user?.uid) {
       try {
         const { doc, setDoc } = await import("firebase/firestore");
@@ -55,7 +55,7 @@ export function useAcademyProgress({ user }) {
       } catch { }
     } else {
       saveLocal({ lessonProgress: nextLp, currentPathId: pathId });
-      setGuestPrompt(true);
+      if (showPrompt) setGuestPrompt(true);
     }
   }, [user?.uid]);
 
@@ -73,7 +73,7 @@ export function useAcademyProgress({ user }) {
           lastTrained: today,
         },
       };
-      persist(next, currentPathId);
+      persist(next, currentPathId, true);
       return next;
     });
   }, [currentPathId, persist]);

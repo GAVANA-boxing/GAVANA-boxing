@@ -36,12 +36,11 @@ const LABEL = {
 };
 
 // ── Small inline section header ───────────────────────────────────────────────
-function SubHeader({ label, acc }) {
-  return (
-    <div style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 1.5, color: acc || "rgba(255,255,255,0.32)", textTransform: "uppercase", marginBottom: 8 }}>
-      {label}
-    </div>
-  );
+function SubHeader({ label, acc, asSpan = false }) {
+  const style = { fontSize: 7.5, fontWeight: 900, letterSpacing: 1.5, color: acc || "rgba(255,255,255,0.32)", textTransform: "uppercase", marginBottom: 8 };
+  return asSpan
+    ? <span style={{ ...style, display: "block" }}>{label}</span>
+    : <div style={style}>{label}</div>;
 }
 
 // ── Collapsible wrapper ───────────────────────────────────────────────────────
@@ -57,7 +56,7 @@ function Collapsible({ label, acc, defaultOpen = false, children }) {
           width: "100%", background: "none", border: "none", padding: "0 0 6px", cursor: "pointer",
         }}
       >
-        <SubHeader label={label} acc={acc} />
+        <SubHeader label={label} acc={acc} asSpan />
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
           stroke={acc || "rgba(255,255,255,0.3)"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
           style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 200ms", flexShrink: 0, marginBottom: 8 }}

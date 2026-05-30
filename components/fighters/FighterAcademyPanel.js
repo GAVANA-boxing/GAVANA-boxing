@@ -66,20 +66,23 @@ export default function FighterAcademyPanel({ academy, fighterId, locale = "en" 
           background: `${acc}06`,
           display: "flex", alignItems: "stretch", height: 96,
         }}>
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "10px 14px" }}>
-            <div style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 1.8, color: acc, textTransform: "uppercase", marginBottom: 4 }}>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "12px 14px" }}>
+            <div style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 1.8, color: acc, textTransform: "uppercase", marginBottom: 5 }}>
               {academy.systemLabel}
             </div>
             <div style={{
-              fontSize: 16, fontWeight: 1000, color: "#fff", lineHeight: 1.1,
+              fontSize: 16, fontWeight: 1000, color: "#fff", lineHeight: 1.15,
               fontFamily: "var(--font-display, 'Anton', sans-serif)", textTransform: "uppercase",
-              letterSpacing: "-0.01em", marginBottom: 6,
+              letterSpacing: "-0.01em", marginBottom: 8,
             }}>
               {academy.systemEmoji} {academy.systemName}
             </div>
-            <div style={{ height: 48 }}>
-              <DiagramPlaceholder type={academy.diagramType} accent={acc} width={72} height={48} />
-            </div>
+            {academy.focusAreas?.[0] && (
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.38)", display: "flex", alignItems: "center", gap: 5 }}>
+                <span>{academy.focusAreas[0].icon}</span>
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{academy.focusAreas[0].title}</span>
+              </div>
+            )}
           </div>
           <div style={{ width: 72, flexShrink: 0 }}>
             <FighterSilhouette fighterId={fighterId} accent={acc} width={72} height={96} />
