@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { FIGHTER_TECHNIQUES } from "@/lib/fighterTechniques";
 import { GOLD, RED, redAlpha, goldAlpha, blackAlpha, whiteAlpha } from "@/lib/tokens";
+import DiagramPlaceholder from "@/components/visual/DiagramPlaceholder";
+import { BLOCK_DIAGRAM_TYPE } from "@/lib/visualAssets";
 
 const DIFF_COLOR = { beginner: "#10B981", intermediate: "#F59E0B", advanced: "#F87171" };
 const BLOCK_ICON = { FOOT: "👟", WEIGHT: "⚖️", ANGLE: "📐", GUARD: "🛡️" };
@@ -121,6 +123,62 @@ function TechDetailSheet({ fighter, technique, onClose, onBack, locale, router }
             </div>
           </div>
         </div>
+
+        {/* ── Technique hero visual zone ── */}
+        {(() => {
+          const firstBlockType = technique.teachingBlocks?.[0]?.type;
+          const diagramType = BLOCK_DIAGRAM_TYPE[firstBlockType] || "ring";
+          const acc = fighter.accent;
+          return (
+            <div style={{
+              flexShrink: 0, position: "relative", overflow: "hidden",
+              borderBottom: `1px solid rgba(255,255,255,0.06)`,
+            }}>
+              <div style={{ width: "100%", height: 108, background: `${acc}08` }}>
+                <DiagramPlaceholder type={diagramType} accent={acc} width="100%" height={108} />
+              </div>
+              {/* Gradient overlay */}
+              <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to right, rgba(15,12,13,0.72) 0%, transparent 40%, transparent 60%, rgba(15,12,13,0.72) 100%)`, pointerEvents: "none" }} />
+              {/* Difficulty badge */}
+              <div style={{ position: "absolute", top: 10, left: 14 }}>
+                <span style={{
+                  fontSize: 8, fontWeight: 900, letterSpacing: 1,
+                  color: DIFF_COLOR[technique.difficulty] || GOLD,
+                  background: `${DIFF_COLOR[technique.difficulty] || GOLD}18`,
+                  border: `1px solid ${DIFF_COLOR[technique.difficulty] || GOLD}30`,
+                  borderRadius: 6, padding: "3px 8px", textTransform: "uppercase",
+                }}>
+                  {technique.difficulty}
+                </span>
+              </div>
+              {/* Teaching block types */}
+              <div style={{ position: "absolute", bottom: 10, left: 14, display: "flex", gap: 5 }}>
+                {(technique.teachingBlocks || []).map((b) => (
+                  <span key={b.type} style={{
+                    fontSize: 7.5, fontWeight: 900, color: acc,
+                    background: `${acc}18`, border: `1px solid ${acc}30`,
+                    borderRadius: 4, padding: "2px 6px", letterSpacing: 0.8, textTransform: "uppercase",
+                  }}>
+                    {b.type}
+                  </span>
+                ))}
+              </div>
+              {/* Video coming soon pill */}
+              <div style={{
+                position: "absolute", top: 10, right: 14,
+                display: "flex", alignItems: "center", gap: 5,
+                padding: "3px 9px", borderRadius: 20,
+                background: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.12)",
+                backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+              }}>
+                <span style={{ fontSize: 10 }}>🎬</span>
+                <span style={{ fontSize: 7.5, fontWeight: 900, color: "rgba(255,255,255,0.45)", letterSpacing: 0.8 }}>
+                  {locale === "mn" ? "Видео удахгүй" : locale === "ko" ? "영상 출시 예정" : "Video coming soon"}
+                </span>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Content */}
         <div style={{ flex: 1, overflowY: "auto", padding: "16px 16px 0" }}>
