@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { GOLD, RADIUS, whiteAlpha, goldAlpha } from "@/lib/tokens";
 import DiagramPlaceholder from "@/components/visual/DiagramPlaceholder";
+import FighterSilhouette from "@/components/visual/FighterSilhouette";
 
 const PANEL_LABEL = {
   en: { focus: "Focus Areas", habit: "Signature Habit", cue: "Cue", drill: "Beginner Drill", advanced: "Advanced Lesson", steps: "Steps", note: "Note" },
@@ -48,7 +49,7 @@ function FocusCard({ area, accent, index }) {
   );
 }
 
-export default function FighterAcademyPanel({ academy, locale = "en" }) {
+export default function FighterAcademyPanel({ academy, fighterId, locale = "en" }) {
   const [drillOpen, setDrillOpen] = useState(false);
   if (!academy) return null;
   const L = PANEL_LABEL[locale] || PANEL_LABEL.en;
@@ -57,28 +58,59 @@ export default function FighterAcademyPanel({ academy, locale = "en" }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
 
-      {/* ── System header ── */}
-      <div style={{
-        display: "flex", alignItems: "center", gap: 12,
-        padding: "12px 14px", borderRadius: 12,
-        background: `${acc}0a`, border: `1px solid ${acc}22`,
-      }}>
-        <div style={{ height: 56, flexShrink: 0 }}>
-          <DiagramPlaceholder type={academy.diagramType} accent={acc} width={56} height={56} />
-        </div>
-        <div>
-          <div style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 1.8, color: acc, textTransform: "uppercase", marginBottom: 3 }}>
-            {academy.systemLabel}
+      {/* ── Fighter silhouette banner ── */}
+      {fighterId && (
+        <div style={{
+          borderRadius: 12, overflow: "hidden",
+          border: `1px solid ${acc}22`,
+          background: `${acc}06`,
+          display: "flex", alignItems: "stretch", height: 96,
+        }}>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "10px 14px" }}>
+            <div style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 1.8, color: acc, textTransform: "uppercase", marginBottom: 4 }}>
+              {academy.systemLabel}
+            </div>
+            <div style={{
+              fontSize: 16, fontWeight: 1000, color: "#fff", lineHeight: 1.1,
+              fontFamily: "var(--font-display, 'Anton', sans-serif)", textTransform: "uppercase",
+              letterSpacing: "-0.01em", marginBottom: 6,
+            }}>
+              {academy.systemEmoji} {academy.systemName}
+            </div>
+            <div style={{ height: 48 }}>
+              <DiagramPlaceholder type={academy.diagramType} accent={acc} width={72} height={48} />
+            </div>
           </div>
-          <div style={{
-            fontSize: 15, fontWeight: 1000, color: "#fff", lineHeight: 1.1,
-            fontFamily: "var(--font-display, 'Anton', sans-serif)", textTransform: "uppercase",
-            letterSpacing: "-0.01em",
-          }}>
-            {academy.systemEmoji} {academy.systemName}
+          <div style={{ width: 72, flexShrink: 0 }}>
+            <FighterSilhouette fighterId={fighterId} accent={acc} width={72} height={96} />
           </div>
         </div>
-      </div>
+      )}
+
+      {/* ── System header (no fighterId fallback) ── */}
+      {!fighterId && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: 12,
+          padding: "12px 14px", borderRadius: 12,
+          background: `${acc}0a`, border: `1px solid ${acc}22`,
+        }}>
+          <div style={{ height: 56, flexShrink: 0 }}>
+            <DiagramPlaceholder type={academy.diagramType} accent={acc} width={56} height={56} />
+          </div>
+          <div>
+            <div style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 1.8, color: acc, textTransform: "uppercase", marginBottom: 3 }}>
+              {academy.systemLabel}
+            </div>
+            <div style={{
+              fontSize: 15, fontWeight: 1000, color: "#fff", lineHeight: 1.1,
+              fontFamily: "var(--font-display, 'Anton', sans-serif)", textTransform: "uppercase",
+              letterSpacing: "-0.01em",
+            }}>
+              {academy.systemEmoji} {academy.systemName}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Focus areas ── */}
       <div>

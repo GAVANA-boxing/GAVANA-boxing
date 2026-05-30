@@ -491,7 +491,7 @@ export default function FighterDetailPage() {
           const academyTitle = locale === "mn" ? "Академийн гарын авлага" : locale === "ko" ? "아카데미 가이드" : "Academy Guide";
           return (
             <Section title={academyTitle} icon={SI.academy} accent={acc} defaultOpen>
-              <FighterAcademyPanel academy={academy} locale={locale} />
+              <FighterAcademyPanel academy={academy} fighterId={fighter.id} locale={locale} />
             </Section>
           );
         })()}

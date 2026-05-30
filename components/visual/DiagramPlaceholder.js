@@ -150,6 +150,172 @@ function RingDiagram({ accent, w, h }) {
   );
 }
 
+function JabDiagram({ accent, w, h }) {
+  return (
+    <svg viewBox="0 0 120 76" width={w} height={h} style={{ display: "block" }} aria-hidden="true">
+      <rect width="120" height="76" fill="#050506" />
+      {[24,48,72,96].map((x) => (
+        <line key={`gx${x}`} x1={x} y1={0} x2={x} y2={76} stroke={accent} strokeWidth="0.3" opacity="0.12" />
+      ))}
+      {[19,38,57].map((y) => (
+        <line key={`gy${y}`} x1={0} y1={y} x2={120} y2={y} stroke={accent} strokeWidth="0.3" opacity="0.12" />
+      ))}
+      {/* Body top-down oval */}
+      <ellipse cx="34" cy="44" rx="10" ry="13" fill={accent} opacity="0.08" stroke={accent} strokeWidth="0.8" />
+      {/* Head */}
+      <circle cx="34" cy="26" r="7" fill="none" stroke={accent} strokeWidth="0.9" opacity="0.45" />
+      {/* Rear hand at chin */}
+      <circle cx="41" cy="30" r="3.5" fill={accent} opacity="0.2" />
+      <circle cx="41" cy="30" r="3.5" fill="none" stroke={accent} strokeWidth="0.7" opacity="0.5" />
+      {/* Jab arm path */}
+      <path d="M40 40 L92 35" stroke={accent} strokeWidth="2" strokeLinecap="round" opacity="0.9" />
+      {/* Arrowhead */}
+      <path d="M88 31 L93 35 L88 39" stroke={accent} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.9" />
+      {/* Fist */}
+      <circle cx="95" cy="35" r="4.5" fill={accent} opacity="0.75" />
+      {/* Return path dashed */}
+      <path d="M95 37 Q70 55 41 44" stroke={accent} strokeWidth="0.8" strokeDasharray="2.5,3" strokeLinecap="round" fill="none" opacity="0.28" />
+      {/* SNAP label */}
+      <text x="101" y="31" fill={accent} fontSize="5" fontFamily="monospace" fontWeight="bold" opacity="0.55">SNAP</text>
+      {/* Label */}
+      <text x="60" y="73" textAnchor="middle" fill={accent} fontSize="5.5" fontFamily="monospace" fontWeight="bold" opacity="0.45" letterSpacing="1">JAB PATH</text>
+    </svg>
+  );
+}
+
+function CrossDiagram({ accent, w, h }) {
+  return (
+    <svg viewBox="0 0 120 76" width={w} height={h} style={{ display: "block" }} aria-hidden="true">
+      <rect width="120" height="76" fill="#050506" />
+      {[24,48,72,96].map((x) => (
+        <line key={`gx${x}`} x1={x} y1={0} x2={x} y2={76} stroke={accent} strokeWidth="0.3" opacity="0.12" />
+      ))}
+      {[19,38,57].map((y) => (
+        <line key={`gy${y}`} x1={0} y1={y} x2={120} y2={y} stroke={accent} strokeWidth="0.3" opacity="0.12" />
+      ))}
+      {/* Body */}
+      <ellipse cx="34" cy="44" rx="10" ry="13" fill={accent} opacity="0.08" stroke={accent} strokeWidth="0.8" />
+      {/* Head */}
+      <circle cx="34" cy="26" r="7" fill="none" stroke={accent} strokeWidth="0.9" opacity="0.45" />
+      {/* Hip rotation arc */}
+      <path d="M24 50 A20 12 0 0 1 48 50" fill="none" stroke={accent} strokeWidth="1.2" opacity="0.5" />
+      <path d="M44 47 L48 50 L45 54" stroke={accent} strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.5" />
+      {/* Lead hand guard */}
+      <circle cx="30" cy="30" r="3.5" fill={accent} opacity="0.2" />
+      <circle cx="30" cy="30" r="3.5" fill="none" stroke={accent} strokeWidth="0.7" opacity="0.5" />
+      {/* Cross arm path */}
+      <path d="M40 38 L94 36" stroke={accent} strokeWidth="2" strokeLinecap="round" opacity="0.9" />
+      {/* Arrowhead */}
+      <path d="M90 32 L95 36 L90 40" stroke={accent} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.9" />
+      {/* Fist */}
+      <circle cx="97" cy="36" r="4.5" fill={accent} opacity="0.75" />
+      {/* HIP DRIVE label */}
+      <text x="36" y="63" textAnchor="middle" fill={accent} fontSize="5" fontFamily="monospace" fontWeight="bold" opacity="0.5">HIP DRIVE</text>
+      {/* Label */}
+      <text x="60" y="73" textAnchor="middle" fill={accent} fontSize="5.5" fontFamily="monospace" fontWeight="bold" opacity="0.45" letterSpacing="1">CROSS PATH</text>
+    </svg>
+  );
+}
+
+function HookDiagram({ accent, w, h }) {
+  return (
+    <svg viewBox="0 0 120 76" width={w} height={h} style={{ display: "block" }} aria-hidden="true">
+      <rect width="120" height="76" fill="#050506" />
+      {[24,48,72,96].map((x) => (
+        <line key={`gx${x}`} x1={x} y1={0} x2={x} y2={76} stroke={accent} strokeWidth="0.3" opacity="0.12" />
+      ))}
+      {[19,38,57].map((y) => (
+        <line key={`gy${y}`} x1={0} y1={y} x2={120} y2={y} stroke={accent} strokeWidth="0.3" opacity="0.12" />
+      ))}
+      {/* Body */}
+      <ellipse cx="34" cy="46" rx="9" ry="12" fill={accent} opacity="0.08" stroke={accent} strokeWidth="0.8" />
+      {/* Head */}
+      <circle cx="34" cy="28" r="7" fill="none" stroke={accent} strokeWidth="0.9" opacity="0.45" />
+      {/* Elbow level dashed line */}
+      <line x1="12" y1="37" x2="108" y2="37" stroke={accent} strokeWidth="0.5" strokeDasharray="3,3" opacity="0.2" />
+      <text x="110" y="39" fill={accent} fontSize="4.5" fontFamily="monospace" opacity="0.38">ELB</text>
+      {/* Hook arc path */}
+      <path d="M40 37 Q58 20 88 37" stroke={accent} strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.9" />
+      {/* Arrowhead */}
+      <path d="M84 33 L89 37 L84 41" stroke={accent} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.9" />
+      {/* Fist at target */}
+      <circle cx="91" cy="37" r="4.5" fill={accent} opacity="0.75" />
+      {/* Elbow circle */}
+      <circle cx="40" cy="37" r="3.5" fill={accent} opacity="0.35" />
+      <circle cx="40" cy="37" r="3.5" fill="none" stroke={accent} strokeWidth="0.9" opacity="0.7" />
+      {/* Weight shift arrow */}
+      <path d="M30 56 L38 56" stroke={accent} strokeWidth="1.2" strokeLinecap="round" opacity="0.42" />
+      <path d="M35 53 L38 56 L35 59" stroke={accent} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.42" />
+      {/* Label */}
+      <text x="60" y="73" textAnchor="middle" fill={accent} fontSize="5.5" fontFamily="monospace" fontWeight="bold" opacity="0.45" letterSpacing="1">HOOK ARC</text>
+    </svg>
+  );
+}
+
+function GuardRecoveryDiagram({ accent, w, h }) {
+  return (
+    <svg viewBox="0 0 120 76" width={w} height={h} style={{ display: "block" }} aria-hidden="true">
+      <rect width="120" height="76" fill="#050506" />
+      {[24,48,72,96].map((x) => (
+        <line key={`gx${x}`} x1={x} y1={0} x2={x} y2={76} stroke={accent} strokeWidth="0.3" opacity="0.12" />
+      ))}
+      {/* Head */}
+      <circle cx="60" cy="16" r="8" fill="none" stroke={accent} strokeWidth="0.9" opacity="0.5" />
+      {/* Left glove extended below */}
+      <ellipse cx="28" cy="55" rx="7" ry="5" fill={accent} opacity="0.22" stroke={accent} strokeWidth="1" />
+      {/* Left return arrow */}
+      <path d="M33 51 Q46 38 47 28" stroke={accent} strokeWidth="1.1" strokeDasharray="2,2" strokeLinecap="round" opacity="0.38" fill="none" />
+      <path d="M43 25 L47 29 L42 30" stroke={accent} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.78" />
+      {/* Right glove extended below */}
+      <ellipse cx="92" cy="55" rx="7" ry="5" fill={accent} opacity="0.16" stroke={accent} strokeWidth="1" />
+      {/* Right return arrow */}
+      <path d="M87 51 Q74 38 73 28" stroke={accent} strokeWidth="1.1" strokeDasharray="2,2" strokeLinecap="round" opacity="0.38" fill="none" />
+      <path d="M77 25 L73 29 L78 30" stroke={accent} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.78" />
+      {/* Guard gloves in position */}
+      <ellipse cx="48" cy="25" rx="6" ry="4.5" fill={accent} opacity="0.45" />
+      <ellipse cx="72" cy="25" rx="6" ry="4.5" fill={accent} opacity="0.35" />
+      {/* Timer chip */}
+      <rect x="44" y="60" width="32" height="11" rx="5.5" fill={accent} opacity="0.1" stroke={accent} strokeWidth="0.6" />
+      <text x="60" y="68" textAnchor="middle" fill={accent} fontSize="5.5" fontFamily="monospace" fontWeight="bold" opacity="0.7">{"< 0.3s"}</text>
+      {/* Label */}
+      <text x="60" y="76" textAnchor="middle" fill={accent} fontSize="5" fontFamily="monospace" fontWeight="bold" opacity="0" letterSpacing="1">x</text>
+    </svg>
+  );
+}
+
+function FootworkAngleDiagram({ accent, w, h }) {
+  return (
+    <svg viewBox="0 0 120 76" width={w} height={h} style={{ display: "block" }} aria-hidden="true">
+      <rect width="120" height="76" fill="#050506" />
+      {[24,48,72,96].map((x) => (
+        <line key={`gx${x}`} x1={x} y1={0} x2={x} y2={76} stroke={accent} strokeWidth="0.3" opacity="0.12" />
+      ))}
+      {[19,38,57].map((y) => (
+        <line key={`gy${y}`} x1={0} y1={y} x2={120} y2={y} stroke={accent} strokeWidth="0.3" opacity="0.12" />
+      ))}
+      {/* Starting foot positions */}
+      <ellipse cx="52" cy="52" rx="10" ry="6" fill="none" stroke={accent} strokeWidth="1.1" opacity="0.7" />
+      <ellipse cx="68" cy="60" rx="10" ry="6" fill="none" stroke={accent} strokeWidth="1.1" opacity="0.55" />
+      {/* Pivot indicator at lead foot */}
+      <circle cx="52" cy="52" r="3" fill={accent} opacity="0.6" />
+      <circle cx="52" cy="52" r="7" fill="none" stroke={accent} strokeWidth="0.6" strokeDasharray="2,2" opacity="0.3" />
+      {/* Angle exit left-forward */}
+      <path d="M52 52 L20 24" stroke={accent} strokeWidth="1.5" strokeLinecap="round" opacity="0.78" />
+      <path d="M17 27 L20 22 L25 25" stroke={accent} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.78" />
+      {/* Angle exit right-forward */}
+      <path d="M52 52 L84 24" stroke={accent} strokeWidth="1.5" strokeLinecap="round" opacity="0.55" />
+      <path d="M87 27 L84 22 L79 25" stroke={accent} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.55" />
+      {/* Angle arc between paths */}
+      <path d="M26 35 A30 30 0 0 1 78 35" fill="none" stroke={accent} strokeWidth="0.8" opacity="0.28" />
+      {/* 45° labels */}
+      <text x="12" y="22" fill={accent} fontSize="5" fontFamily="monospace" fontWeight="bold" opacity="0.52">45°</text>
+      <text x="86" y="22" fill={accent} fontSize="5" fontFamily="monospace" fontWeight="bold" opacity="0.52">45°</text>
+      {/* Label */}
+      <text x="60" y="73" textAnchor="middle" fill={accent} fontSize="5.5" fontFamily="monospace" fontWeight="bold" opacity="0.45" letterSpacing="1">ANGLE EXIT</text>
+    </svg>
+  );
+}
+
 function AnimalPlaceholder({ animalEmoji, animal, accent, w, h }) {
   return (
     <div style={{
@@ -182,12 +348,17 @@ export default function DiagramPlaceholder({
 
   let diagram;
   switch (type) {
-    case "footwork": diagram = <FootworkDiagram {...props} />; break;
-    case "stance":   diagram = <StanceDiagram   {...props} />; break;
-    case "angle":    diagram = <AngleDiagram    {...props} />; break;
-    case "guard":    diagram = <GuardDiagram    {...props} />; break;
-    case "animal":   diagram = <AnimalPlaceholder animalEmoji={animalEmoji} animal={animal} {...props} />; break;
-    default:         diagram = <RingDiagram     {...props} />;
+    case "footwork":        diagram = <FootworkDiagram       {...props} />; break;
+    case "stance":          diagram = <StanceDiagram         {...props} />; break;
+    case "angle":           diagram = <AngleDiagram          {...props} />; break;
+    case "guard":           diagram = <GuardDiagram          {...props} />; break;
+    case "jab":             diagram = <JabDiagram            {...props} />; break;
+    case "cross":           diagram = <CrossDiagram          {...props} />; break;
+    case "hook":            diagram = <HookDiagram           {...props} />; break;
+    case "guard-recovery":  diagram = <GuardRecoveryDiagram  {...props} />; break;
+    case "footwork-angle":  diagram = <FootworkAngleDiagram  {...props} />; break;
+    case "animal":          diagram = <AnimalPlaceholder animalEmoji={animalEmoji} animal={animal} {...props} />; break;
+    default:                diagram = <RingDiagram           {...props} />;
   }
 
   if (!label) return diagram;

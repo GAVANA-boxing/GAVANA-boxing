@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { FIGHTER_TECHNIQUES } from "@/lib/fighterTechniques";
 import { GOLD, RED, redAlpha, goldAlpha, blackAlpha, whiteAlpha } from "@/lib/tokens";
 import DiagramPlaceholder from "@/components/visual/DiagramPlaceholder";
+import FighterSilhouette from "@/components/visual/FighterSilhouette";
 import { BLOCK_DIAGRAM_TYPE } from "@/lib/visualAssets";
 
 const DIFF_COLOR = { beginner: "#10B981", intermediate: "#F59E0B", advanced: "#F87171" };
@@ -134,8 +135,13 @@ function TechDetailSheet({ fighter, technique, onClose, onBack, locale, router }
               flexShrink: 0, position: "relative", overflow: "hidden",
               borderBottom: `1px solid rgba(255,255,255,0.06)`,
             }}>
-              <div style={{ width: "100%", height: 108, background: `${acc}08` }}>
-                <DiagramPlaceholder type={diagramType} accent={acc} width="100%" height={108} />
+              <div style={{ width: "100%", height: 108, background: `${acc}08`, display: "flex", overflow: "hidden" }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <DiagramPlaceholder type={diagramType} accent={acc} width="100%" height={108} />
+                </div>
+                <div style={{ width: 72, flexShrink: 0 }}>
+                  <FighterSilhouette fighterId={fighter.id} accent={fighter.accent} width={72} height={108} />
+                </div>
               </div>
               {/* Gradient overlay */}
               <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to right, rgba(15,12,13,0.72) 0%, transparent 40%, transparent 60%, rgba(15,12,13,0.72) 100%)`, pointerEvents: "none" }} />
