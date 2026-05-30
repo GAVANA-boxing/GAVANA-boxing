@@ -266,7 +266,7 @@ export default function TrainPage() {
           body: JSON.stringify({
             messages: [{
               role: "user",
-              content: `Session complete. Score: ${result.score.toFixed(1)}/10. ${prevStr}${poseStr} Give a 2-3 sentence debrief: what performed well, what to improve, one specific drill.`,
+            content: `Boxing session finished. Performance score: ${result.score.toFixed(1)}/10. ${prevStr}${poseStr} Give a 2-3 sentence coaching debrief — one strength observed, one specific thing to improve, and one concrete drill to do next. Do not repeat or mention any score number.`,
             }],
             persona: "analyst",
             locale,
