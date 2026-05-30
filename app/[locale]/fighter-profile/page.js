@@ -12,6 +12,8 @@ import { RED, GOLD, RADIUS, goldAlpha, whiteAlpha, BG, redAlpha } from "@/lib/to
 import { computeMovementProfile } from "@/lib/combatMemory";
 import { deriveCombatIdentity } from "@/lib/combatIdentity";
 import { computeFighterDNA, dnaSnapshot } from "@/lib/fighterDNA";
+import { computeCombatProgress, progressSnapshot } from "@/lib/combatProgress";
+import CombatProgressCard from "@/components/profile/CombatProgressCard";
 
 function CombatIdentitySection({ identity, sessionCount }) {
   if (sessionCount === 0) {
@@ -133,7 +135,9 @@ export default function FighterProfilePage() {
   const profile  = computeMovementProfile(sessions);
   const identity = profile ? deriveCombatIdentity(profile, sessions) : null;
   const dna      = computeFighterDNA({ sessions, locale });
-  const dnaSavedRef = useRef(false);
+  const progress = computeCombatProgress({ sessions, streakDays: 0, locale });
+  const dnaSavedRef       = useRef(false);
+  const progressSavedRef  = useRef(false);
 
   useEffect(() => {
     if (!authLoading && !user) router.push(`/${locale}/login`);
@@ -153,6 +157,21 @@ export default function FighterProfilePage() {
       } catch { /* non-critical */ }
     })();
   }, [loading, user?.uid, dna.building]);
+
+  // Persist combat progress to Firestore once per page load
+  useEffect(() => {
+    if (loading || progressSavedRef.current || !user?.uid || progress.building) return;
+    progressSavedRef.current = true;
+    const snap = progressSnapshot(progress);
+    if (!snap) return;
+    (async () => {
+      try {
+        const { doc, setDoc } = await import("firebase/firestore");
+        const { db } = await import("@/lib/firebase");
+        await setDoc(doc(db, "users", user.uid), { combatProgress: snap }, { merge: true });
+      } catch { /* non-critical */ }
+    })();
+  }, [loading, user?.uid, progress.building]);
 
   if (authLoading) {
     return (
@@ -248,6 +267,11 @@ export default function FighterProfilePage() {
           <div style={{ marginBottom: 4 }}>
             <FighterDNACard dna={dna} locale={locale} />
           </div>
+        )}
+
+        {/* Combat Progress */}
+        {!loading && (
+          <CombatProgressCard progress={progress} locale={locale} />
         )}
       </div>
 

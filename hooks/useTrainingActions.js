@@ -13,6 +13,7 @@ import { getLocalDateKey, getPreviousLocalDateKey } from "@/lib/utils";
 import { getSessionIdentity, buildMovementCounts, buildMovementMetrics } from "@/lib/combatMemory";
 import { generateTechniqueReview } from "@/lib/techniqueReview";
 import { computeFighterDNA, dnaSnapshot } from "@/lib/fighterDNA";
+import { computeCombatProgress, progressSnapshot } from "@/lib/combatProgress";
 
 export function useTrainingActions({
   user,
@@ -304,17 +305,22 @@ export function useTrainingActions({
       setSaved(true);
       setSavedAttemptNumber(attemptNumber);
 
-      // Fighter DNA — compute from prior sessions + this result and save to user doc
+      // Fighter DNA + Combat Progress — compute from prior sessions + this result and save to user doc
       try {
-        const sessionsForDNA = [
+        const sessionsForStats = [
           ...priorSessions.slice(0, 9),
           { score: result.score, breakdown: result.breakdown, poseMetrics },
         ].filter((s) => typeof s.score === "number");
-        if (sessionsForDNA.length >= 3) {
-          const dna = computeFighterDNA({ sessions: sessionsForDNA, locale });
+        if (sessionsForStats.length >= 3) {
+          const dna  = computeFighterDNA({ sessions: sessionsForStats, locale });
           const snap = dnaSnapshot(dna);
           if (snap) {
             await setDoc(userRef, { fighterDNA: snap, fighterDnaUpdatedAt: serverTimestamp() }, { merge: true });
+          }
+          const prog     = computeCombatProgress({ sessions: sessionsForStats, streakDays: 0, locale });
+          const progSnap = progressSnapshot(prog);
+          if (progSnap) {
+            await setDoc(userRef, { combatProgress: progSnap }, { merge: true });
           }
         }
       } catch { /* non-critical */ }
