@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ReelItem from "@/components/reels/ReelItem";
 import CaptionSheet from "@/components/reels/CaptionSheet";
 import CommentsModal from "@/components/reels/CommentsModal";
@@ -64,6 +64,16 @@ export default function FeedPage({ reels, locale, router, user }) {
     return () => { cancelled = true; };
   }, [user?.uid]);
 
+  // Wrap setAllReels to preserve scroll order — useReelInteractions calls sortReelsByEngagement
+  // which would jumble the feed scroll-snap position after a like.
+  const setAllReelsStable = useCallback((updater) => {
+    setAllReels((prev) => {
+      const next = typeof updater === "function" ? updater(prev) : updater;
+      const order = new Map(prev.map((r, i) => [r.id, i]));
+      return [...next].sort((a, b) => (order.get(a.id) ?? 999) - (order.get(b.id) ?? 999));
+    });
+  }, []);
+
   const { handleLike, handleSave, handleShare } = useReelInteractions({
     user,
     router,
@@ -74,7 +84,7 @@ export default function FeedPage({ reels, locale, router, user }) {
     userLikes,
     savedReels,
     setUserLikes,
-    setAllReels,
+    setAllReels:    setAllReelsStable,
     setSavedReels,
     setUserViews:   noop,
     setHeartBursts: noop,
