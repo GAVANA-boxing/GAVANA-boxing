@@ -419,7 +419,7 @@ export function useTrainingActions({
     }
   }, [user, result, locale, setError]);
 
-  const handleShareAcademyToFeed = useCallback(async ({ poseMetrics = null, academyLesson = null } = {}) => {
+  const handleShareAcademyToFeed = useCallback(async ({ poseMetrics = null, academyLesson = null, videoBlob = null, thumbnailBlob = null } = {}) => {
     if (!user?.uid || !result || !academyLesson) return;
     if (feedSharedRef.current) return;
 
@@ -428,8 +428,17 @@ export function useTrainingActions({
     setError("");
 
     try {
+      let videoURL = null, thumbnailURL = null;
+      if (videoBlob) {
+        try {
+          const { uploadVideoToFeed } = await import("@/lib/uploadVideo");
+          const up = await uploadVideoToFeed({ videoBlob, thumbnailBlob, userId: user.uid });
+          videoURL = up.videoURL;
+          thumbnailURL = up.thumbnailURL;
+        } catch { /* video upload non-fatal */ }
+      }
       const { shareAcademyToFeed } = await import("@/lib/shareToFeed");
-      const id = await shareAcademyToFeed({ user, result, poseMetrics, drillConfig, academyLesson, locale });
+      const id = await shareAcademyToFeed({ user, result, poseMetrics, drillConfig, academyLesson, locale, videoURL, thumbnailURL });
       setSharedReelId(id);
       setFeedShared(true);
     } catch {
@@ -444,7 +453,7 @@ export function useTrainingActions({
     }
   }, [user, result, drillConfig, locale, setError]);
 
-  const handleShareToFeed = useCallback(async ({ poseMetrics = null } = {}) => {
+  const handleShareToFeed = useCallback(async ({ poseMetrics = null, videoBlob = null, thumbnailBlob = null } = {}) => {
     if (!user?.uid || !result) return;
     if (feedSharedRef.current) return;
 
@@ -453,8 +462,18 @@ export function useTrainingActions({
     setError("");
 
     try {
+      let videoURL = null, thumbnailURL = null, durationSeconds = null;
+      if (videoBlob) {
+        try {
+          const { uploadVideoToFeed } = await import("@/lib/uploadVideo");
+          const up = await uploadVideoToFeed({ videoBlob, thumbnailBlob, userId: user.uid });
+          videoURL = up.videoURL;
+          thumbnailURL = up.thumbnailURL;
+          durationSeconds = up.durationSeconds;
+        } catch { /* video upload non-fatal — share text-only */ }
+      }
       const { shareTrainingToFeed } = await import("@/lib/shareToFeed");
-      const id = await shareTrainingToFeed({ user, result, poseMetrics, drillConfig, locale });
+      const id = await shareTrainingToFeed({ user, result, poseMetrics, drillConfig, locale, videoURL, thumbnailURL, durationSeconds });
       setSharedReelId(id);
       setFeedShared(true);
     } catch {

@@ -111,6 +111,9 @@ export default function TrainPage() {
     handleStart,
     handleTryAgain,
     finishRecording,
+    recordingEnabled, setRecordingEnabled,
+    recordedBlob,
+    thumbnailBlob,
   } = useCameraSession({
     drillConfig,
     currentXP,
@@ -869,6 +872,47 @@ export default function TrainPage() {
           />
         )}
 
+        {/* Video recording toggle — opt-in, shown when idle and browser supports MediaRecorder */}
+        {phase === "idle" && !challengeUserId && !activeChallengePostId && typeof window !== "undefined" && window.MediaRecorder && (
+          <div style={{
+            margin: "0 0 8px",
+            padding: "10px 14px",
+            borderRadius: 12,
+            background: "rgba(255,255,255,0.03)",
+            border: `1px solid ${recordingEnabled ? "rgba(255,59,48,0.3)" : "rgba(255,255,255,0.07)"}`,
+            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+          }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.65)" }}>
+                {locale === "mn" ? "Видео бичлэг" : locale === "ko" ? "비디오 녹화" : "Record video"}
+              </div>
+              <div style={{ fontSize: 9.5, color: "rgba(255,255,255,0.28)", marginTop: 1 }}>
+                {locale === "mn" ? "Feed-д хуваалцах үед upload хийгдэнэ" : locale === "ko" ? "공유 시 업로드됩니다" : "Uploads when you share to feed"}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setRecordingEnabled((v) => !v)}
+              style={{
+                flexShrink: 0, width: 44, height: 26, borderRadius: 13,
+                background: recordingEnabled ? RED : "rgba(255,255,255,0.1)",
+                border: "none", cursor: "pointer", position: "relative",
+                transition: "background 0.2s",
+              }}
+              aria-label={recordingEnabled ? "Disable recording" : "Enable recording"}
+            >
+              <div style={{
+                position: "absolute", top: 3,
+                left: recordingEnabled ? 21 : 3,
+                width: 20, height: 20, borderRadius: "50%",
+                background: "#fff",
+                transition: "left 0.2s",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
+              }} />
+            </button>
+          </div>
+        )}
+
         {/* Daily mission strip — shown when idle only */}
         {phase === "idle" && (() => {
           const today = new Date().toISOString().split("T")[0];
@@ -969,9 +1013,11 @@ export default function TrainPage() {
         onShareTraining={handleShareTraining}
         onShareToFeed={
           lessonContext?.academyLesson
-            ? () => handleShareAcademyToFeed({ poseMetrics: poseSessionSummary, academyLesson: lessonContext.academyLesson })
-            : () => handleShareToFeed({ poseMetrics: poseSessionSummary })
+            ? () => handleShareAcademyToFeed({ poseMetrics: poseSessionSummary, academyLesson: lessonContext.academyLesson, videoBlob: recordedBlob, thumbnailBlob })
+            : () => handleShareToFeed({ poseMetrics: poseSessionSummary, videoBlob: recordedBlob, thumbnailBlob })
         }
+        recordedBlob={recordedBlob}
+        thumbnailBlob={thumbnailBlob}
         feedSharing={feedSharing}
         feedShared={feedShared}
         sharedReelId={sharedReelId}

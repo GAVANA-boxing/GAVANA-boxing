@@ -336,10 +336,21 @@ export default function TrainResultModal({
   challengeResponsePosting = false,
   challengeResponsePosted  = false,
   challengeResponseId      = null,
+  recordedBlob     = null,
+  thumbnailBlob    = null,
 }) {
   const displayScore = useCountUp(result?.score);
   const [sessionTag, setSessionTag] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [clipDuration, setClipDuration] = useState(null);
+  const [blobUrl, setBlobUrl] = useState(null);
+
+  useEffect(() => {
+    if (!recordedBlob) { setBlobUrl(null); setClipDuration(null); return; }
+    const url = URL.createObjectURL(recordedBlob);
+    setBlobUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [recordedBlob]);
   if (!result) return null;
 
   const MIN_PUNCHES = 5;
@@ -1332,6 +1343,43 @@ export default function TrainResultModal({
           <div style={{ height: 10 }} />
         </div>
 
+        {/* ── VIDEO PREVIEW ────────────────────────────────────────── */}
+        {blobUrl && (
+          <div style={{ padding: "0 20px 12px", flexShrink: 0 }}>
+            <div style={{
+              borderRadius: 12,
+              overflow: "hidden",
+              background: "#000",
+              border: "1px solid rgba(255,255,255,0.08)",
+              position: "relative",
+            }}>
+              <video
+                src={blobUrl}
+                controls
+                playsInline
+                muted
+                loop
+                style={{ width: "100%", maxHeight: 220, display: "block", objectFit: "cover" }}
+                onLoadedMetadata={(e) => {
+                  const d = e.currentTarget.duration;
+                  if (Number.isFinite(d) && d > 0) setClipDuration(Math.round(d));
+                }}
+              />
+              {clipDuration != null && (
+                <div style={{
+                  position: "absolute", bottom: 8, right: 10,
+                  padding: "2px 8px", borderRadius: 6,
+                  background: "rgba(0,0,0,0.7)",
+                  fontSize: 10, fontWeight: 900, color: "rgba(255,255,255,0.8)",
+                  fontFamily: "monospace",
+                }}>
+                  {Math.floor(clipDuration / 60)}:{String(clipDuration % 60).padStart(2, "0")}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* ── ACTIONS ──────────────────────────────────────────────── */}
         <div style={{ padding: "12px 20px 16px", flexShrink: 0, borderTop: `1px solid ${whiteAlpha(0.06)}` }}>
           {error && (
@@ -1427,7 +1475,9 @@ export default function TrainResultModal({
                       ? (locale === "mn" ? "Feed-д нийтлэгдлээ ✓" : locale === "ko" ? "피드에 공유됨 ✓" : "Shared to Feed ✓")
                       : academyLesson
                         ? (locale === "mn" ? "Academy дэвшлийг хуваалцах" : locale === "ko" ? "아카데미 진행 상황 공유하기" : "Share Academy Progress")
-                        : (locale === "mn" ? "Feed-д хуваалцах" : locale === "ko" ? "피드에 공유하기" : "Share to Feed")}
+                        : recordedBlob
+                          ? (locale === "mn" ? "Видео Feed-д хуваалцах" : locale === "ko" ? "비디오 피드에 공유하기" : "Share Video to Feed")
+                          : (locale === "mn" ? "Feed-д хуваалцах" : locale === "ko" ? "피드에 공유하기" : "Share to Feed")}
                 </button>
                 {feedShared && (
                   <button
