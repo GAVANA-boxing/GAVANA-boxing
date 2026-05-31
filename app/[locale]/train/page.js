@@ -133,7 +133,7 @@ export default function TrainPage() {
     handleSave, handleSaveChallengeResult,
     handleShareChallenge, handleChallengeFriend, handleShareTraining,
     feedSharing, feedShared, sharedReelId,
-    handleShareToFeed,
+    handleShareToFeed, handleShareAcademyToFeed,
     resetForNewSession,
   } = useTrainingActions({
     user, locale, result, reelId, drillId, drillConfig, challengeId,
@@ -917,7 +917,11 @@ export default function TrainPage() {
         onSaveChallengeResult={handleSaveChallengeResult}
         onShareChallenge={handleShareChallenge}
         onShareTraining={handleShareTraining}
-        onShareToFeed={() => handleShareToFeed({ poseMetrics: poseSessionSummary })}
+        onShareToFeed={
+          lessonContext?.academyLesson
+            ? () => handleShareAcademyToFeed({ poseMetrics: poseSessionSummary, academyLesson: lessonContext.academyLesson })
+            : () => handleShareToFeed({ poseMetrics: poseSessionSummary })
+        }
         feedSharing={feedSharing}
         feedShared={feedShared}
         sharedReelId={sharedReelId}

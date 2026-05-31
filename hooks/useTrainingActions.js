@@ -386,6 +386,31 @@ export function useTrainingActions({
     }
   }, [user, result, reelId, drillId, drillConfig, locale, t, setError, trainSourceUserId, creatorBestScore]);
 
+  const handleShareAcademyToFeed = useCallback(async ({ poseMetrics = null, academyLesson = null } = {}) => {
+    if (!user?.uid || !result || !academyLesson) return;
+    if (feedSharedRef.current) return;
+
+    feedSharedRef.current = true;
+    setFeedSharing(true);
+    setError("");
+
+    try {
+      const { shareAcademyToFeed } = await import("@/lib/shareToFeed");
+      const id = await shareAcademyToFeed({ user, result, poseMetrics, drillConfig, academyLesson, locale });
+      setSharedReelId(id);
+      setFeedShared(true);
+    } catch {
+      feedSharedRef.current = false;
+      setError(
+        locale === "mn" ? "Feed-д нийтлэхэд алдаа гарлаа" :
+        locale === "ko" ? "피드 공유 실패" :
+        "Failed to share to feed"
+      );
+    } finally {
+      setFeedSharing(false);
+    }
+  }, [user, result, drillConfig, locale, setError]);
+
   const handleShareToFeed = useCallback(async ({ poseMetrics = null } = {}) => {
     if (!user?.uid || !result) return;
     if (feedSharedRef.current) return;
@@ -436,7 +461,7 @@ export function useTrainingActions({
     handleSave, handleSaveChallengeResult,
     handleShareChallenge, handleChallengeFriend, handleShareTraining,
     feedSharing, feedShared, sharedReelId,
-    handleShareToFeed,
+    handleShareToFeed, handleShareAcademyToFeed,
     resetForNewSession,
   };
 }

@@ -1372,7 +1372,9 @@ export default function TrainResultModal({
                     ? (locale === "mn" ? "Нийтэлж байна…" : locale === "ko" ? "공유 중…" : "Sharing…")
                     : feedShared
                       ? (locale === "mn" ? "Feed-д нийтлэгдлээ ✓" : locale === "ko" ? "피드에 공유됨 ✓" : "Shared to Feed ✓")
-                      : (locale === "mn" ? "Feed-д хуваалцах" : locale === "ko" ? "피드에 공유하기" : "Share to Feed")}
+                      : academyLesson
+                        ? (locale === "mn" ? "Academy дэвшлийг хуваалцах" : locale === "ko" ? "아카데미 진행 상황 공유하기" : "Share Academy Progress")
+                        : (locale === "mn" ? "Feed-д хуваалцах" : locale === "ko" ? "피드에 공유하기" : "Share to Feed")}
                 </button>
                 {feedShared && (
                   <button
@@ -1406,11 +1408,17 @@ export default function TrainResultModal({
                   cursor: "pointer",
                 }}
               >
-                {locale === "mn"
-                  ? "Профайл үүсгэж өөрийн дэвшлийг хуваалцаарай →"
-                  : locale === "ko"
-                    ? "프로필 생성 후 진행 상황 공유 →"
-                    : "Create profile to share your progress →"}
+                {academyLesson
+                  ? (locale === "mn"
+                      ? "Профайл үүсгэж academy дэвшлийг хуваалцаарай →"
+                      : locale === "ko"
+                        ? "프로필 생성 후 아카데미 진행 상황 공유 →"
+                        : "Create profile to share academy progress →")
+                  : (locale === "mn"
+                      ? "Профайл үүсгэж өөрийн дэвшлийг хуваалцаарай →"
+                      : locale === "ko"
+                        ? "프로필 생성 후 진행 상황 공유 →"
+                        : "Create profile to share your progress →")}
               </button>
             )}
             <button type="button" style={styles.shareResultButton} onClick={activeChallenge ? onShareChallenge : onShareTraining}>
