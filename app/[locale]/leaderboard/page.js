@@ -26,6 +26,7 @@ export default function LeaderboardPage() {
   const t = (key) => translate(locale, key);
 
   const [leaderboardTab, setLeaderboardTab] = useState("week");
+  const [socialSubTab, setSocialSubTab] = useState("active");
   const [archetypeFilter, setArchetypeFilter] = useState("all");
   const [weightFilter, setWeightFilter] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
@@ -46,6 +47,8 @@ export default function LeaderboardPage() {
     friendsEntries,
     viewsEntries,
     likesEntries,
+    activeEntries,
+    respondersEntries,
     currentUserAllTimeRank,
     currentUserWeeklyRank,
     currentUserAllTimeEntry,
@@ -53,7 +56,7 @@ export default function LeaderboardPage() {
     weeklyChampion,
   } = useLeaderboardData({ user, currentSeasonId });
 
-  useEffect(() => { setVisibleCount(20); }, [leaderboardTab, archetypeFilter, weightFilter]);
+  useEffect(() => { setVisibleCount(20); }, [leaderboardTab, archetypeFilter, weightFilter, socialSubTab]);
 
   const displayEntries =
     leaderboardTab === "week" ? weeklyEntries
@@ -62,6 +65,7 @@ export default function LeaderboardPage() {
     : leaderboardTab === "friends" ? friendsEntries
     : leaderboardTab === "views" ? viewsEntries
     : leaderboardTab === "likes" ? likesEntries
+    : leaderboardTab === "social" ? (socialSubTab === "responders" ? respondersEntries : activeEntries)
     : entries;
 
   const filteredDisplayEntries = useMemo(() => {
@@ -169,7 +173,40 @@ export default function LeaderboardPage() {
           >
             ❤️ {t("lbLikes")}
           </button>
+          <button
+            type="button"
+            style={{ ...styles.tabBtn, ...(leaderboardTab === "social" ? { background: "rgba(52,211,153,0.12)", color: "#34D399", border: "1px solid rgba(52,211,153,0.35)" } : {}) }}
+            onClick={() => setLeaderboardTab("social")}
+          >
+            🌐 {t("lbSocial")}
+          </button>
         </div>
+
+        {/* Social sub-tabs */}
+        {leaderboardTab === "social" && (
+          <div style={{ display: "flex", gap: 6, padding: "8px 4px 0" }}>
+            {[
+              { key: "active",     label: t("lbSocialActive"),     icon: "🔥" },
+              { key: "responders", label: t("lbSocialResponders"),  icon: "⚔️" },
+            ].map(({ key, label, icon }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setSocialSubTab(key)}
+                style={{
+                  padding: "5px 12px", borderRadius: 20, fontSize: 12, fontWeight: 800,
+                  border: socialSubTab === key ? "1px solid rgba(52,211,153,0.5)" : "1px solid rgba(255,255,255,0.1)",
+                  background: socialSubTab === key ? "rgba(52,211,153,0.12)" : "transparent",
+                  color: socialSubTab === key ? "#34D399" : "rgba(255,255,255,0.45)",
+                  cursor: "pointer",
+                }}
+              >
+                {icon} {label}
+              </button>
+            ))}
+          </div>
+        )}
+
         {leaderboardTab === "week" && (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 4px 0" }}>
             <p style={{ ...styles.seasonLabel, margin: 0 }}>{seasonLabel}</p>

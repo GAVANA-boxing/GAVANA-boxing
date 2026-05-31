@@ -42,6 +42,18 @@ export function useTrainingActions({
   const [missionNewStreak, setMissionNewStreak] = useState(0);
   const [rankUpInfo, setRankUpInfo] = useState(null);
   const challengeSavedRef = useRef(false);
+  const [feedSharing,       setFeedSharing]       = useState(false);
+  const [feedShared,        setFeedShared]        = useState(false);
+  const [sharedReelId,      setSharedReelId]      = useState(null);
+  const feedSharedRef = useRef(false);
+  const [challengePosting,          setChallengePosting]          = useState(false);
+  const [challengePosted,           setChallengePosted]           = useState(false);
+  const [challengePostId,           setChallengePostId]           = useState(null);
+  const challengePostRef = useRef(false);
+  const [challengeResponsePosting,  setChallengeResponsePosting]  = useState(false);
+  const [challengeResponsePosted,   setChallengeResponsePosted]   = useState(false);
+  const [challengeResponseId,       setChallengeResponseId]       = useState(null);
+  const challengeResponseRef = useRef(false);
 
   const handleShareChallenge = useCallback(async () => {
     if (!result) return;
@@ -382,6 +394,126 @@ export function useTrainingActions({
     }
   }, [user, result, reelId, drillId, drillConfig, locale, t, setError, trainSourceUserId, creatorBestScore]);
 
+  const handleCreateChallengePost = useCallback(async ({ poseMetrics = null, academyLesson = null } = {}) => {
+    if (!user?.uid || !result) return;
+    if (challengePostRef.current) return;
+
+    challengePostRef.current = true;
+    setChallengePosting(true);
+    setError("");
+
+    try {
+      const { createChallengePost } = await import("@/lib/shareToFeed");
+      const id = await createChallengePost({ user, result, poseMetrics, academyLesson, locale });
+      setChallengePostId(id);
+      setChallengePosted(true);
+    } catch {
+      challengePostRef.current = false;
+      setError(
+        locale === "mn" ? "Challenge үүсгэхэд алдаа гарлаа" :
+        locale === "ko" ? "챌린지 생성 실패" :
+        "Failed to create challenge"
+      );
+    } finally {
+      setChallengePosting(false);
+    }
+  }, [user, result, locale, setError]);
+
+  const handleShareAcademyToFeed = useCallback(async ({ poseMetrics = null, academyLesson = null, videoBlob = null, thumbnailBlob = null } = {}) => {
+    if (!user?.uid || !result || !academyLesson) return;
+    if (feedSharedRef.current) return;
+
+    feedSharedRef.current = true;
+    setFeedSharing(true);
+    setError("");
+
+    try {
+      let videoURL = null, thumbnailURL = null, durationSeconds = null;
+      if (videoBlob) {
+        try {
+          const { uploadVideoToFeed } = await import("@/lib/uploadVideo");
+          const up = await uploadVideoToFeed({ videoBlob, thumbnailBlob, userId: user.uid });
+          videoURL = up.videoURL;
+          thumbnailURL = up.thumbnailURL;
+          durationSeconds = up.durationSeconds;
+        } catch { /* video upload non-fatal */ }
+      }
+      const { shareAcademyToFeed } = await import("@/lib/shareToFeed");
+      const id = await shareAcademyToFeed({ user, result, poseMetrics, drillConfig, academyLesson, locale, videoURL, thumbnailURL, durationSeconds });
+      setSharedReelId(id);
+      setFeedShared(true);
+    } catch {
+      feedSharedRef.current = false;
+      setError(
+        locale === "mn" ? "Feed-д нийтлэхэд алдаа гарлаа" :
+        locale === "ko" ? "피드 공유 실패" :
+        "Failed to share to feed"
+      );
+    } finally {
+      setFeedSharing(false);
+    }
+  }, [user, result, drillConfig, locale, setError]);
+
+  const handleShareToFeed = useCallback(async ({ poseMetrics = null, videoBlob = null, thumbnailBlob = null } = {}) => {
+    if (!user?.uid || !result) return;
+    if (feedSharedRef.current) return;
+
+    feedSharedRef.current = true;
+    setFeedSharing(true);
+    setError("");
+
+    try {
+      let videoURL = null, thumbnailURL = null, durationSeconds = null;
+      if (videoBlob) {
+        try {
+          const { uploadVideoToFeed } = await import("@/lib/uploadVideo");
+          const up = await uploadVideoToFeed({ videoBlob, thumbnailBlob, userId: user.uid });
+          videoURL = up.videoURL;
+          thumbnailURL = up.thumbnailURL;
+          durationSeconds = up.durationSeconds;
+        } catch { /* video upload non-fatal — share text-only */ }
+      }
+      const { shareTrainingToFeed } = await import("@/lib/shareToFeed");
+      const id = await shareTrainingToFeed({ user, result, poseMetrics, drillConfig, locale, videoURL, thumbnailURL, durationSeconds });
+      setSharedReelId(id);
+      setFeedShared(true);
+    } catch {
+      feedSharedRef.current = false;
+      setError(
+        locale === "mn" ? "Feed-д нийтлэхэд алдаа гарлаа" :
+        locale === "ko" ? "피드 공유 실패" :
+        "Failed to share to feed"
+      );
+    } finally {
+      setFeedSharing(false);
+    }
+  }, [user, result, drillConfig, locale, setError]);
+
+  const handlePostChallengeResponse = useCallback(async ({ challengePostData = null } = {}) => {
+    if (!user?.uid || !result || !challengePostData?.id) return;
+    if (challengeResponseRef.current) return;
+
+    challengeResponseRef.current = true;
+    setChallengeResponsePosting(true);
+    setError("");
+
+    try {
+      const { createChallengeResponse } = await import("@/lib/shareToFeed");
+      const id = await createChallengeResponse({ user, result, challengePostData, locale });
+      setChallengeResponseId(id);
+      setChallengeResponsePosted(true);
+    } catch {
+      challengeResponseRef.current = false;
+      setError(
+        locale === "mn" ? "Challenge хариу илгээхэд алдаа гарлаа" :
+        locale === "ko" ? "챌린지 응답 실패" :
+        "Failed to post challenge response"
+      );
+    } finally {
+      setChallengeResponsePosting(false);
+    }
+  }, [user, result, locale, setError]);
+
   const resetForNewSession = useCallback(() => {
     setSaving(false);
     setSaved(false);
@@ -393,6 +525,18 @@ export function useTrainingActions({
     setMissionStreakBonus(0);
     setMissionNewStreak(0);
     setRankUpInfo(null);
+    setFeedSharing(false);
+    setFeedShared(false);
+    setSharedReelId(null);
+    feedSharedRef.current = false;
+    setChallengePosting(false);
+    setChallengePosted(false);
+    setChallengePostId(null);
+    challengePostRef.current = false;
+    setChallengeResponsePosting(false);
+    setChallengeResponsePosted(false);
+    setChallengeResponseId(null);
+    challengeResponseRef.current = false;
   }, []);
 
   return {
@@ -402,6 +546,12 @@ export function useTrainingActions({
     rankUpInfo,
     handleSave, handleSaveChallengeResult,
     handleShareChallenge, handleChallengeFriend, handleShareTraining,
+    feedSharing, feedShared, sharedReelId,
+    handleShareToFeed, handleShareAcademyToFeed,
+    challengePosting, challengePosted, challengePostId,
+    handleCreateChallengePost,
+    challengeResponsePosting, challengeResponsePosted, challengeResponseId,
+    handlePostChallengeResponse,
     resetForNewSession,
   };
 }

@@ -69,6 +69,8 @@ export default function TrainPage() {
     challengeUserId, creatorBestScore, targetScore,
     currentXP, sessionHistory, weeklySessionCount, userStreak,
     opponentUsername, ghostBestScore, setGhostBestScore, ghostBestScoreRef,
+    challengePostId: activeChallengePostId,
+    challengePostData,
   } = useTrainingData({ user });
 
   const activeChallenge = challengeId ? CHALLENGES[challengeId] : null;
@@ -109,6 +111,9 @@ export default function TrainPage() {
     handleStart,
     handleTryAgain,
     finishRecording,
+    recordingEnabled, setRecordingEnabled,
+    recordedBlob,
+    thumbnailBlob,
   } = useCameraSession({
     drillConfig,
     currentXP,
@@ -132,6 +137,12 @@ export default function TrainPage() {
     rankUpInfo,
     handleSave, handleSaveChallengeResult,
     handleShareChallenge, handleChallengeFriend, handleShareTraining,
+    feedSharing, feedShared, sharedReelId,
+    handleShareToFeed, handleShareAcademyToFeed,
+    challengePosting, challengePosted, challengePostId,
+    handleCreateChallengePost,
+    challengeResponsePosting, challengeResponsePosted, challengeResponseId,
+    handlePostChallengeResponse,
     resetForNewSession,
   } = useTrainingActions({
     user, locale, result, reelId, drillId, drillConfig, challengeId,
@@ -558,6 +569,50 @@ export default function TrainPage() {
           )}
         </header>
 
+        {/* Challenge Active card — shown when responding to a feed challenge */}
+        {activeChallengePostId && canStart && (
+          <div style={{
+            margin: "0 0 14px",
+            padding: "12px 16px",
+            borderRadius: 14,
+            background: "rgba(167,139,250,0.08)",
+            border: "1px solid rgba(167,139,250,0.3)",
+            borderLeft: "3px solid rgba(167,139,250,0.7)",
+          }}>
+            <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: "#C084FC", textTransform: "uppercase", marginBottom: 8 }}>
+              ⚔️ {locale === "mn" ? "Challenge идэвхтэй" : locale === "ko" ? "챌린지 활성" : "Challenge Active"}
+            </div>
+            {challengePostData ? (
+              <>
+                <div style={{ fontSize: 13, fontWeight: 900, color: "#fff", marginBottom: 6 }}>
+                  {challengePostData.challengeTitle || (locale === "mn" ? "Challenge" : locale === "ko" ? "챌린지" : "Challenge")}
+                </div>
+                {typeof challengePostData.challengeTargetScore === "number" && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ padding: "5px 12px", borderRadius: 8, background: "rgba(167,139,250,0.12)", border: "1px solid rgba(167,139,250,0.28)" }}>
+                      <span style={{ fontSize: 9, fontWeight: 900, color: "rgba(167,139,250,0.65)", textTransform: "uppercase", letterSpacing: 1 }}>
+                        {locale === "mn" ? "Зорилт" : locale === "ko" ? "목표" : "Target"}
+                      </span>
+                      <span style={{ fontSize: 15, fontWeight: 1000, color: "#C084FC", marginLeft: 8, fontFamily: "var(--font-display,'Anton',sans-serif)" }}>
+                        {challengePostData.challengeTargetScore.toFixed(1)}/10
+                      </span>
+                    </div>
+                    {challengePostData.username && (
+                      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>
+                        @{challengePostData.username}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>
+                {locale === "mn" ? "Challenge ачааллаж байна…" : locale === "ko" ? "챌린지 불러오는 중…" : "Loading challenge…"}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Training Focus — shown when arriving from a fighter or academy lesson */}
         {lessonContext && canStart && (
           <TrainingFocusCard
@@ -817,6 +872,47 @@ export default function TrainPage() {
           />
         )}
 
+        {/* Video recording toggle — opt-in, shown when idle and browser supports MediaRecorder */}
+        {phase === "idle" && !challengeUserId && !activeChallengePostId && typeof window !== "undefined" && window.MediaRecorder && (
+          <div style={{
+            margin: "0 0 8px",
+            padding: "10px 14px",
+            borderRadius: 12,
+            background: "rgba(255,255,255,0.03)",
+            border: `1px solid ${recordingEnabled ? "rgba(255,59,48,0.3)" : "rgba(255,255,255,0.07)"}`,
+            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+          }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.65)" }}>
+                {locale === "mn" ? "Видео бичлэг" : locale === "ko" ? "비디오 녹화" : "Record video"}
+              </div>
+              <div style={{ fontSize: 9.5, color: "rgba(255,255,255,0.28)", marginTop: 1 }}>
+                {locale === "mn" ? "Feed-д хуваалцах үед upload хийгдэнэ" : locale === "ko" ? "공유 시 업로드됩니다" : "Uploads when you share to feed"}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setRecordingEnabled((v) => !v)}
+              style={{
+                flexShrink: 0, width: 44, height: 26, borderRadius: 13,
+                background: recordingEnabled ? RED : "rgba(255,255,255,0.1)",
+                border: "none", cursor: "pointer", position: "relative",
+                transition: "background 0.2s",
+              }}
+              aria-label={recordingEnabled ? "Disable recording" : "Enable recording"}
+            >
+              <div style={{
+                position: "absolute", top: 3,
+                left: recordingEnabled ? 21 : 3,
+                width: 20, height: 20, borderRadius: "50%",
+                background: "#fff",
+                transition: "left 0.2s",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
+              }} />
+            </button>
+          </div>
+        )}
+
         {/* Daily mission strip — shown when idle only */}
         {phase === "idle" && (() => {
           const today = new Date().toISOString().split("T")[0];
@@ -915,7 +1011,29 @@ export default function TrainPage() {
         onSaveChallengeResult={handleSaveChallengeResult}
         onShareChallenge={handleShareChallenge}
         onShareTraining={handleShareTraining}
+        onShareToFeed={
+          lessonContext?.academyLesson
+            ? () => handleShareAcademyToFeed({ poseMetrics: poseSessionSummary, academyLesson: lessonContext.academyLesson, videoBlob: recordedBlob, thumbnailBlob })
+            : () => handleShareToFeed({ poseMetrics: poseSessionSummary, videoBlob: recordedBlob, thumbnailBlob })
+        }
+        recordedBlob={recordedBlob}
+        thumbnailBlob={thumbnailBlob}
+        feedSharing={feedSharing}
+        feedShared={feedShared}
+        sharedReelId={sharedReelId}
+        onCreateChallengePost={() => handleCreateChallengePost({
+          poseMetrics: poseSessionSummary,
+          academyLesson: lessonContext?.academyLesson || null,
+        })}
+        challengePosting={challengePosting}
+        challengePosted={challengePosted}
+        challengePostId={challengePostId}
         academyLesson={lessonContext?.academyLesson || null}
+        challengePostData={challengePostData}
+        onPostChallengeResponse={() => handlePostChallengeResponse({ challengePostData })}
+        challengeResponsePosting={challengeResponsePosting}
+        challengeResponsePosted={challengeResponsePosted}
+        challengeResponseId={challengeResponseId}
       />
       {/* Debug session report — only visible when ?debug=1, appears after session */}
       <DebugSessionPanel

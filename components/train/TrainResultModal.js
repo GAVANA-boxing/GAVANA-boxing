@@ -321,12 +321,37 @@ export default function TrainResultModal({
   onSaveChallengeResult,
   onShareChallenge,
   onShareTraining,
+  onShareToFeed,
+  feedSharing  = false,
+  feedShared   = false,
+  sharedReelId = null,
+  onCreateChallengePost,
+  challengePosting  = false,
+  challengePosted   = false,
+  challengePostId   = null,
   isGuest = false,
   academyLesson = null,
+  challengePostData = null,
+  onPostChallengeResponse,
+  challengeResponsePosting = false,
+  challengeResponsePosted  = false,
+  challengeResponseId      = null,
+  recordedBlob     = null,
+  thumbnailBlob    = null,
 }) {
   const displayScore = useCountUp(result?.score);
   const [sessionTag, setSessionTag] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [clipDuration, setClipDuration] = useState(null);
+  const [blobUrl, setBlobUrl] = useState(null);
+
+  useEffect(() => {
+    if (!recordedBlob) { setBlobUrl(null); setClipDuration(null); return; }
+    setClipDuration(null);
+    const url = URL.createObjectURL(recordedBlob);
+    setBlobUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [recordedBlob]);
   if (!result) return null;
 
   const MIN_PUNCHES = 5;
@@ -652,6 +677,50 @@ export default function TrainResultModal({
               </div>
             </>
           )}
+
+          {/* Feed Challenge comparison */}
+          {challengePostData && (() => {
+            const target = typeof challengePostData.challengeTargetScore === "number"
+              ? challengePostData.challengeTargetScore : null;
+            if (target == null) return null;
+            const beaten = result.score > target;
+            const diff = result.score - target;
+            return (
+              <>
+                <SectionLabel label="⚔️ Challenge Result" />
+                <div style={{
+                  borderRadius: RADIUS.md, padding: "14px 16px",
+                  background: beaten ? "rgba(52,211,153,0.06)" : "rgba(248,113,113,0.06)",
+                  border: `1px solid ${beaten ? "rgba(52,211,153,0.2)" : "rgba(248,113,113,0.2)"}`,
+                }}>
+                  <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 2.5, color: beaten ? "#34D399" : "#F87171", marginBottom: 12 }}>
+                    {beaten ? "✅ Challenge Beaten" : "❌ Challenge Not Beaten"}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div>
+                      <div style={{ fontSize: 26, fontWeight: 1000, fontFamily: "var(--font-display,'Anton',sans-serif)", color: "#fff" }}>{result.score.toFixed(1)}</div>
+                      <div style={{ fontSize: 9, color: whiteAlpha(0.35), fontWeight: 800, letterSpacing: 1.5, marginTop: 2 }}>YOU</div>
+                    </div>
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: 12, fontWeight: 900, color: beaten ? "#34D399" : "#F87171" }}>
+                        {diff >= 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1)}
+                      </div>
+                      <div style={{ fontSize: 10, color: whiteAlpha(0.22), fontWeight: 800 }}>VS</div>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontSize: 26, fontWeight: 1000, fontFamily: "var(--font-display,'Anton',sans-serif)", color: whiteAlpha(0.5) }}>{target.toFixed(1)}</div>
+                      <div style={{ fontSize: 9, color: whiteAlpha(0.35), fontWeight: 800, letterSpacing: 1.5, marginTop: 2 }}>TARGET</div>
+                    </div>
+                  </div>
+                  {challengePostData.username && (
+                    <div style={{ marginTop: 8, fontSize: 10, color: whiteAlpha(0.3), fontWeight: 700 }}>
+                      @{challengePostData.username} · {challengePostData.challengeTitle || ""}
+                    </div>
+                  )}
+                </div>
+              </>
+            );
+          })()}
 
           {/* Ghost */}
           {!challengeUserId && ghostBestScore !== null && (
@@ -1275,6 +1344,43 @@ export default function TrainResultModal({
           <div style={{ height: 10 }} />
         </div>
 
+        {/* ── VIDEO PREVIEW ────────────────────────────────────────── */}
+        {blobUrl && (
+          <div style={{ padding: "0 20px 12px", flexShrink: 0 }}>
+            <div style={{
+              borderRadius: 12,
+              overflow: "hidden",
+              background: "#000",
+              border: "1px solid rgba(255,255,255,0.08)",
+              position: "relative",
+            }}>
+              <video
+                src={blobUrl}
+                controls
+                playsInline
+                muted
+                loop
+                style={{ width: "100%", maxHeight: 220, display: "block", objectFit: "cover" }}
+                onLoadedMetadata={(e) => {
+                  const d = e.currentTarget.duration;
+                  if (Number.isFinite(d) && d > 0) setClipDuration(Math.round(d));
+                }}
+              />
+              {clipDuration != null && (
+                <div style={{
+                  position: "absolute", bottom: 8, right: 10,
+                  padding: "2px 8px", borderRadius: 6,
+                  background: "rgba(0,0,0,0.7)",
+                  fontSize: 10, fontWeight: 900, color: "rgba(255,255,255,0.8)",
+                  fontFamily: "monospace",
+                }}>
+                  {Math.floor(clipDuration / 60)}:{String(clipDuration % 60).padStart(2, "0")}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* ── ACTIONS ──────────────────────────────────────────────── */}
         <div style={{ padding: "12px 20px 16px", flexShrink: 0, borderTop: `1px solid ${whiteAlpha(0.06)}` }}>
           {error && (
@@ -1343,6 +1449,199 @@ export default function TrainResultModal({
                 disabled={challengeSaving || challengeSaved}
               >
                 {challengeSaving ? t("trainSaving") : challengeSaved ? t("challengeResultSaved") : t("challengeSaveResult")}
+              </button>
+            )}
+            {/* Share to Feed — logged-in users */}
+            {!tooFewPunches && !activeChallenge && !isGuest && (
+              <>
+                <button
+                  type="button"
+                  disabled={feedSharing || feedShared}
+                  onClick={onShareToFeed}
+                  style={{
+                    ...styles.saveButton,
+                    background: feedShared
+                      ? "#17664b"
+                      : "rgba(255,59,48,0.14)",
+                    border: feedShared ? "none" : "1px solid rgba(255,59,48,0.3)",
+                    color:  feedShared ? "#34D399" : RED,
+                    boxShadow: "none",
+                    opacity: feedSharing || feedShared ? 0.75 : 1,
+                    cursor:  feedSharing || feedShared ? "default" : "pointer",
+                  }}
+                >
+                  {feedSharing
+                    ? (locale === "mn" ? "Нийтэлж байна…" : locale === "ko" ? "공유 중…" : "Sharing…")
+                    : feedShared
+                      ? (locale === "mn" ? "Feed-д нийтлэгдлээ ✓" : locale === "ko" ? "피드에 공유됨 ✓" : "Shared to Feed ✓")
+                      : academyLesson
+                        ? (locale === "mn" ? "Academy дэвшлийг хуваалцах" : locale === "ko" ? "아카데미 진행 상황 공유하기" : "Share Academy Progress")
+                        : recordedBlob
+                          ? (locale === "mn" ? "Видео Feed-д хуваалцах" : locale === "ko" ? "비디오 피드에 공유하기" : "Share Video to Feed")
+                          : (locale === "mn" ? "Feed-д хуваалцах" : locale === "ko" ? "피드에 공유하기" : "Share to Feed")}
+                </button>
+                {feedShared && (
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/${locale}/feed`)}
+                    style={{
+                      width: "100%", minHeight: 40,
+                      background: "none",
+                      border: `1px solid ${whiteAlpha(0.1)}`,
+                      borderRadius: RADIUS.md,
+                      color: whiteAlpha(0.45), fontSize: 11, fontWeight: 800,
+                      cursor: "pointer", letterSpacing: 1, textTransform: "uppercase",
+                    }}
+                  >
+                    {locale === "mn" ? "Feed харах →" : locale === "ko" ? "피드 보기 →" : "View Feed →"}
+                  </button>
+                )}
+              </>
+            )}
+            {/* Share to Feed — guest secondary CTA */}
+            {!tooFewPunches && !activeChallenge && isGuest && (
+              <button
+                type="button"
+                onClick={() => router.push(`/${locale}/login?mode=signup&redirect=${encodeURIComponent(`/${locale}/train`)}`)}
+                style={{
+                  width: "100%", minHeight: 38,
+                  background: "none",
+                  border: `1px solid ${whiteAlpha(0.07)}`,
+                  borderRadius: RADIUS.md,
+                  color: whiteAlpha(0.3), fontSize: 11, fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                {academyLesson
+                  ? (locale === "mn"
+                      ? "Профайл үүсгэж academy дэвшлийг хуваалцаарай →"
+                      : locale === "ko"
+                        ? "프로필 생성 후 아카데미 진행 상황 공유 →"
+                        : "Create profile to share academy progress →")
+                  : (locale === "mn"
+                      ? "Профайл үүсгэж өөрийн дэвшлийг хуваалцаарай →"
+                      : locale === "ko"
+                        ? "프로필 생성 후 진행 상황 공유 →"
+                        : "Create profile to share your progress →")}
+              </button>
+            )}
+            {/* Challenge others — logged-in */}
+            {!tooFewPunches && !activeChallenge && !isGuest && (
+              <>
+                <button
+                  type="button"
+                  disabled={challengePosting || challengePosted}
+                  onClick={onCreateChallengePost}
+                  style={{
+                    ...styles.saveButton,
+                    background: challengePosted ? "#17664b" : "rgba(167,139,250,0.12)",
+                    border: challengePosted ? "none" : "1px solid rgba(167,139,250,0.28)",
+                    color: challengePosted ? "#34D399" : "#C084FC",
+                    boxShadow: "none",
+                    opacity: challengePosting || challengePosted ? 0.75 : 1,
+                    cursor: challengePosting || challengePosted ? "default" : "pointer",
+                  }}
+                >
+                  {challengePosting
+                    ? (locale === "mn" ? "Challenge үүсгэж байна…" : locale === "ko" ? "챌린지 생성 중…" : "Creating challenge…")
+                    : challengePosted
+                      ? (locale === "mn" ? "Challenge үүслээ ✓" : locale === "ko" ? "챌린지 생성됨 ✓" : "Challenge posted ✓")
+                      : (locale === "mn" ? "Бусдыг challenge хий" : locale === "ko" ? "다른 사람에게 도전하기" : "Challenge others")}
+                </button>
+                {challengePosted && (
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/${locale}/feed`)}
+                    style={{
+                      width: "100%", minHeight: 40,
+                      background: "none",
+                      border: `1px solid ${whiteAlpha(0.1)}`,
+                      borderRadius: RADIUS.md,
+                      color: whiteAlpha(0.45), fontSize: 11, fontWeight: 800,
+                      cursor: "pointer", letterSpacing: 1, textTransform: "uppercase",
+                    }}
+                  >
+                    {locale === "mn" ? "Feed харах →" : locale === "ko" ? "피드 보기 →" : "View Feed →"}
+                  </button>
+                )}
+              </>
+            )}
+            {/* Challenge others — guest CTA */}
+            {!tooFewPunches && !activeChallenge && isGuest && (
+              <button
+                type="button"
+                onClick={() => router.push(`/${locale}/login?mode=signup&redirect=${encodeURIComponent(`/${locale}/train`)}`)}
+                style={{
+                  width: "100%", minHeight: 38,
+                  background: "none",
+                  border: `1px solid ${whiteAlpha(0.07)}`,
+                  borderRadius: RADIUS.md,
+                  color: whiteAlpha(0.3), fontSize: 11, fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                {locale === "mn"
+                  ? "Профайл үүсгэж бусдыг challenge хийгээрэй →"
+                  : locale === "ko"
+                    ? "프로필 생성 후 다른 사람에게 도전 →"
+                    : "Create profile to challenge others →"}
+              </button>
+            )}
+            {/* Post Challenge Response — logged-in */}
+            {challengePostData && !isGuest && (
+              <>
+                <button
+                  type="button"
+                  disabled={challengeResponsePosting || challengeResponsePosted}
+                  onClick={onPostChallengeResponse}
+                  style={{
+                    ...styles.saveButton,
+                    background: challengeResponsePosted ? "#17664b" : "rgba(167,139,250,0.12)",
+                    border: challengeResponsePosted ? "none" : "1px solid rgba(167,139,250,0.28)",
+                    color: challengeResponsePosted ? "#34D399" : "#C084FC",
+                    boxShadow: "none",
+                    opacity: challengeResponsePosting || challengeResponsePosted ? 0.75 : 1,
+                    cursor: challengeResponsePosting || challengeResponsePosted ? "default" : "pointer",
+                  }}
+                >
+                  {challengeResponsePosting
+                    ? (locale === "mn" ? "Нийтэлж байна…" : locale === "ko" ? "게시 중…" : "Posting…")
+                    : challengeResponsePosted
+                      ? (locale === "mn" ? "Challenge хариу нийтлэгдлээ ✓" : locale === "ko" ? "챌린지 응답 게시됨 ✓" : "Challenge response posted ✓")
+                      : (locale === "mn" ? "Challenge үр дүнг нийтлэх" : locale === "ko" ? "챌린지 결과 게시하기" : "Post Challenge Result")}
+                </button>
+                {challengeResponsePosted && (
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/${locale}/feed`)}
+                    style={{
+                      width: "100%", minHeight: 40,
+                      background: "none",
+                      border: `1px solid ${whiteAlpha(0.1)}`,
+                      borderRadius: RADIUS.md,
+                      color: whiteAlpha(0.45), fontSize: 11, fontWeight: 800,
+                      cursor: "pointer", letterSpacing: 1, textTransform: "uppercase",
+                    }}
+                  >
+                    {locale === "mn" ? "Feed харах →" : locale === "ko" ? "피드 보기 →" : "View Feed →"}
+                  </button>
+                )}
+              </>
+            )}
+            {/* Post Challenge Response — guest */}
+            {challengePostData && isGuest && (
+              <button
+                type="button"
+                onClick={() => router.push(`/${locale}/login?mode=signup&redirect=${encodeURIComponent(`/${locale}/train`)}`)}
+                style={{
+                  ...styles.saveButton,
+                  background: "linear-gradient(135deg, rgba(167,139,250,0.2) 0%, rgba(167,139,250,0.08) 100%)",
+                  border: "1px solid rgba(167,139,250,0.35)",
+                  color: "#C084FC",
+                  boxShadow: "none",
+                }}
+              >
+                {locale === "mn" ? "Профайл үүсгэж challenge-д хариулаарай →" : locale === "ko" ? "프로필 생성 후 챌린지 응답 →" : "Create profile to respond to challenge →"}
               </button>
             )}
             <button type="button" style={styles.shareResultButton} onClick={activeChallenge ? onShareChallenge : onShareTraining}>

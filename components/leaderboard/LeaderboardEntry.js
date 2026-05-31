@@ -148,6 +148,22 @@ const LeaderboardEntry = memo(function LeaderboardEntry({ entry, index, profiles
             </div>
             <div style={styles.latestScore}>{t("lbTotalLikes")}</div>
           </>
+        ) : leaderboardTab === "social" && entry.wins != null ? (
+          <>
+            <div style={{ ...styles.bestScore, color: "#34D399" }}>
+              ⚔️ {entry.bestScore}
+            </div>
+            <div style={styles.latestScore}>
+              {entry.wins > 0 ? `${entry.wins} ${t("repChallengeWins")}` : t("lbSocialResponders")}
+            </div>
+          </>
+        ) : leaderboardTab === "social" ? (
+          <>
+            <div style={{ ...styles.bestScore, color: "#34D399" }}>
+              🔥 {entry.bestScore}
+            </div>
+            <div style={styles.latestScore}>{t("lbSocialActive")}</div>
+          </>
         ) : (
           <>
             <div style={{ ...styles.bestScore, color: scoreColor }}>

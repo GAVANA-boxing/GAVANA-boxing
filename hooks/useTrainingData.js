@@ -21,6 +21,8 @@ export function useTrainingData({ user }) {
   const [opponentUsername, setOpponentUsername] = useState(null);
   const [ghostBestScore, setGhostBestScore] = useState(null);
   const ghostBestScoreRef = useRef(null);
+  const [challengePostId, setChallengePostId] = useState(null);
+  const [challengePostData, setChallengePostData] = useState(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -35,6 +37,7 @@ export function useTrainingData({ user }) {
     setCreatorBestScore(Number.isFinite(parsedCreatorBest) && parsedCreatorBest > 0 ? parsedCreatorBest : null);
     const parsedTargetScore = Number(params.get("score") || params.get("targetScore"));
     setTargetScore(Number.isFinite(parsedTargetScore) && parsedTargetScore > 0 ? parsedTargetScore : null);
+    setChallengePostId(params.get("challengePostId") || null);
   }, []);
 
   useEffect(() => {
@@ -152,6 +155,22 @@ export function useTrainingData({ user }) {
     return () => { active = false; };
   }, [user?.uid, challengeId, challengeUserId]);
 
+  useEffect(() => {
+    if (!challengePostId) return;
+    let active = true;
+    async function loadChallengePost() {
+      try {
+        const snap = await getDoc(doc(db, "reels", challengePostId));
+        if (!active) return;
+        if (snap.exists()) {
+          setChallengePostData({ id: snap.id, ...snap.data() });
+        }
+      } catch { /* silent */ }
+    }
+    loadChallengePost();
+    return () => { active = false; };
+  }, [challengePostId]);
+
   return {
     reelId,
     drillId,
@@ -168,5 +187,7 @@ export function useTrainingData({ user }) {
     opponentUsername,
     ghostBestScore, setGhostBestScore,
     ghostBestScoreRef,
+    challengePostId,
+    challengePostData,
   };
 }

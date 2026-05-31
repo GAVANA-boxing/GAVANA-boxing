@@ -64,6 +64,11 @@ const ReelItem = memo(function ReelItem({
   onCaptionSheet,
   onReport,
   setVideoProgress,
+  // Follow (optional — only wired on /feed)
+  isFollowing = false,
+  followLoading = false,
+  onFollow = null,
+  viewerUid = null,
 }) {
   const isActive = index === currentIndex;
 
@@ -103,9 +108,15 @@ const ReelItem = memo(function ReelItem({
 
   const effectiveType = reel.contentType || reel.type || "lifestyle";
   const isChallenge = effectiveType === "training";
+  const isFeedChallenge = effectiveType === "challenge";
   const isEducational = effectiveType === "educational";
   const showChallengeCta = isChallenge || reel.challengeEnabled;
+  const showAcceptChallengeCta = isFeedChallenge;
   const showLearnCta = isEducational && !reel.challengeEnabled;
+
+  const handleAcceptChallengeClick = () => {
+    router.push(`/${currentLocale}/train?challengePostId=${reel.id}`);
+  };
 
   return (
     <div
@@ -289,7 +300,46 @@ const ReelItem = memo(function ReelItem({
               </div>
             ) : null}
           </div>
+          {onFollow && reel.userId && reel.userId !== viewerUid && (
+            <button
+              type="button"
+              onClick={() => onFollow(reel.userId)}
+              disabled={followLoading}
+              style={{
+                marginLeft:    "auto",
+                flexShrink:    0,
+                padding:       "4px 12px",
+                borderRadius:  20,
+                fontSize:      12,
+                fontWeight:    700,
+                lineHeight:    "18px",
+                border:        isFollowing ? "1px solid rgba(255,255,255,0.25)" : "1px solid rgba(255,255,255,0.65)",
+                background:    "transparent",
+                color:         isFollowing ? "rgba(255,255,255,0.45)" : "#fff",
+                cursor:        followLoading ? "default" : "pointer",
+                letterSpacing: 0.2,
+                transition:    "opacity 0.15s",
+                opacity:       followLoading ? 0.6 : 1,
+              }}
+            >
+              {followLoading ? t("followLoading") : isFollowing ? t("following") : t("follow")}
+            </button>
+          )}
         </div>
+
+        {/* Reputation badge */}
+        {!reel.isDemo && (() => {
+          if (reel.contentType === "challenge_response" && typeof reel.sourceSessionScore === "number" && typeof reel.challengeTargetScore === "number" && reel.sourceSessionScore > reel.challengeTargetScore) {
+            return <span style={{ display: "inline-block", marginBottom: 4, padding: "2px 8px", borderRadius: 20, fontSize: 10, fontWeight: 800, background: "rgba(52,211,153,0.15)", border: "1px solid rgba(52,211,153,0.35)", color: "#34D399", letterSpacing: 0.3 }}>⚔️ {t("repBadgeResponder")}</span>;
+          }
+          if (reel.contentType === "academy") {
+            return <span style={{ display: "inline-block", marginBottom: 4, padding: "2px 8px", borderRadius: 20, fontSize: 10, fontWeight: 800, background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.3)", color: "#FCD34D", letterSpacing: 0.3 }}>🎓 {t("repBadgeAcademy")}</span>;
+          }
+          if (reel.contentType === "training" && typeof reel.sessionScore === "number" && reel.sessionScore >= 8.5) {
+            return <span style={{ display: "inline-block", marginBottom: 4, padding: "2px 8px", borderRadius: 20, fontSize: 10, fontWeight: 800, background: "rgba(248,113,113,0.12)", border: "1px solid rgba(248,113,113,0.3)", color: "#F87171", letterSpacing: 0.3 }}>🌟 {t("repBadgeTopScore")}</span>;
+          }
+          return null;
+        })()}
 
         {captionText && (
           <button
@@ -303,11 +353,16 @@ const ReelItem = memo(function ReelItem({
         )}
 
         {/* Primary CTA */}
-        {!reel.isDemo && (showChallengeCta || showLearnCta) && (
+        {!reel.isDemo && (showChallengeCta || showAcceptChallengeCta || showLearnCta) && (
           <div style={styles.trainButtonRow}>
             {showChallengeCta && (
               <button type="button" style={styles.tryThisButton} onClick={handleChallengeClick}>
                 {t("reelChallenge")}
+              </button>
+            )}
+            {showAcceptChallengeCta && (
+              <button type="button" style={{ ...styles.tryThisButton, background: "rgba(167,139,250,0.18)", border: "1px solid rgba(167,139,250,0.4)", color: "#C084FC" }} onClick={handleAcceptChallengeClick}>
+                {t("acceptChallenge")}
               </button>
             )}
             {showLearnCta && (

@@ -57,6 +57,10 @@ export function useCameraSession({
   const [sessionStartTime, setSessionStartTime] = useState(null);
   const movementEventIdRef = useRef(0);
 
+  const [recordingEnabled, setRecordingEnabled] = useState(false);
+  const [recordedBlob, setRecordedBlob] = useState(null);
+  const [thumbnailBlob, setThumbnailBlob] = useState(null);
+
   // Wall-clock timer refs — completely independent of React renders
   const sessionEndTimeRef = useRef(null);
   const timerIntervalRef = useRef(null);
@@ -157,17 +161,64 @@ export function useCameraSession({
         chunksRef.current = [];
         stopHandledRef.current = false;
 
-        if (streamRef.current && window.MediaRecorder) {
+        if (recordingEnabled && streamRef.current && window.MediaRecorder) {
           try {
-            const recorder = new MediaRecorder(streamRef.current);
+            const MIME_CANDIDATES = [
+              "video/webm;codecs=vp8,opus",
+              "video/webm;codecs=vp8",
+              "video/webm",
+              "video/mp4",
+            ];
+            const mimeType = MIME_CANDIDATES.find((m) => MediaRecorder.isTypeSupported(m)) || "";
+            const recorder = new MediaRecorder(streamRef.current, mimeType ? { mimeType } : {});
+
             recorder.ondataavailable = (event) => {
               if (event.data?.size) chunksRef.current.push(event.data);
             };
-            recorder.start();
+
+            recorder.onstop = () => {
+              const chunks = chunksRef.current.slice();
+              const totalSize = chunks.reduce((s, c) => s + c.size, 0);
+              if (!chunks.length || totalSize < 500) return;
+
+              const mime = recorder.mimeType || mimeType || "video/webm";
+              const blob = new Blob(chunks, { type: mime });
+              setRecordedBlob(blob);
+
+              // Capture first frame as thumbnail
+              try {
+                const blobUrl = URL.createObjectURL(blob);
+                const vid = document.createElement("video");
+                vid.muted = true;
+                vid.preload = "metadata";
+                vid.crossOrigin = "anonymous";
+                vid.onloadedmetadata = () => {
+                  vid.currentTime = Math.min(0.5, (vid.duration || 0) * 0.05 + 0.05);
+                };
+                vid.onseeked = () => {
+                  try {
+                    const w = vid.videoWidth  || 640;
+                    const h = vid.videoHeight || 480;
+                    const canvas = document.createElement("canvas");
+                    canvas.width  = Math.min(w, 720);
+                    canvas.height = Math.min(h, 1280);
+                    const ctx = canvas.getContext("2d");
+                    ctx.drawImage(vid, 0, 0, canvas.width, canvas.height);
+                    canvas.toBlob((tb) => {
+                      if (tb) setThumbnailBlob(tb);
+                      URL.revokeObjectURL(blobUrl);
+                    }, "image/jpeg", 0.82);
+                  } catch { URL.revokeObjectURL(blobUrl); }
+                };
+                vid.onerror = () => URL.revokeObjectURL(blobUrl);
+                vid.src = blobUrl;
+                vid.load();
+              } catch { /* thumbnail non-critical */ }
+            };
+
+            recorder.start(1000); // 1-second chunks
             recorderRef.current = recorder;
-          } catch {
-            setError(t("trainRecordError"));
-          }
+          } catch { /* recording non-critical */ }
         }
 
         setSecondsLeft(sessionSeconds);
@@ -387,6 +438,8 @@ export function useCameraSession({
     hitCountRef.current = 0;
     speedSumRef.current = 0;
     liveScoreRef.current = 0;
+    setRecordedBlob(null);
+    setThumbnailBlob(null);
   };
 
   const toggleCamera = useCallback(() => {
@@ -420,5 +473,8 @@ export function useCameraSession({
     handleStart,
     handleTryAgain,
     finishRecording,
+    recordingEnabled, setRecordingEnabled,
+    recordedBlob,
+    thumbnailBlob,
   };
 }

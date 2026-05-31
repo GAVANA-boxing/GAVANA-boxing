@@ -241,7 +241,7 @@ function CombatOSSheet({ onClose, router, locale, pathname }) {
 }
 
 // ─── Profile tab ──────────────────────────────────────────────────────────────
-function ProfileTab({ user, active, onClick, badge, locale }) {
+function ProfileTab({ user, active, onClick, onBadgeClick, badge, locale }) {
   const photo = user?.photoURL || user?.profileImageUrl || "";
   const initial = (user?.displayName || user?.username || "U").charAt(0).toUpperCase();
   const [imgError, setImgError] = useState(false);
@@ -261,7 +261,14 @@ function ProfileTab({ user, active, onClick, badge, locale }) {
             }
           </span>
           {badge > 0 && (
-            <span style={{ ...s.badge, top: -3, right: -3 }}>{badge > 9 ? "9+" : badge}</span>
+            <button
+              type="button"
+              aria-label="Notifications"
+              style={{ ...s.badge, top: -3, right: -3, cursor: "pointer", border: "none", padding: 0 }}
+              onClick={(e) => { e.stopPropagation(); onBadgeClick?.(); }}
+            >
+              {badge > 9 ? "9+" : badge}
+            </button>
           )}
         </span>
         <span style={{ ...s.tabLabel, color: active ? "#fff" : "rgba(255,255,255,0.32)" }}>{label}</span>
@@ -425,6 +432,7 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
           user={user}
           active={resolvedActiveTab === "profile"}
           onClick={goToProfile}
+          onBadgeClick={() => r.push(`/${locale}/notifications`)}
           badge={unreadCount + dmUnread}
           locale={locale}
         />
