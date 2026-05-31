@@ -44,6 +44,7 @@ export default function CaptionSheet({ captionSheetReelId, reels, setCaptionShee
                     : sheetReel.contentType === "educational" ? `📚 ${t("ctFilterEducational")}`
                     : sheetReel.contentType === "lifestyle" ? `🎬 ${t("ctFilterLifestyle")}`
                     : sheetReel.contentType === "academy" ? `🎓 ${t("ctFilterAcademy")}`
+                    : sheetReel.contentType === "challenge" ? `⚔️ ${t("ctFilterChallenge")}`
                     : sheetReel.contentType}
                 </span>
               )}

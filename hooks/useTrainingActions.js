@@ -42,10 +42,14 @@ export function useTrainingActions({
   const [missionNewStreak, setMissionNewStreak] = useState(0);
   const [rankUpInfo, setRankUpInfo] = useState(null);
   const challengeSavedRef = useRef(false);
-  const [feedSharing,  setFeedSharing]  = useState(false);
-  const [feedShared,   setFeedShared]   = useState(false);
-  const [sharedReelId, setSharedReelId] = useState(null);
+  const [feedSharing,       setFeedSharing]       = useState(false);
+  const [feedShared,        setFeedShared]        = useState(false);
+  const [sharedReelId,      setSharedReelId]      = useState(null);
   const feedSharedRef = useRef(false);
+  const [challengePosting,  setChallengePosting]  = useState(false);
+  const [challengePosted,   setChallengePosted]   = useState(false);
+  const [challengePostId,   setChallengePostId]   = useState(null);
+  const challengePostRef = useRef(false);
 
   const handleShareChallenge = useCallback(async () => {
     if (!result) return;
@@ -386,6 +390,31 @@ export function useTrainingActions({
     }
   }, [user, result, reelId, drillId, drillConfig, locale, t, setError, trainSourceUserId, creatorBestScore]);
 
+  const handleCreateChallengePost = useCallback(async ({ poseMetrics = null, academyLesson = null } = {}) => {
+    if (!user?.uid || !result) return;
+    if (challengePostRef.current) return;
+
+    challengePostRef.current = true;
+    setChallengePosting(true);
+    setError("");
+
+    try {
+      const { createChallengePost } = await import("@/lib/shareToFeed");
+      const id = await createChallengePost({ user, result, poseMetrics, academyLesson, locale });
+      setChallengePostId(id);
+      setChallengePosted(true);
+    } catch {
+      challengePostRef.current = false;
+      setError(
+        locale === "mn" ? "Challenge үүсгэхэд алдаа гарлаа" :
+        locale === "ko" ? "챌린지 생성 실패" :
+        "Failed to create challenge"
+      );
+    } finally {
+      setChallengePosting(false);
+    }
+  }, [user, result, locale, setError]);
+
   const handleShareAcademyToFeed = useCallback(async ({ poseMetrics = null, academyLesson = null } = {}) => {
     if (!user?.uid || !result || !academyLesson) return;
     if (feedSharedRef.current) return;
@@ -451,6 +480,10 @@ export function useTrainingActions({
     setFeedShared(false);
     setSharedReelId(null);
     feedSharedRef.current = false;
+    setChallengePosting(false);
+    setChallengePosted(false);
+    setChallengePostId(null);
+    challengePostRef.current = false;
   }, []);
 
   return {
@@ -462,6 +495,8 @@ export function useTrainingActions({
     handleShareChallenge, handleChallengeFriend, handleShareTraining,
     feedSharing, feedShared, sharedReelId,
     handleShareToFeed, handleShareAcademyToFeed,
+    challengePosting, challengePosted, challengePostId,
+    handleCreateChallengePost,
     resetForNewSession,
   };
 }

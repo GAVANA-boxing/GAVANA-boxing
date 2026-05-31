@@ -325,6 +325,10 @@ export default function TrainResultModal({
   feedSharing  = false,
   feedShared   = false,
   sharedReelId = null,
+  onCreateChallengePost,
+  challengePosting  = false,
+  challengePosted   = false,
+  challengePostId   = null,
   isGuest = false,
   academyLesson = null,
 }) {
@@ -1419,6 +1423,68 @@ export default function TrainResultModal({
                       : locale === "ko"
                         ? "프로필 생성 후 진행 상황 공유 →"
                         : "Create profile to share your progress →")}
+              </button>
+            )}
+            {/* Challenge others — logged-in */}
+            {!tooFewPunches && !activeChallenge && !isGuest && (
+              <>
+                <button
+                  type="button"
+                  disabled={challengePosting || challengePosted}
+                  onClick={onCreateChallengePost}
+                  style={{
+                    ...styles.saveButton,
+                    background: challengePosted ? "#17664b" : "rgba(167,139,250,0.12)",
+                    border: challengePosted ? "none" : "1px solid rgba(167,139,250,0.28)",
+                    color: challengePosted ? "#34D399" : "#C084FC",
+                    boxShadow: "none",
+                    opacity: challengePosting || challengePosted ? 0.75 : 1,
+                    cursor: challengePosting || challengePosted ? "default" : "pointer",
+                  }}
+                >
+                  {challengePosting
+                    ? (locale === "mn" ? "Challenge үүсгэж байна…" : locale === "ko" ? "챌린지 생성 중…" : "Creating challenge…")
+                    : challengePosted
+                      ? (locale === "mn" ? "Challenge үүслээ ✓" : locale === "ko" ? "챌린지 생성됨 ✓" : "Challenge posted ✓")
+                      : (locale === "mn" ? "Бусдыг challenge хий" : locale === "ko" ? "다른 사람에게 도전하기" : "Challenge others")}
+                </button>
+                {challengePosted && (
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/${locale}/feed`)}
+                    style={{
+                      width: "100%", minHeight: 40,
+                      background: "none",
+                      border: `1px solid ${whiteAlpha(0.1)}`,
+                      borderRadius: RADIUS.md,
+                      color: whiteAlpha(0.45), fontSize: 11, fontWeight: 800,
+                      cursor: "pointer", letterSpacing: 1, textTransform: "uppercase",
+                    }}
+                  >
+                    {locale === "mn" ? "Feed харах →" : locale === "ko" ? "피드 보기 →" : "View Feed →"}
+                  </button>
+                )}
+              </>
+            )}
+            {/* Challenge others — guest CTA */}
+            {!tooFewPunches && !activeChallenge && isGuest && (
+              <button
+                type="button"
+                onClick={() => router.push(`/${locale}/login?mode=signup&redirect=${encodeURIComponent(`/${locale}/train`)}`)}
+                style={{
+                  width: "100%", minHeight: 38,
+                  background: "none",
+                  border: `1px solid ${whiteAlpha(0.07)}`,
+                  borderRadius: RADIUS.md,
+                  color: whiteAlpha(0.3), fontSize: 11, fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                {locale === "mn"
+                  ? "Профайл үүсгэж бусдыг challenge хийгээрэй →"
+                  : locale === "ko"
+                    ? "프로필 생성 후 다른 사람에게 도전 →"
+                    : "Create profile to challenge others →"}
               </button>
             )}
             <button type="button" style={styles.shareResultButton} onClick={activeChallenge ? onShareChallenge : onShareTraining}>

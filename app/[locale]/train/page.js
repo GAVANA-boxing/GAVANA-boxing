@@ -134,6 +134,8 @@ export default function TrainPage() {
     handleShareChallenge, handleChallengeFriend, handleShareTraining,
     feedSharing, feedShared, sharedReelId,
     handleShareToFeed, handleShareAcademyToFeed,
+    challengePosting, challengePosted, challengePostId,
+    handleCreateChallengePost,
     resetForNewSession,
   } = useTrainingActions({
     user, locale, result, reelId, drillId, drillConfig, challengeId,
@@ -925,6 +927,13 @@ export default function TrainPage() {
         feedSharing={feedSharing}
         feedShared={feedShared}
         sharedReelId={sharedReelId}
+        onCreateChallengePost={() => handleCreateChallengePost({
+          poseMetrics: poseSessionSummary,
+          academyLesson: lessonContext?.academyLesson || null,
+        })}
+        challengePosting={challengePosting}
+        challengePosted={challengePosted}
+        challengePostId={challengePostId}
         academyLesson={lessonContext?.academyLesson || null}
       />
       {/* Debug session report — only visible when ?debug=1, appears after session */}
