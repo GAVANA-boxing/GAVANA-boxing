@@ -198,7 +198,7 @@ const commentsStyles = {
     display: "flex",
     flexDirection: "column",
     paddingTop: 12,
-    paddingBottom: 20,
+    paddingBottom: "max(env(safe-area-inset-bottom), 20px)",
     paddingLeft: 20,
     paddingRight: 20,
     borderTop: `1px solid ${goldAlpha(0.16)}`,
