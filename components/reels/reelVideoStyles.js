@@ -345,7 +345,7 @@ export const reelVideoStyles = {
   feedTabActive: {
     background: RED,
     color: "#FFFFFF",
-    boxShadow: `0 2px 12px ${redAlpha(0.5)}`,
+    boxShadow: `0 2px 12px ${redAlpha(0.28)}`,
   },
   feed: {
     height: "100dvh",
@@ -434,7 +434,7 @@ export const reelVideoStyles = {
     color: whiteAlpha(0.82),
     fontSize: 13,
     fontWeight: 850,
-    textShadow: "0 3px 14px rgba(0,0,0,0.85)",
+    textShadow: "0 2px 10px rgba(0,0,0,0.5)",
   },
   video: {
     width: "100%",
@@ -507,7 +507,7 @@ export const reelVideoStyles = {
     fontSize: 28,
     lineHeight: 1.05,
     fontWeight: 1000,
-    textShadow: "0 8px 28px rgba(0,0,0,0.9)",
+    textShadow: "0 4px 18px rgba(0,0,0,0.6)",
   },
   reelFallbackText: {
     color: whiteAlpha(0.68),
@@ -589,7 +589,7 @@ export const reelVideoStyles = {
     color: "#fff",
     fontSize: 15,
     fontWeight: 900,
-    textShadow: "0 2px 10px rgba(0,0,0,0.9)",
+    textShadow: "0 2px 8px rgba(0,0,0,0.55)",
   },
   demoUploadButton: {
     width: 128,

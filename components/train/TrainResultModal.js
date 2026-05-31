@@ -448,18 +448,18 @@ export default function TrainResultModal({
               {/* Score row */}
               <div style={{ display: "flex", gap: 6 }}>
                 <div style={{ flex: 1, padding: "8px 10px", borderRadius: 10, background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.07)}` }}>
-                  <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.2, color: whiteAlpha(0.28), textTransform: "uppercase", marginBottom: 3 }}>Today</div>
+                  <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.2, color: whiteAlpha(0.28), textTransform: "uppercase", marginBottom: 3 }}>{t("trainLabelToday")}</div>
                   <div style={{ fontSize: 18, fontWeight: 1000, color: "#fff", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{result.score.toFixed(1)}</div>
                 </div>
                 {delta != null && (
                   <div style={{ flex: 1, padding: "8px 10px", borderRadius: 10, background: delta >= 0 ? "rgba(52,211,153,0.04)" : "rgba(248,113,113,0.04)", border: `1px solid ${delta >= 0 ? "rgba(52,211,153,0.12)" : "rgba(248,113,113,0.12)"}` }}>
-                    <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.2, color: whiteAlpha(0.28), textTransform: "uppercase", marginBottom: 3 }}>vs Last</div>
+                    <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.2, color: whiteAlpha(0.28), textTransform: "uppercase", marginBottom: 3 }}>{t("trainLabelVsLast")}</div>
                     <div style={{ fontSize: 18, fontWeight: 1000, color: delta >= 0 ? "#34D399" : "#F87171", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{delta >= 0 ? "+" : ""}{delta.toFixed(1)}</div>
                   </div>
                 )}
                 {ghostBestScore != null && (
                   <div style={{ flex: 1, padding: "8px 10px", borderRadius: 10, background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.07)}` }}>
-                    <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.2, color: whiteAlpha(0.28), textTransform: "uppercase", marginBottom: 3 }}>Best</div>
+                    <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.2, color: whiteAlpha(0.28), textTransform: "uppercase", marginBottom: 3 }}>{t("trainLabelBest")}</div>
                     <div style={{ fontSize: 18, fontWeight: 1000, color: GOLD, fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{Math.max(ghostBestScore, result.score).toFixed(1)}</div>
                   </div>
                 )}
@@ -467,12 +467,12 @@ export default function TrainResultModal({
               {/* Punch info + next focus */}
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                 <div style={{ padding: "6px 11px", borderRadius: 8, background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.06)}`, display: "flex", gap: 6, alignItems: "center" }}>
-                  <span style={{ fontSize: 9, fontWeight: 900, color: whiteAlpha(0.28), textTransform: "uppercase", letterSpacing: 1 }}>Punches</span>
+                  <span style={{ fontSize: 9, fontWeight: 900, color: whiteAlpha(0.28), textTransform: "uppercase", letterSpacing: 1 }}>{t("trainLabelPunches")}</span>
                   <span style={{ fontSize: 13, fontWeight: 900, color: "#fff" }}>{effectivePunchCount}</span>
                 </div>
                 {bestPunch && (
                   <div style={{ padding: "6px 11px", borderRadius: 8, background: "rgba(245,196,81,0.05)", border: `1px solid rgba(245,196,81,0.14)`, display: "flex", gap: 6, alignItems: "center" }}>
-                    <span style={{ fontSize: 9, fontWeight: 900, color: goldAlpha(0.55), textTransform: "uppercase", letterSpacing: 1 }}>Best weapon</span>
+                    <span style={{ fontSize: 9, fontWeight: 900, color: goldAlpha(0.55), textTransform: "uppercase", letterSpacing: 1 }}>{t("trainLabelBestWeapon")}</span>
                     <span style={{ fontSize: 13, fontWeight: 900, color: GOLD }}>{bestPunch}</span>
                   </div>
                 )}
@@ -485,7 +485,7 @@ export default function TrainResultModal({
               </div>
               {nextFocus && (
                 <div style={{ padding: "7px 12px", borderRadius: 9, background: "rgba(168,85,247,0.05)", border: "1px solid rgba(168,85,247,0.13)", display: "flex", gap: 8, alignItems: "flex-start" }}>
-                  <span style={{ fontSize: 9, fontWeight: 900, color: "rgba(168,85,247,0.65)", textTransform: "uppercase", letterSpacing: 1, flexShrink: 0, paddingTop: 1 }}>Next focus</span>
+                  <span style={{ fontSize: 9, fontWeight: 900, color: "rgba(168,85,247,0.65)", textTransform: "uppercase", letterSpacing: 1, flexShrink: 0, paddingTop: 1 }}>{t("trainLabelNextFocus")}</span>
                   <span style={{ fontSize: 11, fontWeight: 800, color: whiteAlpha(0.65), lineHeight: 1.4 }}>{nextFocus}</span>
                 </div>
               )}
@@ -626,7 +626,7 @@ export default function TrainResultModal({
           {/* vs Last Session */}
           {comparison.length > 0 && (
             <>
-              <SectionLabel label="vs Last Session" />
+              <SectionLabel label={t("trainLabelVsLastSession")} />
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
                 {comparison.map((c, i) => (
                   <div key={i} style={{
@@ -649,7 +649,7 @@ export default function TrainResultModal({
           {/* PvP */}
           {challengeUserId && pvpResult && (
             <>
-              <SectionLabel label="Match Result" />
+              <SectionLabel label={t("trainLabelMatchResult")} />
               <div style={{
                 borderRadius: RADIUS.md, padding: "14px 16px",
                 background: pvpResult === "win" ? "rgba(52,211,153,0.06)" : "rgba(248,113,113,0.06)",
@@ -687,7 +687,7 @@ export default function TrainResultModal({
             const diff = result.score - target;
             return (
               <>
-                <SectionLabel label="⚔️ Challenge Result" />
+                <SectionLabel label={`⚔️ ${t("trainLabelChallengeResult")}`} />
                 <div style={{
                   borderRadius: RADIUS.md, padding: "14px 16px",
                   background: beaten ? "rgba(52,211,153,0.06)" : "rgba(248,113,113,0.06)",
@@ -725,7 +725,7 @@ export default function TrainResultModal({
           {/* Ghost */}
           {!challengeUserId && ghostBestScore !== null && (
             <>
-              <SectionLabel label={result.score > ghostBestScore ? "New Personal Best" : "vs Personal Best"} />
+              <SectionLabel label={result.score > ghostBestScore ? t("trainLabelNewPB") : t("trainLabelVsPB")} />
               <div style={{
                 borderRadius: RADIUS.md, padding: "12px 16px",
                 background: result.score > ghostBestScore ? "rgba(52,211,153,0.05)" : whiteAlpha(0.025),
@@ -756,7 +756,7 @@ export default function TrainResultModal({
           {/* Challenge rank */}
           {activeChallenge && (
             <>
-              <SectionLabel label="Challenge Result" />
+              <SectionLabel label={t("trainLabelChallengeResult")} />
               <div style={{ display: "flex", gap: 8 }}>
                 <div style={{ flex: 1, borderRadius: RADIUS.md, padding: "12px", background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.07)}`, textAlign: "center" }}>
                   <div style={{ fontSize: 9, color: whiteAlpha(0.32), fontWeight: 800, letterSpacing: 1.5, marginBottom: 5 }}>{t("challengeRank")}</div>
@@ -773,7 +773,7 @@ export default function TrainResultModal({
           {/* Movement Intelligence */}
           {hasMI && (
             <>
-              <SectionLabel label="Movement Intelligence" />
+              <SectionLabel label={t("trainLabelMovementIntel")} />
               <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                 {movementSummary.map((ev) => (
                   <div key={ev.label} style={{
@@ -801,7 +801,7 @@ export default function TrainResultModal({
           {/* Coaching Notes — cinematic coaching from session analysis */}
           {poseMetrics?.coaching?.length > 0 && (
             <>
-              <SectionLabel label="Coaching Notes" />
+              <SectionLabel label={t("trainLabelCoachingNotes")} />
 
               {/* Camera quality + punch count header */}
               {(() => {
@@ -847,7 +847,7 @@ export default function TrainResultModal({
                         }}>
                           {poseMetrics.velocityStats.snapRating}
                         </span>
-                        <span style={{ fontSize: 9, color: whiteAlpha(0.22), fontWeight: 700 }}>SNAP</span>
+                        <span style={{ fontSize: 9, color: whiteAlpha(0.22), fontWeight: 700 }}>{t("trainLabelSnap")}</span>
                       </div>
                     )}
                     {poseMetrics.velocityStats?.recoilRating && (
@@ -859,7 +859,7 @@ export default function TrainResultModal({
                         }}>
                           {poseMetrics.velocityStats.recoilRating}
                         </span>
-                        <span style={{ fontSize: 9, color: whiteAlpha(0.22), fontWeight: 700 }}>RECOVERY</span>
+                        <span style={{ fontSize: 9, color: whiteAlpha(0.22), fontWeight: 700 }}>{t("trainLabelRecovery")}</span>
                       </div>
                     )}
                   </div>
@@ -1215,7 +1215,7 @@ export default function TrainResultModal({
           {/* Motion Analysis — guard timeline + punch event chart */}
           {poseMetrics?.motionHistory && (
             <>
-              <SectionLabel label="Motion Analysis" />
+              <SectionLabel label={t("trainLabelMotionAnalysis")} />
               <MotionChart motionHistory={poseMetrics.motionHistory} />
               <div style={{ display: "flex", gap: 14, marginTop: 6, paddingLeft: 2 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
@@ -1249,7 +1249,7 @@ export default function TrainResultModal({
                 <>
                   {hasTimeline && (
                     <>
-                      <SectionLabel label="Session Timeline" />
+                      <SectionLabel label={t("trainLabelSessionTimeline")} />
                       <div style={{ borderRadius: RADIUS.md, padding: "10px 14px", background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.05)}`, display: "flex", flexDirection: "column", gap: 5 }}>
                         {timelineEvents.map((ev) => (
                           <div key={ev.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -1264,7 +1264,7 @@ export default function TrainResultModal({
                   )}
                   {!activeChallenge && result.breakdown && (
                     <>
-                      <SectionLabel label="Combat Telemetry" />
+                      <SectionLabel label={t("trainLabelCombatTelemetry")} />
                       <div style={{ borderRadius: RADIUS.md, padding: "10px 14px", background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.05)}` }}>
                         <TelemetryBar label="Accuracy"    value={result.breakdown.accuracy} />
                         <TelemetryBar label="Speed"       value={result.breakdown.speed} />
@@ -1280,7 +1280,7 @@ export default function TrainResultModal({
 
           {/* Combat Experience */}
           <>
-            <SectionLabel label="Combat Experience" />
+            <SectionLabel label={t("trainLabelCombatExp")} />
             <div style={{ borderRadius: RADIUS.md, padding: "12px 16px", background: whiteAlpha(0.025), border: `1px solid ${whiteAlpha(0.06)}` }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 5, marginBottom: 8 }}>
                 <span style={{ fontSize: 22, fontWeight: 1000, color: GOLD, fontFamily: "var(--font-display, 'Anton', sans-serif)" }}>
@@ -1309,7 +1309,7 @@ export default function TrainResultModal({
           {/* Mission Complete */}
           {missionJustCompleted && (
             <>
-              <SectionLabel label="Daily Mission" />
+              <SectionLabel label={t("trainLabelDailyMission")} />
               <div style={styles.missionCompleteBanner} className={missionStreakBonus > 0 ? "streak-burst" : undefined}>
                 <div style={styles.missionCompleteTitle}>🎯 {t("missionDailyComplete")}</div>
                 <div style={styles.missionCompleteXP}>
@@ -1325,7 +1325,7 @@ export default function TrainResultModal({
           {/* Rank Up */}
           {rankUpInfo && (
             <>
-              <SectionLabel label="Rank Advancement" />
+              <SectionLabel label={t("trainLabelRankAdvancement")} />
               <div style={{
                 borderRadius: RADIUS.md, padding: "16px 20px", textAlign: "center",
                 background: `linear-gradient(135deg, ${rankUpInfo.color}12, ${blackAlpha(0.75)})`,

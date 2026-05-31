@@ -330,7 +330,7 @@ const s = {
   page: { minHeight: "100dvh", background: `radial-gradient(ellipse at 50% -8%, ${redAlpha(0.08)} 0%, transparent 48%), #090909`, color: "#fff", display: "flex", flexDirection: "column", paddingBottom: "calc(88px + env(safe-area-inset-bottom))" },
   header: { position: "sticky", top: 0, zIndex: 20, display: "grid", gridTemplateColumns: "44px 1fr 44px", alignItems: "center", gap: 8, padding: "calc(14px + env(safe-area-inset-top)) 16px 14px", background: "rgba(9,9,9,0.94)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", borderBottom: `1px solid ${BORDER}` },
   headerCenter: { display: "flex", flexDirection: "column", alignItems: "center", gap: 1 },
-  headerEyebrow: { margin: 0, fontSize: 9, fontWeight: 900, letterSpacing: "3.5px", textTransform: "uppercase", color: RED },
+  headerEyebrow: { margin: 0, fontSize: 9, fontWeight: 900, letterSpacing: "2px", textTransform: "uppercase", color: RED },
   backBtn: { width: 40, height: 40, borderRadius: RADIUS.sm, border: `1px solid ${BORDER_2}`, background: whiteAlpha(0.05), color: whiteAlpha(0.75), cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
   composeBtn: { width: 40, height: 40, borderRadius: RADIUS.sm, border: `1px solid ${redAlpha(0.45)}`, background: redAlpha(0.12), color: RED, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, justifySelf: "end" },
   title: { fontSize: 17, fontWeight: 950, color: "#fff", letterSpacing: -0.3 },

@@ -151,7 +151,7 @@ const s = {
     margin: 0,
     fontSize: 9,
     fontWeight: 900,
-    letterSpacing: "3.5px",
+    letterSpacing: "2px",
     textTransform: "uppercase",
     color: RED,
   },
@@ -210,7 +210,7 @@ const s = {
     fontSize: 9,
     fontWeight: 900,
     color: RED,
-    letterSpacing: 3.5,
+    letterSpacing: 2,
     textTransform: "uppercase",
   },
   empty: {
