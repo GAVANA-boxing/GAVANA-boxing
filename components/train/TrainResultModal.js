@@ -321,6 +321,10 @@ export default function TrainResultModal({
   onSaveChallengeResult,
   onShareChallenge,
   onShareTraining,
+  onShareToFeed,
+  feedSharing  = false,
+  feedShared   = false,
+  sharedReelId = null,
   isGuest = false,
   academyLesson = null,
 }) {
@@ -1343,6 +1347,70 @@ export default function TrainResultModal({
                 disabled={challengeSaving || challengeSaved}
               >
                 {challengeSaving ? t("trainSaving") : challengeSaved ? t("challengeResultSaved") : t("challengeSaveResult")}
+              </button>
+            )}
+            {/* Share to Feed — logged-in users */}
+            {!tooFewPunches && !activeChallenge && !isGuest && (
+              <>
+                <button
+                  type="button"
+                  disabled={feedSharing || feedShared}
+                  onClick={onShareToFeed}
+                  style={{
+                    ...styles.saveButton,
+                    background: feedShared
+                      ? "#17664b"
+                      : "rgba(255,59,48,0.14)",
+                    border: feedShared ? "none" : "1px solid rgba(255,59,48,0.3)",
+                    color:  feedShared ? "#34D399" : RED,
+                    boxShadow: "none",
+                    opacity: feedSharing || feedShared ? 0.75 : 1,
+                    cursor:  feedSharing || feedShared ? "default" : "pointer",
+                  }}
+                >
+                  {feedSharing
+                    ? (locale === "mn" ? "Нийтэлж байна…" : locale === "ko" ? "공유 중…" : "Sharing…")
+                    : feedShared
+                      ? (locale === "mn" ? "Feed-д нийтлэгдлээ ✓" : locale === "ko" ? "피드에 공유됨 ✓" : "Shared to Feed ✓")
+                      : (locale === "mn" ? "Feed-д хуваалцах" : locale === "ko" ? "피드에 공유하기" : "Share to Feed")}
+                </button>
+                {feedShared && (
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/${locale}/feed`)}
+                    style={{
+                      width: "100%", minHeight: 40,
+                      background: "none",
+                      border: `1px solid ${whiteAlpha(0.1)}`,
+                      borderRadius: RADIUS.md,
+                      color: whiteAlpha(0.45), fontSize: 11, fontWeight: 800,
+                      cursor: "pointer", letterSpacing: 1, textTransform: "uppercase",
+                    }}
+                  >
+                    {locale === "mn" ? "Feed харах →" : locale === "ko" ? "피드 보기 →" : "View Feed →"}
+                  </button>
+                )}
+              </>
+            )}
+            {/* Share to Feed — guest secondary CTA */}
+            {!tooFewPunches && !activeChallenge && isGuest && (
+              <button
+                type="button"
+                onClick={() => router.push(`/${locale}/login?mode=signup&redirect=${encodeURIComponent(`/${locale}/train`)}`)}
+                style={{
+                  width: "100%", minHeight: 38,
+                  background: "none",
+                  border: `1px solid ${whiteAlpha(0.07)}`,
+                  borderRadius: RADIUS.md,
+                  color: whiteAlpha(0.3), fontSize: 11, fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                {locale === "mn"
+                  ? "Профайл үүсгэж өөрийн дэвшлийг хуваалцаарай →"
+                  : locale === "ko"
+                    ? "프로필 생성 후 진행 상황 공유 →"
+                    : "Create profile to share your progress →"}
               </button>
             )}
             <button type="button" style={styles.shareResultButton} onClick={activeChallenge ? onShareChallenge : onShareTraining}>

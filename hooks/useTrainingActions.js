@@ -42,6 +42,10 @@ export function useTrainingActions({
   const [missionNewStreak, setMissionNewStreak] = useState(0);
   const [rankUpInfo, setRankUpInfo] = useState(null);
   const challengeSavedRef = useRef(false);
+  const [feedSharing,  setFeedSharing]  = useState(false);
+  const [feedShared,   setFeedShared]   = useState(false);
+  const [sharedReelId, setSharedReelId] = useState(null);
+  const feedSharedRef = useRef(false);
 
   const handleShareChallenge = useCallback(async () => {
     if (!result) return;
@@ -382,6 +386,31 @@ export function useTrainingActions({
     }
   }, [user, result, reelId, drillId, drillConfig, locale, t, setError, trainSourceUserId, creatorBestScore]);
 
+  const handleShareToFeed = useCallback(async ({ poseMetrics = null } = {}) => {
+    if (!user?.uid || !result) return;
+    if (feedSharedRef.current) return;
+
+    feedSharedRef.current = true;
+    setFeedSharing(true);
+    setError("");
+
+    try {
+      const { shareTrainingToFeed } = await import("@/lib/shareToFeed");
+      const id = await shareTrainingToFeed({ user, result, poseMetrics, drillConfig, locale });
+      setSharedReelId(id);
+      setFeedShared(true);
+    } catch {
+      feedSharedRef.current = false;
+      setError(
+        locale === "mn" ? "Feed-д нийтлэхэд алдаа гарлаа" :
+        locale === "ko" ? "피드 공유 실패" :
+        "Failed to share to feed"
+      );
+    } finally {
+      setFeedSharing(false);
+    }
+  }, [user, result, drillConfig, locale, setError]);
+
   const resetForNewSession = useCallback(() => {
     setSaving(false);
     setSaved(false);
@@ -393,6 +422,10 @@ export function useTrainingActions({
     setMissionStreakBonus(0);
     setMissionNewStreak(0);
     setRankUpInfo(null);
+    setFeedSharing(false);
+    setFeedShared(false);
+    setSharedReelId(null);
+    feedSharedRef.current = false;
   }, []);
 
   return {
@@ -402,6 +435,8 @@ export function useTrainingActions({
     rankUpInfo,
     handleSave, handleSaveChallengeResult,
     handleShareChallenge, handleChallengeFriend, handleShareTraining,
+    feedSharing, feedShared, sharedReelId,
+    handleShareToFeed,
     resetForNewSession,
   };
 }

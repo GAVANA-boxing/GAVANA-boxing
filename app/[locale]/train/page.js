@@ -132,6 +132,8 @@ export default function TrainPage() {
     rankUpInfo,
     handleSave, handleSaveChallengeResult,
     handleShareChallenge, handleChallengeFriend, handleShareTraining,
+    feedSharing, feedShared, sharedReelId,
+    handleShareToFeed,
     resetForNewSession,
   } = useTrainingActions({
     user, locale, result, reelId, drillId, drillConfig, challengeId,
@@ -915,6 +917,10 @@ export default function TrainPage() {
         onSaveChallengeResult={handleSaveChallengeResult}
         onShareChallenge={handleShareChallenge}
         onShareTraining={handleShareTraining}
+        onShareToFeed={() => handleShareToFeed({ poseMetrics: poseSessionSummary })}
+        feedSharing={feedSharing}
+        feedShared={feedShared}
+        sharedReelId={sharedReelId}
         academyLesson={lessonContext?.academyLesson || null}
       />
       {/* Debug session report — only visible when ?debug=1, appears after session */}
