@@ -103,9 +103,15 @@ const ReelItem = memo(function ReelItem({
 
   const effectiveType = reel.contentType || reel.type || "lifestyle";
   const isChallenge = effectiveType === "training";
+  const isFeedChallenge = effectiveType === "challenge";
   const isEducational = effectiveType === "educational";
   const showChallengeCta = isChallenge || reel.challengeEnabled;
+  const showAcceptChallengeCta = isFeedChallenge;
   const showLearnCta = isEducational && !reel.challengeEnabled;
+
+  const handleAcceptChallengeClick = () => {
+    router.push(`/${currentLocale}/train?challengePostId=${reel.id}`);
+  };
 
   return (
     <div
@@ -303,11 +309,16 @@ const ReelItem = memo(function ReelItem({
         )}
 
         {/* Primary CTA */}
-        {!reel.isDemo && (showChallengeCta || showLearnCta) && (
+        {!reel.isDemo && (showChallengeCta || showAcceptChallengeCta || showLearnCta) && (
           <div style={styles.trainButtonRow}>
             {showChallengeCta && (
               <button type="button" style={styles.tryThisButton} onClick={handleChallengeClick}>
                 {t("reelChallenge")}
+              </button>
+            )}
+            {showAcceptChallengeCta && (
+              <button type="button" style={{ ...styles.tryThisButton, background: "rgba(167,139,250,0.18)", border: "1px solid rgba(167,139,250,0.4)", color: "#C084FC" }} onClick={handleAcceptChallengeClick}>
+                {t("acceptChallenge")}
               </button>
             )}
             {showLearnCta && (

@@ -69,6 +69,8 @@ export default function TrainPage() {
     challengeUserId, creatorBestScore, targetScore,
     currentXP, sessionHistory, weeklySessionCount, userStreak,
     opponentUsername, ghostBestScore, setGhostBestScore, ghostBestScoreRef,
+    challengePostId: activeChallengePostId,
+    challengePostData,
   } = useTrainingData({ user });
 
   const activeChallenge = challengeId ? CHALLENGES[challengeId] : null;
@@ -136,6 +138,8 @@ export default function TrainPage() {
     handleShareToFeed, handleShareAcademyToFeed,
     challengePosting, challengePosted, challengePostId,
     handleCreateChallengePost,
+    challengeResponsePosting, challengeResponsePosted, challengeResponseId,
+    handlePostChallengeResponse,
     resetForNewSession,
   } = useTrainingActions({
     user, locale, result, reelId, drillId, drillConfig, challengeId,
@@ -562,6 +566,50 @@ export default function TrainPage() {
           )}
         </header>
 
+        {/* Challenge Active card — shown when responding to a feed challenge */}
+        {activeChallengePostId && canStart && (
+          <div style={{
+            margin: "0 0 14px",
+            padding: "12px 16px",
+            borderRadius: 14,
+            background: "rgba(167,139,250,0.08)",
+            border: "1px solid rgba(167,139,250,0.3)",
+            borderLeft: "3px solid rgba(167,139,250,0.7)",
+          }}>
+            <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: "#C084FC", textTransform: "uppercase", marginBottom: 8 }}>
+              ⚔️ {locale === "mn" ? "Challenge идэвхтэй" : locale === "ko" ? "챌린지 활성" : "Challenge Active"}
+            </div>
+            {challengePostData ? (
+              <>
+                <div style={{ fontSize: 13, fontWeight: 900, color: "#fff", marginBottom: 6 }}>
+                  {challengePostData.challengeTitle || (locale === "mn" ? "Challenge" : locale === "ko" ? "챌린지" : "Challenge")}
+                </div>
+                {typeof challengePostData.challengeTargetScore === "number" && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ padding: "5px 12px", borderRadius: 8, background: "rgba(167,139,250,0.12)", border: "1px solid rgba(167,139,250,0.28)" }}>
+                      <span style={{ fontSize: 9, fontWeight: 900, color: "rgba(167,139,250,0.65)", textTransform: "uppercase", letterSpacing: 1 }}>
+                        {locale === "mn" ? "Зорилт" : locale === "ko" ? "목표" : "Target"}
+                      </span>
+                      <span style={{ fontSize: 15, fontWeight: 1000, color: "#C084FC", marginLeft: 8, fontFamily: "var(--font-display,'Anton',sans-serif)" }}>
+                        {challengePostData.challengeTargetScore.toFixed(1)}/10
+                      </span>
+                    </div>
+                    {challengePostData.username && (
+                      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>
+                        @{challengePostData.username}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>
+                {locale === "mn" ? "Challenge ачааллаж байна…" : locale === "ko" ? "챌린지 불러오는 중…" : "Loading challenge…"}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Training Focus — shown when arriving from a fighter or academy lesson */}
         {lessonContext && canStart && (
           <TrainingFocusCard
@@ -935,6 +983,11 @@ export default function TrainPage() {
         challengePosted={challengePosted}
         challengePostId={challengePostId}
         academyLesson={lessonContext?.academyLesson || null}
+        challengePostData={challengePostData}
+        onPostChallengeResponse={() => handlePostChallengeResponse({ challengePostData })}
+        challengeResponsePosting={challengeResponsePosting}
+        challengeResponsePosted={challengeResponsePosted}
+        challengeResponseId={challengeResponseId}
       />
       {/* Debug session report — only visible when ?debug=1, appears after session */}
       <DebugSessionPanel

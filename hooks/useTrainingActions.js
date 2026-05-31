@@ -46,10 +46,14 @@ export function useTrainingActions({
   const [feedShared,        setFeedShared]        = useState(false);
   const [sharedReelId,      setSharedReelId]      = useState(null);
   const feedSharedRef = useRef(false);
-  const [challengePosting,  setChallengePosting]  = useState(false);
-  const [challengePosted,   setChallengePosted]   = useState(false);
-  const [challengePostId,   setChallengePostId]   = useState(null);
+  const [challengePosting,          setChallengePosting]          = useState(false);
+  const [challengePosted,           setChallengePosted]           = useState(false);
+  const [challengePostId,           setChallengePostId]           = useState(null);
   const challengePostRef = useRef(false);
+  const [challengeResponsePosting,  setChallengeResponsePosting]  = useState(false);
+  const [challengeResponsePosted,   setChallengeResponsePosted]   = useState(false);
+  const [challengeResponseId,       setChallengeResponseId]       = useState(null);
+  const challengeResponseRef = useRef(false);
 
   const handleShareChallenge = useCallback(async () => {
     if (!result) return;
@@ -465,6 +469,31 @@ export function useTrainingActions({
     }
   }, [user, result, drillConfig, locale, setError]);
 
+  const handlePostChallengeResponse = useCallback(async ({ challengePostData = null } = {}) => {
+    if (!user?.uid || !result || !challengePostData?.id) return;
+    if (challengeResponseRef.current) return;
+
+    challengeResponseRef.current = true;
+    setChallengeResponsePosting(true);
+    setError("");
+
+    try {
+      const { createChallengeResponse } = await import("@/lib/shareToFeed");
+      const id = await createChallengeResponse({ user, result, challengePostData, locale });
+      setChallengeResponseId(id);
+      setChallengeResponsePosted(true);
+    } catch {
+      challengeResponseRef.current = false;
+      setError(
+        locale === "mn" ? "Challenge хариу илгээхэд алдаа гарлаа" :
+        locale === "ko" ? "챌린지 응답 실패" :
+        "Failed to post challenge response"
+      );
+    } finally {
+      setChallengeResponsePosting(false);
+    }
+  }, [user, result, locale, setError]);
+
   const resetForNewSession = useCallback(() => {
     setSaving(false);
     setSaved(false);
@@ -484,6 +513,10 @@ export function useTrainingActions({
     setChallengePosted(false);
     setChallengePostId(null);
     challengePostRef.current = false;
+    setChallengeResponsePosting(false);
+    setChallengeResponsePosted(false);
+    setChallengeResponseId(null);
+    challengeResponseRef.current = false;
   }, []);
 
   return {
@@ -497,6 +530,8 @@ export function useTrainingActions({
     handleShareToFeed, handleShareAcademyToFeed,
     challengePosting, challengePosted, challengePostId,
     handleCreateChallengePost,
+    challengeResponsePosting, challengeResponsePosted, challengeResponseId,
+    handlePostChallengeResponse,
     resetForNewSession,
   };
 }
