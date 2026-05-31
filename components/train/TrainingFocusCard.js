@@ -1,8 +1,8 @@
 "use client";
 
-import { RED, PURPLE, RADIUS, redAlpha, goldAlpha, GOLD } from "@/lib/tokens";
+import { RED, PURPLE, RADIUS, redAlpha, goldAlpha, GOLD, WARNING } from "@/lib/tokens";
 
-const ORANGE = "#FB923C";
+const ORANGE = WARNING;
 
 const DIFF = {
   beginner:     { label: "BEGINNER",     color: "#10B981" },

@@ -9,6 +9,15 @@ import { locales } from "@/lib/i18n";
 import Image from "next/image";
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
+function FeedIcon({ active }) {
+  return (
+    <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.38)" }} viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3" y="3" width="7" height="13" rx="1.5"/>
+      <rect x="14" y="8" width="7" height="13" rx="1.5"/>
+    </svg>
+  );
+}
+
 function FightersIcon({ active }) {
   return (
     <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.38)" }} viewBox="0 0 24 24" aria-hidden="true">
@@ -355,7 +364,7 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
 
   const goToProfile = () => r.push(user?.uid ? `/${locale}/profile/${user.uid}` : `/${locale}/login`);
 
-  const fightersLabel = locale === "mn" ? "Тулаанч" : locale === "ko" ? "파이터" : "Fighters";
+  const feedLabel     = locale === "mn" ? "Тэжээл"  : locale === "ko" ? "피드"   : "Feed";
   const coachLabel    = locale === "mn" ? "Коуч"    : locale === "ko" ? "코치"   : "Coach";
   const sparringLabel = locale === "mn" ? "Спарринг": locale === "ko" ? "스파링" : "Sparring";
 
@@ -393,9 +402,9 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
         onPointerCancel={onInteractEnd}
         aria-label="Primary navigation"
       >
-        {/* Fighters */}
-        <IconTab active={resolvedActiveTab === "fighters"} onClick={() => r.push(`/${locale}/fighters`)} label={fightersLabel}>
-          <FightersIcon active={resolvedActiveTab === "fighters"} />
+        {/* Feed */}
+        <IconTab active={resolvedActiveTab === "feed"} onClick={() => r.push(`/${locale}/feed`)} label={feedLabel}>
+          <FeedIcon active={resolvedActiveTab === "feed"} />
         </IconTab>
 
         {/* Coach */}
@@ -426,6 +435,7 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
 
 // ─── Active tab resolver ──────────────────────────────────────────────────────
 function getActiveTab(pathname = "") {
+  if (pathname.includes("/feed"))     return "feed";
   if (pathname.includes("/fighters")) return "fighters";
   if (pathname.includes("/coach"))    return "coach";
   if (pathname.includes("/sparring")) return "sparring";
