@@ -428,17 +428,18 @@ export function useTrainingActions({
     setError("");
 
     try {
-      let videoURL = null, thumbnailURL = null;
+      let videoURL = null, thumbnailURL = null, durationSeconds = null;
       if (videoBlob) {
         try {
           const { uploadVideoToFeed } = await import("@/lib/uploadVideo");
           const up = await uploadVideoToFeed({ videoBlob, thumbnailBlob, userId: user.uid });
           videoURL = up.videoURL;
           thumbnailURL = up.thumbnailURL;
+          durationSeconds = up.durationSeconds;
         } catch { /* video upload non-fatal */ }
       }
       const { shareAcademyToFeed } = await import("@/lib/shareToFeed");
-      const id = await shareAcademyToFeed({ user, result, poseMetrics, drillConfig, academyLesson, locale, videoURL, thumbnailURL });
+      const id = await shareAcademyToFeed({ user, result, poseMetrics, drillConfig, academyLesson, locale, videoURL, thumbnailURL, durationSeconds });
       setSharedReelId(id);
       setFeedShared(true);
     } catch {

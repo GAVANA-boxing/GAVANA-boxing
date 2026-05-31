@@ -347,6 +347,7 @@ export default function TrainResultModal({
 
   useEffect(() => {
     if (!recordedBlob) { setBlobUrl(null); setClipDuration(null); return; }
+    setClipDuration(null);
     const url = URL.createObjectURL(recordedBlob);
     setBlobUrl(url);
     return () => URL.revokeObjectURL(url);
