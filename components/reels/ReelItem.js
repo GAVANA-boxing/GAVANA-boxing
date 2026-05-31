@@ -64,6 +64,11 @@ const ReelItem = memo(function ReelItem({
   onCaptionSheet,
   onReport,
   setVideoProgress,
+  // Follow (optional — only wired on /feed)
+  isFollowing = false,
+  followLoading = false,
+  onFollow = null,
+  viewerUid = null,
 }) {
   const isActive = index === currentIndex;
 
@@ -295,6 +300,31 @@ const ReelItem = memo(function ReelItem({
               </div>
             ) : null}
           </div>
+          {onFollow && reel.userId && reel.userId !== viewerUid && (
+            <button
+              type="button"
+              onClick={() => onFollow(reel.userId)}
+              disabled={followLoading}
+              style={{
+                marginLeft:    "auto",
+                flexShrink:    0,
+                padding:       "4px 12px",
+                borderRadius:  20,
+                fontSize:      12,
+                fontWeight:    700,
+                lineHeight:    "18px",
+                border:        isFollowing ? "1px solid rgba(255,255,255,0.25)" : "1px solid rgba(255,255,255,0.65)",
+                background:    "transparent",
+                color:         isFollowing ? "rgba(255,255,255,0.45)" : "#fff",
+                cursor:        followLoading ? "default" : "pointer",
+                letterSpacing: 0.2,
+                transition:    "opacity 0.15s",
+                opacity:       followLoading ? 0.6 : 1,
+              }}
+            >
+              {followLoading ? t("followLoading") : isFollowing ? t("following") : t("follow")}
+            </button>
+          )}
         </div>
 
         {captionText && (

@@ -10,6 +10,7 @@ import { translate } from "@/lib/i18n";
 import { SpeakerIcon } from "@/components/reels/ReelIcons";
 import { useReelInteractions } from "@/hooks/useReelInteractions";
 import { useCommentActions } from "@/hooks/useCommentActions";
+import { useFeedFollow } from "@/hooks/useFeedFollow";
 import { getFirebase } from "@/lib/lazyFirebase";
 
 export default function FeedPage({ reels, locale, router, user }) {
@@ -95,6 +96,7 @@ export default function FeedPage({ reels, locale, router, user }) {
   });
 
   const commentActions = useCommentActions({ user, router, currentLocale: locale, reels: allReels });
+  const { followingSet, loadingSet, handleFollow } = useFeedFollow({ user, router, currentLocale: locale });
 
   useEffect(() => {
     if (!reels.length || !containerRef.current) return;
@@ -222,6 +224,10 @@ export default function FeedPage({ reels, locale, router, user }) {
                 onCaptionSheet={(id)   => setCaptionSheetReelId(id)}
                 onReport={noop}
                 setVideoProgress={(p)  => setVideoProgressMap((prev) => ({ ...prev, [reel.id]: p }))}
+                isFollowing={followingSet.has(reel.userId)}
+                followLoading={loadingSet.has(reel.userId)}
+                onFollow={handleFollow}
+                viewerUid={user?.uid || null}
               />
             </div>
           );
