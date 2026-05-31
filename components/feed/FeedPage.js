@@ -1,14 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReelItem from "@/components/reels/ReelItem";
 import CaptionSheet from "@/components/reels/CaptionSheet";
+import CommentsModal from "@/components/reels/CommentsModal";
 import FeedEmptyState from "./FeedEmptyState";
 import { getCreatorName, cleanCaption } from "@/lib/reelHelpers";
 import { translate } from "@/lib/i18n";
 import { SpeakerIcon } from "@/components/reels/ReelIcons";
+import { useReelInteractions } from "@/hooks/useReelInteractions";
+import { useCommentActions } from "@/hooks/useCommentActions";
+import { getFirebase } from "@/lib/lazyFirebase";
 
-export default function FeedPage({ reels, locale, router }) {
+export default function FeedPage({ reels, locale, router, user }) {
   const [currentIndex,       setCurrentIndex]       = useState(0);
   const [soundEnabled,       setSoundEnabled]       = useState(false);
   const [videoErrors,        setVideoErrors]        = useState({});
@@ -16,13 +20,71 @@ export default function FeedPage({ reels, locale, router }) {
   const [videoProgress,      setVideoProgressMap]   = useState({});
   const [captionSheetReelId, setCaptionSheetReelId] = useState(null);
 
+  // Social state
+  const [allReels,   setAllReels]   = useState(reels);
+  const [userLikes,  setUserLikes]  = useState(new Set());
+  const [savedReels, setSavedReels] = useState(new Set());
+
+  // Stub refs — only needed by handleVideoClick which we don't use on feed
+  const singleTapTimerRef = useRef(null);
+  const lastTapRef        = useRef({ time: 0, reelId: null });
+
   const containerRef = useRef(null);
   const reelItemRefs = useRef({});
   const videoRefs    = useRef({});
   const observerRef  = useRef(null);
   const cardRefs     = useRef(new Map());
 
-  const t = (key) => translate(locale, key);
+  const t    = useCallback((key) => translate(locale, key), [locale]);
+  const noop = useCallback(() => {}, []);
+
+  // Sync allReels when parent data changes
+  useEffect(() => { setAllReels(reels); }, [reels]);
+
+  // Load userLikes + savedReels for logged-in users
+  useEffect(() => {
+    if (!user?.uid) return;
+    let cancelled = false;
+
+    async function loadSocialState() {
+      try {
+        const { db } = await getFirebase();
+        const { collection, query, where, getDocs } = await import("firebase/firestore");
+        const [likesSnap, savesSnap] = await Promise.all([
+          getDocs(query(collection(db, "user_likes"),  where("userId", "==", user.uid))),
+          getDocs(query(collection(db, "saved_reels"), where("userId", "==", user.uid))),
+        ]);
+        if (cancelled) return;
+        setUserLikes(new Set(likesSnap.docs.map((d) => d.data().reelId)));
+        setSavedReels(new Set(savesSnap.docs.map((d) => d.data().reelId)));
+      } catch { /* non-critical */ }
+    }
+
+    loadSocialState();
+    return () => { cancelled = true; };
+  }, [user?.uid]);
+
+  const { handleLike, handleSave, handleShare } = useReelInteractions({
+    user,
+    router,
+    currentLocale:  locale,
+    pathname:       `/${locale}/feed`,
+    t,
+    reels:          allReels,
+    userLikes,
+    savedReels,
+    setUserLikes,
+    setAllReels,
+    setSavedReels,
+    setUserViews:   noop,
+    setHeartBursts: noop,
+    revealControls: noop,
+    togglePlay:     noop,
+    singleTapTimerRef,
+    lastTapRef,
+  });
+
+  const commentActions = useCommentActions({ user, router, currentLocale: locale, reels: allReels });
 
   useEffect(() => {
     if (!reels.length || !containerRef.current) return;
@@ -46,8 +108,6 @@ export default function FeedPage({ reels, locale, router }) {
   if (!reels.length) {
     return <FeedEmptyState locale={locale} router={router} />;
   }
-
-  const noop = () => {};
 
   return (
     <>
@@ -90,7 +150,7 @@ export default function FeedPage({ reels, locale, router }) {
           position:                "relative",
         }}
       >
-        {reels.map((reel, index) => {
+        {allReels.map((reel, index) => {
           const name    = getCreatorName(reel, null);
           const initial = (name || "?").charAt(0).toUpperCase();
           const photo   = reel.userPhotoURL || reel.profileImageUrl || "";
@@ -120,8 +180,8 @@ export default function FeedPage({ reels, locale, router }) {
                 hasVideoError={Boolean(videoErrors[reel.id])}
                 isVideoLoading={Boolean(videoLoading[reel.id])}
                 videoProgress={videoProgress[reel.id] ?? 0}
-                isLiked={false}
-                isSaved={false}
+                isLiked={userLikes.has(reel.id)}
+                isSaved={savedReels.has(reel.id)}
                 heartBursts={[]}
                 showControls={false}
                 isPvpSource={false}
@@ -143,10 +203,10 @@ export default function FeedPage({ reels, locale, router }) {
                 onVideoLoadStart={(id) => setVideoLoading((p) => ({ ...p, [id]: true }))}
                 onVideoLoaded={(id)    => setVideoLoading((p) => ({ ...p, [id]: false }))}
                 onVideoError={(id)     => setVideoErrors((p)  => ({ ...p, [id]: true }))}
-                onLike={noop}
-                onOpenComments={noop}
-                onShare={noop}
-                onSave={noop}
+                onLike={handleLike}
+                onOpenComments={commentActions.handleOpenComments}
+                onShare={handleShare}
+                onSave={handleSave}
                 onGetFeedback={noop}
                 onBreakdown={noop}
                 onCaptionSheet={(id)   => setCaptionSheetReelId(id)}
@@ -161,10 +221,30 @@ export default function FeedPage({ reels, locale, router }) {
       {/* Caption sheet */}
       <CaptionSheet
         captionSheetReelId={captionSheetReelId}
-        reels={reels}
+        reels={allReels}
         setCaptionSheetReelId={setCaptionSheetReelId}
         t={t}
         currentLocale={locale}
+      />
+
+      {/* Comments modal */}
+      <CommentsModal
+        showComments={commentActions.showComments}
+        comments={commentActions.comments}
+        commentProfiles={commentActions.commentProfiles}
+        newComment={commentActions.newComment}
+        setNewComment={commentActions.setNewComment}
+        replyingTo={commentActions.replyingTo}
+        setReplyingTo={commentActions.setReplyingTo}
+        expandedReplies={commentActions.expandedReplies}
+        setExpandedReplies={commentActions.setExpandedReplies}
+        user={user}
+        currentLocale={locale}
+        t={t}
+        router={router}
+        onClose={commentActions.handleCloseComments}
+        onAddComment={commentActions.handleAddComment}
+        onDeleteComment={commentActions.handleDeleteComment}
       />
     </>
   );

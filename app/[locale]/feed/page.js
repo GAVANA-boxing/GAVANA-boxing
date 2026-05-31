@@ -71,7 +71,7 @@ export default function FeedRoute() {
         ) : error ? (
           <FeedEmptyState locale={locale} router={router} />
         ) : (
-          <FeedPage reels={reels} locale={locale} router={router} />
+          <FeedPage reels={reels} locale={locale} router={router} user={user} />
         )}
       </div>
 
