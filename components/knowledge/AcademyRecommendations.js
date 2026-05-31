@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { ACADEMY_LESSONS } from "@/lib/academyLessons";
 import { ACADEMY_PATHS, getPathProgress, getLessonStatus } from "@/lib/academyPaths";
+import { FONT_SIZE, RADIUS } from "@/lib/tokens";
 
 // Circular sequence: completing one skill naturally leads to the next
 const SEQUENCE_NEXT = {
@@ -129,7 +130,7 @@ export default function AcademyRecommendations({ lessonProgress, currentPathId, 
   return (
     <div>
       <div style={{
-        fontSize: 7.5, fontWeight: 900, letterSpacing: 1.8,
+        fontSize: FONT_SIZE.xs, fontWeight: 900, letterSpacing: 1.8,
         color: "rgba(255,255,255,0.28)", textTransform: "uppercase", marginBottom: 10,
         display: "flex", alignItems: "center", gap: 6,
       }}>
@@ -184,9 +185,9 @@ export default function AcademyRecommendations({ lessonProgress, currentPathId, 
                 type="button"
                 onClick={() => router.push(`/${locale}/train?academyLesson=${lesson.id}`)}
                 style={{
-                  flexShrink: 0, padding: "6px 12px", borderRadius: 8,
+                  flexShrink: 0, padding: "6px 12px", borderRadius: RADIUS.sm,
                   background: `${acc}16`, border: `1px solid ${acc}32`,
-                  color: acc, fontSize: 9.5, fontWeight: 900,
+                  color: acc, fontSize: FONT_SIZE.xs, fontWeight: 900,
                   cursor: "pointer", letterSpacing: 0.5, whiteSpace: "nowrap",
                 }}
               >

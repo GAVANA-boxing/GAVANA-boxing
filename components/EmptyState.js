@@ -1,5 +1,7 @@
 "use client";
 
+import { RADIUS, FONT_SIZE, FONT_WEIGHT, whiteAlpha } from "@/lib/tokens";
+
 export default function EmptyState({ emoji, title, hint, action, padding = "56px 24px" }) {
   return (
     <div
@@ -16,23 +18,23 @@ export default function EmptyState({ emoji, title, hint, action, padding = "56px
       {emoji && (
         <div style={{
           width: 48, height: 48,
-          borderRadius: 14,
-          background: "rgba(255,255,255,0.04)",
-          border: "1px solid rgba(255,255,255,0.07)",
+          borderRadius: RADIUS.md,
+          background: whiteAlpha(0.04),
+          border: `1px solid ${whiteAlpha(0.07)}`,
           display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 22, lineHeight: 1,
+          fontSize: FONT_SIZE.xl, lineHeight: 1,
           flexShrink: 0,
         }}>
           {emoji}
         </div>
       )}
       {title && (
-        <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: "rgba(255,255,255,0.65)", letterSpacing: -0.1 }}>
+        <p style={{ margin: 0, fontSize: FONT_SIZE.md, fontWeight: FONT_WEIGHT.black, color: whiteAlpha(0.65), letterSpacing: -0.1 }}>
           {title}
         </p>
       )}
       {hint && (
-        <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.3)", maxWidth: 270, lineHeight: 1.55 }}>
+        <p style={{ margin: 0, fontSize: FONT_SIZE.base, color: whiteAlpha(0.3), maxWidth: 270, lineHeight: 1.55 }}>
           {hint}
         </p>
       )}

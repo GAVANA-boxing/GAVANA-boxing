@@ -14,6 +14,7 @@ import { useDiscoverData } from "@/hooks/useDiscoverData";
 import { useDiscoverSearch } from "@/hooks/useDiscoverSearch";
 import Image from "next/image";
 import { FIGHTER_STYLES, LEARN_CATS } from "@/lib/discoverConstants";
+import EmptyState from "@/components/EmptyState";
 
 export default function DiscoverPage() {
   const params = useParams();
@@ -155,15 +156,15 @@ export default function DiscoverPage() {
             </div>
           )}
           {searchError && !searching && (
-            <div style={s.emptyState}>
-              <span style={{ fontSize: 32 }}>⚠️</span>
-              <p style={{ margin: "8px 0 4px", color: "#fff", fontSize: 14, fontWeight: 800 }}>
-                {t("discoverSearchFailed")}
-              </p>
-              <button type="button" onClick={() => handleSearch()} style={{ marginTop: 8, padding: "8px 18px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
-                {t("discoverRetry")}
-              </button>
-            </div>
+            <EmptyState
+              emoji="⚠️"
+              title={t("discoverSearchFailed")}
+              action={
+                <button type="button" onClick={() => handleSearch()} style={{ marginTop: 4, padding: "8px 18px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer" }}>
+                  {t("discoverRetry")}
+                </button>
+              }
+            />
           )}
           {!searching && !searchError && userResults.length > 0 && (
             <div style={{ padding: "0 16px", marginBottom: 28 }}>
@@ -204,15 +205,11 @@ export default function DiscoverPage() {
             </div>
           )}
           {!searching && !searchError && userResults.length === 0 && reelResults.length === 0 && (
-            <div style={s.emptyState}>
-              <span style={{ fontSize: 40 }}>🔍</span>
-              <p style={{ margin: "10px 0 4px", color: "#fff", fontSize: 15, fontWeight: 800 }}>
-                {t("discoverNoResults")}
-              </p>
-              <p style={{ margin: 0, color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
-                {t("discoverNoResultsSub")}
-              </p>
-            </div>
+            <EmptyState
+              emoji="🔍"
+              title={t("discoverNoResults")}
+              hint={t("discoverNoResultsSub")}
+            />
           )}
         </div>
       ) : (
@@ -231,24 +228,28 @@ export default function DiscoverPage() {
                 </div>
               )}
               {!feedLoading && !user?.uid && (
-                <div style={feed.emptyWrap}>
-                  <span style={{ fontSize: 40 }}>🔒</span>
-                  <p style={feed.emptyTitle}>{t("discoverSignInRequired")}</p>
-                  <p style={feed.emptyText}>{t("discoverSignInDesc")}</p>
-                  <button type="button" style={feed.emptyBtn} onClick={() => router.push(`/${locale}/login`)}>
-                    {t("discoverSignIn")}
-                  </button>
-                </div>
+                <EmptyState
+                  emoji="🔒"
+                  title={t("discoverSignInRequired")}
+                  hint={t("discoverSignInDesc")}
+                  action={
+                    <button type="button" style={feed.emptyBtn} onClick={() => router.push(`/${locale}/login`)}>
+                      {t("discoverSignIn")}
+                    </button>
+                  }
+                />
               )}
               {!feedLoading && user?.uid && feedLoaded && followingReels.length === 0 && (
-                <div style={feed.emptyWrap}>
-                  <span style={{ fontSize: 40 }}>👥</span>
-                  <p style={feed.emptyTitle}>{t("discoverNoFollowing")}</p>
-                  <p style={feed.emptyText}>{t("discoverNoFollowingDesc")}</p>
-                  <button type="button" style={feed.emptyBtn} onClick={() => setFeedTab("explore")}>
-                    {t("discoverExploreFighters")}
-                  </button>
-                </div>
+                <EmptyState
+                  emoji="👥"
+                  title={t("discoverNoFollowing")}
+                  hint={t("discoverNoFollowingDesc")}
+                  action={
+                    <button type="button" style={feed.emptyBtn} onClick={() => setFeedTab("explore")}>
+                      {t("discoverExploreFighters")}
+                    </button>
+                  }
+                />
               )}
               {!feedLoading && followingReels.length > 0 && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
