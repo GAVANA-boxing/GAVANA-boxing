@@ -1,25 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import ReelCard from "./ReelCard";
 import FeedEmptyState from "./FeedEmptyState";
 
 export default function FeedPage({ reels, locale, router }) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const containerRef  = useRef(null);
-  const cardRefs      = useRef(new Map());
-  const observerRef   = useRef(null);
-
-  const registerCard = useCallback((index, el) => {
-    if (el) {
-      cardRefs.current.set(index, el);
-    } else {
-      cardRefs.current.delete(index);
-    }
-  }, []);
+  const containerRef = useRef(null);
+  const cardRefs     = useRef(new Map());
+  const observerRef  = useRef(null);
 
   useEffect(() => {
-    if (!reels.length) return;
+    if (!reels.length || !containerRef.current) return;
+
+    observerRef.current?.disconnect();
 
     observerRef.current = new IntersectionObserver(
       (entries) => {
@@ -30,21 +24,14 @@ export default function FeedPage({ reels, locale, router }) {
           }
         }
       },
-      { threshold: 0.6, root: containerRef.current }
+      { threshold: 0.6, root: containerRef.current },
     );
 
     cardRefs.current.forEach((el) => observerRef.current.observe(el));
 
     return () => observerRef.current?.disconnect();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reels.length]);
-
-  // Observe newly registered cards after initial mount
-  useEffect(() => {
-    if (!observerRef.current) return;
-    cardRefs.current.forEach((el) => {
-      try { observerRef.current.observe(el); } catch {}
-    });
-  });
 
   if (!reels.length) {
     return <FeedEmptyState locale={locale} router={router} />;
@@ -53,13 +40,12 @@ export default function FeedPage({ reels, locale, router }) {
   return (
     <div
       ref={containerRef}
+      className="no-scrollbar"
       style={{
         height:          "100dvh",
         overflowY:       "scroll",
         scrollSnapType:  "y mandatory",
         WebkitOverflowScrolling: "touch",
-        scrollbarWidth:  "none",
-        msOverflowStyle: "none",
         display:         "flex",
         flexDirection:   "column",
         background:      "#000",
@@ -70,7 +56,14 @@ export default function FeedPage({ reels, locale, router }) {
         <div
           key={reel.id}
           data-index={index}
-          ref={(el) => registerCard(index, el)}
+          ref={(el) => {
+            if (el) {
+              cardRefs.current.set(index, el);
+              observerRef.current?.observe(el);
+            } else {
+              cardRefs.current.delete(index);
+            }
+          }}
         >
           <ReelCard
             reel={reel}
