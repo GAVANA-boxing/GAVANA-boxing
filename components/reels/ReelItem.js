@@ -327,6 +327,20 @@ const ReelItem = memo(function ReelItem({
           )}
         </div>
 
+        {/* Reputation badge */}
+        {!reel.isDemo && (() => {
+          if (reel.contentType === "challenge_response" && typeof reel.sourceSessionScore === "number" && typeof reel.challengeTargetScore === "number" && reel.sourceSessionScore > reel.challengeTargetScore) {
+            return <span style={{ display: "inline-block", marginBottom: 4, padding: "2px 8px", borderRadius: 20, fontSize: 10, fontWeight: 800, background: "rgba(52,211,153,0.15)", border: "1px solid rgba(52,211,153,0.35)", color: "#34D399", letterSpacing: 0.3 }}>⚔️ {t("repBadgeResponder")}</span>;
+          }
+          if (reel.contentType === "academy") {
+            return <span style={{ display: "inline-block", marginBottom: 4, padding: "2px 8px", borderRadius: 20, fontSize: 10, fontWeight: 800, background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.3)", color: "#FCD34D", letterSpacing: 0.3 }}>🎓 {t("repBadgeAcademy")}</span>;
+          }
+          if (reel.contentType === "training" && typeof reel.sessionScore === "number" && reel.sessionScore >= 8.5) {
+            return <span style={{ display: "inline-block", marginBottom: 4, padding: "2px 8px", borderRadius: 20, fontSize: 10, fontWeight: 800, background: "rgba(248,113,113,0.12)", border: "1px solid rgba(248,113,113,0.3)", color: "#F87171", letterSpacing: 0.3 }}>🌟 {t("repBadgeTopScore")}</span>;
+          }
+          return null;
+        })()}
+
         {captionText && (
           <button
             type="button"

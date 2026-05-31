@@ -98,9 +98,16 @@ export function useLeaderboardData({ user, currentSeasonId }) {
         reelsSnapshot.forEach((docSnap) => {
           const d = docSnap.data();
           if (!d.userId) return;
-          if (!reelsMap[d.userId]) reelsMap[d.userId] = { totalViews: 0, totalLikes: 0 };
-          reelsMap[d.userId].totalViews += Number(d.views || 0);
-          reelsMap[d.userId].totalLikes += Number(d.likes || d.likesCount || 0);
+          if (!reelsMap[d.userId]) reelsMap[d.userId] = { totalViews: 0, totalLikes: 0, totalPosts: 0, responses: 0, wins: 0 };
+          reelsMap[d.userId].totalViews  += Number(d.views || 0);
+          reelsMap[d.userId].totalLikes  += Number(d.likes || d.likesCount || 0);
+          reelsMap[d.userId].totalPosts  += 1;
+          if (d.contentType === "challenge_response") {
+            reelsMap[d.userId].responses += 1;
+            if (typeof d.sourceSessionScore === "number" && typeof d.challengeTargetScore === "number" && d.sourceSessionScore > d.challengeTargetScore) {
+              reelsMap[d.userId].wins += 1;
+            }
+          }
         });
 
         if (!active) return;
@@ -192,6 +199,24 @@ export function useLeaderboardData({ user, currentSeasonId }) {
     [reelsStats]
   );
 
+  const activeEntries = useMemo(() =>
+    Object.entries(reelsStats)
+      .map(([userId, stats]) => ({ userId, bestScore: stats.totalPosts, totalLikes: stats.totalLikes, responses: stats.responses }))
+      .filter((e) => e.bestScore > 0)
+      .sort((a, b) => b.bestScore - a.bestScore)
+      .slice(0, 50),
+    [reelsStats]
+  );
+
+  const respondersEntries = useMemo(() =>
+    Object.entries(reelsStats)
+      .map(([userId, stats]) => ({ userId, bestScore: stats.responses, wins: stats.wins, totalLikes: stats.totalLikes }))
+      .filter((e) => e.bestScore > 0)
+      .sort((a, b) => b.wins - a.wins || b.bestScore - a.bestScore)
+      .slice(0, 50),
+    [reelsStats]
+  );
+
   const currentUserAllTimeRank = useMemo(() => {
     if (!user?.uid) return null;
     const idx = entries.findIndex((e) => e.userId === user.uid);
@@ -226,6 +251,8 @@ export function useLeaderboardData({ user, currentSeasonId }) {
     friendsEntries,
     viewsEntries,
     likesEntries,
+    activeEntries,
+    respondersEntries,
     currentUserAllTimeRank,
     currentUserWeeklyRank,
     currentUserAllTimeEntry,
