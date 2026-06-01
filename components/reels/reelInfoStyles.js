@@ -90,7 +90,7 @@ export const reelInfoStyles = {
     textTransform: "uppercase",
   },
   descriptionLine: {
-    display: "block",
+    display: "-webkit-box",
     marginBottom: 8,
     padding: 0,
     border: "none",

@@ -1,10 +1,13 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { addDoc, collection, doc, getDocs, limit, query, serverTimestamp, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { snapToDocs } from "@/lib/firestore";
 
 export function useOnboardingActions({ user, locale, router }) {
+  // showIntro: value-prop screen shown before profile-building steps
+  const [showIntro, setShowIntro] = useState(true);
+  const [primaryInterest, setPrimaryInterest] = useState(null);
   const [step, setStep] = useState(0);
   const [role, setRole] = useState(null);
   const [archetype, setArchetype] = useState(null);
@@ -21,6 +24,14 @@ export function useOnboardingActions({ user, locale, router }) {
   const goTo = (nextStep) => {
     setAnimDir(nextStep > step ? 1 : -1);
     setStep(nextStep);
+  };
+
+  const handleIntroNext = async (interest) => {
+    setPrimaryInterest(interest);
+    // Persist to localStorage for fast reads and Firestore for profile
+    try { localStorage.setItem("gavana_primaryInterest", interest); } catch {}
+    try { await updateDoc(doc(db, "users", user.uid), { primaryInterest: interest }); } catch {}
+    setShowIntro(false);
   };
 
   const handleRoleNext = async (selectedRole) => {
@@ -99,6 +110,9 @@ export function useOnboardingActions({ user, locale, router }) {
   };
 
   return {
+    showIntro,
+    primaryInterest,
+    handleIntroNext,
     step, setStep,
     role,
     archetype, setArchetype,
