@@ -12,7 +12,7 @@ const styles = {
   tabInactive: { flex: 1, minHeight: 46, border: "none", borderBottom: "2px solid transparent", background: "transparent", color: whiteAlpha(0.45), fontSize: 13, fontWeight: 700, cursor: "pointer" },
   content: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },
   header: { paddingTop: "calc(18px + env(safe-area-inset-top))", paddingBottom: 20, display: "flex", flexDirection: "column", gap: 4 },
-  kicker: { margin: 0, fontSize: 10, letterSpacing: 3, color: RED, textTransform: "uppercase", fontWeight: 900 },
+  kicker: { margin: 0, fontSize: 10, letterSpacing: 2, color: RED, textTransform: "uppercase", fontWeight: 900 },
   title: { margin: 0, fontSize: 28, fontWeight: 1000, lineHeight: 1, letterSpacing: "-0.02em", textTransform: "uppercase", fontFamily: "var(--font-display, 'Anton', sans-serif)" },
   subtitle: { margin: 0, fontSize: 14, color: whiteAlpha(0.55) },
   registerBtn: { alignSelf: "flex-start", marginTop: 8, padding: "8px 16px", borderRadius: RADIUS.full, border: `1px solid ${goldAlpha(0.45)}`, background: goldAlpha(0.1), color: GOLD, fontSize: 13, fontWeight: 900, cursor: "pointer" },

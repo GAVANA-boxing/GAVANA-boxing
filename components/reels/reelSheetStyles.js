@@ -115,7 +115,7 @@ export const reelSheetStyles = {
     maxHeight: "50vh",
     background: SURFACE_1,
     borderRadius: `${RADIUS.lg}px ${RADIUS.lg}px 0 0`,
-    padding: "12px 20px 32px",
+    padding: "12px 20px calc(32px + env(safe-area-inset-bottom))",
     display: "flex",
     flexDirection: "column",
     boxShadow: `0 -4px 32px ${blackAlpha(0.7)}`,

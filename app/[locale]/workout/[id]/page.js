@@ -166,7 +166,7 @@ const s = {
     borderRadius: 10,
     color: "#fff", cursor: "pointer", padding: 0, marginBottom: 16,
   },
-  kicker: { margin: "0 0 6px", fontSize: 10, fontWeight: 900, letterSpacing: 3, textTransform: "uppercase", color: RED },
+  kicker: { margin: "0 0 6px", fontSize: 10, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase", color: RED },
   title: { margin: 0, fontSize: "clamp(28px, 9vw, 44px)", fontWeight: 900, lineHeight: 1, fontFamily: "var(--font-display)" },
   progressWrap: { display: "flex", alignItems: "center", gap: 10, padding: "0 20px 16px", position: "relative", zIndex: 1 },
   progressTrack: { flex: 1, height: 4, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" },

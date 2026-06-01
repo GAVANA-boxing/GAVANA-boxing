@@ -99,7 +99,7 @@ export default function RankUpModal({ rank, onClose, t }) {
           color: rank.color,
           fontSize: 11,
           fontWeight: 900,
-          letterSpacing: 3.5,
+          letterSpacing: 2,
           textTransform: "uppercase",
         }}>
           {t("rankUpTitle")}

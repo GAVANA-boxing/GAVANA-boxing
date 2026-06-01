@@ -64,7 +64,7 @@ export default function LoginPage() {
     <div style={S.page} className="grain-overlay">
       <div className="scanline" />
       <div style={S.loadingWrap}>
-        <p style={{ color: RED, letterSpacing: 3, fontSize: 10, fontWeight: 900, textTransform: "uppercase" }}>COMBAT · BOXING</p>
+        <p style={{ color: RED, letterSpacing: 2, fontSize: 10, fontWeight: 900, textTransform: "uppercase" }}>COMBAT · BOXING</p>
         <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>{t("loading")}</p>
       </div>
     </div>
@@ -74,7 +74,7 @@ export default function LoginPage() {
     <div style={S.page} className="grain-overlay">
       <div className="scanline" />
       <div style={S.loadingWrap}>
-        <p style={{ color: RED, letterSpacing: 3, fontSize: 10, fontWeight: 900, textTransform: "uppercase" }}>COMBAT · BOXING</p>
+        <p style={{ color: RED, letterSpacing: 2, fontSize: 10, fontWeight: 900, textTransform: "uppercase" }}>COMBAT · BOXING</p>
         <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 14 }}>{t("loginAlreadyLoggedIn")}</p>
       </div>
     </div>

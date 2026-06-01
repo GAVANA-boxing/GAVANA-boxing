@@ -7,7 +7,7 @@ const styles = {
   backBtn: { background: "none", border: "none", color: whiteAlpha(0.65), fontSize: 14, cursor: "pointer", padding: "16px 0", display: "block" },
   pageHeader: { textAlign: "center", paddingBottom: 20 },
   dashHeader: { paddingTop: "calc(18px + env(safe-area-inset-top))", paddingBottom: 16 },
-  kicker: { margin: "0 0 4px", fontSize: 10, letterSpacing: 3, color: RED, textTransform: "uppercase", fontWeight: 900 },
+  kicker: { margin: "0 0 4px", fontSize: 10, letterSpacing: 2, color: RED, textTransform: "uppercase", fontWeight: 900 },
   title: { margin: "0 0 4px", fontSize: 26, fontWeight: 1000, lineHeight: 1.1, fontFamily: "var(--font-display, 'Anton', sans-serif)", textTransform: "uppercase", letterSpacing: "-0.02em" },
   subtitle: { margin: 0, fontSize: 14, color: whiteAlpha(0.65) },
   logoSection: { display: "flex", flexDirection: "column", alignItems: "center", gap: 10, marginBottom: 20 },

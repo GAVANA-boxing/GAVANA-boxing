@@ -338,7 +338,7 @@ const styles = {
   inner: { maxWidth: 480, margin: "0 auto", padding: "0 16px 40px" },
   backBtn: { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)", fontSize: 14, cursor: "pointer", padding: "10px 14px", display: "inline-flex", alignItems: "center", borderRadius: 10, marginTop: "calc(16px + env(safe-area-inset-top))" },
   header: { textAlign: "center", padding: "8px 0 24px" },
-  eyebrow: { fontSize: 10, letterSpacing: 3, color: RED, textTransform: "uppercase", margin: "0 0 8px", fontWeight: 900 },
+  eyebrow: { fontSize: 10, letterSpacing: 2, color: RED, textTransform: "uppercase", margin: "0 0 8px", fontWeight: 900 },
   title: { fontSize: 28, fontWeight: 1000, margin: "0 0 8px", color: "#fff", fontFamily: "var(--font-display, 'Anton', sans-serif)", textTransform: "uppercase", letterSpacing: "-0.02em" },
   subtitle: { fontSize: 14, color: "rgba(255,255,255,0.5)", margin: 0 },
   errBox: { background: `${redAlpha(0.15)}`, border: `1px solid ${redAlpha(0.4)}`, borderRadius: 10, padding: "10px 14px", color: "#F87171", fontSize: 13, marginBottom: 16 },

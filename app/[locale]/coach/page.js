@@ -213,7 +213,7 @@ export default function CoachPage() {
             zIndex={300}
             accent={GOLD}
           >
-            <p style={styles.filterSheetSectionLabel}>SPECIALTY</p>
+            <p style={styles.filterSheetSectionLabel}>{t("coachFilterSpecialty")}</p>
             <div style={styles.specialtyScroll}>
               <button type="button" style={filterSpecialty === "" ? styles.chipActive : styles.chip} onClick={() => setFilterSpecialty("")}>
                 {t("coachFilterAll")}
@@ -224,7 +224,7 @@ export default function CoachPage() {
                 </button>
               ))}
             </div>
-            <p style={{ ...styles.filterSheetSectionLabel, marginTop: 16 }}>VIBE</p>
+            <p style={{ ...styles.filterSheetSectionLabel, marginTop: 16 }}>{t("coachFilterVibe")}</p>
             <div style={styles.specialtyScroll}>
               {VIBE_FILTERS.map((v) => (
                 <button key={v} type="button" style={filterVibe === v ? styles.vibeChipActive : styles.vibeChip} onClick={() => setFilterVibe((prev) => (prev === v ? "" : v))}>
@@ -232,7 +232,7 @@ export default function CoachPage() {
                 </button>
               ))}
             </div>
-            <p style={{ ...styles.filterSheetSectionLabel, marginTop: 16 }}>LOCATION</p>
+            <p style={{ ...styles.filterSheetSectionLabel, marginTop: 16 }}>{t("coachLocation")}</p>
             <input
               type="text"
               placeholder={t("coachLocation")}
@@ -240,7 +240,7 @@ export default function CoachPage() {
               onChange={(e) => setFilterLocation(e.target.value)}
               style={{ ...styles.filterInput, marginBottom: 12 }}
             />
-            <p style={styles.filterSheetSectionLabel}>SORT BY</p>
+            <p style={styles.filterSheetSectionLabel}>{t("coachFilterSortBy")}</p>
             <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} style={styles.filterSelect}>
               <option value="rating">{t("coachSortRating")}</option>
               <option value="students">{t("coachSortStudents")}</option>

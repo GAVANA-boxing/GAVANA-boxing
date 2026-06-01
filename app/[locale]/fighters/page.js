@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getLocale, translate } from "@/lib/i18n";
 import { FIGHTERS } from "@/lib/fighters";
@@ -137,20 +137,19 @@ export default function FightersPage() {
     return () => { active = false; };
   }, [user?.uid]);
 
-  // Rank fighters by relevance to user's weak areas
-  const ranked = FIGHTERS.map((f) => ({
+  const ranked = useMemo(() => FIGHTERS.map((f) => ({
     fighter: f,
     connection: snapshot ? getPersonalConnection(snapshot, f) : null,
   })).sort((a, b) => {
     const aScore = a.connection?.relevantWeak?.length || 0;
     const bScore = b.connection?.relevantWeak?.length || 0;
     return bScore - aScore;
-  });
+  }), [snapshot]);
 
-  const recommended = snapshot
+  const recommended = useMemo(() => snapshot
     ? ranked.filter((r) => r.connection?.isDirectlyRelevant).slice(0, 3)
-    : [];
-  const recommendedIds = new Set(recommended.map((r) => r.fighter.id));
+    : [], [snapshot, ranked]);
+  const recommendedIds = useMemo(() => new Set(recommended.map((r) => r.fighter.id)), [recommended]);
 
   return (
     <div style={s.page} className="page-enter">
@@ -175,7 +174,7 @@ export default function FightersPage() {
               fontSize: 11, fontWeight: 900, cursor: "pointer",
             }}
           >
-            {locale === "mn" ? "⚖ Харьцуулах" : "⚖ Compare"}
+            {t("fighterCompare")}
           </button>
         </div>
         <h1 style={s.title}>{t("fighterAllTitle")}</h1>
@@ -183,15 +182,15 @@ export default function FightersPage() {
 
         {compareMode && (
           <div style={{ marginTop: 10, padding: "10px 13px", borderRadius: 12, background: goldAlpha(0.07), border: `1px solid ${GOLD}22`, fontSize: 12, color: "rgba(255,255,255,0.5)", fontWeight: 700 }}>
-            {compareIds.length === 0 && (locale === "mn" ? "2 тулаанч сонгоно уу" : "Select 2 fighters to compare")}
-            {compareIds.length === 1 && (locale === "mn" ? "Нэг тулаанч сонгосон — дараагийг сонго" : "1 selected — pick one more")}
+            {compareIds.length === 0 && t("fighterCompareSelect0")}
+            {compareIds.length === 1 && t("fighterCompareSelect1")}
             {compareIds.length === 2 && (
               <button
                 type="button"
                 onClick={() => {/* show modal - handled below */}}
                 style={{ width: "100%", padding: "9px 0", borderRadius: 10, background: GOLD, border: "none", color: "#000", fontSize: 13, fontWeight: 900, cursor: "pointer" }}
               >
-                {locale === "mn" ? "⚖ Харьцуулах" : "⚖ Compare Now"}
+                {t("fighterCompareNow")}
               </button>
             )}
           </div>
@@ -202,7 +201,7 @@ export default function FightersPage() {
           <div style={{ marginTop: 16, padding: "10px 14px", borderRadius: 12, background: "rgba(52,211,153,0.06)", border: "1px solid rgba(52,211,153,0.15)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 7 }}>
               <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.8, color: "#34D399", textTransform: "uppercase" }}>
-                ⚔️ {locale === "mn" ? "Fighter Mastery" : "Fighter Mastery"}
+                ⚔️ {t("fighterMastery")}
               </span>
               <span style={{ fontSize: 11, fontWeight: 900, color: "#34D399" }}>
                 {studiedFighters.length}/{FIGHTERS.length}
@@ -220,7 +219,7 @@ export default function FightersPage() {
         <div style={{ padding: "0 14px 20px", position: "relative", zIndex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
             <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: GOLD, textTransform: "uppercase" }}>
-              Танд зөв сонголт
+              {t("fighterRecommended")}
             </span>
             <div style={{ flex: 1, height: 1, background: "rgba(245,196,81,0.12)" }} />
             <span style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", fontWeight: 700 }}>
@@ -245,7 +244,7 @@ export default function FightersPage() {
         <div style={{ padding: "0 14px 8px", position: "relative", zIndex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
             <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.28)", textTransform: "uppercase" }}>
-              Бүх тулаанчид
+              {t("fighterAllFighters")}
             </span>
             <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
           </div>
@@ -310,7 +309,7 @@ const s = {
     backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
     color: "#fff", borderRadius: 12, cursor: "pointer", padding: 0, marginBottom: 18,
   },
-  kicker: { margin: "0 0 8px", color: RED, fontSize: 9, fontWeight: 900, letterSpacing: 3.5, textTransform: "uppercase" },
+  kicker: { margin: "0 0 8px", color: RED, fontSize: 9, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase" },
   title: {
     margin: "0 0 8px",
     fontSize: "clamp(34px, 10vw, 52px)",

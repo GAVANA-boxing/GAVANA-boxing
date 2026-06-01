@@ -20,10 +20,10 @@ const aiCoachStyles = {
     letterSpacing: "0.04em", textTransform: "uppercase",
   },
   header: { textAlign: "center", marginBottom: 24, paddingTop: 8 },
-  kicker: { margin: 0, color: RED, letterSpacing: 3.5, fontSize: 9, fontWeight: 900, textTransform: "uppercase" },
+  kicker: { margin: 0, color: RED, letterSpacing: 2, fontSize: 9, fontWeight: 900, textTransform: "uppercase" },
   title: { margin: "8px 0 0", fontSize: 26, fontWeight: 900, color: "#fff", letterSpacing: "-0.02em" },
 
-  personaSectionLabel: { margin: "0 0 10px", fontSize: 9, fontWeight: 900, letterSpacing: "3.5px", textTransform: "uppercase", color: whiteAlpha(0.28) },
+  personaSectionLabel: { margin: "0 0 10px", fontSize: 9, fontWeight: 900, letterSpacing: "2px", textTransform: "uppercase", color: whiteAlpha(0.28) },
   personaGrid: { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8, marginBottom: 16 },
   personaCard: {
     position: "relative", padding: "14px 12px", borderRadius: 16,

@@ -47,7 +47,7 @@ const s = {
     margin: 0,
     fontSize: 10,
     fontWeight: 900,
-    letterSpacing: 3,
+    letterSpacing: 2,
     textTransform: "uppercase",
     color: RED,
   },
