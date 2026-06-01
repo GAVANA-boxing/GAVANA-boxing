@@ -123,6 +123,7 @@ export default function TrainPage() {
     setPvpSaved: (...args) => setPvpSavedRef.current?.(...args),
     pvpSavedRef,
     t,
+    locale,
   });
 
   const { computeSessionSummary, getDebugInfo } = usePoseDetection({
@@ -641,7 +642,7 @@ export default function TrainPage() {
               borderLeft: `3px solid ${acc}`,
             }}>
               <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: acc, textTransform: "uppercase", marginBottom: 7 }}>
-                {locale === "mn" ? "⚡ Өнөөдрийн анхаарал" : "⚡ Today's Focus"}
+                {locale === "mn" ? "⚡ Өнөөдрийн анхаарал" : locale === "ko" ? "⚡ 오늘의 집중" : "⚡ Today's Focus"}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: drill ? 8 : 0 }}>
                 <div style={{ flex: 1 }}>
@@ -655,7 +656,7 @@ export default function TrainPage() {
                   onClick={() => router.push(`/${locale}/fighters/${fighter.id}`)}
                   style={{ background: `${acc}18`, border: `1px solid ${acc}40`, borderRadius: 8, padding: "5px 11px", color: acc, fontSize: 10.5, fontWeight: 900, cursor: "pointer", flexShrink: 0 }}
                 >
-                  {locale === "mn" ? "Судлах" : "Study"}
+                  {locale === "mn" ? "Судлах" : locale === "ko" ? "배우기" : "Study"}
                 </button>
               </div>
               {drill && (
@@ -1074,7 +1075,7 @@ export default function TrainPage() {
           <span style={{ fontSize: 22 }}>{badge.icon}</span>
           <div>
             <div style={{ fontSize: 9, fontWeight: 900, color: badge.tier === "gold" ? GOLD : badge.tier === "silver" ? "#A8A9AD" : "#CD7F32", letterSpacing: 1.5, textTransform: "uppercase" }}>
-              {locale === "mn" ? "Шинэ badge!" : "Badge Unlocked!"}
+              {locale === "mn" ? "Шинэ badge!" : locale === "ko" ? "배지 획득!" : "Badge Unlocked!"}
             </div>
             <div style={{ fontSize: 13, fontWeight: 900, color: "#fff" }}>{badge.name}</div>
           </div>

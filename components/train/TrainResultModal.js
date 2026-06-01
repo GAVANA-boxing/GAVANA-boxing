@@ -142,6 +142,41 @@ const REVIEW_LABELS = {
   ko: { wellDone: "잘한 점", mainFix: "주요 개선점", drill: "드릴", nextGoal: "다음 세션 목표", notEnough: "데이터 부족", positionTip: "트래킹 팁" },
 };
 
+// ── Quick 3-line coaching summary shown before the detailed analysis ──────────
+function ActionSummary({ poseMetrics, result, locale }) {
+  const review = generateTechniqueReview({ poseMetrics, result, locale });
+  if (review.lowData || (!review.strengths.length && !review.fixes.length && !review.drill)) return null;
+  const good = review.strengths[0] || null;
+  const fix  = review.fixes[0] || null;
+  const next = review.drill || null;
+  if (!good && !fix && !next) return null;
+  const rows = [
+    good && { icon: "✓", label: locale === "mn" ? "САЙН" : locale === "ko" ? "잘한 점" : "GOOD", text: good, color: GOLD },
+    fix  && { icon: "✗", label: locale === "mn" ? "ЗАСАХ" : locale === "ko" ? "개선"   : "FIX",  text: fix,  color: "#F87171" },
+    next && { icon: "→", label: locale === "mn" ? "ДАРААГИЙН" : locale === "ko" ? "다음"  : "NEXT", text: next, color: "rgba(255,255,255,0.75)" },
+  ].filter(Boolean);
+  return (
+    <div style={{
+      margin: "0 20px 8px",
+      padding: "10px 14px",
+      borderRadius: 12,
+      background: "rgba(255,255,255,0.025)",
+      border: "1px solid rgba(255,255,255,0.07)",
+      borderLeft: `3px solid ${goldAlpha(0.55)}`,
+      display: "flex", flexDirection: "column", gap: 7,
+    }}>
+      {rows.map((row, i) => (
+        <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+          <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: row.color, textTransform: "uppercase", flexShrink: 0, paddingTop: 2, minWidth: 36 }}>
+            {row.icon} {row.label}
+          </span>
+          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.45, fontWeight: 600 }}>{row.text}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function CoachReviewCard({ poseMetrics, result, locale }) {
   const review = generateTechniqueReview({ poseMetrics, result, locale });
   const RL = REVIEW_LABELS[locale] || REVIEW_LABELS.en;
@@ -241,9 +276,9 @@ function CoachReviewCard({ poseMetrics, result, locale }) {
           <div style={{
             display: "flex", alignItems: "flex-start", gap: 8,
             padding: "7px 10px", borderRadius: 9,
-            background: "rgba(96,165,250,0.06)", border: "1px solid rgba(96,165,250,0.16)",
+            background: goldAlpha(0.06), border: `1px solid ${goldAlpha(0.16)}`,
           }}>
-            <span style={{ fontSize: 8.5, fontWeight: 900, color: "#93C5FD", letterSpacing: 1.2, textTransform: "uppercase", flexShrink: 0, paddingTop: 1 }}>
+            <span style={{ fontSize: 8.5, fontWeight: 900, color: GOLD, letterSpacing: 1.2, textTransform: "uppercase", flexShrink: 0, paddingTop: 1 }}>
               🏆 {RL.nextGoal}
             </span>
             <span style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.45, fontWeight: 700 }}>
@@ -492,6 +527,11 @@ export default function TrainResultModal({
             </div>
           );
         })()}
+
+        {/* ── ACTION SUMMARY: GOOD / FIX / NEXT ────────────────────── */}
+        {poseMetrics && !tooFewPunches && (
+          <ActionSummary poseMetrics={poseMetrics} result={result} locale={locale} />
+        )}
 
         {/* ── COACH REVIEW ─────────────────────────────────────────── */}
         {poseMetrics && (
@@ -898,10 +938,10 @@ export default function TrainResultModal({
                       {tactical?.profileLabel && (
                         <div style={{
                           padding: "3px 10px", borderRadius: 20,
-                          background: "rgba(96,165,250,0.10)",
-                          border: "1px solid rgba(96,165,250,0.28)",
+                          background: goldAlpha(0.10),
+                          border: `1px solid ${goldAlpha(0.28)}`,
                           fontSize: 9, fontWeight: 900, letterSpacing: 1.2,
-                          color: "#60A5FA", textTransform: "uppercase",
+                          color: GOLD, textTransform: "uppercase",
                         }}>
                           {tactical.profileLabel}
                         </div>
@@ -916,8 +956,8 @@ export default function TrainResultModal({
                     {tactical?.tacticalCues?.length > 0 && (
                       <div style={{
                         marginBottom: 8, padding: "7px 10px", borderRadius: 8,
-                        background: "rgba(96,165,250,0.05)",
-                        border: "1px solid rgba(96,165,250,0.14)",
+                        background: goldAlpha(0.05),
+                        border: `1px solid ${goldAlpha(0.14)}`,
                       }}>
                         {tactical.tacticalCues.map((cue, i) => (
                           <div key={i} style={{

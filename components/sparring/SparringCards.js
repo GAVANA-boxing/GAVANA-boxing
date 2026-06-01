@@ -22,15 +22,15 @@ const STAT_DEFS = [
   { key: "STAM", label: "STA", color: "#FB923C" },
 ];
 
-export function FighterCard({ post, isMe, onRequest, sent, requesting, locale }) {
+export function FighterCard({ post, isMe, onRequest, sent, requesting, locale, isDemo = false }) {
   const arch = ARCHETYPE_DISPLAY[post.archetype];
   const t = (key) => translate(locale, key);
   const isBusy = requesting === post.userId;
   const stats = ARCHETYPE_STATS[post.archetype] || null;
-  const accentColor = post.rankColor || arch?.color || RED;
-  const rankGlow = post.rankKey !== "rankRookieGloves" && post.rankKey !== "rankAmateurBelt"
-    ? `0 0 18px ${accentColor}30, 0 4px 16px ${blackAlpha(0.5)}`
-    : `0 4px 16px ${blackAlpha(0.45)}`;
+  const accentColor = isDemo ? "rgba(255,255,255,0.2)" : (post.rankColor || arch?.color || RED);
+  const rankGlow = (isDemo || post.rankKey === "rankRookieGloves" || post.rankKey === "rankAmateurBelt")
+    ? `0 4px 16px ${blackAlpha(0.45)}`
+    : `0 0 18px ${accentColor}30, 0 4px 16px ${blackAlpha(0.5)}`;
 
   return (
     <div
@@ -40,8 +40,14 @@ export function FighterCard({ post, isMe, onRequest, sent, requesting, locale })
         borderLeft: `3px solid ${accentColor}`,
         boxShadow: rankGlow,
         opacity: isMe ? 0.5 : 1,
+        position: "relative",
       }}
     >
+      {isDemo && (
+        <div style={{ position: "absolute", top: 8, right: 10, fontSize: 9, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: "rgba(255,255,255,0.28)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 4, padding: "2px 6px" }}>
+          {locale === "mn" ? "Жишээ" : locale === "ko" ? "데모" : "Demo"}
+        </div>
+      )}
       <div style={c.cardTop}>
         {/* Avatar */}
         <div style={c.avatarWrap}>
@@ -96,7 +102,11 @@ export function FighterCard({ post, isMe, onRequest, sent, requesting, locale })
       )}
 
       {/* CTA */}
-      {!isMe ? (
+      {isDemo ? (
+        <div style={{ ...c.requestBtn, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.22)", cursor: "default", textAlign: "center", fontSize: 11 }}>
+          {locale === "mn" ? "Жишээ тулаанч — хүсэлт илгээх боломжгүй" : locale === "ko" ? "데모 파이터 — 요청 불가" : "Demo fighter — not requestable"}
+        </div>
+      ) : !isMe ? (
         <button
           type="button"
           onClick={() => !sent && !isBusy && onRequest(post)}
@@ -131,6 +141,7 @@ export function FighterCard({ post, isMe, onRequest, sent, requesting, locale })
       ) : (
         <div style={c.myLabel}>👆 {locale === "mn" ? "Таны бичлэг" : locale === "ko" ? "내 게시물" : "Your listing"}</div>
       )}
+
     </div>
   );
 }

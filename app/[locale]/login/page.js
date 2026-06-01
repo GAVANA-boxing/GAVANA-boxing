@@ -19,8 +19,9 @@ import { RED, GOLD, redAlpha } from "@/lib/tokens";
 function isMobileBrowser() {
   if (typeof navigator === "undefined") return false;
   const ua = navigator.userAgent;
-  if (/Instagram|FBAN|FBAV|Twitter|Line\//.test(ua)) return true;
+  if (/Instagram|FBAN|FBAV|Twitter|Line\/|TikTok/.test(ua)) return true;
   if (/iPhone|iPad|iPod/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua)) return true;
+  if (/Android/.test(ua) && /wv/.test(ua)) return true;
   return false;
 }
 
@@ -180,8 +181,13 @@ export default function LoginPage() {
     // iOS Safari and in-app browsers (Instagram, Facebook, etc.) block popups —
     // use redirect flow directly on those environments
     if (isMobileBrowser()) {
-      await signInWithRedirect(auth, provider);
-      return; // page navigates away — result handled by getRedirectResult effect on return
+      try {
+        await signInWithRedirect(auth, provider);
+      } catch (redirectErr) {
+        setGoogleLoading(false);
+        setError(getFriendlyGoogleError(redirectErr.code, t));
+      }
+      return;
     }
 
     try {

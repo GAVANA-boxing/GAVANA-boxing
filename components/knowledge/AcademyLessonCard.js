@@ -16,6 +16,7 @@ const LABEL = {
     drillProg: "Drill Progression", fighterEx: "Fighter Example",
     animalEx: "Animal Analogy", scoring: "How GAVANA Scores This",
     coachCue: "Coach Cue", concept: "The Concept",
+    beginner: "Beginner", intermediate: "Intermediate", advanced: "Advanced",
   },
   mn: {
     cues: "Гол зааварчилгаа", mistake: "Нийтлэг алдаа", drill: "Дасгал",
@@ -24,6 +25,7 @@ const LABEL = {
     drillProg: "Дасгалын шат", fighterEx: "Тулаанчийн жишээ",
     animalEx: "Амьтны зүйр", scoring: "GAVANA хэрхэн оноолох вэ",
     coachCue: "Коучийн заавар", concept: "Үндсэн ойлголт",
+    beginner: "Анхан", intermediate: "Дунд", advanced: "Ахисан",
   },
   ko: {
     cues: "핵심 포인트", mistake: "일반적인 실수", drill: "드릴",
@@ -32,6 +34,7 @@ const LABEL = {
     drillProg: "드릴 단계", fighterEx: "파이터 예시",
     animalEx: "동물 유추", scoring: "GAVANA 채점 방식",
     coachCue: "코치 큐", concept: "개념",
+    beginner: "입문", intermediate: "중급", advanced: "고급",
   },
 };
 
@@ -132,7 +135,7 @@ export default function AcademyLessonCard({ lesson, locale = "en", lessonStatus 
               color: diffColor, background: `${diffColor}16`, border: `1px solid ${diffColor}28`,
               borderRadius: 4, padding: "2px 6px", textTransform: "uppercase",
             }}>
-              {lesson.difficulty}
+              {L[lesson.difficulty] || lesson.difficulty}
             </span>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
               stroke={open ? acc : "rgba(255,255,255,0.28)"}
@@ -202,21 +205,20 @@ export default function AcademyLessonCard({ lesson, locale = "en", lessonStatus 
 
           {/* What You Should Feel */}
           {lesson.whatYouShouldFeel?.length > 0 && (
-            <div style={{ marginBottom: 14 }}>
-              <SubHeader label={L.whatFeel} acc="#93C5FD" />
+            <Collapsible label={L.whatFeel} acc={goldAlpha(0.6)} defaultOpen={false}>
               <div style={{
-                padding: "10px 12px", borderRadius: 9,
-                background: "rgba(96,165,250,0.06)", border: "1px solid rgba(96,165,250,0.18)",
-                borderLeft: "2.5px solid rgba(96,165,250,0.45)",
+                padding: "10px 12px", borderRadius: 9, marginBottom: 10,
+                background: goldAlpha(0.04), border: `1px solid ${goldAlpha(0.15)}`,
+                borderLeft: `2.5px solid ${goldAlpha(0.45)}`,
               }}>
                 {lesson.whatYouShouldFeel.map((cue, i) => (
                   <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", marginBottom: i < lesson.whatYouShouldFeel.length - 1 ? 6 : 0 }}>
-                    <span style={{ fontSize: 9, color: "#93C5FD", flexShrink: 0, marginTop: 2 }}>◦</span>
+                    <span style={{ fontSize: 9, color: GOLD, flexShrink: 0, marginTop: 2 }}>◦</span>
                     <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.65)", lineHeight: 1.5, fontStyle: "italic" }}>{cue}</span>
                   </div>
                 ))}
               </div>
-            </div>
+            </Collapsible>
           )}
 
           {/* Key Cues */}
@@ -239,18 +241,17 @@ export default function AcademyLessonCard({ lesson, locale = "en", lessonStatus 
             </div>
           )}
 
-          {/* Common Mistake */}
+          {/* Common Mistake — collapsed by default to reduce scroll fatigue */}
           {lesson.commonMistake && (
-            <div style={{
-              padding: "10px 12px", borderRadius: 9, marginBottom: 14,
-              background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.2)",
-              borderLeft: "2.5px solid rgba(239,68,68,0.6)",
-            }}>
-              <div style={{ fontSize: 7.5, fontWeight: 900, color: "#F87171", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 5 }}>
-                ⚠️ {L.mistake}
+            <Collapsible label={`⚠️ ${L.mistake}`} acc="#F87171" defaultOpen={false}>
+              <div style={{
+                padding: "10px 12px", borderRadius: 9, marginBottom: 10,
+                background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.2)",
+                borderLeft: "2.5px solid rgba(239,68,68,0.6)",
+              }}>
+                <p style={{ margin: 0, fontSize: 12, color: "#fca5a5", lineHeight: 1.5 }}>{lesson.commonMistake}</p>
               </div>
-              <p style={{ margin: 0, fontSize: 12, color: "#fca5a5", lineHeight: 1.5 }}>{lesson.commonMistake}</p>
-            </div>
+            </Collapsible>
           )}
 
           {/* Drill Progression */}
@@ -276,7 +277,7 @@ export default function AcademyLessonCard({ lesson, locale = "en", lessonStatus 
                         transition: "all 0.15s", textTransform: "uppercase", letterSpacing: 0.5,
                       }}
                     >
-                      {LEVEL_EMOJI[d.level]} {d.level}
+                      {LEVEL_EMOJI[d.level]} {L[d.level] || d.level}
                     </button>
                   );
                 })}
@@ -406,20 +407,19 @@ export default function AcademyLessonCard({ lesson, locale = "en", lessonStatus 
             </Collapsible>
           )}
 
-          {/* Coach Cue */}
+          {/* Coach Cue — collapsed by default to reduce scroll fatigue */}
           {(lesson.coachCue || lesson.coachTip) && (
-            <div style={{
-              padding: "9px 12px", borderRadius: 9, marginBottom: 14,
-              background: "rgba(96,165,250,0.06)", border: "1px solid rgba(96,165,250,0.18)",
-              borderLeft: "2.5px solid rgba(96,165,250,0.45)",
-            }}>
-              <div style={{ fontSize: 7.5, fontWeight: 900, color: "#93C5FD", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 4 }}>
-                💡 {L.coachCue}
+            <Collapsible label={`💡 ${L.coachCue}`} acc={goldAlpha(0.7)} defaultOpen={false}>
+              <div style={{
+                padding: "9px 12px", borderRadius: 9, marginBottom: 10,
+                background: goldAlpha(0.04), border: `1px solid ${goldAlpha(0.18)}`,
+                borderLeft: `2.5px solid ${goldAlpha(0.55)}`,
+              }}>
+                <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.5, fontStyle: "italic" }}>
+                  &ldquo;{lesson.coachCue || lesson.coachTip}&rdquo;
+                </p>
               </div>
-              <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.58)", lineHeight: 1.5, fontStyle: "italic" }}>
-                &ldquo;{lesson.coachCue || lesson.coachTip}&rdquo;
-              </p>
-            </div>
+            </Collapsible>
           )}
 
           {/* Train + Ask Coach CTAs */}
@@ -450,9 +450,9 @@ export default function AcademyLessonCard({ lesson, locale = "en", lessonStatus 
               }}
               style={{
                 flex: 1, padding: "10px 14px",
-                background: "rgba(96,165,250,0.09)", border: "1px solid rgba(96,165,250,0.22)",
+                background: goldAlpha(0.09), border: `1px solid ${goldAlpha(0.22)}`,
                 borderRadius: RADIUS.md,
-                color: "#93C5FD", fontSize: 10, fontWeight: 900,
+                color: GOLD, fontSize: 10, fontWeight: 900,
                 letterSpacing: 1.5, textTransform: "uppercase",
                 cursor: "pointer",
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 7,

@@ -313,12 +313,12 @@ const ReelItem = memo(function ReelItem({
                 fontSize:      12,
                 fontWeight:    700,
                 lineHeight:    "18px",
-                border:        isFollowing ? "1px solid rgba(255,255,255,0.25)" : "1px solid rgba(255,255,255,0.65)",
-                background:    "transparent",
-                color:         isFollowing ? "rgba(255,255,255,0.45)" : "#fff",
+                border:        isFollowing ? `1px solid ${goldAlpha(0.45)}` : "1px solid rgba(255,255,255,0.75)",
+                background:    isFollowing ? goldAlpha(0.1) : "rgba(255,255,255,0.1)",
+                color:         isFollowing ? GOLD : "#fff",
                 cursor:        followLoading ? "default" : "pointer",
                 letterSpacing: 0.2,
-                transition:    "opacity 0.15s",
+                transition:    "all 0.15s",
                 opacity:       followLoading ? 0.6 : 1,
               }}
             >
@@ -330,7 +330,7 @@ const ReelItem = memo(function ReelItem({
         {/* Reputation badge */}
         {!reel.isDemo && (() => {
           if (reel.contentType === "challenge_response" && typeof reel.sourceSessionScore === "number" && typeof reel.challengeTargetScore === "number" && reel.sourceSessionScore > reel.challengeTargetScore) {
-            return <span style={{ display: "inline-block", marginBottom: 4, padding: "2px 8px", borderRadius: 20, fontSize: 10, fontWeight: 800, background: "rgba(52,211,153,0.15)", border: "1px solid rgba(52,211,153,0.35)", color: "#34D399", letterSpacing: 0.3 }}>⚔️ {t("repBadgeResponder")}</span>;
+            return <span style={{ display: "inline-block", marginBottom: 4, padding: "2px 8px", borderRadius: 20, fontSize: 10, fontWeight: 800, background: goldAlpha(0.12), border: `1px solid ${goldAlpha(0.35)}`, color: GOLD, letterSpacing: 0.3 }}>⚔️ {t("repBadgeResponder")}</span>;
           }
           if (reel.contentType === "academy") {
             return <span style={{ display: "inline-block", marginBottom: 4, padding: "2px 8px", borderRadius: 20, fontSize: 10, fontWeight: 800, background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.3)", color: "#FCD34D", letterSpacing: 0.3 }}>🎓 {t("repBadgeAcademy")}</span>;
@@ -350,6 +350,11 @@ const ReelItem = memo(function ReelItem({
           >
             {captionText}
           </button>
+        )}
+        {captionText && captionText.length > 60 && (
+          <span style={styles.captionMoreHint} onClick={() => onCaptionSheet(reel.id)}>
+            {t("captionMore") || "more"}
+          </span>
         )}
 
         {/* Primary CTA */}

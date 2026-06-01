@@ -34,6 +34,7 @@ import BadgesSection from "@/components/dashboard/BadgesSection";
 import WelcomeBanner from "@/components/dashboard/WelcomeBanner";
 import LastSessionRecap from "@/components/dashboard/LastSessionRecap";
 import dynamic from "next/dynamic";
+import { computeEarnedBadges } from "@/lib/badges";
 const ProgressShareCard = dynamic(() => import("@/components/dashboard/ProgressShareCard"), { ssr: false });
 
 function getTs(ts) {
@@ -636,7 +637,6 @@ export default function AthleteDashboard() {
       )}
 
       {showShareCard && (() => {
-        const { computeEarnedBadges } = require("@/lib/badges");
         const earned = computeEarnedBadges({
           sessionCount: trainingSessions.length,
           bestScore: stats.bestScore ?? 0,

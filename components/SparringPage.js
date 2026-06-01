@@ -21,6 +21,13 @@ import SparringIntelligence from "@/components/sparring/SparringIntelligence";
 const ARCHETYPE_KEYS = ["all", "pressure", "counter", "technical", "brawler"];
 const WEIGHT_OPTS = ["all", "-54", "-60", "-67", "-75", "-81", "+91"];
 
+// Demo fighters shown when no real users are available — not actionable
+const DEMO_FIGHTERS = [
+  { id: "demo-1", isDemo: true, userId: "demo-1", displayName: "Alex R.", archetype: "pressure", weightClass: "-67", rankKey: "rankAmateurBelt", rankColor: "#F87171", bio: "4 years boxing. Looking for technical sparring.", location: "Ulaanbaatar" },
+  { id: "demo-2", isDemo: true, userId: "demo-2", displayName: "Kim S.", archetype: "counter",  weightClass: "-60", rankKey: "rankRookieGloves", rankColor: "#fff", bio: "Former national team member. Counter-punching style.", location: "Seoul" },
+  { id: "demo-3", isDemo: true, userId: "demo-3", displayName: "M. Bat", archetype: "technical", weightClass: "-75", rankKey: "rankAmateurBelt", rankColor: "#F87171", bio: "Technical boxer, footwork focus. Weekend sessions only.", location: "Ulaanbaatar" },
+];
+
 // ─── Main ──────────────────────────────────────────────────────────────────────
 export default function SparringPage() {
   const { user, loading: authLoading } = useAuth();
@@ -180,17 +187,42 @@ export default function SparringPage() {
 
           <div key={tab} style={s.list} className="section-reveal stagger-list">
             {filtered.length === 0 ? (
-              <div style={s.empty}>
-                <div style={{ width: 44, height: 44, borderRadius: 13, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, marginBottom: 4 }}>🥊</div>
-                <p style={s.emptyTitle}>
-                  {filterArchetype !== "all" || filterWeight !== "all"
-                    ? (locale === "mn" ? "Энэ filter-тэй тулаанч алга" : locale === "ko" ? "해당 필터에 선수 없음" : "No fighters match this filter")
-                    : (locale === "mn" ? "Хэн ч sparring хайж байхгүй байна" : locale === "ko" ? "스파링 상대가 없습니다" : "No fighters available yet")}
-                </p>
-                <p style={s.emptySub}>
-                  {locale === "mn" ? `"Миний" табаас өөрийгөө бүртгүүлэх боломжтой.` : locale === "ko" ? `"내 게시물" 탭에서 본인을 등록하세요.` : `Add yourself in the Mine tab to be discovered.`}
-                </p>
-              </div>
+              filterArchetype !== "all" || filterWeight !== "all" ? (
+                // Filter active + no results
+                <div style={s.empty}>
+                  <div style={{ width: 44, height: 44, borderRadius: 13, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, marginBottom: 4 }}>🥊</div>
+                  <p style={s.emptyTitle}>{locale === "mn" ? "Энэ filter-тэй тулаанч алга" : locale === "ko" ? "해당 필터에 선수 없음" : "No fighters match this filter"}</p>
+                </div>
+              ) : (
+                // No real users — show demo fighters so the feature is understandable
+                <>
+                  <div style={{ padding: "12px 16px 4px", display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.28)", textTransform: "uppercase" }}>
+                      {locale === "mn" ? "Жишээ тулаанчид" : locale === "ko" ? "데모 파이터" : "Demo Fighters"}
+                    </span>
+                    <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.05)" }} />
+                    <span style={{ fontSize: 10, color: "rgba(255,255,255,0.22)", fontWeight: 700 }}>
+                      {locale === "mn" ? "Бодит хэрэглэгч нэмэгдэхэд харагдана" : locale === "ko" ? "실제 사용자가 추가되면 표시됩니다" : "Real users will appear here"}
+                    </span>
+                  </div>
+                  {DEMO_FIGHTERS.map((post) => (
+                    <div key={post.id} style={{ padding: "0 16px 8px", opacity: 0.72 }}>
+                      <FighterCard
+                        post={post}
+                        isMe={false}
+                        onRequest={() => {}} // no-op for demo
+                        sent={false}
+                        requesting={null}
+                        locale={locale}
+                        isDemo
+                      />
+                    </div>
+                  ))}
+                  <p style={{ ...s.emptySub, textAlign: "center", padding: "4px 24px 8px" }}>
+                    {locale === "mn" ? `"Миний" табаас өөрийгөө нэмж бусдын нүдэнд өртөөрэй.` : locale === "ko" ? `"내 게시물" 탭에서 자신을 등록하세요.` : `Add yourself in the Mine tab to be discovered by others.`}
+                  </p>
+                </>
+              )
             ) : (
               filtered.map((post) => (
                 <div key={post.id} style={{ padding: "0 16px 8px" }}>

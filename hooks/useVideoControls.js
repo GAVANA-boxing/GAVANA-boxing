@@ -21,6 +21,7 @@ export function useVideoControls({ reels, currentIndex }) {
   const videoRefs = useRef({});
   const controlsTimer = useRef(null);
   const singleTapTimerRef = useRef(null);
+  const loadingTimeoutRef = useRef({});
 
   // Restore sound preference from localStorage on mount
   useEffect(() => {
@@ -169,6 +170,7 @@ export function useVideoControls({ reels, currentIndex }) {
     const ctRef = controlsTimer;
     const tapRef = singleTapTimerRef;
     const vidRef = videoRefs;
+    const ltRef = loadingTimeoutRef;
     return () => {
       if (ctRef.current) clearTimeout(ctRef.current);
       if (tapRef.current) clearTimeout(tapRef.current);
@@ -177,8 +179,18 @@ export function useVideoControls({ reels, currentIndex }) {
         video.pause();
         video.muted = true;
       });
+      Object.values(ltRef.current).forEach(clearTimeout);
+      ltRef.current = {};
     };
   }, [controlsTimer, singleTapTimerRef, videoRefs]);
+
+  // Stale ref cleanup when reels array changes
+  useEffect(() => {
+    const currentIds = new Set(reels.map(r => r?.id).filter(Boolean));
+    Object.keys(videoRefs.current).forEach(id => {
+      if (!currentIds.has(id)) delete videoRefs.current[id];
+    });
+  }, [reels]);
 
   // Toggle global sound
   const toggleMute = useCallback(() => {
@@ -194,17 +206,24 @@ export function useVideoControls({ reels, currentIndex }) {
   const handleVideoLoadStart = (reelId) => {
     setVideoLoading(prev => ({ ...prev, [reelId]: true }));
     setVideoErrors(prev => ({ ...prev, [reelId]: false }));
+    if (loadingTimeoutRef.current[reelId]) clearTimeout(loadingTimeoutRef.current[reelId]);
+    loadingTimeoutRef.current[reelId] = setTimeout(() => {
+      setVideoLoading(prev => ({ ...prev, [reelId]: false }));
+      delete loadingTimeoutRef.current[reelId];
+    }, 8000);
   };
 
   // Handle video loaded
   const handleVideoLoaded = (reelId) => {
     setVideoLoading(prev => ({ ...prev, [reelId]: false }));
     setVideoErrors(prev => ({ ...prev, [reelId]: false }));
+    if (loadingTimeoutRef.current[reelId]) { clearTimeout(loadingTimeoutRef.current[reelId]); delete loadingTimeoutRef.current[reelId]; }
   };
 
   const handleVideoError = (reelId) => {
     setVideoLoading(prev => ({ ...prev, [reelId]: false }));
     setVideoErrors(prev => ({ ...prev, [reelId]: true }));
+    if (loadingTimeoutRef.current[reelId]) { clearTimeout(loadingTimeoutRef.current[reelId]); delete loadingTimeoutRef.current[reelId]; }
   };
 
   return {
