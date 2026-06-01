@@ -112,7 +112,7 @@ export default function HistoryPage() {
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
           <button type="button" onClick={() => router.back()} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 20, cursor: "pointer", padding: "4px 6px 4px 0" }}>←</button>
           <div>
-            <p style={{ margin: 0, fontSize: 9, fontWeight: 900, color: RED, letterSpacing: 3, textTransform: "uppercase" }}>COMBAT · OS</p>
+            <p style={{ margin: 0, fontSize: 9, fontWeight: 900, color: RED, letterSpacing: 2, textTransform: "uppercase" }}>COMBAT · OS</p>
             <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, letterSpacing: "-0.02em" }}>
               {mn ? "Дасгалын түүх" : "Session History"}
             </h1>

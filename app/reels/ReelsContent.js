@@ -442,7 +442,7 @@ export default function ReelsContent() {
       <div ref={feedRef} style={styles.feed} className="reels-feed" onScroll={handleScroll}>
         {reels.length === 0 ? (
           <div style={{...styles.videoContainer, ...styles.followingEmpty}}>
-            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 3, textTransform: "uppercase", color: "rgba(255,255,255,0.28)", marginBottom: 4 }}>FOLLOWING</div>
+            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase", color: "rgba(255,255,255,0.28)", marginBottom: 4 }}>FOLLOWING</div>
             <div style={styles.followingEmptyTitle}>
               {currentLocale === "mn" ? "Feed хоосон байна" : currentLocale === "ko" ? "피드가 비어 있습니다" : "YOUR FEED IS QUIET"}
             </div>

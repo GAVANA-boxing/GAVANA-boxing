@@ -46,7 +46,7 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
 
       {/* ── Page identity ─────────────────────────────────────────────────── */}
       <div style={{ padding: "0 0 4px" }}>
-        <p style={{ margin: "0 0 2px", fontSize: 10, fontWeight: 900, letterSpacing: 3, color: RED, textTransform: "uppercase" }}>
+        <p style={{ margin: "0 0 2px", fontSize: 10, fontWeight: 900, letterSpacing: 2, color: RED, textTransform: "uppercase" }}>
           GAVANA ACADEMY
         </p>
         <h2 style={{ margin: 0, fontSize: 26, fontWeight: 1000, color: "#fff", lineHeight: 1, letterSpacing: "-0.02em", fontFamily: "var(--font-display, 'Anton', sans-serif)", textTransform: "uppercase" }}>

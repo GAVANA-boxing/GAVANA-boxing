@@ -226,7 +226,7 @@ export default function FighterProfilePage() {
         </div>
 
         {/* Kicker */}
-        <p style={{ margin: "20px 0 6px", fontSize: 9, fontWeight: 900, letterSpacing: 3.5, color: goldAlpha(0.55), textTransform: "uppercase" }}>
+        <p style={{ margin: "20px 0 6px", fontSize: 9, fontWeight: 900, letterSpacing: 2, color: goldAlpha(0.55), textTransform: "uppercase" }}>
           Fighter Intelligence
         </p>
 

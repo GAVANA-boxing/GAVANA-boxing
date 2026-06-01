@@ -309,7 +309,7 @@ const s = {
     backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
     color: "#fff", borderRadius: 12, cursor: "pointer", padding: 0, marginBottom: 18,
   },
-  kicker: { margin: "0 0 8px", color: RED, fontSize: 9, fontWeight: 900, letterSpacing: 3.5, textTransform: "uppercase" },
+  kicker: { margin: "0 0 8px", color: RED, fontSize: 9, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase" },
   title: {
     margin: "0 0 8px",
     fontSize: "clamp(34px, 10vw, 52px)",

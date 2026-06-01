@@ -317,7 +317,7 @@ const c = {
     margin: "0 0 8px",
     fontSize: 9,
     fontWeight: 900,
-    letterSpacing: "3px",
+    letterSpacing: "2px",
     textTransform: "uppercase",
     color: GOLD,
     display: "flex",

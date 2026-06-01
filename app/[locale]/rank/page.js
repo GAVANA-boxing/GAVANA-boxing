@@ -309,7 +309,7 @@ const styles = {
     color: RED,
     fontSize: 10,
     fontWeight: 900,
-    letterSpacing: 3,
+    letterSpacing: 2,
     textTransform: "uppercase",
   },
   title: {
