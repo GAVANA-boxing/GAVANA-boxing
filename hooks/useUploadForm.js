@@ -9,9 +9,12 @@ import { parseAiCaptionResult } from "@/lib/captionHelpers";
 
 export function useUploadForm({ user, locale, t, router }) {
   const fileInputRef = useRef(null);
+  const uploadTaskRef = useRef(null);
+  const uploadTimeoutRef = useRef(null);
 
   const [step, setStep] = useState("video");
   const [contentType, setContentType] = useState("training");
+  const [uploadTimedOut, setUploadTimedOut] = useState(false);
 
   const [remixOfId, setRemixOfId] = useState(null);
   const [remixOfCreatorId, setRemixOfCreatorId] = useState(null);
@@ -90,6 +93,20 @@ export function useUploadForm({ user, locale, t, router }) {
     return `${m}:${String(s).padStart(2, "0")}`;
   };
 
+  const handleCancelUpload = () => {
+    if (uploadTaskRef.current) {
+      uploadTaskRef.current.cancel();
+      uploadTaskRef.current = null;
+    }
+    if (uploadTimeoutRef.current) {
+      clearTimeout(uploadTimeoutRef.current);
+      uploadTimeoutRef.current = null;
+    }
+    setUploading(false);
+    setUploadProgress(0);
+    setUploadTimedOut(false);
+  };
+
   const handleUpload = async () => {
     if (!selectedFile) return;
     const isEdu = contentType === "educational";
@@ -100,11 +117,31 @@ export function useUploadForm({ user, locale, t, router }) {
     setUploading(true);
     setUploadProgress(0);
     setError("");
+    setUploadTimedOut(false);
     try {
       const videoRef = ref(storage, `reels/${user.uid}/${Date.now()}_${selectedFile.name}`);
       const snapshot = await new Promise((resolve, reject) => {
         const task = uploadBytesResumable(videoRef, selectedFile);
-        task.on("state_changed", (s) => setUploadProgress(Math.round((s.bytesTransferred / s.totalBytes) * 100)), reject, () => resolve(task.snapshot));
+        uploadTaskRef.current = task;
+
+        // 90-second timeout
+        uploadTimeoutRef.current = setTimeout(() => {
+          task.cancel();
+          setUploadTimedOut(true);
+        }, 90000);
+
+        task.on(
+          "state_changed",
+          (s) => setUploadProgress(Math.round((s.bytesTransferred / s.totalBytes) * 100)),
+          reject,
+          () => {
+            if (uploadTimeoutRef.current) {
+              clearTimeout(uploadTimeoutRef.current);
+              uploadTimeoutRef.current = null;
+            }
+            resolve(task.snapshot);
+          }
+        );
       });
       const videoUrl = await getDownloadURL(snapshot.ref);
       const tagList = tags.split(",").map((tg) => tg.trim()).filter(Boolean);
@@ -158,8 +195,15 @@ export function useUploadForm({ user, locale, t, router }) {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       router.push(`/${locale}/reels`);
     } catch (err) {
-      setError(t("uploadFailed"));
+      if (err?.code !== "storage/canceled") {
+        setError(t("uploadFailed"));
+      }
     } finally {
+      if (uploadTimeoutRef.current) {
+        clearTimeout(uploadTimeoutRef.current);
+        uploadTimeoutRef.current = null;
+      }
+      uploadTaskRef.current = null;
       setUploading(false);
       setUploadProgress(0);
     }
@@ -216,6 +260,7 @@ export function useUploadForm({ user, locale, t, router }) {
     fileInputRef, step, setStep, contentType, setContentType,
     remixOfId, remixOfCreatorId, remixOfCreatorName,
     selectedFile, previewUrl, uploading, uploadProgress, error, videoDuration, setVideoDuration,
+    uploadTimedOut, handleCancelUpload,
     description, setDescription, category, setCategory, difficulty, setDifficulty, tags, setTags,
     challengeLabel, setChallengeLabel, targetHits, setTargetHits, aiScoringEnabled, setAiScoringEnabled, challengeEnabled, setChallengeEnabled,
     techniqueTitle, setTechniqueTitle, mistakeNote, setMistakeNote, fixNote, setFixNote, coachNote, setCoachNote, eduChallengeEnabled, setEduChallengeEnabled,

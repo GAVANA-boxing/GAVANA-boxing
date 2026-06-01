@@ -35,6 +35,7 @@ export default function UploadPage() {
     fileInputRef, step, setStep, contentType, setContentType,
     remixOfId, remixOfCreatorId, remixOfCreatorName,
     selectedFile, previewUrl, uploading, uploadProgress, error, videoDuration, setVideoDuration,
+    uploadTimedOut, handleCancelUpload,
     description, setDescription, category, setCategory, difficulty, setDifficulty, tags, setTags,
     challengeLabel, setChallengeLabel, targetHits, setTargetHits, aiScoringEnabled, setAiScoringEnabled, challengeEnabled, setChallengeEnabled,
     techniqueTitle, setTechniqueTitle, mistakeNote, setMistakeNote, fixNote, setFixNote, coachNote, setCoachNote, eduChallengeEnabled, setEduChallengeEnabled,
@@ -446,9 +447,29 @@ export default function UploadPage() {
             <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.3)", textAlign: "center" }}>
               {t("uploadDontClose")}
             </p>
+            <button
+              onClick={handleCancelUpload}
+              style={{ marginTop: 4, padding: "10px 24px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.18)", background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.65)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
+            >
+              {t("uploadCancel")}
+            </button>
           </div>
         );
       })()}
+
+      {uploadTimedOut && !uploading && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 998, display: "flex", alignItems: "center", justifyContent: "center", padding: 32, pointerEvents: "none" }}>
+          <div style={{ pointerEvents: "auto", padding: "18px 20px", borderRadius: 14, background: "rgba(0,0,0,0.92)", border: "1px solid rgba(248,113,113,0.4)", display: "flex", flexDirection: "column", gap: 12, maxWidth: 320, width: "100%" }}>
+            <p style={{ margin: 0, fontSize: 13, color: "#F87171", fontWeight: 700 }}>{t("uploadTimeout")}</p>
+            <button
+              onClick={handleUpload}
+              style={{ ...S.primaryBtn, background: RED, padding: "10px 20px", fontSize: 13 }}
+            >
+              {t("uploadRetry")}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

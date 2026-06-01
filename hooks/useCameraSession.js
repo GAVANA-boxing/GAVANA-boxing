@@ -17,6 +17,7 @@ export function useCameraSession({
   setPvpSaved,
   pvpSavedRef,
   t,
+  locale,
 }) {
   const sessionSeconds = drillConfig.durationSeconds;
   const targetMovements = drillConfig.targetMovements ?? null;
@@ -29,7 +30,6 @@ export function useCameraSession({
 
   const [cameraState, setCameraState] = useState("checking");
   const [cameraRetryKey, setCameraRetryKey] = useState(0);
-  const [facingMode, setFacingMode] = useState("user");
   const [phase, setPhase] = useState("idle");
   const [countdown, setCountdown] = useState(null);
   const [secondsLeft, setSecondsLeft] = useState(sessionSeconds);
@@ -45,7 +45,6 @@ export function useCameraSession({
   const [lastPunchType, setLastPunchType] = useState(null);
   const isRecordingRef = useRef(false);
   const hitCountRef = useRef(0);
-  const speedSumRef = useRef(0);
   const liveScoreRef = useRef(0);
   const audioCtxRef = useRef(null);
 
@@ -56,10 +55,6 @@ export function useCameraSession({
   const [movementEvents, setMovementEvents] = useState([]);
   const [sessionStartTime, setSessionStartTime] = useState(null);
   const movementEventIdRef = useRef(0);
-
-  const [recordingEnabled, setRecordingEnabled] = useState(false);
-  const [recordedBlob, setRecordedBlob] = useState(null);
-  const [thumbnailBlob, setThumbnailBlob] = useState(null);
 
   // Wall-clock timer refs — completely independent of React renders
   const sessionEndTimeRef = useRef(null);
@@ -79,7 +74,7 @@ export function useCameraSession({
       }
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode },
+          video: { facingMode: "user" },
           audio: false,
         });
         if (!active) {
@@ -102,7 +97,7 @@ export function useCameraSession({
       streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     };
-  }, [cameraRetryKey, facingMode]);
+  }, [cameraRetryKey]);
 
   useEffect(() => {
     if (cameraState === "ready" && videoRef.current && streamRef.current) {
@@ -161,64 +156,17 @@ export function useCameraSession({
         chunksRef.current = [];
         stopHandledRef.current = false;
 
-        if (recordingEnabled && streamRef.current && window.MediaRecorder) {
+        if (streamRef.current && window.MediaRecorder) {
           try {
-            const MIME_CANDIDATES = [
-              "video/webm;codecs=vp8,opus",
-              "video/webm;codecs=vp8",
-              "video/webm",
-              "video/mp4",
-            ];
-            const mimeType = MIME_CANDIDATES.find((m) => MediaRecorder.isTypeSupported(m)) || "";
-            const recorder = new MediaRecorder(streamRef.current, mimeType ? { mimeType } : {});
-
+            const recorder = new MediaRecorder(streamRef.current);
             recorder.ondataavailable = (event) => {
               if (event.data?.size) chunksRef.current.push(event.data);
             };
-
-            recorder.onstop = () => {
-              const chunks = chunksRef.current.slice();
-              const totalSize = chunks.reduce((s, c) => s + c.size, 0);
-              if (!chunks.length || totalSize < 500) return;
-
-              const mime = recorder.mimeType || mimeType || "video/webm";
-              const blob = new Blob(chunks, { type: mime });
-              setRecordedBlob(blob);
-
-              // Capture first frame as thumbnail
-              try {
-                const blobUrl = URL.createObjectURL(blob);
-                const vid = document.createElement("video");
-                vid.muted = true;
-                vid.preload = "metadata";
-                vid.crossOrigin = "anonymous";
-                vid.onloadedmetadata = () => {
-                  vid.currentTime = Math.min(0.5, (vid.duration || 0) * 0.05 + 0.05);
-                };
-                vid.onseeked = () => {
-                  try {
-                    const w = vid.videoWidth  || 640;
-                    const h = vid.videoHeight || 480;
-                    const canvas = document.createElement("canvas");
-                    canvas.width  = Math.min(w, 720);
-                    canvas.height = Math.min(h, 1280);
-                    const ctx = canvas.getContext("2d");
-                    ctx.drawImage(vid, 0, 0, canvas.width, canvas.height);
-                    canvas.toBlob((tb) => {
-                      if (tb) setThumbnailBlob(tb);
-                      URL.revokeObjectURL(blobUrl);
-                    }, "image/jpeg", 0.82);
-                  } catch { URL.revokeObjectURL(blobUrl); }
-                };
-                vid.onerror = () => URL.revokeObjectURL(blobUrl);
-                vid.src = blobUrl;
-                vid.load();
-              } catch { /* thumbnail non-critical */ }
-            };
-
-            recorder.start(1000); // 1-second chunks
+            recorder.start();
             recorderRef.current = recorder;
-          } catch { /* recording non-critical */ }
+          } catch {
+            setError(t("trainRecordError"));
+          }
         }
 
         setSecondsLeft(sessionSeconds);
@@ -296,9 +244,7 @@ export function useCameraSession({
     if (!isRecordingRef.current) return;
 
     hitCountRef.current += 1;
-    speedSumRef.current += (speed ?? 0.5);
-    const avgSpeed = speedSumRef.current / hitCountRef.current;
-    const newScore = calculateTrainingScore(hitCountRef.current, sessionSeconds, targetMovements, avgSpeed);
+    const newScore = calculateTrainingScore(hitCountRef.current, sessionSeconds, targetMovements);
     liveScoreRef.current = newScore;
     setLiveScore(newScore);
     setComboCount((c) => c + 1);
@@ -308,7 +254,11 @@ export function useCameraSession({
     playPunchSound(speed);
     if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(25);
 
-    const FEEDBACK = ["Guard up! 🛡", "Keep going!", "Stay tight!", "Breathe!", "Move! 👊", "Hands up!", "Combo! 🔥", "Drive through!", "Rotate! 💪", "Speed! ⚡"];
+    const FEEDBACK = locale === "mn"
+      ? ["Гар дээш! 🛡", "Зогсохгүй!", "Нягт бай!", "Амьсга!", "Хөдөл! 👊", "Гар дээш!", "Комбо! 🔥", "Хүч нэмэ!", "Эргүүл! 💪", "Хурдан! ⚡"]
+      : locale === "ko"
+      ? ["가드 올려! 🛡", "계속해!", "자세 유지!", "호흡!", "움직여! 👊", "손 올려!", "콤보! 🔥", "밀어붙여!", "회전! 💪", "속도! ⚡"]
+      : ["Guard up! 🛡", "Keep going!", "Stay tight!", "Breathe!", "Move! 👊", "Hands up!", "Combo! 🔥", "Drive through!", "Rotate! 💪", "Speed! ⚡"];
     const text = FEEDBACK[Math.floor(Math.random() * FEEDBACK.length)];
     const id = Date.now();
     setLiveFeedback({ text, id });
@@ -347,7 +297,6 @@ export function useCameraSession({
 
     isRecordingRef.current = true;
     hitCountRef.current = 0;
-    speedSumRef.current = 0;
     liveScoreRef.current = 0;
     setComboCount(0);
     setHitCount(0);
@@ -412,7 +361,6 @@ export function useCameraSession({
     setLiveFeedback(null);
     setShowGo(false);
     hitCountRef.current = 0;
-    speedSumRef.current = 0;
     liveScoreRef.current = 0;
     setCountdown(3);
     setPhase("countdown");
@@ -436,15 +384,8 @@ export function useCameraSession({
     setLiveFeedback(null);
     setShowGo(false);
     hitCountRef.current = 0;
-    speedSumRef.current = 0;
     liveScoreRef.current = 0;
-    setRecordedBlob(null);
-    setThumbnailBlob(null);
   };
-
-  const toggleCamera = useCallback(() => {
-    setFacingMode((m) => (m === "user" ? "environment" : "user"));
-  }, []);
 
   return {
     videoRef,
@@ -453,7 +394,6 @@ export function useCameraSession({
     chunksRef,
     cameraState, setCameraState,
     cameraRetryKey, setCameraRetryKey,
-    facingMode, toggleCamera,
     phase,
     countdown,
     secondsLeft,
@@ -473,8 +413,5 @@ export function useCameraSession({
     handleStart,
     handleTryAgain,
     finishRecording,
-    recordingEnabled, setRecordingEnabled,
-    recordedBlob,
-    thumbnailBlob,
   };
 }
