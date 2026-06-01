@@ -6,6 +6,8 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
@@ -13,6 +15,31 @@ import { auth, db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale, translate } from "@/lib/i18n";
 import { RED, GOLD, redAlpha } from "@/lib/tokens";
+
+function isMobileBrowser() {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  if (/Instagram|FBAN|FBAV|Twitter|Line\//.test(ua)) return true;
+  if (/iPhone|iPad|iPod/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua)) return true;
+  return false;
+}
+
+function getFriendlyGoogleError(code, t) {
+  switch (code) {
+    case "auth/popup-blocked":
+    case "auth/operation-not-supported-in-this-environment":
+      return t("loginErrPopupBlocked");
+    case "auth/unauthorized-domain":
+      return t("loginErrUnauthorizedDomain");
+    case "auth/network-request-failed":
+    case "auth/internal-error":
+      return t("loginErrNetwork");
+    case "auth/too-many-requests":
+      return t("loginErrTooMany");
+    default:
+      return t("loginGoogleError");
+  }
+}
 
 function getFriendlyAuthError(error, isSignUp, t) {
   switch (error?.code) {
@@ -59,6 +86,38 @@ export default function LoginPage() {
   }, [authLoading, user, router, redirectTo]);
 
   useEffect(() => { setIsSignUp(initialMode === "signup"); }, [initialMode]);
+
+  // Handle Google redirect result — fires after signInWithRedirect returns
+  useEffect(() => {
+    let active = true;
+    getRedirectResult(auth)
+      .then(async (cred) => {
+        if (!active || !cred) return;
+        const { uid, email: gEmail, displayName: gName, photoURL: gPhoto } = cred.user;
+        const snap = await getDoc(doc(db, "users", uid));
+        if (!snap.exists()) {
+          await setDoc(doc(db, "users", uid), {
+            email: gEmail || "", username: (gEmail || uid).split("@")[0],
+            displayName: gName || "", bio: "",
+            photoURL: gPhoto || "", profileImageUrl: gPhoto || "",
+            role: "boxer", onboardingComplete: false,
+            createdAt: new Date().toISOString(),
+          });
+          router.push(onboardingUrl);
+          return;
+        }
+        const userData = snap.data();
+        router.push(!userData.onboardingComplete ? onboardingUrl : redirectTo);
+      })
+      .catch((err) => {
+        if (!active) return;
+        console.error("[Google redirect result]", err.code, err.message);
+        if (err.code && err.code !== "auth/popup-closed-by-user") {
+          setError(getFriendlyGoogleError(err.code, t));
+        }
+      });
+    return () => { active = false; };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (authLoading) return (
     <div style={S.page} className="grain-overlay">
@@ -116,8 +175,16 @@ export default function LoginPage() {
     if (googleLoading) return;
     setError("");
     setGoogleLoading(true);
+    const provider = new GoogleAuthProvider();
+
+    // iOS Safari and in-app browsers (Instagram, Facebook, etc.) block popups —
+    // use redirect flow directly on those environments
+    if (isMobileBrowser()) {
+      await signInWithRedirect(auth, provider);
+      return; // page navigates away — result handled by getRedirectResult effect on return
+    }
+
     try {
-      const provider = new GoogleAuthProvider();
       const cred = await signInWithPopup(auth, provider);
       const { uid, email: gEmail, displayName: gName, photoURL: gPhoto } = cred.user;
       const snap = await getDoc(doc(db, "users", uid));
@@ -135,7 +202,15 @@ export default function LoginPage() {
       const userData = snap.data();
       router.push(!userData.onboardingComplete ? onboardingUrl : redirectTo);
     } catch (err) {
-      if (err.code !== "auth/popup-closed-by-user") setError(t("loginGoogleError"));
+      console.error("[Google sign-in error]", err.code, err.message);
+      if (err.code === "auth/popup-blocked" || err.code === "auth/operation-not-supported-in-this-environment") {
+        // Popup blocked on desktop — fall back to redirect
+        await signInWithRedirect(auth, provider);
+        return;
+      }
+      if (err.code !== "auth/popup-closed-by-user") {
+        setError(getFriendlyGoogleError(err.code, t));
+      }
     } finally {
       setGoogleLoading(false);
     }
