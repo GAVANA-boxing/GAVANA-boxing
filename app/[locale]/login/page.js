@@ -99,6 +99,7 @@ export default function LoginPage() {
         // Always clear the flag — AuthContext may have consumed the credential first
         if (typeof window !== "undefined") localStorage.removeItem(AUTH_REDIRECT_FLAG);
         if (!active || !cred) return;
+        if (typeof window !== "undefined") localStorage.removeItem(AUTH_REDIRECT_FLAG);
         const { uid, email: gEmail, displayName: gName, photoURL: gPhoto } = cred.user;
         const snap = await getDoc(doc(db, "users", uid));
         if (!snap.exists()) {
@@ -118,6 +119,7 @@ export default function LoginPage() {
       .catch((err) => {
         if (typeof window !== "undefined") localStorage.removeItem(AUTH_REDIRECT_FLAG);
         if (!active) return;
+        if (typeof window !== "undefined") localStorage.removeItem(AUTH_REDIRECT_FLAG);
         console.error("[Google redirect result]", err.code, err.message);
         if (err.code && err.code !== "auth/popup-closed-by-user") {
           setError(getFriendlyGoogleError(err.code, t));
@@ -227,11 +229,15 @@ export default function LoginPage() {
       console.error("[Google sign-in error]", err.code, err.message);
       if (err.code === "auth/popup-blocked" || err.code === "auth/operation-not-supported-in-this-environment") {
         // Popup blocked on desktop — fall back to redirect
-        if (typeof window !== "undefined") localStorage.setItem(AUTH_REDIRECT_FLAG, "1");
-        await signInWithRedirect(auth, provider);
-        return;
-      }
-      if (err.code !== "auth/popup-closed-by-user") {
+        try {
+          if (typeof window !== "undefined") localStorage.setItem(AUTH_REDIRECT_FLAG, "1");
+          await signInWithRedirect(auth, provider);
+          return;
+        } catch (redirErr) {
+          if (typeof window !== "undefined") localStorage.removeItem(AUTH_REDIRECT_FLAG);
+          setError(getFriendlyGoogleError(redirErr.code, t));
+        }
+      } else if (err.code !== "auth/popup-closed-by-user") {
         setError(getFriendlyGoogleError(err.code, t));
       }
     } finally {
