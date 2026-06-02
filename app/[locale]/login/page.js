@@ -76,7 +76,10 @@ export default function LoginPage() {
   const [loading,         setLoading]         = useState(false);
   const [googleLoading,   setGoogleLoading]   = useState(false);
   const [error,           setError]           = useState("");
+  const [errorCode,       setErrorCode]       = useState("");
   const [focusedField,    setFocusedField]    = useState(null);
+
+  const showError = (msg, code = "") => { setError(msg); setErrorCode(code); };
 
   const onboardingUrl = redirectParam
     ? `/${locale}/onboarding?redirect=${encodeURIComponent(redirectParam)}`
@@ -122,7 +125,7 @@ export default function LoginPage() {
         if (typeof window !== "undefined") localStorage.removeItem(AUTH_REDIRECT_FLAG);
         console.error("[Google redirect result]", err.code, err.message);
         if (err.code && err.code !== "auth/popup-closed-by-user") {
-          setError(getFriendlyGoogleError(err.code, t));
+          showError(getFriendlyGoogleError(err.code, t), err.code);
         }
       });
     return () => { active = false; };
@@ -189,6 +192,7 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     if (googleLoading) return;
     setError("");
+    setErrorCode("");
     setGoogleLoading(true);
     const provider = new GoogleAuthProvider();
 
@@ -203,7 +207,8 @@ export default function LoginPage() {
       } catch (redirectErr) {
         if (typeof window !== "undefined") localStorage.removeItem(AUTH_REDIRECT_FLAG);
         setGoogleLoading(false);
-        setError(getFriendlyGoogleError(redirectErr.code, t));
+        console.error("[Google redirect error]", redirectErr.code, redirectErr.message);
+        showError(getFriendlyGoogleError(redirectErr.code, t), redirectErr.code);
       }
       return;
     }
@@ -235,10 +240,14 @@ export default function LoginPage() {
           return;
         } catch (redirErr) {
           if (typeof window !== "undefined") localStorage.removeItem(AUTH_REDIRECT_FLAG);
-          setError(getFriendlyGoogleError(redirErr.code, t));
+          console.error("[Google redirect fallback error]", redirErr.code, redirErr.message);
+          showError(getFriendlyGoogleError(redirErr.code, t), redirErr.code);
         }
-      } else if (err.code !== "auth/popup-closed-by-user") {
-        setError(getFriendlyGoogleError(err.code, t));
+      } else if (err.code === "auth/popup-closed-by-user" || err.code === "auth/cancelled-popup-request") {
+        // User closed the popup — show a gentle message so they know they need to try again
+        showError(locale === "mn" ? "Google popup хаагдлаа. Дахин оролдоно уу." : locale === "ko" ? "Google 팝업이 닫혔습니다. 다시 시도하세요." : "Google popup was closed. Please try again.", err.code);
+      } else {
+        showError(getFriendlyGoogleError(err.code, t), err.code);
       }
     } finally {
       setGoogleLoading(false);
@@ -377,7 +386,16 @@ export default function LoginPage() {
               </div>
             )}
 
-            {error && <div style={S.errorBox}>{error}</div>}
+            {error && (
+              <div style={S.errorBox}>
+                {error}
+                {errorCode && (
+                  <div style={{ marginTop: 4, fontSize: 10, opacity: 0.55, fontFamily: "monospace" }}>
+                    {errorCode}
+                  </div>
+                )}
+              </div>
+            )}
 
             <button
               type="submit"
@@ -401,7 +419,7 @@ export default function LoginPage() {
           </form>
 
           <button
-            onClick={() => { setError(""); setIsSignUp(!isSignUp); }}
+            onClick={() => { setError(""); setErrorCode(""); setIsSignUp(!isSignUp); }}
             style={S.switchBtn}
           >
             {isSignUp ? t("loginAlreadyHaveAccount") : t("loginNeedAccount")}
