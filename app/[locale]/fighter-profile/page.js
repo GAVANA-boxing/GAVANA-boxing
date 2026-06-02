@@ -15,7 +15,50 @@ import { computeFighterDNA, dnaSnapshot } from "@/lib/fighterDNA";
 import { computeCombatProgress, progressSnapshot } from "@/lib/combatProgress";
 import CombatProgressCard from "@/components/profile/CombatProgressCard";
 
-function CombatIdentitySection({ identity, sessionCount }) {
+const FP = {
+  en: {
+    back:            "Back",
+    kicker:          "Fighter Intelligence",
+    sessions:        "Sessions",
+    avgScore:        "Avg Score",
+    bestScore:       "Best Score",
+    noSessions:      "Train to build your fighter identity.",
+    earlyRead:       "Movement Identity · Early Read",
+    earlyReadHint:   "Train more sessions to improve confidence.",
+    identityEyebrow: "Movement identity",
+    signalConf:      "Signal confidence",
+    evolutionTitle:  "Movement profile · Evolution tracking",
+  },
+  mn: {
+    back:            "Буцах",
+    kicker:          "Тулаанчийн тагнуул",
+    sessions:        "Тренинг",
+    avgScore:        "Дундаж оноо",
+    bestScore:       "Шилдэг оноо",
+    noSessions:      "Тулаанчийн мөн чанараа бүрдүүлэхийн тулд бэлтгэл хий.",
+    earlyRead:       "Хөдөлгөөний таних — эрт унших",
+    earlyReadHint:   "Найдвартай байдлаа сайжруулахын тулд илүү session хий.",
+    identityEyebrow: "Хөдөлгөөн дээр суурилсан мөн чанар",
+    signalConf:      "Дохионы найдвартай байдал",
+    evolutionTitle:  "Хөдөлгөөний профайл · Хөгжлийн хяналт",
+  },
+  ko: {
+    back:            "뒤로",
+    kicker:          "파이터 인텔리전스",
+    sessions:        "세션",
+    avgScore:        "평균 점수",
+    bestScore:       "최고 점수",
+    noSessions:      "파이터 정체성을 구축하려면 훈련하세요.",
+    earlyRead:       "움직임 정체성 · 초기 분석",
+    earlyReadHint:   "신뢰도 향상을 위해 더 많은 세션을 훈련하세요.",
+    identityEyebrow: "움직임 기반 정체성",
+    signalConf:      "신호 신뢰도",
+    evolutionTitle:  "움직임 프로필 · 진화 추적",
+  },
+};
+
+function CombatIdentitySection({ identity, sessionCount, locale }) {
+  const s = FP[locale] || FP.en;
   if (sessionCount === 0) {
     return (
       <div style={{
@@ -24,7 +67,7 @@ function CombatIdentitySection({ identity, sessionCount }) {
         marginBottom: 4,
       }}>
         <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: whiteAlpha(0.3), lineHeight: 1.5 }}>
-          Train to build your combat identity.
+          {s.noSessions}
         </p>
       </div>
     );
@@ -38,7 +81,7 @@ function CombatIdentitySection({ identity, sessionCount }) {
         marginBottom: 4,
       }}>
         <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.28), textTransform: "uppercase", marginBottom: 6 }}>
-          Movement Identity · Early Read
+          {s.earlyRead}
         </div>
         {identity && (
           <div style={{ fontSize: 17, fontWeight: 1000, color: whiteAlpha(0.6), letterSpacing: "-0.015em", fontFamily: "var(--font-display, 'Anton', sans-serif)", marginBottom: 6 }}>
@@ -46,7 +89,7 @@ function CombatIdentitySection({ identity, sessionCount }) {
           </div>
         )}
         <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: whiteAlpha(0.3) }}>
-          Early read — train more sessions to improve confidence.
+          {s.earlyReadHint}
         </p>
       </div>
     );
@@ -63,7 +106,7 @@ function CombatIdentitySection({ identity, sessionCount }) {
     }}>
       {/* Eyebrow */}
       <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.28), textTransform: "uppercase", marginBottom: 6 }}>
-        Movement-based identity
+        {s.identityEyebrow}
       </div>
 
       {/* Primary identity */}
@@ -74,7 +117,7 @@ function CombatIdentitySection({ identity, sessionCount }) {
       {/* Confidence bar */}
       <div style={{ marginBottom: 12 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
-          <span style={{ fontSize: 9, fontWeight: 800, color: whiteAlpha(0.3), letterSpacing: 1, textTransform: "uppercase" }}>Signal confidence</span>
+          <span style={{ fontSize: 9, fontWeight: 800, color: whiteAlpha(0.3), letterSpacing: 1, textTransform: "uppercase" }}>{(FP[locale] || FP.en).signalConf}</span>
           <span style={{ fontSize: 10, fontWeight: 900, color: confidencePct >= 70 ? GOLD : whiteAlpha(0.45), fontFamily: "monospace" }}>
             {confidencePct}%
           </span>
@@ -221,13 +264,13 @@ export default function FighterProfilePage() {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            Back
+            {(FP[locale] || FP.en).back}
           </button>
         </div>
 
         {/* Kicker */}
         <p style={{ margin: "20px 0 6px", fontSize: 9, fontWeight: 900, letterSpacing: 2, color: goldAlpha(0.55), textTransform: "uppercase" }}>
-          Fighter Intelligence
+          {(FP[locale] || FP.en).kicker}
         </p>
 
         {/* Name */}
@@ -242,24 +285,24 @@ export default function FighterProfilePage() {
 
         {/* Tendency subtitle — shows once loaded */}
         <p style={{ margin: "0 0 20px", fontSize: 11, color: whiteAlpha(0.3), fontWeight: 700 }}>
-          {tendency ? tendency.title : "Movement profile · Evolution tracking"}
+          {tendency ? tendency.title : (FP[locale] || FP.en).evolutionTitle}
         </p>
 
         {/* Stats row */}
-        {!loading && (
+        {!loading && (() => { const fp = FP[locale] || FP.en; return (
           <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
-            <StatCell value={totalSessions || "0"} label="Sessions" />
-            <StatCell value={avgScore}            label="Avg score" accent={whiteAlpha(0.85)} />
-            <StatCell value={bestScore}           label="Best score" accent={totalSessions ? GOLD : whiteAlpha(0.3)} />
+            <StatCell value={totalSessions || "0"} label={fp.sessions} />
+            <StatCell value={avgScore}            label={fp.avgScore} accent={whiteAlpha(0.85)} />
+            <StatCell value={bestScore}           label={fp.bestScore} accent={totalSessions ? GOLD : whiteAlpha(0.3)} />
           </div>
-        )}
+        ); })()}
 
         {/* Divider */}
         <div style={{ height: 1, background: whiteAlpha(0.05), marginBottom: 16 }} />
 
         {/* Combat Identity */}
         {!loading && (
-          <CombatIdentitySection identity={identity} sessionCount={sessions.length} />
+          <CombatIdentitySection identity={identity} sessionCount={sessions.length} locale={locale} />
         )}
 
         {/* Fighter DNA */}

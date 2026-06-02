@@ -171,14 +171,15 @@ const OS_ICONS = {
 };
 
 const COMBAT_OS_ITEMS = [
-  { key: "notifications", labelEn: "Notifications", labelMn: "Мэдэгдэл",       labelKo: "알림",     path: "/notifications" },
-  { key: "inbox",         labelEn: "Messages",      labelMn: "Мессеж",         labelKo: "메시지",    path: "/inbox" },
-  { key: "challenges",    labelEn: "Challenges",    labelMn: "Сорилт",         labelKo: "챌린지",    path: "/challenges" },
-  { key: "fighters",      labelEn: "Fighters",      labelMn: "Тулаанчид",      labelKo: "파이터",    path: "/fighters" },
-  { key: "academy",       labelEn: "Academy",       labelMn: "Академи",        labelKo: "아카데미",   path: "/programs" },
-  { key: "gyms",          labelEn: "Gyms",          labelMn: "Дасгалын заал",  labelKo: "체육관",    path: "/gyms" },
-  { key: "history",       labelEn: "History",       labelMn: "Түүх",           labelKo: "기록",     path: "/history" },
-  { key: "settings",      labelEn: "Settings",      labelMn: "Тохиргоо",       labelKo: "설정",     path: "/profile" },
+  { key: "notifications",   labelEn: "Notifications", labelMn: "Мэдэгдэл",         labelKo: "알림",     path: "/notifications" },
+  { key: "inbox",           labelEn: "Messages",      labelMn: "Мессеж",           labelKo: "메시지",    path: "/inbox" },
+  { key: "fighter-profile", labelEn: "Fighter DNA",   labelMn: "Тулаанчийн ДНХ",  labelKo: "파이터 DNA", path: "/fighter-profile" },
+  { key: "challenges",      labelEn: "Challenges",    labelMn: "Сорилт",           labelKo: "챌린지",    path: "/challenges" },
+  { key: "fighters",        labelEn: "Fighters",      labelMn: "Тулаанчид",        labelKo: "파이터",    path: "/fighters" },
+  { key: "academy",         labelEn: "Academy",       labelMn: "Академи",          labelKo: "아카데미",   path: "/programs" },
+  { key: "gyms",            labelEn: "Gyms",          labelMn: "Дасгалын заал",    labelKo: "체육관",    path: "/gyms" },
+  { key: "history",         labelEn: "History",       labelMn: "Түүх",             labelKo: "기록",     path: "/history" },
+  { key: "settings",        labelEn: "Settings",      labelMn: "Тохиргоо",         labelKo: "설정",     path: "/profile" },
 ];
 
 function CombatOSSheet({ onClose, router, locale, pathname, userId }) {
