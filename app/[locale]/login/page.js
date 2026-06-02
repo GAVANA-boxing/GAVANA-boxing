@@ -16,11 +16,15 @@ import { useAuth, AUTH_REDIRECT_FLAG } from "@/lib/AuthContext";
 import { getLocale, translate } from "@/lib/i18n";
 import { RED, GOLD, redAlpha } from "@/lib/tokens";
 
-function isMobileBrowser() {
+// Only true in-app browsers that CANNOT open popups at all need redirect.
+// Regular iOS Safari supports signInWithPopup in Firebase 9.9+ — using redirect
+// there causes a blank white page due to iOS ITP blocking cookies on firebaseapp.com.
+function needsRedirectFlow() {
   if (typeof navigator === "undefined") return false;
   const ua = navigator.userAgent;
-  if (/Instagram|FBAN|FBAV|Twitter|Line\/|TikTok/.test(ua)) return true;
-  if (/iPhone|iPad|iPod/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua)) return true;
+  // Instagram, Facebook, TikTok, Twitter, Line in-app browsers
+  if (/Instagram|FBAN|FBAV|Twitter\/|Line\/|TikTok/.test(ua)) return true;
+  // Android WebView (embedded browser in apps)
   if (/Android/.test(ua) && /wv/.test(ua)) return true;
   return false;
 }
@@ -200,7 +204,7 @@ export default function LoginPage() {
     // use redirect flow directly on those environments.
     // FLAG must be set BEFORE the call so the returning page knows a redirect is
     // in flight and keeps showing loading instead of flashing the login form.
-    if (isMobileBrowser()) {
+    if (needsRedirectFlow()) {
       try {
         if (typeof window !== "undefined") localStorage.setItem(AUTH_REDIRECT_FLAG, "1");
         await signInWithRedirect(auth, provider);
