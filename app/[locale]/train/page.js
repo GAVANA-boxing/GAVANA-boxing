@@ -916,25 +916,27 @@ export default function TrainPage() {
         )}
 
         {/* Daily mission strip — shown when idle only */}
-        {phase === "idle" && (
+        {phase === "idle" && (() => {
+          const effectiveMissionDone = missionCompletedToday || missionJustCompleted;
+          return (
           <div style={{
             margin: "8px 0 0",
             borderRadius: 14,
             overflow: "hidden",
-            border: missionCompletedToday ? "1px solid rgba(52,211,153,0.2)" : "1px solid rgba(245,196,81,0.2)",
-            background: missionCompletedToday ? "rgba(52,211,153,0.04)" : "rgba(0,0,0,0.3)",
+            border: effectiveMissionDone ? "1px solid rgba(52,211,153,0.2)" : "1px solid rgba(245,196,81,0.2)",
+            background: effectiveMissionDone ? "rgba(52,211,153,0.04)" : "rgba(0,0,0,0.3)",
           }}>
             {/* Mission status row */}
             <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px" }}>
-              <span style={{ fontSize: 18, flexShrink: 0 }}>{missionCompletedToday ? "✅" : "🥊"}</span>
+              <span style={{ fontSize: 18, flexShrink: 0 }}>{effectiveMissionDone ? "✅" : "🥊"}</span>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.8, textTransform: "uppercase", color: missionCompletedToday ? "#34D399" : "rgba(245,196,81,0.8)", marginBottom: 2 }}>
-                  {missionCompletedToday
+                <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.8, textTransform: "uppercase", color: effectiveMissionDone ? "#34D399" : "rgba(245,196,81,0.8)", marginBottom: 2 }}>
+                  {effectiveMissionDone
                     ? (locale === "mn" ? "ӨНӨӨДРИЙН ДААЛГАВАР ДУУССАН" : locale === "ko" ? "오늘 미션 완료" : "TODAY'S MISSION DONE")
                     : (locale === "mn" ? "ӨНӨӨДРИЙН ДААЛГАВАР" : locale === "ko" ? "오늘의 미션" : "DAILY MISSION")}
                 </div>
                 <div style={{ fontSize: 12, fontWeight: 800, color: "rgba(255,255,255,0.75)" }}>
-                  {missionCompletedToday
+                  {effectiveMissionDone
                     ? (locale === "mn" ? "Гайхалтай! Маргааш streak-ийг үргэлжлүүл." : locale === "ko" ? "훌륭해요! 내일도 스트릭을 이어가세요." : "Great work! Keep the streak alive tomorrow.")
                     : (locale === "mn" ? "Дасгал хийж +50 XP ав" : locale === "ko" ? "훈련하고 +50 XP 획득" : "Train once today for +50 XP")}
                 </div>
@@ -981,7 +983,8 @@ export default function TrainPage() {
               </div>
             )}
           </div>
-        )}
+          );
+        })()}
 
         {error && <div style={styles.error}>{error}</div>}
         {saved && (
