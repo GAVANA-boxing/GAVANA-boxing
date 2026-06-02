@@ -464,8 +464,8 @@ export default function OnboardingPage() {
                   </>
                 ) : (
                   <>
-                    <button type="button" style={s.primaryBtn} disabled={saving} onClick={() => finishOnboarding(redirectAfter || `/${locale}/train`)}>
-                      🥊 {redirectAfter ? t("onboardingStartTraining") : t("onboardingStartTraining")}
+                    <button type="button" style={s.primaryBtn} disabled={saving} onClick={() => finishOnboarding(redirectAfter || null)}>
+                      🥊 {t("onboardingStartTraining")}
                     </button>
                     {!redirectAfter && (
                       <button type="button" style={s.ghostBtn} disabled={saving} onClick={() => finishOnboarding(`/${locale}/reels`)}>
