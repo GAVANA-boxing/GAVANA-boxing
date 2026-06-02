@@ -8,6 +8,7 @@ import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
 import FighterPortrait from "@/components/FighterPortrait";
 import { RED, GOLD, redAlpha, goldAlpha, pageBg } from "@/lib/tokens";
+import { isBeginnerUser } from "@/lib/beginnerPath";
 import { buildCoachSnapshot } from "@/lib/buildCoachContext";
 import { getPersonalConnection } from "@/lib/fighterPersonalConnection";
 import FighterCompareModal from "@/components/fighters/FighterCompareModal";
@@ -111,6 +112,7 @@ export default function FightersPage() {
 
   const [snapshot, setSnapshot] = useState(null);
   const [userArchetype, setUserArchetype] = useState(null);
+  const [totalSessionCount, setTotalSessionCount] = useState(null);
   const [compareMode, setCompareMode] = useState(false);
   const [compareIds, setCompareIds] = useState([]);
 
@@ -140,6 +142,7 @@ export default function FightersPage() {
           .map((d) => ({ id: d.id, ...d.data() }))
           .filter((d) => d.type === "training" && d.score != null)
           .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        setTotalSessionCount(sessions.length);
         if (sessions.length > 0) setSnapshot(buildCoachSnapshot({ sessions, profileData: {} }));
         setStudiedFighters(userData.studiedFighters || []);
         setUserArchetype(userData.fighterArchetype || userData.archetype || null);
@@ -182,19 +185,21 @@ export default function FightersPage() {
         </button>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
           <p style={{ ...s.kicker, margin: 0 }}>COMBAT · FIGHTERS</p>
-          <button
-            type="button"
-            onClick={() => { setCompareMode((c) => !c); setCompareIds([]); }}
-            style={{
-              padding: "5px 12px", borderRadius: 20,
-              background: compareMode ? goldAlpha(0.15) : "rgba(255,255,255,0.05)",
-              border: compareMode ? `1px solid ${GOLD}40` : "1px solid rgba(255,255,255,0.1)",
-              color: compareMode ? GOLD : "rgba(255,255,255,0.4)",
-              fontSize: 11, fontWeight: 900, cursor: "pointer",
-            }}
-          >
-            {t("fighterCompare")}
-          </button>
+          {!isBeginnerUser(totalSessionCount ?? 999) && (
+            <button
+              type="button"
+              onClick={() => { setCompareMode((c) => !c); setCompareIds([]); }}
+              style={{
+                padding: "5px 12px", borderRadius: 20,
+                background: compareMode ? goldAlpha(0.15) : "rgba(255,255,255,0.05)",
+                border: compareMode ? `1px solid ${GOLD}40` : "1px solid rgba(255,255,255,0.1)",
+                color: compareMode ? GOLD : "rgba(255,255,255,0.4)",
+                fontSize: 11, fontWeight: 900, cursor: "pointer",
+              }}
+            >
+              {t("fighterCompare")}
+            </button>
+          )}
         </div>
         <h1 style={s.title}>{t("fighterAllTitle")}</h1>
         <p style={s.subtitle}>{t("fighterAllSubtitle")}</p>
@@ -233,6 +238,18 @@ export default function FightersPage() {
         )}
       </div>
 
+      {/* ── Beginner notice ── */}
+      {isBeginnerUser(totalSessionCount ?? 999) && totalSessionCount !== null && (
+        <div style={{ margin: "0 14px 16px", padding: "12px 14px", borderRadius: 14, background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.2)" }}>
+          <div style={{ fontSize: 11, fontWeight: 900, color: "#A78BFA", marginBottom: 4 }}>
+            {t("beginnerStudyLater")}
+          </div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>
+            {t("beginnerStudyLaterDesc")}
+          </div>
+        </div>
+      )}
+
       {/* ── Recommended for you ── */}
       {recommended.length > 0 && (
         <div style={{ padding: "0 14px 20px", position: "relative", zIndex: 1 }}>
@@ -248,7 +265,7 @@ export default function FightersPage() {
             </span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {recommended.map(({ fighter, connection, archetypeBased }) => (
+            {(isBeginnerUser(totalSessionCount ?? 999) ? recommended.slice(0, 1) : recommended).map(({ fighter, connection, archetypeBased }) => (
               <RecommendedCard
                 key={fighter.id}
                 fighter={fighter}

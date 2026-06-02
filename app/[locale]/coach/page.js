@@ -79,6 +79,24 @@ export default function CoachPage() {
       {/* AI Coach tab */}
       {tab === "ai" && (
         <div style={styles.aiWrap}>
+          {/* Quick entry points */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, padding: "0 0 14px" }}>
+            {[
+              { icon: "🥊", labelKey: "coachEntryTechnique",  q: locale === "mn" ? "Жаабыг хэрхэн зөв хийх вэ?" : locale === "ko" ? "잽을 어떻게 올바르게 하나요?" : "How do I improve my jab technique?" },
+              { icon: "📖", labelKey: "coachEntryLesson",     q: locale === "mn" ? "Өнөөдрийн хичээл юу вэ?" : locale === "ko" ? "오늘의 레슨은 무엇인가요?" : "What should I focus on today?" },
+              { icon: "📊", labelKey: "coachEntryResult",     q: locale === "mn" ? "Сүүлийн тренингийн үр дүнг дүгнэ." : locale === "ko" ? "마지막 훈련 결과를 분석해주세요." : "Analyse my last training result." },
+            ].map((entry) => (
+              <button
+                key={entry.labelKey}
+                type="button"
+                onClick={() => router.push(`/${locale}/coach/chat?q=${encodeURIComponent(entry.q)}`)}
+                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, padding: "12px 8px", borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", cursor: "pointer", color: "#fff" }}
+              >
+                <span style={{ fontSize: 22 }}>{entry.icon}</span>
+                <span style={{ fontSize: 9.5, fontWeight: 800, color: "rgba(255,255,255,0.6)", textAlign: "center", lineHeight: 1.3 }}>{t(entry.labelKey)}</span>
+              </button>
+            ))}
+          </div>
           <div style={{ padding: "0 0 12px", textAlign: "center" }}>
             <button
               type="button"

@@ -121,6 +121,33 @@ const OS_ICONS = {
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/>
     </svg>
   ),
+  notifications: (
+    <svg style={osIc} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+      <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+    </svg>
+  ),
+  academy: (
+    <svg style={osIc} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M2 10 12 5l10 5-10 5-10-5Z"/>
+      <path d="M12 15v6"/>
+      <path d="M18 13v6"/>
+      <path d="M6 13v6"/>
+    </svg>
+  ),
+  history: (
+    <svg style={osIc} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+      <path d="M3 3v5h5"/>
+      <path d="M12 7v5l4 2"/>
+    </svg>
+  ),
+  settings: (
+    <svg style={osIc} viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+    </svg>
+  ),
   upload: (
     <svg style={osIc} viewBox="0 0 24 24" aria-hidden="true">
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -144,15 +171,17 @@ const OS_ICONS = {
 };
 
 const COMBAT_OS_ITEMS = [
-  { key: "coach",          labelEn: "AI Coach",        labelMn: "AI Дасгалжуулагч", labelKo: "AI 코치",   path: "/coach" },
-  { key: "sparring",       labelEn: "Sparring",        labelMn: "Спарринг",          labelKo: "스파링",     path: "/sparring" },
-  { key: "fighter-profile",labelEn: "Fighter Profile", labelMn: "Тэмцэгч профайл",  labelKo: "파이터 프로필", path: "/fighter-profile" },
-  { key: "drills",         labelEn: "Drills",          labelMn: "Дасгалууд",         labelKo: "드릴",       path: "/drills" },
-  { key: "history",        labelEn: "History",         labelMn: "Түүх",              labelKo: "기록",       path: "/history" },
-  { key: "feed",           labelEn: "Feed",            labelMn: "Тэжээл",            labelKo: "피드",       path: "/feed" },
+  { key: "notifications", labelEn: "Notifications", labelMn: "Мэдэгдэл",       labelKo: "알림",     path: "/notifications" },
+  { key: "inbox",         labelEn: "Messages",      labelMn: "Мессеж",         labelKo: "메시지",    path: "/inbox" },
+  { key: "challenges",    labelEn: "Challenges",    labelMn: "Сорилт",         labelKo: "챌린지",    path: "/challenges" },
+  { key: "fighters",      labelEn: "Fighters",      labelMn: "Тулаанчид",      labelKo: "파이터",    path: "/fighters" },
+  { key: "academy",       labelEn: "Academy",       labelMn: "Академи",        labelKo: "아카데미",   path: "/programs" },
+  { key: "gyms",          labelEn: "Gyms",          labelMn: "Дасгалын заал",  labelKo: "체육관",    path: "/gyms" },
+  { key: "history",       labelEn: "History",       labelMn: "Түүх",           labelKo: "기록",     path: "/history" },
+  { key: "settings",      labelEn: "Settings",      labelMn: "Тохиргоо",       labelKo: "설정",     path: "/profile" },
 ];
 
-function CombatOSSheet({ onClose, router, locale, pathname }) {
+function CombatOSSheet({ onClose, router, locale, pathname, userId }) {
   const LANG_LABELS = { mn: "🇲🇳 MN", en: "🇺🇸 EN", ko: "🇰🇷 KO" };
   return (
     <div
@@ -228,7 +257,7 @@ function CombatOSSheet({ onClose, router, locale, pathname }) {
             <button
               key={item.key}
               className="tap-bounce"
-              onClick={() => { onClose(); router.push(`/${locale}${item.path}`); }}
+              onClick={() => { onClose(); router.push(item.key === "settings" ? `/${locale}/profile/${userId || ""}` : `/${locale}${item.path}`); }}
               style={{
                 display: "flex", alignItems: "center", gap: 10,
                 padding: "11px 14px",
@@ -408,7 +437,7 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
 
       {/* Combat OS sheet */}
       {combatOSOpen && (
-        <CombatOSSheet onClose={() => setCombatOSOpen(false)} router={r} locale={locale} pathname={pathname} />
+        <CombatOSSheet onClose={() => setCombatOSOpen(false)} router={r} locale={locale} pathname={pathname} userId={user?.uid} />
       )}
 
       <nav
