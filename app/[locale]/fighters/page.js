@@ -60,8 +60,16 @@ function FighterGridCard({ fighter, onClick, badge, studied, compareMode, select
   );
 }
 
-function RecommendedCard({ fighter, connection, onClick }) {
+const ARCHETYPE_TAGS = {
+  pressure:  ["pressure"],
+  counter:   ["counter"],
+  technical: ["technical", "angles", "fundamentals", "footwork"],
+  brawler:   ["power", "infighting", "intimidation", "explosive"],
+};
+
+function RecommendedCard({ fighter, connection, onClick, archetypeBased, locale }) {
   const acc = fighter.accent;
+  const trainLikeLabel = locale === "mn" ? `${fighter.name} шиг дасга` : locale === "ko" ? `${fighter.name}처럼 훈련` : `Train Like ${fighter.name}`;
   return (
     <button
       type="button"
@@ -80,7 +88,7 @@ function RecommendedCard({ fighter, connection, onClick }) {
       </div>
       <div style={{ flex: 1, padding: "10px 12px" }}>
         <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.5, color: acc, textTransform: "uppercase", marginBottom: 3 }}>
-          {connection.primaryFocus} {connection.primaryValue?.toFixed(1)} →
+          {archetypeBased ? trainLikeLabel : `${connection?.primaryFocus} ${connection?.primaryValue?.toFixed(1)} →`}
         </div>
         <div style={{ fontSize: 14, fontWeight: 900, color: "#fff", lineHeight: 1.2, marginBottom: 4 }}>
           {fighter.name}
@@ -102,6 +110,7 @@ export default function FightersPage() {
   const t = (key) => translate(locale, key);
 
   const [snapshot, setSnapshot] = useState(null);
+  const [userArchetype, setUserArchetype] = useState(null);
   const [compareMode, setCompareMode] = useState(false);
   const [compareIds, setCompareIds] = useState([]);
 
@@ -126,12 +135,14 @@ export default function FightersPage() {
           getDoc(doc(db, "users", user.uid)),
         ]);
         if (!active) return;
+        const userData = userSnap.data() || {};
         const sessions = sessSnap.docs
           .map((d) => ({ id: d.id, ...d.data() }))
           .filter((d) => d.type === "training" && d.score != null)
           .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-        setSnapshot(buildCoachSnapshot({ sessions, profileData: {} }));
-        setStudiedFighters(userSnap.data()?.studiedFighters || []);
+        if (sessions.length > 0) setSnapshot(buildCoachSnapshot({ sessions, profileData: {} }));
+        setStudiedFighters(userData.studiedFighters || []);
+        setUserArchetype(userData.fighterArchetype || userData.archetype || null);
       } catch { /* silent */ }
     })();
     return () => { active = false; };
@@ -146,9 +157,17 @@ export default function FightersPage() {
     return bScore - aScore;
   }), [snapshot]);
 
-  const recommended = useMemo(() => snapshot
-    ? ranked.filter((r) => r.connection?.isDirectlyRelevant).slice(0, 3)
-    : [], [snapshot, ranked]);
+  const recommended = useMemo(() => {
+    if (snapshot) {
+      return ranked.filter((r) => r.connection?.isDirectlyRelevant).slice(0, 3);
+    }
+    if (!userArchetype) return [];
+    const tags = ARCHETYPE_TAGS[userArchetype] || [];
+    return FIGHTERS
+      .filter((f) => f.movementDNA?.tags?.some((tag) => tags.includes(tag)))
+      .slice(0, 3)
+      .map((f) => ({ fighter: f, connection: null, archetypeBased: true }));
+  }, [snapshot, ranked, userArchetype]);
   const recommendedIds = useMemo(() => new Set(recommended.map((r) => r.fighter.id)), [recommended]);
 
   return (
@@ -223,15 +242,19 @@ export default function FightersPage() {
             </span>
             <div style={{ flex: 1, height: 1, background: "rgba(245,196,81,0.12)" }} />
             <span style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", fontWeight: 700 }}>
-              {snapshot?.weakAreas?.slice(0, 2).map(([k]) => k).join(" · ")}
+              {recommended[0]?.archetypeBased
+                ? locale === "mn" ? "таны загварт тохирсон" : locale === "ko" ? "스타일 기반" : "your style match"
+                : snapshot?.weakAreas?.slice(0, 2).map(([k]) => k).join(" · ")}
             </span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {recommended.map(({ fighter, connection }) => (
+            {recommended.map(({ fighter, connection, archetypeBased }) => (
               <RecommendedCard
                 key={fighter.id}
                 fighter={fighter}
                 connection={connection}
+                archetypeBased={archetypeBased}
+                locale={locale}
                 onClick={() => router.push(`/${locale}/fighters/${fighter.id}`)}
               />
             ))}

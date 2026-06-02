@@ -130,12 +130,58 @@ export default function AICoach() {
     }
   };
 
+  const DAILY_MISSIONS = [
+    { emoji: "🥊", focus: locale === "mn" ? "Доргиних тусгай дасгал" : locale === "ko" ? "잽 정밀도 훈련" : "Jab Precision Day", prompt: locale === "mn" ? "Өнөөдрийн доргиний дасгал хийлгэж өгнө үү" : locale === "ko" ? "오늘 잽 정밀도 훈련 루틴을 짜줘" : "Give me a jab precision drill routine for today" },
+    { emoji: "👣", focus: locale === "mn" ? "Хөлийн хөдөлгөөн & Өнцгийн дасгал" : locale === "ko" ? "풋워크와 앵글 훈련" : "Footwork & Angles", prompt: locale === "mn" ? "Хөлийн хөдөлгөөн болон өнцгийн дасгал хийлгэнэ үү" : locale === "ko" ? "오늘 풋워크와 각도 훈련 루틴을 알려줘" : "Coach me on footwork and angle drills today" },
+    { emoji: "🛡️", focus: locale === "mn" ? "Хамгааллын техник" : locale === "ko" ? "방어 기술 훈련" : "Defense Focus", prompt: locale === "mn" ? "Ухрах болон бөхийх хамгааллын дасгал хийлгэнэ үү" : locale === "ko" ? "슬립과 롤을 중심으로 방어 훈련을 알려줘" : "Coach me on slip and roll defense drills" },
+    { emoji: "💥", focus: locale === "mn" ? "Хүчтэй хослолын цуваа" : locale === "ko" ? "파워 콤비네이션 훈련" : "Power Combinations", prompt: locale === "mn" ? "Хүч чадал нэмэх хослолын цуваа заана уу" : locale === "ko" ? "오늘 파워 콤비네이션 연습을 알려줘" : "Give me power combination drills to build knockout power" },
+    { emoji: "⚡", focus: locale === "mn" ? "Хурд & Хэмнэл" : locale === "ko" ? "스피드와 리듬 훈련" : "Speed & Rhythm", prompt: locale === "mn" ? "Хурд болон хэмнэлийн дасгал хийлгэнэ үү" : locale === "ko" ? "스피드와 리듬 훈련 루틴을 알려줘" : "Give me speed and rhythm training drills" },
+    { emoji: "🥋", focus: locale === "mn" ? "Дүрслэлт раунд симуляци" : locale === "ko" ? "풀라운드 스파링 시뮬레이션" : "Full Round Simulation", prompt: locale === "mn" ? "Бүтэн раундын дасгал симуляци хийлгэнэ үү" : locale === "ko" ? "풀라운드 스파링 시뮬레이션 훈련을 도와줘" : "Coach me through a full round sparring simulation" },
+    { emoji: "🔄", focus: locale === "mn" ? "Нөхөн сэргэлт & Дүн шинжилгээ" : locale === "ko" ? "회복과 리뷰" : "Recovery & Review", prompt: locale === "mn" ? "Нөхөн сэргэлт болон долоо хоногийн ахицаа шинжлэх дасгал хийлгэнэ үү" : locale === "ko" ? "회복 훈련과 이번 주 진행 상황을 리뷰해줘" : "Help me with recovery techniques and review my week" },
+  ];
+  const todayMission = DAILY_MISSIONS[new Date().getDay()];
+
   return (
     <div style={styles.page} className="page-enter">
       <div style={styles.shell}>
         <div style={styles.header}>
           <p style={styles.kicker}>COMBAT · AI</p>
           <h1 style={styles.title}>{t("aiCoach")}</h1>
+        </div>
+
+        {/* Today's Mission banner */}
+        <div
+          style={{
+            marginBottom: 12,
+            padding: "12px 14px",
+            borderRadius: 14,
+            background: "rgba(245,196,81,0.06)",
+            border: "1px solid rgba(245,196,81,0.2)",
+            borderLeft: "3px solid #F5C451",
+            display: "flex", alignItems: "center", gap: 12,
+          }}
+        >
+          <span style={{ fontSize: 22, flexShrink: 0 }}>{todayMission.emoji}</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: "#F5C451", textTransform: "uppercase", marginBottom: 2 }}>
+              {locale === "mn" ? "ӨНӨӨДРИЙН ДААЛГАВАР" : locale === "ko" ? "오늘의 미션" : "TODAY'S MISSION"}
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", lineHeight: 1.2 }}>
+              {todayMission.focus}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => { setActiveSection("chat"); handleSend(todayMission.prompt); }}
+            style={{
+              padding: "7px 12px", borderRadius: 10,
+              background: "#F5C451", border: "none",
+              color: "#000", fontSize: 11, fontWeight: 900,
+              cursor: "pointer", flexShrink: 0, letterSpacing: 0.3,
+            }}
+          >
+            {locale === "mn" ? "Асуу" : locale === "ko" ? "물어보기" : "Ask →"}
+          </button>
         </div>
 
         {/* Section sub-tabs */}

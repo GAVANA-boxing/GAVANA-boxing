@@ -206,15 +206,20 @@ export default function ProfileFighterCard({
               <RankBadge rank={fighterRank} size={28} glowEnabled />
             </div>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
             <span style={{ fontSize: 12, fontWeight: 900, color: fighterRank.color, letterSpacing: 0.5, lineHeight: 1 }}>{t(fighterRank.key)}</span>
             <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>
               {xp.toLocaleString()} XP
             </span>
             {nextRank && (
-              <span style={{ fontSize: 9, color: "rgba(255,255,255,0.28)" }}>
-                {xpToNextVal.toLocaleString()} to {t(nextRank.key)}
-              </span>
+              <>
+                <div style={{ width: 100, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
+                  <div style={{ width: `${Math.min(100, rankProgress)}%`, height: "100%", borderRadius: 2, background: fighterRank.gradient || fighterRank.color, transition: "width 0.8s ease" }} />
+                </div>
+                <span style={{ fontSize: 9, color: "rgba(255,255,255,0.28)" }}>
+                  {xpToNextVal.toLocaleString()} → {t(nextRank.key)}
+                </span>
+              </>
             )}
           </div>
         </button>

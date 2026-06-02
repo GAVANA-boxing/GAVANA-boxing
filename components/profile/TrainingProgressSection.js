@@ -145,21 +145,35 @@ export default function TrainingProgressSection({
             {t("profileStartTraining")}
           </p>
           <p style={{ margin: "0 0 16px", fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>
-            {t("profileStartTrainingHint")}
+            {locale === "mn" ? "Дасгал хийгээд AI-аас санал авч прогрессоо эндээс хар." : locale === "ko" ? "훈련하고 AI 피드백을 받아 여기서 진행 상황을 확인하세요." : "Complete a training session and get AI feedback to see your progress here."}
           </p>
           {isOwnProfile && (
-            <button
-              type="button"
-              onClick={onGoToReels}
-              style={{
-                padding: "11px 24px",
-                background: GOLD,
-                border: "none", color: "#000", fontSize: 12, fontWeight: 900,
-                borderRadius: 10, cursor: "pointer", letterSpacing: 0.3,
-              }}
-            >
-              {t("profileWatchReels")}
-            </button>
+            <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
+              <button
+                type="button"
+                onClick={() => router.push(`/${locale}/train`)}
+                style={{
+                  padding: "11px 24px",
+                  background: `linear-gradient(135deg, ${RED}, #C0392B)`,
+                  border: "none", color: "#fff", fontSize: 12, fontWeight: 900,
+                  borderRadius: 10, cursor: "pointer", letterSpacing: 0.3,
+                }}
+              >
+                {locale === "mn" ? "Дасгал эхлэх →" : locale === "ko" ? "훈련 시작 →" : "Start Training →"}
+              </button>
+              <button
+                type="button"
+                onClick={onGoToReels}
+                style={{
+                  padding: "11px 20px",
+                  background: "rgba(255,255,255,0.06)",
+                  border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.6)", fontSize: 12, fontWeight: 900,
+                  borderRadius: 10, cursor: "pointer", letterSpacing: 0.3,
+                }}
+              >
+                {t("profileWatchReels")}
+              </button>
+            </div>
           )}
         </div>
       )}

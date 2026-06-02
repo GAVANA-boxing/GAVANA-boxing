@@ -46,6 +46,20 @@ function SparringIcon({ active }) {
   );
 }
 
+// Add ChallengesIcon alongside existing icons
+function ChallengesIcon({ active }) {
+  return (
+    <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.38)" }} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+      <path d="M4 22h16"/>
+      <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+      <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+      <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+    </svg>
+  );
+}
+
 function TrainIcon() {
   return (
     <svg style={{ width: 20, height: 20, display: "block", fill: "#fff", strokeWidth: 0 }} viewBox="0 0 24 24" aria-hidden="true">
@@ -131,13 +145,11 @@ const OS_ICONS = {
 
 const COMBAT_OS_ITEMS = [
   { key: "coach",          labelEn: "AI Coach",        labelMn: "AI Дасгалжуулагч", labelKo: "AI 코치",   path: "/coach" },
-  { key: "fighter-profile",labelEn: "Fighter Profile", labelMn: "Тэмцэгч профайл",  labelKo: "파이터 프로필", path: "/fighter-profile" },
   { key: "sparring",       labelEn: "Sparring",        labelMn: "Спарринг",          labelKo: "스파링",     path: "/sparring" },
-  { key: "fighters",       labelEn: "Fighters",        labelMn: "Тамирчид",          labelKo: "파이터",     path: "/fighters" },
-  { key: "gyms",           labelEn: "Gyms",            labelMn: "Заалнууд",          labelKo: "체육관",     path: "/gyms" },
-  { key: "challenges",     labelEn: "Challenges",      labelMn: "Даалгаврууд",       labelKo: "챌린지",     path: "/challenges" },
+  { key: "fighter-profile",labelEn: "Fighter Profile", labelMn: "Тэмцэгч профайл",  labelKo: "파이터 프로필", path: "/fighter-profile" },
   { key: "drills",         labelEn: "Drills",          labelMn: "Дасгалууд",         labelKo: "드릴",       path: "/drills" },
   { key: "history",        labelEn: "History",         labelMn: "Түүх",              labelKo: "기록",       path: "/history" },
+  { key: "feed",           labelEn: "Feed",            labelMn: "Тэжээл",            labelKo: "피드",       path: "/feed" },
 ];
 
 function CombatOSSheet({ onClose, router, locale, pathname }) {
@@ -371,9 +383,9 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
 
   const goToProfile = () => r.push(user?.uid ? `/${locale}/profile/${user.uid}` : `/${locale}/login`);
 
-  const feedLabel     = locale === "mn" ? "Тэжээл"  : locale === "ko" ? "피드"   : "Feed";
-  const coachLabel    = locale === "mn" ? "Коуч"    : locale === "ko" ? "코치"   : "Coach";
-  const sparringLabel = locale === "mn" ? "Спарринг": locale === "ko" ? "스파링" : "Sparring";
+  const fightersLabel   = locale === "mn" ? "Тэмцэгчид" : locale === "ko" ? "파이터" : "Fighters";
+  const coachLabel      = locale === "mn" ? "Коуч"      : locale === "ko" ? "코치"   : "Coach";
+  const challengesLabel = locale === "mn" ? "Тэмцээн"   : locale === "ko" ? "챌린지" : "Challenges";
 
   if (!mounted) return null;
 
@@ -409,9 +421,9 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
         onPointerCancel={onInteractEnd}
         aria-label="Primary navigation"
       >
-        {/* Feed */}
-        <IconTab active={resolvedActiveTab === "feed"} onClick={() => r.push(`/${locale}/feed`)} label={feedLabel}>
-          <FeedIcon active={resolvedActiveTab === "feed"} />
+        {/* Fighters */}
+        <IconTab active={resolvedActiveTab === "fighters"} onClick={() => r.push(`/${locale}/fighters`)} label={fightersLabel}>
+          <FightersIcon active={resolvedActiveTab === "fighters"} />
         </IconTab>
 
         {/* Coach */}
@@ -422,9 +434,9 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
         {/* Train — center action */}
         <TrainTab active={resolvedActiveTab === "train"} onClick={() => r.push(`/${locale}/train`)} locale={locale} />
 
-        {/* Sparring */}
-        <IconTab active={resolvedActiveTab === "sparring"} onClick={() => r.push(`/${locale}/sparring`)} label={sparringLabel}>
-          <SparringIcon active={resolvedActiveTab === "sparring"} />
+        {/* Challenges */}
+        <IconTab active={resolvedActiveTab === "challenges"} onClick={() => r.push(`/${locale}/challenges`)} label={challengesLabel}>
+          <ChallengesIcon active={resolvedActiveTab === "challenges"} />
         </IconTab>
 
         {/* Profile — carries notification badge */}
@@ -443,11 +455,10 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
 
 // ─── Active tab resolver ──────────────────────────────────────────────────────
 function getActiveTab(pathname = "") {
-  if (pathname.includes("/feed"))     return "feed";
-  if (pathname.includes("/fighters")) return "fighters";
-  if (pathname.includes("/coach"))    return "coach";
-  if (pathname.includes("/sparring")) return "sparring";
-  if (pathname.includes("/train") || pathname.includes("/challenges")) return "train";
+  if (pathname.includes("/fighters"))   return "fighters";
+  if (pathname.includes("/coach"))      return "coach";
+  if (pathname.includes("/challenges")) return "challenges";
+  if (pathname.includes("/train"))      return "train";
   if (
     pathname.includes("/profile") ||
     pathname.includes("/fighter-profile") ||
