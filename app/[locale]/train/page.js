@@ -325,12 +325,12 @@ export default function TrainPage() {
     const bd = result.breakdown;
     const lowest = Object.entries(bd).reduce((a, [k, v]) => v < a[1] ? [k, v] : a, ["", 99]);
     const missionMap = {
-      accuracy:    locale === "mn" ? "Өнөөдөр: 20 цэвэр цохилт хий" : "Today: land 20 clean punches",
-      speed:       locale === "mn" ? "Өнөөдөр: гарын хурдыг нэмэгдүүл" : "Today: throw 15 fast snap punches",
-      power:       locale === "mn" ? "Өнөөдөр: 10 хүчтэй combo хий" : "Today: throw 10 powerful combos",
-      consistency: locale === "mn" ? "Өнөөдөр: 30 секунд тогтвортой байлгаарай" : "Today: keep steady pace for 30 sec",
+      accuracy:    t("missionAccuracyText"),
+      speed:       t("missionSpeedText"),
+      power:       t("missionPowerText"),
+      consistency: t("missionConsistencyText"),
     };
-    const text = missionMap[lowest[0]] || (locale === "mn" ? "Өнөөдрийн AI дасгалаа хий" : "Complete today's AI boxing assessment");
+    const text = missionMap[lowest[0]] || t("missionDefaultText");
     const mission = { text, date: new Date().toISOString().split("T")[0] };
     try { localStorage.setItem("gavana_daily_mission", JSON.stringify(mission)); } catch {}
     setDailyMission(mission);
@@ -350,11 +350,11 @@ export default function TrainPage() {
         if (info.status !== "ready" || !info.landmarksDetected) { setPositionCue(null); return; }
         const q = info.cameraQuality;
         if (q === "too_close") {
-          setPositionCue("Step back a little for better tracking");
+          setPositionCue(t("trainCueTooClose"));
         } else if (q === "upper_body_only") {
-          setPositionCue("Move back to show more of your body");
+          setPositionCue(t("trainCueUpperBodyOnly"));
         } else if (q === "upper_body_hips") {
-          setPositionCue("Try to show your full stance");
+          setPositionCue(t("trainCueUpperBodyHips"));
         } else {
           setPositionCue(null);
         }
@@ -918,7 +918,7 @@ export default function TrainPage() {
         {phase === "idle" && (() => {
           const today = new Date().toISOString().split("T")[0];
           const mission = dailyMission?.date === today ? dailyMission : null;
-          const missionText = mission?.text ?? (locale === "mn" ? "Өнөөдөр: анхны AI дасгалаа хий" : "Today: complete your first AI boxing assessment");
+          const missionText = mission?.text ?? t("missionFirstText");
           const missionDone = mission !== null;
           return (
             <div style={{

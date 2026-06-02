@@ -202,7 +202,7 @@ export default function CoachPage() {
               style={{ marginLeft: "auto", padding: "6px 12px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.4)", fontSize: 12, fontWeight: 700, cursor: "pointer", flexShrink: 0 }}
               onClick={() => setShowCoachFilterSheet(true)}
             >
-              {filterVibe || filterLocation ? "● More" : "More ›"}
+              {filterVibe || filterLocation ? t("coachFilterMoreActive") : t("coachFilterMore")}
             </button>
           </div>
 

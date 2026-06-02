@@ -91,10 +91,10 @@ export default function SparringPage() {
       {/* Tab bar */}
       <div style={s.tabBar}>
         {[
-          { key: "discover", label: locale === "mn" ? "Хайх"    : locale === "ko" ? "탐색"    : "Discover" },
-          { key: "requests", label: locale === "mn" ? "Хүсэлт"  : locale === "ko" ? "요청"    : "Requests", badge: pendingIncoming.length },
-          { key: "mine",     label: locale === "mn" ? "Миний"    : locale === "ko" ? "내 게시물" : "Mine" },
-          { key: "history",  label: locale === "mn" ? "Түүх"    : locale === "ko" ? "기록"    : "History" },
+          { key: "discover", label: t("sparringTabDiscover") },
+          { key: "requests", label: t("sparringTabRequests"), badge: pendingIncoming.length },
+          { key: "mine",     label: t("sparringTabMine") },
+          { key: "history",  label: t("sparringTabHistory") },
         ].map(({ key, label, badge }) => (
           <button
             key={key}
@@ -123,13 +123,13 @@ export default function SparringPage() {
             <div style={s.arenaBannerLeft}>
               <p style={s.arenaKicker}>⚔️ LIVE ARENA</p>
               <h2 style={s.arenaTitle}>
-                {locale === "mn" ? "Дасгалын Тал" : locale === "ko" ? "체육관 플로어" : "The Gym Floor"}
+                {t("sparringGymFloor")}
               </h2>
               <div style={s.arenaLiveRow}>
                 <span style={s.arenaLiveDot} className="live-pulse" />
                 <span style={s.arenaLiveCount}>{posts.length}</span>
                 <span style={s.arenaLiveSub}>
-                  {locale === "mn" ? "тулаанч идэвхтэй" : locale === "ko" ? "명 활성" : "fighters active"}
+                  {t("sparringFightersActive")}
                 </span>
               </div>
             </div>
@@ -148,9 +148,7 @@ export default function SparringPage() {
                 opacity: toggling ? 0.6 : 1,
               }}
             >
-              {toggling ? "…" : isOn
-                ? (locale === "mn" ? "🟢 Идэвхтэй" : locale === "ko" ? "🟢 활성" : "🟢 Active")
-                : (locale === "mn" ? "Нэмэгдэх" : locale === "ko" ? "참여하기" : "Join")}
+              {toggling ? "…" : isOn ? t("sparringStatusActive") : t("sparringStatusJoin")}
             </button>
           </div>
 
@@ -180,7 +178,7 @@ export default function SparringPage() {
           <div style={s.countBar}>
             <span style={s.countTxt}>
               {filtered.length === 0
-                ? (locale === "mn" ? "Sparring хайж байгаа тулаанч байхгүй" : locale === "ko" ? "스파링 중인 선수 없음" : "No fighters looking for sparring")
+                ? t("sparringNoFighters")
                 : locale === "mn" ? `${filtered.length} тулаанч sparring хайж байна` : locale === "ko" ? `${filtered.length}명 스파링 중` : `${filtered.length} fighter${filtered.length > 1 ? "s" : ""} looking for sparring`}
             </span>
           </div>
@@ -191,18 +189,18 @@ export default function SparringPage() {
                 // Filter active + no results
                 <div style={s.empty}>
                   <div style={{ width: 44, height: 44, borderRadius: 13, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, marginBottom: 4 }}>🥊</div>
-                  <p style={s.emptyTitle}>{locale === "mn" ? "Энэ filter-тэй тулаанч алга" : locale === "ko" ? "해당 필터에 선수 없음" : "No fighters match this filter"}</p>
+                  <p style={s.emptyTitle}>{t("sparringFilterNoMatch")}</p>
                 </div>
               ) : (
                 // No real users — show demo fighters so the feature is understandable
                 <>
                   <div style={{ padding: "12px 16px 4px", display: "flex", alignItems: "center", gap: 8 }}>
                     <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.28)", textTransform: "uppercase" }}>
-                      {locale === "mn" ? "Жишээ тулаанчид" : locale === "ko" ? "데모 파이터" : "Demo Fighters"}
+                      {t("sparringDemoFighters")}
                     </span>
                     <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.05)" }} />
                     <span style={{ fontSize: 10, color: "rgba(255,255,255,0.22)", fontWeight: 700 }}>
-                      {locale === "mn" ? "Бодит хэрэглэгч нэмэгдэхэд харагдана" : locale === "ko" ? "실제 사용자가 추가되면 표시됩니다" : "Real users will appear here"}
+                      {t("sparringDemoHint")}
                     </span>
                   </div>
                   {DEMO_FIGHTERS.map((post) => (
@@ -219,7 +217,7 @@ export default function SparringPage() {
                     </div>
                   ))}
                   <p style={{ ...s.emptySub, textAlign: "center", padding: "4px 24px 8px" }}>
-                    {locale === "mn" ? `"Миний" табаас өөрийгөө нэмж бусдын нүдэнд өртөөрэй.` : locale === "ko" ? `"내 게시물" 탭에서 자신을 등록하세요.` : `Add yourself in the Mine tab to be discovered by others.`}
+                    {t("sparringAddMineHint")}
                   </p>
                 </>
               )
@@ -248,8 +246,8 @@ export default function SparringPage() {
           {/* Sent / Received sub-tabs */}
           <div style={{ display: "flex", gap: 0, margin: "10px 16px 4px", borderRadius: 12, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", overflow: "hidden" }}>
             {[
-              { key: "received", label: locale === "mn" ? "Ирсэн" : locale === "ko" ? "받은" : "Received", count: pendingIncoming.length },
-              { key: "sent",     label: locale === "mn" ? "Илгээсэн" : locale === "ko" ? "보낸" : "Sent", count: sentRequests.filter((r) => r.status === "pending").length },
+              { key: "received", label: t("sparringTabReceived"), count: pendingIncoming.length },
+              { key: "sent",     label: t("sparringTabSent"), count: sentRequests.filter((r) => r.status === "pending").length },
             ].map(({ key, label, count }) => (
               <button
                 key={key}
@@ -275,21 +273,21 @@ export default function SparringPage() {
 
           {!user ? (
             <div style={s.empty}>
-              <p style={s.emptyTitle}>{locale === "mn" ? "Нэвтрэх шаардлагатай" : locale === "ko" ? "로그인이 필요합니다" : "Login required"}</p>
+              <p style={s.emptyTitle}>{t("sparringLoginRequired")}</p>
             </div>
           ) : requestsSubTab === "received" ? (
             pendingIncoming.length === 0 && resolvedIncoming.length === 0 ? (
               <div style={s.empty}>
                 <div style={{ width: 44, height: 44, borderRadius: 13, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, marginBottom: 4 }}>📬</div>
-                <p style={s.emptyTitle}>{locale === "mn" ? "Хүсэлт ирээгүй байна" : locale === "ko" ? "받은 요청 없음" : "No requests yet"}</p>
-                <p style={s.emptySub}>{locale === "mn" ? "Sparring post идэвхжүүлэхэд хүсэлтүүд энд гарч ирнэ." : locale === "ko" ? "스파링 게시물을 활성화하면 요청이 여기에 표시됩니다." : "Activate your sparring post and requests will appear here."}</p>
+                <p style={s.emptyTitle}>{t("sparringReceivedEmpty")}</p>
+                <p style={s.emptySub}>{t("sparringActivateHint")}</p>
               </div>
             ) : (
               <>
                 {pendingIncoming.length > 0 && (
                   <>
                     <div style={s.sectionLabel}>
-                      {locale === "mn" ? "⏳ Хүлээгдэж байгаа хүсэлтүүд" : locale === "ko" ? "⏳ 대기 중인 요청" : "⏳ Pending requests"}
+                      {t("sparringPendingRequests")}
                     </div>
                     {pendingIncoming.map((req) => (
                       <div key={req.id} style={{ padding: "0 16px 8px" }}>
@@ -308,7 +306,7 @@ export default function SparringPage() {
                 {resolvedIncoming.length > 0 && (
                   <>
                     <div style={s.sectionLabel}>
-                      {locale === "mn" ? "Дууссан хүсэлтүүд" : locale === "ko" ? "처리된 요청" : "Resolved requests"}
+                      {t("sparringResolvedRequests")}
                     </div>
                     {resolvedIncoming.map((req) => {
                       const isAccepted = req.status === "accepted";
@@ -329,7 +327,7 @@ export default function SparringPage() {
                                 </div>
                               </div>
                               <span style={{ fontSize: 11, fontWeight: 900, color: col }}>
-                                {isAccepted ? (locale === "mn" ? "✓ Зөвшөөрсөн" : locale === "ko" ? "✓ 수락됨" : "✓ Accepted") : (locale === "mn" ? "✕ Татгалзсан" : locale === "ko" ? "✕ 거절됨" : "✕ Declined")}
+                                {isAccepted ? t("sparringStatusAccepted") : t("sparringStatusDeclined")}
                               </span>
                             </div>
                           </div>
@@ -345,8 +343,8 @@ export default function SparringPage() {
             sentRequests.length === 0 ? (
               <div style={s.empty}>
                 <div style={{ width: 44, height: 44, borderRadius: 13, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, marginBottom: 4 }}>📤</div>
-                <p style={s.emptyTitle}>{locale === "mn" ? "Илгээсэн хүсэлт байхгүй" : locale === "ko" ? "보낸 요청 없음" : "No requests sent"}</p>
-                <p style={s.emptySub}>{locale === "mn" ? "Discover табаас тулаанч олж sparring хүсэлт илгээгээрэй." : locale === "ko" ? "탐색 탭에서 파이터를 찾아 스파링 요청을 보내세요." : "Find fighters in Discover and send sparring requests."}</p>
+                <p style={s.emptyTitle}>{t("sparringSentEmpty")}</p>
+                <p style={s.emptySub}>{t("sparringDiscoverHint")}</p>
               </div>
             ) : (
               <>
@@ -362,13 +360,11 @@ export default function SparringPage() {
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", marginBottom: 2 }}>
-                              {locale === "mn" ? "Sparring хүсэлт илгээсэн" : locale === "ko" ? "스파링 요청 보냄" : "Sparring request sent"}
+                              {t("sparringSentRequest")}
                             </div>
                             <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
                               <span style={{ fontSize: 11, fontWeight: 800, color: col }}>
-                                {isAccepted ? (locale === "mn" ? "✓ Зөвшөөрсөн" : locale === "ko" ? "✓ 수락됨" : "✓ Accepted")
-                                  : isPending ? (locale === "mn" ? "⏳ Хүлээгдэж байна" : locale === "ko" ? "⏳ 대기 중" : "⏳ Pending")
-                                  : (locale === "mn" ? "✕ Татгалзсан" : locale === "ko" ? "✕ 거절됨" : "✕ Declined")}
+                                {isAccepted ? t("sparringStatusAccepted") : isPending ? t("sparringStatusPending") : t("sparringStatusDeclined")}
                               </span>
                               {ago && <span style={{ fontSize: 10, color: "rgba(255,255,255,0.38)" }}>· {ago}</span>}
                             </div>
@@ -386,7 +382,7 @@ export default function SparringPage() {
                                 cursor: isBusy ? "wait" : "pointer", opacity: isBusy ? 0.6 : 1,
                               }}
                             >
-                              {isBusy ? "…" : (locale === "mn" ? "Цуцлах" : locale === "ko" ? "취소" : "Cancel")}
+                              {isBusy ? "…" : t("sparringCancelBtn")}
                             </button>
                           )}
                         </div>
@@ -412,14 +408,10 @@ export default function SparringPage() {
                   <div style={{ ...s.toggleDot, background: isOn ? "#34D399" : "rgba(255,255,255,0.2)", boxShadow: isOn ? "0 0 8px #34D399" : "none" }} />
                   <div>
                     <div style={{ ...s.toggleTitle, color: isOn ? "#34D399" : "rgba(255,255,255,0.7)" }}>
-                      {isOn
-                        ? (locale === "mn" ? "Та sparring хайж байна" : locale === "ko" ? "스파링 파트너 찾는 중" : "You're looking for sparring")
-                        : (locale === "mn" ? "Sparring хайж байна уу?" : locale === "ko" ? "스파링 파트너를 찾고 있나요?" : "Looking for a sparring partner?")}
+                      {isOn ? t("sparringLookingActive") : t("sparringLookingInactive")}
                     </div>
                     <div style={s.toggleSub}>
-                      {isOn
-                        ? (locale === "mn" ? "Бусад тулаанчид таны бичлэгийг харж хүсэлт илгээх боломжтой" : locale === "ko" ? "다른 선수들이 요청을 보낼 수 있습니다" : "Other fighters can see your post and send requests")
-                        : (locale === "mn" ? "Идэвхжүүлбэл тулаанчид чамайг харна" : locale === "ko" ? "활성화하면 선수들이 볼 수 있습니다" : "Enable to let fighters find you")}
+                      {isOn ? t("sparringVisibleDesc") : t("sparringHiddenDesc")}
                     </div>
                   </div>
                 </div>
@@ -435,9 +427,7 @@ export default function SparringPage() {
                     opacity: toggling ? 0.6 : 1,
                   }}
                 >
-                  {toggling ? "…" : isOn
-                    ? (locale === "mn" ? "Унтраах" : locale === "ko" ? "비활성화" : "Disable")
-                    : (locale === "mn" ? "Идэвхжүүлэх" : locale === "ko" ? "활성화" : "Activate")}
+                  {toggling ? "…" : isOn ? t("sparringDisableBtn") : t("sparringActivateBtn")}
                 </button>
               </div>
             </div>
@@ -447,7 +437,7 @@ export default function SparringPage() {
           {myPost && (
             <div style={{ padding: "8px 16px 0" }}>
               <div style={{ ...s.sectionLabel, marginBottom: 8 }}>
-                {locale === "mn" ? "Таны зарлал" : locale === "ko" ? "내 게시물" : "Your listing"}
+                {t("sparringYourListing")}
               </div>
               <FighterCard post={myPost} isMe onRequest={() => {}} sent={false} requesting={null} locale={locale} />
             </div>
@@ -455,7 +445,7 @@ export default function SparringPage() {
 
           {!user && (
             <div style={s.empty}>
-              <p style={s.emptyTitle}>{locale === "mn" ? "Нэвтрэх шаардлагатай" : locale === "ko" ? "로그인이 필요합니다" : "Login required"}</p>
+              <p style={s.emptyTitle}>{t("sparringLoginRequired")}</p>
             </div>
           )}
 
@@ -464,10 +454,10 @@ export default function SparringPage() {
               <div style={{ textAlign: "center", padding: "32px 20px", background: "rgba(255,255,255,0.02)", borderRadius: 16, border: "1px solid rgba(255,255,255,0.06)" }}>
                 <div style={{ width: 44, height: 44, borderRadius: 13, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, margin: "0 auto 12px" }}>🥊</div>
                 <p style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 900, color: "#fff" }}>
-                  {locale === "mn" ? "Post идэвхгүй байна" : locale === "ko" ? "게시물이 비활성화됨" : "Your listing is inactive"}
+                  {t("sparringListingInactive")}
                 </p>
                 <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.35)", lineHeight: 1.55 }}>
-                  {locale === "mn" ? "Дээрх товчийг дарж зарлалаа нийтлээрэй." : locale === "ko" ? "위 버튼을 눌러 게시물을 등록하세요." : "Toggle your post above to be visible to fighters."}
+                  {t("sparringToggleHint")}
                 </p>
               </div>
             </div>
@@ -487,8 +477,8 @@ export default function SparringPage() {
           ) : matchHistory.length === 0 ? (
             <div style={s.empty}>
               <div style={{ width: 44, height: 44, borderRadius: 13, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, marginBottom: 4 }}>📊</div>
-              <p style={s.emptyTitle}>{locale === "mn" ? "Тулааны түүх байхгүй" : locale === "ko" ? "매치 기록 없음" : "No match history yet"}</p>
-              <p style={s.emptySub}>{locale === "mn" ? "PvP тулааны дараа энд гарч ирнэ" : locale === "ko" ? "PvP 매치 후 여기에 표시됩니다" : "Complete PvP sessions to build your record."}</p>
+              <p style={s.emptyTitle}>{t("sparringNoHistory")}</p>
+              <p style={s.emptySub}>{t("sparringNoHistorySub")}</p>
             </div>
           ) : (
             <>
@@ -500,9 +490,9 @@ export default function SparringPage() {
                 return (
                   <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
                     {[
-                      { label: locale === "mn" ? "Нийт" : locale === "ko" ? "총" : "Matches", value: total, color: "#fff" },
-                      { label: locale === "mn" ? "Ялалт" : locale === "ko" ? "승리" : "Wins", value: wins, color: "#34D399" },
-                      { label: locale === "mn" ? "Ялалт %" : locale === "ko" ? "승률" : "Win rate", value: `${winPct}%`, color: GOLD },
+                      { label: t("sparringMatchTotal"), value: total, color: "#fff" },
+                      { label: t("sparringMatchWins"), value: wins, color: "#34D399" },
+                      { label: t("sparringMatchWinRate"), value: `${winPct}%`, color: GOLD },
                     ].map(({ label, value, color }) => (
                       <HUDCard key={label} corners style={{ flex: 1, minWidth: 80, padding: "12px 10px", textAlign: "center" }}>
                         <p style={{ margin: 0, fontSize: 20, fontWeight: 900, color, fontFamily: "var(--font-display)" }}>{value}</p>
@@ -524,10 +514,10 @@ export default function SparringPage() {
                   >
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13, fontWeight: 900, color: "#fff", marginBottom: 3 }}>
-                        vs {match.opponentName || "Opponent"}
+                        vs {match.opponentName || t("sparringOpponentFallback")}
                       </div>
                       <div style={{ display: "flex", gap: 8, fontSize: 11, color: "rgba(255,255,255,0.45)", flexWrap: "wrap" }}>
-                        <span style={{ color: col, fontWeight: 800 }}>{won ? (locale === "mn" ? "✓ Ялалт" : locale === "ko" ? "✓ 승리" : "✓ Win") : (locale === "mn" ? "✕ Ялагдлт" : locale === "ko" ? "✕ 패배" : "✕ Loss")}</span>
+                        <span style={{ color: col, fontWeight: 800 }}>{won ? t("sparringWin") : t("sparringLoss")}</span>
                         <span>{match.challengerScore?.toFixed(1)} vs {match.opponentScore?.toFixed(1)}</span>
                         {ago && <span>{ago}</span>}
                       </div>

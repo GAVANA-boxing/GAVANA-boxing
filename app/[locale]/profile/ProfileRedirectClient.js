@@ -3,11 +3,13 @@
 import { useEffect } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { useParams, useRouter } from "next/navigation";
+import { translate } from "@/lib/i18n";
 
 export default function ProfileRedirectClient() {
   const { user, loading } = useAuth();
   const { locale } = useParams();
   const router = useRouter();
+  const t = (key) => translate(locale, key);
 
   useEffect(() => {
     if (loading) return;
@@ -30,7 +32,7 @@ export default function ProfileRedirectClient() {
         color: "#fff",
       }}
     >
-      Loading profile...
+      {t("loadingProfile")}
     </div>
   );
 }

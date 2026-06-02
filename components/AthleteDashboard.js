@@ -540,7 +540,7 @@ export default function AthleteDashboard() {
           tag="6 METRICS"
         >
           <div style={{ background: `radial-gradient(ellipse at center, rgba(255,59,48,0.06) 0%, transparent 70%)`, padding: "4px 0 0" }}>
-            <RadarChart stats={radarStats} prevStats={prevRadarStats} />
+            <RadarChart stats={radarStats} prevStats={prevRadarStats} locale={locale} sessions={trainingSessions} />
           </div>
         </PanelCard>
 

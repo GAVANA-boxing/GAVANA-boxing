@@ -85,7 +85,7 @@ function ComboTrainer({ combo, acc, locale }) {
   const [active, setActive] = useState(false);
   const [step, setStep] = useState(0);
   const [done, setDone] = useState(false);
-  const mn = locale === "mn";
+  const t = (key) => translate(locale, key);
 
   function start() { setActive(true); setStep(0); setDone(false); }
   function next() {
@@ -100,12 +100,12 @@ function ComboTrainer({ combo, acc, locale }) {
         <p style={{ ...s.comboName, color: acc, margin: 0 }}>{combo.name}</p>
         {!active && !done && (
           <button type="button" onClick={start} style={{ fontSize: 9, fontWeight: 900, color: acc, background: `${acc}18`, border: `1px solid ${acc}35`, borderRadius: 20, padding: "3px 10px", cursor: "pointer" }}>
-            {mn ? "Дасгал" : "Practice"}
+            {t("comboTrainerPractice")}
           </button>
         )}
         {done && (
           <button type="button" onClick={reset} style={{ fontSize: 9, fontWeight: 900, color: "#34D399", background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.3)", borderRadius: 20, padding: "3px 10px", cursor: "pointer" }}>
-            {mn ? "Дахих" : "Again"}
+            {t("comboTrainerAgain")}
           </button>
         )}
       </div>
@@ -126,7 +126,7 @@ function ComboTrainer({ combo, acc, locale }) {
             ))}
           </div>
           <button type="button" onClick={next} style={{ marginTop: 14, padding: "9px 28px", borderRadius: 12, background: acc, border: "none", color: "#000", fontSize: 13, fontWeight: 900, cursor: "pointer" }}>
-            {step < combo.steps.length - 1 ? (mn ? "Дараах" : "Next") : (mn ? "Дуусгах" : "Done")}
+            {step < combo.steps.length - 1 ? t("comboTrainerNext") : t("comboTrainerDone")}
           </button>
         </div>
       )}
@@ -135,7 +135,7 @@ function ComboTrainer({ combo, acc, locale }) {
         <div style={{ textAlign: "center", padding: "8px 0 4px" }}>
           <div style={{ fontSize: 18, marginBottom: 4 }}>✅</div>
           <div style={{ fontSize: 11, fontWeight: 900, color: "#34D399" }}>
-            {mn ? "Гайхалтай! Дахин хий." : "Nice! Keep drilling it."}
+            {t("comboTrainerComplete")}
           </div>
         </div>
       )}
@@ -358,7 +358,7 @@ export default function FighterDetailPage() {
             borderLeft: `3px solid ${acc}`,
           }}>
             <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: acc, textTransform: "uppercase", marginBottom: 8 }}>
-              {personalConnection.isDirectlyRelevant ? "Your Focus" : "What to learn"}
+              {personalConnection.isDirectlyRelevant ? t("fighterPersonalFocus") : t("fighterPersonalLearn")}
             </div>
 
             <p style={{ margin: "0 0 10px", fontSize: 13, fontWeight: 800, color: "#fff", lineHeight: 1.4 }}>

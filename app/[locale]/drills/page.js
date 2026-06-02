@@ -99,23 +99,72 @@ Return ONLY valid JSON array, no markdown, no explanation:
 [{"name":"...","difficulty":"Beginner|Intermediate|Advanced","duration":"...","steps":["step1","step2","step3"]}]`;
 
     try {
-      const idToken = await user.getIdToken();
+      let idToken;
+      try {
+        idToken = await user.getIdToken();
+      } catch (tokenErr) {
+        console.error("[DrillsPage] getIdToken failed:", tokenErr);
+        throw new Error(mn ? "Нэвтрэх токен авахад алдаа гарлаа. Дахин нэвтэрнэ үү." : "Auth token error — please sign in again.");
+      }
+
+      console.log("[DrillsPage] generate →", { area: selectedArea, type: selectedType, promptLen: prompt.length });
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
-        body: JSON.stringify({ message: prompt, persona: "analyst", locale }),
+        body: JSON.stringify({ messages: [{ role: "user", content: prompt }], persona: "analyst", locale }),
       });
-      if (!res.ok) throw new Error("API error");
+
+      if (!res.ok) {
+        const errText = await res.text().catch(() => "");
+        console.error(`[DrillsPage] HTTP ${res.status}:`, errText);
+        if (res.status === 429) throw new Error(mn ? "Хэт олон хүсэлт. Түр хүлээгээд дахин оролдоно уу." : "Rate limited — wait a moment and retry.");
+        if (res.status === 401) throw new Error(mn ? "Эрх хүрэхгүй байна. Дахин нэвтэрнэ үү." : "Unauthorized — please sign in again.");
+        throw new Error(`HTTP ${res.status}${errText ? ": " + errText.slice(0, 120) : ""}`);
+      }
+
       const data = await res.json();
-      const text = data.reply || data.message || "";
+      console.log("[DrillsPage] API response keys:", Object.keys(data));
+
+      // API returns { message, content, _source, aiError? }
+      if (data.aiError) {
+        console.error("[DrillsPage] aiError from API:", data.message);
+        throw new Error(data.message || (mn ? "AI коуч боломжгүй байна." : "AI coach unavailable."));
+      }
+
+      const text = data.message || "";
+      console.log("[DrillsPage] response text (first 200):", text.slice(0, 200));
+
       const match = text.match(/\[[\s\S]*\]/);
-      if (!match) throw new Error("Bad response");
-      const parsed = JSON.parse(match[0]);
-      if (!Array.isArray(parsed) || parsed.length === 0) throw new Error("Empty drills");
+      if (!match) {
+        console.error("[DrillsPage] No JSON array in response. Full text:", text);
+        throw new Error(mn ? "AI буруу формат буцаалаа. Дахин оролдоно уу." : "AI returned unexpected format — retry.");
+      }
+
+      let parsed;
+      try {
+        parsed = JSON.parse(match[0]);
+      } catch (parseErr) {
+        console.error("[DrillsPage] JSON.parse failed:", parseErr, "match:", match[0].slice(0, 200));
+        throw new Error(mn ? "AI-н хариултыг задлахад алдаа гарлаа." : "Failed to parse AI response.");
+      }
+
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        console.error("[DrillsPage] Parsed result is not a non-empty array:", parsed);
+        throw new Error(mn ? "AI дасгал үүсгэж чадсангүй. Дахин оролдоно уу." : "AI returned no drills — try again.");
+      }
+
+      console.log("[DrillsPage] success — drills:", parsed.length);
       writeCache(key, parsed);
       setDrills(parsed);
-    } catch {
-      setError(mn ? "Алдаа гарлаа. Дахин оролдоно уу." : "Something went wrong. Please try again.");
+    } catch (err) {
+      console.error("[DrillsPage] generate error:", err);
+      const msg = err?.message || String(err);
+      // Show the real error — fall back to generic only if message is a raw Error constructor string
+      const isGeneric = msg === "[object Object]" || msg === "Error";
+      setError(isGeneric
+        ? (mn ? "Алдаа гарлаа. Дахин оролдоно уу." : "Something went wrong. Please try again.")
+        : msg
+      );
     } finally {
       setLoading(false);
     }
