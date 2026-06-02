@@ -1,8 +1,8 @@
 "use client";
 
+import { getBelt, getBeltProgress, getNextBelt } from "@/lib/belts";
 import { RED, RED_DARK, GOLD, PURPLE, redAlpha, goldAlpha, whiteAlpha , blackAlpha} from "@/lib/tokens";
 import { getWeightClassDisplay } from "@/lib/weightClasses";
-import RankBadge from "@/components/RankBadge";
 import styles from "@/components/profile/profilePageStyles";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import { formatScore, getActiveChallengeStreak } from "@/lib/utils";
@@ -31,22 +31,6 @@ function BadgeIcon({ badgeId, color, size = 16 }) {
   return <svg {...p}><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>;
 }
 
-// ─── XP Ring ──────────────────────────────────────────────────────────────────
-
-function XPRing({ progress, color, size = 56 }) {
-  const R = (size - 6) / 2;
-  const circ = 2 * Math.PI * R;
-  const dash = Math.min(Math.max(progress / 100, 0), 1) * circ;
-  return (
-    <svg width={size} height={size} style={{ transform: "rotate(-90deg)", flexShrink: 0 }}>
-      <circle cx={size / 2} cy={size / 2} r={R} fill="none" stroke={`${color}20`} strokeWidth={4} />
-      <circle cx={size / 2} cy={size / 2} r={R} fill="none" stroke={color} strokeWidth={4}
-        strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
-        style={{ filter: `drop-shadow(0 0 4px ${color}aa)` }}
-      />
-    </svg>
-  );
-}
 
 export default function ProfileFighterCard({
   profileUser,
@@ -195,31 +179,44 @@ export default function ProfileFighterCard({
       </p>
 
       {/* ── Digital License Card ─────────────────────────────────────────── */}
+      {(() => {
+        const belt = getBelt(xp);
+        const nextBelt = getNextBelt(xp);
+        const beltPct = getBeltProgress(xp);
+        return (
       <div style={{ ...styles.licenseCard, position: "relative" }} className="section-reveal">
-        {/* Belt stripe — rank color accent at top */}
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, ${fighterRank.color} 0%, ${fighterRank.color}66 55%, transparent 100%)`, pointerEvents: "none" }} />
-        {/* Left: XP ring + rank */}
+        {/* Belt stripe at top */}
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: belt.gradient, pointerEvents: "none" }} />
+        {/* Left: Belt display */}
         <button type="button" onClick={onShowRankModal} style={styles.licenseRankBlock}>
-          <div style={{ position: "relative", width: 56, height: 56 }}>
-            <XPRing progress={rankProgress} color={fighterRank.color} size={56} />
+          {/* Belt ring — shows progress as circle */}
+          <div style={{ position: "relative", width: 56, height: 56, flexShrink: 0 }}>
+            <svg width={56} height={56} style={{ transform: "rotate(-90deg)" }}>
+              <circle cx={28} cy={28} r={24} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth={4} />
+              <circle cx={28} cy={28} r={24} fill="none" stroke={belt.color} strokeWidth={4}
+                strokeDasharray={`${(beltPct / 100) * (2 * Math.PI * 24)} ${2 * Math.PI * 24}`}
+                strokeLinecap="round"
+                style={{ filter: belt.glow ? `drop-shadow(0 0 4px ${belt.glow})` : "none" }}
+              />
+            </svg>
             <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <RankBadge rank={fighterRank} size={28} glowEnabled />
+              <span style={{ fontSize: 20 }}>🥋</span>
             </div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-            <span style={{ fontSize: 12, fontWeight: 900, color: fighterRank.color, letterSpacing: 0.5, lineHeight: 1 }}>{t(fighterRank.key)}</span>
-            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>
-              {xp.toLocaleString()} XP
+            <span style={{ fontSize: 13, fontWeight: 900, color: belt.color, letterSpacing: 0.3, lineHeight: 1 }}>
+              {t(belt.key)}
             </span>
-            {nextRank && (
-              <>
-                <div style={{ width: 100, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
-                  <div style={{ width: `${Math.min(100, rankProgress)}%`, height: "100%", borderRadius: 2, background: fighterRank.gradient || fighterRank.color, transition: "width 0.8s ease" }} />
-                </div>
-                <span style={{ fontSize: 9, color: "rgba(255,255,255,0.28)" }}>
-                  {xpToNextVal.toLocaleString()} → {t(nextRank.key)}
-                </span>
-              </>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ width: 90, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
+                <div style={{ width: `${beltPct}%`, height: "100%", borderRadius: 2, background: belt.gradient, transition: "width 0.8s ease" }} />
+              </div>
+              <span style={{ fontSize: 10, fontWeight: 900, color: belt.color }}>{beltPct}%</span>
+            </div>
+            {nextBelt && (
+              <span style={{ fontSize: 9, color: "rgba(255,255,255,0.28)" }}>
+                {t("beltNextLabel")} {t(nextBelt.key)}
+              </span>
             )}
           </div>
         </button>
@@ -266,6 +263,8 @@ export default function ProfileFighterCard({
           )}
         </div>
       </div>
+        );
+      })()}
 
       {/* ── Badges shelf ─────────────────────────────────────────────────── */}
       {userBadges.length > 0 && (

@@ -12,6 +12,7 @@ import dynamic from "next/dynamic";
 const MotionChart = dynamic(() => import("@/components/train/MotionChart"), { ssr: false });
 import RankBadge from "@/components/RankBadge";
 import styles from "@/components/train/trainStyles";
+import { getBelt } from "@/lib/belts";
 
 function useCountUp(target, duration = 1000) {
   const [display, setDisplay] = useState(0);
@@ -330,6 +331,7 @@ export default function TrainResultModal({
   challengeSaving,
   challengeSaved,
   rankUpInfo,
+  beltUpInfo,
   sessionHistory,
   ghostBestScore,
   pvpResult,
@@ -1357,6 +1359,30 @@ export default function TrainResultModal({
                   {missionStreakBonus > 0 && (
                     <span style={styles.missionStreakBonusText}>{" "}+ {missionStreakBonus} XP 🔥{missionNewStreak} {t("missionStreakBonus")}</span>
                   )}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Belt Up */}
+          {beltUpInfo && (
+            <>
+              <SectionLabel label={locale === "mn" ? "БҮС ДЭВШИЛТ" : locale === "ko" ? "벨트 승급" : "BELT PROMOTION"} />
+              <div style={{
+                borderRadius: RADIUS.md, padding: "20px 20px", textAlign: "center",
+                background: `linear-gradient(135deg, ${beltUpInfo.color}14, ${blackAlpha(0.8)})`,
+                border: `2px solid ${beltUpInfo.color}55`,
+                animation: "rankUpPulse 2s ease-in-out infinite",
+              }}>
+                <div style={{ fontSize: 36, marginBottom: 8 }}>🥋</div>
+                <div style={{ fontSize: 15, fontWeight: 900, color: beltUpInfo.color, marginBottom: 4 }}>
+                  {locale === "mn" ? "БҮС АХИЛЛАА!" : locale === "ko" ? "벨트 승급!" : "BELT PROMOTED!"}
+                </div>
+                <div style={{ fontSize: 20, fontWeight: 900, color: "#fff", letterSpacing: 1 }}>
+                  {typeof t === "function" ? t(beltUpInfo.key) : beltUpInfo.key}
+                </div>
+                <div style={{ marginTop: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                  {locale === "mn" ? "Гайхалтай ахиц дэвшил!" : locale === "ko" ? "엄청난 발전입니다!" : "Incredible progress!"}
                 </div>
               </div>
             </>

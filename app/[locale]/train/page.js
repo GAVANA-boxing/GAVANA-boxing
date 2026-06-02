@@ -68,6 +68,7 @@ export default function TrainPage() {
     reelId, drillId, challengeId, trainSource, trainSourceUserId,
     challengeUserId, creatorBestScore, targetScore,
     currentXP, sessionHistory, weeklySessionCount, userStreak,
+    bestDailyStreak, missionCompletedToday,
     opponentUsername, ghostBestScore, setGhostBestScore, ghostBestScoreRef,
     challengePostId: activeChallengePostId,
     challengePostData,
@@ -135,7 +136,7 @@ export default function TrainPage() {
     saving, saved, savedAttemptNumber,
     challengeSaving, challengeSaved, challengeSavedRef,
     missionJustCompleted, missionStreakBonus, missionNewStreak,
-    rankUpInfo,
+    rankUpInfo, beltUpInfo,
     handleSave, handleSaveChallengeResult,
     handleShareChallenge, handleChallengeFriend, handleShareTraining,
     feedSharing, feedShared, sharedReelId,
@@ -915,30 +916,72 @@ export default function TrainPage() {
         )}
 
         {/* Daily mission strip — shown when idle only */}
-        {phase === "idle" && (() => {
-          const today = new Date().toISOString().split("T")[0];
-          const mission = dailyMission?.date === today ? dailyMission : null;
-          const missionText = mission?.text ?? t("missionFirstText");
-          const missionDone = mission !== null;
-          return (
-            <div style={{
-              margin: "8px 0 0",
-              padding: "9px 14px",
-              borderRadius: 12,
-              background: missionDone ? "rgba(52,211,153,0.05)" : "rgba(245,196,81,0.04)",
-              border: `1px solid ${missionDone ? "rgba(52,211,153,0.15)" : "rgba(245,196,81,0.13)"}`,
-              display: "flex", alignItems: "center", gap: 10,
-            }}>
-              <span style={{ fontSize: 16, flexShrink: 0 }}>{missionDone ? "✅" : "🎯"}</span>
-              <span style={{ fontSize: 11, fontWeight: 800, color: missionDone ? "#34D399" : "rgba(245,196,81,0.85)", lineHeight: 1.4 }}>
-                {missionText}
-              </span>
-              {userStreak > 0 && (
-                <span style={{ marginLeft: "auto", flexShrink: 0, fontSize: 11, fontWeight: 900, color: "#FB923C" }}>🔥{userStreak}</span>
-              )}
+        {phase === "idle" && (
+          <div style={{
+            margin: "8px 0 0",
+            borderRadius: 14,
+            overflow: "hidden",
+            border: missionCompletedToday ? "1px solid rgba(52,211,153,0.2)" : "1px solid rgba(245,196,81,0.2)",
+            background: missionCompletedToday ? "rgba(52,211,153,0.04)" : "rgba(0,0,0,0.3)",
+          }}>
+            {/* Mission status row */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px" }}>
+              <span style={{ fontSize: 18, flexShrink: 0 }}>{missionCompletedToday ? "✅" : "🥊"}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.8, textTransform: "uppercase", color: missionCompletedToday ? "#34D399" : "rgba(245,196,81,0.8)", marginBottom: 2 }}>
+                  {missionCompletedToday
+                    ? (locale === "mn" ? "ӨНӨӨДРИЙН ДААЛГАВАР ДУУССАН" : locale === "ko" ? "오늘 미션 완료" : "TODAY'S MISSION DONE")
+                    : (locale === "mn" ? "ӨНӨӨДРИЙН ДААЛГАВАР" : locale === "ko" ? "오늘의 미션" : "DAILY MISSION")}
+                </div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: "rgba(255,255,255,0.75)" }}>
+                  {missionCompletedToday
+                    ? (locale === "mn" ? "Гайхалтай! Маргааш streak-ийг үргэлжлүүл." : locale === "ko" ? "훌륭해요! 내일도 스트릭을 이어가세요." : "Great work! Keep the streak alive tomorrow.")
+                    : (locale === "mn" ? "Дасгал хийж +50 XP ав" : locale === "ko" ? "훈련하고 +50 XP 획득" : "Train once today for +50 XP")}
+                </div>
+              </div>
+              {/* Streak pill */}
+              <div style={{
+                flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center",
+                padding: "6px 10px", borderRadius: 10,
+                background: userStreak >= 7 ? "rgba(251,146,60,0.15)" : userStreak >= 3 ? "rgba(251,146,60,0.1)" : "rgba(255,255,255,0.05)",
+                border: userStreak >= 3 ? "1px solid rgba(251,146,60,0.3)" : "1px solid rgba(255,255,255,0.08)",
+              }}>
+                <span style={{ fontSize: 16 }}>🔥</span>
+                <span style={{ fontSize: 13, fontWeight: 900, color: userStreak > 0 ? "#FB923C" : "rgba(255,255,255,0.3)", lineHeight: 1 }}>
+                  {userStreak}
+                </span>
+                <span style={{ fontSize: 8, fontWeight: 700, color: "rgba(255,255,255,0.35)", letterSpacing: 0.5, textTransform: "uppercase" }}>
+                  {locale === "mn" ? "өдөр" : locale === "ko" ? "일" : "day"}
+                </span>
+              </div>
             </div>
-          );
-        })()}
+            {/* Streak milestone bar */}
+            {userStreak > 0 && (
+              <div style={{ padding: "0 14px 10px", display: "flex", alignItems: "center", gap: 6 }}>
+                {[1, 3, 7, 14, 30].map((milestone) => (
+                  <div key={milestone} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                    <div style={{
+                      width: 6, height: 6, borderRadius: "50%",
+                      background: userStreak >= milestone ? "#FB923C" : "rgba(255,255,255,0.1)",
+                      boxShadow: userStreak >= milestone ? "0 0 6px rgba(251,146,60,0.6)" : "none",
+                    }} />
+                    <span style={{ fontSize: 7, fontWeight: 700, color: userStreak >= milestone ? "#FB923C" : "rgba(255,255,255,0.2)" }}>
+                      {milestone}
+                    </span>
+                  </div>
+                ))}
+                <div style={{ flex: 1, height: 2, borderRadius: 1, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                  <div style={{ width: `${Math.min(100, (userStreak / 30) * 100)}%`, height: "100%", background: "linear-gradient(90deg,#FB923C,#F59E0B)", transition: "width 0.6s ease" }} />
+                </div>
+                {bestDailyStreak > 0 && (
+                  <span style={{ fontSize: 8, fontWeight: 700, color: "rgba(255,255,255,0.25)", whiteSpace: "nowrap" }}>
+                    {locale === "mn" ? `Хамгийн дээд: ${bestDailyStreak}` : locale === "ko" ? `최고: ${bestDailyStreak}일` : `Best: ${bestDailyStreak}d`}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {error && <div style={styles.error}>{error}</div>}
         {saved && (
@@ -986,6 +1029,7 @@ export default function TrainPage() {
         challengeSaving={challengeSaving}
         challengeSaved={challengeSaved}
         rankUpInfo={rankUpInfo}
+        beltUpInfo={beltUpInfo}
         sessionHistory={sessionHistory}
         ghostBestScore={ghostBestScore}
         pvpResult={pvpResult}

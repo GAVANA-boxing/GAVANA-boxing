@@ -5,6 +5,7 @@ import { db } from "@/lib/firebase";
 import { createChallengeAttemptNotification, createChallengeBeatenNotification } from "@/lib/notifications";
 import { getCurrentSeasonId } from "@/lib/season";
 import { calculateChallengeXP, getFighterRank } from "@/lib/xp";
+import { getBelt } from "@/lib/belts";
 import { getChallengeRank } from "@/lib/utils";
 import { getChallengeComparisonPercent, getChallengeStreakBonus } from "@/lib/trainHelpers";
 import { writeChallengeAttempt, updateUserTrainingProfile } from "@/lib/analytics";
@@ -41,6 +42,7 @@ export function useTrainingActions({
   const [missionStreakBonus, setMissionStreakBonus] = useState(0);
   const [missionNewStreak, setMissionNewStreak] = useState(0);
   const [rankUpInfo, setRankUpInfo] = useState(null);
+  const [beltUpInfo, setBeltUpInfo] = useState(null);
   const challengeSavedRef = useRef(false);
   const [feedSharing,       setFeedSharing]       = useState(false);
   const [feedShared,        setFeedShared]        = useState(false);
@@ -149,6 +151,9 @@ export function useTrainingActions({
         const prevRank = getFighterRank(Number(userData.xp) || 0);
         const nextRank = getFighterRank(nextXP);
         if (prevRank.key !== nextRank.key) rankUpData = nextRank;
+        const prevBelt = getBelt(Number(userData.xp) || 0);
+        const newBelt = getBelt(nextXP);
+        if (prevBelt.key !== newBelt.key) { setTimeout(() => setBeltUpInfo(newBelt), 1200); }
 
         transaction.set(challengeResultRef, {
           userId: user.uid,
@@ -297,14 +302,20 @@ export function useTrainingActions({
         const currentStoredXP = Number(userData.xp) || 0;
         const newBest = Math.max(newStreak, Number(userData.bestDailyStreak) || 0);
 
+        const newXP = currentStoredXP + totalBonus;
         await setDoc(userRef, {
           dailyMissionCompleted: todayKey,
           lastTrainingDate: todayKey,
           dailyStreak: newStreak,
           bestDailyStreak: newBest,
-          xp: currentStoredXP + totalBonus,
+          xp: newXP,
           updatedAt: serverTimestamp(),
         }, { merge: true });
+
+        // Belt-up detection
+        const prevTrainBelt = getBelt(currentStoredXP);
+        const newTrainBelt = getBelt(newXP);
+        if (prevTrainBelt.key !== newTrainBelt.key) { setTimeout(() => setBeltUpInfo(newTrainBelt), 1200); }
 
         setMissionJustCompleted(true);
         setMissionStreakBonus(streakBonus);
@@ -525,6 +536,7 @@ export function useTrainingActions({
     setMissionStreakBonus(0);
     setMissionNewStreak(0);
     setRankUpInfo(null);
+    setBeltUpInfo(null);
     setFeedSharing(false);
     setFeedShared(false);
     setSharedReelId(null);
@@ -543,7 +555,7 @@ export function useTrainingActions({
     saving, saved, savedAttemptNumber,
     challengeSaving, challengeSaved, challengeSavedRef,
     missionJustCompleted, missionStreakBonus, missionNewStreak,
-    rankUpInfo,
+    rankUpInfo, beltUpInfo,
     handleSave, handleSaveChallengeResult,
     handleShareChallenge, handleChallengeFriend, handleShareTraining,
     feedSharing, feedShared, sharedReelId,
