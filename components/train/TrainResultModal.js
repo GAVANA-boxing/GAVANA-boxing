@@ -377,7 +377,12 @@ export default function TrainResultModal({
   recordedBlob     = null,
   thumbnailBlob    = null,
 }) {
-  const displayScore = useCountUp(result?.score);
+  // Compute confidence early so we can cap the animated score
+  const _punchCount = (poseMetrics?.punchCount ?? result?.hitCount ?? 0);
+  const _scoreConf = computeScoreConfidence(_punchCount, poseMetrics?.sessionConfidence ?? null, poseMetrics?.cameraQuality ?? null);
+  const _scoreCap = _scoreConf === "low" ? 7.5 : _scoreConf === "medium" ? 8.5 : 10;
+  const _cappedScore = result ? Math.min(result.score, _scoreCap) : 0;
+  const displayScore = useCountUp(_cappedScore);
   const [sessionTag, setSessionTag] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
   const [clipDuration, setClipDuration] = useState(null);
@@ -396,12 +401,7 @@ export default function TrainResultModal({
   const effectivePunchCount = poseMetrics?.punchCount ?? result.hitCount ?? 0;
   const tooFewPunches = effectivePunchCount < MIN_PUNCHES;
 
-  // Score confidence — determines how prominently we show the score
-  const scoreConf = computeScoreConfidence(
-    effectivePunchCount,
-    poseMetrics?.sessionConfidence ?? null,
-    poseMetrics?.cameraQuality ?? null,
-  );
+  const scoreConf = _scoreConf;
   const isLowConfidence = scoreConf === "low" || scoreConf === "none";
 
   const events = movementEvents || [];
