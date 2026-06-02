@@ -18,6 +18,7 @@ export function useTrainingData({ user }) {
   const [currentXP, setCurrentXP] = useState(0);
   const [sessionHistory, setSessionHistory] = useState([]);
   const [weeklySessionCount, setWeeklySessionCount] = useState(0);
+  const [totalSessionCount, setTotalSessionCount] = useState(null); // null = loading
   const [userStreak, setUserStreak] = useState(0);
   const [bestDailyStreak, setBestDailyStreak] = useState(0);
   const [missionCompletedToday, setMissionCompletedToday] = useState(false);
@@ -76,6 +77,7 @@ export function useTrainingData({ user }) {
           .map((d) => d.data())
           .filter((d) => d.type === "training" && Number.isFinite(Number(d.score)));
         sessions.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        setTotalSessionCount(sessions.length);
         setSessionHistory(sessions.slice(0, 5).map((d) => Number(d.score)));
         const now = new Date();
         const dayOfWeek = now.getDay();
@@ -191,6 +193,7 @@ export function useTrainingData({ user }) {
     userStreak,
     bestDailyStreak,
     missionCompletedToday,
+    totalSessionCount,
     opponentUsername,
     ghostBestScore, setGhostBestScore,
     ghostBestScoreRef,

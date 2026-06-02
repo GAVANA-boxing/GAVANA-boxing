@@ -13,6 +13,7 @@ const MotionChart = dynamic(() => import("@/components/train/MotionChart"), { ss
 import RankBadge from "@/components/RankBadge";
 import styles from "@/components/train/trainStyles";
 import { getBelt } from "@/lib/belts";
+import { computeScoreConfidence, CONFIDENCE_TIPS } from "@/lib/scoreConfidence";
 
 function useCountUp(target, duration = 1000) {
   const [display, setDisplay] = useState(0);
@@ -395,6 +396,14 @@ export default function TrainResultModal({
   const effectivePunchCount = poseMetrics?.punchCount ?? result.hitCount ?? 0;
   const tooFewPunches = effectivePunchCount < MIN_PUNCHES;
 
+  // Score confidence — determines how prominently we show the score
+  const scoreConf = computeScoreConfidence(
+    effectivePunchCount,
+    poseMetrics?.sessionConfidence ?? null,
+    poseMetrics?.cameraQuality ?? null,
+  );
+  const isLowConfidence = scoreConf === "low" || scoreConf === "none";
+
   const events = movementEvents || [];
   const identity = tooFewPunches ? null : getIdentityWithSub(result.score, events, poseMetrics);
   const movementSummary = getMovementSummary(events);
@@ -417,9 +426,22 @@ export default function TrainResultModal({
 
         {/* ── HEADER ───────────────────────────────────────────────── */}
         <div style={{ padding: "20px 20px 14px", flexShrink: 0, borderBottom: `1px solid ${whiteAlpha(0.05)}` }}>
-          <p style={{ margin: 0, fontSize: 9, fontWeight: 900, letterSpacing: 3.5, color: goldAlpha(0.65), textTransform: "uppercase" }}>
-            {analysisLabel}
-          </p>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
+            <p style={{ margin: 0, fontSize: 9, fontWeight: 900, letterSpacing: 3.5, color: goldAlpha(0.65), textTransform: "uppercase" }}>
+              {analysisLabel}
+            </p>
+            {/* Confidence badge */}
+            {!tooFewPunches && (() => {
+              const confMap = { high: { label: t("scoreConfidenceHigh"), color: "#34D399", bg: "rgba(52,211,153,0.1)" }, medium: { label: t("scoreConfidenceMedium"), color: "#F5C451", bg: "rgba(245,196,81,0.1)" }, low: { label: t("scoreConfidenceLow"), color: "#FB923C", bg: "rgba(251,146,60,0.1)" } };
+              const cm = confMap[scoreConf];
+              if (!cm) return null;
+              return (
+                <span style={{ fontSize: 8, fontWeight: 900, color: cm.color, background: cm.bg, padding: "3px 8px", borderRadius: 20, letterSpacing: 0.5 }}>
+                  {cm.label}
+                </span>
+              );
+            })()}
+          </div>
 
           {tooFewPunches ? (
             /* ── Not enough data ── */
@@ -471,6 +493,23 @@ export default function TrainResultModal({
             </>
           )}
         </div>
+
+        {/* ── LOW CONFIDENCE TIPS ──────────────────────────────────── */}
+        {isLowConfidence && !tooFewPunches && (
+          <div style={{ margin: "0 20px 0", padding: "12px 14px", borderRadius: 12, background: "rgba(251,146,60,0.06)", border: "1px solid rgba(251,146,60,0.2)" }}>
+            <div style={{ fontSize: 10, fontWeight: 900, color: "#FB923C", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8 }}>
+              ⚠ {t("confidenceLowNote")}
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {CONFIDENCE_TIPS.map((tip) => (
+                <div key={tip.key} style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 9px", borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <span style={{ fontSize: 12 }}>{tip.icon}</span>
+                  <span style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", fontWeight: 700 }}>{t(tip.key)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ── RETURN SUMMARY ───────────────────────────────────────── */}
         {!tooFewPunches && (() => {
@@ -1455,8 +1494,10 @@ export default function TrainResultModal({
             </div>
           )}
           <div style={{ display: "grid", gap: 8 }}>
-            <button type="button" style={styles.tryAgainButton} onClick={onTryAgain}>
-              {activeChallenge ? t("challengeTryAgain") : t("trainTryAgain")}
+            <button type="button"
+              style={{ ...styles.tryAgainButton, ...(isLowConfidence ? { background: "linear-gradient(135deg,#FB923C,#F59E0B)", color: "#000", fontWeight: 900 } : {}) }}
+              onClick={onTryAgain}>
+              {isLowConfidence ? t("confidenceTryAgain") : activeChallenge ? t("challengeTryAgain") : t("trainTryAgain")}
             </button>
             {!activeChallenge && !saved && (
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 2 }}>
@@ -1479,7 +1520,7 @@ export default function TrainResultModal({
             {!tooFewPunches && !activeChallenge && !isGuest && (
               <button
                 type="button"
-                style={{ ...styles.saveButton, ...(saved ? styles.saveButtonDone : {}), opacity: saving || saved ? 0.65 : 1, cursor: saving || saved ? "default" : "pointer" }}
+                style={{ ...styles.saveButton, ...(saved ? styles.saveButtonDone : {}), ...(isLowConfidence && !saved ? { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.45)", fontSize: 11 } : {}), opacity: saving || saved ? 0.65 : 1, cursor: saving || saved ? "default" : "pointer" }}
                 onClick={() => {
                   // Strip heavy frame-by-frame arrays, keep compact weakness list for history
                   const { motionHistory: _mh, punchEvents: _pe, coaching, ...poseMetricsForSave } = poseMetrics || {};
@@ -1495,7 +1536,9 @@ export default function TrainResultModal({
                     ? t("trainAttemptSaved").replace("{n}", savedAttemptNumber)
                     : saved
                       ? t("trainSavedShort")
-                      : t("trainSaveProgress")}
+                      : isLowConfidence
+                        ? t("confidenceSaveAnyway")
+                        : t("trainSaveProgress")}
               </button>
             )}
             {!tooFewPunches && isGuest && (

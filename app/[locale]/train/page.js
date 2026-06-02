@@ -26,6 +26,8 @@ import MilestoneCelebration from "@/components/MilestoneCelebration";
 import { usePoseDetection } from "@/hooks/usePoseDetection";
 import TechniquePicker from "@/components/train/TechniquePicker";
 import { getPersonalConnection } from "@/lib/fighterPersonalConnection";
+import { isBeginnerUser, getCurrentBeginnerLesson, getBeginnerProgress } from "@/lib/beginnerPath";
+import { getBelt, getBeltProgress, getNextBelt } from "@/lib/belts";
 import dynamic from "next/dynamic";
 const PoseDebugOverlay   = dynamic(() => import("@/components/train/PoseDebugOverlay"),   { ssr: false });
 const DebugSessionPanel  = dynamic(() => import("@/components/train/DebugSessionPanel"),  { ssr: false });
@@ -68,7 +70,7 @@ export default function TrainPage() {
     reelId, drillId, challengeId, trainSource, trainSourceUserId,
     challengeUserId, creatorBestScore, targetScore,
     currentXP, sessionHistory, weeklySessionCount, userStreak,
-    bestDailyStreak, missionCompletedToday,
+    bestDailyStreak, missionCompletedToday, totalSessionCount,
     opponentUsername, ghostBestScore, setGhostBestScore, ghostBestScoreRef,
     challengePostId: activeChallengePostId,
     challengePostData,
@@ -199,6 +201,9 @@ export default function TrainPage() {
   const [prevPoseMetrics, setPrevPoseMetrics] = useState(null);
   const [positionCue, setPositionCue] = useState(null);
   const [trackingRing, setTrackingRing] = useState(null);
+  const [readinessOpen, setReadinessOpen] = useState(false);
+  const [readinessStep, setReadinessStep] = useState(0); // 0/1/2
+  const readinessShownRef = useRef(false);
   const coachSnapshotRef = useRef(null);
   const prevSessionCountRef = useRef(null);
   const priorSessionsRef = useRef([]);
@@ -463,6 +468,18 @@ export default function TrainPage() {
   const isCountingDown = phase === "countdown";
   const isRecording = phase === "recording";
   const canStart = phase === "idle" || phase === "result";
+
+  // For brand-new users (first session ever), intercept start with readiness flow
+  const isFirstSession = totalSessionCount === 0;
+  const wrappedHandleStart = () => {
+    if (isFirstSession && !readinessShownRef.current) {
+      readinessShownRef.current = true;
+      setReadinessOpen(true);
+      setReadinessStep(0);
+      return;
+    }
+    handleStart();
+  };
 
   return (
     <main style={styles.page}>
@@ -915,73 +932,110 @@ export default function TrainPage() {
           </div>
         )}
 
-        {/* Daily mission strip — shown when idle only */}
+        {/* ── Daily Hub — shown when idle only ─────────────────────────── */}
         {phase === "idle" && (() => {
           const effectiveMissionDone = missionCompletedToday || missionJustCompleted;
+          const isBeginner = isBeginnerUser(totalSessionCount ?? 999);
+          const nextLesson = isBeginner ? getCurrentBeginnerLesson(totalSessionCount ?? 0) : null;
+          const beginnerProg = isBeginner ? getBeginnerProgress(totalSessionCount ?? 0) : null;
+          const belt = getBelt(currentXP);
+          const beltPct = getBeltProgress(currentXP);
+          const nextBelt = getNextBelt(currentXP);
+
           return (
-          <div style={{
-            margin: "8px 0 0",
-            borderRadius: 14,
-            overflow: "hidden",
-            border: effectiveMissionDone ? "1px solid rgba(52,211,153,0.2)" : "1px solid rgba(245,196,81,0.2)",
-            background: effectiveMissionDone ? "rgba(52,211,153,0.04)" : "rgba(0,0,0,0.3)",
-          }}>
-            {/* Mission status row */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px" }}>
-              <span style={{ fontSize: 18, flexShrink: 0 }}>{effectiveMissionDone ? "✅" : "🥊"}</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.8, textTransform: "uppercase", color: effectiveMissionDone ? "#34D399" : "rgba(245,196,81,0.8)", marginBottom: 2 }}>
-                  {effectiveMissionDone
-                    ? (locale === "mn" ? "ӨНӨӨДРИЙН ДААЛГАВАР ДУУССАН" : locale === "ko" ? "오늘 미션 완료" : "TODAY'S MISSION DONE")
-                    : (locale === "mn" ? "ӨНӨӨДРИЙН ДААЛГАВАР" : locale === "ko" ? "오늘의 미션" : "DAILY MISSION")}
-                </div>
-                <div style={{ fontSize: 12, fontWeight: 800, color: "rgba(255,255,255,0.75)" }}>
-                  {effectiveMissionDone
-                    ? (locale === "mn" ? "Гайхалтай! Маргааш streak-ийг үргэлжлүүл." : locale === "ko" ? "훌륭해요! 내일도 스트릭을 이어가세요." : "Great work! Keep the streak alive tomorrow.")
-                    : (locale === "mn" ? "Дасгал хийж +50 XP ав" : locale === "ko" ? "훈련하고 +50 XP 획득" : "Train once today for +50 XP")}
-                </div>
-              </div>
-              {/* Streak pill */}
-              <div style={{
-                flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center",
-                padding: "6px 10px", borderRadius: 10,
-                background: userStreak >= 7 ? "rgba(251,146,60,0.15)" : userStreak >= 3 ? "rgba(251,146,60,0.1)" : "rgba(255,255,255,0.05)",
-                border: userStreak >= 3 ? "1px solid rgba(251,146,60,0.3)" : "1px solid rgba(255,255,255,0.08)",
-              }}>
-                <span style={{ fontSize: 16 }}>🔥</span>
-                <span style={{ fontSize: 13, fontWeight: 900, color: userStreak > 0 ? "#FB923C" : "rgba(255,255,255,0.3)", lineHeight: 1 }}>
-                  {userStreak}
-                </span>
-                <span style={{ fontSize: 8, fontWeight: 700, color: "rgba(255,255,255,0.35)", letterSpacing: 0.5, textTransform: "uppercase" }}>
-                  {locale === "mn" ? "өдөр" : locale === "ko" ? "일" : "day"}
-                </span>
-              </div>
-            </div>
-            {/* Streak milestone bar */}
-            {userStreak > 0 && (
-              <div style={{ padding: "0 14px 10px", display: "flex", alignItems: "center", gap: 6 }}>
-                {[1, 3, 7, 14, 30].map((milestone) => (
-                  <div key={milestone} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                    <div style={{
-                      width: 6, height: 6, borderRadius: "50%",
-                      background: userStreak >= milestone ? "#FB923C" : "rgba(255,255,255,0.1)",
-                      boxShadow: userStreak >= milestone ? "0 0 6px rgba(251,146,60,0.6)" : "none",
-                    }} />
-                    <span style={{ fontSize: 7, fontWeight: 700, color: userStreak >= milestone ? "#FB923C" : "rgba(255,255,255,0.2)" }}>
-                      {milestone}
-                    </span>
+          <div style={{ margin: "8px 0 0", display: "flex", flexDirection: "column", gap: 6 }}>
+
+            {/* Mission + streak + belt card */}
+            <div style={{
+              borderRadius: 14, overflow: "hidden",
+              border: effectiveMissionDone ? "1px solid rgba(52,211,153,0.2)" : "1px solid rgba(245,196,81,0.2)",
+              background: effectiveMissionDone ? "rgba(52,211,153,0.04)" : "rgba(0,0,0,0.3)",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px" }}>
+                <span style={{ fontSize: 18, flexShrink: 0 }}>{effectiveMissionDone ? "✅" : "🥊"}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.8, textTransform: "uppercase", color: effectiveMissionDone ? "#34D399" : "rgba(245,196,81,0.8)", marginBottom: 2 }}>
+                    {effectiveMissionDone
+                      ? (locale === "mn" ? "ӨНӨӨДРИЙН ДААЛГАВАР ДУУССАН" : locale === "ko" ? "오늘 미션 완료" : "TODAY'S MISSION DONE")
+                      : (locale === "mn" ? "ӨНӨӨДРИЙН ДААЛГАВАР" : locale === "ko" ? "오늘의 미션" : "DAILY MISSION")}
                   </div>
-                ))}
-                <div style={{ flex: 1, height: 2, borderRadius: 1, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-                  <div style={{ width: `${Math.min(100, (userStreak / 30) * 100)}%`, height: "100%", background: "linear-gradient(90deg,#FB923C,#F59E0B)", transition: "width 0.6s ease" }} />
+                  <div style={{ fontSize: 12, fontWeight: 800, color: "rgba(255,255,255,0.75)" }}>
+                    {effectiveMissionDone
+                      ? (locale === "mn" ? "Гайхалтай! Маргааш streak-ийг үргэлжлүүл." : locale === "ko" ? "훌륭해요! 내일도 스트릭을 이어가세요." : "Great work! Keep the streak alive tomorrow.")
+                      : (locale === "mn" ? "Дасгал хийж +50 XP ав" : locale === "ko" ? "훈련하고 +50 XP 획득" : "Train once today for +50 XP")}
+                  </div>
                 </div>
-                {bestDailyStreak > 0 && (
-                  <span style={{ fontSize: 8, fontWeight: 700, color: "rgba(255,255,255,0.25)", whiteSpace: "nowrap" }}>
-                    {locale === "mn" ? `Хамгийн дээд: ${bestDailyStreak}` : locale === "ko" ? `최고: ${bestDailyStreak}일` : `Best: ${bestDailyStreak}d`}
+                {/* Streak pill */}
+                <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", padding: "6px 10px", borderRadius: 10, background: userStreak >= 7 ? "rgba(251,146,60,0.15)" : userStreak >= 3 ? "rgba(251,146,60,0.1)" : "rgba(255,255,255,0.05)", border: userStreak >= 3 ? "1px solid rgba(251,146,60,0.3)" : "1px solid rgba(255,255,255,0.08)" }}>
+                  <span style={{ fontSize: 16 }}>🔥</span>
+                  <span style={{ fontSize: 13, fontWeight: 900, color: userStreak > 0 ? "#FB923C" : "rgba(255,255,255,0.3)", lineHeight: 1 }}>{userStreak}</span>
+                  <span style={{ fontSize: 8, fontWeight: 700, color: "rgba(255,255,255,0.35)", letterSpacing: 0.5, textTransform: "uppercase" }}>
+                    {locale === "mn" ? "өдөр" : locale === "ko" ? "일" : "day"}
                   </span>
-                )}
+                </div>
+              </div>
+
+              {/* Belt progress row */}
+              <div style={{ padding: "0 14px 10px", display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 12 }}>🥋</span>
+                <span style={{ fontSize: 10, fontWeight: 800, color: belt.color }}>{t(belt.key)}</span>
+                <div style={{ flex: 1, height: 3, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                  <div style={{ width: `${beltPct}%`, height: "100%", background: belt.gradient, transition: "width 0.6s ease" }} />
+                </div>
+                <span style={{ fontSize: 9, fontWeight: 800, color: belt.color }}>{beltPct}%</span>
+                {nextBelt && <span style={{ fontSize: 8, color: "rgba(255,255,255,0.22)" }}>→ {t(nextBelt.key)}</span>}
+              </div>
+
+              {/* Streak milestones */}
+              {userStreak > 0 && (
+                <div style={{ padding: "0 14px 10px", display: "flex", alignItems: "center", gap: 6 }}>
+                  {[1, 3, 7, 14, 30].map((m) => (
+                    <div key={m} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                      <div style={{ width: 6, height: 6, borderRadius: "50%", background: userStreak >= m ? "#FB923C" : "rgba(255,255,255,0.1)", boxShadow: userStreak >= m ? "0 0 6px rgba(251,146,60,0.6)" : "none" }} />
+                      <span style={{ fontSize: 7, fontWeight: 700, color: userStreak >= m ? "#FB923C" : "rgba(255,255,255,0.2)" }}>{m}</span>
+                    </div>
+                  ))}
+                  <div style={{ flex: 1, height: 2, borderRadius: 1, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                    <div style={{ width: `${Math.min(100, (userStreak / 30) * 100)}%`, height: "100%", background: "linear-gradient(90deg,#FB923C,#F59E0B)", transition: "width 0.6s ease" }} />
+                  </div>
+                  {bestDailyStreak > 0 && (
+                    <span style={{ fontSize: 8, fontWeight: 700, color: "rgba(255,255,255,0.25)", whiteSpace: "nowrap" }}>
+                      {locale === "mn" ? `Хамгийн дээд: ${bestDailyStreak}` : locale === "ko" ? `최고: ${bestDailyStreak}일` : `Best: ${bestDailyStreak}d`}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Beginner Path card — only for new users */}
+            {isBeginner && nextLesson && (
+              <div style={{ borderRadius: 14, border: "1px solid rgba(139,92,246,0.25)", background: "rgba(139,92,246,0.05)", padding: "12px 14px" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                  <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.8, textTransform: "uppercase", color: "rgba(139,92,246,0.85)" }}>
+                    {t("beginnerPathTitle")} — {beginnerProg.completed}/{beginnerProg.total}
+                  </div>
+                  {/* mini progress dots */}
+                  <div style={{ display: "flex", gap: 3 }}>
+                    {Array.from({ length: beginnerProg.total }).map((_, i) => (
+                      <div key={i} style={{ width: 5, height: 5, borderRadius: "50%", background: i < beginnerProg.completed ? "#8B5CF6" : "rgba(255,255,255,0.1)" }} />
+                    ))}
+                  </div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 900, color: "#fff" }}>{t(nextLesson.titleKey)}</div>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>
+                      {nextLesson.estimatedMinutes} min · {nextLesson.skill}
+                    </div>
+                  </div>
+                  <a href={`/${locale}/academy${nextLesson.lessonId ? `?lesson=${nextLesson.lessonId}` : ""}`}
+                    style={{ flexShrink: 0, padding: "8px 14px", borderRadius: 10, background: "rgba(139,92,246,0.15)", border: "1px solid rgba(139,92,246,0.3)", color: "#A78BFA", fontSize: 11, fontWeight: 800, textDecoration: "none" }}>
+                    {t("beginnerOpenAcademy")} →
+                  </a>
+                </div>
               </div>
             )}
+
           </div>
           );
         })()}
@@ -998,8 +1052,8 @@ export default function TrainPage() {
 
         <div style={styles.controls}>
           {canStart && (
-            <button type="button" style={styles.startButton} className="train-start-btn tap-bounce" onClick={handleStart}>
-              {t("trainStart")}
+            <button type="button" style={styles.startButton} className="train-start-btn tap-bounce" onClick={wrappedHandleStart}>
+              {isFirstSession ? (locale === "mn" ? "Эхлэх →" : locale === "ko" ? "시작 →" : "Get Started →") : t("trainStart")}
             </button>
           )}
 
@@ -1128,6 +1182,56 @@ export default function TrainPage() {
           </div>
         </div>
       ))}
+
+      {/* ── Readiness Modal — shown for first-ever session ───────────── */}
+      {readinessOpen && (() => {
+        const steps = [
+          { icon: "📖", label: t("readinessLearnStep"), desc: t("readinessLearnDesc") },
+          { icon: "🥊", label: t("readinessPracticeStep"), desc: t("readinessPracticeDesc") },
+          { icon: "📹", label: t("readinessRecordStep"), desc: t("readinessRecordDesc") },
+        ];
+        const step = steps[readinessStep];
+        const isLast = readinessStep === steps.length - 1;
+        return (
+          <div style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.88)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
+            {/* Step dots */}
+            <div style={{ display: "flex", gap: 6, marginBottom: 28 }}>
+              {steps.map((_, i) => (
+                <div key={i} style={{ width: i === readinessStep ? 20 : 6, height: 6, borderRadius: 3, background: i <= readinessStep ? "#F5C451" : "rgba(255,255,255,0.15)", transition: "width 0.3s ease" }} />
+              ))}
+            </div>
+
+            <div style={{ width: "100%", maxWidth: 360, borderRadius: 20, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", padding: "28px 24px", textAlign: "center" }}>
+              <div style={{ fontSize: 48, marginBottom: 16 }}>{step.icon}</div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: "#fff", marginBottom: 10 }}>{step.label}</div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.6, marginBottom: 24 }}>{step.desc}</div>
+
+              {isLast ? (
+                <button type="button"
+                  style={{ width: "100%", padding: "14px 0", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#E53E3E,#F5C451)", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", letterSpacing: 0.5 }}
+                  onClick={() => { setReadinessOpen(false); handleStart(); }}
+                >
+                  {t("readinessStartBtn")}
+                </button>
+              ) : (
+                <button type="button"
+                  style={{ width: "100%", padding: "14px 0", borderRadius: 12, border: "none", background: "rgba(245,196,81,0.15)", color: "#F5C451", fontSize: 13, fontWeight: 900, cursor: "pointer" }}
+                  onClick={() => setReadinessStep(s => s + 1)}
+                >
+                  {locale === "mn" ? "Дараагийн →" : locale === "ko" ? "다음 →" : "Next →"}
+                </button>
+              )}
+            </div>
+
+            <button type="button"
+              style={{ marginTop: 20, background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 12, cursor: "pointer" }}
+              onClick={() => { setReadinessOpen(false); handleStart(); }}
+            >
+              {t("readinessSkip")}
+            </button>
+          </div>
+        );
+      })()}
 
     </main>
   );
