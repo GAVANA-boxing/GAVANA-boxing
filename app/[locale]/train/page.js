@@ -1064,7 +1064,7 @@ export default function TrainPage() {
                   </div>
                   <div style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.65)" }}>
                     {weeklySessionCount} {locale === "mn" ? "тренинг" : locale === "ko" ? "세션" : `session${weeklySessionCount !== 1 ? "s" : ""}`}
-                    {userArchetype && <span style={{ color: ARCH_TRAINING_COLORS[userArchetype] || GOLD }}> · {userArchetype.charAt(0).toUpperCase() + userArchetype.slice(1)}</span>}
+                    {userArchetype && <span style={{ color: ARCH_TRAINING_COLORS[userArchetype] || GOLD }}> · {({ pressure: { en: "Pressure", mn: "Дарамт", ko: "프레셔" }, outboxer: { en: "Outboxer", mn: "Аутбоксер", ko: "아웃복서" }, counter: { en: "Counter", mn: "Контр", ko: "카운터" }, explosive: { en: "Explosive", mn: "Тэсрэлт", ko: "폭발적" }, technician: { en: "Technician", mn: "Техникч", ko: "테크니션" } }[userArchetype]?.[locale] || userArchetype)}</span>}
                     {weeklyBestScore != null && <span style={{ color: "rgba(255,255,255,0.35)" }}> · {locale === "mn" ? "Шилдэг" : locale === "ko" ? "최고" : "Best"} {weeklyBestScore.toFixed(1)}</span>}
                   </div>
                 </div>
