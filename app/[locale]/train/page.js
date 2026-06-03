@@ -42,6 +42,14 @@ const CHALLENGES = {
   "combo-master": { titleKey: "challengeComboTitle" },
 };
 
+const ARCH_CUES = {
+  pressure:   { en: ["Push forward!", "Don't let them breathe!", "Control the center!", "Keep the pressure on!", "Walk them down!"], mn: ["Урагш дар!", "Амрахыг өгөхгүй!", "Голыг эзэл!", "Дарамтыг хадгал!", "Урагшил!"], ko: ["전진하세요!", "숨 쉬게 하지 마세요!", "중앙 장악!", "프레셔 유지!", "밀어붙이세요!"] },
+  outboxer:   { en: ["Use your footwork!", "Work those angles!", "Stay on the outside!", "Pivot and reset!", "Control the range!"], mn: ["Хөдөлгөөнөө ашигла!", "Өнцгийг ажилла!", "Гаднаас ажилла!", "Эрж ре-сет хий!", "Зайг контролло!"], ko: ["풋워크 활용!", "앵글을 만드세요!", "아웃사이드 유지!", "피벗하고 리셋!", "레인지 컨트롤!"] },
+  counter:    { en: ["Wait for it...", "Set the trap!", "Time your counter!", "Patience — then fire!", "Let them come to you!"], mn: ["Хүлээ...", "Хавхаа тавь!", "Контрын цагаа тохируул!", "Тэвч — дараа цох!", "Ирэхийг нь хүлээ!"], ko: ["기다리세요...", "트랩 설정!", "카운터 타이밍!", "인내 후 반격!", "오게 내버려 두세요!"] },
+  explosive:  { en: ["Explode!", "Fast combinations!", "Burst and reset!", "Max power!", "Surprise them!"], mn: ["Тэсрэн!", "Хурдан комбо!", "Тэсрэж, ре-сет хий!", "Дээд хүч!", "Гэнэтлүүл!"], ko: ["폭발하세요!", "빠른 콤보!", "버스트 후 리셋!", "최대 파워!", "기습하세요!"] },
+  technician: { en: ["Perfect your form!", "Reset your stance!", "Stay systematic!", "Clean technique!", "Build the pattern!"], mn: ["Хэлбэрээ тогтоо!", "Байрлалаа буц!", "Системтэй бай!", "Цэвэр техник!", "Хэв маягаа буд!"], ko: ["폼을 완벽하게!", "스탠스 리셋!", "시스템대로!", "깔끔한 기술!", "패턴 구축!"] },
+};
+
 export default function TrainPage() {
   const router = useRouter();
   const pathname = usePathname();
@@ -210,6 +218,9 @@ export default function TrainPage() {
   const [currentExperiment, setCurrentExperiment] = useState(null);
   const [experimentSessionCount, setExperimentSessionCount] = useState(0);
   const [userArchetype, setUserArchetype] = useState(null);
+  const [lastSessionSec, setLastSessionSec] = useState(null);
+  const [weeklyBestScore, setWeeklyBestScore] = useState(null);
+  const [archCueIndex, setArchCueIndex] = useState(0);
   const coachSnapshotRef = useRef(null);
   const prevSessionCountRef = useRef(null);
   const priorSessionsRef = useRef([]);
@@ -252,6 +263,13 @@ export default function TrainPage() {
           const arch = userData.fighterDNA?.archetypeKey;
           if (arch) setUserArchetype(arch);
         }
+        if (sessions.length > 0) setLastSessionSec(sessions[0].createdAt?.seconds || null);
+        // Weekly best score
+        const now = Date.now() / 1000;
+        const mondaySec = now - ((new Date().getDay() + 6) % 7) * 86400;
+        const thisWeek = sessions.filter((s) => (s.createdAt?.seconds || 0) >= mondaySec);
+        if (thisWeek.length > 0) setWeeklyBestScore(Math.max(...thisWeek.map((s) => s.score || 0)));
+
         if (snapshot && sessions.length >= 3) {
           const weakAreas = Object.entries(snapshot.radarStats).sort(([, a], [, b]) => a - b);
           const miniSnap = { weakAreas, radarStats: snapshot.radarStats };
@@ -421,6 +439,13 @@ export default function TrainPage() {
       return () => clearTimeout(timer);
     }
   }, [saved, savedAttemptNumber]);
+
+  // ── Live archetype coaching cues during recording ────────────────────────
+  useEffect(() => {
+    if (phase !== "recording" || !userArchetype) { setArchCueIndex(0); return; }
+    const id = setInterval(() => setArchCueIndex((i) => i + 1), 8000);
+    return () => clearInterval(id);
+  }, [phase, userArchetype]);
 
   // ── DNA milestone moments after session save ──────────────────────────────
   useEffect(() => {
@@ -889,6 +914,22 @@ export default function TrainPage() {
             );
           })()}
 
+          {/* Live archetype cue — shown during recording when no lesson context */}
+          {isRecording && userArchetype && !lessonContext && (() => {
+            const cues = ARCH_CUES[userArchetype]?.[locale] || ARCH_CUES[userArchetype]?.en || [];
+            if (!cues.length) return null;
+            const cue = cues[archCueIndex % cues.length];
+            const color = ARCH_TRAINING_COLORS[userArchetype] || GOLD;
+            return (
+              <div style={{ position: "absolute", top: 12, left: 0, right: 0, display: "flex", justifyContent: "center", pointerEvents: "none", padding: "0 14px" }}>
+                <div style={{ background: `${color}18`, border: `1px solid ${color}55`, borderRadius: 20, padding: "6px 16px", display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ width: 5, height: 5, borderRadius: "50%", background: color, flexShrink: 0, boxShadow: `0 0 6px ${color}` }} />
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.88)", lineHeight: 1.35 }}>{cue}</span>
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Position cue — shown when lower body not in frame during recording */}
           {positionCue && (
             <div style={{
@@ -984,8 +1025,51 @@ export default function TrainPage() {
           const beltPct = getBeltProgress(currentXP);
           const nextBelt = getNextBelt(currentXP);
 
+          // Freshness
+          const daysSince = lastSessionSec ? Math.floor((Date.now() / 1000 - lastSessionSec) / 86400) : null;
+          const showFreshness = daysSince != null && daysSince >= 5;
+          const freshnessColor = daysSince >= 14 ? "#EF4444" : daysSince >= 8 ? "#FB923C" : "#F59E0B";
+          const freshnessLabel = daysSince >= 14
+            ? (locale === "mn" ? "Дохио алдагдлаа" : locale === "ko" ? "신호 손실" : "DNA Signal Lost")
+            : daysSince >= 8
+            ? (locale === "mn" ? "Дохио буурч байна" : locale === "ko" ? "신호 저하 중" : "DNA Signal Degrading")
+            : (locale === "mn" ? "Дохио суларч байна" : locale === "ko" ? "신호 약화 중" : "DNA Signal Weakening");
+          const freshnessHint = daysSince >= 14
+            ? (locale === "mn" ? `${daysSince} хоног дасгал хийгээгүй — дахин эхэл` : locale === "ko" ? `${daysSince}일 미훈련 — 다시 시작하세요` : `${daysSince} days without training — time to restart`)
+            : (locale === "mn" ? `${daysSince} хоног завсарласан. ДНХ сэргээхийн тулд дасгал хий.` : locale === "ko" ? `${daysSince}일 쉬었습니다. DNA를 복구하세요.` : `${daysSince}-day gap. Train to keep your DNA signal strong.`);
+          // Weekly digest
+          const showDigest = weeklySessionCount >= 1 && weeklyBestScore != null;
+
           return (
           <div style={{ margin: "8px 0 0", display: "flex", flexDirection: "column", gap: 6 }}>
+
+            {/* DNA Freshness Warning */}
+            {showFreshness && (
+              <div style={{ borderRadius: 12, padding: "10px 14px", background: `${freshnessColor}0a`, border: `1px solid ${freshnessColor}30`, display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 20, flexShrink: 0 }}>⚡</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase", color: freshnessColor, marginBottom: 2 }}>{freshnessLabel}</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.45)", lineHeight: 1.4 }}>{freshnessHint}</div>
+                </div>
+              </div>
+            )}
+
+            {/* Weekly DNA Digest */}
+            {!showFreshness && showDigest && (
+              <div style={{ borderRadius: 12, padding: "10px 14px", background: "rgba(245,196,81,0.05)", border: "1px solid rgba(245,196,81,0.15)", display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 20, flexShrink: 0 }}>📊</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase", color: "rgba(245,196,81,0.7)", marginBottom: 2 }}>
+                    {locale === "mn" ? "ЭНЭ 7 ХОНОГ" : locale === "ko" ? "이번 주" : "THIS WEEK"}
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.65)" }}>
+                    {weeklySessionCount} {locale === "mn" ? "тренинг" : locale === "ko" ? "세션" : `session${weeklySessionCount !== 1 ? "s" : ""}`}
+                    {userArchetype && <span style={{ color: ARCH_TRAINING_COLORS[userArchetype] || GOLD }}> · {userArchetype.charAt(0).toUpperCase() + userArchetype.slice(1)}</span>}
+                    {weeklyBestScore != null && <span style={{ color: "rgba(255,255,255,0.35)" }}> · {locale === "mn" ? "Шилдэг" : locale === "ko" ? "최고" : "Best"} {weeklyBestScore.toFixed(1)}</span>}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Mission + streak + belt card */}
             <div style={{

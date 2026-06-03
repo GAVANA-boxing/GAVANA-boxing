@@ -667,6 +667,28 @@ function StudiedFightersPanel({ studiedIds, dna, locale, router }) {
   );
 }
 
+// ─── DNA Freshness Warning ────────────────────────────────────────────────────
+const FRESH_L = {
+  en: {
+    weak:    { label: "Signal Weakening",  hint: (n) => `${n} days without training. Your DNA signal is fading.` },
+    degrade: { label: "Signal Degrading",  hint: (n) => `${n} days without training. DNA confidence is dropping.` },
+    lost:    { label: "Signal Lost",       hint: (n) => `${n} days without training. Train to restore your signal.` },
+    cta: "Train Now →",
+  },
+  mn: {
+    weak:    { label: "Дохио суларч байна",  hint: (n) => `${n} хоног дасгал хийгээгүй. ДНХ дохио бүдгэрч байна.` },
+    degrade: { label: "Дохио буурч байна",   hint: (n) => `${n} хоног дасгал хийгээгүй. ДНХ найдвартай байдал буурч байна.` },
+    lost:    { label: "Дохио алдагдлаа",     hint: (n) => `${n} хоног дасгал хийгээгүй. Сэргээхийн тулд дасгал хий.` },
+    cta: "Одоо дасгал хий →",
+  },
+  ko: {
+    weak:    { label: "신호 약화 중",  hint: (n) => `${n}일 동안 훈련하지 않았습니다. DNA 신호가 희미해지고 있습니다.` },
+    degrade: { label: "신호 저하 중",  hint: (n) => `${n}일 동안 훈련하지 않았습니다. DNA 신뢰도가 떨어지고 있습니다.` },
+    lost:    { label: "신호 손실",     hint: (n) => `${n}일 동안 훈련하지 않았습니다. 신호를 복구하려면 훈련하세요.` },
+    cta: "지금 훈련하기 →",
+  },
+};
+
 // ─── DNA Confidence Timeline ──────────────────────────────────────────────────
 const TL_L = {
   en: { title: "DNA Confidence · Timeline", sessionStart: "S1", archSwitch: "Archetype shift", current: "Current" },
@@ -1251,6 +1273,40 @@ export default function FighterProfilePage() {
               router={router}
               onClearExperiment={clearExperiment}
             />
+          );
+        })()}
+
+        {/* DNA Freshness Warning */}
+        {!loading && sessions.length > 0 && (() => {
+          const lastSec = Math.max(...sessions.map((s) => s.createdAt?.seconds || 0));
+          const days = Math.floor((Date.now() / 1000 - lastSec) / 86400);
+          if (days < 5) return null;
+          const FL = FRESH_L[locale] || FRESH_L.en;
+          const level = days >= 14 ? FL.lost : days >= 8 ? FL.degrade : FL.weak;
+          const color = days >= 14 ? "#EF4444" : days >= 8 ? "#FB923C" : "#F59E0B";
+          return (
+            <div style={{
+              borderRadius: RADIUS.lg, padding: "12px 14px", marginBottom: 8,
+              background: `${color}0a`, border: `1px solid ${color}30`,
+              display: "flex", alignItems: "center", gap: 12,
+            }}>
+              <span style={{ fontSize: 22, flexShrink: 0 }}>⚡</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase", color, marginBottom: 3 }}>
+                  {level.label}
+                </div>
+                <div style={{ fontSize: 10.5, fontWeight: 700, color: "rgba(255,255,255,0.5)", lineHeight: 1.4 }}>
+                  {level.hint(days)}
+                </div>
+              </div>
+              <button type="button" onClick={() => router.push(`/${locale}/train`)} style={{
+                flexShrink: 0, padding: "7px 12px", borderRadius: 10,
+                background: `${color}18`, border: `1px solid ${color}40`,
+                color, fontSize: 10.5, fontWeight: 900, cursor: "pointer",
+              }}>
+                {FL.cta}
+              </button>
+            </div>
           );
         })()}
 
