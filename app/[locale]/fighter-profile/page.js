@@ -172,6 +172,120 @@ function StatCell({ value, label, accent }) {
   );
 }
 
+// ─── DNA Share Card ────────────────────────────────────────────────────────────
+const SHARE_L = {
+  en: { badge: "GAVANA · FIGHTER DNA", cta: "Share Your DNA", copied: "Copied!" },
+  mn: { badge: "GAVANA · ТУЛААНЧИЙН ДНХ", cta: "ДНХ-гаа хуваалц", copied: "Хуулсан!" },
+  ko: { badge: "GAVANA · 파이터 DNA", cta: "DNA 공유", copied: "복사됨!" },
+};
+
+function DNAShareCard({ dna, displayName, locale }) {
+  const [copied, setCopied] = useState(false);
+  if (dna.building || !dna.archetypeKey) return null;
+
+  const acc = ARCH_TRAINING_COLORS[dna.archetypeKey] || GOLD;
+  const L = SHARE_L[locale] || SHARE_L.en;
+  const confidencePct = Math.round(dna.confidence * 100);
+  const topStyles = Object.entries(dna.styleMix || {})
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 3);
+
+  async function handleShare() {
+    const shareText = locale === "mn"
+      ? `Миний тулаанчийн ДНХ: ${dna.archetype} (${confidencePct}%) — GAVANA 🥊`
+      : locale === "ko"
+      ? `내 파이터 DNA: ${dna.archetype} (${confidencePct}%) — GAVANA 🥊`
+      : `My Fighter DNA: ${dna.archetype} (${confidencePct}% signal) — GAVANA 🥊`;
+
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try { await navigator.share({ title: "Fighter DNA — GAVANA", text: shareText }); return; }
+      catch { /* cancelled */ }
+    }
+    try {
+      await navigator.clipboard.writeText(shareText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2200);
+    } catch { /* silent */ }
+  }
+
+  return (
+    <div style={{ marginBottom: 8 }}>
+      {/* Visual card */}
+      <div style={{
+        borderRadius: 16, overflow: "hidden",
+        background: `linear-gradient(135deg, ${acc}1c 0%, rgba(0,0,0,0.55) 55%, ${acc}08 100%)`,
+        border: `1px solid ${acc}35`,
+        padding: "18px 18px 14px",
+        position: "relative",
+      }}>
+        <div style={{ height: 2, background: `linear-gradient(90deg, ${acc}, transparent)`, position: "absolute", top: 0, left: 0, right: 0 }} />
+
+        <div style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 2.5, color: acc, textTransform: "uppercase", marginBottom: 10, opacity: 0.65 }}>
+          {L.badge}
+        </div>
+
+        {displayName && (
+          <div style={{ fontSize: 11, fontWeight: 800, color: whiteAlpha(0.38), marginBottom: 5 }}>{displayName}</div>
+        )}
+
+        <div style={{
+          fontSize: 30, fontWeight: 1000, color: "#fff",
+          fontFamily: "var(--font-display,'Anton',sans-serif)",
+          letterSpacing: "-0.02em", lineHeight: 1.0, textTransform: "uppercase",
+          textShadow: `0 0 32px ${acc}55`, marginBottom: 14,
+        }}>
+          {dna.archetype}
+        </div>
+
+        {/* Style mix chips */}
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
+          {topStyles.map(([key, val]) => {
+            const c = ARCH_TRAINING_COLORS[key] || whiteAlpha(0.5);
+            return (
+              <span key={key} style={{
+                fontSize: 9, fontWeight: 900, padding: "3px 9px",
+                borderRadius: 999, background: `${c}14`,
+                border: `1px solid ${c}32`, color: c,
+              }}>
+                {dna.styleLabels?.[key] || key} {val.toFixed(1)}
+              </span>
+            );
+          })}
+        </div>
+
+        <div style={{ fontSize: 9, fontWeight: 800, color: whiteAlpha(0.28) }}>
+          {confidencePct}% signal · {new Date().getFullYear()}
+        </div>
+      </div>
+
+      {/* Share button */}
+      <button
+        type="button"
+        onClick={handleShare}
+        style={{
+          width: "100%", marginTop: 8, padding: "11px 0", borderRadius: 12,
+          background: copied ? "rgba(52,211,153,0.12)" : `${acc}12`,
+          border: `1px solid ${copied ? "rgba(52,211,153,0.35)" : `${acc}32`}`,
+          color: copied ? "#34D399" : acc,
+          fontSize: 12, fontWeight: 900, cursor: "pointer", letterSpacing: 0.5,
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+          transition: "all 0.2s ease",
+        }}
+      >
+        {copied ? (
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        ) : (
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+        )}
+        {copied ? L.copied : L.cta}
+      </button>
+    </div>
+  );
+}
+
 // ─── Identity Journey Map ──────────────────────────────────────────────────────
 const JOURNEY_L = {
   en: { title: "IDENTITY JOURNEY", complete: "complete" },
@@ -933,6 +1047,11 @@ export default function FighterProfilePage() {
           <div style={{ marginBottom: 4 }}>
             <FighterDNACard dna={dna} locale={locale} />
           </div>
+        )}
+
+        {/* DNA Share Card — shown when archetype is confirmed */}
+        {!loading && !dna.building && (
+          <DNAShareCard dna={dna} displayName={displayName} locale={locale} />
         )}
 
         {/* Combat Progress */}
