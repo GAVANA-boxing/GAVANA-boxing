@@ -12,6 +12,7 @@ import { isBeginnerUser } from "@/lib/beginnerPath";
 import { buildCoachSnapshot } from "@/lib/buildCoachContext";
 import { getPersonalConnection } from "@/lib/fighterPersonalConnection";
 import FighterCompareModal from "@/components/fighters/FighterCompareModal";
+import { matchFighters } from "@/lib/fighterDNA";
 
 function FighterGridCard({ fighter, onClick, badge, studied, compareMode, selected, onToggle }) {
   const acc = fighter.accent;
@@ -68,9 +69,13 @@ const ARCHETYPE_TAGS = {
   brawler:   ["power", "infighting", "intimidation", "explosive"],
 };
 
-function RecommendedCard({ fighter, connection, onClick, archetypeBased, locale }) {
+function RecommendedCard({ fighter, connection, onClick, archetypeBased, dnaMatch, studyFocus, locale }) {
   const acc = fighter.accent;
-  const trainLikeLabel = locale === "mn" ? `${fighter.name} шиг дасга` : locale === "ko" ? `${fighter.name}처럼 훈련` : `Train Like ${fighter.name}`;
+  const eyebrow = dnaMatch
+    ? (locale === "mn" ? "ДНХ тохирол" : locale === "ko" ? "DNA 매칭" : "DNA Match")
+    : archetypeBased
+      ? (locale === "mn" ? `${fighter.name} шиг дасга` : locale === "ko" ? `${fighter.name}처럼 훈련` : `Train Like ${fighter.name}`)
+      : `${connection?.primaryFocus} ${connection?.primaryValue?.toFixed(1)} →`;
   return (
     <button
       type="button"
@@ -88,15 +93,21 @@ function RecommendedCard({ fighter, connection, onClick, archetypeBased, locale 
         <FighterPortrait fighterId={fighter.id} fighter={fighter} height={80} flagSize={0} showName={false} showLabel={false} />
       </div>
       <div style={{ flex: 1, padding: "10px 12px" }}>
-        <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.5, color: acc, textTransform: "uppercase", marginBottom: 3 }}>
-          {archetypeBased ? trainLikeLabel : `${connection?.primaryFocus} ${connection?.primaryValue?.toFixed(1)} →`}
+        <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.5, color: dnaMatch ? GOLD : acc, textTransform: "uppercase", marginBottom: 3 }}>
+          {eyebrow}
         </div>
         <div style={{ fontSize: 14, fontWeight: 900, color: "#fff", lineHeight: 1.2, marginBottom: 4 }}>
           {fighter.name}
         </div>
-        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.42)", lineHeight: 1.4 }}>
-          {fighter.style}
-        </div>
+        {dnaMatch && studyFocus ? (
+          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.48)", lineHeight: 1.4 }}>
+            📖 {studyFocus}
+          </div>
+        ) : (
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.42)", lineHeight: 1.4 }}>
+            {fighter.style}
+          </div>
+        )}
       </div>
       <div style={{ padding: "0 14px 0 0", color: "rgba(255,255,255,0.2)", fontSize: 18 }}>›</div>
     </button>
@@ -112,6 +123,7 @@ export default function FightersPage() {
 
   const [snapshot, setSnapshot] = useState(null);
   const [userArchetype, setUserArchetype] = useState(null);
+  const [fighterDNA, setFighterDNA] = useState(null);
   const [totalSessionCount, setTotalSessionCount] = useState(null);
   const [compareMode, setCompareMode] = useState(false);
   const [compareIds, setCompareIds] = useState([]);
@@ -146,6 +158,7 @@ export default function FightersPage() {
         if (sessions.length > 0) setSnapshot(buildCoachSnapshot({ sessions, profileData: {} }));
         setStudiedFighters(userData.studiedFighters || []);
         setUserArchetype(userData.fighterArchetype || userData.archetype || null);
+        if (userData.fighterDNA && !userData.fighterDNA.building) setFighterDNA(userData.fighterDNA);
       } catch { /* silent */ }
     })();
     return () => { active = false; };
@@ -161,16 +174,27 @@ export default function FightersPage() {
   }), [snapshot]);
 
   const recommended = useMemo(() => {
+    // Priority 1: Fighter DNA match (most accurate — based on aggregated punch styleMix)
+    if (fighterDNA?.styleMix) {
+      return matchFighters(fighterDNA.styleMix).map((fighter) => ({
+        fighter,
+        connection: null,
+        dnaMatch: true,
+        studyFocus: fighter.whatToStudy?.[0] || null,
+      }));
+    }
+    // Priority 2: Combat snapshot (session-based weak areas)
     if (snapshot) {
       return ranked.filter((r) => r.connection?.isDirectlyRelevant).slice(0, 3);
     }
+    // Priority 3: Basic archetype tags fallback
     if (!userArchetype) return [];
     const tags = ARCHETYPE_TAGS[userArchetype] || [];
     return FIGHTERS
       .filter((f) => f.movementDNA?.tags?.some((tag) => tags.includes(tag)))
       .slice(0, 3)
       .map((f) => ({ fighter: f, connection: null, archetypeBased: true }));
-  }, [snapshot, ranked, userArchetype]);
+  }, [fighterDNA, snapshot, ranked, userArchetype]);
   const recommendedIds = useMemo(() => new Set(recommended.map((r) => r.fighter.id)), [recommended]);
 
   return (
@@ -255,22 +279,33 @@ export default function FightersPage() {
         <div style={{ padding: "0 14px 20px", position: "relative", zIndex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
             <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: GOLD, textTransform: "uppercase" }}>
-              {t("fighterRecommended")}
+              {recommended[0]?.dnaMatch
+                ? (locale === "mn" ? "Таны ДНХ-д тохирох тулаанч" : locale === "ko" ? "파이터 DNA 매칭" : "Fighter DNA Match")
+                : t("fighterRecommended")}
             </span>
             <div style={{ flex: 1, height: 1, background: "rgba(245,196,81,0.12)" }} />
-            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", fontWeight: 700 }}>
-              {recommended[0]?.archetypeBased
-                ? locale === "mn" ? "таны загварт тохирсон" : locale === "ko" ? "스타일 기반" : "your style match"
-                : snapshot?.weakAreas?.slice(0, 2).map(([k]) => k).join(" · ")}
-            </span>
+            {recommended[0]?.dnaMatch && fighterDNA?.archetype && (
+              <span style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", fontWeight: 700 }}>
+                {fighterDNA.archetype}
+              </span>
+            )}
+            {!recommended[0]?.dnaMatch && (
+              <span style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", fontWeight: 700 }}>
+                {recommended[0]?.archetypeBased
+                  ? locale === "mn" ? "таны загварт тохирсон" : locale === "ko" ? "스타일 기반" : "your style match"
+                  : snapshot?.weakAreas?.slice(0, 2).map(([k]) => k).join(" · ")}
+              </span>
+            )}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {(isBeginnerUser(totalSessionCount ?? 999) ? recommended.slice(0, 1) : recommended).map(({ fighter, connection, archetypeBased }) => (
+            {(isBeginnerUser(totalSessionCount ?? 999) ? recommended.slice(0, 1) : recommended).map(({ fighter, connection, archetypeBased, dnaMatch, studyFocus }) => (
               <RecommendedCard
                 key={fighter.id}
                 fighter={fighter}
                 connection={connection}
                 archetypeBased={archetypeBased}
+                dnaMatch={dnaMatch}
+                studyFocus={studyFocus}
                 locale={locale}
                 onClick={() => router.push(`/${locale}/fighters/${fighter.id}`)}
               />
