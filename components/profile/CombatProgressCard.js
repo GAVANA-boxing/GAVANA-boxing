@@ -16,6 +16,9 @@ const CARD_LABELS = {
     sessions:   (n) => `Train ${n} more session${n !== 1 ? "s" : ""} to unlock progress tracking`,
     xp:         "XP",
     toNext:     "to next level",
+    punchTrend: "Punch Pattern Evolution",
+    early:      "Early sessions",
+    recent:     "Recent sessions",
   },
   mn: {
     level:      "Тулааны түвшин",
@@ -24,9 +27,12 @@ const CARD_LABELS = {
     skills:     "Ур чадварын эзэмшил",
     timeline:   "Хөгжлийн цаг хугацаа",
     building:   "Хяналт хаалттай",
-    sessions:   (n) => `${n} session дасгал хийж нээ`,
+    sessions:   (n) => `${n} тренинг хийж нээ`,
     xp:         "XP",
     toNext:     "дараагийн түвшинд",
+    punchTrend: "Цохилтын хэв маягийн хөгжил",
+    early:      "Эхний тренинг",
+    recent:     "Сүүлийн тренинг",
   },
   ko: {
     level:      "전투 레벨",
@@ -38,6 +44,9 @@ const CARD_LABELS = {
     sessions:   (n) => `${n}개 세션 더 훈련 후 공개`,
     xp:         "XP",
     toNext:     "다음 레벨까지",
+    punchTrend: "펀치 패턴 진화",
+    early:      "초기 세션",
+    recent:     "최근 세션",
   },
 };
 
@@ -101,7 +110,7 @@ export default function CombatProgressCard({ progress, locale = "en" }) {
     );
   }
 
-  const { levelData, skills, skillLabels, timeline } = progress;
+  const { levelData, skills, skillLabels, timeline, punchTrend } = progress;
   const levelName = levelData[locale] || levelData.en;
 
   return (
@@ -198,6 +207,44 @@ export default function CombatProgressCard({ progress, locale = "en" }) {
             ))}
           </div>
         </div>
+
+        {/* ── Punch pattern evolution ── */}
+        {punchTrend && (
+          <div>
+            <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.8, color: whiteAlpha(0.28), textTransform: "uppercase", marginBottom: 9 }}>
+              📊 {L.punchTrend}
+            </div>
+            {[
+              { label: "Jab",   earlyPct: punchTrend.early.jab,   recentPct: punchTrend.recent.jab,   color: "#3B82F6" },
+              { label: "Cross", earlyPct: punchTrend.early.cross, recentPct: punchTrend.recent.cross, color: "#EF4444" },
+              { label: "Hook",  earlyPct: punchTrend.early.hook,  recentPct: punchTrend.recent.hook,  color: "#8B5CF6" },
+            ].map(({ label, earlyPct, recentPct, color }) => {
+              const delta = recentPct - earlyPct;
+              return (
+                <div key={label} style={{ marginBottom: 8 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                    <span style={{ fontSize: 9, fontWeight: 900, color: whiteAlpha(0.38), textTransform: "uppercase", letterSpacing: 0.8 }}>{label}</span>
+                    <span style={{ fontSize: 9, fontWeight: 900, color: delta > 0 ? "#34D399" : delta < 0 ? "#F87171" : whiteAlpha(0.3) }}>
+                      {delta > 0 ? "+" : ""}{delta}%
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                    <div style={{ flex: 1, height: 4, background: whiteAlpha(0.06), borderRadius: 3, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${earlyPct}%`, background: whiteAlpha(0.2), borderRadius: 3 }} />
+                    </div>
+                    <div style={{ flex: 1, height: 4, background: whiteAlpha(0.06), borderRadius: 3, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${recentPct}%`, background: color, borderRadius: 3, transition: "width 1s cubic-bezier(0.16,1,0.3,1)" }} />
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
+                    <span style={{ fontSize: 8, color: whiteAlpha(0.22) }}>{L.early} {earlyPct}%</span>
+                    <span style={{ fontSize: 8, color: whiteAlpha(0.22) }}>{L.recent} {recentPct}%</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* ── Evolution timeline ── */}
         {timeline?.length > 0 && (
