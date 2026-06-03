@@ -12,7 +12,14 @@ import { isBeginnerUser } from "@/lib/beginnerPath";
 import { buildCoachSnapshot } from "@/lib/buildCoachContext";
 import { getPersonalConnection } from "@/lib/fighterPersonalConnection";
 import FighterCompareModal from "@/components/fighters/FighterCompareModal";
-import { matchFighters } from "@/lib/fighterDNA";
+import { matchFighters, classifyFighterArchetype } from "@/lib/fighterDNA";
+import { ARCH_TRAINING_COLORS } from "@/lib/archetypeTraining";
+
+const ARCH_FILTER_LABELS = {
+  en: { pressure: "Pressure", outboxer: "Outboxer", counter: "Counter", explosive: "Explosive", technician: "Technician" },
+  mn: { pressure: "Дарамт", outboxer: "Хөдлөгч", counter: "Тохой", explosive: "Тэсрэмтгий", technician: "Техникийн" },
+  ko: { pressure: "압박", outboxer: "아웃복서", counter: "카운터", explosive: "폭발력", technician: "기술" },
+};
 
 function FighterGridCard({ fighter, onClick, badge, studied, compareMode, selected, onToggle }) {
   const acc = fighter.accent;
@@ -127,6 +134,8 @@ export default function FightersPage() {
   const [totalSessionCount, setTotalSessionCount] = useState(null);
   const [compareMode, setCompareMode] = useState(false);
   const [compareIds, setCompareIds] = useState([]);
+  const [activeArchFilter, setActiveArchFilter] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const toggleCompare = (id) => {
     setCompareIds((prev) => {
@@ -197,6 +206,20 @@ export default function FightersPage() {
   }, [fighterDNA, snapshot, ranked, userArchetype]);
   const recommendedIds = useMemo(() => new Set(recommended.map((r) => r.fighter.id)), [recommended]);
 
+  const filteredRanked = useMemo(() => {
+    let result = ranked;
+    if (activeArchFilter) result = result.filter(({ fighter }) => classifyFighterArchetype(fighter) === activeArchFilter);
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      result = result.filter(({ fighter }) =>
+        fighter.name.toLowerCase().includes(q) ||
+        fighter.style?.toLowerCase().includes(q) ||
+        fighter.keyWeapon?.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [ranked, activeArchFilter, searchQuery]);
+
   return (
     <div style={s.page} className="page-enter">
       <div style={s.ambientGlow} />
@@ -260,6 +283,34 @@ export default function FightersPage() {
             </div>
           </div>
         )}
+
+        {/* ── Search input ── */}
+        <div style={{ marginTop: 16, position: "relative" }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}>
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={locale === "mn" ? "Тулаанч хайх…" : locale === "ko" ? "파이터 검색…" : "Search fighters…"}
+            style={{
+              width: "100%", boxSizing: "border-box",
+              padding: "10px 12px 10px 34px",
+              borderRadius: 12, background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              color: "#fff", fontSize: 13, fontWeight: 600,
+              outline: "none",
+            }}
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 16, cursor: "pointer", lineHeight: 1, padding: 2 }}
+            >✕</button>
+          )}
+        </div>
       </div>
 
       {/* ── Beginner notice ── */}
@@ -314,20 +365,65 @@ export default function FightersPage() {
         </div>
       )}
 
-      {/* ── All fighters grid ── */}
-      {recommended.length > 0 && (
-        <div style={{ padding: "0 14px 8px", position: "relative", zIndex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-            <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.28)", textTransform: "uppercase" }}>
-              {t("fighterAllFighters")}
-            </span>
-            <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
-          </div>
+      {/* ── Archetype filter + All fighters grid ── */}
+      <div style={{ padding: "0 14px 8px", position: "relative", zIndex: 1 }}>
+        {/* Section header */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+          <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.28)", textTransform: "uppercase" }}>
+            {activeArchFilter
+              ? `${ARCH_FILTER_LABELS[locale]?.[activeArchFilter] || activeArchFilter} · ${filteredRanked.length}`
+              : searchQuery
+              ? `${filteredRanked.length} ${locale === "mn" ? "тулаанч" : locale === "ko" ? "파이터" : "fighters"}`
+              : t("fighterAllFighters")}
+          </span>
+          <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+        </div>
+
+        {/* Archetype filter pills */}
+        <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 12, WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
+          {[null, "pressure", "outboxer", "counter", "explosive", "technician"].map((arch) => {
+            const isActive = activeArchFilter === arch;
+            const color = arch ? (ARCH_TRAINING_COLORS[arch] || GOLD) : "rgba(255,255,255,0.55)";
+            const label = arch
+              ? (ARCH_FILTER_LABELS[locale]?.[arch] || arch)
+              : (locale === "mn" ? "Бүгд" : locale === "ko" ? "전체" : "All");
+            const count = arch ? ranked.filter(({ fighter }) => classifyFighterArchetype(fighter) === arch).length : ranked.length;
+            return (
+              <button
+                key={arch || "all"}
+                type="button"
+                onClick={() => setActiveArchFilter(arch)}
+                style={{
+                  flexShrink: 0, padding: "5px 12px", borderRadius: 20,
+                  background: isActive ? `${color}20` : "rgba(255,255,255,0.04)",
+                  border: isActive ? `1px solid ${color}55` : "1px solid rgba(255,255,255,0.08)",
+                  color: isActive ? color : "rgba(255,255,255,0.38)",
+                  fontSize: 10, fontWeight: 900, cursor: "pointer",
+                  display: "flex", alignItems: "center", gap: 5,
+                  boxShadow: isActive ? `0 0 12px ${color}25` : "none",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                {label}
+                <span style={{ fontSize: 8, fontWeight: 700, opacity: 0.6 }}>{count}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Empty state for filter */}
+      {filteredRanked.length === 0 && (
+        <div style={{ padding: "32px 20px", textAlign: "center" }}>
+          <div style={{ fontSize: 32, marginBottom: 10 }}>🥊</div>
+          <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 13, fontWeight: 700 }}>
+            {locale === "mn" ? "Тулаанч олдсонгүй" : locale === "ko" ? "파이터 없음" : "No fighters found"}
+          </p>
         </div>
       )}
 
       <div style={{ ...s.grid, padding: "0 14px" }}>
-        {ranked.map(({ fighter, connection }) => (
+        {filteredRanked.map(({ fighter, connection }) => (
           <FighterGridCard
             key={fighter.id}
             fighter={fighter}
