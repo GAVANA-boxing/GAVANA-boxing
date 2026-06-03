@@ -197,6 +197,7 @@ export default function TrainPage() {
   const [debriefLoading, setDebriefLoading] = useState(false);
   const [focusTip, setFocusTip] = useState(null);
   const [newBadges, setNewBadges] = useState([]);
+  const [dnaMilestone, setDnaMilestone] = useState(null);
   const [poseSessionSummary, setPoseSessionSummary] = useState(null);
   const [prevPoseMetrics, setPrevPoseMetrics] = useState(null);
   const [positionCue, setPositionCue] = useState(null);
@@ -411,6 +412,27 @@ export default function TrainPage() {
       const meta = ACHIEVEMENT_BADGES.filter((b) => earned.includes(b.id));
       setNewBadges(meta);
       const timer = setTimeout(() => setNewBadges([]), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [saved, savedAttemptNumber]);
+
+  // ── DNA milestone moments after session save ──────────────────────────────
+  useEffect(() => {
+    if (!saved || !savedAttemptNumber) return;
+    const DNA_MILESTONES = {
+      1:  { emoji: "🥊", en: "DNA Journey Started",       mn: "ДНХ аялал эхэллээ",              ko: "DNA 여정 시작",
+             hint: { en: "Your first punch pattern has been recorded.", mn: "Анхны цохилтын хэв маяг бичигдлаа.", ko: "첫 번째 펀치 패턴이 기록되었습니다." } },
+      3:  { emoji: "🔬", en: "DNA Analysis Unlocked",     mn: "ДНХ шинжилгээ нээгдлаа",          ko: "DNA 분석 잠금 해제",
+             hint: { en: "Visit Fighter Profile to see your early read →", mn: "Тулаанчийн профайлаас дүнгээ харна уу →", ko: "파이터 프로필에서 초기 분석 확인 →" }, cta: true },
+      8:  { emoji: "🧬", en: "Archetype Signal Strong",   mn: "Archetype дохио хүчтэй",           ko: "아키타입 신호 강함",
+             hint: { en: "Your Fighter DNA is forming — check your profile!", mn: "Тулаанчийн ДНХ бүрдэж байна — профайлаа шалга!", ko: "파이터 DNA 형성 중 — 프로필 확인!" }, cta: true },
+      15: { emoji: "⚗️", en: "Fighter Identity Emerging", mn: "Тулаанчийн мөн чанар бүрдэж байна", ko: "파이터 아이덴티티 형성",
+             hint: { en: "Your style is becoming clear. Try an experiment!", mn: "Таны хэв маяг тодорхой болж байна. Туршилт хийгээрэй!", ko: "스타일이 명확해지고 있습니다. 실험해 보세요!" } },
+    };
+    const milestone = DNA_MILESTONES[savedAttemptNumber];
+    if (milestone) {
+      setDnaMilestone(milestone);
+      const timer = setTimeout(() => setDnaMilestone(null), 6000);
       return () => clearTimeout(timer);
     }
   }, [saved, savedAttemptNumber]);
@@ -1279,6 +1301,49 @@ export default function TrainPage() {
           </div>
         </div>
       ))}
+
+      {/* DNA milestone moment toast */}
+      {dnaMilestone && (
+        <div style={{
+          position: "fixed",
+          bottom: `calc(80px + env(safe-area-inset-bottom))`,
+          left: "50%", transform: "translateX(-50%)",
+          maxWidth: "calc(100vw - 32px)", width: 320,
+          zIndex: 9001,
+          display: "flex", alignItems: "center", gap: 12,
+          padding: "12px 16px", borderRadius: 20,
+          background: "rgba(12,12,14,0.96)",
+          border: `1px solid rgba(245,196,81,0.3)`,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(245,196,81,0.08)",
+          backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+          animation: "slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1)",
+        }}>
+          <span style={{ fontSize: 26, flexShrink: 0 }}>{dnaMilestone.emoji}</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 9, fontWeight: 900, color: GOLD, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 2 }}>
+              {locale === "mn" ? "ДНХ мөч" : locale === "ko" ? "DNA 순간" : "DNA Moment"}
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 900, color: "#fff", marginBottom: 2 }}>
+              {dnaMilestone[locale] || dnaMilestone.en}
+            </div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", fontWeight: 600, lineHeight: 1.4 }}>
+              {dnaMilestone.hint[locale] || dnaMilestone.hint.en}
+            </div>
+          </div>
+          {dnaMilestone.cta && (
+            <button
+              onClick={() => router.push(`/${locale}/fighter-profile`)}
+              style={{
+                flexShrink: 0, padding: "6px 10px", borderRadius: 10,
+                background: goldAlpha(0.15), border: `1px solid ${goldAlpha(0.35)}`,
+                color: GOLD, fontSize: 14, fontWeight: 900, cursor: "pointer",
+              }}
+            >
+              →
+            </button>
+          )}
+        </div>
+      )}
 
       {/* ── Readiness Modal — shown for first-ever session ───────────── */}
       {readinessOpen && (() => {
