@@ -11,7 +11,7 @@ import FighterDNACard from "@/components/profile/FighterDNACard";
 import { RED, GOLD, RADIUS, goldAlpha, whiteAlpha, BG, redAlpha } from "@/lib/tokens";
 import { computeMovementProfile } from "@/lib/combatMemory";
 import { deriveCombatIdentity } from "@/lib/combatIdentity";
-import { computeFighterDNA, dnaSnapshot, classifyFighterArchetype } from "@/lib/fighterDNA";
+import { computeFighterDNA, dnaSnapshot, classifyFighterArchetype, computePreliminarySignals } from "@/lib/fighterDNA";
 import { computeCombatProgress, progressSnapshot } from "@/lib/combatProgress";
 import CombatProgressCard from "@/components/profile/CombatProgressCard";
 import { computeAggregatePunchPattern } from "@/lib/movementInsight";
@@ -174,9 +174,9 @@ function StatCell({ value, label, accent }) {
 
 // ─── DNA Share Card ────────────────────────────────────────────────────────────
 const SHARE_L = {
-  en: { badge: "GAVANA · FIGHTER DNA", cta: "Share Your DNA", copied: "Copied!" },
-  mn: { badge: "GAVANA · ТУЛААНЧИЙН ДНХ", cta: "ДНХ-гаа хуваалц", copied: "Хуулсан!" },
-  ko: { badge: "GAVANA · 파이터 DNA", cta: "DNA 공유", copied: "복사됨!" },
+  en: { cta: "Share Your DNA", copied: "Copied!", similarTo: "Similar To" },
+  mn: { cta: "ДНХ-гаа хуваалц", copied: "Хуулсан!", similarTo: "Ижил тулаанч" },
+  ko: { cta: "DNA 공유", copied: "복사됨!", similarTo: "유사 파이터" },
 };
 
 function DNAShareCard({ dna, displayName, locale }) {
@@ -186,9 +186,8 @@ function DNAShareCard({ dna, displayName, locale }) {
   const acc = ARCH_TRAINING_COLORS[dna.archetypeKey] || GOLD;
   const L = SHARE_L[locale] || SHARE_L.en;
   const confidencePct = Math.round(dna.confidence * 100);
-  const topStyles = Object.entries(dna.styleMix || {})
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 3);
+  const topStyles = Object.entries(dna.styleMix || {}).sort(([, a], [, b]) => b - a).slice(0, 3);
+  const similarFighters = dna.recommendedFighters?.slice(0, 3) || [];
 
   async function handleShare() {
     const shareText = locale === "mn"
@@ -196,7 +195,6 @@ function DNAShareCard({ dna, displayName, locale }) {
       : locale === "ko"
       ? `내 파이터 DNA: ${dna.archetype} (${confidencePct}%) — GAVANA 🥊`
       : `My Fighter DNA: ${dna.archetype} (${confidencePct}% signal) — GAVANA 🥊`;
-
     if (typeof navigator !== "undefined" && navigator.share) {
       try { await navigator.share({ title: "Fighter DNA — GAVANA", text: shareText }); return; }
       catch { /* cancelled */ }
@@ -210,76 +208,105 @@ function DNAShareCard({ dna, displayName, locale }) {
 
   return (
     <div style={{ marginBottom: 8 }}>
-      {/* Visual card */}
+      {/* Fighter DNA card — screenshot-worthy */}
       <div style={{
-        borderRadius: 16, overflow: "hidden",
-        background: `linear-gradient(135deg, ${acc}1c 0%, rgba(0,0,0,0.55) 55%, ${acc}08 100%)`,
-        border: `1px solid ${acc}35`,
-        padding: "18px 18px 14px",
-        position: "relative",
+        borderRadius: 18, overflow: "hidden",
+        background: `linear-gradient(155deg, rgba(6,6,8,0.96) 0%, ${acc}18 100%)`,
+        border: `1px solid ${acc}40`,
       }}>
-        <div style={{ height: 2, background: `linear-gradient(90deg, ${acc}, transparent)`, position: "absolute", top: 0, left: 0, right: 0 }} />
+        <div style={{ height: 3, background: `linear-gradient(90deg, ${acc}, ${acc}44, transparent)` }} />
 
-        <div style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 2.5, color: acc, textTransform: "uppercase", marginBottom: 10, opacity: 0.65 }}>
-          {L.badge}
+        <div style={{ padding: "18px 20px 0" }}>
+          {/* Top row */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+            <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.25), textTransform: "uppercase" }}>
+              GAVANA DNA
+            </span>
+            <span style={{ padding: "2px 9px", borderRadius: 999, background: `${acc}18`, border: `1px solid ${acc}35`, fontSize: 8, fontWeight: 900, color: acc, letterSpacing: 1 }}>
+              {confidencePct}% SIGNAL
+            </span>
+          </div>
+
+          {/* Fighter name (subtle) */}
+          {displayName && (
+            <div style={{ fontSize: 9.5, fontWeight: 800, color: whiteAlpha(0.28), letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 5 }}>
+              {displayName}
+            </div>
+          )}
+
+          {/* BIG archetype name */}
+          <div style={{
+            fontSize: 36, fontWeight: 1000, color: "#fff", lineHeight: 1.0,
+            fontFamily: "var(--font-display,'Anton',sans-serif)",
+            textTransform: "uppercase", letterSpacing: "-0.02em",
+            textShadow: `0 0 48px ${acc}66`,
+            marginBottom: 20,
+          }}>
+            {dna.archetype}
+          </div>
+
+          {/* Style bars */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 18 }}>
+            {topStyles.map(([key, val]) => {
+              const c = ARCH_TRAINING_COLORS[key] || whiteAlpha(0.5);
+              return (
+                <div key={key} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ width: 72, fontSize: 8.5, fontWeight: 900, letterSpacing: 1, color: whiteAlpha(0.3), textTransform: "uppercase", textAlign: "right", flexShrink: 0 }}>
+                    {dna.styleLabels?.[key] || key}
+                  </span>
+                  <div style={{ flex: 1, height: 4, background: whiteAlpha(0.07), borderRadius: 2, overflow: "hidden" }}>
+                    <div style={{ width: `${(val / 10) * 100}%`, height: "100%", background: c, borderRadius: 2, boxShadow: `0 0 6px ${c}66` }} />
+                  </div>
+                  <span style={{ width: 28, textAlign: "right", fontSize: 11, fontWeight: 900, color: c, fontFamily: "monospace", flexShrink: 0 }}>
+                    {val.toFixed(1)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Similar fighters */}
+          {similarFighters.length > 0 && (
+            <div style={{ paddingBottom: 14, borderTop: `1px solid ${whiteAlpha(0.05)}`, paddingTop: 12 }}>
+              <div style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.22), textTransform: "uppercase", marginBottom: 7 }}>
+                {L.similarTo}
+              </div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {similarFighters.map((f) => (
+                  <span key={f.id} style={{
+                    fontSize: 10.5, fontWeight: 900, padding: "5px 12px", borderRadius: 999,
+                    background: `${f.accent || acc}14`, border: `1px solid ${f.accent || acc}30`,
+                    color: f.accent || acc,
+                  }}>
+                    {f.name.split(" ").slice(-1)[0]}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        {displayName && (
-          <div style={{ fontSize: 11, fontWeight: 800, color: whiteAlpha(0.38), marginBottom: 5 }}>{displayName}</div>
-        )}
-
-        <div style={{
-          fontSize: 30, fontWeight: 1000, color: "#fff",
-          fontFamily: "var(--font-display,'Anton',sans-serif)",
-          letterSpacing: "-0.02em", lineHeight: 1.0, textTransform: "uppercase",
-          textShadow: `0 0 32px ${acc}55`, marginBottom: 14,
-        }}>
-          {dna.archetype}
-        </div>
-
-        {/* Style mix chips */}
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
-          {topStyles.map(([key, val]) => {
-            const c = ARCH_TRAINING_COLORS[key] || whiteAlpha(0.5);
-            return (
-              <span key={key} style={{
-                fontSize: 9, fontWeight: 900, padding: "3px 9px",
-                borderRadius: 999, background: `${c}14`,
-                border: `1px solid ${c}32`, color: c,
-              }}>
-                {dna.styleLabels?.[key] || key} {val.toFixed(1)}
-              </span>
-            );
-          })}
-        </div>
-
-        <div style={{ fontSize: 9, fontWeight: 800, color: whiteAlpha(0.28) }}>
-          {confidencePct}% signal · {new Date().getFullYear()}
+        {/* GAVANA watermark */}
+        <div style={{ padding: "8px 20px 12px", borderTop: `1px solid ${whiteAlpha(0.04)}`, display: "flex", justifyContent: "space-between" }}>
+          <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.15), textTransform: "uppercase" }}>GAVANA.APP</span>
+          <span style={{ fontSize: 8, fontWeight: 700, color: whiteAlpha(0.12) }}>{new Date().getFullYear()}</span>
         </div>
       </div>
 
       {/* Share button */}
-      <button
-        type="button"
-        onClick={handleShare}
-        style={{
-          width: "100%", marginTop: 8, padding: "11px 0", borderRadius: 12,
-          background: copied ? "rgba(52,211,153,0.12)" : `${acc}12`,
-          border: `1px solid ${copied ? "rgba(52,211,153,0.35)" : `${acc}32`}`,
-          color: copied ? "#34D399" : acc,
-          fontSize: 12, fontWeight: 900, cursor: "pointer", letterSpacing: 0.5,
-          display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-          transition: "all 0.2s ease",
-        }}
-      >
-        {copied ? (
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        ) : (
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-          </svg>
-        )}
+      <button type="button" onClick={handleShare} style={{
+        width: "100%", marginTop: 8, padding: "12px 0", borderRadius: 12,
+        background: copied ? "rgba(52,211,153,0.12)" : `${acc}12`,
+        border: `1px solid ${copied ? "rgba(52,211,153,0.35)" : `${acc}35`}`,
+        color: copied ? "#34D399" : acc,
+        fontSize: 13, fontWeight: 900, cursor: "pointer", letterSpacing: 0.5,
+        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+        transition: "all 0.2s ease",
+      }}>
+        {copied
+          ? <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        }
         {copied ? L.copied : L.cta}
       </button>
     </div>
@@ -663,6 +690,48 @@ function StudiedFightersPanel({ studiedIds, dna, locale, router }) {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// ─── DNA Reveal Ceremony ──────────────────────────────────────────────────────
+function DNARevealOverlay({ dna, locale, onDismiss }) {
+  const [stage, setStage] = useState(0);
+  const acc = ARCH_TRAINING_COLORS[dna.archetypeKey] || GOLD;
+  const RV = {
+    en: { label: "DNA REVEALED", dismiss: "Continue →" },
+    mn: { label: "ДНХ ИЛЭРЛЭЭ", dismiss: "Үргэлжлүүл →" },
+    ko: { label: "DNA 공개됨", dismiss: "계속 →" },
+  };
+  const L = RV[locale] || RV.en;
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setStage(1), 400);
+    const t2 = setTimeout(() => setStage(2), 1100);
+    const t3 = setTimeout(() => setStage(3), 1900);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+  }, []);
+
+  const fade = (s) => ({ opacity: stage >= s ? 1 : 0, transition: "opacity 0.6s ease" });
+  const rise = (s) => ({ opacity: stage >= s ? 1 : 0, transform: stage >= s ? "translateY(0)" : "translateY(22px)", transition: "opacity 0.7s ease, transform 0.7s ease" });
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.97)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32 }}>
+      <div style={{ ...fade(1), width: 72, height: 72, borderRadius: "50%", border: `2px solid ${acc}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 28, boxShadow: `0 0 48px ${acc}44`, fontSize: 32 }}>
+        🧬
+      </div>
+      <div style={{ ...fade(1), fontSize: 9, fontWeight: 900, letterSpacing: 3, color: acc, textTransform: "uppercase", marginBottom: 12 }}>
+        {L.label}
+      </div>
+      <div style={{ ...rise(2), fontSize: 38, fontWeight: 1000, color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", fontFamily: "var(--font-display,'Anton',sans-serif)", textAlign: "center", lineHeight: 1.0, marginBottom: 14, textShadow: `0 0 48px ${acc}66` }}>
+        {dna.archetype}
+      </div>
+      <p style={{ ...fade(3), fontSize: 13, color: "rgba(255,255,255,0.4)", textAlign: "center", lineHeight: 1.6, maxWidth: 280, margin: "0 0 40px" }}>
+        {dna.summary}
+      </p>
+      <button type="button" onClick={onDismiss} style={{ ...fade(3), padding: "14px 40px", borderRadius: 14, background: `${acc}22`, border: `1px solid ${acc}55`, color: acc, fontSize: 14, fontWeight: 900, cursor: "pointer", letterSpacing: 0.5 }}>
+        {L.dismiss}
+      </button>
     </div>
   );
 }
@@ -1096,6 +1165,8 @@ export default function FighterProfilePage() {
   const progressSavedRef  = useRef(false);
   const [currentExperiment, setCurrentExperiment] = useState(null);
   const [studiedFighterIds, setStudiedFighterIds] = useState([]);
+  const [dnaRevealVisible, setDnaRevealVisible] = useState(false);
+  const dnaRevealShownRef = useRef(false);
 
   useEffect(() => {
     if (!authLoading && !user) router.push(`/${locale}/login`);
@@ -1129,6 +1200,18 @@ export default function FighterProfilePage() {
       setCurrentExperiment(null);
     } catch { /* silent */ }
   }
+
+  // DNA Reveal Ceremony — show once, first time archetype confirms
+  useEffect(() => {
+    if (loading || !user?.uid || dna.building) return;
+    if (dnaRevealShownRef.current) return;
+    dnaRevealShownRef.current = true;
+    const key = `gavana_dna_reveal_${user.uid}`;
+    if (!localStorage.getItem(key)) {
+      localStorage.setItem(key, "1");
+      setDnaRevealVisible(true);
+    }
+  }, [loading, dna.building, user?.uid]);
 
   // Persist DNA to Firestore once per page load after sessions settle
   useEffect(() => {
@@ -1313,7 +1396,7 @@ export default function FighterProfilePage() {
         {/* Fighter DNA */}
         {!loading && (
           <div style={{ marginBottom: 4 }}>
-            <FighterDNACard dna={dna} locale={locale} />
+            <FighterDNACard dna={{ ...dna, prelim: dna.building ? computePreliminarySignals(sessions) : undefined }} locale={locale} />
           </div>
         )}
 
@@ -1355,6 +1438,15 @@ export default function FighterProfilePage() {
       </div>
 
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
+
+      {/* DNA Reveal Ceremony — shown once when archetype first confirms */}
+      {dnaRevealVisible && !dna.building && (
+        <DNARevealOverlay
+          dna={dna}
+          locale={locale}
+          onDismiss={() => setDnaRevealVisible(false)}
+        />
+      )}
     </main>
   );
 }
