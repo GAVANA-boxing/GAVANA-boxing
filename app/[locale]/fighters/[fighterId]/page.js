@@ -187,19 +187,54 @@ export default function FighterDetailPage() {
 
   const [personalConnection, setPersonalConnection] = useState(null);
   const [studied, setStudied] = useState(false);
+  const [currentExperiment, setCurrentExperiment] = useState(null);
+  const [settingExperiment, setSettingExperiment] = useState(false);
 
-  // Mark fighter as studied in Firestore
+  // Mark fighter as studied + load currentExperiment from Firestore
   useEffect(() => {
     if (!user?.uid || !fighter?.id) return;
     (async () => {
       try {
-        const { doc, setDoc, arrayUnion } = await import("firebase/firestore");
+        const { doc, setDoc, getDoc, arrayUnion } = await import("firebase/firestore");
         const { db } = await import("@/lib/firebase");
-        await setDoc(doc(db, "users", user.uid), { studiedFighters: arrayUnion(fighter.id) }, { merge: true });
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          setCurrentExperiment(userSnap.data().currentExperiment || null);
+        }
+        await setDoc(userRef, { studiedFighters: arrayUnion(fighter.id) }, { merge: true });
         setStudied(true);
       } catch { /* silent */ }
     })();
   }, [user?.uid, fighter?.id]);
+
+  async function handleSetExperiment() {
+    if (!user?.uid || settingExperiment) return;
+    setSettingExperiment(true);
+    try {
+      const { doc, setDoc, serverTimestamp } = await import("firebase/firestore");
+      const { db } = await import("@/lib/firebase");
+      const experiment = {
+        fighterId: fighter.id,
+        fighterName: fighter.name,
+        fighterAccent: fighter.accent,
+        startDate: serverTimestamp(),
+      };
+      await setDoc(doc(db, "users", user.uid), { currentExperiment: experiment }, { merge: true });
+      setCurrentExperiment({ ...experiment, startDate: { seconds: Math.floor(Date.now() / 1000) } });
+    } catch { /* silent */ }
+    setSettingExperiment(false);
+  }
+
+  async function handleStopExperiment() {
+    if (!user?.uid) return;
+    try {
+      const { doc, updateDoc, deleteField } = await import("firebase/firestore");
+      const { db } = await import("@/lib/firebase");
+      await updateDoc(doc(db, "users", user.uid), { currentExperiment: deleteField() });
+      setCurrentExperiment(null);
+    } catch { /* silent */ }
+  }
 
   // Build personal connection from training history
   useEffect(() => {
@@ -343,6 +378,55 @@ export default function FighterDetailPage() {
                 <polygon points="5 3 19 12 5 21 5 3"/>
               </svg>
               {locale === "mn" ? `${fighter.name.split(" ").slice(-1)[0]}-ийн хэв маягаар дасгал хий` : `Train ${fighter.name.split(" ").slice(-1)[0]}'s Style`}
+            </button>
+          );
+        })()}
+
+        {/* ── Try This Style Experiment ── */}
+        {user && (() => {
+          const isThisActive = currentExperiment?.fighterId === fighter.id;
+          const isOtherActive = currentExperiment && !isThisActive;
+          return isThisActive ? (
+            <div style={{
+              marginBottom: 16, padding: "12px 16px", borderRadius: 14,
+              background: `${acc}0a`, border: `1px solid ${acc}35`,
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 18 }}>⚗️</span>
+                <div>
+                  <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: acc, textTransform: "uppercase", marginBottom: 2 }}>
+                    {t("experimentActive")}
+                  </div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontWeight: 700 }}>
+                    {t("experimentFocusHint")}
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleStopExperiment}
+                style={{ fontSize: 10, fontWeight: 900, color: "#F87171", background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.25)", borderRadius: 8, padding: "5px 11px", cursor: "pointer" }}
+              >
+                {t("experimentStop")}
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleSetExperiment}
+              disabled={settingExperiment}
+              style={{
+                width: "100%", marginBottom: 16, padding: "12px 20px", borderRadius: 14,
+                background: `${acc}10`, border: `1px solid ${acc}35`, color: acc,
+                fontSize: 12, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase",
+                cursor: settingExperiment ? "wait" : "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                opacity: settingExperiment ? 0.6 : 1,
+              }}
+            >
+              <span>⚗️</span>
+              {isOtherActive ? t("experimentSwitch") : t("experimentCta")}
             </button>
           );
         })()}
