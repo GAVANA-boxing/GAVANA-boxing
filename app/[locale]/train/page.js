@@ -27,6 +27,8 @@ import { usePoseDetection } from "@/hooks/usePoseDetection";
 import TechniquePicker from "@/components/train/TechniquePicker";
 import { getPersonalConnection } from "@/lib/fighterPersonalConnection";
 import { isBeginnerUser, getCurrentBeginnerLesson, getBeginnerProgress } from "@/lib/beginnerPath";
+import { getTodaysDNAMission } from "@/lib/dnaDailyMissions";
+import { ARCH_TRAINING_COLORS } from "@/lib/archetypeTraining";
 import { getBelt, getBeltProgress, getNextBelt } from "@/lib/belts";
 import dynamic from "next/dynamic";
 const PoseDebugOverlay   = dynamic(() => import("@/components/train/PoseDebugOverlay"),   { ssr: false });
@@ -207,6 +209,7 @@ export default function TrainPage() {
   const readinessShownRef = useRef(false);
   const [currentExperiment, setCurrentExperiment] = useState(null);
   const [experimentSessionCount, setExperimentSessionCount] = useState(0);
+  const [userArchetype, setUserArchetype] = useState(null);
   const coachSnapshotRef = useRef(null);
   const prevSessionCountRef = useRef(null);
   const priorSessionsRef = useRef([]);
@@ -238,13 +241,16 @@ export default function TrainPage() {
         const userSnap = await getDoc(doc(db, "users", user.uid));
         if (!active) return;
         if (userSnap.exists()) {
-          const expData = userSnap.data().currentExperiment;
+          const userData = userSnap.data();
+          const expData = userData.currentExperiment;
           if (expData) {
             setCurrentExperiment(expData);
             const startSec = expData.startDate?.seconds || 0;
             const count = sessions.filter((s) => (s.createdAt?.seconds || 0) > startSec).length;
             setExperimentSessionCount(count);
           }
+          const arch = userData.fighterDNA?.archetypeKey;
+          if (arch) setUserArchetype(arch);
         }
         if (snapshot && sessions.length >= 3) {
           const weakAreas = Object.entries(snapshot.radarStats).sort(([, a], [, b]) => a - b);
@@ -1085,6 +1091,56 @@ export default function TrainPage() {
                 </div>
               </div>
             )}
+
+            {/* DNA Daily Focus — archetype-specific mission */}
+            {userArchetype && (() => {
+              const mission = getTodaysDNAMission(userArchetype);
+              if (!mission) return null;
+              const archColor = ARCH_TRAINING_COLORS[userArchetype] || GOLD;
+              return (
+                <div style={{
+                  borderRadius: 14, overflow: "hidden",
+                  border: `1px solid ${archColor}30`,
+                  background: `${archColor}08`,
+                }}>
+                  <div style={{ height: 2, background: `linear-gradient(90deg, ${archColor}88, transparent)` }} />
+                  <div style={{ padding: "12px 14px" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                      <div>
+                        <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.8, textTransform: "uppercase", color: archColor, marginBottom: 3 }}>
+                          {locale === "mn" ? "ӨНӨӨДРИЙН DNA ФОКУС" : locale === "ko" ? "오늘의 DNA 포커스" : "TODAY'S DNA FOCUS"}
+                        </div>
+                        <div style={{ fontSize: 15, fontWeight: 900, color: "#fff", lineHeight: 1.2 }}>
+                          {mission[locale] || mission.en}
+                        </div>
+                      </div>
+                      <div style={{
+                        width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+                        background: `${archColor}18`, border: `1px solid ${archColor}35`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 18,
+                      }}>
+                        🎯
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.5, fontWeight: 600, marginBottom: 10 }}>
+                      {mission.hint[locale] || mission.hint.en}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={wrappedHandleStart}
+                      style={{
+                        width: "100%", padding: "9px 0", borderRadius: 10,
+                        background: `${archColor}20`, border: `1px solid ${archColor}45`,
+                        color: archColor, fontSize: 12, fontWeight: 900, cursor: "pointer",
+                      }}
+                    >
+                      {locale === "mn" ? "Одоо дасгал хий →" : locale === "ko" ? "지금 훈련하기 →" : "Train Now →"}
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Experiment Mode widget */}
             {currentExperiment && (() => {
