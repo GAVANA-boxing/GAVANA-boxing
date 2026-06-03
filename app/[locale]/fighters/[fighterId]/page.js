@@ -212,13 +212,28 @@ export default function FighterDetailPage() {
     if (!user?.uid || settingExperiment) return;
     setSettingExperiment(true);
     try {
-      const { doc, setDoc, serverTimestamp } = await import("firebase/firestore");
+      const { doc, setDoc, serverTimestamp, collection, getDocs, query, where } = await import("firebase/firestore");
       const { db } = await import("@/lib/firebase");
+      const { computePunchPattern } = await import("@/lib/movementInsight");
+
+      // Capture baseline punch pattern from most recent session with punchBreakdown
+      let baselinePunchPct = null;
+      const sessSnap = await getDocs(query(collection(db, "training_sessions"), where("userId", "==", user.uid)));
+      const sorted = sessSnap.docs
+        .map((d) => ({ ...d.data() }))
+        .filter((d) => d.type === "training" && d.poseMetrics?.punchBreakdown)
+        .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+      if (sorted.length > 0) {
+        const pattern = computePunchPattern(sorted[0].poseMetrics.punchBreakdown);
+        if (pattern) baselinePunchPct = { jabPct: pattern.jabPct, crossPct: pattern.crossPct, hookPct: pattern.hookPct };
+      }
+
       const experiment = {
         fighterId: fighter.id,
         fighterName: fighter.name,
         fighterAccent: fighter.accent,
         startDate: serverTimestamp(),
+        baselinePunchPct,
       };
       await setDoc(doc(db, "users", user.uid), { currentExperiment: experiment }, { merge: true });
       setCurrentExperiment({ ...experiment, startDate: { seconds: Math.floor(Date.now() / 1000) } });
