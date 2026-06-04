@@ -208,7 +208,7 @@ export default function AICoach() {
         {activeSection === "chat" && (<>
 
           {/* ── Persona character cards ── */}
-          <p style={styles.personaSectionLabel}>CHOOSE YOUR COACH</p>
+          <p style={styles.personaSectionLabel}>{locale === "mn" ? "ДАСГАЛЖУУЛАГЧАА СОНГОНО УУ" : locale === "ko" ? "코치를 선택하세요" : "CHOOSE YOUR COACH"}</p>
           <div style={styles.personaGrid}>
             {personas.map((p) => (
               <button
@@ -253,7 +253,7 @@ export default function AICoach() {
             </span>
             <div style={styles.personaBannerInfo}>
               <p style={{ ...styles.personaBannerName, color: activePersona.color }}>{activePersona.name}</p>
-              <p style={styles.personaBannerSub}>Coaching you now</p>
+              <p style={styles.personaBannerSub}>{locale === "mn" ? "Одоо дасгалжуулж байна" : locale === "ko" ? "지금 코칭 중" : "Coaching you now"}</p>
             </div>
             <span style={styles.personaBannerDot} />
           </div>
@@ -291,7 +291,7 @@ export default function AICoach() {
                     }}>
                       {activePersona.intro}
                     </div>
-                    <p style={styles.introHint}>TAP A QUICK ACTION OR TYPE BELOW</p>
+                    <p style={styles.introHint}>{locale === "mn" ? "ДООРХ ТОВЧЛУУР ДАРАХ ЭСВЭЛ БИЧНЭ ҮҮ" : locale === "ko" ? "빠른 액션을 탭하거나 아래에 입력하세요" : "TAP A QUICK ACTION OR TYPE BELOW"}</p>
                   </div>
                 </div>
               ) : (
