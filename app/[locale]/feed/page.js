@@ -42,13 +42,14 @@ export default function FeedRoute() {
   const [followingReels,  setFollowingReels]  = useState([]);
   const [followingLoaded, setFollowingLoaded] = useState(false);
 
-  const lastLoadRef = useRef(Date.now());
+  const lastLoadRef    = useRef(Date.now());
+  const archetypeRef   = useRef(null);
 
-  const loadFeed = async (cancelled) => {
+  const loadFeed = async (cancelled, archKey = null) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getFeedReels(20);
+      const data = await getFeedReels(20, archKey);
       if (!cancelled) {
         setReels(data);
         lastLoadRef.current = Date.now();
@@ -65,11 +66,11 @@ export default function FeedRoute() {
 
   useEffect(() => {
     let cancelled = false;
-    loadFeed(cancelled);
+    loadFeed(cancelled, archetypeRef.current);
 
     const handleVisibility = () => {
       if (document.visibilityState === "visible" && Date.now() - lastLoadRef.current > 5 * 60 * 1000) {
-        loadFeed(cancelled);
+        loadFeed(cancelled, archetypeRef.current);
       }
     };
     document.addEventListener("visibilitychange", handleVisibility);
@@ -91,7 +92,13 @@ export default function FeedRoute() {
         const snap = await getDoc(doc(db, "users", user.uid));
         if (active && snap.exists()) {
           const arch = snap.data()?.fighterDNA?.archetypeKey;
-          if (arch) setUserArchetype(arch);
+          if (arch) {
+            setUserArchetype(arch);
+            if (!archetypeRef.current) {
+              archetypeRef.current = arch;
+              loadFeed(false, arch);
+            }
+          }
         }
       } catch { /* silent */ }
     })();
