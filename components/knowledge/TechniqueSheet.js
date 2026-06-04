@@ -169,19 +169,40 @@ function TechDetailSheet({ fighter, technique, onClose, onBack, locale, router }
                   </span>
                 ))}
               </div>
-              {/* Video coming soon pill */}
-              <div style={{
-                position: "absolute", top: 10, right: 14,
-                display: "flex", alignItems: "center", gap: 5,
-                padding: "3px 9px", borderRadius: 20,
-                background: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.12)",
-                backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
-              }}>
-                <span style={{ fontSize: 10 }}>🎬</span>
-                <span style={{ fontSize: 7.5, fontWeight: 900, color: "rgba(255,255,255,0.45)", letterSpacing: 0.8 }}>
-                  {locale === "mn" ? "Видео удахгүй" : locale === "ko" ? "영상 출시 예정" : "Video coming soon"}
-                </span>
-              </div>
+              {/* Video button / coming-soon pill */}
+              {technique.videoId ? (
+                <a
+                  href={`https://www.youtube.com/watch?v=${technique.videoId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    position: "absolute", top: 10, right: 14,
+                    display: "flex", alignItems: "center", gap: 5,
+                    padding: "4px 10px", borderRadius: 20,
+                    background: "rgba(255,0,0,0.18)", border: "1px solid rgba(255,80,80,0.4)",
+                    backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+                    textDecoration: "none",
+                  }}
+                >
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="#FF4444" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  <span style={{ fontSize: 8, fontWeight: 900, color: "#FF8080", letterSpacing: 0.8 }}>
+                    {locale === "mn" ? "Видео үзэх" : locale === "ko" ? "영상 보기" : "Watch Tutorial"}
+                  </span>
+                </a>
+              ) : (
+                <div style={{
+                  position: "absolute", top: 10, right: 14,
+                  display: "flex", alignItems: "center", gap: 5,
+                  padding: "3px 9px", borderRadius: 20,
+                  background: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.12)",
+                  backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+                }}>
+                  <span style={{ fontSize: 10 }}>🎬</span>
+                  <span style={{ fontSize: 7.5, fontWeight: 900, color: "rgba(255,255,255,0.45)", letterSpacing: 0.8 }}>
+                    {locale === "mn" ? "Видео удахгүй" : locale === "ko" ? "영상 출시 예정" : "Video coming soon"}
+                  </span>
+                </div>
+              )}
             </div>
           );
         })()}
