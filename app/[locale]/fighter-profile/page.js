@@ -974,6 +974,7 @@ const TAF_L = {
     growing:  (arch) => `${arch} tribe growing`,
     dominant: (arch) => `${arch} is the largest tribe`,
     empty:    "Be the first fighter in this tribe.",
+    totalLabel: "total",
   },
   mn: {
     title:      "ОВОГ АЙМГИЙН ТОЙМ",
@@ -988,6 +989,7 @@ const TAF_L = {
     growing:  (arch) => `${arch} овог өсч байна`,
     dominant: (arch) => `${arch} хамгийн том овог`,
     empty:    "Энэ овгийн анхны тулаанч бол.",
+    totalLabel: "нийт",
   },
   ko: {
     title:      "부족 현황",
@@ -1002,6 +1004,7 @@ const TAF_L = {
     growing:  (arch) => `${arch} 부족 성장 중`,
     dominant: (arch) => `${arch}이 가장 큰 부족`,
     empty:    "이 부족의 첫 파이터가 되세요.",
+    totalLabel: "전체",
   },
 };
 
@@ -1044,7 +1047,7 @@ function TribeActivityFeed({ allTribeCounts, userArchetype, locale }) {
             {L.title}
           </span>
           <span style={{ fontSize: 9, fontWeight: 900, color: whiteAlpha(0.28), fontFamily: "monospace" }}>
-            {total} total
+            {total} {L.totalLabel}
           </span>
         </div>
 

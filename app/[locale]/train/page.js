@@ -464,7 +464,7 @@ export default function TrainPage() {
              hint: { en: "Visit Fighter Profile to see your early read →", mn: "Тулаанчийн профайлаас дүнгээ харна уу →", ko: "파이터 프로필에서 초기 분석 확인 →" }, cta: true },
       8:  { emoji: "🧬", en: "Archetype Signal Strong",   mn: "Archetype дохио хүчтэй",           ko: "아키타입 신호 강함",
              hint: { en: "Your Fighter DNA is forming — check your profile!", mn: "Тулаанчийн ДНХ бүрдэж байна — профайлаа шалга!", ko: "파이터 DNA 형성 중 — 프로필 확인!" }, cta: true },
-      15: { emoji: "⚗️", en: "Fighter Identity Emerging", mn: "Тулаанчийн мөн чанар бүрдэж байна", ko: "파이터 аиIdentity 형성",
+      15: { emoji: "⚗️", en: "Fighter Identity Emerging", mn: "Тулаанчийн мөн чанар бүрдэж байна", ko: "파이터 아이덴티티 형성",
              hint: { en: "Your style is becoming clear. Try an experiment!", mn: "Таны хэв маяг тодорхой болж байна. Туршилт хийгээрэй!", ko: "스타일이 명확해지고 있습니다. 실험해 보세요!" } },
     };
     const milestone = DNA_MILESTONES[savedAttemptNumber];
@@ -1569,12 +1569,15 @@ export default function TrainPage() {
         const SIG_L = {
           en: { aggr: "Aggression", range: "Range", counter: "Counter", volume: "Volume",
                 high: "HIGH", medium: "MED", low: "LOW", long: "LONG", mid: "MID", close: "CLOSE", building: "BUILDING", emerging: "EMERGING",
+                firstSignals: "YOUR FIRST SIGNALS", like: "Like ",
                 mightBe: "You might be a...", session2: "Train 2 more sessions to unlock your Fighter DNA", trainAgain: "Train Again →", viewProfile: "View Profile", title: "SESSION 1 COMPLETE", dnaJourney: "DNA JOURNEY" },
           mn: { aggr: "Түрэмгийлэл", range: "Зай", counter: "Контр", volume: "Хэмжээ",
                 high: "ӨНДӨР", medium: "ДУНД", low: "БАГ", long: "УРТ", mid: "ДУНД", close: "ОЙРХОН", building: "БҮРДЭЖ БАЙНА", emerging: "ГАРЧ ИРЭХ",
+                firstSignals: "АНХНЫ ДОХИО", like: "Жишээ нь: ",
                 mightBe: "Та магадгүй...", session2: "ДНХ-аа нээхийн тулд 2 тренинг нэмж хий", trainAgain: "Дахин бэлтгэл хий →", viewProfile: "Профайл харах", title: "1-Р ТРЕНИНГ ДУУСЛАА", dnaJourney: "ДНХ АЯЛАЛ" },
           ko: { aggr: "공격성", range: "레인지", counter: "카운터", volume: "볼륨",
                 high: "높음", medium: "중간", low: "낮음", long: "롱", mid: "미드", close: "클로즈", building: "구축 중", emerging: "성장 중",
+                firstSignals: "첫 번째 신호", like: "예: ",
                 mightBe: "당신은...", session2: "파이터 DNA 잠금 해제를 위해 2회 더 훈련하세요", trainAgain: "다시 훈련 →", viewProfile: "프로필 보기", title: "세션 1 완료", dnaJourney: "DNA 여정" },
         };
         const SL = SIG_L[locale] || SIG_L.en;
@@ -1614,7 +1617,7 @@ export default function TrainPage() {
               {signals.length > 0 && (
                 <div style={{ borderRadius: 16, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", padding: "16px", marginBottom: 16 }}>
                   <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", marginBottom: 12 }}>
-                    YOUR FIRST SIGNALS
+                    {SL.firstSignals}
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     {signals.map(({ label, level, w }) => (
@@ -1642,7 +1645,7 @@ export default function TrainPage() {
                   </span>
                 </div>
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 700 }}>
-                  {locale === "mn" ? "Жишээ нь: " : locale === "ko" ? "예: " : "Like "}{ARCH_FIGHTER[archKey]}
+                  {SL.like}{ARCH_FIGHTER[archKey]}
                 </div>
               </div>
 
