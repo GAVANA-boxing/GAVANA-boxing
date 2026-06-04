@@ -34,22 +34,24 @@ function useCountUp(target, duration = 1000) {
 
 // Sub-labels for result modal display
 const IDENTITY_SUBS = {
-  "PRESSURE INITIATOR": "Forward-dominant pressure style",
-  "MOBILE OUTBOXER":    "Strong lateral movement control",
-  "REACTIVE COUNTER":   "Movement-reactive defensive reads",
-  "GUARD INSTABILITY":  "Guard line needs consolidation",
-  "BALANCE BREAKER":    "Dynamic weight transfer detected",
-  "NARROW BASE":        "Stance too narrow — widen your base",
-  "FORWARD HUNTER":     "Aggressive entry pattern detected",
-  "SHARP EXECUTION":    "High-efficiency movement session",
-  "SOLID FOUNDATION":   "Consistent movement quality",
-  "DEVELOPING STYLE":   "Pattern emerging — keep building",
-  "RAW ENERGY":         "Pure intensity — structure coming",
+  "PRESSURE INITIATOR": { en: "Forward-dominant pressure style",      mn: "Урагшлах даралтын хэв маяг",       ko: "앞으로 밀어붙이는 압박 스타일" },
+  "MOBILE OUTBOXER":    { en: "Strong lateral movement control",      mn: "Хажуугийн хөдөлгөөний хяналт",      ko: "강한 측면 이동 제어" },
+  "REACTIVE COUNTER":   { en: "Movement-reactive defensive reads",    mn: "Хөдөлгөөнд суурилсан хамгаалалт",   ko: "움직임 기반 방어 판단" },
+  "GUARD INSTABILITY":  { en: "Guard line needs consolidation",       mn: "Хамгаалалтын шугамаа бэхжүүл",      ko: "가드 라인 강화 필요" },
+  "BALANCE BREAKER":    { en: "Dynamic weight transfer detected",     mn: "Динамик жингийн шилжилт илэрсэн",   ko: "동적 체중 이동 감지" },
+  "NARROW BASE":        { en: "Stance too narrow — widen your base",  mn: "Зогсоол хэт нарийн — өргөл",        ko: "스탠스 너무 좁음 — 넓혀라" },
+  "FORWARD HUNTER":     { en: "Aggressive entry pattern detected",    mn: "Довтолгооны хэв маяг илэрсэн",      ko: "공격적인 진입 패턴 감지" },
+  "SHARP EXECUTION":    { en: "High-efficiency movement session",     mn: "Өндөр үр ашигтай хөдөлгөөн",        ko: "고효율 움직임 세션" },
+  "SOLID FOUNDATION":   { en: "Consistent movement quality",         mn: "Тогтвортой хөдөлгөөний чанар",      ko: "일관된 움직임 품질" },
+  "DEVELOPING STYLE":   { en: "Pattern emerging — keep building",    mn: "Хэв маяг бүрдэж байна — үргэлжлүүл", ko: "패턴 형성 중 — 계속 쌓아라" },
+  "RAW ENERGY":         { en: "Pure intensity — structure coming",   mn: "Цэвэр эрч хүч — бүтэц бүрдэж байна", ko: "순수한 강도 — 구조 형성 중" },
 };
 
-function getIdentityWithSub(score, movementEvents, poseMetrics) {
+function getIdentityWithSub(score, movementEvents, poseMetrics, locale = "en") {
   const title = getSessionIdentity(score, movementEvents, poseMetrics);
-  return { title, sub: IDENTITY_SUBS[title] || "" };
+  const subs = IDENTITY_SUBS[title];
+  const sub = subs ? (subs[locale] || subs.en) : "";
+  return { title, sub };
 }
 
 function computeComparison(curr, prev) {
@@ -440,7 +442,7 @@ export default function TrainResultModal({
   const isLowConfidence = scoreConf === "low" || scoreConf === "none";
 
   const events = movementEvents || [];
-  const identity = tooFewPunches ? null : getIdentityWithSub(result.score, events, poseMetrics);
+  const identity = tooFewPunches ? null : getIdentityWithSub(result.score, events, poseMetrics, locale);
   const movementSummary = getMovementSummary(events);
   const comparison = computeComparison(poseMetrics, prevPoseMetrics);
   const timelineEvents = events.slice(-8);
@@ -482,7 +484,7 @@ export default function TrainResultModal({
             /* ── Not enough data ── */
             <div style={{ margin: "16px 0 10px" }}>
               <h2 style={{ margin: "0 0 6px", fontSize: 22, fontWeight: 1000, color: whiteAlpha(0.55), letterSpacing: "-0.01em" }}>
-                {locale === "mn" ? "Хангалтгүй өгөгдөл" : "Not Enough Data"}
+                {locale === "mn" ? "Хангалтгүй өгөгдөл" : locale === "ko" ? "데이터 부족" : "Not Enough Data"}
               </h2>
               <p style={{ margin: 0, fontSize: 12, color: whiteAlpha(0.35), lineHeight: 1.5 }}>
                 {locale === "mn"
