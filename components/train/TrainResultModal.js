@@ -12,6 +12,9 @@ import dynamic from "next/dynamic";
 const MotionChart = dynamic(() => import("@/components/train/MotionChart"), { ssr: false });
 import RankBadge from "@/components/RankBadge";
 import styles from "@/components/train/trainStyles";
+import { getBelt } from "@/lib/belts";
+import { computeScoreConfidence, CONFIDENCE_TIPS } from "@/lib/scoreConfidence";
+import { computePunchPattern } from "@/lib/movementInsight";
 
 function useCountUp(target, duration = 1000) {
   const [display, setDisplay] = useState(0);
@@ -141,6 +144,40 @@ const REVIEW_LABELS = {
   mn: { wellDone: "Юу сайн байсан", mainFix: "Гол засах зүйл", drill: "Дасгал", nextGoal: "Дараагийн session-ийн зорилго", notEnough: "Хангалтгүй өгөгдөл", positionTip: "Tracking зөвлөгөө" },
   ko: { wellDone: "잘한 점", mainFix: "주요 개선점", drill: "드릴", nextGoal: "다음 세션 목표", notEnough: "데이터 부족", positionTip: "트래킹 팁" },
 };
+
+// ── Punch pattern breakdown — first glimpse of Fighter DNA ───────────────────
+function PunchPatternCard({ poseMetrics, t }) {
+  const pattern = computePunchPattern(poseMetrics?.punchBreakdown);
+  if (!pattern) return null;
+  const bars = [
+    { key: "punchTypeJab",   pct: pattern.jabPct,   count: pattern.jab,   color: "#3B82F6" },
+    { key: "punchTypeCross", pct: pattern.crossPct, count: pattern.cross, color: "#EF4444" },
+    { key: "punchTypeHook",  pct: pattern.hookPct,  count: pattern.hook,  color: "#8B5CF6" },
+  ];
+  return (
+    <div style={{ margin: "12px 20px 0", padding: "12px 14px", borderRadius: 12, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)" }}>
+      <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.8, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 10 }}>
+        🥊 {t("punchPatternTitle")}
+      </div>
+      {bars.map((bar) => (
+        <div key={bar.key} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+          <div style={{ width: 38, fontSize: 9, fontWeight: 900, color: "rgba(255,255,255,0.38)", textTransform: "uppercase", letterSpacing: 0.5 }}>
+            {t(bar.key)}
+          </div>
+          <div style={{ flex: 1, height: 5, background: "rgba(255,255,255,0.07)", borderRadius: 3, overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${bar.pct}%`, background: bar.color, borderRadius: 3, transition: "width 1s cubic-bezier(0.16,1,0.3,1)" }} />
+          </div>
+          <div style={{ width: 30, fontSize: 9, fontWeight: 900, color: "rgba(255,255,255,0.45)", textAlign: "right" }}>
+            {bar.pct}%
+          </div>
+        </div>
+      ))}
+      <div style={{ marginTop: 10, fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.35)", textAlign: "center", letterSpacing: 0.3 }}>
+        {t(pattern.patternKey)}
+      </div>
+    </div>
+  );
+}
 
 // ── Quick 3-line coaching summary shown before the detailed analysis ──────────
 function ActionSummary({ poseMetrics, result, locale }) {
@@ -330,6 +367,7 @@ export default function TrainResultModal({
   challengeSaving,
   challengeSaved,
   rankUpInfo,
+  beltUpInfo,
   sessionHistory,
   ghostBestScore,
   pvpResult,
@@ -374,7 +412,12 @@ export default function TrainResultModal({
   recordedBlob     = null,
   thumbnailBlob    = null,
 }) {
-  const displayScore = useCountUp(result?.score);
+  // Compute confidence early so we can cap the animated score
+  const _punchCount = (poseMetrics?.punchCount ?? result?.hitCount ?? 0);
+  const _scoreConf = computeScoreConfidence(_punchCount, poseMetrics?.sessionConfidence ?? null, poseMetrics?.cameraQuality ?? null);
+  const _scoreCap = _scoreConf === "low" ? 7.5 : _scoreConf === "medium" ? 8.5 : 10;
+  const _cappedScore = result ? Math.min(result.score, _scoreCap) : 0;
+  const displayScore = useCountUp(_cappedScore);
   const [sessionTag, setSessionTag] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
   const [clipDuration, setClipDuration] = useState(null);
@@ -392,6 +435,9 @@ export default function TrainResultModal({
   const MIN_PUNCHES = 5;
   const effectivePunchCount = poseMetrics?.punchCount ?? result.hitCount ?? 0;
   const tooFewPunches = effectivePunchCount < MIN_PUNCHES;
+
+  const scoreConf = _scoreConf;
+  const isLowConfidence = scoreConf === "low" || scoreConf === "none";
 
   const events = movementEvents || [];
   const identity = tooFewPunches ? null : getIdentityWithSub(result.score, events, poseMetrics);
@@ -415,9 +461,22 @@ export default function TrainResultModal({
 
         {/* ── HEADER ───────────────────────────────────────────────── */}
         <div style={{ padding: "20px 20px 14px", flexShrink: 0, borderBottom: `1px solid ${whiteAlpha(0.05)}` }}>
-          <p style={{ margin: 0, fontSize: 9, fontWeight: 900, letterSpacing: 3.5, color: goldAlpha(0.65), textTransform: "uppercase" }}>
-            {analysisLabel}
-          </p>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
+            <p style={{ margin: 0, fontSize: 9, fontWeight: 900, letterSpacing: 3.5, color: goldAlpha(0.65), textTransform: "uppercase" }}>
+              {analysisLabel}
+            </p>
+            {/* Confidence badge */}
+            {!tooFewPunches && (() => {
+              const confMap = { high: { label: t("scoreConfidenceHigh"), color: "#34D399", bg: "rgba(52,211,153,0.1)" }, medium: { label: t("scoreConfidenceMedium"), color: "#F5C451", bg: "rgba(245,196,81,0.1)" }, low: { label: t("scoreConfidenceLow"), color: "#FB923C", bg: "rgba(251,146,60,0.1)" } };
+              const cm = confMap[scoreConf];
+              if (!cm) return null;
+              return (
+                <span style={{ fontSize: 8, fontWeight: 900, color: cm.color, background: cm.bg, padding: "3px 8px", borderRadius: 20, letterSpacing: 0.5 }}>
+                  {cm.label}
+                </span>
+              );
+            })()}
+          </div>
 
           {tooFewPunches ? (
             /* ── Not enough data ── */
@@ -469,6 +528,23 @@ export default function TrainResultModal({
             </>
           )}
         </div>
+
+        {/* ── LOW CONFIDENCE TIPS ──────────────────────────────────── */}
+        {isLowConfidence && !tooFewPunches && (
+          <div style={{ margin: "0 20px 0", padding: "12px 14px", borderRadius: 12, background: "rgba(251,146,60,0.06)", border: "1px solid rgba(251,146,60,0.2)" }}>
+            <div style={{ fontSize: 10, fontWeight: 900, color: "#FB923C", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8 }}>
+              ⚠ {t("confidenceLowNote")}
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {CONFIDENCE_TIPS.map((tip) => (
+                <div key={tip.key} style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 9px", borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <span style={{ fontSize: 12 }}>{tip.icon}</span>
+                  <span style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", fontWeight: 700 }}>{t(tip.key)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ── RETURN SUMMARY ───────────────────────────────────────── */}
         {!tooFewPunches && (() => {
@@ -527,6 +603,11 @@ export default function TrainResultModal({
             </div>
           );
         })()}
+
+        {/* ── PUNCH PATTERN (Fighter DNA seed) ─────────────────────── */}
+        {poseMetrics && !tooFewPunches && scoreConf !== "none" && (
+          <PunchPatternCard poseMetrics={poseMetrics} t={t} />
+        )}
 
         {/* ── ACTION SUMMARY: GOOD / FIX / NEXT ────────────────────── */}
         {poseMetrics && !tooFewPunches && (
@@ -1362,6 +1443,30 @@ export default function TrainResultModal({
             </>
           )}
 
+          {/* Belt Up */}
+          {beltUpInfo && (
+            <>
+              <SectionLabel label={locale === "mn" ? "БҮС ДЭВШИЛТ" : locale === "ko" ? "벨트 승급" : "BELT PROMOTION"} />
+              <div style={{
+                borderRadius: RADIUS.md, padding: "20px 20px", textAlign: "center",
+                background: `linear-gradient(135deg, ${beltUpInfo.color}14, ${blackAlpha(0.8)})`,
+                border: `2px solid ${beltUpInfo.color}55`,
+                animation: "rankUpPulse 2s ease-in-out infinite",
+              }}>
+                <div style={{ fontSize: 36, marginBottom: 8 }}>🥋</div>
+                <div style={{ fontSize: 15, fontWeight: 900, color: beltUpInfo.color, marginBottom: 4 }}>
+                  {locale === "mn" ? "БҮС АХИЛЛАА!" : locale === "ko" ? "벨트 승급!" : "BELT PROMOTED!"}
+                </div>
+                <div style={{ fontSize: 20, fontWeight: 900, color: "#fff", letterSpacing: 1 }}>
+                  {typeof t === "function" ? t(beltUpInfo.key) : beltUpInfo.key}
+                </div>
+                <div style={{ marginTop: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                  {locale === "mn" ? "Гайхалтай ахиц дэвшил!" : locale === "ko" ? "엄청난 발전입니다!" : "Incredible progress!"}
+                </div>
+              </div>
+            </>
+          )}
+
           {/* Rank Up */}
           {rankUpInfo && (
             <>
@@ -1429,8 +1534,10 @@ export default function TrainResultModal({
             </div>
           )}
           <div style={{ display: "grid", gap: 8 }}>
-            <button type="button" style={styles.tryAgainButton} onClick={onTryAgain}>
-              {activeChallenge ? t("challengeTryAgain") : t("trainTryAgain")}
+            <button type="button"
+              style={{ ...styles.tryAgainButton, ...(isLowConfidence ? { background: "linear-gradient(135deg,#FB923C,#F59E0B)", color: "#000", fontWeight: 900 } : {}) }}
+              onClick={onTryAgain}>
+              {isLowConfidence ? t("confidenceTryAgain") : activeChallenge ? t("challengeTryAgain") : t("trainTryAgain")}
             </button>
             {!activeChallenge && !saved && (
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 2 }}>
@@ -1453,7 +1560,7 @@ export default function TrainResultModal({
             {!tooFewPunches && !activeChallenge && !isGuest && (
               <button
                 type="button"
-                style={{ ...styles.saveButton, ...(saved ? styles.saveButtonDone : {}), opacity: saving || saved ? 0.65 : 1, cursor: saving || saved ? "default" : "pointer" }}
+                style={{ ...styles.saveButton, ...(saved ? styles.saveButtonDone : {}), ...(isLowConfidence && !saved ? { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.45)", fontSize: 11 } : {}), opacity: saving || saved ? 0.65 : 1, cursor: saving || saved ? "default" : "pointer" }}
                 onClick={() => {
                   // Strip heavy frame-by-frame arrays, keep compact weakness list for history
                   const { motionHistory: _mh, punchEvents: _pe, coaching, ...poseMetricsForSave } = poseMetrics || {};
@@ -1469,7 +1576,9 @@ export default function TrainResultModal({
                     ? t("trainAttemptSaved").replace("{n}", savedAttemptNumber)
                     : saved
                       ? t("trainSavedShort")
-                      : t("trainSaveProgress")}
+                      : isLowConfidence
+                        ? t("confidenceSaveAnyway")
+                        : t("trainSaveProgress")}
               </button>
             )}
             {!tooFewPunches && isGuest && (

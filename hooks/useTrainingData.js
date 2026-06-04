@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { collection, getDocs, query, where, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { calculateUserXP } from "@/lib/xp";
+import { getLocalDateKey } from "@/lib/utils";
 
 export function useTrainingData({ user }) {
   const [reelId, setReelId] = useState(null);
@@ -17,7 +18,10 @@ export function useTrainingData({ user }) {
   const [currentXP, setCurrentXP] = useState(0);
   const [sessionHistory, setSessionHistory] = useState([]);
   const [weeklySessionCount, setWeeklySessionCount] = useState(0);
+  const [totalSessionCount, setTotalSessionCount] = useState(null); // null = loading
   const [userStreak, setUserStreak] = useState(0);
+  const [bestDailyStreak, setBestDailyStreak] = useState(0);
+  const [missionCompletedToday, setMissionCompletedToday] = useState(false);
   const [opponentUsername, setOpponentUsername] = useState(null);
   const [ghostBestScore, setGhostBestScore] = useState(null);
   const ghostBestScoreRef = useRef(null);
@@ -67,10 +71,13 @@ export function useTrainingData({ user }) {
         if (!active) return;
         const userData = userSnap.exists() ? userSnap.data() : {};
         setUserStreak(Number(userData.dailyStreak) || 0);
+        setBestDailyStreak(Number(userData.bestDailyStreak) || 0);
+        setMissionCompletedToday(userData.dailyMissionCompleted === getLocalDateKey());
         const sessions = sessSnap.docs
           .map((d) => d.data())
           .filter((d) => d.type === "training" && Number.isFinite(Number(d.score)));
         sessions.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        setTotalSessionCount(sessions.length);
         setSessionHistory(sessions.slice(0, 5).map((d) => Number(d.score)));
         const now = new Date();
         const dayOfWeek = now.getDay();
@@ -184,6 +191,9 @@ export function useTrainingData({ user }) {
     sessionHistory,
     weeklySessionCount,
     userStreak,
+    bestDailyStreak,
+    missionCompletedToday,
+    totalSessionCount,
     opponentUsername,
     ghostBestScore, setGhostBestScore,
     ghostBestScoreRef,

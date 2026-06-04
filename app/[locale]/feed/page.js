@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale } from "@/lib/i18n";
@@ -39,27 +39,43 @@ export default function FeedRoute() {
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState(null);
 
-  useEffect(() => {
-    let cancelled = false;
+  const lastLoadRef = useRef(Date.now());
+
+  const loadFeed = async (cancelled) => {
     setLoading(true);
     setError(null);
+    try {
+      const data = await getFeedReels(20);
+      if (!cancelled) {
+        setReels(data);
+        lastLoadRef.current = Date.now();
+        setLoading(false);
+      }
+    } catch (err) {
+      if (!cancelled) {
+        console.error("[Feed] failed to load reels:", err);
+        setError(err);
+        setLoading(false);
+      }
+    }
+  };
 
-    getFeedReels(20)
-      .then((data) => {
-        if (!cancelled) {
-          setReels(data);
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          console.error("[Feed] failed to load reels:", err);
-          setError(err);
-          setLoading(false);
-        }
-      });
+  useEffect(() => {
+    let cancelled = false;
+    loadFeed(cancelled);
 
-    return () => { cancelled = true; };
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible" && Date.now() - lastLoadRef.current > 5 * 60 * 1000) {
+        loadFeed(cancelled);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

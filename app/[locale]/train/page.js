@@ -26,6 +26,11 @@ import MilestoneCelebration from "@/components/MilestoneCelebration";
 import { usePoseDetection } from "@/hooks/usePoseDetection";
 import TechniquePicker from "@/components/train/TechniquePicker";
 import { getPersonalConnection } from "@/lib/fighterPersonalConnection";
+import { isBeginnerUser, getCurrentBeginnerLesson, getBeginnerProgress } from "@/lib/beginnerPath";
+import { getTodaysDNAMission } from "@/lib/dnaDailyMissions";
+import { ARCH_TRAINING_COLORS } from "@/lib/archetypeTraining";
+import { getFeaturedPackage, getPackageFighter } from "@/lib/experimentPackages";
+import { getBelt, getBeltProgress, getNextBelt } from "@/lib/belts";
 import dynamic from "next/dynamic";
 const PoseDebugOverlay   = dynamic(() => import("@/components/train/PoseDebugOverlay"),   { ssr: false });
 const DebugSessionPanel  = dynamic(() => import("@/components/train/DebugSessionPanel"),  { ssr: false });
@@ -36,6 +41,14 @@ const CHALLENGES = {
   "jab-minute":  { titleKey: "challengeJabTitle" },
   "speed-test":  { titleKey: "challengeSpeedTitle" },
   "combo-master": { titleKey: "challengeComboTitle" },
+};
+
+const ARCH_CUES = {
+  pressure:   { en: ["Push forward!", "Don't let them breathe!", "Control the center!", "Keep the pressure on!", "Walk them down!"], mn: ["Урагш дар!", "Амрахыг өгөхгүй!", "Голыг эзэл!", "Дарамтыг хадгал!", "Урагшил!"], ko: ["전진하세요!", "숨 쉬게 하지 마세요!", "중앙 장악!", "프레셔 유지!", "밀어붙이세요!"] },
+  outboxer:   { en: ["Use your footwork!", "Work those angles!", "Stay on the outside!", "Pivot and reset!", "Control the range!"], mn: ["Хөдөлгөөнөө ашигла!", "Өнцгийг ажилла!", "Гаднаас ажилла!", "Эрж ре-сет хий!", "Зайг контролло!"], ko: ["풋워크 활용!", "앵글을 만드세요!", "아웃사이드 유지!", "피벗하고 리셋!", "레인지 컨트롤!"] },
+  counter:    { en: ["Wait for it...", "Set the trap!", "Time your counter!", "Patience — then fire!", "Let them come to you!"], mn: ["Хүлээ...", "Хавхаа тавь!", "Контрын цагаа тохируул!", "Тэвч — дараа цох!", "Ирэхийг нь хүлээ!"], ko: ["기다리세요...", "트랩 설정!", "카운터 타이밍!", "인내 후 반격!", "오게 내버려 두세요!"] },
+  explosive:  { en: ["Explode!", "Fast combinations!", "Burst and reset!", "Max power!", "Surprise them!"], mn: ["Тэсрэн!", "Хурдан комбо!", "Тэсрэж, ре-сет хий!", "Дээд хүч!", "Гэнэтлүүл!"], ko: ["폭발하세요!", "빠른 콤보!", "버스트 후 리셋!", "최대 파워!", "기습하세요!"] },
+  technician: { en: ["Perfect your form!", "Reset your stance!", "Stay systematic!", "Clean technique!", "Build the pattern!"], mn: ["Хэлбэрээ тогтоо!", "Байрлалаа буц!", "Системтэй бай!", "Цэвэр техник!", "Хэв маягаа буд!"], ko: ["폼을 완벽하게!", "스탠스 리셋!", "시스템대로!", "깔끔한 기술!", "패턴 구축!"] },
 };
 
 export default function TrainPage() {
@@ -54,9 +67,8 @@ export default function TrainPage() {
     const params = new URLSearchParams(window.location.search);
     setDebugEnabled(params.get("debug") === "1");
     setAutoStart(params.get("autostart") === "1");
-    if (!localStorage.getItem("gavana_train_seen")) {
+    if (!localStorage.getItem("gavana_onboarding_seen")) {
       setShowOnboarding(true);
-      localStorage.setItem("gavana_train_seen", "1");
     }
     try {
       const stored = localStorage.getItem("gavana_daily_mission");
@@ -68,6 +80,7 @@ export default function TrainPage() {
     reelId, drillId, challengeId, trainSource, trainSourceUserId,
     challengeUserId, creatorBestScore, targetScore,
     currentXP, sessionHistory, weeklySessionCount, userStreak,
+    bestDailyStreak, missionCompletedToday, totalSessionCount,
     opponentUsername, ghostBestScore, setGhostBestScore, ghostBestScoreRef,
     challengePostId: activeChallengePostId,
     challengePostData,
@@ -135,7 +148,7 @@ export default function TrainPage() {
     saving, saved, savedAttemptNumber,
     challengeSaving, challengeSaved, challengeSavedRef,
     missionJustCompleted, missionStreakBonus, missionNewStreak,
-    rankUpInfo,
+    rankUpInfo, beltUpInfo,
     handleSave, handleSaveChallengeResult,
     handleShareChallenge, handleChallengeFriend, handleShareTraining,
     feedSharing, feedShared, sharedReelId,
@@ -194,10 +207,20 @@ export default function TrainPage() {
   const [debriefLoading, setDebriefLoading] = useState(false);
   const [focusTip, setFocusTip] = useState(null);
   const [newBadges, setNewBadges] = useState([]);
+  const [dnaMilestone, setDnaMilestone] = useState(null);
   const [poseSessionSummary, setPoseSessionSummary] = useState(null);
   const [prevPoseMetrics, setPrevPoseMetrics] = useState(null);
   const [positionCue, setPositionCue] = useState(null);
   const [trackingRing, setTrackingRing] = useState(null);
+  const [readinessOpen, setReadinessOpen] = useState(false);
+  const [readinessStep, setReadinessStep] = useState(0); // 0/1/2
+  const readinessShownRef = useRef(false);
+  const [currentExperiment, setCurrentExperiment] = useState(null);
+  const [experimentSessionCount, setExperimentSessionCount] = useState(0);
+  const [userArchetype, setUserArchetype] = useState(null);
+  const [lastSessionSec, setLastSessionSec] = useState(null);
+  const [weeklyBestScore, setWeeklyBestScore] = useState(null);
+  const [archCueIndex, setArchCueIndex] = useState(0);
   const coachSnapshotRef = useRef(null);
   const prevSessionCountRef = useRef(null);
   const priorSessionsRef = useRef([]);
@@ -208,7 +231,7 @@ export default function TrainPage() {
     let active = true;
     (async () => {
       try {
-        const { collection, getDocs, query, where } = await import("firebase/firestore");
+        const { collection, getDocs, query, where, doc, getDoc } = await import("firebase/firestore");
         const { db } = await import("@/lib/firebase");
         const snap = await getDocs(query(
           collection(db, "training_sessions"),
@@ -225,6 +248,28 @@ export default function TrainPage() {
         priorSessionsRef.current = sessions.slice(0, 9);
         // Most recent past session's pose metrics for comparison
         if (sessions[0]?.poseMetrics) setPrevPoseMetrics(sessions[0].poseMetrics);
+        // Load currentExperiment from user doc
+        const userSnap = await getDoc(doc(db, "users", user.uid));
+        if (!active) return;
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          const expData = userData.currentExperiment;
+          if (expData) {
+            setCurrentExperiment(expData);
+            const startSec = expData.startDate?.seconds || 0;
+            const count = sessions.filter((s) => (s.createdAt?.seconds || 0) > startSec).length;
+            setExperimentSessionCount(count);
+          }
+          const arch = userData.fighterDNA?.archetypeKey;
+          if (arch) setUserArchetype(arch);
+        }
+        if (sessions.length > 0) setLastSessionSec(sessions[0].createdAt?.seconds || null);
+        // Weekly best score
+        const now = Date.now() / 1000;
+        const mondaySec = now - ((new Date().getDay() + 6) % 7) * 86400;
+        const thisWeek = sessions.filter((s) => (s.createdAt?.seconds || 0) >= mondaySec);
+        if (thisWeek.length > 0) setWeeklyBestScore(Math.max(...thisWeek.map((s) => s.score || 0)));
+
         if (snapshot && sessions.length >= 3) {
           const weakAreas = Object.entries(snapshot.radarStats).sort(([, a], [, b]) => a - b);
           const miniSnap = { weakAreas, radarStats: snapshot.radarStats };
@@ -238,6 +283,26 @@ export default function TrainPage() {
     })();
     return () => { active = false; };
   }, [user?.uid]);
+
+  // Track session completions
+  useEffect(() => {
+    if (!saved || !result) return;
+    import("@/lib/analytics").then(({ track, EVENTS }) => {
+      track(EVENTS.SESSION_COMPLETED, {
+        score: result?.score,
+        locale,
+        archetype: userArchetype || undefined,
+      });
+    }).catch(() => {});
+  }, [saved]);
+
+  // Track mission completions
+  useEffect(() => {
+    if (!missionJustCompleted) return;
+    import("@/lib/analytics").then(({ track, EVENTS }) => {
+      track(EVENTS.MISSION_COMPLETED, { locale, archetype: userArchetype || undefined });
+    }).catch(() => {});
+  }, [missionJustCompleted]);
 
   // Override pixel-detector score with MediaPipe score as soon as result appears.
   // Runs on result.hitCount change (new session) — not on score change — to avoid loops.
@@ -395,6 +460,38 @@ export default function TrainPage() {
     }
   }, [saved, savedAttemptNumber]);
 
+  // ── Live archetype coaching cues during recording ────────────────────────
+  useEffect(() => {
+    if (phase !== "recording" || !userArchetype) { setArchCueIndex(0); return; }
+    const id = setInterval(() => setArchCueIndex((i) => i + 1), 8000);
+    return () => clearInterval(id);
+  }, [phase, userArchetype]);
+
+  // ── First Session Hook state ──────────────────────────────────────────────
+  const [firstSessionHook, setFirstSessionHook] = useState(null);
+
+  // ── DNA milestone moments after session save ──────────────────────────────
+  useEffect(() => {
+    if (!saved || !savedAttemptNumber) return;
+    // Sessions 1/2/3: show full overlay hook
+    if (savedAttemptNumber === 1 || savedAttemptNumber === 2 || savedAttemptNumber === 3) {
+      setFirstSessionHook({ sessionNum: savedAttemptNumber, poseMetrics: poseSessionSummary, score: result?.score });
+      return;
+    }
+    const DNA_MILESTONES = {
+      8:  { emoji: "🧬", en: "Archetype Signal Strong",   mn: "Archetype дохио хүчтэй",           ko: "아키타입 신호 강함",
+             hint: { en: "Your Fighter DNA is forming — check your profile!", mn: "Тулаанчийн ДНХ бүрдэж байна — профайлаа шалга!", ko: "파이터 DNA 형성 중 — 프로필 확인!" }, cta: true },
+      15: { emoji: "⚗️", en: "Fighter Identity Emerging", mn: "Тулаанчийн мөн чанар бүрдэж байна", ko: "파이터 아이덴티티 형성",
+             hint: { en: "Your style is becoming clear. Try an experiment!", mn: "Таны хэв маяг тодорхой болж байна. Туршилт хийгээрэй!", ko: "스타일이 명확해지고 있습니다. 실험해 보세요!" } },
+    };
+    const milestone = DNA_MILESTONES[savedAttemptNumber];
+    if (milestone) {
+      setDnaMilestone(milestone);
+      const timer = setTimeout(() => setDnaMilestone(null), 6000);
+      return () => clearTimeout(timer);
+    }
+  }, [saved, savedAttemptNumber]);
+
   // ── Lesson context from query params ─────────────────────────────────────
   const [lessonContext, setLessonContext] = useState(null);
   const [activeCueIndex, setActiveCueIndex] = useState(0);
@@ -463,6 +560,18 @@ export default function TrainPage() {
   const isRecording = phase === "recording";
   const canStart = phase === "idle" || phase === "result";
 
+  // For brand-new users (first session ever), intercept start with readiness flow
+  const isFirstSession = totalSessionCount === 0;
+  const wrappedHandleStart = () => {
+    if (isFirstSession && !readinessShownRef.current) {
+      readinessShownRef.current = true;
+      setReadinessOpen(true);
+      setReadinessStep(0);
+      return;
+    }
+    handleStart();
+  };
+
   return (
     <main style={styles.page}>
       <button type="button" style={styles.backButton} onClick={goBack} aria-label="Back">
@@ -513,38 +622,126 @@ export default function TrainPage() {
           </div>
         )}
 
-        {/* First-time onboarding hint */}
-        {showOnboarding && phase === "idle" && (
-          <div style={{
-            margin: "0 0 14px",
-            padding: "12px 14px",
-            borderRadius: 12,
-            background: "rgba(255,59,48,0.07)",
-            border: "1px solid rgba(255,59,48,0.22)",
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            gap: 10,
-          }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.8, color: "rgba(255,59,48,0.8)", textTransform: "uppercase", marginBottom: 5 }}>
-                {locale === "mn" ? "Хэрхэн ажилладаг вэ" : "How it works"}
+        {/* Onboarding overlay — full screen, first visit only */}
+        {showOnboarding && (() => {
+          const OB = {
+            en: {
+              kicker:  "BOXING INTELLIGENCE",
+              title:   "Build Your Fighter DNA",
+              sub:     "Train. Discover who you fight like. Own your identity.",
+              steps: [
+                { n: "1", label: "Train",    desc: "Throw punches. AI reads your style." },
+                { n: "2", label: "Signal",   desc: "Your punch patterns form early signals." },
+                { n: "3", label: "DNA",      desc: "Your Fighter Archetype reveals." },
+              ],
+              hook:    "3 sessions unlock your Fighter DNA.",
+              cta:     "Start Training →",
+              skip:    "Skip",
+            },
+            mn: {
+              kicker:  "БОКСЫН ТАГНУУЛ",
+              title:   "Тулаанчийн ДНХ-аа бүрдүүл",
+              sub:     "Бэлтгэл хий. Ямар тулаанч болохоо олж мэд. Мөн чанараа эзэмш.",
+              steps: [
+                { n: "1", label: "Бэлтгэл",   desc: "Цохилт хий. AI хэв маягийг таньна." },
+                { n: "2", label: "Дохио",     desc: "Цохилтын хэв маяг эрт дохио үүсгэнэ." },
+                { n: "3", label: "ДНХ",       desc: "Тулаанчийн архетип илчлэгдэнэ." },
+              ],
+              hook:    "3 тренингт таны тулаанчийн ДНХ нээгдэнэ.",
+              cta:     "Бэлтгэл эхлэх →",
+              skip:    "Алгасах",
+            },
+            ko: {
+              kicker:  "복싱 인텔리전스",
+              title:   "파이터 DNA를 구축하세요",
+              sub:     "훈련하세요. 어떤 파이터처럼 싸우는지 발견하세요. 정체성을 가지세요.",
+              steps: [
+                { n: "1", label: "훈련",      desc: "펀치를 던지세요. AI가 스타일을 읽습니다." },
+                { n: "2", label: "신호",      desc: "펀치 패턴이 초기 신호를 형성합니다." },
+                { n: "3", label: "DNA",       desc: "파이터 아키타입이 공개됩니다." },
+              ],
+              hook:    "3세션이 파이터 DNA를 잠금 해제합니다.",
+              cta:     "훈련 시작 →",
+              skip:    "건너뛰기",
+            },
+          };
+          const L = OB[locale] || OB.en;
+          function dismiss() {
+            localStorage.setItem("gavana_onboarding_seen", "1");
+            setShowOnboarding(false);
+          }
+          return (
+            <div style={{ position: "fixed", inset: 0, zIndex: 9998, background: "rgba(4,4,6,0.99)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 24px" }}>
+              <div style={{ width: "100%", maxWidth: 360 }}>
+
+                {/* Logo + kicker */}
+                <div style={{ textAlign: "center", marginBottom: 32 }}>
+                  <div style={{ fontSize: 44, marginBottom: 12 }}>🥊</div>
+                  <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 3, color: `${RED}cc`, textTransform: "uppercase", marginBottom: 10 }}>
+                    {L.kicker}
+                  </div>
+                  <div style={{ fontSize: 28, fontWeight: 1000, color: "#fff", fontFamily: "var(--font-display,'Anton',sans-serif)", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.05, marginBottom: 10 }}>
+                    {L.title}
+                  </div>
+                  <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.38)", fontWeight: 600, lineHeight: 1.5 }}>
+                    {L.sub}
+                  </p>
+                </div>
+
+                {/* 3-step journey */}
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 0, marginBottom: 28, position: "relative" }}>
+                  {/* Connector line */}
+                  <div style={{ position: "absolute", top: 18, left: "calc(50% / 3 + 18px)", right: "calc(50% / 3 + 18px)", height: 1, background: "rgba(255,255,255,0.08)", zIndex: 0 }} />
+                  {L.steps.map((step, i) => (
+                    <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 8, zIndex: 1 }}>
+                      <div style={{
+                        width: 36, height: 36, borderRadius: "50%",
+                        background: i === 2 ? `${GOLD}18` : "rgba(255,255,255,0.05)",
+                        border: `1.5px solid ${i === 2 ? GOLD : "rgba(255,255,255,0.1)"}`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 13, fontWeight: 900,
+                        color: i === 2 ? GOLD : "rgba(255,255,255,0.4)",
+                      }}>
+                        {i === 2 ? "🧬" : step.n}
+                      </div>
+                      <div style={{ textAlign: "center" }}>
+                        <div style={{ fontSize: 10, fontWeight: 900, color: i === 2 ? GOLD : "rgba(255,255,255,0.6)", marginBottom: 3 }}>
+                          {step.label}
+                        </div>
+                        <div style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", lineHeight: 1.4, fontWeight: 600, maxWidth: 80 }}>
+                          {step.desc}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Hook line */}
+                <div style={{ borderRadius: 14, padding: "14px 16px", background: `${GOLD}0c`, border: `1px solid ${GOLD}25`, marginBottom: 24, textAlign: "center" }}>
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 900, color: GOLD, lineHeight: 1.4 }}>
+                    {L.hook}
+                  </p>
+                </div>
+
+                {/* CTAs */}
+                <button
+                  type="button"
+                  onClick={dismiss}
+                  style={{ width: "100%", padding: "16px 0", borderRadius: 14, background: RED, border: "none", color: "#fff", fontSize: 15, fontWeight: 900, letterSpacing: 0.5, cursor: "pointer", marginBottom: 12, boxShadow: `0 4px 24px ${RED}44` }}
+                >
+                  {L.cta}
+                </button>
+                <button
+                  type="button"
+                  onClick={dismiss}
+                  style={{ width: "100%", padding: "10px 0", borderRadius: 14, background: "none", border: "none", color: "rgba(255,255,255,0.25)", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+                >
+                  {L.skip}
+                </button>
               </div>
-              <p style={{ margin: 0, fontSize: 11.5, color: "rgba(255,255,255,0.65)", lineHeight: 1.5 }}>
-                {locale === "mn"
-                  ? "① Камер зөвшөөрнө → ② Start дарна → ③ Цохилт хийнэ → ④ AI таны хэв маягийг шинжилнэ"
-                  : "① Allow camera → ② Press Start → ③ Throw punches → ④ AI reads your style"}
-              </p>
             </div>
-            <button
-              type="button"
-              onClick={() => setShowOnboarding(false)}
-              style={{ flexShrink: 0, background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 16, cursor: "pointer", lineHeight: 1, padding: 2 }}
-            >
-              ✕
-            </button>
-          </div>
-        )}
+          );
+        })()}
 
         <header style={{ ...styles.header, display: (isCountingDown || isRecording) ? "none" : undefined }}>
           <p style={styles.kicker}>
@@ -829,6 +1026,22 @@ export default function TrainPage() {
             );
           })()}
 
+          {/* Live archetype cue — shown during recording when no lesson context */}
+          {isRecording && userArchetype && !lessonContext && (() => {
+            const cues = ARCH_CUES[userArchetype]?.[locale] || ARCH_CUES[userArchetype]?.en || [];
+            if (!cues.length) return null;
+            const cue = cues[archCueIndex % cues.length];
+            const color = ARCH_TRAINING_COLORS[userArchetype] || GOLD;
+            return (
+              <div style={{ position: "absolute", top: 12, left: 0, right: 0, display: "flex", justifyContent: "center", pointerEvents: "none", padding: "0 14px" }}>
+                <div style={{ background: `${color}18`, border: `1px solid ${color}55`, borderRadius: 20, padding: "6px 16px", display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ width: 5, height: 5, borderRadius: "50%", background: color, flexShrink: 0, boxShadow: `0 0 6px ${color}` }} />
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.88)", lineHeight: 1.35 }}>{cue}</span>
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Position cue — shown when lower body not in frame during recording */}
           {positionCue && (
             <div style={{
@@ -914,29 +1127,476 @@ export default function TrainPage() {
           </div>
         )}
 
-        {/* Daily mission strip — shown when idle only */}
+        {/* ── Daily Hub — shown when idle only ─────────────────────────── */}
         {phase === "idle" && (() => {
-          const today = new Date().toISOString().split("T")[0];
-          const mission = dailyMission?.date === today ? dailyMission : null;
-          const missionText = mission?.text ?? t("missionFirstText");
-          const missionDone = mission !== null;
+          const effectiveMissionDone = missionCompletedToday || missionJustCompleted;
+          const isBeginner = isBeginnerUser(totalSessionCount ?? 999);
+          const nextLesson = isBeginner ? getCurrentBeginnerLesson(totalSessionCount ?? 0) : null;
+          const beginnerProg = isBeginner ? getBeginnerProgress(totalSessionCount ?? 0) : null;
+          const belt = getBelt(currentXP);
+          const beltPct = getBeltProgress(currentXP);
+          const nextBelt = getNextBelt(currentXP);
+
+          // Freshness
+          const daysSince = lastSessionSec ? Math.floor((Date.now() / 1000 - lastSessionSec) / 86400) : null;
+          const showFreshness = daysSince != null && daysSince >= 5;
+          const freshnessColor = daysSince >= 14 ? "#EF4444" : daysSince >= 8 ? "#FB923C" : "#F59E0B";
+          const freshnessLabel = daysSince >= 14
+            ? (locale === "mn" ? "Дохио алдагдлаа" : locale === "ko" ? "신호 손실" : "DNA Signal Lost")
+            : daysSince >= 8
+            ? (locale === "mn" ? "Дохио буурч байна" : locale === "ko" ? "신호 저하 중" : "DNA Signal Degrading")
+            : (locale === "mn" ? "Дохио суларч байна" : locale === "ko" ? "신호 약화 중" : "DNA Signal Weakening");
+          const freshnessHint = daysSince >= 14
+            ? (locale === "mn" ? `${daysSince} хоног дасгал хийгээгүй — дахин эхэл` : locale === "ko" ? `${daysSince}일 미훈련 — 다시 시작하세요` : `${daysSince} days without training — time to restart`)
+            : (locale === "mn" ? `${daysSince} хоног завсарласан. ДНХ сэргээхийн тулд дасгал хий.` : locale === "ko" ? `${daysSince}일 쉬었습니다. DNA를 복구하세요.` : `${daysSince}-day gap. Train to keep your DNA signal strong.`);
+          // Weekly digest
+          const showDigest = weeklySessionCount >= 1 && weeklyBestScore != null;
+
           return (
+          <div style={{ margin: "8px 0 0", display: "flex", flexDirection: "column", gap: 6 }}>
+
+            {/* DNA Freshness Warning */}
+            {showFreshness && (
+              <div style={{ borderRadius: 12, padding: "10px 14px", background: `${freshnessColor}0a`, border: `1px solid ${freshnessColor}30`, display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 20, flexShrink: 0 }}>⚡</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase", color: freshnessColor, marginBottom: 2 }}>{freshnessLabel}</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.45)", lineHeight: 1.4 }}>{freshnessHint}</div>
+                </div>
+              </div>
+            )}
+
+            {/* Streak Recovery Mission */}
+            {!showFreshness && userStreak === 0 && totalSessionCount > 0 && !effectiveMissionDone && (
+              <div style={{ borderRadius: 12, padding: "10px 14px", background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.25)", display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 20, flexShrink: 0 }}>💔</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase", color: "#F87171", marginBottom: 2 }}>
+                    {locale === "mn" ? "STREAK ТАСАРСАН — СЭРГЭЭХ ДААЛГАВАР" : locale === "ko" ? "스트릭 종료 — 회복 미션" : "STREAK ENDED — RECOVERY MISSION"}
+                  </div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>
+                    {locale === "mn" ? "Нэг хатуу тренинг хийж streak-ийгаа дахин эхлүүл." : locale === "ko" ? "힘든 훈련 한 번으로 스트릭을 다시 시작하세요." : "One hard session restarts your streak. Go all out."}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={wrappedHandleStart}
+                    style={{ padding: "7px 14px", borderRadius: 8, background: "rgba(239,68,68,0.18)", border: "1px solid rgba(239,68,68,0.35)", color: "#F87171", fontSize: 11, fontWeight: 900, cursor: "pointer" }}
+                  >
+                    {locale === "mn" ? "Сэргээх тренинг →" : locale === "ko" ? "회복 훈련 →" : "Recovery Session →"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Streak Risk Warning */}
+            {!showFreshness && userStreak >= 3 && !effectiveMissionDone && (
+              <div style={{ borderRadius: 12, padding: "10px 14px", background: "rgba(251,146,60,0.07)", border: "1px solid rgba(251,146,60,0.28)", display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 20, flexShrink: 0 }}>🔥</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase", color: "#FB923C", marginBottom: 2 }}>
+                    {locale === "mn" ? `${userStreak} ӨДРИЙН STREAK АЮУЛД БАЙНА` : locale === "ko" ? `${userStreak}일 스트릭 위험!` : `🔥 ${userStreak}-DAY STREAK AT RISK`}
+                  </div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>
+                    {locale === "mn" ? "Өнөөдөр бэлтгэл хийж streak-ийг аврах" : locale === "ko" ? "오늘 훈련하여 스트릭을 지키세요" : "Train today to protect your streak"}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* DNA Building Progress — show after 1-2 sessions */}
+            {totalSessionCount >= 1 && totalSessionCount < 3 && !userArchetype && (
+              <div style={{ borderRadius: 12, padding: "12px 14px", background: "rgba(245,196,81,0.06)", border: "1px solid rgba(245,196,81,0.22)", display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ position: "relative", width: 40, height: 40, flexShrink: 0 }}>
+                  <svg width="40" height="40" viewBox="0 0 40 40">
+                    <circle cx="20" cy="20" r="16" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3" />
+                    <circle cx="20" cy="20" r="16" fill="none" stroke="#F5C451" strokeWidth="3"
+                      strokeDasharray="100.5"
+                      strokeDashoffset={100.5 * (1 - totalSessionCount / 3)}
+                      strokeLinecap="round"
+                      transform="rotate(-90 20 20)"
+                      style={{ transition: "stroke-dashoffset 0.6s ease" }}
+                    />
+                  </svg>
+                  <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 900, color: "#F5C451" }}>
+                    {totalSessionCount}/3
+                  </span>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase", color: "rgba(245,196,81,0.75)", marginBottom: 2 }}>
+                    🧬 {locale === "mn" ? "ДНХ ДОХИО БҮРДЭЖ БАЙНА" : locale === "ko" ? "DNA 신호 형성 중" : "DNA SIGNAL FORMING"}
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.55)", lineHeight: 1.4 }}>
+                    {locale === "mn"
+                      ? `${3 - totalSessionCount} дасгал дараа таны тулаанчийн архетип илчлэгдэнэ`
+                      : locale === "ko"
+                      ? `${3 - totalSessionCount}세션 후 파이터 아키타입이 공개됩니다`
+                      : `${3 - totalSessionCount} more session${3 - totalSessionCount !== 1 ? "s" : ""} until your Fighter Archetype reveals`}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Weekly DNA Digest */}
+            {!showFreshness && showDigest && (
+              <div style={{ borderRadius: 12, padding: "10px 14px", background: "rgba(245,196,81,0.05)", border: "1px solid rgba(245,196,81,0.15)", display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 20, flexShrink: 0 }}>📊</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase", color: "rgba(245,196,81,0.7)", marginBottom: 2 }}>
+                    {locale === "mn" ? "ЭНЭ 7 ХОНОГ" : locale === "ko" ? "이번 주" : "THIS WEEK"}
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.65)" }}>
+                    {weeklySessionCount} {locale === "mn" ? "тренинг" : locale === "ko" ? "세션" : `session${weeklySessionCount !== 1 ? "s" : ""}`}
+                    {userArchetype && <span style={{ color: ARCH_TRAINING_COLORS[userArchetype] || GOLD }}> · {({ pressure: { en: "Pressure", mn: "Дарамт", ko: "프레셔" }, outboxer: { en: "Outboxer", mn: "Аутбоксер", ko: "아웃복서" }, counter: { en: "Counter", mn: "Контр", ko: "카운터" }, explosive: { en: "Explosive", mn: "Тэсрэлт", ko: "폭발적" }, technician: { en: "Technician", mn: "Техникч", ko: "테크니션" } }[userArchetype]?.[locale] || userArchetype)}</span>}
+                    {weeklyBestScore != null && <span style={{ color: "rgba(255,255,255,0.35)" }}> · {locale === "mn" ? "Шилдэг" : locale === "ko" ? "최고" : "Best"} {weeklyBestScore.toFixed(1)}</span>}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Mission + streak + belt card */}
             <div style={{
-              margin: "8px 0 0",
-              padding: "9px 14px",
-              borderRadius: 12,
-              background: missionDone ? "rgba(52,211,153,0.05)" : "rgba(245,196,81,0.04)",
-              border: `1px solid ${missionDone ? "rgba(52,211,153,0.15)" : "rgba(245,196,81,0.13)"}`,
-              display: "flex", alignItems: "center", gap: 10,
+              borderRadius: 14, overflow: "hidden",
+              border: effectiveMissionDone ? "1px solid rgba(52,211,153,0.2)" : "1px solid rgba(245,196,81,0.2)",
+              background: effectiveMissionDone ? "rgba(52,211,153,0.04)" : "rgba(0,0,0,0.3)",
             }}>
-              <span style={{ fontSize: 16, flexShrink: 0 }}>{missionDone ? "✅" : "🎯"}</span>
-              <span style={{ fontSize: 11, fontWeight: 800, color: missionDone ? "#34D399" : "rgba(245,196,81,0.85)", lineHeight: 1.4 }}>
-                {missionText}
-              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px" }}>
+                <span style={{ fontSize: 18, flexShrink: 0 }}>{effectiveMissionDone ? "✅" : "🥊"}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.8, textTransform: "uppercase", color: effectiveMissionDone ? "#34D399" : "rgba(245,196,81,0.8)", marginBottom: 2 }}>
+                    {effectiveMissionDone
+                      ? (locale === "mn" ? "ӨНӨӨДРИЙН ДААЛГАВАР ДУУССАН" : locale === "ko" ? "오늘 미션 완료" : "TODAY'S MISSION DONE")
+                      : (locale === "mn" ? "ӨНӨӨДРИЙН ДААЛГАВАР" : locale === "ko" ? "오늘의 미션" : "DAILY MISSION")}
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: "rgba(255,255,255,0.75)" }}>
+                    {effectiveMissionDone
+                      ? (locale === "mn" ? "Гайхалтай! Маргааш streak-ийг үргэлжлүүл." : locale === "ko" ? "훌륭해요! 내일도 스트릭을 이어가세요." : "Great work! Keep the streak alive tomorrow.")
+                      : (locale === "mn" ? "Дасгал хийж +50 XP ав" : locale === "ko" ? "훈련하고 +50 XP 획득" : "Train once today for +50 XP")}
+                  </div>
+                </div>
+                {/* Streak pill */}
+                <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", padding: "6px 10px", borderRadius: 10, background: userStreak >= 7 ? "rgba(251,146,60,0.15)" : userStreak >= 3 ? "rgba(251,146,60,0.1)" : "rgba(255,255,255,0.05)", border: userStreak >= 3 ? "1px solid rgba(251,146,60,0.3)" : "1px solid rgba(255,255,255,0.08)" }}>
+                  <span style={{ fontSize: 16 }}>🔥</span>
+                  <span style={{ fontSize: 13, fontWeight: 900, color: userStreak > 0 ? "#FB923C" : "rgba(255,255,255,0.3)", lineHeight: 1 }}>{userStreak}</span>
+                  <span style={{ fontSize: 8, fontWeight: 700, color: "rgba(255,255,255,0.35)", letterSpacing: 0.5, textTransform: "uppercase" }}>
+                    {locale === "mn" ? "өдөр" : locale === "ko" ? "일" : "day"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Belt progress row */}
+              <div style={{ padding: "0 14px 10px", display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 12 }}>🥋</span>
+                <span style={{ fontSize: 10, fontWeight: 800, color: belt.color }}>{t(belt.key)}</span>
+                <div style={{ flex: 1, height: 3, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                  <div style={{ width: `${beltPct}%`, height: "100%", background: belt.gradient, transition: "width 0.6s ease" }} />
+                </div>
+                <span style={{ fontSize: 9, fontWeight: 800, color: belt.color }}>{beltPct}%</span>
+                {nextBelt && <span style={{ fontSize: 8, color: "rgba(255,255,255,0.22)" }}>→ {t(nextBelt.key)}</span>}
+              </div>
+
+              {/* Streak milestones */}
               {userStreak > 0 && (
-                <span style={{ marginLeft: "auto", flexShrink: 0, fontSize: 11, fontWeight: 900, color: "#FB923C" }}>🔥{userStreak}</span>
+                <div style={{ padding: "0 14px 10px", display: "flex", alignItems: "center", gap: 6 }}>
+                  {[1, 3, 7, 14, 30].map((m) => (
+                    <div key={m} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                      <div style={{ width: 6, height: 6, borderRadius: "50%", background: userStreak >= m ? "#FB923C" : "rgba(255,255,255,0.1)", boxShadow: userStreak >= m ? "0 0 6px rgba(251,146,60,0.6)" : "none" }} />
+                      <span style={{ fontSize: 7, fontWeight: 700, color: userStreak >= m ? "#FB923C" : "rgba(255,255,255,0.2)" }}>{m}</span>
+                    </div>
+                  ))}
+                  <div style={{ flex: 1, height: 2, borderRadius: 1, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                    <div style={{ width: `${Math.min(100, (userStreak / 30) * 100)}%`, height: "100%", background: "linear-gradient(90deg,#FB923C,#F59E0B)", transition: "width 0.6s ease" }} />
+                  </div>
+                  {bestDailyStreak > 0 && (
+                    <span style={{ fontSize: 8, fontWeight: 700, color: "rgba(255,255,255,0.25)", whiteSpace: "nowrap" }}>
+                      {locale === "mn" ? `Хамгийн дээд: ${bestDailyStreak}` : locale === "ko" ? `최고: ${bestDailyStreak}일` : `Best: ${bestDailyStreak}d`}
+                    </span>
+                  )}
+                </div>
               )}
             </div>
+
+            {/* Beginner Path card — only for new users */}
+            {isBeginner && nextLesson && (
+              <div style={{ borderRadius: 14, border: "2px solid rgba(139,92,246,0.35)", background: "rgba(139,92,246,0.06)", padding: "14px 14px 12px" }}>
+                {/* Header row: START HERE + lesson count + dots */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase", color: "#A78BFA", background: "rgba(139,92,246,0.2)", padding: "3px 8px", borderRadius: 20 }}>
+                      {t("beginnerStartHere")}
+                    </span>
+                    <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>
+                      {t("beginnerLessonCount").replace("{current}", beginnerProg.completed + 1).replace("{total}", beginnerProg.total)}
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", gap: 3 }}>
+                    {Array.from({ length: beginnerProg.total }).map((_, i) => (
+                      <div key={i} style={{ width: 5, height: 5, borderRadius: "50%", background: i < beginnerProg.completed ? "#8B5CF6" : i === beginnerProg.completed ? "#A78BFA" : "rgba(255,255,255,0.1)", boxShadow: i === beginnerProg.completed ? "0 0 5px rgba(167,139,250,0.6)" : "none" }} />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Lesson title + why */}
+                <div style={{ marginBottom: 12 }}>
+                  <div style={{ fontSize: 15, fontWeight: 900, color: "#fff", marginBottom: 4 }}>{t(nextLesson.titleKey)}</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.5 }}>
+                    {t(nextLesson.whyKey)}
+                  </div>
+                </div>
+
+                {/* Dual CTA */}
+                <div style={{ display: "flex", gap: 8 }}>
+                  <a href={`/${locale}/programs${nextLesson.lessonId ? `?lesson=${nextLesson.lessonId}` : ""}`}
+                    style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "10px 0", borderRadius: 10, background: "rgba(139,92,246,0.25)", border: "1px solid rgba(139,92,246,0.45)", color: "#C4B5FD", fontSize: 12, fontWeight: 900, textDecoration: "none" }}>
+                    📖 {t("beginnerCTALesson")}
+                  </a>
+                  <button type="button"
+                    onClick={wrappedHandleStart}
+                    style={{ flex: 1, padding: "10px 0", borderRadius: 10, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 800, cursor: "pointer" }}>
+                    🎥 {t("beginnerCTARecord")}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* DNA Daily Focus — archetype-specific mission */}
+            {userArchetype && (() => {
+              const mission = getTodaysDNAMission(userArchetype);
+              if (!mission) return null;
+              const archColor = ARCH_TRAINING_COLORS[userArchetype] || GOLD;
+              return (
+                <div style={{
+                  borderRadius: 14, overflow: "hidden",
+                  border: `1px solid ${archColor}30`,
+                  background: `${archColor}08`,
+                }}>
+                  <div style={{ height: 2, background: `linear-gradient(90deg, ${archColor}88, transparent)` }} />
+                  <div style={{ padding: "12px 14px" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                      <div>
+                        <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.8, textTransform: "uppercase", color: archColor, marginBottom: 3 }}>
+                          {locale === "mn" ? "ӨНӨӨДРИЙН DNA ФОКУС" : locale === "ko" ? "오늘의 DNA 포커스" : "TODAY'S DNA FOCUS"}
+                        </div>
+                        <div style={{ fontSize: 15, fontWeight: 900, color: "#fff", lineHeight: 1.2 }}>
+                          {mission[locale] || mission.en}
+                        </div>
+                      </div>
+                      <div style={{
+                        width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+                        background: `${archColor}18`, border: `1px solid ${archColor}35`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 18,
+                      }}>
+                        🎯
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.5, fontWeight: 600, marginBottom: 10 }}>
+                      {mission.hint[locale] || mission.hint.en}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={wrappedHandleStart}
+                      style={{
+                        width: "100%", padding: "9px 0", borderRadius: 10,
+                        background: `${archColor}20`, border: `1px solid ${archColor}45`,
+                        color: archColor, fontSize: 12, fontWeight: 900, cursor: "pointer",
+                      }}
+                    >
+                      {locale === "mn" ? "Одоо дасгал хий →" : locale === "ko" ? "지금 훈련하기 →" : "Train Now →"}
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* DNA Evolution Progress */}
+            {userArchetype && weeklySessionCount >= 1 && (() => {
+              const ARCH_COLORS_EV = { pressure: "#EF4444", outboxer: "#3B82F6", counter: "#8B5CF6", explosive: "#F59E0B", technician: "#10B981" };
+              const acc = ARCH_COLORS_EV[userArchetype] || GOLD;
+              // DNA updates every 5 sessions — show progress toward next update
+              const sessionsToNext = 5 - (totalSessionCount % 5);
+              const cyclePct = ((totalSessionCount % 5) / 5) * 100;
+              return (
+                <div style={{ borderRadius: 12, padding: "10px 14px", background: `${acc}06`, border: `1px solid ${acc}20`, display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ flexShrink: 0 }}>
+                    <svg width="32" height="32" viewBox="0 0 32 32">
+                      <circle cx="16" cy="16" r="12" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="2.5" />
+                      <circle cx="16" cy="16" r="12" fill="none" stroke={acc} strokeWidth="2.5"
+                        strokeDasharray="75.4"
+                        strokeDashoffset={75.4 * (1 - cyclePct / 100)}
+                        strokeLinecap="round"
+                        transform="rotate(-90 16 16)"
+                        style={{ transition: "stroke-dashoffset 0.6s ease" }}
+                      />
+                    </svg>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.8, textTransform: "uppercase", color: acc, marginBottom: 2 }}>
+                      {locale === "mn" ? "ДНХ ШИНЭЧЛЭЛТ" : locale === "ko" ? "DNA 업데이트" : "DNA EVOLUTION"}
+                    </div>
+                    <div style={{ fontSize: 10.5, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>
+                      {sessionsToNext === 5
+                        ? (locale === "mn" ? "Бэлтгэл хийж ДНХ-аа шинэчил" : locale === "ko" ? "훈련하여 DNA를 업데이트하세요" : "Train to start your next DNA cycle")
+                        : (locale === "mn"
+                          ? `${sessionsToNext} дасгал дараа ДНХ шинэчлэгдэнэ`
+                          : locale === "ko"
+                          ? `${sessionsToNext}세션 후 DNA 업데이트`
+                          : `${sessionsToNext} session${sessionsToNext !== 1 ? "s" : ""} until DNA update`)}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Weak Dimension Drill — DNA-based */}
+            {userArchetype && !isBeginner && (() => {
+              const WEAK_DIMS = {
+                pressure:   { dim: "outboxer",   en: "Footwork & Distance Control", mn: "Хөлийн ажил & Зай хянах", ko: "풋워크 & 거리 조절" },
+                outboxer:   { dim: "pressure",   en: "Close-Range Power Shots", mn: "Ойрын зайн хүчтэй цохилт", ko: "근거리 파워 샷" },
+                counter:    { dim: "explosive",  en: "Explosive First-Strike Speed", mn: "Тэсрэлтийн анхны цохилтын хурд", ko: "폭발적인 선제 속도" },
+                explosive:  { dim: "technician", en: "Technical Precision & Economy", mn: "Техникийн нарийвчлал", ko: "기술적 정밀도" },
+                technician: { dim: "counter",    en: "Counter-Punching Timing", mn: "Контр цохилтын цаг", ko: "카운터 타이밍" },
+              };
+              const DRILL_HINT = {
+                pressure:   { en: "Work the jab-cross at long range. Reset after each combo.", mn: "Урт зайнаас жааб-кросс хий. Комбо болгоны дараа буц.", ko: "장거리에서 잽-크로스. 콤보 후 리셋." },
+                outboxer:   { en: "Step in with a 3-punch burst. Stay tight, elbows in.", mn: "3 цохилтоор ор. Тогтуу бай, тохойгоо дотогш.", ko: "3펀치 버스트로 진입. 팔꿈치 안으로." },
+                counter:    { en: "Explode first — don't wait for the bait. Fire in 0.5 sec.", mn: "Эхлээд тэсрэ — хүлээхгүй. 0.5 секундад цох.", ko: "먼저 터뜨려라 — 기다리지 마라. 0.5초 안에." },
+                explosive:  { en: "Slow your combinations. Every punch has a purpose.", mn: "Комбиноо удаашруул. Цохилт бүр зорилготой.", ko: "콤비를 천천히. 모든 펀치에 목적이." },
+                technician: { en: "Read the pattern, then fire back immediately. No hesitation.", mn: "Хэв маягийг уншиж, тэр даруй буцаж цох. Эргэлзэхгүй.", ko: "패턴을 읽고 즉시 반격. 망설임 없이." },
+              };
+              const weak = WEAK_DIMS[userArchetype];
+              if (!weak) return null;
+              const weakColor = ARCH_TRAINING_COLORS[weak.dim] || "#60A5FA";
+              const dimLabel = weak[locale] || weak.en;
+              const drillHint = DRILL_HINT[userArchetype]?.[locale] || DRILL_HINT[userArchetype]?.en || "";
+              return (
+                <div style={{ borderRadius: 14, border: `1px solid ${weakColor}28`, background: `${weakColor}07`, padding: "12px 14px" }}>
+                  <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase", color: weakColor, marginBottom: 6 }}>
+                    🎯 {locale === "mn" ? "СУЛ ТАЛ ДАСГАЛ" : locale === "ko" ? "약점 드릴" : "WEAK DIMENSION DRILL"}
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 900, color: "#fff", marginBottom: 4 }}>{dimLabel}</div>
+                  <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)", lineHeight: 1.5, fontWeight: 600, marginBottom: 10 }}>{drillHint}</div>
+                  <button
+                    type="button"
+                    onClick={wrappedHandleStart}
+                    style={{ width: "100%", padding: "9px 0", borderRadius: 10, background: `${weakColor}18`, border: `1px solid ${weakColor}40`, color: weakColor, fontSize: 11, fontWeight: 900, cursor: "pointer" }}
+                  >
+                    {locale === "mn" ? "Одоо дасгал хий →" : locale === "ko" ? "지금 훈련하기 →" : "Train This Now →"}
+                  </button>
+                </div>
+              );
+            })()}
+
+            {/* Featured Experiment — show when no active experiment */}
+            {!currentExperiment && userArchetype && (() => {
+              const pkg = getFeaturedPackage();
+              if (!pkg) return null;
+              const fighter = getPackageFighter(pkg);
+              if (!fighter) return null;
+              return (
+                <div style={{ borderRadius: 14, overflow: "hidden", border: `1px solid ${pkg.accent}30`, background: `${pkg.accent}08` }}>
+                  <div style={{ height: 2, background: `linear-gradient(90deg, ${pkg.accent}88, transparent)` }} />
+                  <div style={{ padding: "12px 14px" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                      <div>
+                        <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase", color: pkg.accent, marginBottom: 3 }}>
+                          {locale === "mn" ? "ЭНЭ ДОЛОО ХОНОГ" : locale === "ko" ? "이번 주 실험" : "THIS WEEK'S EXPERIMENT"}
+                        </div>
+                        <div style={{ fontSize: 17, fontWeight: 900, color: "#fff" }}>
+                          {pkg.week[locale] || pkg.week.en}
+                        </div>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: pkg.accent, fontStyle: "italic", marginTop: 2 }}>
+                          "{pkg.theme[locale] || pkg.theme.en}"
+                        </div>
+                      </div>
+                      <div style={{ width: 44, height: 44, borderRadius: 12, background: `${pkg.accent}18`, border: `1px solid ${pkg.accent}35`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>
+                        ⚗️
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 700, marginBottom: 10 }}>
+                      {pkg.focus[locale] || pkg.focus.en}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/${locale}/fighters/${fighter.id}`)}
+                      style={{ width: "100%", padding: "9px 0", borderRadius: 10, background: `${pkg.accent}20`, border: `1px solid ${pkg.accent}45`, color: pkg.accent, fontSize: 12, fontWeight: 900, cursor: "pointer" }}
+                    >
+                      {locale === "mn" ? `${pkg.week[locale] || pkg.week.en} эхлэх →` : locale === "ko" ? `${pkg.week[locale] || pkg.week.en} 시작 →` : `Start ${pkg.week.en} →`}
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Experiment Mode widget */}
+            {currentExperiment && (() => {
+              const exp = currentExperiment;
+              const expAcc = exp.fighterAccent || "#F5C451";
+              const startSec = exp.startDate?.seconds || Math.floor(Date.now() / 1000);
+              const daysElapsed = Math.min(7, Math.floor((Date.now() / 1000 - startSec) / 86400));
+              const daysLeft = Math.max(0, 7 - daysElapsed);
+              const isDone = daysLeft === 0;
+              return (
+                <div style={{
+                  borderRadius: 14,
+                  border: `1px solid ${isDone ? "rgba(52,211,153,0.3)" : `${expAcc}35`}`,
+                  background: isDone ? "rgba(52,211,153,0.05)" : `${expAcc}08`,
+                  padding: "13px 14px",
+                }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <span style={{ fontSize: 20 }}>⚗️</span>
+                      <div>
+                        <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: isDone ? "#34D399" : expAcc, textTransform: "uppercase", marginBottom: 2 }}>
+                          {isDone ? t("experimentDone") : t("experimentWeekly")}
+                        </div>
+                        <div style={{ fontSize: 13, fontWeight: 900, color: "#fff" }}>{exp.fighterName}</div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/${locale}/fighters/${exp.fighterId}`)}
+                      style={{ background: `${expAcc}18`, border: `1px solid ${expAcc}40`, borderRadius: 8, padding: "5px 11px", color: expAcc, fontSize: 10.5, fontWeight: 900, cursor: "pointer", flexShrink: 0 }}
+                    >
+                      {t("experimentView")}
+                    </button>
+                  </div>
+
+                  {/* Days progress bar */}
+                  <div style={{ marginBottom: isDone ? 10 : 0 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                      <span style={{ fontSize: 9.5, fontWeight: 800, color: "rgba(255,255,255,0.4)" }}>
+                        {daysElapsed}/{7} {t("experimentDaysOf")}
+                        {experimentSessionCount > 0 && (
+                          <span style={{ marginLeft: 8, color: "rgba(255,255,255,0.28)" }}>
+                            · {experimentSessionCount} {locale === "mn" ? "тренинг" : locale === "ko" ? "세션" : "sessions"}
+                          </span>
+                        )}
+                      </span>
+                      <span style={{ fontSize: 9.5, fontWeight: 800, color: isDone ? "#34D399" : expAcc }}>
+                        {isDone
+                          ? `7 ${t("experimentDaysComplete")}`
+                          : `${daysLeft} ${t("experimentDaysLeft")}`}
+                      </span>
+                    </div>
+                    <div style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                      <div style={{ width: `${Math.min(100, (daysElapsed / 7) * 100)}%`, height: "100%", background: isDone ? "#34D399" : expAcc, transition: "width 0.6s ease" }} />
+                    </div>
+                  </div>
+
+                  {isDone && (
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/${locale}/fighter-profile`)}
+                      style={{ width: "100%", padding: "10px 0", borderRadius: 10, background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.3)", color: "#34D399", fontSize: 12, fontWeight: 900, cursor: "pointer", marginTop: 2 }}
+                    >
+                      {t("experimentResultsCta")}
+                    </button>
+                  )}
+                </div>
+              );
+            })()}
+
+          </div>
           );
         })()}
 
@@ -952,8 +1612,8 @@ export default function TrainPage() {
 
         <div style={styles.controls}>
           {canStart && (
-            <button type="button" style={styles.startButton} className="train-start-btn tap-bounce" onClick={handleStart}>
-              {t("trainStart")}
+            <button type="button" style={styles.startButton} className="train-start-btn tap-bounce" onClick={wrappedHandleStart}>
+              {isFirstSession ? (locale === "mn" ? "Эхлэх →" : locale === "ko" ? "시작 →" : "Get Started →") : t("trainStart")}
             </button>
           )}
 
@@ -986,6 +1646,7 @@ export default function TrainPage() {
         challengeSaving={challengeSaving}
         challengeSaved={challengeSaved}
         rankUpInfo={rankUpInfo}
+        beltUpInfo={beltUpInfo}
         sessionHistory={sessionHistory}
         ghostBestScore={ghostBestScore}
         pvpResult={pvpResult}
@@ -1081,6 +1742,317 @@ export default function TrainPage() {
           </div>
         </div>
       ))}
+
+      {/* DNA milestone moment toast */}
+      {dnaMilestone && (
+        <div style={{
+          position: "fixed",
+          bottom: `calc(80px + env(safe-area-inset-bottom))`,
+          left: "50%", transform: "translateX(-50%)",
+          maxWidth: "calc(100vw - 32px)", width: 320,
+          zIndex: 9001,
+          display: "flex", alignItems: "center", gap: 12,
+          padding: "12px 16px", borderRadius: 20,
+          background: "rgba(12,12,14,0.96)",
+          border: `1px solid rgba(245,196,81,0.3)`,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(245,196,81,0.08)",
+          backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+          animation: "slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1)",
+        }}>
+          <span style={{ fontSize: 26, flexShrink: 0 }}>{dnaMilestone.emoji}</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 9, fontWeight: 900, color: GOLD, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 2 }}>
+              {locale === "mn" ? "ДНХ мөч" : locale === "ko" ? "DNA 순간" : "DNA Moment"}
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 900, color: "#fff", marginBottom: 2 }}>
+              {dnaMilestone[locale] || dnaMilestone.en}
+            </div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", fontWeight: 600, lineHeight: 1.4 }}>
+              {dnaMilestone.hint[locale] || dnaMilestone.hint.en}
+            </div>
+          </div>
+          {dnaMilestone.cta && (
+            <button
+              onClick={() => router.push(`/${locale}/fighter-profile`)}
+              style={{
+                flexShrink: 0, padding: "6px 10px", borderRadius: 10,
+                background: goldAlpha(0.15), border: `1px solid ${goldAlpha(0.35)}`,
+                color: GOLD, fontSize: 14, fontWeight: 900, cursor: "pointer",
+              }}
+            >
+              →
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* ── First Session Hook Overlay ───────────────────────────────── */}
+      {firstSessionHook && (() => {
+        const pb = firstSessionHook.poseMetrics?.punchBreakdown;
+        const jabC   = pb?.jab?.count   || 0;
+        const crossC = pb?.cross?.count || 0;
+        const hookC  = pb?.hook?.count  || 0;
+        const total  = jabC + crossC + hookC;
+
+        const jabPct   = total > 0 ? Math.round((jabC   / total) * 100) : 0;
+        const crossPct = total > 0 ? Math.round((crossC / total) * 100) : 0;
+        const hookPct  = total > 0 ? 100 - jabPct - crossPct : 0;
+        const hasSignals = total >= 3;
+
+        // Derive suggested archetype
+        let archKey = "pressure";
+        if (hasSignals) {
+          if (jabPct >= 45) archKey = "outboxer";
+          else if (crossPct >= 35) archKey = "counter";
+          else if (hookPct >= 35) archKey = "pressure";
+          else if (total >= 25) archKey = "explosive";
+          else archKey = "technician";
+        }
+
+        // Representative fighter per archetype
+        const ARCH_FIGHTER = { pressure: "Mike Tyson", outboxer: "Muhammad Ali", counter: "Floyd Mayweather", explosive: "Naoya Inoue", technician: "Dmitry Bivol" };
+        const ARCH_DISPLAY_S = {
+          en: { pressure: "Pressure Fighter", outboxer: "Outboxer", counter: "Counter Fighter", explosive: "Explosive Fighter", technician: "Technician" },
+          mn: { pressure: "Дарамт тулаанч", outboxer: "Аутбоксер", counter: "Контр тулаанч", explosive: "Тэсрэмтгий тулаанч", technician: "Техникч" },
+          ko: { pressure: "프레셔 파이터", outboxer: "아웃복서", counter: "카운터 파이터", explosive: "폭발적 파이터", technician: "테크니션" },
+        };
+        const acc = ARCH_TRAINING_COLORS[archKey] || GOLD;
+        const AD  = ARCH_DISPLAY_S[locale] || ARCH_DISPLAY_S.en;
+
+        const sessionNum = firstSessionHook.sessionNum || 1;
+
+        const SIG_L = {
+          en: {
+            aggr: "Aggression", range: "Range", counter: "Counter", volume: "Volume",
+            high: "HIGH", medium: "MED", low: "LOW", long: "LONG", mid: "MID", close: "CLOSE", building: "BUILDING", emerging: "EMERGING",
+            firstSignals: "YOUR FIRST SIGNALS", like: "Like ",
+            mightBe:       "You might be a...",
+            signalGrowing: "SIGNAL GROWING",
+            archEmerging:  "YOUR ARCHETYPE IS EMERGING",
+            dnaUnlocked:   "DNA ANALYSIS UNLOCKED",
+            dnaReady:      "Your fighter identity is taking shape. Visit your profile to see the full analysis.",
+            session2hint:  "1 more session unlocks your Fighter DNA",
+            session3hint:  "3 sessions complete. Your DNA is ready to view.",
+            trainAgain: "Train Again →", viewDNA: "View Your DNA →", viewProfile: "View Profile",
+            title1: "SESSION 1 COMPLETE", title2: "SESSION 2 COMPLETE", title3: "DNA ANALYSIS UNLOCKED",
+            dnaJourney: "DNA JOURNEY",
+          },
+          mn: {
+            aggr: "Түрэмгийлэл", range: "Зай", counter: "Контр", volume: "Хэмжээ",
+            high: "ӨНДӨР", medium: "ДУНД", low: "БАГ", long: "УРТ", mid: "ДУНД", close: "ОЙРХОН", building: "БҮРДЭЖ БАЙНА", emerging: "ГАРЧ ИРЭХ",
+            firstSignals: "АНХНЫ ДОХИО", like: "Жишээ нь: ",
+            mightBe:       "Та магадгүй...",
+            signalGrowing: "ДОХИО ӨСЧ БАЙНА",
+            archEmerging:  "ТАНЫ ARCHETYPE ГАРЧ ИРЭЖ БАЙНА",
+            dnaUnlocked:   "ДНХ ШИНЖИЛГЭЭ НЭЭГДЛАА",
+            dnaReady:      "Тулаанчийн мөн чанар тодорч байна. Профайлаа зочлоод бүрэн шинжилгээгээ харна уу.",
+            session2hint:  "1 тренинг нэмбэл таны ДНХ нээгдэнэ",
+            session3hint:  "3 тренинг дууслаа. ДНХ харахад бэлэн боллоо.",
+            trainAgain: "Дахин бэлтгэл хий →", viewDNA: "ДНХ харах →", viewProfile: "Профайл харах",
+            title1: "1-Р ТРЕНИНГ ДУУСЛАА", title2: "2-Р ТРЕНИНГ ДУУСЛАА", title3: "ДНХ ШИНЖИЛГЭЭ НЭЭГДЛАА",
+            dnaJourney: "ДНХ АЯЛАЛ",
+          },
+          ko: {
+            aggr: "공격성", range: "레인지", counter: "카운터", volume: "볼륨",
+            high: "높음", medium: "중간", low: "낮음", long: "롱", mid: "미드", close: "클로즈", building: "구축 중", emerging: "성장 중",
+            firstSignals: "첫 번째 신호", like: "예: ",
+            mightBe:       "당신은...",
+            signalGrowing: "신호 성장 중",
+            archEmerging:  "아키타입이 형성되고 있습니다",
+            dnaUnlocked:   "DNA 분석 잠금 해제",
+            dnaReady:      "파이터 정체성이 형태를 갖추고 있습니다. 프로필을 방문하여 전체 분석을 확인하세요.",
+            session2hint:  "1회 더 훈련하면 파이터 DNA가 잠금 해제됩니다",
+            session3hint:  "3세션 완료. DNA를 확인할 준비가 되었습니다.",
+            trainAgain: "다시 훈련 →", viewDNA: "DNA 보기 →", viewProfile: "프로필 보기",
+            title1: "세션 1 완료", title2: "세션 2 완료", title3: "DNA 분석 잠금 해제",
+            dnaJourney: "DNA 여정",
+          },
+        };
+        const SL = SIG_L[locale] || SIG_L.en;
+
+        const aggrLevel   = hookPct >= 35 ? "high" : hookPct >= 20 ? "medium" : "low";
+        const rangeLevel  = jabPct  >= 45 ? "long" : hookPct >= 30 ? "close"  : "mid";
+        const counterLevel = crossPct >= 35 ? "high" : crossPct >= 22 ? "emerging" : "low";
+        const volumeLevel = total >= 25 ? "high" : total >= 12 ? "medium" : "building";
+
+        const BAR_W = { high: 80, medium: 50, low: 20, long: 75, mid: 45, close: 30, building: 18, emerging: 40 };
+
+        const signals = hasSignals ? [
+          { label: SL.aggr,    level: SL[aggrLevel],    w: BAR_W[aggrLevel]    },
+          { label: SL.range,   level: SL[rangeLevel],   w: BAR_W[rangeLevel]   },
+          { label: SL.counter, level: SL[counterLevel], w: BAR_W[counterLevel] },
+          { label: SL.volume,  level: SL[volumeLevel],  w: BAR_W[volumeLevel]  },
+        ] : [];
+
+        return (
+          <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(4,4,6,0.98)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 20px", overflowY: "auto" }}>
+            <div style={{ width: "100%", maxWidth: 360 }}>
+
+              {/* Header — varies by session */}
+              <div style={{ textAlign: "center", marginBottom: 24 }}>
+                <div style={{ fontSize: 36, marginBottom: 10 }}>
+                  {sessionNum === 3 ? "🧬" : "🥊"}
+                </div>
+                <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 3, color: acc, textTransform: "uppercase", marginBottom: 6 }}>
+                  {sessionNum === 1 ? SL.title1 : sessionNum === 2 ? SL.title2 : SL.title3}
+                </div>
+                {firstSessionHook.score != null && (
+                  <div style={{ fontSize: 32, fontWeight: 1000, color: "#fff", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>
+                    {firstSessionHook.score.toFixed(1)}<span style={{ fontSize: 14, color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>/10</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Signals — session 1 & 2 */}
+              {sessionNum < 3 && signals.length > 0 && (
+                <div style={{ borderRadius: 16, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", padding: "16px", marginBottom: 16 }}>
+                  <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", marginBottom: 12 }}>
+                    {sessionNum === 1 ? SL.firstSignals : SL.signalGrowing}
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {signals.map(({ label, level, w }) => (
+                      <div key={label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <span style={{ width: 70, fontSize: 9.5, fontWeight: 800, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", flexShrink: 0 }}>{label}</span>
+                        <div style={{ flex: 1, height: 5, background: "rgba(255,255,255,0.05)", borderRadius: 3, overflow: "hidden" }}>
+                          <div style={{ width: `${w}%`, height: "100%", background: acc, borderRadius: 3, boxShadow: `0 0 8px ${acc}55`, transition: "width 1s cubic-bezier(0.16,1,0.3,1)" }} />
+                        </div>
+                        <span style={{ width: 56, textAlign: "right", fontSize: 8.5, fontWeight: 900, color: acc, letterSpacing: 0.8, flexShrink: 0 }}>{level}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Archetype card — all sessions, label changes by session */}
+              <div style={{ borderRadius: 16, background: `${acc}10`, border: `1px solid ${acc}30`, padding: "16px", marginBottom: 16, textAlign: "center" }}>
+                <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 8 }}>
+                  {sessionNum === 3 ? SL.archEmerging : SL.mightBe}
+                </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 4 }}>
+                  <div style={{ width: sessionNum === 3 ? 10 : 8, height: sessionNum === 3 ? 10 : 8, borderRadius: "50%", background: acc, boxShadow: `0 0 ${sessionNum === 3 ? 14 : 10}px ${acc}` }} />
+                  <span style={{ fontSize: sessionNum === 3 ? 26 : 20, fontWeight: 1000, color: "#fff", fontFamily: "var(--font-display,'Anton',sans-serif)", textTransform: "uppercase", letterSpacing: "-0.01em" }}>
+                    {AD[archKey]}
+                  </span>
+                </div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 700 }}>
+                  {SL.like}{ARCH_FIGHTER[archKey]}
+                </div>
+                {sessionNum === 3 && (
+                  <div style={{ marginTop: 10, fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 600, lineHeight: 1.5 }}>
+                    {SL.dnaReady}
+                  </div>
+                )}
+              </div>
+
+              {/* DNA Journey progress bar */}
+              <div style={{ borderRadius: 14, background: "rgba(255,255,255,0.02)", border: `1px solid ${sessionNum === 3 ? `${acc}25` : "rgba(255,255,255,0.05)"}`, padding: "14px 16px", marginBottom: 24 }}>
+                <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.22)", textTransform: "uppercase", marginBottom: 10 }}>
+                  {SL.dnaJourney}
+                </div>
+                <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} style={{
+                      flex: 1, height: 6, borderRadius: 3,
+                      background: i < sessionNum ? acc : "rgba(255,255,255,0.07)",
+                      boxShadow: i < sessionNum ? `0 0 8px ${acc}66` : "none",
+                    }} />
+                  ))}
+                </div>
+                <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.35)", fontWeight: 700, lineHeight: 1.4 }}>
+                  {sessionNum === 1 ? SL.session2hint : sessionNum === 2 ? SL.session2hint.replace("1", "2") : SL.session3hint}
+                </div>
+              </div>
+
+              {/* CTAs — session 3 swaps primary/secondary */}
+              {sessionNum === 3 ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => { setFirstSessionHook(null); router.push(`/${locale}/fighter-profile`); }}
+                    style={{ width: "100%", padding: "15px 0", borderRadius: 14, background: acc, border: "none", color: "#000", fontSize: 15, fontWeight: 900, letterSpacing: 0.5, cursor: "pointer", marginBottom: 12, boxShadow: `0 4px 24px ${acc}44` }}
+                  >
+                    {SL.viewDNA}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setFirstSessionHook(null); handleTryAgain?.(); }}
+                    style={{ width: "100%", padding: "11px 0", borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.45)", fontSize: 13, fontWeight: 800, cursor: "pointer" }}
+                  >
+                    {SL.trainAgain}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => { setFirstSessionHook(null); handleTryAgain?.(); }}
+                    style={{ width: "100%", padding: "15px 0", borderRadius: 14, background: acc, border: "none", color: "#000", fontSize: 15, fontWeight: 900, letterSpacing: 0.5, cursor: "pointer", marginBottom: 12, boxShadow: `0 4px 24px ${acc}44` }}
+                  >
+                    {SL.trainAgain}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setFirstSessionHook(null); router.push(`/${locale}/fighter-profile`); }}
+                    style={{ width: "100%", padding: "11px 0", borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.45)", fontSize: 13, fontWeight: 800, cursor: "pointer" }}
+                  >
+                    {SL.viewProfile}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Readiness Modal — shown for first-ever session ───────────── */}
+      {readinessOpen && (() => {
+        const steps = [
+          { icon: "📖", label: t("readinessLearnStep"), desc: t("readinessLearnDesc") },
+          { icon: "🥊", label: t("readinessPracticeStep"), desc: t("readinessPracticeDesc") },
+          { icon: "📹", label: t("readinessRecordStep"), desc: t("readinessRecordDesc") },
+        ];
+        const step = steps[readinessStep];
+        const isLast = readinessStep === steps.length - 1;
+        return (
+          <div style={{ position: "fixed", inset: 0, zIndex: 999, background: "rgba(0,0,0,0.88)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
+            {/* Step dots */}
+            <div style={{ display: "flex", gap: 6, marginBottom: 28 }}>
+              {steps.map((_, i) => (
+                <div key={i} style={{ width: i === readinessStep ? 20 : 6, height: 6, borderRadius: 3, background: i <= readinessStep ? "#F5C451" : "rgba(255,255,255,0.15)", transition: "width 0.3s ease" }} />
+              ))}
+            </div>
+
+            <div style={{ width: "100%", maxWidth: 360, borderRadius: 20, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", padding: "28px 24px", textAlign: "center" }}>
+              <div style={{ fontSize: 48, marginBottom: 16 }}>{step.icon}</div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: "#fff", marginBottom: 10 }}>{step.label}</div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.6, marginBottom: 24 }}>{step.desc}</div>
+
+              {isLast ? (
+                <button type="button"
+                  style={{ width: "100%", padding: "14px 0", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#E53E3E,#F5C451)", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", letterSpacing: 0.5 }}
+                  onClick={() => { setReadinessOpen(false); handleStart(); }}
+                >
+                  {t("readinessStartBtn")}
+                </button>
+              ) : (
+                <button type="button"
+                  style={{ width: "100%", padding: "14px 0", borderRadius: 12, border: "none", background: "rgba(245,196,81,0.15)", color: "#F5C451", fontSize: 13, fontWeight: 900, cursor: "pointer" }}
+                  onClick={() => setReadinessStep(s => s + 1)}
+                >
+                  {locale === "mn" ? "Дараагийн →" : locale === "ko" ? "다음 →" : "Next →"}
+                </button>
+              )}
+            </div>
+
+            <button type="button"
+              style={{ marginTop: 20, background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 12, cursor: "pointer" }}
+              onClick={() => { setReadinessOpen(false); handleStart(); }}
+            >
+              {t("readinessSkip")}
+            </button>
+          </div>
+        );
+      })()}
 
     </main>
   );

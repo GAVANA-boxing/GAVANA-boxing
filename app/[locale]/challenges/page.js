@@ -317,8 +317,18 @@ export default function ChallengesPage() {
                 <div style={styles.leaderboard}>
                   <h3 style={styles.leaderboardTitle}>{t("challengeLeaderboard")}</h3>
                   {isEmpty ? (
-                    <div style={styles.emptyLeaderboard}>
-                      {seasonTab === "week" ? t("seasonNoResultsThisWeek") : t("challengeNoScores")}
+                    <div style={{ ...styles.emptyLeaderboard, display: "flex", flexDirection: "column", alignItems: "center", gap: 10, padding: "20px 16px" }}>
+                      <span style={{ fontSize: 32 }}>🏆</span>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.55)" }}>
+                        {seasonTab === "week" ? t("seasonNoResultsThisWeek") : t("challengeNoScores")}
+                      </span>
+                      <button
+                        type="button"
+                        style={{ padding: "9px 20px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#EF4444,#B91C1C)", color: "#fff", fontSize: 12, fontWeight: 900, cursor: "pointer", letterSpacing: 0.3 }}
+                        onClick={() => router.push(`/${locale}/train?challengeId=${challenge.id}`)}
+                      >
+                        {locale === "mn" ? "Эхний байр авах →" : locale === "ko" ? "첫 번째가 되기 →" : "Be First →"}
+                      </button>
                     </div>
                   ) : (
                     <div style={styles.scoreRows}>
@@ -371,7 +381,7 @@ export default function ChallengesPage() {
         )}
       </section>
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="challenges" />
       <style>{`
         @keyframes challengeScoreGlow {
           0%, 100% { box-shadow: 0 0 0 rgba(245,196,81,0); }

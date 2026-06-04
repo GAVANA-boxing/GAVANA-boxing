@@ -13,6 +13,7 @@ import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
 import FighterPortrait from "@/components/FighterPortrait";
 import { RED, GOLD } from "@/lib/tokens";
+import { computeFighterCompatibility } from "@/lib/fighterDNA";
 import s from "@/components/fighters/fighterStyles";
 import TechniqueLessonCard from "@/components/fighters/TechniqueLessonCard";
 import { FIGHTER_TECHNIQUES } from "@/lib/fighterTechniques";
@@ -187,19 +188,72 @@ export default function FighterDetailPage() {
 
   const [personalConnection, setPersonalConnection] = useState(null);
   const [studied, setStudied] = useState(false);
+  const [currentExperiment, setCurrentExperiment] = useState(null);
+  const [settingExperiment, setSettingExperiment] = useState(false);
+  const [userDNA, setUserDNA] = useState(null);
 
-  // Mark fighter as studied in Firestore
+  // Mark fighter as studied + load currentExperiment + userDNA from Firestore
   useEffect(() => {
     if (!user?.uid || !fighter?.id) return;
     (async () => {
       try {
-        const { doc, setDoc, arrayUnion } = await import("firebase/firestore");
+        const { doc, setDoc, getDoc, arrayUnion } = await import("firebase/firestore");
         const { db } = await import("@/lib/firebase");
-        await setDoc(doc(db, "users", user.uid), { studiedFighters: arrayUnion(fighter.id) }, { merge: true });
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          const data = userSnap.data();
+          setCurrentExperiment(data.currentExperiment || null);
+          if (data.fighterDNA && !data.fighterDNA.building) setUserDNA(data.fighterDNA);
+        }
+        await setDoc(userRef, { studiedFighters: arrayUnion(fighter.id) }, { merge: true });
         setStudied(true);
       } catch { /* silent */ }
     })();
   }, [user?.uid, fighter?.id]);
+
+  async function handleSetExperiment() {
+    if (!user?.uid || settingExperiment) return;
+    setSettingExperiment(true);
+    try {
+      const { doc, setDoc, serverTimestamp, collection, getDocs, query, where } = await import("firebase/firestore");
+      const { db } = await import("@/lib/firebase");
+      const { computePunchPattern } = await import("@/lib/movementInsight");
+
+      // Capture baseline punch pattern from most recent session with punchBreakdown
+      let baselinePunchPct = null;
+      const sessSnap = await getDocs(query(collection(db, "training_sessions"), where("userId", "==", user.uid)));
+      const sorted = sessSnap.docs
+        .map((d) => ({ ...d.data() }))
+        .filter((d) => d.type === "training" && d.poseMetrics?.punchBreakdown)
+        .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+      if (sorted.length > 0) {
+        const pattern = computePunchPattern(sorted[0].poseMetrics.punchBreakdown);
+        if (pattern) baselinePunchPct = { jabPct: pattern.jabPct, crossPct: pattern.crossPct, hookPct: pattern.hookPct };
+      }
+
+      const experiment = {
+        fighterId: fighter.id,
+        fighterName: fighter.name,
+        fighterAccent: fighter.accent,
+        startDate: serverTimestamp(),
+        baselinePunchPct,
+      };
+      await setDoc(doc(db, "users", user.uid), { currentExperiment: experiment }, { merge: true });
+      setCurrentExperiment({ ...experiment, startDate: { seconds: Math.floor(Date.now() / 1000) } });
+    } catch { /* silent */ }
+    setSettingExperiment(false);
+  }
+
+  async function handleStopExperiment() {
+    if (!user?.uid) return;
+    try {
+      const { doc, updateDoc, deleteField } = await import("firebase/firestore");
+      const { db } = await import("@/lib/firebase");
+      await updateDoc(doc(db, "users", user.uid), { currentExperiment: deleteField() });
+      setCurrentExperiment(null);
+    } catch { /* silent */ }
+  }
 
   // Build personal connection from training history
   useEffect(() => {
@@ -343,6 +397,92 @@ export default function FighterDetailPage() {
                 <polygon points="5 3 19 12 5 21 5 3"/>
               </svg>
               {locale === "mn" ? `${fighter.name.split(" ").slice(-1)[0]}-ийн хэв маягаар дасгал хий` : `Train ${fighter.name.split(" ").slice(-1)[0]}'s Style`}
+            </button>
+          );
+        })()}
+
+        {/* ── DNA Compatibility Score ── */}
+        {userDNA?.styleMix && (() => {
+          const compat = computeFighterCompatibility(fighter, userDNA.styleMix);
+          if (!compat) return null;
+          const compatColor =
+            compat.pct >= 80 ? "#34D399" :
+            compat.pct >= 60 ? GOLD :
+            compat.pct >= 40 ? "#F59E0B" : "#94A3B8";
+          const insight =
+            compat.pct >= 80
+              ? (locale === "mn" ? "Таны ДНХ энэ хэв маягтай өндөр нийцтэй" : locale === "ko" ? "당신의 DNA와 높은 호환성" : "Your DNA is highly aligned with this style")
+              : compat.pct >= 60
+              ? (locale === "mn" ? "Сайн нийцэл — гол шинж чанарууд таарч байна" : locale === "ko" ? "좋은 호환성 — 핵심 스타일 연결" : "Good match — key style aspects connect")
+              : compat.pct >= 40
+              ? (locale === "mn" ? "Хэсэгчлэн нийцэлтэй — судлах нь үнэ цэнэтэй" : locale === "ko" ? "부분 일치 — 학습 가치 있음" : "Partial alignment — valuable to study")
+              : (locale === "mn" ? "Эсрэг хэв маяг — хүрээгээ өргөтгөхийн тулд судал" : locale === "ko" ? "반대 스타일 — 범위 확장을 위해 학습" : "Opposite styles — study to expand your range");
+          return (
+            <div style={{ marginBottom: 16, padding: "13px 16px", borderRadius: 14, background: `${compatColor}08`, border: `1px solid ${compatColor}28` }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: compatColor, textTransform: "uppercase" }}>
+                  {locale === "mn" ? "ДНХ НИЙЦЭЛ" : locale === "ko" ? "DNA 호환성" : "DNA COMPATIBILITY"}
+                </div>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+                  <span style={{ fontSize: 22, fontWeight: 1000, color: compatColor, fontFamily: "monospace", lineHeight: 1 }}>{compat.pct}%</span>
+                  {compat.rank <= 3 && (
+                    <span style={{ fontSize: 9, fontWeight: 900, color: GOLD }}>★ #{compat.rank}</span>
+                  )}
+                </div>
+              </div>
+              <div style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.07)", overflow: "hidden", marginBottom: 8 }}>
+                <div style={{ width: `${compat.pct}%`, height: "100%", background: compatColor, borderRadius: 2, boxShadow: `0 0 8px ${compatColor}55`, transition: "width 1s cubic-bezier(0.16,1,0.3,1)" }} />
+              </div>
+              <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.55)", lineHeight: 1.4 }}>{insight}</p>
+            </div>
+          );
+        })()}
+
+        {/* ── Try This Style Experiment ── */}
+        {user && (() => {
+          const isThisActive = currentExperiment?.fighterId === fighter.id;
+          const isOtherActive = currentExperiment && !isThisActive;
+          return isThisActive ? (
+            <div style={{
+              marginBottom: 16, padding: "12px 16px", borderRadius: 14,
+              background: `${acc}0a`, border: `1px solid ${acc}35`,
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 18 }}>⚗️</span>
+                <div>
+                  <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: acc, textTransform: "uppercase", marginBottom: 2 }}>
+                    {t("experimentActive")}
+                  </div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontWeight: 700 }}>
+                    {t("experimentFocusHint")}
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleStopExperiment}
+                style={{ fontSize: 10, fontWeight: 900, color: "#F87171", background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.25)", borderRadius: 8, padding: "5px 11px", cursor: "pointer" }}
+              >
+                {t("experimentStop")}
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleSetExperiment}
+              disabled={settingExperiment}
+              style={{
+                width: "100%", marginBottom: 16, padding: "12px 20px", borderRadius: 14,
+                background: `${acc}10`, border: `1px solid ${acc}35`, color: acc,
+                fontSize: 12, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase",
+                cursor: settingExperiment ? "wait" : "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                opacity: settingExperiment ? 0.6 : 1,
+              }}
+            >
+              <span>⚗️</span>
+              {isOtherActive ? t("experimentSwitch") : t("experimentCta")}
             </button>
           );
         })()}
