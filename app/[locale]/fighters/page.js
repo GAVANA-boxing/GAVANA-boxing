@@ -17,7 +17,7 @@ import { ARCH_TRAINING_COLORS } from "@/lib/archetypeTraining";
 
 const ARCH_FILTER_LABELS = {
   en: { pressure: "Pressure", outboxer: "Outboxer", counter: "Counter", explosive: "Explosive", technician: "Technician" },
-  mn: { pressure: "Дарамт", outboxer: "Хөдлөгч", counter: "Тохой", explosive: "Тэсрэмтгий", technician: "Техникийн" },
+  mn: { pressure: "Дарамт", outboxer: "Аутбоксер", counter: "Контр", explosive: "Тэсрэмтгий", technician: "Техникийн" },
   ko: { pressure: "압박", outboxer: "아웃복서", counter: "카운터", explosive: "폭발력", technician: "기술" },
 };
 
@@ -136,6 +136,7 @@ export default function FightersPage() {
   const [compareIds, setCompareIds] = useState([]);
   const [activeArchFilter, setActiveArchFilter] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeWeightFilter, setActiveWeightFilter] = useState(null);
 
   const toggleCompare = (id) => {
     setCompareIds((prev) => {
@@ -206,9 +207,15 @@ export default function FightersPage() {
   }, [fighterDNA, snapshot, ranked, userArchetype]);
   const recommendedIds = useMemo(() => new Set(recommended.map((r) => r.fighter.id)), [recommended]);
 
+  const availableWeightClasses = useMemo(() => {
+    const wcs = [...new Set(ranked.map(({ fighter }) => fighter.weightClass).filter(Boolean))];
+    return wcs.sort();
+  }, [ranked]);
+
   const filteredRanked = useMemo(() => {
     let result = ranked;
     if (activeArchFilter) result = result.filter(({ fighter }) => classifyFighterArchetype(fighter) === activeArchFilter);
+    if (activeWeightFilter) result = result.filter(({ fighter }) => fighter.weightClass === activeWeightFilter);
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
       result = result.filter(({ fighter }) =>
@@ -218,7 +225,7 @@ export default function FightersPage() {
       );
     }
     return result;
-  }, [ranked, activeArchFilter, searchQuery]);
+  }, [ranked, activeArchFilter, activeWeightFilter, searchQuery]);
 
   return (
     <div style={s.page} className="page-enter">
@@ -410,6 +417,42 @@ export default function FightersPage() {
             );
           })}
         </div>
+
+        {/* Weight class filter */}
+        {availableWeightClasses.length > 0 && (
+          <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 8, WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
+            <button
+              key="all-wc"
+              type="button"
+              onClick={() => setActiveWeightFilter(null)}
+              style={{
+                flexShrink: 0, padding: "4px 10px", borderRadius: 20,
+                background: activeWeightFilter === null ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.04)",
+                border: activeWeightFilter === null ? "1px solid rgba(255,255,255,0.3)" : "1px solid rgba(255,255,255,0.08)",
+                color: activeWeightFilter === null ? "#fff" : "rgba(255,255,255,0.38)",
+                fontSize: 9, fontWeight: 900, cursor: "pointer",
+              }}
+            >
+              {locale === "mn" ? "Бүх жин" : locale === "ko" ? "전체 체급" : "All Classes"}
+            </button>
+            {availableWeightClasses.map((wc) => (
+              <button
+                key={wc}
+                type="button"
+                onClick={() => setActiveWeightFilter(activeWeightFilter === wc ? null : wc)}
+                style={{
+                  flexShrink: 0, padding: "4px 10px", borderRadius: 20,
+                  background: activeWeightFilter === wc ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.04)",
+                  border: activeWeightFilter === wc ? "1px solid rgba(255,255,255,0.3)" : "1px solid rgba(255,255,255,0.08)",
+                  color: activeWeightFilter === wc ? "#fff" : "rgba(255,255,255,0.38)",
+                  fontSize: 9, fontWeight: 900, cursor: "pointer", whiteSpace: "nowrap",
+                }}
+              >
+                {wc}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Empty state for filter */}

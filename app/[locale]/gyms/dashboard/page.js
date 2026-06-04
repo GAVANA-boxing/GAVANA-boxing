@@ -459,6 +459,45 @@ export default function GymDashboardPage() {
                   </div>
                 )}
               </div>
+
+              {/* Top by archetype */}
+              {sorted.length > 0 && (
+                <div style={{ marginTop: 20 }}>
+                  <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.8, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 12 }}>
+                    {locale === "mn" ? "АРХЕТИПИЙН ТОП ГИШҮҮД" : locale === "ko" ? "아키타입별 TOP 멤버" : "TOP BY ARCHETYPE"}
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {sorted.map(([arch]) => {
+                      const topMember = members.find((m) => requesterUsers[m.userId]?.fighterDNA?.archetypeKey === arch);
+                      if (!topMember) return null;
+                      const mu = requesterUsers[topMember.userId] || {};
+                      const name = mu.displayName || mu.username || mu.name || "Fighter";
+                      const photo = mu.photoURL || mu.profileImageUrl || "";
+                      const archColor = ARCH_COLORS_GD[arch];
+                      return (
+                        <button
+                          key={arch}
+                          type="button"
+                          onClick={() => topMember.userId && router.push(`/${locale}/profile/${topMember.userId}`)}
+                          style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 12, background: `${archColor}08`, border: `1px solid ${archColor}22`, textAlign: "left", cursor: "pointer", color: "#fff" }}
+                        >
+                          <div style={{ width: 34, height: 34, borderRadius: "50%", background: `${archColor}20`, border: `1px solid ${archColor}40`, overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            {photo
+                              ? <img src={photo} alt="" width={34} height={34} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+                              : <span style={{ fontSize: 13, fontWeight: 900, color: archColor }}>{name[0]?.toUpperCase()}</span>
+                            }
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 12, fontWeight: 900, color: "#fff", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</div>
+                            <div style={{ fontSize: 9, fontWeight: 900, color: archColor, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 1 }}>{AL[arch]}</div>
+                          </div>
+                          <div style={{ fontSize: 18, color: "rgba(255,255,255,0.15)" }}>›</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           );
         })()}
