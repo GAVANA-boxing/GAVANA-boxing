@@ -35,9 +35,10 @@ export default function FeedRoute() {
   const { user } = useAuth();
   const locale   = getLocale(params?.locale);
 
-  const [reels,   setReels]   = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error,   setError]   = useState(null);
+  const [reels,         setReels]         = useState([]);
+  const [loading,       setLoading]       = useState(true);
+  const [error,         setError]         = useState(null);
+  const [userArchetype, setUserArchetype] = useState(null);
 
   const lastLoadRef = useRef(Date.now());
 
@@ -78,6 +79,23 @@ export default function FeedRoute() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (!user?.uid) return;
+    let active = true;
+    (async () => {
+      try {
+        const { doc, getDoc } = await import("firebase/firestore");
+        const { db } = await import("@/lib/firebase");
+        const snap = await getDoc(doc(db, "users", user.uid));
+        if (active && snap.exists()) {
+          const arch = snap.data()?.fighterDNA?.archetypeKey;
+          if (arch) setUserArchetype(arch);
+        }
+      } catch { /* silent */ }
+    })();
+    return () => { active = false; };
+  }, [user?.uid]);
+
   return (
     <>
       {/* Full-screen feed — no padding, no shell */}
@@ -87,7 +105,7 @@ export default function FeedRoute() {
         ) : error ? (
           <FeedEmptyState locale={locale} router={router} />
         ) : (
-          <FeedPage reels={reels} locale={locale} router={router} user={user} />
+          <FeedPage reels={reels} locale={locale} router={router} user={user} userArchetype={userArchetype} />
         )}
       </div>
 

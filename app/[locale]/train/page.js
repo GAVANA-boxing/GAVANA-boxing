@@ -1205,7 +1205,7 @@ export default function TrainPage() {
 
             {/* DNA Building Progress — show after 1-2 sessions */}
             {totalSessionCount >= 1 && totalSessionCount < 3 && !userArchetype && (
-              <div style={{ borderRadius: 12, padding: "12px 14px", background: "rgba(245,196,81,0.06)", border: "1px solid rgba(245,196,81,0.22)", display: "flex", alignItems: "center", gap: 12 }}>
+              <div onClick={() => router.push(`/${locale}/fighter-profile`)} style={{ borderRadius: 12, padding: "12px 14px", background: "rgba(245,196,81,0.06)", border: "1px solid rgba(245,196,81,0.22)", display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
                 <div style={{ position: "relative", width: 40, height: 40, flexShrink: 0 }}>
                   <svg width="40" height="40" viewBox="0 0 40 40">
                     <circle cx="20" cy="20" r="16" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3" />
@@ -1416,7 +1416,7 @@ export default function TrainPage() {
               const sessionsToNext = 5 - (totalSessionCount % 5);
               const cyclePct = ((totalSessionCount % 5) / 5) * 100;
               return (
-                <div style={{ borderRadius: 12, padding: "10px 14px", background: `${acc}06`, border: `1px solid ${acc}20`, display: "flex", alignItems: "center", gap: 10 }}>
+                <div onClick={() => router.push(`/${locale}/fighter-profile`)} style={{ borderRadius: 12, padding: "10px 14px", background: `${acc}06`, border: `1px solid ${acc}20`, display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
                   <div style={{ flexShrink: 0 }}>
                     <svg width="32" height="32" viewBox="0 0 32 32">
                       <circle cx="16" cy="16" r="12" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="2.5" />

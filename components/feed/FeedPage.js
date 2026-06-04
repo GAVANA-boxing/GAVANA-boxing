@@ -13,13 +13,14 @@ import { useCommentActions } from "@/hooks/useCommentActions";
 import { useFeedFollow } from "@/hooks/useFeedFollow";
 import { getFirebase } from "@/lib/lazyFirebase";
 
-export default function FeedPage({ reels, locale, router, user }) {
+export default function FeedPage({ reels, locale, router, user, userArchetype }) {
   const [currentIndex,       setCurrentIndex]       = useState(0);
   const [soundEnabled,       setSoundEnabled]       = useState(false);
   const [videoErrors,        setVideoErrors]        = useState({});
   const [videoLoading,       setVideoLoading]       = useState({});
   const [videoProgress,      setVideoProgressMap]   = useState({});
   const [captionSheetReelId, setCaptionSheetReelId] = useState(null);
+  const [activeFilter, setActiveFilter] = useState("all");
 
   // Social state
   const [allReels,   setAllReels]   = useState(reels);
@@ -117,12 +118,96 @@ export default function FeedPage({ reels, locale, router, user }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reels.length]);
 
+  const ARCH_KEYWORDS = {
+    pressure:   ["pressure", "forward", "body", "conditioning", "bag", "power", "heavy"],
+    outboxer:   ["jab", "range", "distance", "footwork", "movement", "lateral"],
+    counter:    ["counter", "counterpunch", "parry", "check", "timing", "read"],
+    explosive:  ["explosive", "power", "knockout", "ko", "combination", "burst"],
+    technician: ["technique", "technical", "precision", "form", "mechanics", "slip"],
+  };
+
+  const myStyleKeywords = userArchetype ? (ARCH_KEYWORDS[userArchetype] || []) : [];
+  const filteredReels = activeFilter === "style" && myStyleKeywords.length > 0
+    ? allReels.filter((r) => {
+        const text = ((r.caption || "") + " " + (r.description || "") + " " + (r.tags?.join(" ") || "")).toLowerCase();
+        return myStyleKeywords.some((kw) => text.includes(kw));
+      })
+    : allReels;
+
   if (!reels.length) {
     return <FeedEmptyState locale={locale} router={router} />;
   }
 
+  if (filteredReels.length === 0 && activeFilter === "style") {
+    return (
+      <>
+        {userArchetype && (
+          <div style={{ position: "fixed", top: "max(env(safe-area-inset-top), 14px)", left: "50%", transform: "translateX(-50%)", zIndex: 50, display: "flex", gap: 6, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(12px)", borderRadius: 20, padding: "4px 6px", border: "1px solid rgba(255,255,255,0.1)" }}>
+            {[{ key: "all", en: "For You", mn: "Таны хувьд", ko: "추천" }, { key: "style", en: "My Style", mn: "Миний стиль", ko: "내 스타일" }].map((f) => (
+              <button key={f.key} type="button" onClick={() => setActiveFilter(f.key)} style={{ padding: "5px 14px", borderRadius: 16, border: "none", background: activeFilter === f.key ? "rgba(255,255,255,0.18)" : "transparent", color: activeFilter === f.key ? "#fff" : "rgba(255,255,255,0.45)", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>
+                {locale === "mn" ? f.mn : locale === "ko" ? f.ko : f.en}
+              </button>
+            ))}
+          </div>
+        )}
+        <div style={{ height: "100dvh", background: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: "0 32px", textAlign: "center" }}>
+          <span style={{ fontSize: 32 }}>🧬</span>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "rgba(255,255,255,0.7)" }}>
+            {locale === "mn" ? "Таны стилийн контент одоохондоо алга" : locale === "ko" ? "내 스타일 콘텐츠가 아직 없습니다" : "No content matching your style yet"}
+          </div>
+          <button type="button" onClick={() => setActiveFilter("all")} style={{ padding: "8px 20px", borderRadius: 20, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>
+            {locale === "mn" ? "Бүгдийг үзэх" : locale === "ko" ? "전체 보기" : "See All"}
+          </button>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
+      {/* Filter tabs */}
+      {userArchetype && (
+        <div style={{
+          position: "fixed",
+          top: "max(env(safe-area-inset-top), 14px)",
+          left: "50%",
+          transform: "translateX(-50%)",
+          zIndex: 50,
+          display: "flex",
+          gap: 6,
+          background: "rgba(0,0,0,0.55)",
+          backdropFilter: "blur(12px)",
+          borderRadius: 20,
+          padding: "4px 6px",
+          border: "1px solid rgba(255,255,255,0.1)",
+        }}>
+          {[
+            { key: "all",   en: "For You",   mn: "Таны хувьд", ko: "추천" },
+            { key: "style", en: "My Style",  mn: "Миний стиль", ko: "내 스타일" },
+          ].map((f) => (
+            <button
+              key={f.key}
+              type="button"
+              onClick={() => setActiveFilter(f.key)}
+              style={{
+                padding: "5px 14px",
+                borderRadius: 16,
+                border: "none",
+                background: activeFilter === f.key ? "rgba(255,255,255,0.18)" : "transparent",
+                color: activeFilter === f.key ? "#fff" : "rgba(255,255,255,0.45)",
+                fontSize: 12,
+                fontWeight: 800,
+                cursor: "pointer",
+                WebkitTapHighlightColor: "transparent",
+                transition: "background 160ms ease, color 160ms ease",
+              }}
+            >
+              {locale === "mn" ? f.mn : locale === "ko" ? f.ko : f.en}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Sound toggle */}
       <button
         type="button"
@@ -162,7 +247,7 @@ export default function FeedPage({ reels, locale, router, user }) {
           position:                "relative",
         }}
       >
-        {allReels.map((reel, index) => {
+        {filteredReels.map((reel, index) => {
           const name    = getCreatorName(reel, null);
           const initial = (name || "?").charAt(0).toUpperCase();
           const photo   = reel.userPhotoURL || reel.profileImageUrl || "";
@@ -172,7 +257,7 @@ export default function FeedPage({ reels, locale, router, user }) {
             <div
               key={reel.id}
               data-index={index}
-              style={{ flexShrink: 0, scrollSnapAlign: "start", scrollSnapStop: "always" }}
+              style={{ flexShrink: 0, scrollSnapAlign: "start", scrollSnapStop: "always", position: "relative" }}
               ref={(el) => {
                 if (el) {
                   cardRefs.current.set(index, el);
@@ -182,6 +267,35 @@ export default function FeedPage({ reels, locale, router, user }) {
                 }
               }}
             >
+              {/* DNA match badge */}
+              {userArchetype && activeFilter === "style" && (() => {
+                const text = ((reel.caption || "") + " " + (reel.description || "") + " " + (reel.tags?.join(" ") || "")).toLowerCase();
+                const matches = myStyleKeywords.some((kw) => text.includes(kw));
+                if (!matches) return null;
+                const ARCH_COLORS = { pressure: "#EF4444", outboxer: "#3B82F6", counter: "#8B5CF6", explosive: "#F59E0B", technician: "#10B981" };
+                const color = ARCH_COLORS[userArchetype] || "#EF4444";
+                return (
+                  <div style={{
+                    position: "absolute",
+                    top: 56,
+                    left: 12,
+                    zIndex: 40,
+                    padding: "3px 10px",
+                    borderRadius: 12,
+                    background: `${color}22`,
+                    border: `1px solid ${color}55`,
+                    color,
+                    fontSize: 10,
+                    fontWeight: 900,
+                    letterSpacing: 0.8,
+                    textTransform: "uppercase",
+                    backdropFilter: "blur(8px)",
+                    pointerEvents: "none",
+                  }}>
+                    🧬 {locale === "mn" ? "Таны стиль" : locale === "ko" ? "내 스타일" : "Your Style"}
+                  </div>
+                );
+              })()}
               <ReelItem
                 reel={reel}
                 index={index}
