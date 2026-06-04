@@ -319,7 +319,24 @@ export default function DiscoverPage() {
                   (r.hashtags || []).some((h) => h.toLowerCase().includes(kw))
                 )
               ).slice(0, 3);
-              if (matchedReels.length === 0) return null;
+              if (matchedReels.length === 0) {
+                // Fallback: just set the style filter automatically
+                if (selectedStyle === "all" && map.style) {
+                  // Don't auto-change state inside render — just show a suggestion chip
+                  return (
+                    <div style={{ padding: "0 16px 8px" }}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedStyle(map.style)}
+                        style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 20, background: `${acc}12`, border: `1px solid ${acc}30`, color: acc, fontSize: 10, fontWeight: 900, cursor: "pointer" }}
+                      >
+                        🧬 {locale === "mn" ? `${archLabel} контент харах →` : locale === "ko" ? `${archLabel} 콘텐츠 보기 →` : `Show ${archLabel} content →`}
+                      </button>
+                    </div>
+                  );
+                }
+                return null;
+              }
               return (
                 <div style={{ padding: "0 16px 0", marginBottom: 4 }}>
                   <div style={{ padding: "10px 14px", borderRadius: 14, background: `${acc}08`, border: `1px solid ${acc}22`, marginBottom: 4 }}>

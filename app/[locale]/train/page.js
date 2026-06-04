@@ -284,6 +284,26 @@ export default function TrainPage() {
     return () => { active = false; };
   }, [user?.uid]);
 
+  // Track session completions
+  useEffect(() => {
+    if (!saved || !result) return;
+    import("@/lib/analytics").then(({ track, EVENTS }) => {
+      track(EVENTS.SESSION_COMPLETED, {
+        score: result?.score,
+        locale,
+        archetype: userArchetype || undefined,
+      });
+    }).catch(() => {});
+  }, [saved]);
+
+  // Track mission completions
+  useEffect(() => {
+    if (!missionJustCompleted) return;
+    import("@/lib/analytics").then(({ track, EVENTS }) => {
+      track(EVENTS.MISSION_COMPLETED, { locale, archetype: userArchetype || undefined });
+    }).catch(() => {});
+  }, [missionJustCompleted]);
+
   // Override pixel-detector score with MediaPipe score as soon as result appears.
   // Runs on result.hitCount change (new session) — not on score change — to avoid loops.
   useEffect(() => {
@@ -1183,6 +1203,39 @@ export default function TrainPage() {
               </div>
             )}
 
+            {/* DNA Building Progress — show after 1-2 sessions */}
+            {totalSessionCount >= 1 && totalSessionCount < 3 && !userArchetype && (
+              <div style={{ borderRadius: 12, padding: "12px 14px", background: "rgba(245,196,81,0.06)", border: "1px solid rgba(245,196,81,0.22)", display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ position: "relative", width: 40, height: 40, flexShrink: 0 }}>
+                  <svg width="40" height="40" viewBox="0 0 40 40">
+                    <circle cx="20" cy="20" r="16" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3" />
+                    <circle cx="20" cy="20" r="16" fill="none" stroke="#F5C451" strokeWidth="3"
+                      strokeDasharray="100.5"
+                      strokeDashoffset={100.5 * (1 - totalSessionCount / 3)}
+                      strokeLinecap="round"
+                      transform="rotate(-90 20 20)"
+                      style={{ transition: "stroke-dashoffset 0.6s ease" }}
+                    />
+                  </svg>
+                  <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 900, color: "#F5C451" }}>
+                    {totalSessionCount}/3
+                  </span>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase", color: "rgba(245,196,81,0.75)", marginBottom: 2 }}>
+                    🧬 {locale === "mn" ? "ДНХ ДОХИО БҮРДЭЖ БАЙНА" : locale === "ko" ? "DNA 신호 형성 중" : "DNA SIGNAL FORMING"}
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.55)", lineHeight: 1.4 }}>
+                    {locale === "mn"
+                      ? `${3 - totalSessionCount} дасгал дараа таны тулаанчийн архетип илчлэгдэнэ`
+                      : locale === "ko"
+                      ? `${3 - totalSessionCount}세션 후 파이터 아키타입이 공개됩니다`
+                      : `${3 - totalSessionCount} more session${3 - totalSessionCount !== 1 ? "s" : ""} until your Fighter Archetype reveals`}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Weekly DNA Digest */}
             {!showFreshness && showDigest && (
               <div style={{ borderRadius: 12, padding: "10px 14px", background: "rgba(245,196,81,0.05)", border: "1px solid rgba(245,196,81,0.15)", display: "flex", alignItems: "center", gap: 10 }}>
@@ -1350,6 +1403,45 @@ export default function TrainPage() {
                     >
                       {locale === "mn" ? "Одоо дасгал хий →" : locale === "ko" ? "지금 훈련하기 →" : "Train Now →"}
                     </button>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* DNA Evolution Progress */}
+            {userArchetype && weeklySessionCount >= 1 && (() => {
+              const ARCH_COLORS_EV = { pressure: "#EF4444", outboxer: "#3B82F6", counter: "#8B5CF6", explosive: "#F59E0B", technician: "#10B981" };
+              const acc = ARCH_COLORS_EV[userArchetype] || GOLD;
+              // DNA updates every 5 sessions — show progress toward next update
+              const sessionsToNext = 5 - (totalSessionCount % 5);
+              const cyclePct = ((totalSessionCount % 5) / 5) * 100;
+              return (
+                <div style={{ borderRadius: 12, padding: "10px 14px", background: `${acc}06`, border: `1px solid ${acc}20`, display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ flexShrink: 0 }}>
+                    <svg width="32" height="32" viewBox="0 0 32 32">
+                      <circle cx="16" cy="16" r="12" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="2.5" />
+                      <circle cx="16" cy="16" r="12" fill="none" stroke={acc} strokeWidth="2.5"
+                        strokeDasharray="75.4"
+                        strokeDashoffset={75.4 * (1 - cyclePct / 100)}
+                        strokeLinecap="round"
+                        transform="rotate(-90 16 16)"
+                        style={{ transition: "stroke-dashoffset 0.6s ease" }}
+                      />
+                    </svg>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.8, textTransform: "uppercase", color: acc, marginBottom: 2 }}>
+                      {locale === "mn" ? "ДНХ ШИНЭЧЛЭЛТ" : locale === "ko" ? "DNA 업데이트" : "DNA EVOLUTION"}
+                    </div>
+                    <div style={{ fontSize: 10.5, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>
+                      {sessionsToNext === 5
+                        ? (locale === "mn" ? "Бэлтгэл хийж ДНХ-аа шинэчил" : locale === "ko" ? "훈련하여 DNA를 업데이트하세요" : "Train to start your next DNA cycle")
+                        : (locale === "mn"
+                          ? `${sessionsToNext} дасгал дараа ДНХ шинэчлэгдэнэ`
+                          : locale === "ko"
+                          ? `${sessionsToNext}세션 후 DNA 업데이트`
+                          : `${sessionsToNext} session${sessionsToNext !== 1 ? "s" : ""} until DNA update`)}
+                    </div>
                   </div>
                 </div>
               );

@@ -40,10 +40,13 @@ async function getFcmAccessToken() {
 }
 
 async function getFcmTokens(recipientId) {
-  const API_KEY = "AIzaSyDwVdR5oVYSXQbWL4jqNSNx9cqKuKxqt6c";
-  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/users/${recipientId}/fcmTokens?key=${API_KEY}`;
+  const accessToken = await getFcmAccessToken();
+  if (!accessToken) return [];
+  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/users/${recipientId}/fcmTokens`;
   try {
-    const snap = await fetch(url);
+    const snap = await fetch(url, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
     if (!snap.ok) return [];
     const data = await snap.json();
     return (data.documents || []).map((d) => d.fields?.token?.stringValue).filter(Boolean);

@@ -237,6 +237,29 @@ export default function ProgramsPage() {
           </>
         ) : (<>
 
+          {programs.length === 0 && !loading && (
+            <div style={{ textAlign: "center", padding: "40px 20px" }}>
+              <div style={{ fontSize: 48, marginBottom: 16 }}>🥊</div>
+              <div style={{ fontSize: 16, fontWeight: 900, color: "#fff", marginBottom: 8 }}>
+                {locale === "mn" ? "Хөтөлбөр удахгүй гарна" : locale === "ko" ? "프로그램 출시 예정" : "Programs Coming Soon"}
+              </div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.6, marginBottom: 20 }}>
+                {locale === "mn"
+                  ? "Ганцаарчилсан тренингийн хөтөлбөр бэлтгэгдэж байна.\nAI Workout Builder ашиглаж болно."
+                  : locale === "ko"
+                  ? "맞춤 훈련 프로그램을 준비 중입니다.\nAI 워크아웃 빌더를 사용해보세요."
+                  : "Personalized training programs are being built.\nTry the AI Workout Builder in the meantime."}
+              </div>
+              <button
+                type="button"
+                onClick={() => router.push(`/${locale}/workout/builder`)}
+                style={{ padding: "12px 28px", borderRadius: 14, background: "linear-gradient(145deg,#EF4444,#cc2820)", border: "none", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer" }}
+              >
+                🤖 {locale === "mn" ? "AI Builder нээх" : locale === "ko" ? "AI 빌더 열기" : "Open AI Builder"}
+              </button>
+            </div>
+          )}
+
           {/* ── My Programs ── */}
           {enrolledPrograms.length > 0 && (
             <section style={s.section}>

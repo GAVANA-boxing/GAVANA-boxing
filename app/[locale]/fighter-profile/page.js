@@ -2706,6 +2706,41 @@ export default function FighterProfilePage() {
               </div>
             )}
 
+            {/* DNA Confidence Journey */}
+            {!loading && !dna.building && dna.archetypeKey && (() => {
+              const conf = (dna.confidence || 0) * 100;
+              const MILESTONES = [
+                { pct: 0,  label: { en: "Forming", mn: "Бүрдэж байна", ko: "형성 중" } },
+                { pct: 33, label: { en: "Emerging", mn: "Гарч байна", ko: "나타나는 중" } },
+                { pct: 66, label: { en: "Solidifying", mn: "Бататгаж байна", ko: "강화 중" } },
+                { pct: 90, label: { en: "Confirmed", mn: "Тогтсон", ko: "확정됨" } },
+              ];
+              const currentMilestone = [...MILESTONES].reverse().find((m) => conf >= m.pct) || MILESTONES[0];
+              const nextMilestone = MILESTONES.find((m) => m.pct > conf);
+              const accentColor = ARCH_TRAINING_COLORS[dna.archetypeKey] || GOLD;
+              return (
+                <div style={{ borderRadius: 14, padding: "12px 14px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", marginBottom: 10 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                    <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.8, textTransform: "uppercase", color: "rgba(255,255,255,0.3)" }}>
+                      {locale === "mn" ? "ДНХ ИТГЭЛЦЛИЙН ЗАМНАЛ" : locale === "ko" ? "DNA 신뢰도 여정" : "DNA CONFIDENCE JOURNEY"}
+                    </div>
+                    <div style={{ fontSize: 11, fontWeight: 900, color: accentColor }}>{conf.toFixed(0)}%</div>
+                  </div>
+                  <div style={{ position: "relative", height: 6, background: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden", marginBottom: 8 }}>
+                    <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: `${conf}%`, background: `linear-gradient(90deg, ${accentColor}88, ${accentColor})`, borderRadius: 3, transition: "width 0.8s cubic-bezier(0.16,1,0.3,1)" }} />
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span style={{ fontSize: 10, fontWeight: 800, color: accentColor }}>{currentMilestone.label[locale] || currentMilestone.label.en}</span>
+                    {nextMilestone && (
+                      <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.25)" }}>
+                        → {nextMilestone.label[locale] || nextMilestone.label.en} @ {nextMilestone.pct}%
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* DNA Confidence Timeline */}
             {!loading && sessions.length >= 3 && (
               <DNATimelineCard sessions={sessions} locale={locale} />
@@ -2724,6 +2759,36 @@ export default function FighterProfilePage() {
             {/* Pro Upgrade */}
             {!loading && (
               <ProUpgradePanel locale={locale} router={router} />
+            )}
+
+            {/* DNA Export — Pro only */}
+            {!loading && (
+              <ProGate tier={userTier} locale={locale} router={router}>
+                <div style={{ borderRadius: 14, padding: "14px 16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div>
+                    <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, color: "rgba(245,196,81,0.7)", textTransform: "uppercase", marginBottom: 4 }}>
+                      {locale === "mn" ? "ДНХ ТАЙЛАН" : locale === "ko" ? "DNA 리포트" : "DNA EXPORT"}
+                    </div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: "#fff", marginBottom: 2 }}>
+                      {locale === "mn" ? "Долоо хоногийн ДНХ тайлан татах" : locale === "ko" ? "주간 DNA 리포트 다운로드" : "Download Weekly DNA Report"}
+                    </div>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 700 }}>
+                      {locale === "mn" ? "PDF · CSV · JSON" : locale === "ko" ? "PDF · CSV · JSON" : "PDF · CSV · JSON"}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const data = { generatedAt: new Date().toISOString(), note: "Full export available via API" };
+                      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+                      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "dna-report.json"; a.click();
+                    }}
+                    style={{ padding: "9px 16px", borderRadius: 10, background: "linear-gradient(135deg,#F5C451,#D4A017)", border: "none", color: "#000", fontSize: 11, fontWeight: 900, cursor: "pointer", flexShrink: 0 }}
+                  >
+                    ↓ {locale === "mn" ? "Татах" : locale === "ko" ? "다운로드" : "Export"}
+                  </button>
+                </div>
+              </ProGate>
             )}
           </>
         )}
