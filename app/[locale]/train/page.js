@@ -454,14 +454,12 @@ export default function TrainPage() {
   // ── DNA milestone moments after session save ──────────────────────────────
   useEffect(() => {
     if (!saved || !savedAttemptNumber) return;
-    // Session 1: show full First Session Hook overlay instead of small toast
-    if (savedAttemptNumber === 1) {
-      setFirstSessionHook({ poseMetrics: poseSessionSummary, score: result?.score });
+    // Sessions 1/2/3: show full overlay hook
+    if (savedAttemptNumber === 1 || savedAttemptNumber === 2 || savedAttemptNumber === 3) {
+      setFirstSessionHook({ sessionNum: savedAttemptNumber, poseMetrics: poseSessionSummary, score: result?.score });
       return;
     }
     const DNA_MILESTONES = {
-      3:  { emoji: "🔬", en: "DNA Analysis Unlocked",     mn: "ДНХ шинжилгээ нээгдлаа",          ko: "DNA 분석 잠금 해제",
-             hint: { en: "Visit Fighter Profile to see your early read →", mn: "Тулаанчийн профайлаас дүнгээ харна уу →", ko: "파이터 프로필에서 초기 분석 확인 →" }, cta: true },
       8:  { emoji: "🧬", en: "Archetype Signal Strong",   mn: "Archetype дохио хүчтэй",           ko: "아키타입 신호 강함",
              hint: { en: "Your Fighter DNA is forming — check your profile!", mn: "Тулаанчийн ДНХ бүрдэж байна — профайлаа шалга!", ko: "파이터 DNA 형성 중 — 프로필 확인!" }, cta: true },
       15: { emoji: "⚗️", en: "Fighter Identity Emerging", mn: "Тулаанчийн мөн чанар бүрдэж байна", ko: "파이터 아이덴티티 형성",
@@ -1566,19 +1564,54 @@ export default function TrainPage() {
         const acc = ARCH_TRAINING_COLORS[archKey] || GOLD;
         const AD  = ARCH_DISPLAY_S[locale] || ARCH_DISPLAY_S.en;
 
+        const sessionNum = firstSessionHook.sessionNum || 1;
+
         const SIG_L = {
-          en: { aggr: "Aggression", range: "Range", counter: "Counter", volume: "Volume",
-                high: "HIGH", medium: "MED", low: "LOW", long: "LONG", mid: "MID", close: "CLOSE", building: "BUILDING", emerging: "EMERGING",
-                firstSignals: "YOUR FIRST SIGNALS", like: "Like ",
-                mightBe: "You might be a...", session2: "Train 2 more sessions to unlock your Fighter DNA", trainAgain: "Train Again →", viewProfile: "View Profile", title: "SESSION 1 COMPLETE", dnaJourney: "DNA JOURNEY" },
-          mn: { aggr: "Түрэмгийлэл", range: "Зай", counter: "Контр", volume: "Хэмжээ",
-                high: "ӨНДӨР", medium: "ДУНД", low: "БАГ", long: "УРТ", mid: "ДУНД", close: "ОЙРХОН", building: "БҮРДЭЖ БАЙНА", emerging: "ГАРЧ ИРЭХ",
-                firstSignals: "АНХНЫ ДОХИО", like: "Жишээ нь: ",
-                mightBe: "Та магадгүй...", session2: "ДНХ-аа нээхийн тулд 2 тренинг нэмж хий", trainAgain: "Дахин бэлтгэл хий →", viewProfile: "Профайл харах", title: "1-Р ТРЕНИНГ ДУУСЛАА", dnaJourney: "ДНХ АЯЛАЛ" },
-          ko: { aggr: "공격성", range: "레인지", counter: "카운터", volume: "볼륨",
-                high: "높음", medium: "중간", low: "낮음", long: "롱", mid: "미드", close: "클로즈", building: "구축 중", emerging: "성장 중",
-                firstSignals: "첫 번째 신호", like: "예: ",
-                mightBe: "당신은...", session2: "파이터 DNA 잠금 해제를 위해 2회 더 훈련하세요", trainAgain: "다시 훈련 →", viewProfile: "프로필 보기", title: "세션 1 완료", dnaJourney: "DNA 여정" },
+          en: {
+            aggr: "Aggression", range: "Range", counter: "Counter", volume: "Volume",
+            high: "HIGH", medium: "MED", low: "LOW", long: "LONG", mid: "MID", close: "CLOSE", building: "BUILDING", emerging: "EMERGING",
+            firstSignals: "YOUR FIRST SIGNALS", like: "Like ",
+            mightBe:       "You might be a...",
+            signalGrowing: "SIGNAL GROWING",
+            archEmerging:  "YOUR ARCHETYPE IS EMERGING",
+            dnaUnlocked:   "DNA ANALYSIS UNLOCKED",
+            dnaReady:      "Your fighter identity is taking shape. Visit your profile to see the full analysis.",
+            session2hint:  "1 more session unlocks your Fighter DNA",
+            session3hint:  "3 sessions complete. Your DNA is ready to view.",
+            trainAgain: "Train Again →", viewDNA: "View Your DNA →", viewProfile: "View Profile",
+            title1: "SESSION 1 COMPLETE", title2: "SESSION 2 COMPLETE", title3: "DNA ANALYSIS UNLOCKED",
+            dnaJourney: "DNA JOURNEY",
+          },
+          mn: {
+            aggr: "Түрэмгийлэл", range: "Зай", counter: "Контр", volume: "Хэмжээ",
+            high: "ӨНДӨР", medium: "ДУНД", low: "БАГ", long: "УРТ", mid: "ДУНД", close: "ОЙРХОН", building: "БҮРДЭЖ БАЙНА", emerging: "ГАРЧ ИРЭХ",
+            firstSignals: "АНХНЫ ДОХИО", like: "Жишээ нь: ",
+            mightBe:       "Та магадгүй...",
+            signalGrowing: "ДОХИО ӨСЧ БАЙНА",
+            archEmerging:  "ТАНЫ ARCHETYPE ГАРЧ ИРЭЖ БАЙНА",
+            dnaUnlocked:   "ДНХ ШИНЖИЛГЭЭ НЭЭГДЛАА",
+            dnaReady:      "Тулаанчийн мөн чанар тодорч байна. Профайлаа зочлоод бүрэн шинжилгээгээ харна уу.",
+            session2hint:  "1 тренинг нэмбэл таны ДНХ нээгдэнэ",
+            session3hint:  "3 тренинг дууслаа. ДНХ харахад бэлэн боллоо.",
+            trainAgain: "Дахин бэлтгэл хий →", viewDNA: "ДНХ харах →", viewProfile: "Профайл харах",
+            title1: "1-Р ТРЕНИНГ ДУУСЛАА", title2: "2-Р ТРЕНИНГ ДУУСЛАА", title3: "ДНХ ШИНЖИЛГЭЭ НЭЭГДЛАА",
+            dnaJourney: "ДНХ АЯЛАЛ",
+          },
+          ko: {
+            aggr: "공격성", range: "레인지", counter: "카운터", volume: "볼륨",
+            high: "높음", medium: "중간", low: "낮음", long: "롱", mid: "미드", close: "클로즈", building: "구축 중", emerging: "성장 중",
+            firstSignals: "첫 번째 신호", like: "예: ",
+            mightBe:       "당신은...",
+            signalGrowing: "신호 성장 중",
+            archEmerging:  "아키타입이 형성되고 있습니다",
+            dnaUnlocked:   "DNA 분석 잠금 해제",
+            dnaReady:      "파이터 정체성이 형태를 갖추고 있습니다. 프로필을 방문하여 전체 분석을 확인하세요.",
+            session2hint:  "1회 더 훈련하면 파이터 DNA가 잠금 해제됩니다",
+            session3hint:  "3세션 완료. DNA를 확인할 준비가 되었습니다.",
+            trainAgain: "다시 훈련 →", viewDNA: "DNA 보기 →", viewProfile: "프로필 보기",
+            title1: "세션 1 완료", title2: "세션 2 완료", title3: "DNA 분석 잠금 해제",
+            dnaJourney: "DNA 여정",
+          },
         };
         const SL = SIG_L[locale] || SIG_L.en;
 
@@ -1600,11 +1633,13 @@ export default function TrainPage() {
           <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(4,4,6,0.98)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 20px", overflowY: "auto" }}>
             <div style={{ width: "100%", maxWidth: 360 }}>
 
-              {/* Header */}
-              <div style={{ textAlign: "center", marginBottom: 28 }}>
-                <div style={{ fontSize: 36, marginBottom: 10 }}>🥊</div>
+              {/* Header — varies by session */}
+              <div style={{ textAlign: "center", marginBottom: 24 }}>
+                <div style={{ fontSize: 36, marginBottom: 10 }}>
+                  {sessionNum === 3 ? "🧬" : "🥊"}
+                </div>
                 <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 3, color: acc, textTransform: "uppercase", marginBottom: 6 }}>
-                  {SL.title}
+                  {sessionNum === 1 ? SL.title1 : sessionNum === 2 ? SL.title2 : SL.title3}
                 </div>
                 {firstSessionHook.score != null && (
                   <div style={{ fontSize: 32, fontWeight: 1000, color: "#fff", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>
@@ -1613,11 +1648,11 @@ export default function TrainPage() {
                 )}
               </div>
 
-              {/* Signals */}
-              {signals.length > 0 && (
+              {/* Signals — session 1 & 2 */}
+              {sessionNum < 3 && signals.length > 0 && (
                 <div style={{ borderRadius: 16, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", padding: "16px", marginBottom: 16 }}>
                   <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", marginBottom: 12 }}>
-                    {SL.firstSignals}
+                    {sessionNum === 1 ? SL.firstSignals : SL.signalGrowing}
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     {signals.map(({ label, level, w }) => (
@@ -1633,24 +1668,29 @@ export default function TrainPage() {
                 </div>
               )}
 
-              {/* Fighter suggestion */}
+              {/* Archetype card — all sessions, label changes by session */}
               <div style={{ borderRadius: 16, background: `${acc}10`, border: `1px solid ${acc}30`, padding: "16px", marginBottom: 16, textAlign: "center" }}>
                 <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 8 }}>
-                  {SL.mightBe}
+                  {sessionNum === 3 ? SL.archEmerging : SL.mightBe}
                 </div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 4 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: acc, boxShadow: `0 0 10px ${acc}` }} />
-                  <span style={{ fontSize: 20, fontWeight: 1000, color: "#fff", fontFamily: "var(--font-display,'Anton',sans-serif)", textTransform: "uppercase", letterSpacing: "-0.01em" }}>
+                  <div style={{ width: sessionNum === 3 ? 10 : 8, height: sessionNum === 3 ? 10 : 8, borderRadius: "50%", background: acc, boxShadow: `0 0 ${sessionNum === 3 ? 14 : 10}px ${acc}` }} />
+                  <span style={{ fontSize: sessionNum === 3 ? 26 : 20, fontWeight: 1000, color: "#fff", fontFamily: "var(--font-display,'Anton',sans-serif)", textTransform: "uppercase", letterSpacing: "-0.01em" }}>
                     {AD[archKey]}
                   </span>
                 </div>
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 700 }}>
                   {SL.like}{ARCH_FIGHTER[archKey]}
                 </div>
+                {sessionNum === 3 && (
+                  <div style={{ marginTop: 10, fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 600, lineHeight: 1.5 }}>
+                    {SL.dnaReady}
+                  </div>
+                )}
               </div>
 
-              {/* DNA Journey progress */}
-              <div style={{ borderRadius: 14, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", padding: "14px 16px", marginBottom: 24 }}>
+              {/* DNA Journey progress bar */}
+              <div style={{ borderRadius: 14, background: "rgba(255,255,255,0.02)", border: `1px solid ${sessionNum === 3 ? `${acc}25` : "rgba(255,255,255,0.05)"}`, padding: "14px 16px", marginBottom: 24 }}>
                 <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.22)", textTransform: "uppercase", marginBottom: 10 }}>
                   {SL.dnaJourney}
                 </div>
@@ -1658,31 +1698,52 @@ export default function TrainPage() {
                   {[0, 1, 2].map((i) => (
                     <div key={i} style={{
                       flex: 1, height: 6, borderRadius: 3,
-                      background: i === 0 ? acc : "rgba(255,255,255,0.07)",
-                      boxShadow: i === 0 ? `0 0 8px ${acc}66` : "none",
+                      background: i < sessionNum ? acc : "rgba(255,255,255,0.07)",
+                      boxShadow: i < sessionNum ? `0 0 8px ${acc}66` : "none",
                     }} />
                   ))}
                 </div>
                 <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.35)", fontWeight: 700, lineHeight: 1.4 }}>
-                  {SL.session2}
+                  {sessionNum === 1 ? SL.session2hint : sessionNum === 2 ? SL.session2hint.replace("1", "2") : SL.session3hint}
                 </div>
               </div>
 
-              {/* CTAs */}
-              <button
-                type="button"
-                onClick={() => { setFirstSessionHook(null); handleTryAgain?.(); }}
-                style={{ width: "100%", padding: "15px 0", borderRadius: 14, background: acc, border: "none", color: "#000", fontSize: 15, fontWeight: 900, letterSpacing: 0.5, cursor: "pointer", marginBottom: 12, boxShadow: `0 4px 24px ${acc}44` }}
-              >
-                {SL.trainAgain}
-              </button>
-              <button
-                type="button"
-                onClick={() => { setFirstSessionHook(null); router.push(`/${locale}/fighter-profile`); }}
-                style={{ width: "100%", padding: "11px 0", borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.45)", fontSize: 13, fontWeight: 800, cursor: "pointer" }}
-              >
-                {SL.viewProfile}
-              </button>
+              {/* CTAs — session 3 swaps primary/secondary */}
+              {sessionNum === 3 ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => { setFirstSessionHook(null); router.push(`/${locale}/fighter-profile`); }}
+                    style={{ width: "100%", padding: "15px 0", borderRadius: 14, background: acc, border: "none", color: "#000", fontSize: 15, fontWeight: 900, letterSpacing: 0.5, cursor: "pointer", marginBottom: 12, boxShadow: `0 4px 24px ${acc}44` }}
+                  >
+                    {SL.viewDNA}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setFirstSessionHook(null); handleTryAgain?.(); }}
+                    style={{ width: "100%", padding: "11px 0", borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.45)", fontSize: 13, fontWeight: 800, cursor: "pointer" }}
+                  >
+                    {SL.trainAgain}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => { setFirstSessionHook(null); handleTryAgain?.(); }}
+                    style={{ width: "100%", padding: "15px 0", borderRadius: 14, background: acc, border: "none", color: "#000", fontSize: 15, fontWeight: 900, letterSpacing: 0.5, cursor: "pointer", marginBottom: 12, boxShadow: `0 4px 24px ${acc}44` }}
+                  >
+                    {SL.trainAgain}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setFirstSessionHook(null); router.push(`/${locale}/fighter-profile`); }}
+                    style={{ width: "100%", padding: "11px 0", borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.45)", fontSize: 13, fontWeight: 800, cursor: "pointer" }}
+                  >
+                    {SL.viewProfile}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         );
