@@ -448,17 +448,23 @@ export default function TrainPage() {
     return () => clearInterval(id);
   }, [phase, userArchetype]);
 
+  // ── First Session Hook state ──────────────────────────────────────────────
+  const [firstSessionHook, setFirstSessionHook] = useState(null);
+
   // ── DNA milestone moments after session save ──────────────────────────────
   useEffect(() => {
     if (!saved || !savedAttemptNumber) return;
+    // Session 1: show full First Session Hook overlay instead of small toast
+    if (savedAttemptNumber === 1) {
+      setFirstSessionHook({ poseMetrics: poseSessionSummary, score: result?.score });
+      return;
+    }
     const DNA_MILESTONES = {
-      1:  { emoji: "🥊", en: "DNA Journey Started",       mn: "ДНХ аялал эхэллээ",              ko: "DNA 여정 시작",
-             hint: { en: "Your first punch pattern has been recorded.", mn: "Анхны цохилтын хэв маяг бичигдлаа.", ko: "첫 번째 펀치 패턴이 기록되었습니다." } },
       3:  { emoji: "🔬", en: "DNA Analysis Unlocked",     mn: "ДНХ шинжилгээ нээгдлаа",          ko: "DNA 분석 잠금 해제",
              hint: { en: "Visit Fighter Profile to see your early read →", mn: "Тулаанчийн профайлаас дүнгээ харна уу →", ko: "파이터 프로필에서 초기 분석 확인 →" }, cta: true },
       8:  { emoji: "🧬", en: "Archetype Signal Strong",   mn: "Archetype дохио хүчтэй",           ko: "아키타입 신호 강함",
              hint: { en: "Your Fighter DNA is forming — check your profile!", mn: "Тулаанчийн ДНХ бүрдэж байна — профайлаа шалга!", ko: "파이터 DNA 형성 중 — 프로필 확인!" }, cta: true },
-      15: { emoji: "⚗️", en: "Fighter Identity Emerging", mn: "Тулаанчийн мөн чанар бүрдэж байна", ko: "파이터 아이덴티티 형성",
+      15: { emoji: "⚗️", en: "Fighter Identity Emerging", mn: "Тулаанчийн мөн чанар бүрдэж байна", ko: "파이터 аиIdentity 형성",
              hint: { en: "Your style is becoming clear. Try an experiment!", mn: "Таны хэв маяг тодорхой болж байна. Туршилт хийгээрэй!", ko: "스타일이 명확해지고 있습니다. 실험해 보세요!" } },
     };
     const milestone = DNA_MILESTONES[savedAttemptNumber];
@@ -1526,6 +1532,158 @@ export default function TrainPage() {
           )}
         </div>
       )}
+
+      {/* ── First Session Hook Overlay ───────────────────────────────── */}
+      {firstSessionHook && (() => {
+        const pb = firstSessionHook.poseMetrics?.punchBreakdown;
+        const jabC   = pb?.jab?.count   || 0;
+        const crossC = pb?.cross?.count || 0;
+        const hookC  = pb?.hook?.count  || 0;
+        const total  = jabC + crossC + hookC;
+
+        const jabPct   = total > 0 ? Math.round((jabC   / total) * 100) : 0;
+        const crossPct = total > 0 ? Math.round((crossC / total) * 100) : 0;
+        const hookPct  = total > 0 ? 100 - jabPct - crossPct : 0;
+        const hasSignals = total >= 3;
+
+        // Derive suggested archetype
+        let archKey = "pressure";
+        if (hasSignals) {
+          if (jabPct >= 45) archKey = "outboxer";
+          else if (crossPct >= 35) archKey = "counter";
+          else if (hookPct >= 35) archKey = "pressure";
+          else if (total >= 25) archKey = "explosive";
+          else archKey = "technician";
+        }
+
+        // Representative fighter per archetype
+        const ARCH_FIGHTER = { pressure: "Mike Tyson", outboxer: "Muhammad Ali", counter: "Floyd Mayweather", explosive: "Naoya Inoue", technician: "Dmitry Bivol" };
+        const ARCH_DISPLAY_S = {
+          en: { pressure: "Pressure Fighter", outboxer: "Outboxer", counter: "Counter Fighter", explosive: "Explosive Fighter", technician: "Technician" },
+          mn: { pressure: "Дарамт тулаанч", outboxer: "Аутбоксер", counter: "Контр тулаанч", explosive: "Тэсрэмтгий тулаанч", technician: "Техникч" },
+          ko: { pressure: "프레셔 파이터", outboxer: "아웃복서", counter: "카운터 파이터", explosive: "폭발적 파이터", technician: "테크니션" },
+        };
+        const acc = ARCH_TRAINING_COLORS[archKey] || GOLD;
+        const AD  = ARCH_DISPLAY_S[locale] || ARCH_DISPLAY_S.en;
+
+        const SIG_L = {
+          en: { aggr: "Aggression", range: "Range", counter: "Counter", volume: "Volume",
+                high: "HIGH", medium: "MED", low: "LOW", long: "LONG", mid: "MID", close: "CLOSE", building: "BUILDING", emerging: "EMERGING",
+                mightBe: "You might be a...", session2: "Train 2 more sessions to unlock your Fighter DNA", trainAgain: "Train Again →", viewProfile: "View Profile", title: "SESSION 1 COMPLETE", dnaJourney: "DNA JOURNEY" },
+          mn: { aggr: "Түрэмгийлэл", range: "Зай", counter: "Контр", volume: "Хэмжээ",
+                high: "ӨНДӨР", medium: "ДУНД", low: "БАГ", long: "УРТ", mid: "ДУНД", close: "ОЙРХОН", building: "БҮРДЭЖ БАЙНА", emerging: "ГАРЧ ИРЭХ",
+                mightBe: "Та магадгүй...", session2: "ДНХ-аа нээхийн тулд 2 тренинг нэмж хий", trainAgain: "Дахин бэлтгэл хий →", viewProfile: "Профайл харах", title: "1-Р ТРЕНИНГ ДУУСЛАА", dnaJourney: "ДНХ АЯЛАЛ" },
+          ko: { aggr: "공격성", range: "레인지", counter: "카운터", volume: "볼륨",
+                high: "높음", medium: "중간", low: "낮음", long: "롱", mid: "미드", close: "클로즈", building: "구축 중", emerging: "성장 중",
+                mightBe: "당신은...", session2: "파이터 DNA 잠금 해제를 위해 2회 더 훈련하세요", trainAgain: "다시 훈련 →", viewProfile: "프로필 보기", title: "세션 1 완료", dnaJourney: "DNA 여정" },
+        };
+        const SL = SIG_L[locale] || SIG_L.en;
+
+        const aggrLevel   = hookPct >= 35 ? "high" : hookPct >= 20 ? "medium" : "low";
+        const rangeLevel  = jabPct  >= 45 ? "long" : hookPct >= 30 ? "close"  : "mid";
+        const counterLevel = crossPct >= 35 ? "high" : crossPct >= 22 ? "emerging" : "low";
+        const volumeLevel = total >= 25 ? "high" : total >= 12 ? "medium" : "building";
+
+        const BAR_W = { high: 80, medium: 50, low: 20, long: 75, mid: 45, close: 30, building: 18, emerging: 40 };
+
+        const signals = hasSignals ? [
+          { label: SL.aggr,    level: SL[aggrLevel],    w: BAR_W[aggrLevel]    },
+          { label: SL.range,   level: SL[rangeLevel],   w: BAR_W[rangeLevel]   },
+          { label: SL.counter, level: SL[counterLevel], w: BAR_W[counterLevel] },
+          { label: SL.volume,  level: SL[volumeLevel],  w: BAR_W[volumeLevel]  },
+        ] : [];
+
+        return (
+          <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(4,4,6,0.98)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 20px", overflowY: "auto" }}>
+            <div style={{ width: "100%", maxWidth: 360 }}>
+
+              {/* Header */}
+              <div style={{ textAlign: "center", marginBottom: 28 }}>
+                <div style={{ fontSize: 36, marginBottom: 10 }}>🥊</div>
+                <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 3, color: acc, textTransform: "uppercase", marginBottom: 6 }}>
+                  {SL.title}
+                </div>
+                {firstSessionHook.score != null && (
+                  <div style={{ fontSize: 32, fontWeight: 1000, color: "#fff", fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>
+                    {firstSessionHook.score.toFixed(1)}<span style={{ fontSize: 14, color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>/10</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Signals */}
+              {signals.length > 0 && (
+                <div style={{ borderRadius: 16, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", padding: "16px", marginBottom: 16 }}>
+                  <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", marginBottom: 12 }}>
+                    YOUR FIRST SIGNALS
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {signals.map(({ label, level, w }) => (
+                      <div key={label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <span style={{ width: 70, fontSize: 9.5, fontWeight: 800, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", flexShrink: 0 }}>{label}</span>
+                        <div style={{ flex: 1, height: 5, background: "rgba(255,255,255,0.05)", borderRadius: 3, overflow: "hidden" }}>
+                          <div style={{ width: `${w}%`, height: "100%", background: acc, borderRadius: 3, boxShadow: `0 0 8px ${acc}55`, transition: "width 1s cubic-bezier(0.16,1,0.3,1)" }} />
+                        </div>
+                        <span style={{ width: 56, textAlign: "right", fontSize: 8.5, fontWeight: 900, color: acc, letterSpacing: 0.8, flexShrink: 0 }}>{level}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Fighter suggestion */}
+              <div style={{ borderRadius: 16, background: `${acc}10`, border: `1px solid ${acc}30`, padding: "16px", marginBottom: 16, textAlign: "center" }}>
+                <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 8 }}>
+                  {SL.mightBe}
+                </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 4 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: acc, boxShadow: `0 0 10px ${acc}` }} />
+                  <span style={{ fontSize: 20, fontWeight: 1000, color: "#fff", fontFamily: "var(--font-display,'Anton',sans-serif)", textTransform: "uppercase", letterSpacing: "-0.01em" }}>
+                    {AD[archKey]}
+                  </span>
+                </div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 700 }}>
+                  {locale === "mn" ? "Жишээ нь: " : locale === "ko" ? "예: " : "Like "}{ARCH_FIGHTER[archKey]}
+                </div>
+              </div>
+
+              {/* DNA Journey progress */}
+              <div style={{ borderRadius: 14, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", padding: "14px 16px", marginBottom: 24 }}>
+                <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.22)", textTransform: "uppercase", marginBottom: 10 }}>
+                  {SL.dnaJourney}
+                </div>
+                <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} style={{
+                      flex: 1, height: 6, borderRadius: 3,
+                      background: i === 0 ? acc : "rgba(255,255,255,0.07)",
+                      boxShadow: i === 0 ? `0 0 8px ${acc}66` : "none",
+                    }} />
+                  ))}
+                </div>
+                <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.35)", fontWeight: 700, lineHeight: 1.4 }}>
+                  {SL.session2}
+                </div>
+              </div>
+
+              {/* CTAs */}
+              <button
+                type="button"
+                onClick={() => { setFirstSessionHook(null); handleTryAgain?.(); }}
+                style={{ width: "100%", padding: "15px 0", borderRadius: 14, background: acc, border: "none", color: "#000", fontSize: 15, fontWeight: 900, letterSpacing: 0.5, cursor: "pointer", marginBottom: 12, boxShadow: `0 4px 24px ${acc}44` }}
+              >
+                {SL.trainAgain}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setFirstSessionHook(null); router.push(`/${locale}/fighter-profile`); }}
+                style={{ width: "100%", padding: "11px 0", borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.45)", fontSize: 13, fontWeight: 800, cursor: "pointer" }}
+              >
+                {SL.viewProfile}
+              </button>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── Readiness Modal — shown for first-ever session ───────────── */}
       {readinessOpen && (() => {
