@@ -1146,6 +1146,21 @@ export default function TrainPage() {
               </div>
             )}
 
+            {/* Streak Risk Warning */}
+            {!showFreshness && userStreak >= 3 && !effectiveMissionDone && (
+              <div style={{ borderRadius: 12, padding: "10px 14px", background: "rgba(251,146,60,0.07)", border: "1px solid rgba(251,146,60,0.28)", display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 20, flexShrink: 0 }}>🔥</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase", color: "#FB923C", marginBottom: 2 }}>
+                    {locale === "mn" ? `${userStreak} ӨДРИЙН STREAK АЮУЛД БАЙНА` : locale === "ko" ? `${userStreak}일 스트릭 위험!` : `🔥 ${userStreak}-DAY STREAK AT RISK`}
+                  </div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>
+                    {locale === "mn" ? "Өнөөдөр бэлтгэл хийж streak-ийг аврах" : locale === "ko" ? "오늘 훈련하여 스트릭을 지키세요" : "Train today to protect your streak"}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Weekly DNA Digest */}
             {!showFreshness && showDigest && (
               <div style={{ borderRadius: 12, padding: "10px 14px", background: "rgba(245,196,81,0.05)", border: "1px solid rgba(245,196,81,0.15)", display: "flex", alignItems: "center", gap: 10 }}>
