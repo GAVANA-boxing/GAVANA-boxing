@@ -13,7 +13,50 @@ import { useCommentActions } from "@/hooks/useCommentActions";
 import { useFeedFollow } from "@/hooks/useFeedFollow";
 import { getFirebase } from "@/lib/lazyFirebase";
 
-export default function FeedPage({ reels, locale, router, user, userArchetype }) {
+function FilterTabBar({ tabs, activeFilter, setActiveFilter, locale }) {
+  if (tabs.length <= 1) return null;
+  return (
+    <div style={{
+      position: "fixed",
+      top: "max(env(safe-area-inset-top), 14px)",
+      left: "50%",
+      transform: "translateX(-50%)",
+      zIndex: 50,
+      display: "flex",
+      gap: 4,
+      background: "rgba(0,0,0,0.55)",
+      backdropFilter: "blur(12px)",
+      borderRadius: 20,
+      padding: "4px 5px",
+      border: "1px solid rgba(255,255,255,0.1)",
+    }}>
+      {tabs.map((f) => (
+        <button
+          key={f.key}
+          type="button"
+          onClick={() => setActiveFilter(f.key)}
+          style={{
+            padding: "5px 13px",
+            borderRadius: 16,
+            border: "none",
+            background: activeFilter === f.key ? "rgba(255,255,255,0.18)" : "transparent",
+            color: activeFilter === f.key ? "#fff" : "rgba(255,255,255,0.45)",
+            fontSize: 12,
+            fontWeight: 800,
+            cursor: "pointer",
+            WebkitTapHighlightColor: "transparent",
+            transition: "background 160ms ease, color 160ms ease",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {locale === "mn" ? f.mn : locale === "ko" ? f.ko : f.en}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export default function FeedPage({ reels, locale, router, user, userArchetype, followingReels = [], followingLoaded = false }) {
   const [currentIndex,       setCurrentIndex]       = useState(0);
   const [soundEnabled,       setSoundEnabled]       = useState(false);
   const [videoErrors,        setVideoErrors]        = useState({});
@@ -127,35 +170,60 @@ export default function FeedPage({ reels, locale, router, user, userArchetype })
   };
 
   const myStyleKeywords = userArchetype ? (ARCH_KEYWORDS[userArchetype] || []) : [];
-  const filteredReels = activeFilter === "style" && myStyleKeywords.length > 0
-    ? allReels.filter((r) => {
-        const text = ((r.caption || "") + " " + (r.description || "") + " " + (r.tags?.join(" ") || "")).toLowerCase();
-        return myStyleKeywords.some((kw) => text.includes(kw));
-      })
-    : allReels;
+
+  const FILTER_TABS = [
+    { key: "all",       en: "For You",   mn: "Таны хувьд",   ko: "추천" },
+    ...(user?.uid ? [{ key: "following", en: "Following",  mn: "Дагасан",      ko: "팔로잉" }] : []),
+    ...(userArchetype  ? [{ key: "style",     en: "My Style",  mn: "Миний стиль",  ko: "내 스타일" }] : []),
+  ];
+
+  const filteredReels =
+    activeFilter === "following"
+      ? followingReels
+      : activeFilter === "style" && myStyleKeywords.length > 0
+      ? allReels.filter((r) => {
+          const text = ((r.caption || "") + " " + (r.description || "") + " " + (r.tags?.join(" ") || "")).toLowerCase();
+          return myStyleKeywords.some((kw) => text.includes(kw));
+        })
+      : allReels;
 
   if (!reels.length) {
     return <FeedEmptyState locale={locale} router={router} />;
   }
 
-  if (filteredReels.length === 0 && activeFilter === "style") {
+  const isEmptyFiltered = filteredReels.length === 0 && (activeFilter === "style" || activeFilter === "following");
+  const isFollowingLoading = activeFilter === "following" && !followingLoaded;
+
+  if (isFollowingLoading) {
     return (
       <>
-        {userArchetype && (
-          <div style={{ position: "fixed", top: "max(env(safe-area-inset-top), 14px)", left: "50%", transform: "translateX(-50%)", zIndex: 50, display: "flex", gap: 6, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(12px)", borderRadius: 20, padding: "4px 6px", border: "1px solid rgba(255,255,255,0.1)" }}>
-            {[{ key: "all", en: "For You", mn: "Таны хувьд", ko: "추천" }, { key: "style", en: "My Style", mn: "Миний стиль", ko: "내 스타일" }].map((f) => (
-              <button key={f.key} type="button" onClick={() => setActiveFilter(f.key)} style={{ padding: "5px 14px", borderRadius: 16, border: "none", background: activeFilter === f.key ? "rgba(255,255,255,0.18)" : "transparent", color: activeFilter === f.key ? "#fff" : "rgba(255,255,255,0.45)", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>
-                {locale === "mn" ? f.mn : locale === "ko" ? f.ko : f.en}
-              </button>
-            ))}
-          </div>
-        )}
+        <FilterTabBar tabs={FILTER_TABS} activeFilter={activeFilter} setActiveFilter={setActiveFilter} locale={locale} />
+        <div style={{ height: "100dvh", background: "#000", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ width: 28, height: 28, border: "2px solid rgba(255,255,255,0.1)", borderTopColor: "rgba(255,255,255,0.55)", borderRadius: "50%", animation: "spin 0.75s linear infinite" }} />
+        </div>
+      </>
+    );
+  }
+
+  if (isEmptyFiltered) {
+    const emptyIcon  = activeFilter === "following" ? "👥" : "🧬";
+    const emptyText  = activeFilter === "following"
+      ? { en: "Follow fighters to see their posts here", mn: "Дагасан хүмүүсийнхээ нийтлэлийг энд харна уу", ko: "팔로우한 파이터들의 게시물이 여기 표시됩니다" }
+      : { en: "No content matching your style yet",     mn: "Таны стилийн контент одоохондоо алга",         ko: "내 스타일 콘텐츠가 아직 없습니다" };
+    return (
+      <>
+        <FilterTabBar tabs={FILTER_TABS} activeFilter={activeFilter} setActiveFilter={setActiveFilter} locale={locale} />
         <div style={{ height: "100dvh", background: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: "0 32px", textAlign: "center" }}>
-          <span style={{ fontSize: 32 }}>🧬</span>
+          <span style={{ fontSize: 32 }}>{emptyIcon}</span>
           <div style={{ fontSize: 14, fontWeight: 800, color: "rgba(255,255,255,0.7)" }}>
-            {locale === "mn" ? "Таны стилийн контент одоохондоо алга" : locale === "ko" ? "내 스타일 콘텐츠가 아직 없습니다" : "No content matching your style yet"}
+            {locale === "mn" ? emptyText.mn : locale === "ko" ? emptyText.ko : emptyText.en}
           </div>
-          <button type="button" onClick={() => setActiveFilter("all")} style={{ padding: "8px 20px", borderRadius: 20, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>
+          {activeFilter === "following" && (
+            <button type="button" onClick={() => router.push(`/${locale}/discover`)} style={{ padding: "8px 20px", borderRadius: 20, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>
+              {locale === "mn" ? "Хүмүүс хайх" : locale === "ko" ? "사람 찾기" : "Find People"}
+            </button>
+          )}
+          <button type="button" onClick={() => setActiveFilter("all")} style={{ padding: "8px 20px", borderRadius: 20, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.6)", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>
             {locale === "mn" ? "Бүгдийг үзэх" : locale === "ko" ? "전체 보기" : "See All"}
           </button>
         </div>
@@ -166,47 +234,7 @@ export default function FeedPage({ reels, locale, router, user, userArchetype })
   return (
     <>
       {/* Filter tabs */}
-      {userArchetype && (
-        <div style={{
-          position: "fixed",
-          top: "max(env(safe-area-inset-top), 14px)",
-          left: "50%",
-          transform: "translateX(-50%)",
-          zIndex: 50,
-          display: "flex",
-          gap: 6,
-          background: "rgba(0,0,0,0.55)",
-          backdropFilter: "blur(12px)",
-          borderRadius: 20,
-          padding: "4px 6px",
-          border: "1px solid rgba(255,255,255,0.1)",
-        }}>
-          {[
-            { key: "all",   en: "For You",   mn: "Таны хувьд", ko: "추천" },
-            { key: "style", en: "My Style",  mn: "Миний стиль", ko: "내 스타일" },
-          ].map((f) => (
-            <button
-              key={f.key}
-              type="button"
-              onClick={() => setActiveFilter(f.key)}
-              style={{
-                padding: "5px 14px",
-                borderRadius: 16,
-                border: "none",
-                background: activeFilter === f.key ? "rgba(255,255,255,0.18)" : "transparent",
-                color: activeFilter === f.key ? "#fff" : "rgba(255,255,255,0.45)",
-                fontSize: 12,
-                fontWeight: 800,
-                cursor: "pointer",
-                WebkitTapHighlightColor: "transparent",
-                transition: "background 160ms ease, color 160ms ease",
-              }}
-            >
-              {locale === "mn" ? f.mn : locale === "ko" ? f.ko : f.en}
-            </button>
-          ))}
-        </div>
-      )}
+      <FilterTabBar tabs={FILTER_TABS} activeFilter={activeFilter} setActiveFilter={setActiveFilter} locale={locale} />
 
       {/* Sound toggle */}
       <button
