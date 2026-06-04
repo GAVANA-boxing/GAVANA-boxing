@@ -2436,7 +2436,7 @@ export default function FighterProfilePage() {
           const data = snap.data();
           setCurrentExperiment(data.currentExperiment || null);
           setStudiedFighterIds(data.studiedFighters || []);
-          setUserTier(data.tier || null);
+          setUserTier(data.subscriptionTier || data.tier || null);
         }
         // Tribe counts — query all 5 archetypes in parallel
         const ARCH_KEYS = ["pressure", "outboxer", "counter", "explosive", "technician"];
