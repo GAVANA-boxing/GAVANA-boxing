@@ -2417,11 +2417,26 @@ export default function FighterProfilePage() {
   const [dnaRevealVisible, setDnaRevealVisible] = useState(false);
   const [activeTab, setActiveTab] = useState("dna");
   const [userTier, setUserTier] = useState(null);
+  const [subscribeSuccess, setSubscribeSuccess] = useState(false);
   const dnaRevealShownRef = useRef(false);
 
   useEffect(() => {
     if (!authLoading && !user) router.push(`/${locale}/login`);
   }, [authLoading, user, router, locale]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("subscribed") === "1") {
+      setSubscribeSuccess(true);
+      // Clean the URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete("subscribed");
+      window.history.replaceState({}, "", url.toString());
+      const timer = setTimeout(() => setSubscribeSuccess(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   // Load currentExperiment + tribe count
   useEffect(() => {
@@ -2535,6 +2550,21 @@ export default function FighterProfilePage() {
       background: BG,
       paddingBottom: "calc(100px + max(env(safe-area-inset-bottom), 16px))",
     }}>
+
+      {/* Stripe success toast */}
+      {subscribeSuccess && (
+        <div style={{ position: "fixed", top: "calc(16px + env(safe-area-inset-top))", left: "50%", transform: "translateX(-50%)", zIndex: 9999, padding: "12px 20px", borderRadius: 14, background: "linear-gradient(135deg,#F5C451,#D4A017)", boxShadow: "0 8px 32px rgba(245,196,81,0.4)", display: "flex", alignItems: "center", gap: 10, pointerEvents: "none", whiteSpace: "nowrap" }}>
+          <span style={{ fontSize: 20 }}>🎉</span>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 900, color: "#000" }}>
+              {locale === "mn" ? "Про болгосонд баярлалаа!" : locale === "ko" ? "업그레이드 완료!" : "Welcome to Pro!"}
+            </div>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(0,0,0,0.55)" }}>
+              {locale === "mn" ? "Бүрэн хандалт нээгдлээ" : locale === "ko" ? "전체 기능 잠금 해제" : "Full access unlocked"}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Hero header ─────────────────────────────────────────── */}
       <div style={{

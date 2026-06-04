@@ -43,6 +43,7 @@ export default function EditProfilePage() {
   const [avatarHover, setAvatarHover]   = useState(false);
   const [error, setError]               = useState("");
   const [usernameError, setUsernameError] = useState("");
+  const [subscriptionTier, setSubscriptionTier] = useState(null);
 
   const t = (mn, ko, en) => locale === "mn" ? mn : locale === "ko" ? ko : en;
 
@@ -66,6 +67,7 @@ export default function EditProfilePage() {
         setPhotoURL(d.photoURL || d.profileImageUrl || "");
         setWeightClass(d.weightClass || "");
         setArchetype(d.fighterArchetype || "");
+        setSubscriptionTier(d.subscriptionTier || d.tier || null);
       } catch (e) {
         if (active) setError(t("Профайл ачаалахад алдаа гарлаа", "프로필 로드 실패", "Could not load your profile"));
       } finally {
@@ -312,6 +314,42 @@ export default function EditProfilePage() {
           </div>
 
           {error && <div style={styles.error}>{error}</div>}
+
+          {/* Subscription Status */}
+          {(() => {
+            const TIER_META = {
+              fan:      { label: locale === "mn" ? "Фан" : locale === "ko" ? "팬" : "Fan", color: "#60A5FA" },
+              pro:      { label: locale === "mn" ? "Про" : locale === "ko" ? "프로" : "Pro", color: "#F5C451" },
+              champion: { label: locale === "mn" ? "Чемпион" : locale === "ko" ? "챔피언" : "Champion", color: "#EF4444" },
+            };
+            const meta = subscriptionTier ? TIER_META[subscriptionTier] : null;
+            return (
+              <div style={{ marginBottom: 16, padding: "12px 14px", borderRadius: 12, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div>
+                  <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 4 }}>
+                    {locale === "mn" ? "ЭРХИЙН ТҮВ" : locale === "ko" ? "구독 등급" : "SUBSCRIPTION"}
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 900, color: meta?.color || "rgba(255,255,255,0.35)" }}>
+                    {meta ? meta.label : (locale === "mn" ? "Үнэгүй" : locale === "ko" ? "무료" : "Free")}
+                  </div>
+                </div>
+                {!meta && (
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/${locale}/fighter-profile?tab=dna`)}
+                    style={{ padding: "8px 14px", borderRadius: 10, background: "linear-gradient(135deg,#F5C451,#D4A017)", border: "none", color: "#000", fontSize: 11, fontWeight: 900, cursor: "pointer" }}
+                  >
+                    {locale === "mn" ? "Про болгох" : locale === "ko" ? "업그레이드" : "Upgrade"}
+                  </button>
+                )}
+                {meta && (
+                  <div style={{ padding: "4px 10px", borderRadius: 8, background: `${meta.color}18`, border: `1px solid ${meta.color}40`, fontSize: 11, fontWeight: 900, color: meta.color }}>
+                    ✓ {locale === "mn" ? "Идэвхтэй" : locale === "ko" ? "활성" : "Active"}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           <button
             type="button"

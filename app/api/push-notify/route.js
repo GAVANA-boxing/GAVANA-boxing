@@ -61,11 +61,26 @@ export async function POST(req) {
 
   if (isRateLimited(uid)) return Response.json({ error: "Rate limited" }, { status: 429 });
 
-  const { recipientId, title, body, url } = await req.json();
+  const { recipientId, title, body, url, archetype } = await req.json();
   if (!recipientId || !title) return Response.json({ error: "Missing recipientId or title" }, { status: 400 });
   if (typeof title !== "string" || title.length > 120) return Response.json({ error: "Invalid title" }, { status: 400 });
   if (body && (typeof body !== "string" || body.length > 300)) return Response.json({ error: "Invalid body" }, { status: 400 });
   if (recipientId === uid) return Response.json({ sent: 0 }); // no self-notify
+
+  // Archetype-specific notification boost
+  const ARCH_SUFFIX = {
+    pressure:   { en: " Keep pushing forward.", mn: " Урагшлаа!", ko: " 계속 밀어붙이세요." },
+    outboxer:   { en: " Work your range.", mn: " Зайгаа хадгал.", ko: " 거리를 유지하세요." },
+    counter:    { en: " Wait for the perfect moment.", mn: " Мөчийг хүлээ.", ko: " 완벽한 순간을 기다리세요." },
+    explosive:  { en: " Explode on command.", mn: " Тэсрэлтийн хүч!", ko: " 폭발하세요!" },
+    technician: { en: " Precision is power.", mn: " Нарийвчлал бол хүч.", ko: " 정밀함이 힘입니다." },
+  };
+  let enrichedBody = body || "";
+  if (archetype && ARCH_SUFFIX[archetype]) {
+    // Detect locale from recipientId's stored data — not feasible here, default to en
+    enrichedBody = (body || "") + (ARCH_SUFFIX[archetype].en || "");
+    if (enrichedBody.length > 300) enrichedBody = body; // safety
+  }
 
   const tokens = await getFcmTokens(recipientId);
   if (tokens.length === 0) return Response.json({ sent: 0 });
@@ -81,7 +96,7 @@ export async function POST(req) {
         body: JSON.stringify({
           message: {
             token,
-            notification: { title, body: body || "" },
+            notification: { title, body: enrichedBody },
             webpush: {
               notification: {
                 icon: "/icons/gavana-icon.svg",
