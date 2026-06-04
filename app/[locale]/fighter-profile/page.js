@@ -724,7 +724,7 @@ function TrainingPrescriptionCard({ dna, locale, router }) {
 // ─── Studied Fighters Tracker ─────────────────────────────────────────────────
 const ARCH_LABELS = {
   en: { pressure: "Pressure", outboxer: "Outboxer", counter: "Counter", explosive: "Explosive", technician: "Technician" },
-  mn: { pressure: "Дарамт", outboxer: "Хөдлөгч", counter: "Тохой", explosive: "Тэсрэмтгий", technician: "Техникийн" },
+  mn: { pressure: "Дарамт", outboxer: "Аутбоксер", counter: "Контр", explosive: "Тэсрэмтгий", technician: "Техникийн" },
   ko: { pressure: "압박", outboxer: "아웃복싱", counter: "카운터", explosive: "폭발력", technician: "기술" },
 };
 const ARCH_COLORS = {
