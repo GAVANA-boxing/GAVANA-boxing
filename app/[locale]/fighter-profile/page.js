@@ -272,17 +272,102 @@ function FighterPassportCard({ dna, displayName, progress, studiedIds, currentEx
     return count;
   })();
 
-  async function handleShare() {
-    const text = locale === "mn"
-      ? `${displayName} — ${dna.building ? "ДНХ бүрдэж байна" : dna.archetype} тулаанч 🥊 GAVANA`
-      : locale === "ko"
-      ? `${displayName} — ${dna.building ? "DNA 구축 중" : dna.archetype} 파이터 🥊 GAVANA`
-      : `${displayName} — ${dna.building ? "Building DNA" : dna.archetype} Fighter 🥊 GAVANA`;
-    if (typeof navigator !== "undefined" && navigator.share) {
-      try { await navigator.share({ title: "Fighter Passport — GAVANA", text }); return; } catch { /* cancelled */ }
-    }
-    try { await navigator.clipboard.writeText(text); setShared(true); setTimeout(() => setShared(false), 2200); } catch { /* silent */ }
-  }
+  const handleShare = async () => {
+    try {
+      // Generate a simple Canvas passport image
+      const canvas = document.createElement("canvas");
+      canvas.width = 640;
+      canvas.height = 360;
+      const ctx = canvas.getContext("2d");
+
+      // Background
+      ctx.fillStyle = "#0a0a0e";
+      ctx.fillRect(0, 0, 640, 360);
+
+      // Accent strip
+      const accent = ARCH_TRAINING_COLORS[dna?.archetypeKey] || "#F5C451";
+      ctx.fillStyle = accent;
+      ctx.fillRect(0, 0, 4, 360);
+
+      // GAVANA label
+      ctx.fillStyle = "rgba(255,255,255,0.25)";
+      ctx.font = "bold 11px Arial";
+      ctx.letterSpacing = "3px";
+      ctx.fillText("GAVANA · FIGHTER PASSPORT", 24, 36);
+
+      // Archetype
+      const archLabel = dna?.archetype || "Building…";
+      ctx.fillStyle = accent;
+      ctx.font = "bold 42px Arial";
+      ctx.fillText(archLabel.toUpperCase(), 24, 100);
+
+      // Divider
+      ctx.fillStyle = "rgba(255,255,255,0.08)";
+      ctx.fillRect(24, 116, 592, 1);
+
+      // Stats
+      const stats = [
+        ["Sessions", String(sessions?.length || 0)],
+        ["Best Score", sessions?.length ? (Math.max(...sessions.map((s) => s.score || 0))).toFixed(1) : "—"],
+        ["Streak", `${streak}d`],
+      ];
+      ctx.font = "bold 10px Arial";
+      ctx.fillStyle = "rgba(255,255,255,0.35)";
+      stats.forEach(([label], i) => {
+        ctx.fillText(label.toUpperCase(), 24 + i * 160, 148);
+      });
+      ctx.font = "bold 28px Arial";
+      stats.forEach(([, val], i) => {
+        ctx.fillStyle = i === 0 ? accent : "#fff";
+        ctx.fillText(val, 24 + i * 160, 186);
+      });
+
+      // Style Mix bars
+      if (dna?.styleMix) {
+        const dims = ["pressure", "outboxer", "counter", "explosive", "technician"];
+        const DIM_COLORS = { pressure: "#EF4444", outboxer: "#3B82F6", counter: "#8B5CF6", explosive: "#F59E0B", technician: "#10B981" };
+        const DIM_SHORT = { pressure: "PRESS", outboxer: "OUTBX", counter: "CNTR", explosive: "EXPLS", technician: "TECH" };
+        ctx.font = "bold 9px Arial";
+        dims.forEach((dim, i) => {
+          const x = 24 + i * 120;
+          const y = 230;
+          const val = dna.styleMix[dim] || 0;
+          const barH = Math.round((val / 10) * 60);
+          // Bar background
+          ctx.fillStyle = "rgba(255,255,255,0.06)";
+          ctx.fillRect(x, y, 80, 60);
+          // Bar fill
+          ctx.fillStyle = DIM_COLORS[dim];
+          ctx.fillRect(x, y + 60 - barH, 80, barH);
+          // Label
+          ctx.fillStyle = "rgba(255,255,255,0.4)";
+          ctx.fillText(DIM_SHORT[dim], x + 8, y + 76);
+        });
+      }
+
+      // Bottom: gavana.app
+      ctx.fillStyle = "rgba(255,255,255,0.15)";
+      ctx.font = "bold 10px Arial";
+      ctx.fillText("gavana.app", 24, 348);
+
+      // Download or share
+      const dataUrl = canvas.toDataURL("image/png");
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], "fighter-passport.png", { type: "image/png" });
+
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: "My Fighter Passport · GAVANA" });
+      } else {
+        // Fallback: download
+        const a = document.createElement("a");
+        a.href = dataUrl;
+        a.download = "fighter-passport.png";
+        a.click();
+      }
+      setShared(true);
+      setTimeout(() => setShared(false), 3000);
+    } catch { /* silent */ }
+  };
 
   return (
     <div style={{
@@ -2284,6 +2369,35 @@ function EvolutionRevealPanel({ experiment, sessions, locale, router, onClearExp
   );
 }
 
+function ProGate({ tier, locale, router, children }) {
+  const isPro = tier === "pro" || tier === "champion";
+  if (isPro) return children;
+  const PG_L = {
+    en: { lock: "PRO FEATURE", title: "Unlock Full Access", sub: "Get detailed DNA analytics, comparison tools, and more.", btn: "Upgrade to Pro" },
+    mn: { lock: "ПРО БОЛОМЖ", title: "Бүрэн хандалт нээх", sub: "Нарийвчилсан ДНХ шинжилгээ, харьцуулалт болон бусад.", btn: "Про болгох" },
+    ko: { lock: "프로 기능", title: "전체 액세스 잠금 해제", sub: "상세 DNA 분석, 비교 도구 등.", btn: "프로로 업그레이드" },
+  };
+  const L = PG_L[locale] || PG_L.en;
+  return (
+    <div style={{ position: "relative", borderRadius: 14, overflow: "hidden" }}>
+      <div style={{ filter: "blur(3px)", pointerEvents: "none", userSelect: "none", opacity: 0.4 }}>{children}</div>
+      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "rgba(10,10,14,0.75)", backdropFilter: "blur(4px)", borderRadius: 14, border: "1px solid rgba(245,196,81,0.25)", padding: "20px 16px", textAlign: "center" }}>
+        <div style={{ fontSize: 24, marginBottom: 8 }}>🔒</div>
+        <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: "rgba(245,196,81,0.7)", textTransform: "uppercase", marginBottom: 6 }}>{L.lock}</div>
+        <div style={{ fontSize: 14, fontWeight: 900, color: "#fff", marginBottom: 6 }}>{L.title}</div>
+        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", lineHeight: 1.5, marginBottom: 14 }}>{L.sub}</div>
+        <button
+          type="button"
+          onClick={() => router.push(`/${locale}/profile?upgrade=1`)}
+          style={{ padding: "10px 24px", borderRadius: 10, background: "linear-gradient(135deg,#F5C451,#D4A017)", border: "none", color: "#000", fontSize: 13, fontWeight: 900, cursor: "pointer" }}
+        >
+          {L.btn}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function FighterProfilePage() {
   const router   = useRouter();
   const pathname = usePathname();
@@ -2302,6 +2416,7 @@ export default function FighterProfilePage() {
   const [allTribeCounts, setAllTribeCounts] = useState(null);
   const [dnaRevealVisible, setDnaRevealVisible] = useState(false);
   const [activeTab, setActiveTab] = useState("dna");
+  const [userTier, setUserTier] = useState(null);
   const dnaRevealShownRef = useRef(false);
 
   useEffect(() => {
@@ -2321,6 +2436,7 @@ export default function FighterProfilePage() {
           const data = snap.data();
           setCurrentExperiment(data.currentExperiment || null);
           setStudiedFighterIds(data.studiedFighters || []);
+          setUserTier(data.tier || null);
         }
         // Tribe counts — query all 5 archetypes in parallel
         const ARCH_KEYS = ["pressure", "outboxer", "counter", "explosive", "technician"];
@@ -2641,7 +2757,9 @@ export default function FighterProfilePage() {
               <StudiedFightersPanel studiedIds={studiedFighterIds} dna={dna} locale={locale} router={router} />
             )}
             {!loading && !dna.building && (
-              <FighterDNACompareCard dna={dna} locale={locale} />
+              <ProGate tier={userTier} locale={locale} router={router}>
+                <FighterDNACompareCard dna={dna} locale={locale} />
+              </ProGate>
             )}
             <div style={{ padding: "0" }}>
               <CombatMemoryPanel
