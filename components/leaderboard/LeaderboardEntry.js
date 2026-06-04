@@ -27,6 +27,7 @@ const LeaderboardEntry = memo(function LeaderboardEntry({ entry, index, profiles
       await addDoc(collection(db, "pvp_challenges"), {
         challengerId: user.uid,
         opponentId:   entry.userId,
+        challengeId:  "jab-minute",
         status:       "pending",
         createdAt:    serverTimestamp(),
       });

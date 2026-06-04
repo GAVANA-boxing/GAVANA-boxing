@@ -25,6 +25,7 @@ import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
 import MilestoneCelebration from "@/components/MilestoneCelebration";
 import { usePoseDetection } from "@/hooks/usePoseDetection";
 import TechniquePicker from "@/components/train/TechniquePicker";
+import IncomingChallengeBanner from "@/components/train/IncomingChallengeBanner";
 import { getPersonalConnection } from "@/lib/fighterPersonalConnection";
 import { isBeginnerUser, getCurrentBeginnerLesson, getBeginnerProgress } from "@/lib/beginnerPath";
 import { getTodaysDNAMission } from "@/lib/dnaDailyMissions";
@@ -581,6 +582,11 @@ export default function TrainPage() {
       </button>
 
       <section style={styles.shell}>
+        {/* Incoming PVP challenge banner */}
+        {!isGuest && !challengeUserId && (
+          <IncomingChallengeBanner user={user} locale={locale} router={router} />
+        )}
+
         {/* Guest mode banner */}
         {isGuest && (
           <div style={{

@@ -216,7 +216,7 @@ export default function ChallengesPage() {
                         </div>
                       </div>
                       {isPending && isReceived && (
-                        <button type="button" style={{ padding: "9px 16px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#7C3AED,#4C1D95)", color: "#fff", fontSize: 12, fontWeight: 900, cursor: "pointer", flexShrink: 0, boxShadow: "0 4px 14px rgba(124,58,237,0.35)" }} onClick={() => router.push(`/${locale}/train?challengeId=${battle.challengeId}`)}>
+                        <button type="button" style={{ padding: "9px 16px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#7C3AED,#4C1D95)", color: "#fff", fontSize: 12, fontWeight: 900, cursor: "pointer", flexShrink: 0, boxShadow: "0 4px 14px rgba(124,58,237,0.35)" }} onClick={() => router.push(`/${locale}/train?challengeId=${battle.challengeId || "jab-minute"}&challengeUserId=${battle.challengerId}`)}>
                           {t("battleCompete")}
                         </button>
                       )}
