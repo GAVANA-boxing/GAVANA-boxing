@@ -1779,6 +1779,7 @@ export default function FighterProfilePage() {
   const [tribeCount, setTribeCount] = useState(null);
   const [allTribeCounts, setAllTribeCounts] = useState(null);
   const [dnaRevealVisible, setDnaRevealVisible] = useState(false);
+  const [activeTab, setActiveTab] = useState("dna");
   const dnaRevealShownRef = useRef(false);
 
   useEffect(() => {
@@ -1953,152 +1954,199 @@ export default function FighterProfilePage() {
         ); })()}
 
         {/* Divider */}
-        <div style={{ height: 1, background: whiteAlpha(0.05), marginBottom: 16 }} />
+        <div style={{ height: 1, background: whiteAlpha(0.05), marginBottom: 0 }} />
 
-        {/* Fighter Passport */}
-        {!loading && (
-          <FighterPassportCard
-            dna={dna}
-            displayName={displayName}
-            progress={progress}
-            studiedIds={studiedFighterIds}
-            currentExperiment={currentExperiment}
-            locale={locale}
-          />
-        )}
-
-        {/* Identity Journey Map */}
-        {!loading && (
-          <IdentityJourneyStrip
-            sessions={sessions}
-            dna={dna}
-            studiedIds={studiedFighterIds}
-            currentExperiment={currentExperiment}
-            locale={locale}
-          />
-        )}
-
-        {/* Combat Identity */}
-        {!loading && (
-          <CombatIdentitySection identity={identity} sessionCount={sessions.length} locale={locale} />
-        )}
-
-        {/* Evolution Reveal — shown when experiment is complete (7+ days) */}
-        {!loading && currentExperiment && (() => {
-          const startSec = currentExperiment.startDate?.seconds || 0;
-          const daysElapsed = Math.floor((Date.now() / 1000 - startSec) / 86400);
-          if (daysElapsed < 7) return null;
+        {/* ── Tab Bar ─────────────────────────────────────────────── */}
+        {(() => {
+          const TABS = [
+            { key: "dna",      en: "DNA",      mn: "ДНХ",     ko: "DNA"  },
+            { key: "progress", en: "Progress", mn: "Ахиц",    ko: "진행" },
+            { key: "studies",  en: "Studies",  mn: "Судалгаа", ko: "학습" },
+            { key: "tribe",    en: "Tribe",    mn: "Овог",    ko: "부족" },
+          ];
+          const accColor = ARCH_TRAINING_COLORS[dna.archetypeKey] || GOLD;
           return (
-            <EvolutionRevealPanel
-              experiment={currentExperiment}
-              sessions={sessions}
-              locale={locale}
-              router={router}
-              onClearExperiment={clearExperiment}
-            />
-          );
-        })()}
-
-        {/* DNA Freshness Warning */}
-        {!loading && sessions.length > 0 && (() => {
-          const lastSec = Math.max(...sessions.map((s) => s.createdAt?.seconds || 0));
-          const days = Math.floor((Date.now() / 1000 - lastSec) / 86400);
-          if (days < 5) return null;
-          const FL = FRESH_L[locale] || FRESH_L.en;
-          const level = days >= 14 ? FL.lost : days >= 8 ? FL.degrade : FL.weak;
-          const color = days >= 14 ? "#EF4444" : days >= 8 ? "#FB923C" : "#F59E0B";
-          return (
-            <div style={{
-              borderRadius: RADIUS.lg, padding: "12px 14px", marginBottom: 8,
-              background: `${color}0a`, border: `1px solid ${color}30`,
-              display: "flex", alignItems: "center", gap: 12,
-            }}>
-              <span style={{ fontSize: 22, flexShrink: 0 }}>⚡</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase", color, marginBottom: 3 }}>
-                  {level.label}
-                </div>
-                <div style={{ fontSize: 10.5, fontWeight: 700, color: "rgba(255,255,255,0.5)", lineHeight: 1.4 }}>
-                  {level.hint(days)}
-                </div>
-              </div>
-              <button type="button" onClick={() => router.push(`/${locale}/train`)} style={{
-                flexShrink: 0, padding: "7px 12px", borderRadius: 10,
-                background: `${color}18`, border: `1px solid ${color}40`,
-                color, fontSize: 10.5, fontWeight: 900, cursor: "pointer",
-              }}>
-                {FL.cta}
-              </button>
+            <div style={{ display: "flex", gap: 0, marginBottom: 16, marginTop: 14, borderBottom: `1px solid ${whiteAlpha(0.07)}` }}>
+              {TABS.map((tab) => {
+                const isActive = activeTab === tab.key;
+                return (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    onClick={() => setActiveTab(tab.key)}
+                    style={{
+                      flex: 1, padding: "10px 4px 11px",
+                      background: "none", border: "none", cursor: "pointer",
+                      fontSize: 11, fontWeight: isActive ? 900 : 700,
+                      color: isActive ? accColor : whiteAlpha(0.3),
+                      letterSpacing: 0.3,
+                      borderBottom: isActive ? `2px solid ${accColor}` : "2px solid transparent",
+                      marginBottom: -1,
+                      transition: "color 0.2s, border-color 0.2s",
+                    }}
+                  >
+                    {tab[locale] || tab.en}
+                  </button>
+                );
+              })}
             </div>
           );
         })()}
 
-        {/* Fighter DNA */}
-        {!loading && (
-          <div style={{ marginBottom: 4 }}>
-            <FighterDNACard dna={{ ...dna, prelim: dna.building ? computePreliminarySignals(sessions) : undefined }} locale={locale} />
-          </div>
+        {/* ── DNA Tab ─────────────────────────────────────────────── */}
+        {activeTab === "dna" && (
+          <>
+            {/* Fighter Passport */}
+            {!loading && (
+              <FighterPassportCard
+                dna={dna}
+                displayName={displayName}
+                progress={progress}
+                studiedIds={studiedFighterIds}
+                currentExperiment={currentExperiment}
+                locale={locale}
+              />
+            )}
+
+            {/* DNA Freshness Warning */}
+            {!loading && sessions.length > 0 && (() => {
+              const lastSec = Math.max(...sessions.map((s) => s.createdAt?.seconds || 0));
+              const days = Math.floor((Date.now() / 1000 - lastSec) / 86400);
+              if (days < 5) return null;
+              const FL = FRESH_L[locale] || FRESH_L.en;
+              const level = days >= 14 ? FL.lost : days >= 8 ? FL.degrade : FL.weak;
+              const color = days >= 14 ? "#EF4444" : days >= 8 ? "#FB923C" : "#F59E0B";
+              return (
+                <div style={{ borderRadius: RADIUS.lg, padding: "12px 14px", marginBottom: 8, background: `${color}0a`, border: `1px solid ${color}30`, display: "flex", alignItems: "center", gap: 12 }}>
+                  <span style={{ fontSize: 22, flexShrink: 0 }}>⚡</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase", color, marginBottom: 3 }}>{level.label}</div>
+                    <div style={{ fontSize: 10.5, fontWeight: 700, color: "rgba(255,255,255,0.5)", lineHeight: 1.4 }}>{level.hint(days)}</div>
+                  </div>
+                  <button type="button" onClick={() => router.push(`/${locale}/train`)} style={{ flexShrink: 0, padding: "7px 12px", borderRadius: 10, background: `${color}18`, border: `1px solid ${color}40`, color, fontSize: 10.5, fontWeight: 900, cursor: "pointer" }}>
+                    {FL.cta}
+                  </button>
+                </div>
+              );
+            })()}
+
+            {/* Fighter DNA Card */}
+            {!loading && (
+              <div style={{ marginBottom: 4 }}>
+                <FighterDNACard dna={{ ...dna, prelim: dna.building ? computePreliminarySignals(sessions) : undefined }} locale={locale} />
+              </div>
+            )}
+
+            {/* DNA Confidence Timeline */}
+            {!loading && sessions.length >= 3 && (
+              <DNATimelineCard sessions={sessions} locale={locale} />
+            )}
+
+            {/* DNA Evolution */}
+            {!loading && sessions.length >= 6 && (
+              <DNAEvolutionCard sessions={sessions} locale={locale} />
+            )}
+
+            {/* DNA Share Card */}
+            {!loading && !dna.building && (
+              <DNAShareCard dna={dna} displayName={displayName} locale={locale} />
+            )}
+          </>
         )}
 
-        {/* DNA Confidence Timeline */}
-        {!loading && sessions.length >= 3 && (
-          <DNATimelineCard sessions={sessions} locale={locale} />
+        {/* ── Progress Tab ─────────────────────────────────────────── */}
+        {activeTab === "progress" && (
+          <>
+            {/* Identity Journey Map */}
+            {!loading && (
+              <IdentityJourneyStrip
+                sessions={sessions}
+                dna={dna}
+                studiedIds={studiedFighterIds}
+                currentExperiment={currentExperiment}
+                locale={locale}
+              />
+            )}
+
+            {/* Combat Identity */}
+            {!loading && (
+              <CombatIdentitySection identity={identity} sessionCount={sessions.length} locale={locale} />
+            )}
+
+            {/* Combat Progress */}
+            {!loading && (
+              <CombatProgressCard progress={progress} locale={locale} />
+            )}
+
+            {/* Training Prescription */}
+            {!loading && !dna.building && (
+              <TrainingPrescriptionCard dna={dna} locale={locale} router={router} />
+            )}
+
+            {/* Evolution Reveal — shown when experiment is complete (7+ days) */}
+            {!loading && currentExperiment && (() => {
+              const startSec = currentExperiment.startDate?.seconds || 0;
+              const daysElapsed = Math.floor((Date.now() / 1000 - startSec) / 86400);
+              if (daysElapsed < 7) return null;
+              return (
+                <EvolutionRevealPanel
+                  experiment={currentExperiment}
+                  sessions={sessions}
+                  locale={locale}
+                  router={router}
+                  onClearExperiment={clearExperiment}
+                />
+              );
+            })()}
+          </>
         )}
 
-        {/* DNA Evolution — Before vs Now comparison (6+ sessions) */}
-        {!loading && sessions.length >= 6 && (
-          <DNAEvolutionCard sessions={sessions} locale={locale} />
+        {/* ── Studies Tab ──────────────────────────────────────────── */}
+        {activeTab === "studies" && (
+          <>
+            {!loading && (
+              <StudiedFightersPanel studiedIds={studiedFighterIds} dna={dna} locale={locale} router={router} />
+            )}
+            <div style={{ padding: "0" }}>
+              <CombatMemoryPanel
+                sessions={sessions}
+                tendency={tendency}
+                trends={trends}
+                loading={loading}
+                onTrain={() => router.push(`/${locale}/train`)}
+              />
+            </div>
+          </>
         )}
 
-        {/* DNA Share Card — shown when archetype is confirmed */}
-        {!loading && !dna.building && (
-          <DNAShareCard dna={dna} displayName={displayName} locale={locale} />
+        {/* ── Tribe Tab ────────────────────────────────────────────── */}
+        {activeTab === "tribe" && (
+          <>
+            {!loading && !dna.building && (
+              <TribeCard
+                archetypeKey={dna.archetypeKey}
+                archetype={dna.archetype}
+                tribeCount={tribeCount}
+                locale={locale}
+              />
+            )}
+            {!loading && allTribeCounts && (
+              <TribeActivityFeed
+                allTribeCounts={allTribeCounts}
+                userArchetype={dna.building ? null : dna.archetypeKey}
+                locale={locale}
+              />
+            )}
+            {!loading && dna.building && (
+              <div style={{ borderRadius: 14, padding: "24px 16px", background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.06)}`, textAlign: "center" }}>
+                <div style={{ fontSize: 28, marginBottom: 10 }}>🧬</div>
+                <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: whiteAlpha(0.35), lineHeight: 1.5 }}>
+                  {locale === "mn" ? "ДНХ баталгаажсаны дараа овгоо олно." : locale === "ko" ? "DNA 확정 후 부족에 합류합니다." : "Your tribe unlocks once your DNA confirms."}
+                </p>
+              </div>
+            )}
+          </>
         )}
-
-        {/* Archetype Tribe */}
-        {!loading && !dna.building && (
-          <TribeCard
-            archetypeKey={dna.archetypeKey}
-            archetype={dna.archetype}
-            tribeCount={tribeCount}
-            locale={locale}
-          />
-        )}
-
-        {/* Tribe Activity Feed */}
-        {!loading && allTribeCounts && (
-          <TribeActivityFeed
-            allTribeCounts={allTribeCounts}
-            userArchetype={dna.building ? null : dna.archetypeKey}
-            locale={locale}
-          />
-        )}
-
-        {/* Combat Progress */}
-        {!loading && (
-          <CombatProgressCard progress={progress} locale={locale} />
-        )}
-
-        {/* Training Prescription — shown when DNA archetype is confirmed */}
-        {!loading && !dna.building && (
-          <TrainingPrescriptionCard dna={dna} locale={locale} router={router} />
-        )}
-
-        {/* Studied Fighters Tracker */}
-        {!loading && (
-          <StudiedFightersPanel studiedIds={studiedFighterIds} dna={dna} locale={locale} router={router} />
-        )}
-      </div>
-
-      {/* ── Panel ───────────────────────────────────────────────── */}
-      <div style={{ padding: "0 20px" }}>
-        <CombatMemoryPanel
-          sessions={sessions}
-          tendency={tendency}
-          trends={trends}
-          loading={loading}
-          onTrain={() => router.push(`/${locale}/train`)}
-        />
       </div>
 
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
