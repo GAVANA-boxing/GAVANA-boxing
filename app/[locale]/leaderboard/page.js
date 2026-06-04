@@ -81,6 +81,25 @@ export default function LeaderboardPage() {
 
   const hasUserData = !authLoading && user && (currentUserAllTimeEntry || currentUserWeeklyEntry);
 
+  // Send "You're #X this week" push once per day when rank loads
+  useEffect(() => {
+    if (!currentUserWeeklyRank || !user?.uid) return;
+    const storageKey = `rank_notified_${user.uid}`;
+    const last = parseInt(localStorage.getItem(storageKey) || "0", 10);
+    if (Date.now() - last < 20 * 60 * 60 * 1000) return;
+    localStorage.setItem(storageKey, String(Date.now()));
+    import("firebase/auth").then(({ getAuth }) => {
+      getAuth().currentUser?.getIdToken().then((token) => {
+        fetch("/api/rank-notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ rank: currentUserWeeklyRank, locale }),
+        }).catch(() => {});
+      }).catch(() => {});
+    }).catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUserWeeklyRank, user?.uid]);
+
   const handleShareRank = async () => {
     const rank = leaderboardTab === "week" ? currentUserWeeklyRank : currentUserAllTimeRank;
     const score = leaderboardTab === "week"

@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useCallback, useState } from "react";
 import { getFighterRank } from "@/lib/xp";
 import RankBadge from "@/components/RankBadge";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
@@ -8,8 +8,51 @@ import { formatCompact } from "@/lib/utils";
 import { getRankMedal, getScoreColor, getAvatarUrl, getEntryBadges } from "@/lib/leaderboardHelpers";
 import Image from "next/image";
 import { RED, GOLD } from "@/lib/tokens";
+import { getFirebase } from "@/lib/lazyFirebase";
+
+const CHALLENGE_LABEL = { en: "Challenge", mn: "Тулаан", ko: "도전" };
 
 const LeaderboardEntry = memo(function LeaderboardEntry({ entry, index, profiles, user, entries, weeklyEntries, streakEntries, improvementEntries, leaderboardTab, locale, router, t, styles }) {
+  const [challengeSent,    setChallengeSent]    = useState(false);
+  const [challengeLoading, setChallengeLoading] = useState(false);
+
+  const handleChallenge = useCallback(async (e) => {
+    e.stopPropagation();
+    if (!user?.uid) { router.push(`/${locale}/login`); return; }
+    if (challengeLoading || challengeSent) return;
+    setChallengeLoading(true);
+    try {
+      const { db } = await getFirebase();
+      const { addDoc, collection, serverTimestamp } = await import("firebase/firestore");
+      await addDoc(collection(db, "pvp_challenges"), {
+        challengerId: user.uid,
+        opponentId:   entry.userId,
+        status:       "pending",
+        createdAt:    serverTimestamp(),
+      });
+      await addDoc(collection(db, "notifications"), {
+        recipientId:      entry.userId,
+        actorId:          user.uid,
+        actorName:        user.displayName || "Fighter",
+        fromUserId:       user.uid,
+        fromUserPhotoURL: user.photoURL || "",
+        type:             "pvp_challenge",
+        message:
+          locale === "mn"
+            ? `${user.displayName || "Fighter"} тан руу тулааны шийдэл илгээлээ!`
+            : locale === "ko"
+            ? `${user.displayName || "Fighter"}님이 PvP 배틀을 신청했습니다!`
+            : `${user.displayName || "Fighter"} challenged you to a battle!`,
+        read:      false,
+        createdAt: serverTimestamp(),
+      });
+      setChallengeSent(true);
+      setTimeout(() => setChallengeSent(false), 3000);
+    } catch { /* non-critical */ } finally {
+      setChallengeLoading(false);
+    }
+  }, [user, entry.userId, locale, router, challengeLoading, challengeSent]);
+
   const rank = index + 1;
   const medal = getRankMedal(rank);
   const profile = profiles[entry.userId] || {};
@@ -117,6 +160,36 @@ const LeaderboardEntry = memo(function LeaderboardEntry({ entry, index, profiles
           </div>
         )}
       </div>
+
+      {/* Challenge button (other users only) */}
+      {!isCurrentUser && user?.uid && (
+        <button
+          type="button"
+          onClick={handleChallenge}
+          style={{
+            flexShrink: 0,
+            padding: "4px 10px",
+            borderRadius: 8,
+            border: challengeSent ? "1px solid #34D39944" : "1px solid rgba(239,68,68,0.35)",
+            background: challengeSent ? "rgba(52,211,153,0.1)" : "rgba(239,68,68,0.08)",
+            color: challengeSent ? "#34D399" : "#EF4444",
+            fontSize: 10,
+            fontWeight: 900,
+            letterSpacing: 0.5,
+            cursor: challengeLoading ? "wait" : "pointer",
+            marginRight: 6,
+            WebkitTapHighlightColor: "transparent",
+            transition: "all 180ms ease",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {challengeSent
+            ? "✓"
+            : challengeLoading
+            ? "..."
+            : `⚔️ ${locale === "mn" ? CHALLENGE_LABEL.mn : locale === "ko" ? CHALLENGE_LABEL.ko : CHALLENGE_LABEL.en}`}
+        </button>
+      )}
 
       {/* Scores */}
       <div style={styles.scoresBlock}>
