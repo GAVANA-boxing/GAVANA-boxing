@@ -22,7 +22,7 @@ export default function TechniquePicker({ onSelect, locale }) {
   const fighter = selectedFighter ? FIGHTERS.find((f) => f.id === selectedFighter) : null;
   const techniques = selectedFighter ? (FIGHTER_TECHNIQUES[selectedFighter] || []) : [];
 
-  const label = locale === "mn" ? "⚡ ТЕХНИК СОНГОЖ ДАСГАЛ ХИЙХ" : "⚡ TRAIN A TECHNIQUE";
+  const label = locale === "mn" ? "⚡ ТЕХНИК СОНГОЖ ДАСГАЛ ХИЙХ" : locale === "ko" ? "⚡ 기술 훈련하기" : "⚡ TRAIN A TECHNIQUE";
 
   const sheet = open && mounted && createPortal(
     <>
@@ -66,7 +66,7 @@ export default function TechniquePicker({ onSelect, locale }) {
             fontSize: 10, fontWeight: 900, letterSpacing: 2,
             color: "rgba(255,255,255,0.45)", textTransform: "uppercase",
           }}>
-            {locale === "mn" ? "Техник сонгох" : "Select Technique"}
+            {locale === "mn" ? "Техник сонгох" : locale === "ko" ? "기술 선택" : "Select Technique"}
           </div>
         </div>
 
@@ -122,7 +122,7 @@ export default function TechniquePicker({ onSelect, locale }) {
                 color: fighter.accent, textTransform: "uppercase",
                 padding: "8px 0 10px",
               }}>
-                {fighter.name} · {techniques.length} {locale === "mn" ? "техник" : "techniques"}
+                {fighter.name} · {techniques.length} {locale === "mn" ? "техник" : locale === "ko" ? "기술" : "techniques"}
               </div>
               {techniques.map((lesson, i) => (
                 <button
@@ -173,7 +173,7 @@ export default function TechniquePicker({ onSelect, locale }) {
               fontSize: 12,
               fontWeight: 700,
             }}>
-              {locale === "mn" ? "Тренерийг сонгоно уу" : "Select a fighter above"}
+              {locale === "mn" ? "Тренерийг сонгоно уу" : locale === "ko" ? "위에서 파이터를 선택하세요" : "Select a fighter above"}
             </div>
           )}
         </div>
