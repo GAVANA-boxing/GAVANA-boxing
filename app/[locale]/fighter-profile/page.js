@@ -175,34 +175,46 @@ function StatCell({ value, label, accent }) {
 // ─── Fighter Passport ────────────────────────────────────────────────────────
 const PP_L = {
   en: {
-    eyebrow:    "GAVANA FIGHTER PASSPORT",
-    rank:       "Rank",
-    dnaConf:    "DNA",
-    signature:  "Signature",
-    studies:    "Studies",
-    experiment: "Experiment",
-    none:       "None yet",
-    building:   "Building DNA...",
+    eyebrow:        "GAVANA FIGHTER PASSPORT",
+    rank:           "Rank",
+    dnaConf:        "DNA",
+    signature:      "Signature",
+    studies:        "Studies",
+    experiment:     "Experiment",
+    none:           "None yet",
+    building:       "Building DNA...",
+    streak:         "Streak",
+    days:           "days",
+    sharePassport:  "Share Passport",
+    shared:         "Shared!",
   },
   mn: {
-    eyebrow:    "GAVANA ТУЛААНЧИЙН ҮНЭМЛЭХ",
-    rank:       "Зэрэг",
-    dnaConf:    "ДНХ",
-    signature:  "Онцлог",
-    studies:    "Судалгаа",
-    experiment: "Туршилт",
-    none:       "Одоохондоо байхгүй",
-    building:   "ДНХ бүрдэж байна...",
+    eyebrow:        "GAVANA ТУЛААНЧИЙН ҮНЭМЛЭХ",
+    rank:           "Зэрэг",
+    dnaConf:        "ДНХ",
+    signature:      "Онцлог",
+    studies:        "Судалгаа",
+    experiment:     "Туршилт",
+    none:           "Одоохондоо байхгүй",
+    building:       "ДНХ бүрдэж байна...",
+    streak:         "Давтамж",
+    days:           "өдөр",
+    sharePassport:  "Үнэмлэх хуваалцах",
+    shared:         "Хуваалцсан!",
   },
   ko: {
-    eyebrow:    "GAVANA 파이터 패스포트",
-    rank:       "랭크",
-    dnaConf:    "DNA",
-    signature:  "특성",
-    studies:    "학습",
-    experiment: "실험",
-    none:       "아직 없음",
-    building:   "DNA 구축 중...",
+    eyebrow:        "GAVANA 파이터 패스포트",
+    rank:           "랭크",
+    dnaConf:        "DNA",
+    signature:      "특성",
+    studies:        "학습",
+    experiment:     "실험",
+    none:           "아직 없음",
+    building:       "DNA 구축 중...",
+    streak:         "스트릭",
+    days:           "일",
+    sharePassport:  "패스포트 공유",
+    shared:         "공유됨!",
   },
 };
 
@@ -212,10 +224,11 @@ const ARCH_DISPLAY_PP = {
   ko: { pressure: "프레셔",    outboxer: "아웃복서",   counter: "카운터", explosive: "폭발적",    technician: "테크니션" },
 };
 
-function FighterPassportCard({ dna, displayName, progress, studiedIds, currentExperiment, locale }) {
+function FighterPassportCard({ dna, displayName, progress, studiedIds, currentExperiment, sessions, locale }) {
   const L   = PP_L[locale]          || PP_L.en;
   const AD  = ARCH_DISPLAY_PP[locale] || ARCH_DISPLAY_PP.en;
   const acc = ARCH_TRAINING_COLORS[dna.archetypeKey] || GOLD;
+  const [shared, setShared] = useState(false);
 
   const confidencePct = dna.building ? null : Math.round((dna.confidence || 0) * 100);
 
@@ -233,6 +246,43 @@ function FighterPassportCard({ dna, displayName, progress, studiedIds, currentEx
 
   // Year
   const year = new Date().getFullYear();
+
+  // Training streak from session timestamps
+  const streak = (() => {
+    if (!sessions?.length) return 0;
+    const DAY = 24 * 60 * 60 * 1000;
+    const dayTimes = [...new Set(sessions.map((s) => {
+      const ts = s.createdAt;
+      if (!ts) return null;
+      const ms = typeof ts.toMillis === "function" ? ts.toMillis() : typeof ts.toDate === "function" ? ts.toDate().getTime() : Number(ts) || 0;
+      if (!ms) return null;
+      const d = new Date(ms);
+      return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    }).filter(Boolean))].map((s) => {
+      const [y, m, d] = s.split("-").map(Number);
+      return new Date(y, m, d).getTime();
+    }).sort((a, b) => b - a);
+    if (!dayTimes.length) return 0;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    if (dayTimes[0] < today.getTime() - DAY) return 0;
+    let count = 1;
+    for (let i = 1; i < dayTimes.length; i++) {
+      if (dayTimes[i - 1] - dayTimes[i] === DAY) count++; else break;
+    }
+    return count;
+  })();
+
+  async function handleShare() {
+    const text = locale === "mn"
+      ? `${displayName} — ${dna.building ? "ДНХ бүрдэж байна" : dna.archetype} тулаанч 🥊 GAVANA`
+      : locale === "ko"
+      ? `${displayName} — ${dna.building ? "DNA 구축 중" : dna.archetype} 파이터 🥊 GAVANA`
+      : `${displayName} — ${dna.building ? "Building DNA" : dna.archetype} Fighter 🥊 GAVANA`;
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try { await navigator.share({ title: "Fighter Passport — GAVANA", text }); return; } catch { /* cancelled */ }
+    }
+    try { await navigator.clipboard.writeText(text); setShared(true); setTimeout(() => setShared(false), 2200); } catch { /* silent */ }
+  }
 
   return (
     <div style={{
@@ -375,7 +425,41 @@ function FighterPassportCard({ dna, displayName, progress, studiedIds, currentEx
               {currentExperiment ? currentExperiment.fighterName : L.none}
             </span>
           </div>
+
+          {/* Streak */}
+          {streak > 0 && (
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <span style={{ width: 76, fontSize: 8.5, fontWeight: 900, color: whiteAlpha(0.28), textTransform: "uppercase", letterSpacing: 1, flexShrink: 0 }}>
+                {L.streak}
+              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                <span style={{ fontSize: 14 }}>🔥</span>
+                <span style={{ fontSize: 13, fontWeight: 900, color: "#FB923C", fontFamily: "monospace" }}>{streak}</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: whiteAlpha(0.3) }}>{L.days}</span>
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* Share Passport */}
+        <button
+          type="button"
+          onClick={handleShare}
+          style={{
+            width: "100%", marginTop: 14, padding: "10px 0", borderRadius: 11,
+            background: shared ? "rgba(52,211,153,0.08)" : dna.building ? whiteAlpha(0.03) : `${acc}0a`,
+            border: `1px solid ${shared ? "rgba(52,211,153,0.3)" : dna.building ? whiteAlpha(0.07) : `${acc}25`}`,
+            color: shared ? "#34D399" : dna.building ? whiteAlpha(0.25) : acc,
+            fontSize: 11, fontWeight: 900, cursor: "pointer", letterSpacing: 0.8,
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+            transition: "all 0.2s ease",
+          }}
+        >
+          {shared
+            ? <><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>{L.shared}</>
+            : <><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>{L.sharePassport}</>
+          }
+        </button>
       </div>
 
       {/* Bottom watermark */}
@@ -715,6 +799,188 @@ function TrainingPrescriptionCard({ dna, locale, router }) {
           }}
         >
           {L.trainCta}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Weekly DNA Report ────────────────────────────────────────────────────────
+const WR_L = {
+  en: {
+    eyebrow:   "WEEKLY REPORT",
+    sessions:  "Sessions",
+    avgScore:  "Avg Score",
+    best:      "Best",
+    vsLast:    "vs prev week",
+    noData:    "Train this week to generate your report.",
+    arch:      "Dominant style",
+    trainCta:  "Train now →",
+  },
+  mn: {
+    eyebrow:   "7 ХОНОГИЙН ТАЙЛАН",
+    sessions:  "Тренинг",
+    avgScore:  "Дундаж оноо",
+    best:      "Шилдэг",
+    vsLast:    "өмнөх 7 хоноготой харьцуулбал",
+    noData:    "7 хоногийн тайлан харахын тулд бэлтгэл хий.",
+    arch:      "Давамгайлсан хэв маяг",
+    trainCta:  "Бэлтгэл хий →",
+  },
+  ko: {
+    eyebrow:   "주간 리포트",
+    sessions:  "세션",
+    avgScore:  "평균 점수",
+    best:      "최고",
+    vsLast:    "지난 주 대비",
+    noData:    "주간 리포트를 보려면 이번 주 훈련하세요.",
+    arch:      "주요 스타일",
+    trainCta:  "지금 훈련 →",
+  },
+};
+
+function WeeklyReportCard({ sessions, locale, dna, router }) {
+  const L = WR_L[locale] || WR_L.en;
+  const acc = ARCH_TRAINING_COLORS[dna.archetypeKey] || GOLD;
+  const WEEK = 7 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+
+  function getMs(s) {
+    const ts = s.createdAt;
+    if (!ts) return 0;
+    if (typeof ts.toMillis === "function") return ts.toMillis();
+    if (typeof ts.toDate === "function") return ts.toDate().getTime();
+    return Number(ts) || 0;
+  }
+
+  const thisWeek = sessions.filter((s) => { const t = getMs(s); return t > 0 && t >= now - WEEK; });
+  const lastWeek = sessions.filter((s) => { const t = getMs(s); return t > 0 && t >= now - 2 * WEEK && t < now - WEEK; });
+
+  const thisCount = thisWeek.length;
+  const lastCount = lastWeek.length;
+  const thisAvg   = thisCount ? thisWeek.reduce((a, s) => a + (s.score || 0), 0) / thisCount : 0;
+  const lastAvg   = lastCount ? lastWeek.reduce((a, s) => a + (s.score || 0), 0) / lastCount : 0;
+  const thisBest  = thisCount ? Math.max(...thisWeek.map((s) => s.score || 0)) : 0;
+
+  const sessionDelta = thisCount - lastCount;
+  const avgDelta     = +(thisAvg - lastAvg).toFixed(1);
+
+  function TrendBadge({ delta }) {
+    if (Math.abs(delta) < 0.05) return <span style={{ fontSize: 9, color: whiteAlpha(0.25), fontFamily: "monospace" }}>—</span>;
+    const pos = delta > 0;
+    return (
+      <span style={{ fontSize: 9, fontWeight: 900, color: pos ? "#34D399" : "#F87171", fontFamily: "monospace" }}>
+        {pos ? "+" : ""}{typeof delta === "number" && delta % 1 !== 0 ? delta.toFixed(1) : delta}
+      </span>
+    );
+  }
+
+  if (thisCount === 0) {
+    return (
+      <div style={{ borderRadius: 14, padding: "18px 16px", background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.06)}`, marginBottom: 8, textAlign: "center" }}>
+        <div style={{ fontSize: 24, marginBottom: 8 }}>📊</div>
+        <p style={{ margin: "0 0 12px", fontSize: 11.5, fontWeight: 700, color: whiteAlpha(0.3), lineHeight: 1.5 }}>{L.noData}</p>
+        <button type="button" onClick={() => router.push(`/${locale}/train`)} style={{ padding: "8px 20px", borderRadius: 10, background: `${GOLD}12`, border: `1px solid ${GOLD}30`, color: GOLD, fontSize: 11, fontWeight: 900, cursor: "pointer" }}>
+          {L.trainCta}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ borderRadius: 16, overflow: "hidden", background: `linear-gradient(155deg, rgba(6,6,8,0.96) 0%, ${acc}0c 100%)`, border: `1px solid ${acc}22`, marginBottom: 8 }}>
+      <div style={{ height: 2, background: `linear-gradient(90deg, ${acc}88, transparent)` }} />
+      <div style={{ padding: "14px 16px 16px" }}>
+        <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2.5, color: acc, textTransform: "uppercase", marginBottom: 12 }}>
+          📊 {L.eyebrow}
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 12 }}>
+          {[
+            { val: thisCount, label: L.sessions, delta: sessionDelta, color: "#fff" },
+            { val: thisAvg.toFixed(1), label: L.avgScore, delta: avgDelta, color: "#fff" },
+            { val: thisBest.toFixed(1), label: L.best, delta: null, color: GOLD },
+          ].map(({ val, label, delta, color }) => (
+            <div key={label} style={{ padding: "10px 0", borderRadius: 10, background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.06)}`, textAlign: "center" }}>
+              <div style={{ fontSize: 22, fontWeight: 1000, color, fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{val}</div>
+              <div style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1.2, color: whiteAlpha(0.28), textTransform: "uppercase", marginTop: 3 }}>{label}</div>
+              <div style={{ marginTop: 3 }}>{delta !== null ? <TrendBadge delta={delta} /> : <span style={{ fontSize: 9, color: whiteAlpha(0.18), fontFamily: "monospace" }}>{L.vsLast.slice(0, 8)}</span>}</div>
+            </div>
+          ))}
+        </div>
+        {!dna.building && dna.archetypeKey && (
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.2, color: whiteAlpha(0.28), textTransform: "uppercase" }}>{L.arch}:</span>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: acc, boxShadow: `0 0 5px ${acc}88` }} />
+            <span style={{ fontSize: 11, fontWeight: 900, color: acc }}>{dna.archetype}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Live Hub Teaser ──────────────────────────────────────────────────────────
+const LH_L = {
+  en: {
+    eyebrow: "TRAINING HUB",
+    title:   "Live Group Sessions",
+    sub:     "Train together with fighters from your tribe. Live sessions launching soon.",
+    soon:    "COMING SOON",
+    notify:  "Notify me when live",
+    done:    "✓ You're on the list",
+  },
+  mn: {
+    eyebrow: "БЭЛТГЭЛИЙН ТӨВ",
+    title:   "Шууд Бүлгийн Тренинг",
+    sub:     "Овгийнхоо тулаанчидтай хамт бэлтгэл хийцгээе. Шууд тренинг удахгүй нээгдэнэ.",
+    soon:    "УДАХГҮЙ",
+    notify:  "Нээгдэхэд мэдэгдэл авах",
+    done:    "✓ Бүртгэгдлээ",
+  },
+  ko: {
+    eyebrow: "트레이닝 허브",
+    title:   "라이브 그룹 세션",
+    sub:     "부족 파이터들과 함께 훈련하세요. 라이브 세션이 곧 출시됩니다.",
+    soon:    "출시 예정",
+    notify:  "출시 시 알림 받기",
+    done:    "✓ 등록 완료",
+  },
+};
+
+function LiveHubTeaser({ locale }) {
+  const L = LH_L[locale] || LH_L.en;
+  const [notified, setNotified] = useState(false);
+  return (
+    <div style={{ borderRadius: 16, overflow: "hidden", border: `1px solid ${whiteAlpha(0.07)}`, background: whiteAlpha(0.015), marginTop: 12 }}>
+      <div style={{ height: 2, background: `linear-gradient(90deg, ${whiteAlpha(0.1)}, transparent)` }} />
+      <div style={{ padding: "18px 18px 16px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+          <span style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.2), textTransform: "uppercase" }}>
+            {L.eyebrow}
+          </span>
+          <span style={{ fontSize: 8, fontWeight: 900, padding: "2px 9px", borderRadius: 999, background: "rgba(251,146,60,0.1)", border: "1px solid rgba(251,146,60,0.22)", color: "#FB923C", letterSpacing: 1 }}>
+            {L.soon}
+          </span>
+        </div>
+        <div style={{ fontSize: 20, fontWeight: 1000, color: whiteAlpha(0.5), fontFamily: "var(--font-display,'Anton',sans-serif)", textTransform: "uppercase", marginBottom: 8, letterSpacing: "-0.02em" }}>
+          📡 {L.title}
+        </div>
+        <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, color: whiteAlpha(0.28), lineHeight: 1.55 }}>
+          {L.sub}
+        </p>
+        <button
+          type="button"
+          onClick={() => setNotified(true)}
+          disabled={notified}
+          style={{
+            width: "100%", padding: "10px 0", borderRadius: 10,
+            background: notified ? "rgba(52,211,153,0.07)" : whiteAlpha(0.03),
+            border: `1px solid ${notified ? "rgba(52,211,153,0.22)" : whiteAlpha(0.09)}`,
+            color: notified ? "#34D399" : whiteAlpha(0.35),
+            fontSize: 11, fontWeight: 900, cursor: notified ? "default" : "pointer", letterSpacing: 0.5,
+          }}
+        >
+          {notified ? L.done : L.notify}
         </button>
       </div>
     </div>
@@ -2004,6 +2270,7 @@ export default function FighterProfilePage() {
                 progress={progress}
                 studiedIds={studiedFighterIds}
                 currentExperiment={currentExperiment}
+                sessions={sessions}
                 locale={locale}
               />
             )}
@@ -2057,6 +2324,11 @@ export default function FighterProfilePage() {
         {/* ── Progress Tab ─────────────────────────────────────────── */}
         {activeTab === "progress" && (
           <>
+            {/* Weekly DNA Report */}
+            {!loading && sessions.length > 0 && (
+              <WeeklyReportCard sessions={sessions} locale={locale} dna={dna} router={router} />
+            )}
+
             {/* Identity Journey Map */}
             {!loading && (
               <IdentityJourneyStrip
@@ -2145,6 +2417,7 @@ export default function FighterProfilePage() {
                 </p>
               </div>
             )}
+            {!loading && <LiveHubTeaser locale={locale} />}
           </>
         )}
       </div>
