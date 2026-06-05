@@ -115,19 +115,19 @@ export default function GymDashboardPage() {
 
             <div style={styles.fieldRow}>
               <GymFormField label={t("gymRegisterCountry")} style={{ flex: 1 }}>
-                <input type="text" value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Mongolia" style={styles.input} />
+                <input type="text" value={country} onChange={(e) => setCountry(e.target.value)} placeholder={locale === "mn" ? "Монгол" : locale === "ko" ? "몽골" : "Mongolia"} style={styles.input} />
               </GymFormField>
               <GymFormField label={t("gymRegisterCity")} style={{ flex: 1 }}>
-                <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ulaanbaatar" style={styles.input} />
+                <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder={locale === "mn" ? "Улаанбаатар" : locale === "ko" ? "울란바토르" : "Ulaanbaatar"} style={styles.input} />
               </GymFormField>
             </div>
 
             <GymFormField label={t("gymRegisterDistrict")}>
-              <input type="text" value={district} onChange={(e) => setDistrict(e.target.value)} placeholder="Bayangol" style={styles.input} />
+              <input type="text" value={district} onChange={(e) => setDistrict(e.target.value)} placeholder={locale === "mn" ? "Дүүрэг" : locale === "ko" ? "구/동" : "District"} style={styles.input} />
             </GymFormField>
 
             <GymFormField label={t("gymRegisterAddress")}>
-              <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Street, building..." style={styles.input} />
+              <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} placeholder={locale === "mn" ? "Гудамж, барилга..." : locale === "ko" ? "도로명, 건물..." : "Street, building..."} style={styles.input} />
             </GymFormField>
 
             <GymFormField label={t("gymRegisterType")}>
