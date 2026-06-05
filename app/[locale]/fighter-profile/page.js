@@ -30,7 +30,8 @@ const FP = {
     earlyReadHint:   "Train more sessions to improve confidence.",
     identityEyebrow: "Movement identity",
     signalConf:      "Signal confidence",
-    evolutionTitle:  "Movement profile · Evolution tracking",
+    evolutionTitle:    "Movement profile · Evolution tracking",
+    profileCompletion: "Profile completion",
   },
   mn: {
     back:            "Буцах",
@@ -43,7 +44,8 @@ const FP = {
     earlyReadHint:   "Найдвартай байдлаа сайжруулахын тулд илүү session хий.",
     identityEyebrow: "Хөдөлгөөн дээр суурилсан мөн чанар",
     signalConf:      "Дохионы найдвартай байдал",
-    evolutionTitle:  "Хөдөлгөөний профайл · Хөгжлийн хяналт",
+    evolutionTitle:    "Хөдөлгөөний профайл · Хөгжлийн хяналт",
+    profileCompletion: "Профайл бөглөлт",
   },
   ko: {
     back:            "뒤로",
@@ -56,7 +58,8 @@ const FP = {
     earlyReadHint:   "신뢰도 향상을 위해 더 많은 세션을 훈련하세요.",
     identityEyebrow: "움직임 기반 정체성",
     signalConf:      "신호 신뢰도",
-    evolutionTitle:  "움직임 프로필 · 진화 추적",
+    evolutionTitle:    "움직임 프로필 · 진화 추적",
+    profileCompletion: "프로필 완성도",
   },
 };
 
@@ -2496,6 +2499,7 @@ export default function FighterProfilePage() {
   const [activeTab, setActiveTab] = useState("dna");
   const [userTier, setUserTier] = useState(null);
   const [subscribeSuccess, setSubscribeSuccess] = useState(false);
+  const [userData, setUserData] = useState(null);
   const dnaRevealShownRef = useRef(false);
   const [milestonesUnlocked, setMilestonesUnlocked] = useState({ m8: false, m15: false });
 
@@ -2531,6 +2535,7 @@ export default function FighterProfilePage() {
           setCurrentExperiment(data.currentExperiment || null);
           setStudiedFighterIds(data.studiedFighters || []);
           setUserTier(data.subscriptionTier || data.tier || null);
+          setUserData(data);
           setMilestonesUnlocked({
             m8:  !!data.milestoneUnlocked8,
             m15: !!data.milestoneUnlocked15,
@@ -2627,6 +2632,17 @@ export default function FighterProfilePage() {
     : "—";
   const displayName = user.displayName || user.email?.split("@")[0] || "FIGHTER";
 
+  const profileCompletion = (() => {
+    let pct = 0;
+    if (user.displayName) pct += 20;
+    if (user.photoURL || userData?.photoURL || userData?.profileImageUrl) pct += 20;
+    if (!dna.building && dna.archetypeKey) pct += 20;
+    if (totalSessions >= 1) pct += 20;
+    if (userData?.bio || userData?.description) pct += 20;
+    return pct;
+  })();
+  const completionColor = profileCompletion >= 80 ? "#34D399" : profileCompletion >= 40 ? GOLD : RED;
+
   return (
     <main style={{
       minHeight: "100dvh",
@@ -2691,9 +2707,22 @@ export default function FighterProfilePage() {
         </h1>
 
         {/* Tendency subtitle — shows once loaded */}
-        <p style={{ margin: "0 0 20px", fontSize: 11, color: whiteAlpha(0.3), fontWeight: 700 }}>
+        <p style={{ margin: "0 0 16px", fontSize: 11, color: whiteAlpha(0.3), fontWeight: 700 }}>
           {tendency ? tendency.title : (FP[locale] || FP.en).evolutionTitle}
         </p>
+
+        {/* Profile completion tracker */}
+        <div style={{ marginBottom: 20, padding: "10px 14px", borderRadius: 12, background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.07)}` }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: whiteAlpha(0.5), textTransform: "uppercase", letterSpacing: 0.5 }}>
+              {(FP[locale] || FP.en).profileCompletion}
+            </span>
+            <span style={{ fontSize: 13, fontWeight: 900, color: completionColor }}>{profileCompletion}%</span>
+          </div>
+          <div style={{ height: 4, background: whiteAlpha(0.08), borderRadius: 2, overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${profileCompletion}%`, background: completionColor, borderRadius: 2, transition: "width 0.6s ease" }} />
+          </div>
+        </div>
 
         {/* Stats row */}
         {!loading && (() => { const fp = FP[locale] || FP.en; return (
