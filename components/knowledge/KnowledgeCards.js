@@ -161,10 +161,14 @@ export function FighterCard({ fighter, onStudy, locale }) {
         background: `linear-gradient(155deg, ${fighter.accent}45 0%, ${fighter.accent}12 50%, transparent 100%), #0d0a0e`,
         overflow: "hidden",
       }}>
-        <div style={{
-          position: "absolute", inset: 0,
-          backgroundImage: `repeating-linear-gradient(60deg, ${fighter.accent}09 0, ${fighter.accent}09 1px, transparent 0, transparent 20px)`,
-        }} />
+        {fighter.imageUrl ? (
+          <img src={fighter.imageUrl} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center" }} alt={fighter.name} />
+        ) : (
+          <div style={{
+            position: "absolute", inset: 0,
+            backgroundImage: `repeating-linear-gradient(60deg, ${fighter.accent}09 0, ${fighter.accent}09 1px, transparent 0, transparent 20px)`,
+          }} />
+        )}
         <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 50, background: "linear-gradient(to top, rgba(13,10,14,0.95), transparent)" }} />
         {/* Country flag + initials */}
         <div style={{ position: "absolute", top: 12, right: 12, fontSize: 18 }}>{fighter.country}</div>

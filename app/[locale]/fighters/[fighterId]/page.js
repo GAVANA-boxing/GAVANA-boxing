@@ -357,6 +357,13 @@ export default function FighterDetailPage() {
         {/* Identity line */}
         <p style={s.heroIdentity}>{identity}</p>
 
+        {/* Bio */}
+        {fighter.bio?.[locale] && (
+          <p style={{ margin: "12px 0 0", fontSize: 13, lineHeight: 1.65, color: "rgba(255,255,255,0.55)", fontWeight: 500, padding: "0 20px" }}>
+            {fighter.bio[locale]}
+          </p>
+        )}
+
         {/* Key weapon */}
         <div style={s.heroWeapon}>
           <svg width="11" height="14" viewBox="0 0 13 16" fill={acc} style={{ flexShrink: 0, opacity: 0.8 }}>
