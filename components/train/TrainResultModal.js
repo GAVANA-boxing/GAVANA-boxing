@@ -816,29 +816,79 @@ export default function TrainResultModal({
                   background: beaten ? "rgba(52,211,153,0.06)" : "rgba(248,113,113,0.06)",
                   border: `1px solid ${beaten ? "rgba(52,211,153,0.2)" : "rgba(248,113,113,0.2)"}`,
                 }}>
-                  <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 2.5, color: beaten ? "#34D399" : "#F87171", marginBottom: 12 }}>
-                    {beaten ? "✅ Challenge Beaten" : "❌ Challenge Not Beaten"}
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <div>
-                      <div style={{ fontSize: 26, fontWeight: 1000, fontFamily: "var(--font-display,'Anton',sans-serif)", color: "#fff" }}>{result.score.toFixed(1)}</div>
-                      <div style={{ fontSize: 9, color: whiteAlpha(0.35), fontWeight: 800, letterSpacing: 1.5, marginTop: 2 }}>YOU</div>
-                    </div>
-                    <div style={{ textAlign: "center" }}>
-                      <div style={{ fontSize: 12, fontWeight: 900, color: beaten ? "#34D399" : "#F87171" }}>
-                        {diff >= 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1)}
+                  {beaten ? (
+                    <>
+                      <div style={{ textAlign: "center", marginBottom: 10 }}>
+                        <div style={{ fontSize: 24, letterSpacing: 6, marginBottom: 6 }}>🏆 ⚔️ 🥊</div>
+                        <div style={{ fontSize: 13, fontWeight: 900, letterSpacing: 2, color: "#34D399", textTransform: "uppercase", marginBottom: 4 }}>
+                          ✅ {locale === "mn" ? "Тулаан ялсан!" : locale === "ko" ? "챌린지 격파!" : "Challenge Beaten!"}
+                        </div>
+                        <div style={{ display: "inline-block", padding: "3px 12px", borderRadius: 999, background: "rgba(245,196,81,0.12)", border: "1px solid rgba(245,196,81,0.35)", fontSize: 10, fontWeight: 900, color: GOLD, letterSpacing: 1.5 }}>
+                          +50 XP {locale === "mn" ? "ТУЛААНЫ БОНУС" : locale === "ko" ? "챌린지 보너스" : "CHALLENGE BONUS"}
+                        </div>
                       </div>
-                      <div style={{ fontSize: 10, color: whiteAlpha(0.22), fontWeight: 800 }}>VS</div>
-                    </div>
-                    <div style={{ textAlign: "right" }}>
-                      <div style={{ fontSize: 26, fontWeight: 1000, fontFamily: "var(--font-display,'Anton',sans-serif)", color: whiteAlpha(0.5) }}>{target.toFixed(1)}</div>
-                      <div style={{ fontSize: 9, color: whiteAlpha(0.35), fontWeight: 800, letterSpacing: 1.5, marginTop: 2 }}>TARGET</div>
-                    </div>
-                  </div>
-                  {challengePostData.username && (
-                    <div style={{ marginTop: 8, fontSize: 10, color: whiteAlpha(0.3), fontWeight: 700 }}>
-                      @{challengePostData.username} · {challengePostData.challengeTitle || ""}
-                    </div>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                        <div>
+                          <div style={{ fontSize: 26, fontWeight: 1000, fontFamily: "var(--font-display,'Anton',sans-serif)", color: "#34D399" }}>{result.score.toFixed(1)}</div>
+                          <div style={{ fontSize: 9, color: whiteAlpha(0.35), fontWeight: 800, letterSpacing: 1.5, marginTop: 2 }}>YOU</div>
+                        </div>
+                        <div style={{ textAlign: "center" }}>
+                          <div style={{ fontSize: 12, fontWeight: 900, color: "#34D399" }}>
+                            {diff >= 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1)}
+                          </div>
+                          <div style={{ fontSize: 10, color: whiteAlpha(0.22), fontWeight: 800 }}>VS</div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ fontSize: 26, fontWeight: 1000, fontFamily: "var(--font-display,'Anton',sans-serif)", color: whiteAlpha(0.5) }}>{target.toFixed(1)}</div>
+                          <div style={{ fontSize: 9, color: whiteAlpha(0.35), fontWeight: 800, letterSpacing: 1.5, marginTop: 2 }}>TARGET</div>
+                        </div>
+                      </div>
+                      {challengePostData.username && (
+                        <div style={{ marginBottom: 10, fontSize: 10, color: whiteAlpha(0.3), fontWeight: 700 }}>
+                          @{challengePostData.username} · {challengePostData.challengeTitle || ""}
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => router.push(`/${locale}/leaderboard`)}
+                        style={{
+                          width: "100%", padding: "10px 0", borderRadius: 10,
+                          background: "linear-gradient(135deg,#34D399,#059669)",
+                          border: "none", color: "#000",
+                          fontSize: 11, fontWeight: 900, letterSpacing: 1,
+                          textTransform: "uppercase", cursor: "pointer",
+                        }}
+                      >
+                        ⚔️ {locale === "mn" ? "Дахин тулаан дуудах" : locale === "ko" ? "다른 파이터 도전" : "Challenge Another"}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 2.5, color: "#F87171", marginBottom: 12 }}>
+                        ❌ {locale === "mn" ? "Тулаан ялагдсан" : locale === "ko" ? "챌린지 실패" : "Challenge Not Beaten"}
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <div>
+                          <div style={{ fontSize: 26, fontWeight: 1000, fontFamily: "var(--font-display,'Anton',sans-serif)", color: "#fff" }}>{result.score.toFixed(1)}</div>
+                          <div style={{ fontSize: 9, color: whiteAlpha(0.35), fontWeight: 800, letterSpacing: 1.5, marginTop: 2 }}>YOU</div>
+                        </div>
+                        <div style={{ textAlign: "center" }}>
+                          <div style={{ fontSize: 12, fontWeight: 900, color: "#F87171" }}>
+                            {diff >= 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1)}
+                          </div>
+                          <div style={{ fontSize: 10, color: whiteAlpha(0.22), fontWeight: 800 }}>VS</div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ fontSize: 26, fontWeight: 1000, fontFamily: "var(--font-display,'Anton',sans-serif)", color: whiteAlpha(0.5) }}>{target.toFixed(1)}</div>
+                          <div style={{ fontSize: 9, color: whiteAlpha(0.35), fontWeight: 800, letterSpacing: 1.5, marginTop: 2 }}>TARGET</div>
+                        </div>
+                      </div>
+                      {challengePostData.username && (
+                        <div style={{ marginTop: 8, fontSize: 10, color: whiteAlpha(0.3), fontWeight: 700 }}>
+                          @{challengePostData.username} · {challengePostData.challengeTitle || ""}
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </>
@@ -1389,10 +1439,18 @@ export default function TrainResultModal({
                     <>
                       <SectionLabel label={t("trainLabelCombatTelemetry")} />
                       <div style={{ borderRadius: RADIUS.md, padding: "10px 14px", background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.05)}` }}>
-                        <TelemetryBar label="Accuracy"    value={result.breakdown.accuracy} />
-                        <TelemetryBar label="Speed"       value={result.breakdown.speed} />
-                        <TelemetryBar label="Power"       value={result.breakdown.power} />
-                        <TelemetryBar label="Consistency" value={result.breakdown.consistency} />
+                        {[
+                          { key: "accuracy",    en: "Accuracy",    mn: "Нарийвчлал",  ko: "정확도" },
+                          { key: "speed",       en: "Speed",       mn: "Хурд",        ko: "속도" },
+                          { key: "power",       en: "Power",       mn: "Хүч",         ko: "파워" },
+                          { key: "consistency", en: "Consistency", mn: "Тогтвортой",  ko: "일관성" },
+                        ].map(({ key, en, mn, ko }) => (
+                          <TelemetryBar
+                            key={key}
+                            label={locale === "mn" ? mn : locale === "ko" ? ko : en}
+                            value={result.breakdown[key]}
+                          />
+                        ))}
                       </div>
                     </>
                   )}
@@ -1409,7 +1467,7 @@ export default function TrainResultModal({
                 <span style={{ fontSize: 22, fontWeight: 1000, color: GOLD, fontFamily: "var(--font-display, 'Anton', sans-serif)" }}>
                   +{result.xpGained}
                 </span>
-                <span style={{ fontSize: 10, color: whiteAlpha(0.32), fontWeight: 800, letterSpacing: 1 }}>XP EARNED</span>
+                <span style={{ fontSize: 10, color: whiteAlpha(0.32), fontWeight: 800, letterSpacing: 1 }}>{locale === "mn" ? "XP ЦУГЛУУЛСАН" : locale === "ko" ? "XP 획득" : "XP EARNED"}</span>
               </div>
               {!activeChallenge && result.rankProgress > 0 && (
                 <>
@@ -1417,7 +1475,9 @@ export default function TrainResultModal({
                     <div style={{ height: "100%", width: `${result.rankProgress}%`, background: goldAlpha(0.55), borderRadius: 2, transition: "width 0.9s cubic-bezier(0.16,1,0.3,1)" }} />
                   </div>
                   <div style={{ fontSize: 10, color: whiteAlpha(0.3), fontWeight: 700 }}>
-                    Rank progress — {result.rankProgress}%
+                    {locale === "mn" ? `Ранк дэвшил — ${result.rankProgress}%`
+                      : locale === "ko" ? `랭크 진행 — ${result.rankProgress}%`
+                      : `Rank progress — ${result.rankProgress}%`}
                   </div>
                 </>
               )}

@@ -29,6 +29,7 @@ export default function CoachPage() {
 
   const [tab, setTab] = useState("ai");
   const [userArchetype, setUserArchetype] = useState(null);
+  const [userTier, setUserTier] = useState(null);
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -41,6 +42,7 @@ export default function CoachPage() {
         if (active && snap.exists()) {
           const arch = snap.data()?.fighterDNA?.archetypeKey;
           if (arch) setUserArchetype(arch);
+          setUserTier(snap.data()?.subscriptionTier || snap.data()?.tier || null);
         }
       } catch { /* silent */ }
     })();
@@ -399,7 +401,7 @@ export default function CoachPage() {
 
           {/* Pro Priority Matching Banner */}
           {userArchetype && !coachesLoading && (() => {
-            const isPro = false; // would read from userData.subscriptionTier in real impl
+            const isPro = userTier === "pro" || userTier === "champion";
             if (isPro) return null;
             return (
               <div style={{ marginBottom: 14, padding: "12px 14px", borderRadius: 14, background: "rgba(245,196,81,0.05)", border: "1px solid rgba(245,196,81,0.2)", display: "flex", gap: 12, alignItems: "center" }}>
