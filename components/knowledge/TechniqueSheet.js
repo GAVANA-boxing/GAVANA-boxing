@@ -10,6 +10,51 @@ import { BLOCK_DIAGRAM_TYPE } from "@/lib/visualAssets";
 const DIFF_COLOR = { beginner: "#10B981", intermediate: "#F59E0B", advanced: "#F87171" };
 const BLOCK_ICON = { FOOT: "👟", WEIGHT: "⚖️", ANGLE: "📐", GUARD: "🛡️" };
 
+const T = {
+  en: {
+    noTechniques: "No techniques available",
+    videoWatch: "Watch Tutorial",
+    videoSoon: "Video coming soon",
+    whatItIs: "What it is",
+    howToDo: "How to do it",
+    bodyFeel: "Body feel",
+    whatFeel: "What you should feel",
+    commonMistake: "Common mistake",
+    drill: "Drill",
+    coachNotes: "Coach notes",
+    howScored: "How GAVANA scores this",
+    trainCta: "⚡ Train This Technique",
+  },
+  mn: {
+    noTechniques: "Техник хоосон байна",
+    videoWatch: "Видео үзэх",
+    videoSoon: "Видео удахгүй",
+    whatItIs: "Тайлбар",
+    howToDo: "Зааварчилгаа",
+    bodyFeel: "Бие мэдрэмж",
+    whatFeel: "Юу мэдрэх вэ",
+    commonMistake: "Нийтлэг алдаа",
+    drill: "Дасгал",
+    coachNotes: "Коучийн зөвлөгөө",
+    howScored: "GAVANA оноо өгөх аргачлал",
+    trainCta: "⚡ Энэ техникийг дасгалдах",
+  },
+  ko: {
+    noTechniques: "기술이 없습니다",
+    videoWatch: "영상 보기",
+    videoSoon: "영상 출시 예정",
+    whatItIs: "설명",
+    howToDo: "방법",
+    bodyFeel: "신체 감각",
+    whatFeel: "느껴야 할 것",
+    commonMistake: "흔한 실수",
+    drill: "드릴",
+    coachNotes: "코치 노트",
+    howScored: "GAVANA 채점 방식",
+    trainCta: "⚡ 이 기술 훈련하기",
+  },
+};
+
 // ── Fighter technique list sheet ──────────────────────────────────────────────
 function FighterTechSheet({ fighter, onClose, onSelectTech, locale }) {
   const techniques = FIGHTER_TECHNIQUES[fighter.id] || [];
@@ -46,7 +91,7 @@ function FighterTechSheet({ fighter, onClose, onSelectTech, locale }) {
         <div style={{ flex: 1, overflowY: "auto", padding: "8px 16px", paddingBottom: "calc(20px + env(safe-area-inset-bottom))" }}>
           {techniques.length === 0 && (
             <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 13, textAlign: "center", padding: "24px 0" }}>
-              {locale === "mn" ? "Техник хоосон байна" : "No techniques available"}
+              {(T[locale] || T.en).noTechniques}
             </p>
           )}
           {techniques.map((tech, i) => (
@@ -84,6 +129,7 @@ function FighterTechSheet({ fighter, onClose, onSelectTech, locale }) {
 
 // ── Single technique detail sheet ─────────────────────────────────────────────
 function TechDetailSheet({ fighter, technique, onClose, onBack, locale, router }) {
+  const t = T[locale] || T.en;
   const SECTION = (emoji, label, children) => (
     <div style={{ marginBottom: 16 }}>
       <div style={{ fontSize: 11, fontWeight: 900, color: "rgba(255,255,255,0.45)", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
@@ -179,7 +225,7 @@ function TechDetailSheet({ fighter, technique, onClose, onBack, locale, router }
               }}>
                 <span style={{ fontSize: 10 }}>🎬</span>
                 <span style={{ fontSize: 7.5, fontWeight: 900, color: "rgba(255,255,255,0.45)", letterSpacing: 0.8 }}>
-                  {locale === "mn" ? "Видео удахгүй" : locale === "ko" ? "영상 출시 예정" : "Video coming soon"}
+                  {t.videoSoon}
                 </span>
               </div>
             </div>
@@ -189,12 +235,12 @@ function TechDetailSheet({ fighter, technique, onClose, onBack, locale, router }
         {/* Content */}
         <div style={{ flex: 1, overflowY: "auto", padding: "16px 16px 0" }}>
           {/* What it is */}
-          {technique.explanation && SECTION("📖", locale === "mn" ? "Тайлбар" : "What it is",
+          {technique.explanation && SECTION("📖", t.whatItIs,
             <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.72)", lineHeight: 1.6 }}>{technique.explanation}</p>
           )}
 
           {/* Teaching blocks */}
-          {(technique.teachingBlocks || []).length > 0 && SECTION("⚡", locale === "mn" ? "Зааварчилгаа" : "How to do it",
+          {(technique.teachingBlocks || []).length > 0 && SECTION("⚡", t.howToDo,
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {technique.teachingBlocks.map((block, i) => (
                 <div key={i} style={{ display: "flex", gap: 10, padding: "10px 12px", borderRadius: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
@@ -209,12 +255,12 @@ function TechDetailSheet({ fighter, technique, onClose, onBack, locale, router }
           )}
 
           {/* Body cue */}
-          {technique.bodyCue && SECTION("🤸", locale === "mn" ? "Бие мэдрэмж" : "Body feel",
+          {technique.bodyCue && SECTION("🤸", t.bodyFeel,
             <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.65)", lineHeight: 1.5, fontStyle: "italic" }}>&ldquo;{technique.bodyCue}&rdquo;</p>
           )}
 
           {/* What you should feel */}
-          {(technique.whatYouShouldFeel || []).length > 0 && SECTION("✋", locale === "mn" ? "Юу мэдрэх вэ" : "What you should feel",
+          {(technique.whatYouShouldFeel || []).length > 0 && SECTION("✋", t.whatFeel,
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {technique.whatYouShouldFeel.map((cue, i) => (
                 <div key={i} style={{ display: "flex", gap: 8, padding: "8px 12px", borderRadius: 8, background: "rgba(59,130,246,0.07)", border: "1px solid rgba(59,130,246,0.18)" }}>
@@ -226,14 +272,14 @@ function TechDetailSheet({ fighter, technique, onClose, onBack, locale, router }
           )}
 
           {/* Common mistake */}
-          {technique.commonMistake && SECTION("⚠️", locale === "mn" ? "Нийтлэг алдаа" : "Common mistake",
+          {technique.commonMistake && SECTION("⚠️", t.commonMistake,
             <div style={{ padding: "10px 12px", borderRadius: 10, background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.22)" }}>
               <p style={{ margin: 0, fontSize: 12.5, color: "#fca5a5", lineHeight: 1.45 }}>{technique.commonMistake}</p>
             </div>
           )}
 
           {/* Drill */}
-          {(technique.drillSteps || []).length > 0 && SECTION("🎯", locale === "mn" ? "Дасгал" : "Drill",
+          {(technique.drillSteps || []).length > 0 && SECTION("🎯", t.drill,
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {technique.drillSteps.map((step, i) => (
                 <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
@@ -245,12 +291,12 @@ function TechDetailSheet({ fighter, technique, onClose, onBack, locale, router }
           )}
 
           {/* Coach notes */}
-          {technique.coachNotes && SECTION("💡", locale === "mn" ? "Коучийн зөвлөгөө" : "Coach notes",
+          {technique.coachNotes && SECTION("💡", t.coachNotes,
             <p style={{ margin: 0, fontSize: 12.5, color: GOLD, lineHeight: 1.5 }}>{technique.coachNotes}</p>
           )}
 
           {/* Scoring metrics */}
-          {(technique.scoringMetrics || []).length > 0 && SECTION("📊", locale === "mn" ? "GAVANA оноо өгөх аргачлал" : "How GAVANA scores this",
+          {(technique.scoringMetrics || []).length > 0 && SECTION("📊", t.howScored,
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {technique.scoringMetrics.map((m, i) => (
                 <div key={i} style={{ padding: "9px 12px", borderRadius: 8, background: "rgba(245,196,81,0.06)", border: "1px solid rgba(245,196,81,0.18)" }}>
@@ -290,7 +336,7 @@ function TechDetailSheet({ fighter, technique, onClose, onBack, locale, router }
               boxShadow: `0 8px 28px ${fighter.accent}40`,
             }}
           >
-            {locale === "mn" ? "⚡ Энэ техникийг дасгалдах" : locale === "ko" ? "⚡ 이 기술 훈련하기" : "⚡ Train This Technique"}
+            {t.trainCta}
           </button>
         </div>
       </div>

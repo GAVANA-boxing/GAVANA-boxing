@@ -194,6 +194,7 @@ export default function TrainPage() {
   const [debriefLoading, setDebriefLoading] = useState(false);
   const [focusTip, setFocusTip] = useState(null);
   const [newBadges, setNewBadges] = useState([]);
+  const [dnaMilestone, setDnaMilestone] = useState(null);
   const [poseSessionSummary, setPoseSessionSummary] = useState(null);
   const [prevPoseMetrics, setPrevPoseMetrics] = useState(null);
   const [positionCue, setPositionCue] = useState(null);
@@ -394,6 +395,38 @@ export default function TrainPage() {
       return () => clearTimeout(timer);
     }
   }, [saved, savedAttemptNumber]);
+
+  // ── DNA milestone moments after session save ──────────────────────────────
+  useEffect(() => {
+    if (!saved || !savedAttemptNumber) return;
+    const DNA_MILESTONES = {
+      8:  { emoji: "🧬", en: "Archetype Signal Strong",   mn: "Archetype дохио хүчтэй",           ko: "아키타입 신호 강함",
+             hint: { en: "Your Fighter DNA is forming — check your profile!", mn: "Тулаанчийн ДНХ бүрдэж байна — профайлаа шалга!", ko: "파이터 DNA 형성 중 — 프로필 확인!" }, cta: true,
+             firestoreKey: "milestoneUnlocked8" },
+      15: { emoji: "⚗️", en: "Fighter Identity Emerging", mn: "Тулаанчийн мөн чанар бүрдэж байна", ko: "파이터 아이덴티티 형성",
+             hint: { en: "Your style is becoming clear. Try an experiment!", mn: "Таны хэв маяг тодорхой болж байна. Туршилт хийгээрэй!", ko: "스타일이 명확해지고 있습니다. 실험해 보세요!" },
+             firestoreKey: "milestoneUnlocked15" },
+    };
+    const milestone = DNA_MILESTONES[savedAttemptNumber];
+    if (milestone) {
+      setDnaMilestone(milestone);
+      const timer = setTimeout(() => setDnaMilestone(null), 6000);
+      // Persist milestone to Firestore
+      if (user?.uid && milestone.firestoreKey) {
+        (async () => {
+          try {
+            const { doc, setDoc, serverTimestamp } = await import("firebase/firestore");
+            const { db } = await import("@/lib/firebase");
+            await setDoc(doc(db, "users", user.uid), {
+              [milestone.firestoreKey]: true,
+              [`${milestone.firestoreKey}At`]: serverTimestamp(),
+            }, { merge: true });
+          } catch { /* non-critical */ }
+        })();
+      }
+      return () => clearTimeout(timer);
+    }
+  }, [saved, savedAttemptNumber, user?.uid]);
 
   // ── Lesson context from query params ─────────────────────────────────────
   const [lessonContext, setLessonContext] = useState(null);
@@ -1081,6 +1114,37 @@ export default function TrainPage() {
           </div>
         </div>
       ))}
+
+      {/* DNA milestone moment toast */}
+      {dnaMilestone && (
+        <div style={{
+          position: "fixed",
+          bottom: `calc(88px + env(safe-area-inset-bottom))`,
+          left: "50%", transform: "translateX(-50%)",
+          maxWidth: "calc(100vw - 32px)",
+          zIndex: 9001, pointerEvents: "none",
+          display: "flex", alignItems: "flex-start", gap: 12,
+          padding: "14px 18px", borderRadius: 20,
+          background: "rgba(12,12,14,0.97)",
+          border: "1px solid rgba(139,92,246,0.35)",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.6), 0 0 40px rgba(139,92,246,0.15)",
+          backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
+          animation: "slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1)",
+        }}>
+          <span style={{ fontSize: 26, flexShrink: 0 }}>{dnaMilestone.emoji}</span>
+          <div>
+            <div style={{ fontSize: 9, fontWeight: 900, color: "#A78BFA", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 2 }}>
+              {locale === "mn" ? "ДНХ МӨЧЛӨГ" : locale === "ko" ? "DNA 마일스톤" : "DNA MILESTONE"}
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 900, color: "#fff" }}>
+              {dnaMilestone[locale] || dnaMilestone.en}
+            </div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 2 }}>
+              {dnaMilestone.hint[locale] || dnaMilestone.hint.en}
+            </div>
+          </div>
+        </div>
+      )}
 
     </main>
   );

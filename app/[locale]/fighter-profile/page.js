@@ -138,10 +138,30 @@ export default function FighterProfilePage() {
   const progress = computeCombatProgress({ sessions, streakDays: 0, locale });
   const dnaSavedRef       = useRef(false);
   const progressSavedRef  = useRef(false);
+  const [milestonesUnlocked, setMilestonesUnlocked] = useState({ m8: false, m15: false });
 
   useEffect(() => {
     if (!authLoading && !user) router.push(`/${locale}/login`);
   }, [authLoading, user, router, locale]);
+
+  // Load milestone badges from Firestore
+  useEffect(() => {
+    if (!user?.uid) return;
+    (async () => {
+      try {
+        const { doc, getDoc } = await import("firebase/firestore");
+        const { db } = await import("@/lib/firebase");
+        const snap = await getDoc(doc(db, "users", user.uid));
+        if (snap.exists()) {
+          const data = snap.data();
+          setMilestonesUnlocked({
+            m8:  !!data.milestoneUnlocked8,
+            m15: !!data.milestoneUnlocked15,
+          });
+        }
+      } catch { /* non-critical */ }
+    })();
+  }, [user?.uid]);
 
   // Persist DNA to Firestore once per page load after sessions settle
   useEffect(() => {
@@ -266,6 +286,36 @@ export default function FighterProfilePage() {
         {!loading && (
           <div style={{ marginBottom: 4 }}>
             <FighterDNACard dna={dna} locale={locale} />
+          </div>
+        )}
+
+        {/* DNA Milestone Badges */}
+        {(milestonesUnlocked.m8 || milestonesUnlocked.m15) && (
+          <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+            {milestonesUnlocked.m8 && (
+              <div style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "6px 12px", borderRadius: 20,
+                background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.35)",
+              }}>
+                <span style={{ fontSize: 14 }}>🧬</span>
+                <span style={{ fontSize: 10, fontWeight: 900, color: "#A78BFA", letterSpacing: 0.5 }}>
+                  {locale === "mn" ? "8-р тренинг" : locale === "ko" ? "세션 8 마일스톤" : "Session 8 Milestone"}
+                </span>
+              </div>
+            )}
+            {milestonesUnlocked.m15 && (
+              <div style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "6px 12px", borderRadius: 20,
+                background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.35)",
+              }}>
+                <span style={{ fontSize: 14 }}>⚗️</span>
+                <span style={{ fontSize: 10, fontWeight: 900, color: "#A78BFA", letterSpacing: 0.5 }}>
+                  {locale === "mn" ? "15-р тренинг" : locale === "ko" ? "세션 15 마일스톤" : "Session 15 Milestone"}
+                </span>
+              </div>
+            )}
           </div>
         )}
 
