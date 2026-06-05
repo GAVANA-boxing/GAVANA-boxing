@@ -53,6 +53,27 @@ export function RequestCard({ request, requesterUser, t, locale, onAccept, onDec
         <p style={styles.cardMessage}>{request.message}</p>
       )}
 
+      {(requesterUser?.fighterDNA?.archetypeKey || requesterUser?.weightClass) && (
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6, marginBottom: 4 }}>
+          {requesterUser?.fighterDNA?.archetypeKey && (() => {
+            const ARCH_COLORS = { pressure: "#EF4444", outboxer: "#3B82F6", counter: "#8B5CF6", explosive: "#F59E0B", technician: "#10B981" };
+            const ARCH_LABELS = { pressure: "Pressure", outboxer: "Outboxer", counter: "Counter", explosive: "Explosive", technician: "Technician" };
+            const arch = requesterUser.fighterDNA.archetypeKey;
+            const color = ARCH_COLORS[arch] || "#fff";
+            return (
+              <span style={{ fontSize: 9, fontWeight: 900, padding: "2px 8px", borderRadius: 6, background: `${color}18`, border: `1px solid ${color}35`, color, letterSpacing: 0.5, textTransform: "uppercase" }}>
+                🧬 {ARCH_LABELS[arch] || arch}
+              </span>
+            );
+          })()}
+          {requesterUser?.weightClass && (
+            <span style={{ fontSize: 9, fontWeight: 900, padding: "2px 8px", borderRadius: 6, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)", letterSpacing: 0.5 }}>
+              ⚖️ {requesterUser.weightClass}
+            </span>
+          )}
+        </div>
+      )}
+
       {request.type === "sparring" && request.sparringPostId && (
         <div style={styles.sparringTag}>
           {t("coachSparringPostTag")}

@@ -263,7 +263,7 @@ function CoachReviewCard({ poseMetrics, result, locale }) {
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
         <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.8, color: `${toneAccent}bb`, textTransform: "uppercase" }}>
-          COACH REVIEW
+          {locale === "mn" ? "ТРЕНЕРИЙН ДҮГНЭЛТ" : locale === "ko" ? "코치 리뷰" : "COACH REVIEW"}
         </div>
         <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.05)" }} />
         <div style={{ fontSize: 8.5, fontWeight: 900, color: "rgba(255,255,255,0.28)", letterSpacing: 1 }}>
@@ -784,7 +784,7 @@ export default function TrainResultModal({
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <div>
                     <div style={{ fontSize: 26, fontWeight: 1000, fontFamily: "var(--font-display, 'Anton', sans-serif)", color: "#fff" }}>{result.score.toFixed(1)}</div>
-                    <div style={{ fontSize: 9, color: whiteAlpha(0.35), fontWeight: 800, letterSpacing: 1.5, marginTop: 2 }}>YOU</div>
+                    <div style={{ fontSize: 9, color: whiteAlpha(0.35), fontWeight: 800, letterSpacing: 1.5, marginTop: 2 }}>{locale === "mn" ? "ТА" : locale === "ko" ? "나" : "YOU"}</div>
                   </div>
                   <div style={{ fontSize: 10, color: whiteAlpha(0.22), fontWeight: 800 }}>VS</div>
                   <div style={{ textAlign: "right" }}>
@@ -830,7 +830,7 @@ export default function TrainResultModal({
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                         <div>
                           <div style={{ fontSize: 26, fontWeight: 1000, fontFamily: "var(--font-display,'Anton',sans-serif)", color: "#34D399" }}>{result.score.toFixed(1)}</div>
-                          <div style={{ fontSize: 9, color: whiteAlpha(0.35), fontWeight: 800, letterSpacing: 1.5, marginTop: 2 }}>YOU</div>
+                          <div style={{ fontSize: 9, color: whiteAlpha(0.35), fontWeight: 800, letterSpacing: 1.5, marginTop: 2 }}>{locale === "mn" ? "ТА" : locale === "ko" ? "나" : "YOU"}</div>
                         </div>
                         <div style={{ textAlign: "center" }}>
                           <div style={{ fontSize: 12, fontWeight: 900, color: "#34D399" }}>
@@ -870,7 +870,7 @@ export default function TrainResultModal({
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <div>
                           <div style={{ fontSize: 26, fontWeight: 1000, fontFamily: "var(--font-display,'Anton',sans-serif)", color: "#fff" }}>{result.score.toFixed(1)}</div>
-                          <div style={{ fontSize: 9, color: whiteAlpha(0.35), fontWeight: 800, letterSpacing: 1.5, marginTop: 2 }}>YOU</div>
+                          <div style={{ fontSize: 9, color: whiteAlpha(0.35), fontWeight: 800, letterSpacing: 1.5, marginTop: 2 }}>{locale === "mn" ? "ТА" : locale === "ko" ? "나" : "YOU"}</div>
                         </div>
                         <div style={{ textAlign: "center" }}>
                           <div style={{ fontSize: 12, fontWeight: 900, color: "#F87171" }}>
@@ -936,7 +936,7 @@ export default function TrainResultModal({
                   <div style={{ fontSize: 18, fontWeight: 1000, color: GOLD }}>{getChallengeRank(result.score)}</div>
                 </div>
                 <div style={{ flex: 1, borderRadius: RADIUS.md, padding: "12px", background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.07)}`, textAlign: "center" }}>
-                  <div style={{ fontSize: 9, color: whiteAlpha(0.32), fontWeight: 800, letterSpacing: 1.5, marginBottom: 5 }}>BEAT</div>
+                  <div style={{ fontSize: 9, color: whiteAlpha(0.32), fontWeight: 800, letterSpacing: 1.5, marginBottom: 5 }}>{locale === "mn" ? "ЯЛСАН" : locale === "ko" ? "이긴 비율" : "BEAT"}</div>
                   <div style={{ fontSize: 18, fontWeight: 1000, color: "#fff" }}>{getChallengeComparisonPercent(result.score)}%</div>
                 </div>
               </div>
@@ -991,9 +991,12 @@ export default function TrainResultModal({
                     {score && score !== null && (
                       <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                         <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.5, color: scoreColor }}>
-                          {score}
+                          {score === "PERFECT" ? (locale === "mn" ? "ТӨГС" : locale === "ko" ? "완벽" : "PERFECT")
+                           : score === "GOOD"    ? (locale === "mn" ? "САЙН" : locale === "ko" ? "좋음" : "GOOD")
+                           : score === "LIMITED" ? (locale === "mn" ? "ХЯЗГААРЛАГДМАЛ" : locale === "ko" ? "제한적" : "LIMITED")
+                           : (locale === "mn" ? "МУУ" : locale === "ko" ? "나쁨" : "POOR")}
                         </span>
-                        <span style={{ fontSize: 9, color: whiteAlpha(0.22), fontWeight: 700 }}>CAMERA</span>
+                        <span style={{ fontSize: 9, color: whiteAlpha(0.22), fontWeight: 700 }}>{locale === "mn" ? "КАМЕР" : locale === "ko" ? "카메라" : "CAMERA"}</span>
                       </div>
                     )}
                     {poseMetrics.punchCount > 0 ? (
