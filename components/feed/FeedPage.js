@@ -83,6 +83,30 @@ export default function FeedPage({ reels, locale, router, user, userArchetype, f
   const t    = useCallback((key) => translate(locale, key), [locale]);
   const noop = useCallback(() => {}, []);
 
+  const handleBreakdown = useCallback((reel) => {
+    router.push(`/${locale}/ai-analysis/${reel.id}`);
+  }, [router, locale]);
+
+  const handleReport = useCallback(async (reel) => {
+    if (!user?.uid) { router.push(`/${locale}/login`); return; }
+    const confirmed = window.confirm(
+      locale === "mn" ? "Энэ контентыг мэдэгдэх үү?"
+      : locale === "ko" ? "이 콘텐츠를 신고하시겠습니까?"
+      : "Report this content?"
+    );
+    if (!confirmed) return;
+    try {
+      const { getAuth } = await import("firebase/auth");
+      const token = await getAuth().currentUser?.getIdToken();
+      if (!token) return;
+      await fetch("/api/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ targetId: reel.id, targetType: "reel", reason: "other" }),
+      });
+    } catch { /* non-critical */ }
+  }, [user, router, locale]);
+
   // Sync allReels when parent data changes
   useEffect(() => { setAllReels(reels); }, [reels]);
 
@@ -410,9 +434,9 @@ export default function FeedPage({ reels, locale, router, user, userArchetype, f
                 onShare={handleShare}
                 onSave={handleSave}
                 onGetFeedback={noop}
-                onBreakdown={noop}
+                onBreakdown={handleBreakdown}
                 onCaptionSheet={(id)   => setCaptionSheetReelId(id)}
-                onReport={noop}
+                onReport={handleReport}
                 setVideoProgress={(p)  => setVideoProgressMap((prev) => ({ ...prev, [reel.id]: p }))}
                 isFollowing={followingSet.has(reel.userId)}
                 followLoading={loadingSet.has(reel.userId)}
