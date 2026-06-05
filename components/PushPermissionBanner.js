@@ -1,12 +1,38 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { RED, RED_DARK, GOLD, redAlpha, goldAlpha , blackAlpha} from "@/lib/tokens";
 import { useAuth } from "@/lib/AuthContext";
 import { useFcmToken } from "@/hooks/useFcmToken";
+import { getLocaleFromPathname } from "@/lib/i18n";
+
+const PB_L = {
+  en: {
+    kicker:  "COMBAT ALERTS",
+    title:   "Enable Notifications",
+    sub:     "Get streak reminders and DNA updates",
+    allow:   "ALLOW",
+  },
+  mn: {
+    kicker:  "ТУЛААНЫ МЭДЭГДЭЛ",
+    title:   "Мэдэгдэл идэвхжүүлэх",
+    sub:     "Streak сануулга болон ДНХ шинэчлэл авах",
+    allow:   "ЗӨВШӨӨРӨХ",
+  },
+  ko: {
+    kicker:  "전투 알림",
+    title:   "알림 활성화",
+    sub:     "스트릭 리마인더와 DNA 업데이트 받기",
+    allow:   "허용",
+  },
+};
 
 export default function PushPermissionBanner() {
   const { user } = useAuth();
+  const pathname = usePathname();
+  const locale = getLocaleFromPathname(pathname);
+  const L = PB_L[locale] || PB_L.en;
   const [show, setShow] = useState(false);
   const [granted, setGranted] = useState(false);
 
@@ -54,14 +80,14 @@ export default function PushPermissionBanner() {
       </div>
 
       <div style={s.body}>
-        <p style={s.label}>COMBAT ALERTS</p>
-        <p style={s.title}>Enable Notifications</p>
-        <p style={s.sub}>Know instantly when someone challenges you</p>
+        <p style={s.label}>{L.kicker}</p>
+        <p style={s.title}>{L.title}</p>
+        <p style={s.sub}>{L.sub}</p>
       </div>
 
       <div style={s.actions}>
         <button type="button" onClick={handleAllow} style={s.allowBtn}>
-          ALLOW
+          {L.allow}
         </button>
         <button type="button" onClick={handleDismiss} aria-label="Dismiss" style={s.dismissBtn}>
           ✕

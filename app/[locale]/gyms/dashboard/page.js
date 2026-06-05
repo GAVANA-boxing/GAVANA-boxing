@@ -265,7 +265,8 @@ export default function GymDashboardPage() {
         <div style={{ ...styles.tabs, flexWrap: "wrap" }}>
           {[
             { key: "requests", label: t("gymJoinRequests"), badge: joinRequests.length > 0 ? joinRequests.length : null },
-            { key: "members", label: `${t("gymDashMembersTab")} (${members.length})` },
+            { key: "members",  label: `${t("gymDashMembersTab")} (${members.length})` },
+            { key: "dna",      label: locale === "mn" ? "ДНХ" : locale === "ko" ? "DNA" : "DNA" },
             { key: "sessions", label: t("gymDashSessionsTab") },
             { key: "announce", label: t("gymDashAnnounceTab") },
           ].map(({ key, label, badge }) => (
@@ -395,19 +396,238 @@ export default function GymDashboardPage() {
           </div>
         )}
 
+        {/* Fighter DNA Distribution */}
+        {activeTab === "dna" && (() => {
+          const ARCH_COLORS_GD = { pressure: "#EF4444", outboxer: "#3B82F6", counter: "#8B5CF6", explosive: "#F59E0B", technician: "#10B981" };
+          const ARCH_NAMES_GD  = {
+            en: { pressure: "Pressure", outboxer: "Outboxer", counter: "Counter", explosive: "Explosive", technician: "Technician" },
+            mn: { pressure: "Дарамт", outboxer: "Аутбоксер", counter: "Контр", explosive: "Тэсрэмтгий", technician: "Техникийн" },
+            ko: { pressure: "압박", outboxer: "아웃복싱", counter: "카운터", explosive: "폭발력", technician: "기술" },
+          };
+          const AL = ARCH_NAMES_GD[locale] || ARCH_NAMES_GD.en;
+          const dist = {};
+          members.forEach((m) => {
+            const arch = requesterUsers[m.userId]?.fighterDNA?.archetypeKey;
+            if (arch) dist[arch] = (dist[arch] || 0) + 1;
+          });
+          const total     = members.length;
+          const confirmed = Object.values(dist).reduce((a, b) => a + b, 0);
+          const building  = total - confirmed;
+          const sorted    = Object.entries(dist).sort(([, a], [, b]) => b - a);
+          const topArch   = sorted[0]?.[0];
+
+          if (total === 0) return <EmptyState emoji="🧬" title={locale === "mn" ? "Гишүүд байхгүй байна" : locale === "ko" ? "멤버 없음" : "No members yet"} />;
+
+          return (
+            <div>
+              {/* Summary stats */}
+              <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+                <div style={{ flex: 1, padding: "12px 8px", borderRadius: 12, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", textAlign: "center" }}>
+                  <div style={{ fontSize: 24, fontWeight: 1000, color: "#fff", fontFamily: "var(--font-display,'Anton',sans-serif)" }}>{total}</div>
+                  <div style={{ fontSize: 8, fontWeight: 900, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: 1 }}>{locale === "mn" ? "Нийт" : locale === "ko" ? "전체" : "Total"}</div>
+                </div>
+                <div style={{ flex: 1, padding: "12px 8px", borderRadius: 12, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", textAlign: "center" }}>
+                  <div style={{ fontSize: 24, fontWeight: 1000, color: "#34D399", fontFamily: "var(--font-display,'Anton',sans-serif)" }}>{confirmed}</div>
+                  <div style={{ fontSize: 8, fontWeight: 900, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: 1 }}>{locale === "mn" ? "ДНХ тогтсон" : locale === "ko" ? "DNA 확정" : "Confirmed"}</div>
+                </div>
+                {topArch && (
+                  <div style={{ flex: 1, padding: "12px 8px", borderRadius: 12, background: `${ARCH_COLORS_GD[topArch]}10`, border: `1px solid ${ARCH_COLORS_GD[topArch]}30`, textAlign: "center" }}>
+                    <div style={{ fontSize: 13, fontWeight: 1000, color: ARCH_COLORS_GD[topArch], lineHeight: 1.2 }}>{AL[topArch]}</div>
+                    <div style={{ fontSize: 8, fontWeight: 900, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: 1, marginTop: 2 }}>{locale === "mn" ? "Хамгийн олон" : locale === "ko" ? "최다" : "Top"}</div>
+                  </div>
+                )}
+              </div>
+
+              {/* Distribution bars */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {sorted.map(([arch, count]) => (
+                  <div key={arch} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ width: 80, fontSize: 11, fontWeight: 800, color: ARCH_COLORS_GD[arch], flexShrink: 0 }}>{AL[arch]}</span>
+                    <div style={{ flex: 1, height: 8, background: "rgba(255,255,255,0.06)", borderRadius: 4, overflow: "hidden" }}>
+                      <div style={{ width: `${(count / total) * 100}%`, height: "100%", background: ARCH_COLORS_GD[arch], borderRadius: 4, boxShadow: `0 0 6px ${ARCH_COLORS_GD[arch]}55`, transition: "width 0.8s cubic-bezier(0.16,1,0.3,1)" }} />
+                    </div>
+                    <span style={{ width: 30, textAlign: "right", fontSize: 14, fontWeight: 900, color: ARCH_COLORS_GD[arch], fontFamily: "var(--font-display,'Anton',sans-serif)" }}>{count}</span>
+                  </div>
+                ))}
+                {building > 0 && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ width: 80, fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.3)", flexShrink: 0 }}>{locale === "mn" ? "Бүрдэж байна" : locale === "ko" ? "구축 중" : "Building"}</span>
+                    <div style={{ flex: 1, height: 8, background: "rgba(255,255,255,0.06)", borderRadius: 4, overflow: "hidden" }}>
+                      <div style={{ width: `${(building / total) * 100}%`, height: "100%", background: "rgba(255,255,255,0.12)", borderRadius: 4 }} />
+                    </div>
+                    <span style={{ width: 30, textAlign: "right", fontSize: 14, fontWeight: 900, color: "rgba(255,255,255,0.3)", fontFamily: "var(--font-display,'Anton',sans-serif)" }}>{building}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Top by archetype */}
+              {sorted.length > 0 && (
+                <div style={{ marginTop: 20 }}>
+                  <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.8, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 12 }}>
+                    {locale === "mn" ? "АРХЕТИПИЙН ТОП ГИШҮҮД" : locale === "ko" ? "아키타입별 TOP 멤버" : "TOP BY ARCHETYPE"}
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {sorted.map(([arch]) => {
+                      const topMember = members.find((m) => requesterUsers[m.userId]?.fighterDNA?.archetypeKey === arch);
+                      if (!topMember) return null;
+                      const mu = requesterUsers[topMember.userId] || {};
+                      const name = mu.displayName || mu.username || mu.name || "Fighter";
+                      const photo = mu.photoURL || mu.profileImageUrl || "";
+                      const archColor = ARCH_COLORS_GD[arch];
+                      return (
+                        <button
+                          key={arch}
+                          type="button"
+                          onClick={() => topMember.userId && router.push(`/${locale}/profile/${topMember.userId}`)}
+                          style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 12, background: `${archColor}08`, border: `1px solid ${archColor}22`, textAlign: "left", cursor: "pointer", color: "#fff" }}
+                        >
+                          <div style={{ width: 34, height: 34, borderRadius: "50%", background: `${archColor}20`, border: `1px solid ${archColor}40`, overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            {photo
+                              ? <img src={photo} alt="" width={34} height={34} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+                              : <span style={{ fontSize: 13, fontWeight: 900, color: archColor }}>{name[0]?.toUpperCase()}</span>
+                            }
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 12, fontWeight: 900, color: "#fff", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</div>
+                            <div style={{ fontSize: 9, fontWeight: 900, color: archColor, textTransform: "uppercase", letterSpacing: 0.5, marginTop: 1 }}>{AL[arch]}</div>
+                          </div>
+                          <div style={{ fontSize: 18, color: "rgba(255,255,255,0.15)" }}>›</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
         {/* Sessions */}
-        {activeTab === "sessions" && (
-          <EmptyState
-            emoji="📅"
-            title={t("gymDashSessionSchedule")}
-            hint={t("gymDashSessionHint")}
-            action={
-              <button type="button" style={{ padding: "11px 24px", borderRadius: 999, border: "none", background: "linear-gradient(135deg, #FF3B30, #cc2820)", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", marginTop: 4 }} onClick={() => router.push(`/${locale}/coach`)}>
-                {t("gymDashFindCoaches")}
-              </button>
-            }
-          />
-        )}
+        {activeTab === "sessions" && (() => {
+          const ARCH_COLORS_S = { pressure: "#EF4444", outboxer: "#3B82F6", counter: "#8B5CF6", explosive: "#F59E0B", technician: "#10B981" };
+
+          if (members.length === 0) {
+            return (
+              <EmptyState
+                emoji="📅"
+                title={t("gymDashSessionSchedule")}
+                hint={locale === "mn" ? "Гишүүдийг урьж, дасгалын идэвхийг энд харна уу." : locale === "ko" ? "멤버를 초대하고 활동을 확인하세요." : "Invite members and track their activity here."}
+                action={
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "center", marginTop: 4 }}>
+                    <button
+                      type="button"
+                      style={{ padding: "11px 24px", borderRadius: 999, border: "none", background: "linear-gradient(135deg, #FF3B30, #cc2820)", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer" }}
+                      onClick={() => router.push(`/${locale}/coach`)}
+                    >
+                      {t("gymDashFindCoaches")}
+                    </button>
+                    <button
+                      type="button"
+                      style={{ padding: "10px 22px", borderRadius: 999, border: "1px solid rgba(245,196,81,0.4)", background: "rgba(245,196,81,0.08)", color: GOLD, fontSize: 13, fontWeight: 900, cursor: "pointer" }}
+                      onClick={() => {
+                        const link = `${window.location.origin}/${locale}/gyms/${gym?.id || ""}`;
+                        navigator.clipboard?.writeText(link).catch(() => {});
+                      }}
+                    >
+                      {locale === "mn" ? "Урилга хуулах" : locale === "ko" ? "초대 링크 복사" : "Copy Invite Link"}
+                    </button>
+                  </div>
+                }
+              />
+            );
+          }
+
+          return (
+            <div>
+              {/* Summary bar */}
+              <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+                <div style={{ flex: 1, padding: "12px 8px", borderRadius: 12, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", textAlign: "center" }}>
+                  <div style={{ fontSize: 24, fontWeight: 1000, color: "#fff", fontFamily: "var(--font-display,'Anton',sans-serif)" }}>{members.length}</div>
+                  <div style={{ fontSize: 8, fontWeight: 900, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: 1 }}>
+                    {locale === "mn" ? "Гишүүд" : locale === "ko" ? "멤버" : "Members"}
+                  </div>
+                </div>
+                <div style={{ flex: 1, padding: "12px 8px", borderRadius: 12, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", textAlign: "center" }}>
+                  <div style={{ fontSize: 24, fontWeight: 1000, color: "#34D399", fontFamily: "var(--font-display,'Anton',sans-serif)" }}>
+                    {members.filter((m) => requesterUsers[m.userId]?.fighterDNA?.archetypeKey).length}
+                  </div>
+                  <div style={{ fontSize: 8, fontWeight: 900, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: 1 }}>
+                    {locale === "mn" ? "ДНХ тогтсон" : locale === "ko" ? "DNA 확정" : "DNA Set"}
+                  </div>
+                </div>
+                <div
+                  style={{ flex: 1, padding: "12px 8px", borderRadius: 12, background: "rgba(245,196,81,0.06)", border: "1px solid rgba(245,196,81,0.15)", textAlign: "center", cursor: "pointer" }}
+                  onClick={() => {
+                    const link = `${window.location.origin}/${locale}/gyms/${gym?.id || ""}`;
+                    navigator.clipboard?.writeText(link).catch(() => {});
+                  }}
+                >
+                  <div style={{ fontSize: 20, lineHeight: 1.4 }}>🔗</div>
+                  <div style={{ fontSize: 8, fontWeight: 900, color: GOLD, textTransform: "uppercase", letterSpacing: 1 }}>
+                    {locale === "mn" ? "Урилга" : locale === "ko" ? "초대" : "Invite"}
+                  </div>
+                </div>
+              </div>
+
+              {/* Member activity list */}
+              <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.8, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 10 }}>
+                {locale === "mn" ? "ГИШҮҮДИЙН ИДЭВХ" : locale === "ko" ? "멤버 활동" : "MEMBER ACTIVITY"}
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {members.map((mem) => {
+                  const mu = requesterUsers[mem.userId] || {};
+                  const name = mu.displayName || mu.username || mu.name || "Fighter";
+                  const photo = mu.photoURL || mu.profileImageUrl || "";
+                  const arch = mu.fighterDNA?.archetypeKey || mu.archetype || "";
+                  const archColor = ARCH_COLORS_S[arch] || "rgba(255,255,255,0.3)";
+                  const tier = mu.subscriptionTier || "fan";
+                  const joinedAt = mem.reviewedAt?.toDate
+                    ? mem.reviewedAt.toDate().toLocaleDateString()
+                    : mem.createdAt?.toDate
+                    ? mem.createdAt.toDate().toLocaleDateString()
+                    : "";
+                  const tierLabel = tier === "pro" ? "PRO" : tier === "champion" ? "CHAMP" : null;
+                  const tierColor = tier === "champion" ? RED : tier === "pro" ? GOLD : null;
+
+                  return (
+                    <button
+                      key={mem.id}
+                      type="button"
+                      style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 12px", borderRadius: 12, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)", textAlign: "left", cursor: "pointer", color: "#fff" }}
+                      onClick={() => mem.userId && router.push(`/${locale}/profile/${mem.userId}`)}
+                    >
+                      <div style={{ width: 38, height: 38, borderRadius: "50%", background: arch ? `${archColor}20` : "rgba(255,255,255,0.08)", border: `1.5px solid ${arch ? archColor + "40" : "rgba(255,255,255,0.1)"}`, overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        {photo
+                          ? <img src={photo} alt="" width={38} height={38} style={{ objectFit: "cover", width: "100%", height: "100%" }} />
+                          : <span style={{ fontSize: 14, fontWeight: 900, color: arch ? archColor : "rgba(255,255,255,0.5)" }}>{name[0]?.toUpperCase()}</span>
+                        }
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <span style={{ fontSize: 13, fontWeight: 900, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</span>
+                          {tierLabel && (
+                            <span style={{ fontSize: 8, fontWeight: 900, color: tierColor, border: `1px solid ${tierColor}55`, padding: "1px 5px", borderRadius: 4, flexShrink: 0 }}>{tierLabel}</span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: 10, color: arch ? archColor : "rgba(255,255,255,0.3)", fontWeight: 700, marginTop: 1 }}>
+                          {arch ? arch.toUpperCase() : (locale === "mn" ? "ДНХ тогтоогдоогүй" : locale === "ko" ? "DNA 미설정" : "DNA not set")}
+                        </div>
+                      </div>
+                      {joinedAt && (
+                        <div style={{ textAlign: "right", flexShrink: 0 }}>
+                          <div style={{ fontSize: 8, color: "rgba(255,255,255,0.25)", fontWeight: 600 }}>
+                            {locale === "mn" ? "Элссэн" : locale === "ko" ? "가입" : "Joined"}
+                          </div>
+                          <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>{joinedAt}</div>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Announcements */}
         {activeTab === "announce" && (

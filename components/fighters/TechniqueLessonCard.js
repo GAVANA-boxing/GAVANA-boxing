@@ -6,18 +6,33 @@ import { RED, GOLD, PURPLE, RADIUS, redAlpha } from "@/lib/tokens";
 const ORANGE = "#FB923C";
 
 // ─── Difficulty ────────────────────────────────────────────────────────────────
-const DIFF = {
-  beginner:     { label: "BEGINNER",     color: "#10B981" },
-  intermediate: { label: "INTERMEDIATE", color: "#F59E0B" },
-  advanced:     { label: "ADVANCED",     color: "#F87171" },
+const DIFF_COLOR = {
+  beginner:     "#10B981",
+  intermediate: "#F59E0B",
+  advanced:     "#F87171",
+};
+
+const DIFF_LABEL = {
+  beginner:     { en: "BEGINNER",     mn: "АНХАН",  ko: "초급" },
+  intermediate: { en: "INTERMEDIATE", mn: "ДУНД",   ko: "중급" },
+  advanced:     { en: "ADVANCED",     mn: "АХИСАН", ko: "고급" },
 };
 
 // ─── Teaching block labels ─────────────────────────────────────────────────────
 const BLOCK_LABEL = {
-  FOOT:   "FOOT POSITION",
-  WEIGHT: "WEIGHT TRANSFER",
-  ANGLE:  "ANGLE / PATH",
-  GUARD:  "GUARD LINE",
+  FOOT:   { en: "FOOT POSITION",    mn: "ХӨЛИЙН БАЙРЛАЛ",     ko: "발 위치" },
+  WEIGHT: { en: "WEIGHT TRANSFER",  mn: "ЖИНГИЙН ШИЛЖИЛТ",    ko: "체중 이동" },
+  ANGLE:  { en: "ANGLE / PATH",     mn: "ӨНЦӨГ / ЗАМ",        ko: "각도 / 경로" },
+  GUARD:  { en: "GUARD LINE",       mn: "ХАМГААЛАЛТЫН ШУГАМ",  ko: "가드 라인" },
+};
+
+const SECTION_LABELS = {
+  whyItWorks:    { en: "Why it works",     mn: "Яагаад ажилладаг вэ", ko: "왜 효과적인가" },
+  feelThis:      { en: "Feel This",        mn: "Мэдрэмж",              ko: "느낌" },
+  commonMistake: { en: "Common Mistake",   mn: "Нийтлэг алдаа",        ko: "흔한 실수" },
+  coachCue:      { en: "Coach Cue",        mn: "Коучийн зөвлөгөө",     ko: "코치 조언" },
+  drillSteps:    { en: "Drill Steps",      mn: "Дасгалын алхамууд",    ko: "드릴 단계" },
+  drillThis:     { en: "DRILL THIS",       mn: "ДАСГАЛ ХИЙХ",          ko: "드릴 시작" },
 };
 
 // ─── Teaching block icons ──────────────────────────────────────────────────────
@@ -101,7 +116,12 @@ export default function TechniqueLessonCard({
   router,
 }) {
   const [open, setOpen] = useState(defaultOpen);
-  const diff = DIFF[difficulty] || DIFF.intermediate;
+  const lng = locale === "mn" ? "mn" : locale === "ko" ? "ko" : "en";
+  const L = (key) => SECTION_LABELS[key]?.[lng] || SECTION_LABELS[key]?.en || key;
+  const diff = {
+    label: DIFF_LABEL[difficulty]?.[lng] || difficulty?.toUpperCase() || "INTERMEDIATE",
+    color: DIFF_COLOR[difficulty] || "#F59E0B",
+  };
 
   return (
     <div style={{
@@ -174,7 +194,7 @@ export default function TechniqueLessonCard({
                 transition: "color 240ms ease",
               }}>
                 <BlockIcon type={b.type} color={open ? accent : "rgba(255,255,255,0.28)"} size={9} />
-                {b.type}
+                {BLOCK_LABEL[b.type]?.[lng] || b.type}
               </span>
             ))}
           </div>
@@ -197,7 +217,7 @@ export default function TechniqueLessonCard({
                   <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 5 }}>
                     <BlockIcon type={b.type} color={accent} size={11} />
                     <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1.2, color: accent, textTransform: "uppercase" }}>
-                      {BLOCK_LABEL[b.type] || b.type}
+                      {BLOCK_LABEL[b.type]?.[lng] || BLOCK_LABEL[b.type]?.en || b.type}
                     </span>
                   </div>
                   <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.58)", lineHeight: 1.45 }}>
@@ -211,7 +231,7 @@ export default function TechniqueLessonCard({
           {/* Why it works */}
           {explanation && (
             <>
-              <SectionDivider label="Why it works" />
+              <SectionDivider label={L("whyItWorks")} />
               <p style={{ margin: "0 0 12px", fontSize: 13, color: "rgba(255,255,255,0.72)", lineHeight: 1.65 }}>
                 {explanation}
               </p>
@@ -220,21 +240,21 @@ export default function TechniqueLessonCard({
 
           {/* Feel this */}
           {bodyCue && (
-            <CueBlock icon={ICON_FEEL} label="Feel This" color={PURPLE} italic>
+            <CueBlock icon={ICON_FEEL} label={L("feelThis")} color={PURPLE} italic>
               {bodyCue}
             </CueBlock>
           )}
 
           {/* Common mistake */}
           {commonMistake && (
-            <CueBlock icon={ICON_MISTAKE} label="Common Mistake" color={ORANGE}>
+            <CueBlock icon={ICON_MISTAKE} label={L("commonMistake")} color={ORANGE}>
               {commonMistake}
             </CueBlock>
           )}
 
           {/* Coach cue */}
           {coachNotes && (
-            <CueBlock icon={ICON_COACH} label="Coach Cue" color={GOLD} italic>
+            <CueBlock icon={ICON_COACH} label={L("coachCue")} color={GOLD} italic>
               {coachNotes}
             </CueBlock>
           )}
@@ -242,7 +262,7 @@ export default function TechniqueLessonCard({
           {/* Drill steps */}
           {drillSteps.length > 0 && (
             <div style={{ marginBottom: router ? 12 : 0 }}>
-              <SectionDivider label="Drill Steps" />
+              <SectionDivider label={L("drillSteps")} />
               {drillSteps.map((step, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 9, marginBottom: i < drillSteps.length - 1 ? 7 : 0 }}>
                   <div style={{
@@ -279,7 +299,7 @@ export default function TechniqueLessonCard({
               <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" stroke="none">
                 <polygon points="5 3 19 12 5 21 5 3"/>
               </svg>
-              DRILL THIS
+              {L("drillThis")}
             </button>
           )}
 

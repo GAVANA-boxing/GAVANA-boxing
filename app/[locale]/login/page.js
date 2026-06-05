@@ -12,15 +12,19 @@ import {
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
-import { useAuth } from "@/lib/AuthContext";
+import { useAuth, AUTH_REDIRECT_FLAG } from "@/lib/AuthContext";
 import { getLocale, translate } from "@/lib/i18n";
 import { RED, GOLD, redAlpha } from "@/lib/tokens";
 
-function isMobileBrowser() {
+// Only true in-app browsers that CANNOT open popups at all need redirect.
+// Regular iOS Safari supports signInWithPopup in Firebase 9.9+ — using redirect
+// there causes a blank white page due to iOS ITP blocking cookies on firebaseapp.com.
+function needsRedirectFlow() {
   if (typeof navigator === "undefined") return false;
   const ua = navigator.userAgent;
-  if (/Instagram|FBAN|FBAV|Twitter|Line\/|TikTok/.test(ua)) return true;
-  if (/iPhone|iPad|iPod/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua)) return true;
+  // Instagram, Facebook, TikTok, Twitter, Line in-app browsers
+  if (/Instagram|FBAN|FBAV|Twitter\/|Line\/|TikTok/.test(ua)) return true;
+  // Android WebView (embedded browser in apps)
   if (/Android/.test(ua) && /wv/.test(ua)) return true;
   return false;
 }
@@ -76,7 +80,10 @@ export default function LoginPage() {
   const [loading,         setLoading]         = useState(false);
   const [googleLoading,   setGoogleLoading]   = useState(false);
   const [error,           setError]           = useState("");
+  const [errorCode,       setErrorCode]       = useState("");
   const [focusedField,    setFocusedField]    = useState(null);
+
+  const showError = (msg, code = "") => { setError(msg); setErrorCode(code); };
 
   const onboardingUrl = redirectParam
     ? `/${locale}/onboarding?redirect=${encodeURIComponent(redirectParam)}`
@@ -88,12 +95,18 @@ export default function LoginPage() {
 
   useEffect(() => { setIsSignUp(initialMode === "signup"); }, [initialMode]);
 
-  // Handle Google redirect result — fires after signInWithRedirect returns
+  // Handle Google redirect result — fires after signInWithRedirect returns.
+  // AuthContext also calls getRedirectResult to gate loading; this call handles
+  // post-auth routing (onboarding vs home). Firebase returns the credential to
+  // the first consumer and null to subsequent ones within the same page load.
   useEffect(() => {
     let active = true;
     getRedirectResult(auth)
       .then(async (cred) => {
+        // Always clear the flag — AuthContext may have consumed the credential first
+        if (typeof window !== "undefined") localStorage.removeItem(AUTH_REDIRECT_FLAG);
         if (!active || !cred) return;
+        if (typeof window !== "undefined") localStorage.removeItem(AUTH_REDIRECT_FLAG);
         const { uid, email: gEmail, displayName: gName, photoURL: gPhoto } = cred.user;
         const snap = await getDoc(doc(db, "users", uid));
         if (!snap.exists()) {
@@ -111,21 +124,29 @@ export default function LoginPage() {
         router.push(!userData.onboardingComplete ? onboardingUrl : redirectTo);
       })
       .catch((err) => {
+        if (typeof window !== "undefined") localStorage.removeItem(AUTH_REDIRECT_FLAG);
         if (!active) return;
+        if (typeof window !== "undefined") localStorage.removeItem(AUTH_REDIRECT_FLAG);
         console.error("[Google redirect result]", err.code, err.message);
         if (err.code && err.code !== "auth/popup-closed-by-user") {
-          setError(getFriendlyGoogleError(err.code, t));
+          showError(getFriendlyGoogleError(err.code, t), err.code);
         }
       });
     return () => { active = false; };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // AuthContext holds loading=true until both onAuthStateChanged AND any pending
+  // redirect resolve — so authLoading alone prevents the blank-form flash.
   if (authLoading) return (
     <div style={S.page} className="grain-overlay">
       <div className="scanline" />
       <div style={S.loadingWrap}>
         <p style={{ color: RED, letterSpacing: 2, fontSize: 10, fontWeight: 900, textTransform: "uppercase" }}>COMBAT · BOXING</p>
-        <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>{t("loading")}</p>
+        <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
+          {typeof window !== "undefined" && localStorage.getItem(AUTH_REDIRECT_FLAG)
+            ? (locale === "mn" ? "Google-ээр нэвтэрч байна..." : locale === "ko" ? "Google로 로그인 중..." : "Signing in with Google...")
+            : t("loading")}
+        </p>
       </div>
     </div>
   );
@@ -175,17 +196,23 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     if (googleLoading) return;
     setError("");
+    setErrorCode("");
     setGoogleLoading(true);
     const provider = new GoogleAuthProvider();
 
     // iOS Safari and in-app browsers (Instagram, Facebook, etc.) block popups —
-    // use redirect flow directly on those environments
-    if (isMobileBrowser()) {
+    // use redirect flow directly on those environments.
+    // FLAG must be set BEFORE the call so the returning page knows a redirect is
+    // in flight and keeps showing loading instead of flashing the login form.
+    if (needsRedirectFlow()) {
       try {
+        if (typeof window !== "undefined") localStorage.setItem(AUTH_REDIRECT_FLAG, "1");
         await signInWithRedirect(auth, provider);
       } catch (redirectErr) {
+        if (typeof window !== "undefined") localStorage.removeItem(AUTH_REDIRECT_FLAG);
         setGoogleLoading(false);
-        setError(getFriendlyGoogleError(redirectErr.code, t));
+        console.error("[Google redirect error]", redirectErr.code, redirectErr.message);
+        showError(getFriendlyGoogleError(redirectErr.code, t), redirectErr.code);
       }
       return;
     }
@@ -211,11 +238,20 @@ export default function LoginPage() {
       console.error("[Google sign-in error]", err.code, err.message);
       if (err.code === "auth/popup-blocked" || err.code === "auth/operation-not-supported-in-this-environment") {
         // Popup blocked on desktop — fall back to redirect
-        await signInWithRedirect(auth, provider);
-        return;
-      }
-      if (err.code !== "auth/popup-closed-by-user") {
-        setError(getFriendlyGoogleError(err.code, t));
+        try {
+          if (typeof window !== "undefined") localStorage.setItem(AUTH_REDIRECT_FLAG, "1");
+          await signInWithRedirect(auth, provider);
+          return;
+        } catch (redirErr) {
+          if (typeof window !== "undefined") localStorage.removeItem(AUTH_REDIRECT_FLAG);
+          console.error("[Google redirect fallback error]", redirErr.code, redirErr.message);
+          showError(getFriendlyGoogleError(redirErr.code, t), redirErr.code);
+        }
+      } else if (err.code === "auth/popup-closed-by-user" || err.code === "auth/cancelled-popup-request") {
+        // User closed the popup — show a gentle message so they know they need to try again
+        showError(locale === "mn" ? "Google popup хаагдлаа. Дахин оролдоно уу." : locale === "ko" ? "Google 팝업이 닫혔습니다. 다시 시도하세요." : "Google popup was closed. Please try again.", err.code);
+      } else {
+        showError(getFriendlyGoogleError(err.code, t), err.code);
       }
     } finally {
       setGoogleLoading(false);
@@ -354,7 +390,16 @@ export default function LoginPage() {
               </div>
             )}
 
-            {error && <div style={S.errorBox}>{error}</div>}
+            {error && (
+              <div style={S.errorBox}>
+                {error}
+                {errorCode && (
+                  <div style={{ marginTop: 4, fontSize: 10, opacity: 0.55, fontFamily: "monospace" }}>
+                    {errorCode}
+                  </div>
+                )}
+              </div>
+            )}
 
             <button
               type="submit"
@@ -378,7 +423,7 @@ export default function LoginPage() {
           </form>
 
           <button
-            onClick={() => { setError(""); setIsSignUp(!isSignUp); }}
+            onClick={() => { setError(""); setErrorCode(""); setIsSignUp(!isSignUp); }}
             style={S.switchBtn}
           >
             {isSignUp ? t("loginAlreadyHaveAccount") : t("loginNeedAccount")}

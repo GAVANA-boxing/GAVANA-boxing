@@ -1,8 +1,6 @@
 import { verifyIdToken } from "@/lib/verifyAuth";
 
 const PROJECT = "gavana-boxing-89a22";
-const API_KEY = process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyDwVdR5oVYSXQbWL4jqNSNx9cqKuKxqt6c";
-const FS_BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents`;
 
 const _reportRateMap = new Map();
 function isReportRateLimited(uid) {
@@ -15,27 +13,42 @@ function isReportRateLimited(uid) {
 }
 
 const VALID_TARGET_TYPES = ["reel", "user", "comment", "event"];
+const VALID_REASONS      = ["spam", "violence", "harassment", "misinform", "other"];
+
+let _cachedToken = null;
+let _tokenExpiry = 0;
+
+async function getServiceAccountToken() {
+  if (_cachedToken && Date.now() < _tokenExpiry - 60_000) return _cachedToken;
+  const b64 = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
+  if (!b64) return null;
+  try {
+    const { GoogleAuth } = await import("google-auth-library");
+    const credentials = JSON.parse(Buffer.from(b64, "base64").toString("utf8"));
+    const auth = new GoogleAuth({
+      credentials,
+      scopes: ["https://www.googleapis.com/auth/datastore"],
+    });
+    const client = await auth.getClient();
+    const tokenResponse = await client.getAccessToken();
+    _cachedToken = tokenResponse.token;
+    _tokenExpiry = Date.now() + 3_600_000;
+    return _cachedToken;
+  } catch { return null; }
+}
 
 export async function POST(req) {
-  const authHeader = req.headers.get("Authorization") || "";
-  const idToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
   const reporterId = await verifyIdToken(req);
   if (!reporterId) return Response.json({ error: "Unauthorized" }, { status: 401 });
   if (isReportRateLimited(reporterId)) return Response.json({ error: "Rate limited" }, { status: 429 });
 
-  const { targetId, targetType = "reel", reason, note = "" } = await req.json();
-  if (!targetId || !reason) {
-    return Response.json({ error: "Missing targetId or reason" }, { status: 400 });
-  }
+  const { targetId, targetType = "reel", reason = "other", note = "" } = await req.json();
+  if (!targetId) return Response.json({ error: "Missing targetId" }, { status: 400 });
+  if (!VALID_TARGET_TYPES.includes(targetType)) return Response.json({ error: "Invalid targetType" }, { status: 400 });
+  if (!VALID_REASONS.includes(reason)) return Response.json({ error: "Invalid reason" }, { status: 400 });
 
-  if (!VALID_TARGET_TYPES.includes(targetType)) {
-    return Response.json({ error: "Invalid targetType" }, { status: 400 });
-  }
-
-  const VALID_REASONS = ["spam", "violence", "harassment", "misinform", "other"];
-  if (!VALID_REASONS.includes(reason)) {
-    return Response.json({ error: "Invalid reason" }, { status: 400 });
-  }
+  const serviceToken = await getServiceAccountToken();
+  if (!serviceToken) return Response.json({ error: "Server configuration error" }, { status: 500 });
 
   const body = {
     fields: {
@@ -49,18 +62,15 @@ export async function POST(req) {
     },
   };
 
-  const res = await fetch(`${FS_BASE}/reports?key=${API_KEY}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
-    },
-    body: JSON.stringify(body),
-  });
+  const res = await fetch(
+    `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents/reports`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${serviceToken}` },
+      body: JSON.stringify(body),
+    }
+  );
 
-  if (!res.ok) {
-    return Response.json({ error: "Failed to write report" }, { status: 500 });
-  }
-
+  if (!res.ok) return Response.json({ error: "Failed to write report" }, { status: 500 });
   return Response.json({ ok: true });
 }

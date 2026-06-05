@@ -12,6 +12,9 @@ import dynamic from "next/dynamic";
 const MotionChart = dynamic(() => import("@/components/train/MotionChart"), { ssr: false });
 import RankBadge from "@/components/RankBadge";
 import styles from "@/components/train/trainStyles";
+import { getBelt } from "@/lib/belts";
+import { computeScoreConfidence, CONFIDENCE_TIPS } from "@/lib/scoreConfidence";
+import { computePunchPattern } from "@/lib/movementInsight";
 
 function useCountUp(target, duration = 1000) {
   const [display, setDisplay] = useState(0);
@@ -31,22 +34,24 @@ function useCountUp(target, duration = 1000) {
 
 // Sub-labels for result modal display
 const IDENTITY_SUBS = {
-  "PRESSURE INITIATOR": "Forward-dominant pressure style",
-  "MOBILE OUTBOXER":    "Strong lateral movement control",
-  "REACTIVE COUNTER":   "Movement-reactive defensive reads",
-  "GUARD INSTABILITY":  "Guard line needs consolidation",
-  "BALANCE BREAKER":    "Dynamic weight transfer detected",
-  "NARROW BASE":        "Stance too narrow — widen your base",
-  "FORWARD HUNTER":     "Aggressive entry pattern detected",
-  "SHARP EXECUTION":    "High-efficiency movement session",
-  "SOLID FOUNDATION":   "Consistent movement quality",
-  "DEVELOPING STYLE":   "Pattern emerging — keep building",
-  "RAW ENERGY":         "Pure intensity — structure coming",
+  "PRESSURE INITIATOR": { en: "Forward-dominant pressure style",      mn: "Урагшлах даралтын хэв маяг",       ko: "앞으로 밀어붙이는 압박 스타일" },
+  "MOBILE OUTBOXER":    { en: "Strong lateral movement control",      mn: "Хажуугийн хөдөлгөөний хяналт",      ko: "강한 측면 이동 제어" },
+  "REACTIVE COUNTER":   { en: "Movement-reactive defensive reads",    mn: "Хөдөлгөөнд суурилсан хамгаалалт",   ko: "움직임 기반 방어 판단" },
+  "GUARD INSTABILITY":  { en: "Guard line needs consolidation",       mn: "Хамгаалалтын шугамаа бэхжүүл",      ko: "가드 라인 강화 필요" },
+  "BALANCE BREAKER":    { en: "Dynamic weight transfer detected",     mn: "Динамик жингийн шилжилт илэрсэн",   ko: "동적 체중 이동 감지" },
+  "NARROW BASE":        { en: "Stance too narrow — widen your base",  mn: "Зогсоол хэт нарийн — өргөл",        ko: "스탠스 너무 좁음 — 넓혀라" },
+  "FORWARD HUNTER":     { en: "Aggressive entry pattern detected",    mn: "Довтолгооны хэв маяг илэрсэн",      ko: "공격적인 진입 패턴 감지" },
+  "SHARP EXECUTION":    { en: "High-efficiency movement session",     mn: "Өндөр үр ашигтай хөдөлгөөн",        ko: "고효율 움직임 세션" },
+  "SOLID FOUNDATION":   { en: "Consistent movement quality",         mn: "Тогтвортой хөдөлгөөний чанар",      ko: "일관된 움직임 품질" },
+  "DEVELOPING STYLE":   { en: "Pattern emerging — keep building",    mn: "Хэв маяг бүрдэж байна — үргэлжлүүл", ko: "패턴 형성 중 — 계속 쌓아라" },
+  "RAW ENERGY":         { en: "Pure intensity — structure coming",   mn: "Цэвэр эрч хүч — бүтэц бүрдэж байна", ko: "순수한 강도 — 구조 형성 중" },
 };
 
-function getIdentityWithSub(score, movementEvents, poseMetrics) {
+function getIdentityWithSub(score, movementEvents, poseMetrics, locale = "en") {
   const title = getSessionIdentity(score, movementEvents, poseMetrics);
-  return { title, sub: IDENTITY_SUBS[title] || "" };
+  const subs = IDENTITY_SUBS[title];
+  const sub = subs ? (subs[locale] || subs.en) : "";
+  return { title, sub };
 }
 
 function computeComparison(curr, prev) {
@@ -142,6 +147,40 @@ const REVIEW_LABELS = {
   ko: { wellDone: "잘한 점", mainFix: "주요 개선점", drill: "드릴", nextGoal: "다음 세션 목표", notEnough: "데이터 부족", positionTip: "트래킹 팁" },
 };
 
+// ── Punch pattern breakdown — first glimpse of Fighter DNA ───────────────────
+function PunchPatternCard({ poseMetrics, t }) {
+  const pattern = computePunchPattern(poseMetrics?.punchBreakdown);
+  if (!pattern) return null;
+  const bars = [
+    { key: "punchTypeJab",   pct: pattern.jabPct,   count: pattern.jab,   color: "#3B82F6" },
+    { key: "punchTypeCross", pct: pattern.crossPct, count: pattern.cross, color: "#EF4444" },
+    { key: "punchTypeHook",  pct: pattern.hookPct,  count: pattern.hook,  color: "#8B5CF6" },
+  ];
+  return (
+    <div style={{ margin: "12px 20px 0", padding: "12px 14px", borderRadius: 12, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)" }}>
+      <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.8, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 10 }}>
+        🥊 {t("punchPatternTitle")}
+      </div>
+      {bars.map((bar) => (
+        <div key={bar.key} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+          <div style={{ width: 38, fontSize: 9, fontWeight: 900, color: "rgba(255,255,255,0.38)", textTransform: "uppercase", letterSpacing: 0.5 }}>
+            {t(bar.key)}
+          </div>
+          <div style={{ flex: 1, height: 5, background: "rgba(255,255,255,0.07)", borderRadius: 3, overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${bar.pct}%`, background: bar.color, borderRadius: 3, transition: "width 1s cubic-bezier(0.16,1,0.3,1)" }} />
+          </div>
+          <div style={{ width: 30, fontSize: 9, fontWeight: 900, color: "rgba(255,255,255,0.45)", textAlign: "right" }}>
+            {bar.pct}%
+          </div>
+        </div>
+      ))}
+      <div style={{ marginTop: 10, fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.35)", textAlign: "center", letterSpacing: 0.3 }}>
+        {t(pattern.patternKey)}
+      </div>
+    </div>
+  );
+}
+
 // ── Quick 3-line coaching summary shown before the detailed analysis ──────────
 function ActionSummary({ poseMetrics, result, locale }) {
   const review = generateTechniqueReview({ poseMetrics, result, locale });
@@ -224,7 +263,7 @@ function CoachReviewCard({ poseMetrics, result, locale }) {
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
         <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.8, color: `${toneAccent}bb`, textTransform: "uppercase" }}>
-          COACH REVIEW
+          {locale === "mn" ? "ТРЕНЕРИЙН ДҮГНЭЛТ" : locale === "ko" ? "코치 리뷰" : "COACH REVIEW"}
         </div>
         <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.05)" }} />
         <div style={{ fontSize: 8.5, fontWeight: 900, color: "rgba(255,255,255,0.28)", letterSpacing: 1 }}>
@@ -330,6 +369,7 @@ export default function TrainResultModal({
   challengeSaving,
   challengeSaved,
   rankUpInfo,
+  beltUpInfo,
   sessionHistory,
   ghostBestScore,
   pvpResult,
@@ -374,7 +414,12 @@ export default function TrainResultModal({
   recordedBlob     = null,
   thumbnailBlob    = null,
 }) {
-  const displayScore = useCountUp(result?.score);
+  // Compute confidence early so we can cap the animated score
+  const _punchCount = (poseMetrics?.punchCount ?? result?.hitCount ?? 0);
+  const _scoreConf = computeScoreConfidence(_punchCount, poseMetrics?.sessionConfidence ?? null, poseMetrics?.cameraQuality ?? null);
+  const _scoreCap = _scoreConf === "low" ? 7.5 : _scoreConf === "medium" ? 8.5 : 10;
+  const _cappedScore = result ? Math.min(result.score, _scoreCap) : 0;
+  const displayScore = useCountUp(_cappedScore);
   const [sessionTag, setSessionTag] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
   const [clipDuration, setClipDuration] = useState(null);
@@ -393,8 +438,11 @@ export default function TrainResultModal({
   const effectivePunchCount = poseMetrics?.punchCount ?? result.hitCount ?? 0;
   const tooFewPunches = effectivePunchCount < MIN_PUNCHES;
 
+  const scoreConf = _scoreConf;
+  const isLowConfidence = scoreConf === "low" || scoreConf === "none";
+
   const events = movementEvents || [];
-  const identity = tooFewPunches ? null : getIdentityWithSub(result.score, events, poseMetrics);
+  const identity = tooFewPunches ? null : getIdentityWithSub(result.score, events, poseMetrics, locale);
   const movementSummary = getMovementSummary(events);
   const comparison = computeComparison(poseMetrics, prevPoseMetrics);
   const timelineEvents = events.slice(-8);
@@ -415,15 +463,28 @@ export default function TrainResultModal({
 
         {/* ── HEADER ───────────────────────────────────────────────── */}
         <div style={{ padding: "20px 20px 14px", flexShrink: 0, borderBottom: `1px solid ${whiteAlpha(0.05)}` }}>
-          <p style={{ margin: 0, fontSize: 9, fontWeight: 900, letterSpacing: 3.5, color: goldAlpha(0.65), textTransform: "uppercase" }}>
-            {analysisLabel}
-          </p>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
+            <p style={{ margin: 0, fontSize: 9, fontWeight: 900, letterSpacing: 3.5, color: goldAlpha(0.65), textTransform: "uppercase" }}>
+              {analysisLabel}
+            </p>
+            {/* Confidence badge */}
+            {!tooFewPunches && (() => {
+              const confMap = { high: { label: t("scoreConfidenceHigh"), color: "#34D399", bg: "rgba(52,211,153,0.1)" }, medium: { label: t("scoreConfidenceMedium"), color: "#F5C451", bg: "rgba(245,196,81,0.1)" }, low: { label: t("scoreConfidenceLow"), color: "#FB923C", bg: "rgba(251,146,60,0.1)" } };
+              const cm = confMap[scoreConf];
+              if (!cm) return null;
+              return (
+                <span style={{ fontSize: 8, fontWeight: 900, color: cm.color, background: cm.bg, padding: "3px 8px", borderRadius: 20, letterSpacing: 0.5 }}>
+                  {cm.label}
+                </span>
+              );
+            })()}
+          </div>
 
           {tooFewPunches ? (
             /* ── Not enough data ── */
             <div style={{ margin: "16px 0 10px" }}>
               <h2 style={{ margin: "0 0 6px", fontSize: 22, fontWeight: 1000, color: whiteAlpha(0.55), letterSpacing: "-0.01em" }}>
-                {locale === "mn" ? "Хангалтгүй өгөгдөл" : "Not Enough Data"}
+                {locale === "mn" ? "Хангалтгүй өгөгдөл" : locale === "ko" ? "데이터 부족" : "Not Enough Data"}
               </h2>
               <p style={{ margin: 0, fontSize: 12, color: whiteAlpha(0.35), lineHeight: 1.5 }}>
                 {locale === "mn"
@@ -469,6 +530,23 @@ export default function TrainResultModal({
             </>
           )}
         </div>
+
+        {/* ── LOW CONFIDENCE TIPS ──────────────────────────────────── */}
+        {isLowConfidence && !tooFewPunches && (
+          <div style={{ margin: "0 20px 0", padding: "12px 14px", borderRadius: 12, background: "rgba(251,146,60,0.06)", border: "1px solid rgba(251,146,60,0.2)" }}>
+            <div style={{ fontSize: 10, fontWeight: 900, color: "#FB923C", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8 }}>
+              ⚠ {t("confidenceLowNote")}
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {CONFIDENCE_TIPS.map((tip) => (
+                <div key={tip.key} style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 9px", borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <span style={{ fontSize: 12 }}>{tip.icon}</span>
+                  <span style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", fontWeight: 700 }}>{t(tip.key)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ── RETURN SUMMARY ───────────────────────────────────────── */}
         {!tooFewPunches && (() => {
@@ -527,6 +605,11 @@ export default function TrainResultModal({
             </div>
           );
         })()}
+
+        {/* ── PUNCH PATTERN (Fighter DNA seed) ─────────────────────── */}
+        {poseMetrics && !tooFewPunches && scoreConf !== "none" && (
+          <PunchPatternCard poseMetrics={poseMetrics} t={t} />
+        )}
 
         {/* ── ACTION SUMMARY: GOOD / FIX / NEXT ────────────────────── */}
         {poseMetrics && !tooFewPunches && (
@@ -701,7 +784,7 @@ export default function TrainResultModal({
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <div>
                     <div style={{ fontSize: 26, fontWeight: 1000, fontFamily: "var(--font-display, 'Anton', sans-serif)", color: "#fff" }}>{result.score.toFixed(1)}</div>
-                    <div style={{ fontSize: 9, color: whiteAlpha(0.35), fontWeight: 800, letterSpacing: 1.5, marginTop: 2 }}>YOU</div>
+                    <div style={{ fontSize: 9, color: whiteAlpha(0.35), fontWeight: 800, letterSpacing: 1.5, marginTop: 2 }}>{locale === "mn" ? "ТА" : locale === "ko" ? "나" : "YOU"}</div>
                   </div>
                   <div style={{ fontSize: 10, color: whiteAlpha(0.22), fontWeight: 800 }}>VS</div>
                   <div style={{ textAlign: "right" }}>
@@ -733,29 +816,79 @@ export default function TrainResultModal({
                   background: beaten ? "rgba(52,211,153,0.06)" : "rgba(248,113,113,0.06)",
                   border: `1px solid ${beaten ? "rgba(52,211,153,0.2)" : "rgba(248,113,113,0.2)"}`,
                 }}>
-                  <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 2.5, color: beaten ? "#34D399" : "#F87171", marginBottom: 12 }}>
-                    {beaten ? "✅ Challenge Beaten" : "❌ Challenge Not Beaten"}
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <div>
-                      <div style={{ fontSize: 26, fontWeight: 1000, fontFamily: "var(--font-display,'Anton',sans-serif)", color: "#fff" }}>{result.score.toFixed(1)}</div>
-                      <div style={{ fontSize: 9, color: whiteAlpha(0.35), fontWeight: 800, letterSpacing: 1.5, marginTop: 2 }}>YOU</div>
-                    </div>
-                    <div style={{ textAlign: "center" }}>
-                      <div style={{ fontSize: 12, fontWeight: 900, color: beaten ? "#34D399" : "#F87171" }}>
-                        {diff >= 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1)}
+                  {beaten ? (
+                    <>
+                      <div style={{ textAlign: "center", marginBottom: 10 }}>
+                        <div style={{ fontSize: 24, letterSpacing: 6, marginBottom: 6 }}>🏆 ⚔️ 🥊</div>
+                        <div style={{ fontSize: 13, fontWeight: 900, letterSpacing: 2, color: "#34D399", textTransform: "uppercase", marginBottom: 4 }}>
+                          ✅ {locale === "mn" ? "Тулаан ялсан!" : locale === "ko" ? "챌린지 격파!" : "Challenge Beaten!"}
+                        </div>
+                        <div style={{ display: "inline-block", padding: "3px 12px", borderRadius: 999, background: "rgba(245,196,81,0.12)", border: "1px solid rgba(245,196,81,0.35)", fontSize: 10, fontWeight: 900, color: GOLD, letterSpacing: 1.5 }}>
+                          +50 XP {locale === "mn" ? "ТУЛААНЫ БОНУС" : locale === "ko" ? "챌린지 보너스" : "CHALLENGE BONUS"}
+                        </div>
                       </div>
-                      <div style={{ fontSize: 10, color: whiteAlpha(0.22), fontWeight: 800 }}>VS</div>
-                    </div>
-                    <div style={{ textAlign: "right" }}>
-                      <div style={{ fontSize: 26, fontWeight: 1000, fontFamily: "var(--font-display,'Anton',sans-serif)", color: whiteAlpha(0.5) }}>{target.toFixed(1)}</div>
-                      <div style={{ fontSize: 9, color: whiteAlpha(0.35), fontWeight: 800, letterSpacing: 1.5, marginTop: 2 }}>TARGET</div>
-                    </div>
-                  </div>
-                  {challengePostData.username && (
-                    <div style={{ marginTop: 8, fontSize: 10, color: whiteAlpha(0.3), fontWeight: 700 }}>
-                      @{challengePostData.username} · {challengePostData.challengeTitle || ""}
-                    </div>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                        <div>
+                          <div style={{ fontSize: 26, fontWeight: 1000, fontFamily: "var(--font-display,'Anton',sans-serif)", color: "#34D399" }}>{result.score.toFixed(1)}</div>
+                          <div style={{ fontSize: 9, color: whiteAlpha(0.35), fontWeight: 800, letterSpacing: 1.5, marginTop: 2 }}>{locale === "mn" ? "ТА" : locale === "ko" ? "나" : "YOU"}</div>
+                        </div>
+                        <div style={{ textAlign: "center" }}>
+                          <div style={{ fontSize: 12, fontWeight: 900, color: "#34D399" }}>
+                            {diff >= 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1)}
+                          </div>
+                          <div style={{ fontSize: 10, color: whiteAlpha(0.22), fontWeight: 800 }}>VS</div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ fontSize: 26, fontWeight: 1000, fontFamily: "var(--font-display,'Anton',sans-serif)", color: whiteAlpha(0.5) }}>{target.toFixed(1)}</div>
+                          <div style={{ fontSize: 9, color: whiteAlpha(0.35), fontWeight: 800, letterSpacing: 1.5, marginTop: 2 }}>TARGET</div>
+                        </div>
+                      </div>
+                      {challengePostData.username && (
+                        <div style={{ marginBottom: 10, fontSize: 10, color: whiteAlpha(0.3), fontWeight: 700 }}>
+                          @{challengePostData.username} · {challengePostData.challengeTitle || ""}
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => router.push(`/${locale}/leaderboard`)}
+                        style={{
+                          width: "100%", padding: "10px 0", borderRadius: 10,
+                          background: "linear-gradient(135deg,#34D399,#059669)",
+                          border: "none", color: "#000",
+                          fontSize: 11, fontWeight: 900, letterSpacing: 1,
+                          textTransform: "uppercase", cursor: "pointer",
+                        }}
+                      >
+                        ⚔️ {locale === "mn" ? "Дахин тулаан дуудах" : locale === "ko" ? "다른 파이터 도전" : "Challenge Another"}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 2.5, color: "#F87171", marginBottom: 12 }}>
+                        ❌ {locale === "mn" ? "Тулаан ялагдсан" : locale === "ko" ? "챌린지 실패" : "Challenge Not Beaten"}
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <div>
+                          <div style={{ fontSize: 26, fontWeight: 1000, fontFamily: "var(--font-display,'Anton',sans-serif)", color: "#fff" }}>{result.score.toFixed(1)}</div>
+                          <div style={{ fontSize: 9, color: whiteAlpha(0.35), fontWeight: 800, letterSpacing: 1.5, marginTop: 2 }}>{locale === "mn" ? "ТА" : locale === "ko" ? "나" : "YOU"}</div>
+                        </div>
+                        <div style={{ textAlign: "center" }}>
+                          <div style={{ fontSize: 12, fontWeight: 900, color: "#F87171" }}>
+                            {diff >= 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1)}
+                          </div>
+                          <div style={{ fontSize: 10, color: whiteAlpha(0.22), fontWeight: 800 }}>VS</div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ fontSize: 26, fontWeight: 1000, fontFamily: "var(--font-display,'Anton',sans-serif)", color: whiteAlpha(0.5) }}>{target.toFixed(1)}</div>
+                          <div style={{ fontSize: 9, color: whiteAlpha(0.35), fontWeight: 800, letterSpacing: 1.5, marginTop: 2 }}>TARGET</div>
+                        </div>
+                      </div>
+                      {challengePostData.username && (
+                        <div style={{ marginTop: 8, fontSize: 10, color: whiteAlpha(0.3), fontWeight: 700 }}>
+                          @{challengePostData.username} · {challengePostData.challengeTitle || ""}
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </>
@@ -803,7 +936,7 @@ export default function TrainResultModal({
                   <div style={{ fontSize: 18, fontWeight: 1000, color: GOLD }}>{getChallengeRank(result.score)}</div>
                 </div>
                 <div style={{ flex: 1, borderRadius: RADIUS.md, padding: "12px", background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.07)}`, textAlign: "center" }}>
-                  <div style={{ fontSize: 9, color: whiteAlpha(0.32), fontWeight: 800, letterSpacing: 1.5, marginBottom: 5 }}>BEAT</div>
+                  <div style={{ fontSize: 9, color: whiteAlpha(0.32), fontWeight: 800, letterSpacing: 1.5, marginBottom: 5 }}>{locale === "mn" ? "ЯЛСАН" : locale === "ko" ? "이긴 비율" : "BEAT"}</div>
                   <div style={{ fontSize: 18, fontWeight: 1000, color: "#fff" }}>{getChallengeComparisonPercent(result.score)}%</div>
                 </div>
               </div>
@@ -858,9 +991,12 @@ export default function TrainResultModal({
                     {score && score !== null && (
                       <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                         <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.5, color: scoreColor }}>
-                          {score}
+                          {score === "PERFECT" ? (locale === "mn" ? "ТӨГС" : locale === "ko" ? "완벽" : "PERFECT")
+                           : score === "GOOD"    ? (locale === "mn" ? "САЙН" : locale === "ko" ? "좋음" : "GOOD")
+                           : score === "LIMITED" ? (locale === "mn" ? "ХЯЗГААРЛАГДМАЛ" : locale === "ko" ? "제한적" : "LIMITED")
+                           : (locale === "mn" ? "МУУ" : locale === "ko" ? "나쁨" : "POOR")}
                         </span>
-                        <span style={{ fontSize: 9, color: whiteAlpha(0.22), fontWeight: 700 }}>CAMERA</span>
+                        <span style={{ fontSize: 9, color: whiteAlpha(0.22), fontWeight: 700 }}>{locale === "mn" ? "КАМЕР" : locale === "ko" ? "카메라" : "CAMERA"}</span>
                       </div>
                     )}
                     {poseMetrics.punchCount > 0 ? (
@@ -1306,10 +1442,18 @@ export default function TrainResultModal({
                     <>
                       <SectionLabel label={t("trainLabelCombatTelemetry")} />
                       <div style={{ borderRadius: RADIUS.md, padding: "10px 14px", background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.05)}` }}>
-                        <TelemetryBar label="Accuracy"    value={result.breakdown.accuracy} />
-                        <TelemetryBar label="Speed"       value={result.breakdown.speed} />
-                        <TelemetryBar label="Power"       value={result.breakdown.power} />
-                        <TelemetryBar label="Consistency" value={result.breakdown.consistency} />
+                        {[
+                          { key: "accuracy",    en: "Accuracy",    mn: "Нарийвчлал",  ko: "정확도" },
+                          { key: "speed",       en: "Speed",       mn: "Хурд",        ko: "속도" },
+                          { key: "power",       en: "Power",       mn: "Хүч",         ko: "파워" },
+                          { key: "consistency", en: "Consistency", mn: "Тогтвортой",  ko: "일관성" },
+                        ].map(({ key, en, mn, ko }) => (
+                          <TelemetryBar
+                            key={key}
+                            label={locale === "mn" ? mn : locale === "ko" ? ko : en}
+                            value={result.breakdown[key]}
+                          />
+                        ))}
                       </div>
                     </>
                   )}
@@ -1326,7 +1470,7 @@ export default function TrainResultModal({
                 <span style={{ fontSize: 22, fontWeight: 1000, color: GOLD, fontFamily: "var(--font-display, 'Anton', sans-serif)" }}>
                   +{result.xpGained}
                 </span>
-                <span style={{ fontSize: 10, color: whiteAlpha(0.32), fontWeight: 800, letterSpacing: 1 }}>XP EARNED</span>
+                <span style={{ fontSize: 10, color: whiteAlpha(0.32), fontWeight: 800, letterSpacing: 1 }}>{locale === "mn" ? "XP ЦУГЛУУЛСАН" : locale === "ko" ? "XP 획득" : "XP EARNED"}</span>
               </div>
               {!activeChallenge && result.rankProgress > 0 && (
                 <>
@@ -1334,7 +1478,9 @@ export default function TrainResultModal({
                     <div style={{ height: "100%", width: `${result.rankProgress}%`, background: goldAlpha(0.55), borderRadius: 2, transition: "width 0.9s cubic-bezier(0.16,1,0.3,1)" }} />
                   </div>
                   <div style={{ fontSize: 10, color: whiteAlpha(0.3), fontWeight: 700 }}>
-                    Rank progress — {result.rankProgress}%
+                    {locale === "mn" ? `Ранк дэвшил — ${result.rankProgress}%`
+                      : locale === "ko" ? `랭크 진행 — ${result.rankProgress}%`
+                      : `Rank progress — ${result.rankProgress}%`}
                   </div>
                 </>
               )}
@@ -1357,6 +1503,30 @@ export default function TrainResultModal({
                   {missionStreakBonus > 0 && (
                     <span style={styles.missionStreakBonusText}>{" "}+ {missionStreakBonus} XP 🔥{missionNewStreak} {t("missionStreakBonus")}</span>
                   )}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Belt Up */}
+          {beltUpInfo && (
+            <>
+              <SectionLabel label={locale === "mn" ? "БҮС ДЭВШИЛТ" : locale === "ko" ? "벨트 승급" : "BELT PROMOTION"} />
+              <div style={{
+                borderRadius: RADIUS.md, padding: "20px 20px", textAlign: "center",
+                background: `linear-gradient(135deg, ${beltUpInfo.color}14, ${blackAlpha(0.8)})`,
+                border: `2px solid ${beltUpInfo.color}55`,
+                animation: "rankUpPulse 2s ease-in-out infinite",
+              }}>
+                <div style={{ fontSize: 36, marginBottom: 8 }}>🥋</div>
+                <div style={{ fontSize: 15, fontWeight: 900, color: beltUpInfo.color, marginBottom: 4 }}>
+                  {locale === "mn" ? "БҮС АХИЛЛАА!" : locale === "ko" ? "벨트 승급!" : "BELT PROMOTED!"}
+                </div>
+                <div style={{ fontSize: 20, fontWeight: 900, color: "#fff", letterSpacing: 1 }}>
+                  {typeof t === "function" ? t(beltUpInfo.key) : beltUpInfo.key}
+                </div>
+                <div style={{ marginTop: 8, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                  {locale === "mn" ? "Гайхалтай ахиц дэвшил!" : locale === "ko" ? "엄청난 발전입니다!" : "Incredible progress!"}
                 </div>
               </div>
             </>
@@ -1429,8 +1599,10 @@ export default function TrainResultModal({
             </div>
           )}
           <div style={{ display: "grid", gap: 8 }}>
-            <button type="button" style={styles.tryAgainButton} onClick={onTryAgain}>
-              {activeChallenge ? t("challengeTryAgain") : t("trainTryAgain")}
+            <button type="button"
+              style={{ ...styles.tryAgainButton, ...(isLowConfidence ? { background: "linear-gradient(135deg,#FB923C,#F59E0B)", color: "#000", fontWeight: 900 } : {}) }}
+              onClick={onTryAgain}>
+              {isLowConfidence ? t("confidenceTryAgain") : activeChallenge ? t("challengeTryAgain") : t("trainTryAgain")}
             </button>
             {!activeChallenge && !saved && (
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 2 }}>
@@ -1453,7 +1625,7 @@ export default function TrainResultModal({
             {!tooFewPunches && !activeChallenge && !isGuest && (
               <button
                 type="button"
-                style={{ ...styles.saveButton, ...(saved ? styles.saveButtonDone : {}), opacity: saving || saved ? 0.65 : 1, cursor: saving || saved ? "default" : "pointer" }}
+                style={{ ...styles.saveButton, ...(saved ? styles.saveButtonDone : {}), ...(isLowConfidence && !saved ? { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.45)", fontSize: 11 } : {}), opacity: saving || saved ? 0.65 : 1, cursor: saving || saved ? "default" : "pointer" }}
                 onClick={() => {
                   // Strip heavy frame-by-frame arrays, keep compact weakness list for history
                   const { motionHistory: _mh, punchEvents: _pe, coaching, ...poseMetricsForSave } = poseMetrics || {};
@@ -1469,7 +1641,9 @@ export default function TrainResultModal({
                     ? t("trainAttemptSaved").replace("{n}", savedAttemptNumber)
                     : saved
                       ? t("trainSavedShort")
-                      : t("trainSaveProgress")}
+                      : isLowConfidence
+                        ? t("confidenceSaveAnyway")
+                        : t("trainSaveProgress")}
               </button>
             )}
             {!tooFewPunches && isGuest && (

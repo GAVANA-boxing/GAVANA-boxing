@@ -106,7 +106,11 @@ export function useOnboardingActions({ user, locale, router }) {
         "onboarding.completed": true,
       });
     } catch {}
-    router.replace(dest || `/${locale}/train`);
+    // Send fighters to First Mission — gives clear next steps instead of blank train page
+    const defaultDest = role === "coach" ? `/${locale}/coach/dashboard`
+      : role === "gym" ? `/${locale}/gyms/dashboard`
+      : `/${locale}/first-mission`;
+    router.replace(dest || defaultDest);
   };
 
   return {

@@ -66,7 +66,7 @@ export function FighterCard({ post, isMe, onRequest, sent, requesting, locale, i
 
         {/* Info */}
         <div style={c.infoBlock}>
-          <div style={c.name}>{post.displayName || "Fighter"}</div>
+          <div style={c.name}>{post.displayName || (locale === "mn" ? "Тулаанч" : locale === "ko" ? "파이터" : "Fighter")}</div>
           <div style={c.chips}>
             {post.rankKey && (
               <span style={{ ...c.chip, color: post.rankColor || "#fff", background: `${post.rankColor || "#fff"}12`, borderColor: `${post.rankColor || "#fff"}40` }}>
@@ -179,7 +179,7 @@ export function IncomingRequestCard({ req, onAccept, onDecline, accepting, decli
           )}
         </div>
         <div style={c.infoBlock}>
-          <div style={c.name}>{req.fromDisplayName || "Fighter"}</div>
+          <div style={c.name}>{req.fromDisplayName || (locale === "mn" ? "Тулаанч" : locale === "ko" ? "파이터" : "Fighter")}</div>
           <div style={c.chips}>
             {arch && <span style={{ ...c.chip, color: arch.color, background: `${arch.color}12`, borderColor: `${arch.color}40` }}>{arch.emoji} {arch.name.split(" ")[0]}</span>}
             {req.fromWeightClass && <span style={c.chip}>{req.fromWeightClass.split(" ")[0]}</span>}

@@ -4,10 +4,25 @@ import { RED, PURPLE, RADIUS, redAlpha, goldAlpha, GOLD, WARNING } from "@/lib/t
 
 const ORANGE = WARNING;
 
-const DIFF = {
-  beginner:     { label: "BEGINNER",     color: "#10B981" },
-  intermediate: { label: "INTERMEDIATE", color: "#F59E0B" },
-  advanced:     { label: "ADVANCED",     color: "#F87171" },
+const DIFF_COLOR = {
+  beginner:     "#10B981",
+  intermediate: "#F59E0B",
+  advanced:     "#F87171",
+};
+
+const DIFF_LABEL = {
+  beginner:     { en: "BEGINNER",     mn: "АНХАН",  ko: "초급" },
+  intermediate: { en: "INTERMEDIATE", mn: "ДУНД",   ko: "중급" },
+  advanced:     { en: "ADVANCED",     mn: "АХИСАН", ko: "고급" },
+};
+
+const LABELS = {
+  keyCues:       { en: "Key Cues",        mn: "Гол зааварчилгаа",    ko: "핵심 포인트" },
+  feelThis:      { en: "Feel This",       mn: "Мэдрэмж",             ko: "느낌" },
+  commonMistake: { en: "Common Mistake",  mn: "Нийтлэг алдаа",       ko: "흔한 실수" },
+  drillSteps:    { en: "Drill Steps",     mn: "Дасгалын алхамууд",   ko: "드릴 단계" },
+  drill:         { en: "Drill",           mn: "Дасгал",               ko: "드릴" },
+  startDrill:    { en: "START THIS DRILL",mn: "ДАСГАЛ ЭХЛЭХ",        ko: "드릴 시작" },
 };
 
 function CueRow({ icon, label, color, text, italic = false }) {
@@ -36,7 +51,10 @@ function CueRow({ icon, label, color, text, italic = false }) {
 export default function TrainingFocusCard({ fighterName, lesson, academyLesson, accent = RED, locale = "en", router, onStart }) {
   if (!lesson && !academyLesson) return null;
 
-  const diff = DIFF[(academyLesson || lesson)?.difficulty] || DIFF.intermediate;
+  const L = (key) => LABELS[key]?.[locale] || LABELS[key]?.en || key;
+  const lng = locale === "mn" ? "mn" : locale === "ko" ? "ko" : "en";
+  const diffKey = (academyLesson || lesson)?.difficulty || "intermediate";
+  const diff = { label: DIFF_LABEL[diffKey]?.[lng] || diffKey.toUpperCase(), color: DIFF_COLOR[diffKey] || "#F59E0B" };
   const ac = accent;
   const isAcademy = !!academyLesson;
 
@@ -93,7 +111,7 @@ export default function TrainingFocusCard({ fighterName, lesson, academyLesson, 
         {isAcademy && academyLesson.keyCues?.length > 0 ? (
           <div style={{ marginBottom: 10 }}>
             <div style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1.5, color: ac, textTransform: "uppercase", marginBottom: 7 }}>
-              Key Cues
+              {L("keyCues")}
             </div>
             {academyLesson.keyCues.map((cue, i) => (
               <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", marginBottom: i < academyLesson.keyCues.length - 1 ? 6 : 0 }}>
@@ -111,7 +129,7 @@ export default function TrainingFocusCard({ fighterName, lesson, academyLesson, 
           </div>
         ) : lesson?.bodyCue ? (
           <CueRow
-            label="Feel This" color={PURPLE} italic text={lesson.bodyCue}
+            label={L("feelThis")} color={PURPLE} italic text={lesson.bodyCue}
             icon={
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={PURPLE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
@@ -123,7 +141,7 @@ export default function TrainingFocusCard({ fighterName, lesson, academyLesson, 
         {/* Common Mistake */}
         {commonMistake && (
           <CueRow
-            label="Common Mistake" color={ORANGE} text={commonMistake}
+            label={L("commonMistake")} color={ORANGE} text={commonMistake}
             icon={
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={ORANGE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
@@ -137,7 +155,7 @@ export default function TrainingFocusCard({ fighterName, lesson, academyLesson, 
           <div style={{ marginBottom: onStart ? 14 : 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 9 }}>
               <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1.8, color: "rgba(255,255,255,0.22)", textTransform: "uppercase" }}>
-                {isAcademy ? academyLesson.drill?.title || "Drill" : "Drill Steps"}
+                {isAcademy ? academyLesson.drill?.title || L("drill") : L("drillSteps")}
               </span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.05)" }} />
             </div>
@@ -178,7 +196,7 @@ export default function TrainingFocusCard({ fighterName, lesson, academyLesson, 
             <svg width="10" height="10" viewBox="0 0 24 24" fill="white" stroke="none">
               <polygon points="5 3 19 12 5 21 5 3"/>
             </svg>
-            START THIS DRILL
+            {L("startDrill")}
           </button>
         )}
 

@@ -377,6 +377,39 @@ export default function UserProfilePage() {
         onStatNavigate={handleStatNavigate}
       />
 
+      {/* ── Fighter DNA teaser (own profile only) ── */}
+      {isOwnProfile && (() => {
+        const savedDNA = profileUser?.fighterDNA;
+        const dnaLabel = locale === "mn" ? "Тулаанчийн ДНХ" : locale === "ko" ? "파이터 DNA" : "Fighter DNA";
+        const dnaHint  = savedDNA?.archetype
+          ? savedDNA.archetype
+          : locale === "mn" ? "Бэлтгэл хийж, мөн чанараа нээ →" : locale === "ko" ? "훈련하여 정체성을 발견하세요 →" : "Train to discover your fighter identity →";
+        const dnaColor = savedDNA?.archetype ? GOLD : "rgba(255,255,255,0.28)";
+        return (
+          <button
+            type="button"
+            onClick={() => router.push(`/${locale}/fighter-profile`)}
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              width: "100%", margin: "0 0 4px", padding: "12px 20px",
+              background: "none", border: "none", cursor: "pointer", textAlign: "left",
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", marginBottom: 3 }}>
+                {dnaLabel}
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: dnaColor, lineHeight: 1.3 }}>
+                {dnaHint}
+              </div>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ color: "rgba(255,255,255,0.2)", flexShrink: 0 }}>
+              <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        );
+      })()}
+
       {/* ── Rival Comparison ── */}
       <ProfileRivalComparison
         isOwnProfile={isOwnProfile}

@@ -46,6 +46,29 @@ function SparringIcon({ active }) {
   );
 }
 
+// Add ChallengesIcon alongside existing icons
+function ChallengesIcon({ active }) {
+  return (
+    <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.38)" }} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+      <path d="M4 22h16"/>
+      <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+      <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+      <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+    </svg>
+  );
+}
+
+function ExploreIcon({ active }) {
+  return (
+    <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.38)" }} viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="9"/>
+      <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+    </svg>
+  );
+}
+
 function TrainIcon() {
   return (
     <svg style={{ width: 20, height: 20, display: "block", fill: "#fff", strokeWidth: 0 }} viewBox="0 0 24 24" aria-hidden="true">
@@ -107,6 +130,33 @@ const OS_ICONS = {
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/>
     </svg>
   ),
+  notifications: (
+    <svg style={osIc} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+      <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+    </svg>
+  ),
+  academy: (
+    <svg style={osIc} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M2 10 12 5l10 5-10 5-10-5Z"/>
+      <path d="M12 15v6"/>
+      <path d="M18 13v6"/>
+      <path d="M6 13v6"/>
+    </svg>
+  ),
+  history: (
+    <svg style={osIc} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+      <path d="M3 3v5h5"/>
+      <path d="M12 7v5l4 2"/>
+    </svg>
+  ),
+  settings: (
+    <svg style={osIc} viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+    </svg>
+  ),
   upload: (
     <svg style={osIc} viewBox="0 0 24 24" aria-hidden="true">
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -130,17 +180,18 @@ const OS_ICONS = {
 };
 
 const COMBAT_OS_ITEMS = [
-  { key: "coach",          labelEn: "AI Coach",        labelMn: "AI Дасгалжуулагч", labelKo: "AI 코치",   path: "/coach" },
-  { key: "fighter-profile",labelEn: "Fighter Profile", labelMn: "Тэмцэгч профайл",  labelKo: "파이터 프로필", path: "/fighter-profile" },
-  { key: "sparring",       labelEn: "Sparring",        labelMn: "Спарринг",          labelKo: "스파링",     path: "/sparring" },
-  { key: "fighters",       labelEn: "Fighters",        labelMn: "Тамирчид",          labelKo: "파이터",     path: "/fighters" },
-  { key: "gyms",           labelEn: "Gyms",            labelMn: "Заалнууд",          labelKo: "체육관",     path: "/gyms" },
-  { key: "challenges",     labelEn: "Challenges",      labelMn: "Даалгаврууд",       labelKo: "챌린지",     path: "/challenges" },
-  { key: "drills",         labelEn: "Drills",          labelMn: "Дасгалууд",         labelKo: "드릴",       path: "/drills" },
-  { key: "history",        labelEn: "History",         labelMn: "Түүх",              labelKo: "기록",       path: "/history" },
+  { key: "fighters",        labelEn: "Fighters",      labelMn: "Тулаанчид",        labelKo: "파이터",    path: "/fighters" },
+  { key: "challenges",      labelEn: "Challenges",    labelMn: "Сорилт",           labelKo: "챌린지",    path: "/challenges" },
+  { key: "notifications",   labelEn: "Notifications", labelMn: "Мэдэгдэл",         labelKo: "알림",     path: "/notifications" },
+  { key: "inbox",           labelEn: "Messages",      labelMn: "Мессеж",           labelKo: "메시지",    path: "/inbox" },
+  { key: "fighter-profile", labelEn: "Fighter DNA",   labelMn: "Тулаанчийн ДНХ",  labelKo: "파이터 DNA", path: "/fighter-profile" },
+  { key: "academy",         labelEn: "Academy",       labelMn: "Академи",          labelKo: "아카데미",   path: "/programs" },
+  { key: "gyms",            labelEn: "Gyms",          labelMn: "Дасгалын заал",    labelKo: "체육관",    path: "/gyms" },
+  { key: "history",         labelEn: "History",       labelMn: "Түүх",             labelKo: "기록",     path: "/history" },
+  { key: "settings",        labelEn: "Settings",      labelMn: "Тохиргоо",         labelKo: "설정",     path: "/profile" },
 ];
 
-function CombatOSSheet({ onClose, router, locale, pathname }) {
+function CombatOSSheet({ onClose, router, locale, pathname, userId }) {
   const LANG_LABELS = { mn: "🇲🇳 MN", en: "🇺🇸 EN", ko: "🇰🇷 KO" };
   return (
     <div
@@ -216,7 +267,7 @@ function CombatOSSheet({ onClose, router, locale, pathname }) {
             <button
               key={item.key}
               className="tap-bounce"
-              onClick={() => { onClose(); router.push(`/${locale}${item.path}`); }}
+              onClick={() => { onClose(); router.push(item.key === "settings" ? `/${locale}/profile/${userId || ""}` : `/${locale}${item.path}`); }}
               style={{
                 display: "flex", alignItems: "center", gap: 10,
                 padding: "11px 14px",
@@ -371,9 +422,9 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
 
   const goToProfile = () => r.push(user?.uid ? `/${locale}/profile/${user.uid}` : `/${locale}/login`);
 
-  const feedLabel     = locale === "mn" ? "Тэжээл"  : locale === "ko" ? "피드"   : "Feed";
-  const coachLabel    = locale === "mn" ? "Коуч"    : locale === "ko" ? "코치"   : "Coach";
-  const sparringLabel = locale === "mn" ? "Спарринг": locale === "ko" ? "스파링" : "Sparring";
+  const feedLabel    = locale === "mn" ? "Фийд"   : locale === "ko" ? "피드"   : "Feed";
+  const coachLabel   = locale === "mn" ? "Коуч"   : locale === "ko" ? "코치"   : "Coach";
+  const exploreLabel = locale === "mn" ? "Хайх"   : locale === "ko" ? "탐색"   : "Explore";
 
   if (!mounted) return null;
 
@@ -396,7 +447,7 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
 
       {/* Combat OS sheet */}
       {combatOSOpen && (
-        <CombatOSSheet onClose={() => setCombatOSOpen(false)} router={r} locale={locale} pathname={pathname} />
+        <CombatOSSheet onClose={() => setCombatOSOpen(false)} router={r} locale={locale} pathname={pathname} userId={user?.uid} />
       )}
 
       <nav
@@ -422,9 +473,9 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
         {/* Train — center action */}
         <TrainTab active={resolvedActiveTab === "train"} onClick={() => r.push(`/${locale}/train`)} locale={locale} />
 
-        {/* Sparring */}
-        <IconTab active={resolvedActiveTab === "sparring"} onClick={() => r.push(`/${locale}/sparring`)} label={sparringLabel}>
-          <SparringIcon active={resolvedActiveTab === "sparring"} />
+        {/* Explore */}
+        <IconTab active={resolvedActiveTab === "explore"} onClick={() => r.push(`/${locale}/explore`)} label={exploreLabel}>
+          <ExploreIcon active={resolvedActiveTab === "explore"} />
         </IconTab>
 
         {/* Profile — carries notification badge */}
@@ -443,11 +494,10 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
 
 // ─── Active tab resolver ──────────────────────────────────────────────────────
 function getActiveTab(pathname = "") {
-  if (pathname.includes("/feed"))     return "feed";
-  if (pathname.includes("/fighters")) return "fighters";
-  if (pathname.includes("/coach"))    return "coach";
-  if (pathname.includes("/sparring")) return "sparring";
-  if (pathname.includes("/train") || pathname.includes("/challenges")) return "train";
+  if (pathname.includes("/feed"))       return "feed";
+  if (pathname.includes("/coach"))      return "coach";
+  if (pathname.includes("/explore") || pathname.includes("/discover") || pathname.includes("/events") || pathname.includes("/programs")) return "explore";
+  if (pathname.includes("/train"))      return "train";
   if (
     pathname.includes("/profile") ||
     pathname.includes("/fighter-profile") ||

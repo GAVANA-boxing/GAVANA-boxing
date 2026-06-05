@@ -40,9 +40,9 @@ const LABEL = {
   loading:   { en: "Redirecting to checkout…", mn: "Уншиж байна…", ko: "로딩 중…" },
   select:    { en: "Select a plan above", mn: "Дээрээс план сонгоно уу", ko: "위에서 플랜을 선택하세요" },
   notConfigured: {
-    en: "Stripe is not configured yet — add keys to .env.local to activate payments.",
-    mn: "Stripe тохируулагдаагүй байна — .env.local файлд key нэмнэ үү.",
-    ko: "Stripe가 설정되지 않았습니다 — .env.local에 키를 추가하세요.",
+    en: "Payments are temporarily unavailable. Please try again later.",
+    mn: "Төлбөр түр зуур боломжгүй байна. Дараа дахин оролдоно уу.",
+    ko: "결제를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해주세요.",
   },
   error: {
     en: "Could not start checkout. Please try again.",

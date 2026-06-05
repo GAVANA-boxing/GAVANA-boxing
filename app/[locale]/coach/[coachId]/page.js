@@ -58,7 +58,7 @@ export default function CoachProfilePage() {
   if (!coach) {
     return (
       <div style={styles.loading}>
-        <p style={{ color: "rgba(255,255,255,0.5)" }}>Coach not found.</p>
+        <p style={{ color: "rgba(255,255,255,0.5)" }}>{t("coachNotFound")}</p>
       </div>
     );
   }
