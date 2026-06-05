@@ -27,6 +27,7 @@ const ALLOWED_EVENTS = new Set([
   "challenge_sent","challenge_accepted","reel_shared",
   "upgrade_viewed","upgrade_clicked","subscribed",
   "onboarding_started","onboarding_completed",
+  "client_error",
 ]);
 
 export async function POST(request) {

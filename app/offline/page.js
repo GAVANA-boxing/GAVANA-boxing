@@ -1,6 +1,41 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
+const T = {
+  en: {
+    title: "NO SIGNAL",
+    sub1: "Check your connection and try again.",
+    sub2: "Your training data is saved locally.",
+    retry: "↺  RETRY CONNECTION",
+    status: "GAVANA COMBAT SYSTEM — OFFLINE MODE",
+  },
+  mn: {
+    title: "ДОХИО АЛГА",
+    sub1: "Интернет холболтоо шалгаад дахин оролдоно уу.",
+    sub2: "Таны дасгалын өгөгдөл нутагт хадгалагдсан.",
+    retry: "↺  ДАХИН ХОЛБОГДОХ",
+    status: "GAVANA ТУЛААНЫ СИСТЕМ — ОФЛАЙН ГОРИМ",
+  },
+  ko: {
+    title: "신호 없음",
+    sub1: "연결을 확인하고 다시 시도하세요.",
+    sub2: "훈련 데이터는 로컬에 저장되어 있습니다.",
+    retry: "↺  연결 재시도",
+    status: "GAVANA 전투 시스템 — 오프라인 모드",
+  },
+};
+
 export default function OfflinePage() {
+  const [locale, setLocale] = useState("mn");
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const match = window.location.pathname.match(/^\/(en|mn|ko)(\/|$)/);
+      if (match) setLocale(match[1]);
+    }
+  }, []);
+  const t = T[locale] || T.mn;
+
   return (
     <main style={s.page}>
       <div style={s.orb} />
@@ -15,11 +50,11 @@ export default function OfflinePage() {
           <span style={s.icon}>📡</span>
         </div>
 
-        <h1 style={s.title}>NO SIGNAL</h1>
+        <h1 style={s.title}>{t.title}</h1>
         <p style={s.sub}>
-          Check your connection and try again.
+          {t.sub1}
           <br />
-          Your training data is saved locally.
+          {t.sub2}
         </p>
 
         <button
@@ -27,10 +62,10 @@ export default function OfflinePage() {
           onClick={() => window.location.reload()}
           style={s.retryBtn}
         >
-          ↺ &nbsp;RETRY CONNECTION
+          {t.retry}
         </button>
 
-        <p style={s.status}>GAVANA COMBAT SYSTEM — OFFLINE MODE</p>
+        <p style={s.status}>{t.status}</p>
       </div>
     </main>
   );

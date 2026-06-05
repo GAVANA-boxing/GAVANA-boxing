@@ -134,20 +134,35 @@ export default function FighterPortrait({
         flexShrink: 0,
       }}
     >
-      {/* Atmospheric spot light from below */}
-      <div style={{ position: "absolute", inset: 0, background: visual.spotLight, pointerEvents: "none" }} />
+      {/* HD photo — shown when imageUrl is set */}
+      {fighter?.imageUrl ? (
+        <>
+          <img
+            src={fighter.imageUrl}
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center" }}
+            alt={fighter.name}
+          />
+          {/* Gradient overlay for text readability */}
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.85) 100%)", pointerEvents: "none" }} />
+        </>
+      ) : (
+        <>
+          {/* Atmospheric spot light from below */}
+          <div style={{ position: "absolute", inset: 0, background: visual.spotLight, pointerEvents: "none" }} />
 
-      {/* Subtle horizontal scan lines for depth */}
-      <div style={{
-        position: "absolute",
-        inset: 0,
-        backgroundImage: `linear-gradient(${acc}07 1px, transparent 1px)`,
-        backgroundSize: "100% 18px",
-        pointerEvents: "none",
-      }} />
+          {/* Subtle horizontal scan lines for depth */}
+          <div style={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage: `linear-gradient(${acc}07 1px, transparent 1px)`,
+            backgroundSize: "100% 18px",
+            pointerEvents: "none",
+          }} />
 
-      {/* Boxer silhouette — right side atmosphere */}
-      <BoxerSilhouette color={acc} />
+          {/* Boxer silhouette — right side atmosphere */}
+          <BoxerSilhouette color={acc} />
+        </>
+      )}
 
       {/* Flag — small badge top-right corner */}
       <div style={{

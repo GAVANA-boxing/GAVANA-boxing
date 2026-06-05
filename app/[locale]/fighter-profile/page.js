@@ -16,7 +16,7 @@ import { computeCombatProgress, progressSnapshot } from "@/lib/combatProgress";
 import CombatProgressCard from "@/components/profile/CombatProgressCard";
 import { computeAggregatePunchPattern } from "@/lib/movementInsight";
 import { FIGHTERS } from "@/lib/fighters";
-import { TRAINING_PRESCRIPTIONS, ARCH_TRAINING_COLORS } from "@/lib/archetypeTraining";
+import { TRAINING_PRESCRIPTIONS, ARCH_TRAINING_COLORS, ARCH_IMAGES } from "@/lib/archetypeTraining";
 
 const FP = {
   en: {
@@ -30,7 +30,8 @@ const FP = {
     earlyReadHint:   "Train more sessions to improve confidence.",
     identityEyebrow: "Movement identity",
     signalConf:      "Signal confidence",
-    evolutionTitle:  "Movement profile · Evolution tracking",
+    evolutionTitle:    "Movement profile · Evolution tracking",
+    profileCompletion: "Profile completion",
   },
   mn: {
     back:            "Буцах",
@@ -43,7 +44,8 @@ const FP = {
     earlyReadHint:   "Найдвартай байдлаа сайжруулахын тулд илүү session хий.",
     identityEyebrow: "Хөдөлгөөн дээр суурилсан мөн чанар",
     signalConf:      "Дохионы найдвартай байдал",
-    evolutionTitle:  "Хөдөлгөөний профайл · Хөгжлийн хяналт",
+    evolutionTitle:    "Хөдөлгөөний профайл · Хөгжлийн хяналт",
+    profileCompletion: "Профайл бөглөлт",
   },
   ko: {
     back:            "뒤로",
@@ -56,7 +58,8 @@ const FP = {
     earlyReadHint:   "신뢰도 향상을 위해 더 많은 세션을 훈련하세요.",
     identityEyebrow: "움직임 기반 정체성",
     signalConf:      "신호 신뢰도",
-    evolutionTitle:  "움직임 프로필 · 진화 추적",
+    evolutionTitle:    "움직임 프로필 · 진화 추적",
+    profileCompletion: "프로필 완성도",
   },
 };
 
@@ -1046,6 +1049,84 @@ function TrainingPrescriptionCard({ dna, locale, router }) {
   );
 }
 
+// ─── DNA Next Steps Card ─────────────────────────────────────────────────────
+const DNA_NEXT_STEPS = {
+  pressure: {
+    en: ["Study Mike Tyson's inside range entry drill", "Challenge an outboxer archetype fighter", "Train 5 sessions focusing on forward pressure"],
+    mn: ["Майк Тайсоны дотоод муж оролтын дасгал үз", "Аутбоксер архетипийн тулаанчид тулаан дуудах", "Урагшлах даралтад анхаарлаа төвлөрүүлж 5 дасгал хий"],
+    ko: ["마이크 타이슨의 인사이드 레인지 진입 드릴 학습", "아웃복서 아키타입 파이터에게 도전", "앞으로 밀어붙이는 압박에 집중하여 5세션 훈련"],
+  },
+  outboxer: {
+    en: ["Study Bivol's range discipline drill", "Challenge a pressure archetype fighter", "Train 5 sessions maintaining optimal distance"],
+    mn: ["Биволын зайны дасгал үз", "Даралтын архетипийн тулаанчид тулаан дуудах", "Оновчтой зайг хадгалах 5 дасгал хий"],
+    ko: ["비볼의 거리 훈련 드릴 학습", "프레셔 아키타입 파이터에게 도전", "최적 거리 유지에 집중하여 5세션 훈련"],
+  },
+  counter: {
+    en: ["Study Mayweather's Philly Shell defense", "Challenge an explosive archetype fighter", "Train 5 sessions focusing on timing reads"],
+    mn: ["Мэйвэзерийн Фили Шелл хамгаалалт үз", "Тэсрэлтийн архетипийн тулаанчид тулаан дуудах", "Цагийн уншилтад анхаарлаа төвлөрүүлж 5 дасгал хий"],
+    ko: ["메이웨더의 필리 쉘 방어 학습", "익스플로시브 아키타입 파이터에게 도전", "타이밍 읽기에 집중하여 5세션 훈련"],
+  },
+  explosive: {
+    en: ["Study Inoue's body-head switching drill", "Challenge a technician archetype fighter", "Train 5 sessions on combination explosiveness"],
+    mn: ["Иноуэгийн бие-толгойн солих дасгал үз", "Техникч архетипийн тулаанчид тулаан дуудах", "Комбинациудын тэсрэлтэнд анхаарлаа төвлөрүүлж 5 дасгал хий"],
+    ko: ["이노우에의 바디-헤드 스위칭 드릴 학습", "테크니션 아키타입 파이터에게 도전", "콤비네이션 폭발력에 집중하여 5세션 훈련"],
+  },
+  technician: {
+    en: ["Study Lomachenko's outside foot placement drill", "Challenge a counter archetype fighter", "Train 5 sessions focusing on precision mechanics"],
+    mn: ["Ломаченкогийн гадна хөлийн байршлын дасгал үз", "Контр архетипийн тулаанчид тулаан дуудах", "Нарийвчлалын механикт анхаарлаа төвлөрүүлж 5 дасгал хий"],
+    ko: ["로마첸코의 외발 포지셔닝 드릴 학습", "카운터 아키타입 파이터에게 도전", "정밀 메카닉에 집중하여 5세션 훈련"],
+  },
+};
+
+const NEXT_STEPS_L = {
+  en: { header: "What to do next" },
+  mn: { header: "Дараагийн алхам" },
+  ko: { header: "다음 단계" },
+};
+
+function DNANextStepsCard({ dna, locale }) {
+  if (dna.building || !dna.archetypeKey) return null;
+  const archKey = dna.archetypeKey;
+  const steps = DNA_NEXT_STEPS[archKey];
+  if (!steps) return null;
+  const stepList = steps[locale] || steps.en;
+  const acc = ARCH_TRAINING_COLORS[archKey] || GOLD;
+  const L = NEXT_STEPS_L[locale] || NEXT_STEPS_L.en;
+
+  return (
+    <div style={{
+      borderRadius: 16, overflow: "hidden",
+      border: `1px solid ${acc}30`,
+      background: `linear-gradient(135deg, ${acc}08 0%, rgba(0,0,0,0) 60%)`,
+      marginBottom: 8,
+    }}>
+      <div style={{ height: 3, background: `linear-gradient(90deg, ${acc}, ${acc}44, transparent)` }} />
+      <div style={{ padding: "13px 16px 14px" }}>
+        <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: acc, textTransform: "uppercase", marginBottom: 10 }}>
+          {L.header}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {stepList.map((step, i) => (
+            <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+              <div style={{
+                width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                background: `${acc}18`, border: `1px solid ${acc}40`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 9, fontWeight: 900, color: acc,
+              }}>
+                {i + 1}
+              </div>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.72)", lineHeight: 1.45, paddingTop: 3 }}>
+                {step}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Pro Upgrade Panel ────────────────────────────────────────────────────────
 const PRO_L = {
   en: {
@@ -1739,6 +1820,7 @@ function TribeActivityFeed({ allTribeCounts, userArchetype, locale }) {
 function DNARevealOverlay({ dna, locale, onDismiss }) {
   const [stage, setStage] = useState(0);
   const acc = ARCH_TRAINING_COLORS[dna.archetypeKey] || GOLD;
+  const imgUrl = ARCH_IMAGES[dna.archetypeKey] || "";
   const RV = {
     en: { label: "DNA REVEALED", dismiss: "Continue →" },
     mn: { label: "ДНХ ИЛЭРЛЭЭ", dismiss: "Үргэлжлүүл →" },
@@ -1757,22 +1839,37 @@ function DNARevealOverlay({ dna, locale, onDismiss }) {
   const rise = (s) => ({ opacity: stage >= s ? 1 : 0, transform: stage >= s ? "translateY(0)" : "translateY(22px)", transition: "opacity 0.7s ease, transform 0.7s ease" });
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.97)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32 }}>
-      <div style={{ ...fade(1), width: 72, height: 72, borderRadius: "50%", border: `2px solid ${acc}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 28, boxShadow: `0 0 48px ${acc}44`, fontSize: 32 }}>
-        🧬
+    <div style={{ position: "fixed", inset: 0, zIndex: 9999, overflow: "hidden", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32 }}>
+      {/* Background — HD image or dark fallback */}
+      {imgUrl ? (
+        <>
+          <img src={imgUrl} alt={dna.archetype} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 20%", filter: "brightness(0.35)" }} />
+          <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse at 50% 50%, ${acc}22 0%, rgba(0,0,0,0.85) 70%)` }} />
+        </>
+      ) : (
+        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.97)" }} />
+      )}
+
+      {/* Content */}
+      <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
+        {!imgUrl && (
+          <div style={{ ...fade(1), width: 72, height: 72, borderRadius: "50%", border: `2px solid ${acc}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 28, boxShadow: `0 0 48px ${acc}44`, fontSize: 32 }}>
+            🧬
+          </div>
+        )}
+        <div style={{ ...fade(1), fontSize: 9, fontWeight: 900, letterSpacing: 3, color: acc, textTransform: "uppercase", marginBottom: 12 }}>
+          {L.label}
+        </div>
+        <div style={{ ...rise(2), fontSize: 42, fontWeight: 1000, color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", fontFamily: "var(--font-display,'Anton',sans-serif)", textAlign: "center", lineHeight: 1.0, marginBottom: 14, textShadow: `0 0 64px ${acc}88` }}>
+          {dna.archetype}
+        </div>
+        <p style={{ ...fade(3), fontSize: 13, color: "rgba(255,255,255,0.5)", textAlign: "center", lineHeight: 1.6, maxWidth: 280, margin: "0 0 40px" }}>
+          {dna.summary}
+        </p>
+        <button type="button" onClick={onDismiss} style={{ ...fade(3), padding: "14px 40px", borderRadius: 14, background: `${acc}22`, border: `1px solid ${acc}55`, color: acc, fontSize: 14, fontWeight: 900, cursor: "pointer", letterSpacing: 0.5, backdropFilter: "blur(8px)" }}>
+          {L.dismiss}
+        </button>
       </div>
-      <div style={{ ...fade(1), fontSize: 9, fontWeight: 900, letterSpacing: 3, color: acc, textTransform: "uppercase", marginBottom: 12 }}>
-        {L.label}
-      </div>
-      <div style={{ ...rise(2), fontSize: 38, fontWeight: 1000, color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", fontFamily: "var(--font-display,'Anton',sans-serif)", textAlign: "center", lineHeight: 1.0, marginBottom: 14, textShadow: `0 0 48px ${acc}66` }}>
-        {dna.archetype}
-      </div>
-      <p style={{ ...fade(3), fontSize: 13, color: "rgba(255,255,255,0.4)", textAlign: "center", lineHeight: 1.6, maxWidth: 280, margin: "0 0 40px" }}>
-        {dna.summary}
-      </p>
-      <button type="button" onClick={onDismiss} style={{ ...fade(3), padding: "14px 40px", borderRadius: 14, background: `${acc}22`, border: `1px solid ${acc}55`, color: acc, fontSize: 14, fontWeight: 900, cursor: "pointer", letterSpacing: 0.5 }}>
-        {L.dismiss}
-      </button>
     </div>
   );
 }
@@ -2418,7 +2515,9 @@ export default function FighterProfilePage() {
   const [activeTab, setActiveTab] = useState("dna");
   const [userTier, setUserTier] = useState(null);
   const [subscribeSuccess, setSubscribeSuccess] = useState(false);
+  const [userData, setUserData] = useState(null);
   const dnaRevealShownRef = useRef(false);
+  const [milestonesUnlocked, setMilestonesUnlocked] = useState({ m8: false, m15: false });
 
   useEffect(() => {
     if (!authLoading && !user) router.push(`/${locale}/login`);
@@ -2438,7 +2537,7 @@ export default function FighterProfilePage() {
     }
   }, []);
 
-  // Load currentExperiment + tribe count
+  // Load currentExperiment + tribe count + milestone badges
   useEffect(() => {
     if (!user?.uid) return;
     let active = true;
@@ -2452,6 +2551,11 @@ export default function FighterProfilePage() {
           setCurrentExperiment(data.currentExperiment || null);
           setStudiedFighterIds(data.studiedFighters || []);
           setUserTier(data.subscriptionTier || data.tier || null);
+          setUserData(data);
+          setMilestonesUnlocked({
+            m8:  !!data.milestoneUnlocked8,
+            m15: !!data.milestoneUnlocked15,
+          });
         }
         // Tribe counts — query all 5 archetypes in parallel
         const ARCH_KEYS = ["pressure", "outboxer", "counter", "explosive", "technician"];
@@ -2544,6 +2648,17 @@ export default function FighterProfilePage() {
     : "—";
   const displayName = user.displayName || user.email?.split("@")[0] || "FIGHTER";
 
+  const profileCompletion = (() => {
+    let pct = 0;
+    if (user.displayName) pct += 20;
+    if (user.photoURL || userData?.photoURL || userData?.profileImageUrl) pct += 20;
+    if (!dna.building && dna.archetypeKey) pct += 20;
+    if (totalSessions >= 1) pct += 20;
+    if (userData?.bio || userData?.description) pct += 20;
+    return pct;
+  })();
+  const completionColor = profileCompletion >= 80 ? "#34D399" : profileCompletion >= 40 ? GOLD : RED;
+
   return (
     <main style={{
       minHeight: "100dvh",
@@ -2608,9 +2723,22 @@ export default function FighterProfilePage() {
         </h1>
 
         {/* Tendency subtitle — shows once loaded */}
-        <p style={{ margin: "0 0 20px", fontSize: 11, color: whiteAlpha(0.3), fontWeight: 700 }}>
+        <p style={{ margin: "0 0 16px", fontSize: 11, color: whiteAlpha(0.3), fontWeight: 700 }}>
           {tendency ? tendency.title : (FP[locale] || FP.en).evolutionTitle}
         </p>
+
+        {/* Profile completion tracker */}
+        <div style={{ marginBottom: 20, padding: "10px 14px", borderRadius: 12, background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.07)}` }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: whiteAlpha(0.5), textTransform: "uppercase", letterSpacing: 0.5 }}>
+              {(FP[locale] || FP.en).profileCompletion}
+            </span>
+            <span style={{ fontSize: 13, fontWeight: 900, color: completionColor }}>{profileCompletion}%</span>
+          </div>
+          <div style={{ height: 4, background: whiteAlpha(0.08), borderRadius: 2, overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${profileCompletion}%`, background: completionColor, borderRadius: 2, transition: "width 0.6s ease" }} />
+          </div>
+        </div>
 
         {/* Stats row */}
         {!loading && (() => { const fp = FP[locale] || FP.en; return (
@@ -2703,6 +2831,36 @@ export default function FighterProfilePage() {
             {!loading && (
               <div style={{ marginBottom: 4 }}>
                 <FighterDNACard dna={{ ...dna, prelim: dna.building ? computePreliminarySignals(sessions) : undefined }} locale={locale} />
+              </div>
+            )}
+
+            {/* DNA Milestone Badges */}
+            {!loading && (milestonesUnlocked.m8 || milestonesUnlocked.m15) && (
+              <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+                {milestonesUnlocked.m8 && (
+                  <div style={{
+                    display: "inline-flex", alignItems: "center", gap: 6,
+                    padding: "6px 12px", borderRadius: 20,
+                    background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.35)",
+                  }}>
+                    <span style={{ fontSize: 14 }}>🧬</span>
+                    <span style={{ fontSize: 10, fontWeight: 900, color: "#A78BFA", letterSpacing: 0.5 }}>
+                      {locale === "mn" ? "8-р тренинг" : locale === "ko" ? "세션 8 마일스톤" : "Session 8 Milestone"}
+                    </span>
+                  </div>
+                )}
+                {milestonesUnlocked.m15 && (
+                  <div style={{
+                    display: "inline-flex", alignItems: "center", gap: 6,
+                    padding: "6px 12px", borderRadius: 20,
+                    background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.35)",
+                  }}>
+                    <span style={{ fontSize: 14 }}>⚗️</span>
+                    <span style={{ fontSize: 10, fontWeight: 900, color: "#A78BFA", letterSpacing: 0.5 }}>
+                      {locale === "mn" ? "15-р тренинг" : locale === "ko" ? "세션 15 마일스톤" : "Session 15 Milestone"}
+                    </span>
+                  </div>
+                )}
               </div>
             )}
 
@@ -2825,6 +2983,11 @@ export default function FighterProfilePage() {
             {/* Training Prescription */}
             {!loading && !dna.building && (
               <TrainingPrescriptionCard dna={dna} locale={locale} router={router} />
+            )}
+
+            {/* DNA Next Steps */}
+            {!loading && !dna.building && dna.archetypeKey && (
+              <DNANextStepsCard dna={dna} locale={locale} />
             )}
 
             {/* Evolution Reveal — shown when experiment is complete (7+ days) */}

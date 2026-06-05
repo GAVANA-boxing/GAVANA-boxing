@@ -25,6 +25,7 @@ import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
 import MilestoneCelebration from "@/components/MilestoneCelebration";
 import { usePoseDetection } from "@/hooks/usePoseDetection";
 import TechniquePicker from "@/components/train/TechniquePicker";
+import IncomingChallengeBanner from "@/components/train/IncomingChallengeBanner";
 import { getPersonalConnection } from "@/lib/fighterPersonalConnection";
 import { isBeginnerUser, getCurrentBeginnerLesson, getBeginnerProgress } from "@/lib/beginnerPath";
 import { getTodaysDNAMission } from "@/lib/dnaDailyMissions";
@@ -480,17 +481,32 @@ export default function TrainPage() {
     }
     const DNA_MILESTONES = {
       8:  { emoji: "🧬", en: "Archetype Signal Strong",   mn: "Archetype дохио хүчтэй",           ko: "아키타입 신호 강함",
-             hint: { en: "Your Fighter DNA is forming — check your profile!", mn: "Тулаанчийн ДНХ бүрдэж байна — профайлаа шалга!", ko: "파이터 DNA 형성 중 — 프로필 확인!" }, cta: true },
+             hint: { en: "Your Fighter DNA is forming — check your profile!", mn: "Тулаанчийн ДНХ бүрдэж байна — профайлаа шалга!", ko: "파이터 DNA 형성 중 — 프로필 확인!" }, cta: true,
+             firestoreKey: "milestoneUnlocked8" },
       15: { emoji: "⚗️", en: "Fighter Identity Emerging", mn: "Тулаанчийн мөн чанар бүрдэж байна", ko: "파이터 아이덴티티 형성",
-             hint: { en: "Your style is becoming clear. Try an experiment!", mn: "Таны хэв маяг тодорхой болж байна. Туршилт хийгээрэй!", ko: "스타일이 명확해지고 있습니다. 실험해 보세요!" } },
+             hint: { en: "Your style is becoming clear. Try an experiment!", mn: "Таны хэв маяг тодорхой болж байна. Туршилт хийгээрэй!", ko: "스타일이 명확해지고 있습니다. 실험해 보세요!" },
+             firestoreKey: "milestoneUnlocked15" },
     };
     const milestone = DNA_MILESTONES[savedAttemptNumber];
     if (milestone) {
       setDnaMilestone(milestone);
       const timer = setTimeout(() => setDnaMilestone(null), 6000);
+      // Persist milestone to Firestore
+      if (user?.uid && milestone.firestoreKey) {
+        (async () => {
+          try {
+            const { doc, setDoc, serverTimestamp } = await import("firebase/firestore");
+            const { db } = await import("@/lib/firebase");
+            await setDoc(doc(db, "users", user.uid), {
+              [milestone.firestoreKey]: true,
+              [`${milestone.firestoreKey}At`]: serverTimestamp(),
+            }, { merge: true });
+          } catch { /* non-critical */ }
+        })();
+      }
       return () => clearTimeout(timer);
     }
-  }, [saved, savedAttemptNumber]);
+  }, [saved, savedAttemptNumber, user?.uid]);
 
   // ── Lesson context from query params ─────────────────────────────────────
   const [lessonContext, setLessonContext] = useState(null);
@@ -581,6 +597,11 @@ export default function TrainPage() {
       </button>
 
       <section style={styles.shell}>
+        {/* Incoming PVP challenge banner */}
+        {!isGuest && !challengeUserId && (
+          <IncomingChallengeBanner user={user} locale={locale} router={router} />
+        )}
+
         {/* Guest mode banner */}
         {isGuest && (
           <div style={{
@@ -1205,7 +1226,7 @@ export default function TrainPage() {
 
             {/* DNA Building Progress — show after 1-2 sessions */}
             {totalSessionCount >= 1 && totalSessionCount < 3 && !userArchetype && (
-              <div style={{ borderRadius: 12, padding: "12px 14px", background: "rgba(245,196,81,0.06)", border: "1px solid rgba(245,196,81,0.22)", display: "flex", alignItems: "center", gap: 12 }}>
+              <div onClick={() => router.push(`/${locale}/fighter-profile`)} style={{ borderRadius: 12, padding: "12px 14px", background: "rgba(245,196,81,0.06)", border: "1px solid rgba(245,196,81,0.22)", display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
                 <div style={{ position: "relative", width: 40, height: 40, flexShrink: 0 }}>
                   <svg width="40" height="40" viewBox="0 0 40 40">
                     <circle cx="20" cy="20" r="16" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3" />
@@ -1416,7 +1437,7 @@ export default function TrainPage() {
               const sessionsToNext = 5 - (totalSessionCount % 5);
               const cyclePct = ((totalSessionCount % 5) / 5) * 100;
               return (
-                <div style={{ borderRadius: 12, padding: "10px 14px", background: `${acc}06`, border: `1px solid ${acc}20`, display: "flex", alignItems: "center", gap: 10 }}>
+                <div onClick={() => router.push(`/${locale}/fighter-profile`)} style={{ borderRadius: 12, padding: "10px 14px", background: `${acc}06`, border: `1px solid ${acc}20`, display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
                   <div style={{ flexShrink: 0 }}>
                     <svg width="32" height="32" viewBox="0 0 32 32">
                       <circle cx="16" cy="16" r="12" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="2.5" />

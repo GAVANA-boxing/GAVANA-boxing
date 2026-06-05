@@ -2,23 +2,26 @@
 
 import { RED, RADIUS, FONT_SIZE, FONT_WEIGHT, whiteAlpha, redAlpha } from "@/lib/tokens";
 
+const T = {
+  en: {
+    title: "Feed coming soon",
+    description: "Complete a training session or academy lesson and share your progress.",
+    cta: "Go Train",
+  },
+  mn: {
+    title: "Тэжээл удахгүй нээгдэнэ",
+    description: "Дасгалын сесс эсвэл Academy хичээл дуусгаад өөрийн ахицаа хуваалц.",
+    cta: "Дасгал хийх",
+  },
+  ko: {
+    title: "피드 준비 중",
+    description: "트레이닝 세션이나 아카데미 레슨을 완료하고 진행 상황을 공유하세요.",
+    cta: "훈련하기",
+  },
+};
+
 export default function FeedEmptyState({ locale, router }) {
-  const title =
-    locale === "mn" ? "Тэжээл удахгүй нээгдэнэ"
-    : locale === "ko" ? "피드 준비 중"
-    : "Feed coming soon";
-
-  const description =
-    locale === "mn"
-      ? "Дасгалын сесс эсвэл Academy хичээл дуусгаад өөрийн ахицаа хуваалц."
-      : locale === "ko"
-      ? "트레이닝 세션이나 아카데미 레슨을 완료하고 진행 상황을 공유하세요."
-      : "Complete a training session or academy lesson and share your progress.";
-
-  const cta =
-    locale === "mn" ? "Дасгал хийх"
-    : locale === "ko" ? "훈련하기"
-    : "Go Train";
+  const t = T[locale] || T.en;
 
   return (
     <div style={{
@@ -54,7 +57,7 @@ export default function FeedEmptyState({ locale, router }) {
           letterSpacing: -0.3,
           lineHeight: 1.2,
         }}>
-          {title}
+          {t.title}
         </p>
         <p style={{
           margin: 0,
@@ -63,7 +66,7 @@ export default function FeedEmptyState({ locale, router }) {
           maxWidth: 260,
           lineHeight: 1.6,
         }}>
-          {description}
+          {t.description}
         </p>
       </div>
 
@@ -85,7 +88,7 @@ export default function FeedEmptyState({ locale, router }) {
           boxShadow: `0 4px 20px ${redAlpha(0.4)}`,
         }}
       >
-        {cta}
+        {t.cta}
       </button>
     </div>
   );

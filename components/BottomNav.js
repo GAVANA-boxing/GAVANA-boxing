@@ -60,6 +60,15 @@ function ChallengesIcon({ active }) {
   );
 }
 
+function ExploreIcon({ active }) {
+  return (
+    <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.38)" }} viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="9"/>
+      <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+    </svg>
+  );
+}
+
 function TrainIcon() {
   return (
     <svg style={{ width: 20, height: 20, display: "block", fill: "#fff", strokeWidth: 0 }} viewBox="0 0 24 24" aria-hidden="true">
@@ -171,11 +180,11 @@ const OS_ICONS = {
 };
 
 const COMBAT_OS_ITEMS = [
+  { key: "fighters",        labelEn: "Fighters",      labelMn: "Тулаанчид",        labelKo: "파이터",    path: "/fighters" },
+  { key: "challenges",      labelEn: "Challenges",    labelMn: "Сорилт",           labelKo: "챌린지",    path: "/challenges" },
   { key: "notifications",   labelEn: "Notifications", labelMn: "Мэдэгдэл",         labelKo: "알림",     path: "/notifications" },
   { key: "inbox",           labelEn: "Messages",      labelMn: "Мессеж",           labelKo: "메시지",    path: "/inbox" },
   { key: "fighter-profile", labelEn: "Fighter DNA",   labelMn: "Тулаанчийн ДНХ",  labelKo: "파이터 DNA", path: "/fighter-profile" },
-  { key: "challenges",      labelEn: "Challenges",    labelMn: "Сорилт",           labelKo: "챌린지",    path: "/challenges" },
-  { key: "fighters",        labelEn: "Fighters",      labelMn: "Тулаанчид",        labelKo: "파이터",    path: "/fighters" },
   { key: "academy",         labelEn: "Academy",       labelMn: "Академи",          labelKo: "아카데미",   path: "/programs" },
   { key: "gyms",            labelEn: "Gyms",          labelMn: "Дасгалын заал",    labelKo: "체육관",    path: "/gyms" },
   { key: "history",         labelEn: "History",       labelMn: "Түүх",             labelKo: "기록",     path: "/history" },
@@ -413,9 +422,9 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
 
   const goToProfile = () => r.push(user?.uid ? `/${locale}/profile/${user.uid}` : `/${locale}/login`);
 
-  const fightersLabel   = locale === "mn" ? "Тэмцэгчид" : locale === "ko" ? "파이터" : "Fighters";
-  const coachLabel      = locale === "mn" ? "Коуч"      : locale === "ko" ? "코치"   : "Coach";
-  const challengesLabel = locale === "mn" ? "Тэмцээн"   : locale === "ko" ? "챌린지" : "Challenges";
+  const feedLabel    = locale === "mn" ? "Фийд"   : locale === "ko" ? "피드"   : "Feed";
+  const coachLabel   = locale === "mn" ? "Коуч"   : locale === "ko" ? "코치"   : "Coach";
+  const exploreLabel = locale === "mn" ? "Хайх"   : locale === "ko" ? "탐색"   : "Explore";
 
   if (!mounted) return null;
 
@@ -451,9 +460,9 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
         onPointerCancel={onInteractEnd}
         aria-label="Primary navigation"
       >
-        {/* Fighters */}
-        <IconTab active={resolvedActiveTab === "fighters"} onClick={() => r.push(`/${locale}/fighters`)} label={fightersLabel}>
-          <FightersIcon active={resolvedActiveTab === "fighters"} />
+        {/* Feed */}
+        <IconTab active={resolvedActiveTab === "feed"} onClick={() => r.push(`/${locale}/feed`)} label={feedLabel}>
+          <FeedIcon active={resolvedActiveTab === "feed"} />
         </IconTab>
 
         {/* Coach */}
@@ -464,9 +473,9 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
         {/* Train — center action */}
         <TrainTab active={resolvedActiveTab === "train"} onClick={() => r.push(`/${locale}/train`)} locale={locale} />
 
-        {/* Challenges */}
-        <IconTab active={resolvedActiveTab === "challenges"} onClick={() => r.push(`/${locale}/challenges`)} label={challengesLabel}>
-          <ChallengesIcon active={resolvedActiveTab === "challenges"} />
+        {/* Explore */}
+        <IconTab active={resolvedActiveTab === "explore"} onClick={() => r.push(`/${locale}/explore`)} label={exploreLabel}>
+          <ExploreIcon active={resolvedActiveTab === "explore"} />
         </IconTab>
 
         {/* Profile — carries notification badge */}
@@ -485,9 +494,9 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
 
 // ─── Active tab resolver ──────────────────────────────────────────────────────
 function getActiveTab(pathname = "") {
-  if (pathname.includes("/fighters"))   return "fighters";
+  if (pathname.includes("/feed"))       return "feed";
   if (pathname.includes("/coach"))      return "coach";
-  if (pathname.includes("/challenges")) return "challenges";
+  if (pathname.includes("/explore") || pathname.includes("/discover") || pathname.includes("/events") || pathname.includes("/programs")) return "explore";
   if (pathname.includes("/train"))      return "train";
   if (
     pathname.includes("/profile") ||

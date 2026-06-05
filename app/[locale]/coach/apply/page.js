@@ -238,11 +238,11 @@ export default function CoachApplyPage() {
           <div style={styles.fieldRow}>
             <div style={{ ...styles.field, flex: 1 }}>
               <label style={styles.fieldLabel}>{t("coachApplyCountry")}</label>
-              <input type="text" value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Mongolia" style={styles.input} />
+              <input type="text" value={country} onChange={(e) => setCountry(e.target.value)} placeholder={locale === "mn" ? "Монгол" : locale === "ko" ? "몽골" : "Mongolia"} style={styles.input} />
             </div>
             <div style={{ ...styles.field, flex: 1 }}>
               <label style={styles.fieldLabel}>{t("coachApplyCity")}</label>
-              <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Ulaanbaatar" style={styles.input} />
+              <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder={locale === "mn" ? "Улаанбаатар" : locale === "ko" ? "울란바토르" : "Ulaanbaatar"} style={styles.input} />
             </div>
           </div>
 

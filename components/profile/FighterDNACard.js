@@ -1,6 +1,7 @@
 "use client";
 
 import { RED, GOLD, RADIUS, whiteAlpha, goldAlpha, redAlpha } from "@/lib/tokens";
+import { ARCH_IMAGES } from "@/lib/archetypeTraining";
 
 const STYLE_COLORS = {
   pressure:   "#FF3B30",
@@ -211,18 +212,55 @@ export default function FighterDNACard({ dna, locale = "en" }) {
   const confidencePct = Math.round(dna.confidence * 100);
   const orderedStyles = Object.entries(dna.styleMix).sort(([, a], [, b]) => b - a);
 
+  const archetypeImageUrl = ARCH_IMAGES[dna.archetypeKey] || "";
+
   return (
     <div style={{
       borderRadius: RADIUS.lg, overflow: "hidden",
       border: `1px solid ${whiteAlpha(0.07)}`,
       background: "rgba(255,255,255,0.022)",
     }}>
-      {/* ── Accent top bar ── */}
-      <div style={{ height: 2, background: `linear-gradient(90deg, ${accentColor}88, transparent)` }} />
+      {/* ── Archetype hero image (or accent bar fallback) ── */}
+      {archetypeImageUrl ? (
+        <div style={{ position: "relative", height: 140, overflow: "hidden" }}>
+          <img
+            src={archetypeImageUrl}
+            alt={dna.archetype}
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 20%" }}
+          />
+          <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to bottom, ${accentColor}22 0%, rgba(0,0,0,0.75) 60%, rgba(10,10,12,0.98) 100%)` }} />
+          <div style={{ position: "absolute", bottom: 12, left: 14, right: 14 }}>
+            <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: accentColor, textTransform: "uppercase", marginBottom: 4 }}>
+              {L.dna}
+            </div>
+            <div style={{
+              fontSize: 24, fontWeight: 1000, color: "#fff", lineHeight: 1.0,
+              letterSpacing: "-0.02em",
+              fontFamily: "var(--font-display, 'Anton', sans-serif)",
+              textTransform: "uppercase",
+              textShadow: `0 2px 16px ${accentColor}55`,
+            }}>
+              {dna.archetype}
+            </div>
+          </div>
+          <div style={{
+            position: "absolute", top: 10, right: 10,
+            padding: "3px 9px", borderRadius: RADIUS.full,
+            background: `rgba(0,0,0,0.6)`, border: `1px solid ${accentColor}55`,
+            fontSize: 8.5, fontWeight: 900, color: accentColor, letterSpacing: 1,
+            backdropFilter: "blur(8px)",
+          }}>
+            {confidencePct}% {L.confidence.toUpperCase()}
+          </div>
+        </div>
+      ) : (
+        <div style={{ height: 2, background: `linear-gradient(90deg, ${accentColor}88, transparent)` }} />
+      )}
 
       <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 14 }}>
 
-        {/* ── Header ── */}
+        {/* ── Header (no image mode) ── */}
+        {!archetypeImageUrl && (
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
             <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.28), textTransform: "uppercase" }}>
@@ -252,6 +290,14 @@ export default function FighterDNACard({ dna, locale = "en" }) {
             {dna.summary}
           </p>
         </div>
+        )}
+
+        {/* ── Summary (image mode) ── */}
+        {archetypeImageUrl && (
+          <p style={{ margin: 0, fontSize: 11, color: whiteAlpha(0.42), lineHeight: 1.5, fontWeight: 600 }}>
+            {dna.summary}
+          </p>
+        )}
 
         {/* ── Style Mix bars ── */}
         <div>

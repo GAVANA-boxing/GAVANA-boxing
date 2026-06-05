@@ -75,7 +75,7 @@ export default function ProfileFighterCard({
   const arch = profileUser.fighterArchetype ? ARCHETYPE_DISPLAY[profileUser.fighterArchetype] : null;
   const [avatarError, setAvatarError] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
-  const avatarInitial = profileUser.displayName?.charAt(0).toUpperCase() || profileUser.username?.charAt(0).toUpperCase() || "🥊";
+  const avatarInitial = (profileUser.displayName || profileUser.username || "").split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase() || "?";
 
   return (
     <section style={styles.fighterCard}>
