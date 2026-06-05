@@ -176,21 +176,57 @@ function TechDetailSheet({ fighter, technique, onClose, onBack, locale, router }
           const firstBlockType = technique.teachingBlocks?.[0]?.type;
           const diagramType = BLOCK_DIAGRAM_TYPE[firstBlockType] || "ring";
           const acc = fighter.accent;
+          const hasVideo = !!technique.videoUrl;
+          const heroHeight = hasVideo ? 200 : 108;
           return (
             <div style={{
               flexShrink: 0, position: "relative", overflow: "hidden",
               borderBottom: `1px solid rgba(255,255,255,0.06)`,
+              height: heroHeight,
             }}>
-              <div style={{ width: "100%", height: 108, background: `${acc}08`, display: "flex", overflow: "hidden" }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <DiagramPlaceholder type={diagramType} accent={acc} width="100%" height={108} />
-                </div>
-                <div style={{ width: 72, flexShrink: 0 }}>
-                  <FighterSilhouette fighterId={fighter.id} accent={fighter.accent} width={72} height={108} />
-                </div>
-              </div>
-              {/* Gradient overlay — only left side; right is silhouette zone */}
-              <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to right, rgba(15,12,13,0.78) 0%, transparent 55%)`, pointerEvents: "none" }} />
+              {/* ── Video loop (when videoUrl is set) ── */}
+              {hasVideo ? (
+                <>
+                  <video
+                    src={technique.videoUrl}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    style={{
+                      position: "absolute", inset: 0,
+                      width: "100%", height: "100%",
+                      objectFit: "cover", objectPosition: "center",
+                    }}
+                  />
+                  {/* Dark vignette overlay */}
+                  <div style={{
+                    position: "absolute", inset: 0,
+                    background: `linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.6) 100%)`,
+                    pointerEvents: "none",
+                  }} />
+                  {/* Accent color tint */}
+                  <div style={{
+                    position: "absolute", inset: 0,
+                    background: `${acc}18`,
+                    pointerEvents: "none",
+                  }} />
+                </>
+              ) : (
+                <>
+                  {/* Fallback: diagram + silhouette */}
+                  <div style={{ width: "100%", height: heroHeight, background: `${acc}08`, display: "flex", overflow: "hidden" }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <DiagramPlaceholder type={diagramType} accent={acc} width="100%" height={heroHeight} />
+                    </div>
+                    <div style={{ width: 72, flexShrink: 0 }}>
+                      <FighterSilhouette fighterId={fighter.id} accent={fighter.accent} width={72} height={heroHeight} />
+                    </div>
+                  </div>
+                  <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to right, rgba(15,12,13,0.78) 0%, transparent 55%)`, pointerEvents: "none" }} />
+                </>
+              )}
+
               {/* Difficulty badge */}
               <div style={{ position: "absolute", top: 10, left: 14 }}>
                 <span style={{
@@ -199,24 +235,57 @@ function TechDetailSheet({ fighter, technique, onClose, onBack, locale, router }
                   background: `${DIFF_COLOR[technique.difficulty] || GOLD}18`,
                   border: `1px solid ${DIFF_COLOR[technique.difficulty] || GOLD}30`,
                   borderRadius: 6, padding: "3px 8px", textTransform: "uppercase",
+                  backdropFilter: "blur(4px)",
                 }}>
                   {technique.difficulty}
                 </span>
               </div>
+
+              {/* Technique title overlay (video mode only) */}
+              {hasVideo && (
+                <div style={{ position: "absolute", bottom: 32, left: 14, right: 14 }}>
+                  <div style={{
+                    fontSize: 20, fontWeight: 1000, color: "#fff",
+                    fontFamily: "var(--font-display,'Anton',sans-serif)",
+                    textTransform: "uppercase", letterSpacing: "-0.01em",
+                    textShadow: `0 2px 12px rgba(0,0,0,0.8)`,
+                    lineHeight: 1.1,
+                  }}>
+                    {technique.title}
+                  </div>
+                </div>
+              )}
+
               {/* Teaching block types */}
               <div style={{ position: "absolute", bottom: 10, left: 14, display: "flex", gap: 5 }}>
                 {(technique.teachingBlocks || []).map((b) => (
                   <span key={b.type} style={{
                     fontSize: 7.5, fontWeight: 900, color: acc,
-                    background: `${acc}18`, border: `1px solid ${acc}30`,
+                    background: `rgba(0,0,0,0.55)`, border: `1px solid ${acc}50`,
                     borderRadius: 4, padding: "2px 6px", letterSpacing: 0.8, textTransform: "uppercase",
+                    backdropFilter: "blur(4px)",
                   }}>
-                    {b.type}
+                    {BLOCK_ICON[b.type] || ""} {b.type}
                   </span>
                 ))}
               </div>
-              {/* Video button / coming-soon pill */}
-              {technique.videoId ? (
+
+              {/* Video indicator badge (top right) */}
+              {hasVideo && (
+                <div style={{
+                  position: "absolute", top: 10, right: 14,
+                  display: "flex", alignItems: "center", gap: 5,
+                  padding: "4px 10px", borderRadius: 20,
+                  background: "rgba(0,0,0,0.6)", border: `1px solid ${acc}55`,
+                  backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+                }}>
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill={acc} aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  <span style={{ fontSize: 7.5, fontWeight: 900, color: acc, letterSpacing: 0.8 }}>LIVE</span>
+                </div>
+              )}
+
+              {/* YouTube link (if videoId set, no videoUrl) */}
+              {!hasVideo && technique.videoId && (
                 <a
                   href={`https://www.youtube.com/watch?v=${technique.videoId}`}
                   target="_blank"
@@ -231,11 +300,12 @@ function TechDetailSheet({ fighter, technique, onClose, onBack, locale, router }
                   }}
                 >
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="#FF4444" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                  <span style={{ fontSize: 8, fontWeight: 900, color: "#FF8080", letterSpacing: 0.8 }}>
-                    {t.videoWatch}
-                  </span>
+                  <span style={{ fontSize: 8, fontWeight: 900, color: "#FF8080", letterSpacing: 0.8 }}>{t.videoWatch}</span>
                 </a>
-              ) : (
+              )}
+
+              {/* Coming soon (no video at all) */}
+              {!hasVideo && !technique.videoId && (
                 <div style={{
                   position: "absolute", top: 10, right: 14,
                   display: "flex", alignItems: "center", gap: 5,
@@ -244,9 +314,7 @@ function TechDetailSheet({ fighter, technique, onClose, onBack, locale, router }
                   backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
                 }}>
                   <span style={{ fontSize: 10 }}>🎬</span>
-                  <span style={{ fontSize: 7.5, fontWeight: 900, color: "rgba(255,255,255,0.45)", letterSpacing: 0.8 }}>
-                    {t.videoSoon}
-                  </span>
+                  <span style={{ fontSize: 7.5, fontWeight: 900, color: "rgba(255,255,255,0.45)", letterSpacing: 0.8 }}>{t.videoSoon}</span>
                 </div>
               )}
             </div>
