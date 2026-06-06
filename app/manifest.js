@@ -3,7 +3,7 @@ export default function manifest() {
     name: "GAVANA Boxing",
     short_name: "GAVANA",
     description: "AI punch scoring, Fighter Card, real-time challenges — the boxing app built for fighters.",
-    start_url: "/en/reels",
+    start_url: "/mn/feed",
     scope: "/",
     display: "standalone",
     display_override: ["standalone", "minimal-ui"],
