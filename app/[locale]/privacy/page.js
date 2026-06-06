@@ -11,7 +11,7 @@ const T = {
     title: "Privacy Policy",
     updated: "Last updated: June 6, 2025",
     intro:
-      "GAVANA Boxing ("GAVANA", "we", "our") is committed to protecting your privacy. This policy explains what data we collect, why we collect it, and how we use it when you use our boxing training application.",
+      'GAVANA Boxing ("GAVANA", "we", "our") is committed to protecting your privacy. This policy explains what data we collect, why we collect it, and how we use it when you use our boxing training application.',
 
     sections: [
       {
