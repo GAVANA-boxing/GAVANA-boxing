@@ -10,6 +10,12 @@ import { BLOCK_DIAGRAM_TYPE } from "@/lib/visualAssets";
 const DIFF_COLOR = { beginner: "#10B981", intermediate: "#F59E0B", advanced: "#F87171" };
 const BLOCK_ICON = { FOOT: "👟", WEIGHT: "⚖️", ANGLE: "📐", GUARD: "🛡️" };
 
+function getLocal(field, locale) {
+  if (!field) return "";
+  if (typeof field === "object" && !Array.isArray(field)) return field[locale] || field.en || "";
+  return field;
+}
+
 const T = {
   en: {
     noTechniques: "No techniques available",
@@ -302,7 +308,7 @@ function TechDetailSheet({ fighter, technique, onClose, onBack, locale, router }
         <div style={{ flex: 1, overflowY: "auto", padding: "16px 16px 0" }}>
           {/* What it is */}
           {technique.explanation && SECTION("📖", t.whatItIs,
-            <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.72)", lineHeight: 1.6 }}>{technique.explanation}</p>
+            <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.72)", lineHeight: 1.6 }}>{getLocal(technique.explanation, locale)}</p>
           )}
 
           {/* Teaching blocks */}
@@ -313,7 +319,7 @@ function TechDetailSheet({ fighter, technique, onClose, onBack, locale, router }
                   <span style={{ fontSize: 16, flexShrink: 0 }}>{BLOCK_ICON[block.type] || "▸"}</span>
                   <div>
                     <p style={{ margin: "0 0 2px", fontSize: 9, fontWeight: 900, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: 1 }}>{block.type}</p>
-                    <p style={{ margin: 0, fontSize: 12.5, color: "rgba(255,255,255,0.75)", lineHeight: 1.45 }}>{block.value}</p>
+                    <p style={{ margin: 0, fontSize: 12.5, color: "rgba(255,255,255,0.75)", lineHeight: 1.45 }}>{getLocal(block.value, locale)}</p>
                   </div>
                 </div>
               ))}
@@ -322,7 +328,7 @@ function TechDetailSheet({ fighter, technique, onClose, onBack, locale, router }
 
           {/* Body cue */}
           {technique.bodyCue && SECTION("🤸", t.bodyFeel,
-            <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.65)", lineHeight: 1.5, fontStyle: "italic" }}>&ldquo;{technique.bodyCue}&rdquo;</p>
+            <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.65)", lineHeight: 1.5, fontStyle: "italic" }}>&ldquo;{getLocal(technique.bodyCue, locale)}&rdquo;</p>
           )}
 
           {/* What you should feel */}
@@ -340,7 +346,7 @@ function TechDetailSheet({ fighter, technique, onClose, onBack, locale, router }
           {/* Common mistake */}
           {technique.commonMistake && SECTION("⚠️", t.commonMistake,
             <div style={{ padding: "10px 12px", borderRadius: 10, background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.22)" }}>
-              <p style={{ margin: 0, fontSize: 12.5, color: "#fca5a5", lineHeight: 1.45 }}>{technique.commonMistake}</p>
+              <p style={{ margin: 0, fontSize: 12.5, color: "#fca5a5", lineHeight: 1.45 }}>{getLocal(technique.commonMistake, locale)}</p>
             </div>
           )}
 
@@ -350,7 +356,7 @@ function TechDetailSheet({ fighter, technique, onClose, onBack, locale, router }
               {technique.drillSteps.map((step, i) => (
                 <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
                   <span style={{ width: 20, height: 20, borderRadius: 6, background: `${GOLD}18`, border: `1px solid ${GOLD}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 900, color: GOLD, flexShrink: 0 }}>{i + 1}</span>
-                  <p style={{ margin: 0, fontSize: 12.5, color: "rgba(255,255,255,0.72)", lineHeight: 1.45 }}>{step}</p>
+                  <p style={{ margin: 0, fontSize: 12.5, color: "rgba(255,255,255,0.72)", lineHeight: 1.45 }}>{getLocal(step, locale)}</p>
                 </div>
               ))}
             </div>
@@ -358,7 +364,7 @@ function TechDetailSheet({ fighter, technique, onClose, onBack, locale, router }
 
           {/* Coach notes */}
           {technique.coachNotes && SECTION("💡", t.coachNotes,
-            <p style={{ margin: 0, fontSize: 12.5, color: GOLD, lineHeight: 1.5 }}>{technique.coachNotes}</p>
+            <p style={{ margin: 0, fontSize: 12.5, color: GOLD, lineHeight: 1.5 }}>{getLocal(technique.coachNotes, locale)}</p>
           )}
 
           {/* Scoring metrics */}
