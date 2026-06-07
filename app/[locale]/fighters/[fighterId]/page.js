@@ -609,25 +609,32 @@ export default function FighterDetailPage() {
                 })}
               </div>
             )}
-            {FIGHTER_TECHNIQUES[fighter.id].map((lesson, i) => (
+            {FIGHTER_TECHNIQUES[fighter.id].map((lesson, i) => {
+              const L = (f) => {
+                if (!f) return "";
+                if (typeof f === "object" && !Array.isArray(f)) return f[locale] || f.en || "";
+                return f;
+              };
+              return (
               <TechniqueLessonCard
                 key={i}
                 index={i + 1}
                 title={lesson.title}
                 difficulty={lesson.difficulty}
-                teachingBlocks={lesson.teachingBlocks}
-                explanation={lesson.explanation}
-                bodyCue={lesson.bodyCue}
-                commonMistake={lesson.commonMistake}
-                coachNotes={lesson.coachNotes}
-                drillSteps={lesson.drillSteps}
+                teachingBlocks={lesson.teachingBlocks.map((b) => ({ ...b, value: L(b.value) }))}
+                explanation={L(lesson.explanation)}
+                bodyCue={L(lesson.bodyCue)}
+                commonMistake={L(lesson.commonMistake)}
+                coachNotes={L(lesson.coachNotes)}
+                drillSteps={(lesson.drillSteps || []).map(L)}
                 accent={acc}
                 defaultOpen={i === 0}
                 locale={locale}
                 fighterId={fighter.id}
                 router={router}
               />
-            ))}
+              );
+            })}
           </Section>
         )}
 

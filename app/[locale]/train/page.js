@@ -1009,9 +1009,10 @@ export default function TrainPage() {
           {/* Live technique coaching cue — shown during recording when a lesson is active */}
           {isRecording && (lessonContext?.lesson?.bodyCue || lessonContext?.academyLesson?.keyCues?.length > 0) && (() => {
             const acc = lessonContext.fighter?.accent || lessonContext.academyLesson?.accentColor || GOLD;
-            const cueText = lessonContext.academyLesson
+            const rawCue = lessonContext.academyLesson
               ? (lessonContext.academyLesson.keyCues[activeCueIndex] || lessonContext.academyLesson.keyCues[0])
               : lessonContext.lesson.bodyCue;
+            const cueText = rawCue && typeof rawCue === "object" ? (rawCue[locale] || rawCue.en || "") : rawCue;
             return (
               <div style={{
                 position: "absolute", top: 12, left: 0, right: 0,
