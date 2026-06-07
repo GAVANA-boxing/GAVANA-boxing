@@ -4,6 +4,12 @@ import { useState } from "react";
 import { GOLD, RADIUS, goldAlpha } from "@/lib/tokens";
 import DiagramPlaceholder from "@/components/visual/DiagramPlaceholder";
 
+function getLocal(field, locale) {
+  if (!field) return "";
+  if (typeof field === "object" && !Array.isArray(field)) return field[locale] || field.en || "";
+  return field;
+}
+
 const DIFF_COLOR = { beginner: "#10B981", intermediate: "#F59E0B", advanced: "#F87171" };
 const LEVEL_COLOR = { beginner: "#10B981", intermediate: "#F59E0B", advanced: "#F87171" };
 const LEVEL_EMOJI = { beginner: "🟢", intermediate: "🟡", advanced: "🔴" };
@@ -178,7 +184,7 @@ export default function AcademyLessonCard({ lesson, locale = "en", lessonStatus 
           {/* Concept */}
           {(lesson.concept || lesson.explanation) && (
             <p style={{ margin: "0 0 14px", fontSize: 12.5, color: "rgba(255,255,255,0.72)", lineHeight: 1.65 }}>
-              {lesson.concept || lesson.explanation}
+              {getLocal(lesson.concept || lesson.explanation, locale)}
             </p>
           )}
 
@@ -196,7 +202,7 @@ export default function AcademyLessonCard({ lesson, locale = "en", lessonStatus 
                     }}>
                       {i + 1}
                     </div>
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.5, paddingTop: 1 }}>{point}</span>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.5, paddingTop: 1 }}>{getLocal(point, locale)}</span>
                   </div>
                 ))}
               </div>
@@ -214,7 +220,7 @@ export default function AcademyLessonCard({ lesson, locale = "en", lessonStatus 
                 {lesson.whatYouShouldFeel.map((cue, i) => (
                   <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", marginBottom: i < lesson.whatYouShouldFeel.length - 1 ? 6 : 0 }}>
                     <span style={{ fontSize: 9, color: GOLD, flexShrink: 0, marginTop: 2 }}>◦</span>
-                    <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.65)", lineHeight: 1.5, fontStyle: "italic" }}>{cue}</span>
+                    <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.65)", lineHeight: 1.5, fontStyle: "italic" }}>{getLocal(cue, locale)}</span>
                   </div>
                 ))}
               </div>
@@ -235,7 +241,7 @@ export default function AcademyLessonCard({ lesson, locale = "en", lessonStatus 
                   }}>
                     {i + 1}
                   </div>
-                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.68)", lineHeight: 1.5, paddingTop: 1 }}>{cue}</span>
+                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.68)", lineHeight: 1.5, paddingTop: 1 }}>{getLocal(cue, locale)}</span>
                 </div>
               ))}
             </div>
@@ -249,7 +255,7 @@ export default function AcademyLessonCard({ lesson, locale = "en", lessonStatus 
                 background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.2)",
                 borderLeft: "2.5px solid rgba(239,68,68,0.6)",
               }}>
-                <p style={{ margin: 0, fontSize: 12, color: "#fca5a5", lineHeight: 1.5 }}>{lesson.commonMistake}</p>
+                <p style={{ margin: 0, fontSize: 12, color: "#fca5a5", lineHeight: 1.5 }}>{getLocal(lesson.commonMistake, locale)}</p>
               </div>
             </Collapsible>
           )}
@@ -309,7 +315,7 @@ export default function AcademyLessonCard({ lesson, locale = "en", lessonStatus 
                       }}>
                         {i + 1}
                       </span>
-                      <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.65)", lineHeight: 1.5, paddingTop: 1 }}>{step}</span>
+                      <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.65)", lineHeight: 1.5, paddingTop: 1 }}>{getLocal(step, locale)}</span>
                     </div>
                   ))}
                 </div>
@@ -335,7 +341,7 @@ export default function AcademyLessonCard({ lesson, locale = "en", lessonStatus 
                   }}>
                     {i + 1}
                   </span>
-                  <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.65)", lineHeight: 1.5, paddingTop: 1 }}>{step}</span>
+                  <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.65)", lineHeight: 1.5, paddingTop: 1 }}>{getLocal(step, locale)}</span>
                 </div>
               ))}
             </div>
@@ -354,7 +360,7 @@ export default function AcademyLessonCard({ lesson, locale = "en", lessonStatus 
                   {lesson.fighterExample.name}
                 </div>
                 <p style={{ margin: 0, fontSize: 11.5, color: "rgba(255,255,255,0.6)", lineHeight: 1.55 }}>
-                  {lesson.fighterExample.observation}
+                  {getLocal(lesson.fighterExample.observation, locale)}
                 </p>
               </div>
             </div>
@@ -375,7 +381,7 @@ export default function AcademyLessonCard({ lesson, locale = "en", lessonStatus 
                     {lesson.animalAnalogy.animal}
                   </div>
                   <p style={{ margin: 0, fontSize: 11.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.55 }}>
-                    {lesson.animalAnalogy.description}
+                    {getLocal(lesson.animalAnalogy.description, locale)}
                   </p>
                 </div>
               </div>
@@ -398,7 +404,7 @@ export default function AcademyLessonCard({ lesson, locale = "en", lessonStatus 
                         {m.metric}
                       </div>
                       <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.4 }}>
-                        {m.description}
+                        {getLocal(m.description, locale)}
                       </div>
                     </div>
                   </div>
@@ -416,7 +422,7 @@ export default function AcademyLessonCard({ lesson, locale = "en", lessonStatus 
                 borderLeft: `2.5px solid ${goldAlpha(0.55)}`,
               }}>
                 <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.5, fontStyle: "italic" }}>
-                  &ldquo;{lesson.coachCue || lesson.coachTip}&rdquo;
+                  &ldquo;{getLocal(lesson.coachCue || lesson.coachTip, locale)}&rdquo;
                 </p>
               </div>
             </Collapsible>
