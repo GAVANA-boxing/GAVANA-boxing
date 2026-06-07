@@ -133,10 +133,16 @@ export default async function LocalizedHomePage({ params }) {
 
       {/* Footer */}
       <footer style={s.footer}>
-        <span>© 2026 GAVANA Boxing</span>
-        <div style={{ display: "flex", gap: 20 }}>
+        <span>© 2025 GAVANA Boxing</span>
+        <div style={{ display: "flex", gap: 20, flexWrap: "wrap", justifyContent: "flex-end" }}>
           <Link href={`/${locale}/reels`} style={s.footerLink}>{t("reels")}</Link>
           <Link href={`/${locale}/login`} style={s.footerLink}>{t("login")}</Link>
+          <Link href={`/${locale}/terms`} style={s.footerLink}>
+            {locale === "mn" ? "Нөхцөл" : locale === "ko" ? "약관" : "Terms"}
+          </Link>
+          <Link href={`/${locale}/privacy`} style={s.footerLink}>
+            {locale === "mn" ? "Нууцлал" : locale === "ko" ? "개인정보" : "Privacy"}
+          </Link>
         </div>
       </footer>
     </main>

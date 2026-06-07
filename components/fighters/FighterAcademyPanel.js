@@ -5,13 +5,19 @@ import { GOLD, RADIUS, whiteAlpha, goldAlpha } from "@/lib/tokens";
 import DiagramPlaceholder from "@/components/visual/DiagramPlaceholder";
 import FighterSilhouette from "@/components/visual/FighterSilhouette";
 
+function getLocal(field, locale) {
+  if (!field) return "";
+  if (typeof field === "object") return field[locale] || field.en || "";
+  return field;
+}
+
 const PANEL_LABEL = {
   en: { focus: "Focus Areas", habit: "Signature Habit", cue: "Cue", drill: "Beginner Drill", advanced: "Advanced Lesson", steps: "Steps", note: "Note" },
   mn: { focus: "Анхаарах чиглэлүүд", habit: "Онцлог зуршил", cue: "Зааварчилгаа", drill: "Анхан шатны дасгал", advanced: "Дэвшилтэт хичээл", steps: "Алхамууд", note: "Тэмдэглэл" },
   ko: { focus: "집중 영역", habit: "시그니처 습관", cue: "포인트", drill: "초급 드릴", advanced: "심화 레슨", steps: "단계", note: "참고" },
 };
 
-function FocusCard({ area, accent, index }) {
+function FocusCard({ area, accent, index, locale }) {
   const [open, setOpen] = useState(index === 0);
   return (
     <button
@@ -30,7 +36,7 @@ function FocusCard({ area, accent, index }) {
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <span style={{ fontSize: 14, flexShrink: 0 }}>{area.icon}</span>
         <span style={{ fontSize: 11, fontWeight: 900, color: open ? "#fff" : "rgba(255,255,255,0.6)", flex: 1, textAlign: "left" }}>
-          {area.title}
+          {getLocal(area.title, locale)}
         </span>
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
           stroke={open ? accent : "rgba(255,255,255,0.3)"}
@@ -42,7 +48,7 @@ function FocusCard({ area, accent, index }) {
       </div>
       {open && (
         <p style={{ margin: "8px 0 0 22px", fontSize: 12, color: "rgba(255,255,255,0.58)", lineHeight: 1.55, textAlign: "left" }}>
-          {area.description}
+          {getLocal(area.description, locale)}
         </p>
       )}
     </button>
@@ -80,7 +86,7 @@ export default function FighterAcademyPanel({ academy, fighterId, locale = "en" 
             {academy.focusAreas?.[0] && (
               <div style={{ fontSize: 10, color: "rgba(255,255,255,0.38)", display: "flex", alignItems: "center", gap: 5 }}>
                 <span>{academy.focusAreas[0].icon}</span>
-                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{academy.focusAreas[0].title}</span>
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{getLocal(academy.focusAreas[0].title, locale)}</span>
               </div>
             )}
           </div>
@@ -121,7 +127,7 @@ export default function FighterAcademyPanel({ academy, fighterId, locale = "en" 
           {L.focus}
         </div>
         {academy.focusAreas.map((area, i) => (
-          <FocusCard key={i} area={area} accent={acc} index={i} />
+          <FocusCard key={i} area={area} accent={acc} index={i} locale={locale} />
         ))}
       </div>
 
@@ -135,10 +141,10 @@ export default function FighterAcademyPanel({ academy, fighterId, locale = "en" 
           ⭐ {L.habit}
         </div>
         <div style={{ fontSize: 13, fontWeight: 900, color: "#fff", marginBottom: 6, lineHeight: 1.3 }}>
-          {academy.signatureHabit.title}
+          {getLocal(academy.signatureHabit.title, locale)}
         </div>
         <p style={{ margin: "0 0 10px", fontSize: 12, color: "rgba(255,255,255,0.58)", lineHeight: 1.55 }}>
-          {academy.signatureHabit.description}
+          {getLocal(academy.signatureHabit.description, locale)}
         </p>
         <div style={{
           padding: "8px 10px", borderRadius: 8,
@@ -148,7 +154,7 @@ export default function FighterAcademyPanel({ academy, fighterId, locale = "en" 
             {L.cue}
           </div>
           <p style={{ margin: 0, fontSize: 11.5, color: "#fde68a", lineHeight: 1.5, fontStyle: "italic" }}>
-            &ldquo;{academy.signatureHabit.cue}&rdquo;
+            &ldquo;{getLocal(academy.signatureHabit.cue, locale)}&rdquo;
           </p>
         </div>
       </div>
@@ -173,7 +179,7 @@ export default function FighterAcademyPanel({ academy, fighterId, locale = "en" 
               🎯 {L.drill}
             </div>
             <div style={{ fontSize: 12, fontWeight: 800, color: "#fff", textAlign: "left" }}>
-              {academy.beginnerDrill.title}
+              {getLocal(academy.beginnerDrill.title, locale)}
             </div>
           </div>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
@@ -187,7 +193,7 @@ export default function FighterAcademyPanel({ academy, fighterId, locale = "en" 
         {drillOpen && (
           <div style={{ padding: "0 14px 14px" }}>
             <p style={{ margin: "0 0 10px", fontSize: 12, color: "rgba(255,255,255,0.55)", lineHeight: 1.5 }}>
-              {academy.beginnerDrill.description}
+              {getLocal(academy.beginnerDrill.description, locale)}
             </p>
             <div style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 1.2, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 8 }}>
               {L.steps}
@@ -202,7 +208,7 @@ export default function FighterAcademyPanel({ academy, fighterId, locale = "en" 
                 }}>
                   {i + 1}
                 </div>
-                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.5, paddingTop: 1 }}>{step}</span>
+                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.5, paddingTop: 1 }}>{getLocal(step, locale)}</span>
               </div>
             ))}
           </div>
@@ -222,7 +228,7 @@ export default function FighterAcademyPanel({ academy, fighterId, locale = "en" 
           </div>
           <div style={{ fontSize: 12, fontWeight: 800, color: "#fff" }}>{academy.advancedLessonTitle}</div>
           {academy.advancedLessonNote && (
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.38)", marginTop: 2 }}>{academy.advancedLessonNote}</div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.38)", marginTop: 2 }}>{getLocal(academy.advancedLessonNote, locale)}</div>
           )}
         </div>
       </div>

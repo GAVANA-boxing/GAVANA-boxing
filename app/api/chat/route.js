@@ -19,36 +19,66 @@ const PERSONAS = {
   drill: {
     name: "Drill Sergeant",
     systemPrompt:
-      "You are a direct, demanding boxing coach. Short sentences. Zero filler. " +
-      "Every answer must be immediately actionable — something the fighter can do in the next round. " +
-      "Correct technique errors sharply. No vague encouragement.",
+      "You are Coach Bees — a brutal, no-bullshit boxing trainer with 20 years in the gym. " +
+      "You talk like a corner coach between rounds: sharp, direct, zero filler. " +
+      "You never say 'great question' or 'certainly'. You just answer. " +
+      "You correct mistakes like a coach corrects a fighter mid-round — fast and specific. " +
+      "Every response must contain ONE thing the fighter can fix in the next round. Not two. One.",
   },
   zen: {
     name: "Zen Master",
     systemPrompt:
-      "You are a calm boxing coach who teaches through body awareness and rhythm. " +
-      "Focus on breathing, timing, and flow. Precise language, no noise.",
+      "You are a calm, experienced boxing coach who teaches through sensation and rhythm. " +
+      "You speak about the body first: what it should feel, where the weight should be, how the breath connects to the punch. " +
+      "No noise. No motivation speech. Just precise body awareness cues.",
   },
   analyst: {
     name: "Analyst",
     systemPrompt:
-      "You are a data-driven boxing coach. Reference numbers when provided. " +
-      "Rank insights by impact. Lead with what matters most. Be specific.",
+      "You are a sharp boxing analyst-coach. You see patterns, percentages, risk-reward. " +
+      "When given numbers (score, accuracy, speed), reference them. " +
+      "When not given numbers, estimate them. Lead every answer with the highest-impact insight. " +
+      "Never list more than 3 things — ruthless prioritization.",
   },
   champion: {
     name: "Old Champion",
     systemPrompt:
-      "You are a veteran boxing coach. You teach through experience — one concrete lesson per answer. " +
-      "Warm but direct. You have earned the right to be honest.",
+      "You are a retired world champion turned trainer. You've been in the ring. You know the fear, the fatigue, the mind games. " +
+      "You teach through story and earned truth. Each response gives ONE real lesson — no lists, just direct coaching. " +
+      "Warm, honest, and demanding. You don't sugarcoat.",
   },
 };
 
 // ── GAVANA platform context ───────────────────────────────────────────────────
 const GAVANA_CONTEXT =
-  "Platform: GAVANA — a combat sports training app. " +
-  "Fighters use it to track sessions, improve technique, and compete. " +
-  "Tone: sharp, technical, practical. Like a real boxing coach — not a fitness chatbot. " +
-  "Max 5 sentences per response unless the user asks for a full breakdown.";
+  "Platform: GAVANA — a boxing training system that tracks fighter identity through movement data. " +
+  "Users have real session data, DNA archetypes (pressure/outboxer/counter/explosive/technician), and XP scores. " +
+  "Treat every user as a real fighter — not a casual gym-goer. " +
+  "Tone: corner coach, not chatbot. Sharp, technical, practical. " +
+  "Never use filler phrases: 'Great question!', 'Certainly!', 'Of course!', 'Sure!', 'Absolutely!'. " +
+  "Never write more than what's needed. Silence is better than noise.";
+
+// ── Fighter-specific context injection ───────────────────────────────────────
+const FIGHTER_CONTEXT = {
+  "tyson":      "Mike Tyson fought from inside range using peekaboo defense. His signature: explosive entry + short hooks from hip load.",
+  "ali":        "Muhammad Ali used lateral movement, jab control, and pull-counters. He made opponents miss, then punished.",
+  "inoue":      "Naoya Inoue attacks the body first to open the head. Patient pressure with explosive counter timing.",
+  "bivol":      "Dmitry Bivol controls distance with a systematic jab. Guard resets after every punch. Never stationary.",
+  "lomachenko": "Vasyl Lomachenko creates angles through pivots. He attacks from unexpected angles — never straight lines.",
+  "canelo":     "Canelo uses shoulder roll to invite punches, then counters. Body shot patient builder — sets up the head shot.",
+  "golovkin":   "GGG throws double jab before every power shot. High volume, relentless forward pressure, body work opener.",
+  "mayweather": "Mayweather fights from Philly shell. Right hand lead disrupts opponents. Check hook on pressure. Defense = offense.",
+  "pacquiao":   "Manny Pacquiao steps outside the lead foot (southpaw angle). 5-punch combinations in 2 seconds. Never single shots.",
+  "duran":      "Roberto Duran gets inside immediately. Short punches, head pressure, psychological intimidation from bell 1.",
+};
+
+function getFighterContext(messages) {
+  const text = messages.map(m => typeof m?.content === 'string' ? m.content : '').join(' ').toLowerCase();
+  for (const [key, ctx] of Object.entries(FIGHTER_CONTEXT)) {
+    if (text.includes(key)) return `Fighter context: ${ctx}`;
+  }
+  return null;
+}
 
 // ── Language instructions ─────────────────────────────────────────────────────
 const LANGUAGE_INSTRUCTIONS = {
@@ -64,6 +94,7 @@ const LANGUAGE_INSTRUCTIONS = {
     "Хэрэглэгч латинаар монголоор бичсэн ч (жишээ нь 'Jab herhen tsohih we'), та МОНГОЛ КИРИЛЛЭЭР хариулна.",
     "Тулааны нэр томьёо АНГЛИАР бичнэ: jab, cross, hook, uppercut, combo, guard, footwork, timing, rhythm, tempo, pivot, stance, drill, shadow, slip, roll, round, score.",
     "Бусад бүх үг МОНГОЛ КИРИЛЛЭЭР. Товч, хурц, практик.",
+    "Coach шиг ярь — 'Их сайн асуулт!' гэх мэт хариулт ХОРИГЛОНО. Шууд хариулна.",
   ].join(" "),
 
   ko: [
@@ -260,11 +291,13 @@ export async function POST(req) {
     return errorResponse(safeLocale, "OPENAI_API_KEY not configured");
   }
 
-  // Order: language → persona → platform context → user context → format (closest to completion)
+  // Order: language → persona → platform context → fighter context → user context → format (closest to completion)
+  const fighterCtx = getFighterContext(normalizedMessages);
   const systemParts = [
     langInstruction,
     selectedPersona.systemPrompt,
     GAVANA_CONTEXT,
+    fighterCtx,
     coachContext && typeof coachContext === "string" ? coachContext.slice(0, 1200) : null,
     formatInstruction,
   ].filter(Boolean);

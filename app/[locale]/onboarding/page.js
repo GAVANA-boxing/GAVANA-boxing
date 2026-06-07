@@ -514,6 +514,23 @@ export default function OnboardingPage() {
                   </>
                 )}
               </div>
+
+              {/* Terms & Privacy consent */}
+              <p style={{ margin: "16px 0 0", fontSize: 10, color: "rgba(255,255,255,0.22)", textAlign: "center", lineHeight: 1.6 }}>
+                {locale === "mn"
+                  ? "Үргэлжлүүлэхдээ та манай "
+                  : locale === "ko"
+                  ? "계속하면 "
+                  : "By continuing you agree to our "}
+                <a href={`/${locale}/terms`} style={{ color: "rgba(255,255,255,0.4)", textDecoration: "underline" }}>
+                  {locale === "mn" ? "Үйлчилгээний нөхцөл" : locale === "ko" ? "이용약관" : "Terms of Service"}
+                </a>
+                {locale === "mn" ? " болон " : locale === "ko" ? " 및 " : " and "}
+                <a href={`/${locale}/privacy`} style={{ color: "rgba(255,255,255,0.4)", textDecoration: "underline" }}>
+                  {locale === "mn" ? "Нууцлалын бодлого" : locale === "ko" ? "개인정보처리방침" : "Privacy Policy"}
+                </a>
+                {locale === "mn" ? "-г зөвшөөрч байна." : locale === "ko" ? "에 동의합니다." : "."}
+              </p>
             </div>
           </div>
         )}
