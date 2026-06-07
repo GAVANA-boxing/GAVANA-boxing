@@ -1,5 +1,6 @@
 // app/api/chat/route.js
 import { getLocale } from "@/lib/i18n";
+import { verifyIdToken } from "@/lib/verifyAuth";
 import OpenAI from "openai";
 
 const _chatRateMap = new Map();
@@ -259,7 +260,10 @@ function errorResponse(locale, detail = "") {
 
 // ── Route handler ─────────────────────────────────────────────────────────────
 export async function POST(req) {
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const uid = await verifyIdToken(req);
+  if (!uid) return Response.json({ error: "Unauthorized" }, { status: 401 });
+
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || uid;
   if (isChatRateLimited(ip)) return Response.json({ error: "Rate limited" }, { status: 429 });
 
   let body;
@@ -283,11 +287,9 @@ export async function POST(req) {
     : (FORMAT_INSTRUCTIONS[safeLocale] || FORMAT_INSTRUCTIONS.en);
 
   const hasKey = !!process.env.OPENAI_API_KEY;
-  const keyHint = hasKey ? `sk-...${process.env.OPENAI_API_KEY.slice(-4)}` : "NOT SET";
-  console.log(`[chat/route] KEY:${keyHint} locale:${safeLocale}(client:${locale}) persona:${persona} msgs:${normalizedMessages.length} technique:${isTechQ}`);
 
   if (!hasKey) {
-    console.error("[chat/route] OPENAI_API_KEY is not configured — Vercel → Settings → Environment Variables.");
+    console.error("[chat/route] OPENAI_API_KEY is not configured.");
     return errorResponse(safeLocale, "OPENAI_API_KEY not configured");
   }
 

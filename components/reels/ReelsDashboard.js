@@ -651,7 +651,7 @@ function RightPanel({ user, router, currentLocale }) {
               {[0,1].map((i) => <SkeletonRow key={i} />)}
             </div>
           ) : requests.length === 0 ? (
-            <div style={d.rightEmpty}>Одоогоор илгээсэн{"\n"}хүсэлт байхгүй байна</div>
+            <div style={d.rightEmpty}>{currentLocale === "mn" ? "Одоогоор илгээсэн хүсэлт байхгүй байна" : currentLocale === "ko" ? "보낸 요청이 없습니다" : "No requests sent yet"}</div>
           ) : (
             requests.map((req) => {
               const isAccepted = req.status === "accepted";
