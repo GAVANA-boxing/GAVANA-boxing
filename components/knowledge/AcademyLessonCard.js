@@ -114,10 +114,10 @@ export default function AcademyLessonCard({ lesson, locale = "en", lessonStatus 
                 letterSpacing: 0.3, lineHeight: 1.2, transition: "color 240ms ease",
                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
               }}>
-                {lesson.title}
+                {getLocal(lesson.title, locale)}
               </div>
               <div style={{ fontSize: 9.5, color: "rgba(255,255,255,0.3)", fontWeight: 600, marginTop: 1 }}>
-                {lesson.subtitle}
+                {getLocal(lesson.subtitle, locale)}
               </div>
             </div>
           </div>
@@ -297,7 +297,7 @@ export default function AcademyLessonCard({ lesson, locale = "en", lessonStatus 
                 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                     <div style={{ fontSize: 7.5, fontWeight: 900, color: GOLD, letterSpacing: 1.2, textTransform: "uppercase" }}>
-                      🎯 {activeDrill.title}
+                      🎯 {getLocal(activeDrill.title, locale)}
                     </div>
                     {activeDrill.duration && (
                       <span style={{ fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>
@@ -329,7 +329,7 @@ export default function AcademyLessonCard({ lesson, locale = "en", lessonStatus 
               borderLeft: "2.5px solid rgba(245,196,81,0.5)",
             }}>
               <div style={{ fontSize: 7.5, fontWeight: 900, color: GOLD, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8 }}>
-                🎯 {L.drill} · {lesson.drill.title}
+                🎯 {L.drill} · {getLocal(lesson.drill.title, locale)}
               </div>
               {lesson.drill.steps.map((step, i) => (
                 <div key={i} style={{ display: "flex", gap: 9, alignItems: "flex-start", marginBottom: i < lesson.drill.steps.length - 1 ? 6 : 0 }}>
@@ -450,8 +450,8 @@ export default function AcademyLessonCard({ lesson, locale = "en", lessonStatus 
               type="button"
               onClick={() => {
                 const q = locale === "mn"
-                  ? `Би "${lesson.title}" хичээлийг судалж байна. Яаж сайжруулах вэ?`
-                  : `I'm studying "${lesson.title}" from GAVANA Academy. How do I improve this technique?`;
+                  ? `Би "${getLocal(lesson.title, locale)}" хичээлийг судалж байна. Яаж сайжруулах вэ?`
+                  : `I'm studying "${getLocal(lesson.title, locale)}" from GAVANA Academy. How do I improve this technique?`;
                 router.push(`/${locale}/coach/chat?q=${encodeURIComponent(q)}`);
               }}
               style={{
