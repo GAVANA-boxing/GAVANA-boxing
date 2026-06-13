@@ -6,15 +6,10 @@ import { GOLD, RED, redAlpha, goldAlpha, blackAlpha, whiteAlpha } from "@/lib/to
 import DiagramPlaceholder from "@/components/visual/DiagramPlaceholder";
 import FighterSilhouette from "@/components/visual/FighterSilhouette";
 import { BLOCK_DIAGRAM_TYPE } from "@/lib/visualAssets";
+import { getLocal } from "@/lib/i18n";
 
 const DIFF_COLOR = { beginner: "#10B981", intermediate: "#F59E0B", advanced: "#F87171" };
 const BLOCK_ICON = { FOOT: "👟", WEIGHT: "⚖️", ANGLE: "📐", GUARD: "🛡️" };
-
-function getLocal(field, locale) {
-  if (!field) return "";
-  if (typeof field === "object" && !Array.isArray(field)) return field[locale] || field.en || "";
-  return field;
-}
 
 const T = {
   en: {

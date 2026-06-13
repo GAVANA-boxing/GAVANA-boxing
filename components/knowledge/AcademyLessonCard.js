@@ -3,12 +3,7 @@
 import { useState } from "react";
 import { GOLD, RADIUS, goldAlpha } from "@/lib/tokens";
 import DiagramPlaceholder from "@/components/visual/DiagramPlaceholder";
-
-function getLocal(field, locale) {
-  if (!field) return "";
-  if (typeof field === "object" && !Array.isArray(field)) return field[locale] || field.en || "";
-  return field;
-}
+import { getLocal } from "@/lib/i18n";
 
 const DIFF_COLOR = { beginner: "#10B981", intermediate: "#F59E0B", advanced: "#F87171" };
 const LEVEL_COLOR = { beginner: "#10B981", intermediate: "#F59E0B", advanced: "#F87171" };
