@@ -1,6 +1,7 @@
 "use client";
 import { GOLD, goldAlpha } from "@/lib/tokens";
 import { generateTechniqueReview } from "@/lib/techniqueReview";
+import { loc } from "@/lib/loc";
 
 const REVIEW_LABELS = {
   en: { wellDone: "What went well", mainFix: "Main fix", drill: "Drill", nextGoal: "Next session goal", notEnough: "Not enough data", positionTip: "Tracking tip" },
@@ -41,7 +42,7 @@ export default function CoachReviewCard({ poseMetrics, result, locale }) {
     <div style={{ margin: "0 20px 8px", padding: "12px 14px", borderRadius: 12, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)", borderLeft: `3px solid ${toneAccent}55` }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
         <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.8, color: `${toneAccent}bb`, textTransform: "uppercase" }}>
-          {locale === "mn" ? "ТРЕНЕРИЙН ДҮГНЭЛТ" : locale === "ko" ? "코치 리뷰" : "COACH REVIEW"}
+          {loc(locale, "ТРЕНЕРИЙН ДҮГНЭЛТ", "코치 리뷰", "COACH REVIEW")}
         </div>
         <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.05)" }} />
         <div style={{ fontSize: 8.5, fontWeight: 900, color: "rgba(255,255,255,0.28)", letterSpacing: 1 }}>{review.title}</div>

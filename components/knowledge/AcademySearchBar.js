@@ -1,6 +1,7 @@
 "use client";
 
 import { GOLD } from "@/lib/tokens";
+import { loc } from "@/lib/loc";
 
 export const FILTER_CHIPS = [
   { key: "beginner",      emoji: "🌱", en: "Beginner",     mn: "Анхан шат",       ko: "초급" },
@@ -37,10 +38,7 @@ export function matchesSearch(lesson, query, filter) {
 }
 
 export default function AcademySearchBar({ query, onQuery, activeFilter, onFilter, locale }) {
-  const placeholder =
-    locale === "mn" ? "Техник, тулаанч, түлхүүр үг хайх…"
-    : locale === "ko" ? "기술, 파이터, 키워드 검색…"
-    : "Search technique, fighter, keyword…";
+  const placeholder = loc(locale, "Техник, тулаанч, түлхүүр үг хайх…", "기술, 파이터, 키워드 검색…", "Search technique, fighter, keyword…");
 
   return (
     <div>

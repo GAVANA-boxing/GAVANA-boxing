@@ -2,6 +2,7 @@
 
 import styles from "@/components/train/trainStyles";
 import { GOLD, RED, whiteAlpha } from "@/lib/tokens";
+import { loc } from "@/lib/loc";
 
 const AREA_COLOR = {
   Power: RED, Speed: "#FB923C", Timing: GOLD,
@@ -125,7 +126,7 @@ export default function PreGameCard({
 
       {ghostEnabled && ghostBestScore !== null && !challengeUserId && (
         <div style={styles.contextGhostNote}>
-          👻 {locale === "mn" ? `Ghost горим идэвхтэй — ${ghostBestScore.toFixed(1)}/10 давах` : locale === "ko" ? `고스트 모드 활성화 — ${ghostBestScore.toFixed(1)}/10 넘기` : `Ghost mode active — beat ${ghostBestScore.toFixed(1)}/10`}
+          👻 {loc(locale, `Ghost горим идэвхтэй — ${ghostBestScore.toFixed(1)}/10 давах`, `고스트 모드 활성화 — ${ghostBestScore.toFixed(1)}/10 넘기`, `Ghost mode active — beat ${ghostBestScore.toFixed(1)}/10`)}
         </div>
       )}
 

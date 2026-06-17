@@ -5,6 +5,7 @@ import { GOLD, RADIUS, goldAlpha } from "@/lib/tokens";
 import DiagramPlaceholder from "@/components/visual/DiagramPlaceholder";
 import { getLocal } from "@/lib/i18n";
 import LessonDrillSection from "@/components/knowledge/LessonDrillSection";
+import { loc } from "@/lib/loc";
 
 const DIFF_COLOR = { beginner: "#10B981", intermediate: "#F59E0B", advanced: "#F87171" };
 

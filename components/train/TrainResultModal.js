@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { GOLD, RED, RADIUS, redAlpha, goldAlpha, whiteAlpha, blackAlpha } from "@/lib/tokens";
+import { loc } from "@/lib/loc";
 import { ACADEMY_LESSONS } from "@/lib/academyLessons";
 import styles from "@/components/train/trainStyles";
 import { computeScoreConfidence, CONFIDENCE_TIPS } from "@/lib/scoreConfidence";
@@ -139,7 +140,7 @@ export default function TrainResultModal({
             /* ── Not enough data ── */
             <div style={{ margin: "16px 0 10px" }}>
               <h2 style={{ margin: "0 0 6px", fontSize: 22, fontWeight: 1000, color: whiteAlpha(0.55), letterSpacing: "-0.01em" }}>
-                {locale === "mn" ? "Хангалтгүй өгөгдөл" : locale === "ko" ? "데이터 부족" : "Not Enough Data"}
+                {loc(locale, "Хангалтгүй өгөгдөл", "데이터 부족", "Not Enough Data")}
               </h2>
               <p style={{ margin: 0, fontSize: 12, color: whiteAlpha(0.35), lineHeight: 1.5 }}>
                 {locale === "mn"

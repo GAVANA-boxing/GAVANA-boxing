@@ -1,6 +1,7 @@
 "use client";
 import { GOLD, goldAlpha } from "@/lib/tokens";
 import { generateTechniqueReview } from "@/lib/techniqueReview";
+import { loc } from "@/lib/loc";
 
 export default function ActionSummary({ poseMetrics, result, locale }) {
   const review = generateTechniqueReview({ poseMetrics, result, locale });
@@ -10,9 +11,9 @@ export default function ActionSummary({ poseMetrics, result, locale }) {
   const next = review.drill || null;
   if (!good && !fix && !next) return null;
   const rows = [
-    good && { icon: "✓", label: locale === "mn" ? "САЙН" : locale === "ko" ? "잘한 점" : "GOOD", text: good, color: GOLD },
-    fix  && { icon: "✗", label: locale === "mn" ? "ЗАСАХ" : locale === "ko" ? "개선"   : "FIX",  text: fix,  color: "#F87171" },
-    next && { icon: "→", label: locale === "mn" ? "ДАРААГИЙН" : locale === "ko" ? "다음"  : "NEXT", text: next, color: "rgba(255,255,255,0.75)" },
+    good && { icon: "✓", label: loc(locale, "САЙН", "잘한 점", "GOOD"), text: good, color: GOLD },
+    fix  && { icon: "✗", label: loc(locale, "ЗАСАХ", "개선", "FIX"),  text: fix,  color: "#F87171" },
+    next && { icon: "→", label: loc(locale, "ДАРААГИЙН", "다음", "NEXT"), text: next, color: "rgba(255,255,255,0.75)" },
   ].filter(Boolean);
   return (
     <div style={{ margin: "0 20px 8px", padding: "10px 14px", borderRadius: 12, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)", borderLeft: `3px solid ${goldAlpha(0.55)}`, display: "flex", flexDirection: "column", gap: 7 }}>

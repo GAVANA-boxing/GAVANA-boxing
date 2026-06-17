@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { ACADEMY_LESSONS } from "@/lib/academyLessons";
 import { ACADEMY_PATHS, getPathProgress, getLessonStatus } from "@/lib/academyPaths";
 import { FONT_SIZE, RADIUS } from "@/lib/tokens";
+import { loc } from "@/lib/loc";
 
 // Circular sequence: completing one skill naturally leads to the next
 const SEQUENCE_NEXT = {
@@ -61,7 +62,7 @@ function buildRecommendations(lessonProgress, currentPathId, locale) {
       : (locale === "mn" ? "Ихэнх боксерт энэ хэсэг хэцүү байдаг" : "Most boxers struggle here first");
     results.push({
       lesson: wLesson, type: "weakness",
-      label: locale === "mn" ? "СУЛЫН ЗАСВАР" : locale === "ko" ? "약점 보완" : "WEAKNESS FIX",
+      label: loc(locale, "СУЛЫН ЗАСВАР", "약점 보완", "WEAKNESS FIX"),
       reason,
     });
     used.add(wLesson.id);
@@ -89,7 +90,7 @@ function buildRecommendations(lessonProgress, currentPathId, locale) {
       : (locale === "mn" ? "Таны загварт тохирно" : "Matches your style");
     results.push({
       lesson: sLesson, type: "style",
-      label: locale === "mn" ? "ЗАГВАР ТОХИРОЛ" : locale === "ko" ? "스타일 매치" : "STYLE MATCH",
+      label: loc(locale, "ЗАГВАР ТОХИРОЛ", "스타일 매치", "STYLE MATCH"),
       reason,
     });
     used.add(sLesson.id);
@@ -108,7 +109,7 @@ function buildRecommendations(lessonProgress, currentPathId, locale) {
     const pathName = path.title?.[locale] || path.title?.en || "";
     results.push({
       lesson: pLesson, type: "path",
-      label: locale === "mn" ? "ЗАМЫН ДАРААГИЙН" : locale === "ko" ? "경로 다음" : "NEXT ON PATH",
+      label: loc(locale, "ЗАМЫН ДАРААГИЙН", "경로 다음", "NEXT ON PATH"),
       reason: `${path.emoji} ${pathName}`,
     });
   }
@@ -124,8 +125,8 @@ export default function AcademyRecommendations({ lessonProgress, currentPathId, 
 
   if (recs.length === 0) return null;
 
-  const trainLabel = locale === "mn" ? "Дасгалдах →" : locale === "ko" ? "훈련 →" : "Train →";
-  const sectionTitle = locale === "mn" ? "Танд санал болгох" : locale === "ko" ? "추천 레슨" : "Recommended for you";
+  const trainLabel = loc(locale, "Дасгалдах →", "훈련 →", "Train →");
+  const sectionTitle = loc(locale, "Танд санал болгох", "추천 레슨", "Recommended for you");
 
   return (
     <div>
