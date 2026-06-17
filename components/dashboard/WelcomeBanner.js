@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { GOLD, RED } from "@/lib/tokens";
+import { loc } from "@/lib/loc";
 
 export default function WelcomeBanner({ locale, router, username, onDismiss }) {
   const [dismissed, setDismissed] = useState(false);
@@ -34,7 +35,7 @@ export default function WelcomeBanner({ locale, router, username, onDismiss }) {
       >×</button>
 
       <p style={{ margin: "0 0 6px", fontSize: 9, fontWeight: 900, color: RED, letterSpacing: 2.5, textTransform: "uppercase" }}>
-        {mn ? "🥊 GAVANA-д тавтай морил" : ko ? "🥊 GAVANA에 오신 것을 환영합니다" : "🥊 Welcome to GAVANA"}
+        {loc(locale, "🥊 GAVANA-д тавтай морил", "🥊 GAVANA에 오신 것을 환영합니다", "🥊 Welcome to GAVANA")}
       </p>
       <p style={{ margin: "0 0 12px", fontSize: 14, fontWeight: 900, color: "#fff", lineHeight: 1.3 }}>
         {username ? (mn ? `${username}, эхлэх цаг боллоо!` : `${username}, let's get started!`) : (mn ? "Эхлэх цаг боллоо!" : "Time to get started!")}
@@ -51,7 +52,7 @@ export default function WelcomeBanner({ locale, router, username, onDismiss }) {
           onClick={() => router.push(`/${locale}/train`)}
           style={{ width: "100%", padding: "11px 0", borderRadius: 11, background: RED, border: "none", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer", letterSpacing: 0.3 }}
         >
-          {mn ? "⚡ Дадлага эхлэх" : ko ? "⚡ 훈련 시작" : "⚡ Start Training"}
+          {loc(locale, "⚡ Дадлага эхлэх", "⚡ 훈련 시작", "⚡ Start Training")}
         </button>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
           <button

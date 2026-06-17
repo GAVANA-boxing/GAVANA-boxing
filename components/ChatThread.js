@@ -10,6 +10,7 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname } from "@/lib/i18n";
 import { RED, RED_DARK, GOLD, SURFACE_1, SURFACE_2, BORDER, BORDER_2, RADIUS, redAlpha, goldAlpha, whiteAlpha } from "@/lib/tokens";
+import { loc } from "@/lib/loc";
 import Image from "next/image";
 
 function getTs(ts) {
@@ -36,34 +37,34 @@ function formatDateLabel(ts, locale) {
   const d = new Date(getTs(ts));
   const today = new Date();
   if (d.toDateString() === today.toDateString())
-    return locale === "mn" ? "Өнөөдөр" : locale === "ko" ? "오늘" : "Today";
+    return loc(locale, "Өнөөдөр", "오늘", "Today");
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
   if (d.toDateString() === yesterday.toDateString())
-    return locale === "mn" ? "Өчигдөр" : locale === "ko" ? "어제" : "Yesterday";
+    return loc(locale, "Өчигдөр", "어제", "Yesterday");
   return d.toLocaleDateString(undefined, { month: "long", day: "numeric" });
 }
 
 function getQuickReplies(isUserCoach, recipientIsCoach, locale) {
   if (isUserCoach) {
-    return locale === "mn"
-      ? ["Маш сайн ажилласан! 🥊", "Дараагийн дасгал хэзээ вэ?", "Гарын байдлаа анхаараарай", "Хурдаа нэмэгдүүл", "Footwork-оо сайжруулья"]
-      : locale === "ko"
-      ? ["잘 했어요! 🥊", "다음 훈련은 언제인가요?", "가드를 신경 쓰세요", "속도를 높여봐요", "풋워크를 개선해봐요"]
-      : ["Great work! 🥊", "When's your next session?", "Watch your guard", "Pick up the speed", "Let's work on footwork"];
+    return loc(locale,
+      ["Маш сайн ажилласан! 🥊", "Дараагийн дасгал хэзээ вэ?", "Гарын байдлаа анхаараарай", "Хурдаа нэмэгдүүл", "Footwork-оо сайжруулья"],
+      ["잘 했어요! 🥊", "다음 훈련은 언제인가요?", "가드를 신경 쓰세요", "속도를 높여봐요", "풋워크를 개선해봐요"],
+      ["Great work! 🥊", "When's your next session?", "Watch your guard", "Pick up the speed", "Let's work on footwork"]
+    );
   }
   if (recipientIsCoach) {
-    return locale === "mn"
-      ? ["Хуваарь авах боломжтой юу?", "Хичээлийн үнэ хэд вэ?", "Анхан шатнаас эхлэх боломжтой юу?", "Онлайнаар зааж чадах уу?", "Спарринг бэлтгэлд туслаарай"]
-      : locale === "ko"
-      ? ["레슨 예약 가능한가요?", "수업료는 얼마인가요?", "초보도 가능한가요?", "온라인 수업 가능한가요?", "스파링 준비 도움을 주세요"]
-      : ["Are you available for lessons?", "What are your rates?", "Can you train beginners?", "Do you coach online?", "Help me prep for sparring"];
+    return loc(locale,
+      ["Хуваарь авах боломжтой юу?", "Хичээлийн үнэ хэд вэ?", "Анхан шатнаас эхлэх боломжтой юу?", "Онлайнаар зааж чадах уу?", "Спарринг бэлтгэлд туслаарай"],
+      ["레슨 예약 가능한가요?", "수업료는 얼마인가요?", "초보도 가능한가요?", "온라인 수업 가능한가요?", "스파링 준비 도움을 주세요"],
+      ["Are you available for lessons?", "What are your rates?", "Can you train beginners?", "Do you coach online?", "Help me prep for sparring"]
+    );
   }
-  return locale === "mn"
-    ? ["👋 Сайн уу!", "Спарринг хийх үү?", "Challenge-д оролцох уу?", "Хэр байна?"]
-    : locale === "ko"
-    ? ["👋 안녕하세요!", "스파링 할래요?", "챌린지 같이 해요?", "어떻게 지내세요?"]
-    : ["👋 Hey!", "Want to spar?", "Join me for a challenge?", "How's training?"];
+  return loc(locale,
+    ["👋 Сайн уу!", "Спарринг хийх үү?", "Challenge-д оролцох уу?", "Хэр байна?"],
+    ["👋 안녕하세요!", "스파링 할래요?", "챌린지 같이 해요?", "어떻게 지내세요?"],
+    ["👋 Hey!", "Want to spar?", "Join me for a challenge?", "How's training?"]
+  );
 }
 
 export default function ChatThread({ conversationId }) {
@@ -83,9 +84,9 @@ export default function ChatThread({ conversationId }) {
   const [lastSentId, setLastSentId] = useState(null);
 
   const T = {
-    placeholder: locale === "mn" ? "Мессеж бичих…" : locale === "ko" ? "메시지 입력…" : "Message…",
-    startChat:   locale === "mn" ? "Анхны мессежээ илгээгээрэй" : locale === "ko" ? "첫 메시지를 보내보세요" : "Send your first message",
-    coach:       locale === "mn" ? "Coach" : locale === "ko" ? "코치" : "Coach",
+    placeholder: loc(locale, "Мессеж бичих…", "메시지 입력…", "Message…"),
+    startChat:   loc(locale, "Анхны мессежээ илгээгээрэй", "첫 메시지를 보내보세요", "Send your first message"),
+    coach:       loc(locale, "Coach", "코치", "Coach"),
   };
 
   // Load conversation metadata

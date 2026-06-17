@@ -8,6 +8,7 @@ import { formatCompact } from "@/lib/utils";
 import { getRankMedal, getScoreColor, getAvatarUrl, getEntryBadges } from "@/lib/leaderboardHelpers";
 import Image from "next/image";
 import { RED, GOLD } from "@/lib/tokens";
+import { loc } from "@/lib/loc";
 import { getFirebase } from "@/lib/lazyFirebase";
 
 const CHALLENGE_LABEL = { en: "Challenge", mn: "Тулаан", ko: "도전" };
@@ -39,11 +40,11 @@ const LeaderboardEntry = memo(function LeaderboardEntry({ entry, index, profiles
         fromUserPhotoURL: user.photoURL || "",
         type:             "pvp_challenge",
         message:
-          locale === "mn"
-            ? `${user.displayName || "Fighter"} тан руу тулааны шийдэл илгээлээ!`
-            : locale === "ko"
-            ? `${user.displayName || "Fighter"}님이 PvP 배틀을 신청했습니다!`
-            : `${user.displayName || "Fighter"} challenged you to a battle!`,
+          loc(locale,
+            `${user.displayName || "Fighter"} тан руу тулааны шийдэл илгээлээ!`,
+            `${user.displayName || "Fighter"}님이 PvP 배틀을 신청했습니다!`,
+            `${user.displayName || "Fighter"} challenged you to a battle!`
+          ),
         read:      false,
         createdAt: serverTimestamp(),
       });
@@ -188,7 +189,7 @@ const LeaderboardEntry = memo(function LeaderboardEntry({ entry, index, profiles
             ? "✓"
             : challengeLoading
             ? "..."
-            : `⚔️ ${locale === "mn" ? CHALLENGE_LABEL.mn : locale === "ko" ? CHALLENGE_LABEL.ko : CHALLENGE_LABEL.en}`}
+            : `⚔️ ${loc(locale, CHALLENGE_LABEL.mn, CHALLENGE_LABEL.ko, CHALLENGE_LABEL.en)}`}
         </button>
       )}
 

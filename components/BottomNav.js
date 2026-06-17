@@ -6,6 +6,7 @@ import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { RED, RED_DARK, redAlpha, RADIUS, MOTION , blackAlpha, whiteAlpha} from "@/lib/tokens";
 import { locales } from "@/lib/i18n";
+import { loc } from "@/lib/loc";
 import Image from "next/image";
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
@@ -281,7 +282,7 @@ function CombatOSSheet({ onClose, router, locale, pathname, userId }) {
             >
               <span style={{ flexShrink: 0, display: "flex", color: "rgba(255,255,255,0.7)" }}>{OS_ICONS[item.key]}</span>
               <span style={{ fontSize: 13, fontWeight: 800, lineHeight: 1.2 }}>
-                {locale === "mn" ? item.labelMn : locale === "ko" ? item.labelKo : item.labelEn}
+                {loc(locale, item.labelMn, item.labelKo, item.labelEn)}
               </span>
             </button>
           ))}
@@ -296,7 +297,7 @@ function ProfileTab({ user, active, onClick, onBadgeClick, badge, locale }) {
   const photo = user?.photoURL || user?.profileImageUrl || "";
   const initial = (user?.displayName || user?.username || "U").charAt(0).toUpperCase();
   const [imgError, setImgError] = useState(false);
-  const label = locale === "mn" ? "Профайл" : locale === "ko" ? "프로필" : "Profile";
+  const label = loc(locale, "Профайл", "프로필", "Profile");
 
   return (
     <button type="button" onClick={onClick} style={s.iconTab} aria-label={label} className="tap-bounce">
@@ -353,7 +354,7 @@ function IconTab({ active, onClick, children, label }) {
 
 // ─── Center Train tab ─────────────────────────────────────────────────────────
 function TrainTab({ onClick, active, locale }) {
-  const label = locale === "mn" ? "Дасгал" : locale === "ko" ? "훈련" : "Train";
+  const label = loc(locale, "Дасгал", "훈련", "Train");
   return (
     <button type="button" onClick={onClick} style={s.trainTab} aria-label={label} className="tap-bounce btn-press">
       <span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
@@ -422,9 +423,9 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
 
   const goToProfile = () => r.push(user?.uid ? `/${locale}/profile/${user.uid}` : `/${locale}/login`);
 
-  const feedLabel    = locale === "mn" ? "Фийд"   : locale === "ko" ? "피드"   : "Feed";
-  const coachLabel   = locale === "mn" ? "Коуч"   : locale === "ko" ? "코치"   : "Coach";
-  const exploreLabel = locale === "mn" ? "Хайх"   : locale === "ko" ? "탐색"   : "Explore";
+  const feedLabel    = loc(locale, "Фийд", "피드", "Feed");
+  const coachLabel   = loc(locale, "Коуч", "코치", "Coach");
+  const exploreLabel = loc(locale, "Хайх", "탐색", "Explore");
 
   if (!mounted) return null;
 
@@ -440,7 +441,7 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
         >
           <GridIcon />
           <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.8, textTransform: "uppercase" }}>
-            {locale === "mn" ? "Цэс" : locale === "ko" ? "더보기" : "More"}
+            {loc(locale, "Цэс", "더보기", "More")}
           </span>
         </button>
       )}

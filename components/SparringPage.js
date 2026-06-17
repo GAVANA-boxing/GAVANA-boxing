@@ -8,6 +8,7 @@ import { useSparringActions } from "@/hooks/useSparringActions";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import BottomNav from "@/components/BottomNav";
 import { RED, RED_DARK, GOLD, redAlpha, RADIUS} from "@/lib/tokens";
+import { loc } from "@/lib/loc";
 import PageTopBar from "@/components/PageTopBar";
 import s, { c } from "@/components/sparring/sparringStyles";
 import { FighterCard, IncomingRequestCard } from "@/components/sparring/SparringCards";
@@ -82,7 +83,7 @@ export default function SparringPage() {
 
       <PageTopBar
         kicker="COMBAT · SPARRING"
-        title={locale === "mn" ? "СПАРРИНГ" : locale === "ko" ? "스파링" : "SPARRING"}
+        title={loc(locale, "СПАРРИНГ", "스파링", "SPARRING")}
         user={user}
         currentLocale={locale}
         showBack
@@ -163,14 +164,14 @@ export default function SparringPage() {
                     ...s.filterChip,
                     ...(active ? { background: arch ? `${arch.color}18` : `${redAlpha(0.15)}`, border: `1px solid ${arch ? arch.color : RED}55`, color: arch ? arch.color : "#fff" } : {}),
                   }}>
-                    {key === "all" ? (locale === "mn" ? "Бүгд" : locale === "ko" ? "전체" : "All") : `${arch?.emoji} ${arch?.name.split(" ")[0]}`}
+                    {key === "all" ? loc(locale, "Бүгд", "전체", "All") : `${arch?.emoji} ${arch?.name.split(" ")[0]}`}
                   </button>
                 );
               })}
             </div>
             <select value={filterWeight} onChange={(e) => setFilterWeight(e.target.value)} style={s.weightSelect}>
               {WEIGHT_OPTS.map((w) => (
-                <option key={w} value={w}>{w === "all" ? (locale === "mn" ? "Жингийн ангилал — Бүгд" : locale === "ko" ? "체급 — 전체" : "Weight Class — All") : w}</option>
+                <option key={w} value={w}>{w === "all" ? loc(locale, "Жингийн ангилал — Бүгд", "체급 — 전체", "Weight Class — All") : w}</option>
               ))}
             </select>
           </div>
@@ -179,7 +180,7 @@ export default function SparringPage() {
             <span style={s.countTxt}>
               {filtered.length === 0
                 ? t("sparringNoFighters")
-                : locale === "mn" ? `${filtered.length} тулаанч sparring хайж байна` : locale === "ko" ? `${filtered.length}명 스파링 중` : `${filtered.length} fighter${filtered.length > 1 ? "s" : ""} looking for sparring`}
+                : loc(locale, `${filtered.length} тулаанч sparring хайж байна`, `${filtered.length}명 스파링 중`, `${filtered.length} fighter${filtered.length > 1 ? "s" : ""} looking for sparring`)}
             </span>
           </div>
 

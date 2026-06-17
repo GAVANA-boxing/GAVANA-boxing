@@ -1,6 +1,7 @@
 "use client";
 
 import { RADIUS } from "@/lib/tokens";
+import { loc } from "@/lib/loc";
 import { ACADEMY_PATHS, getPathProgress, getLessonStatus, pathTitle, pathDesc } from "@/lib/academyPaths";
 import { ACADEMY_LESSONS } from "@/lib/academyLessons";
 
@@ -21,13 +22,13 @@ export default function AcademyPathCard({ currentPathId, lessonProgress, locale,
   const nextLesson = progress.nextLessonId ? ACADEMY_LESSONS.find(l => l.id === progress.nextLessonId) : null;
 
   const L = {
-    yourPath: locale === "mn" ? "ТАНЫ ЗАМ" : locale === "ko" ? "내 경로" : "YOUR PATH",
-    min: locale === "mn" ? "мин" : locale === "ko" ? "분" : "min",
-    next: locale === "mn" ? "Дараагийн:" : locale === "ko" ? "다음:" : "Next:",
-    cont: locale === "mn" ? "Үргэлжлүүлэх →" : locale === "ko" ? "계속하기 →" : "Continue →",
-    done: locale === "mn" ? "Зам дуусгасан! 🏆" : locale === "ko" ? "경로 완료! 🏆" : "Path complete! 🏆",
-    change: locale === "mn" ? "Зам солих" : locale === "ko" ? "경로 변경" : "Change Path",
-    other: locale === "mn" ? "Бусад замууд" : locale === "ko" ? "다른 경로" : "Other Paths",
+    yourPath: loc(locale, "ТАНЫ ЗАМ", "내 경로", "YOUR PATH"),
+    min: loc(locale, "мин", "분", "min"),
+    next: loc(locale, "Дараагийн:", "다음:", "Next:"),
+    cont: loc(locale, "Үргэлжлүүлэх →", "계속하기 →", "Continue →"),
+    done: loc(locale, "Зам дуусгасан! 🏆", "경로 완료! 🏆", "Path complete! 🏆"),
+    change: loc(locale, "Зам солих", "경로 변경", "Change Path"),
+    other: loc(locale, "Бусад замууд", "다른 경로", "Other Paths"),
   };
 
   return (

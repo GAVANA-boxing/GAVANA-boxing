@@ -12,6 +12,7 @@ import { useReelInteractions } from "@/hooks/useReelInteractions";
 import { useCommentActions } from "@/hooks/useCommentActions";
 import { useFeedFollow } from "@/hooks/useFeedFollow";
 import { getFirebase } from "@/lib/lazyFirebase";
+import { loc } from "@/lib/loc";
 
 function FilterTabBar({ tabs, activeFilter, setActiveFilter, locale }) {
   if (tabs.length <= 1) return null;
@@ -49,7 +50,7 @@ function FilterTabBar({ tabs, activeFilter, setActiveFilter, locale }) {
             whiteSpace: "nowrap",
           }}
         >
-          {locale === "mn" ? f.mn : locale === "ko" ? f.ko : f.en}
+          {loc(locale, f.mn, f.ko, f.en)}
         </button>
       ))}
     </div>
@@ -90,9 +91,7 @@ export default function FeedPage({ reels, locale, router, user, userArchetype, f
   const handleReport = useCallback(async (reel) => {
     if (!user?.uid) { router.push(`/${locale}/login`); return; }
     const confirmed = window.confirm(
-      locale === "mn" ? "Энэ контентыг мэдэгдэх үү?"
-      : locale === "ko" ? "이 콘텐츠를 신고하시겠습니까?"
-      : "Report this content?"
+      loc(locale, "Энэ контентыг мэдэгдэх үү?", "이 콘텐츠를 신고하시겠습니까?", "Report this content?")
     );
     if (!confirmed) return;
     try {
@@ -240,15 +239,15 @@ export default function FeedPage({ reels, locale, router, user, userArchetype, f
         <div style={{ height: "100dvh", background: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: "0 32px", textAlign: "center" }}>
           <span style={{ fontSize: 32 }}>{emptyIcon}</span>
           <div style={{ fontSize: 14, fontWeight: 800, color: "rgba(255,255,255,0.7)" }}>
-            {locale === "mn" ? emptyText.mn : locale === "ko" ? emptyText.ko : emptyText.en}
+            {loc(locale, emptyText.mn, emptyText.ko, emptyText.en)}
           </div>
           {activeFilter === "following" && (
             <button type="button" onClick={() => router.push(`/${locale}/discover`)} style={{ padding: "8px 20px", borderRadius: 20, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>
-              {locale === "mn" ? "Хүмүүс хайх" : locale === "ko" ? "사람 찾기" : "Find People"}
+              {loc(locale, "Хүмүүс хайх", "사람 찾기", "Find People")}
             </button>
           )}
           <button type="button" onClick={() => setActiveFilter("all")} style={{ padding: "8px 20px", borderRadius: 20, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.6)", fontSize: 12, fontWeight: 800, cursor: "pointer" }}>
-            {locale === "mn" ? "Бүгдийг үзэх" : locale === "ko" ? "전체 보기" : "See All"}
+            {loc(locale, "Бүгдийг үзэх", "전체 보기", "See All")}
           </button>
         </div>
       </>
@@ -285,10 +284,10 @@ export default function FeedPage({ reels, locale, router, user, userArchetype, f
           <span style={{ fontSize: 20, flexShrink: 0 }}>🧬</span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 12, fontWeight: 900, color: "#F5C451" }}>
-              {locale === "mn" ? "Өөрийн хэв маягаа нээ" : locale === "ko" ? "내 스타일 찾기" : "Discover Your Style"}
+              {loc(locale, "Өөрийн хэв маягаа нээ", "내 스타일 찾기", "Discover Your Style")}
             </div>
             <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", marginTop: 1 }}>
-              {locale === "mn" ? "2 мин · Таны архетипийг нээнэ" : locale === "ko" ? "2분 · 내 아키타입 공개" : "2 min · Unlock My Style feed"}
+              {loc(locale, "2 мин · Таны архетипийг нээнэ", "2분 · 내 아키타입 공개", "2 min · Unlock My Style feed")}
             </div>
           </div>
           <button
@@ -296,7 +295,7 @@ export default function FeedPage({ reels, locale, router, user, userArchetype, f
             onClick={() => router.push(`/${locale}/onboarding`)}
             style={{ padding: "7px 13px", borderRadius: 10, border: "none", background: "rgba(245,196,81,0.15)", color: "#F5C451", fontSize: 11, fontWeight: 900, cursor: "pointer", flexShrink: 0, WebkitTapHighlightColor: "transparent" }}
           >
-            {locale === "mn" ? "Эхлэх" : locale === "ko" ? "시작" : "Start"}
+            {loc(locale, "Эхлэх", "시작", "Start")}
           </button>
           <button
             type="button"
@@ -392,7 +391,7 @@ export default function FeedPage({ reels, locale, router, user, userArchetype, f
                     backdropFilter: "blur(8px)",
                     pointerEvents: "none",
                   }}>
-                    🧬 {locale === "mn" ? "Таны стиль" : locale === "ko" ? "내 스타일" : "Your Style"}
+                    🧬 {loc(locale, "Таны стиль", "내 스타일", "Your Style")}
                   </div>
                 );
               })()}

@@ -1,6 +1,7 @@
 "use client";
 
 import { getBelt, getBeltProgress, getNextBelt } from "@/lib/belts";
+import { loc } from "@/lib/loc";
 import { RED, RED_DARK, GOLD, PURPLE, redAlpha, goldAlpha, whiteAlpha , blackAlpha} from "@/lib/tokens";
 import { getWeightClassDisplay } from "@/lib/weightClasses";
 import styles from "@/components/profile/profilePageStyles";
@@ -175,7 +176,7 @@ export default function ProfileFighterCard({
 
       {/* ── License eyebrow ──────────────────────────────────────────────── */}
       <p style={styles.statsSectionKicker}>
-        {locale === "mn" ? "Тэмцэгчийн лиценз" : locale === "ko" ? "파이터 라이선스" : "Fighter License"}
+        {loc(locale, "Тэмцэгчийн лиценз", "파이터 라이선스", "Fighter License")}
       </p>
 
       {/* ── Digital License Card ─────────────────────────────────────────── */}

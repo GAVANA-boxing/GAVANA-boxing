@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { GOLD, RED } from "@/lib/tokens";
+import { loc } from "@/lib/loc";
 
 const DAY_NAMES = {
   mn: ["Да", "Мя", "Лх", "Пү", "Ба", "Бя", "Ня"],
@@ -107,7 +108,7 @@ export default function WeeklyPlanSection({ coachSnapshot, coachContextStr, loca
       }}>
         <div style={{ width: 5, height: 5, borderRadius: "50%", background: GOLD, boxShadow: `0 0 7px ${GOLD}` }} />
         <span style={{ fontSize: 10, fontWeight: 900, flex: 1, color: "rgba(255,255,255,0.55)", letterSpacing: "0.18em", textTransform: "uppercase" }}>
-          {locale === "mn" ? "7 хоногийн хуваарь" : locale === "ko" ? "주간 트레이닝 플랜" : "Weekly Training Plan"}
+          {loc(locale, "7 хоногийн хуваарь", "주간 트레이닝 플랜", "Weekly Training Plan")}
         </span>
         {plan && !loading && (
           <button

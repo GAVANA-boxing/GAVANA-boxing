@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { RED, GOLD, redAlpha, goldAlpha, whiteAlpha, RADIUS } from "@/lib/tokens";
+import { loc } from "@/lib/loc";
 
 const AREAS = ["Power", "Speed", "Timing", "Footwork", "Guard", "Accuracy"];
 const AREA_COLOR = {
@@ -87,7 +88,7 @@ export default function GoalTracker({ userId, radarStats, locale, coachSnapshot 
       }}>
         <div style={{ width: 5, height: 5, borderRadius: "50%", background: GOLD, boxShadow: `0 0 7px ${GOLD}` }} />
         <span style={{ fontSize: 10, fontWeight: 900, flex: 1, color: "rgba(255,255,255,0.55)", letterSpacing: "0.18em", textTransform: "uppercase" }}>
-          {mn ? "Зорилго" : ko ? "목표" : "Goal"}
+          {loc(locale, "Зорилго", "목표", "Goal")}
         </span>
         {goal && !editing && (
           <button type="button" onClick={openEdit} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 11, fontWeight: 800, cursor: "pointer", padding: "0 4px" }}>

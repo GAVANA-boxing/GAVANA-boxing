@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { RED, GOLD, PURPLE, RADIUS, redAlpha } from "@/lib/tokens";
+import { loc } from "@/lib/loc";
 
 const ORANGE = "#FB923C";
 
@@ -116,7 +117,7 @@ export default function TechniqueLessonCard({
   router,
 }) {
   const [open, setOpen] = useState(defaultOpen);
-  const lng = locale === "mn" ? "mn" : locale === "ko" ? "ko" : "en";
+  const lng = loc(locale, "mn", "ko", "en");
   const L = (key) => SECTION_LABELS[key]?.[lng] || SECTION_LABELS[key]?.en || key;
   const diff = {
     label: DIFF_LABEL[difficulty]?.[lng] || difficulty?.toUpperCase() || "INTERMEDIATE",
