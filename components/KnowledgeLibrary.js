@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { loc } from "@/lib/loc";
 import { useRouter } from "next/navigation";
 import { translate } from "@/lib/i18n";
 import ScrollRow from "@/components/ScrollRow";
@@ -50,10 +51,10 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
           GAVANA ACADEMY
         </p>
         <h2 style={{ margin: 0, fontSize: 26, fontWeight: 1000, color: "#fff", lineHeight: 1, letterSpacing: "-0.02em", fontFamily: "var(--font-display, 'Anton', sans-serif)", textTransform: "uppercase" }}>
-          {locale === "mn" ? "Тулааны Мэдлэг" : locale === "ko" ? "컴뱃 지식" : "Combat Knowledge"}
+          {loc(locale, "Тулааны Мэдлэг", "컴뱃 지식", "Combat Knowledge")}
         </h2>
         <p style={{ margin: "6px 0 0", fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.4 }}>
-          {locale === "mn" ? "Аварга тулаанчдаас суралц" : locale === "ko" ? "챔피언에게서 배우세요" : "Learn from champions. Train smarter every session."}
+          {loc(locale, "Аварга тулаанчдаас суралц", "챔피언에게서 배우세요", "Learn from champions. Train smarter every session.")}
         </p>
       </div>
 
@@ -166,7 +167,7 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
 
       {/* ── Your Path ────────────────────────────────────────────────────── */}
       <div>
-        <SectionHeader emoji="🎯" title={locale === "mn" ? "Таны Зам" : locale === "ko" ? "내 경로" : "Your Path"} />
+        <SectionHeader emoji="🎯" title={loc(locale, "Таны Зам", "내 경로", "Your Path")} />
         <AcademyPathCard
           currentPathId={currentPathId}
           lessonProgress={lessonProgress}
@@ -213,7 +214,7 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
       <div>
         <SectionHeader
           emoji="📚"
-          title={locale === "mn" ? "Суурь Техникүүд" : locale === "ko" ? "기초 기술" : "Foundation Skills"}
+          title={loc(locale, "Суурь Техникүүд", "기초 기술", "Foundation Skills")}
         />
 
         {/* Search bar + filter chips — always visible */}
@@ -252,7 +253,7 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
             }}>
               <div style={{ fontSize: 32, marginBottom: 10 }}>🔍</div>
               <p style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 800, color: "rgba(255,255,255,0.52)" }}>
-                {locale === "mn" ? "Үр дүн олдсонгүй" : locale === "ko" ? "결과 없음" : "No lessons found"}
+                {loc(locale, "Үр дүн олдсонгүй", "결과 없음", "No lessons found")}
               </p>
               <p style={{ margin: "0 0 16px", fontSize: 12, color: "rgba(255,255,255,0.3)", lineHeight: 1.5 }}>
                 {locale === "mn"
@@ -279,7 +280,7 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
                   color: "#F5C451", fontSize: 12, fontWeight: 900, cursor: "pointer",
                 }}
               >
-                💬 {locale === "mn" ? "Коучоос асуух →" : locale === "ko" ? "코치에게 묻기 →" : "Ask Coach →"}
+                💬 {loc(locale, "Коучоос асуух →", "코치에게 묻기 →", "Ask Coach →")}
               </button>
             </div>
           )
@@ -303,7 +304,7 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
 
       {/* ── Fighter Profiles ──────────────────────────────────────────────── */}
       <div>
-        <SectionHeader emoji="⚡" title={locale === "mn" ? "Тулаанчдын Техник" : locale === "ko" ? "파이터 프로필" : "Fighter Profiles"} />
+        <SectionHeader emoji="⚡" title={loc(locale, "Тулаанчдын Техник", "파이터 프로필", "Fighter Profiles")} />
         <ScrollRow cardWidth={200}>
           {FIGHTERS.map((fighter) => (
             <FighterCard

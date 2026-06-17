@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { loc } from "@/lib/loc";
 import { usePathname, useRouter } from "next/navigation";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import KnowledgeLibrary from "@/components/KnowledgeLibrary";
@@ -131,13 +132,13 @@ export default function AICoach() {
   };
 
   const DAILY_MISSIONS = [
-    { emoji: "🥊", focus: locale === "mn" ? "Доргиних тусгай дасгал" : locale === "ko" ? "잽 정밀도 훈련" : "Jab Precision Day", prompt: locale === "mn" ? "Өнөөдрийн доргиний дасгал хийлгэж өгнө үү" : locale === "ko" ? "오늘 잽 정밀도 훈련 루틴을 짜줘" : "Give me a jab precision drill routine for today" },
-    { emoji: "👣", focus: locale === "mn" ? "Хөлийн хөдөлгөөн & Өнцгийн дасгал" : locale === "ko" ? "풋워크와 앵글 훈련" : "Footwork & Angles", prompt: locale === "mn" ? "Хөлийн хөдөлгөөн болон өнцгийн дасгал хийлгэнэ үү" : locale === "ko" ? "오늘 풋워크와 각도 훈련 루틴을 알려줘" : "Coach me on footwork and angle drills today" },
-    { emoji: "🛡️", focus: locale === "mn" ? "Хамгааллын техник" : locale === "ko" ? "방어 기술 훈련" : "Defense Focus", prompt: locale === "mn" ? "Ухрах болон бөхийх хамгааллын дасгал хийлгэнэ үү" : locale === "ko" ? "슬립과 롤을 중심으로 방어 훈련을 알려줘" : "Coach me on slip and roll defense drills" },
-    { emoji: "💥", focus: locale === "mn" ? "Хүчтэй хослолын цуваа" : locale === "ko" ? "파워 콤비네이션 훈련" : "Power Combinations", prompt: locale === "mn" ? "Хүч чадал нэмэх хослолын цуваа заана уу" : locale === "ko" ? "오늘 파워 콤비네이션 연습을 알려줘" : "Give me power combination drills to build knockout power" },
-    { emoji: "⚡", focus: locale === "mn" ? "Хурд & Хэмнэл" : locale === "ko" ? "스피드와 리듬 훈련" : "Speed & Rhythm", prompt: locale === "mn" ? "Хурд болон хэмнэлийн дасгал хийлгэнэ үү" : locale === "ko" ? "스피드와 리듬 훈련 루틴을 알려줘" : "Give me speed and rhythm training drills" },
-    { emoji: "🥋", focus: locale === "mn" ? "Дүрслэлт раунд симуляци" : locale === "ko" ? "풀라운드 스파링 시뮬레이션" : "Full Round Simulation", prompt: locale === "mn" ? "Бүтэн раундын дасгал симуляци хийлгэнэ үү" : locale === "ko" ? "풀라운드 스파링 시뮬레이션 훈련을 도와줘" : "Coach me through a full round sparring simulation" },
-    { emoji: "🔄", focus: locale === "mn" ? "Нөхөн сэргэлт & Дүн шинжилгээ" : locale === "ko" ? "회복과 리뷰" : "Recovery & Review", prompt: locale === "mn" ? "Нөхөн сэргэлт болон долоо хоногийн ахицаа шинжлэх дасгал хийлгэнэ үү" : locale === "ko" ? "회복 훈련과 이번 주 진행 상황을 리뷰해줘" : "Help me with recovery techniques and review my week" },
+    { emoji: "🥊", focus: loc(locale, "Доргиних тусгай дасгал", "잽 정밀도 훈련", "Jab Precision Day"), prompt: loc(locale, "Өнөөдрийн доргиний дасгал хийлгэж өгнө үү", "오늘 잽 정밀도 훈련 루틴을 짜줘", "Give me a jab precision drill routine for today") },
+    { emoji: "👣", focus: loc(locale, "Хөлийн хөдөлгөөн & Өнцгийн дасгал", "풋워크와 앵글 훈련", "Footwork & Angles"), prompt: loc(locale, "Хөлийн хөдөлгөөн болон өнцгийн дасгал хийлгэнэ үү", "오늘 풋워크와 각도 훈련 루틴을 알려줘", "Coach me on footwork and angle drills today") },
+    { emoji: "🛡️", focus: loc(locale, "Хамгааллын техник", "방어 기술 훈련", "Defense Focus"), prompt: loc(locale, "Ухрах болон бөхийх хамгааллын дасгал хийлгэнэ үү", "슬립과 롤을 중심으로 방어 훈련을 알려줘", "Coach me on slip and roll defense drills") },
+    { emoji: "💥", focus: loc(locale, "Хүчтэй хослолын цуваа", "파워 콤비네이션 훈련", "Power Combinations"), prompt: loc(locale, "Хүч чадал нэмэх хослолын цуваа заана уу", "오늘 파워 콤비네이션 연습을 알려줘", "Give me power combination drills to build knockout power") },
+    { emoji: "⚡", focus: loc(locale, "Хурд & Хэмнэл", "스피드와 리듬 훈련", "Speed & Rhythm"), prompt: loc(locale, "Хурд болон хэмнэлийн дасгал хийлгэнэ үү", "스피드와 리듬 훈련 루틴을 알려줘", "Give me speed and rhythm training drills") },
+    { emoji: "🥋", focus: loc(locale, "Дүрслэлт раунд симуляци", "풀라운드 스파링 시뮬레이션", "Full Round Simulation"), prompt: loc(locale, "Бүтэн раундын дасгал симуляци хийлгэнэ үү", "풀라운드 스파링 시뮬레이션 훈련을 도와줘", "Coach me through a full round sparring simulation") },
+    { emoji: "🔄", focus: loc(locale, "Нөхөн сэргэлт & Дүн шинжилгээ", "회복과 리뷰", "Recovery & Review"), prompt: loc(locale, "Нөхөн сэргэлт болон долоо хоногийн ахицаа шинжлэх дасгал хийлгэнэ үү", "회복 훈련과 이번 주 진행 상황을 리뷰해줘", "Help me with recovery techniques and review my week") },
   ];
   const todayMission = DAILY_MISSIONS[new Date().getDay()];
 
@@ -164,7 +165,7 @@ export default function AICoach() {
           <span style={{ fontSize: 22, flexShrink: 0 }}>{todayMission.emoji}</span>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: "#F5C451", textTransform: "uppercase", marginBottom: 2 }}>
-              {locale === "mn" ? "ӨНӨӨДРИЙН ДААЛГАВАР" : locale === "ko" ? "오늘의 미션" : "TODAY'S MISSION"}
+              {loc(locale, "ӨНӨӨДРИЙН ДААЛГАВАР", "오늘의 미션", "TODAY'S MISSION")}
             </div>
             <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", lineHeight: 1.2 }}>
               {todayMission.focus}
@@ -180,7 +181,7 @@ export default function AICoach() {
               cursor: "pointer", flexShrink: 0, letterSpacing: 0.3,
             }}
           >
-            {locale === "mn" ? "Асуу" : locale === "ko" ? "물어보기" : "Ask →"}
+            {loc(locale, "Асуу", "물어보기", "Ask →")}
           </button>
         </div>
 
@@ -208,7 +209,7 @@ export default function AICoach() {
         {activeSection === "chat" && (<>
 
           {/* ── Persona character cards ── */}
-          <p style={styles.personaSectionLabel}>{locale === "mn" ? "ДАСГАЛЖУУЛАГЧАА СОНГОНО УУ" : locale === "ko" ? "코치를 선택하세요" : "CHOOSE YOUR COACH"}</p>
+          <p style={styles.personaSectionLabel}>{loc(locale, "ДАСГАЛЖУУЛАГЧАА СОНГОНО УУ", "코치를 선택하세요", "CHOOSE YOUR COACH")}</p>
           <div style={styles.personaGrid}>
             {personas.map((p) => (
               <button
@@ -253,7 +254,7 @@ export default function AICoach() {
             </span>
             <div style={styles.personaBannerInfo}>
               <p style={{ ...styles.personaBannerName, color: activePersona.color }}>{activePersona.name}</p>
-              <p style={styles.personaBannerSub}>{locale === "mn" ? "Одоо дасгалжуулж байна" : locale === "ko" ? "지금 코칭 중" : "Coaching you now"}</p>
+              <p style={styles.personaBannerSub}>{loc(locale, "Одоо дасгалжуулж байна", "지금 코칭 중", "Coaching you now")}</p>
             </div>
             <span style={styles.personaBannerDot} />
           </div>
@@ -291,7 +292,7 @@ export default function AICoach() {
                     }}>
                       {activePersona.intro}
                     </div>
-                    <p style={styles.introHint}>{locale === "mn" ? "ДООРХ ТОВЧЛУУР ДАРАХ ЭСВЭЛ БИЧНЭ ҮҮ" : locale === "ko" ? "빠른 액션을 탭하거나 아래에 입력하세요" : "TAP A QUICK ACTION OR TYPE BELOW"}</p>
+                    <p style={styles.introHint}>{loc(locale, "ДООРХ ТОВЧЛУУР ДАРАХ ЭСВЭЛ БИЧНЭ ҮҮ", "빠른 액션을 탭하거나 아래에 입력하세요", "TAP A QUICK ACTION OR TYPE BELOW")}</p>
                   </div>
                 </div>
               ) : (

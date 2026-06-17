@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { loc } from "@/lib/loc";
 import { useRouter, usePathname } from "next/navigation";
 import { collection, query, where, onSnapshot, getDocs, limit, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -23,14 +24,14 @@ function formatTime(ts, locale) {
   const ms = getTs(ts);
   if (!ms) return "";
   const diff = Date.now() - ms;
-  if (diff < 60000) return locale === "mn" ? "Одоо" : locale === "ko" ? "방금" : "Now";
+  if (diff < 60000) return loc(locale, "Одоо", "방금", "Now");
   if (diff < 3600000) {
     const m = Math.floor(diff / 60000);
-    return locale === "mn" ? `${m}м` : locale === "ko" ? `${m}분` : `${m}m`;
+    return loc(locale, `${m}м`, `${m}분`, `${m}m`);
   }
   if (diff < 86400000) {
     const h = Math.floor(diff / 3600000);
-    return locale === "mn" ? `${h}ц` : locale === "ko" ? `${h}시간` : `${h}h`;
+    return loc(locale, `${h}ц`, `${h}시간`, `${h}h`);
   }
   return new Date(ms).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
@@ -55,16 +56,16 @@ export default function InboxList() {
   const searchTimerRef = useRef(null);
 
   const T = {
-    title:    locale === "mn" ? "Мессеж" : locale === "ko" ? "메시지" : "Messages",
-    you:      locale === "mn" ? "Та: " : locale === "ko" ? "나: " : "You: ",
-    start:    locale === "mn" ? "Яриа эхлүүл…" : locale === "ko" ? "대화를 시작하세요…" : "Start a conversation…",
-    empty:    locale === "mn" ? "Мессеж байхгүй байна" : locale === "ko" ? "메시지가 없습니다" : "No messages yet",
-    emptySub: locale === "mn" ? "Coach эсвэл Fighter-тэй холбогдохдоо тэдний profile дээрх «Мессеж» товчийг дарна уу." : locale === "ko" ? "코치나 파이터의 프로필에서 '메시지' 버튼을 눌러보세요." : "Tap the Message button on a coach or fighter's profile to start chatting.",
-    findCoach: locale === "mn" ? "🎓 Coach хайх" : locale === "ko" ? "🎓 코치 찾기" : "🎓 Find a Coach",
-    coach:    locale === "mn" ? "Coach" : locale === "ko" ? "코치" : "Coach",
-    newMsg:   locale === "mn" ? "Шинэ мессеж" : locale === "ko" ? "새 메시지" : "New Message",
-    searchPlaceholder: locale === "mn" ? "Username хайх…" : locale === "ko" ? "유저 검색…" : "Search by username…",
-    noResults: locale === "mn" ? "Хэрэглэгч олдсонгүй" : locale === "ko" ? "사용자를 찾을 수 없습니다" : "No users found",
+    title:    loc(locale, "Мессеж", "메시지", "Messages"),
+    you:      loc(locale, "Та: ", "나: ", "You: "),
+    start:    loc(locale, "Яриа эхлүүл…", "대화를 시작하세요…", "Start a conversation…"),
+    empty:    loc(locale, "Мессеж байхгүй байна", "메시지가 없습니다", "No messages yet"),
+    emptySub: loc(locale, "Coach эсвэл Fighter-тэй холбогдохдоо тэдний profile дээрх «Мессеж» товчийг дарна уу.", "코치나 파이터의 프로필에서 '메시지' 버튼을 눌러보세요.", "Tap the Message button on a coach or fighter's profile to start chatting."),
+    findCoach: loc(locale, "🎓 Coach хайх", "🎓 코치 찾기", "🎓 Find a Coach"),
+    coach:    loc(locale, "Coach", "코치", "Coach"),
+    newMsg:   loc(locale, "Шинэ мессеж", "새 메시지", "New Message"),
+    searchPlaceholder: loc(locale, "Username хайх…", "유저 검색…", "Search by username…"),
+    noResults: loc(locale, "Хэрэглэгч олдсонгүй", "사용자를 찾을 수 없습니다", "No users found"),
   };
 
   useEffect(() => {
@@ -133,7 +134,7 @@ export default function InboxList() {
       setShowCompose(false);
       router.push(`/${locale}/inbox/${convoId}`);
     } catch (e) {
-      showToast(locale === "mn" ? "Мессеж эхлүүлэхэд алдаа гарлаа." : locale === "ko" ? "대화를 시작하는 데 실패했습니다." : "Failed to start conversation. Try again.");
+      showToast(loc(locale, "Мессеж эхлүүлэхэд алдаа гарлаа.", "대화를 시작하는 데 실패했습니다.", "Failed to start conversation. Try again."));
     } finally {
       setStarting(null);
     }
@@ -180,7 +181,7 @@ export default function InboxList() {
         </button>
         <div style={s.headerCenter}>
           <p style={s.headerEyebrow}>
-            {locale === "mn" ? "ТЭМЦЭГЧИД" : locale === "ko" ? "파이터스" : "COMBAT · COMMS"}
+            {loc(locale, "ТЭМЦЭГЧИД", "파이터스", "COMBAT · COMMS")}
           </p>
           <span style={s.title}>{T.title}</span>
         </div>
@@ -278,7 +279,7 @@ export default function InboxList() {
             <div style={s.composeResults}>
               {!search.trim() && (
                 <p style={s.composeHint}>
-                  {locale === "mn" ? "Username оруулж хэрэглэгч хайна уу" : locale === "ko" ? "유저명을 입력하세요" : "Type a username to find fighters and coaches"}
+                  {loc(locale, "Username оруулж хэрэглэгч хайна уу", "유저명을 입력하세요", "Type a username to find fighters and coaches")}
                 </p>
               )}
               {search.trim() && !searching && searchResults.length === 0 && (

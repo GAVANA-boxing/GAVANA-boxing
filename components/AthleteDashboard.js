@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { loc } from "@/lib/loc";
 import { useRouter, usePathname } from "next/navigation";
 import {
   collection, doc, query, where,
@@ -232,7 +233,7 @@ export default function AthleteDashboard() {
               COMBAT · OS
             </p>
             <h1 style={{ margin: 0, fontSize: isDesktop ? 28 : 22, fontWeight: 900, color: "#fff", letterSpacing: "-0.025em", lineHeight: 1, fontFamily: "var(--font-display, 'Anton', sans-serif)" }}>
-              {userData?.username || user?.displayName || (locale === "mn" ? "Тамирчны ахиц" : locale === "ko" ? "선수 현황" : "My Progress")}
+              {userData?.username || user?.displayName || loc(locale, "Тамирчны ахиц", "선수 현황", "My Progress")}
             </h1>
           </div>
           {sessionsReady && trainingSessions.length >= 3 && (
@@ -338,7 +339,7 @@ export default function AthleteDashboard() {
               marginBottom: 20,
             }}>
               <p style={{ margin: "0 0 10px", fontSize: 9, fontWeight: 900, color: acc, letterSpacing: 2.5, textTransform: "uppercase" }}>
-                {locale === "mn" ? "⚡ Өнөөдрийн анхаарал" : locale === "ko" ? "⚡ 오늘의 집중" : "⚡ Today's Focus"}
+                {loc(locale, "⚡ Өнөөдрийн анхаарал", "⚡ 오늘의 집중", "⚡ Today's Focus")}
               </p>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: drill ? 10 : 0 }}>
                 <div style={{ width: 36, height: 36, borderRadius: 10, background: `${acc}20`, border: `1px solid ${acc}35`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 16 }}>
@@ -357,7 +358,7 @@ export default function AthleteDashboard() {
                   onClick={() => router.push(`/${locale}/fighters/${fighter.id}`)}
                   style={{ background: `${acc}22`, border: `1px solid ${acc}45`, borderRadius: 10, padding: "7px 13px", color: acc, fontSize: 11, fontWeight: 900, cursor: "pointer" }}
                 >
-                  {locale === "mn" ? "Үзэх" : locale === "ko" ? "보기" : "Study"}
+                  {loc(locale, "Үзэх", "보기", "Study")}
                 </button>
               </div>
               {drill && (
@@ -535,7 +536,7 @@ export default function AthleteDashboard() {
 
         {/* ── Combat Profile (Radar) ── */}
         <PanelCard
-          label={locale === "mn" ? "Дайны профайл" : locale === "ko" ? "전투 프로필" : "Combat Profile"}
+          label={loc(locale, "Дайны профайл", "전투 프로필", "Combat Profile")}
           accent={RED}
           tag="6 METRICS"
         >
@@ -546,7 +547,7 @@ export default function AthleteDashboard() {
 
         {/* ── Style DNA ── */}
         <PanelCard
-          label={locale === "mn" ? "Тоглолтын хэв маяг" : locale === "ko" ? "스타일 DNA" : "Style DNA"}
+          label={loc(locale, "Тоглолтын хэв маяг", "스타일 DNA", "Style DNA")}
           accent={GOLD}
           tag="5 ATTRS"
         >
@@ -558,7 +559,7 @@ export default function AthleteDashboard() {
 
         {/* ── Score Trend ── */}
         <PanelCard
-          label={locale === "mn" ? "Оноогийн чиглэл" : locale === "ko" ? "점수 추세" : "Score Trend"}
+          label={loc(locale, "Оноогийн чиглэл", "점수 추세", "Score Trend")}
           accent={RED}
           tag={`${stats.chronoScores.length} SESS`}
         >
