@@ -5,6 +5,7 @@ import { memo } from "react";
 import MediaCover from "@/components/MediaCover";
 import { getSafeReelLikes } from "@/lib/utils";
 import Image from "next/image";
+import styles from "@/components/profile/profilePageStyles";
 
 const ProfileReelsGrid = memo(function ProfileReelsGrid({
   visibleReels,
@@ -16,7 +17,6 @@ const ProfileReelsGrid = memo(function ProfileReelsGrid({
   locale,
   router,
   user,
-  styles,
   t,
   markPreviewFailed,
   setDeleteConfirmReel,

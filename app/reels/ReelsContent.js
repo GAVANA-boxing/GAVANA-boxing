@@ -10,17 +10,13 @@ import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { computeFeedScore } from "@/lib/analytics";
 import dynamic from "next/dynamic";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { GOLD, goldAlpha } from "@/lib/tokens";
 import {
   getCreatedAtMs,
   getCreatorName,
   getCreatorPhoto,
   cleanCaption,
 } from "@/lib/reelHelpers";
-import {
-  BackArrowIcon,
-  SpeakerIcon,
-} from "@/components/reels/ReelIcons";
+import { BackArrowIcon } from "@/components/reels/ReelIcons";
 
 const AIBreakdownSheet = dynamic(() => import("@/components/AIBreakdownSheet"), { ssr: false });
 const CommentsModal = dynamic(() => import("@/components/reels/CommentsModal"), { ssr: false });
@@ -36,6 +32,13 @@ import { useReelFeedback } from "@/hooks/useReelFeedback";
 import { useReelInteractions } from "@/hooks/useReelInteractions";
 import { useReelViewTracking } from "@/hooks/useReelViewTracking";
 import styles from "@/components/reels/reelStyles";
+
+// Sub-components
+import ReelsLoadingScreen from "@/components/reels/ReelsLoadingScreen";
+import ReelsEmptyArena from "@/components/reels/ReelsEmptyArena";
+import FeedTabs from "@/components/reels/FeedTabs";
+import FollowingEmptyState from "@/components/reels/FollowingEmptyState";
+import SoundToggleButton from "@/components/reels/SoundToggleButton";
 
 export default function ReelsContent() {
   const router = useRouter();
@@ -258,58 +261,23 @@ export default function ReelsContent() {
 
   if (authLoading || reelsLoading) {
     return (
-      <div style={styles.container}>
-        <div style={styles.loadingCinematic}>
-          <div style={styles.loadingOrb} />
-          <div className="reel-skeleton" style={styles.skeletonBack} />
-          <div className="reel-skeleton" style={styles.skeletonMid} />
-          <div className="reel-skeleton" style={styles.skeletonFront} />
-          <div style={styles.loadingStatus}>
-            <div style={styles.spinner} />
-            <div style={styles.loadingTitle}>{t("loadingReels")}</div>
-            <div style={styles.loadingMeta}>
-              {authLoading ? t("checkingSession") : t("fetchingFeed")}
-            </div>
-          </div>
-        </div>
-        <BottomNav router={router} user={user} currentLocale={currentLocale} />
-      </div>
+      <ReelsLoadingScreen
+        router={router}
+        user={user}
+        currentLocale={currentLocale}
+        t={t}
+        authLoading={authLoading}
+      />
     );
   }
 
   if (reels.length === 0 && feedMode !== "following" && !isProfileSource) {
     return (
-      <div style={styles.container}>
-        <div style={styles.arenaEmpty}>
-          <div style={styles.arenaOrb} />
-          <div style={styles.arenaFigure}>
-            <div style={styles.arenaFigHead} />
-            <div style={styles.arenaFigTorso} />
-            <div style={styles.arenaFigGloveL} />
-            <div style={styles.arenaFigGloveR} />
-          </div>
-          <div className="page-enter" style={styles.arenaCopy}>
-            <span style={styles.arenaKicker}>YOUR TRAINING FEED</span>
-            <h2 style={styles.arenaHeadline}>{`THE ARENA\nAWAITS`}</h2>
-            <p style={styles.arenaDesc}>
-              {currentLocale === "mn"
-                ? "Эхний видеогоо upload хий. AI техникийг задлан шинжилж, ахицыг чинь rank болгоно."
-                : currentLocale === "ko"
-                ? "첫 번째 릴을 업로드하세요. AI가 기술을 분석하고 발전을 랭크로 전환합니다."
-                : "Drop your first reel. AI breaks down your technique and turns your progress into rank."}
-            </p>
-            <button
-              type="button"
-              className="btn-red-glow"
-              style={styles.arenaUploadBtn}
-              onClick={() => router.push(`/${currentLocale}/upload`)}
-            >
-              {currentLocale === "mn" ? "ЭХНИЙ ВИДЕОГОО UPLOAD ХИЙ" : currentLocale === "ko" ? "첫 릴 업로드" : "UPLOAD YOUR FIRST REEL"}
-            </button>
-          </div>
-        </div>
-        <BottomNav router={router} user={user} currentLocale={currentLocale} />
-      </div>
+      <ReelsEmptyArena
+        router={router}
+        user={user}
+        currentLocale={currentLocale}
+      />
     );
   }
 
@@ -392,71 +360,26 @@ export default function ReelsContent() {
 
       <DailyMission locale={currentLocale} />
       {!isProfileSource && (
-      <div style={styles.feedTabs}>
-        <button
-          type="button"
-          onClick={() => setFeedMode("forYou")}
-          style={{
-            ...styles.feedTab,
-            ...(feedMode === "forYou" ? styles.feedTabActive : {})
-          }}
-        >
-          {t("forYou")}
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            if (!user?.uid) {
-              router.push(`/${currentLocale}/login`);
-              return;
-            }
-            setFeedMode("following");
-          }}
-          style={{
-            ...styles.feedTab,
-            ...(feedMode === "following" ? styles.feedTabActive : {})
-          }}
-        >
-          {t("following")}
-        </button>
-        <button
-          type="button"
-          onClick={() => setShowFilterSheet(true)}
-          style={{
-            ...styles.feedTab,
-            ...((diffFilter !== "all" || ctFilter !== "all") ? {
-              ...styles.feedTabActive,
-              color: GOLD,
-              background: `${goldAlpha(0.15)}`,
-            } : {}),
-            padding: "4px 9px",
-            fontSize: 14,
-          }}
-          aria-label="Filters"
-        >
-          {(diffFilter !== "all" || ctFilter !== "all") ? "●" : "⚙"}
-        </button>
-      </div>
+        <FeedTabs
+          feedMode={feedMode}
+          setFeedMode={setFeedMode}
+          diffFilter={diffFilter}
+          ctFilter={ctFilter}
+          user={user}
+          router={router}
+          currentLocale={currentLocale}
+          t={t}
+          setShowFilterSheet={setShowFilterSheet}
+        />
       )}
+
       {/* Reels Feed */}
       <div ref={feedRef} style={styles.feed} className="reels-feed" onScroll={handleScroll}>
         {reels.length === 0 ? (
-          <div style={{...styles.videoContainer, ...styles.followingEmpty}}>
-            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase", color: "rgba(255,255,255,0.28)", marginBottom: 4 }}>FOLLOWING</div>
-            <div style={styles.followingEmptyTitle}>
-              {currentLocale === "mn" ? "Feed хоосон байна" : currentLocale === "ko" ? "피드가 비어 있습니다" : "YOUR FEED IS QUIET"}
-            </div>
-            <div style={styles.followingEmptyText}>
-              {currentLocale === "mn" ? "Тулаанчдыг дага — тэдний видео энд гарч ирнэ." : currentLocale === "ko" ? "파이터를 팔로우하면 그들의 릴이 여기에 표시됩니다." : "Follow fighters — their reels will appear here."}
-            </div>
-            <button
-              type="button"
-              onClick={() => setFeedMode("forYou")}
-              style={styles.uploadBtn}
-            >
-              {currentLocale === "mn" ? "FOR YOU руу очих" : currentLocale === "ko" ? "추천 피드 보기" : "BROWSE FOR YOU"}
-            </button>
-          </div>
+          <FollowingEmptyState
+            currentLocale={currentLocale}
+            setFeedMode={setFeedMode}
+          />
         ) : reels.map((reel, index) => {
           const creatorProfile = reel.userId ? creatorProfiles[reel.userId] : null;
           const creatorName = getCreatorName(reel, creatorProfile);
@@ -475,50 +398,50 @@ export default function ReelsContent() {
           const hasStory = !!(creatorProfile?.storyActive || creatorProfile?.hasActiveStory);
           return (
             <ErrorBoundary key={reel.id}>
-            <ReelItem
-              key={reel.id}
-              reel={reel}
-              index={index}
-              currentIndex={currentIndex}
-              reelItemRefs={reelItemRefs}
-              videoRefs={videoRefs}
-              soundEnabled={soundEnabled}
-              hasVideoError={!!videoErrors[reel.id]}
-              isVideoLoading={!!videoLoading[reel.id]}
-              videoProgress={videoProgress}
-              isLiked={userLikes.has(reel.id)}
-              isSaved={savedReels.has(reel.id)}
-              heartBursts={heartBursts.filter((b) => b.reelId === reel.id)}
-              showControls={showControls}
-              isPvpSource={isPvpSource}
-              isProfileSource={isProfileSource}
-              profileReelProgress={profileReelProgress}
-              creatorName={creatorName}
-              creatorPhoto={creatorPhoto}
-              creatorInitial={creatorInitial}
-              creatorStreakCount={creatorProfile?.streakCount || 0}
-              captionText={captionText}
-              creatorStatLine={creatorStatLine}
-              hasStory={hasStory}
-              stats={stats}
-              gymName={reel.gymId ? gymNames[reel.gymId] : null}
-              currentLocale={currentLocale}
-              t={t}
-              router={router}
-              setVideoProgress={setVideoProgress}
-              onVideoClick={handleVideoClick}
-              onVideoLoadStart={handleVideoLoadStart}
-              onVideoLoaded={handleVideoLoaded}
-              onVideoError={handleVideoError}
-              onLike={handleLike}
-              onOpenComments={handleOpenComments}
-              onShare={handleShare}
-              onSave={handleSave}
-              onGetFeedback={handleGetFeedback}
-              onBreakdown={handleBreakdown}
-              onCaptionSheet={setCaptionSheetReelId}
-              onReport={setReportReel}
-            />
+              <ReelItem
+                key={reel.id}
+                reel={reel}
+                index={index}
+                currentIndex={currentIndex}
+                reelItemRefs={reelItemRefs}
+                videoRefs={videoRefs}
+                soundEnabled={soundEnabled}
+                hasVideoError={!!videoErrors[reel.id]}
+                isVideoLoading={!!videoLoading[reel.id]}
+                videoProgress={videoProgress}
+                isLiked={userLikes.has(reel.id)}
+                isSaved={savedReels.has(reel.id)}
+                heartBursts={heartBursts.filter((b) => b.reelId === reel.id)}
+                showControls={showControls}
+                isPvpSource={isPvpSource}
+                isProfileSource={isProfileSource}
+                profileReelProgress={profileReelProgress}
+                creatorName={creatorName}
+                creatorPhoto={creatorPhoto}
+                creatorInitial={creatorInitial}
+                creatorStreakCount={creatorProfile?.streakCount || 0}
+                captionText={captionText}
+                creatorStatLine={creatorStatLine}
+                hasStory={hasStory}
+                stats={stats}
+                gymName={reel.gymId ? gymNames[reel.gymId] : null}
+                currentLocale={currentLocale}
+                t={t}
+                router={router}
+                setVideoProgress={setVideoProgress}
+                onVideoClick={handleVideoClick}
+                onVideoLoadStart={handleVideoLoadStart}
+                onVideoLoaded={handleVideoLoaded}
+                onVideoError={handleVideoError}
+                onLike={handleLike}
+                onOpenComments={handleOpenComments}
+                onShare={handleShare}
+                onSave={handleSave}
+                onGetFeedback={handleGetFeedback}
+                onBreakdown={handleBreakdown}
+                onCaptionSheet={setCaptionSheetReelId}
+                onReport={setReportReel}
+              />
             </ErrorBoundary>
           );
         })}
@@ -564,33 +487,11 @@ export default function ReelsContent() {
         currentLocale={currentLocale}
       />
 
-      <button
-        type="button"
-        style={{
-          ...styles.soundToggleButton,
-          ...(!soundEnabled ? {
-            width: "auto",
-            borderRadius: 20,
-            paddingLeft: 10,
-            paddingRight: 12,
-            gap: 6,
-            display: "flex",
-            flexDirection: "row",
-            background: "rgba(0,0,0,0.65)",
-            border: "1px solid rgba(255,255,255,0.2)",
-          } : {}),
-        }}
-        onClick={toggleMute}
-        aria-label={soundEnabled ? t("soundOn") : t("tapForSound")}
-        title={soundEnabled ? t("soundOn") : t("tapForSound")}
-      >
-        <SpeakerIcon muted={!soundEnabled} />
-        {!soundEnabled && (
-          <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.8, whiteSpace: "nowrap", textTransform: "uppercase" }}>
-            {t("tapForSound")}
-          </span>
-        )}
-      </button>
+      <SoundToggleButton
+        soundEnabled={soundEnabled}
+        toggleMute={toggleMute}
+        t={t}
+      />
 
       <FilterSheet
         showFilterSheet={showFilterSheet}
