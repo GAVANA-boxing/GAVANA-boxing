@@ -1,4 +1,5 @@
 "use client";
+import { loc } from "@/lib/loc";
 import { GOLD, RED, RADIUS, whiteAlpha, goldAlpha, redAlpha } from "@/lib/tokens";
 import styles from "@/components/train/trainStyles";
 
@@ -98,7 +99,7 @@ export default function ResultActionsSection({
             style={{ ...styles.saveButton, background: "linear-gradient(135deg, #F5C451 0%, #FF3B30 100%)", color: "#000", fontWeight: 900 }}
             onClick={() => router.push(`/${locale}/login?mode=signup&redirect=${encodeURIComponent(`/${locale}/train`)}`)}
           >
-            {locale === "mn" ? "Профайл үүсгэж streak болон дэвшлийг хадгал →" : locale === "ko" ? "프로필 생성 — 스트릭과 진행 저장 →" : "Create profile to save streak and progress →"}
+            {loc(locale, "Профайл үүсгэж streak болон дэвшлийг хадгал →", "프로필 생성 — 스트릭과 진행 저장 →", "Create profile to save streak and progress →")}
           </button>
         )}
         {activeChallenge && (
@@ -128,14 +129,14 @@ export default function ResultActionsSection({
               }}
             >
               {feedSharing
-                ? (locale === "mn" ? "Нийтэлж байна…" : locale === "ko" ? "공유 중…" : "Sharing…")
+                ? loc(locale, "Нийтэлж байна…", "공유 중…", "Sharing…")
                 : feedShared
-                  ? (locale === "mn" ? "Feed-д нийтлэгдлээ ✓" : locale === "ko" ? "피드에 공유됨 ✓" : "Shared to Feed ✓")
+                  ? loc(locale, "Feed-д нийтлэгдлээ ✓", "피드에 공유됨 ✓", "Shared to Feed ✓")
                   : academyLesson
-                    ? (locale === "mn" ? "Academy дэвшлийг хуваалцах" : locale === "ko" ? "아카데미 진행 상황 공유하기" : "Share Academy Progress")
+                    ? loc(locale, "Academy дэвшлийг хуваалцах", "아카데미 진행 상황 공유하기", "Share Academy Progress")
                     : recordedBlob
-                      ? (locale === "mn" ? "Видео Feed-д хуваалцах" : locale === "ko" ? "비디오 피드에 공유하기" : "Share Video to Feed")
-                      : (locale === "mn" ? "Feed-д хуваалцах" : locale === "ko" ? "피드에 공유하기" : "Share to Feed")}
+                      ? loc(locale, "Видео Feed-д хуваалцах", "비디오 피드에 공유하기", "Share Video to Feed")
+                      : loc(locale, "Feed-д хуваалцах", "피드에 공유하기", "Share to Feed")}
             </button>
             {feedShared && (
               <button
@@ -143,7 +144,7 @@ export default function ResultActionsSection({
                 onClick={() => router.push(`/${locale}/feed`)}
                 style={{ width: "100%", minHeight: 40, background: "none", border: `1px solid ${whiteAlpha(0.1)}`, borderRadius: RADIUS.md, color: whiteAlpha(0.45), fontSize: 11, fontWeight: 800, cursor: "pointer", letterSpacing: 1, textTransform: "uppercase" }}
               >
-                {locale === "mn" ? "Feed харах →" : locale === "ko" ? "피드 보기 →" : "View Feed →"}
+                {loc(locale, "Feed харах →", "피드 보기 →", "View Feed →")}
               </button>
             )}
           </>
@@ -155,8 +156,8 @@ export default function ResultActionsSection({
             style={{ width: "100%", minHeight: 38, background: "none", border: `1px solid ${whiteAlpha(0.07)}`, borderRadius: RADIUS.md, color: whiteAlpha(0.3), fontSize: 11, fontWeight: 800, cursor: "pointer" }}
           >
             {academyLesson
-              ? (locale === "mn" ? "Профайл үүсгэж academy дэвшлийг хуваалцаарай →" : locale === "ko" ? "프로필 생성 후 아카데미 진행 상황 공유 →" : "Create profile to share academy progress →")
-              : (locale === "mn" ? "Профайл үүсгэж өөрийн дэвшлийг хуваалцаарай →" : locale === "ko" ? "프로필 생성 후 진행 상황 공유 →" : "Create profile to share your progress →")}
+              ? loc(locale, "Профайл үүсгэж academy дэвшлийг хуваалцаарай →", "프로필 생성 후 아카데미 진행 상황 공유 →", "Create profile to share academy progress →")
+              : loc(locale, "Профайл үүсгэж өөрийн дэвшлийг хуваалцаарай →", "프로필 생성 후 진행 상황 공유 →", "Create profile to share your progress →")}
           </button>
         )}
         {!tooFewPunches && !activeChallenge && !isGuest && (
@@ -176,10 +177,10 @@ export default function ResultActionsSection({
               }}
             >
               {challengePosting
-                ? (locale === "mn" ? "Challenge үүсгэж байна…" : locale === "ko" ? "챌린지 생성 중…" : "Creating challenge…")
+                ? loc(locale, "Challenge үүсгэж байна…", "챌린지 생성 중…", "Creating challenge…")
                 : challengePosted
-                  ? (locale === "mn" ? "Challenge үүслээ ✓" : locale === "ko" ? "챌린지 생성됨 ✓" : "Challenge posted ✓")
-                  : (locale === "mn" ? "Бусдыг challenge хий" : locale === "ko" ? "다른 사람에게 도전하기" : "Challenge others")}
+                  ? loc(locale, "Challenge үүслээ ✓", "챌린지 생성됨 ✓", "Challenge posted ✓")
+                  : loc(locale, "Бусдыг challenge хий", "다른 사람에게 도전하기", "Challenge others")}
             </button>
             {challengePosted && (
               <button
@@ -187,7 +188,7 @@ export default function ResultActionsSection({
                 onClick={() => router.push(`/${locale}/feed`)}
                 style={{ width: "100%", minHeight: 40, background: "none", border: `1px solid ${whiteAlpha(0.1)}`, borderRadius: RADIUS.md, color: whiteAlpha(0.45), fontSize: 11, fontWeight: 800, cursor: "pointer", letterSpacing: 1, textTransform: "uppercase" }}
               >
-                {locale === "mn" ? "Feed харах →" : locale === "ko" ? "피드 보기 →" : "View Feed →"}
+                {loc(locale, "Feed харах →", "피드 보기 →", "View Feed →")}
               </button>
             )}
           </>
@@ -198,7 +199,7 @@ export default function ResultActionsSection({
             onClick={() => router.push(`/${locale}/login?mode=signup&redirect=${encodeURIComponent(`/${locale}/train`)}`)}
             style={{ width: "100%", minHeight: 38, background: "none", border: `1px solid ${whiteAlpha(0.07)}`, borderRadius: RADIUS.md, color: whiteAlpha(0.3), fontSize: 11, fontWeight: 800, cursor: "pointer" }}
           >
-            {locale === "mn" ? "Профайл үүсгэж бусдыг challenge хийгээрэй →" : locale === "ko" ? "프로필 생성 후 다른 사람에게 도전 →" : "Create profile to challenge others →"}
+            {loc(locale, "Профайл үүсгэж бусдыг challenge хийгээрэй →", "프로필 생성 후 다른 사람에게 도전 →", "Create profile to challenge others →")}
           </button>
         )}
         {challengePostData && !isGuest && (
@@ -218,10 +219,10 @@ export default function ResultActionsSection({
               }}
             >
               {challengeResponsePosting
-                ? (locale === "mn" ? "Нийтэлж байна…" : locale === "ko" ? "게시 중…" : "Posting…")
+                ? loc(locale, "Нийтэлж байна…", "게시 중…", "Posting…")
                 : challengeResponsePosted
-                  ? (locale === "mn" ? "Challenge хариу нийтлэгдлээ ✓" : locale === "ko" ? "챌린지 응답 게시됨 ✓" : "Challenge response posted ✓")
-                  : (locale === "mn" ? "Challenge үр дүнг нийтлэх" : locale === "ko" ? "챌린지 결과 게시하기" : "Post Challenge Result")}
+                  ? loc(locale, "Challenge хариу нийтлэгдлээ ✓", "챌린지 응답 게시됨 ✓", "Challenge response posted ✓")
+                  : loc(locale, "Challenge үр дүнг нийтлэх", "챌린지 결과 게시하기", "Post Challenge Result")}
             </button>
             {challengeResponsePosted && (
               <button
@@ -229,7 +230,7 @@ export default function ResultActionsSection({
                 onClick={() => router.push(`/${locale}/feed`)}
                 style={{ width: "100%", minHeight: 40, background: "none", border: `1px solid ${whiteAlpha(0.1)}`, borderRadius: RADIUS.md, color: whiteAlpha(0.45), fontSize: 11, fontWeight: 800, cursor: "pointer", letterSpacing: 1, textTransform: "uppercase" }}
               >
-                {locale === "mn" ? "Feed харах →" : locale === "ko" ? "피드 보기 →" : "View Feed →"}
+                {loc(locale, "Feed харах →", "피드 보기 →", "View Feed →")}
               </button>
             )}
           </>
@@ -240,7 +241,7 @@ export default function ResultActionsSection({
             onClick={() => router.push(`/${locale}/login?mode=signup&redirect=${encodeURIComponent(`/${locale}/train`)}`)}
             style={{ ...styles.saveButton, background: "linear-gradient(135deg, rgba(167,139,250,0.2) 0%, rgba(167,139,250,0.08) 100%)", border: "1px solid rgba(167,139,250,0.35)", color: "#C084FC", boxShadow: "none" }}
           >
-            {locale === "mn" ? "Профайл үүсгэж challenge-д хариулаарай →" : locale === "ko" ? "프로필 생성 후 챌린지 응답 →" : "Create profile to respond to challenge →"}
+            {loc(locale, "Профайл үүсгэж challenge-д хариулаарай →", "프로필 생성 후 챌린지 응답 →", "Create profile to respond to challenge →")}
           </button>
         )}
         <button type="button" style={styles.shareResultButton} onClick={activeChallenge ? onShareChallenge : onShareTraining}>
