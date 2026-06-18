@@ -1,4 +1,4 @@
-import { RED, RED_DARK, redAlpha, goldAlpha, GOLD, BG, BORDER, BORDER_2, RADIUS, whiteAlpha, blackAlpha, pageBg } from "@/lib/tokens";
+import { RED, RED_DARK, redAlpha, goldAlpha, GOLD, BG, RADIUS, whiteAlpha, blackAlpha, pageBg } from "@/lib/tokens";
 
 const styles = {
   page: {
@@ -20,7 +20,7 @@ const styles = {
     minHeight: "100dvh", background: BG, color: "#fff",
     display: "flex", alignItems: "center", justifyContent: "center",
   },
-  shell: { maxWidth: 540, margin: "0 auto", display: "grid", gap: 12 },
+  shell: { maxWidth: 540, margin: "0 auto", display: "grid", gap: 14 },
 
   // ── Header ──
   header: { display: "grid", gap: 6, paddingBottom: 2 },
@@ -56,7 +56,7 @@ const styles = {
     backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
   },
   mainTab: {
-    flex: 1, minHeight: 36, border: "none", borderRadius: 11,
+    flex: 1, minHeight: 38, border: "none", borderRadius: 11,
     background: "transparent", color: whiteAlpha(0.35),
     fontSize: 12, fontWeight: 800, cursor: "pointer",
     transition: "all 180ms", letterSpacing: 0.3,
@@ -85,18 +85,16 @@ const styles = {
     background: whiteAlpha(0.09),
     color: "#fff",
   },
-  seasonLabel: { textAlign: "center", paddingBottom: 2 },
-  seasonLabelText: { fontSize: 11, color: whiteAlpha(0.38), fontWeight: 700, letterSpacing: 0.4 },
 
   // ── Champion banner ──
   champBanner: {
     padding: "14px 16px", borderRadius: 16,
-    background: goldAlpha(0.06),
-    border: `1px solid ${goldAlpha(0.18)}`,
+    background: goldAlpha(0.05),
+    border: `1px solid ${goldAlpha(0.15)}`,
     display: "grid", gap: 10,
   },
   champBannerTitle: {
-    margin: 0, color: goldAlpha(0.55), fontSize: 9, fontWeight: 900,
+    margin: 0, color: goldAlpha(0.5), fontSize: 9, fontWeight: 900,
     letterSpacing: 2.5, textTransform: "uppercase",
   },
   champList: { display: "grid", gap: 7 },
@@ -113,86 +111,122 @@ const styles = {
   // ── Your rank bar ──
   yourRankBar: {
     display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
-    minHeight: 40, padding: "0 14px", borderRadius: 12,
+    minHeight: 44, padding: "0 16px", borderRadius: 14,
     background: whiteAlpha(0.04),
-    border: `1px solid ${whiteAlpha(0.06)}`,
+    border: `1px solid ${whiteAlpha(0.07)}`,
   },
-  yourRankLabel: { color: whiteAlpha(0.7), fontSize: 12, fontWeight: 800 },
+  yourRankBarGold: {
+    background: goldAlpha(0.07),
+    border: `1px solid ${goldAlpha(0.22)}`,
+  },
+  yourRankLabel: { color: whiteAlpha(0.65), fontSize: 12, fontWeight: 700 },
+  yourRankLabelGold: { color: GOLD, fontSize: 13, fontWeight: 900 },
   yourRankChallenge: {
     minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-    color: GOLD, fontSize: 11, fontWeight: 900,
+    color: goldAlpha(0.7), fontSize: 11, fontWeight: 800,
   },
 
   // ── Challenge cards ──
-  challengeList: { display: "grid", gap: 12 },
+  challengeList: { display: "grid", gap: 14 },
   card: {
     borderRadius: 20,
-    padding: "18px 16px 16px",
-    background: whiteAlpha(0.03),
+    overflow: "hidden",
+    background: "rgba(18,18,22,0.85)",
     backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
-    border: `1px solid ${whiteAlpha(0.07)}`,
-    boxShadow: `0 16px 48px ${blackAlpha(0.2)}`,
-  },
-  cardTop: {
-    display: "flex", alignItems: "flex-start",
-    justifyContent: "space-between", gap: 12, marginBottom: 14,
-  },
-  cardTitleGroup: { flex: 1, minWidth: 0 },
-  cardEmoji: { fontSize: 18, marginBottom: 6, display: "block", lineHeight: 1 },
-  cardTitle: {
-    margin: 0, color: "#fff", fontSize: 16, fontWeight: 900,
-    letterSpacing: "-0.01em", lineHeight: 1.1,
-  },
-  cardDesc: {
-    margin: "5px 0 0", color: whiteAlpha(0.38),
-    fontSize: 11, lineHeight: 1.45,
-  },
-  startButton: {
-    flexShrink: 0, padding: "10px 18px", border: "none", borderRadius: 100,
-    background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`,
-    boxShadow: `0 4px 16px ${redAlpha(0.3)}`,
-    color: "#fff", fontSize: 11, fontWeight: 900, whiteSpace: "nowrap",
-    cursor: "pointer", letterSpacing: 0.8, textTransform: "uppercase",
+    border: `1px solid ${whiteAlpha(0.08)}`,
+    boxShadow: `0 8px 32px ${blackAlpha(0.28)}`,
   },
 
-  // ── Leaderboard inside card ──
-  scoreRows: { display: "grid", gap: 4 },
+  // Card top section
+  cardHeader: {
+    padding: "18px 16px 16px",
+    display: "flex", alignItems: "flex-start",
+    justifyContent: "space-between", gap: 14,
+  },
+  cardLeft: { display: "flex", alignItems: "flex-start", gap: 12, flex: 1, minWidth: 0 },
+  cardEmojiBadge: {
+    width: 46, height: 46, borderRadius: 14, flexShrink: 0,
+    display: "flex", alignItems: "center", justifyContent: "center",
+    fontSize: 24, lineHeight: 1,
+    background: whiteAlpha(0.06),
+    border: `1px solid ${whiteAlpha(0.1)}`,
+  },
+  cardTitleGroup: { flex: 1, minWidth: 0, paddingTop: 2 },
+  cardTitle: {
+    margin: 0, color: "#fff", fontSize: 15, fontWeight: 900,
+    letterSpacing: "-0.01em", lineHeight: 1.15,
+  },
+  cardDesc: {
+    margin: "4px 0 0", color: whiteAlpha(0.35),
+    fontSize: 11, lineHeight: 1.4,
+  },
+  startButton: {
+    flexShrink: 0, padding: "9px 16px", border: "none", borderRadius: 100,
+    background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`,
+    boxShadow: `0 4px 14px ${redAlpha(0.35)}`,
+    color: "#fff", fontSize: 10, fontWeight: 900, whiteSpace: "nowrap",
+    cursor: "pointer", letterSpacing: 1, textTransform: "uppercase",
+    marginTop: 2,
+  },
+
+  // Divider between card header and leaderboard
+  cardDivider: {
+    height: 1,
+    background: whiteAlpha(0.06),
+    margin: "0",
+  },
+
+  // Leaderboard section inside card
+  scoreRows: { display: "grid", gap: 0 },
   scoreRow: {
-    minHeight: 44, display: "flex", alignItems: "center", gap: 10,
-    padding: "7px 10px", borderRadius: 11,
-    background: whiteAlpha(0.03),
+    minHeight: 52, display: "flex", alignItems: "center", gap: 10,
+    padding: "10px 16px",
+    borderBottom: `1px solid ${whiteAlpha(0.04)}`,
+  },
+  scoreRowLast: {
+    borderBottom: "none",
   },
   scoreRowCurrent: {
-    background: goldAlpha(0.08),
-    outline: `1px solid ${goldAlpha(0.2)}`,
+    background: goldAlpha(0.06),
   },
   emptyLeaderboard: {
-    padding: "10px 12px",
-    color: whiteAlpha(0.3), fontSize: 12, fontWeight: 700,
+    padding: "16px 16px",
+    color: whiteAlpha(0.28), fontSize: 12, fontWeight: 700,
     display: "flex", alignItems: "center", justifyContent: "space-between",
   },
+
+  // Rank indicators
+  rankMedal: { fontSize: 17, minWidth: 24, textAlign: "center", flexShrink: 0, lineHeight: 1 },
   rankNum: {
-    color: whiteAlpha(0.35), fontSize: 12, fontWeight: 900, textAlign: "center",
-    minWidth: 22, flexShrink: 0,
+    color: whiteAlpha(0.3), fontSize: 12, fontWeight: 900, textAlign: "center",
+    minWidth: 24, flexShrink: 0,
   },
-  rankMedal: { fontSize: 15, minWidth: 22, textAlign: "center", flexShrink: 0, lineHeight: 1 },
-  fighterCell: { flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 8 },
+
+  // Fighter row
+  fighterCell: { flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 10 },
   avatar: {
-    width: 26, height: 26, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
+    width: 30, height: 30, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
     flexShrink: 0, overflow: "hidden",
-    background: redAlpha(0.18), border: `1px solid ${whiteAlpha(0.1)}`,
-    color: "#fff", fontSize: 10, fontWeight: 900,
+    background: `linear-gradient(135deg, ${redAlpha(0.35)}, ${redAlpha(0.15)})`,
+    border: `1px solid ${whiteAlpha(0.12)}`,
+    color: "#fff", fontSize: 11, fontWeight: 900,
   },
-  avatarImg: { width: "100%", height: "100%", objectFit: "cover", display: "block" },
+  avatarCurrent: {
+    background: `linear-gradient(135deg, ${goldAlpha(0.4)}, ${goldAlpha(0.2)})`,
+    border: `1px solid ${goldAlpha(0.35)}`,
+  },
+  avatarImg: { width: "100%", height: "100%", objectFit: "cover", display: "block", borderRadius: "50%" },
   fighterName: {
     minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-    color: whiteAlpha(0.75), fontSize: 12, fontWeight: 700,
+    color: whiteAlpha(0.8), fontSize: 13, fontWeight: 700,
   },
-  scoreStack: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1, flexShrink: 0 },
-  scoreValue: {
-    color: "#fff", fontSize: 14, fontWeight: 900,
-  },
-  xpValue: { color: goldAlpha(0.7), fontSize: 10, fontWeight: 800 },
+  fighterNameCurrent: { color: "#fff", fontWeight: 900 },
+
+  // Score display
+  scoreStack: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2, flexShrink: 0 },
+  scoreValue: { color: "#fff", fontSize: 15, fontWeight: 900, letterSpacing: "-0.01em" },
+  scoreValueCurrent: { color: GOLD },
+  xpValue: { color: goldAlpha(0.55), fontSize: 10, fontWeight: 700 },
 };
 
 export default styles;

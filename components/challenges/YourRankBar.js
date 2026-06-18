@@ -2,19 +2,18 @@
 
 import styles from "@/components/challenges/challengesStyles";
 
-/**
- * Props:
- *   bestUserRank — null | { challenge: { titleKey }, rank: number }
- *   labels       — { ranked: string (with {rank} substituted), unranked: string }
- *   t            — (key: string) => string
- */
 export default function YourRankBar({ bestUserRank, labels, t }) {
+  const isRanked = !!bestUserRank;
+
   return (
-    <div style={styles.yourRankBar}>
-      <span style={styles.yourRankLabel}>
-        {bestUserRank ? labels.ranked : labels.unranked}
+    <div style={{ ...styles.yourRankBar, ...(isRanked ? styles.yourRankBarGold : {}) }}>
+      <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
+        {isRanked && <span style={{ fontSize: 15 }}>🏆</span>}
+        <span style={isRanked ? styles.yourRankLabelGold : styles.yourRankLabel}>
+          {isRanked ? labels.ranked : labels.unranked}
+        </span>
       </span>
-      {bestUserRank && (
+      {isRanked && (
         <span style={styles.yourRankChallenge}>{t(bestUserRank.challenge.titleKey)}</span>
       )}
     </div>
