@@ -6,7 +6,6 @@ import { getLocale, translate } from "@/lib/i18n";
 import { FIGHTERS } from "@/lib/fighters";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
-import FighterPortrait from "@/components/FighterPortrait";
 import { RED, GOLD, redAlpha, goldAlpha, pageBg } from "@/lib/tokens";
 import { isBeginnerUser } from "@/lib/beginnerPath";
 import { buildCoachSnapshot } from "@/lib/buildCoachContext";
@@ -14,6 +13,8 @@ import { getPersonalConnection } from "@/lib/fighterPersonalConnection";
 import FighterCompareModal from "@/components/fighters/FighterCompareModal";
 import { matchFighters, classifyFighterArchetype } from "@/lib/fighterDNA";
 import { ARCH_TRAINING_COLORS } from "@/lib/archetypeTraining";
+import FighterGridCard from "@/components/fighters/FighterGridCard";
+import RecommendedCard from "@/components/fighters/RecommendedCard";
 
 const ARCH_FILTER_LABELS = {
   en: { pressure: "Pressure", outboxer: "Outboxer", counter: "Counter", explosive: "Explosive", technician: "Technician" },
@@ -21,105 +22,12 @@ const ARCH_FILTER_LABELS = {
   ko: { pressure: "압박", outboxer: "아웃복서", counter: "카운터", explosive: "폭발력", technician: "기술" },
 };
 
-function FighterGridCard({ fighter, onClick, badge, studied, compareMode, selected, onToggle }) {
-  const acc = fighter.accent;
-  return (
-    <button
-      type="button"
-      onClick={compareMode ? onToggle : onClick}
-      style={{
-        ...s.card,
-        border: selected ? `2px solid ${GOLD}` : badge ? `1px solid ${acc}50` : studied ? `1px solid rgba(52,211,153,0.2)` : "1px solid rgba(255,255,255,0.08)",
-        borderBottom: selected ? `2px solid ${GOLD}` : `3px solid ${acc}55`,
-        boxShadow: selected
-          ? `0 8px 28px rgba(0,0,0,0.5), 0 0 0 2px ${GOLD}44`
-          : badge
-          ? `0 8px 28px rgba(0,0,0,0.5), 0 0 0 1px ${acc}22`
-          : `0 8px 28px rgba(0,0,0,0.5), inset 0 0 0 1px ${acc}12`,
-        position: "relative",
-      }}
-    >
-      <FighterPortrait fighterId={fighter.id} fighter={fighter} height={155} flagSize={46} showName showLabel />
-      {selected && (
-        <div style={{ position: "absolute", top: 8, right: 8, width: 22, height: 22, borderRadius: "50%", background: GOLD, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 8px ${GOLD}` }}>
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-      )}
-      {!selected && badge && (
-        <div style={{ position: "absolute", top: 8, right: 8, padding: "2px 7px", borderRadius: 999, background: `${acc}22`, border: `1px solid ${acc}55`, fontSize: 8, fontWeight: 900, color: acc, letterSpacing: 1, textTransform: "uppercase" }}>
-          {badge}
-        </div>
-      )}
-      {!selected && studied && !badge && (
-        <div style={{ position: "absolute", top: 8, right: 8, width: 20, height: 20, borderRadius: "50%", background: "rgba(52,211,153,0.18)", border: "1px solid rgba(52,211,153,0.45)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-        </div>
-      )}
-      <div style={s.cardBottom}>
-        <p style={{ ...s.cardWeapon, color: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center" }}>
-          <svg width="8" height="10" viewBox="0 0 13 16" fill={acc} style={{ marginRight: 5, flexShrink: 0 }}>
-            <path d="M7 0L0 9h6l-1 7 7-9H6L7 0z"/>
-          </svg>
-          {fighter.keyWeapon}
-        </p>
-      </div>
-    </button>
-  );
-}
-
 const ARCHETYPE_TAGS = {
   pressure:  ["pressure"],
   counter:   ["counter"],
   technical: ["technical", "angles", "fundamentals", "footwork"],
   brawler:   ["power", "infighting", "intimidation", "explosive"],
 };
-
-function RecommendedCard({ fighter, connection, onClick, archetypeBased, dnaMatch, studyFocus, locale }) {
-  const acc = fighter.accent;
-  const eyebrow = dnaMatch
-    ? (locale === "mn" ? "ДНХ тохирол" : locale === "ko" ? "DNA 매칭" : "DNA Match")
-    : archetypeBased
-      ? (locale === "mn" ? `${fighter.name} шиг дасга` : locale === "ko" ? `${fighter.name}처럼 훈련` : `Train Like ${fighter.name}`)
-      : `${connection?.primaryFocus} ${connection?.primaryValue?.toFixed(1)} →`;
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        display: "flex", alignItems: "center", gap: 0,
-        width: "100%", textAlign: "left", cursor: "pointer", padding: 0,
-        background: `linear-gradient(90deg, ${acc}10 0%, rgba(0,0,0,0) 100%)`,
-        border: `1px solid ${acc}35`,
-        borderLeft: `3px solid ${acc}`,
-        borderRadius: 14, overflow: "hidden",
-      }}
-    >
-      <div style={{ width: 70, height: 80, flexShrink: 0, overflow: "hidden" }}>
-        <FighterPortrait fighterId={fighter.id} fighter={fighter} height={80} flagSize={0} showName={false} showLabel={false} />
-      </div>
-      <div style={{ flex: 1, padding: "10px 12px" }}>
-        <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.5, color: dnaMatch ? GOLD : acc, textTransform: "uppercase", marginBottom: 3 }}>
-          {eyebrow}
-        </div>
-        <div style={{ fontSize: 14, fontWeight: 900, color: "#fff", lineHeight: 1.2, marginBottom: 4 }}>
-          {fighter.name}
-        </div>
-        {dnaMatch && studyFocus ? (
-          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.48)", lineHeight: 1.4 }}>
-            📖 {studyFocus}
-          </div>
-        ) : (
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.42)", lineHeight: 1.4 }}>
-            {fighter.style}
-          </div>
-        )}
-      </div>
-      <div style={{ padding: "0 14px 0 0", color: "rgba(255,255,255,0.2)", fontSize: 18 }}>›</div>
-    </button>
-  );
-}
 
 export default function FightersPage() {
   const params = useParams();
@@ -535,19 +443,4 @@ const s = {
     display: "grid", gridTemplateColumns: "1fr 1fr",
     gap: 12, position: "relative", zIndex: 1,
   },
-  card: {
-    background: "rgba(255,255,255,0.03)",
-    borderRadius: 20, overflow: "hidden",
-    cursor: "pointer", textAlign: "left", padding: 0,
-    boxShadow: "0 8px 28px rgba(0,0,0,0.45)",
-    transition: "transform 180ms ease, box-shadow 180ms ease",
-    position: "relative",
-  },
-  cardBottom: {
-    padding: "8px 11px 10px",
-    background: "rgba(0,0,0,0.55)",
-    borderTop: "1px solid rgba(255,255,255,0.05)",
-  },
-  cardWeapon: { margin: 0, fontSize: 10, color: "rgba(255,255,255,0.38)", lineHeight: 1.4 },
 };
-
