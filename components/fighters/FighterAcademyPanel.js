@@ -4,12 +4,7 @@ import { useState } from "react";
 import { GOLD, RADIUS, whiteAlpha, goldAlpha } from "@/lib/tokens";
 import DiagramPlaceholder from "@/components/visual/DiagramPlaceholder";
 import FighterSilhouette from "@/components/visual/FighterSilhouette";
-
-function getLocal(field, locale) {
-  if (!field) return "";
-  if (typeof field === "object") return field[locale] || field.en || "";
-  return field;
-}
+import { getLocal } from "@/lib/i18n";
 
 const PANEL_LABEL = {
   en: { focus: "Focus Areas", habit: "Signature Habit", cue: "Cue", drill: "Beginner Drill", advanced: "Advanced Lesson", steps: "Steps", note: "Note" },

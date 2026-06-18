@@ -6,8 +6,11 @@ import { useParams, useRouter } from "next/navigation";
 import { getLocale, translate } from "@/lib/i18n";
 import { calculateSessionXP, calculateUserXP, getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
 import ProfileFighterCard from "@/components/profile/ProfileFighterCard";
-import { RED, GOLD, PURPLE, redAlpha, goldAlpha } from "@/lib/tokens";
-import styles from "@/components/profile/profilePageStyles";
+import ProfileBackHeader from "@/components/profile/ProfileBackHeader";
+import ProfileLoadingSkeleton from "@/components/profile/ProfileLoadingSkeleton";
+import ProfileFighterDNATeaser from "@/components/profile/ProfileFighterDNATeaser";
+import ProfileTabBar from "@/components/profile/ProfileTabBar";
+import { RED, PURPLE, redAlpha } from "@/lib/tokens";
 import { FIGHTERS } from "@/lib/fighters";
 import { deriveRadarStats } from "@/lib/dashboardHelpers";
 import BadgesSection from "@/components/dashboard/BadgesSection";
@@ -272,20 +275,7 @@ export default function UserProfilePage() {
   }, [trainingSessions, profileUser?.streakCount]);
 
   if (loading) {
-    return (
-      <div style={{ minHeight: "100dvh", background: "#0B0B0C", padding: "calc(28px + env(safe-area-inset-top)) 16px 40px" }} className="page-enter">
-        <div style={{ maxWidth: 540, margin: "0 auto", display: "grid", gap: 14 }}>
-          <div className="shimmer" style={{ width: 40, height: 40, borderRadius: 10 }} />
-          <div className="shimmer" style={{ height: 220, borderRadius: 20 }} />
-          <div className="shimmer" style={{ height: 80, borderRadius: 16 }} />
-          <div className="shimmer" style={{ height: 60, borderRadius: 14 }} />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
-            {[1,2,3].map((i) => <div key={i} className="shimmer" style={{ height: 70, borderRadius: 14 }} />)}
-          </div>
-          <div className="shimmer" style={{ height: 160, borderRadius: 16 }} />
-        </div>
-      </div>
-    );
+    return <ProfileLoadingSkeleton />;
   }
 
   if (!user || !profileUser) {
@@ -335,18 +325,7 @@ export default function UserProfilePage() {
       padding: 0,
       overflowX: "hidden"
     }}>
-      <header style={styles.backHeader}>
-        <button
-          type="button"
-          style={styles.backBtnProfile}
-          onClick={() => router.back()}
-          aria-label="Back"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
-      </header>
+      <ProfileBackHeader onBack={() => router.back()} />
       <ProfileFighterCard
         profileUser={profileUser}
         isOwnProfile={isOwnProfile}
@@ -378,37 +357,13 @@ export default function UserProfilePage() {
       />
 
       {/* ── Fighter DNA teaser (own profile only) ── */}
-      {isOwnProfile && (() => {
-        const savedDNA = profileUser?.fighterDNA;
-        const dnaLabel = locale === "mn" ? "Тулаанчийн ДНХ" : locale === "ko" ? "파이터 DNA" : "Fighter DNA";
-        const dnaHint  = savedDNA?.archetype
-          ? savedDNA.archetype
-          : locale === "mn" ? "Бэлтгэл хийж, мөн чанараа нээ →" : locale === "ko" ? "훈련하여 정체성을 발견하세요 →" : "Train to discover your fighter identity →";
-        const dnaColor = savedDNA?.archetype ? GOLD : "rgba(255,255,255,0.28)";
-        return (
-          <button
-            type="button"
-            onClick={() => router.push(`/${locale}/fighter-profile`)}
-            style={{
-              display: "flex", alignItems: "center", justifyContent: "space-between",
-              width: "100%", margin: "0 0 4px", padding: "12px 20px",
-              background: "none", border: "none", cursor: "pointer", textAlign: "left",
-            }}
-          >
-            <div>
-              <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", marginBottom: 3 }}>
-                {dnaLabel}
-              </div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: dnaColor, lineHeight: 1.3 }}>
-                {dnaHint}
-              </div>
-            </div>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ color: "rgba(255,255,255,0.2)", flexShrink: 0 }}>
-              <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-        );
-      })()}
+      {isOwnProfile && (
+        <ProfileFighterDNATeaser
+          locale={locale}
+          fighterDNA={profileUser?.fighterDNA}
+          onClick={() => router.push(`/${locale}/fighter-profile`)}
+        />
+      )}
 
       {/* ── Rival Comparison ── */}
       <ProfileRivalComparison
@@ -420,50 +375,12 @@ export default function UserProfilePage() {
         t={t}
       />
 
-      <div style={styles.profileTabs}>
-        <button
-          type="button"
-          onClick={() => setProfileTab("posts")}
-          style={{
-            ...styles.profileTab,
-            ...(profileTab === "posts" ? styles.profileTabActive : {})
-          }}
-        >
-          {t("postsGrid")}
-        </button>
-        {isOwnProfile && (
-          <button
-            type="button"
-            onClick={() => setProfileTab("saved")}
-            style={{
-              ...styles.profileTab,
-              ...(profileTab === "saved" ? styles.profileTabActive : {})
-            }}
-          >
-            {t("saved")}
-          </button>
-        )}
-        <button
-          type="button"
-          onClick={() => setProfileTab("progress")}
-          style={{
-            ...styles.profileTab,
-            ...(profileTab === "progress" ? styles.profileTabActive : {})
-          }}
-        >
-          {t("aiProgress")}
-        </button>
-        <button
-          type="button"
-          onClick={() => setProfileTab("record")}
-          style={{
-            ...styles.profileTab,
-            ...(profileTab === "record" ? styles.profileTabActive : {})
-          }}
-        >
-          ⚔️ {t("profileRecordTab")}
-        </button>
-      </div>
+      <ProfileTabBar
+        profileTab={profileTab}
+        isOwnProfile={isOwnProfile}
+        onTabChange={setProfileTab}
+        t={t}
+      />
 
       <div ref={tabContentRef} />
 
@@ -523,7 +440,6 @@ export default function UserProfilePage() {
           locale={locale}
           router={router}
           user={user}
-          styles={styles}
           t={t}
           markPreviewFailed={markPreviewFailed}
           setDeleteConfirmReel={setDeleteConfirmReel}

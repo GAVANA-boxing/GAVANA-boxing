@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { RED, GOLD, redAlpha, goldAlpha, RADIUS } from "@/lib/tokens";
+import { loc } from "@/lib/loc";
 
 const CACHE_KEY = (uid, sessionId) => `gavana_recap_${uid}_${sessionId}`;
 
@@ -105,7 +106,7 @@ export default function LastSessionRecap({ trainingSessions, coachSnapshot, coac
       >×</button>
 
       <p style={{ margin: "0 0 10px", fontSize: 9, fontWeight: 900, color: goldAlpha(0.65), letterSpacing: 2.5, textTransform: "uppercase" }}>
-        {mn ? "⭐ Сүүлийн дасгал" : ko ? "⭐ 마지막 세션" : "⭐ Last Session"}
+        {loc(locale, "⭐ Сүүлийн дасгал", "⭐ 마지막 세션", "⭐ Last Session")}
       </p>
 
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>

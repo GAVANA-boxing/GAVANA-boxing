@@ -2,6 +2,7 @@
 
 import { RED, GOLD, RADIUS, whiteAlpha, goldAlpha, redAlpha } from "@/lib/tokens";
 import { ARCH_IMAGES } from "@/lib/archetypeTraining";
+import { DNA_LABELS, SIGNAL_LABELS } from "@/lib/profileLabels";
 
 const STYLE_COLORS = {
   pressure:   "#FF3B30",
@@ -11,65 +12,6 @@ const STYLE_COLORS = {
   technician: "#F5C451",
 };
 
-const SECTION_LABELS = {
-  en: {
-    dna:       "Fighter DNA",
-    style:     "Style Mix",
-    weapon:    "Best Weapon",
-    weakness:  "Focus Area",
-    fighters:  "Train Like",
-    evolution: "Next Evolution",
-    building:  "Building DNA",
-    sessions:  (n) => `Train ${n} more session${n !== 1 ? "s" : ""} to unlock`,
-    confidence:"Signal",
-    prelim:    "Preliminary Signals",
-    confirmed: (n) => `Train ${n} more to confirm archetype`,
-    sigAggr:   "Aggression",
-    sigRange:  "Range",
-    sigCounter:"Counter",
-    sigVolume: "Volume",
-  },
-  mn: {
-    dna:       "Тулаанчийн ДНХ",
-    style:     "Хэв маягийн холимог",
-    weapon:    "Шилдэг зэвсэг",
-    weakness:  "Анхаарах чиглэл",
-    fighters:  "Дагах тулаанч",
-    evolution: "Дараагийн хөгжил",
-    building:  "ДНХ бүрдүүлж байна",
-    sessions:  (n) => `${n} session дасгал хийж нээ`,
-    confidence:"Дохио",
-    prelim:    "Анхны дохиолол",
-    confirmed: (n) => `${n} session дасгал хийж баталгаажуул`,
-    sigAggr:   "Агрессиость",
-    sigRange:  "Зай",
-    sigCounter:"Контр",
-    sigVolume: "Хэмжээ",
-  },
-  ko: {
-    dna:       "파이터 DNA",
-    style:     "스타일 믹스",
-    weapon:    "주요 무기",
-    weakness:  "집중 영역",
-    fighters:  "롤모델 파이터",
-    evolution: "다음 진화",
-    building:  "DNA 구축 중",
-    sessions:  (n) => `${n}개 세션 더 훈련 후 공개`,
-    confidence:"신호",
-    prelim:    "초기 신호",
-    confirmed: (n) => `${n}개 세션 더 훈련해서 확인`,
-    sigAggr:   "공격성",
-    sigRange:  "거리",
-    sigCounter:"카운터",
-    sigVolume: "볼륨",
-  },
-};
-
-const SIGNAL_L = {
-  en: { high:"HIGH", medium:"MEDIUM", emerging:"EMERGING", low:"LOW", building:"BUILDING", long:"LONG RANGE", close:"CLOSE RANGE", mid:"MID RANGE" },
-  mn: { high:"ӨНДӨР", medium:"ДУНД", emerging:"ГАРЧ БАЙНА", low:"БАГ", building:"БҮРДЭЖ БАЙНА", long:"ХОЛ ЗАЙ", close:"ОЙРХОН", mid:"ДУНД ЗАЙ" },
-  ko: { high:"높음", medium:"보통", emerging:"나타나는 중", low:"낮음", building:"형성 중", long:"장거리", close:"근거리", mid:"중거리" },
-};
 
 function StyleBar({ label, value, color }) {
   const pct = Math.min(100, (value / 10) * 100);
@@ -125,8 +67,8 @@ function FighterChip({ fighter }) {
 }
 
 export default function FighterDNACard({ dna, locale = "en" }) {
-  const L = SECTION_LABELS[locale] || SECTION_LABELS.en;
-  const SL = SIGNAL_L[locale] || SIGNAL_L.en;
+  const L = DNA_LABELS[locale] || DNA_LABELS.en;
+  const SL = SIGNAL_LABELS[locale] || SIGNAL_LABELS.en;
 
   // ── Building state ─────────────────────────────────────────────────────────
   if (!dna || dna.building) {

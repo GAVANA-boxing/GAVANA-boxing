@@ -1,6 +1,7 @@
 "use client";
 
 import { RED, PURPLE, RADIUS, redAlpha, goldAlpha, GOLD, WARNING } from "@/lib/tokens";
+import { loc } from "@/lib/loc";
 
 const ORANGE = WARNING;
 
@@ -52,7 +53,7 @@ export default function TrainingFocusCard({ fighterName, lesson, academyLesson, 
   if (!lesson && !academyLesson) return null;
 
   const L = (key) => LABELS[key]?.[locale] || LABELS[key]?.en || key;
-  const lng = locale === "mn" ? "mn" : locale === "ko" ? "ko" : "en";
+  const lng = loc(locale, "mn", "ko", "en");
   const diffKey = (academyLesson || lesson)?.difficulty || "intermediate";
   const diff = { label: DIFF_LABEL[diffKey]?.[lng] || diffKey.toUpperCase(), color: DIFF_COLOR[diffKey] || "#F59E0B" };
   const ac = accent;

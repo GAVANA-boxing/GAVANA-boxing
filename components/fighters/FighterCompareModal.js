@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { RED, GOLD, redAlpha, goldAlpha, blackAlpha, whiteAlpha, RADIUS } from "@/lib/tokens";
+import { loc } from "@/lib/loc";
 import { FIGHTERS } from "@/lib/fighters";
 import { getPersonalConnection, FIGHTER_TEACHES } from "@/lib/fighterPersonalConnection";
 

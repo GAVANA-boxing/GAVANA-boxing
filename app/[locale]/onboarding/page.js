@@ -4,13 +4,16 @@ import { useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
-import EmptyState from "@/components/EmptyState";
-import { RED, GOLD, redAlpha } from "@/lib/tokens";
+import { RED, redAlpha } from "@/lib/tokens";
 import s from "@/components/onboarding/onboardingStyles";
-import { WEIGHT_CLASSES, ARCHETYPE_DESCS, TOTAL_STEPS, WEEKLY_GOALS } from "@/lib/onboardingConstants";
+import { TOTAL_STEPS } from "@/lib/onboardingConstants";
 import { useOnboardingActions } from "@/hooks/useOnboardingActions";
-import Image from "next/image";
+import OnboardingIntroScreen from "@/components/onboarding/OnboardingIntroScreen";
+import OnboardingStep0Role from "@/components/onboarding/OnboardingStep0Role";
+import OnboardingStep1Archetype from "@/components/onboarding/OnboardingStep1Archetype";
+import OnboardingStep2WeeklyGoal from "@/components/onboarding/OnboardingStep2WeeklyGoal";
+import OnboardingStep3FindGym from "@/components/onboarding/OnboardingStep3FindGym";
+import OnboardingStep4Welcome from "@/components/onboarding/OnboardingStep4Welcome";
 
 export default function OnboardingPage() {
   const pathname     = usePathname();
@@ -20,8 +23,8 @@ export default function OnboardingPage() {
   const { user, loading: authLoading } = useAuth();
 
   // Preserve original challenge/reel deep-link through onboarding
-  const rawRedirect    = searchParams.get("redirect") || "";
-  const redirectAfter  = rawRedirect.startsWith(`/${locale}/`) ? rawRedirect : null;
+  const rawRedirect   = searchParams.get("redirect") || "";
+  const redirectAfter = rawRedirect.startsWith(`/${locale}/`) ? rawRedirect : null;
 
   const t = (key) => translate(locale, key);
 
@@ -46,33 +49,6 @@ export default function OnboardingPage() {
     finishOnboarding,
   } = useOnboardingActions({ user, locale, router });
 
-  const INTRO_CARDS = [
-    {
-      value: "train",
-      emoji: "🥊",
-      label: locale === "mn" ? "AI-тай дасгал" : locale === "ko" ? "AI로 훈련하기" : "Train With AI",
-      desc: locale === "mn" ? "Хурд, хүч, техникийг бодит цаг дотор хэмж" : locale === "ko" ? "속도, 파워, 기술을 실시간으로 측정" : "Measure your speed, power & technique in real time",
-    },
-    {
-      value: "learn",
-      emoji: "🎓",
-      label: locale === "mn" ? "Боксын академи" : locale === "ko" ? "복싱 배우기" : "Learn Boxing",
-      desc: locale === "mn" ? "Чемпионуудын нэрт техникийг судлах" : locale === "ko" ? "챔피언의 기술을 체계적으로 배우기" : "Study the techniques of legendary champions",
-    },
-    {
-      value: "sparring",
-      emoji: "⚔️",
-      label: locale === "mn" ? "Спарринг хайх" : locale === "ko" ? "스파링 찾기" : "Find Sparring",
-      desc: locale === "mn" ? "Ойр орчмын ижил түвшний тулаанч олох" : locale === "ko" ? "근처의 같은 수준 파이터 찾기" : "Connect with fighters at your level nearby",
-    },
-    {
-      value: "watch",
-      emoji: "📱",
-      label: locale === "mn" ? "Тулаанчдыг дагах" : locale === "ko" ? "파이터 보기" : "Watch Fighters",
-      desc: locale === "mn" ? "Тулаанчдын бичлэг, сорилтыг үзэх" : locale === "ko" ? "파이터들의 영상과 챌린지 보기" : "Watch training reels, challenges & breakdowns",
-    },
-  ];
-
   useEffect(() => {
     if (!authLoading && !user) router.replace(`/${locale}/login`);
   }, [authLoading, user, router, locale]);
@@ -81,58 +57,8 @@ export default function OnboardingPage() {
     return <div style={s.loading}>…</div>;
   }
 
-  const archetypeArch = archetype ? ARCHETYPE_DISPLAY[archetype] : null;
-  const selectedGoal = WEEKLY_GOALS.find((g) => g.value === weeklyGoal);
-
-  // Progress: step maps to visual segment
-  const visualStep = role === "fighter" ? step : step === 4 ? 4 : 0;
-  const progressFilled = role === "fighter"
-    ? step
-    : step >= 4 ? TOTAL_STEPS - 1 : 0;
-
-  // ── Intro screen: show app value before profile building ──────────────────
   if (showIntro) {
-    return (
-      <div style={s.page}>
-        <div style={s.bgGlow} />
-        <div style={{ ...s.inner, paddingTop: 40 }} className="ob-step">
-          <style>{`@keyframes slideIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}.ob-step{animation:slideIn 0.3s ease forwards}`}</style>
-          <div style={s.header}>
-            <p style={s.kicker}>GAVANA</p>
-            <h1 style={s.title}>
-              {locale === "mn" ? "Юу хийхийг хүсч байна вэ?" : locale === "ko" ? "무엇을 하고 싶으신가요?" : "What brings you here?"}
-            </h1>
-            <p style={s.subtitle}>
-              {locale === "mn" ? "Таны туршлагыг тохируулна. Дараа нь бүгдийг хийж болно." : locale === "ko" ? "경험을 맞춤 설정합니다. 나중에 모든 걸 할 수 있어요." : "Personalizes your experience. You can do everything later."}
-            </p>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
-            {INTRO_CARDS.map((card) => (
-              <button
-                key={card.value}
-                type="button"
-                onClick={() => handleIntroNext(card.value)}
-                style={{
-                  display: "flex", alignItems: "center", gap: 16,
-                  padding: "16px 18px", borderRadius: 16, cursor: "pointer",
-                  border: "1.5px solid rgba(255,255,255,0.1)",
-                  background: "rgba(255,255,255,0.04)",
-                  textAlign: "left", width: "100%",
-                  transition: "all 0.15s",
-                }}
-              >
-                <span style={{ fontSize: 30, flexShrink: 0, lineHeight: 1, width: 40, textAlign: "center" }}>{card.emoji}</span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 15, fontWeight: 900, color: "#fff", marginBottom: 2 }}>{card.label}</div>
-                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.35 }}>{card.desc}</div>
-                </div>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+    return <OnboardingIntroScreen locale={locale} onNext={handleIntroNext} />;
   }
 
   return (
@@ -169,374 +95,61 @@ export default function OnboardingPage() {
 
       <div style={s.inner}>
 
-        {/* ── STEP 0: Role Selection ── */}
         {step === 0 && (
-          <div className="ob-step">
-            <div style={s.header}>
-              <p style={s.kicker}>GAVANA</p>
-              <h1 style={s.title}>
-                {t("onboardingWhoAreYou")}
-              </h1>
-              <p style={s.subtitle}>
-                {t("onboardingChooseRole")}
-              </p>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 24 }}>
-              {[
-                { key: "fighter", emoji: "🥊", label: t("onboardingRoleFighterLabel"), desc: t("onboardingRoleFighterDesc") },
-                { key: "coach", emoji: "🎓", label: t("onboardingRoleCoachLabel"), desc: t("onboardingRoleCoachDesc") },
-                { key: "gym", emoji: "🏋️", label: t("onboardingRoleGymLabel"), desc: t("onboardingRoleGymDesc") },
-              ].map((r) => (
-                <button
-                  key={r.key}
-                  type="button"
-                  disabled={saving}
-                  onClick={() => handleRoleNext(r.key)}
-                  style={s.roleCard}
-                >
-                  <span style={{ fontSize: 36, flexShrink: 0 }}>{r.emoji}</span>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 15, fontWeight: 900, color: "#fff", marginBottom: 3 }}>{r.label}</div>
-                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.4 }}>{r.desc}</div>
-                  </div>
-                  <span style={{ fontSize: 20, color: "rgba(255,255,255,0.25)", flexShrink: 0 }}>›</span>
-                </button>
-              ))}
-            </div>
-          </div>
+          <OnboardingStep0Role t={t} saving={saving} onRoleNext={handleRoleNext} />
         )}
 
-        {/* ── STEP 1: Fighter Archetype ── */}
         {step === 1 && (
-          <div className="ob-step">
-            <div style={s.header}>
-              <p style={s.kicker}>COMBAT · FIGHTER</p>
-              <h1 style={s.title}>
-                {t("onboardingFighterStyle")}
-              </h1>
-              <p style={s.subtitle}>
-                {t("onboardingChooseArchetype")}
-              </p>
-            </div>
-
-            <div style={s.archetypeGrid}>
-              {Object.entries(ARCHETYPE_DISPLAY).map(([key, arch]) => {
-                const desc = ARCHETYPE_DESCS[key];
-                const isSelected = archetype === key;
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setArchetype(key)}
-                    style={{
-                      ...s.archetypeCard,
-                      border: isSelected ? `2px solid ${arch.color}` : "2px solid rgba(255,255,255,0.08)",
-                      background: isSelected ? `${arch.color}14` : "rgba(255,255,255,0.03)",
-                      boxShadow: isSelected ? `0 0 28px ${arch.color}28` : "none",
-                    }}
-                  >
-                    <span style={s.archetypeEmoji}>{arch.emoji}</span>
-                    <span style={{ ...s.archetypeName, color: isSelected ? arch.color : "#fff" }}>
-                      {arch.name}
-                    </span>
-                    <span style={s.archetypeDesc}>{desc[locale] || desc.en}</span>
-                    {isSelected && (
-                      <div style={{ ...s.selectedDot, background: arch.color }} />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div style={s.weightSection}>
-              <label style={s.fieldLabel}>
-                {t("onboardingWeightClass")}
-                <span style={{ color: "rgba(255,255,255,0.3)", fontWeight: 400, marginLeft: 6 }}>
-                  {t("onboardingOptional")}
-                </span>
-              </label>
-              <select value={weightClass} onChange={(e) => setWeightClass(e.target.value)} style={s.select}>
-                <option value="">
-                  {t("onboardingSelectWeight")}
-                </option>
-                {WEIGHT_CLASSES.map((wc) => <option key={wc} value={wc}>{wc}</option>)}
-              </select>
-            </div>
-
-            <button
-              type="button"
-              style={archetype ? s.primaryBtn : s.primaryBtnDisabled}
-              disabled={!archetype || saving}
-              onClick={handleStep1Next}
-            >
-              {saving ? "…" : t("onboardingContinue")}
-            </button>
-          </div>
+          <OnboardingStep1Archetype
+            locale={locale}
+            t={t}
+            archetype={archetype}
+            setArchetype={setArchetype}
+            weightClass={weightClass}
+            setWeightClass={setWeightClass}
+            saving={saving}
+            onNext={handleStep1Next}
+          />
         )}
 
-        {/* ── STEP 2: Weekly Training Goal ── */}
         {step === 2 && (
-          <div className="ob-step">
-            <div style={s.header}>
-              <p style={s.kicker}>COMBAT · FIGHTER</p>
-              <h1 style={s.title}>
-                {t("onboardingWeeklyGoal")}
-              </h1>
-              <p style={s.subtitle}>
-                {t("onboardingWeeklyDesc")}
-              </p>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
-              {WEEKLY_GOALS.map((g) => {
-                const isSelected = weeklyGoal === g.value;
-                return (
-                  <button
-                    key={g.value}
-                    type="button"
-                    onClick={() => setWeeklyGoal(g.value)}
-                    style={{
-                      display: "flex", alignItems: "center", gap: 14,
-                      padding: "16px 18px", borderRadius: 16,
-                      border: isSelected ? `2px solid ${redAlpha(0.6)}` : "2px solid rgba(255,255,255,0.08)",
-                      background: isSelected ? `${redAlpha(0.12)}` : "rgba(255,255,255,0.03)",
-                      boxShadow: isSelected ? `0 0 20px ${redAlpha(0.18)}` : "none",
-                      cursor: "pointer", textAlign: "left", width: "100%",
-                      transition: "all 0.15s",
-                    }}
-                  >
-                    <span style={{ fontSize: 28, flexShrink: 0, lineHeight: 1 }}>{g.emoji}</span>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 15, fontWeight: 900, color: isSelected ? "#fff" : "rgba(255,255,255,0.85)", marginBottom: 2 }}>
-                        {locale === "mn" ? g.labelMn : locale === "ko" ? g.labelKo : g.labelEn}
-                      </div>
-                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.35 }}>
-                        {locale === "mn" ? g.descMn : locale === "ko" ? g.descKo : g.descEn}
-                      </div>
-                    </div>
-                    {isSelected && (
-                      <div style={{ width: 20, height: 20, borderRadius: "50%", background: RED, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            <button
-              type="button"
-              style={weeklyGoal ? s.primaryBtn : s.primaryBtnDisabled}
-              disabled={!weeklyGoal || saving}
-              onClick={handleStep2Next}
-            >
-              {saving ? "…" : t("onboardingContinue")}
-            </button>
-          </div>
+          <OnboardingStep2WeeklyGoal
+            locale={locale}
+            t={t}
+            weeklyGoal={weeklyGoal}
+            setWeeklyGoal={setWeeklyGoal}
+            saving={saving}
+            onNext={handleStep2Next}
+          />
         )}
 
-        {/* ── STEP 3: Find Your Gym ── */}
         {step === 3 && (
-          <div className="ob-step">
-            <div style={s.header}>
-              <p style={s.kicker}>COMBAT · FIGHTER</p>
-              <h1 style={s.title}>
-                {t("onboardingFindGym")}
-              </h1>
-              <p style={s.subtitle}>
-                {t("onboardingGymDesc")}
-              </p>
-            </div>
-
-            {requestedGymId && (
-              <div style={s.successBanner}>
-                ✓ {t("onboardingJoinSent")}
-              </div>
-            )}
-
-            {gymsLoading ? (
-              <div style={s.gymList}>
-                {[0, 1, 2].map((i) => <div key={i} style={s.gymSkeleton} />)}
-              </div>
-            ) : gyms.length === 0 ? (
-              <EmptyState emoji="🏋️" title={t("onboardingNoGyms")} />
-            ) : (
-              <div style={s.gymList}>
-                {gyms.map((gym) => {
-                  const isRequested = requestedGymId === gym.id;
-                  return (
-                    <div key={gym.id} style={s.gymCard}>
-                      <div style={s.gymCardLeft}>
-                        {gym.logo ? (
-                          <Image src={gym.logo} alt="" width={40} height={40} style={{ borderRadius: 10, objectFit: "cover", flexShrink: 0 }} />
-                        ) : (
-                          <div style={s.gymLogoFallback}>🥊</div>
-                        )}
-                        <div style={{ minWidth: 0 }}>
-                          <p style={s.gymName}>{gym.gymName}</p>
-                          <p style={s.gymMeta}>{[gym.gymType, gym.city].filter(Boolean).join(" · ")}</p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        disabled={!!requestedGymId || joining === gym.id}
-                        onClick={() => handleJoinGym(gym)}
-                        style={isRequested ? s.joinedBtn : requestedGymId ? s.joinBtnDisabled : s.joinBtn}
-                      >
-                        {isRequested ? "✓" : joining === gym.id ? "…" : t("onboardingJoin")}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            <div style={s.actionRow}>
-              <button type="button" style={s.skipBtn} onClick={() => goTo(4)}>
-                {t("onboardingSkip")}
-              </button>
-              <button type="button" style={{ ...s.primaryBtn, flex: 2 }} onClick={() => goTo(4)}>
-                {t("onboardingNext")}
-              </button>
-            </div>
-          </div>
+          <OnboardingStep3FindGym
+            t={t}
+            gyms={gyms}
+            gymsLoading={gymsLoading}
+            requestedGymId={requestedGymId}
+            joining={joining}
+            onJoinGym={handleJoinGym}
+            onSkip={() => goTo(4)}
+            onNext={() => goTo(4)}
+          />
         )}
 
-        {/* ── STEP 4: Welcome ── */}
         {step === 4 && (
-          <div style={{ textAlign: "center" }}>
-            <div style={{ ...s.welcomeEmoji, animation: "welcomePop 0.6s cubic-bezier(0.175,0.885,0.32,1.275) forwards" }}>
-              {role === "coach" ? "🎓" : role === "gym" ? "🏋️" : archetypeArch?.emoji || "🥊"}
-            </div>
-            <div style={{ animation: "fadeUp 0.5s ease 0.3s both" }}>
-              <p style={s.kicker}>GAVANA</p>
-              <h1 style={s.title}>
-                {t("onboardingWelcome")}
-              </h1>
-              {role === "coach" && (
-                <p style={{ ...s.archetypeNameLarge, color: GOLD }}>🎓 {t("onboardingRoleCoach")}</p>
-              )}
-              {role === "gym" && (
-                <p style={{ ...s.archetypeNameLarge, color: "#34D399" }}>🏋️ {t("onboardingRoleGymLabel")}</p>
-              )}
-              {role === "fighter" && archetypeArch && (
-                <p style={{ ...s.archetypeNameLarge, color: archetypeArch.color }}>
-                  {archetypeArch.emoji} {archetypeArch.name}
-                </p>
-              )}
-
-              {/* Weekly goal confirmation */}
-              {role === "fighter" && selectedGoal && (
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 10, padding: "8px 16px", borderRadius: 999, background: `${redAlpha(0.1)}`, border: `1px solid ${redAlpha(0.25)}` }}>
-                  <span>{selectedGoal.emoji}</span>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: "rgba(255,255,255,0.7)" }}>
-                    {locale === "mn" ? `${selectedGoal.labelMn} дасгал` : locale === "ko" ? `${selectedGoal.labelKo} 훈련` : `${selectedGoal.labelEn} training`}
-                  </span>
-                </div>
-              )}
-
-              {role === "fighter" && archetypeArch && (() => {
-                const DNA_PREVIEW = {
-                  pressure:   { pressure: 85, outboxer: 15, counter: 30, explosive: 70, technician: 45 },
-                  counter:    { pressure: 25, outboxer: 45, counter: 90, explosive: 40, technician: 65 },
-                  explosive:  { pressure: 60, outboxer: 35, counter: 30, explosive: 88, technician: 50 },
-                  outboxer:   { pressure: 20, outboxer: 88, counter: 55, explosive: 45, technician: 70 },
-                  technician: { pressure: 35, outboxer: 60, counter: 60, explosive: 45, technician: 90 },
-                  brawler:    { pressure: 80, outboxer: 20, counter: 25, explosive: 80, technician: 30 },
-                };
-                const DIM_COLORS = { pressure: "#EF4444", outboxer: "#3B82F6", counter: "#8B5CF6", explosive: "#F59E0B", technician: "#10B981" };
-                const DIM_LABELS = {
-                  en: { pressure: "Pressure", outboxer: "Outboxer", counter: "Counter", explosive: "Explosive", technician: "Technician" },
-                  mn: { pressure: "Дарамт", outboxer: "Аутбоксер", counter: "Контр", explosive: "Тэсрэлт", technician: "Техник" },
-                  ko: { pressure: "압박", outboxer: "아웃복서", counter: "카운터", explosive: "폭발력", technician: "기술" },
-                };
-                const preview = DNA_PREVIEW[archetype] || DNA_PREVIEW.pressure;
-                const dims = DIM_LABELS[locale] || DIM_LABELS.en;
-                return (
-                  <div style={{ margin: "14px auto 0", padding: "14px 16px", borderRadius: 14, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", maxWidth: 320 }}>
-                    <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 10, textAlign: "left" }}>
-                      🧬 {locale === "mn" ? "ТАНЫ ДНХ УРЬДЧИЛСАН ХАРАГДАЦ" : locale === "ko" ? "DNA 미리보기" : "YOUR DNA PREVIEW"}
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                      {Object.entries(preview).map(([dim, pct]) => (
-                        <div key={dim} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <span style={{ width: 68, fontSize: 9.5, fontWeight: 800, color: DIM_COLORS[dim], textAlign: "left", flexShrink: 0 }}>{dims[dim]}</span>
-                          <div style={{ flex: 1, height: 5, background: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden" }}>
-                            <div style={{ width: `${pct}%`, height: "100%", background: DIM_COLORS[dim], borderRadius: 3 }} />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", marginTop: 8, textAlign: "center" }}>
-                      {locale === "mn" ? "Тренинг хийснээр бодит ДНХ илчлэгдэнэ" : locale === "ko" ? "훈련할수록 실제 DNA가 드러납니다" : "Train to reveal your true DNA"}
-                    </div>
-                  </div>
-                );
-              })()}
-
-              <p style={{ ...s.subtitle, marginTop: 12 }}>
-                {role === "coach"
-                  ? t("onboardingWelcomeCoachDesc")
-                  : role === "gym"
-                  ? t("onboardingWelcomeGymDesc")
-                  : t("onboardingWelcomeFighterDesc")}
-              </p>
-
-              <div style={s.ctaGroup}>
-                {role === "coach" ? (
-                  <>
-                    <button type="button" style={s.primaryBtn} disabled={saving} onClick={() => finishOnboarding(`/${locale}/coach/dashboard`)}>
-                      🎓 {t("onboardingGoToCoachDash")}
-                    </button>
-                    <button type="button" style={s.ghostBtn} disabled={saving} onClick={() => finishOnboarding(`/${locale}/reels`)}>
-                      {t("onboardingBrowseReels")}
-                    </button>
-                  </>
-                ) : role === "gym" ? (
-                  <>
-                    <button type="button" style={s.primaryBtn} disabled={saving} onClick={() => finishOnboarding(`/${locale}/gyms/dashboard`)}>
-                      🏋️ {t("onboardingRegisterGym")}
-                    </button>
-                    <button type="button" style={s.ghostBtn} disabled={saving} onClick={() => finishOnboarding(`/${locale}/reels`)}>
-                      {t("onboardingBrowseReels")}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button type="button" style={s.primaryBtn} disabled={saving} onClick={() => finishOnboarding(redirectAfter || null)}>
-                      🥊 {t("onboardingStartTraining")}
-                    </button>
-                    {!redirectAfter && (
-                      <button type="button" style={s.ghostBtn} disabled={saving} onClick={() => finishOnboarding(`/${locale}/reels`)}>
-                        {t("onboardingBrowseReels")}
-                      </button>
-                    )}
-                  </>
-                )}
-              </div>
-
-              {/* Terms & Privacy consent */}
-              <p style={{ margin: "16px 0 0", fontSize: 10, color: "rgba(255,255,255,0.22)", textAlign: "center", lineHeight: 1.6 }}>
-                {locale === "mn"
-                  ? "Үргэлжлүүлэхдээ та манай "
-                  : locale === "ko"
-                  ? "계속하면 "
-                  : "By continuing you agree to our "}
-                <a href={`/${locale}/terms`} style={{ color: "rgba(255,255,255,0.4)", textDecoration: "underline" }}>
-                  {locale === "mn" ? "Үйлчилгээний нөхцөл" : locale === "ko" ? "이용약관" : "Terms of Service"}
-                </a>
-                {locale === "mn" ? " болон " : locale === "ko" ? " 및 " : " and "}
-                <a href={`/${locale}/privacy`} style={{ color: "rgba(255,255,255,0.4)", textDecoration: "underline" }}>
-                  {locale === "mn" ? "Нууцлалын бодлого" : locale === "ko" ? "개인정보처리방침" : "Privacy Policy"}
-                </a>
-                {locale === "mn" ? "-г зөвшөөрч байна." : locale === "ko" ? "에 동의합니다." : "."}
-              </p>
-            </div>
-          </div>
+          <OnboardingStep4Welcome
+            locale={locale}
+            t={t}
+            role={role}
+            archetype={archetype}
+            weeklyGoal={weeklyGoal}
+            saving={saving}
+            redirectAfter={redirectAfter}
+            onFinish={finishOnboarding}
+          />
         )}
 
       </div>
     </div>
   );
 }
-

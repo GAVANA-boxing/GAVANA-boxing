@@ -4,21 +4,19 @@ import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { GOLD, RED, redAlpha, goldAlpha } from "@/lib/tokens";
 import S from "@/components/upload/uploadStyles";
 import { UField, UChips, UToggle } from "@/components/upload/UploadFormFields";
 import { useUploadForm } from "@/hooks/useUploadForm";
+
+import VideoStep from "@/components/upload/VideoStep";
+import VideoStrip from "@/components/upload/VideoStrip";
+import ContentTypeSection from "@/components/upload/ContentTypeSection";
+import UploadProgressOverlay from "@/components/upload/UploadProgressOverlay";
 
 const CATEGORIES = ["boxing", "gym", "running", "street_workout", "sparring"];
 const DIFFICULTIES = ["beginner", "intermediate", "pro"];
 const CAT_KEY = { boxing: "catBoxing", gym: "catGym", running: "catRunning", street_workout: "catStreetWorkout", sparring: "catSparring" };
 const DIFF_KEY = { beginner: "diffBeginner", intermediate: "diffIntermediate", pro: "diffPro" };
-
-const CONTENT_TYPES = [
-  { id: "training",     emoji: "🥊", labelKey: "ctFilterTraining",    color: "#F87171", border: redAlpha(0.5) },
-  { id: "lifestyle",    emoji: "🎬", labelKey: "ctFilterLifestyle",   color: "#60A5FA", border: "rgba(96,165,250,0.45)" },
-  { id: "educational",  emoji: "📚", labelKey: "ctFilterEducational", color: GOLD,      border: goldAlpha(0.5) },
-];
 
 export default function UploadPage() {
   const pathname = usePathname();
@@ -51,77 +49,27 @@ export default function UploadPage() {
   const isEdu = contentType === "educational";
   const isLifestyle = contentType === "lifestyle";
   const diffColorMap = (d) => d === "beginner" ? S.chipGreen : d === "intermediate" ? S.chipGold : S.chipRed;
-  const activeType = CONTENT_TYPES.find((ct) => ct.id === contentType);
 
-  // ── VIDEO STEP ─────────────────────────────────────────────────────────────
+  // ── VIDEO STEP ──────────────────────────────────────────────────────────────
   if (step === "video") {
     return (
-      <div style={S.videoPage}>
-        <div style={S.videoHeader}>
-          <button onClick={() => router.back()} style={S.iconBtn}>✕</button>
-          <span style={S.headerTitle}>{t("uploadNewReel")}</span>
-          <div style={{ width: 40 }} />
-        </div>
-
-        {remixOfId && (
-          <div style={S.remixBar}>
-            🔀 Remixing {remixOfCreatorName ? `@${remixOfCreatorName}` : "a challenge"}
-          </div>
-        )}
-
-        <div style={S.videoPicker} onClick={() => !selectedFile && fileInputRef.current?.click()}>
-          {selectedFile ? (
-            <video
-              src={previewUrl}
-              controls
-              playsInline
-              preload="metadata"
-              style={S.videoFull}
-              onLoadedMetadata={(e) => setVideoDuration(e.currentTarget.duration)}
-            />
-          ) : (
-            <div style={S.videoEmptyState}>
-              <div style={S.videoEmptyIconWrap}>
-                <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.89L15 14"/>
-                  <rect x="3" y="6" width="12" height="12" rx="2"/>
-                  <path d="M9 10v4M7 12h4" stroke={GOLD} strokeWidth="1.8"/>
-                </svg>
-              </div>
-              <p style={S.videoEmptyKicker}>
-                {locale === "mn" ? "Рил бичлэг" : locale === "ko" ? "릴 영상" : "Reel Video"}
-              </p>
-              <p style={S.videoEmptyLabel}>{t("uploadTapSelect")}</p>
-              <p style={S.videoEmptySub}>MP4, MOV · {t("uploadSizeLimit")}</p>
-            </div>
-          )}
-        </div>
-
-        <div style={S.videoBottomBar}>
-          <button style={S.galleryBtn} onClick={() => fileInputRef.current?.click()}>
-            <span style={{ fontSize: 13, fontWeight: 800, color: selectedFile ? GOLD : "rgba(255,255,255,0.75)" }}>
-              {selectedFile ? t("uploadChange") : t("uploadGallery")}
-            </span>
-          </button>
-          {selectedFile && (
-            <span style={{ color: "rgba(255,255,255,0.45)", fontSize: 11, maxWidth: 130, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {selectedFile.name}
-            </span>
-          )}
-          <button
-            onClick={() => selectedFile ? setStep("setup") : fileInputRef.current?.click()}
-            style={{ ...S.nextBtn, opacity: selectedFile ? 1 : 0.42 }}
-          >
-            {t("uploadNext")}
-          </button>
-        </div>
-
-        <input ref={fileInputRef} type="file" accept="video/*" onChange={handleFileSelect} style={{ display: "none" }} />
-      </div>
+      <VideoStep
+        locale={locale}
+        t={t}
+        fileInputRef={fileInputRef}
+        selectedFile={selectedFile}
+        previewUrl={previewUrl}
+        remixOfId={remixOfId}
+        remixOfCreatorName={remixOfCreatorName}
+        setVideoDuration={setVideoDuration}
+        setStep={setStep}
+        onBack={() => router.back()}
+        handleFileSelect={handleFileSelect}
+      />
     );
   }
 
-  // ── SETUP STEP ─────────────────────────────────────────────────────────────
+  // ── SETUP STEP ──────────────────────────────────────────────────────────────
   return (
     <div style={S.setupPage}>
       <div style={S.setupHeader}>
@@ -134,82 +82,31 @@ export default function UploadPage() {
 
       <div style={S.setupScroll}>
         {/* Video thumbnail strip */}
-        <div style={S.videoStrip} className="section-reveal">
-          <div style={{ position: "relative", flexShrink: 0 }}>
-            <video
-              src={previewUrl}
-              muted
-              playsInline
-              style={S.videoThumb}
-              onLoadedMetadata={(e) => setVideoDuration(e.currentTarget.duration)}
-            />
-            {videoDuration && (
-              <div style={{ position: "absolute", bottom: 4, right: 4, background: "rgba(0,0,0,0.72)", borderRadius: 4, padding: "2px 5px", fontSize: 10, fontWeight: 800, color: "#fff" }}>
-                {formatDuration(videoDuration)}
-              </div>
-            )}
-          </div>
-          <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}>
-            <div style={{ color: "#fff", fontSize: 13, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {selectedFile?.name}
-            </div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {fileSizeMB && (
-                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", background: "rgba(255,255,255,0.06)", borderRadius: 6, padding: "2px 7px", fontWeight: 700 }}>
-                  {fileSizeMB} MB
-                </span>
-              )}
-              {videoDuration && (
-                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", background: "rgba(255,255,255,0.06)", borderRadius: 6, padding: "2px 7px", fontWeight: 700 }}>
-                  {formatDuration(videoDuration)}
-                </span>
-              )}
-            </div>
-            <button onClick={() => setStep("video")} style={S.changeVideoBtn}>
-              {t("uploadChangeVideo")}
-            </button>
-          </div>
-        </div>
+        <VideoStrip
+          selectedFile={selectedFile}
+          previewUrl={previewUrl}
+          fileSizeMB={fileSizeMB}
+          videoDuration={videoDuration}
+          setVideoDuration={setVideoDuration}
+          formatDuration={formatDuration}
+          onChangeVideo={() => setStep("video")}
+          t={t}
+        />
 
         {error && <div style={S.errBox}>{error}</div>}
-        {remixOfId && <div style={S.remixBox}>🔀 Remixing {remixOfCreatorName ? `@${remixOfCreatorName}` : "a challenge"}</div>}
+        {remixOfId && (
+          <div style={S.remixBox}>
+            🔀 Remixing {remixOfCreatorName ? `@${remixOfCreatorName}` : "a challenge"}
+          </div>
+        )}
 
         {/* Section — Content Type */}
-        <div className="stagger-list" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <div style={S.sectionBlock}>
-            <p style={S.sectionKicker}>
-              {locale === "mn" ? "Контентын төрөл" : locale === "ko" ? "콘텐츠 유형" : "Content Type"}
-            </p>
-            <h2 style={S.sectionTitle}>
-              {locale === "mn" ? "Юу нийтлэх вэ?" : locale === "ko" ? "무엇을 올리나요?" : "What are you posting?"}
-            </h2>
-          </div>
-
-          <div style={S.typeTabs}>
-            {CONTENT_TYPES.map(({ id, emoji, labelKey, color, border }) => {
-              const label = t(labelKey);
-              const active = contentType === id;
-              return (
-                <button
-                  key={id}
-                  onClick={() => setContentType(id)}
-                  style={{
-                    ...S.typeTab,
-                    ...(active ? {
-                      color,
-                      border: `1px solid ${border}`,
-                      background: `${color}18`,
-                      boxShadow: `0 0 16px ${color}22`,
-                    } : {}),
-                  }}
-                >
-                  <span style={S.typeTabEmoji}>{emoji}</span>
-                  <span style={S.typeTabLabel}>{label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <ContentTypeSection
+          locale={locale}
+          t={t}
+          contentType={contentType}
+          setContentType={setContentType}
+        />
 
         {/* Section — Caption / Title */}
         <div className="stagger-list" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -346,7 +243,7 @@ export default function UploadPage() {
           <div style={S.aiBox}>
             <button onClick={() => setCaptionOpen(!captionOpen)} style={S.aiBoxBtn}>
               <span style={S.aiBoxLabel}>✨ {t("aiCaptionGenerator")}</span>
-              <span style={{ color: GOLD, fontSize: 18, lineHeight: 1 }}>{captionOpen ? "∧" : "∨"}</span>
+              <span style={{ color: "#C9A84C", fontSize: 18, lineHeight: 1 }}>{captionOpen ? "∧" : "∨"}</span>
             </button>
             {captionOpen && (
               <div style={{ padding: "0 16px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
@@ -378,98 +275,16 @@ export default function UploadPage() {
         </button>
       </div>
 
-      {/* Upload progress overlay */}
-      {uploading && (() => {
-        const stages = [
-          { min: 0,  max: 20,  label: locale === "mn" ? "Видео шахаж байна" : locale === "ko" ? "동영상 압축 중" : "Compressing video" },
-          { min: 21, max: 62,  label: locale === "mn" ? "Видео байршуулж байна" : locale === "ko" ? "동영상 업로드 중" : "Uploading video" },
-          { min: 63, max: 84,  label: locale === "mn" ? "Thumbnail үүсгэж байна" : locale === "ko" ? "썸네일 생성 중" : "Generating thumbnail" },
-          { min: 85, max: 100, label: locale === "mn" ? "Нийтлэж байна" : locale === "ko" ? "게시 중" : "Publishing reel" },
-        ];
-        const activeIdx = stages.findIndex(s => uploadProgress >= s.min && uploadProgress <= s.max);
-        return (
-          <div
-            className="page-enter"
-            style={{
-              position: "fixed", inset: 0, zIndex: 999,
-              background: "rgba(0,0,0,0.94)",
-              backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
-              display: "flex", flexDirection: "column",
-              alignItems: "center", justifyContent: "center",
-              gap: 24, padding: 32,
-            }}
-          >
-            <div style={{ fontSize: 44 }}>🥊</div>
-            <div style={{ fontSize: 17, fontWeight: 900, color: "#fff", letterSpacing: "-0.01em", marginBottom: 4 }}>
-              {t("uploadUploading")}
-            </div>
-            <div style={{ width: "100%", maxWidth: 300, display: "flex", flexDirection: "column", gap: 12 }}>
-              {stages.map((stage, i) => {
-                const done = i < activeIdx;
-                const active = i === activeIdx;
-                return (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{
-                      width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 13, fontWeight: 900,
-                      background: done ? `${GOLD}22` : active ? `${GOLD}18` : "rgba(255,255,255,0.05)",
-                      border: `1.5px solid ${done ? GOLD : active ? `${GOLD}80` : "rgba(255,255,255,0.1)"}`,
-                      color: done ? GOLD : active ? "#fff" : "rgba(255,255,255,0.25)",
-                    }}>
-                      {done ? "✓" : i + 1}
-                    </div>
-                    <span style={{
-                      fontSize: 13, fontWeight: active ? 800 : 500,
-                      color: done ? GOLD : active ? "#fff" : "rgba(255,255,255,0.28)",
-                    }}>
-                      {stage.label}
-                    </span>
-                    {active && (
-                      <span style={{ marginLeft: "auto", fontSize: 12, fontWeight: 800, color: GOLD }}>
-                        {uploadProgress}%
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-            <div style={{ width: "100%", maxWidth: 300 }}>
-              <div style={{ ...S.progressTrack, height: 4 }}>
-                <div style={{
-                  ...S.progressFill,
-                  width: `${uploadProgress}%`,
-                  background: `linear-gradient(90deg, ${RED}, ${GOLD})`,
-                  transition: "width 0.4s ease",
-                }} />
-              </div>
-            </div>
-            <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.3)", textAlign: "center" }}>
-              {t("uploadDontClose")}
-            </p>
-            <button
-              onClick={handleCancelUpload}
-              style={{ marginTop: 4, padding: "10px 24px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.18)", background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.65)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
-            >
-              {t("uploadCancel")}
-            </button>
-          </div>
-        );
-      })()}
-
-      {uploadTimedOut && !uploading && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 998, display: "flex", alignItems: "center", justifyContent: "center", padding: 32, pointerEvents: "none" }}>
-          <div style={{ pointerEvents: "auto", padding: "18px 20px", borderRadius: 14, background: "rgba(0,0,0,0.92)", border: "1px solid rgba(248,113,113,0.4)", display: "flex", flexDirection: "column", gap: 12, maxWidth: 320, width: "100%" }}>
-            <p style={{ margin: 0, fontSize: 13, color: "#F87171", fontWeight: 700 }}>{t("uploadTimeout")}</p>
-            <button
-              onClick={handleUpload}
-              style={{ ...S.primaryBtn, background: RED, padding: "10px 20px", fontSize: 13 }}
-            >
-              {t("uploadRetry")}
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Upload progress overlay + timeout toast */}
+      <UploadProgressOverlay
+        uploading={uploading}
+        uploadProgress={uploadProgress}
+        uploadTimedOut={uploadTimedOut}
+        locale={locale}
+        t={t}
+        onCancel={handleCancelUpload}
+        onRetry={handleUpload}
+      />
     </div>
   );
 }

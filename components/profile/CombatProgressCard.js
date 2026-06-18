@@ -2,53 +2,9 @@
 
 import { GOLD, RADIUS, whiteAlpha, goldAlpha } from "@/lib/tokens";
 import { SKILL_COLORS } from "@/lib/combatProgress";
+import { PROGRESS_LABELS } from "@/lib/profileLabels";
 
 const LEVEL_COLOR = "#F5C451";
-
-const CARD_LABELS = {
-  en: {
-    level:      "Combat Level",
-    progress:   "Progress to next level",
-    maxLevel:   "Max Level",
-    skills:     "Skill Mastery",
-    timeline:   "Evolution Timeline",
-    building:   "Tracking locked",
-    sessions:   (n) => `Train ${n} more session${n !== 1 ? "s" : ""} to unlock progress tracking`,
-    xp:         "XP",
-    toNext:     "to next level",
-    punchTrend: "Punch Pattern Evolution",
-    early:      "Early sessions",
-    recent:     "Recent sessions",
-  },
-  mn: {
-    level:      "Тулааны түвшин",
-    progress:   "Дараагийн түвшин рүү",
-    maxLevel:   "Хамгийн өндөр",
-    skills:     "Ур чадварын эзэмшил",
-    timeline:   "Хөгжлийн цаг хугацаа",
-    building:   "Хяналт хаалттай",
-    sessions:   (n) => `${n} тренинг хийж нээ`,
-    xp:         "XP",
-    toNext:     "дараагийн түвшинд",
-    punchTrend: "Цохилтын хэв маягийн хөгжил",
-    early:      "Эхний тренинг",
-    recent:     "Сүүлийн тренинг",
-  },
-  ko: {
-    level:      "전투 레벨",
-    progress:   "다음 레벨까지",
-    maxLevel:   "최고 레벨",
-    skills:     "스킬 마스터리",
-    timeline:   "진화 타임라인",
-    building:   "추적 잠금됨",
-    sessions:   (n) => `${n}개 세션 더 훈련 후 공개`,
-    xp:         "XP",
-    toNext:     "다음 레벨까지",
-    punchTrend: "펀치 패턴 진화",
-    early:      "초기 세션",
-    recent:     "최근 세션",
-  },
-};
 
 function SkillBar({ label, value, color }) {
   const pct = Math.min(100, (value / 10) * 100);
@@ -81,7 +37,7 @@ function SkillBar({ label, value, color }) {
 }
 
 export default function CombatProgressCard({ progress, locale = "en" }) {
-  const L = CARD_LABELS[locale] || CARD_LABELS.en;
+  const L = PROGRESS_LABELS[locale] || PROGRESS_LABELS.en;
 
   // ── Building state ──────────────────────────────────────────────────────────
   if (!progress || progress.building) {

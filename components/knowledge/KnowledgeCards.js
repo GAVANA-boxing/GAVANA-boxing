@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { RED, GOLD, redAlpha, goldAlpha, blackAlpha, whiteAlpha } from "@/lib/tokens";
 import { STYLE_EXAMPLES, TECH_EXAMPLES } from "@/lib/knowledgeData";
+import { loc } from "@/lib/loc";
 
 // ── Gradient hero placeholder (image-ready slot) ─────────────────────────────
 function CardHero({ color, emoji, height = 96, patternAngle = 45 }) {
@@ -207,7 +208,7 @@ export function FighterCard({ fighter, onStudy, locale }) {
             color: fighter.accent, fontSize: 11, fontWeight: 800, cursor: "pointer",
           }}
         >
-          {locale === "mn" ? "Судлах →" : locale === "ko" ? "배우기 →" : "Study →"}
+          {loc(locale, "Судлах →", "배우기 →", "Study →")}
         </button>
       </div>
     </div>

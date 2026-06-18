@@ -9,26 +9,12 @@ import ReelsDashboard from "@/components/reels/ReelsDashboard";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { computeFeedScore } from "@/lib/analytics";
 import dynamic from "next/dynamic";
-import ErrorBoundary from "@/components/ErrorBoundary";
-import { GOLD, goldAlpha } from "@/lib/tokens";
-import {
-  getCreatedAtMs,
-  getCreatorName,
-  getCreatorPhoto,
-  cleanCaption,
-} from "@/lib/reelHelpers";
-import {
-  BackArrowIcon,
-  SpeakerIcon,
-} from "@/components/reels/ReelIcons";
+import { getCreatedAtMs } from "@/lib/reelHelpers";
+import { BackArrowIcon } from "@/components/reels/ReelIcons";
 
-const AIBreakdownSheet = dynamic(() => import("@/components/AIBreakdownSheet"), { ssr: false });
 const CommentsModal = dynamic(() => import("@/components/reels/CommentsModal"), { ssr: false });
 const FeedbackModal = dynamic(() => import("@/components/reels/FeedbackModal"), { ssr: false });
-const FilterSheet = dynamic(() => import("@/components/reels/FilterSheet"), { ssr: false });
-const CaptionSheet = dynamic(() => import("@/components/reels/CaptionSheet"), { ssr: false });
-const ReportModal = dynamic(() => import("@/components/ReportModal"), { ssr: false });
-import ReelItem from "@/components/reels/ReelItem";
+
 import { useReelFeed } from "@/hooks/useReelFeed";
 import { useVideoControls } from "@/hooks/useVideoControls";
 import { useCommentActions } from "@/hooks/useCommentActions";
@@ -36,6 +22,14 @@ import { useReelFeedback } from "@/hooks/useReelFeedback";
 import { useReelInteractions } from "@/hooks/useReelInteractions";
 import { useReelViewTracking } from "@/hooks/useReelViewTracking";
 import styles from "@/components/reels/reelStyles";
+
+// Sub-components
+import ReelsLoadingScreen from "@/components/reels/ReelsLoadingScreen";
+import ReelsEmptyArena from "@/components/reels/ReelsEmptyArena";
+import FeedTabs from "@/components/reels/FeedTabs";
+import SoundToggleButton from "@/components/reels/SoundToggleButton";
+import ReelsFeedList from "@/components/reels/ReelsFeedList";
+import ReelsMobileModals from "@/components/reels/ReelsMobileModals";
 
 export default function ReelsContent() {
   const router = useRouter();
@@ -50,6 +44,7 @@ export default function ReelsContent() {
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
   }, []);
+
   const targetReelId = searchParams.get("reelId");
   const source = searchParams.get("source");
   const profileSourceUserId = searchParams.get("userId");
@@ -58,19 +53,19 @@ export default function ReelsContent() {
   const currentLocale = getLocaleFromPathname(pathname);
   const t = (key) => translate(currentLocale, key);
   const { user, loading: authLoading } = useAuth();
+
   const [feedMode, setFeedMode] = useState("forYou");
   const [diffFilter, setDiffFilter] = useState("all");
   const [ctFilter, setCtFilter] = useState("all");
   const [showFilterSheet, setShowFilterSheet] = useState(false);
   const [reels, setReels] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [expandedCaptionIds, setExpandedCaptionIds] = useState(new Set());
   const [captionSheetReelId, setCaptionSheetReelId] = useState(null);
-  const [breakdownReel, setBreakdownReel] = useState(null);
   const handleBreakdown = useCallback((reel) => {
     router.push(`/${currentLocale}/ai-analysis/${reel.id}`);
   }, [router, currentLocale]);
   const [reportReel, setReportReel] = useState(null);
+
   const feedRef = useRef(null);
   const reelItemRefs = useRef({});
   const lastTapRef = useRef({ time: 0, reelId: null });
@@ -92,13 +87,13 @@ export default function ReelsContent() {
   } = useReelFeed({ user, authLoading, isProfileSource, profileSourceUserId, currentReelId: reels[currentIndex]?.id || null });
 
   const {
-    soundEnabled, showControls, setShowControls,
+    soundEnabled, showControls,
     videoLoading, videoErrors, videoProgress, setVideoProgress,
     heartBursts, setHeartBursts,
     videoRefs, singleTapTimerRef,
-    pauseInactiveVideos, togglePlay, clearControlsTimer,
+    togglePlay, clearControlsTimer,
     scheduleControlsHide, revealControls,
-    muteAllVideos, toggleMute,
+    toggleMute,
     handleVideoLoadStart, handleVideoLoaded, handleVideoError,
   } = useVideoControls({ reels, currentIndex });
 
@@ -107,7 +102,6 @@ export default function ReelsContent() {
     newComment, setNewComment,
     replyingTo, setReplyingTo,
     expandedReplies, setExpandedReplies,
-    selectedReelId,
     handleOpenComments, handleAddComment, handleDeleteComment, handleCloseComments,
   } = useCommentActions({ user, router, currentLocale, reels });
 
@@ -124,6 +118,7 @@ export default function ReelsContent() {
     revealControls, togglePlay, singleTapTimerRef, lastTapRef,
   });
 
+  // ── Feed filtering / sorting ──────────────────────────────────────────────
   useEffect(() => {
     if (authLoading || allReels === null) {
       setReels([]);
@@ -168,26 +163,21 @@ export default function ReelsContent() {
     setCurrentIndex(0);
   }, [allReels, authLoading, feedMode, followingIds, isProfileSource, profileSourceUserId, diffFilter, ctFilter, userTrainingProfile, userViews, featuredCreatorIds]);
 
+  // ── Scroll to target reel (deep-link) ────────────────────────────────────
   useEffect(() => {
     if (!targetReelId || !reels.length || lastScrolledReelId.current === targetReelId) return;
-
     const targetIndex = reels.findIndex((reel) => reel.id === targetReelId);
     if (targetIndex < 0) return;
-
     lastScrolledReelId.current = targetReelId;
     setCurrentIndex(targetIndex);
-
     requestAnimationFrame(() => {
-      reelItemRefs.current[targetReelId]?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
+      reelItemRefs.current[targetReelId]?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   }, [reels, targetReelId]);
 
   useReelViewTracking({ user, reels, currentIndex, userViews, setUserViews, setAllReels });
 
-  // Handle scroll to change current video
+  // ── Scroll handler ────────────────────────────────────────────────────────
   const handleScroll = useCallback((e) => {
     const container = e.target;
     const scrollTop = container.scrollTop;
@@ -198,38 +188,27 @@ export default function ReelsContent() {
     }
   }, [currentIndex, reels.length]);
 
+  // ── IntersectionObserver for current index ────────────────────────────────
   useEffect(() => {
     const root = feedRef.current;
     if (!root || !reels.length) return;
-
     const observer = new IntersectionObserver((entries) => {
       const mostVisible = entries
         .filter((entry) => entry.isIntersecting)
         .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-
       if (!mostVisible || mostVisible.intersectionRatio < 0.6) return;
-
       const nextIndex = Number(mostVisible.target.getAttribute("data-reel-index"));
       if (!Number.isInteger(nextIndex) || nextIndex < 0 || nextIndex >= reels.length) return;
-
       setCurrentIndex((prevIndex) => (prevIndex === nextIndex ? prevIndex : nextIndex));
-    }, {
-      root,
-      threshold: [0.6, 0.75, 0.9],
-    });
-
+    }, { root, threshold: [0.6, 0.75, 0.9] });
     reels.forEach((reel) => {
       const element = reelItemRefs.current[reel.id];
-      if (element) {
-        observer.observe(element);
-      }
+      if (element) observer.observe(element);
     });
-
-    return () => {
-      observer.disconnect();
-    };
+    return () => observer.disconnect();
   }, [reels]);
 
+  // ── Cleanup single-tap timer on unmount ───────────────────────────────────
   useEffect(() => {
     const timerRef = singleTapTimerRef;
     return () => {
@@ -237,79 +216,26 @@ export default function ReelsContent() {
     };
   }, [singleTapTimerRef]);
 
-  const toggleCaption = useCallback((reelId) => {
-    setExpandedCaptionIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(reelId)) {
-        next.delete(reelId);
-      } else {
-        next.add(reelId);
-      }
-      return next;
-    });
-  }, []);
-
-  // Format date
-  const formatDate = (timestamp) => {
-    if (!timestamp) return "";
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleDateString();
-  };
-
+  // ── Early returns ─────────────────────────────────────────────────────────
   if (authLoading || reelsLoading) {
     return (
-      <div style={styles.container}>
-        <div style={styles.loadingCinematic}>
-          <div style={styles.loadingOrb} />
-          <div className="reel-skeleton" style={styles.skeletonBack} />
-          <div className="reel-skeleton" style={styles.skeletonMid} />
-          <div className="reel-skeleton" style={styles.skeletonFront} />
-          <div style={styles.loadingStatus}>
-            <div style={styles.spinner} />
-            <div style={styles.loadingTitle}>{t("loadingReels")}</div>
-            <div style={styles.loadingMeta}>
-              {authLoading ? t("checkingSession") : t("fetchingFeed")}
-            </div>
-          </div>
-        </div>
-        <BottomNav router={router} user={user} currentLocale={currentLocale} />
-      </div>
+      <ReelsLoadingScreen
+        router={router}
+        user={user}
+        currentLocale={currentLocale}
+        t={t}
+        authLoading={authLoading}
+      />
     );
   }
 
   if (reels.length === 0 && feedMode !== "following" && !isProfileSource) {
     return (
-      <div style={styles.container}>
-        <div style={styles.arenaEmpty}>
-          <div style={styles.arenaOrb} />
-          <div style={styles.arenaFigure}>
-            <div style={styles.arenaFigHead} />
-            <div style={styles.arenaFigTorso} />
-            <div style={styles.arenaFigGloveL} />
-            <div style={styles.arenaFigGloveR} />
-          </div>
-          <div className="page-enter" style={styles.arenaCopy}>
-            <span style={styles.arenaKicker}>YOUR TRAINING FEED</span>
-            <h2 style={styles.arenaHeadline}>{`THE ARENA\nAWAITS`}</h2>
-            <p style={styles.arenaDesc}>
-              {currentLocale === "mn"
-                ? "Эхний видеогоо upload хий. AI техникийг задлан шинжилж, ахицыг чинь rank болгоно."
-                : currentLocale === "ko"
-                ? "첫 번째 릴을 업로드하세요. AI가 기술을 분석하고 발전을 랭크로 전환합니다."
-                : "Drop your first reel. AI breaks down your technique and turns your progress into rank."}
-            </p>
-            <button
-              type="button"
-              className="btn-red-glow"
-              style={styles.arenaUploadBtn}
-              onClick={() => router.push(`/${currentLocale}/upload`)}
-            >
-              {currentLocale === "mn" ? "ЭХНИЙ ВИДЕОГОО UPLOAD ХИЙ" : currentLocale === "ko" ? "첫 릴 업로드" : "UPLOAD YOUR FIRST REEL"}
-            </button>
-          </div>
-        </div>
-        <BottomNav router={router} user={user} currentLocale={currentLocale} />
-      </div>
+      <ReelsEmptyArena
+        router={router}
+        user={user}
+        currentLocale={currentLocale}
+      />
     );
   }
 
@@ -341,7 +267,6 @@ export default function ReelsContent() {
           handleShare={handleShare}
           handleSave={handleSave}
           handleGetFeedback={handleGetFeedback}
-          setBreakdownReel={setBreakdownReel}
           feedRef={feedRef}
         />
         <CommentsModal
@@ -377,6 +302,7 @@ export default function ReelsContent() {
     );
   }
 
+  // ── Mobile feed ───────────────────────────────────────────────────────────
   return (
     <div style={styles.container}>
       {isProfileSource && (
@@ -391,141 +317,68 @@ export default function ReelsContent() {
       )}
 
       <DailyMission locale={currentLocale} />
-      {!isProfileSource && (
-      <div style={styles.feedTabs}>
-        <button
-          type="button"
-          onClick={() => setFeedMode("forYou")}
-          style={{
-            ...styles.feedTab,
-            ...(feedMode === "forYou" ? styles.feedTabActive : {})
-          }}
-        >
-          {t("forYou")}
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            if (!user?.uid) {
-              router.push(`/${currentLocale}/login`);
-              return;
-            }
-            setFeedMode("following");
-          }}
-          style={{
-            ...styles.feedTab,
-            ...(feedMode === "following" ? styles.feedTabActive : {})
-          }}
-        >
-          {t("following")}
-        </button>
-        <button
-          type="button"
-          onClick={() => setShowFilterSheet(true)}
-          style={{
-            ...styles.feedTab,
-            ...((diffFilter !== "all" || ctFilter !== "all") ? {
-              ...styles.feedTabActive,
-              color: GOLD,
-              background: `${goldAlpha(0.15)}`,
-            } : {}),
-            padding: "4px 9px",
-            fontSize: 14,
-          }}
-          aria-label="Filters"
-        >
-          {(diffFilter !== "all" || ctFilter !== "all") ? "●" : "⚙"}
-        </button>
-      </div>
-      )}
-      {/* Reels Feed */}
-      <div ref={feedRef} style={styles.feed} className="reels-feed" onScroll={handleScroll}>
-        {reels.length === 0 ? (
-          <div style={{...styles.videoContainer, ...styles.followingEmpty}}>
-            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase", color: "rgba(255,255,255,0.28)", marginBottom: 4 }}>FOLLOWING</div>
-            <div style={styles.followingEmptyTitle}>
-              {currentLocale === "mn" ? "Feed хоосон байна" : currentLocale === "ko" ? "피드가 비어 있습니다" : "YOUR FEED IS QUIET"}
-            </div>
-            <div style={styles.followingEmptyText}>
-              {currentLocale === "mn" ? "Тулаанчдыг дага — тэдний видео энд гарч ирнэ." : currentLocale === "ko" ? "파이터를 팔로우하면 그들의 릴이 여기에 표시됩니다." : "Follow fighters — their reels will appear here."}
-            </div>
-            <button
-              type="button"
-              onClick={() => setFeedMode("forYou")}
-              style={styles.uploadBtn}
-            >
-              {currentLocale === "mn" ? "FOR YOU руу очих" : currentLocale === "ko" ? "추천 피드 보기" : "BROWSE FOR YOU"}
-            </button>
-          </div>
-        ) : reels.map((reel, index) => {
-          const creatorProfile = reel.userId ? creatorProfiles[reel.userId] : null;
-          const creatorName = getCreatorName(reel, creatorProfile);
-          const creatorPhoto = getCreatorPhoto(creatorProfile);
-          const creatorInitial = creatorName.charAt(0).toUpperCase() || "U";
-          const captionText = cleanCaption(reel.description || reel.caption || "");
-          const stats = reel.userId ? creatorStats[reel.userId] : null;
-          const hasBestScore = typeof stats?.bestScore === "number" && Number.isFinite(stats.bestScore) && stats.bestScore > 0;
-          const creatorStatLine = stats
-            ? [
-                stats.rank ? t(stats.rank.key) : null,
-                typeof stats.xp === "number" ? `${stats.xp.toLocaleString()} ${t("reels.xp")}` : null,
-                hasBestScore ? `${t("reels.bestScore")} ${stats.bestScore.toFixed(1)}/10` : null,
-              ].filter(Boolean).join(" · ")
-            : "";
-          const hasStory = !!(creatorProfile?.storyActive || creatorProfile?.hasActiveStory);
-          return (
-            <ErrorBoundary key={reel.id}>
-            <ReelItem
-              key={reel.id}
-              reel={reel}
-              index={index}
-              currentIndex={currentIndex}
-              reelItemRefs={reelItemRefs}
-              videoRefs={videoRefs}
-              soundEnabled={soundEnabled}
-              hasVideoError={!!videoErrors[reel.id]}
-              isVideoLoading={!!videoLoading[reel.id]}
-              videoProgress={videoProgress}
-              isLiked={userLikes.has(reel.id)}
-              isSaved={savedReels.has(reel.id)}
-              heartBursts={heartBursts.filter((b) => b.reelId === reel.id)}
-              showControls={showControls}
-              isPvpSource={isPvpSource}
-              isProfileSource={isProfileSource}
-              profileReelProgress={profileReelProgress}
-              creatorName={creatorName}
-              creatorPhoto={creatorPhoto}
-              creatorInitial={creatorInitial}
-              creatorStreakCount={creatorProfile?.streakCount || 0}
-              captionText={captionText}
-              creatorStatLine={creatorStatLine}
-              hasStory={hasStory}
-              stats={stats}
-              gymName={reel.gymId ? gymNames[reel.gymId] : null}
-              currentLocale={currentLocale}
-              t={t}
-              router={router}
-              setVideoProgress={setVideoProgress}
-              onVideoClick={handleVideoClick}
-              onVideoLoadStart={handleVideoLoadStart}
-              onVideoLoaded={handleVideoLoaded}
-              onVideoError={handleVideoError}
-              onLike={handleLike}
-              onOpenComments={handleOpenComments}
-              onShare={handleShare}
-              onSave={handleSave}
-              onGetFeedback={handleGetFeedback}
-              onBreakdown={handleBreakdown}
-              onCaptionSheet={setCaptionSheetReelId}
-              onReport={setReportReel}
-            />
-            </ErrorBoundary>
-          );
-        })}
-      </div>
 
-      {/* Comments Modal */}
-      <CommentsModal
+      {!isProfileSource && (
+        <FeedTabs
+          feedMode={feedMode}
+          setFeedMode={setFeedMode}
+          diffFilter={diffFilter}
+          ctFilter={ctFilter}
+          user={user}
+          router={router}
+          currentLocale={currentLocale}
+          t={t}
+          setShowFilterSheet={setShowFilterSheet}
+        />
+      )}
+
+      <ReelsFeedList
+        reels={reels}
+        currentIndex={currentIndex}
+        feedRef={feedRef}
+        reelItemRefs={reelItemRefs}
+        videoRefs={videoRefs}
+        soundEnabled={soundEnabled}
+        videoErrors={videoErrors}
+        videoLoading={videoLoading}
+        videoProgress={videoProgress}
+        setVideoProgress={setVideoProgress}
+        heartBursts={heartBursts}
+        showControls={showControls}
+        userLikes={userLikes}
+        savedReels={savedReels}
+        isPvpSource={isPvpSource}
+        isProfileSource={isProfileSource}
+        profileReelProgress={profileReelProgress}
+        creatorProfiles={creatorProfiles}
+        creatorStats={creatorStats}
+        gymNames={gymNames}
+        currentLocale={currentLocale}
+        t={t}
+        router={router}
+        handleScroll={handleScroll}
+        onVideoClick={handleVideoClick}
+        onVideoLoadStart={handleVideoLoadStart}
+        onVideoLoaded={handleVideoLoaded}
+        onVideoError={handleVideoError}
+        onLike={handleLike}
+        onOpenComments={handleOpenComments}
+        onShare={handleShare}
+        onSave={handleSave}
+        onGetFeedback={handleGetFeedback}
+        onBreakdown={handleBreakdown}
+        onCaptionSheet={setCaptionSheetReelId}
+        onReport={setReportReel}
+        setFeedMode={setFeedMode}
+      />
+
+      <SoundToggleButton
+        soundEnabled={soundEnabled}
+        toggleMute={toggleMute}
+        t={t}
+      />
+
+      <ReelsMobileModals
         showComments={showComments}
         comments={comments}
         commentProfiles={commentProfiles}
@@ -535,16 +388,9 @@ export default function ReelsContent() {
         setReplyingTo={setReplyingTo}
         expandedReplies={expandedReplies}
         setExpandedReplies={setExpandedReplies}
-        user={user}
-        currentLocale={currentLocale}
-        t={t}
-        router={router}
-        onClose={handleCloseComments}
+        onCloseComments={handleCloseComments}
         onAddComment={handleAddComment}
         onDeleteComment={handleDeleteComment}
-      />
-
-      <FeedbackModal
         feedbackOpen={feedbackOpen}
         feedbackLoading={feedbackLoading}
         feedbackError={feedbackError}
@@ -552,56 +398,24 @@ export default function ReelsContent() {
         feedbackSaved={feedbackSaved}
         sessionXPData={sessionXPData}
         feedbackReel={feedbackReel}
-        t={t}
-        onClose={handleCloseFeedback}
-      />
-
-      <CaptionSheet
+        onCloseFeedback={handleCloseFeedback}
         captionSheetReelId={captionSheetReelId}
         reels={reels}
         setCaptionSheetReelId={setCaptionSheetReelId}
-        t={t}
-        currentLocale={currentLocale}
-      />
-
-      <button
-        type="button"
-        style={{
-          ...styles.soundToggleButton,
-          ...(!soundEnabled ? {
-            width: "auto",
-            borderRadius: 20,
-            paddingLeft: 10,
-            paddingRight: 12,
-            gap: 6,
-            display: "flex",
-            flexDirection: "row",
-            background: "rgba(0,0,0,0.65)",
-            border: "1px solid rgba(255,255,255,0.2)",
-          } : {}),
-        }}
-        onClick={toggleMute}
-        aria-label={soundEnabled ? t("soundOn") : t("tapForSound")}
-        title={soundEnabled ? t("soundOn") : t("tapForSound")}
-      >
-        <SpeakerIcon muted={!soundEnabled} />
-        {!soundEnabled && (
-          <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.8, whiteSpace: "nowrap", textTransform: "uppercase" }}>
-            {t("tapForSound")}
-          </span>
-        )}
-      </button>
-
-      <FilterSheet
         showFilterSheet={showFilterSheet}
         diffFilter={diffFilter}
         ctFilter={ctFilter}
         setDiffFilter={setDiffFilter}
         setCtFilter={setCtFilter}
         setShowFilterSheet={setShowFilterSheet}
+        reportReel={reportReel}
+        onCloseReport={() => setReportReel(null)}
+        user={user}
+        router={router}
         currentLocale={currentLocale}
         t={t}
       />
+
       <BottomNav
         router={router}
         user={user}
@@ -609,15 +423,6 @@ export default function ReelsContent() {
         onInteractStart={clearControlsTimer}
         onInteractEnd={scheduleControlsHide}
       />
-
-      {reportReel && (
-        <ReportModal
-          targetId={reportReel.id}
-          targetType="reel"
-          onClose={() => setReportReel(null)}
-          t={t}
-        />
-      )}
     </div>
   );
 }

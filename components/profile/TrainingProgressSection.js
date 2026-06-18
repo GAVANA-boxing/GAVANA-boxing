@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { GOLD, RED, redAlpha, goldAlpha, RADIUS, blackAlpha, whiteAlpha } from "@/lib/tokens";
+import { loc } from "@/lib/loc";
 import { calculateSessionXP } from "@/lib/xp";
 import { getTimestampMs, formatScore } from "@/lib/utils";
 
@@ -145,7 +146,7 @@ export default function TrainingProgressSection({
             {t("profileStartTraining")}
           </p>
           <p style={{ margin: "0 0 16px", fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>
-            {locale === "mn" ? "Дасгал хийгээд AI-аас санал авч прогрессоо эндээс хар." : locale === "ko" ? "훈련하고 AI 피드백을 받아 여기서 진행 상황을 확인하세요." : "Complete a training session and get AI feedback to see your progress here."}
+            {loc(locale, "Дасгал хийгээд AI-аас санал авч прогрессоо эндээс хар.", "훈련하고 AI 피드백을 받아 여기서 진행 상황을 확인하세요.", "Complete a training session and get AI feedback to see your progress here.")}
           </p>
           {isOwnProfile && (
             <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
@@ -159,7 +160,7 @@ export default function TrainingProgressSection({
                   borderRadius: 10, cursor: "pointer", letterSpacing: 0.3,
                 }}
               >
-                {locale === "mn" ? "Дасгал эхлэх →" : locale === "ko" ? "훈련 시작 →" : "Start Training →"}
+                {loc(locale, "Дасгал эхлэх →", "훈련 시작 →", "Start Training →")}
               </button>
               <button
                 type="button"

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { ACHIEVEMENT_BADGES, TIER_COLOR, computeEarnedBadges } from "@/lib/badges";
 import { GOLD } from "@/lib/tokens";
+import { loc } from "@/lib/loc";
 
 export default function BadgesSection({ sessionCount, bestScore, streakDays, studiedCount, totalFighters, radarStats, locale }) {
   const [showAll, setShowAll] = useState(false);
@@ -36,7 +37,7 @@ export default function BadgesSection({ sessionCount, bestScore, streakDays, stu
       }}>
         <div style={{ width: 5, height: 5, borderRadius: "50%", background: GOLD, boxShadow: `0 0 7px ${GOLD}` }} />
         <span style={{ fontSize: 10, fontWeight: 900, flex: 1, color: "rgba(255,255,255,0.55)", letterSpacing: "0.18em", textTransform: "uppercase" }}>
-          {locale === "mn" ? "Амжилтууд" : locale === "ko" ? "업적" : "Achievements"}
+          {loc(locale, "Амжилтууд", "업적", "Achievements")}
         </span>
         <span style={{ fontSize: 9, color: "rgba(255,255,255,0.22)", fontWeight: 700 }}>
           {earned.length}/{ACHIEVEMENT_BADGES.length}

@@ -7,6 +7,7 @@ import { getWeightClassLabel } from "@/lib/weightClasses";
 import { c } from "@/components/sparring/sparringStyles";
 import { formatAgo } from "@/lib/utils";
 import Image from "next/image";
+import { loc } from "@/lib/loc";
 
 const ARCHETYPE_STATS = {
   pressure:  { SPD: 75, PWR: 80, TEC: 55, STAM: 90 },
@@ -45,7 +46,7 @@ export function FighterCard({ post, isMe, onRequest, sent, requesting, locale, i
     >
       {isDemo && (
         <div style={{ position: "absolute", top: 8, right: 10, fontSize: 9, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: "rgba(255,255,255,0.28)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 4, padding: "2px 6px" }}>
-          {locale === "mn" ? "Жишээ" : locale === "ko" ? "데모" : "Demo"}
+          {loc(locale, "Жишээ", "데모", "Demo")}
         </div>
       )}
       <div style={c.cardTop}>
@@ -66,7 +67,7 @@ export function FighterCard({ post, isMe, onRequest, sent, requesting, locale, i
 
         {/* Info */}
         <div style={c.infoBlock}>
-          <div style={c.name}>{post.displayName || (locale === "mn" ? "Тулаанч" : locale === "ko" ? "파이터" : "Fighter")}</div>
+          <div style={c.name}>{post.displayName || loc(locale, "Тулаанч", "파이터", "Fighter")}</div>
           <div style={c.chips}>
             {post.rankKey && (
               <span style={{ ...c.chip, color: post.rankColor || "#fff", background: `${post.rankColor || "#fff"}12`, borderColor: `${post.rankColor || "#fff"}40` }}>
@@ -104,7 +105,7 @@ export function FighterCard({ post, isMe, onRequest, sent, requesting, locale, i
       {/* CTA */}
       {isDemo ? (
         <div style={{ ...c.requestBtn, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.22)", cursor: "default", textAlign: "center", fontSize: 11 }}>
-          {locale === "mn" ? "Жишээ тулаанч — хүсэлт илгээх боломжгүй" : locale === "ko" ? "데모 파이터 — 요청 불가" : "Demo fighter — not requestable"}
+          {loc(locale, "Жишээ тулаанч — хүсэлт илгээх боломжгүй", "데모 파이터 — 요청 불가", "Demo fighter — not requestable")}
         </div>
       ) : !isMe ? (
         <button
@@ -128,18 +129,18 @@ export function FighterCard({ post, isMe, onRequest, sent, requesting, locale, i
           }}
         >
           {isBusy ? "…" : sent ? (
-            locale === "mn" ? "✓ Хүсэлт илгээсэн" : locale === "ko" ? "✓ 요청 전송됨" : "✓ Request Sent"
+            loc(locale, "✓ Хүсэлт илгээсэн", "✓ 요청 전송됨", "✓ Request Sent")
           ) : (
             <>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
               </svg>
-              {locale === "mn" ? "Sparring хүс" : locale === "ko" ? "스파링 요청" : "Request Sparring"}
+              {loc(locale, "Sparring хүс", "스파링 요청", "Request Sparring")}
             </>
           )}
         </button>
       ) : (
-        <div style={c.myLabel}>👆 {locale === "mn" ? "Таны бичлэг" : locale === "ko" ? "내 게시물" : "Your listing"}</div>
+        <div style={c.myLabel}>👆 {loc(locale, "Таны бичлэг", "내 게시물", "Your listing")}</div>
       )}
 
     </div>
@@ -161,7 +162,7 @@ export function IncomingRequestCard({ req, onAccept, onDecline, accepting, decli
       {/* "Challenge received" kicker */}
       <p style={c.incomingKicker}>
         <span style={c.incomingKickerDot} />
-        {locale === "mn" ? "CHALLENGE ирсэн" : locale === "ko" ? "챌린지 받음" : "CHALLENGE RECEIVED"}
+        {loc(locale, "CHALLENGE ирсэн", "챌린지 받음", "CHALLENGE RECEIVED")}
       </p>
 
       <div style={c.cardTop}>
@@ -179,7 +180,7 @@ export function IncomingRequestCard({ req, onAccept, onDecline, accepting, decli
           )}
         </div>
         <div style={c.infoBlock}>
-          <div style={c.name}>{req.fromDisplayName || (locale === "mn" ? "Тулаанч" : locale === "ko" ? "파이터" : "Fighter")}</div>
+          <div style={c.name}>{req.fromDisplayName || loc(locale, "Тулаанч", "파이터", "Fighter")}</div>
           <div style={c.chips}>
             {arch && <span style={{ ...c.chip, color: arch.color, background: `${arch.color}12`, borderColor: `${arch.color}40` }}>{arch.emoji} {arch.name.split(" ")[0]}</span>}
             {req.fromWeightClass && <span style={c.chip}>{req.fromWeightClass.split(" ")[0]}</span>}
@@ -202,7 +203,7 @@ export function IncomingRequestCard({ req, onAccept, onDecline, accepting, decli
             cursor: isBusy ? "wait" : "pointer",
           }}
         >
-          {accepting === req.id ? "…" : locale === "mn" ? "✓ Зөвшөөрөх" : locale === "ko" ? "✓ 수락" : "✓ Accept"}
+          {accepting === req.id ? "…" : loc(locale, "✓ Зөвшөөрөх", "✓ 수락", "✓ Accept")}
         </button>
         <button
           type="button"
@@ -219,7 +220,7 @@ export function IncomingRequestCard({ req, onAccept, onDecline, accepting, decli
             cursor: isBusy ? "wait" : "pointer",
           }}
         >
-          {declining === req.id ? "…" : locale === "mn" ? "✕ Татгалзах" : locale === "ko" ? "✕ 거절" : "✕ Decline"}
+          {declining === req.id ? "…" : loc(locale, "✕ Татгалзах", "✕ 거절", "✕ Decline")}
         </button>
       </div>
     </div>

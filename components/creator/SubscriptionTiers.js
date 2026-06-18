@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { GOLD, RED, RADIUS} from "@/lib/tokens";
+import { loc } from "@/lib/loc";
 
 const TIERS = [
   {
@@ -132,7 +133,7 @@ export default function SubscriptionTiers({ t, locale }) {
                 padding: "2px 8px",
                 borderRadius: RADIUS.full,
               }}>
-                {locale === "mn" ? "АЛДАРТАЙ" : locale === "ko" ? "인기" : "POPULAR"}
+                {loc(locale, "АЛДАРТАЙ", "인기", "POPULAR")}
               </div>
             )}
 
