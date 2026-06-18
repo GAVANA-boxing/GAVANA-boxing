@@ -13,7 +13,50 @@ export default function TodaysFocusCard({ locale, radarStats, router }) {
     .filter((x) => x.connection?.isDirectlyRelevant)
     .sort((a, b) => (b.connection?.relevantWeak?.length || 0) - (a.connection?.relevantWeak?.length || 0))[0];
 
-  if (!top) return null;
+  if (!top) return (
+    <div style={{
+      position: "relative",
+      background: "linear-gradient(135deg, rgba(212,25,42,0.08) 0%, rgba(0,0,0,0) 100%)",
+      border: "1px solid rgba(212,25,42,0.2)",
+      borderLeft: "3px solid #e8334a",
+      borderRadius: "3px 16px 16px 3px",
+      padding: "16px 14px",
+      marginBottom: 20,
+    }}>
+      <p style={{ margin: "0 0 10px", fontSize: 9, fontWeight: 900, color: "#e8334a", letterSpacing: 2.5, textTransform: "uppercase" }}>
+        {loc(locale, "⚡ ЭХНИЙ АЛХАМ", "⚡ 첫 번째 단계", "⚡ FIRST STEP")}
+      </p>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+        <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(212,25,42,0.15)", border: "1px solid rgba(212,25,42,0.3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 18 }}>
+          🥊
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 13, fontWeight: 900, color: "#fff", lineHeight: 1.2 }}>
+            {loc(locale, "Fighter DNA тодорхойлогдоогүй байна", "파이터 DNA 미확인", "Your Fighter DNA is building")}
+          </div>
+          <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>
+            {loc(locale, "3 хичээлийн дараа таны архетип тодорхойлогдоно", "3회 세션 후 아키타입 확인", "Train 3 sessions to unlock your archetype")}
+          </div>
+        </div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+        <button
+          type="button"
+          onClick={() => router.push(`/${locale}/train?autostart=1`)}
+          style={{ padding: "9px 0", borderRadius: 10, background: "rgba(212,25,42,0.15)", border: "1px solid rgba(212,25,42,0.3)", color: "#e8334a", fontSize: 11, fontWeight: 900, cursor: "pointer" }}
+        >
+          {loc(locale, "🥊 Бэлтгэл эхлэх", "🥊 훈련 시작", "🥊 Start Training")}
+        </button>
+        <button
+          type="button"
+          onClick={() => router.push(`/${locale}/coach/chat`)}
+          style={{ padding: "9px 0", borderRadius: 10, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontSize: 11, fontWeight: 900, cursor: "pointer" }}
+        >
+          {loc(locale, "💬 Coach", "💬 코치", "💬 Ask Coach")}
+        </button>
+      </div>
+    </div>
+  );
 
   const { fighter, connection } = top;
   const acc = fighter.accent;
