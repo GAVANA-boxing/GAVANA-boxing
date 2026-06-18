@@ -30,7 +30,7 @@ export default function ResultHeader({
         </p>
 
         {/* Confidence badge */}
-        {!tooFewPunches && (() => {
+        {!tooFewPunches && displayScore > 0 && (() => {
           const confMap = {
             high:   { label: t("scoreConfidenceHigh"),   color: "#34D399", bg: "rgba(52,211,153,0.1)" },
             medium: { label: t("scoreConfidenceMedium"), color: "#F5C451", bg: "rgba(245,196,81,0.1)" },
@@ -46,13 +46,19 @@ export default function ResultHeader({
         })()}
       </div>
 
-      {tooFewPunches ? (
+      {(tooFewPunches || displayScore <= 0) ? (
         <div style={{ margin: "16px 0 10px" }}>
           <h2 style={{ margin: "0 0 6px", fontSize: 22, fontWeight: 1000, color: whiteAlpha(0.55), letterSpacing: "-0.01em" }}>
             {L.notEnoughData[locale] ?? L.notEnoughData.en}
           </h2>
           <p style={{ margin: 0, fontSize: 12, color: whiteAlpha(0.35), lineHeight: 1.5 }}>
-            {L.needPunches(locale, minPunches, effectivePunchCount)}
+            {tooFewPunches
+              ? L.needPunches(locale, minPunches, effectivePunchCount)
+              : locale === "mn"
+                ? "Хөдөлгөөний өгөгдөл хангалтгүй байна. Илүү урт комбо хийж үзнэ үү."
+                : locale === "ko"
+                ? "움직임 데이터가 부족합니다. 더 긴 콤보를 시도해보세요."
+                : "Insufficient movement data. Try a longer combination."}
           </p>
         </div>
       ) : (
