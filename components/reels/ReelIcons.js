@@ -1,6 +1,6 @@
 "use client";
 
-import { blackAlpha } from "@/lib/tokens";
+import { blackAlpha, GOLD, goldAlpha } from "@/lib/tokens";
 import styles from "./reelStyles";
 
 export function LikeIcon({ filled }) {
@@ -169,6 +169,35 @@ export function DemoReelVisual() {
 }
 
 export function ReelFallbackVisual({ reel }) {
+  const hasNoVideo = !reel?.videoUrl;
+  const score = reel?.sessionScore ?? reel?.sourceSessionScore ?? null;
+
+  // Text-only training reel — no video was ever recorded. Show a clean card.
+  if (hasNoVideo) {
+    return (
+      <div style={styles.reelFallback}>
+        <div style={styles.reelFallbackLight} />
+        <div style={styles.reelFallbackContent}>
+          <span style={styles.reelFallbackKicker}>GAVANA BOXING</span>
+          <strong style={styles.reelFallbackTitle}>
+            {reel?.caption || "Training complete"}
+          </strong>
+          {typeof score === "number" && score > 0 && (
+            <span style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              fontSize: 18, fontWeight: 900, color: GOLD,
+              background: goldAlpha(0.12), border: `1px solid ${goldAlpha(0.28)}`,
+              borderRadius: 8, padding: "4px 12px", marginTop: 4,
+            }}>
+              ⭐ {score.toFixed(1)}/10
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Had a video URL but failed to load — show error.
   return (
     <div style={styles.reelFallback}>
       <div style={styles.reelFallbackLight} />

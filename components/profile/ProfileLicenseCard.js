@@ -57,21 +57,30 @@ export default function ProfileLicenseCard({
       {/* Main identity block */}
       <div style={{ padding: "0 16px 14px", display: "flex", gap: 14, alignItems: "center" }}>
 
-        {/* Belt ring */}
+        {/* Championship Belt */}
         <button type="button" onClick={onShowRankModal} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", flexShrink: 0 }}>
-          <div style={{ position: "relative", width: 60, height: 60 }}>
-            <svg width={60} height={60} style={{ transform: "rotate(-90deg)" }}>
-              <circle cx={30} cy={30} r={26} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={4} />
-              <circle
-                cx={30} cy={30} r={26} fill="none"
-                stroke={belt.color} strokeWidth={4}
-                strokeDasharray={`${(beltPct / 100) * (2 * Math.PI * 26)} ${2 * Math.PI * 26}`}
-                strokeLinecap="round"
-                style={{ filter: belt.glow ? `drop-shadow(0 0 5px ${belt.glow})` : "none" }}
-              />
-            </svg>
-            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <span style={{ fontSize: 22 }}>🥋</span>
+          <div style={{ position: "relative", width: 76, height: 60, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {/* Belt strap */}
+            <div style={{ position: "absolute", top: "50%", left: 0, right: 0, height: 9, transform: "translateY(-50%)", background: `linear-gradient(90deg, transparent, ${belt.color}40, ${belt.color}70, ${belt.color}40, transparent)`, borderRadius: 3 }} />
+            {/* Left plate */}
+            <div style={{ position: "absolute", left: 2, top: "50%", width: 13, height: 19, transform: "translateY(-50%)", borderRadius: "4px 2px 2px 4px", background: `linear-gradient(135deg, ${belt.color}90, ${belt.color}55)`, border: `1px solid ${belt.color}50` }} />
+            {/* Right plate */}
+            <div style={{ position: "absolute", right: 2, top: "50%", width: 13, height: 19, transform: "translateY(-50%)", borderRadius: "2px 4px 4px 2px", background: `linear-gradient(135deg, ${belt.color}55, ${belt.color}90)`, border: `1px solid ${belt.color}50` }} />
+            {/* Center plate with progress ring */}
+            <div style={{ position: "relative", width: 56, height: 56, zIndex: 2 }}>
+              <svg width={56} height={56} style={{ transform: "rotate(-90deg)" }}>
+                <circle cx={28} cy={28} r={23} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={3.5} />
+                <circle
+                  cx={28} cy={28} r={23} fill="none"
+                  stroke={belt.color} strokeWidth={3.5}
+                  strokeDasharray={`${(beltPct / 100) * (2 * Math.PI * 23)} ${2 * Math.PI * 23}`}
+                  strokeLinecap="round"
+                  style={{ filter: belt.glow ? `drop-shadow(0 0 6px ${belt.glow})` : "none" }}
+                />
+              </svg>
+              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: `radial-gradient(circle, ${belt.color}14 0%, transparent 70%)`, borderRadius: "50%" }}>
+                <span style={{ fontSize: 22 }}>🥊</span>
+              </div>
             </div>
           </div>
         </button>

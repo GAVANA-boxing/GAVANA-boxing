@@ -17,8 +17,8 @@ const SECTION_LABELS = {
 
 export default function TechniqueQuickAsk({ locale, router }) {
   const qFn = TECH_Q[locale] || TECH_Q.en;
-  const cards = FIGHTERS.flatMap((f) =>
-    (FIGHTER_TECHNIQUES[f.id] || []).slice(0, 2).map((tech) => ({ fighter: f, tech }))
+  const cards = (FIGHTERS || []).flatMap((f) =>
+    (FIGHTER_TECHNIQUES?.[f.id] || []).slice(0, 2).map((tech) => ({ fighter: f, tech }))
   );
 
   return (
