@@ -58,7 +58,7 @@ export default function ProfileActionRow({
   return (
     <div style={styles.actionRow}>
       {isOwnProfile ? (
-        <div style={{ position: "relative", width: "100%" }}>
+        <div style={{ position: "relative", width: "100%", display: "flex", flexDirection: "column", gap: 10 }}>
           <div style={{ display: "flex", gap: 8 }}>
             <button
               type="button"
@@ -132,22 +132,38 @@ export default function ProfileActionRow({
                     {t("creatorDashboard")}
                   </button>
                 )}
-                <div style={{ height: 1, background: "rgba(255,255,255,0.07)", margin: "4px 0" }} />
-                <button
-                  onClick={() => { onLogout(); setMoreOpen(false); }}
-                  disabled={signingOut}
-                  style={{
-                    ...moreItemStyle,
-                    color: "#f87171",
-                    opacity: signingOut ? 0.6 : 1,
-                    cursor: signingOut ? "not-allowed" : "pointer",
-                  }}
-                >
-                  {signingOut ? t("signingOut") : t("logout")}
-                </button>
               </div>
             </>
           )}
+
+          {/* Sign out — always visible */}
+          <button
+            type="button"
+            onClick={onLogout}
+            disabled={signingOut}
+            style={{
+              width: "100%",
+              padding: "10px 14px",
+              borderRadius: 12,
+              border: "1px solid rgba(248,113,113,0.18)",
+              background: "rgba(248,113,113,0.06)",
+              color: signingOut ? "rgba(248,113,113,0.4)" : "rgba(248,113,113,0.75)",
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: signingOut ? "not-allowed" : "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 7,
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            {signingOut ? t("signingOut") : t("logout")}
+          </button>
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%" }}>

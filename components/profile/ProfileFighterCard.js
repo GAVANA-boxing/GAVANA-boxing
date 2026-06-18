@@ -8,7 +8,6 @@ import { useState } from "react";
 
 import ProfileLicenseCard from "@/components/profile/ProfileLicenseCard";
 import ProfileBadgesShelf from "@/components/profile/ProfileBadgesShelf";
-import ProfileReputationCard from "@/components/profile/ProfileReputationCard";
 import ProfileActionRow from "@/components/profile/ProfileActionRow";
 
 export default function ProfileFighterCard({
@@ -165,11 +164,6 @@ export default function ProfileFighterCard({
       {/* ── Bio ──────────────────────────────────────────────────────────── */}
       {profileUser.bio && <p style={styles.bio}>{profileUser.bio}</p>}
 
-      {/* ── License eyebrow ──────────────────────────────────────────────── */}
-      <p style={styles.statsSectionKicker}>
-        {loc(locale, "Тэмцэгчийн лиценз", "파이터 라이선스", "Fighter License")}
-      </p>
-
       {/* ── Digital License Card ─────────────────────────────────────────── */}
       <ProfileLicenseCard
         profileUser={profileUser}
@@ -207,13 +201,6 @@ export default function ProfileFighterCard({
           <span style={styles.statLabel}>{t("followingCount")}</span>
         </button>
       </div>
-
-      {/* ── Reputation card ──────────────────────────────────────────────── */}
-      <ProfileReputationCard
-        userReels={userReels}
-        followersCount={stats.followers}
-        t={t}
-      />
 
       {/* ── Secondary actions ────────────────────────────────────────────── */}
       <ProfileActionRow

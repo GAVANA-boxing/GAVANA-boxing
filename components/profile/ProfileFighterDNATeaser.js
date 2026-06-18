@@ -39,11 +39,14 @@ export default function ProfileFighterDNATeaser({ locale, fighterDNA, onClick })
         justifyContent: "space-between",
         width: "100%",
         margin: "0 0 4px",
-        padding: "12px 20px",
-        background: "none",
-        border: "none",
+        padding: "14px 16px",
+        background: "rgba(255,255,255,0.03)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        borderLeft: fighterDNA?.archetype ? `3px solid ${GOLD}` : "1px solid rgba(255,255,255,0.08)",
+        borderRadius: 14,
         cursor: "pointer",
         textAlign: "left",
+        boxSizing: "border-box",
       }}
     >
       <div>
@@ -64,12 +67,12 @@ export default function ProfileFighterDNATeaser({ locale, fighterDNA, onClick })
         </div>
       </div>
       <svg
-        width="14"
-        height="14"
+        width="16"
+        height="16"
         viewBox="0 0 24 24"
         fill="none"
         aria-hidden="true"
-        style={{ color: "rgba(255,255,255,0.2)", flexShrink: 0 }}
+        style={{ color: "rgba(255,255,255,0.5)", flexShrink: 0 }}
       >
         <path
           d="M9 18l6-6-6-6"
