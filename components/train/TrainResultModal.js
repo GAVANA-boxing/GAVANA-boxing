@@ -76,6 +76,7 @@ export default function TrainResultModal({
   challengeResponseId      = null,
   recordedBlob  = null,
   thumbnailBlob = null,
+  userArchetype = null,
 }) {
   // ── Score / confidence ──────────────────────────────────────────────────
   const _punchCount  = poseMetrics?.punchCount ?? result?.hitCount ?? 0;
@@ -89,8 +90,10 @@ export default function TrainResultModal({
   const displayScore = useCountUp(_cappedScore);
 
   // ── Local state ─────────────────────────────────────────────────────────
-  const [sessionTag,   setSessionTag]   = useState(null);
-  const [clipDuration, setClipDuration] = useState(null);
+  const [sessionTag,    setSessionTag]    = useState(null);
+  const [clipDuration,  setClipDuration]  = useState(null);
+  const [showDnaShare,  setShowDnaShare]  = useState(false);
+  const [shareCopied,   setShareCopied]   = useState(false);
   const [blobUrl,      setBlobUrl]      = useState(null);
 
   useEffect(() => {
@@ -100,6 +103,13 @@ export default function TrainResultModal({
     setBlobUrl(url);
     return () => URL.revokeObjectURL(url);
   }, [recordedBlob]);
+
+  // Show DNA share card 1.5s after result saved with archetype
+  useEffect(() => {
+    if (!saved || !userArchetype || _cappedScore <= 0) return;
+    const t = setTimeout(() => setShowDnaShare(true), 1500);
+    return () => clearTimeout(t);
+  }, [saved, userArchetype, _cappedScore]);
 
   if (!result) return null;
 
@@ -300,6 +310,111 @@ export default function TrainResultModal({
         />
 
       </section>
+
+      {/* ── DNA SHARE SHEET ──────────────────────────────────────────── */}
+      {showDnaShare && (() => {
+        const ARCH_LABELS = {
+          pressure:  { en: "Pressure Fighter", mn: "Pressure Fighter", ko: "압박형 파이터" },
+          outboxer:  { en: "Outboxer",          mn: "Outboxer",         ko: "아웃복서" },
+          counter:   { en: "Counter Puncher",   mn: "Counter Puncher",  ko: "카운터 펀처" },
+          technical: { en: "Technical Boxer",   mn: "Technical Boxer",  ko: "테크니컬 복서" },
+          brawler:   { en: "Brawler",            mn: "Brawler",          ko: "브롤러" },
+          slugger:   { en: "Slugger",            mn: "Slugger",          ko: "슬러거" },
+        };
+        const archLabel = ARCH_LABELS[userArchetype]?.[locale] || ARCH_LABELS[userArchetype]?.en || userArchetype?.toUpperCase();
+        const shareText = locale === "mn"
+          ? `Миний Fighter DNA: ${archLabel} 🥊\nОноо: ${_cappedScore.toFixed(1)}/10\ngavana-boxing.vercel.app`
+          : locale === "ko"
+          ? `내 파이터 DNA: ${archLabel} 🥊\n점수: ${_cappedScore.toFixed(1)}/10\ngavana-boxing.vercel.app`
+          : `My Fighter DNA: ${archLabel} 🥊\nScore: ${_cappedScore.toFixed(1)}/10\ngavana-boxing.vercel.app`;
+
+        const handleShare = async () => {
+          if (navigator.share) {
+            try { await navigator.share({ text: shareText, url: "https://gavana-boxing.vercel.app" }); }
+            catch (_) { /* cancelled */ }
+          } else {
+            navigator.clipboard?.writeText(shareText);
+            setShareCopied(true);
+            setTimeout(() => setShareCopied(false), 2000);
+          }
+        };
+
+        return (
+          <div style={{
+            position: "fixed", inset: 0, zIndex: 200,
+            display: "flex", alignItems: "flex-end", justifyContent: "center",
+            background: "rgba(0,0,0,0.72)", backdropFilter: "blur(6px)",
+          }} onClick={() => setShowDnaShare(false)}>
+            <div
+              style={{
+                width: "100%", maxWidth: 480,
+                background: "linear-gradient(180deg, #111013 0%, #0c0b0e 100%)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: "24px 24px 0 0",
+                padding: "28px 24px 40px",
+                display: "flex", flexDirection: "column", alignItems: "center",
+                gap: 0,
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Handle */}
+              <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.15)", marginBottom: 24 }} />
+
+              {/* Kicker */}
+              <p style={{ margin: "0 0 6px", fontSize: 9, fontWeight: 900, letterSpacing: 4, color: "rgba(245,196,81,0.7)", textTransform: "uppercase" }}>
+                GAVANA // FIGHTER DNA
+              </p>
+
+              {/* Archetype */}
+              <h2 style={{
+                margin: "0 0 4px", fontSize: 28, fontWeight: 1000,
+                letterSpacing: "-0.02em", color: "#fff", textAlign: "center",
+                fontFamily: "var(--font-display,'Anton',sans-serif)",
+                textShadow: "0 0 30px rgba(212,25,42,0.4)",
+              }}>
+                {archLabel?.toUpperCase()}
+              </h2>
+
+              {/* Score */}
+              <p style={{ margin: "0 0 24px", fontSize: 14, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>
+                {locale === "mn" ? `Оноо: ${_cappedScore.toFixed(1)}/10` : locale === "ko" ? `점수: ${_cappedScore.toFixed(1)}/10` : `Score: ${_cappedScore.toFixed(1)}/10`}
+              </p>
+
+              {/* Share button */}
+              <button
+                type="button"
+                onClick={handleShare}
+                style={{
+                  width: "100%", padding: "16px", borderRadius: 14,
+                  background: "linear-gradient(135deg, #d4192a, #a01020)",
+                  color: "#fff", border: "none", fontSize: 14, fontWeight: 900,
+                  cursor: "pointer", letterSpacing: "0.06em",
+                  boxShadow: "0 0 24px rgba(212,25,42,0.45), 0 8px 24px rgba(212,25,42,0.25)",
+                  marginBottom: 10,
+                }}
+              >
+                {shareCopied
+                  ? (locale === "mn" ? "✓ Хуулагдсан!" : locale === "ko" ? "✓ 복사됨!" : "✓ Copied!")
+                  : (locale === "mn" ? "📱 DNA карт хуваалцах" : locale === "ko" ? "📱 DNA 카드 공유" : "📱 Share Fighter DNA")}
+              </button>
+
+              {/* Dismiss */}
+              <button
+                type="button"
+                onClick={() => setShowDnaShare(false)}
+                style={{
+                  width: "100%", padding: "12px", borderRadius: 12,
+                  background: "none", border: "1px solid rgba(255,255,255,0.1)",
+                  color: "rgba(255,255,255,0.35)", fontSize: 13, fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                {locale === "mn" ? "Хаах" : locale === "ko" ? "닫기" : "Dismiss"}
+              </button>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

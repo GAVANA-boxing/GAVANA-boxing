@@ -54,7 +54,6 @@ export default function RecordingHud({
           </span>
         )}
 
-        <span style={styles.liveScoreHud}>{liveScore.toFixed(1)}</span>
         <span style={{ marginLeft: "auto", display: "flex", alignItems: "baseline", gap: 3 }}>
           <strong style={{ fontFamily: "monospace", letterSpacing: 0.5 }}>{elapsedStr}</strong>
           <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>/ {maxStr}</span>

@@ -8,8 +8,10 @@ function fmtTime(ms) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
+const MIN_EVENTS_TO_SHOW = 3;
+
 export default function MovementTimeline({ events, sessionStartTime }) {
-  if (!events || events.length === 0) return null;
+  if (!events || events.length < MIN_EVENTS_TO_SHOW) return null;
 
   const visible = events.slice(-MAX_VISIBLE);
 

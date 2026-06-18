@@ -147,6 +147,30 @@ export default function ReelInfoPanel({
 
       <ReputationBadge reel={reel} t={t} />
 
+      {/* Session score chip — shown for training reels with a recorded score */}
+      {reel.contentType === BADGE_TRAINING &&
+        typeof reel.sessionScore === "number" &&
+        reel.sessionScore > 0 && (
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+              fontSize: 10,
+              fontWeight: 900,
+              color: "#F5C451",
+              background: "rgba(245,196,81,0.12)",
+              border: "1px solid rgba(245,196,81,0.28)",
+              borderRadius: 6,
+              padding: "2px 8px",
+              marginBottom: 4,
+              marginRight: 6,
+            }}
+          >
+            ⭐ {reel.sessionScore.toFixed(1)}
+          </span>
+        )}
+
       {captionText && (
         <button
           type="button"
@@ -154,6 +178,27 @@ export default function ReelInfoPanel({
           onClick={() => onCaptionSheet(reel.id)}
           aria-label={t("captionExpand")}
         >
+          {reel.contentType === BADGE_TRAINING && (
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 3,
+                fontSize: 9,
+                fontWeight: 900,
+                color: "#F87171",
+                background: "rgba(248,113,113,0.12)",
+                border: "1px solid rgba(248,113,113,0.28)",
+                borderRadius: 4,
+                padding: "1px 6px",
+                marginRight: 6,
+                letterSpacing: 0.4,
+                verticalAlign: "middle",
+              }}
+            >
+              🥊 TRAINING
+            </span>
+          )}
           {captionText}
         </button>
       )}

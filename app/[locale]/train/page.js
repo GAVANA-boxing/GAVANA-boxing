@@ -66,6 +66,7 @@ export default function TrainPage() {
   const [autoStart, setAutoStart] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [dailyMission, setDailyMission] = useState(null);
+  const [videoNeedsRotation, setVideoNeedsRotation] = useState(false);
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setDebugEnabled(params.get("debug") === "1");
@@ -580,6 +581,24 @@ export default function TrainPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoStart, cameraState, phase]);
 
+  // ── iOS portrait/landscape video rotation fix ─────────────────────────────
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const handleMeta = () => {
+      // iOS encodes portrait video with landscape dimensions + EXIF rotation.
+      // Detect: stream is landscape (width > height) while device is portrait.
+      setVideoNeedsRotation(
+        video.videoWidth > 0 &&
+        video.videoHeight > 0 &&
+        video.videoWidth > video.videoHeight &&
+        window.innerWidth < window.innerHeight
+      );
+    };
+    video.addEventListener("loadedmetadata", handleMeta);
+    return () => video.removeEventListener("loadedmetadata", handleMeta);
+  }, [cameraState]);
+
   if (authLoading) {
     return <div style={styles.loading}>{t("loading")}</div>;
   }
@@ -800,7 +819,16 @@ export default function TrainPage() {
               autoPlay
               muted
               playsInline
-              style={{ ...styles.preview, transform: facingMode === "user" ? "scaleX(-1)" : "none" }}
+              style={{
+                ...styles.preview,
+                ...(videoNeedsRotation ? { width: "100vh", height: "100vw", maxWidth: "none" } : {}),
+                transform: (() => {
+                  if (videoNeedsRotation) {
+                    return facingMode === "user" ? "rotate(90deg) scaleX(-1)" : "rotate(90deg)";
+                  }
+                  return facingMode === "user" ? "scaleX(-1)" : "none";
+                })(),
+              }}
             />
           ) : (
             <div style={styles.fallback}>
@@ -1140,6 +1168,7 @@ export default function TrainPage() {
         saving={saving}
         saved={saved}
         savedAttemptNumber={savedAttemptNumber}
+        userArchetype={userArchetype}
         locale={locale}
         t={t}
         router={router}

@@ -10,7 +10,7 @@ export default function FollowListModal({ type, userId, locale, onClose }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const label = type === "followers" ? "Followers" : "Following";
+  const label = type === "followers" ? "Corners" : "In Camp";
 
   const fetchUsers = useCallback(async () => {
     try {
