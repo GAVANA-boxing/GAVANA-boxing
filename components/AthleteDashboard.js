@@ -382,6 +382,8 @@ export default function AthleteDashboard() {
           showAllSessions={showAllSessions}
           onToggleShowAll={() => setShowAllSessions(!showAllSessions)}
           t={t}
+          router={router}
+          locale={locale}
         />
 
         {/* ── Body Stats ── */}

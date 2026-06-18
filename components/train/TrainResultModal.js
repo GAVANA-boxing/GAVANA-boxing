@@ -235,6 +235,32 @@ export default function TrainResultModal({
           />
         )}
 
+        {/* ── RETURN TRIGGER ───────────────────────────────────────── */}
+        {!tooFewPunches && (
+          <div style={{ margin: "12px 20px 0", padding: "12px 14px", borderRadius: 12, background: "rgba(251,146,60,0.05)", border: "1px solid rgba(251,146,60,0.14)", display: "flex", alignItems: "center", gap: 12 }}>
+            <span style={{ fontSize: 22, flexShrink: 0 }}>🔥</span>
+            <div style={{ flex: 1 }}>
+              <p style={{ margin: "0 0 2px", fontSize: 12, fontWeight: 900, color: "#FB923C" }}>
+                {locale === "mn" ? "Маргааш дахин ир" : locale === "ko" ? "내일 다시 돌아오세요" : "Come back tomorrow"}
+              </p>
+              <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.38)", lineHeight: 1.4 }}>
+                {locale === "mn"
+                  ? "3 хичээлийн дараа Fighter DNA тодорхойлогдоно."
+                  : locale === "ko"
+                  ? "3회 세션 후 파이터 DNA가 확인됩니다."
+                  : "3 sessions builds your Fighter DNA profile."}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => { router.push(`/${locale}/train?autostart=1`); }}
+              style={{ padding: "7px 14px", borderRadius: 9, background: "rgba(251,146,60,0.18)", border: "1px solid rgba(251,146,60,0.35)", color: "#FB923C", fontSize: 11, fontWeight: 900, cursor: "pointer", whiteSpace: "nowrap" }}
+            >
+              {locale === "mn" ? "Дахин →" : locale === "ko" ? "다시 →" : "Train again →"}
+            </button>
+          </div>
+        )}
+
         {/* ── ACTIONS ──────────────────────────────────────────────── */}
         <ResultActionsSection
           error={error}

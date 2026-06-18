@@ -20,15 +20,20 @@ const s = {
   },
   progressWrap: {
     position: "sticky", top: 0, zIndex: 10,
-    paddingTop: "calc(14px + env(safe-area-inset-top))", paddingBottom: 14,
-    background: blackAlpha(0.88), backdropFilter: "blur(20px)",
+    paddingTop: "calc(14px + env(safe-area-inset-top))", paddingBottom: 12,
+    background: blackAlpha(0.92), backdropFilter: "blur(20px)",
     WebkitBackdropFilter: "blur(20px)",
     borderBottom: `1px solid ${BORDER}`,
   },
-  progressRow: { display: "flex", gap: 5, justifyContent: "center", padding: "0 20px" },
+  progressRow: { display: "flex", gap: 5, justifyContent: "center", padding: "0 20px", marginBottom: 8 },
   progressSeg: {
-    height: 4, flex: 1, maxWidth: 70, borderRadius: RADIUS.full,
+    height: 5, flex: 1, maxWidth: 80, borderRadius: RADIUS.full,
     transition: "background 0.35s, box-shadow 0.35s",
+  },
+  stepCounter: {
+    textAlign: "center",
+    fontSize: 10, fontWeight: 900, letterSpacing: 2,
+    color: whiteAlpha(0.35), textTransform: "uppercase",
   },
   inner: { maxWidth: 440, margin: "0 auto", padding: "0 16px", position: "relative", zIndex: 1 },
   header: { textAlign: "center", padding: "32px 0 22px" },
@@ -46,6 +51,13 @@ const s = {
     textTransform: "uppercase",
   },
   subtitle: { margin: 0, fontSize: 14, color: whiteAlpha(0.48), lineHeight: 1.6 },
+  valueHint: {
+    display: "inline-flex", alignItems: "center", gap: 6,
+    marginTop: 10, padding: "7px 12px", borderRadius: RADIUS.full,
+    background: whiteAlpha(0.05), border: `1px solid ${whiteAlpha(0.08)}`,
+    fontSize: 11, color: whiteAlpha(0.45), lineHeight: 1.4,
+    maxWidth: "100%",
+  },
 
   roleCard: {
     display: "flex", alignItems: "center", gap: 14, padding: "18px 16px",

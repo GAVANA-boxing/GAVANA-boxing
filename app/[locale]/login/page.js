@@ -317,6 +317,15 @@ export default function LoginPage() {
             signInLabel={t("loginAlreadyHaveAccount")}
             signUpLabel={t("loginNeedAccount")}
           />
+          <div style={{ textAlign: "center", marginTop: 4, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+            <button
+              type="button"
+              onClick={() => router.push(`/${locale}/train?autostart=1`)}
+              style={{ background: "none", border: "none", color: "rgba(255,255,255,0.28)", fontSize: 11, cursor: "pointer", letterSpacing: "0.04em", textDecoration: "underline", textUnderlineOffset: 3 }}
+            >
+              {locale === "mn" ? "Бүртгэлгүйгээр туршиж үзэх →" : locale === "ko" ? "계정 없이 체험하기 →" : "Try without an account →"}
+            </button>
+          </div>
         </div>
       </div>
 

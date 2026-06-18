@@ -79,10 +79,13 @@ export default function VideoStep({
               </svg>
             </div>
             <p style={S.videoEmptyKicker}>
-              {locale === "mn" ? "Рил бичлэг" : locale === "ko" ? "릴 영상" : "Reel Video"}
+              {locale === "mn" ? "Сүүдрийн бокс · Бэлтгэл" : locale === "ko" ? "섀도우복싱 · 운동" : "Shadowboxing · Workout"}
             </p>
             <p style={S.videoEmptyLabel}>{t("uploadTapSelect")}</p>
             <p style={S.videoEmptySub}>MP4, MOV · {t("uploadSizeLimit")}</p>
+            <p style={{ margin: "6px 0 0", fontSize: 11, color: "rgba(255,255,255,0.22)", textAlign: "center", letterSpacing: "0.02em" }}>
+              {locale === "mn" ? "30 секунд хүртэл · зөвхөн видео" : locale === "ko" ? "최대 30초 · 동영상만" : "Max 30 seconds · video only"}
+            </p>
           </div>
         )}
       </div>

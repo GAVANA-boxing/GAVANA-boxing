@@ -33,6 +33,7 @@ import DailyHub from "@/components/train/DailyHub";
 import FirstSessionHook from "@/components/train/FirstSessionHook";
 import ReadinessModal from "@/components/train/ReadinessModal";
 import dynamic from "next/dynamic";
+import { Toast, useToast } from "@/components/ui/Toast";
 const PoseDebugOverlay   = dynamic(() => import("@/components/train/PoseDebugOverlay"),   { ssr: false });
 const DebugSessionPanel  = dynamic(() => import("@/components/train/DebugSessionPanel"),  { ssr: false });
 const LivePunchCounter   = dynamic(() => import("@/components/train/LivePunchCounter"),   { ssr: false });
@@ -54,6 +55,7 @@ const ARCH_CUES = {
 
 export default function TrainPage() {
   const router = useRouter();
+  const { toast, showToast, hideToast } = useToast();
   const pathname = usePathname();
   const locale = getLocaleFromPathname(pathname);
   const t = (key) => translate(locale, key);
@@ -316,6 +318,18 @@ export default function TrainPage() {
         setResult((prev) => prev ? { ...prev, score: poseSummary.score } : prev);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result?.hitCount]);
+
+  // Micro-reward toast on session complete
+  useEffect(() => {
+    if (!result?.score) return;
+    const msg = locale === "mn"
+      ? `🥊 Хичээл дууслаа! Оноо: ${result.score.toFixed(1)}`
+      : locale === "ko"
+      ? `🥊 세션 완료! 점수: ${result.score.toFixed(1)}`
+      : `🥊 Session complete! Score: ${result.score.toFixed(1)}`;
+    showToast(msg, "success");
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result?.hitCount]);
 
@@ -1167,6 +1181,7 @@ export default function TrainPage() {
 
       <DailyMission locale={locale} />
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="train" />
+      {toast && <Toast message={toast.message} type={toast.type} onDismiss={hideToast} />}
 
       {/* Milestone celebration (15B) */}
       {saved && savedAttemptNumber && (

@@ -8,6 +8,7 @@ export function useRankData({ user, authLoading }) {
   const [xp, setXp] = useState(null);
   const [sessionCount, setSessionCount] = useState(0);
   const [dataLoading, setDataLoading] = useState(true);
+  const [tier, setTier] = useState(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -31,6 +32,7 @@ export function useRankData({ user, authLoading }) {
         if (active) {
           setXp(storedXP + aiXP);
           setSessionCount(feedbackSnap.docs.length);
+          setTier(profileData.subscriptionTier || profileData.tier || null);
         }
       } catch {
         if (active) setXp(0);
@@ -43,5 +45,5 @@ export function useRankData({ user, authLoading }) {
     return () => { active = false; };
   }, [user?.uid, authLoading]);
 
-  return { xp, sessionCount, dataLoading };
+  return { xp, sessionCount, dataLoading, tier };
 }

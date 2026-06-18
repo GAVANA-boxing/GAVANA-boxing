@@ -85,11 +85,18 @@ export default function OnboardingPage() {
                   ? RED
                   : "rgba(255,255,255,0.1)",
                 boxShadow: n === (role === "fighter" ? step - 1 : step >= 4 ? TOTAL_STEPS - 1 : -1)
-                  ? `0 0 10px ${redAlpha(0.6)}`
+                  ? `0 0 12px ${redAlpha(0.7)}`
                   : "none",
               }}
             />
           ))}
+        </div>
+        <div style={s.stepCounter}>
+          {step < TOTAL_STEPS
+            ? t("onboardingStepOf")
+                .replace("{current}", step + 1)
+                .replace("{total}", TOTAL_STEPS)
+            : null}
         </div>
       </div>
 

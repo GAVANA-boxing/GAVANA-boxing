@@ -21,7 +21,7 @@ export default function RankPage() {
   const locale = getLocale(params?.locale);
   const t = (key) => translate(locale, key);
 
-  const { xp, sessionCount, dataLoading } = useRankData({ user, authLoading });
+  const { xp, sessionCount, dataLoading, tier } = useRankData({ user, authLoading });
 
   const currentXP = xp ?? 0;
   const fighterRank = getFighterRank(currentXP);
@@ -67,6 +67,7 @@ export default function RankPage() {
           dataLoading={dataLoading}
           locale={locale}
           t={t}
+          tier={tier}
         />
 
         <RankLadder
