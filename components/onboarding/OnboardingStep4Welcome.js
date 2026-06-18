@@ -43,7 +43,7 @@ export default function OnboardingStep4Welcome({
         {role === "coach" ? "🎓" : role === "gym" ? "🏋️" : archetypeArch?.emoji || "🥊"}
       </div>
       <div style={{ animation: "fadeUp 0.5s ease 0.3s both" }}>
-        <p style={s.kicker}>GAVANA</p>
+        <p style={s.kicker}>YOU'RE IN</p>
         <h1 style={s.title}>{t("onboardingWelcome")}</h1>
 
         {role === "coach" && (

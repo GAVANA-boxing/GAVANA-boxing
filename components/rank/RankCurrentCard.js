@@ -12,6 +12,7 @@ export default function RankCurrentCard({
   dataLoading,
   locale,
   t,
+  tier,
 }) {
   const lbl = (mn, ko, en) =>
     locale === "mn" ? mn : locale === "ko" ? ko : en;
@@ -91,6 +92,38 @@ export default function RankCurrentCard({
             : t("atMaxRank")}
         </p>
       </div>
+
+      {!tier && (
+        <div
+          style={{
+            marginTop: 14,
+            paddingTop: 12,
+            borderTop: "1px solid rgba(255,255,255,0.06)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.38)", fontWeight: 700 }}>
+            {lbl(
+              "Бүтэн Fighter DNA-г нээх",
+              "전체 Fighter DNA 잠금 해제",
+              "Unlock full Fighter DNA"
+            )}
+          </span>
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 900,
+              color: "#F5C451",
+              letterSpacing: 0.3,
+              cursor: "pointer",
+            }}
+          >
+            Go Pro →
+          </span>
+        </div>
+      )}
     </div>
   );
 }

@@ -15,6 +15,10 @@ export default function OnboardingStep0Role({ t, saving, onRoleNext }) {
         <p style={s.kicker}>GAVANA</p>
         <h1 style={s.title}>{t("onboardingWhoAreYou")}</h1>
         <p style={s.subtitle}>{t("onboardingChooseRole")}</p>
+        <div style={s.valueHint}>
+          <span style={{ fontSize: 13 }}>💡</span>
+          <span>{t("onboardingRoleHint")}</span>
+        </div>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 24 }}>
         {roles.map((r) => (

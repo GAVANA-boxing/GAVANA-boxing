@@ -59,11 +59,35 @@ export default function HowToEarnXP({ locale, t }) {
   const lbl = (mn, ko, en) =>
     locale === "mn" ? mn : locale === "ko" ? ko : en;
 
+  const proNote =
+    locale === "mn"
+      ? "Pro гишүүд 2 дахин их XP цуглуулна"
+      : locale === "ko"
+      ? "Pro 회원은 2배 XP 획득"
+      : "Pro members earn 2× XP";
+
   return (
     <>
-      <h2 style={{ ...styles.heading, marginTop: 36 }}>
-        {t("howToEarnXP")}
-      </h2>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 36, marginBottom: 12 }}>
+        <h2 style={{ ...styles.heading, marginTop: 0, marginBottom: 0 }}>
+          {t("howToEarnXP")}
+        </h2>
+        <span
+          style={{
+            fontSize: 10,
+            fontWeight: 900,
+            color: "#F5C451",
+            background: "rgba(245,196,81,0.12)",
+            border: "1px solid rgba(245,196,81,0.3)",
+            borderRadius: 20,
+            padding: "3px 9px",
+            letterSpacing: 0.3,
+            whiteSpace: "nowrap",
+          }}
+        >
+          ⚡ {proNote}
+        </span>
+      </div>
       <div style={styles.earnGrid}>
         {HOW_TO_EARN.map((item) => (
           <div

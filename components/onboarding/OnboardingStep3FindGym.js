@@ -17,9 +17,13 @@ export default function OnboardingStep3FindGym({
   return (
     <div className="ob-step">
       <div style={s.header}>
-        <p style={s.kicker}>COMBAT · FIGHTER</p>
+        <p style={s.kicker}>OPTIONAL</p>
         <h1 style={s.title}>{t("onboardingFindGym")}</h1>
         <p style={s.subtitle}>{t("onboardingGymDesc")}</p>
+        <div style={s.valueHint}>
+          <span style={{ fontSize: 13 }}>🏆</span>
+          <span>{t("onboardingGymHint")}</span>
+        </div>
       </div>
 
       {requestedGymId && (
@@ -67,7 +71,7 @@ export default function OnboardingStep3FindGym({
 
       <div style={s.actionRow}>
         <button type="button" style={s.skipBtn} onClick={onSkip}>
-          {t("onboardingSkip")}
+          {t("onboardingSkipLater")}
         </button>
         <button type="button" style={{ ...s.primaryBtn, flex: 2 }} onClick={onNext}>
           {t("onboardingNext")}

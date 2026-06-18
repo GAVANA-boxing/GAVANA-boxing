@@ -17,9 +17,13 @@ export default function OnboardingStep1Archetype({
   return (
     <div className="ob-step">
       <div style={s.header}>
-        <p style={s.kicker}>COMBAT · FIGHTER</p>
+        <p style={s.kicker}>FIGHTER PROFILE</p>
         <h1 style={s.title}>{t("onboardingFighterStyle")}</h1>
         <p style={s.subtitle}>{t("onboardingChooseArchetype")}</p>
+        <div style={s.valueHint}>
+          <span style={{ fontSize: 13 }}>🤖</span>
+          <span>{t("onboardingArchetypeHint")}</span>
+        </div>
       </div>
 
       <div style={s.archetypeGrid}>

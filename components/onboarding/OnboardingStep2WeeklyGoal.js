@@ -15,9 +15,13 @@ export default function OnboardingStep2WeeklyGoal({
   return (
     <div className="ob-step">
       <div style={s.header}>
-        <p style={s.kicker}>COMBAT · FIGHTER</p>
+        <p style={s.kicker}>TRAINING PLAN</p>
         <h1 style={s.title}>{t("onboardingWeeklyGoal")}</h1>
         <p style={s.subtitle}>{t("onboardingWeeklyDesc")}</p>
+        <div style={s.valueHint}>
+          <span style={{ fontSize: 13 }}>📅</span>
+          <span>{t("onboardingWeeklyHint")}</span>
+        </div>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
