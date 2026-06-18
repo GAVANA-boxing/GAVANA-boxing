@@ -841,10 +841,9 @@ export default function TrainPage() {
                 } : {}),
                 transform: (() => {
                   if (videoNeedsRotation) {
-                    // iOS outputs landscape stream in portrait mode.
-                    // Front camera: counter-clockwise + mirror. Rear: clockwise.
+                    // iOS pre-mirrors the front camera stream — only rotate, no scaleX.
                     return facingMode === "user"
-                      ? "translate(-50%, -50%) rotate(-90deg) scaleX(-1)"
+                      ? "translate(-50%, -50%) rotate(-90deg)"
                       : "translate(-50%, -50%) rotate(90deg)";
                   }
                   return facingMode === "user" ? "scaleX(-1)" : "none";
