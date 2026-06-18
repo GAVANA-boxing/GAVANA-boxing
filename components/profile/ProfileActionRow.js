@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { GOLD, PURPLE, RED, RED_DARK, redAlpha, goldAlpha, whiteAlpha, blackAlpha } from "@/lib/tokens";
 import styles from "@/components/profile/profilePageStyles";
 
@@ -54,6 +54,19 @@ export default function ProfileActionRow({
   t,
 }) {
   const [moreOpen, setMoreOpen] = useState(false);
+  const [dropdownPos, setDropdownPos] = useState(null);
+  const moreButtonRef = useRef(null);
+
+  const handleMoreToggle = () => {
+    if (!moreOpen && moreButtonRef.current) {
+      const rect = moreButtonRef.current.getBoundingClientRect();
+      setDropdownPos({
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right,
+      });
+    }
+    setMoreOpen((v) => !v);
+  };
 
   return (
     <div style={styles.actionRow}>
@@ -74,8 +87,9 @@ export default function ProfileActionRow({
               🥊 {t("profileFighterCard")}
             </button>
             <button
+              ref={moreButtonRef}
               type="button"
-              onClick={() => setMoreOpen((v) => !v)}
+              onClick={handleMoreToggle}
               style={{
                 width: 38,
                 height: 38,
@@ -100,21 +114,23 @@ export default function ProfileActionRow({
           {moreOpen && (
             <>
               <div
-                style={{ position: "fixed", inset: 0, zIndex: 9 }}
+                style={{ position: "fixed", inset: 0, zIndex: 99 }}
                 onClick={() => setMoreOpen(false)}
               />
               <div
                 style={{
-                  position: "absolute",
-                  top: "calc(100% + 8px)",
-                  right: 0,
+                  position: "fixed",
+                  top: dropdownPos?.top ?? 200,
+                  right: dropdownPos?.right ?? 16,
                   background: "#1c1c1e",
-                  border: "1px solid rgba(255,255,255,0.1)",
+                  border: "1px solid rgba(255,255,255,0.12)",
                   borderRadius: 14,
                   padding: 6,
                   minWidth: 200,
-                  boxShadow: `0 8px 32px ${blackAlpha(0.6)}`,
-                  zIndex: 10,
+                  boxShadow: `0 8px 32px ${blackAlpha(0.7)}`,
+                  backdropFilter: "blur(20px)",
+                  WebkitBackdropFilter: "blur(20px)",
+                  zIndex: 100,
                   animation: "dropDown 160ms ease",
                 }}
               >
