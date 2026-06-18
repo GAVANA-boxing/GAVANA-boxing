@@ -7,18 +7,12 @@ import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale } from "@/lib/i18n";
-import { RED, redAlpha } from "@/lib/tokens";
 import styles from "@/components/profile/editProfileStyles";
-import Image from "next/image";
 
-import { WEIGHT_CLASSES } from "@/lib/weightClasses";
-
-const ARCHETYPES = [
-  { value: "pressure", emoji: "⚡", label: "Pressure", color: "#F87171" },
-  { value: "counter",  emoji: "🎯", label: "Counter",  color: "#60A5FA" },
-  { value: "technical",emoji: "🧠", label: "Technical",color: "#A78BFA" },
-  { value: "brawler",  emoji: "🔥", label: "Brawler",  color: "#FB923C" },
-];
+import AvatarPicker from "@/components/profile/AvatarPicker";
+import WeightClassPicker from "@/components/profile/WeightClassPicker";
+import ArchetypePicker from "@/components/profile/ArchetypePicker";
+import SubscriptionStatus from "@/components/profile/SubscriptionStatus";
 
 export default function EditProfilePage() {
   const { user, loading: authLoading } = useAuth();
@@ -180,40 +174,19 @@ export default function EditProfilePage() {
         </header>
 
         {/* Avatar */}
-        <div style={styles.avatarBlock}>
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            style={styles.avatarButton}
-            onMouseEnter={() => setAvatarHover(true)}
-            onMouseLeave={() => setAvatarHover(false)}
-            aria-label={t("Зураг солих", "사진 변경", "Change photo")}
-          >
-            {avatarSrc ? (
-              <Image src={avatarSrc} alt="Profile" width={120} height={120} style={{ objectFit: "cover" }} unoptimized />
-            ) : (
-              <span style={styles.avatarInitial}>
-                {(displayName || user.email || "U").charAt(0).toUpperCase()}
-              </span>
-            )}
-            <div style={{ ...styles.avatarOverlay, opacity: avatarHover || selectedFile ? 1 : 0 }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                <circle cx="12" cy="13" r="4" stroke="#fff" strokeWidth="1.8"/>
-              </svg>
-            </div>
-          </button>
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            style={styles.photoButton}
-          >
-            {selectedFile
-              ? t("✓ Зураг сонгогдлоо", "✓ 사진 선택됨", `✓ ${selectedFile.name.slice(0, 20)}`)
-              : t("Зураг солих", "사진 변경", "Change profile photo")}
-          </button>
-          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} style={{ display: "none" }} />
-        </div>
+        <AvatarPicker
+          avatarSrc={avatarSrc}
+          displayName={displayName}
+          email={user.email}
+          selectedFile={selectedFile}
+          avatarHover={avatarHover}
+          fileInputRef={fileInputRef}
+          onPickerClick={() => fileInputRef.current?.click()}
+          onHoverEnter={() => setAvatarHover(true)}
+          onHoverLeave={() => setAvatarHover(false)}
+          onFileSelect={handleFileSelect}
+          t={t}
+        />
 
         {/* Form */}
         <div style={styles.form}>
@@ -267,89 +240,19 @@ export default function EditProfilePage() {
           </div>
 
           {/* Weight class */}
-          <div style={styles.field}>
-            <label style={styles.label}>{t("Жингийн ангилал", "체급", "Weight class")}</label>
-            <div style={styles.chips}>
-              {WEIGHT_CLASSES.map(({ value, label, kg }) => {
-                const active = weightClass === value;
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setWeightClass(active ? "" : value)}
-                    style={{
-                      ...styles.chip,
-                      ...(active ? { background: "rgba(96,165,250,0.18)", border: "1px solid #60A5FA", color: "#60A5FA", fontWeight: 900 } : {}),
-                    }}
-                  >
-                    {label}
-                    <span style={{ opacity: 0.55, fontSize: "0.9em", marginLeft: 3 }}>{kg} kg</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <WeightClassPicker value={weightClass} onChange={setWeightClass} t={t} />
 
           {/* Fighting style */}
-          <div style={styles.field}>
-            <label style={styles.label}>{t("Тулааны стиль", "파이팅 스타일", "Fighting style")}</label>
-            <div style={styles.chips}>
-              {ARCHETYPES.map(({ value, emoji, label, color }) => {
-                const active = archetype === value;
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setArchetype(active ? "" : value)}
-                    style={{
-                      ...styles.chip,
-                      ...(active ? { background: `${color}1a`, border: `1px solid ${color}`, color, fontWeight: 900 } : {}),
-                    }}
-                  >
-                    {emoji} {label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <ArchetypePicker value={archetype} onChange={setArchetype} t={t} />
 
           {error && <div style={styles.error}>{error}</div>}
 
           {/* Subscription Status */}
-          {(() => {
-            const TIER_META = {
-              fan:      { label: locale === "mn" ? "Фан" : locale === "ko" ? "팬" : "Fan", color: "#60A5FA" },
-              pro:      { label: locale === "mn" ? "Про" : locale === "ko" ? "프로" : "Pro", color: "#F5C451" },
-              champion: { label: locale === "mn" ? "Чемпион" : locale === "ko" ? "챔피언" : "Champion", color: "#EF4444" },
-            };
-            const meta = subscriptionTier ? TIER_META[subscriptionTier] : null;
-            return (
-              <div style={{ marginBottom: 16, padding: "12px 14px", borderRadius: 12, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div>
-                  <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 4 }}>
-                    {locale === "mn" ? "ЭРХИЙН ТҮВ" : locale === "ko" ? "구독 등급" : "SUBSCRIPTION"}
-                  </div>
-                  <div style={{ fontSize: 14, fontWeight: 900, color: meta?.color || "rgba(255,255,255,0.35)" }}>
-                    {meta ? meta.label : (locale === "mn" ? "Үнэгүй" : locale === "ko" ? "무료" : "Free")}
-                  </div>
-                </div>
-                {!meta && (
-                  <button
-                    type="button"
-                    onClick={() => router.push(`/${locale}/fighter-profile?tab=dna`)}
-                    style={{ padding: "8px 14px", borderRadius: 10, background: "linear-gradient(135deg,#F5C451,#D4A017)", border: "none", color: "#000", fontSize: 11, fontWeight: 900, cursor: "pointer" }}
-                  >
-                    {locale === "mn" ? "Про болгох" : locale === "ko" ? "업그레이드" : "Upgrade"}
-                  </button>
-                )}
-                {meta && (
-                  <div style={{ padding: "4px 10px", borderRadius: 8, background: `${meta.color}18`, border: `1px solid ${meta.color}40`, fontSize: 11, fontWeight: 900, color: meta.color }}>
-                    ✓ {locale === "mn" ? "Идэвхтэй" : locale === "ko" ? "활성" : "Active"}
-                  </div>
-                )}
-              </div>
-            );
-          })()}
+          <SubscriptionStatus
+            tier={subscriptionTier}
+            locale={locale}
+            onUpgrade={() => router.push(`/${locale}/fighter-profile?tab=dna`)}
+          />
 
           <button
             type="button"

@@ -6,11 +6,17 @@ import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/AuthContext";
 import { useChallengesData } from "@/hooks/useChallengesData";
 import { getLocale, translate } from "@/lib/i18n";
-import { getCurrentSeasonId, getSeasonLabel } from "@/lib/season";
-import { RED, GOLD, PURPLE, redAlpha, goldAlpha } from "@/lib/tokens";
+import { getCurrentSeasonId } from "@/lib/season";
 import styles from "@/components/challenges/challengesStyles";
-import { getLocalDateKey, getPreviousLocalDateKey, getTimestampMs, formatScore, getActiveChallengeStreak, getChallengeRank } from "@/lib/utils";
-import Image from "next/image";
+import { getTimestampMs, getActiveChallengeStreak } from "@/lib/utils";
+
+import ChallengesHeader from "@/components/challenges/ChallengesHeader";
+import MainTabBar from "@/components/challenges/MainTabBar";
+import BattlesList from "@/components/challenges/BattlesList";
+import SeasonFilterRow from "@/components/challenges/SeasonFilterRow";
+import WeeklyChampionsBanner from "@/components/challenges/WeeklyChampionsBanner";
+import YourRankBar from "@/components/challenges/YourRankBar";
+import ChallengeCard from "@/components/challenges/ChallengeCard";
 
 const CHALLENGES = [
   { id: "jab-minute",   titleKey: "challengeJabTitle",   descKey: "challengeJabDesc",   emoji: "🥊" },
@@ -36,27 +42,6 @@ function formatCountdown(msLeft) {
   if (d > 0) return `${d}d ${String(h).padStart(2, "0")}h`;
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
-
-const SEASON_BADGE = ["🥇", "🥈", "🥉"];
-
-
-function getResultXP(result) {
-  const stored = Number(result?.xpGained);
-  if (Number.isFinite(stored) && stored > 0) return Math.round(stored);
-  const score = Number(result?.score);
-  const rank = String(result?.rank || getChallengeRank(score)).toUpperCase();
-  const base = Number.isFinite(score) ? Math.round(score * 50) : 0;
-  const bonus = rank === "A" ? 100 : rank === "B" ? 50 : rank === "C" ? 20 : 0;
-  return base + bonus;
-}
-
-function getRankIcon(index) {
-  if (index === 0) return "🥇";
-  if (index === 1) return "🥈";
-  if (index === 2) return "🥉";
-  return `#${index + 1}`;
-}
-
 
 // Deduplicate: keep only best score per user per challenge
 function dedupeByUser(results) {
@@ -85,7 +70,6 @@ export default function ChallengesPage() {
   const { results, resultsLoading, profiles, myBattles, battlesLoading } = useChallengesData({ user, authLoading, mainTab });
 
   const currentSeasonId = useMemo(() => getCurrentSeasonId(), []);
-  const seasonLabel = useMemo(() => getSeasonLabel(currentSeasonId), [currentSeasonId]);
 
   useEffect(() => {
     const id = setInterval(() => setCountdown(formatCountdown(getWeekEndMs() - Date.now())), 1000);
@@ -100,9 +84,7 @@ export default function ChallengesPage() {
   const allTimeByChallenge = useMemo(() => {
     const grouped = {};
     for (const c of CHALLENGES) {
-      grouped[c.id] = dedupeByUser(
-        results.filter((r) => r.challengeId === c.id)
-      );
+      grouped[c.id] = dedupeByUser(results.filter((r) => r.challengeId === c.id));
     }
     return grouped;
   }, [results]);
@@ -111,9 +93,7 @@ export default function ChallengesPage() {
   const weeklyByChallenge = useMemo(() => {
     const grouped = {};
     for (const c of CHALLENGES) {
-      grouped[c.id] = dedupeByUser(
-        results.filter((r) => r.challengeId === c.id && r.seasonId === currentSeasonId)
-      );
+      grouped[c.id] = dedupeByUser(results.filter((r) => r.challengeId === c.id && r.seasonId === currentSeasonId));
     }
     return grouped;
   }, [results, currentSeasonId]);
@@ -126,7 +106,7 @@ export default function ChallengesPage() {
         <div className="shimmer" style={{ height: 40, width: 40, borderRadius: 10 }} />
         <div className="shimmer" style={{ height: 100, borderRadius: 16 }} />
         <div className="shimmer" style={{ height: 48, borderRadius: 14 }} />
-        {[1,2,3].map((i) => <div key={i} className="shimmer" style={{ height: 220, borderRadius: 20 }} />)}
+        {[1, 2, 3].map((i) => <div key={i} className="shimmer" style={{ height: 220, borderRadius: 20 }} />)}
       </div>
     </div>
   );
@@ -148,6 +128,8 @@ export default function ChallengesPage() {
     return top ? { challenge: c, result: top, profile: profiles[top.userId] } : null;
   }).filter(Boolean);
 
+  const hasPendingBattle = myBattles.some((b) => b.status === "pending" && b.role === "opponent");
+
   return (
     <main style={styles.page} className="page-enter cinematic-bg">
       <section style={styles.shell}>
@@ -156,227 +138,71 @@ export default function ChallengesPage() {
             <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
-        <header style={styles.header}>
-          <p style={styles.kicker}>COMBAT · MISSIONS</p>
-          <h1 style={styles.title}>{t("challengesTitle")}</h1>
-          <p style={styles.subtitle}>{t("challengesSubtitle")}</p>
-          <div style={styles.streakPill}>
-            <span style={styles.streakFlame}>🔥</span>
-            {t("challengeStreak").replace("{n}", currentChallengeStreak)}
-          </div>
-        </header>
 
-        {/* Main tabs: Leaderboard | My Battles */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, padding: 5, borderRadius: 16, background: "rgba(0,0,0,0.48)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)" }}>
-          <button type="button" style={{ ...styles.seasonTab, ...(mainTab === "leaderboard" ? styles.seasonTabActive : {}) }} onClick={() => setMainTab("leaderboard")}>
-            {t("battleLeaderboardTab")}
-          </button>
-          <button type="button" style={{ ...styles.seasonTab, ...(mainTab === "battles" ? styles.seasonTabActive : {}), ...(myBattles.some((b) => b.status === "pending" && b.role === "opponent") ? { color: PURPLE } : {}) }} onClick={() => setMainTab("battles")}>
-            {t("battleMyBattlesTab")}
-            {myBattles.some((b) => b.status === "pending" && b.role === "opponent") && <span style={{ marginLeft: 4, display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: PURPLE, verticalAlign: "middle" }} />}
-          </button>
-        </div>
+        <ChallengesHeader
+          labels={{
+            kicker: "COMBAT · MISSIONS",
+            title: t("challengesTitle"),
+            subtitle: t("challengesSubtitle"),
+            streakText: t("challengeStreak").replace("{n}", currentChallengeStreak),
+          }}
+        />
 
-        {mainTab === "battles" ? (
-          <div style={{ display: "grid", gap: 10 }}>
-            {battlesLoading ? (
-              <div style={{ display: "grid", gap: 10 }}>
-                {[1,2,3].map((i) => <div key={i} className="shimmer" style={{ height: 80, borderRadius: 16 }} />)}
-              </div>
-            ) : myBattles.length === 0 ? (
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "40px 16px", textAlign: "center" }}>
-                <span style={{ fontSize: 48, opacity: 0.5 }}>⚔️</span>
-                <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#fff" }}>
-                  {t("battleNoneYet")}
-                </p>
-                <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.45)", maxWidth: 260, lineHeight: 1.6 }}>
-                  {t("battleNoneDesc")}
-                </p>
-                <button type="button" style={{ padding: "11px 24px", borderRadius: 999, border: "none", background: "linear-gradient(135deg,#7C3AED,#4C1D95)", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer" }} onClick={() => router.push(`/${locale}/fighters`)}>
-                  {t("battleFindFighters")}
-                </button>
-              </div>
-            ) : (
-              myBattles.map((battle) => {
-                const challengeInfo = CHALLENGES.find((c) => c.id === battle.challengeId);
-                const isReceived = battle.role === "opponent";
-                const isPending = battle.status === "pending";
-                return (
-                  <div key={battle.id} style={{ borderRadius: 16, border: `1px solid ${isPending && isReceived ? "rgba(167,139,250,0.35)" : "rgba(255,255,255,0.07)"}`, background: isPending && isReceived ? "rgba(124,58,237,0.08)" : "rgba(255,255,255,0.025)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", padding: "14px 16px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <span style={{ fontSize: 22, flexShrink: 0 }}>{isPending && isReceived ? "⚔️" : battle.status === "completed" ? "✅" : "🕐"}</span>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 14, fontWeight: 900, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{challengeInfo ? t(challengeInfo.titleKey) : battle.challengeId}</div>
-                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 3, display: "flex", alignItems: "center", gap: 6 }}>
-                          <span>{isReceived ? t("battleChallengeReceived") : t("battleChallengeSent")}</span>
-                          <span style={{ width: 2, height: 2, borderRadius: "50%", background: "rgba(255,255,255,0.25)", flexShrink: 0 }} />
-                          <span style={{ color: battle.status === "pending" ? "#FBBF24" : battle.status === "completed" ? "#34D399" : "rgba(255,255,255,0.45)" }}>
-                            {battle.status === "pending" ? t("battlePending") : battle.status === "completed" ? t("battleCompleted") : battle.status}
-                          </span>
-                        </div>
-                      </div>
-                      {isPending && isReceived && (
-                        <button type="button" style={{ padding: "9px 16px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#7C3AED,#4C1D95)", color: "#fff", fontSize: 12, fontWeight: 900, cursor: "pointer", flexShrink: 0, boxShadow: "0 4px 14px rgba(124,58,237,0.35)" }} onClick={() => router.push(`/${locale}/train?challengeId=${battle.challengeId || "jab-minute"}&challengeUserId=${battle.challengerId}`)}>
-                          {t("battleCompete")}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        ) : null}
+        <MainTabBar
+          mainTab={mainTab}
+          onTabChange={setMainTab}
+          hasPendingBattle={hasPendingBattle}
+          labels={{ leaderboard: t("battleLeaderboardTab"), battles: t("battleMyBattlesTab") }}
+        />
+
+        {mainTab === "battles" && (
+          <BattlesList
+            battles={myBattles}
+            battlesLoading={battlesLoading}
+            challenges={CHALLENGES}
+            locale={locale}
+            router={router}
+            t={t}
+          />
+        )}
 
         {mainTab === "leaderboard" && (
           <>
-        {/* Season filter row — compact inline */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-          <div style={styles.seasonTabRow}>
-            <button
-              type="button"
-              style={{ ...styles.seasonTab, ...(seasonTab === "week" ? styles.seasonTabActive : {}) }}
-              onClick={() => setSeasonTab("week")}
-            >
-              {t("seasonCurrentWeek")}
-            </button>
-            <button
-              type="button"
-              style={{ ...styles.seasonTab, ...(seasonTab === "alltime" ? styles.seasonTabActive : {}) }}
-              onClick={() => setSeasonTab("alltime")}
-            >
-              {t("seasonAllTime")}
-            </button>
-          </div>
-          {seasonTab === "week" && (
-            <span style={{ fontSize: 10, fontWeight: 900, color: GOLD, fontVariantNumeric: "tabular-nums", letterSpacing: 0.5, padding: "3px 10px", borderRadius: 999, background: "rgba(245,196,81,0.12)", border: "1px solid rgba(245,196,81,0.3)", whiteSpace: "nowrap", flexShrink: 0 }}>
-              ⏱ {countdown}
-            </span>
-          )}
-        </div>
+            <SeasonFilterRow
+              seasonTab={seasonTab}
+              onTabChange={setSeasonTab}
+              countdown={countdown}
+              labels={{ currentWeek: t("seasonCurrentWeek"), allTime: t("seasonAllTime") }}
+            />
 
-        {/* Weekly champions banner */}
-        {seasonTab === "week" && weeklyChampions.length > 0 && (
-          <div style={styles.champBanner}>
-            <p style={styles.champBannerTitle}>🏆 {t("seasonWeeklyChampion")}</p>
-            <div style={styles.champList}>
-              {weeklyChampions.map(({ challenge, result: res, profile }, i) => {
-                const name = profile?.name || t("fighter");
-                return (
-                  <div key={challenge.id} style={styles.champItem}>
-                    <span style={styles.champBadge}>{SEASON_BADGE[i] || `#${i + 1}`}</span>
-                    <div style={styles.champInfo}>
-                      <span style={styles.champName}>{name}</span>
-                      <span style={styles.champChallenge}>{t(challenge.titleKey)}</span>
-                    </div>
-                    <span style={styles.champScore}>{formatScore(res.score)}/10</span>
-                  </div>
-                );
-              })}
+            {seasonTab === "week" && (
+              <WeeklyChampionsBanner champions={weeklyChampions} t={t} />
+            )}
+
+            <YourRankBar
+              bestUserRank={bestUserRank}
+              labels={{
+                ranked: bestUserRank ? t("challengeYouAreRank").replace("{rank}", bestUserRank.rank) : "",
+                unranked: t("challengeYouAreUnranked"),
+              }}
+              t={t}
+            />
+
+            <div style={styles.challengeList}>
+              {CHALLENGES.map((challenge) => (
+                <ChallengeCard
+                  key={challenge.id}
+                  challenge={challenge}
+                  list={(displayByChallenge[challenge.id] || []).slice(0, 5)}
+                  profiles={profiles}
+                  currentUserId={user.uid}
+                  seasonTab={seasonTab}
+                  locale={locale}
+                  router={router}
+                  t={t}
+                />
+              ))}
             </div>
-          </div>
-        )}
-
-        {/* Your rank bar */}
-        <div style={styles.yourRankBar}>
-          <span style={styles.yourRankLabel}>
-            {bestUserRank
-              ? t("challengeYouAreRank").replace("{rank}", bestUserRank.rank)
-              : t("challengeYouAreUnranked")}
-          </span>
-          {bestUserRank && (
-            <span style={styles.yourRankChallenge}>{t(bestUserRank.challenge.titleKey)}</span>
-          )}
-        </div>
-
-        {/* Challenge cards */}
-        <div style={styles.challengeList}>
-          {CHALLENGES.map((challenge) => {
-            const list = (displayByChallenge[challenge.id] || []).slice(0, 5);
-            const isEmpty = list.length === 0;
-
-            return (
-              <article key={challenge.id} style={styles.card}>
-                <div style={styles.cardTop}>
-                  <div style={styles.cardTitleGroup}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                      <span style={{ fontSize: 24 }}>{challenge.emoji}</span>
-                      <h2 style={styles.cardTitle}>{t(challenge.titleKey)}</h2>
-                    </div>
-                    <p style={styles.cardDesc}>{t(challenge.descKey)}</p>
-                  </div>
-                  <button
-                    type="button"
-                    style={styles.startButton}
-                    onClick={() => router.push(`/${locale}/train?challengeId=${challenge.id}`)}
-                  >
-                    {t("challengeStart")}
-                  </button>
-                </div>
-
-                <div style={styles.leaderboard}>
-                  <h3 style={styles.leaderboardTitle}>{t("challengeLeaderboard")}</h3>
-                  {isEmpty ? (
-                    <div style={{ ...styles.emptyLeaderboard, display: "flex", flexDirection: "column", alignItems: "center", gap: 10, padding: "20px 16px" }}>
-                      <span style={{ fontSize: 32 }}>🏆</span>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.55)" }}>
-                        {seasonTab === "week" ? t("seasonNoResultsThisWeek") : t("challengeNoScores")}
-                      </span>
-                      <button
-                        type="button"
-                        style={{ padding: "9px 20px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#EF4444,#B91C1C)", color: "#fff", fontSize: 12, fontWeight: 900, cursor: "pointer", letterSpacing: 0.3 }}
-                        onClick={() => router.push(`/${locale}/train?challengeId=${challenge.id}`)}
-                      >
-                        {locale === "mn" ? "Эхний байр авах →" : locale === "ko" ? "첫 번째가 되기 →" : "Be First →"}
-                      </button>
-                    </div>
-                  ) : (
-                    <div style={styles.scoreRows}>
-                      {list.map((result, index) => {
-                        const isCurrentUser = result.userId === user.uid;
-                        const profile = profiles[result.userId] || {};
-                        const displayName = isCurrentUser ? t("challengeYou") : profile.name || t("fighter");
-                        const initial = (displayName || "F").charAt(0).toUpperCase();
-                        const rankLetter = result.rank || getChallengeRank(result.score);
-                        const rankColor = rankLetter === "S" ? GOLD : rankLetter === "A" ? "#60A5FA" : rankLetter === "B" ? PURPLE : rankLetter === "C" ? "#34D399" : "#888";
-
-                        return (
-                          <div
-                            key={result.id}
-                            role="button"
-                            tabIndex={0}
-                            style={{ ...styles.scoreRow, ...(isCurrentUser ? styles.scoreRowCurrent : {}), cursor: "pointer" }}
-                            onClick={() => !isCurrentUser && router.push(`/${locale}/profile/${result.userId}`)}
-                            onKeyDown={(e) => { if (e.key === "Enter" && !isCurrentUser) router.push(`/${locale}/profile/${result.userId}`); }}
-                          >
-                            <span style={styles.rankNum}>{getRankIcon(index)}</span>
-                            <span style={styles.fighterCell}>
-                              <span style={styles.avatar}>
-                                {profile.photoURL
-                                  ? <Image src={profile.photoURL} alt="" width={26} height={26} style={{ objectFit: "cover" }} />
-                                  : initial}
-                              </span>
-                              <span style={styles.fighterText}>
-                                <span style={styles.fighterName}>{displayName}</span>
-                                <span style={styles.resultMeta}>
-                                  {t("challengeRank")}: <span style={{ color: rankColor, fontWeight: 900 }}>{rankLetter}</span>
-                                </span>
-                              </span>
-                            </span>
-                            <span style={styles.scoreStack}>
-                              <strong style={styles.scoreValue}>{formatScore(result.score)}/10</strong>
-                              <span style={styles.xpValue}>+{getResultXP(result).toLocaleString()} {t("xpLabel")}</span>
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </article>
-            );
-          })}
-        </div>
           </>
         )}
       </section>
@@ -391,4 +217,3 @@ export default function ChallengesPage() {
     </main>
   );
 }
-

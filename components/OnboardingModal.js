@@ -7,6 +7,8 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { RED, RED_DARK, GOLD, redAlpha, goldAlpha , blackAlpha} from "@/lib/tokens";
+import OnboardingQuestionStep from "@/components/onboarding/OnboardingQuestionStep";
+import OnboardingSummaryStep from "@/components/onboarding/OnboardingSummaryStep";
 
 const personaMap = {
   strict: "Drill Sergeant",
@@ -172,35 +174,17 @@ export default function OnboardingModal() {
     saveOnboarding({ skipped: true });
   };
 
-  const renderOptions = () => {
-    return currentQuestion.options.map((option) => {
-      const selected =
-        currentQuestion.key === "goal"
-          ? goal === option.value
-          : currentQuestion.key === "experience"
-          ? experience === option.value
-          : coachStyle === option.value;
-
-      return (
-        <button
-          key={option.value}
-          type="button"
-          onClick={() => {
-            setError("");
-            if (currentQuestion.key === "goal") setGoal(option.value);
-            if (currentQuestion.key === "experience") setExperience(option.value);
-            if (currentQuestion.key === "coachStyle") setCoachStyle(option.value);
-          }}
-          style={{
-            ...styles.optionButton,
-            ...(selected ? styles.optionButtonSelected : {}),
-          }}
-        >
-          <span>{option.label}</span>
-        </button>
-      );
-    });
+  const handleOptionSelect = (value) => {
+    setError("");
+    if (currentQuestion.key === "goal") setGoal(value);
+    if (currentQuestion.key === "experience") setExperience(value);
+    if (currentQuestion.key === "coachStyle") setCoachStyle(value);
   };
+
+  const currentSelected =
+    currentQuestion?.key === "goal" ? goal
+    : currentQuestion?.key === "experience" ? experience
+    : coachStyle;
 
   if (authLoading || checking || !visible) {
     return null;
@@ -215,30 +199,25 @@ export default function OnboardingModal() {
         <div style={styles.brand}>GAVANA BOXING</div>
         <div style={styles.stepMark}>{Math.min(stepIndex + 1, questions.length + 1)}/{questions.length + 1}</div>
         {isSummaryStep ? (
-          <>
-            <h2 style={styles.title}>{t("onboardingCoachRec")}</h2>
-            <p style={styles.text}>{coachRecText}</p>
-            <div style={styles.summaryCard}>
-              <div style={styles.summaryRow}>
-                <span>{t("onboardingGoalLabel")}</span>
-                <strong>{goal || t("onboardingNotSelected")}</strong>
-              </div>
-              <div style={styles.summaryRow}>
-                <span>{t("onboardingExpLabel")}</span>
-                <strong>{experience || t("onboardingNotSelected")}</strong>
-              </div>
-              <div style={styles.summaryRow}>
-                <span>{t("onboardingCoachLabel")}</span>
-                <strong>{coachStyle || t("onboardingNotSelected")}</strong>
-              </div>
-            </div>
-          </>
+          <OnboardingSummaryStep
+            coachRecText={coachRecText}
+            goal={goal}
+            experience={experience}
+            coachStyle={coachStyle}
+            labels={{
+              coachRec: t("onboardingCoachRec"),
+              goalLabel: t("onboardingGoalLabel"),
+              expLabel: t("onboardingExpLabel"),
+              coachLabel: t("onboardingCoachLabel"),
+              notSelected: t("onboardingNotSelected"),
+            }}
+          />
         ) : (
-          <>
-            <h2 style={styles.title}>{currentQuestion.title}</h2>
-            <p style={styles.text}>{currentQuestion.description}</p>
-            <div style={styles.options}>{renderOptions()}</div>
-          </>
+          <OnboardingQuestionStep
+            question={currentQuestion}
+            selected={currentSelected}
+            onSelect={handleOptionSelect}
+          />
         )}
 
         {error ? <div style={styles.error}>{error}</div> : null}
@@ -306,61 +285,6 @@ const styles = {
     color: "#fff",
     fontSize: 13,
     fontWeight: 950,
-  },
-  title: {
-    margin: 0,
-    fontSize: 28,
-    lineHeight: 1.05,
-    fontWeight: 900,
-  },
-  text: {
-    margin: "12px auto 24px",
-    maxWidth: 360,
-    color: "#CCCCCC",
-    fontSize: 15,
-    lineHeight: 1.6,
-  },
-  options: {
-    display: "grid",
-    gap: 12,
-    marginTop: 18,
-  },
-  optionButton: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 54,
-    padding: "0 14px",
-    borderRadius: 16,
-    border: "1px solid rgba(255,255,255,0.12)",
-    background: "rgba(255,255,255,0.04)",
-    color: "#fff",
-    fontWeight: 700,
-    cursor: "pointer",
-    transition: "transform 160ms ease, background 160ms ease, border-color 160ms ease",
-  },
-  optionButtonSelected: {
-    background: `${redAlpha(0.18)}`,
-    borderColor: `${redAlpha(0.5)}`,
-    transform: "scale(1.01)",
-  },
-  summaryCard: {
-    margin: "20px auto 0",
-    width: "100%",
-    maxWidth: 380,
-    padding: 20,
-    borderRadius: 18,
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    textAlign: "left",
-  },
-  summaryRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    gap: 12,
-    marginBottom: 12,
-    color: "#DDD",
-    fontSize: 15,
   },
   error: {
     marginTop: 16,

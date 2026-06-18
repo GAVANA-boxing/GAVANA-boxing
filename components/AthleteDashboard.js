@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { loc } from "@/lib/loc";
 import { useRouter, usePathname } from "next/navigation";
 import {
   collection, doc, query, where,
@@ -14,7 +13,6 @@ import {
   calculateUserXP, getFighterRank,
   getNextRank, getRankProgress,
 } from "@/lib/xp";
-import { RED, GOLD } from "@/lib/tokens";
 import {
   deriveRadarStats, computeFighterScore, getInsight,
 } from "@/lib/dashboardHelpers";
@@ -23,8 +21,7 @@ import ActivityFeed from "@/components/ActivityFeed";
 import FighterStyleQuiz from "@/components/FighterStyleQuiz";
 import FighterPath from "@/components/FighterPath";
 import {
-  RadarChart, StyleDNA, FighterHero, StatPill, ScoreChart,
-  PanelCard,
+  FighterHero, PanelCard,
 } from "@/components/dashboard/DashboardWidgets";
 import { BodyProgressSection } from "@/components/dashboard/BodyProgressSection";
 import { FIGHTERS } from "@/lib/fighters";
@@ -42,6 +39,11 @@ import TodaysFocusCard from "@/components/athlete-dashboard/TodaysFocusCard";
 import FighterStyleChip from "@/components/athlete-dashboard/FighterStyleChip";
 import FighterMasteryBar from "@/components/athlete-dashboard/FighterMasteryBar";
 import SessionHistoryPanel from "@/components/athlete-dashboard/SessionHistoryPanel";
+import LoadingSpinner from "@/components/athlete-dashboard/LoadingSpinner";
+import StatPillsGrid from "@/components/athlete-dashboard/StatPillsGrid";
+import CombatProfilePanels from "@/components/athlete-dashboard/CombatProfilePanels";
+import ScoreTrendPanel from "@/components/athlete-dashboard/ScoreTrendPanel";
+import ViewAllSessionsButton from "@/components/athlete-dashboard/ViewAllSessionsButton";
 
 const ProgressShareCard = dynamic(() => import("@/components/dashboard/ProgressShareCard"), { ssr: false });
 
@@ -212,11 +214,7 @@ export default function AthleteDashboard() {
   const weekNumber = Math.floor(Date.now() / (7 * 24 * 3600 * 1000));
 
   if (authLoading || !rankReady) {
-    return (
-      <div style={{ minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0B0B0C" }}>
-        <div style={{ width: 28, height: 28, border: "2px solid #FF3B30", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (
@@ -298,18 +296,11 @@ export default function AthleteDashboard() {
 
         {/* ── Session history link ── */}
         {sessionsReady && trainingSessions.length >= 1 && (
-          <button
-            type="button"
-            onClick={() => router.push(`/${locale}/history`)}
-            style={{
-              display: "block", width: "100%", marginBottom: 20,
-              padding: "10px 0", borderRadius: 12, fontSize: 12, fontWeight: 900,
-              background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
-              color: "rgba(255,255,255,0.35)", cursor: "pointer",
-            }}
-          >
-            {locale === "mn" ? `📋 Бүх ${trainingSessions.length} дасгал харах` : `📋 View All ${trainingSessions.length} Sessions`}
-          </button>
+          <ViewAllSessionsButton
+            locale={locale}
+            sessionCount={trainingSessions.length}
+            router={router}
+          />
         )}
 
         {/* ── Desktop: 2-col grid ── */}
@@ -336,30 +327,14 @@ export default function AthleteDashboard() {
         />
 
         {/* ── 4 Stat Pills ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8, marginBottom: 32 }}>
-          <StatPill
-            label={t("dashboardTrainingStreak")}
-            value={`${dailyStreak}d`}
-            sub={bestStreak > 0 ? `${t("dashboardBestStreak")} ${bestStreak}d` : undefined}
-            color="#FB923C"
-          />
-          <StatPill
-            label={t("dashboardBestScore")}
-            value={stats.bestScore != null ? formatScore(stats.bestScore) : "—"}
-            sub="/10"
-            color={GOLD}
-          />
-          <StatPill
-            label={t("dashboardTotalSessions")}
-            value={trainingSessions.length}
-            color="#fff"
-          />
-          <StatPill
-            label={t("dashboardXP")}
-            value={xp >= 1000 ? `${(xp / 1000).toFixed(1)}k` : xp}
-            color={GOLD}
-          />
-        </div>
+        <StatPillsGrid
+          dailyStreak={dailyStreak}
+          bestStreak={bestStreak}
+          bestScoreFormatted={stats.bestScore != null ? formatScore(stats.bestScore) : "—"}
+          sessionCount={trainingSessions.length}
+          xp={xp}
+          t={t}
+        />
 
         {/* ── Fighter Mastery ── */}
         <FighterMasteryBar
@@ -383,39 +358,23 @@ export default function AthleteDashboard() {
           router={router}
         />
 
-        {/* ── Combat Profile (Radar) ── */}
-        <PanelCard
-          label={loc(locale, "Дайны профайл", "전투 프로필", "Combat Profile")}
-          accent={RED}
-          tag="6 METRICS"
-        >
-          <div style={{ background: `radial-gradient(ellipse at center, rgba(255,59,48,0.06) 0%, transparent 70%)`, padding: "4px 0 0" }}>
-            <RadarChart stats={radarStats} prevStats={prevRadarStats} locale={locale} sessions={trainingSessions} />
-          </div>
-        </PanelCard>
-
-        {/* ── Style DNA ── */}
-        <PanelCard
-          label={loc(locale, "Тоглолтын хэв маяг", "스타일 DNA", "Style DNA")}
-          accent={GOLD}
-          tag="5 ATTRS"
-        >
-          <StyleDNA radarStats={radarStats} />
-        </PanelCard>
+        {/* ── Combat Profile (Radar) + Style DNA ── */}
+        <CombatProfilePanels
+          locale={locale}
+          radarStats={radarStats}
+          prevRadarStats={prevRadarStats}
+          trainingSessions={trainingSessions}
+        />
 
         </div> {/* /Left col */}
         <div> {/* Right col */}
 
         {/* ── Score Trend ── */}
-        <PanelCard
-          label={loc(locale, "Оноогийн чиглэл", "점수 추세", "Score Trend")}
-          accent={RED}
-          tag={`${stats.chronoScores.length} SESS`}
-        >
-          <div style={{ padding: "2px 0 0" }}>
-            <ScoreChart scores={stats.chronoScores} t={t} />
-          </div>
-        </PanelCard>
+        <ScoreTrendPanel
+          locale={locale}
+          chronoScores={stats.chronoScores}
+          t={t}
+        />
 
         {/* ── Session History ── */}
         <SessionHistoryPanel

@@ -5,19 +5,22 @@ import { loc } from "@/lib/loc";
 import { useRouter } from "next/navigation";
 import { translate } from "@/lib/i18n";
 import ScrollRow from "@/components/ScrollRow";
-import { RED, GOLD, redAlpha, goldAlpha, blackAlpha, whiteAlpha } from "@/lib/tokens";
+import { RED } from "@/lib/tokens";
 import {
   getStyles, getTechniques, getCountryStyles, getCommonMistakes, getWeeklyFocus, getMovement,
   QUICK_PROMPTS,
 } from "@/lib/knowledgeData";
 import {
-  SectionHeader, StyleCard, TechCard, FighterCard, CountryCard, MovementCard, MistakeRow,
+  SectionHeader, StyleCard, TechCard, FighterCard, CountryCard, MovementCard,
 } from "@/components/knowledge/KnowledgeCards";
 import TechniqueSheet from "@/components/knowledge/TechniqueSheet";
 import AcademyLessonCard from "@/components/knowledge/AcademyLessonCard";
 import AcademyPathCard from "@/components/academy/AcademyPathCard";
 import AcademySearchBar, { matchesSearch, FILTER_CHIPS } from "@/components/knowledge/AcademySearchBar";
 import AcademyRecommendations from "@/components/knowledge/AcademyRecommendations";
+import TodayLessonHero from "@/components/knowledge/TodayLessonHero";
+import QuickPrompts from "@/components/knowledge/QuickPrompts";
+import CommonMistakesSection from "@/components/knowledge/CommonMistakesSection";
 import { FIGHTERS } from "@/lib/fighters";
 import { ACADEMY_LESSONS } from "@/lib/academyLessons";
 import { getLessonStatus } from "@/lib/academyPaths";
@@ -59,110 +62,12 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
       </div>
 
       {/* ── Quick prompts ──────────────────────────────────────────────────── */}
-      <div style={{
-        background: `linear-gradient(135deg, ${redAlpha(0.08)} 0%, ${goldAlpha(0.05)} 100%)`,
-        border: `1px solid ${goldAlpha(0.12)}`,
-        borderRadius: 14,
-        padding: "14px 14px 12px",
-      }}>
-        <p style={{ margin: "0 0 10px", fontSize: 9, fontWeight: 900, letterSpacing: 2, color: GOLD, textTransform: "uppercase" }}>
-          {locale === "mn" ? "Хурдан асуулт" : "Quick questions"}
-        </p>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-          {QUICK_PROMPTS.map((p) => (
-            <button
-              key={p.key}
-              onClick={() => onAsk(t(p.key))}
-              style={{
-                display: "flex", alignItems: "center", gap: 5,
-                padding: "7px 12px", borderRadius: 20,
-                background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
-                color: "rgba(255,255,255,0.7)", fontSize: 11, fontWeight: 700,
-                cursor: "pointer", whiteSpace: "nowrap",
-              }}
-            >
-              <span>{p.emoji}</span>
-              {t(p.key)}
-            </button>
-          ))}
-        </div>
-      </div>
+      <QuickPrompts locale={locale} onAsk={onAsk} prompts={QUICK_PROMPTS} />
 
       {/* ── Today's Lesson — full-width hero ──────────────────────────────── */}
       <div>
         <SectionHeader emoji="🔥" title={t("librarySectionToday")} />
-        <div style={{
-          borderRadius: 18,
-          overflow: "hidden",
-          border: "1px solid rgba(255,255,255,0.07)",
-          background: "#0d0b0e",
-        }}>
-          {/* Hero visual */}
-          <div style={{
-            height: 160,
-            position: "relative",
-            background: `linear-gradient(135deg, ${goldAlpha(0.22)} 0%, ${redAlpha(0.12)} 60%, transparent 100%), #0d0b0e`,
-            overflow: "hidden",
-          }}>
-            <div style={{
-              position: "absolute", inset: 0,
-              backgroundImage: `repeating-linear-gradient(55deg, rgba(245,196,81,0.06) 0, rgba(245,196,81,0.06) 1px, transparent 0, transparent 22px)`,
-            }} />
-            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 80, background: "linear-gradient(to top, #0d0b0e, transparent)" }} />
-            {/* Day badge */}
-            <div style={{
-              position: "absolute", top: 14, left: 14,
-              fontSize: 9, fontWeight: 900, letterSpacing: 1.5, color: GOLD,
-              background: `${goldAlpha(0.15)}`, border: `1px solid ${goldAlpha(0.3)}`,
-              borderRadius: 20, padding: "4px 10px", textTransform: "uppercase",
-            }}>
-              {todayFocus.day}
-            </div>
-            <span style={{
-              position: "absolute", bottom: 18, left: 16,
-              fontSize: 40, filter: "drop-shadow(0 6px 20px rgba(0,0,0,0.9))",
-            }}>
-              {todayFocus.emoji}
-            </span>
-          </div>
-          {/* Content */}
-          <div style={{ padding: "14px 16px 16px" }}>
-            <p style={{ margin: "0 0 5px", fontSize: 17, fontWeight: 900, color: "#fff", lineHeight: 1.2 }}>
-              {todayFocus.focus}
-            </p>
-            <p style={{ margin: "0 0 12px", fontSize: 12.5, color: "rgba(255,255,255,0.52)", lineHeight: 1.5 }}>
-              {todayFocus.desc}
-            </p>
-            <div style={{ background: blackAlpha(0.35), border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: "10px 12px", marginBottom: 12 }}>
-              <p style={{ margin: "0 0 2px", fontSize: 9, fontWeight: 900, color: GOLD, textTransform: "uppercase", letterSpacing: 1.5 }}>
-                {locale === "mn" ? "Дасгал" : "Drill"}
-              </p>
-              <p style={{ margin: 0, fontSize: 12.5, color: "#fde68a", lineHeight: 1.5 }}>{todayFocus.drill}</p>
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button
-                onClick={() => onAsk(t("libPromptToday"))}
-                style={{
-                  flex: 1, padding: "10px 0", borderRadius: 10,
-                  background: `${goldAlpha(0.12)}`, border: `1px solid ${goldAlpha(0.28)}`,
-                  color: GOLD, fontSize: 12, fontWeight: 800, cursor: "pointer",
-                }}
-              >
-                {locale === "mn" ? "Асуух →" : "Ask Coach →"}
-              </button>
-              <button
-                onClick={() => router.push(`/${locale}/train`)}
-                style={{
-                  flex: 1, padding: "10px 0", borderRadius: 10,
-                  background: `${redAlpha(0.14)}`, border: `1px solid ${redAlpha(0.3)}`,
-                  color: "#ff6b6b", fontSize: 12, fontWeight: 800, cursor: "pointer",
-                }}
-              >
-                {locale === "mn" ? "⚡ Дасгалдах" : "⚡ Train Now"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <TodayLessonHero todayFocus={todayFocus} locale={locale} onAsk={onAsk} />
       </div>
 
       {/* ── Your Path ────────────────────────────────────────────────────── */}
@@ -360,21 +265,11 @@ export default function KnowledgeLibrary({ locale, onAsk }) {
       {/* ── Common Mistakes ───────────────────────────────────────────────── */}
       <div>
         <SectionHeader emoji="⚠️" title={t("librarySectionMistakes")} />
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-          {getCommonMistakes(locale).map((item, i) => (
-            <MistakeRow key={i} item={item} />
-          ))}
-        </div>
-        <button
-          onClick={() => onAsk("What are the most common boxing mistakes beginners make and how do I fix them?")}
-          style={{
-            marginTop: 10, width: "100%", padding: "10px 0", borderRadius: 10,
-            background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
-            color: "rgba(255,255,255,0.45)", fontSize: 12, fontWeight: 700, cursor: "pointer",
-          }}
-        >
-          {locale === "mn" ? "Алдаагаа засах зөвлөгөө авах →" : "Ask coach about my mistakes →"}
-        </button>
+        <CommonMistakesSection
+          locale={locale}
+          mistakes={getCommonMistakes(locale)}
+          onAsk={onAsk}
+        />
       </div>
 
       {/* ── Technique sheet ───────────────────────────────────────────────── */}
