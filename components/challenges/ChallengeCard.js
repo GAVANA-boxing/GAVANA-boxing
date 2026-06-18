@@ -27,11 +27,14 @@ export default function ChallengeCard({ challenge, list, profiles, currentUserId
 
   return (
     <article style={styles.card}>
-      <div style={styles.cardTop}>
-        <div style={styles.cardTitleGroup}>
-          <span style={styles.cardEmoji}>{challenge.emoji}</span>
-          <h2 style={styles.cardTitle}>{t(challenge.titleKey)}</h2>
-          <p style={styles.cardDesc}>{t(challenge.descKey)}</p>
+      {/* ── Card header ── */}
+      <div style={styles.cardHeader}>
+        <div style={styles.cardLeft}>
+          <div style={styles.cardEmojiBadge}>{challenge.emoji}</div>
+          <div style={styles.cardTitleGroup}>
+            <h2 style={styles.cardTitle}>{t(challenge.titleKey)}</h2>
+            <p style={styles.cardDesc}>{t(challenge.descKey)}</p>
+          </div>
         </div>
         <button
           type="button"
@@ -42,17 +45,20 @@ export default function ChallengeCard({ challenge, list, profiles, currentUserId
         </button>
       </div>
 
+      <div style={styles.cardDivider} />
+
+      {/* ── Leaderboard ── */}
       {isEmpty ? (
         <div style={styles.emptyLeaderboard}>
-          <span style={{ fontSize: 12, fontWeight: 700 }}>
+          <span>
             {seasonTab === "week" ? t("seasonNoResultsThisWeek") : t("challengeNoScores")}
           </span>
           <button
             type="button"
-            style={{ padding: "6px 14px", borderRadius: 8, border: "none", background: "rgba(239,68,68,0.15)", color: "rgba(252,165,165,0.9)", fontSize: 11, fontWeight: 900, cursor: "pointer" }}
+            style={{ padding: "5px 12px", borderRadius: 8, border: "none", background: "rgba(239,68,68,0.12)", color: "rgba(252,165,165,0.85)", fontSize: 11, fontWeight: 900, cursor: "pointer", letterSpacing: 0.3 }}
             onClick={() => router.push(`/${locale}/train?challengeId=${challenge.id}`)}
           >
-            {locale === "mn" ? "Эхлэх →" : locale === "ko" ? "시작 →" : "Start →"}
+            {locale === "mn" ? "Эхлэх →" : locale === "ko" ? "시작 →" : "Go first →"}
           </button>
         </div>
       ) : (
@@ -69,29 +75,39 @@ export default function ChallengeCard({ challenge, list, profiles, currentUserId
               : rankLetter === "B" ? PURPLE
               : rankLetter === "C" ? "#34D399"
               : "#888";
+            const isLast = index === list.length - 1;
 
             return (
               <div
                 key={result.id}
                 role="button"
                 tabIndex={0}
-                style={{ ...styles.scoreRow, ...(isCurrentUser ? styles.scoreRowCurrent : {}), cursor: "pointer" }}
+                style={{
+                  ...styles.scoreRow,
+                  ...(isCurrentUser ? styles.scoreRowCurrent : {}),
+                  ...(isLast ? styles.scoreRowLast : {}),
+                  cursor: "pointer",
+                }}
                 onClick={() => !isCurrentUser && router.push(`/${locale}/profile/${result.userId}`)}
                 onKeyDown={(e) => { if (e.key === "Enter" && !isCurrentUser) router.push(`/${locale}/profile/${result.userId}`); }}
               >
                 <span style={index < 3 ? styles.rankMedal : styles.rankNum}>
                   {getRankIcon(index)}
                 </span>
+
                 <span style={styles.fighterCell}>
-                  <span style={styles.avatar}>
+                  <span style={{ ...styles.avatar, ...(isCurrentUser ? styles.avatarCurrent : {}) }}>
                     {profile.photoURL
-                      ? <Image src={profile.photoURL} alt="" width={26} height={26} style={{ borderRadius: "50%", objectFit: "cover" }} />
+                      ? <Image src={profile.photoURL} alt="" width={30} height={30} style={styles.avatarImg} />
                       : initial}
                   </span>
-                  <span style={styles.fighterName}>{displayName}</span>
+                  <span style={{ ...styles.fighterName, ...(isCurrentUser ? styles.fighterNameCurrent : {}) }}>
+                    {displayName}
+                  </span>
                 </span>
+
                 <span style={styles.scoreStack}>
-                  <strong style={{ ...styles.scoreValue, color: isCurrentUser ? GOLD : "#fff" }}>
+                  <strong style={{ ...styles.scoreValue, ...(isCurrentUser ? styles.scoreValueCurrent : {}) }}>
                     {formatScore(result.score)}/10
                   </strong>
                   <span style={{ ...styles.xpValue, color: rankColor }}>

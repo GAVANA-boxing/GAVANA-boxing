@@ -585,18 +585,28 @@ export default function TrainPage() {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    const handleMeta = () => {
-      // iOS encodes portrait video with landscape dimensions + EXIF rotation.
-      // Detect: stream is landscape (width > height) while device is portrait.
-      setVideoNeedsRotation(
-        video.videoWidth > 0 &&
-        video.videoHeight > 0 &&
-        video.videoWidth > video.videoHeight &&
-        window.innerWidth < window.innerHeight
-      );
+
+    const check = () => {
+      if (video.videoWidth > 0 && video.videoHeight > 0) {
+        setVideoNeedsRotation(
+          video.videoWidth > video.videoHeight &&
+          window.innerWidth < window.innerHeight
+        );
+      }
     };
-    video.addEventListener("loadedmetadata", handleMeta);
-    return () => video.removeEventListener("loadedmetadata", handleMeta);
+
+    // Check immediately — srcObject may already be set before this effect runs
+    check();
+    video.addEventListener("loadedmetadata", check);
+    video.addEventListener("loadeddata", check);
+    // Fallback for devices where dimensions arrive late
+    const timer = setTimeout(check, 600);
+
+    return () => {
+      video.removeEventListener("loadedmetadata", check);
+      video.removeEventListener("loadeddata", check);
+      clearTimeout(timer);
+    };
   }, [cameraState]);
 
   if (authLoading) {
@@ -831,8 +841,10 @@ export default function TrainPage() {
                 } : {}),
                 transform: (() => {
                   if (videoNeedsRotation) {
+                    // iOS outputs landscape stream in portrait mode.
+                    // Front camera: counter-clockwise + mirror. Rear: clockwise.
                     return facingMode === "user"
-                      ? "translate(-50%, -50%) rotate(90deg) scaleX(-1)"
+                      ? "translate(-50%, -50%) rotate(-90deg) scaleX(-1)"
                       : "translate(-50%, -50%) rotate(90deg)";
                   }
                   return facingMode === "user" ? "scaleX(-1)" : "none";

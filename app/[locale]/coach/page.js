@@ -1,8 +1,30 @@
 "use client";
 
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, Component } from "react";
 import dynamic from "next/dynamic";
+
+class CoachSectionBoundary extends Component {
+  constructor(props) { super(props); this.state = { failed: false }; }
+  static getDerivedStateFromError() { return { failed: true }; }
+  render() {
+    if (this.state.failed) {
+      return (
+        <div style={{ padding: "24px 16px", textAlign: "center" }}>
+          <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 13, marginBottom: 12 }}>
+            {this.props.fallbackText || "Section unavailable"}
+          </p>
+          <button
+            onClick={() => this.setState({ failed: false })}
+            style={{ padding: "8px 20px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "transparent", color: "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+          >
+            Retry
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 import { usePathname, useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import BottomSheet from "@/components/BottomSheet";
@@ -107,11 +129,17 @@ export default function CoachPage() {
       {/* AI Coach tab */}
       {tab === "ai" && (
         <div style={styles.aiWrap}>
-          <TechniqueQuickAsk locale={locale} router={router} />
+          <CoachSectionBoundary fallbackText="Technique cards unavailable">
+            <TechniqueQuickAsk locale={locale} router={router} />
+          </CoachSectionBoundary>
 
-          <DNACoachingCTA userArchetype={userArchetype} locale={locale} router={router} />
+          <CoachSectionBoundary fallbackText="DNA coaching unavailable">
+            <DNACoachingCTA userArchetype={userArchetype} locale={locale} router={router} />
+          </CoachSectionBoundary>
 
-          <AISparringPartner userArchetype={userArchetype} locale={locale} router={router} />
+          <CoachSectionBoundary fallbackText="Sparring partner unavailable">
+            <AISparringPartner userArchetype={userArchetype} locale={locale} router={router} />
+          </CoachSectionBoundary>
 
           <div style={{ padding: "0 0 12px", textAlign: "center" }}>
             <button
@@ -135,7 +163,9 @@ export default function CoachPage() {
               💬 {t("coachOpenFullChat")}
             </button>
           </div>
-          <AICoach />
+          <CoachSectionBoundary fallbackText="AI Coach chat unavailable — tap retry">
+            <AICoach />
+          </CoachSectionBoundary>
           <div style={{ paddingBottom: "calc(80px + env(safe-area-inset-bottom))" }} />
         </div>
       )}

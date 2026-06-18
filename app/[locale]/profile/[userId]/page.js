@@ -427,7 +427,7 @@ export default function UserProfilePage() {
         padding: 0,
         display: "grid",
         gridTemplateColumns: "repeat(3, 1fr)",
-        gap: 2,
+        gap: 1,
         width: "100%"
       }}>
         <ProfileReelsGrid
