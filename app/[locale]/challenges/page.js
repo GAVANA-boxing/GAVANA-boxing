@@ -172,7 +172,7 @@ export default function ChallengesPage() {
               seasonTab={seasonTab}
               onTabChange={setSeasonTab}
               countdown={countdown}
-              labels={{ currentWeek: t("seasonCurrentWeek"), allTime: t("seasonAllTime") }}
+              labels={{ currentWeek: t("seasonCurrentWeek"), allTime: t("seasonAllTime"), seasonEnds: t("challengeSeasonEnds") }}
             />
 
             {seasonTab === "week" && (

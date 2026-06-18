@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useRef, useState } from "react";
 import ReelItem from "@/components/reels/ReelItem";
 import { getCreatorName, cleanCaption } from "@/lib/reelHelpers";
 import { loc } from "@/lib/loc";
@@ -122,6 +123,25 @@ export default function FeedScrollContainer({
   onVideoError,
   setVideoProgress,
 }) {
+  const lastTapRef = useRef({});
+  const [punchBursts, setPunchBursts] = useState([]);
+
+  const handleCardTap = useCallback((e, reelId) => {
+    const now = Date.now();
+    const last = lastTapRef.current[reelId] || 0;
+    if (now - last < 320) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clientX = e.touches?.[0]?.clientX ?? e.clientX;
+      const clientY = e.touches?.[0]?.clientY ?? e.clientY;
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+      const id = now;
+      setPunchBursts((prev) => [...prev, { id, reelId, x, y }]);
+      setTimeout(() => setPunchBursts((prev) => prev.filter((b) => b.id !== id)), 750);
+    }
+    lastTapRef.current[reelId] = now;
+  }, []);
+
   return (
     <div
       ref={containerRef}
@@ -151,6 +171,8 @@ export default function FeedScrollContainer({
             return myStyleKeywords.some((kw) => text.includes(kw));
           })();
 
+        const cardBursts = punchBursts.filter((b) => b.reelId === reel.id);
+
         return (
           <div
             key={reel.id}
@@ -164,10 +186,30 @@ export default function FeedScrollContainer({
                 cardRefs.current.delete(index);
               }
             }}
+            onClick={(e) => handleCardTap(e, reel.id)}
+            onTouchEnd={(e) => handleCardTap(e, reel.id)}
           >
             {showDnaBadge && (
               <DnaMatchBadge locale={locale} userArchetype={userArchetype} />
             )}
+            {cardBursts.map((b) => (
+              <span
+                key={b.id}
+                className="punch-burst"
+                style={{
+                  position: "absolute",
+                  left: b.x,
+                  top: b.y,
+                  zIndex: 60,
+                  fontSize: 72,
+                  lineHeight: 1,
+                  pointerEvents: "none",
+                  userSelect: "none",
+                }}
+              >
+                🥊
+              </span>
+            ))}
             <ReelItem
               reel={reel}
               index={index}

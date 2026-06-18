@@ -491,6 +491,14 @@ p {
 .fire-spark-4 { animation: sparkFly4 650ms ease-out 140ms forwards; }
 .fire-spark-5 { animation: sparkFly5 650ms ease-out 160ms forwards; }
 
+@keyframes punchBurst {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.4) rotate(-15deg); }
+  22%  { opacity: 1; transform: translate(-50%, -50%) scale(1.5) rotate(8deg); }
+  60%  { opacity: 0.85; transform: translate(-50%, -65%) scale(1.1) rotate(4deg); }
+  100% { opacity: 0; transform: translate(-50%, -120%) scale(0.7) rotate(-5deg); }
+}
+.punch-burst { animation: punchBurst 680ms cubic-bezier(0.16,1,0.3,1) forwards; pointer-events: none; }
+
 .reels-feed {
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
