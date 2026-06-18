@@ -2,18 +2,30 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { collection, getDocs, getDoc, doc, query, where, Timestamp } from "firebase/firestore";
+import { collection, getDocs, getDoc, doc, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale, translate } from "@/lib/i18n";
 import BottomNav from "@/components/BottomNav";
-import EmptyState from "@/components/EmptyState";
 import SkeletonBlock from "@/components/SkeletonBlock";
-import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/creator/creatorDashboardStyles";
-import { formatCompact } from "@/lib/utils";
-import { cleanCaption } from "@/lib/reelHelpers";
-import SubscriptionTiers from "@/components/creator/SubscriptionTiers";
+import CreatorOverviewTab from "@/components/creator/CreatorOverviewTab";
+import CreatorReelsTab from "@/components/creator/CreatorReelsTab";
+import CreatorAudienceTab from "@/components/creator/CreatorAudienceTab";
+import CreatorMonetizeTab from "@/components/creator/CreatorMonetizeTab";
+
+const DAY_LABELS = {
+  mn: ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"],
+  ko: ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"],
+  en: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+};
+
+const TABS = [
+  { key: "overview",  labelKey: "creatorOverviewTab" },
+  { key: "reels",     labelKey: "creatorReelsTab" },
+  { key: "audience",  labelKey: "creatorAudienceTab" },
+  { key: "monetize",  labelKey: "creatorMonetizeTab" },
+];
 
 function getCreatedAtMs(obj) {
   const ts = obj?.createdAt;
@@ -23,62 +35,6 @@ function getCreatedAtMs(obj) {
   return Number(ts) || 0;
 }
 
-
-function StatCard({ label, value, color = GOLD, icon }) {
-  return (
-    <div style={styles.statCard}>
-      <span style={styles.statIcon}>{icon}</span>
-      <span style={{ ...styles.statValue, color }}>{formatCompact(value)}</span>
-      <span style={styles.statLabel}>{label}</span>
-    </div>
-  );
-}
-
-
-function ReelRow({ reel, stats, rank, maxViews, t, locale, router }) {
-  const [mediaErr, setMediaErr] = useState(false);
-  const src = reel.thumbnailUrl || reel.thumbnail || reel.videoUrl || "";
-  const views = stats?.views || reel.views || 0;
-  const likes = stats?.likes || reel.likes || 0;
-  const attempts = stats?.challengeAttempts || 0;
-  const engRate = views > 0 ? ((likes + attempts) / views * 100).toFixed(1) : "0.0";
-  const barPct = maxViews > 0 ? Math.min(100, Math.max(4, Math.round((views / maxViews) * 100))) : 4;
-  const typeEmoji = reel.contentType === "educational" ? "📚" : reel.contentType === "lifestyle" ? "🎬" : "🥊";
-  const typeColor = reel.contentType === "educational" ? GOLD : reel.contentType === "lifestyle" ? "#60A5FA" : RED;
-  const dateStr = reel.createdAt?.toDate ? reel.createdAt.toDate().toLocaleDateString() : "";
-
-  return (
-    <div style={styles.reelRow} onClick={() => router.push(`/${locale}/reels?reelId=${reel.id}`)}>
-      <div style={styles.reelThumb}>
-        {src && !mediaErr ? (
-          <video src={src} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 8, display: "block" }} preload="none" muted playsInline onError={() => setMediaErr(true)} />
-        ) : (
-          <div style={{ width: "100%", height: "100%", borderRadius: 8, background: typeColor + "22", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>{typeEmoji}</div>
-        )}
-      </div>
-      <div style={styles.reelRank}>#{rank}</div>
-      <div style={styles.reelInfo}>
-        <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 2 }}>
-          <span style={{ fontSize: 10, color: typeColor, fontWeight: 900 }}>{typeEmoji}</span>
-          <span style={styles.reelCaption} title={reel.description || reel.caption || ""}>
-            {cleanCaption(reel.description || reel.caption || "").slice(0, 46) || t("trainingReel")}
-          </span>
-        </div>
-        <div style={styles.reelBar}>
-          <div style={{ ...styles.reelBarFill, width: `${barPct}%` }} />
-        </div>
-        <div style={styles.reelMeta}>
-          <span>👁 {formatCompact(views)}</span>
-          <span>❤ {formatCompact(likes)}</span>
-          {attempts > 0 && <span>🥊 {formatCompact(attempts)}</span>}
-          <span style={{ marginLeft: "auto", color: Number(engRate) >= 5 ? "#34D399" : Number(engRate) >= 2 ? GOLD : "#888" }}>{engRate}%</span>
-        </div>
-        {dateStr && <div style={{ fontSize: 10, color: "#444" }}>{dateStr}</div>}
-      </div>
-    </div>
-  );
-}
-
 export default function CreatorDashboard() {
   const params = useParams();
   const router = useRouter();
@@ -86,11 +42,11 @@ export default function CreatorDashboard() {
   const locale = getLocale(params?.locale);
   const t = (key) => translate(locale, key);
 
-  const [activeTab, setActiveTab] = useState("overview"); // overview | reels | audience | monetize
+  const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
   const [reels, setReels] = useState([]);
-  const [reelStats, setReelStats] = useState({});       // reelId → stats doc
-  const [challengeAttempts, setChallengeAttempts] = useState([]); // all attempts on creator's reels
+  const [reelStats, setReelStats] = useState({});
+  const [challengeAttempts, setChallengeAttempts] = useState([]);
   const [followerCount, setFollowerCount] = useState(0);
   const [newFollowersThisWeek, setNewFollowersThisWeek] = useState(0);
   const [isFeatured, setIsFeatured] = useState(false);
@@ -124,7 +80,7 @@ export default function CreatorDashboard() {
         if (!active) return;
         setReelStats(statsMap);
 
-        // 3. Load challenge attempts for creator's reels (Firestore `in` limit = 30)
+        // 3. Load challenge attempts (Firestore `in` limit = 30)
         const attemptsAll = [];
         if (reelIds.length > 0) {
           const chunks = [];
@@ -142,14 +98,11 @@ export default function CreatorDashboard() {
         if (!active) return;
         const weekAgo = Date.now() - 7 * 24 * 3600 * 1000;
         let weekNew = 0;
-        followSnap.forEach((d) => {
-          const ts = getCreatedAtMs(d.data());
-          if (ts >= weekAgo) weekNew += 1;
-        });
+        followSnap.forEach((d) => { if (getCreatedAtMs(d.data()) >= weekAgo) weekNew += 1; });
         setFollowerCount(followSnap.size);
         setNewFollowersThisWeek(weekNew);
 
-        // 5. Check whether this creator is currently featured — single-field + JS filter
+        // 5. Check whether this creator is currently featured
         const featuredSnap = await getDocs(query(
           collection(db, "featured_creators"),
           where("userId", "==", user.uid)
@@ -163,6 +116,7 @@ export default function CreatorDashboard() {
         });
         setIsFeatured(isCurrentlyFeatured);
       } catch (err) {
+        // silent — UI handles empty states
       } finally {
         if (active) setLoading(false);
       }
@@ -172,13 +126,9 @@ export default function CreatorDashboard() {
     return () => { active = false; };
   }, [authLoading, user?.uid]);
 
-  // Best post day analysis — must be before any early return (Rules of Hooks)
+  // Best post day analysis — must stay above early return (Rules of Hooks)
   const bestPostDay = useMemo(() => {
-    const dayLabels = locale === "mn"
-      ? ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"]
-      : locale === "ko"
-      ? ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]
-      : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const labels = DAY_LABELS[locale] ?? DAY_LABELS.en;
     const byDay = {};
     reels.forEach((r) => {
       if (!r.createdAt?.toDate) return;
@@ -190,7 +140,7 @@ export default function CreatorDashboard() {
     });
     return Object.entries(byDay).reduce((best, [day, data]) => {
       const avg = data.count > 0 ? data.views / data.count : 0;
-      return avg > (best?.avg || 0) ? { day: dayLabels[Number(day)], avg: Math.round(avg) } : best;
+      return avg > (best?.avg || 0) ? { day: labels[Number(day)], avg: Math.round(avg) } : best;
     }, null);
   }, [reels, reelStats, locale]);
 
@@ -198,7 +148,7 @@ export default function CreatorDashboard() {
     return <div style={styles.page}><div style={styles.loadingText}>...</div></div>;
   }
 
-  // Derived stats
+  // ── Derived stats ──────────────────────────────────────────────────────────
   const totalViews = reels.reduce((s, r) => s + (reelStats[r.id]?.views || r.views || 0), 0);
   const totalLikes = reels.reduce((s, r) => s + (reelStats[r.id]?.likes || r.likes || 0), 0);
   const externalAttempts = challengeAttempts.filter((a) => a.userId !== user?.uid);
@@ -234,16 +184,22 @@ export default function CreatorDashboard() {
     ? t("creatorTipLowEngagement")
     : t("creatorTipGood");
 
-  // Top reel by views
-  const reelsByViews = [...reels].sort((a, b) => (reelStats[b.id]?.views || b.views || 0) - (reelStats[a.id]?.views || a.views || 0));
-  const maxViews = reelsByViews.length > 0 ? (reelStats[reelsByViews[0].id]?.views || reelsByViews[0].views || 1) : 1;
-  // Most challenged reel
+  // Reels sorted by views + most challenged reel
+  const reelsByViews = [...reels].sort((a, b) =>
+    (reelStats[b.id]?.views || b.views || 0) - (reelStats[a.id]?.views || a.views || 0)
+  );
+  const maxViews = reelsByViews.length > 0
+    ? (reelStats[reelsByViews[0].id]?.views || reelsByViews[0].views || 1)
+    : 1;
+
   const attemptsByReel = {};
   externalAttempts.forEach((a) => { attemptsByReel[a.reelId] = (attemptsByReel[a.reelId] || 0) + 1; });
   const reelsByAttempts = [...reels].sort((a, b) => (attemptsByReel[b.id] || 0) - (attemptsByReel[a.id] || 0));
-  const mostChallengedReel = reelsByAttempts[0] && attemptsByReel[reelsByAttempts[0].id] > 0 ? reelsByAttempts[0] : null;
+  const mostChallengedReel = reelsByAttempts[0] && attemptsByReel[reelsByAttempts[0].id] > 0
+    ? reelsByAttempts[0]
+    : null;
 
-  // Score distribution across all external attempts
+  // Score distribution
   const scoreDistrib = externalAttempts.reduce((acc, a) => {
     const s = Number(a.score) || 0;
     if (s >= 8) acc.excellent += 1;
@@ -258,7 +214,7 @@ export default function CreatorDashboard() {
       <header style={styles.header}>
         <button type="button" style={styles.backBtn} onClick={() => router.back()} aria-label="Back">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
         <div>
@@ -270,21 +226,16 @@ export default function CreatorDashboard() {
         )}
       </header>
 
-      {/* ── Tab bar ── */}
+      {/* Tab bar */}
       <div style={styles.tabBar}>
-        {[
-          { key: "overview",  label: t("creatorOverviewTab") },
-          { key: "reels",     label: t("creatorReelsTab") },
-          { key: "audience",  label: t("creatorAudienceTab") },
-          { key: "monetize",  label: t("creatorMonetizeTab") },
-        ].map(({ key, label }) => (
+        {TABS.map(({ key, labelKey }) => (
           <button
             key={key}
             type="button"
             style={activeTab === key ? styles.tabActive : styles.tabInactive}
             onClick={() => setActiveTab(key)}
           >
-            {label}
+            {t(labelKey)}
           </button>
         ))}
       </div>
@@ -300,203 +251,57 @@ export default function CreatorDashboard() {
         </div>
       ) : (
         <div style={styles.content}>
+          {activeTab === "overview" && (
+            <CreatorOverviewTab
+              t={t}
+              locale={locale}
+              router={router}
+              totalViews={totalViews}
+              totalLikes={totalLikes}
+              followerCount={followerCount}
+              externalAttemptsCount={externalAttempts.length}
+              newFollowersThisWeek={newFollowersThisWeek}
+              engagementRate={engagementRate}
+              attemptsThisWeek={attemptsThisWeek}
+              uniqueStudents={uniqueStudents}
+              bestPostDay={bestPostDay}
+              growthTip={growthTip}
+              mostChallengedReel={mostChallengedReel}
+              attemptsByReel={attemptsByReel}
+              avgScore={avgScore}
+            />
+          )}
 
-          {/* ══ OVERVIEW TAB ══ */}
-          {activeTab === "overview" && (<>
-            <div style={styles.statsGrid}>
-              <StatCard label={t("creatorTotalViews")} value={totalViews} icon="👁" color="#60A5FA" />
-              <StatCard label={t("creatorTotalLikes")} value={totalLikes} icon="❤" color="#F87171" />
-              <StatCard label={t("creatorFollowers")} value={followerCount} icon="👥" color={GOLD} />
-              <StatCard label={t("creatorChallengeAttempts")} value={externalAttempts.length} icon="🥊" color="#34D399" />
-            </div>
+          {activeTab === "reels" && (
+            <CreatorReelsTab
+              t={t}
+              locale={locale}
+              router={router}
+              reelsByViews={reelsByViews}
+              reelStats={reelStats}
+              maxViews={maxViews}
+            />
+          )}
 
-            <div style={styles.growthRow}>
-              <div style={styles.growthItem}>
-                <span style={styles.growthNum}>+{newFollowersThisWeek}</span>
-                <span style={styles.growthLbl}>{t("creatorNewFollowers")}</span>
-              </div>
-              <div style={styles.growthItem}>
-                <span style={{ ...styles.growthNum, color: Number(engagementRate) >= 5 ? "#34D399" : Number(engagementRate) >= 2 ? GOLD : "#F87171" }}>
-                  {engagementRate}%
-                </span>
-                <span style={styles.growthLbl}>{t("creatorEngagementRate")}</span>
-              </div>
-              <div style={styles.growthItem}>
-                <span style={{ ...styles.growthNum, color: "#60A5FA" }}>+{attemptsThisWeek}</span>
-                <span style={styles.growthLbl}>{t("creatorAttemptsWeek")}</span>
-              </div>
-              {uniqueStudents > 0 && (
-                <div style={styles.growthItem}>
-                  <span style={styles.growthNum}>{uniqueStudents}</span>
-                  <span style={styles.growthLbl}>{t("creatorTotalStudents")}</span>
-                </div>
-              )}
-            </div>
+          {activeTab === "audience" && (
+            <CreatorAudienceTab
+              t={t}
+              followerCount={followerCount}
+              newFollowersThisWeek={newFollowersThisWeek}
+              avgScore={avgScore}
+              bestScore={bestScore}
+              hasReels={reels.length > 0}
+              ctCounts={ctCounts}
+              ctTotal={ctTotal}
+              hasExternalAttempts={externalAttempts.length > 0}
+              scoreDistrib={scoreDistrib}
+              distribTotal={distribTotal}
+            />
+          )}
 
-            {bestPostDay && (
-              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 14, background: "rgba(96,165,250,0.08)", border: "1px solid rgba(96,165,250,0.18)", borderLeft: "3px solid #60A5FA" }}>
-                <span style={{ fontSize: 20 }}>📅</span>
-                <div>
-                  <p style={{ margin: 0, fontSize: 13, fontWeight: 900, color: "#fff" }}>
-                    {t("creatorBestPostDay")} <span style={{ color: "#60A5FA" }}>{bestPostDay.day}</span>
-                  </p>
-                  <p style={{ margin: 0, fontSize: 11, color: "#888" }}>
-                    {locale === "mn" ? `Дундажаар ${formatCompact(bestPostDay.avg)} үзэлт` : locale === "ko" ? `평균 ${formatCompact(bestPostDay.avg)} 조회수` : `~${formatCompact(bestPostDay.avg)} avg views`}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            <div style={styles.tip}>
-              <span style={styles.tipIcon}>💡</span>
-              <span style={styles.tipText}>{growthTip}</span>
-            </div>
-
-            {mostChallengedReel && (
-              <section style={styles.section}>
-                <h2 style={styles.sectionTitle}>🔥 {t("creatorMostChallenged")}</h2>
-                <div
-                  style={{ background: "#141416", border: `1px solid ${redAlpha(0.2)}`, borderLeft: "3px solid #FF3B30", borderRadius: "3px 14px 14px 3px", padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}
-                  onClick={() => router.push(`/${locale}/reels?reelId=${mostChallengedReel.id}`)}
-                >
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", marginBottom: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {cleanCaption(mostChallengedReel.description || mostChallengedReel.caption || "") || t("trainingReel")}
-                    </div>
-                    <div style={{ fontSize: 11, color: "#888" }}>
-                      🥊 {attemptsByReel[mostChallengedReel.id]} {locale === "mn" ? "оролдлого" : locale === "ko" ? "도전" : "challenges"}
-                      {avgScore && <span style={{ marginLeft: 10, color: GOLD }}>⭐ avg {avgScore}/10</span>}
-                    </div>
-                  </div>
-                  <span style={{ color: RED, fontSize: 18, flexShrink: 0 }}>→</span>
-                </div>
-              </section>
-            )}
-
-            <button type="button" style={styles.uploadBtn} onClick={() => router.push(`/${locale}/upload`)}>
-              + {t("creatorUploadNew")}
-            </button>
-          </>)}
-
-          {/* ══ REELS TAB ══ */}
-          {activeTab === "reels" && (<>
-            {reels.length === 0 ? (
-              <EmptyState
-                title={t("creatorNoReels")}
-                action={
-                  <button type="button" style={styles.uploadBtn} onClick={() => router.push(`/${locale}/upload`)}>
-                    {t("creatorGoUpload")}
-                  </button>
-                }
-              />
-            ) : (<>
-              <section style={styles.section}>
-                <h2 style={styles.sectionTitle}>📈 {t("creatorPerformance")} · {reels.length} reels</h2>
-                <div style={styles.reelList}>
-                  {reelsByViews.map((reel, i) => (
-                    <ReelRow key={reel.id} reel={reel} stats={reelStats[reel.id]} rank={i + 1} maxViews={maxViews} t={t} locale={locale} router={router} />
-                  ))}
-                </div>
-              </section>
-              <button type="button" style={styles.uploadBtn} onClick={() => router.push(`/${locale}/upload`)}>
-                + {t("creatorUploadNew")}
-              </button>
-            </>)}
-          </>)}
-
-          {/* ══ AUDIENCE TAB ══ */}
-          {activeTab === "audience" && (<>
-            <div style={styles.statsGrid}>
-              <StatCard label={t("creatorFollowers")} value={followerCount} icon="👥" color={GOLD} />
-              <StatCard label={t("creatorNewFollowers")} value={newFollowersThisWeek} icon="📈" color="#34D399" />
-              {avgScore != null && <StatCard label={t("creatorAvgScore")} value={avgScore} icon="⭐" color={GOLD} />}
-              {bestScore != null && <StatCard label={t("creatorBestScore")} value={bestScore} icon="🏆" color="#60A5FA" />}
-            </div>
-
-            {reels.length > 0 && (
-              <section style={styles.section}>
-                <h2 style={styles.sectionTitle}>📊 {t("creatorContentBreakdown")}</h2>
-                <div style={styles.breakdown}>
-                  {[
-                    { key: "training", label: "🥊 Training", color: "#F87171" },
-                    { key: "lifestyle", label: "🎬 Lifestyle", color: "#60A5FA" },
-                    { key: "educational", label: "📚 Educational", color: GOLD },
-                  ].map(({ key, label, color }) => {
-                    const count = ctCounts[key] || 0;
-                    const pct = Math.round((count / ctTotal) * 100);
-                    return count > 0 ? (
-                      <div key={key} style={styles.breakdownRow}>
-                        <span style={{ ...styles.breakdownLabel, color }}>{label}</span>
-                        <div style={styles.breakdownBar}>
-                          <div style={{ ...styles.breakdownFill, width: `${pct}%`, background: color }} />
-                        </div>
-                        <span style={styles.breakdownCount}>{count}</span>
-                      </div>
-                    ) : null;
-                  })}
-                </div>
-              </section>
-            )}
-
-            {externalAttempts.length > 0 && (
-              <section style={styles.section}>
-                <h2 style={styles.sectionTitle}>🎯 {t("creatorScoreDistrib")}</h2>
-                <div style={{ background: "#141416", border: "1px solid rgba(255,255,255,0.06)", borderLeft: "2.5px solid #F5C451", borderRadius: "3px 14px 14px 3px", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
-                  {[
-                    { key: "excellent", label: t("creatorScoreExcellent"), count: scoreDistrib.excellent, color: "#34D399" },
-                    { key: "good",      label: t("creatorScoreGood"),      count: scoreDistrib.good,      color: GOLD },
-                    { key: "poor",      label: t("creatorScorePoor"),      count: scoreDistrib.poor,      color: "#F87171" },
-                  ].map(({ key, label, count, color }) => (
-                    <div key={key} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color, width: 140, flexShrink: 0 }}>{label}</span>
-                      <div style={{ flex: 1, height: 6, borderRadius: 999, background: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
-                        <div style={{ height: "100%", borderRadius: 999, background: color, width: `${Math.round((count / distribTotal) * 100)}%`, transition: "width 0.5s ease" }} />
-                      </div>
-                      <span style={{ fontSize: 12, fontWeight: 900, color, width: 24, textAlign: "right", flexShrink: 0 }}>{count}</span>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {externalAttempts.length === 0 && followerCount === 0 && (
-              <EmptyState emoji="👥" title={t("creatorNoAudience")} />
-            )}
-          </>)}
-
-          {/* ══ MONETIZE TAB ══ */}
-          {activeTab === "monetize" && (<>
-            <section style={styles.section}>
-              <h2 style={styles.sectionTitle}>💰 {t("creatorMonetizeTitle")}</h2>
-              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: "0 0 16px 0", lineHeight: 1.5 }}>
-                {t("creatorMonetizeSub")}
-              </p>
-              <SubscriptionTiers t={t} locale={locale} />
-            </section>
-
-            <section style={styles.section}>
-              <h2 style={styles.sectionTitle}>🎁 {t("creatorTipsTitle")}</h2>
-              <div style={{ padding: "14px 16px", borderRadius: 14, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>{t("creatorTipsEnable")}</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{t("creatorTipsSub")}</div>
-                </div>
-                <span style={{
-                  padding: "6px 12px",
-                  borderRadius: 10,
-                  border: "1px solid rgba(245,196,81,0.2)",
-                  color: "rgba(245,196,81,0.5)",
-                  fontSize: 10,
-                  fontWeight: 900,
-                  letterSpacing: 1.5,
-                  fontFamily: "var(--font-condensed)",
-                }}>
-                  COMING SOON
-                </span>
-              </div>
-            </section>
-          </>)}
-
+          {activeTab === "monetize" && (
+            <CreatorMonetizeTab t={t} locale={locale} />
+          )}
         </div>
       )}
 
@@ -504,4 +309,3 @@ export default function CreatorDashboard() {
     </div>
   );
 }
-

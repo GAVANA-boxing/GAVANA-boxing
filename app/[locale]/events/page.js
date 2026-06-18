@@ -18,53 +18,17 @@ import {
   where,
 } from "firebase/firestore";
 import BottomNav from "@/components/BottomNav";
-import EmptyState from "@/components/EmptyState";
-import SkeletonBlock from "@/components/SkeletonBlock";
 import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
-import { RED, GOLD, PURPLE, redAlpha, goldAlpha } from "@/lib/tokens";
 import s from "@/components/events/eventsStyles";
 
-const EVENT_TYPES = ["boxing", "mma", "muay_thai", "sparring", "tournament", "seminar"];
-
-const TYPE_META = {
-  boxing:     { mn: "Бокс",     ko: "복싱",    en: "Boxing",      color: RED, emoji: "🥊" },
-  mma:        { mn: "MMA",      ko: "MMA",     en: "MMA",         color: PURPLE, emoji: "⚔️" },
-  muay_thai:  { mn: "Муай Тай", ko: "무에타이", en: "Muay Thai",   color: "#F97316", emoji: "🦵" },
-  sparring:   { mn: "Спарринг", ko: "스파링",   en: "Sparring",    color: "#34D399", emoji: "🤜" },
-  tournament: { mn: "Тэмцээн",  ko: "토너먼트", en: "Tournament",  color: GOLD, emoji: "🏆" },
-  seminar:    { mn: "Семинар",   ko: "세미나",   en: "Seminar",    color: "#60A5FA", emoji: "📚" },
-};
-
-function getTypeLabel(type, locale) {
-  const meta = TYPE_META[type];
-  if (!meta) return type;
-  return meta[locale] || meta.en;
-}
-
-function formatEventDate(dateStr, locale) {
-  if (!dateStr) return "";
-  const d = new Date(dateStr);
-  if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleDateString(
-    locale === "mn" ? "mn-MN" : locale === "ko" ? "ko-KR" : "en-US",
-    { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" }
-  );
-}
-
-function isUpcoming(event) {
-  if (!event.date) return false;
-  return new Date(event.date) >= new Date();
-}
-
-function isLive(event) {
-  if (!event.date) return false;
-  const now = Date.now();
-  const start = new Date(event.date).getTime();
-  const end = start + (event.durationMinutes || 120) * 60 * 1000;
-  return now >= start && now <= end;
-}
+import EventsPageHeader from "@/components/events/EventsPageHeader";
+import DNAMatchBanner   from "@/components/events/DNAMatchBanner";
+import CreateEventForm  from "@/components/events/CreateEventForm";
+import EventsTabs       from "@/components/events/EventsTabs";
+import EventTypeFilter  from "@/components/events/EventTypeFilter";
+import EventsList       from "@/components/events/EventsList";
 
 export default function EventsPage() {
   const pathname = usePathname();
@@ -73,30 +37,35 @@ export default function EventsPage() {
   const { user, loading: authLoading } = useAuth();
   const t = (key) => translate(locale, key);
 
-  const [events, setEvents] = useState([]);
-  const [myRsvpIds, setMyRsvpIds] = useState(new Set());
-  const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState("upcoming"); // upcoming | all | mine
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [rsvping, setRsvping] = useState(null);
+  // ── Data state ─────────────────────────────────────────────────────────────
+  const [events, setEvents]         = useState([]);
+  const [myRsvpIds, setMyRsvpIds]   = useState(new Set());
+  const [loading, setLoading]       = useState(true);
   const [userArchetype, setUserArchetype] = useState(null);
 
-  // Create form
+  // ── UI state ───────────────────────────────────────────────────────────────
+  const [tab, setTab]               = useState("upcoming"); // upcoming | all | mine
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [rsvping, setRsvping]       = useState(null);
+
+  // ── Create form state ──────────────────────────────────────────────────────
   const [showCreate, setShowCreate] = useState(false);
-  const [cfTitle, setCfTitle] = useState("");
-  const [cfDesc, setCfDesc] = useState("");
-  const [cfType, setCfType] = useState("boxing");
-  const [cfDate, setCfDate] = useState("");
+  const [cfTitle, setCfTitle]       = useState("");
+  const [cfDesc, setCfDesc]         = useState("");
+  const [cfType, setCfType]         = useState("boxing");
+  const [cfDate, setCfDate]         = useState("");
   const [cfLocation, setCfLocation] = useState("");
-  const [cfCity, setCfCity] = useState("");
-  const [cfMax, setCfMax] = useState("");
-  const [creating, setCreating] = useState(false);
+  const [cfCity, setCfCity]         = useState("");
+  const [cfMax, setCfMax]           = useState("");
+  const [creating, setCreating]     = useState(false);
   const [createError, setCreateError] = useState("");
 
+  // ── Auth redirect ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (!authLoading && !user) router.push(`/${locale}/login`);
   }, [authLoading, user, router, locale]);
 
+  // ── Load events + RSVPs ────────────────────────────────────────────────────
   useEffect(() => {
     if (!user?.uid) return;
     let active = true;
@@ -107,11 +76,10 @@ export default function EventsPage() {
           getDocs(query(collection(db, "event_rsvps"), where("userId", "==", user.uid))),
         ]);
         if (!active) return;
-        const evs = eventsSnap.docs
-          .map((d) => ({ id: d.id, ...d.data() }));
-        setEvents(evs);
+        setEvents(eventsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
         setMyRsvpIds(new Set(rsvpSnap.docs.map((d) => d.data().eventId)));
       } catch (e) {
+        // silent
       } finally {
         if (active) setLoading(false);
       }
@@ -120,13 +88,14 @@ export default function EventsPage() {
     return () => { active = false; };
   }, [user?.uid]);
 
+  // ── Load fighter DNA archetype ─────────────────────────────────────────────
   useEffect(() => {
     if (!user?.uid) return;
     let active = true;
     (async () => {
       try {
-        const { getDoc, doc } = await import("firebase/firestore");
-        const snap = await getDoc(doc(db, "users", user.uid));
+        const { getDoc, doc: fsDoc } = await import("firebase/firestore");
+        const snap = await getDoc(fsDoc(db, "users", user.uid));
         if (active && snap.exists()) {
           const arch = snap.data()?.fighterDNA?.archetypeKey;
           if (arch) setUserArchetype(arch);
@@ -136,6 +105,7 @@ export default function EventsPage() {
     return () => { active = false; };
   }, [user?.uid]);
 
+  // ── RSVP handler ──────────────────────────────────────────────────────────
   const handleRsvp = async (event) => {
     if (!user || rsvping) return;
     setRsvping(event.id);
@@ -146,7 +116,9 @@ export default function EventsPage() {
         await deleteDoc(doc(db, "event_rsvps", rsvpDocId));
         await updateDoc(doc(db, "events", event.id), { participantCount: increment(-1) });
         setMyRsvpIds((prev) => { const next = new Set(prev); next.delete(event.id); return next; });
-        setEvents((prev) => prev.map((e) => e.id === event.id ? { ...e, participantCount: Math.max(0, (e.participantCount || 1) - 1) } : e));
+        setEvents((prev) => prev.map((e) =>
+          e.id === event.id ? { ...e, participantCount: Math.max(0, (e.participantCount || 1) - 1) } : e
+        ));
       } else {
         await setDoc(doc(db, "event_rsvps", rsvpDocId), {
           eventId: event.id,
@@ -155,7 +127,9 @@ export default function EventsPage() {
         });
         await updateDoc(doc(db, "events", event.id), { participantCount: increment(1) });
         setMyRsvpIds((prev) => new Set([...prev, event.id]));
-        setEvents((prev) => prev.map((e) => e.id === event.id ? { ...e, participantCount: (e.participantCount || 0) + 1 } : e));
+        setEvents((prev) => prev.map((e) =>
+          e.id === event.id ? { ...e, participantCount: (e.participantCount || 0) + 1 } : e
+        ));
         // Notify organizer if different user
         if (event.organizerId && event.organizerId !== user.uid) {
           await addDoc(collection(db, "notifications"), {
@@ -166,7 +140,11 @@ export default function EventsPage() {
             fromUsername: user.displayName || user.email?.split("@")[0] || "Fighter",
             fromUserPhotoURL: user.photoURL || "",
             type: "event_rsvp",
-            message: `${user.displayName || "Fighter"} ${locale === "mn" ? "таны event-д RSVP хийлээ" : locale === "ko" ? "님이 이벤트에 참가 신청했습니다" : "RSVP'd to your event"}: ${event.title}`,
+            message: `${user.displayName || "Fighter"} ${
+              locale === "mn" ? "таны event-д RSVP хийлээ"
+              : locale === "ko" ? "님이 이벤트에 참가 신청했습니다"
+              : "RSVP'd to your event"
+            }: ${event.title}`,
             eventId: event.id,
             read: false,
             createdAt: serverTimestamp(),
@@ -174,11 +152,13 @@ export default function EventsPage() {
         }
       }
     } catch (e) {
+      // silent
     } finally {
       setRsvping(null);
     }
   };
 
+  // ── Create event handler ───────────────────────────────────────────────────
   const handleCreate = async () => {
     if (!cfTitle.trim() || !cfDate) { setCreateError(t("eventErrorRequired")); return; }
     setCreating(true);
@@ -210,8 +190,11 @@ export default function EventsPage() {
         organizerName: user.displayName || user.email?.split("@")[0] || "Organizer",
         participantCount: 0,
       };
-      setEvents((prev) => [newEvent, ...prev].sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0)));
-      setCfTitle(""); setCfDesc(""); setCfType("boxing"); setCfDate(""); setCfLocation(""); setCfCity(""); setCfMax("");
+      setEvents((prev) =>
+        [newEvent, ...prev].sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0))
+      );
+      setCfTitle(""); setCfDesc(""); setCfType("boxing");
+      setCfDate(""); setCfLocation(""); setCfCity(""); setCfMax("");
       setShowCreate(false);
     } catch (e) {
       setCreateError(t("eventErrorGeneric"));
@@ -220,257 +203,107 @@ export default function EventsPage() {
     }
   };
 
+  // ── Derived filtered list ──────────────────────────────────────────────────
   const filteredEvents = events.filter((e) => {
     if (typeFilter !== "all" && e.eventType !== typeFilter) return false;
-    if (tab === "upcoming") return isUpcoming(e);
+    if (tab === "upcoming") return new Date(e.date) >= new Date();
     if (tab === "mine") return myRsvpIds.has(e.id) || e.organizerId === user?.uid;
     return true;
   });
-
-  const upcomingFiltered = filteredEvents.filter(isUpcoming);
-  const pastFiltered = filteredEvents.filter((e) => !isUpcoming(e));
 
   if (!user && !authLoading) return null;
 
   return (
     <div style={s.page} className="page-enter">
-      {/* Sticky header */}
-      <div style={s.pageHeader}>
-        <div>
-          <p style={s.kicker}>COMBAT · EVENTS</p>
-          <h1 style={s.title}>{t("eventsTitle")}</h1>
-        </div>
-        <button type="button" style={s.createBtn} onClick={() => setShowCreate((v) => !v)}>
-          {showCreate ? t("eventCreateClose") : `+ ${t("eventCreateBtn")}`}
-        </button>
-      </div>
+      <EventsPageHeader
+        locale={locale}
+        showCreate={showCreate}
+        onToggle={() => setShowCreate((v) => !v)}
+        labels={{
+          title:       t("eventsTitle"),
+          createBtn:   t("eventCreateBtn"),
+          createClose: t("eventCreateClose"),
+        }}
+      />
 
       <div style={s.content}>
-        {/* DNA Match Banner */}
-        {userArchetype && (() => {
-          const DNA_EVENT_MAP = {
-            pressure:   ["sparring", "tournament"],
-            explosive:  ["sparring", "tournament"],
-            outboxer:   ["seminar", "boxing"],
-            counter:    ["seminar", "boxing"],
-            technician: ["seminar", "boxing"],
-          };
-          const DNA_LABELS = {
-            pressure:   { en: "Pressure Fighter", mn: "Дарамтын тулаанч", ko: "프레셔 파이터" },
-            explosive:  { en: "Explosive Fighter", mn: "Тэсрэлтийн тулаанч", ko: "폭발적 파이터" },
-            outboxer:   { en: "Outboxer", mn: "Аутбоксер", ko: "아웃복서" },
-            counter:    { en: "Counter Fighter", mn: "Контр тулаанч", ko: "카운터 파이터" },
-            technician: { en: "Technician", mn: "Техникч", ko: "테크니션" },
-          };
-          const DNA_COLORS = { pressure: "#EF4444", explosive: "#F59E0B", outboxer: "#3B82F6", counter: "#8B5CF6", technician: "#10B981" };
-          const recommendedTypes = DNA_EVENT_MAP[userArchetype] || [];
-          const matched = events.filter((e) => recommendedTypes.includes(e.eventType) && isUpcoming(e)).slice(0, 2);
-          if (matched.length === 0) return null;
-          const acc = DNA_COLORS[userArchetype] || GOLD;
-          const archLabel = DNA_LABELS[userArchetype]?.[locale] || userArchetype;
-          return (
-            <div style={{ marginBottom: 16, padding: "12px 14px", borderRadius: 14, background: `${acc}08`, border: `1px solid ${acc}22` }}>
-              <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: acc, textTransform: "uppercase", marginBottom: 8 }}>
-                🧬 {locale === "mn" ? `${archLabel}-Д ТОХИРОХ ЭВЕНТ` : locale === "ko" ? `${archLabel} 맞춤 이벤트` : `EVENTS FOR YOUR DNA · ${archLabel}`}
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {matched.map((ev) => {
-                  const meta = TYPE_META[ev.eventType] || TYPE_META.boxing;
-                  return (
-                    <button
-                      key={ev.id}
-                      type="button"
-                      onClick={() => router.push(`/${locale}/events/${ev.id}`)}
-                      style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", borderRadius: 10, background: `${meta.color}10`, border: `1px solid ${meta.color}28`, textAlign: "left", cursor: "pointer", color: "#fff" }}
-                    >
-                      <span style={{ fontSize: 18, flexShrink: 0 }}>{meta.emoji}</span>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 12, fontWeight: 900, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ev.title}</div>
-                        <div style={{ fontSize: 9, color: meta.color, fontWeight: 900, textTransform: "uppercase", letterSpacing: 0.5 }}>{getTypeLabel(ev.eventType, locale)}</div>
-                      </div>
-                      <div style={{ fontSize: 16, color: "rgba(255,255,255,0.2)" }}>›</div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })()}
+        <DNAMatchBanner
+          userArchetype={userArchetype}
+          events={events}
+          locale={locale}
+          onEventClick={(id) => router.push(`/${locale}/events/${id}`)}
+        />
 
-        {/* Create form */}
         {showCreate && (
-          <div style={s.createForm}>
-            <p style={s.formTitle}>{t("eventNewFormTitle")}</p>
-            <input type="text" value={cfTitle} onChange={(e) => setCfTitle(e.target.value)} placeholder={t("eventTitlePlaceholder")} style={s.input} />
-            <textarea value={cfDesc} onChange={(e) => setCfDesc(e.target.value)} placeholder={t("eventDescPlaceholder")} style={s.textarea} rows={3} />
-            <div style={s.formRow}>
-              <div style={{ flex: 1 }}>
-                <label style={s.fieldLabel}>{t("eventTypeLabel")}</label>
-                <select value={cfType} onChange={(e) => setCfType(e.target.value)} style={s.select}>
-                  {EVENT_TYPES.map((t) => (
-                    <option key={t} value={t}>{TYPE_META[t].emoji} {getTypeLabel(t, locale)}</option>
-                  ))}
-                </select>
-              </div>
-              <div style={{ flex: 1 }}>
-                <label style={s.fieldLabel}>{t("eventMaxLabel")}</label>
-                <input type="number" value={cfMax} onChange={(e) => setCfMax(e.target.value)} placeholder="∞" style={s.input} min={1} />
-              </div>
-            </div>
-            <input type="datetime-local" value={cfDate} onChange={(e) => setCfDate(e.target.value)} style={s.input} />
-            <div style={s.formRow}>
-              <input type="text" value={cfCity} onChange={(e) => setCfCity(e.target.value)} placeholder={t("eventCityPlaceholder")} style={{ ...s.input, flex: 1 }} />
-              <input type="text" value={cfLocation} onChange={(e) => setCfLocation(e.target.value)} placeholder={t("eventLocationPlaceholder")} style={{ ...s.input, flex: 2 }} />
-            </div>
-            {createError && <p style={s.errorText}>{createError}</p>}
-            <button type="button" style={creating ? s.submitBtnDisabled : s.submitBtn} onClick={handleCreate} disabled={creating}>
-              {creating ? t("eventPublishing") : t("eventPublish")}
-            </button>
-          </div>
-        )}
-
-        {/* Tabs */}
-        <div style={s.tabs}>
-          {[
-            { key: "upcoming", label: t("eventTabUpcoming") },
-            { key: "all",      label: t("eventTabAll") },
-            { key: "mine",     label: t("eventTabMine") },
-          ].map(({ key, label }) => (
-            <button key={key} type="button" style={tab === key ? s.tabActive : s.tab} onClick={() => setTab(key)}>
-              {label}
-            </button>
-          ))}
-        </div>
-
-        {/* Type filter pills */}
-        <div style={s.typeFilters}>
-          <button type="button" style={typeFilter === "all" ? s.typePillActive : s.typePill} onClick={() => setTypeFilter("all")}>
-            {t("eventTabAll")}
-          </button>
-          {EVENT_TYPES.map((t) => {
-            const meta = TYPE_META[t];
-            return (
-              <button
-                key={t}
-                type="button"
-                style={typeFilter === t
-                  ? { ...s.typePillActive, borderColor: meta.color, background: `${meta.color}18`, color: meta.color }
-                  : s.typePill}
-                onClick={() => setTypeFilter(t)}
-              >
-                {meta.emoji} {getTypeLabel(t, locale)}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Events list */}
-        {(authLoading || loading) && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {[1, 2, 3].map((i) => (
-              <SkeletonBlock key={i} height={130} radius="3px 16px 16px 3px" />
-            ))}
-          </div>
-        )}
-
-        {!loading && filteredEvents.length === 0 ? (
-          <EmptyState
-            emoji="🏆"
-            title={tab === "mine" ? t("eventNoMine") : tab === "upcoming" ? t("eventNoUpcoming") : t("eventNone")}
-            hint={t("eventCreateHint")}
+          <CreateEventForm
+            locale={locale}
+            cfTitle={cfTitle}       setCfTitle={setCfTitle}
+            cfDesc={cfDesc}         setCfDesc={setCfDesc}
+            cfType={cfType}         setCfType={setCfType}
+            cfDate={cfDate}         setCfDate={setCfDate}
+            cfLocation={cfLocation} setCfLocation={setCfLocation}
+            cfCity={cfCity}         setCfCity={setCfCity}
+            cfMax={cfMax}           setCfMax={setCfMax}
+            creating={creating}
+            createError={createError}
+            onSubmit={handleCreate}
+            labels={{
+              formTitle:  t("eventNewFormTitle"),
+              titlePh:    t("eventTitlePlaceholder"),
+              descPh:     t("eventDescPlaceholder"),
+              typeLabel:  t("eventTypeLabel"),
+              maxLabel:   t("eventMaxLabel"),
+              cityPh:     t("eventCityPlaceholder"),
+              locationPh: t("eventLocationPlaceholder"),
+              publish:    t("eventPublish"),
+              publishing: t("eventPublishing"),
+            }}
           />
-        ) : !loading ? (
-          <div style={s.eventList} className="stagger-list">
-            {(tab === "all" ? [
-              ...(upcomingFiltered.length > 0 ? [{ _divider: true, key: "div-up", label: t("eventDividerUpcoming") }] : []),
-              ...upcomingFiltered,
-              ...(pastFiltered.length > 0 ? [{ _divider: true, key: "div-past", label: t("eventDividerPast") }] : []),
-              ...pastFiltered,
-            ] : filteredEvents).map((event) => {
-              if (event._divider) {
-                return (
-                  <div key={event.key} style={{ fontSize: 10, fontWeight: 900, color: "rgba(255,255,255,0.3)", letterSpacing: 1.5, textTransform: "uppercase", padding: "8px 4px 4px" }}>
-                    {event.label}
-                  </div>
-                );
-              }
-              const meta = TYPE_META[event.eventType] || TYPE_META.boxing;
-              const isGoing = myRsvpIds.has(event.id);
-              const upcoming = isUpcoming(event);
-              const live = isLive(event);
-              const isFull = event.maxParticipants && (event.participantCount || 0) >= event.maxParticipants;
-              const spotsUsed = Math.min(event.participantCount || 0, event.maxParticipants || 0);
-              const spotsPct = event.maxParticipants ? Math.round((spotsUsed / event.maxParticipants) * 100) : 0;
-              return (
-                <div key={event.id} style={{ ...s.eventCard, borderLeftColor: live ? "#34D399" : meta.color, opacity: !upcoming && !live ? 0.72 : 1 }}
-                  onClick={() => router.push(`/${locale}/events/${event.id}`)}
-                >
-                  <div style={s.eventCardTop}>
-                    <div style={{ ...s.typeBadge, background: `${meta.color}18`, color: meta.color, borderColor: `${meta.color}35` }}>
-                      {meta.emoji} {getTypeLabel(event.eventType, locale)}
-                    </div>
-                    {live && (
-                      <span style={s.liveBadge}>
-                        <span style={s.liveDot} />
-                        LIVE
-                      </span>
-                    )}
-                    {!live && !upcoming && <span style={s.pastBadge}>{t("eventBadgePast")}</span>}
-                  </div>
+        )}
 
-                  <h3 style={s.eventTitle}>{event.title}</h3>
+        <EventsTabs
+          tab={tab}
+          onTabChange={setTab}
+          labels={{
+            upcoming: t("eventTabUpcoming"),
+            all:      t("eventTabAll"),
+            mine:     t("eventTabMine"),
+          }}
+        />
 
-                  <div style={s.eventMeta}>
-                    {event.date && (
-                      <span style={s.metaChip}>📅 {formatEventDate(event.date, locale)}</span>
-                    )}
-                    {(event.city || event.location) && (
-                      <span style={s.metaChip}>📍 {[event.city, event.location].filter(Boolean).join(" · ")}</span>
-                    )}
-                    <span style={s.metaChip}>
-                      👥 {event.participantCount || 0}
-                      {event.maxParticipants ? ` / ${event.maxParticipants}` : ""}
-                    </span>
-                  </div>
+        <EventTypeFilter
+          typeFilter={typeFilter}
+          onFilterChange={setTypeFilter}
+          locale={locale}
+          allLabel={t("eventTabAll")}
+        />
 
-                  {/* Spots bar */}
-                  {event.maxParticipants > 0 && (
-                    <div style={{ height: 3, borderRadius: 999, background: "rgba(255,255,255,0.08)", marginBottom: 8, overflow: "hidden" }}>
-                      <div style={{ height: "100%", width: `${spotsPct}%`, borderRadius: 999, background: spotsPct >= 90 ? "#F87171" : spotsPct >= 60 ? GOLD : "#34D399", transition: "width 600ms ease" }} />
-                    </div>
-                  )}
-
-                  {event.description ? (
-                    <p style={s.eventDesc}>{event.description.slice(0, 100)}{event.description.length > 100 ? "…" : ""}</p>
-                  ) : null}
-
-                  <div style={s.eventFooter} onClick={(e) => e.stopPropagation()}>
-                    <span style={s.organizerLabel}>
-                      {t("eventOrganizer")}: {event.organizerName}
-                    </span>
-                    {upcoming && (
-                      <button
-                        type="button"
-                        disabled={rsvping === event.id || (isFull && !isGoing)}
-                        onClick={() => handleRsvp(event)}
-                        style={
-                          isGoing ? s.goingBtn
-                          : isFull ? s.fullBtn
-                          : s.rsvpBtn
-                        }
-                      >
-                        {rsvping === event.id ? "…"
-                          : isGoing ? t("eventGoing")
-                          : isFull ? t("eventFull")
-                          : t("eventRsvp")}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : null}
+        <EventsList
+          loading={loading}
+          authLoading={authLoading}
+          tab={tab}
+          filteredEvents={filteredEvents}
+          myRsvpIds={myRsvpIds}
+          rsvping={rsvping}
+          locale={locale}
+          onRsvp={handleRsvp}
+          onEventClick={(id) => router.push(`/${locale}/events/${id}`)}
+          labels={{
+            noMine:          t("eventNoMine"),
+            noUpcoming:      t("eventNoUpcoming"),
+            noneAtAll:       t("eventNone"),
+            createHint:      t("eventCreateHint"),
+            dividerUpcoming: t("eventDividerUpcoming"),
+            dividerPast:     t("eventDividerPast"),
+            cardLabels: {
+              organizer: t("eventOrganizer"),
+              going:     t("eventGoing"),
+              full:      t("eventFull"),
+              rsvp:      t("eventRsvp"),
+              badgePast: t("eventBadgePast"),
+            },
+          }}
+        />
       </div>
 
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="" />
