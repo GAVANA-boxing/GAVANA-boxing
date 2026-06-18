@@ -821,10 +821,19 @@ export default function TrainPage() {
               playsInline
               style={{
                 ...styles.preview,
-                ...(videoNeedsRotation ? { width: "100vh", height: "100vw", maxWidth: "none" } : {}),
+                ...(videoNeedsRotation ? {
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  width: "100vh",
+                  height: "100vw",
+                  maxWidth: "none",
+                } : {}),
                 transform: (() => {
                   if (videoNeedsRotation) {
-                    return facingMode === "user" ? "rotate(90deg) scaleX(-1)" : "rotate(90deg)";
+                    return facingMode === "user"
+                      ? "translate(-50%, -50%) rotate(90deg) scaleX(-1)"
+                      : "translate(-50%, -50%) rotate(90deg)";
                   }
                   return facingMode === "user" ? "scaleX(-1)" : "none";
                 })(),
