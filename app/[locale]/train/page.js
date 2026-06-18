@@ -1168,6 +1168,7 @@ export default function TrainPage() {
         saving={saving}
         saved={saved}
         savedAttemptNumber={savedAttemptNumber}
+        userArchetype={userArchetype}
         locale={locale}
         t={t}
         router={router}
