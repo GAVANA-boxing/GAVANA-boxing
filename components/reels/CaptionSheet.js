@@ -7,7 +7,9 @@ export default function CaptionSheet({ captionSheetReelId, reels, setCaptionShee
   if (!captionSheetReelId) return null;
 
   const sheetReel = reels.find((r) => r.id === captionSheetReelId);
-  const fullCaption = sheetReel ? cleanCaption(sheetReel.description || sheetReel.caption || "") : "";
+  const rawCaption = sheetReel ? cleanCaption(sheetReel.description || sheetReel.caption || "") : "";
+  const hashtags = rawCaption.match(/#\S+/g) || [];
+  const fullCaption = rawCaption.replace(/#\S+\s*/g, "").trim();
 
   return (
     <div
@@ -37,7 +39,7 @@ export default function CaptionSheet({ captionSheetReelId, reels, setCaptionShee
             <p style={{ ...styles.captionSheetText, opacity: 0.35 }}>—</p>
           )}
           {sheetReel && (sheetReel.contentType || sheetReel.difficulty) && (
-            <div style={{ marginTop: 16, display: "flex", flexWrap: "wrap", gap: 8 }}>
+            <div style={{ marginTop: 14, display: "flex", flexWrap: "wrap", gap: 7 }}>
               {sheetReel.contentType && (
                 <span style={styles.captionMetaChip}>
                   {sheetReel.contentType === "training" ? `🥊 ${t("ctFilterTraining")}`
@@ -54,6 +56,24 @@ export default function CaptionSheet({ captionSheetReelId, reels, setCaptionShee
                   {sheetReel.difficulty === "beginner" ? `🟢 ${t("diffBeginner")}` : sheetReel.difficulty}
                 </span>
               )}
+            </div>
+          )}
+          {hashtags.length > 0 && (
+            <div style={{ marginTop: 14, display: "flex", flexWrap: "wrap", gap: 7 }}>
+              {hashtags.map((tag, i) => (
+                <span
+                  key={i}
+                  style={{
+                    ...styles.captionMetaChip,
+                    color: "rgba(255,255,255,0.5)",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    letterSpacing: 0.1,
+                  }}
+                >
+                  {tag}
+                </span>
+              ))}
             </div>
           )}
         </div>

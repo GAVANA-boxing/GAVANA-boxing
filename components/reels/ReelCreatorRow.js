@@ -70,16 +70,38 @@ export default function ReelCreatorRow({
           )}
         </button>
         {creatorStatLine ? (
-          <div
-            style={{
-              fontSize: 10,
-              color: "rgba(255,255,255,0.45)",
-              fontWeight: 700,
-              marginTop: 2,
-              letterSpacing: 0.2,
-            }}
-          >
-            {creatorStatLine}
+          <div style={{ display: "flex", gap: 4, marginTop: 3, flexWrap: "wrap" }}>
+            {creatorStatLine.split(" · ").map((part, i) => {
+              const isXP = part.includes("XP");
+              const isScore = part.includes("/10");
+              return (
+                <span
+                  key={i}
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: 0.2,
+                    whiteSpace: "nowrap",
+                    padding: "1px 7px",
+                    borderRadius: 20,
+                    background: "rgba(0,0,0,0.48)",
+                    border: isXP
+                      ? "1px solid rgba(255,200,0,0.22)"
+                      : "1px solid rgba(255,255,255,0.1)",
+                    color: isXP
+                      ? "rgba(255,200,0,0.9)"
+                      : isScore
+                      ? "rgba(255,255,255,0.82)"
+                      : "rgba(255,185,80,0.82)",
+                    backdropFilter: "blur(8px)",
+                    WebkitBackdropFilter: "blur(8px)",
+                    textShadow: "0 1px 4px rgba(0,0,0,0.95)",
+                  }}
+                >
+                  {part}
+                </span>
+              );
+            })}
           </div>
         ) : null}
         {gymName ? (

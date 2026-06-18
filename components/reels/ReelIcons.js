@@ -18,6 +18,26 @@ export function LikeIcon({ filled }) {
   );
 }
 
+export function GloveIcon({ filled }) {
+  return (
+    <svg style={styles.actionSvg} viewBox="0 0 24 24" aria-hidden="true">
+      {/* Main glove body */}
+      <path
+        d="M5 11C5 7.7 7.7 5 11 5h2c3.3 0 6 2.7 6 6v2.5c0 2.2-1.8 4-4 4H9c-2.2 0-4-1.8-4-4V11Z"
+        fill={filled ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeWidth="1.45"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* Wrist strap */}
+      <path d="M5 17.5h14" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+      {/* Cuff */}
+      <path d="M6.5 20h11" stroke="currentColor" strokeWidth="1.45" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function BackArrowIcon() {
   return (
     <svg style={styles.backArrowSvg} viewBox="0 0 24 24" aria-hidden="true">
