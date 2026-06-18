@@ -111,20 +111,52 @@ const styles = {
   // ── Your rank bar ──
   yourRankBar: {
     display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
-    minHeight: 44, padding: "0 16px", borderRadius: 14,
+    minHeight: 52, padding: "0 16px", borderRadius: 14,
     background: whiteAlpha(0.04),
     border: `1px solid ${whiteAlpha(0.07)}`,
+    borderLeft: `3px solid ${whiteAlpha(0.12)}`,
   },
   yourRankBarGold: {
     background: goldAlpha(0.07),
     border: `1px solid ${goldAlpha(0.22)}`,
+    borderLeft: `3px solid ${goldAlpha(0.7)}`,
+  },
+  yourRankBarRed: {
+    background: "rgba(239,68,68,0.06)",
+    border: "1px solid rgba(239,68,68,0.18)",
+    borderLeft: "3px solid rgba(239,68,68,0.7)",
   },
   yourRankLabel: { color: whiteAlpha(0.65), fontSize: 12, fontWeight: 700 },
   yourRankLabelGold: { color: GOLD, fontSize: 13, fontWeight: 900 },
+  yourRankLabelRed: { color: "#F87171", fontSize: 12, fontWeight: 900, letterSpacing: 0.3 },
+  yourRankSubLabel: { color: "rgba(248,113,113,0.55)", fontSize: 10, fontWeight: 600, marginTop: 2 },
   yourRankChallenge: {
     minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
     color: goldAlpha(0.7), fontSize: 11, fontWeight: 800,
   },
+
+  // ── Countdown banner ──
+  countdownBanner: {
+    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+    minHeight: 36, padding: "0 16px", borderRadius: 12,
+    background: "rgba(245,196,81,0.08)",
+    border: "1px solid rgba(245,196,81,0.22)",
+    textAlign: "center",
+  },
+  countdownBannerUrgent: {
+    background: "rgba(239,68,68,0.09)",
+    border: "1px solid rgba(239,68,68,0.28)",
+  },
+  countdownLabel: {
+    fontSize: 9, fontWeight: 900, letterSpacing: 1.8, textTransform: "uppercase",
+    color: "rgba(245,196,81,0.6)",
+  },
+  countdownLabelUrgent: { color: "rgba(248,113,113,0.7)" },
+  countdownValue: {
+    fontSize: 13, fontWeight: 900, letterSpacing: 1, color: "rgba(245,196,81,0.9)",
+    fontVariantNumeric: "tabular-nums",
+  },
+  countdownValueUrgent: { color: "#F87171" },
 
   // ── Challenge cards ──
   challengeList: { display: "grid", gap: 14 },
@@ -192,8 +224,20 @@ const styles = {
   emptyLeaderboard: {
     padding: "16px 16px",
     color: whiteAlpha(0.28), fontSize: 12, fontWeight: 700,
-    display: "flex", alignItems: "center", justifyContent: "space-between",
+    display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8,
   },
+  emptyUndefeated: {
+    fontSize: 11, fontWeight: 900, letterSpacing: 0.8, textTransform: "uppercase",
+    color: "rgba(248,113,113,0.7)",
+  },
+  emptyNoChallengers: {
+    fontSize: 11, fontWeight: 600, color: whiteAlpha(0.35), marginTop: 2,
+  },
+
+  // Rank accent bars for top 3
+  scoreRowRank1: { borderLeft: "3px solid rgba(255,200,0,0.75)", background: "rgba(255,200,0,0.04)" },
+  scoreRowRank2: { borderLeft: "3px solid rgba(192,192,192,0.6)", background: "rgba(192,192,192,0.03)" },
+  scoreRowRank3: { borderLeft: "3px solid rgba(205,127,50,0.55)", background: "rgba(205,127,50,0.03)" },
 
   // Rank indicators
   rankMedal: { fontSize: 17, minWidth: 24, textAlign: "center", flexShrink: 0, lineHeight: 1 },

@@ -51,14 +51,16 @@ export default function ChallengeCard({ challenge, list, profiles, currentUserId
       {isEmpty ? (
         <div style={styles.emptyLeaderboard}>
           <span>
-            {seasonTab === "week" ? t("seasonNoResultsThisWeek") : t("challengeNoScores")}
+            <span style={styles.emptyUndefeated}>{t("challengeUndefeated")}</span>
+            <span style={{ color: "rgba(255,255,255,0.22)", margin: "0 5px" }}>·</span>
+            <span style={{ color: "rgba(255,255,255,0.32)", fontSize: 11 }}>{t("challengeNoChallengers")}</span>
           </span>
           <button
             type="button"
-            style={{ padding: "5px 12px", borderRadius: 8, border: "none", background: "rgba(239,68,68,0.12)", color: "rgba(252,165,165,0.85)", fontSize: 11, fontWeight: 900, cursor: "pointer", letterSpacing: 0.3 }}
+            style={{ padding: "5px 14px", borderRadius: 8, border: "none", background: "rgba(239,68,68,0.15)", color: "rgba(252,165,165,0.9)", fontSize: 11, fontWeight: 900, cursor: "pointer", letterSpacing: 0.5, whiteSpace: "nowrap", flexShrink: 0 }}
             onClick={() => router.push(`/${locale}/train?challengeId=${challenge.id}`)}
           >
-            {locale === "mn" ? "Эхлэх →" : locale === "ko" ? "시작 →" : "Go first →"}
+            {t("challengeGoFirst")}
           </button>
         </div>
       ) : (
@@ -77,6 +79,12 @@ export default function ChallengeCard({ challenge, list, profiles, currentUserId
               : "#888";
             const isLast = index === list.length - 1;
 
+            const rankAccent =
+              index === 0 ? styles.scoreRowRank1
+              : index === 1 ? styles.scoreRowRank2
+              : index === 2 ? styles.scoreRowRank3
+              : {};
+
             return (
               <div
                 key={result.id}
@@ -84,6 +92,7 @@ export default function ChallengeCard({ challenge, list, profiles, currentUserId
                 tabIndex={0}
                 style={{
                   ...styles.scoreRow,
+                  ...rankAccent,
                   ...(isCurrentUser ? styles.scoreRowCurrent : {}),
                   ...(isLast ? styles.scoreRowLast : {}),
                   cursor: "pointer",

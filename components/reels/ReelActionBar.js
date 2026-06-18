@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  LikeIcon,
+  GloveIcon,
   CommentIcon,
   ShareIcon,
   BookmarkIcon,
@@ -43,7 +43,7 @@ export default function ReelActionBar({
           style={{ ...styles.actionCircle, ...(isLiked ? styles.actionCircleLiked : {}) }}
         >
           <span style={{ ...styles.actionIcon, ...(isLiked ? styles.actionIconLiked : {}) }}>
-            <LikeIcon filled={isLiked} />
+            <GloveIcon filled={isLiked} />
           </span>
         </div>
         <span style={styles.actionText}>{formatCompactCount(getSafeLikeCount(reel))}</span>
