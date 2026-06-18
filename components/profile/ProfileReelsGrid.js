@@ -1,7 +1,7 @@
 "use client";
 
 import { blackAlpha } from "@/lib/tokens";
-import { memo } from "react";
+import { memo, useState } from "react";
 import MediaCover from "@/components/MediaCover";
 import { getSafeReelLikes } from "@/lib/utils";
 import Image from "next/image";
@@ -21,6 +21,8 @@ const ProfileReelsGrid = memo(function ProfileReelsGrid({
   markPreviewFailed,
   setDeleteConfirmReel,
 }) {
+  const [hoveredId, setHoveredId] = useState(null);
+
   if (visibleReels.length === 0) {
     return (
       <div style={styles.reelGridEmpty}>
@@ -56,35 +58,36 @@ const ProfileReelsGrid = memo(function ProfileReelsGrid({
         const canDeleteReel = user?.uid && reel.userId === user.uid;
         const isDeletingReel = deletingReelIds.has(reel.id);
         const effectiveType = reel.contentType || reel.type || "lifestyle";
+        const isHovered = hoveredId === reel.id;
 
         return (
           <div
             key={reel.id}
-            className="profile-reel-tile"
             style={{
-              aspectRatio: "9/16",
+              aspectRatio: "1/1",
               overflow: "hidden",
               background: "#0a0a0a",
               cursor: "pointer",
               position: "relative",
-              borderRadius: 2,
             }}
             onClick={() => router.push(`/${locale}/reels?reelId=${reel.id}&source=profile&userId=${userId}`)}
-            onMouseEnter={(e) => {
-              const video = e.currentTarget.querySelector("video");
+            onMouseEnter={() => {
+              setHoveredId(reel.id);
+              const video = document.querySelector(`[data-reel-id="${reel.id}"] video`);
               if (video) video.play().catch(() => {});
             }}
-            onMouseLeave={(e) => {
-              const video = e.currentTarget.querySelector("video");
+            onMouseLeave={() => {
+              setHoveredId(null);
+              const video = document.querySelector(`[data-reel-id="${reel.id}"] video`);
               if (video) { video.pause(); video.currentTime = 0; }
             }}
+            data-reel-id={reel.id}
           >
             {showImage ? (
               <Image
                 src={reel.thumbnailUrl}
                 alt={reel.description || t("trainingReel")}
                 fill
-                className="profile-reel-media"
                 style={{ objectFit: "cover" }}
                 sizes="33vw"
                 onError={() => markPreviewFailed(reel.id, "image")}
@@ -92,21 +95,14 @@ const ProfileReelsGrid = memo(function ProfileReelsGrid({
             ) : showVideo ? (
               <video
                 src={reel.videoUrl}
-                className="profile-reel-media"
                 style={styles.reelPreviewMedia}
                 muted
                 playsInline
                 loop
                 preload="metadata"
                 poster={reel.thumbnailUrl || undefined}
-                onLoadedMetadata={(event) => {
-                  try {
-                    if (event.currentTarget.currentTime === 0) {
-                      event.currentTarget.currentTime = 0.05;
-                    }
-                  } catch {
-                    // Some mobile browsers do not allow seeking before enough data is ready.
-                  }
+                onLoadedMetadata={(e) => {
+                  try { if (e.currentTarget.currentTime === 0) e.currentTarget.currentTime = 0.05; } catch {}
                 }}
                 onError={() => markPreviewFailed(reel.id, "video")}
               />
@@ -118,24 +114,42 @@ const ProfileReelsGrid = memo(function ProfileReelsGrid({
               />
             )}
 
-            {showVideo && (
-              <div className="reel-play-hint">
-                <div style={{ width: 36, height: 36, borderRadius: "50%", background: blackAlpha(0.55), backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
-                </div>
+            {/* Instagram-style hover overlay: centered likes + comments */}
+            <div style={{
+              position: "absolute", inset: 0, zIndex: 3,
+              background: blackAlpha(isHovered ? 0.38 : 0),
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 20,
+              transition: "background 180ms",
+              pointerEvents: "none",
+            }}>
+              {isHovered && (
+                <>
+                  <span style={{ color: "#fff", fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 5 }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M20.8 4.9c-2-2-5.2-1.8-7 .4L12 7.1l-1.8-1.8c-1.8-2.2-5-2.4-7-.4-2.2 2.2-2 5.7.4 8.1l8.4 7.8 8.4-7.8c2.4-2.4 2.6-5.9.4-8.1Z"/></svg>
+                    {likeCount}
+                  </span>
+                  <span style={{ color: "#fff", fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 5 }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M4.8 5.4h14.4v10.1H9.5L5 19.2v-3.7H4.8V5.4Z"/></svg>
+                    {reel.commentsCount ?? 0}
+                  </span>
+                </>
+              )}
+            </div>
+
+            {/* Multi-photo/video indicator — small icon top-right like Instagram */}
+            {showVideo && !isHovered && (
+              <div style={{ position: "absolute", top: 8, right: 8, zIndex: 4, pointerEvents: "none" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="white" style={{ filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.9))" }}>
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
               </div>
             )}
-
-            <div style={styles.reelTileTypeBadge}>
-              {effectiveType === "training" ? "🥊" : effectiveType === "educational" ? "📚" : "🎬"}
-            </div>
 
             {canDeleteReel && (
               <button
                 type="button"
                 aria-label={t("deleteReel")}
-                title={t("deleteReel")}
-                onClick={(event) => { event.stopPropagation(); if (!isDeletingReel) setDeleteConfirmReel(reel); }}
+                onClick={(e) => { e.stopPropagation(); if (!isDeletingReel) setDeleteConfirmReel(reel); }}
                 disabled={isDeletingReel}
                 style={{
                   ...styles.deleteReelButton,
@@ -149,13 +163,6 @@ const ProfileReelsGrid = memo(function ProfileReelsGrid({
                 }
               </button>
             )}
-
-            <div style={styles.reelTileOverlay}>
-              <div style={styles.reelTileLikes}>♥ {likeCount}</div>
-              {reel.description && (
-                <div style={styles.reelTileCaption}>{reel.description}</div>
-              )}
-            </div>
           </div>
         );
       })}
