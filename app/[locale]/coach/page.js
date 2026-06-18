@@ -22,7 +22,10 @@ import DNACoachingCTA from "@/components/coach/DNACoachingCTA";
 import AISparringPartner from "@/components/coach/AISparringPartner";
 import ProPriorityMatchingBanner from "@/components/coach/ProPriorityMatchingBanner";
 
-const AICoach = dynamic(() => import("@/components/AICoach"), { ssr: false });
+const AICoach = dynamic(() => import("@/components/AICoach"), {
+  ssr: false,
+  loading: () => <div style={{ height: 200 }} />,
+});
 
 export default function CoachPage() {
   const router = useRouter();
@@ -133,6 +136,7 @@ export default function CoachPage() {
             </button>
           </div>
           <AICoach />
+          <div style={{ paddingBottom: "calc(80px + env(safe-area-inset-bottom))" }} />
         </div>
       )}
 
