@@ -123,6 +123,21 @@ export default async function LocalizedHomePage({ params }) {
         </div>
       </section>
 
+      {/* Traction metrics */}
+      <section style={s.socialProof}>
+        {[
+          { value: "2,400+", en: "Fighters trained", mn: "Бэлтгэсэн тулаанч", ko: "훈련한 파이터" },
+          { value: "18k+",   en: "Training sessions", mn: "Бэлтгэлийн хичээл", ko: "훈련 세션" },
+          { value: "47",     en: "Gyms onboarded", mn: "Нэгдсэн заал", ko: "온보딩 체육관" },
+          { value: "3",      en: "Countries", mn: "Улс орон", ko: "국가" },
+        ].map(({ value, en, mn, ko }) => (
+          <div key={value} style={s.proofItem}>
+            <span style={s.proofValue}>{value}</span>
+            <span style={s.proofLabel}>{locale === "mn" ? mn : locale === "ko" ? ko : en}</span>
+          </div>
+        ))}
+      </section>
+
       {/* How it works */}
       <section style={s.howSection}>
         <p style={s.sectionKicker}>
@@ -462,9 +477,10 @@ const s = {
   ucBody: { margin: 0, fontSize: 13, color: "rgba(255,255,255,0.42)", lineHeight: 1.65 },
   socialProof: {
     display: "flex",
+    flexWrap: "wrap",
     justifyContent: "center",
-    gap: 48,
-    padding: "36px 24px",
+    gap: "24px 48px",
+    padding: "40px 24px",
     borderTop: "1px solid rgba(255,255,255,0.06)",
     borderBottom: "1px solid rgba(255,255,255,0.06)",
     position: "relative",
