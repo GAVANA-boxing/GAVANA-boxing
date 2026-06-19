@@ -127,7 +127,12 @@ export default function ProfileFighterCard({
           <h1 style={styles.fighterName}>
             {profileUser.displayName || profileUser.username}
             {streakCount >= 5 && (
-              <span style={{ fontSize: 20, marginLeft: 6, verticalAlign: "middle" }}>🔥</span>
+              <span
+                className={streakCount >= 7 ? "streak-fire-7" : undefined}
+                style={{ fontSize: 20, marginLeft: 6, verticalAlign: "middle", display: "inline-block" }}
+              >
+                🔥
+              </span>
             )}
           </h1>
           <div style={styles.fighterUsername}>@{profileUser.username}</div>
@@ -181,7 +186,9 @@ export default function ProfileFighterCard({
       {/* ── Stats row ────────────────────────────────────────────────────── */}
       <div style={styles.statsRow} className="section-reveal stagger-3">
         <button type="button" onClick={() => onStatNavigate("posts")} style={styles.statButton}>
-          <span style={styles.statNumber}>{userReels.length}</span>
+          <span style={{ ...styles.statNumber, ...(userReels.length === 0 ? { color: "rgba(255,255,255,0.2)" } : {}) }}>
+            {userReels.length}
+          </span>
           <span style={styles.statLabel}>{t("posts")}</span>
         </button>
         <button
@@ -189,7 +196,9 @@ export default function ProfileFighterCard({
           onClick={() => onStatNavigate("followers")}
           style={styles.statButton}
         >
-          <span style={styles.statNumber}>{stats.followers}</span>
+          <span style={{ ...styles.statNumber, ...((stats.followers || 0) === 0 ? { color: "rgba(255,255,255,0.2)" } : {}) }}>
+            {stats.followers || 0}
+          </span>
           <span style={styles.statLabel}>{t("followers")}</span>
         </button>
         <button
@@ -197,10 +206,33 @@ export default function ProfileFighterCard({
           onClick={() => onStatNavigate("following")}
           style={styles.statButton}
         >
-          <span style={styles.statNumber}>{stats.following}</span>
+          <span style={{ ...styles.statNumber, ...((stats.following || 0) === 0 ? { color: "rgba(255,255,255,0.2)" } : {}) }}>
+            {stats.following || 0}
+          </span>
           <span style={styles.statLabel}>{t("followingCount")}</span>
         </button>
       </div>
+      {/* Zero-state: own profile, no activity yet */}
+      {isOwnProfile && userReels.length === 0 && (stats.followers || 0) === 0 && (
+        <div style={{
+          margin: "4px 0 0",
+          padding: "10px 14px",
+          borderRadius: 12,
+          background: "rgba(255,59,48,0.05)",
+          border: "1px solid rgba(255,59,48,0.12)",
+          display: "flex", alignItems: "center", gap: 10,
+        }}>
+          <span style={{ fontSize: 18 }}>🥊</span>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 900, color: "rgba(255,255,255,0.65)", letterSpacing: 0.3 }}>
+              {t("profileZeroStateTitle") || "YOUR JOURNEY STARTS HERE"}
+            </div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>
+              {t("profileZeroStateSub") || "Upload a reel to claim your rank"}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Secondary actions ────────────────────────────────────────────── */}
       <ProfileActionRow

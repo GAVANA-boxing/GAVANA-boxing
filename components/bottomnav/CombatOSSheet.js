@@ -107,8 +107,8 @@ const OS_ICONS = {
 const COMBAT_OS_ITEMS = [
   { key: "fighters",        labelEn: "Fighters",      labelMn: "Тулаанчид",        labelKo: "파이터",    path: "/fighters" },
   { key: "challenges",      labelEn: "Challenges",    labelMn: "Сорилт",           labelKo: "챌린지",    path: "/challenges" },
-  { key: "notifications",   labelEn: "Notifications", labelMn: "Мэдэгдэл",         labelKo: "알림",     path: "/notifications" },
-  { key: "inbox",           labelEn: "Messages",      labelMn: "Мессеж",           labelKo: "메시지",    path: "/inbox" },
+  { key: "notifications",   labelEn: "Notifications", labelMn: "Мэдэгдэл",         labelKo: "알림",     path: "/notifications", badge: true },
+  { key: "inbox",           labelEn: "Messages",      labelMn: "Мессеж",           labelKo: "메시지",    path: "/inbox", badge: true },
   { key: "fighter-profile", labelEn: "Fighter DNA",   labelMn: "Тулаанчийн ДНХ",  labelKo: "파이터 DNA", path: "/fighter-profile" },
   { key: "academy",         labelEn: "Academy",       labelMn: "Академи",          labelKo: "아카데미",   path: "/programs" },
   { key: "gyms",            labelEn: "Gyms",          labelMn: "Дасгалын заал",    labelKo: "체육관",    path: "/gyms" },
@@ -133,6 +133,7 @@ export default function CombatOSSheet({ onClose, router, locale, pathname, userI
       onClick={onClose}
     >
       <div
+        className="combat-os-sheet"
         style={{
           width: "min(100%, 480px)",
           borderRadius: "20px 20px 0 0",
@@ -200,18 +201,31 @@ export default function CombatOSSheet({ onClose, router, locale, pathname, userI
               style={{
                 display: "flex", alignItems: "center", gap: 10,
                 padding: "11px 14px",
+                position: "relative",
                 background: "rgba(255,255,255,0.04)",
                 border: "1px solid rgba(255,255,255,0.07)",
                 borderRadius: 16,
                 cursor: "pointer", color: "#fff",
                 textAlign: "left",
                 WebkitTapHighlightColor: "transparent",
+                transition: "background 160ms ease, border-color 160ms ease",
               }}
             >
               <span style={{ flexShrink: 0, display: "flex", color: "rgba(255,255,255,0.7)" }}>{OS_ICONS[item.key]}</span>
               <span style={{ fontSize: 13, fontWeight: 800, lineHeight: 1.2 }}>
                 {loc(locale, item.labelMn, item.labelKo, item.labelEn)}
               </span>
+              {item.badge && (
+                <span
+                  className="notif-badge-pulse"
+                  style={{
+                    marginLeft: "auto", flexShrink: 0,
+                    width: 8, height: 8, borderRadius: "50%",
+                    background: RED,
+                    boxShadow: `0 0 6px ${redAlpha(0.8)}`,
+                  }}
+                />
+              )}
             </button>
           ))}
         </div>

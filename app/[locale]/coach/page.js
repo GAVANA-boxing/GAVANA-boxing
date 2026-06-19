@@ -122,6 +122,19 @@ export default function CoachPage() {
             onClick={() => setTab(key)}
           >
             {label}
+            {tab === key && (
+              <span
+                className="tab-indicator"
+                style={{
+                  position: "absolute",
+                  bottom: -2, left: "20%", right: "20%",
+                  height: 2,
+                  borderRadius: 2,
+                  background: `linear-gradient(90deg, ${RED}, rgba(255,59,48,0.5))`,
+                  boxShadow: `0 0 8px rgba(255,59,48,0.6)`,
+                }}
+              />
+            )}
           </button>
         ))}
       </div>
