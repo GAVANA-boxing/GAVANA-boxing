@@ -1588,3 +1588,78 @@ button:not(:disabled):not([style*="cursor: default"]):active {
     transform: none !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   PHASE A — UX: text truncation, language-safe layout
+═══════════════════════════════════════════════════════════ */
+
+/* Safe chip/badge/tab truncation for MN/KO long words */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+.chip-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+/* Mongolian/Korean safe wrapping */
+.label-safe {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+/* Stat button active feedback */
+.stat-btn-hover:active {
+  background: rgba(255,255,255,0.04) !important;
+  transform: scale(0.98);
+  transition: background var(--motion-fast), transform var(--motion-press);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PHASE B — Motion: per-tier glow colors
+═══════════════════════════════════════════════════════════ */
+
+/* Tier glow classes — applied to burst spans */
+.burst-tier-1 { filter: drop-shadow(0 0 8px rgba(255,59,48,0.7)); }
+.burst-tier-2 { filter: drop-shadow(0 0 10px rgba(251,146,60,0.8)); }
+.burst-tier-3 { filter: drop-shadow(0 0 12px rgba(245,196,81,0.9)); }
+
+/* ═══════════════════════════════════════════════════════════
+   PHASE D — Performance: will-change promotion
+═══════════════════════════════════════════════════════════ */
+
+.punch-burst,
+.combo-burst,
+.ko-burst,
+.respect-float,
+.xp-toast-in,
+.xp-toast-out,
+.combat-os-sheet {
+  will-change: transform, opacity;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PHASE E — Accessibility: tap targets + focus rings
+═══════════════════════════════════════════════════════════ */
+
+/* Minimum tap target */
+.tap-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Keyboard focus ring */
+:focus-visible {
+  outline: 2px solid rgba(255,59,48,0.7);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+:focus:not(:focus-visible) {
+  outline: none;
+}

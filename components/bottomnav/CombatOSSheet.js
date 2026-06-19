@@ -228,7 +228,9 @@ export default function CombatOSSheet({ onClose, router, locale, pathname, userI
                     padding: "0 5px",
                   }}
                 >
-                  {item.key === "notifications" ? unreadNotifs : unreadDMs}
+                  {item.key === "notifications"
+                    ? (unreadNotifs > 99 ? "99+" : unreadNotifs)
+                    : (unreadDMs > 99 ? "99+" : unreadDMs)}
                 </span>
               )}
             </button>

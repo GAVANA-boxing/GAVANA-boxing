@@ -147,11 +147,13 @@ export default function FeedScrollContainer({
         tapCountRef.current[reelId] = 0;
       }, 900);
 
-      const count = tapCountRef.current[reelId];
-      const tier  = count >= 5 ? 3 : count >= 3 ? 2 : 1;
-      const emoji = tier === 3 ? "⚡" : tier === 2 ? "🔥" : "🥊";
-      const cls   = tier === 3 ? "ko-burst" : tier === 2 ? "combo-burst" : "punch-burst";
-      const id    = now + Math.random();
+      const count    = tapCountRef.current[reelId];
+      const tier     = count >= 5 ? 3 : count >= 3 ? 2 : 1;
+      const emoji    = tier === 3 ? "⚡" : tier === 2 ? "🔥" : "🥊";
+      const burstCls = tier === 3 ? "ko-burst" : tier === 2 ? "combo-burst" : "punch-burst";
+      const glowCls  = `burst-tier-${tier}`;
+      const cls      = `${burstCls} ${glowCls}`;
+      const id       = now + Math.random();
 
       setPunchBursts((prev) => [...prev, { id, reelId, x, y, emoji, cls }]);
       setTimeout(() => setPunchBursts((prev) => prev.filter((b) => b.id !== id)), 800);
@@ -159,10 +161,11 @@ export default function FeedScrollContainer({
       // Like fires immediately on first double-tap (count===2); subsequent taps just burst
       if (onLikeFn && count === 2) onLikeFn(reel);
 
-      // +RESPECT float delayed 120ms so it doesn't overlap the burst sprite
-      const fid = id + 0.5;
+      // +RESPECT float: delayed 120ms, offset right so it doesn't overlap burst sprite
+      const fid   = id + 0.5;
+      const floatX = Math.min(x + 56, rect.width - 80);
       setTimeout(() => {
-        setRespectFloats((prev) => [...prev, { id: fid, reelId, x, y }]);
+        setRespectFloats((prev) => [...prev, { id: fid, reelId, x: floatX, y }]);
         setTimeout(() => setRespectFloats((prev) => prev.filter((f) => f.id !== fid)), 850);
       }, 120);
     }

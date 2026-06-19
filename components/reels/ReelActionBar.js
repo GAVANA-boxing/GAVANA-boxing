@@ -34,7 +34,10 @@ export default function ReelActionBar({
     <div style={styles.actions}>
       {/* Like */}
       <div
-        className="reel-action"
+        className="reel-action tap-target"
+        role="button"
+        aria-label={isLiked ? t("liked") || "Unlike" : t("like") || "Like"}
+        aria-pressed={isLiked}
         style={{ ...styles.actionItem, ...(isLiked ? styles.actionItemLiked : {}) }}
         onClick={() => onLike(reel.id)}
       >
@@ -51,10 +54,11 @@ export default function ReelActionBar({
 
       {/* Comment */}
       <div
-        className="reel-action"
+        className="reel-action tap-target"
+        role="button"
+        aria-label={t("comment") || "Comments"}
         style={styles.actionItem}
         onClick={() => onOpenComments(reel.id)}
-        title={t("comment")}
       >
         <div className="reel-action-circle" style={styles.actionCircle}>
           <CommentIcon />
@@ -64,10 +68,11 @@ export default function ReelActionBar({
 
       {/* Share */}
       <div
-        className="reel-action"
+        className="reel-action tap-target"
+        role="button"
+        aria-label={t("share") || "Share"}
         style={styles.actionItem}
         onClick={() => onShare(reel)}
-        title={t("share") || "Share"}
       >
         <div className="reel-action-circle" style={styles.actionCircle}>
           <ShareIcon />
@@ -77,9 +82,10 @@ export default function ReelActionBar({
 
       {/* Save / Bookmark */}
       <div
-        className="reel-action"
+        className="reel-action tap-target"
         role="button"
-        title={isSaved ? t("saved") : t("save")}
+        aria-label={isSaved ? t("saved") || "Saved" : t("save") || "Save"}
+        aria-pressed={isSaved}
         style={{ ...styles.actionItem, ...(isSaved ? styles.actionItemSaved : {}) }}
         onClick={() => onSave(reel.id)}
       >
@@ -95,10 +101,11 @@ export default function ReelActionBar({
 
       {/* AI Insight */}
       <div
-        className="reel-action"
+        className="reel-action tap-target"
+        role="button"
+        aria-label="AI Insight"
         style={{ ...styles.actionItem, ...styles.actionItemAI }}
         onClick={() => onBreakdown(reel)}
-        title="AI Insight"
       >
         <div
           className="reel-action-circle"
