@@ -146,7 +146,7 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
 
       {/* Combat OS sheet */}
       {combatOSOpen && (
-        <CombatOSSheet onClose={() => setCombatOSOpen(false)} router={r} locale={locale} pathname={pathname} userId={user?.uid} />
+        <CombatOSSheet onClose={() => setCombatOSOpen(false)} router={r} locale={locale} pathname={pathname} userId={user?.uid} unreadNotifs={unreadCount} unreadDMs={dmUnread} />
       )}
 
       <nav

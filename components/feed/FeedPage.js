@@ -142,10 +142,11 @@ export default function FeedPage({ reels, locale, router, user, userArchetype, f
     const reelId = typeof reelOrId === "object" ? reelOrId?.id : reelOrId;
     const wasLiked = userLikes.has(reelId);
     handleLike(reelOrId);
-    if (!wasLiked) {
+    // Only show toast when adding a like (not removing), and don't stack
+    if (!wasLiked && !xpToast.visible) {
       setXpToast({ visible: true, message: "+10 XP · RESPECT" });
     }
-  }, [handleLike, userLikes]);
+  }, [handleLike, userLikes, xpToast.visible]);
 
   useEffect(() => {
     if (!reels.length || !containerRef.current) return;

@@ -212,25 +212,44 @@ export default function ProfileFighterCard({
           <span style={styles.statLabel}>{t("followingCount")}</span>
         </button>
       </div>
-      {/* Zero-state: own profile, no activity yet */}
-      {isOwnProfile && userReels.length === 0 && (stats.followers || 0) === 0 && (
+      {/* Zero-state: own profile, no activity yet — headline + description + CTA */}
+      {isOwnProfile && userReels.length === 0 && (
         <div style={{
-          margin: "4px 0 0",
-          padding: "10px 14px",
-          borderRadius: 12,
+          margin: "6px 0 0",
+          padding: "14px 16px",
+          borderRadius: 14,
           background: "rgba(255,59,48,0.05)",
-          border: "1px solid rgba(255,59,48,0.12)",
-          display: "flex", alignItems: "center", gap: 10,
+          border: "1px solid rgba(255,59,48,0.13)",
+          display: "flex", alignItems: "center", gap: 12,
         }}>
-          <span style={{ fontSize: 18 }}>🥊</span>
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 900, color: "rgba(255,255,255,0.65)", letterSpacing: 0.3 }}>
+          <span style={{ fontSize: 22, flexShrink: 0 }}>🥊</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 11, fontWeight: 900, color: "rgba(255,255,255,0.72)", letterSpacing: 0.4, textTransform: "uppercase" }}>
               {t("profileZeroStateTitle") || "YOUR JOURNEY STARTS HERE"}
             </div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>
-              {t("profileZeroStateSub") || "Upload a reel to claim your rank"}
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.32)", marginTop: 3, lineHeight: 1.4 }}>
+              {t("profileZeroStateSub") || "Post your first reel to begin your fight story."}
             </div>
           </div>
+          <button
+            type="button"
+            onClick={() => router.push(`/${locale}/train`)}
+            style={{
+              flexShrink: 0,
+              padding: "6px 13px",
+              borderRadius: 999,
+              border: "none",
+              background: "rgba(255,59,48,0.85)",
+              color: "#fff",
+              fontSize: 10,
+              fontWeight: 900,
+              letterSpacing: 0.5,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {t("uploadReel") || "TRAIN →"}
+          </button>
         </div>
       )}
 

@@ -154,13 +154,17 @@ export default function FeedScrollContainer({
       const id    = now + Math.random();
 
       setPunchBursts((prev) => [...prev, { id, reelId, x, y, emoji, cls }]);
-      setTimeout(() => setPunchBursts((prev) => prev.filter((b) => b.id !== id)), 900);
+      setTimeout(() => setPunchBursts((prev) => prev.filter((b) => b.id !== id)), 800);
 
-      if (onLikeFn) onLikeFn(reel);
+      // Like fires immediately on first double-tap (count===2); subsequent taps just burst
+      if (onLikeFn && count === 2) onLikeFn(reel);
 
+      // +RESPECT float delayed 120ms so it doesn't overlap the burst sprite
       const fid = id + 0.5;
-      setRespectFloats((prev) => [...prev, { id: fid, reelId, x, y }]);
-      setTimeout(() => setRespectFloats((prev) => prev.filter((f) => f.id !== fid)), 900);
+      setTimeout(() => {
+        setRespectFloats((prev) => [...prev, { id: fid, reelId, x, y }]);
+        setTimeout(() => setRespectFloats((prev) => prev.filter((f) => f.id !== fid)), 850);
+      }, 120);
     }
     lastTapRef.current[reelId] = now;
   }, []);
@@ -225,7 +229,7 @@ export default function FeedScrollContainer({
                   left: b.x,
                   top: b.y,
                   zIndex: 60,
-                  fontSize: b.cls === "ko-burst" ? 88 : b.cls === "combo-burst" ? 80 : 72,
+                  fontSize: b.cls === "ko-burst" ? 76 : b.cls === "combo-burst" ? 72 : 68,
                   lineHeight: 1,
                   pointerEvents: "none",
                   userSelect: "none",

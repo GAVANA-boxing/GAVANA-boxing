@@ -107,8 +107,8 @@ const OS_ICONS = {
 const COMBAT_OS_ITEMS = [
   { key: "fighters",        labelEn: "Fighters",      labelMn: "Тулаанчид",        labelKo: "파이터",    path: "/fighters" },
   { key: "challenges",      labelEn: "Challenges",    labelMn: "Сорилт",           labelKo: "챌린지",    path: "/challenges" },
-  { key: "notifications",   labelEn: "Notifications", labelMn: "Мэдэгдэл",         labelKo: "알림",     path: "/notifications", badge: true },
-  { key: "inbox",           labelEn: "Messages",      labelMn: "Мессеж",           labelKo: "메시지",    path: "/inbox", badge: true },
+  { key: "notifications",   labelEn: "Notifications", labelMn: "Мэдэгдэл",         labelKo: "알림",     path: "/notifications" },
+  { key: "inbox",           labelEn: "Messages",      labelMn: "Мессеж",           labelKo: "메시지",    path: "/inbox" },
   { key: "fighter-profile", labelEn: "Fighter DNA",   labelMn: "Тулаанчийн ДНХ",  labelKo: "파이터 DNA", path: "/fighter-profile" },
   { key: "academy",         labelEn: "Academy",       labelMn: "Академи",          labelKo: "아카데미",   path: "/programs" },
   { key: "gyms",            labelEn: "Gyms",          labelMn: "Дасгалын заал",    labelKo: "체육관",    path: "/gyms" },
@@ -119,9 +119,9 @@ const COMBAT_OS_ITEMS = [
 const LANG_LABELS = { mn: "🇲🇳 MN", en: "🇺🇸 EN", ko: "🇰🇷 KO" };
 
 /**
- * @param {{ onClose: () => void, router: object, locale: string, pathname: string, userId: string | undefined }} props
+ * @param {{ onClose: () => void, router: object, locale: string, pathname: string, userId: string | undefined, unreadNotifs?: number, unreadDMs?: number }} props
  */
-export default function CombatOSSheet({ onClose, router, locale, pathname, userId }) {
+export default function CombatOSSheet({ onClose, router, locale, pathname, userId, unreadNotifs = 0, unreadDMs = 0 }) {
   return (
     <div
       style={{
@@ -215,16 +215,21 @@ export default function CombatOSSheet({ onClose, router, locale, pathname, userI
               <span style={{ fontSize: 13, fontWeight: 800, lineHeight: 1.2 }}>
                 {loc(locale, item.labelMn, item.labelKo, item.labelEn)}
               </span>
-              {item.badge && (
+              {((item.key === "notifications" && unreadNotifs > 0) || (item.key === "inbox" && unreadDMs > 0)) && (
                 <span
                   className="notif-badge-pulse"
                   style={{
                     marginLeft: "auto", flexShrink: 0,
-                    width: 8, height: 8, borderRadius: "50%",
+                    minWidth: 18, height: 18, borderRadius: 999,
                     background: RED,
                     boxShadow: `0 0 6px ${redAlpha(0.8)}`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 9, fontWeight: 900, color: "#fff",
+                    padding: "0 5px",
                   }}
-                />
+                >
+                  {item.key === "notifications" ? unreadNotifs : unreadDMs}
+                </span>
               )}
             </button>
           ))}
