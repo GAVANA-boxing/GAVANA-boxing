@@ -114,6 +114,7 @@ const COMBAT_OS_ITEMS = [
   { key: "gyms",            labelEn: "Gyms",          labelMn: "Дасгалын заал",    labelKo: "체육관",    path: "/gyms" },
   { key: "history",         labelEn: "History",       labelMn: "Түүх",             labelKo: "기록",     path: "/history" },
   { key: "settings",        labelEn: "Settings",      labelMn: "Тохиргоо",         labelKo: "설정",     path: "/profile" },
+  { key: "drills",          labelEn: "Route Index",   labelMn: "Тест",             labelKo: "테스트",    path: "/test" },
 ];
 
 const LANG_LABELS = { mn: "🇲🇳 MN", en: "🇺🇸 EN", ko: "🇰🇷 KO" };
