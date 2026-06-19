@@ -123,21 +123,35 @@ export default function FeedScrollContainer({
   onVideoError,
   setVideoProgress,
 }) {
-  const lastTapRef   = useRef({});
-  const tapCountRef  = useRef({});
-  const tapTimerRef  = useRef({});
+  const lastTapRef        = useRef({});
+  const tapCountRef       = useRef({});
+  const tapTimerRef       = useRef({});
+  const singleTapTimerRef = useRef({});
+  const lastTouchTimeRef  = useRef(0);
   const [punchBursts, setPunchBursts] = useState([]);
   const [respectFloats, setRespectFloats] = useState([]);
 
-  const handleCardTap = useCallback((e, reelId, onLikeFn, reel) => {
+  const handleCardTap = useCallback((e, reelId, onLikeFn, reel, isTouch = false) => {
+    // Prevent onClick from double-firing after onTouchEnd on mobile
+    if (isTouch) {
+      lastTouchTimeRef.current = Date.now();
+    } else if (Date.now() - lastTouchTimeRef.current < 600) {
+      return;
+    }
+
     const now  = Date.now();
     const last = lastTapRef.current[reelId] || 0;
     const gap  = now - last;
+    lastTapRef.current[reelId] = now;
 
     if (gap < 320) {
+      // Double tap — cancel pending single-tap pause/play
+      clearTimeout(singleTapTimerRef.current[reelId]);
+
       const rect    = e.currentTarget.getBoundingClientRect();
-      const clientX = e.touches?.[0]?.clientX ?? e.clientX;
-      const clientY = e.touches?.[0]?.clientY ?? e.clientY;
+      const touch   = e.changedTouches?.[0] ?? e.touches?.[0];
+      const clientX = touch?.clientX ?? e.clientX;
+      const clientY = touch?.clientY ?? e.clientY;
       const x = clientX - rect.left;
       const y = clientY - rect.top;
 
@@ -158,19 +172,28 @@ export default function FeedScrollContainer({
       setPunchBursts((prev) => [...prev, { id, reelId, x, y, emoji, cls }]);
       setTimeout(() => setPunchBursts((prev) => prev.filter((b) => b.id !== id)), 800);
 
-      // Like fires immediately on first double-tap (count===2); subsequent taps just burst
+      // Like fires on first double-tap (count===2); subsequent rapid taps just burst
       if (onLikeFn && count === 2) onLikeFn(reel);
 
       // +RESPECT float: delayed 120ms, offset right so it doesn't overlap burst sprite
-      const fid   = id + 0.5;
+      const fid    = id + 0.5;
       const floatX = Math.min(x + 56, rect.width - 80);
       setTimeout(() => {
         setRespectFloats((prev) => [...prev, { id: fid, reelId, x: floatX, y }]);
         setTimeout(() => setRespectFloats((prev) => prev.filter((f) => f.id !== fid)), 850);
       }, 120);
+    } else {
+      // Single tap — wait 280ms; if no second tap arrives, toggle pause/play
+      clearTimeout(singleTapTimerRef.current[reelId]);
+      singleTapTimerRef.current[reelId] = setTimeout(() => {
+        const video = videoRefs?.current?.[reelId];
+        if (video) {
+          if (video.paused) video.play().catch(() => {});
+          else video.pause();
+        }
+      }, 280);
     }
-    lastTapRef.current[reelId] = now;
-  }, []);
+  }, [videoRefs]);
 
   return (
     <div
@@ -217,8 +240,8 @@ export default function FeedScrollContainer({
                 cardRefs.current.delete(index);
               }
             }}
-            onClick={(e) => handleCardTap(e, reel.id, onLike, reel)}
-            onTouchEnd={(e) => handleCardTap(e, reel.id, onLike, reel)}
+            onClick={(e) => handleCardTap(e, reel.id, onLike, reel, false)}
+            onTouchEnd={(e) => handleCardTap(e, reel.id, onLike, reel, true)}
           >
             {showDnaBadge && (
               <DnaMatchBadge locale={locale} userArchetype={userArchetype} />
