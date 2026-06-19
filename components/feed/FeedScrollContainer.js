@@ -123,21 +123,51 @@ export default function FeedScrollContainer({
   onVideoError,
   setVideoProgress,
 }) {
-  const lastTapRef = useRef({});
+  const lastTapRef   = useRef({});
+  const tapCountRef  = useRef({});
+  const tapTimerRef  = useRef({});
   const [punchBursts, setPunchBursts] = useState([]);
+  const [respectFloats, setRespectFloats] = useState([]);
 
-  const handleCardTap = useCallback((e, reelId) => {
-    const now = Date.now();
+  const handleCardTap = useCallback((e, reelId, onLikeFn, reel) => {
+    const now  = Date.now();
     const last = lastTapRef.current[reelId] || 0;
-    if (now - last < 320) {
-      const rect = e.currentTarget.getBoundingClientRect();
+    const gap  = now - last;
+
+    if (gap < 320) {
+      const rect    = e.currentTarget.getBoundingClientRect();
       const clientX = e.touches?.[0]?.clientX ?? e.clientX;
       const clientY = e.touches?.[0]?.clientY ?? e.clientY;
       const x = clientX - rect.left;
       const y = clientY - rect.top;
-      const id = now;
-      setPunchBursts((prev) => [...prev, { id, reelId, x, y }]);
-      setTimeout(() => setPunchBursts((prev) => prev.filter((b) => b.id !== id)), 750);
+
+      tapCountRef.current[reelId] = (tapCountRef.current[reelId] || 1) + 1;
+      clearTimeout(tapTimerRef.current[reelId]);
+      tapTimerRef.current[reelId] = setTimeout(() => {
+        tapCountRef.current[reelId] = 0;
+      }, 900);
+
+      const count    = tapCountRef.current[reelId];
+      const tier     = count >= 5 ? 3 : count >= 3 ? 2 : 1;
+      const emoji    = tier === 3 ? "⚡" : tier === 2 ? "🔥" : "🥊";
+      const burstCls = tier === 3 ? "ko-burst" : tier === 2 ? "combo-burst" : "punch-burst";
+      const glowCls  = `burst-tier-${tier}`;
+      const cls      = `${burstCls} ${glowCls}`;
+      const id       = now + Math.random();
+
+      setPunchBursts((prev) => [...prev, { id, reelId, x, y, emoji, cls }]);
+      setTimeout(() => setPunchBursts((prev) => prev.filter((b) => b.id !== id)), 800);
+
+      // Like fires immediately on first double-tap (count===2); subsequent taps just burst
+      if (onLikeFn && count === 2) onLikeFn(reel);
+
+      // +RESPECT float: delayed 120ms, offset right so it doesn't overlap burst sprite
+      const fid   = id + 0.5;
+      const floatX = Math.min(x + 56, rect.width - 80);
+      setTimeout(() => {
+        setRespectFloats((prev) => [...prev, { id: fid, reelId, x: floatX, y }]);
+        setTimeout(() => setRespectFloats((prev) => prev.filter((f) => f.id !== fid)), 850);
+      }, 120);
     }
     lastTapRef.current[reelId] = now;
   }, []);
@@ -171,7 +201,8 @@ export default function FeedScrollContainer({
             return myStyleKeywords.some((kw) => text.includes(kw));
           })();
 
-        const cardBursts = punchBursts.filter((b) => b.reelId === reel.id);
+        const cardBursts    = punchBursts.filter((b) => b.reelId === reel.id);
+        const cardRespects  = respectFloats.filter((f) => f.reelId === reel.id);
 
         return (
           <div
@@ -186,8 +217,8 @@ export default function FeedScrollContainer({
                 cardRefs.current.delete(index);
               }
             }}
-            onClick={(e) => handleCardTap(e, reel.id)}
-            onTouchEnd={(e) => handleCardTap(e, reel.id)}
+            onClick={(e) => handleCardTap(e, reel.id, onLike, reel)}
+            onTouchEnd={(e) => handleCardTap(e, reel.id, onLike, reel)}
           >
             {showDnaBadge && (
               <DnaMatchBadge locale={locale} userArchetype={userArchetype} />
@@ -195,19 +226,28 @@ export default function FeedScrollContainer({
             {cardBursts.map((b) => (
               <span
                 key={b.id}
-                className="punch-burst"
+                className={b.cls || "punch-burst"}
                 style={{
                   position: "absolute",
                   left: b.x,
                   top: b.y,
                   zIndex: 60,
-                  fontSize: 72,
+                  fontSize: b.cls === "ko-burst" ? 76 : b.cls === "combo-burst" ? 72 : 68,
                   lineHeight: 1,
                   pointerEvents: "none",
                   userSelect: "none",
                 }}
               >
-                🥊
+                {b.emoji || "🥊"}
+              </span>
+            ))}
+            {cardRespects.map((f) => (
+              <span
+                key={f.id}
+                className="respect-float"
+                style={{ left: f.x, top: f.y }}
+              >
+                +RESPECT
               </span>
             ))}
             <ReelItem

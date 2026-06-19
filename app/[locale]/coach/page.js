@@ -8,16 +8,18 @@ class CoachSectionBoundary extends Component {
   static getDerivedStateFromError() { return { failed: true }; }
   render() {
     if (this.state.failed) {
+      const { redAlpha, whiteAlpha } = require("@/lib/tokens");
       return (
-        <div style={{ padding: "24px 16px", textAlign: "center" }}>
-          <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 13, marginBottom: 12 }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, padding: "22px 16px", textAlign: "center" }}>
+          <span style={{ fontSize: 28 }}>⚠️</span>
+          <p style={{ margin: 0, color: whiteAlpha(0.35), fontSize: 12, lineHeight: 1.5, maxWidth: 240 }}>
             {this.props.fallbackText || "Section unavailable"}
           </p>
           <button
             onClick={() => this.setState({ failed: false })}
-            style={{ padding: "8px 20px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "transparent", color: "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+            style={{ padding: "7px 18px", borderRadius: 10, border: `1px solid ${redAlpha(0.35)}`, background: redAlpha(0.08), color: "rgba(248,113,113,0.9)", fontSize: 11, fontWeight: 900, cursor: "pointer", letterSpacing: 0.5 }}
           >
-            Retry
+            RETRY →
           </button>
         </div>
       );
@@ -122,6 +124,19 @@ export default function CoachPage() {
             onClick={() => setTab(key)}
           >
             {label}
+            {tab === key && (
+              <span
+                className="tab-indicator"
+                style={{
+                  position: "absolute",
+                  bottom: -2, left: "20%", right: "20%",
+                  height: 2,
+                  borderRadius: 2,
+                  background: `linear-gradient(90deg, ${RED}, rgba(255,59,48,0.5))`,
+                  boxShadow: `0 0 8px rgba(255,59,48,0.6)`,
+                }}
+              />
+            )}
           </button>
         ))}
       </div>

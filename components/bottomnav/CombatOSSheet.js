@@ -119,9 +119,9 @@ const COMBAT_OS_ITEMS = [
 const LANG_LABELS = { mn: "🇲🇳 MN", en: "🇺🇸 EN", ko: "🇰🇷 KO" };
 
 /**
- * @param {{ onClose: () => void, router: object, locale: string, pathname: string, userId: string | undefined }} props
+ * @param {{ onClose: () => void, router: object, locale: string, pathname: string, userId: string | undefined, unreadNotifs?: number, unreadDMs?: number }} props
  */
-export default function CombatOSSheet({ onClose, router, locale, pathname, userId }) {
+export default function CombatOSSheet({ onClose, router, locale, pathname, userId, unreadNotifs = 0, unreadDMs = 0 }) {
   return (
     <div
       style={{
@@ -133,6 +133,7 @@ export default function CombatOSSheet({ onClose, router, locale, pathname, userI
       onClick={onClose}
     >
       <div
+        className="combat-os-sheet"
         style={{
           width: "min(100%, 480px)",
           borderRadius: "20px 20px 0 0",
@@ -200,18 +201,38 @@ export default function CombatOSSheet({ onClose, router, locale, pathname, userI
               style={{
                 display: "flex", alignItems: "center", gap: 10,
                 padding: "11px 14px",
+                position: "relative",
                 background: "rgba(255,255,255,0.04)",
                 border: "1px solid rgba(255,255,255,0.07)",
                 borderRadius: 16,
                 cursor: "pointer", color: "#fff",
                 textAlign: "left",
                 WebkitTapHighlightColor: "transparent",
+                transition: "background 160ms ease, border-color 160ms ease",
               }}
             >
               <span style={{ flexShrink: 0, display: "flex", color: "rgba(255,255,255,0.7)" }}>{OS_ICONS[item.key]}</span>
               <span style={{ fontSize: 13, fontWeight: 800, lineHeight: 1.2 }}>
                 {loc(locale, item.labelMn, item.labelKo, item.labelEn)}
               </span>
+              {((item.key === "notifications" && unreadNotifs > 0) || (item.key === "inbox" && unreadDMs > 0)) && (
+                <span
+                  className="notif-badge-pulse"
+                  style={{
+                    marginLeft: "auto", flexShrink: 0,
+                    minWidth: 18, height: 18, borderRadius: 999,
+                    background: RED,
+                    boxShadow: `0 0 6px ${redAlpha(0.8)}`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 9, fontWeight: 900, color: "#fff",
+                    padding: "0 5px",
+                  }}
+                >
+                  {item.key === "notifications"
+                    ? (unreadNotifs > 99 ? "99+" : unreadNotifs)
+                    : (unreadDMs > 99 ? "99+" : unreadDMs)}
+                </span>
+              )}
             </button>
           ))}
         </div>

@@ -127,7 +127,12 @@ export default function ProfileFighterCard({
           <h1 style={styles.fighterName}>
             {profileUser.displayName || profileUser.username}
             {streakCount >= 5 && (
-              <span style={{ fontSize: 20, marginLeft: 6, verticalAlign: "middle" }}>🔥</span>
+              <span
+                className={streakCount >= 7 ? "streak-fire-7" : undefined}
+                style={{ fontSize: 20, marginLeft: 6, verticalAlign: "middle", display: "inline-block" }}
+              >
+                🔥
+              </span>
             )}
           </h1>
           <div style={styles.fighterUsername}>@{profileUser.username}</div>
@@ -181,7 +186,9 @@ export default function ProfileFighterCard({
       {/* ── Stats row ────────────────────────────────────────────────────── */}
       <div style={styles.statsRow} className="section-reveal stagger-3">
         <button type="button" onClick={() => onStatNavigate("posts")} style={styles.statButton}>
-          <span style={styles.statNumber}>{userReels.length}</span>
+          <span style={{ ...styles.statNumber, ...(userReels.length === 0 ? { color: "rgba(255,255,255,0.2)" } : {}) }}>
+            {userReels.length}
+          </span>
           <span style={styles.statLabel}>{t("posts")}</span>
         </button>
         <button
@@ -189,7 +196,9 @@ export default function ProfileFighterCard({
           onClick={() => onStatNavigate("followers")}
           style={styles.statButton}
         >
-          <span style={styles.statNumber}>{stats.followers}</span>
+          <span style={{ ...styles.statNumber, ...((stats.followers || 0) === 0 ? { color: "rgba(255,255,255,0.2)" } : {}) }}>
+            {stats.followers || 0}
+          </span>
           <span style={styles.statLabel}>{t("followers")}</span>
         </button>
         <button
@@ -197,10 +206,52 @@ export default function ProfileFighterCard({
           onClick={() => onStatNavigate("following")}
           style={styles.statButton}
         >
-          <span style={styles.statNumber}>{stats.following}</span>
+          <span style={{ ...styles.statNumber, ...((stats.following || 0) === 0 ? { color: "rgba(255,255,255,0.2)" } : {}) }}>
+            {stats.following || 0}
+          </span>
           <span style={styles.statLabel}>{t("followingCount")}</span>
         </button>
       </div>
+      {/* Zero-state: own profile, no activity yet — headline + description + CTA */}
+      {isOwnProfile && userReels.length === 0 && (
+        <div style={{
+          margin: "6px 0 0",
+          padding: "14px 16px",
+          borderRadius: 14,
+          background: "rgba(255,59,48,0.05)",
+          border: "1px solid rgba(255,59,48,0.13)",
+          display: "flex", alignItems: "center", gap: 12,
+        }}>
+          <span style={{ fontSize: 22, flexShrink: 0 }}>🥊</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 11, fontWeight: 900, color: "rgba(255,255,255,0.72)", letterSpacing: 0.4, textTransform: "uppercase" }}>
+              {t("profileZeroStateTitle") || "YOUR JOURNEY STARTS HERE"}
+            </div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.32)", marginTop: 3, lineHeight: 1.4 }}>
+              {t("profileZeroStateSub") || "Post your first reel to begin your fight story."}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => router.push(`/${locale}/train`)}
+            style={{
+              flexShrink: 0,
+              padding: "6px 13px",
+              borderRadius: 999,
+              border: "none",
+              background: "rgba(255,59,48,0.85)",
+              color: "#fff",
+              fontSize: 10,
+              fontWeight: 900,
+              letterSpacing: 0.5,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {t("uploadReel") || "TRAIN →"}
+          </button>
+        </div>
+      )}
 
       {/* ── Secondary actions ────────────────────────────────────────────── */}
       <ProfileActionRow

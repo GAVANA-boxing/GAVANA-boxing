@@ -1450,3 +1450,216 @@ button:not(:disabled):not([style*="cursor: default"]):active {
   transform: scale(0.95);
   transition: transform var(--motion-press);
 }
+
+/* ═══════════════════════════════════════════════════════════
+   PHASE 1–6: Feed, Profile, Coach, Retention animations
+═══════════════════════════════════════════════════════════ */
+
+/* Phase 2 — Feed: +RESPECT float when double-tapping */
+@keyframes respectFloat {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+  18%  { opacity: 1; transform: translate(-50%, -50%) scale(1.3); }
+  55%  { opacity: 0.9; transform: translate(-50%, -90%) scale(1.05); }
+  100% { opacity: 0; transform: translate(-50%, -150%) scale(0.8); }
+}
+.respect-float {
+  animation: respectFloat 820ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: none;
+  user-select: none;
+  position: absolute;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: #FF3B30;
+  text-shadow: 0 0 14px rgba(255,59,48,0.7);
+  white-space: nowrap;
+  z-index: 61;
+}
+
+/* Phase 2 — Feed: tier-2 burst (🔥 COMBO) */
+@keyframes comboBurst {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.3) rotate(-20deg); }
+  22%  { opacity: 1; transform: translate(-50%, -50%) scale(1.8) rotate(10deg); }
+  60%  { opacity: 0.85; transform: translate(-50%, -70%) scale(1.2) rotate(4deg); }
+  100% { opacity: 0; transform: translate(-50%, -130%) scale(0.8) rotate(-8deg); }
+}
+.combo-burst {
+  animation: comboBurst 750ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: none;
+}
+
+/* Phase 2 — Feed: tier-3 burst (⚡ KO) — kept subtle, max scale 1.8 */
+@keyframes koBurst {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.2) rotate(25deg); }
+  18%  { opacity: 1; transform: translate(-50%, -50%) scale(1.8) rotate(-8deg); }
+  55%  { opacity: 1; transform: translate(-50%, -75%) scale(1.2) rotate(3deg); }
+  100% { opacity: 0; transform: translate(-50%, -140%) scale(0.85) rotate(-5deg); }
+}
+.ko-burst {
+  animation: koBurst 750ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: none;
+}
+
+/* Phase 2 — Feed: pull-to-refresh rope snap */
+@keyframes ropeSnap {
+  0%   { transform: scaleY(1); }
+  40%  { transform: scaleY(1.3); }
+  65%  { transform: scaleY(0.7); }
+  80%  { transform: scaleY(1.1); }
+  100% { transform: scaleY(1); }
+}
+.rope-snap { animation: ropeSnap 380ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+@keyframes pullIndicatorIn {
+  from { opacity: 0; transform: translateY(-24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.pull-indicator-in { animation: pullIndicatorIn 220ms ease both; }
+
+/* Phase 4 — COMBAT OS: sheet slide-up */
+@keyframes combatOSIn {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.combat-os-sheet { animation: combatOSIn 300ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Phase 5 — Coach: tab indicator slide */
+@keyframes tabIndicatorSlide {
+  from { transform: scaleX(0.4); opacity: 0; }
+  to   { transform: scaleX(1);   opacity: 1; }
+}
+.tab-indicator { animation: tabIndicatorSlide 220ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+/* Phase 6 — Retention: XP toast */
+@keyframes xpToastIn {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(24px) scale(0.88); }
+  55%  { opacity: 1; transform: translateX(-50%) translateY(-4px) scale(1.04); }
+  100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+@keyframes xpToastOut {
+  from { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateX(-50%) translateY(-16px) scale(0.92); }
+}
+.xp-toast-in  { animation: xpToastIn  380ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.xp-toast-out { animation: xpToastOut 280ms ease both; }
+
+/* Phase 6 — Retention: streak fire grow (day 7+) */
+@keyframes streakFire {
+  0%, 100% { transform: scale(1) rotate(0deg);   filter: brightness(1); }
+  25%       { transform: scale(1.2) rotate(-3deg); filter: brightness(1.3) drop-shadow(0 0 6px #FB923C); }
+  50%       { transform: scale(1.35) rotate(2deg); filter: brightness(1.5) drop-shadow(0 0 12px #F59E0B); }
+  75%       { transform: scale(1.15) rotate(-1deg); filter: brightness(1.2); }
+}
+.streak-fire-7 { animation: streakFire 1.4s ease-in-out infinite; }
+
+/* Phase 6 — Retention: notification badge pulse */
+@keyframes notifBadgePulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,59,48,0.5); }
+  50%       { transform: scale(1.15); box-shadow: 0 0 0 4px rgba(255,59,48,0); }
+}
+.notif-badge-pulse { animation: notifBadgePulse 2s ease-in-out infinite; }
+
+/* ── Motion timing scale (canonical) ──────────────────────────────────────────
+   quick-feedback:  150–250ms  (tap, like, toggle)
+   medium-feedback: 280–380ms  (toast in, badge pop)
+   large-transition:360–480ms  (sheet slide, page enter)
+   persistent:      1.2–2.8s   (pulse, fire, ambient)
+──────────────────────────────────────────────────────────────────────────── */
+
+/* ── prefers-reduced-motion: disable all decorative animations ─────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Keep functional opacity transitions (e.g. toast appearing) */
+  .xp-toast-in,
+  .xp-toast-out,
+  .combat-os-sheet,
+  .page-enter,
+  .section-reveal {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PHASE A — UX: text truncation, language-safe layout
+═══════════════════════════════════════════════════════════ */
+
+/* Safe chip/badge/tab truncation for MN/KO long words */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+.chip-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+/* Mongolian/Korean safe wrapping */
+.label-safe {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+/* Stat button active feedback */
+.stat-btn-hover:active {
+  background: rgba(255,255,255,0.04) !important;
+  transform: scale(0.98);
+  transition: background var(--motion-fast), transform var(--motion-press);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PHASE B — Motion: per-tier glow colors
+═══════════════════════════════════════════════════════════ */
+
+/* Tier glow classes — applied to burst spans */
+.burst-tier-1 { filter: drop-shadow(0 0 8px rgba(255,59,48,0.7)); }
+.burst-tier-2 { filter: drop-shadow(0 0 10px rgba(251,146,60,0.8)); }
+.burst-tier-3 { filter: drop-shadow(0 0 12px rgba(245,196,81,0.9)); }
+
+/* ═══════════════════════════════════════════════════════════
+   PHASE D — Performance: will-change promotion
+═══════════════════════════════════════════════════════════ */
+
+.punch-burst,
+.combo-burst,
+.ko-burst,
+.respect-float,
+.xp-toast-in,
+.xp-toast-out,
+.combat-os-sheet {
+  will-change: transform, opacity;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PHASE E — Accessibility: tap targets + focus rings
+═══════════════════════════════════════════════════════════ */
+
+/* Minimum tap target */
+.tap-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Keyboard focus ring */
+:focus-visible {
+  outline: 2px solid rgba(255,59,48,0.7);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+:focus:not(:focus-visible) {
+  outline: none;
+}

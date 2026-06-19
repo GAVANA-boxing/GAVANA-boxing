@@ -10,6 +10,7 @@ import FeedSoundToggle from "./FeedSoundToggle";
 import FeedFilteredEmpty from "./FeedFilteredEmpty";
 import FeedScrollContainer from "./FeedScrollContainer";
 import { translate } from "@/lib/i18n";
+import XPToast from "@/components/XPToast";
 import { useReelInteractions } from "@/hooks/useReelInteractions";
 import { useCommentActions } from "@/hooks/useCommentActions";
 import { useFeedFollow } from "@/hooks/useFeedFollow";
@@ -32,6 +33,7 @@ export default function FeedPage({ reels, locale, router, user, userArchetype, f
   const [captionSheetReelId, setCaptionSheetReelId] = useState(null);
   const [activeFilter,       setActiveFilter]       = useState("all");
   const [dnaBannerDismissed, setDnaBannerDismissed] = useState(false);
+  const [xpToast,            setXpToast]            = useState({ visible: false, message: "" });
 
   // Social state
   const [allReels,   setAllReels]   = useState(reels);
@@ -135,6 +137,16 @@ export default function FeedPage({ reels, locale, router, user, userArchetype, f
 
   const commentActions = useCommentActions({ user, router, currentLocale: locale, reels: allReels });
   const { followingSet, loadingSet, handleFollow } = useFeedFollow({ user, router, currentLocale: locale });
+
+  const handleLikeWithToast = useCallback((reelOrId) => {
+    const reelId = typeof reelOrId === "object" ? reelOrId?.id : reelOrId;
+    const wasLiked = userLikes.has(reelId);
+    handleLike(reelOrId);
+    // Only show toast when adding a like (not removing), and don't stack
+    if (!wasLiked && !xpToast.visible) {
+      setXpToast({ visible: true, message: "+10 XP · RESPECT" });
+    }
+  }, [handleLike, userLikes, xpToast.visible]);
 
   useEffect(() => {
     if (!reels.length || !containerRef.current) return;
@@ -241,7 +253,7 @@ export default function FeedPage({ reels, locale, router, user, userArchetype, f
         noop={noop}
         reelItemRefs={reelItemRefs}
         videoRefs={videoRefs}
-        onLike={handleLike}
+        onLike={handleLikeWithToast}
         onOpenComments={commentActions.handleOpenComments}
         onShare={handleShare}
         onSave={handleSave}
@@ -280,6 +292,12 @@ export default function FeedPage({ reels, locale, router, user, userArchetype, f
         onClose={commentActions.handleCloseComments}
         onAddComment={commentActions.handleAddComment}
         onDeleteComment={commentActions.handleDeleteComment}
+      />
+
+      <XPToast
+        message={xpToast.message}
+        visible={xpToast.visible}
+        onDone={() => setXpToast((p) => ({ ...p, visible: false }))}
       />
     </>
   );
