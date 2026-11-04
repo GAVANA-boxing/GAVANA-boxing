@@ -130,7 +130,6 @@ export default function FighterProfilePage() {
   const profile  = computeMovementProfile(sessions);
   const identity = profile ? deriveCombatIdentity(profile, sessions) : null;
   const dna      = computeFighterDNA({ sessions, locale });
-  const progress = computeCombatProgress({ sessions, streakDays: 0, locale });
   const dnaSavedRef       = useRef(false);
   const progressSavedRef  = useRef(false);
   const [currentExperiment, setCurrentExperiment] = useState(null);
@@ -144,6 +143,11 @@ export default function FighterProfilePage() {
   const [userData, setUserData] = useState(null);
   const dnaRevealShownRef = useRef(false);
   const [milestonesUnlocked, setMilestonesUnlocked] = useState({ m8: false, m15: false });
+
+  // Combat Level derives from the canonical account XP (same number as belts/rank)
+  // so the profile shows one coherent ladder; falls back to a session estimate
+  // until the user doc (with xp) has loaded.
+  const progress = computeCombatProgress({ sessions, streakDays: 0, locale, xp: userData?.xp });
 
   useEffect(() => {
     if (!authLoading && !user) router.push(`/${locale}/login`);

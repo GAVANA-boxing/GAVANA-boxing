@@ -370,7 +370,7 @@ export function useTrainingActions({
           if (snap) {
             await setDoc(userRef, { fighterDNA: snap, fighterDnaUpdatedAt: serverTimestamp() }, { merge: true });
           }
-          const prog     = computeCombatProgress({ sessions: sessionsForStats, streakDays: 0, locale });
+          const prog     = computeCombatProgress({ sessions: sessionsForStats, streakDays: 0, locale, xp: Number(userData.xp) || 0 });
           const progSnap = progressSnapshot(prog);
           if (progSnap) {
             await setDoc(userRef, { combatProgress: progSnap }, { merge: true });
