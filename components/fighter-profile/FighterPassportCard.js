@@ -6,6 +6,7 @@ import { FIGHTERS } from "@/lib/fighters";
 import { ARCH_TRAINING_COLORS } from "@/lib/archetypeTraining";
 import PassportStatCell from "@/components/fighter-profile/PassportStatCell";
 import PassportShareButton from "@/components/fighter-profile/PassportShareButton";
+import useTilt from "@/hooks/useTilt";
 
 const PP_L = {
   en: {
@@ -56,6 +57,7 @@ export default function FighterPassportCard({ dna, displayName, progress, studie
   const L   = PP_L[locale]            || PP_L.en;
   const AD  = ARCH_DISPLAY_PP[locale] || ARCH_DISPLAY_PP.en;
   const acc = ARCH_TRAINING_COLORS[dna.archetypeKey] || GOLD;
+  const tiltRef = useTilt({ max: dna.building ? 5 : 9 });
 
   const confidencePct = dna.building ? null : Math.round((dna.confidence || 0) * 100);
 
@@ -100,14 +102,18 @@ export default function FighterPassportCard({ dna, displayName, progress, studie
   })();
 
   return (
-    <div style={{
-      borderRadius: 20, overflow: "hidden",
-      border: `1px solid ${dna.building ? whiteAlpha(0.08) : `${acc}40`}`,
-      background: dna.building
-        ? whiteAlpha(0.015)
-        : `linear-gradient(155deg, rgba(6,6,8,0.97) 0%, ${acc}14 100%)`,
-      marginBottom: 16,
-    }}>
+    <div
+      ref={tiltRef}
+      style={{
+        borderRadius: 20, overflow: "hidden",
+        border: `1px solid ${dna.building ? whiteAlpha(0.08) : `${acc}40`}`,
+        background: dna.building
+          ? whiteAlpha(0.015)
+          : `linear-gradient(155deg, rgba(6,6,8,0.97) 0%, ${acc}14 100%)`,
+        marginBottom: 16,
+        transformStyle: "preserve-3d",
+        willChange: "transform",
+      }}>
       {/* Top accent bar */}
       <div style={{ height: 3, background: dna.building ? whiteAlpha(0.06) : `linear-gradient(90deg, ${acc}, ${acc}44, transparent)` }} />
 
