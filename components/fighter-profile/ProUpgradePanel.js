@@ -45,12 +45,19 @@ const PRO_L = {
 export default function ProUpgradePanel({ locale, router }) {
   const L = PRO_L[locale] || PRO_L.en;
   const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
 
   async function handleUpgrade() {
     setLoading(true);
+    setErr("");
     try {
       const { getAuth } = await import("firebase/auth");
       const token = await getAuth().currentUser?.getIdToken();
+      if (!token) {
+        setErr(locale === "mn" ? "Эхлээд нэвтэрнэ үү" : locale === "ko" ? "먼저 로그인하세요" : "Please sign in first");
+        setLoading(false);
+        return;
+      }
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -60,10 +67,12 @@ export default function ProUpgradePanel({ locale, router }) {
           cancelUrl: window.location.href,
         }),
       });
-      const { url, error } = await res.json();
-      if (url) window.location.href = url;
-      else console.error("Stripe:", error);
-    } catch { /* silent */ }
+      const data = await res.json().catch(() => ({}));
+      if (data.url) { window.location.href = data.url; return; }
+      setErr(data.error || `Checkout failed (${res.status})`);
+    } catch (e) {
+      setErr(e?.message || "Network error");
+    }
     setLoading(false);
   }
 
@@ -97,6 +106,11 @@ export default function ProUpgradePanel({ locale, router }) {
         <p style={{ margin: "8px 0 0", fontSize: 9.5, fontWeight: 700, color: "rgba(255,255,255,0.25)", textAlign: "center" }}>
           {L.price}
         </p>
+        {err && (
+          <p style={{ margin: "8px 0 0", fontSize: 10, fontWeight: 700, color: "#F87171", textAlign: "center", lineHeight: 1.4, wordBreak: "break-word" }}>
+            {err}
+          </p>
+        )}
       </div>
     </div>
   );
