@@ -47,6 +47,7 @@ export default function OnboardingPage() {
     handleStep2Next,
     handleJoinGym,
     finishOnboarding,
+    skipToTraining,
   } = useOnboardingActions({ user, locale, router });
 
   useEffect(() => {
@@ -58,7 +59,7 @@ export default function OnboardingPage() {
   }
 
   if (showIntro) {
-    return <OnboardingIntroScreen locale={locale} onNext={handleIntroNext} />;
+    return <OnboardingIntroScreen locale={locale} onNext={handleIntroNext} onSkipToTrain={skipToTraining} />;
   }
 
   return (

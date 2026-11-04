@@ -29,7 +29,7 @@ const INTRO_CARDS = (locale) => [
   },
 ];
 
-export default function OnboardingIntroScreen({ locale, onNext }) {
+export default function OnboardingIntroScreen({ locale, onNext, onSkipToTrain }) {
   const cards = INTRO_CARDS(locale);
 
   return (
@@ -70,6 +70,23 @@ export default function OnboardingIntroScreen({ locale, onNext }) {
             </button>
           ))}
         </div>
+
+        {/* Fast-path: skip straight to the camera, defer identity questions */}
+        {onSkipToTrain && (
+          <button
+            type="button"
+            onClick={onSkipToTrain}
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              width: "100%", padding: "13px 0", borderRadius: 14,
+              border: "none", background: "none", cursor: "pointer",
+              color: "rgba(255,255,255,0.45)", fontSize: 13, fontWeight: 800,
+            }}
+          >
+            <span style={{ fontSize: 15 }}>🥊</span>
+            {locale === "mn" ? "Алгасаад шууд бэлтгэх →" : locale === "ko" ? "건너뛰고 바로 훈련하기 →" : "Skip — start training now →"}
+          </button>
+        )}
       </div>
     </div>
   );
