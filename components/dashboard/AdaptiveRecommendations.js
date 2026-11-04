@@ -7,7 +7,7 @@ import { RED, GOLD, redAlpha, goldAlpha, RADIUS } from "@/lib/tokens";
 
 const AREA_COLOR = {
   Power: RED, Speed: "#FB923C", Timing: GOLD,
-  Footwork: "#60A5FA", Guard: "#A78BFA", Accuracy: "#34D399",
+  Footwork: "#3B82F6", Guard: "#A78BFA", Accuracy: "#34D399",
 };
 const AREA_MN = {
   Power: "Хүч", Speed: "Хурд", Timing: "Цаг",
@@ -154,7 +154,7 @@ function computeRecs({ goal, coachSnapshot, trainingSessions, locale }) {
     recs.push({
       id: "trending-down",
       icon: "💪",
-      color: "#60A5FA",
+      color: "#3B82F6",
       label: mn ? "Тогтмол байдлаа сэргээ" : "Rebuild Consistency",
       body: mn
         ? "Сүүлийн оноо буурсан. Хүч чадлаасаа биш, тогтмол байдалдаа анхаар."

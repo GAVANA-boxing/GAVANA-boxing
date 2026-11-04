@@ -30,7 +30,7 @@ export default function DebugComboSection({ comboStats }) {
       />
       {lc && (
         <>
-          <DebugSRow label="Last" value={`${lc.name} (${lc.length})`} color="#60A5FA" />
+          <DebugSRow label="Last" value={`${lc.name} (${lc.length})`} color="#3B82F6" />
           <DebugSRow label="└ avg gap"    value={`${lc.avgGapMs}ms`}
             color={lc.avgGapMs < 380 ? "#34D399" : lc.avgGapMs < 600 ? "#F59E0B" : "#F87171"} />
           <DebugSRow label="└ confidence" value={`${Math.round((lc.confidence ?? 0) * 100)}%`}

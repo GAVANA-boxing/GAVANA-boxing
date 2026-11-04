@@ -27,7 +27,7 @@ export default function WeakDimensionDrill({ locale, userArchetype, wrappedHandl
   const weak = WEAK_DIMS[userArchetype];
   if (!weak) return null;
 
-  const weakColor = ARCH_TRAINING_COLORS[weak.dim] || "#60A5FA";
+  const weakColor = ARCH_TRAINING_COLORS[weak.dim] || "#3B82F6";
   const dimLabel  = weak[locale] || weak.en;
   const drillHint = DRILL_HINT[userArchetype]?.[locale] || DRILL_HINT[userArchetype]?.en || "";
 

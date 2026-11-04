@@ -217,7 +217,7 @@ export default function DebugBoxingSection({ boxing }) {
           <DebugSRow
             label="Profile"
             value={boxing.tactical.profileLabel}
-            color="#60A5FA"
+            color="#3B82F6"
           />
           <DebugSRow label="Single shot %" value={`${boxing.tactical.singleShotPct}%`}
             color={boxing.tactical.singleShotPct > 65 ? "#F59E0B" : "#34D399"} />
@@ -233,7 +233,7 @@ export default function DebugBoxingSection({ boxing }) {
           )}
           {boxing.tactical.tacticalCues?.map((cue, i) => (
             <div key={i} style={{ display: "flex", gap: 5, padding: "2px 0", alignItems: "flex-start", marginTop: 2 }}>
-              <span style={{ fontSize: 8, flexShrink: 0, color: "#60A5FA", fontWeight: 900 }}>→</span>
+              <span style={{ fontSize: 8, flexShrink: 0, color: "#3B82F6", fontWeight: 900 }}>→</span>
               <span style={{ fontSize: 7, color: "rgba(255,255,255,0.55)", lineHeight: 1.4 }}>{cue}</span>
             </div>
           ))}

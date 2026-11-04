@@ -7,7 +7,7 @@ import { GOLD, RED, goldAlpha, redAlpha, RADIUS } from "@/lib/tokens";
 
 const AREA_COLOR = {
   Power: RED, Speed: "#FB923C", Timing: GOLD,
-  Footwork: "#60A5FA", Guard: "#A78BFA", Accuracy: "#34D399",
+  Footwork: "#3B82F6", Guard: "#A78BFA", Accuracy: "#34D399",
 };
 const AREA_MN = {
   Power: "Хүч", Speed: "Хурд", Timing: "Цаг",

@@ -62,7 +62,7 @@ export default function PerformancePattern({ trainingSessions, locale }) {
       <div style={{ display: "flex", gap: 5, alignItems: "flex-end", height: 54, marginBottom: 10 }}>
         {dayStats.map(({ day, count, avg }) => {
           const isBest = avg != null && Math.abs(avg - (bestDay.avg ?? 0)) < 0.01 && day === bestDay.day;
-          const col = isBest ? GOLD : avg != null ? "#60A5FA" : "rgba(255,255,255,0.07)";
+          const col = isBest ? GOLD : avg != null ? "#3B82F6" : "rgba(255,255,255,0.07)";
           const barH = avg != null ? Math.max(8, (avg / 10) * 46) : 4;
           return (
             <div key={day} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
@@ -102,12 +102,12 @@ export default function PerformancePattern({ trainingSessions, locale }) {
         </div>
         {mostActive.day !== bestDay.day && mostActive.count >= 2 && (
           <div style={{ flex: 1, padding: "7px 10px", borderRadius: 9, background: "rgba(96,165,250,0.08)", border: "1px solid rgba(96,165,250,0.18)" }}>
-            <div style={{ fontSize: 8, fontWeight: 900, color: "#60A5FA", letterSpacing: 1, marginBottom: 3 }}>
+            <div style={{ fontSize: 8, fontWeight: 900, color: "#3B82F6", letterSpacing: 1, marginBottom: 3 }}>
               {mn ? "ХАМГИЙН ИДЭВХТЭЙ" : "MOST ACTIVE"}
             </div>
             <div style={{ fontSize: 12, fontWeight: 900, color: "#fff" }}>
               {DAYS[mostActive.day]}
-              <span style={{ fontSize: 10, color: "#60A5FA", marginLeft: 5 }}>{mostActive.count}×</span>
+              <span style={{ fontSize: 10, color: "#3B82F6", marginLeft: 5 }}>{mostActive.count}×</span>
             </div>
           </div>
         )}

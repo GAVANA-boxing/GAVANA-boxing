@@ -1,7 +1,7 @@
 "use client";
 
 const TIER_META = {
-  fan:      { mn: "Фан",     ko: "팬",   en: "Fan",      color: "#60A5FA" },
+  fan:      { mn: "Фан",     ko: "팬",   en: "Fan",      color: "#3B82F6" },
   pro:      { mn: "Про",     ko: "프로", en: "Pro",      color: "#F5C451" },
   champion: { mn: "Чемпион", ko: "챔피언", en: "Champion", color: "#EF4444" },
 };

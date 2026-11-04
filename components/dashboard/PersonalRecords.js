@@ -117,7 +117,7 @@ export default function PersonalRecords({ trainingSessions, locale }) {
           label={mn ? "7 хоногт хамгийн их" : "Best Week"}
           value={prs.maxWeekSessions}
           unit={mn ? "дасгал" : "sessions"}
-          color="#60A5FA"
+          color="#3B82F6"
         />
       </div>
     </div>

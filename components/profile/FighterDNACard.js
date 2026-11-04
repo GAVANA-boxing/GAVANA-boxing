@@ -7,7 +7,7 @@ import { DNA_LABELS, SIGNAL_LABELS } from "@/lib/profileLabels";
 const STYLE_COLORS = {
   pressure:   "#FF3B30",
   outboxer:   "#34D399",
-  counter:    "#60A5FA",
+  counter:    "#3B82F6",
   explosive:  "#F59E0B",
   technician: "#F5C451",
 };

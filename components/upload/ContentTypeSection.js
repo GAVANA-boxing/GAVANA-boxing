@@ -5,7 +5,7 @@ import S from "@/components/upload/uploadStyles";
 
 const CONTENT_TYPES = [
   { id: "training",    emoji: "🥊", labelKey: "ctFilterTraining",    color: "#F87171", border: redAlpha(0.5) },
-  { id: "lifestyle",   emoji: "🎬", labelKey: "ctFilterLifestyle",   color: "#60A5FA", border: "rgba(96,165,250,0.45)" },
+  { id: "lifestyle",   emoji: "🎬", labelKey: "ctFilterLifestyle",   color: "#3B82F6", border: "rgba(96,165,250,0.45)" },
   { id: "educational", emoji: "📚", labelKey: "ctFilterEducational", color: GOLD,      border: goldAlpha(0.5) },
 ];
 

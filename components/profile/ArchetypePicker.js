@@ -4,7 +4,7 @@ import styles from "@/components/profile/editProfileStyles";
 
 const ARCHETYPES = [
   { value: "pressure",  emoji: "⚡", label: "Pressure",  color: "#F87171" },
-  { value: "counter",   emoji: "🎯", label: "Counter",   color: "#60A5FA" },
+  { value: "counter",   emoji: "🎯", label: "Counter",   color: "#3B82F6" },
   { value: "technical", emoji: "🧠", label: "Technical", color: "#A78BFA" },
   { value: "brawler",   emoji: "🔥", label: "Brawler",   color: "#FB923C" },
 ];

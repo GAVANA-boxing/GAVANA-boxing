@@ -67,7 +67,7 @@ const BADGE_META = {
   first_challenge: { color: RED },
   streak_3:        { color: "#FB923C" },
   streak_7:        { color: "#F59E0B" },
-  jab_master:      { color: "#60A5FA" },
+  jab_master:      { color: "#3B82F6" },
   speed_king:      { color: PURPLE },
   creator_starter: { color: "#34D399" },
 };

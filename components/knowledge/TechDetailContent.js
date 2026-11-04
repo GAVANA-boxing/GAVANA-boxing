@@ -62,7 +62,7 @@ export default function TechDetailContent({ fighter, technique, locale }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {technique.whatYouShouldFeel.map((cue, i) => (
             <div key={i} style={{ display: "flex", gap: 8, padding: "8px 12px", borderRadius: 8, background: "rgba(59,130,246,0.07)", border: "1px solid rgba(59,130,246,0.18)" }}>
-              <span style={{ color: "#60A5FA", flexShrink: 0, fontSize: 13 }}>·</span>
+              <span style={{ color: "#3B82F6", flexShrink: 0, fontSize: 13 }}>·</span>
               <p style={{ margin: 0, fontSize: 12.5, color: "rgba(255,255,255,0.7)", lineHeight: 1.45, fontStyle: "italic" }}>{cue}</p>
             </div>
           ))}

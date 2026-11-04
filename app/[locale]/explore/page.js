@@ -21,7 +21,7 @@ const TYPE_META = {
   muay_thai:  { mn: "Муай Тай", ko: "무에타이", en: "Muay Thai",   color: "#F97316", emoji: "🦵" },
   sparring:   { mn: "Спарринг", ko: "스파링",   en: "Sparring",    color: "#34D399", emoji: "🤜" },
   tournament: { mn: "Тэмцээн",  ko: "토너먼트", en: "Tournament",  color: GOLD,     emoji: "🏆" },
-  seminar:    { mn: "Семинар",   ko: "세미나",   en: "Seminar",    color: "#60A5FA", emoji: "📚" },
+  seminar:    { mn: "Семинар",   ko: "세미나",   en: "Seminar",    color: "#3B82F6", emoji: "📚" },
 };
 
 const LEVEL_COLOR = { beginner: "#34D399", intermediate: GOLD, advanced: RED };

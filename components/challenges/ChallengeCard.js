@@ -73,7 +73,7 @@ export default function ChallengeCard({ challenge, list, profiles, currentUserId
             const rankLetter = result.rank || getChallengeRank(result.score);
             const rankColor =
               rankLetter === "S" ? GOLD
-              : rankLetter === "A" ? "#60A5FA"
+              : rankLetter === "A" ? "#3B82F6"
               : rankLetter === "B" ? PURPLE
               : rankLetter === "C" ? "#34D399"
               : "#888";

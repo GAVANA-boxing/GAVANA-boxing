@@ -67,7 +67,7 @@ export default function CreatorOverviewTab({
   return (
     <>
       <div style={styles.statsGrid}>
-        <StatCard label={t("creatorTotalViews")}          value={totalViews}             icon="👁"  color="#60A5FA" />
+        <StatCard label={t("creatorTotalViews")}          value={totalViews}             icon="👁"  color="#3B82F6" />
         <StatCard label={t("creatorTotalLikes")}          value={totalLikes}             icon="❤"  color="#F87171" />
         <StatCard label={t("creatorFollowers")}           value={followerCount}          icon="👥" color={GOLD} />
         <StatCard label={t("creatorChallengeAttempts")}   value={externalAttemptsCount}  icon="🥊" color="#34D399" />
@@ -83,7 +83,7 @@ export default function CreatorOverviewTab({
           <span style={styles.growthLbl}>{t("creatorEngagementRate")}</span>
         </div>
         <div style={styles.growthItem}>
-          <span style={{ ...styles.growthNum, color: "#60A5FA" }}>+{attemptsThisWeek}</span>
+          <span style={{ ...styles.growthNum, color: "#3B82F6" }}>+{attemptsThisWeek}</span>
           <span style={styles.growthLbl}>{t("creatorAttemptsWeek")}</span>
         </div>
         {uniqueStudents > 0 && (
@@ -95,11 +95,11 @@ export default function CreatorOverviewTab({
       </div>
 
       {bestPostDay && (
-        <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 14, background: "rgba(96,165,250,0.08)", border: "1px solid rgba(96,165,250,0.18)", borderLeft: "3px solid #60A5FA" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 14, background: "rgba(96,165,250,0.08)", border: "1px solid rgba(96,165,250,0.18)", borderLeft: "3px solid #3B82F6" }}>
           <span style={{ fontSize: 20 }}>📅</span>
           <div>
             <p style={{ margin: 0, fontSize: 13, fontWeight: 900, color: "#fff" }}>
-              {t("creatorBestPostDay")} <span style={{ color: "#60A5FA" }}>{bestPostDay.day}</span>
+              {t("creatorBestPostDay")} <span style={{ color: "#3B82F6" }}>{bestPostDay.day}</span>
             </p>
             <p style={{ margin: 0, fontSize: 11, color: "#888" }}>
               {bestDayAvgLabel(locale, bestPostDay.avg)}

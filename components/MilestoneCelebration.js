@@ -10,7 +10,7 @@ const MILESTONES = [10, 25, 50, 100, 200, 500];
 const MILESTONE_META = {
   10:  { icon: "🥊", tier: "#FB923C", en: "10 Sessions Complete!", mn: "10 дасгал дуусгалаа!" },
   25:  { icon: "🔥", tier: GOLD,      en: "25 Sessions — On Fire!", mn: "25 дасгал — Идэвхтэй!" },
-  50:  { icon: "⚡", tier: "#60A5FA", en: "50 Sessions — Half Century!", mn: "50 дасгал — Тэнцүү зуун!" },
+  50:  { icon: "⚡", tier: "#3B82F6", en: "50 Sessions — Half Century!", mn: "50 дасгал — Тэнцүү зуун!" },
   100: { icon: "🏆", tier: GOLD,      en: "100 Sessions — Champion!", mn: "100 дасгал — Чемпион!" },
   200: { icon: "💎", tier: "#A78BFA", en: "200 Sessions — Elite!", mn: "200 дасгал — Элит!" },
   500: { icon: "👑", tier: "#F472B6", en: "500 Sessions — Legend!", mn: "500 дасгал — Домог!" },
@@ -62,7 +62,7 @@ export default function MilestoneCelebration({ sessionCount, userId, locale }) {
           className="confetti-piece"
           style={{
             left: `${(i / 24) * 100}%`,
-            background: ["#FF3B30","#F5C451","#34D399","#60A5FA","#A78BFA","#FB923C"][i % 6],
+            background: ["#FF3B30","#F5C451","#34D399","#3B82F6","#A78BFA","#FB923C"][i % 6],
             animationDuration: `${1.2 + (i % 5) * 0.3}s`,
             animationDelay: `${(i % 8) * 0.08}s`,
             width: 6 + (i % 3) * 4, height: 6 + (i % 3) * 4,

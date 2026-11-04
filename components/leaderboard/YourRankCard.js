@@ -102,7 +102,7 @@ export default function YourRankCard({
 
       <div style={styles.yourRankSub}>
         {currentUserWeeklyRank && (
-          <span style={{ color: "#60A5FA" }}>
+          <span style={{ color: "#3B82F6" }}>
             {t("seasonWeeklyRank").replace("{rank}", currentUserWeeklyRank)}
           </span>
         )}

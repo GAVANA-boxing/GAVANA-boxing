@@ -168,7 +168,7 @@ export default function FeedbackModal({
                     {sessionXPData.likeXP > 0 && (
                       <div style={styles.xpCardRow}>
                         <span style={styles.xpCardLabel}>{t("xpLikes")}</span>
-                        <span style={{ ...styles.xpCardVal, color: "#60A5FA" }}>+{sessionXPData.likeXP}</span>
+                        <span style={{ ...styles.xpCardVal, color: "#3B82F6" }}>+{sessionXPData.likeXP}</span>
                       </div>
                     )}
                     <div style={styles.xpCardRowTotal}>
