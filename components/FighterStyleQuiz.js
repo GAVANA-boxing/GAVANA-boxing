@@ -8,7 +8,7 @@ import { RED, RED_DARK, GOLD, redAlpha, goldAlpha, RADIUS, blackAlpha} from "@/l
 export const ARCHETYPE_DISPLAY = {
   pressure: { emoji: "🔴", name: "Pressure Fighter", color: RED },
   counter:  { emoji: "⚡", name: "Counter Puncher",  color: GOLD },
-  technical:{ emoji: "🧠", name: "Technical Boxer",  color: "#60A5FA" },
+  technical:{ emoji: "🧠", name: "Technical Boxer",  color: "#3B82F6" },
   brawler:  { emoji: "💪", name: "Power Brawler",    color: "#F97316" },
 };
 

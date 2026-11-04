@@ -5,7 +5,7 @@ import { RED, GOLD, redAlpha, goldAlpha, blackAlpha, RADIUS } from "@/lib/tokens
 
 const AREA_COLOR = {
   Power: "#FF3B30", Speed: "#FB923C", Timing: "#F5C451",
-  Footwork: "#60A5FA", Guard: "#A78BFA", Accuracy: "#34D399",
+  Footwork: "#3B82F6", Guard: "#A78BFA", Accuracy: "#34D399",
 };
 
 // ── Card visual (also used as capture target) ─────────────────────────────────

@@ -17,7 +17,7 @@ const ARCHETYPE_STATS = {
 };
 
 const STAT_DEFS = [
-  { key: "SPD", label: "SPD", color: "#60A5FA" },
+  { key: "SPD", label: "SPD", color: "#3B82F6" },
   { key: "PWR", label: "PWR", color: "#F87171" },
   { key: "TEC", label: "TEC", color: "#34D399" },
   { key: "STAM", label: "STA", color: "#FB923C" },

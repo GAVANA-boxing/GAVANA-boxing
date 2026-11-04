@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 
-const TYPE_COLOR = { jab: "#60A5FA", cross: "#F87171", hook: "#F59E0B" };
+const TYPE_COLOR = { jab: "#3B82F6", cross: "#F87171", hook: "#F59E0B" };
 const TYPE_LABEL = { jab: "JAB", cross: "CROSS", hook: "HOOK" };
 
 function speedLabel(snapVel) {
@@ -11,7 +11,7 @@ function speedLabel(snapVel) {
   return null;
 }
 
-const COMBO_TYPE_COLOR = { jab: "#60A5FA", cross: "#F87171", hook: "#F59E0B" };
+const COMBO_TYPE_COLOR = { jab: "#3B82F6", cross: "#F87171", hook: "#F59E0B" };
 const COMBO_TYPE_NUM   = { jab: "1", cross: "2", hook: "3", uppercut: "4" };
 
 export default function LivePunchCounter({ getDebugInfo, isActive, punchTarget }) {

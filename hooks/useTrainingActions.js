@@ -41,6 +41,7 @@ export function useTrainingActions({
   const [missionJustCompleted, setMissionJustCompleted] = useState(false);
   const [missionStreakBonus, setMissionStreakBonus] = useState(0);
   const [missionNewStreak, setMissionNewStreak] = useState(0);
+  const [streakFreezeUsed, setStreakFreezeUsed] = useState(false);
   const [rankUpInfo, setRankUpInfo] = useState(null);
   const [beltUpInfo, setBeltUpInfo] = useState(null);
   const challengeSavedRef = useRef(false);
@@ -296,7 +297,33 @@ export function useTrainingActions({
         const MISSION_XP = 50;
         const lastDate = String(userData.lastTrainingDate || "");
         const currentStreak = Number(userData.dailyStreak) || 0;
-        const newStreak = lastDate === yesterdayKey ? currentStreak + 1 : 1;
+
+        // ── Streak Protection (Pro perk) ──────────────────────────────────
+        // Pro/Champion get 2 streak freezes per month. Missing exactly one day
+        // consumes a freeze instead of resetting the streak to 1.
+        const tier = userData.subscriptionTier || userData.tier || null;
+        const isPro = tier === "pro" || tier === "champion";
+        const monthKey = todayKey.slice(0, 7); // YYYY-MM
+        let freezes = Number(userData.streakFreezes);
+        if (userData.streakFreezeMonth !== monthKey || !Number.isFinite(freezes)) {
+          freezes = isPro ? 2 : 0; // replenish monthly allowance
+        }
+        const twoDaysAgoKey = getLocalDateKey(new Date(Date.now() - 2 * 86400000));
+
+        let newStreak;
+        let freezeUsed = false;
+        let freezesLeft = freezes;
+        if (lastDate === yesterdayKey) {
+          newStreak = currentStreak + 1;
+        } else if (isPro && freezes > 0 && currentStreak > 0 && lastDate === twoDaysAgoKey) {
+          // Missed exactly one day — a freeze saves the streak.
+          newStreak = currentStreak + 1;
+          freezeUsed = true;
+          freezesLeft = freezes - 1;
+        } else {
+          newStreak = 1;
+        }
+
         const streakBonus = newStreak === 3 ? 100 : newStreak === 7 ? 250 : 0;
         const totalBonus = MISSION_XP + streakBonus;
         const currentStoredXP = Number(userData.xp) || 0;
@@ -308,6 +335,8 @@ export function useTrainingActions({
           lastTrainingDate: todayKey,
           dailyStreak: newStreak,
           bestDailyStreak: newBest,
+          streakFreezes: freezesLeft,
+          streakFreezeMonth: monthKey,
           xp: newXP,
           updatedAt: serverTimestamp(),
         }, { merge: true });
@@ -320,6 +349,7 @@ export function useTrainingActions({
         setMissionJustCompleted(true);
         setMissionStreakBonus(streakBonus);
         setMissionNewStreak(newStreak);
+        setStreakFreezeUsed(freezeUsed);
       } else {
         // Still update lastTrainingDate even if mission already completed today
         await setDoc(userRef, { lastTrainingDate: todayKey }, { merge: true });
@@ -340,7 +370,7 @@ export function useTrainingActions({
           if (snap) {
             await setDoc(userRef, { fighterDNA: snap, fighterDnaUpdatedAt: serverTimestamp() }, { merge: true });
           }
-          const prog     = computeCombatProgress({ sessions: sessionsForStats, streakDays: 0, locale });
+          const prog     = computeCombatProgress({ sessions: sessionsForStats, streakDays: 0, locale, xp: Number(userData.xp) || 0 });
           const progSnap = progressSnapshot(prog);
           if (progSnap) {
             await setDoc(userRef, { combatProgress: progSnap }, { merge: true });
@@ -535,6 +565,7 @@ export function useTrainingActions({
     setMissionJustCompleted(false);
     setMissionStreakBonus(0);
     setMissionNewStreak(0);
+    setStreakFreezeUsed(false);
     setRankUpInfo(null);
     setBeltUpInfo(null);
     setFeedSharing(false);
@@ -554,7 +585,7 @@ export function useTrainingActions({
   return {
     saving, saved, savedAttemptNumber,
     challengeSaving, challengeSaved, challengeSavedRef,
-    missionJustCompleted, missionStreakBonus, missionNewStreak,
+    missionJustCompleted, missionStreakBonus, missionNewStreak, streakFreezeUsed,
     rankUpInfo, beltUpInfo,
     handleSave, handleSaveChallengeResult,
     handleShareChallenge, handleChallengeFriend, handleShareTraining,

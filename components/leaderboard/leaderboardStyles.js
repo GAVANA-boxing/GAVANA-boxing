@@ -45,7 +45,7 @@ const styles = {
     background: goldAlpha(0.14), border: `1px solid ${goldAlpha(0.42)}`,
     color: GOLD, fontWeight: 900,
   },
-  tabBtnViews: { background: "rgba(96,165,250,0.14)", border: "1px solid rgba(96,165,250,0.42)", color: "#60A5FA" },
+  tabBtnViews: { background: "rgba(96,165,250,0.14)", border: "1px solid rgba(96,165,250,0.42)", color: "#3B82F6" },
   tabBtnLikes: { background: "rgba(244,114,182,0.14)", border: "1px solid rgba(244,114,182,0.42)", color: "#F472B6" },
   seasonLabel: { margin: "6px auto 0", textAlign: "center", fontSize: 11, color: whiteAlpha(0.35), maxWidth: 640, fontWeight: 700 },
 
@@ -60,7 +60,7 @@ const styles = {
     color: whiteAlpha(0.4), fontSize: 12, fontWeight: 700,
     cursor: "pointer", whiteSpace: "nowrap", transition: `all ${MOTION.fast}`,
   },
-  filterChipActiveWeight: { background: "rgba(96,165,250,0.14)", border: "1px solid #60A5FA", color: "#60A5FA" },
+  filterChipActiveWeight: { background: "rgba(96,165,250,0.14)", border: "1px solid #3B82F6", color: "#3B82F6" },
   archetypeChip: { flexShrink: 0, width: 20, height: 20, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11 },
 
   content: { maxWidth: 640, margin: "0 auto", padding: "28px 16px" },
@@ -153,7 +153,7 @@ const styles = {
   latestScore: { fontSize: 10, color: whiteAlpha(0.32), marginTop: 2 },
   entryRankRow: { display: "flex", alignItems: "center", gap: 4, marginTop: 3 },
   sessionsBadge: { fontSize: 10, color: whiteAlpha(0.28) },
-  allTimeRankBadge: { fontSize: 10, color: "#60A5FA" },
+  allTimeRankBadge: { fontSize: 10, color: "#3B82F6" },
   badgeRow: { display: "flex", gap: 4, marginTop: 5, flexWrap: "wrap" },
   badge: { display: "inline-flex", alignItems: "center", gap: 3, padding: "2px 7px", borderRadius: RADIUS.full, border: "1px solid", fontSize: 10, fontWeight: 800, letterSpacing: 0.2, whiteSpace: "nowrap" },
 };

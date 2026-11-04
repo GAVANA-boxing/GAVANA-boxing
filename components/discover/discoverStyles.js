@@ -894,7 +894,7 @@ const styles = {
   coachSpec: {
     fontSize: 9,
     fontWeight: 700,
-    color: "#60A5FA",
+    color: "#3B82F6",
     textAlign: "center",
     maxWidth: 64,
     overflow: "hidden",

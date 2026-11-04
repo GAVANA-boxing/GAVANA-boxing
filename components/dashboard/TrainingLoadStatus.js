@@ -81,7 +81,7 @@ function analyzeLoad(trainingSessions) {
     return {
       status: "building",
       level: "info",
-      color: "#60A5FA",
+      color: "#3B82F6",
       icon: "📈",
       en: `${weekCount} sessions this week. Add 1–2 more to hit optimal training load.`,
       mn: `Энэ долоо хоногт ${weekCount} дасгал. 1–2 нэмвэл хамгийн тохиромжтой ачаалалд хүрнэ.`,

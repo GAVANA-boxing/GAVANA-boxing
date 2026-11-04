@@ -42,7 +42,7 @@ export default function UserProfilePage() {
     first_challenge: { icon: "🥊", label: t("profileBadgeFirstChallenge"), color: RED },
     streak_3:        { icon: "🔥", label: t("profileBadgeStreak3"), color: "#FB923C" },
     streak_7:        { icon: "⚡", label: t("profileBadgeStreak7"), color: "#F59E0B" },
-    jab_master:      { icon: "🎯", label: t("profileBadgeJabMaster"), color: "#60A5FA" },
+    jab_master:      { icon: "🎯", label: t("profileBadgeJabMaster"), color: "#3B82F6" },
     speed_king:      { icon: "💨", label: t("profileBadgeSpeedKing"), color: PURPLE },
     creator_starter: { icon: "🎬", label: t("creatorTag"), color: "#34D399" },
   };

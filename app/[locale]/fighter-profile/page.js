@@ -130,7 +130,6 @@ export default function FighterProfilePage() {
   const profile  = computeMovementProfile(sessions);
   const identity = profile ? deriveCombatIdentity(profile, sessions) : null;
   const dna      = computeFighterDNA({ sessions, locale });
-  const progress = computeCombatProgress({ sessions, streakDays: 0, locale });
   const dnaSavedRef       = useRef(false);
   const progressSavedRef  = useRef(false);
   const [currentExperiment, setCurrentExperiment] = useState(null);
@@ -144,6 +143,11 @@ export default function FighterProfilePage() {
   const [userData, setUserData] = useState(null);
   const dnaRevealShownRef = useRef(false);
   const [milestonesUnlocked, setMilestonesUnlocked] = useState({ m8: false, m15: false });
+
+  // Combat Level derives from the canonical account XP (same number as belts/rank)
+  // so the profile shows one coherent ladder; falls back to a session estimate
+  // until the user doc (with xp) has loaded.
+  const progress = computeCombatProgress({ sessions, streakDays: 0, locale, xp: userData?.xp });
 
   useEffect(() => {
     if (!authLoading && !user) router.push(`/${locale}/login`);
@@ -537,7 +541,7 @@ export default function FighterProfilePage() {
 
             {/* DNA Share Card */}
             {!loading && !dna.building && (
-              <DNAShareCard dna={dna} displayName={displayName} locale={locale} />
+              <DNAShareCard dna={dna} displayName={displayName} locale={locale} uid={user?.uid} />
             )}
 
             {/* Pro Upgrade */}
@@ -557,15 +561,27 @@ export default function FighterProfilePage() {
                       {locale === "mn" ? "Долоо хоногийн ДНХ тайлан татах" : locale === "ko" ? "주간 DNA 리포트 다운로드" : "Download Weekly DNA Report"}
                     </div>
                     <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 700 }}>
-                      {locale === "mn" ? "PDF · CSV · JSON" : locale === "ko" ? "PDF · CSV · JSON" : "PDF · CSV · JSON"}
+                      {locale === "mn" ? "Долоо хоногийн статистик · JSON" : locale === "ko" ? "주간 통계 · JSON" : "Weekly stats · JSON"}
                     </div>
                   </div>
                   <button
                     type="button"
-                    onClick={() => {
-                      const data = { generatedAt: new Date().toISOString(), note: "Full export available via API" };
-                      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-                      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "dna-report.json"; a.click();
+                    onClick={async () => {
+                      try {
+                        const res = await fetch("/api/dna-report", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ userId: user?.uid }),
+                        });
+                        if (!res.ok) throw new Error("report failed");
+                        const report = await res.json();
+                        const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
+                        const a = document.createElement("a");
+                        a.href = URL.createObjectURL(blob);
+                        a.download = `gavana-dna-report-${new Date().toISOString().slice(0, 10)}.json`;
+                        a.click();
+                        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+                      } catch { /* report unavailable — silent */ }
                     }}
                     style={{ padding: "9px 16px", borderRadius: 10, background: "linear-gradient(135deg,#F5C451,#D4A017)", border: "none", color: "#000", fontSize: 11, fontWeight: 900, cursor: "pointer", flexShrink: 0 }}
                   >

@@ -12,7 +12,7 @@ const TIERS = [
     nameKey: "tierFanName",
     priceKey: "tierFanPrice",
     price: 2.99,
-    color: "#60A5FA",
+    color: "#3B82F6",
     perks: ["tierFanPerk1", "tierFanPerk2"],
   },
   {

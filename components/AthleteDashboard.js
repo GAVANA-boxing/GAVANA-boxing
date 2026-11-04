@@ -389,7 +389,7 @@ export default function AthleteDashboard() {
         {/* ── Body Stats ── */}
         <PanelCard
           label={t("dashboardBodyProgress")}
-          accent="#60A5FA"
+          accent="#3B82F6"
         >
           <BodyProgressSection userId={user?.uid} t={t} />
         </PanelCard>
@@ -406,7 +406,7 @@ export default function AthleteDashboard() {
         />
 
         {/* ── Activity Feed ── */}
-        <PanelCard label={t("activityFeedTitle") || "Following Activity"} accent="#60A5FA">
+        <PanelCard label={t("activityFeedTitle") || "Following Activity"} accent="#3B82F6">
           <ActivityFeed user={user} t={t} maxItems={10} />
         </PanelCard>
 

@@ -28,7 +28,7 @@ const TYPE_THEMES = {
     bg: "linear-gradient(160deg, #00101a 0%, #00060d 45%, #000104 100%)",
     glow: "radial-gradient(ellipse at 50% 30%, rgba(96,165,250,0.18) 0%, transparent 65%)",
     icon: "🎬",
-    accent: "#60A5FA",
+    accent: "#3B82F6",
     label: "LIFESTYLE",
   },
 };

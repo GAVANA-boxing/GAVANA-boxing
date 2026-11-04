@@ -71,7 +71,7 @@ const styles = {
     borderRadius: RADIUS.full, padding: "2px 8px", letterSpacing: 0.5,
   },
   typeChipSparring: {
-    fontSize: 10, fontWeight: 900, color: "#60A5FA",
+    fontSize: 10, fontWeight: 900, color: "#3B82F6",
     background: "rgba(96,165,250,0.12)", border: "1px solid rgba(96,165,250,0.25)",
     borderRadius: RADIUS.full, padding: "2px 8px", letterSpacing: 0.5,
   },
@@ -95,7 +95,7 @@ const styles = {
     margin: 0, fontSize: 13, color: whiteAlpha(0.6), lineHeight: 1.5,
     fontStyle: "italic", borderLeft: `2px solid ${whiteAlpha(0.1)}`, paddingLeft: 10,
   },
-  sparringTag: { fontSize: 11, color: "#60A5FA", fontWeight: 700 },
+  sparringTag: { fontSize: 11, color: "#3B82F6", fontWeight: 700 },
   avatarBtn: { padding: 0, border: "none", background: "none", cursor: "pointer", flexShrink: 0 },
   filterRow: { display: "flex", gap: 6, overflowX: "auto", paddingBottom: 2, marginBottom: 16, scrollbarWidth: "none" },
   filterTab: {

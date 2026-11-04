@@ -28,8 +28,8 @@ export default function WeightClassPicker({ value, onChange, t }) {
                 ...(active
                   ? {
                       background: "rgba(96,165,250,0.18)",
-                      border: "1px solid #60A5FA",
-                      color: "#60A5FA",
+                      border: "1px solid #3B82F6",
+                      color: "#3B82F6",
                       fontWeight: 900,
                     }
                   : {}),

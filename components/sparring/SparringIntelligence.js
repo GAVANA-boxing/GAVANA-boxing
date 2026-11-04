@@ -8,7 +8,7 @@ import { RED, GOLD, goldAlpha, redAlpha, whiteAlpha } from "@/lib/tokens";
 
 const AREA_COLOR = {
   Power: RED, Speed: "#FB923C", Timing: GOLD,
-  Footwork: "#60A5FA", Guard: "#A78BFA", Accuracy: "#34D399",
+  Footwork: "#3B82F6", Guard: "#A78BFA", Accuracy: "#34D399",
 };
 
 const IDENTITY_TIPS = {

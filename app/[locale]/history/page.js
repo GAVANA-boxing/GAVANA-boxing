@@ -25,7 +25,7 @@ function formatDate(ts, locale) {
 }
 
 const TAG_COLORS = {
-  Bag: RED, Shadow: "#60A5FA", Mitts: GOLD,
+  Bag: RED, Shadow: "#3B82F6", Mitts: GOLD,
   Sparring: "#A78BFA", Conditioning: "#34D399",
 };
 

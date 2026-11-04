@@ -106,11 +106,34 @@ export function useOnboardingActions({ user, locale, router }) {
         "onboarding.completed": true,
       });
     } catch {}
-    // Send fighters to First Mission — gives clear next steps instead of blank train page
+    // Onboarding already explained the DNA idea — skip the duplicate /train overlay.
+    try { localStorage.setItem("gavana_onboarding_seen", "1"); } catch {}
+    // Fighters go straight to the camera (value), not a second checklist hub.
     const defaultDest = role === "coach" ? `/${locale}/coach/dashboard`
       : role === "gym" ? `/${locale}/gyms/dashboard`
-      : `/${locale}/first-mission`;
+      : `/${locale}/train`;
     router.replace(dest || defaultDest);
+  };
+
+  // Fast-path: skip identity questions and go straight to training.
+  // Marks onboarding complete (so the global interceptor won't re-trap the
+  // user) but flags it deferred so a lightweight profile prompt can ask later.
+  const skipToTraining = async () => {
+    setSaving(true);
+    try {
+      await updateDoc(doc(db, "users", user.uid), {
+        onboardingComplete: true,
+        "onboarding.completed": true,
+        onboardingDeferred: true,
+        role: role || "fighter",
+        primaryInterest: primaryInterest || "train",
+      });
+    } catch {}
+    try {
+      localStorage.setItem("gavana_onboarding_seen", "1");
+      localStorage.setItem("gavana_primaryInterest", "train");
+    } catch {}
+    router.replace(`/${locale}/train`);
   };
 
   return {
@@ -134,5 +157,6 @@ export function useOnboardingActions({ user, locale, router }) {
     handleStep2Next,
     handleJoinGym,
     finishOnboarding,
+    skipToTraining,
   };
 }

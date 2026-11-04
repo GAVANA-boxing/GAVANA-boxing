@@ -54,7 +54,7 @@ const ReelCard = memo(function ReelCard({ reel, onClick }) {
   const [mediaErr, setMediaErr] = useState(false);
   const src = reel.thumbnailUrl || reel.thumbnail || reel.coverUrl || reel.videoUrl || "";
   const typeEmoji = reel.contentType === "educational" ? "📚" : reel.contentType === "lifestyle" ? "🎬" : "🥊";
-  const typeColor = reel.contentType === "educational" ? GOLD : reel.contentType === "lifestyle" ? "#60A5FA" : RED;
+  const typeColor = reel.contentType === "educational" ? GOLD : reel.contentType === "lifestyle" ? "#3B82F6" : RED;
   const caption = cleanCaption(reel.caption || reel.description || reel.title || "");
   const views = formatCompact(reel.views || 0);
 
@@ -152,7 +152,7 @@ const FeedPostCard = memo(function FeedPostCard({ reel, authorUser, t, router, l
           <p style={feed.authorName}>{name}</p>
           <p style={feed.timeAgo}>{formatAgo(reel.createdAt, locale)}</p>
         </div>
-        <span style={{ ...feed.typeBadge, color: reel.contentType === "educational" ? GOLD : reel.contentType === "lifestyle" ? "#60A5FA" : RED }}>
+        <span style={{ ...feed.typeBadge, color: reel.contentType === "educational" ? GOLD : reel.contentType === "lifestyle" ? "#3B82F6" : RED }}>
           {typeEmoji}
         </span>
       </div>

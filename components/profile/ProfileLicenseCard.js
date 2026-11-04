@@ -25,7 +25,7 @@ export default function ProfileLicenseCard({
 
   const chips = [
     challengeStreak > 0 && { label: `🔥 ${challengeStreak}d`, color: "#FB923C", bg: "rgba(251,146,60,0.1)", border: "rgba(251,146,60,0.28)" },
-    profileUser.weightClass && { label: `⚖️ ${getWeightClassDisplay(profileUser.weightClass)}`, color: "#60A5FA", bg: "rgba(96,165,250,0.08)", border: "rgba(96,165,250,0.2)" },
+    profileUser.weightClass && { label: `⚖️ ${getWeightClassDisplay(profileUser.weightClass)}`, color: "#3B82F6", bg: "rgba(96,165,250,0.08)", border: "rgba(96,165,250,0.2)" },
     pvpStats?.wins > 0 && { label: `⚔️ ${pvpStats.wins}W ${pvpStats.losses}L`, color: PURPLE, bg: "rgba(167,139,250,0.08)", border: "rgba(167,139,250,0.22)" },
     profileUser.gym && { label: `🏋️ ${profileUser.gym}`, color: "rgba(255,255,255,0.45)", bg: "rgba(255,255,255,0.04)", border: "rgba(255,255,255,0.1)" },
     challengeRanks?.weeklyRank > 0 && challengeRanks.weeklyRank <= 20 && { label: `#${challengeRanks.weeklyRank} Week`, color: GOLD, bg: goldAlpha(0.08), border: goldAlpha(0.25) },

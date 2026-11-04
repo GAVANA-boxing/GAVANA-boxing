@@ -211,7 +211,7 @@ const LeaderboardEntry = memo(function LeaderboardEntry({ entry, index, profiles
           </>
         ) : leaderboardTab === "views" ? (
           <>
-            <div style={{ ...styles.bestScore, color: "#60A5FA" }}>
+            <div style={{ ...styles.bestScore, color: "#3B82F6" }}>
               👁 {formatCompact(entry.bestScore)}
             </div>
             <div style={styles.latestScore}>{t("lbTotalViews")}</div>

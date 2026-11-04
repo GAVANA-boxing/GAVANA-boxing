@@ -7,7 +7,7 @@ import EmptyState from "@/components/EmptyState";
 
 const CONTENT_TYPES = [
   { key: "training",    label: "🥊 Training",    color: "#F87171" },
-  { key: "lifestyle",   label: "🎬 Lifestyle",   color: "#60A5FA" },
+  { key: "lifestyle",   label: "🎬 Lifestyle",   color: "#3B82F6" },
   { key: "educational", label: "📚 Educational", color: GOLD },
 ];
 
@@ -53,7 +53,7 @@ export default function CreatorAudienceTab({
         <StatCard label={t("creatorFollowers")}    value={followerCount}       icon="👥" color={GOLD} />
         <StatCard label={t("creatorNewFollowers")} value={newFollowersThisWeek} icon="📈" color="#34D399" />
         {avgScore  != null && <StatCard label={t("creatorAvgScore")}  value={avgScore}  icon="⭐" color={GOLD} />}
-        {bestScore != null && <StatCard label={t("creatorBestScore")} value={bestScore} icon="🏆" color="#60A5FA" />}
+        {bestScore != null && <StatCard label={t("creatorBestScore")} value={bestScore} icon="🏆" color="#3B82F6" />}
       </div>
 
       {hasReels && (

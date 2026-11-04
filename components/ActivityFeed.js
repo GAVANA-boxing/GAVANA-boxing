@@ -10,7 +10,7 @@ const TYPE_META = {
   pvp_win:       { icon: "🏆", color: GOLD },
   rank_up:       { icon: "🥋", color: "#a78bfa" },
   new_reel:      { icon: "🎬", color: "#34D399" },
-  follow:        { icon: "👤", color: "#60A5FA" },
+  follow:        { icon: "👤", color: "#3B82F6" },
 };
 
 function ActivityItem({ item }) {

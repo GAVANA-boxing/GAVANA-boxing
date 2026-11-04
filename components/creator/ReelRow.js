@@ -8,7 +8,7 @@ import { cleanCaption } from "@/lib/reelHelpers";
 
 const TYPE_CONFIG = {
   educational: { emoji: "📚", color: GOLD },
-  lifestyle:   { emoji: "🎬", color: "#60A5FA" },
+  lifestyle:   { emoji: "🎬", color: "#3B82F6" },
   training:    { emoji: "🥊", color: RED },
 };
 

@@ -95,7 +95,7 @@ export default function CoachDashboardPage() {
           </div>
           <div style={styles.statDivider} />
           <div style={styles.statCell}>
-            <span style={{ ...styles.statNum, color: "#60A5FA" }}>{acceptRate}%</span>
+            <span style={{ ...styles.statNum, color: "#3B82F6" }}>{acceptRate}%</span>
             <span style={styles.statLbl}>{t("coachWinRate")}</span>
           </div>
         </div>

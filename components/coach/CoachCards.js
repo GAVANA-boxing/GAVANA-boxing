@@ -30,7 +30,7 @@ const REQ_STATUS = {
   accepted:  { bg: "rgba(52,211,153,0.1)",  border: "rgba(52,211,153,0.35)",  color: "#34D399" },
   declined:  { bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.35)", color: "#F87171" },
   scheduled: { bg: "rgba(167,139,250,0.1)", border: "rgba(167,139,250,0.35)", color: PURPLE },
-  completed: { bg: "rgba(96,165,250,0.1)",  border: "rgba(96,165,250,0.35)",  color: "#60A5FA" },
+  completed: { bg: "rgba(96,165,250,0.1)",  border: "rgba(96,165,250,0.35)",  color: "#3B82F6" },
 };
 
 function getReqStatusLabel(status, locale) {
