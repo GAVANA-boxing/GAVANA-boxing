@@ -14,6 +14,7 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { useAuth, AUTH_REDIRECT_FLAG } from "@/lib/AuthContext";
 import { getLocale, translate } from "@/lib/i18n";
+import { getStoredRef, clearStoredRef } from "@/lib/referral";
 import AuthLoadingScreen  from "@/components/auth/AuthLoadingScreen";
 import LoginPageBackground from "@/components/auth/LoginPageBackground";
 import AuthCardHeader     from "@/components/auth/AuthCardHeader";
@@ -120,7 +121,7 @@ export default function LoginPage() {
             email: gEmail || "", username: (gEmail || uid).split("@")[0],
             displayName: gName || "", bio: "",
             photoURL: gPhoto || "", profileImageUrl: gPhoto || "",
-            role: "boxer", onboardingComplete: false,
+            role: "boxer", onboardingComplete: false, referredBy: getStoredRef() || null,
             createdAt: new Date().toISOString(),
           });
           router.push(onboardingUrl);
@@ -171,7 +172,7 @@ export default function LoginPage() {
           username: cred.user.email.split("@")[0],
           displayName: displayName.trim(),
           bio: "", photoURL: "", profileImageUrl: "",
-          role: "boxer", onboardingComplete: false,
+          role: "boxer", onboardingComplete: false, referredBy: getStoredRef() || null,
           createdAt: new Date().toISOString(),
         });
         router.push(onboardingUrl);
@@ -220,7 +221,7 @@ export default function LoginPage() {
           email: gEmail || "", username: (gEmail || uid).split("@")[0],
           displayName: gName || "", bio: "",
           photoURL: gPhoto || "", profileImageUrl: gPhoto || "",
-          role: "boxer", onboardingComplete: false,
+          role: "boxer", onboardingComplete: false, referredBy: getStoredRef() || null,
           createdAt: new Date().toISOString(),
         });
         router.push(onboardingUrl);

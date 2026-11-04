@@ -3,14 +3,35 @@
 import { useState } from "react";
 import { GOLD, whiteAlpha } from "@/lib/tokens";
 import { ARCH_TRAINING_COLORS } from "@/lib/archetypeTraining";
+import { buildReferralUrl } from "@/lib/referral";
 
 const SHARE_L = {
-  en: { cta: "Share Your DNA", copied: "Copied!", similarTo: "Similar To" },
-  mn: { cta: "ДНХ-гаа хуваалц", copied: "Хуулсан!", similarTo: "Ижил тулаанч" },
-  ko: { cta: "DNA 공유", copied: "복사됨!", similarTo: "유사 파이터" },
+  en: { cta: "Share Your DNA", copied: "Shared!", similarTo: "Similar To", mix: "Style Mix", ctaBig: "Discover your Fighter DNA" },
+  mn: { cta: "ДНХ-гаа хуваалц", copied: "Хуваалцсан!", similarTo: "Ижил тулаанч", mix: "Хэв маягийн холимог", ctaBig: "Өөрийн Fighter DNA-гаа нээ" },
+  ko: { cta: "DNA 공유", copied: "공유됨!", similarTo: "유사 파이터", mix: "스타일 믹스", ctaBig: "나의 파이터 DNA 찾기" },
 };
 
-export default function DNAShareCard({ dna, displayName, locale }) {
+// hex (#RRGGBB) → rgba() string with alpha
+function hexA(hex, a) {
+  const h = String(hex || "#F5C451").replace("#", "");
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function rrect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  if (ctx.roundRect) { ctx.roundRect(x, y, w, h, r); return; }
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+export default function DNAShareCard({ dna, displayName, locale, uid }) {
   const [copied, setCopied] = useState(false);
   if (dna.building || !dna.archetypeKey) return null;
 
@@ -20,21 +41,147 @@ export default function DNAShareCard({ dna, displayName, locale }) {
   const topStyles = Object.entries(dna.styleMix || {}).sort(([, a], [, b]) => b - a).slice(0, 3);
   const similarFighters = dna.recommendedFighters?.slice(0, 3) || [];
 
+  // Render a 9:16 Instagram-story poster of the Fighter DNA and share it as an
+  // image file, with a referral link baked into the share payload.
+  async function renderPoster() {
+    const W = 1080, H = 1920, M = 90;
+    const canvas = document.createElement("canvas");
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext("2d");
+    const accent = ARCH_TRAINING_COLORS[dna.archetypeKey] || "#F5C451";
+
+    // Background + accent glow + left strip
+    ctx.fillStyle = "#070708"; ctx.fillRect(0, 0, W, H);
+    const glow = ctx.createRadialGradient(W / 2, 460, 60, W / 2, 460, 780);
+    glow.addColorStop(0, hexA(accent, 0.3));
+    glow.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = glow; ctx.fillRect(0, 0, W, 960);
+    ctx.fillStyle = accent; ctx.fillRect(0, 0, 8, H);
+
+    // Top brand label
+    ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = "rgba(255,255,255,0.4)";
+    ctx.font = "800 26px Arial"; ctx.letterSpacing = "6px";
+    ctx.fillText("GAVANA · FIGHTER DNA", M, 150);
+    ctx.letterSpacing = "0px";
+
+    // Confidence pill (right)
+    const pillText = `${confidencePct}% SIGNAL`;
+    ctx.font = "900 26px Arial";
+    const pw = ctx.measureText(pillText).width + 44;
+    const px = W - M - pw, py = 118;
+    ctx.fillStyle = hexA(accent, 0.16); rrect(ctx, px, py, pw, 48, 24); ctx.fill();
+    ctx.strokeStyle = hexA(accent, 0.5); ctx.lineWidth = 2; rrect(ctx, px, py, pw, 48, 24); ctx.stroke();
+    ctx.fillStyle = accent; ctx.fillText(pillText, px + 22, py + 33);
+
+    // Display name
+    let y = 310;
+    if (displayName) {
+      ctx.fillStyle = "rgba(255,255,255,0.35)";
+      ctx.font = "800 30px Arial"; ctx.letterSpacing = "4px";
+      ctx.fillText(displayName.toUpperCase(), M, y);
+      ctx.letterSpacing = "0px"; y += 24;
+    }
+
+    // Giant archetype name (wrap + shrink to fit, max 2 lines)
+    const maxW = W - M * 2;
+    const words = String(dna.archetype).toUpperCase().split(" ");
+    const linesFor = (size) => {
+      ctx.font = `900 ${size}px Arial`;
+      const out = []; let cur = "";
+      for (const w of words) {
+        const test = cur ? `${cur} ${w}` : w;
+        if (ctx.measureText(test).width > maxW && cur) { out.push(cur); cur = w; }
+        else cur = test;
+      }
+      if (cur) out.push(cur);
+      return out;
+    };
+    let fs = 150, lines = linesFor(fs);
+    while (fs > 66 && (lines.length > 2 || lines.some((l) => { ctx.font = `900 ${fs}px Arial`; return ctx.measureText(l).width > maxW; }))) {
+      fs -= 6; lines = linesFor(fs);
+    }
+    ctx.font = `900 ${fs}px Arial`; ctx.fillStyle = "#fff";
+    ctx.shadowColor = hexA(accent, 0.6); ctx.shadowBlur = 44;
+    y += fs;
+    for (const line of lines) { ctx.fillText(line, M, y); y += fs * 1.02; }
+    ctx.shadowBlur = 0; y += 54;
+
+    // Style mix label + bars (top 5)
+    ctx.fillStyle = "rgba(255,255,255,0.3)";
+    ctx.font = "900 24px Arial"; ctx.letterSpacing = "4px";
+    ctx.fillText(L.mix.toUpperCase(), M, y); ctx.letterSpacing = "0px"; y += 44;
+
+    const allStyles = Object.entries(dna.styleMix || {}).sort(([, a], [, b]) => b - a).slice(0, 5);
+    const barX = M + 300, barW = W - M - barX - 110;
+    for (const [key, val] of allStyles) {
+      const c = ARCH_TRAINING_COLORS[key] || "#9CA3AF";
+      ctx.textAlign = "left";
+      ctx.fillStyle = "rgba(255,255,255,0.55)"; ctx.font = "800 28px Arial";
+      ctx.fillText((dna.styleLabels?.[key] || key).toUpperCase(), M, y + 36);
+      ctx.fillStyle = "rgba(255,255,255,0.08)"; rrect(ctx, barX, y + 14, barW, 26, 13); ctx.fill();
+      ctx.fillStyle = c; rrect(ctx, barX, y + 14, Math.max(26, (val / 10) * barW), 26, 13); ctx.fill();
+      ctx.textAlign = "right"; ctx.fillStyle = c; ctx.font = "900 30px Arial";
+      ctx.fillText(val.toFixed(1), W - M, y + 38);
+      ctx.textAlign = "left"; y += 72;
+    }
+    y += 34;
+
+    // Similar fighters
+    if (similarFighters.length) {
+      ctx.fillStyle = "rgba(255,255,255,0.3)";
+      ctx.font = "900 24px Arial"; ctx.letterSpacing = "4px";
+      ctx.fillText(L.similarTo.toUpperCase(), M, y); ctx.letterSpacing = "0px"; y += 52;
+      ctx.font = "900 36px Arial"; ctx.fillStyle = "#fff";
+      ctx.fillText(similarFighters.map((f) => f.name.split(" ").slice(-1)[0]).join("   ·   "), M, y);
+    }
+
+    // Bottom CTA band
+    const by = H - 210;
+    ctx.fillStyle = hexA(accent, 0.1); ctx.fillRect(0, by, W, 210);
+    ctx.fillStyle = accent; ctx.fillRect(0, by, W, 3);
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#fff"; ctx.font = "900 42px Arial";
+    ctx.fillText(L.ctaBig, W / 2, by + 86);
+    ctx.fillStyle = hexA(accent, 0.95); ctx.font = "900 34px Arial"; ctx.letterSpacing = "2px";
+    ctx.fillText("gavana.app", W / 2, by + 146);
+    ctx.letterSpacing = "0px"; ctx.textAlign = "left";
+
+    return canvas;
+  }
+
   async function handleShare() {
     const shareText = locale === "mn"
-      ? `Миний тулаанчийн ДНХ: ${dna.archetype} (${confidencePct}%) — GAVANA 🥊`
+      ? `Миний Fighter DNA: ${dna.archetype} (${confidencePct}%) 🥊 Чи ямар тулаанч бэ?`
       : locale === "ko"
-      ? `내 파이터 DNA: ${dna.archetype} (${confidencePct}%) — GAVANA 🥊`
-      : `My Fighter DNA: ${dna.archetype} (${confidencePct}% signal) — GAVANA 🥊`;
-    if (typeof navigator !== "undefined" && navigator.share) {
-      try { await navigator.share({ title: "Fighter DNA — GAVANA", text: shareText }); return; }
-      catch { /* cancelled */ }
-    }
+      ? `내 파이터 DNA: ${dna.archetype} (${confidencePct}%) 🥊 당신은 어떤 파이터?`
+      : `My Fighter DNA: ${dna.archetype} (${confidencePct}% signal) 🥊 What's yours?`;
+    const refUrl = uid ? buildReferralUrl(uid, locale) : "https://gavana.app";
+
     try {
-      await navigator.clipboard.writeText(shareText);
+      const canvas = await renderPoster();
+      const dataUrl = canvas.toDataURL("image/png");
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], "fighter-dna.png", { type: "image/png" });
+
+      if (typeof navigator !== "undefined" && navigator.canShare?.({ files: [file] }) && navigator.share) {
+        await navigator.share({ files: [file], title: "Fighter DNA — GAVANA", text: shareText, url: refUrl });
+      } else if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share({ title: "Fighter DNA — GAVANA", text: `${shareText} ${refUrl}` });
+      } else {
+        const a = document.createElement("a");
+        a.href = dataUrl; a.download = "fighter-dna.png"; a.click();
+        try { await navigator.clipboard.writeText(`${shareText} ${refUrl}`); } catch { /* ignore */ }
+      }
       setCopied(true);
       setTimeout(() => setCopied(false), 2200);
-    } catch { /* silent */ }
+    } catch {
+      // Fallback to text share if canvas/share fails
+      try {
+        if (navigator.share) await navigator.share({ title: "Fighter DNA — GAVANA", text: `${shareText} ${refUrl}` });
+        else { await navigator.clipboard.writeText(`${shareText} ${refUrl}`); setCopied(true); setTimeout(() => setCopied(false), 2200); }
+      } catch { /* silent */ }
+    }
   }
 
   return (

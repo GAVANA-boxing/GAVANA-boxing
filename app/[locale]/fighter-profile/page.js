@@ -537,7 +537,7 @@ export default function FighterProfilePage() {
 
             {/* DNA Share Card */}
             {!loading && !dna.building && (
-              <DNAShareCard dna={dna} displayName={displayName} locale={locale} />
+              <DNAShareCard dna={dna} displayName={displayName} locale={locale} uid={user?.uid} />
             )}
 
             {/* Pro Upgrade */}
