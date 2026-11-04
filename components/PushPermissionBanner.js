@@ -36,7 +36,7 @@ export default function PushPermissionBanner() {
   const [show, setShow] = useState(false);
   const [granted, setGranted] = useState(false);
 
-  useFcmToken(granted ? user : null);
+  useFcmToken(granted ? user : null, locale);
 
   useEffect(() => {
     if (!user) return;

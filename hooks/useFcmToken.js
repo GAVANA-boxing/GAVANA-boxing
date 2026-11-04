@@ -9,7 +9,9 @@ const VAPID_KEY = process.env.NEXT_PUBLIC_FCM_VAPID_KEY;
 // Registers an FCM web push token for the logged-in user.
 // Only runs when notification permission is already granted.
 // Requires NEXT_PUBLIC_FCM_VAPID_KEY env var.
-export function useFcmToken(user) {
+// `locale` is persisted on the user doc so server-side scheduled pushes
+// (streak-at-risk, win-back) are sent in the user's language.
+export function useFcmToken(user, locale) {
   useEffect(() => {
     if (!user?.uid || !VAPID_KEY) return;
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
@@ -32,6 +34,10 @@ export function useFcmToken(user) {
             { token, platform: "web", updatedAt: new Date().toISOString() },
             { merge: true }
           );
+          // Persist locale for server-side localized push (best-effort).
+          if (locale) {
+            await setDoc(doc(db, "users", user.uid), { locale }, { merge: true }).catch(() => {});
+          }
         }
       } catch {
         // FCM unavailable or blocked — fail silently
@@ -40,5 +46,5 @@ export function useFcmToken(user) {
 
     register();
     return () => { cancelled = true; };
-  }, [user?.uid]);
+  }, [user?.uid, locale]);
 }
