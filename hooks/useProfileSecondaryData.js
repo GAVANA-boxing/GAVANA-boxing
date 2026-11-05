@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
-import { calculateUserXP } from "@/lib/xp";
+import { getAccountXp } from "@/lib/domain/progression";
 import { getTimestampMs } from "@/lib/utils";
 import { getCurrentSeasonId } from "@/lib/season";
 
@@ -162,7 +162,7 @@ export function useProfileSecondaryData({ user, userId, isOwnProfile }) {
         const p = uSnap.exists() ? uSnap.data() : {};
         const scores = feedSnap.docs.map(d => Number(d.data().score)).filter(Number.isFinite);
         const storedXP = Number(p.xp) || 0;
-        const myXP = storedXP + calculateUserXP({ aiFeedbackDocs: feedSnap.docs.map(d => d.data()) });
+        const myXP = getAccountXp({ storedXp: storedXP, aiFeedbackDocs: feedSnap.docs.map(d => d.data()) });
         setMyStats({
           xp: myXP,
           bestScore: scores.length ? Math.max(...scores) : null,

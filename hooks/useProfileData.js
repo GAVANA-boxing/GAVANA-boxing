@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
 import { db } from "@/lib/firebase";
-import { RANK_TIERS, calculateUserXP, getFighterRank } from "@/lib/xp";
+import { RANK_TIERS, getFighterRank } from "@/lib/xp";
+import { getAccountXp } from "@/lib/domain/progression";
 import { getTimestampMs, getSafeReelLikes } from "@/lib/utils";
 import { useProfileSecondaryData } from "@/hooks/useProfileSecondaryData";
 
@@ -303,7 +304,8 @@ export function useProfileData({ user, userId, authLoading, locale }) {
   // Detect rank-up during session — own profile only
   useEffect(() => {
     if (loading || rankUpShownRef.current || !isOwnProfile) return;
-    const currentXP = (Number(profileUser?.xp) || 0) + calculateUserXP({
+    const currentXP = getAccountXp({
+      storedXp: profileUser?.xp,
       aiFeedbackDocs: aiFeedbackHistory,
       streakDays: Number(profileUser?.dailyStreak ?? profileUser?.streakCount) || 0,
       likesReceived: totalLikes,
