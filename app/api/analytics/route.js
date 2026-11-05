@@ -30,11 +30,30 @@ const ALLOWED_EVENTS = new Set([
   "client_error",
 ]);
 
+// Best-effort per-instance rate limit (serverless → per-instance, not global,
+// but enough to blunt casual anonymous write spam to analytics_events).
+const _hits = new Map(); // ip -> timestamps[]
+const RL_MAX = 30;
+const RL_WINDOW = 60_000;
+function rateLimited(ip) {
+  const now = Date.now();
+  const arr = (_hits.get(ip) || []).filter((t) => now - t < RL_WINDOW);
+  arr.push(now);
+  _hits.set(ip, arr);
+  if (_hits.size > 5000) _hits.clear(); // bound memory
+  return arr.length > RL_MAX;
+}
+
 export async function POST(request) {
   try {
     const { event, props = {} } = await request.json();
     if (!event || !ALLOWED_EVENTS.has(event)) {
       return NextResponse.json({ ok: false, reason: "unknown_event" });
+    }
+
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    if (rateLimited(ip)) {
+      return NextResponse.json({ ok: false, reason: "rate_limited" }, { status: 429 });
     }
 
     const token = await getToken();
