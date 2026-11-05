@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
+import { useUserProfile } from "@/context/UserProfileProvider";
 import { getLocale, translate } from "@/lib/i18n";
 import { RED, GOLD, RADIUS, blackAlpha} from "@/lib/tokens";
 
@@ -32,9 +31,7 @@ export default function DailyMission({ locale = "en" }) {
   const safeLocale = getLocale(locale);
   const t = (key) => translate(safeLocale, key);
   const { user, loading: authLoading } = useAuth();
-  const [dailyStreak, setDailyStreak] = useState(0);
-  const [bestDailyStreak, setBestDailyStreak] = useState(0);
-  const [missionCompleted, setMissionCompleted] = useState(false);
+  const { profile } = useUserProfile();
   const [expanded, setExpanded] = useState(false);
   const containerRef = useRef(null);
   const posRef = useRef(null);
@@ -57,23 +54,9 @@ export default function DailyMission({ locale = "en" }) {
 
   const todayKey = useMemo(() => formatDateKey(), []);
 
-  useEffect(() => {
-    if (authLoading || !user?.uid) return;
-    let active = true;
-    async function load() {
-      try {
-        const snap = await getDoc(doc(db, "users", user.uid));
-        if (!active) return;
-        const data = snap.exists() ? snap.data() : {};
-        setDailyStreak(Number(data.dailyStreak) || 0);
-        setBestDailyStreak(Number(data.bestDailyStreak) || 0);
-        setMissionCompleted(data.dailyMissionCompleted === todayKey);
-      } catch (e) {
-      }
-    }
-    load();
-    return () => { active = false; };
-  }, [authLoading, user?.uid, todayKey]);
+  const dailyStreak = Number(profile?.dailyStreak) || 0;
+  const bestDailyStreak = Number(profile?.bestDailyStreak) || 0;
+  const missionCompleted = profile?.dailyMissionCompleted === todayKey;
 
   // Collapse on outside click/touch
   useEffect(() => {
