@@ -28,6 +28,32 @@ function notConfigured(err) {
   return err instanceof Error && err.message === "service-account-unconfigured";
 }
 
+// Unauthenticated config health check. Reveals only booleans + the (public)
+// project id — never the secret — so the deploy of FIREBASE_SERVICE_ACCOUNT_BASE64
+// can be diagnosed remotely from a browser. Safe to remove once scoring is live.
+export async function GET() {
+  const b64 = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
+  const out = {
+    envPresent: !!b64,
+    envLength: b64 ? b64.length : 0,
+    validJson: false,
+    projectId: null,
+    tokenMintable: false,
+  };
+  if (b64) {
+    try {
+      const json = JSON.parse(Buffer.from(b64, "base64").toString("utf8"));
+      out.validJson = true;
+      out.projectId = json.project_id || null;
+    } catch { /* malformed base64 / json */ }
+    try {
+      const { getServiceToken } = await import("@/lib/server/firestore");
+      out.tokenMintable = (await getServiceToken()) != null;
+    } catch { /* ignore */ }
+  }
+  return Response.json(out);
+}
+
 export const POST = withAuth(async (req, { uid }) => {
   if (rateLimited(uid)) return Response.json({ error: "Rate limited" }, { status: 429 });
 
