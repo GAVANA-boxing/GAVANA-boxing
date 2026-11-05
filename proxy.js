@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
+import { verifyAdminSession } from "@/lib/adminSession";
 
 const ADMIN_PATH = /^\/(mn|en|ko)\/admin(\/|$)/;
 
-export function proxy(req) {
+export async function proxy(req) {
   if (!ADMIN_PATH.test(req.nextUrl.pathname)) return NextResponse.next();
 
   const session = req.cookies.get("admin_session");
@@ -12,17 +13,18 @@ export function proxy(req) {
     return NextResponse.redirect(new URL(`/${locale}/login`, req.url));
   }
 
-  const adminUids = (
-    process.env.ADMIN_UIDS ||
-    // Dev-only fallback: NEXT_PUBLIC_ADMIN_UIDS is never authoritative in production.
-    // Set ADMIN_UIDS in your server environment instead.
-    (process.env.NODE_ENV !== "production" ? process.env.NEXT_PUBLIC_ADMIN_UIDS : "")
-  || "")
+  // The cookie is an HMAC-signed token, not a bare uid — a forged uid fails here.
+  const uid = await verifyAdminSession(session.value);
+  if (!uid) {
+    return NextResponse.redirect(new URL(`/${locale}/login`, req.url));
+  }
+
+  const adminUids = (process.env.ADMIN_UIDS || "")
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
 
-  if (adminUids.length && !adminUids.includes(session.value)) {
+  if (adminUids.length && !adminUids.includes(uid)) {
     return NextResponse.redirect(new URL(`/${locale}`, req.url));
   }
 

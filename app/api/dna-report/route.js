@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { verifyIdToken } from "@/lib/verifyAuth";
 
 const PROJECT_ID = "gavana-boxing-89a22";
 
@@ -37,8 +38,13 @@ function fsValue(field) {
 
 export async function POST(request) {
   try {
+    // Auth: a caller may only fetch their OWN report (prevents IDOR).
+    const callerUid = await verifyIdToken(request);
+    if (!callerUid) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     const { userId } = await request.json();
     if (!userId) return NextResponse.json({ error: "userId required" }, { status: 400 });
+    if (userId !== callerUid) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const userDoc = await firestoreGet(`users/${userId}`);
     const fields = userDoc.fields || {};

@@ -568,9 +568,10 @@ export default function FighterProfilePage() {
                     type="button"
                     onClick={async () => {
                       try {
+                        const token = await user?.getIdToken?.();
                         const res = await fetch("/api/dna-report", {
                           method: "POST",
-                          headers: { "Content-Type": "application/json" },
+                          headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
                           body: JSON.stringify({ userId: user?.uid }),
                         });
                         if (!res.ok) throw new Error("report failed");

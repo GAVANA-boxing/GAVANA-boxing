@@ -28,9 +28,15 @@ async function getFirestoreAccessToken() {
 }
 
 async function updateUserSubscription(uid, tierId, status) {
+  if (!uid) {
+    // No uid in Stripe metadata — cannot attribute the subscription. Never write
+    // to users/undefined; log loudly so it's visible, and let the caller ack.
+    console.error("stripe/webhook: event has no metadata.uid — cannot attribute subscription", { tierId, status });
+    return { skipped: "no-uid" };
+  }
   const accessToken = await getFirestoreAccessToken();
   if (!accessToken) {
-    throw new Error("FIREBASE_SERVICE_ACCOUNT_BASE64 not configured — cannot write subscription");
+    throw new Error("FIREBASE_SERVICE_ACCOUNT_BASE64 not configured — cannot write subscription (user paid but Pro will not activate)");
   }
 
   const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/users/${uid}?updateMask.fieldPaths=subscription&updateMask.fieldPaths=subscriptionTier&updateMask.fieldPaths=subscriptionUpdatedAt`;
