@@ -141,7 +141,7 @@ export function useProfileData({ user, userId, authLoading, locale }) {
           bio: userData.bio || "",
           photoURL: userData.photoURL || userData.profileImageUrl || "",
           email: userData.email || `${fallbackName}@example.com`,
-          streakCount: Number(userData.streakCount) || 0,
+          streakCount: Number(userData.dailyStreak ?? userData.streakCount) || 0,
           xp: Number(userData.xp) || 0,
           totalChallengesCompleted: Number(userData.totalChallengesCompleted) || 0,
           challengeStreak: Number(userData.challengeStreak) || 0,
@@ -305,7 +305,7 @@ export function useProfileData({ user, userId, authLoading, locale }) {
     if (loading || rankUpShownRef.current || !isOwnProfile) return;
     const currentXP = (Number(profileUser?.xp) || 0) + calculateUserXP({
       aiFeedbackDocs: aiFeedbackHistory,
-      streakDays: profileUser?.streakCount || 0,
+      streakDays: Number(profileUser?.dailyStreak ?? profileUser?.streakCount) || 0,
       likesReceived: totalLikes,
     });
     const currentRank = getFighterRank(currentXP);

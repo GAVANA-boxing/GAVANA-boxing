@@ -174,7 +174,7 @@ export function useReelInteractions({
       let score = null;
       try {
         const feedbackQuery = query(
-          collection(db, "feedback"),
+          collection(db, "ai_feedback"),
           where("reelId", "==", reel.id),
           where("userId", "==", reel.userId)
         );

@@ -183,7 +183,7 @@ export function useReelFeedback({ user, router, currentLocale, t, creatorProfile
               .sort((a, b) => (a.createdAt?.toMillis?.() || 0) - (b.createdAt?.toMillis?.() || 0));
             const prevScore = sorted.length >= 2 ? Number(sorted[sorted.length - 2].score) : null;
 
-            const streakDays = creatorProfiles[ownerId]?.streakCount || 0;
+            const streakDays = Number(creatorProfiles[ownerId]?.dailyStreak ?? creatorProfiles[ownerId]?.streakCount) || 0;
             const reelLikes = getSafeLikeCount(reel);
             const likeXP = Math.round(reelLikes) * 2;
 

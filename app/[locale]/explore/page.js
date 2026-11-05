@@ -71,7 +71,7 @@ export default function ExplorePage() {
           const snap = await getDocs(query(collection(db, "events"), where("date", ">=", now), orderBy("date", "asc"), limit(20)));
           if (active) setEvents(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
         } else if (activeTab === "programs") {
-          const snap = await getDocs(query(collection(db, "programs"), limit(20)));
+          const snap = await getDocs(query(collection(db, "training_programs"), limit(20)));
           if (active) setPrograms(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
         }
       } catch { /* silent */ }

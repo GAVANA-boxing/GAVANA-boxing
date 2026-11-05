@@ -109,7 +109,7 @@ export default function UserProfilePage() {
 
   // Per-session XP breakdowns — must be before any early return (Rules of Hooks)
   const xpBreakdowns = useMemo(() => {
-    const streak = profileUser?.streakCount || 0;
+    const streak = Number(profileUser?.dailyStreak ?? profileUser?.streakCount) || 0;
     const sortedAsc = [...(aiFeedbackHistory || [])]
       .map((fb) => ({ ...fb, _ts: getTimestampMs(fb.createdAt) }))
       .sort((a, b) => a._ts - b._ts);
@@ -122,7 +122,7 @@ export default function UserProfilePage() {
       prevScore = score;
     }
     return result;
-  }, [aiFeedbackHistory, profileUser?.streakCount]);
+  }, [aiFeedbackHistory, profileUser?.dailyStreak, profileUser?.streakCount]);
 
   const groupedTrainingSessions = useMemo(() => {
     const groups = new Map();
@@ -270,9 +270,9 @@ export default function UserProfilePage() {
   const profileRadarStats = useMemo(() => {
     if (!trainingSessions?.length) return null;
     const scores = trainingSessions.map((s) => Number(s.score)).filter(Number.isFinite);
-    const sc = profileUser?.streakCount || 0;
+    const sc = Number(profileUser?.dailyStreak ?? profileUser?.streakCount) || 0;
     return deriveRadarStats(scores, trainingSessions, sc);
-  }, [trainingSessions, profileUser?.streakCount]);
+  }, [trainingSessions, profileUser?.dailyStreak, profileUser?.streakCount]);
 
   if (loading) {
     return <ProfileLoadingSkeleton />;
@@ -286,7 +286,7 @@ export default function UserProfilePage() {
     .map((feedback) => Number(feedback.score))
     .filter((score) => Number.isFinite(score));
 
-  const streakCount = profileUser?.streakCount || 0;
+  const streakCount = Number(profileUser?.dailyStreak ?? profileUser?.streakCount) || 0;
 
   const storedChallengeXP = Number(profileUser?.xp) || 0;
   const trainingSessionXP = trainingSessions.reduce((sum, s) => sum + (Number(s.xpGained) || 0), 0);
