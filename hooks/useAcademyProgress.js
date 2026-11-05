@@ -1,5 +1,6 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useUserProfile } from "@/context/UserProfileProvider";
 
 const STORAGE_KEY = "gavana_academy_progress";
 const DEFAULT_PATH = "foundation";
@@ -20,29 +21,29 @@ export function useAcademyProgress({ user }) {
   const [currentPathId, setCurrentPathIdState] = useState(DEFAULT_PATH);
   const [loading, setLoading] = useState(true);
   const [guestPrompt, setGuestPrompt] = useState(false);
+  const { profile, loading: profileLoading } = useUserProfile();
+  const seededForRef = useRef(null);
 
   useEffect(() => {
     if (user?.uid) {
-      (async () => {
-        try {
-          const { doc, getDoc } = await import("firebase/firestore");
-          const { db } = await import("@/lib/firebase");
-          const snap = await getDoc(doc(db, "users", user.uid));
-          if (snap.exists()) {
-            const ap = snap.data().academyProgress || {};
-            setLessonProgress(ap.lessonProgress || {});
-            setCurrentPathIdState(ap.currentPathId || DEFAULT_PATH);
-          }
-        } catch { }
-        setLoading(false);
-      })();
+      // Seed once per signed-in user from the shared profile; don't re-clobber
+      // the locally-mutated progress on every realtime tick.
+      if (profileLoading) return;
+      if (seededForRef.current !== user.uid) {
+        const ap = profile?.academyProgress || {};
+        setLessonProgress(ap.lessonProgress || {});
+        setCurrentPathIdState(ap.currentPathId || DEFAULT_PATH);
+        seededForRef.current = user.uid;
+      }
+      setLoading(false);
     } else {
+      seededForRef.current = null;
       const stored = loadLocal();
       setLessonProgress(stored.lessonProgress || {});
       setCurrentPathIdState(stored.currentPathId || DEFAULT_PATH);
       setLoading(false);
     }
-  }, [user?.uid]);
+  }, [user?.uid, profile, profileLoading]);
 
   const persist = useCallback(async (nextLp, pathId, showPrompt = false) => {
     if (user?.uid) {

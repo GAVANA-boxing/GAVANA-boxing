@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import {
-  collection, doc, getDoc, getDocs, query, where, onSnapshot,
+  collection, getDocs, query, where, onSnapshot,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { snapToDocs } from "@/lib/firestore";
 import { getTimestampMs } from "@/lib/utils";
+import { useUserProfile } from "@/context/UserProfileProvider";
 
 export function useSparringData({ user, tab }) {
   const [posts, setPosts] = useState([]);
@@ -14,17 +15,10 @@ export function useSparringData({ user, tab }) {
   const [incomingRequests, setIncomingRequests] = useState([]);
   const [sentRequestToIds, setSentRequestToIds] = useState(new Set());
   const [sentRequests, setSentRequests] = useState([]);
-  const [userData, setUserData] = useState(null);
+  const { profile: userData } = useUserProfile();
   const [loading, setLoading] = useState(true);
   const [matchHistory, setMatchHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
-
-  useEffect(() => {
-    if (!user?.uid) return;
-    getDoc(doc(db, "users", user.uid)).then((snap) => {
-      if (snap.exists()) setUserData(snap.data());
-    }).catch(() => {});
-  }, [user?.uid]);
 
   useEffect(() => {
     const q = query(collection(db, "sparring_posts"), where("lookingForSparring", "==", true));

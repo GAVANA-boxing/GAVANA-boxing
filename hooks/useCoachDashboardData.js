@@ -12,8 +12,10 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { snapToDocs } from "@/lib/firestore";
+import { useUserProfile } from "@/context/UserProfileProvider";
 
 export function useCoachDashboardData({ user, authLoading, router, locale }) {
+  const { profile, loading: profileLoading } = useUserProfile();
   const [requests, setRequests] = useState([]);
   const [requesterUsers, setRequesterUsers] = useState({});
   const [loadingRequests, setLoadingRequests] = useState(true);
@@ -28,22 +30,14 @@ export function useCoachDashboardData({ user, authLoading, router, locale }) {
       router.replace(`/${locale}/login`);
       return;
     }
-    async function checkCoach() {
-      try {
-        const snap = await getDoc(doc(db, "users", user.uid));
-        if (!snap.exists() || !snap.data().isCoach) {
-          setAccessDenied(true);
-          router.replace(`/${locale}/coach`);
-          return;
-        }
-        setCompletedSessions(Number(snap.data().completedSessions) || 0);
-      } catch {
-        setAccessDenied(true);
-        router.replace(`/${locale}/coach`);
-      }
+    if (profileLoading) return;
+    if (!profile?.isCoach) {
+      setAccessDenied(true);
+      router.replace(`/${locale}/coach`);
+      return;
     }
-    checkCoach();
-  }, [authLoading, user, router, locale]);
+    setCompletedSessions(Number(profile.completedSessions) || 0);
+  }, [authLoading, user, router, locale, profile, profileLoading]);
 
   useEffect(() => {
     if (!user?.uid || loadedRef.current) return;
