@@ -7,6 +7,7 @@ import { generateCoachingMessages, computeVelocityStats, computePunchBreakdown, 
 import { analyzeSession } from "@/lib/boxingIntelligence";
 import { DefensiveDetector } from "@/lib/defensiveDetector";
 import { funnel, FUNNEL } from "@/lib/funnel";
+import { createReplayRecorder, buildReplay } from "@/lib/motionReplay";
 
 /**
  * MediaPipe files are served from /public/mediapipe/ (local static assets).
@@ -87,6 +88,7 @@ export function usePoseDetection({ videoRef, isActive }) {
 
   const landmarkerRef      = useRef(null);
   const poseSeenRef        = useRef(false); // funnel: fire pose_detected once per mount
+  const replayRef          = useRef(createReplayRecorder()); // 3D motion replay frames
   const lastRunRef         = useRef(0);
   const rafRef             = useRef(null);
   const frameMetricsRef    = useRef([]);
@@ -185,6 +187,8 @@ export function usePoseDetection({ videoRef, isActive }) {
 
           const smoothed = smoothedLmRef.current;
           latestLandmarksRef.current = smoothed;
+          // 3D replay: metric, hip-centred world landmarks when available.
+          replayRef.current.push(res.worldLandmarks?.[0] || landmarks, Date.now());
           detectCountRef.current++;
           frameErrorRef.current = null;
           lowerBodyVisRef.current = lowerBodyVisible(smoothed);
@@ -237,6 +241,7 @@ export function usePoseDetection({ videoRef, isActive }) {
       frameAttemptRef.current = 0;
       visSamplesRef.current = [];
       detectorRef.current.reset();
+      replayRef.current.reset();
       comboRef.current.reset();
       defensiveRef.current.reset();
       processedCountRef.current = 0;
@@ -490,11 +495,18 @@ export function usePoseDetection({ videoRef, isActive }) {
     };
   }, [poseStatus, poseError]);
 
+  // The session as a 3D replay ({ frames, duration, punches }) or null.
+  const getMotionReplay = useCallback(
+    () => buildReplay(replayRef.current.snapshot(), detectorRef.current.getPunchEvents()),
+    [],
+  );
+
   return {
     poseStatus,
     poseError,
     computeSessionSummary,
     getDebugInfo,
+    getMotionReplay,
     latestLandmarksRef,
     frameMetricsRef,
   };

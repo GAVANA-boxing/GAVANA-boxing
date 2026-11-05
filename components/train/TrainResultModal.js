@@ -19,10 +19,13 @@ import PunchPatternCard      from "@/components/train/PunchPatternCard";
 import ActionSummary         from "@/components/train/ActionSummary";
 import ResultActionsSection  from "@/components/train/ResultActionsSection";
 import ResultAnalysisSection from "@/components/train/ResultAnalysisSection";
+import MotionReplay3D        from "@/components/train/MotionReplay3D";
+import { loc }               from "@/lib/loc";
 
 const MIN_PUNCHES = 5;
 
 export default function TrainResultModal({
+  motionReplay = null,
   debrief = null,
   debriefSource = null,
   debriefLoading = false,
@@ -94,6 +97,7 @@ export default function TrainResultModal({
   const [sessionTag,    setSessionTag]    = useState(null);
   const [clipDuration,  setClipDuration]  = useState(null);
   const [showDnaShare,  setShowDnaShare]  = useState(false);
+  const [replayOpen,    setReplayOpen]    = useState(false);
   const [shareCopied,   setShareCopied]   = useState(false);
   const [blobUrl,      setBlobUrl]      = useState(null);
 
@@ -165,6 +169,31 @@ export default function TrainResultModal({
         {/* ── ACTION SUMMARY: GOOD / FIX / NEXT ────────────────────── */}
         {poseMetrics && !tooFewPunches && (
           <ActionSummary poseMetrics={poseMetrics} result={result} locale={locale} />
+        )}
+
+        {/* ── 3D TECHNIQUE BREAKDOWN — the user's own punches in 3D ─── */}
+        {motionReplay && !tooFewPunches && (
+          <button
+            type="button"
+            onClick={() => setReplayOpen(true)}
+            style={{
+              display: "flex", alignItems: "center", gap: 12, width: "100%", textAlign: "left",
+              margin: "4px 0 12px", padding: "13px 14px", borderRadius: 14, cursor: "pointer",
+              background: "linear-gradient(135deg, rgba(255,59,48,0.16), rgba(245,196,81,0.10))",
+              border: "1px solid rgba(255,59,48,0.35)", color: "#fff",
+            }}
+          >
+            <span style={{ fontSize: 26 }}>🧊</span>
+            <span style={{ flex: 1 }}>
+              <span style={{ display: "block", fontWeight: 900, fontSize: 14 }}>
+                {loc(locale, "3D техник задлах", "3D 기술 분석", "3D technique breakdown")}
+              </span>
+              <span style={{ display: "block", fontSize: 11, color: "rgba(255,255,255,0.6)", marginTop: 2 }}>
+                {loc(locale, "Цохилт бүрээ 3D-ээр эргүүлж, удаашруулж хар", "펀치를 3D로 돌려보고 슬로모션으로", "Rotate and slow-mo every punch in 3D")}
+              </span>
+            </span>
+            <span style={{ color: "#FF3B30", fontWeight: 900 }}>→</span>
+          </button>
         )}
 
         {/* ── AI DEBRIEF ───────────────────────────────────────────── */}
@@ -313,6 +342,11 @@ export default function TrainResultModal({
         />
 
       </section>
+
+      {/* ── 3D REPLAY ───────────────────────────────────────────────── */}
+      {replayOpen && motionReplay && (
+        <MotionReplay3D replay={motionReplay} locale={locale} onClose={() => setReplayOpen(false)} />
+      )}
 
       {/* ── DNA SHARE SHEET ──────────────────────────────────────────── */}
       {showDnaShare && (() => {

@@ -152,7 +152,7 @@ export default function TrainPage() {
     locale,
   });
 
-  const { computeSessionSummary, getDebugInfo } = usePoseDetection({
+  const { computeSessionSummary, getDebugInfo, getMotionReplay } = usePoseDetection({
     videoRef,
     isActive: phase === "recording",
   });
@@ -223,6 +223,7 @@ export default function TrainPage() {
   const [newBadges, setNewBadges] = useState([]);
   const [dnaMilestone, setDnaMilestone] = useState(null);
   const [poseSessionSummary, setPoseSessionSummary] = useState(null);
+  const [motionReplay, setMotionReplay] = useState(null); // 3D replay of the last session
   const [prevPoseMetrics, setPrevPoseMetrics] = useState(null);
   const [positionCue, setPositionCue] = useState(null);
   const [trackingRing, setTrackingRing] = useState(null);
@@ -345,6 +346,7 @@ export default function TrainPage() {
   // Runs on result.hitCount change (new session) — not on score change — to avoid loops.
   useEffect(() => {
     if (!result) return;
+    setMotionReplay(getMotionReplay());
     const poseSummary = computeSessionSummary();
     if (poseSummary?.score != null) {
       setPoseSessionSummary(poseSummary);
@@ -1230,6 +1232,7 @@ export default function TrainPage() {
         movementEvents={movementEvents}
         sessionStartTime={sessionStartTime}
         poseMetrics={poseSessionSummary}
+        motionReplay={motionReplay}
         prevPoseMetrics={prevPoseMetrics}
         error={error}
         saving={saving}
