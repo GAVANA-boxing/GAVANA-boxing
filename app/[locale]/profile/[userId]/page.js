@@ -4,7 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { useParams, useRouter } from "next/navigation";
 import { getLocale, translate } from "@/lib/i18n";
-import { calculateSessionXP, calculateUserXP, getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
+import { calculateSessionXP, getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
+import { getAccountXp } from "@/lib/domain/progression";
 import ProfileFighterCard from "@/components/profile/ProfileFighterCard";
 import ProfileBackHeader from "@/components/profile/ProfileBackHeader";
 import ProfileLoadingSkeleton from "@/components/profile/ProfileLoadingSkeleton";
@@ -288,10 +289,10 @@ export default function UserProfilePage() {
 
   const streakCount = Number(profileUser?.dailyStreak ?? profileUser?.streakCount) || 0;
 
-  const storedChallengeXP = Number(profileUser?.xp) || 0;
-  const trainingSessionXP = trainingSessions.reduce((sum, s) => sum + (Number(s.xpGained) || 0), 0);
-  const xp = storedChallengeXP + trainingSessionXP + calculateUserXP({
+  const xp = getAccountXp({
+    storedXp: profileUser?.xp,
     aiFeedbackDocs: aiFeedbackHistory,
+    trainingSessions,
     streakDays: streakCount,
     likesReceived: totalLikes,
   });

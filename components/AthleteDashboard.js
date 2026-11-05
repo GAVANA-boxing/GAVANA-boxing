@@ -10,9 +10,10 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import {
-  calculateUserXP, getFighterRank,
+  getFighterRank,
   getNextRank, getRankProgress,
 } from "@/lib/xp";
+import { getAccountXp } from "@/lib/domain/progression";
 import {
   deriveRadarStats, computeFighterScore, getInsight,
 } from "@/lib/dashboardHelpers";
@@ -124,11 +125,11 @@ export default function AthleteDashboard() {
           .filter((s) => s.type === "training")
           .sort((a, b) => getTs(b.createdAt) - getTs(a.createdAt));
 
-        const trainingSessionXP = allSessions.reduce((sum, s) => sum + (Number(s.xpGained) || 0), 0);
-        const storedChallengeXP = Number(uData.xp) || 0;
         const streakDays = Number(uData.streakCount) || Number(uData.dailyStreak) || 0;
-        const totalXP = storedChallengeXP + trainingSessionXP + calculateUserXP({
+        const totalXP = getAccountXp({
+          storedXp: uData.xp,
           aiFeedbackDocs: feedbackDocs,
+          trainingSessions: allSessions,
           streakDays,
         });
 

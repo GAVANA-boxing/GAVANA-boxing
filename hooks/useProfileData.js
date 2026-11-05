@@ -307,6 +307,7 @@ export function useProfileData({ user, userId, authLoading, locale }) {
     const currentXP = getAccountXp({
       storedXp: profileUser?.xp,
       aiFeedbackDocs: aiFeedbackHistory,
+      trainingSessions,
       streakDays: Number(profileUser?.dailyStreak ?? profileUser?.streakCount) || 0,
       likesReceived: totalLikes,
     });
@@ -323,7 +324,7 @@ export function useProfileData({ user, userId, authLoading, locale }) {
     if (typeof window !== "undefined") {
       localStorage.setItem("gavana_rank_key", currentRank.key);
     }
-  }, [loading, aiFeedbackHistory, userReels.length, stats.followers, profileUser?.streakCount, profileUser?.xp, totalLikes, isOwnProfile]);
+  }, [loading, aiFeedbackHistory, trainingSessions, userReels.length, stats.followers, profileUser?.streakCount, profileUser?.xp, totalLikes, isOwnProfile]);
 
   return {
     profileUser, setProfileUser,
