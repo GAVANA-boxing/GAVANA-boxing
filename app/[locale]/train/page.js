@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import DailyMission from "@/components/DailyMission";
 import { useAuth } from "@/lib/AuthContext";
+import { useUserProfile } from "@/context/UserProfileProvider";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { usePvpResult } from "@/hooks/usePvpResult";
 import { useTrainingActions } from "@/hooks/useTrainingActions";
@@ -60,6 +61,7 @@ export default function TrainPage() {
   const locale = getLocaleFromPathname(pathname);
   const t = (key) => translate(locale, key);
   const { user, loading: authLoading } = useAuth();
+  const { profile, loading: profileLoading } = useUserProfile();
   const { recordSession } = useAcademyProgress({ user });
 
   const [debugEnabled, setDebugEnabled] = useState(false);
@@ -232,10 +234,11 @@ export default function TrainPage() {
   // Fetch training sessions once → build coach snapshot + grab last session's pose metrics
   useEffect(() => {
     if (!user?.uid) return;
+    if (profileLoading) return;
     let active = true;
     (async () => {
       try {
-        const { collection, getDocs, query, where, doc, getDoc } = await import("firebase/firestore");
+        const { collection, getDocs, query, where } = await import("firebase/firestore");
         const { db } = await import("@/lib/firebase");
         const snap = await getDocs(query(
           collection(db, "training_sessions"),
@@ -252,11 +255,9 @@ export default function TrainPage() {
         priorSessionsRef.current = sessions.slice(0, 9);
         // Most recent past session's pose metrics for comparison
         if (sessions[0]?.poseMetrics) setPrevPoseMetrics(sessions[0].poseMetrics);
-        // Load currentExperiment from user doc
-        const userSnap = await getDoc(doc(db, "users", user.uid));
-        if (!active) return;
-        if (userSnap.exists()) {
-          const userData = userSnap.data();
+        // currentExperiment + archetype come from the shared profile
+        const userData = profile || {};
+        {
           const expData = userData.currentExperiment;
           if (expData) {
             setCurrentExperiment(expData);
@@ -286,7 +287,8 @@ export default function TrainPage() {
       } catch { /* silent */ }
     })();
     return () => { active = false; };
-  }, [user?.uid]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid, profile, profileLoading]);
 
   // Track session completions
   useEffect(() => {

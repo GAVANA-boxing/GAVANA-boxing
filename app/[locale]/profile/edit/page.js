@@ -2,10 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
+import { useUserProfile } from "@/context/UserProfileProvider";
 import { getLocale } from "@/lib/i18n";
 import styles from "@/components/profile/editProfileStyles";
 
@@ -16,10 +17,12 @@ import SubscriptionStatus from "@/components/profile/SubscriptionStatus";
 
 export default function EditProfilePage() {
   const { user, loading: authLoading } = useAuth();
+  const { profile, loading: profileLoading } = useUserProfile();
   const params = useParams();
   const locale = getLocale(params?.locale);
   const router = useRouter();
   const fileInputRef = useRef(null);
+  const seededRef = useRef(false);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -48,30 +51,23 @@ export default function EditProfilePage() {
   useEffect(() => {
     if (authLoading) return;
     if (!user?.uid) { setLoading(false); return; }
-    let active = true;
+    if (profileLoading) return;
 
-    async function load() {
-      try {
-        const snap = await getDoc(doc(db, "users", user.uid));
-        const d = snap.exists() ? snap.data() : {};
-        if (!active) return;
-        setDisplayName(d.displayName || d.username || user.email?.split("@")[0] || "");
-        setUsername(d.username || user.email?.split("@")[0] || "");
-        setBio(d.bio || "");
-        setPhotoURL(d.photoURL || d.profileImageUrl || "");
-        setWeightClass(d.weightClass || "");
-        setArchetype(d.fighterArchetype || "");
-        setSubscriptionTier(d.subscriptionTier || d.tier || null);
-      } catch (e) {
-        if (active) setError(t("Профайл ачаалахад алдаа гарлаа", "프로필 로드 실패", "Could not load your profile"));
-      } finally {
-        if (active) setLoading(false);
-      }
+    // Seed the form once from the shared profile; don't clobber in-progress edits
+    if (!seededRef.current) {
+      const d = profile || {};
+      setDisplayName(d.displayName || d.username || user.email?.split("@")[0] || "");
+      setUsername(d.username || user.email?.split("@")[0] || "");
+      setBio(d.bio || "");
+      setPhotoURL(d.photoURL || d.profileImageUrl || "");
+      setWeightClass(d.weightClass || "");
+      setArchetype(d.fighterArchetype || "");
+      setSubscriptionTier(d.subscriptionTier || d.tier || null);
+      seededRef.current = true;
     }
-    load();
-    return () => { active = false; };
+    setLoading(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authLoading, user?.uid]); // t omitted (recreated every render); user.email stable within session
+  }, [authLoading, user?.uid, profile, profileLoading]); // user.email stable within session
 
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0];

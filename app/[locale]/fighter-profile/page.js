@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
+import { useUserProfile } from "@/context/UserProfileProvider";
 import { getLocaleFromPathname } from "@/lib/i18n";
 import { useCombatMemory } from "@/hooks/useCombatMemory";
 import BottomNav from "@/components/BottomNav";
@@ -126,6 +127,7 @@ export default function FighterProfilePage() {
   const pathname = usePathname();
   const locale   = getLocaleFromPathname(pathname);
   const { user, loading: authLoading } = useAuth();
+  const { profile: userProfile, loading: profileLoading } = useUserProfile();
   const { sessions, tendency, trends, loading } = useCombatMemory({ user });
   const profile  = computeMovementProfile(sessions);
   const identity = profile ? deriveCombatIdentity(profile, sessions) : null;
@@ -170,14 +172,14 @@ export default function FighterProfilePage() {
   // Load currentExperiment + tribe count + milestone badges
   useEffect(() => {
     if (!user?.uid) return;
+    if (profileLoading) return;
     let active = true;
     (async () => {
       try {
-        const { doc, getDoc, collection, getDocs, query, where } = await import("firebase/firestore");
+        const { collection, getDocs, query, where } = await import("firebase/firestore");
         const { db } = await import("@/lib/firebase");
-        const snap = await getDoc(doc(db, "users", user.uid));
-        if (active && snap.exists()) {
-          const data = snap.data();
+        const data = userProfile || {};
+        if (active) {
           setCurrentExperiment(data.currentExperiment || null);
           setStudiedFighterIds(data.studiedFighters || []);
           setUserTier(data.subscriptionTier || data.tier || null);
@@ -205,7 +207,8 @@ export default function FighterProfilePage() {
       } catch { /* silent */ }
     })();
     return () => { active = false; };
-  }, [user?.uid, dna.archetypeKey, dna.building]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid, dna.archetypeKey, dna.building, userProfile, profileLoading]);
 
   async function clearExperiment() {
     if (!user?.uid) return;
