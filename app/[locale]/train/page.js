@@ -309,6 +309,24 @@ export default function TrainPage() {
     });
   }, [saved]);
 
+  // Guest → account hand-off: keep the guest's finished session so it becomes
+  // their first real session when they sign up (GuestSessionClaimer saves it).
+  useEffect(() => {
+    if (user || !result || (result.hitCount || 0) < 5) return;
+    import("@/lib/guestSession").then(({ stashGuestSession }) => {
+      stashGuestSession({
+        result,
+        movementEvents,
+        poseMetrics: poseSessionSummary,
+        drillId,
+        drillConfig,
+        reelId,
+        locale,
+      });
+    }).catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, result, poseSessionSummary]);
+
   // Funnel: Train opened (starts the time-to-wow clock)
   useEffect(() => {
     funnel(FUNNEL.TRAIN_OPENED, { locale });

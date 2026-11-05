@@ -12,8 +12,7 @@ import { buildDateKeys, commitSessionProgression } from "@/lib/scoreClient";
 import { writeChallengeAttempt, updateUserTrainingProfile } from "@/lib/analytics";
 import { checkAndAwardBadges } from "@/lib/badges";
 import { getLocalDateKey, getPreviousLocalDateKey } from "@/lib/utils";
-import { getSessionIdentity, buildMovementCounts, buildMovementMetrics } from "@/lib/combatMemory";
-import { generateTechniqueReview } from "@/lib/techniqueReview";
+import { buildTrainingSessionDoc } from "@/lib/trainingSessionDoc";
 import { computeFighterDNA, dnaSnapshot } from "@/lib/fighterDNA";
 import { computeCombatProgress, progressSnapshot } from "@/lib/combatProgress";
 
@@ -268,51 +267,15 @@ export function useTrainingActions({
         .filter((session) => session.type === "training").length;
       const attemptNumber = previousAttempts + 1;
 
-      // Enriched combat memory fields
-      const sessionIdentity  = getSessionIdentity(result.score, movementEvents, poseMetrics);
-      const movementCounts   = buildMovementCounts(movementEvents);
-      const movementMetrics  = buildMovementMetrics(movementCounts);
-
       // Note: xpGained is NOT written here — the server stamps the authoritative
       // value (rules forbid the client from setting it). This is what getAccountXp
       // sums, so letting the client set it would be a canonical-XP cheat.
       const trainingRef = await addDoc(collection(db, "training_sessions"), {
-        userId: user.uid,
-        reelId,
-        score: result.score,
-        attemptNumber,
-        rankProgress: result.rankProgress,
-        breakdown: result.breakdown || null,
-        hitCount: result.hitCount || 0,
+        ...buildTrainingSessionDoc({
+          uid: user.uid, result, reelId, attemptNumber, locale,
+          drillId, drillConfig, tag, readiness, movementEvents, poseMetrics,
+        }),
         createdAt: serverTimestamp(),
-        type: "training",
-        locale,
-        source: "train_screen",
-        ...(tag ? { sessionTag: tag } : {}),
-        ...(readiness?.energy ? { readiness } : {}),
-        // Combat memory
-        sessionIdentity,
-        drillId: drillId || "default",
-        durationSeconds: drillConfig?.durationSeconds || 10,
-        movementCounts,
-        ...movementMetrics,
-        // Pose metrics (null if MediaPipe unavailable)
-        ...(poseMetrics ? { poseMetrics } : {}),
-        // Lightweight technique review (skip heavy arrays)
-        ...(() => {
-          if (!poseMetrics) return {};
-          const rev = generateTechniqueReview({ poseMetrics, result, locale });
-          if (rev.lowData) return {};
-          return {
-            techniqueReview: {
-              title: rev.title,
-              priorityWeakness: rev.priorityWeakness,
-              drill: rev.drill,
-              coachTone: rev.coachTone,
-              strengths: rev.strengths,
-            },
-          };
-        })(),
       });
 
       // Daily mission completion
