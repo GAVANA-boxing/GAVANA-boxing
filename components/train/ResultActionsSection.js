@@ -2,6 +2,7 @@
 import { loc } from "@/lib/loc";
 import { GOLD, RED, RADIUS, whiteAlpha, goldAlpha, redAlpha } from "@/lib/tokens";
 import styles from "@/components/train/trainStyles";
+import { CORE_MODE } from "@/lib/coreRoutes";
 
 export default function ResultActionsSection({
   error,
@@ -112,6 +113,9 @@ export default function ResultActionsSection({
             {challengeSaving ? t("trainSaving") : challengeSaved ? t("challengeResultSaved") : t("challengeSaveResult")}
           </button>
         )}
+        {/* Social sharing (feed / challenge posts) — outside the core loop, hidden in CORE_MODE */}
+        {!CORE_MODE && (
+          <>
         {!tooFewPunches && !activeChallenge && !isGuest && (
           <>
             <button
@@ -201,6 +205,8 @@ export default function ResultActionsSection({
           >
             {loc(locale, "Профайл үүсгэж бусдыг challenge хийгээрэй →", "프로필 생성 후 다른 사람에게 도전 →", "Create profile to challenge others →")}
           </button>
+        )}
+          </>
         )}
         {challengePostData && !isGuest && (
           <>

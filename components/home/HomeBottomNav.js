@@ -2,6 +2,7 @@
 
 import { RED, redAlpha, whiteAlpha } from "@/lib/tokens";
 import { loc } from "@/lib/loc";
+import { CORE_MODE } from "@/lib/coreRoutes";
 
 /**
  * HomeBottomNav — the new 5-tab structure introduced with the Home redesign.
@@ -12,8 +13,12 @@ export default function HomeBottomNav({ locale, router, active = "home", userId 
   const tabs = [
     { key: "home", label: loc(locale, "Нүүр", "홈", "Home"), path: "/home",
       icon: <path d="M4 11.5 12 5l8 6.5V20a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z" /> , fill: true },
-    { key: "feed", label: loc(locale, "Фийд", "피드", "Feed"), path: "/feed",
-      icon: <><rect x="3" y="3" width="18" height="18" rx="4" /><path d="m10 9 5 3-5 3z" fill="currentColor" stroke="none" /></> },
+    CORE_MODE
+      // Core loop: the 2nd slot is your progression, not the social feed.
+      ? { key: "rank", label: loc(locale, "Дэвшил", "성장", "Progress"), path: "/rank",
+          icon: <><path d="M4 20h16" /><path d="M7 16v-4" /><path d="M12 16V8" /><path d="M17 16V5" /></> }
+      : { key: "feed", label: loc(locale, "Фийд", "피드", "Feed"), path: "/feed",
+          icon: <><rect x="3" y="3" width="18" height="18" rx="4" /><path d="m10 9 5 3-5 3z" fill="currentColor" stroke="none" /></> },
     { key: "coach", label: loc(locale, "Дасгалжуулагч", "코치", "Coach"), path: "/coach",
       icon: <><path d="M12 3a7 7 0 0 1 7 7c0 2.5-1.4 4.6-3.3 6l-.7 2H9l-.7-2A7 7 0 0 1 12 3z" /><path d="M9 18a3 3 0 0 0 6 0" /></> },
     { key: "profile", label: loc(locale, "Би", "나", "You"), path: "/fighter-profile",

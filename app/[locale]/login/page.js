@@ -22,6 +22,7 @@ import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import AuthEmailForm      from "@/components/auth/AuthEmailForm";
 import AuthModeSwitch     from "@/components/auth/AuthModeSwitch";
 import LoginPageFooter    from "@/components/auth/LoginPageFooter";
+import { CORE_MODE } from "@/lib/coreRoutes";
 
 // Only true in-app browsers that CANNOT open popups at all need redirect.
 // Regular iOS Safari supports signInWithPopup in Firebase 9.9+ — using redirect
@@ -76,7 +77,7 @@ export default function LoginPage() {
   const searchParams  = useSearchParams();
   const redirectParam = searchParams.get("redirect");
   const initialMode   = searchParams.get("mode");
-  const redirectTo    = redirectParam?.startsWith(`/${locale}/`) ? redirectParam : `/${locale}/reels`;
+  const redirectTo    = redirectParam?.startsWith(`/${locale}/`) ? redirectParam : `/${locale}/${CORE_MODE ? "home" : "reels"}`;
 
   const { user, loading: authLoading } = useAuth();
   const [displayName,     setDisplayName]     = useState("");

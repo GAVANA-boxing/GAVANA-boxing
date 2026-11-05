@@ -11,6 +11,7 @@ import { useUserProfile } from "@/context/UserProfileProvider";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import { RED, GOLD, redAlpha } from "@/lib/tokens";
+import { CORE_MODE } from "@/lib/coreRoutes";
 
 const GOLD_C = GOLD;
 
@@ -327,7 +328,7 @@ export default function FirstMissionPage() {
         <div style={{ textAlign: "center", marginTop: 24, padding: "0 16px" }}>
           <button
             type="button"
-            onClick={() => router.push(`/${locale}/reels`)}
+            onClick={() => router.push(`/${locale}/${CORE_MODE ? "home" : "reels"}`)}
             style={{ background: "none", border: "none", color: "rgba(255,255,255,0.28)", fontSize: 13, fontWeight: 700, cursor: "pointer", letterSpacing: 0.3 }}
           >
             {mn ? "Дараа хийх →" : ko ? "나중에 →" : "Explore first →"}

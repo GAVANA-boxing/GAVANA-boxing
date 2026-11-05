@@ -16,6 +16,7 @@ import { getFeaturedPackage } from "@/lib/experimentPackages";
 import { getLocalDateKey } from "@/lib/utils";
 import { RED, GOLD, whiteAlpha } from "@/lib/tokens";
 import HomeBottomNav from "@/components/home/HomeBottomNav";
+import { CORE_MODE } from "@/lib/coreRoutes";
 
 const COND = "var(--font-condensed, 'Barlow Condensed', sans-serif)";
 const DISP = "var(--font-display, 'Anton', sans-serif)";
@@ -195,11 +196,16 @@ export default function HomePage() {
         <section style={S.sec}>
           <div style={S.lbl}><span>{loc(locale, "Хаашаа явах вэ", "어디로", "Where to go")}</span></div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10 }}>
-            {[
+            {(CORE_MODE ? [
+              // Core loop: every quick action leads back into Train → Feedback → Progress.
+              { label: loc(locale, "Тулаанчийн ДНХ", "파이터 DNA", "Fighter DNA"), path: "/fighter-profile", icon: <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M7 3c0 6 10 6 10 12M17 3c0 6-10 6-10 12"/><path d="M8 6h8M8 18h8"/><path d="M7 21v-3M17 21v-3"/></svg> },
+              { label: loc(locale, "Дэвшил", "성장", "Progress"), path: "/rank", icon: <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h16"/><path d="M7 16v-4"/><path d="M12 16V8"/><path d="M17 16V5"/></svg> },
+              { label: loc(locale, "Түүх", "기록", "History"), path: "/history", icon: <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg> },
+            ] : [
               { label: loc(locale, "Фийд", "피드", "Feed"), path: "/feed", icon: <svg viewBox="0 0 24 24" width="23" height="23" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> },
               { label: loc(locale, "Академи", "아카데미", "Academy"), path: "/programs", icon: <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 10 12 5l10 5-10 5z"/><path d="M6 12v5c0 1 3 2 6 2s6-1 6-2v-5"/></svg> },
               { label: loc(locale, "Сорилт", "챌린지", "Challenges"), path: "/challenges", icon: <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4a2 2 0 0 1 0-4h2m12 4h2a2 2 0 0 0 0-4h-2"/><path d="M6 5h12v5a6 6 0 0 1-12 0z"/><path d="M9 21h6m-3-4v4"/></svg> },
-            ].map((q) => (
+            ]).map((q) => (
               <button key={q.path} type="button" onClick={() => go(q.path)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 9, padding: "15px 8px", borderRadius: 15, background: whiteAlpha(0.05), border: `1px solid ${whiteAlpha(0.08)}`, cursor: "pointer", color: "#fff" }}>
                 {q.icon}<span style={{ fontFamily: COND, fontWeight: 700, fontSize: 12.5 }}>{q.label}</span>
               </button>
@@ -210,7 +216,7 @@ export default function HomePage() {
         {/* FIGHT CULTURE */}
         <section style={S.sec}>
           <div style={S.lbl}><span>Fight culture</span></div>
-          <button type="button" onClick={() => go("/challenges")} style={{ width: "100%", textAlign: "left", background: whiteAlpha(0.05), border: `1px solid ${whiteAlpha(0.08)}`, borderRadius: 18, padding: 16, cursor: "pointer", color: "#fff" }}>
+          <button type="button" onClick={() => go(CORE_MODE ? "/train" : "/challenges")} style={{ width: "100%", textAlign: "left", background: whiteAlpha(0.05), border: `1px solid ${whiteAlpha(0.08)}`, borderRadius: 18, padding: 16, cursor: "pointer", color: "#fff" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <span style={{ width: 40, height: 40, borderRadius: 11, background: "rgba(245,196,81,0.16)", display: "grid", placeItems: "center", color: GOLD, flexShrink: 0 }}>
                 <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 16 3 5l5 4 4-6 4 6 5-4-2 11z"/><path d="M5 20h14"/></svg>

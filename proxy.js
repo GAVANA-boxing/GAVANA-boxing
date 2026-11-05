@@ -1,10 +1,23 @@
 import { NextResponse } from "next/server";
 import { verifyAdminSession } from "@/lib/adminSession";
+import { CORE_MODE, NON_CORE_SEGMENTS } from "@/lib/coreRoutes";
 
 const ADMIN_PATH = /^\/(mn|en|ko)\/admin(\/|$)/;
+const LOCALE_SEGMENT = /^\/(mn|en|ko)\/([^/]+)/;
 
 export async function proxy(req) {
-  if (!ADMIN_PATH.test(req.nextUrl.pathname)) return NextResponse.next();
+  const { pathname } = req.nextUrl;
+
+  // Core-loop focus: anything outside Train → Score → Feedback → Progress
+  // (feed, gyms, events, …) bounces to Home. Every deep link stays safe.
+  if (CORE_MODE) {
+    const m = pathname.match(LOCALE_SEGMENT);
+    if (m && NON_CORE_SEGMENTS.has(m[2])) {
+      return NextResponse.redirect(new URL(`/${m[1]}/home`, req.url));
+    }
+  }
+
+  if (!ADMIN_PATH.test(pathname)) return NextResponse.next();
 
   const session = req.cookies.get("admin_session");
   const locale  = req.nextUrl.pathname.split("/")[1] || "mn";
@@ -32,5 +45,5 @@ export async function proxy(req) {
 }
 
 export const config = {
-  matcher: ["/(mn|en|ko)/admin/:path*"],
+  matcher: ["/(mn|en|ko)/:path*"],
 };

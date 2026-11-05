@@ -2,6 +2,12 @@
 
 import { RED, redAlpha } from "@/lib/tokens";
 import { NAV } from "./navConfig";
+import { showRoute } from "@/lib/coreRoutes";
+
+// Core-loop focus: drop hidden routes, then any group left empty.
+const VISIBLE_NAV = NAV
+  .map(({ group, items }) => ({ group, items: items.filter(({ path }) => showRoute(path)) }))
+  .filter(({ items }) => items.length > 0);
 
 const s = {
   nav: { display: "flex", flexDirection: "column", gap: 0, flex: 1 },
@@ -70,7 +76,7 @@ const s = {
 export default function SidebarNav({ isActive, onNavigate }) {
   return (
     <nav style={s.nav}>
-      {NAV.map(({ group, items }) => (
+      {VISIBLE_NAV.map(({ group, items }) => (
         <div key={group} style={s.navGroup}>
           <div style={s.groupLabel}>{group}</div>
           {items.map(({ Icon, label, path }) => {

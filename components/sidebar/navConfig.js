@@ -20,6 +20,7 @@ export const NAV = [
   {
     group: "CORE",
     items: [
+      { Icon: IcoHome,   label: "Home",       path: "home" },
       { Icon: IcoDash,   label: "Dashboard",  path: "dashboard" },
       { Icon: IcoHome,   label: "Discover",   path: "discover" },
       { Icon: IcoPlay,   label: "Reels",      path: "reels" },

@@ -35,6 +35,7 @@ import FirstSessionHook from "@/components/train/FirstSessionHook";
 import ReadinessModal from "@/components/train/ReadinessModal";
 import dynamic from "next/dynamic";
 import { Toast, useToast } from "@/components/ui/Toast";
+import { CORE_MODE } from "@/lib/coreRoutes";
 const PoseDebugOverlay   = dynamic(() => import("@/components/train/PoseDebugOverlay"),   { ssr: false });
 const DebugSessionPanel  = dynamic(() => import("@/components/train/DebugSessionPanel"),  { ssr: false });
 const LivePunchCounter   = dynamic(() => import("@/components/train/LivePunchCounter"),   { ssr: false });
@@ -187,10 +188,11 @@ export default function TrainPage() {
       return;
     }
 
-    router.push(`/${locale}/reels`);
+    router.push(`/${locale}/${CORE_MODE ? "home" : "reels"}`);
   };
 
   const goToReels = () => {
+    if (CORE_MODE) { router.push(`/${locale}/home`); return; }
     if (reelId) {
       const params = new URLSearchParams({ reelId });
       if (trainSource === "profile" && trainSourceUserId) {
@@ -204,7 +206,7 @@ export default function TrainPage() {
   };
 
   const goToChallenges = () => {
-    router.push(`/${locale}/challenges`);
+    router.push(`/${locale}/${CORE_MODE ? "home" : "challenges"}`);
   };
 
   // ── Post-session AI debrief ───────────────────────────────────────────────

@@ -24,6 +24,25 @@ export function FeedIcon({ active }) {
   );
 }
 
+export function HomeIcon({ active }) {
+  return (
+    <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.38)" }} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 11.5 12 5l8 6.5V20a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/>
+    </svg>
+  );
+}
+
+export function ProgressIcon({ active }) {
+  return (
+    <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.38)" }} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 20h16"/>
+      <path d="M7 16v-4"/>
+      <path d="M12 16V8"/>
+      <path d="M17 16V5"/>
+    </svg>
+  );
+}
+
 export function FightersIcon({ active }) {
   return (
     <svg style={{ ...ic, color: active ? RED : "rgba(255,255,255,0.38)" }} viewBox="0 0 24 24" aria-hidden="true">

@@ -7,7 +7,8 @@ import { db } from "@/lib/firebase";
 import { RADIUS, blackAlpha } from "@/lib/tokens";
 import { loc } from "@/lib/loc";
 
-import { FeedIcon, CoachIcon, ExploreIcon, GridIcon } from "./bottomnav/NavIcons";
+import { FeedIcon, CoachIcon, ExploreIcon, GridIcon, HomeIcon, ProgressIcon } from "./bottomnav/NavIcons";
+import { CORE_MODE } from "@/lib/coreRoutes";
 import CombatOSSheet from "./bottomnav/CombatOSSheet";
 import IconTab from "./bottomnav/IconTab";
 import TrainTab from "./bottomnav/TrainTab";
@@ -15,6 +16,8 @@ import ProfileTab from "./bottomnav/ProfileTab";
 
 // ─── Active tab resolver ──────────────────────────────────────────────────────
 function getActiveTab(pathname = "") {
+  if (pathname.includes("/home"))       return "home";
+  if (pathname.includes("/rank") || pathname.includes("/history")) return "progress";
   if (pathname.includes("/feed"))       return "feed";
   if (pathname.includes("/coach"))      return "coach";
   if (pathname.includes("/explore") || pathname.includes("/discover") || pathname.includes("/events") || pathname.includes("/programs")) return "explore";
@@ -159,10 +162,16 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
         onPointerCancel={onInteractEnd}
         aria-label="Primary navigation"
       >
-        {/* Feed */}
-        <IconTab active={resolvedActiveTab === "feed"} onClick={() => r.push(`/${locale}/feed`)} label={feedLabel}>
-          <FeedIcon active={resolvedActiveTab === "feed"} />
-        </IconTab>
+        {/* Home (core loop) / Feed */}
+        {CORE_MODE ? (
+          <IconTab active={resolvedActiveTab === "home"} onClick={() => r.push(`/${locale}/home`)} label={loc(locale, "Нүүр", "홈", "Home")}>
+            <HomeIcon active={resolvedActiveTab === "home"} />
+          </IconTab>
+        ) : (
+          <IconTab active={resolvedActiveTab === "feed"} onClick={() => r.push(`/${locale}/feed`)} label={feedLabel}>
+            <FeedIcon active={resolvedActiveTab === "feed"} />
+          </IconTab>
+        )}
 
         {/* Coach */}
         <IconTab active={resolvedActiveTab === "coach"} onClick={() => r.push(`/${locale}/coach`)} label={coachLabel}>
@@ -172,10 +181,16 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
         {/* Train — center action */}
         <TrainTab active={resolvedActiveTab === "train"} onClick={() => r.push(`/${locale}/train`)} locale={locale} />
 
-        {/* Explore */}
-        <IconTab active={resolvedActiveTab === "explore"} onClick={() => r.push(`/${locale}/explore`)} label={exploreLabel}>
-          <ExploreIcon active={resolvedActiveTab === "explore"} />
-        </IconTab>
+        {/* Progress (core loop) / Explore */}
+        {CORE_MODE ? (
+          <IconTab active={resolvedActiveTab === "progress"} onClick={() => r.push(`/${locale}/rank`)} label={loc(locale, "Дэвшил", "성장", "Progress")}>
+            <ProgressIcon active={resolvedActiveTab === "progress"} />
+          </IconTab>
+        ) : (
+          <IconTab active={resolvedActiveTab === "explore"} onClick={() => r.push(`/${locale}/explore`)} label={exploreLabel}>
+            <ExploreIcon active={resolvedActiveTab === "explore"} />
+          </IconTab>
+        )}
 
         {/* Profile — carries notification badge */}
         <ProfileTab

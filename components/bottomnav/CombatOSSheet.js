@@ -3,6 +3,7 @@
 import { RED, redAlpha, blackAlpha } from "@/lib/tokens";
 import { locales } from "@/lib/i18n";
 import { loc } from "@/lib/loc";
+import { CORE_MODE, showRoute } from "@/lib/coreRoutes";
 
 // ─── Combat OS Sheet icon style ───────────────────────────────────────────────
 const osIc = {
@@ -117,6 +118,12 @@ const COMBAT_OS_ITEMS = [
   { key: "drills",          labelEn: "Route Index",   labelMn: "Тест",             labelKo: "테스트",    path: "/test" },
 ];
 
+// Core-loop focus: only show menu items that belong to Train → Score → Feedback
+// → Progress (and drop the internal route index for real users).
+const VISIBLE_ITEMS = COMBAT_OS_ITEMS.filter(
+  (item) => showRoute(item.path) && !(CORE_MODE && item.key === "drills"),
+);
+
 const LANG_LABELS = { mn: "🇲🇳 MN", en: "🇺🇸 EN", ko: "🇰🇷 KO" };
 
 /**
@@ -194,7 +201,7 @@ export default function CombatOSSheet({ onClose, router, locale, pathname, userI
 
         {/* Grid */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-          {COMBAT_OS_ITEMS.map((item) => (
+          {VISIBLE_ITEMS.map((item) => (
             <button
               key={item.key}
               className="tap-bounce"
