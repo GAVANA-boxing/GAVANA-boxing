@@ -220,7 +220,7 @@ Return ONLY valid JSON with exactly these keys:
 
 // ─── Route handler ────────────────────────────────────────────────────────────
 
-import { verifyIdToken } from "@/lib/verifyAuth";
+import { withAuth } from "@/lib/withAuth";
 
 const _breakdownRateMap = new Map();
 function isBreakdownRateLimited(uid) {
@@ -232,9 +232,7 @@ function isBreakdownRateLimited(uid) {
   return entry.count > 15;
 }
 
-export async function POST(req) {
-  const uid = await verifyIdToken(req);
-  if (!uid) return Response.json({ error: "Unauthorized" }, { status: 401 });
+export const POST = withAuth(async (req, { uid }) => {
   if (isBreakdownRateLimited(uid)) return Response.json({ error: "Rate limited" }, { status: 429 });
 
   try {
@@ -272,4 +270,4 @@ export async function POST(req) {
     console.error("[ai-breakdown] Route error:", err.message);
     return Response.json({ error: "Failed to generate breakdown" }, { status: 500 });
   }
-}
+});

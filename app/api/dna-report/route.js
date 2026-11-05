@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyIdToken } from "@/lib/verifyAuth";
+import { withAuth } from "@/lib/withAuth";
 
 const PROJECT_ID = "gavana-boxing-89a22";
 
@@ -36,12 +36,9 @@ function fsValue(field) {
   return field.stringValue ?? field.integerValue ?? field.doubleValue ?? field.booleanValue ?? field.nullValue ?? null;
 }
 
-export async function POST(request) {
+export const POST = withAuth(async (request, { uid: callerUid }) => {
   try {
     // Auth: a caller may only fetch their OWN report (prevents IDOR).
-    const callerUid = await verifyIdToken(request);
-    if (!callerUid) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
     const { userId } = await request.json();
     if (!userId) return NextResponse.json({ error: "userId required" }, { status: 400 });
     if (userId !== callerUid) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -116,4 +113,4 @@ export async function POST(request) {
     console.error("DNA report error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});
