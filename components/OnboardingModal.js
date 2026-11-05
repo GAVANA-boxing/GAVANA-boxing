@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { useUserProfile } from "@/context/UserProfileProvider";
+import { doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { RED, RED_DARK, GOLD, redAlpha, goldAlpha , blackAlpha} from "@/lib/tokens";
@@ -57,6 +58,7 @@ export default function OnboardingModal() {
   const locale = getLocaleFromPathname(pathname);
   const t = (key) => translate(locale, key);
   const { user, loading: authLoading } = useAuth();
+  const { profile, loading: profileLoading } = useUserProfile();
   const [visible, setVisible] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [goal, setGoal] = useState("");
@@ -81,32 +83,18 @@ export default function OnboardingModal() {
       return;
     }
 
-    let active = true;
-    async function checkOnboarding() {
-      try {
-        const userRef = doc(db, "users", user.uid);
-        const snapshot = await getDoc(userRef);
-        const data = snapshot.exists() ? snapshot.data() : {};
+    if (profileLoading) return;
 
-        // Check both field names (onboardingComplete = new page, onboarding.completed = old modal)
-        const isDone = data?.onboardingComplete === true || data?.onboarding?.completed === true;
-
-        if (isDone) {
-          setVisible(false);
-        } else {
-          // Redirect to full onboarding page instead of showing modal questions
-          router.replace(`/${locale}/onboarding`);
-          setVisible(false);
-        }
-      } catch (err) {
-      } finally {
-        if (active) setChecking(false);
-      }
+    const data = profile || {};
+    // Check both field names (onboardingComplete = new page, onboarding.completed = old modal)
+    const isDone = data?.onboardingComplete === true || data?.onboarding?.completed === true;
+    if (!isDone) {
+      // Redirect to full onboarding page instead of showing modal questions
+      router.replace(`/${locale}/onboarding`);
     }
-
-    checkOnboarding();
-    return () => { active = false; };
-  }, [authLoading, user?.uid, pathname, locale, router]);
+    setVisible(false);
+    setChecking(false);
+  }, [authLoading, user?.uid, pathname, locale, router, profile, profileLoading]);
 
   const selectedValues = useMemo(
     () => ({ goal, experience, coachStyle }),
