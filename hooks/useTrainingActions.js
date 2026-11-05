@@ -273,11 +273,13 @@ export function useTrainingActions({
       const movementCounts   = buildMovementCounts(movementEvents);
       const movementMetrics  = buildMovementMetrics(movementCounts);
 
-      await addDoc(collection(db, "training_sessions"), {
+      // Note: xpGained is NOT written here — the server stamps the authoritative
+      // value (rules forbid the client from setting it). This is what getAccountXp
+      // sums, so letting the client set it would be a canonical-XP cheat.
+      const trainingRef = await addDoc(collection(db, "training_sessions"), {
         userId: user.uid,
         reelId,
         score: result.score,
-        xpGained: result.xpGained,
         attemptNumber,
         rankProgress: result.rankProgress,
         breakdown: result.breakdown || null,
@@ -324,7 +326,13 @@ export function useTrainingActions({
       // Server-authoritative daily-mission XP/streak (falls back to the legacy
       // client write while the server path isn't configured yet).
       const dateKeys = buildDateKeys();
-      const srv = await commitSessionProgression(user, { type: "mission", locale, dateKeys });
+      const srv = await commitSessionProgression(user, {
+        type: "mission",
+        locale,
+        dateKeys,
+        trainingSessionId: trainingRef.id,
+        score: result.score,
+      });
       if (srv.ok) {
         const cel = srv.celebration || {};
         if (cel.missionJustCompleted) {

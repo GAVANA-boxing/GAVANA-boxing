@@ -2,6 +2,8 @@ import { withAuth } from "@/lib/withAuth";
 import { firestoreGet, firestorePatch, firestoreCreate } from "@/lib/server/firestore";
 import { computeChallengeProgression, computeMissionProgression } from "@/lib/domain/awardXp";
 import { getCurrentSeasonId } from "@/lib/season";
+import { calculateChallengeXP } from "@/lib/xp";
+import { getChallengeRank } from "@/lib/utils";
 
 // Server-authoritative progression. The client posts the raw session outcome;
 // the server recomputes XP / streak / rank with the shared pure math and writes
@@ -28,32 +30,6 @@ function notConfigured(err) {
   return err instanceof Error && err.message === "service-account-unconfigured";
 }
 
-// Unauthenticated config health check. Reveals only booleans + the (public)
-// project id — never the secret — so the deploy of FIREBASE_SERVICE_ACCOUNT_BASE64
-// can be diagnosed remotely from a browser. Safe to remove once scoring is live.
-export async function GET() {
-  const b64 = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
-  const out = {
-    envPresent: !!b64,
-    envLength: b64 ? b64.length : 0,
-    validJson: false,
-    projectId: null,
-    tokenMintable: false,
-  };
-  if (b64) {
-    try {
-      const json = JSON.parse(Buffer.from(b64, "base64").toString("utf8"));
-      out.validJson = true;
-      out.projectId = json.project_id || null;
-    } catch { /* malformed base64 / json */ }
-    try {
-      const { getServiceToken } = await import("@/lib/server/firestore");
-      out.tokenMintable = (await getServiceToken()) != null;
-    } catch { /* ignore */ }
-  }
-  return Response.json(out);
-}
-
 export const POST = withAuth(async (req, { uid }) => {
   if (rateLimited(uid)) return Response.json({ error: "Rate limited" }, { status: 429 });
 
@@ -64,7 +40,7 @@ export const POST = withAuth(async (req, { uid }) => {
     return Response.json({ error: "Invalid body" }, { status: 400 });
   }
 
-  const { type, score, challengeId, locale = "en", dateKeys } = body || {};
+  const { type, score, challengeId, trainingSessionId, locale = "en", dateKeys } = body || {};
   if (type !== "challenge" && type !== "mission") {
     return Response.json({ error: "Invalid type" }, { status: 400 });
   }
@@ -109,7 +85,24 @@ export const POST = withAuth(async (req, { uid }) => {
       dateKeys,
     );
     await firestorePatch(`users/${uid}`, { ...userUpdate, updatedAt: new Date() });
-    return Response.json({ ok: true, alreadyCompleted, celebration, authoritative: userUpdate });
+
+    // Stamp the authoritative training-session xpGained server-side (the client
+    // creates the doc without it; rules forbid the client from setting it). This
+    // is what getAccountXp sums, so computing it here closes the canonical-XP
+    // cheat. Verify ownership before patching.
+    let trainingXpGained = null;
+    if (trainingSessionId && typeof trainingSessionId === "string") {
+      const s = Number(score);
+      if (Number.isFinite(s) && s >= 0 && s <= 10) {
+        const sessionDoc = await firestoreGet(`training_sessions/${trainingSessionId}`);
+        if (sessionDoc && sessionDoc.userId === uid) {
+          trainingXpGained = calculateChallengeXP(s, getChallengeRank(s));
+          await firestorePatch(`training_sessions/${trainingSessionId}`, { xpGained: trainingXpGained });
+        }
+      }
+    }
+
+    return Response.json({ ok: true, alreadyCompleted, celebration, trainingXpGained, authoritative: userUpdate });
   } catch (err) {
     if (notConfigured(err)) {
       return Response.json({ error: "Scoring not configured", code: "not_configured" }, { status: 503 });
