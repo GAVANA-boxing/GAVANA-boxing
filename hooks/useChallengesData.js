@@ -2,8 +2,10 @@
 import { useEffect, useRef, useState } from "react";
 import { collection, doc, getDoc, getDocs, onSnapshot, query, where, limit, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { useUserProfile } from "@/context/UserProfileProvider";
 
 export function useChallengesData({ user, authLoading, mainTab }) {
+  const { profile } = useUserProfile();
   const [results, setResults] = useState([]);
   const [resultsLoading, setResultsLoading] = useState(true);
   const [profiles, setProfiles] = useState({});
@@ -41,24 +43,18 @@ export function useChallengesData({ user, authLoading, mainTab }) {
   }, [user?.uid, mainTab]);
 
   useEffect(() => {
-    if (!user?.uid || profiles[user.uid]) return;
-    let active = true;
-    getDoc(doc(db, "users", user.uid)).then((snap) => {
-      if (!active || !snap.exists()) return;
-      const data = snap.data();
-      setProfiles((prev) => ({
-        ...prev,
-        [user.uid]: {
-          name: data.displayName || data.username || "",
-          photoURL: data.photoURL || data.profileImageUrl || "",
-          challengeStreak: Number(data.challengeStreak) || 0,
-          lastChallengeDate: data.lastChallengeDate || "",
-        },
-      }));
-    }).catch(() => {});
-    return () => { active = false; };
+    if (!user?.uid || !profile || profiles[user.uid]) return;
+    setProfiles((prev) => ({
+      ...prev,
+      [user.uid]: {
+        name: profile.displayName || profile.username || "",
+        photoURL: profile.photoURL || profile.profileImageUrl || "",
+        challengeStreak: Number(profile.challengeStreak) || 0,
+        lastChallengeDate: profile.lastChallengeDate || "",
+      },
+    }));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.uid]); // profiles omitted — adding it would cause infinite loop with profile batch loader
+  }, [user?.uid, profile]); // profiles omitted — adding it would cause infinite loop with profile batch loader
 
   useEffect(() => {
     const unsub = onSnapshot(query(collection(db, "challenge_results"), orderBy("createdAt", "desc"), limit(500)), (snap) => {

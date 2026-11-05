@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { verifyIdToken } from "@/lib/verifyAuth";
+import { withAuth } from "@/lib/withAuth";
 
 const PRICE_MAP = {
   fan:      process.env.STRIPE_PRICE_FAN,
@@ -7,9 +7,7 @@ const PRICE_MAP = {
   champion: process.env.STRIPE_PRICE_CHAMPION,
 };
 
-export async function POST(req) {
-  const uid = await verifyIdToken(req);
-  if (!uid) return Response.json({ error: "Unauthorized" }, { status: 401 });
+export const POST = withAuth(async (req, { uid }) => {
 
   const stripeKey = process.env.STRIPE_SECRET_KEY;
   if (!stripeKey) return Response.json({ error: "Stripe not configured" }, { status: 503 });
@@ -41,4 +39,4 @@ export async function POST(req) {
     console.error("[stripe/checkout]", err?.message);
     return Response.json({ error: err?.message || "Stripe error" }, { status: 500 });
   }
-}
+});

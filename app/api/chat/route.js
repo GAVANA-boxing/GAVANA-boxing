@@ -1,6 +1,6 @@
 // app/api/chat/route.js
 import { getLocale } from "@/lib/i18n";
-import { verifyIdToken } from "@/lib/verifyAuth";
+import { withAuth } from "@/lib/withAuth";
 import OpenAI from "openai";
 
 const _chatRateMap = new Map();
@@ -259,10 +259,7 @@ function errorResponse(locale, detail = "") {
 }
 
 // ── Route handler ─────────────────────────────────────────────────────────────
-export async function POST(req) {
-  const uid = await verifyIdToken(req);
-  if (!uid) return Response.json({ error: "Unauthorized" }, { status: 401 });
-
+export const POST = withAuth(async (req, { uid }) => {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || uid;
   if (isChatRateLimited(ip)) return Response.json({ error: "Rate limited" }, { status: 429 });
 
@@ -355,4 +352,4 @@ export async function POST(req) {
     if (isAuth) return errorResponse(safeLocale, "Invalid API key — check OPENAI_API_KEY in Vercel");
     return errorResponse(safeLocale, msg);
   }
-}
+});

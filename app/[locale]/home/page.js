@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
+import { useUserProfile } from "@/context/UserProfileProvider";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { loc } from "@/lib/loc";
 import { useCombatMemory } from "@/hooks/useCombatMemory";
@@ -43,22 +44,9 @@ export default function HomePage() {
   const { user } = useAuth();
   const { sessions } = useCombatMemory({ user });
 
-  const [userData, setUserData] = useState(null);
+  // Shared, single-subscription profile (no per-page user-doc fetch).
+  const { profile: userData } = useUserProfile();
   const [tribeCount, setTribeCount] = useState(null);
-
-  useEffect(() => {
-    if (!user?.uid) return;
-    let active = true;
-    (async () => {
-      try {
-        const { doc, getDoc } = await import("firebase/firestore");
-        const { db } = await import("@/lib/firebase");
-        const snap = await getDoc(doc(db, "users", user.uid));
-        if (active && snap.exists()) setUserData(snap.data());
-      } catch { /* silent */ }
-    })();
-    return () => { active = false; };
-  }, [user?.uid]);
 
   const dna = computeFighterDNA({ sessions, locale });
   const xp = Number(userData?.xp) || 0;

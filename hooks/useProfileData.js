@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
 import { db } from "@/lib/firebase";
-import { RANK_TIERS, calculateUserXP, getFighterRank } from "@/lib/xp";
+import { RANK_TIERS, getFighterRank } from "@/lib/xp";
+import { getAccountXp } from "@/lib/domain/progression";
 import { getTimestampMs, getSafeReelLikes } from "@/lib/utils";
 import { useProfileSecondaryData } from "@/hooks/useProfileSecondaryData";
 
@@ -141,7 +142,7 @@ export function useProfileData({ user, userId, authLoading, locale }) {
           bio: userData.bio || "",
           photoURL: userData.photoURL || userData.profileImageUrl || "",
           email: userData.email || `${fallbackName}@example.com`,
-          streakCount: Number(userData.streakCount) || 0,
+          streakCount: Number(userData.dailyStreak ?? userData.streakCount) || 0,
           xp: Number(userData.xp) || 0,
           totalChallengesCompleted: Number(userData.totalChallengesCompleted) || 0,
           challengeStreak: Number(userData.challengeStreak) || 0,
@@ -303,9 +304,11 @@ export function useProfileData({ user, userId, authLoading, locale }) {
   // Detect rank-up during session — own profile only
   useEffect(() => {
     if (loading || rankUpShownRef.current || !isOwnProfile) return;
-    const currentXP = (Number(profileUser?.xp) || 0) + calculateUserXP({
+    const currentXP = getAccountXp({
+      storedXp: profileUser?.xp,
       aiFeedbackDocs: aiFeedbackHistory,
-      streakDays: profileUser?.streakCount || 0,
+      trainingSessions,
+      streakDays: Number(profileUser?.dailyStreak ?? profileUser?.streakCount) || 0,
       likesReceived: totalLikes,
     });
     const currentRank = getFighterRank(currentXP);
@@ -321,7 +324,7 @@ export function useProfileData({ user, userId, authLoading, locale }) {
     if (typeof window !== "undefined") {
       localStorage.setItem("gavana_rank_key", currentRank.key);
     }
-  }, [loading, aiFeedbackHistory, userReels.length, stats.followers, profileUser?.streakCount, profileUser?.xp, totalLikes, isOwnProfile]);
+  }, [loading, aiFeedbackHistory, trainingSessions, userReels.length, stats.followers, profileUser?.streakCount, profileUser?.xp, totalLikes, isOwnProfile]);
 
   return {
     profileUser, setProfileUser,

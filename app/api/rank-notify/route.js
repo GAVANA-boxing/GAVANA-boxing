@@ -1,4 +1,4 @@
-import { verifyIdToken } from "@/lib/verifyAuth";
+import { withAuth } from "@/lib/withAuth";
 
 const PROJECT_ID = "gavana-boxing-89a22";
 const FCM_V1_URL = `https://fcm.googleapis.com/v1/projects/${PROJECT_ID}/messages:send`;
@@ -41,9 +41,7 @@ async function getFcmTokens(uid, accessToken) {
   } catch { return []; }
 }
 
-export async function POST(req) {
-  const uid = await verifyIdToken(req);
-  if (!uid) return Response.json({ error: "Unauthorized" }, { status: 401 });
+export const POST = withAuth(async (req, { uid }) => {
 
   const { rank, locale = "en" } = await req.json();
   if (!rank || typeof rank !== "number" || rank < 1 || rank > 500) {
@@ -92,4 +90,4 @@ export async function POST(req) {
   );
 
   return Response.json({ sent: results.filter((r) => r.status === "fulfilled").length });
-}
+});

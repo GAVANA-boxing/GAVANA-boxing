@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
+import { useUserProfile } from "@/context/UserProfileProvider";
 import BottomNav from "@/components/BottomNav";
 import PageTopBar from "@/components/PageTopBar";
 import { getLocale, translate } from "@/lib/i18n";
@@ -21,6 +22,7 @@ export default function DiscoverPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const { profile } = useUserProfile();
   const locale = getLocale(params?.locale);
   const t = (key) => translate(locale, key);
 
@@ -28,24 +30,7 @@ export default function DiscoverPage() {
   const [learnOpen, setLearnOpen] = useState(false);
   const [learnCat, setLearnCat] = useState("all");
   const [feedTab, setFeedTab] = useState("explore");
-  const [userArchetype, setUserArchetype] = useState(null);
-
-  useEffect(() => {
-    if (!user?.uid) return;
-    let active = true;
-    (async () => {
-      try {
-        const { doc, getDoc } = await import("firebase/firestore");
-        const { db } = await import("@/lib/firebase");
-        const snap = await getDoc(doc(db, "users", user.uid));
-        if (active && snap.exists()) {
-          const arch = snap.data()?.fighterDNA?.archetypeKey;
-          if (arch) setUserArchetype(arch);
-        }
-      } catch { /* silent */ }
-    })();
-    return () => { active = false; };
-  }, [user?.uid]);
+  const userArchetype = profile?.fighterDNA?.archetypeKey || null;
 
   const {
     query, setQuery,

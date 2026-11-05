@@ -1,4 +1,4 @@
-import { verifyIdToken } from "@/lib/verifyAuth";
+import { withAuth } from "@/lib/withAuth";
 
 const PROJECT_ID = "gavana-boxing-89a22";
 
@@ -55,10 +55,7 @@ async function getFcmTokens(recipientId) {
   }
 }
 
-export async function POST(req) {
-  const uid = await verifyIdToken(req);
-  if (!uid) return Response.json({ error: "Unauthorized" }, { status: 401 });
-
+export const POST = withAuth(async (req, { uid }) => {
   const accessToken = await getFcmAccessToken();
   if (!accessToken) return Response.json({ sent: 0, note: "FCM service account not configured" });
 
@@ -115,4 +112,4 @@ export async function POST(req) {
 
   const sent = results.filter((r) => r.status === "fulfilled").length;
   return Response.json({ sent });
-}
+});

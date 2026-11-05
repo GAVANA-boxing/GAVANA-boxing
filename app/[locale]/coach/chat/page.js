@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
+import { useUserProfile } from "@/context/UserProfileProvider";
 import { auth } from "@/lib/firebase";
 import BottomNav from "@/components/BottomNav";
 import { getLocale, translate } from "@/lib/i18n";
@@ -62,6 +63,7 @@ export default function AIChatPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const { profile, loading: profileLoading } = useUserProfile();
   const locale = getLocale(params?.locale);
   const t = (key) => translate(locale, key);
 
@@ -91,19 +93,17 @@ export default function AIChatPage() {
   // Fetch fighter data and build coach context
   useEffect(() => {
     if (!user?.uid) return;
+    if (profileLoading) return;
     let active = true;
     (async () => {
       try {
         const { collection, getDocs, doc, getDoc, query, where } = await import("firebase/firestore");
         const { db } = await import("@/lib/firebase");
 
-        const [sessSnap, userSnap] = await Promise.all([
-          getDocs(query(
-            collection(db, "training_sessions"),
-            where("userId", "==", user.uid)
-          )),
-          getDoc(doc(db, "users", user.uid)),
-        ]);
+        const sessSnap = await getDocs(query(
+          collection(db, "training_sessions"),
+          where("userId", "==", user.uid)
+        ));
 
         if (!active) return;
 
@@ -112,7 +112,7 @@ export default function AIChatPage() {
           .filter((d) => d.type === "training" && typeof d.score !== "undefined")
           .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
 
-        const profileData = userSnap.exists() ? userSnap.data() : {};
+        const profileData = profile || {};
 
         const snapshot = buildCoachSnapshot({ sessions, profileData });
         const ctx = buildCoachContext({ snapshot, profileData, locale });
@@ -151,7 +151,8 @@ export default function AIChatPage() {
       } catch { /* silent — chat still works without context */ }
     })();
     return () => { active = false; };
-  }, [user?.uid, locale]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid, locale, profile, profileLoading]);
 
   // Load chat history for current persona
   useEffect(() => {

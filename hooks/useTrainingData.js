@@ -5,8 +5,10 @@ import { collection, getDocs, query, where, doc, getDoc } from "firebase/firesto
 import { db } from "@/lib/firebase";
 import { calculateUserXP } from "@/lib/xp";
 import { getLocalDateKey } from "@/lib/utils";
+import { useUserProfile } from "@/context/UserProfileProvider";
 
 export function useTrainingData({ user }) {
+  const { profile, loading: profileLoading } = useUserProfile();
   const [reelId, setReelId] = useState(null);
   const [drillId, setDrillId] = useState(null);
   const [challengeId, setChallengeId] = useState(null);
@@ -61,15 +63,15 @@ export function useTrainingData({ user }) {
 
   useEffect(() => {
     if (!user?.uid) return;
+    if (profileLoading) return;
     let active = true;
     async function loadSessionStats() {
       try {
-        const [userSnap, sessSnap] = await Promise.all([
-          getDoc(doc(db, "users", user.uid)),
-          getDocs(query(collection(db, "training_sessions"), where("userId", "==", user.uid))),
-        ]);
+        const sessSnap = await getDocs(
+          query(collection(db, "training_sessions"), where("userId", "==", user.uid))
+        );
         if (!active) return;
-        const userData = userSnap.exists() ? userSnap.data() : {};
+        const userData = profile || {};
         setUserStreak(Number(userData.dailyStreak) || 0);
         setBestDailyStreak(Number(userData.bestDailyStreak) || 0);
         setMissionCompletedToday(userData.dailyMissionCompleted === getLocalDateKey());
@@ -93,7 +95,8 @@ export function useTrainingData({ user }) {
     }
     loadSessionStats();
     return () => { active = false; };
-  }, [user?.uid]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid, profile, profileLoading]);
 
   useEffect(() => {
     if (!challengeUserId) return;

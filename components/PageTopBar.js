@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useUserProfile } from "@/context/UserProfileProvider";
 import { RED, RED_DARK, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 
 function IcoChevron() {
@@ -30,24 +30,9 @@ export default function PageTopBar({
   unreadCount = 0,
 }) {
   const router = useRouter();
-  const [profilePhoto, setProfilePhoto] = useState(user?.photoURL || null);
-
-  useEffect(() => {
-    if (user?.photoURL) { setProfilePhoto(user.photoURL); return; }
-    if (!user?.uid) return;
-    import("@/lib/firebase").then(({ db }) => {
-      if (!db) return;
-      import("firebase/firestore").then(({ doc, getDoc }) => {
-        getDoc(doc(db, "users", user.uid)).then((snap) => {
-          if (snap.exists()) {
-            const data = snap.data();
-            const photo = data.profileImageUrl || data.photoURL || data.avatarUrl || null;
-            if (photo) setProfilePhoto(photo);
-          }
-        }).catch(() => {});
-      });
-    });
-  }, [user?.uid, user?.photoURL]);
+  const { profile } = useUserProfile();
+  const profilePhoto =
+    user?.photoURL || profile?.profileImageUrl || profile?.photoURL || profile?.avatarUrl || null;
 
   const initial = (user?.displayName || user?.email || "U").charAt(0).toUpperCase();
 

@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { collection, query, orderBy, limit, getDocs, doc, getDoc } from "firebase/firestore";
+import { collection, query, orderBy, limit, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
+import { useUserProfile } from "@/context/UserProfileProvider";
 import { getLocaleFromPathname } from "@/lib/i18n";
 import { RED, GOLD } from "@/lib/tokens";
 
@@ -30,6 +31,7 @@ export default function AdminDashboardPage() {
   const locale = getLocaleFromPathname(pathname);
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
+  const { profile, loading: profileLoading } = useUserProfile();
 
   const [checking, setChecking] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -42,20 +44,21 @@ export default function AdminDashboardPage() {
     if (authLoading) return;
     if (!user) { router.push(`/${locale}/login`); return; }
 
-    async function checkAdmin() {
-      let admin = ADMIN_UIDS.includes(user.uid) || user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-      if (!admin) {
-        try {
-          const snap = await getDoc(doc(db, "users", user.uid));
-          admin = snap.data()?.isAdmin === true;
-        } catch (_) {}
-      }
-      if (!admin) { router.push(`/${locale}/`); return; }
+    // Hardcoded allowlist short-circuits the profile read
+    if (ADMIN_UIDS.includes(user.uid) || user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL) {
       setIsAdmin(true);
       setChecking(false);
+      return;
     }
-    checkAdmin();
-  }, [authLoading, user, router, locale]);
+    // Otherwise fall back to the shared profile's isAdmin flag — wait for it to load
+    if (profileLoading) return;
+    if (profile?.isAdmin === true) {
+      setIsAdmin(true);
+      setChecking(false);
+    } else {
+      router.push(`/${locale}/`);
+    }
+  }, [authLoading, user, router, locale, profile, profileLoading]);
 
   // Establish admin session cookie
   useEffect(() => {

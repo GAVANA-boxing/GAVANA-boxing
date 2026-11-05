@@ -6,6 +6,7 @@ import { addDoc, collection, getDocs, query, serverTimestamp, where } from "fire
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { db, storage } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
+import { useUserProfile } from "@/context/UserProfileProvider";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { RED, GOLD, BG, redAlpha, pageBg } from "@/lib/tokens";
 import Image from "next/image";
@@ -21,7 +22,9 @@ export default function CoachApplyPage() {
   const t = (key) => translate(locale, key);
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
+  const { profile, loading: profileLoading } = useUserProfile();
   const fileInputRef = useRef(null);
+  const checkedRef = useRef(false);
 
   const [checking, setChecking] = useState(true);
   const [alreadyApplied, setAlreadyApplied] = useState(false);
@@ -51,13 +54,14 @@ export default function CoachApplyPage() {
 
   useEffect(() => {
     if (!user?.uid) return;
+    if (profileLoading) return;
+    if (checkedRef.current) return;
+    checkedRef.current = true;
     let active = true;
     async function check() {
       try {
-        // Check if already a coach
-        const { getDoc, doc } = await import("firebase/firestore");
-        const userSnap = await getDoc(doc(db, "users", user.uid));
-        const userData = userSnap.exists() ? userSnap.data() : {};
+        // Coach status + name prefill come from the shared profile
+        const userData = profile || {};
         if (active && userData.isCoach) { setIsCoach(true); setChecking(false); return; }
 
         // Pre-fill name
@@ -76,7 +80,8 @@ export default function CoachApplyPage() {
     }
     check();
     return () => { active = false; };
-  }, [user?.uid]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid, profile, profileLoading]);
 
   const toggleSpecialty = (s) => {
     setSelectedSpecialties((prev) =>

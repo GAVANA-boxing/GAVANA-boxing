@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
-import { calculateUserXP } from "@/lib/xp";
+import { getAccountXp } from "@/lib/domain/progression";
 import { getTimestampMs } from "@/lib/utils";
 import { getCurrentSeasonId } from "@/lib/season";
 
@@ -154,15 +154,20 @@ export function useProfileSecondaryData({ user, userId, isOwnProfile }) {
     async function loadMyStats() {
       try {
         const { collection, doc: fsDoc, getDoc: fsGetDoc, getDocs, query, where } = await import("firebase/firestore");
-        const [uSnap, feedSnap] = await Promise.all([
+        const [uSnap, feedSnap, sessionSnap] = await Promise.all([
           fsGetDoc(fsDoc(db, "users", user.uid)),
           getDocs(query(collection(db, "ai_feedback"), where("userId", "==", user.uid))),
+          getDocs(query(collection(db, "training_sessions"), where("userId", "==", user.uid))),
         ]);
         if (!active) return;
         const p = uSnap.exists() ? uSnap.data() : {};
         const scores = feedSnap.docs.map(d => Number(d.data().score)).filter(Number.isFinite);
         const storedXP = Number(p.xp) || 0;
-        const myXP = storedXP + calculateUserXP({ aiFeedbackDocs: feedSnap.docs.map(d => d.data()) });
+        const myXP = getAccountXp({
+          storedXp: storedXP,
+          aiFeedbackDocs: feedSnap.docs.map(d => d.data()),
+          trainingSessions: sessionSnap.docs.map(d => ({ xpGained: d.data().xpGained })),
+        });
         setMyStats({
           xp: myXP,
           bestScore: scores.length ? Math.max(...scores) : null,

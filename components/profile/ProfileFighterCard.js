@@ -39,7 +39,7 @@ export default function ProfileFighterCard({
   onLogout,
   onStatNavigate,
 }) {
-  const streakCount = profileUser?.streakCount || 0;
+  const streakCount = Number(profileUser?.dailyStreak ?? profileUser?.streakCount) || 0;
   const [avatarError, setAvatarError] = useState(false);
   const avatarInitial = (profileUser.displayName || profileUser.username || "")
     .split(" ")

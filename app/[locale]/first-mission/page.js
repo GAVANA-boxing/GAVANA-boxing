@@ -7,6 +7,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
+import { useUserProfile } from "@/context/UserProfileProvider";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import { RED, GOLD, redAlpha } from "@/lib/tokens";
@@ -75,6 +76,7 @@ export default function FirstMissionPage() {
   const router   = useRouter();
   const t        = (key) => translate(locale, key);
   const { user, loading: authLoading } = useAuth();
+  const { profile } = useUserProfile();
 
   const mn = locale === "mn", ko = locale === "ko";
 
@@ -89,14 +91,13 @@ export default function FirstMissionPage() {
   const load = useCallback(async () => {
     if (!user?.uid) return;
     try {
-      const [uSnap, sessSnap, fbSnap, badgeSnap] = await Promise.all([
-        getDoc(doc(db, "users", user.uid)),
+      const [sessSnap, fbSnap, badgeSnap] = await Promise.all([
         getDocs(query(collection(db, "training_sessions"), where("userId", "==", user.uid))),
         getDocs(query(collection(db, "ai_feedback"), where("userId", "==", user.uid))),
         getDoc(doc(db, "user_badges", `${user.uid}_first_session`)),
       ]);
 
-      const uData = uSnap.exists() ? uSnap.data() : {};
+      const uData = profile || {};
       const sCount = sessSnap.docs.filter((d) => d.data().type === "training").length;
       const hasAiFeedback = fbSnap.size > 0 || sessSnap.docs.some((d) => {
         const s = d.data();
@@ -123,7 +124,8 @@ export default function FirstMissionPage() {
       console.error("[FirstMission] load error", e);
       setDataReady(true);
     }
-  }, [user?.uid]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid, profile]);
 
   useEffect(() => {
     if (!authLoading && !user) router.replace(`/${locale}/login`);

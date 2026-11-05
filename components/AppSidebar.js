@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
+import { useUserProfile } from "@/context/UserProfileProvider";
 import { blackAlpha } from "@/lib/tokens";
 import { getFighterRank, getRankProgress } from "@/lib/xp";
 
@@ -33,28 +34,12 @@ export default function AppSidebar({ currentLocale }) {
   const pathname = usePathname();
   const locale   = currentLocale || pathname?.split("/")?.[1] || "mn";
 
-  const [xp,       setXp]      = useState(0);
-  const [photoUrl, setPhotoUrl] = useState(null);
+  const { profile } = useUserProfile();
   const [imgErr,   setImgErr]  = useState(false);
 
-  // Load user XP for rank bar
-  useEffect(() => {
-    if (!user?.uid) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const { db }          = await import("@/lib/firebase");
-        const { doc, getDoc } = await import("firebase/firestore");
-        const snap = await getDoc(doc(db, "users", user.uid));
-        if (!cancelled && snap.exists()) {
-          const d = snap.data();
-          setXp(Number(d.xp) || 0);
-          setPhotoUrl(d.profileImageUrl || d.photoURL || null);
-        }
-      } catch { /* silent */ }
-    })();
-    return () => { cancelled = true; };
-  }, [user?.uid]);
+  // XP + avatar come from the shared profile subscription (one read for the whole app)
+  const xp       = Number(profile?.xp) || 0;
+  const photoUrl = profile?.profileImageUrl || profile?.photoURL || null;
 
   const rank     = getFighterRank(xp);
   const progress = getRankProgress(xp);

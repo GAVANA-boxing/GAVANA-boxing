@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
+import { useUserProfile } from "@/context/UserProfileProvider";
 import { getLocale } from "@/lib/i18n";
 import { getFeedReels, getFollowingReels } from "@/lib/feed";
 import FeedPage from "@/components/feed/FeedPage";
@@ -33,6 +34,7 @@ export default function FeedRoute() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const { profile } = useUserProfile();
   const locale   = getLocale(params?.locale);
 
   const [reels,           setReels]           = useState([]);
@@ -83,27 +85,15 @@ export default function FeedRoute() {
   }, []);
 
   useEffect(() => {
-    if (!user?.uid) return;
-    let active = true;
-    (async () => {
-      try {
-        const { doc, getDoc } = await import("firebase/firestore");
-        const { db } = await import("@/lib/firebase");
-        const snap = await getDoc(doc(db, "users", user.uid));
-        if (active && snap.exists()) {
-          const arch = snap.data()?.fighterDNA?.archetypeKey;
-          if (arch) {
-            setUserArchetype(arch);
-            if (!archetypeRef.current) {
-              archetypeRef.current = arch;
-              loadFeed(false, arch);
-            }
-          }
-        }
-      } catch { /* silent */ }
-    })();
-    return () => { active = false; };
-  }, [user?.uid]);
+    const arch = profile?.fighterDNA?.archetypeKey;
+    if (!arch) return;
+    setUserArchetype(arch);
+    if (!archetypeRef.current) {
+      archetypeRef.current = arch;
+      loadFeed(false, arch);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.fighterDNA?.archetypeKey]);
 
   useEffect(() => {
     if (!user?.uid) return;

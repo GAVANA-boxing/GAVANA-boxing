@@ -1,4 +1,4 @@
-import { verifyIdToken } from "@/lib/verifyAuth";
+import { withAuth } from "@/lib/withAuth";
 
 const PROJECT = "gavana-boxing-89a22";
 
@@ -37,9 +37,7 @@ async function getServiceAccountToken() {
   } catch { return null; }
 }
 
-export async function POST(req) {
-  const reporterId = await verifyIdToken(req);
-  if (!reporterId) return Response.json({ error: "Unauthorized" }, { status: 401 });
+export const POST = withAuth(async (req, { uid: reporterId }) => {
   if (isReportRateLimited(reporterId)) return Response.json({ error: "Rate limited" }, { status: 429 });
 
   const { targetId, targetType = "reel", reason = "other", note = "" } = await req.json();
@@ -73,4 +71,4 @@ export async function POST(req) {
 
   if (!res.ok) return Response.json({ error: "Failed to write report" }, { status: 500 });
   return Response.json({ ok: true });
-}
+});

@@ -3,16 +3,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import {
-  collection, doc, query, where,
-  getDocs, getDoc,
+  collection, query, where,
+  getDocs,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
+import { useUserProfile } from "@/context/UserProfileProvider";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import {
-  calculateUserXP, getFighterRank,
+  getFighterRank,
   getNextRank, getRankProgress,
 } from "@/lib/xp";
+import { getAccountXp } from "@/lib/domain/progression";
 import {
   deriveRadarStats, computeFighterScore, getInsight,
 } from "@/lib/dashboardHelpers";
@@ -82,6 +84,7 @@ function formatScore(s) {
 
 export default function AthleteDashboard() {
   const { user, loading: authLoading } = useAuth();
+  const { profile, loading: profileLoading } = useUserProfile();
   const router = useRouter();
   const pathname = usePathname();
   const locale = getLocaleFromPathname(pathname);
@@ -104,12 +107,12 @@ export default function AthleteDashboard() {
   useEffect(() => {
     if (authLoading) return;
     if (!user?.uid) { router.replace(`/${locale}/login`); return; }
+    if (profileLoading) return;
 
     let active = true;
     async function load() {
       try {
-        const userSnap = await getDoc(doc(db, "users", user.uid));
-        const uData = userSnap.exists() ? userSnap.data() : {};
+        const uData = profile || {};
 
         const feedbackSnap = await getDocs(
           query(collection(db, "ai_feedback"), where("userId", "==", user.uid))
@@ -124,11 +127,11 @@ export default function AthleteDashboard() {
           .filter((s) => s.type === "training")
           .sort((a, b) => getTs(b.createdAt) - getTs(a.createdAt));
 
-        const trainingSessionXP = allSessions.reduce((sum, s) => sum + (Number(s.xpGained) || 0), 0);
-        const storedChallengeXP = Number(uData.xp) || 0;
         const streakDays = Number(uData.streakCount) || Number(uData.dailyStreak) || 0;
-        const totalXP = storedChallengeXP + trainingSessionXP + calculateUserXP({
+        const totalXP = getAccountXp({
+          storedXp: uData.xp,
           aiFeedbackDocs: feedbackDocs,
+          trainingSessions: allSessions,
           streakDays,
         });
 
@@ -159,7 +162,8 @@ export default function AthleteDashboard() {
     }
     load();
     return () => { active = false; };
-  }, [authLoading, user?.uid, locale, router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, user?.uid, locale, router, profile, profileLoading]);
 
   const stats = useMemo(() => {
     const scores = trainingSessions

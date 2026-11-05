@@ -1,6 +1,8 @@
 import { Geist, Geist_Mono, Bebas_Neue, Barlow_Condensed } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/AuthContext";
+import QueryProvider from "@/components/providers/QueryProvider";
+import { UserProfileProvider } from "@/context/UserProfileProvider";
 import InAppBrowserWarning from "@/components/InAppBrowserWarning";
 import WebVitals from "@/components/WebVitals";
 import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
@@ -88,11 +90,15 @@ export default function RootLayout({ children }) {
       </head>
       <body className="min-h-full flex flex-col">
         <AuthProvider>
-          <ServiceWorkerRegistrar />
-          <WebVitals />
-          <InAppBrowserWarning />
-          <ClientShell />
-          {children}
+          <QueryProvider>
+            <UserProfileProvider>
+              <ServiceWorkerRegistrar />
+              <WebVitals />
+              <InAppBrowserWarning />
+              <ClientShell />
+              {children}
+            </UserProfileProvider>
+          </QueryProvider>
         </AuthProvider>
       </body>
     </html>

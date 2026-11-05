@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { RED } from "@/lib/tokens";
+import { useUserProfile } from "@/context/UserProfileProvider";
 import { getCreatorName, getCreatorPhoto, cleanCaption } from "@/lib/reelHelpers";
 import QuickPostBar from "@/components/reels/QuickPostBar";
 import DesktopReelCard from "@/components/reels/DesktopReelCard";
@@ -18,7 +19,9 @@ export default function ReelsDashboard({
   handleLike, handleOpenComments, handleShare, handleSave, handleGetFeedback,
   feedRef,
 }) {
-  const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
+  const { profile } = useUserProfile();
+  const profilePhotoUrl =
+    user?.photoURL || profile?.profileImageUrl || profile?.photoURL || profile?.avatarUrl || null;
 
   const [desktopSound, setDesktopSound] = useState(() => {
     try { return localStorage.getItem("reel-sound-on") === "1"; } catch { return false; }
@@ -27,23 +30,6 @@ export default function ReelsDashboard({
     setDesktopSound(next);
     try { localStorage.setItem("reel-sound-on", next ? "1" : "0"); } catch {}
   };
-
-  useEffect(() => {
-    if (!user?.uid) return;
-    if (user.photoURL) { setProfilePhotoUrl(user.photoURL); return; }
-    import("@/lib/firebase").then(({ db }) => {
-      if (!db) return;
-      import("firebase/firestore").then(({ doc, getDoc }) => {
-        getDoc(doc(db, "users", user.uid)).then((snap) => {
-          if (snap.exists()) {
-            const data = snap.data();
-            const photo = data.profileImageUrl || data.photoURL || data.avatarUrl || null;
-            if (photo) setProfilePhotoUrl(photo);
-          }
-        }).catch(() => {});
-      });
-    });
-  }, [user?.uid, user?.photoURL]);
 
   return (
     <div style={d.page} className="cinematic-bg">

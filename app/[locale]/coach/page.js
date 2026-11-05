@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Component } from "react";
+import { useState, Component } from "react";
 import dynamic from "next/dynamic";
 
 class CoachSectionBoundary extends Component {
@@ -33,6 +33,7 @@ import BottomSheet from "@/components/BottomSheet";
 import EmptyState from "@/components/EmptyState";
 import SkeletonBlock from "@/components/SkeletonBlock";
 import { useAuth } from "@/lib/AuthContext";
+import { useUserProfile } from "@/context/UserProfileProvider";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { RED, RED_DARK, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/coach/coachStyles";
@@ -52,28 +53,11 @@ export default function CoachPage() {
   const locale = getLocaleFromPathname(pathname);
   const t = (key) => translate(locale, key);
   const { user } = useAuth();
+  const { profile } = useUserProfile();
 
   const [tab, setTab] = useState("ai");
-  const [userArchetype, setUserArchetype] = useState(null);
-  const [userTier, setUserTier] = useState(null);
-
-  useEffect(() => {
-    if (!user?.uid) return;
-    let active = true;
-    (async () => {
-      try {
-        const { doc, getDoc } = await import("firebase/firestore");
-        const { db } = await import("@/lib/firebase");
-        const snap = await getDoc(doc(db, "users", user.uid));
-        if (active && snap.exists()) {
-          const arch = snap.data()?.fighterDNA?.archetypeKey;
-          if (arch) setUserArchetype(arch);
-          setUserTier(snap.data()?.subscriptionTier || snap.data()?.tier || null);
-        }
-      } catch { /* silent */ }
-    })();
-    return () => { active = false; };
-  }, [user?.uid]);
+  const userArchetype = profile?.fighterDNA?.archetypeKey || null;
+  const userTier = profile?.subscriptionTier || profile?.tier || null;
 
   const [filterSpecialty, setFilterSpecialty] = useState("");
   const [filterVibe, setFilterVibe] = useState("");

@@ -121,7 +121,7 @@ export function useReelFeed({ user, authLoading, isProfileSource, profileSourceU
                 photoURL: profileData.photoURL || "",
                 profileImageUrl: profileData.profileImageUrl || "",
                 profileImage: profileData.profileImage || "",
-                streakCount: Number(profileData.streakCount) || 0,
+                streakCount: Number(profileData.dailyStreak ?? profileData.streakCount) || 0,
               },
             }));
           } catch (err) {
@@ -182,7 +182,7 @@ export function useReelFeed({ user, authLoading, isProfileSource, profileSourceU
             // Get user profile for streak
             const userDoc = await getDoc(doc(db, "users", creatorId));
             const userData = userDoc.exists() ? userDoc.data() : {};
-            const streakDays = Number(userData.streakCount) || 0;
+            const streakDays = Number(userData.dailyStreak ?? userData.streakCount) || 0;
 
             // Count total likes received from reels
             const reelsQuery = query(
