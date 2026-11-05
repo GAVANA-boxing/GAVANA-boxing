@@ -1,4 +1,4 @@
-import { BG, SURFACE_1, RED, RED_DARK, GOLD, BORDER, BORDER_2, RADIUS, MUTED, SUCCESS, redAlpha, goldAlpha, whiteAlpha, blackAlpha } from "@/lib/tokens";
+import { BG, BORDER, BORDER_2, GOLD, MUTED, RADIUS, RED, RED_DARK, SUCCESS, SURFACE_1, TEXT, blackAlpha, goldAlpha, greenAlpha, redAlpha, whiteAlpha } from "@/lib/tokens";
 
 // ── Feed styles (kept as a named subset) ──
 const discoverFeedStyles = {
@@ -68,7 +68,7 @@ const discoverFeedStyles = {
   activityChipLive: {
     border: `1px solid ${redAlpha(0.35)}`,
     background: redAlpha(0.07),
-    color: "#fff",
+    color: TEXT,
   },
   activityLiveDot: {
     width: 6,
@@ -84,8 +84,8 @@ const discoverFeedStyles = {
     margin: "4px 16px 20px",
     padding: "13px 16px",
     borderRadius: 16,
-    border: "1px solid rgba(34,197,94,0.2)",
-    background: "linear-gradient(135deg, rgba(34,197,94,0.08) 0%, rgba(34,197,94,0.02) 100%)",
+    border: `1px solid ${greenAlpha(0.2)}`,
+    background: `linear-gradient(135deg, ${greenAlpha(0.08)} 0%, ${greenAlpha(0.02)} 100%)`,
     display: "flex",
     alignItems: "center",
     gap: 12,
@@ -107,7 +107,7 @@ const discoverFeedStyles = {
     margin: 0,
     fontSize: 13,
     fontWeight: 800,
-    color: "#fff",
+    color: TEXT,
     lineHeight: 1.35,
   },
   lobbyCountBadge: {
@@ -116,7 +116,7 @@ const discoverFeedStyles = {
   },
   lobbyArrow: {
     fontSize: 18,
-    color: "rgba(34,197,94,0.55)",
+    color: greenAlpha(0.55),
     flexShrink: 0,
     fontWeight: 900,
   },
@@ -139,7 +139,7 @@ const discoverFeedStyles = {
     margin: 0,
     fontSize: 20,
     fontWeight: 900,
-    color: "#fff",
+    color: TEXT,
     letterSpacing: "-0.02em",
     lineHeight: 1.1,
     fontFamily: "var(--font-display, 'Anton', sans-serif)",
@@ -195,13 +195,13 @@ const discoverFeedStyles = {
     overflow: "hidden",
     fontSize: 22,
     fontWeight: 900,
-    color: "#fff",
+    color: TEXT,
     boxShadow: `0 4px 16px ${blackAlpha(0.4)}, 0 0 0 1px ${goldAlpha(0.12)}`,
   },
   championName: {
     fontSize: 11,
     fontWeight: 800,
-    color: "#fff",
+    color: TEXT,
     maxWidth: 70,
     overflow: "hidden",
     textOverflow: "ellipsis",
@@ -258,7 +258,7 @@ const discoverFeedStyles = {
     background: "none",
     border: "none",
     borderBottom: `2px solid ${RED}`,
-    color: "#fff",
+    color: TEXT,
     fontSize: 13,
     fontWeight: 900,
     cursor: "pointer",
@@ -282,7 +282,7 @@ const discoverFeedStyles = {
     padding: "52px 24px",
     gap: 10,
   },
-  emptyTitle: { margin: 0, fontSize: 17, fontWeight: 900, color: "#fff", letterSpacing: "-0.01em" },
+  emptyTitle: { margin: 0, fontSize: 17, fontWeight: 900, color: TEXT, letterSpacing: "-0.01em" },
   emptyText: { margin: 0, fontSize: 13, color: whiteAlpha(0.35), lineHeight: 1.6, maxWidth: 260 },
   emptyBtn: {
     marginTop: 8,
@@ -290,7 +290,7 @@ const discoverFeedStyles = {
     borderRadius: RADIUS.md,
     border: "none",
     background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
-    color: "#fff",
+    color: TEXT,
     fontSize: 14,
     fontWeight: 800,
     cursor: "pointer",
@@ -326,12 +326,12 @@ const discoverFeedStyles = {
     cursor: "pointer",
   },
   avatarImg: { width: "100%", height: "100%", objectFit: "cover" },
-  avatarInitial: { fontSize: 15, fontWeight: 900, color: "#fff" },
+  avatarInitial: { fontSize: 15, fontWeight: 900, color: TEXT },
   authorName: {
     margin: 0,
     fontSize: 13,
     fontWeight: 900,
-    color: "#fff",
+    color: TEXT,
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
@@ -362,7 +362,7 @@ const discoverFeedStyles = {
     margin: 0,
     fontSize: 12,
     fontWeight: 800,
-    color: "#fff",
+    color: TEXT,
     textShadow: `0 1px 4px ${blackAlpha(0.9)}`,
     display: "-webkit-box",
     WebkitLineClamp: 2,
@@ -381,7 +381,7 @@ const discoverFeedStyles = {
     borderRadius: RADIUS.sm,
     border: "none",
     background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`,
-    color: "#fff",
+    color: TEXT,
     fontSize: 12,
     fontWeight: 800,
     cursor: "pointer",
@@ -394,7 +394,7 @@ const styles = {
   page: {
     minHeight: "100dvh",
     background: `radial-gradient(ellipse at 50% -10%, ${redAlpha(0.07)} 0%, transparent 50%), ${BG}`,
-    color: "#fff",
+    color: TEXT,
     paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
   },
 
@@ -435,7 +435,7 @@ const styles = {
     borderRadius: RADIUS.md,
     border: `1px solid ${whiteAlpha(0.09)}`,
     background: whiteAlpha(0.06),
-    color: "#fff",
+    color: TEXT,
     padding: "0 34px 0 38px",
     fontSize: 13,
     outline: "none",
@@ -463,7 +463,7 @@ const styles = {
     borderRadius: RADIUS.md,
     border: `1px solid ${redAlpha(0.4)}`,
     background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`,
-    color: "#fff",
+    color: TEXT,
     fontSize: 13,
     fontWeight: 800,
     cursor: "pointer",
@@ -500,7 +500,7 @@ const styles = {
   forYouTitle: {
     fontSize: 18,
     fontWeight: 900,
-    color: "#fff",
+    color: TEXT,
     letterSpacing: "-0.01em",
     fontFamily: "var(--font-display, 'Anton', sans-serif)",
   },
@@ -542,7 +542,7 @@ const styles = {
   styleChipActive: {
     background: redAlpha(0.18),
     borderColor: redAlpha(0.6),
-    color: "#fff",
+    color: TEXT,
     fontWeight: 900,
     boxShadow: `0 0 16px ${redAlpha(0.2)}`,
   },
@@ -585,7 +585,7 @@ const styles = {
   hubTitle: {
     fontSize: 15,
     fontWeight: 900,
-    color: "#fff",
+    color: TEXT,
     letterSpacing: "-0.01em",
   },
   hubChevron: {
@@ -809,7 +809,7 @@ const styles = {
     margin: 0,
     fontSize: 10,
     fontWeight: 800,
-    color: "#fff",
+    color: TEXT,
     lineHeight: 1.3,
     letterSpacing: 0.1,
     textShadow: `0 1px 6px ${blackAlpha(0.95)}`,
@@ -839,7 +839,7 @@ const styles = {
   coachStripLabel: {
     fontSize: 14,
     fontWeight: 900,
-    color: "#fff",
+    color: TEXT,
   },
   coachScroll: {
     display: "flex",
@@ -873,7 +873,7 @@ const styles = {
     overflow: "hidden",
     fontSize: 18,
     fontWeight: 800,
-    color: "#fff",
+    color: TEXT,
     boxShadow: `0 4px 16px ${blackAlpha(0.4)}`,
   },
   coachAvatarImg: {
@@ -884,7 +884,7 @@ const styles = {
   coachName: {
     fontSize: 11,
     fontWeight: 800,
-    color: "#fff",
+    color: TEXT,
     maxWidth: 64,
     overflow: "hidden",
     textOverflow: "ellipsis",
@@ -927,7 +927,7 @@ const styles = {
     border: `1px solid ${BORDER}`,
     background: whiteAlpha(0.035),
     cursor: "pointer",
-    color: "#fff",
+    color: TEXT,
     textAlign: "left",
     width: "100%",
     boxSizing: "border-box",
@@ -965,7 +965,7 @@ const styles = {
   listCardName: {
     fontSize: 14,
     fontWeight: 800,
-    color: "#fff",
+    color: TEXT,
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",

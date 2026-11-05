@@ -1,8 +1,4 @@
-import {
-  RED, RED_DARK, GOLD, PURPLE, BG, SURFACE_1, SURFACE_2,
-  BORDER, BORDER_2, RADIUS, SP, MOTION,
-  redAlpha, goldAlpha, whiteAlpha, blackAlpha,
-} from "@/lib/tokens";
+import { BG, BORDER, BORDER_2, GOLD, MOTION, PURPLE, RADIUS, RED, RED_DARK, SP, SURFACE_1, SURFACE_2, TEXT, blackAlpha, goldAlpha, redAlpha, whiteAlpha } from "@/lib/tokens";
 
 const styles = {
   // ── Page header ────────────────────────────────────────────────────────────
@@ -16,7 +12,7 @@ const styles = {
   },
   backBtnProfile: {
     width: 40, height: 40, border: `1px solid ${BORDER_2}`,
-    background: whiteAlpha(0.05), color: "#fff", borderRadius: RADIUS.sm,
+    background: whiteAlpha(0.05), color: TEXT, borderRadius: RADIUS.sm,
     display: "flex", alignItems: "center", justifyContent: "center",
     cursor: "pointer", padding: 0,
     transition: `opacity ${MOTION.fast}`,
@@ -53,7 +49,7 @@ const styles = {
     position: "absolute", bottom: 72, right: 14,
     background: blackAlpha(0.55), backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
     border: `1px solid ${whiteAlpha(0.22)}`, borderRadius: RADIUS.sm,
-    color: "#fff", width: 34, height: 34, cursor: "pointer",
+    color: TEXT, width: 34, height: 34, cursor: "pointer",
     display: "flex", alignItems: "center", justifyContent: "center",
     transition: `opacity ${MOTION.fast}`,
   },
@@ -72,7 +68,7 @@ const styles = {
     boxShadow: `0 0 0 2px ${goldAlpha(0.45)}, 0 0 0 4px ${redAlpha(0.12)}, 0 16px 56px ${blackAlpha(0.7)}, 0 0 36px ${redAlpha(0.28)}`,
     display: "flex", alignItems: "center", justifyContent: "center",
     fontSize: 38, fontWeight: 1000,
-    color: "#FFFFFF", overflow: "hidden", position: "relative",
+    color: TEXT, overflow: "hidden", position: "relative",
   },
   avatarImage: { width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", display: "block" },
 
@@ -89,7 +85,7 @@ const styles = {
   },
   fighterName: {
     margin: 0,
-    color: "#FFFFFF",
+    color: TEXT,
     fontSize: "clamp(28px, 9vw, 44px)",
     lineHeight: 0.95,
     fontWeight: 1000,
@@ -108,7 +104,7 @@ const styles = {
     borderRadius: RADIUS.sm,
     border: `1px solid ${whiteAlpha(0.14)}`,
     background: whiteAlpha(0.06),
-    color: "#fff",
+    color: TEXT,
     fontSize: 13, fontWeight: 800,
     cursor: "pointer",
     whiteSpace: "nowrap",
@@ -186,13 +182,13 @@ const styles = {
   statButton: {
     minHeight: 68, border: "none",
     borderRight: `1px solid ${BORDER}`,
-    background: "transparent", color: "#FFFFFF",
+    background: "transparent", color: TEXT,
     display: "grid", alignContent: "center", justifyItems: "center",
     gap: 6, cursor: "pointer", WebkitTapHighlightColor: "transparent",
     transition: `background ${MOTION.fast}`,
   },
   statNumber: {
-    color: "#FFFFFF", fontSize: 23, lineHeight: 1,
+    color: TEXT, fontSize: 23, lineHeight: 1,
     fontWeight: 1000, fontFamily: "var(--font-display, 'Anton', sans-serif)",
   },
   statLabel: {
@@ -215,13 +211,13 @@ const styles = {
   ghostAction: {
     padding: "10px 16px", border: `1px solid ${BORDER_2}`,
     borderRadius: RADIUS.sm, background: whiteAlpha(0.05),
-    color: "#FFFFFF", fontSize: 13, fontWeight: 800, cursor: "pointer",
+    color: TEXT, fontSize: 13, fontWeight: 800, cursor: "pointer",
     minHeight: 38, display: "flex", alignItems: "center", justifyContent: "center",
     transition: `all ${MOTION.fast}`,
   },
   followAction: {
     padding: "12px 34px", border: "none", borderRadius: RADIUS.sm,
-    color: "#FFFFFF", fontSize: 14, fontWeight: 900,
+    color: TEXT, fontSize: 14, fontWeight: 900,
   },
 
   // ── Tabs ──────────────────────────────────────────────────────────────────
@@ -239,7 +235,7 @@ const styles = {
     transition: `all ${MOTION.fast}`,
   },
   profileTabActive: {
-    color: "#FFFFFF", boxShadow: `inset 0 -2px 0 ${RED}`,
+    color: TEXT, boxShadow: `inset 0 -2px 0 ${RED}`,
   },
 
   // ── Reel grid tiles ───────────────────────────────────────────────────────
@@ -251,7 +247,7 @@ const styles = {
     position: "absolute", top: 6, right: 6, zIndex: 5,
     width: 26, height: 26, borderRadius: RADIUS.full,
     border: `1px solid ${whiteAlpha(0.2)}`,
-    background: blackAlpha(0.75), color: "#fff",
+    background: blackAlpha(0.75), color: TEXT,
     display: "flex", alignItems: "center", justifyContent: "center",
     backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
   },
@@ -265,7 +261,7 @@ const styles = {
     filter: `drop-shadow(0 4px 16px ${redAlpha(0.4)})`,
   },
   reelGridEmptyTitle: {
-    margin: 0, color: "#fff", fontWeight: 950, fontSize: 20, textAlign: "center",
+    margin: 0, color: TEXT, fontWeight: 950, fontSize: 20, textAlign: "center",
   },
   reelGridEmptyText: {
     margin: 0, fontSize: 14, color: whiteAlpha(0.55),
@@ -273,7 +269,7 @@ const styles = {
   },
   reelGridEmptyCta: {
     marginTop: 8, padding: "12px 26px", borderRadius: RADIUS.full,
-    border: "none", background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`, color: "#fff",
+    border: "none", background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`, color: TEXT,
     fontSize: 14, fontWeight: 900, cursor: "pointer", letterSpacing: 0.2,
     boxShadow: `0 6px 20px ${redAlpha(0.28)}, inset 0 1px 0 ${whiteAlpha(0.1)}`,
   },

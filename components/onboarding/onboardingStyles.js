@@ -1,16 +1,16 @@
-import { GOLD, RED, RED_DARK, BG, BORDER, BORDER_2, RADIUS, redAlpha, whiteAlpha, blackAlpha, pageBg } from "@/lib/tokens";
+import { BG, BORDER, BORDER_2, GOLD, RADIUS, RED, RED_DARK, TEXT, blackAlpha, pageBg, redAlpha, whiteAlpha } from "@/lib/tokens";
 
 const s = {
   page: {
     minHeight: "100dvh",
     background: pageBg(0.15),
-    color: "#fff",
+    color: TEXT,
     position: "relative",
     overflowX: "hidden",
   },
   loading: {
     minHeight: "100dvh", background: BG,
-    display: "flex", alignItems: "center", justifyContent: "center", color: "#fff",
+    display: "flex", alignItems: "center", justifyContent: "center", color: TEXT,
   },
   bgGlow: {
     position: "fixed", top: "-20%", left: "50%", transform: "translateX(-50%)",
@@ -66,7 +66,7 @@ const s = {
     background: whiteAlpha(0.03),
     backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
     cursor: "pointer", textAlign: "left", width: "100%",
-    transition: "all 0.15s", color: "#fff",
+    transition: "all 0.15s", color: TEXT,
     boxShadow: `0 4px 20px ${blackAlpha(0.2)}`,
   },
 
@@ -90,13 +90,13 @@ const s = {
   select: {
     width: "100%", padding: "12px 14px", borderRadius: 12,
     border: `1px solid ${whiteAlpha(0.1)}`, background: whiteAlpha(0.05),
-    color: "#fff", fontSize: 14, outline: "none", colorScheme: "dark", boxSizing: "border-box",
+    color: TEXT, fontSize: 14, outline: "none", colorScheme: "dark", boxSizing: "border-box",
   },
 
   primaryBtn: {
     width: "100%", padding: 15, borderRadius: RADIUS.lg, border: "none",
     background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
-    color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer",
+    color: TEXT, fontSize: 15, fontWeight: 900, cursor: "pointer",
     boxShadow: `0 10px 32px ${redAlpha(0.34)}, inset 0 1px 0 ${whiteAlpha(0.12)}`,
     letterSpacing: 0.5,
   },
@@ -125,11 +125,11 @@ const s = {
     width: 40, height: 40, borderRadius: RADIUS.sm, background: redAlpha(0.14),
     display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0,
   },
-  gymName: { margin: 0, fontSize: 13, fontWeight: 800, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  gymName: { margin: 0, fontSize: 13, fontWeight: 800, color: TEXT, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
   gymMeta: { margin: "1px 0 0", fontSize: 11, color: whiteAlpha(0.4) },
   joinBtn: {
     padding: "8px 16px", borderRadius: RADIUS.full, border: "none",
-    background: redAlpha(0.85), color: "#fff", fontSize: 12, fontWeight: 900,
+    background: redAlpha(0.85), color: TEXT, fontSize: 12, fontWeight: 900,
     cursor: "pointer", flexShrink: 0,
   },
   joinBtnDisabled: {

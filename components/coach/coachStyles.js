@@ -1,11 +1,11 @@
-import { RED, RED_DARK, BG, redAlpha, GOLD, goldAlpha, BORDER, BORDER_2, RADIUS, whiteAlpha, blackAlpha, pageBg } from "@/lib/tokens";
+import { BG, BORDER, BORDER_2, GOLD, RADIUS, RED, RED_DARK, TEXT, blackAlpha, goldAlpha, pageBg, redAlpha, whiteAlpha } from "@/lib/tokens";
 
 const styles = {
   // ── Page ──
   page: {
     minHeight: "100dvh",
     background: pageBg(0.08),
-    color: "#fff",
+    color: TEXT,
   },
   tabStrip: {
     position: "sticky", top: 0, zIndex: 50,
@@ -15,7 +15,7 @@ const styles = {
     borderBottom: `1px solid ${whiteAlpha(0.07)}`,
     padding: "0 4px", paddingTop: "env(safe-area-inset-top)",
   },
-  tabActive: { flex: 1, minHeight: 46, border: "none", borderBottom: `2px solid ${RED}`, background: "transparent", color: "#fff", fontSize: 12, fontWeight: 900, letterSpacing: "0.04em", textTransform: "uppercase", cursor: "pointer", transition: "color 180ms ease, border-color 180ms ease", position: "relative" },
+  tabActive: { flex: 1, minHeight: 46, border: "none", borderBottom: `2px solid ${RED}`, background: "transparent", color: TEXT, fontSize: 12, fontWeight: 900, letterSpacing: "0.04em", textTransform: "uppercase", cursor: "pointer", transition: "color 180ms ease, border-color 180ms ease", position: "relative" },
   tabInactive: { flex: 1, minHeight: 46, border: "none", borderBottom: "2px solid transparent", background: "transparent", color: whiteAlpha(0.38), fontSize: 12, fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase", cursor: "pointer", transition: "color 180ms ease, border-color 180ms ease", position: "relative" },
   aiWrap: { minHeight: "calc(100dvh - 46px)" },
   content: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(104px + env(safe-area-inset-bottom))" },
@@ -30,14 +30,14 @@ const styles = {
   filterBarCompact: { display: "flex", gap: 6, flexWrap: "nowrap", overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none", marginBottom: 20, alignItems: "center" },
   filterMoreBtn: { flexShrink: 0, padding: "5px 12px", borderRadius: RADIUS.full, border: `1px solid ${goldAlpha(0.3)}`, background: goldAlpha(0.06), color: GOLD, fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" },
   filterSheetSectionLabel: { margin: "0 0 8px", fontSize: 9, fontWeight: 900, color: RED, letterSpacing: 3.5, textTransform: "uppercase" },
-  filterSheetDone: { marginTop: 16, width: "100%", minHeight: 46, border: "none", borderRadius: RADIUS.md, background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`, color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 24px ${redAlpha(0.32)}, inset 0 1px 0 ${whiteAlpha(0.1)}` },
+  filterSheetDone: { marginTop: 16, width: "100%", minHeight: 46, border: "none", borderRadius: RADIUS.md, background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`, color: TEXT, fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: `0 8px 24px ${redAlpha(0.32)}, inset 0 1px 0 ${whiteAlpha(0.1)}` },
   cardRatingInline: { fontSize: 12, fontWeight: 800, color: GOLD },
   specialtyScroll: { display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" },
   chip: { flexShrink: 0, padding: "5px 12px", borderRadius: RADIUS.full, border: `1px solid ${whiteAlpha(0.1)}`, background: whiteAlpha(0.04), color: whiteAlpha(0.6), fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" },
-  chipActive: { flexShrink: 0, padding: "5px 12px", borderRadius: RADIUS.full, border: `1px solid ${redAlpha(0.6)}`, background: redAlpha(0.18), color: "#fff", fontSize: 12, fontWeight: 900, cursor: "pointer", whiteSpace: "nowrap" },
+  chipActive: { flexShrink: 0, padding: "5px 12px", borderRadius: RADIUS.full, border: `1px solid ${redAlpha(0.6)}`, background: redAlpha(0.18), color: TEXT, fontSize: 12, fontWeight: 900, cursor: "pointer", whiteSpace: "nowrap" },
   filterRow: { display: "flex", gap: 8 },
-  filterInput: { flex: 1, minHeight: 38, padding: "0 12px", borderRadius: RADIUS.sm, border: `1px solid ${whiteAlpha(0.1)}`, background: whiteAlpha(0.05), color: "#fff", fontSize: 13, outline: "none" },
-  filterSelect: { minHeight: 38, padding: "0 10px", borderRadius: RADIUS.sm, border: `1px solid ${whiteAlpha(0.1)}`, background: whiteAlpha(0.05), color: "#fff", fontSize: 12, fontWeight: 700, outline: "none", cursor: "pointer" },
+  filterInput: { flex: 1, minHeight: 38, padding: "0 12px", borderRadius: RADIUS.sm, border: `1px solid ${whiteAlpha(0.1)}`, background: whiteAlpha(0.05), color: TEXT, fontSize: 13, outline: "none" },
+  filterSelect: { minHeight: 38, padding: "0 10px", borderRadius: RADIUS.sm, border: `1px solid ${whiteAlpha(0.1)}`, background: whiteAlpha(0.05), color: TEXT, fontSize: 12, fontWeight: 700, outline: "none", cursor: "pointer" },
 
   // ── Cards ──
   cardList: { display: "flex", flexDirection: "column", gap: 14 },
@@ -57,7 +57,7 @@ const styles = {
     background: RED,
     border: `2px solid ${goldAlpha(0.4)}`,
     display: "flex", alignItems: "center", justifyContent: "center",
-    fontSize: 18, fontWeight: 1000, color: "#fff",
+    fontSize: 18, fontWeight: 1000, color: TEXT,
   },
   verifiedDot: {
     position: "absolute", bottom: 0, right: 0,
@@ -68,7 +68,7 @@ const styles = {
   },
   cardInfo: { flex: 1, display: "flex", flexDirection: "column", gap: 3, minWidth: 0 },
   cardNameRow: { display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" },
-  cardName: { fontSize: 16, fontWeight: 1000, color: "#fff" },
+  cardName: { fontSize: 16, fontWeight: 1000, color: TEXT },
   verifiedBadge: {
     fontSize: 10, fontWeight: 900, color: GOLD,
     background: goldAlpha(0.12), border: `1px solid ${goldAlpha(0.3)}`,
@@ -88,19 +88,19 @@ const styles = {
   },
   cardStats: { display: "flex", gap: 16 },
   cardStat: { display: "flex", flexDirection: "column", gap: 1 },
-  cardStatNum: { fontSize: 14, fontWeight: 1000, color: "#fff" },
+  cardStatNum: { fontSize: 14, fontWeight: 1000, color: TEXT },
   cardStatLbl: { fontSize: 10, color: whiteAlpha(0.65), fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 },
   cardActions: { display: "flex", gap: 8, marginTop: 2 },
   viewProfileBtn: {
     flex: 1, minHeight: 38, border: `1px solid ${whiteAlpha(0.12)}`,
     borderRadius: RADIUS.sm, background: whiteAlpha(0.05),
-    color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
+    color: TEXT, fontSize: 13, fontWeight: 800, cursor: "pointer",
     backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
   },
   requestBtn: {
     flex: 1, minHeight: 38, border: "none", borderRadius: RADIUS.sm,
     background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
-    color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer",
+    color: TEXT, fontSize: 13, fontWeight: 900, cursor: "pointer",
     boxShadow: `0 6px 20px ${redAlpha(0.32)}, inset 0 1px 0 ${whiteAlpha(0.1)}`,
   },
   requestedBtn: {
@@ -111,7 +111,7 @@ const styles = {
   createPostBtn: {
     width: "100%", minHeight: 48, border: `1px solid ${goldAlpha(0.35)}`,
     borderRadius: RADIUS.md, background: `linear-gradient(135deg, ${redAlpha(0.9)}, ${goldAlpha(0.2)})`,
-    color: "#fff", fontSize: 14, fontWeight: 1000, cursor: "pointer",
+    color: TEXT, fontSize: 14, fontWeight: 1000, cursor: "pointer",
     marginBottom: 16, boxShadow: `0 12px 30px ${redAlpha(0.22)}`,
   },
   savedBanner: {
@@ -126,7 +126,7 @@ const styles = {
     borderRadius: RADIUS.full, padding: "3px 10px",
   },
   sparringWeight: {
-    fontSize: 13, fontWeight: 800, color: "#fff",
+    fontSize: 13, fontWeight: 800, color: TEXT,
     background: whiteAlpha(0.07), border: `1px solid ${whiteAlpha(0.12)}`,
     borderRadius: RADIUS.full, padding: "3px 10px",
   },
@@ -136,12 +136,12 @@ const styles = {
 
   // ── Form ──
   fieldLabel: { fontSize: 11, fontWeight: 900, color: GOLD, letterSpacing: 1, textTransform: "uppercase" },
-  fieldInput: { width: "100%", minHeight: 42, padding: "0 12px", borderRadius: RADIUS.sm, border: `1px solid ${whiteAlpha(0.1)}`, background: whiteAlpha(0.05), color: "#fff", fontSize: 14, outline: "none", boxSizing: "border-box" },
-  fieldSelect: { width: "100%", minHeight: 42, padding: "0 12px", borderRadius: RADIUS.sm, border: `1px solid ${whiteAlpha(0.1)}`, background: whiteAlpha(0.05), color: "#fff", fontSize: 14, outline: "none", cursor: "pointer", boxSizing: "border-box" },
-  fieldTextarea: { width: "100%", padding: "10px 12px", borderRadius: RADIUS.sm, border: `1px solid ${whiteAlpha(0.1)}`, background: whiteAlpha(0.05), color: "#fff", fontSize: 14, outline: "none", resize: "none", lineHeight: 1.5, boxSizing: "border-box" },
+  fieldInput: { width: "100%", minHeight: 42, padding: "0 12px", borderRadius: RADIUS.sm, border: `1px solid ${whiteAlpha(0.1)}`, background: whiteAlpha(0.05), color: TEXT, fontSize: 14, outline: "none", boxSizing: "border-box" },
+  fieldSelect: { width: "100%", minHeight: 42, padding: "0 12px", borderRadius: RADIUS.sm, border: `1px solid ${whiteAlpha(0.1)}`, background: whiteAlpha(0.05), color: TEXT, fontSize: 14, outline: "none", cursor: "pointer", boxSizing: "border-box" },
+  fieldTextarea: { width: "100%", padding: "10px 12px", borderRadius: RADIUS.sm, border: `1px solid ${whiteAlpha(0.1)}`, background: whiteAlpha(0.05), color: TEXT, fontSize: 14, outline: "none", resize: "none", lineHeight: 1.5, boxSizing: "border-box" },
   modalActions: { display: "flex", gap: 10, marginTop: 6 },
-  cancelBtn: { flex: 1, minHeight: 46, border: `1px solid ${whiteAlpha(0.1)}`, borderRadius: 12, background: whiteAlpha(0.04), color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer" },
-  submitBtn: { flex: 2, minHeight: 46, border: "none", borderRadius: 12, background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`, color: "#fff", fontSize: 14, fontWeight: 1000, cursor: "pointer", boxShadow: `0 10px 28px ${redAlpha(0.32)}, inset 0 1px 0 ${whiteAlpha(0.1)}` },
+  cancelBtn: { flex: 1, minHeight: 46, border: `1px solid ${whiteAlpha(0.1)}`, borderRadius: 12, background: whiteAlpha(0.04), color: TEXT, fontSize: 14, fontWeight: 800, cursor: "pointer" },
+  submitBtn: { flex: 2, minHeight: 46, border: "none", borderRadius: 12, background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`, color: TEXT, fontSize: 14, fontWeight: 1000, cursor: "pointer", boxShadow: `0 10px 28px ${redAlpha(0.32)}, inset 0 1px 0 ${whiteAlpha(0.1)}` },
   vibeChip: { flexShrink: 0, padding: "5px 12px", borderRadius: RADIUS.full, border: `1px solid ${redAlpha(0.25)}`, background: redAlpha(0.08), color: "rgba(255,165,130,0.7)", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" },
   vibeChipActive: { flexShrink: 0, padding: "5px 12px", borderRadius: RADIUS.full, border: `1px solid ${redAlpha(0.6)}`, background: redAlpha(0.22), color: "#F87171", fontSize: 12, fontWeight: 900, cursor: "pointer", whiteSpace: "nowrap" },
   featuredSection: { marginBottom: 20, padding: "12px 14px 14px", borderRadius: 16, background: goldAlpha(0.05), border: `1px solid ${goldAlpha(0.12)}`, backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" },
@@ -149,7 +149,7 @@ const styles = {
   featuredScroll: { display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" },
   featuredChip: { flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, background: whiteAlpha(0.04), border: `1px solid ${goldAlpha(0.25)}`, borderRadius: RADIUS.md, padding: "12px 12px 10px", cursor: "pointer", minWidth: 76, backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" },
   featuredAvatar: { width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: `2px solid ${goldAlpha(0.5)}` },
-  featuredAvatarInitials: { width: 44, height: 44, borderRadius: "50%", background: RED, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 900, color: "#fff", border: `2px solid ${goldAlpha(0.4)}` },
+  featuredAvatarInitials: { width: 44, height: 44, borderRadius: "50%", background: RED, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 900, color: TEXT, border: `2px solid ${goldAlpha(0.4)}` },
   featuredName: { fontSize: 10, fontWeight: 850, color: whiteAlpha(0.85), maxWidth: 68, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
   featuredVerified: { fontSize: 11, color: GOLD, fontWeight: 900, lineHeight: 1 },
 };

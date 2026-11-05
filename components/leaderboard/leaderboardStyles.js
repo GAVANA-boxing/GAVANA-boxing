@@ -1,10 +1,10 @@
-import { RED, redAlpha, GOLD, goldAlpha, BG, SURFACE_1, BORDER, BORDER_2, RADIUS, MOTION, pageBg, whiteAlpha, blackAlpha } from "@/lib/tokens";
+import { BG, BORDER, BORDER_2, GOLD, MOTION, MUTED, RADIUS, RED, SURFACE_1, TEXT, blackAlpha, goldAlpha, pageBg, redAlpha, whiteAlpha } from "@/lib/tokens";
 
 const styles = {
   page: {
     minHeight: "100dvh",
     background: pageBg(),
-    color: "#fff",
+    color: TEXT,
     paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
   },
   header: {
@@ -15,7 +15,7 @@ const styles = {
     borderBottom: `1px solid ${goldAlpha(0.1)}`,
   },
   backBtn: {
-    border: `1px solid ${goldAlpha(0.28)}`, background: "transparent", color: "#fff",
+    border: `1px solid ${goldAlpha(0.28)}`, background: "transparent", color: TEXT,
     borderRadius: RADIUS.sm, width: 40, height: 40,
     display: "flex", alignItems: "center", justifyContent: "center",
     cursor: "pointer", flexShrink: 0,
@@ -72,8 +72,8 @@ const styles = {
     marginBottom: 20, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
   },
   yourRankTop: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 },
-  yourRankLabel: { fontSize: 14, fontWeight: 900, color: "#fff" },
-  scorePill: { padding: "3px 10px", borderRadius: RADIUS.full, fontSize: 12, fontWeight: 900, color: "#fff" },
+  yourRankLabel: { fontSize: 14, fontWeight: 900, color: TEXT },
+  scorePill: { padding: "3px 10px", borderRadius: RADIUS.full, fontSize: 12, fontWeight: 900, color: TEXT },
   yourRankSub: { fontSize: 12, color: whiteAlpha(0.42), lineHeight: 1.4, fontWeight: 600 },
 
   weeklyChampionBanner: {
@@ -88,7 +88,7 @@ const styles = {
   weeklyChampionCrown: { fontSize: 20 },
   weeklyChampionTitle: { fontSize: 10, fontWeight: 900, letterSpacing: 2.5, color: GOLD, textTransform: "uppercase" },
   weeklyChampionName: {
-    fontSize: 22, fontWeight: 1000, color: "#fff", lineHeight: 1.1,
+    fontSize: 22, fontWeight: 1000, color: TEXT, lineHeight: 1.1,
     fontFamily: "var(--font-display, 'Anton', sans-serif)",
     textTransform: "uppercase", letterSpacing: "-0.01em",
   },
@@ -105,7 +105,7 @@ const styles = {
   loading: { textAlign: "center", color: whiteAlpha(0.45), padding: 40, fontSize: 14 },
   emptyWrap: { display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 60, paddingBottom: 40, textAlign: "center" },
   emptyIcon: { fontSize: 48, marginBottom: 16 },
-  emptyTitle: { margin: "0 0 8px", fontSize: 18, fontWeight: 800, color: "#fff" },
+  emptyTitle: { margin: "0 0 8px", fontSize: 18, fontWeight: 800, color: TEXT },
   emptyText: { margin: 0, fontSize: 14, color: whiteAlpha(0.4), maxWidth: 260, lineHeight: 1.55 },
 
   list: { display: "grid", gap: 10 },
@@ -126,7 +126,7 @@ const styles = {
   },
   rowSecond: {
     background: "linear-gradient(145deg, rgba(156,163,175,0.07), rgba(156,163,175,0.02))",
-    border: "1px solid rgba(156,163,175,0.18)", borderLeft: "3px solid #9CA3AF",
+    border: "1px solid rgba(156,163,175,0.18)", borderLeft: `3px solid ${MUTED}`,
     borderRadius: `3px ${RADIUS.lg}px ${RADIUS.lg}px 3px`,
   },
   rowThird: {
@@ -143,7 +143,7 @@ const styles = {
     overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
   },
   avatarImg: { width: "100%", height: "100%", objectFit: "cover", display: "block" },
-  avatarInitial: { fontSize: 18, fontWeight: 900, color: "#fff" },
+  avatarInitial: { fontSize: 18, fontWeight: 900, color: TEXT },
   nameBlock: { minWidth: 0 },
   displayName: { fontSize: 14, fontWeight: 800, lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
   youTag: { fontSize: 9, fontWeight: 900, letterSpacing: 1, color: RED, verticalAlign: "middle" },

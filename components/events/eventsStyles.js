@@ -1,14 +1,10 @@
-import {
-  RED, RED_DARK, GOLD, BG, SURFACE_1, SURFACE_2,
-  BORDER, BORDER_2, RADIUS, MOTION,
-  redAlpha, goldAlpha, whiteAlpha, blackAlpha, pageBg,
-} from "@/lib/tokens";
+import { BG, BORDER, BORDER_2, GOLD, MOTION, RADIUS, RED, RED_DARK, SURFACE_1, SURFACE_2, TEXT, blackAlpha, goldAlpha, pageBg, redAlpha, whiteAlpha } from "@/lib/tokens";
 
 const s = {
   page: {
     minHeight: "100dvh",
     background: pageBg(0.15),
-    color: "#fff",
+    color: TEXT,
   },
 
   // ── Sticky header ─────────────────────────────────────────────────────────
@@ -56,23 +52,23 @@ const s = {
   input: {
     width: "100%", boxSizing: "border-box", padding: "11px 13px",
     borderRadius: RADIUS.sm, border: `1px solid ${BORDER}`,
-    background: SURFACE_1, color: "#fff", fontSize: 14, outline: "none", colorScheme: "dark",
+    background: SURFACE_1, color: TEXT, fontSize: 14, outline: "none", colorScheme: "dark",
   },
   textarea: {
     width: "100%", boxSizing: "border-box", padding: "11px 13px",
     borderRadius: RADIUS.sm, border: `1px solid ${BORDER}`,
-    background: SURFACE_1, color: "#fff", fontSize: 14, outline: "none",
+    background: SURFACE_1, color: TEXT, fontSize: 14, outline: "none",
     resize: "vertical", fontFamily: "inherit",
   },
   select: {
     width: "100%", padding: "11px 13px",
     borderRadius: RADIUS.sm, border: `1px solid ${BORDER}`,
-    background: SURFACE_1, color: "#fff", fontSize: 14, outline: "none", colorScheme: "dark",
+    background: SURFACE_1, color: TEXT, fontSize: 14, outline: "none", colorScheme: "dark",
   },
   submitBtn: {
     width: "100%", padding: 13, borderRadius: RADIUS.sm, border: "none",
     background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
-    color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer",
+    color: TEXT, fontSize: 14, fontWeight: 900, cursor: "pointer",
     boxShadow: `0 8px 24px ${redAlpha(0.32)}, inset 0 1px 0 ${whiteAlpha(0.1)}`,
   },
   submitBtnDisabled: {
@@ -93,7 +89,7 @@ const s = {
   tabActive: {
     flex: 1, padding: "9px 0", borderRadius: RADIUS.sm,
     border: `1px solid ${redAlpha(0.5)}`, background: redAlpha(0.12),
-    color: "#fff", fontSize: 12, fontWeight: 900, cursor: "pointer",
+    color: TEXT, fontSize: 12, fontWeight: 900, cursor: "pointer",
     boxShadow: `0 0 14px ${redAlpha(0.1)}`,
   },
 
@@ -144,7 +140,7 @@ const s = {
     background: "#34D399", boxShadow: "0 0 6px #34D399",
     animation: "pulse 1.4s infinite",
   },
-  eventTitle: { margin: "0 0 8px", fontSize: 16, fontWeight: 900, lineHeight: 1.25, color: "#fff" },
+  eventTitle: { margin: "0 0 8px", fontSize: 16, fontWeight: 900, lineHeight: 1.25, color: TEXT },
   eventMeta: { display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 },
   metaChip: { fontSize: 11, color: whiteAlpha(0.45), fontWeight: 600 },
   eventDesc: { margin: "0 0 10px", fontSize: 12, color: whiteAlpha(0.42), lineHeight: 1.5 },
@@ -153,7 +149,7 @@ const s = {
   rsvpBtn: {
     padding: "7px 18px", borderRadius: RADIUS.full, border: "none",
     background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
-    color: "#fff", fontSize: 12, fontWeight: 900, cursor: "pointer",
+    color: TEXT, fontSize: 12, fontWeight: 900, cursor: "pointer",
     flexShrink: 0, boxShadow: `0 4px 14px ${redAlpha(0.3)}`,
   },
   goingBtn: {

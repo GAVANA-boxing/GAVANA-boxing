@@ -1,4 +1,4 @@
-import { RED, GOLD, PURPLE, BORDER, BORDER_2, RADIUS, MOTION, redAlpha, goldAlpha, whiteAlpha, blackAlpha } from "@/lib/tokens";
+import { BORDER, BORDER_2, GOLD, MOTION, PURPLE, RADIUS, RED, TEXT, blackAlpha, goldAlpha, redAlpha, whiteAlpha } from "@/lib/tokens";
 
 const feedbackStyles = {
   // ── feedbackSheetStyles ──────────────────────────────────────────────────
@@ -26,7 +26,7 @@ const feedbackStyles = {
     borderTop: `1px solid ${BORDER_2}`,
     background: `linear-gradient(145deg, ${redAlpha(0.14)}, rgba(11,11,11,0.98) 36%, ${goldAlpha(0.07)})`,
     boxShadow: `0 -24px 80px ${blackAlpha(0.58)}`,
-    color: "#fff",
+    color: TEXT,
   },
   feedbackHandle: {
     width: 42,
@@ -57,7 +57,7 @@ const feedbackStyles = {
   },
   feedbackTitle: {
     margin: "5px 0 0",
-    color: "#fff",
+    color: TEXT,
     fontSize: 24,
     lineHeight: 1,
     fontWeight: 1000,
@@ -77,7 +77,7 @@ const feedbackStyles = {
     borderStyle: "solid",
     borderColor: BORDER_2,
     background: whiteAlpha(0.08),
-    color: "#fff",
+    color: TEXT,
     fontSize: 18,
     cursor: "pointer",
     display: "flex",
@@ -144,7 +144,7 @@ const feedbackStyles = {
   feedbackResult: {
     margin: 0,
     whiteSpace: "pre-wrap",
-    color: "#fff",
+    color: TEXT,
     fontFamily: "inherit",
     fontSize: 14,
     lineHeight: 1.62,
@@ -198,7 +198,7 @@ const feedbackStyles = {
   xpCardTotalLabel: {
     fontSize: 12,
     fontWeight: 900,
-    color: "#fff",
+    color: TEXT,
   },
   xpCardTotalVal: {
     fontSize: 18,
@@ -284,7 +284,7 @@ const feedbackStyles = {
     fontWeight: 900,
     color: whiteAlpha(0.62),
     letterSpacing: 0,
-    textShadow: "0 1px 4px rgba(0,0,0,0.8)",
+    textShadow: `0 1px 4px ${blackAlpha(0.8)}`,
     textTransform: "uppercase",
     whiteSpace: "nowrap",
   },
@@ -296,8 +296,8 @@ const feedbackStyles = {
     fontSize: 15,
     lineHeight: 1.05,
     fontWeight: 1000,
-    color: "#fff",
-    textShadow: "0 2px 8px rgba(0,0,0,0.9)",
+    color: TEXT,
+    textShadow: `0 2px 8px ${blackAlpha(0.9)}`,
   },
   creatorInfo: {
     flex: 1,
@@ -310,7 +310,7 @@ const feedbackStyles = {
     lineHeight: 1.25,
     fontWeight: 800,
     color: whiteAlpha(0.74),
-    textShadow: "0 2px 8px rgba(0,0,0,0.9)",
+    textShadow: `0 2px 8px ${blackAlpha(0.9)}`,
   },
   metricsChips: {
     display: "flex",
@@ -334,7 +334,7 @@ const feedbackStyles = {
     fontWeight: 800,
     letterSpacing: 0,
     whiteSpace: "nowrap",
-    textShadow: "0 1px 4px rgba(0,0,0,0.8)",
+    textShadow: `0 1px 4px ${blackAlpha(0.8)}`,
   },
   reelBadgeRow: {
     display: "flex",
@@ -378,7 +378,7 @@ const feedbackStyles = {
     borderRadius: RADIUS.full,
     border: "none",
     background: RED,
-    color: "#fff",
+    color: TEXT,
     fontFamily: "inherit",
     fontSize: 10,
     lineHeight: 1,
@@ -496,7 +496,7 @@ const feedbackStyles = {
     alignItems: "center",
     gap: 1,
   },
-  profileProgressStatVal: { color: "#fff", fontSize: 17, fontWeight: 1000, lineHeight: 1 },
+  profileProgressStatVal: { color: TEXT, fontSize: 17, fontWeight: 1000, lineHeight: 1 },
   profileProgressStatLbl: {
     color: whiteAlpha(0.55),
     fontSize: 8,

@@ -1,10 +1,10 @@
-import { RED, RED_DARK, BG, redAlpha, GOLD, goldAlpha, BORDER_2, RADIUS, whiteAlpha, blackAlpha, pageBg } from "@/lib/tokens";
+import { BG, BORDER_2, GOLD, RADIUS, RED, RED_DARK, TEXT, blackAlpha, goldAlpha, pageBg, redAlpha, whiteAlpha } from "@/lib/tokens";
 
 const styles = {
   page: {
     minHeight: "100dvh",
     background: pageBg(),
-    color: "#fff",
+    color: TEXT,
   },
   content: {
     maxWidth: 520,
@@ -29,7 +29,7 @@ const styles = {
     boxShadow: `0 0 0 0.5px ${blackAlpha(0.5)} inset, 0 8px 32px ${blackAlpha(0.2)}`,
   },
   statCell: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 },
-  statNum: { fontSize: 22, fontWeight: 1000, color: "#fff", lineHeight: 1 },
+  statNum: { fontSize: 22, fontWeight: 1000, color: TEXT, lineHeight: 1 },
   statLbl: { fontSize: 10, color: whiteAlpha(0.65), fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 },
   statDivider: { width: 1, height: 32, background: BORDER_2 },
   sectionTitle: { margin: "0 0 14px", fontSize: 15, fontWeight: 1000, color: whiteAlpha(0.7), letterSpacing: 0.5, textTransform: "uppercase" },
@@ -60,11 +60,11 @@ const styles = {
     background: RED,
     border: `2px solid ${goldAlpha(0.35)}`,
     display: "flex", alignItems: "center", justifyContent: "center",
-    fontSize: 16, fontWeight: 1000, color: "#fff", flexShrink: 0,
+    fontSize: 16, fontWeight: 1000, color: TEXT, flexShrink: 0,
   },
   cardMeta: { flex: 1, display: "flex", flexDirection: "column", gap: 3, minWidth: 0 },
   cardNameRow: { display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" },
-  cardName: { fontSize: 15, fontWeight: 1000, color: "#fff" },
+  cardName: { fontSize: 15, fontWeight: 1000, color: TEXT },
   typeChipCoach: {
     fontSize: 10, fontWeight: 900, color: GOLD,
     background: goldAlpha(0.12), border: `1px solid ${goldAlpha(0.25)}`,
@@ -104,7 +104,7 @@ const styles = {
     border: `1px solid ${whiteAlpha(0.1)}`, background: whiteAlpha(0.05),
     color: whiteAlpha(0.65), fontSize: 12, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap",
   },
-  filterTabActive: { background: RED, border: `1px solid ${RED}`, color: "#fff" },
+  filterTabActive: { background: RED, border: `1px solid ${RED}`, color: TEXT },
   filterTabCount: {
     fontSize: 10, fontWeight: 900, background: whiteAlpha(0.16),
     borderRadius: RADIUS.full, padding: "1px 6px", lineHeight: 1.4,
@@ -123,18 +123,18 @@ const styles = {
   modalLabel: { fontSize: 11, fontWeight: 900, color: whiteAlpha(0.65), textTransform: "uppercase", letterSpacing: 0.8 },
   modalInput: {
     minHeight: 44, borderRadius: 12, border: `1px solid ${whiteAlpha(0.12)}`,
-    background: whiteAlpha(0.06), color: "#fff", fontSize: 15,
+    background: whiteAlpha(0.06), color: TEXT, fontSize: 15,
     padding: "0 14px", outline: "none", colorScheme: "dark",
   },
   modalSelect: {
     minHeight: 44, borderRadius: 12, border: `1px solid ${whiteAlpha(0.12)}`,
-    background: whiteAlpha(0.06), color: "#fff", fontSize: 15,
+    background: whiteAlpha(0.06), color: TEXT, fontSize: 15,
     padding: "0 14px", outline: "none", colorScheme: "dark",
   },
   confirmBtn: {
     minHeight: 48, borderRadius: RADIUS.md, border: "none",
     background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
-    color: "#fff", fontSize: 15, fontWeight: 1000, cursor: "pointer",
+    color: TEXT, fontSize: 15, fontWeight: 1000, cursor: "pointer",
     boxShadow: `0 8px 24px ${redAlpha(0.35)}, inset 0 1px 0 ${whiteAlpha(0.1)}`, marginTop: 4,
   },
   bookingSuccessMsg: { textAlign: "center", padding: "24px 0", fontSize: 18, fontWeight: 1000, color: "#34D399" },
@@ -146,7 +146,7 @@ const styles = {
   acceptBtn: {
     flex: 2, minHeight: 38, border: "none", borderRadius: RADIUS.sm,
     background: "linear-gradient(135deg, #166534, #15803d)",
-    color: "#fff", fontSize: 13, fontWeight: 1000, cursor: "pointer",
+    color: TEXT, fontSize: 13, fontWeight: 1000, cursor: "pointer",
     boxShadow: "0 6px 18px rgba(22,101,52,0.35)",
   },
   bookedRow: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" },

@@ -1,14 +1,14 @@
-import { RED, BG, SURFACE_1, BORDER, RADIUS, redAlpha, GOLD, goldAlpha, whiteAlpha, blackAlpha, pageBg } from "@/lib/tokens";
+import { BG, BORDER, GOLD, RADIUS, RED, SURFACE_1, TEXT, blackAlpha, goldAlpha, pageBg, redAlpha, whiteAlpha } from "@/lib/tokens";
 
 const styles = {
   page: {
     minHeight: "100dvh",
     background: pageBg(0.13),
-    color: "#fff",
+    color: TEXT,
     paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
   },
   centered: {
-    minHeight: "100dvh", background: BG, color: "#fff",
+    minHeight: "100dvh", background: BG, color: TEXT,
     display: "flex", alignItems: "center", justifyContent: "center",
   },
   header: {
@@ -22,7 +22,7 @@ const styles = {
   backButton: {
     border: `1px solid ${whiteAlpha(0.1)}`,
     background: whiteAlpha(0.05),
-    color: "#fff",
+    color: TEXT,
     borderRadius: 12, width: 40, height: 40,
     display: "flex", alignItems: "center", justifyContent: "center",
     cursor: "pointer", flexShrink: 0,
@@ -68,7 +68,7 @@ const styles = {
   },
   filterChipActive: {
     background: redAlpha(0.16), border: `1px solid ${redAlpha(0.52)}`,
-    color: "#fff", fontWeight: 900, boxShadow: `0 0 14px ${redAlpha(0.15)}`,
+    color: TEXT, fontWeight: 900, boxShadow: `0 0 14px ${redAlpha(0.15)}`,
   },
   clearBtn: {
     flexShrink: 0, padding: "6px 12px", borderRadius: RADIUS.full,
@@ -101,14 +101,14 @@ const styles = {
     display: "flex", alignItems: "center", justifyContent: "center",
     marginBottom: 16, boxShadow: `0 0 40px ${redAlpha(0.14)}`,
   },
-  emptyTitle: { margin: 0, color: "#fff", fontSize: 17, fontWeight: 800 },
+  emptyTitle: { margin: 0, color: TEXT, fontSize: 17, fontWeight: 800 },
   emptyText: { margin: "8px 0 0", maxWidth: 260, lineHeight: 1.55, fontSize: 13, color: whiteAlpha(0.35) },
 
   notification: {
     width: "100%", display: "flex", alignItems: "center", gap: 13,
     padding: "13px 14px",
     border: `1px solid ${BORDER}`,
-    borderRadius: RADIUS.lg, color: "#fff", textAlign: "left", cursor: "pointer",
+    borderRadius: RADIUS.lg, color: TEXT, textAlign: "left", cursor: "pointer",
     position: "relative", overflow: "hidden",
     transition: "background 200ms ease",
     backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
@@ -123,7 +123,7 @@ const styles = {
   avatar: {
     width: 46, height: 46, borderRadius: "50%",
     background: whiteAlpha(0.07),
-    color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+    color: TEXT, display: "flex", alignItems: "center", justifyContent: "center",
     fontWeight: 800, fontSize: 17, overflow: "hidden", flexShrink: 0,
     border: `1.5px solid ${whiteAlpha(0.1)}`,
   },
@@ -141,7 +141,7 @@ const styles = {
     display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 3,
   },
   username: {
-    fontSize: 13, fontWeight: 800, color: "#fff",
+    fontSize: 13, fontWeight: 800, color: TEXT,
     overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "65%",
   },
   date: { color: whiteAlpha(0.28), fontSize: 10, whiteSpace: "nowrap", flexShrink: 0 },

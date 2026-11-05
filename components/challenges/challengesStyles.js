@@ -1,10 +1,10 @@
-import { RED, RED_DARK, redAlpha, goldAlpha, GOLD, BG, RADIUS, whiteAlpha, blackAlpha, pageBg } from "@/lib/tokens";
+import { BG, GOLD, RADIUS, RED, RED_DARK, TEXT, blackAlpha, goldAlpha, pageBg, redAlpha, whiteAlpha } from "@/lib/tokens";
 
 const styles = {
   page: {
     minHeight: "100dvh",
     background: pageBg(0.16),
-    color: "#fff",
+    color: TEXT,
     padding: "calc(28px + env(safe-area-inset-top)) 16px calc(92px + env(safe-area-inset-bottom))",
   },
   backBtn: {
@@ -13,11 +13,11 @@ const styles = {
     background: blackAlpha(0.4),
     borderRadius: 12,
     display: "flex", alignItems: "center", justifyContent: "center",
-    cursor: "pointer", padding: 0, color: "#fff", justifySelf: "start",
+    cursor: "pointer", padding: 0, color: TEXT, justifySelf: "start",
     backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)",
   },
   loading: {
-    minHeight: "100dvh", background: BG, color: "#fff",
+    minHeight: "100dvh", background: BG, color: TEXT,
     display: "flex", alignItems: "center", justifyContent: "center",
   },
   shell: { maxWidth: 540, margin: "0 auto", display: "grid", gap: 14 },
@@ -63,7 +63,7 @@ const styles = {
   },
   mainTabActive: {
     background: whiteAlpha(0.07),
-    color: "#fff",
+    color: TEXT,
     boxShadow: `0 2px 8px ${blackAlpha(0.3)}`,
   },
 
@@ -83,7 +83,7 @@ const styles = {
   },
   seasonTabActive: {
     background: whiteAlpha(0.09),
-    color: "#fff",
+    color: TEXT,
   },
 
   // ── Champion banner ──
@@ -102,7 +102,7 @@ const styles = {
   champBadge: { fontSize: 18, flexShrink: 0, lineHeight: 1 },
   champInfo: { display: "grid", gap: 2, flex: 1, minWidth: 0 },
   champName: {
-    fontSize: 13, fontWeight: 900, color: "#fff",
+    fontSize: 13, fontWeight: 900, color: TEXT,
     overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
   },
   champChallenge: { fontSize: 10, color: whiteAlpha(0.35), fontWeight: 700 },
@@ -139,8 +139,8 @@ const styles = {
   countdownBanner: {
     display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
     minHeight: 36, padding: "0 16px", borderRadius: 12,
-    background: "rgba(245,196,81,0.08)",
-    border: "1px solid rgba(245,196,81,0.22)",
+    background: goldAlpha(0.08),
+    border: `1px solid ${goldAlpha(0.22)}`,
     textAlign: "center",
   },
   countdownBannerUrgent: {
@@ -149,11 +149,11 @@ const styles = {
   },
   countdownLabel: {
     fontSize: 9, fontWeight: 900, letterSpacing: 1.8, textTransform: "uppercase",
-    color: "rgba(245,196,81,0.6)",
+    color: goldAlpha(0.6),
   },
   countdownLabelUrgent: { color: "rgba(248,113,113,0.7)" },
   countdownValue: {
-    fontSize: 13, fontWeight: 900, letterSpacing: 1, color: "rgba(245,196,81,0.9)",
+    fontSize: 13, fontWeight: 900, letterSpacing: 1, color: goldAlpha(0.9),
     fontVariantNumeric: "tabular-nums",
   },
   countdownValueUrgent: { color: "#F87171" },
@@ -185,7 +185,7 @@ const styles = {
   },
   cardTitleGroup: { flex: 1, minWidth: 0, paddingTop: 2 },
   cardTitle: {
-    margin: 0, color: "#fff", fontSize: 15, fontWeight: 900,
+    margin: 0, color: TEXT, fontSize: 15, fontWeight: 900,
     letterSpacing: "-0.01em", lineHeight: 1.15,
   },
   cardDesc: {
@@ -196,7 +196,7 @@ const styles = {
     flexShrink: 0, padding: "9px 16px", border: "none", borderRadius: 100,
     background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`,
     boxShadow: `0 4px 14px ${redAlpha(0.35)}`,
-    color: "#fff", fontSize: 10, fontWeight: 900, whiteSpace: "nowrap",
+    color: TEXT, fontSize: 10, fontWeight: 900, whiteSpace: "nowrap",
     cursor: "pointer", letterSpacing: 1, textTransform: "uppercase",
     marginTop: 2,
   },
@@ -253,7 +253,7 @@ const styles = {
     flexShrink: 0, overflow: "hidden",
     background: `linear-gradient(135deg, ${redAlpha(0.35)}, ${redAlpha(0.15)})`,
     border: `1px solid ${whiteAlpha(0.12)}`,
-    color: "#fff", fontSize: 11, fontWeight: 900,
+    color: TEXT, fontSize: 11, fontWeight: 900,
   },
   avatarCurrent: {
     background: `linear-gradient(135deg, ${goldAlpha(0.4)}, ${goldAlpha(0.2)})`,
@@ -264,11 +264,11 @@ const styles = {
     minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
     color: whiteAlpha(0.8), fontSize: 13, fontWeight: 700,
   },
-  fighterNameCurrent: { color: "#fff", fontWeight: 900 },
+  fighterNameCurrent: { color: TEXT, fontWeight: 900 },
 
   // Score display
   scoreStack: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2, flexShrink: 0 },
-  scoreValue: { color: "#fff", fontSize: 15, fontWeight: 900, letterSpacing: "-0.01em" },
+  scoreValue: { color: TEXT, fontSize: 15, fontWeight: 900, letterSpacing: "-0.01em" },
   scoreValueCurrent: { color: GOLD },
   xpValue: { color: goldAlpha(0.55), fontSize: 10, fontWeight: 700 },
 };

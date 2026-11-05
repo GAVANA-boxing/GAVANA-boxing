@@ -1,11 +1,7 @@
-import {
-  RED, RED_DARK, GOLD, BG, SURFACE_1, SURFACE, SURFACE_2,
-  BORDER, BORDER_2, MUTED, SP, RADIUS, MOTION,
-  redAlpha, goldAlpha, whiteAlpha, blackAlpha, pageBg,
-} from "@/lib/tokens";
+import { BG, BORDER, BORDER_2, GOLD, MOTION, MUTED, RADIUS, RED, RED_DARK, SP, SURFACE, SURFACE_1, SURFACE_2, TEXT, blackAlpha, goldAlpha, pageBg, redAlpha, whiteAlpha } from "@/lib/tokens";
 
 const S = {
-  loading: { minHeight: "100dvh", background: BG, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" },
+  loading: { minHeight: "100dvh", background: BG, display: "flex", alignItems: "center", justifyContent: "center", color: TEXT },
 
   // ── Video step
   videoPage: { minHeight: "100dvh", background: "#000", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" },
@@ -36,7 +32,7 @@ const S = {
     boxShadow: `0 0 40px ${goldAlpha(0.1)}`,
   },
   videoEmptyKicker: { margin: 0, fontSize: 9, fontWeight: 900, letterSpacing: "3.5px", textTransform: "uppercase", color: GOLD, textAlign: "center" },
-  videoEmptyLabel: { margin: 0, color: "#fff", fontSize: 22, fontWeight: 900, textAlign: "center", letterSpacing: "-0.02em", lineHeight: 1.1 },
+  videoEmptyLabel: { margin: 0, color: TEXT, fontSize: 22, fontWeight: 900, textAlign: "center", letterSpacing: "-0.02em", lineHeight: 1.1 },
   videoEmptySub: { margin: 0, color: whiteAlpha(0.35), fontSize: 13, textAlign: "center", lineHeight: 1.5 },
   videoBottomBar: {
     position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 20,
@@ -47,12 +43,12 @@ const S = {
   galleryBtn: {
     padding: "11px 22px", borderRadius: RADIUS.full,
     border: `1px solid ${whiteAlpha(0.2)}`, background: blackAlpha(0.4),
-    color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer",
+    color: TEXT, fontSize: 13, fontWeight: 800, cursor: "pointer",
   },
   nextBtn: {
     padding: "13px 30px", borderRadius: RADIUS.full, border: "none",
     background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`,
-    color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer",
+    color: TEXT, fontSize: 15, fontWeight: 900, cursor: "pointer",
     boxShadow: `0 6px 24px ${redAlpha(0.45)}`,
   },
 
@@ -69,15 +65,15 @@ const S = {
   iconBtn: {
     width: 40, height: 40, borderRadius: RADIUS.full,
     border: `1px solid ${BORDER_2}`, background: whiteAlpha(0.05),
-    color: "#fff", fontSize: 18, cursor: "pointer",
+    color: TEXT, fontSize: 18, cursor: "pointer",
     display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
     transition: `opacity ${MOTION.fast}`,
   },
-  headerTitle: { flex: 1, color: "#fff", fontSize: 16, fontWeight: 900, textAlign: "center", letterSpacing: "-0.01em" },
+  headerTitle: { flex: 1, color: TEXT, fontSize: 16, fontWeight: 900, textAlign: "center", letterSpacing: "-0.01em" },
   postBtn: {
     padding: "10px 22px", borderRadius: RADIUS.full, border: "none",
     background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
-    color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer",
+    color: TEXT, fontSize: 14, fontWeight: 900, cursor: "pointer",
     boxShadow: `0 4px 16px ${redAlpha(0.35)}, inset 0 1px 0 ${whiteAlpha(0.1)}`,
   },
   setupScroll: {
@@ -94,7 +90,7 @@ const S = {
     textTransform: "uppercase", color: RED,
   },
   sectionTitle: {
-    margin: "2px 0 0", fontSize: 18, fontWeight: 900, color: "#fff",
+    margin: "2px 0 0", fontSize: 18, fontWeight: 900, color: TEXT,
     letterSpacing: "-0.02em", lineHeight: 1,
   },
 
@@ -139,14 +135,14 @@ const S = {
   input: {
     background: SURFACE, border: `1px solid ${BORDER_2}`,
     borderRadius: RADIUS.sm, padding: "13px 16px",
-    color: "#fff", fontSize: 14, outline: "none",
+    color: TEXT, fontSize: 14, outline: "none",
     width: "100%", boxSizing: "border-box",
     transition: `border-color ${MOTION.fast}`,
   },
   textarea: {
     background: SURFACE, border: `1px solid ${BORDER_2}`,
     borderRadius: RADIUS.sm, padding: "13px 16px",
-    color: "#fff", fontSize: 14, minHeight: 82, resize: "none",
+    color: TEXT, fontSize: 14, minHeight: 82, resize: "none",
     outline: "none", width: "100%", boxSizing: "border-box",
     transition: `border-color ${MOTION.fast}`,
   },
@@ -167,11 +163,11 @@ const S = {
     padding: "14px 16px", borderRadius: RADIUS.md,
     background: SURFACE_1, border: `1px solid ${BORDER}`,
   },
-  toggleLabel: { fontSize: 14, fontWeight: 800, color: "#fff" },
+  toggleLabel: { fontSize: 14, fontWeight: 800, color: TEXT },
   toggleDesc: { fontSize: 12, color: whiteAlpha(0.38), marginTop: 3 },
   toggleBtn: {
     flexShrink: 0, minWidth: 52, padding: "7px 14px",
-    borderRadius: RADIUS.full, border: "none", color: "#fff",
+    borderRadius: RADIUS.full, border: "none", color: TEXT,
     fontSize: 12, fontWeight: 900, cursor: "pointer",
   },
 
@@ -215,8 +211,8 @@ const S = {
     borderRadius: RADIUS.sm, background: whiteAlpha(0.04),
   },
   captionLbl: { color: GOLD, fontSize: 10, fontWeight: 900, letterSpacing: "0.1em", textTransform: "uppercase" },
-  captionHook: { color: "#fff", fontSize: 14, fontWeight: 900, lineHeight: 1.45 },
-  captionBody: { color: "#fff", fontSize: 14, lineHeight: 1.55, whiteSpace: "pre-wrap" },
+  captionHook: { color: TEXT, fontSize: 14, fontWeight: 900, lineHeight: 1.45 },
+  captionBody: { color: TEXT, fontSize: 14, lineHeight: 1.55, whiteSpace: "pre-wrap" },
   captionActionBtn: {
     padding: "9px 14px", borderRadius: RADIUS.full,
     border: `1px solid ${goldAlpha(0.34)}`, background: goldAlpha(0.1),
@@ -226,7 +222,7 @@ const S = {
   primaryBtn: {
     padding: "15px 20px", borderRadius: RADIUS.md, border: "none",
     background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
-    color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer",
+    color: TEXT, fontSize: 15, fontWeight: 900, cursor: "pointer",
     boxShadow: `0 8px 28px ${redAlpha(0.28)}, inset 0 1px 0 ${whiteAlpha(0.1)}`,
     width: "100%",
   },

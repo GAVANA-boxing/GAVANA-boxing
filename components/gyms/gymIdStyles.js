@@ -1,9 +1,9 @@
-import { redAlpha, goldAlpha, RED, RED_DARK, GOLD, BG, RADIUS, whiteAlpha, blackAlpha, pageBg } from "@/lib/tokens";
+import { BG, GOLD, RADIUS, RED, RED_DARK, TEXT, blackAlpha, goldAlpha, pageBg, redAlpha, whiteAlpha } from "@/lib/tokens";
 
 const styles = {
-  page: { minHeight: "100dvh", background: pageBg(), color: "#fff" },
+  page: { minHeight: "100dvh", background: pageBg(), color: TEXT },
   content: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(90px + env(safe-area-inset-bottom))" },
-  backBtn: { width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", background: whiteAlpha(0.05), border: `1px solid ${whiteAlpha(0.1)}`, color: "#fff", borderRadius: 12, cursor: "pointer", padding: 0 },
+  backBtn: { width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", background: whiteAlpha(0.05), border: `1px solid ${whiteAlpha(0.1)}`, color: TEXT, borderRadius: 12, cursor: "pointer", padding: 0 },
   hero: { position: "relative", height: 200, borderRadius: RADIUS.lg, overflow: "hidden", background: "linear-gradient(135deg,#1a1a1a,#111)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 0, boxShadow: `0 8px 32px ${blackAlpha(0.4)}` },
   heroImg: { width: "100%", height: "100%", objectFit: "cover" },
   heroPlaceholder: { display: "flex", alignItems: "center", justifyContent: "center" },
@@ -17,13 +17,13 @@ const styles = {
   gymAddress: { margin: 0, fontSize: 12, color: whiteAlpha(0.5) },
   statsRow: { display: "flex", gap: 0, borderRadius: 16, background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.07)}`, backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", marginBottom: 16, overflow: "hidden" },
   statCell: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, padding: "14px 8px" },
-  statNum: { fontSize: 17, fontWeight: 1000, color: "#fff" },
+  statNum: { fontSize: 17, fontWeight: 1000, color: TEXT },
   statLbl: { fontSize: 10, color: whiteAlpha(0.5), fontWeight: 700, textTransform: "uppercase" },
   ctaRow: { display: "flex", gap: 8, marginBottom: 20, alignItems: "flex-start", flexWrap: "wrap" },
-  joinBtn: { flex: 1, minHeight: 44, border: "none", borderRadius: 12, background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`, color: "#fff", fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: `0 6px 20px ${redAlpha(0.32)}, inset 0 1px 0 ${whiteAlpha(0.1)}` },
+  joinBtn: { flex: 1, minHeight: 44, border: "none", borderRadius: 12, background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`, color: TEXT, fontSize: 15, fontWeight: 900, cursor: "pointer", boxShadow: `0 6px 20px ${redAlpha(0.32)}, inset 0 1px 0 ${whiteAlpha(0.1)}` },
   requestedBtn: { flex: 1, minHeight: 44, border: "1px solid rgba(52,211,153,0.35)", borderRadius: 12, background: "rgba(52,211,153,0.08)", color: "#34D399", fontSize: 15, fontWeight: 900, cursor: "default" },
   manageBtn: { flex: 1, minHeight: 44, border: `1px solid ${goldAlpha(0.4)}`, borderRadius: 12, background: goldAlpha(0.1), color: GOLD, fontSize: 15, fontWeight: 900, cursor: "pointer" },
-  contactBtn: { width: 44, height: 44, borderRadius: 12, border: `1px solid ${whiteAlpha(0.1)}`, background: whiteAlpha(0.05), display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: "#fff", textDecoration: "none" },
+  contactBtn: { width: 44, height: 44, borderRadius: 12, border: `1px solid ${whiteAlpha(0.1)}`, background: whiteAlpha(0.05), display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: TEXT, textDecoration: "none" },
   joinForm: { borderRadius: 16, border: `1px solid ${whiteAlpha(0.09)}`, background: whiteAlpha(0.03), backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", padding: "16px", marginBottom: 16, display: "flex", flexDirection: "column", gap: 10 },
   section: { marginBottom: 24 },
   sectionTitle: { margin: "0 0 10px", fontSize: 10, fontWeight: 900, color: RED, letterSpacing: 2.5, textTransform: "uppercase" },
@@ -48,9 +48,9 @@ const styles = {
   reviewTop: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 },
   reviewDate: { fontSize: 11, color: whiteAlpha(0.45) },
   reviewText: { margin: 0, fontSize: 13, color: whiteAlpha(0.62), lineHeight: 1.5 },
-  textarea: { width: "100%", boxSizing: "border-box", padding: "10px 12px", borderRadius: RADIUS.sm, border: `1px solid ${whiteAlpha(0.1)}`, background: whiteAlpha(0.05), color: "#fff", fontSize: 14, resize: "none", outline: "none", fontFamily: "inherit" },
+  textarea: { width: "100%", boxSizing: "border-box", padding: "10px 12px", borderRadius: RADIUS.sm, border: `1px solid ${whiteAlpha(0.1)}`, background: whiteAlpha(0.05), color: TEXT, fontSize: 14, resize: "none", outline: "none", fontFamily: "inherit" },
   cancelBtn: { flex: 1, minHeight: 40, border: `1px solid ${whiteAlpha(0.1)}`, borderRadius: RADIUS.sm, background: "transparent", color: whiteAlpha(0.45), fontSize: 14, fontWeight: 700, cursor: "pointer" },
-  submitBtn: { flex: 2, minHeight: 40, border: "none", borderRadius: RADIUS.sm, background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`, color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: `0 6px 18px ${redAlpha(0.28)}` },
+  submitBtn: { flex: 2, minHeight: 40, border: "none", borderRadius: RADIUS.sm, background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`, color: TEXT, fontSize: 14, fontWeight: 900, cursor: "pointer", boxShadow: `0 6px 18px ${redAlpha(0.28)}` },
   errorText: { margin: 0, fontSize: 13, color: "#F87171" },
   successText: { margin: "0 0 10px", fontSize: 13, color: "#34D399", fontWeight: 700 },
   emptyText: { margin: 0, fontSize: 13, color: whiteAlpha(0.45) },
@@ -65,7 +65,7 @@ const styles = {
   memberSlot: { display: "flex", flexDirection: "column", alignItems: "center", gap: 4 },
   memberAvatar: { width: 44, height: 44, borderRadius: "50%", overflow: "hidden", background: redAlpha(0.2), display: "flex", alignItems: "center", justifyContent: "center" },
   memberAvatarImg: { width: "100%", height: "100%", objectFit: "cover" },
-  memberAvatarInitial: { fontSize: 16, fontWeight: 800, color: "#fff" },
+  memberAvatarInitial: { fontSize: 16, fontWeight: 800, color: TEXT },
   memberName: { fontSize: 10, fontWeight: 700, color: whiteAlpha(0.45), maxWidth: 44, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" },
 };
 

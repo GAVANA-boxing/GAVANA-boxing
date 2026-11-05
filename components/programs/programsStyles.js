@@ -1,4 +1,4 @@
-import { goldAlpha, redAlpha, GOLD, RED, BG, BORDER, BORDER_2, RADIUS, whiteAlpha, blackAlpha } from "@/lib/tokens";
+import { BG, BORDER, BORDER_2, GOLD, RADIUS, RED, TEXT, blackAlpha, goldAlpha, redAlpha, whiteAlpha } from "@/lib/tokens";
 
 const s = {
   aiBuilderBanner: {
@@ -11,7 +11,7 @@ const s = {
   page: {
     minHeight: "100dvh",
     background: `radial-gradient(ellipse at 50% 0%, ${goldAlpha(0.1)} 0%, transparent 40%), ${BG}`,
-    color: "#fff",
+    color: TEXT,
     display: "flex",
     flexDirection: "column",
     paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
@@ -37,7 +37,7 @@ const s = {
     justifyContent: "center",
     background: whiteAlpha(0.05),
     border: `1px solid ${whiteAlpha(0.1)}`,
-    color: "#fff",
+    color: TEXT,
     borderRadius: 12,
     cursor: "pointer",
     padding: 0,
@@ -97,7 +97,7 @@ const s = {
     margin: "6px 0 0",
     fontSize: 15,
     fontWeight: 900,
-    color: "#fff",
+    color: TEXT,
   },
   streakBadge: {
     display: "inline-flex",
@@ -118,7 +118,7 @@ const s = {
     border: "none",
     fontSize: 13,
     fontWeight: 900,
-    color: "#fff",
+    color: TEXT,
     transition: "opacity 0.15s",
   },
   unenrollBtn: {
@@ -166,7 +166,7 @@ const s = {
     padding: "10px 0",
     borderRadius: RADIUS.sm,
     border: "none",
-    color: "#fff",
+    color: TEXT,
     fontSize: 13,
     fontWeight: 900,
     cursor: "pointer",
@@ -224,12 +224,12 @@ const s = {
     margin: "3px 0 0",
     fontSize: 16,
     fontWeight: 900,
-    color: "#fff",
+    color: TEXT,
   },
   closeSheetBtn: {
     background: whiteAlpha(0.07),
     border: `1px solid ${whiteAlpha(0.1)}`,
-    color: "#fff",
+    color: TEXT,
     width: 32,
     height: 32,
     borderRadius: 8,
@@ -251,7 +251,7 @@ const s = {
     padding: "14px 0",
     borderRadius: RADIUS.md,
     border: "none",
-    color: "#fff",
+    color: TEXT,
     fontSize: 15,
     fontWeight: 900,
     cursor: "pointer",
