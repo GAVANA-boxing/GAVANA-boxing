@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { calculateUserXP } from "@/lib/xp";
+import { getAccountXp } from "@/lib/domain/progression";
 
 export function useRankData({ user, authLoading }) {
   const [xp, setXp] = useState(null);
@@ -24,13 +24,14 @@ export function useRankData({ user, authLoading }) {
 
         const docs = feedbackSnap.docs.map((d) => ({ score: d.data().score, createdAt: d.data().createdAt }));
         const profileData = profileSnap.exists() ? profileSnap.data() : {};
-        const storedXP = Number(profileData.xp) || 0;
-        const streak = Number(profileData.dailyStreak) || 0;
-        const likes = Number(profileData.likesReceived) || 0;
-        const aiXP = calculateUserXP({ aiFeedbackDocs: docs, streakDays: streak, likesReceived: likes });
 
         if (active) {
-          setXp(storedXP + aiXP);
+          setXp(getAccountXp({
+            storedXp: profileData.xp,
+            aiFeedbackDocs: docs,
+            streakDays: Number(profileData.dailyStreak) || 0,
+            likesReceived: Number(profileData.likesReceived) || 0,
+          }));
           setSessionCount(feedbackSnap.docs.length);
           setTier(profileData.subscriptionTier || profileData.tier || null);
         }
