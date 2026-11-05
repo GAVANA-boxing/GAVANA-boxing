@@ -51,7 +51,7 @@ function ReportCard({ report, onDismiss, onAction, locale }) {
       </div>
       {report.note && (
         <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontStyle: "italic", padding: "8px 10px", background: "rgba(255,255,255,0.04)", borderRadius: 8 }}>
-          "{report.note}"
+          &ldquo;{report.note}&rdquo;
         </div>
       )}
       {report.status === "pending" && (

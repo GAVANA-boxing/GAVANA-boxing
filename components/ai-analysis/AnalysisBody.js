@@ -168,7 +168,7 @@ export default function AnalysisBody({
       {/* Technique cue */}
       {isBoxing && aiData?.techniqueCue && (
         <div style={{ borderRadius: 12, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", padding: "12px 14px", fontStyle: "italic", fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.5, textAlign: "center" }}>
-          "{aiData.techniqueCue}"
+          &ldquo;{aiData.techniqueCue}&rdquo;
         </div>
       )}
 

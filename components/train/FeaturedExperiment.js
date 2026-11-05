@@ -26,7 +26,7 @@ export default function FeaturedExperiment({ locale, pkg, fighter, router }) {
               {weekLabel}
             </div>
             <div style={{ fontSize: 10, fontWeight: 700, color: pkg.accent, fontStyle: "italic", marginTop: 2 }}>
-              "{pkg.theme[locale] || pkg.theme.en}"
+              &ldquo;{pkg.theme[locale] || pkg.theme.en}&rdquo;
             </div>
           </div>
           <div style={{ width: 44, height: 44, borderRadius: 12, background: `${pkg.accent}18`, border: `1px solid ${pkg.accent}35`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>

@@ -42,7 +42,7 @@ export default function TribeCard({ archetypeKey, archetype, tribeCount, locale 
           {archetype}
         </div>
         <div style={{ fontSize: 12, fontWeight: 800, color: acc, marginBottom: 8, fontStyle: "italic" }}>
-          "{info.motto}"
+          &ldquo;{info.motto}&rdquo;
         </div>
         <div style={{ fontSize: 11, color: whiteAlpha(0.4), lineHeight: 1.5, fontWeight: 600 }}>
           {info.desc}
