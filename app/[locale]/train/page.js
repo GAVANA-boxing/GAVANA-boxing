@@ -37,6 +37,7 @@ import dynamic from "next/dynamic";
 import { Toast, useToast } from "@/components/ui/Toast";
 import { CORE_MODE } from "@/lib/coreRoutes";
 import { funnel, FUNNEL } from "@/lib/funnel";
+import { loc } from "@/lib/loc";
 const PoseDebugOverlay   = dynamic(() => import("@/components/train/PoseDebugOverlay"),   { ssr: false });
 const DebugSessionPanel  = dynamic(() => import("@/components/train/DebugSessionPanel"),  { ssr: false });
 const LivePunchCounter   = dynamic(() => import("@/components/train/LivePunchCounter"),   { ssr: false });
@@ -97,8 +98,12 @@ export default function TrainPage() {
   const activeChallenge = challengeId ? CHALLENGES[challengeId] : null;
   const activeChallengeName = activeChallenge ? t(activeChallenge.titleKey) : "";
 
-  // Drill config: challenge > standalone drill > default
-  const drillConfig = getDrillConfig(challengeId || drillId || "default");
+  // Drill config: challenge > standalone drill > first-win > default.
+  // A brand-new fighter (guest, or signed in with zero sessions) gets the 20s
+  // "speed-test" drill — a 12-punch goal they can hit in seconds — instead of a
+  // 2-minute session. Best-in-class apps land the first win in ~20-30s.
+  const isFirstWin = !challengeId && !drillId && (!user || totalSessionCount === 0);
+  const drillConfig = getDrillConfig(challengeId || drillId || (isFirstWin ? "speed-test" : "default"));
 
   const pvpSavedRef = useRef(false);
   const resetForNewSessionRef = useRef(null);
@@ -429,16 +434,26 @@ export default function TrainPage() {
   }, [result?.score]);
 
   // ── Setup cue: poll during recording to detect camera framing issues ──
-  // Only shown after 20s so it doesn't disrupt the session start
+  // Starts after 3s (the first session is only 20s). If the pose model is ready
+  // but sees no body for ~2.4s, say so plainly instead of only a red ring.
   useEffect(() => {
     if (phase !== "recording") { setPositionCue(null); return; }
     let active = true;
+    let misses = 0;
     const delayId = setTimeout(() => {
       if (!active) return;
       const id = setInterval(() => {
         if (!active) { clearInterval(id); return; }
         const info = getDebugInfo();
-        if (info.status !== "ready" || !info.landmarksDetected) { setPositionCue(null); return; }
+        if (info.status !== "ready") { setPositionCue(null); return; }
+        if (!info.landmarksDetected) {
+          misses += 1;
+          setPositionCue(misses >= 2
+            ? loc(locale, "Ухарч зогс — биеийг чинь харахгүй байна", "뒤로 물러서세요 — 몸이 보이지 않아요", "Step back — we can't see you")
+            : null);
+          return;
+        }
+        misses = 0;
         const q = info.cameraQuality;
         if (q === "too_close") {
           setPositionCue(t("trainCueTooClose"));
@@ -451,7 +466,7 @@ export default function TrainPage() {
         }
       }, 1200);
       return () => clearInterval(id);
-    }, 20000);
+    }, 3000);
     return () => { active = false; clearTimeout(delayId); setPositionCue(null); };
   }, [phase, getDebugInfo]);
 
@@ -583,13 +598,15 @@ export default function TrainPage() {
   // Auto-start when coming from landing with ?autostart=1
   const autoStartFiredRef = useRef(false);
   useEffect(() => {
+    // Never start the countdown hidden behind the onboarding overlay or readiness modal.
     if (!autoStart || cameraState !== "ready" || phase !== "idle" || autoStartFiredRef.current) return;
+    if (showOnboarding || readinessOpen) return;
     autoStartFiredRef.current = true;
     const id = setTimeout(() => handleStart(), 1400);
     return () => clearTimeout(id);
   // handleStart is intentionally omitted — it's recreated every render but behaviorally stable
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoStart, cameraState, phase]);
+  }, [autoStart, cameraState, phase, showOnboarding, readinessOpen]);
 
   // ── iOS portrait/landscape video rotation fix ─────────────────────────────
   useEffect(() => {

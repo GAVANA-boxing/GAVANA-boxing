@@ -262,12 +262,14 @@ export function useCameraSession({
     playPunchSound(speed);
     if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(25);
 
-    const FEEDBACK = locale === "mn"
-      ? ["Гар дээш! 🛡", "Зогсохгүй!", "Нягт бай!", "Амьсга!", "Хөдөл! 👊", "Гар дээш!", "Комбо! 🔥", "Хүч нэмэ!", "Эргүүл! 💪", "Хурдан! ⚡"]
-      : locale === "ko"
-      ? ["가드 올려! 🛡", "계속해!", "자세 유지!", "호흡!", "움직여! 👊", "손 올려!", "콤보! 🔥", "밀어붙여!", "회전! 💪", "속도! ⚡"]
-      : ["Guard up! 🛡", "Keep going!", "Stay tight!", "Breathe!", "Move! 👊", "Hands up!", "Combo! 🔥", "Drive through!", "Rotate! 💪", "Speed! ⚡"];
-    const text = FEEDBACK[Math.floor(Math.random() * FEEDBACK.length)];
+    // Live cue reflects what actually happened (the punch count), never random
+    // advice like "Guard up!" when the guard may be fine — fake feedback breaks
+    // the "it really understands my punches" trust.
+    const n = hitCountRef.current;
+    const MILESTONES = { 5: "🔥", 10: "⚡", 20: "💥", 30: "👑", 50: "🏆" };
+    const text = MILESTONES[n]
+      ? `${n} ${locale === "mn" ? "цохилт!" : locale === "ko" ? "펀치!" : "punches!"} ${MILESTONES[n]}`
+      : `👊 ${n}`;
     const id = Date.now();
     setLiveFeedback({ text, id });
     window.setTimeout(() => setLiveFeedback((prev) => (prev?.id === id ? null : prev)), 1200);

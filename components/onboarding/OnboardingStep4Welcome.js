@@ -4,6 +4,7 @@ import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import { WEEKLY_GOALS } from "@/lib/onboardingConstants";
 import { GOLD, redAlpha } from "@/lib/tokens";
 import s from "@/components/onboarding/onboardingStyles";
+import { CORE_MODE } from "@/lib/coreRoutes";
 
 const DNA_PREVIEW = {
   pressure:   { pressure: 85, outboxer: 15, counter: 30, explosive: 70, technician: 45 },
@@ -106,7 +107,7 @@ export default function OnboardingStep4Welcome({
               <button type="button" style={s.primaryBtn} disabled={saving} onClick={() => onFinish(`/${locale}/coach/dashboard`)}>
                 🎓 {t("onboardingGoToCoachDash")}
               </button>
-              <button type="button" style={s.ghostBtn} disabled={saving} onClick={() => onFinish(`/${locale}/reels`)}>
+              <button type="button" style={s.ghostBtn} disabled={saving} onClick={() => onFinish(`/${locale}/${CORE_MODE ? "home" : "reels"}`)}>
                 {t("onboardingBrowseReels")}
               </button>
             </>
@@ -115,7 +116,7 @@ export default function OnboardingStep4Welcome({
               <button type="button" style={s.primaryBtn} disabled={saving} onClick={() => onFinish(`/${locale}/gyms/dashboard`)}>
                 🏋️ {t("onboardingRegisterGym")}
               </button>
-              <button type="button" style={s.ghostBtn} disabled={saving} onClick={() => onFinish(`/${locale}/reels`)}>
+              <button type="button" style={s.ghostBtn} disabled={saving} onClick={() => onFinish(`/${locale}/${CORE_MODE ? "home" : "reels"}`)}>
                 {t("onboardingBrowseReels")}
               </button>
             </>
@@ -124,8 +125,8 @@ export default function OnboardingStep4Welcome({
               <button type="button" style={s.primaryBtn} disabled={saving} onClick={() => onFinish(redirectAfter || null)}>
                 🥊 {t("onboardingStartTraining")}
               </button>
-              {!redirectAfter && (
-                <button type="button" style={s.ghostBtn} disabled={saving} onClick={() => onFinish(`/${locale}/reels`)}>
+              {!redirectAfter && !CORE_MODE && (
+                <button type="button" style={s.ghostBtn} disabled={saving} onClick={() => onFinish(`/${locale}/${CORE_MODE ? "home" : "reels"}`)}>
                   {t("onboardingBrowseReels")}
                 </button>
               )}

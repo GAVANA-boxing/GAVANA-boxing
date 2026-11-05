@@ -8,9 +8,10 @@ export default function ReadinessModal({
   handleStart,
   t,
 }) {
+  // One screen, the one that matters: how to stand so the camera sees you.
+  // ("Learn the move" / "Do 10 reps without the camera" only delayed the first
+  // punch — best-in-class apps get you moving in one tap.)
   const steps = [
-    { icon: "📖", label: t("readinessLearnStep"),    desc: t("readinessLearnDesc") },
-    { icon: "🥊", label: t("readinessPracticeStep"), desc: t("readinessPracticeDesc") },
     { icon: "📹", label: t("readinessRecordStep"),   desc: t("readinessRecordDesc") },
   ];
   const step = steps[readinessStep];

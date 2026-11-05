@@ -4,6 +4,7 @@ import { addDoc, collection, doc, getDocs, limit, query, serverTimestamp, update
 import { db } from "@/lib/firebase";
 import { snapToDocs } from "@/lib/firestore";
 import { funnel, FUNNEL } from "@/lib/funnel";
+import { CORE_MODE } from "@/lib/coreRoutes";
 
 export function useOnboardingActions({ user, locale, router }) {
   // showIntro: value-prop screen shown before profile-building steps
@@ -71,6 +72,8 @@ export function useOnboardingActions({ user, locale, router }) {
     } finally {
       setSaving(false);
     }
+    // Core-loop focus: gyms are hidden, so go straight to Welcome → Train.
+    if (CORE_MODE) { goTo(4); return; }
     setGymsLoading(true);
     try {
       const snap = await getDocs(query(collection(db, "gyms"), limit(12)));
