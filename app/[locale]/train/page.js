@@ -70,6 +70,8 @@ export default function TrainPage() {
   const [debugEnabled, setDebugEnabled] = useState(false);
   const [autoStart, setAutoStart] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  // Stance decides which hand is the jab: orthodox = left lead, southpaw = right lead.
+  const [stance, setStance] = useState("orthodox");
   const [dailyMission, setDailyMission] = useState(null);
   const [videoNeedsRotation, setVideoNeedsRotation] = useState(false);
   useEffect(() => {
@@ -155,7 +157,27 @@ export default function TrainPage() {
   const { computeSessionSummary, getDebugInfo, getMotionReplay } = usePoseDetection({
     videoRef,
     isActive: phase === "recording",
+    stance,
   });
+
+  // Restore the saved stance (profile first, then this device).
+  useEffect(() => {
+    let saved = profile?.stance;
+    if (saved !== "orthodox" && saved !== "southpaw") {
+      try { saved = localStorage.getItem("gavana_stance"); } catch { saved = null; }
+    }
+    if (saved === "orthodox" || saved === "southpaw") setStance(saved);
+  }, [profile?.stance]);
+
+  const changeStance = (next) => {
+    setStance(next);
+    try { localStorage.setItem("gavana_stance", next); } catch { /* ignore */ }
+    if (user?.uid) {
+      Promise.all([import("firebase/firestore"), import("@/lib/firebase")])
+        .then(([{ doc, setDoc }, { db }]) => setDoc(doc(db, "users", user.uid), { stance: next }, { merge: true }))
+        .catch(() => {});
+    }
+  };
 
   const {
     saving, saved, savedAttemptNumber,
@@ -461,6 +483,7 @@ export default function TrainPage() {
     if (phase !== "recording") { setPositionCue(null); return; }
     let active = true;
     let misses = 0;
+    let armMisses = 0;
     const delayId = setTimeout(() => {
       if (!active) return;
       const id = setInterval(() => {
@@ -475,6 +498,17 @@ export default function TrainPage() {
           return;
         }
         misses = 0;
+        // Body found, but neither arm (shoulder + wrist) is in frame → punches
+        // can't be scored reliably; say so instead of silently miscounting.
+        const jp = info.jointPresence || {};
+        if (!(jp.L_SHOULDER && jp.L_WRIST) && !(jp.R_SHOULDER && jp.R_WRIST)) {
+          armMisses += 1;
+          setPositionCue(armMisses >= 2
+            ? loc(locale, "Гар, мөрөө кадрт багтаа", "팔과 어깨가 화면에 들어오게 하세요", "Keep your arms and shoulders in frame")
+            : null);
+          return;
+        }
+        armMisses = 0;
         const q = info.cameraQuality;
         if (q === "too_close") {
           setPositionCue(t("trainCueTooClose"));
@@ -1182,6 +1216,31 @@ export default function TrainPage() {
         {challengeSaved && <div style={styles.saved}>{t("challengeResultSaved")}</div>}
 
         <div style={styles.controls}>
+          {canStart && (
+            <div role="radiogroup" aria-label="Stance" style={{ display: "flex", gap: 6, width: "100%", marginBottom: 8 }}>
+              {[
+                ["orthodox", loc(locale, "Orthodox · зүүн гар jab", "오소독스 · 왼손 잽", "Orthodox · left jab")],
+                ["southpaw", loc(locale, "Southpaw · баруун гар jab", "사우스포 · 오른손 잽", "Southpaw · right jab")],
+              ].map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  role="radio"
+                  aria-checked={stance === key}
+                  onClick={() => changeStance(key)}
+                  style={{
+                    flex: 1, padding: "8px 6px", borderRadius: 10, cursor: "pointer",
+                    fontSize: 11, fontWeight: 800,
+                    border: `1px solid ${stance === key ? "rgba(255,59,48,0.6)" : "rgba(255,255,255,0.12)"}`,
+                    background: stance === key ? "rgba(255,59,48,0.14)" : "rgba(255,255,255,0.04)",
+                    color: stance === key ? "#FF3B30" : "rgba(255,255,255,0.6)",
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
           {canStart && (
             <button type="button" style={styles.startButton} className="train-start-btn tap-bounce" onClick={wrappedHandleStart}>
               {isFirstSession ? (locale === "mn" ? "Эхлэх →" : locale === "ko" ? "시작 →" : "Get Started →") : t("trainStart")}

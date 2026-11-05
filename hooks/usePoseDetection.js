@@ -82,7 +82,7 @@ async function loadPoseLandmarker() {
 }
 
 // "loading" | "ready" | "failed"
-export function usePoseDetection({ videoRef, isActive }) {
+export function usePoseDetection({ videoRef, isActive, stance = "orthodox" }) {
   const [poseStatus, setPoseStatus] = useState("loading");
   const [poseError, setPoseError] = useState(null);
 
@@ -95,6 +95,9 @@ export function usePoseDetection({ videoRef, isActive }) {
   const latestLandmarksRef = useRef(null);
   const smoothedLmRef      = useRef(null); // EMA-smoothed landmark array
   const detectorRef        = useRef(new PunchPhaseDetector());
+
+  // The user's stance decides which hand is the jab (lead) hand.
+  useEffect(() => { detectorRef.current.setStance(stance); }, [stance]);
   const comboRef           = useRef(new ComboSequencer());
   const defensiveRef       = useRef(new DefensiveDetector());
   const processedCountRef  = useRef(0);

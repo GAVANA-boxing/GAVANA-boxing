@@ -64,3 +64,27 @@ describe("train helpers", () => {
     expect(getChallengeComparisonPercent(10)).toBe(99);
   });
 });
+
+import { inferStanceFromShoulderZ, PunchPhaseDetector } from "@/lib/punchPhaseDetector";
+
+describe("stance (jab/cross mapping)", () => {
+  it("is the user's setting and survives a new session", () => {
+    const d = new PunchPhaseDetector();
+    expect(d.getStance()).toBe("orthodox");
+    d.setStance("southpaw");
+    d.reset();
+    expect(d.getStance()).toBe("southpaw");
+    d.setStance("garbage");
+    expect(d.getStance()).toBe("orthodox");
+  });
+  it("hints stance from which shoulder is closer to the camera", () => {
+    expect(inferStanceFromShoulderZ(Array(20).fill(-0.08))).toBe("orthodox");
+    expect(inferStanceFromShoulderZ(Array(20).fill(0.08))).toBe("southpaw");
+    expect(inferStanceFromShoulderZ(Array(20).fill(0.01))).toBe("unknown");
+    expect(inferStanceFromShoulderZ(Array(5).fill(-0.08))).toBe("unknown"); // too few samples
+  });
+  it("uses the median, so a few rotated frames (punches) don't flip the hint", () => {
+    const samples = [...Array(16).fill(-0.07), ...Array(6).fill(0.2)];
+    expect(inferStanceFromShoulderZ(samples)).toBe("orthodox");
+  });
+});
