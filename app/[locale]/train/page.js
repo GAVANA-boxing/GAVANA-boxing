@@ -385,13 +385,13 @@ export default function TrainPage() {
           if (issues.length) poseStr = ` Pose issues detected: ${issues.join("; ")}.`;
         }
 
-        const { auth } = await import("@/lib/firebase");
-        const token = await auth.currentUser?.getIdToken();
+        const { getTrainingFeedbackToken } = await import("@/lib/firebase");
+        const token = await getTrainingFeedbackToken();
         const res = await fetch("/api/chat", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             messages: [{
@@ -403,6 +403,7 @@ export default function TrainPage() {
             coachContext: ctx,
           }),
         });
+        if (!res.ok) return;
         const data = await res.json();
         const text = data.content?.[0]?.text || data.message || null;
         const src = data._source ?? (data.fallback ? "fallback" : data.aiError ? "error" : "openai");
