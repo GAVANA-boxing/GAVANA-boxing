@@ -161,6 +161,21 @@ export default function TrainResultModal({
           <ConfidenceTipsBar t={t} />
         )}
 
+        {/* Order: score → one headline insight → AI coach → details (Whoop/Strava pattern) */}
+        {/* ── ACTION SUMMARY: GOOD / FIX / NEXT ────────────────────── */}
+        {poseMetrics && !tooFewPunches && (
+          <ActionSummary poseMetrics={poseMetrics} result={result} locale={locale} />
+        )}
+
+        {/* ── AI DEBRIEF ───────────────────────────────────────────── */}
+        {!tooFewPunches && (debriefLoading || debrief) && (
+          <AIDebriefCard
+            debrief={debrief}
+            debriefLoading={debriefLoading}
+            debriefSource={debriefSource}
+          />
+        )}
+
         {/* ── RETURN SUMMARY ───────────────────────────────────────── */}
         {!tooFewPunches && (
           <ReturnSummary
@@ -180,11 +195,6 @@ export default function TrainResultModal({
           <PunchPatternCard poseMetrics={poseMetrics} t={t} />
         )}
 
-        {/* ── ACTION SUMMARY: GOOD / FIX / NEXT ────────────────────── */}
-        {poseMetrics && !tooFewPunches && (
-          <ActionSummary poseMetrics={poseMetrics} result={result} locale={locale} />
-        )}
-
         {/* ── COACH REVIEW ─────────────────────────────────────────── */}
         {poseMetrics && (
           <CoachReviewCard poseMetrics={poseMetrics} result={result} locale={locale} />
@@ -197,15 +207,6 @@ export default function TrainResultModal({
             result={result}
             locale={locale}
             router={router}
-          />
-        )}
-
-        {/* ── AI DEBRIEF ───────────────────────────────────────────── */}
-        {!tooFewPunches && (debriefLoading || debrief) && (
-          <AIDebriefCard
-            debrief={debrief}
-            debriefLoading={debriefLoading}
-            debriefSource={debriefSource}
           />
         )}
 

@@ -1,4 +1,5 @@
 "use client";
+import { useCallback, useEffect, useRef } from "react";
 import { loc } from "@/lib/loc";
 import { GOLD, RED, RADIUS, whiteAlpha, goldAlpha, redAlpha } from "@/lib/tokens";
 import styles from "@/components/train/trainStyles";
@@ -40,6 +41,30 @@ export default function ResultActionsSection({
   t,
   router,
 }) {
+  const saveSession = useCallback(() => {
+    const { motionHistory: _mh, punchEvents: _pe, coaching, ...poseMetricsForSave } = poseMetrics || {};
+    const weaknesses = (coaching || []).filter(c => c.type === "improve").map(c => c.message).slice(0, 2);
+    if (weaknesses.length) poseMetricsForSave.weaknesses = weaknesses;
+    onSave({ movementEvents: events, tag: sessionTag, poseMetrics: poseMetrics ? poseMetricsForSave : null });
+  }, [poseMetrics, events, sessionTag, onSave]);
+
+  // Auto-credit progress (best-in-class apps never make you tap "Save" to get
+  // your XP/streak). Only for a real, confident session by a signed-in user;
+  // low-confidence sessions keep the manual "save anyway" choice. Fires once
+  // per result — this section remounts for every new session.
+  const autoSavedRef = useRef(false);
+  useEffect(() => {
+    if (autoSavedRef.current || saved || saving) return;
+    if (tooFewPunches || activeChallenge || isGuest || isLowConfidence) return;
+    // Give the pose summary a moment to attach so the saved session keeps it.
+    const id = setTimeout(() => {
+      if (autoSavedRef.current) return;
+      autoSavedRef.current = true;
+      saveSession();
+    }, poseMetrics ? 300 : 1500);
+    return () => clearTimeout(id);
+  }, [saved, saving, tooFewPunches, activeChallenge, isGuest, isLowConfidence, poseMetrics, saveSession]);
+
   return (
     <div style={{ padding: "12px 20px 16px", flexShrink: 0, borderTop: `1px solid ${whiteAlpha(0.06)}` }}>
       {error && (
@@ -75,12 +100,7 @@ export default function ResultActionsSection({
           <button
             type="button"
             style={{ ...styles.saveButton, ...(saved ? styles.saveButtonDone : {}), ...(isLowConfidence && !saved ? { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.45)", fontSize: 11 } : {}), opacity: saving || saved ? 0.65 : 1, cursor: saving || saved ? "default" : "pointer" }}
-            onClick={() => {
-              const { motionHistory: _mh, punchEvents: _pe, coaching, ...poseMetricsForSave } = poseMetrics || {};
-              const weaknesses = (coaching || []).filter(c => c.type === "improve").map(c => c.message).slice(0, 2);
-              if (weaknesses.length) poseMetricsForSave.weaknesses = weaknesses;
-              onSave({ movementEvents: events, tag: sessionTag, poseMetrics: poseMetrics ? poseMetricsForSave : null });
-            }}
+            onClick={saveSession}
             disabled={saving || saved}
           >
             {saving
