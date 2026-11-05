@@ -38,16 +38,33 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if true;
       allow create: if isAuth() && request.auth.uid == userId;
-      // Owner may update their own doc, but NOT security/billing fields — those
-      // are written only by trusted server code (Stripe webhook / admin claims),
-      // which uses the service account and bypasses these rules. This blocks
-      // self-granting Pro (subscriptionTier) or admin (isAdmin) from the client.
+      // Owner may update their own doc, but NOT security/billing OR progression
+      // fields — those are written only by trusted server code (Stripe webhook,
+      // admin claims, and the /api/score/session endpoint), which uses the
+      // service account and bypasses these rules. This blocks self-granting Pro
+      // (subscriptionTier) / admin (isAdmin) / coach (isCoach) and self-awarding
+      // XP, streaks or rank from the client.
+      // NOTE deploy order: set FIREBASE_SERVICE_ACCOUNT_BASE64 and confirm
+      // /api/score/session works BEFORE deploying these rules — otherwise the
+      // client fallback write is blocked and session saves fail.
       allow update: if (isAuth() && request.auth.uid == userId &&
           !request.resource.data.diff(resource.data).affectedKeys().hasAny([
             "isAdmin",
+            "isCoach",
             "subscription",
             "subscriptionTier",
-            "subscriptionUpdatedAt"
+            "subscriptionUpdatedAt",
+            "xp",
+            "rank",
+            "rankName",
+            "dailyStreak",
+            "bestDailyStreak",
+            "challengeStreak",
+            "lastChallengeDate",
+            "totalChallengesCompleted",
+            "dailyMissionCompleted",
+            "streakFreezes",
+            "streakFreezeMonth"
           ])) ||
         (isAuth() && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           "coachRating",

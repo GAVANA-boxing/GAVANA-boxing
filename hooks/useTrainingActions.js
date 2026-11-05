@@ -4,10 +4,11 @@ import { addDoc, collection, doc, getDoc, getDocs, query, runTransaction, server
 import { db } from "@/lib/firebase";
 import { createChallengeAttemptNotification, createChallengeBeatenNotification } from "@/lib/notifications";
 import { getCurrentSeasonId } from "@/lib/season";
-import { calculateChallengeXP, getFighterRank } from "@/lib/xp";
-import { getBelt } from "@/lib/belts";
+import { calculateChallengeXP, getFighterRank, RANK_TIERS } from "@/lib/xp";
+import { getBelt, BELTS } from "@/lib/belts";
 import { getChallengeRank } from "@/lib/utils";
 import { getChallengeComparisonPercent, getChallengeStreakBonus } from "@/lib/trainHelpers";
+import { buildDateKeys, commitSessionProgression } from "@/lib/scoreClient";
 import { writeChallengeAttempt, updateUserTrainingProfile } from "@/lib/analytics";
 import { checkAndAwardBadges } from "@/lib/badges";
 import { getLocalDateKey, getPreviousLocalDateKey } from "@/lib/utils";
@@ -125,6 +126,33 @@ export function useTrainingActions({
     setError("");
 
     try {
+      // Server-authoritative path: the server recomputes XP + streak and writes
+      // users.xp + challenge_results via the service account (rules will block
+      // the client from writing these). Falls back to the legacy client
+      // transaction only while the server path isn't configured yet.
+      const dateKeys = buildDateKeys();
+      const srv = await commitSessionProgression(user, {
+        type: "challenge",
+        score: result.score,
+        challengeId,
+        locale,
+        dateKeys,
+      });
+      if (srv.ok) {
+        const cel = srv.celebration || {};
+        setChallengeSaved(true);
+        if (cel.rankUpKey) {
+          const r = RANK_TIERS.find((x) => x.key === cel.rankUpKey);
+          if (r) setRankUpInfo(r);
+        }
+        if (cel.beltUpKey) {
+          const b = BELTS.find((x) => x.key === cel.beltUpKey);
+          if (b) setTimeout(() => setBeltUpInfo(b), 1200);
+        }
+        return;
+      }
+
+      // ── Fallback: legacy client transaction (server scoring not configured) ──
       const rank = getChallengeRank(result.score);
       const comparisonPercent = getChallengeComparisonPercent(result.score);
       const xpGained = calculateChallengeXP(result.score, rank);
@@ -293,7 +321,23 @@ export function useTrainingActions({
       const userData = userSnap.exists() ? userSnap.data() : {};
       const alreadyCompleted = userData.dailyMissionCompleted === todayKey;
 
-      if (!alreadyCompleted) {
+      // Server-authoritative daily-mission XP/streak (falls back to the legacy
+      // client write while the server path isn't configured yet).
+      const dateKeys = buildDateKeys();
+      const srv = await commitSessionProgression(user, { type: "mission", locale, dateKeys });
+      if (srv.ok) {
+        const cel = srv.celebration || {};
+        if (cel.missionJustCompleted) {
+          setMissionJustCompleted(true);
+          setMissionStreakBonus(cel.streakBonus || 0);
+          setMissionNewStreak(cel.newStreak || 0);
+          setStreakFreezeUsed(!!cel.freezeUsed);
+          if (cel.beltUpKey) {
+            const b = BELTS.find((x) => x.key === cel.beltUpKey);
+            if (b) setTimeout(() => setBeltUpInfo(b), 1200);
+          }
+        }
+      } else if (!alreadyCompleted) {
         const MISSION_XP = 50;
         const lastDate = String(userData.lastTrainingDate || "");
         const currentStreak = Number(userData.dailyStreak) || 0;
