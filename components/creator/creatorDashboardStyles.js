@@ -1,10 +1,10 @@
-import { goldAlpha, redAlpha, RED, RED_DARK, GOLD, BG, BORDER_2, RADIUS, whiteAlpha, blackAlpha, pageBg } from "@/lib/tokens";
+import { BG, BORDER_2, GOLD, RADIUS, RED, RED_DARK, TEXT, blackAlpha, goldAlpha, pageBg, redAlpha, whiteAlpha } from "@/lib/tokens";
 
 const styles = {
   page: {
     minHeight: "100dvh",
     background: pageBg(),
-    color: "#fff",
+    color: TEXT,
     fontFamily: "inherit",
     display: "flex",
     flexDirection: "column",
@@ -18,7 +18,7 @@ const styles = {
   backBtn: {
     width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center",
     background: whiteAlpha(0.055), border: `1px solid ${whiteAlpha(0.12)}`,
-    color: "#fff", borderRadius: RADIUS.sm, cursor: "pointer", padding: 0, flexShrink: 0,
+    color: TEXT, borderRadius: RADIUS.sm, cursor: "pointer", padding: 0, flexShrink: 0,
   },
   kicker: { margin: 0, fontSize: 10, fontWeight: 900, letterSpacing: 3, textTransform: "uppercase", color: RED },
   sub: { margin: "2px 0 0", fontSize: 13, color: whiteAlpha(0.45) },
@@ -71,14 +71,14 @@ const styles = {
   uploadBtn: {
     padding: "12px 28px", borderRadius: RADIUS.full,
     background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`, border: "none",
-    color: "#fff", fontFamily: "inherit", fontSize: 14, fontWeight: 900, cursor: "pointer",
+    color: TEXT, fontFamily: "inherit", fontSize: 14, fontWeight: 900, cursor: "pointer",
     boxShadow: `0 8px 24px ${redAlpha(0.28)}, inset 0 1px 0 ${whiteAlpha(0.1)}`,
   },
   reelThumb: { width: 52, height: 72, borderRadius: 8, overflow: "hidden", flexShrink: 0, background: "#111" },
   tabBar: {
     display: "flex", borderBottom: `1px solid ${whiteAlpha(0.07)}`, background: blackAlpha(0.98),
   },
-  tabActive: { flex: 1, padding: "12px 0", border: "none", borderBottom: `2px solid ${RED}`, background: "transparent", color: "#fff", fontSize: 13, fontWeight: 900, cursor: "pointer" },
+  tabActive: { flex: 1, padding: "12px 0", border: "none", borderBottom: `2px solid ${RED}`, background: "transparent", color: TEXT, fontSize: 13, fontWeight: 900, cursor: "pointer" },
   tabInactive: { flex: 1, padding: "12px 0", border: "none", borderBottom: "2px solid transparent", background: "transparent", color: whiteAlpha(0.4), fontSize: 13, fontWeight: 700, cursor: "pointer" },
 };
 

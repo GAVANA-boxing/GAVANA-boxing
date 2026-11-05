@@ -1,4 +1,4 @@
-import { RED, RED_DARK, GOLD, BG, SURFACE_1, BORDER, BORDER_2, RADIUS, MOTION, redAlpha, goldAlpha, whiteAlpha, blackAlpha } from "@/lib/tokens";
+import { BG, BORDER, BORDER_2, GOLD, MOTION, RADIUS, RED, RED_DARK, SURFACE_1, TEXT, blackAlpha, goldAlpha, redAlpha, whiteAlpha } from "@/lib/tokens";
 
 const commentsStyles = {
   commentsModal: {
@@ -106,7 +106,7 @@ const commentsStyles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    color: "#fff",
+    color: TEXT,
     fontSize: 14,
     fontWeight: 950,
     flexShrink: 0,
@@ -131,7 +131,7 @@ const commentsStyles = {
     paddingBottom: 0,
     paddingLeft: 0,
     paddingRight: 0,
-    color: "#fff",
+    color: TEXT,
     fontSize: 14,
     fontWeight: 900,
     marginBottom: 4,
@@ -162,7 +162,7 @@ const commentsStyles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    color: "#fff",
+    color: TEXT,
     fontSize: 11,
     fontWeight: 900,
     flexShrink: 0,
@@ -238,7 +238,7 @@ const commentsStyles = {
     borderRadius: RADIUS.full,
     border: `1px solid ${BORDER}`,
     background: whiteAlpha(0.06),
-    color: "#fff",
+    color: TEXT,
     fontSize: 14,
     outline: "none",
   },
@@ -250,7 +250,7 @@ const commentsStyles = {
     borderRadius: RADIUS.full,
     border: "none",
     background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
-    color: "#fff",
+    color: TEXT,
     fontSize: 13,
     fontWeight: 800,
     cursor: "pointer",

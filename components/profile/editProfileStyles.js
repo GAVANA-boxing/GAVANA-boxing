@@ -1,10 +1,10 @@
-import { GOLD, RED, RED_DARK, BG, BORDER, RADIUS, redAlpha, goldAlpha, whiteAlpha, blackAlpha, pageBg } from "@/lib/tokens";
+import { BG, BORDER, GOLD, RADIUS, RED, RED_DARK, TEXT, blackAlpha, goldAlpha, pageBg, redAlpha, whiteAlpha } from "@/lib/tokens";
 
 const styles = {
   page: {
     minHeight: "100dvh",
     background: pageBg(),
-    color: "#fff",
+    color: TEXT,
     padding: "calc(20px + env(safe-area-inset-top)) 16px 48px",
   },
   shell: {
@@ -19,7 +19,7 @@ const styles = {
     height: 40,
     border: `1px solid ${whiteAlpha(0.1)}`,
     background: whiteAlpha(0.05),
-    color: "#fff",
+    color: TEXT,
     borderRadius: 12,
     display: "flex",
     alignItems: "center",
@@ -75,7 +75,7 @@ const styles = {
     display: "block",
   },
   avatarInitial: {
-    color: "#fff",
+    color: TEXT,
     fontSize: 44,
     fontWeight: 900,
   },
@@ -145,7 +145,7 @@ const styles = {
     border: `1px solid ${whiteAlpha(0.1)}`,
     borderRadius: 12,
     background: blackAlpha(0.9),
-    color: "#fff",
+    color: TEXT,
     padding: "13px 14px",
     fontSize: 15,
     outline: "none",
@@ -158,7 +158,7 @@ const styles = {
     border: `1px solid ${whiteAlpha(0.1)}`,
     borderRadius: 12,
     background: blackAlpha(0.9),
-    color: "#fff",
+    color: TEXT,
     padding: "13px 14px",
     fontSize: 15,
     lineHeight: 1.55,
@@ -212,7 +212,7 @@ const styles = {
     border: "none",
     borderRadius: RADIUS.md,
     background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
-    color: "#fff",
+    color: TEXT,
     minHeight: 52,
     fontSize: 15,
     fontWeight: 900,

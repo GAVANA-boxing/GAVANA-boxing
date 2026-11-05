@@ -1,9 +1,9 @@
-import { RED, redAlpha, BORDER, BORDER_2, RADIUS, whiteAlpha, blackAlpha } from "@/lib/tokens";
+import { BORDER, BORDER_2, RADIUS, RED, TEXT, blackAlpha, redAlpha, whiteAlpha } from "@/lib/tokens";
 
 const s = {
   page: {
     minHeight: "100dvh",
-    color: "#fff",
+    color: TEXT,
     paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
     position: "relative",
   },
@@ -32,7 +32,7 @@ const s = {
   heroNameBig: {
     margin: "0 0 6px", fontSize: "clamp(40px, 12vw, 68px)",
     fontFamily: "var(--font-display, 'Anton', sans-serif)", fontWeight: 400,
-    letterSpacing: "0.03em", lineHeight: 0.88, color: "#fff", textTransform: "uppercase",
+    letterSpacing: "0.03em", lineHeight: 0.88, color: TEXT, textTransform: "uppercase",
     filter: `drop-shadow(0 2px 0 ${blackAlpha(0.8)})`,
   },
   heroNickname: { margin: "0 0 16px", fontSize: 13, color: whiteAlpha(0.38), fontStyle: "italic", fontWeight: 400 },
@@ -76,7 +76,7 @@ const s = {
   comboName: { margin: "0 0 8px", fontSize: 10, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase" },
   comboSteps: { display: "flex", flexWrap: "wrap", gap: 5, alignItems: "center" },
   comboStepWrap: { display: "inline-flex", alignItems: "center", gap: 5 },
-  comboStep: { background: whiteAlpha(0.07), border: `1px solid ${whiteAlpha(0.12)}`, borderRadius: 8, padding: "5px 11px", fontSize: 12, fontWeight: 700, color: "#fff", letterSpacing: 0.1 },
+  comboStep: { background: whiteAlpha(0.07), border: `1px solid ${whiteAlpha(0.12)}`, borderRadius: 8, padding: "5px 11px", fontSize: 12, fontWeight: 700, color: TEXT, letterSpacing: 0.1 },
   comboArrow: { color: RED, fontSize: 14, fontWeight: 900, textShadow: `0 0 8px ${redAlpha(0.9)}` },
 
   dnaBox: { border: "1px solid", borderRadius: RADIUS.sm, padding: "12px", overflow: "hidden" },
@@ -102,7 +102,7 @@ const s = {
 
   fightRow: { paddingBottom: 10, marginBottom: 4, borderBottom: `1px solid ${BORDER}` },
   fightMeta: { display: "flex", justifyContent: "space-between", marginBottom: 3 },
-  fightName: { fontSize: 13, fontWeight: 700, color: "#fff" },
+  fightName: { fontSize: 13, fontWeight: 700, color: TEXT },
   fightYear: { fontSize: 11, color: whiteAlpha(0.35) },
   fightNote: { margin: 0, fontSize: 12, color: whiteAlpha(0.45), lineHeight: 1.4 },
 

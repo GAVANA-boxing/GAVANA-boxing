@@ -1,4 +1,4 @@
-import { redAlpha, RED, BG, BORDER, BORDER_2, RADIUS, whiteAlpha, blackAlpha } from "@/lib/tokens";
+import { BG, BORDER, BORDER_2, RADIUS, RED, TEXT, blackAlpha, redAlpha, whiteAlpha } from "@/lib/tokens";
 
 const s = {
   page: {
@@ -6,7 +6,7 @@ const s = {
     flexDirection: "column",
     height: "100dvh",
     background: BG,
-    color: "#fff",
+    color: TEXT,
     overflow: "hidden",
   },
 
@@ -50,7 +50,7 @@ const s = {
   headerTitle: {
     fontSize: 15,
     fontWeight: 900,
-    color: "#fff",
+    color: TEXT,
     letterSpacing: 0.1,
   },
   headerAiBadge: {
@@ -129,7 +129,7 @@ const s = {
     margin: 0,
     fontSize: 22,
     fontWeight: 1000,
-    color: "#fff",
+    color: TEXT,
     letterSpacing: "-0.02em",
     fontFamily: "var(--font-display, 'Anton', sans-serif)",
     textTransform: "uppercase",
@@ -162,7 +162,7 @@ const s = {
     padding: "11px 15px",
     borderRadius: "18px 18px 4px 18px",
     background: RED,
-    color: "#fff",
+    color: TEXT,
     fontSize: 14,
     lineHeight: 1.5,
     boxShadow: `0 8px 24px ${redAlpha(0.22)}`,
@@ -222,7 +222,7 @@ const s = {
     borderRadius: RADIUS.md,
     border: `1px solid ${whiteAlpha(0.1)}`,
     background: whiteAlpha(0.05),
-    color: "#fff",
+    color: TEXT,
     fontSize: 14,
     outline: "none",
     boxSizing: "border-box",
@@ -232,7 +232,7 @@ const s = {
     height: 46,
     borderRadius: RADIUS.md,
     border: "none",
-    color: "#fff",
+    color: TEXT,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",

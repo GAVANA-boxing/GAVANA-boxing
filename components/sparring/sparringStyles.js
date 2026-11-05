@@ -1,4 +1,4 @@
-import { RED, GOLD, BORDER, BORDER_2, MUTED, SURFACE, BG, RADIUS, redAlpha, goldAlpha, whiteAlpha, blackAlpha, pageBg } from "@/lib/tokens";
+import { BG, BORDER, BORDER_2, GOLD, MUTED, RADIUS, RED, SURFACE, TEXT, blackAlpha, goldAlpha, greenAlpha, pageBg, redAlpha, whiteAlpha } from "@/lib/tokens";
 
 const s = {
   page: {
@@ -9,7 +9,7 @@ const s = {
       radial-gradient(ellipse 40% 35% at 92% 65%, ${whiteAlpha(0.009)} 0%, transparent 55%),
       ${BG}
     `,
-    color: "#fff",
+    color: TEXT,
     display: "flex",
     flexDirection: "column",
   },
@@ -56,7 +56,7 @@ const s = {
     transition: "all 200ms ease",
   },
   tabBtnActive: {
-    color: "#fff",
+    color: TEXT,
     borderBottom: `2px solid ${RED}`,
   },
   tabBadge: {
@@ -64,7 +64,7 @@ const s = {
     height: 16,
     borderRadius: RADIUS.full,
     background: RED,
-    color: "#fff",
+    color: TEXT,
     fontSize: 9,
     fontWeight: 900,
     display: "inline-flex",
@@ -159,7 +159,7 @@ const s = {
     margin: "2px 0 0",
     fontSize: 22,
     fontWeight: 900,
-    color: "#fff",
+    color: TEXT,
     letterSpacing: "-0.02em",
     lineHeight: 1,
     fontFamily: "var(--font-display, 'Anton', sans-serif)",
@@ -175,7 +175,7 @@ const s = {
     height: 8,
     borderRadius: "50%",
     background: "#22C55E",
-    boxShadow: "0 0 7px rgba(34,197,94,0.85)",
+    boxShadow: `0 0 7px ${greenAlpha(0.85)}`,
     flexShrink: 0,
   },
   arenaLiveCount: {
@@ -261,10 +261,10 @@ const c = {
     justifyContent: "center",
     fontSize: 20,
     fontWeight: 900,
-    color: "#fff",
+    color: TEXT,
   },
   infoBlock: { flex: 1, minWidth: 0 },
-  name: { fontSize: 15, fontWeight: 900, color: "#fff", marginBottom: 6, lineHeight: 1, letterSpacing: "-0.01em" },
+  name: { fontSize: 15, fontWeight: 900, color: TEXT, marginBottom: 6, lineHeight: 1, letterSpacing: "-0.01em" },
   chips: { display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 5 },
   chip: {
     fontSize: 10,
@@ -291,7 +291,7 @@ const c = {
     padding: "12px",
     borderRadius: 12,
     border: "none",
-    color: "#fff",
+    color: TEXT,
     fontSize: 13,
     fontWeight: 900,
     cursor: "pointer",
