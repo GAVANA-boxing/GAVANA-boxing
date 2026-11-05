@@ -151,7 +151,7 @@ export default function TrainPage() {
   const {
     saving, saved, savedAttemptNumber,
     challengeSaving, challengeSaved, challengeSavedRef,
-    missionJustCompleted, missionStreakBonus, missionNewStreak,
+    missionJustCompleted, missionStreakBonus, missionNewStreak, streakFreezeUsed,
     rankUpInfo, beltUpInfo,
     handleSave, handleSaveChallengeResult,
     handleShareChallenge, handleChallengeFriend, handleShareTraining,
@@ -1180,6 +1180,7 @@ export default function TrainPage() {
         missionJustCompleted={missionJustCompleted}
         missionStreakBonus={missionStreakBonus}
         missionNewStreak={missionNewStreak}
+        streakFreezeUsed={streakFreezeUsed}
         movementEvents={movementEvents}
         sessionStartTime={sessionStartTime}
         poseMetrics={poseSessionSummary}

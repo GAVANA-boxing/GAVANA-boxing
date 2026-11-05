@@ -42,6 +42,7 @@ export default function TrainResultModal({
   missionJustCompleted,
   missionStreakBonus,
   missionNewStreak,
+  streakFreezeUsed,
   movementEvents,
   sessionStartTime,
   poseMetrics = null,
@@ -229,6 +230,7 @@ export default function TrainResultModal({
           missionJustCompleted={missionJustCompleted}
           missionStreakBonus={missionStreakBonus}
           missionNewStreak={missionNewStreak}
+          streakFreezeUsed={streakFreezeUsed}
           beltUpInfo={beltUpInfo}
           rankUpInfo={rankUpInfo}
           locale={locale}

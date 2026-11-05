@@ -46,11 +46,6 @@ import DNACoachingCTA from "@/components/coach/DNACoachingCTA";
 import AISparringPartner from "@/components/coach/AISparringPartner";
 import ProPriorityMatchingBanner from "@/components/coach/ProPriorityMatchingBanner";
 
-const AICoach = dynamic(() => import("@/components/AICoach"), {
-  ssr: false,
-  loading: () => <div style={{ height: 200 }} />,
-});
-
 export default function CoachPage() {
   const router = useRouter();
   const pathname = usePathname();
@@ -156,31 +151,32 @@ export default function CoachPage() {
             <AISparringPartner userArchetype={userArchetype} locale={locale} router={router} />
           </CoachSectionBoundary>
 
-          <div style={{ padding: "0 0 12px", textAlign: "center" }}>
-            <button
-              type="button"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "10px 20px",
-                borderRadius: 12,
-                border: "none",
-                background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
-                color: "#fff",
-                fontSize: 14,
-                fontWeight: 900,
-                cursor: "pointer",
-                boxShadow: `0 8px 28px ${redAlpha(0.32)}, inset 0 1px 0 rgba(255,255,255,0.1)`,
-              }}
-              onClick={() => router.push(`/${locale}/coach/chat`)}
-            >
-              💬 {t("coachOpenFullChat")}
-            </button>
-          </div>
-          <CoachSectionBoundary fallbackText="AI Coach chat unavailable — tap retry">
-            <AICoach />
-          </CoachSectionBoundary>
+          {/* AI Coach — one clean entry to the full-screen chat */}
+          <button
+            type="button"
+            onClick={() => router.push(`/${locale}/coach/chat`)}
+            style={{
+              display: "flex", alignItems: "center", gap: 14, width: "100%",
+              padding: "16px 18px", borderRadius: 18, cursor: "pointer", textAlign: "left",
+              background: `linear-gradient(145deg, rgba(6,6,8,0.9), ${redAlpha(0.14)})`,
+              border: `1px solid ${redAlpha(0.3)}`,
+              boxShadow: `0 8px 28px ${redAlpha(0.18)}`,
+              WebkitTapHighlightColor: "transparent",
+            }}
+          >
+            <span style={{ fontSize: 30, flexShrink: 0 }}>🥊</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 15, fontWeight: 900, color: "#fff", marginBottom: 2 }}>
+                {t("coachOpenFullChat")}
+              </div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }}>
+                {locale === "mn" ? "Чиний булангийн дасгалжуулагчтай чатла"
+                  : locale === "ko" ? "코너 코치와 대화하기"
+                  : "Chat with your corner coach"}
+              </div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
           <div style={{ paddingBottom: "calc(80px + env(safe-area-inset-bottom))" }} />
         </div>
       )}

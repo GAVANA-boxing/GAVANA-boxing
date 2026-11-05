@@ -54,6 +54,7 @@ export default function ResultAnalysisSection({
   missionJustCompleted,
   missionStreakBonus,
   missionNewStreak,
+  streakFreezeUsed,
   beltUpInfo,
   rankUpInfo,
   locale,
@@ -545,6 +546,13 @@ export default function ResultAnalysisSection({
                 <span style={styles.missionStreakBonusText}>{" "}+ {missionStreakBonus} XP 🔥{missionNewStreak} {t("missionStreakBonus")}</span>
               )}
             </div>
+            {streakFreezeUsed && (
+              <div style={{ marginTop: 8, fontSize: 11, fontWeight: 800, color: "#3B82F6", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                🧊 {locale === "mn" ? "Streak freeze ашиглагдлаа — streak хадгалагдав"
+                  : locale === "ko" ? "스트릭 프리즈 사용됨 — 연속 기록 유지"
+                  : "Streak freeze used — streak saved"}
+              </div>
+            )}
           </div>
         </>
       )}
