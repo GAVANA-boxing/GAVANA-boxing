@@ -7,6 +7,7 @@ import InAppBrowserWarning from "@/components/InAppBrowserWarning";
 import WebVitals from "@/components/WebVitals";
 import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
 import ClientShell from "@/components/ClientShell";
+import FunnelBeacon from "@/components/FunnelBeacon";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -92,6 +93,7 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <QueryProvider>
             <UserProfileProvider>
+              <FunnelBeacon appOpened />
               <ServiceWorkerRegistrar />
               <WebVitals />
               <InAppBrowserWarning />

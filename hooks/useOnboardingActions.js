@@ -3,6 +3,7 @@ import { useState } from "react";
 import { addDoc, collection, doc, getDocs, limit, query, serverTimestamp, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { snapToDocs } from "@/lib/firestore";
+import { funnel, FUNNEL } from "@/lib/funnel";
 
 export function useOnboardingActions({ user, locale, router }) {
   // showIntro: value-prop screen shown before profile-building steps
@@ -106,6 +107,7 @@ export function useOnboardingActions({ user, locale, router }) {
         "onboarding.completed": true,
       });
     } catch {}
+    funnel(FUNNEL.ONBOARDING_COMPLETED, { locale, meta: "full" });
     // Onboarding already explained the DNA idea — skip the duplicate /train overlay.
     try { localStorage.setItem("gavana_onboarding_seen", "1"); } catch {}
     // Fighters go straight to the camera (value), not a second checklist hub.
@@ -129,6 +131,7 @@ export function useOnboardingActions({ user, locale, router }) {
         primaryInterest: primaryInterest || "train",
       });
     } catch {}
+    funnel(FUNNEL.ONBOARDING_COMPLETED, { locale, meta: "skip" });
     try {
       localStorage.setItem("gavana_onboarding_seen", "1");
       localStorage.setItem("gavana_primaryInterest", "train");

@@ -23,6 +23,7 @@ import AuthEmailForm      from "@/components/auth/AuthEmailForm";
 import AuthModeSwitch     from "@/components/auth/AuthModeSwitch";
 import LoginPageFooter    from "@/components/auth/LoginPageFooter";
 import { CORE_MODE } from "@/lib/coreRoutes";
+import { funnel, FUNNEL } from "@/lib/funnel";
 
 // Only true in-app browsers that CANNOT open popups at all need redirect.
 // Regular iOS Safari supports signInWithPopup in Firebase 9.9+ — using redirect
@@ -125,10 +126,12 @@ export default function LoginPage() {
             role: "boxer", onboardingComplete: false, referredBy: getStoredRef() || null,
             createdAt: new Date().toISOString(),
           });
+          funnel(FUNNEL.AUTH_COMPLETED, { locale, meta: "google:new" });
           router.push(onboardingUrl);
           return;
         }
         const userData = snap.data();
+        funnel(FUNNEL.AUTH_COMPLETED, { locale, meta: "google:returning" });
         router.push(!userData.onboardingComplete ? onboardingUrl : redirectTo);
       })
       .catch((err) => {
@@ -176,10 +179,12 @@ export default function LoginPage() {
           role: "boxer", onboardingComplete: false, referredBy: getStoredRef() || null,
           createdAt: new Date().toISOString(),
         });
+        funnel(FUNNEL.AUTH_COMPLETED, { locale, meta: "email:new" });
         router.push(onboardingUrl);
         return;
       } else {
         await signInWithEmailAndPassword(auth, email, password);
+        funnel(FUNNEL.AUTH_COMPLETED, { locale, meta: "email:returning" });
       }
       router.push(redirectTo);
     } catch (err) {
@@ -225,10 +230,12 @@ export default function LoginPage() {
           role: "boxer", onboardingComplete: false, referredBy: getStoredRef() || null,
           createdAt: new Date().toISOString(),
         });
+        funnel(FUNNEL.AUTH_COMPLETED, { locale, meta: "google:new" });
         router.push(onboardingUrl);
         return;
       }
       const userData = snap.data();
+      funnel(FUNNEL.AUTH_COMPLETED, { locale, meta: "google:returning" });
       router.push(!userData.onboardingComplete ? onboardingUrl : redirectTo);
     } catch (err) {
       console.error("[Google sign-in error]", err.code, err.message);

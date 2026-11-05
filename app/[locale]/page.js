@@ -1,4 +1,5 @@
 import Link from "next/link";
+import FunnelBeacon from "@/components/FunnelBeacon";
 import { getLocale, translate } from "@/lib/i18n";
 import { RED, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 
@@ -78,6 +79,7 @@ export default async function LocalizedHomePage({ params }) {
 
   return (
     <main className="grain-overlay vignette" style={s.page}>
+      <FunnelBeacon step="landing_viewed" locale={locale} />
       <div className="scanline" />
       <div className="ambient-orb" style={s.orb1} />
       <div className="ambient-orb" style={s.orb2} />

@@ -36,6 +36,7 @@ import ReadinessModal from "@/components/train/ReadinessModal";
 import dynamic from "next/dynamic";
 import { Toast, useToast } from "@/components/ui/Toast";
 import { CORE_MODE } from "@/lib/coreRoutes";
+import { funnel, FUNNEL } from "@/lib/funnel";
 const PoseDebugOverlay   = dynamic(() => import("@/components/train/PoseDebugOverlay"),   { ssr: false });
 const DebugSessionPanel  = dynamic(() => import("@/components/train/DebugSessionPanel"),  { ssr: false });
 const LivePunchCounter   = dynamic(() => import("@/components/train/LivePunchCounter"),   { ssr: false });
@@ -295,14 +296,19 @@ export default function TrainPage() {
   // Track session completions
   useEffect(() => {
     if (!saved || !result) return;
-    import("@/lib/analytics").then(({ track, EVENTS }) => {
-      track(EVENTS.SESSION_COMPLETED, {
-        score: result?.score,
-        locale,
-        archetype: userArchetype || undefined,
-      });
-    }).catch(() => {});
+    funnel(FUNNEL.SESSION_COMPLETED, {
+      score: result?.score,
+      hits: result?.hitCount,
+      locale,
+      archetype: userArchetype || undefined,
+    });
   }, [saved]);
+
+  // Funnel: Train opened (starts the time-to-wow clock)
+  useEffect(() => {
+    funnel(FUNNEL.TRAIN_OPENED, { locale });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Track mission completions
   useEffect(() => {

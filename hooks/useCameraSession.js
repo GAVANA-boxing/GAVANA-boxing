@@ -7,6 +7,7 @@ import { getChallengeRank } from "@/lib/utils";
 import { usePunchDetector } from "@/hooks/usePunchDetector";
 import { useMovementAnalyzer } from "@/hooks/useMovementAnalyzer";
 import { DEFAULT_DRILL } from "@/lib/drillConfig";
+import { funnel, FUNNEL } from "@/lib/funnel";
 
 export function useCameraSession({
   drillConfig = DEFAULT_DRILL,
@@ -83,9 +84,12 @@ export function useCameraSession({
         }
         streamRef.current = stream;
         setCameraState("ready");
+        funnel(FUNNEL.CAMERA_GRANTED);
         if (videoRef.current) videoRef.current.srcObject = stream;
-      } catch {
+      } catch (err) {
         if (active) setCameraState("denied");
+        // The #1 silent drop-off: user said no to the camera.
+        funnel(FUNNEL.CAMERA_DENIED, { meta: String(err?.name || "error").slice(0, 40) });
       }
     }
 
@@ -126,6 +130,8 @@ export function useCameraSession({
     setSecondsLeft(0);
     setPhase("result");
     const finalScore = liveScoreRef.current;
+    // The WOW moment — ms (since Train opened) is the time-to-wow.
+    funnel(FUNNEL.RESULT_VIEWED, { score: finalScore, hits: hitCountRef.current });
     const xpGained = calculateChallengeXP(finalScore, getChallengeRank(finalScore));
     const breakdown = computeScoreBreakdown(finalScore, hitCountRef.current, sessionSeconds, targetMovements);
     setResult({
@@ -171,6 +177,7 @@ export function useCameraSession({
 
         setSecondsLeft(sessionSeconds);
         setPhase("recording");
+        funnel(FUNNEL.SESSION_STARTED);
       }, 700);
 
       return () => {
@@ -244,6 +251,7 @@ export function useCameraSession({
     if (!isRecordingRef.current) return;
 
     hitCountRef.current += 1;
+    if (hitCountRef.current === 1) funnel(FUNNEL.FIRST_PUNCH);
     const newScore = calculateTrainingScore(hitCountRef.current, sessionSeconds, targetMovements);
     liveScoreRef.current = newScore;
     setLiveScore(newScore);

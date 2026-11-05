@@ -6,6 +6,7 @@ import { ComboSequencer } from "@/lib/comboSequencer";
 import { generateCoachingMessages, computeVelocityStats, computePunchBreakdown, computeSessionConfidence } from "@/lib/cinematicCoaching";
 import { analyzeSession } from "@/lib/boxingIntelligence";
 import { DefensiveDetector } from "@/lib/defensiveDetector";
+import { funnel, FUNNEL } from "@/lib/funnel";
 
 /**
  * MediaPipe files are served from /public/mediapipe/ (local static assets).
@@ -85,6 +86,7 @@ export function usePoseDetection({ videoRef, isActive }) {
   const [poseError, setPoseError] = useState(null);
 
   const landmarkerRef      = useRef(null);
+  const poseSeenRef        = useRef(false); // funnel: fire pose_detected once per mount
   const lastRunRef         = useRef(0);
   const rafRef             = useRef(null);
   const frameMetricsRef    = useRef([]);
@@ -161,6 +163,7 @@ export function usePoseDetection({ videoRef, isActive }) {
         const res = landmarkerRef.current.detectForVideo(video, now);
         const landmarks = res.landmarks?.[0];
         if (landmarks && landmarks.length >= 29) {
+          if (!poseSeenRef.current) { poseSeenRef.current = true; funnel(FUNNEL.POSE_DETECTED); }
           // ── EMA smoothing on key joint positions ──
           if (!smoothedLmRef.current || smoothedLmRef.current.length !== landmarks.length) {
             smoothedLmRef.current = landmarks.map((lm) => ({ ...lm }));

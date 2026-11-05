@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { FUNNEL_EVENT_NAMES } from "@/lib/funnelSteps";
 
 const PROJECT_ID = "gavana-boxing-89a22";
 let _cachedToken = null;
@@ -28,7 +29,12 @@ const ALLOWED_EVENTS = new Set([
   "upgrade_viewed","upgrade_clicked","subscribed",
   "onboarding_started","onboarding_completed",
   "client_error",
+  // Activation funnel (lib/funnelSteps.js)
+  ...FUNNEL_EVENT_NAMES,
 ]);
+
+const str = (v, max = 128) => String(v ?? "").slice(0, max);
+const int = (v) => String(Math.max(0, Math.round(Number(v) || 0)));
 
 // Best-effort per-instance rate limit (serverless → per-instance, not global,
 // but enough to blunt casual anonymous write spam to analytics_events).
@@ -63,11 +69,18 @@ export async function POST(request) {
     const body = {
       fields: {
         event:     { stringValue: event },
-        url:       { stringValue: String(props.url || "") },
+        url:       { stringValue: str(props.url, 256) },
         ts:        { integerValue: String(props.ts || Date.now()) },
-        archetype: { stringValue: String(props.archetype || "") },
-        locale:    { stringValue: String(props.locale || "") },
+        archetype: { stringValue: str(props.archetype) },
+        locale:    { stringValue: str(props.locale, 8) },
         score:     { doubleValue: Number(props.score || 0) },
+        // Funnel identity + timing (lib/funnel.js)
+        anonId:    { stringValue: str(props.anonId, 64) },
+        uid:       { stringValue: str(props.uid, 64) },
+        first:     { booleanValue: props.first === true },
+        ms:        { integerValue: int(props.ms) },
+        hits:      { integerValue: int(props.hits) },
+        meta:      { stringValue: str(props.meta, 64) },
         createdAt: { timestampValue: new Date().toISOString() },
       },
     };
