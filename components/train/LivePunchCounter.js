@@ -1,20 +1,12 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { loc } from "@/lib/loc";
 
-const TYPE_COLOR = { jab: "#3B82F6", cross: "#F87171", hook: "#F59E0B" };
-const TYPE_LABEL = { jab: "JAB", cross: "CROSS", hook: "HOOK" };
+// Same punch colours as the result's punch-mix bar (ResultHeader).
+const TYPE_COLOR = { jab: "#60A5FA", cross: "#FF3B30", hook: "#F5C451", uppercut: "#A78BFA" };
+const TYPE_LABEL = { jab: "Jab", cross: "Cross", hook: "Hook", uppercut: "Uppercut" };
 
-function speedLabel(snapVel) {
-  if (snapVel == null) return null;
-  if (snapVel > 0.35) return "FAST";
-  if (snapVel > 0.20) return "GOOD";
-  return null;
-}
-
-const COMBO_TYPE_COLOR = { jab: "#3B82F6", cross: "#F87171", hook: "#F59E0B" };
-const COMBO_TYPE_NUM   = { jab: "1", cross: "2", hook: "3", uppercut: "4" };
-
-export default function LivePunchCounter({ getDebugInfo, isActive, punchTarget }) {
+export default function LivePunchCounter({ getDebugInfo, isActive, punchTarget, locale = "en" }) {
   const [count, setCount]         = useState(0);
   const [lastType, setLastType]   = useState(null);
   const [lastSnap, setLastSnap]   = useState(null);
@@ -66,7 +58,7 @@ export default function LivePunchCounter({ getDebugInfo, isActive, punchTarget }
   if (!isActive) return null;
 
   const typeColor  = TYPE_COLOR[lastType] || "#fff";
-  const speed      = speedLabel(lastSnap);
+  const fast       = lastSnap != null && lastSnap > 0.35;
   const hasTarget  = punchTarget != null;
   const goalDone   = hasTarget && count >= punchTarget;
   const pct        = hasTarget ? Math.min(1, count / punchTarget) : null;
@@ -86,16 +78,16 @@ export default function LivePunchCounter({ getDebugInfo, isActive, punchTarget }
           color: "#34D399",
           animation: "goalPop 1.8s ease-out forwards",
         }}>
-          GOAL ✓
+          {loc(locale, "Зорилго биеллээ ✓", "목표 달성 ✓", "Goal reached ✓")}
         </div>
       )}
 
       <div style={{
-        display: "flex", alignItems: "center", gap: 10,
-        padding: "7px 18px 7px 14px", borderRadius: 28,
-        background: goalDone ? "rgba(52,211,153,0.12)" : "rgba(0,0,0,0.65)",
-        backdropFilter: "blur(10px)",
-        border: `1px solid ${goalDone ? "rgba(52,211,153,0.35)" : "rgba(255,255,255,0.1)"}`,
+        display: "flex", alignItems: "center", gap: 12,
+        padding: "8px 18px 8px 16px", borderRadius: 999,
+        background: goalDone ? "rgba(52,211,153,0.14)" : "rgba(10,10,12,0.72)",
+        backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+        border: `1px solid ${goalDone ? "rgba(52,211,153,0.4)" : "rgba(255,255,255,0.1)"}`,
         transition: "background 0.4s, border-color 0.4s",
       }}>
 
@@ -104,7 +96,7 @@ export default function LivePunchCounter({ getDebugInfo, isActive, punchTarget }
           <span
             key={`cnt-${flash}`}
             style={{
-              fontSize: 28, fontWeight: 900,
+              fontSize: 34, fontWeight: 700, fontFamily: "var(--font-display)",
               color: goalDone ? "#34D399" : "#fff",
               lineHeight: 1,
               animation: flash > 0 ? "punchPop 0.25s ease-out" : "none",
@@ -113,12 +105,12 @@ export default function LivePunchCounter({ getDebugInfo, isActive, punchTarget }
             {count}
           </span>
           {hasTarget && (
-            <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.3)" }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: "rgba(255,255,255,0.4)" }}>
               /{punchTarget}
             </span>
           )}
-          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 700, marginLeft: 2 }}>
-            HIT
+          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontWeight: 600, marginLeft: 4 }}>
+            {loc(locale, "цохилт", "펀치", "punches")}
           </span>
         </div>
 
@@ -128,7 +120,7 @@ export default function LivePunchCounter({ getDebugInfo, isActive, punchTarget }
             <div style={{
               height: "100%", borderRadius: 2,
               width: `${pct * 100}%`,
-              background: goalDone ? "#34D399" : "#F59E0B",
+              background: goalDone ? "#34D399" : "linear-gradient(90deg, #FF3B30, #F5C451)",
               transition: "width 0.2s",
             }} />
           </div>
@@ -145,15 +137,13 @@ export default function LivePunchCounter({ getDebugInfo, isActive, punchTarget }
             key={`type-${flash}`}
             style={{ display: "flex", alignItems: "center", gap: 5, animation: "punchFadeIn 0.2s ease-out" }}
           >
-            <span style={{ fontSize: 13, fontWeight: 900, color: typeColor, letterSpacing: 0.5 }}>
-              {TYPE_LABEL[lastType]}
+            <span style={{ width: 8, height: 8, borderRadius: "50%", background: typeColor, boxShadow: `0 0 10px ${typeColor}` }} />
+            <span style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>
+              {TYPE_LABEL[lastType] || lastType}
             </span>
-            {speed && (
-              <span style={{
-                fontSize: 9, fontWeight: 900, letterSpacing: 1,
-                color: speed === "FAST" ? "#34D399" : "rgba(255,255,255,0.45)",
-              }}>
-                {speed}
+            {fast && (
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#34D399" }}>
+                {loc(locale, "хурдан", "빠름", "fast")}
               </span>
             )}
           </div>
@@ -165,8 +155,8 @@ export default function LivePunchCounter({ getDebugInfo, isActive, punchTarget }
         <div
           key={`combo-${comboFlash}`}
           style={{
-            display: "flex", alignItems: "center", gap: 4,
-            padding: "4px 14px",
+            display: "flex", alignItems: "center", gap: 6,
+            padding: "6px 14px",
             borderRadius: 20,
             background: "rgba(0,0,0,0.70)",
             backdropFilter: "blur(10px)",
@@ -174,28 +164,16 @@ export default function LivePunchCounter({ getDebugInfo, isActive, punchTarget }
             animation: "comboSlideIn 0.18s ease-out",
           }}
         >
-          {liveCombo.types.map((t, i) => (
-            <span
-              key={i}
-              style={{
-                fontSize: 17, fontWeight: 900,
-                color: COMBO_TYPE_COLOR[t] || "#fff",
-                lineHeight: 1,
-                opacity: i === liveCombo.types.length - 1 ? 1 : 0.65,
-              }}
-            >
-              {COMBO_TYPE_NUM[t] ?? "?"}
+          <span style={{ fontSize: 11, fontWeight: 700, color: "#F5C451", marginRight: 4 }}>
+            {loc(locale, "Комбо", "콤보", "Combo")}
+          </span>
+          {liveCombo.types.slice(-4).map((t, i, arr) => (
+            <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 13, fontWeight: 600, color: "#fff", opacity: i === arr.length - 1 ? 1 : 0.6 }}>
+              {i > 0 && <span style={{ color: "rgba(255,255,255,0.35)" }}>·</span>}
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: TYPE_COLOR[t] || "#fff" }} />
+              {TYPE_LABEL[t] || t}
             </span>
           ))}
-          {liveCombo.name && (
-            <span style={{
-              fontSize: 8, fontWeight: 900, letterSpacing: 1.2,
-              color: "rgba(255,255,255,0.4)",
-              marginLeft: 4, textTransform: "uppercase",
-            }}>
-              {liveCombo.name}
-            </span>
-          )}
         </div>
       )}
 

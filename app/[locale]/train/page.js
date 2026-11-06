@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
+import { btnSecondary } from "@/components/ui/brand";
 import DailyMission from "@/components/DailyMission";
 import { useAuth } from "@/lib/AuthContext";
 import { useUserProfile } from "@/context/UserProfileProvider";
@@ -1028,14 +1029,13 @@ export default function TrainPage() {
               ghostEnabled={ghostEnabled}
               ghostScore={ghostScore}
               liveFeedback={liveFeedback}
-              movementEvents={movementEvents}
-              sessionStartTime={sessionStartTime}
               t={t}
+              locale={locale}
             />
           )}
 
           {/* Live punch counter — shown during recording */}
-          <LivePunchCounter getDebugInfo={getDebugInfo} isActive={phase === "recording"} punchTarget={drillConfig?.punchTarget ?? null} />
+          <LivePunchCounter getDebugInfo={getDebugInfo} isActive={phase === "recording"} punchTarget={drillConfig?.punchTarget ?? null} locale={locale} />
 
           {/* Pose debug overlay — enabled via ?debug=1 query param */}
           <PoseDebugOverlay getDebugInfo={getDebugInfo} isActive={phase === "recording"} debugEnabled={debugEnabled} />
@@ -1217,7 +1217,7 @@ export default function TrainPage() {
 
         <div style={styles.controls}>
           {canStart && (
-            <div role="radiogroup" aria-label="Stance" style={{ display: "flex", gap: 6, width: "100%", marginBottom: 8 }}>
+            <div role="radiogroup" aria-label={loc(locale, "Байрлал", "스탠스", "Stance")} style={{ display: "flex", gap: 4, width: "100%", marginBottom: 6, padding: 4, borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
               {[
                 // Named by the front foot — people know which foot leads far better
                 // than the words orthodox/southpaw (and the camera can't tell reliably).
@@ -1231,11 +1231,12 @@ export default function TrainPage() {
                   aria-checked={stance === key}
                   onClick={() => changeStance(key)}
                   style={{
-                    flex: 1, padding: "8px 6px", borderRadius: 10, cursor: "pointer",
-                    fontSize: 11, fontWeight: 800,
-                    border: `1px solid ${stance === key ? "rgba(255,59,48,0.6)" : "rgba(255,255,255,0.12)"}`,
-                    background: stance === key ? "rgba(255,59,48,0.14)" : "rgba(255,255,255,0.04)",
-                    color: stance === key ? "#FF3B30" : "rgba(255,255,255,0.6)",
+                    flex: 1, minHeight: 40, padding: "6px 8px", borderRadius: 10, cursor: "pointer",
+                    fontSize: 13, fontWeight: 600, lineHeight: 1.25,
+                    border: "none",
+                    background: stance === key ? "rgba(255,59,48,0.16)" : "transparent",
+                    boxShadow: stance === key ? "inset 0 0 0 1px rgba(255,59,48,0.5)" : "none",
+                    color: stance === key ? "#fff" : "rgba(255,255,255,0.55)",
                   }}
                 >
                   {label}
@@ -1245,7 +1246,8 @@ export default function TrainPage() {
           )}
           {canStart && (
             <button type="button" style={styles.startButton} className="train-start-btn tap-bounce" onClick={wrappedHandleStart}>
-              {isFirstSession ? (locale === "mn" ? "Эхлэх →" : locale === "ko" ? "시작 →" : "Get Started →") : t("trainStart")}
+              {loc(locale, "Раунд эхлүүлэх", "라운드 시작", "Start round")}
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
             </button>
           )}
 
@@ -1253,13 +1255,10 @@ export default function TrainPage() {
             <button
               type="button"
               onClick={() => router.push(`/${locale}/ghost`)}
-              style={{
-                width: "100%", marginTop: 8, padding: "11px 12px", borderRadius: 12, cursor: "pointer",
-                border: "1px solid rgba(103,232,249,0.4)", background: "rgba(103,232,249,0.08)",
-                color: "#67e8f9", fontSize: 13, fontWeight: 900,
-              }}
+              style={{ ...btnSecondary, marginTop: 2 }}
             >
-              👻 {loc(locale, "Ghost Round · Jab–Cross дагаж хий", "고스트 라운드 · 잽–크로스 따라하기", "Ghost Round · copy the jab–cross")}
+              <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", background: "#67e8f9", boxShadow: "0 0 10px #67e8f9" }} />
+              {loc(locale, "Ghost Round · Jab–Cross дагаж хий", "고스트 라운드 · 잽–크로스 따라하기", "Ghost Round · copy the jab–cross")}
             </button>
           )}
 
@@ -1353,8 +1352,13 @@ export default function TrainPage() {
         debugEnabled={debugEnabled}
       />
 
-      <DailyMission locale={locale} />
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="train" />
+      {/* Focus mode: nothing but the fighter and the HUD while the round runs. */}
+      {!(isCountingDown || isRecording) && (
+        <>
+          <DailyMission locale={locale} />
+          <BottomNav router={router} user={user} currentLocale={locale} activeTab="train" />
+        </>
+      )}
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={hideToast} />}
 
       {/* Milestone celebration (15B) */}

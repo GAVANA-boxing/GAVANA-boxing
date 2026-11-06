@@ -5,6 +5,16 @@ import { GOLD, RED, RADIUS, whiteAlpha, goldAlpha, redAlpha } from "@/lib/tokens
 import styles from "@/components/train/trainStyles";
 import { CORE_MODE } from "@/lib/coreRoutes";
 
+
+// Stored value (English, used in history/analytics) → label per locale (mn, ko, en).
+const SESSION_TAGS = [
+  ["Bag", ["Боксын уут", "샌드백", "Bag"]],
+  ["Shadow", ["Сүүдрийн бокс", "섀도복싱", "Shadow"]],
+  ["Mitts", ["Лап", "미트", "Mitts"]],
+  ["Sparring", ["Спарринг", "스파링", "Sparring"]],
+  ["Conditioning", ["Бие бялдар", "컨디셔닝", "Conditioning"]],
+];
+
 export default function ResultActionsSection({
   error,
   isLowConfidence,
@@ -74,25 +84,25 @@ export default function ResultActionsSection({
       )}
       <div style={{ display: "grid", gap: 8 }}>
         <button type="button"
-          style={{ ...styles.tryAgainButton, ...(isLowConfidence ? { background: "linear-gradient(135deg,#FB923C,#F59E0B)", color: "#000", fontWeight: 900 } : {}) }}
+          style={styles.tryAgainButton}
           onClick={onTryAgain}>
           {isLowConfidence ? t("confidenceTryAgain") : activeChallenge ? t("challengeTryAgain") : t("trainTryAgain")}
         </button>
         {!activeChallenge && !saved && (
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 2 }}>
-            {["Bag", "Shadow", "Mitts", "Sparring", "Conditioning"].map((tag) => (
+            {SESSION_TAGS.map(([tag, label]) => (
               <button
                 key={tag}
                 type="button"
                 onClick={() => setSessionTag((prev) => prev === tag ? null : tag)}
                 style={{
-                  padding: "4px 10px", borderRadius: 20, fontSize: 10, fontWeight: 800, cursor: "pointer",
+                  padding: "6px 12px", borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: "pointer",
                   background: sessionTag === tag ? goldAlpha(0.2) : "rgba(255,255,255,0.05)",
                   border: `1px solid ${sessionTag === tag ? goldAlpha(0.5) : "rgba(255,255,255,0.1)"}`,
                   color: sessionTag === tag ? GOLD : "rgba(255,255,255,0.4)",
                   transition: "all 0.15s",
                 }}
-              >{tag}</button>
+              >{loc(locale, ...label)}</button>
             ))}
           </div>
         )}
@@ -117,7 +127,7 @@ export default function ResultActionsSection({
         {!tooFewPunches && isGuest && (
           <button
             type="button"
-            style={{ ...styles.saveButton, background: "linear-gradient(135deg, #F5C451 0%, #FF3B30 100%)", color: "#000", fontWeight: 900 }}
+            style={{ ...styles.saveButton, borderColor: "rgba(245,196,81,0.45)", background: "rgba(245,196,81,0.10)", color: "#F5C451" }}
             onClick={() => router.push(`/${locale}/login?mode=signup&redirect=${encodeURIComponent(`/${locale}/train`)}`)}
           >
             {loc(locale, "Профайл үүсгэж streak болон дэвшлийг хадгал →", "프로필 생성 — 스트릭과 진행 저장 →", "Create profile to save streak and progress →")}

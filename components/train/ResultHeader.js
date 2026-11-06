@@ -1,100 +1,113 @@
 "use client";
 
-import { GOLD, RED, whiteAlpha, goldAlpha } from "@/lib/tokens";
+import { BRAND, kickerPill, kickerDot, displayTitle } from "@/components/ui/brand";
+import { loc } from "@/lib/loc";
 
-// Locale strings
-const L = {
-  notEnoughData: { mn: "Хангалтгүй өгөгдөл", ko: "데이터 부족", en: "Not Enough Data" },
-  needPunches: (locale, min, count) =>
-    locale === "mn"
-      ? `AI шинжилгээнд хамгийн багадаа ${min} цохилт хэрэгтэй. Та ${count} цохилт хийсэн.`
-      : `AI analysis needs at least ${min} punches. You threw ${count}.`,
-};
+// Result hero: what kind of round it was, the score, and the punch mix — the
+// three things a fighter looks at first. Same visual language as the landing.
+
+const MIX = [
+  { key: "jab", label: "Jab", color: "#60A5FA" },
+  { key: "cross", label: "Cross", color: BRAND.red },
+  { key: "hook", label: "Hook", color: BRAND.gold },
+];
 
 export default function ResultHeader({
-  analysisLabel,
+  mode = "train",              // "train" | "challenge" | "pvp"
   tooFewPunches,
   effectivePunchCount,
   minPunches,
   identity,
   displayScore,
   scoreConf,
+  punchBreakdown = null,
   locale,
   t,
 }) {
-  return (
-    <div style={{ padding: "20px 20px 14px", flexShrink: 0, borderBottom: `1px solid ${whiteAlpha(0.05)}` }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
-        <p style={{ margin: 0, fontSize: 9, fontWeight: 900, letterSpacing: 3.5, color: goldAlpha(0.65), textTransform: "uppercase" }}>
-          {analysisLabel}
-        </p>
+  const kicker = mode === "pvp"
+    ? loc(locale, "Тулааны дүн", "대결 결과", "Fight result")
+    : mode === "challenge"
+      ? loc(locale, "Сорилын дүн", "챌린지 결과", "Challenge result")
+      : loc(locale, "Раундын дүн", "라운드 결과", "Round result");
 
-        {/* Confidence badge */}
-        {!tooFewPunches && displayScore > 0 && (() => {
-          const confMap = {
-            high:   { label: t("scoreConfidenceHigh"),   color: "#34D399", bg: "rgba(52,211,153,0.1)" },
-            medium: { label: t("scoreConfidenceMedium"), color: "#F5C451", bg: "rgba(245,196,81,0.1)" },
-            low:    { label: t("scoreConfidenceLow"),    color: "#FB923C", bg: "rgba(251,146,60,0.1)" },
-          };
-          const cm = confMap[scoreConf];
-          if (!cm) return null;
-          return (
-            <span style={{ fontSize: 8, fontWeight: 900, color: cm.color, background: cm.bg, padding: "3px 8px", borderRadius: 20, letterSpacing: 0.5 }}>
-              {cm.label}
-            </span>
-          );
-        })()}
+  const conf = {
+    high:   { label: t("scoreConfidenceHigh"),   color: BRAND.green },
+    medium: { label: t("scoreConfidenceMedium"), color: BRAND.gold },
+    low:    { label: t("scoreConfidenceLow"),    color: "#FB923C" },
+  }[scoreConf];
+
+  const mix = MIX.map((m) => ({ ...m, n: punchBreakdown?.[m.key]?.count || 0 }));
+  const typed = mix.reduce((s, m) => s + m.n, 0);
+  const noData = tooFewPunches || displayScore <= 0;
+
+  return (
+    <div style={{ padding: "22px 20px 18px", textAlign: "left", borderBottom: `1px solid ${BRAND.line}` }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+        <p style={kickerPill}><span style={kickerDot} />{kicker}</p>
+        {!noData && conf && (
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: conf.color }}>
+            <span style={{ width: 7, height: 7, borderRadius: "50%", background: conf.color }} />
+            {conf.label}
+          </span>
+        )}
       </div>
 
-      {(tooFewPunches || displayScore <= 0) ? (
-        <div style={{ margin: "16px 0 10px" }}>
-          <h2 style={{ margin: "0 0 6px", fontSize: 22, fontWeight: 1000, color: whiteAlpha(0.55), letterSpacing: "-0.01em" }}>
-            {L.notEnoughData[locale] ?? L.notEnoughData.en}
+      {noData ? (
+        <div style={{ marginTop: 18 }}>
+          <h2 style={{ ...displayTitle, fontSize: 30, color: BRAND.muted }}>
+            {loc(locale, "Хангалтгүй өгөгдөл", "데이터 부족", "Not enough data")}
           </h2>
-          <p style={{ margin: 0, fontSize: 12, color: whiteAlpha(0.35), lineHeight: 1.5 }}>
+          <p style={{ margin: "10px 0 0", fontSize: 15, color: BRAND.muted, lineHeight: 1.55 }}>
             {tooFewPunches
-              ? L.needPunches(locale, minPunches, effectivePunchCount)
-              : locale === "mn"
-                ? "Хөдөлгөөний өгөгдөл хангалтгүй байна. Илүү урт комбо хийж үзнэ үү."
-                : locale === "ko"
-                ? "움직임 데이터가 부족합니다. 더 긴 콤보를 시도해보세요."
-                : "Insufficient movement data. Try a longer combination."}
+              ? loc(locale,
+                  `Шинжилгээнд хамгийн багадаа ${minPunches} цохилт хэрэгтэй — ${effectivePunchCount} бүртгэгдсэн. Бүтэн биеэ кадрт багтааж, дахин нэг раунд хий.`,
+                  `분석하려면 최소 ${minPunches}번의 펀치가 필요해요 — ${effectivePunchCount}번 감지됨. 전신이 보이게 서서 다시 해보세요.`,
+                  `Analysis needs at least ${minPunches} punches — ${effectivePunchCount} detected. Get your whole body in frame and go again.`)
+              : loc(locale,
+                  "Хөдөлгөөний өгөгдөл хангалтгүй байна. Илүү урт комбо хийж үзээрэй.",
+                  "움직임 데이터가 부족해요. 더 긴 콤보를 시도해보세요.",
+                  "Not enough movement data. Try a longer combination.")}
           </p>
         </div>
       ) : (
         <>
-          <h2 style={{
-            margin: "8px 0 2px", fontSize: 24, fontWeight: 1000,
-            letterSpacing: "-0.02em", color: "#fff", lineHeight: 1.0,
-            fontFamily: "var(--font-display, 'Anton', sans-serif)",
-          }}>
-            {identity.title}
-          </h2>
-          <p style={{ margin: "0 0 14px", fontSize: 11, color: whiteAlpha(0.35), fontWeight: 700 }}>
-            {identity.sub}
-          </p>
+          <div style={{ display: "flex", alignItems: "flex-end", gap: 14, marginTop: 16 }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+              <span style={{ ...displayTitle, fontSize: 68, lineHeight: 0.9 }}>{displayScore.toFixed(1)}</span>
+              <span style={{ fontSize: 16, fontWeight: 600, color: BRAND.faint }}>/10</span>
+            </div>
+            <div style={{ minWidth: 0, paddingBottom: 4 }}>
+              <div style={{ ...displayTitle, fontSize: 20, color: BRAND.text, overflowWrap: "anywhere" }}>{identity?.title}</div>
+              {identity?.sub && <div style={{ marginTop: 4, fontSize: 13, color: BRAND.muted }}>{identity.sub}</div>}
+            </div>
+          </div>
 
-          {/* Score telemetry bar */}
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ flex: 1, height: 3, background: whiteAlpha(0.07), borderRadius: 2, overflow: "hidden" }}>
-              <div style={{
-                height: "100%",
-                width: `${(displayScore / 10) * 100}%`,
-                background: `linear-gradient(90deg, ${RED}, ${GOLD})`,
-                borderRadius: 2,
-                transition: "width 0.04s linear",
-              }} />
+          <div style={{ marginTop: 14, height: 6, borderRadius: 3, background: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${(displayScore / 10) * 100}%`, borderRadius: 3, background: `linear-gradient(90deg, ${BRAND.red}, ${BRAND.gold})`, transition: "width 0.04s linear" }} />
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 16 }}>
+            <div style={{ flexShrink: 0 }}>
+              <div style={{ ...displayTitle, fontSize: 28 }}>{effectivePunchCount}</div>
+              <div style={{ fontSize: 12, color: BRAND.faint, marginTop: 3 }}>{loc(locale, "цохилт", "펀치", "punches")}</div>
             </div>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 2, flexShrink: 0 }}>
-              <span style={{
-                fontSize: 32, fontWeight: 1000, lineHeight: 1,
-                fontFamily: "var(--font-display, 'Anton', sans-serif)",
-                letterSpacing: "-0.02em", color: "#fff",
-              }}>
-                {displayScore.toFixed(1)}
-              </span>
-              <span style={{ fontSize: 12, color: whiteAlpha(0.28), fontWeight: 800 }}>/10</span>
-            </div>
+            {typed > 0 && (
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", height: 8, borderRadius: 4, overflow: "hidden", gap: 2 }} aria-hidden="true">
+                  {mix.filter((m) => m.n).map((m) => (
+                    <div key={m.key} style={{ flex: m.n, background: m.color }} />
+                  ))}
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 12px", marginTop: 7 }}>
+                  {mix.map((m) => (
+                    <span key={m.key} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, color: m.n ? BRAND.muted : BRAND.faint }}>
+                      <span style={{ width: 7, height: 7, borderRadius: 2, background: m.color, opacity: m.n ? 1 : 0.35 }} />
+                      {m.label} {m.n}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </>
       )}

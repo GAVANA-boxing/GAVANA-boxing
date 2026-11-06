@@ -21,6 +21,7 @@ import ResultActionsSection  from "@/components/train/ResultActionsSection";
 import ResultAnalysisSection from "@/components/train/ResultAnalysisSection";
 import MotionReplay3D        from "@/components/train/MotionReplay3D";
 import { loc }               from "@/lib/loc";
+import { BRAND, btnSecondary } from "@/components/ui/brand";
 
 const MIN_PUNCHES = 5;
 
@@ -98,6 +99,7 @@ export default function TrainResultModal({
   const [clipDuration,  setClipDuration]  = useState(null);
   const [showDnaShare,  setShowDnaShare]  = useState(false);
   const [replayOpen,    setReplayOpen]    = useState(false);
+  const [detailsOpen,   setDetailsOpen]   = useState(false);
   const [shareCopied,   setShareCopied]   = useState(false);
   const [blobUrl,      setBlobUrl]      = useState(null);
 
@@ -108,6 +110,10 @@ export default function TrainResultModal({
     setBlobUrl(url);
     return () => URL.revokeObjectURL(url);
   }, [recordedBlob]);
+
+  // Challenge / PvP outcomes and level-ups live in the details: never hide those.
+  const mustShowDetails = Boolean(challengeUserId || activeChallenge || pvpResult || rankUpInfo || beltUpInfo || missionJustCompleted);
+  useEffect(() => { if (mustShowDetails) setDetailsOpen(true); }, [mustShowDetails]);
 
   // Show DNA share card 1.5s after result saved with archetype
   useEffect(() => {
@@ -135,11 +141,9 @@ export default function TrainResultModal({
   const nextFocus      = getNextFocus(result, poseMetrics);
   const effectiveStreak = Math.max(userStreak || 0, missionNewStreak || 0);
 
-  const analysisLabel = challengeUserId
-    ? "PVP ANALYSIS"
-    : activeChallenge
-      ? "CHALLENGE ANALYSIS"
-      : "COMBAT ANALYSIS";
+  const headerMode = challengeUserId ? "pvp" : activeChallenge ? "challenge" : "train";
+  // A failed AI call is our problem, not the fighter's: show nothing rather than an error.
+  const showDebrief = !tooFewPunches && (debriefLoading || (debrief && debriefSource !== "error"));
 
   return (
     <div style={styles.modalWrap}>
@@ -149,7 +153,8 @@ export default function TrainResultModal({
 
         {/* ── HEADER ───────────────────────────────────────────────── */}
         <ResultHeader
-          analysisLabel={analysisLabel}
+          mode={headerMode}
+          punchBreakdown={poseMetrics?.punchBreakdown || null}
           tooFewPunches={tooFewPunches}
           effectivePunchCount={effectivePunchCount}
           minPunches={MIN_PUNCHES}
@@ -165,46 +170,91 @@ export default function TrainResultModal({
           <ConfidenceTipsBar t={t} />
         )}
 
-        {/* Order: score → one headline insight → AI coach → details (Whoop/Strava pattern) */}
-        {/* ── ACTION SUMMARY: GOOD / FIX / NEXT ────────────────────── */}
+        {/* Order: score → the ONE fix → next action → everything else folded away */}
         {poseMetrics && !tooFewPunches && (
           <ActionSummary poseMetrics={poseMetrics} result={result} locale={locale} />
         )}
 
         {/* ── 3D TECHNIQUE BREAKDOWN — the user's own punches in 3D ─── */}
         {motionReplay && !tooFewPunches && (
-          <button
-            type="button"
-            onClick={() => setReplayOpen(true)}
-            style={{
-              display: "flex", alignItems: "center", gap: 12, width: "100%", textAlign: "left",
-              margin: "4px 0 12px", padding: "13px 14px", borderRadius: 14, cursor: "pointer",
-              background: "linear-gradient(135deg, rgba(255,59,48,0.16), rgba(245,196,81,0.10))",
-              border: "1px solid rgba(255,59,48,0.35)", color: "#fff",
-            }}
-          >
-            <span style={{ fontSize: 26 }}>🧊</span>
-            <span style={{ flex: 1 }}>
-              <span style={{ display: "block", fontWeight: 900, fontSize: 14 }}>
-                {loc(locale, "3D техник задлах", "3D 기술 분석", "3D technique breakdown")}
+          <div style={{ padding: "12px 20px 0" }}>
+            <button type="button" onClick={() => setReplayOpen(true)} style={{ ...btnSecondary, justifyContent: "flex-start", textAlign: "left", minHeight: 60, padding: "10px 14px" }}>
+              <span aria-hidden="true" style={{ width: 36, height: 36, flexShrink: 0, borderRadius: 10, display: "grid", placeItems: "center", background: "rgba(255,59,48,0.14)", color: BRAND.red }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2.5l8.5 4.75v9.5L12 21.5l-8.5-4.75v-9.5z" /><path d="M12 12l8.5-4.75M12 12v9.5M12 12L3.5 7.25" /></svg>
               </span>
-              <span style={{ display: "block", fontSize: 11, color: "rgba(255,255,255,0.6)", marginTop: 2 }}>
-                {loc(locale, "Цохилт бүрээ 3D-ээр эргүүлж, удаашруулж хар", "펀치를 3D로 돌려보고 슬로모션으로", "Rotate and slow-mo every punch in 3D")}
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ display: "block", fontWeight: 700, fontSize: 15 }}>{loc(locale, "Цохилтоо 3D-ээр хар", "펀치를 3D로 보기", "See your punches in 3D")}</span>
+                <span style={{ display: "block", fontSize: 13, color: BRAND.faint, marginTop: 2, fontWeight: 500 }}>{loc(locale, "Эргүүлж, удаашруулж, хамгаалалтаа шалга", "돌려보고 슬로모션으로 가드 확인", "Rotate, slow it down, check your guard")}</span>
               </span>
-            </span>
-            <span style={{ color: "#FF3B30", fontWeight: 900 }}>→</span>
-          </button>
+              <span aria-hidden="true" style={{ color: BRAND.faint }}>→</span>
+            </button>
+          </div>
         )}
 
         {/* ── AI DEBRIEF ───────────────────────────────────────────── */}
-        {!tooFewPunches && (debriefLoading || debrief) && (
+        {showDebrief && (
           <AIDebriefCard
             debrief={debrief}
             debriefLoading={debriefLoading}
             debriefSource={debriefSource}
+            locale={locale}
           />
         )}
 
+        {/* ── ACTIONS ──────────────────────────────────────────────── */}
+        <ResultActionsSection
+          error={error}
+          isLowConfidence={isLowConfidence}
+          tooFewPunches={tooFewPunches}
+          isGuest={isGuest}
+          activeChallenge={activeChallenge}
+          sessionTag={sessionTag}
+          setSessionTag={setSessionTag}
+          saving={saving}
+          saved={saved}
+          savedAttemptNumber={savedAttemptNumber}
+          feedSharing={feedSharing}
+          feedShared={feedShared}
+          challengePosting={challengePosting}
+          challengePosted={challengePosted}
+          challengeResponsePosting={challengeResponsePosting}
+          challengeResponsePosted={challengeResponsePosted}
+          challengeSaving={challengeSaving}
+          challengeSaved={challengeSaved}
+          challengePostData={challengePostData}
+          poseMetrics={poseMetrics}
+          events={events}
+          academyLesson={academyLesson}
+          recordedBlob={recordedBlob}
+          onTryAgain={onTryAgain}
+          onSave={onSave}
+          onSaveChallengeResult={onSaveChallengeResult}
+          onShareChallenge={onShareChallenge}
+          onShareTraining={onShareTraining}
+          onShareToFeed={onShareToFeed}
+          onCreateChallengePost={onCreateChallengePost}
+          onPostChallengeResponse={onPostChallengeResponse}
+          locale={locale}
+          t={t}
+          router={router}
+        />
+
+        {/* ── DETAILS — everything else, folded away ─────────────────── */}
+        <div style={{ padding: "0 20px 8px" }}>
+          <button
+            type="button"
+            aria-expanded={detailsOpen}
+            onClick={() => setDetailsOpen((v) => !v)}
+            style={{ ...btnSecondary, background: "transparent", border: "none", minHeight: 44, color: BRAND.muted, fontSize: 14 }}
+          >
+            {detailsOpen
+              ? loc(locale, "Дэлгэрэнгүйг хаах", "자세히 닫기", "Hide details")
+              : loc(locale, "Дэлгэрэнгүй шинжилгээ", "자세한 분석", "Full analysis")}
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" style={{ transform: detailsOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}><path d="M6 9l6 6 6-6" /></svg>
+          </button>
+        </div>
+        {detailsOpen && (
+          <div>
         {/* ── RETURN SUMMARY ───────────────────────────────────────── */}
         {!tooFewPunches && (
           <ReturnSummary
@@ -276,70 +326,8 @@ export default function TrainResultModal({
             onDurationLoad={setClipDuration}
           />
         )}
-
-        {/* ── RETURN TRIGGER ───────────────────────────────────────── */}
-        {!tooFewPunches && (
-          <div style={{ margin: "12px 20px 0", padding: "12px 14px", borderRadius: 12, background: "rgba(251,146,60,0.05)", border: "1px solid rgba(251,146,60,0.14)", display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ fontSize: 22, flexShrink: 0 }}>🔥</span>
-            <div style={{ flex: 1 }}>
-              <p style={{ margin: "0 0 2px", fontSize: 12, fontWeight: 900, color: "#FB923C" }}>
-                {locale === "mn" ? "Маргааш дахин ир" : locale === "ko" ? "내일 다시 돌아오세요" : "Come back tomorrow"}
-              </p>
-              <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.38)", lineHeight: 1.4 }}>
-                {locale === "mn"
-                  ? "3 хичээлийн дараа Fighter DNA тодорхойлогдоно."
-                  : locale === "ko"
-                  ? "3회 세션 후 파이터 DNA가 확인됩니다."
-                  : "3 sessions builds your Fighter DNA profile."}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => { router.push(`/${locale}/train?autostart=1`); }}
-              style={{ padding: "7px 14px", borderRadius: 9, background: "rgba(251,146,60,0.18)", border: "1px solid rgba(251,146,60,0.35)", color: "#FB923C", fontSize: 11, fontWeight: 900, cursor: "pointer", whiteSpace: "nowrap" }}
-            >
-              {locale === "mn" ? "Дахин →" : locale === "ko" ? "다시 →" : "Train again →"}
-            </button>
           </div>
         )}
-
-        {/* ── ACTIONS ──────────────────────────────────────────────── */}
-        <ResultActionsSection
-          error={error}
-          isLowConfidence={isLowConfidence}
-          tooFewPunches={tooFewPunches}
-          isGuest={isGuest}
-          activeChallenge={activeChallenge}
-          sessionTag={sessionTag}
-          setSessionTag={setSessionTag}
-          saving={saving}
-          saved={saved}
-          savedAttemptNumber={savedAttemptNumber}
-          feedSharing={feedSharing}
-          feedShared={feedShared}
-          challengePosting={challengePosting}
-          challengePosted={challengePosted}
-          challengeResponsePosting={challengeResponsePosting}
-          challengeResponsePosted={challengeResponsePosted}
-          challengeSaving={challengeSaving}
-          challengeSaved={challengeSaved}
-          challengePostData={challengePostData}
-          poseMetrics={poseMetrics}
-          events={events}
-          academyLesson={academyLesson}
-          recordedBlob={recordedBlob}
-          onTryAgain={onTryAgain}
-          onSave={onSave}
-          onSaveChallengeResult={onSaveChallengeResult}
-          onShareChallenge={onShareChallenge}
-          onShareTraining={onShareTraining}
-          onShareToFeed={onShareToFeed}
-          onCreateChallengePost={onCreateChallengePost}
-          onPostChallengeResponse={onPostChallengeResponse}
-          locale={locale}
-          t={t}
-          router={router}
-        />
 
       </section>
 

@@ -3,7 +3,7 @@
 import { GOLD } from "@/lib/tokens";
 import { FOCUS_COLORS } from "@/lib/drillConfig";
 import styles from "@/components/train/trainStyles";
-import MovementTimeline from "@/components/train/MovementTimeline";
+import { loc } from "@/lib/loc";
 
 export default function RecordingHud({
   hitCount,
@@ -18,9 +18,8 @@ export default function RecordingHud({
   ghostEnabled,
   ghostScore,
   liveFeedback,
-  movementEvents,
-  sessionStartTime,
   t,
+  locale = "en",
 }) {
   const focusColor = drillConfig?.focusType ? (FOCUS_COLORS[drillConfig.focusType] || "rgba(255,255,255,0.4)") : null;
 
@@ -65,7 +64,7 @@ export default function RecordingHud({
         <div style={styles.hitCounter}>
           {hitCount === 0 ? (
             <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", letterSpacing: 0.3 }}>
-              AI watching movement
+              {loc(locale, "AI хөдөлгөөнийг чинь харж байна", "AI가 움직임을 보고 있어요", "AI is watching your movement")}
             </span>
           ) : (
             <>
@@ -77,7 +76,7 @@ export default function RecordingHud({
                 </>
               )}
               <span style={styles.hitCountLabel}>
-                {drillConfig?.targetMovements != null ? "hits" : "movements"}
+                {loc(locale, "хөдөлгөөн", "동작", "moves")}
               </span>
             </>
           )}
@@ -87,7 +86,7 @@ export default function RecordingHud({
       {/* Combo counter */}
       {comboCount > 0 && (
         <div key={comboCount} style={styles.comboCounter} className="combo-pop">
-          <span style={styles.comboLabel}>COMBO</span>
+          <span style={styles.comboLabel}>{loc(locale, "КОМБО", "콤보", "COMBO")}</span>
           <span style={styles.comboNum}>{comboCount}</span>
         </div>
       )}
@@ -113,7 +112,7 @@ export default function RecordingHud({
       {!challengeUserId && ghostBestScore !== null && ghostEnabled && (
         <div style={styles.ghostHud}>
           <div style={styles.ghostHudRow}>
-            <span style={styles.ghostHudYouLabel}>YOU</span>
+            <span style={styles.ghostHudYouLabel}>{loc(locale, "ТА", "나", "YOU")}</span>
             <span style={styles.ghostHudYouScore}>{liveScore.toFixed(1)}</span>
           </div>
           <span style={styles.ghostHudSep}>vs</span>
@@ -128,10 +127,10 @@ export default function RecordingHud({
               : liveScore > ghostScore ? GOLD
               : "rgba(255,255,255,0.4)",
           }}>
-            {liveScore > ghostBestScore ? "NEW BEST"
-              : liveScore >= ghostBestScore - 0.5 ? "ALMOST!"
-              : liveScore > ghostScore ? "AHEAD"
-              : "BEHIND"}
+            {liveScore > ghostBestScore ? loc(locale, "ШИНЭ ДЭЭД", "신기록", "NEW BEST")
+              : liveScore >= ghostBestScore - 0.5 ? loc(locale, "БАРАГ!", "거의!", "ALMOST!")
+              : liveScore > ghostScore ? loc(locale, "ТҮРҮҮЛЖ БАЙНА", "앞서는 중", "AHEAD")
+              : loc(locale, "ХОЦОРЧ БАЙНА", "뒤처지는 중", "BEHIND")}
           </span>
         </div>
       )}
@@ -143,8 +142,7 @@ export default function RecordingHud({
         </div>
       )}
 
-      {/* Movement timeline */}
-      <MovementTimeline events={movementEvents} sessionStartTime={sessionStartTime} />
+      {/* The movement log (MovementTimeline) is a debugging aid — shown in the result's details, not over the fighter. */}
     </>
   );
 }

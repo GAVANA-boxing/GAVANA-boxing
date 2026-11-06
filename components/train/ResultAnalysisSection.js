@@ -5,6 +5,7 @@ import { GOLD, RADIUS, whiteAlpha, goldAlpha, blackAlpha } from "@/lib/tokens";
 import { getChallengeRank } from "@/lib/utils";
 import { getChallengeComparisonPercent } from "@/lib/trainHelpers";
 import { cameraQualityScore } from "@/lib/cinematicCoaching";
+import { localizeCoaching } from "@/lib/coachingText";
 import { fmtTime } from "@/lib/trainResultHelpers";
 import dynamic from "next/dynamic";
 const MotionChart = dynamic(() => import("@/components/train/MotionChart"), { ssr: false });
@@ -403,13 +404,13 @@ export default function ResultAnalysisSection({
             {poseMetrics.coaching.filter((c) => c.type !== "caution").map((c, i) => (
               <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 14px", borderRadius: RADIUS.md, background: c.type === "strength" ? "rgba(52,211,153,0.04)" : "rgba(245,196,81,0.04)", border: `1px solid ${c.type === "strength" ? "rgba(52,211,153,0.14)" : "rgba(245,196,81,0.14)"}`, borderLeft: `3px solid ${c.type === "strength" ? "rgba(52,211,153,0.45)" : "rgba(245,196,81,0.45)"}` }}>
                 <span style={{ fontSize: 10, fontWeight: 900, flexShrink: 0, marginTop: 1, color: c.type === "strength" ? "rgba(52,211,153,0.8)" : "rgba(245,196,81,0.7)" }}>{c.type === "strength" ? "✓" : "→"}</span>
-                <span style={{ fontSize: 12, fontWeight: 800, lineHeight: 1.45, color: c.type === "strength" ? "rgba(52,211,153,0.8)" : whiteAlpha(0.72) }}>{c.message}</span>
+                <span style={{ fontSize: 12, fontWeight: 800, lineHeight: 1.45, color: c.type === "strength" ? "rgba(52,211,153,0.8)" : whiteAlpha(0.72) }}>{localizeCoaching(c.message, locale)}</span>
               </div>
             ))}
             {poseMetrics.coaching.filter((c) => c.type === "caution").map((c, i) => (
               <div key={`caution-${i}`} style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "8px 12px", borderRadius: RADIUS.md, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
                 <span style={{ fontSize: 9, color: whiteAlpha(0.28), flexShrink: 0, marginTop: 1 }}>⚠</span>
-                <span style={{ fontSize: 10.5, color: whiteAlpha(0.32), fontWeight: 700, lineHeight: 1.45 }}>{c.message}</span>
+                <span style={{ fontSize: 10.5, color: whiteAlpha(0.32), fontWeight: 700, lineHeight: 1.45 }}>{localizeCoaching(c.message, locale)}</span>
               </div>
             ))}
           </div>
