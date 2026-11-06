@@ -3,14 +3,11 @@
 import styles from "@/components/train/trainStyles";
 import { GOLD, RED, whiteAlpha } from "@/lib/tokens";
 import { loc } from "@/lib/loc";
+import { areaLabel as areaName } from "@/components/drills/drillsConstants";
 
 const AREA_COLOR = {
   Power: RED, Speed: "#FB923C", Timing: GOLD,
   Footwork: "#3B82F6", Guard: "#A78BFA", Accuracy: "#34D399",
-};
-const AREA_MN = {
-  Power: "Хүч", Speed: "Хурд", Timing: "Цаг",
-  Footwork: "Хөл", Guard: "Хамгаалалт", Accuracy: "Нарийвчлал",
 };
 
 export default function PreGameCard({
@@ -136,21 +133,20 @@ export default function PreGameCard({
         const area = connection?.primaryFocus;
         const col = AREA_COLOR[area] || GOLD;
         const drill = connection?.focusDrills?.[0] || connection?.focusStudy?.[0];
-        const areaLabel = locale === "mn" ? (AREA_MN[area] || area) : area;
+        const areaLabel = areaName(area, locale);
         return (
           <div style={{
             marginTop: 10,
-            padding: "10px 12px",
-            borderRadius: "3px 12px 12px 3px",
-            background: `${col}0a`,
-            border: `1px solid ${col}22`,
-            borderLeft: `3px solid ${col}`,
+            padding: "12px 14px",
+            borderRadius: 16,
+            background: `${col}12`,
+            border: `1px solid ${col}33`,
           }}>
-            <div style={{ fontSize: 8, fontWeight: 900, color: col, letterSpacing: 1.8, textTransform: "uppercase", marginBottom: 5 }}>
-              ⚡ {locale === "mn" ? "Өнөөдрийн анхаарал" : "Today's Focus"} · {areaLabel}
+            <div style={{ fontSize: 12.5, fontWeight: 600, color: col, marginBottom: 4 }}>
+              ⚡ {loc(locale, "Өнөөдрийн анхаарал", "오늘의 포커스", "Today's focus")} · {areaLabel}
             </div>
-            <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.55)", fontWeight: 700, lineHeight: 1.4 }}>
-              {drill || (locale === "mn" ? `${areaLabel} дасгалд анхаарал тавь` : `Focus on ${area} today`)}
+            <div style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", fontWeight: 500, lineHeight: 1.45 }}>
+              {drill || loc(locale, `${areaLabel} дасгалд анхаарал тавь`, `오늘은 ${areaLabel}에 집중`, `Focus on ${areaLabel} today`)}
             </div>
           </div>
         );
