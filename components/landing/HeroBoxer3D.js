@@ -12,7 +12,10 @@ const MODELS = ["/models/boxer_male.glb", "/models/boxer_female.glb"];
 // Mixamo mocap clips retargeted for these rigs (scripts: see the JSON's _note).
 const ANIMS_URL = "/models/anims/boxing.json";
 const FADE_S = 0.22;
-const ANIM_ORDER = ["Jab_Cross", "Boxing_5", "Boxing_4", "Jab_Cross", "Boxing_3", "Boxing_6"];
+const ANIM_ORDER = [
+  "Jab_Cross", "Left_Jab_from_Guard", "Right_Upper_Hook_from_Guard", "Jab_Cross", "Left_Uppercut_from_Guard",
+  "Boxing_4", "Right_Jab_from_Guard", "Right_Uppercut_from_Guard", "Boxing_5", "Boxing_3", "Boxing_6",
+];
 const CLIP_LABEL = [
   [/jab|straight/i, "JAB"],
   [/uppercut/i, "UPPERCUT"],
