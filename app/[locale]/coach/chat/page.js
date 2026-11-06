@@ -5,7 +5,6 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 import { useUserProfile } from "@/context/UserProfileProvider";
 import { auth } from "@/lib/firebase";
-import BottomNav from "@/components/BottomNav";
 import { getLocale, translate } from "@/lib/i18n";
 import s from "@/components/coach/coachChatStyles";
 import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
@@ -419,7 +418,9 @@ export default function AIChatPage() {
         reviewLabel={reviewLabel}
       />
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
+      {/* No bottom nav here: it floated over the message box (the page is a
+          full-height column with the input at the bottom), so nothing could be
+          typed. The chat is a focused full-screen view; the header has Back. */}
     </div>
   );
 }

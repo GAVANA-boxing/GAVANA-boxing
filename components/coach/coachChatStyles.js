@@ -188,7 +188,7 @@ const s = {
     background: blackAlpha(0.98),
     backdropFilter: "blur(20px)",
     WebkitBackdropFilter: "blur(20px)",
-    padding: "10px 16px 12px",
+    padding: "10px 16px calc(12px + env(safe-area-inset-bottom))",
   },
   quickRow: {
     display: "flex",
