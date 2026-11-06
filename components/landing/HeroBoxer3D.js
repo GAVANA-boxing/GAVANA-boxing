@@ -9,12 +9,16 @@ import { useEffect, useRef, useState } from "react";
 // SVG preview underneath stays). Pauses off-screen.
 
 const MODELS = ["/models/boxer_male.glb", "/models/boxer_female.glb"];
+// Mixamo mocap clips retargeted for these rigs (scripts: see the JSON's _note).
+const ANIMS_URL = "/models/anims/boxing.json";
+const FADE_S = 0.22;
+const ANIM_ORDER = ["Jab_Cross", "Boxing_5", "Boxing_4", "Jab_Cross", "Boxing_3", "Boxing_6"];
 const CLIP_LABEL = [
   [/jab|straight/i, "JAB"],
   [/uppercut/i, "UPPERCUT"],
   [/hook/i, "HOOK"],
 ];
-const LABEL_COLOR = { JAB: "#60A5FA", HOOK: "#F5C451", UPPERCUT: "#A78BFA" };
+const LABEL_COLOR = { JAB: "#60A5FA", CROSS: "#FF3B30", HOOK: "#F5C451", UPPERCUT: "#A78BFA" };
 // Bones (Mixamo names, sanitized) for the tracking overlay.
 const SKELETON = [
   ["LeftArm", "LeftForeArm"], ["LeftForeArm", "LeftHand"], ["RightArm", "RightForeArm"], ["RightForeArm", "RightHand"],
@@ -44,7 +48,10 @@ export default function HeroBoxer3D({ labels, onReady }) {
       const THREE = await import("three");
       const { GLTFLoader } = await import("three/examples/jsm/loaders/GLTFLoader.js");
       const url = MODELS[Math.floor(Math.random() * MODELS.length)];
-      const gltf = await new GLTFLoader().loadAsync(url);
+      const [gltf, anims] = await Promise.all([
+        new GLTFLoader().loadAsync(url),
+        fetch(ANIMS_URL).then((r) => (r.ok ? r.json() : null)).catch(() => null),
+      ]);
       const wrap = wrapRef.current, glCanvas = glRef.current, fx = fxRef.current;
       if (disposed || !wrap || !glCanvas || !fx) return;
 
@@ -65,29 +72,55 @@ export default function HeroBoxer3D({ labels, onReady }) {
       const bone = (n) => { let b = null; model.traverse((o) => { if (!b && o.isBone && o.name.replace(/[^a-z0-9]/gi, "").endsWith(n)) b = o; }); return b; };
       const bones = Object.fromEntries([...new Set(SKELETON.flat()), "Head"].map((n) => [n, bone(n)]));
 
-      // In-place punch clips only (no walking off the stage): lock hips x/z.
-      const clips = gltf.animations
-        .map((c) => ({ clip: c, label: CLIP_LABEL.find(([re]) => re.test(c.name))?.[1] }))
-        .filter((c) => c.label && !/knee|step|practice|warmup/i.test(c.clip.name));
-      for (const { clip } of clips) {
-        for (const tr of clip.tracks) {
-          if (!/Hips\.position$/.test(tr.name)) continue;
-          for (let i = 0; i < tr.values.length; i += 3) { tr.values[i] = tr.values[0]; tr.values[i + 2] = tr.values[2]; }
+      // Sequence of { clip, events: [{ t, label }] }. Prefer the Mixamo mocap set;
+      // fall back to the in-place punch clips that ship inside the model.
+      let order = [];
+      const hips = bone("Hips");
+      if (anims?.clips?.length && hips) {
+        const rest = hips.position.clone();
+        const k = rest.y / 1.0427; // source rig (Mixamo Y Bot) hips height → this model
+        const byName = {};
+        for (const c of anims.clips) {
+          const clip = THREE.AnimationClip.parse({
+            name: c.name, duration: c.duration,
+            tracks: c.tracks.map((t) => (/Hips\.position$/.test(t.name)
+              ? { ...t, values: t.values.map((v, i) => (i % 3 === 0 ? rest.x : i % 3 === 1 ? rest.y + v * k : rest.z)) }
+              : t)),
+          });
+          byName[c.name] = { clip, events: c.events || [] };
         }
+        order = ANIM_ORDER.map((n) => byName[n]).filter(Boolean);
       }
-      if (!clips.length) return;
-      // A combo-like order: jab, jab, then the power punches.
-      const order = [...clips.filter((c) => c.label === "JAB"), ...clips.filter((c) => c.label === "JAB"), ...clips.filter((c) => c.label !== "JAB")];
+      if (!order.length) {
+        const own = gltf.animations
+          .map((c) => ({ clip: c, label: CLIP_LABEL.find(([re]) => re.test(c.name))?.[1] }))
+          .filter((c) => c.label && !/knee|step|practice|warmup/i.test(c.clip.name));
+        for (const { clip } of own) {
+          for (const tr of clip.tracks) {
+            if (!/Hips\.position$/.test(tr.name)) continue;
+            for (let i = 0; i < tr.values.length; i += 3) { tr.values[i] = tr.values[0]; tr.values[i + 2] = tr.values[2]; }
+          }
+        }
+        const ev = (c) => ({ clip: c.clip, events: [{ t: c.clip.duration * 0.38, label: c.label }] });
+        order = [...own.filter((c) => c.label === "JAB"), ...own.filter((c) => c.label === "JAB"), ...own.filter((c) => c.label !== "JAB")].map(ev);
+      }
+      if (!order.length) return;
+      // Own clip copy per slot: a repeated clip must not share one action, or
+      // cross-fading it into itself leaves the fighter in the bind (T) pose.
+      order = order.map((o, i) => { const clip = o.clip.clone(); clip.name = `${clip.name}#${i}`; return { ...o, clip }; });
       const mixer = new THREE.AnimationMixer(model);
-      let idx = 0, action = null, clipStart = 0, count = 0, shownFor = -1;
+      let idx = 0, action = null, clipStart = 0, count = 0, nextEv = 0, hideAt = 0;
       const play = (now) => {
         const next = mixer.clipAction(order[idx % order.length].clip);
-        next.reset().setLoop(THREE.LoopOnce, 1);
-        next.clampWhenFinished = true;
-        if (action) next.crossFadeFrom(action, 0.18, false);
+        next.reset();
+        next.setLoop(THREE.LoopRepeat, Infinity);   // never "finishes" mid-fade
+        next.enabled = true;
+        next.setEffectiveWeight(1);
         next.play();
+        if (action && action !== next) action.crossFadeTo(next, FADE_S, false);
         action = next;
         clipStart = now;
+        nextEv = 0;
       };
 
       const fit = () => {
@@ -136,14 +169,17 @@ export default function HeroBoxer3D({ labels, onReady }) {
         mixer.update(dt);
         const cur = order[idx % order.length];
         const tIn = (now - clipStart) / 1000;
-        // The punch lands around 40% into each clip: label + counter + score tick.
-        if (tIn > cur.clip.duration * 0.38 && shownFor !== idx) {
-          shownFor = idx;
+        // Each punch moment: label + counter + score tick, like the live round.
+        const ev = cur.events[nextEv];
+        if (ev && tIn >= ev.t) {
+          nextEv += 1;
           count += 1;
-          setHud((h) => ({ label: cur.label, count, score: Math.min(0.95, h.score + 0.03) }));
+          hideAt = now + 450;
+          setHud((h) => ({ label: ev.label, count, score: Math.min(0.95, h.score + 0.025) }));
         }
-        if (tIn > cur.clip.duration * 0.8 && shownFor === idx) setHud((h) => (h.label ? { ...h, label: null } : h));
-        if (tIn >= cur.clip.duration - 0.05) { idx += 1; play(now); }
+        if (hideAt && now > hideAt) { hideAt = 0; setHud((h) => (h.label ? { ...h, label: null } : h)); }
+        // Start the next clip while this one is still moving, so the fade blends two poses.
+        if (tIn >= cur.clip.duration - FADE_S) { idx += 1; play(now); }
         // Slow orbit around the fighter.
         // The boxing stance turns the body ~60°: orbit in front of the chest, not the side.
         const ang = -0.35 + Math.sin(now / 4200) * 0.3;
