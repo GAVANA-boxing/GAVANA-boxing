@@ -44,3 +44,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .claude/
+
+# Punch-detection eval scratch (scripts/punch-eval/README.md) — never commit recordings
+/app/[[]locale]/zz-*/
+/public/zz-eval/
