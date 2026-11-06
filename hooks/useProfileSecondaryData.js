@@ -165,7 +165,7 @@ export function useProfileSecondaryData({ user, userId, isOwnProfile }) {
         const storedXP = Number(p.xp) || 0;
         const myXP = getAccountXp({
           storedXp: storedXP,
-          aiFeedbackDocs: feedSnap.docs.map(d => d.data()),
+          streakDays: Number(p.dailyStreak) || 0,
           trainingSessions: sessionSnap.docs.map(d => ({ xpGained: d.data().xpGained })),
         });
         setMyStats({

@@ -70,7 +70,11 @@ service cloud.firestore {
             "totalChallengesCompleted",
             "dailyMissionCompleted",
             "streakFreezes",
-            "streakFreezeMonth"
+            "streakFreezeMonth",
+            "sessionXpDay",
+            "sessionXpCount",
+            "challengeAwardDay",
+            "challengeAwardCount"
           ])) ||
         (isAuth() && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           "coachRating",
@@ -173,8 +177,10 @@ service cloud.firestore {
       // getAccountXp sums xpGained, so a client-set value would inflate rank/XP.
       allow create: if isAuth() && request.resource.data.userId == request.auth.uid
         && !request.resource.data.keys().hasAny(["xpGained"]);
+      // The score can't be edited after the round is saved (the server reads it
+      // from here when it awards XP).
       allow update: if isAuth() && resource.data.userId == request.auth.uid
-        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(["xpGained"]);
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(["xpGained", "score", "userId"]);
       allow delete: if isAuth() && resource.data.userId == request.auth.uid;
     }
 

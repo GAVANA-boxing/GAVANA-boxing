@@ -24,6 +24,13 @@ await t("private: other read blocked", assertFails(getDoc(doc(bob, "users_privat
 await t("private: anon read blocked", assertFails(getDoc(doc(anon, "users_private/alice"))));
 await t("private: other write blocked", assertFails(setDoc(doc(bob, "users_private/alice"), { email: "evil@x.mn" })));
 await t("private: extra keys blocked", assertFails(setDoc(doc(alice, "users_private/alice"), { email: "a@x.mn", isAdmin: true })));
+await t("xp counters blocked", assertFails(updateDoc(doc(alice, "users/alice"), { sessionXpCount: 0, sessionXpDay: "x" })));
+await env.withSecurityRulesDisabled(async (c) => { await setDoc(doc(c.firestore(), "training_sessions/s1"), { userId: "alice", type: "training", score: 5 }); });
+await t("session: create without xpGained ok", assertSucceeds(setDoc(doc(alice, "training_sessions/s2"), { userId: "alice", type: "training", score: 7 })));
+await t("session: create with xpGained blocked", assertFails(setDoc(doc(alice, "training_sessions/s3"), { userId: "alice", score: 7, xpGained: 500 })));
+await t("session: edit score blocked", assertFails(updateDoc(doc(alice, "training_sessions/s1"), { score: 10 })));
+await t("session: edit tag ok", assertSucceeds(updateDoc(doc(alice, "training_sessions/s1"), { sessionTag: "Bag" })));
+await t("session: other user's blocked", assertFails(updateDoc(doc(bob, "training_sessions/s1"), { sessionTag: "x" })));
 await t("fcm: owner write", assertSucceeds(setDoc(doc(alice, "users/alice/fcmTokens/tok"), { token: "t" })));
 await t("fcm: other read blocked", assertFails(getDoc(doc(bob, "users/alice/fcmTokens/tok"))));
 console.log(results.join("\n"));

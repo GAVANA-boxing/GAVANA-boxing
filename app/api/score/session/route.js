@@ -1,9 +1,9 @@
 import { withAuth } from "@/lib/withAuth";
-import { firestoreGet, firestorePatch, firestoreCreate } from "@/lib/server/firestore";
+import { firestoreGet, firestorePatch, firestoreCreateWithId } from "@/lib/server/firestore";
 import { computeChallengeProgression, computeMissionProgression } from "@/lib/domain/awardXp";
+import { checkSession, challengeAwardDecision, challengeResultId, resolveDateKeys, sessionXpDecision } from "@/lib/domain/scoreGuard";
 import { getCurrentSeasonId } from "@/lib/season";
-import { calculateChallengeXP } from "@/lib/xp";
-import { getChallengeRank } from "@/lib/utils";
+import { CORE_MODE } from "@/lib/coreRoutes";
 
 // Server-authoritative progression. The client posts the raw session outcome;
 // the server recomputes XP / streak / rank with the shared pure math and writes
@@ -15,6 +15,10 @@ import { getChallengeRank } from "@/lib/utils";
 // unset), this returns 503 { code: "not_configured" } and the client falls back
 // to its legacy direct write — so nothing breaks before that env + the rules
 // are deployed.
+//
+// Anti-cheat (lib/domain/scoreGuard.js): server-checked dates, XP read from the
+// saved session (fresh, owned, with real punches), once per session, daily
+// caps, one challenge payout per challenge per day.
 
 const _rate = new Map();
 function rateLimited(uid) {
@@ -40,18 +44,26 @@ export const POST = withAuth(async (req, { uid }) => {
     return Response.json({ error: "Invalid body" }, { status: 400 });
   }
 
-  const { type, score, challengeId, trainingSessionId, locale = "en", dateKeys } = body || {};
+  const { type, score, challengeId, trainingSessionId, locale = "en", dateKeys: clientKeys } = body || {};
   if (type !== "challenge" && type !== "mission") {
     return Response.json({ error: "Invalid type" }, { status: 400 });
   }
-  if (!dateKeys || typeof dateKeys.todayKey !== "string") {
-    return Response.json({ error: "Missing dateKeys" }, { status: 400 });
+  // The client's local date, checked against the server clock; the other keys
+  // are derived here (never trusted from the request).
+  const dateKeys = resolveDateKeys(clientKeys?.todayKey);
+  if (!dateKeys) {
+    return Response.json({ error: "Bad date" }, { status: 400 });
   }
 
   try {
     const userData = (await firestoreGet(`users/${uid}`)) || {};
 
     if (type === "challenge") {
+      // Challenges are outside the core loop (hidden while CORE_MODE is on), so
+      // there is no legitimate caller — don't pay out for a client-sent score.
+      if (CORE_MODE) {
+        return Response.json({ error: "Challenges are off", code: "challenges_disabled" }, { status: 403 });
+      }
       const s = Number(score);
       if (!Number.isFinite(s) || s < 0 || s > 10) {
         return Response.json({ error: "Invalid score" }, { status: 400 });
@@ -59,15 +71,16 @@ export const POST = withAuth(async (req, { uid }) => {
       if (!challengeId || typeof challengeId !== "string") {
         return Response.json({ error: "Missing challengeId" }, { status: 400 });
       }
+      const cap = challengeAwardDecision(userData, dateKeys.todayKey);
+      if (!cap.ok) {
+        return Response.json({ error: "Daily challenge limit", code: "daily_cap" }, { status: 429 });
+      }
 
-      const { userUpdate, challengeResult, celebration } = computeChallengeProgression(
-        userData,
-        s,
-        dateKeys,
-      );
+      const { userUpdate, challengeResult, celebration } = computeChallengeProgression(userData, s, dateKeys);
 
-      await firestorePatch(`users/${uid}`, { ...userUpdate, updatedAt: new Date() });
-      await firestoreCreate("challenge_results", {
+      // One payout per user × challenge × day: the result doc's id is
+      // deterministic and the create fails if it already exists.
+      const created = await firestoreCreateWithId("challenge_results", challengeResultId(uid, challengeId, dateKeys.todayKey), {
         userId: uid,
         challengeId,
         ...challengeResult,
@@ -75,34 +88,33 @@ export const POST = withAuth(async (req, { uid }) => {
         createdAt: new Date(),
         locale,
       });
+      if (!created) {
+        return Response.json({ ok: true, alreadyAwarded: true, celebration: null });
+      }
+      await firestorePatch(`users/${uid}`, { ...userUpdate, ...cap.userUpdate, updatedAt: new Date() });
 
       return Response.json({ ok: true, celebration, authoritative: userUpdate });
     }
 
-    // type === "mission"
-    const { alreadyCompleted, userUpdate, celebration } = computeMissionProgression(
-      userData,
-      dateKeys,
-    );
-    await firestorePatch(`users/${uid}`, { ...userUpdate, updatedAt: new Date() });
-
-    // Stamp the authoritative training-session xpGained server-side (the client
-    // creates the doc without it; rules forbid the client from setting it). This
-    // is what getAccountXp sums, so computing it here closes the canonical-XP
-    // cheat. Verify ownership before patching.
-    let trainingXpGained = null;
-    if (trainingSessionId && typeof trainingSessionId === "string") {
-      const s = Number(score);
-      if (Number.isFinite(s) && s >= 0 && s <= 10) {
-        const sessionDoc = await firestoreGet(`training_sessions/${trainingSessionId}`);
-        if (sessionDoc && sessionDoc.userId === uid) {
-          trainingXpGained = calculateChallengeXP(s, getChallengeRank(s));
-          await firestorePatch(`training_sessions/${trainingSessionId}`, { xpGained: trainingXpGained });
-        }
-      }
+    // type === "mission": needs a real, fresh round saved by this user.
+    const session = trainingSessionId && typeof trainingSessionId === "string"
+      ? await firestoreGet(`training_sessions/${trainingSessionId}`)
+      : null;
+    const check = checkSession(session, uid);
+    if (!check.ok) {
+      return Response.json({ ok: true, alreadyCompleted: false, celebration: { missionJustCompleted: false }, trainingXpGained: 0, rejected: check.reason });
     }
 
-    return Response.json({ ok: true, alreadyCompleted, celebration, trainingXpGained, authoritative: userUpdate });
+    const { alreadyCompleted, userUpdate, celebration } = computeMissionProgression(userData, dateKeys);
+
+    // The session's xpGained (what getAccountXp sums) — computed from the SAVED
+    // session's score, once per session, within the daily cap.
+    const decision = sessionXpDecision({ session, uid, userData, todayKey: dateKeys.todayKey });
+    if (decision.sessionUpdate) await firestorePatch(`training_sessions/${trainingSessionId}`, decision.sessionUpdate);
+
+    await firestorePatch(`users/${uid}`, { ...userUpdate, ...(decision.userUpdate || {}), updatedAt: new Date() });
+
+    return Response.json({ ok: true, alreadyCompleted, celebration, trainingXpGained: decision.xp, xpReason: decision.reason, authoritative: userUpdate });
   } catch (err) {
     if (notConfigured(err)) {
       return Response.json({ error: "Scoring not configured", code: "not_configured" }, { status: 503 });

@@ -305,10 +305,8 @@ export function useProfileData({ user, userId, authLoading, locale }) {
     if (loading || rankUpShownRef.current || !isOwnProfile) return;
     const currentXP = getAccountXp({
       storedXp: profileUser?.xp,
-      aiFeedbackDocs: aiFeedbackHistory,
       trainingSessions,
       streakDays: Number(profileUser?.dailyStreak ?? profileUser?.streakCount) || 0,
-      likesReceived: totalLikes,
     });
     const currentRank = getFighterRank(currentXP);
     const storedKey = typeof window !== "undefined"

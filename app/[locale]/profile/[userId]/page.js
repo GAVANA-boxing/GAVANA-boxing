@@ -130,10 +130,8 @@ export default function UserProfilePage() {
 
   const xp = getAccountXp({
     storedXp: profileUser?.xp,
-    aiFeedbackDocs: aiFeedbackHistory,
     trainingSessions,
     streakDays: streakCount,
-    likesReceived: totalLikes,
   });
   const fighterRank = getFighterRank(xp);
   const nextRank = getNextRank(xp);

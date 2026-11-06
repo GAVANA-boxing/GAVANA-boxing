@@ -1,15 +1,25 @@
 import { describe, it, expect } from "vitest";
 import { getAccountXp, getProgression } from "@/lib/domain/progression";
 
-// Canonical XP = users.xp + training-session xpGained + AI-feedback performance.
+// Canonical XP = users.xp + training-session xpGained + daily streak × 20 —
+// server-written sources only.
 describe("getAccountXp", () => {
-  it("sums all three sources", () => {
+  it("sums the server-written sources", () => {
     const xp = getAccountXp({
       storedXp: 100,
-      aiFeedbackDocs: [{ score: 7, createdAt: Date.UTC(2026, 10, 1) }], // 490
-      trainingSessions: [{ xpGained: 50 }, { xpGained: "30" }, {}],     // 80
+      trainingSessions: [{ xpGained: 50 }, { xpGained: "30" }, {}], // 80
+      streakDays: 3,                                                // 60
     });
-    expect(xp).toBe(670);
+    expect(xp).toBe(240);
+  });
+
+  it("ignores client-writable sources (AI reel feedback, likes)", () => {
+    const loose = getAccountXp as (a: unknown) => number;
+    expect(loose({ storedXp: 10, aiFeedbackDocs: [{ score: 10 }], likesReceived: 9999 })).toBe(10);
+  });
+
+  it("ignores negative xpGained", () => {
+    expect(getAccountXp({ trainingSessions: [{ xpGained: -500 }, { xpGained: 20 }] })).toBe(20);
   });
 
   it("prefers a pre-summed trainingSessionXp", () => {

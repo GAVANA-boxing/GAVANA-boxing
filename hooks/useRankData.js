@@ -17,25 +17,21 @@ export function useRankData({ user, authLoading }) {
     let active = true;
     async function loadXP() {
       try {
-        const [feedbackSnap, sessionSnap, profileSnap] = await Promise.all([
-          getDocs(query(collection(db, "ai_feedback"), where("userId", "==", user.uid))),
+        const [sessionSnap, profileSnap] = await Promise.all([
           getDocs(query(collection(db, "training_sessions"), where("userId", "==", user.uid))),
           getDoc(doc(db, "users", user.uid)),
         ]);
 
-        const docs = feedbackSnap.docs.map((d) => ({ score: d.data().score, createdAt: d.data().createdAt }));
         const trainingSessions = sessionSnap.docs.map((d) => ({ xpGained: d.data().xpGained }));
         const profileData = profileSnap.exists() ? profileSnap.data() : {};
 
         if (active) {
           setXp(getAccountXp({
             storedXp: profileData.xp,
-            aiFeedbackDocs: docs,
             trainingSessions,
             streakDays: Number(profileData.dailyStreak) || 0,
-            likesReceived: Number(profileData.likesReceived) || 0,
           }));
-          setSessionCount(feedbackSnap.docs.length);
+          setSessionCount(sessionSnap.docs.length);
           setTier(profileData.subscriptionTier || profileData.tier || null);
         }
       } catch {
