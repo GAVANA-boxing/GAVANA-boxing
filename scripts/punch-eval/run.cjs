@@ -1,7 +1,10 @@
+const fs = require("fs");
 const { chromium } = require("playwright");
+// Use a preinstalled Chromium when the project's Playwright version has no matching browser.
+const exe = process.env.PW_CHROMIUM || (fs.existsSync("/opt/pw-browsers/chromium") ? "/opt/pw-browsers/chromium" : undefined);
 (async () => {
   const runs = JSON.parse(process.argv[2]);
-  const b = await chromium.launch();
+  const b = await chromium.launch(exe ? { executablePath: exe } : {});
   for (const r of runs) {
     const p = await b.newPage();
     const q = new URLSearchParams(r).toString();
