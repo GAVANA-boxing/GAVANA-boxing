@@ -4,7 +4,7 @@ import { addDoc, collection, doc, getDocs, limit, query, serverTimestamp, update
 import { db } from "@/lib/firebase";
 import { snapToDocs } from "@/lib/firestore";
 import { funnel, FUNNEL } from "@/lib/funnel";
-import { CORE_MODE } from "@/lib/coreRoutes";
+import { CORE_MODE, showRoute } from "@/lib/coreRoutes";
 
 export function useOnboardingActions({ user, locale, router }) {
   // showIntro: value-prop screen shown before profile-building steps
@@ -115,7 +115,7 @@ export function useOnboardingActions({ user, locale, router }) {
     try { localStorage.setItem("gavana_onboarding_seen", "1"); } catch {}
     // Fighters go straight to the camera (value), not a second checklist hub.
     const defaultDest = role === "coach" ? `/${locale}/coach/dashboard`
-      : role === "gym" ? `/${locale}/gyms/dashboard`
+      : role === "gym" && showRoute("/gyms") ? `/${locale}/gyms/dashboard`
       : `/${locale}/train`;
     router.replace(dest || defaultDest);
   };

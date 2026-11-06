@@ -7,51 +7,16 @@ import { db } from "@/lib/firebase";
 import { RADIUS, blackAlpha } from "@/lib/tokens";
 import { loc } from "@/lib/loc";
 
-import { FeedIcon, CoachIcon, ExploreIcon, GridIcon, HomeIcon, ProgressIcon } from "./bottomnav/NavIcons";
+import { FeedIcon, CoachIcon, HomeIcon, ProgressIcon } from "./bottomnav/NavIcons";
 import { CORE_MODE } from "@/lib/coreRoutes";
-import CombatOSSheet from "./bottomnav/CombatOSSheet";
 import IconTab from "./bottomnav/IconTab";
+import { flashNavLabel, useNavFlash } from "./bottomnav/navFlash";
+import { getActiveTab } from "@/lib/navTabs";
 import TrainTab from "./bottomnav/TrainTab";
 import ProfileTab from "./bottomnav/ProfileTab";
 
-// ─── Active tab resolver ──────────────────────────────────────────────────────
-function getActiveTab(pathname = "") {
-  if (pathname.includes("/home"))       return "home";
-  if (pathname.includes("/rank") || pathname.includes("/history")) return "progress";
-  if (pathname.includes("/feed"))       return "feed";
-  if (pathname.includes("/coach"))      return "coach";
-  if (pathname.includes("/explore") || pathname.includes("/discover") || pathname.includes("/events") || pathname.includes("/programs")) return "explore";
-  if (pathname.includes("/train"))      return "train";
-  if (
-    pathname.includes("/profile") ||
-    pathname.includes("/fighter-profile") ||
-    pathname.includes("/inbox") ||
-    pathname.includes("/notifications")
-  ) return "profile";
-  return "";
-}
-
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const s = {
-  combatOSBtn: {
-    position: "fixed",
-    bottom: "calc(88px + max(env(safe-area-inset-bottom), 0px))",
-    right: 18,
-    zIndex: 99,
-    display: "flex",
-    alignItems: "center",
-    gap: 6,
-    padding: "8px 13px",
-    borderRadius: RADIUS.full,
-    background: "rgba(18,18,20,0.88)",
-    backdropFilter: "blur(20px)",
-    WebkitBackdropFilter: "blur(20px)",
-    border: "1px solid rgba(255,255,255,0.1)",
-    color: "rgba(255,255,255,0.75)",
-    boxShadow: `0 4px 20px ${blackAlpha(0.45)}`,
-    cursor: "pointer",
-    WebkitTapHighlightColor: "transparent",
-  },
   nav: {
     position: "fixed",
     bottom: "calc(10px + max(env(safe-area-inset-bottom), 0px))",
@@ -76,6 +41,7 @@ const s = {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function BottomNav({ router, user, currentLocale = "en", activeTab, onInteractStart, onInteractEnd }) {
+  const flashing = useNavFlash();
   const pathname = usePathname();
   const nextRouter = useNextRouter();
   const r = router ?? nextRouter;
@@ -84,19 +50,10 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
   const [unreadCount, setUnreadCount] = useState(0);
   const [dmUnread, setDmUnread] = useState(0);
   const [mounted, setMounted] = useState(false);
-  const [combatOSOpen, setCombatOSOpen] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
-  useEffect(() => {
-    setMounted(true);
-    const mq = window.matchMedia("(min-width: 1024px)");
-    setIsDesktop(mq.matches);
-    const handler = (e) => setIsDesktop(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-
-  const resolvedActiveTab = activeTab || getActiveTab(pathname);
+  // The URL decides; `activeTab` is only a fallback for pages outside the five tabs.
+  const resolvedActiveTab = getActiveTab(pathname) || activeTab;
 
   // Unread DMs
   useEffect(() => {
@@ -122,36 +79,14 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
     return () => { active = false; unsub(); };
   }, [user?.uid]);
 
-  const goToProfile = () => r.push(user?.uid ? `/${locale}/profile/${user.uid}` : `/${locale}/login`);
-
-  const feedLabel    = loc(locale, "Фийд", "피드", "Feed");
-  const coachLabel   = loc(locale, "Коуч", "코치", "Coach");
-  const exploreLabel = loc(locale, "Хайх", "탐색", "Explore");
+  // Tap: flash the tab's name for ~1 s, then go.
+  const go = (key, path) => { flashNavLabel(key); r.push(`/${locale}${path}`); };
+  const goToProfile = () => { flashNavLabel("profile"); r.push(user?.uid ? `/${locale}/profile/${user.uid}` : `/${locale}/login`); };
 
   if (!mounted) return null;
 
   return (
     <>
-      {/* Combat OS floating trigger — mobile only */}
-      {!isDesktop && (
-        <button
-          className="tap-bounce"
-          aria-label="More"
-          onClick={() => setCombatOSOpen(true)}
-          style={s.combatOSBtn}
-        >
-          <GridIcon />
-          <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.8, textTransform: "uppercase" }}>
-            {loc(locale, "Цэс", "더보기", "More")}
-          </span>
-        </button>
-      )}
-
-      {/* Combat OS sheet */}
-      {combatOSOpen && (
-        <CombatOSSheet onClose={() => setCombatOSOpen(false)} router={r} locale={locale} pathname={pathname} userId={user?.uid} unreadNotifs={unreadCount} unreadDMs={dmUnread} />
-      )}
-
       <nav
         className="app-bottom-nav"
         style={s.nav}
@@ -162,37 +97,28 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
         onPointerCancel={onInteractEnd}
         aria-label="Primary navigation"
       >
-        {/* Home (core loop) / Feed */}
         {CORE_MODE ? (
-          <IconTab active={resolvedActiveTab === "home"} onClick={() => r.push(`/${locale}/home`)} label={loc(locale, "Нүүр", "홈", "Home")}>
+          <IconTab active={resolvedActiveTab === "home"} onClick={() => go("home", "/home")} label={loc(locale, "Нүүр", "홈", "Home")} showLabel={flashing === "home"}>
             <HomeIcon active={resolvedActiveTab === "home"} />
           </IconTab>
         ) : (
-          <IconTab active={resolvedActiveTab === "feed"} onClick={() => r.push(`/${locale}/feed`)} label={feedLabel}>
+          <IconTab active={resolvedActiveTab === "feed"} onClick={() => go("feed", "/feed")} label={loc(locale, "Фийд", "피드", "Feed")} showLabel={flashing === "feed"}>
             <FeedIcon active={resolvedActiveTab === "feed"} />
           </IconTab>
         )}
 
-        {/* Coach */}
-        <IconTab active={resolvedActiveTab === "coach"} onClick={() => r.push(`/${locale}/coach`)} label={coachLabel}>
-          <CoachIcon active={resolvedActiveTab === "coach"} />
+        <IconTab active={resolvedActiveTab === "progress"} onClick={() => go("progress", "/rank")} label={loc(locale, "Дэвшил", "성장", "Progress")} showLabel={flashing === "progress"}>
+          <ProgressIcon active={resolvedActiveTab === "progress"} />
         </IconTab>
 
         {/* Train — center action */}
-        <TrainTab active={resolvedActiveTab === "train"} onClick={() => r.push(`/${locale}/train`)} locale={locale} />
+        <TrainTab active={resolvedActiveTab === "train"} onClick={() => go("train", "/train")} locale={locale} showLabel={flashing === "train"} />
 
-        {/* Progress (core loop) / Explore */}
-        {CORE_MODE ? (
-          <IconTab active={resolvedActiveTab === "progress"} onClick={() => r.push(`/${locale}/rank`)} label={loc(locale, "Дэвшил", "성장", "Progress")}>
-            <ProgressIcon active={resolvedActiveTab === "progress"} />
-          </IconTab>
-        ) : (
-          <IconTab active={resolvedActiveTab === "explore"} onClick={() => r.push(`/${locale}/explore`)} label={exploreLabel}>
-            <ExploreIcon active={resolvedActiveTab === "explore"} />
-          </IconTab>
-        )}
+        <IconTab active={resolvedActiveTab === "coach"} onClick={() => go("coach", "/coach")} label={loc(locale, "Коуч", "코치", "Coach")} showLabel={flashing === "coach"}>
+          <CoachIcon active={resolvedActiveTab === "coach"} />
+        </IconTab>
 
-        {/* Profile — carries notification badge */}
+        {/* Me — carries the notification badge */}
         <ProfileTab
           user={user}
           active={resolvedActiveTab === "profile"}
@@ -200,6 +126,7 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
           onBadgeClick={() => r.push(`/${locale}/notifications`)}
           badge={unreadCount + dmUnread}
           locale={locale}
+          showLabel={flashing === "profile"}
         />
       </nav>
     </>

@@ -125,7 +125,7 @@ export default function NotFound() {
 
       {/* Back link */}
       <Link
-        href="/mn/feed"
+        href="/mn/home"
         style={{
           padding: "14px 36px",
           borderRadius: 14,

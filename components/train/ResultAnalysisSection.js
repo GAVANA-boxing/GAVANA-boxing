@@ -11,6 +11,7 @@ import dynamic from "next/dynamic";
 const MotionChart = dynamic(() => import("@/components/train/MotionChart"), { ssr: false });
 import RankBadge from "@/components/RankBadge";
 import styles from "@/components/train/trainStyles";
+import { showRoute } from "@/lib/coreRoutes";
 
 function SectionLabel({ label }) {
   return (
@@ -101,7 +102,7 @@ export default function ResultAnalysisSection({
                 <div style={{ fontSize: 9, color: whiteAlpha(0.35), fontWeight: 800, letterSpacing: 1.5, marginTop: 2 }}>@{opponentUsername || "?"}</div>
               </div>
             </div>
-            {reelId && (
+            {reelId && showRoute("/reels") && (
               <button type="button" onClick={() => router.push(`/${locale}/reels?id=${reelId}`)} style={{ marginTop: 12, padding: "7px 14px", borderRadius: RADIUS.full, border: "1px solid rgba(168,85,247,0.32)", background: "rgba(168,85,247,0.09)", color: "#C084FC", fontSize: 11, fontWeight: 900, cursor: "pointer" }}>
                 Watch reel
               </button>
@@ -148,9 +149,9 @@ export default function ResultAnalysisSection({
                   {challengePostData.username && (
                     <div style={{ marginBottom: 10, fontSize: 10, color: whiteAlpha(0.3), fontWeight: 700 }}>@{challengePostData.username} · {challengePostData.challengeTitle || ""}</div>
                   )}
-                  <button type="button" onClick={() => router.push(`/${locale}/leaderboard`)} style={{ width: "100%", padding: "10px 0", borderRadius: 10, background: "linear-gradient(135deg,#34D399,#059669)", border: "none", color: "#000", fontSize: 11, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", cursor: "pointer" }}>
+                  {showRoute("/leaderboard") && <button type="button" onClick={() => router.push(`/${locale}/leaderboard`)} style={{ width: "100%", padding: "10px 0", borderRadius: 10, background: "linear-gradient(135deg,#34D399,#059669)", border: "none", color: "#000", fontSize: 11, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", cursor: "pointer" }}>
                     ⚔️ {loc(locale, "Дахин тулаан дуудах", "다른 파이터 도전", "Challenge Another")}
-                  </button>
+                  </button>}
                 </>
               ) : (
                 <>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { GOLD, RED } from "@/lib/tokens";
 import { loc } from "@/lib/loc";
+import { showRoute } from "@/lib/coreRoutes";
 
 export default function WelcomeBanner({ locale, router, username, onDismiss }) {
   const [dismissed, setDismissed] = useState(false);
@@ -55,13 +56,13 @@ export default function WelcomeBanner({ locale, router, username, onDismiss }) {
           {loc(locale, "⚡ Дадлага эхлэх", "⚡ 훈련 시작", "⚡ Start Training")}
         </button>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-          <button
+          {showRoute("/fighters") && <button
             type="button"
             onClick={() => router.push(`/${locale}/fighters`)}
             style={{ padding: "9px 0", borderRadius: 10, background: `${GOLD}15`, border: `1px solid ${GOLD}30`, color: GOLD, fontSize: 12, fontWeight: 800, cursor: "pointer" }}
           >
             {mn ? "📖 Fighter судлах" : "📖 Study Fighters"}
-          </button>
+          </button>}
           <button
             type="button"
             onClick={() => router.push(`/${locale}/coach/chat`)}

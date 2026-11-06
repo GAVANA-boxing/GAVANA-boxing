@@ -17,6 +17,7 @@ import DNAEvolutionProgress   from "./DNAEvolutionProgress";
 import WeakDimensionDrill     from "./WeakDimensionDrill";
 import FeaturedExperiment     from "./FeaturedExperiment";
 import ExperimentModeWidget   from "./ExperimentModeWidget";
+import { showRoute } from "@/lib/coreRoutes";
 
 export default function DailyHub({
   locale,
@@ -97,7 +98,8 @@ export default function DailyHub({
         nextBelt={nextBelt}
       />
 
-      {isBeginner && nextLesson && (
+      {/* Academy, fighter studies and experiments are hidden in core mode. */}
+      {isBeginner && nextLesson && showRoute("/programs") && (
         <BeginnerPathCard
           locale={locale}
           t={t}
@@ -133,7 +135,7 @@ export default function DailyHub({
         />
       )}
 
-      {featuredPkg && featuredFighter && (
+      {featuredPkg && featuredFighter && showRoute("/fighters") && (
         <FeaturedExperiment
           locale={locale}
           pkg={featuredPkg}
@@ -142,7 +144,7 @@ export default function DailyHub({
         />
       )}
 
-      {currentExperiment && (
+      {currentExperiment && showRoute("/fighters") && (
         <ExperimentModeWidget
           locale={locale}
           t={t}

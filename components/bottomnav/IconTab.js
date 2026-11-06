@@ -1,6 +1,7 @@
 "use client";
 
-import { RED, redAlpha, MOTION } from "@/lib/tokens";
+import { redAlpha, MOTION } from "@/lib/tokens";
+import { NavFlashLabel } from "./navFlash";
 
 const s = {
   iconTab: {
@@ -24,24 +25,18 @@ const s = {
     position: "relative",
     transition: `background ${MOTION.hover}`,
   },
-  tabLabel: {
-    fontSize: 9,
-    fontWeight: 700,
-    letterSpacing: 0.6,
-    textTransform: "uppercase",
-    lineHeight: 1,
-    transition: "color 160ms ease",
-    fontFamily: "var(--stack-sans)",
-  },
 };
 
 /**
- * @param {{ active: boolean, onClick: () => void, children: React.ReactNode, label: string }} props
+ * Icon-only tab. The name is the accessible label and flashes above the icon
+ * for ~1 s after a tap (`showLabel`, see navFlash.js).
+ * @param {{ active: boolean, onClick: () => void, children: React.ReactNode, label: string, showLabel?: boolean }} props
  */
-export default function IconTab({ active, onClick, children, label }) {
+export default function IconTab({ active, onClick, children, label, showLabel = false }) {
   return (
     <button type="button" onClick={onClick} style={s.iconTab} aria-label={label} className="tap-bounce">
-      <span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+      <span style={{ display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
+        {showLabel && <NavFlashLabel text={label} />}
         <span
           key={active ? "a" : "i"}
           className={active ? "nav-active-pop" : undefined}
@@ -54,7 +49,7 @@ export default function IconTab({ active, onClick, children, label }) {
             {children}
           </span>
         </span>
-        <span style={{ ...s.tabLabel, color: active ? RED : "rgba(255,255,255,0.32)" }}>{label}</span>
+        <span aria-hidden="true" style={{ width: 4, height: 4, borderRadius: 2, marginTop: 4, background: active ? "#FF3B30" : "transparent", transition: "background 160ms ease" }} />
       </span>
     </button>
   );

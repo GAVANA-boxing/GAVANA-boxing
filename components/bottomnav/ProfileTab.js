@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { RED } from "@/lib/tokens";
 import { loc } from "@/lib/loc";
+import { NavFlashLabel } from "./navFlash";
 
 const s = {
   iconTab: {
@@ -16,15 +17,6 @@ const s = {
     height: 68,
     WebkitTapHighlightColor: "transparent",
     padding: 0,
-  },
-  tabLabel: {
-    fontSize: 9,
-    fontWeight: 700,
-    letterSpacing: 0.6,
-    textTransform: "uppercase",
-    lineHeight: 1,
-    transition: "color 160ms ease",
-    fontFamily: "var(--stack-sans)",
   },
   badge: {
     position: "absolute",
@@ -67,15 +59,16 @@ const s = {
 /**
  * @param {{ user: object | null, active: boolean, onClick: () => void, onBadgeClick: () => void, badge: number, locale: string }} props
  */
-export default function ProfileTab({ user, active, onClick, onBadgeClick, badge, locale }) {
+export default function ProfileTab({ user, active, onClick, onBadgeClick, badge, locale, showLabel = false }) {
   const photo = user?.photoURL || user?.profileImageUrl || "";
   const initial = (user?.displayName || user?.username || "U").charAt(0).toUpperCase();
   const [imgError, setImgError] = useState(false);
-  const label = loc(locale, "Профайл", "프로필", "Profile");
+  const label = loc(locale, "Би", "나", "Me");
 
   return (
     <button type="button" onClick={onClick} style={s.iconTab} aria-label={label} className="tap-bounce">
-      <span style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", gap: 4, position: "relative" }}>
+      <span style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
+        {showLabel && <NavFlashLabel text={label} />}
         <span style={{ position: "relative", display: "inline-flex" }}>
           <span style={{
             ...s.avatarWrap,
@@ -97,7 +90,6 @@ export default function ProfileTab({ user, active, onClick, onBadgeClick, badge,
             </button>
           )}
         </span>
-        <span style={{ ...s.tabLabel, color: active ? "#fff" : "rgba(255,255,255,0.32)" }}>{label}</span>
       </span>
     </button>
   );

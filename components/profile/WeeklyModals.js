@@ -117,13 +117,15 @@ export function WeeklyLeaderboardModal({ challengeRanks, t, onClose, onGoToChall
 
         <p style={{ margin: "0 0 16px", fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.55, textAlign: "center" }}>{t("weeklySeasonModalDesc")}</p>
 
-        <button
-          type="button"
-          style={{ width: "100%", padding: "14px 0", borderRadius: 12, background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", letterSpacing: 0.5 }}
-          onClick={onGoToChallenges}
-        >
-          {t("weeklySeasonModalCta")}
-        </button>
+        {onGoToChallenges && (
+          <button
+            type="button"
+            style={{ width: "100%", padding: "14px 0", borderRadius: 12, background: `linear-gradient(135deg, ${RED}, ${RED_DARK})`, border: "none", color: "#fff", fontSize: 14, fontWeight: 900, cursor: "pointer", letterSpacing: 0.5 }}
+            onClick={onGoToChallenges}
+          >
+            {t("weeklySeasonModalCta")}
+          </button>
+        )}
       </div>
     </div>
   );

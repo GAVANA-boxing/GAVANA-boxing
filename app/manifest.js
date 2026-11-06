@@ -1,9 +1,11 @@
+import { showRoute } from "@/lib/coreRoutes";
+
 export default function manifest() {
   return {
     name: "GAVANA Boxing",
     short_name: "GAVANA",
-    description: "AI punch scoring, Fighter Card, real-time challenges — the boxing app built for fighters.",
-    start_url: "/mn/feed",
+    description: "Your camera is your boxing coach: a 60-second round, every punch counted, one thing to fix.",
+    start_url: "/mn/home",
     scope: "/",
     display: "standalone",
     display_override: ["standalone", "minimal-ui"],
@@ -27,36 +29,15 @@ export default function manifest() {
         purpose: "maskable",
       },
     ],
+    // Only pages a user can actually open (core mode hides the social features).
     shortcuts: [
-      {
-        name: "Reels",
-        short_name: "Reels",
-        description: "Watch boxing training reels",
-        url: "/en/reels",
-        icons: [{ src: "/icons/gavana-icon.svg", sizes: "any" }],
-      },
-      {
-        name: "Train",
-        short_name: "Train",
-        description: "Start an AI training session",
-        url: "/en/train",
-        icons: [{ src: "/icons/gavana-icon.svg", sizes: "any" }],
-      },
-      {
-        name: "Upload",
-        short_name: "Upload",
-        description: "Upload a new boxing reel",
-        url: "/en/upload",
-        icons: [{ src: "/icons/gavana-icon.svg", sizes: "any" }],
-      },
-      {
-        name: "Dashboard",
-        short_name: "Dashboard",
-        description: "View your training dashboard",
-        url: "/en/dashboard",
-        icons: [{ src: "/icons/gavana-icon.svg", sizes: "any" }],
-      },
-    ],
+      { name: "Train", short_name: "Train", description: "Start a 60-second round", url: "/en/train" },
+      { name: "Ghost Round", short_name: "Ghost", description: "Jab–cross with the coach's ghost", url: "/en/ghost" },
+      { name: "Progress", short_name: "Progress", description: "Your level and sessions", url: "/en/rank" },
+      { name: "Reels", short_name: "Reels", description: "Watch boxing training reels", url: "/en/reels" },
+    ]
+      .filter((sc) => showRoute(sc.url))
+      .map((sc) => ({ ...sc, icons: [{ src: "/icons/gavana-icon.svg", sizes: "any" }] })),
     screenshots: [
       {
         src: "/icons/gavana-icon.svg",
@@ -70,7 +51,7 @@ export default function manifest() {
         sizes: "512x512",
         type: "image/svg+xml",
         form_factor: "wide",
-        label: "GAVANA Boxing — Fighter community & reels",
+        label: "GAVANA Boxing — AI boxing coach",
       },
     ],
   };

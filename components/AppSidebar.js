@@ -52,7 +52,7 @@ export default function AppSidebar({ currentLocale }) {
 
   return (
     <aside style={sidebarStyle}>
-      <SidebarLogo onLogoClick={() => go("reels")} />
+      <SidebarLogo onLogoClick={() => go("home")} />
 
       <SidebarNav isActive={isActive} onNavigate={go} />
 

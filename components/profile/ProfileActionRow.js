@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { GOLD, PURPLE, RED, RED_DARK, redAlpha, goldAlpha, whiteAlpha, blackAlpha } from "@/lib/tokens";
 import styles from "@/components/profile/profilePageStyles";
+import { showRoute } from "@/lib/coreRoutes";
 
 const moreItemStyle = {
   display: "block",
@@ -140,7 +141,7 @@ export default function ProfileActionRow({
                 >
                   {t("dashboardViewProgress")}
                 </button>
-                {hasReels && (
+                {hasReels && showRoute("/creator/dashboard") && (
                   <button
                     onClick={() => { router.push(`/${locale}/creator/dashboard`); setMoreOpen(false); }}
                     style={moreItemStyle}
@@ -184,7 +185,7 @@ export default function ProfileActionRow({
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%" }}>
           <div style={{ display: "flex", gap: 8 }}>
-            <button
+            {showRoute("/inbox") && <button
               type="button"
               onClick={onMessage}
               style={{
@@ -209,8 +210,8 @@ export default function ProfileActionRow({
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
               </svg>
               {t("profileMessageBtn")}
-            </button>
-            <button
+            </button>}
+            {showRoute("/challenges") && <button
               type="button"
               onClick={onShowChallengeModal}
               style={{
@@ -221,7 +222,7 @@ export default function ProfileActionRow({
               }}
             >
               ⚔️ {t("profileChallengeBtn")}
-            </button>
+            </button>}
             <button
               type="button"
               onClick={onShowFighterCard}

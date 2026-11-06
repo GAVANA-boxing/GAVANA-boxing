@@ -162,7 +162,7 @@ export default function TrainingProgressSection({
               >
                 {loc(locale, "Дасгал эхлэх →", "훈련 시작 →", "Start Training →")}
               </button>
-              <button
+              {onGoToReels && <button
                 type="button"
                 onClick={onGoToReels}
                 style={{
@@ -173,7 +173,7 @@ export default function TrainingProgressSection({
                 }}
               >
                 {t("profileWatchReels")}
-              </button>
+              </button>}
             </div>
           )}
         </div>

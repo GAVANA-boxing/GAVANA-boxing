@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { getLocale, translate } from "@/lib/i18n";
 import { calculateSessionXP, getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
 import { getAccountXp } from "@/lib/domain/progression";
@@ -25,6 +25,8 @@ import { useProfileActions } from "@/hooks/useProfileActions";
 import { useReelDeletion } from "@/hooks/useReelDeletion";
 import dynamic from "next/dynamic";
 import BottomNav from "@/components/BottomNav";
+import MenuSheet from "@/components/bottomnav/MenuSheet";
+import { CORE_MODE, showRoute } from "@/lib/coreRoutes";
 const ProfileModals = dynamic(
   () => import("@/components/profile/ProfileModals").then((m) => ({ default: m.ProfileModals })),
   { ssr: false }
@@ -38,6 +40,7 @@ export default function UserProfilePage() {
   const userId = params?.userId;
   const t = (key) => translate(locale, key);
   const router = useRouter();
+  const pathname = usePathname();
 
   const BADGE_META = {
     first_challenge: { icon: "🥊", label: t("profileBadgeFirstChallenge"), color: RED },
@@ -65,7 +68,8 @@ export default function UserProfilePage() {
   } = useProfileData({ user, userId, authLoading, locale });
 
   const tabContentRef = useRef(null);
-  const [profileTab, setProfileTab] = useState("posts");
+  const [profileTab, setProfileTab] = useState(CORE_MODE ? "progress" : "posts");
+  const [menuOpen, setMenuOpen] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [challengeSending, setChallengeSending] = useState(false);
@@ -326,7 +330,12 @@ export default function UserProfilePage() {
       padding: 0,
       overflowX: "hidden"
     }}>
-      <ProfileBackHeader onBack={() => router.back()} />
+      <ProfileBackHeader
+        onBack={() => router.back()}
+        onMenu={isOwnProfile ? () => setMenuOpen(true) : undefined}
+        menuLabel={locale === "mn" ? "Цэс" : locale === "ko" ? "메뉴" : "Menu"}
+      />
+      {menuOpen && <MenuSheet onClose={() => setMenuOpen(false)} router={router} locale={locale} pathname={pathname} />}
       <ProfileFighterCard
         profileUser={profileUser}
         isOwnProfile={isOwnProfile}
@@ -400,7 +409,7 @@ export default function UserProfilePage() {
             locale={locale}
             t={t}
             onGoToDashboard={() => router.push(`/${locale}/dashboard`)}
-            onGoToReels={() => router.push(`/${locale}/reels`)}
+            onGoToReels={showRoute("/reels") ? () => router.push(`/${locale}/reels`) : undefined}
           />
           <div style={{ padding: "0 16px 32px", maxWidth: 680, margin: "0 auto", boxSizing: "border-box" }}>
             <BadgesSection

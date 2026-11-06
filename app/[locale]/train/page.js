@@ -36,7 +36,7 @@ import FirstSessionHook from "@/components/train/FirstSessionHook";
 import ReadinessModal from "@/components/train/ReadinessModal";
 import dynamic from "next/dynamic";
 import { Toast, useToast } from "@/components/ui/Toast";
-import { CORE_MODE } from "@/lib/coreRoutes";
+import { CORE_MODE, showRoute } from "@/lib/coreRoutes";
 import { funnel, FUNNEL } from "@/lib/funnel";
 import { loc } from "@/lib/loc";
 const PoseDebugOverlay   = dynamic(() => import("@/components/train/PoseDebugOverlay"),   { ssr: false });
@@ -885,13 +885,13 @@ export default function TrainPage() {
                     {connection.primaryFocus} · {connection.primaryValue?.toFixed(1)}/10
                   </span>
                 </div>
-                <button
+                {showRoute(`/fighters/${fighter.id}`) && <button
                   type="button"
                   onClick={() => router.push(`/${locale}/fighters/${fighter.id}`)}
                   style={{ background: `${acc}18`, border: `1px solid ${acc}40`, borderRadius: 8, padding: "5px 11px", color: acc, fontSize: 10.5, fontWeight: 900, cursor: "pointer", flexShrink: 0 }}
                 >
                   {locale === "mn" ? "Судлах" : locale === "ko" ? "배우기" : "Study"}
-                </button>
+                </button>}
               </div>
               {drill && (
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.4, paddingLeft: 2 }}>

@@ -50,7 +50,7 @@ export default function PageTopBar({
             <IcoChevron />
           </button>
         ) : (
-          <button style={s.logoBtn} onClick={() => router.push(`/${currentLocale}/reels`)}>
+          <button style={s.logoBtn} onClick={() => router.push(`/${currentLocale}/home`)}>
             <span style={s.logoG}>GAVANA</span>
             <span style={s.logoB}>BOXING</span>
           </button>

@@ -3,6 +3,7 @@
 import { RED, RED_DARK, redAlpha, MOTION } from "@/lib/tokens";
 import { loc } from "@/lib/loc";
 import { TrainIcon } from "./NavIcons";
+import { NavFlashLabel } from "./navFlash";
 
 const s = {
   trainTab: {
@@ -26,25 +27,17 @@ const s = {
     justifyContent: "center",
     transition: `box-shadow ${MOTION.hover}, transform ${MOTION.press}`,
   },
-  tabLabel: {
-    fontSize: 9,
-    fontWeight: 700,
-    letterSpacing: 0.6,
-    textTransform: "uppercase",
-    lineHeight: 1,
-    transition: "color 160ms ease",
-    fontFamily: "var(--stack-sans)",
-  },
 };
 
 /**
- * @param {{ onClick: () => void, active: boolean, locale: string }} props
+ * @param {{ onClick: () => void, active: boolean, locale: string, showLabel?: boolean }} props
  */
-export default function TrainTab({ onClick, active, locale }) {
-  const label = loc(locale, "Дасгал", "훈련", "Train");
+export default function TrainTab({ onClick, active, locale, showLabel = false }) {
+  const label = loc(locale, "Бэлтгэл", "훈련", "Train");
   return (
     <button type="button" onClick={onClick} style={s.trainTab} aria-label={label} className="tap-bounce btn-press">
-      <span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+      <span style={{ display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
+        {showLabel && <NavFlashLabel text={label} />}
         <span
           style={{
             ...s.trainCircle,
@@ -56,7 +49,6 @@ export default function TrainTab({ onClick, active, locale }) {
         >
           <TrainIcon />
         </span>
-        <span style={{ ...s.tabLabel, color: active ? "#fff" : "rgba(255,255,255,0.5)" }}>{label}</span>
       </span>
     </button>
   );

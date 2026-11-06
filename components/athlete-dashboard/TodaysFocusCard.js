@@ -3,6 +3,7 @@
 import { loc } from "@/lib/loc";
 import { FIGHTERS } from "@/lib/fighters";
 import { getPersonalConnection } from "@/lib/fighterPersonalConnection";
+import { showRoute } from "@/lib/coreRoutes";
 
 export default function TodaysFocusCard({ locale, radarStats, router }) {
   const weakAreas = Object.entries(radarStats).sort(([, a], [, b]) => a - b);
@@ -87,13 +88,13 @@ export default function TodaysFocusCard({ locale, radarStats, router }) {
               : `Your ${connection.primaryFocus} · ${connection.primaryValue?.toFixed(1)}/10`}
           </div>
         </div>
-        <button
+        {showRoute("/fighters") && <button
           type="button"
           onClick={() => router.push(`/${locale}/fighters/${fighter.id}`)}
           style={{ background: `${acc}22`, border: `1px solid ${acc}45`, borderRadius: 10, padding: "7px 13px", color: acc, fontSize: 11, fontWeight: 900, cursor: "pointer" }}
         >
           {loc(locale, "Үзэх", "보기", "Study")}
-        </button>
+        </button>}
       </div>
       {drill && (
         <div style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "9px 11px", borderRadius: 10, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.06)", marginBottom: 8 }}>

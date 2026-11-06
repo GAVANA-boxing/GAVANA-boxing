@@ -15,7 +15,7 @@ import { DAILY_MISSIONS } from "@/components/ai-coach/TodayMissionBanner";
 import { getFeaturedPackage } from "@/lib/experimentPackages";
 import { getLocalDateKey } from "@/lib/utils";
 import { RED, GOLD, whiteAlpha } from "@/lib/tokens";
-import HomeBottomNav from "@/components/home/HomeBottomNav";
+import BottomNav from "@/components/BottomNav";
 import { CORE_MODE } from "@/lib/coreRoutes";
 
 const COND = "var(--font-condensed, 'Barlow Condensed', sans-serif)";
@@ -248,7 +248,7 @@ export default function HomePage() {
         </section>
       </div>
 
-      <HomeBottomNav locale={locale} router={router} active="home" userId={user?.uid} />
+      <BottomNav router={router} user={user} currentLocale={locale} />
 
       <style>{`@media (prefers-reduced-motion: no-preference){.card-sheen{animation:homeSheen 6s ease-in-out infinite}@keyframes homeSheen{0%,100%{background-position:120% 0}50%{background-position:-20% 0}}}`}</style>
     </div>

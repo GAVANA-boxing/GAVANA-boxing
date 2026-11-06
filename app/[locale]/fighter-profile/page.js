@@ -35,6 +35,7 @@ import DNAEvolutionCard from "@/components/fighter-profile/DNAEvolutionCard";
 import DNATimelineCard from "@/components/fighter-profile/DNATimelineCard";
 import EvolutionRevealPanel from "@/components/fighter-profile/EvolutionRevealPanel";
 import ProGate from "@/components/fighter-profile/ProGate";
+import { showRoute } from "@/lib/coreRoutes";
 
 // ─── Shared locale strings used by the page shell ────────────────────────────
 const FP = {
@@ -390,7 +391,8 @@ export default function FighterProfilePage() {
           const TABS = [
             { key: "dna",      en: "DNA",      mn: "ДНХ",     ko: "DNA"  },
             { key: "progress", en: "Progress", mn: "Ахиц",    ko: "진행" },
-            { key: "studies",  en: "Studies",  mn: "Судалгаа", ko: "학습" },
+            // Fighter studies are part of the pro-fighter library (hidden in core mode).
+            ...(showRoute("/fighters") ? [{ key: "studies",  en: "Studies",  mn: "Судалгаа", ko: "학습" }] : []),
             { key: "tribe",    en: "Tribe",    mn: "Овог",    ko: "부족" },
           ];
           const accColor = ARCH_TRAINING_COLORS[dna.archetypeKey] || GOLD;
@@ -637,7 +639,7 @@ export default function FighterProfilePage() {
             )}
 
             {/* Evolution Reveal — shown when experiment is complete (7+ days) */}
-            {!loading && currentExperiment && (() => {
+            {!loading && currentExperiment && showRoute("/fighters") && (() => {
               const startSec = currentExperiment.startDate?.seconds || 0;
               const daysElapsed = Math.floor((Date.now() / 1000 - startSec) / 86400);
               if (daysElapsed < 7) return null;

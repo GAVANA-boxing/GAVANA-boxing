@@ -11,6 +11,7 @@ const WeeklyRecapModal = dynamic(() => import("@/components/profile/WeeklyModals
 const WeeklyLeaderboardModal = dynamic(() => import("@/components/profile/WeeklyModals").then(m => m.WeeklyLeaderboardModal), { ssr: false });
 import { PURPLE } from "@/lib/tokens";
 import { getActiveChallengeStreak } from "@/lib/utils";
+import { showRoute } from "@/lib/coreRoutes";
 
 export function ProfileModals({
   rankUpRank, setRankUpRank,
@@ -165,7 +166,7 @@ export function ProfileModals({
           challengeRanks={challengeRanks}
           t={t}
           onClose={() => setShowWeeklyModal(false)}
-          onGoToChallenges={() => { setShowWeeklyModal(false); router.push(`/${locale}/challenges`); }}
+          onGoToChallenges={showRoute("/challenges") ? () => { setShowWeeklyModal(false); router.push(`/${locale}/challenges`); } : undefined}
         />
       )}
     </>

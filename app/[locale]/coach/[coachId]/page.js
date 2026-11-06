@@ -14,6 +14,7 @@ import CoachReviewForm from "@/components/coach/CoachReviewForm";
 import CoachReviewsSection from "@/components/coach/CoachReviewsSection";
 import CoachProgramsSection from "@/components/coach/CoachProgramsSection";
 import CoachReelsSection from "@/components/coach/CoachReelsSection";
+import { showRoute } from "@/lib/coreRoutes";
 
 export default function CoachProfilePage() {
   const params = useParams();
@@ -116,11 +117,14 @@ export default function CoachProfilePage() {
         onEnroll={handleEnroll}
       />
 
-      <CoachReelsSection
-        locale={locale}
-        reels={reels}
-        onReelClick={(reelId) => router.push(`/${locale}/reels?reelId=${reelId}`)}
-      />
+      {/* Reels are a social feature (hidden in core mode). */}
+      {showRoute("/reels") && (
+        <CoachReelsSection
+          locale={locale}
+          reels={reels}
+          onReelClick={(reelId) => router.push(`/${locale}/reels?reelId=${reelId}`)}
+        />
+      )}
 
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
     </main>

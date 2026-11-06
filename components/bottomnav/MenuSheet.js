@@ -114,7 +114,7 @@ const COMBAT_OS_ITEMS = [
   { key: "academy",         labelEn: "Academy",       labelMn: "Академи",          labelKo: "아카데미",   path: "/programs" },
   { key: "gyms",            labelEn: "Gyms",          labelMn: "Дасгалын заал",    labelKo: "체육관",    path: "/gyms" },
   { key: "history",         labelEn: "History",       labelMn: "Түүх",             labelKo: "기록",     path: "/history" },
-  { key: "settings",        labelEn: "Settings",      labelMn: "Тохиргоо",         labelKo: "설정",     path: "/profile" },
+  { key: "settings",        labelEn: "Edit profile",  labelMn: "Профайл засах",    labelKo: "프로필 편집", path: "/profile/edit" },
 ];
 
 // Core-loop focus: only show menu items that belong to Train → Score → Feedback → Progress.
@@ -125,9 +125,10 @@ const VISIBLE_ITEMS = COMBAT_OS_ITEMS.filter(
 const LANG_LABELS = { mn: "🇲🇳 MN", en: "🇺🇸 EN", ko: "🇰🇷 KO" };
 
 /**
- * @param {{ onClose: () => void, router: object, locale: string, pathname: string, userId: string | undefined, unreadNotifs?: number, unreadDMs?: number }} props
+ * Menu behind the ⚙ on your own profile: language + the core pages that are not tabs.
+ * @param {{ onClose: () => void, router: object, locale: string, pathname: string, unreadNotifs?: number, unreadDMs?: number }} props
  */
-export default function CombatOSSheet({ onClose, router, locale, pathname, userId, unreadNotifs = 0, unreadDMs = 0 }) {
+export default function MenuSheet({ onClose, router, locale, pathname, unreadNotifs = 0, unreadDMs = 0 }) {
   return (
     <div
       style={{
@@ -156,12 +157,13 @@ export default function CombatOSSheet({ onClose, router, locale, pathname, userI
 
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-          <span style={{ fontSize: 13, fontWeight: 900, letterSpacing: 2.5, textTransform: "uppercase", color: "rgba(255,255,255,0.45)" }}>
-            Combat OS
+          <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: "rgba(255,255,255,0.55)" }}>
+            {loc(locale, "Цэс", "메뉴", "Menu")}
           </span>
           <button
             onClick={onClose}
-            style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 18, cursor: "pointer", padding: 4, lineHeight: 1 }}
+            aria-label={loc(locale, "Хаах", "닫기", "Close")}
+            style={{ background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 18, cursor: "pointer", padding: 4, lineHeight: 1 }}
           >
             ✕
           </button>
@@ -169,7 +171,7 @@ export default function CombatOSSheet({ onClose, router, locale, pathname, userI
 
         {/* Language row */}
         <div style={{ marginBottom: 12 }}>
-          <div style={{ fontSize: 8, fontWeight: 900, color: "rgba(255,255,255,0.28)", letterSpacing: 2, textTransform: "uppercase", marginBottom: 7 }}>Language</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.4)", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 7 }}>{loc(locale, "Хэл", "언어", "Language")}</div>
           <div style={{ display: "flex", gap: 6 }}>
             {locales.map((lng) => {
               const active = locale === lng;
@@ -203,7 +205,7 @@ export default function CombatOSSheet({ onClose, router, locale, pathname, userI
             <button
               key={item.key}
               className="tap-bounce"
-              onClick={() => { onClose(); router.push(item.key === "settings" ? `/${locale}/profile/${userId || ""}` : `/${locale}${item.path}`); }}
+              onClick={() => { onClose(); router.push(`/${locale}${item.path}`); }}
               style={{
                 display: "flex", alignItems: "center", gap: 10,
                 padding: "11px 14px",

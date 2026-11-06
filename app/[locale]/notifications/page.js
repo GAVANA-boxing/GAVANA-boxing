@@ -11,6 +11,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { db } from "@/lib/firebase";
 import { getLocale, translate } from "@/lib/i18n";
 import BottomNav from "@/components/BottomNav";
+import { showRoute } from "@/lib/coreRoutes";
 import styles from "@/components/notifications/notificationsStyles";
 import {
   getActorId,
@@ -103,98 +104,105 @@ export default function NotificationsPage() {
     });
   };
 
+  // Go to the notification's page — unless core mode hides it (it would just
+  // bounce to /home): then say so instead of silently moving the user.
+  const open = (path) => {
+    if (showRoute(path)) router.push(path);
+    else showToast(locale === "mn" ? "Энэ хэсэг удахгүй нээгдэнэ" : locale === "ko" ? "곧 열립니다" : "Coming soon");
+  };
+
   const handleOpenNotification = async (notification) => {
     if (notification.read === false) {
       updateDoc(doc(db, "notifications", notification.id), { read: true }).catch(() => {});
     }
 
     if (notification.type === "coach_request") {
-      router.push(`/${locale}/coach/dashboard`);
+      open(`/${locale}/coach/dashboard`);
       return;
     }
     if (notification.type === "gym_join_request") {
-      router.push(`/${locale}/gyms/dashboard`);
+      open(`/${locale}/gyms/dashboard`);
       return;
     }
     if (notification.type === "coach_accept" || notification.type === "coach_decline") {
       const actorId = getActorId(notification);
-      if (actorId) router.push(`/${locale}/coach/${actorId}`);
+      if (actorId) open(`/${locale}/coach/${actorId}`);
       return;
     }
     if (notification.type === "gym_approved" && notification.gymId) {
-      router.push(`/${locale}/gyms/${notification.gymId}`);
+      open(`/${locale}/gyms/${notification.gymId}`);
       return;
     }
     if (notification.type === "gym_declined") {
-      router.push(`/${locale}/gyms`);
+      open(`/${locale}/gyms`);
       return;
     }
     if (notification.type === "booking_scheduled" || notification.type === "session_completed") {
       const actorId = getActorId(notification);
-      if (actorId) router.push(`/${locale}/coach/${actorId}`);
+      if (actorId) open(`/${locale}/coach/${actorId}`);
       return;
     }
     if (notification.type === "sparring_request") {
-      router.push(`/${locale}/sparring`);
+      open(`/${locale}/sparring`);
       return;
     }
     if (notification.type === "sparring_accepted") {
       const actorId = getActorId(notification);
-      if (actorId) router.push(`/${locale}/inbox`);
-      else router.push(`/${locale}/sparring`);
+      if (actorId) open(`/${locale}/inbox`);
+      else open(`/${locale}/sparring`);
       return;
     }
     if ((notification.type === "event_rsvp" || notification.type === "event_reminder") && notification.eventId) {
-      router.push(`/${locale}/events/${notification.eventId}`);
+      open(`/${locale}/events/${notification.eventId}`);
       return;
     }
     if (notification.type === "event_reminder") {
-      router.push(`/${locale}/events`);
+      open(`/${locale}/events`);
       return;
     }
     if (notification.type === "follow" || notification.type === "new_follower") {
       const actorId = getActorId(notification);
-      if (actorId) router.push(`/${locale}/profile/${actorId}`);
+      if (actorId) open(`/${locale}/profile/${actorId}`);
       return;
     }
     if (notification.type === "pvp_challenge") {
       if (notification.reelId) {
-        router.push(`/${locale}/reels?reelId=${encodeURIComponent(notification.reelId)}&source=pvp`);
+        open(`/${locale}/reels?reelId=${encodeURIComponent(notification.reelId)}&source=pvp`);
       } else {
-        router.push(`/${locale}/challenges`);
+        open(`/${locale}/challenges`);
       }
       return;
     }
     if (notification.type === "challenge_attempt" && notification.reelId) {
-      router.push(`/${locale}/reels?reelId=${encodeURIComponent(notification.reelId)}`);
+      open(`/${locale}/reels?reelId=${encodeURIComponent(notification.reelId)}`);
       return;
     }
     if (notification.type === "remix" && notification.remixReelId) {
-      router.push(`/${locale}/reels?reelId=${encodeURIComponent(notification.remixReelId)}`);
+      open(`/${locale}/reels?reelId=${encodeURIComponent(notification.remixReelId)}`);
       return;
     }
     if (notification.type === "featured") {
-      router.push(`/${locale}/creator/dashboard`);
+      open(`/${locale}/creator/dashboard`);
       return;
     }
     if (notification.type === "challenge_beaten" && notification.reelId) {
-      router.push(`/${locale}/reels?reelId=${encodeURIComponent(notification.reelId)}`);
+      open(`/${locale}/reels?reelId=${encodeURIComponent(notification.reelId)}`);
       return;
     }
     if (notification.reelId) {
-      router.push(`/${locale}/reels?reelId=${notification.reelId}`);
+      open(`/${locale}/reels?reelId=${notification.reelId}`);
       return;
     }
     const actorId = getActorId(notification);
     if (actorId) {
-      router.push(`/${locale}/profile/${actorId}`);
+      open(`/${locale}/profile/${actorId}`);
     }
   };
 
   if (authLoading || loading) {
     return (
       <NotificationsLoadingSkeleton
-        onBack={() => router.push(`/${locale}/reels`)}
+        onBack={() => (window.history.length > 1 ? router.back() : router.push(`/${locale}/home`))}
         t={t}
       />
     );
@@ -204,7 +212,7 @@ export default function NotificationsPage() {
     <main style={styles.page} className="page-enter">
       <NotificationsHeader
         unreadCount={unreadCount}
-        onBack={() => router.push(`/${locale}/reels`)}
+        onBack={() => (window.history.length > 1 ? router.back() : router.push(`/${locale}/home`))}
         t={t}
       />
 
