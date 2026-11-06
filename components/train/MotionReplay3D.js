@@ -9,6 +9,9 @@ import {
 
 const SPEEDS = [0.25, 0.5, 1];
 const VIEWS = {
+  // 3/4 view: punches toward the camera are foreshortened from the front,
+  // so the default angle shows reach and shoulder turn.
+  angle: [1.55, 0.2, 2.1],
   front: [0, -0.1, 2.6],
   side: [2.6, -0.1, 0],
   top: [0, 2.6, 0.4],
@@ -23,7 +26,7 @@ const toV = (p, i) => [-p[i * 3], -p[i * 3 + 1], -p[i * 3 + 2]];
  * slow motion, jump to each punch. Wrists are green when the guard is up and
  * red when a hand is down outside a punch — computed from their real data.
  */
-export default function MotionReplay3D({ replay, locale, onClose }) {
+export default function MotionReplay3D({ replay, ghost = null, locale, onClose, title, subtitle, action = null }) {
   const mountRef = useRef(null);
   const stateRef = useRef({ t: 0, playing: true, speed: 0.5 });
   const apiRef = useRef(null);
@@ -62,12 +65,15 @@ export default function MotionReplay3D({ replay, locale, onClose }) {
 
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(45, w / h, 0.05, 50);
-      camera.position.set(...VIEWS.front);
+      // Two figures side by side need a wider shot to fit a portrait phone.
+      const zoom = ghost ? 1.6 : 1;
+      const viewPos = (name) => VIEWS[name].map((c) => c * zoom);
+      camera.position.set(...viewPos("angle"));
       const controls = new OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.target.set(0, -0.1, 0);
       controls.minDistance = 1.2;
-      controls.maxDistance = 6;
+      controls.maxDistance = 8;
 
       scene.add(new THREE.AmbientLight(0xffffff, 0.8));
       const dir = new THREE.DirectionalLight(0xffffff, 0.9);
@@ -79,56 +85,66 @@ export default function MotionReplay3D({ replay, locale, onClose }) {
       grid.position.y = floor;
       scene.add(grid);
 
-      // Bones as solid cylinders (WebGL ignores line width, so thin lines read
-      // as a sketch). Each is a unit-height cylinder stretched between joints.
+      // A skeleton = solid cylinder bones + joint spheres (WebGL ignores line
+      // width, so thin lines read as a sketch). `ghostLook` = translucent cyan.
       const boneGeoShared = new THREE.CylinderGeometry(1, 1, 1, 10);
-      const boneMeshes = BONES.map(([a, b]) => {
-        const arm = ARM_BONES.has(`${a}-${b}`);
-        const r = arm ? 0.024 : a >= 23 || b >= 23 ? 0.03 : 0.026;
-        const m = new THREE.Mesh(boneGeoShared, new THREE.MeshStandardMaterial({ color: 0xd1d5db, roughness: 0.6 }));
-        m.userData = { a, b, r, arm };
-        scene.add(m);
-        return m;
-      });
+      const sphereGeo = (r) => new THREE.SphereGeometry(r, 16, 12);
       const Y = new THREE.Vector3(0, 1, 0), A = new THREE.Vector3(), B = new THREE.Vector3(), D = new THREE.Vector3();
-
-      const sphere = (r, color) => {
-        const m = new THREE.Mesh(new THREE.SphereGeometry(r, 16, 12), new THREE.MeshStandardMaterial({ color }));
-        scene.add(m);
-        return m;
-      };
-      const head = sphere(0.075, 0xdddddd);
-      const lWrist = sphere(0.045, 0x22c55e);
-      const rWrist = sphere(0.045, 0x22c55e);
-      const joints = [LM.L_SHOULDER, LM.R_SHOULDER, LM.L_ELBOW, LM.R_ELBOW, LM.L_HIP, LM.R_HIP, LM.L_KNEE, LM.R_KNEE]
-        .map((i) => ({ i, m: sphere(0.028, 0x9ca3af) }));
-
       const white = new THREE.Color(0xd1d5db), hot = new THREE.Color(RED), gold = new THREE.Color(GOLD);
-      const up = new THREE.Color(GREEN), down = new THREE.Color(RED);
+      const up = new THREE.Color(GREEN), down = new THREE.Color(RED), cyan = new THREE.Color(0x67e8f9);
 
+      const makeSkeleton = ({ offsetX = 0, ghostLook = false }) => {
+        const mat = (color) => new THREE.MeshStandardMaterial({
+          color, roughness: 0.6,
+          ...(ghostLook ? { transparent: true, opacity: 0.55, emissive: 0x0e7490, emissiveIntensity: 0.35 } : {}),
+        });
+        const bones = BONES.map(([a, b]) => {
+          const arm = ARM_BONES.has(`${a}-${b}`);
+          const r = arm ? 0.024 : a >= 23 || b >= 23 ? 0.03 : 0.026;
+          const m = new THREE.Mesh(boneGeoShared, mat(ghostLook ? cyan : white));
+          m.userData = { a, b, r, arm };
+          scene.add(m);
+          return m;
+        });
+        const ball = (r, color) => { const m = new THREE.Mesh(sphereGeo(r), mat(color)); scene.add(m); return m; };
+        const head = ball(0.075, ghostLook ? 0x67e8f9 : 0xdddddd);
+        const lWrist = ball(0.045, 0x22c55e);
+        const rWrist = ball(0.045, 0x22c55e);
+        const joints = [LM.L_SHOULDER, LM.R_SHOULDER, LM.L_ELBOW, LM.R_ELBOW, LM.L_HIP, LM.R_HIP, LM.L_KNEE, LM.R_KNEE]
+          .map((i) => ({ i, m: ball(0.028, ghostLook ? 0x67e8f9 : 0x9ca3af) }));
+        const at = (p, i) => { const q = toV(p, i); q[0] += offsetX; return q; };
+
+        return (rep, t) => {
+          const fr = rep.frames[Math.max(0, frameIndexAt(rep, t))];
+          if (!fr) return;
+          const p = fr.p;
+          const punching = isPunchMoment(rep, t);
+          for (const m of bones) {
+            const { a, b, r, arm } = m.userData;
+            A.set(...at(p, a)); B.set(...at(p, b));
+            D.subVectors(B, A);
+            const len = D.length() || 0.0001;
+            m.position.copy(A).addScaledVector(D, 0.5);
+            m.quaternion.setFromUnitVectors(Y, D.divideScalar(len));
+            m.scale.set(r, len, r);
+            m.material.color.copy(punching && arm ? hot : ghostLook ? cyan : white);
+          }
+          head.position.set(...at(p, LM.NOSE));
+          lWrist.position.set(...at(p, LM.L_WRIST));
+          rWrist.position.set(...at(p, LM.R_WRIST));
+          const g = guardState(p);
+          lWrist.material.color.copy(punching ? gold : g.left === "up" ? up : down);
+          rWrist.material.color.copy(punching ? gold : g.right === "up" ? up : down);
+          joints.forEach(({ i, m }) => m.position.set(...at(p, i)));
+        };
+      };
+
+      // With a ghost: you on the left, the ghost on the right (it loops on its own clock).
+      const drawYou = makeSkeleton({ offsetX: ghost ? -0.5 : 0 });
+      const drawGhost = ghost ? makeSkeleton({ offsetX: 0.5, ghostLook: true }) : null;
       const draw = (t) => {
-        const fr = replay.frames[Math.max(0, frameIndexAt(replay, t))];
-        if (!fr) return;
-        const p = fr.p;
-        const punching = isPunchMoment(replay, t);
-        for (const m of boneMeshes) {
-          const { a, b, r, arm } = m.userData;
-          A.set(...toV(p, a)); B.set(...toV(p, b));
-          D.subVectors(B, A);
-          const len = D.length() || 0.0001;
-          m.position.copy(A).addScaledVector(D, 0.5);
-          m.quaternion.setFromUnitVectors(Y, D.divideScalar(len));
-          m.scale.set(r, len, r);
-          m.material.color.copy(punching && arm ? hot : white);
-        }
-
-        head.position.set(...toV(p, LM.NOSE));
-        lWrist.position.set(...toV(p, LM.L_WRIST));
-        rWrist.position.set(...toV(p, LM.R_WRIST));
-        const g = guardState(p);
-        lWrist.material.color.copy(punching ? gold : g.left === "up" ? up : down);
-        rWrist.material.color.copy(punching ? gold : g.right === "up" ? up : down);
-        joints.forEach(({ i, m }) => m.position.set(...toV(p, i)));
+        drawYou(replay, t);
+        if (drawGhost) drawGhost(ghost, t % Math.max(ghost.duration, 1));
       };
 
       let raf, last = performance.now(), uiTick = 0;
@@ -157,7 +173,7 @@ export default function MotionReplay3D({ replay, locale, onClose }) {
       window.addEventListener("resize", onResize);
 
       apiRef.current = {
-        view: (name) => { camera.position.set(...VIEWS[name]); controls.target.set(0, -0.1, 0); },
+        view: (name) => { camera.position.set(...viewPos(name)); controls.target.set(0, -0.1, 0); },
       };
 
       cleanup = () => {
@@ -170,7 +186,7 @@ export default function MotionReplay3D({ replay, locale, onClose }) {
       };
     })();
     return () => { disposed = true; cleanup(); };
-  }, [replay]);
+  }, [replay, ghost]);
 
   const set = (patch) => { Object.assign(stateRef.current, patch); setUi((u) => ({ ...u, ...patch })); };
   const jumpNext = () => {
@@ -192,11 +208,16 @@ export default function MotionReplay3D({ replay, locale, onClose }) {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "calc(12px + env(safe-area-inset-top)) 16px 8px" }}>
         <div>
           <div style={{ fontSize: FONT_SIZE.xs, fontWeight: FONT_WEIGHT.black, letterSpacing: 1.6, color: whiteAlpha(0.4), textTransform: "uppercase" }}>
-            {L("3D техник задлал", "3D 기술 분석", "3D technique breakdown")}
+            {title || L("3D техник задлал", "3D 기술 분석", "3D technique breakdown")}
           </div>
           <div style={{ fontSize: FONT_SIZE.sm, color: whiteAlpha(0.6), marginTop: 2 }}>
-            {L("Чирж эргүүл · ", "드래그해서 회전 · ", "Drag to rotate · ")}
-            {replay.punches.length} {L("цохилт", "펀치", "punches")}
+            {subtitle || (
+              <>
+                {L("Чирж эргүүл · ", "드래그해서 회전 · ", "Drag to rotate · ")}
+                {replay.punches.length} {L("цохилт", "펀치", "punches")}
+                {ghost && <span style={{ color: "#67e8f9" }}> · {L("баруун талд Ghost", "오른쪽은 고스트", "ghost on the right")}</span>}
+              </>
+            )}
           </div>
         </div>
         <button type="button" onClick={onClose} aria-label="Close" style={{ ...btn(false), fontSize: 18, padding: "4px 12px" }}>×</button>
@@ -249,10 +270,20 @@ export default function MotionReplay3D({ replay, locale, onClose }) {
         </div>
 
         <div style={{ display: "flex", gap: 6 }}>
-          {[["front", L("Урдаас", "정면", "Front")], ["side", L("Хажуугаас", "측면", "Side")], ["top", L("Дээрээс", "위", "Top")]].map(([k, label]) => (
+          {[["angle", L("Ташуу", "대각", "3/4")], ["front", L("Урдаас", "정면", "Front")], ["side", L("Хажуугаас", "측면", "Side")], ["top", L("Дээрээс", "위", "Top")]].map(([k, label]) => (
             <button key={k} type="button" style={{ ...btn(false), flex: 1 }} onClick={() => apiRef.current?.view(k)}>{label}</button>
           ))}
         </div>
+
+        {action && (
+          <button type="button" onClick={action.onClick} style={{
+            width: "100%", padding: "13px", borderRadius: RADIUS.md, border: "none", cursor: "pointer",
+            background: `linear-gradient(135deg, ${RED}, #cc2820)`, color: "#fff",
+            fontSize: FONT_SIZE.md, fontWeight: FONT_WEIGHT.black,
+          }}>
+            {action.label}
+          </button>
+        )}
       </div>
     </div>
   );

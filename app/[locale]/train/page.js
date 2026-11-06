@@ -1247,6 +1247,20 @@ export default function TrainPage() {
             </button>
           )}
 
+          {phase === "idle" && !challengeId && !challengeUserId && (
+            <button
+              type="button"
+              onClick={() => router.push(`/${locale}/ghost`)}
+              style={{
+                width: "100%", marginTop: 8, padding: "11px 12px", borderRadius: 12, cursor: "pointer",
+                border: "1px solid rgba(103,232,249,0.4)", background: "rgba(103,232,249,0.08)",
+                color: "#67e8f9", fontSize: 13, fontWeight: 900,
+              }}
+            >
+              👻 {loc(locale, "Ghost Round · Jab–Cross дагаж хий", "고스트 라운드 · 잽–크로스 따라하기", "Ghost Round · copy the jab–cross")}
+            </button>
+          )}
+
           {isRecording && (
             <button type="button" style={styles.stopButton} onClick={finishRecording}>
               {t("trainStop")}
