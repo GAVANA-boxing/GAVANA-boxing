@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { captureRefFromUrl } from "@/lib/referral";
 
 // ssr: false is only allowed inside Client Components — NOT in Server Component layout.js
-const OnboardingModal      = dynamic(() => import("@/components/OnboardingModal"));
+const OnboardingGate       = dynamic(() => import("@/components/OnboardingGate"));
 const PWAInstallBanner     = dynamic(() => import("@/components/PWAInstallBanner"),     { ssr: false });
 const PushPermissionBanner = dynamic(() => import("@/components/PushPermissionBanner"), { ssr: false });
 
@@ -15,7 +15,7 @@ export default function ClientShell() {
 
   return (
     <>
-      <OnboardingModal />
+      <OnboardingGate />
       <PWAInstallBanner />
       <PushPermissionBanner />
     </>

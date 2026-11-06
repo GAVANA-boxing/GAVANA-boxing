@@ -142,7 +142,6 @@ export default function RecordingHud({
         </div>
       )}
 
-      {/* The movement log (MovementTimeline) is a debugging aid — shown in the result's details, not over the fighter. */}
     </>
   );
 }
