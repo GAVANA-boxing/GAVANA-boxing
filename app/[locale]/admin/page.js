@@ -9,6 +9,7 @@ import { useUserProfile } from "@/context/UserProfileProvider";
 import { getLocaleFromPathname } from "@/lib/i18n";
 import { RED, GOLD } from "@/lib/tokens";
 import FunnelCard from "@/components/admin/FunnelCard";
+import PrivacyMigrationCard from "@/components/admin/PrivacyMigrationCard";
 
 const ADMIN_UIDS = (process.env.NEXT_PUBLIC_ADMIN_UIDS || "").split(",").filter(Boolean);
 
@@ -189,6 +190,7 @@ export default function AdminDashboardPage() {
 
             {/* Activation funnel — new users → first WOW */}
             <FunnelCard user={user} locale={locale} />
+            <PrivacyMigrationCard user={user} locale={locale} />
 
             {/* Admin links */}
             <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>

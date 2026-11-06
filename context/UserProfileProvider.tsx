@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/AuthContext";
 import { watchUserProfile, type UserProfile } from "@/lib/repositories/userRepo";
+import { scrubPublicProfile } from "@/lib/privateProfile";
 
 interface UserProfileState {
   profile: UserProfile | null;
@@ -42,6 +43,15 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
     );
     return unsub;
   }, [user?.uid, authLoading, queryClient]);
+
+  // Older accounts still carry their email on the public doc — move it to
+  // users_private the first time the owner opens the app.
+  const leakedEmail = state.profile && "email" in state.profile;
+  useEffect(() => {
+    if (!user?.uid || !leakedEmail) return;
+    scrubPublicProfile(user.uid, state.profile).catch(() => { /* retried next load */ });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid, leakedEmail]);
 
   return <UserProfileContext.Provider value={state}>{children}</UserProfileContext.Provider>;
 }

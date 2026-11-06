@@ -11,7 +11,6 @@ export interface UserProfile {
   uid: string;
   displayName?: string;
   username?: string;
-  email?: string;
   photoURL?: string;
   profileImageUrl?: string;
   bio?: string;

@@ -24,6 +24,7 @@ import AuthModeSwitch     from "@/components/auth/AuthModeSwitch";
 import LoginPageFooter    from "@/components/auth/LoginPageFooter";
 import { CORE_MODE } from "@/lib/coreRoutes";
 import { funnel, FUNNEL } from "@/lib/funnel";
+import { savePrivateEmail } from "@/lib/privateProfile";
 
 // Only true in-app browsers that CANNOT open popups at all need redirect.
 // Regular iOS Safari supports signInWithPopup in Firebase 9.9+ — using redirect
@@ -120,12 +121,13 @@ export default function LoginPage() {
         const snap = await getDoc(doc(db, "users", uid));
         if (!snap.exists()) {
           await setDoc(doc(db, "users", uid), {
-            email: gEmail || "", username: (gEmail || uid).split("@")[0],
+            username: (gEmail || uid).split("@")[0],
             displayName: gName || "", bio: "",
             photoURL: gPhoto || "", profileImageUrl: gPhoto || "",
             role: "boxer", onboardingComplete: false, referredBy: getStoredRef() || null,
             createdAt: new Date().toISOString(),
           });
+          savePrivateEmail(uid, gEmail).catch(() => {});
           funnel(FUNNEL.AUTH_COMPLETED, { locale, meta: "google:new" });
           router.push(onboardingUrl);
           return;
@@ -172,13 +174,13 @@ export default function LoginPage() {
         if (password !== confirmPassword) { setError(t("loginErrPasswordMismatch")); setLoading(false); return; }
         const cred = await createUserWithEmailAndPassword(auth, email, password);
         await setDoc(doc(db, "users", cred.user.uid), {
-          email: cred.user.email,
           username: cred.user.email.split("@")[0],
           displayName: displayName.trim(),
           bio: "", photoURL: "", profileImageUrl: "",
           role: "boxer", onboardingComplete: false, referredBy: getStoredRef() || null,
           createdAt: new Date().toISOString(),
         });
+        savePrivateEmail(cred.user.uid, cred.user.email).catch(() => {});
         funnel(FUNNEL.AUTH_COMPLETED, { locale, meta: "email:new" });
         router.push(onboardingUrl);
         return;
@@ -224,13 +226,14 @@ export default function LoginPage() {
       const snap = await getDoc(doc(db, "users", uid));
       if (!snap.exists()) {
         await setDoc(doc(db, "users", uid), {
-          email: gEmail || "", username: (gEmail || uid).split("@")[0],
+          username: (gEmail || uid).split("@")[0],
           displayName: gName || "", bio: "",
           photoURL: gPhoto || "", profileImageUrl: gPhoto || "",
           role: "boxer", onboardingComplete: false, referredBy: getStoredRef() || null,
           createdAt: new Date().toISOString(),
         });
-        funnel(FUNNEL.AUTH_COMPLETED, { locale, meta: "google:new" });
+        savePrivateEmail(uid, gEmail).catch(() => {});
+          funnel(FUNNEL.AUTH_COMPLETED, { locale, meta: "google:new" });
         router.push(onboardingUrl);
         return;
       }

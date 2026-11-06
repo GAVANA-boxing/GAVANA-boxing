@@ -109,7 +109,6 @@ export default function EditProfilePage() {
       }
 
       await setDoc(doc(db, "users", user.uid), {
-        email: user.email || "",
         username: cleanUser,
         displayName: cleanName,
         bio: cleanBio,

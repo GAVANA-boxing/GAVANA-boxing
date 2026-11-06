@@ -134,14 +134,13 @@ export function useProfileData({ user, userId, authLoading, locale }) {
 
         const userDoc = await getDoc(doc(db, "users", userId));
         const userData = userDoc.exists() ? userDoc.data() : {};
-        const fallbackName = userData.username || userData.email?.split("@")[0] || `user_${userId.slice(0, 8)}`;
+        const fallbackName = userData.username || `user_${userId.slice(0, 8)}`;
         const profileUserData = {
           id: userId,
           username: userData.username || fallbackName,
           displayName: userData.displayName || userData.username || fallbackName,
           bio: userData.bio || "",
           photoURL: userData.photoURL || userData.profileImageUrl || "",
-          email: userData.email || `${fallbackName}@example.com`,
           streakCount: Number(userData.dailyStreak ?? userData.streakCount) || 0,
           xp: Number(userData.xp) || 0,
           totalChallengesCompleted: Number(userData.totalChallengesCompleted) || 0,

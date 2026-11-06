@@ -5,6 +5,8 @@
  */
 export const COLLECTIONS = {
   users: "users",
+  /** Owner-only private fields (email…). `users` is publicly readable, so nothing private may live there. */
+  usersPrivate: "users_private",
   reels: "reels",
   reelStats: "reel_stats",
   reelViews: "reel_views",
