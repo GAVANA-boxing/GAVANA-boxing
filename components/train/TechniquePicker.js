@@ -13,6 +13,12 @@ const DIFF_COLOR = {
   advanced:     "#F87171",
 };
 
+const DIFF_LABEL = {
+  beginner:     { mn: "Эхлэгч", ko: "초급", en: "Beginner" },
+  intermediate: { mn: "Дунд",   ko: "중급", en: "Intermediate" },
+  advanced:     { mn: "Ахисан", ko: "고급", en: "Advanced" },
+};
+
 export default function TechniquePicker({ onSelect, locale }) {
   const [open, setOpen] = useState(false);
   const [selectedFighter, setSelectedFighter] = useState(null);
@@ -23,7 +29,6 @@ export default function TechniquePicker({ onSelect, locale }) {
   const fighter = selectedFighter ? FIGHTERS.find((f) => f.id === selectedFighter) : null;
   const techniques = selectedFighter ? (FIGHTER_TECHNIQUES[selectedFighter] || []) : [];
 
-  const label = loc(locale, "⚡ ТЕХНИК СОНГОЖ ДАСГАЛ ХИЙХ", "⚡ 기술 훈련하기", "⚡ TRAIN A TECHNIQUE");
 
   const sheet = open && mounted && createPortal(
     <>
@@ -33,7 +38,7 @@ export default function TechniquePicker({ onSelect, locale }) {
         style={{
           position: "fixed",
           inset: 0,
-          zIndex: 200,
+          zIndex: 290,
           background: "rgba(0,0,0,0.65)",
         }}
       />
@@ -43,7 +48,7 @@ export default function TechniquePicker({ onSelect, locale }) {
         bottom: 0,
         left: 0,
         right: 0,
-        zIndex: 201,
+        zIndex: 291,
         background: "#0f0c0d",
         borderRadius: "20px 20px 0 0",
         border: "1px solid rgba(255,255,255,0.09)",
@@ -63,11 +68,11 @@ export default function TechniquePicker({ onSelect, locale }) {
             width: 36, height: 4, borderRadius: 2,
             background: "rgba(255,255,255,0.18)", margin: "0 auto 12px",
           }} />
-          <div style={{
-            fontSize: 10, fontWeight: 900, letterSpacing: 2,
-            color: "rgba(255,255,255,0.45)", textTransform: "uppercase",
-          }}>
-            {loc(locale, "Техник сонгох", "기술 선택", "Select Technique")}
+          <div style={{ fontSize: 17, fontWeight: 700, color: "#fff" }}>
+            {loc(locale, "Техник сонгох", "기술 선택", "Pick a technique")}
+          </div>
+          <div style={{ marginTop: 2, fontSize: 13, color: "rgba(255,255,255,0.55)" }}>
+            {loc(locale, "Боксчноо сонгоод түүний техникээр раунд хий", "파이터를 고르고 그 기술로 라운드하세요", "Choose a fighter, then do a round on their technique")}
           </div>
         </div>
 
@@ -87,13 +92,14 @@ export default function TechniquePicker({ onSelect, locale }) {
               onClick={() => setSelectedFighter(selectedFighter === f.id ? null : f.id)}
               style={{
                 flexShrink: 0,
-                padding: "5px 11px",
+                padding: "8px 14px",
+                fontFamily: "inherit",
                 borderRadius: 999,
                 border: `1px solid ${selectedFighter === f.id ? f.accent : "rgba(255,255,255,0.12)"}`,
                 background: selectedFighter === f.id ? `${f.accent}18` : "transparent",
                 color: selectedFighter === f.id ? f.accent : "rgba(255,255,255,0.55)",
-                fontSize: 11,
-                fontWeight: 800,
+                fontSize: 14,
+                fontWeight: 600,
                 cursor: "pointer",
                 whiteSpace: "nowrap",
                 display: "flex",
@@ -119,8 +125,8 @@ export default function TechniquePicker({ onSelect, locale }) {
           {fighter && techniques.length > 0 ? (
             <>
               <div style={{
-                fontSize: 8, fontWeight: 900, letterSpacing: 1.8,
-                color: fighter.accent, textTransform: "uppercase",
+                fontSize: 13, fontWeight: 600,
+                color: fighter.accent,
                 padding: "8px 0 10px",
               }}>
                 {fighter.name} · {techniques.length} {loc(locale, "техник", "기술", "techniques")}
@@ -139,29 +145,28 @@ export default function TechniquePicker({ onSelect, locale }) {
                     alignItems: "center",
                     justifyContent: "space-between",
                     gap: 10,
-                    padding: "9px 11px",
-                    marginBottom: i < techniques.length - 1 ? 5 : 0,
-                    borderRadius: 10,
+                    padding: "13px 14px",
+                    marginBottom: i < techniques.length - 1 ? 8 : 0,
+                    borderRadius: 14,
+                    fontFamily: "inherit",
                     border: "1px solid rgba(255,255,255,0.07)",
                     background: "rgba(255,255,255,0.03)",
                     cursor: "pointer",
                     textAlign: "left",
                   }}
                 >
-                  <span style={{ fontSize: 12, fontWeight: 800, color: "#fff", flex: 1 }}>
+                  <span style={{ fontSize: 15, fontWeight: 600, color: "#fff", flex: 1 }}>
                     {lesson.title}
                   </span>
                   <span style={{
-                    fontSize: 8, fontWeight: 900, letterSpacing: 0.8,
+                    fontSize: 12, fontWeight: 600,
                     color: DIFF_COLOR[lesson.difficulty] || GOLD,
-                    background: `${DIFF_COLOR[lesson.difficulty] || GOLD}16`,
-                    border: `1px solid ${DIFF_COLOR[lesson.difficulty] || GOLD}28`,
-                    borderRadius: 4,
-                    padding: "2px 6px",
-                    textTransform: "uppercase",
+                    background: `${DIFF_COLOR[lesson.difficulty] || GOLD}1f`,
+                    borderRadius: 999,
+                    padding: "3px 9px",
                     flexShrink: 0,
                   }}>
-                    {lesson.difficulty}
+                    {DIFF_LABEL[lesson.difficulty]?.[locale] || DIFF_LABEL[lesson.difficulty]?.en || lesson.difficulty}
                   </span>
                 </button>
               ))}
@@ -170,11 +175,11 @@ export default function TechniquePicker({ onSelect, locale }) {
             <div style={{
               padding: "24px 0",
               textAlign: "center",
-              color: "rgba(255,255,255,0.3)",
-              fontSize: 12,
-              fontWeight: 700,
+              color: "rgba(255,255,255,0.45)",
+              fontSize: 14,
+              fontWeight: 500,
             }}>
-              {loc(locale, "Тренерийг сонгоно уу", "위에서 파이터를 선택하세요", "Select a fighter above")}
+              {loc(locale, "Дээрээс боксчноо сонгоно уу", "위에서 파이터를 선택하세요", "Pick a fighter above")}
             </div>
           )}
         </div>
@@ -186,38 +191,26 @@ export default function TechniquePicker({ onSelect, locale }) {
   return (
     <>
       {sheet}
-      <div style={{ marginBottom: 12 }}>
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          style={{
-            width: "100%",
-            padding: "10px 14px",
-            borderRadius: 12,
-            border: `1px solid ${open ? "rgba(245,196,81,0.35)" : "rgba(255,255,255,0.1)"}`,
-            background: open ? "rgba(245,196,81,0.06)" : "rgba(255,255,255,0.04)",
-            color: open ? GOLD : "rgba(255,255,255,0.55)",
-            fontSize: 10,
-            fontWeight: 900,
-            letterSpacing: 1.6,
-            textTransform: "uppercase",
-            cursor: "pointer",
-            textAlign: "left",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <span>{label}</span>
-          <svg
-            width="12" height="12" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-            style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}
-          >
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        style={{
+          width: "100%", display: "flex", alignItems: "center", gap: 14,
+          padding: "14px 16px", borderRadius: 22, cursor: "pointer", textAlign: "left", fontFamily: "inherit",
+          border: `1px solid ${open ? "rgba(245,196,81,0.4)" : "rgba(255,255,255,0.10)"}`,
+          background: open ? "rgba(245,196,81,0.07)" : "rgba(255,255,255,0.04)",
+          color: "#fff",
+        }}
+      >
+        <span aria-hidden="true" style={{ width: 42, height: 42, borderRadius: 14, flexShrink: 0, display: "grid", placeItems: "center", fontSize: 20, background: "rgba(245,196,81,0.12)" }}>⚡</span>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ display: "block", fontSize: 15.5, fontWeight: 600 }}>{loc(locale, "Техник сонгож дасгал хийх", "기술로 훈련하기", "Train a technique")}</span>
+          <span style={{ display: "block", marginTop: 2, fontSize: 13, color: "rgba(255,255,255,0.55)" }}>{loc(locale, "Алдартай боксчдын техникээр раунд хий", "유명 파이터의 기술로 라운드", "A round on a famous fighter's technique")}</span>
+        </span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M9 6l6 6-6 6" />
+        </svg>
+      </button>
     </>
   );
 }
