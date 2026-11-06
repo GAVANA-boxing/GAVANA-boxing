@@ -29,6 +29,7 @@ async function run() {
   const realNow = Date.now; let sim = 1e9; Date.now = () => sim;
   const det = new PunchPhaseDetector(); det.setStance(stance);
   let frames = 0, withBody = 0; const vis = [];
+  const dump = q.get("dump") === "1" ? [] : null; // per-frame landmarks for offline tuning (scripts/punch-eval/replay.mjs)
   for (let t = 0; t < video.duration - 1e-3; t += 1 / fps) {
     await seek(t);
     sim = 1e9 + Math.round(t * 1000);
@@ -39,15 +40,17 @@ async function run() {
       withBody++;
       vis.push(Math.min(...[11, 12, 13, 14, 15, 16].map((i) => L[i].visibility ?? 0)));
       det.update(L);
+      if (dump) dump.push({ t: Math.round(t * 1000), L: L.map((p) => [+p.x.toFixed(4), +p.y.toFixed(4), +p.z.toFixed(4), +(p.visibility ?? 0).toFixed(3)]) });
     }
   }
   Date.now = realNow;
   window.__RESULT = {
     src, fps, model, stance, frames, withBody,
     armVisMedian: vis.sort((a, b) => a - b)[Math.floor(vis.length / 2)] ?? null,
-    events: det.getPunchEvents().map((e) => ({ t: +((e.ts - 1e9) / 1000).toFixed(2), type: e.type, hand: e.hand, conf: e.confidenceLabel })),
+    events: det.getPunchEvents().map((e) => ({ t: +((e.ts - 1e9) / 1000).toFixed(2), type: e.type, hand: e.hand, conf: e.confidenceLabel, travel: e.travel })),
     stanceHint: det.getStanceHint(),
     stats: det.getSessionStats(),
+    ...(dump ? { landmarks: dump } : {}),
   };
 }
 

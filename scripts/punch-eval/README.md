@@ -16,24 +16,38 @@ Not part of the app build. Recordings are personal footage — keep them out of 
    Query params: `fps` (sample rate; the app runs ~10), `model` (lite | full | heavy), `stance`.
 5. Delete `app/[locale]/zz-eval` and `public/zz-eval` afterwards — never commit them.
 
-## Baseline (2026-11-06, lite @ 10 fps)
+## Offline replay (fast loop for detector changes)
+Add `"dump":"1","out":"/path/clip.json"` to a run.cjs entry to save the per-frame landmarks, then
+`node scripts/punch-eval/replay.mjs southpaw /path/clip.json scripts/punch-eval/truth.json`
+re-runs only `lib/punchPhaseDetector` (deterministic, milliseconds) and scores it per hand.
+`VERBOSE=1` prints each event's head-travel, extension, elbow angle and snap.
+`tests/punchDetector.test.js` runs three of the labelled clips in CI (landmarks only — no video).
+
+## Results (lite @ 10 fps, stance=southpaw)
 Fighter is **southpaw** (right foot forward): jab = right hand, cross = left hand.
-Recordings are not mirrored (shirt text reads correctly), so MediaPipe's left/right are anatomical.
+Recordings are not mirrored (shirt text reads correctly; same room layout in every clip).
+Truth = `truth.json` (peak times read off the video frame by frame).
 
-| clip | truth | detected (right hand / phantom left) |
-|---|---|---|
-| IMG_6156 | 10 right jabs (straight)  | 4 straight + 2 as hook / **5 phantom left** |
-| IMG_6153 | 6 right jabs (straight)   | 6 straight / **4 phantom left** |
-| IMG_6155 | 5 left (rear) hooks       | 1 hook |
+| clip | truth | before (2026-11-06) | after head-travel gate |
+|---|---|---|---|
+| jabcross | 4 right jabs + 4 left crosses | 4/4 + 4/4, **1 phantom left** | 4/4 + 3/4, 0 phantoms |
+| IMG_6156 | 6 right jabs + 6 left crosses | 6/6 + 5/6, 0 phantoms | 6/6 + 5/6, 0 phantoms |
+| IMG_6153 | 6 right jabs                  | 6/6, **4 phantom left**  | 6/6, 0 phantoms |
+| IMG_6155 | 5 left hooks                  | 1/5                      | 1/5 |
 
-(Runs used `stance=orthodox`, so right-hand straights were *labelled* "cross"; the counts per
-hand are what matter. Use `stance=southpaw` for this fighter.)
+(The missed cross in jabcross / IMG_6156 peaks in the last ~0.2 s of the clip, before it can be
+logged.) IMG_6156 was earlier mislabelled as "10 right jabs" — it is jab–cross; its left-hand
+detections were real crosses, not phantoms.
 
-Systematic error: phantom punches on the non-punching (guard) hand, at the same moment or
-~0.4 s after a real punch — the torso turns, that side's shoulder moves back, and extension is
-measured from the same-side shoulder, so the guard hand reads as "extending". Model size / fps
-alone do not fix it. The shoulder-depth stance hint also guessed "orthodox" for this southpaw
-(he faces the camera fairly square), so stance must stay an explicit user choice.
+**Phantoms (fixed):** when the torso turns for a jab, the guard hand's shoulder moves back, and
+the shoulder-relative signals read the guard hand as "extending" — always at the same moment as
+the real punch. Fix: every punch must move the wrist ≥ 0.28 shoulder-widths from its guard spot
+*relative to the nose* (phantoms ≤ 0.21, real jabs ≥ 0.35).
 
-Still needed to validate a fix: a clip with **real** punches from both hands (southpaw jab–cross:
-right jab, left cross) so suppressing phantoms can be checked not to drop real ones.
+**Still open:**
+- Hooks (1/5): from the front a hook's elbow stays bent in 2D (angle 10–50°), so the
+  angle-gated state machine rarely enters "extending". Needs a travel/arc-based path.
+- 4 of 22 straight punches typed as "hook" (extension missed when entry is late).
+- Events are logged ~0.3 s after the peak (end of recoil).
+- Velocity thresholds are per frame, so 30 fps is worse than 10 fps; normalise by dt.
+- The shoulder-depth stance hint guessed "orthodox" for this southpaw, so stance stays a user setting.
