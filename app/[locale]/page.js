@@ -116,7 +116,7 @@ export default async function LocalizedHomePage({ params }) {
           <p className={css.micro}>{micro}</p>
         </div>
         <div className={css.heroVisual}>
-          <HeroPreview labels={{ round: L("РАУНД 1", "라운드 1", "ROUND 1"), combo: L("1-2 КОМБО ✓", "원-투 ✓", "1-2 COMBO ✓"), score: L("ОНОО", "점수", "SCORE") }} />
+          <HeroPreview labels={{ round: L("РАУНД 1", "라운드 1", "ROUND 1"), combo: L("1-2 КОМБО ✓", "원-투 ✓", "1-2 COMBO ✓"), score: L("ОНОО", "점수", "SCORE"), punches: L("цохилт", "펀치", "punches") }} />
         </div>
       </section>
 

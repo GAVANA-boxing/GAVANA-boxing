@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import HeroBoxer3D from "@/components/landing/HeroBoxer3D";
 
 // Landing hero: a phone showing what a GAVANA round looks like — a tracked
 // skeleton throwing a jab–cross, the punch labels the detector produces, and a
@@ -34,6 +35,9 @@ function Glove({ guard, out, kt, fill }) {
 
 export default function HeroPreview({ labels }) {
   const svgRef = useRef(null);
+  // The SVG plays first; the 3D boxer fades in on top once it has loaded.
+  const [ready3d, setReady3d] = useState(false);
+  const onReady = useCallback(() => setReady3d(true), []);
 
   useEffect(() => {
     const svg = svgRef.current;
@@ -51,7 +55,7 @@ export default function HeroPreview({ labels }) {
   return (
     <div className="lp-phone" aria-hidden="true">
       <div className="lp-phone-notch" />
-      <svg ref={svgRef} viewBox="0 0 200 300" className="lp-svg" role="presentation">
+      <svg ref={svgRef} viewBox="0 0 200 300" className="lp-svg" role="presentation" style={{ opacity: ready3d ? 0 : 1, transition: "opacity 0.6s ease" }}>
         <defs>
           <radialGradient id="lpGlow" cx="50%" cy="30%" r="70%">
             <stop offset="0%" stopColor="rgba(255,59,48,0.22)" />
@@ -139,6 +143,9 @@ export default function HeroPreview({ labels }) {
         </rect>
         <text x="16" y="276" className="lp-hud">{labels.score}</text>
       </svg>
+      <div style={{ opacity: ready3d ? 1 : 0, transition: "opacity 0.6s ease" }}>
+        <HeroBoxer3D labels={labels} onReady={onReady} />
+      </div>
     </div>
   );
 }
