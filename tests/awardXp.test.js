@@ -18,7 +18,7 @@ describe("computeChallengeProgression", () => {
     expect(userUpdate).toMatchObject({ xp: 360, challengeStreak: 1, totalChallengesCompleted: 1, lastChallengeDate: keys.todayKey });
   });
 
-  it("extends the streak from yesterday and pays the day-3 bonus, flagging rank + belt ups", () => {
+  it("extends the streak from yesterday and pays the day-3 bonus, flagging a rank up", () => {
     const user = { xp: 100, challengeStreak: 2, lastChallengeDate: keys.yesterdayKey, totalChallengesCompleted: 4 };
     const { userUpdate, celebration } = computeChallengeProgression(user, 8, keys);
     expect(userUpdate.challengeStreak).toBe(3);
@@ -26,7 +26,6 @@ describe("computeChallengeProgression", () => {
     expect(userUpdate.xp).toBe(510);
     expect(userUpdate.totalChallengesCompleted).toBe(5);
     expect(celebration.rankUpKey).toBe("rankAmateurBelt");
-    expect(celebration.beltUpKey).toBe("blueBelt");
   });
 
   it("does not re-pay a streak bonus on the same day", () => {
@@ -44,7 +43,6 @@ describe("computeChallengeProgression", () => {
   it("no celebration when nothing changes tier", () => {
     const { celebration } = computeChallengeProgression({ xp: 600 }, 5, keys);
     expect(celebration.rankUpKey).toBeNull();
-    expect(celebration.beltUpKey).toBeNull();
   });
 });
 
@@ -62,6 +60,12 @@ describe("computeMissionProgression", () => {
     expect(r.celebration.streakBonus).toBe(100);
     expect(r.userUpdate.xp).toBe(MISSION_XP + 100);
     expect(r.userUpdate.bestDailyStreak).toBe(3);
+    expect(r.celebration.rankUpKey).toBeNull(); // 150 XP is still the first rank
+  });
+
+  it("flags a rank up when the mission bonus crosses a tier", () => {
+    const r = computeMissionProgression({ lastTrainingDate: "2026-10-01", xp: 480 }, keys);
+    expect(r.celebration.rankUpKey).toBe("rankAmateurBelt");
   });
 
   it("keeps the best streak when the current one resets", () => {

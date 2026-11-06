@@ -184,7 +184,7 @@ export default function TrainPage() {
     saving, saved, savedAttemptNumber,
     challengeSaving, challengeSaved, challengeSavedRef,
     missionJustCompleted, missionStreakBonus, missionNewStreak, streakFreezeUsed,
-    rankUpInfo, beltUpInfo,
+    rankUpInfo,
     handleSave, handleSaveChallengeResult,
     handleShareChallenge, handleChallengeFriend, handleShareTraining,
     feedSharing, feedShared, sharedReelId,
@@ -1291,7 +1291,6 @@ export default function TrainPage() {
         challengeSaving={challengeSaving}
         challengeSaved={challengeSaved}
         rankUpInfo={rankUpInfo}
-        beltUpInfo={beltUpInfo}
         sessionHistory={sessionHistory}
         ghostBestScore={ghostBestScore}
         pvpResult={pvpResult}

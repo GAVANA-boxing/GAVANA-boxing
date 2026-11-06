@@ -3,7 +3,6 @@ import {
   calculateUserXP, calculateChallengeXP, calculateSessionXP,
   getFighterRank, getNextRank, getRankProgress, SESSION_CHALLENGE_XP_CAP,
 } from "@/lib/xp";
-import { getBelt, getNextBelt } from "@/lib/belts";
 
 const day = (d) => new Date(`2026-11-${String(d).padStart(2, "0")}T10:00:00Z`).getTime();
 
@@ -64,7 +63,7 @@ describe("calculateSessionXP", () => {
   });
 });
 
-describe("ranks and belts", () => {
+describe("ranks", () => {
   it("resolves ranks at their thresholds", () => {
     expect(getFighterRank(0).key).toBe("rankRookieGloves");
     expect(getFighterRank(499).key).toBe("rankRookieGloves");
@@ -77,12 +76,5 @@ describe("ranks and belts", () => {
   });
   it("computes progress within a tier", () => {
     expect(getRankProgress(1000)).toBe(50); // 500 → 1500
-  });
-  it("resolves belts", () => {
-    expect(getBelt(0).key).toBe("whiteBelt");
-    expect(getBelt(500).key).toBe("blueBelt");
-    expect(getBelt(10000).key).toBe("blackBelt");
-    expect(getNextBelt(10000)).toBeNull();
-    expect(getBelt("garbage").key).toBe("whiteBelt");
   });
 });

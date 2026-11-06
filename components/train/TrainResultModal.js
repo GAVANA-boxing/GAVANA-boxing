@@ -36,7 +36,6 @@ export default function TrainResultModal({
   challengeSaving,
   challengeSaved,
   rankUpInfo,
-  beltUpInfo,
   sessionHistory,
   ghostBestScore,
   pvpResult,
@@ -112,7 +111,7 @@ export default function TrainResultModal({
   }, [recordedBlob]);
 
   // Challenge / PvP outcomes and level-ups live in the details: never hide those.
-  const mustShowDetails = Boolean(challengeUserId || activeChallenge || pvpResult || rankUpInfo || beltUpInfo || missionJustCompleted);
+  const mustShowDetails = Boolean(challengeUserId || activeChallenge || pvpResult || rankUpInfo || missionJustCompleted);
   useEffect(() => { if (mustShowDetails) setDetailsOpen(true); }, [mustShowDetails]);
 
   // Show DNA share card 1.5s after result saved with archetype
@@ -311,7 +310,6 @@ export default function TrainResultModal({
           missionStreakBonus={missionStreakBonus}
           missionNewStreak={missionNewStreak}
           streakFreezeUsed={streakFreezeUsed}
-          beltUpInfo={beltUpInfo}
           rankUpInfo={rankUpInfo}
           locale={locale}
           t={t}

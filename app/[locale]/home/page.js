@@ -9,7 +9,8 @@ import { loc } from "@/lib/loc";
 import { useCombatMemory } from "@/hooks/useCombatMemory";
 import { computeFighterDNA } from "@/lib/fighterDNA";
 import { computeCombatProgress } from "@/lib/combatProgress";
-import { getBelt } from "@/lib/belts";
+import { getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
+import { useRankData } from "@/hooks/useRankData";
 import { ARCH_TRAINING_COLORS } from "@/lib/archetypeTraining";
 import { DAILY_MISSIONS } from "@/components/ai-coach/TodayMissionBanner";
 import { getFeaturedPackage } from "@/lib/experimentPackages";
@@ -42,7 +43,7 @@ export default function HomePage() {
   const pathname = usePathname();
   const locale = getLocaleFromPathname(pathname);
   const t = (key) => translate(locale, key);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { sessions } = useCombatMemory({ user });
 
   // Shared, single-subscription profile (no per-page user-doc fetch).
@@ -50,9 +51,13 @@ export default function HomePage() {
   const [tribeCount, setTribeCount] = useState(null);
 
   const dna = computeFighterDNA({ sessions, locale });
-  const xp = Number(userData?.xp) || 0;
+  // One XP number everywhere: the same account XP and rank ladder as /progress.
+  const { xp: accountXp } = useRankData({ user, authLoading });
+  const xp = accountXp ?? (Number(userData?.xp) || 0);
   const progress = computeCombatProgress({ sessions, locale, xp });
-  const belt = getBelt(xp);
+  const rank = getFighterRank(xp);
+  const nextRank = getNextRank(xp);
+  const rankPct = getRankProgress(xp);
   const accent = (!dna.building && ARCH_TRAINING_COLORS[dna.archetypeKey]) || RED;
   const displayName = userData?.displayName || user?.displayName || loc(locale, "Тулаанч", "파이터", "Fighter");
   const streak = Number(userData?.dailyStreak) || 0;
@@ -135,9 +140,9 @@ export default function HomePage() {
                 <div style={{ height: 1, background: whiteAlpha(0.08), margin: "20px 0 16px" }} />
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)" }}>
                   {[
-                    { k: loc(locale, "Бүс", "벨트", "Belt"), v: (t(belt.key) || "").split(" ")[0] || t(belt.key) },
+                    { k: loc(locale, "Цол", "등급", "Rank"), v: <span style={{ color: rank.color }}>{(t(rank.key) || "").split(" ")[0] || t(rank.key)}</span> },
                     { k: "Fighter DNA", v: <>{confidencePct}<small style={{ fontFamily: COND, fontSize: 13, color: whiteAlpha(0.58) }}>%</small></> },
-                    ...(hasRecord ? [{ k: loc(locale, "Рекорд", "전적", "Record"), v: <>{wins}<small style={{ fontFamily: COND, fontSize: 13, color: whiteAlpha(0.58) }}>–{losses}</small></> }] : [{ k: loc(locale, "Түвшин", "레벨", "Level"), v: progress.building ? "—" : progress.levelData.level }]),
+                    ...(hasRecord ? [{ k: loc(locale, "Рекорд", "전적", "Record"), v: <>{wins}<small style={{ fontFamily: COND, fontSize: 13, color: whiteAlpha(0.58) }}>–{losses}</small></> }] : [{ k: "XP", v: xp.toLocaleString() }]),
                   ].map((c, i) => (
                     <div key={i} style={{ display: "flex", flexDirection: "column", gap: 4, paddingLeft: i ? 16 : 0, borderLeft: i ? `1px solid ${whiteAlpha(0.08)}` : "none" }}>
                       <span style={{ fontFamily: COND, fontWeight: 700, fontSize: 9.5, letterSpacing: 1.6, textTransform: "uppercase", color: whiteAlpha(0.32) }}>{c.k}</span>
@@ -147,7 +152,7 @@ export default function HomePage() {
                 </div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 18 }}>
                   <span style={{ fontFamily: COND, fontWeight: 600, fontSize: 12.5, color: whiteAlpha(0.58) }}>
-                    {dna.bestWeaponLabel ? <>{loc(locale, "Онцлох зэвсэг", "시그니처", "Signature")}: <b style={{ color: "#fff" }}>{dna.bestWeaponLabel}</b></> : <>{loc(locale, "Түвшин", "레벨", "Level")} <b style={{ color: "#fff" }}>{progress.building ? "—" : progress.levelData.level}</b></>}
+                    {dna.bestWeaponLabel ? <>{loc(locale, "Онцлох зэвсэг", "시그니처", "Signature")}: <b style={{ color: "#fff" }}>{dna.bestWeaponLabel}</b></> : <>{loc(locale, "Цол", "등급", "Rank")} <b style={{ color: "#fff" }}>{t(rank.key)}</b></>}
                   </span>
                   <span style={{ fontFamily: COND, fontWeight: 700, fontSize: 9, letterSpacing: 2, color: whiteAlpha(0.18) }}>GAVANA.APP</span>
                 </div>
@@ -172,13 +177,13 @@ export default function HomePage() {
         {/* PROGRESS */}
         {!progress.building && (
           <section style={S.sec}>
-            <div style={S.lbl}><span>{loc(locale, "Чиний хөгжил", "내 발전", "Your progress")}</span><span style={S.link} onClick={() => go("/fighter-profile")}>{loc(locale, "Дэлгэрэнгүй", "더보기", "More")} →</span></div>
+            <div style={S.lbl}><span>{loc(locale, "Чиний хөгжил", "내 발전", "Your progress")}</span><span style={S.link} onClick={() => go("/progress")}>{loc(locale, "Дэлгэрэнгүй", "더보기", "More")} →</span></div>
             <div style={{ background: whiteAlpha(0.05), border: `1px solid ${whiteAlpha(0.08)}`, borderRadius: 18, padding: 16, display: "flex", flexDirection: "column", gap: 13 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: COND }}>
-                <span style={{ fontWeight: 700, fontSize: 15 }}>{loc(locale, "Түвшин", "레벨", "Level")} {progress.levelData.level} · {progress.levelData[locale] || progress.levelData.en}</span>
-                {progress.levelData.xpToNext != null && <span style={{ fontWeight: 600, fontSize: 12.5, color: whiteAlpha(0.58) }}>+<b style={{ color: accent }}>{Math.max(0, progress.levelData.xpToNext - progress.levelData.xpInLevel)} XP</b></span>}
+                <span style={{ fontWeight: 700, fontSize: 15, color: rank.color }}>{t(rank.key)}</span>
+                {nextRank && <span style={{ fontWeight: 600, fontSize: 12.5, color: whiteAlpha(0.58) }}>{t(nextRank.key)} · <b style={{ color: accent }}>{(nextRank.minXP - xp).toLocaleString()} XP</b></span>}
               </div>
-              <div style={{ height: 6, borderRadius: 4, background: whiteAlpha(0.08), overflow: "hidden" }}><div style={{ height: "100%", borderRadius: 4, background: accent, width: `${progress.levelData.progressPct}%` }} /></div>
+              <div style={{ height: 6, borderRadius: 4, background: whiteAlpha(0.08), overflow: "hidden" }}><div style={{ height: "100%", borderRadius: 4, background: accent, width: `${Math.round(rankPct)}%` }} /></div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {topSkills.map((sk) => (
                   <div key={sk.key} style={{ display: "flex", alignItems: "center", gap: 12 }}>

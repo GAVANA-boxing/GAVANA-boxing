@@ -24,10 +24,9 @@ describe("getAccountXp", () => {
 });
 
 describe("getProgression", () => {
-  it("derives belt and rank from the same XP", () => {
+  it("derives the rank from the canonical XP", () => {
     const p = getProgression(510);
     expect(p.xp).toBe(510);
-    expect(p.belt.key).toBe("blueBelt");
     expect(p.rank.key).toBe("rankAmateurBelt");
   });
   it("handles bad input", () => {

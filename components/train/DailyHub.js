@@ -3,7 +3,7 @@
 import { isBeginnerUser, getCurrentBeginnerLesson, getBeginnerProgress } from "@/lib/beginnerPath";
 import { getTodaysDNAMission } from "@/lib/dnaDailyMissions";
 import { getFeaturedPackage, getPackageFighter } from "@/lib/experimentPackages";
-import { getBelt, getBeltProgress, getNextBelt } from "@/lib/belts";
+import { getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
 
 import DNAFreshnessWarning  from "./DNAFreshnessWarning";
 import StreakRecoveryMission from "./StreakRecoveryMission";
@@ -41,9 +41,11 @@ export default function DailyHub({
   const isBeginner  = isBeginnerUser(totalSessionCount ?? 999);
   const nextLesson  = isBeginner ? getCurrentBeginnerLesson(totalSessionCount ?? 0) : null;
   const beginnerProg = isBeginner ? getBeginnerProgress(totalSessionCount ?? 0) : null;
-  const belt     = getBelt(currentXP);
-  const beltPct  = getBeltProgress(currentXP);
-  const nextBelt = getNextBelt(currentXP);
+  // The same rank ladder as /progress (one XP, one ladder).
+  const rank     = getFighterRank(currentXP);
+  const belt     = { ...rank, gradient: `linear-gradient(90deg, ${rank.color}, #F5C451)` };
+  const beltPct  = Math.round(getRankProgress(currentXP));
+  const nextBelt = getNextRank(currentXP);
 
   // Freshness
   const daysSince     = lastSessionSec ? Math.floor((Date.now() / 1000 - lastSessionSec) / 86400) : null;

@@ -1,5 +1,4 @@
 import { calculateUserXP, getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
-import { getBelt, getNextBelt, getBeltProgress } from "@/lib/belts";
 
 export interface AccountXpInput {
   /** The stored accumulator on the user doc (users.xp). */
@@ -53,9 +52,6 @@ export function getProgression(xpInput: number | null | undefined) {
   const xp = Math.max(0, Number(xpInput) || 0);
   return {
     xp,
-    belt: getBelt(xp),
-    nextBelt: getNextBelt(xp),
-    beltProgressPct: getBeltProgress(xp),
     rank: getFighterRank(xp),
     nextRank: getNextRank(xp),
     rankProgressPct: getRankProgress(xp),

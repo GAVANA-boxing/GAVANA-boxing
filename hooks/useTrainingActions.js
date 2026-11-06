@@ -5,7 +5,6 @@ import { db } from "@/lib/firebase";
 import { createChallengeAttemptNotification, createChallengeBeatenNotification } from "@/lib/notifications";
 import { getCurrentSeasonId } from "@/lib/season";
 import { calculateChallengeXP, getFighterRank, RANK_TIERS } from "@/lib/xp";
-import { getBelt, BELTS } from "@/lib/belts";
 import { getChallengeRank } from "@/lib/utils";
 import { getChallengeComparisonPercent, getChallengeStreakBonus } from "@/lib/trainHelpers";
 import { buildDateKeys, commitSessionProgression } from "@/lib/scoreClient";
@@ -43,7 +42,6 @@ export function useTrainingActions({
   const [missionNewStreak, setMissionNewStreak] = useState(0);
   const [streakFreezeUsed, setStreakFreezeUsed] = useState(false);
   const [rankUpInfo, setRankUpInfo] = useState(null);
-  const [beltUpInfo, setBeltUpInfo] = useState(null);
   const challengeSavedRef = useRef(false);
   const [feedSharing,       setFeedSharing]       = useState(false);
   const [feedShared,        setFeedShared]        = useState(false);
@@ -144,10 +142,6 @@ export function useTrainingActions({
           const r = RANK_TIERS.find((x) => x.key === cel.rankUpKey);
           if (r) setRankUpInfo(r);
         }
-        if (cel.beltUpKey) {
-          const b = BELTS.find((x) => x.key === cel.beltUpKey);
-          if (b) setTimeout(() => setBeltUpInfo(b), 1200);
-        }
         return;
       }
 
@@ -179,9 +173,6 @@ export function useTrainingActions({
         const prevRank = getFighterRank(Number(userData.xp) || 0);
         const nextRank = getFighterRank(nextXP);
         if (prevRank.key !== nextRank.key) rankUpData = nextRank;
-        const prevBelt = getBelt(Number(userData.xp) || 0);
-        const newBelt = getBelt(nextXP);
-        if (prevBelt.key !== newBelt.key) { setTimeout(() => setBeltUpInfo(newBelt), 1200); }
 
         transaction.set(challengeResultRef, {
           userId: user.uid,
@@ -303,9 +294,9 @@ export function useTrainingActions({
           setMissionStreakBonus(cel.streakBonus || 0);
           setMissionNewStreak(cel.newStreak || 0);
           setStreakFreezeUsed(!!cel.freezeUsed);
-          if (cel.beltUpKey) {
-            const b = BELTS.find((x) => x.key === cel.beltUpKey);
-            if (b) setTimeout(() => setBeltUpInfo(b), 1200);
+          if (cel.rankUpKey) {
+            const r = RANK_TIERS.find((x) => x.key === cel.rankUpKey);
+            if (r) setTimeout(() => setRankUpInfo(r), 1200);
           }
         }
       } else if (!alreadyCompleted) {
@@ -356,10 +347,10 @@ export function useTrainingActions({
           updatedAt: serverTimestamp(),
         }, { merge: true });
 
-        // Belt-up detection
-        const prevTrainBelt = getBelt(currentStoredXP);
-        const newTrainBelt = getBelt(newXP);
-        if (prevTrainBelt.key !== newTrainBelt.key) { setTimeout(() => setBeltUpInfo(newTrainBelt), 1200); }
+        // Rank-up detection
+        const prevTrainRank = getFighterRank(currentStoredXP);
+        const newTrainRank = getFighterRank(newXP);
+        if (prevTrainRank.key !== newTrainRank.key) { setTimeout(() => setRankUpInfo(newTrainRank), 1200); }
 
         setMissionJustCompleted(true);
         setMissionStreakBonus(streakBonus);
@@ -582,7 +573,6 @@ export function useTrainingActions({
     setMissionNewStreak(0);
     setStreakFreezeUsed(false);
     setRankUpInfo(null);
-    setBeltUpInfo(null);
     setFeedSharing(false);
     setFeedShared(false);
     setSharedReelId(null);
@@ -601,7 +591,7 @@ export function useTrainingActions({
     saving, saved, savedAttemptNumber,
     challengeSaving, challengeSaved, challengeSavedRef,
     missionJustCompleted, missionStreakBonus, missionNewStreak, streakFreezeUsed,
-    rankUpInfo, beltUpInfo,
+    rankUpInfo,
     handleSave, handleSaveChallengeResult,
     handleShareChallenge, handleChallengeFriend, handleShareTraining,
     feedSharing, feedShared, sharedReelId,

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { collection, getDocs, query, where, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { calculateUserXP } from "@/lib/xp";
+import { useRankData } from "@/hooks/useRankData";
 import { getLocalDateKey } from "@/lib/utils";
 import { useUserProfile } from "@/context/UserProfileProvider";
 
@@ -17,7 +17,6 @@ export function useTrainingData({ user }) {
   const [challengeUserId, setChallengeUserId] = useState(null);
   const [creatorBestScore, setCreatorBestScore] = useState(null);
   const [targetScore, setTargetScore] = useState(null);
-  const [currentXP, setCurrentXP] = useState(0);
   const [sessionHistory, setSessionHistory] = useState([]);
   const [weeklySessionCount, setWeeklySessionCount] = useState(0);
   const [totalSessionCount, setTotalSessionCount] = useState(null); // null = loading
@@ -46,20 +45,9 @@ export function useTrainingData({ user }) {
     setChallengePostId(params.get("challengePostId") || null);
   }, []);
 
-  useEffect(() => {
-    if (!user?.uid) return;
-    let active = true;
-    async function loadCurrentXP() {
-      try {
-        const snap = await getDocs(query(collection(db, "ai_feedback"), where("userId", "==", user.uid)));
-        const docs = snap.docs.map((d) => ({ score: d.data().score, createdAt: d.data().createdAt }));
-        if (active) setCurrentXP(calculateUserXP({ aiFeedbackDocs: docs }));
-      } catch (err) {
-      }
-    }
-    loadCurrentXP();
-    return () => { active = false; };
-  }, [user?.uid]);
+  // Account XP — the same number (and rank ladder) the Progress page shows.
+  const { xp: accountXp } = useRankData({ user, authLoading: false });
+  const currentXP = accountXp ?? 0;
 
   useEffect(() => {
     if (!user?.uid) return;
