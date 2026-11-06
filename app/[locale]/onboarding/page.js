@@ -33,6 +33,7 @@ export default function OnboardingPage() {
     step, setStep,
     role,
     archetype, setArchetype,
+    stance, setStance,
     weightClass, setWeightClass,
     weeklyGoal, setWeeklyGoal,
     saving,
@@ -113,6 +114,8 @@ export default function OnboardingPage() {
             t={t}
             archetype={archetype}
             setArchetype={setArchetype}
+            stance={stance}
+            setStance={setStance}
             weightClass={weightClass}
             setWeightClass={setWeightClass}
             saving={saving}

@@ -13,6 +13,10 @@ export function useOnboardingActions({ user, locale, router }) {
   const [step, setStep] = useState(0);
   const [role, setRole] = useState(null);
   const [archetype, setArchetype] = useState(null);
+  // Which foot is forward decides which hand is the jab — the detector labels
+  // every punch by it, so it is asked here (the archetype is optional: Fighter
+  // DNA finds the style from real rounds anyway).
+  const [stance, setStance] = useState(null);
   const [weightClass, setWeightClass] = useState("");
   const [weeklyGoal, setWeeklyGoal] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -47,13 +51,14 @@ export function useOnboardingActions({ user, locale, router }) {
   };
 
   const handleStep1Next = async () => {
-    if (!archetype) return;
+    if (!stance) return;
     setSaving(true);
+    try { localStorage.setItem("gavana_stance", stance); } catch { /* private mode */ }
     try {
       await updateDoc(doc(db, "users", user.uid), {
         role: "fighter",
-        archetype,
-        fighterArchetype: archetype,
+        stance,
+        ...(archetype ? { archetype, fighterArchetype: archetype } : {}),
         weightClass: weightClass || null,
       });
     } catch (e) {
@@ -149,6 +154,7 @@ export function useOnboardingActions({ user, locale, router }) {
     step, setStep,
     role,
     archetype, setArchetype,
+    stance, setStance,
     weightClass, setWeightClass,
     weeklyGoal, setWeeklyGoal,
     saving,
