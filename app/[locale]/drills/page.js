@@ -8,7 +8,8 @@ import { useAuth } from "@/lib/AuthContext";
 import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
 import { RED } from "@/lib/tokens";
 import { AREA_COLOR, cacheKey, readCache, writeCache } from "@/components/drills/drillsConstants";
-import DrillsHeader from "@/components/drills/DrillsHeader";
+import BrandHeader from "@/components/ui/BrandHeader";
+import { pageBackground } from "@/components/ui/brand";
 import WeakAreaHint from "@/components/drills/WeakAreaHint";
 import AreaChips from "@/components/drills/AreaChips";
 import TypeChips from "@/components/drills/TypeChips";
@@ -153,10 +154,14 @@ Return ONLY valid JSON array, no markdown, no explanation:
   const weakAreaName = coachSnapshot?.weakAreas?.[0]?.[0] ?? null;
 
   return (
-    <div style={{ minHeight: "100dvh", background: "#0a0a0b", paddingBottom: "calc(100px + env(safe-area-inset-bottom))" }}>
-      <DrillsHeader locale={locale} onBack={() => router.back()} />
-
-      <div style={{ maxWidth: 480, margin: "0 auto", padding: "16px 16px 0" }}>
+    <div style={{ minHeight: "100dvh", background: pageBackground, color: "#fff", paddingBottom: "calc(100px + env(safe-area-inset-bottom))" }}>
+      <div style={{ maxWidth: 480, margin: "0 auto", padding: "0 16px" }}>
+        <BrandHeader
+          kicker={locale === "mn" ? "Дасгалжуулагч" : locale === "ko" ? "코치" : "Coach"}
+          title={locale === "mn" ? "AI дасгал үүсгэгч" : locale === "ko" ? "AI 드릴 생성" : "AI drill builder"}
+          onBack={() => (window.history.length > 1 ? router.back() : router.push(`/${locale}/coach`))}
+          backLabel={locale === "mn" ? "Буцах" : locale === "ko" ? "뒤로" : "Back"}
+        />
         <WeakAreaHint weakAreaName={weakAreaName} locale={locale} />
 
         <AreaChips selectedArea={selectedArea} onSelect={setSelectedArea} locale={locale} />

@@ -1,6 +1,7 @@
 "use client";
 
 import { GOLD } from "@/lib/tokens";
+import { BRAND, glassCard } from "@/components/ui/brand";
 
 const ARCH_COLORS = {
   pressure: "#EF4444",
@@ -30,20 +31,21 @@ export default function DNACoachingCTA({ userArchetype, locale, router }) {
     : `I'm a ${archLabel}. What should I focus on today to develop this style?`;
 
   return (
-    <div style={{ marginBottom: 12, padding: "12px 14px", borderRadius: 14, background: `${acc}0c`, border: `1px solid ${acc}25` }}>
-      <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: acc, textTransform: "uppercase", marginBottom: 6 }}>
-        🧬 {locale === "mn" ? "ТАНЫ ДНХ ДЭЭР ҮНДЭСЛЭН" : locale === "ko" ? "내 DNA 기반" : "BASED ON YOUR DNA"}
-      </div>
-      <div style={{ fontSize: 12, fontWeight: 800, color: "#fff", marginBottom: 10 }}>
-        {locale === "mn" ? `${archLabel} гэж хэрхэн бэлтгэх вэ?` : locale === "ko" ? `${archLabel}로 훈련하는 방법은?` : `How to train as a ${archLabel}?`}
-      </div>
-      <button
-        type="button"
-        onClick={() => router.push(`/${locale}/coach/chat?q=${encodeURIComponent(dnaQ)}`)}
-        style={{ padding: "8px 16px", borderRadius: 10, background: `${acc}18`, border: `1px solid ${acc}40`, color: acc, fontSize: 11, fontWeight: 900, cursor: "pointer" }}
-      >
-        {locale === "mn" ? "Асуух →" : locale === "ko" ? "질문하기 →" : "Ask Coach →"}
-      </button>
-    </div>
+    <button
+      type="button"
+      onClick={() => router.push(`/${locale}/coach/chat?q=${encodeURIComponent(dnaQ)}`)}
+      style={{ ...glassCard, display: "flex", alignItems: "center", gap: 14, width: "100%", padding: "16px 18px", textAlign: "left", cursor: "pointer", fontFamily: "inherit" }}
+    >
+      <span style={{ width: 44, height: 44, borderRadius: 15, flexShrink: 0, display: "grid", placeItems: "center", fontSize: 20, background: `${acc}22` }} aria-hidden="true">🧬</span>
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: acc }}>
+          {locale === "mn" ? "Таны DNA дээр" : locale === "ko" ? "내 DNA 기반" : "Based on your DNA"}
+        </span>
+        <span style={{ display: "block", marginTop: 4, fontSize: 16, fontWeight: 700, color: "#fff" }}>
+          {locale === "mn" ? `${archLabel} гэж хэрхэн бэлтгэх вэ?` : locale === "ko" ? `${archLabel}로 훈련하는 방법은?` : `How to train as a ${archLabel}?`}
+        </span>
+      </span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={BRAND.faint} strokeWidth="2" strokeLinecap="round" aria-hidden="true" style={{ flexShrink: 0 }}><path d="M9 6l6 6-6 6" /></svg>
+    </button>
   );
 }

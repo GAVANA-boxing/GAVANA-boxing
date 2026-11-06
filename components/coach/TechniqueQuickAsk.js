@@ -1,6 +1,7 @@
 "use client";
 
 import { FIGHTERS } from "@/lib/fighters";
+import { sectionLabel } from "@/components/ui/brand";
 import { FIGHTER_TECHNIQUES } from "@/lib/fighterTechniques";
 
 const TECH_Q = {
@@ -22,11 +23,9 @@ export default function TechniqueQuickAsk({ locale, router }) {
   );
 
   return (
-    <div style={{ marginBottom: 16 }}>
-      <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", marginBottom: 10 }}>
-        {SECTION_LABELS[locale] || SECTION_LABELS.en}
-      </div>
-      <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 8, scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch" }}>
+    <section>
+      <p style={{ ...sectionLabel, padding: "0 16px", marginBottom: 12 }}>{SECTION_LABELS[locale] || SECTION_LABELS.en}</p>
+      <div style={{ display: "flex", gap: 10, overflowX: "auto", padding: "0 16px 4px", scrollSnapType: "x mandatory", scrollPaddingLeft: 16, WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
         {cards.map(({ fighter, tech }) => (
           <button
             key={`${fighter.id}-${tech.title}`}
@@ -34,36 +33,33 @@ export default function TechniqueQuickAsk({ locale, router }) {
             onClick={() => router.push(`/${locale}/coach/chat?q=${encodeURIComponent(qFn(fighter, tech))}`)}
             style={{
               flexShrink: 0, scrollSnapAlign: "start",
-              width: 150, height: 110,
-              borderRadius: 14, overflow: "hidden",
+              width: 148, height: 196, padding: 0,
+              borderRadius: 24, overflow: "hidden",
               position: "relative", cursor: "pointer",
-              border: `1px solid ${fighter.accent}30`,
-              background: "#0a0a0c",
+              border: "1px solid rgba(255,255,255,0.1)",
+              background: "#0a0a0c", fontFamily: "inherit",
             }}
           >
             {fighter.imageUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={fighter.imageUrl}
                 alt={fighter.name}
                 style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 10%" }}
               />
             )}
-            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.85) 100%)" }} />
-            <div style={{ position: "absolute", inset: 0, background: `${fighter.accent}20` }} />
-            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "8px 10px" }}>
-              <div style={{ fontSize: 7.5, fontWeight: 900, color: fighter.accent, letterSpacing: 1, textTransform: "uppercase", marginBottom: 3, opacity: 0.9 }}>
+            <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.88) 100%), ${fighter.accent}18` }} />
+            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "12px 12px", textAlign: "left" }}>
+              <div style={{ fontSize: 10.5, fontWeight: 700, color: fighter.accent, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>
                 {fighter.name}
               </div>
-              <div style={{ fontSize: 11, fontWeight: 900, color: "#fff", lineHeight: 1.2, textAlign: "left" }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", lineHeight: 1.25 }}>
                 {tech.title}
               </div>
-            </div>
-            <div style={{ position: "absolute", top: 8, right: 8, background: "rgba(0,0,0,0.6)", border: `1px solid ${fighter.accent}55`, borderRadius: 10, padding: "2px 7px", backdropFilter: "blur(4px)" }}>
-              <span style={{ fontSize: 7.5, fontWeight: 900, color: fighter.accent }}>ASK →</span>
             </div>
           </button>
         ))}
       </div>
-    </div>
+    </section>
   );
 }

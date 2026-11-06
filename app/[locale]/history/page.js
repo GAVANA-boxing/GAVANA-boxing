@@ -6,7 +6,10 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname } from "@/lib/i18n";
-import { RED, GOLD, goldAlpha, redAlpha, RADIUS } from "@/lib/tokens";
+import { RED, GOLD } from "@/lib/tokens";
+import { shortDate } from "@/lib/progressStats";
+import BrandHeader from "@/components/ui/BrandHeader";
+import { BRAND, btnPrimary, card, displayTitle, glass, pageBackground } from "@/components/ui/brand";
 import BottomNav from "@/components/BottomNav";
 
 function getTs(ts) {
@@ -14,14 +17,6 @@ function getTs(ts) {
   if (typeof ts.toMillis === "function") return ts.toMillis();
   if (typeof ts.toDate === "function") return ts.toDate().getTime();
   return Number(ts) || 0;
-}
-
-function formatDate(ts, locale) {
-  const d = new Date(getTs(ts));
-  if (!d.getTime()) return "—";
-  return d.toLocaleDateString(locale === "mn" ? "mn-MN" : locale === "ko" ? "ko-KR" : "en-US", {
-    month: "short", day: "numeric", year: "numeric",
-  });
 }
 
 const TAG_COLORS = {
@@ -50,7 +45,6 @@ export default function HistoryPage() {
   const router = useRouter();
   const pathname = usePathname();
   const locale = getLocaleFromPathname(pathname);
-  const mn = locale === "mn";
 
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -96,126 +90,93 @@ export default function HistoryPage() {
     return filtered.reduce((sum, s) => sum + (s.poseMetrics?.punchCount || 0), 0);
   }, [filtered]);
 
+  const L = (m, k, e) => (locale === "mn" ? m : locale === "ko" ? k : e);
+  const back = () => (window.history.length > 1 ? router.back() : router.push(`/${locale}/progress`));
+
   if (loading || authLoading) {
     return (
-      <div style={{ minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0B0B0C" }}>
-        <div style={{ width: 28, height: 28, border: "2px solid #FF3B30", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+      <div style={{ minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", background: pageBackground }}>
+        <div style={{ width: 28, height: 28, border: `2px solid ${BRAND.red}`, borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
     );
   }
 
+  const chip = (active, col = "#fff") => ({
+    ...glass,
+    flexShrink: 0, padding: "8px 14px", borderRadius: 999, fontFamily: "inherit", fontSize: 13, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap",
+    ...(active ? { background: col === "#fff" ? "#fff" : `${col}26`, borderColor: col === "#fff" ? "#fff" : `${col}66`, color: col === "#fff" ? "#0b0b0d" : col } : { color: BRAND.muted }),
+  });
+  const chipRow = { display: "flex", gap: 8, overflowX: "auto", margin: "0 -16px", padding: "0 16px 4px", scrollbarWidth: "none" };
+
   return (
-    <div style={{ background: "#0B0B0C", minHeight: "100dvh", color: "#fff" }}>
-      <div style={{ maxWidth: 540, margin: "0 auto", padding: "calc(20px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom))" }}>
+    <div style={{ background: pageBackground, minHeight: "100dvh", color: "#fff" }}>
+      <div style={{ maxWidth: 540, margin: "0 auto", padding: "0 16px calc(110px + env(safe-area-inset-bottom))" }}>
+        <BrandHeader
+          kicker={L("Дэвшил", "성장", "Progress")}
+          title={L("Бэлтгэлийн түүх", "훈련 기록", "Session history")}
+          onBack={back}
+          backLabel={L("Буцах", "뒤로", "Back")}
+        />
 
-        {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-          <button type="button" onClick={() => router.back()} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 20, cursor: "pointer", padding: "4px 6px 4px 0" }}>←</button>
-          <div>
-            <p style={{ margin: 0, fontSize: 9, fontWeight: 900, color: RED, letterSpacing: 2, textTransform: "uppercase" }}>COMBAT · OS</p>
-            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, letterSpacing: "-0.02em" }}>
-              {mn ? "Дасгалын түүх" : "Session History"}
-            </h1>
-          </div>
-        </div>
-
-        {/* Stats row */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
+        {/* Key numbers */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 18 }}>
           {[
-            { label: mn ? "Нийт" : "Total", value: sessions.length, unit: mn ? "дасгал" : "sessions", col: GOLD },
-            { label: mn ? "Цохилт" : "Punches", value: totalPunches || "—", unit: "", col: "#F87171" },
-            { label: mn ? "Дундаж" : "Avg Score", value: avgScore?.toFixed(1) ?? "—", unit: "/10", col: "#34D399" },
-          ].map(({ label, value, unit, col }) => (
-            <div key={label} style={{ flex: 1, padding: "9px 10px", borderRadius: 12, background: `${col}09`, border: `1px solid ${col}20` }}>
-              <div style={{ fontSize: 8, fontWeight: 900, color: "rgba(255,255,255,0.3)", letterSpacing: 1.2, marginBottom: 4 }}>{label}</div>
-              <div style={{ fontSize: 18, fontWeight: 900, color: col, lineHeight: 1 }}>
-                {value}<span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginLeft: 2 }}>{unit}</span>
-              </div>
+            { label: L("Бэлтгэл", "세션", "Sessions"), value: filtered.length },
+            { label: L("Цохилт", "펀치", "Punches"), value: totalPunches ? totalPunches.toLocaleString() : "—" },
+            { label: L("Дундаж", "평균", "Average"), value: avgScore?.toFixed(1) ?? "—" },
+          ].map(({ label, value }) => (
+            <div key={label} style={{ ...card, padding: "12px 14px" }}>
+              <div style={{ fontSize: 12, color: BRAND.faint }}>{label}</div>
+              <div style={{ ...displayTitle, fontSize: 26, marginTop: 6 }}>{value}</div>
             </div>
           ))}
         </div>
 
-        {/* Score filter */}
-        <div style={{ display: "flex", gap: 6, marginBottom: 10, overflowX: "auto", paddingBottom: 4 }}>
+        {/* Filters */}
+        <div style={{ ...chipRow, marginBottom: 8 }}>
           {SCORE_RANGES.map((r) => (
-            <button
-              key={r.label}
-              type="button"
-              onClick={() => setScoreFilter(r)}
-              style={{
-                flexShrink: 0, padding: "5px 12px", borderRadius: RADIUS.full, fontSize: 11, fontWeight: 800, cursor: "pointer",
-                background: scoreFilter.label === r.label ? goldAlpha(0.18) : "rgba(255,255,255,0.05)",
-                border: `1px solid ${scoreFilter.label === r.label ? goldAlpha(0.45) : "rgba(255,255,255,0.1)"}`,
-                color: scoreFilter.label === r.label ? GOLD : "rgba(255,255,255,0.4)",
-              }}
-            >{mn ? r.mn : r.label}</button>
+            <button key={r.label} type="button" onClick={() => setScoreFilter(r)} style={chip(scoreFilter.label === r.label)}>
+              {r.label === "All" ? L("Бүх оноо", "전체 점수", "All scores") : r.label}
+            </button>
           ))}
-          <button
-            type="button"
-            onClick={() => setSortDir((d) => d === "desc" ? "asc" : "desc")}
-            style={{
-              flexShrink: 0, marginLeft: "auto", padding: "5px 12px", borderRadius: RADIUS.full, fontSize: 11, fontWeight: 800, cursor: "pointer",
-              background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.4)",
-            }}
-          >{sortDir === "desc" ? "↓ New" : "↑ Old"}</button>
+          <button type="button" onClick={() => setSortDir((d) => (d === "desc" ? "asc" : "desc"))} style={{ ...chip(false), marginLeft: "auto" }}>
+            {sortDir === "desc" ? L("↓ Шинэ", "↓ 최신", "↓ Newest") : L("↑ Хуучин", "↑ 오래된", "↑ Oldest")}
+          </button>
         </div>
-
-        {/* Tag filter */}
-        <div style={{ display: "flex", gap: 6, marginBottom: 18, overflowX: "auto", paddingBottom: 4 }}>
-          <button
-            type="button"
-            onClick={() => setTagFilter(null)}
-            style={{
-              flexShrink: 0, padding: "5px 12px", borderRadius: RADIUS.full, fontSize: 11, fontWeight: 800, cursor: "pointer",
-              background: !tagFilter ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.04)",
-              border: `1px solid ${!tagFilter ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.08)"}`,
-              color: !tagFilter ? "#fff" : "rgba(255,255,255,0.35)",
-            }}
-          >{mn ? "Бүгд" : "All"}</button>
+        <div style={{ ...chipRow, marginBottom: 18 }}>
+          <button type="button" onClick={() => setTagFilter(null)} style={chip(!tagFilter)}>{L("Бүгд", "전체", "All")}</button>
           {TAGS.map((tag) => {
-            const col = TAG_COLORS[tag] || GOLD;
             const active = tagFilter === tag;
             return (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => setTagFilter(active ? null : tag)}
-                style={{
-                  flexShrink: 0, padding: "5px 12px", borderRadius: RADIUS.full, fontSize: 11, fontWeight: 800, cursor: "pointer",
-                  background: active ? `${col}18` : "rgba(255,255,255,0.04)",
-                  border: `1px solid ${active ? col + "45" : "rgba(255,255,255,0.08)"}`,
-                  color: active ? col : "rgba(255,255,255,0.35)",
-                }}
-              >{tag}</button>
+              <button key={tag} type="button" onClick={() => setTagFilter(active ? null : tag)} style={chip(active, TAG_COLORS[tag] || BRAND.gold)}>{tag}</button>
             );
           })}
         </div>
 
-        {/* Session list */}
+        {/* Sessions */}
         {filtered.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "48px 0", color: "rgba(255,255,255,0.25)", fontSize: 14, fontWeight: 700 }}>
-            {mn ? "Тохирох дасгал олдсонгүй" : "No sessions match your filters"}
+          <div style={{ ...card, textAlign: "center", padding: "36px 20px" }}>
+            <div style={{ fontSize: 30 }} aria-hidden="true">🥊</div>
+            <p style={{ margin: "10px 0 16px", fontSize: 15, color: BRAND.muted }}>
+              {sessions.length ? L("Шүүлтүүрт тохирох бэлтгэл алга", "필터에 맞는 세션이 없어요", "No sessions match your filters") : L("Анхны раундаа хийгээд энд түүхээ хар.", "첫 라운드를 하면 기록이 쌓여요.", "Do your first round to start your history.")}
+            </p>
+            {!sessions.length && <button type="button" onClick={() => router.push(`/${locale}/train`)} style={btnPrimary}>{L("Раунд эхлүүлэх", "라운드 시작", "Start a round")}</button>}
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {filtered.map((s) => {
               const score  = Number(s.score);
-              const col    = score >= 8 ? "#34D399" : score >= 6 ? GOLD : "#F87171";
+              const col    = score >= 8 ? BRAND.green : score >= 6.5 ? BRAND.gold : BRAND.red;
               const tagCol = TAG_COLORS[s.sessionTag] || null;
               const xp     = Number(s.xpGained) || 0;
-
-              const pm       = s.poseMetrics;
-              const bi       = pm?.boxingIntelligence;
-              const pc       = pm?.punchCount || 0;
-              const pb       = pm?.punchBreakdown || {};
-              const jabC     = pb.jab?.count   || 0;
-              const crossC   = pb.cross?.count  || 0;
-              const hookC    = pb.hook?.count   || 0;
-              const conf     = pm?.avgConfidencePct ?? pm?.debugStats?.avgConfidencePct;
-              const styleKey = bi?.style;
-              const styleCol = STYLE_COLOR[styleKey];
+              const pm     = s.poseMetrics;
+              const bi     = pm?.boxingIntelligence;
+              const pc     = pm?.punchCount || 0;
+              const pb     = pm?.punchBreakdown || {};
+              const mix    = [["Jab", pb.jab?.count, "#60A5FA"], ["Cross", pb.cross?.count, BRAND.red], ["Hook", pb.hook?.count, BRAND.gold]].filter(([, n]) => n > 0);
+              const styleCol = STYLE_COLOR[bi?.style];
               const showStyle = bi?.styleLabel && (bi.styleConfidence ?? 0) >= 0.3;
-              const identity = s.sessionIdentity;
               // Saved weaknesses (new sessions) or derived from breakdown (old sessions)
               const weakness = (() => {
                 if (pm?.weaknesses?.length) return pm.weaknesses[0];
@@ -223,90 +184,36 @@ export default function HistoryPage() {
                 if (!bd) return null;
                 const entries = Object.entries(bd).filter(([, v]) => typeof v === "number");
                 if (!entries.length) return null;
-                const [key, val] = entries.reduce((a, b) => b[1] < a[1] ? b : a);
+                const [key, val] = entries.reduce((a, b) => (b[1] < a[1] ? b : a));
                 if (val >= 6.5) return null;
-                const labels = { accuracy: mn ? "Нарийвчлал" : "Accuracy", speed: mn ? "Хурд" : "Speed", power: mn ? "Хүч" : "Power", consistency: mn ? "Тогтвортой байдал" : "Consistency" };
-                return labels[key] ? `${mn ? "Сайжруулах:" : "Improve:"} ${labels[key]} (${val.toFixed(1)}/10)` : null;
+                const labels = {
+                  accuracy: L("Нарийвчлал", "정확도", "Accuracy"),
+                  speed: L("Хурд", "속도", "Speed"),
+                  power: L("Хүч", "파워", "Power"),
+                  consistency: L("Тогтвортой байдал", "일관성", "Consistency"),
+                };
+                return labels[key] ? `${L("Сайжруулах", "개선", "Improve")}: ${labels[key]} (${val.toFixed(1)})` : null;
               })();
 
               return (
-                <div key={s.id} style={{
-                  padding: "11px 13px", borderRadius: 14,
-                  background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)",
-                }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    {/* Score circle */}
-                    <div style={{
-                      width: 44, height: 44, borderRadius: "50%", flexShrink: 0,
-                      background: `${col}14`, border: `2px solid ${col}35`,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 13, fontWeight: 900, color: col,
-                    }}>
-                      {score.toFixed(1)}
+                <div key={s.id} style={{ ...card, display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", background: `radial-gradient(90% 120% at 0% 50%, ${col}14, transparent 55%), ${BRAND.card}` }}>
+                  <div style={{ ...displayTitle, fontSize: 34, width: 58, flexShrink: 0, color: col }}>{Number.isFinite(score) ? score.toFixed(1) : "—"}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 15, fontWeight: 600 }}>{shortDate(s.createdAt, locale)}</span>
+                      {s.sessionTag && tagCol && <span style={{ fontSize: 11, fontWeight: 600, color: tagCol, background: `${tagCol}1f`, borderRadius: 999, padding: "2px 8px" }}>{s.sessionTag}</span>}
+                      {showStyle && <span style={{ fontSize: 11, fontWeight: 600, color: styleCol, background: `${styleCol}1f`, borderRadius: 999, padding: "2px 8px" }}>{bi.styleLabel}</span>}
+                      {s.sessionIdentity && !showStyle && <span style={{ fontSize: 11, fontWeight: 600, color: "#C4B5FD", background: "rgba(168,85,247,0.14)", borderRadius: 999, padding: "2px 8px" }}>{s.sessionIdentity}</span>}
                     </div>
-
-                    {/* Info */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      {/* Date + tags */}
-                      <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 4, flexWrap: "wrap" }}>
-                        <span style={{ fontSize: 12, fontWeight: 800, color: "#fff" }}>
-                          {formatDate(s.createdAt, locale)}
-                        </span>
-                        {s.sessionTag && tagCol && (
-                          <span style={{ fontSize: 8, fontWeight: 900, color: tagCol, background: `${tagCol}18`, border: `1px solid ${tagCol}30`, borderRadius: RADIUS.full, padding: "1px 6px" }}>
-                            {s.sessionTag}
-                          </span>
-                        )}
-                        {showStyle && (
-                          <span style={{ fontSize: 8, fontWeight: 900, color: styleCol, background: `${styleCol}14`, border: `1px solid ${styleCol}30`, borderRadius: RADIUS.full, padding: "1px 6px", letterSpacing: 0.8 }}>
-                            {bi.styleLabel}
-                          </span>
-                        )}
-                        {identity && !showStyle && (
-                          <span style={{ fontSize: 8, fontWeight: 900, color: "rgba(168,85,247,0.9)", background: "rgba(168,85,247,0.1)", border: "1px solid rgba(168,85,247,0.2)", borderRadius: RADIUS.full, padding: "1px 6px", letterSpacing: 0.5 }}>
-                            {identity}
-                          </span>
-                        )}
-                      </div>
-                      {/* Score bar */}
-                      <div style={{ height: 3, borderRadius: 2, background: "rgba(255,255,255,0.07)", overflow: "hidden", marginBottom: pc > 0 ? 5 : 0 }}>
-                        <div style={{ height: "100%", width: `${(score / 10) * 100}%`, borderRadius: 2, background: col }} />
-                      </div>
-                      {/* Punch stats */}
-                      {pc > 0 && (
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.55)" }}>
-                            {pc} {mn ? "цохилт" : "punches"}
-                          </span>
-                          <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>
-                            {jabC > 0 ? `${jabC}J` : ""}{crossC > 0 ? ` ${crossC}C` : ""}{hookC > 0 ? ` ${hookC}H` : ""}
-                          </span>
-                          {conf != null && (
-                            <span style={{
-                              fontSize: 9, fontWeight: 800,
-                              color: conf >= 70 ? "#34D399" : conf >= 45 ? GOLD : "#F87171",
-                            }}>
-                              {conf}%
-                            </span>
-                          )}
-                        </div>
-                      )}
-                      {/* Weakness */}
-                      {weakness && (
-                        <div style={{ marginTop: 3, fontSize: 9, fontWeight: 700, color: "rgba(248,113,113,0.7)", lineHeight: 1.3 }}>
-                          ↳ {weakness}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* XP */}
-                    {xp > 0 && (
-                      <div style={{ flexShrink: 0, textAlign: "right" }}>
-                        <div style={{ fontSize: 11, fontWeight: 900, color: GOLD }}>+{xp}</div>
-                        <div style={{ fontSize: 8, fontWeight: 700, color: "rgba(255,255,255,0.25)" }}>XP</div>
+                    {pc > 0 && (
+                      <div style={{ marginTop: 5, fontSize: 13, color: BRAND.muted, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                        <span>{pc} {L("цохилт", "펀치", "punches")}</span>
+                        {mix.map(([name, n, c]) => <span key={name} style={{ color: c }}>{name} {n}</span>)}
                       </div>
                     )}
+                    {weakness && <div style={{ marginTop: 4, fontSize: 12.5, color: "rgba(248,113,113,0.85)", lineHeight: 1.35 }}>↳ {weakness}</div>}
                   </div>
+                  {xp > 0 && <div style={{ flexShrink: 0, fontSize: 13, fontWeight: 700, color: BRAND.gold }}>+{xp} XP</div>}
                 </div>
               );
             })}
@@ -314,8 +221,7 @@ export default function HistoryPage() {
         )}
       </div>
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="" />
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="progress" />
     </div>
   );
 }

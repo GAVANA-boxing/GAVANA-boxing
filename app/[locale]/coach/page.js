@@ -37,6 +37,8 @@ import { useUserProfile } from "@/context/UserProfileProvider";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { RED, RED_DARK, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
 import styles from "@/components/coach/coachStyles";
+import BrandHeader from "@/components/ui/BrandHeader";
+import { BRAND, btnPrimary, glass, glassCard, pageBackground, sectionLabel } from "@/components/ui/brand";
 import { CoachCard, MyRequestCard } from "@/components/coach/CoachCards";
 import { useCoachPageData } from "@/hooks/useCoachPageData";
 import Image from "next/image";
@@ -87,100 +89,94 @@ export default function CoachPage() {
       return 0;
     });
 
+  const L = (mn, ko, en) => (locale === "mn" ? mn : locale === "ko" ? ko : en);
+  const TABS = [
+    { key: "ai", label: t("coachTabAI") },
+    { key: "coaches", label: t("coachTabCoaches") },
+    { key: "mine", label: t("coachFilterMyRequests") },
+  ];
+
   return (
-    <main style={styles.page} className="page-enter">
-      {/* Tab strip */}
-      <div style={styles.tabStrip}>
-        {[
-          { key: "ai", label: t("coachTabAI") },
-          { key: "coaches", label: t("coachTabCoaches") },
-          { key: "mine", label: t("coachFilterMyRequests") },
-        ].map(({ key, label }) => (
-          <button
-            key={key}
-            type="button"
-            style={tab === key ? styles.tabActive : styles.tabInactive}
-            onClick={() => setTab(key)}
-          >
-            {label}
-            {tab === key && (
-              <span
-                className="tab-indicator"
-                style={{
-                  position: "absolute",
-                  bottom: -2, left: "20%", right: "20%",
-                  height: 2,
-                  borderRadius: 2,
-                  background: `linear-gradient(90deg, ${RED}, rgba(255,59,48,0.5))`,
-                  boxShadow: `0 0 8px rgba(255,59,48,0.6)`,
-                }}
-              />
-            )}
-          </button>
-        ))}
+    <main style={{ minHeight: "100dvh", background: pageBackground, color: "#fff" }} className="page-enter">
+      <div style={{ maxWidth: 540, margin: "0 auto", padding: "0 16px" }}>
+        <BrandHeader
+          kicker={L("Дасгалжуулагч", "코치", "Coach")}
+          title={tab === "ai" ? L("Чиний булан", "나의 코너", "Your corner") : tab === "coaches" ? t("coachMarketplace") : t("coachMyRequestsTitle")}
+        />
+
+        {/* Segmented control */}
+        <div role="tablist" style={{ ...glass, display: "flex", gap: 4, padding: 4, borderRadius: 999, marginBottom: 18 }}>
+          {TABS.map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              role="tab"
+              aria-selected={tab === key}
+              onClick={() => setTab(key)}
+              style={{
+                flex: 1, minHeight: 38, border: "none", borderRadius: 999, cursor: "pointer",
+                fontFamily: "inherit", fontSize: 13.5, fontWeight: 600, whiteSpace: "nowrap",
+                background: tab === key ? "#fff" : "transparent",
+                color: tab === key ? "#0b0b0d" : BRAND.muted,
+                transition: "background 0.2s ease, color 0.2s ease",
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* AI Coach tab */}
       {tab === "ai" && (
-        <div style={styles.aiWrap}>
-          <CoachSectionBoundary fallbackText="Technique cards unavailable">
-            <TechniqueQuickAsk locale={locale} router={router} />
+        <div style={{ maxWidth: 540, margin: "0 auto", padding: "0 16px calc(110px + env(safe-area-inset-bottom))", display: "flex", flexDirection: "column", gap: 14 }}>
+          {/* Corner coach chat — the main thing on this page */}
+          <button type="button" onClick={() => router.push(`/${locale}/coach/chat`)} style={{ ...glassCard, position: "relative", overflow: "hidden", padding: 20, textAlign: "left", cursor: "pointer", fontFamily: "inherit" }}>
+            <span aria-hidden="true" style={{ position: "absolute", width: 220, height: 220, right: -70, top: -90, borderRadius: "50%", background: BRAND.red, opacity: 0.3, filter: "blur(50px)" }} />
+            <span style={{ position: "relative", display: "flex", alignItems: "center", gap: 14 }}>
+              <span style={{ width: 52, height: 52, borderRadius: 18, flexShrink: 0, display: "grid", placeItems: "center", fontSize: 26, background: "linear-gradient(145deg, #ff4d42, #c81e14)", boxShadow: "0 10px 28px rgba(255,59,48,0.35)" }} aria-hidden="true">🥊</span>
+              <span style={{ minWidth: 0 }}>
+                <span style={{ ...sectionLabel, display: "block" }}>AI {L("дасгалжуулагч", "코치", "coach")}</span>
+                <span style={{ display: "block", marginTop: 4, fontSize: 18, fontWeight: 700, color: "#fff" }}>{L("Юу ч асуу — техник, тактик, бэлтгэл", "기술·전술·훈련, 뭐든 물어보세요", "Ask anything — technique, tactics, training")}</span>
+              </span>
+            </span>
+            <span style={{ ...btnPrimary, position: "relative", marginTop: 16, minHeight: 46 }}>{L("Чат эхлүүлэх", "채팅 시작", "Start chatting")} →</span>
+          </button>
+
+          {/* Drill builder (was its own tab) */}
+          <button type="button" onClick={() => router.push(`/${locale}/drills`)} style={{ ...glassCard, display: "flex", alignItems: "center", gap: 14, padding: "16px 18px", textAlign: "left", cursor: "pointer", fontFamily: "inherit" }}>
+            <span style={{ width: 44, height: 44, borderRadius: 15, flexShrink: 0, display: "grid", placeItems: "center", fontSize: 22, background: "rgba(245,196,81,0.14)" }} aria-hidden="true">⚡</span>
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ display: "block", fontSize: 16, fontWeight: 700, color: "#fff" }}>{L("AI дасгал үүсгэгч", "AI 드릴 생성", "AI drill builder")}</span>
+              <span style={{ display: "block", marginTop: 3, fontSize: 13, color: BRAND.muted }}>{L("Чиглэлээ сонго — 5 дасгал бэлэн", "목표를 고르면 드릴 5개", "Pick a focus — get 5 drills")}</span>
+            </span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={BRAND.faint} strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+          </button>
+
+          <CoachSectionBoundary fallbackText="Sparring partner unavailable">
+            <AISparringPartner userArchetype={userArchetype} locale={locale} router={router} />
           </CoachSectionBoundary>
 
           <CoachSectionBoundary fallbackText="DNA coaching unavailable">
             <DNACoachingCTA userArchetype={userArchetype} locale={locale} router={router} />
           </CoachSectionBoundary>
 
-          <CoachSectionBoundary fallbackText="Sparring partner unavailable">
-            <AISparringPartner userArchetype={userArchetype} locale={locale} router={router} />
-          </CoachSectionBoundary>
-
-          {/* AI Coach — one clean entry to the full-screen chat */}
-          <button
-            type="button"
-            onClick={() => router.push(`/${locale}/coach/chat`)}
-            style={{
-              display: "flex", alignItems: "center", gap: 14, width: "100%",
-              padding: "16px 18px", borderRadius: 18, cursor: "pointer", textAlign: "left",
-              background: `linear-gradient(145deg, rgba(6,6,8,0.9), ${redAlpha(0.14)})`,
-              border: `1px solid ${redAlpha(0.3)}`,
-              boxShadow: `0 8px 28px ${redAlpha(0.18)}`,
-              WebkitTapHighlightColor: "transparent",
-            }}
-          >
-            <span style={{ fontSize: 30, flexShrink: 0 }}>🥊</span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 900, color: "#fff", marginBottom: 2 }}>
-                {t("coachOpenFullChat")}
-              </div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }}>
-                {locale === "mn" ? "Чиний булангийн дасгалжуулагчтай чатла"
-                  : locale === "ko" ? "코너 코치와 대화하기"
-                  : "Chat with your corner coach"}
-              </div>
-            </div>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
-          <div style={{ paddingBottom: "calc(80px + env(safe-area-inset-bottom))" }} />
+          <div style={{ margin: "0 -16px" }}>
+            <CoachSectionBoundary fallbackText="Technique cards unavailable">
+              <TechniqueQuickAsk locale={locale} router={router} />
+            </CoachSectionBoundary>
+          </div>
         </div>
       )}
 
       {/* Coaches tab */}
       {tab === "coaches" && (
         <div style={styles.content}>
-          <header style={styles.pageHeader}>
-            <p style={styles.kicker}>COMBAT · TRAINING</p>
-            <h1 style={styles.pageTitle}>{t("coachMarketplace")}</h1>
-            {user && (
-              <button
-                type="button"
-                style={styles.becomeCoachBtn}
-                onClick={() => router.push(`/${locale}/coach/apply`)}
-              >
-                {t("becomeCoach")}
-              </button>
-            )}
-          </header>
+          {user && (
+            <button type="button" style={{ ...styles.becomeCoachBtn, marginBottom: 16 }} onClick={() => router.push(`/${locale}/coach/apply`)}>
+              {t("becomeCoach")}
+            </button>
+          )}
 
           {/* Featured coaches row */}
           {coaches.filter((c) => c.coachVerified || c.coachFeatured).length > 0 && (
@@ -351,18 +347,12 @@ export default function CoachPage() {
             ))}
           </div>
 
-          <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
         </div>
       )}
 
       {/* My Requests tab */}
       {tab === "mine" && (
         <div style={styles.content}>
-          <header style={styles.pageHeader}>
-            <p style={styles.kicker}>COMBAT · TRAINING</p>
-            <h1 style={styles.pageTitle}>{t("coachMyRequestsTitle")}</h1>
-          </header>
-
           {!user?.uid ? (
             <EmptyState
               emoji="🔒"
@@ -405,10 +395,10 @@ export default function CoachPage() {
             </div>
           )}
 
-          <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
         </div>
       )}
 
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
     </main>
   );
 }

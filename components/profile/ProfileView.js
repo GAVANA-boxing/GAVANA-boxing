@@ -5,7 +5,8 @@ import { loc } from "@/lib/loc";
 import { shortDate } from "@/lib/progressStats";
 import { getWeightClassLabel } from "@/lib/weightClasses";
 import { ACHIEVEMENT_BADGES, TIER_COLOR } from "@/lib/badges";
-import { BRAND, btnPrimary, btnSecondary, displayTitle, sectionLabel } from "@/components/ui/brand";
+import { BRAND, btnPrimary, btnSecondary, displayTitle, glass, glassCard, sectionLabel } from "@/components/ui/brand";
+import { GlassIconButton as GlassIcon } from "@/components/ui/BrandHeader";
 
 /**
  * The profile page's content — presentational only (data comes from
@@ -264,14 +265,6 @@ function SessionTile({ s, big, full, locale, L, onClick }) {
   );
 }
 
-function GlassIcon({ label, onClick, children }) {
-  return (
-    <button type="button" aria-label={label} onClick={onClick} style={{ ...glass, width: 42, height: 42, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: BRAND.text, cursor: "pointer", padding: 0 }}>
-      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{children}</svg>
-    </button>
-  );
-}
-
 function Chevron() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={BRAND.faint} strokeWidth="2" strokeLinecap="round" aria-hidden="true" style={{ position: "relative", flexShrink: 0 }}>
@@ -293,18 +286,6 @@ const wrap = {
   maxWidth: 540,
   margin: "0 auto",
   padding: "calc(14px + env(safe-area-inset-top)) 16px calc(110px + env(safe-area-inset-bottom))",
-};
-const glass = {
-  background: "rgba(255,255,255,0.07)",
-  border: "1px solid rgba(255,255,255,0.12)",
-  backdropFilter: "blur(18px) saturate(1.4)",
-  WebkitBackdropFilter: "blur(18px) saturate(1.4)",
-};
-const glassCard = {
-  ...glass,
-  background: "rgba(255,255,255,0.045)",
-  borderRadius: 24,
-  color: BRAND.text,
 };
 const rowBtn = {
   display: "flex", alignItems: "center", gap: 12, width: "100%", textAlign: "left",

@@ -1,5 +1,7 @@
 "use client";
 
+import { BRAND, glassCard } from "@/components/ui/brand";
+
 const SP_LABELS = {
   en: { kicker: "AI SPARRING", title: "Spar Your Opposite", sub: "Train against your counter-style", btn: "Get Counter-Combos →" },
   mn: { kicker: "AI СПАРРИНГ", title: "Эсрэг архетиптэй спарринг", sub: "Эсрэг хэв маяг дээр бэлтгэл хий", btn: "Эсрэг комбо авах →" },
@@ -37,30 +39,19 @@ export default function AISparringPartner({ userArchetype, locale, router }) {
     : `I'm a ${userArchetype ? (OPPONENT_LABELS[userArchetype]?.en || userArchetype) : "fighter"}. I'm sparring against a ${oppLabel}. What combos and counter moves should I use?`;
 
   return (
-    <div style={{ marginBottom: 12, borderRadius: 14, overflow: "hidden", border: `1px solid ${oppColor}22`, background: `${oppColor}06` }}>
-      <div style={{ height: 2, background: `linear-gradient(90deg, ${oppColor}66, transparent)` }} />
-      <div style={{ padding: "12px 14px" }}>
-        <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: oppColor, textTransform: "uppercase", marginBottom: 6 }}>
-          ⚔️ {SL.kicker}
-        </div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 900, color: "#fff", marginBottom: 2 }}>{SL.title}</div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>{SL.sub}</div>
-          </div>
-          <div style={{ padding: "6px 10px", borderRadius: 10, background: `${oppColor}15`, border: `1px solid ${oppColor}30`, textAlign: "center" }}>
-            <div style={{ fontSize: 9, fontWeight: 900, color: oppColor, textTransform: "uppercase", letterSpacing: 0.5 }}>VS</div>
-            <div style={{ fontSize: 10, fontWeight: 900, color: "#fff", marginTop: 1, whiteSpace: "nowrap" }}>{oppLabel}</div>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={() => router.push(`/${locale}/coach/chat?q=${encodeURIComponent(sparQ)}`)}
-          style={{ width: "100%", padding: "9px 0", borderRadius: 10, background: `${oppColor}18`, border: `1px solid ${oppColor}38`, color: oppColor, fontSize: 11, fontWeight: 900, cursor: "pointer" }}
-        >
-          {SL.btn}
-        </button>
-      </div>
-    </div>
+    <button
+      type="button"
+      onClick={() => router.push(`/${locale}/coach/chat?q=${encodeURIComponent(sparQ)}`)}
+      style={{ ...glassCard, display: "flex", alignItems: "center", gap: 14, width: "100%", padding: "16px 18px", textAlign: "left", cursor: "pointer", fontFamily: "inherit", position: "relative", overflow: "hidden" }}
+    >
+      <span aria-hidden="true" style={{ position: "absolute", width: 140, height: 140, right: -40, top: -70, borderRadius: "50%", background: oppColor, opacity: 0.22, filter: "blur(40px)" }} />
+      <span style={{ width: 44, height: 44, borderRadius: 15, flexShrink: 0, display: "grid", placeItems: "center", fontSize: 20, background: `${oppColor}22`, position: "relative" }} aria-hidden="true">⚔️</span>
+      <span style={{ flex: 1, minWidth: 0, position: "relative" }}>
+        <span style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: oppColor }}>{SL.kicker}</span>
+        <span style={{ display: "block", marginTop: 4, fontSize: 16, fontWeight: 700, color: "#fff" }}>{SL.title}</span>
+        <span style={{ display: "block", marginTop: 3, fontSize: 13, color: BRAND.muted }}>VS <b style={{ color: oppColor, fontWeight: 600 }}>{oppLabel}</b> · {SL.sub}</span>
+      </span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={BRAND.faint} strokeWidth="2" strokeLinecap="round" aria-hidden="true" style={{ position: "relative", flexShrink: 0 }}><path d="M9 6l6 6-6 6" /></svg>
+    </button>
   );
 }

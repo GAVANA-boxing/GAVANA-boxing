@@ -100,3 +100,21 @@ export const displayTitle = {
   letterSpacing: "0.01em",
   color: BRAND.text,
 };
+
+// Frosted glass — for buttons, pills and cards that sit on a glow or photo.
+export const glass = {
+  background: "rgba(255,255,255,0.07)",
+  border: "1px solid rgba(255,255,255,0.12)",
+  backdropFilter: "blur(18px) saturate(1.4)",
+  WebkitBackdropFilter: "blur(18px) saturate(1.4)",
+};
+
+export const glassCard = {
+  ...glass,
+  background: "rgba(255,255,255,0.045)",
+  borderRadius: 24,
+  color: BRAND.text,
+};
+
+// The page background every app page shares: near-black with a red glow on top.
+export const pageBackground = "radial-gradient(ellipse 80% 40% at 50% -10%, rgba(255,59,48,0.16) 0%, transparent 60%), #08080a";
