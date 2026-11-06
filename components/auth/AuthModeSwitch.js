@@ -1,19 +1,19 @@
 "use client";
 
-import { GOLD } from "@/lib/tokens";
+import { BRAND } from "@/components/ui/brand";
 
 const S = {
   switchBtn: {
     background: "none",
     border: "none",
-    color: GOLD,
+    color: BRAND.gold,
     cursor: "pointer",
-    fontSize: 13,
-    fontWeight: 700,
+    fontFamily: "inherit",
+    fontSize: 14.5,
+    fontWeight: 600,
     display: "block",
-    margin: "20px auto 0",
+    margin: "18px auto 0",
     padding: 0,
-    opacity: 0.7,
   },
 };
 
@@ -24,7 +24,7 @@ const S = {
  */
 export default function AuthModeSwitch({ isSignUp, onClick, signInLabel, signUpLabel }) {
   return (
-    <button onClick={onClick} style={S.switchBtn}>
+    <button type="button" onClick={onClick} style={S.switchBtn}>
       {isSignUp ? signInLabel : signUpLabel}
     </button>
   );

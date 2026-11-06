@@ -25,6 +25,7 @@ import LoginPageFooter    from "@/components/auth/LoginPageFooter";
 import { CORE_MODE } from "@/lib/coreRoutes";
 import { funnel, FUNNEL } from "@/lib/funnel";
 import { savePrivateEmail } from "@/lib/privateProfile";
+import { glass, glassCard, pageBackground } from "@/components/ui/brand";
 
 // Only true in-app browsers that CANNOT open popups at all need redirect.
 // Regular iOS Safari supports signInWithPopup in Firebase 9.9+ — using redirect
@@ -269,19 +270,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={S.page} className="grain-overlay">
-      {/* Animated scan line */}
-      <div className="scanline" />
+    <div style={S.page}>
+      <LoginPageBackground locale={locale} />
 
-      {/* Background ambient orbs + top system bar */}
-      <LoginPageBackground />
-
-      {/* HUD card */}
       <div style={S.cardWrap}>
-        {/* Corner accents */}
-        <div style={S.cornerTL} />
-        <div style={S.cornerBR} />
-
         <div style={S.card}>
           <AuthCardHeader
             isSignUp={isSignUp}
@@ -319,7 +311,7 @@ export default function LoginPage() {
               confirmPassword: t("loginConfirmPassword"),
             }}
             placeholders={{ displayName: t("loginDisplayNamePlaceholder") }}
-            submitLabel={isSignUp ? t("loginSignUp").toUpperCase() : t("login").toUpperCase()}
+            submitLabel={isSignUp ? t("loginSignUp") : t("login")}
             loadingText={t("loading")}
           />
 
@@ -329,16 +321,17 @@ export default function LoginPage() {
             signInLabel={t("loginAlreadyHaveAccount")}
             signUpLabel={t("loginNeedAccount")}
           />
-          <div style={{ textAlign: "center", marginTop: 4, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-            <button
-              type="button"
-              onClick={() => router.push(`/${locale}/train?autostart=1`)}
-              style={{ background: "none", border: "none", color: "rgba(255,255,255,0.28)", fontSize: 11, cursor: "pointer", letterSpacing: "0.04em", textDecoration: "underline", textUnderlineOffset: 3 }}
-            >
-              {locale === "mn" ? "Бүртгэлгүйгээр туршиж үзэх →" : locale === "ko" ? "계정 없이 체험하기 →" : "Try without an account →"}
-            </button>
-          </div>
         </div>
+
+        {/* No account needed to try it: the strongest door in */}
+        <button type="button" onClick={() => router.push(`/${locale}/train?autostart=1`)} style={S.tryBtn}>
+          <span style={{ display: "block", fontSize: 15.5, fontWeight: 600, color: "#fff" }}>
+            {locale === "mn" ? "Бүртгэлгүйгээр туршиж үзэх" : locale === "ko" ? "계정 없이 체험하기" : "Try it without an account"} →
+          </span>
+          <span style={{ display: "block", marginTop: 3, fontSize: 13, color: "rgba(255,255,255,0.55)" }}>
+            {locale === "mn" ? "60 секундийн раунд · оноо шууд" : locale === "ko" ? "60초 라운드 · 바로 점수" : "A 60-second round · instant score"}
+          </span>
+        </button>
       </div>
 
       <LoginPageFooter locale={locale} />
@@ -354,51 +347,30 @@ const S = {
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    padding: "24px 20px",
+    padding: "calc(76px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom))",
     overflow: "hidden",
-    background: `
-      radial-gradient(ellipse 90% 65% at 50% -10%, rgba(255,59,48,0.22) 0%, transparent 58%),
-      radial-gradient(ellipse 55% 45% at 15% 85%, rgba(255,59,48,0.07) 0%, transparent 55%),
-      #0B0B0C
-    `,
+    color: "#fff",
+    background: pageBackground,
   },
   cardWrap: {
     position: "relative",
     width: "100%",
     maxWidth: 420,
-    zIndex: 10,
-  },
-  cornerTL: {
-    position: "absolute",
-    top: -1, left: -1,
-    width: 24, height: 24,
-    borderTop: "2px solid rgba(255,59,48,0.85)",
-    borderLeft: "2px solid rgba(255,59,48,0.85)",
-    borderRadius: "5px 0 0 0",
-    zIndex: 2,
-    animation: "hud-flicker 0.5s ease both",
-  },
-  cornerBR: {
-    position: "absolute",
-    bottom: -1, right: -1,
-    width: 24, height: 24,
-    borderBottom: "2px solid rgba(255,59,48,0.85)",
-    borderRight: "2px solid rgba(255,59,48,0.85)",
-    borderRadius: "0 0 5px 0",
-    zIndex: 2,
-    animation: "hud-flicker 0.5s ease 0.15s both",
+    zIndex: 1,
   },
   card: {
-    background: "radial-gradient(ellipse at 50% 0%, rgba(255,59,48,0.16) 0%, rgba(255,59,48,0.04) 45%, transparent 70%), linear-gradient(180deg, #141416 0%, #0B0B0C 100%)",
-    backdropFilter: "blur(40px) saturate(160%)",
-    WebkitBackdropFilter: "blur(40px) saturate(160%)",
-    border: "1px solid rgba(255,59,48,0.18)",
+    ...glassCard,
+    padding: "28px 22px 24px",
+    boxShadow: "0 40px 100px rgba(0,0,0,0.55)",
+  },
+  tryBtn: {
+    ...glass,
+    width: "100%",
+    marginTop: 12,
+    padding: "14px 18px",
     borderRadius: 20,
-    padding: "34px 28px 30px",
-    boxShadow: `
-      0 0 0 1px rgba(255,255,255,0.04) inset,
-      0 48px 120px rgba(0,0,0,0.75),
-      0 0 100px rgba(255,59,48,0.08)
-    `,
+    textAlign: "center",
+    cursor: "pointer",
+    fontFamily: "inherit",
   },
 };

@@ -1,23 +1,13 @@
 "use client";
 
+import { btnSecondary, glass } from "@/components/ui/brand";
+
 const S = {
   googleBtn: {
-    width: "100%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    padding: "13px 16px",
-    borderRadius: 13,
-    border: "1px solid rgba(255,255,255,0.12)",
-    background: "rgba(255,255,255,0.06)",
-    color: "rgba(255,255,255,0.85)",
-    fontSize: 13,
-    fontWeight: 800,
-    cursor: "pointer",
-    transition: "background 0.2s, border-color 0.2s",
-    backdropFilter: "blur(8px)",
-    WebkitBackdropFilter: "blur(8px)",
+    ...btnSecondary,
+    ...glass,
+    minHeight: 50,
+    fontFamily: "inherit",
   },
   divider: {
     display: "flex",
@@ -27,11 +17,8 @@ const S = {
   },
   dividerLine: { flex: 1, height: 1, background: "rgba(255,255,255,0.07)" },
   dividerText: {
-    fontSize: 10,
-    color: "rgba(255,255,255,0.25)",
-    fontWeight: 700,
-    letterSpacing: 1.5,
-    textTransform: "uppercase",
+    fontSize: 13,
+    color: "rgba(255,255,255,0.38)",
   },
 };
 

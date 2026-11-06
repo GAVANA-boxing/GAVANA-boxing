@@ -1,22 +1,22 @@
 "use client";
 
+import { btnPrimary } from "@/components/ui/brand";
+
 const S = {
   fieldGroup: { display: "grid", gap: 7 },
   label: {
-    fontSize: 10,
-    fontWeight: 900,
-    color: "rgba(255,255,255,0.38)",
-    letterSpacing: 2,
-    textTransform: "uppercase",
+    fontSize: 13.5,
+    fontWeight: 600,
+    color: "rgba(255,255,255,0.62)",
   },
   inputBase: {
     width: "100%",
     boxSizing: "border-box",
     background: "rgba(255,255,255,0.05)",
     borderRadius: 12,
-    padding: "13px 15px",
+    padding: "14px 15px",
     color: "#fff",
-    fontSize: 14,
+    fontSize: 16,
     outline: "none",
     transition: "border-color 0.2s, box-shadow 0.2s",
     fontFamily: "inherit",
@@ -32,17 +32,9 @@ const S = {
     lineHeight: 1.4,
   },
   submitBtn: {
-    width: "100%",
-    padding: "15px",
-    borderRadius: 14,
-    border: "none",
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: 900,
-    cursor: "pointer",
-    transition: "opacity 0.2s, transform 0.15s, box-shadow 0.2s",
-    letterSpacing: 1,
-    textTransform: "uppercase",
+    ...btnPrimary,
+    fontFamily: "inherit",
+    transition: "opacity 0.2s, transform 0.15s",
   },
 };
 
@@ -176,16 +168,13 @@ export default function AuthEmailForm({
         disabled={loading}
         style={{
           ...S.submitBtn,
-          background: loading ? "rgba(255,59,48,0.3)" : "#FF3B30",
-          boxShadow: loading
-            ? "none"
-            : "0 12px 36px rgba(255,59,48,0.3), 0 0 0 1px rgba(255,59,48,0.2) inset",
+          ...(loading ? { opacity: 0.55, boxShadow: "none", cursor: "default" } : {}),
         }}
       >
         {loading ? (
           <span style={{ opacity: 0.6 }}>{loadingText}</span>
         ) : (
-          <span style={{ letterSpacing: 1.5, fontSize: 13 }}>{submitLabel} →</span>
+          <span>{submitLabel} →</span>
         )}
       </button>
     </form>
