@@ -12,16 +12,19 @@ const MODELS = ["/models/boxer_male.glb", "/models/boxer_female.glb"];
 // Mixamo mocap clips retargeted for these rigs (scripts: see the JSON's _note).
 const ANIMS_URL = "/models/anims/boxing.json";
 const FADE_S = 0.22;
+// Attack and defense, like a real round: combos broken up by blocks and weaves.
 const ANIM_ORDER = [
-  "Jab_Cross", "Left_Jab_from_Guard", "Right_Upper_Hook_from_Guard", "Jab_Cross", "Left_Uppercut_from_Guard",
-  "Boxing_4", "Right_Jab_from_Guard", "Right_Uppercut_from_Guard", "Boxing_5", "Boxing_3", "Boxing_6",
+  "Jab_Cross", "Left_Jab_from_Guard", "Block2", "Right_Upper_Hook_from_Guard", "Dodging",
+  "Jab_Cross", "Left_Uppercut_from_Guard", "Block6", "Boxing_4", "Right_Jab_from_Guard",
+  "Dodging_1", "Right_Uppercut_from_Guard", "Boxing_5", "Block4", "Boxing_3", "Boxing_6", "Taunt",
 ];
 const CLIP_LABEL = [
   [/jab|straight/i, "JAB"],
   [/uppercut/i, "UPPERCUT"],
   [/hook/i, "HOOK"],
 ];
-const LABEL_COLOR = { JAB: "#60A5FA", CROSS: "#FF3B30", HOOK: "#F5C451", UPPERCUT: "#A78BFA" };
+const LABEL_COLOR = { JAB: "#60A5FA", CROSS: "#FF3B30", HOOK: "#F5C451", UPPERCUT: "#A78BFA", BLOCK: "#34D399", WEAVE: "#34D399" };
+const DARK_TEXT = new Set(["HOOK", "BLOCK", "WEAVE"]);
 // Bones (Mixamo names, sanitized) for the tracking overlay.
 const SKELETON = [
   ["LeftArm", "LeftForeArm"], ["LeftForeArm", "LeftHand"], ["RightArm", "RightForeArm"], ["RightForeArm", "RightHand"],
@@ -86,7 +89,8 @@ export default function HeroBoxer3D({ labels, onReady }) {
         for (const c of anims.clips) {
           const clip = THREE.AnimationClip.parse({
             name: c.name, duration: c.duration,
-            tracks: c.tracks.map((t) => (/Hips\.position$/.test(t.name)
+            // Tracks may share the clip's keyframe times (smaller file).
+            tracks: c.tracks.map((t0) => ({ ...t0, times: t0.times || c.times })).map((t) => (/Hips\.position$/.test(t.name)
               ? { ...t, values: t.values.map((v, i) => (i % 3 === 0 ? rest.x : i % 3 === 1 ? rest.y + v * k : rest.z)) }
               : t)),
           });
@@ -176,9 +180,9 @@ export default function HeroBoxer3D({ labels, onReady }) {
         const ev = cur.events[nextEv];
         if (ev && tIn >= ev.t) {
           nextEv += 1;
-          count += 1;
+          if (!ev.defense) count += 1;   // blocks and weaves show a label but are not punches
           hideAt = now + 450;
-          setHud((h) => ({ label: ev.label, count, score: Math.min(0.95, h.score + 0.025) }));
+          setHud((h) => ({ label: ev.label, count, score: Math.min(0.95, h.score + (ev.defense ? 0.01 : 0.025)) }));
         }
         if (hideAt && now > hideAt) { hideAt = 0; setHud((h) => (h.label ? { ...h, label: null } : h)); }
         // Start the next clip while this one is still moving, so the fade blends two poses.
@@ -220,7 +224,7 @@ export default function HeroBoxer3D({ labels, onReady }) {
         <span>{labels.round}</span>
       </div>
       {hud.label && (
-        <div key={hud.count} style={{ position: "absolute", top: 38, left: "50%", transform: "translateX(-50%)", padding: "4px 12px", borderRadius: 999, background: LABEL_COLOR[hud.label], color: hud.label === "HOOK" ? "#1a1405" : "#fff", font: "700 12px var(--stack-sans)", letterSpacing: "0.1em", animation: "lpPop 220ms ease-out" }}>
+        <div key={hud.count} style={{ position: "absolute", top: 38, left: "50%", transform: "translateX(-50%)", padding: "4px 12px", borderRadius: 999, background: LABEL_COLOR[hud.label], color: DARK_TEXT.has(hud.label) ? "#0b1a12" : "#fff", font: "700 12px var(--stack-sans)", letterSpacing: "0.1em", animation: "lpPop 220ms ease-out" }}>
           {hud.label}
         </div>
       )}
