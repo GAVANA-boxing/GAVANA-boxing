@@ -103,11 +103,19 @@ export function useCameraSession({
     };
   }, [cameraRetryKey]);
 
+  // Re-attach after EVERY render, not only when cameraState changes: the <video>
+  // element can be replaced after the stream is ready (e.g. the page shows a
+  // loading screen while auth resolves, then mounts the real stage). A fresh
+  // element has no srcObject, so the user saw a black stage and the pose
+  // detector got no frames (0 punches). The identity check keeps this cheap.
   useEffect(() => {
-    if (cameraState === "ready" && videoRef.current && streamRef.current) {
-      videoRef.current.srcObject = streamRef.current;
+    const video = videoRef.current;
+    const stream = streamRef.current;
+    if (cameraState === "ready" && video && stream && video.srcObject !== stream) {
+      video.srcObject = stream;
+      video.play?.().catch(() => {});
     }
-  }, [cameraState]);
+  });
 
   // ── Finish recording ─────────────────────────────────────────────────────
   const finishRecording = useCallback(() => {
