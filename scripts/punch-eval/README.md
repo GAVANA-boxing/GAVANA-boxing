@@ -16,12 +16,24 @@ Not part of the app build. Recordings are personal footage — keep them out of 
    Query params: `fps` (sample rate; the app runs ~10), `model` (lite | full | heavy), `stance`.
 5. Delete `app/[locale]/zz-eval` and `public/zz-eval` afterwards — never commit them.
 
-## Baseline (2026-11-06, lite @ 10 fps, orthodox)
-| clip | truth | detected |
-|---|---|---|
-| IMG_6156 (cross10) | 10 right crosses | 4 cross + 2 hook (right), **5 phantom left punches** |
-| IMG_6155 (hook5)   | 5 left hooks     | 1 hook |
+## Baseline (2026-11-06, lite @ 10 fps)
+Fighter is **southpaw** (right foot forward): jab = right hand, cross = left hand.
+Recordings are not mirrored (shirt text reads correctly), so MediaPipe's left/right are anatomical.
 
-Systematic error: a phantom lead-hand "jab" ~0.4 s after every cross — the torso turns,
-the lead shoulder moves back, and extension is measured from the same-side shoulder, so the
-guard hand reads as "extending". Model size / fps alone do not fix it.
+| clip | truth | detected (right hand / phantom left) |
+|---|---|---|
+| IMG_6156 | 10 right jabs (straight)  | 4 straight + 2 as hook / **5 phantom left** |
+| IMG_6153 | 6 right jabs (straight)   | 6 straight / **4 phantom left** |
+| IMG_6155 | 5 left (rear) hooks       | 1 hook |
+
+(Runs used `stance=orthodox`, so right-hand straights were *labelled* "cross"; the counts per
+hand are what matter. Use `stance=southpaw` for this fighter.)
+
+Systematic error: phantom punches on the non-punching (guard) hand, at the same moment or
+~0.4 s after a real punch — the torso turns, that side's shoulder moves back, and extension is
+measured from the same-side shoulder, so the guard hand reads as "extending". Model size / fps
+alone do not fix it. The shoulder-depth stance hint also guessed "orthodox" for this southpaw
+(he faces the camera fairly square), so stance must stay an explicit user choice.
+
+Still needed to validate a fix: a clip with **real** punches from both hands (southpaw jab–cross:
+right jab, left cross) so suppressing phantoms can be checked not to drop real ones.

@@ -1219,8 +1219,10 @@ export default function TrainPage() {
           {canStart && (
             <div role="radiogroup" aria-label="Stance" style={{ display: "flex", gap: 6, width: "100%", marginBottom: 8 }}>
               {[
-                ["orthodox", loc(locale, "Orthodox · зүүн гар jab", "오소독스 · 왼손 잽", "Orthodox · left jab")],
-                ["southpaw", loc(locale, "Southpaw · баруун гар jab", "사우스포 · 오른손 잽", "Southpaw · right jab")],
+                // Named by the front foot — people know which foot leads far better
+                // than the words orthodox/southpaw (and the camera can't tell reliably).
+                ["orthodox", loc(locale, "Зүүн хөл урдаа · Orthodox", "왼발 앞 · 오소독스", "Left foot forward · Orthodox")],
+                ["southpaw", loc(locale, "Баруун хөл урдаа · Southpaw", "오른발 앞 · 사우스포", "Right foot forward · Southpaw")],
               ].map(([key, label]) => (
                 <button
                   key={key}
