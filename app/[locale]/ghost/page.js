@@ -131,11 +131,19 @@ export default function GhostRoundPage() {
           locale={locale}
           onClose={exit}
           title={L("Ghost Round · Jab–Cross", "고스트 라운드 · 잽–크로스", "Ghost Round · Jab–Cross")}
-          subtitle={L(
-            "Ажигла: jab-ийн үед хойд гар эрүүндээ, cross-д мөр урагшаа эргэнэ",
-            "보세요: 잽 때 뒷손은 턱에, 크로스 때 어깨가 앞으로 회전",
-            "Watch: rear hand stays on the chin during the jab; shoulders turn on the cross",
-          )}
+          subtitle={
+            <>
+              {L(
+                "Ажигла: jab-ийн үед хойд гар эрүүндээ, cross-д мөр урагшаа эргэнэ",
+                "보세요: 잽 때 뒷손은 턱에, 크로스 때 어깨가 앞으로 회전",
+                "Watch: rear hand stays on the chin during the jab; shoulders turn on the cross",
+              )}
+              {/* Attribution requested by the CMU mocap database */}
+              <span style={{ display: "block", marginTop: 3, fontSize: 9, color: "rgba(255,255,255,0.35)" }}>
+                {L("Бодит хөдөлгөөн", "실제 모션", "Real motion")}: CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu), NSF EIA-0196217
+              </span>
+            </>
+          }
           action={{ label: L(`Дагаж хий · ${ROUND_SECONDS} сек →`, `따라 하기 · ${ROUND_SECONDS}초 →`, `Copy it · ${ROUND_SECONDS}s round →`), onClick: startRound }}
         />
         {camError && (

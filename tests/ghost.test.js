@@ -1,9 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { buildJabCrossReference } from "@/lib/ghost/reference";
-import { analyzeGhostRound, measureRound, armReach, shoulderYaw } from "@/lib/ghost/analyze";
+import { analyzeGhostRound, measureRound, armReach, shoulderYaw, angleDiff } from "@/lib/ghost/analyze";
 import { LM, guardState } from "@/lib/motionReplay";
 
-const ref = buildJabCrossReference({ stance: "orthodox", cycles: 3 });
+// Keyframed reference: exact, known mechanics for the analyzer tests.
+const ref = buildJabCrossReference({ stance: "orthodox", cycles: 3, source: "keyframed" });
 
 // Deep-copy a replay so variants can be edited.
 const clone = (r) => ({ ...r, frames: r.frames.map((f) => ({ t: f.t, p: new Float32Array(f.p) })), punches: r.punches.map((p) => ({ ...p })) });
@@ -24,10 +25,12 @@ describe("ghost reference (jab–cross)", () => {
     expect(armReach(jabPeak, lead)).toBeGreaterThan(armReach(guard, lead) * 1.5);
     expect(armReach(crossPeak, rear)).toBeGreaterThan(armReach(guard, rear) * 1.5);
     expect(guardState(jabPeak).right).toBe("up");
-    expect(Math.abs(shoulderYaw(crossPeak) - shoulderYaw(guard))).toBeGreaterThan(20);
+    const turn = angleDiff(shoulderYaw(crossPeak), shoulderYaw(guard));
+    expect(turn).toBeGreaterThan(30);
+    expect(turn).toBeLessThan(90);
   });
   it("mirrors for southpaw (jab from the right hand)", () => {
-    const sp = buildJabCrossReference({ stance: "southpaw" });
+    const sp = buildJabCrossReference({ stance: "southpaw", source: "keyframed" });
     expect(sp.punches.filter((p) => p.type === "jab").every((p) => p.hand === "right")).toBe(true);
     const m = measureRound(sp, "southpaw");
     expect(m.combos).toBe(3);
@@ -82,5 +85,47 @@ describe("analyzeGhostRound", () => {
     const r = analyzeGhostRound(null, ref);
     expect(r.tip).toBe("combo");
     expect(r.match).toBeLessThan(30);
+  });
+});
+
+describe("angleDiff", () => {
+  it("wraps across ±180° (a fighter facing the camera sits right on that boundary)", () => {
+    expect(angleDiff(170, -170)).toBeCloseTo(20, 6);
+    expect(angleDiff(160.6, -145.8)).toBeCloseTo(53.6, 1);
+    expect(angleDiff(10, 350)).toBeCloseTo(20, 6);
+    expect(angleDiff(45, 45)).toBe(0);
+  });
+});
+
+describe("motion-capture reference (CMU 14_03, default ghost)", () => {
+  const mocap = buildJabCrossReference({ stance: "orthodox", cycles: 3 });
+  it("is a real jab–cross: 3 combos, full reach, the shoulders turn on the cross", () => {
+    const m = measureRound(mocap, "orthodox");
+    expect(mocap.source).toMatch(/CMU/);
+    expect(m.combos).toBe(3);
+    expect(m.jabReach).toBeGreaterThan(1.1);
+    expect(m.crossReach).toBeGreaterThan(1.1);
+    expect(m.crossRotation).toBeGreaterThan(15);
+    expect(m.crossRotation).toBeLessThan(70);
+  });
+  it("teaches a correct guard: rear hand up on every jab, never dropped", () => {
+    expect(measureRound(mocap, "orthodox").rearGuardOnJab).toBe(1);
+    for (const f of mocap.frames) {
+      const g = guardState(f.p);
+      expect(g.left === "up" && g.right === "up").toBe(true);
+    }
+  });
+  it("loops without a jump (last frame ≈ first frame)", () => {
+    const n = mocap.frames.length / 3;
+    const a = mocap.frames[n - 1].p, b = mocap.frames[n].p;
+    let maxJump = 0;
+    for (let i = 0; i < a.length; i++) maxJump = Math.max(maxJump, Math.abs(a[i] - b[i]));
+    expect(maxJump).toBeLessThan(0.08);
+  });
+  it("mirrors for southpaw and still matches itself", () => {
+    const sp = buildJabCrossReference({ stance: "southpaw" });
+    expect(sp.punches.find((p) => p.type === "jab").hand).toBe("right");
+    expect(analyzeGhostRound(sp, sp, "southpaw").tip).toBe("great");
+    expect(analyzeGhostRound(mocap, mocap, "orthodox").match).toBeGreaterThanOrEqual(95);
   });
 });
