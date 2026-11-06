@@ -1,37 +1,38 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { useParams, usePathname, useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { getLocale, translate } from "@/lib/i18n";
-import { calculateSessionXP, getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
+import { getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
 import { getAccountXp } from "@/lib/domain/progression";
-import ProfileFighterCard from "@/components/profile/ProfileFighterCard";
-import ProfileBackHeader from "@/components/profile/ProfileBackHeader";
-import ProfileLoadingSkeleton from "@/components/profile/ProfileLoadingSkeleton";
-import ProfileFighterDNATeaser from "@/components/profile/ProfileFighterDNATeaser";
-import ProfileTabBar from "@/components/profile/ProfileTabBar";
-import { RED, PURPLE, redAlpha } from "@/lib/tokens";
-import { FIGHTERS } from "@/lib/fighters";
+import { computeEarnedBadges } from "@/lib/badges";
+import { computeFighterDNA } from "@/lib/fighterDNA";
 import { deriveRadarStats } from "@/lib/dashboardHelpers";
-import BadgesSection from "@/components/dashboard/BadgesSection";
-import BattleSection from "@/components/profile/BattleSection";
-import TrainingProgressSection from "@/components/profile/TrainingProgressSection";
-import { getTimestampMs, formatScore } from "@/lib/utils";
-import ProfileRivalComparison from "@/components/profile/ProfileRivalComparison";
-import ProfileReelsGrid from "@/components/profile/ProfileReelsGrid";
+import { FIGHTERS } from "@/lib/fighters";
+import { RED, PURPLE } from "@/lib/tokens";
+import { CORE_MODE } from "@/lib/coreRoutes";
 import { useProfileData } from "@/hooks/useProfileData";
 import { useProfileActions } from "@/hooks/useProfileActions";
 import { useReelDeletion } from "@/hooks/useReelDeletion";
-import dynamic from "next/dynamic";
+import ProfileLoadingSkeleton from "@/components/profile/ProfileLoadingSkeleton";
+import ProfileView from "@/components/profile/ProfileView";
+import ProfileTabBar from "@/components/profile/ProfileTabBar";
+import ProfileReelsGrid from "@/components/profile/ProfileReelsGrid";
+import BattleSection from "@/components/profile/BattleSection";
 import BottomNav from "@/components/BottomNav";
 import MenuSheet from "@/components/bottomnav/MenuSheet";
-import { CORE_MODE, showRoute } from "@/lib/coreRoutes";
+
 const ProfileModals = dynamic(
   () => import("@/components/profile/ProfileModals").then((m) => ({ default: m.ProfileModals })),
   { ssr: false }
 );
 const FollowListModal = dynamic(() => import("@/components/profile/FollowListModal"), { ssr: false });
+
+// Profile ("Me"): who the fighter is — photo, rank, tags, achievements and the
+// latest sessions. Numbers in depth live on /progress; this page links there.
+// The social tabs (posts / saved / record) only render when CORE_MODE is off.
 
 export default function UserProfilePage() {
   const { user, loading: authLoading } = useAuth();
@@ -50,8 +51,9 @@ export default function UserProfilePage() {
     speed_king:      { icon: "💨", label: t("profileBadgeSpeedKing"), color: PURPLE },
     creator_starter: { icon: "🎬", label: t("creatorTag"), color: "#34D399" },
   };
+
   const {
-    profileUser, setProfileUser,
+    profileUser,
     userReels, setUserReels,
     savedUserReels, setSavedUserReels,
     aiFeedbackHistory, trainingSessions,
@@ -61,14 +63,13 @@ export default function UserProfilePage() {
     isFollowing, setIsFollowing,
     isMutual, setIsMutual,
     isOwnProfile,
-    challengeRanks, pvpStats, sparringRecord, myStats,
-    userBadges, coachBookings,
+    challengeRanks, pvpStats, sparringRecord,
+    userBadges,
     rankUpRank, setRankUpRank,
     loadFollowStats,
   } = useProfileData({ user, userId, authLoading, locale });
 
-  const tabContentRef = useRef(null);
-  const [profileTab, setProfileTab] = useState(CORE_MODE ? "progress" : "posts");
+  const [profileTab, setProfileTab] = useState("posts");
   const [menuOpen, setMenuOpen] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -81,11 +82,9 @@ export default function UserProfilePage() {
   const [showWeeklyRecap, setShowWeeklyRecap] = useState(false);
   const [showFighterCard, setShowFighterCard] = useState(false);
   const [showWeeklyModal, setShowWeeklyModal] = useState(false);
-  const [cardShareCopied, setCardShareCopied] = useState(false);
-  const [expandedTrainingGroups, setExpandedTrainingGroups] = useState(new Set());
   const [followListView, setFollowListView] = useState(null); // "followers" | "following" | null
 
-  const { handleMessage, handleFollow, handleLogout, handleSwitchAccount, handleSendChallenge } = useProfileActions({
+  const { handleFollow, handleLogout, handleSendChallenge } = useProfileActions({
     user, userId, locale, router,
     isOwnProfile, isFollowing, setIsFollowing,
     stats, setStats,
@@ -106,192 +105,28 @@ export default function UserProfilePage() {
     }
   }, [user, authLoading, locale, router, setLoading]);
 
-  const {
-    deletingReelIds,
-    deleteConfirmReel, setDeleteConfirmReel,
-    handleDeleteReel,
-  } = useReelDeletion({ user, t, userReels, setUserReels, savedUserReels, setSavedUserReels, setTotalLikes });
-
-  // Per-session XP breakdowns — must be before any early return (Rules of Hooks)
-  const xpBreakdowns = useMemo(() => {
-    const streak = Number(profileUser?.dailyStreak ?? profileUser?.streakCount) || 0;
-    const sortedAsc = [...(aiFeedbackHistory || [])]
-      .map((fb) => ({ ...fb, _ts: getTimestampMs(fb.createdAt) }))
-      .sort((a, b) => a._ts - b._ts);
-    const result = {};
-    let prevScore = null;
-    for (const fb of sortedAsc) {
-      const score = Number(fb.score);
-      if (!Number.isFinite(score)) continue;
-      result[fb.id] = calculateSessionXP(score, prevScore, streak);
-      prevScore = score;
-    }
-    return result;
-  }, [aiFeedbackHistory, profileUser?.dailyStreak, profileUser?.streakCount]);
-
-  const groupedTrainingSessions = useMemo(() => {
-    const groups = new Map();
-
-    for (const session of trainingSessions) {
-      const key = session.reelId || "free_training";
-      const existing = groups.get(key) || {
-        key,
-        reelId: session.reelId || null,
-        label: session.reelId ? `${t("reels.combo")} ${String(session.reelId).slice(0, 8)}` : t("freeTraining"),
-        sessions: [],
-        latestScore: null,
-        bestScore: null,
-        firstScore: null,
-        latestAt: 0,
-        earliestAt: Infinity,
-        totalHits: 0,
-        totalPunches: 0,
-        bestComboStr: null,
-      };
-
-      const score = Number(session.score);
-      const createdAtMs = getTimestampMs(session.createdAt);
-      const hits = Number(session.hits) || 0;
-      const punches = Number(session.totalPunches || session.punches) || 0;
-
-      existing.sessions.push(session);
-      existing.totalHits += hits;
-      existing.totalPunches += punches;
-
-      if (Number.isFinite(score)) {
-        existing.bestScore = existing.bestScore === null ? score : Math.max(existing.bestScore, score);
-        if (createdAtMs >= existing.latestAt) {
-          existing.latestAt = createdAtMs;
-          existing.latestScore = score;
-        }
-        if (createdAtMs < existing.earliestAt) {
-          existing.earliestAt = createdAtMs;
-          existing.firstScore = score;
-        }
-      }
-      if (session.combo && (!existing.bestComboStr || score > existing.bestScore)) {
-        existing.bestComboStr = session.combo;
-      }
-
-      groups.set(key, existing);
-    }
-
-    return [...groups.values()]
-      .map((group) => {
-        const sortedSessions = group.sessions.sort((a, b) => {
-          const attemptDelta = (Number(b.attemptNumber) || 0) - (Number(a.attemptNumber) || 0);
-          if (attemptDelta !== 0) return attemptDelta;
-          return getTimestampMs(b.createdAt) - getTimestampMs(a.createdAt);
-        });
-        const acc = group.totalPunches > 0
-          ? Math.round((group.totalHits / group.totalPunches) * 100)
-          : null;
-        const delta = group.firstScore !== null && group.latestScore !== null
-          ? group.latestScore - group.firstScore
-          : null;
-        return {
-          ...group,
-          sessions: sortedSessions,
-          accuracy: acc,
-          improvementDelta: delta,
-        };
-      })
-      .sort((a, b) => b.latestAt - a.latestAt);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [trainingSessions, locale]); // t omitted — recreated every render, locale covers it
-
-  const toggleTrainingGroup = (groupKey) => {
-    setExpandedTrainingGroups((prev) => {
-      const next = new Set(prev);
-      if (next.has(groupKey)) {
-        next.delete(groupKey);
-      } else {
-        next.add(groupKey);
-      }
-      return next;
-    });
-  };
-
-  useEffect(() => {
-    if (tabContentRef.current) {
-      tabContentRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [profileTab]);
-
-  const progressStats = useMemo(() => {
-    const sortedAsc = [...(aiFeedbackHistory || [])]
-      .map((feedback) => ({
-        ...feedback,
-        scoreNumber: Number(feedback.score),
-        ts: getTimestampMs(feedback.createdAt),
-      }))
-      .filter((feedback) => Number.isFinite(feedback.scoreNumber))
-      .sort((a, b) => a.ts - b.ts);
-
-    const totalSessions = sortedAsc.length;
-    const scores = sortedAsc.map((feedback) => feedback.scoreNumber);
-    const firstScore = totalSessions ? sortedAsc[0].scoreNumber : null;
-    const latestScoreValue = totalSessions ? sortedAsc[totalSessions - 1].scoreNumber : null;
-    const bestScoreValue = totalSessions ? Math.max(...scores) : null;
-    const averageScoreValue = totalSessions
-      ? scores.reduce((sum, score) => sum + score, 0) / totalSessions
-      : null;
-    const improvement = firstScore !== null && latestScoreValue !== null
-      ? latestScoreValue - firstScore
-      : null;
-    const weeklySequence = sortedAsc.slice(-7).map((feedback) => formatScore(feedback.scoreNumber));
-
-    const comboMap = new Map();
-    for (const feedback of sortedAsc) {
-      const key = feedback.reelId || "free_training";
-      const existing = comboMap.get(key) || {
-        key,
-        label: feedback.reelId ? `${t("reels.combo")} ${String(feedback.reelId).slice(0, 8)}` : t("freeTraining"),
-        bestScore: null,
-        attemptCount: 0,
-      };
-
-      existing.attemptCount += 1;
-      existing.bestScore = existing.bestScore === null
-        ? feedback.scoreNumber
-        : Math.max(existing.bestScore, feedback.scoreNumber);
-      comboMap.set(key, existing);
-    }
-
-    return {
-      totalSessions,
-      firstScore,
-      latestScore: latestScoreValue,
-      bestScore: bestScoreValue,
-      averageScore: averageScoreValue,
-      improvement,
-      weeklySequence,
-      comboProgress: [...comboMap.values()].sort((a, b) => b.bestScore - a.bestScore),
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [aiFeedbackHistory, locale]); // t omitted — recreated every render, locale covers it
-
-  // ── All hooks must be above conditional returns ──────────────────────────
-  const profileRadarStats = useMemo(() => {
-    if (!trainingSessions?.length) return null;
-    const scores = trainingSessions.map((s) => Number(s.score)).filter(Number.isFinite);
-    const sc = Number(profileUser?.dailyStreak ?? profileUser?.streakCount) || 0;
-    return deriveRadarStats(scores, trainingSessions, sc);
-  }, [trainingSessions, profileUser?.dailyStreak, profileUser?.streakCount]);
-
-  if (loading) {
-    return <ProfileLoadingSkeleton />;
-  }
-
-  if (!user || !profileUser) {
-    return null; // Will redirect
-  }
-
-  const feedbackScores = aiFeedbackHistory
-    .map((feedback) => Number(feedback.score))
-    .filter((score) => Number.isFinite(score));
+  const { deletingReelIds, deleteConfirmReel, setDeleteConfirmReel, handleDeleteReel } =
+    useReelDeletion({ user, t, userReels, setUserReels, savedUserReels, setSavedUserReels, setTotalLikes });
 
   const streakCount = Number(profileUser?.dailyStreak ?? profileUser?.streakCount) || 0;
+
+  // ── All hooks must be above conditional returns ──
+  const earnedBadgeIds = useMemo(() => {
+    const scores = (trainingSessions || []).map((s) => Number(s.score)).filter(Number.isFinite);
+    return computeEarnedBadges({
+      sessionCount: trainingSessions.length,
+      bestScore: scores.length ? Math.max(...scores) : 0,
+      streakDays: streakCount,
+      studiedCount: (profileUser?.studiedFighters || []).length,
+      totalFighters: FIGHTERS.length,
+      radarStats: scores.length ? deriveRadarStats(scores, trainingSessions, streakCount) : null,
+    });
+  }, [trainingSessions, streakCount, profileUser?.studiedFighters]);
+
+  const dna = useMemo(() => computeFighterDNA({ sessions: trainingSessions, locale }), [trainingSessions, locale]);
+
+  if (loading) return <ProfileLoadingSkeleton />;
+  if (!user || !profileUser) return null; // Will redirect
 
   const xp = getAccountXp({
     storedXp: profileUser?.xp,
@@ -303,162 +138,57 @@ export default function UserProfilePage() {
   const fighterRank = getFighterRank(xp);
   const nextRank = getNextRank(xp);
   const rankProgress = getRankProgress(xp);
-  const xpToNextVal = nextRank ? nextRank.minXP - xp : 0;
 
-  const latestScore = feedbackScores.length ? feedbackScores[0] : null;
+  const feedbackScores = aiFeedbackHistory.map((f) => Number(f.score)).filter(Number.isFinite);
   const bestScore = feedbackScores.length ? Math.max(...feedbackScores) : null;
-  const averageScore = feedbackScores.length
-    ? feedbackScores.reduce((sum, score) => sum + score, 0) / feedbackScores.length
-    : null;
+  const showSocial = !CORE_MODE || (stats.followers || 0) > 0 || (stats.following || 0) > 0;
   const visibleReels = profileTab === "saved" ? savedUserReels : userReels;
-  const markPreviewFailed = (reelId, type) => {
-    setPreviewFailures((prev) => ({ ...prev, [`${reelId}:${type}`]: true }));
-  };
-  const handleStatNavigate = (target) => {
-    if (target === "posts") {
-      setProfileTab("posts");
-      return;
-    }
-    setFollowListView(target); // "followers" | "following"
-  };
 
   return (
-    <div className="page-enter" style={{
-      minHeight: "100dvh",
-      background: `radial-gradient(ellipse at 50% -8%, ${redAlpha(0.14)} 0%, transparent 50%), var(--background)`,
-      color: "var(--text-primary)",
-      padding: 0,
-      overflowX: "hidden"
-    }}>
-      <ProfileBackHeader
-        onBack={() => router.back()}
-        onMenu={isOwnProfile ? () => setMenuOpen(true) : undefined}
-        menuLabel={locale === "mn" ? "Цэс" : locale === "ko" ? "메뉴" : "Menu"}
-      />
+    <main className="page-enter" style={{ minHeight: "100dvh", background: "#08080a", color: "#fff" }}>
       {menuOpen && <MenuSheet onClose={() => setMenuOpen(false)} router={router} locale={locale} pathname={pathname} />}
-      <ProfileFighterCard
-        profileUser={profileUser}
-        isOwnProfile={isOwnProfile}
-        userReels={userReels}
-        stats={stats}
-        fighterRank={fighterRank}
-        nextRank={nextRank}
-        xp={xp}
-        xpToNextVal={xpToNextVal}
-        rankProgress={rankProgress}
-        bestScore={bestScore}
-        userBadges={userBadges}
-        challengeRanks={challengeRanks}
-        pvpStats={pvpStats}
-        isMutual={isMutual}
-        isFollowing={isFollowing}
-        followLoading={followLoading}
-        signingOut={signingOut}
-        t={t}
-        locale={locale}
-        router={router}
-        onShowRankModal={() => setShowRankModal(true)}
-        onShowFighterCard={() => setShowFighterCard(true)}
-        onShowChallengeModal={() => { setShowChallengeModal(true); setChallengeSent(false); }}
+
+      <ProfileView
+        locale={locale} t={t}
+        profileUser={profileUser} isOwnProfile={isOwnProfile}
+        xp={xp} rank={fighterRank} nextRank={nextRank} rankPct={rankProgress}
+        sessions={trainingSessions} streak={streakCount}
+        earnedBadgeIds={earnedBadgeIds} dna={dna}
+        social={showSocial ? { followers: stats.followers || 0, following: stats.following || 0 } : null}
+        isFollowing={isFollowing} followLoading={followLoading}
+        onBack={isOwnProfile ? undefined : () => router.back()}
+        onMenu={isOwnProfile ? () => setMenuOpen(true) : undefined}
+        onShareCard={() => setShowFighterCard(true)}
+        onEdit={() => router.push(`/${locale}/profile/edit`)}
         onFollow={handleFollow}
-        onMessage={handleMessage}
-        onLogout={handleLogout}
-        onStatNavigate={handleStatNavigate}
-      />
-
-      {/* ── Fighter DNA teaser (own profile only) ── */}
-      {isOwnProfile && (
-        <ProfileFighterDNATeaser
-          locale={locale}
-          fighterDNA={profileUser?.fighterDNA}
-          onClick={() => router.push(`/${locale}/fighter-profile`)}
-        />
-      )}
-
-      {/* ── Rival Comparison ── */}
-      <ProfileRivalComparison
-        isOwnProfile={isOwnProfile}
-        myStats={myStats}
-        profileUser={profileUser}
-        xp={xp}
-        bestScore={bestScore}
-        t={t}
-      />
-
-      <ProfileTabBar
-        profileTab={profileTab}
-        isOwnProfile={isOwnProfile}
-        onTabChange={setProfileTab}
-        t={t}
-      />
-
-      <div ref={tabContentRef} />
-
-      {profileTab === "progress" ? (
-        <>
-          <TrainingProgressSection
-            feedbackScores={feedbackScores}
-            progressStats={progressStats}
-            streakCount={streakCount}
-            fighterRank={fighterRank}
-            xp={xp}
-            nextRank={nextRank}
-            rankProgress={rankProgress}
-            aiFeedbackHistory={aiFeedbackHistory}
-            isOwnProfile={isOwnProfile}
-            locale={locale}
-            t={t}
-            onGoToDashboard={() => router.push(`/${locale}/progress`)}
-            onGoToReels={showRoute("/reels") ? () => router.push(`/${locale}/reels`) : undefined}
-          />
-          <div style={{ padding: "0 16px 32px", maxWidth: 680, margin: "0 auto", boxSizing: "border-box" }}>
-            <BadgesSection
-              sessionCount={trainingSessions.length}
-              bestScore={progressStats.bestScore ?? 0}
-              streakDays={streakCount}
-              studiedCount={(profileUser?.studiedFighters || []).length}
-              totalFighters={FIGHTERS.length}
-              radarStats={profileRadarStats}
-              locale={locale}
+        onFollowers={() => setFollowListView("followers")}
+        onFollowing={() => setFollowListView("following")}
+        onLogout={handleLogout} signingOut={signingOut}
+        go={(path) => router.push(`/${locale}${path}`)}
+      >
+      {/* Social tabs — full app only */}
+      {!CORE_MODE && (
+        <div style={{ marginTop: 26 }}>
+          <ProfileTabBar profileTab={profileTab} isOwnProfile={isOwnProfile} onTabChange={setProfileTab} t={t} />
+          {profileTab === "record" ? (
+            <BattleSection
+              pvpStats={pvpStats} sparringRecord={sparringRecord} isOwnProfile={isOwnProfile}
+              locale={locale} t={t} onGoToSparring={() => router.push(`/${locale}/sparring`)}
             />
-          </div>
-        </>
-      ) : profileTab === "record" ? (
-        <BattleSection
-          pvpStats={pvpStats}
-          sparringRecord={sparringRecord}
-          isOwnProfile={isOwnProfile}
-          locale={locale}
-          t={t}
-          onGoToSparring={() => router.push(`/${locale}/sparring`)}
-        />
-      ) : (
-      <div style={{
-        padding: 0,
-        display: "grid",
-        gridTemplateColumns: "repeat(3, 1fr)",
-        gap: 1,
-        width: "100%"
-      }}>
-        <ProfileReelsGrid
-          visibleReels={visibleReels}
-          previewFailures={previewFailures}
-          deletingReelIds={deletingReelIds}
-          isOwnProfile={isOwnProfile}
-          profileTab={profileTab}
-          userId={userId}
-          locale={locale}
-          router={router}
-          user={user}
-          t={t}
-          markPreviewFailed={markPreviewFailed}
-          setDeleteConfirmReel={setDeleteConfirmReel}
-        />
-      </div>
+          ) : profileTab !== "progress" ? (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, width: "100%" }}>
+              <ProfileReelsGrid
+                visibleReels={visibleReels} previewFailures={previewFailures} deletingReelIds={deletingReelIds}
+                isOwnProfile={isOwnProfile} profileTab={profileTab} userId={userId} locale={locale}
+                router={router} user={user} t={t}
+                markPreviewFailed={(reelId, type) => setPreviewFailures((p) => ({ ...p, [`${reelId}:${type}`]: true }))}
+                setDeleteConfirmReel={setDeleteConfirmReel}
+              />
+            </div>
+          ) : null}
+        </div>
       )}
-
-
-      <div style={{ height: "calc(88px + env(safe-area-inset-bottom))" }} />
+      </ProfileView>
 
       <ProfileModals
         rankUpRank={rankUpRank} setRankUpRank={setRankUpRank}
@@ -473,16 +203,10 @@ export default function UserProfilePage() {
       />
 
       {followListView && (
-        <FollowListModal
-          type={followListView}
-          userId={userId}
-          locale={locale}
-          onClose={() => setFollowListView(null)}
-        />
+        <FollowListModal type={followListView} userId={userId} locale={locale} onClose={() => setFollowListView(null)} />
       )}
 
       <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
-    </div>
+    </main>
   );
 }
-
