@@ -14,7 +14,10 @@ export default function GenerateButton({ loading, disabled, accent, locale, onCl
 
   const label = loading
     ? (LABELS.loading[locale] || LABELS.loading.en)
-    : (mn ? LABELS.idle.mn : ko ? LABELS.idle.ko : LABELS.idle.en);
+    : disabled
+      ? (mn ? "Эхлээд чиглэлээ сонго" : ko ? "먼저 영역을 고르세요" : "Pick an area first")
+      : (mn ? LABELS.idle.mn : ko ? LABELS.idle.ko : LABELS.idle.en);
+  const off = loading || disabled;
 
   return (
     <button
@@ -22,14 +25,13 @@ export default function GenerateButton({ loading, disabled, accent, locale, onCl
       onClick={onClick}
       disabled={disabled || loading}
       style={{
-        width: "100%", padding: "14px 0",
-        borderRadius: 13,
-        background: loading ? "rgba(255,255,255,0.06)" : `linear-gradient(135deg, ${accent}, ${accent}cc)`,
-        border: "none",
-        color: loading ? "rgba(255,255,255,0.3)" : "#fff",
-        fontSize: 14, fontWeight: 900, cursor: (loading || disabled) ? "not-allowed" : "pointer",
-        letterSpacing: 0.3,
-        boxShadow: loading ? "none" : `0 4px 20px ${accent}44`,
+        width: "100%", minHeight: 52, padding: "0 16px",
+        borderRadius: 14,
+        background: off ? "rgba(255,255,255,0.06)" : `linear-gradient(135deg, ${accent}, ${accent}cc)`,
+        border: off ? "1px solid rgba(255,255,255,0.08)" : "none",
+        color: off ? "rgba(255,255,255,0.45)" : "#fff",
+        fontFamily: "inherit", fontSize: 16, fontWeight: 700, cursor: off ? "default" : "pointer",
+        boxShadow: off ? "none" : `0 8px 24px ${accent}44`,
         transition: "all 200ms ease",
         marginBottom: 28,
       }}

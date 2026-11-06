@@ -173,7 +173,9 @@ Return ONLY valid JSON array, no markdown, no explanation:
           disabled={!selectedArea}
           accent={accent}
           locale={locale}
-          onClick={generate}
+          // Guests can look around, but generating needs an account (the AI
+          // route is signed-in only) — send them to sign in and back here.
+          onClick={user?.uid ? generate : () => router.push(`/${locale}/login?redirect=${encodeURIComponent(`/${locale}/drills`)}`)}
         />
 
         {/* Error banner */}

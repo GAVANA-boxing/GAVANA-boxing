@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   deleteDoc,
@@ -37,6 +37,11 @@ export default function NotificationsPage() {
   const [toast, setToast] = useState(null);
 
   const { notifications, loading, actorProfiles } = useNotificationsData({ user, authLoading });
+
+  // Notifications belong to an account — send guests to sign in (and back).
+  useEffect(() => {
+    if (!authLoading && !user) router.replace(`/${locale}/login?redirect=${encodeURIComponent(`/${locale}/notifications`)}`);
+  }, [authLoading, user, router, locale]);
 
   const unreadCount = useMemo(() => {
     return notifications.filter((n) => n.read === false).length;
