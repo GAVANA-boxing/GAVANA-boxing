@@ -31,7 +31,7 @@ const s = {
     textTransform: "uppercase",
     lineHeight: 1,
     transition: "color 160ms ease",
-    fontFamily: "var(--font-geist-sans, system-ui)",
+    fontFamily: "var(--stack-sans)",
   },
 };
 

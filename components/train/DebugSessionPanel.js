@@ -36,7 +36,7 @@ export default function DebugSessionPanel({ stats, boxing, debugEnabled }) {
       background: "rgba(0,0,0,0.97)", borderLeft: "1px solid rgba(255,255,255,0.09)",
       padding: "10px 12px",
       WebkitOverflowScrolling: "touch",
-      fontFamily: "monospace",
+      fontFamily: "var(--stack-mono)",
     }}>
 
       {/* Header + grade */}

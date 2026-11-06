@@ -89,7 +89,7 @@ export default function TribeActivityFeed({ allTribeCounts, userArchetype, local
           <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.28), textTransform: "uppercase" }}>
             {L.title}
           </span>
-          <span style={{ fontSize: 9, fontWeight: 900, color: whiteAlpha(0.28), fontFamily: "monospace" }}>
+          <span style={{ fontSize: 9, fontWeight: 900, color: whiteAlpha(0.28), fontFamily: "var(--stack-mono)" }}>
             {total} {L.totalLabel}
           </span>
         </div>
@@ -118,7 +118,7 @@ export default function TribeActivityFeed({ allTribeCounts, userArchetype, local
                     transition: "width 0.9s cubic-bezier(0.16,1,0.3,1)",
                   }} />
                 </div>
-                <span style={{ width: 28, textAlign: "right", fontSize: 10, fontWeight: 900, color: isUser ? acc : whiteAlpha(0.3), fontFamily: "monospace", flexShrink: 0 }}>
+                <span style={{ width: 28, textAlign: "right", fontSize: 10, fontWeight: 900, color: isUser ? acc : whiteAlpha(0.3), fontFamily: "var(--stack-mono)", flexShrink: 0 }}>
                   {n}
                 </span>
                 {isUser && (

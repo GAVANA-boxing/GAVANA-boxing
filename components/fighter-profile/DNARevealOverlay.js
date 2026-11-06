@@ -113,7 +113,7 @@ export default function DNARevealOverlay({ dna, locale, onDismiss }) {
                     transition: `width 0.9s cubic-bezier(0.16,1,0.3,1) ${reduce ? 0 : i * 0.12}s`,
                   }} />
                 </div>
-                <span style={{ width: 30, fontSize: 10, fontWeight: 900, fontFamily: "monospace", color: i === 0 ? acc : "rgba(255,255,255,0.35)", flexShrink: 0 }}>
+                <span style={{ width: 30, fontSize: 10, fontWeight: 900, fontFamily: "var(--stack-mono)", color: i === 0 ? acc : "rgba(255,255,255,0.35)", flexShrink: 0 }}>
                   {b.pct}
                 </span>
               </div>
@@ -125,7 +125,7 @@ export default function DNARevealOverlay({ dna, locale, onDismiss }) {
         <div style={{ ...rise(4), display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap", justifyContent: "center" }}>
           <div style={{ padding: "6px 12px", borderRadius: 999, background: `${acc}1c`, border: `1px solid ${acc}44` }}>
             <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>{L.conf} </span>
-            <span style={{ fontSize: 11, fontWeight: 900, color: acc, fontFamily: "monospace" }}>{confidencePct}%</span>
+            <span style={{ fontSize: 11, fontWeight: 900, color: acc, fontFamily: "var(--stack-mono)" }}>{confidencePct}%</span>
           </div>
           {dna.bestWeaponLabel && (
             <div style={{ padding: "6px 12px", borderRadius: 999, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)" }}>

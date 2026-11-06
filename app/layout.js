@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono, Bebas_Neue, Barlow_Condensed } from "next/font/google";
+import { Inter, Geist_Mono, Bebas_Neue, Oswald, Barlow_Condensed, Roboto_Condensed } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/AuthContext";
 import QueryProvider from "@/components/providers/QueryProvider";
@@ -10,9 +10,17 @@ import ClientShell from "@/components/ClientShell";
 import FunnelBeacon from "@/components/FunnelBeacon";
 import GuestSessionClaimer from "@/components/GuestSessionClaimer";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+// Fonts. Mongolian needs Cyrillic *and* Cyrillic-ext (Ө ө Ү ү live in cyrillic-ext).
+// The brand display faces (Bebas Neue, Barlow Condensed) are Latin-only, so each is
+// paired with a Cyrillic face of the same shape; the browser picks per glyph, so a
+// Latin word stays Bebas and a Mongolian word renders in Oswald — never a system serif.
+// Stacks are built below from each face's real (build-hashed) family name — NOT from
+// next/font's "<Font> Fallback" face, which is a resized local Arial and would grab the
+// Cyrillic glyphs before the Cyrillic face (tiny Arial on iPhone). globals.css holds
+// generic defaults for the same --stack-* variables.
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin", "latin-ext", "cyrillic", "cyrillic-ext"],
 });
 
 const geistMono = Geist_Mono({
@@ -21,9 +29,14 @@ const geistMono = Geist_Mono({
 });
 
 const bebasNeue = Bebas_Neue({
-  variable: "--font-display",
+  variable: "--font-bebas",
   subsets: ["latin"],
   weight: "400",
+});
+
+const oswald = Oswald({
+  variable: "--font-oswald",
+  subsets: ["cyrillic", "cyrillic-ext"],
 });
 
 const barlowCondensed = Barlow_Condensed({
@@ -31,6 +44,22 @@ const barlowCondensed = Barlow_Condensed({
   subsets: ["latin"],
   weight: ["400", "600", "700", "900"],
 });
+
+const robotoCondensed = Roboto_Condensed({
+  variable: "--font-roboto-condensed",
+  subsets: ["cyrillic", "cyrillic-ext"],
+});
+
+const FONT_VARS = [inter, geistMono, bebasNeue, oswald, barlowCondensed, robotoCondensed].map((f) => f.variable).join(" ");
+
+/** The loaded face's own family name, without next/font's metric-adjusted Arial fallback. */
+const face = (f) => f.style.fontFamily.split(",")[0].trim();
+const FONT_STACKS = {
+  "--stack-sans": `${inter.style.fontFamily}, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`,
+  "--stack-display": `${face(bebasNeue)}, ${face(oswald)}, "Arial Narrow", Impact, sans-serif`,
+  "--stack-condensed": `${face(barlowCondensed)}, ${face(robotoCondensed)}, "Arial Narrow", sans-serif`,
+  "--stack-mono": `${face(geistMono)}, ui-monospace, SFMono-Regular, Menlo, monospace`,
+};
 
 export const metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://gavana-boxing.vercel.app"),
@@ -82,7 +111,8 @@ export default function RootLayout({ children }) {
     <html
       lang="en"
       data-scroll-behavior="smooth"
-      className={`${geistSans.variable} ${geistMono.variable} ${bebasNeue.variable} ${barlowCondensed.variable} h-full antialiased`}
+      className={`${FONT_VARS} h-full antialiased`}
+      style={FONT_STACKS}
     >
       <head>
         <link rel="preconnect" href="https://firebasestorage.googleapis.com" />

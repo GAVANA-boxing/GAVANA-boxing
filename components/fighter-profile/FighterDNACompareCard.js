@@ -142,7 +142,7 @@ export default function FighterDNACompareCard({ dna, locale }) {
                         <div style={{ width: `${fightVal * 100}%`, height: "100%", background: c, borderRadius: 2, boxShadow: `0 0 4px ${c}66`, transition: "width 0.7s cubic-bezier(0.16,1,0.3,1)" }} />
                       </div>
                     </div>
-                    <span style={{ width: 28, textAlign: "right", fontSize: 9, fontWeight: 900, color: c, fontFamily: "monospace", flexShrink: 0 }}>
+                    <span style={{ width: 28, textAlign: "right", fontSize: 9, fontWeight: 900, color: c, fontFamily: "var(--stack-mono)", flexShrink: 0 }}>
                       {fighterProfile[key].toFixed(1)}
                     </span>
                   </div>

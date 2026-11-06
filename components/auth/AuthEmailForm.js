@@ -164,7 +164,7 @@ export default function AuthEmailForm({
         <div style={S.errorBox}>
           {error}
           {errorCode && (
-            <div style={{ marginTop: 4, fontSize: 10, opacity: 0.55, fontFamily: "monospace" }}>
+            <div style={{ marginTop: 4, fontSize: 10, opacity: 0.55, fontFamily: "var(--stack-mono)" }}>
               {errorCode}
             </div>
           )}

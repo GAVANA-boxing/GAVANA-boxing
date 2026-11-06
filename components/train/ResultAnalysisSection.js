@@ -29,7 +29,7 @@ function TelemetryBar({ label, value }) {
       <div style={{ flex: 1, height: 2, background: whiteAlpha(0.07), borderRadius: 2, overflow: "hidden" }}>
         <div style={{ height: "100%", width: `${pct}%`, background: whiteAlpha(0.42), borderRadius: 2, transition: "width 0.9s cubic-bezier(0.16,1,0.3,1)" }} />
       </div>
-      <span style={{ width: 28, fontSize: 12, fontWeight: 900, color: whiteAlpha(0.6), textAlign: "right", flexShrink: 0, fontFamily: "monospace" }}>{value.toFixed(1)}</span>
+      <span style={{ width: 28, fontSize: 12, fontWeight: 900, color: whiteAlpha(0.6), textAlign: "right", flexShrink: 0, fontFamily: "var(--stack-mono)" }}>{value.toFixed(1)}</span>
     </div>
   );
 }
@@ -481,7 +481,7 @@ export default function ResultAnalysisSection({
                   <div style={{ borderRadius: RADIUS.md, padding: "10px 14px", background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.05)}`, display: "flex", flexDirection: "column", gap: 5 }}>
                     {timelineEvents.map((ev) => (
                       <div key={ev.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <span style={{ fontSize: 9, fontFamily: "monospace", color: goldAlpha(0.5), fontWeight: 700, flexShrink: 0 }}>[{fmtTime(ev.timestamp - (sessionStartTime || ev.timestamp))}]</span>
+                        <span style={{ fontSize: 9, fontFamily: "var(--stack-mono)", color: goldAlpha(0.5), fontWeight: 700, flexShrink: 0 }}>[{fmtTime(ev.timestamp - (sessionStartTime || ev.timestamp))}]</span>
                         <span style={{ fontSize: 10, color: whiteAlpha(0.35), fontWeight: 800 }}>{ev.label}</span>
                       </div>
                     ))}

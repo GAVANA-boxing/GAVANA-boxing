@@ -235,7 +235,7 @@ export default function DNAShareCard({ dna, displayName, locale, uid }) {
                   <div style={{ flex: 1, height: 4, background: whiteAlpha(0.07), borderRadius: 2, overflow: "hidden" }}>
                     <div style={{ width: `${(val / 10) * 100}%`, height: "100%", background: c, borderRadius: 2, boxShadow: `0 0 6px ${c}66` }} />
                   </div>
-                  <span style={{ width: 28, textAlign: "right", fontSize: 11, fontWeight: 900, color: c, fontFamily: "monospace", flexShrink: 0 }}>
+                  <span style={{ width: 28, textAlign: "right", fontSize: 11, fontWeight: 900, color: c, fontFamily: "var(--stack-mono)", flexShrink: 0 }}>
                     {val.toFixed(1)}
                   </span>
                 </div>

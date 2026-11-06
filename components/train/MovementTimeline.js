@@ -40,7 +40,7 @@ export default function MovementTimeline({ events, sessionStartTime }) {
               color: `rgba(255,255,255,${opacity})`,
               textShadow: "0 1px 4px rgba(0,0,0,0.95)",
               whiteSpace: "nowrap",
-              fontFamily: "monospace",
+              fontFamily: "var(--stack-mono)",
               lineHeight: 1.4,
             }}
           >

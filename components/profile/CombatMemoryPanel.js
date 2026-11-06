@@ -37,7 +37,7 @@ function TraitBar({ label, value, cap = 3 }) {
           <div style={{ height: "100%", width: `${pct}%`, background: whiteAlpha(0.38), borderRadius: 2, transition: "width 0.9s cubic-bezier(0.16,1,0.3,1)" }} />
         )}
       </div>
-      <span style={{ width: 24, fontSize: 10, fontWeight: 800, color: whiteAlpha(isEmpty ? 0.18 : 0.48), textAlign: "right", flexShrink: 0, fontFamily: "monospace" }}>
+      <span style={{ width: 24, fontSize: 10, fontWeight: 800, color: whiteAlpha(isEmpty ? 0.18 : 0.48), textAlign: "right", flexShrink: 0, fontFamily: "var(--stack-mono)" }}>
         {value.toFixed(1)}
       </span>
     </div>
@@ -53,7 +53,7 @@ function TrendRow({ label, delta, invertGood = false, isScore = false }) {
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "9px 0", borderBottom: `1px solid ${whiteAlpha(0.04)}` }}>
       <span style={{ fontSize: 11, fontWeight: 800, color: whiteAlpha(0.45) }}>{label}</span>
-      <span style={{ fontSize: 11, fontWeight: 900, color, fontFamily: "monospace" }}>{display}</span>
+      <span style={{ fontSize: 11, fontWeight: 900, color, fontFamily: "var(--stack-mono)" }}>{display}</span>
     </div>
   );
 }
@@ -308,7 +308,7 @@ export default function CombatMemoryPanel({ sessions = [], tendency, trends, loa
                     }}>
                       {sessionLabel}
                     </span>
-                    <span style={{ fontSize: 9, color: whiteAlpha(0.22), fontWeight: 700, flexShrink: 0, fontFamily: "monospace", marginLeft: 8 }}>
+                    <span style={{ fontSize: 9, color: whiteAlpha(0.22), fontWeight: 700, flexShrink: 0, fontFamily: "var(--stack-mono)", marginLeft: 8 }}>
                       {formatSessionAge(s.createdAt?.seconds)}
                     </span>
                   </div>
@@ -321,7 +321,7 @@ export default function CombatMemoryPanel({ sessions = [], tendency, trends, loa
                       </span>
                     )}
                     {dur && (
-                      <span style={{ fontSize: 9, color: whiteAlpha(0.22), fontWeight: 700, fontFamily: "monospace" }}>
+                      <span style={{ fontSize: 9, color: whiteAlpha(0.22), fontWeight: 700, fontFamily: "var(--stack-mono)" }}>
                         {dur}
                       </span>
                     )}

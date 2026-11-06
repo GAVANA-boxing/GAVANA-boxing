@@ -63,10 +63,10 @@ export default function WeeklyReportCard({ sessions, locale, dna, router }) {
   const avgDelta     = +(thisAvg - lastAvg).toFixed(1);
 
   function TrendBadge({ delta }) {
-    if (Math.abs(delta) < 0.05) return <span style={{ fontSize: 9, color: whiteAlpha(0.25), fontFamily: "monospace" }}>—</span>;
+    if (Math.abs(delta) < 0.05) return <span style={{ fontSize: 9, color: whiteAlpha(0.25), fontFamily: "var(--stack-mono)" }}>—</span>;
     const pos = delta > 0;
     return (
-      <span style={{ fontSize: 9, fontWeight: 900, color: pos ? "#34D399" : "#F87171", fontFamily: "monospace" }}>
+      <span style={{ fontSize: 9, fontWeight: 900, color: pos ? "#34D399" : "#F87171", fontFamily: "var(--stack-mono)" }}>
         {pos ? "+" : ""}{typeof delta === "number" && delta % 1 !== 0 ? delta.toFixed(1) : delta}
       </span>
     );
@@ -100,7 +100,7 @@ export default function WeeklyReportCard({ sessions, locale, dna, router }) {
             <div key={label} style={{ padding: "10px 0", borderRadius: 10, background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.06)}`, textAlign: "center" }}>
               <div style={{ fontSize: 22, fontWeight: 1000, color, fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{val}</div>
               <div style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1.2, color: whiteAlpha(0.28), textTransform: "uppercase", marginTop: 3 }}>{label}</div>
-              <div style={{ marginTop: 3 }}>{delta !== null ? <TrendBadge delta={delta} /> : <span style={{ fontSize: 9, color: whiteAlpha(0.18), fontFamily: "monospace" }}>{L.vsLast.slice(0, 8)}</span>}</div>
+              <div style={{ marginTop: 3 }}>{delta !== null ? <TrendBadge delta={delta} /> : <span style={{ fontSize: 9, color: whiteAlpha(0.18), fontFamily: "var(--stack-mono)" }}>{L.vsLast.slice(0, 8)}</span>}</div>
             </div>
           ))}
         </div>

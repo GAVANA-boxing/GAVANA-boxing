@@ -527,7 +527,7 @@ function AnimalPlaceholder({ animalEmoji, animal, accent, w, h }) {
       <span style={{ fontSize: Math.round(h * 0.42), lineHeight: 1, filter: `drop-shadow(0 0 12px ${accent}66)` }}>
         {animalEmoji}
       </span>
-      <span style={{ fontSize: Math.round(h * 0.095), fontWeight: 900, color: accent, letterSpacing: 1.5, textTransform: "uppercase", opacity: 0.65, marginTop: 4, fontFamily: "monospace" }}>
+      <span style={{ fontSize: Math.round(h * 0.095), fontWeight: 900, color: accent, letterSpacing: 1.5, textTransform: "uppercase", opacity: 0.65, marginTop: 4, fontFamily: "var(--stack-mono)" }}>
         {animal}
       </span>
     </div>
@@ -574,7 +574,7 @@ export default function DiagramPlaceholder({
       <div style={{
         position: "absolute", bottom: 6, left: 6, right: 6,
         fontSize: 7, fontWeight: 900, letterSpacing: 1.2,
-        color: accent, textTransform: "uppercase", fontFamily: "monospace",
+        color: accent, textTransform: "uppercase", fontFamily: "var(--stack-mono)",
         opacity: 0.7,
       }}>
         {label}

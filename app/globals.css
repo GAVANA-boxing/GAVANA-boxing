@@ -111,19 +111,31 @@
   --glass-strong: rgba(5, 5, 5, 0.76);
 }
 
+/* Font stacks: app/layout.js sets the real ones on <html> (Latin brand face, then a
+   Cyrillic face of the same shape, then a generic family). These are the defaults. */
+:root {
+  --stack-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --stack-display: "Arial Narrow", Impact, sans-serif;
+  --stack-condensed: "Arial Narrow", sans-serif;
+  --stack-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* Read directly by inline styles: var(--font-display, …) / var(--font-condensed) */
+  --font-display: var(--stack-display);
+  --font-condensed: var(--stack-condensed);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-display, 'Bebas Neue', 'Anton', sans-serif);
-  --font-condensed: var(--font-barlow, 'Barlow Condensed', sans-serif);
+  --font-sans: var(--stack-sans);
+  --font-mono: var(--stack-mono);
+  --font-display: var(--stack-display);
+  --font-condensed: var(--stack-condensed);
 }
 
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font-geist-sans), 'Inter', system-ui, sans-serif;
+  font-family: var(--stack-sans);
   font-weight: 400;
   font-size: 14px;
   line-height: 1.5;

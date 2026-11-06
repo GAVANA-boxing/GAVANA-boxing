@@ -28,7 +28,7 @@ function SkillBar({ label, value, color }) {
         width: 24, textAlign: "right", flexShrink: 0,
         fontSize: 11, fontWeight: 900,
         color: pct >= 50 ? color : whiteAlpha(0.3),
-        fontFamily: "monospace",
+        fontFamily: "var(--stack-mono)",
       }}>
         {value.toFixed(1)}
       </span>
@@ -104,7 +104,7 @@ export default function CombatProgressCard({ progress, locale = "en" }) {
               display: "flex", alignItems: "center", justifyContent: "center",
               flexShrink: 0,
             }}>
-              <span style={{ fontSize: 18, fontWeight: 1000, color: LEVEL_COLOR, fontFamily: "monospace" }}>
+              <span style={{ fontSize: 18, fontWeight: 1000, color: LEVEL_COLOR, fontFamily: "var(--stack-mono)" }}>
                 {levelData.level}
               </span>
             </div>

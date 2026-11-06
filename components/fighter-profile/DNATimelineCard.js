@@ -74,7 +74,7 @@ export default function DNATimelineCard({ sessions, locale }) {
             {L.title}
           </span>
           <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-            <span style={{ fontSize: 18, fontWeight: 900, color: currentColor, fontFamily: "monospace" }}>
+            <span style={{ fontSize: 18, fontWeight: 900, color: currentColor, fontFamily: "var(--stack-mono)" }}>
               {last.conf}%
             </span>
             <span style={{ fontSize: 8.5, fontWeight: 700, color: whiteAlpha(0.3), textTransform: "uppercase" }}>

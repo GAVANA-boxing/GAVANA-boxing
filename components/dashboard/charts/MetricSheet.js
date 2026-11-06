@@ -57,8 +57,8 @@ export function MetricSheet({ metricKey, stats, sessions, locale, onClose }) {
           <div>
             <div style={{ fontSize: 9, fontWeight: 900, color: "rgba(255,255,255,0.35)", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 7 }}>{fLabel}</div>
             <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10, padding: "10px 12px" }}>
-              <div style={{ fontFamily: "monospace", fontSize: 12, color: GOLD, fontWeight: 700, lineHeight: 1.6 }}>{L.formula}</div>
-              <div style={{ fontFamily: "monospace", fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 4 }}>{L.fallback}</div>
+              <div style={{ fontFamily: "var(--stack-mono)", fontSize: 12, color: GOLD, fontWeight: 700, lineHeight: 1.6 }}>{L.formula}</div>
+              <div style={{ fontFamily: "var(--stack-mono)", fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 4 }}>{L.fallback}</div>
             </div>
           </div>
 

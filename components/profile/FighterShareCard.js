@@ -423,7 +423,7 @@ export default function FighterShareCard({
                 <div style={{ fontSize: 14, fontWeight: 1000, color: "#fff", fontFamily: "var(--font-display, 'Anton', sans-serif)", lineHeight: 1.2, marginBottom: 4 }}>
                   {identity.primary}
                 </div>
-                <div style={{ fontSize: 8, color: "rgba(201,162,52,0.7)", fontWeight: 800, marginBottom: 5, fontFamily: "monospace" }}>
+                <div style={{ fontSize: 8, color: "rgba(201,162,52,0.7)", fontWeight: 800, marginBottom: 5, fontFamily: "var(--stack-mono)" }}>
                   {Math.round(identity.confidence * 100)}% signal confidence
                 </div>
                 {identity.secondary.slice(0, 2).map((trait, i) => (
@@ -445,7 +445,7 @@ export default function FighterShareCard({
               <div style={{ fontSize: 12, fontWeight: 1000, color: "#fff", fontFamily: "var(--font-display, 'Anton', sans-serif)", lineHeight: 1.2, marginBottom: 3 }}>
                 {identity.primary}
               </div>
-              <div style={{ fontSize: 7.5, color: "rgba(201,162,52,0.7)", fontWeight: 800, fontFamily: "monospace" }}>
+              <div style={{ fontSize: 7.5, color: "rgba(201,162,52,0.7)", fontWeight: 800, fontFamily: "var(--stack-mono)" }}>
                 {Math.round(identity.confidence * 100)}% signal confidence
               </div>
             </div>

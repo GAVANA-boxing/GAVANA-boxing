@@ -44,7 +44,7 @@ export default function FighterMovementDNASection({ fighter, locale, accent, mov
                   transition: "width 1s cubic-bezier(0.16,1,0.3,1)",
                 }} />
               </div>
-              <span style={{ width: 26, textAlign: "right", fontSize: 9, fontWeight: 900, color: pct >= 60 ? acc : "rgba(255,255,255,0.3)", fontFamily: "monospace", flexShrink: 0 }}>
+              <span style={{ width: 26, textAlign: "right", fontSize: 9, fontWeight: 900, color: pct >= 60 ? acc : "rgba(255,255,255,0.3)", fontFamily: "var(--stack-mono)", flexShrink: 0 }}>
                 {pct}%
               </span>
             </div>

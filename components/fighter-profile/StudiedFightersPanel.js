@@ -153,7 +153,7 @@ export default function StudiedFightersPanel({ studiedIds, dna, locale, router }
                 <div style={{ flex: 1, height: 4, background: whiteAlpha(0.05), borderRadius: 2, overflow: "hidden" }}>
                   <div style={{ width: `${pct}%`, height: "100%", background: isUserArch ? color : whiteAlpha(0.2), borderRadius: 2, boxShadow: isUserArch ? `0 0 6px ${color}55` : "none" }} />
                 </div>
-                <span style={{ width: 28, textAlign: "right", fontSize: 9, fontWeight: 900, color: isUserArch ? color : whiteAlpha(0.3), fontFamily: "monospace", flexShrink: 0 }}>{pct}%</span>
+                <span style={{ width: 28, textAlign: "right", fontSize: 9, fontWeight: 900, color: isUserArch ? color : whiteAlpha(0.3), fontFamily: "var(--stack-mono)", flexShrink: 0 }}>{pct}%</span>
                 {isUserArch && (
                   <span style={{ fontSize: 8, fontWeight: 900, color, background: `${color}14`, borderRadius: 4, padding: "1px 5px", flexShrink: 0 }}>{L.alignedWith}</span>
                 )}

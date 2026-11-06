@@ -34,7 +34,7 @@ function StyleBar({ label, value, color }) {
       <span style={{
         width: 26, textAlign: "right", flexShrink: 0,
         fontSize: 11, fontWeight: 900, color: pct >= 50 ? color : whiteAlpha(0.35),
-        fontFamily: "monospace",
+        fontFamily: "var(--stack-mono)",
       }}>
         {value.toFixed(1)}
       </span>

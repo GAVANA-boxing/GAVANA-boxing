@@ -167,7 +167,7 @@ export default function DNAEvolutionCard({ sessions, locale }) {
                     <div style={{ width: `${now}%`, height: "100%", background: acc, borderRadius: 2, boxShadow: `0 0 6px ${acc}55` }} />
                   </div>
                 </div>
-                <span style={{ width: 40, textAlign: "right", fontSize: 11, fontWeight: 900, color: deltaColor, fontFamily: "monospace", flexShrink: 0 }}>
+                <span style={{ width: 40, textAlign: "right", fontSize: 11, fontWeight: 900, color: deltaColor, fontFamily: "var(--stack-mono)", flexShrink: 0 }}>
                   {deltaStr}
                 </span>
               </div>

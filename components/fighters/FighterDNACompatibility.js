@@ -37,7 +37,7 @@ export default function FighterDNACompatibility({ fighter, userDNA, locale }) {
           {heading}
         </div>
         <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-          <span style={{ fontSize: 22, fontWeight: 1000, color: compatColor, fontFamily: "monospace", lineHeight: 1 }}>{compat.pct}%</span>
+          <span style={{ fontSize: 22, fontWeight: 1000, color: compatColor, fontFamily: "var(--stack-mono)", lineHeight: 1 }}>{compat.pct}%</span>
           {compat.rank <= 3 && (
             <span style={{ fontSize: 9, fontWeight: 900, color: GOLD }}>★ #{compat.rank}</span>
           )}

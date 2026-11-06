@@ -28,7 +28,7 @@ export default function VideoPreview({ blobUrl, clipDuration, onDurationLoad }) 
             padding: "2px 8px", borderRadius: 6,
             background: "rgba(0,0,0,0.7)",
             fontSize: 10, fontWeight: 900, color: "rgba(255,255,255,0.8)",
-            fontFamily: "monospace",
+            fontFamily: "var(--stack-mono)",
           }}>
             {Math.floor(clipDuration / 60)}:{String(clipDuration % 60).padStart(2, "0")}
           </div>

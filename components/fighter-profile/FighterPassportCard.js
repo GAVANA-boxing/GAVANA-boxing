@@ -126,7 +126,7 @@ export default function FighterPassportCard({ dna, displayName, progress, studie
               {L.eyebrow}
             </span>
           </div>
-          <span style={{ fontSize: 9, fontWeight: 700, color: whiteAlpha(0.18), fontFamily: "monospace" }}>
+          <span style={{ fontSize: 9, fontWeight: 700, color: whiteAlpha(0.18), fontFamily: "var(--stack-mono)" }}>
             {year}
           </span>
         </div>
@@ -187,7 +187,7 @@ export default function FighterPassportCard({ dna, displayName, progress, studie
                     transition: "width 1s cubic-bezier(0.16,1,0.3,1)",
                   }} />
                 </div>
-                <span style={{ fontSize: 12, fontWeight: 900, color: acc, fontFamily: "monospace", flexShrink: 0 }}>
+                <span style={{ fontSize: 12, fontWeight: 900, color: acc, fontFamily: "var(--stack-mono)", flexShrink: 0 }}>
                   {confidencePct}%
                 </span>
               </div>
@@ -255,7 +255,7 @@ export default function FighterPassportCard({ dna, displayName, progress, studie
               </span>
               <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                 <span style={{ fontSize: 14 }}>🔥</span>
-                <span style={{ fontSize: 13, fontWeight: 900, color: "#FB923C", fontFamily: "monospace" }}>{streak}</span>
+                <span style={{ fontSize: 13, fontWeight: 900, color: "#FB923C", fontFamily: "var(--stack-mono)" }}>{streak}</span>
                 <span style={{ fontSize: 10, fontWeight: 700, color: whiteAlpha(0.3) }}>{L.days}</span>
               </div>
             </div>

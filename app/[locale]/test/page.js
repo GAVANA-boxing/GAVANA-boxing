@@ -141,7 +141,7 @@ export default function TestPage() {
                     {route.note}
                   </span>
                 </div>
-                <span style={{ fontSize: 10, fontWeight: 700, color: whiteAlpha(0.2), fontFamily: "monospace", flexShrink: 0, marginLeft: 8 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: whiteAlpha(0.2), fontFamily: "var(--stack-mono)", flexShrink: 0, marginLeft: 8 }}>
                   {route.path} →
                 </span>
               </button>
@@ -155,7 +155,7 @@ export default function TestPage() {
         <p style={{ margin: "0 0 6px", fontSize: 9, fontWeight: 900, letterSpacing: 2, color: GOLD, textTransform: "uppercase" }}>
           Dynamic Routes (need IDs)
         </p>
-        <div style={{ fontSize: 11, color: whiteAlpha(0.4), lineHeight: 1.8, fontFamily: "monospace" }}>
+        <div style={{ fontSize: 11, color: whiteAlpha(0.4), lineHeight: 1.8, fontFamily: "var(--stack-mono)" }}>
           /[id]<br />
           /ai-analysis/[reelId]<br />
           /coach/[coachId]<br />

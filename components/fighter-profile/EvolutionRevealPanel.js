@@ -145,7 +145,7 @@ export default function EvolutionRevealPanel({ experiment, sessions, locale, rou
             <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.3)", textTransform: "uppercase" }}>
               {L.adoptionLabel}
             </span>
-            <span style={{ fontSize: 16, fontWeight: 900, color: adoptionColor, fontFamily: "monospace" }}>
+            <span style={{ fontSize: 16, fontWeight: 900, color: adoptionColor, fontFamily: "var(--stack-mono)" }}>
               {adoptionScore}%
             </span>
           </div>
@@ -203,7 +203,7 @@ export default function EvolutionRevealPanel({ experiment, sessions, locale, rou
                       <div style={{ height: 4, background: "rgba(255,255,255,0.04)", borderRadius: 2 }} />
                     )}
                   </div>
-                  <div style={{ width: 38, textAlign: "right", fontSize: 10, fontWeight: 900, color: deltaColor, fontFamily: "monospace", flexShrink: 0 }}>
+                  <div style={{ width: 38, textAlign: "right", fontSize: 10, fontWeight: 900, color: deltaColor, fontFamily: "var(--stack-mono)", flexShrink: 0 }}>
                     {deltaStr || (nowPct != null ? `${nowPct}%` : "—")}
                   </div>
                 </div>
