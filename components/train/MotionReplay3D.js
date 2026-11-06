@@ -5,6 +5,12 @@ import { loc } from "@/lib/loc";
 import { RED, GOLD, GREEN, RADIUS, FONT_SIZE, FONT_WEIGHT, whiteAlpha, redAlpha, blackAlpha } from "@/lib/tokens";
 import { frameIndexAt, nextPunchAfter, isPunchMoment, guardState, guardDropRatio, floorY } from "@/lib/motionReplay";
 import { createFighterAvatar, createRingFloor } from "@/lib/three/fighterAvatar";
+import { createModelFighter, AVATAR_MODELS } from "@/lib/three/modelFighter";
+
+const AVATAR_KEY = "gavana_avatar";
+const readAvatar = () => {
+  try { const v = localStorage.getItem(AVATAR_KEY); return v === "female" || v === "classic" ? v : "male"; } catch { return "male"; }
+};
 
 const SPEEDS = [0.25, 0.5, 1];
 const VIEWS = {
@@ -31,6 +37,9 @@ export default function MotionReplay3D({ replay, ghost = null, locale, onClose, 
   const apiRef = useRef(null);
   const [ui, setUi] = useState({ t: 0, playing: true, speed: 0.5 });
   const [failed, setFailed] = useState(false);
+  const [avatar, setAvatar] = useState("male");
+  useEffect(() => { setAvatar(readAvatar()); }, []);
+  const chooseAvatar = (v) => { setAvatar(v); try { localStorage.setItem(AVATAR_KEY, v); } catch { /* private mode */ } };
 
   const dropPct = Math.round(guardDropRatio(replay) * 100);
   const L = (mn, ko, en) => loc(locale, mn, ko, en);
@@ -106,19 +115,32 @@ export default function MotionReplay3D({ replay, ghost = null, locale, onClose, 
         const q = toV(p, i);
         return out.set(q[0] + offsetX, q[1], q[2]);
       };
+      // Procedural fighter right away; swap in the rigged model (male/female) once it loads.
       const makeFighter = ({ offsetX = 0, look = "you" }) => {
-        const avatar = createFighterAvatar(THREE, { look });
-        scene.add(avatar.group);
+        let current = createFighterAvatar(THREE, { look });
+        scene.add(current.group);
+        if (avatar !== "classic" && AVATAR_MODELS[avatar]) {
+          createModelFighter(THREE, { url: AVATAR_MODELS[avatar], look })
+            .then((m) => {
+              if (disposed) { m.dispose(); return; }
+              current.dispose();
+              current = m;
+              scene.add(m.group);
+            })
+            .catch(() => { /* keep the procedural fighter */ });
+        }
         const cache = Array.from({ length: 33 }, () => new THREE.Vector3());
-        return (rep, t) => {
+        const draw = (rep, t) => {
           const fr = rep.frames[Math.max(0, frameIndexAt(rep, t))];
           if (!fr) return;
           const p = fr.p;
-          avatar.update((i) => toScene(p, i, offsetX, cache[i]), {
+          current.update((i) => toScene(p, i, offsetX, cache[i]), {
             punching: isPunchMoment(rep, t),
             guard: guardState(p),
           });
         };
+        draw.dispose = () => current.dispose();
+        return draw;
       };
 
       // With a ghost: you on the left, the ghost on the right (it loops on its own clock).
@@ -160,6 +182,8 @@ export default function MotionReplay3D({ replay, ghost = null, locale, onClose, 
 
       cleanup = () => {
         cancelAnimationFrame(raf);
+        drawYou.dispose?.();
+        drawGhost?.dispose?.();
         window.removeEventListener("resize", onResize);
         controls.dispose();
         scene.traverse((o) => { o.geometry?.dispose?.(); o.material?.map?.dispose?.(); o.material?.dispose?.(); });
@@ -168,7 +192,7 @@ export default function MotionReplay3D({ replay, ghost = null, locale, onClose, 
       };
     })();
     return () => { disposed = true; cleanup(); };
-  }, [replay, ghost]);
+  }, [replay, ghost, avatar]);
 
   const set = (patch) => { Object.assign(stateRef.current, patch); setUi((u) => ({ ...u, ...patch })); };
   const jumpNext = () => {
@@ -254,6 +278,12 @@ export default function MotionReplay3D({ replay, ghost = null, locale, onClose, 
         <div style={{ display: "flex", gap: 6 }}>
           {[["angle", L("Ташуу", "대각", "3/4")], ["front", L("Урдаас", "정면", "Front")], ["side", L("Хажуугаас", "측면", "Side")], ["top", L("Дээрээс", "위", "Top")]].map(([k, label]) => (
             <button key={k} type="button" style={{ ...btn(false), flex: 1 }} onClick={() => apiRef.current?.view(k)}>{label}</button>
+          ))}
+        </div>
+
+        <div role="radiogroup" aria-label={L("Дүр", "캐릭터", "Character")} style={{ display: "flex", gap: 6 }}>
+          {[["male", L("Эрэгтэй", "남성", "Male")], ["female", L("Эмэгтэй", "여성", "Female")], ["classic", L("Энгийн", "기본", "Classic")]].map(([k, label]) => (
+            <button key={k} type="button" role="radio" aria-checked={avatar === k} style={{ ...btn(avatar === k), flex: 1 }} onClick={() => chooseAvatar(k)}>{label}</button>
           ))}
         </div>
 
