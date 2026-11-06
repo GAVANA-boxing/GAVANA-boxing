@@ -138,9 +138,8 @@ export default function GhostRoundPage() {
                 "보세요: 잽 때 뒷손은 턱에, 크로스 때 어깨가 앞으로 회전",
                 "Watch: rear hand stays on the chin during the jab; shoulders turn on the cross",
               )}
-              {/* Attribution requested by the CMU mocap database */}
-              <span style={{ display: "block", marginTop: 3, fontSize: 9, color: "rgba(255,255,255,0.35)" }}>
-                {L("Бодит хөдөлгөөн", "실제 모션", "Real motion")}: CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu), NSF EIA-0196217
+              <span style={{ display: "block", marginTop: 3, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                {L("GAVANA дасгалжуулагчийн бодит хөдөлгөөн", "GAVANA 코치의 실제 동작", "Real motion of a GAVANA coach")}
               </span>
             </>
           }

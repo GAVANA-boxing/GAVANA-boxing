@@ -97,8 +97,8 @@ describe("angleDiff", () => {
   });
 });
 
-describe("motion-capture reference (CMU 14_03, default ghost)", () => {
-  const mocap = buildJabCrossReference({ stance: "orthodox", cycles: 3 });
+describe("motion-capture reference (CMU 14_03)", () => {
+  const mocap = buildJabCrossReference({ stance: "orthodox", cycles: 3, source: "mocap" });
   it("is a real jab–cross: 3 combos, full reach, the shoulders turn on the cross", () => {
     const m = measureRound(mocap, "orthodox");
     expect(mocap.source).toMatch(/CMU/);
@@ -123,9 +123,63 @@ describe("motion-capture reference (CMU 14_03, default ghost)", () => {
     expect(maxJump).toBeLessThan(0.08);
   });
   it("mirrors for southpaw and still matches itself", () => {
-    const sp = buildJabCrossReference({ stance: "southpaw" });
+    const sp = buildJabCrossReference({ stance: "southpaw", source: "mocap" });
     expect(sp.punches.find((p) => p.type === "jab").hand).toBe("right");
     expect(analyzeGhostRound(sp, sp, "southpaw").tip).toBe("great");
     expect(analyzeGhostRound(mocap, mocap, "orthodox").match).toBeGreaterThanOrEqual(95);
+  });
+});
+
+describe("coach reference (default ghost): GAVANA's coach, southpaw, single-camera capture", () => {
+  const sp = buildJabCrossReference({ stance: "southpaw", cycles: 3 });
+  const ortho = buildJabCrossReference({ stance: "orthodox", cycles: 3 });
+
+  it("is the coach's own jab–cross: jab from the right hand for southpaw, mirrored for orthodox", () => {
+    expect(sp.source).toMatch(/GAVANA coach/);
+    expect(sp.punches.filter((p) => p.type === "jab").every((p) => p.hand === "right")).toBe(true);
+    expect(ortho.punches.filter((p) => p.type === "jab").every((p) => p.hand === "left")).toBe(true);
+    const m = measureRound(sp, "southpaw");
+    expect(m.combos).toBe(3);
+    expect(m.jabReach).toBeGreaterThan(1.2);
+    expect(m.crossReach).toBeGreaterThan(1.2);
+  });
+
+  it("loops without a visible jump", () => {
+    const n = sp.frames.length / 3;
+    const a = sp.frames[n - 1].p, b = sp.frames[n].p;
+    let maxJump = 0;
+    for (let i = 0; i < a.length; i++) maxJump = Math.max(maxJump, Math.abs(a[i] - b[i]));
+    expect(maxJump).toBeLessThan(0.08);
+  });
+
+  it("keeps the guard: rear hand up on every jab, never dropped", () => {
+    expect(measureRound(sp, "southpaw").rearGuardOnJab).toBe(1);
+    for (const f of sp.frames) {
+      const g = guardState(f.p);
+      expect(g.left === "up" && g.right === "up").toBe(true);
+    }
+  });
+
+  it("scores users against what the camera measures for the coach, not the full-3D capture", () => {
+    expect(sp.cameraTargets.crossRotation).toBeLessThan(30);
+    expect(measureRound(sp, "southpaw").crossRotation).toBeGreaterThan(60); // full 3D
+    const r = analyzeGhostRound(sp, sp, "southpaw");
+    expect(r.ref.crossRotation).toBe(sp.cameraTargets.crossRotation);
+    expect(r.tip).toBe("great");
+    expect(r.match).toBeGreaterThanOrEqual(95);
+  });
+
+  it("a user who turns like the coach does on camera (~12°) is not told to rotate more", () => {
+    const u = clone(sp);
+    // Flatten the shoulder turn to camera-like levels: blend shoulders 85% back toward the first frame.
+    const ls = getJ(sp.frames[0].p, LM.L_SHOULDER), rs = getJ(sp.frames[0].p, LM.R_SHOULDER);
+    for (const f of u.frames) {
+      const a = getJ(f.p, LM.L_SHOULDER), b = getJ(f.p, LM.R_SHOULDER);
+      setJ(f.p, LM.L_SHOULDER, a.map((v, i) => ls[i] + (v - ls[i]) * 0.15));
+      setJ(f.p, LM.R_SHOULDER, b.map((v, i) => rs[i] + (v - rs[i]) * 0.15));
+    }
+    const m = measureRound(u, "southpaw");
+    expect(m.crossRotation).toBeGreaterThan(8);
+    expect(analyzeGhostRound(u, sp, "southpaw").tip).not.toBe("rotation");
   });
 });
