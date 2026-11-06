@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { loc } from "@/lib/loc";
 import { RED, GOLD, GREEN, RADIUS, FONT_SIZE, FONT_WEIGHT, whiteAlpha, redAlpha, blackAlpha } from "@/lib/tokens";
-import { frameIndexAt, nextPunchAfter, isPunchMoment, guardState, guardDropRatio, floorY } from "@/lib/motionReplay";
+import { nextPunchAfter, isPunchMoment, guardState, guardDropRatio, floorY } from "@/lib/motionReplay";
+import { refineReplay, sampleFrame } from "@/lib/motionRefine";
 import { createFighterAvatar, createRingFloor } from "@/lib/three/fighterAvatar";
 import { createModelFighter, AVATAR_MODELS } from "@/lib/three/modelFighter";
 
@@ -31,7 +32,9 @@ const toV = (p, i) => [-p[i * 3], -p[i * 3 + 1], -p[i * 3 + 2]];
  * slow motion, jump to each punch. Wrists are green when the guard is up and
  * red when a hand is down outside a punch — computed from their real data.
  */
-export default function MotionReplay3D({ replay, ghost = null, locale, onClose, title, subtitle, action = null }) {
+export default function MotionReplay3D({ replay: rawReplay, ghost = null, locale, onClose, title, subtitle, action = null }) {
+  // Smoothed, knees fixed, feet planted — the raw camera data is jittery at ~10–20 fps.
+  const replay = useMemo(() => refineReplay(rawReplay), [rawReplay]);
   const mountRef = useRef(null);
   const stateRef = useRef({ t: 0, playing: true, speed: 0.5 });
   const apiRef = useRef(null);
@@ -130,10 +133,11 @@ export default function MotionReplay3D({ replay, ghost = null, locale, onClose, 
             .catch(() => { /* keep the procedural fighter */ });
         }
         const cache = Array.from({ length: 33 }, () => new THREE.Vector3());
+        const scratch = new Float32Array(33 * 3);
         const draw = (rep, t) => {
-          const fr = rep.frames[Math.max(0, frameIndexAt(rep, t))];
-          if (!fr) return;
-          const p = fr.p;
+          // Interpolated between recorded frames: smooth at 60 fps and in slow motion.
+          const p = sampleFrame(rep, t, scratch);
+          if (!p) return;
           current.update((i) => toScene(p, i, offsetX, cache[i]), {
             punching: isPunchMoment(rep, t),
             guard: guardState(p),
