@@ -33,7 +33,7 @@ Truth = `truth.json` (peak times read off the video frame by frame).
 | jabcross | 4 right jabs + 4 left crosses | 4/4 + 4/4, **1 phantom left** | 4/4 + 3/4, 0 phantoms |
 | IMG_6156 | 6 right jabs + 6 left crosses | 6/6 + 5/6, 0 phantoms | 6/6 + 5/6, 0 phantoms |
 | IMG_6153 | 6 right jabs                  | 6/6, **4 phantom left**  | 6/6, 0 phantoms |
-| IMG_6155 | 5 left hooks                  | 1/5                      | 1/5 |
+| IMG_6155 | 1 right (lead) hook + 3 left (rear) hooks | see below | |
 
 (The missed cross in jabcross / IMG_6156 peaks in the last ~0.2 s of the clip, before it can be
 logged.) IMG_6156 was earlier mislabelled as "10 right jabs" — it is jab–cross; its left-hand
@@ -56,14 +56,32 @@ toward the camera) = rear hook; otherwise straight. Without world landmarks it f
 
 Clips: IMG_6181 = right (lead) hooks ×4 (+ one cut off at 0.0 s), IMG_6182 = left (rear) hooks ×5.
 
+**Lead hooks (fixed with 3D, 2026-11-06):** from the front the upper arm and forearm overlap,
+the 2D elbow angle stays at 5–15° and the angle-gated state machine never fires. In world
+landmarks a lead hook is distinctive: the elbow lifts to shoulder height (−0.20…+0.04
+shoulder-widths below it) and the fist swings 0.54–0.79 toward the middle of the body within
+0.35 s. The guard hand covering the face in the wind-up swings too, but with the elbow down
+(≤ −0.35); a jab moves the fist out, and a jab coming back swings ≤ 0.16. `_isLeadHook3D`
+checks exactly that, on the lead hand only. The rear guard hand rides along with the body and
+used to log an "echo" (travel 0.29–0.37); within 0.4 s of a lead hook a rear punch now needs
+the travel of a real one (crosses travel ≥ 0.51).
+
+IMG_6155 was relabelled from the video (it had been "5 left hooks"): one right lead hook at
+0.8 s, then three left rear hooks.
+
+| all labelled clips (lite @ 10 fps) | before | after |
+|---|---|---|
+| lead hooks (IMG_6181 ×4, IMG_6155 ×1) | 0/5 | **5/5** |
+| every punch, all 6 clips | 29/39 | **35/39** |
+| phantoms, all 6 clips | 1 | **0** |
+
 **Still open:**
-- Lead hooks are not *detected* (IMG_6181: 0/4): seen from the front the upper arm and forearm
-  overlap, the 2D elbow angle stays at 5–15° and the angle-gated state machine never fires. A
-  3D-excursion peak path found them but also fired on the guard hand covering the face during
-  the wind-up (3 phantoms on IMG_6181) — not shipped; needs more lead-hook clips.
+- Only 5 lead hooks from one fighter — the thresholds have margin (smallest hook swing 0.54 vs
+  0.35 needed) but need more fighters, angles and lighting before trusting them widely.
+- Uppercuts: no labelled clips at all, so not detected or typed.
+- Rear hooks on IMG_6155 are weak (the elbow stays low in 3D and the swing is very wide); only
+  the first is cleanly caught. IMG_6182 rear hooks: 4/5.
 - A big rear hook can make the lead guard hand pass the phantom gate (IMG_6182: 0–2 echoes).
-- IMG_6155 (labelled "left hooks" early on, before the IMG_6156 relabel) needs re-checking: in 3D
-  those punches go clearly toward the camera (forward/reach 0.34–0.50), like crosses.
-- Events are logged ~0.3 s after the peak (end of recoil).
+- Events are logged ~0.3 s after the peak (end of recoil); the 3D lead hook is logged at the peak.
 - Velocity thresholds are per frame, so 30 fps is worse than 10 fps; normalise by dt.
 - The shoulder-depth stance hint guessed "orthodox" for this southpaw, so stance stays a user setting.

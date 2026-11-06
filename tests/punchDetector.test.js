@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
-import { PunchPhaseDetector, _isHook3D } from "@/lib/punchPhaseDetector";
+import { PunchPhaseDetector, _isHook3D, _isLeadHook3D } from "@/lib/punchPhaseDetector";
 import FIXTURE from "./fixtures/punch-landmarks.json";
 
 // Replays real, labelled pose sequences through the detector with a simulated
@@ -87,6 +87,29 @@ describe("punch type from 3D (world landmarks)", () => {
     // Known open issue (README): a big rear hook turns the head away from the lead
     // guard hand, which can push it past the phantom gate — at most an echo per hook.
     expect(ev.filter((e) => e.hand === "right").length).toBeLessThanOrEqual(2);
+  });
+
+  it("finds lead hooks (the 2D state machine never fired on them) without guard-hand echoes", () => {
+    for (const name of ["IMG_6181", "IMG_6155"]) {
+      const { truth } = FIXTURE.clips[name];
+      const ev = run(FIXTURE.clips[name]);
+      const r = score(ev, truth, "right");
+      expect(r, `${name} lead hooks`).toEqual({ hit: truth.right.length, phantom: 0 });
+      expect(ev.filter((e) => e.hand === "right").every((e) => e.type === "hook"), name).toBe(true);
+      expect(score(ev, truth, "left").phantom, `${name} rear-hand echoes`).toBe(0);
+    }
+  });
+
+  it("lead-hook rule: elbow up + fist swings to the middle; guard cover and jabs don't count", () => {
+    const guard = [{ side: 0.62 }, { side: 0.65 }];
+    expect(_isLeadHook3D({ side: 0.11, rise: -0.17, wristLow: -0.08, elbow: 89, reach: 0.86 }, guard)).toBe(true);
+    // Guard hand covering the face during the wind-up: same swing, elbow down.
+    expect(_isLeadHook3D({ side: -0.32, rise: -0.59, wristLow: 0.23, elbow: 91, reach: 0.98 }, [{ side: 0.39 }])).toBe(false);
+    // Jab: the fist moves OUT (side grows), the arm straightens.
+    expect(_isLeadHook3D({ side: 0.93, rise: -0.26, wristLow: -0.12, elbow: 121, reach: 1.25 }, guard)).toBe(false);
+    // Jab coming back: small swing.
+    expect(_isLeadHook3D({ side: 0.77, rise: -0.62, wristLow: 0.06, elbow: 66, reach: 0.78 }, [{ side: 0.93 }])).toBe(false);
+    expect(_isLeadHook3D(null, guard)).toBe(false);
   });
 
   it("falls back to the 2D classifier without world landmarks", () => {

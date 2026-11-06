@@ -1,5 +1,5 @@
 {
-  "_note": "Peak times (s) per anatomical hand, read off the video frame by frame. Fighter is southpaw: right = jab, left = cross. `types`: what every punch in the clip is (straight = jab/cross, hook). IMG_6181 also starts mid-hook at 0.0 s (not counted).",
+  "_note": "Peak times (s) per anatomical hand, read off the video frame by frame. Fighter is southpaw: right = jab, left = cross. `types`: what every punch in the clip is (straight = jab/cross, hook). IMG_6181 also starts mid-hook at 0.0 s (not counted). IMG_6155 relabelled 2026-11-06 from the video: one right (lead) hook at 0.8 s, then three left (rear) hooks; the clip starts mid-punch at 0.0 s (not counted).",
   "jabcross": {
     "right": [
       0.9,
@@ -47,13 +47,13 @@
     "types": "straight"
   },
   "IMG_6155": {
-    "right": [],
+    "right": [
+      0.8
+    ],
     "left": [
-      0.7,
-      1.6,
-      2.45,
-      3.3,
-      4.1
+      1.7,
+      2.6,
+      3.5
     ],
     "types": "hook"
   },
