@@ -49,7 +49,7 @@ export default function CombatProgressCard({ progress, locale = "en" }) {
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
           <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.28), textTransform: "uppercase" }}>
-            {L.level}
+            {L.skills}
           </span>
           <div style={{ flex: 1, height: 1, background: whiteAlpha(0.05) }} />
         </div>
@@ -66,8 +66,7 @@ export default function CombatProgressCard({ progress, locale = "en" }) {
     );
   }
 
-  const { levelData, skills, skillLabels, timeline, punchTrend } = progress;
-  const levelName = levelData[locale] || levelData.en;
+  const { skills, skillLabels, timeline, punchTrend } = progress;
 
   return (
     <div style={{
@@ -81,71 +80,8 @@ export default function CombatProgressCard({ progress, locale = "en" }) {
 
       <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 14 }}>
 
-        {/* ── Level block ── */}
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-            <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.28), textTransform: "uppercase" }}>
-              {L.level}
-            </span>
-            <div style={{ flex: 1, height: 1, background: whiteAlpha(0.05) }} />
-            <span style={{
-              padding: "2px 8px", borderRadius: RADIUS.full,
-              background: `${LEVEL_COLOR}18`, border: `1px solid ${LEVEL_COLOR}40`,
-              fontSize: 8.5, fontWeight: 900, color: LEVEL_COLOR, letterSpacing: 1,
-            }}>
-              {levelData.xp} {L.xp}
-            </span>
-          </div>
-
-          <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 10 }}>
-            <div style={{
-              width: 40, height: 40, borderRadius: RADIUS.md,
-              background: `${LEVEL_COLOR}18`, border: `1px solid ${LEVEL_COLOR}35`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0,
-            }}>
-              <span style={{ fontSize: 18, fontWeight: 1000, color: LEVEL_COLOR, fontFamily: "var(--stack-mono)" }}>
-                {levelData.level}
-              </span>
-            </div>
-            <div>
-              <div style={{
-                fontSize: 20, fontWeight: 1000, color: "#fff", lineHeight: 1.0,
-                letterSpacing: "-0.02em",
-                fontFamily: "var(--font-display, 'Anton', sans-serif)",
-                textTransform: "uppercase",
-              }}>
-                {levelName}
-              </div>
-              {levelData.nextName && (
-                <div style={{ fontSize: 9.5, color: whiteAlpha(0.3), fontWeight: 700, marginTop: 2 }}>
-                  {levelData.xpToNext - levelData.xpInLevel} {L.xp} {L.toNext}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* XP progress bar */}
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-              <span style={{ fontSize: 8.5, fontWeight: 800, color: whiteAlpha(0.25), letterSpacing: 0.5 }}>
-                {levelData.maxLevel ? L.maxLevel : `${L.progress} · ${levelData.progressPct}%`}
-              </span>
-              {levelData.nextName && (
-                <span style={{ fontSize: 8.5, fontWeight: 800, color: whiteAlpha(0.25) }}>
-                  {levelData.nextName[locale] || levelData.nextName.en}
-                </span>
-              )}
-            </div>
-            <div style={{ height: 3, borderRadius: 3, background: whiteAlpha(0.07), overflow: "hidden" }}>
-              <div style={{
-                height: "100%", width: `${levelData.progressPct}%`, borderRadius: 3,
-                background: `linear-gradient(90deg, ${LEVEL_COLOR}80, ${LEVEL_COLOR})`,
-                transition: "width 1s cubic-bezier(0.16,1,0.3,1)",
-              }} />
-            </div>
-          </div>
-        </div>
+        {/* (The separate "combat level" XP ladder was removed — rank, from the
+            one account XP, is the only ladder; see /progress.) */}
 
         {/* ── Skill mastery ── */}
         <div>

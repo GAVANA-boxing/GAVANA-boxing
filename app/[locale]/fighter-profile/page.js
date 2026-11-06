@@ -7,6 +7,8 @@ import { useUserProfile } from "@/context/UserProfileProvider";
 import { getLocaleFromPathname } from "@/lib/i18n";
 import { useCombatMemory } from "@/hooks/useCombatMemory";
 import BottomNav from "@/components/BottomNav";
+import BrandHeader from "@/components/ui/BrandHeader";
+import { glass, pageBackground } from "@/components/ui/brand";
 import CombatMemoryPanel from "@/components/profile/CombatMemoryPanel";
 import FighterDNACard from "@/components/profile/FighterDNACard";
 import { RED, GOLD, RADIUS, goldAlpha, whiteAlpha, BG, redAlpha } from "@/lib/tokens";
@@ -282,21 +284,12 @@ export default function FighterProfilePage() {
     : "—";
   const displayName = user.displayName || user.email?.split("@")[0] || "FIGHTER";
 
-  const profileCompletion = (() => {
-    let pct = 0;
-    if (user.displayName) pct += 20;
-    if (user.photoURL || userData?.photoURL || userData?.profileImageUrl) pct += 20;
-    if (!dna.building && dna.archetypeKey) pct += 20;
-    if (totalSessions >= 1) pct += 20;
-    if (userData?.bio || userData?.description) pct += 20;
-    return pct;
-  })();
-  const completionColor = profileCompletion >= 80 ? "#34D399" : profileCompletion >= 40 ? GOLD : RED;
 
   return (
     <main style={{
       minHeight: "100dvh",
-      background: BG,
+      background: pageBackground,
+      color: "#fff",
       paddingBottom: "calc(100px + max(env(safe-area-inset-bottom), 16px))",
     }}>
 
@@ -315,64 +308,15 @@ export default function FighterProfilePage() {
         </div>
       )}
 
-      {/* ── Hero header ─────────────────────────────────────────── */}
-      <div style={{
-        padding: "0 20px",
-        background: `radial-gradient(ellipse at 50% 0%, rgba(255,59,48,0.07) 0%, transparent 65%)`,
-        paddingTop: "env(safe-area-inset-top, 0px)",
-      }}>
-        {/* Back */}
-        <div style={{ paddingTop: 16 }}>
-          <button
-            type="button"
-            onClick={() => router.back()}
-            style={{
-              display: "inline-flex", alignItems: "center", gap: 6,
-              background: "none", border: "none",
-              color: whiteAlpha(0.4), cursor: "pointer",
-              padding: "8px 0", fontSize: 11, fontWeight: 800, letterSpacing: 0.5,
-            }}
-            aria-label="Back"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            {(FP[locale] || FP.en).back}
-          </button>
-        </div>
-
-        {/* Kicker */}
-        <p style={{ margin: "20px 0 6px", fontSize: 9, fontWeight: 900, letterSpacing: 2, color: goldAlpha(0.55), textTransform: "uppercase" }}>
-          {(FP[locale] || FP.en).kicker}
-        </p>
-
-        {/* Name */}
-        <h1 style={{
-          margin: "0 0 3px", fontSize: 30, fontWeight: 1000,
-          letterSpacing: "-0.025em", color: "#fff", lineHeight: 1.0,
-          fontFamily: "var(--font-display, 'Anton', sans-serif)",
-          textTransform: "uppercase",
-        }}>
-          {displayName}
-        </h1>
-
-        {/* Tendency subtitle — shows once loaded */}
-        <p style={{ margin: "0 0 16px", fontSize: 11, color: whiteAlpha(0.3), fontWeight: 700 }}>
-          {tendency ? tendency.title : (FP[locale] || FP.en).evolutionTitle}
-        </p>
-
-        {/* Profile completion tracker */}
-        <div style={{ marginBottom: 20, padding: "10px 14px", borderRadius: 12, background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.07)}` }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-            <span style={{ fontSize: 10, fontWeight: 700, color: whiteAlpha(0.5), textTransform: "uppercase", letterSpacing: 0.5 }}>
-              {(FP[locale] || FP.en).profileCompletion}
-            </span>
-            <span style={{ fontSize: 13, fontWeight: 900, color: completionColor }}>{profileCompletion}%</span>
-          </div>
-          <div style={{ height: 4, background: whiteAlpha(0.08), borderRadius: 2, overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${profileCompletion}%`, background: completionColor, borderRadius: 2, transition: "width 0.6s ease" }} />
-          </div>
-        </div>
+      {/* ── Header ─────────────────────────────────────────────── */}
+      <div style={{ maxWidth: 540, margin: "0 auto", padding: "0 16px" }}>
+        <BrandHeader
+          kicker="Fighter DNA"
+          title={displayName}
+          sub={tendency ? tendency.title : (FP[locale] || FP.en).evolutionTitle}
+          onBack={() => (window.history.length > 1 ? router.back() : router.push(`/${locale}/progress`))}
+          backLabel={(FP[locale] || FP.en).back}
+        />
 
         {/* Stats row */}
         {!loading && (() => { const fp = FP[locale] || FP.en; return (
@@ -383,8 +327,6 @@ export default function FighterProfilePage() {
           </div>
         ); })()}
 
-        {/* Divider */}
-        <div style={{ height: 1, background: whiteAlpha(0.05), marginBottom: 0 }} />
 
         {/* ── Tab Bar ─────────────────────────────────────────────── */}
         {(() => {
@@ -395,25 +337,23 @@ export default function FighterProfilePage() {
             ...(showRoute("/fighters") ? [{ key: "studies",  en: "Studies",  mn: "Судалгаа", ko: "학습" }] : []),
             { key: "tribe",    en: "Tribe",    mn: "Овог",    ko: "부족" },
           ];
-          const accColor = ARCH_TRAINING_COLORS[dna.archetypeKey] || GOLD;
           return (
-            <div style={{ display: "flex", gap: 0, marginBottom: 16, marginTop: 14, borderBottom: `1px solid ${whiteAlpha(0.07)}` }}>
+            <div role="tablist" style={{ ...glass, display: "flex", gap: 4, padding: 4, borderRadius: 999, margin: "4px 0 18px" }}>
               {TABS.map((tab) => {
                 const isActive = activeTab === tab.key;
                 return (
                   <button
                     key={tab.key}
                     type="button"
+                    role="tab"
+                    aria-selected={isActive}
                     onClick={() => setActiveTab(tab.key)}
                     style={{
-                      flex: 1, padding: "10px 4px 11px",
-                      background: "none", border: "none", cursor: "pointer",
-                      fontSize: 11, fontWeight: isActive ? 900 : 700,
-                      color: isActive ? accColor : whiteAlpha(0.3),
-                      letterSpacing: 0.3,
-                      borderBottom: isActive ? `2px solid ${accColor}` : "2px solid transparent",
-                      marginBottom: -1,
-                      transition: "color 0.2s, border-color 0.2s",
+                      flex: 1, minHeight: 38, border: "none", borderRadius: 999, cursor: "pointer",
+                      fontFamily: "inherit", fontSize: 13.5, fontWeight: 600,
+                      background: isActive ? "#fff" : "transparent",
+                      color: isActive ? "#0b0b0d" : "rgba(255,255,255,0.62)",
+                      transition: "background 0.2s, color 0.2s",
                     }}
                   >
                     {tab[locale] || tab.en}
@@ -549,8 +489,9 @@ export default function FighterProfilePage() {
               <DNAShareCard dna={dna} displayName={displayName} locale={locale} uid={user?.uid} />
             )}
 
-            {/* Pro Upgrade */}
-            {!loading && (
+            {/* Pro Upgrade — only once the DNA has been unlocked (a brand-new
+                fighter with 0 rounds shouldn't be sold to first) */}
+            {!loading && !dna.building && userTier !== "pro" && userTier !== "champion" && (
               <ProUpgradePanel locale={locale} router={router} />
             )}
 

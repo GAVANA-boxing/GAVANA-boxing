@@ -8,7 +8,7 @@ const PRO_L = {
     eyebrow:  "GAVANA PRO",
     title:    "Unlock Fighter Intelligence",
     perks:    [
-      "📊 Weekly DNA report (JSON)",
+      "📊 Weekly DNA report",
       "🧊 Streak freeze — 2 / month",
       "⚔️ Advanced fighter comparisons",
       "🔔 Streak-at-risk alerts",
@@ -20,7 +20,7 @@ const PRO_L = {
     eyebrow:  "GAVANA PRO",
     title:    "Тулаанчийн тагнуулыг нээх",
     perks:    [
-      "📊 7 хоног тутмын ДНХ тайлан (JSON)",
+      "📊 7 хоног тутмын ДНХ тайлан",
       "🧊 Streak freeze — сард 2 удаа",
       "⚔️ Ахисан тулаанч харьцуулалт",
       "🔔 Streak эрсдлийн мэдэгдэл",
@@ -32,7 +32,7 @@ const PRO_L = {
     eyebrow:  "GAVANA PRO",
     title:    "파이터 인텔리전스 잠금 해제",
     perks:    [
-      "📊 주간 DNA 리포트 (JSON)",
+      "📊 주간 DNA 리포트",
       "🧊 스트릭 프리즈 — 월 2회",
       "⚔️ 고급 파이터 비교",
       "🔔 스트릭 위험 알림",
