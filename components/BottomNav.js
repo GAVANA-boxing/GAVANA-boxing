@@ -107,7 +107,7 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
           </IconTab>
         )}
 
-        <IconTab active={resolvedActiveTab === "progress"} onClick={() => go("progress", "/rank")} label={loc(locale, "Дэвшил", "성장", "Progress")} showLabel={flashing === "progress"}>
+        <IconTab active={resolvedActiveTab === "progress"} onClick={() => go("progress", "/progress")} label={loc(locale, "Дэвшил", "성장", "Progress")} showLabel={flashing === "progress"}>
           <ProgressIcon active={resolvedActiveTab === "progress"} />
         </IconTab>
 

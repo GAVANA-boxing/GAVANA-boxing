@@ -33,7 +33,7 @@ export default function manifest() {
     shortcuts: [
       { name: "Train", short_name: "Train", description: "Start a 60-second round", url: "/en/train" },
       { name: "Ghost Round", short_name: "Ghost", description: "Jab–cross with the coach's ghost", url: "/en/ghost" },
-      { name: "Progress", short_name: "Progress", description: "Your level and sessions", url: "/en/rank" },
+      { name: "Progress", short_name: "Progress", description: "Your level and sessions", url: "/en/progress" },
       { name: "Reels", short_name: "Reels", description: "Watch boxing training reels", url: "/en/reels" },
     ]
       .filter((sc) => showRoute(sc.url))

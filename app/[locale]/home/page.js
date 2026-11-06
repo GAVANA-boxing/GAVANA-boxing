@@ -199,7 +199,7 @@ export default function HomePage() {
             {(CORE_MODE ? [
               // Core loop: every quick action leads back into Train → Feedback → Progress.
               { label: loc(locale, "Тулаанчийн ДНХ", "파이터 DNA", "Fighter DNA"), path: "/fighter-profile", icon: <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M7 3c0 6 10 6 10 12M17 3c0 6-10 6-10 12"/><path d="M8 6h8M8 18h8"/><path d="M7 21v-3M17 21v-3"/></svg> },
-              { label: loc(locale, "Дэвшил", "성장", "Progress"), path: "/rank", icon: <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h16"/><path d="M7 16v-4"/><path d="M12 16V8"/><path d="M17 16V5"/></svg> },
+              { label: loc(locale, "Дэвшил", "성장", "Progress"), path: "/progress", icon: <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h16"/><path d="M7 16v-4"/><path d="M12 16V8"/><path d="M17 16V5"/></svg> },
               { label: loc(locale, "Түүх", "기록", "History"), path: "/history", icon: <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg> },
             ] : [
               { label: loc(locale, "Фийд", "피드", "Feed"), path: "/feed", icon: <svg viewBox="0 0 24 24" width="23" height="23" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> },

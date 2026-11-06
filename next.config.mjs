@@ -11,6 +11,13 @@ const nextConfig = {
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 86400,
   },
+  // Progress lives on one page now (/progress); the old pages forward there.
+  async redirects() {
+    return [
+      { source: "/:locale(mn|en|ko)/rank", destination: "/:locale/progress", permanent: false },
+      { source: "/:locale(mn|en|ko)/dashboard", destination: "/:locale/progress", permanent: false },
+    ];
+  },
   async headers() {
     return [
       {

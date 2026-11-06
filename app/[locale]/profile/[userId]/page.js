@@ -408,7 +408,7 @@ export default function UserProfilePage() {
             isOwnProfile={isOwnProfile}
             locale={locale}
             t={t}
-            onGoToDashboard={() => router.push(`/${locale}/dashboard`)}
+            onGoToDashboard={() => router.push(`/${locale}/progress`)}
             onGoToReels={showRoute("/reels") ? () => router.push(`/${locale}/reels`) : undefined}
           />
           <div style={{ padding: "0 16px 32px", maxWidth: 680, margin: "0 auto", boxSizing: "border-box" }}>

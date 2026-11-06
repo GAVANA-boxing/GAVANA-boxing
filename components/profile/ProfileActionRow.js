@@ -136,7 +136,7 @@ export default function ProfileActionRow({
                 }}
               >
                 <button
-                  onClick={() => { router.push(`/${locale}/dashboard`); setMoreOpen(false); }}
+                  onClick={() => { router.push(`/${locale}/progress`); setMoreOpen(false); }}
                   style={moreItemStyle}
                 >
                   {t("dashboardViewProgress")}
