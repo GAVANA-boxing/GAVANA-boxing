@@ -17,7 +17,10 @@ export function replay(dump, stance) {
     det.setStance(stance);
     for (const f of dump.frames) {
       sim = 1e9 + f.t;
-      det.update(f.L.map(([x, y, z, visibility]) => ({ x, y, z, visibility })));
+      det.update(
+        f.L.map(([x, y, z, visibility]) => ({ x, y, z, visibility })),
+        f.W ? f.W.map(([x, y, z]) => ({ x, y, z })) : null,
+      );
     }
     return det.getPunchEvents().map((e) => ({ t: +((e.ts - 1e9) / 1000).toFixed(2), type: e.type, hand: e.hand, conf: e.confidenceLabel, travel: e.travel, ext: e.extNorm, ang: e.peakAngle, snap: e.snapVelocity }));
   } finally {

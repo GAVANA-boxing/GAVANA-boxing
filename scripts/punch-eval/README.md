@@ -44,10 +44,26 @@ the shoulder-relative signals read the guard hand as "extending" — always at t
 the real punch. Fix: every punch must move the wrist ≥ 0.28 shoulder-widths from its guard spot
 *relative to the nose* (phantoms ≤ 0.21, real jabs ≥ 0.35).
 
+**Punch type (fixed with 3D):** from the front, a hook and a cross both look like "an arm across
+the body" in 2D, so the 2D arc classifier called real jab–crosses hooks and real hooks crosses.
+The detector now also takes MediaPipe *world* landmarks (meters) and types each punch at its
+frame of maximum reach: short reach on the far side = lead hook; long reach but sideways (not
+toward the camera) = rear hook; otherwise straight. Without world landmarks it falls back to 2D.
+
+| clips (lite @ 10 fps) | punches typed correctly, 2D | 3D |
+|---|---|---|
+| jabcross, IMG_6156, IMG_6153 (straight), IMG_6182 (left hooks), IMG_6181 | 20/29 (69%) | **29/29** |
+
+Clips: IMG_6181 = right (lead) hooks ×4 (+ one cut off at 0.0 s), IMG_6182 = left (rear) hooks ×5.
+
 **Still open:**
-- Hooks (1/5): from the front a hook's elbow stays bent in 2D (angle 10–50°), so the
-  angle-gated state machine rarely enters "extending". Needs a travel/arc-based path.
-- 4 of 22 straight punches typed as "hook" (extension missed when entry is late).
+- Lead hooks are not *detected* (IMG_6181: 0/4): seen from the front the upper arm and forearm
+  overlap, the 2D elbow angle stays at 5–15° and the angle-gated state machine never fires. A
+  3D-excursion peak path found them but also fired on the guard hand covering the face during
+  the wind-up (3 phantoms on IMG_6181) — not shipped; needs more lead-hook clips.
+- A big rear hook can make the lead guard hand pass the phantom gate (IMG_6182: 0–2 echoes).
+- IMG_6155 (labelled "left hooks" early on, before the IMG_6156 relabel) needs re-checking: in 3D
+  those punches go clearly toward the camera (forward/reach 0.34–0.50), like crosses.
 - Events are logged ~0.3 s after the peak (end of recoil).
 - Velocity thresholds are per frame, so 30 fps is worse than 10 fps; normalise by dt.
 - The shoulder-depth stance hint guessed "orthodox" for this southpaw, so stance stays a user setting.

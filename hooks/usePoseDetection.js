@@ -202,7 +202,8 @@ export function usePoseDetection({ videoRef, isActive, stance = "orthodox" }) {
           visSamplesRef.current.push(armVis);
 
           // Punch phase detection (uses raw landmarks — detector has own smoothing)
-          const phaseInfo = detectorRef.current.update(landmarks);
+          // World landmarks (metric 3D) let the detector tell hooks from straight punches.
+          const phaseInfo = detectorRef.current.update(landmarks, res.worldLandmarks?.[0] || null);
           if (phaseInfo) currentPhaseRef.current = phaseInfo;
 
           // Defensive head-movement detection (uses smoothed landmarks)

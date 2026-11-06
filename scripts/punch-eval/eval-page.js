@@ -39,8 +39,15 @@ async function run() {
     if (L && L.length >= 29) {
       withBody++;
       vis.push(Math.min(...[11, 12, 13, 14, 15, 16].map((i) => L[i].visibility ?? 0)));
-      det.update(L);
-      if (dump) dump.push({ t: Math.round(t * 1000), L: L.map((p) => [+p.x.toFixed(4), +p.y.toFixed(4), +p.z.toFixed(4), +(p.visibility ?? 0).toFixed(3)]) });
+      det.update(L, res.worldLandmarks?.[0] || null);
+      if (dump) {
+        const W = res.worldLandmarks?.[0];
+        dump.push({
+          t: Math.round(t * 1000),
+          L: L.map((p) => [+p.x.toFixed(4), +p.y.toFixed(4), +p.z.toFixed(4), +(p.visibility ?? 0).toFixed(3)]),
+          ...(W ? { W: W.map((p) => [+p.x.toFixed(4), +p.y.toFixed(4), +p.z.toFixed(4)]) } : {}),
+        });
+      }
     }
   }
   Date.now = realNow;

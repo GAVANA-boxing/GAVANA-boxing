@@ -1,7 +1,81 @@
 {
-  "_note": "Peak times (s) per anatomical hand, read off the video frame by frame. Fighter is southpaw: right = jab, left = cross.",
-  "jabcross": { "right": [0.9, 1.7, 2.6, 3.35], "left": [1.2, 2.1, 3.0, 3.8] },
-  "IMG_6156": { "right": [0.5, 2.05, 2.9, 3.75, 4.55, 5.45], "left": [0.85, 2.35, 3.25, 4.15, 5.0, 5.85] },
-  "IMG_6153": { "right": [0.55, 1.4, 2.2, 2.95, 3.7, 4.4], "left": [] },
-  "IMG_6155": { "right": [], "left": [0.7, 1.6, 2.45, 3.3, 4.1] }
+  "_note": "Peak times (s) per anatomical hand, read off the video frame by frame. Fighter is southpaw: right = jab, left = cross. `types`: what every punch in the clip is (straight = jab/cross, hook). IMG_6181 also starts mid-hook at 0.0 s (not counted).",
+  "jabcross": {
+    "right": [
+      0.9,
+      1.7,
+      2.6,
+      3.35
+    ],
+    "left": [
+      1.2,
+      2.1,
+      3.0,
+      3.8
+    ],
+    "types": "straight"
+  },
+  "IMG_6156": {
+    "right": [
+      0.5,
+      2.05,
+      2.9,
+      3.75,
+      4.55,
+      5.45
+    ],
+    "left": [
+      0.85,
+      2.35,
+      3.25,
+      4.15,
+      5.0,
+      5.85
+    ],
+    "types": "straight"
+  },
+  "IMG_6153": {
+    "right": [
+      0.55,
+      1.4,
+      2.2,
+      2.95,
+      3.7,
+      4.4
+    ],
+    "left": [],
+    "types": "straight"
+  },
+  "IMG_6155": {
+    "right": [],
+    "left": [
+      0.7,
+      1.6,
+      2.45,
+      3.3,
+      4.1
+    ],
+    "types": "hook"
+  },
+  "IMG_6181": {
+    "right": [
+      0.55,
+      1.15,
+      1.65,
+      2.25
+    ],
+    "left": [],
+    "types": "hook"
+  },
+  "IMG_6182": {
+    "right": [],
+    "left": [
+      0.25,
+      0.85,
+      1.45,
+      1.95,
+      2.55
+    ],
+    "types": "hook"
+  }
 }
