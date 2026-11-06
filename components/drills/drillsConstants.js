@@ -2,6 +2,21 @@ import { RED, GOLD } from "@/lib/tokens";
 
 export const AREAS = ["Power", "Speed", "Timing", "Footwork", "Guard", "Accuracy"];
 
+/** Display names (the English key is what the AI prompt and the cache use). */
+export const AREA_LABELS = {
+  Power:    { mn: "Хүч",        ko: "파워",   en: "Power" },
+  Speed:    { mn: "Хурд",       ko: "스피드", en: "Speed" },
+  Timing:   { mn: "Тайминг",    ko: "타이밍", en: "Timing" },
+  Footwork: { mn: "Хөлийн ажил", ko: "풋워크", en: "Footwork" },
+  Guard:    { mn: "Хамгаалалт", ko: "가드",   en: "Guard" },
+  Accuracy: { mn: "Нарийвчлал", ko: "정확도", en: "Accuracy" },
+};
+
+export function areaLabel(area, locale) {
+  const l = AREA_LABELS[area];
+  return l ? (l[locale] || l.en) : area;
+}
+
 export const AREA_COLOR = {
   Power: RED,
   Speed: "#FB923C",
@@ -12,9 +27,9 @@ export const AREA_COLOR = {
 };
 
 export const DRILL_TYPES = [
-  { key: "shadow", labelEn: "Shadow", labelMn: "Сүүдэр" },
-  { key: "bag", labelEn: "Bag Work", labelMn: "Уут" },
-  { key: "conditioning", labelEn: "Conditioning", labelMn: "Дасгал" },
+  { key: "shadow", labelEn: "Shadow", labelMn: "Сүүдэр", labelKo: "섀도" },
+  { key: "bag", labelEn: "Bag Work", labelMn: "Уут", labelKo: "샌드백" },
+  { key: "conditioning", labelEn: "Conditioning", labelMn: "Бие бялдар", labelKo: "컨디셔닝" },
 ];
 
 export const DIFF_COLOR = {
@@ -27,6 +42,12 @@ export const DIFF_MN = {
   Beginner: "Эхлэгч",
   Intermediate: "Дунд",
   Advanced: "Ахисан",
+};
+
+export const DIFF_KO = {
+  Beginner: "초급",
+  Intermediate: "중급",
+  Advanced: "고급",
 };
 
 // ── Cache helpers ────────────────────────────────────────────────────────────

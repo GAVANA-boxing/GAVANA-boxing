@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { GOLD } from "@/lib/tokens";
-import { DIFF_COLOR, DIFF_MN } from "./drillsConstants";
+import { DIFF_COLOR, DIFF_KO, DIFF_MN } from "./drillsConstants";
 
 /**
  * @param {{ drill: { name: string, difficulty: string, duration?: string, steps: string[] }, index: number, locale: string, accent: string }} props
@@ -47,7 +47,7 @@ export default function DrillCard({ drill, index, locale, accent }) {
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
             <span style={{ fontSize: 10, fontWeight: 800, color: diffColor }}>
-              {mn ? (DIFF_MN[diff] || diff) : diff}
+              {mn ? (DIFF_MN[diff] || diff) : locale === "ko" ? (DIFF_KO[diff] || diff) : diff}
             </span>
             {drill.duration && (
               <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>

@@ -3,7 +3,7 @@
 import { GOLD, goldAlpha } from "@/lib/tokens";
 import { DRILL_TYPES } from "./drillsConstants";
 
-const LABEL = { mn: "Дасгалын төрөл", en: "Drill Type" };
+const LABEL = { mn: "Дасгалын төрөл", ko: "드릴 종류", en: "Drill type" };
 
 /**
  * @param {{ selectedType: string, onSelect: (type: string) => void, locale: string }} props
@@ -14,7 +14,7 @@ export default function TypeChips({ selectedType, onSelect, locale }) {
   return (
     <>
       <p style={{ margin: "0 0 8px", fontSize: 9, fontWeight: 900, color: "rgba(255,255,255,0.3)", letterSpacing: 2, textTransform: "uppercase" }}>
-        {mn ? LABEL.mn : LABEL.en}
+        {LABEL[locale] || LABEL.en}
       </p>
       <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
         {DRILL_TYPES.map((t) => {
@@ -34,7 +34,7 @@ export default function TypeChips({ selectedType, onSelect, locale }) {
                 transition: "all 150ms ease",
               }}
             >
-              {mn ? t.labelMn : t.labelEn}
+              {mn ? t.labelMn : locale === "ko" ? t.labelKo : t.labelEn}
             </button>
           );
         })}

@@ -1,7 +1,7 @@
 "use client";
 
 import { RED, redAlpha } from "@/lib/tokens";
-import { AREA_COLOR } from "./drillsConstants";
+import { AREA_COLOR, areaLabel } from "./drillsConstants";
 
 /**
  * @param {{ weakAreaName: string, locale: string }} props
@@ -21,13 +21,13 @@ export default function WeakAreaHint({ weakAreaName, locale }) {
       borderLeft: `3px solid ${RED}`,
     }}>
       <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontWeight: 700 }}>
-        {mn ? "🎯 Хамгийн сул тал: " : "🎯 Weakest area: "}
+        {mn ? "🎯 Хамгийн сул тал: " : locale === "ko" ? "🎯 가장 약한 영역: " : "🎯 Weakest area: "}
       </span>
       <span style={{ fontSize: 11, fontWeight: 900, color: AREA_COLOR[weakAreaName] || RED }}>
-        {weakAreaName}
+        {areaLabel(weakAreaName, locale)}
       </span>
       <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginLeft: 4 }}>
-        {mn ? "— автоматаар сонгогдлоо" : "— auto-selected"}
+        {mn ? "— автоматаар сонгогдлоо" : locale === "ko" ? "— 자동 선택됨" : "— auto-selected"}
       </span>
     </div>
   );

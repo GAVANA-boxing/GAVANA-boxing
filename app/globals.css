@@ -153,6 +153,17 @@ body {
   overflow-x: hidden;
 }
 
+/* clip, not hidden, where supported: hidden on both html and body turns body
+   into a scroll container that never scrolls, which silently breaks every
+   position: sticky element in the app. (A separate @supports block — the CSS
+   pipeline drops a second overflow-x in the same rule.) */
+@supports (overflow-x: clip) {
+  html,
+  body {
+    overflow-x: clip;
+  }
+}
+
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;

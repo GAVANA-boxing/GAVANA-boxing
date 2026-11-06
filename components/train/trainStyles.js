@@ -1,4 +1,4 @@
-import { btnPrimary, btnSecondary, BRAND } from "@/components/ui/brand";
+import { btnPrimary, btnSecondary, BRAND, displayTitle, kickerPill } from "@/components/ui/brand";
 import { BG, BORDER, BORDER_2, GOLD, RADIUS, RED, RED_DARK, TEXT, blackAlpha, goldAlpha, redAlpha, whiteAlpha } from "@/lib/tokens";
 
 const styles = {
@@ -45,28 +45,13 @@ const styles = {
 
   // ── Header ───────────────────────────────────────────────────────────────
   header: { display: "grid", gap: 6 },
-  kicker: {
-    margin: 0,
-    color: RED,
-    fontSize: 10,
-    fontWeight: 900,
-    letterSpacing: 3,
-    textTransform: "uppercase",
-  },
-  title: {
-    margin: 0,
-    fontSize: "clamp(30px, 9vw, 40px)",
-    lineHeight: 0.95,
-    fontWeight: 1000,
-    letterSpacing: "-0.02em",
-    fontFamily: "var(--font-display, 'Anton', sans-serif)",
-    textTransform: "uppercase",
-  },
+  kicker: { ...kickerPill, justifySelf: "start" },
+  title: { ...displayTitle, fontSize: "clamp(34px, 10vw, 44px)", marginTop: 8 },
   subtitle: {
     margin: 0,
     color: whiteAlpha(0.5),
-    fontSize: 13,
-    lineHeight: 1.45,
+    fontSize: 15,
+    lineHeight: 1.5,
     maxWidth: 420,
     fontWeight: 400,
   },
@@ -112,12 +97,14 @@ const styles = {
 
   // ── Controls ──────────────────────────────────────────────────────────────
   controls: {
-    position: "sticky",
-    bottom: "calc(12px + env(safe-area-inset-bottom))",
-    zIndex: 20,
     display: "grid",
     gap: 10,
-    paddingTop: 6,
+  },
+  // Sticky above the floating bottom nav (≈ 78 px + safe area).
+  startDock: {
+    position: "sticky",
+    bottom: "calc(92px + env(safe-area-inset-bottom))",
+    zIndex: 20,
   },
   startButton: { ...btnPrimary, minHeight: 60, fontSize: 17, transition: "transform 180ms ease, box-shadow 180ms ease" },
   stopButton: { ...btnSecondary, minHeight: 52, color: BRAND.muted },

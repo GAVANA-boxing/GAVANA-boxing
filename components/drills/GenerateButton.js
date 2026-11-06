@@ -1,7 +1,7 @@
 "use client";
 
 const LABELS = {
-  loading: { mn: "Үүсгэж байна...", en: "Generating..." },
+  loading: { mn: "Үүсгэж байна…", ko: "생성 중…", en: "Generating…" },
   idle: { mn: "⚡ Дасгал үүсгэх", ko: "⚡ 드릴 생성", en: "⚡ Generate Drills" },
 };
 
@@ -13,7 +13,7 @@ export default function GenerateButton({ loading, disabled, accent, locale, onCl
   const ko = locale === "ko";
 
   const label = loading
-    ? (mn ? LABELS.loading.mn : LABELS.loading.en)
+    ? (LABELS.loading[locale] || LABELS.loading.en)
     : (mn ? LABELS.idle.mn : ko ? LABELS.idle.ko : LABELS.idle.en);
 
   return (

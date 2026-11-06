@@ -1142,8 +1142,9 @@ export default function TrainPage() {
           />
         )}
 
-        {/* Video recording toggle — opt-in, shown when idle and browser supports MediaRecorder */}
-        {phase === "idle" && !challengeUserId && !activeChallengePostId && typeof window !== "undefined" && window.MediaRecorder && (
+        {/* Video recording toggle — the video is only used when sharing to the feed,
+            which is outside the core loop, so it is hidden in CORE_MODE. */}
+        {!CORE_MODE && phase === "idle" && !challengeUserId && !activeChallengePostId && typeof window !== "undefined" && window.MediaRecorder && (
           <div style={{
             margin: "0 0 8px",
             padding: "10px 14px",
@@ -1244,13 +1245,21 @@ export default function TrainPage() {
               ))}
             </div>
           )}
-          {canStart && (
+        </div>
+
+        {/* Start: pinned above the bottom nav so it is on the first screen even
+            though the camera preview is tall. A direct child of the shell, so
+            sticky has the whole page to travel in. */}
+        {canStart && (
+          <div style={styles.startDock}>
             <button type="button" style={styles.startButton} className="train-start-btn tap-bounce" onClick={wrappedHandleStart}>
               {loc(locale, "Раунд эхлүүлэх", "라운드 시작", "Start round")}
               <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
             </button>
-          )}
+          </div>
+        )}
 
+        <div style={styles.controls}>
           {phase === "idle" && !challengeId && !challengeUserId && (
             <button
               type="button"

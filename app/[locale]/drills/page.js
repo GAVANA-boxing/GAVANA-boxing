@@ -7,6 +7,7 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
 import { RED } from "@/lib/tokens";
+import { loc } from "@/lib/loc";
 import { AREA_COLOR, cacheKey, readCache, writeCache } from "@/components/drills/drillsConstants";
 import BrandHeader from "@/components/ui/BrandHeader";
 import { pageBackground } from "@/components/ui/brand";
@@ -21,7 +22,6 @@ export default function DrillsPage() {
   const { locale } = useParams();
   const router = useRouter();
   const { user } = useAuth();
-  const mn = locale === "mn";
 
   const [coachSnapshot, setCoachSnapshot] = useState(null);
   const [selectedArea, setSelectedArea] = useState(null);
@@ -80,7 +80,7 @@ Return ONLY valid JSON array, no markdown, no explanation:
         idToken = await user.getIdToken();
       } catch (tokenErr) {
         console.error("[DrillsPage] getIdToken failed:", tokenErr);
-        throw new Error(mn ? "Нэвтрэх токен авахад алдаа гарлаа. Дахин нэвтэрнэ үү." : "Auth token error — please sign in again.");
+        throw new Error(loc(locale, "Нэвтрэх токен авахад алдаа гарлаа. Дахин нэвтэрнэ үү.", "인증 오류 — 다시 로그인하세요.", "Auth token error — please sign in again."));
       }
 
       console.log("[DrillsPage] generate →", { area: selectedArea, type: selectedType, promptLen: prompt.length });
@@ -93,8 +93,8 @@ Return ONLY valid JSON array, no markdown, no explanation:
       if (!res.ok) {
         const errText = await res.text().catch(() => "");
         console.error(`[DrillsPage] HTTP ${res.status}:`, errText);
-        if (res.status === 429) throw new Error(mn ? "Хэт олон хүсэлт. Түр хүлээгээд дахин оролдоно уу." : "Rate limited — wait a moment and retry.");
-        if (res.status === 401) throw new Error(mn ? "Эрх хүрэхгүй байна. Дахин нэвтэрнэ үү." : "Unauthorized — please sign in again.");
+        if (res.status === 429) throw new Error(loc(locale, "Хэт олон хүсэлт. Түр хүлээгээд дахин оролдоно уу.", "요청이 너무 많아요. 잠시 후 다시 시도하세요.", "Too many requests — wait a moment and retry."));
+        if (res.status === 401) throw new Error(loc(locale, "Эрх хүрэхгүй байна. Дахин нэвтэрнэ үү.", "권한이 없어요. 다시 로그인하세요.", "Unauthorized — please sign in again."));
         throw new Error(`HTTP ${res.status}${errText ? ": " + errText.slice(0, 120) : ""}`);
       }
 
@@ -103,7 +103,7 @@ Return ONLY valid JSON array, no markdown, no explanation:
 
       if (data.aiError) {
         console.error("[DrillsPage] aiError from API:", data.message);
-        throw new Error(data.message || (mn ? "AI коуч боломжгүй байна." : "AI coach unavailable."));
+        throw new Error(data.message || (loc(locale, "AI коуч боломжгүй байна.", "AI 코치를 사용할 수 없어요.", "AI coach unavailable.")));
       }
 
       const text = data.message || "";
@@ -112,7 +112,7 @@ Return ONLY valid JSON array, no markdown, no explanation:
       const match = text.match(/\[[\s\S]*\]/);
       if (!match) {
         console.error("[DrillsPage] No JSON array in response. Full text:", text);
-        throw new Error(mn ? "AI буруу формат буцаалаа. Дахин оролдоно уу." : "AI returned unexpected format — retry.");
+        throw new Error(loc(locale, "AI буруу формат буцаалаа. Дахин оролдоно уу.", "AI 응답 형식 오류 — 다시 시도하세요.", "AI returned an unexpected format — retry."));
       }
 
       let parsed;
@@ -120,12 +120,12 @@ Return ONLY valid JSON array, no markdown, no explanation:
         parsed = JSON.parse(match[0]);
       } catch (parseErr) {
         console.error("[DrillsPage] JSON.parse failed:", parseErr, "match:", match[0].slice(0, 200));
-        throw new Error(mn ? "AI-н хариултыг задлахад алдаа гарлаа." : "Failed to parse AI response.");
+        throw new Error(loc(locale, "AI-н хариултыг задлахад алдаа гарлаа.", "AI 응답을 읽지 못했어요.", "Failed to parse the AI response."));
       }
 
       if (!Array.isArray(parsed) || parsed.length === 0) {
         console.error("[DrillsPage] Parsed result is not a non-empty array:", parsed);
-        throw new Error(mn ? "AI дасгал үүсгэж чадсангүй. Дахин оролдоно уу." : "AI returned no drills — try again.");
+        throw new Error(loc(locale, "AI дасгал үүсгэж чадсангүй. Дахин оролдоно уу.", "AI가 드릴을 만들지 못했어요. 다시 시도하세요.", "AI returned no drills — try again."));
       }
 
       console.log("[DrillsPage] success — drills:", parsed.length);
@@ -136,13 +136,13 @@ Return ONLY valid JSON array, no markdown, no explanation:
       const msg = err?.message || String(err);
       const isGeneric = msg === "[object Object]" || msg === "Error";
       setError(isGeneric
-        ? (mn ? "Алдаа гарлаа. Дахин оролдоно уу." : "Something went wrong. Please try again.")
+        ? (loc(locale, "Алдаа гарлаа. Дахин оролдоно уу.", "문제가 생겼어요. 다시 시도하세요.", "Something went wrong. Please try again."))
         : msg
       );
     } finally {
       setLoading(false);
     }
-  }, [selectedArea, selectedType, user, coachSnapshot, locale, mn]);
+  }, [selectedArea, selectedType, user, coachSnapshot, locale]);
 
   // Reset drills when area/type changes
   useEffect(() => {
