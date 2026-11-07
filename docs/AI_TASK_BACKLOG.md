@@ -3,8 +3,6 @@
 Status: TODO · BLOCKED (needs approval) · DONE. Highest priority first.
 
 ## P1
-- Training Studio: save-failed state has no dedicated "retry save" button yet (the error text
-  shows; the result view's save action can be pressed again). Add one in the result view.
 
 ## P2
 - RED (needs approval — push sending): `functions/index.js` `localeOf()` trusts the client-written

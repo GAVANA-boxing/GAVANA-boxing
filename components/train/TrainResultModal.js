@@ -55,6 +55,7 @@ export default function TrainResultModal({
   error,
   saving,
   saved,
+  saveFailed = false,
   savedAttemptNumber,
   locale,
   t,
@@ -223,6 +224,7 @@ export default function TrainResultModal({
           setSessionTag={setSessionTag}
           saving={saving}
           saved={saved}
+          saveFailed={saveFailed}
           savedAttemptNumber={savedAttemptNumber}
           feedSharing={feedSharing}
           feedShared={feedShared}

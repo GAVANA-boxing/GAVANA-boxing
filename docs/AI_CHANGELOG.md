@@ -2,6 +2,12 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Cycle 12 — "retry save" after a failed save
+- After a failed save the result's save button became active again but still read "Save progress",
+  next to the error text. `saveFailed` (Phase 0) is now passed page → TrainResultModal →
+  ResultActionsSection and the button reads "Дахин хадгалах ↻" / "다시 저장 ↻" / "Retry save ↻".
+- Checked: lint, 231/231 unit, 46/46 visual (state not in baselines — needs a signed-in failed save).
+
 ## 3D tech stack: React Three Fiber, physics, GLSL, Blender, WebGPU detection (owner: "Edgeer technology uudiig ch bas ashigla")
 - **Heavy bag** — new route `/[locale]/bag` (+ metadata, sitemap; entry on /train). Punch at the camera
   (pose detection) or tap the bag; a 35 kg bag hangs on a ball joint and swings, dents and ripples where

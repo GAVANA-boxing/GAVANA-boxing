@@ -25,6 +25,7 @@ export default function ResultActionsSection({
   setSessionTag,
   saving,
   saved,
+  saveFailed = false,
   savedAttemptNumber,
   feedSharing,
   feedShared,
@@ -119,7 +120,9 @@ export default function ResultActionsSection({
                 ? t("trainAttemptSaved").replace("{n}", savedAttemptNumber)
                 : saved
                   ? t("trainSavedShort")
-                  : isLowConfidence
+                  : saveFailed
+                    ? loc(locale, "Дахин хадгалах ↻", "다시 저장 ↻", "Retry save ↻")
+                    : isLowConfidence
                     ? t("confidenceSaveAnyway")
                     : t("trainSaveProgress")}
           </button>

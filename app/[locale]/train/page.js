@@ -1393,6 +1393,7 @@ export default function TrainPage() {
         error={error}
         saving={saving}
         saved={saved}
+        saveFailed={saveFailed}
         savedAttemptNumber={savedAttemptNumber}
         userArchetype={userArchetype}
         locale={locale}
