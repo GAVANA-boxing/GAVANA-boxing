@@ -1,0 +1,206 @@
+{
+  "id": "20261107T153609Z-e9aa33f",
+  "key": "bc2f0381",
+  "task": "Evolve: runner instructions + observer reads ternary font sizes",
+  "branch": "claude/review-refactor-code-DUmiX",
+  "commit": "e9aa33f",
+  "base": "@{upstream}",
+  "dirty": true,
+  "startedAt": "2026-11-07T15:36:09.542Z",
+  "finishedAt": "2026-11-07T15:36:51.604Z",
+  "durationS": 42,
+  "cost": {
+    "paidApiCalls": 0,
+    "note": "checks run locally; no paid APIs"
+  },
+  "change": {
+    "level": "RED",
+    "files": [
+      {
+        "path": "scripts/evolve/observe.mjs",
+        "level": "RED",
+        "why": "evolve guardrails"
+      },
+      {
+        "path": "docs/evolve/RUNNER.md",
+        "level": "GREEN",
+        "why": "docs"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "name": "lint",
+      "ms": 36904,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0,
+        "warnings": 23
+      }
+    },
+    {
+      "name": "typecheck",
+      "ms": 1584,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0
+      }
+    },
+    {
+      "name": "unit",
+      "ms": 3497,
+      "status": "PASS",
+      "metrics": {
+        "passed": 252,
+        "failed": 0
+      }
+    },
+    {
+      "name": "build",
+      "status": "NOT RUN",
+      "note": "--skip-build"
+    },
+    {
+      "name": "bundle",
+      "status": "NOT RUN",
+      "note": "--skip-build"
+    },
+    {
+      "name": "punch",
+      "ms": 64,
+      "status": "PASS",
+      "metrics": {
+        "macroF1": 0.904,
+        "recall": 0.897,
+        "precision": 1,
+        "phantoms": 0
+      }
+    },
+    {
+      "name": "visual",
+      "status": "NOT RUN",
+      "note": "pass --visual to run"
+    },
+    {
+      "name": "rules",
+      "status": "NOT RUN",
+      "note": "pass --rules to run"
+    }
+  ],
+  "comparison": [
+    {
+      "metric": "lint.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "lint.warnings",
+      "baseline": 23,
+      "value": 23,
+      "limit": "≤ 23",
+      "status": "PASS"
+    },
+    {
+      "metric": "typecheck.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.passed",
+      "baseline": 241,
+      "value": 252,
+      "limit": "≥ 241",
+      "status": "PASS"
+    },
+    {
+      "metric": "bundle.kb",
+      "status": "NOT RUN"
+    },
+    {
+      "metric": "punch.macroF1",
+      "baseline": 0.904,
+      "value": 0.904,
+      "limit": "≥ 0.9035000000000001",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.phantoms",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.failed",
+      "status": "NOT RUN"
+    },
+    {
+      "metric": "visual.passed",
+      "status": "NOT RUN"
+    },
+    {
+      "metric": "rules.failed",
+      "status": "NOT RUN"
+    },
+    {
+      "metric": "rules.passed",
+      "status": "NOT RUN"
+    }
+  ],
+  "verdict": "ACCEPTED",
+  "verdictNote": "RED paths need the owner: scripts/evolve/observe.mjs (evolve guardrails)",
+  "history": [
+    {
+      "state": "PENDING",
+      "at": "2026-11-07T15:36:09.542Z",
+      "note": "created"
+    },
+    {
+      "state": "PLANNING",
+      "at": "2026-11-07T15:36:09.542Z",
+      "note": "Evolve: runner instructions + observer reads ternary font sizes"
+    },
+    {
+      "state": "IMPLEMENTING",
+      "at": "2026-11-07T15:36:09.542Z",
+      "note": "2 changed file(s) vs @{upstream}, risk RED"
+    },
+    {
+      "state": "VERIFYING",
+      "at": "2026-11-07T15:36:09.542Z",
+      "note": ""
+    },
+    {
+      "state": "EVALUATING",
+      "at": "2026-11-07T15:36:51.596Z",
+      "note": ""
+    },
+    {
+      "state": "AWAITING_APPROVAL",
+      "at": "2026-11-07T15:36:51.596Z",
+      "note": "RED paths need the owner: scripts/evolve/observe.mjs (evolve guardrails)"
+    },
+    {
+      "state": "ACCEPTED",
+      "at": "2026-11-07T15:36:51.657Z",
+      "note": "Engine building pre-authorized by the owner (PRE-AUTHORIZED AUTONOMY POLICY v1.0, chat 2026-11-07). Recorded by the agent on that instruction."
+    }
+  ],
+  "baselineCommit": "37f2e45",
+  "decision": {
+    "by": "owner",
+    "note": "Engine building pre-authorized by the owner (PRE-AUTHORIZED AUTONOMY POLICY v1.0, chat 2026-11-07). Recorded by the agent on that instruction.",
+    "at": "2026-11-07T15:36:51.657Z"
+  }
+}

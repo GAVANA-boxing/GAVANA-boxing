@@ -50,8 +50,11 @@ export function scanSmallText() {
     const lines = readFileSync(join(ROOT, rel), "utf8").split("\n");
     const hits = [];
     lines.forEach((l, i) => {
-      const m = l.match(/fontSize:\s*(\d+(?:\.\d+)?)\b/);
-      if (m && Number(m[1]) < 11 && Number(m[1]) > 0) hits.push(`${rel}:${i + 1} fontSize ${m[1]}`);
+      // Plain sizes and both arms of a ternary (`fontSize: isDesktop ? 9 : 8`).
+      for (const m of l.matchAll(/fontSize[:=]\s*\{?\s*(?:[^,}?]*\?\s*)?(\d+(?:\.\d+)?)(?:\s*:\s*(\d+(?:\.\d+)?))?/g)) {
+        const small = [m[1], m[2]].filter(Boolean).map(Number).filter((v) => v > 0 && v < 11);
+        if (small.length) { hits.push(`${rel}:${i + 1} fontSize ${small.join(" / ")}`); break; }
+      }
     });
     if (!hits.length) continue;
     const core = CORE_HINT.test(rel);
