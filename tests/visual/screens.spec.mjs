@@ -78,6 +78,26 @@ test.describe("live camera", () => {
   });
 });
 
+// Punch Teardown on a synthetic round. The 3D canvas is hidden (WebGL output
+// differs between machines); the phase strip, panels, picker and tips are compared.
+for (const v of [{ id: "mn-390", locale: "mn", viewport: viewport390 }, { id: "mn-360", locale: "mn", viewport: { width: 360, height: 800 } }, { id: "ko-390", locale: "ko", viewport: viewport390 }]) {
+  test(`teardown ${v.id}`, async ({ page }) => {
+    await prepare(page);
+    await page.setViewportSize(v.viewport);
+    await page.goto(`/${v.locale}/visual/teardown`, { waitUntil: "load" });
+    await expect(page.getByTestId("teardown-tips")).toBeVisible();
+    // Freeze on a fixed moment of the selected punch (scrubbing pauses playback).
+    // Wait for the replay to start first, or its own start-up would override the scrub.
+    await page.waitForTimeout(1500);
+    await page.getByRole("slider").fill("1780");
+    await expect(page.getByRole("button", { name: "▶" })).toBeVisible();
+    await expect(page.getByText("1.8s / 5.4s")).toBeVisible();
+    await page.addStyleTag({ content: "canvas { opacity: 0 !important; }" });
+    await settle(page);
+    await expect(page).toHaveScreenshot(`teardown-${v.id}.png`);
+  });
+}
+
 // Same day, time and first-run state on every run; optionally make
 // getUserMedia fail with a given error name.
 async function prepare(page, cameraError) {

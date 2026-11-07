@@ -2,6 +2,21 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Roadmap Phase 1 — Punch Teardown replay (approved: "0, 1-ийг Hii")
+- `lib/punchTeardown.js` (pure): for one punch of a recorded round finds Load → Rotate → Extend →
+  Return (peak reach near the detected moment, closest hand before/after, 25 % / 60 % of travel)
+  and measures shoulder turn, hip turn, elbow at full reach, reach %, the other hand's guard and
+  return time; checks per punch type (straight arm for jab/cross, shoulder + hip turn for the cross,
+  guard hand, fast return) → grade good / ok / fix. `syntheticReplay()` builds a test round.
+  9 unit tests.
+- `components/train/PunchTeardown.js`: slow 3D replay focused on the chosen punch, tappable phase
+  strip (freezes the fighter in that phase), 6 measurement panels, punch picker (starts on the punch
+  with the most to fix), plain tips MN/KO/EN. Opened from the result screen ("Цохилт задлал").
+- `MotionReplay3D` gained `focus` (loop one window at ¼ speed), `hud(t, seek)` and `extra`; in focus
+  mode the avatar picker / punch markers / next-punch are hidden. Existing replay unchanged.
+- Visual: `/visual/teardown` fixture (synthetic round) + baselines teardown mn-390 / mn-360 / ko-390
+  (3D canvas hidden; HUD, panels, picker, tips compared). 19/19 visual, 187/187 unit, lint 0 errors.
+
 ## Roadmap Phase 0 — Training Studio state machine (approved by the owner: "0, 1-ийг Hii")
 - `lib/trainSession.js`: named studio states (requestingCamera, cameraDenied, cameraUnavailable,
   ready, countdown, recording, result, saving, saved, saveFailed), derived from the existing flags;

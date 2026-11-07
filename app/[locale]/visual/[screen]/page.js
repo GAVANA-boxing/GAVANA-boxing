@@ -9,6 +9,8 @@ import { pageBackground } from "@/components/ui/brand";
 import ProgressView from "@/components/progress/ProgressView";
 import ResultHeader from "@/components/train/ResultHeader";
 import ResultAnalysisSection from "@/components/train/ResultAnalysisSection";
+import PunchTeardown from "@/components/train/PunchTeardown";
+import { syntheticReplay } from "@/lib/punchTeardown";
 
 // Fixed-data renders of screens that need a signed-in user, for the visual
 // regression tests (tests/visual). Only exists when NEXT_PUBLIC_VISUAL_FIXTURES=1
@@ -29,11 +31,18 @@ const POSE = {
   punchBreakdown: { jab: { count: 12 }, cross: { count: 9 }, hook: { count: 3 } },
 };
 
+const TEARDOWN_REPLAY = syntheticReplay({ punches: 4, lazyCross: true, dropGuardOn: 1 });
+
 export default function VisualFixture() {
   const params = useParams();
   if (!ENABLED) notFound();
   const locale = getLocale(params?.locale);
   const t = (k) => translate(locale, k);
+
+  if (params?.screen === "teardown") {
+    // A synthetic round: jab, arm-only cross with the guard dropped, jab, cross.
+    return <PunchTeardown replay={TEARDOWN_REPLAY} locale={locale} onClose={() => {}} />;
+  }
 
   if (params?.screen === "progress") {
     const xp = 2340;

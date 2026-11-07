@@ -20,6 +20,7 @@ import ActionSummary         from "@/components/train/ActionSummary";
 import ResultActionsSection  from "@/components/train/ResultActionsSection";
 import ResultAnalysisSection from "@/components/train/ResultAnalysisSection";
 import MotionReplay3D        from "@/components/train/MotionReplay3D";
+import PunchTeardown         from "@/components/train/PunchTeardown";
 import { loc }               from "@/lib/loc";
 import { BRAND, btnSecondary } from "@/components/ui/brand";
 
@@ -98,6 +99,7 @@ export default function TrainResultModal({
   const [clipDuration,  setClipDuration]  = useState(null);
   const [showDnaShare,  setShowDnaShare]  = useState(false);
   const [replayOpen,    setReplayOpen]    = useState(false);
+  const [teardownOpen,  setTeardownOpen]  = useState(false);
   const [detailsOpen,   setDetailsOpen]   = useState(false);
   const [shareCopied,   setShareCopied]   = useState(false);
   const [blobUrl,      setBlobUrl]      = useState(null);
@@ -184,6 +186,16 @@ export default function TrainResultModal({
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ display: "block", fontWeight: 700, fontSize: 15 }}>{loc(locale, "Цохилтоо 3D-ээр хар", "펀치를 3D로 보기", "See your punches in 3D")}</span>
                 <span style={{ display: "block", fontSize: 13, color: BRAND.faint, marginTop: 2, fontWeight: 500 }}>{loc(locale, "Эргүүлж, удаашруулж, хамгаалалтаа шалга", "돌려보고 슬로모션으로 가드 확인", "Rotate, slow it down, check your guard")}</span>
+              </span>
+              <span aria-hidden="true" style={{ color: BRAND.faint }}>→</span>
+            </button>
+            <button type="button" data-testid="open-teardown" onClick={() => setTeardownOpen(true)} style={{ ...btnSecondary, justifyContent: "flex-start", textAlign: "left", minHeight: 60, padding: "10px 14px", marginTop: 8 }}>
+              <span aria-hidden="true" style={{ width: 36, height: 36, flexShrink: 0, borderRadius: 10, display: "grid", placeItems: "center", background: "rgba(245,196,81,0.14)", color: BRAND.gold }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12h4l2-6 4 12 2-6h6" /></svg>
+              </span>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ display: "block", fontWeight: 700, fontSize: 15 }}>{loc(locale, "Цохилт задлал", "펀치 분석", "Punch teardown")}</span>
+                <span style={{ display: "block", fontSize: 13, color: BRAND.faint, marginTop: 2, fontWeight: 500 }}>{loc(locale, "Бэлтгэл → Эргэлт → Сунгалт → Буцаалт, градус бүрээр", "장전 → 회전 → 뻗기 → 회수, 각도까지", "Load → Rotate → Extend → Return, angle by angle")}</span>
               </span>
               <span aria-hidden="true" style={{ color: BRAND.faint }}>→</span>
             </button>
@@ -332,6 +344,9 @@ export default function TrainResultModal({
       {/* ── 3D REPLAY ───────────────────────────────────────────────── */}
       {replayOpen && motionReplay && (
         <MotionReplay3D replay={motionReplay} locale={locale} onClose={() => setReplayOpen(false)} />
+      )}
+      {teardownOpen && motionReplay && (
+        <PunchTeardown replay={motionReplay} locale={locale} onClose={() => setTeardownOpen(false)} />
       )}
 
       {/* ── DNA SHARE SHEET ──────────────────────────────────────────── */}

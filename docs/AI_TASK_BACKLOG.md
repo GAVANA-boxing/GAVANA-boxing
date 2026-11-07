@@ -23,7 +23,10 @@ Ideas taken from what other builders made with Claude (procedural 3D, single-ima
 agent that drives a tool, game HUD, world simulator). Order = value to the core loop ÷ risk.
 
 0. Foundation — DONE (see AI_CHANGELOG "Roadmap Phase 0").
-1. **Punch Teardown replay** (from "3D robot from one image" — exploded view + HUD panels)
+1. **Punch Teardown replay** — DONE (AI_CHANGELOG "Roadmap Phase 1"). Follow-ups: ghost overlay of the
+   coach's reference punch in teardown; check the thresholds (15° shoulder, 8° hip, 150° elbow,
+   450 ms return) on real recordings with the owner.
+   Original idea (from "3D robot from one image" — exploded view + HUD panels):
    After a round, pick one punch: slow-motion 3D replay split into Load → Rotate → Extend → Return,
    with labeled panels (hip/shoulder turn °, elbow angle, reach, guard hand height) and the coach's
    ghost overlaid. Reuses: world landmarks, `lib/motionReplay.js`, `MotionReplay3D`, ghost reference.

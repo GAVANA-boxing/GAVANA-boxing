@@ -12,3 +12,5 @@
 - Push messages to real users can't be tested here (no FCM credentials in the container).
 - Visual threshold is 1% of pixels: a small icon/text change can pass unnoticed. After an
   intended UI change, regenerate that screen's baselines with `--update-snapshots=all`.
+- Punch Teardown thresholds are first guesses checked only on synthetic data; MediaPipe world
+  landmarks are noisy at 10–20 fps, so short phases (Load/Rotate) can be 1–2 frames on real punches.

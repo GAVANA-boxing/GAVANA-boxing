@@ -14,6 +14,7 @@ const readAvatar = () => {
 };
 
 const SPEEDS = [0.25, 0.5, 1];
+const FOCUS_PAD_MS = 250; // show a little before and after a focused punch
 const VIEWS = {
   // 3/4 view: punches toward the camera are foreshortened from the front,
   // so the default angle shows reach and shoulder turn.
@@ -32,11 +33,27 @@ const toV = (p, i) => [-p[i * 3], -p[i * 3 + 1], -p[i * 3 + 2]];
  * slow motion, jump to each punch. Wrists are green when the guard is up and
  * red when a hand is down outside a punch — computed from their real data.
  */
-export default function MotionReplay3D({ replay: rawReplay, ghost = null, locale, onClose, title, subtitle, action = null }) {
+/**
+ * Optional (Punch Teardown):
+ * - focus: { startT, endT } — loop just this window in slow motion.
+ * - hud(t, seek): React nodes drawn over the 3D view for the current time;
+ *   seek(t) jumps there and pauses.
+ * - extra: React nodes between the 3D view and the controls.
+ */
+export default function MotionReplay3D({ replay: rawReplay, ghost = null, locale, onClose, title, subtitle, action = null, focus = null, hud = null, extra = null }) {
   // Smoothed, knees fixed, feet planted — the raw camera data is jittery at ~10–20 fps.
   const replay = useMemo(() => refineReplay(rawReplay), [rawReplay]);
   const mountRef = useRef(null);
   const stateRef = useRef({ t: 0, playing: true, speed: 0.5 });
+  // Focused window (a single punch): jump there and play it at quarter speed.
+  const focusRef = useRef(focus);
+  useEffect(() => {
+    focusRef.current = focus;
+    if (focus) {
+      Object.assign(stateRef.current, { t: focus.startT - FOCUS_PAD_MS, playing: true, speed: 0.25 });
+      setUi((u) => ({ ...u, t: focus.startT - FOCUS_PAD_MS, playing: true, speed: 0.25 }));
+    }
+  }, [focus?.startT, focus?.endT]); // eslint-disable-line react-hooks/exhaustive-deps
   const apiRef = useRef(null);
   const [ui, setUi] = useState({ t: 0, playing: true, speed: 0.5 });
   const [failed, setFailed] = useState(false);
@@ -162,7 +179,10 @@ export default function MotionReplay3D({ replay: rawReplay, ghost = null, locale
         last = now;
         if (s.playing) {
           s.t += dt * s.speed;
-          if (s.t > replay.duration) s.t = 0; // loop
+          const f = focusRef.current;
+          if (f) {
+            if (s.t > f.endT + FOCUS_PAD_MS || s.t < f.startT - FOCUS_PAD_MS) s.t = f.startT - FOCUS_PAD_MS;
+          } else if (s.t > replay.duration) s.t = 0; // loop
         }
         draw(s.t);
         controls.update();
@@ -234,6 +254,7 @@ export default function MotionReplay3D({ replay: rawReplay, ghost = null, locale
       </div>
 
       <div ref={mountRef} style={{ flex: 1, minHeight: 240, position: "relative", touchAction: "none" }}>
+        {hud && <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>{hud(ui.t, (t) => set({ t, playing: false }))}</div>}
         {failed && (
           <p style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", color: whiteAlpha(0.6), fontSize: FONT_SIZE.base, padding: 24, textAlign: "center" }}>
             {L("Энэ төхөөрөмж 3D дүрслэлийг дэмжихгүй байна.", "이 기기는 3D 표시를 지원하지 않습니다.", "This device can't show 3D.")}
@@ -242,24 +263,28 @@ export default function MotionReplay3D({ replay: rawReplay, ghost = null, locale
       </div>
 
       <div style={{ padding: "10px 16px calc(14px + env(safe-area-inset-bottom))", display: "flex", flexDirection: "column", gap: 10 }}>
-        <div style={{ fontSize: FONT_SIZE.sm, color: whiteAlpha(0.75), display: "flex", gap: 14, flexWrap: "wrap" }}>
+        {extra}
+        {!focus && <div style={{ fontSize: FONT_SIZE.sm, color: whiteAlpha(0.75), display: "flex", gap: 14, flexWrap: "wrap" }}>
           <span><span style={{ color: GREEN }}>●</span> {L("Хамгаалалт дээр", "가드 업", "Guard up")}</span>
           <span><span style={{ color: RED }}>●</span> {L("Гар доошилсон", "손 내려감", "Hand down")}</span>
           <span><span style={{ color: GOLD }}>●</span> {L("Цохилт", "펀치", "Punch")}</span>
           <span style={{ marginLeft: "auto", color: dropPct > 25 ? RED : whiteAlpha(0.6) }}>
             {L("Гар доошилсон", "손 내려간 시간", "Guard down")}: {dropPct}%
           </span>
-        </div>
+        </div>}
 
         {/* Timeline with punch markers */}
         <div style={{ position: "relative", height: 26 }}>
           <input
-            type="range" min={0} max={Math.round(replay.duration)} value={Math.round(ui.t)}
+            type="range"
+            min={focus ? Math.round(focus.startT - FOCUS_PAD_MS) : 0}
+            max={focus ? Math.round(focus.endT + FOCUS_PAD_MS) : Math.round(replay.duration)}
+            value={Math.round(ui.t)}
             onChange={(e) => set({ t: Number(e.target.value), playing: false })}
             aria-label="Timeline"
             style={{ width: "100%", accentColor: RED }}
           />
-          {replay.punches.map((pk, i) => (
+          {!focus && replay.punches.map((pk, i) => (
             <span key={i} style={{ position: "absolute", top: 0, left: `${(pk.t / replay.duration) * 100}%`, width: 2, height: 8, background: GOLD, pointerEvents: "none" }} />
           ))}
         </div>
@@ -271,9 +296,11 @@ export default function MotionReplay3D({ replay: rawReplay, ghost = null, locale
           {SPEEDS.map((s) => (
             <button key={s} type="button" style={btn(ui.speed === s)} onClick={() => set({ speed: s })}>{s}×</button>
           ))}
-          <button type="button" style={btn(false)} onClick={jumpNext} disabled={!replay.punches.length}>
-            {L("Дараагийн цохилт →", "다음 펀치 →", "Next punch →")}
-          </button>
+          {!focus && (
+            <button type="button" style={btn(false)} onClick={jumpNext} disabled={!replay.punches.length}>
+              {L("Дараагийн цохилт →", "다음 펀치 →", "Next punch →")}
+            </button>
+          )}
           <span style={{ marginLeft: "auto", fontSize: FONT_SIZE.sm, color: whiteAlpha(0.5), fontVariantNumeric: "tabular-nums" }}>
             {secs(ui.t)} / {secs(replay.duration)}
           </span>
@@ -285,11 +312,11 @@ export default function MotionReplay3D({ replay: rawReplay, ghost = null, locale
           ))}
         </div>
 
-        <div role="radiogroup" aria-label={L("Дүр", "캐릭터", "Character")} style={{ display: "flex", gap: 6 }}>
+        {!focus && <div role="radiogroup" aria-label={L("Дүр", "캐릭터", "Character")} style={{ display: "flex", gap: 6 }}>
           {[["male", L("Эрэгтэй", "남성", "Male")], ["female", L("Эмэгтэй", "여성", "Female")], ["classic", L("Энгийн", "기본", "Classic")]].map(([k, label]) => (
             <button key={k} type="button" role="radio" aria-checked={avatar === k} style={{ ...btn(avatar === k), flex: 1 }} onClick={() => chooseAvatar(k)}>{label}</button>
           ))}
-        </div>
+        </div>}
 
         {action && (
           <button type="button" onClick={action.onClick} style={{
