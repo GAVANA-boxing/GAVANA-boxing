@@ -401,7 +401,7 @@ export default function TermsPage() {
         </button>
         <div style={{ flex: 1 }} />
         <span style={{
-          fontSize: 9, fontWeight: 900, letterSpacing: 1.5,
+          fontSize: 11.5, fontWeight: 800, letterSpacing: 1.2,
           color: GOLD, background: `${GOLD}15`,
           border: `1px solid ${GOLD}30`,
           borderRadius: 6, padding: "3px 8px", textTransform: "uppercase",
@@ -492,7 +492,7 @@ export default function TermsPage() {
           textAlign: "center",
         }}>
           <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.3)", lineHeight: 1.6 }}>
-            © 2025 GAVANA Boxing. All rights reserved.
+            © {new Date().getFullYear()} GAVANA Boxing. All rights reserved.
           </p>
         </div>
       </div>
