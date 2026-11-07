@@ -1,0 +1,234 @@
+{
+  "id": "20261107T145855Z-124f6dd",
+  "key": "0c64cfef",
+  "task": "a11y-small-text:components/profile/FighterShareCard.js — raise text under 11 px (cycle 20261107T145626Z-eace9f3)",
+  "branch": "claude/review-refactor-code-DUmiX",
+  "commit": "124f6dd",
+  "base": "@{upstream}",
+  "dirty": true,
+  "startedAt": "2026-11-07T14:58:55.927Z",
+  "finishedAt": "2026-11-07T15:04:44.590Z",
+  "durationS": 349,
+  "cost": {
+    "paidApiCalls": 0,
+    "note": "checks run locally; no paid APIs"
+  },
+  "change": {
+    "level": "GREEN",
+    "files": [
+      {
+        "path": "app/[locale]/visual/[screen]/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/profile/FighterShareCard.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "tests/visual/screens.spec.mjs",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "evolve/queue.json",
+        "level": "GREEN",
+        "why": "evolve state written by the cycle tooling"
+      },
+      {
+        "path": "tests/visual/__screenshots__/share-card-mn-360.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/share-card-mn-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "name": "lint",
+      "ms": 36061,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0,
+        "warnings": 23
+      }
+    },
+    {
+      "name": "typecheck",
+      "ms": 1544,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0
+      }
+    },
+    {
+      "name": "unit",
+      "ms": 3544,
+      "status": "PASS",
+      "metrics": {
+        "passed": 252,
+        "failed": 0
+      }
+    },
+    {
+      "name": "build",
+      "ms": 18152,
+      "status": "PASS",
+      "metrics": {}
+    },
+    {
+      "name": "bundle",
+      "status": "PASS",
+      "metrics": {
+        "kb": 6619
+      }
+    },
+    {
+      "name": "punch",
+      "ms": 67,
+      "status": "PASS",
+      "metrics": {
+        "macroF1": 0.904,
+        "recall": 0.897,
+        "precision": 1,
+        "phantoms": 0
+      }
+    },
+    {
+      "name": "visual",
+      "ms": 289278,
+      "status": "FAIL",
+      "metrics": {
+        "passed": 50,
+        "failed": 1,
+        "flaky": 0
+      },
+      "tail": "Running 51 tests using 1 worker\n\n\n\n\n\n  1) tests/visual/screens.spec.mjs:84:3 › teardown mn-360 ──────────────────────────────────────────\n\n    Error: Timeout 15000ms exceeded while waiting on the predicate\n\n       95 |       await expect(page.getByRole(\"button\", { name: \"▶\" })).toBeVisible({ timeout: 800 });\n       96 |       await expect(page.getByText(\"1.8s / 5.4s\")).toBeVisible({ timeout: 800 });\n    >  97 |     }).toPass({ timeout: 15_000 });\n          |        ^\n       98 |     await page.addStyleTag({ content: \"canvas { opacity: 0 !important; }\" });\n       99 |     await settle(page);\n      100 |     await expect(page).toHaveScreenshot(`teardown-${v.id}.png`);\n        at /home/user/GAVANA-boxing/tests/visual/screens.spec.mjs:97:8\n\n    Error Context: test-results/screens-teardown-mn-360/error-context.md\n\n\n\n\n\n\n  1 failed\n    tests/visual/screens.spec.mjs:84:3 › teardown mn-360 ───────────────────────────────────────────\n  50 passed (4.8m)\n\n(node:17801) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:17801) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:18700) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:18700) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "name": "rules",
+      "status": "NOT RUN",
+      "note": "pass --rules to run"
+    }
+  ],
+  "comparison": [
+    {
+      "metric": "lint.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "lint.warnings",
+      "baseline": 23,
+      "value": 23,
+      "limit": "≤ 23",
+      "status": "PASS"
+    },
+    {
+      "metric": "typecheck.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.passed",
+      "baseline": 241,
+      "value": 252,
+      "limit": "≥ 241",
+      "status": "PASS"
+    },
+    {
+      "metric": "bundle.kb",
+      "baseline": 6598,
+      "value": 6619,
+      "limit": "≤ 6928",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.macroF1",
+      "baseline": 0.904,
+      "value": 0.904,
+      "limit": "≥ 0.9035000000000001",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.phantoms",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.failed",
+      "baseline": 0,
+      "value": 1,
+      "limit": "≤ 0",
+      "status": "FAIL"
+    },
+    {
+      "metric": "visual.passed",
+      "baseline": 49,
+      "value": 50,
+      "limit": "≥ 49",
+      "status": "PASS"
+    },
+    {
+      "metric": "rules.failed",
+      "status": "NOT RUN"
+    },
+    {
+      "metric": "rules.passed",
+      "status": "NOT RUN"
+    }
+  ],
+  "verdict": "REJECTED",
+  "verdictNote": "failed: visual; regressed: visual.failed",
+  "history": [
+    {
+      "state": "PENDING",
+      "at": "2026-11-07T14:58:55.927Z",
+      "note": "created"
+    },
+    {
+      "state": "PLANNING",
+      "at": "2026-11-07T14:58:55.927Z",
+      "note": "a11y-small-text:components/profile/FighterShareCard.js — raise text under 11 px (cycle 20261107T145626Z-eace9f3)"
+    },
+    {
+      "state": "IMPLEMENTING",
+      "at": "2026-11-07T14:58:55.927Z",
+      "note": "6 changed file(s) vs @{upstream}, risk GREEN"
+    },
+    {
+      "state": "VERIFYING",
+      "at": "2026-11-07T14:58:55.927Z",
+      "note": ""
+    },
+    {
+      "state": "EVALUATING",
+      "at": "2026-11-07T15:04:44.579Z",
+      "note": ""
+    },
+    {
+      "state": "REJECTED",
+      "at": "2026-11-07T15:04:44.580Z",
+      "note": "failed: visual; regressed: visual.failed"
+    }
+  ],
+  "baselineCommit": "37f2e45"
+}
