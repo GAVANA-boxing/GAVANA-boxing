@@ -6,6 +6,7 @@
 //                                        [--run <run-id>] [--commit <sha>] [--note "…"]
 //   node scripts/evolve/cycle.mjs status                 → control, lock, queue summary
 //   node scripts/evolve/cycle.mjs release --force        → drop a stuck lock (owner / recovery)
+//   node scripts/evolve/cycle.mjs add --fingerprint k:id --title "…" [--files a,b] [--priority n]
 //
 // State is in git on the authorized branch (persists across processes, machines and
 // sessions): evolve/control.json (kill switch, budgets — owner-controlled), evolve/lock.json
@@ -125,6 +126,22 @@ if (cmd === "finish") {
   process.exit(pushed.ok ? 0 : 1);
 }
 
+if (cmd === "add") {
+  // A task the scanners can't see (found by a person, a failed cycle or an audit).
+  const title = opt("title"), fp = opt("fingerprint"), files = (opt("files", "") || "").split(",").filter(Boolean);
+  if (!title || !fp) { console.error('add --fingerprint <kind:id> --title "…" [--files a,b] [--priority 0-100] [--fix "…"]'); process.exit(64); }
+  const { classifyChange } = await import(join(ROOT, "lib/evolve/policy.js"));
+  const queue = read(F.queue, { tasks: [] });
+  if (queue.tasks.some((t) => t.fingerprint === fp)) { say("EXISTS", { fingerprint: fp }); process.exit(0); }
+  const risk = files.length ? classifyChange(files).level : "YELLOW";
+  queue.tasks.push({ fingerprint: fp, kind: fp.split(":")[0], source: "manual", title, files, evidence: [opt("evidence", title)], fix: opt("fix", ""), priority: Number(opt("priority", 80)), risk, status: risk === "RED" ? Q.TASK.BLOCKED : Q.TASK.OPEN, attempts: 0, createdAt: iso(), updatedAt: iso(), history: [] });
+  queue.tasks.sort((x, y) => y.priority - x.priority);
+  write(F.queue, queue);
+  const r = commitPush(`evolve: add task ${fp}`, ["evolve/queue.json"]);
+  say(r.ok ? "ADDED" : "ADDED_LOCAL", { fingerprint: fp, risk });
+  process.exit(r.ok ? 0 : 1);
+}
+
 if (cmd === "release") {
   if (!argv.includes("--force")) { console.error("release needs --force"); process.exit(64); }
   if (!existsSync(F.lock)) { say("NO_LOCK"); process.exit(0); }
@@ -137,5 +154,5 @@ if (cmd === "release") {
   process.exit(r.ok ? 0 : 1);
 }
 
-console.error("usage: cycle.mjs start | finish --outcome … | status | release --force");
+console.error("usage: cycle.mjs start | finish --outcome … | status | add … | release --force");
 process.exit(64);
