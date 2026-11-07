@@ -1,0 +1,237 @@
+{
+  "id": "20261107T204820Z-e4f6225",
+  "key": "e3adfdbe",
+  "task": "Evolve: owner-only /admin/evolution dashboard, runs index, model registry + dataset manifest",
+  "branch": "claude/review-refactor-code-DUmiX",
+  "commit": "e4f6225",
+  "base": "@{upstream}",
+  "dirty": true,
+  "startedAt": "2026-11-07T20:48:20.249Z",
+  "finishedAt": "2026-11-07T20:49:17.613Z",
+  "durationS": 57,
+  "cost": {
+    "paidApiCalls": 0,
+    "note": "checks run locally; no paid APIs"
+  },
+  "change": {
+    "level": "RED",
+    "files": [
+      {
+        "path": "scripts/evolve/approve.mjs",
+        "level": "RED",
+        "why": "evolve guardrails"
+      },
+      {
+        "path": "scripts/evolve/check.mjs",
+        "level": "RED",
+        "why": "evolve guardrails"
+      },
+      {
+        "path": "app/[locale]/admin/evolution/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "evolve/coach/datasets/fixture-da8f300690b5.json",
+        "level": "GREEN",
+        "why": "evolve state written by the cycle tooling"
+      },
+      {
+        "path": "evolve/coach/models.json",
+        "level": "RED",
+        "why": "model registry (promotion needs the owner)"
+      },
+      {
+        "path": "evolve/runs-index.json",
+        "level": "GREEN",
+        "why": "evolve state written by the cycle tooling"
+      },
+      {
+        "path": "lib/evolve/runsIndex.js",
+        "level": "RED",
+        "why": "evolve guardrails"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "name": "lint",
+      "ms": 33481,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0,
+        "warnings": 23
+      }
+    },
+    {
+      "name": "typecheck",
+      "ms": 2089,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0
+      }
+    },
+    {
+      "name": "unit",
+      "ms": 4172,
+      "status": "PASS",
+      "metrics": {
+        "passed": 252,
+        "failed": 0
+      }
+    },
+    {
+      "name": "build",
+      "ms": 17543,
+      "status": "PASS",
+      "metrics": {}
+    },
+    {
+      "name": "bundle",
+      "status": "PASS",
+      "metrics": {
+        "kb": 6620
+      }
+    },
+    {
+      "name": "punch",
+      "ms": 64,
+      "status": "PASS",
+      "metrics": {
+        "macroF1": 0.904,
+        "recall": 0.897,
+        "precision": 1,
+        "phantoms": 0
+      }
+    },
+    {
+      "name": "visual",
+      "status": "NOT RUN",
+      "note": "pass --visual to run"
+    },
+    {
+      "name": "rules",
+      "status": "NOT RUN",
+      "note": "pass --rules to run"
+    }
+  ],
+  "comparison": [
+    {
+      "metric": "lint.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "lint.warnings",
+      "baseline": 23,
+      "value": 23,
+      "limit": "≤ 23",
+      "status": "PASS"
+    },
+    {
+      "metric": "typecheck.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.passed",
+      "baseline": 241,
+      "value": 252,
+      "limit": "≥ 241",
+      "status": "PASS"
+    },
+    {
+      "metric": "bundle.kb",
+      "baseline": 6598,
+      "value": 6620,
+      "limit": "≤ 6928",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.macroF1",
+      "baseline": 0.904,
+      "value": 0.904,
+      "limit": "≥ 0.9035000000000001",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.phantoms",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.failed",
+      "status": "NOT RUN"
+    },
+    {
+      "metric": "visual.passed",
+      "status": "NOT RUN"
+    },
+    {
+      "metric": "rules.failed",
+      "status": "NOT RUN"
+    },
+    {
+      "metric": "rules.passed",
+      "status": "NOT RUN"
+    }
+  ],
+  "verdict": "ACCEPTED",
+  "verdictNote": "RED paths need the owner: scripts/evolve/approve.mjs (evolve guardrails), scripts/evolve/check.mjs (evolve guardrails), evolve/coach/models.json (model registry (promotion needs the owner)), lib/evolve/runsIndex.js (evolve guardrails)",
+  "history": [
+    {
+      "state": "PENDING",
+      "at": "2026-11-07T20:48:20.249Z",
+      "note": "created"
+    },
+    {
+      "state": "PLANNING",
+      "at": "2026-11-07T20:48:20.249Z",
+      "note": "Evolve: owner-only /admin/evolution dashboard, runs index, model registry + dataset manifest"
+    },
+    {
+      "state": "IMPLEMENTING",
+      "at": "2026-11-07T20:48:20.250Z",
+      "note": "7 changed file(s) vs @{upstream}, risk RED"
+    },
+    {
+      "state": "VERIFYING",
+      "at": "2026-11-07T20:48:20.250Z",
+      "note": ""
+    },
+    {
+      "state": "EVALUATING",
+      "at": "2026-11-07T20:49:17.605Z",
+      "note": ""
+    },
+    {
+      "state": "AWAITING_APPROVAL",
+      "at": "2026-11-07T20:49:17.605Z",
+      "note": "RED paths need the owner: scripts/evolve/approve.mjs (evolve guardrails), scripts/evolve/check.mjs (evolve guardrails), evolve/coach/models.json (model registry (promotion needs the owner)), lib/evolve/runsIndex.js (evolve guardrails)"
+    },
+    {
+      "state": "ACCEPTED",
+      "at": "2026-11-07T20:49:24.583Z",
+      "note": "Engine building pre-authorized by the owner (PRE-AUTHORIZED AUTONOMY POLICY v1.0 + directive §20 dashboard, chat 2026-11-07). models.json only registers the detector already in production — no promotion. Recorded by the agent on that instruction."
+    }
+  ],
+  "baselineCommit": "37f2e45",
+  "decision": {
+    "by": "owner",
+    "note": "Engine building pre-authorized by the owner (PRE-AUTHORIZED AUTONOMY POLICY v1.0 + directive §20 dashboard, chat 2026-11-07). models.json only registers the detector already in production — no promotion. Recorded by the agent on that instruction.",
+    "at": "2026-11-07T20:49:24.583Z"
+  }
+}

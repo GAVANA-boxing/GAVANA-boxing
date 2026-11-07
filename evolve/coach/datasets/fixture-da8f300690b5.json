@@ -1,0 +1,54 @@
+{
+  "id": "fixture-da8f300690b5",
+  "file": "tests/fixtures/punch-landmarks.json",
+  "sha256": "da8f300690b5348f3f53fcbc1fe51daa879631fdf023ceed51ecd614d6d3dc1b",
+  "createdFrom": "scripts/punch-eval (dump=1) over labelled clips on the punch-clips branches",
+  "provenance": "The owner's own recordings (one southpaw fighter, one room, one camera angle). Landmarks only \u2014 no video in this repo.",
+  "consent": "Owner \u2014 own footage, used for detector evaluation. No user data.",
+  "labels": "Punch peak times per hand read frame by frame from the video by a human (truth.json); not AI-generated.",
+  "split": {
+    "test": [
+      "jabcross",
+      "IMG_6156",
+      "IMG_6153",
+      "IMG_6182",
+      "IMG_6181",
+      "IMG_6155"
+    ],
+    "train": [],
+    "note": "All 6 clips are evaluation-only. Nothing may be trained on them while they are the only test set."
+  },
+  "clips": {
+    "jabcross": {
+      "kind": "straight",
+      "punches": 8,
+      "frames": 41
+    },
+    "IMG_6156": {
+      "kind": "straight",
+      "punches": 12,
+      "frames": 62
+    },
+    "IMG_6153": {
+      "kind": "straight",
+      "punches": 6,
+      "frames": 51
+    },
+    "IMG_6182": {
+      "kind": "hook",
+      "punches": 5,
+      "frames": 30
+    },
+    "IMG_6181": {
+      "kind": "hook",
+      "punches": 4,
+      "frames": 26
+    },
+    "IMG_6155": {
+      "kind": "hook",
+      "punches": 4,
+      "frames": 42
+    }
+  },
+  "punches": 39
+}

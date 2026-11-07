@@ -32,4 +32,10 @@ rec.verdict = run.state;
 rec.history = run.history;
 rec.decision = { by: "owner", note, at: run.history.at(-1).at };
 writeFileSync(file, JSON.stringify(rec, null, 2) + "\n");
+{
+  const { upsertRun } = await import(join(ROOT, "lib/evolve/runsIndex.js"));
+  const idxFile = join(ROOT, "evolve/runs-index.json");
+  const idx = existsSync(idxFile) ? JSON.parse(readFileSync(idxFile, "utf8")) : { runs: [] };
+  writeFileSync(idxFile, JSON.stringify(upsertRun(idx, rec), null, 2) + "\n");
+}
 console.log(`${id} → ${run.state}`);

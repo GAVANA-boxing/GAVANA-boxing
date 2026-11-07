@@ -1,0 +1,381 @@
+{
+  "runs": [
+    {
+      "id": "20261107T204820Z-e4f6225",
+      "task": "Evolve: owner-only /admin/evolution dashboard, runs index, model registry + dataset manifest",
+      "verdict": "ACCEPTED",
+      "commit": "e4f6225",
+      "at": "2026-11-07T20:49:17.613Z",
+      "durationS": 57,
+      "level": "RED",
+      "failedSteps": [],
+      "notRun": [
+        "visual",
+        "rules"
+      ],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 252,
+        "unit.failed": 0,
+        "bundle.kb": 6620,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0
+      },
+      "decision": "owner"
+    },
+    {
+      "id": "20261107T153609Z-e9aa33f",
+      "task": "Evolve: runner instructions + observer reads ternary font sizes",
+      "verdict": "ACCEPTED",
+      "commit": "e9aa33f",
+      "at": "2026-11-07T15:36:51.604Z",
+      "durationS": 42,
+      "level": "RED",
+      "failedSteps": [],
+      "notRun": [
+        "build",
+        "bundle",
+        "visual",
+        "rules"
+      ],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 252,
+        "unit.failed": 0,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0
+      },
+      "decision": "owner"
+    },
+    {
+      "id": "20261107T152945Z-6bbc947",
+      "task": "a11y-small-text:components/profile/FighterShareCard.js — raise text under 11 px (attempt 2)",
+      "verdict": "ACCEPTED",
+      "commit": "6bbc947",
+      "at": "2026-11-07T15:35:05.036Z",
+      "durationS": 319,
+      "level": "GREEN",
+      "failedSteps": [],
+      "notRun": [
+        "rules"
+      ],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 252,
+        "unit.failed": 0,
+        "bundle.kb": 6620,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 51,
+        "visual.failed": 0,
+        "visual.flaky": 0
+      },
+      "decision": null
+    },
+    {
+      "id": "20261107T152340Z-cfa4709",
+      "task": "test-flake:visual-webgl-load — requestAdapter timeout, teardown shots without WebGL, bag shot timeout, playtest ignores unmount context loss (cycle 20261107T151256Z-d9f7811, attempt 2)",
+      "verdict": "ACCEPTED",
+      "commit": "cfa4709",
+      "at": "2026-11-07T15:28:36.118Z",
+      "durationS": 295,
+      "level": "GREEN",
+      "failedSteps": [],
+      "notRun": [
+        "rules"
+      ],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 252,
+        "unit.failed": 0,
+        "bundle.kb": 6598,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 49,
+        "visual.failed": 0,
+        "visual.flaky": 0
+      },
+      "decision": null
+    },
+    {
+      "id": "20261107T151715Z-cfa4709",
+      "task": "test-flake:visual-webgl-load — requestAdapter timeout, teardown shots without WebGL, bag shot timeout (cycle 20261107T151256Z-d9f7811)",
+      "verdict": "REJECTED",
+      "commit": "cfa4709",
+      "at": "2026-11-07T15:22:24.039Z",
+      "durationS": 308,
+      "level": "GREEN",
+      "failedSteps": [
+        "visual"
+      ],
+      "notRun": [
+        "rules"
+      ],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 252,
+        "unit.failed": 0,
+        "bundle.kb": 6598,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 48,
+        "visual.failed": 1,
+        "visual.flaky": 0
+      },
+      "decision": null
+    },
+    {
+      "id": "20261107T151158Z-c006069",
+      "task": "Evolve engine: cycle add command for manual tasks",
+      "verdict": "ACCEPTED",
+      "commit": "c006069",
+      "at": "2026-11-07T15:12:42.754Z",
+      "durationS": 45,
+      "level": "RED",
+      "failedSteps": [],
+      "notRun": [
+        "build",
+        "bundle",
+        "visual",
+        "rules"
+      ],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 252,
+        "unit.failed": 0,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0
+      },
+      "decision": "owner"
+    },
+    {
+      "id": "20261107T150558Z-124f6dd",
+      "task": "a11y-small-text:components/profile/FighterShareCard.js — raise text under 11 px (cycle 20261107T145626Z-eace9f3)",
+      "verdict": "REJECTED",
+      "commit": "124f6dd",
+      "at": "2026-11-07T15:11:14.836Z",
+      "durationS": 316,
+      "level": "GREEN",
+      "failedSteps": [
+        "visual"
+      ],
+      "notRun": [
+        "rules"
+      ],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 252,
+        "unit.failed": 0,
+        "bundle.kb": 6619,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 50,
+        "visual.failed": 1,
+        "visual.flaky": 0
+      },
+      "decision": null
+    },
+    {
+      "id": "20261107T145855Z-124f6dd",
+      "task": "a11y-small-text:components/profile/FighterShareCard.js — raise text under 11 px (cycle 20261107T145626Z-eace9f3)",
+      "verdict": "REJECTED",
+      "commit": "124f6dd",
+      "at": "2026-11-07T15:04:44.590Z",
+      "durationS": 349,
+      "level": "GREEN",
+      "failedSteps": [
+        "visual"
+      ],
+      "notRun": [
+        "rules"
+      ],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 252,
+        "unit.failed": 0,
+        "bundle.kb": 6619,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 50,
+        "visual.failed": 1,
+        "visual.flaky": 0
+      },
+      "decision": null
+    },
+    {
+      "id": "20261107T145513Z-8dab339",
+      "task": "Evolve engine: persistent queue, git lock, memory, kill switch, observer, cycle orchestrator",
+      "verdict": "ACCEPTED",
+      "commit": "8dab339",
+      "at": "2026-11-07T14:56:14.358Z",
+      "durationS": 61,
+      "level": "RED",
+      "failedSteps": [],
+      "notRun": [
+        "visual",
+        "rules"
+      ],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 252,
+        "unit.failed": 0,
+        "bundle.kb": 6598,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0
+      },
+      "decision": "owner"
+    },
+    {
+      "id": "20261107T144940Z-0bd15bd",
+      "task": "docs: engineering cycles run evolve:check (rules doc wiring)",
+      "verdict": "ACCEPTED",
+      "commit": "0bd15bd",
+      "at": "2026-11-07T14:50:42.556Z",
+      "durationS": 62,
+      "level": "RED",
+      "failedSteps": [],
+      "notRun": [
+        "visual",
+        "rules"
+      ],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 242,
+        "unit.failed": 0,
+        "bundle.kb": 6598,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0
+      },
+      "decision": "owner"
+    },
+    {
+      "id": "20261107T144315Z-37f2e45",
+      "task": "EVOLVE Engineer AI MVP: evolve:check runner, run state machine, change policy, rules-test isolation + CI job",
+      "verdict": "ACCEPTED",
+      "commit": "37f2e45",
+      "at": "2026-11-07T14:49:04.859Z",
+      "durationS": 350,
+      "level": "RED",
+      "failedSteps": [],
+      "notRun": [],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 242,
+        "unit.failed": 0,
+        "bundle.kb": 6598,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 49,
+        "visual.failed": 0,
+        "visual.flaky": 0,
+        "rules.passed": 24,
+        "rules.failed": 0
+      },
+      "decision": "owner"
+    },
+    {
+      "id": "20261107T143118Z-37f2e45",
+      "task": "EVOLVE Engineer AI MVP: evolve:check runner, run state machine, change policy, rules-test isolation + CI job",
+      "verdict": "REJECTED",
+      "commit": "37f2e45",
+      "at": "2026-11-07T14:36:39.245Z",
+      "durationS": 320,
+      "level": "RED",
+      "failedSteps": [
+        "visual"
+      ],
+      "notRun": [],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 242,
+        "unit.failed": 0,
+        "bundle.kb": 6598,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 46,
+        "visual.failed": 3,
+        "visual.flaky": 0,
+        "rules.passed": 24,
+        "rules.failed": 0
+      },
+      "decision": null
+    },
+    {
+      "id": "20261107T142401Z-37f2e45",
+      "task": "EVOLVE: initial baseline",
+      "verdict": "ACCEPTED",
+      "commit": "37f2e45",
+      "at": "2026-11-07T14:30:09.854Z",
+      "durationS": 368,
+      "level": "RED",
+      "failedSteps": [],
+      "notRun": [],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 241,
+        "unit.failed": 0,
+        "bundle.kb": 6598,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 49,
+        "visual.failed": 0,
+        "visual.flaky": 0,
+        "rules.passed": 24,
+        "rules.failed": 0
+      },
+      "decision": "owner"
+    }
+  ]
+}

@@ -240,6 +240,14 @@ if (flag("write-baseline")) {
 
 const file = join(RUNS_DIR, `${id}.json`);
 writeFileSync(file, JSON.stringify(record, null, 2) + "\n");
+// Compact index for the owner dashboard (/admin/evolution).
+{
+  const { upsertRun } = await import(join(ROOT, "lib/evolve/runsIndex.js"));
+  const idxFile = join(ROOT, "evolve/runs-index.json");
+  const idx = existsSync(idxFile) ? JSON.parse(readFileSync(idxFile, "utf8")) : { runs: [] };
+  mkdirSync(join(ROOT, "evolve"), { recursive: true });
+  writeFileSync(idxFile, JSON.stringify(upsertRun(idx, record), null, 2) + "\n");
+}
 console.log(`\n${run.state} — ${verdictNote}\nrecord: ${relative(ROOT, file)}`);
 for (const c of comparison.filter((x) => x.status === "FAIL")) console.log(`  ✗ ${c.metric}: ${c.value} (baseline ${c.baseline}, limit ${c.limit})`);
 process.exit({ ACCEPTED: 0, AWAITING_APPROVAL: 2, BLOCKED: 3 }[run.state] ?? 1);

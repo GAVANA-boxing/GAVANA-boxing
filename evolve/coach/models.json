@@ -1,0 +1,57 @@
+{
+  "_note": "Model registry. Promotion = owner decision (RED path). Engine B training is NOT operational: no consented multi-person dataset exists yet.",
+  "current": "rule-v1",
+  "models": [
+    {
+      "id": "rule-v1",
+      "kind": "rule-based (2D state machine + 3D world-landmark typing)",
+      "code": "lib/punchPhaseDetector.js",
+      "status": "production",
+      "evaluatedOn": "fixture-da8f300690b5",
+      "metrics": {
+        "macroF1": 0.904,
+        "perClass": {
+          "jab": {
+            "support": 16,
+            "predicted": 16,
+            "precision": 1,
+            "recall": 1,
+            "f1": 1
+          },
+          "cross": {
+            "support": 10,
+            "predicted": 9,
+            "precision": 0.889,
+            "recall": 0.8,
+            "f1": 0.842
+          },
+          "hook": {
+            "support": 13,
+            "predicted": 10,
+            "precision": 1,
+            "recall": 0.769,
+            "f1": 0.87
+          }
+        },
+        "detection": {
+          "recall": 0.897,
+          "precision": 1,
+          "phantoms": 0
+        }
+      },
+      "latency": {
+        "onDevice": "NOT RUN (needs phones)",
+        "nodeCpuMsPerFrame": 0.031
+      },
+      "approval": "In production before Evolve existed (owner-run detector work, 2026-11-06)."
+    }
+  ],
+  "experiments": [],
+  "pipeline": {
+    "collect": "BLOCKED \u2014 needs a consent flow and storage decision (RED: data model, privacy)",
+    "label": "BLOCKED \u2014 needs collected data",
+    "train": "BLOCKED \u2014 needs a labelled multi-person train set separate from the test set",
+    "evaluate": "READY \u2014 scripts/punch-eval/metrics.mjs",
+    "register": "READY \u2014 this file; promotion needs the owner"
+  }
+}
