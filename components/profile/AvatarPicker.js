@@ -125,6 +125,7 @@ export default function AvatarPicker({
         ref={fileInputRef}
         type="file"
         accept="image/*"
+        aria-label={t("Зураг солих", "사진 변경", "Change profile photo")}
         onChange={onFileSelect}
         style={{ display: "none" }}
       />

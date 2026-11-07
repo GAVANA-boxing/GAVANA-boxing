@@ -87,8 +87,10 @@ export default function AuthEmailForm({
     <form onSubmit={onSubmit} style={{ display: "grid", gap: 18 }}>
       {isSignUp && (
         <div style={S.fieldGroup}>
-          <label style={S.label}>{labels.displayName}</label>
+          <label htmlFor="auth-name" style={S.label}>{labels.displayName}</label>
           <input
+            id="auth-name"
+            autoComplete="nickname"
             className="combat-input"
             type="text"
             value={displayName}
@@ -104,8 +106,10 @@ export default function AuthEmailForm({
       )}
 
       <div style={S.fieldGroup}>
-        <label style={S.label}>{labels.email}</label>
+        <label htmlFor="auth-email" style={S.label}>{labels.email}</label>
         <input
+            id="auth-email"
+            autoComplete="email"
           className="combat-input"
           type="email"
           value={email}
@@ -119,8 +123,10 @@ export default function AuthEmailForm({
       </div>
 
       <div style={S.fieldGroup}>
-        <label style={S.label}>{labels.password}</label>
+        <label htmlFor="auth-password" style={S.label}>{labels.password}</label>
         <input
+            id="auth-password"
+            autoComplete={isSignUp ? "new-password" : "current-password"}
           className="combat-input"
           type="password"
           value={password}
@@ -136,8 +142,10 @@ export default function AuthEmailForm({
 
       {isSignUp && (
         <div style={S.fieldGroup}>
-          <label style={S.label}>{labels.confirmPassword}</label>
+          <label htmlFor="auth-confirm" style={S.label}>{labels.confirmPassword}</label>
           <input
+            id="auth-confirm"
+            autoComplete="new-password"
             className="combat-input"
             type="password"
             value={confirmPassword}

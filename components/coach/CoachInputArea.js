@@ -80,6 +80,7 @@ export default function CoachInputArea({
           onChange={(e) => onInputChange(e.target.value)}
           onKeyDown={onKeyDown}
           placeholder={placeholder}
+          aria-label={placeholder}
           disabled={loading}
           style={s.input}
         />

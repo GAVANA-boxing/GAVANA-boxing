@@ -193,8 +193,9 @@ export default function EditProfilePage() {
 
           {/* Display name */}
           <div style={styles.field}>
-            <label style={styles.label}>{t("Нэр", "이름", "Display name")}</label>
+            <label htmlFor="edit-name" style={styles.label}>{t("Нэр", "이름", "Display name")}</label>
             <input
+              id="edit-name"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               maxLength={40}
@@ -205,10 +206,11 @@ export default function EditProfilePage() {
 
           {/* Username */}
           <div style={styles.field}>
-            <label style={styles.label}>{t("Хэрэглэгчийн нэр", "사용자명", "Username")}</label>
+            <label htmlFor="edit-username" style={styles.label}>{t("Хэрэглэгчийн нэр", "사용자명", "Username")}</label>
             <div style={styles.usernameWrap}>
               <span style={styles.usernameAt}>@</span>
               <input
+              id="edit-username"
                 value={username}
                 onChange={(e) => {
                   setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ""));
@@ -227,8 +229,9 @@ export default function EditProfilePage() {
 
           {/* Bio */}
           <div style={styles.field}>
-            <label style={styles.label}>{t("Танилцуулга", "자기소개", "Bio")}</label>
+            <label htmlFor="edit-bio" style={styles.label}>{t("Танилцуулга", "자기소개", "Bio")}</label>
             <textarea
+              id="edit-bio"
               value={bio}
               onChange={(e) => setBio(e.target.value.slice(0, 160))}
               maxLength={160}
