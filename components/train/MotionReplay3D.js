@@ -206,7 +206,7 @@ export default function MotionReplay3D({ replay: rawReplay, ghost = null, locale
   const secs = (ms) => `${(ms / 1000).toFixed(1)}s`;
 
   const btn = (active) => ({
-    padding: "7px 11px", borderRadius: RADIUS.sm, cursor: "pointer",
+    minHeight: 40, padding: "0 12px", borderRadius: RADIUS.sm, cursor: "pointer", fontFamily: "inherit",
     fontSize: FONT_SIZE.sm, fontWeight: FONT_WEIGHT.bold,
     border: `1px solid ${active ? redAlpha(0.55) : whiteAlpha(0.12)}`,
     background: active ? redAlpha(0.16) : whiteAlpha(0.04),

@@ -166,7 +166,7 @@ const wrap = {
   margin: "0 auto",
   padding: "calc(24px + env(safe-area-inset-top)) 16px calc(110px + env(safe-area-inset-bottom))",
 };
-const summary = { cursor: "pointer", fontSize: 14, fontWeight: 600, color: BRAND.muted, listStyle: "revert" };
+const summary = { cursor: "pointer", fontSize: 14, fontWeight: 600, color: BRAND.muted, listStyle: "revert", padding: "10px 0" }; // ≥ 40 px tap target
 const rowBtn = {
   display: "flex", alignItems: "center", gap: 12, width: "100%", textAlign: "left",
   padding: "16px 18px", cursor: "pointer", color: BRAND.text, font: "inherit",

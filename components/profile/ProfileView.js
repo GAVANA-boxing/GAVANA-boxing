@@ -312,4 +312,4 @@ const streakChip = {
 };
 const sectionHead = { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 };
 const tileRow = { display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4, margin: "0 -16px", paddingLeft: 16, paddingRight: 16, scrollbarWidth: "none" };
-const linkBtn = { background: "none", border: "none", padding: 0, color: BRAND.muted, fontFamily: "inherit", fontSize: 14, fontWeight: 600, cursor: "pointer" };
+const linkBtn = { background: "none", border: "none", padding: "10px 4px", margin: "-10px -4px", color: BRAND.muted, fontFamily: "inherit", fontSize: 14, fontWeight: 600, cursor: "pointer" };

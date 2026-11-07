@@ -752,13 +752,15 @@ export default function TrainPage() {
               onClick={() => router.push(`/${locale}/login?mode=signup`)}
               style={{
                 flexShrink: 0,
-                padding: "6px 12px",
-                borderRadius: 8,
+                minHeight: 40,
+                padding: "0 14px",
+                borderRadius: 10,
                 border: "none",
                 background: "rgba(245,196,81,0.18)",
                 color: "#F5C451",
-                fontSize: 11,
-                fontWeight: 900,
+                fontFamily: "inherit",
+                fontSize: 13,
+                fontWeight: 700,
                 cursor: "pointer",
                 letterSpacing: 0.5,
               }}

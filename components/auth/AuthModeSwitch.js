@@ -12,8 +12,8 @@ const S = {
     fontSize: 14.5,
     fontWeight: 600,
     display: "block",
-    margin: "18px auto 0",
-    padding: 0,
+    margin: "8px auto 0",
+    padding: "10px 8px",
   },
 };
 
