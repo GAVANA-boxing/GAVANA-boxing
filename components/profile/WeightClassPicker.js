@@ -15,28 +15,26 @@ export default function WeightClassPicker({ value, onChange, t }) {
   return (
     <div style={styles.field}>
       <label style={styles.label}>{t("Жингийн ангилал", "체급", "Weight class")}</label>
-      <div style={styles.chips}>
+      {/* 2-column grid: 15 classes used to wrap into ~15 rows of chips */}
+      <div role="radiogroup" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
         {WEIGHT_CLASSES.map(({ value: v, label, kg }) => {
           const active = value === v;
           return (
             <button
               key={v}
               type="button"
+              role="radio"
+              aria-checked={active}
               onClick={() => onChange(active ? "" : v)}
               style={{
-                ...styles.chip,
-                ...(active
-                  ? {
-                      background: "rgba(96,165,250,0.18)",
-                      border: "1px solid #3B82F6",
-                      color: "#3B82F6",
-                      fontWeight: 900,
-                    }
-                  : {}),
+                minHeight: 44, padding: "6px 10px", borderRadius: 12, cursor: "pointer", textAlign: "left", fontFamily: "inherit",
+                border: active ? "1px solid #3B82F6" : "1px solid rgba(255,255,255,0.08)",
+                background: active ? "rgba(96,165,250,0.16)" : "rgba(255,255,255,0.03)",
+                color: active ? "#93C5FD" : "rgba(255,255,255,0.8)",
               }}
             >
-              {label}
-              <span style={{ opacity: 0.55, fontSize: "0.9em", marginLeft: 3 }}>{kg} kg</span>
+              <span style={{ display: "block", fontSize: 13, fontWeight: 600, lineHeight: 1.2 }}>{label}</span>
+              <span style={{ display: "block", fontSize: 11.5, color: active ? "#93C5FD" : "rgba(255,255,255,0.5)", marginTop: 1 }}>{kg} kg</span>
             </button>
           );
         })}
