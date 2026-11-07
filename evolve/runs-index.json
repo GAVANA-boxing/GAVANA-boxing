@@ -1,6 +1,35 @@
 {
   "runs": [
     {
+      "id": "20261107T205106Z-2d6efdf",
+      "task": "a11y-small-text:components/coach/coachStyles.js — 7 labels 9-10 px -> 11 px (cycle 20261107T204938Z-ada0a8c)",
+      "verdict": "ACCEPTED",
+      "commit": "2d6efdf",
+      "at": "2026-11-07T20:55:53.348Z",
+      "durationS": 287,
+      "level": "GREEN",
+      "failedSteps": [],
+      "notRun": [
+        "rules"
+      ],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 252,
+        "unit.failed": 0,
+        "bundle.kb": 6620,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 51,
+        "visual.failed": 0,
+        "visual.flaky": 0
+      },
+      "decision": null
+    },
+    {
       "id": "20261107T204820Z-e4f6225",
       "task": "Evolve: owner-only /admin/evolution dashboard, runs index, model registry + dataset manifest",
       "verdict": "ACCEPTED",
