@@ -31,6 +31,13 @@ export function useCameraSession({
 
   const [cameraState, setCameraState] = useState("checking");
   const [cameraRetryKey, setCameraRetryKey] = useState(0);
+  // getUserMedia error name ("NotAllowedError", "NotFoundError", …) so the
+  // studio can tell "permission blocked" from "no / busy camera".
+  const [cameraError, setCameraError] = useState(null);
+  // Front ("user") or back ("environment") camera. The flip button on the stage
+  // needs this; it was lost in an earlier refactor, which left that button dead
+  // and the selfie preview un-mirrored.
+  const [facingMode, setFacingMode] = useState("user");
   const [phase, setPhase] = useState("idle");
   const [countdown, setCountdown] = useState(null);
   const [secondsLeft, setSecondsLeft] = useState(sessionSeconds);
@@ -67,6 +74,7 @@ export function useCameraSession({
   useEffect(() => {
     let active = true;
     setCameraState("checking");
+    setCameraError(null);
 
     async function startCamera() {
       if (!navigator.mediaDevices?.getUserMedia) {
@@ -75,7 +83,7 @@ export function useCameraSession({
       }
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "user" },
+          video: { facingMode },
           audio: false,
         });
         if (!active) {
@@ -87,7 +95,10 @@ export function useCameraSession({
         funnel(FUNNEL.CAMERA_GRANTED);
         if (videoRef.current) videoRef.current.srcObject = stream;
       } catch (err) {
-        if (active) setCameraState("denied");
+        if (active) {
+          setCameraError(String(err?.name || "Error"));
+          setCameraState("denied");
+        }
         // The #1 silent drop-off: user said no to the camera.
         funnel(FUNNEL.CAMERA_DENIED, { meta: String(err?.name || "error").slice(0, 40) });
       }
@@ -101,7 +112,11 @@ export function useCameraSession({
       streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     };
-  }, [cameraRetryKey]);
+  }, [cameraRetryKey, facingMode]);
+
+  const toggleCamera = useCallback(() => {
+    setFacingMode((m) => (m === "user" ? "environment" : "user"));
+  }, []);
 
   // Re-attach after EVERY render, not only when cameraState changes: the <video>
   // element can be replaced after the stream is ready (e.g. the page shows a
@@ -411,7 +426,9 @@ export function useCameraSession({
     recorderRef,
     chunksRef,
     cameraState, setCameraState,
+    cameraError,
     cameraRetryKey, setCameraRetryKey,
+    facingMode, toggleCamera,
     phase,
     countdown,
     secondsLeft,

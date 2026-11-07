@@ -40,6 +40,7 @@ import { CORE_MODE, showRoute } from "@/lib/coreRoutes";
 import { funnel, FUNNEL } from "@/lib/funnel";
 import { loc } from "@/lib/loc";
 import { cameraPermissionHelp } from "@/lib/cameraHelp";
+import { deriveStudio, studioUi, canTransition } from "@/lib/trainSession";
 const PoseDebugOverlay   = dynamic(() => import("@/components/train/PoseDebugOverlay"),   { ssr: false });
 const DebugSessionPanel  = dynamic(() => import("@/components/train/DebugSessionPanel"),  { ssr: false });
 const LivePunchCounter   = dynamic(() => import("@/components/train/LivePunchCounter"),   { ssr: false });
@@ -120,6 +121,7 @@ export default function TrainPage() {
     recorderRef,
     chunksRef,
     cameraState, setCameraState,
+    cameraError,
     cameraRetryKey, setCameraRetryKey,
     facingMode, toggleCamera,
     phase,
@@ -182,7 +184,7 @@ export default function TrainPage() {
   };
 
   const {
-    saving, saved, savedAttemptNumber,
+    saving, saved, saveFailed, savedAttemptNumber,
     challengeSaving, challengeSaved, challengeSavedRef,
     missionJustCompleted, missionStreakBonus, missionNewStreak, streakFreezeUsed,
     rankUpInfo,
@@ -692,6 +694,20 @@ export default function TrainPage() {
     };
   }, [cameraState]);
 
+  // ── Training Studio state (lib/trainSession.js) ─────────────────────────
+  // One named state drives what the stage and the dock show. In development a
+  // move the state machine doesn't allow is logged, so a broken flow shows up.
+  const studio = deriveStudio({ cameraState, cameraError, phase, saving, saved, saveFailed });
+  const studioView = studioUi(studio);
+  const prevStudioRef = useRef(studio.state);
+  useEffect(() => {
+    const prev = prevStudioRef.current;
+    if (process.env.NODE_ENV !== "production" && !canTransition(prev, studio.state)) {
+      console.warn(`[train] unexpected studio transition ${prev} → ${studio.state}`);
+    }
+    prevStudioRef.current = studio.state;
+  }, [studio.state]);
+
   if (authLoading) {
     return <div style={styles.loading}>{t("loading")}</div>;
   }
@@ -907,7 +923,7 @@ export default function TrainPage() {
           );
         })()}
 
-        <div style={styles.stage} className="train-stage">
+        <div style={styles.stage} className="train-stage" data-studio-state={studio.state}>
           {cameraState === "ready" ? (
             <video
               ref={videoRef}
@@ -937,10 +953,9 @@ export default function TrainPage() {
             />
           ) : (
             <div style={styles.fallback}>
-              {cameraState === "checking" ? (
+              {studio.state === "countdown" || studio.state === "recording" ? null : studioView.stageMessage === "checking" ? (
                 <div style={{ width: 40, height: 40, border: "3px solid rgba(255,255,255,0.15)", borderTopColor: RED, borderRadius: "50%", animation: "spin 0.8s linear infinite", marginBottom: 12 }} />
               ) : (
-                // Camera-off icon — a "REC" label here read as if recording had started.
                 <div style={styles.fallbackMark} aria-hidden="true">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34l1 1L23 7v10" />
@@ -949,12 +964,21 @@ export default function TrainPage() {
                 </div>
               )}
               <p style={styles.fallbackTitle}>
-                {cameraState === "checking" ? t("trainCameraChecking") : t("trainCameraUnavailable")}
+                {studioView.stageMessage === "checking" ? t("trainCameraChecking") : t("trainCameraUnavailable")}
               </p>
-              <p style={styles.fallbackText}>
-                {cameraState === "denied" ? t("trainCameraDenied") : t("trainCameraFallback")}
-              </p>
-              {cameraState === "denied" && (
+              {studioView.stageMessage !== "checking" && (
+                <p style={styles.fallbackText}>
+                  {studioView.stageMessage === "denied"
+                    ? t("trainCameraDenied")
+                    : cameraState === "unsupported"
+                      ? t("trainCameraFallback")
+                      : loc(locale,
+                          "Камер олдсонгүй эсвэл өөр апп ашиглаж байна. Тэр аппыг хаагаад дахин оролдоно уу — таймертай раунд ч ажиллана.",
+                          "카메라를 찾을 수 없거나 다른 앱이 사용 중입니다. 그 앱을 닫고 다시 시도하세요 — 타이머 라운드는 계속 가능합니다.",
+                          "No camera found, or another app is using it. Close that app and retry — a timer-only round still works.")}
+                </p>
+              )}
+              {studioView.retryCamera && cameraState !== "unsupported" && (
                 <button
                   type="button"
                   onClick={() => setCameraRetryKey((k) => k + 1)}
@@ -963,7 +987,7 @@ export default function TrainPage() {
                   {t("trainRetryCam")}
                 </button>
               )}
-              {cameraState === "denied" && (
+              {studioView.stageMessage === "denied" && studioView.retryCamera && (
                 <p style={styles.fallbackHelp}>
                   {cameraPermissionHelp(typeof navigator !== "undefined" ? navigator.userAgent : "", locale)}
                 </p>
@@ -1044,6 +1068,7 @@ export default function TrainPage() {
               liveFeedback={liveFeedback}
               t={t}
               locale={locale}
+              cameraLive={studioView.recBadge}
             />
           )}
 
@@ -1263,10 +1288,14 @@ export default function TrainPage() {
         {/* Start: pinned above the bottom nav so it is on the first screen even
             though the camera preview is tall. A direct child of the shell, so
             sticky has the whole page to travel in. */}
-        {canStart && (
+        {studioView.dock && (
           <div style={styles.startDock}>
             <button type="button" style={styles.startButton} className="train-start-btn tap-bounce" onClick={wrappedHandleStart}>
-              {loc(locale, "Раунд эхлүүлэх", "라운드 시작", "Start round")}
+              {studioView.startKind === "again"
+                ? loc(locale, "Дахин раунд", "다시 라운드", "Another round")
+                : studioView.startKind === "timer"
+                  ? loc(locale, "Таймертай раунд эхлүүлэх", "타이머 라운드 시작", "Start timer round")
+                  : loc(locale, "Раунд эхлүүлэх", "라운드 시작", "Start round")}
               <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
             </button>
           </div>

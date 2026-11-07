@@ -20,6 +20,8 @@ export default function RecordingHud({
   liveFeedback,
   t,
   locale = "en",
+  // false = a timer-only round (no camera): don't claim we are recording.
+  cameraLive = true,
 }) {
   const focusColor = drillConfig?.focusType ? (FOCUS_COLORS[drillConfig.focusType] || "rgba(255,255,255,0.4)") : null;
 
@@ -36,8 +38,14 @@ export default function RecordingHud({
     <>
       {/* Recording bar */}
       <div style={styles.recordingHud}>
-        <span style={styles.recordDot} />
-        <span>{t("trainRecording")}</span>
+        {cameraLive ? (
+          <>
+            <span style={styles.recordDot} />
+            <span>{t("trainRecording")}</span>
+          </>
+        ) : (
+          <span data-testid="hud-timer-mode">{locale === "mn" ? "Таймер · камергүй" : locale === "ko" ? "타이머 · 카메라 없음" : "Timer · no camera"}</span>
+        )}
 
         {/* Drill focus label */}
         {drillConfig?.focusLabel && focusColor && (

@@ -2,6 +2,23 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Roadmap Phase 0 — Training Studio state machine (approved by the owner: "0, 1-ийг Hii")
+- `lib/trainSession.js`: named studio states (requestingCamera, cameraDenied, cameraUnavailable,
+  ready, countdown, recording, result, saving, saved, saveFailed), derived from the existing flags;
+  legal-transition table (dev console warning on an illegal move); per-state UI spec
+  (dock, start label, stage message, retry, REC). 13 unit tests.
+- `/train` renders from it: "Таймертай раунд эхлүүлэх" when there is no camera, "Дахин раунд"
+  after a result, dock hidden while saving, retry only between rounds, `data-studio-state` on the stage.
+- Camera errors split: permission (NotAllowed/Security) vs no/busy camera (own message, no
+  permission steps). `useCameraSession` exposes `cameraError`.
+- Timer-only round no longer says "Бичиж байна" (recording): HUD shows "Таймер · камергүй".
+- Found + fixed: the camera flip button was dead and the selfie preview un-mirrored since commit
+  7bac3e9 (June) dropped `facingMode`/`toggleCamera` from the hook while the page still used them.
+- `useTrainingActions` exposes `saveFailed`.
+- Visual: fake camera in the Playwright config; new baselines train-live (390, 360),
+  train-recording (390), train-nocam (390); "train" now simulates NotAllowedError explicitly.
+  16/16, two runs stable. 178/178 unit, lint 0 errors.
+
 ## Cycle 11 — Train lesson focus card text
 - `TrainingFocusCard` (shown on /train when arriving from a fighter technique or academy lesson):
   4 labels 10.5px → 11px. Not in the visual baselines (needs lesson context), so baselines unchanged.

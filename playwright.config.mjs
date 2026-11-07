@@ -22,9 +22,14 @@ export default defineConfig({
     baseURL: `http://localhost:${PORT}`,
     // This container ships one Chromium (PLAYWRIGHT_EXECUTABLE overrides); elsewhere
     // Playwright's own browser is used.
-    launchOptions: process.env.PLAYWRIGHT_EXECUTABLE
-      ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE }
-      : (existsSync("/opt/pw-browsers/chromium") ? { executablePath: "/opt/pw-browsers/chromium" } : {}),
+    // Chromium's fake camera: Training Studio tests get a live (synthetic) stream;
+    // tests that need a camera failure override getUserMedia instead.
+    launchOptions: {
+      ...(process.env.PLAYWRIGHT_EXECUTABLE
+        ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE }
+        : (existsSync("/opt/pw-browsers/chromium") ? { executablePath: "/opt/pw-browsers/chromium" } : {})),
+      args: ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream"],
+    },
     colorScheme: "dark",
     locale: "en-US",
     timezoneId: "Asia/Seoul",

@@ -34,6 +34,7 @@ export function useTrainingActions({
 }) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
   const [savedAttemptNumber, setSavedAttemptNumber] = useState(null);
   const [challengeSaving, setChallengeSaving] = useState(false);
   const [challengeSaved, setChallengeSaved] = useState(false);
@@ -245,6 +246,7 @@ export function useTrainingActions({
     if (!user?.uid || !result) return;
 
     setSaving(true);
+    setSaveFailed(false);
     setError("");
 
     try {
@@ -435,6 +437,7 @@ export function useTrainingActions({
         }
       }
     } catch (err) {
+      setSaveFailed(true);
       setError(t("trainSaveFailed"));
     } finally {
       setSaving(false);
@@ -564,6 +567,7 @@ export function useTrainingActions({
   const resetForNewSession = useCallback(() => {
     setSaving(false);
     setSaved(false);
+    setSaveFailed(false);
     setSavedAttemptNumber(null);
     setChallengeSaving(false);
     setChallengeSaved(false);
@@ -588,7 +592,7 @@ export function useTrainingActions({
   }, []);
 
   return {
-    saving, saved, savedAttemptNumber,
+    saving, saved, saveFailed, savedAttemptNumber,
     challengeSaving, challengeSaved, challengeSavedRef,
     missionJustCompleted, missionStreakBonus, missionNewStreak, streakFreezeUsed,
     rankUpInfo,

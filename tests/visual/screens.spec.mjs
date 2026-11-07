@@ -2,9 +2,10 @@ import { test, expect } from "@playwright/test";
 
 // Core screens: Today (home), Training Studio, Result, Progress — each at the
 // default phone size, the narrowest phone, and in Korean (longest labels).
+// "train" is the camera-denied studio (getUserMedia rejected with NotAllowedError).
 const SCREENS = [
   { name: "today", path: "/home" },
-  { name: "train", path: "/train", mask: ["video", "canvas"] },
+  { name: "train", path: "/train", mask: ["video", "canvas"], camera: "NotAllowedError" },
   { name: "result", path: "/visual/result" },
   { name: "progress", path: "/visual/progress" },
 ];
@@ -20,23 +21,80 @@ for (const screen of SCREENS) {
       await context.grantPermissions(["camera"]);
       // Same day, time and first-run state on every run.
       await page.clock.setFixedTime(new Date("2026-11-06T12:00:00+09:00"));
-      await page.addInitScript(() => {
-        try { localStorage.setItem("gavana_onboarding_seen", "1"); } catch { /* ignore */ }
-        try { sessionStorage.setItem("pwa-banner-dismissed", "1"); sessionStorage.setItem("push-banner-dismissed", "1"); } catch { /* ignore */ }
-      });
+      await prepare(page, screen.camera);
       await page.setViewportSize(v.viewport);
       await page.goto(`/${v.locale}${screen.path}`, { waitUntil: "load" });
-      await page.evaluate(() => document.fonts.ready);
-      await page.waitForTimeout(1500);
-
-      // No horizontal scrolling at any size.
-      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-      expect(overflow, "horizontal overflow (px)").toBeLessThanOrEqual(1);
-
+      await settle(page);
       await expect(page).toHaveScreenshot(`${screen.name}-${v.id}.png`, {
         fullPage: true,
         mask: (screen.mask || []).map((sel) => page.locator(sel)),
       });
     });
   }
+}
+
+// Training Studio states that need a camera (Chromium's fake camera device) or
+// a specific camera failure. The live picture is made transparent (a mask would
+// paint over the whole stage, hiding the HUD and badges drawn on top of it);
+// what is compared is everything the studio draws around the video.
+const STAGE_MASK = [];
+const HIDE_LIVE_PICTURE = ".train-stage video, .train-stage canvas { opacity: 0 !important; }";
+const viewport390 = { width: 390, height: 844 };
+
+test("train-nocam mn-390", async ({ page }) => {
+  await prepare(page, "NotFoundError");
+  await page.setViewportSize(viewport390);
+  await page.goto("/mn/train", { waitUntil: "load" });
+  await expect(page.locator("[data-studio-state=cameraUnavailable]")).toBeVisible();
+  await settle(page);
+  await expect(page).toHaveScreenshot("train-nocam-mn-390.png", { fullPage: true, mask: STAGE_MASK.map((s) => page.locator(s)) });
+});
+
+test.describe("live camera", () => {
+  for (const v of [{ id: "mn-390", viewport: viewport390 }, { id: "mn-360", viewport: { width: 360, height: 800 } }]) {
+    test(`train-live ${v.id}`, async ({ page, context }) => {
+      await context.grantPermissions(["camera"]);
+      await prepare(page);
+      await page.setViewportSize(v.viewport);
+      await page.goto("/mn/train", { waitUntil: "load" });
+      await expect(page.locator("[data-studio-state=ready]")).toBeVisible();
+      await page.addStyleTag({ content: HIDE_LIVE_PICTURE });
+      await settle(page);
+      await expect(page).toHaveScreenshot(`train-live-${v.id}.png`, { fullPage: true, mask: STAGE_MASK.map((s) => page.locator(s)) });
+    });
+  }
+
+  test("train-recording mn-390", async ({ page, context }) => {
+    await context.grantPermissions(["camera"]);
+    await prepare(page);
+    await page.setViewportSize(viewport390);
+    // ?autostart=1 starts the round as soon as the camera is ready (no readiness sheet).
+    await page.goto("/mn/train?autostart=1", { waitUntil: "load" });
+    await expect(page.locator("[data-studio-state=recording]")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId("hud-timer-mode")).toHaveCount(0); // live camera → "recording", not timer-only
+    await page.addStyleTag({ content: HIDE_LIVE_PICTURE });
+    await settle(page);
+    await expect(page).toHaveScreenshot("train-recording-mn-390.png", { mask: STAGE_MASK.map((s) => page.locator(s)) });
+  });
+});
+
+// Same day, time and first-run state on every run; optionally make
+// getUserMedia fail with a given error name.
+async function prepare(page, cameraError) {
+  await page.clock.setFixedTime(new Date("2026-11-06T12:00:00+09:00"));
+  await page.addInitScript((err) => {
+    try { localStorage.setItem("gavana_onboarding_seen", "1"); } catch { /* ignore */ }
+    try { sessionStorage.setItem("pwa-banner-dismissed", "1"); sessionStorage.setItem("push-banner-dismissed", "1"); } catch { /* ignore */ }
+    if (err && navigator.mediaDevices) {
+      navigator.mediaDevices.getUserMedia = () => Promise.reject(Object.assign(new Error(err), { name: err }));
+    }
+  }, cameraError || null);
+}
+
+async function settle(page) {
+  await page.evaluate(() => document.fonts.ready);
+  await page.waitForTimeout(1500);
+  // No horizontal scrolling at any size.
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  expect(overflow, "horizontal overflow (px)").toBeLessThanOrEqual(1);
 }

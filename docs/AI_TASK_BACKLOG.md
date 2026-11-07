@@ -3,14 +3,8 @@
 Status: TODO · BLOCKED (needs approval) · DONE. Highest priority first.
 
 ## P1
-- **Training Studio session state machine** — BLOCKED (design proposal, needs approval: touches the
-  core training flow). States today are spread over `phase`, `isCountingDown`, `isRecording`,
-  camera error flags and saving flags in `app/[locale]/train/page.js` + `hooks/useCameraSession.js`.
-  Proposed explicit machine (pure reducer in `lib/trainSession.js`, unit-tested):
-  `idle → requestingCamera → (cameraDenied | ready) → countdown → recording ⇄ paused → finishing →
-  saving → (result | saveFailed) → idle`, plus `error` from any state. Each state defines what the
-  screen shows and which buttons exist. (The "REC" label in the denied state was fixed in Cycle 2
-  as a pure UI change; the scattered state flags remain.)
+- Training Studio: save-failed state has no dedicated "retry save" button yet (the error text
+  shows; the result view's save action can be pressed again). Add one in the result view.
 
 ## P2
 - RED (needs approval — push sending): `functions/index.js` `localeOf()` trusts the client-written
@@ -28,9 +22,7 @@ Status: TODO · BLOCKED (needs approval) · DONE. Highest priority first.
 Ideas taken from what other builders made with Claude (procedural 3D, single-image teardown with HUD,
 agent that drives a tool, game HUD, world simulator). Order = value to the core loop ÷ risk.
 
-0. Foundation (loop can do the GREEN/YELLOW parts now)
-   - Training Studio state machine (above) · camera-denied help per browser · visual baseline of the
-     live recording stage.
+0. Foundation — DONE (see AI_CHANGELOG "Roadmap Phase 0").
 1. **Punch Teardown replay** (from "3D robot from one image" — exploded view + HUD panels)
    After a round, pick one punch: slow-motion 3D replay split into Load → Rotate → Extend → Return,
    with labeled panels (hip/shoulder turn °, elbow angle, reach, guard hand height) and the coach's
