@@ -7,10 +7,19 @@ import { nextPunchAfter, isPunchMoment, guardState, guardDropRatio, floorY } fro
 import { refineReplay, sampleFrame } from "@/lib/motionRefine";
 import { createFighterAvatar, createRingFloor } from "@/lib/three/fighterAvatar";
 import { createModelFighter, AVATAR_MODELS } from "@/lib/three/modelFighter";
+import { useUserProfile } from "@/context/UserProfileProvider";
+import { fighterStyle, sanitizeStylePrefs, SKIN_TONES, HAIR_STYLES, BUILDS } from "@/lib/avatar/fighterStyle";
 
 const AVATAR_KEY = "gavana_avatar";
 const readAvatar = () => {
   try { const v = localStorage.getItem(AVATAR_KEY); return v === "female" || v === "classic" ? v : "male"; } catch { return "male"; }
+};
+
+// "classic" = the procedural fighter, now personal ("Mine"): skin / hair / build
+// chosen here, rank colour on gloves and waistband. Stored on this device only.
+const STYLE_KEY = "gavana_fighter_style";
+const readStylePrefs = () => {
+  try { return sanitizeStylePrefs(JSON.parse(localStorage.getItem(STYLE_KEY) || "{}")); } catch { return {}; }
 };
 
 const SPEEDS = [0.25, 0.5, 1];
@@ -40,7 +49,7 @@ const toV = (p, i) => [-p[i * 3], -p[i * 3 + 1], -p[i * 3 + 2]];
  *   seek(t) jumps there and pauses.
  * - extra: React nodes between the 3D view and the controls.
  */
-export default function MotionReplay3D({ replay: rawReplay, ghost = null, locale, onClose, title, subtitle, action = null, focus = null, hud = null, extra = null }) {
+export default function MotionReplay3D({ replay: rawReplay, ghost = null, locale, onClose, title, subtitle, action = null, focus = null, hud = null, extra = null, fighter = null }) {
   // Smoothed, knees fixed, feet planted — the raw camera data is jittery at ~10–20 fps.
   const replay = useMemo(() => refineReplay(rawReplay), [rawReplay]);
   const mountRef = useRef(null);
@@ -60,6 +69,19 @@ export default function MotionReplay3D({ replay: rawReplay, ghost = null, locale
   const [avatar, setAvatar] = useState("male");
   useEffect(() => { setAvatar(readAvatar()); }, []);
   const chooseAvatar = (v) => { setAvatar(v); try { localStorage.setItem(AVATAR_KEY, v); } catch { /* private mode */ } };
+  const [stylePrefs, setStylePrefs] = useState({});
+  useEffect(() => { setStylePrefs(readStylePrefs()); }, []);
+  const setStyle = (patch) => setStylePrefs((prev) => {
+    const next = sanitizeStylePrefs({ ...prev, ...patch });
+    try { localStorage.setItem(STYLE_KEY, JSON.stringify(next)); } catch { /* private mode */ }
+    return next;
+  });
+  // Rank (gloves / waistband colour) and seed from the signed-in profile unless given.
+  const { profile } = useUserProfile();
+  const fxp = Number(fighter?.xp ?? profile?.xp) || 0;
+  const fseed = String(fighter?.seed ?? profile?.uid ?? "");
+  const style = useMemo(() => fighterStyle({ xp: fxp, seed: fseed, prefs: stylePrefs }), [fxp, fseed, stylePrefs]);
+  const styleKey = avatar === "classic" ? JSON.stringify(style) : "";
 
   const dropPct = Math.round(guardDropRatio(replay) * 100);
   const L = (mn, ko, en) => loc(locale, mn, ko, en);
@@ -137,7 +159,7 @@ export default function MotionReplay3D({ replay: rawReplay, ghost = null, locale
       };
       // Procedural fighter right away; swap in the rigged model (male/female) once it loads.
       const makeFighter = ({ offsetX = 0, look = "you" }) => {
-        let current = createFighterAvatar(THREE, { look });
+        let current = createFighterAvatar(THREE, { look, style: look === "ghost" ? null : style });
         scene.add(current.group);
         if (avatar !== "classic" && AVATAR_MODELS[avatar]) {
           createModelFighter(THREE, { url: AVATAR_MODELS[avatar], look })
@@ -216,7 +238,7 @@ export default function MotionReplay3D({ replay: rawReplay, ghost = null, locale
       };
     })();
     return () => { disposed = true; cleanup(); };
-  }, [replay, ghost, avatar]);
+  }, [replay, ghost, avatar, styleKey]); // eslint-disable-line react-hooks/exhaustive-deps -- style is read via styleKey
 
   const set = (patch) => { Object.assign(stateRef.current, patch); setUi((u) => ({ ...u, ...patch })); };
   const jumpNext = () => {
@@ -313,10 +335,36 @@ export default function MotionReplay3D({ replay: rawReplay, ghost = null, locale
         </div>
 
         {!focus && <div role="radiogroup" aria-label={L("Дүр", "캐릭터", "Character")} style={{ display: "flex", gap: 6 }}>
-          {[["male", L("Эрэгтэй", "남성", "Male")], ["female", L("Эмэгтэй", "여성", "Female")], ["classic", L("Энгийн", "기본", "Classic")]].map(([k, label]) => (
+          {[["male", L("Эрэгтэй", "남성", "Male")], ["female", L("Эмэгтэй", "여성", "Female")], ["classic", L("Миний", "내 파이터", "Mine")]].map(([k, label]) => (
             <button key={k} type="button" role="radio" aria-checked={avatar === k} style={{ ...btn(avatar === k), flex: 1 }} onClick={() => chooseAvatar(k)}>{label}</button>
           ))}
         </div>}
+
+        {!focus && avatar === "classic" && (
+          <div data-testid="fighter-style" style={{ display: "grid", gap: 8 }}>
+            <div role="radiogroup" aria-label={L("Арьсны өнгө", "피부 톤", "Skin tone")} style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {SKIN_TONES.map((c, i) => {
+                const on = style.skin === c;
+                return (
+                  <button key={c} type="button" role="radio" aria-checked={on} aria-label={`${L("Арьсны өнгө", "피부 톤", "Skin tone")} ${i + 1}`} onClick={() => setStyle({ skin: i })}
+                    style={{ width: 40, height: 40, borderRadius: RADIUS.full, cursor: "pointer", background: c, border: on ? `3px solid ${RED}` : `2px solid ${whiteAlpha(0.18)}` }} />
+                );
+              })}
+            </div>
+            <div role="radiogroup" aria-label={L("Үс", "헤어", "Hair")} style={{ display: "flex", gap: 6 }}>
+              {HAIR_STYLES.map((h) => {
+                const label = { none: L("Үсгүй", "없음", "None"), buzz: L("Тайруул", "버즈컷", "Buzz"), short: L("Богино", "짧게", "Short"), bun: L("Боодол", "번", "Bun") }[h];
+                return <button key={h} type="button" role="radio" aria-checked={style.hair === h} style={{ ...btn(style.hair === h), flex: 1, padding: "0 6px" }} onClick={() => setStyle({ hair: h })}>{label}</button>;
+              })}
+            </div>
+            <div role="radiogroup" aria-label={L("Биеийн галбир", "체형", "Build")} style={{ display: "flex", gap: 6 }}>
+              {Object.keys(BUILDS).map((b) => {
+                const label = { lean: L("Туранхай", "슬림", "Lean"), medium: L("Дунд", "보통", "Medium"), heavy: L("Том", "헤비", "Heavy") }[b];
+                return <button key={b} type="button" role="radio" aria-checked={style.buildKey === b} style={{ ...btn(style.buildKey === b), flex: 1 }} onClick={() => setStyle({ build: b })}>{label}</button>;
+              })}
+            </div>
+          </div>
+        )}
 
         {action && (
           <button type="button" onClick={action.onClick} style={{

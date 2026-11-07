@@ -2,6 +2,18 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Roadmap Phase 5: personal procedural fighter
+- `lib/avatar/fighterStyle.js` (pure, 6 tests): skin (6 tones), hair (none / buzz / short / bun, colour),
+  build (lean / medium / heavy) from the user's choice or seeded from the uid; gloves + waistband in the
+  rank colour (rookies keep red gloves).
+- `lib/three/fighterAvatar.js` takes `style`: skin and kit colours, girth × build, hair caps on the head.
+- 3D replay (`MotionReplay3D`): the "Classic" option is now **Mine** with a style picker (40 px swatches /
+  buttons, MN/KO/EN), saved on this device; rank / seed come from the signed-in profile. The ghost keeps
+  its glass look. No new files to download (unlike the 1.5–1.8 MB GLBs).
+- Fixture `/visual/fighter` + 3 screenshots (canvas hidden, clock masked). Run `20261107T224511Z-fbdb167`
+  ACCEPTED (unit 265, visual 57/57). Checked in Chromium: 3 looks render, no page errors.
+- Not done yet: profile page / share card use (backlog item 5 follow-up).
+
 ## Roadmap Phase 7: stance check from one photo (onboarding)
 - Onboarding stance step: "Detect from a photo" → one full-body photo in stance → MediaPipe
   PoseLandmarker in IMAGE mode (`lib/poseImage.js`, loaded only on tap; on device, nothing uploaded)

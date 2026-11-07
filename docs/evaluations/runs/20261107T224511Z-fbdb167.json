@@ -1,0 +1,248 @@
+{
+  "id": "20261107T224511Z-fbdb167",
+  "key": "8b17929a",
+  "task": "roadmap phase 5: personal procedural fighter (skin/hair/build, rank colour on gloves) in the 3D replay + style picker + visual fixture",
+  "branch": "claude/review-refactor-code-DUmiX",
+  "commit": "fbdb167",
+  "base": "@{upstream}",
+  "dirty": true,
+  "startedAt": "2026-11-07T22:45:11.761Z",
+  "finishedAt": "2026-11-07T22:50:00.574Z",
+  "durationS": 289,
+  "cost": {
+    "paidApiCalls": 0,
+    "note": "checks run locally; no paid APIs"
+  },
+  "change": {
+    "level": "GREEN",
+    "files": [
+      {
+        "path": "app/[locale]/visual/[screen]/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/train/MotionReplay3D.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/three/fighterAvatar.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "tests/visual/screens.spec.mjs",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "lib/avatar/fighterStyle.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "tests/fighterStyle.test.js",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/fighter-ko-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/fighter-mn-360.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/fighter-mn-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "name": "lint",
+      "ms": 33299,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0,
+        "warnings": 23
+      }
+    },
+    {
+      "name": "typecheck",
+      "ms": 1537,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0
+      }
+    },
+    {
+      "name": "unit",
+      "ms": 3466,
+      "status": "PASS",
+      "metrics": {
+        "passed": 265,
+        "failed": 0
+      }
+    },
+    {
+      "name": "build",
+      "ms": 5386,
+      "status": "PASS",
+      "metrics": {}
+    },
+    {
+      "name": "bundle",
+      "status": "PASS",
+      "metrics": {
+        "kb": 6409
+      }
+    },
+    {
+      "name": "punch",
+      "ms": 53,
+      "status": "PASS",
+      "metrics": {
+        "macroF1": 0.904,
+        "recall": 0.897,
+        "precision": 1,
+        "phantoms": 0
+      }
+    },
+    {
+      "name": "visual",
+      "ms": 245059,
+      "status": "PASS",
+      "metrics": {
+        "passed": 57,
+        "failed": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "name": "rules",
+      "status": "NOT RUN",
+      "note": "pass --rules to run"
+    }
+  ],
+  "comparison": [
+    {
+      "metric": "lint.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "lint.warnings",
+      "baseline": 23,
+      "value": 23,
+      "limit": "≤ 23",
+      "status": "PASS"
+    },
+    {
+      "metric": "typecheck.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.passed",
+      "baseline": 241,
+      "value": 265,
+      "limit": "≥ 241",
+      "status": "PASS"
+    },
+    {
+      "metric": "bundle.kb",
+      "baseline": 6598,
+      "value": 6409,
+      "limit": "≤ 6928",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.macroF1",
+      "baseline": 0.904,
+      "value": 0.904,
+      "limit": "≥ 0.9035000000000001",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.phantoms",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.passed",
+      "baseline": 49,
+      "value": 57,
+      "limit": "≥ 49",
+      "status": "PASS"
+    },
+    {
+      "metric": "rules.failed",
+      "status": "NOT RUN"
+    },
+    {
+      "metric": "rules.passed",
+      "status": "NOT RUN"
+    }
+  ],
+  "verdict": "ACCEPTED",
+  "verdictNote": "all run checks pass, no gate regressed",
+  "history": [
+    {
+      "state": "PENDING",
+      "at": "2026-11-07T22:45:11.761Z",
+      "note": "created"
+    },
+    {
+      "state": "PLANNING",
+      "at": "2026-11-07T22:45:11.761Z",
+      "note": "roadmap phase 5: personal procedural fighter (skin/hair/build, rank colour on gloves) in the 3D replay + style picker + visual fixture"
+    },
+    {
+      "state": "IMPLEMENTING",
+      "at": "2026-11-07T22:45:11.761Z",
+      "note": "9 changed file(s) vs @{upstream}, risk GREEN"
+    },
+    {
+      "state": "VERIFYING",
+      "at": "2026-11-07T22:45:11.761Z",
+      "note": ""
+    },
+    {
+      "state": "EVALUATING",
+      "at": "2026-11-07T22:50:00.565Z",
+      "note": ""
+    },
+    {
+      "state": "ACCEPTED",
+      "at": "2026-11-07T22:50:00.566Z",
+      "note": "all run checks pass, no gate regressed"
+    }
+  ],
+  "baselineCommit": "37f2e45"
+}

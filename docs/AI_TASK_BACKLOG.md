@@ -55,7 +55,8 @@ agent that drives a tool, game HUD, world simulator). Order = value to the core 
    (action time = poll time, up to ~80 ms late); slip direction (left/right) needs the detector to
    report it; saving results / XP would be RED (data model). Original idea: **Reaction mitt drill / Ghost sparring defense** — targets or the ghost's punches appear; punch the
    right side / slip or block (uses `lib/defensiveDetector.js`). New game mode — needs approval.
-5. **Procedural fighter avatar** (from "eye from math, ~400 params, no textures")
+5. **Procedural fighter avatar** — DONE in the 3D replay (AI_CHANGELOG "Roadmap Phase 5"). Follow-up:
+   show it on the profile and share card. Original (from "eye from math, ~400 params, no textures")
    Parametric boxer (build, skin, hair, gloves/shorts in rank colour) instead of the 1.7 MB GLB:
    faster load, personal, rank shows on the body. Used on profile, share card, ghost.
 6. **World Tour** — DONE (AI_CHANGELOG "Roadmap Phase 6"). Follow-ups: rank-up "flight" animation to the

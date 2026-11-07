@@ -11,6 +11,7 @@ import ProgressView from "@/components/progress/ProgressView";
 import ResultHeader from "@/components/train/ResultHeader";
 import ResultAnalysisSection from "@/components/train/ResultAnalysisSection";
 import PunchTeardown from "@/components/train/PunchTeardown";
+import MotionReplay3D from "@/components/train/MotionReplay3D";
 import FightHud from "@/components/train/FightHud";
 import MittCall from "@/components/mitts/MittCall";
 import MittResult from "@/components/mitts/MittResult";
@@ -133,6 +134,11 @@ export default function VisualFixture() {
   }
 
   if (params?.screen === "stance") return <StanceFixture locale={locale} t={t} />;
+
+  if (params?.screen === "fighter") {
+    // The personal procedural fighter ("Mine") with its style picker; rank from fixed XP.
+    return <MotionReplay3D replay={TEARDOWN_REPLAY} locale={locale} onClose={() => {}} fighter={{ xp: 2340, seed: "fixture" }} />;
+  }
 
   if (params?.screen === "teardown") {
     // A synthetic round: jab, arm-only cross with the guard dropped, jab, cross.

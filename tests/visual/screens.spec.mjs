@@ -136,6 +136,21 @@ for (const v of [{ id: "mn-390", locale: "mn", viewport: viewport390 }, { id: "m
   });
 }
 
+// Personal procedural fighter: the style picker (3D canvas hidden).
+for (const v of [{ id: "mn-390", locale: "mn", viewport: viewport390 }, { id: "mn-360", locale: "mn", viewport: { width: 360, height: 800 } }, { id: "ko-390", locale: "ko", viewport: viewport390 }]) {
+  test(`fighter ${v.id}`, async ({ page }) => {
+    await prepare(page);
+    await page.addInitScript(() => { try { localStorage.setItem("gavana_avatar", "classic"); localStorage.setItem("gavana_fighter_style", JSON.stringify({ skin: 2, hair: "short", hairColor: 0, build: "medium" })); } catch { /* ignore */ } });
+    await page.setViewportSize(v.viewport);
+    await page.goto(`/${v.locale}/visual/fighter`, { waitUntil: "load" });
+    await expect(page.getByTestId("fighter-style")).toBeVisible();
+    await page.addStyleTag({ content: "canvas { opacity: 0 !important; }" });
+    await settle(page);
+    // The replay keeps playing: mask the running clock.
+    await expect(page).toHaveScreenshot(`fighter-${v.id}.png`, { fullPage: true, mask: [page.getByText(/\d\.\ds \/ \d/)] });
+  });
+}
+
 // Mitt drill: intro page (real route), a call on screen, a defence call with "too late", the result.
 for (const v of [{ id: "mn-390", locale: "mn", viewport: viewport390 }, { id: "mn-360", locale: "mn", viewport: { width: 360, height: 800 } }, { id: "ko-390", locale: "ko", viewport: viewport390 }]) {
   for (const [name, path] of [["mitts", "/mitts"], ["mitts-call", "/visual/mitts-call"], ["mitts-slip", "/visual/mitts-slip"], ["mitts-result", "/visual/mitts-result"]]) {
