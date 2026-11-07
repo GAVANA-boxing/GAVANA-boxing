@@ -114,8 +114,13 @@ async function sendToUser(uid, { title, body, url }) {
   return res.successCount;
 }
 
+// users.locale is written by the client, so only trust the three app locales —
+// the value also builds the click URL (`/${locale}/train`); anything else would
+// make "//host/…" (another site) or a 404.
+const LOCALES = new Set(["mn", "ko", "en"]);
 function localeOf(u) {
-  return u.locale || u.preferredLocale || "mn";
+  const l = String(u.locale || u.preferredLocale || "").toLowerCase();
+  return LOCALES.has(l) ? l : "mn";
 }
 
 // ── 1) Streak at risk — daily 18:00 local ─────────────────────────────────────
