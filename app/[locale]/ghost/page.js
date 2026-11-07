@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useUserProfile } from "@/context/UserProfileProvider";
 import { getLocale } from "@/lib/i18n";
 import { loc } from "@/lib/loc";
+import { cameraPermissionHelp } from "@/lib/cameraHelp";
 import { usePoseDetection } from "@/hooks/usePoseDetection";
 import { buildJabCrossReference } from "@/lib/ghost/reference";
 import { analyzeGhostRound } from "@/lib/ghost/analyze";
@@ -139,7 +140,7 @@ export default function GhostRoundPage() {
                 "보세요: 잽 때 뒷손은 턱에, 크로스 때 어깨가 앞으로 회전",
                 "Watch: rear hand stays on the chin during the jab; shoulders turn on the cross",
               )}
-              <span style={{ display: "block", marginTop: 3, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+              <span style={{ display: "block", marginTop: 3, fontSize: 11, color: "rgba(255,255,255,0.6)" }}>
                 {L("GAVANA дасгалжуулагчийн бодит хөдөлгөөн", "GAVANA 코치의 실제 동작", "Real motion of a GAVANA coach")}
               </span>
             </>
@@ -147,8 +148,10 @@ export default function GhostRoundPage() {
           action={{ label: L(`Дагаж хий · ${ROUND_SECONDS} сек →`, `따라 하기 · ${ROUND_SECONDS}초 →`, `Copy it · ${ROUND_SECONDS}s round →`), onClick: startRound }}
         />
         {camError && (
-          <div role="alert" style={{ position: "fixed", left: 16, right: 16, bottom: 110, zIndex: 1300, padding: 12, borderRadius: RADIUS.md, background: redAlpha(0.18), border: `1px solid ${redAlpha(0.5)}`, color: "#fff", fontSize: FONT_SIZE.sm }}>
-            {L("Камер асаахыг зөвшөөрнө үү (браузерын тохиргоо → Камер).", "카메라를 허용해 주세요 (브라우저 설정 → 카메라).", "Please allow the camera (browser settings → Camera).")}
+          <div role="alert" style={{ position: "fixed", left: 16, right: 16, bottom: 110, zIndex: 1300, padding: 12, borderRadius: RADIUS.md, background: `linear-gradient(${redAlpha(0.18)}, ${redAlpha(0.18)}), #141012`, border: `1px solid ${redAlpha(0.5)}`, boxShadow: `0 10px 30px ${blackAlpha(0.5)}`, color: "#fff", fontSize: FONT_SIZE.sm, lineHeight: 1.45 }}>
+            {camError === "NotAllowedError" || camError === "SecurityError"
+              ? cameraPermissionHelp(typeof navigator !== "undefined" ? navigator.userAgent : "", locale, L("Дагаж хий", "따라 하기", "Copy it"))
+              : L("Камер олдсонгүй эсвэл өөр апп ашиглаж байна. Хаагаад дахин оролдоно уу.", "카메라를 찾을 수 없거나 다른 앱이 사용 중입니다. 닫고 다시 시도하세요.", "No camera found, or another app is using it. Close it and try again.")}
           </div>
         )}
       </>
@@ -171,7 +174,7 @@ export default function GhostRoundPage() {
         {/* Ghost in the corner — copy it */}
         <div style={{ position: "absolute", right: 10, bottom: "calc(20px + env(safe-area-inset-bottom))", padding: 6, borderRadius: RADIUS.md, background: blackAlpha(0.45), border: "1px solid rgba(103,232,249,0.35)" }}>
           <GhostCanvas2D replay={ghost} size={120} />
-          <div style={{ textAlign: "center", fontSize: FONT_SIZE.xs, fontWeight: FONT_WEIGHT.black, color: "#67e8f9", letterSpacing: 1 }}>GHOST</div>
+          <div style={{ textAlign: "center", fontSize: 11, fontWeight: FONT_WEIGHT.black, color: "#67e8f9", letterSpacing: 1 }}>GHOST</div>
         </div>
         {phase === "countdown" && (
           <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", background: blackAlpha(0.35) }}>

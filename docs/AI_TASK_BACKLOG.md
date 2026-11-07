@@ -19,7 +19,6 @@ Status: TODO · BLOCKED (needs approval) · DONE. Highest priority first.
   `firebase deploy --only functions`.
 - Coach chat header / persona chips in the brand style (text sizes fixed in Cycle 7; layout/style
   still to do, needs a signed-in visual fixture to verify).
-- Ghost recording / viewing microcopy (small caps text).
 
 - Coach marketplace pages (`coach/page.js`, `coach/[coachId]`, `coach/dashboard`, `coach/apply`)
   still use 9–10px labels (coachDashboardStyles, coachIdStyles, DashboardCards,

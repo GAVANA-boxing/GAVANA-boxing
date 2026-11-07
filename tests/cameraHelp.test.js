@@ -25,3 +25,11 @@ describe("cameraPermissionHelp", () => {
     expect(texts[1]).toMatch(/허용/);
   });
 });
+
+describe("cameraPermissionHelp retry label", () => {
+  it("defaults to Train's button and accepts another screen's button", () => {
+    expect(cameraPermissionHelp(ANDROID, "en")).toMatch(/then «Retry camera»\.$/);
+    expect(cameraPermissionHelp(ANDROID, "mn", "Дагаж хий")).toMatch(/дараа нь «Дагаж хий»\.$/);
+    expect(cameraPermissionHelp(IPHONE, "ko", "따라 하기")).toMatch(/허용 후 «따라 하기»\.$/);
+  });
+});

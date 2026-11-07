@@ -2,6 +2,15 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Cycle 8 — Ghost camera error + microcopy
+- `/ghost` camera error: was one generic line on a see-through red box that sat over the angle
+  buttons (unreadable). Now: permission denied → per-platform steps (shared
+  `cameraPermissionHelp`, which now takes the screen's own retry button name — "Дагаж хий");
+  no camera / busy → its own message. Box is opaque with a shadow.
+- "GHOST" label 9→11px; coach-motion caption 0.45→0.6 white.
+- Checked: lint, 165/165 unit (+1 retry-label test), 12/12 visual (Train text unchanged), build,
+  Playwright at 360×800 with an Android UA and a rejected getUserMedia → steps readable, no overflow.
+
 ## Cycle 7 — coach chat text below the 11px floor
 - Checked `hooks/useFcmToken.js`: the locale it writes already comes from
   `getLocaleFromPathname` (mn/ko/en only) — no client fix needed; the server whitelist stays RED.
