@@ -1,6 +1,34 @@
 {
   "runs": [
     {
+      "id": "20261107T214955Z-21f12cd",
+      "task": "storage.rules: coach_applications owner-only, image/video type + size caps, reels/videos+thumbnails paths; storage emulator tests",
+      "verdict": "ACCEPTED",
+      "commit": "21f12cd",
+      "at": "2026-11-07T21:51:33.984Z",
+      "durationS": 98,
+      "level": "RED",
+      "failedSteps": [],
+      "notRun": [
+        "visual"
+      ],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 252,
+        "unit.failed": 0,
+        "bundle.kb": 6620,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "rules.passed": 43,
+        "rules.failed": 0
+      },
+      "decision": "owner"
+    },
+    {
       "id": "20261107T214619Z-b91a3e4",
       "task": "functions: whitelist users.locale (mn/ko/en) for retention push copy + click URL",
       "verdict": "ACCEPTED",

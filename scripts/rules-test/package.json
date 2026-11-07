@@ -1,10 +1,10 @@
 {
   "name": "gavana-rules-test",
   "private": true,
-  "description": "Firestore security-rules tests on the emulator. Own dependencies so the app's firebase version is never touched.",
+  "description": "Firestore + Storage security-rules tests on the emulators. Own dependencies so the app's firebase version is never touched.",
   "type": "module",
   "scripts": {
-    "test": "cd ../.. && scripts/rules-test/node_modules/.bin/firebase emulators:exec --config firebase.rules-test.json --only firestore --project demo-gavana \"node scripts/rules-test/rules.test.mjs\""
+    "test": "cd ../.. && scripts/rules-test/node_modules/.bin/firebase emulators:exec --config firebase.rules-test.json --only firestore,storage --project demo-gavana \"node scripts/rules-test/rules.test.mjs && node scripts/rules-test/storage.test.mjs\""
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "3.0.4",

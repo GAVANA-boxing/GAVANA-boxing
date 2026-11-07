@@ -2,6 +2,16 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Storage rules hardening + functions locale whitelist (owner: "bugdiin hii")
+- `storage.rules`: `coach_applications/{uid}` read is now owner-only (was any signed-in user); every
+  upload must be `image/*` or `video/*` under a cap (images 10 MB, thumbnails 5 MB, story video 100 MB,
+  reel video 200 MB); added `reels/videos/{uid}` and `reels/thumbnails/{uid}` matches — the paths
+  `lib/uploadVideo.js` writes were not matched before, so those uploads were denied.
+- `scripts/rules-test/storage.test.mjs` on the Storage emulator (19 cases); `npm run test:rules` now runs
+  Firestore + Storage: 43/43 PASS. Run `20261107T214955Z-21f12cd` (RED → owner decision recorded).
+- `functions/index.js` (`21f12cd`): retention pushes use `users.locale` only if it is mn/ko/en.
+- NOT deployed. Owner: `firebase deploy --only storage,functions`.
+
 ## EVOLVE — self-improvement engine running (owner: implementation directive §17-23 + PRE-AUTHORIZED AUTONOMY POLICY v1.0)
 - Engine C: persistent state in git on the branch — `evolve/queue.json` (tasks), `evolve/memory.json` (cycles),
   `evolve/lock.json` (distributed lock = a pushed commit; 45-min lease; lost race backs off),
