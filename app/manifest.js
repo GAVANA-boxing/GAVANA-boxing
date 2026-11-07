@@ -4,7 +4,7 @@ export default function manifest() {
   return {
     name: "GAVANA Boxing",
     short_name: "GAVANA",
-    description: "Your camera is your boxing coach: a 60-second round, every punch counted, one thing to fix.",
+    description: "Камер чинь бокс дасгалжуулагч чинь: 60 секундийн раунд, цохилт бүр тоологдож, засах нэг зүйлээ ав.",
     start_url: "/mn/home",
     scope: "/",
     display: "standalone",
@@ -13,46 +13,24 @@ export default function manifest() {
     background_color: "#0B0B0C",
     theme_color: "#0B0B0C",
     prefer_related_applications: false,
-    categories: ["sports", "health", "fitness", "social"],
-    lang: "en",
+    categories: ["sports", "health", "fitness"],
+    lang: "mn",
+    // PNG 192 + 512 are what Android needs for the install prompt; SVG kept for
+    // browsers that prefer it. Maskable = full-bleed square (the OS crops it).
     icons: [
-      {
-        src: "/icons/gavana-icon.svg",
-        sizes: "any",
-        type: "image/svg+xml",
-        purpose: "any",
-      },
-      {
-        src: "/icons/gavana-maskable.svg",
-        sizes: "any",
-        type: "image/svg+xml",
-        purpose: "maskable",
-      },
+      { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/icons/maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: "/icons/gavana-icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
     ],
     // Only pages a user can actually open (core mode hides the social features).
     shortcuts: [
-      { name: "Train", short_name: "Train", description: "Start a 60-second round", url: "/en/train" },
-      { name: "Ghost Round", short_name: "Ghost", description: "Jab–cross with the coach's ghost", url: "/en/ghost" },
-      { name: "Progress", short_name: "Progress", description: "Your level and sessions", url: "/en/progress" },
-      { name: "Reels", short_name: "Reels", description: "Watch boxing training reels", url: "/en/reels" },
+      { name: "Бэлтгэл", short_name: "Бэлтгэл", description: "60 секундийн раунд эхлүүлэх", url: "/mn/train" },
+      { name: "Ghost Round", short_name: "Ghost", description: "Дасгалжуулагчтай jab–cross дагаж хий", url: "/mn/ghost" },
+      { name: "Дэвшил", short_name: "Дэвшил", description: "Цол, оноо, бэлтгэлүүд", url: "/mn/progress" },
+      { name: "Reels", short_name: "Reels", description: "Watch boxing training reels", url: "/mn/reels" },
     ]
       .filter((sc) => showRoute(sc.url))
-      .map((sc) => ({ ...sc, icons: [{ src: "/icons/gavana-icon.svg", sizes: "any" }] })),
-    screenshots: [
-      {
-        src: "/icons/gavana-icon.svg",
-        sizes: "512x512",
-        type: "image/svg+xml",
-        form_factor: "narrow",
-        label: "GAVANA Boxing — AI-powered boxing training",
-      },
-      {
-        src: "/icons/gavana-icon.svg",
-        sizes: "512x512",
-        type: "image/svg+xml",
-        form_factor: "wide",
-        label: "GAVANA Boxing — AI boxing coach",
-      },
-    ],
+      .map((sc) => ({ ...sc, icons: [{ src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }] })),
   };
 }

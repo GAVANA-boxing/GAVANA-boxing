@@ -94,8 +94,12 @@ export const metadata = {
     description: "Your phone camera is your boxing coach: AI punch counting, round scores and one thing to fix.",
   },
   icons: {
-    icon: [{ url: "/icons/gavana-icon.svg", type: "image/svg+xml" }],
-    apple: [{ url: "/icons/gavana-icon.svg", type: "image/svg+xml" }],
+    icon: [
+      { url: "/icons/gavana-icon.svg", type: "image/svg+xml" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    // iOS ignores SVG touch icons (the home-screen icon came out as a page screenshot).
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
 };
 
