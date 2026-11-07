@@ -187,7 +187,7 @@ export default function ResultActionsSection({
           <button
             type="button"
             onClick={() => router.push(`/${locale}/login?mode=signup&redirect=${encodeURIComponent(`/${locale}/train`)}`)}
-            style={{ width: "100%", minHeight: 38, background: "none", border: `1px solid ${whiteAlpha(0.07)}`, borderRadius: RADIUS.md, color: whiteAlpha(0.3), fontSize: 11, fontWeight: 800, cursor: "pointer" }}
+            style={{ width: "100%", minHeight: 38, background: "none", border: `1px solid ${whiteAlpha(0.07)}`, borderRadius: RADIUS.md, color: whiteAlpha(0.55), fontSize: 11, fontWeight: 800, cursor: "pointer" }}
           >
             {academyLesson
               ? loc(locale, "Профайл үүсгэж academy дэвшлийг хуваалцаарай →", "프로필 생성 후 아카데미 진행 상황 공유 →", "Create profile to share academy progress →")
@@ -231,7 +231,7 @@ export default function ResultActionsSection({
           <button
             type="button"
             onClick={() => router.push(`/${locale}/login?mode=signup&redirect=${encodeURIComponent(`/${locale}/train`)}`)}
-            style={{ width: "100%", minHeight: 38, background: "none", border: `1px solid ${whiteAlpha(0.07)}`, borderRadius: RADIUS.md, color: whiteAlpha(0.3), fontSize: 11, fontWeight: 800, cursor: "pointer" }}
+            style={{ width: "100%", minHeight: 38, background: "none", border: `1px solid ${whiteAlpha(0.07)}`, borderRadius: RADIUS.md, color: whiteAlpha(0.55), fontSize: 11, fontWeight: 800, cursor: "pointer" }}
           >
             {loc(locale, "Профайл үүсгэж бусдыг challenge хийгээрэй →", "프로필 생성 후 다른 사람에게 도전 →", "Create profile to challenge others →")}
           </button>
@@ -287,7 +287,7 @@ export default function ResultActionsSection({
           <button
             type="button"
             onClick={() => router.push(`/${locale}/fighter-profile`)}
-            style={{ width: "100%", minHeight: 40, background: "none", border: `1px solid ${whiteAlpha(0.08)}`, borderRadius: RADIUS.md, color: whiteAlpha(0.35), fontSize: 11, fontWeight: 800, cursor: "pointer", letterSpacing: 1, textTransform: "uppercase" }}
+            style={{ width: "100%", minHeight: 40, background: "none", border: `1px solid ${whiteAlpha(0.08)}`, borderRadius: RADIUS.md, color: whiteAlpha(0.55), fontSize: 11, fontWeight: 800, cursor: "pointer", letterSpacing: 1, textTransform: "uppercase" }}
           >
             View Fighter Profile →
           </button>

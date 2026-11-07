@@ -65,8 +65,8 @@ export default function StudiedFightersPanel({ studiedIds, dna, locale, router }
   if (studiedFighters.length === 0) {
     return (
       <div style={{ borderRadius: 14, padding: "14px 16px", background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.05)}`, marginBottom: 8 }}>
-        <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.28), textTransform: "uppercase", marginBottom: 8 }}>{L.eyebrow}</div>
-        <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: whiteAlpha(0.3), lineHeight: 1.5 }}>{L.noStudied}</p>
+        <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 8 }}>{L.eyebrow}</div>
+        <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: whiteAlpha(0.55), lineHeight: 1.5 }}>{L.noStudied}</p>
       </div>
     );
   }
@@ -96,7 +96,7 @@ export default function StudiedFightersPanel({ studiedIds, dna, locale, router }
       <div style={{ padding: "13px 16px 10px", borderBottom: `1px solid ${whiteAlpha(0.05)}` }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
-            <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.3), textTransform: "uppercase", marginBottom: 3 }}>{L.eyebrow}</div>
+            <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 3 }}>{L.eyebrow}</div>
             <div style={{ fontSize: 12, fontWeight: 900, color: whiteAlpha(0.7) }}>{L.studiedCount(totalStudied)}</div>
           </div>
           <button
@@ -140,7 +140,7 @@ export default function StudiedFightersPanel({ studiedIds, dna, locale, router }
 
         {/* Archetype distribution bars */}
         <div style={{ marginBottom: 12 }}>
-          <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: whiteAlpha(0.25), textTransform: "uppercase", marginBottom: 8 }}>{L.studyPattern}</div>
+          <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 8 }}>{L.studyPattern}</div>
           {archEntries.map(([arch, count]) => {
             const pct = Math.round((count / totalStudied) * 100);
             const color = ARCH_COLORS[arch] || GOLD;
@@ -165,7 +165,7 @@ export default function StudiedFightersPanel({ studiedIds, dna, locale, router }
         {/* Study gap recommendation */}
         {gapArch && gapFighters.length > 0 && (
           <div style={{ padding: "10px 12px", borderRadius: 10, background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.07)}` }}>
-            <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: whiteAlpha(0.25), textTransform: "uppercase", marginBottom: 5 }}>{L.gap}</div>
+            <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 5 }}>{L.gap}</div>
             <p style={{ margin: "0 0 8px", fontSize: 11, color: whiteAlpha(0.45), lineHeight: 1.4 }}>
               {L.gapHint(AL[gapArch])}
             </p>
@@ -180,7 +180,7 @@ export default function StudiedFightersPanel({ studiedIds, dna, locale, router }
                     style={{ flex: 1, padding: "7px 10px", borderRadius: 9, background: `${color}10`, border: `1px solid ${color}30`, color, fontSize: 10, fontWeight: 900, cursor: "pointer", textAlign: "left" }}
                   >
                     {f.name.split(" ").slice(-1)[0]}
-                    <span style={{ fontSize: 8, color: whiteAlpha(0.3), display: "block", fontWeight: 700, marginTop: 1 }}>{L.unstudied}</span>
+                    <span style={{ fontSize: 8, color: whiteAlpha(0.55), display: "block", fontWeight: 700, marginTop: 1 }}>{L.unstudied}</span>
                   </button>
                 );
               })}

@@ -16,7 +16,7 @@ const styles = {
     padding: "0 4px", paddingTop: "env(safe-area-inset-top)",
   },
   tabActive: { flex: 1, minHeight: 46, border: "none", borderBottom: `2px solid ${RED}`, background: "transparent", color: TEXT, fontSize: 12, fontWeight: 900, letterSpacing: "0.04em", textTransform: "uppercase", cursor: "pointer", transition: "color 180ms ease, border-color 180ms ease", position: "relative" },
-  tabInactive: { flex: 1, minHeight: 46, border: "none", borderBottom: "2px solid transparent", background: "transparent", color: whiteAlpha(0.38), fontSize: 12, fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase", cursor: "pointer", transition: "color 180ms ease, border-color 180ms ease", position: "relative" },
+  tabInactive: { flex: 1, minHeight: 46, border: "none", borderBottom: "2px solid transparent", background: "transparent", color: whiteAlpha(0.55), fontSize: 12, fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase", cursor: "pointer", transition: "color 180ms ease, border-color 180ms ease", position: "relative" },
   aiWrap: { minHeight: "calc(100dvh - 46px)" },
   content: { maxWidth: 520, margin: "0 auto", padding: "0 16px calc(104px + env(safe-area-inset-bottom))" },
   pageHeader: { padding: "22px 0 12px", display: "flex", flexDirection: "column", gap: 10 },

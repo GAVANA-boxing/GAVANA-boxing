@@ -73,7 +73,7 @@ export default function AcademyLessonCard({ academyLesson, result, locale, route
           display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
         }}>
           <div>
-            <div style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 1.2, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", marginBottom: 2 }}>
+            <div style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 1.2, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", marginBottom: 2 }}>
               {L.nextLesson[locale] ?? L.nextLesson.en}
             </div>
             <div style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.65)" }}>

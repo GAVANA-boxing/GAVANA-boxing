@@ -37,7 +37,7 @@ export default function WeeklyDNADigest({ locale, weeklySessionCount, weeklyBest
             <span style={{ color: archColor }}> · {archLabel}</span>
           )}
           {weeklyBestScore != null && (
-            <span style={{ color: "rgba(255,255,255,0.35)" }}>
+            <span style={{ color: "rgba(255,255,255,0.55)" }}>
               {" "}· {COPY.best[locale] || COPY.best.en} {weeklyBestScore.toFixed(1)}
             </span>
           )}

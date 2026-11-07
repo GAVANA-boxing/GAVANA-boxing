@@ -12,7 +12,7 @@ class CoachSectionBoundary extends Component {
       return (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, padding: "22px 16px", textAlign: "center" }}>
           <span style={{ fontSize: 28 }}>⚠️</span>
-          <p style={{ margin: 0, color: whiteAlpha(0.35), fontSize: 12, lineHeight: 1.5, maxWidth: 240 }}>
+          <p style={{ margin: 0, color: whiteAlpha(0.55), fontSize: 12, lineHeight: 1.5, maxWidth: 240 }}>
             {this.props.fallbackText || "Section unavailable"}
           </p>
           <button

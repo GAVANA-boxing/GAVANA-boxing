@@ -169,7 +169,7 @@ export default function LivePunchCounter({ getDebugInfo, isActive, punchTarget, 
           </span>
           {liveCombo.types.slice(-4).map((t, i, arr) => (
             <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 13, fontWeight: 600, color: "#fff", opacity: i === arr.length - 1 ? 1 : 0.6 }}>
-              {i > 0 && <span style={{ color: "rgba(255,255,255,0.35)" }}>·</span>}
+              {i > 0 && <span style={{ color: "rgba(255,255,255,0.55)" }}>·</span>}
               <span style={{ width: 6, height: 6, borderRadius: "50%", background: TYPE_COLOR[t] || "#fff" }} />
               {TYPE_LABEL[t] || t}
             </span>

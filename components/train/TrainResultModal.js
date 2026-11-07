@@ -428,7 +428,7 @@ export default function TrainResultModal({
                 style={{
                   width: "100%", padding: "12px", borderRadius: 12,
                   background: "none", border: "1px solid rgba(255,255,255,0.1)",
-                  color: "rgba(255,255,255,0.35)", fontSize: 13, fontWeight: 700,
+                  color: "rgba(255,255,255,0.55)", fontSize: 13, fontWeight: 700,
                   cursor: "pointer",
                 }}
               >

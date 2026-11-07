@@ -63,7 +63,7 @@ export default function WeeklyReportCard({ sessions, locale, dna, router }) {
   const avgDelta     = +(thisAvg - lastAvg).toFixed(1);
 
   function TrendBadge({ delta }) {
-    if (Math.abs(delta) < 0.05) return <span style={{ fontSize: 9, color: whiteAlpha(0.25), fontFamily: "var(--stack-mono)" }}>—</span>;
+    if (Math.abs(delta) < 0.05) return <span style={{ fontSize: 9, color: whiteAlpha(0.55), fontFamily: "var(--stack-mono)" }}>—</span>;
     const pos = delta > 0;
     return (
       <span style={{ fontSize: 9, fontWeight: 900, color: pos ? "#34D399" : "#F87171", fontFamily: "var(--stack-mono)" }}>
@@ -76,7 +76,7 @@ export default function WeeklyReportCard({ sessions, locale, dna, router }) {
     return (
       <div style={{ borderRadius: 14, padding: "18px 16px", background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.06)}`, marginBottom: 8, textAlign: "center" }}>
         <div style={{ fontSize: 24, marginBottom: 8 }}>📊</div>
-        <p style={{ margin: "0 0 12px", fontSize: 11.5, fontWeight: 700, color: whiteAlpha(0.3), lineHeight: 1.5 }}>{L.noData}</p>
+        <p style={{ margin: "0 0 12px", fontSize: 11.5, fontWeight: 700, color: whiteAlpha(0.55), lineHeight: 1.5 }}>{L.noData}</p>
         <button type="button" onClick={() => router.push(`/${locale}/train`)} style={{ padding: "8px 20px", borderRadius: 10, background: `${GOLD}12`, border: `1px solid ${GOLD}30`, color: GOLD, fontSize: 11, fontWeight: 900, cursor: "pointer" }}>
           {L.trainCta}
         </button>
@@ -99,14 +99,14 @@ export default function WeeklyReportCard({ sessions, locale, dna, router }) {
           ].map(({ val, label, delta, color }) => (
             <div key={label} style={{ padding: "10px 0", borderRadius: 10, background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.06)}`, textAlign: "center" }}>
               <div style={{ fontSize: 22, fontWeight: 1000, color, fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{val}</div>
-              <div style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1.2, color: whiteAlpha(0.28), textTransform: "uppercase", marginTop: 3 }}>{label}</div>
+              <div style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1.2, color: whiteAlpha(0.55), textTransform: "uppercase", marginTop: 3 }}>{label}</div>
               <div style={{ marginTop: 3 }}>{delta !== null ? <TrendBadge delta={delta} /> : <span style={{ fontSize: 9, color: whiteAlpha(0.18), fontFamily: "var(--stack-mono)" }}>{L.vsLast.slice(0, 8)}</span>}</div>
             </div>
           ))}
         </div>
         {!dna.building && dna.archetypeKey && (
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.2, color: whiteAlpha(0.28), textTransform: "uppercase" }}>{L.arch}:</span>
+            <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.2, color: whiteAlpha(0.55), textTransform: "uppercase" }}>{L.arch}:</span>
             <div style={{ width: 6, height: 6, borderRadius: "50%", background: acc, boxShadow: `0 0 5px ${acc}88` }} />
             <span style={{ fontSize: 11, fontWeight: 900, color: acc }}>{dna.archetype}</span>
           </div>

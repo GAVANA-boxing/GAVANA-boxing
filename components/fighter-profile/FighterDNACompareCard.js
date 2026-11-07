@@ -73,13 +73,13 @@ export default function FighterDNACompareCard({ dna, locale }) {
     <div style={{ borderRadius: 16, overflow: "hidden", border: `1px solid ${whiteAlpha(0.08)}`, background: whiteAlpha(0.015), marginBottom: 8 }}>
       <div style={{ height: 2, background: `linear-gradient(90deg, ${whiteAlpha(0.1)}, transparent)` }} />
       <div style={{ padding: "14px 16px 16px" }}>
-        <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.25), textTransform: "uppercase", marginBottom: 12 }}>
+        <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 12 }}>
           ⚔️ {L.eyebrow}
         </div>
 
         {/* Fighter chip selector */}
         <div style={{ marginBottom: 12 }}>
-          <div style={{ fontSize: 9, fontWeight: 800, color: whiteAlpha(0.3), marginBottom: 8 }}>{L.select}</div>
+          <div style={{ fontSize: 9, fontWeight: 800, color: whiteAlpha(0.55), marginBottom: 8 }}>{L.select}</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
             {fighters.map((f) => {
               const active = f.id === selectedId;
@@ -131,7 +131,7 @@ export default function FighterDNACompareCard({ dna, locale }) {
                 const c = ARCH_TRAINING_COLORS[key] || GOLD;
                 return (
                   <div key={key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ width: 70, fontSize: 8, fontWeight: 900, letterSpacing: 0.8, color: whiteAlpha(0.3), textTransform: "uppercase", flexShrink: 0 }}>
+                    <span style={{ width: 70, fontSize: 8, fontWeight: 900, letterSpacing: 0.8, color: whiteAlpha(0.55), textTransform: "uppercase", flexShrink: 0 }}>
                       {AL[key]}
                     </span>
                     <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>
@@ -151,7 +151,7 @@ export default function FighterDNACompareCard({ dna, locale }) {
             </div>
           </>
         ) : (
-          <p style={{ margin: 0, fontSize: 11.5, fontWeight: 700, color: whiteAlpha(0.22), textAlign: "center", padding: "8px 0 4px" }}>
+          <p style={{ margin: 0, fontSize: 11.5, fontWeight: 700, color: whiteAlpha(0.55), textAlign: "center", padding: "8px 0 4px" }}>
             {L.tap}
           </p>
         )}

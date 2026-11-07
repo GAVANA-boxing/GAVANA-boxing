@@ -125,7 +125,7 @@ export default function EvolutionRevealPanel({ experiment, sessions, locale, rou
                 {L.eyebrow}
               </div>
               <div style={{ fontSize: 13, fontWeight: 900, color: "#fff" }}>{experiment.fighterName}</div>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 700 }}>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", fontWeight: 700 }}>
                 {L.subtitle(daysElapsed)} · {L.sessionsIn(expSessions.length)}
               </div>
             </div>
@@ -142,7 +142,7 @@ export default function EvolutionRevealPanel({ experiment, sessions, locale, rou
         {/* Adoption score bar */}
         <div style={{ marginTop: 12 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
-            <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.3)", textTransform: "uppercase" }}>
+            <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.55)", textTransform: "uppercase" }}>
               {L.adoptionLabel}
             </span>
             <span style={{ fontSize: 16, fontWeight: 900, color: adoptionColor, fontFamily: "var(--stack-mono)" }}>
@@ -158,14 +158,14 @@ export default function EvolutionRevealPanel({ experiment, sessions, locale, rou
             }} />
           </div>
           <div style={{ marginTop: 7, fontSize: 11, fontWeight: 800, color: adoptionColor }}>{verdict.label}</div>
-          <div style={{ marginTop: 2, fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.38)", lineHeight: 1.4 }}>{verdict.rec}</div>
+          <div style={{ marginTop: 2, fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.55)", lineHeight: 1.4 }}>{verdict.rec}</div>
         </div>
       </div>
 
       {/* Punch comparison bars */}
       <div style={{ padding: "12px 16px" }}>
         {!currentPattern && (
-          <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>{L.noData}</p>
+          <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.55)", fontWeight: 700 }}>{L.noData}</p>
         )}
 
         {currentPattern && (
@@ -173,8 +173,8 @@ export default function EvolutionRevealPanel({ experiment, sessions, locale, rou
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ width: 36, flexShrink: 0 }} />
               <div style={{ flex: 1, display: "flex", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.25)", textTransform: "uppercase" }}>{L.baseline}</span>
-                <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.25)", textTransform: "uppercase" }}>{L.current}</span>
+                <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.55)", textTransform: "uppercase" }}>{L.baseline}</span>
+                <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.55)", textTransform: "uppercase" }}>{L.current}</span>
               </div>
               <span style={{ width: 38, flexShrink: 0 }} />
             </div>
@@ -185,7 +185,7 @@ export default function EvolutionRevealPanel({ experiment, sessions, locale, rou
               const deltaColor = delta == null ? "transparent" : delta > 0 ? "#34D399" : delta < 0 ? "#F87171" : "rgba(255,255,255,0.3)";
               return (
                 <div key={key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ width: 36, fontSize: 9, fontWeight: 900, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: 0.8, flexShrink: 0 }}>
+                  <span style={{ width: 36, fontSize: 9, fontWeight: 900, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", letterSpacing: 0.8, flexShrink: 0 }}>
                     {label}
                   </span>
                   <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>

@@ -70,14 +70,14 @@ export default function DNATimelineCard({ sessions, locale }) {
 
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-          <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.28), textTransform: "uppercase" }}>
+          <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.55), textTransform: "uppercase" }}>
             {L.title}
           </span>
           <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
             <span style={{ fontSize: 18, fontWeight: 900, color: currentColor, fontFamily: "var(--stack-mono)" }}>
               {last.conf}%
             </span>
-            <span style={{ fontSize: 8.5, fontWeight: 700, color: whiteAlpha(0.3), textTransform: "uppercase" }}>
+            <span style={{ fontSize: 8.5, fontWeight: 700, color: whiteAlpha(0.55), textTransform: "uppercase" }}>
               {L.current}
             </span>
           </div>
@@ -114,14 +114,14 @@ export default function DNATimelineCard({ sessions, locale }) {
 
         {/* X-axis labels */}
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
-          <span style={{ fontSize: 8, fontWeight: 700, color: whiteAlpha(0.2) }}>{L.sessionStart}</span>
-          <span style={{ fontSize: 8, fontWeight: 700, color: whiteAlpha(0.2) }}>S{sorted.length}</span>
+          <span style={{ fontSize: 8, fontWeight: 700, color: whiteAlpha(0.55) }}>{L.sessionStart}</span>
+          <span style={{ fontSize: 8, fontWeight: 700, color: whiteAlpha(0.55) }}>S{sorted.length}</span>
         </div>
 
         {/* Archetype shift legend — only show if changed */}
         {transitions.length > 1 && (
           <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${whiteAlpha(0.05)}` }}>
-            <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: whiteAlpha(0.2), textTransform: "uppercase", marginBottom: 6 }}>
+            <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 6 }}>
               {L.archSwitch}
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -134,7 +134,7 @@ export default function DNATimelineCard({ sessions, locale }) {
                     <span style={{ fontSize: 9, fontWeight: 800, color: whiteAlpha(0.45) }}>
                       {names[arch] || arch}
                     </span>
-                    <span style={{ fontSize: 8, color: whiteAlpha(0.2), fontWeight: 700 }}>
+                    <span style={{ fontSize: 8, color: whiteAlpha(0.55), fontWeight: 700 }}>
                       @S{snapshots[i].n}
                     </span>
                   </div>

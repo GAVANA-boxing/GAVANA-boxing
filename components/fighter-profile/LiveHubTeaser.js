@@ -38,7 +38,7 @@ export default function LiveHubTeaser({ locale }) {
       <div style={{ height: 2, background: `linear-gradient(90deg, ${whiteAlpha(0.1)}, transparent)` }} />
       <div style={{ padding: "18px 18px 16px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-          <span style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.2), textTransform: "uppercase" }}>
+          <span style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.55), textTransform: "uppercase" }}>
             {L.eyebrow}
           </span>
           <span style={{ fontSize: 8, fontWeight: 900, padding: "2px 9px", borderRadius: 999, background: "rgba(251,146,60,0.1)", border: "1px solid rgba(251,146,60,0.22)", color: "#FB923C", letterSpacing: 1 }}>
@@ -48,7 +48,7 @@ export default function LiveHubTeaser({ locale }) {
         <div style={{ fontSize: 20, fontWeight: 1000, color: whiteAlpha(0.5), fontFamily: "var(--font-display,'Anton',sans-serif)", textTransform: "uppercase", marginBottom: 8, letterSpacing: "-0.02em" }}>
           📡 {L.title}
         </div>
-        <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, color: whiteAlpha(0.28), lineHeight: 1.55 }}>
+        <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, color: whiteAlpha(0.55), lineHeight: 1.55 }}>
           {L.sub}
         </p>
         <button

@@ -95,7 +95,7 @@ export default function DNARevealOverlay({ dna, locale, onDismiss }) {
 
         {/* Style-mix bars */}
         <div style={{ ...fade(3), width: "100%", marginBottom: 18 }}>
-          <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 8 }}>
+          <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", marginBottom: 8 }}>
             {L.mix}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>

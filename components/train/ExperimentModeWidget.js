@@ -44,7 +44,7 @@ export default function ExperimentModeWidget({ locale, t, currentExperiment, exp
           <span style={{ fontSize: 9.5, fontWeight: 800, color: "rgba(255,255,255,0.4)" }}>
             {daysElapsed}/{7} {t("experimentDaysOf")}
             {experimentSessionCount > 0 && (
-              <span style={{ marginLeft: 8, color: "rgba(255,255,255,0.28)" }}>
+              <span style={{ marginLeft: 8, color: "rgba(255,255,255,0.55)" }}>
                 · {experimentSessionCount} {COPY.sessions[locale] || COPY.sessions.en}
               </span>
             )}

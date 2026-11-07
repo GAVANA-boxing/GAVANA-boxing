@@ -29,7 +29,7 @@ export default function TribeCard({ archetypeKey, archetype, tribeCount, locale 
       <div style={{ padding: "14px 16px" }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-          <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.28), textTransform: "uppercase" }}>
+          <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.55), textTransform: "uppercase" }}>
             {tribeTitle}
           </span>
           <div style={{ padding: "3px 10px", borderRadius: 999, background: `${acc}15`, border: `1px solid ${acc}35`, fontSize: 8.5, fontWeight: 900, color: acc }}>

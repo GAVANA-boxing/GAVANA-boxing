@@ -16,7 +16,7 @@ export default function CoachReviewCard({ poseMetrics, result, locale }) {
   if (review.lowData) {
     return (
       <div style={{ margin: "0 20px 8px", padding: "12px 14px", borderRadius: 12, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)" }}>
-        <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.8, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 6 }}>
+        <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.8, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", marginBottom: 6 }}>
           {RL.notEnough}
         </div>
         <p style={{ margin: "0 0 6px", fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>
@@ -45,7 +45,7 @@ export default function CoachReviewCard({ poseMetrics, result, locale }) {
           {loc(locale, "ТРЕНЕРИЙН ДҮГНЭЛТ", "코치 리뷰", "COACH REVIEW")}
         </div>
         <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.05)" }} />
-        <div style={{ fontSize: 8.5, fontWeight: 900, color: "rgba(255,255,255,0.28)", letterSpacing: 1 }}>{review.title}</div>
+        <div style={{ fontSize: 8.5, fontWeight: 900, color: "rgba(255,255,255,0.55)", letterSpacing: 1 }}>{review.title}</div>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>

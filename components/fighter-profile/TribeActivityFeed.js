@@ -86,10 +86,10 @@ export default function TribeActivityFeed({ allTribeCounts, userArchetype, local
 
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-          <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.28), textTransform: "uppercase" }}>
+          <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.55), textTransform: "uppercase" }}>
             {L.title}
           </span>
-          <span style={{ fontSize: 9, fontWeight: 900, color: whiteAlpha(0.28), fontFamily: "var(--stack-mono)" }}>
+          <span style={{ fontSize: 9, fontWeight: 900, color: whiteAlpha(0.55), fontFamily: "var(--stack-mono)" }}>
             {total} {L.totalLabel}
           </span>
         </div>
@@ -134,7 +134,7 @@ export default function TribeActivityFeed({ allTribeCounts, userArchetype, local
         {/* Activity feed */}
         {feedItems.length > 0 && (
           <div style={{ borderTop: `1px solid ${whiteAlpha(0.05)}`, paddingTop: 12 }}>
-            <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.2), textTransform: "uppercase", marginBottom: 8 }}>
+            <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 8 }}>
               {L.feed}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -152,7 +152,7 @@ export default function TribeActivityFeed({ allTribeCounts, userArchetype, local
               {dominantNote && (
                 <div style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 2 }}>
                   <div style={{ width: 6, height: 6, borderRadius: "50%", background: GOLD, flexShrink: 0, boxShadow: `0 0 5px ${GOLD}55` }} />
-                  <span style={{ fontSize: 11, fontWeight: 700, color: whiteAlpha(0.38), lineHeight: 1.3 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: whiteAlpha(0.55), lineHeight: 1.3 }}>
                     {dominantNote}
                   </span>
                 </div>
@@ -162,7 +162,7 @@ export default function TribeActivityFeed({ allTribeCounts, userArchetype, local
         )}
 
         {total === 0 && (
-          <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: whiteAlpha(0.3), textAlign: "center", padding: "8px 0" }}>
+          <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: whiteAlpha(0.55), textAlign: "center", padding: "8px 0" }}>
             {L.empty}
           </p>
         )}

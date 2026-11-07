@@ -124,7 +124,7 @@ export default function DNAEvolutionCard({ sessions, locale }) {
               <span style={{ fontSize: 9, fontWeight: 900, color: ARCH_TRAINING_COLORS[beforeDNA.archetypeKey] || GOLD, textTransform: "uppercase" }}>
                 {NAMES[beforeDNA.archetypeKey]}
               </span>
-              <span style={{ fontSize: 9, color: whiteAlpha(0.3) }}>→</span>
+              <span style={{ fontSize: 9, color: whiteAlpha(0.55) }}>→</span>
               <span style={{ fontSize: 9, fontWeight: 900, color: currentColor, textTransform: "uppercase" }}>
                 {NAMES[nowDNA.archetypeKey]}
               </span>
@@ -136,10 +136,10 @@ export default function DNAEvolutionCard({ sessions, locale }) {
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
           <span style={{ width: 76, flexShrink: 0 }} />
           <div style={{ flex: 1, display: "flex", justifyContent: "space-between" }}>
-            <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: whiteAlpha(0.22), textTransform: "uppercase" }}>
+            <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: whiteAlpha(0.55), textTransform: "uppercase" }}>
               {L.before} · {L.sessions(splitN)}
             </span>
-            <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: whiteAlpha(0.22), textTransform: "uppercase" }}>
+            <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: whiteAlpha(0.55), textTransform: "uppercase" }}>
               {L.now} · {L.sessions(splitN)}
             </span>
           </div>

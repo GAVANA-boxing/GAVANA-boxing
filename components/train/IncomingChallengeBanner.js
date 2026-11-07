@@ -99,7 +99,7 @@ export default function IncomingChallengeBanner({ user, locale, router }) {
           borderRadius: 10,
           border: "1px solid rgba(255,255,255,0.1)",
           background: "transparent",
-          color: "rgba(255,255,255,0.35)",
+          color: "rgba(255,255,255,0.55)",
           fontSize: 11,
           fontWeight: 700,
           cursor: "pointer",

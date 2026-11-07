@@ -65,7 +65,7 @@ export default function IdentityJourneyStrip({ sessions, dna, studiedIds, curren
     <div style={{ marginBottom: 16 }}>
       {/* Header + progress bar */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-        <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.25), textTransform: "uppercase" }}>
+        <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.55), textTransform: "uppercase" }}>
           {L.title}
         </span>
         <span style={{ fontSize: 9, fontWeight: 900, color: pct >= 100 ? "#34D399" : GOLD }}>

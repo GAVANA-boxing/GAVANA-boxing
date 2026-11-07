@@ -103,7 +103,7 @@ export default function ProUpgradePanel({ locale, router }) {
         >
           {loading ? "…" : L.cta}
         </button>
-        <p style={{ margin: "8px 0 0", fontSize: 9.5, fontWeight: 700, color: "rgba(255,255,255,0.25)", textAlign: "center" }}>
+        <p style={{ margin: "8px 0 0", fontSize: 9.5, fontWeight: 700, color: "rgba(255,255,255,0.55)", textAlign: "center" }}>
           {L.price}
         </p>
         {err && (

@@ -64,7 +64,7 @@ const s = {
   clearBtn: {
     background: "none",
     border: "none",
-    color: whiteAlpha(0.35),
+    color: whiteAlpha(0.55),
     fontSize: 12,
     fontWeight: 700,
     cursor: "pointer",

@@ -33,7 +33,7 @@ export default function FeaturedExperiment({ locale, pkg, fighter, router }) {
             ⚗️
           </div>
         </div>
-        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 700, marginBottom: 10 }}>
+        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", fontWeight: 700, marginBottom: 10 }}>
           {pkg.focus[locale] || pkg.focus.en}
         </div>
         <button

@@ -880,7 +880,7 @@ export default function TrainPage() {
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: drill ? 8 : 0 }}>
                 <div style={{ flex: 1 }}>
                   <span style={{ fontSize: 12.5, fontWeight: 900, color: "#fff" }}>{fighter.name}</span>
-                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.38)", marginLeft: 8 }}>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", marginLeft: 8 }}>
                     {connection.primaryFocus} · {connection.primaryValue?.toFixed(1)}/10
                   </span>
                 </div>
@@ -1156,7 +1156,7 @@ export default function TrainPage() {
               <div style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.65)" }}>
                 {locale === "mn" ? "Видео бичлэг" : locale === "ko" ? "비디오 녹화" : "Record video"}
               </div>
-              <div style={{ fontSize: 9.5, color: "rgba(255,255,255,0.28)", marginTop: 1 }}>
+              <div style={{ fontSize: 9.5, color: "rgba(255,255,255,0.55)", marginTop: 1 }}>
                 {locale === "mn" ? "Feed-д хуваалцах үед upload хийгдэнэ" : locale === "ko" ? "공유 시 업로드됩니다" : "Uploads when you share to feed"}
               </div>
             </div>

@@ -20,7 +20,7 @@ export default function CoachMemoryPanel({ coachSnapshot }) {
     }}>
       <div style={{
         fontSize: 8.5, fontWeight: 900, letterSpacing: 1.8,
-        color: "rgba(255,255,255,0.28)", textTransform: "uppercase", marginBottom: 7,
+        color: "rgba(255,255,255,0.55)", textTransform: "uppercase", marginBottom: 7,
       }}>
         Coach sees
       </div>
@@ -40,7 +40,7 @@ export default function CoachMemoryPanel({ coachSnapshot }) {
             ⚡ {k} {v.toFixed(1)}
           </span>
         ))}
-        <span style={{ fontSize: 9.5, color: "rgba(255,255,255,0.22)", fontWeight: 700 }}>
+        <span style={{ fontSize: 9.5, color: "rgba(255,255,255,0.55)", fontWeight: 700 }}>
           {coachSnapshot.totalSessions} sessions · avg {coachSnapshot.avgScore.toFixed(1)}
         </span>
       </div>

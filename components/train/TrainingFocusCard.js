@@ -155,7 +155,7 @@ export default function TrainingFocusCard({ fighterName, lesson, academyLesson, 
         {drillSteps?.length > 0 && (
           <div style={{ marginBottom: onStart ? 14 : 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 9 }}>
-              <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1.8, color: "rgba(255,255,255,0.22)", textTransform: "uppercase" }}>
+              <span style={{ fontSize: 7, fontWeight: 900, letterSpacing: 1.8, color: "rgba(255,255,255,0.55)", textTransform: "uppercase" }}>
                 {isAcademy ? academyLesson.drill?.title || L("drill") : L("drillSteps")}
               </span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.05)" }} />

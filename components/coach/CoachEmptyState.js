@@ -38,7 +38,7 @@ export default function CoachEmptyState({
       <p style={s.greeting}>{activePersona.greeting[locale] || activePersona.greeting.en}</p>
 
       {!lastSessionData && (
-        <p style={{ margin: "-6px 0 16px", fontSize: 12, color: "rgba(255,255,255,0.35)", textAlign: "center", lineHeight: 1.5 }}>
+        <p style={{ margin: "-6px 0 16px", fontSize: 12, color: "rgba(255,255,255,0.55)", textAlign: "center", lineHeight: 1.5 }}>
           {locale === "mn"
             ? "Хичээл хийсний дараа дээрхтэй адил AI дүн шинжилгээ авна."
             : locale === "ko"
@@ -52,7 +52,7 @@ export default function CoachEmptyState({
           width: "100%", borderRadius: 12, padding: "12px 14px", marginBottom: 14,
           background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
         }}>
-          <p style={{ margin: "0 0 8px", fontSize: 9, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.3)", textTransform: "uppercase" }}>
+          <p style={{ margin: "0 0 8px", fontSize: 9, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.55)", textTransform: "uppercase" }}>
             {locale === "mn" ? "ЖИШЭЭ FEEDBACK" : locale === "ko" ? "샘플 피드백" : "SAMPLE AI FEEDBACK"}
           </p>
           {[
@@ -68,7 +68,7 @@ export default function CoachEmptyState({
               <span style={{ fontSize: 11, fontWeight: 900, color, width: 28, textAlign: "right" }}>{val}</span>
             </div>
           ))}
-          <p style={{ margin: "8px 0 0", fontSize: 11, color: "rgba(255,255,255,0.3)", fontStyle: "italic", lineHeight: 1.4 }}>
+          <p style={{ margin: "8px 0 0", fontSize: 11, color: "rgba(255,255,255,0.55)", fontStyle: "italic", lineHeight: 1.4 }}>
             {locale === "mn"
               ? "\"Тохойгоо бага зэрэг бууруулаарай — jab хурдыг нэмнэ.\""
               : locale === "ko"

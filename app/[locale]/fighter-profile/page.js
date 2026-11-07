@@ -118,7 +118,7 @@ function StatCell({ value, label, accent }) {
       }}>
         {value}
       </div>
-      <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: whiteAlpha(0.28), textTransform: "uppercase" }}>
+      <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: whiteAlpha(0.55), textTransform: "uppercase" }}>
         {label}
       </div>
     </div>
@@ -453,7 +453,7 @@ export default function FighterProfilePage() {
               return (
                 <div style={{ borderRadius: 14, padding: "12px 14px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", marginBottom: 10 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                    <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.8, textTransform: "uppercase", color: "rgba(255,255,255,0.3)" }}>
+                    <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.8, textTransform: "uppercase", color: "rgba(255,255,255,0.55)" }}>
                       {locale === "mn" ? "ДНХ ИТГЭЛЦЛИЙН ЗАМНАЛ" : locale === "ko" ? "DNA 신뢰도 여정" : "DNA CONFIDENCE JOURNEY"}
                     </div>
                     <div style={{ fontSize: 11, fontWeight: 900, color: accentColor }}>{conf.toFixed(0)}%</div>
@@ -464,7 +464,7 @@ export default function FighterProfilePage() {
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <span style={{ fontSize: 10, fontWeight: 800, color: accentColor }}>{currentMilestone.label[locale] || currentMilestone.label.en}</span>
                     {nextMilestone && (
-                      <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.25)" }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.55)" }}>
                         → {nextMilestone.label[locale] || nextMilestone.label.en} @ {nextMilestone.pct}%
                       </span>
                     )}
@@ -505,7 +505,7 @@ export default function FighterProfilePage() {
                     <div style={{ fontSize: 12, fontWeight: 800, color: "#fff", marginBottom: 2 }}>
                       {locale === "mn" ? "Долоо хоногийн ДНХ тайлан татах" : locale === "ko" ? "주간 DNA 리포트 다운로드" : "Download Weekly DNA Report"}
                     </div>
-                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", fontWeight: 700 }}>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", fontWeight: 700 }}>
                       {locale === "mn" ? "Долоо хоногийн статистик · JSON" : locale === "ko" ? "주간 통계 · JSON" : "Weekly stats · JSON"}
                     </div>
                   </div>
@@ -640,7 +640,7 @@ export default function FighterProfilePage() {
             {!loading && dna.building && (
               <div style={{ borderRadius: 14, padding: "24px 16px", background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.06)}`, textAlign: "center" }}>
                 <div style={{ fontSize: 28, marginBottom: 10 }}>🧬</div>
-                <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: whiteAlpha(0.35), lineHeight: 1.5 }}>
+                <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: whiteAlpha(0.55), lineHeight: 1.5 }}>
                   {locale === "mn" ? "ДНХ баталгаажсаны дараа овгоо олно." : locale === "ko" ? "DNA 확정 후 부족에 합류합니다." : "Your tribe unlocks once your DNA confirms."}
                 </p>
               </div>

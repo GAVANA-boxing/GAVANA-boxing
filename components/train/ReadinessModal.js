@@ -72,7 +72,7 @@ export default function ReadinessModal({
       </div>
 
       <button type="button"
-        style={{ marginTop: 20, background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 12, cursor: "pointer" }}
+        style={{ marginTop: 20, background: "none", border: "none", color: "rgba(255,255,255,0.55)", fontSize: 12, cursor: "pointer" }}
         onClick={dismiss}
       >
         {t("readinessSkip")}
