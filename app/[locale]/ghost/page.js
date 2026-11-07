@@ -11,6 +11,7 @@ import { analyzeGhostRound } from "@/lib/ghost/analyze";
 import { funnel } from "@/lib/funnel";
 import MotionReplay3D from "@/components/train/MotionReplay3D";
 import GhostCanvas2D from "@/components/ghost/GhostCanvas2D";
+import { btnPrimary, btnSecondary, displayTitle, kickerDot, kickerPill, pageBackground, sectionLabel } from "@/components/ui/brand";
 import { RED, GOLD, GREEN, RADIUS, FONT_SIZE, FONT_WEIGHT, whiteAlpha, redAlpha, blackAlpha } from "@/lib/tokens";
 
 const ROUND_SECONDS = 30;
@@ -212,11 +213,9 @@ export default function GhostRoundPage() {
   ] : [];
 
   return (
-    <main style={{ minHeight: "100dvh", background: "#090909", color: "#fff", padding: "calc(20px + env(safe-area-inset-top)) 16px 32px" }}>
+    <main style={{ minHeight: "100dvh", background: pageBackground, color: "#fff", padding: "calc(20px + env(safe-area-inset-top)) 16px 32px" }}>
       <div style={{ maxWidth: 520, margin: "0 auto", display: "flex", flexDirection: "column", gap: 14 }}>
-        <div style={{ fontSize: FONT_SIZE.xs, fontWeight: FONT_WEIGHT.black, letterSpacing: 1.6, color: whiteAlpha(0.4), textTransform: "uppercase" }}>
-          Ghost Round · Jab–Cross
-        </div>
+        <p style={{ ...kickerPill, alignSelf: "flex-start" }}><span style={kickerDot} />{L("Ghost Round · Jab–Cross", "고스트 라운드 · 잽–크로스", "Ghost Round · Jab–Cross")}</p>
 
         {noData ? (
           <p style={{ margin: 0, fontSize: FONT_SIZE.md, color: whiteAlpha(0.8), lineHeight: 1.5 }}>
@@ -227,25 +226,25 @@ export default function GhostRoundPage() {
         ) : (
           <>
             <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-              <span style={{ fontSize: 56, fontWeight: FONT_WEIGHT.ultra, lineHeight: 1, color: a.match >= 75 ? GREEN : a.match >= 50 ? GOLD : RED }}>{a.match}%</span>
+              <span style={{ ...displayTitle, fontSize: 64, color: a.match >= 75 ? GREEN : a.match >= 50 ? GOLD : RED }}>{a.match}%</span>
               <span style={{ fontSize: FONT_SIZE.base, color: whiteAlpha(0.6) }}>{L("Ghost-той таарсан", "고스트와 일치", "match with the ghost")}</span>
             </div>
 
-            <div style={{ padding: 14, borderRadius: RADIUS.lg, background: redAlpha(0.1), border: `1px solid ${redAlpha(0.35)}` }}>
-              <div style={{ fontSize: FONT_SIZE.xs, fontWeight: FONT_WEIGHT.black, letterSpacing: 1.4, color: RED, textTransform: "uppercase", marginBottom: 6 }}>
+            <div style={{ padding: 16, borderRadius: 20, background: redAlpha(0.1), border: `1px solid ${redAlpha(0.35)}` }}>
+              <div style={{ ...sectionLabel, color: "#ff7a72", marginBottom: 8 }}>
                 {a.tip === "great" ? L("Дараагийн алхам", "다음 단계", "Next step") : L("Эхлээд үүнийг засна", "먼저 이것부터", "Fix this first")}
               </div>
               <div style={{ fontSize: FONT_SIZE.md, fontWeight: FONT_WEIGHT.bold, lineHeight: 1.45 }}>{loc(locale, a.tipText.mn, a.tipText.ko, a.tipText.en)}</div>
             </div>
 
-            <div style={{ borderRadius: RADIUS.lg, border: `1px solid ${whiteAlpha(0.08)}`, overflow: "hidden" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 64px 64px", padding: "8px 12px", fontSize: FONT_SIZE.xs, fontWeight: FONT_WEIGHT.black, color: whiteAlpha(0.45), textTransform: "uppercase", letterSpacing: 1, background: whiteAlpha(0.03) }}>
+            <div style={{ borderRadius: 20, border: `1px solid ${whiteAlpha(0.08)}`, overflow: "hidden", background: whiteAlpha(0.03) }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 64px 64px", padding: "10px 14px", fontSize: 12.5, fontWeight: 600, color: whiteAlpha(0.5), background: whiteAlpha(0.03) }}>
                 <span />
                 <span style={{ textAlign: "right" }}>{L("Чи", "나", "You")}</span>
                 <span style={{ textAlign: "right", color: "#67e8f9" }}>Ghost</span>
               </div>
               {rows.map(([label, you, ref]) => (
-                <div key={label} style={{ display: "grid", gridTemplateColumns: "1fr 64px 64px", padding: "9px 12px", borderTop: `1px solid ${whiteAlpha(0.06)}`, fontSize: FONT_SIZE.sm }}>
+                <div key={label} style={{ display: "grid", gridTemplateColumns: "1fr 64px 64px", padding: "11px 14px", borderTop: `1px solid ${whiteAlpha(0.06)}`, fontSize: 14 }}>
                   <span style={{ color: whiteAlpha(0.75) }}>{label}</span>
                   <span style={{ textAlign: "right", fontWeight: FONT_WEIGHT.bold, fontVariantNumeric: "tabular-nums" }}>{you}</span>
                   <span style={{ textAlign: "right", color: "#67e8f9", fontVariantNumeric: "tabular-nums" }}>{ref}</span>
@@ -253,16 +252,16 @@ export default function GhostRoundPage() {
               ))}
             </div>
 
-            <button type="button" onClick={() => setCompareOpen(true)} style={{ padding: 13, borderRadius: RADIUS.md, border: "1px solid rgba(103,232,249,0.45)", background: "rgba(103,232,249,0.1)", color: "#67e8f9", fontSize: FONT_SIZE.md, fontWeight: FONT_WEIGHT.black, cursor: "pointer" }}>
+            <button type="button" onClick={() => setCompareOpen(true)} style={{ ...btnSecondary, border: "1px solid rgba(103,232,249,0.45)", background: "rgba(103,232,249,0.1)", color: "#67e8f9", fontFamily: "inherit" }}>
               🧊 {L("3D-ээр Ghost-той харьцуулах", "3D로 고스트와 비교", "Compare with the ghost in 3D")}
             </button>
           </>
         )}
 
-        <button type="button" onClick={() => { setPhase("watch"); setResult(null); }} style={{ padding: 13, borderRadius: RADIUS.md, border: "none", background: `linear-gradient(135deg, ${RED}, #cc2820)`, color: "#fff", fontSize: FONT_SIZE.md, fontWeight: FONT_WEIGHT.black, cursor: "pointer" }}>
+        <button type="button" onClick={() => { setPhase("watch"); setResult(null); }} style={{ ...btnPrimary, fontFamily: "inherit" }}>
           {L("Дахин раунд", "다시 라운드", "Another round")}
         </button>
-        <button type="button" onClick={exit} style={{ padding: 11, borderRadius: RADIUS.md, border: `1px solid ${whiteAlpha(0.12)}`, background: "transparent", color: whiteAlpha(0.7), fontSize: FONT_SIZE.sm, cursor: "pointer" }}>
+        <button type="button" onClick={exit} style={{ ...btnSecondary, fontFamily: "inherit", color: whiteAlpha(0.75) }}>
           {L("Train руу буцах", "트레이닝으로", "Back to Train")}
         </button>
       </div>
