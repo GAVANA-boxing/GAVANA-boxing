@@ -170,7 +170,7 @@ const styles = {
     alignContent: "start",
     justifyItems: "center",
     gap: 12,
-    padding: "48px 28px 28px",
+    padding: "32px 24px 24px",
     textAlign: "center",
     background: `radial-gradient(ellipse at 50% 35%, ${goldAlpha(0.1)}, transparent 55%), linear-gradient(160deg, #0e0608, ${BG})`,
   },
@@ -184,8 +184,13 @@ const styles = {
     background: redAlpha(0.1),
     color: "#FF6B6B",
   },
-  fallbackTitle: { margin: 0, fontSize: 20, fontWeight: 950 },
+  fallbackTitle: { margin: 0, fontSize: 18, fontWeight: 950 },
   fallbackText: { margin: 0, color: whiteAlpha(0.55), fontSize: 13, lineHeight: 1.55 },
+  fallbackHelp: {
+    margin: 0, maxWidth: 320, padding: "8px 12px", borderRadius: 10,
+    background: whiteAlpha(0.06), border: `1px solid ${whiteAlpha(0.1)}`,
+    color: whiteAlpha(0.78), fontSize: 12, lineHeight: 1.5,
+  },
 
   // ── Overlays ──────────────────────────────────────────────────────────────
   stageShade: {

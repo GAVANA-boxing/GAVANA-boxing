@@ -2,6 +2,14 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Cycle 4 — how to turn the camera back on
+- `/train` camera denied: new hint box with the steps for iOS Safari («aA» → Website Settings →
+  Camera), Android Chrome (lock icon → Permissions → Camera) or desktop (lock icon → Camera),
+  MN / KO / EN. Pure helper `lib/cameraHelp.js` + `tests/cameraHelp.test.js` (4 tests).
+- Retry button moved above the hint and given a 40px tap target; title 20→18px and top padding
+  48→32 so everything stays above the Start dock on 360×800.
+- Train baselines regenerated on purpose; 12/12 visual, 164/164 unit, lint 0 errors.
+
 ## Cycle 3 — camera-denied text no longer under the Start dock
 - `/train` with no camera: the explanation and the "retry camera" button sat in the middle of the
   82dvh stage, behind the sticky Start dock + nav on 360×800. The fallback block is now

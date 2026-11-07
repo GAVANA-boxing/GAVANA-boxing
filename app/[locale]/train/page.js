@@ -39,6 +39,7 @@ import { Toast, useToast } from "@/components/ui/Toast";
 import { CORE_MODE, showRoute } from "@/lib/coreRoutes";
 import { funnel, FUNNEL } from "@/lib/funnel";
 import { loc } from "@/lib/loc";
+import { cameraPermissionHelp } from "@/lib/cameraHelp";
 const PoseDebugOverlay   = dynamic(() => import("@/components/train/PoseDebugOverlay"),   { ssr: false });
 const DebugSessionPanel  = dynamic(() => import("@/components/train/DebugSessionPanel"),  { ssr: false });
 const LivePunchCounter   = dynamic(() => import("@/components/train/LivePunchCounter"),   { ssr: false });
@@ -957,10 +958,15 @@ export default function TrainPage() {
                 <button
                   type="button"
                   onClick={() => setCameraRetryKey((k) => k + 1)}
-                  style={{ marginTop: 12, padding: "9px 20px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.07)", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer" }}
+                  style={{ minHeight: 40, padding: "10px 20px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.07)", color: "#fff", fontSize: 13, fontWeight: 800, cursor: "pointer" }}
                 >
                   {t("trainRetryCam")}
                 </button>
+              )}
+              {cameraState === "denied" && (
+                <p style={styles.fallbackHelp}>
+                  {cameraPermissionHelp(typeof navigator !== "undefined" ? navigator.userAgent : "", locale)}
+                </p>
               )}
             </div>
           )}
