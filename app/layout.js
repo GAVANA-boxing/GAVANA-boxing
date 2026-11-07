@@ -84,10 +84,12 @@ export const metadata = {
     siteName: "GAVANA Boxing",
     title: "GAVANA Boxing — AI Punch Scoring for Fighters",
     description: "Your phone camera is your boxing coach: AI punch counting, round scores and one thing to fix.",
-    images: [{ url: "/icons/gavana-icon.svg", width: 512, height: 512, alt: "GAVANA Boxing" }],
+    // PNG: most link previews (Facebook, Telegram, KakaoTalk, iMessage) don't show SVG.
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "GAVANA — AI boxing coach" }],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
+    images: ["/og.png"],
     title: "GAVANA Boxing",
     description: "Your phone camera is your boxing coach: AI punch counting, round scores and one thing to fix.",
   },
