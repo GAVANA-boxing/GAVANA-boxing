@@ -228,7 +228,8 @@ export default function CoachPage() {
           </div>
 
           {/* Sort + advanced filter row */}
-          <div style={{ display: "flex", gap: 8, marginBottom: 16, alignItems: "center" }}>
+          {/* Scrolls sideways on narrow phones (four buttons overflowed a 390 px screen) */}
+          <div style={{ display: "flex", gap: 8, alignItems: "center", overflowX: "auto", scrollbarWidth: "none", margin: "0 -16px 16px", padding: "0 16px" }}>
             {[
               { key: "rating", label: t("coachSortRating") },
               { key: "students", label: t("coachSortStudents") },
