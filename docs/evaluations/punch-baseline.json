@@ -1,0 +1,100 @@
+{
+  "detector": "lib/punchPhaseDetector.js (rule-based, 2D + 3D world landmarks)",
+  "data": "tests/fixtures/punch-landmarks.json — 6 clips, 1 southpaw fighter, MediaPipe lite @ 10 fps",
+  "matchToleranceS": 0.6,
+  "punches": 39,
+  "detection": {
+    "recall": 0.897,
+    "precision": 1,
+    "phantoms": 0
+  },
+  "perClass": {
+    "jab": {
+      "support": 16,
+      "predicted": 16,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1
+    },
+    "cross": {
+      "support": 10,
+      "predicted": 9,
+      "precision": 0.889,
+      "recall": 0.8,
+      "f1": 0.842
+    },
+    "hook": {
+      "support": 13,
+      "predicted": 10,
+      "precision": 1,
+      "recall": 0.769,
+      "f1": 0.87
+    }
+  },
+  "macroF1": 0.904,
+  "confusion": {
+    "jab": {
+      "jab": 16,
+      "cross": 0,
+      "hook": 0,
+      "none": 0
+    },
+    "cross": {
+      "jab": 0,
+      "cross": 8,
+      "hook": 0,
+      "none": 2
+    },
+    "hook": {
+      "jab": 0,
+      "cross": 1,
+      "hook": 10,
+      "none": 2
+    }
+  },
+  "phantomsByType": {
+    "jab": 0,
+    "cross": 0,
+    "hook": 0
+  },
+  "perClip": {
+    "jabcross": {
+      "kind": "straight",
+      "truth": 8,
+      "matched": 7,
+      "phantoms": 0
+    },
+    "IMG_6156": {
+      "kind": "straight",
+      "truth": 12,
+      "matched": 11,
+      "phantoms": 0
+    },
+    "IMG_6153": {
+      "kind": "straight",
+      "truth": 6,
+      "matched": 6,
+      "phantoms": 0
+    },
+    "IMG_6182": {
+      "kind": "hook",
+      "truth": 5,
+      "matched": 4,
+      "phantoms": 0
+    },
+    "IMG_6181": {
+      "kind": "hook",
+      "truth": 4,
+      "matched": 4,
+      "phantoms": 0
+    },
+    "IMG_6155": {
+      "kind": "hook",
+      "truth": 4,
+      "matched": 3,
+      "phantoms": 0
+    }
+  },
+  "cpuMsPerFrame": 0.031,
+  "cpuNote": "Node replay of the detector only (no MediaPipe, no browser) — not on-device latency."
+}

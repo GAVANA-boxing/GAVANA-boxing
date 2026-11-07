@@ -2,6 +2,23 @@
 
 Status: TODO · BLOCKED (needs approval) · DONE. Highest priority first.
 
+## EVOLVE — prioritized from the Phase Zero audit (docs/architecture/current-state.md)
+P0 (needs owner approval — RED)
+- Storage rules: `coach_applications/{uid}/*` readable by any signed-in user → owner/admin only; add
+  upload size + content-type limits on every path. Test with the emulator before deploy.
+- `next` critical advisory (+24 other `npm audit` findings): plan the upgrade, full test pass.
+P1 (GREEN/YELLOW — can be done in cycles)
+- Rules-test harness: README command fails; add a root-level emulator config + `npm run test:rules`;
+  then add it to CI (Java is available on GitHub runners).
+- Engineer AI MVP (proposed in evolution-target.md): `scripts/evolve/check.mjs` + run records +
+  run state machine. Awaiting owner OK.
+- Don't load MediaPipe on the /bag and /mitts intro screens (≈17 MB before the user starts).
+- Remove committed `build.log`; move old phase/release markdown into `docs/archive/`.
+P2
+- Error monitoring (needs a service → RED). Shared rate limits for paid APIs (RED: cost).
+- Turn on `checkJs` gradually (per folder) or migrate hot files to TS.
+- Coach AI: multi-person, consented landmark test set (RED: consent / data model).
+
 ## P1
 
 ## P2

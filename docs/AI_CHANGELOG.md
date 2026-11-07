@@ -2,6 +2,18 @@
 
 One entry per cycle that changed code. Newest first.
 
+## EVOLVE Phase Zero — repository audit + baseline (owner directive v1.0)
+- No app code changed. Added `docs/architecture/current-state.md` (VERIFIED / INFERRED / UNKNOWN /
+  BLOCKED inventory + ranked risks), `docs/architecture/evolution-target.md` (directive mapped onto what
+  exists; smallest Engineer AI MVP; RED decisions), `docs/evaluations/baseline.md` (lint, typecheck,
+  unit, build, visual, rules, audit, bundle + page weight, punch metrics).
+- New measurement tool `scripts/punch-eval/metrics.mjs` (+ `docs/evaluations/punch-baseline.json`):
+  per-class precision / recall / F1 + confusion for the rule-based detector on the labelled fixture —
+  macro F1 0.904 on 39 punches from one southpaw fighter (not representative).
+- Found: storage rules expose coach-application photos to all signed-in users and have no size / type
+  limits; rules-test command broken as documented (24/24 PASS with a root config); MediaPipe loads on
+  the /bag and /mitts intros; `next` critical advisory; no error monitoring; `build.log` committed.
+
 ## Game pipeline ideas (owner shared the "Sumiro" Opus + Blender + three.js build)
 Taken: Blender → three.js environment, atmosphere, and the "play it, find bugs, fix, repeat" agent loop.
 Not taken (RED: paid generation APIs + keys): Flux video, GPT Image turnarounds, Tripo image→3D.
