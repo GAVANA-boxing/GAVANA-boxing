@@ -1,4 +1,5 @@
 import { withAuth } from "@/lib/withAuth";
+import { pushCopy, PUSH_KINDS } from "@/lib/pushCopy";
 
 const PROJECT_ID = "gavana-boxing-89a22";
 
@@ -55,32 +56,34 @@ async function getFcmTokens(recipientId) {
   }
 }
 
+/** The language the recipient uses the app in (saved with their notification token); null if unknown. */
+async function getRecipientLocale(recipientId, accessToken) {
+  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/users/${recipientId}?mask.fieldPaths=locale`;
+  try {
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.fields?.locale?.stringValue || null;
+  } catch {
+    return null;
+  }
+}
+
 export const POST = withAuth(async (req, { uid }) => {
   const accessToken = await getFcmAccessToken();
   if (!accessToken) return Response.json({ sent: 0, note: "FCM service account not configured" });
 
   if (isRateLimited(uid)) return Response.json({ error: "Rate limited" }, { status: 429 });
 
-  const { recipientId, title, body, url, archetype } = await req.json();
-  if (!recipientId || !title) return Response.json({ error: "Missing recipientId or title" }, { status: 400 });
-  if (typeof title !== "string" || title.length > 120) return Response.json({ error: "Invalid title" }, { status: 400 });
-  if (body && (typeof body !== "string" || body.length > 300)) return Response.json({ error: "Invalid body" }, { status: 400 });
+  // The sender says what happened; the words and the link are chosen here, in the recipient's language,
+  // so nobody can push free text to another person.
+  const { recipientId, kind, actorName } = await req.json().catch(() => ({}));
+  if (typeof recipientId !== "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(recipientId)) return Response.json({ error: "Invalid recipientId" }, { status: 400 });
+  if (typeof kind !== "string" || !Object.hasOwn(PUSH_KINDS, kind)) return Response.json({ error: "Invalid kind" }, { status: 400 });
   if (recipientId === uid) return Response.json({ sent: 0 }); // no self-notify
 
-  // Archetype-specific notification boost
-  const ARCH_SUFFIX = {
-    pressure:   { en: " Keep pushing forward.", mn: " Урагшлаа!", ko: " 계속 밀어붙이세요." },
-    outboxer:   { en: " Work your range.", mn: " Зайгаа хадгал.", ko: " 거리를 유지하세요." },
-    counter:    { en: " Wait for the perfect moment.", mn: " Мөчийг хүлээ.", ko: " 완벽한 순간을 기다리세요." },
-    explosive:  { en: " Explode on command.", mn: " Тэсрэлтийн хүч!", ko: " 폭발하세요!" },
-    technician: { en: " Precision is power.", mn: " Нарийвчлал бол хүч.", ko: " 정밀함이 힘입니다." },
-  };
-  let enrichedBody = body || "";
-  if (archetype && ARCH_SUFFIX[archetype]) {
-    // Detect locale from recipientId's stored data — not feasible here, default to en
-    enrichedBody = (body || "") + (ARCH_SUFFIX[archetype].en || "");
-    if (enrichedBody.length > 300) enrichedBody = body; // safety
-  }
+  const locale = await getRecipientLocale(recipientId, accessToken);
+  const { title, body, url } = pushCopy(kind, { locale, actorName: typeof actorName === "string" ? actorName : "", actorId: uid });
 
   const tokens = await getFcmTokens(recipientId);
   if (tokens.length === 0) return Response.json({ sent: 0 });
@@ -96,13 +99,13 @@ export const POST = withAuth(async (req, { uid }) => {
         body: JSON.stringify({
           message: {
             token,
-            notification: { title, body: enrichedBody },
+            notification: { title, body },
             webpush: {
               notification: {
                 icon: "/icons/icon-192.png",
                 badge: "/icons/badge-96.png",
               },
-              fcm_options: { link: url || "/" },
+              fcm_options: { link: url },
             },
           },
         }),

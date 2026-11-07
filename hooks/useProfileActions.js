@@ -75,17 +75,7 @@ export function useProfileActions({
         });
         // Push notification — fire-and-forget
         const token = await auth.currentUser?.getIdToken().catch(() => null);
-        sendPushNotification({
-          recipientId: userId,
-          title: "👤 " + (locale === "mn" ? "Шинэ дагагч" : locale === "ko" ? "새 팔로워" : "New Follower"),
-          body: locale === "mn"
-            ? `${actorName || "Нэг хэрэглэгч"} таныг дагаж эхэллээ`
-            : locale === "ko"
-            ? `${actorName || "누군가"}님이 팔로우했습니다`
-            : `${actorName || "Someone"} started following you`,
-          url: `/${locale || "en"}/profile/${user.uid}`,
-          token,
-        });
+        sendPushNotification({ recipientId: userId, kind: "follow", actorName, token });
         // Check if now mutual
         const reverseDoc = await getDoc(doc(db, "follows", `${userId}_${user.uid}`));
         setIsMutual(reverseDoc.exists());
@@ -160,17 +150,7 @@ export function useProfileActions({
 
       // Fire-and-forget push notification
       const pushToken = await auth.currentUser?.getIdToken().catch(() => null);
-      sendPushNotification({
-        recipientId: userId,
-        title: "⚔️ " + (locale === "mn" ? "Шинэ тулаан!" : locale === "ko" ? "새 챌린지!" : "New Challenge!"),
-        body: locale === "mn"
-          ? `${user.displayName || "Тулаанч"} тан руу тулааны шийдэл илгээлээ`
-          : locale === "ko"
-          ? `${user.displayName || "파이터"}님이 PvP를 신청했습니다`
-          : `${user.displayName || "A fighter"} challenged you on GAVANA`,
-        url: `/${locale}/train`,
-        token: pushToken,
-      });
+      sendPushNotification({ recipientId: userId, kind: "challenge", actorName: user.displayName || "", token: pushToken });
     } catch (e) {
     } finally {
       setChallengeSending(false);

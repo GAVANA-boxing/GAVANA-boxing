@@ -63,7 +63,7 @@ export const POST = withAuth(async (req, { uid }) => {
   };
   const RANK_BODIES = {
     en: rank <= 3  ? "Top 3! Keep that momentum going." : rank <= 10 ? "Top 10 — keep pushing." : "Keep training to move up.",
-    mn: rank <= 3  ? "Шилдэг 3! Урагшлаа." : rank <= 10 ? "Шилдэг 10 — үргэлжлүүл." : "Дээшлэхийн тулд үргэлжлүүлэн сурга.",
+    mn: rank <= 3  ? "Шилдэг 3! Урагшлаа." : rank <= 10 ? "Шилдэг 10 — үргэлжлүүл." : "Дээшлэхийн тулд бэлтгэлээ үргэлжлүүл.",
     ko: rank <= 3  ? "상위 3위! 계속 나아가세요." : rank <= 10 ? "상위 10위 — 계속 도전하세요." : "더 올라가려면 계속 훈련하세요.",
   };
 

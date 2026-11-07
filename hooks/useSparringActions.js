@@ -80,13 +80,7 @@ export function useSparringActions({ user, router, locale, userData, myPost, onE
       });
       // Fire-and-forget push notification
       const token = await user.getIdToken?.().catch(() => null);
-      sendPushNotification({
-        recipientId: post.userId,
-        title: "🥊 " + (locale === "mn" ? "Sparring хүсэлт" : locale === "ko" ? "스파링 요청" : "Sparring Request"),
-        body: notifText,
-        url: `/${locale}/sparring`,
-        token,
-      });
+      sendPushNotification({ recipientId: post.userId, kind: "sparringRequest", actorName, token });
     } catch (e) {
       onError?.(locale === "mn" ? "Хүсэлт илгээхэд алдаа гарлаа." : locale === "ko" ? "요청 전송에 실패했습니다." : "Failed to send request. Try again.");
     } finally {
@@ -120,13 +114,7 @@ export function useSparringActions({ user, router, locale, userData, myPost, onE
       });
       // Fire-and-forget push — requester needs to know immediately
       const token = await user.getIdToken?.().catch(() => null);
-      sendPushNotification({
-        recipientId: req.fromUserId,
-        title: "✅ " + (locale === "mn" ? "Sparring зөвшөөрлөө!" : locale === "ko" ? "스파링 수락됨!" : "Sparring Accepted!"),
-        body: acceptText,
-        url: `/${locale}/sparring`,
-        token,
-      });
+      sendPushNotification({ recipientId: req.fromUserId, kind: "sparringAccepted", actorName, token });
       const convoId = await startConversation(user, req.fromUserId, {
         displayName: req.fromDisplayName,
         photoURL: req.fromPhotoURL,

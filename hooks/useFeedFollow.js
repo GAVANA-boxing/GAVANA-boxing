@@ -68,17 +68,7 @@ export function useFeedFollow({ user, router, currentLocale }) {
 
         // Fire-and-forget push notification
         auth.currentUser?.getIdToken().then((token) => {
-          sendPushNotification({
-            recipientId: creatorUid,
-            title: "👤 " + (currentLocale === "mn" ? "Шинэ дагагч" : currentLocale === "ko" ? "새 팔로워" : "New Follower"),
-            body: currentLocale === "mn"
-              ? `${actorName || "Нэг хэрэглэгч"} таныг дагаж эхэллээ`
-              : currentLocale === "ko"
-              ? `${actorName || "누군가"}님이 팔로우했습니다`
-              : `${actorName || "Someone"} started following you`,
-            url: `/${currentLocale}/profile/${user.uid}`,
-            token,
-          });
+          sendPushNotification({ recipientId: creatorUid, kind: "follow", actorName, token });
         }).catch(() => {});
       }
     } catch {
