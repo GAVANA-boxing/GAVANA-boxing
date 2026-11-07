@@ -74,10 +74,11 @@ describe("change policy", () => {
   });
 
   it("the automation can't loosen its own guardrails without the owner", () => {
-    for (const p of ["lib/evolve/policy.js", "lib/evolve/runState.js", "scripts/evolve/check.mjs", "docs/evaluations/baseline.json", "docs/AI_ENGINEERING_RULES.md"]) {
+    for (const p of ["lib/evolve/policy.js", "lib/evolve/runState.js", "scripts/evolve/check.mjs", "docs/evaluations/baseline.json", "docs/AI_ENGINEERING_RULES.md", "evolve/control.json", "evolve/coach/models.json"]) {
       expect(classifyPath(p).level, p).toBe("RED");
     }
     expect(classifyPath("docs/evaluations/runs/x.json").level).toBe("GREEN");
+    for (const p of ["evolve/queue.json", "evolve/memory.json", "evolve/lock.json"]) expect(classifyPath(p).level, p).toBe("GREEN");
     expect(classifyPath("docs/evaluations/baseline.md").level).toBe("GREEN");
   });
 

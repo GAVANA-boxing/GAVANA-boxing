@@ -1,0 +1,11 @@
+{
+  "_note": "Owner-controlled. The automation reads this file at the start of every cycle and never sets paused=false itself. Emergency stop: set paused to true (GitHub web edit, or tell Claude 'зогсоо').",
+  "paused": false,
+  "pausedNote": "",
+  "maxCyclesPerDay": 40,
+  "failureBreaker": 3,
+  "clearFailuresBefore": null,
+  "budget": { "paidApiCallsPerDay": 0, "note": "Cycles use no paid APIs. Claude usage is billed to the owner's Claude plan, not tracked here." },
+  "authorizedBranch": "claude/review-refactor-code-DUmiX",
+  "scheduler": { "kind": "Claude Code scheduled task (fresh session per run)", "id": null, "cron": null }
+}
