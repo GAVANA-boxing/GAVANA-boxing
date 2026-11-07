@@ -1,0 +1,258 @@
+{
+  "id": "20261107T142401Z-37f2e45",
+  "key": "bd708d25",
+  "task": "EVOLVE: initial baseline",
+  "branch": "claude/review-refactor-code-DUmiX",
+  "commit": "37f2e45",
+  "base": "@{upstream}",
+  "startedAt": "2026-11-07T14:24:01.363Z",
+  "finishedAt": "2026-11-07T14:30:09.854Z",
+  "durationS": 368,
+  "cost": {
+    "paidApiCalls": 0,
+    "note": "checks run locally; no paid APIs"
+  },
+  "change": {
+    "level": "RED",
+    "files": [
+      {
+        "path": ".github/workflows/ci.yml",
+        "level": "RED",
+        "why": "production / deploy config"
+      },
+      {
+        "path": ".gitignore",
+        "level": "YELLOW",
+        "why": "unclassified path"
+      },
+      {
+        "path": "package.json",
+        "level": "RED",
+        "why": "dependencies"
+      },
+      {
+        "path": "scripts/rules-test/README.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "scripts/rules-test/firebase.json",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "firebase.rules-test.json",
+        "level": "YELLOW",
+        "why": "unclassified path"
+      },
+      {
+        "path": "lib/evolve/policy.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/evolve/runState.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "scripts/evolve/check.mjs",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "scripts/rules-test/package-lock.json",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "scripts/rules-test/package.json",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/evolvePolicy.test.js",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "name": "lint",
+      "ms": 42509,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0,
+        "warnings": 23
+      }
+    },
+    {
+      "name": "typecheck",
+      "ms": 2088,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0
+      }
+    },
+    {
+      "name": "unit",
+      "ms": 3748,
+      "status": "PASS",
+      "metrics": {
+        "passed": 241,
+        "failed": 0
+      }
+    },
+    {
+      "name": "build",
+      "ms": 19597,
+      "status": "PASS",
+      "metrics": {}
+    },
+    {
+      "name": "bundle",
+      "status": "PASS",
+      "metrics": {
+        "kb": 6598
+      }
+    },
+    {
+      "name": "punch",
+      "ms": 71,
+      "status": "PASS",
+      "metrics": {
+        "macroF1": 0.904,
+        "recall": 0.897,
+        "precision": 1,
+        "phantoms": 0
+      }
+    },
+    {
+      "name": "visual",
+      "ms": 294515,
+      "status": "PASS",
+      "metrics": {
+        "passed": 49,
+        "failed": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "name": "rules",
+      "ms": 5954,
+      "status": "PASS",
+      "metrics": {
+        "passed": 24,
+        "failed": 0
+      }
+    }
+  ],
+  "comparison": [
+    {
+      "metric": "lint.errors",
+      "value": 0,
+      "status": "NO BASELINE"
+    },
+    {
+      "metric": "lint.warnings",
+      "value": 23,
+      "status": "NO BASELINE"
+    },
+    {
+      "metric": "typecheck.errors",
+      "value": 0,
+      "status": "NO BASELINE"
+    },
+    {
+      "metric": "unit.failed",
+      "value": 0,
+      "status": "NO BASELINE"
+    },
+    {
+      "metric": "unit.passed",
+      "value": 241,
+      "status": "NO BASELINE"
+    },
+    {
+      "metric": "bundle.kb",
+      "value": 6598,
+      "status": "NO BASELINE"
+    },
+    {
+      "metric": "punch.macroF1",
+      "value": 0.904,
+      "status": "NO BASELINE"
+    },
+    {
+      "metric": "punch.phantoms",
+      "value": 0,
+      "status": "NO BASELINE"
+    },
+    {
+      "metric": "visual.failed",
+      "value": 0,
+      "status": "NO BASELINE"
+    },
+    {
+      "metric": "visual.passed",
+      "value": 49,
+      "status": "NO BASELINE"
+    },
+    {
+      "metric": "rules.failed",
+      "value": 0,
+      "status": "NO BASELINE"
+    },
+    {
+      "metric": "rules.passed",
+      "value": 24,
+      "status": "NO BASELINE"
+    }
+  ],
+  "verdict": "ACCEPTED",
+  "verdictNote": "RED paths need the owner: .github/workflows/ci.yml (production / deploy config), package.json (dependencies)",
+  "history": [
+    {
+      "state": "PENDING",
+      "at": "2026-11-07T14:24:01.363Z",
+      "note": "created"
+    },
+    {
+      "state": "PLANNING",
+      "at": "2026-11-07T14:24:01.363Z",
+      "note": "EVOLVE: initial baseline"
+    },
+    {
+      "state": "IMPLEMENTING",
+      "at": "2026-11-07T14:24:01.363Z",
+      "note": "12 changed file(s) vs @{upstream}, risk RED"
+    },
+    {
+      "state": "VERIFYING",
+      "at": "2026-11-07T14:24:01.363Z",
+      "note": ""
+    },
+    {
+      "state": "EVALUATING",
+      "at": "2026-11-07T14:30:09.853Z",
+      "note": ""
+    },
+    {
+      "state": "AWAITING_APPROVAL",
+      "at": "2026-11-07T14:30:09.854Z",
+      "note": "RED paths need the owner: .github/workflows/ci.yml (production / deploy config), package.json (dependencies)"
+    },
+    {
+      "state": "ACCEPTED",
+      "at": "2026-11-07T14:49:13.775Z",
+      "note": "Owner approved the Engineer AI MVP in chat on 2026-11-07 (\"A r hii\" in reply to proposal A: evolve:check runner + run records + run state machine; CI gains the rules tests). Recorded by the agent on that instruction. (initial baseline run of the same change)"
+    }
+  ],
+  "baselineCommit": null,
+  "decision": {
+    "by": "owner",
+    "note": "Owner approved the Engineer AI MVP in chat on 2026-11-07 (\"A r hii\" in reply to proposal A: evolve:check runner + run records + run state machine; CI gains the rules tests). Recorded by the agent on that instruction. (initial baseline run of the same change)",
+    "at": "2026-11-07T14:49:13.775Z"
+  }
+}

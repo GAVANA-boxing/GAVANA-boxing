@@ -1,0 +1,22 @@
+{
+  "commit": "37f2e45",
+  "date": "2026-11-07T14:30:09.854Z",
+  "note": "Written by evolve:check --write-baseline. Machine-specific (bundle size, visual).",
+  "metrics": {
+    "lint.errors": 0,
+    "lint.warnings": 23,
+    "typecheck.errors": 0,
+    "unit.passed": 241,
+    "unit.failed": 0,
+    "bundle.kb": 6598,
+    "punch.macroF1": 0.904,
+    "punch.recall": 0.897,
+    "punch.precision": 1,
+    "punch.phantoms": 0,
+    "visual.passed": 49,
+    "visual.failed": 0,
+    "visual.flaky": 0,
+    "rules.passed": 24,
+    "rules.failed": 0
+  }
+}

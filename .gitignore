@@ -52,3 +52,9 @@ next-env.d.ts
 # Playwright (visual regression) outputs — the baselines in tests/visual/__screenshots__ ARE committed
 /test-results/
 /playwright-report/
+
+# Rules-test tool dependencies and emulator logs
+/scripts/rules-test/node_modules/
+firestore-debug.log
+# Evolve run lock
+/.evolve.lock

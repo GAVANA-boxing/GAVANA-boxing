@@ -1,0 +1,313 @@
+{
+  "id": "20261107T144315Z-37f2e45",
+  "key": "9101d426",
+  "task": "EVOLVE Engineer AI MVP: evolve:check runner, run state machine, change policy, rules-test isolation + CI job",
+  "branch": "claude/review-refactor-code-DUmiX",
+  "commit": "37f2e45",
+  "base": "@{upstream}",
+  "dirty": true,
+  "startedAt": "2026-11-07T14:43:15.101Z",
+  "finishedAt": "2026-11-07T14:49:04.859Z",
+  "durationS": 350,
+  "cost": {
+    "paidApiCalls": 0,
+    "note": "checks run locally; no paid APIs"
+  },
+  "change": {
+    "level": "RED",
+    "files": [
+      {
+        "path": ".github/workflows/ci.yml",
+        "level": "RED",
+        "why": "production / deploy config"
+      },
+      {
+        "path": ".gitignore",
+        "level": "GREEN",
+        "why": "repo hygiene"
+      },
+      {
+        "path": "docs/AI_CHANGELOG.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "docs/AI_ENGINEERING_RULES.md",
+        "level": "RED",
+        "why": "evolve guardrails"
+      },
+      {
+        "path": "docs/AI_TASK_BACKLOG.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "package.json",
+        "level": "RED",
+        "why": "dependencies"
+      },
+      {
+        "path": "scripts/rules-test/README.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "scripts/rules-test/firebase.json",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/screens.spec.mjs",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "docs/evaluations/baseline.json",
+        "level": "RED",
+        "why": "evolve guardrails"
+      },
+      {
+        "path": "firebase.rules-test.json",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "lib/evolve/policy.js",
+        "level": "RED",
+        "why": "evolve guardrails"
+      },
+      {
+        "path": "lib/evolve/runState.js",
+        "level": "RED",
+        "why": "evolve guardrails"
+      },
+      {
+        "path": "scripts/evolve/approve.mjs",
+        "level": "RED",
+        "why": "evolve guardrails"
+      },
+      {
+        "path": "scripts/evolve/check.mjs",
+        "level": "RED",
+        "why": "evolve guardrails"
+      },
+      {
+        "path": "scripts/rules-test/package-lock.json",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "scripts/rules-test/package.json",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/evolvePolicy.test.js",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "name": "lint",
+      "ms": 38009,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0,
+        "warnings": 23
+      }
+    },
+    {
+      "name": "typecheck",
+      "ms": 1610,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0
+      }
+    },
+    {
+      "name": "unit",
+      "ms": 3740,
+      "status": "PASS",
+      "metrics": {
+        "passed": 242,
+        "failed": 0
+      }
+    },
+    {
+      "name": "build",
+      "ms": 18224,
+      "status": "PASS",
+      "metrics": {}
+    },
+    {
+      "name": "bundle",
+      "status": "PASS",
+      "metrics": {
+        "kb": 6598
+      }
+    },
+    {
+      "name": "punch",
+      "ms": 65,
+      "status": "PASS",
+      "metrics": {
+        "macroF1": 0.904,
+        "recall": 0.897,
+        "precision": 1,
+        "phantoms": 0
+      }
+    },
+    {
+      "name": "visual",
+      "ms": 281499,
+      "status": "PASS",
+      "metrics": {
+        "passed": 49,
+        "failed": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "name": "rules",
+      "ms": 6594,
+      "status": "PASS",
+      "metrics": {
+        "passed": 24,
+        "failed": 0
+      }
+    }
+  ],
+  "comparison": [
+    {
+      "metric": "lint.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "lint.warnings",
+      "baseline": 23,
+      "value": 23,
+      "limit": "≤ 23",
+      "status": "PASS"
+    },
+    {
+      "metric": "typecheck.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.passed",
+      "baseline": 241,
+      "value": 242,
+      "limit": "≥ 241",
+      "status": "PASS"
+    },
+    {
+      "metric": "bundle.kb",
+      "baseline": 6598,
+      "value": 6598,
+      "limit": "≤ 6928",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.macroF1",
+      "baseline": 0.904,
+      "value": 0.904,
+      "limit": "≥ 0.9035000000000001",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.phantoms",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.passed",
+      "baseline": 49,
+      "value": 49,
+      "limit": "≥ 49",
+      "status": "PASS"
+    },
+    {
+      "metric": "rules.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "rules.passed",
+      "baseline": 24,
+      "value": 24,
+      "limit": "≥ 24",
+      "status": "PASS"
+    }
+  ],
+  "verdict": "ACCEPTED",
+  "verdictNote": "RED paths need the owner: .github/workflows/ci.yml (production / deploy config), docs/AI_ENGINEERING_RULES.md (evolve guardrails), package.json (dependencies), docs/evaluations/baseline.json (evolve guardrails), lib/evolve/policy.js (evolve guardrails), lib/evolve/runState.js (evolve guardrails), scripts/evolve/approve.mjs (evolve guardrails), scripts/evolve/check.mjs (evolve guardrails)",
+  "history": [
+    {
+      "state": "PENDING",
+      "at": "2026-11-07T14:43:15.101Z",
+      "note": "created"
+    },
+    {
+      "state": "PLANNING",
+      "at": "2026-11-07T14:43:15.101Z",
+      "note": "EVOLVE Engineer AI MVP: evolve:check runner, run state machine, change policy, rules-test isolation + CI job"
+    },
+    {
+      "state": "IMPLEMENTING",
+      "at": "2026-11-07T14:43:15.101Z",
+      "note": "18 changed file(s) vs @{upstream}, risk RED"
+    },
+    {
+      "state": "VERIFYING",
+      "at": "2026-11-07T14:43:15.101Z",
+      "note": ""
+    },
+    {
+      "state": "EVALUATING",
+      "at": "2026-11-07T14:49:04.849Z",
+      "note": ""
+    },
+    {
+      "state": "AWAITING_APPROVAL",
+      "at": "2026-11-07T14:49:04.850Z",
+      "note": "RED paths need the owner: .github/workflows/ci.yml (production / deploy config), docs/AI_ENGINEERING_RULES.md (evolve guardrails), package.json (dependencies), docs/evaluations/baseline.json (evolve guardrails), lib/evolve/policy.js (evolve guardrails), lib/evolve/runState.js (evolve guardrails), scripts/evolve/approve.mjs (evolve guardrails), scripts/evolve/check.mjs (evolve guardrails)"
+    },
+    {
+      "state": "ACCEPTED",
+      "at": "2026-11-07T14:49:13.722Z",
+      "note": "Owner approved the Engineer AI MVP in chat on 2026-11-07 (\"A r hii\" in reply to proposal A: evolve:check runner + run records + run state machine; CI gains the rules tests). Recorded by the agent on that instruction."
+    }
+  ],
+  "baselineCommit": "37f2e45",
+  "decision": {
+    "by": "owner",
+    "note": "Owner approved the Engineer AI MVP in chat on 2026-11-07 (\"A r hii\" in reply to proposal A: evolve:check runner + run records + run state machine; CI gains the rules tests). Recorded by the agent on that instruction.",
+    "at": "2026-11-07T14:49:13.722Z"
+  }
+}

@@ -5,9 +5,12 @@ is owner-only, and that `users/{uid}/fcmTokens` is owner-only. Runs against
 the local emulator (needs Java).
 
 ```bash
-cd scripts/rules-test
-npm i --no-save firebase-tools@13 @firebase/rules-unit-testing@3 firebase@10
-npx firebase emulators:exec --only firestore --project demo-gavana "node rules.test.mjs"
+npm --prefix scripts/rules-test ci     # once — this folder has its own dependencies
+npm run test:rules                     # from the repo root
 ```
+
+The emulator config is `firebase.rules-test.json` at the repo root (the Firebase CLI refuses
+rules files outside its project directory, so the config can't live in this folder). Never
+install these packages in the root: `firebase@10` here would replace the app's `firebase@12`.
 
 Every line should start with `PASS`.

@@ -87,11 +87,14 @@ for (const v of [{ id: "mn-390", locale: "mn", viewport: viewport390 }, { id: "m
     await page.goto(`/${v.locale}/visual/teardown`, { waitUntil: "load" });
     await expect(page.getByTestId("teardown-tips")).toBeVisible();
     // Freeze on a fixed moment of the selected punch (scrubbing pauses playback).
-    // Wait for the replay to start first, or its own start-up would override the scrub.
+    // The replay's own start-up (focus → play from the punch start) can land after an
+    // early scrub on a loaded machine — so scrub until it sticks.
     await page.waitForTimeout(1500);
-    await page.getByRole("slider").fill("1780");
-    await expect(page.getByRole("button", { name: "▶" })).toBeVisible();
-    await expect(page.getByText("1.8s / 5.4s")).toBeVisible();
+    await expect(async () => {
+      await page.getByRole("slider").fill("1780");
+      await expect(page.getByRole("button", { name: "▶" })).toBeVisible({ timeout: 800 });
+      await expect(page.getByText("1.8s / 5.4s")).toBeVisible({ timeout: 800 });
+    }).toPass({ timeout: 15_000 });
     await page.addStyleTag({ content: "canvas { opacity: 0 !important; }" });
     await settle(page);
     await expect(page).toHaveScreenshot(`teardown-${v.id}.png`);

@@ -1,0 +1,299 @@
+{
+  "id": "20261107T143118Z-37f2e45",
+  "key": "e0846733",
+  "task": "EVOLVE Engineer AI MVP: evolve:check runner, run state machine, change policy, rules-test isolation + CI job",
+  "branch": "claude/review-refactor-code-DUmiX",
+  "commit": "37f2e45",
+  "base": "@{upstream}",
+  "dirty": true,
+  "startedAt": "2026-11-07T14:31:18.949Z",
+  "finishedAt": "2026-11-07T14:36:39.245Z",
+  "durationS": 320,
+  "cost": {
+    "paidApiCalls": 0,
+    "note": "checks run locally; no paid APIs"
+  },
+  "change": {
+    "level": "RED",
+    "files": [
+      {
+        "path": ".github/workflows/ci.yml",
+        "level": "RED",
+        "why": "production / deploy config"
+      },
+      {
+        "path": ".gitignore",
+        "level": "GREEN",
+        "why": "repo hygiene"
+      },
+      {
+        "path": "docs/AI_CHANGELOG.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "docs/AI_ENGINEERING_RULES.md",
+        "level": "RED",
+        "why": "evolve guardrails"
+      },
+      {
+        "path": "docs/AI_TASK_BACKLOG.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "package.json",
+        "level": "RED",
+        "why": "dependencies"
+      },
+      {
+        "path": "scripts/rules-test/README.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "scripts/rules-test/firebase.json",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "docs/evaluations/baseline.json",
+        "level": "RED",
+        "why": "evolve guardrails"
+      },
+      {
+        "path": "firebase.rules-test.json",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "lib/evolve/policy.js",
+        "level": "RED",
+        "why": "evolve guardrails"
+      },
+      {
+        "path": "lib/evolve/runState.js",
+        "level": "RED",
+        "why": "evolve guardrails"
+      },
+      {
+        "path": "scripts/evolve/approve.mjs",
+        "level": "RED",
+        "why": "evolve guardrails"
+      },
+      {
+        "path": "scripts/evolve/check.mjs",
+        "level": "RED",
+        "why": "evolve guardrails"
+      },
+      {
+        "path": "scripts/rules-test/package-lock.json",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "scripts/rules-test/package.json",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/evolvePolicy.test.js",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "name": "lint",
+      "ms": 38042,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0,
+        "warnings": 23
+      }
+    },
+    {
+      "name": "typecheck",
+      "ms": 1488,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0
+      }
+    },
+    {
+      "name": "unit",
+      "ms": 3365,
+      "status": "PASS",
+      "metrics": {
+        "passed": 242,
+        "failed": 0
+      }
+    },
+    {
+      "name": "build",
+      "ms": 16840,
+      "status": "PASS",
+      "metrics": {}
+    },
+    {
+      "name": "bundle",
+      "status": "PASS",
+      "metrics": {
+        "kb": 6598
+      }
+    },
+    {
+      "name": "punch",
+      "ms": 74,
+      "status": "PASS",
+      "metrics": {
+        "macroF1": 0.904,
+        "recall": 0.897,
+        "precision": 1,
+        "phantoms": 0
+      }
+    },
+    {
+      "name": "visual",
+      "ms": 254136,
+      "status": "FAIL",
+      "metrics": {
+        "passed": 46,
+        "failed": 3,
+        "flaky": 0
+      },
+      "tail": "\u001b[1A\u001b[2K[42/49] tests/visual/screens.spec.mjs:133:5 › tour-night mn-390\n\u001b[1A\u001b[2K[43/49] tests/visual/screens.spec.mjs:133:5 › tour mn-360\n\u001b[1A\u001b[2K[44/49] tests/visual/screens.spec.mjs:133:5 › tour-night mn-360\n\u001b[1A\u001b[2K[45/49] tests/visual/screens.spec.mjs:133:5 › tour ko-390\n\u001b[1A\u001b[2K[46/49] tests/visual/screens.spec.mjs:133:5 › tour-night ko-390\n\u001b[1A\u001b[2K[47/49] tests/visual/screens.spec.mjs:147:3 › bag mn-390\n\u001b[1A\u001b[2K[48/49] tests/visual/screens.spec.mjs:147:3 › bag mn-360\n\u001b[1A\u001b[2K[49/49] tests/visual/screens.spec.mjs:147:3 › bag ko-390\n\u001b[1A\u001b[2K  3 failed\n    tests/visual/screens.spec.mjs:84:3 › teardown mn-390 ───────────────────────────────────────────\n    tests/visual/screens.spec.mjs:84:3 › teardown mn-360 ───────────────────────────────────────────\n    tests/visual/screens.spec.mjs:84:3 › teardown ko-390 ───────────────────────────────────────────\n  46 passed (4.2m)\n\n\u001b[1A\u001b[2K(node:6323) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n\u001b[1A\u001b[2K(node:6323) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n\u001b[1A\u001b[2K(node:7173) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n\u001b[1A\u001b[2K(node:7173) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n\u001b[1A\u001b[2K(node:7297) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n\u001b[1A\u001b[2K(node:7297) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n\u001b[1A\u001b[2K(node:7421) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n\u001b[1A\u001b[2K(node:7421) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "name": "rules",
+      "ms": 6336,
+      "status": "PASS",
+      "metrics": {
+        "passed": 24,
+        "failed": 0
+      }
+    }
+  ],
+  "comparison": [
+    {
+      "metric": "lint.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "lint.warnings",
+      "baseline": 23,
+      "value": 23,
+      "limit": "≤ 23",
+      "status": "PASS"
+    },
+    {
+      "metric": "typecheck.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.passed",
+      "baseline": 241,
+      "value": 242,
+      "limit": "≥ 241",
+      "status": "PASS"
+    },
+    {
+      "metric": "bundle.kb",
+      "baseline": 6598,
+      "value": 6598,
+      "limit": "≤ 6928",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.macroF1",
+      "baseline": 0.904,
+      "value": 0.904,
+      "limit": "≥ 0.9035000000000001",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.phantoms",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.failed",
+      "baseline": 0,
+      "value": 3,
+      "limit": "≤ 0",
+      "status": "FAIL"
+    },
+    {
+      "metric": "visual.passed",
+      "baseline": 49,
+      "value": 46,
+      "limit": "≥ 49",
+      "status": "FAIL"
+    },
+    {
+      "metric": "rules.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "rules.passed",
+      "baseline": 24,
+      "value": 24,
+      "limit": "≥ 24",
+      "status": "PASS"
+    }
+  ],
+  "verdict": "REJECTED",
+  "verdictNote": "failed: visual; regressed: visual.failed, visual.passed",
+  "history": [
+    {
+      "state": "PENDING",
+      "at": "2026-11-07T14:31:18.949Z",
+      "note": "created"
+    },
+    {
+      "state": "PLANNING",
+      "at": "2026-11-07T14:31:18.949Z",
+      "note": "EVOLVE Engineer AI MVP: evolve:check runner, run state machine, change policy, rules-test isolation + CI job"
+    },
+    {
+      "state": "IMPLEMENTING",
+      "at": "2026-11-07T14:31:18.949Z",
+      "note": "17 changed file(s) vs @{upstream}, risk RED"
+    },
+    {
+      "state": "VERIFYING",
+      "at": "2026-11-07T14:31:18.949Z",
+      "note": ""
+    },
+    {
+      "state": "EVALUATING",
+      "at": "2026-11-07T14:36:39.237Z",
+      "note": ""
+    },
+    {
+      "state": "REJECTED",
+      "at": "2026-11-07T14:36:39.238Z",
+      "note": "failed: visual; regressed: visual.failed, visual.passed"
+    }
+  ],
+  "baselineCommit": "37f2e45"
+}

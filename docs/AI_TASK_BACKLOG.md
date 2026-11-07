@@ -8,10 +8,9 @@ P0 (needs owner approval — RED)
   upload size + content-type limits on every path. Test with the emulator before deploy.
 - `next` critical advisory (+24 other `npm audit` findings): plan the upgrade, full test pass.
 P1 (GREEN/YELLOW — can be done in cycles)
-- Rules-test harness: README command fails; add a root-level emulator config + `npm run test:rules`;
-  then add it to CI (Java is available on GitHub runners).
-- Engineer AI MVP (proposed in evolution-target.md): `scripts/evolve/check.mjs` + run records +
-  run state machine. Awaiting owner OK.
+- (DONE) Rules-test harness + CI job; Engineer AI MVP (`npm run evolve:check`).
+- Next for Evolve: read-only `/admin/evolution` page listing run records; run `evolve:check` in CI on
+  `claude/**` pushes (no visual there); Coach AI eval-set growth.
 - Don't load MediaPipe on the /bag and /mitts intro screens (≈17 MB before the user starts).
 - Remove committed `build.log`; move old phase/release markdown into `docs/archive/`.
 P2

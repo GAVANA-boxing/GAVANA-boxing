@@ -12,7 +12,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:visual": "playwright test",
-    "test:visual:update": "playwright test --update-snapshots"
+    "test:visual:update": "playwright test --update-snapshots",
+    "test:rules": "npm --prefix scripts/rules-test test",
+    "evolve:check": "node scripts/evolve/check.mjs"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^0.10.35",

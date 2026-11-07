@@ -33,11 +33,27 @@ Read this (and CLAUDE.md) before every change. Keep it short and current.
 - Error boundaries read the locale from `usePathname()` (reading `document` causes hydration errors).
 
 ## Every change
-1. `npm run lint` (0 errors) → `npm test` → `npx next build`.
+1. `npm run evolve:check -- --task "…"` (runs lint, tests, build and the rest — see above).
 2. UI change → `npm run test:visual`. If a screenshot diff is an intended change, look at it, then
    `npm run test:visual:update` and commit the new baselines in the same commit.
 3. Never commit `app/[locale]/zz-eval/`, `public/zz-eval/`, `test-results/`, secrets, personal
    recordings or model IDs.
+
+## Evolve check (Engineer AI MVP) — every change goes through it
+- `npm run evolve:check -- --task "<what the change does>"` (+ `--visual` for UI / 3D, `--rules` for
+  anything near data access) runs lint, typecheck, unit, build, bundle size, punch metrics (+ visual /
+  playtests, Firestore rules), compares with `docs/evaluations/baseline.json` and writes
+  `docs/evaluations/runs/<id>.json`. Skipped steps are recorded as NOT RUN, never as PASS.
+- Verdicts: **ACCEPTED** (exit 0) → commit code + run record, push the branch.
+  **REJECTED** (1) → fix (max two attempts, then stop and report) or revert; never commit failing code.
+  **AWAITING_APPROVAL** (2) → the change touches RED paths (`lib/evolve/policy.js`); an automated
+  cycle must revert it and report instead. **BLOCKED** (3) → another run holds `.evolve.lock`.
+- Gates: no new lint errors / warnings, typecheck clean, unit count never drops, 0 failures,
+  bundle ≤ +5 %, punch macro F1 and phantoms no worse, visual / rules no failures or fewer passes.
+- The baseline, the policy, the runner and this file are RED: changing them needs the owner.
+  `--write-baseline` only after the owner agrees the new numbers are the new normal.
+- Record an owner decision: `node scripts/evolve/approve.mjs <run-id> --accept|--reject --note "…"`
+  — only for a decision the owner actually made (quote where).
 
 ## Automation (15-minute cycles)
 - A cycle does not have to commit. If nothing worth fixing is found, a fix needs approval, or a

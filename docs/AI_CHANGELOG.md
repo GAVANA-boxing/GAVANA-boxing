@@ -2,6 +2,23 @@
 
 One entry per cycle that changed code. Newest first.
 
+## EVOLVE — Engineer AI MVP (owner: "A r hii")
+- `scripts/evolve/check.mjs` (`npm run evolve:check`): VERIFY → EVALUATE → DECIDE → RECORD. Steps lint,
+  typecheck, unit, build, bundle, punch metrics, optional visual / playtests and Firestore rules;
+  gates against `docs/evaluations/baseline.json`; change risk from the diff; single-writer lock
+  (`.evolve.lock`, stale-lock recovery); idempotency key (task + commit + diff); per-step timeouts;
+  failing-step log tails with credential redaction; record in `docs/evaluations/runs/<id>.json`.
+- `lib/evolve/runState.js`: the directive's run state machine (PENDING … EVALUATING → ACCEPTED /
+  REJECTED / AWAITING_APPROVAL / BLOCKED / FAILED / CANCELLED), history, max two fix attempts,
+  approval steps need a note. `lib/evolve/policy.js`: GREEN / YELLOW / RED per path — RED includes
+  the automation's own guardrails (policy, runner, baseline, rules doc). 11 unit tests.
+- `scripts/evolve/approve.mjs`: records an owner decision on an AWAITING_APPROVAL run.
+- Rules tests fixed and isolated: own `scripts/rules-test/package.json` (the earlier `--no-save`
+  install had silently replaced the app's firebase 12 with 10 in local node_modules — restored with
+  `npm ci`), root `firebase.rules-test.json`, `npm run test:rules`, new CI job `rules` (Java 21).
+- First baseline (15 metrics) from a full run: lint 0 / 23, typecheck 0, unit 241, bundle 6598 KB,
+  punch macro F1 0.904, visual 49, rules 24 — all PASS.
+
 ## EVOLVE Phase Zero — repository audit + baseline (owner directive v1.0)
 - No app code changed. Added `docs/architecture/current-state.md` (VERIFIED / INFERRED / UNKNOWN /
   BLOCKED inventory + ranked risks), `docs/architecture/evolution-target.md` (directive mapped onto what
