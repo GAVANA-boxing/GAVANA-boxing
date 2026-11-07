@@ -1333,6 +1333,17 @@ export default function TrainPage() {
               {loc(locale, "Mitt дасгал · хариу үйлдэл 30 сек", "미트 드릴 · 30초 반응", "Mitt drill · 30 s reaction round")}
             </button>
           )}
+          {phase === "idle" && !challengeId && !challengeUserId && (
+            <button
+              type="button"
+              data-testid="open-bag"
+              onClick={() => router.push(`/${locale}/bag`)}
+              style={{ ...btnSecondary, marginTop: 2 }}
+            >
+              <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", background: "#FF3B30", boxShadow: "0 0 10px #FF3B30" }} />
+              {loc(locale, "Хүнд уут · 3D физик", "헤비백 · 3D 물리", "Heavy bag · 3D physics")}
+            </button>
+          )}
 
           {isRecording && (
             <button type="button" style={styles.stopButton} onClick={finishRecording}>

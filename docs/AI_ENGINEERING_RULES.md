@@ -15,6 +15,13 @@ Read this (and CLAUDE.md) before every change. Keep it short and current.
 - `firestore.rules`, auth, XP / rank math, the training-session data model, push sending.
   (If rules change: run `scripts/rules-test` on the emulator.)
 
+## 3D
+- three.js imperative scenes (MotionReplay3D, TourScene) and React Three Fiber (HeavyBagScene); physics
+  with cannon-es; GLSL in `lib/three/shaders.js`; quality via `lib/three/renderCaps.js`.
+- Models: build with Blender scripts in `tools/blender/` (run: `python -I tools/blender/<file>.py` with
+  `pip install bpy`, or `blender --background --python …`), export GLB to `public/models/`.
+- Visual tests hide 3D canvases (GPU output differs per machine); check 3D by screenshot with SwiftShader.
+
 ## Design system
 - `components/ui/brand.js`: BRAND, btnPrimary, btnSecondary, glass, glassCard, pageBackground,
   displayTitle, kickerPill, kickerDot, sectionLabel. Shared: BrandHeader, PromptBanner, ErrorScreen.

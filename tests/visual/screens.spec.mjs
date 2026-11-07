@@ -142,6 +142,19 @@ for (const v of [{ id: "mn-390", locale: "mn", viewport: viewport390 }, { id: "m
   }
 }
 
+// Heavy bag intro (real route). The 3D canvas is hidden; the page around it is compared.
+for (const v of [{ id: "mn-390", locale: "mn", viewport: viewport390 }, { id: "mn-360", locale: "mn", viewport: { width: 360, height: 800 } }, { id: "ko-390", locale: "ko", viewport: viewport390 }]) {
+  test(`bag ${v.id}`, async ({ page }) => {
+    await prepare(page);
+    await page.setViewportSize(v.viewport);
+    await page.goto(`/${v.locale}/bag`, { waitUntil: "load" });
+    await expect(page.getByTestId("bag-scene")).toBeVisible();
+    await page.addStyleTag({ content: "[data-testid=bag-scene] canvas { opacity: 0 !important; }" });
+    await settle(page);
+    await expect(page).toHaveScreenshot(`bag-${v.id}.png`, { fullPage: true });
+  });
+}
+
 // Same day, time and first-run state on every run; optionally make
 // getUserMedia fail with a given error name.
 async function prepare(page, cameraError) {

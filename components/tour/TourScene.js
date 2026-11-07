@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { terrainFor, cityLayout, isWater, sunDirection } from "@/lib/worldTour";
+import { skyShader, waterShader } from "@/lib/three/shaders";
+import { detectRenderCaps, qualityFor } from "@/lib/three/renderCaps";
 
 /**
  * One World Tour city in 3D: procedural terrain, a generated city around the
@@ -24,22 +26,44 @@ export default function TourScene({ stop, sky, elevation, hour, weather, height 
         THREE = await import("three");
         ({ OrbitControls } = await import("three/examples/jsm/controls/OrbitControls.js"));
       } catch { if (!disposed) { setFailed(true); onFail?.(); } return; }
+      const quality = qualityFor(await detectRenderCaps().catch(() => ({})));
       const el = mountRef.current;
       if (disposed || !el) return;
 
       let renderer;
-      try { renderer = new THREE.WebGLRenderer({ antialias: true }); } catch { setFailed(true); onFail?.(); return; }
+      try { renderer = new THREE.WebGLRenderer({ antialias: quality.antialias }); } catch { setFailed(true); onFail?.(); return; }
       const W = el.clientWidth, H = el.clientHeight;
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setPixelRatio(quality.pixelRatio);
       renderer.setSize(W, H);
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.enabled = quality.shadows;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       el.appendChild(renderer.domElement);
 
       const scene = new THREE.Scene();
       scene.background = new THREE.Color(sky.sky);
+      const cloudiness = weather.kind === "clear" ? 0 : weather.kind === "cloud" ? 0.55 : 0.75;
+      const realSun = sunDirection(elevation, hour);
+      const sunColor = new THREE.Color(sky.phase === "day" ? "#fff4d6" : "#ffb070");
+
+      // ── Sky dome (GLSL): gradient, sun disc + glow, stars at night ──
+      const skyMat = new THREE.ShaderMaterial({
+        vertexShader: skyShader.vertexShader,
+        fragmentShader: skyShader.fragmentShader,
+        side: THREE.BackSide,
+        depthWrite: false,
+        uniforms: {
+          uSky: { value: new THREE.Color(sky.sky) },
+          uHorizon: { value: new THREE.Color(sky.horizon) },
+          uGround: { value: new THREE.Color(stop.terrain.ground).multiplyScalar(0.5) },
+          uSunDir: { value: new THREE.Vector3(realSun.x, realSun.y, realSun.z) },
+          uSunColor: { value: sunColor },
+          uNight: { value: sky.windows },
+          uCloud: { value: cloudiness },
+        },
+      });
+      scene.add(new THREE.Mesh(new THREE.SphereGeometry(300, 48, 24), skyMat));
       const fogDense = weather.kind === "cloud" ? 0.014 : weather.kind === "rain" || weather.kind === "snow" ? 0.018 : 0.008;
       scene.fog = new THREE.FogExp2(new THREE.Color(sky.horizon), fogDense);
 
@@ -48,11 +72,12 @@ export default function TourScene({ stop, sky, elevation, hour, weather, height 
       const controls = new OrbitControls(camera, renderer.domElement);
       controls.target.set(0, 2, 0);
       controls.enableDamping = true;
-      controls.autoRotate = true;
+      controls.autoRotate = true; // turned off below for reduced motion
       controls.autoRotateSpeed = 0.35;
       controls.minDistance = 18;
       controls.maxDistance = 110;
       controls.maxPolarAngle = Math.PI * 0.47;
+      if (!quality.motion) controls.autoRotate = false;
 
       // ── Light: sky/ground fill + the real sun (or a cool moon at night) ──
       scene.add(new THREE.HemisphereLight(new THREE.Color(sky.sky), new THREE.Color(stop.terrain.ground), sky.ambient * 1.6));
@@ -60,7 +85,7 @@ export default function TourScene({ stop, sky, elevation, hour, weather, height 
       const sun = new THREE.DirectionalLight(sky.phase === "night" ? 0x9fb4ff : 0xfff1dc, sky.phase === "night" ? 0.35 : 0.4 + 2.6 * sky.sunLight);
       sun.position.set(dir.x * 120, Math.max(dir.y, 0.15) * 120, dir.z * 120);
       sun.castShadow = sky.sunLight > 0.05;
-      sun.shadow.mapSize.set(1024, 1024);
+      sun.shadow.mapSize.set(quality.shadowMapSize, quality.shadowMapSize);
       Object.assign(sun.shadow.camera, { left: -45, right: 45, top: 45, bottom: -45, near: 10, far: 300 });
       scene.add(sun);
 
@@ -93,6 +118,28 @@ export default function TourScene({ stop, sky, elevation, hour, weather, height 
       const terrain = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, flatShading: true }));
       terrain.receiveShadow = true;
       scene.add(terrain);
+
+      // ── Water (GLSL): one plane just under street level shows wherever the
+      // terrain dips for the river / coast; waves, sky reflection, sun glint ──
+      let waterMat = null;
+      if (stop.city.water) {
+        waterMat = new THREE.ShaderMaterial({
+          vertexShader: waterShader.vertexShader,
+          fragmentShader: waterShader.fragmentShader,
+          transparent: true,
+          uniforms: {
+            uTime: { value: 0 },
+            uDeep: { value: new THREE.Color("#173a52").multiplyScalar(0.35 + 0.65 * (1 - sky.windows)) },
+            uSky: { value: new THREE.Color(sky.horizon) },
+            uSunDir: { value: new THREE.Vector3(realSun.x, realSun.y, realSun.z) },
+            uSunColor: { value: sunColor },
+          },
+        });
+        const water = new THREE.Mesh(new THREE.PlaneGeometry(SIZE, SIZE, 1, 1), waterMat);
+        water.rotation.x = -Math.PI / 2;
+        water.position.y = -0.15;
+        scene.add(water);
+      }
 
       // ── City: one instanced mesh, windows glow after dark ──
       const blocks = cityLayout(stop);
@@ -137,7 +184,7 @@ export default function TourScene({ stop, sky, elevation, hour, weather, height 
       // ── Weather ──
       let particles = null, speed = 0;
       if (weather.kind === "snow" || weather.kind === "rain") {
-        const N = weather.kind === "snow" ? 2200 : 2600;
+        const N = Math.round((weather.kind === "snow" ? 2200 : 2600) * quality.particles);
         const p = new Float32Array(N * 3);
         for (let i = 0; i < N; i++) p.set([(Math.random() - 0.5) * 120, Math.random() * 60, (Math.random() - 0.5) * 120], i * 3);
         const pg = new THREE.BufferGeometry();
@@ -154,6 +201,7 @@ export default function TourScene({ stop, sky, elevation, hour, weather, height 
       const loop = (now) => {
         const dt = Math.min(0.05, (now - last) / 1000);
         last = now;
+        if (waterMat) waterMat.uniforms.uTime.value = now / 1000;
         if (particles) {
           const a = particles.geometry.attributes.position;
           for (let i = 0; i < a.count; i++) {

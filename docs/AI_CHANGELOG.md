@@ -2,6 +2,28 @@
 
 One entry per cycle that changed code. Newest first.
 
+## 3D tech stack: React Three Fiber, physics, GLSL, Blender, WebGPU detection (owner: "Edgeer technology uudiig ch bas ashigla")
+- **Heavy bag** — new route `/[locale]/bag` (+ metadata, sitemap; entry on /train). Punch at the camera
+  (pose detection) or tap the bag; a 35 kg bag hangs on a ball joint and swings, dents and ripples where
+  each punch lands. 30 s round → punches, pace, average / best power, max swing, mix. Nothing saved.
+  - **React Three Fiber** (`@react-three/fiber` 9) for the scene (`components/bag/HeavyBagScene.js`).
+  - **Physics engine**: `cannon-es` 0.20 (`lib/heavyBag.js`): bag body + point-to-point joint; punches
+    become impulses by type / hand / snap (jab light & straight, cross heavier, hook across, uppercut
+    up; ~20–35 N·s). 7 unit tests run the real physics in Node (swings, settles, stays on its chain).
+  - **GLSL** (`lib/three/shaders.js`): bag shader — leather grain + seams, dent displacement and a red
+    ripple ring per hit (4 hit slots); sky dome — gradient, sun disc + glow, stars at night, cloud
+    dimming; water — travelling waves, Fresnel sky reflection, sun glint.
+  - **Blender**: `tools/blender/heavy_bag.py` builds the bag (rounded ends, belly, three stitched bands,
+    straps) and exports `public/models/heavy-bag.glb` (55 KB). Generated here with Blender 5.0.1
+    (`bpy`); the scene falls back to a procedural cylinder if the model can't load.
+- **World Tour** now uses the GLSL sky dome and water plane (river / coast), plus the quality tier.
+- **WebGPU / WebGL**: `lib/three/renderCaps.js` detects WebGPU (navigator.gpu adapter) and WebGL2 and
+  picks a quality tier (pixel ratio, shadows, shadow-map size, particle count, reduced motion).
+  Rendering stays WebGL2 on purpose: GLSL ShaderMaterials don't run on three's WebGPU renderer and
+  iPhones only got WebGPU in iOS 26; WebGPU-capable devices get the "high" tier.
+- Checked: 231/231 unit, 46/46 visual, lint 0 errors, build OK; 3D renders verified with SwiftShader
+  (bag swing + ripple with the Blender model, Tokyo water, Vegas night sky) — no shader errors.
+
 ## Roadmap Phase 6 — World Tour (owner: "gavana-д ашигла", world-simulator idea)
 - New route `/[locale]/tour` (+ metadata, sitemap; entry row on /progress). Each of the 9 rank tiers
   unlocks a boxing city: Ulaanbaatar → Seoul → Tokyo → Bangkok → Manila → London → New York →

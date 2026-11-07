@@ -19,3 +19,9 @@
 - Mitt drill: punches are taken from the detector's running count at each 80 ms poll, so reaction
   times can read up to ~80 ms slow, and two punches inside one poll both get the latest hand.
   Untested with real punches here (fake camera only).
+- Heavy bag: punch power is an estimate from the detector's snap velocity; impulses tuned by feel
+  (~20–35 N·s), not measured. Tap mode exists for devices without a camera.
+- 3D scenes render with WebGL2 even on WebGPU devices (GLSL shaders); a WebGPU path would need the
+  shaders rewritten in TSL.
+- `npm audit` reports issues in the dependency tree (pre-existing; not introduced by R3F/cannon-es —
+  check before upgrading).
