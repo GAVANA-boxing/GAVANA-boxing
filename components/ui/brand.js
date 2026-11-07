@@ -8,7 +8,7 @@ export const BRAND = {
   green: "#34D399",
   text: "#FFFFFF",
   muted: "rgba(255,255,255,0.62)",
-  faint: "rgba(255,255,255,0.38)",
+  faint: "rgba(255,255,255,0.5)", // 5.3:1 on the page background (0.38 was 3.5:1, under WCAG AA for small text)
   line: "rgba(255,255,255,0.08)",
   card: "rgba(255,255,255,0.03)",
 };

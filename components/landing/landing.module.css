@@ -5,7 +5,7 @@
   --lp-gold: #f5c451;
   --lp-text: #ffffff;
   --lp-muted: rgba(255, 255, 255, 0.62);
-  --lp-faint: rgba(255, 255, 255, 0.38);
+  --lp-faint: rgba(255, 255, 255, 0.5); /* 5.3:1 — 0.38 was 3.5:1, under WCAG AA */
   --lp-line: rgba(255, 255, 255, 0.08);
   --lp-card: rgba(255, 255, 255, 0.03);
   min-height: 100dvh;
