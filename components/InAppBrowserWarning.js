@@ -16,39 +16,60 @@ function isIOS() {
   return /iP(hone|od|ad)/i.test(navigator.userAgent);
 }
 
+function isAndroid() {
+  return typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent);
+}
+
+/**
+ * A URL that leaves the in-app browser for the real one:
+ * Android → an intent that opens Chrome (falls back to the same page);
+ * iOS 17+ → the x-safari- scheme, which in-app browsers hand to Safari.
+ */
+export function externalBrowserUrl(url, { ios, android }) {
+  const u = new URL(url);
+  if (android) {
+    return `intent://${u.host}${u.pathname}${u.search}${u.hash}#Intent;scheme=${u.protocol.replace(":", "")};package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(url)};end`;
+  }
+  if (ios) return `x-safari-${url}`;
+  return url;
+}
+
 const STRINGS = {
   en: {
-    badge: "Instagram / In-App Browser Detected",
+    badge: "In-app browser",
     title: "Open in Safari or Chrome",
-    body: "GAVANA uses your camera for AI punch scoring. Instagram's in-app browser blocks camera access and crashes the app.",
+    body: "GAVANA uses your camera to count your punches. Browsers inside apps (Facebook, Instagram, KakaoTalk…) often block the camera.",
     step1: 'Tap the  ···  menu (top-right corner)',
     step2: 'Choose "Open in Safari" or "Open in Browser"',
     step3: "Use GAVANA with full performance",
     safari: "Open in Safari",
+    chrome: "Open in Chrome",
     copy: "Copy Link",
     copied: "Copied!",
     skip: "Continue anyway (limited features)",
   },
   mn: {
-    badge: "Instagram / Аппын дотоод хөтөч илрэв",
+    badge: "Апп доторх хөтөч",
     title: "Safari эсвэл Chrome-д нээнэ үү",
-    body: "GAVANA камерыг ашиглан AI цохилтын оноог тооцдог. Instagram-ийн дотоод хөтөч камерын хандалтыг хааж, апп ажиллахгүй болгодог.",
+    body: "GAVANA камераар цохилтыг чинь тоолдог. Апп доторх хөтөч (Facebook, Instagram, KakaoTalk г.м.) камерыг ихэвчлэн хаадаг.",
     step1: "Баруун дээд буланд байгаа  ···  цэсийг дарна уу",
     step2: '"Хөтөч дээр нээх" гэсэн сонголтыг сонгоно уу',
     step3: "GAVANA-г бүрэн хурдаар ашиглаарай",
     safari: "Safari-д нээх",
+    chrome: "Chrome-д нээх",
     copy: "Холбоос хуулах",
     copied: "Хуулагдлаа!",
     skip: "Үргэлжлүүлэх (хязгаарлагдмал горим)",
   },
   ko: {
-    badge: "Instagram / 인앱 브라우저 감지됨",
+    badge: "인앱 브라우저",
     title: "Safari 또는 Chrome에서 열어주세요",
-    body: "GAVANA는 AI 펀치 스코어링을 위해 카메라를 사용합니다. Instagram 인앱 브라우저는 카메라 접근을 차단하여 앱이 제대로 작동하지 않습니다.",
+    body: "GAVANA는 카메라로 펀치를 셉니다. 앱 안의 브라우저(Facebook, Instagram, 카카오톡 등)는 카메라를 자주 막습니다.",
     step1: "오른쪽 상단의  ···  메뉴를 탭하세요",
     step2: '"브라우저에서 열기"를 선택하세요',
     step3: "GAVANA를 최고 성능으로 사용하세요",
     safari: "Safari에서 열기",
+    chrome: "Chrome에서 열기",
     copy: "링크 복사",
     copied: "복사됨!",
     skip: "계속하기 (기능 제한)",
@@ -67,7 +88,8 @@ export default function InAppBrowserWarning() {
   useEffect(() => {
     if (!detectInAppBrowser()) return;
     // Don't show if user explicitly dismissed in this session
-    const sessionDismissed = sessionStorage.getItem("gavana_iab_skip");
+    let sessionDismissed = null;
+    try { sessionDismissed = sessionStorage.getItem("gavana_iab_skip"); } catch { /* ignore */ }
     if (!sessionDismissed) setVisible(true);
   }, []);
 
@@ -81,13 +103,8 @@ export default function InAppBrowserWarning() {
     }
   };
 
-  const handleSafari = () => {
-    // Safari deep link — works on iOS
-    window.location.href = window.location.href;
-  };
-
   const handleSkip = () => {
-    sessionStorage.setItem("gavana_iab_skip", "1");
+    try { sessionStorage.setItem("gavana_iab_skip", "1"); } catch { /* ignore */ }
     setDismissed(true);
     setVisible(false);
   };
@@ -131,17 +148,12 @@ export default function InAppBrowserWarning() {
 
         {/* CTA buttons */}
         <div style={btnGroup}>
-          {isIOS() && (
+          {(isIOS() || isAndroid()) && (
             <a
-              href={`x-web-search://?${encodeURIComponent(currentUrl)}`}
+              href={currentUrl ? externalBrowserUrl(currentUrl, { ios: isIOS(), android: isAndroid() }) : "#"}
               style={primaryBtn}
-              onClick={(e) => {
-                e.preventDefault();
-                // Try to trigger Safari open — works in some Instagram versions
-                window.location.href = currentUrl.replace(/^https?/, "safari-https").replace(/^https?/, "safari-http") || currentUrl;
-              }}
             >
-              {s.safari}
+              {isIOS() ? s.safari : s.chrome}
             </a>
           )}
           <button type="button" onClick={handleCopy} style={copyBtn}>
