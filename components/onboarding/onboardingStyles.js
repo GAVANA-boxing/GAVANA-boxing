@@ -32,13 +32,13 @@ const s = {
   },
   stepCounter: {
     textAlign: "center",
-    fontSize: 10, fontWeight: 900, letterSpacing: 2,
-    color: whiteAlpha(0.35), textTransform: "uppercase",
+    fontSize: 11, fontWeight: 900, letterSpacing: 2,
+    color: whiteAlpha(0.6), textTransform: "uppercase",
   },
   inner: { maxWidth: 440, margin: "0 auto", padding: "0 16px", position: "relative", zIndex: 1 },
   header: { textAlign: "center", padding: "32px 0 22px" },
   kicker: {
-    margin: "0 0 8px", fontSize: 10, letterSpacing: 3, color: RED,
+    margin: "0 0 8px", fontSize: 11, letterSpacing: 3, color: RED,
     textTransform: "uppercase", fontWeight: 900,
   },
   title: {
@@ -84,7 +84,7 @@ const s = {
 
   weightSection: { marginBottom: 20 },
   fieldLabel: {
-    display: "block", fontSize: 10, color: whiteAlpha(0.45), fontWeight: 900,
+    display: "block", fontSize: 11, color: whiteAlpha(0.6), fontWeight: 900,
     letterSpacing: 2, textTransform: "uppercase", marginBottom: 8,
   },
   select: {

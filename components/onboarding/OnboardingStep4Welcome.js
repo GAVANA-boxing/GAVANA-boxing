@@ -73,20 +73,20 @@ export default function OnboardingStep4Welcome({
           const dims = DIM_LABELS[locale] || DIM_LABELS.en;
           return (
             <div style={{ margin: "14px auto 0", padding: "14px 16px", borderRadius: 14, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", maxWidth: 320 }}>
-              <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 10, textAlign: "left" }}>
+              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", marginBottom: 10, textAlign: "left" }}>
                 🧬 {locale === "mn" ? "ТАНЫ ДНХ УРЬДЧИЛСАН ХАРАГДАЦ" : locale === "ko" ? "DNA 미리보기" : "YOUR DNA PREVIEW"}
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {Object.entries(preview).map(([dim, pct]) => (
                   <div key={dim} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ width: 68, fontSize: 9.5, fontWeight: 800, color: DIM_COLORS[dim], textAlign: "left", flexShrink: 0 }}>{dims[dim]}</span>
+                    <span style={{ width: 80, fontSize: 11, fontWeight: 800, color: DIM_COLORS[dim], textAlign: "left", flexShrink: 0 }}>{dims[dim]}</span>
                     <div style={{ flex: 1, height: 5, background: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden" }}>
                       <div style={{ width: `${pct}%`, height: "100%", background: DIM_COLORS[dim], borderRadius: 3 }} />
                     </div>
                   </div>
                 ))}
               </div>
-              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", marginTop: 8, textAlign: "center" }}>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", marginTop: 8, textAlign: "center" }}>
                 {locale === "mn" ? "Тренинг хийснээр бодит ДНХ илчлэгдэнэ" : locale === "ko" ? "훈련할수록 실제 DNA가 드러납니다" : "Train to reveal your true DNA"}
               </div>
             </div>
@@ -134,17 +134,17 @@ export default function OnboardingStep4Welcome({
           )}
         </div>
 
-        <p style={{ margin: "16px 0 0", fontSize: 10, color: "rgba(255,255,255,0.22)", textAlign: "center", lineHeight: 1.6 }}>
+        <p style={{ margin: "16px 0 0", fontSize: 11, color: "rgba(255,255,255,0.55)", textAlign: "center", lineHeight: 1.6 }}>
           {locale === "mn"
             ? "Үргэлжлүүлэхдээ та манай "
             : locale === "ko"
             ? "계속하면 "
             : "By continuing you agree to our "}
-          <a href={`/${locale}/terms`} style={{ color: "rgba(255,255,255,0.4)", textDecoration: "underline" }}>
+          <a href={`/${locale}/terms`} style={{ color: "rgba(255,255,255,0.75)", textDecoration: "underline" }}>
             {locale === "mn" ? "Үйлчилгээний нөхцөл" : locale === "ko" ? "이용약관" : "Terms of Service"}
           </a>
           {locale === "mn" ? " болон " : locale === "ko" ? " 및 " : " and "}
-          <a href={`/${locale}/privacy`} style={{ color: "rgba(255,255,255,0.4)", textDecoration: "underline" }}>
+          <a href={`/${locale}/privacy`} style={{ color: "rgba(255,255,255,0.75)", textDecoration: "underline" }}>
             {locale === "mn" ? "Нууцлалын бодлого" : locale === "ko" ? "개인정보처리방침" : "Privacy Policy"}
           </a>
           {locale === "mn" ? "-г зөвшөөрч байна." : locale === "ko" ? "에 동의합니다." : "."}
