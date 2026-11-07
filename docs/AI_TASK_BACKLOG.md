@@ -17,8 +17,13 @@ Status: TODO · BLOCKED (needs approval) · DONE. Highest priority first.
   `users.locale`; whitelist mn/ko/en before building the copy and the `/${locale}/train` URL.
   Copy itself checked in Cycle 6 (streak-risk + win-back, MN/KO/EN, fine). Deploy:
   `firebase deploy --only functions`.
-- Coach chat header / persona chips in the brand style.
+- Coach chat header / persona chips in the brand style (text sizes fixed in Cycle 7; layout/style
+  still to do, needs a signed-in visual fixture to verify).
 - Ghost recording / viewing microcopy (small caps text).
+
+- Coach marketplace pages (`coach/page.js`, `coach/[coachId]`, `coach/dashboard`, `coach/apply`)
+  still use 9–10px labels (coachDashboardStyles, coachIdStyles, DashboardCards,
+  ProPriorityMatchingBanner). Check which of them CORE_MODE shows before fixing.
 
 ## ROADMAP — "perfect app" (proposed 2026-11-07; each phase BLOCKED until the owner says "Hii" for it)
 Ideas taken from what other builders made with Claude (procedural 3D, single-image teardown with HUD,

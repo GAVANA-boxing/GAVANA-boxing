@@ -54,7 +54,7 @@ const s = {
     letterSpacing: 0.1,
   },
   headerAiBadge: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: 900,
     letterSpacing: 1.5,
     border: "1px solid",

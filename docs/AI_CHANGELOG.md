@@ -2,6 +2,14 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Cycle 7 — coach chat text below the 11px floor
+- Checked `hooks/useFcmToken.js`: the locale it writes already comes from
+  `getLocaleFromPathname` (mn/ko/en only) — no client fix needed; the server whitelist stays RED.
+- Coach chat (core route): header "AI" badge 9→11px, TechniqueQuickAsk fighter kicker 10.5→11px,
+  CoachEmptyState labels 0.45→0.6 white (contrast).
+- Checked: lint, 164/164 unit, 12/12 visual. Coach chat needs sign-in, so no screenshot here
+  (guest is redirected to /login) — see AI_KNOWN_ISSUES.
+
 ## Cycle 6 — push click stays inside the app
 - Read-only check of `functions/index.js` retention pushes: copy is localized MN/KO/EN and
   throttled; OK. Found: the click URL is `/${users.locale}/train`, and `locale` is written by the

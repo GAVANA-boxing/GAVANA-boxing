@@ -50,7 +50,7 @@ export default function TechniqueQuickAsk({ locale, router }) {
             )}
             <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.88) 100%), ${fighter.accent}18` }} />
             <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "12px 12px", textAlign: "left" }}>
-              <div style={{ fontSize: 10.5, fontWeight: 700, color: fighter.accent, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: fighter.accent, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>
                 {fighter.name}
               </div>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", lineHeight: 1.25 }}>

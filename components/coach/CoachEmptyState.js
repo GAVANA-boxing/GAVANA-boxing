@@ -61,7 +61,7 @@ export default function CoachEmptyState({
             { label: locale === "mn" ? "Хөл хөдөлгөөн" : locale === "ko" ? "풋워크" : "Footwork", val: 71, color: "#4a9eff" },
           ].map(({ label, val, color }) => (
             <div key={label} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
-              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", width: 80, flexShrink: 0 }}>{label}</span>
+              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", width: 80, flexShrink: 0 }}>{label}</span>
               <div style={{ flex: 1, height: 4, borderRadius: 999, background: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
                 <div style={{ width: `${val}%`, height: "100%", borderRadius: 999, background: color, opacity: 0.7 }} />
               </div>
