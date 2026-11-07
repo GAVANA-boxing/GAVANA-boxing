@@ -33,7 +33,7 @@ const styles = {
   kicker: {
     margin: 0,
     color: RED,
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: 900,
     letterSpacing: 3,
     textTransform: "uppercase",

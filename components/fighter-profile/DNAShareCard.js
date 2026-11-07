@@ -197,17 +197,17 @@ export default function DNAShareCard({ dna, displayName, locale, uid }) {
         <div style={{ padding: "18px 20px 0" }}>
           {/* Top row */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-            <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.55), textTransform: "uppercase" }}>
+            <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.55), textTransform: "uppercase" }}>
               GAVANA DNA
             </span>
-            <span style={{ padding: "2px 9px", borderRadius: 999, background: `${acc}18`, border: `1px solid ${acc}35`, fontSize: 8, fontWeight: 900, color: acc, letterSpacing: 1 }}>
+            <span style={{ padding: "2px 9px", borderRadius: 999, background: `${acc}18`, border: `1px solid ${acc}35`, fontSize: 11, fontWeight: 900, color: acc, letterSpacing: 1 }}>
               {confidencePct}% SIGNAL
             </span>
           </div>
 
           {/* Fighter name (subtle) */}
           {displayName && (
-            <div style={{ fontSize: 9.5, fontWeight: 800, color: whiteAlpha(0.55), letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 5 }}>
+            <div style={{ fontSize: 11.5, fontWeight: 800, color: whiteAlpha(0.55), letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 5 }}>
               {displayName}
             </div>
           )}
@@ -229,7 +229,7 @@ export default function DNAShareCard({ dna, displayName, locale, uid }) {
               const c = ARCH_TRAINING_COLORS[key] || whiteAlpha(0.5);
               return (
                 <div key={key} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ width: 72, fontSize: 8.5, fontWeight: 900, letterSpacing: 1, color: whiteAlpha(0.55), textTransform: "uppercase", textAlign: "right", flexShrink: 0 }}>
+                  <span style={{ width: 72, fontSize: 11, fontWeight: 900, letterSpacing: 1, color: whiteAlpha(0.55), textTransform: "uppercase", textAlign: "right", flexShrink: 0 }}>
                     {dna.styleLabels?.[key] || key}
                   </span>
                   <div style={{ flex: 1, height: 4, background: whiteAlpha(0.07), borderRadius: 2, overflow: "hidden" }}>
@@ -246,13 +246,13 @@ export default function DNAShareCard({ dna, displayName, locale, uid }) {
           {/* Similar fighters */}
           {similarFighters.length > 0 && (
             <div style={{ paddingBottom: 14, borderTop: `1px solid ${whiteAlpha(0.05)}`, paddingTop: 12 }}>
-              <div style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 7 }}>
+              <div style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 7 }}>
                 {L.similarTo}
               </div>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                 {similarFighters.map((f) => (
                   <span key={f.id} style={{
-                    fontSize: 10.5, fontWeight: 900, padding: "5px 12px", borderRadius: 999,
+                    fontSize: 12, fontWeight: 900, padding: "5px 12px", borderRadius: 999,
                     background: `${f.accent || acc}14`, border: `1px solid ${f.accent || acc}30`,
                     color: f.accent || acc,
                   }}>
@@ -266,8 +266,8 @@ export default function DNAShareCard({ dna, displayName, locale, uid }) {
 
         {/* GAVANA watermark */}
         <div style={{ padding: "8px 20px 12px", borderTop: `1px solid ${whiteAlpha(0.04)}`, display: "flex", justifyContent: "space-between" }}>
-          <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.15), textTransform: "uppercase" }}>GAVANA.APP</span>
-          <span style={{ fontSize: 8, fontWeight: 700, color: whiteAlpha(0.12) }}>{new Date().getFullYear()}</span>
+          <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.15), textTransform: "uppercase" }}>GAVANA.APP</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: whiteAlpha(0.12) }}>{new Date().getFullYear()}</span>
         </div>
       </div>
 

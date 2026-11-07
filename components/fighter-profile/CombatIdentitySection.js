@@ -49,7 +49,7 @@ export default function CombatIdentitySection({ identity, sessionCount, locale }
         background: whiteAlpha(0.025), border: `1px solid ${whiteAlpha(0.06)}`,
         marginBottom: 4,
       }}>
-        <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 6 }}>
+        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 6 }}>
           {s.earlyRead}
         </div>
         {identity && (
@@ -74,7 +74,7 @@ export default function CombatIdentitySection({ identity, sessionCount, locale }
       marginBottom: 4,
     }}>
       {/* Eyebrow */}
-      <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 6 }}>
+      <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 6 }}>
         {s.identityEyebrow}
       </div>
 
@@ -86,8 +86,8 @@ export default function CombatIdentitySection({ identity, sessionCount, locale }
       {/* Confidence bar */}
       <div style={{ marginBottom: 12 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
-          <span style={{ fontSize: 9, fontWeight: 800, color: whiteAlpha(0.55), letterSpacing: 1, textTransform: "uppercase" }}>{s.signalConf}</span>
-          <span style={{ fontSize: 10, fontWeight: 900, color: confidencePct >= 70 ? GOLD : whiteAlpha(0.45), fontFamily: "var(--stack-mono)" }}>
+          <span style={{ fontSize: 11.5, fontWeight: 800, color: whiteAlpha(0.55), letterSpacing: 1, textTransform: "uppercase" }}>{s.signalConf}</span>
+          <span style={{ fontSize: 12, fontWeight: 900, color: confidencePct >= 70 ? GOLD : whiteAlpha(0.45), fontFamily: "var(--stack-mono)" }}>
             {confidencePct}%
           </span>
         </div>
@@ -105,7 +105,7 @@ export default function CombatIdentitySection({ identity, sessionCount, locale }
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
           {identity.secondary.map((trait, i) => (
             <span key={i} style={{
-              fontSize: 9.5, fontWeight: 800,
+              fontSize: 11.5, fontWeight: 800,
               color: whiteAlpha(0.42),
               background: whiteAlpha(0.04),
               border: `1px solid ${whiteAlpha(0.07)}`,

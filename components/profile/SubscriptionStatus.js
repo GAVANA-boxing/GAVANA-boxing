@@ -54,7 +54,7 @@ export default function SubscriptionStatus({ tier, locale, onUpgrade }) {
         <div>
           <div
             style={{
-              fontSize: 9,
+              fontSize: 11.5,
               fontWeight: 900,
               letterSpacing: 1.5,
               textTransform: "uppercase",

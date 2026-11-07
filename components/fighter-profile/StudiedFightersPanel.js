@@ -65,7 +65,7 @@ export default function StudiedFightersPanel({ studiedIds, dna, locale, router }
   if (studiedFighters.length === 0) {
     return (
       <div style={{ borderRadius: 14, padding: "14px 16px", background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.05)}`, marginBottom: 8 }}>
-        <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 8 }}>{L.eyebrow}</div>
+        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 8 }}>{L.eyebrow}</div>
         <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: whiteAlpha(0.55), lineHeight: 1.5 }}>{L.noStudied}</p>
       </div>
     );
@@ -96,13 +96,13 @@ export default function StudiedFightersPanel({ studiedIds, dna, locale, router }
       <div style={{ padding: "13px 16px 10px", borderBottom: `1px solid ${whiteAlpha(0.05)}` }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
-            <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 3 }}>{L.eyebrow}</div>
+            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 3 }}>{L.eyebrow}</div>
             <div style={{ fontSize: 12, fontWeight: 900, color: whiteAlpha(0.7) }}>{L.studiedCount(totalStudied)}</div>
           </div>
           <button
             type="button"
             onClick={() => router.push(`/${locale}/fighters`)}
-            style={{ background: whiteAlpha(0.05), border: `1px solid ${whiteAlpha(0.1)}`, borderRadius: 8, padding: "5px 10px", color: whiteAlpha(0.45), fontSize: 9.5, fontWeight: 900, cursor: "pointer" }}
+            style={{ background: whiteAlpha(0.05), border: `1px solid ${whiteAlpha(0.1)}`, borderRadius: 8, padding: "5px 10px", color: whiteAlpha(0.45), fontSize: 11.5, fontWeight: 900, cursor: "pointer" }}
           >
             {L.discoverCta}
           </button>
@@ -130,7 +130,7 @@ export default function StudiedFightersPanel({ studiedIds, dna, locale, router }
                 }}>
                   {f.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
                 </div>
-                <span style={{ fontSize: 8, fontWeight: 800, color: whiteAlpha(0.4), maxWidth: 42, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <span style={{ fontSize: 11, fontWeight: 800, color: whiteAlpha(0.4), maxWidth: 42, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {f.name.split(" ").slice(-1)[0]}
                 </span>
               </button>
@@ -140,22 +140,22 @@ export default function StudiedFightersPanel({ studiedIds, dna, locale, router }
 
         {/* Archetype distribution bars */}
         <div style={{ marginBottom: 12 }}>
-          <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 8 }}>{L.studyPattern}</div>
+          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.5, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 8 }}>{L.studyPattern}</div>
           {archEntries.map(([arch, count]) => {
             const pct = Math.round((count / totalStudied) * 100);
             const color = ARCH_COLORS[arch] || GOLD;
             const isUserArch = arch === userArchKey;
             return (
               <div key={arch} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                <span style={{ width: 64, fontSize: 9, fontWeight: 900, color: isUserArch ? color : whiteAlpha(0.32), textTransform: "uppercase", letterSpacing: 0.8, flexShrink: 0 }}>
+                <span style={{ width: 64, fontSize: 11.5, fontWeight: 900, color: isUserArch ? color : whiteAlpha(0.32), textTransform: "uppercase", letterSpacing: 0.8, flexShrink: 0 }}>
                   {AL[arch]}
                 </span>
                 <div style={{ flex: 1, height: 4, background: whiteAlpha(0.05), borderRadius: 2, overflow: "hidden" }}>
                   <div style={{ width: `${pct}%`, height: "100%", background: isUserArch ? color : whiteAlpha(0.2), borderRadius: 2, boxShadow: isUserArch ? `0 0 6px ${color}55` : "none" }} />
                 </div>
-                <span style={{ width: 28, textAlign: "right", fontSize: 9, fontWeight: 900, color: isUserArch ? color : whiteAlpha(0.3), fontFamily: "var(--stack-mono)", flexShrink: 0 }}>{pct}%</span>
+                <span style={{ width: 28, textAlign: "right", fontSize: 11.5, fontWeight: 900, color: isUserArch ? color : whiteAlpha(0.3), fontFamily: "var(--stack-mono)", flexShrink: 0 }}>{pct}%</span>
                 {isUserArch && (
-                  <span style={{ fontSize: 8, fontWeight: 900, color, background: `${color}14`, borderRadius: 4, padding: "1px 5px", flexShrink: 0 }}>{L.alignedWith}</span>
+                  <span style={{ fontSize: 11, fontWeight: 900, color, background: `${color}14`, borderRadius: 4, padding: "1px 5px", flexShrink: 0 }}>{L.alignedWith}</span>
                 )}
               </div>
             );
@@ -165,7 +165,7 @@ export default function StudiedFightersPanel({ studiedIds, dna, locale, router }
         {/* Study gap recommendation */}
         {gapArch && gapFighters.length > 0 && (
           <div style={{ padding: "10px 12px", borderRadius: 10, background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.07)}` }}>
-            <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 5 }}>{L.gap}</div>
+            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.5, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 5 }}>{L.gap}</div>
             <p style={{ margin: "0 0 8px", fontSize: 11, color: whiteAlpha(0.45), lineHeight: 1.4 }}>
               {L.gapHint(AL[gapArch])}
             </p>
@@ -177,10 +177,10 @@ export default function StudiedFightersPanel({ studiedIds, dna, locale, router }
                     key={f.id}
                     type="button"
                     onClick={() => router.push(`/${locale}/fighters/${f.id}`)}
-                    style={{ flex: 1, padding: "7px 10px", borderRadius: 9, background: `${color}10`, border: `1px solid ${color}30`, color, fontSize: 10, fontWeight: 900, cursor: "pointer", textAlign: "left" }}
+                    style={{ flex: 1, padding: "7px 10px", borderRadius: 9, background: `${color}10`, border: `1px solid ${color}30`, color, fontSize: 12, fontWeight: 900, cursor: "pointer", textAlign: "left" }}
                   >
                     {f.name.split(" ").slice(-1)[0]}
-                    <span style={{ fontSize: 8, color: whiteAlpha(0.55), display: "block", fontWeight: 700, marginTop: 1 }}>{L.unstudied}</span>
+                    <span style={{ fontSize: 11, color: whiteAlpha(0.55), display: "block", fontWeight: 700, marginTop: 1 }}>{L.unstudied}</span>
                   </button>
                 );
               })}

@@ -85,7 +85,7 @@ export default function DNARevealOverlay({ dna, locale, onDismiss }) {
 
       {/* Content */}
       <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: 340 }}>
-        <div style={{ ...fade(1), fontSize: 9, fontWeight: 900, letterSpacing: 3.5, color: acc, textTransform: "uppercase", marginBottom: 12 }}>
+        <div style={{ ...fade(1), fontSize: 11.5, fontWeight: 900, letterSpacing: 3.5, color: acc, textTransform: "uppercase", marginBottom: 12 }}>
           {L.label}
         </div>
 
@@ -95,13 +95,13 @@ export default function DNARevealOverlay({ dna, locale, onDismiss }) {
 
         {/* Style-mix bars */}
         <div style={{ ...fade(3), width: "100%", marginBottom: 18 }}>
-          <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", marginBottom: 8 }}>
+          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", marginBottom: 8 }}>
             {L.mix}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
             {bars.map((b, i) => (
               <div key={b.key} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ width: 82, fontSize: 10, fontWeight: 800, color: i === 0 ? acc : "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: 0.5, flexShrink: 0, textAlign: "right" }}>
+                <span style={{ width: 82, fontSize: 12, fontWeight: 800, color: i === 0 ? acc : "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: 0.5, flexShrink: 0, textAlign: "right" }}>
                   {b.label}
                 </span>
                 <div style={{ flex: 1, height: 5, borderRadius: 3, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
@@ -113,7 +113,7 @@ export default function DNARevealOverlay({ dna, locale, onDismiss }) {
                     transition: `width 0.9s cubic-bezier(0.16,1,0.3,1) ${reduce ? 0 : i * 0.12}s`,
                   }} />
                 </div>
-                <span style={{ width: 30, fontSize: 10, fontWeight: 900, fontFamily: "var(--stack-mono)", color: i === 0 ? acc : "rgba(255,255,255,0.35)", flexShrink: 0 }}>
+                <span style={{ width: 30, fontSize: 12, fontWeight: 900, fontFamily: "var(--stack-mono)", color: i === 0 ? acc : "rgba(255,255,255,0.35)", flexShrink: 0 }}>
                   {b.pct}
                 </span>
               </div>
@@ -124,12 +124,12 @@ export default function DNARevealOverlay({ dna, locale, onDismiss }) {
         {/* Stat chips */}
         <div style={{ ...rise(4), display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap", justifyContent: "center" }}>
           <div style={{ padding: "6px 12px", borderRadius: 999, background: `${acc}1c`, border: `1px solid ${acc}44` }}>
-            <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>{L.conf} </span>
+            <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>{L.conf} </span>
             <span style={{ fontSize: 11, fontWeight: 900, color: acc, fontFamily: "var(--stack-mono)" }}>{confidencePct}%</span>
           </div>
           {dna.bestWeaponLabel && (
             <div style={{ padding: "6px 12px", borderRadius: 999, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)" }}>
-              <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>{L.weapon} </span>
+              <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>{L.weapon} </span>
               <span style={{ fontSize: 11, fontWeight: 900, color: "#fff" }}>{dna.bestWeaponLabel}</span>
             </div>
           )}

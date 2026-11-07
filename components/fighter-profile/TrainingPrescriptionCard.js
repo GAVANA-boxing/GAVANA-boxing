@@ -28,7 +28,7 @@ export default function TrainingPrescriptionCard({ dna, locale, router }) {
       {/* Header */}
       <div style={{ padding: "13px 16px 10px", borderBottom: `1px solid ${acc}18`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
-          <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: acc, textTransform: "uppercase", marginBottom: 3 }}>{L.eyebrow}</div>
+          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: acc, textTransform: "uppercase", marginBottom: 3 }}>{L.eyebrow}</div>
           <div style={{ fontSize: 13, fontWeight: 900, color: "#fff" }}>{P.title}</div>
         </div>
         <div style={{ width: 36, height: 36, borderRadius: "50%", background: `${acc}15`, border: `1px solid ${acc}35`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>
@@ -45,7 +45,7 @@ export default function TrainingPrescriptionCard({ dna, locale, router }) {
                 width: 20, height: 20, borderRadius: "50%", flexShrink: 0,
                 background: `${acc}18`, border: `1px solid ${acc}35`,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 9, fontWeight: 900, color: acc,
+                fontSize: 11.5, fontWeight: 900, color: acc,
               }}>
                 {i + 1}
               </div>
@@ -58,7 +58,7 @@ export default function TrainingPrescriptionCard({ dna, locale, router }) {
 
         {/* Weekly focus */}
         <div style={{ padding: "10px 12px", borderRadius: 10, background: `${acc}12`, border: `1px solid ${acc}25`, marginBottom: 10 }}>
-          <div style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 2, color: acc, textTransform: "uppercase", marginBottom: 4 }}>
+          <div style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: 2, color: acc, textTransform: "uppercase", marginBottom: 4 }}>
             ⚡ {L.weeklyFocus}
           </div>
           <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "#fff", lineHeight: 1.4 }}>{P.weeklyFocus}</p>

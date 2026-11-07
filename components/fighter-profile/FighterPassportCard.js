@@ -122,11 +122,11 @@ export default function FighterPassportCard({ dna, displayName, progress, studie
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ fontSize: 16 }}>🥊</span>
-            <span style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 2.5, color: dna.building ? whiteAlpha(0.2) : acc, textTransform: "uppercase" }}>
+            <span style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: 2.5, color: dna.building ? whiteAlpha(0.2) : acc, textTransform: "uppercase" }}>
               {L.eyebrow}
             </span>
           </div>
-          <span style={{ fontSize: 9, fontWeight: 700, color: whiteAlpha(0.18), fontFamily: "var(--stack-mono)" }}>
+          <span style={{ fontSize: 11.5, fontWeight: 700, color: whiteAlpha(0.18), fontFamily: "var(--stack-mono)" }}>
             {year}
           </span>
         </div>
@@ -161,7 +161,7 @@ export default function FighterPassportCard({ dna, displayName, progress, studie
           {/* Rank */}
           {rankName && (
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <span style={{ width: 76, fontSize: 8.5, fontWeight: 900, color: whiteAlpha(0.55), textTransform: "uppercase", letterSpacing: 1, flexShrink: 0 }}>
+              <span style={{ width: 76, fontSize: 11, fontWeight: 900, color: whiteAlpha(0.55), textTransform: "uppercase", letterSpacing: 1, flexShrink: 0 }}>
                 {L.rank}
               </span>
               <span style={{ fontSize: 12, fontWeight: 800, color: whiteAlpha(0.7) }}>
@@ -172,7 +172,7 @@ export default function FighterPassportCard({ dna, displayName, progress, studie
 
           {/* DNA confidence */}
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ width: 76, fontSize: 8.5, fontWeight: 900, color: whiteAlpha(0.55), textTransform: "uppercase", letterSpacing: 1, flexShrink: 0 }}>
+            <span style={{ width: 76, fontSize: 11, fontWeight: 900, color: whiteAlpha(0.55), textTransform: "uppercase", letterSpacing: 1, flexShrink: 0 }}>
               {L.dnaConf}
             </span>
             {confidencePct == null ? (
@@ -197,13 +197,13 @@ export default function FighterPassportCard({ dna, displayName, progress, studie
           {/* Signature traits */}
           {topTraits.length > 0 && (
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <span style={{ width: 76, fontSize: 8.5, fontWeight: 900, color: whiteAlpha(0.55), textTransform: "uppercase", letterSpacing: 1, flexShrink: 0 }}>
+              <span style={{ width: 76, fontSize: 11, fontWeight: 900, color: whiteAlpha(0.55), textTransform: "uppercase", letterSpacing: 1, flexShrink: 0 }}>
                 {L.signature}
               </span>
               <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
                 {topTraits.map((t, i) => (
                   <span key={i} style={{
-                    fontSize: 10, fontWeight: 900, padding: "3px 9px", borderRadius: 999,
+                    fontSize: 12, fontWeight: 900, padding: "3px 9px", borderRadius: 999,
                     background: dna.building ? whiteAlpha(0.04) : `${acc}14`,
                     border: `1px solid ${dna.building ? whiteAlpha(0.07) : `${acc}28`}`,
                     color: dna.building ? whiteAlpha(0.3) : acc,
@@ -217,7 +217,7 @@ export default function FighterPassportCard({ dna, displayName, progress, studie
 
           {/* Studied fighters */}
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ width: 76, fontSize: 8.5, fontWeight: 900, color: whiteAlpha(0.55), textTransform: "uppercase", letterSpacing: 1, flexShrink: 0 }}>
+            <span style={{ width: 76, fontSize: 11, fontWeight: 900, color: whiteAlpha(0.55), textTransform: "uppercase", letterSpacing: 1, flexShrink: 0 }}>
               {L.studies}
             </span>
             {studiedFighters.length === 0 ? (
@@ -226,7 +226,7 @@ export default function FighterPassportCard({ dna, displayName, progress, studie
               <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
                 {studiedFighters.map((f) => (
                   <span key={f.id} style={{
-                    fontSize: 10, fontWeight: 900, padding: "3px 9px", borderRadius: 999,
+                    fontSize: 12, fontWeight: 900, padding: "3px 9px", borderRadius: 999,
                     background: whiteAlpha(0.04), border: `1px solid ${whiteAlpha(0.09)}`,
                     color: whiteAlpha(0.55),
                   }}>
@@ -239,7 +239,7 @@ export default function FighterPassportCard({ dna, displayName, progress, studie
 
           {/* Current experiment */}
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ width: 76, fontSize: 8.5, fontWeight: 900, color: whiteAlpha(0.55), textTransform: "uppercase", letterSpacing: 1, flexShrink: 0 }}>
+            <span style={{ width: 76, fontSize: 11, fontWeight: 900, color: whiteAlpha(0.55), textTransform: "uppercase", letterSpacing: 1, flexShrink: 0 }}>
               {L.experiment}
             </span>
             <span style={{ fontSize: 11, fontWeight: 800, color: currentExperiment ? GOLD : whiteAlpha(0.2) }}>
@@ -250,13 +250,13 @@ export default function FighterPassportCard({ dna, displayName, progress, studie
           {/* Streak */}
           {streak > 0 && (
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <span style={{ width: 76, fontSize: 8.5, fontWeight: 900, color: whiteAlpha(0.55), textTransform: "uppercase", letterSpacing: 1, flexShrink: 0 }}>
+              <span style={{ width: 76, fontSize: 11, fontWeight: 900, color: whiteAlpha(0.55), textTransform: "uppercase", letterSpacing: 1, flexShrink: 0 }}>
                 {L.streak}
               </span>
               <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                 <span style={{ fontSize: 14 }}>🔥</span>
                 <span style={{ fontSize: 13, fontWeight: 900, color: "#FB923C", fontFamily: "var(--stack-mono)" }}>{streak}</span>
-                <span style={{ fontSize: 10, fontWeight: 700, color: whiteAlpha(0.55) }}>{L.days}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: whiteAlpha(0.55) }}>{L.days}</span>
               </div>
             </div>
           )}
@@ -267,8 +267,8 @@ export default function FighterPassportCard({ dna, displayName, progress, studie
 
       {/* Bottom watermark */}
       <div style={{ padding: "8px 18px 12px", borderTop: `1px solid ${dna.building ? whiteAlpha(0.03) : `${acc}12`}`, display: "flex", justifyContent: "space-between" }}>
-        <span style={{ fontSize: 7.5, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.1), textTransform: "uppercase" }}>GAVANA.APP</span>
-        <span style={{ fontSize: 7.5, fontWeight: 700, color: whiteAlpha(0.08) }}>FIGHTER ID</span>
+        <span style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.1), textTransform: "uppercase" }}>GAVANA.APP</span>
+        <span style={{ fontSize: 10.5, fontWeight: 700, color: whiteAlpha(0.08) }}>FIGHTER ID</span>
       </div>
     </div>
   );

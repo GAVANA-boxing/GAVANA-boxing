@@ -18,7 +18,7 @@ function StyleBar({ label, value, color }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
       <span style={{
-        width: 74, fontSize: 9, fontWeight: 900, letterSpacing: 1.2,
+        width: 74, fontSize: 11.5, fontWeight: 900, letterSpacing: 1.2,
         color: whiteAlpha(0.38), textTransform: "uppercase", textAlign: "right", flexShrink: 0,
       }}>
         {label}
@@ -59,7 +59,7 @@ function FighterChip({ fighter }) {
       }}>
         {fighter.name.split(" ").map((w) => w[0]).join("").slice(0, 2)}
       </div>
-      <span style={{ fontSize: 8.5, fontWeight: 800, color: whiteAlpha(0.55), textAlign: "center", lineHeight: 1.3, maxWidth: 56 }}>
+      <span style={{ fontSize: 11, fontWeight: 800, color: whiteAlpha(0.55), textAlign: "center", lineHeight: 1.3, maxWidth: 56 }}>
         {fighter.name.split(" ").slice(-1)[0]}
       </span>
     </div>
@@ -84,11 +84,11 @@ export default function FighterDNACard({ dna, locale = "en" }) {
         {/* Header */}
         <div style={{ padding: "14px 16px 0" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-            <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.28), textTransform: "uppercase" }}>
+            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.28), textTransform: "uppercase" }}>
               {prelim ? L.prelim : L.dna}
             </div>
             <div style={{ flex: 1, height: 1, background: whiteAlpha(0.05) }} />
-            <div style={{ fontSize: 8, fontWeight: 900, color: goldAlpha(0.5), letterSpacing: 1 }}>🧬</div>
+            <div style={{ fontSize: 11, fontWeight: 900, color: goldAlpha(0.5), letterSpacing: 1 }}>🧬</div>
           </div>
         </div>
 
@@ -106,13 +106,13 @@ export default function FighterDNACard({ dna, locale = "en" }) {
                 const barPct = val === "high" ? 82 : val === "medium" || val === "emerging" ? 52 : 22;
                 return (
                   <div key={label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ width: 64, fontSize: 8.5, fontWeight: 900, letterSpacing: 1, color: whiteAlpha(0.35), textTransform: "uppercase", flexShrink: 0, textAlign: "right" }}>
+                    <span style={{ width: 64, fontSize: 11, fontWeight: 900, letterSpacing: 1, color: whiteAlpha(0.35), textTransform: "uppercase", flexShrink: 0, textAlign: "right" }}>
                       {label}
                     </span>
                     <div style={{ flex: 1, height: 3, background: whiteAlpha(0.07), borderRadius: 2, overflow: "hidden" }}>
                       <div style={{ width: `${barPct}%`, height: "100%", background: color, borderRadius: 2, boxShadow: `0 0 5px ${color}55` }} />
                     </div>
-                    <span style={{ width: 72, fontSize: 9, fontWeight: 900, color, letterSpacing: 1, flexShrink: 0 }}>
+                    <span style={{ width: 72, fontSize: 11.5, fontWeight: 900, color, letterSpacing: 1, flexShrink: 0 }}>
                       {SL[val] || val.toUpperCase()}
                     </span>
                   </div>
@@ -120,7 +120,7 @@ export default function FighterDNACard({ dna, locale = "en" }) {
               })}
             </div>
             {dna?.sessionsNeeded > 0 && (
-              <div style={{ marginTop: 12, fontSize: 9.5, color: whiteAlpha(0.28), fontWeight: 700, textAlign: "center" }}>
+              <div style={{ marginTop: 12, fontSize: 11.5, color: whiteAlpha(0.28), fontWeight: 700, textAlign: "center" }}>
                 {L.confirmed(dna.sessionsNeeded)}
               </div>
             )}
@@ -135,7 +135,7 @@ export default function FighterDNACard({ dna, locale = "en" }) {
               <div>
                 <div style={{ fontSize: 14, fontWeight: 900, color: whiteAlpha(0.55), marginBottom: 3 }}>{L.building}</div>
                 {dna?.sessionsNeeded > 0 && (
-                  <div style={{ fontSize: 10, color: whiteAlpha(0.28), fontWeight: 700 }}>{L.sessions(dna.sessionsNeeded)}</div>
+                  <div style={{ fontSize: 12, color: whiteAlpha(0.28), fontWeight: 700 }}>{L.sessions(dna.sessionsNeeded)}</div>
                 )}
               </div>
             </div>
@@ -172,7 +172,7 @@ export default function FighterDNACard({ dna, locale = "en" }) {
           />
           <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to bottom, ${accentColor}22 0%, rgba(0,0,0,0.75) 60%, rgba(10,10,12,0.98) 100%)` }} />
           <div style={{ position: "absolute", bottom: 12, left: 14, right: 14 }}>
-            <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: accentColor, textTransform: "uppercase", marginBottom: 4 }}>
+            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: accentColor, textTransform: "uppercase", marginBottom: 4 }}>
               {L.dna}
             </div>
             <div style={{
@@ -189,7 +189,7 @@ export default function FighterDNACard({ dna, locale = "en" }) {
             position: "absolute", top: 10, right: 10,
             padding: "3px 9px", borderRadius: RADIUS.full,
             background: `rgba(0,0,0,0.6)`, border: `1px solid ${accentColor}55`,
-            fontSize: 8.5, fontWeight: 900, color: accentColor, letterSpacing: 1,
+            fontSize: 11, fontWeight: 900, color: accentColor, letterSpacing: 1,
             backdropFilter: "blur(8px)",
           }}>
             {confidencePct}% {L.confidence.toUpperCase()}
@@ -205,14 +205,14 @@ export default function FighterDNACard({ dna, locale = "en" }) {
         {!archetypeImageUrl && (
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-            <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.28), textTransform: "uppercase" }}>
+            <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.28), textTransform: "uppercase" }}>
               {L.dna}
             </span>
             <div style={{ flex: 1, height: 1, background: whiteAlpha(0.05) }} />
             <div style={{
               padding: "2px 8px", borderRadius: RADIUS.full,
               background: `${accentColor}18`, border: `1px solid ${accentColor}40`,
-              fontSize: 8.5, fontWeight: 900, color: accentColor, letterSpacing: 1,
+              fontSize: 11, fontWeight: 900, color: accentColor, letterSpacing: 1,
             }}>
               {confidencePct}% {L.confidence.toUpperCase()}
             </div>
@@ -243,7 +243,7 @@ export default function FighterDNACard({ dna, locale = "en" }) {
 
         {/* ── Style Mix bars ── */}
         <div>
-          <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.8, color: whiteAlpha(0.28), textTransform: "uppercase", marginBottom: 9 }}>
+          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.8, color: whiteAlpha(0.28), textTransform: "uppercase", marginBottom: 9 }}>
             {L.style}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -265,7 +265,7 @@ export default function FighterDNACard({ dna, locale = "en" }) {
               flex: 1, padding: "8px 10px", borderRadius: 9,
               background: goldAlpha(0.06), border: `1px solid ${goldAlpha(0.2)}`,
             }}>
-              <div style={{ fontSize: 8.5, fontWeight: 900, color: GOLD, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 3 }}>
+              <div style={{ fontSize: 11, fontWeight: 900, color: GOLD, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 3 }}>
                 🥊 {L.weapon}
               </div>
               <div style={{ fontSize: 14, fontWeight: 900, color: "#fff" }}>
@@ -278,7 +278,7 @@ export default function FighterDNACard({ dna, locale = "en" }) {
               flex: 1, padding: "8px 10px", borderRadius: 9,
               background: redAlpha(0.06), border: `1px solid ${redAlpha(0.18)}`,
             }}>
-              <div style={{ fontSize: 8.5, fontWeight: 900, color: "#FCA5A5", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 3 }}>
+              <div style={{ fontSize: 11, fontWeight: 900, color: "#FCA5A5", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 3 }}>
                 ⚠️ {L.weakness}
               </div>
               <div style={{ fontSize: 11, fontWeight: 800, color: whiteAlpha(0.72), lineHeight: 1.35 }}>
@@ -291,7 +291,7 @@ export default function FighterDNACard({ dna, locale = "en" }) {
         {/* ── Recommended fighters ── */}
         {dna.recommendedFighters?.length > 0 && (
           <div>
-            <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.8, color: whiteAlpha(0.28), textTransform: "uppercase", marginBottom: 9 }}>
+            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.8, color: whiteAlpha(0.28), textTransform: "uppercase", marginBottom: 9 }}>
               {L.fighters}
             </div>
             <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 2, WebkitOverflowScrolling: "touch" }}>
@@ -308,7 +308,7 @@ export default function FighterDNACard({ dna, locale = "en" }) {
             padding: "9px 12px", borderRadius: 9,
             background: "rgba(96,165,250,0.06)", border: "1px solid rgba(96,165,250,0.16)",
           }}>
-            <div style={{ fontSize: 8.5, fontWeight: 900, color: "#93C5FD", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 4 }}>
+            <div style={{ fontSize: 11, fontWeight: 900, color: "#93C5FD", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 4 }}>
               ⚡ {L.evolution}
             </div>
             <div style={{ fontSize: 12, color: whiteAlpha(0.7), lineHeight: 1.5 }}>

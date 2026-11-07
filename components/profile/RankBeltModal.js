@@ -39,7 +39,7 @@ export default function RankBeltModal({ xp, fighterRank, nextRank, rankProgress,
       >
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
           <div>
-            <p style={{ margin: 0, color: fighterRank.color, fontSize: 10, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase" }}>{t("rankBeltModalTitle")}</p>
+            <p style={{ margin: 0, color: fighterRank.color, fontSize: 12, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase" }}>{t("rankBeltModalTitle")}</p>
             <h2 style={{ margin: "5px 0 0", color: "#fff", fontSize: 26, fontWeight: 1000, lineHeight: 1 }}>{t(fighterRank.key)}</h2>
             <p style={{ margin: "8px 0 0", color: "rgba(255,255,255,0.45)", fontSize: 13, lineHeight: 1.4 }}>{t("rankBeltMotivation")}</p>
           </div>
@@ -66,11 +66,11 @@ export default function RankBeltModal({ xp, fighterRank, nextRank, rankProgress,
           <div style={{ height: 8, borderRadius: RADIUS.full, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
             <div style={{ height: "100%", width: `${rankProgress}%`, borderRadius: RADIUS.full, background: fighterRank.gradient, transition: "width 600ms ease", boxShadow: fighterRank.glowColor ? `0 0 12px ${fighterRank.glowColor}` : "none" }} />
           </div>
-          <p style={{ margin: 0, color: "rgba(255,255,255,0.35)", fontSize: 10, fontWeight: 700, textAlign: "right" }}>{rankProgress}%</p>
+          <p style={{ margin: 0, color: "rgba(255,255,255,0.35)", fontSize: 12, fontWeight: 700, textAlign: "right" }}>{rankProgress}%</p>
         </div>
 
         <div style={{ display: "grid", gap: 6 }}>
-          <p style={{ margin: "0 0 6px", color: "rgba(255,255,255,0.4)", fontSize: 10, fontWeight: 900, letterSpacing: 1.4, textTransform: "uppercase" }}>{t("rankBeltAllRanks")}</p>
+          <p style={{ margin: "0 0 6px", color: "rgba(255,255,255,0.4)", fontSize: 12, fontWeight: 900, letterSpacing: 1.4, textTransform: "uppercase" }}>{t("rankBeltAllRanks")}</p>
           {RANK_TIERS.map((tier) => {
             const isCurrent = tier.key === fighterRank.key;
             const isReached = xp >= tier.minXP;
@@ -88,7 +88,7 @@ export default function RankBeltModal({ xp, fighterRank, nextRank, rankProgress,
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <div style={{ width: 8, height: 8, borderRadius: "50%", background: isReached ? tier.color : "rgba(255,255,255,0.12)", boxShadow: isReached && tier.glowColor ? `0 0 8px ${tier.glowColor}` : "none" }} />
                   <span style={{ color: isReached ? "#fff" : "rgba(255,255,255,0.35)", fontSize: 13, fontWeight: isCurrent ? 900 : 700 }}>{t(tier.key)}</span>
-                  {isCurrent && <span style={{ fontSize: 9, fontWeight: 900, color: tier.color, letterSpacing: 1, textTransform: "uppercase" }}>{t("rankBeltCurrent")}</span>}
+                  {isCurrent && <span style={{ fontSize: 11.5, fontWeight: 900, color: tier.color, letterSpacing: 1, textTransform: "uppercase" }}>{t("rankBeltCurrent")}</span>}
                 </div>
                 <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 11, fontWeight: 700 }}>{tier.minXP.toLocaleString()} XP</span>
               </div>

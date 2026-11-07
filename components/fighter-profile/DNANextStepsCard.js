@@ -55,7 +55,7 @@ export default function DNANextStepsCard({ dna, locale }) {
     }}>
       <div style={{ height: 3, background: `linear-gradient(90deg, ${acc}, ${acc}44, transparent)` }} />
       <div style={{ padding: "13px 16px 14px" }}>
-        <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: acc, textTransform: "uppercase", marginBottom: 10 }}>
+        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: acc, textTransform: "uppercase", marginBottom: 10 }}>
           {L.header}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -65,7 +65,7 @@ export default function DNANextStepsCard({ dna, locale }) {
                 width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
                 background: `${acc}18`, border: `1px solid ${acc}40`,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 9, fontWeight: 900, color: acc,
+                fontSize: 11.5, fontWeight: 900, color: acc,
               }}>
                 {i + 1}
               </div>

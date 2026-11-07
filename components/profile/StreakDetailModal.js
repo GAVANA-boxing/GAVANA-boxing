@@ -11,7 +11,7 @@ const streakCardStyle = {
   gap: 4,
   justifyItems: "center",
 };
-const streakCardLabel = { color: "rgba(255,255,255,0.45)", fontSize: 10, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase" };
+const streakCardLabel = { color: "rgba(255,255,255,0.45)", fontSize: 12, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase" };
 const streakCardValue = { fontSize: 36, fontWeight: 1000, lineHeight: 1, fontFamily: "var(--font-display, 'Anton', sans-serif)" };
 const streakCardUnit = { color: "rgba(255,255,255,0.45)", fontSize: 11, fontWeight: 700 };
 const streakRowStyle = { display: "flex", justifyContent: "space-between", alignItems: "center" };

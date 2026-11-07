@@ -12,7 +12,7 @@ export default function PassportStatCell({ value, label, accent }) {
       }}>
         {value}
       </div>
-      <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: whiteAlpha(0.55), textTransform: "uppercase" }}>
+      <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.5, color: whiteAlpha(0.55), textTransform: "uppercase" }}>
         {label}
       </div>
     </div>

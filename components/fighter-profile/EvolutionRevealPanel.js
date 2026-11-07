@@ -121,11 +121,11 @@ export default function EvolutionRevealPanel({ experiment, sessions, locale, rou
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ fontSize: 22 }}>⚗️</span>
             <div>
-              <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: acc, textTransform: "uppercase", marginBottom: 2 }}>
+              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: acc, textTransform: "uppercase", marginBottom: 2 }}>
                 {L.eyebrow}
               </div>
               <div style={{ fontSize: 13, fontWeight: 900, color: "#fff" }}>{experiment.fighterName}</div>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", fontWeight: 700 }}>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", fontWeight: 700 }}>
                 {L.subtitle(daysElapsed)} · {L.sessionsIn(expSessions.length)}
               </div>
             </div>
@@ -133,7 +133,7 @@ export default function EvolutionRevealPanel({ experiment, sessions, locale, rou
           <button
             type="button"
             onClick={() => router.push(`/${locale}/fighters/${experiment.fighterId}`)}
-            style={{ background: `${acc}18`, border: `1px solid ${acc}35`, borderRadius: 8, padding: "5px 10px", color: acc, fontSize: 9.5, fontWeight: 900, cursor: "pointer" }}
+            style={{ background: `${acc}18`, border: `1px solid ${acc}35`, borderRadius: 8, padding: "5px 10px", color: acc, fontSize: 11.5, fontWeight: 900, cursor: "pointer" }}
           >
             {L.viewFighter}
           </button>
@@ -142,7 +142,7 @@ export default function EvolutionRevealPanel({ experiment, sessions, locale, rou
         {/* Adoption score bar */}
         <div style={{ marginTop: 12 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
-            <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.55)", textTransform: "uppercase" }}>
+            <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.55)", textTransform: "uppercase" }}>
               {L.adoptionLabel}
             </span>
             <span style={{ fontSize: 16, fontWeight: 900, color: adoptionColor, fontFamily: "var(--stack-mono)" }}>
@@ -158,7 +158,7 @@ export default function EvolutionRevealPanel({ experiment, sessions, locale, rou
             }} />
           </div>
           <div style={{ marginTop: 7, fontSize: 11, fontWeight: 800, color: adoptionColor }}>{verdict.label}</div>
-          <div style={{ marginTop: 2, fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.55)", lineHeight: 1.4 }}>{verdict.rec}</div>
+          <div style={{ marginTop: 2, fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.55)", lineHeight: 1.4 }}>{verdict.rec}</div>
         </div>
       </div>
 
@@ -173,8 +173,8 @@ export default function EvolutionRevealPanel({ experiment, sessions, locale, rou
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ width: 36, flexShrink: 0 }} />
               <div style={{ flex: 1, display: "flex", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.55)", textTransform: "uppercase" }}>{L.baseline}</span>
-                <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.55)", textTransform: "uppercase" }}>{L.current}</span>
+                <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.55)", textTransform: "uppercase" }}>{L.baseline}</span>
+                <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.55)", textTransform: "uppercase" }}>{L.current}</span>
               </div>
               <span style={{ width: 38, flexShrink: 0 }} />
             </div>
@@ -185,7 +185,7 @@ export default function EvolutionRevealPanel({ experiment, sessions, locale, rou
               const deltaColor = delta == null ? "transparent" : delta > 0 ? "#34D399" : delta < 0 ? "#F87171" : "rgba(255,255,255,0.3)";
               return (
                 <div key={key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ width: 36, fontSize: 9, fontWeight: 900, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", letterSpacing: 0.8, flexShrink: 0 }}>
+                  <span style={{ width: 36, fontSize: 11.5, fontWeight: 900, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", letterSpacing: 0.8, flexShrink: 0 }}>
                     {label}
                   </span>
                   <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>
@@ -203,7 +203,7 @@ export default function EvolutionRevealPanel({ experiment, sessions, locale, rou
                       <div style={{ height: 4, background: "rgba(255,255,255,0.04)", borderRadius: 2 }} />
                     )}
                   </div>
-                  <div style={{ width: 38, textAlign: "right", fontSize: 10, fontWeight: 900, color: deltaColor, fontFamily: "var(--stack-mono)", flexShrink: 0 }}>
+                  <div style={{ width: 38, textAlign: "right", fontSize: 12, fontWeight: 900, color: deltaColor, fontFamily: "var(--stack-mono)", flexShrink: 0 }}>
                     {deltaStr || (nowPct != null ? `${nowPct}%` : "—")}
                   </div>
                 </div>

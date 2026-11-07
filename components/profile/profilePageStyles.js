@@ -192,14 +192,14 @@ const styles = {
     fontWeight: 1000, fontFamily: "var(--font-display, 'Anton', sans-serif)",
   },
   statLabel: {
-    color: whiteAlpha(0.5), fontSize: 9, fontWeight: 850,
+    color: whiteAlpha(0.5), fontSize: 11.5, fontWeight: 850,
     letterSpacing: 1.2, textTransform: "uppercase",
   },
 
   // ── Stat section eyebrow ──────────────────────────────────────────────────
   statsSectionKicker: {
     margin: `${SP[4]}px 16px 0`,
-    fontSize: 9, fontWeight: 900, letterSpacing: "3.5px",
+    fontSize: 11.5, fontWeight: 900, letterSpacing: "3.5px",
     textTransform: "uppercase", color: RED,
   },
 
@@ -290,7 +290,7 @@ const styles = {
   },
   reelTileCaption: {
     overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-    color: whiteAlpha(0.65), fontSize: 10, fontWeight: 600,
+    color: whiteAlpha(0.65), fontSize: 12, fontWeight: 600,
     textShadow: `0 1px 4px ${blackAlpha(0.9)}`,
   },
 

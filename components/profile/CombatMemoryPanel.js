@@ -15,7 +15,7 @@ function SectionLabel({ label }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "24px 0 12px" }}>
       <span style={{ width: 3, height: 3, borderRadius: "50%", background: goldAlpha(0.45), flexShrink: 0 }} />
-      <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.28), textTransform: "uppercase" }}>
+      <span style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.28), textTransform: "uppercase" }}>
         {label}
       </span>
       <div style={{ flex: 1, height: 1, background: whiteAlpha(0.04) }} />
@@ -29,7 +29,7 @@ function TraitBar({ label, value, cap = 3 }) {
   const isEmpty = value === 0;
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "5px 0" }}>
-      <span style={{ width: 88, fontSize: 9, fontWeight: 800, letterSpacing: 1.2, color: whiteAlpha(isEmpty ? 0.18 : 0.35), textTransform: "uppercase", textAlign: "right", flexShrink: 0 }}>
+      <span style={{ width: 88, fontSize: 11.5, fontWeight: 800, letterSpacing: 1.2, color: whiteAlpha(isEmpty ? 0.18 : 0.35), textTransform: "uppercase", textAlign: "right", flexShrink: 0 }}>
         {label}
       </span>
       <div style={{ flex: 1, height: 2, background: whiteAlpha(0.06), borderRadius: 2, overflow: "hidden" }}>
@@ -37,7 +37,7 @@ function TraitBar({ label, value, cap = 3 }) {
           <div style={{ height: "100%", width: `${pct}%`, background: whiteAlpha(0.38), borderRadius: 2, transition: "width 0.9s cubic-bezier(0.16,1,0.3,1)" }} />
         )}
       </div>
-      <span style={{ width: 24, fontSize: 10, fontWeight: 800, color: whiteAlpha(isEmpty ? 0.18 : 0.48), textAlign: "right", flexShrink: 0, fontFamily: "var(--stack-mono)" }}>
+      <span style={{ width: 24, fontSize: 12, fontWeight: 800, color: whiteAlpha(isEmpty ? 0.18 : 0.48), textAlign: "right", flexShrink: 0, fontFamily: "var(--stack-mono)" }}>
         {value.toFixed(1)}
       </span>
     </div>
@@ -72,7 +72,7 @@ function MovementChip({ movementCounts }) {
   return (
     <span style={{
       display: "inline-flex", alignItems: "center", gap: 4,
-      fontSize: 9, fontWeight: 800,
+      fontSize: 11.5, fontWeight: 800,
       color: whiteAlpha(0.32),
       background: whiteAlpha(0.04),
       border: `1px solid ${whiteAlpha(0.06)}`,
@@ -80,7 +80,7 @@ function MovementChip({ movementCounts }) {
       padding: "2px 7px",
       textTransform: "lowercase",
     }}>
-      <span style={{ fontSize: 7 }}>●</span>
+      <span style={{ fontSize: 10.5 }}>●</span>
       {label} ×{top.count}
     </span>
   );
@@ -142,7 +142,7 @@ export default function CombatMemoryPanel({ sessions = [], tendency, trends, loa
     return (
       <div style={{ padding: "48px 0", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
         <div style={{ width: 24, height: 24, border: `2px solid ${whiteAlpha(0.07)}`, borderTopColor: RED, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-        <span style={{ fontSize: 10, color: whiteAlpha(0.25), fontWeight: 700, letterSpacing: 1 }}>READING MEMORY</span>
+        <span style={{ fontSize: 12, color: whiteAlpha(0.25), fontWeight: 700, letterSpacing: 1 }}>READING MEMORY</span>
       </div>
     );
   }
@@ -195,14 +195,14 @@ export default function CombatMemoryPanel({ sessions = [], tendency, trends, loa
                 {lines.map((line, i) => (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                     <span style={{ width: 3, height: 3, borderRadius: "50%", background: whiteAlpha(0.2), flexShrink: 0 }} />
-                    <span style={{ fontSize: 10, color: whiteAlpha(0.38), fontWeight: 700 }}>{line}</span>
+                    <span style={{ fontSize: 12, color: whiteAlpha(0.38), fontWeight: 700 }}>{line}</span>
                   </div>
                 ))}
               </div>
             ) : null;
           })()}
 
-          <p style={{ margin: "10px 0 0", fontSize: 9, color: whiteAlpha(0.2), fontWeight: 700, letterSpacing: 0.8 }}>
+          <p style={{ margin: "10px 0 0", fontSize: 11.5, color: whiteAlpha(0.2), fontWeight: 700, letterSpacing: 0.8 }}>
             Avg per session · {miCount} session{miCount !== 1 ? "s" : ""} analyzed
           </p>
         </div>
@@ -230,13 +230,13 @@ export default function CombatMemoryPanel({ sessions = [], tendency, trends, loa
               <div style={{ fontSize: 22, fontWeight: 1000, color: "#fff", fontFamily: "var(--font-display, 'Anton', sans-serif)", lineHeight: 1 }}>
                 {trends.thisWeekCount}
               </div>
-              <div style={{ fontSize: 9, color: whiteAlpha(0.28), fontWeight: 800, letterSpacing: 1.5, marginTop: 4 }}>THIS WEEK</div>
+              <div style={{ fontSize: 11.5, color: whiteAlpha(0.28), fontWeight: 800, letterSpacing: 1.5, marginTop: 4 }}>THIS WEEK</div>
             </div>
             <div style={{ padding: "12px 16px" }}>
               <div style={{ fontSize: 22, fontWeight: 1000, color: whiteAlpha(0.38), fontFamily: "var(--font-display, 'Anton', sans-serif)", lineHeight: 1 }}>
                 {trends.lastWeekCount}
               </div>
-              <div style={{ fontSize: 9, color: whiteAlpha(0.2), fontWeight: 800, letterSpacing: 1.5, marginTop: 4 }}>LAST WEEK</div>
+              <div style={{ fontSize: 11.5, color: whiteAlpha(0.2), fontWeight: 800, letterSpacing: 1.5, marginTop: 4 }}>LAST WEEK</div>
             </div>
           </div>
 
@@ -308,7 +308,7 @@ export default function CombatMemoryPanel({ sessions = [], tendency, trends, loa
                     }}>
                       {sessionLabel}
                     </span>
-                    <span style={{ fontSize: 9, color: whiteAlpha(0.22), fontWeight: 700, flexShrink: 0, fontFamily: "var(--stack-mono)", marginLeft: 8 }}>
+                    <span style={{ fontSize: 11.5, color: whiteAlpha(0.22), fontWeight: 700, flexShrink: 0, fontFamily: "var(--stack-mono)", marginLeft: 8 }}>
                       {formatSessionAge(s.createdAt?.seconds)}
                     </span>
                   </div>
@@ -316,12 +316,12 @@ export default function CombatMemoryPanel({ sessions = [], tendency, trends, loa
                   {/* Meta row */}
                   <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                     {drill && (
-                      <span style={{ fontSize: 9, color: whiteAlpha(0.28), fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.8 }}>
+                      <span style={{ fontSize: 11.5, color: whiteAlpha(0.28), fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.8 }}>
                         {drill}
                       </span>
                     )}
                     {dur && (
-                      <span style={{ fontSize: 9, color: whiteAlpha(0.22), fontWeight: 700, fontFamily: "var(--stack-mono)" }}>
+                      <span style={{ fontSize: 11.5, color: whiteAlpha(0.22), fontWeight: 700, fontFamily: "var(--stack-mono)" }}>
                         {dur}
                       </span>
                     )}

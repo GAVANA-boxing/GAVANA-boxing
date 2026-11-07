@@ -43,15 +43,15 @@ export function WeeklyRecapModal({ aiFeedbackHistory, profileUser, t, onClose })
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, padding: "4px 0 8px" }}>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
             <span style={{ fontSize: 16, fontWeight: 900, lineHeight: 1, color: GOLD }}>+{weekXP}</span>
-            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.45)", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{t("weeklyRecapXP")}</span>
+            <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.45)", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{t("weeklyRecapXP")}</span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
             <span style={{ fontSize: 16, fontWeight: 900, lineHeight: 1, color: "#34D399" }}>{weekChallenges}</span>
-            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.45)", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{t("weeklyRecapChallenges")}</span>
+            <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.45)", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{t("weeklyRecapChallenges")}</span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
             <span style={{ fontSize: 16, fontWeight: 900, lineHeight: 1, color: "#FB923C" }}>{profileUser?.challengeStreak || 0}</span>
-            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.45)", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{t("dayStreak").replace("{n}", "")}</span>
+            <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.45)", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{t("dayStreak").replace("{n}", "")}</span>
           </div>
         </div>
         <button
@@ -98,19 +98,19 @@ export function WeeklyLeaderboardModal({ challengeRanks, t, onClose, onGoToChall
           {challengeRanks.weeklyRank && (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: 22, fontWeight: 900, color: "#fff", lineHeight: 1 }}>#{challengeRanks.weeklyRank}</span>
-              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{t("seasonCurrentWeek")}</span>
+              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{t("seasonCurrentWeek")}</span>
             </div>
           )}
           {challengeRanks.bestWeeklyScore != null && (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: 22, fontWeight: 900, color: GOLD, lineHeight: 1 }}>{challengeRanks.bestWeeklyScore}/10</span>
-              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{t("seasonBestWeeklyScore")}</span>
+              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{t("seasonBestWeeklyScore")}</span>
             </div>
           )}
           {challengeRanks.allTimeRank && (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: 22, fontWeight: 900, color: "#fff", lineHeight: 1 }}>#{challengeRanks.allTimeRank}</span>
-              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{t("seasonAllTime")}</span>
+              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{t("seasonAllTime")}</span>
             </div>
           )}
         </div>

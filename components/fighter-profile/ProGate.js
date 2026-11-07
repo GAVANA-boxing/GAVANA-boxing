@@ -14,7 +14,7 @@ export default function ProGate({ tier, locale, router, children }) {
       <div style={{ filter: "blur(3px)", pointerEvents: "none", userSelect: "none", opacity: 0.4 }}>{children}</div>
       <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "rgba(10,10,14,0.75)", backdropFilter: "blur(4px)", borderRadius: 14, border: "1px solid rgba(245,196,81,0.25)", padding: "20px 16px", textAlign: "center" }}>
         <div style={{ fontSize: 24, marginBottom: 8 }}>🔒</div>
-        <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: "rgba(245,196,81,0.7)", textTransform: "uppercase", marginBottom: 6 }}>{L.lock}</div>
+        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: "rgba(245,196,81,0.7)", textTransform: "uppercase", marginBottom: 6 }}>{L.lock}</div>
         <div style={{ fontSize: 14, fontWeight: 900, color: "#fff", marginBottom: 6 }}>{L.title}</div>
         <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", lineHeight: 1.5, marginBottom: 14 }}>{L.sub}</div>
         <button

@@ -86,10 +86,10 @@ export default function TribeActivityFeed({ allTribeCounts, userArchetype, local
 
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-          <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.55), textTransform: "uppercase" }}>
+          <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.55), textTransform: "uppercase" }}>
             {L.title}
           </span>
-          <span style={{ fontSize: 9, fontWeight: 900, color: whiteAlpha(0.55), fontFamily: "var(--stack-mono)" }}>
+          <span style={{ fontSize: 11.5, fontWeight: 900, color: whiteAlpha(0.55), fontFamily: "var(--stack-mono)" }}>
             {total} {L.totalLabel}
           </span>
         </div>
@@ -104,7 +104,7 @@ export default function TribeActivityFeed({ allTribeCounts, userArchetype, local
             return (
               <div key={arch} style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <span style={{
-                  width: 72, fontSize: 9, fontWeight: 900, letterSpacing: 0.8,
+                  width: 72, fontSize: 11.5, fontWeight: 900, letterSpacing: 0.8,
                   textTransform: "uppercase", flexShrink: 0, textAlign: "right",
                   color: isUser ? acc : whiteAlpha(0.32),
                 }}>
@@ -118,11 +118,11 @@ export default function TribeActivityFeed({ allTribeCounts, userArchetype, local
                     transition: "width 0.9s cubic-bezier(0.16,1,0.3,1)",
                   }} />
                 </div>
-                <span style={{ width: 28, textAlign: "right", fontSize: 10, fontWeight: 900, color: isUser ? acc : whiteAlpha(0.3), fontFamily: "var(--stack-mono)", flexShrink: 0 }}>
+                <span style={{ width: 28, textAlign: "right", fontSize: 12, fontWeight: 900, color: isUser ? acc : whiteAlpha(0.3), fontFamily: "var(--stack-mono)", flexShrink: 0 }}>
                   {n}
                 </span>
                 {isUser && (
-                  <span style={{ fontSize: 7.5, fontWeight: 900, color: acc, background: `${acc}18`, border: `1px solid ${acc}35`, borderRadius: 4, padding: "1px 5px", flexShrink: 0 }}>
+                  <span style={{ fontSize: 10.5, fontWeight: 900, color: acc, background: `${acc}18`, border: `1px solid ${acc}35`, borderRadius: 4, padding: "1px 5px", flexShrink: 0 }}>
                     {L.userBadge}
                   </span>
                 )}
@@ -134,7 +134,7 @@ export default function TribeActivityFeed({ allTribeCounts, userArchetype, local
         {/* Activity feed */}
         {feedItems.length > 0 && (
           <div style={{ borderTop: `1px solid ${whiteAlpha(0.05)}`, paddingTop: 12 }}>
-            <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 8 }}>
+            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 8 }}>
               {L.feed}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>

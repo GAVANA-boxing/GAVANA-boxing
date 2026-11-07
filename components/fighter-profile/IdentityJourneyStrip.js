@@ -65,10 +65,10 @@ export default function IdentityJourneyStrip({ sessions, dna, studiedIds, curren
     <div style={{ marginBottom: 16 }}>
       {/* Header + progress bar */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-        <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.55), textTransform: "uppercase" }}>
+        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.55), textTransform: "uppercase" }}>
           {L.title}
         </span>
-        <span style={{ fontSize: 9, fontWeight: 900, color: pct >= 100 ? "#34D399" : GOLD }}>
+        <span style={{ fontSize: 11.5, fontWeight: 900, color: pct >= 100 ? "#34D399" : GOLD }}>
           {pct}% {L.complete}
         </span>
       </div>
@@ -100,7 +100,7 @@ export default function IdentityJourneyStrip({ sessions, dna, studiedIds, curren
                 {step.done ? "✅" : step.emoji}
               </span>
               <span style={{
-                fontSize: 7.5, fontWeight: 800, textAlign: "center", lineHeight: 1.35,
+                fontSize: 10.5, fontWeight: 800, textAlign: "center", lineHeight: 1.35,
                 color: step.done ? "#34D399" : isCurrent ? GOLD : whiteAlpha(0.22),
               }}>
                 {label}

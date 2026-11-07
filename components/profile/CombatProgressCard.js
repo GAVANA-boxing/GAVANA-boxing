@@ -11,7 +11,7 @@ function SkillBar({ label, value, color }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
       <span style={{
-        width: 88, fontSize: 9, fontWeight: 900, letterSpacing: 1,
+        width: 88, fontSize: 11.5, fontWeight: 900, letterSpacing: 1,
         color: whiteAlpha(0.55), textTransform: "uppercase", flexShrink: 0,
       }}>
         {label}
@@ -48,7 +48,7 @@ export default function CombatProgressCard({ progress, locale = "en" }) {
         marginBottom: 4,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-          <span style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.55), textTransform: "uppercase" }}>
+          <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.55), textTransform: "uppercase" }}>
             {L.skills}
           </span>
           <div style={{ flex: 1, height: 1, background: whiteAlpha(0.05) }} />
@@ -85,7 +85,7 @@ export default function CombatProgressCard({ progress, locale = "en" }) {
 
         {/* ── Skill mastery ── */}
         <div>
-          <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.8, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 9 }}>
+          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.8, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 9 }}>
             {L.skills}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -103,7 +103,7 @@ export default function CombatProgressCard({ progress, locale = "en" }) {
         {/* ── Punch pattern evolution ── */}
         {punchTrend && (
           <div>
-            <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.8, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 9 }}>
+            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.8, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 9 }}>
               📊 {L.punchTrend}
             </div>
             {[
@@ -115,8 +115,8 @@ export default function CombatProgressCard({ progress, locale = "en" }) {
               return (
                 <div key={label} style={{ marginBottom: 8 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-                    <span style={{ fontSize: 9, fontWeight: 900, color: whiteAlpha(0.55), textTransform: "uppercase", letterSpacing: 0.8 }}>{label}</span>
-                    <span style={{ fontSize: 9, fontWeight: 900, color: delta > 0 ? "#34D399" : delta < 0 ? "#F87171" : whiteAlpha(0.3) }}>
+                    <span style={{ fontSize: 11.5, fontWeight: 900, color: whiteAlpha(0.55), textTransform: "uppercase", letterSpacing: 0.8 }}>{label}</span>
+                    <span style={{ fontSize: 11.5, fontWeight: 900, color: delta > 0 ? "#34D399" : delta < 0 ? "#F87171" : whiteAlpha(0.3) }}>
                       {delta > 0 ? "+" : ""}{delta}%
                     </span>
                   </div>
@@ -129,8 +129,8 @@ export default function CombatProgressCard({ progress, locale = "en" }) {
                     </div>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
-                    <span style={{ fontSize: 8, color: whiteAlpha(0.55) }}>{L.early} {earlyPct}%</span>
-                    <span style={{ fontSize: 8, color: whiteAlpha(0.55) }}>{L.recent} {recentPct}%</span>
+                    <span style={{ fontSize: 11, color: whiteAlpha(0.55) }}>{L.early} {earlyPct}%</span>
+                    <span style={{ fontSize: 11, color: whiteAlpha(0.55) }}>{L.recent} {recentPct}%</span>
                   </div>
                 </div>
               );
@@ -141,7 +141,7 @@ export default function CombatProgressCard({ progress, locale = "en" }) {
         {/* ── Evolution timeline ── */}
         {timeline?.length > 0 && (
           <div>
-            <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.8, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 9 }}>
+            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.8, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 9 }}>
               {L.timeline}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>

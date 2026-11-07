@@ -118,7 +118,7 @@ function StatCell({ value, label, accent }) {
       }}>
         {value}
       </div>
-      <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.5, color: whiteAlpha(0.55), textTransform: "uppercase" }}>
+      <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.5, color: whiteAlpha(0.55), textTransform: "uppercase" }}>
         {label}
       </div>
     </div>
@@ -300,7 +300,7 @@ export default function FighterProfilePage() {
             <div style={{ fontSize: 13, fontWeight: 900, color: "#000" }}>
               {locale === "mn" ? "Про болгосонд баярлалаа!" : locale === "ko" ? "업그레이드 완료!" : "Welcome to Pro!"}
             </div>
-            <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(0,0,0,0.55)" }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(0,0,0,0.55)" }}>
               {locale === "mn" ? "Бүрэн хандалт нээгдлээ" : locale === "ko" ? "전체 기능 잠금 해제" : "Full access unlocked"}
             </div>
           </div>
@@ -391,10 +391,10 @@ export default function FighterProfilePage() {
                 <div style={{ borderRadius: RADIUS.lg, padding: "12px 14px", marginBottom: 8, background: `${color}0a`, border: `1px solid ${color}30`, display: "flex", alignItems: "center", gap: 12 }}>
                   <span style={{ fontSize: 22, flexShrink: 0 }}>⚡</span>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase", color, marginBottom: 3 }}>{level.label}</div>
-                    <div style={{ fontSize: 10.5, fontWeight: 700, color: "rgba(255,255,255,0.5)", lineHeight: 1.4 }}>{level.hint(days)}</div>
+                    <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase", color, marginBottom: 3 }}>{level.label}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.5)", lineHeight: 1.4 }}>{level.hint(days)}</div>
                   </div>
-                  <button type="button" onClick={() => router.push(`/${locale}/train`)} style={{ flexShrink: 0, padding: "7px 12px", borderRadius: 10, background: `${color}18`, border: `1px solid ${color}40`, color, fontSize: 10.5, fontWeight: 900, cursor: "pointer" }}>
+                  <button type="button" onClick={() => router.push(`/${locale}/train`)} style={{ flexShrink: 0, padding: "7px 12px", borderRadius: 10, background: `${color}18`, border: `1px solid ${color}40`, color, fontSize: 12, fontWeight: 900, cursor: "pointer" }}>
                     {FL.cta}
                   </button>
                 </div>
@@ -418,7 +418,7 @@ export default function FighterProfilePage() {
                     background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.35)",
                   }}>
                     <span style={{ fontSize: 14 }}>🧬</span>
-                    <span style={{ fontSize: 10, fontWeight: 900, color: "#A78BFA", letterSpacing: 0.5 }}>
+                    <span style={{ fontSize: 12, fontWeight: 900, color: "#A78BFA", letterSpacing: 0.5 }}>
                       {locale === "mn" ? "8-р тренинг" : locale === "ko" ? "세션 8 마일스톤" : "Session 8 Milestone"}
                     </span>
                   </div>
@@ -430,7 +430,7 @@ export default function FighterProfilePage() {
                     background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.35)",
                   }}>
                     <span style={{ fontSize: 14 }}>⚗️</span>
-                    <span style={{ fontSize: 10, fontWeight: 900, color: "#A78BFA", letterSpacing: 0.5 }}>
+                    <span style={{ fontSize: 12, fontWeight: 900, color: "#A78BFA", letterSpacing: 0.5 }}>
                       {locale === "mn" ? "15-р тренинг" : locale === "ko" ? "세션 15 마일스톤" : "Session 15 Milestone"}
                     </span>
                   </div>
@@ -453,7 +453,7 @@ export default function FighterProfilePage() {
               return (
                 <div style={{ borderRadius: 14, padding: "12px 14px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", marginBottom: 10 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                    <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.8, textTransform: "uppercase", color: "rgba(255,255,255,0.55)" }}>
+                    <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.8, textTransform: "uppercase", color: "rgba(255,255,255,0.55)" }}>
                       {locale === "mn" ? "ДНХ ИТГЭЛЦЛИЙН ЗАМНАЛ" : locale === "ko" ? "DNA 신뢰도 여정" : "DNA CONFIDENCE JOURNEY"}
                     </div>
                     <div style={{ fontSize: 11, fontWeight: 900, color: accentColor }}>{conf.toFixed(0)}%</div>
@@ -462,9 +462,9 @@ export default function FighterProfilePage() {
                     <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: `${conf}%`, background: `linear-gradient(90deg, ${accentColor}88, ${accentColor})`, borderRadius: 3, transition: "width 0.8s cubic-bezier(0.16,1,0.3,1)" }} />
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ fontSize: 10, fontWeight: 800, color: accentColor }}>{currentMilestone.label[locale] || currentMilestone.label.en}</span>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: accentColor }}>{currentMilestone.label[locale] || currentMilestone.label.en}</span>
                     {nextMilestone && (
-                      <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.55)" }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.55)" }}>
                         → {nextMilestone.label[locale] || nextMilestone.label.en} @ {nextMilestone.pct}%
                       </span>
                     )}
@@ -499,13 +499,13 @@ export default function FighterProfilePage() {
               <ProGate tier={userTier} locale={locale} router={router}>
                 <div style={{ borderRadius: 14, padding: "14px 16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <div>
-                    <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, color: "rgba(245,196,81,0.7)", textTransform: "uppercase", marginBottom: 4 }}>
+                    <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.5, color: "rgba(245,196,81,0.7)", textTransform: "uppercase", marginBottom: 4 }}>
                       {locale === "mn" ? "ДНХ ТАЙЛАН" : locale === "ko" ? "DNA 리포트" : "DNA EXPORT"}
                     </div>
                     <div style={{ fontSize: 12, fontWeight: 800, color: "#fff", marginBottom: 2 }}>
                       {locale === "mn" ? "Долоо хоногийн ДНХ тайлан татах" : locale === "ko" ? "주간 DNA 리포트 다운로드" : "Download Weekly DNA Report"}
                     </div>
-                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", fontWeight: 700 }}>
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", fontWeight: 700 }}>
                       {locale === "mn" ? "Долоо хоногийн статистик · JSON" : locale === "ko" ? "주간 통계 · JSON" : "Weekly stats · JSON"}
                     </div>
                   </div>

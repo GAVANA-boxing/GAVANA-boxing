@@ -73,13 +73,13 @@ export default function FighterDNACompareCard({ dna, locale }) {
     <div style={{ borderRadius: 16, overflow: "hidden", border: `1px solid ${whiteAlpha(0.08)}`, background: whiteAlpha(0.015), marginBottom: 8 }}>
       <div style={{ height: 2, background: `linear-gradient(90deg, ${whiteAlpha(0.1)}, transparent)` }} />
       <div style={{ padding: "14px 16px 16px" }}>
-        <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 12 }}>
+        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 12 }}>
           ⚔️ {L.eyebrow}
         </div>
 
         {/* Fighter chip selector */}
         <div style={{ marginBottom: 12 }}>
-          <div style={{ fontSize: 9, fontWeight: 800, color: whiteAlpha(0.55), marginBottom: 8 }}>{L.select}</div>
+          <div style={{ fontSize: 11.5, fontWeight: 800, color: whiteAlpha(0.55), marginBottom: 8 }}>{L.select}</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
             {fighters.map((f) => {
               const active = f.id === selectedId;
@@ -107,7 +107,7 @@ export default function FighterDNACompareCard({ dna, locale }) {
           <>
             {/* Similarity badge */}
             <div style={{ marginBottom: 12, padding: "8px 12px", borderRadius: 10, background: similarity >= 70 ? "rgba(52,211,153,0.07)" : whiteAlpha(0.03), border: `1px solid ${similarity >= 70 ? "rgba(52,211,153,0.2)" : whiteAlpha(0.07)}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 10, fontWeight: 800, color: whiteAlpha(0.4) }}>{L.similarity}</span>
+              <span style={{ fontSize: 12, fontWeight: 800, color: whiteAlpha(0.4) }}>{L.similarity}</span>
               <span style={{ fontSize: 20, fontWeight: 1000, color: similarity >= 70 ? "#34D399" : similarity >= 50 ? GOLD : whiteAlpha(0.45), fontFamily: "var(--font-display,'Anton',sans-serif)" }}>{similarity}%</span>
             </div>
 
@@ -115,11 +115,11 @@ export default function FighterDNACompareCard({ dna, locale }) {
             <div style={{ display: "flex", gap: 14, marginBottom: 10 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                 <div style={{ width: 12, height: 3, borderRadius: 2, background: whiteAlpha(0.5) }} />
-                <span style={{ fontSize: 9, fontWeight: 700, color: whiteAlpha(0.4) }}>{L.you}</span>
+                <span style={{ fontSize: 11.5, fontWeight: 700, color: whiteAlpha(0.4) }}>{L.you}</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                 <div style={{ width: 12, height: 3, borderRadius: 2, background: selectedFighter.accent }} />
-                <span style={{ fontSize: 9, fontWeight: 700, color: selectedFighter.accent }}>{selectedFighter.name.split(" ").slice(-1)[0]}</span>
+                <span style={{ fontSize: 11.5, fontWeight: 700, color: selectedFighter.accent }}>{selectedFighter.name.split(" ").slice(-1)[0]}</span>
               </div>
             </div>
 
@@ -131,7 +131,7 @@ export default function FighterDNACompareCard({ dna, locale }) {
                 const c = ARCH_TRAINING_COLORS[key] || GOLD;
                 return (
                   <div key={key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ width: 70, fontSize: 8, fontWeight: 900, letterSpacing: 0.8, color: whiteAlpha(0.55), textTransform: "uppercase", flexShrink: 0 }}>
+                    <span style={{ width: 70, fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: whiteAlpha(0.55), textTransform: "uppercase", flexShrink: 0 }}>
                       {AL[key]}
                     </span>
                     <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>
@@ -142,7 +142,7 @@ export default function FighterDNACompareCard({ dna, locale }) {
                         <div style={{ width: `${fightVal * 100}%`, height: "100%", background: c, borderRadius: 2, boxShadow: `0 0 4px ${c}66`, transition: "width 0.7s cubic-bezier(0.16,1,0.3,1)" }} />
                       </div>
                     </div>
-                    <span style={{ width: 28, textAlign: "right", fontSize: 9, fontWeight: 900, color: c, fontFamily: "var(--stack-mono)", flexShrink: 0 }}>
+                    <span style={{ width: 28, textAlign: "right", fontSize: 11.5, fontWeight: 900, color: c, fontFamily: "var(--stack-mono)", flexShrink: 0 }}>
                       {fighterProfile[key].toFixed(1)}
                     </span>
                   </div>

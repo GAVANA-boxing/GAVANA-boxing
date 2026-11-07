@@ -102,7 +102,7 @@ export function ProfileModals({
           maxWidth={480}
         >
           <div>
-            <p style={{ margin: 0, fontSize: 10, fontWeight: 900, color: PURPLE, letterSpacing: 1.4, textTransform: "uppercase" }}>GAVANA PvP</p>
+            <p style={{ margin: 0, fontSize: 12, fontWeight: 900, color: PURPLE, letterSpacing: 1.4, textTransform: "uppercase" }}>GAVANA PvP</p>
             <h2 style={{ margin: "4px 0 0", fontSize: 20, fontWeight: 900, color: "#fff" }}>
               {t("profileSendChallenge")}
             </h2>

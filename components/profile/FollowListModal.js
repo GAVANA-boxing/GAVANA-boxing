@@ -259,7 +259,7 @@ export default function FollowListModal({ type, userId, locale, onClose }) {
                         <div
                           style={{
                             color: whiteAlpha(0.35),
-                            fontSize: 10,
+                            fontSize: 12,
                             marginTop: 1,
                           }}
                         >
@@ -275,7 +275,7 @@ export default function FollowListModal({ type, userId, locale, onClose }) {
                           background: rank.gradient || rank.color,
                           borderRadius: RADIUS.full,
                           padding: "2px 8px",
-                          fontSize: 9,
+                          fontSize: 11.5,
                           fontWeight: 800,
                           color: "#fff",
                           whiteSpace: "nowrap",
