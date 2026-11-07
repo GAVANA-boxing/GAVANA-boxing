@@ -56,6 +56,8 @@ Read this (and CLAUDE.md) before every change. Keep it short and current.
   — only for a decision the owner actually made (quote where).
 
 ## Automation (15-minute cycles)
+- Each cycle: pick one GREEN/YELLOW issue → change → `npm run evolve:check -- --task "…"` (`--visual`
+  for UI) → commit only on ACCEPTED (code + run record) → report the verdict and the record path.
 - A cycle does not have to commit. If nothing worth fixing is found, a fix needs approval, or a
   test fails and can't be fixed safely: change nothing, report, and note it in AI_KNOWN_ISSUES.md.
 - One problem per cycle, smallest change, at most two fix attempts.
