@@ -2,6 +2,12 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Cycle 9 — 9px type token
+- `FONT_SIZE.xs` was 9px (below the 11px rule). Raised to 11. Used in 5 places: the 3D replay
+  kicker (Ghost / Result — core) and the admin FunnelCard. Their 0.3–0.4 white text raised to
+  0.55–0.6 for contrast.
+- Checked: lint, 165/165 unit, 12/12 visual, Ghost at 360×800 (kicker readable, no overflow).
+
 ## Cycle 8 — Ghost camera error + microcopy
 - `/ghost` camera error: was one generic line on a see-through red box that sat over the angle
   buttons (unreadable). Now: permission denied → per-platform steps (shared

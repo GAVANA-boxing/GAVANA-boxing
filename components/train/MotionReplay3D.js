@@ -217,7 +217,7 @@ export default function MotionReplay3D({ replay: rawReplay, ghost = null, locale
     <div role="dialog" aria-label="3D replay" style={{ position: "fixed", inset: 0, zIndex: 1200, background: blackAlpha(0.92), display: "flex", flexDirection: "column", color: "#fff" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "calc(12px + env(safe-area-inset-top)) 16px 8px" }}>
         <div>
-          <div style={{ fontSize: FONT_SIZE.xs, fontWeight: FONT_WEIGHT.black, letterSpacing: 1.6, color: whiteAlpha(0.4), textTransform: "uppercase" }}>
+          <div style={{ fontSize: FONT_SIZE.xs, fontWeight: FONT_WEIGHT.black, letterSpacing: 1.6, color: whiteAlpha(0.6), textTransform: "uppercase" }}>
             {title || L("3D техник задлал", "3D 기술 분석", "3D technique breakdown")}
           </div>
           <div style={{ fontSize: FONT_SIZE.sm, color: whiteAlpha(0.6), marginTop: 2 }}>

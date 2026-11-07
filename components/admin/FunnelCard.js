@@ -48,7 +48,7 @@ export default function FunnelCard({ user, locale }) {
     <section style={{ marginBottom: 20, padding: 16, borderRadius: RADIUS.lg, background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.07)}` }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, gap: 8 }}>
         <div>
-          <div style={{ fontSize: FONT_SIZE.xs, fontWeight: FONT_WEIGHT.black, letterSpacing: 1.8, color: whiteAlpha(0.35), textTransform: "uppercase" }}>
+          <div style={{ fontSize: FONT_SIZE.xs, fontWeight: FONT_WEIGHT.black, letterSpacing: 1.8, color: whiteAlpha(0.6), textTransform: "uppercase" }}>
             {loc(locale, "Activation funnel", "활성화 퍼널", "Activation funnel")}
           </div>
           <div style={{ fontSize: FONT_SIZE.sm, color: whiteAlpha(0.45), marginTop: 2 }}>
@@ -149,8 +149,8 @@ function Metric({ label, value, color, hint }) {
   return (
     <div style={{ padding: "10px 12px", borderRadius: RADIUS.sm, background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.06)}` }}>
       <div style={{ fontSize: FONT_SIZE.xl, fontWeight: FONT_WEIGHT.ultra, color: color || "#fff", lineHeight: 1.1 }}>{value ?? "—"}</div>
-      <div style={{ fontSize: FONT_SIZE.xs, fontWeight: FONT_WEIGHT.black, color: whiteAlpha(0.35), textTransform: "uppercase", letterSpacing: 1, marginTop: 4 }}>{label}</div>
-      {hint && <div style={{ fontSize: FONT_SIZE.xs, color: whiteAlpha(0.3), marginTop: 2 }}>{hint}</div>}
+      <div style={{ fontSize: FONT_SIZE.xs, fontWeight: FONT_WEIGHT.black, color: whiteAlpha(0.6), textTransform: "uppercase", letterSpacing: 1, marginTop: 4 }}>{label}</div>
+      {hint && <div style={{ fontSize: FONT_SIZE.xs, color: whiteAlpha(0.55), marginTop: 2 }}>{hint}</div>}
     </div>
   );
 }
