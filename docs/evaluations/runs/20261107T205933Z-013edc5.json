@@ -1,0 +1,206 @@
+{
+  "id": "20261107T205933Z-013edc5",
+  "key": "cc383f7a",
+  "task": "Evolve: scheduler wiring (runner self-pacing doc, scheduler info in control.json)",
+  "branch": "claude/review-refactor-code-DUmiX",
+  "commit": "013edc5",
+  "base": "@{upstream}",
+  "dirty": true,
+  "startedAt": "2026-11-07T20:59:33.514Z",
+  "finishedAt": "2026-11-07T21:00:10.968Z",
+  "durationS": 37,
+  "cost": {
+    "paidApiCalls": 0,
+    "note": "checks run locally; no paid APIs"
+  },
+  "change": {
+    "level": "RED",
+    "files": [
+      {
+        "path": "docs/evolve/RUNNER.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "evolve/control.json",
+        "level": "RED",
+        "why": "evolve guardrails"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "name": "lint",
+      "ms": 32623,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0,
+        "warnings": 23
+      }
+    },
+    {
+      "name": "typecheck",
+      "ms": 1633,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0
+      }
+    },
+    {
+      "name": "unit",
+      "ms": 3125,
+      "status": "PASS",
+      "metrics": {
+        "passed": 252,
+        "failed": 0
+      }
+    },
+    {
+      "name": "build",
+      "status": "NOT RUN",
+      "note": "--skip-build"
+    },
+    {
+      "name": "bundle",
+      "status": "NOT RUN",
+      "note": "--skip-build"
+    },
+    {
+      "name": "punch",
+      "ms": 62,
+      "status": "PASS",
+      "metrics": {
+        "macroF1": 0.904,
+        "recall": 0.897,
+        "precision": 1,
+        "phantoms": 0
+      }
+    },
+    {
+      "name": "visual",
+      "status": "NOT RUN",
+      "note": "pass --visual to run"
+    },
+    {
+      "name": "rules",
+      "status": "NOT RUN",
+      "note": "pass --rules to run"
+    }
+  ],
+  "comparison": [
+    {
+      "metric": "lint.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "lint.warnings",
+      "baseline": 23,
+      "value": 23,
+      "limit": "≤ 23",
+      "status": "PASS"
+    },
+    {
+      "metric": "typecheck.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.passed",
+      "baseline": 241,
+      "value": 252,
+      "limit": "≥ 241",
+      "status": "PASS"
+    },
+    {
+      "metric": "bundle.kb",
+      "status": "NOT RUN"
+    },
+    {
+      "metric": "punch.macroF1",
+      "baseline": 0.904,
+      "value": 0.904,
+      "limit": "≥ 0.9035000000000001",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.phantoms",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.failed",
+      "status": "NOT RUN"
+    },
+    {
+      "metric": "visual.passed",
+      "status": "NOT RUN"
+    },
+    {
+      "metric": "rules.failed",
+      "status": "NOT RUN"
+    },
+    {
+      "metric": "rules.passed",
+      "status": "NOT RUN"
+    }
+  ],
+  "verdict": "ACCEPTED",
+  "verdictNote": "RED paths need the owner: evolve/control.json (evolve guardrails)",
+  "history": [
+    {
+      "state": "PENDING",
+      "at": "2026-11-07T20:59:33.514Z",
+      "note": "created"
+    },
+    {
+      "state": "PLANNING",
+      "at": "2026-11-07T20:59:33.514Z",
+      "note": "Evolve: scheduler wiring (runner self-pacing doc, scheduler info in control.json)"
+    },
+    {
+      "state": "IMPLEMENTING",
+      "at": "2026-11-07T20:59:33.514Z",
+      "note": "2 changed file(s) vs @{upstream}, risk RED"
+    },
+    {
+      "state": "VERIFYING",
+      "at": "2026-11-07T20:59:33.514Z",
+      "note": ""
+    },
+    {
+      "state": "EVALUATING",
+      "at": "2026-11-07T21:00:10.959Z",
+      "note": ""
+    },
+    {
+      "state": "AWAITING_APPROVAL",
+      "at": "2026-11-07T21:00:10.960Z",
+      "note": "RED paths need the owner: evolve/control.json (evolve guardrails)"
+    },
+    {
+      "state": "ACCEPTED",
+      "at": "2026-11-07T21:00:11.029Z",
+      "note": "Scheduler configuration pre-authorized by the owner (PRE-AUTHORIZED AUTONOMY POLICY v1.0 §3, §8: configure recurring execution through an actual scheduler). control.json change = scheduler metadata only; paused stays false. Recorded by the agent on that instruction."
+    }
+  ],
+  "baselineCommit": "37f2e45",
+  "decision": {
+    "by": "owner",
+    "note": "Scheduler configuration pre-authorized by the owner (PRE-AUTHORIZED AUTONOMY POLICY v1.0 §3, §8: configure recurring execution through an actual scheduler). control.json change = scheduler metadata only; paused stays false. Recorded by the agent on that instruction.",
+    "at": "2026-11-07T21:00:11.029Z"
+  }
+}

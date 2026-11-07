@@ -54,6 +54,12 @@ Commit trailer:
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
-## 5. Report
+## 5. Next wake-up (15-minute cadence)
+The server-side scheduled task wakes this session every hour (platform minimum). For the 15-minute
+cadence, after finishing a cycle schedule your own next wake-up with `send_later` (15 minutes,
+name "GAVANA Evolve next cycle") — but NOT when `start` said PAUSED or HALTED (the owner must look
+first). One pending self-wake-up at most: don't add one if it already exists.
+
+## 6. Report
 Reply with one short Mongolian paragraph: task, outcome, commit hash (if any), tests (PASS / FAIL /
 NOT RUN), blocked items. Then stop — the scheduler starts the next cycle.
