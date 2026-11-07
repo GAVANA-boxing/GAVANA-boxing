@@ -2,12 +2,17 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Cycle 11 — Train lesson focus card text
+- `TrainingFocusCard` (shown on /train when arriving from a fighter technique or academy lesson):
+  4 labels 10.5px → 11px. Not in the visual baselines (needs lesson context), so baselines unchanged.
+- Checked: lint, 165/165 unit, 12/12 visual.
+
 ## Cycle 10 — onboarding small text
 - Grep of core screens for fontSize < 11: onboarding had 8.5–10px with 0.2–0.45 white (DNA
   preview kicker/labels/footnote, terms line, step counter, kicker, field labels). All → 11px,
   0.55–0.6 white; terms/privacy links 0.4→0.75. DNA dimension label column 68→80px for 11px text.
 - Checked: lint, 165/165 unit, 12/12 visual. Onboarding needs sign-in → no screenshot here.
-- Remaining <11px in core: TrainingFocusCard (10.5), FighterHero (3), ProfileTab/MenuSheet (1 each),
+- Remaining <11px in core: FighterHero (3), ProfileTab/MenuSheet (1 each),
   CombatMemoryPanel, AcademyLessonCard; Debug* / PoseDebugOverlay are dev-only; FighterShareCard is
   an exported image.
 

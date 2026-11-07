@@ -38,7 +38,7 @@ function CueRow({ icon, label, color, text, italic = false }) {
     }}>
       <span style={{ flexShrink: 0, marginTop: 1 }}>{icon}</span>
       <div>
-        <div style={{ fontSize: 10.5, fontWeight: 900, color, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 3 }}>
+        <div style={{ fontSize: 11, fontWeight: 900, color, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 3 }}>
           {label}
         </div>
         <p style={{ margin: 0, fontSize: 11, color: "rgba(255,255,255,0.6)", lineHeight: 1.5, fontStyle: italic ? "italic" : "normal" }}>
@@ -96,7 +96,7 @@ export default function TrainingFocusCard({ fighterName, lesson, academyLesson, 
             {isAcademy && academyLesson.emoji ? `${academyLesson.emoji} ` : ""}{title}
           </span>
           <span style={{
-            fontSize: 10.5, fontWeight: 900, letterSpacing: 0.8,
+            fontSize: 11, fontWeight: 900, letterSpacing: 0.8,
             color: diff.color, background: `${diff.color}16`, border: `1px solid ${diff.color}30`,
             borderRadius: 4, padding: "2px 6px", textTransform: "uppercase", flexShrink: 0,
           }}>
@@ -111,7 +111,7 @@ export default function TrainingFocusCard({ fighterName, lesson, academyLesson, 
         {/* Key cues (academy) or body cue (fighter technique) */}
         {isAcademy && academyLesson.keyCues?.length > 0 ? (
           <div style={{ marginBottom: 10 }}>
-            <div style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: 1.5, color: ac, textTransform: "uppercase", marginBottom: 7 }}>
+            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.5, color: ac, textTransform: "uppercase", marginBottom: 7 }}>
               {L("keyCues")}
             </div>
             {academyLesson.keyCues.map((cue, i) => (
@@ -155,7 +155,7 @@ export default function TrainingFocusCard({ fighterName, lesson, academyLesson, 
         {drillSteps?.length > 0 && (
           <div style={{ marginBottom: onStart ? 14 : 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 9 }}>
-              <span style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: 1.8, color: "rgba(255,255,255,0.55)", textTransform: "uppercase" }}>
+              <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.8, color: "rgba(255,255,255,0.55)", textTransform: "uppercase" }}>
                 {isAcademy ? academyLesson.drill?.title || L("drill") : L("drillSteps")}
               </span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.05)" }} />
