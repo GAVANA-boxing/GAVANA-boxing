@@ -1,0 +1,213 @@
+{
+  "id": "20261107T210004Z-013edc5",
+  "key": "7efbff05",
+  "task": "a11y-small-text:components/coach/coachDashboardStyles.js — raise 5 fontSize 10→11 (cycle 20261107T205901Z-14828de)",
+  "branch": "claude/review-refactor-code-DUmiX",
+  "commit": "013edc5",
+  "base": "@{upstream}",
+  "dirty": true,
+  "startedAt": "2026-11-07T21:00:04.187Z",
+  "finishedAt": "2026-11-07T21:04:48.150Z",
+  "durationS": 284,
+  "cost": {
+    "paidApiCalls": 0,
+    "note": "checks run locally; no paid APIs"
+  },
+  "change": {
+    "level": "GREEN",
+    "files": [
+      {
+        "path": "components/coach/coachDashboardStyles.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "evolve/queue.json",
+        "level": "GREEN",
+        "why": "evolve state written by the cycle tooling"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "name": "lint",
+      "ms": 33584,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0,
+        "warnings": 23
+      }
+    },
+    {
+      "name": "typecheck",
+      "ms": 1322,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0
+      }
+    },
+    {
+      "name": "unit",
+      "ms": 2921,
+      "status": "PASS",
+      "metrics": {
+        "passed": 252,
+        "failed": 0
+      }
+    },
+    {
+      "name": "build",
+      "ms": 15140,
+      "status": "PASS",
+      "metrics": {}
+    },
+    {
+      "name": "bundle",
+      "status": "PASS",
+      "metrics": {
+        "kb": 6478
+      }
+    },
+    {
+      "name": "punch",
+      "ms": 54,
+      "status": "PASS",
+      "metrics": {
+        "macroF1": 0.904,
+        "recall": 0.897,
+        "precision": 1,
+        "phantoms": 0
+      }
+    },
+    {
+      "name": "visual",
+      "ms": 230927,
+      "status": "PASS",
+      "metrics": {
+        "passed": 51,
+        "failed": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "name": "rules",
+      "status": "NOT RUN",
+      "note": "pass --rules to run"
+    }
+  ],
+  "comparison": [
+    {
+      "metric": "lint.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "lint.warnings",
+      "baseline": 23,
+      "value": 23,
+      "limit": "≤ 23",
+      "status": "PASS"
+    },
+    {
+      "metric": "typecheck.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.passed",
+      "baseline": 241,
+      "value": 252,
+      "limit": "≥ 241",
+      "status": "PASS"
+    },
+    {
+      "metric": "bundle.kb",
+      "baseline": 6598,
+      "value": 6478,
+      "limit": "≤ 6928",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.macroF1",
+      "baseline": 0.904,
+      "value": 0.904,
+      "limit": "≥ 0.9035000000000001",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.phantoms",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.passed",
+      "baseline": 49,
+      "value": 51,
+      "limit": "≥ 49",
+      "status": "PASS"
+    },
+    {
+      "metric": "rules.failed",
+      "status": "NOT RUN"
+    },
+    {
+      "metric": "rules.passed",
+      "status": "NOT RUN"
+    }
+  ],
+  "verdict": "ACCEPTED",
+  "verdictNote": "all run checks pass, no gate regressed",
+  "history": [
+    {
+      "state": "PENDING",
+      "at": "2026-11-07T21:00:04.187Z",
+      "note": "created"
+    },
+    {
+      "state": "PLANNING",
+      "at": "2026-11-07T21:00:04.187Z",
+      "note": "a11y-small-text:components/coach/coachDashboardStyles.js — raise 5 fontSize 10→11 (cycle 20261107T205901Z-14828de)"
+    },
+    {
+      "state": "IMPLEMENTING",
+      "at": "2026-11-07T21:00:04.187Z",
+      "note": "2 changed file(s) vs @{upstream}, risk GREEN"
+    },
+    {
+      "state": "VERIFYING",
+      "at": "2026-11-07T21:00:04.187Z",
+      "note": ""
+    },
+    {
+      "state": "EVALUATING",
+      "at": "2026-11-07T21:04:48.142Z",
+      "note": ""
+    },
+    {
+      "state": "ACCEPTED",
+      "at": "2026-11-07T21:04:48.142Z",
+      "note": "all run checks pass, no gate regressed"
+    }
+  ],
+  "baselineCommit": "37f2e45"
+}

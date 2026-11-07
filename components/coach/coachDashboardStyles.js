@@ -18,7 +18,7 @@ const styles = {
     background: blackAlpha(0.4), color: GOLD,
     fontSize: 13, fontWeight: 900, cursor: "pointer", marginBottom: 4,
   },
-  kicker: { margin: 0, color: RED, fontSize: 10, fontWeight: 900, letterSpacing: 3, textTransform: "uppercase" },
+  kicker: { margin: 0, color: RED, fontSize: 11, fontWeight: 900, letterSpacing: 3, textTransform: "uppercase" },
   title: { margin: 0, fontSize: 28, fontWeight: 1000, lineHeight: 1.1, fontFamily: "var(--font-display, 'Anton', sans-serif)", textTransform: "uppercase", letterSpacing: "-0.02em" },
   statsPanel: {
     display: "flex", alignItems: "center",
@@ -30,7 +30,7 @@ const styles = {
   },
   statCell: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 },
   statNum: { fontSize: 22, fontWeight: 1000, color: TEXT, lineHeight: 1 },
-  statLbl: { fontSize: 10, color: whiteAlpha(0.65), fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 },
+  statLbl: { fontSize: 11, color: whiteAlpha(0.65), fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 },
   statDivider: { width: 1, height: 32, background: BORDER_2 },
   sectionTitle: { margin: "0 0 14px", fontSize: 15, fontWeight: 1000, color: whiteAlpha(0.7), letterSpacing: 0.5, textTransform: "uppercase" },
   loadingText: { textAlign: "center", padding: "40px 0", color: whiteAlpha(0.62), fontSize: 14 },
@@ -66,12 +66,12 @@ const styles = {
   cardNameRow: { display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" },
   cardName: { fontSize: 15, fontWeight: 1000, color: TEXT },
   typeChipCoach: {
-    fontSize: 10, fontWeight: 900, color: GOLD,
+    fontSize: 11, fontWeight: 900, color: GOLD,
     background: goldAlpha(0.12), border: `1px solid ${goldAlpha(0.25)}`,
     borderRadius: RADIUS.full, padding: "2px 8px", letterSpacing: 0.5,
   },
   typeChipSparring: {
-    fontSize: 10, fontWeight: 900, color: "#3B82F6",
+    fontSize: 11, fontWeight: 900, color: "#3B82F6",
     background: "rgba(96,165,250,0.12)", border: "1px solid rgba(96,165,250,0.25)",
     borderRadius: RADIUS.full, padding: "2px 8px", letterSpacing: 0.5,
   },
@@ -106,7 +106,7 @@ const styles = {
   },
   filterTabActive: { background: RED, border: `1px solid ${RED}`, color: TEXT },
   filterTabCount: {
-    fontSize: 10, fontWeight: 900, background: whiteAlpha(0.16),
+    fontSize: 11, fontWeight: 900, background: whiteAlpha(0.16),
     borderRadius: RADIUS.full, padding: "1px 6px", lineHeight: 1.4,
   },
   skeletonWrap: { display: "flex", flexDirection: "column", gap: 12, marginBottom: 8 },
