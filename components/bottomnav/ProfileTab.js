@@ -20,16 +20,16 @@ const s = {
   },
   badge: {
     position: "absolute",
-    minWidth: 14,
-    height: 14,
-    padding: "0 3px",
-    borderRadius: 7,
+    minWidth: 17,
+    height: 17,
+    padding: "0 4px",
+    borderRadius: 9,
     background: RED,
     color: "#fff",
     border: "1.5px solid rgba(6,6,7,0.97)",
-    fontSize: 8,
+    fontSize: 11,
     fontWeight: 900,
-    lineHeight: "11px",
+    lineHeight: "14px",
     textAlign: "center",
     boxSizing: "border-box",
   },
@@ -83,7 +83,7 @@ export default function ProfileTab({ user, active, onClick, onBadgeClick, badge,
             <button
               type="button"
               aria-label="Notifications"
-              style={{ ...s.badge, top: -3, right: -3, cursor: "pointer", border: "none", padding: 0 }}
+              style={{ ...s.badge, top: -5, right: -6, cursor: "pointer", border: "none", padding: "0 4px", lineHeight: "17px" }}
               onClick={(e) => { e.stopPropagation(); onBadgeClick?.(); }}
             >
               {badge > 9 ? "9+" : badge}

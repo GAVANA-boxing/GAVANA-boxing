@@ -228,11 +228,11 @@ export default function MenuSheet({ onClose, router, locale, pathname, unreadNot
                   className="notif-badge-pulse"
                   style={{
                     marginLeft: "auto", flexShrink: 0,
-                    minWidth: 18, height: 18, borderRadius: 999,
+                    minWidth: 20, height: 20, borderRadius: 999,
                     background: RED,
                     boxShadow: `0 0 6px ${redAlpha(0.8)}`,
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 9, fontWeight: 900, color: "#fff",
+                    fontSize: 11, fontWeight: 900, color: "#fff",
                     padding: "0 5px",
                   }}
                 >

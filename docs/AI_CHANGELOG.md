@@ -2,6 +2,13 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Cycle 13 — unread badges readable
+- Bottom-nav avatar badge (unread notifications) was 8 px text on a 14 px dot; menu-sheet badges 9 px.
+  Now 11 px on a 17 px (avatar) / 20 px (menu) pill, shifted so it still sits on the avatar corner.
+- Checked: lint, 231/231 unit, 46/46 visual (badges only show for signed-in users with unread items —
+  not in the baselines).
+- Remaining < 11 px in core: FighterHero (3), CombatMemoryPanel, AcademyLessonCard.
+
 ## Cycle 12 — "retry save" after a failed save
 - After a failed save the result's save button became active again but still read "Save progress",
   next to the error text. `saveFailed` (Phase 0) is now passed page → TrainResultModal →
