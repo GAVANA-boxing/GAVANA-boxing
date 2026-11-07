@@ -815,7 +815,7 @@ export default function TrainPage() {
             border: "1px solid rgba(167,139,250,0.3)",
             borderLeft: "3px solid rgba(167,139,250,0.7)",
           }}>
-            <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: "#C084FC", textTransform: "uppercase", marginBottom: 8 }}>
+            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: "#C084FC", textTransform: "uppercase", marginBottom: 8 }}>
               ⚔️ {locale === "mn" ? "Challenge идэвхтэй" : locale === "ko" ? "챌린지 활성" : "Challenge Active"}
             </div>
             {challengePostData ? (
@@ -826,7 +826,7 @@ export default function TrainPage() {
                 {typeof challengePostData.challengeTargetScore === "number" && (
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <div style={{ padding: "5px 12px", borderRadius: 8, background: "rgba(167,139,250,0.12)", border: "1px solid rgba(167,139,250,0.28)" }}>
-                      <span style={{ fontSize: 9, fontWeight: 900, color: "rgba(167,139,250,0.65)", textTransform: "uppercase", letterSpacing: 1 }}>
+                      <span style={{ fontSize: 11.5, fontWeight: 900, color: "rgba(167,139,250,0.65)", textTransform: "uppercase", letterSpacing: 1 }}>
                         {locale === "mn" ? "Зорилт" : locale === "ko" ? "목표" : "Target"}
                       </span>
                       <span style={{ fontSize: 15, fontWeight: 1000, color: "#C084FC", marginLeft: 8, fontFamily: "var(--font-display,'Anton',sans-serif)" }}>
@@ -876,7 +876,7 @@ export default function TrainPage() {
               border: `1px solid ${acc}28`,
               borderLeft: `3px solid ${acc}`,
             }}>
-              <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 2, color: acc, textTransform: "uppercase", marginBottom: 7 }}>
+              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: acc, textTransform: "uppercase", marginBottom: 7 }}>
                 {locale === "mn" ? "⚡ Өнөөдрийн анхаарал" : locale === "ko" ? "⚡ 오늘의 집중" : "⚡ Today's Focus"}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: drill ? 8 : 0 }}>
@@ -889,7 +889,7 @@ export default function TrainPage() {
                 {showRoute(`/fighters/${fighter.id}`) && <button
                   type="button"
                   onClick={() => router.push(`/${locale}/fighters/${fighter.id}`)}
-                  style={{ background: `${acc}18`, border: `1px solid ${acc}40`, borderRadius: 8, padding: "5px 11px", color: acc, fontSize: 10.5, fontWeight: 900, cursor: "pointer", flexShrink: 0 }}
+                  style={{ background: `${acc}18`, border: `1px solid ${acc}40`, borderRadius: 8, padding: "5px 11px", color: acc, fontSize: 12, fontWeight: 900, cursor: "pointer", flexShrink: 0 }}
                 >
                   {locale === "mn" ? "Судлах" : locale === "ko" ? "배우기" : "Study"}
                 </button>}
@@ -1158,7 +1158,7 @@ export default function TrainPage() {
               <div style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.65)" }}>
                 {locale === "mn" ? "Видео бичлэг" : locale === "ko" ? "비디오 녹화" : "Record video"}
               </div>
-              <div style={{ fontSize: 9.5, color: "rgba(255,255,255,0.55)", marginTop: 1 }}>
+              <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.55)", marginTop: 1 }}>
                 {locale === "mn" ? "Feed-д хуваалцах үед upload хийгдэнэ" : locale === "ko" ? "공유 시 업로드됩니다" : "Uploads when you share to feed"}
               </div>
             </div>
@@ -1398,7 +1398,7 @@ export default function TrainPage() {
         }}>
           <span style={{ fontSize: 22 }}>{badge.icon}</span>
           <div>
-            <div style={{ fontSize: 9, fontWeight: 900, color: badge.tier === "gold" ? GOLD : badge.tier === "silver" ? "#A8A9AD" : "#CD7F32", letterSpacing: 1.5, textTransform: "uppercase" }}>
+            <div style={{ fontSize: 11.5, fontWeight: 900, color: badge.tier === "gold" ? GOLD : badge.tier === "silver" ? "#A8A9AD" : "#CD7F32", letterSpacing: 1.5, textTransform: "uppercase" }}>
               {locale === "mn" ? "Шинэ badge!" : locale === "ko" ? "배지 획득!" : "Badge Unlocked!"}
             </div>
             <div style={{ fontSize: 13, fontWeight: 900, color: "#fff" }}>{badge.name}</div>
@@ -1424,13 +1424,13 @@ export default function TrainPage() {
         }}>
           <span style={{ fontSize: 26, flexShrink: 0 }}>{dnaMilestone.emoji}</span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 9, fontWeight: 900, color: GOLD, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 2 }}>
+            <div style={{ fontSize: 11.5, fontWeight: 900, color: GOLD, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 2 }}>
               {locale === "mn" ? "ДНХ мөч" : locale === "ko" ? "DNA 순간" : "DNA Moment"}
             </div>
             <div style={{ fontSize: 13, fontWeight: 900, color: "#fff", marginBottom: 2 }}>
               {dnaMilestone[locale] || dnaMilestone.en}
             </div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", fontWeight: 600, lineHeight: 1.4 }}>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontWeight: 600, lineHeight: 1.4 }}>
               {dnaMilestone.hint[locale] || dnaMilestone.hint.en}
             </div>
           </div>

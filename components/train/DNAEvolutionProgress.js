@@ -48,10 +48,10 @@ export default function DNAEvolutionProgress({ locale, userArchetype, totalSessi
         </svg>
       </div>
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 1.8, textTransform: "uppercase", color: acc, marginBottom: 2 }}>
+        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.8, textTransform: "uppercase", color: acc, marginBottom: 2 }}>
           {COPY.heading[locale] || COPY.heading.en}
         </div>
-        <div style={{ fontSize: 10.5, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>
           {bodyText}
         </div>
       </div>

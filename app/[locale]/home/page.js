@@ -122,7 +122,7 @@ export default function HomePage() {
         <div style={{ position: "relative", borderRadius: 26, overflow: "hidden", padding: 22, isolation: "isolate", background: `radial-gradient(120% 80% at 50% -10%, ${accent}55, transparent 58%), linear-gradient(160deg,#141416 0%,#0a0a0b 60%,#050506 100%)`, boxShadow: `0 20px 60px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.08), inset 0 0 0 1px ${accent}38` }}>
           <div className="card-sheen" style={{ position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none", background: "linear-gradient(115deg, transparent 30%, rgba(255,255,255,.10) 45%, transparent 60%)", backgroundSize: "250% 250%", backgroundPosition: "120% 0" }} />
           <div style={{ position: "relative", zIndex: 1 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontFamily: COND, fontWeight: 700, fontSize: 10, letterSpacing: 2.4, textTransform: "uppercase", color: whiteAlpha(0.55) }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontFamily: COND, fontWeight: 700, fontSize: 12, letterSpacing: 2.4, textTransform: "uppercase", color: whiteAlpha(0.55) }}>
               <span>GAVANA · Fighter</span><span>{new Date().getFullYear()}</span>
             </div>
             {dna.building ? (
@@ -145,7 +145,7 @@ export default function HomePage() {
                     ...(hasRecord ? [{ k: loc(locale, "Рекорд", "전적", "Record"), v: <>{wins}<small style={{ fontFamily: COND, fontSize: 13, color: whiteAlpha(0.58) }}>–{losses}</small></> }] : [{ k: "XP", v: xp.toLocaleString() }]),
                   ].map((c, i) => (
                     <div key={i} style={{ display: "flex", flexDirection: "column", gap: 4, paddingLeft: i ? 16 : 0, borderLeft: i ? `1px solid ${whiteAlpha(0.08)}` : "none" }}>
-                      <span style={{ fontFamily: COND, fontWeight: 700, fontSize: 9.5, letterSpacing: 1.6, textTransform: "uppercase", color: whiteAlpha(0.55) }}>{c.k}</span>
+                      <span style={{ fontFamily: COND, fontWeight: 700, fontSize: 11.5, letterSpacing: 1.6, textTransform: "uppercase", color: whiteAlpha(0.55) }}>{c.k}</span>
                       <span style={{ fontFamily: DISP, fontSize: 22, lineHeight: 1 }}>{c.v}</span>
                     </div>
                   ))}
@@ -154,7 +154,7 @@ export default function HomePage() {
                   <span style={{ fontFamily: COND, fontWeight: 600, fontSize: 12.5, color: whiteAlpha(0.58) }}>
                     {dna.bestWeaponLabel ? <>{loc(locale, "Онцлох зэвсэг", "시그니처", "Signature")}: <b style={{ color: "#fff" }}>{dna.bestWeaponLabel}</b></> : <>{loc(locale, "Цол", "등급", "Rank")} <b style={{ color: "#fff" }}>{t(rank.key)}</b></>}
                   </span>
-                  <span style={{ fontFamily: COND, fontWeight: 700, fontSize: 9, letterSpacing: 2, color: whiteAlpha(0.18) }}>GAVANA.APP</span>
+                  <span style={{ fontFamily: COND, fontWeight: 700, fontSize: 11.5, letterSpacing: 2, color: whiteAlpha(0.18) }}>GAVANA.APP</span>
                 </div>
               </>
             )}
@@ -167,7 +167,7 @@ export default function HomePage() {
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
           </span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: COND, fontWeight: 700, fontSize: 10, letterSpacing: 1.8, textTransform: "uppercase", color: accent }}>{loc(locale, "Өнөөдрийн бэлтгэл", "오늘의 훈련", "Today's training")}</div>
+            <div style={{ fontFamily: COND, fontWeight: 700, fontSize: 12, letterSpacing: 1.8, textTransform: "uppercase", color: accent }}>{loc(locale, "Өнөөдрийн бэлтгэл", "오늘의 훈련", "Today's training")}</div>
             <div style={{ fontFamily: COND, fontWeight: 700, fontSize: 18, marginTop: 2 }}>{missionFocus}</div>
             <div style={{ fontFamily: COND, fontWeight: 600, fontSize: 12, color: whiteAlpha(0.58) }}>{loc(locale, "Камертай эхлэх", "카메라로 시작", "Start with camera")}</div>
           </div>
@@ -233,7 +233,7 @@ export default function HomePage() {
                 const done = weekTrained[i]; const today = i === todayIdx;
                 return (
                   <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                    <span style={{ fontFamily: COND, fontWeight: 600, fontSize: 10.5, color: whiteAlpha(0.55), textTransform: "uppercase" }}>{d}</span>
+                    <span style={{ fontFamily: COND, fontWeight: 600, fontSize: 12, color: whiteAlpha(0.55), textTransform: "uppercase" }}>{d}</span>
                     <span style={{ width: "100%", aspectRatio: "1", maxWidth: 36, borderRadius: 11, display: "grid", placeItems: "center", background: done ? "rgba(245,196,81,0.2)" : whiteAlpha(0.05), color: done ? GOLD : whiteAlpha(0.32), boxShadow: today ? `inset 0 0 0 2px ${accent}` : "none" }}>
                       {done && <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>}
                     </span>

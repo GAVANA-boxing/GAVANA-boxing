@@ -19,13 +19,13 @@ export default function FeaturedExperiment({ locale, pkg, fighter, router }) {
       <div style={{ padding: "12px 14px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
           <div>
-            <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase", color: pkg.accent, marginBottom: 3 }}>
+            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase", color: pkg.accent, marginBottom: 3 }}>
               {COPY.heading[locale] || COPY.heading.en}
             </div>
             <div style={{ fontSize: 17, fontWeight: 900, color: "#fff" }}>
               {weekLabel}
             </div>
-            <div style={{ fontSize: 10, fontWeight: 700, color: pkg.accent, fontStyle: "italic", marginTop: 2 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: pkg.accent, fontStyle: "italic", marginTop: 2 }}>
               &ldquo;{pkg.theme[locale] || pkg.theme.en}&rdquo;
             </div>
           </div>
@@ -33,7 +33,7 @@ export default function FeaturedExperiment({ locale, pkg, fighter, router }) {
             ⚗️
           </div>
         </div>
-        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", fontWeight: 700, marginBottom: 10 }}>
+        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", fontWeight: 700, marginBottom: 10 }}>
           {pkg.focus[locale] || pkg.focus.en}
         </div>
         <button

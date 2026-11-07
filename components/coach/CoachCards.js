@@ -84,7 +84,7 @@ export function CoachCard({ coach, t, locale, onRequest, requested, router }) {
             )}
             {Number.isFinite(coach.coachPricePerSession) && coach.coachPricePerSession > 0 && (
               <span style={{ fontSize: 13, fontWeight: 900, color: GOLD }}>
-                ${coach.coachPricePerSession}<span style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", fontWeight: 600 }}>/sess</span>
+                ${coach.coachPricePerSession}<span style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontWeight: 600 }}>/sess</span>
               </span>
             )}
           </div>
@@ -147,7 +147,7 @@ export function MyRequestCard({ req, coachProfile, t, locale, router }) {
           <div style={styles.cardNameRow}>
             <span style={styles.cardName}>{name}</span>
             {req.type === "sparring" && (
-              <span style={{ fontSize: 10, fontWeight: 900, color: GOLD, background: `${goldAlpha(0.12)}`, border: `1px solid ${goldAlpha(0.28)}`, borderRadius: RADIUS.full, padding: "1px 7px" }}>🥊 Sparring</span>
+              <span style={{ fontSize: 12, fontWeight: 900, color: GOLD, background: `${goldAlpha(0.12)}`, border: `1px solid ${goldAlpha(0.28)}`, borderRadius: RADIUS.full, padding: "1px 7px" }}>🥊 Sparring</span>
             )}
           </div>
           <span style={{ display: "inline-flex", marginTop: 4, padding: "3px 10px", borderRadius: RADIUS.full, fontSize: 11, fontWeight: 900, background: st.bg, border: `1px solid ${st.border}`, color: st.color }}>

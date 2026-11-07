@@ -120,7 +120,7 @@ export default function FirstSessionHook({ locale, firstSessionHook, setFirstSes
           <div style={{ fontSize: 36, marginBottom: 10 }}>
             {sessionNum === 3 ? "🧬" : "🥊"}
           </div>
-          <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 3, color: acc, textTransform: "uppercase", marginBottom: 6 }}>
+          <div style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: 3, color: acc, textTransform: "uppercase", marginBottom: 6 }}>
             {sessionNum === 1 ? SL.title1 : sessionNum === 2 ? SL.title2 : SL.title3}
           </div>
           {firstSessionHook.score != null && (
@@ -133,17 +133,17 @@ export default function FirstSessionHook({ locale, firstSessionHook, setFirstSes
         {/* Signals — session 1 & 2 */}
         {sessionNum < 3 && signals.length > 0 && (
           <div style={{ borderRadius: 16, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", padding: "16px", marginBottom: 16 }}>
-            <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", marginBottom: 12 }}>
+            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", marginBottom: 12 }}>
               {sessionNum === 1 ? SL.firstSignals : SL.signalGrowing}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {signals.map(({ label, level, w }) => (
                 <div key={label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ width: 70, fontSize: 9.5, fontWeight: 800, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", flexShrink: 0 }}>{label}</span>
+                  <span style={{ width: 70, fontSize: 11.5, fontWeight: 800, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", flexShrink: 0 }}>{label}</span>
                   <div style={{ flex: 1, height: 5, background: "rgba(255,255,255,0.05)", borderRadius: 3, overflow: "hidden" }}>
                     <div style={{ width: `${w}%`, height: "100%", background: acc, borderRadius: 3, boxShadow: `0 0 8px ${acc}55`, transition: "width 1s cubic-bezier(0.16,1,0.3,1)" }} />
                   </div>
-                  <span style={{ width: 56, textAlign: "right", fontSize: 8.5, fontWeight: 900, color: acc, letterSpacing: 0.8, flexShrink: 0 }}>{level}</span>
+                  <span style={{ width: 56, textAlign: "right", fontSize: 11, fontWeight: 900, color: acc, letterSpacing: 0.8, flexShrink: 0 }}>{level}</span>
                 </div>
               ))}
             </div>
@@ -152,7 +152,7 @@ export default function FirstSessionHook({ locale, firstSessionHook, setFirstSes
 
         {/* Archetype card — all sessions */}
         <div style={{ borderRadius: 16, background: `${acc}10`, border: `1px solid ${acc}30`, padding: "16px", marginBottom: 16, textAlign: "center" }}>
-          <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", marginBottom: 8 }}>
+          <div style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", marginBottom: 8 }}>
             {sessionNum === 3 ? SL.archEmerging : SL.mightBe}
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 4 }}>
@@ -173,7 +173,7 @@ export default function FirstSessionHook({ locale, firstSessionHook, setFirstSes
 
         {/* DNA Journey progress bar */}
         <div style={{ borderRadius: 14, background: "rgba(255,255,255,0.02)", border: `1px solid ${sessionNum === 3 ? `${acc}25` : "rgba(255,255,255,0.05)"}`, padding: "14px 16px", marginBottom: 24 }}>
-          <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", marginBottom: 10 }}>
+          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", marginBottom: 10 }}>
             {SL.dnaJourney}
           </div>
           <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
@@ -185,7 +185,7 @@ export default function FirstSessionHook({ locale, firstSessionHook, setFirstSes
               }} />
             ))}
           </div>
-          <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.55)", fontWeight: 700, lineHeight: 1.4 }}>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", fontWeight: 700, lineHeight: 1.4 }}>
             {sessionNum === 1 ? SL.session2hint : sessionNum === 2 ? SL.session2hint.replace("1", "2") : SL.session3hint}
           </div>
         </div>

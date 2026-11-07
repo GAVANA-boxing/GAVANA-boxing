@@ -28,7 +28,7 @@ export default function WeeklyDNADigest({ locale, weeklySessionCount, weeklyBest
     <div style={{ borderRadius: 12, padding: "10px 14px", background: "rgba(245,196,81,0.05)", border: "1px solid rgba(245,196,81,0.15)", display: "flex", alignItems: "center", gap: 10 }}>
       <span style={{ fontSize: 20, flexShrink: 0 }}>📊</span>
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase", color: "rgba(245,196,81,0.7)", marginBottom: 2 }}>
+        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase", color: "rgba(245,196,81,0.7)", marginBottom: 2 }}>
           {COPY.heading[locale] || COPY.heading.en}
         </div>
         <div style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.65)" }}>

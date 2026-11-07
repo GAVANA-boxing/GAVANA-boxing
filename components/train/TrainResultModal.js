@@ -384,7 +384,7 @@ export default function TrainResultModal({
               <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.15)", marginBottom: 24 }} />
 
               {/* Kicker */}
-              <p style={{ margin: "0 0 6px", fontSize: 9, fontWeight: 900, letterSpacing: 4, color: "rgba(245,196,81,0.7)", textTransform: "uppercase" }}>
+              <p style={{ margin: "0 0 6px", fontSize: 11.5, fontWeight: 900, letterSpacing: 4, color: "rgba(245,196,81,0.7)", textTransform: "uppercase" }}>
                 GAVANA // FIGHTER DNA
               </p>
 

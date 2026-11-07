@@ -33,11 +33,11 @@ export default function WeakDimensionDrill({ locale, userArchetype, wrappedHandl
 
   return (
     <div style={{ borderRadius: 14, border: `1px solid ${weakColor}28`, background: `${weakColor}07`, padding: "12px 14px" }}>
-      <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase", color: weakColor, marginBottom: 6 }}>
+      <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase", color: weakColor, marginBottom: 6 }}>
         🎯 {COPY.heading[locale] || COPY.heading.en}
       </div>
       <div style={{ fontSize: 13, fontWeight: 900, color: "#fff", marginBottom: 4 }}>{dimLabel}</div>
-      <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)", lineHeight: 1.5, fontWeight: 600, marginBottom: 10 }}>{drillHint}</div>
+      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.5, fontWeight: 600, marginBottom: 10 }}>{drillHint}</div>
       <button
         type="button"
         onClick={wrappedHandleStart}

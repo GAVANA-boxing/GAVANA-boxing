@@ -35,7 +35,7 @@ function ShortCard({ title, keyCues = [], accentColor }) {
                 background: `${accentColor}18`,
                 border: `1px solid ${accentColor}44`,
                 color: accentColor,
-                fontSize: 10, fontWeight: 900,
+                fontSize: 12, fontWeight: 900,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 marginTop: 2,
               }}>
@@ -64,7 +64,7 @@ function FullCard({ title, keyCues = [], commonMistake, drill, nextAction, accen
       )}
       {keyCues.length > 0 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.5, color: `${accentColor}99`, textTransform: "uppercase", marginBottom: 5 }}>
+          <div style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: 1.5, color: `${accentColor}99`, textTransform: "uppercase", marginBottom: 5 }}>
             {L.cues}
           </div>
           {keyCues.map((cue, i) => (
@@ -76,7 +76,7 @@ function FullCard({ title, keyCues = [], commonMistake, drill, nextAction, accen
                 background: `${accentColor}18`,
                 border: `1px solid ${accentColor}44`,
                 color: accentColor,
-                fontSize: 10, fontWeight: 900,
+                fontSize: 12, fontWeight: 900,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 marginTop: 1,
               }}>
@@ -91,7 +91,7 @@ function FullCard({ title, keyCues = [], commonMistake, drill, nextAction, accen
       )}
       {commonMistake && (
         <div style={{ padding: "9px 12px", borderRadius: 10, background: "rgba(255,80,70,0.08)", border: "1px solid rgba(255,80,70,0.2)" }}>
-          <div style={{ fontSize: 9, fontWeight: 900, color: "#FCA5A5", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>
+          <div style={{ fontSize: 11.5, fontWeight: 900, color: "#FCA5A5", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>
             {L.mistake}
           </div>
           <div style={{ fontSize: 13, lineHeight: 1.45, color: "rgba(255,255,255,0.75)" }}>{commonMistake}</div>
@@ -99,7 +99,7 @@ function FullCard({ title, keyCues = [], commonMistake, drill, nextAction, accen
       )}
       {drill && (
         <div style={{ padding: "9px 12px", borderRadius: 10, background: "rgba(245,196,81,0.07)", border: "1px solid rgba(245,196,81,0.2)" }}>
-          <div style={{ fontSize: 9, fontWeight: 900, color: "#FDE68A", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>
+          <div style={{ fontSize: 11.5, fontWeight: 900, color: "#FDE68A", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>
             {L.drill}
           </div>
           <div style={{ fontSize: 13, lineHeight: 1.45, color: "rgba(255,255,255,0.75)" }}>{drill}</div>
@@ -107,7 +107,7 @@ function FullCard({ title, keyCues = [], commonMistake, drill, nextAction, accen
       )}
       {nextAction && (
         <div style={{ padding: "9px 12px", borderRadius: 10, background: "rgba(52,211,153,0.07)", border: "1px solid rgba(52,211,153,0.2)" }}>
-          <div style={{ fontSize: 9, fontWeight: 900, color: "#6EE7B7", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>
+          <div style={{ fontSize: 11.5, fontWeight: 900, color: "#6EE7B7", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>
             {L.next}
           </div>
           <div style={{ fontSize: 13, lineHeight: 1.45, color: "rgba(255,255,255,0.75)" }}>{nextAction}</div>

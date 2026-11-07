@@ -130,7 +130,7 @@ const styles = {
 
   // ── Breakdown card (below stage) ──────────────────────────────────────────
   breakdownCard:  { marginTop: 14, padding: "14px 16px", borderRadius: 16, background: whiteAlpha(0.04), border: `1px solid ${BORDER_2}` },
-  breakdownTitle: { margin: "0 0 12px", fontSize: 10, fontWeight: 900, color: whiteAlpha(0.4), textTransform: "uppercase", letterSpacing: 1.5 },
+  breakdownTitle: { margin: "0 0 12px", fontSize: 12, fontWeight: 900, color: whiteAlpha(0.4), textTransform: "uppercase", letterSpacing: 1.5 },
   breakdownGrid:  { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 16px" },
   breakdownItem:  { display: "flex", flexDirection: "column", gap: 4 },
   breakdownLbl:   { fontSize: 11, color: whiteAlpha(0.45), fontWeight: 700 },
@@ -177,7 +177,7 @@ const styles = {
     borderRadius: 8,
     padding: "6px 14px",
     color: "#FF6B6B",
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: 900,
     letterSpacing: 2,
     textTransform: "uppercase",
@@ -291,7 +291,7 @@ const styles = {
   },
   hitCountSep:    { color: whiteAlpha(0.5), fontSize: 14, fontWeight: 700, margin: "0 1px" },
   hitCountTarget: { color: whiteAlpha(0.55), fontSize: 16, fontWeight: 800 },
-  hitCountLabel:  { color: whiteAlpha(0.45), fontSize: 10, fontWeight: 800, marginLeft: 4, textTransform: "uppercase", letterSpacing: 0.8 },
+  hitCountLabel:  { color: whiteAlpha(0.45), fontSize: 12, fontWeight: 800, marginLeft: 4, textTransform: "uppercase", letterSpacing: 0.8 },
 
   // ── Combo counter ─────────────────────────────────────────────────────────
   comboCounter: {
@@ -307,7 +307,7 @@ const styles = {
   },
   comboLabel: {
     color: GOLD,
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: 1000,
     letterSpacing: 3,
     textShadow: `0 2px 8px ${blackAlpha(0.95)}`,
@@ -553,7 +553,7 @@ const styles = {
   },
   ghostHudYouLabel: {
     color: GOLD,
-    fontSize: 9,
+    fontSize: 11.5,
     fontWeight: 1000,
     letterSpacing: 1.5,
     textTransform: "uppercase",
@@ -566,7 +566,7 @@ const styles = {
   },
   ghostHudSep: {
     color: whiteAlpha(0.58),
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: 700,
   },
   ghostHudGhostLabel: {
@@ -630,7 +630,7 @@ const styles = {
   },
   ghostHudState: {
     marginTop: 5,
-    fontSize: 8,
+    fontSize: 11,
     fontWeight: 1000,
     letterSpacing: 1.4,
     textTransform: "uppercase",
@@ -744,7 +744,7 @@ const styles = {
   },
   resultSparklineTitle: {
     margin: "0 0 10px",
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: 900,
     color: whiteAlpha(0.45),
     textTransform: "uppercase",
@@ -802,7 +802,7 @@ const styles = {
     gap: 2,
   },
   vsCompareLbl: {
-    fontSize: 9,
+    fontSize: 11.5,
     fontWeight: 900,
     color: whiteAlpha(0.45),
     textTransform: "uppercase",

@@ -12,10 +12,10 @@ export default function BeginnerPathCard({
       {/* Header row: START HERE + lesson count + dots */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase", color: "#A78BFA", background: "rgba(139,92,246,0.2)", padding: "3px 8px", borderRadius: 20 }}>
+          <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase", color: "#A78BFA", background: "rgba(139,92,246,0.2)", padding: "3px 8px", borderRadius: 20 }}>
             {t("beginnerStartHere")}
           </span>
-          <span style={{ fontSize: 9, color: "rgba(255,255,255,0.55)", fontWeight: 700 }}>
+          <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.55)", fontWeight: 700 }}>
             {t("beginnerLessonCount").replace("{current}", beginnerProg.completed + 1).replace("{total}", beginnerProg.total)}
           </span>
         </div>

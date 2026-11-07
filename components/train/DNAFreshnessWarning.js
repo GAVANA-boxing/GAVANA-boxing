@@ -35,8 +35,8 @@ export default function DNAFreshnessWarning({ daysSince, locale }) {
     <div style={{ borderRadius: 12, padding: "10px 14px", background: `${color}0a`, border: `1px solid ${color}30`, display: "flex", alignItems: "center", gap: 10 }}>
       <span style={{ fontSize: 20, flexShrink: 0 }}>⚡</span>
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase", color, marginBottom: 2 }}>{label}</div>
-        <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.45)", lineHeight: 1.4 }}>{hint}</div>
+        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase", color, marginBottom: 2 }}>{label}</div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.45)", lineHeight: 1.4 }}>{hint}</div>
       </div>
     </div>
   );

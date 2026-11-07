@@ -17,7 +17,7 @@ export default function DNADailyFocus({ locale, mission, userArchetype, wrappedH
       <div style={{ padding: "12px 14px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
           <div>
-            <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.8, textTransform: "uppercase", color: archColor, marginBottom: 3 }}>
+            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.8, textTransform: "uppercase", color: archColor, marginBottom: 3 }}>
               {COPY.heading[locale] || COPY.heading.en}
             </div>
             <div style={{ fontSize: 15, fontWeight: 900, color: "#fff", lineHeight: 1.2 }}>

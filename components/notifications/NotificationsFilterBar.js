@@ -55,7 +55,7 @@ export function NotificationsFilterBar({
                   borderRadius: 999,
                   background: RED,
                   color: "#fff",
-                  fontSize: 9,
+                  fontSize: 11.5,
                   fontWeight: 900,
                   lineHeight: "16px",
                   textAlign: "center",

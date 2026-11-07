@@ -88,7 +88,7 @@ export default function CoachProgramsSection({
                   >
                     <span
                       style={{
-                        fontSize: 10,
+                        fontSize: 12,
                         fontWeight: 800,
                         color: levelColor,
                         background: `${levelColor}15`,
@@ -104,7 +104,7 @@ export default function CoachProgramsSection({
                     {prog.duration && (
                       <span
                         style={{
-                          fontSize: 10,
+                          fontSize: 12,
                           fontWeight: 700,
                           color: "#888",
                           background: "rgba(255,255,255,0.05)",
@@ -119,7 +119,7 @@ export default function CoachProgramsSection({
                     {prog.enrolledCount > 0 && (
                       <span
                         style={{
-                          fontSize: 10,
+                          fontSize: 12,
                           fontWeight: 700,
                           color: "#888",
                           background: "rgba(255,255,255,0.05)",

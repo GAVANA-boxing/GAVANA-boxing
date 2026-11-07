@@ -52,7 +52,7 @@ export default function CoachEmptyState({
           width: "100%", borderRadius: 12, padding: "12px 14px", marginBottom: 14,
           background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
         }}>
-          <p style={{ margin: "0 0 8px", fontSize: 9, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.55)", textTransform: "uppercase" }}>
+          <p style={{ margin: "0 0 8px", fontSize: 11.5, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.55)", textTransform: "uppercase" }}>
             {locale === "mn" ? "ЖИШЭЭ FEEDBACK" : locale === "ko" ? "샘플 피드백" : "SAMPLE AI FEEDBACK"}
           </p>
           {[

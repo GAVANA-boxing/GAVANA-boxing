@@ -70,7 +70,7 @@ export default function CoachMessageList({
                 </div>
                 {msg._source === "fallback" && (
                   <span style={{
-                    alignSelf: "flex-start", fontSize: 9, fontWeight: 900, letterSpacing: 1.2,
+                    alignSelf: "flex-start", fontSize: 11.5, fontWeight: 900, letterSpacing: 1.2,
                     color: "rgba(245,196,81,0.5)", background: "rgba(245,196,81,0.07)",
                     border: "1px solid rgba(245,196,81,0.18)", borderRadius: 4,
                     padding: "2px 6px", textTransform: "uppercase",
@@ -80,7 +80,7 @@ export default function CoachMessageList({
                 )}
                 {msg._source === "error" && (
                   <span style={{
-                    alignSelf: "flex-start", fontSize: 9, fontWeight: 900, letterSpacing: 1.2,
+                    alignSelf: "flex-start", fontSize: 11.5, fontWeight: 900, letterSpacing: 1.2,
                     color: "rgba(255,100,100,0.6)", background: "rgba(255,100,100,0.07)",
                     border: "1px solid rgba(255,100,100,0.18)", borderRadius: 4,
                     padding: "2px 6px", textTransform: "uppercase",

@@ -23,7 +23,7 @@ export default function ExperimentModeWidget({ locale, t, currentExperiment, exp
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontSize: 20 }}>⚗️</span>
           <div>
-            <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: isDone ? "#34D399" : expAcc, textTransform: "uppercase", marginBottom: 2 }}>
+            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: isDone ? "#34D399" : expAcc, textTransform: "uppercase", marginBottom: 2 }}>
               {isDone ? t("experimentDone") : t("experimentWeekly")}
             </div>
             <div style={{ fontSize: 13, fontWeight: 900, color: "#fff" }}>{exp.fighterName}</div>
@@ -32,7 +32,7 @@ export default function ExperimentModeWidget({ locale, t, currentExperiment, exp
         <button
           type="button"
           onClick={() => router.push(`/${locale}/fighters/${exp.fighterId}`)}
-          style={{ background: `${expAcc}18`, border: `1px solid ${expAcc}40`, borderRadius: 8, padding: "5px 11px", color: expAcc, fontSize: 10.5, fontWeight: 900, cursor: "pointer", flexShrink: 0 }}
+          style={{ background: `${expAcc}18`, border: `1px solid ${expAcc}40`, borderRadius: 8, padding: "5px 11px", color: expAcc, fontSize: 12, fontWeight: 900, cursor: "pointer", flexShrink: 0 }}
         >
           {t("experimentView")}
         </button>
@@ -41,7 +41,7 @@ export default function ExperimentModeWidget({ locale, t, currentExperiment, exp
       {/* Days progress bar */}
       <div style={{ marginBottom: isDone ? 10 : 0 }}>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-          <span style={{ fontSize: 9.5, fontWeight: 800, color: "rgba(255,255,255,0.4)" }}>
+          <span style={{ fontSize: 11.5, fontWeight: 800, color: "rgba(255,255,255,0.4)" }}>
             {daysElapsed}/{7} {t("experimentDaysOf")}
             {experimentSessionCount > 0 && (
               <span style={{ marginLeft: 8, color: "rgba(255,255,255,0.55)" }}>
@@ -49,7 +49,7 @@ export default function ExperimentModeWidget({ locale, t, currentExperiment, exp
               </span>
             )}
           </span>
-          <span style={{ fontSize: 9.5, fontWeight: 800, color: isDone ? "#34D399" : expAcc }}>
+          <span style={{ fontSize: 11.5, fontWeight: 800, color: isDone ? "#34D399" : expAcc }}>
             {isDone
               ? `7 ${t("experimentDaysComplete")}`
               : `${daysLeft} ${t("experimentDaysLeft")}`}

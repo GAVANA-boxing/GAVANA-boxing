@@ -11,7 +11,7 @@ export default function ConfidenceTipsBar({ t }) {
       background: "rgba(251,146,60,0.06)",
       border: "1px solid rgba(251,146,60,0.2)",
     }}>
-      <div style={{ fontSize: 10, fontWeight: 900, color: "#FB923C", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8 }}>
+      <div style={{ fontSize: 12, fontWeight: 900, color: "#FB923C", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8 }}>
         ⚠ {t("confidenceLowNote")}
       </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -26,7 +26,7 @@ export default function ConfidenceTipsBar({ t }) {
             }}
           >
             <span style={{ fontSize: 12 }}>{tip.icon}</span>
-            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", fontWeight: 700 }}>{t(tip.key)}</span>
+            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", fontWeight: 700 }}>{t(tip.key)}</span>
           </div>
         ))}
       </div>

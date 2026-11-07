@@ -28,12 +28,12 @@ export default function DNASignalForming({ locale, totalSessionCount, router }) 
             style={{ transition: "stroke-dashoffset 0.6s ease" }}
           />
         </svg>
-        <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 900, color: "#F5C451" }}>
+        <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 900, color: "#F5C451" }}>
           {totalSessionCount}/{TARGET}
         </span>
       </div>
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 8.5, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase", color: "rgba(245,196,81,0.75)", marginBottom: 2 }}>
+        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase", color: "rgba(245,196,81,0.75)", marginBottom: 2 }}>
           🧬 {locale === "mn" ? "ДНХ ДОХИО БҮРДЭЖ БАЙНА" : locale === "ko" ? "DNA 신호 형성 중" : "DNA SIGNAL FORMING"}
         </div>
         <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.55)", lineHeight: 1.4 }}>

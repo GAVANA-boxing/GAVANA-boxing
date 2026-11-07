@@ -42,7 +42,7 @@ export default function RecordingHud({
         {/* Drill focus label */}
         {drillConfig?.focusLabel && focusColor && (
           <span style={{
-            fontSize: 8, fontWeight: 900, letterSpacing: 1.2,
+            fontSize: 11, fontWeight: 900, letterSpacing: 1.2,
             color: focusColor,
             background: `${focusColor}16`,
             border: `1px solid ${focusColor}28`,
@@ -55,7 +55,7 @@ export default function RecordingHud({
 
         <span style={{ marginLeft: "auto", display: "flex", alignItems: "baseline", gap: 3 }}>
           <strong style={{ fontFamily: "var(--stack-mono)", letterSpacing: 0.5 }}>{elapsedStr}</strong>
-          <span style={{ fontSize: 9, color: "rgba(255,255,255,0.55)", fontWeight: 700 }}>/ {maxStr}</span>
+          <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.55)", fontWeight: 700 }}>/ {maxStr}</span>
         </span>
       </div>
 

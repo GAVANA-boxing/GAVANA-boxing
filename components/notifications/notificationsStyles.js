@@ -46,7 +46,7 @@ const styles = {
   list: { maxWidth: 540, margin: "0 auto", padding: "10px 16px" },
   group: { display: "grid", gap: 5, marginBottom: 28 },
   groupTitle: {
-    color: RED, fontSize: 10, fontWeight: 900,
+    color: RED, fontSize: 12, fontWeight: 900,
     letterSpacing: 3, textTransform: "uppercase",
     padding: "6px 2px 8px",
   },
@@ -94,7 +94,7 @@ const styles = {
     width: 20, height: 20, borderRadius: "50%",
     background: SURFACE_1, border: `1.5px solid ${whiteAlpha(0.1)}`,
     display: "flex", alignItems: "center", justifyContent: "center",
-    fontSize: 10, lineHeight: 1,
+    fontSize: 12, lineHeight: 1,
   },
 
   notificationBody: { minWidth: 0, flex: 1 },
@@ -105,7 +105,7 @@ const styles = {
     fontSize: 13, fontWeight: 800, color: TEXT,
     overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "65%",
   },
-  date: { color: whiteAlpha(0.28), fontSize: 10, whiteSpace: "nowrap", flexShrink: 0 },
+  date: { color: whiteAlpha(0.28), fontSize: 12, whiteSpace: "nowrap", flexShrink: 0 },
   notificationText: { fontSize: 13, color: whiteAlpha(0.52), lineHeight: 1.4 },
   commentPreview: {
     marginTop: 5, color: whiteAlpha(0.28), fontSize: 12, lineHeight: 1.4,
