@@ -1,7 +1,7 @@
 {
   "_note": "Owner-controlled. The automation reads this file at the start of every cycle and never sets paused=false itself. Emergency stop: set paused to true (GitHub web edit, or tell Claude '\u0437\u043e\u0433\u0441\u043e\u043e').",
-  "paused": false,
-  "pausedNote": "",
+  "paused": true,
+  "pausedNote": "Owner paused the runner on 2026-11-07 (\"tur zogsoo\" \u2014 usage cost). Scheduled task disabled too.",
   "maxCyclesPerDay": 40,
   "failureBreaker": 3,
   "clearFailuresBefore": null,
