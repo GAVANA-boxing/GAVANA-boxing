@@ -2,6 +2,22 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Game pipeline ideas (owner shared the "Sumiro" Opus + Blender + three.js build)
+Taken: Blender → three.js environment, atmosphere, and the "play it, find bugs, fix, repeat" agent loop.
+Not taken (RED: paid generation APIs + keys): Flux video, GPT Image turnarounds, Tripo image→3D.
+- **Blender gym** — `tools/blender/gym.py` builds the room the heavy bag hangs in: concrete floor,
+  brick walls with bright windows, a ring (deck, canvas, GAVANA apron text, red / blue / white corner
+  pads, 3 ropes a side, steps), a bag rack with two spare bags, three hanging lamps with emissive bulbs.
+  Exported with Blender 5.0.1 → `public/models/gym.glb` (92 KB).
+- **Atmosphere** — `lightShaftShader` (GLSL, additive cone: bright at the lamp, fading to the floor,
+  soft edges, slight flicker) under each lamp + warm point lights + drifting dust (count by quality tier).
+- **HeavyBagScene** loads the gym (shadows per tier), cooler window light, wider camera.
+- **3D playtests** — `tests/visual/play3d.spec.mjs` runs in real software WebGL (SwiftShader flags
+  added to the Playwright config): starts a bag round, taps the bag and checks the hit counter and the
+  swing angle, renders World Tour and Punch Teardown; fails on shader / WebGL / page errors or a blank
+  canvas, and saves what it saw to `test-results/play3d-*.png`.
+- Checked: 231/231 unit, 49/49 Playwright (46 visual + 3 playtests), lint 0 errors, build OK.
+
 ## Cycle 13 — unread badges readable
 - Bottom-nav avatar badge (unread notifications) was 8 px text on a 14 px dot; menu-sheet badges 9 px.
   Now 11 px on a 17 px (avatar) / 20 px (menu) pill, shifted so it still sits on the avatar corner.

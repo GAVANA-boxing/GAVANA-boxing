@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { createBagWorld, hitBag, stepBag, swingDeg, BAG } from "@/lib/heavyBag";
-import { bagShader, MAX_HITS } from "@/lib/three/shaders";
+import { bagShader, lightShaftShader, MAX_HITS } from "@/lib/three/shaders";
 import { createRingFloor } from "@/lib/three/fighterAvatar";
 
 // The heavy bag in 3D — React Three Fiber for the scene, cannon-es for the
@@ -17,6 +17,9 @@ import { createRingFloor } from "@/lib/three/fighterAvatar";
 // jab / cross with that hand.
 
 const MODEL_URL = "/models/heavy-bag.glb";
+const GYM_URL = "/models/gym.glb";
+// Lamp positions in the Blender gym (tools/blender/gym.py): two over the ring, one over the bag.
+const LAMPS = [[-1.4, 4.0, -5.6], [1.4, 4.0, -5.6], [0, 4.0, 0.2]];
 
 function Bag({ stance, controlRef, onHit, onSwing }) {
   const physics = useMemo(() => createBagWorld(), []);
@@ -128,7 +131,77 @@ function Bag({ stance, controlRef, onHit, onSwing }) {
 
 function Floor() {
   const floor = useMemo(() => createRingFloor(THREE, { radius: 2.4 }), []);
-  return <primitive object={floor} position={[0, 0, 0]} />;
+  return <primitive object={floor} position={[0, 0.002, 0]} />;
+}
+
+/** The boxing gym modelled in Blender (ring, ropes, windows, bag rack, lamps). */
+function Gym({ shadows }) {
+  const [scene, setScene] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    import("three/examples/jsm/loaders/GLTFLoader.js").then(({ GLTFLoader }) => {
+      new GLTFLoader().load(GYM_URL, (gltf) => {
+        if (!alive) return;
+        gltf.scene.traverse((o) => {
+          if (!o.isMesh) return;
+          o.receiveShadow = shadows;
+          o.castShadow = shadows && !/^(Floor|BackWall|LeftWall|Window)/.test(o.name);
+        });
+        setScene(gltf.scene);
+      }, undefined, () => { /* no gym — the bag still works on its own */ });
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, [shadows]);
+  return scene ? <primitive object={scene} /> : null;
+}
+
+/** Lamp beams through dusty air (GLSL, additive) and slowly drifting dust. */
+function Atmosphere({ dust = 1 }) {
+  const shaftMat = useMemo(() => new THREE.ShaderMaterial({
+    vertexShader: lightShaftShader.vertexShader,
+    fragmentShader: lightShaftShader.fragmentShader,
+    uniforms: { uColor: { value: new THREE.Color("#ffd9a0") }, uStrength: { value: 0.16 }, uTime: { value: 0 } },
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+  }), []);
+  const count = Math.round(500 * dust);
+  const dustGeo = useMemo(() => {
+    const g = new THREE.BufferGeometry();
+    const p = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      const [lx, , lz] = LAMPS[i % LAMPS.length];
+      const r = Math.random() * 1.1, a = Math.random() * Math.PI * 2;
+      p.set([lx + Math.cos(a) * r, Math.random() * 4, lz + Math.sin(a) * r], i * 3);
+    }
+    g.setAttribute("position", new THREE.BufferAttribute(p, 3));
+    return g;
+  }, [count]);
+  const dustRef = useRef(null);
+  useFrame((state, dt) => {
+    shaftMat.uniforms.uTime.value = state.clock.elapsedTime;
+    const a = dustGeo.attributes.position;
+    for (let i = 0; i < a.count; i++) {
+      let y = a.getY(i) + dt * 0.05;
+      if (y > 4) y = 0;
+      a.setY(i, y);
+      a.setX(i, a.getX(i) + Math.sin(state.clock.elapsedTime * 0.3 + i) * dt * 0.02);
+    }
+    a.needsUpdate = true;
+  });
+  return (
+    <group>
+      {LAMPS.map(([x, y, z], i) => (
+        <group key={i}>
+          <mesh position={[x, y / 2, z]} material={shaftMat}>
+            <cylinderGeometry args={[0.12, 1.25, y, 32, 1, true]} />
+          </mesh>
+          <pointLight position={[x, y - 0.1, z]} intensity={i === 2 ? 6 : 10} distance={7} decay={1.6} color="#ffd9a0" />
+        </group>
+      ))}
+      <points ref={dustRef} geometry={dustGeo}>
+        <pointsMaterial color="#ffe7c2" size={0.018} transparent opacity={0.55} depthWrite={false} />
+      </points>
+    </group>
+  );
 }
 
 export default function HeavyBagScene({ stance = "orthodox", controlRef, onHit, onSwing, quality, height = "100%" }) {
@@ -138,14 +211,18 @@ export default function HeavyBagScene({ stance = "orthodox", controlRef, onHit, 
         shadows={quality?.shadows !== false}
         dpr={quality?.pixelRatio || [1, 2]}
         gl={{ antialias: quality?.antialias !== false }}
-        camera={{ position: [0.35, 1.55, 2.4], fov: 42 }}
-        onCreated={({ camera }) => camera.lookAt(0, 1.45, 0)}
+        camera={{ position: [0.55, 1.6, 2.7], fov: 44 }}
+        onCreated={({ camera }) => camera.lookAt(0, 1.45, -0.4)}
       >
-        <color attach="background" args={["#0b0b0d"]} />
-        <fog attach="fog" args={["#0b0b0d", 4, 10]} />
-        <hemisphereLight args={["#dfe7ff", "#1a1012", 0.6]} />
+        <color attach="background" args={["#0d0b0b"]} />
+        <fog attach="fog" args={["#0d0b0b", 5, 17]} />
+        <hemisphereLight args={["#dfe7ff", "#1a1012", 0.45]} />
         <spotLight position={[0.6, 3.6, 1.4]} angle={0.6} penumbra={0.6} intensity={40} castShadow />
-        <directionalLight position={[-2, 1.5, -2]} intensity={1.6} color="#ff3b30" />
+        {/* Cool daylight from the back windows, a red accent from the side. */}
+        <directionalLight position={[1, 4, -10]} intensity={0.9} color="#cfe0ff" />
+        <directionalLight position={[-3, 1.5, -1]} intensity={0.7} color="#ff3b30" />
+        <Gym shadows={quality?.shadows !== false} />
+        <Atmosphere dust={quality?.particles ?? 1} />
         <Bag stance={stance} controlRef={controlRef} onHit={onHit} onSwing={onSwing} />
         <Floor />
       </Canvas>

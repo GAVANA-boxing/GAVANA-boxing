@@ -28,7 +28,8 @@ export default defineConfig({
       ...(process.env.PLAYWRIGHT_EXECUTABLE
         ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE }
         : (existsSync("/opt/pw-browsers/chromium") ? { executablePath: "/opt/pw-browsers/chromium" } : {})),
-      args: ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream"],
+      // Software WebGL (SwiftShader) so the 3D playtests render the same everywhere.
+      args: ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"],
     },
     colorScheme: "dark",
     locale: "en-US",

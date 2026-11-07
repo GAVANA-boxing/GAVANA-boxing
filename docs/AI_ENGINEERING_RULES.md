@@ -20,7 +20,9 @@ Read this (and CLAUDE.md) before every change. Keep it short and current.
   with cannon-es; GLSL in `lib/three/shaders.js`; quality via `lib/three/renderCaps.js`.
 - Models: build with Blender scripts in `tools/blender/` (run: `python -I tools/blender/<file>.py` with
   `pip install bpy`, or `blender --background --python …`), export GLB to `public/models/`.
-- Visual tests hide 3D canvases (GPU output differs per machine); check 3D by screenshot with SwiftShader.
+- Visual tests hide 3D canvases (GPU output differs per machine). `tests/visual/play3d.spec.mjs` playtests
+  the 3D modes in SwiftShader WebGL (errors, blank canvas, interaction) — look at `test-results/play3d-*.png`
+  after a 3D change, and add a playtest for every new 3D mode.
 
 ## Design system
 - `components/ui/brand.js`: BRAND, btnPrimary, btnSecondary, glass, glassCard, pageBackground,
