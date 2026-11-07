@@ -8,6 +8,15 @@
       "runId": "20261107T150558Z-124f6dd",
       "commit": null,
       "note": "Change rendered fine (screenshot checked) but both verify runs failed on unrelated flaky visual tests: teardown scrub under SwiftShader load, bag intro waits on a slow WebGPU requestAdapter. Not committed; WIP in git stash 'cycle-145626-sharecard-wip'. Fix the flakes first."
+    },
+    {
+      "cycleId": "20261107T151256Z-d9f7811",
+      "at": "2026-11-07T15:28:46.244Z",
+      "task": "test-flake:visual-webgl-load",
+      "outcome": "ACCEPTED",
+      "runId": "20261107T152340Z-cfa4709",
+      "commit": "5d55a01",
+      "note": "First attempt REJECTED (playtest saw the unmount context loss); fixed in attempt 2."
     }
   ]
 }

@@ -15,11 +15,20 @@
       "fix": "requestAdapter timeout in detectRenderCaps; teardown screenshot test without WebGL; bag test waits longer",
       "priority": 99,
       "risk": "GREEN",
-      "status": "open",
+      "status": "done",
       "attempts": 0,
       "createdAt": "2026-11-07T15:12:51.141Z",
-      "updatedAt": "2026-11-07T15:12:51.141Z",
-      "history": []
+      "updatedAt": "2026-11-07T15:28:46.244Z",
+      "history": [
+        {
+          "at": "2026-11-07T15:28:46.244Z",
+          "outcome": "ACCEPTED",
+          "runId": "20261107T152340Z-cfa4709",
+          "commit": "5d55a01",
+          "note": "First attempt REJECTED (playtest saw the unmount context loss); fixed in attempt 2."
+        }
+      ],
+      "cycleId": "20261107T151256Z-d9f7811"
     },
     {
       "fingerprint": "security:storage-coach-applications-read",
@@ -38,7 +47,7 @@
       "status": "blocked",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -66,7 +75,7 @@
       "status": "open",
       "attempts": 1,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T15:11:41.862Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": [
         {
           "at": "2026-11-07T15:11:41.862Z",
@@ -101,7 +110,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -125,7 +134,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -148,7 +157,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -170,7 +179,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -192,7 +201,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -213,7 +222,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -233,7 +242,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -253,7 +262,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -273,7 +282,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -293,7 +302,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -313,7 +322,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -333,7 +342,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -363,7 +372,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -386,7 +395,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -408,7 +417,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -429,7 +438,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -450,7 +459,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -470,7 +479,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -490,7 +499,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -510,7 +519,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -530,7 +539,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -550,7 +559,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -570,7 +579,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -590,7 +599,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -610,7 +619,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -630,7 +639,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -650,7 +659,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -670,7 +679,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -690,7 +699,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -710,7 +719,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -730,7 +739,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -750,7 +759,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -775,7 +784,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -800,7 +809,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -822,7 +831,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -844,7 +853,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -866,7 +875,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -888,7 +897,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -910,7 +919,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -931,7 +940,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -952,7 +961,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -973,7 +982,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -994,7 +1003,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1014,7 +1023,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1034,7 +1043,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1054,7 +1063,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1074,7 +1083,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1094,7 +1103,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1114,7 +1123,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1134,7 +1143,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1154,7 +1163,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1174,7 +1183,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1194,7 +1203,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1214,7 +1223,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1234,7 +1243,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1254,7 +1263,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1274,7 +1283,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1294,7 +1303,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1319,7 +1328,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1340,7 +1349,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1361,7 +1370,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1386,7 +1395,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1406,7 +1415,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1426,7 +1435,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1446,7 +1455,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1466,7 +1475,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1486,7 +1495,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1506,7 +1515,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1526,7 +1535,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1546,7 +1555,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1566,7 +1575,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1586,7 +1595,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1606,7 +1615,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1626,7 +1635,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1646,7 +1655,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1669,7 +1678,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1690,7 +1699,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1711,7 +1720,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1732,7 +1741,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1752,7 +1761,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1772,7 +1781,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1792,7 +1801,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1812,7 +1821,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1832,7 +1841,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1852,7 +1861,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1872,7 +1881,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1892,7 +1901,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1912,7 +1921,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1932,7 +1941,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1952,7 +1961,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1972,7 +1981,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     },
     {
@@ -1992,7 +2001,7 @@
       "status": "open",
       "attempts": 0,
       "createdAt": "2026-11-07T14:57:05.346Z",
-      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:13:40.663Z",
       "history": []
     }
   ]
