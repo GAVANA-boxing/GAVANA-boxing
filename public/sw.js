@@ -77,10 +77,17 @@ self.addEventListener("push", (e) => {
 // ── Notification click ────────────────────────────────────────────────────────
 self.addEventListener("notificationclick", (e) => {
   e.notification.close();
-  const targetUrl = e.notification.data?.url || "/";
+  // Only ever open pages of this app: the URL comes from the push payload, and
+  // a server-built path like `/${locale}/train` turns into "//host/…" (another
+  // site) if a profile's locale field holds junk.
+  let targetUrl = "/";
+  try {
+    const u = new URL(e.notification.data?.url || "/", self.location.origin);
+    if (u.origin === self.location.origin) targetUrl = u.pathname + u.search + u.hash;
+  } catch { /* keep "/" */ }
   e.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((wins) => {
-      const match = wins.find((w) => w.url.includes(self.location.origin));
+      const match = wins.find((w) => w.url.startsWith(self.location.origin + "/"));
       if (match) { match.focus(); match.navigate(targetUrl); return; }
       clients.openWindow(targetUrl);
     })

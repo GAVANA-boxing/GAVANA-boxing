@@ -2,6 +2,15 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Cycle 6 — push click stays inside the app
+- Read-only check of `functions/index.js` retention pushes: copy is localized MN/KO/EN and
+  throttled; OK. Found: the click URL is `/${users.locale}/train`, and `locale` is written by the
+  client, so junk like "/evil.com" makes "//evil.com/train" (another site).
+- `public/sw.js` notificationclick now resolves the URL against the app origin and opens only
+  same-origin paths (else "/"); open-window match uses `startsWith(origin + "/")`.
+  Checked with 6 URLs (relative, protocol-relative, absolute foreign, query/hash, missing,
+  javascript:). The server-side whitelist is RED → backlog.
+
 ## Cycle 5 — profile page metadata
 - `profile/[userId]/layout.js`: title was "Name — GAVANA Boxing | GAVANA Boxing" (root template
   appended again) → absolute title. OG url pointed at a hard-coded `gavana-boxing.web.app` and

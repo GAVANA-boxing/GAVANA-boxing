@@ -13,8 +13,10 @@ Status: TODO · BLOCKED (needs approval) · DONE. Highest priority first.
   as a pure UI change; the scattered state flags remain.)
 
 ## P2
-- Push notification texts: user-to-user pushes localized in 40bcf61 (another session). Still to
-  check: `functions/index.js` retention pushes — read-only first; changing what is sent is RED.
+- RED (needs approval — push sending): `functions/index.js` `localeOf()` trusts the client-written
+  `users.locale`; whitelist mn/ko/en before building the copy and the `/${locale}/train` URL.
+  Copy itself checked in Cycle 6 (streak-risk + win-back, MN/KO/EN, fine). Deploy:
+  `firebase deploy --only functions`.
 - Coach chat header / persona chips in the brand style.
 - Ghost recording / viewing microcopy (small caps text).
 
