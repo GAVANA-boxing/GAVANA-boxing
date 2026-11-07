@@ -2,6 +2,12 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Cycle 2 — camera-denied stage icon
+- `/train` with no camera: the stage showed a red "REC" label although nothing was recording.
+  Replaced it with a camera-off icon in a red circle (`train/page.js`, `trainStyles.fallbackMark`).
+- Train visual baselines regenerated on purpose (`--update-snapshots=all`; the old ones still
+  passed because the change is under the 1% pixel threshold). 12/12 visual, 160/160 unit, lint 0 errors.
+
 ## Cycle 1 — visual regression baseline
 - Added Playwright visual tests for Today (/home), Training Studio (/train), Result and Progress at
   390×844 and 360×800 (MN) and 390×844 (KO): 12 baselines in `tests/visual/__screenshots__`,

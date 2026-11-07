@@ -9,11 +9,14 @@ Status: TODO · BLOCKED (needs approval) · DONE. Highest priority first.
   Proposed explicit machine (pure reducer in `lib/trainSession.js`, unit-tested):
   `idle → requestingCamera → (cameraDenied | ready) → countdown → recording ⇄ paused → finishing →
   saving → (result | saveFailed) → idle`, plus `error` from any state. Each state defines what the
-  screen shows and which buttons exist. Evidence of the need: with the camera denied the stage
-  still shows a "REC" label (`train/page.js` fallback block) although nothing is recording.
+  screen shows and which buttons exist. (The "REC" label in the denied state was fixed in Cycle 2
+  as a pure UI change; the scattered state flags remain.)
 - Camera-permission-denied screen: say how to re-enable the camera per browser (iOS Safari,
   Android Chrome), in MN / KO / EN. Baseline: `tests/visual/__screenshots__/train-*.png` already
   show the denied state.
+- Camera-denied stage on short phones (360×800): the sticky Start dock + nav cover the denied
+  explanation text and the "retry camera" button (see `train-mn-360.png`). Fix idea: put the
+  text/retry above the stage centre, or give the stage bottom padding equal to the dock height.
 
 ## P2
 - Push notification texts: user-to-user pushes localized in 40bcf61 (another session). Still to

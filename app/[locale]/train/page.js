@@ -939,7 +939,13 @@ export default function TrainPage() {
               {cameraState === "checking" ? (
                 <div style={{ width: 40, height: 40, border: "3px solid rgba(255,255,255,0.15)", borderTopColor: RED, borderRadius: "50%", animation: "spin 0.8s linear infinite", marginBottom: 12 }} />
               ) : (
-                <div style={styles.fallbackMark}>REC</div>
+                // Camera-off icon — a "REC" label here read as if recording had started.
+                <div style={styles.fallbackMark} aria-hidden="true">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34l1 1L23 7v10" />
+                    <path d="M1 1l22 22" />
+                  </svg>
+                </div>
               )}
               <p style={styles.fallbackTitle}>
                 {cameraState === "checking" ? t("trainCameraChecking") : t("trainCameraUnavailable")}

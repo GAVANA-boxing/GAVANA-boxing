@@ -10,3 +10,5 @@
 - Punch detection: lead hooks 5/5 on one fighter's clips, uppercuts not detected (no clips) —
   paused by the owner.
 - Push messages to real users can't be tested here (no FCM credentials in the container).
+- Visual threshold is 1% of pixels: a small icon/text change can pass unnoticed. After an
+  intended UI change, regenerate that screen's baselines with `--update-snapshots=all`.
