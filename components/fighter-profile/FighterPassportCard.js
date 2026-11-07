@@ -122,7 +122,7 @@ export default function FighterPassportCard({ dna, displayName, progress, studie
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ fontSize: 16 }}>🥊</span>
-            <span style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: 2.5, color: dna.building ? whiteAlpha(0.2) : acc, textTransform: "uppercase" }}>
+            <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2.5, color: dna.building ? whiteAlpha(0.2) : acc, textTransform: "uppercase" }}>
               {L.eyebrow}
             </span>
           </div>
@@ -267,8 +267,8 @@ export default function FighterPassportCard({ dna, displayName, progress, studie
 
       {/* Bottom watermark */}
       <div style={{ padding: "8px 18px 12px", borderTop: `1px solid ${dna.building ? whiteAlpha(0.03) : `${acc}12`}`, display: "flex", justifyContent: "space-between" }}>
-        <span style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.1), textTransform: "uppercase" }}>GAVANA.APP</span>
-        <span style={{ fontSize: 10.5, fontWeight: 700, color: whiteAlpha(0.08) }}>FIGHTER ID</span>
+        <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.1), textTransform: "uppercase" }}>GAVANA.APP</span>
+        <span style={{ fontSize: 11, fontWeight: 700, color: whiteAlpha(0.08) }}>FIGHTER ID</span>
       </div>
     </div>
   );

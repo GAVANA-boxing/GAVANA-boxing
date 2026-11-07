@@ -46,11 +46,11 @@ export default function DrillCard({ drill, index, locale, accent }) {
             {drill.name}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 3 }}>
-            <span style={{ fontSize: 10, fontWeight: 800, color: diffColor }}>
+            <span style={{ fontSize: 11, fontWeight: 800, color: diffColor }}>
               {mn ? (DIFF_MN[diff] || diff) : locale === "ko" ? (DIFF_KO[diff] || diff) : diff}
             </span>
             {drill.duration && (
-              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>
+              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>
                 · {drill.duration}
               </span>
             )}
@@ -74,7 +74,7 @@ export default function DrillCard({ drill, index, locale, accent }) {
                 width: 20, height: 20, borderRadius: 6, flexShrink: 0, marginTop: 1,
                 background: `${accent}15`,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 9, fontWeight: 900, color: accent,
+                fontSize: 11, fontWeight: 900, color: accent,
               }}>
                 {si + 1}
               </div>

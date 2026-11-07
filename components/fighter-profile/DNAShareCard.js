@@ -246,7 +246,7 @@ export default function DNAShareCard({ dna, displayName, locale, uid }) {
           {/* Similar fighters */}
           {similarFighters.length > 0 && (
             <div style={{ paddingBottom: 14, borderTop: `1px solid ${whiteAlpha(0.05)}`, paddingTop: 12 }}>
-              <div style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 7 }}>
+              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: whiteAlpha(0.55), textTransform: "uppercase", marginBottom: 7 }}>
                 {L.similarTo}
               </div>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>

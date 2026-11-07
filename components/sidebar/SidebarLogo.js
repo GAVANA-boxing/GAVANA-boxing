@@ -57,7 +57,7 @@ const s = {
     lineHeight: 1,
   },
   logoSub: {
-    fontSize: 8,
+    fontSize: 11,
     fontWeight: 700,
     color: "rgba(255,255,255,0.25)",
     letterSpacing: "0.22em",
@@ -83,7 +83,7 @@ const s = {
     flexShrink: 0,
   },
   statusLabel: {
-    fontSize: 8,
+    fontSize: 11,
     fontWeight: 800,
     color: "rgba(34,211,238,0.6)",
     letterSpacing: 1.2,

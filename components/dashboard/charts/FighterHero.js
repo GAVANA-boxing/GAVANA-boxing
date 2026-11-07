@@ -39,7 +39,7 @@ export function FighterHero({ displayScore, xp, rank, nextRank, xpProgress, insi
         background: `radial-gradient(ellipse at 50% 30%, ${redAlpha(0.22)} 0%, transparent 60%)`,
       }} />
       <div style={{ position: "relative", padding: "22px 22px 20px" }}>
-        <p style={{ margin: "0 0 16px", fontSize: 9, fontWeight: 900, color: `${redAlpha(0.75)}`, letterSpacing: 3.5, textTransform: "uppercase", textAlign: "center" }}>
+        <p style={{ margin: "0 0 16px", fontSize: 11, fontWeight: 900, color: `${redAlpha(0.75)}`, letterSpacing: 3.5, textTransform: "uppercase", textAlign: "center" }}>
           GAVANA · FIGHTER SCORE
         </p>
 
@@ -93,10 +93,10 @@ export function FighterHero({ displayScore, xp, rank, nextRank, xpProgress, insi
         {nextRank && (
           <div style={{ marginBottom: 16 }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-              <span style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.22)", letterSpacing: 0.5 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.22)", letterSpacing: 0.5 }}>
                 {t(rank.key).toUpperCase()}
               </span>
-              <span style={{ fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.3)" }}>
+              <span style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.3)" }}>
                 {(nextRank.minXP - xp).toLocaleString()} {t("dashboardToGo")} → {t(nextRank.key)}
               </span>
             </div>

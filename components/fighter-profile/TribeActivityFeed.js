@@ -122,7 +122,7 @@ export default function TribeActivityFeed({ allTribeCounts, userArchetype, local
                   {n}
                 </span>
                 {isUser && (
-                  <span style={{ fontSize: 10.5, fontWeight: 900, color: acc, background: `${acc}18`, border: `1px solid ${acc}35`, borderRadius: 4, padding: "1px 5px", flexShrink: 0 }}>
+                  <span style={{ fontSize: 11, fontWeight: 900, color: acc, background: `${acc}18`, border: `1px solid ${acc}35`, borderRadius: 4, padding: "1px 5px", flexShrink: 0 }}>
                     {L.userBadge}
                   </span>
                 )}

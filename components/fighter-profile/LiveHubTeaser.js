@@ -38,7 +38,7 @@ export default function LiveHubTeaser({ locale }) {
       <div style={{ height: 2, background: `linear-gradient(90deg, ${whiteAlpha(0.1)}, transparent)` }} />
       <div style={{ padding: "18px 18px 16px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-          <span style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.55), textTransform: "uppercase" }}>
+          <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.55), textTransform: "uppercase" }}>
             {L.eyebrow}
           </span>
           <span style={{ fontSize: 11, fontWeight: 900, padding: "2px 9px", borderRadius: 999, background: "rgba(251,146,60,0.1)", border: "1px solid rgba(251,146,60,0.22)", color: "#FB923C", letterSpacing: 1 }}>

@@ -61,13 +61,13 @@ export function RequestCard({ request, requesterUser, t, locale, onAccept, onDec
             const arch = requesterUser.fighterDNA.archetypeKey;
             const color = ARCH_COLORS[arch] || "#fff";
             return (
-              <span style={{ fontSize: 9, fontWeight: 900, padding: "2px 8px", borderRadius: 6, background: `${color}18`, border: `1px solid ${color}35`, color, letterSpacing: 0.5, textTransform: "uppercase" }}>
+              <span style={{ fontSize: 11, fontWeight: 900, padding: "2px 8px", borderRadius: 6, background: `${color}18`, border: `1px solid ${color}35`, color, letterSpacing: 0.5, textTransform: "uppercase" }}>
                 🧬 {ARCH_LABELS[arch] || arch}
               </span>
             );
           })()}
           {requesterUser?.weightClass && (
-            <span style={{ fontSize: 9, fontWeight: 900, padding: "2px 8px", borderRadius: 6, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)", letterSpacing: 0.5 }}>
+            <span style={{ fontSize: 11, fontWeight: 900, padding: "2px 8px", borderRadius: 6, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)", letterSpacing: 0.5 }}>
               ⚖️ {requesterUser.weightClass}
             </span>
           )}

@@ -14,7 +14,7 @@ const s = {
     marginTop: 4,
   },
   heading: {
-    fontSize: 8,
+    fontSize: 11,
     fontWeight: 900,
     color: "rgba(255,255,255,0.28)",
     letterSpacing: 2,
@@ -33,7 +33,7 @@ function langBtnStyle(active) {
     border: active ? `1px solid ${redAlpha(0.45)}` : "1px solid transparent",
     background: active ? redAlpha(0.15) : "rgba(255,255,255,0.04)",
     color: active ? RED : "rgba(255,255,255,0.3)",
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: 900,
     letterSpacing: 1.2,
     textTransform: "uppercase",

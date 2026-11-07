@@ -85,7 +85,7 @@ const HUDCard = forwardRef(function HUDCard(
           {label && (
             <span
               style={{
-                fontSize: 9,
+                fontSize: 11,
                 fontWeight: 900,
                 letterSpacing: 2.5,
                 textTransform: "uppercase",

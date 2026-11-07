@@ -99,7 +99,7 @@ export default function WeeklyReportCard({ sessions, locale, dna, router }) {
           ].map(({ val, label, delta, color }) => (
             <div key={label} style={{ padding: "10px 0", borderRadius: 10, background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.06)}`, textAlign: "center" }}>
               <div style={{ fontSize: 22, fontWeight: 1000, color, fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{val}</div>
-              <div style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: 1.2, color: whiteAlpha(0.55), textTransform: "uppercase", marginTop: 3 }}>{label}</div>
+              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.2, color: whiteAlpha(0.55), textTransform: "uppercase", marginTop: 3 }}>{label}</div>
               <div style={{ marginTop: 3 }}>{delta !== null ? <TrendBadge delta={delta} /> : <span style={{ fontSize: 11.5, color: whiteAlpha(0.18), fontFamily: "var(--stack-mono)" }}>{L.vsLast.slice(0, 8)}</span>}</div>
             </div>
           ))}

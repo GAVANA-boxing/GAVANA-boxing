@@ -96,7 +96,7 @@ export default function SidebarFooter({
             {user.displayName || user.email?.split("@")[0] || FALLBACK_NAME}
           </div>
           <div style={s.rankLabel}>
-            <span style={{ fontSize: 9, fontWeight: 800, color: rank.color, letterSpacing: 0.8 }}>
+            <span style={{ fontSize: 11, fontWeight: 800, color: rank.color, letterSpacing: 0.8 }}>
               {rank.label || "ROOKIE"}
             </span>
           </div>

@@ -74,7 +74,7 @@ export default function HowToEarnXP({ locale, t }) {
         </h2>
         <span
           style={{
-            fontSize: 10,
+            fontSize: 11,
             fontWeight: 900,
             color: "#F5C451",
             background: "rgba(245,196,81,0.12)",

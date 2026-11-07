@@ -29,7 +29,7 @@ export default function TodayMissionBanner({ locale, onAsk, onSwitchToChat }) {
     }}>
       <span style={{ fontSize: 22, flexShrink: 0 }}>{todayMission.emoji}</span>
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 8, fontWeight: 900, letterSpacing: 2, color: "#F5C451", textTransform: "uppercase", marginBottom: 2 }}>
+        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: "#F5C451", textTransform: "uppercase", marginBottom: 2 }}>
           {locale === "mn" ? "ӨНӨӨДРИЙН ДААЛГАВАР" : locale === "ko" ? "오늘의 미션" : "TODAY'S MISSION"}
         </div>
         <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", lineHeight: 1.2 }}>

@@ -2,6 +2,14 @@
 
 One entry per cycle that changed code. Newest first.
 
+## A11y: no text under 11 px in the core screens
+- Every `fontSize` below 11 in the 36 files the observer flagged (68 values, incl. ternary arms and
+  admin pages) is now 11. Observer: 0 small-text findings left in core code (low-contrast and lint
+  findings remain). Run `20261107T222916Z-8ef4510` ACCEPTED; visual 51/51 unchanged — the fixture
+  screens don't render these components, so their 360 px layout is not covered by screenshots.
+- Outside the observer's core scope (sparring, programs, gyms, reels styles) there are still many
+  9–10 px values — left for later cycles.
+
 ## Perf: MediaPipe loads only when a round starts on /bag and /mitts
 - `usePoseDetection` takes `load` (default true). `/bag` passes `camera === "on"`, `/mitts`
   `phase !== "intro"`: the bundle, wasm and pose model (several MB) are no longer fetched just for

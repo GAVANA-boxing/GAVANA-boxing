@@ -13,7 +13,7 @@ export default function AreaChips({ selectedArea, onSelect, locale }) {
 
   return (
     <>
-      <p style={{ margin: "0 0 8px", fontSize: 9, fontWeight: 900, color: "rgba(255,255,255,0.3)", letterSpacing: 2, textTransform: "uppercase" }}>
+      <p style={{ margin: "0 0 8px", fontSize: 11, fontWeight: 900, color: "rgba(255,255,255,0.3)", letterSpacing: 2, textTransform: "uppercase" }}>
         {LABEL[locale] || LABEL.en}
       </p>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: 20 }}>

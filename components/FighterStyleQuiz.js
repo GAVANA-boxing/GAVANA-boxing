@@ -221,7 +221,7 @@ const Q = {
     transition: "background 500ms ease",
   },
   brand: {
-    fontSize: 10, fontWeight: 900, letterSpacing: 2.5,
+    fontSize: 11, fontWeight: 900, letterSpacing: 2.5,
     color: GOLD, textTransform: "uppercase", marginBottom: 20,
     position: "relative",
   },

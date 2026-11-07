@@ -203,7 +203,7 @@ export default function FighterPortrait({
           position: "absolute",
           top: 7,
           left: 9,
-          fontSize: 7,
+          fontSize: 11,
           fontWeight: 900,
           letterSpacing: 1.5,
           color: acc,
@@ -239,7 +239,7 @@ export default function FighterPortrait({
             {fighter.name}
           </p>
           <span style={{
-            fontSize: 8,
+            fontSize: 11,
             fontWeight: 800,
             color: acc,
             textTransform: "uppercase",

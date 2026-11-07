@@ -23,7 +23,7 @@ function StatCard({ value, sublabel, color = "#fff" }) {
   return (
     <div style={{ flex: "1 1 calc(50% - 6px)", minWidth: 0, padding: "16px 12px", borderRadius: 14, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", flexDirection: "column", gap: 4 }}>
       <div style={{ fontSize: 28, fontWeight: 1000, color, fontFamily: "var(--font-display,'Anton',sans-serif)", lineHeight: 1 }}>{value ?? "—"}</div>
-      <div style={{ fontSize: 9, fontWeight: 900, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: 1.2 }}>{sublabel}</div>
+      <div style={{ fontSize: 11, fontWeight: 900, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: 1.2 }}>{sublabel}</div>
     </div>
   );
 }
@@ -140,7 +140,7 @@ export default function AdminDashboardPage() {
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
         <div>
-          <p style={{ margin: 0, fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.4)", letterSpacing: 1.5, textTransform: "uppercase" }}>Admin</p>
+          <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.4)", letterSpacing: 1.5, textTransform: "uppercase" }}>Admin</p>
           <h1 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: "#fff" }}>{pageTitle}</h1>
         </div>
       </header>
@@ -213,7 +213,7 @@ export default function AdminDashboardPage() {
             {/* Recent events */}
             {events.length > 0 && (
               <div>
-                <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1.8, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 10 }}>
+                <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.8, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 10 }}>
                   {label(locale, "Recent Events", "Сүүлийн үйлдлүүд", "최근 이벤트")}
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -226,13 +226,13 @@ export default function AdminDashboardPage() {
                     const shortUrl = url.replace(/^https?:\/\/[^/]+/, "").slice(0, 40) || "—";
                     return (
                       <div key={ev.id || i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 10, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
-                        <span style={{ fontSize: 10, fontWeight: 900, color: GOLD, minWidth: 110, flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <span style={{ fontSize: 11, fontWeight: 900, color: GOLD, minWidth: 110, flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {ev.event || ev.type || "event"}
                         </span>
-                        <span style={{ flex: 1, fontSize: 10, color: "rgba(255,255,255,0.35)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <span style={{ flex: 1, fontSize: 11, color: "rgba(255,255,255,0.35)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {shortUrl}
                         </span>
-                        <span style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", flexShrink: 0 }}>{timeStr}</span>
+                        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", flexShrink: 0 }}>{timeStr}</span>
                       </div>
                     );
                   })}

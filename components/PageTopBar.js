@@ -136,7 +136,7 @@ const s = {
     textShadow: `0 0 20px ${redAlpha(0.5)}`,
   },
   logoB: {
-    fontSize: 7,
+    fontSize: 11,
     fontWeight: 900,
     color: RED,
     letterSpacing: "0.28em",
@@ -162,7 +162,7 @@ const s = {
     flex: 1,
   },
   kicker: {
-    fontSize: 8,
+    fontSize: 11,
     fontWeight: 900,
     color: RED,
     letterSpacing: "0.22em",
@@ -208,7 +208,7 @@ const s = {
     background: RED,
     color: "#fff",
     border: "1.5px solid rgba(11,11,12,0.95)",
-    fontSize: 8,
+    fontSize: 11,
     fontWeight: 900,
     lineHeight: "11px",
     textAlign: "center",

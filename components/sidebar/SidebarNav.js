@@ -13,7 +13,7 @@ const s = {
   nav: { display: "flex", flexDirection: "column", gap: 0, flex: 1 },
   navGroup: { marginBottom: 16 },
   groupLabel: {
-    fontSize: 8,
+    fontSize: 11,
     fontWeight: 900,
     color: "rgba(255,255,255,0.11)",
     letterSpacing: 2,

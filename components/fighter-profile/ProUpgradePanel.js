@@ -80,7 +80,7 @@ export default function ProUpgradePanel({ locale, router }) {
     <div style={{ borderRadius: 16, overflow: "hidden", background: `linear-gradient(155deg, rgba(6,6,8,0.97) 0%, ${GOLD}0e 100%)`, border: `1px solid ${GOLD}28`, marginBottom: 8 }}>
       <div style={{ height: 2, background: `linear-gradient(90deg, ${GOLD}88, transparent)` }} />
       <div style={{ padding: "16px 18px" }}>
-        <div style={{ fontSize: 10.5, fontWeight: 900, letterSpacing: 2.5, color: GOLD, textTransform: "uppercase", marginBottom: 10 }}>
+        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2.5, color: GOLD, textTransform: "uppercase", marginBottom: 10 }}>
           ⭐ {L.eyebrow}
         </div>
         <div style={{ fontSize: 18, fontWeight: 1000, color: "#fff", fontFamily: "var(--font-display,'Anton',sans-serif)", textTransform: "uppercase", letterSpacing: "-0.02em", marginBottom: 14 }}>

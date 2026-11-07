@@ -40,12 +40,12 @@ function ReportCard({ report, onDismiss, onAction, locale }) {
             <div style={{ fontSize: 12, fontWeight: 900, color: "#fff" }}>
               {report.reason?.toUpperCase()} · <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>{report.targetType}</span>
             </div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginTop: 2 }}>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 2 }}>
               {report.targetId?.slice(0, 20)}… · {ageStr}
             </div>
           </div>
         </div>
-        <span style={{ fontSize: 10, fontWeight: 800, color: statusColor, padding: "2px 8px", borderRadius: 999, border: `1px solid ${statusColor}`, flexShrink: 0 }}>
+        <span style={{ fontSize: 11, fontWeight: 800, color: statusColor, padding: "2px 8px", borderRadius: 999, border: `1px solid ${statusColor}`, flexShrink: 0 }}>
           {report.status?.toUpperCase()}
         </span>
       </div>
@@ -149,7 +149,7 @@ export default function ModerationPage() {
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
         <div>
-          <p style={{ margin: 0, fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.4)", letterSpacing: 1.5, textTransform: "uppercase" }}>Admin</p>
+          <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.4)", letterSpacing: 1.5, textTransform: "uppercase" }}>Admin</p>
           <h1 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: "#fff" }}>
             {locale === "mn" ? "Хяналт" : locale === "ko" ? "관리" : "Moderation"}
           </h1>

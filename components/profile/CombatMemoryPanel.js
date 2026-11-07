@@ -80,7 +80,7 @@ function MovementChip({ movementCounts }) {
       padding: "2px 7px",
       textTransform: "lowercase",
     }}>
-      <span style={{ fontSize: 10.5 }}>●</span>
+      <span style={{ fontSize: 11 }}>●</span>
       {label} ×{top.count}
     </span>
   );

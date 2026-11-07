@@ -108,7 +108,7 @@ export default function RankPromotionModal({ rank, rankName, onDismiss }) {
         onClick={(e) => e.stopPropagation()}
       >
         <p style={{
-          margin: 0, fontSize: 9, fontWeight: 900,
+          margin: 0, fontSize: 11, fontWeight: 900,
           letterSpacing: "4px", textTransform: "uppercase",
           color: GOLD,
         }}>

@@ -100,7 +100,7 @@ export default function IdentityJourneyStrip({ sessions, dna, studiedIds, curren
                 {step.done ? "✅" : step.emoji}
               </span>
               <span style={{
-                fontSize: 10.5, fontWeight: 800, textAlign: "center", lineHeight: 1.35,
+                fontSize: 11, fontWeight: 800, textAlign: "center", lineHeight: 1.35,
                 color: step.done ? "#34D399" : isCurrent ? GOLD : whiteAlpha(0.22),
               }}>
                 {label}
