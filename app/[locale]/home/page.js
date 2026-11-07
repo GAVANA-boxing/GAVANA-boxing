@@ -112,7 +112,7 @@ export default function HomePage() {
           <span style={{ fontFamily: DISP, fontSize: 19, letterSpacing: 2 }}>GAVANA</span>
           <div style={{ display: "flex", gap: 9, alignItems: "center" }}>
             {streak > 0 && <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontFamily: COND, fontWeight: 700, fontSize: 14, color: GOLD, background: "rgba(245,196,81,0.14)", padding: "5px 11px", borderRadius: 20 }}>🔥 {streak}</span>}
-            <button type="button" onClick={() => go("/notifications")} style={{ width: 36, height: 36, borderRadius: 11, background: whiteAlpha(0.05), display: "grid", placeItems: "center", color: whiteAlpha(0.58), border: "none", cursor: "pointer" }}>
+            <button type="button" aria-label={loc(locale, "Мэдэгдэл", "알림", "Notifications")} onClick={() => go("/notifications")} style={{ width: 42, height: 42, borderRadius: 13, background: whiteAlpha(0.05), display: "grid", placeItems: "center", color: whiteAlpha(0.58), border: "none", cursor: "pointer" }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
             </button>
           </div>
