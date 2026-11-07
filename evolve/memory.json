@@ -1,0 +1,13 @@
+{
+  "cycles": [
+    {
+      "cycleId": "20261107T145626Z-eace9f3",
+      "at": "2026-11-07T15:11:41.862Z",
+      "task": "a11y-small-text:components/profile/FighterShareCard.js",
+      "outcome": "REJECTED",
+      "runId": "20261107T150558Z-124f6dd",
+      "commit": null,
+      "note": "Change rendered fine (screenshot checked) but both verify runs failed on unrelated flaky visual tests: teardown scrub under SwiftShader load, bag intro waits on a slow WebGPU requestAdapter. Not committed; WIP in git stash 'cycle-145626-sharecard-wip'. Fix the flakes first."
+    }
+  ]
+}

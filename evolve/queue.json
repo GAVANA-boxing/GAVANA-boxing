@@ -1,0 +1,1978 @@
+{
+  "tasks": [
+    {
+      "fingerprint": "security:storage-coach-applications-read",
+      "kind": "security",
+      "source": "scanner",
+      "title": "Storage: applicant photos readable by any signed-in user; no upload size/type limits",
+      "evidence": [
+        "storage.rules coach_applications allow read: if request.auth != null"
+      ],
+      "files": [
+        "storage.rules"
+      ],
+      "priority": 95,
+      "risk": "RED",
+      "fix": "Owner-only + admin read; size and content-type limits; emulator test; owner deploys.",
+      "status": "blocked",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/profile/FighterShareCard.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/profile/FighterShareCard.js (9)",
+      "evidence": [
+        "components/profile/FighterShareCard.js:115 fontSize 9.5",
+        "components/profile/FighterShareCard.js:116 fontSize 8.5",
+        "components/profile/FighterShareCard.js:121 fontSize 9",
+        "components/profile/FighterShareCard.js:422 fontSize 7",
+        "components/profile/FighterShareCard.js:426 fontSize 8",
+        "components/profile/FighterShareCard.js:430 fontSize 7.5",
+        "components/profile/FighterShareCard.js:444 fontSize 6",
+        "components/profile/FighterShareCard.js:448 fontSize 7.5",
+        "components/profile/FighterShareCard.js:463 fontSize 7"
+      ],
+      "files": [
+        "components/profile/FighterShareCard.js"
+      ],
+      "priority": 79,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 1,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T15:11:41.862Z",
+      "history": [
+        {
+          "at": "2026-11-07T15:11:41.862Z",
+          "outcome": "REJECTED",
+          "runId": "20261107T150558Z-124f6dd",
+          "commit": null,
+          "note": "Change rendered fine (screenshot checked) but both verify runs failed on unrelated flaky visual tests: teardown scrub under SwiftShader load, bag intro waits on a slow WebGPU requestAdapter. Not committed; WIP in git stash 'cycle-145626-sharecard-wip'. Fix the flakes first."
+        }
+      ],
+      "cycleId": "20261107T145626Z-eace9f3"
+    },
+    {
+      "fingerprint": "a11y-small-text:components/coach/coachStyles.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/coach/coachStyles.js (7)",
+      "evidence": [
+        "components/coach/coachStyles.js:24 fontSize 9",
+        "components/coach/coachStyles.js:32 fontSize 9",
+        "components/coach/coachStyles.js:65 fontSize 10",
+        "components/coach/coachStyles.js:73 fontSize 10",
+        "components/coach/coachStyles.js:92 fontSize 10",
+        "components/coach/coachStyles.js:148 fontSize 10",
+        "components/coach/coachStyles.js:153 fontSize 10"
+      ],
+      "files": [
+        "components/coach/coachStyles.js"
+      ],
+      "priority": 77,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/coach/coachDashboardStyles.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/coach/coachDashboardStyles.js (5)",
+      "evidence": [
+        "components/coach/coachDashboardStyles.js:21 fontSize 10",
+        "components/coach/coachDashboardStyles.js:33 fontSize 10",
+        "components/coach/coachDashboardStyles.js:69 fontSize 10",
+        "components/coach/coachDashboardStyles.js:74 fontSize 10",
+        "components/coach/coachDashboardStyles.js:109 fontSize 10"
+      ],
+      "files": [
+        "components/coach/coachDashboardStyles.js"
+      ],
+      "priority": 75,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/coach/coachIdStyles.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/coach/coachIdStyles.js (4)",
+      "evidence": [
+        "components/coach/coachIdStyles.js:27 fontSize 10",
+        "components/coach/coachIdStyles.js:49 fontSize 10",
+        "components/coach/coachIdStyles.js:54 fontSize 10",
+        "components/coach/coachIdStyles.js:69 fontSize 10"
+      ],
+      "files": [
+        "components/coach/coachIdStyles.js"
+      ],
+      "priority": 74,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/coach/ProPriorityMatchingBanner.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/coach/ProPriorityMatchingBanner.js (3)",
+      "evidence": [
+        "components/coach/ProPriorityMatchingBanner.js:13 fontSize 8.5",
+        "components/coach/ProPriorityMatchingBanner.js:19 fontSize 10",
+        "components/coach/ProPriorityMatchingBanner.js:26 fontSize 10"
+      ],
+      "files": [
+        "components/coach/ProPriorityMatchingBanner.js"
+      ],
+      "priority": 73,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/dashboard/charts/FighterHero.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/dashboard/charts/FighterHero.js (3)",
+      "evidence": [
+        "components/dashboard/charts/FighterHero.js:42 fontSize 9",
+        "components/dashboard/charts/FighterHero.js:96 fontSize 9",
+        "components/dashboard/charts/FighterHero.js:99 fontSize 9"
+      ],
+      "files": [
+        "components/dashboard/charts/FighterHero.js"
+      ],
+      "priority": 73,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/coach/DashboardCards.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/coach/DashboardCards.js (2)",
+      "evidence": [
+        "components/coach/DashboardCards.js:64 fontSize 9",
+        "components/coach/DashboardCards.js:70 fontSize 9"
+      ],
+      "files": [
+        "components/coach/DashboardCards.js"
+      ],
+      "priority": 72,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/auth/AuthEmailForm.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/auth/AuthEmailForm.js (1)",
+      "evidence": [
+        "components/auth/AuthEmailForm.js:167 fontSize 10"
+      ],
+      "files": [
+        "components/auth/AuthEmailForm.js"
+      ],
+      "priority": 71,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/auth/AuthLoadingScreen.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/auth/AuthLoadingScreen.js (1)",
+      "evidence": [
+        "components/auth/AuthLoadingScreen.js:42 fontSize 10"
+      ],
+      "files": [
+        "components/auth/AuthLoadingScreen.js"
+      ],
+      "priority": 71,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/profile/CombatMemoryPanel.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/profile/CombatMemoryPanel.js (1)",
+      "evidence": [
+        "components/profile/CombatMemoryPanel.js:83 fontSize 10.5"
+      ],
+      "files": [
+        "components/profile/CombatMemoryPanel.js"
+      ],
+      "priority": 71,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/rank/HowToEarnXP.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/rank/HowToEarnXP.js (1)",
+      "evidence": [
+        "components/rank/HowToEarnXP.js:77 fontSize 10"
+      ],
+      "files": [
+        "components/rank/HowToEarnXP.js"
+      ],
+      "priority": 71,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/train/AcademyLessonCard.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/train/AcademyLessonCard.js (1)",
+      "evidence": [
+        "components/train/AcademyLessonCard.js:76 fontSize 10.5"
+      ],
+      "files": [
+        "components/train/AcademyLessonCard.js"
+      ],
+      "priority": 71,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/ui/HUDCard.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/ui/HUDCard.js (1)",
+      "evidence": [
+        "components/ui/HUDCard.js:88 fontSize 9"
+      ],
+      "files": [
+        "components/ui/HUDCard.js"
+      ],
+      "priority": 71,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/profile/BattleSection.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/profile/BattleSection.js (11)",
+      "evidence": [
+        "components/profile/BattleSection.js:25 white @ 0.35",
+        "components/profile/BattleSection.js:30 white @ 0.35",
+        "components/profile/BattleSection.js:37 white @ 0.35",
+        "components/profile/BattleSection.js:48 white @ 0.35",
+        "components/profile/BattleSection.js:68 white @ 0.35",
+        "components/profile/BattleSection.js:90 white @ 0.3",
+        "components/profile/BattleSection.js:110 white @ 0.35",
+        "components/profile/BattleSection.js:136 white @ 0.35",
+        "components/profile/BattleSection.js:176 white @ 0.35",
+        "components/profile/BattleSection.js:185 white @ 0.35",
+        "components/profile/BattleSection.js:191 white @ 0.3"
+      ],
+      "files": [
+        "components/profile/BattleSection.js"
+      ],
+      "priority": 70,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/dashboard/charts/FighterHero.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/dashboard/charts/FighterHero.js (4)",
+      "evidence": [
+        "components/dashboard/charts/FighterHero.js:81 white @ 0.28",
+        "components/dashboard/charts/FighterHero.js:88 white @ 0.12",
+        "components/dashboard/charts/FighterHero.js:96 white @ 0.22",
+        "components/dashboard/charts/FighterHero.js:99 white @ 0.3"
+      ],
+      "files": [
+        "components/dashboard/charts/FighterHero.js"
+      ],
+      "priority": 64,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/profile/RankBeltModal.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/profile/RankBeltModal.js (3)",
+      "evidence": [
+        "components/profile/RankBeltModal.js:69 white @ 0.35",
+        "components/profile/RankBeltModal.js:73 white @ 0.4",
+        "components/profile/RankBeltModal.js:93 white @ 0.35"
+      ],
+      "files": [
+        "components/profile/RankBeltModal.js"
+      ],
+      "priority": 63,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:app/[locale]/train/page.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in app/[locale]/train/page.js (2)",
+      "evidence": [
+        "app/[locale]/train/page.js:855 white @ 0.4",
+        "app/[locale]/train/page.js:863 white @ 0.4"
+      ],
+      "files": [
+        "app/[locale]/train/page.js"
+      ],
+      "priority": 62,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/onboarding/OnboardingStep1Archetype.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/onboarding/OnboardingStep1Archetype.js (2)",
+      "evidence": [
+        "components/onboarding/OnboardingStep1Archetype.js:65 white @ 0.3",
+        "components/onboarding/OnboardingStep1Archetype.js:101 white @ 0.3"
+      ],
+      "files": [
+        "components/onboarding/OnboardingStep1Archetype.js"
+      ],
+      "priority": 62,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/auth/AuthLoadingScreen.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/auth/AuthLoadingScreen.js (1)",
+      "evidence": [
+        "components/auth/AuthLoadingScreen.js:45 white @ 0.4"
+      ],
+      "files": [
+        "components/auth/AuthLoadingScreen.js"
+      ],
+      "priority": 61,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/auth/GoogleSignInButton.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/auth/GoogleSignInButton.js (1)",
+      "evidence": [
+        "components/auth/GoogleSignInButton.js:21 white @ 0.38"
+      ],
+      "files": [
+        "components/auth/GoogleSignInButton.js"
+      ],
+      "priority": 61,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/bottomnav/MenuSheet.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/bottomnav/MenuSheet.js (1)",
+      "evidence": [
+        "components/bottomnav/MenuSheet.js:174 white @ 0.4"
+      ],
+      "files": [
+        "components/bottomnav/MenuSheet.js"
+      ],
+      "priority": 61,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/coach/ProPriorityMatchingBanner.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/coach/ProPriorityMatchingBanner.js (1)",
+      "evidence": [
+        "components/coach/ProPriorityMatchingBanner.js:19 white @ 0.4"
+      ],
+      "files": [
+        "components/coach/ProPriorityMatchingBanner.js"
+      ],
+      "priority": 61,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/onboarding/OnboardingIntroScreen.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/onboarding/OnboardingIntroScreen.js (1)",
+      "evidence": [
+        "components/onboarding/OnboardingIntroScreen.js:67 white @ 0.4"
+      ],
+      "files": [
+        "components/onboarding/OnboardingIntroScreen.js"
+      ],
+      "priority": 61,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/onboarding/OnboardingStep0Role.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/onboarding/OnboardingStep0Role.js (1)",
+      "evidence": [
+        "components/onboarding/OnboardingStep0Role.js:37 white @ 0.25"
+      ],
+      "files": [
+        "components/onboarding/OnboardingStep0Role.js"
+      ],
+      "priority": 61,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/onboarding/OnboardingStep2WeeklyGoal.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/onboarding/OnboardingStep2WeeklyGoal.js (1)",
+      "evidence": [
+        "components/onboarding/OnboardingStep2WeeklyGoal.js:50 white @ 0.4"
+      ],
+      "files": [
+        "components/onboarding/OnboardingStep2WeeklyGoal.js"
+      ],
+      "priority": 61,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/profile/ProfileModals.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/profile/ProfileModals.js (1)",
+      "evidence": [
+        "components/profile/ProfileModals.js:45 white @ 0.4"
+      ],
+      "files": [
+        "components/profile/ProfileModals.js"
+      ],
+      "priority": 61,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/profile/SubscriptionStatus.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/profile/SubscriptionStatus.js (1)",
+      "evidence": [
+        "components/profile/SubscriptionStatus.js:61 white @ 0.3"
+      ],
+      "files": [
+        "components/profile/SubscriptionStatus.js"
+      ],
+      "priority": 61,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/rank/HowToEarnXP.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/rank/HowToEarnXP.js (1)",
+      "evidence": [
+        "components/rank/HowToEarnXP.js:149 white @ 0.38"
+      ],
+      "files": [
+        "components/rank/HowToEarnXP.js"
+      ],
+      "priority": 61,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/train/ExperimentModeWidget.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/train/ExperimentModeWidget.js (1)",
+      "evidence": [
+        "components/train/ExperimentModeWidget.js:44 white @ 0.4"
+      ],
+      "files": [
+        "components/train/ExperimentModeWidget.js"
+      ],
+      "priority": 61,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/train/FirstSessionHook.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/train/FirstSessionHook.js (1)",
+      "evidence": [
+        "components/train/FirstSessionHook.js:142 white @ 0.4"
+      ],
+      "files": [
+        "components/train/FirstSessionHook.js"
+      ],
+      "priority": 61,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/train/LivePunchCounter.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/train/LivePunchCounter.js (1)",
+      "evidence": [
+        "components/train/LivePunchCounter.js:108 white @ 0.4"
+      ],
+      "files": [
+        "components/train/LivePunchCounter.js"
+      ],
+      "priority": 61,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/train/TrainResultModal.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/train/TrainResultModal.js (1)",
+      "evidence": [
+        "components/train/TrainResultModal.js:419 white @ 0.4"
+      ],
+      "files": [
+        "components/train/TrainResultModal.js"
+      ],
+      "priority": 61,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/train/WeakDimensionDrill.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/train/WeakDimensionDrill.js (1)",
+      "evidence": [
+        "components/train/WeakDimensionDrill.js:40 white @ 0.4"
+      ],
+      "files": [
+        "components/train/WeakDimensionDrill.js"
+      ],
+      "priority": 61,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:app/[locale]/admin/page.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in app/[locale]/admin/page.js (6)",
+      "evidence": [
+        "app/[locale]/admin/page.js:26 fontSize 9",
+        "app/[locale]/admin/page.js:143 fontSize 10",
+        "app/[locale]/admin/page.js:216 fontSize 9",
+        "app/[locale]/admin/page.js:229 fontSize 10",
+        "app/[locale]/admin/page.js:232 fontSize 10",
+        "app/[locale]/admin/page.js:235 fontSize 9"
+      ],
+      "files": [
+        "app/[locale]/admin/page.js"
+      ],
+      "priority": 46,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/DailyMission.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/DailyMission.js (6)",
+      "evidence": [
+        "components/DailyMission.js:221 fontSize 10",
+        "components/DailyMission.js:226 fontSize 10",
+        "components/DailyMission.js:234 fontSize 10",
+        "components/DailyMission.js:282 fontSize 9",
+        "components/DailyMission.js:288 fontSize 10",
+        "components/DailyMission.js:293 fontSize 9"
+      ],
+      "files": [
+        "components/DailyMission.js"
+      ],
+      "priority": 46,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:app/[locale]/admin/moderation/page.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in app/[locale]/admin/moderation/page.js (3)",
+      "evidence": [
+        "app/[locale]/admin/moderation/page.js:43 fontSize 10",
+        "app/[locale]/admin/moderation/page.js:48 fontSize 10",
+        "app/[locale]/admin/moderation/page.js:152 fontSize 10"
+      ],
+      "files": [
+        "app/[locale]/admin/moderation/page.js"
+      ],
+      "priority": 43,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/drills/DrillCard.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/drills/DrillCard.js (3)",
+      "evidence": [
+        "components/drills/DrillCard.js:49 fontSize 10",
+        "components/drills/DrillCard.js:53 fontSize 10",
+        "components/drills/DrillCard.js:77 fontSize 9"
+      ],
+      "files": [
+        "components/drills/DrillCard.js"
+      ],
+      "priority": 43,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/fighter-profile/FighterPassportCard.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/fighter-profile/FighterPassportCard.js (3)",
+      "evidence": [
+        "components/fighter-profile/FighterPassportCard.js:125 fontSize 10.5",
+        "components/fighter-profile/FighterPassportCard.js:270 fontSize 10.5",
+        "components/fighter-profile/FighterPassportCard.js:271 fontSize 10.5"
+      ],
+      "files": [
+        "components/fighter-profile/FighterPassportCard.js"
+      ],
+      "priority": 43,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/MediaCover.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/MediaCover.js (3)",
+      "evidence": [
+        "components/MediaCover.js:85 fontSize 10",
+        "components/MediaCover.js:104 fontSize 7",
+        "components/MediaCover.js:120 fontSize 7"
+      ],
+      "files": [
+        "components/MediaCover.js"
+      ],
+      "priority": 43,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/PageTopBar.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/PageTopBar.js (3)",
+      "evidence": [
+        "components/PageTopBar.js:139 fontSize 7",
+        "components/PageTopBar.js:165 fontSize 8",
+        "components/PageTopBar.js:211 fontSize 8"
+      ],
+      "files": [
+        "components/PageTopBar.js"
+      ],
+      "priority": 43,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:app/[locale]/coach/apply/page.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in app/[locale]/coach/apply/page.js (2)",
+      "evidence": [
+        "app/[locale]/coach/apply/page.js:345 fontSize 10",
+        "app/[locale]/coach/apply/page.js:357 fontSize 10"
+      ],
+      "files": [
+        "app/[locale]/coach/apply/page.js"
+      ],
+      "priority": 42,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/FighterPortrait.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/FighterPortrait.js (2)",
+      "evidence": [
+        "components/FighterPortrait.js:206 fontSize 7",
+        "components/FighterPortrait.js:242 fontSize 8"
+      ],
+      "files": [
+        "components/FighterPortrait.js"
+      ],
+      "priority": 42,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/sidebar/LanguageSwitcher.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/sidebar/LanguageSwitcher.js (2)",
+      "evidence": [
+        "components/sidebar/LanguageSwitcher.js:17 fontSize 8",
+        "components/sidebar/LanguageSwitcher.js:36 fontSize 9"
+      ],
+      "files": [
+        "components/sidebar/LanguageSwitcher.js"
+      ],
+      "priority": 42,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/sidebar/SidebarLogo.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/sidebar/SidebarLogo.js (2)",
+      "evidence": [
+        "components/sidebar/SidebarLogo.js:60 fontSize 8",
+        "components/sidebar/SidebarLogo.js:86 fontSize 8"
+      ],
+      "files": [
+        "components/sidebar/SidebarLogo.js"
+      ],
+      "priority": 42,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/ai-coach/TodayMissionBanner.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/ai-coach/TodayMissionBanner.js (1)",
+      "evidence": [
+        "components/ai-coach/TodayMissionBanner.js:32 fontSize 8"
+      ],
+      "files": [
+        "components/ai-coach/TodayMissionBanner.js"
+      ],
+      "priority": 41,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/drills/AreaChips.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/drills/AreaChips.js (1)",
+      "evidence": [
+        "components/drills/AreaChips.js:16 fontSize 9"
+      ],
+      "files": [
+        "components/drills/AreaChips.js"
+      ],
+      "priority": 41,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/drills/TypeChips.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/drills/TypeChips.js (1)",
+      "evidence": [
+        "components/drills/TypeChips.js:16 fontSize 9"
+      ],
+      "files": [
+        "components/drills/TypeChips.js"
+      ],
+      "priority": 41,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/fighter-profile/DNAShareCard.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/fighter-profile/DNAShareCard.js (1)",
+      "evidence": [
+        "components/fighter-profile/DNAShareCard.js:249 fontSize 10.5"
+      ],
+      "files": [
+        "components/fighter-profile/DNAShareCard.js"
+      ],
+      "priority": 41,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/fighter-profile/IdentityJourneyStrip.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/fighter-profile/IdentityJourneyStrip.js (1)",
+      "evidence": [
+        "components/fighter-profile/IdentityJourneyStrip.js:103 fontSize 10.5"
+      ],
+      "files": [
+        "components/fighter-profile/IdentityJourneyStrip.js"
+      ],
+      "priority": 41,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/fighter-profile/LiveHubTeaser.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/fighter-profile/LiveHubTeaser.js (1)",
+      "evidence": [
+        "components/fighter-profile/LiveHubTeaser.js:41 fontSize 10.5"
+      ],
+      "files": [
+        "components/fighter-profile/LiveHubTeaser.js"
+      ],
+      "priority": 41,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/fighter-profile/ProUpgradePanel.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/fighter-profile/ProUpgradePanel.js (1)",
+      "evidence": [
+        "components/fighter-profile/ProUpgradePanel.js:83 fontSize 10.5"
+      ],
+      "files": [
+        "components/fighter-profile/ProUpgradePanel.js"
+      ],
+      "priority": 41,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/fighter-profile/TrainingPrescriptionCard.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/fighter-profile/TrainingPrescriptionCard.js (1)",
+      "evidence": [
+        "components/fighter-profile/TrainingPrescriptionCard.js:61 fontSize 10.5"
+      ],
+      "files": [
+        "components/fighter-profile/TrainingPrescriptionCard.js"
+      ],
+      "priority": 41,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/fighter-profile/TribeActivityFeed.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/fighter-profile/TribeActivityFeed.js (1)",
+      "evidence": [
+        "components/fighter-profile/TribeActivityFeed.js:125 fontSize 10.5"
+      ],
+      "files": [
+        "components/fighter-profile/TribeActivityFeed.js"
+      ],
+      "priority": 41,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/fighter-profile/WeeklyReportCard.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/fighter-profile/WeeklyReportCard.js (1)",
+      "evidence": [
+        "components/fighter-profile/WeeklyReportCard.js:102 fontSize 10.5"
+      ],
+      "files": [
+        "components/fighter-profile/WeeklyReportCard.js"
+      ],
+      "priority": 41,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/FighterStyleQuiz.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/FighterStyleQuiz.js (1)",
+      "evidence": [
+        "components/FighterStyleQuiz.js:224 fontSize 10"
+      ],
+      "files": [
+        "components/FighterStyleQuiz.js"
+      ],
+      "priority": 41,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/InAppBrowserWarning.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/InAppBrowserWarning.js (1)",
+      "evidence": [
+        "components/InAppBrowserWarning.js:226 fontSize 10"
+      ],
+      "files": [
+        "components/InAppBrowserWarning.js"
+      ],
+      "priority": 41,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/RankPromotionModal.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/RankPromotionModal.js (1)",
+      "evidence": [
+        "components/RankPromotionModal.js:111 fontSize 9"
+      ],
+      "files": [
+        "components/RankPromotionModal.js"
+      ],
+      "priority": 41,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/sidebar/SidebarFooter.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/sidebar/SidebarFooter.js (1)",
+      "evidence": [
+        "components/sidebar/SidebarFooter.js:99 fontSize 9"
+      ],
+      "files": [
+        "components/sidebar/SidebarFooter.js"
+      ],
+      "priority": 41,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-small-text:components/sidebar/SidebarNav.js",
+      "kind": "a11y-small-text",
+      "source": "scanner",
+      "title": "Text under 11 px in components/sidebar/SidebarNav.js (1)",
+      "evidence": [
+        "components/sidebar/SidebarNav.js:16 fontSize 8"
+      ],
+      "files": [
+        "components/sidebar/SidebarNav.js"
+      ],
+      "priority": 41,
+      "risk": "GREEN",
+      "fix": "Raise each fontSize to ≥ 11; keep the layout (check 360 px); keep contrast ≥ 4.5:1.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "lint-warning:app/[locale]/train/page.js",
+      "kind": "lint-warning",
+      "source": "scanner",
+      "title": "6 lint warning(s) in app/[locale]/train/page.js",
+      "evidence": [
+        "app/[locale]/train/page.js:337 react-hooks/exhaustive-deps: React Hook useEffect has missing dependencies: 'locale', 'result', and 'userArchetype'. Either include them or remove th",
+        "app/[locale]/train/page.js:369 react-hooks/exhaustive-deps: React Hook useEffect has missing dependencies: 'locale' and 'userArchetype'. Either include them or remove the dependenc",
+        "app/[locale]/train/page.js:530 react-hooks/exhaustive-deps: React Hook useEffect has missing dependencies: 'locale' and 't'. Either include them or remove the dependency array.",
+        "app/[locale]/train/page.js:561 react-hooks/exhaustive-deps: React Hook useEffect has a missing dependency: 'result?.score'. Either include it or remove the dependency array.",
+        "app/[locale]/train/page.js:608 react-hooks/exhaustive-deps: React Hook useEffect has missing dependencies: 'poseSessionSummary' and 'result?.score'. Either include them or remove t",
+        "app/[locale]/train/page.js:696 react-hooks/exhaustive-deps: React Hook useEffect has a missing dependency: 'videoRef'. Either include it or remove the dependency array."
+      ],
+      "files": [
+        "app/[locale]/train/page.js"
+      ],
+      "priority": 40,
+      "risk": "GREEN",
+      "fix": "Fix the warning without changing behaviour; never just disable the rule.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "lint-warning:app/[locale]/fighter-profile/page.js",
+      "kind": "lint-warning",
+      "source": "scanner",
+      "title": "2 lint warning(s) in app/[locale]/fighter-profile/page.js",
+      "evidence": [
+        "app/[locale]/fighter-profile/page.js:250 react-hooks/exhaustive-deps: React Hook useEffect has a missing dependency: 'dna'. Either include it or remove the dependency array.",
+        "app/[locale]/fighter-profile/page.js:265 react-hooks/exhaustive-deps: React Hook useEffect has a missing dependency: 'progress'. Either include it or remove the dependency array."
+      ],
+      "files": [
+        "app/[locale]/fighter-profile/page.js"
+      ],
+      "priority": 37,
+      "risk": "GREEN",
+      "fix": "Fix the warning without changing behaviour; never just disable the rule.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "lint-warning:components/profile/FighterShareCard.js",
+      "kind": "lint-warning",
+      "source": "scanner",
+      "title": "2 lint warning(s) in components/profile/FighterShareCard.js",
+      "evidence": [
+        "components/profile/FighterShareCard.js:315 @next/next/no-img-element: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom ",
+        "components/profile/FighterShareCard.js:390 @next/next/no-img-element: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom "
+      ],
+      "files": [
+        "components/profile/FighterShareCard.js"
+      ],
+      "priority": 37,
+      "risk": "GREEN",
+      "fix": "Fix the warning without changing behaviour; never just disable the rule.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:app/[locale]/admin/page.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in app/[locale]/admin/page.js (6)",
+      "evidence": [
+        "app/[locale]/admin/page.js:26 white @ 0.35",
+        "app/[locale]/admin/page.js:143 white @ 0.4",
+        "app/[locale]/admin/page.js:216 white @ 0.3",
+        "app/[locale]/admin/page.js:232 white @ 0.35",
+        "app/[locale]/admin/page.js:235 white @ 0.25",
+        "app/[locale]/admin/page.js:244 white @ 0.2"
+      ],
+      "files": [
+        "app/[locale]/admin/page.js"
+      ],
+      "priority": 36,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "lint-warning:app/[locale]/explore/page.js",
+      "kind": "lint-warning",
+      "source": "scanner",
+      "title": "1 lint warning(s) in app/[locale]/explore/page.js",
+      "evidence": [
+        "app/[locale]/explore/page.js:135 @next/next/no-img-element: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom "
+      ],
+      "files": [
+        "app/[locale]/explore/page.js"
+      ],
+      "priority": 36,
+      "risk": "GREEN",
+      "fix": "Fix the warning without changing behaviour; never just disable the rule.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "lint-warning:app/[locale]/fighters/[fighterId]/page.js",
+      "kind": "lint-warning",
+      "source": "scanner",
+      "title": "1 lint warning(s) in app/[locale]/fighters/[fighterId]/page.js",
+      "evidence": [
+        "app/[locale]/fighters/[fighterId]/page.js:137 react-hooks/exhaustive-deps: React Hook useEffect has a missing dependency: 'fighter'. Either include it or remove the dependency array."
+      ],
+      "files": [
+        "app/[locale]/fighters/[fighterId]/page.js"
+      ],
+      "priority": 36,
+      "risk": "GREEN",
+      "fix": "Fix the warning without changing behaviour; never just disable the rule.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "lint-warning:components/discover/DNABanner.js",
+      "kind": "lint-warning",
+      "source": "scanner",
+      "title": "1 lint warning(s) in components/discover/DNABanner.js",
+      "evidence": [
+        "components/discover/DNABanner.js:81 @next/next/no-img-element: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom "
+      ],
+      "files": [
+        "components/discover/DNABanner.js"
+      ],
+      "priority": 36,
+      "risk": "GREEN",
+      "fix": "Fix the warning without changing behaviour; never just disable the rule.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "lint-warning:components/fighter-profile/DNARevealOverlay.js",
+      "kind": "lint-warning",
+      "source": "scanner",
+      "title": "1 lint warning(s) in components/fighter-profile/DNARevealOverlay.js",
+      "evidence": [
+        "components/fighter-profile/DNARevealOverlay.js:68 @next/next/no-img-element: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom "
+      ],
+      "files": [
+        "components/fighter-profile/DNARevealOverlay.js"
+      ],
+      "priority": 36,
+      "risk": "GREEN",
+      "fix": "Fix the warning without changing behaviour; never just disable the rule.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "lint-warning:components/FighterPortrait.js",
+      "kind": "lint-warning",
+      "source": "scanner",
+      "title": "1 lint warning(s) in components/FighterPortrait.js",
+      "evidence": [
+        "components/FighterPortrait.js:140 @next/next/no-img-element: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom "
+      ],
+      "files": [
+        "components/FighterPortrait.js"
+      ],
+      "priority": 36,
+      "risk": "GREEN",
+      "fix": "Fix the warning without changing behaviour; never just disable the rule.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "lint-warning:components/gyms/GymDNADistribution.js",
+      "kind": "lint-warning",
+      "source": "scanner",
+      "title": "1 lint warning(s) in components/gyms/GymDNADistribution.js",
+      "evidence": [
+        "components/gyms/GymDNADistribution.js:116 @next/next/no-img-element: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom "
+      ],
+      "files": [
+        "components/gyms/GymDNADistribution.js"
+      ],
+      "priority": 36,
+      "risk": "GREEN",
+      "fix": "Fix the warning without changing behaviour; never just disable the rule.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "lint-warning:components/gyms/GymSessionsTab.js",
+      "kind": "lint-warning",
+      "source": "scanner",
+      "title": "1 lint warning(s) in components/gyms/GymSessionsTab.js",
+      "evidence": [
+        "components/gyms/GymSessionsTab.js:107 @next/next/no-img-element: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom "
+      ],
+      "files": [
+        "components/gyms/GymSessionsTab.js"
+      ],
+      "priority": 36,
+      "risk": "GREEN",
+      "fix": "Fix the warning without changing behaviour; never just disable the rule.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "lint-warning:components/PageTopBar.js",
+      "kind": "lint-warning",
+      "source": "scanner",
+      "title": "1 lint warning(s) in components/PageTopBar.js",
+      "evidence": [
+        "components/PageTopBar.js:89 @next/next/no-img-element: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom "
+      ],
+      "files": [
+        "components/PageTopBar.js"
+      ],
+      "priority": 36,
+      "risk": "GREEN",
+      "fix": "Fix the warning without changing behaviour; never just disable the rule.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "lint-warning:components/profile/FighterDNACard.js",
+      "kind": "lint-warning",
+      "source": "scanner",
+      "title": "1 lint warning(s) in components/profile/FighterDNACard.js",
+      "evidence": [
+        "components/profile/FighterDNACard.js:168 @next/next/no-img-element: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom "
+      ],
+      "files": [
+        "components/profile/FighterDNACard.js"
+      ],
+      "priority": 36,
+      "risk": "GREEN",
+      "fix": "Fix the warning without changing behaviour; never just disable the rule.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "lint-warning:components/profile/FollowListModal.js",
+      "kind": "lint-warning",
+      "source": "scanner",
+      "title": "1 lint warning(s) in components/profile/FollowListModal.js",
+      "evidence": [
+        "components/profile/FollowListModal.js:234 @next/next/no-img-element: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom "
+      ],
+      "files": [
+        "components/profile/FollowListModal.js"
+      ],
+      "priority": 36,
+      "risk": "GREEN",
+      "fix": "Fix the warning without changing behaviour; never just disable the rule.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "lint-warning:components/reels/DesktopReelCard.js",
+      "kind": "lint-warning",
+      "source": "scanner",
+      "title": "1 lint warning(s) in components/reels/DesktopReelCard.js",
+      "evidence": [
+        "components/reels/DesktopReelCard.js:153 @next/next/no-img-element: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom "
+      ],
+      "files": [
+        "components/reels/DesktopReelCard.js"
+      ],
+      "priority": 36,
+      "risk": "GREEN",
+      "fix": "Fix the warning without changing behaviour; never just disable the rule.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "lint-warning:components/reels/QuickPostBar.js",
+      "kind": "lint-warning",
+      "source": "scanner",
+      "title": "1 lint warning(s) in components/reels/QuickPostBar.js",
+      "evidence": [
+        "components/reels/QuickPostBar.js:10 @next/next/no-img-element: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom "
+      ],
+      "files": [
+        "components/reels/QuickPostBar.js"
+      ],
+      "priority": 36,
+      "risk": "GREEN",
+      "fix": "Fix the warning without changing behaviour; never just disable the rule.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "lint-warning:hooks/useProfileData.js",
+      "kind": "lint-warning",
+      "source": "scanner",
+      "title": "1 lint warning(s) in hooks/useProfileData.js",
+      "evidence": [
+        "hooks/useProfileData.js:324 react-hooks/exhaustive-deps: React Hook useEffect has a missing dependency: 'profileUser?.dailyStreak'. Either include it or remove the dependency ar"
+      ],
+      "files": [
+        "hooks/useProfileData.js"
+      ],
+      "priority": 36,
+      "risk": "YELLOW",
+      "fix": "Fix the warning without changing behaviour; never just disable the rule.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:app/[locale]/admin/moderation/page.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in app/[locale]/admin/moderation/page.js (4)",
+      "evidence": [
+        "app/[locale]/admin/moderation/page.js:41 white @ 0.4",
+        "app/[locale]/admin/moderation/page.js:43 white @ 0.35",
+        "app/[locale]/admin/moderation/page.js:152 white @ 0.4",
+        "app/[locale]/admin/moderation/page.js:186 white @ 0.3"
+      ],
+      "files": [
+        "app/[locale]/admin/moderation/page.js"
+      ],
+      "priority": 34,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:app/[locale]/privacy/page.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in app/[locale]/privacy/page.js (2)",
+      "evidence": [
+        "app/[locale]/privacy/page.js:370 white @ 0.35",
+        "app/[locale]/privacy/page.js:424 white @ 0.3"
+      ],
+      "files": [
+        "app/[locale]/privacy/page.js"
+      ],
+      "priority": 32,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:app/[locale]/terms/page.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in app/[locale]/terms/page.js (2)",
+      "evidence": [
+        "app/[locale]/terms/page.js:424 white @ 0.35",
+        "app/[locale]/terms/page.js:494 white @ 0.3"
+      ],
+      "files": [
+        "app/[locale]/terms/page.js"
+      ],
+      "priority": 32,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/fighter-profile/DNARevealOverlay.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/fighter-profile/DNARevealOverlay.js (2)",
+      "evidence": [
+        "components/fighter-profile/DNARevealOverlay.js:127 white @ 0.4",
+        "components/fighter-profile/DNARevealOverlay.js:132 white @ 0.4"
+      ],
+      "files": [
+        "components/fighter-profile/DNARevealOverlay.js"
+      ],
+      "priority": 32,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/drills/AreaChips.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/drills/AreaChips.js (1)",
+      "evidence": [
+        "components/drills/AreaChips.js:16 white @ 0.3"
+      ],
+      "files": [
+        "components/drills/AreaChips.js"
+      ],
+      "priority": 31,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/drills/DrillCard.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/drills/DrillCard.js (1)",
+      "evidence": [
+        "components/drills/DrillCard.js:53 white @ 0.3"
+      ],
+      "files": [
+        "components/drills/DrillCard.js"
+      ],
+      "priority": 31,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/drills/DrillsEmptyState.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/drills/DrillsEmptyState.js (1)",
+      "evidence": [
+        "components/drills/DrillsEmptyState.js:20 white @ 0.22"
+      ],
+      "files": [
+        "components/drills/DrillsEmptyState.js"
+      ],
+      "priority": 31,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/drills/TypeChips.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/drills/TypeChips.js (1)",
+      "evidence": [
+        "components/drills/TypeChips.js:16 white @ 0.3"
+      ],
+      "files": [
+        "components/drills/TypeChips.js"
+      ],
+      "priority": 31,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/drills/WeakAreaHint.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/drills/WeakAreaHint.js (1)",
+      "evidence": [
+        "components/drills/WeakAreaHint.js:29 white @ 0.35"
+      ],
+      "files": [
+        "components/drills/WeakAreaHint.js"
+      ],
+      "priority": 31,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/fighter-profile/EvolutionRevealPanel.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/fighter-profile/EvolutionRevealPanel.js (1)",
+      "evidence": [
+        "components/fighter-profile/EvolutionRevealPanel.js:241 white @ 0.4"
+      ],
+      "files": [
+        "components/fighter-profile/EvolutionRevealPanel.js"
+      ],
+      "priority": 31,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/fighter-profile/ProGate.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/fighter-profile/ProGate.js (1)",
+      "evidence": [
+        "components/fighter-profile/ProGate.js:19 white @ 0.4"
+      ],
+      "files": [
+        "components/fighter-profile/ProGate.js"
+      ],
+      "priority": 31,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/FighterStyleQuiz.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/FighterStyleQuiz.js (1)",
+      "evidence": [
+        "components/FighterStyleQuiz.js:238 white @ 0.28"
+      ],
+      "files": [
+        "components/FighterStyleQuiz.js"
+      ],
+      "priority": 31,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/InAppBrowserWarning.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/InAppBrowserWarning.js (1)",
+      "evidence": [
+        "components/InAppBrowserWarning.js:333 white @ 0.3"
+      ],
+      "files": [
+        "components/InAppBrowserWarning.js"
+      ],
+      "priority": 31,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/MilestoneCelebration.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/MilestoneCelebration.js (1)",
+      "evidence": [
+        "components/MilestoneCelebration.js:93 white @ 0.4"
+      ],
+      "files": [
+        "components/MilestoneCelebration.js"
+      ],
+      "priority": 31,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/sidebar/LanguageSwitcher.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/sidebar/LanguageSwitcher.js (1)",
+      "evidence": [
+        "components/sidebar/LanguageSwitcher.js:19 white @ 0.28"
+      ],
+      "files": [
+        "components/sidebar/LanguageSwitcher.js"
+      ],
+      "priority": 31,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/sidebar/SidebarLogo.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/sidebar/SidebarLogo.js (1)",
+      "evidence": [
+        "components/sidebar/SidebarLogo.js:62 white @ 0.25"
+      ],
+      "files": [
+        "components/sidebar/SidebarLogo.js"
+      ],
+      "priority": 31,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    },
+    {
+      "fingerprint": "a11y-contrast:components/sidebar/SidebarNav.js",
+      "kind": "a11y-contrast",
+      "source": "scanner",
+      "title": "Low-contrast text in components/sidebar/SidebarNav.js (1)",
+      "evidence": [
+        "components/sidebar/SidebarNav.js:18 white @ 0.11"
+      ],
+      "files": [
+        "components/sidebar/SidebarNav.js"
+      ],
+      "priority": 31,
+      "risk": "GREEN",
+      "fix": "Text colour ≥ rgba(255,255,255,0.5) (BRAND.faint) on the dark background; decorative-only elements can stay dim.",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T14:57:05.346Z",
+      "updatedAt": "2026-11-07T14:57:05.346Z",
+      "history": []
+    }
+  ]
+}
