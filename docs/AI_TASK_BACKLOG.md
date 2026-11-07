@@ -15,7 +15,6 @@ Status: TODO · BLOCKED (needs approval) · DONE. Highest priority first.
 ## P2
 - Push notification texts: user-to-user pushes localized in 40bcf61 (another session). Still to
   check: `functions/index.js` retention pushes — read-only first; changing what is sent is RED.
-- `profile/[userId]` layout metadata (per-user title, noindex).
 - Coach chat header / persona chips in the brand style.
 - Ghost recording / viewing microcopy (small caps text).
 

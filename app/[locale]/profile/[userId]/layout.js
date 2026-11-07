@@ -1,9 +1,14 @@
 // Server Component — generates OG meta for profile pages
 // Fetches user data via Firestore REST API (no firebase-admin needed)
 
+import { getLocale } from "@/lib/i18n";
+import { loc } from "@/lib/loc";
+
 const PROJECT = "gavana-boxing-89a22";
 const API_KEY = "AIzaSyDwVdR5oVYSXQbWL4jqNSNx9cqKuKxqt6c";
-const BASE_URL = "https://gavana-boxing.web.app"; // update with your actual domain
+// Profiles need sign-in to view, so search engines get noindex; link previews
+// (OG/Twitter) still show the fighter's name and photo — the users doc is public.
+const ROBOTS = { index: false, follow: false };
 
 async function fetchUserDoc(userId) {
   try {
@@ -23,18 +28,19 @@ function str(field) { return field?.stringValue || ""; }
 function num(field) { return Number(field?.integerValue || field?.doubleValue || 0); }
 
 export async function generateMetadata({ params }) {
-  const { locale, userId } = await params;
+  const { locale: rawLocale, userId } = await params;
+  const locale = getLocale(rawLocale);
   const fields = await fetchUserDoc(userId);
 
   if (!fields) {
     return {
-      title: "Fighter Profile — GAVANA Boxing",
-      description: "Boxing reels, AI coach, and fighter community.",
+      title: { absolute: `${loc(locale, "Боксчны профайл", "파이터 프로필", "Fighter profile")} | GAVANA Boxing` },
+      description: loc(locale, "GAVANA — AI бокс дасгалжуулагч.", "GAVANA — AI 복싱 코치.", "GAVANA — AI boxing coach."),
+      robots: ROBOTS,
     };
   }
 
   const name        = str(fields.displayName) || str(fields.username) || "Fighter";
-  const username    = str(fields.username) || userId;
   const photo       = str(fields.photoURL) || str(fields.profileImageUrl);
   const xp          = num(fields.xp);
   const archetype   = str(fields.fighterArchetype);
@@ -54,11 +60,16 @@ export async function generateMetadata({ params }) {
     "Challenge me on GAVANA Boxing",
   ].filter(Boolean).join(" · ");
 
-  const profileUrl = `${BASE_URL}/${locale}/profile/${username}`;
+  // Relative URL: resolved against metadataBase in app/layout.js. The route is
+  // keyed by uid, not username, so a username link would 404.
+  const profileUrl = `/${locale}/profile/${userId}`;
   const title = `${name} — GAVANA Boxing`;
 
   return {
-    title,
+    // absolute: the root template would otherwise append "| GAVANA Boxing" again.
+    title: { absolute: title },
+    robots: ROBOTS,
+    alternates: { canonical: profileUrl },
     description: desc,
     openGraph: {
       title,

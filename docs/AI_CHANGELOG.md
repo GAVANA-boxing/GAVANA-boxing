@@ -2,6 +2,15 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Cycle 5 — profile page metadata
+- `profile/[userId]/layout.js`: title was "Name — GAVANA Boxing | GAVANA Boxing" (root template
+  appended again) → absolute title. OG url pointed at a hard-coded `gavana-boxing.web.app` and
+  at `/profile/<username>` although the route is keyed by uid → relative `/{locale}/profile/{uid}`
+  (metadataBase) + canonical. Added `noindex, nofollow` (page needs sign-in). Fallback title
+  localized MN/KO/EN.
+- Checked: build OK, `/mn|ko|en/profile/<unknown uid>` → localized title + robots noindex.
+  Real-profile OG not checked here (would read production data).
+
 ## Cycle 4 — how to turn the camera back on
 - `/train` camera denied: new hint box with the steps for iOS Safari («aA» → Website Settings →
   Camera), Android Chrome (lock icon → Permissions → Camera) or desktop (lock icon → Camera),
