@@ -56,6 +56,10 @@ next-env.d.ts
 # Rules-test tool dependencies and emulator logs
 /scripts/rules-test/node_modules/
 firestore-debug.log
+storage-debug.log
+
+# Local build output
+build.log
 # Evolve run lock
 /.evolve.lock
 __pycache__/
