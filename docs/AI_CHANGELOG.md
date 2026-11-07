@@ -2,6 +2,25 @@
 
 One entry per cycle that changed code. Newest first.
 
+## EVOLVE — self-improvement engine running (owner: implementation directive §17-23 + PRE-AUTHORIZED AUTONOMY POLICY v1.0)
+- Engine C: persistent state in git on the branch — `evolve/queue.json` (tasks), `evolve/memory.json` (cycles),
+  `evolve/lock.json` (distributed lock = a pushed commit; 45-min lease; lost race backs off),
+  `evolve/control.json` (kill switch, daily budget, failure breaker — owner-controlled),
+  `evolve/runs-index.json`; `scripts/evolve/observe.mjs` (finds text < 11 px incl. ternaries, low contrast,
+  lint warnings, known RED security items), `scripts/evolve/cycle.mjs` (start / finish / status / add / release).
+- Engine A demonstrated: cycles in this session (share card, coach styles, flaky-test fix — one REJECTED
+  then fixed and ACCEPTED) and, outside this chat, by the **GAVANA Evolve runner** session
+  (`session_01XsqRc7f7wzjyPWd5JQdzWx`) woken by the scheduled task `trig_0123oFdQS4k8m4dcWPQERWY6`
+  (hourly, platform minimum; runner self-paces every 15 min via `send_later` per `docs/evolve/RUNNER.md`).
+  First autonomous cycle: coach dashboard labels (`1e856b8`, ACCEPTED).
+- Verified: kill switch → PAUSED; second start while locked → LOCKED; `/admin/evolution` fails closed
+  (404 without ADMIN_UIDS, redirect without a valid signed cookie).
+- Engine B: model registry `evolve/coach/models.json` (rule-v1 = current detector, macro F1 0.904 on the
+  fixture), dataset manifest with provenance / consent / labels / split. Collect / label / train are
+  BLOCKED (no consented multi-person data) — not operational, by design.
+- `/admin/evolution` dashboard (owner-only): status, scheduler, tasks, test results vs baseline, punch
+  metrics, approvals, alerts, cycle + run history, cost, baseline screenshots, stop / resume instructions.
+
 ## EVOLVE — Engineer AI MVP (owner: "A r hii")
 - `scripts/evolve/check.mjs` (`npm run evolve:check`): VERIFY → EVALUATE → DECIDE → RECORD. Steps lint,
   typecheck, unit, build, bundle, punch metrics, optional visual / playtests and Firestore rules;

@@ -58,3 +58,4 @@ next-env.d.ts
 firestore-debug.log
 # Evolve run lock
 /.evolve.lock
+__pycache__/
