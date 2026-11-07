@@ -1,0 +1,234 @@
+{
+  "id": "20261107T151715Z-cfa4709",
+  "key": "82a35afb",
+  "task": "test-flake:visual-webgl-load — requestAdapter timeout, teardown shots without WebGL, bag shot timeout (cycle 20261107T151256Z-d9f7811)",
+  "branch": "claude/review-refactor-code-DUmiX",
+  "commit": "cfa4709",
+  "base": "@{upstream}",
+  "dirty": true,
+  "startedAt": "2026-11-07T15:17:15.798Z",
+  "finishedAt": "2026-11-07T15:22:24.039Z",
+  "durationS": 308,
+  "cost": {
+    "paidApiCalls": 0,
+    "note": "checks run locally; no paid APIs"
+  },
+  "change": {
+    "level": "GREEN",
+    "files": [
+      {
+        "path": "evolve/queue.json",
+        "level": "GREEN",
+        "why": "evolve state written by the cycle tooling"
+      },
+      {
+        "path": "lib/three/renderCaps.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "tests/visual/__screenshots__/teardown-ko-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/teardown-mn-360.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/teardown-mn-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/screens.spec.mjs",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "name": "lint",
+      "ms": 39200,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0,
+        "warnings": 23
+      }
+    },
+    {
+      "name": "typecheck",
+      "ms": 1682,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0
+      }
+    },
+    {
+      "name": "unit",
+      "ms": 3809,
+      "status": "PASS",
+      "metrics": {
+        "passed": 252,
+        "failed": 0
+      }
+    },
+    {
+      "name": "build",
+      "ms": 18682,
+      "status": "PASS",
+      "metrics": {}
+    },
+    {
+      "name": "bundle",
+      "status": "PASS",
+      "metrics": {
+        "kb": 6598
+      }
+    },
+    {
+      "name": "punch",
+      "ms": 98,
+      "status": "PASS",
+      "metrics": {
+        "macroF1": 0.904,
+        "recall": 0.897,
+        "precision": 1,
+        "phantoms": 0
+      }
+    },
+    {
+      "name": "visual",
+      "ms": 244757,
+      "status": "FAIL",
+      "metrics": {
+        "passed": 48,
+        "failed": 1,
+        "flaky": 0
+      },
+      "tail": "Running 49 tests using 1 worker\n\n\n\n\n\n  1) tests/visual/play3d.spec.mjs:27:3 › 3D playtests › heavy bag: a tap lands, the bag swings, nothing breaks \n\n    Error: expect(received).toEqual(expected) // deep equality\n\n    - Expected  - 1\n    + Received  + 3\n\n    - Array []\n    + Array [\n    +   \"THREE.WebGLRenderer: Context Lost.\",\n    + ]\n\n      44 |     }, { timeout: 3000 }).toBeGreaterThan(2);\n      45 |     await expectDrawn(scene.locator(\"canvas\"), \"bag\");\n    > 46 |     expect(errors).toEqual([]);\n         |                    ^\n      47 |   });\n      48 |\n      49 |   test(\"world tour: the city renders\", async ({ page }) => {\n        at /home/user/GAVANA-boxing/tests/visual/play3d.spec.mjs:46:20\n\n    Error Context: test-results/play3d-3D-playtests-heavy--eca14-e-bag-swings-nothing-breaks/error-context.md\n\n\n\n\n\n\n  1 failed\n    tests/visual/play3d.spec.mjs:27:3 › 3D playtests › heavy bag: a tap lands, the bag swings, nothing breaks \n  48 passed (4.1m)\n\n(node:26238) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:26238) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:26378) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:26378) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "name": "rules",
+      "status": "NOT RUN",
+      "note": "pass --rules to run"
+    }
+  ],
+  "comparison": [
+    {
+      "metric": "lint.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "lint.warnings",
+      "baseline": 23,
+      "value": 23,
+      "limit": "≤ 23",
+      "status": "PASS"
+    },
+    {
+      "metric": "typecheck.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.passed",
+      "baseline": 241,
+      "value": 252,
+      "limit": "≥ 241",
+      "status": "PASS"
+    },
+    {
+      "metric": "bundle.kb",
+      "baseline": 6598,
+      "value": 6598,
+      "limit": "≤ 6928",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.macroF1",
+      "baseline": 0.904,
+      "value": 0.904,
+      "limit": "≥ 0.9035000000000001",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.phantoms",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.failed",
+      "baseline": 0,
+      "value": 1,
+      "limit": "≤ 0",
+      "status": "FAIL"
+    },
+    {
+      "metric": "visual.passed",
+      "baseline": 49,
+      "value": 48,
+      "limit": "≥ 49",
+      "status": "FAIL"
+    },
+    {
+      "metric": "rules.failed",
+      "status": "NOT RUN"
+    },
+    {
+      "metric": "rules.passed",
+      "status": "NOT RUN"
+    }
+  ],
+  "verdict": "REJECTED",
+  "verdictNote": "failed: visual; regressed: visual.failed, visual.passed",
+  "history": [
+    {
+      "state": "PENDING",
+      "at": "2026-11-07T15:17:15.798Z",
+      "note": "created"
+    },
+    {
+      "state": "PLANNING",
+      "at": "2026-11-07T15:17:15.798Z",
+      "note": "test-flake:visual-webgl-load — requestAdapter timeout, teardown shots without WebGL, bag shot timeout (cycle 20261107T151256Z-d9f7811)"
+    },
+    {
+      "state": "IMPLEMENTING",
+      "at": "2026-11-07T15:17:15.798Z",
+      "note": "6 changed file(s) vs @{upstream}, risk GREEN"
+    },
+    {
+      "state": "VERIFYING",
+      "at": "2026-11-07T15:17:15.798Z",
+      "note": ""
+    },
+    {
+      "state": "EVALUATING",
+      "at": "2026-11-07T15:22:24.031Z",
+      "note": ""
+    },
+    {
+      "state": "REJECTED",
+      "at": "2026-11-07T15:22:24.032Z",
+      "note": "failed: visual; regressed: visual.failed, visual.passed"
+    }
+  ],
+  "baselineCommit": "37f2e45"
+}

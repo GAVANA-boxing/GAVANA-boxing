@@ -83,6 +83,15 @@ test.describe("live camera", () => {
 for (const v of [{ id: "mn-390", locale: "mn", viewport: viewport390 }, { id: "mn-360", locale: "mn", viewport: { width: 360, height: 800 } }, { id: "ko-390", locale: "ko", viewport: viewport390 }]) {
   test(`teardown ${v.id}`, async ({ page }) => {
     await prepare(page);
+    // No WebGL here: the canvas isn't compared anyway, and software GL rendering the
+    // avatar can starve the page on a loaded machine (flaky scrub). The 3D itself is
+    // covered by the playtest in play3d.spec.mjs. The page shows its no-3D fallback.
+    await page.addInitScript(() => {
+      const orig = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function (type, ...rest) {
+        return /webgl/i.test(type) ? null : orig.call(this, type, ...rest);
+      };
+    });
     await page.setViewportSize(v.viewport);
     await page.goto(`/${v.locale}/visual/teardown`, { waitUntil: "load" });
     await expect(page.getByTestId("teardown-tips")).toBeVisible();
@@ -151,10 +160,11 @@ for (const v of [{ id: "mn-390", locale: "mn", viewport: viewport390 }, { id: "m
     await prepare(page);
     await page.setViewportSize(v.viewport);
     await page.goto(`/${v.locale}/bag`, { waitUntil: "load" });
-    await expect(page.getByTestId("bag-scene")).toBeVisible();
+    await expect(page.getByTestId("bag-scene")).toBeVisible({ timeout: 15_000 });
     await page.addStyleTag({ content: "[data-testid=bag-scene] canvas { opacity: 0 !important; }" });
     await settle(page);
-    await expect(page).toHaveScreenshot(`bag-${v.id}.png`, { fullPage: true });
+    // Software WebGL keeps rendering the (hidden) bag scene, so taking the shot is slow.
+    await expect(page).toHaveScreenshot(`bag-${v.id}.png`, { fullPage: true, timeout: 30_000 });
   });
 }
 

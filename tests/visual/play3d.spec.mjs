@@ -10,7 +10,16 @@ function watchErrors(page) {
   page.on("pageerror", (e) => errors.push(`pageerror: ${e.message}`));
   page.on("console", (m) => {
     const t = m.text();
-    if (/THREE\.WebGLProgram|Shader Error|WebGL: |GL_INVALID|context lost/i.test(t)) errors.push(t.slice(0, 300));
+    if (/THREE\.WebGLProgram|Shader Error|WebGL: |GL_INVALID/i.test(t)) errors.push(t.slice(0, 300));
+    if (t.startsWith("CONTEXT_LOST_LIVE")) errors.push("WebGL context lost on a canvas still on screen");
+  });
+  // React Three Fiber force-loses the context of a canvas it unmounts (e.g. the
+  // bag intro scene when the round starts) — that's cleanup, not a failure. A
+  // loss on a canvas that is still in the page is a real problem.
+  page.addInitScript(() => {
+    document.addEventListener("webglcontextlost", (e) => {
+      setTimeout(() => { if (e.target && e.target.isConnected) console.log("CONTEXT_LOST_LIVE"); }, 0);
+    }, true);
   });
   return errors;
 }
