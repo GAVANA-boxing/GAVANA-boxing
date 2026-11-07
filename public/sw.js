@@ -1,5 +1,5 @@
-const CACHE = "gavana-v2";
-const PRECACHE = ["/offline", "/icons/gavana-icon.svg", "/icons/gavana-maskable.svg"];
+const CACHE = "gavana-v3";
+const PRECACHE = ["/offline", "/icons/gavana-icon.svg", "/icons/icon-192.png", "/icons/badge-96.png"];
 
 // ── Install ───────────────────────────────────────────────────────────────────
 self.addEventListener("install", (e) => {
@@ -56,8 +56,10 @@ self.addEventListener("push", (e) => {
 
   const title    = payload.title || "GAVANA Boxing";
   const body     = payload.body  || "";
-  const icon     = payload.icon  || "/icons/gavana-icon.svg";
-  const badge    = payload.badge || "/icons/gavana-icon.svg";
+  // PNG: Android doesn't render SVG notification icons; the badge is a white
+  // glyph on transparent (only its alpha is drawn in the status bar).
+  const icon     = payload.icon  || "/icons/icon-192.png";
+  const badge    = payload.badge || "/icons/badge-96.png";
   const clickUrl = payload.url   || "/";
 
   e.waitUntil(

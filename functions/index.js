@@ -40,7 +40,7 @@ const messaging = getMessaging();
 const REGION = "asia-northeast3";
 // Primary market timezone — schedules fire in local evening/morning.
 const TZ = "Asia/Ulaanbaatar";
-const ICON = "/icons/gavana-icon.svg";
+const ICON = "/icons/icon-192.png"; // PNG: Android notifications don't render SVG
 
 // ── date helpers (timezone-aware, YYYY-MM-DD) ─────────────────────────────────
 function dateKeyInTz(date, timeZone = TZ) {
@@ -94,7 +94,7 @@ async function sendToUser(uid, { title, body, url }) {
     notification: { title, body },
     data: { url: url || "/", type: "retention" },
     webpush: {
-      notification: { icon: ICON },
+      notification: { icon: ICON, badge: "/icons/badge-96.png" },
       fcmOptions: { link: url || "/" },
     },
   });

@@ -99,8 +99,8 @@ export const POST = withAuth(async (req, { uid }) => {
             notification: { title, body: enrichedBody },
             webpush: {
               notification: {
-                icon: "/icons/gavana-icon.svg",
-                badge: "/icons/gavana-icon.svg",
+                icon: "/icons/icon-192.png",
+                badge: "/icons/badge-96.png",
               },
               fcm_options: { link: url || "/" },
             },

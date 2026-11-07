@@ -80,7 +80,7 @@ export const POST = withAuth(async (req, { uid }) => {
             token,
             notification: { title, body },
             webpush: {
-              notification: { icon: "/icons/gavana-icon.svg", badge: "/icons/gavana-icon.svg" },
+              notification: { icon: "/icons/icon-192.png", badge: "/icons/badge-96.png" },
               fcm_options: { link: `/${locale}/leaderboard` },
             },
           },

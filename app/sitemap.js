@@ -11,6 +11,7 @@ export default function sitemap() {
     { path: "/train",          priority: 0.9, changeFreq: "weekly" },
     { path: "/ghost",          priority: 0.8, changeFreq: "weekly" },
     { path: "/coach",          priority: 0.7, changeFreq: "weekly" },
+    { path: "/drills",         priority: 0.5, changeFreq: "weekly" },
     { path: "/feed",           priority: 0.9, changeFreq: "daily" },
     { path: "/fighters",       priority: 0.8, changeFreq: "weekly" },
     { path: "/leaderboard",    priority: 0.8, changeFreq: "daily" },
@@ -29,6 +30,8 @@ export default function sitemap() {
       lastModified: now,
       changeFrequency: changeFreq,
       priority,
+      // hreflang: tells search engines the three pages are translations of each other.
+      alternates: { languages: Object.fromEntries(locales.map((l) => [l, `${base}/${l}${path}`])) },
     }))
   );
 }
