@@ -2,6 +2,14 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Cycle 3 — camera-denied text no longer under the Start dock
+- `/train` with no camera: the explanation and the "retry camera" button sat in the middle of the
+  82dvh stage, behind the sticky Start dock + nav on 360×800. The fallback block is now
+  top-aligned (`trainStyles.fallback`: alignContent start, 48px top padding).
+- Train baselines regenerated on purpose; 12/12 visual, 160/160 unit, lint clean.
+- Still possible on very short phones (≈640px tall) — the real fix is part of the BLOCKED
+  Training Studio state machine (dock content per state).
+
 ## Cycle 2 — camera-denied stage icon
 - `/train` with no camera: the stage showed a red "REC" label although nothing was recording.
   Replaced it with a camera-off icon in a red circle (`train/page.js`, `trainStyles.fallbackMark`).
