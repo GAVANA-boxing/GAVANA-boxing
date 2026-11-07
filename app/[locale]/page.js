@@ -1,6 +1,7 @@
 import Link from "next/link";
 import FunnelBeacon from "@/components/FunnelBeacon";
 import HeroPreview from "@/components/landing/HeroPreview";
+import CinematicIntro from "@/components/landing/CinematicIntro";
 import { localeMetadata } from "@/lib/seo";
 import { getLocale, translate } from "@/lib/i18n";
 import css from "@/components/landing/landing.module.css";
@@ -91,6 +92,16 @@ export default async function LocalizedHomePage({ params }) {
           <Link href={startHref} className={css.navCta}>{L("Эхлэх", "시작", "Start")}</Link>
         </div>
       </nav>
+
+      <CinematicIntro labels={{
+        region: L("GAVANA танилцуулга", "GAVANA 인트로", "GAVANA intro"),
+        video: L("GAVANA BOXING — 3D танилцуулга", "GAVANA BOXING — 3D 인트로", "GAVANA BOXING — 3D intro"),
+        tagline: L("AI БОКС БЭЛТГЭЛИЙН ПЛАТФОРМ", "AI 복싱 트레이닝 플랫폼", "AI-POWERED TRAINING PLATFORM"),
+        withSound: L("Дуутай үзэх", "소리와 함께 보기", "Play with sound"),
+        replay: L("Дахин үзэх", "다시 보기", "Replay"),
+        play: L("Тоглуулах", "재생", "Play"), pause: L("Түр зогсоох", "일시정지", "Pause"),
+        mute: L("Дууг хаах", "음소거", "Mute"), unmute: L("Дуу нээх", "음소거 해제", "Unmute"),
+      }} />
 
       <section className={css.hero}>
         <div className={css.heroText}>

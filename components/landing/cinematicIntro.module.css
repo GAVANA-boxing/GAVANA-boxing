@@ -1,0 +1,13 @@
+/* 16:9 on wide screens; on phones a taller 4:3 crop (object-fit: cover keeps the
+   centred logo) leaves room under the letters for the BOXING lockup. */
+.frame {
+  position: relative;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #050506;
+  aspect-ratio: 16 / 9;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+}
+@media (max-width: 600px) {
+  .frame { aspect-ratio: 4 / 3; border-radius: 18px; }
+}

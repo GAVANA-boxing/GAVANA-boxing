@@ -2,6 +2,18 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Landing: 3D cinematic intro (owner: "Intro hiilee blenderluu oruulj iluu saijruulaad ashiglaarai")
+- The owner's canvas intro rebuilt in Blender (`tools/blender/intro.py`, 252 frames, 1280×720 30 fps,
+  chrome letters, glove, spot cone, shockwave, crimson sweep) and encoded by
+  `tools/blender/encode-intro.sh` → `public/intro/gavana-intro.{webm,mp4}` (~0.4 MB each) + poster.
+- `components/landing/CinematicIntro.js` on the landing page: muted autoplay when in view (not with
+  reduced motion), "Play with sound" restarts it with the original Web Audio soundtrack
+  (`lib/intro/introAudio.js`) in sync; "BOXING" + localized tagline drawn over the video from 7.22 s;
+  pause / mute / replay buttons (40 px, MN/KO/EN labels). 4:3 crop on phones so the lockup doesn't hit
+  the letters; the sound button sits top-left.
+- Checked in Chromium at 1280 and 360 px: plays, restarts with sound, controls appear, no console errors,
+  no horizontal overflow.
+
 ## Dependencies: next 16.4.3 (owner: "bugdiin hii")
 - `next` + `eslint-config-next` 16.2.4 → 16.4.3 (exact pin; fixes the critical Next.js RCE / proxy-bypass
   advisories, all `<=16.4.0`), plus `npm audit fix` (websocket-driver, zod, nanoid, source-map-js,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import css from "./cinematicIntro.module.css";
 
 // GAVANA cinematic intro: the Blender-rendered 3D video (tools/blender/intro.py)
 // plays muted on its own; "Play with sound" restarts it with the synthesized
@@ -80,7 +81,7 @@ export default function CinematicIntro({ labels }) {
 
   return (
     <section aria-label={labels.region} style={{ position: "relative", maxWidth: 1100, margin: "8px auto 0", padding: "0 16px" }}>
-      <div style={{ position: "relative", borderRadius: 22, overflow: "hidden", background: "#050506", aspectRatio: "16 / 9", boxShadow: "0 30px 80px rgba(0,0,0,0.55)" }}>
+      <div className={css.frame}>
         <video
           ref={videoRef}
           muted
@@ -98,7 +99,7 @@ export default function CinematicIntro({ labels }) {
         </video>
 
         {/* Lockup: "BOXING" between two crimson lines, then the tagline. */}
-        <div aria-hidden={!showOverlay} style={{ position: "absolute", left: 0, right: 0, bottom: "9%", display: "grid", justifyItems: "center", gap: 8, pointerEvents: "none" }}>
+        <div aria-hidden={!showOverlay} style={{ position: "absolute", left: 0, right: 0, bottom: "7%", display: "grid", justifyItems: "center", gap: 8, pointerEvents: "none" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <span style={{ height: 2, width: `${(showOverlay ? 1 : lineIn) * 70}px`, background: "linear-gradient(270deg, rgba(222,26,48,0.95), rgba(222,26,48,0))" }} />
             <span style={{ display: "flex", gap: "0.4em", fontWeight: 700, fontSize: "clamp(18px, 3.4vw, 34px)", letterSpacing: "0.12em", color: "#eceef1" }}>
@@ -124,7 +125,7 @@ export default function CinematicIntro({ labels }) {
           )}
         </div>
         {(!withSound || ended) && (
-          <button type="button" onClick={playWithSound} style={{ ...btn, position: "absolute", left: 12, bottom: 12, width: "auto", padding: "0 14px", gap: 8, display: "inline-flex", alignItems: "center", fontSize: 13, fontWeight: 700 }}>
+          <button type="button" onClick={playWithSound} style={{ ...btn, position: "absolute", left: 12, top: 12, width: "auto", padding: "0 14px", gap: 8, display: "inline-flex", alignItems: "center", fontSize: 13, fontWeight: 700 }}>
             <span aria-hidden="true">{ended ? "↻" : "🔊"}</span>{ended ? labels.replay : labels.withSound}
           </button>
         )}
