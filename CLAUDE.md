@@ -27,3 +27,6 @@ The user communicates in Mongolian. Below are their common commands and what the
 - Keep responses short and direct — the user does not want long explanations unless asked.
 - Always develop on branch `claude/review-refactor-code-DUmiX` and push after each change.
 - Do not create pull requests unless explicitly asked.
+
+### Engineering memory
+Before changing code read `docs/AI_ENGINEERING_RULES.md`, `docs/AI_TASK_BACKLOG.md`, `docs/AI_KNOWN_ISSUES.md`; log each change in `docs/AI_CHANGELOG.md`. UI changes: run `npm run test:visual`.

@@ -1,0 +1,72 @@
+"use client";
+
+import { notFound, useParams } from "next/navigation";
+import { getLocale, translate } from "@/lib/i18n";
+import { getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
+import { progressStats } from "@/lib/progressStats";
+import { computeFighterDNA } from "@/lib/fighterDNA";
+import { pageBackground } from "@/components/ui/brand";
+import ProgressView from "@/components/progress/ProgressView";
+import ResultHeader from "@/components/train/ResultHeader";
+import ResultAnalysisSection from "@/components/train/ResultAnalysisSection";
+
+// Fixed-data renders of screens that need a signed-in user, for the visual
+// regression tests (tests/visual). Only exists when NEXT_PUBLIC_VISUAL_FIXTURES=1
+// (set by playwright.config.mjs); everywhere else it is a 404.
+const ENABLED = process.env.NEXT_PUBLIC_VISUAL_FIXTURES === "1";
+
+const NOW = Date.UTC(2026, 10, 6, 12, 0, 0);
+const DAY = 86_400_000;
+const SCORES = [5.8, 6.1, 6.0, 6.6, 6.4, 6.9, 7.1, 6.8, 7.4, 7.3, 7.6, 7.9];
+const SESSIONS = SCORES.map((score, i) => ({
+  id: `s${i}`, type: "training", score,
+  createdAt: { seconds: (NOW - (SCORES.length - i) * 1.5 * DAY) / 1000 },
+  poseMetrics: { punchCount: 20 + i, punchBreakdown: { jab: { count: 10 + i }, cross: { count: 8 }, hook: { count: 3 } } },
+})).reverse();
+const POSE = {
+  punchCount: 24, sessionConfidence: "medium", cameraQuality: 80, frameCount: 300,
+  velocityStats: { snapRating: "FAST", recoilRating: "MODERATE" },
+  punchBreakdown: { jab: { count: 12 }, cross: { count: 9 }, hook: { count: 3 } },
+};
+
+export default function VisualFixture() {
+  const params = useParams();
+  if (!ENABLED) notFound();
+  const locale = getLocale(params?.locale);
+  const t = (k) => translate(locale, k);
+
+  if (params?.screen === "progress") {
+    const xp = 2340;
+    return (
+      <main style={{ minHeight: "100dvh", background: pageBackground, color: "#fff" }}>
+        <ProgressView
+          locale={locale} t={t} loading={false} currentXP={xp}
+          rank={getFighterRank(xp)} nextRank={getNextRank(xp)} rankPct={getRankProgress(xp)}
+          stats={progressStats(SESSIONS, { now: NOW })} dna={computeFighterDNA({ sessions: SESSIONS, locale })}
+          sessions={SESSIONS} go={() => {}}
+        />
+      </main>
+    );
+  }
+
+  if (params?.screen === "result") {
+    return (
+      <main style={{ minHeight: "100dvh", background: pageBackground, color: "#fff", display: "flex", flexDirection: "column" }}>
+        <ResultHeader
+          mode="train" tooFewPunches={false} effectivePunchCount={24} minPunches={3}
+          identity={{ title: t("rankBronzeBelt"), sub: null }} displayScore={7.4} scoreConf="high"
+          punchBreakdown={POSE.punchBreakdown} locale={locale} t={t}
+        />
+        <ResultAnalysisSection
+          result={{ score: 7.4, breakdown: { accuracy: 7.1, speed: 6.4, power: 8.0, consistency: 7.0 }, rankProgress: 40, xpGained: 120 }}
+          comparison={[{ label: t("score") || "Score", value: "+0.6", improved: true }]}
+          movementSummary={[]} timelineEvents={[]} hasMI={false} hasTimeline={false} poseMetrics={POSE}
+          ghostBestScore={6.8} missionJustCompleted missionStreakBonus={100} missionNewStreak={3}
+          rankUpInfo={null} locale={locale} t={t} router={{ push() {} }}
+        />
+      </main>
+    );
+  }
+
+  notFound();
+}
