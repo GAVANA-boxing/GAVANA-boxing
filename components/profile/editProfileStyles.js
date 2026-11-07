@@ -119,11 +119,9 @@ const styles = {
     gap: 8,
   },
   label: {
-    color: RED,
-    fontSize: 10,
-    fontWeight: 900,
-    letterSpacing: 2,
-    textTransform: "uppercase",
+    color: "rgba(255,255,255,0.72)",
+    fontSize: 13.5,
+    fontWeight: 600,
   },
   usernameWrap: {
     position: "relative",

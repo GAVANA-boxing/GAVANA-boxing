@@ -34,6 +34,7 @@ export default function EditProfilePage() {
   const [photoURL, setPhotoURL]       = useState("");
   const [weightClass, setWeightClass] = useState("");
   const [archetype, setArchetype]     = useState("");
+  const [stance, setStance]           = useState("");
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl]     = useState("");
@@ -62,6 +63,9 @@ export default function EditProfilePage() {
       setPhotoURL(d.photoURL || d.profileImageUrl || "");
       setWeightClass(d.weightClass || "");
       setArchetype(d.fighterArchetype || "");
+      let st = d.stance;
+      if (st !== "orthodox" && st !== "southpaw") { try { st = localStorage.getItem("gavana_stance"); } catch { st = ""; } }
+      setStance(st === "orthodox" || st === "southpaw" ? st : "");
       setSubscriptionTier(d.subscriptionTier || d.tier || null);
       seededRef.current = true;
     }
@@ -116,6 +120,7 @@ export default function EditProfilePage() {
         profileImageUrl: nextPhotoURL,
         ...(weightClass ? { weightClass } : {}),
         ...(archetype   ? { fighterArchetype: archetype } : {}),
+        ...(stance      ? { stance } : {}),
         updatedAt: serverTimestamp(),
       }, { merge: true });
 
@@ -164,7 +169,7 @@ export default function EditProfilePage() {
 
         {/* Header */}
         <header style={styles.header}>
-          <p style={styles.kicker}>COMBAT · PROFILE</p>
+          <p style={styles.kicker}>{t("Профайл", "프로필", "Profile")}</p>
           <h1 style={styles.title}>{t("Профайл засах", "프로필 수정", "Edit Profile")}</h1>
         </header>
 
@@ -232,6 +237,36 @@ export default function EditProfilePage() {
               placeholder={t("Жим, зорилго, тулааны стиль...", "짧은 소개, 체육관, 목표...", "Gym, goal, fight style...")}
             />
             <span style={{ ...styles.count, color: bio.length >= 140 ? "#F87171" : "#555" }}>{bio.length}/160</span>
+          </div>
+
+          {/* Stance — decides which hand is the jab (the train page reads it) */}
+          <div style={styles.field}>
+            <label style={styles.label}>{t("Байрлал — аль хөл урдаа вэ?", "스탠스 — 어느 발이 앞인가요?", "Stance — which foot is forward?")}</label>
+            <div role="radiogroup" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              {[
+                ["orthodox", t("Зүүн хөл", "왼발", "Left foot"), "Orthodox"],
+                ["southpaw", t("Баруун хөл", "오른발", "Right foot"), "Southpaw"],
+              ].map(([key, title, sub]) => {
+                const on = stance === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    role="radio"
+                    aria-checked={on}
+                    onClick={() => { setStance(key); try { localStorage.setItem("gavana_stance", key); } catch { /* ignore */ } }}
+                    style={{
+                      padding: "12px 12px", borderRadius: 14, cursor: "pointer", textAlign: "left", fontFamily: "inherit", color: "#fff",
+                      border: on ? "2px solid #FF3B30" : "2px solid rgba(255,255,255,0.08)",
+                      background: on ? "rgba(255,59,48,0.10)" : "rgba(255,255,255,0.03)",
+                    }}
+                  >
+                    <span style={{ display: "block", fontSize: 15, fontWeight: 600 }}>{title}</span>
+                    <span style={{ display: "block", marginTop: 2, fontSize: 12.5, color: "rgba(255,255,255,0.55)" }}>{sub}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Weight class */}
