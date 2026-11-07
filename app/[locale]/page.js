@@ -1,6 +1,7 @@
 import Link from "next/link";
 import FunnelBeacon from "@/components/FunnelBeacon";
 import HeroPreview from "@/components/landing/HeroPreview";
+import { localeMetadata } from "@/lib/seo";
 import { getLocale, translate } from "@/lib/i18n";
 import css from "@/components/landing/landing.module.css";
 
@@ -20,12 +21,8 @@ export async function generateMetadata({ params }) {
     "Утсаа тавиад 60 секунд бокс хий. AI цохилт бүрийг тоолж, хамгаалалт, хэмнэлийг чинь шинжлээд засах нэг зүйлийг хэлнэ. Бүртгэл шаардахгүй.",
     "휴대폰을 세우고 60초 섀도복싱. AI가 펀치를 세고 가드와 리듬을 분석해 고칠 한 가지를 알려줍니다. 가입 불필요.",
     "Prop up your phone and shadow box for 60 seconds. AI counts every punch, reads your guard and rhythm, and tells you the one thing to fix. No signup.");
-  return {
-    title,
-    description,
-    openGraph: { title, description, type: "website", siteName: "GAVANA Boxing" },
-    twitter: { card: "summary", title, description },
-  };
+  // Absolute title: the root template would append "| GAVANA Boxing" a second time.
+  return localeMetadata(locale, "", { mn: title, ko: title, en: title }, { mn: description, ko: description, en: description }, { absoluteTitle: true });
 }
 
 // ── Icons (24×24, stroke = currentColor) ─────────────────────────────────────

@@ -68,8 +68,8 @@ export const metadata = {
     default: "GAVANA Boxing — AI Punch Scoring for Fighters",
     template: "%s | GAVANA Boxing",
   },
-  description: "AI-powered punch scoring, fighter reels, rank system, sparring matchmaking, and coach connections. The boxing app built for serious fighters.",
-  keywords: ["boxing", "AI coach", "punch scoring", "fighter training", "sparring", "boxing reels", "combat sports"],
+  description: "Prop up your phone and shadow box. AI counts every punch, scores your round and tells you the one thing to fix — in Mongolian, Korean or English.",
+  keywords: ["boxing", "AI boxing coach", "punch counter", "shadow boxing", "бокс", "дасгалжуулагч", "복싱"],
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
@@ -83,13 +83,13 @@ export const metadata = {
     type: "website",
     siteName: "GAVANA Boxing",
     title: "GAVANA Boxing — AI Punch Scoring for Fighters",
-    description: "AI-powered punch scoring, fighter reels, rank system, sparring matchmaking, and coach connections.",
+    description: "Your phone camera is your boxing coach: AI punch counting, round scores and one thing to fix.",
     images: [{ url: "/icons/gavana-icon.svg", width: 512, height: 512, alt: "GAVANA Boxing" }],
   },
   twitter: {
     card: "summary",
     title: "GAVANA Boxing",
-    description: "AI-powered punch scoring, fighter reels, rank system, sparring matchmaking, and coach connections.",
+    description: "Your phone camera is your boxing coach: AI punch counting, round scores and one thing to fix.",
   },
   icons: {
     icon: [{ url: "/icons/gavana-icon.svg", type: "image/svg+xml" }],

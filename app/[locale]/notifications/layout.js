@@ -1,13 +1,9 @@
-export const metadata = {
-  title: "Notifications | GAVANA Boxing",
-  description: "Stay updated on sparring requests, challenges, followers, and coach activity.",
-  openGraph: {
-    title: "Notifications | GAVANA Boxing",
-    description: "Stay updated on sparring requests, challenges, followers, and coach activity.",
-    type: "website",
-  },
-};
+import { routeMetadata } from "@/lib/seo";
 
-export default function NotificationsLayout({ children }) {
-  return children;
-}
+export const generateMetadata = routeMetadata(
+  "/notifications",
+  {"mn": "Мэдэгдэл", "ko": "알림", "en": "Notifications"},
+  {"mn": "Таны мэдэгдлүүд.", "ko": "내 알림.", "en": "Your notifications."}, { noindex: true },
+);
+
+export default function NotificationsLayout({ children }) { return children; }
