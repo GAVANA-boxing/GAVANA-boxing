@@ -2,6 +2,21 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Roadmap Phase 4 — Mitt drill (reaction round) (approved: "4iig hii")
+- New route `/[locale]/mitts` (+ metadata, sitemap; entry button on /train under Ghost Round).
+  30 s round: the screen calls "1", "2", "1-2", "1-1", "slip", "roll" (by level easy/normal/hard);
+  pads appear on the lead/rear side of the mirrored picture with a ring that empties over the answer
+  window; beep on every call; live ✓ reaction ms / "wrong hand" / "too late". Result: accuracy,
+  average / fastest reaction, best streak, per-call table, one tip for the weakest call.
+- `lib/mittDrill.js` (pure, 13 tests): seeded schedule, stance-aware judging (lead/rear hand,
+  order of a combo, one action answers one call), round summary + grade, `callAt`.
+- `usePoseDetection.getDebugInfo()` now also returns `defenseStats` (slip / bob counts from the
+  existing DefensiveDetector) — read-only; detection itself untouched.
+- Nothing is saved (no data-model / XP change). Early "Finish" judges only the calls shown.
+- Visual: mitts intro (real route), call, slip + "too late", result × mn-390 / mn-360 / ko-390
+  (12 baselines). 37/37 visual, 211/211 unit, lint 0 errors, build OK. Checked a live round with
+  Chromium's fake camera (calls appear, judged, finish → result).
+
 ## Roadmap Phase 2 — Fight HUD (approved: "2iig hii")
 - `lib/fightHud.js` (pure, 11 tests): `roundClock` (whole seconds, ring fill, "final" in the last
   10 s — or last half of a short round), `createPunchTicks` (last 8 punches + count per type from the

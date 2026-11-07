@@ -11,6 +11,9 @@ import ResultHeader from "@/components/train/ResultHeader";
 import ResultAnalysisSection from "@/components/train/ResultAnalysisSection";
 import PunchTeardown from "@/components/train/PunchTeardown";
 import FightHud from "@/components/train/FightHud";
+import MittCall from "@/components/mitts/MittCall";
+import MittResult from "@/components/mitts/MittResult";
+import { summarizeRound } from "@/lib/mittDrill";
 import { syntheticReplay } from "@/lib/punchTeardown";
 
 // Fixed-data renders of screens that need a signed-in user, for the visual
@@ -39,6 +42,35 @@ export default function VisualFixture() {
   if (!ENABLED) notFound();
   const locale = getLocale(params?.locale);
   const t = (k) => translate(locale, k);
+
+  if (params?.screen === "mitts-call" || params?.screen === "mitts-slip") {
+    // Mitt drill call over an empty stage: a 1-2 (with the last call's hit), or a slip.
+    const slip = params.screen === "mitts-slip";
+    return (
+      <main style={{ position: "fixed", inset: 0, background: "#111" }}>
+        <MittCall
+          current={slip ? { i: 3, call: "slip", at: 0, left: 0.35 } : { i: 2, call: "1-2", at: 0, left: 0.7 }}
+          stance="orthodox" locale={locale}
+          feedback={slip ? { outcome: "miss", reactionMs: null } : { outcome: "hit", reactionMs: 420 }}
+        />
+      </main>
+    );
+  }
+
+  if (params?.screen === "mitts-result") {
+    const summary = summarizeRound([
+      { call: "1", outcome: "hit", reactionMs: 410 }, { call: "1-2", outcome: "hit", reactionMs: 520 },
+      { call: "slip", outcome: "miss", reactionMs: null }, { call: "2", outcome: "hit", reactionMs: 380 },
+      { call: "1-2", outcome: "wrong", reactionMs: null }, { call: "1", outcome: "hit", reactionMs: 450 },
+      { call: "slip", outcome: "hit", reactionMs: 610 }, { call: "1-1", outcome: "hit", reactionMs: 560 },
+      { call: "2", outcome: "hit", reactionMs: 400 }, { call: "1-2", outcome: "miss", reactionMs: null },
+    ]);
+    return (
+      <main style={{ minHeight: "100dvh", background: pageBackground, color: "#fff", padding: "20px 16px 32px" }}>
+        <MittResult summary={summary} locale={locale} onAgain={() => {}} onExit={() => {}} />
+      </main>
+    );
+  }
 
   if (params?.screen === "hud" || params?.screen === "hud-final") {
     // Fight HUD over an empty stage: mid-round, or the last seconds with the guard down.

@@ -1322,6 +1322,17 @@ export default function TrainPage() {
               {loc(locale, "Ghost Round · Jab–Cross дагаж хий", "고스트 라운드 · 잽–크로스 따라하기", "Ghost Round · copy the jab–cross")}
             </button>
           )}
+          {phase === "idle" && !challengeId && !challengeUserId && (
+            <button
+              type="button"
+              data-testid="open-mitts"
+              onClick={() => router.push(`/${locale}/mitts`)}
+              style={{ ...btnSecondary, marginTop: 2 }}
+            >
+              <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", background: "#F5C451", boxShadow: "0 0 10px #F5C451" }} />
+              {loc(locale, "Mitt дасгал · хариу үйлдэл 30 сек", "미트 드릴 · 30초 반응", "Mitt drill · 30 s reaction round")}
+            </button>
+          )}
 
           {isRecording && (
             <button type="button" style={styles.stopButton} onClick={finishRecording}>

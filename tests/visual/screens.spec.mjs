@@ -113,6 +113,19 @@ for (const screen of ["hud", "hud-final"]) {
   }
 }
 
+// Mitt drill: intro page (real route), a call on screen, a defence call with "too late", the result.
+for (const v of [{ id: "mn-390", locale: "mn", viewport: viewport390 }, { id: "mn-360", locale: "mn", viewport: { width: 360, height: 800 } }, { id: "ko-390", locale: "ko", viewport: viewport390 }]) {
+  for (const [name, path] of [["mitts", "/mitts"], ["mitts-call", "/visual/mitts-call"], ["mitts-slip", "/visual/mitts-slip"], ["mitts-result", "/visual/mitts-result"]]) {
+    test(`${name} ${v.id}`, async ({ page }) => {
+      await prepare(page);
+      await page.setViewportSize(v.viewport);
+      await page.goto(`/${v.locale}${path}`, { waitUntil: "load" });
+      await settle(page);
+      await expect(page).toHaveScreenshot(`${name}-${v.id}.png`, { fullPage: true });
+    });
+  }
+}
+
 // Same day, time and first-run state on every run; optionally make
 // getUserMedia fail with a given error name.
 async function prepare(page, cameraError) {

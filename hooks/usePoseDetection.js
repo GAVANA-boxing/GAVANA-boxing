@@ -494,6 +494,8 @@ export function usePoseDetection({ videoRef, isActive, stance = "orthodox" }) {
       stanceHint:        detectorRef.current.getStanceHint?.() ?? "unknown",
       handLiveData,
       trackingQuality: detectorRef.current.getTrackingQuality?.() ?? "unknown",
+      // Head movement so far (slip / bob counts) — the mitt drill answers defence calls with it.
+      defenseStats: defensiveRef.current.getStats(),
       liveCombo:  comboRef.current.getCurrentCombo(),
       comboStats: comboRef.current.getStats(),
     };

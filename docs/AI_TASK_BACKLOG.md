@@ -37,7 +37,9 @@ agent that drives a tool, game HUD, world simulator). Order = value to the core 
 3. **AI corner coach that drives the session** (from "AI controls the CAD mouse")
    The coach plans and runs a round through app tools (startRound, setCombo, setRest, showReplay,
    adjustDifficulty) and speaks short cues between rounds. RED: new API/tool-calling + cost.
-4. **Reaction mitt drill / Ghost sparring defense** — targets or the ghost's punches appear; punch the
+4. **Reaction mitt drill** — DONE (AI_CHANGELOG "Roadmap Phase 4"). Follow-ups: try with real punches
+   (action time = poll time, up to ~80 ms late); slip direction (left/right) needs the detector to
+   report it; saving results / XP would be RED (data model). Original idea: **Reaction mitt drill / Ghost sparring defense** — targets or the ghost's punches appear; punch the
    right side / slip or block (uses `lib/defensiveDetector.js`). New game mode — needs approval.
 5. **Procedural fighter avatar** (from "eye from math, ~400 params, no textures")
    Parametric boxer (build, skin, hair, gloves/shorts in rank colour) instead of the 1.7 MB GLB:
