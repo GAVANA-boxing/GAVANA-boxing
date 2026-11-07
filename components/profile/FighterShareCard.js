@@ -30,8 +30,8 @@ function CombatRadar({ stats, size = 160, uid = "fc" }) {
     return pt(angles[i], (val / 10) * maxR);
   });
   const dataPoly = dataPoints.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
-  const labelR = maxR + (size <= 140 ? 15 : 19);
-  const fs = size <= 140 ? 6.5 : 7.5;
+  const labelR = maxR + (size <= 140 ? 18 : 22);
+  const fs = size <= 140 ? 11 : 12; // ≥ 11 px: the radar labels are read on a phone
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}
@@ -78,7 +78,7 @@ function CombatRadar({ stats, size = 160, uid = "fc" }) {
             </text>
             <text x={lp.x.toFixed(1)} y={(lp.y + fs - 1).toFixed(1)}
               textAnchor={ta} dominantBaseline="auto"
-              fontSize={fs - 1} fontWeight="700" fill={vc}>
+              fontSize={Math.max(11, fs - 1)} fontWeight="700" fill={vc}>
               {val.toFixed(1)}
             </text>
           </g>
@@ -112,13 +112,13 @@ function ProfileUrlBlock({ url, qrSize = 72 }) {
         <canvas ref={canvasRef} style={{ borderRadius: 4 }} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 9.5, fontWeight: 900, color: "rgba(215,220,228,0.7)", marginBottom: 2, letterSpacing: "0.1em", textTransform: "uppercase" }}>Scan to Challenge</div>
-        <div style={{ fontSize: 8.5, color: CTEXT, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginBottom: 8 }}>
+        <div style={{ fontSize: 11, fontWeight: 900, color: "rgba(215,220,228,0.7)", marginBottom: 2, letterSpacing: "0.1em", textTransform: "uppercase" }}>Scan to Challenge</div>
+        <div style={{ fontSize: 11, color: CTEXT, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginBottom: 8 }}>
           {url.replace(/^https?:\/\//, "")}
         </div>
         <button type="button"
           onClick={() => navigator?.clipboard?.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); })}
-          style={{ padding: "4px 11px", borderRadius: 6, border: `1px solid rgba(176,24,16,0.3)`, background: "rgba(176,24,16,0.08)", color: "rgba(215,100,90,0.9)", fontSize: 9, fontWeight: 900, cursor: "pointer" }}>
+          style={{ padding: "4px 11px", borderRadius: 6, border: `1px solid rgba(176,24,16,0.3)`, background: "rgba(176,24,16,0.08)", color: "rgba(215,100,90,0.9)", fontSize: 11, fontWeight: 900, cursor: "pointer" }}>
           {copied ? "✓ Copied" : "Copy Link"}
         </button>
       </div>
@@ -362,12 +362,12 @@ export default function FighterShareCard({
           {/* ── Header ── */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: isDesktop ? 18 : 13 }}>
             <div>
-              <div style={{ fontSize: isDesktop ? 8.5 : 7, fontWeight: 900, letterSpacing: 4, color: CRED, textTransform: "uppercase" }}>GAVANA</div>
-              <div style={{ fontSize: isDesktop ? 6.5 : 5.5, fontWeight: 700, letterSpacing: 2.8, color: CTEXT, textTransform: "uppercase", marginTop: 1 }}>BOXING OS</div>
+              <div style={{ fontSize: isDesktop ? 12 : 11, fontWeight: 900, letterSpacing: 4, color: CRED, textTransform: "uppercase" }}>GAVANA</div>
+              <div style={{ fontSize: isDesktop ? 12 : 11, fontWeight: 700, letterSpacing: 2.8, color: CTEXT, textTransform: "uppercase", marginTop: 1 }}>BOXING OS</div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "3px 9px", borderRadius: RADIUS.full, background: "rgba(176,24,16,0.08)", border: `1px solid rgba(176,24,16,0.22)` }}>
               <span style={{ width: 4, height: 4, borderRadius: "50%", background: CRED, flexShrink: 0 }} />
-              <span style={{ fontSize: isDesktop ? 7.5 : 6, fontWeight: 900, letterSpacing: 1.8, color: "rgba(215,95,85,0.9)", textTransform: "uppercase" }}>VERIFIED FIGHTER</span>
+              <span style={{ fontSize: isDesktop ? 12 : 11, fontWeight: 900, letterSpacing: 1.8, color: "rgba(215,95,85,0.9)", textTransform: "uppercase" }}>VERIFIED FIGHTER</span>
             </div>
           </div>
 
@@ -402,13 +402,13 @@ export default function FighterShareCard({
                 <div style={{ fontSize: isDesktop ? 20 : 16, fontWeight: 1000, color: "#fff", lineHeight: 1.05, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "var(--font-display, 'Anton', sans-serif)" }}>
                   {profileUser.displayName || profileUser.username}
                 </div>
-                <div style={{ fontSize: isDesktop ? 10 : 8.5, color: CTEXT, fontWeight: 600, marginBottom: 6 }}>@{profileUser.username}</div>
+                <div style={{ fontSize: isDesktop ? 12 : 11, color: CTEXT, fontWeight: 600, marginBottom: 6 }}>@{profileUser.username}</div>
                 <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-                  <span style={{ padding: "2px 8px", borderRadius: RADIUS.full, background: `${rankColor}12`, border: `1px solid ${rankColor}28`, color: rankColor, fontSize: isDesktop ? 9 : 8, fontWeight: 900 }}>
+                  <span style={{ padding: "2px 8px", borderRadius: RADIUS.full, background: `${rankColor}12`, border: `1px solid ${rankColor}28`, color: rankColor, fontSize: isDesktop ? 12 : 11, fontWeight: 900 }}>
                     {t(fighterRank?.key || "")}
                   </span>
                   {arch && (
-                    <span style={{ padding: "2px 8px", borderRadius: RADIUS.full, background: "rgba(201,162,52,0.08)", border: `1px solid rgba(201,162,52,0.2)`, color: "rgba(201,162,52,0.82)", fontSize: isDesktop ? 9 : 8, fontWeight: 900 }}>
+                    <span style={{ padding: "2px 8px", borderRadius: RADIUS.full, background: "rgba(201,162,52,0.08)", border: `1px solid rgba(201,162,52,0.2)`, color: "rgba(201,162,52,0.82)", fontSize: isDesktop ? 12 : 11, fontWeight: 900 }}>
                       {arch.name}
                     </span>
                   )}
@@ -419,15 +419,15 @@ export default function FighterShareCard({
             {/* Desktop: combat identity right column */}
             {isDesktop && identity && (
               <div style={{ flex: 1, minWidth: 0, padding: "11px 13px", borderRadius: RADIUS.lg, background: "rgba(176,24,16,0.05)", border: `1px solid rgba(176,24,16,0.13)` }}>
-                <div style={{ fontSize: 7, fontWeight: 900, letterSpacing: 2, color: CTEXT, textTransform: "uppercase", marginBottom: 4 }}>Movement Identity</div>
+                <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: CTEXT, textTransform: "uppercase", marginBottom: 4 }}>Movement Identity</div>
                 <div style={{ fontSize: 14, fontWeight: 1000, color: "#fff", fontFamily: "var(--font-display, 'Anton', sans-serif)", lineHeight: 1.2, marginBottom: 4 }}>
                   {identity.primary}
                 </div>
-                <div style={{ fontSize: 8, color: "rgba(201,162,52,0.7)", fontWeight: 800, marginBottom: 5, fontFamily: "var(--stack-mono)" }}>
+                <div style={{ fontSize: 11, color: "rgba(201,162,52,0.7)", fontWeight: 800, marginBottom: 5, fontFamily: "var(--stack-mono)" }}>
                   {Math.round(identity.confidence * 100)}% signal confidence
                 </div>
                 {identity.secondary.slice(0, 2).map((trait, i) => (
-                  <span key={i} style={{ display: "inline-block", fontSize: 7.5, fontWeight: 800, color: CTEXT, background: CSTEEL, borderRadius: RADIUS.full, padding: "2px 7px", marginRight: 3, marginBottom: 3 }}>
+                  <span key={i} style={{ display: "inline-block", fontSize: 11, fontWeight: 800, color: CTEXT, background: CSTEEL, borderRadius: RADIUS.full, padding: "2px 7px", marginRight: 3, marginBottom: 3 }}>
                     {trait}
                   </span>
                 ))}
@@ -441,11 +441,11 @@ export default function FighterShareCard({
           {/* ── Mobile: combat identity ── */}
           {!isDesktop && identity && (
             <div style={{ marginBottom: 10, padding: "9px 11px", borderRadius: RADIUS.lg, background: "rgba(176,24,16,0.05)", border: `1px solid rgba(176,24,16,0.12)` }}>
-              <div style={{ fontSize: 6, fontWeight: 900, letterSpacing: 2, color: CTEXT, textTransform: "uppercase", marginBottom: 3 }}>Movement Identity</div>
+              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: CTEXT, textTransform: "uppercase", marginBottom: 3 }}>Movement Identity</div>
               <div style={{ fontSize: 12, fontWeight: 1000, color: "#fff", fontFamily: "var(--font-display, 'Anton', sans-serif)", lineHeight: 1.2, marginBottom: 3 }}>
                 {identity.primary}
               </div>
-              <div style={{ fontSize: 7.5, color: "rgba(201,162,52,0.7)", fontWeight: 800, fontFamily: "var(--stack-mono)" }}>
+              <div style={{ fontSize: 11, color: "rgba(201,162,52,0.7)", fontWeight: 800, fontFamily: "var(--stack-mono)" }}>
                 {Math.round(identity.confidence * 100)}% signal confidence
               </div>
             </div>
@@ -460,7 +460,7 @@ export default function FighterShareCard({
             background: "rgba(6,6,8,0.6)",
             border: `1px solid ${CSTEEL}`,
           }}>
-            <div style={{ fontSize: 7, fontWeight: 900, letterSpacing: 2, color: CTEXT, textTransform: "uppercase", marginBottom: isDesktop ? 8 : 6 }}>
+            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: CTEXT, textTransform: "uppercase", marginBottom: isDesktop ? 8 : 6 }}>
               Combat Profile{isPlaceholder ? " · building" : ""}
             </div>
             <CombatRadar stats={radarStats} size={isDesktop ? 190 : 150} uid="fc" />
@@ -480,7 +480,7 @@ export default function FighterShareCard({
               ].map(({ label, value, color }, i) => (
                 <div key={label} style={{ flex: 1, textAlign: "center", padding: isDesktop ? "10px 6px" : "8px 4px", borderLeft: i > 0 ? `1px solid ${CSTEEL}` : "none" }}>
                   <div style={{ fontSize: isDesktop ? 18 : 14, fontWeight: 1000, color, lineHeight: 1, fontFamily: "var(--font-display, 'Anton', sans-serif)", marginBottom: 3 }}>{value}</div>
-                  <div style={{ fontSize: isDesktop ? 7 : 6, fontWeight: 900, letterSpacing: 1.5, color: CTEXT, textTransform: "uppercase" }}>{label}</div>
+                  <div style={{ fontSize: isDesktop ? 12 : 11, fontWeight: 900, letterSpacing: 1.5, color: CTEXT, textTransform: "uppercase" }}>{label}</div>
                 </div>
               ))}
             </div>
@@ -489,10 +489,10 @@ export default function FighterShareCard({
           {/* ── XP bar ── */}
           <div style={{ width: "100%", marginBottom: isDesktop ? 14 : 10 }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-              <span style={{ fontSize: isDesktop ? 9 : 7.5, fontWeight: 800, color: CTEXT, textTransform: "uppercase", letterSpacing: 0.8 }}>
+              <span style={{ fontSize: isDesktop ? 12 : 11, fontWeight: 800, color: CTEXT, textTransform: "uppercase", letterSpacing: 0.8 }}>
                 {xp.toLocaleString()} XP
               </span>
-              <span style={{ fontSize: isDesktop ? 9 : 7.5, fontWeight: 700, color: "rgba(200,205,215,0.18)" }}>
+              <span style={{ fontSize: isDesktop ? 12 : 11, fontWeight: 700, color: "rgba(200,205,215,0.18)" }}>
                 {rankProgress}% to next rank
               </span>
             </div>

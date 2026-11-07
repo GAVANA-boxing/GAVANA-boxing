@@ -168,6 +168,18 @@ for (const v of [{ id: "mn-390", locale: "mn", viewport: viewport390 }, { id: "m
   });
 }
 
+// Profile share card (fixture). The QR canvas is hidden (encodes a URL with the host/port).
+for (const v of [{ id: "mn-390", locale: "mn", viewport: viewport390 }, { id: "mn-360", locale: "mn", viewport: { width: 360, height: 800 } }]) {
+  test(`share-card ${v.id}`, async ({ page }) => {
+    await prepare(page);
+    await page.setViewportSize(v.viewport);
+    await page.goto(`/${v.locale}/visual/share-card`, { waitUntil: "load" });
+    await page.addStyleTag({ content: "canvas { opacity: 0 !important; }" });
+    await settle(page);
+    await expect(page).toHaveScreenshot(`share-card-${v.id}.png`, { fullPage: true });
+  });
+}
+
 // Same day, time and first-run state on every run; optionally make
 // getUserMedia fail with a given error name.
 async function prepare(page, cameraError) {

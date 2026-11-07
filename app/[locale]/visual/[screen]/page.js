@@ -15,6 +15,7 @@ import MittCall from "@/components/mitts/MittCall";
 import MittResult from "@/components/mitts/MittResult";
 import { summarizeRound } from "@/lib/mittDrill";
 import TourView from "@/components/tour/TourView";
+import FighterShareCard from "@/components/profile/FighterShareCard";
 import { syntheticReplay } from "@/lib/punchTeardown";
 
 // Fixed-data renders of screens that need a signed-in user, for the visual
@@ -43,6 +44,19 @@ export default function VisualFixture() {
   if (!ENABLED) notFound();
   const locale = getLocale(params?.locale);
   const t = (k) => translate(locale, k);
+
+  if (params?.screen === "share-card") {
+    const xp = 2340;
+    return (
+      <main style={{ minHeight: "100dvh", background: pageBackground }}>
+        <FighterShareCard
+          profileUser={{ uid: "fixture", username: "bat_erdene", displayName: "Bat-Erdene", fighterArchetype: "counter", stance: "southpaw", dailyStreak: 6 }}
+          fighterRank={getFighterRank(xp)} xp={xp} rankProgress={getRankProgress(xp)}
+          trainingSessions={SESSIONS} locale={locale} t={t} onClose={() => {}}
+        />
+      </main>
+    );
+  }
 
   if (params?.screen === "tour" || params?.screen === "tour-night") {
     // Tokyo at noon (2,000 XP), or Las Vegas in the evening (top rank) — fixed moment.
