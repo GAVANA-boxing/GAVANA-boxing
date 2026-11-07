@@ -2,6 +2,18 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Roadmap Phase 2 — Fight HUD (approved: "2iig hii")
+- `lib/fightHud.js` (pure, 11 tests): `roundClock` (whole seconds, ring fill, "final" in the last
+  10 s — or last half of a short round), `createPunchTicks` (last 8 punches + count per type from the
+  detector's running count), `createGuardWatch` (warns only when the guard metric is "too_low" for
+  ≥60 % of ~0.9 s, never within 0.5 s of a punch, holds 1.2 s so it can be read).
+- `components/train/FightHud.js` over the stage while recording: round-clock ring (red + number pop
+  + red stage-edge pulse in the final seconds, "СҮҮЛИЙН СЕКУНД"), punch tick strip coloured like the
+  punch mix, per-type counts, "Гараа өргө — эрүүгээ хамгаал!" warning. Respects reduced motion.
+  Display only — scoring untouched.
+- Visual: `/visual/hud` and `/visual/hud-final` fixtures, 6 baselines; train-recording baseline
+  updated (ring). 25/25 visual twice, 198/198 unit, lint 0 errors, build OK.
+
 ## Roadmap Phase 1 — Punch Teardown replay (approved: "0, 1-ийг Hii")
 - `lib/punchTeardown.js` (pure): for one punch of a recorded round finds Load → Rotate → Extend →
   Return (peak reach near the detected moment, closest hand before/after, 25 % / 60 % of travel)

@@ -14,3 +14,5 @@
   intended UI change, regenerate that screen's baselines with `--update-snapshots=all`.
 - Punch Teardown thresholds are first guesses checked only on synthetic data; MediaPipe world
   landmarks are noisy at 10–20 fps, so short phases (Load/Rotate) can be 1–2 frames on real punches.
+- Fight HUD tick strip: the detector exposes only the latest punch type, so several punches between
+  two 150 ms polls are all shown as that type (rare; counts stay right).

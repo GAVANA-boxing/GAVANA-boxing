@@ -98,6 +98,21 @@ for (const v of [{ id: "mn-390", locale: "mn", viewport: viewport390 }, { id: "m
   });
 }
 
+// Fight HUD (fixture): mid-round and the last seconds with the guard down.
+for (const screen of ["hud", "hud-final"]) {
+  for (const v of [{ id: "mn-390", locale: "mn", viewport: viewport390 }, { id: "mn-360", locale: "mn", viewport: { width: 360, height: 800 } }, { id: "ko-390", locale: "ko", viewport: viewport390 }]) {
+    test(`${screen} ${v.id}`, async ({ page }) => {
+      await prepare(page);
+      await page.setViewportSize(v.viewport);
+      await page.goto(`/${v.locale}/visual/${screen}`, { waitUntil: "load" });
+      await expect(page.getByTestId("fight-hud-ticks")).toBeVisible();
+      if (screen === "hud-final") await expect(page.getByTestId("fight-hud-guard")).toBeVisible({ timeout: 5_000 });
+      await settle(page);
+      await expect(page).toHaveScreenshot(`${screen}-${v.id}.png`, { timeout: 15_000 });
+    });
+  }
+}
+
 // Same day, time and first-run state on every run; optionally make
 // getUserMedia fail with a given error name.
 async function prepare(page, cameraError) {

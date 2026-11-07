@@ -30,7 +30,9 @@ agent that drives a tool, game HUD, world simulator). Order = value to the core 
    After a round, pick one punch: slow-motion 3D replay split into Load → Rotate → Extend → Return,
    with labeled panels (hip/shoulder turn °, elbow angle, reach, guard hand height) and the coach's
    ghost overlaid. Reuses: world landmarks, `lib/motionReplay.js`, `MotionReplay3D`, ghost reference.
-2. **Fight HUD** (from the 3D shooter's HUD) — during the round: round clock ring, combo counter,
+2. **Fight HUD** — DONE (AI_CHANGELOG "Roadmap Phase 2"). Follow-up: check the guard warning on real
+   rounds (the live guard metric is 2D and may warn for southpaw / side-on cameras).
+   Original idea (from the 3D shooter's HUD) — during the round: round clock ring, combo counter,
    jab/cross/hook ticks, guard-down warning, last-10-s pulse. UI only; no scoring change.
 3. **AI corner coach that drives the session** (from "AI controls the CAD mouse")
    The coach plans and runs a round through app tools (startRound, setCombo, setRest, showReplay,

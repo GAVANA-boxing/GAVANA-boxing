@@ -10,6 +10,7 @@ import ProgressView from "@/components/progress/ProgressView";
 import ResultHeader from "@/components/train/ResultHeader";
 import ResultAnalysisSection from "@/components/train/ResultAnalysisSection";
 import PunchTeardown from "@/components/train/PunchTeardown";
+import FightHud from "@/components/train/FightHud";
 import { syntheticReplay } from "@/lib/punchTeardown";
 
 // Fixed-data renders of screens that need a signed-in user, for the visual
@@ -38,6 +39,25 @@ export default function VisualFixture() {
   if (!ENABLED) notFound();
   const locale = getLocale(params?.locale);
   const t = (k) => translate(locale, k);
+
+  if (params?.screen === "hud" || params?.screen === "hud-final") {
+    // Fight HUD over an empty stage: mid-round, or the last seconds with the guard down.
+    const final = params.screen === "hud-final";
+    // One more punch per poll until the sequence is done, so the tick strip fills like a real round.
+    const seq = ["jab", "cross", "jab", "cross", "hook", "jab", final ? "uppercut" : "cross"];
+    let polls = 0;
+    const getInfo = () => {
+      const n = Math.min(seq.length, ++polls);
+      return { punchCount: n, lastPunchType: seq[n - 1], latestMetrics: { guardHeight: { status: final ? "too_low" : "good" } } };
+    };
+    return (
+      <main style={{ minHeight: "100dvh", background: pageBackground, padding: 16 }}>
+        <div style={{ position: "relative", height: 560, borderRadius: 20, overflow: "hidden", background: "#0b0b0d", border: "1px solid rgba(255,255,255,0.08)" }}>
+          <FightHud getDebugInfo={getInfo} isActive secondsLeft={final ? 6.4 : 14.2} totalSeconds={20} locale={locale} pollMs={100} />
+        </div>
+      </main>
+    );
+  }
 
   if (params?.screen === "teardown") {
     // A synthetic round: jab, arm-only cross with the guard dropped, jab, cross.

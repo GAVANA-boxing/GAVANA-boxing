@@ -41,6 +41,7 @@ import { funnel, FUNNEL } from "@/lib/funnel";
 import { loc } from "@/lib/loc";
 import { cameraPermissionHelp } from "@/lib/cameraHelp";
 import { deriveStudio, studioUi, canTransition } from "@/lib/trainSession";
+import FightHud from "@/components/train/FightHud";
 const PoseDebugOverlay   = dynamic(() => import("@/components/train/PoseDebugOverlay"),   { ssr: false });
 const DebugSessionPanel  = dynamic(() => import("@/components/train/DebugSessionPanel"),  { ssr: false });
 const LivePunchCounter   = dynamic(() => import("@/components/train/LivePunchCounter"),   { ssr: false });
@@ -1071,6 +1072,15 @@ export default function TrainPage() {
               cameraLive={studioView.recBadge}
             />
           )}
+
+          {/* Fight HUD — round clock ring, punch ticks, guard warning (display only) */}
+          <FightHud
+            getDebugInfo={getDebugInfo}
+            isActive={phase === "recording"}
+            secondsLeft={secondsLeft}
+            totalSeconds={drillConfig.durationSeconds}
+            locale={locale}
+          />
 
           {/* Live punch counter — shown during recording */}
           <LivePunchCounter getDebugInfo={getDebugInfo} isActive={phase === "recording"} punchTarget={drillConfig?.punchTarget ?? null} locale={locale} />
