@@ -121,6 +121,17 @@ export default function ProgressView({ locale, t, loading, currentXP, rank, next
           <span aria-hidden="true" style={{ color: BRAND.faint, fontSize: 18 }}>→</span>
         </button>
 
+        {/* World Tour — the rank ladder as a journey of cities */}
+        <button type="button" data-testid="open-tour" onClick={() => go("/tour")} style={{ ...card, ...rowBtn, marginTop: 12 }}>
+          <span style={{ minWidth: 0, flex: 1 }}>
+            <span style={{ ...sectionLabel, display: "block" }}>World Tour</span>
+            <span style={{ display: "block", marginTop: 6, fontSize: 17, fontWeight: 700, color: BRAND.text }}>
+              {L("Улаанбаатараас Вегас хүртэл — 3D хотууд", "울란바토르에서 베가스까지 — 3D 도시", "Ulaanbaatar to Vegas — cities in 3D")}
+            </span>
+          </span>
+          <span aria-hidden="true" style={{ color: BRAND.faint, fontSize: 18 }}>→</span>
+        </button>
+
         {/* Latest sessions */}
         {stats.count > 0 && (
           <section style={{ ...card, padding: "16px 18px", marginTop: 12 }}>

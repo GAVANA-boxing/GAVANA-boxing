@@ -126,6 +126,22 @@ for (const v of [{ id: "mn-390", locale: "mn", viewport: viewport390 }, { id: "m
   }
 }
 
+// World Tour (fixture, fixed moment). The 3D canvas is hidden; header, live
+// conditions, next-city card and journey are compared.
+for (const v of [{ id: "mn-390", locale: "mn", viewport: viewport390 }, { id: "mn-360", locale: "mn", viewport: { width: 360, height: 800 } }, { id: "ko-390", locale: "ko", viewport: viewport390 }]) {
+  for (const name of ["tour", "tour-night"]) {
+    test(`${name} ${v.id}`, async ({ page }) => {
+      await prepare(page);
+      await page.setViewportSize(v.viewport);
+      await page.goto(`/${v.locale}/visual/${name}`, { waitUntil: "load" });
+      await expect(page.getByTestId("tour-city")).toBeVisible();
+      await page.addStyleTag({ content: "[data-testid=tour-scene] canvas { opacity: 0 !important; }" });
+      await settle(page);
+      await expect(page).toHaveScreenshot(`${name}-${v.id}.png`, { fullPage: true });
+    });
+  }
+}
+
 // Same day, time and first-run state on every run; optionally make
 // getUserMedia fail with a given error name.
 async function prepare(page, cameraError) {

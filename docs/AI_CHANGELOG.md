@@ -2,6 +2,25 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Roadmap Phase 6 — World Tour (owner: "gavana-д ашигла", world-simulator idea)
+- New route `/[locale]/tour` (+ metadata, sitemap; entry row on /progress). Each of the 9 rank tiers
+  unlocks a boxing city: Ulaanbaatar → Seoul → Tokyo → Bangkok → Manila → London → New York →
+  Mexico City → Las Vegas (with a real arena name each).
+- `lib/worldTour.js` (pure, 13 tests): stops, `tourProgress(xp)`, local time per time zone,
+  mean solar time from longitude, sun elevation (declination / hour-angle), sky colours by sun
+  (night / dawn / day / dusk, window glow), season by month + hemisphere, today's weather from each
+  city's climate (seeded per date — no weather API), value-noise terrain (valley mountains for UB,
+  a volcano for Tokyo / Mexico City), procedural street-grid city with downtown core, river or coast.
+- `components/tour/TourScene.js`: three.js — vertex-coloured terrain (snow caps / winter snow),
+  instanced buildings with shadows, the arena dome in the middle, real sun direction, fog by weather,
+  snow / rain particles, slow auto-orbit, drag to rotate, WebGL fallback text.
+- `components/tour/TourView.js`: city + arena, live chips (local time + phase, weather, sun °),
+  3D scene, next-city XP bar + Train button, the journey list (locked cities show their XP).
+- Visual: `/visual/tour` (Tokyo noon) and `/visual/tour-night` (Vegas evening) × 3 sizes; progress
+  baselines updated for the new row. 43/43 visual, 224/224 unit, lint 0 errors, build OK. Checked the
+  3D render with SwiftShader: Tokyo day, Vegas night neon, Ulaanbaatar at the real current time.
+- No external map / terrain / weather data (would need API keys / network); all procedural.
+
 ## Roadmap Phase 4 — Mitt drill (reaction round) (approved: "4iig hii")
 - New route `/[locale]/mitts` (+ metadata, sitemap; entry button on /train under Ghost Round).
   30 s round: the screen calls "1", "2", "1-2", "1-1", "slip", "roll" (by level easy/normal/hard);

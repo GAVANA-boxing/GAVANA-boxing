@@ -14,6 +14,7 @@ import FightHud from "@/components/train/FightHud";
 import MittCall from "@/components/mitts/MittCall";
 import MittResult from "@/components/mitts/MittResult";
 import { summarizeRound } from "@/lib/mittDrill";
+import TourView from "@/components/tour/TourView";
 import { syntheticReplay } from "@/lib/punchTeardown";
 
 // Fixed-data renders of screens that need a signed-in user, for the visual
@@ -42,6 +43,16 @@ export default function VisualFixture() {
   if (!ENABLED) notFound();
   const locale = getLocale(params?.locale);
   const t = (k) => translate(locale, k);
+
+  if (params?.screen === "tour" || params?.screen === "tour-night") {
+    // Tokyo at noon (2,000 XP), or Las Vegas in the evening (top rank) — fixed moment.
+    const night = params.screen === "tour-night";
+    return (
+      <main style={{ minHeight: "100dvh", background: pageBackground, color: "#fff", padding: "20px 16px 40px" }}>
+        <TourView xp={night ? 45000 : 2000} locale={locale} now={new Date(NOW - 9 * 3600 * 1000)} />
+      </main>
+    );
+  }
 
   if (params?.screen === "mitts-call" || params?.screen === "mitts-slip") {
     // Mitt drill call over an empty stage: a 1-2 (with the last call's hit), or a slip.
