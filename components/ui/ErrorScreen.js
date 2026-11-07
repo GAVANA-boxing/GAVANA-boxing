@@ -16,7 +16,8 @@ const T = {
 };
 
 /**
- * Shared error screen for the route error boundaries.
+ * Shared error screen for the route error boundaries. "Go home" is a full page
+ * load on purpose: it leaves the broken client state behind.
  * @param {{ reset?: () => void, message?: { mn: string, ko: string, en: string } }} props
  */
 export default function ErrorScreen({ reset, message }) {
@@ -31,7 +32,7 @@ export default function ErrorScreen({ reset, message }) {
         {sub && <p style={{ margin: "12px 0 0", fontSize: 15, lineHeight: 1.5, color: BRAND.muted }}>{sub}</p>}
         <div style={{ display: "grid", gap: 10, marginTop: 24 }}>
           {reset && <button type="button" onClick={() => reset()} style={{ ...btnPrimary, fontFamily: "inherit" }}>↻ {t.retry}</button>}
-          <button type="button" onClick={() => { window.location.href = `/${locale}/home`; }} style={{ ...btnSecondary, fontFamily: "inherit" }}>{t.home}</button>
+          <button type="button" onClick={() => { window.location.assign(new URL(`/${locale}/home`, window.location.origin)); }} style={{ ...btnSecondary, fontFamily: "inherit" }}>{t.home}</button>
         </div>
       </div>
     </main>

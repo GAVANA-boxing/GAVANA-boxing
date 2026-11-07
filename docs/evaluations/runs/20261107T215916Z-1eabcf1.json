@@ -1,0 +1,248 @@
+{
+  "id": "20261107T215916Z-1eabcf1",
+  "key": "7fa28318",
+  "task": "deps: next + eslint-config-next 16.2.4 → 16.4.3 (critical/high Next.js advisories); npm audit fix (websocket-driver, zod, nanoid, source-map-js, protobufjs)",
+  "branch": "claude/review-refactor-code-DUmiX",
+  "commit": "1eabcf1",
+  "base": "@{upstream}",
+  "dirty": true,
+  "startedAt": "2026-11-07T21:59:16.082Z",
+  "finishedAt": "2026-11-07T22:04:00.780Z",
+  "durationS": 285,
+  "cost": {
+    "paidApiCalls": 0,
+    "note": "checks run locally; no paid APIs"
+  },
+  "change": {
+    "level": "RED",
+    "files": [
+      {
+        "path": ".gitignore",
+        "level": "GREEN",
+        "why": "repo hygiene"
+      },
+      {
+        "path": "build.log",
+        "level": "YELLOW",
+        "why": "unclassified path"
+      },
+      {
+        "path": "docs/archive/PHASE_17_QA_CHECKLIST.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "docs/archive/PHASE_17_RELEASE_NOTES.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "docs/archive/RELEASE_NOTES_MVP.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "package-lock.json",
+        "level": "RED",
+        "why": "dependencies"
+      },
+      {
+        "path": "package.json",
+        "level": "RED",
+        "why": "dependencies"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "name": "lint",
+      "ms": 31572,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0,
+        "warnings": 24
+      }
+    },
+    {
+      "name": "typecheck",
+      "ms": 1671,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0
+      }
+    },
+    {
+      "name": "unit",
+      "ms": 3128,
+      "status": "PASS",
+      "metrics": {
+        "passed": 252,
+        "failed": 0
+      }
+    },
+    {
+      "name": "build",
+      "ms": 8285,
+      "status": "PASS",
+      "metrics": {}
+    },
+    {
+      "name": "bundle",
+      "status": "PASS",
+      "metrics": {
+        "kb": 6356
+      }
+    },
+    {
+      "name": "punch",
+      "ms": 60,
+      "status": "PASS",
+      "metrics": {
+        "macroF1": 0.904,
+        "recall": 0.897,
+        "precision": 1,
+        "phantoms": 0
+      }
+    },
+    {
+      "name": "visual",
+      "ms": 231984,
+      "status": "PASS",
+      "metrics": {
+        "passed": 51,
+        "failed": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "name": "rules",
+      "ms": 7984,
+      "status": "PASS",
+      "metrics": {
+        "passed": 43,
+        "failed": 0
+      }
+    }
+  ],
+  "comparison": [
+    {
+      "metric": "lint.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "lint.warnings",
+      "baseline": 23,
+      "value": 24,
+      "limit": "≤ 23",
+      "status": "FAIL"
+    },
+    {
+      "metric": "typecheck.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.passed",
+      "baseline": 241,
+      "value": 252,
+      "limit": "≥ 241",
+      "status": "PASS"
+    },
+    {
+      "metric": "bundle.kb",
+      "baseline": 6598,
+      "value": 6356,
+      "limit": "≤ 6928",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.macroF1",
+      "baseline": 0.904,
+      "value": 0.904,
+      "limit": "≥ 0.9035000000000001",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.phantoms",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.passed",
+      "baseline": 49,
+      "value": 51,
+      "limit": "≥ 49",
+      "status": "PASS"
+    },
+    {
+      "metric": "rules.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "rules.passed",
+      "baseline": 24,
+      "value": 43,
+      "limit": "≥ 24",
+      "status": "PASS"
+    }
+  ],
+  "verdict": "REJECTED",
+  "verdictNote": "regressed: lint.warnings",
+  "history": [
+    {
+      "state": "PENDING",
+      "at": "2026-11-07T21:59:16.082Z",
+      "note": "created"
+    },
+    {
+      "state": "PLANNING",
+      "at": "2026-11-07T21:59:16.082Z",
+      "note": "deps: next + eslint-config-next 16.2.4 → 16.4.3 (critical/high Next.js advisories); npm audit fix (websocket-driver, zod, nanoid, source-map-js, protobufjs)"
+    },
+    {
+      "state": "IMPLEMENTING",
+      "at": "2026-11-07T21:59:16.082Z",
+      "note": "7 changed file(s) vs @{upstream}, risk RED"
+    },
+    {
+      "state": "VERIFYING",
+      "at": "2026-11-07T21:59:16.082Z",
+      "note": ""
+    },
+    {
+      "state": "EVALUATING",
+      "at": "2026-11-07T22:04:00.770Z",
+      "note": ""
+    },
+    {
+      "state": "REJECTED",
+      "at": "2026-11-07T22:04:00.770Z",
+      "note": "regressed: lint.warnings"
+    }
+  ],
+  "baselineCommit": "37f2e45"
+}

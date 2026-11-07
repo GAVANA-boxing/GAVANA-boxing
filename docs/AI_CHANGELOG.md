@@ -2,6 +2,16 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Dependencies: next 16.4.3 (owner: "bugdiin hii")
+- `next` + `eslint-config-next` 16.2.4 → 16.4.3 (exact pin; fixes the critical Next.js RCE / proxy-bypass
+  advisories, all `<=16.4.0`), plus `npm audit fix` (websocket-driver, zod, nanoid, source-map-js,
+  protobufjs). `npm audit --omit=dev`: 10 (2 critical) → 4 high — all firebase → `@grpc/grpc-js`, no
+  upstream fix yet.
+- New lint rule flagged `components/ui/ErrorScreen.js`: "Go home" now assigns an absolute URL (still a full
+  reload on purpose). Run `20261107T220759Z-1eabcf1`: lint 0/23, unit 252, build, visual 51/51,
+  rules 43/43; the first run was REJECTED for that one extra warning.
+- Repo hygiene (`1eabcf1`): committed `build.log` removed + ignored; old phase notes → `docs/archive/`.
+
 ## Storage rules hardening + functions locale whitelist (owner: "bugdiin hii")
 - `storage.rules`: `coach_applications/{uid}` read is now owner-only (was any signed-in user); every
   upload must be `image/*` or `video/*` under a cap (images 10 MB, thumbnails 5 MB, story video 100 MB,
