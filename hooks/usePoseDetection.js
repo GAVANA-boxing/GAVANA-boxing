@@ -82,7 +82,9 @@ async function loadPoseLandmarker() {
 }
 
 // "loading" | "ready" | "failed"
-export function usePoseDetection({ videoRef, isActive, stance = "orthodox" }) {
+// load: when false, MediaPipe (bundle + wasm + model, several MB) isn't fetched yet —
+// pages pass it once the user starts a round. Defaults to true (load on mount).
+export function usePoseDetection({ videoRef, isActive, stance = "orthodox", load = true }) {
   const [poseStatus, setPoseStatus] = useState("loading");
   const [poseError, setPoseError] = useState(null);
 
@@ -115,6 +117,7 @@ export function usePoseDetection({ videoRef, isActive, stance = "orthodox" }) {
 
   // ── Load PoseLandmarker ──────────────────────────────────────────────────
   useEffect(() => {
+    if (!load || landmarkerRef.current) return undefined;
     let cancelled = false;
 
     loadPoseLandmarker()
@@ -132,7 +135,7 @@ export function usePoseDetection({ videoRef, isActive, stance = "orthodox" }) {
       });
 
     return () => { cancelled = true; };
-  }, []);
+  }, [load]);
 
   // ── Detection loop ───────────────────────────────────────────────────────
   useEffect(() => {

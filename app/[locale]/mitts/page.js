@@ -51,7 +51,7 @@ export default function MittDrillPage() {
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
-  const { getDebugInfo, poseStatus } = usePoseDetection({ videoRef, isActive: phase === "round", stance });
+  const { getDebugInfo, poseStatus } = usePoseDetection({ videoRef, isActive: phase === "round", stance, load: phase !== "intro" });
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());

@@ -52,7 +52,7 @@ export default function HeavyBagPage() {
   const statsRef = useRef(createBagStats());
   const videoRef = useRef(null);
   const streamRef = useRef(null);
-  const { getDebugInfo } = usePoseDetection({ videoRef, isActive: phase === "round" && camera === "on", stance });
+  const { getDebugInfo } = usePoseDetection({ videoRef, isActive: phase === "round" && camera === "on", stance, load: camera === "on" });
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());

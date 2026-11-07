@@ -2,6 +2,12 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Perf: MediaPipe loads only when a round starts on /bag and /mitts
+- `usePoseDetection` takes `load` (default true). `/bag` passes `camera === "on"`, `/mitts`
+  `phase !== "intro"`: the bundle, wasm and pose model (several MB) are no longer fetched just for
+  opening the page. Checked in Chromium: 0 MediaPipe requests before Start, 4 after, on both pages.
+  `/train` and `/ghost` unchanged. Run `20261107T221756Z-1de44c1` ACCEPTED.
+
 ## Landing: 3D cinematic intro (owner: "Intro hiilee blenderluu oruulj iluu saijruulaad ashiglaarai")
 - The owner's canvas intro rebuilt in Blender (`tools/blender/intro.py`, 252 frames, 1280×720 30 fps,
   chrome letters, glove, spot cone, shockwave, crimson sweep) and encoded by

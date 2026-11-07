@@ -1,6 +1,35 @@
 {
   "runs": [
     {
+      "id": "20261107T221756Z-1de44c1",
+      "task": "perf: MediaPipe pose model loads only when a round starts on /bag and /mitts (usePoseDetection load flag)",
+      "verdict": "ACCEPTED",
+      "commit": "1de44c1",
+      "at": "2026-11-07T22:22:36.720Z",
+      "durationS": 280,
+      "level": "YELLOW",
+      "failedSteps": [],
+      "notRun": [
+        "rules"
+      ],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 252,
+        "unit.failed": 0,
+        "bundle.kb": 6369,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 51,
+        "visual.failed": 0,
+        "visual.flaky": 0
+      },
+      "decision": null
+    },
+    {
       "id": "20261107T221306Z-13d963d",
       "task": "landing: Blender 3D cinematic intro video + synced sound + localized overlay",
       "verdict": "ACCEPTED",
