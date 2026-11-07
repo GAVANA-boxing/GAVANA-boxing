@@ -361,7 +361,7 @@ export default function ResultAnalysisSection({
                 )}
                 {cornerAdvice?.length > 0 && (
                   <div style={{ marginBottom: 8 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.2, color: "#6EE7B7", textTransform: "uppercase", marginBottom: 5 }}>Corner Advice</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.2, color: "#6EE7B7", textTransform: "uppercase", marginBottom: 5 }}>{loc(locale, "Булангийн зөвлөгөө", "코너 조언", "Corner advice")}</div>
                     <div style={{ padding: "8px 10px", borderRadius: 8, background: "rgba(110,231,183,0.04)", border: "1px solid rgba(110,231,183,0.14)" }}>
                       {cornerAdvice.map((tip, i) => (
                         <div key={i} style={{ fontSize: 12.5, color: whiteAlpha(0.7), lineHeight: 1.6, paddingBottom: i < cornerAdvice.length - 1 ? 5 : 0 }}>▸ {tip}</div>

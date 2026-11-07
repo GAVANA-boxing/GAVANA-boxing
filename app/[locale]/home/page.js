@@ -220,7 +220,7 @@ export default function HomePage() {
 
         {/* FIGHT CULTURE */}
         <section style={S.sec}>
-          <div style={S.lbl}><span>Fight culture</span></div>
+          <div style={S.lbl}><span>{loc(locale, "Долоо хоногийн сорилт", "이번 주 챌린지", "This week")}</span></div>
           <button type="button" onClick={() => go(CORE_MODE ? "/train" : "/challenges")} style={{ width: "100%", textAlign: "left", background: whiteAlpha(0.05), border: `1px solid ${whiteAlpha(0.08)}`, borderRadius: 18, padding: 16, cursor: "pointer", color: "#fff" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <span style={{ width: 40, height: 40, borderRadius: 11, background: "rgba(245,196,81,0.16)", display: "grid", placeItems: "center", color: GOLD, flexShrink: 0 }}>

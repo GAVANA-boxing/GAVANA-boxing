@@ -362,6 +362,7 @@ export default function AIChatPage() {
         onBack={() => router.back()}
         onClear={clearSession}
         clearLabel={t("coachClearChat")}
+        backLabel={locale === "mn" ? "Буцах" : locale === "ko" ? "뒤로" : "Back"}
       />
 
       <CoachPersonaSelector

@@ -716,7 +716,7 @@ export default function TrainPage() {
 
   return (
     <main style={styles.page}>
-      <button type="button" style={styles.backButton} onClick={goBack} aria-label="Back">
+      <button type="button" style={styles.backButton} onClick={goBack} aria-label={loc(locale, "Буцах", "뒤로", "Back")}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
@@ -973,7 +973,7 @@ export default function TrainPage() {
                 display: "flex", alignItems: "center", justifyContent: "center",
                 cursor: "pointer", zIndex: 10,
               }}
-              aria-label="Switch camera"
+              aria-label={loc(locale, "Камер солих", "카메라 전환", "Switch camera")}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 7h-3a2 2 0 0 1-2-2V2" />
