@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { notFound, useParams } from "next/navigation";
 import { getLocale, translate } from "@/lib/i18n";
 import { getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
@@ -17,6 +18,7 @@ import { summarizeRound } from "@/lib/mittDrill";
 import TourView from "@/components/tour/TourView";
 import FighterShareCard from "@/components/profile/FighterShareCard";
 import { syntheticReplay } from "@/lib/punchTeardown";
+import OnboardingStep1Archetype from "@/components/onboarding/OnboardingStep1Archetype";
 
 // Fixed-data renders of screens that need a signed-in user, for the visual
 // regression tests (tests/visual). Only exists when NEXT_PUBLIC_VISUAL_FIXTURES=1
@@ -38,6 +40,20 @@ const POSE = {
 };
 
 const TEARDOWN_REPLAY = syntheticReplay({ punches: 4, lazyCross: true, dropGuardOn: 1 });
+
+function StanceFixture({ locale, t }) {
+  const [stance, setStance] = useState(null);
+  const [archetype, setArchetype] = useState(null);
+  const [weightClass, setWeightClass] = useState("");
+  return (
+    <main style={{ minHeight: "100dvh", background: pageBackground, padding: "24px 16px" }}>
+      <OnboardingStep1Archetype
+        locale={locale} t={t} archetype={archetype} setArchetype={setArchetype} stance={stance} setStance={setStance}
+        weightClass={weightClass} setWeightClass={setWeightClass} saving={false} onNext={() => {}}
+      />
+    </main>
+  );
+}
 
 export default function VisualFixture() {
   const params = useParams();
@@ -115,6 +131,8 @@ export default function VisualFixture() {
       </main>
     );
   }
+
+  if (params?.screen === "stance") return <StanceFixture locale={locale} t={t} />;
 
   if (params?.screen === "teardown") {
     // A synthetic round: jab, arm-only cross with the guard dropped, jab, cross.

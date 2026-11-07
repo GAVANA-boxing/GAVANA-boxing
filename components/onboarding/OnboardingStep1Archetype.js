@@ -3,6 +3,7 @@
 import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
 import { WEIGHT_CLASSES, ARCHETYPE_DESCS } from "@/lib/onboardingConstants";
 import s from "@/components/onboarding/onboardingStyles";
+import StancePhotoCheck from "@/components/onboarding/StancePhotoCheck";
 
 export default function OnboardingStep1Archetype({
   locale,
@@ -58,6 +59,7 @@ export default function OnboardingStep1Archetype({
             );
           })}
         </div>
+        <StancePhotoCheck locale={locale} onStance={setStance} />
       </div>
 
       <label style={{ ...s.fieldLabel, display: "block", marginBottom: 8 }}>

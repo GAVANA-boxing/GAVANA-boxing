@@ -1,6 +1,35 @@
 {
   "runs": [
     {
+      "id": "20261107T223550Z-fbd5ffc",
+      "task": "roadmap phase 7: stance from one photo in onboarding (MediaPipe IMAGE mode on device) + visual fixture",
+      "verdict": "ACCEPTED",
+      "commit": "fbd5ffc",
+      "at": "2026-11-07T22:40:06.446Z",
+      "durationS": 256,
+      "level": "GREEN",
+      "failedSteps": [],
+      "notRun": [
+        "rules"
+      ],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 259,
+        "unit.failed": 0,
+        "bundle.kb": 6392,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 54,
+        "visual.failed": 0,
+        "visual.flaky": 0
+      },
+      "decision": null
+    },
+    {
       "id": "20261107T222916Z-8ef4510",
       "task": "a11y: raise every fontSize < 11 to 11 in the 36 core files the observer flagged (68 values)",
       "verdict": "ACCEPTED",

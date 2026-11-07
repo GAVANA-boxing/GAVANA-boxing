@@ -2,6 +2,18 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Roadmap Phase 7: stance check from one photo (onboarding)
+- Onboarding stance step: "Detect from a photo" → one full-body photo in stance → MediaPipe
+  PoseLandmarker in IMAGE mode (`lib/poseImage.js`, loaded only on tap; on device, nothing uploaded)
+  → `lib/stanceFromPose.js` (pure, 7 tests): lead side from joint depth (feet and hands weighted most,
+  scaled by shoulder width) → orthodox / southpaw pre-selected, plus guard height and foot width.
+  Not sure (square-on, body cut off, no person) → a localized hint and manual choice stays.
+- Mirrored selfies flip left/right; the result says so and the choice stays editable.
+- Verified end to end in Chromium with a rendered 3D boxer image (bundle → model → result → radio
+  selected). NOT validated on real photos of people — owner to try a few orthodox / southpaw shots.
+- Visual fixture `/visual/stance` (mn-390, mn-360, ko-390). Run `20261107T223550Z-fbd5ffc` ACCEPTED
+  (unit 259, visual 54/54).
+
 ## A11y: no text under 11 px in the core screens
 - Every `fontSize` below 11 in the 36 files the observer flagged (68 values, incl. ternary arms and
   admin pages) is now 11. Observer: 0 small-text findings left in core code (low-contrast and lint

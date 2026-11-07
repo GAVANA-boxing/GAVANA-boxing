@@ -62,7 +62,8 @@ agent that drives a tool, game HUD, world simulator). Order = value to the core 
    next city; real terrain/elevation tiles or live weather would need an API (RED: network + cost).
    Original: **World Tour** (from the world simulator) — rank progress as a journey of arenas
    (Ulaanbaatar → Seoul → Tokyo → Las Vegas), lighting by local time of day; retention, not scoring.
-7. **Stance check from one photo** — onboarding: one selfie-stand photo → stance, guard height,
+7. **Stance check from one photo** — DONE (AI_CHANGELOG "Roadmap Phase 7"). Follow-up: check on real
+   photos with the owner. Original: onboarding: one selfie-stand photo → stance, guard height,
    foot width; sets southpaw/orthodox automatically.
 
 ## DONE
