@@ -83,7 +83,6 @@ export function useTrainingData({ user }) {
     }
     loadSessionStats();
     return () => { active = false; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.uid, profile, profileLoading]);
 
   useEffect(() => {

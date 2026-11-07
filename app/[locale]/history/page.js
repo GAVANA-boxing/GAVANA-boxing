@@ -68,7 +68,7 @@ export default function HistoryPage() {
       .catch(() => {})
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [user?.uid, authLoading]);
+  }, [user?.uid, authLoading, locale, router]);
 
   const filtered = useMemo(() => {
     let list = sessions.filter((s) => {

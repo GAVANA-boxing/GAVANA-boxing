@@ -210,7 +210,6 @@ export default function FighterProfilePage() {
       } catch { /* silent */ }
     })();
     return () => { active = false; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.uid, dna.archetypeKey, dna.building, userProfile, profileLoading]);
 
   async function clearExperiment() {

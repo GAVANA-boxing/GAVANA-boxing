@@ -80,7 +80,6 @@ export default function CoachApplyPage() {
     }
     check();
     return () => { active = false; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.uid, profile, profileLoading]);
 
   const toggleSpecialty = (s) => {

@@ -81,7 +81,6 @@ export default function FeedRoute() {
       cancelled = true;
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -92,7 +91,6 @@ export default function FeedRoute() {
       archetypeRef.current = arch;
       loadFeed(false, arch);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.fighterDNA?.archetypeKey]);
 
   useEffect(() => {

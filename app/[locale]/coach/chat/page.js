@@ -150,7 +150,6 @@ export default function AIChatPage() {
       } catch { /* silent — chat still works without context */ }
     })();
     return () => { active = false; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.uid, locale, profile, profileLoading]);
 
   // Load chat history for current persona

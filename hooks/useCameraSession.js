@@ -281,7 +281,7 @@ export function useCameraSession({
     const id = Date.now();
     setLiveFeedback({ text, id });
     window.setTimeout(() => setLiveFeedback((prev) => (prev?.id === id ? null : prev)), 1200);
-  }, [sessionSeconds, targetMovements, playPunchSound]);
+  }, [sessionSeconds, targetMovements, playPunchSound, locale]);
 
   usePunchDetector({
     videoRef,

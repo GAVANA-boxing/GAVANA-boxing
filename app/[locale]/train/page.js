@@ -319,7 +319,6 @@ export default function TrainPage() {
       } catch { /* silent */ }
     })();
     return () => { active = false; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.uid, profile, profileLoading]);
 
   // Track session completions

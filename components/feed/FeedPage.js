@@ -164,7 +164,6 @@ export default function FeedPage({ reels, locale, router, user, userArchetype, f
     );
     cardRefs.current.forEach((el) => observerRef.current.observe(el));
     return () => observerRef.current?.disconnect();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reels.length]);
 
   const myStyleKeywords = userArchetype ? (ARCH_KEYWORDS[userArchetype] || []) : [];
