@@ -1,6 +1,27 @@
 {
   "tasks": [
     {
+      "fingerprint": "test-flake:visual-webgl-load",
+      "kind": "test-flake",
+      "source": "manual",
+      "title": "Flaky visual tests under load: teardown scrub (software WebGL) and bag intro (slow WebGPU requestAdapter)",
+      "files": [
+        "lib/three/renderCaps.js",
+        "tests/visual/screens.spec.mjs"
+      ],
+      "evidence": [
+        "runs 20261107T143118Z (teardown x3), 20261107T145855Z (teardown), 20261107T150558Z (bag mn-360)"
+      ],
+      "fix": "requestAdapter timeout in detectRenderCaps; teardown screenshot test without WebGL; bag test waits longer",
+      "priority": 99,
+      "risk": "GREEN",
+      "status": "open",
+      "attempts": 0,
+      "createdAt": "2026-11-07T15:12:51.141Z",
+      "updatedAt": "2026-11-07T15:12:51.141Z",
+      "history": []
+    },
+    {
       "fingerprint": "security:storage-coach-applications-read",
       "kind": "security",
       "source": "scanner",
