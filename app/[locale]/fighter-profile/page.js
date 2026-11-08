@@ -14,29 +14,23 @@ import CombatMemoryPanel from "@/components/profile/CombatMemoryPanel";
 import FighterDNACard from "@/components/profile/FighterDNACard";
 import { RED, GOLD, RADIUS, goldAlpha, whiteAlpha, BG, redAlpha } from "@/lib/tokens";
 import { computeMovementProfile } from "@/lib/combatMemory";
-import { deriveCombatIdentity } from "@/lib/combatIdentity";
 import { computeFighterDNA, dnaSnapshot, computePreliminarySignals } from "@/lib/fighterDNA";
 import { computeCombatProgress, progressSnapshot } from "@/lib/combatProgress";
 import CombatProgressCard from "@/components/profile/CombatProgressCard";
 import { ARCH_TRAINING_COLORS } from "@/lib/archetypeTraining";
 
-import CombatIdentitySection from "@/components/fighter-profile/CombatIdentitySection";
 import FighterPassportCard from "@/components/fighter-profile/FighterPassportCard";
 import DNAShareCard from "@/components/fighter-profile/DNAShareCard";
-import IdentityJourneyStrip from "@/components/fighter-profile/IdentityJourneyStrip";
 import FighterDNACompareCard from "@/components/fighter-profile/FighterDNACompareCard";
 import TrainingPrescriptionCard from "@/components/fighter-profile/TrainingPrescriptionCard";
-import DNANextStepsCard from "@/components/fighter-profile/DNANextStepsCard";
 import ProUpgradePanel from "@/components/fighter-profile/ProUpgradePanel";
-import WeeklyReportCard from "@/components/fighter-profile/WeeklyReportCard";
 import StudiedFightersPanel from "@/components/fighter-profile/StudiedFightersPanel";
 import TribeCard from "@/components/fighter-profile/TribeCard";
 import TribeActivityFeed from "@/components/fighter-profile/TribeActivityFeed";
 import DNARevealOverlay from "@/components/fighter-profile/DNARevealOverlay";
-import DNAEvolutionCard from "@/components/fighter-profile/DNAEvolutionCard";
-import DNATimelineCard from "@/components/fighter-profile/DNATimelineCard";
 import EvolutionRevealPanel from "@/components/fighter-profile/EvolutionRevealPanel";
 import ProGate from "@/components/fighter-profile/ProGate";
+import ProgressGlance from "@/components/progress/ProgressGlance";
 import { showRoute } from "@/lib/coreRoutes";
 import { isProUser } from "@/lib/pro";
 
@@ -134,7 +128,6 @@ export default function FighterProfilePage() {
   const { profile: userProfile, loading: profileLoading } = useUserProfile();
   const { sessions, tendency, trends, loading } = useCombatMemory({ user });
   const profile  = computeMovementProfile(sessions);
-  const identity = profile ? deriveCombatIdentity(profile, sessions) : null;
   const dna      = computeFighterDNA({ sessions, locale });
   const dnaSavedRef       = useRef(false);
   const progressSavedRef  = useRef(false);
@@ -148,7 +141,6 @@ export default function FighterProfilePage() {
   const [subscribeSuccess, setSubscribeSuccess] = useState(false);
   const [userData, setUserData] = useState(null);
   const dnaRevealShownRef = useRef(false);
-  const [milestonesUnlocked, setMilestonesUnlocked] = useState({ m8: false, m15: false });
 
   // Combat Level derives from the canonical account XP (same number as belts/rank)
   // so the profile shows one coherent ladder; falls back to a session estimate
@@ -174,7 +166,7 @@ export default function FighterProfilePage() {
     }
   }, []);
 
-  // Load currentExperiment + tribe count + milestone badges
+  // Load currentExperiment + tribe count
   useEffect(() => {
     if (!user?.uid) return;
     if (profileLoading) return;
@@ -189,10 +181,6 @@ export default function FighterProfilePage() {
           setStudiedFighterIds(data.studiedFighters || []);
           setIsPro(isProUser(data));
           setUserData(data);
-          setMilestonesUnlocked({
-            m8:  !!data.milestoneUnlocked8,
-            m15: !!data.milestoneUnlocked15,
-          });
         }
         // Tribe counts — query all 5 archetypes in parallel
         const ARCH_KEYS = ["pressure", "outboxer", "counter", "explosive", "technician"];
@@ -410,81 +398,6 @@ export default function FighterProfilePage() {
               </div>
             )}
 
-            {/* DNA Milestone Badges */}
-            {!loading && (milestonesUnlocked.m8 || milestonesUnlocked.m15) && (
-              <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-                {milestonesUnlocked.m8 && (
-                  <div style={{
-                    display: "inline-flex", alignItems: "center", gap: 6,
-                    padding: "6px 12px", borderRadius: 20,
-                    background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.35)",
-                  }}>
-                    <span style={{ fontSize: 14 }}>🧬</span>
-                    <span style={{ fontSize: 12, fontWeight: 900, color: "#A78BFA", letterSpacing: 0.5 }}>
-                      {locale === "mn" ? "8-р тренинг" : locale === "ko" ? "세션 8 마일스톤" : "Session 8 Milestone"}
-                    </span>
-                  </div>
-                )}
-                {milestonesUnlocked.m15 && (
-                  <div style={{
-                    display: "inline-flex", alignItems: "center", gap: 6,
-                    padding: "6px 12px", borderRadius: 20,
-                    background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.35)",
-                  }}>
-                    <span style={{ fontSize: 14 }}>⚗️</span>
-                    <span style={{ fontSize: 12, fontWeight: 900, color: "#A78BFA", letterSpacing: 0.5 }}>
-                      {locale === "mn" ? "15-р тренинг" : locale === "ko" ? "세션 15 마일스톤" : "Session 15 Milestone"}
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* DNA Confidence Journey */}
-            {!loading && !dna.building && dna.archetypeKey && (() => {
-              const conf = (dna.confidence || 0) * 100;
-              const MILESTONES = [
-                { pct: 0,  label: { en: "Forming", mn: "Бүрдэж байна", ko: "형성 중" } },
-                { pct: 33, label: { en: "Emerging", mn: "Гарч байна", ko: "나타나는 중" } },
-                { pct: 66, label: { en: "Solidifying", mn: "Бататгаж байна", ko: "강화 중" } },
-                { pct: 90, label: { en: "Confirmed", mn: "Тогтсон", ko: "확정됨" } },
-              ];
-              const currentMilestone = [...MILESTONES].reverse().find((m) => conf >= m.pct) || MILESTONES[0];
-              const nextMilestone = MILESTONES.find((m) => m.pct > conf);
-              const accentColor = ARCH_TRAINING_COLORS[dna.archetypeKey] || GOLD;
-              return (
-                <div style={{ borderRadius: 14, padding: "12px 14px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", marginBottom: 10 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                    <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.8, textTransform: "uppercase", color: "rgba(255,255,255,0.55)" }}>
-                      {locale === "mn" ? "ДНХ ИТГЭЛЦЛИЙН ЗАМНАЛ" : locale === "ko" ? "DNA 신뢰도 여정" : "DNA CONFIDENCE JOURNEY"}
-                    </div>
-                    <div style={{ fontSize: 11, fontWeight: 900, color: accentColor }}>{conf.toFixed(0)}%</div>
-                  </div>
-                  <div style={{ position: "relative", height: 6, background: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden", marginBottom: 8 }}>
-                    <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: `${conf}%`, background: `linear-gradient(90deg, ${accentColor}88, ${accentColor})`, borderRadius: 3, transition: "width 0.8s cubic-bezier(0.16,1,0.3,1)" }} />
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ fontSize: 12, fontWeight: 800, color: accentColor }}>{currentMilestone.label[locale] || currentMilestone.label.en}</span>
-                    {nextMilestone && (
-                      <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.55)" }}>
-                        → {nextMilestone.label[locale] || nextMilestone.label.en} @ {nextMilestone.pct}%
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* DNA Confidence Timeline */}
-            {!loading && sessions.length >= 3 && (
-              <DNATimelineCard sessions={sessions} locale={locale} />
-            )}
-
-            {/* DNA Evolution */}
-            {!loading && sessions.length >= 6 && (
-              <DNAEvolutionCard sessions={sessions} locale={locale} />
-            )}
-
             {/* DNA Share Card */}
             {!loading && !dna.building && (
               <DNAShareCard dna={dna} displayName={displayName} locale={locale} uid={user?.uid} />
@@ -496,8 +409,9 @@ export default function FighterProfilePage() {
               <ProUpgradePanel locale={locale} router={router} />
             )}
 
-            {/* DNA Export — Pro only */}
-            {!loading && (
+            {/* DNA Export — Pro users only (non-Pro users see the one ProUpgradePanel above, not a
+                second locked Pro block) */}
+            {!loading && isPro && (
               <ProGate pro={isPro} locale={locale} router={router}>
                 <div style={{ borderRadius: 14, padding: "14px 16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <div>
@@ -544,25 +458,9 @@ export default function FighterProfilePage() {
         {/* ── Progress Tab ─────────────────────────────────────────── */}
         {activeTab === "progress" && (
           <>
-            {/* Weekly DNA Report */}
-            {!loading && sessions.length > 0 && (
-              <WeeklyReportCard sessions={sessions} locale={locale} dna={dna} router={router} />
-            )}
-
-            {/* Identity Journey Map */}
+            {/* Am I getting better? — one glance */}
             {!loading && (
-              <IdentityJourneyStrip
-                sessions={sessions}
-                dna={dna}
-                studiedIds={studiedFighterIds}
-                currentExperiment={currentExperiment}
-                locale={locale}
-              />
-            )}
-
-            {/* Combat Identity */}
-            {!loading && (
-              <CombatIdentitySection identity={identity} sessionCount={sessions.length} locale={locale} />
+              <ProgressGlance locale={locale} sessions={sessions} streak={Number(userData?.dailyStreak) || 0} style={{ marginBottom: 12 }} />
             )}
 
             {/* Combat Progress */}
@@ -573,11 +471,6 @@ export default function FighterProfilePage() {
             {/* Training Prescription */}
             {!loading && !dna.building && (
               <TrainingPrescriptionCard dna={dna} locale={locale} router={router} />
-            )}
-
-            {/* DNA Next Steps */}
-            {!loading && !dna.building && dna.archetypeKey && (
-              <DNANextStepsCard dna={dna} locale={locale} />
             )}
 
             {/* Evolution Reveal — shown when experiment is complete (7+ days) */}

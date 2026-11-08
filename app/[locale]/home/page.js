@@ -8,8 +8,7 @@ import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { loc } from "@/lib/loc";
 import { useCombatMemory } from "@/hooks/useCombatMemory";
 import { computeFighterDNA } from "@/lib/fighterDNA";
-import { computeCombatProgress } from "@/lib/combatProgress";
-import { getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
+import { getFighterRank } from "@/lib/xp";
 import { useRankData } from "@/hooks/useRankData";
 import { ARCH_TRAINING_COLORS } from "@/lib/archetypeTraining";
 import { DAILY_MISSIONS } from "@/components/ai-coach/TodayMissionBanner";
@@ -17,11 +16,11 @@ import { getFeaturedPackage } from "@/lib/experimentPackages";
 import { getLocalDateKey } from "@/lib/utils";
 import { RED, GOLD, whiteAlpha } from "@/lib/tokens";
 import BottomNav from "@/components/BottomNav";
+import ProgressGlance from "@/components/progress/ProgressGlance";
 import { CORE_MODE } from "@/lib/coreRoutes";
 
 const COND = "var(--font-condensed, 'Barlow Condensed', sans-serif)";
 const DISP = "var(--font-display, 'Anton', sans-serif)";
-const SKILL_C = { jabIQ: "#FBBF24", guardRecovery: "#34D399", comboRhythm: "#3B82F6", footwork: "#A78BFA", powerTransfer: "#FF6B6B" };
 
 const WD = {
   mn: ["Да", "Мя", "Лх", "Пү", "Ба", "Бя", "Ня"],
@@ -54,10 +53,7 @@ export default function HomePage() {
   // One XP number everywhere: the same account XP and rank ladder as /progress.
   const { xp: accountXp } = useRankData({ user, authLoading });
   const xp = accountXp ?? (Number(userData?.xp) || 0);
-  const progress = computeCombatProgress({ sessions, locale, xp });
   const rank = getFighterRank(xp);
-  const nextRank = getNextRank(xp);
-  const rankPct = getRankProgress(xp);
   const accent = (!dna.building && ARCH_TRAINING_COLORS[dna.archetypeKey]) || RED;
   const displayName = userData?.displayName || user?.displayName || loc(locale, "Тулаанч", "파이터", "Fighter");
   const streak = Number(userData?.dailyStreak) || 0;
@@ -93,7 +89,6 @@ export default function HomePage() {
   })();
   const todayIdx = (new Date().getDay() + 6) % 7;
 
-  const topSkills = progress.building ? [] : Object.entries(progress.skills || {}).sort(([, a], [, b]) => b - a).slice(0, 2).map(([k, v]) => ({ key: k, label: progress.skillLabels?.[k] || k, v }));
 
   const go = (path) => router.push(`/${locale}${path}`);
 
@@ -174,26 +169,11 @@ export default function HomePage() {
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={whiteAlpha(0.58)} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 6 6 6-6 6"/></svg>
         </button>
 
-        {/* PROGRESS */}
-        {!progress.building && (
+        {/* PROGRESS — am I getting better? one glance (first rounds → latest rounds) */}
+        {sessions.length > 0 && (
           <section style={S.sec}>
-            <div style={S.lbl}><span>{loc(locale, "Чиний хөгжил", "내 발전", "Your progress")}</span><span style={S.link} onClick={() => go("/progress")}>{loc(locale, "Дэлгэрэнгүй", "더보기", "More")} →</span></div>
-            <div style={{ background: whiteAlpha(0.05), border: `1px solid ${whiteAlpha(0.08)}`, borderRadius: 18, padding: 16, display: "flex", flexDirection: "column", gap: 13 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontFamily: COND }}>
-                <span style={{ fontWeight: 700, fontSize: 15, color: rank.color }}>{t(rank.key)}</span>
-                {nextRank && <span style={{ fontWeight: 600, fontSize: 12.5, color: whiteAlpha(0.58) }}>{t(nextRank.key)} · <b style={{ color: accent }}>{(nextRank.minXP - xp).toLocaleString()} XP</b></span>}
-              </div>
-              <div style={{ height: 6, borderRadius: 4, background: whiteAlpha(0.08), overflow: "hidden" }}><div style={{ height: "100%", borderRadius: 4, background: accent, width: `${Math.round(rankPct)}%` }} /></div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {topSkills.map((sk) => (
-                  <div key={sk.key} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <span style={{ width: 90, fontFamily: COND, fontWeight: 600, fontSize: 12.5, color: whiteAlpha(0.58), textTransform: "uppercase", letterSpacing: 0.4, flexShrink: 0 }}>{sk.label}</span>
-                    <span style={{ flex: 1, height: 6, borderRadius: 4, background: whiteAlpha(0.08), overflow: "hidden" }}><span style={{ display: "block", height: "100%", borderRadius: 4, width: `${(sk.v / 10) * 100}%`, background: SKILL_C[sk.key] || accent }} /></span>
-                    <span style={{ width: 26, textAlign: "right", fontFamily: COND, fontWeight: 700, fontSize: 12.5, color: SKILL_C[sk.key] || accent, flexShrink: 0 }}>{sk.v.toFixed(1)}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <div style={S.lbl}><span>{loc(locale, "Чиний ахиц", "내 성장", "Your progress")}</span></div>
+            <ProgressGlance locale={locale} sessions={sessions} streak={streak} onOpen={() => go("/progress")} />
           </section>
         )}
 

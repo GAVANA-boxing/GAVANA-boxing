@@ -32,7 +32,6 @@ import MilestoneCelebration from "@/components/MilestoneCelebration";
 import { usePoseDetection } from "@/hooks/usePoseDetection";
 import TechniquePicker from "@/components/train/TechniquePicker";
 import IncomingChallengeBanner from "@/components/train/IncomingChallengeBanner";
-import { getPersonalConnection } from "@/lib/fighterPersonalConnection";
 import { ARCH_TRAINING_COLORS } from "@/lib/archetypeTraining";
 import OnboardingOverlay from "@/components/train/OnboardingOverlay";
 import DailyHub from "@/components/train/DailyHub";
@@ -266,7 +265,6 @@ export default function TrainPage() {
   const [debrief, setDebrief]             = useState(null);
   const [debriefSource, setDebriefSource] = useState(null);
   const [debriefLoading, setDebriefLoading] = useState(false);
-  const [focusTip, setFocusTip] = useState(null);
   const [newBadges, setNewBadges] = useState([]);
   const [dnaMilestone, setDnaMilestone] = useState(null);
   const [poseSessionSummary, setPoseSessionSummary] = useState(null);
@@ -331,15 +329,6 @@ export default function TrainPage() {
         const thisWeek = sessions.filter((s) => (s.createdAt?.seconds || 0) >= mondaySec);
         if (thisWeek.length > 0) setWeeklyBestScore(Math.max(...thisWeek.map((s) => s.score || 0)));
 
-        if (snapshot && sessions.length >= 3) {
-          const weakAreas = Object.entries(snapshot.radarStats).sort(([, a], [, b]) => a - b);
-          const miniSnap = { weakAreas, radarStats: snapshot.radarStats };
-          const top = FIGHTERS
-            .map((f) => ({ fighter: f, connection: getPersonalConnection(miniSnap, f) }))
-            .filter((x) => x.connection?.isDirectlyRelevant)
-            .sort((a, b) => (b.connection?.relevantWeak?.length || 0) - (a.connection?.relevantWeak?.length || 0))[0];
-          if (top && active) setFocusTip({ fighter: top.fighter, connection: top.connection });
-        }
       } catch { /* silent */ }
     })();
     return () => { active = false; };
@@ -935,49 +924,6 @@ export default function TrainPage() {
           />
         )}
 
-        {/* Pre-session personalized focus tip */}
-        {focusTip && canStart && !lessonContext && !challengeUserId && !challengeId && (() => {
-          const { fighter, connection } = focusTip;
-          const acc = fighter.accent;
-          const drill = connection.focusDrills?.[0] || connection.focusStudy?.[0];
-          return (
-            <div style={{
-              margin: "0 0 14px",
-              padding: "11px 14px",
-              borderRadius: 14,
-              background: `linear-gradient(135deg, ${acc}10 0%, rgba(0,0,0,0) 100%)`,
-              border: `1px solid ${acc}28`,
-              borderLeft: `3px solid ${acc}`,
-            }}>
-              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: acc, textTransform: "uppercase", marginBottom: 7 }}>
-                {locale === "mn" ? "⚡ Өнөөдрийн анхаарал" : locale === "ko" ? "⚡ 오늘의 집중" : "⚡ Today's Focus"}
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: drill ? 8 : 0 }}>
-                <div style={{ flex: 1 }}>
-                  <span style={{ fontSize: 12.5, fontWeight: 900, color: "#fff" }}>{fighter.name}</span>
-                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", marginLeft: 8 }}>
-                    {connection.primaryFocus} · {connection.primaryValue?.toFixed(1)}/10
-                  </span>
-                </div>
-                {showRoute(`/fighters/${fighter.id}`) && <button
-                  type="button"
-                  onClick={() => router.push(`/${locale}/fighters/${fighter.id}`)}
-                  style={{ background: `${acc}18`, border: `1px solid ${acc}40`, borderRadius: 8, padding: "5px 11px", color: acc, fontSize: 12, fontWeight: 900, cursor: "pointer", flexShrink: 0 }}
-                >
-                  {locale === "mn" ? "Судлах" : locale === "ko" ? "배우기" : "Study"}
-                </button>}
-              </div>
-              {drill && (
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.4, paddingLeft: 2 }}>
-                  <svg width="8" height="10" viewBox="0 0 13 16" fill={acc} style={{ marginRight: 5, verticalAlign: "middle" }}>
-                    <path d="M7 0L0 9h6l-1 7 7-9H6L7 0z"/>
-                  </svg>
-                  {drill}
-                </div>
-              )}
-            </div>
-          );
-        })()}
 
         <div style={styles.stage} className="train-stage" data-studio-state={studio.state}>
           {cameraState === "ready" ? (
@@ -1227,11 +1173,11 @@ export default function TrainPage() {
           reelId={reelId}
           locale={locale}
           t={t}
-          focusTip={focusTip}
         />
 
-        {/* Technique picker — only when idle and no lesson already selected */}
-        {canStart && !lessonContext && !challengeId && !challengeUserId && (
+        {/* Technique picker — only when idle and no lesson already selected; hidden in core mode
+            (one start screen: camera, one card, Start). */}
+        {!CORE_MODE && canStart && !lessonContext && !challengeId && !challengeUserId && (
           <TechniquePicker
             locale={locale}
             onSelect={({ fighter, lesson }) => setLessonContext({ fighter, lesson })}

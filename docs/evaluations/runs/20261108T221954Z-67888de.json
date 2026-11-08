@@ -1,0 +1,323 @@
+{
+  "id": "20261108T221954Z-67888de",
+  "key": "0aa45a8b",
+  "task": "Less text, progress at a glance: ProgressGlance on Home/Progress/DNA, one card on Train, simpler DNA page, coach line without unmeasured metrics",
+  "branch": "claude/review-refactor-code-DUmiX",
+  "commit": "67888de",
+  "base": "@{upstream}",
+  "dirty": true,
+  "startedAt": "2026-11-08T22:19:54.751Z",
+  "finishedAt": "2026-11-08T22:24:27.780Z",
+  "durationS": 273,
+  "cost": {
+    "paidApiCalls": 0,
+    "note": "checks run locally; no paid APIs"
+  },
+  "change": {
+    "level": "GREEN",
+    "files": [
+      {
+        "path": "app/[locale]/coach/chat/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/fighter-profile/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/home/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/progress/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/train/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/visual/[screen]/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/coach/CoachMemoryPanel.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/profile/FighterDNACard.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/progress/ProgressView.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/train/DailyHub.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/train/PreGameCard.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "docs/AI_CHANGELOG.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "lib/progressStats.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "tests/progressStats.test.js",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/progress-ko-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/progress-mn-360.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/progress-mn-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/train-ko-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/train-live-mn-360.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/train-live-mn-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/train-mn-360.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/train-mn-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/train-nocam-mn-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "components/progress/ProgressGlance.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "name": "lint",
+      "ms": 39487,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0,
+        "warnings": 23
+      }
+    },
+    {
+      "name": "typecheck",
+      "ms": 1873,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0
+      }
+    },
+    {
+      "name": "unit",
+      "ms": 4652,
+      "status": "PASS",
+      "metrics": {
+        "passed": 315,
+        "failed": 0
+      }
+    },
+    {
+      "name": "build",
+      "ms": 6000,
+      "status": "PASS",
+      "metrics": {}
+    },
+    {
+      "name": "bundle",
+      "status": "PASS",
+      "metrics": {
+        "kb": 6297
+      }
+    },
+    {
+      "name": "punch",
+      "ms": 68,
+      "status": "PASS",
+      "metrics": {
+        "macroF1": 0.904,
+        "recall": 0.897,
+        "precision": 1,
+        "phantoms": 0
+      }
+    },
+    {
+      "name": "visual",
+      "ms": 220935,
+      "status": "PASS",
+      "metrics": {
+        "passed": 66,
+        "failed": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "name": "rules",
+      "status": "NOT RUN",
+      "note": "pass --rules to run"
+    }
+  ],
+  "comparison": [
+    {
+      "metric": "lint.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "lint.warnings",
+      "baseline": 23,
+      "value": 23,
+      "limit": "≤ 23",
+      "status": "PASS"
+    },
+    {
+      "metric": "typecheck.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.passed",
+      "baseline": 241,
+      "value": 315,
+      "limit": "≥ 241",
+      "status": "PASS"
+    },
+    {
+      "metric": "bundle.kb",
+      "baseline": 6598,
+      "value": 6297,
+      "limit": "≤ 6928",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.macroF1",
+      "baseline": 0.904,
+      "value": 0.904,
+      "limit": "≥ 0.9035000000000001",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.phantoms",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.passed",
+      "baseline": 49,
+      "value": 66,
+      "limit": "≥ 49",
+      "status": "PASS"
+    },
+    {
+      "metric": "rules.failed",
+      "status": "NOT RUN"
+    },
+    {
+      "metric": "rules.passed",
+      "status": "NOT RUN"
+    }
+  ],
+  "verdict": "ACCEPTED",
+  "verdictNote": "all run checks pass, no gate regressed",
+  "history": [
+    {
+      "state": "PENDING",
+      "at": "2026-11-08T22:19:54.751Z",
+      "note": "created"
+    },
+    {
+      "state": "PLANNING",
+      "at": "2026-11-08T22:19:54.751Z",
+      "note": "Less text, progress at a glance: ProgressGlance on Home/Progress/DNA, one card on Train, simpler DNA page, coach line without unmeasured metrics"
+    },
+    {
+      "state": "IMPLEMENTING",
+      "at": "2026-11-08T22:19:54.751Z",
+      "note": "24 changed file(s) vs @{upstream}, risk GREEN"
+    },
+    {
+      "state": "VERIFYING",
+      "at": "2026-11-08T22:19:54.751Z",
+      "note": ""
+    },
+    {
+      "state": "EVALUATING",
+      "at": "2026-11-08T22:24:27.771Z",
+      "note": ""
+    },
+    {
+      "state": "ACCEPTED",
+      "at": "2026-11-08T22:24:27.772Z",
+      "note": "all run checks pass, no gate regressed"
+    }
+  ],
+  "baselineCommit": "37f2e45"
+}

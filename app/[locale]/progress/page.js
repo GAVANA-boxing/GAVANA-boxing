@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
+import { useUserProfile } from "@/context/UserProfileProvider";
 import { getLocale, translate } from "@/lib/i18n";
 import { getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
 import { computeFighterDNA } from "@/lib/fighterDNA";
@@ -24,6 +25,7 @@ export default function ProgressPage() {
   const locale = getLocale(params?.locale);
   const t = (key) => translate(locale, key);
   const { user, loading: authLoading } = useAuth();
+  const { profile } = useUserProfile();
 
   const { xp, dataLoading } = useRankData({ user, authLoading });
   const { sessions, loading: sessionsLoading } = useCombatMemory({ user, maxSessions: 200 });
@@ -57,7 +59,7 @@ export default function ProgressPage() {
       <ProgressView
         locale={locale} t={t} loading={loading}
         currentXP={currentXP} rank={rank} nextRank={nextRank} rankPct={rankPct}
-        stats={stats} dna={dna} sessions={sessions} go={go}
+        stats={stats} dna={dna} sessions={sessions} go={go} streak={Number(profile?.dailyStreak) || 0}
       />
 
       <BottomNav router={router} user={user} currentLocale={locale} />

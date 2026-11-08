@@ -4,8 +4,8 @@ import { loc } from "@/lib/loc";
 import { RANK_TIERS } from "@/lib/xp";
 import { shortDate } from "@/lib/progressStats";
 import HowToEarnXP from "@/components/rank/HowToEarnXP";
-import ScoreTrendChart from "@/components/progress/ScoreTrendChart";
-import { BRAND, btnPrimary, btnSecondary, card, displayTitle, kickerDot, kickerPill, sectionLabel } from "@/components/ui/brand";
+import ProgressGlance from "@/components/progress/ProgressGlance";
+import { BRAND, btnSecondary, card, displayTitle, kickerDot, kickerPill, sectionLabel } from "@/components/ui/brand";
 import { BENCHMARKS, benchmarkBests } from "@/lib/benchmarks";
 
 const MIX = [
@@ -18,7 +18,7 @@ const MIX = [
  * The Progress page's content — presentational only (data comes from
  * app/[locale]/progress/page.js), so it can be previewed and tested with any data.
  */
-export default function ProgressView({ locale, t, loading, currentXP, rank, nextRank, rankPct, stats, dna, sessions, go }) {
+export default function ProgressView({ locale, t, loading, currentXP, rank, nextRank, rankPct, stats, dna, sessions, go, streak = 0 }) {
   const bests = benchmarkBests(sessions);
   const L = (mn, ko, en) => loc(locale, mn, ko, en);
   const date = (s) => shortDate(s.createdAt, locale);
@@ -64,33 +64,8 @@ export default function ProgressView({ locale, t, loading, currentXP, rank, next
           </details>
         </section>
 
-        {/* Key numbers */}
-        <section style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
-          {[
-            { label: L("Бэлтгэл", "세션", "Sessions"), value: stats.count, sub: stats.thisWeek ? L(`${stats.thisWeek} энэ долоо хоногт`, `이번 주 ${stats.thisWeek}`, `${stats.thisWeek} this week`) : null },
-            { label: L("Дундаж оноо", "평균 점수", "Average"), value: stats.avg ?? "—", sub: stats.trend == null ? null : `${stats.trend > 0 ? "▲" : stats.trend < 0 ? "▼" : "•"} ${Math.abs(stats.trend).toFixed(1)}`, subColor: stats.trend > 0 ? BRAND.green : stats.trend < 0 ? "#F87171" : BRAND.faint },
-            { label: L("Шилдэг оноо", "최고 점수", "Best"), value: stats.best ?? "—" },
-            { label: L("Цохилт", "펀치", "Punches"), value: stats.punches.toLocaleString() },
-          ].map((s) => (
-            <div key={s.label} style={{ ...card, padding: "14px 16px" }}>
-              <div style={{ fontSize: 12, color: BRAND.faint }}>{s.label}</div>
-              <div style={{ ...displayTitle, fontSize: 30, marginTop: 6 }}>{s.value}</div>
-              {s.sub && <div style={{ fontSize: 12, marginTop: 4, color: s.subColor || BRAND.muted }}>{s.sub}</div>}
-            </div>
-          ))}
-        </section>
-
-        {/* Score trend */}
-        <section style={{ ...card, padding: 18, marginTop: 12 }}>
-          <p style={sectionLabel}>{L("Онооны явц", "점수 추이", "Score trend")}</p>
-          {stats.series.length >= 2 ? (
-            <div style={{ marginTop: 14 }}>
-              <ScoreTrendChart scores={stats.series} label={L("Онооны график", "점수 그래프", "Score chart")} avgLabel={L("дундаж", "평균", "avg")} />
-            </div>
-          ) : (
-            <Empty L={L} onTrain={() => go("/train")} />
-          )}
-        </section>
+        {/* Am I getting better? — one glance (first rounds → latest rounds, the line, 3 tiles) */}
+        <ProgressGlance locale={locale} sessions={sessions} streak={streak} style={{ marginTop: 12 }} />
 
         {/* Punch mix */}
         {mixTotal > 0 && (
@@ -137,9 +112,6 @@ export default function ProgressView({ locale, t, loading, currentXP, rank, next
         {/* Benchmark tests — fixed rounds with a personal best (lib/benchmarks.js) */}
         <section id="tests" data-testid="benchmarks" style={{ ...card, padding: "16px 18px", marginTop: 12 }}>
           <p style={sectionLabel}>{L("Сорилтын тестүүд", "벤치마크 테스트", "Benchmark tests")}</p>
-          <p style={{ margin: "6px 0 0", fontSize: 13, color: BRAND.muted, lineHeight: 1.45 }}>
-            {L("Ижил нөхцөлтэй тогтмол раунд — давтаж хийгээд ахицаа хэмж.", "같은 조건의 고정 라운드 — 반복해서 성장을 측정하세요.", "Same round every time — repeat it to measure your progress.")}
-          </p>
           <ul style={{ listStyle: "none", margin: "8px 0 0", padding: 0 }}>
             {BENCHMARKS.map((b) => {
               const best = bests[b.id];
@@ -188,17 +160,6 @@ export default function ProgressView({ locale, t, loading, currentXP, rank, next
           <summary style={summary}>{L("XP хэрхэн авах вэ", "XP 얻는 방법", "How to earn XP")}</summary>
           <div style={{ marginTop: 10 }}><HowToEarnXP locale={locale} t={t} /></div>
         </details>
-    </div>
-  );
-}
-
-function Empty({ L, onTrain }) {
-  return (
-    <div style={{ marginTop: 12 }}>
-      <p style={{ margin: "0 0 14px", fontSize: 15, color: BRAND.muted, lineHeight: 1.5 }}>
-        {L("2 бэлтгэлийн дараа онооны график энд гарна.", "2번 훈련하면 점수 그래프가 표시돼요.", "Your score chart appears after 2 sessions.")}
-      </p>
-      <button type="button" onClick={onTrain} style={btnPrimary}>{L("Раунд эхлүүлэх", "라운드 시작", "Start a round")}</button>
     </div>
   );
 }

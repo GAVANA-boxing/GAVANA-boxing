@@ -26,40 +26,10 @@ function StyleBar({ label, value, color }) {
           boxShadow: `0 0 6px ${color}66`,
         }} />
       </div>
-      <span style={{
-        width: 26, textAlign: "right", flexShrink: 0,
-        fontSize: 11, fontWeight: 900, color: pct >= 50 ? color : whiteAlpha(0.35),
-        fontFamily: "var(--stack-mono)",
-      }}>
-        {value.toFixed(1)}
-      </span>
     </div>
   );
 }
 
-function FighterChip({ fighter }) {
-  return (
-    <div style={{
-      display: "flex", flexDirection: "column", alignItems: "center",
-      padding: "8px 10px", borderRadius: 10, minWidth: 72, flexShrink: 0,
-      background: `${fighter.accent}12`,
-      border: `1px solid ${fighter.accent}30`,
-    }}>
-      <div style={{
-        width: 32, height: 32, borderRadius: "50%",
-        background: `${fighter.accent}20`,
-        border: `1.5px solid ${fighter.accent}44`,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: 11, fontWeight: 900, color: fighter.accent, marginBottom: 4,
-      }}>
-        {fighter.name.split(" ").map((w) => w[0]).join("").slice(0, 2)}
-      </div>
-      <span style={{ fontSize: 11, fontWeight: 800, color: whiteAlpha(0.55), textAlign: "center", lineHeight: 1.3, maxWidth: 56 }}>
-        {fighter.name.split(" ").slice(-1)[0]}
-      </span>
-    </div>
-  );
-}
 
 export default function FighterDNACard({ dna, locale = "en" }) {
   const L = DNA_LABELS[locale] || DNA_LABELS.en;
@@ -147,7 +117,8 @@ export default function FighterDNACard({ dna, locale = "en" }) {
 
   const accentColor = STYLE_COLORS[dna.archetypeKey] || GOLD;
   const confidencePct = Math.round(dna.confidence * 100);
-  const orderedStyles = Object.entries(dna.styleMix).sort(([, a], [, b]) => b - a);
+  // Top 3 styles only — bars, no numbers (owner: less text; the values are relative, not scores).
+  const orderedStyles = Object.entries(dna.styleMix).sort(([, a], [, b]) => b - a).slice(0, 3);
 
   const archetypeImageUrl = ARCH_IMAGES[dna.archetypeKey] || "";
 
@@ -222,18 +193,7 @@ export default function FighterDNACard({ dna, locale = "en" }) {
           }}>
             {dna.archetype}
           </div>
-
-          <p style={{ margin: 0, fontSize: 11, color: whiteAlpha(0.42), lineHeight: 1.5, fontWeight: 600 }}>
-            {dna.summary}
-          </p>
         </div>
-        )}
-
-        {/* ── Summary (image mode) ── */}
-        {archetypeImageUrl && (
-          <p style={{ margin: 0, fontSize: 11, color: whiteAlpha(0.42), lineHeight: 1.5, fontWeight: 600 }}>
-            {dna.summary}
-          </p>
         )}
 
         {/* ── Style Mix bars ── */}
@@ -282,35 +242,6 @@ export default function FighterDNACard({ dna, locale = "en" }) {
             </div>
           )}
         </div>
-
-        {/* ── Recommended fighters ── */}
-        {dna.recommendedFighters?.length > 0 && (
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.8, color: whiteAlpha(0.28), textTransform: "uppercase", marginBottom: 9 }}>
-              {L.fighters}
-            </div>
-            <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 2, WebkitOverflowScrolling: "touch" }}>
-              {dna.recommendedFighters.map((f) => (
-                <FighterChip key={f.id} fighter={f} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── Next evolution ── */}
-        {dna.nextEvolution && (
-          <div style={{
-            padding: "9px 12px", borderRadius: 9,
-            background: "rgba(96,165,250,0.06)", border: "1px solid rgba(96,165,250,0.16)",
-          }}>
-            <div style={{ fontSize: 11, fontWeight: 900, color: "#93C5FD", letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 4 }}>
-              ⚡ {L.evolution}
-            </div>
-            <div style={{ fontSize: 12, color: whiteAlpha(0.7), lineHeight: 1.5 }}>
-              {dna.nextEvolution}
-            </div>
-          </div>
-        )}
 
       </div>
     </div>

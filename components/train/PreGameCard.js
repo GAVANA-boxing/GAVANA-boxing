@@ -3,12 +3,6 @@
 import styles from "@/components/train/trainStyles";
 import { GOLD, RED, whiteAlpha } from "@/lib/tokens";
 import { loc } from "@/lib/loc";
-import { areaLabel as areaName } from "@/components/drills/drillsConstants";
-
-const AREA_COLOR = {
-  Power: RED, Speed: "#FB923C", Timing: GOLD,
-  Footwork: "#3B82F6", Guard: "#A78BFA", Accuracy: "#34D399",
-};
 
 export default function PreGameCard({
   phase,
@@ -23,7 +17,6 @@ export default function PreGameCard({
   reelId,
   locale,
   t,
-  focusTip,
 }) {
   if (phase !== "idle") return null;
 
@@ -127,30 +120,6 @@ export default function PreGameCard({
         </div>
       )}
 
-      {/* ── Pre-session focus tip (14A) ── */}
-      {focusTip && !challengeUserId && (() => {
-        const { fighter, connection } = focusTip;
-        const area = connection?.primaryFocus;
-        const col = AREA_COLOR[area] || GOLD;
-        const drill = connection?.focusDrills?.[0] || connection?.focusStudy?.[0];
-        const areaLabel = areaName(area, locale);
-        return (
-          <div style={{
-            marginTop: 10,
-            padding: "12px 14px",
-            borderRadius: 16,
-            background: `${col}12`,
-            border: `1px solid ${col}33`,
-          }}>
-            <div style={{ fontSize: 12.5, fontWeight: 600, color: col, marginBottom: 4 }}>
-              ⚡ {loc(locale, "Өнөөдрийн анхаарал", "오늘의 포커스", "Today's focus")} · {areaLabel}
-            </div>
-            <div style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", fontWeight: 500, lineHeight: 1.45 }}>
-              {drill || loc(locale, `${areaLabel} дасгалд анхаарал тавь`, `오늘은 ${areaLabel}에 집중`, `Focus on ${areaLabel} today`)}
-            </div>
-          </div>
-        );
-      })()}
     </div>
   );
 }
