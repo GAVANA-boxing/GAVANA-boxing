@@ -9,7 +9,7 @@ const T = {
     back: "← Back",
     badge: "Legal",
     title: "Terms of Service",
-    updated: "Last updated: June 6, 2025",
+    updated: "Last updated: November 8, 2026",
     intro:
       "These Terms of Service govern your use of the GAVANA Boxing application. By creating an account or using GAVANA, you agree to these terms. Please read them carefully.",
 
@@ -26,8 +26,8 @@ const T = {
         heading: "2. Description of Service",
         body: [
           "GAVANA is a boxing training platform that uses movement analysis, AI coaching, and structured training programs to help fighters develop their skills.",
-          "Features include: Fighter DNA analysis, technique library, AI coaching, session tracking, leaderboards, and training prescriptions.",
-          "Some features require a premium subscription. Free features are provided as-is without guarantees of availability.",
+          "Features include: camera round scoring, Fighter DNA analysis, AI coaching, progress tracking and training plans.",
+          "Some features require GAVANA Pro. Free features are provided as-is without guarantees of availability.",
         ],
       },
       {
@@ -70,10 +70,10 @@ const T = {
       {
         heading: "7. Payments & Subscriptions",
         body: [
-          "Premium subscriptions are billed on a recurring basis (monthly or annually) through Stripe.",
-          "All payments are non-refundable unless required by applicable law.",
-          "You may cancel your subscription at any time. Cancellation takes effect at the end of the current billing period.",
-          "We reserve the right to change pricing with 30 days' notice to subscribers.",
+          "GAVANA Pro is billed monthly or yearly in Mongolian tögrög (MNT) through Stripe. Current prices are shown on the GAVANA Pro page.",
+          "You can cancel any time from the GAVANA Pro page (Manage membership). Pro stays active until the end of the period you paid for.",
+          "Payments are non-refundable unless the law requires otherwise.",
+          "We will tell subscribers at least 30 days before a price change.",
         ],
       },
       {
@@ -130,7 +130,7 @@ const T = {
     back: "← Буцах",
     badge: "Хууль эрх зүй",
     title: "Үйлчилгээний нөхцөл",
-    updated: "Сүүлд шинэчилсэн: 2025 оны 6-р сарын 6",
+    updated: "Сүүлд шинэчилсэн: 2026 оны 11-р сарын 8",
     intro:
       "Энэхүү үйлчилгээний нөхцөл нь GAVANA Boxing програмыг ашиглахад таны харилцааг зохицуулна. Данс үүсгэх эсвэл GAVANA ашиглаж эхлэхэд та эдгээр нөхцлийг хүлээн зөвшөөрсөнд тооцогдоно.",
 
@@ -190,10 +190,10 @@ const T = {
       {
         heading: "7. Төлбөр ба захиалга",
         body: [
-          "Үнэт захиалга нь Stripe-ийн дамжуулан сарын эсвэл жилийн давтамжтайгаар тооцогдоно.",
-          "Хэрэглэх хуулиар шаардагдаагүй бол бүх төлбөр буцаалгүй.",
-          "Захиалгыг хэдийд ч цуцалж болно. Цуцлалт нь одоогийн тооцооны хугацааны эцэст хүчин төгөлдөр болно.",
-          "Захиалагчдад 30 хоногийн урьдчилсан мэдэгдлийн дагуу үнийг өөрчлөх эрхтэй.",
+          "GAVANA Pro-гийн төлбөрийг Stripe-аар, төгрөгөөр (MNT) сар эсвэл жилээр авна. Одоогийн үнэ GAVANA Pro хуудсанд байна.",
+          "GAVANA Pro хуудасны \"Гишүүнчлэл удирдах\" хэсгээс хүссэн үедээ цуцална. Төлсөн хугацаа дуустал Pro хэвээр.",
+          "Хуулиар өөрөөр заагаагүй бол төлбөрийг буцаадаггүй.",
+          "Үнэ өөрчлөгдөхөөс дор хаяж 30 хоногийн өмнө гишүүдэд мэдэгдэнэ.",
         ],
       },
       {
@@ -250,7 +250,7 @@ const T = {
     back: "← 뒤로",
     badge: "법적 고지",
     title: "이용약관",
-    updated: "최종 업데이트: 2025년 6월 6일",
+    updated: "최종 업데이트: 2026년 11월 8일",
     intro:
       "이 이용약관은 GAVANA Boxing 앱 이용을 규정합니다. 계정을 생성하거나 GAVANA를 사용함으로써 이 약관에 동의하는 것으로 간주합니다.",
 
@@ -310,10 +310,10 @@ const T = {
       {
         heading: "7. 결제 및 구독",
         body: [
-          "프리미엄 구독은 Stripe를 통해 월별 또는 연간으로 반복 청구됩니다.",
-          "관련 법률에서 요구하지 않는 한 모든 결제는 환불되지 않습니다.",
-          "언제든지 구독을 취소할 수 있습니다. 취소는 현재 청구 기간 종료 시 적용됩니다.",
-          "당사는 구독자에게 30일 전 통보 후 가격을 변경할 권리를 보유합니다.",
+          "GAVANA Pro는 Stripe를 통해 몽골 투그릭(MNT)으로 월간 또는 연간 청구됩니다. 현재 가격은 GAVANA Pro 페이지에 있습니다.",
+          "GAVANA Pro 페이지의 '멤버십 관리'에서 언제든 해지할 수 있으며, 결제한 기간이 끝날 때까지 Pro가 유지됩니다.",
+          "법률이 달리 정하지 않는 한 결제는 환불되지 않습니다.",
+          "가격 변경은 최소 30일 전에 구독자에게 알립니다.",
         ],
       },
       {

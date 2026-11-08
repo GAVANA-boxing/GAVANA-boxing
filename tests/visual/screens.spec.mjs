@@ -151,6 +151,18 @@ for (const v of [{ id: "mn-390", locale: "mn", viewport: viewport390 }, { id: "m
   });
 }
 
+// GAVANA Pro page (real route, signed out, payments not configured in tests → "opens soon").
+for (const v of [{ id: "mn-390", locale: "mn", viewport: viewport390 }, { id: "mn-360", locale: "mn", viewport: { width: 360, height: 800 } }, { id: "ko-390", locale: "ko", viewport: viewport390 }]) {
+  test(`pro ${v.id}`, async ({ page }) => {
+    await prepare(page);
+    await page.setViewportSize(v.viewport);
+    await page.goto(`/${v.locale}/pro`, { waitUntil: "load" });
+    await expect(page.getByRole("button", { name: /удахгүй|곧/ })).toBeVisible();
+    await settle(page);
+    await expect(page).toHaveScreenshot(`pro-${v.id}.png`, { fullPage: true });
+  });
+}
+
 // Mitt drill: intro page (real route), a call on screen, a defence call with "too late", the result.
 for (const v of [{ id: "mn-390", locale: "mn", viewport: viewport390 }, { id: "mn-360", locale: "mn", viewport: { width: 360, height: 800 } }, { id: "ko-390", locale: "ko", viewport: viewport390 }]) {
   for (const [name, path] of [["mitts", "/mitts"], ["mitts-call", "/visual/mitts-call"], ["mitts-slip", "/visual/mitts-slip"], ["mitts-result", "/visual/mitts-result"]]) {

@@ -75,8 +75,21 @@ export default function CoachMessageList({
                     border: "1px solid rgba(245,196,81,0.18)", borderRadius: 4,
                     padding: "2px 6px", textTransform: "uppercase",
                   }}>
-                    demo · ai unavailable
+                    {locale === "mn" ? "демо · AI ажиллахгүй байна" : locale === "ko" ? "데모 · AI 사용 불가" : "demo · ai unavailable"}
                   </span>
+                )}
+                {msg._source === "quota" && (
+                  <a
+                    href={`/${locale}/pro`}
+                    style={{
+                      alignSelf: "flex-start", display: "inline-flex", alignItems: "center", minHeight: 40,
+                      padding: "0 14px", borderRadius: 999, textDecoration: "none",
+                      background: goldAlpha(0.12), border: `1px solid ${goldAlpha(0.35)}`,
+                      color: GOLD, fontSize: 13, fontWeight: 800,
+                    }}
+                  >
+                    {locale === "mn" ? "GAVANA Pro үзэх →" : locale === "ko" ? "GAVANA Pro 보기 →" : "See GAVANA Pro →"}
+                  </a>
                 )}
                 {msg._source === "error" && (
                   <span style={{
@@ -85,7 +98,7 @@ export default function CoachMessageList({
                     border: "1px solid rgba(255,100,100,0.18)", borderRadius: 4,
                     padding: "2px 6px", textTransform: "uppercase",
                   }}>
-                    ai error
+                    {locale === "mn" ? "AI алдаа" : locale === "ko" ? "AI 오류" : "ai error"}
                   </span>
                 )}
                 {isLastAI && !isStreaming && hasDrillContent(msg.content) && (

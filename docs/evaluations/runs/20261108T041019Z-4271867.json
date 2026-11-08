@@ -1,0 +1,383 @@
+{
+  "id": "20261108T041019Z-4271867",
+  "key": "9a6238af",
+  "task": "GAVANA Pro + pricing: one plan in lib/pro.js (9,900₮/month, 79,000₮/year, MNT), only enforced perks (AI coach unlimited vs 10/day free, streak saves, DNA report server-gated), isProUser checks Stripe status, sale only when fully configured (/api/stripe/config), checkout plans + locale URLs, webhook write checked + customer saved, cancel via Stripe portal, single /pro page, removed false perks/USD tiers/dead upgrade links, terms updated",
+  "branch": "claude/review-refactor-code-DUmiX",
+  "commit": "4271867",
+  "base": "@{upstream}",
+  "dirty": true,
+  "startedAt": "2026-11-08T04:10:19.176Z",
+  "finishedAt": "2026-11-08T04:15:04.548Z",
+  "durationS": 285,
+  "cost": {
+    "paidApiCalls": 0,
+    "note": "checks run locally; no paid APIs"
+  },
+  "change": {
+    "level": "RED",
+    "files": [
+      {
+        "path": ".env.example",
+        "level": "RED",
+        "why": "production / deploy config"
+      },
+      {
+        "path": "app/[locale]/coach/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/creator/dashboard/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/fighter-profile/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/profile/edit/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/terms/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/train/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/api/chat/route.js",
+        "level": "YELLOW",
+        "why": "API route"
+      },
+      {
+        "path": "app/api/dna-report/route.js",
+        "level": "YELLOW",
+        "why": "API route"
+      },
+      {
+        "path": "app/api/stripe/checkout/route.js",
+        "level": "RED",
+        "why": "payments"
+      },
+      {
+        "path": "app/api/stripe/webhook/route.js",
+        "level": "RED",
+        "why": "payments"
+      },
+      {
+        "path": "components/bottomnav/MenuSheet.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/coach/CoachMessageList.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/coach/ProPriorityMatchingBanner.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/creator/CreatorMonetizeTab.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/creator/SubscriptionTiers.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/fighter-profile/ProGate.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/fighter-profile/ProUpgradePanel.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/profile/SubscriptionStatus.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "hooks/useTrainingActions.js",
+        "level": "YELLOW",
+        "why": "hooks with data access"
+      },
+      {
+        "path": "lib/domain/awardXp.js",
+        "level": "RED",
+        "why": "XP / rank / scoring"
+      },
+      {
+        "path": "lib/locales/en.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/locales/ko.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/locales/mn.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "tests/visual/screens.spec.mjs",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "app/[locale]/pro/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/api/stripe/config/route.js",
+        "level": "RED",
+        "why": "payments"
+      },
+      {
+        "path": "app/api/stripe/portal/route.js",
+        "level": "RED",
+        "why": "payments"
+      },
+      {
+        "path": "lib/pro.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/server/stripeConfig.js",
+        "level": "YELLOW",
+        "why": "server / data helpers"
+      },
+      {
+        "path": "tests/pro.test.js",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/pro-ko-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/pro-mn-360.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/pro-mn-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "name": "lint",
+      "ms": 39636,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0,
+        "warnings": 23
+      }
+    },
+    {
+      "name": "typecheck",
+      "ms": 2219,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0
+      }
+    },
+    {
+      "name": "unit",
+      "ms": 4226,
+      "status": "PASS",
+      "metrics": {
+        "passed": 273,
+        "failed": 0
+      }
+    },
+    {
+      "name": "build",
+      "ms": 6169,
+      "status": "PASS",
+      "metrics": {}
+    },
+    {
+      "name": "bundle",
+      "status": "PASS",
+      "metrics": {
+        "kb": 6199
+      }
+    },
+    {
+      "name": "punch",
+      "ms": 79,
+      "status": "PASS",
+      "metrics": {
+        "macroF1": 0.904,
+        "recall": 0.897,
+        "precision": 1,
+        "phantoms": 0
+      }
+    },
+    {
+      "name": "visual",
+      "ms": 233026,
+      "status": "PASS",
+      "metrics": {
+        "passed": 60,
+        "failed": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "name": "rules",
+      "status": "NOT RUN",
+      "note": "pass --rules to run"
+    }
+  ],
+  "comparison": [
+    {
+      "metric": "lint.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "lint.warnings",
+      "baseline": 23,
+      "value": 23,
+      "limit": "≤ 23",
+      "status": "PASS"
+    },
+    {
+      "metric": "typecheck.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.passed",
+      "baseline": 241,
+      "value": 273,
+      "limit": "≥ 241",
+      "status": "PASS"
+    },
+    {
+      "metric": "bundle.kb",
+      "baseline": 6598,
+      "value": 6199,
+      "limit": "≤ 6928",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.macroF1",
+      "baseline": 0.904,
+      "value": 0.904,
+      "limit": "≥ 0.9035000000000001",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.phantoms",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.passed",
+      "baseline": 49,
+      "value": 60,
+      "limit": "≥ 49",
+      "status": "PASS"
+    },
+    {
+      "metric": "rules.failed",
+      "status": "NOT RUN"
+    },
+    {
+      "metric": "rules.passed",
+      "status": "NOT RUN"
+    }
+  ],
+  "verdict": "ACCEPTED",
+  "verdictNote": "RED paths need the owner: .env.example (production / deploy config), app/api/stripe/checkout/route.js (payments), app/api/stripe/webhook/route.js (payments), lib/domain/awardXp.js (XP / rank / scoring), app/api/stripe/config/route.js (payments), app/api/stripe/portal/route.js (payments)",
+  "history": [
+    {
+      "state": "PENDING",
+      "at": "2026-11-08T04:10:19.176Z",
+      "note": "created"
+    },
+    {
+      "state": "PLANNING",
+      "at": "2026-11-08T04:10:19.176Z",
+      "note": "GAVANA Pro + pricing: one plan in lib/pro.js (9,900₮/month, 79,000₮/year, MNT), only enforced perks (AI coach unlimited vs 10/day free, streak saves, DNA report server-gated), isProUser checks Stripe status, sale only when fully configured (/api/stripe/config), checkout plans + locale URLs, webhook write checked + customer saved, cancel via Stripe portal, single /pro page, removed false perks/USD tiers/dead upgrade links, terms updated"
+    },
+    {
+      "state": "IMPLEMENTING",
+      "at": "2026-11-08T04:10:19.177Z",
+      "note": "34 changed file(s) vs @{upstream}, risk RED"
+    },
+    {
+      "state": "VERIFYING",
+      "at": "2026-11-08T04:10:19.177Z",
+      "note": ""
+    },
+    {
+      "state": "EVALUATING",
+      "at": "2026-11-08T04:15:04.538Z",
+      "note": ""
+    },
+    {
+      "state": "AWAITING_APPROVAL",
+      "at": "2026-11-08T04:15:04.539Z",
+      "note": "RED paths need the owner: .env.example (production / deploy config), app/api/stripe/checkout/route.js (payments), app/api/stripe/webhook/route.js (payments), lib/domain/awardXp.js (XP / rank / scoring), app/api/stripe/config/route.js (payments), app/api/stripe/portal/route.js (payments)"
+    },
+    {
+      "state": "ACCEPTED",
+      "at": "2026-11-08T04:15:19.808Z",
+      "note": "Owner 2026-11-08: 'Pro bolon uniig zow zohistoi zohioj taaruul'. Code only on the branch; no Stripe products created, no production deploy. Owner must create MNT prices (9,900 monthly / 79,000 yearly) and set env vars before Pro can be sold."
+    }
+  ],
+  "baselineCommit": "37f2e45",
+  "decision": {
+    "by": "owner",
+    "note": "Owner 2026-11-08: 'Pro bolon uniig zow zohistoi zohioj taaruul'. Code only on the branch; no Stripe products created, no production deploy. Owner must create MNT prices (9,900 monthly / 79,000 yearly) and set env vars before Pro can be sold.",
+    "at": "2026-11-08T04:15:19.808Z"
+  }
+}

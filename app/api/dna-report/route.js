@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/withAuth";
+import { isProUser } from "@/lib/pro";
 
 const PROJECT_ID = "gavana-boxing-89a22";
 
@@ -45,6 +46,14 @@ export const POST = withAuth(async (request, { uid: callerUid }) => {
 
     const userDoc = await firestoreGet(`users/${userId}`);
     const fields = userDoc.fields || {};
+
+    // GAVANA Pro perk (lib/pro.js): checked here, not only in the browser.
+    const isPro = isProUser({
+      subscriptionTier: fsValue(fields.subscriptionTier),
+      tier: fsValue(fields.tier),
+      subscription: fsValue(fields.subscription),
+    });
+    if (!isPro) return NextResponse.json({ error: "pro_required" }, { status: 402 });
 
     const dnaFields = fields.fighterDNA?.mapValue?.fields || {};
     const dna = {

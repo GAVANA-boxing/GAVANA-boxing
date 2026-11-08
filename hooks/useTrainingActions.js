@@ -14,6 +14,7 @@ import { getLocalDateKey, getPreviousLocalDateKey } from "@/lib/utils";
 import { buildTrainingSessionDoc } from "@/lib/trainingSessionDoc";
 import { computeFighterDNA, dnaSnapshot } from "@/lib/fighterDNA";
 import { computeCombatProgress, progressSnapshot } from "@/lib/combatProgress";
+import { isProUser, PRO_STREAK_SAVES } from "@/lib/pro";
 
 export function useTrainingActions({
   user,
@@ -307,12 +308,11 @@ export function useTrainingActions({
         // ── Streak Protection (Pro perk) ──────────────────────────────────
         // Pro/Champion get 2 streak freezes per month. Missing exactly one day
         // consumes a freeze instead of resetting the streak to 1.
-        const tier = userData.subscriptionTier || userData.tier || null;
-        const isPro = tier === "pro" || tier === "champion";
+        const isPro = isProUser(userData);
         const monthKey = todayKey.slice(0, 7); // YYYY-MM
         let freezes = Number(userData.streakFreezes);
         if (userData.streakFreezeMonth !== monthKey || !Number.isFinite(freezes)) {
-          freezes = isPro ? 2 : 0; // replenish monthly allowance
+          freezes = isPro ? PRO_STREAK_SAVES : 0; // replenish monthly allowance
         }
         const twoDaysAgoKey = getLocalDateKey(new Date(Date.now() - 2 * 86400000));
 

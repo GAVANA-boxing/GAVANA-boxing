@@ -14,6 +14,7 @@ import AvatarPicker from "@/components/profile/AvatarPicker";
 import WeightClassPicker from "@/components/profile/WeightClassPicker";
 import ArchetypePicker from "@/components/profile/ArchetypePicker";
 import SubscriptionStatus from "@/components/profile/SubscriptionStatus";
+import { isProUser } from "@/lib/pro";
 
 export default function EditProfilePage() {
   const { user, loading: authLoading } = useAuth();
@@ -41,7 +42,7 @@ export default function EditProfilePage() {
   const [avatarHover, setAvatarHover]   = useState(false);
   const [error, setError]               = useState("");
   const [usernameError, setUsernameError] = useState("");
-  const [subscriptionTier, setSubscriptionTier] = useState(null);
+  const [isPro, setIsPro] = useState(false);
 
   const t = (mn, ko, en) => locale === "mn" ? mn : locale === "ko" ? ko : en;
 
@@ -66,7 +67,7 @@ export default function EditProfilePage() {
       let st = d.stance;
       if (st !== "orthodox" && st !== "southpaw") { try { st = localStorage.getItem("gavana_stance"); } catch { st = ""; } }
       setStance(st === "orthodox" || st === "southpaw" ? st : "");
-      setSubscriptionTier(d.subscriptionTier || d.tier || null);
+      setIsPro(isProUser(d));
       seededRef.current = true;
     }
     setLoading(false);
@@ -282,9 +283,9 @@ export default function EditProfilePage() {
 
           {/* Subscription Status */}
           <SubscriptionStatus
-            tier={subscriptionTier}
+            isPro={isPro}
             locale={locale}
-            onUpgrade={() => router.push(`/${locale}/fighter-profile?tab=dna`)}
+            onUpgrade={() => router.push(`/${locale}/pro`)}
           />
 
           <button

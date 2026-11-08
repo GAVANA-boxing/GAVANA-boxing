@@ -2,6 +2,28 @@
 
 One entry per cycle that changed code. Newest first.
 
+## GAVANA Pro + pricing (owner: "Pro bolon uniig zow zohistoi zohioj taaruul")
+- One definition: `lib/pro.js` — **9,900₮ / month, 79,000₮ / year (−33%)**, charged in MNT. Perks are only
+  ones enforced in code: AI coach unlimited (free: 10 chat messages/day, counted server-side in
+  `usage/{uid}`; the after-round debrief has its own 20/day so free users always get round feedback),
+  2 streak saves/month (server), Fighter DNA report download (now also checked in `/api/dna-report`).
+  Free forever: rounds, scores, AI debrief, progress/rank, 3D replay.
+- `isProUser` also requires Stripe status active/trialing (past_due/canceled no longer keep Pro).
+- Sale only when fully configured (`/api/stripe/config`: secret key + webhook secret + price + service
+  account); otherwise /pro says "payments open soon" — no button that could take money without
+  activating Pro. Checkout: monthly/yearly, locale return URLs, error codes (no raw English).
+  Webhook: writes are checked (Stripe retries on failure), saves the customer id in `billing/{uid}`
+  (server-only); `/api/stripe/portal` lets members cancel / change card (terms promised this).
+- One Pro page `/[locale]/pro` (price, perks, free list, buy / manage); all Pro CTAs go there (ProGate,
+  Fighter DNA panel, profile edit, coach quota message, Me menu). Removed: USD prices, false perk lists
+  ("AI debrief, video analysis, priority sparring"), the coach "priority matching" banner, the creator
+  Fan/Pro/Champion tiers (would have charged Pro), dead `?upgrade=1` link. Terms section 7 updated.
+- Owner to do before selling: create Stripe prices 9,900 MNT/month and 79,000 MNT/year, set
+  `STRIPE_PRICE_PRO`, `STRIPE_PRICE_PRO_YEARLY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`,
+  `FIREBASE_SERVICE_ACCOUNT_BASE64`, enable the Stripe customer portal. Prices are a proposal — change
+  `lib/pro.js` and the Stripe prices together.
+- Visual: `/pro` mn-390 / mn-360 / ko-390. Run `20261108T041019Z-4271867` (RED payments/XP; owner decision).
+
 ## One truth for numbers (audit B)
 - One score per round: `finalRoundScore` (lib/scoreConfidence.js) applies the confidence cap once on the
   Train page; the result screen, toast, saved session and XP preview all use it (before: screen capped,

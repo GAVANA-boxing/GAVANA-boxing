@@ -1,6 +1,35 @@
 {
   "runs": [
     {
+      "id": "20261108T041019Z-4271867",
+      "task": "GAVANA Pro + pricing: one plan in lib/pro.js (9,900₮/month, 79,000₮/year, MNT), only enforced perks (AI coach unlimited vs 10/day free, streak saves, DNA report server-gated), isProUser checks Stripe status, sale only when fully configured (/api/stripe/config), checkout plans + locale URLs, webhook write checked + customer saved, cancel via Stripe portal, single /pro page, removed false perks/USD tiers/dead upgrade links, terms updated",
+      "verdict": "ACCEPTED",
+      "commit": "4271867",
+      "at": "2026-11-08T04:15:04.548Z",
+      "durationS": 285,
+      "level": "RED",
+      "failedSteps": [],
+      "notRun": [
+        "rules"
+      ],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 273,
+        "unit.failed": 0,
+        "bundle.kb": 6199,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 60,
+        "visual.failed": 0,
+        "visual.flaky": 0
+      },
+      "decision": "owner"
+    },
+    {
       "id": "20261108T035752Z-614f673",
       "task": "one truth (audit B): one final round score (confidence cap applied once, saved/toast/XP agree), XP help matches server, streak XP never drops (best streak), sidebar/coach/fighter-profile use canonical XP + translated rank, radar reads hitCount/breakdown + real pose speed/guard, guard too_low handled, one live punch counter when MediaPipe runs",
       "verdict": "ACCEPTED",

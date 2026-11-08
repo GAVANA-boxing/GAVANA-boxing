@@ -38,6 +38,7 @@ import DNATimelineCard from "@/components/fighter-profile/DNATimelineCard";
 import EvolutionRevealPanel from "@/components/fighter-profile/EvolutionRevealPanel";
 import ProGate from "@/components/fighter-profile/ProGate";
 import { showRoute } from "@/lib/coreRoutes";
+import { isProUser } from "@/lib/pro";
 
 // ─── Shared locale strings used by the page shell ────────────────────────────
 const FP = {
@@ -143,7 +144,7 @@ export default function FighterProfilePage() {
   const [allTribeCounts, setAllTribeCounts] = useState(null);
   const [dnaRevealVisible, setDnaRevealVisible] = useState(false);
   const [activeTab, setActiveTab] = useState("dna");
-  const [userTier, setUserTier] = useState(null);
+  const [isPro, setIsPro] = useState(false);
   const [subscribeSuccess, setSubscribeSuccess] = useState(false);
   const [userData, setUserData] = useState(null);
   const dnaRevealShownRef = useRef(false);
@@ -186,7 +187,7 @@ export default function FighterProfilePage() {
         if (active) {
           setCurrentExperiment(data.currentExperiment || null);
           setStudiedFighterIds(data.studiedFighters || []);
-          setUserTier(data.subscriptionTier || data.tier || null);
+          setIsPro(isProUser(data));
           setUserData(data);
           setMilestonesUnlocked({
             m8:  !!data.milestoneUnlocked8,
@@ -491,13 +492,13 @@ export default function FighterProfilePage() {
 
             {/* Pro Upgrade — only once the DNA has been unlocked (a brand-new
                 fighter with 0 rounds shouldn't be sold to first) */}
-            {!loading && !dna.building && userTier !== "pro" && userTier !== "champion" && (
+            {!loading && !dna.building && !isPro && (
               <ProUpgradePanel locale={locale} router={router} />
             )}
 
             {/* DNA Export — Pro only */}
             {!loading && (
-              <ProGate tier={userTier} locale={locale} router={router}>
+              <ProGate pro={isPro} locale={locale} router={router}>
                 <div style={{ borderRadius: 14, padding: "14px 16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <div>
                     <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.5, color: "rgba(245,196,81,0.7)", textTransform: "uppercase", marginBottom: 4 }}>
@@ -604,7 +605,7 @@ export default function FighterProfilePage() {
               <StudiedFightersPanel studiedIds={studiedFighterIds} dna={dna} locale={locale} router={router} />
             )}
             {!loading && !dna.building && (
-              <ProGate tier={userTier} locale={locale} router={router}>
+              <ProGate pro={isPro} locale={locale} router={router}>
                 <FighterDNACompareCard dna={dna} locale={locale} />
               </ProGate>
             )}

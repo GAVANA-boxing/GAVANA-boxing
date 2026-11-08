@@ -12,7 +12,6 @@ import styles from "@/components/creator/creatorDashboardStyles";
 import CreatorOverviewTab from "@/components/creator/CreatorOverviewTab";
 import CreatorReelsTab from "@/components/creator/CreatorReelsTab";
 import CreatorAudienceTab from "@/components/creator/CreatorAudienceTab";
-import CreatorMonetizeTab from "@/components/creator/CreatorMonetizeTab";
 
 const DAY_LABELS = {
   mn: ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"],
@@ -24,7 +23,6 @@ const TABS = [
   { key: "overview",  labelKey: "creatorOverviewTab" },
   { key: "reels",     labelKey: "creatorReelsTab" },
   { key: "audience",  labelKey: "creatorAudienceTab" },
-  { key: "monetize",  labelKey: "creatorMonetizeTab" },
 ];
 
 function getCreatedAtMs(obj) {
@@ -299,9 +297,6 @@ export default function CreatorDashboard() {
             />
           )}
 
-          {activeTab === "monetize" && (
-            <CreatorMonetizeTab t={t} locale={locale} />
-          )}
         </div>
       )}
 

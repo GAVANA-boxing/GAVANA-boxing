@@ -95,6 +95,11 @@ const OS_ICONS = {
       <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
     </svg>
   ),
+  pro: (
+    <svg style={osIc} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M3 8l4 4 5-7 5 7 4-4-2 11H5L3 8z"/>
+    </svg>
+  ),
   "fighter-profile": (
     <svg style={osIc} viewBox="0 0 24 24" aria-hidden="true">
       <circle cx="12" cy="8" r="3.5"/>
@@ -115,6 +120,7 @@ const COMBAT_OS_ITEMS = [
   { key: "gyms",            labelEn: "Gyms",          labelMn: "Дасгалын заал",    labelKo: "체육관",    path: "/gyms" },
   { key: "history",         labelEn: "History",       labelMn: "Түүх",             labelKo: "기록",     path: "/history" },
   { key: "settings",        labelEn: "Edit profile",  labelMn: "Профайл засах",    labelKo: "프로필 편집", path: "/profile/edit" },
+  { key: "pro",             labelEn: "GAVANA Pro",    labelMn: "GAVANA Pro",       labelKo: "GAVANA Pro", path: "/pro" },
 ];
 
 // Core-loop focus: only show menu items that belong to Train → Score → Feedback → Progress.

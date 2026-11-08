@@ -47,7 +47,6 @@ import { SPECIALTIES, VIBE_FILTERS } from "@/lib/coachConstants";
 import TechniqueQuickAsk from "@/components/coach/TechniqueQuickAsk";
 import DNACoachingCTA from "@/components/coach/DNACoachingCTA";
 import AISparringPartner from "@/components/coach/AISparringPartner";
-import ProPriorityMatchingBanner from "@/components/coach/ProPriorityMatchingBanner";
 
 export default function CoachPage() {
   const router = useRouter();
@@ -59,7 +58,6 @@ export default function CoachPage() {
 
   const [tab, setTab] = useState("ai");
   const userArchetype = profile?.fighterDNA?.archetypeKey || null;
-  const userTier = profile?.subscriptionTier || profile?.tier || null;
 
   const [filterSpecialty, setFilterSpecialty] = useState("");
   const [filterVibe, setFilterVibe] = useState("");
@@ -326,13 +324,6 @@ export default function CoachPage() {
               }
             />
           )}
-
-          <ProPriorityMatchingBanner
-            userArchetype={userArchetype}
-            userTier={userTier}
-            locale={locale}
-            router={router}
-          />
 
           <div style={styles.cardList}>
             {filteredCoaches.map((coach) => (

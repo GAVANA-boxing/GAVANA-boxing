@@ -1,5 +1,7 @@
 // app/api/chat/route.js
 import { getLocale } from "@/lib/i18n";
+import { firestoreGet, firestorePatch } from "@/lib/server/firestore";
+import { isProUser, AI_CHAT_FREE_DAILY } from "@/lib/pro";
 import { withAuth } from "@/lib/withAuth";
 import OpenAI from "openai";
 
@@ -260,6 +262,37 @@ function errorResponse(locale) {
   }, { status: 200 });
 }
 
+
+// ── Daily AI quota for free users (GAVANA Pro = unlimited) ───────────────────
+// Counted per UTC day in usage/{uid} (server-only collection). The after-round debrief has
+// its own allowance so a free user's chat limit never blocks their round feedback. Without
+// the service account (Pro can't be sold then either) nothing is counted.
+const DEBRIEF_FREE_DAILY = 20;
+const QUOTA_TEXT = {
+  mn: (n) => `Өнөөдрийн ${n} үнэгүй мессеж дууслаа. Маргааш дахин бичээрэй, эсвэл GAVANA Pro-оор хязгааргүй ашигла.`,
+  ko: (n) => `오늘의 무료 메시지 ${n}개를 모두 사용했어요. 내일 다시 오거나 GAVANA Pro로 무제한 이용하세요.`,
+  en: (n) => `You've used today's ${n} free messages. Come back tomorrow, or get unlimited with GAVANA Pro.`,
+};
+
+async function checkAiQuota(uid, purpose) {
+  if (!process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) return { ok: true };
+  try {
+    const user = await firestoreGet(`users/${uid}`);
+    if (isProUser(user)) return { ok: true };
+    const day = new Date().toISOString().slice(0, 10);
+    const usage = (await firestoreGet(`usage/${uid}`)) || {};
+    const field = purpose === "debrief" ? "aiDebrief" : "aiChat";
+    const limit = purpose === "debrief" ? DEBRIEF_FREE_DAILY : AI_CHAT_FREE_DAILY;
+    const used = usage[`${field}Day`] === day ? Number(usage[`${field}Count`]) || 0 : 0;
+    if (used >= limit) return { ok: false, limit };
+    await firestorePatch(`usage/${uid}`, { [`${field}Day`]: day, [`${field}Count`]: used + 1 });
+    return { ok: true };
+  } catch (err) {
+    console.warn("[chat/route] quota check skipped:", err?.message);
+    return { ok: true }; // never block the coach because the counter failed
+  }
+}
+
 // ── Route handler ─────────────────────────────────────────────────────────────
 export const POST = withAuth(async (req, { uid }) => {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || uid;
@@ -267,7 +300,7 @@ export const POST = withAuth(async (req, { uid }) => {
 
   let body;
   try { body = await req.json(); } catch { return Response.json({ error: "Invalid JSON" }, { status: 400 }); }
-  let { messages, persona = "drill", locale = "en", coachContext = null, json_mode = false } = body;
+  let { messages, persona = "drill", locale = "en", coachContext = null, json_mode = false, purpose = "chat" } = body;
 
   if (!Array.isArray(messages)) messages = [];
   messages = messages.slice(-20).map((m) => ({
@@ -284,6 +317,12 @@ export const POST = withAuth(async (req, { uid }) => {
   const formatInstruction = json_mode
     ? (JSON_SCHEMA_INSTRUCTIONS[safeLocale] || JSON_SCHEMA_INSTRUCTIONS.en)
     : (FORMAT_INSTRUCTIONS[safeLocale] || FORMAT_INSTRUCTIONS.en);
+
+  const quota = await checkAiQuota(uid, purpose === "debrief" ? "debrief" : "chat");
+  if (!quota.ok) {
+    const text = (QUOTA_TEXT[safeLocale] || QUOTA_TEXT.en)(quota.limit);
+    return Response.json({ quotaExceeded: true, _source: "quota", message: text, content: [{ type: "text", text }] }, { status: 200 });
+  }
 
   const hasKey = !!process.env.OPENAI_API_KEY;
 

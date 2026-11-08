@@ -1,32 +1,9 @@
 import Stripe from "stripe";
 
-const PROJECT_ID = "gavana-boxing-89a22";
+import { firestorePatch } from "@/lib/server/firestore";
 
-let _cachedToken  = null;
-let _tokenExpiry  = 0;
-
-async function getFirestoreAccessToken() {
-  if (_cachedToken && Date.now() < _tokenExpiry - 60_000) return _cachedToken;
-  const b64 = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
-  if (!b64) return null;
-  try {
-    const { GoogleAuth } = await import("google-auth-library");
-    const credentials = JSON.parse(Buffer.from(b64, "base64").toString("utf8"));
-    const auth = new GoogleAuth({
-      credentials,
-      scopes: ["https://www.googleapis.com/auth/datastore"],
-    });
-    const client = await auth.getClient();
-    const tokenResponse = await client.getAccessToken();
-    _cachedToken  = tokenResponse.token;
-    _tokenExpiry  = Date.now() + 3_600_000;
-    return _cachedToken;
-  } catch (e) {
-    console.error("Firestore token error:", e);
-    return null;
-  }
-}
-
+// Pro status lives on users/{uid} (clients can't write these fields — firestore.rules);
+// the Stripe customer id goes to billing/{uid}, a server-only collection, for the portal.
 async function updateUserSubscription(uid, tierId, status) {
   if (!uid) {
     // No uid in Stripe metadata — cannot attribute the subscription. Never write
@@ -34,27 +11,23 @@ async function updateUserSubscription(uid, tierId, status) {
     console.error("stripe/webhook: event has no metadata.uid — cannot attribute subscription", { tierId, status });
     return { skipped: "no-uid" };
   }
-  const accessToken = await getFirestoreAccessToken();
-  if (!accessToken) {
-    throw new Error("FIREBASE_SERVICE_ACCOUNT_BASE64 not configured — cannot write subscription (user paid but Pro will not activate)");
-  }
-
-  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/users/${uid}?updateMask.fieldPaths=subscription&updateMask.fieldPaths=subscriptionTier&updateMask.fieldPaths=subscriptionUpdatedAt`;
-  await fetch(url, {
-    method:  "PATCH",
-    headers: {
-      "Content-Type":  "application/json",
-      "Authorization": `Bearer ${accessToken}`,
-    },
-    body: JSON.stringify({
-      fields: {
-        subscription:          { stringValue: status },
-        subscriptionTier:      { stringValue: tierId || "" },
-        subscriptionUpdatedAt: { stringValue: new Date().toISOString() },
-      },
-    }),
+  // firestorePatch throws when the service account is missing or the write fails, so
+  // Stripe gets a 503 and retries instead of the user paying without getting Pro.
+  await firestorePatch(`users/${uid}`, {
+    subscription: status,
+    subscriptionTier: tierId || "",
+    subscriptionUpdatedAt: new Date().toISOString(),
   });
+  return { ok: true };
 }
+
+async function saveCustomer(uid, customer) {
+  if (!uid || !customer) return;
+  await firestorePatch(`billing/${uid}`, { stripeCustomerId: String(customer), updatedAt: new Date().toISOString() });
+}
+
+// All paid plans are app Pro (monthly / yearly).
+const tierOf = (t) => (t ? "pro" : "");
 
 export async function POST(req) {
   const stripeKey     = process.env.STRIPE_SECRET_KEY;
@@ -80,14 +53,16 @@ export async function POST(req) {
     switch (event.type) {
       case "customer.subscription.created":
       case "customer.subscription.updated":
-        await updateUserSubscription(uid, tierId, obj.status === "active" ? "active" : obj.status);
+        await updateUserSubscription(uid, tierOf(tierId), obj.status);
+        if (uid) await saveCustomer(uid, obj.customer);
         break;
       case "customer.subscription.deleted":
-        await updateUserSubscription(uid, "", "cancelled");
+        await updateUserSubscription(uid, "", "canceled");
         break;
       case "checkout.session.completed":
         if (obj.mode === "subscription" && obj.metadata?.uid) {
-          await updateUserSubscription(obj.metadata.uid, obj.metadata.tierId, "active");
+          await updateUserSubscription(obj.metadata.uid, tierOf(obj.metadata.tierId), "active");
+          await saveCustomer(obj.metadata.uid, obj.customer);
         }
         break;
     }
