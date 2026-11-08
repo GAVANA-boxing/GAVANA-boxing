@@ -6,7 +6,7 @@ import { createChallengeAttemptNotification, createChallengeBeatenNotification }
 import { getCurrentSeasonId } from "@/lib/season";
 import { calculateChallengeXP, getFighterRank, RANK_TIERS } from "@/lib/xp";
 import { getChallengeRank } from "@/lib/utils";
-import { getChallengeComparisonPercent, getChallengeStreakBonus } from "@/lib/trainHelpers";
+import { getChallengeStreakBonus } from "@/lib/trainHelpers";
 import { buildDateKeys, commitSessionProgression } from "@/lib/scoreClient";
 import { writeChallengeAttempt, updateUserTrainingProfile } from "@/lib/analytics";
 import { checkAndAwardBadges } from "@/lib/badges";
@@ -148,7 +148,6 @@ export function useTrainingActions({
 
       // ── Fallback: legacy client transaction (server scoring not configured) ──
       const rank = getChallengeRank(result.score);
-      const comparisonPercent = getChallengeComparisonPercent(result.score);
       const xpGained = calculateChallengeXP(result.score, rank);
 
       let rankUpData = null;
@@ -180,7 +179,6 @@ export function useTrainingActions({
           challengeId,
           score: result.score,
           rank,
-          comparisonPercent,
           xpGained: totalChallengeXP,
           baseXP: xpGained,
           streakBonusXP,

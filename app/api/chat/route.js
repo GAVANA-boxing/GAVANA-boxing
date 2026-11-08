@@ -37,8 +37,9 @@ const PERSONAS = {
     name: "Analyst",
     systemPrompt:
       "You are a sharp boxing analyst-coach. You see patterns, percentages, risk-reward. " +
-      "When given numbers (score, accuracy, speed), reference them. " +
-      "When not given numbers, estimate them. Lead every answer with the highest-impact insight. " +
+      "When given numbers (score, punch counts, guard, speed ratings), reference them. " +
+      "When not given numbers, never invent or estimate any — say what a round would need to measure instead. " +
+      "Lead every answer with the highest-impact insight. " +
       "Never list more than 3 things — ruthless prioritization.",
   },
   champion: {
@@ -57,7 +58,9 @@ const GAVANA_CONTEXT =
   "Treat every user as a real fighter — not a casual gym-goer. " +
   "Tone: corner coach, not chatbot. Sharp, technical, practical. " +
   "Never use filler phrases: 'Great question!', 'Certainly!', 'Of course!', 'Sure!', 'Absolutely!'. " +
-  "Never write more than what's needed. Silence is better than noise.";
+  "Never write more than what's needed. Silence is better than noise. " +
+  "Honesty rule: only state measurements that appear in the data you were given. Never invent statistics, " +
+  "percentages, punch counts or observations the camera did not report.";
 
 // ── Fighter-specific context injection ───────────────────────────────────────
 const FIGHTER_CONTEXT = {
@@ -243,13 +246,12 @@ function textResponse(text) {
   }, { status: 200 });
 }
 
-function errorResponse(locale, detail = "") {
-  const base = locale === "mn"
+function errorResponse(locale) {
+  const msg = locale === "mn"
     ? "AI коуч одоогоор боломжгүй байна."
     : locale === "ko"
     ? "AI 코치를 현재 사용할 수 없습니다."
     : "AI coach is currently unavailable.";
-  const msg = detail ? `${base} (${detail})` : base;
   return Response.json({
     aiError: true,
     _source: "error",
@@ -287,7 +289,7 @@ export const POST = withAuth(async (req, { uid }) => {
 
   if (!hasKey) {
     console.error("[chat/route] OPENAI_API_KEY is not configured.");
-    return errorResponse(safeLocale, "OPENAI_API_KEY not configured");
+    return errorResponse(safeLocale);
   }
 
   // Order: language → persona → platform context → fighter context → user context → format (closest to completion)
@@ -321,7 +323,7 @@ export const POST = withAuth(async (req, { uid }) => {
     const raw = completion.choices[0]?.message?.content?.trim();
     if (!raw) {
       console.error("[chat/route] OpenAI returned empty response.");
-      return errorResponse(safeLocale, "Empty response from OpenAI");
+      return errorResponse(safeLocale);
     }
     console.log(`[chat/route] OpenAI success — tokens:${completion.usage?.total_tokens ?? "?"} locale:${safeLocale} json_mode:${json_mode}`);
 
@@ -349,7 +351,7 @@ export const POST = withAuth(async (req, { uid }) => {
     const msg = err?.message || String(err);
     const isAuth = status === 401 || code === "invalid_api_key";
     console.error(`[chat/route] OpenAI FAILED [${isAuth ? "AUTH/KEY" : `HTTP ${status}`}]: ${msg}`);
-    if (isAuth) return errorResponse(safeLocale, "Invalid API key — check OPENAI_API_KEY in Vercel");
-    return errorResponse(safeLocale, msg);
+    // Details stay in the server log; users get the plain localized message.
+    return errorResponse(safeLocale);
   }
 });

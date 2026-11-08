@@ -24,7 +24,7 @@ const PHASE = {
 
 /**
  * World Tour screen body: the city the fighter's rank has reached, live in 3D
- * (its real local time, sun and today's weather), the journey of all cities,
+ * (its real local time and sun, weather typical for the season), the journey of all cities,
  * and how much XP until the next one.
  */
 export default function TourView({ xp = 0, locale = "en", now = new Date(), go = () => {}, sceneHeight = 340 }) {
@@ -75,7 +75,7 @@ export default function TourView({ xp = 0, locale = "en", now = new Date(), go =
         failText={L("Энэ төхөөрөмж 3D дүрслэлийг дэмжихгүй байна.", "이 기기는 3D 표시를 지원하지 않습니다.", "This device can't show 3D.")}
       />
       <p style={{ margin: "-6px 0 0", fontSize: 12, color: BRAND.faint }}>
-        {L("Бодит цаг, нар, улирал — тухайн хотын яг одоо. Чирж эргүүл.", "실제 시간·태양·계절 — 그 도시의 지금. 드래그해서 회전.", "Real local time, sun and season — that city right now. Drag to rotate.")}
+        {L("Тухайн хотын бодит цаг, нар, улирал. Цаг агаар нь улирлын ердийн байдлаар (мэдээ биш). Чирж эргүүл.", "그 도시의 실제 시간·태양·계절. 날씨는 계절 평균 모습이에요 (예보 아님). 드래그해서 회전.", "That city's real local time, sun and season. Weather is typical for the season, not a forecast. Drag to rotate.")}
       </p>
 
       {/* Next city */}

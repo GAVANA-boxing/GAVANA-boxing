@@ -329,7 +329,7 @@ export default function LoginPage() {
             {locale === "mn" ? "Бүртгэлгүйгээр туршиж үзэх" : locale === "ko" ? "계정 없이 체험하기" : "Try it without an account"} →
           </span>
           <span style={{ display: "block", marginTop: 3, fontSize: 13, color: "rgba(255,255,255,0.55)" }}>
-            {locale === "mn" ? "60 секундийн раунд · оноо шууд" : locale === "ko" ? "60초 라운드 · 바로 점수" : "A 60-second round · instant score"}
+            {locale === "mn" ? "20 секундийн эхний раунд · оноо шууд" : locale === "ko" ? "20초 첫 라운드 · 바로 점수" : "A 20-second first round · instant score"}
           </span>
         </button>
       </div>

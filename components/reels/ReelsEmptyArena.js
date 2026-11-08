@@ -5,21 +5,18 @@ import styles from "@/components/reels/reelStyles";
 
 const COPY = {
   mn: {
-    desc: "Эхний видеогоо upload хий. AI техникийг задлан шинжилж, ахицыг чинь rank болгоно.",
-    btn: "ЭХНИЙ ВИДЕОГОО UPLOAD ХИЙ",
-    hint: "2,400+ тулаанч GAVANA дээр бэлтгэж байна.",
-    watch: "Нийгэмлэгийн reels үзэх →",
+    desc: "Эхний видеогоо оруул. AI техникийг чинь задлан тайлбарлана.",
+    btn: "ЭХНИЙ ВИДЕОГОО ОРУУЛАХ",
+    watch: "Бусдын бичлэг үзэх →",
   },
   ko: {
-    desc: "첫 번째 릴을 업로드하세요. AI가 기술을 분석하고 발전을 랭크로 전환합니다.",
+    desc: "첫 번째 영상을 올려 보세요. AI가 기술을 분석해 줍니다.",
     btn: "첫 릴 업로드",
-    hint: "2,400명 이상의 파이터가 GAVANA에서 훈련 중.",
     watch: "커뮤니티 릴스 보기 →",
   },
   en: {
-    desc: "Drop your first reel. AI breaks down your technique and turns your progress into rank.",
+    desc: "Upload your first video. AI breaks down your technique.",
     btn: "UPLOAD YOUR FIRST REEL",
-    hint: "Join 2,400+ fighters already training on GAVANA.",
     watch: "Watch community reels →",
   },
 };
@@ -57,16 +54,6 @@ export default function ReelsEmptyArena({ router, user, currentLocale }) {
           >
             {copy.btn}
           </button>
-          <p
-            style={{
-              marginTop: 14,
-              fontSize: 11,
-              color: "rgba(255,255,255,0.28)",
-              letterSpacing: "0.04em",
-            }}
-          >
-            {copy.hint}
-          </p>
           <button
             type="button"
             style={{

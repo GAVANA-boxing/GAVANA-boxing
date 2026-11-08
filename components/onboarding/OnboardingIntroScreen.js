@@ -7,7 +7,7 @@ const INTRO_CARDS = (locale) => [
     value: "train",
     emoji: "🥊",
     label: locale === "mn" ? "AI-тай дасгал" : locale === "ko" ? "AI로 훈련하기" : "Train With AI",
-    desc: locale === "mn" ? "Хурд, хүч, техникийг бодит цаг дотор хэмж" : locale === "ko" ? "속도, 파워, 기술을 실시간으로 측정" : "Measure your speed, power & technique in real time",
+    desc: locale === "mn" ? "Цохилт, хурд, хамгаалалтаа камераар хэмжүүл" : locale === "ko" ? "펀치·속도·가드를 카메라로 측정" : "Your camera counts punches and reads speed and guard",
   },
   {
     value: "learn",

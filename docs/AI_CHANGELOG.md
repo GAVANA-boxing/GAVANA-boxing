@@ -2,6 +2,27 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Trust fixes from the audit (owner: "dugnelteer garsan zuilsiig zasaj saijruulj ajil")
+- Invented numbers removed: "combat telemetry" bars (score × 1.05 etc.), "BEAT %" (and no longer
+  stored as `comparisonPercent`), "2,400+ fighters", "% match", hardcoded onboarding DNA preview %,
+  `ai-analysis` scores from strength counts + `Math.random()`; first-session hook no longer defaults to
+  "pressure / like Mike Tyson" without punches, and its "N more sessions" hint is right.
+- AI: the analyst persona and debrief prompt must not invent or estimate numbers; users never see
+  developer errors ("Invalid API key…").
+- Words: counter archetype "Тохой тулаанч" (elbow) → "Контр тулаанч"; rule-made "ТРЕНЕРИЙН ДҮГНЭЛТ" →
+  "АВТОМАТ ДҮГНЭЛТ"; weekly packages named by technique instead of boxers ("GGG" read as "666").
+- No real boxer photos (owner: no rights): photo URLs removed from `lib/fighters.js`; coach technique
+  cards are graphic. (Archetype images are AI-generated GAVANA art — kept.)
+- World Tour says weather is typical for the season, not live; landing/login/manifest say the first
+  round is 20 s (what guests get); onboarding no longer claims the camera measures power; removed the
+  "Live group sessions — notify me" card that saved nothing.
+- Privacy policy (MN/KO/EN) rewritten to match the code: what stays on the phone (video, stance photo,
+  chat history), what the account stores, what goes to OpenAI (no email/name), services used, what's
+  public, deletion by email. The `coach_memory` write/read had no Firestore rule (always failed) —
+  removed, so "we don't keep your chat on our servers" is true.
+- Tour screenshots now run without WebGL (stable); 3D covered by the playtest.
+- Run `20261108T034913Z-ac2b81c` (RED: awardXp.js — field removal only; owner decision recorded).
+
 ## Audit (owner: "gavanag shalga shinjleed dugnelt garga")
 - Read-only audit of the whole app + 16 screens at 390 px → `docs/audit/2026-11-08-gavana-audit.md`
   (MN). No code changed. Summary added to `docs/AI_KNOWN_ISSUES.md`.

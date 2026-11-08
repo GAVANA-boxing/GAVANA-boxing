@@ -20,12 +20,6 @@ function isBoxingContent(reel) {
          cat === "boxing" || cat === "sparring";
 }
 
-function computeScore(data) {
-  if (!data) return 7.0;
-  const s = Array.isArray(data.strengths) ? data.strengths.length : 0;
-  const w = Array.isArray(data.weaknesses) ? data.weaknesses.length : 0;
-  return Math.min(10, Math.max(4, 7.0 + Math.min(s * 0.3, 1.2) - Math.min(w * 0.2, 0.8)));
-}
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -94,10 +88,6 @@ export default function AIAnalysisPage() {
   }, [reel]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const isBoxing = isBoxingContent(reel);
-  const score = computeScore(aiData);
-  const guard = aiData ? Math.min(10, 5 + (aiData.strengths?.length || 0) * 0.5) : 0;
-  const comboFlow = aiData ? Math.min(10, 4.5 + (aiData.strengths?.length || 0) * 0.4 + Math.random() * 0.8) : 0;
-  const footwork = aiData ? Math.min(10, 5.5 + (aiData.strengths?.length || 0) * 0.3) : 0;
 
   return (
     <div className="page-enter" style={{ minHeight: "100dvh", background: pageBg(), display: "flex", flexDirection: "column" }}>
@@ -123,10 +113,6 @@ export default function AIAnalysisPage() {
         reel={reel}
         aiData={aiData}
         aiLoading={aiLoading}
-        score={score}
-        guard={guard}
-        comboFlow={comboFlow}
-        footwork={footwork}
         onUpload={() => router.push(`/${locale}/upload`)}
         onTrainThisMove={() => router.push(`/${locale}/train?reelId=${reelId}`)}
       />

@@ -3,14 +3,6 @@
 import { ARCH_TRAINING_COLORS } from "@/lib/archetypeTraining";
 import { GOLD } from "@/lib/tokens";
 
-const ARCH_FIGHTER = {
-  pressure:   "Mike Tyson",
-  outboxer:   "Muhammad Ali",
-  counter:    "Floyd Mayweather",
-  explosive:  "Naoya Inoue",
-  technician: "Dmitry Bivol",
-};
-
 const ARCH_DISPLAY_S = {
   en: { pressure: "Pressure Fighter", outboxer: "Outboxer", counter: "Counter Fighter", explosive: "Explosive Fighter", technician: "Technician" },
   mn: { pressure: "Дарамт тулаанч",   outboxer: "Аутбоксер", counter: "Контр тулаанч", explosive: "Тэсрэмтгий тулаанч", technician: "Техникч" },
@@ -21,13 +13,15 @@ const SIG_L = {
   en: {
     aggr: "Aggression", range: "Range", counter: "Counter", volume: "Volume",
     high: "HIGH", medium: "MED", low: "LOW", long: "LONG", mid: "MID", close: "CLOSE", building: "BUILDING", emerging: "EMERGING",
-    firstSignals: "YOUR FIRST SIGNALS", like: "Like ",
+    firstSignals: "YOUR FIRST SIGNALS",
     mightBe:       "You might be a...",
     signalGrowing: "SIGNAL GROWING",
     archEmerging:  "YOUR ARCHETYPE IS EMERGING",
     dnaUnlocked:   "DNA ANALYSIS UNLOCKED",
     dnaReady:      "Your fighter identity is taking shape. Visit your profile to see the full analysis.",
+    session1hint:  "2 more sessions unlock your Fighter DNA",
     session2hint:  "1 more session unlocks your Fighter DNA",
+    fewPunches:    "Too few punches counted to read a style yet — stand where your whole body is in frame.",
     session3hint:  "3 sessions complete. Your DNA is ready to view.",
     trainAgain: "Train Again →", viewDNA: "View Your DNA →", viewProfile: "View Profile",
     title1: "SESSION 1 COMPLETE", title2: "SESSION 2 COMPLETE", title3: "DNA ANALYSIS UNLOCKED",
@@ -36,28 +30,32 @@ const SIG_L = {
   mn: {
     aggr: "Түрэмгийлэл", range: "Зай", counter: "Контр", volume: "Хэмжээ",
     high: "ӨНДӨР", medium: "ДУНД", low: "БАГ", long: "УРТ", mid: "ДУНД", close: "ОЙРХОН", building: "БҮРДЭЖ БАЙНА", emerging: "ГАРЧ ИРЭХ",
-    firstSignals: "АНХНЫ ДОХИО", like: "Жишээ нь: ",
+    firstSignals: "АНХНЫ ДОХИО",
     mightBe:       "Та магадгүй...",
     signalGrowing: "ДОХИО ӨСЧ БАЙНА",
-    archEmerging:  "ТАНЫ ARCHETYPE ГАРЧ ИРЭЖ БАЙНА",
+    archEmerging:  "ТАНЫ ХЭВ МАЯГ ТОДОРЧ БАЙНА",
     dnaUnlocked:   "ДНХ ШИНЖИЛГЭЭ НЭЭГДЛАА",
     dnaReady:      "Тулаанчийн мөн чанар тодорч байна. Профайлаа зочлоод бүрэн шинжилгээгээ харна уу.",
-    session2hint:  "1 тренинг нэмбэл таны ДНХ нээгдэнэ",
-    session3hint:  "3 тренинг дууслаа. ДНХ харахад бэлэн боллоо.",
+    session1hint:  "2 бэлтгэл нэмбэл таны ДНХ нээгдэнэ",
+    session2hint:  "1 бэлтгэл нэмбэл таны ДНХ нээгдэнэ",
+    fewPunches:    "Хэв маяг уншихад цохилт хангалтгүй тоологдлоо — бүтэн биеэ кадрт багтаа.",
+    session3hint:  "3 бэлтгэл дууслаа. ДНХ харахад бэлэн боллоо.",
     trainAgain: "Дахин бэлтгэл хий →", viewDNA: "ДНХ харах →", viewProfile: "Профайл харах",
-    title1: "1-Р ТРЕНИНГ ДУУСЛАА", title2: "2-Р ТРЕНИНГ ДУУСЛАА", title3: "ДНХ ШИНЖИЛГЭЭ НЭЭГДЛАА",
+    title1: "1-Р БЭЛТГЭЛ ДУУСЛАА", title2: "2-Р БЭЛТГЭЛ ДУУСЛАА", title3: "ДНХ ШИНЖИЛГЭЭ НЭЭГДЛАА",
     dnaJourney: "ДНХ АЯЛАЛ",
   },
   ko: {
     aggr: "공격성", range: "레인지", counter: "카운터", volume: "볼륨",
     high: "높음", medium: "중간", low: "낮음", long: "롱", mid: "미드", close: "클로즈", building: "구축 중", emerging: "성장 중",
-    firstSignals: "첫 번째 신호", like: "예: ",
+    firstSignals: "첫 번째 신호",
     mightBe:       "당신은...",
     signalGrowing: "신호 성장 중",
     archEmerging:  "아키타입이 형성되고 있습니다",
     dnaUnlocked:   "DNA 분석 잠금 해제",
     dnaReady:      "파이터 정체성이 형태를 갖추고 있습니다. 프로필을 방문하여 전체 분석을 확인하세요.",
+    session1hint:  "2회 더 훈련하면 파이터 DNA가 잠금 해제됩니다",
     session2hint:  "1회 더 훈련하면 파이터 DNA가 잠금 해제됩니다",
+    fewPunches:    "스타일을 읽기엔 펀치가 너무 적어요 — 전신이 화면에 들어오게 서 주세요.",
     session3hint:  "3세션 완료. DNA를 확인할 준비가 되었습니다.",
     trainAgain: "다시 훈련 →", viewDNA: "DNA 보기 →", viewProfile: "프로필 보기",
     title1: "세션 1 완료", title2: "세션 2 완료", title3: "DNA 분석 잠금 해제",
@@ -150,8 +148,15 @@ export default function FirstSessionHook({ locale, firstSessionHook, setFirstSes
           </div>
         )}
 
-        {/* Archetype card — all sessions */}
-        <div style={{ borderRadius: 16, background: `${acc}10`, border: `1px solid ${acc}30`, padding: "16px", marginBottom: 16, textAlign: "center" }}>
+        {/* Too few punches: say so instead of guessing a style. */}
+        {!hasSignals && (
+          <div style={{ borderRadius: 16, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", padding: "14px 16px", marginBottom: 16, fontSize: 13, lineHeight: 1.5, color: "rgba(255,255,255,0.7)", textAlign: "center" }}>
+            {SL.fewPunches}
+          </div>
+        )}
+
+        {/* Archetype card — only when the punch mix gives a signal */}
+        {hasSignals && <div style={{ borderRadius: 16, background: `${acc}10`, border: `1px solid ${acc}30`, padding: "16px", marginBottom: 16, textAlign: "center" }}>
           <div style={{ fontSize: 11.5, fontWeight: 900, letterSpacing: 2, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", marginBottom: 8 }}>
             {sessionNum === 3 ? SL.archEmerging : SL.mightBe}
           </div>
@@ -161,15 +166,12 @@ export default function FirstSessionHook({ locale, firstSessionHook, setFirstSes
               {AD[archKey]}
             </span>
           </div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", fontWeight: 700 }}>
-            {SL.like}{ARCH_FIGHTER[archKey]}
-          </div>
           {sessionNum === 3 && (
             <div style={{ marginTop: 10, fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 600, lineHeight: 1.5 }}>
               {SL.dnaReady}
             </div>
           )}
-        </div>
+        </div>}
 
         {/* DNA Journey progress bar */}
         <div style={{ borderRadius: 14, background: "rgba(255,255,255,0.02)", border: `1px solid ${sessionNum === 3 ? `${acc}25` : "rgba(255,255,255,0.05)"}`, padding: "14px 16px", marginBottom: 24 }}>
@@ -186,7 +188,7 @@ export default function FirstSessionHook({ locale, firstSessionHook, setFirstSes
             ))}
           </div>
           <div style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", fontWeight: 700, lineHeight: 1.4 }}>
-            {sessionNum === 1 ? SL.session2hint : sessionNum === 2 ? SL.session2hint.replace("1", "2") : SL.session3hint}
+            {sessionNum === 1 ? SL.session1hint : sessionNum === 2 ? SL.session2hint : SL.session3hint}
           </div>
         </div>
 

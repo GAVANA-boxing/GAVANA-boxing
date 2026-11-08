@@ -28,7 +28,6 @@ import TrainingPrescriptionCard from "@/components/fighter-profile/TrainingPresc
 import DNANextStepsCard from "@/components/fighter-profile/DNANextStepsCard";
 import ProUpgradePanel from "@/components/fighter-profile/ProUpgradePanel";
 import WeeklyReportCard from "@/components/fighter-profile/WeeklyReportCard";
-import LiveHubTeaser from "@/components/fighter-profile/LiveHubTeaser";
 import StudiedFightersPanel from "@/components/fighter-profile/StudiedFightersPanel";
 import TribeCard from "@/components/fighter-profile/TribeCard";
 import TribeActivityFeed from "@/components/fighter-profile/TribeActivityFeed";
@@ -645,7 +644,6 @@ export default function FighterProfilePage() {
                 </p>
               </div>
             )}
-            {!loading && <LiveHubTeaser locale={locale} />}
           </>
         )}
       </div>

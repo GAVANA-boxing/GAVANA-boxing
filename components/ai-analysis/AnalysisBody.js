@@ -1,13 +1,10 @@
 "use client";
 
-import ScoreRing from "./ScoreRing";
-import MetricBar from "./MetricBar";
 import { redAlpha, goldAlpha } from "@/lib/tokens";
 
 const CYAN = "#22D3EE";
 const cA = (a) => `rgba(34,211,238,${a})`;
 
-const METRIC_LABELS = ["GUARD", "COMBO FLOW", "FOOTWORK"];
 
 const LOCALE_STRINGS = {
   noBoxingSubtitle: {
@@ -26,10 +23,6 @@ const LOCALE_STRINGS = {
  *   reel: object | null,
  *   aiData: object | null,
  *   aiLoading: boolean,
- *   score: number,
- *   guard: number,
- *   comboFlow: number,
- *   footwork: number,
  *   reelId: string,
  *   onUpload: () => void,
  *   onTrainThisMove: () => void,
@@ -43,10 +36,6 @@ export default function AnalysisBody({
   reel,
   aiData,
   aiLoading,
-  score,
-  guard,
-  comboFlow,
-  footwork,
   onUpload,
   onTrainThisMove,
 }) {
@@ -77,29 +66,7 @@ export default function AnalysisBody({
         </div>
       )}
 
-      {/* Score + Metrics */}
-      {isBoxing && aiData ? (
-        <div className="section-enter stagger-1" style={{ display: "flex", gap: 16, alignItems: "center" }}>
-          <ScoreRing score={score} />
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
-            <MetricBar label="GUARD" value={guard} />
-            <MetricBar label="COMBO FLOW" value={comboFlow} />
-            <MetricBar label="FOOTWORK" value={footwork} />
-          </div>
-        </div>
-      ) : isBoxing ? (
-        <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-          <div style={{ width: 96, height: 96, borderRadius: "50%", background: cA(0.06), border: `1px solid ${cA(0.15)}`, flexShrink: 0, animation: "pulse 1.5s infinite" }} />
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
-            {METRIC_LABELS.map((l) => (
-              <div key={l} style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                <div style={{ height: 10, width: 70, borderRadius: 4, background: "rgba(255,255,255,0.06)", animation: "pulse 1.5s infinite" }} />
-                <div style={{ height: 3, borderRadius: 2, background: "rgba(255,255,255,0.04)" }} />
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : null}
+      {/* No numeric scores: this view only has the AI's text breakdown, nothing measured. */}
 
       {/* Style + Technique tags */}
       {aiData && (aiData.style || aiData.technique) && (

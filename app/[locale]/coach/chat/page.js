@@ -96,7 +96,7 @@ export default function AIChatPage() {
     let active = true;
     (async () => {
       try {
-        const { collection, getDocs, doc, getDoc, query, where } = await import("firebase/firestore");
+        const { collection, getDocs, query, where } = await import("firebase/firestore");
         const { db } = await import("@/lib/firebase");
 
         const sessSnap = await getDocs(query(
@@ -131,22 +131,8 @@ export default function AIChatPage() {
           });
         }
 
-        // Load coach memory from Firestore
-        let memoryStr = null;
-        try {
-          const memRef = doc(db, "coach_memory", user.uid);
-          const memSnap = await getDoc(memRef);
-          if (memSnap.exists()) {
-            const insights = memSnap.data().insights || [];
-            if (insights.length > 0) {
-              const recent = insights.slice(-4).map((m) => `• ${m.text}`).join("\n");
-              memoryStr = `── COACH MEMORY (insights from past sessions) ──\n${recent}`;
-            }
-          }
-        } catch { /* ignore — memory is optional */ }
-
-        const fullCtx = [ctx, memoryStr].filter(Boolean).join("\n\n");
-        setCoachContextStr(fullCtx);
+        // The chat itself stays on this device (localStorage); nothing of it is stored server-side.
+        setCoachContextStr(ctx);
       } catch { /* silent — chat still works without context */ }
     })();
     return () => { active = false; };
@@ -255,28 +241,6 @@ export default function AIChatPage() {
         return updated;
       });
 
-      // Save insight to Firestore memory every 4th assistant message
-      if (user?.uid && reply && reply.length > 30) {
-        const allMsgs = [...messages, { role: "user", content: text }, newMsg];
-        const assistantCount = allMsgs.filter((m) => m.role === "assistant").length;
-        if (assistantCount % 4 === 0) {
-          (async () => {
-            try {
-              const { doc, setDoc, arrayUnion, serverTimestamp } = await import("firebase/firestore");
-              const { db } = await import("@/lib/firebase");
-              const snippet = reply.slice(0, 180).replace(/\n+/g, " ").trim();
-              await setDoc(
-                doc(db, "coach_memory", user.uid),
-                {
-                  insights: arrayUnion({ text: snippet, ts: Date.now(), persona }),
-                  updatedAt: serverTimestamp(),
-                },
-                { merge: true }
-              );
-            } catch { /* silent */ }
-          })();
-        }
-      }
     } catch {
       setMessages((prev) => [...prev, { role: "assistant", content: t("coachError"), ts: Date.now() }]);
     } finally {

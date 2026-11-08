@@ -40,15 +40,13 @@ export default function TechniqueQuickAsk({ locale, router }) {
               background: "#0a0a0c", fontFamily: "inherit",
             }}
           >
-            {fighter.imageUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={fighter.imageUrl}
-                alt={fighter.name}
-                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 10%" }}
-              />
-            )}
-            <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.88) 100%), ${fighter.accent}18` }} />
+            {/* No fighter photos (no rights): a graphic card in the style's accent colour. */}
+            <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: `radial-gradient(120% 80% at 80% 0%, ${fighter.accent}55 0%, ${fighter.accent}12 45%, transparent 70%), linear-gradient(160deg, #141418 0%, #0a0a0c 100%)` }} />
+            <svg aria-hidden="true" viewBox="0 0 64 64" width="56" height="56" style={{ position: "absolute", top: 18, left: 14, opacity: 0.9 }}>
+              <path d="M18 30c0-9 6-15 15-15h6c7 0 12 5 12 12v9c0 8-6 14-14 14H27c-5 0-9-4-9-9v-11z" fill="none" stroke={fighter.accent} strokeWidth="3" />
+              <path d="M18 34h-4c-3 0-5-2-5-5s2-5 5-5h4" fill="none" stroke={fighter.accent} strokeWidth="3" />
+              <path d="M24 50v6h18v-6" fill="none" stroke={fighter.accent} strokeWidth="3" />
+            </svg>
             <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "12px 12px", textAlign: "left" }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: fighter.accent, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>
                 {fighter.name}

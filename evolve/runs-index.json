@@ -1,6 +1,35 @@
 {
   "runs": [
     {
+      "id": "20261108T034913Z-ac2b81c",
+      "task": "trust (audit A): remove invented metrics (telemetry bars, beat %, 2,400+, % match, DNA preview %, ai-analysis random scores), honest AI prompts + no dev errors to users, counter archetype name, auto-review label, technique-named weekly packages, no real boxer photos, tour weather wording, landing 20 s, privacy policy matches code, dead coach_memory code removed",
+      "verdict": "ACCEPTED",
+      "commit": "ac2b81c",
+      "at": "2026-11-08T03:53:36.074Z",
+      "durationS": 262,
+      "level": "RED",
+      "failedSteps": [],
+      "notRun": [
+        "rules"
+      ],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 264,
+        "unit.failed": 0,
+        "bundle.kb": 6386,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 57,
+        "visual.failed": 0,
+        "visual.flaky": 0
+      },
+      "decision": "owner"
+    },
+    {
       "id": "20261107T224511Z-fbdb167",
       "task": "roadmap phase 5: personal procedural fighter (skin/hair/build, rank colour on gloves) in the 3D replay + style picker + visual fixture",
       "verdict": "ACCEPTED",

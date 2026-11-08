@@ -7,7 +7,7 @@ import { getLocale, translate } from "@/lib/i18n";
 import css from "@/components/landing/landing.module.css";
 
 // Landing: one promise (your camera is your boxing coach), one action (start a
-// free 60-second round). Only real, shipped features; no invented numbers.
+// free 20-second first round). Only real, shipped features; no invented numbers.
 
 const pick = (locale, mn, ko, en) => (locale === "mn" ? mn : locale === "ko" ? ko : en);
 
@@ -19,9 +19,9 @@ export async function generateMetadata({ params }) {
     "GAVANA Boxing — 카메라가 당신의 복싱 코치",
     "GAVANA Boxing — Your camera is your boxing coach");
   const description = pick(locale,
-    "Утсаа тавиад 60 секунд бокс хий. AI цохилт бүрийг тоолж, хамгаалалт, хэмнэлийг чинь шинжлээд засах нэг зүйлийг хэлнэ. Бүртгэл шаардахгүй.",
-    "휴대폰을 세우고 60초 섀도복싱. AI가 펀치를 세고 가드와 리듬을 분석해 고칠 한 가지를 알려줍니다. 가입 불필요.",
-    "Prop up your phone and shadow box for 60 seconds. AI counts every punch, reads your guard and rhythm, and tells you the one thing to fix. No signup.");
+    "Утсаа тавиад 20 секунд бокс хий. AI цохилт бүрийг тоолж, хамгаалалт, хэмнэлийг чинь шинжлээд засах нэг зүйлийг хэлнэ. Бүртгэл шаардахгүй.",
+    "휴대폰을 세우고 20초 섀도복싱. AI가 펀치를 세고 가드와 리듬을 분석해 고칠 한 가지를 알려줍니다. 가입 불필요.",
+    "Prop up your phone and shadow box for 20 seconds. AI counts every punch, reads your guard and rhythm, and tells you the one thing to fix. No signup.");
   // Absolute title: the root template would append "| GAVANA Boxing" a second time.
   return localeMetadata(locale, "", { mn: title, ko: title, en: title }, { mn: description, ko: description, en: description }, { absoluteTitle: true });
 }
@@ -49,7 +49,7 @@ export default async function LocalizedHomePage({ params }) {
   const micro = L("Бүртгэл шаардахгүй · Зөвхөн утасны камер", "가입 불필요 · 휴대폰 카메라만", "No signup · Just your phone camera");
 
   const facts = [
-    { v: L("60 сек", "60초", "60 sec"), l: L("нэг раунд", "한 라운드", "one round") },
+    { v: L("20 сек", "20초", "20 sec"), l: L("эхний раунд", "첫 라운드", "first round") },
     { v: "33", l: L("биеийн цэгийг хянана", "신체 포인트 추적", "body points tracked") },
     { v: "0", l: L("бээлий, мэдрэгч хэрэггүй", "웨어러블 불필요", "wearables needed") },
     { v: "MN · EN · KO", l: L("гурван хэлээр", "3개 언어", "three languages") },
@@ -57,7 +57,7 @@ export default async function LocalizedHomePage({ params }) {
 
   const steps = [
     { icon: <IconPhone />, title: L("Утсаа тавь", "휴대폰을 세우세요", "Prop up your phone"), body: L("Бүтэн биеэ кадрт багтаа — 2–3 алхам ухраад зогс.", "전신이 보이도록 2–3걸음 뒤로 서세요.", "Step back 2–3 paces so your whole body is in frame.") },
-    { icon: <IconPunch />, title: L("60 секунд цохи", "60초 동안 펀치", "Box for 60 seconds"), body: L("AI цохилт, хамгаалалт, хөдөлгөөнийг чинь бодит цагт хянана.", "AI가 펀치·가드·움직임을 실시간으로 추적합니다.", "AI tracks your punches, guard and movement live.") },
+    { icon: <IconPunch />, title: L("20 секунд цохи", "20초 동안 펀치", "Box for 20 seconds"), body: L("AI цохилт, хамгаалалт, хөдөлгөөнийг чинь бодит цагт хянана.", "AI가 펀치·가드·움직임을 실시간으로 추적합니다.", "AI tracks your punches, guard and movement live.") },
     { icon: <IconTarget />, title: L("Засах нэг зүйлээ ав", "고칠 한 가지", "Get the one thing to fix"), body: L("Раундын дараа оноо + яг нэг зөвлөгөө. Дараагийн раундад түүнийгээ сайжруул.", "라운드 후 점수와 딱 한 가지 조언. 다음 라운드에서 개선하세요.", "A score and exactly one tip after each round. Fix it next round.") },
   ];
 
@@ -112,9 +112,9 @@ export default async function LocalizedHomePage({ params }) {
           </h1>
           <p className={css.sub}>
             {L(
-              "Утсаа тавиад 60 секунд сүүдрийн бокс хий. GAVANA цохилт бүрийг тоолж, хамгаалалт, хэмнэлийг чинь шинжлээд дараагийн раундад юуг засахыг хэлнэ.",
-              "휴대폰을 세우고 60초 섀도복싱. GAVANA가 모든 펀치를 세고 가드와 리듬을 분석해 다음 라운드에서 고칠 점을 알려줍니다.",
-              "Prop up your phone and shadow box for 60 seconds. GAVANA counts every punch, reads your guard and rhythm, and tells you what to fix next round."
+              "Утсаа тавиад 20 секунд сүүдрийн бокс хий. GAVANA цохилт бүрийг тоолж, хамгаалалт, хэмнэлийг чинь шинжлээд дараагийн раундад юуг засахыг хэлнэ.",
+              "휴대폰을 세우고 20초 섀도복싱. GAVANA가 모든 펀치를 세고 가드와 리듬을 분석해 다음 라운드에서 고칠 점을 알려줍니다.",
+              "Prop up your phone and shadow box for 20 seconds. GAVANA counts every punch, reads your guard and rhythm, and tells you what to fix next round."
             )}
           </p>
           <div className={css.ctaRow}>
@@ -175,7 +175,7 @@ export default async function LocalizedHomePage({ params }) {
 
       <section className={css.final}>
         <div className={css.finalCard}>
-          <h2 className={css.finalTitle}>{L("Эхний раунд чинь 60 секунд", "첫 라운드는 60초", "Your first round is 60 seconds")}</h2>
+          <h2 className={css.finalTitle}>{L("Эхний раунд чинь 20 секунд", "첫 라운드는 20초", "Your first round is 20 seconds")}</h2>
           <p className={css.finalSub}>{L("Одоо утсаа тавиад үз — бүртгэлгүйгээр.", "지금 휴대폰을 세우고 시작하세요 — 가입 없이.", "Prop up your phone and try it now — no account needed.")}</p>
           <Link href={startHref} className={css.cta}>{startLabel}<Arrow /></Link>
         </div>

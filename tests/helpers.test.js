@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { getChallengeRank, getLocalDateKey, getPreviousLocalDateKey } from "@/lib/utils";
 import { extractFeedbackScore } from "@/lib/reelHelpers";
-import { calculateTrainingScore, getChallengeStreakBonus, getChallengeComparisonPercent } from "@/lib/trainHelpers";
+import { calculateTrainingScore, getChallengeStreakBonus } from "@/lib/trainHelpers";
 
 describe("getChallengeRank", () => {
   it("maps score thresholds to S/A/B/C/D", () => {
@@ -58,10 +58,6 @@ describe("train helpers", () => {
     expect(getChallengeStreakBonus(7)).toBe(150);
     expect(getChallengeStreakBonus(14)).toBe(300);
     expect(getChallengeStreakBonus(4)).toBe(0);
-  });
-  it("keeps the comparison percent in 42..99", () => {
-    expect(getChallengeComparisonPercent(0)).toBe(42);
-    expect(getChallengeComparisonPercent(10)).toBe(99);
   });
 });
 

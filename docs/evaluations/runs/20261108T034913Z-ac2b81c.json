@@ -1,0 +1,403 @@
+{
+  "id": "20261108T034913Z-ac2b81c",
+  "key": "bf13c65b",
+  "task": "trust (audit A): remove invented metrics (telemetry bars, beat %, 2,400+, % match, DNA preview %, ai-analysis random scores), honest AI prompts + no dev errors to users, counter archetype name, auto-review label, technique-named weekly packages, no real boxer photos, tour weather wording, landing 20 s, privacy policy matches code, dead coach_memory code removed",
+  "branch": "claude/review-refactor-code-DUmiX",
+  "commit": "ac2b81c",
+  "base": "@{upstream}",
+  "dirty": true,
+  "startedAt": "2026-11-08T03:49:13.725Z",
+  "finishedAt": "2026-11-08T03:53:36.074Z",
+  "durationS": 262,
+  "cost": {
+    "paidApiCalls": 0,
+    "note": "checks run locally; no paid APIs"
+  },
+  "change": {
+    "level": "RED",
+    "files": [
+      {
+        "path": "app/[locale]/ai-analysis/[reelId]/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/coach/chat/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/fighter-profile/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/login/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/privacy/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/train/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/api/chat/route.js",
+        "level": "YELLOW",
+        "why": "API route"
+      },
+      {
+        "path": "app/manifest.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/ai-analysis/AnalysisBody.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/ai-analysis/MetricBar.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/ai-analysis/ScoreRing.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/coach/TechniqueQuickAsk.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/fighter-profile/LiveHubTeaser.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/onboarding/OnboardingIntroScreen.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/onboarding/OnboardingStep4Welcome.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/reels/ReelsEmptyArena.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/tour/TourView.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/train/CoachReviewCard.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/train/FirstSessionHook.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/train/ResultAnalysisSection.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "hooks/useTrainingActions.js",
+        "level": "YELLOW",
+        "why": "hooks with data access"
+      },
+      {
+        "path": "lib/archetypeTraining.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/coachConstants.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/domain/awardXp.js",
+        "level": "RED",
+        "why": "XP / rank / scoring"
+      },
+      {
+        "path": "lib/experimentPackages.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/fighterDNA.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/fighters.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/techniqueReview.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/trainHelpers.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "tests/helpers.test.js",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/tour-ko-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/tour-mn-360.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/tour-mn-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/tour-night-ko-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/tour-night-mn-360.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/tour-night-mn-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/screens.spec.mjs",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "name": "lint",
+      "ms": 39236,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0,
+        "warnings": 23
+      }
+    },
+    {
+      "name": "typecheck",
+      "ms": 1874,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0
+      }
+    },
+    {
+      "name": "unit",
+      "ms": 3909,
+      "status": "PASS",
+      "metrics": {
+        "passed": 264,
+        "failed": 0
+      }
+    },
+    {
+      "name": "build",
+      "ms": 5927,
+      "status": "PASS",
+      "metrics": {}
+    },
+    {
+      "name": "bundle",
+      "status": "PASS",
+      "metrics": {
+        "kb": 6386
+      }
+    },
+    {
+      "name": "punch",
+      "ms": 68,
+      "status": "PASS",
+      "metrics": {
+        "macroF1": 0.904,
+        "recall": 0.897,
+        "precision": 1,
+        "phantoms": 0
+      }
+    },
+    {
+      "name": "visual",
+      "ms": 211318,
+      "status": "PASS",
+      "metrics": {
+        "passed": 57,
+        "failed": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "name": "rules",
+      "status": "NOT RUN",
+      "note": "pass --rules to run"
+    }
+  ],
+  "comparison": [
+    {
+      "metric": "lint.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "lint.warnings",
+      "baseline": 23,
+      "value": 23,
+      "limit": "≤ 23",
+      "status": "PASS"
+    },
+    {
+      "metric": "typecheck.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.passed",
+      "baseline": 241,
+      "value": 264,
+      "limit": "≥ 241",
+      "status": "PASS"
+    },
+    {
+      "metric": "bundle.kb",
+      "baseline": 6598,
+      "value": 6386,
+      "limit": "≤ 6928",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.macroF1",
+      "baseline": 0.904,
+      "value": 0.904,
+      "limit": "≥ 0.9035000000000001",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.phantoms",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.passed",
+      "baseline": 49,
+      "value": 57,
+      "limit": "≥ 49",
+      "status": "PASS"
+    },
+    {
+      "metric": "rules.failed",
+      "status": "NOT RUN"
+    },
+    {
+      "metric": "rules.passed",
+      "status": "NOT RUN"
+    }
+  ],
+  "verdict": "ACCEPTED",
+  "verdictNote": "RED paths need the owner: lib/domain/awardXp.js (XP / rank / scoring)",
+  "history": [
+    {
+      "state": "PENDING",
+      "at": "2026-11-08T03:49:13.725Z",
+      "note": "created"
+    },
+    {
+      "state": "PLANNING",
+      "at": "2026-11-08T03:49:13.725Z",
+      "note": "trust (audit A): remove invented metrics (telemetry bars, beat %, 2,400+, % match, DNA preview %, ai-analysis random scores), honest AI prompts + no dev errors to users, counter archetype name, auto-review label, technique-named weekly packages, no real boxer photos, tour weather wording, landing 20 s, privacy policy matches code, dead coach_memory code removed"
+    },
+    {
+      "state": "IMPLEMENTING",
+      "at": "2026-11-08T03:49:13.725Z",
+      "note": "38 changed file(s) vs @{upstream}, risk RED"
+    },
+    {
+      "state": "VERIFYING",
+      "at": "2026-11-08T03:49:13.725Z",
+      "note": ""
+    },
+    {
+      "state": "EVALUATING",
+      "at": "2026-11-08T03:53:36.065Z",
+      "note": ""
+    },
+    {
+      "state": "AWAITING_APPROVAL",
+      "at": "2026-11-08T03:53:36.066Z",
+      "note": "RED paths need the owner: lib/domain/awardXp.js (XP / rank / scoring)"
+    },
+    {
+      "state": "ACCEPTED",
+      "at": "2026-11-08T03:53:47.744Z",
+      "note": "Owner 2026-11-08: 'dugnelteer garsan zuilsiig zasaj saijruulj ajil' + 'Bodit boksoldchdyn zurgiig ashiglah erh bhgui' + 'Nuutslaliin bodlogiig zas'. awardXp change only stops storing the invented comparisonPercent; XP math unchanged."
+    }
+  ],
+  "baselineCommit": "37f2e45",
+  "decision": {
+    "by": "owner",
+    "note": "Owner 2026-11-08: 'dugnelteer garsan zuilsiig zasaj saijruulj ajil' + 'Bodit boksoldchdyn zurgiig ashiglah erh bhgui' + 'Nuutslaliin bodlogiig zas'. awardXp change only stops storing the invented comparisonPercent; XP math unchanged.",
+    "at": "2026-11-08T03:53:47.744Z"
+  }
+}

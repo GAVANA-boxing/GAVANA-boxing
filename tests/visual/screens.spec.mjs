@@ -170,12 +170,20 @@ for (const v of [{ id: "mn-390", locale: "mn", viewport: viewport390 }, { id: "m
   for (const name of ["tour", "tour-night"]) {
     test(`${name} ${v.id}`, async ({ page }) => {
       await prepare(page);
+      // No WebGL here: under SwiftShader the live scene made page screenshots too slow to
+      // stabilise. The 3D city is covered by the playtest in play3d.spec.mjs.
+      await page.addInitScript(() => {
+        const orig = HTMLCanvasElement.prototype.getContext;
+        HTMLCanvasElement.prototype.getContext = function (type, ...rest) {
+          return /webgl/i.test(type) ? null : orig.call(this, type, ...rest);
+        };
+      });
       await page.setViewportSize(v.viewport);
       await page.goto(`/${v.locale}/visual/${name}`, { waitUntil: "load" });
       await expect(page.getByTestId("tour-city")).toBeVisible();
       await page.addStyleTag({ content: "[data-testid=tour-scene] canvas { opacity: 0 !important; }" });
       await settle(page);
-      await expect(page).toHaveScreenshot(`${name}-${v.id}.png`, { fullPage: true });
+      await expect(page).toHaveScreenshot(`${name}-${v.id}.png`, { fullPage: true, timeout: 15_000 });
     });
   }
 }

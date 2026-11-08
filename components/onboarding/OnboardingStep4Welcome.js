@@ -6,15 +6,6 @@ import { GOLD, redAlpha } from "@/lib/tokens";
 import s from "@/components/onboarding/onboardingStyles";
 import { CORE_MODE } from "@/lib/coreRoutes";
 
-const DNA_PREVIEW = {
-  pressure:   { pressure: 85, outboxer: 15, counter: 30, explosive: 70, technician: 45 },
-  counter:    { pressure: 25, outboxer: 45, counter: 90, explosive: 40, technician: 65 },
-  explosive:  { pressure: 60, outboxer: 35, counter: 30, explosive: 88, technician: 50 },
-  outboxer:   { pressure: 20, outboxer: 88, counter: 55, explosive: 45, technician: 70 },
-  technician: { pressure: 35, outboxer: 60, counter: 60, explosive: 45, technician: 90 },
-  brawler:    { pressure: 80, outboxer: 20, counter: 25, explosive: 80, technician: 30 },
-};
-
 const DIM_COLORS = {
   pressure: "#EF4444", outboxer: "#3B82F6", counter: "#8B5CF6", explosive: "#F59E0B", technician: "#10B981",
 };
@@ -69,25 +60,20 @@ export default function OnboardingStep4Welcome({
         )}
 
         {role === "fighter" && archetypeArch && (() => {
-          const preview = DNA_PREVIEW[archetype] || DNA_PREVIEW.pressure;
+          // No numbers yet: the real DNA is measured from the first 3 rounds.
           const dims = DIM_LABELS[locale] || DIM_LABELS.en;
           return (
             <div style={{ margin: "14px auto 0", padding: "14px 16px", borderRadius: 14, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", maxWidth: 320 }}>
               <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.5, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", marginBottom: 10, textAlign: "left" }}>
-                🧬 {locale === "mn" ? "ТАНЫ ДНХ УРЬДЧИЛСАН ХАРАГДАЦ" : locale === "ko" ? "DNA 미리보기" : "YOUR DNA PREVIEW"}
+                🧬 {locale === "mn" ? "ТАНЫ ДНХ ХЭМЖИГДЭНЭ" : locale === "ko" ? "측정될 DNA" : "YOUR DNA WILL MEASURE"}
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {Object.entries(preview).map(([dim, pct]) => (
-                  <div key={dim} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ width: 80, fontSize: 11, fontWeight: 800, color: DIM_COLORS[dim], textAlign: "left", flexShrink: 0 }}>{dims[dim]}</span>
-                    <div style={{ flex: 1, height: 5, background: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden" }}>
-                      <div style={{ width: `${pct}%`, height: "100%", background: DIM_COLORS[dim], borderRadius: 3 }} />
-                    </div>
-                  </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {Object.keys(DIM_COLORS).map((dim) => (
+                  <span key={dim} style={{ padding: "4px 10px", borderRadius: 999, fontSize: 12, fontWeight: 800, color: DIM_COLORS[dim], border: `1px solid ${DIM_COLORS[dim]}55` }}>{dims[dim]}</span>
                 ))}
               </div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", marginTop: 8, textAlign: "center" }}>
-                {locale === "mn" ? "Тренинг хийснээр бодит ДНХ илчлэгдэнэ" : locale === "ko" ? "훈련할수록 실제 DNA가 드러납니다" : "Train to reveal your true DNA"}
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", marginTop: 8, textAlign: "center" }}>
+                {locale === "mn" ? "Эхний 3 бэлтгэлийн дараа камерын хэмжилтээр гарна" : locale === "ko" ? "첫 3번의 훈련 후 카메라 측정으로 나타납니다" : "Shows after your first 3 rounds, from camera measurements"}
               </div>
             </div>
           );

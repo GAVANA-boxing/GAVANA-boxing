@@ -4,7 +4,7 @@ export default function manifest() {
   return {
     name: "GAVANA Boxing",
     short_name: "GAVANA",
-    description: "Камер чинь бокс дасгалжуулагч чинь: 60 секундийн раунд, цохилт бүр тоологдож, засах нэг зүйлээ ав.",
+    description: "Камер чинь бокс дасгалжуулагч чинь: 20 секундийн эхний раунд, цохилт бүр тоологдож, засах нэг зүйлээ ав.",
     start_url: "/mn/home",
     scope: "/",
     display: "standalone",
@@ -25,7 +25,7 @@ export default function manifest() {
     ],
     // Only pages a user can actually open (core mode hides the social features).
     shortcuts: [
-      { name: "Бэлтгэл", short_name: "Бэлтгэл", description: "60 секундийн раунд эхлүүлэх", url: "/mn/train" },
+      { name: "Бэлтгэл", short_name: "Бэлтгэл", description: "Раунд эхлүүлэх", url: "/mn/train" },
       { name: "Ghost Round", short_name: "Ghost", description: "Дасгалжуулагчтай jab–cross дагаж хий", url: "/mn/ghost" },
       { name: "Дэвшил", short_name: "Дэвшил", description: "Цол, оноо, бэлтгэлүүд", url: "/mn/progress" },
       { name: "Reels", short_name: "Reels", description: "Watch boxing training reels", url: "/mn/reels" },

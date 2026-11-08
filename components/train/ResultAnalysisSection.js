@@ -5,7 +5,6 @@ import { useState } from "react";
 import { loc } from "@/lib/loc";
 import { GOLD, RADIUS, whiteAlpha, goldAlpha, blackAlpha } from "@/lib/tokens";
 import { getChallengeRank } from "@/lib/utils";
-import { getChallengeComparisonPercent } from "@/lib/trainHelpers";
 import { cameraQualityScore } from "@/lib/cinematicCoaching";
 import { localizeCoaching } from "@/lib/coachingText";
 import { fmtTime } from "@/lib/trainResultHelpers";
@@ -31,19 +30,6 @@ const RATING = {
   MODERATE: { mn: "Дунд", ko: "보통", en: "Moderate" },
   SLOW: { mn: "Удаан", ko: "느림", en: "Slow" },
 };
-
-function TelemetryBar({ label, value }) {
-  const pct = Math.min(100, (value / 10) * 100);
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "5px 0" }}>
-      <span style={{ width: 104, fontSize: 13, fontWeight: 500, color: whiteAlpha(0.6), textAlign: "left", flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</span>
-      <div style={{ flex: 1, height: 4, background: whiteAlpha(0.07), borderRadius: 2, overflow: "hidden" }}>
-        <div style={{ height: "100%", width: `${pct}%`, background: whiteAlpha(0.42), borderRadius: 2, transition: "width 0.9s cubic-bezier(0.16,1,0.3,1)" }} />
-      </div>
-      <span style={{ width: 32, fontSize: 13, fontWeight: 700, color: whiteAlpha(0.75), textAlign: "right", flexShrink: 0, fontFamily: "var(--stack-mono)" }}>{value.toFixed(1)}</span>
-    </div>
-  );
-}
 
 export default function ResultAnalysisSection({
   result,
@@ -214,15 +200,9 @@ export default function ResultAnalysisSection({
       {activeChallenge && (
         <>
           <SectionLabel label={t("trainLabelChallengeResult")} />
-          <div style={{ display: "flex", gap: 8 }}>
-            <div style={{ flex: 1, borderRadius: RADIUS.md, padding: "12px", background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.07)}`, textAlign: "center" }}>
-              <div style={{ fontSize: 12, color: whiteAlpha(0.55), fontWeight: 800, letterSpacing: 1.5, marginBottom: 5 }}>{t("challengeRank")}</div>
-              <div style={{ fontSize: 18, fontWeight: 1000, color: GOLD }}>{getChallengeRank(result.score)}</div>
-            </div>
-            <div style={{ flex: 1, borderRadius: RADIUS.md, padding: "12px", background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.07)}`, textAlign: "center" }}>
-              <div style={{ fontSize: 12, color: whiteAlpha(0.55), fontWeight: 800, letterSpacing: 1.5, marginBottom: 5 }}>{loc(locale, "ЯЛСАН", "이긴 비율", "BEAT")}</div>
-              <div style={{ fontSize: 18, fontWeight: 1000, color: "#fff" }}>{getChallengeComparisonPercent(result.score)}%</div>
-            </div>
+          <div style={{ borderRadius: RADIUS.md, padding: "12px", background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.07)}`, textAlign: "center" }}>
+            <div style={{ fontSize: 12, color: whiteAlpha(0.55), fontWeight: 800, letterSpacing: 1.5, marginBottom: 5 }}>{t("challengeRank")}</div>
+            <div style={{ fontSize: 18, fontWeight: 900, color: GOLD }}>{getChallengeRank(result.score)}</div>
           </div>
         </>
       )}
@@ -350,7 +330,6 @@ export default function ResultAnalysisSection({
                   <div style={{ marginBottom: 8 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
                       <div style={{ padding: "3px 10px", borderRadius: 20, background: "rgba(252,211,77,0.10)", border: "1px solid rgba(252,211,77,0.28)", fontSize: 12, fontWeight: 700, letterSpacing: 1.2, color: "#FCD34D", textTransform: "uppercase" }}>{dna.archetypeLabel}</div>
-                      <span style={{ fontSize: 12, color: whiteAlpha(0.55), fontWeight: 700 }}>{dna.similarity}% match</span>
                     </div>
                     <div style={{ padding: "7px 10px", borderRadius: 8, background: "rgba(252,211,77,0.04)", border: "1px solid rgba(252,211,77,0.14)" }}>
                       {dna.archetypeTraits?.map((trait, i) => (
@@ -477,7 +456,7 @@ export default function ResultAnalysisSection({
       )}
 
       {/* Session Details (collapsible) */}
-      {(hasTimeline || (!activeChallenge && result.breakdown) || true) && (
+      {(hasTimeline || true) && (
         <>
           <button type="button" onClick={() => setShowDetails((v) => !v)} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", padding: "8px 0 4px", cursor: "pointer", color: whiteAlpha(0.55), fontSize: 12.5, fontWeight: 800, letterSpacing: 1 }}>
             <span>{showDetails ? "▾" : "▸"}</span>
@@ -494,21 +473,6 @@ export default function ResultAnalysisSection({
                         <span style={{ fontSize: 12, fontFamily: "var(--stack-mono)", color: goldAlpha(0.5), fontWeight: 700, flexShrink: 0 }}>[{fmtTime(ev.timestamp - (sessionStartTime || ev.timestamp))}]</span>
                         <span style={{ fontSize: 12.5, color: whiteAlpha(0.55), fontWeight: 800 }}>{ev.label}</span>
                       </div>
-                    ))}
-                  </div>
-                </>
-              )}
-              {!activeChallenge && result.breakdown && (
-                <>
-                  <SectionLabel label={t("trainLabelCombatTelemetry")} />
-                  <div style={{ borderRadius: RADIUS.md, padding: "10px 14px", background: whiteAlpha(0.02), border: `1px solid ${whiteAlpha(0.05)}` }}>
-                    {[
-                      { key: "accuracy",    en: "Accuracy",    mn: "Нарийвчлал", ko: "정확도" },
-                      { key: "speed",       en: "Speed",       mn: "Хурд",       ko: "속도" },
-                      { key: "power",       en: "Power",       mn: "Хүч",        ko: "파워" },
-                      { key: "consistency", en: "Consistency", mn: "Тогтвортой", ko: "일관성" },
-                    ].map(({ key, en, mn, ko }) => (
-                      <TelemetryBar key={key} label={loc(locale, mn, ko, en)} value={result.breakdown[key]} />
                     ))}
                   </div>
                 </>
