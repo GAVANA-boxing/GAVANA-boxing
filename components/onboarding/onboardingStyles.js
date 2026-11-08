@@ -1,4 +1,4 @@
-import { BG, BORDER, BORDER_2, GOLD, RADIUS, RED, RED_DARK, TEXT, blackAlpha, pageBg, redAlpha, whiteAlpha } from "@/lib/tokens";
+import { BG, BORDER, BORDER_2, GOLD, RADIUS, RED, RED_DARK, RED_FILL, TEXT, blackAlpha, pageBg, redAlpha, whiteAlpha } from "@/lib/tokens";
 
 const s = {
   page: {
@@ -95,7 +95,7 @@ const s = {
 
   primaryBtn: {
     width: "100%", padding: 15, borderRadius: RADIUS.lg, border: "none",
-    background: `linear-gradient(145deg, ${RED}, ${RED_DARK})`,
+    background: `linear-gradient(145deg, ${RED_FILL}, ${RED_DARK})`,
     color: TEXT, fontSize: 15, fontWeight: 900, cursor: "pointer",
     boxShadow: `0 10px 32px ${redAlpha(0.34)}, inset 0 1px 0 ${whiteAlpha(0.12)}`,
     letterSpacing: 0.5,

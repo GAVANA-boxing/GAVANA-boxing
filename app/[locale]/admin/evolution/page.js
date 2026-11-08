@@ -13,6 +13,7 @@ import shotToday from "@/tests/visual/__screenshots__/today-mn-390.png";
 import shotTrain from "@/tests/visual/__screenshots__/train-live-mn-390.png";
 import shotResult from "@/tests/visual/__screenshots__/result-mn-390.png";
 import shotProgress from "@/tests/visual/__screenshots__/progress-mn-390.png";
+import { launchReadiness } from "@/lib/server/launchReadiness";
 
 // GAVANA Evolve — owner-only control room. Server component: the data below is
 // bundled into server code only and rendered after a server-side admin check
@@ -74,6 +75,18 @@ export default async function EvolutionPage() {
           <h1 style={{ margin: "4px 0 0", fontSize: 30 }}>Evolution Control</h1>
           <p style={{ margin: "6px 0 0", color: C.muted, fontSize: 13 }}>Snapshot of the branch state at deploy (baseline {baseline.commit}). Live state: <code>evolve/</code> on <code>{control.authorizedBranch}</code>.</p>
         </header>
+
+        <section style={card}>
+          <h2 style={h2}>Launch readiness (production settings — values never shown)</h2>
+          <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 6 }}>
+            {launchReadiness().map((c) => (
+              <li key={c.key} style={{ display: "flex", gap: 10, fontSize: 13, alignItems: "baseline" }}>
+                <b style={{ color: c.ok ? C.green : c.required ? C.red : C.gold, minWidth: 64 }}>{c.ok ? "OK" : c.required ? "MISSING" : "OFF"}</b>
+                <span><b>{c.key}</b> — <span style={{ color: C.muted }}>{c.what}</span></span>
+              </li>
+            ))}
+          </ul>
+        </section>
 
         <section style={{ ...card, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(150px, 100%), 1fr))", gap: 14 }}>
           <Stat label="Engineer AI" value={control.paused ? "PAUSED" : gate.ok ? "ARMED" : gate.reason} color={control.paused || !gate.ok ? C.red : C.green} />

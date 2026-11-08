@@ -2,6 +2,7 @@
 
 .page {
   --lp-red: #ff3b30;
+  --lp-red-fill: #d62d23; /* white text on it ≥ 4.5:1 */
   --lp-gold: #f5c451;
   --lp-text: #ffffff;
   --lp-muted: rgba(255, 255, 255, 0.62);
@@ -106,7 +107,7 @@
 .navCta {
   padding: 8px 14px;
   border-radius: 999px;
-  background: var(--lp-red);
+  background: var(--lp-red-fill);
   color: #fff;
   text-decoration: none;
   font-size: 13px;
@@ -177,7 +178,7 @@
   min-height: 52px;
   padding: 0 26px;
   border-radius: 14px;
-  background: linear-gradient(135deg, #ff4d42 0%, #ff3b30 45%, #d92a20 100%);
+  background: linear-gradient(135deg, #dc3127 0%, #d62d23 50%, #b9241b 100%);
   color: #fff;
   text-decoration: none;
   font-size: 16px;
@@ -343,7 +344,7 @@
   margin-left: 8px;
   padding: 2px 8px;
   border-radius: 999px;
-  background: var(--lp-red);
+  background: var(--lp-red-fill);
   color: #fff;
   font-size: 11px;
   font-weight: 700;

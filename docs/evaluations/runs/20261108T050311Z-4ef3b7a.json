@@ -1,0 +1,373 @@
+{
+  "id": "20261108T050311Z-4ef3b7a",
+  "key": "06012109",
+  "task": "launch readiness: Firestore off the public pages (firebaseApp split, lazy profile/funnel/rank data: −116 KB gz), MediaPipe loads when Train is idle, no camera layout shift, WCAG contrast for filled red buttons + pinch-zoom allowed, guest first round (stance choice in the setup card, no score toast when too few punches), compact other-modes row, /pro metadata + sitemap, HSTS, owner launch-readiness panel",
+  "branch": "claude/review-refactor-code-DUmiX",
+  "commit": "4ef3b7a",
+  "base": "@{upstream}",
+  "dirty": true,
+  "startedAt": "2026-11-08T05:03:11.163Z",
+  "finishedAt": "2026-11-08T05:08:07.841Z",
+  "durationS": 297,
+  "cost": {
+    "paidApiCalls": 0,
+    "note": "checks run locally; no paid APIs"
+  },
+  "change": {
+    "level": "RED",
+    "files": [
+      {
+        "path": "app/[locale]/admin/evolution/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/privacy/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/terms/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/train/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/layout.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/sitemap.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/landing/landing.module.css",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/onboarding/onboardingStyles.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/train/OnboardingOverlay.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/ui/brand.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "context/UserProfileProvider.tsx",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "hooks/useRankData.js",
+        "level": "YELLOW",
+        "why": "hooks with data access"
+      },
+      {
+        "path": "lib/AuthContext.js",
+        "level": "RED",
+        "why": "auth / admin"
+      },
+      {
+        "path": "lib/analytics.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/firebase.js",
+        "level": "YELLOW",
+        "why": "server / data helpers"
+      },
+      {
+        "path": "lib/funnel.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/locales/mn.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/tokens.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "next.config.mjs",
+        "level": "RED",
+        "why": "production / deploy config"
+      },
+      {
+        "path": "tests/visual/__screenshots__/train-ko-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/train-live-mn-360.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/train-live-mn-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/train-mn-360.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/train-mn-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/train-nocam-mn-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/train-recording-mn-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "app/[locale]/pro/layout.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/firebaseApp.js",
+        "level": "YELLOW",
+        "why": "server / data helpers"
+      },
+      {
+        "path": "lib/server/launchReadiness.js",
+        "level": "YELLOW",
+        "why": "server / data helpers"
+      },
+      {
+        "path": "lib/track.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "tests/launchReadiness.test.js",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "name": "lint",
+      "ms": 42801,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0,
+        "warnings": 23
+      }
+    },
+    {
+      "name": "typecheck",
+      "ms": 2344,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0
+      }
+    },
+    {
+      "name": "unit",
+      "ms": 4916,
+      "status": "PASS",
+      "metrics": {
+        "passed": 276,
+        "failed": 0
+      }
+    },
+    {
+      "name": "build",
+      "ms": 7357,
+      "status": "PASS",
+      "metrics": {}
+    },
+    {
+      "name": "bundle",
+      "status": "PASS",
+      "metrics": {
+        "kb": 6215
+      }
+    },
+    {
+      "name": "punch",
+      "ms": 96,
+      "status": "PASS",
+      "metrics": {
+        "macroF1": 0.904,
+        "recall": 0.897,
+        "precision": 1,
+        "phantoms": 0
+      }
+    },
+    {
+      "name": "visual",
+      "ms": 239146,
+      "status": "PASS",
+      "metrics": {
+        "passed": 60,
+        "failed": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "name": "rules",
+      "status": "NOT RUN",
+      "note": "pass --rules to run"
+    }
+  ],
+  "comparison": [
+    {
+      "metric": "lint.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "lint.warnings",
+      "baseline": 23,
+      "value": 23,
+      "limit": "≤ 23",
+      "status": "PASS"
+    },
+    {
+      "metric": "typecheck.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.passed",
+      "baseline": 241,
+      "value": 276,
+      "limit": "≥ 241",
+      "status": "PASS"
+    },
+    {
+      "metric": "bundle.kb",
+      "baseline": 6598,
+      "value": 6215,
+      "limit": "≤ 6928",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.macroF1",
+      "baseline": 0.904,
+      "value": 0.904,
+      "limit": "≥ 0.9035000000000001",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.phantoms",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.passed",
+      "baseline": 49,
+      "value": 60,
+      "limit": "≥ 49",
+      "status": "PASS"
+    },
+    {
+      "metric": "rules.failed",
+      "status": "NOT RUN"
+    },
+    {
+      "metric": "rules.passed",
+      "status": "NOT RUN"
+    }
+  ],
+  "verdict": "ACCEPTED",
+  "verdictNote": "RED paths need the owner: lib/AuthContext.js (auth / admin), next.config.mjs (production / deploy config)",
+  "history": [
+    {
+      "state": "PENDING",
+      "at": "2026-11-08T05:03:11.163Z",
+      "note": "created"
+    },
+    {
+      "state": "PLANNING",
+      "at": "2026-11-08T05:03:11.163Z",
+      "note": "launch readiness: Firestore off the public pages (firebaseApp split, lazy profile/funnel/rank data: −116 KB gz), MediaPipe loads when Train is idle, no camera layout shift, WCAG contrast for filled red buttons + pinch-zoom allowed, guest first round (stance choice in the setup card, no score toast when too few punches), compact other-modes row, /pro metadata + sitemap, HSTS, owner launch-readiness panel"
+    },
+    {
+      "state": "IMPLEMENTING",
+      "at": "2026-11-08T05:03:11.163Z",
+      "note": "32 changed file(s) vs @{upstream}, risk RED"
+    },
+    {
+      "state": "VERIFYING",
+      "at": "2026-11-08T05:03:11.163Z",
+      "note": ""
+    },
+    {
+      "state": "EVALUATING",
+      "at": "2026-11-08T05:08:07.831Z",
+      "note": ""
+    },
+    {
+      "state": "AWAITING_APPROVAL",
+      "at": "2026-11-08T05:08:07.831Z",
+      "note": "RED paths need the owner: lib/AuthContext.js (auth / admin), next.config.mjs (production / deploy config)"
+    },
+    {
+      "state": "ACCEPTED",
+      "at": "2026-11-08T05:09:07.915Z",
+      "note": "Owner 2026-11-08: 'Gavanag zah zeeld gargamaar baina ... etseslen saijruulj belen bolgo'. AuthContext only changes the import path (auth from lib/firebaseApp, same instance); next.config adds HSTS. Checked: 10 pages load without errors on a production build."
+    }
+  ],
+  "baselineCommit": "37f2e45",
+  "decision": {
+    "by": "owner",
+    "note": "Owner 2026-11-08: 'Gavanag zah zeeld gargamaar baina ... etseslen saijruulj belen bolgo'. AuthContext only changes the import path (auth from lib/firebaseApp, same instance); next.config adds HSTS. Checked: 10 pages load without errors on a production build.",
+    "at": "2026-11-08T05:09:07.915Z"
+  }
+}

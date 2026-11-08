@@ -23,7 +23,7 @@ export const btnPrimary = {
   padding: "0 22px",
   border: "none",
   borderRadius: 14,
-  background: "linear-gradient(135deg, #ff4d42 0%, #ff3b30 45%, #d92a20 100%)",
+  background: "linear-gradient(135deg, #dc3127 0%, #d62d23 50%, #b9241b 100%)", // white text ≥ 4.6:1
   color: "#fff",
   fontSize: 16,
   fontWeight: 700,

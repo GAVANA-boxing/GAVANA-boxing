@@ -2,6 +2,25 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Launch readiness, part 1 (owner: "zah zeeld gargamaar baina … belen bolgo")
+- Measured on a production build: Lighthouse mobile (simulated slow 4G) — landing perf 58 / a11y 88,
+  Train perf 36 (6.7 MB). Real throttled run (1.6 Mbps, 150 ms, CPU ×4): LCP 1.0–2.5 s on landing / Pro /
+  privacy (Lighthouse's simulation over-counts the web fonts finishing at ~3.5 s; text paints with swap).
+- Firestore SDK no longer loads on public pages: `lib/firebaseApp.js` (app + Auth) for the root layout;
+  profile subscription, funnel beacon (`lib/track.js`) and the sidebar XP hook load Firestore on demand.
+  Initial JS on landing / Pro / privacy 432 → 313 KB gz; no Firestore network traffic for guests.
+- Train: MediaPipe starts loading when the page is idle (or at round start) instead of during first paint;
+  the camera video stays hidden until its size is known (was a 0.23 layout shift).
+- Accessibility: filled red buttons/badges use `RED_FILL` #D62D23 (white text 4.9:1; #FF3B30 was 3.5:1);
+  pinch-zoom allowed (no maximum-scale); language menu name matches its label; legal-page footers readable.
+- Guest first round: the setup card's "Pick your stance" step has the two choices; a round with too few
+  punches no longer shows "Score: 1.3" in a toast next to "not enough data". Train's three extra modes are
+  one compact row (Сүүдэр раунд · Лап · Хүнд уут).
+- `/pro` metadata + sitemap; HSTS header; MN strings "Тулаанчийн карт", "Комбо тест".
+- Owner-only launch-readiness panel on /admin/evolution (`lib/server/launchReadiness.js`, tested): which
+  production settings are present — booleans only.
+- Run `20261108T050311Z-4ef3b7a` (RED: AuthContext import path, next.config HSTS; owner decision).
+
 ## Hidden features: the useful ones brought into the core loop (audit D; owner: "heregtei zuilsiig awch app deer gargan uyaldaa holbootoi ajluul")
 - **Benchmark tests** (the old global challenges, now personal): Progress → "Сорилтын тестүүд" — speed test
   (20 s), combo test (30 s), jab minute (60 s), each with your best score and punches from your own sessions

@@ -16,6 +16,7 @@ const OB_CONTENT = {
     ],
     cta: "I'm ready",
     skip: "Skip",
+    stances: ["Left foot forward", "Right foot forward"],
   },
   mn: {
     kicker: "Таны эхний раунд",
@@ -23,10 +24,11 @@ const OB_CONTENT = {
     steps: [
       { title: "Утсаа тавь", desc: "Ойролцоогоор цээжний өндөрт, 2–3 алхам зайтай. Бүтэн бие чинь кадрт багтах ёстой." },
       { title: "Гэрэл урдаас тусах", desc: "Цонх, гэрэл рүү харж зогс — ард чинь тод цонх байвал гар чинь харагдахгүй." },
-      { title: "Байрлалаа сонго", desc: "Аль хөл чинь урдаа вэ? Үүгээр jab ямар гар болохыг тодорхойлно." },
+      { title: "Байрлалаа сонго", desc: "Аль хөл чинь урдаа вэ? Үүгээр жэб ямар гар болохыг тодорхойлно." },
     ],
     cta: "Бэлэн боллоо",
     skip: "Алгасах",
+    stances: ["Зүүн хөл урд", "Баруун хөл урд"],
   },
   ko: {
     kicker: "첫 라운드",
@@ -38,10 +40,12 @@ const OB_CONTENT = {
     ],
     cta: "준비됐어요",
     skip: "건너뛰기",
+    stances: ["왼발이 앞", "오른발이 앞"],
   },
 };
 
-export default function OnboardingOverlay({ locale, onDismiss }) {
+// Step 3 asks for the stance, so it has the two choices right there (it used to only say so).
+export default function OnboardingOverlay({ locale, onDismiss, stance, onStance }) {
   const L = OB_CONTENT[locale] || OB_CONTENT.en;
 
   return (
@@ -62,6 +66,16 @@ export default function OnboardingOverlay({ locale, onDismiss }) {
               <span style={{ minWidth: 0 }}>
                 <span style={{ display: "block", fontSize: 16, fontWeight: 700, color: BRAND.text }}>{step.title}</span>
                 <span style={{ display: "block", marginTop: 4, fontSize: 14, color: BRAND.muted, lineHeight: 1.5 }}>{step.desc}</span>
+                {i === 2 && onStance && (
+                  <span role="radiogroup" aria-label={step.title} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 10 }}>
+                    {[["orthodox", L.stances[0]], ["southpaw", L.stances[1]]].map(([key, label]) => (
+                      <button key={key} type="button" role="radio" aria-checked={stance === key} onClick={() => onStance(key)}
+                        style={{ minHeight: 44, borderRadius: 12, cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, border: stance === key ? `2px solid ${BRAND.red}` : `1px solid ${BRAND.line}`, background: stance === key ? "rgba(255,59,48,0.12)" : "rgba(255,255,255,0.03)", color: BRAND.text }}>
+                        {label}
+                      </button>
+                    ))}
+                  </span>
+                )}
               </span>
             </li>
           ))}

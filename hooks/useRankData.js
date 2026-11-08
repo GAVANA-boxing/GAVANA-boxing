@@ -1,7 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import { getAccountXp } from "@/lib/domain/progression";
 
 export function useRankData({ user, authLoading }) {
@@ -17,6 +15,11 @@ export function useRankData({ user, authLoading }) {
     let active = true;
     async function loadXP() {
       try {
+        // Loaded here, not at module top: the desktop sidebar uses this hook on every page.
+        const [{ collection, doc, getDoc, getDocs, query, where }, { db }] = await Promise.all([
+          import("firebase/firestore"),
+          import("@/lib/firebase"),
+        ]);
         const [sessionSnap, profileSnap] = await Promise.all([
           getDocs(query(collection(db, "training_sessions"), where("userId", "==", user.uid))),
           getDoc(doc(db, "users", user.uid)),

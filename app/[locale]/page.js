@@ -81,7 +81,7 @@ export default async function LocalizedHomePage({ params }) {
         </Link>
         <div className={css.navLinks}>
           <details className={css.lang}>
-            <summary aria-label={L("Хэл сонгох", "언어 선택", "Choose language")}>{locale.toUpperCase()}</summary>
+            <summary aria-label={`${locale.toUpperCase()} — ${L("Хэл сонгох", "언어 선택", "Choose language")}`}>{locale.toUpperCase()}</summary>
             <div className={css.langMenu}>
               {[["mn", "Монгол"], ["en", "English"], ["ko", "한국어"]].map(([code, name]) => (
                 <Link key={code} href={`/${code}`} hrefLang={code} aria-current={code === locale ? "true" : undefined}>{name}</Link>

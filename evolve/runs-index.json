@@ -1,6 +1,35 @@
 {
   "runs": [
     {
+      "id": "20261108T050311Z-4ef3b7a",
+      "task": "launch readiness: Firestore off the public pages (firebaseApp split, lazy profile/funnel/rank data: −116 KB gz), MediaPipe loads when Train is idle, no camera layout shift, WCAG contrast for filled red buttons + pinch-zoom allowed, guest first round (stance choice in the setup card, no score toast when too few punches), compact other-modes row, /pro metadata + sitemap, HSTS, owner launch-readiness panel",
+      "verdict": "ACCEPTED",
+      "commit": "4ef3b7a",
+      "at": "2026-11-08T05:08:07.841Z",
+      "durationS": 297,
+      "level": "RED",
+      "failedSteps": [],
+      "notRun": [
+        "rules"
+      ],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 276,
+        "unit.failed": 0,
+        "bundle.kb": 6215,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 60,
+        "visual.failed": 0,
+        "visual.flaky": 0
+      },
+      "decision": "owner"
+    },
+    {
       "id": "20261108T043951Z-be32715",
       "task": "hidden features (audit D): benchmark tests with personal best on Progress (old challenges, solo), Boxing Academy path on Coach (10 lessons, progress), AI weekly plan builder surfaced and saved on device (was public training_programs), coach marketplace + ai-analysis hidden in core mode, /reels bypass closed, onboarding gym/coach dead ends, dead files/svgs/messages removed, README rewritten",
       "verdict": "ACCEPTED",

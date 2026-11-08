@@ -16,6 +16,7 @@ export default function sitemap() {
     { path: "/bag",            priority: 0.6, changeFreq: "weekly" },
     { path: "/coach",          priority: 0.7, changeFreq: "weekly" },
     { path: "/drills",         priority: 0.5, changeFreq: "weekly" },
+    { path: "/pro",            priority: 0.5, changeFreq: "monthly" },
     { path: "/feed",           priority: 0.9, changeFreq: "daily" },
     { path: "/fighters",       priority: 0.8, changeFreq: "weekly" },
     { path: "/leaderboard",    priority: 0.8, changeFreq: "daily" },

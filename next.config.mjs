@@ -28,6 +28,8 @@ const nextConfig = {
           { key: "Referrer-Policy",                   value: "strict-origin-when-cross-origin" },
           { key: "X-XSS-Protection",                  value: "1; mode=block" },
           { key: "Permissions-Policy",                value: "camera=(self), microphone=()" },
+          // HTTPS only for two years (no includeSubDomains: other subdomains of a custom domain may not be ours).
+          { key: "Strict-Transport-Security",         value: "max-age=63072000" },
         ],
       },
       {

@@ -82,6 +82,9 @@ export default function TrainPage() {
   const [stance, setStance] = useState("orthodox");
   const [dailyMission, setDailyMission] = useState(null);
   const [videoNeedsRotation, setVideoNeedsRotation] = useState(false);
+  // Hidden until its size (and so its rotation) is known — otherwise it jumps once the
+  // metadata arrives (layout shift).
+  const [videoSized, setVideoSized] = useState(false);
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setDebugEnabled(params.get("debug") === "1");
@@ -164,10 +167,20 @@ export default function TrainPage() {
     locale,
   });
 
+  // MediaPipe (bundle + wasm + model, several MB) starts loading once the page is idle — not
+  // during first paint — or right away when a round starts, so it's ready by the countdown.
+  const [poseWarm, setPoseWarm] = useState(false);
+  useEffect(() => {
+    const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 1500));
+    const cancel = window.cancelIdleCallback || clearTimeout;
+    const h = idle(() => setPoseWarm(true), { timeout: 2500 });
+    return () => cancel(h);
+  }, []);
   const { computeSessionSummary, getDebugInfo, getMotionReplay, poseStatus } = usePoseDetection({
     videoRef,
     isActive: phase === "recording",
     stance,
+    load: poseWarm || phase !== "idle",
   });
 
   // Restore the saved stance (profile first, then this device).
@@ -383,7 +396,7 @@ export default function TrainPage() {
     const poseSummary = computeSessionSummary();
     if (poseSummary) setPoseSessionSummary(poseSummary);
     const raw = poseSummary?.score ?? result.score;
-    const { score } = finalRoundScore(raw, {
+    const { score, confidence } = finalRoundScore(raw, {
       punchCount: poseSummary?.punchCount ?? result.hitCount ?? 0,
       sessionConfidence: poseSummary?.sessionConfidence ?? null,
       cameraQuality: poseSummary?.cameraQuality ?? null,
@@ -393,7 +406,8 @@ export default function TrainPage() {
       const xpGained = calculateChallengeXP(score, getChallengeRank(score));
       setResult((prev) => prev ? { ...prev, score, xpGained, rankProgress: getRankProgress((Number(currentXP) || 0) + xpGained) } : prev);
     }
-    if (score > 0) {
+    // Too few punches to score ("none") — the result says so; don't contradict it with a number.
+    if (score > 0 && confidence !== "none") {
       const msg = locale === "mn"
         ? `🥊 Раунд дууслаа! Оноо: ${score.toFixed(1)}`
         : locale === "ko"
@@ -684,6 +698,7 @@ export default function TrainPage() {
 
     const check = () => {
       if (video.videoWidth > 0 && video.videoHeight > 0) {
+        setVideoSized(true);
         setVideoNeedsRotation(
           video.videoWidth > video.videoHeight &&
           window.innerWidth < window.innerHeight
@@ -802,6 +817,8 @@ export default function TrainPage() {
         {showOnboarding && (
           <OnboardingOverlay
             locale={locale}
+            stance={stance}
+            onStance={changeStance}
             onDismiss={() => {
               localStorage.setItem("gavana_onboarding_seen", "1");
               setShowOnboarding(false);
@@ -943,6 +960,7 @@ export default function TrainPage() {
               playsInline
               style={{
                 ...styles.preview,
+                visibility: videoSized ? "visible" : "hidden",
                 ...(videoNeedsRotation ? {
                   position: "absolute",
                   top: "50%",
@@ -1323,37 +1341,27 @@ export default function TrainPage() {
         )}
 
         <div style={styles.controls}>
+          {/* Other modes: one compact row instead of three full-width buttons. */}
           {phase === "idle" && !challengeId && !challengeUserId && (
-            <button
-              type="button"
-              onClick={() => router.push(`/${locale}/ghost`)}
-              style={{ ...btnSecondary, marginTop: 2 }}
-            >
-              <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", background: "#67e8f9", boxShadow: "0 0 10px #67e8f9" }} />
-              {loc(locale, "Ghost Round · Jab–Cross дагаж хий", "고스트 라운드 · 잽–크로스 따라하기", "Ghost Round · copy the jab–cross")}
-            </button>
-          )}
-          {phase === "idle" && !challengeId && !challengeUserId && (
-            <button
-              type="button"
-              data-testid="open-mitts"
-              onClick={() => router.push(`/${locale}/mitts`)}
-              style={{ ...btnSecondary, marginTop: 2 }}
-            >
-              <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", background: "#F5C451", boxShadow: "0 0 10px #F5C451" }} />
-              {loc(locale, "Mitt дасгал · хариу үйлдэл 30 сек", "미트 드릴 · 30초 반응", "Mitt drill · 30 s reaction round")}
-            </button>
-          )}
-          {phase === "idle" && !challengeId && !challengeUserId && (
-            <button
-              type="button"
-              data-testid="open-bag"
-              onClick={() => router.push(`/${locale}/bag`)}
-              style={{ ...btnSecondary, marginTop: 2 }}
-            >
-              <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", background: "#FF3B30", boxShadow: "0 0 10px #FF3B30" }} />
-              {loc(locale, "Хүнд уут · 3D физик", "헤비백 · 3D 물리", "Heavy bag · 3D physics")}
-            </button>
+            <div role="group" aria-label={loc(locale, "Бусад горим", "다른 모드", "Other modes")} style={{ marginTop: 4 }}>
+              <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.2, color: "rgba(255,255,255,0.6)", margin: "0 2px 8px" }}>
+                {loc(locale, "БУСАД ГОРИМ", "다른 모드", "OTHER MODES")}
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
+                {[
+                  { path: "ghost", testId: "open-ghost", color: "#67e8f9", label: loc(locale, "Сүүдэр раунд", "고스트", "Ghost round"), sub: loc(locale, "Дагаж цохи", "따라 치기", "Copy the coach") },
+                  { path: "mitts", testId: "open-mitts", color: "#F5C451", label: loc(locale, "Лап", "미트", "Mitts"), sub: loc(locale, "Хариу үйлдэл", "반응 속도", "Reaction") },
+                  { path: "bag", testId: "open-bag", color: "#FF3B30", label: loc(locale, "Хүнд уут", "헤비백", "Heavy bag"), sub: loc(locale, "3D уут", "3D 백", "3D bag") },
+                ].map((m) => (
+                  <button key={m.path} type="button" data-testid={m.testId} onClick={() => router.push(`/${locale}/${m.path}`)}
+                    style={{ minHeight: 64, padding: "10px 6px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.03)", color: "#fff", cursor: "pointer", fontFamily: "inherit", display: "grid", justifyItems: "center", gap: 3, textAlign: "center" }}>
+                    <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", background: m.color, boxShadow: `0 0 10px ${m.color}` }} />
+                    <span style={{ fontSize: 14, fontWeight: 800 }}>{m.label}</span>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.62)" }}>{m.sub}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
 
           {isRecording && (

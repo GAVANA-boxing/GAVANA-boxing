@@ -421,7 +421,7 @@ export default function TermsPage() {
           }}>
             {t.title}
           </h1>
-          <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.35)", letterSpacing: 0.3 }}>
+          <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.62)", letterSpacing: 0.3 }}>
             {t.updated}
           </p>
         </div>
@@ -491,7 +491,7 @@ export default function TermsPage() {
           background: `${RED}08`, border: `1px solid ${RED}20`,
           textAlign: "center",
         }}>
-          <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.3)", lineHeight: 1.6 }}>
+          <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.62)", lineHeight: 1.6 }}>
             © {new Date().getFullYear()} GAVANA Boxing. All rights reserved.
           </p>
         </div>

@@ -3,8 +3,9 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/AuthContext";
-import { watchUserProfile, type UserProfile } from "@/lib/repositories/userRepo";
-import { scrubPublicProfile } from "@/lib/privateProfile";
+// Firestore loads only for a signed-in user (dynamic imports below), so guests on the
+// landing / legal pages don't download the Firestore SDK.
+import type { UserProfile } from "@/lib/repositories/userRepo";
 
 interface UserProfileState {
   profile: UserProfile | null;
@@ -33,15 +34,22 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
       return;
     }
     setState((s) => ({ ...s, loading: true }));
-    const unsub = watchUserProfile(
-      uid,
-      (profile) => {
-        setState({ profile, loading: false });
-        queryClient.setQueryData(["userProfile", uid], profile);
-      },
-      () => setState({ profile: null, loading: false }),
-    );
-    return unsub;
+    let unsub: (() => void) | null = null;
+    let cancelled = false;
+    import("@/lib/repositories/userRepo")
+      .then(({ watchUserProfile }) => {
+        if (cancelled) return;
+        unsub = watchUserProfile(
+          uid,
+          (profile) => {
+            setState({ profile, loading: false });
+            queryClient.setQueryData(["userProfile", uid], profile);
+          },
+          () => setState({ profile: null, loading: false }),
+        );
+      })
+      .catch(() => { if (!cancelled) setState({ profile: null, loading: false }); });
+    return () => { cancelled = true; unsub?.(); };
   }, [user?.uid, authLoading, queryClient]);
 
   // Older accounts still carry their email on the public doc — move it to
@@ -49,7 +57,9 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
   const leakedEmail = state.profile && "email" in state.profile;
   useEffect(() => {
     if (!user?.uid || !leakedEmail) return;
-    scrubPublicProfile(user.uid, state.profile).catch(() => { /* retried next load */ });
+    import("@/lib/privateProfile")
+      .then(({ scrubPublicProfile }) => scrubPublicProfile(user.uid, state.profile))
+      .catch(() => { /* retried next load */ });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.uid, leakedEmail]);
 
