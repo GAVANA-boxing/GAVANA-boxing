@@ -7,7 +7,7 @@ import { getChallengeRank } from "@/lib/utils";
 import { usePunchDetector } from "@/hooks/usePunchDetector";
 import { useMovementAnalyzer } from "@/hooks/useMovementAnalyzer";
 import { DEFAULT_DRILL } from "@/lib/drillConfig";
-import { funnel, FUNNEL } from "@/lib/funnel";
+import { funnel, FUNNEL, funnelRoundStarted, markResultSeen } from "@/lib/funnel";
 
 export function useCameraSession({
   drillConfig = DEFAULT_DRILL,
@@ -155,6 +155,7 @@ export function useCameraSession({
     const finalScore = liveScoreRef.current;
     // The WOW moment — ms (since Train opened) is the time-to-wow.
     funnel(FUNNEL.RESULT_VIEWED, { score: finalScore, hits: hitCountRef.current });
+    markResultSeen();
     const xpGained = calculateChallengeXP(finalScore, getChallengeRank(finalScore));
     const breakdown = computeScoreBreakdown(finalScore, hitCountRef.current, sessionSeconds, targetMovements);
     setResult({
@@ -201,6 +202,7 @@ export function useCameraSession({
         setSecondsLeft(sessionSeconds);
         setPhase("recording");
         funnel(FUNNEL.SESSION_STARTED);
+        funnelRoundStarted({ camera: !!streamRef.current });
       }, 700);
 
       return () => {

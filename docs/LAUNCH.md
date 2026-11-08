@@ -40,6 +40,9 @@ firebase deploy --only firestore:rules
 # 3) Буцаан татах push функцууд (өдөр бүр 18:00 / winback)
 firebase deploy --only functions
 ```
+- Индексүүдэд dashboard-ын `video_analyses`, `orders` (userId + createdAt) орсон; rules-д `video_analyses`
+  (зөвхөн эзэмшигч), `orders` (эзэмшигч уншина, сервер бичнэ), `products` / `benchmarks` (нийтэд уншина),
+  `users.stats` (сервер л бичнэ) нэмэгдсэн — `npm run test:rules` 72/72.
 - Firebase Console → Authentication → Settings → **Authorized domains**: production домэйноо нэмнэ
   (Google нэвтрэлт үүнгүйгээр ажиллахгүй).
 - Firestore дүрэм XP-г зөвхөн сервер бичихийг шаарддаг — 2-р алхмын дарааллыг алгасвал раунд

@@ -1,0 +1,373 @@
+{
+  "id": "20261108T075057Z-0cb2de0",
+  "key": "2a9e6e67",
+  "task": "Fighter dashboard: TS model + mappers, useFighterDashboard hook, Tailwind/lucide UI with SVG charts, demo fixture + visual baselines, platform v2 design doc",
+  "branch": "claude/review-refactor-code-DUmiX",
+  "commit": "0cb2de0",
+  "base": "@{upstream}",
+  "dirty": true,
+  "startedAt": "2026-11-08T07:50:57.362Z",
+  "finishedAt": "2026-11-08T07:56:26.732Z",
+  "durationS": 329,
+  "cost": {
+    "paidApiCalls": 0,
+    "note": "checks run locally; no paid APIs"
+  },
+  "change": {
+    "level": "RED",
+    "files": [
+      {
+        "path": "app/[locale]/visual/[screen]/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "docs/AI_CHANGELOG.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "docs/AI_KNOWN_ISSUES.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "docs/AI_TASK_BACKLOG.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "package-lock.json",
+        "level": "RED",
+        "why": "dependencies"
+      },
+      {
+        "path": "package.json",
+        "level": "RED",
+        "why": "dependencies"
+      },
+      {
+        "path": "tests/visual/screens.spec.mjs",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "app/[locale]/fighter-dashboard/page.tsx",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/dashboard/fighter/BenchmarkRadar.tsx",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/dashboard/fighter/BiomechanicsCard.tsx",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/dashboard/fighter/FighterDashboard.tsx",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/dashboard/fighter/MetricCards.tsx",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/dashboard/fighter/OrderHistory.tsx",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/dashboard/fighter/ProfileHeader.tsx",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/dashboard/fighter/RecentVideos.tsx",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/dashboard/fighter/SectionCard.tsx",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/dashboard/fighter/charts.tsx",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "docs/architecture/platform-v2.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "hooks/useFighterDashboard.ts",
+        "level": "YELLOW",
+        "why": "hooks with data access"
+      },
+      {
+        "path": "lib/dashboard/copy.ts",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/dashboard/mappers.ts",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/dashboard/mockData.ts",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/dashboard/types.ts",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "tests/dashboardMappers.test.ts",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/dashboard-ko-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/dashboard-mn-360.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/dashboard-mn-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/dashboard-states-ko-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/dashboard-states-mn-360.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/dashboard-states-mn-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "name": "lint",
+      "ms": 42788,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0,
+        "warnings": 23
+      }
+    },
+    {
+      "name": "typecheck",
+      "ms": 1984,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0
+      }
+    },
+    {
+      "name": "unit",
+      "ms": 4942,
+      "status": "PASS",
+      "metrics": {
+        "passed": 298,
+        "failed": 0
+      }
+    },
+    {
+      "name": "build",
+      "ms": 6011,
+      "status": "PASS",
+      "metrics": {}
+    },
+    {
+      "name": "bundle",
+      "status": "PASS",
+      "metrics": {
+        "kb": 6250
+      }
+    },
+    {
+      "name": "punch",
+      "ms": 64,
+      "status": "PASS",
+      "metrics": {
+        "macroF1": 0.904,
+        "recall": 0.897,
+        "precision": 1,
+        "phantoms": 0
+      }
+    },
+    {
+      "name": "visual",
+      "ms": 256821,
+      "status": "PASS",
+      "metrics": {
+        "passed": 66,
+        "failed": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "name": "rules",
+      "ms": 16742,
+      "status": "PASS",
+      "metrics": {
+        "passed": 43,
+        "failed": 0
+      }
+    }
+  ],
+  "comparison": [
+    {
+      "metric": "lint.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "lint.warnings",
+      "baseline": 23,
+      "value": 23,
+      "limit": "≤ 23",
+      "status": "PASS"
+    },
+    {
+      "metric": "typecheck.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.passed",
+      "baseline": 241,
+      "value": 298,
+      "limit": "≥ 241",
+      "status": "PASS"
+    },
+    {
+      "metric": "bundle.kb",
+      "baseline": 6598,
+      "value": 6250,
+      "limit": "≤ 6928",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.macroF1",
+      "baseline": 0.904,
+      "value": 0.904,
+      "limit": "≥ 0.9035000000000001",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.phantoms",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.passed",
+      "baseline": 49,
+      "value": 66,
+      "limit": "≥ 49",
+      "status": "PASS"
+    },
+    {
+      "metric": "rules.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "rules.passed",
+      "baseline": 24,
+      "value": 43,
+      "limit": "≥ 24",
+      "status": "PASS"
+    }
+  ],
+  "verdict": "ACCEPTED",
+  "verdictNote": "RED paths need the owner: package-lock.json (dependencies), package.json (dependencies)",
+  "history": [
+    {
+      "state": "PENDING",
+      "at": "2026-11-08T07:50:57.362Z",
+      "note": "created"
+    },
+    {
+      "state": "PLANNING",
+      "at": "2026-11-08T07:50:57.363Z",
+      "note": "Fighter dashboard: TS model + mappers, useFighterDashboard hook, Tailwind/lucide UI with SVG charts, demo fixture + visual baselines, platform v2 design doc"
+    },
+    {
+      "state": "IMPLEMENTING",
+      "at": "2026-11-08T07:50:57.363Z",
+      "note": "30 changed file(s) vs @{upstream}, risk RED"
+    },
+    {
+      "state": "VERIFYING",
+      "at": "2026-11-08T07:50:57.363Z",
+      "note": ""
+    },
+    {
+      "state": "EVALUATING",
+      "at": "2026-11-08T07:56:26.720Z",
+      "note": ""
+    },
+    {
+      "state": "AWAITING_APPROVAL",
+      "at": "2026-11-08T07:56:26.721Z",
+      "note": "RED paths need the owner: package-lock.json (dependencies), package.json (dependencies)"
+    },
+    {
+      "state": "ACCEPTED",
+      "at": "2026-11-08T07:56:34.368Z",
+      "note": "Owner's request (2026-11-08): 'Next.js (App Router), Tailwind CSS, Lucide React icons ашиглан ... Dashboard-ын UI кодыг бичиж өгнө үү' — lucide-react 1.61.0 added (exact pin) for that. Recharts (also named by the owner as 'Recharts эсвэл Chart.js') was tried and removed: +432 KB, over the bundle gate; charts are SVG instead."
+    }
+  ],
+  "baselineCommit": "37f2e45",
+  "decision": {
+    "by": "owner",
+    "note": "Owner's request (2026-11-08): 'Next.js (App Router), Tailwind CSS, Lucide React icons ашиглан ... Dashboard-ын UI кодыг бичиж өгнө үү' — lucide-react 1.61.0 added (exact pin) for that. Recharts (also named by the owner as 'Recharts эсвэл Chart.js') was tried and removed: +432 KB, over the bundle gate; charts are SVG instead.",
+    "at": "2026-11-08T07:56:34.368Z"
+  }
+}

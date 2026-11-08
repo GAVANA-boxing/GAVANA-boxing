@@ -2,6 +2,64 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Owner's 3 research docs applied (owner: "Ashigla", "Hii")
+- Digest + decisions: `docs/research/2026-11-08-research-digest.md` (what was verified in code, what was
+  fixed, KPIs with events, AI validation protocol, Mongolian payment context). Shop UX rules (intent
+  categories, decision-oriented product card, PDP order, Glove Finder, trust block, checkout, motion,
+  a11y, structured data, metric hierarchy with guardrails): `docs/architecture/platform-v2.md` §3.1.
+  Shop / QPay paused until the core-loop KPIs are measured; backlog reordered (CORE LOOP FIRST).
+- Landing, SEO, manifest, OG, /train metadata: no "your camera is your coach" / "every punch" / "exact
+  moments" / "what a coach would see" (MN/KO/EN) — "Train 20 seconds. Fix one thing."; punches counted
+  "while your arms are in frame".
+- Terms §3 (first round without an account), §7 (payment provider shown at checkout, not Stripe), §11
+  (close the account by email, 30 days — same as Privacy §6), MN/KO/EN.
+- Funnel: `retry_round` (a round after a result in the same visit), `timer_round_started` (no camera),
+  `signup_to_save` (guest result CTAs); admin funnel shows retry % with n/N, sign-ups to save, timer rounds,
+  D30. Two result CTAs 38 → 40 px tall. Tests: `tests/funnelKpis.test.js` (3).
+
+## Platform v2 step 2: on-device clip analysis → video_analyses (owner: "Hii")
+- `hooks/useClipAnalysis.ts`: a chosen clip plays in the browser through the SAME pipeline as a live round
+  (`usePoseDetection` → punch detector → `computeFinalScore`); real-time playback because the detector times
+  punches with the wall clock. idle → reading → loading_model → analyzing (live skeleton overlay) → saving →
+  done | failed; store writes queued → processing (every 10 %) → completed | failed; hidden tab pauses;
+  leaving marks `interrupted`. The video never leaves the device.
+- `lib/videoAnalysis/`: `clip.ts` (limits 300 MB / 3 s–3 min, progress throttle, result patch — a score the
+  formula can't compute stays null, thumbnail geometry), `thumbnail.ts` (skeleton-only JPEG ≤ 24 KB, no video
+  pixels), `store.ts` (Firestore + in-memory). UI: `ClipAnalyzer` in the Recent videos card; specific error
+  messages (MN/KO/EN); privacy policy (3 languages) says analysed clips stay on the device.
+- Rules: `video_analyses` thumbnail must be an inline `data:image` ≤ 24 KB (no links), error ≤ 40 chars,
+  duration ≤ 600 s (+5 tests, 77/77). Still not deployed.
+- Bug fixed: `PoseSkeletonOverlay` without a style drew into a 300×150 canvas (a canvas isn't sized by
+  `inset: 0`) — the skeleton was squashed into the top of the box. Train always passed a sized style, so it
+  was unaffected; now the default fills the box.
+- Run `20261108T091206Z-274678c`: unit 308, visual 66/66, rules 77/77, bundle 6339 KB; AWAITING_APPROVAL (rules) → accepted citing "Hii". `npm run test:cv` 4/4.
+- Tests: `tests/clipAnalysis.test.ts` (10), `tests/cv/clip-analysis.spec.mjs` (real MediaPipe on the synthetic
+  boxer clip: queued → processing → completed, 98 % frames with a body, skeleton thumbnail; non-video refused).
+
+## Platform v2 step 1: Firestore rules + indexes for the dashboard collections (owner: "Hii")
+- `firestore.rules`: `video_analyses` (owner-only read; create only as `queued` without results; updates
+  limited to status / progress / results with ranges; frozen once `completed`; no `userId` change or extra
+  keys), `orders` (owner read, no client writes), `products` + `benchmarks` (public read, no client
+  writes), `users.stats` added to the server-only fields.
+- `firestore.indexes.json`: `video_analyses` and `orders` (userId ASC, createdAt DESC) — the hook's queries.
+- `scripts/rules-test/rules.test.mjs`: +29 emulator tests (72/72). Not deployed — owner deploys
+  (`docs/LAUNCH.md` §3). Docs: platform-v2 §5 rewritten from "proposal" to what is in the repo.
+
+## Fighter Dashboard + platform v2 design (owner request: architecture, FKG, shop, dashboard, hook)
+- Design doc (MN): `docs/architecture/platform-v2.md` — Next.js structure, Fight Knowledge Graph (Firestore
+  schema now, PostgreSQL DDL later), benchmark provenance + one normalisation, shop (own catalog, QPay
+  primary behind a `PaymentProvider`, Stripe only via a foreign entity, Ebarimt, server-only order state
+  machine), dashboard architecture, proposed rules + indexes (NOT applied — RED, need the owner).
+- Code: `lib/dashboard/{types,mappers,copy,mockData}.ts` (strict TS, pure mappers, 9 unit tests),
+  `hooks/useFighterDashboard.ts` (users onSnapshot, all sessions for XP — same as useRankData — latest 30
+  for biomechanics, video_analyses + orders onSnapshot, benchmark getDoc; per-section loading / error,
+  retry, cleanup), `components/dashboard/fighter/*.tsx` (Tailwind + lucide-react; SVG line + radar with
+  tooltips and table views). Recharts was tried and dropped: +432 KB client JS, over the +5 % bundle gate.
+- `/{locale}/fighter-dashboard` exists but is 404 unless `NEXT_PUBLIC_FIGHTER_DASHBOARD=1` (orders and video
+  analyses have no pipeline / rules yet). Demo: `/visual/dashboard`, `/visual/dashboard-states`; 6 new
+  visual baselines (mn-390, mn-360, ko-390).
+- New dependency: `lucide-react` 1.61.0 (owner named it explicitly). Run `20261108T075057Z-0cb2de0`: all gates PASS (unit 298, visual 66/66, rules 43/43, bundle 6250 KB); AWAITING_APPROVAL (package.json) → accepted with the owner's words quoted.
+
 ## Architecture / CV / QA audit (owner request, 5 sections)
 - Report: `docs/audit/2026-11-08-architecture-cv-qa.md` (MN) — 20-point checklist with pass criteria and
   status, performance plan (camera 640×480, requestVideoFrameCallback, Web Worker with backpressure),

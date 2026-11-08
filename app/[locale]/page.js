@@ -6,7 +6,7 @@ import { localeMetadata } from "@/lib/seo";
 import { getLocale, translate } from "@/lib/i18n";
 import css from "@/components/landing/landing.module.css";
 
-// Landing: one promise (your camera is your boxing coach), one action (start a
+// Landing: one promise (20 seconds → one thing to fix; only claims we have measured), one action (start a
 // free 20-second first round). Only real, shipped features; no invented numbers.
 
 const pick = (locale, mn, ko, en) => (locale === "mn" ? mn : locale === "ko" ? ko : en);
@@ -15,13 +15,13 @@ export async function generateMetadata({ params }) {
   const { locale: rawLocale } = await params;
   const locale = getLocale(rawLocale);
   const title = pick(locale,
-    "GAVANA Boxing — Камер чинь дасгалжуулагч чинь",
-    "GAVANA Boxing — 카메라가 당신의 복싱 코치",
-    "GAVANA Boxing — Your camera is your boxing coach");
+    "GAVANA Boxing — 20 секундийн раунд, засах нэг зүйл",
+    "GAVANA Boxing — 20초 라운드, 고칠 한 가지",
+    "GAVANA Boxing — 20-second rounds, one thing to fix");
   const description = pick(locale,
-    "Утсаа тавиад 20 секунд бокс хий. AI цохилт бүрийг тоолж, хамгаалалт, хэмнэлийг чинь шинжлээд засах нэг зүйлийг хэлнэ. Бүртгэл шаардахгүй.",
-    "휴대폰을 세우고 20초 섀도복싱. AI가 펀치를 세고 가드와 리듬을 분석해 고칠 한 가지를 알려줍니다. 가입 불필요.",
-    "Prop up your phone and shadow box for 20 seconds. AI counts every punch, reads your guard and rhythm, and tells you the one thing to fix. No signup.");
+    "Утсаа тавиад 20 секунд сүүдрийн бокс хий. Камер цохилт, хамгаалалт, хэмнэлийг чинь ажиглаад дараагийн раундад засах нэг зүйлийг хэлнэ. Бүртгэл шаардахгүй.",
+    "휴대폰을 세우고 20초 섀도복싱. 카메라가 펀치·가드·리듬을 살펴 다음 라운드에서 고칠 한 가지를 알려줍니다. 가입 불필요.",
+    "Prop up your phone and shadow box for 20 seconds. The camera watches your punches, guard and rhythm and gives you one thing to fix next round. No signup.");
   // Absolute title: the root template would append "| GAVANA Boxing" a second time.
   return localeMetadata(locale, "", { mn: title, ko: title, en: title }, { mn: description, ko: description, en: description }, { absoluteTitle: true });
 }
@@ -62,8 +62,8 @@ export default async function LocalizedHomePage({ params }) {
   ];
 
   const learn = [
-    { icon: <IconCount />, title: L("Цохилт бүр", "모든 펀치", "Every punch"), body: L("Jab, cross, hook — гар тус бүрээр тоолно.", "잽·크로스·훅을 손별로 셉니다.", "Jab, cross and hook — counted per hand.") },
-    { icon: <IconShield />, title: L("Хамгаалалт", "가드", "Your guard"), body: L("Хойд гар чинь хэдийд эрүүнээсээ буусныг яг мөчөөр нь харуулна.", "뒷손이 턱에서 떨어진 순간을 정확히 보여줍니다.", "The exact moments your rear hand left your chin.") },
+    { icon: <IconCount />, title: L("Цохилтууд", "펀치", "Your punches"), body: L("Jab, cross, hook — гар чинь кадрт байх үед гар тус бүрээр тоолно.", "잽·크로스·훅 — 팔이 화면에 보일 때 손별로 셉니다.", "Jab, cross and hook — counted per hand while your arms are in frame.") },
+    { icon: <IconShield />, title: L("Хамгаалалт", "가드", "Your guard"), body: L("Раундын турш хойд гар чинь эрүүнээсээ хэдийд буусныг харуулна.", "라운드 중 뒷손이 턱에서 떨어진 때를 보여줍니다.", "When your rear hand dropped from your chin during the round.") },
     { icon: <IconRhythm />, title: L("Хэмнэл, комбо", "리듬과 콤비네이션", "Rhythm and combos"), body: L("1-2 комбо чинь нэг хэмнэлтэй, мөр чинь эргэж байна уу.", "원-투가 한 리듬인지, 어깨가 회전하는지.", "Whether your one-two flows and your shoulders turn.") },
     { icon: <IconGhost />, title: L("Ghost Round", "고스트 라운드", "Ghost Round"), body: L("Бодит motion capture-аас бүтээсэн ghost-той зэрэгцэн jab-cross цохиод харьцуул.", "실제 모션 캡처로 만든 고스트와 나란히 잽-크로스를 치고 비교하세요.", "Throw jab–cross side by side with a ghost built from real motion capture, then compare."), highlight: true },
   ];
@@ -107,14 +107,14 @@ export default async function LocalizedHomePage({ params }) {
         <div className={css.heroText}>
           <p className={css.kicker}><span className={css.kickerDot} />{L("AI боксын дасгалжуулагч", "AI 복싱 코치", "AI boxing coach")}</p>
           <h1 className={css.title}>
-            {L("Камер чинь —", "카메라가", "Your camera is")}<br />
-            <span className={css.accent}>{L("дасгалжуулагч чинь", "당신의 코치", "your coach")}</span>
+            {L("20 секунд бэлтгэ.", "20초 훈련하고", "Train 20 seconds.")}<br />
+            <span className={css.accent}>{L("Нэг зүйлээ сайжруул.", "한 가지를 고치세요.", "Fix one thing.")}</span>
           </h1>
           <p className={css.sub}>
             {L(
-              "Утсаа тавиад 20 секунд сүүдрийн бокс хий. GAVANA цохилт бүрийг тоолж, хамгаалалт, хэмнэлийг чинь шинжлээд дараагийн раундад юуг засахыг хэлнэ.",
-              "휴대폰을 세우고 20초 섀도복싱. GAVANA가 모든 펀치를 세고 가드와 리듬을 분석해 다음 라운드에서 고칠 점을 알려줍니다.",
-              "Prop up your phone and shadow box for 20 seconds. GAVANA counts every punch, reads your guard and rhythm, and tells you what to fix next round."
+              "Утсаа тавиад 20 секунд сүүдрийн бокс хий. GAVANA цохилт, хамгаалалт, хэмнэлийг чинь камераар ажиглаад дараагийн раундад засах нэг зүйлийг хэлнэ.",
+              "휴대폰을 세우고 20초 섀도복싱. GAVANA가 카메라로 펀치·가드·리듬을 살펴 다음 라운드에서 고칠 한 가지를 알려줍니다.",
+              "Prop up your phone and shadow box for 20 seconds. GAVANA watches your punches, guard and rhythm through the camera and tells you one thing to fix next round."
             )}
           </p>
           <div className={css.ctaRow}>
@@ -156,7 +156,7 @@ export default async function LocalizedHomePage({ params }) {
 
       <section className={css.section}>
         <p className={css.sectionKicker}>{L("Нэг раундын дараа", "한 라운드 후", "After one round")}</p>
-        <h2 className={css.sectionTitle}>{L("Дасгалжуулагч чинь юу харсныг мэд", "코치가 본 것을 확인하세요", "See what a coach would see")}</h2>
+        <h2 className={css.sectionTitle}>{L("Нэг раунд юу харуулдаг вэ", "한 라운드가 보여주는 것", "What one round shows you")}</h2>
         <div className={css.learnGrid}>
           {learn.map((c) => (
             <div key={c.title} className={`${css.learn} ${c.highlight ? css.learnHighlight : ""}`}>

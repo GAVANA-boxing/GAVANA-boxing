@@ -1,6 +1,6 @@
 import { initializeTestEnvironment, assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
 import { readFileSync } from "node:fs";
-import { doc, getDoc, setDoc, updateDoc, deleteField } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, deleteDoc, deleteField, collection, query, where, getDocs } from "firebase/firestore";
 const env = await initializeTestEnvironment({ projectId: "demo-gavana", firestore: { rules: readFileSync(new URL("../../firestore.rules", import.meta.url), "utf8"), host: "127.0.0.1", port: 8085 } });
 const alice = env.authenticatedContext("alice").firestore();
 const bob = env.authenticatedContext("bob").firestore();
@@ -33,6 +33,52 @@ await t("session: edit tag ok", assertSucceeds(updateDoc(doc(alice, "training_se
 await t("session: other user's blocked", assertFails(updateDoc(doc(bob, "training_sessions/s1"), { sessionTag: "x" })));
 await t("fcm: owner write", assertSucceeds(setDoc(doc(alice, "users/alice/fcmTokens/tok"), { token: "t" })));
 await t("fcm: other read blocked", assertFails(getDoc(doc(bob, "users/alice/fcmTokens/tok"))));
+// users.stats — server aggregate for the dashboard
+await t("users: stats blocked", assertFails(updateDoc(doc(alice, "users/alice"), { stats: { sessions: 999 } })));
+// video_analyses — owner-only, queued on create, results only by update, frozen when completed
+const va = (db, id) => doc(db, "video_analyses/" + id);
+await t("video: create queued ok", assertSucceeds(setDoc(va(alice, "v1"), { userId: "alice", status: "queued", createdAt: "2026-11-08", durationSec: 40 })));
+await t("video: create as other user blocked", assertFails(setDoc(va(bob, "v2"), { userId: "alice", status: "queued" })));
+await t("video: create completed blocked", assertFails(setDoc(va(alice, "v3"), { userId: "alice", status: "completed" })));
+await t("video: create with score blocked", assertFails(setDoc(va(alice, "v4"), { userId: "alice", status: "queued", score: 9 })));
+await t("video: create extra key blocked", assertFails(setDoc(va(alice, "v5"), { userId: "alice", status: "queued", xpGained: 500 })));
+await t("video: owner read ok", assertSucceeds(getDoc(va(alice, "v1"))));
+await t("video: other read blocked", assertFails(getDoc(va(bob, "v1"))));
+await t("video: anon read blocked", assertFails(getDoc(va(anon, "v1"))));
+await t("video: owner query ok", assertSucceeds(getDocs(query(collection(alice, "video_analyses"), where("userId", "==", "alice")))));
+await t("video: unfiltered query blocked", assertFails(getDocs(collection(alice, "video_analyses"))));
+await t("video: processing + progress ok", assertSucceeds(updateDoc(va(alice, "v1"), { status: "processing", progressPct: 40 })));
+await t("video: progress 150 blocked", assertFails(updateDoc(va(alice, "v1"), { progressPct: 150 })));
+await t("video: unknown status blocked", assertFails(updateDoc(va(alice, "v1"), { status: "done" })));
+await t("video: change userId blocked", assertFails(updateDoc(va(alice, "v1"), { userId: "bob" })));
+await t("video: other user update blocked", assertFails(updateDoc(va(bob, "v1"), { status: "failed" })));
+await t("video: score 11 blocked", assertFails(updateDoc(va(alice, "v1"), { status: "completed", score: 11 })));
+await t("video: complete with results ok", assertSucceeds(updateDoc(va(alice, "v1"), { status: "completed", score: 7.5, punches: 42, poseFramesPct: 93 })));
+await t("video: create with 2 h duration blocked", assertFails(setDoc(va(alice, "v6"), { userId: "alice", status: "queued", durationSec: 7200 })));
+await setDoc(va(alice, "v7"), { userId: "alice", status: "queued" });
+await t("video: thumbnail link blocked", assertFails(updateDoc(va(alice, "v7"), { status: "completed", score: 6, thumbnailUrl: "https://evil.example/pixel.gif" })));
+await t("video: thumbnail too big blocked", assertFails(updateDoc(va(alice, "v7"), { status: "completed", score: 6, thumbnailUrl: "data:image/jpeg;base64," + "A".repeat(30000) })));
+await t("video: long error blocked", assertFails(updateDoc(va(alice, "v7"), { status: "failed", error: "x".repeat(200) })));
+await t("video: skeleton thumbnail ok", assertSucceeds(updateDoc(va(alice, "v7"), { status: "completed", score: 6, punches: 12, poseFramesPct: 80, error: null, thumbnailUrl: "data:image/jpeg;base64,/9j/4AAQSkZJRg==" })));
+await t("video: completed is frozen", assertFails(updateDoc(va(alice, "v1"), { score: 10 })));
+await t("video: owner delete ok", assertSucceeds(deleteDoc(va(alice, "v1"))));
+// orders — server writes, owner reads
+await env.withSecurityRulesDisabled(async (c) => { await setDoc(doc(c.firestore(), "orders/o1"), { userId: "alice", status: "paid", total: { amount: 189000, currency: "MNT" } }); });
+await t("orders: owner read ok", assertSucceeds(getDoc(doc(alice, "orders/o1"))));
+await t("orders: owner query ok", assertSucceeds(getDocs(query(collection(alice, "orders"), where("userId", "==", "alice")))));
+await t("orders: other read blocked", assertFails(getDoc(doc(bob, "orders/o1"))));
+await t("orders: owner create blocked", assertFails(setDoc(doc(alice, "orders/o2"), { userId: "alice", status: "paid" })));
+await t("orders: owner mark delivered blocked", assertFails(updateDoc(doc(alice, "orders/o1"), { status: "delivered" })));
+// catalog + benchmarks — public read, no client writes
+await env.withSecurityRulesDisabled(async (c) => {
+  const db = c.firestore(); // once per context: a second call re-applies emulator settings and throws
+  await setDoc(doc(db, "products/gloves"), { title: { en: "Gloves" }, active: true });
+  await setDoc(doc(db, "benchmarks/coach"), { kind: "coach", athletes: 1, clips: 24 });
+});
+await t("products: anon read ok", assertSucceeds(getDoc(doc(anon, "products/gloves"))));
+await t("products: write blocked", assertFails(setDoc(doc(alice, "products/gloves"), { title: { en: "Free" } })));
+await t("benchmarks: anon read ok", assertSucceeds(getDoc(doc(anon, "benchmarks/coach"))));
+await t("benchmarks: write blocked", assertFails(setDoc(doc(alice, "benchmarks/coach"), { athletes: 1000 })));
 console.log(results.join("\n"));
 if (results.some((r) => r.startsWith("FAIL"))) process.exitCode = 1;
 await env.cleanup();

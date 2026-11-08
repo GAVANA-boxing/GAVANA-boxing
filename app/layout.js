@@ -68,7 +68,7 @@ export const metadata = {
     default: "GAVANA Boxing — AI Punch Scoring for Fighters",
     template: "%s | GAVANA Boxing",
   },
-  description: "Prop up your phone and shadow box. AI counts every punch, scores your round and tells you the one thing to fix — in Mongolian, Korean or English.",
+  description: "Prop up your phone and shadow box for 20 seconds. The camera watches your punches and guard, scores the round and gives you one thing to fix — in Mongolian, Korean or English.",
   keywords: ["boxing", "AI boxing coach", "punch counter", "shadow boxing", "бокс", "дасгалжуулагч", "복싱"],
   manifest: "/manifest.webmanifest",
   appleWebApp: {
@@ -83,7 +83,7 @@ export const metadata = {
     type: "website",
     siteName: "GAVANA Boxing",
     title: "GAVANA Boxing — AI Punch Scoring for Fighters",
-    description: "Your phone camera is your boxing coach: AI punch counting, round scores and one thing to fix.",
+    description: "20-second shadow-boxing rounds: camera punch tracking, a round score and one thing to fix.",
     // PNG: most link previews (Facebook, Telegram, KakaoTalk, iMessage) don't show SVG.
     images: [{ url: "/og.png", width: 1200, height: 630, alt: "GAVANA — AI boxing coach" }],
   },
@@ -91,7 +91,7 @@ export const metadata = {
     card: "summary_large_image",
     images: ["/og.png"],
     title: "GAVANA Boxing",
-    description: "Your phone camera is your boxing coach: AI punch counting, round scores and one thing to fix.",
+    description: "20-second shadow-boxing rounds: camera punch tracking, a round score and one thing to fix.",
   },
   icons: {
     icon: [

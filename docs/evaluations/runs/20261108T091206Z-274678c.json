@@ -1,0 +1,373 @@
+{
+  "id": "20261108T091206Z-274678c",
+  "key": "b8a87632",
+  "task": "On-device clip analysis: useClipAnalysis (same pipeline as a live round), skeleton thumbnail, store, ClipAnalyzer UI, rules for thumbnail/error/duration, overlay canvas sizing fix, privacy text",
+  "branch": "claude/review-refactor-code-DUmiX",
+  "commit": "274678c",
+  "base": "@{upstream}",
+  "dirty": true,
+  "startedAt": "2026-11-08T09:12:06.547Z",
+  "finishedAt": "2026-11-08T09:17:28.733Z",
+  "durationS": 322,
+  "cost": {
+    "paidApiCalls": 0,
+    "note": "checks run locally; no paid APIs"
+  },
+  "change": {
+    "level": "RED",
+    "files": [
+      {
+        "path": "app/[locale]/fighter-dashboard/page.tsx",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/privacy/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/visual/[screen]/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/dashboard/fighter/FighterDashboard.tsx",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/dashboard/fighter/RecentVideos.tsx",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/dashboard/fighter/SectionCard.tsx",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/train/PoseSkeletonOverlay.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "docs/AI_CHANGELOG.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "docs/AI_KNOWN_ISSUES.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "docs/AI_TASK_BACKLOG.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "docs/architecture/platform-v2.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "firestore.rules",
+        "level": "RED",
+        "why": "security rules"
+      },
+      {
+        "path": "lib/dashboard/copy.ts",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "playwright.cv.config.mjs",
+        "level": "YELLOW",
+        "why": "unclassified path"
+      },
+      {
+        "path": "scripts/rules-test/rules.test.mjs",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/cv/global-setup.mjs",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/dashboard-ko-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/dashboard-mn-360.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/dashboard-mn-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/dashboard-states-ko-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/dashboard-states-mn-360.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/dashboard-states-mn-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "components/dashboard/fighter/ClipAnalyzer.tsx",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/dashboard/fighter/ClipAnalyzerFixture.tsx",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "hooks/useClipAnalysis.ts",
+        "level": "YELLOW",
+        "why": "hooks with data access"
+      },
+      {
+        "path": "lib/videoAnalysis/clip.ts",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/videoAnalysis/store.ts",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/videoAnalysis/thumbnail.ts",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "tests/clipAnalysis.test.ts",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/cv/clip-analysis.spec.mjs",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "name": "lint",
+      "ms": 43768,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0,
+        "warnings": 23
+      }
+    },
+    {
+      "name": "typecheck",
+      "ms": 2462,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0
+      }
+    },
+    {
+      "name": "unit",
+      "ms": 5097,
+      "status": "PASS",
+      "metrics": {
+        "passed": 308,
+        "failed": 0
+      }
+    },
+    {
+      "name": "build",
+      "ms": 6750,
+      "status": "PASS",
+      "metrics": {}
+    },
+    {
+      "name": "bundle",
+      "status": "PASS",
+      "metrics": {
+        "kb": 6339
+      }
+    },
+    {
+      "name": "punch",
+      "ms": 75,
+      "status": "PASS",
+      "metrics": {
+        "macroF1": 0.904,
+        "recall": 0.897,
+        "precision": 1,
+        "phantoms": 0
+      }
+    },
+    {
+      "name": "visual",
+      "ms": 254007,
+      "status": "PASS",
+      "metrics": {
+        "passed": 66,
+        "failed": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "name": "rules",
+      "ms": 10007,
+      "status": "PASS",
+      "metrics": {
+        "passed": 77,
+        "failed": 0
+      }
+    }
+  ],
+  "comparison": [
+    {
+      "metric": "lint.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "lint.warnings",
+      "baseline": 23,
+      "value": 23,
+      "limit": "≤ 23",
+      "status": "PASS"
+    },
+    {
+      "metric": "typecheck.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.passed",
+      "baseline": 241,
+      "value": 308,
+      "limit": "≥ 241",
+      "status": "PASS"
+    },
+    {
+      "metric": "bundle.kb",
+      "baseline": 6598,
+      "value": 6339,
+      "limit": "≤ 6928",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.macroF1",
+      "baseline": 0.904,
+      "value": 0.904,
+      "limit": "≥ 0.9035000000000001",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.phantoms",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.passed",
+      "baseline": 49,
+      "value": 66,
+      "limit": "≥ 49",
+      "status": "PASS"
+    },
+    {
+      "metric": "rules.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "rules.passed",
+      "baseline": 24,
+      "value": 77,
+      "limit": "≥ 24",
+      "status": "PASS"
+    }
+  ],
+  "verdict": "ACCEPTED",
+  "verdictNote": "RED paths need the owner: firestore.rules (security rules)",
+  "history": [
+    {
+      "state": "PENDING",
+      "at": "2026-11-08T09:12:06.547Z",
+      "note": "created"
+    },
+    {
+      "state": "PLANNING",
+      "at": "2026-11-08T09:12:06.547Z",
+      "note": "On-device clip analysis: useClipAnalysis (same pipeline as a live round), skeleton thumbnail, store, ClipAnalyzer UI, rules for thumbnail/error/duration, overlay canvas sizing fix, privacy text"
+    },
+    {
+      "state": "IMPLEMENTING",
+      "at": "2026-11-08T09:12:06.548Z",
+      "note": "30 changed file(s) vs @{upstream}, risk RED"
+    },
+    {
+      "state": "VERIFYING",
+      "at": "2026-11-08T09:12:06.548Z",
+      "note": ""
+    },
+    {
+      "state": "EVALUATING",
+      "at": "2026-11-08T09:17:28.720Z",
+      "note": ""
+    },
+    {
+      "state": "AWAITING_APPROVAL",
+      "at": "2026-11-08T09:17:28.721Z",
+      "note": "RED paths need the owner: firestore.rules (security rules)"
+    },
+    {
+      "state": "ACCEPTED",
+      "at": "2026-11-08T09:17:37.551Z",
+      "note": "Owner said 'Hii' (2026-11-08) to the reply that offered platform-v2 §6 step 2 (video analysis pipeline). The rules change only tightens video_analyses (thumbnail must be an inline data:image <= 24 KB, error <= 40 chars, duration <= 600 s); rules tests 77/77; not deployed."
+    }
+  ],
+  "baselineCommit": "37f2e45",
+  "decision": {
+    "by": "owner",
+    "note": "Owner said 'Hii' (2026-11-08) to the reply that offered platform-v2 §6 step 2 (video analysis pipeline). The rules change only tightens video_analyses (thumbnail must be an inline data:image <= 24 KB, error <= 40 chars, duration <= 600 s); rules tests 77/77; not deployed.",
+    "at": "2026-11-08T09:17:37.551Z"
+  }
+}

@@ -87,6 +87,17 @@ export const GET = withAdmin(async (req) => {
     .map((e) => Number(e.ms))
     .sort((a, b) => a - b);
 
+  // Core-loop KPIs (docs/research/2026-11-08-research-digest.md), always with n / N:
+  //   retry — of the cohort who saw a result, how many started another round in a visit;
+  //   timer — browsers that ran a camera-less timer round; signupToSave — guests who tapped
+  //   "sign up to keep this round" on a result.
+  const cohortWith = (name) => new Set(events.filter((e) => e.event === name && cohort.has(e.anonId)).map((e) => e.anonId));
+  const sawResult = cohortWith("result_viewed");
+  const retried = [...cohortWith("retry_round")].filter((id) => sawResult.has(id)).length;
+  const retry = { rate: pct(retried, sawResult.size), n: retried, of: sawResult.size };
+  const timerRounds = cohortWith("timer_round_started").size;
+  const signupToSave = { n: cohortWith("signup_to_save").size, of: sawResult.size };
+
   const cameraDenied = new Set(
     events.filter((e) => e.event === "camera_denied" && cohort.has(e.anonId)).map((e) => e.anonId),
   ).size;
@@ -119,7 +130,10 @@ export const GET = withAdmin(async (req) => {
     cohortSize: cohort.size,
     steps,
     cameraDenied,
+    retry,
+    timerRounds,
+    signupToSave,
     timeToWowMs: { p50: quantile(wow, 0.5), p75: quantile(wow, 0.75), n: wow.length },
-    retention: { d1: retention(1), d7: retention(7) },
+    retention: { d1: retention(1), d7: retention(7), d30: retention(30) },
   });
 });

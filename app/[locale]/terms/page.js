@@ -33,7 +33,7 @@ const T = {
       {
         heading: "3. User Accounts",
         body: [
-          "You must create an account to use GAVANA. You are responsible for maintaining the confidentiality of your account credentials.",
+          "You can try a first round without an account. Saving your rounds, progress and streak, and some features, need an account. You are responsible for keeping your account credentials confidential.",
           "You must provide accurate information when creating your account. False information may result in account termination.",
           "You are responsible for all activities that occur under your account.",
           "You must be at least 13 years old to create an account.",
@@ -70,7 +70,7 @@ const T = {
       {
         heading: "7. Payments & Subscriptions",
         body: [
-          "GAVANA Pro is billed monthly or yearly in Mongolian tögrög (MNT) through Stripe. Current prices are shown on the GAVANA Pro page.",
+          "GAVANA Pro is billed monthly or yearly in Mongolian tögrög (MNT) through the payment provider shown at checkout. Current prices are shown on the GAVANA Pro page.",
           "You can cancel any time from the GAVANA Pro page (Manage membership). Pro stays active until the end of the period you paid for.",
           "Payments are non-refundable unless the law requires otherwise.",
           "We will tell subscribers at least 30 days before a price change.",
@@ -103,7 +103,7 @@ const T = {
       {
         heading: "11. Termination",
         body: [
-          "You may terminate your account at any time from profile settings.",
+          "You may close your account at any time: email privacy@gavana.app from your account's email address and we delete the account and its data within 30 days (see the Privacy Policy, section 6).",
           "We may suspend or terminate your account for violation of these terms, illegal activity, or other conduct harmful to GAVANA or its users.",
           "Upon termination, your right to use the service ceases immediately.",
         ],
@@ -154,7 +154,7 @@ const T = {
       {
         heading: "3. Хэрэглэгчийн данс",
         body: [
-          "GAVANA ашиглахын тулд данс үүсгэх шаардлагатай. Данс нэвтрэх мэдээллийн нууцлалыг хамгаалах хариуцлагыг та өөрөө хүлээнэ.",
+          "Эхний раундыг дансгүйгээр туршиж болно. Раунд, дэвшил, streak-ээ хадгалах болон зарим боломжид данс шаардлагатай. Данс нэвтрэх мэдээллийн нууцлалыг хамгаалах хариуцлагыг та өөрөө хүлээнэ.",
           "Данс үүсгэхдээ үнэн мэдээлэл оруулах ёстой. Худал мэдээлэл данс хаагдахад хүргэж болно.",
           "Таны дансан дор үйлдэгдсэн бүх үйлдлийн хариуцлагыг та өөрөө хүлээнэ.",
           "Данс үүсгэхэд 13 нас хүрсэн байх шаардлагатай.",
@@ -190,7 +190,7 @@ const T = {
       {
         heading: "7. Төлбөр ба захиалга",
         body: [
-          "GAVANA Pro-гийн төлбөрийг Stripe-аар, төгрөгөөр (MNT) сар эсвэл жилээр авна. Одоогийн үнэ GAVANA Pro хуудсанд байна.",
+          "GAVANA Pro-гийн төлбөрийг төлбөр хийх үед харагдах төлбөрийн үйлчилгээгээр, төгрөгөөр (MNT) сар эсвэл жилээр авна. Одоогийн үнэ GAVANA Pro хуудсанд байна.",
           "GAVANA Pro хуудасны \"Гишүүнчлэл удирдах\" хэсгээс хүссэн үедээ цуцална. Төлсөн хугацаа дуустал Pro хэвээр.",
           "Хуулиар өөрөөр заагаагүй бол төлбөрийг буцаадаггүй.",
           "Үнэ өөрчлөгдөхөөс дор хаяж 30 хоногийн өмнө гишүүдэд мэдэгдэнэ.",
@@ -223,7 +223,7 @@ const T = {
       {
         heading: "11. Дуусгавар болгох",
         body: [
-          "Профайл тохиргооноос дансаа хэдийд ч хаах боломжтой.",
+          "Дансаа хэдийд ч хааж болно: бүртгэлтэй имэйлээсээ privacy@gavana.app руу бичвэл данс болон бүх мэдээллийг 30 хоногийн дотор устгана (Нууцлалын бодлого, 6-р хэсэг).",
           "Эдгээр нөхцлийг зөрчсөн, хууль бус үйлдэл хийсэн тохиолдолд бид дансыг түдгэлзүүлж эсвэл хаах эрхтэй.",
           "Дуусгавар болсны дараа үйлчилгээ ашиглах таны эрх нэн даруй зогсоно.",
         ],
@@ -274,7 +274,7 @@ const T = {
       {
         heading: "3. 사용자 계정",
         body: [
-          "GAVANA를 사용하려면 계정을 생성해야 합니다. 계정 자격 증명의 기밀 유지는 귀하의 책임입니다.",
+          "첫 라운드는 계정 없이 체험할 수 있습니다. 라운드·진행·스트릭 저장과 일부 기능에는 계정이 필요합니다. 계정 자격 증명의 기밀 유지는 귀하의 책임입니다.",
           "계정 생성 시 정확한 정보를 제공해야 합니다. 허위 정보는 계정 해지로 이어질 수 있습니다.",
           "귀하의 계정에서 발생하는 모든 활동에 대한 책임은 귀하에게 있습니다.",
           "계정을 생성하려면 만 13세 이상이어야 합니다.",
@@ -310,7 +310,7 @@ const T = {
       {
         heading: "7. 결제 및 구독",
         body: [
-          "GAVANA Pro는 Stripe를 통해 몽골 투그릭(MNT)으로 월간 또는 연간 청구됩니다. 현재 가격은 GAVANA Pro 페이지에 있습니다.",
+          "GAVANA Pro는 결제 시 표시되는 결제 서비스를 통해 몽골 투그릭(MNT)으로 월간 또는 연간 청구됩니다. 현재 가격은 GAVANA Pro 페이지에 있습니다.",
           "GAVANA Pro 페이지의 '멤버십 관리'에서 언제든 해지할 수 있으며, 결제한 기간이 끝날 때까지 Pro가 유지됩니다.",
           "법률이 달리 정하지 않는 한 결제는 환불되지 않습니다.",
           "가격 변경은 최소 30일 전에 구독자에게 알립니다.",
@@ -343,7 +343,7 @@ const T = {
       {
         heading: "11. 해지",
         body: [
-          "프로필 설정에서 언제든지 계정을 해지할 수 있습니다.",
+          "언제든지 계정을 해지할 수 있습니다: 계정 이메일로 privacy@gavana.app에 요청하면 30일 이내에 계정과 모든 데이터를 삭제합니다(개인정보 처리방침 6항).",
           "당사는 약관 위반, 불법 행위 또는 GAVANA나 사용자에게 해를 끼치는 기타 행위에 대해 계정을 정지 또는 해지할 수 있습니다.",
           "해지 후 서비스 사용 권한이 즉시 소멸됩니다.",
         ],
