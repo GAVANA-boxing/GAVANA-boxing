@@ -54,6 +54,12 @@ await t("video: change userId blocked", assertFails(updateDoc(va(alice, "v1"), {
 await t("video: other user update blocked", assertFails(updateDoc(va(bob, "v1"), { status: "failed" })));
 await t("video: score 11 blocked", assertFails(updateDoc(va(alice, "v1"), { status: "completed", score: 11 })));
 await t("video: complete with results ok", assertSucceeds(updateDoc(va(alice, "v1"), { status: "completed", score: 7.5, punches: 42, poseFramesPct: 93 })));
+await t("video: create with 2 h duration blocked", assertFails(setDoc(va(alice, "v6"), { userId: "alice", status: "queued", durationSec: 7200 })));
+await setDoc(va(alice, "v7"), { userId: "alice", status: "queued" });
+await t("video: thumbnail link blocked", assertFails(updateDoc(va(alice, "v7"), { status: "completed", score: 6, thumbnailUrl: "https://evil.example/pixel.gif" })));
+await t("video: thumbnail too big blocked", assertFails(updateDoc(va(alice, "v7"), { status: "completed", score: 6, thumbnailUrl: "data:image/jpeg;base64," + "A".repeat(30000) })));
+await t("video: long error blocked", assertFails(updateDoc(va(alice, "v7"), { status: "failed", error: "x".repeat(200) })));
+await t("video: skeleton thumbnail ok", assertSucceeds(updateDoc(va(alice, "v7"), { status: "completed", score: 6, punches: 12, poseFramesPct: 80, error: null, thumbnailUrl: "data:image/jpeg;base64,/9j/4AAQSkZJRg==" })));
 await t("video: completed is frozen", assertFails(updateDoc(va(alice, "v1"), { score: 10 })));
 await t("video: owner delete ok", assertSucceeds(deleteDoc(va(alice, "v1"))));
 // orders — server writes, owner reads

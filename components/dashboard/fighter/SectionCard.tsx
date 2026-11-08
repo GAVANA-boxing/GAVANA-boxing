@@ -21,11 +21,13 @@ interface SectionCardProps<T> {
   /** Skeleton height while loading (px), roughly the ready height so nothing jumps. */
   skeletonHeight?: number;
   className?: string;
+  /** Shown under the title in every state (e.g. the clip analyzer above the video list). */
+  top?: ReactNode;
   children: (data: T) => ReactNode;
 }
 
 export default function SectionCard<T>({
-  title, subtitle, icon: Icon, state, copy, onRetry, skeletonHeight = 160, className = "", children,
+  title, subtitle, icon: Icon, state, copy, onRetry, skeletonHeight = 160, className = "", top, children,
 }: SectionCardProps<T>) {
   return (
     <section className={`${cardClass} min-w-0 ${className}`} aria-busy={state.status === "loading"}>
@@ -38,6 +40,7 @@ export default function SectionCard<T>({
           {subtitle && state.status === "ready" ? <p className="mt-0.5 text-[12px] text-white/60">{subtitle}</p> : null}
         </div>
       </header>
+      {top}
       {state.status === "loading" ? <Skeleton height={skeletonHeight} /> : null}
       {state.status === "error" ? <SectionError error={state.error} copy={copy} onRetry={onRetry} /> : null}
       {state.status === "ready" ? children(state.data) : null}

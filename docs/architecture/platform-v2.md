@@ -50,11 +50,14 @@ canvas overlay → раунд дуусахад `/api/score/session` → `trainin
 **Дараагийн алхам (perf):** MediaPipe-ийг Web Worker + OffscreenCanvas руу (main thread чөлөөлөгдөнө);
 дэлгэрэнгүй: `docs/audit/2026-11-08-architecture-cv-qa.md` §2.
 
-**Видео upload анализ (санал):** клип Storage-д (`uploads/{uid}/{id}.mp4`) → **хэрэглэгчийн браузер**
-(эсвэл дараа нь GPU worker) MediaPipe-аар анализ хийж явцаа `video_analyses/{id}` doc-д бичнэ:
-`queued → processing (progressPct) → completed (score, punches, poseFramesPct, thumbnailUrl) | failed (error)`.
-Thumbnail-ийг overlay зурсан кадраас үүсгэнэ (жинхэнэ тамирчны зураг ашиглахгүй). Dashboard үүнийг
-`onSnapshot`-оор шууд харуулна.
+**Видео анализ (хийсэн, 2026-11-08):** хэрэглэгч клип сонгоно → `hooks/useClipAnalysis` клипийг **браузерт
+бодит хурдаар** тоглуулж, live раундтай **яг ижил** pipeline-аар (`usePoseDetection` → цохилт илрүүлэгч →
+`computeFinalScore`) шинжилнэ (илрүүлэгч цагийг wall clock-оор хэмждэг тул frame-ээр seek хийхгүй), live
+skeleton overlay харагдана → `video_analyses/{id}`: `queued → processing (10 % тутам) → completed (score,
+punches, poseFramesPct, thumbnailUrl) | failed (error код)`. **Видео төхөөрөмжөөс гарахгүй**; thumbnail нь
+зөвхөн зурсан араг яс (видеоны пиксел биш, ≤ 24 KB data URL). Хязгаар: видео файл, ≤ 300 MB, 3 с – 3 мин.
+Таб нуугдахад зогсоно; хуудсаас гарвал `failed: interrupted`. Оноо XP-д орохгүй. Dashboard `onSnapshot`-оор
+явцыг шууд харуулна. Тест: `tests/clipAnalysis.test.ts`, `tests/cv/clip-analysis.spec.mjs` (жинхэнэ MediaPipe).
 
 ## 2. Fight Knowledge Graph (FKG)
 
@@ -195,7 +198,7 @@ Demo: `/{locale}/visual/dashboard`, `/{locale}/visual/dashboard-states` (fixture
 
 | Collection | Унших | Бичих |
 |---|---|---|
-| `video_analyses` | зөвхөн эзэмшигч (query `userId == uid` шаардана) | эзэмшигч: `queued` төлөвтэй үүсгэнэ (үр дүнгүй); `processing → completed / failed` шинэчилнэ; оноо 0–10, явц 0–100, цохилт 0–5000; `userId`, илүү талбар хориотой; `completed` болсны дараа өөрчлөгдөхгүй; устгаж болно |
+| `video_analyses` | зөвхөн эзэмшигч (query `userId == uid` шаардана) | эзэмшигч: `queued` төлөвтэй үүсгэнэ (үр дүнгүй); `processing → completed / failed` шинэчилнэ; оноо 0–10, явц 0–100, цохилт 0–5000, урт ≤ 600 с; thumbnail зөвхөн `data:image/…;base64` ≤ 24 KB (холбоос хориотой); `userId`, илүү талбар хориотой; `completed` болсны дараа өөрчлөгдөхгүй; устгаж болно |
 | `orders` | зөвхөн эзэмшигч | клиент огт бичихгүй (checkout API + баталгаажсан payment callback, service account) |
 | `products`, `benchmarks` | бүх хүн | клиент бичихгүй (admin SDK) |
 | `users.stats` | (users-ийн дүрмээр нийтэд) | клиент бичихгүй — серверийн aggregate |
@@ -208,7 +211,7 @@ Deploy: `docs/LAUNCH.md` §3-ийн дарааллаар (эхлээд indexes, 
 ## 6. Дараалал
 
 1. ~~rules + index + emulator тест~~ (хийсэн) → (эзэмшигч) deploy.
-2. `video_analyses` pipeline (upload → браузер анализ → status) — dashboard «Сүүлийн видео» амилна.
+2. ~~`video_analyses` pipeline (клип → браузер анализ → status)~~ (хийсэн).
 3. QPay merchant гэрээ + `PaymentProvider` + checkout + callback + Ebarimt → «Захиалга» амилна.
 4. Зөвшөөрөлтэй жишиг клип цуглуулах → `benchmarks/{id}` нийтлэх → radar амилна.
 5. `NEXT_PUBLIC_FIGHTER_DASHBOARD=1` — dashboard-ыг нээх, navigation-д холбох.

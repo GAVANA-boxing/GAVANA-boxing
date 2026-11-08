@@ -3,6 +3,7 @@
 // Recent uploaded clips and their MediaPipe analysis status (live via onSnapshot in the hook).
 // Thumbnails are rendered by the analysis job with the pose overlay already drawn on the frame;
 // until one exists we show a neutral placeholder (never a stock / athlete photo).
+import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { CircleCheck, Hourglass, LoaderCircle, ScanLine, TriangleAlert, Video } from "lucide-react";
 import type { SectionState, VideoAnalysis, VideoAnalysisStatus } from "@/lib/dashboard/types";
@@ -21,11 +22,13 @@ interface Props {
   copy: DashboardCopy;
   onRetry?: () => void;
   className?: string;
+  /** e.g. <ClipAnalyzer/> — shown above the list in every state */
+  analyzer?: ReactNode;
 }
 
-export default function RecentVideos({ state, copy, onRetry, className }: Props) {
+export default function RecentVideos({ state, copy, onRetry, className, analyzer }: Props) {
   return (
-    <SectionCard title={copy.videos.title} icon={Video} state={state} copy={copy} onRetry={onRetry} skeletonHeight={220} className={className}>
+    <SectionCard title={copy.videos.title} icon={Video} state={state} copy={copy} onRetry={onRetry} skeletonHeight={220} className={className} top={analyzer}>
       {(videos) =>
         videos.length === 0 ? (
           <p className="py-8 text-center text-[13px] text-white/60">{copy.videos.empty}</p>
@@ -77,7 +80,11 @@ function VideoRow({ v, copy }: { v: VideoAnalysis; copy: DashboardCopy }) {
               .filter(Boolean).join(" · ")}
           </p>
         ) : null}
-        {v.status === "failed" ? <p className="mt-1 truncate text-[12px] text-rose-300/90">{copy.videos.failed}</p> : null}
+        {v.status === "failed" ? (
+          <p className="mt-1 line-clamp-2 text-[12px] text-rose-300/90">
+            {v.error && v.error in copy.clip.error ? copy.clip.error[v.error as keyof DashboardCopy["clip"]["error"]] : copy.videos.failed}
+          </p>
+        ) : null}
       </div>
 
       {v.status === "completed" && v.score != null ? (

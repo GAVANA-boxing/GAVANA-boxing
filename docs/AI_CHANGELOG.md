@@ -2,6 +2,25 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Platform v2 step 2: on-device clip analysis → video_analyses (owner: "Hii")
+- `hooks/useClipAnalysis.ts`: a chosen clip plays in the browser through the SAME pipeline as a live round
+  (`usePoseDetection` → punch detector → `computeFinalScore`); real-time playback because the detector times
+  punches with the wall clock. idle → reading → loading_model → analyzing (live skeleton overlay) → saving →
+  done | failed; store writes queued → processing (every 10 %) → completed | failed; hidden tab pauses;
+  leaving marks `interrupted`. The video never leaves the device.
+- `lib/videoAnalysis/`: `clip.ts` (limits 300 MB / 3 s–3 min, progress throttle, result patch — a score the
+  formula can't compute stays null, thumbnail geometry), `thumbnail.ts` (skeleton-only JPEG ≤ 24 KB, no video
+  pixels), `store.ts` (Firestore + in-memory). UI: `ClipAnalyzer` in the Recent videos card; specific error
+  messages (MN/KO/EN); privacy policy (3 languages) says analysed clips stay on the device.
+- Rules: `video_analyses` thumbnail must be an inline `data:image` ≤ 24 KB (no links), error ≤ 40 chars,
+  duration ≤ 600 s (+5 tests, 77/77). Still not deployed.
+- Bug fixed: `PoseSkeletonOverlay` without a style drew into a 300×150 canvas (a canvas isn't sized by
+  `inset: 0`) — the skeleton was squashed into the top of the box. Train always passed a sized style, so it
+  was unaffected; now the default fills the box.
+- Run `20261108T091206Z-274678c`: unit 308, visual 66/66, rules 77/77, bundle 6339 KB; AWAITING_APPROVAL (rules) → accepted citing "Hii". `npm run test:cv` 4/4.
+- Tests: `tests/clipAnalysis.test.ts` (10), `tests/cv/clip-analysis.spec.mjs` (real MediaPipe on the synthetic
+  boxer clip: queued → processing → completed, 98 % frames with a body, skeleton thumbnail; non-video refused).
+
 ## Platform v2 step 1: Firestore rules + indexes for the dashboard collections (owner: "Hii")
 - `firestore.rules`: `video_analyses` (owner-only read; create only as `queued` without results; updates
   limited to status / progress / results with ranges; frozen once `completed`; no `userId` change or extra

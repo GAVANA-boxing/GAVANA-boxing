@@ -71,7 +71,17 @@ export default function PoseSkeletonOverlay({ getLatestPose, videoRef, isActive,
       data-testid="pose-overlay"
       aria-hidden="true"
       // zIndex 6: above the stage's dim / shade layers (≤ 5), below the HUD (9+).
-      style={{ ...style, position: style?.position || "absolute", inset: style?.position ? undefined : 0, pointerEvents: "none", zIndex: 6 }}
+      // A <canvas> is a replaced element: `inset: 0` alone doesn't size it (it stays 300×150), so
+      // without a style it fills its box explicitly. (Train passes the video's own box style.)
+      style={{
+        ...style,
+        position: style?.position || "absolute",
+        inset: style?.position ? undefined : 0,
+        width: style?.width ?? "100%",
+        height: style?.height ?? "100%",
+        pointerEvents: "none",
+        zIndex: 6,
+      }}
     />
   );
 }

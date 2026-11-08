@@ -35,6 +35,8 @@ export default defineConfig({
   },
   webServer: {
     command: `npx next build && npx next start -p ${PORT}`,
+    // fixture routes on: tests/cv/clip-analysis.spec.mjs drives the analyzer on /visual/dashboard
+    env: { NEXT_PUBLIC_VISUAL_FIXTURES: "1", NEXT_TELEMETRY_DISABLED: "1" },
     url: `http://localhost:${PORT}/en`,
     timeout: 600_000,
     reuseExistingServer: true,

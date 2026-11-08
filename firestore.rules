@@ -204,14 +204,25 @@ service cloud.firestore {
         return (!("progressPct" in d) || (d.progressPct is number && d.progressPct >= 0 && d.progressPct <= 100))
           && (!("score" in d) || d.score == null || (d.score is number && d.score >= 0 && d.score <= 10))
           && (!("punches" in d) || d.punches == null || (d.punches is int && d.punches >= 0 && d.punches <= 5000))
-          && (!("poseFramesPct" in d) || d.poseFramesPct == null || (d.poseFramesPct is number && d.poseFramesPct >= 0 && d.poseFramesPct <= 100));
+          && (!("poseFramesPct" in d) || d.poseFramesPct == null || (d.poseFramesPct is number && d.poseFramesPct >= 0 && d.poseFramesPct <= 100))
+          && validMeta(d);
+      }
+      // The thumbnail is a skeleton drawn on the device (lib/videoAnalysis/thumbnail) — an inline
+      // image only, never a link, and small.
+      function validMeta(d) {
+        return (!("thumbnailUrl" in d) || d.thumbnailUrl == null
+                 || (d.thumbnailUrl is string && d.thumbnailUrl.size() <= 24576
+                     && d.thumbnailUrl.matches('data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+')))
+          && (!("error" in d) || d.error == null || (d.error is string && d.error.size() <= 40))
+          && (!("durationSec" in d) || d.durationSec == null || (d.durationSec is number && d.durationSec >= 0 && d.durationSec <= 600));
       }
       allow read: if isOwner("userId");
       allow create: if isAuth()
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.status == "queued"
         && request.resource.data.keys().hasOnly(videoKeys())
-        && !request.resource.data.keys().hasAny(["score", "punches", "poseFramesPct"]);
+        && !request.resource.data.keys().hasAny(["score", "punches", "poseFramesPct"])
+        && validMeta(request.resource.data);
       allow update: if isOwner("userId")
         && resource.data.status != "completed"
         && request.resource.data.status in ["queued", "processing", "completed", "failed"]

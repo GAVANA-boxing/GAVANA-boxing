@@ -17,6 +17,7 @@ const T = {
         heading: "1. What stays on your phone",
         body: [
           "Camera video: your rounds are analysed on your device (MediaPipe). The video is not sent to our servers. It is only uploaded if you yourself choose to post a video.",
+          "Videos you choose to analyse are handled the same way: analysed on your device and never uploaded. We keep only the result (score, punch count, share of frames with a body) and a drawing of the skeleton — not a picture of you.",
           "Stance photo (onboarding): analysed on your device and never uploaded.",
           "AI coach chat history: kept in your browser on this device (your last 40 messages). Clearing it in the chat removes it.",
           "The pose-detection model file is downloaded from Google's servers; no personal data is sent with that download.",
@@ -101,6 +102,7 @@ const T = {
         heading: "1. Таны утсан дээр л үлддэг зүйл",
         body: [
           "Камерын бичлэг: раундыг тань төхөөрөмж дээр чинь (MediaPipe) шинжилнэ. Бичлэг манай сервер рүү очдоггүй. Та өөрөө видео нийтлэхээр сонгосон үед л байршина.",
+          "Шинжлүүлэхээр сонгосон видео тань мөн адил: төхөөрөмж дээр чинь шинжлэгдэж, сервер рүү очдоггүй. Бид зөвхөн үр дүн (оноо, цохилтын тоо, бие харагдсан кадрын хувь) ба араг ясны зургийг хадгална — таны зургийг биш.",
           "Байрлалын зураг (onboarding): төхөөрөмж дээр чинь шинжлэгдэх бөгөөд хэзээ ч байршуулагддаггүй.",
           "AI коучтой хийсэн чат: энэ төхөөрөмжийн хөтөч дээр (сүүлийн 40 мессеж) хадгалагдана. Чатаас цэвэрлэвэл устна.",
           "Биеийн байрлал танигч загварын файлыг Google-ийн серверээс татна; энэ үед хувийн мэдээлэл илгээгддэггүй.",
@@ -185,6 +187,7 @@ const T = {
         heading: "1. 휴대폰에만 남는 것",
         body: [
           "카메라 영상: 라운드는 기기에서(MediaPipe) 분석됩니다. 영상은 당사 서버로 전송되지 않으며, 직접 영상을 게시할 때만 업로드됩니다.",
+          "분석하려고 선택한 영상도 마찬가지로 기기에서 분석되며 업로드되지 않습니다. 결과(점수, 펀치 수, 몸이 감지된 프레임 비율)와 스켈레톤 그림만 저장하며, 사용자의 모습은 저장하지 않습니다.",
           "스탠스 사진(온보딩): 기기에서 분석되며 업로드되지 않습니다.",
           "AI 코치 채팅 기록: 이 기기의 브라우저에 저장됩니다(최근 메시지 40개). 채팅에서 지우면 삭제됩니다.",
           "자세 인식 모델 파일은 Google 서버에서 내려받으며, 이때 개인정보는 전송되지 않습니다.",

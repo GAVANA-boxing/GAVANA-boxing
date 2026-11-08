@@ -6,7 +6,8 @@
   `publicStats` for public profiles, then owner-only read + rules tests, owner deploys).
 - Fighter dashboard (`/fighter-dashboard`, off by default): the orders, video-analysis and benchmark sections
   have no data source yet — rules + indexes for `video_analyses`, `orders`, `products`, `benchmarks` are in
-  the repo but NOT deployed (`docs/architecture/platform-v2.md` §5), no upload-analysis pipeline, no payment provider (Stripe
+  the repo but NOT deployed (`docs/architecture/platform-v2.md` §5); clip analysis works on-device (plays the clip
+  in real time — a 3-min clip takes 3 min; a hidden tab pauses it); no payment provider (Stripe
   doesn't serve Mongolian entities; QPay merchant contract needed), no consented benchmark clips.
 - CV: inference runs on the main thread at ~10 fps (detector tuned for it); camera has no resolution
   constraint; no App Check; punch dataset is 6 clips of one fighter. See the same doc §2–§4.
