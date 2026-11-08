@@ -8,6 +8,9 @@ const SCREENS = [
   { name: "train", path: "/train", mask: ["video", "canvas"], camera: "NotAllowedError" },
   { name: "result", path: "/visual/result" },
   { name: "progress", path: "/visual/progress" },
+  // Fighter dashboard (demo data) and its empty-benchmark + offline-orders states.
+  { name: "dashboard", path: "/visual/dashboard" },
+  { name: "dashboard-states", path: "/visual/dashboard-states" },
 ];
 const VARIANTS = [
   { id: "mn-390", locale: "mn", viewport: { width: 390, height: 844 } },

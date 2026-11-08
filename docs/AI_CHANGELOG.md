@@ -2,6 +2,21 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Fighter Dashboard + platform v2 design (owner request: architecture, FKG, shop, dashboard, hook)
+- Design doc (MN): `docs/architecture/platform-v2.md` — Next.js structure, Fight Knowledge Graph (Firestore
+  schema now, PostgreSQL DDL later), benchmark provenance + one normalisation, shop (own catalog, QPay
+  primary behind a `PaymentProvider`, Stripe only via a foreign entity, Ebarimt, server-only order state
+  machine), dashboard architecture, proposed rules + indexes (NOT applied — RED, need the owner).
+- Code: `lib/dashboard/{types,mappers,copy,mockData}.ts` (strict TS, pure mappers, 9 unit tests),
+  `hooks/useFighterDashboard.ts` (users onSnapshot, all sessions for XP — same as useRankData — latest 30
+  for biomechanics, video_analyses + orders onSnapshot, benchmark getDoc; per-section loading / error,
+  retry, cleanup), `components/dashboard/fighter/*.tsx` (Tailwind + lucide-react; SVG line + radar with
+  tooltips and table views). Recharts was tried and dropped: +432 KB client JS, over the +5 % bundle gate.
+- `/{locale}/fighter-dashboard` exists but is 404 unless `NEXT_PUBLIC_FIGHTER_DASHBOARD=1` (orders and video
+  analyses have no pipeline / rules yet). Demo: `/visual/dashboard`, `/visual/dashboard-states`; 6 new
+  visual baselines (mn-390, mn-360, ko-390).
+- New dependency: `lucide-react` 1.61.0 (owner named it explicitly). Run `20261108T075057Z-0cb2de0`: all gates PASS (unit 298, visual 66/66, rules 43/43, bundle 6250 KB); AWAITING_APPROVAL (package.json) → accepted with the owner's words quoted.
+
 ## Architecture / CV / QA audit (owner request, 5 sections)
 - Report: `docs/audit/2026-11-08-architecture-cv-qa.md` (MN) — 20-point checklist with pass criteria and
   status, performance plan (camera 640×480, requestVideoFrameCallback, Web Worker with backpressure),

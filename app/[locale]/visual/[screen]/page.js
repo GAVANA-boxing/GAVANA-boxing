@@ -20,6 +20,8 @@ import TourView from "@/components/tour/TourView";
 import FighterShareCard from "@/components/profile/FighterShareCard";
 import { syntheticReplay } from "@/lib/punchTeardown";
 import OnboardingStep1Archetype from "@/components/onboarding/OnboardingStep1Archetype";
+import FighterDashboard from "@/components/dashboard/fighter/FighterDashboard";
+import { MOCK_DASHBOARD, MOCK_PARTIAL_ERROR } from "@/lib/dashboard/mockData";
 
 // Fixed-data renders of screens that need a signed-in user, for the visual
 // regression tests (tests/visual). Only exists when NEXT_PUBLIC_VISUAL_FIXTURES=1
@@ -143,6 +145,12 @@ export default function VisualFixture() {
   if (params?.screen === "teardown") {
     // A synthetic round: jab, arm-only cross with the guard dropped, jab, cross.
     return <PunchTeardown replay={TEARDOWN_REPLAY} locale={locale} onClose={() => {}} />;
+  }
+
+  // Fighter dashboard with demo data; "-states" = no benchmark published + orders offline.
+  if (params?.screen === "dashboard" || params?.screen === "dashboard-states") {
+    const state = params.screen === "dashboard" ? MOCK_DASHBOARD : MOCK_PARTIAL_ERROR;
+    return <FighterDashboard state={state} locale={locale} onRetry={() => {}} />;
   }
 
   if (params?.screen === "progress") {
