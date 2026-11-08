@@ -1,11 +1,10 @@
 # Known issues
 
-- **Full product audit 2026-11-08: `docs/audit/2026-11-08-gavana-audit.md`** (needed / not needed,
-  inconsistencies, fake-looking numbers, usability). Top items: invented metrics shown as measured
-  (`lib/trainHelpers.js` telemetry + percentile), result score capped on screen but saved uncapped,
-  `HowToEarnXP` contradicts server XP, guard warnings never fire (`too_low` vs `"dropped"`), radar reads
-  `s.hits` (saved as `hitCount`), counter archetype named "Тохой тулаанч", AI prompt says "estimate"
-  missing numbers, privacy text vs `coach_memory`, `/reels` escapes CORE_MODE redirect.
+- **Audit 2026-11-08** (`docs/audit/2026-11-08-gavana-audit.md`): A–D fixed the same day (see its section 6).
+  Still open: Train idle screen overload; guest first round ("choose stance" with no control, 1.4 s
+  auto-start); three design-token sources; server rank-up celebration compares stored XP only; duplicate
+  rank-up modals; 37 unused exports; stance-from-photo not tried on real photos; Pro not sellable until the
+  owner creates MNT Stripe prices and sets env vars.
 
 - Visual baselines were made in the Claude Code cloud container (Chromium 1243, Linux). On another
   machine the first run will differ — regenerate there with `npm run test:visual:update` before
