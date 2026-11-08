@@ -66,6 +66,7 @@ export default function SidebarFooter({
   onImgError,
   initial,
   rank,
+  rankName,
   xpProgress,
   onProfileClick,
 }) {
@@ -97,7 +98,7 @@ export default function SidebarFooter({
           </div>
           <div style={s.rankLabel}>
             <span style={{ fontSize: 11, fontWeight: 800, color: rank.color, letterSpacing: 0.8 }}>
-              {rank.label || "ROOKIE"}
+              {rankName || rank.key}
             </span>
           </div>
         </div>

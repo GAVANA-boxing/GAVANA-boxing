@@ -22,6 +22,10 @@ export default function RecordingHud({
   locale = "en",
   // false = a timer-only round (no camera): don't claim we are recording.
   cameraLive = true,
+  // When MediaPipe is running, LivePunchCounter shows the real punch count — the pixel
+  // detector's "moves" / combo counters would be a second, different number. They stay as
+  // the fallback when pose detection isn't available.
+  poseReady = false,
 }) {
   const focusColor = drillConfig?.focusType ? (FOCUS_COLORS[drillConfig.focusType] || "rgba(255,255,255,0.4)") : null;
 
@@ -68,7 +72,7 @@ export default function RecordingHud({
       </div>
 
       {/* Movement counter — hidden for punch-target drills (LivePunchCounter handles those) */}
-      {!drillConfig?.punchTarget && (
+      {!drillConfig?.punchTarget && !poseReady && (
         <div style={styles.hitCounter}>
           {hitCount === 0 ? (
             <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", letterSpacing: 0.3 }}>
@@ -92,7 +96,7 @@ export default function RecordingHud({
       )}
 
       {/* Combo counter */}
-      {comboCount > 0 && (
+      {comboCount > 0 && !poseReady && (
         <div key={comboCount} style={styles.comboCounter} className="combo-pop">
           <span style={styles.comboLabel}>{loc(locale, "КОМБО", "콤보", "COMBO")}</span>
           <span style={styles.comboNum}>{comboCount}</span>

@@ -91,8 +91,9 @@ export default function TrainResultModal({
     poseMetrics?.sessionConfidence ?? null,
     poseMetrics?.cameraQuality    ?? null,
   );
-  const _scoreCap    = _scoreConf === "low" ? 7.5 : _scoreConf === "medium" ? 8.5 : 10;
-  const _cappedScore = result ? Math.min(result.score, _scoreCap) : 0;
+  // result.score is already the round's final (confidence-capped) score — set once by the
+  // Train page via finalRoundScore — so this screen, the toast, the save and XP all agree.
+  const _cappedScore = result ? result.score : 0;
   const displayScore = useCountUp(_cappedScore);
 
   // ── Local state ─────────────────────────────────────────────────────────

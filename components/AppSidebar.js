@@ -4,8 +4,10 @@ import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 import { useUserProfile } from "@/context/UserProfileProvider";
+import { useRankData } from "@/hooks/useRankData";
 import { blackAlpha } from "@/lib/tokens";
 import { getFighterRank, getRankProgress } from "@/lib/xp";
+import { translate } from "@/lib/i18n";
 
 import SidebarLogo       from "./sidebar/SidebarLogo";
 import SidebarNav        from "./sidebar/SidebarNav";
@@ -29,7 +31,8 @@ const sidebarStyle = {
 };
 
 export default function AppSidebar({ currentLocale }) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { xp: accountXp } = useRankData({ user, authLoading });
   const router   = useRouter();
   const pathname = usePathname();
   const locale   = currentLocale || pathname?.split("/")?.[1] || "mn";
@@ -37,8 +40,8 @@ export default function AppSidebar({ currentLocale }) {
   const { profile } = useUserProfile();
   const [imgErr,   setImgErr]  = useState(false);
 
-  // XP + avatar come from the shared profile subscription (one read for the whole app)
-  const xp       = Number(profile?.xp) || 0;
+  // Canonical account XP (same number as Home / Progress); stored XP until it loads.
+  const xp       = accountXp ?? (Number(profile?.xp) || 0);
   const photoUrl = profile?.profileImageUrl || profile?.photoURL || null;
 
   const rank     = getFighterRank(xp);
@@ -64,6 +67,7 @@ export default function AppSidebar({ currentLocale }) {
           onImgError={() => setImgErr(true)}
           initial={initial}
           rank={rank}
+          rankName={translate(locale, rank.key)}
           xpProgress={progress}
           onProfileClick={goProfile}
         />

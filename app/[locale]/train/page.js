@@ -17,6 +17,9 @@ import PreGameCard from "@/components/train/PreGameCard";
 import RecordingHud from "@/components/train/RecordingHud";
 import { useTrainingData } from "@/hooks/useTrainingData";
 import { useCameraSession } from "@/hooks/useCameraSession";
+import { finalRoundScore } from "@/lib/scoreConfidence";
+import { calculateChallengeXP, getRankProgress } from "@/lib/xp";
+import { getChallengeRank } from "@/lib/utils";
 import { FIGHTERS } from "@/lib/fighters";
 import { FIGHTER_TECHNIQUES } from "@/lib/fighterTechniques";
 import { ACADEMY_LESSONS } from "@/lib/academyLessons";
@@ -159,7 +162,7 @@ export default function TrainPage() {
     locale,
   });
 
-  const { computeSessionSummary, getDebugInfo, getMotionReplay } = usePoseDetection({
+  const { computeSessionSummary, getDebugInfo, getMotionReplay, poseStatus } = usePoseDetection({
     videoRef,
     isActive: phase === "recording",
     stance,
@@ -368,30 +371,33 @@ export default function TrainPage() {
     }).catch(() => {});
   }, [missionJustCompleted]);
 
-  // Override pixel-detector score with MediaPipe score as soon as result appears.
+  // Final score of the round, once: MediaPipe score (over the pixel-detector one), capped by
+  // confidence. Everything after this — result screen, toast, save, XP — uses this one number.
   // Runs on result.hitCount change (new session) — not on score change — to avoid loops.
   useEffect(() => {
     if (!result) return;
     setMotionReplay(getMotionReplay());
     const poseSummary = computeSessionSummary();
-    if (poseSummary?.score != null) {
-      setPoseSessionSummary(poseSummary);
-      if (poseSummary.score !== result.score) {
-        setResult((prev) => prev ? { ...prev, score: poseSummary.score } : prev);
-      }
+    if (poseSummary) setPoseSessionSummary(poseSummary);
+    const raw = poseSummary?.score ?? result.score;
+    const { score } = finalRoundScore(raw, {
+      punchCount: poseSummary?.punchCount ?? result.hitCount ?? 0,
+      sessionConfidence: poseSummary?.sessionConfidence ?? null,
+      cameraQuality: poseSummary?.cameraQuality ?? null,
+    });
+    if (score !== result.score) {
+      // XP preview / rank bar from the same formula the server uses (lib/domain/scoreGuard).
+      const xpGained = calculateChallengeXP(score, getChallengeRank(score));
+      setResult((prev) => prev ? { ...prev, score, xpGained, rankProgress: getRankProgress((Number(currentXP) || 0) + xpGained) } : prev);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [result?.hitCount]);
-
-  // Micro-reward toast on session complete
-  useEffect(() => {
-    if (!result?.score) return;
-    const msg = locale === "mn"
-      ? `🥊 Хичээл дууслаа! Оноо: ${result.score.toFixed(1)}`
-      : locale === "ko"
-      ? `🥊 세션 완료! 점수: ${result.score.toFixed(1)}`
-      : `🥊 Session complete! Score: ${result.score.toFixed(1)}`;
-    showToast(msg, "success");
+    if (score > 0) {
+      const msg = locale === "mn"
+        ? `🥊 Раунд дууслаа! Оноо: ${score.toFixed(1)}`
+        : locale === "ko"
+        ? `🥊 라운드 완료! 점수: ${score.toFixed(1)}`
+        : `🥊 Round complete! Score: ${score.toFixed(1)}`;
+      showToast(msg, "success");
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result?.hitCount]);
 
@@ -1070,6 +1076,7 @@ export default function TrainPage() {
               t={t}
               locale={locale}
               cameraLive={studioView.recBadge}
+              poseReady={poseStatus === "ready"}
             />
           )}
 

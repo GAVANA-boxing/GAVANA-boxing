@@ -30,6 +30,7 @@ export function useRankData({ user, authLoading }) {
             storedXp: profileData.xp,
             trainingSessions,
             streakDays: Number(profileData.dailyStreak) || 0,
+            bestStreakDays: Number(profileData.bestDailyStreak) || 0,
           }));
           setSessionCount(sessionSnap.docs.length);
           setTier(profileData.subscriptionTier || profileData.tier || null);

@@ -307,6 +307,7 @@ export function useProfileData({ user, userId, authLoading, locale }) {
       storedXp: profileUser?.xp,
       trainingSessions,
       streakDays: Number(profileUser?.dailyStreak ?? profileUser?.streakCount) || 0,
+      bestStreakDays: Number(profileUser?.bestDailyStreak) || 0,
     });
     const currentRank = getFighterRank(currentXP);
     const storedKey = typeof window !== "undefined"

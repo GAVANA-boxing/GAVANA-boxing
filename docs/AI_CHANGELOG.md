@@ -2,6 +2,24 @@
 
 One entry per cycle that changed code. Newest first.
 
+## One truth for numbers (audit B)
+- One score per round: `finalRoundScore` (lib/scoreConfidence.js) applies the confidence cap once on the
+  Train page; the result screen, toast, saved session and XP preview all use it (before: screen capped,
+  save/toast/XP raw, toast often showed the pixel-detector score).
+- "How to earn XP" now states the server's real rules (score × 35 + grade bonus, ≤500/round, 10
+  rounds/day, ≥3 punches; daily mission +50, streak day 3 +100 / day 7 +250; +20 per best-streak day;
+  Pro = 2 streak saves/month). Removed the never-paid improvement bonus, likes XP and "Pro 2× XP".
+- Streak XP banks at the best streak (`bestDailyStreak`), so breaking a streak no longer lowers XP/rank.
+- Sidebar, Fighter DNA level and the AI coach context use the canonical account XP (same as
+  Home/Progress); the desktop sidebar shows the translated rank instead of always "ROOKIE".
+- Radar: reads `hitCount` / `breakdown.accuracy` (was `hits` / `accuracy`, never written); Speed and Guard
+  come from the camera's pose measurements when available; Footwork no longer comes from the streak.
+- Guard "too_low" (what the pose code emits) now triggers the guard fix / skill counts.
+- During a round only the MediaPipe punch counter shows; the pixel "moves"/combo counters remain only
+  as the fallback when pose detection isn't running.
+- Left as is (noted): the server's rank-up celebration compares stored XP only.
+- Run `20261108T035752Z-614f673` (RED: progression.ts; owner decision recorded).
+
 ## Trust fixes from the audit (owner: "dugnelteer garsan zuilsiig zasaj saijruulj ajil")
 - Invented numbers removed: "combat telemetry" bars (score × 1.05 etc.), "BEAT %" (and no longer
   stored as `comparisonPercent`), "2,400+ fighters", "% match", hardcoded onboarding DNA preview %,

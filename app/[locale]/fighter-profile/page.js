@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { useUserProfile } from "@/context/UserProfileProvider";
 import { getLocaleFromPathname } from "@/lib/i18n";
 import { useCombatMemory } from "@/hooks/useCombatMemory";
+import { useRankData } from "@/hooks/useRankData";
 import BottomNav from "@/components/BottomNav";
 import BrandHeader from "@/components/ui/BrandHeader";
 import { glass, pageBackground } from "@/components/ui/brand";
@@ -151,7 +152,8 @@ export default function FighterProfilePage() {
   // Combat Level derives from the canonical account XP (same number as belts/rank)
   // so the profile shows one coherent ladder; falls back to a session estimate
   // until the user doc (with xp) has loaded.
-  const progress = computeCombatProgress({ sessions, streakDays: 0, locale, xp: userData?.xp });
+  const { xp: accountXp } = useRankData({ user, authLoading });
+  const progress = computeCombatProgress({ sessions, streakDays: 0, locale, xp: accountXp ?? userData?.xp });
 
   useEffect(() => {
     if (!authLoading && !user) router.push(`/${locale}/login`);

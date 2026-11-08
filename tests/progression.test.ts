@@ -43,3 +43,12 @@ describe("getProgression", () => {
     expect(getProgression(undefined).xp).toBe(0);
   });
 });
+
+describe("getAccountXp — streak XP never drops", () => {
+  it("banks streak XP at the best streak", () => {
+    const live = getAccountXp({ storedXp: 100, streakDays: 5, bestStreakDays: 5 });
+    const broken = getAccountXp({ storedXp: 100, streakDays: 1, bestStreakDays: 5 });
+    expect(broken).toBe(live);
+    expect(getAccountXp({ storedXp: 0, streakDays: 7, bestStreakDays: 3 })).toBe(140);
+  });
+});

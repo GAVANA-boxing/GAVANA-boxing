@@ -114,7 +114,14 @@ export default function AIChatPage() {
         const profileData = profile || {};
 
         const snapshot = buildCoachSnapshot({ sessions, profileData });
-        const ctx = buildCoachContext({ snapshot, profileData, locale });
+        const { getAccountXp } = await import("@/lib/domain/progression");
+        const accountXp = getAccountXp({
+          storedXp: profileData.xp,
+          trainingSessions: sessSnap.docs.map((d) => ({ xpGained: d.data().xpGained })),
+          streakDays: Number(profileData.dailyStreak) || 0,
+          bestStreakDays: Number(profileData.bestDailyStreak) || 0,
+        });
+        const ctx = buildCoachContext({ snapshot, profileData, locale, accountXp });
 
         setCoachSnapshot(snapshot);
 

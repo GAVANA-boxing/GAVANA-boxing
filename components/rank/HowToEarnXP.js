@@ -2,56 +2,38 @@
 
 import { GOLD } from "@/lib/tokens";
 
+// Mirrors the server exactly (lib/xp.js calculateChallengeXP, lib/domain/scoreGuard.js,
+// lib/domain/awardXp.js computeMissionProgression, lib/domain/progression.ts). Change both together.
 const HOW_TO_EARN = [
   {
     icon: "🎯",
-    en: "Training session",
-    mn: "Дасгалын сесс",
-    ko: "훈련 세션",
-    detailEn: "score² × 10 XP (max 1,000/day)",
-    detailMn: "оноо² × 10 XP (өдөрт хамгийн ихдээ 1,000)",
-    detailKo: "점수² × 10 XP (하루 최대 1,000)",
+    en: "Every round",
+    mn: "Раунд бүр",
+    ko: "라운드마다",
+    detailEn: "score × 35 XP + grade bonus (S +150, A +80, B +40, C +15). Max 500 per round, 10 rounds a day, at least 3 punches.",
+    detailMn: "оноо × 35 XP + зэрэглэлийн бонус (S +150, A +80, B +40, C +15). Раундад ≤500, өдөрт 10 раунд, дор хаяж 3 цохилт.",
+    detailKo: "점수 × 35 XP + 등급 보너스 (S +150, A +80, B +40, C +15). 라운드당 최대 500, 하루 10라운드, 펀치 3회 이상.",
     color: GOLD,
   },
   {
-    icon: "⚡",
-    en: "Improvement bonus",
-    mn: "Дэвшлийн бонус",
-    ko: "향상 보너스",
-    detailEn: "+200 XP (0.5pt jump) or +400 XP (1pt jump)",
-    detailMn: "+200 XP (0.5 оноо) эсвэл +400 XP (1 оноо)",
-    detailKo: "+200 XP (0.5점 향상) 또는 +400 XP (1점 향상)",
+    icon: "✅",
+    en: "Daily mission",
+    mn: "Өдрийн даалгавар",
+    ko: "데일리 미션",
+    detailEn: "First round of the day: +50 XP. Day 3 of a streak +100, day 7 +250.",
+    detailMn: "Өдрийн эхний раунд: +50 XP. Дараалсан 3 дахь өдөр +100, 7 дахь өдөр +250.",
+    detailKo: "하루 첫 라운드: +50 XP. 연속 3일째 +100, 7일째 +250.",
     color: "#A78BFA",
-  },
-  {
-    icon: "⚔️",
-    en: "Challenge",
-    mn: "Тэмцээн",
-    ko: "찼린지",
-    detailEn: "Up to 500 XP per attempt",
-    detailMn: "Нэг оролдлогод хамгийн ихдээ 500 XP",
-    detailKo: "시도당 최대 500 XP",
-    color: "#F87171",
   },
   {
     icon: "🔥",
     en: "Daily streak",
-    mn: "Өдрийн streak",
-    ko: "데일리 스트릭",
-    detailEn: "20 XP per streak day",
-    detailMn: "Streak өдөр бүрт 20 XP",
-    detailKo: "스트릭 하루당 20 XP",
+    mn: "Дараалсан өдөр",
+    ko: "연속 기록",
+    detailEn: "+20 XP for each day of your best streak — kept even if the streak breaks.",
+    detailMn: "Хамгийн урт дараалсан өдрийн тань өдөр бүрт +20 XP — тасарсан ч хасагдахгүй.",
+    detailKo: "최고 연속 기록 하루당 +20 XP — 끊겨도 사라지지 않아요.",
     color: "#FB923C",
-  },
-  {
-    icon: "❤️",
-    en: "Likes received",
-    mn: "Хүлээн авсан лайк",
-    ko: "받은 좋아요",
-    detailEn: "2 XP per like on your reels",
-    detailMn: "Таны видео дээрх лайк бүрт 2 XP",
-    detailKo: "내 릴에 받은 좋아요당 2 XP",
-    color: "#F472B6",
   },
 ];
 
@@ -61,10 +43,10 @@ export default function HowToEarnXP({ locale, t }) {
 
   const proNote =
     locale === "mn"
-      ? "Pro гишүүд 2 дахин их XP цуглуулна"
+      ? "Pro: сард 2 удаа дараалал хамгаална"
       : locale === "ko"
-      ? "Pro 회원은 2배 XP 획득"
-      : "Pro members earn 2× XP";
+      ? "Pro: 월 2회 연속 기록 보호"
+      : "Pro: 2 streak saves a month";
 
   return (
     <>

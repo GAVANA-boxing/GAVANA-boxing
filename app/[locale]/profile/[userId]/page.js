@@ -132,6 +132,7 @@ export default function UserProfilePage() {
     storedXp: profileUser?.xp,
     trainingSessions,
     streakDays: streakCount,
+    bestStreakDays: Number(profileUser?.bestDailyStreak) || 0,
   });
   const fighterRank = getFighterRank(xp);
   const nextRank = getNextRank(xp);
