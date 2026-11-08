@@ -181,7 +181,9 @@ export default function ReelsContent() {
   const handleScroll = useCallback((e) => {
     const container = e.target;
     const scrollTop = container.scrollTop;
-    const itemHeight = window.innerHeight;
+    // The feed's own height (100dvh changes with the mobile URL bar; window.innerHeight
+    // doesn't always match it, which made this and the IntersectionObserver disagree).
+    const itemHeight = container.clientHeight || window.innerHeight;
     const newIndex = Math.round(scrollTop / itemHeight);
     if (newIndex !== currentIndex && newIndex >= 0 && newIndex < reels.length) {
       setCurrentIndex(newIndex);

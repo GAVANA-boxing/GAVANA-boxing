@@ -46,6 +46,7 @@ import { loc } from "@/lib/loc";
 import { cameraPermissionHelp } from "@/lib/cameraHelp";
 import { deriveStudio, studioUi, canTransition } from "@/lib/trainSession";
 import FightHud from "@/components/train/FightHud";
+import PoseSkeletonOverlay from "@/components/train/PoseSkeletonOverlay";
 const PoseDebugOverlay   = dynamic(() => import("@/components/train/PoseDebugOverlay"),   { ssr: false });
 const DebugSessionPanel  = dynamic(() => import("@/components/train/DebugSessionPanel"),  { ssr: false });
 const LivePunchCounter   = dynamic(() => import("@/components/train/LivePunchCounter"),   { ssr: false });
@@ -176,7 +177,7 @@ export default function TrainPage() {
     const h = idle(() => setPoseWarm(true), { timeout: 2500 });
     return () => cancel(h);
   }, []);
-  const { computeSessionSummary, getDebugInfo, getMotionReplay, poseStatus } = usePoseDetection({
+  const { computeSessionSummary, getDebugInfo, getMotionReplay, getLatestPose, poseStatus } = usePoseDetection({
     videoRef,
     isActive: phase === "recording",
     stance,
@@ -691,6 +692,33 @@ export default function TrainPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoStart, cameraState, phase, showOnboarding, readinessOpen]);
 
+  // Camera preview box + transform, shared by the <video> and the skeleton overlay.
+  const previewStyle = {
+                ...styles.preview,
+                visibility: videoSized ? "visible" : "hidden",
+                ...(videoNeedsRotation ? {
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  width: "100vh",
+                  height: "100vw",
+                  maxWidth: "none",
+                } : {}),
+                transform: (() => {
+                  if (videoNeedsRotation) {
+                    // iOS pre-mirrors the front camera stream — only rotate, no scaleX.
+                    return facingMode === "user"
+                      ? "translate(-50%, -50%) rotate(-90deg)"
+                      : "translate(-50%, -50%) rotate(90deg)";
+                  }
+                  return facingMode === "user" ? "scaleX(-1)" : "none";
+                })(),
+              };
+  const [showOverlay, setShowOverlay] = useState(true);
+  useEffect(() => {
+    try { setShowOverlay(new URLSearchParams(window.location.search).get("overlay") !== "0"); } catch { /* keep on */ }
+  }, []);
+
   // ── iOS portrait/landscape video rotation fix ─────────────────────────────
   useEffect(() => {
     const video = videoRef.current;
@@ -953,33 +981,24 @@ export default function TrainPage() {
 
         <div style={styles.stage} className="train-stage" data-studio-state={studio.state}>
           {cameraState === "ready" ? (
+            <>
             <video
               ref={videoRef}
               autoPlay
               muted
               playsInline
-              style={{
-                ...styles.preview,
-                visibility: videoSized ? "visible" : "hidden",
-                ...(videoNeedsRotation ? {
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  width: "100vh",
-                  height: "100vw",
-                  maxWidth: "none",
-                } : {}),
-                transform: (() => {
-                  if (videoNeedsRotation) {
-                    // iOS pre-mirrors the front camera stream — only rotate, no scaleX.
-                    return facingMode === "user"
-                      ? "translate(-50%, -50%) rotate(-90deg)"
-                      : "translate(-50%, -50%) rotate(90deg)";
-                  }
-                  return facingMode === "user" ? "scaleX(-1)" : "none";
-                })(),
-              }}
+              style={previewStyle}
             />
+            {/* Live skeleton: same box + transform as the video (?overlay=0 turns it off). */}
+            {showOverlay && (
+              <PoseSkeletonOverlay
+                getLatestPose={getLatestPose}
+                videoRef={videoRef}
+                isActive={phase === "recording"}
+                style={videoNeedsRotation ? previewStyle : { ...previewStyle, position: "absolute", top: 0, left: 0 }}
+              />
+            )}
+            </>
           ) : (
             <div style={styles.fallback}>
               {studio.state === "countdown" || studio.state === "recording" ? null : studioView.stageMessage === "checking" ? (

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   resolveDateKeys, checkSession, sessionXpDecision, challengeAwardDecision, challengeResultId,
-  MAX_XP_SESSIONS_PER_DAY, MAX_CHALLENGE_AWARDS_PER_DAY, SESSION_CLAIM_WINDOW_MS,
+  MAX_XP_SESSIONS_PER_DAY, MAX_CHALLENGE_AWARDS_PER_DAY, SESSION_CLAIM_WINDOW_MS, MAX_PUNCHES_PER_SECOND,
 } from "@/lib/domain/scoreGuard";
 
 const NOW = Date.UTC(2026, 10, 6, 12, 0, 0);
@@ -73,5 +73,22 @@ describe("challenge payouts", () => {
   });
   it("one result id per user × challenge × day", () => {
     expect(challengeResultId("u1", "c/../x", "2026-11-06")).toBe("u1_cx_2026-11-06");
+  });
+});
+
+describe("checkSession — physically impossible numbers earn nothing", () => {
+  it("rejects more punches than a human can throw in the round", () => {
+    const tooMany = fresh({ durationSeconds: 20, poseMetrics: { punchCount: 20 * MAX_PUNCHES_PER_SECOND + 1 } });
+    expect(checkSession(tooMany, "u1", NOW)).toEqual({ ok: false, reason: "implausible_punches" });
+    const fast = fresh({ durationSeconds: 20, poseMetrics: { punchCount: 60 } }); // 3/s — a busy but real round
+    expect(checkSession(fast, "u1", NOW).ok).toBe(true);
+  });
+  it("rejects nonsense round lengths", () => {
+    expect(checkSession(fresh({ durationSeconds: 1 }), "u1", NOW).reason).toBe("implausible_duration");
+    expect(checkSession(fresh({ durationSeconds: 99999 }), "u1", NOW).reason).toBe("implausible_duration");
+    expect(checkSession(fresh({ durationSeconds: "abc" }), "u1", NOW).reason).toBe("implausible_duration");
+  });
+  it("still caps total punches when the length is missing (older docs)", () => {
+    expect(checkSession(fresh({ poseMetrics: { punchCount: 100000 } }), "u1", NOW).reason).toBe("implausible_punches");
   });
 });

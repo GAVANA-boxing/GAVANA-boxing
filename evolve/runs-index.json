@@ -1,6 +1,35 @@
 {
   "runs": [
     {
+      "id": "20261108T071821Z-6aed1a5",
+      "task": "CV/QA audit implementation: One-Euro landmark filter with occlusion hold, live skeleton canvas overlay (decoupled rAF, DPR-aware, redraw only on new pose), server plausibility limits for punches/duration, reel feed windowing + media release, CV E2E with a synthetic boxer fake camera",
+      "verdict": "ACCEPTED",
+      "commit": "6aed1a5",
+      "at": "2026-11-08T07:23:16.194Z",
+      "durationS": 295,
+      "level": "RED",
+      "failedSteps": [],
+      "notRun": [
+        "rules"
+      ],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 289,
+        "unit.failed": 0,
+        "bundle.kb": 6195,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 60,
+        "visual.failed": 0,
+        "visual.flaky": 0
+      },
+      "decision": "owner"
+    },
+    {
       "id": "20261108T051100Z-d73efec",
       "task": "launch readiness 2: first-party client error reporting (window errors, rejections, route error boundaries → analytics client_error), launch checklist docs/LAUNCH.md",
       "verdict": "ACCEPTED",

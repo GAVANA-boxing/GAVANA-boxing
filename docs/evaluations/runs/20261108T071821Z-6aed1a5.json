@@ -1,0 +1,298 @@
+{
+  "id": "20261108T071821Z-6aed1a5",
+  "key": "2641d7b4",
+  "task": "CV/QA audit implementation: One-Euro landmark filter with occlusion hold, live skeleton canvas overlay (decoupled rAF, DPR-aware, redraw only on new pose), server plausibility limits for punches/duration, reel feed windowing + media release, CV E2E with a synthetic boxer fake camera",
+  "branch": "claude/review-refactor-code-DUmiX",
+  "commit": "6aed1a5",
+  "base": "@{upstream}",
+  "dirty": true,
+  "startedAt": "2026-11-08T07:18:21.184Z",
+  "finishedAt": "2026-11-08T07:23:16.194Z",
+  "durationS": 295,
+  "cost": {
+    "paidApiCalls": 0,
+    "note": "checks run locally; no paid APIs"
+  },
+  "change": {
+    "level": "RED",
+    "files": [
+      {
+        "path": "app/[locale]/train/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/reels/ReelsContent.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/reels/ReelVideoPlayer.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "hooks/usePoseDetection.js",
+        "level": "YELLOW",
+        "why": "hooks with data access"
+      },
+      {
+        "path": "lib/domain/scoreGuard.js",
+        "level": "RED",
+        "why": "XP / rank / scoring"
+      },
+      {
+        "path": "package.json",
+        "level": "RED",
+        "why": "dependencies"
+      },
+      {
+        "path": "tests/scoreGuard.test.js",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "components/train/PoseSkeletonOverlay.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/pose/landmarkFilter.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/pose/overlayGeometry.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "playwright.cv.config.mjs",
+        "level": "YELLOW",
+        "why": "unclassified path"
+      },
+      {
+        "path": "scripts/cv/make-synthetic-boxer.mjs",
+        "level": "YELLOW",
+        "why": "unclassified path"
+      },
+      {
+        "path": "tests/cv/global-setup.mjs",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/cv/pose-overlay.spec.mjs",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/fixtures/cv/synthetic-boxer.mp4",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/landmarkFilter.test.js",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/overlayGeometry.test.js",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "name": "lint",
+      "ms": 44235,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0,
+        "warnings": 23
+      }
+    },
+    {
+      "name": "typecheck",
+      "ms": 2003,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0
+      }
+    },
+    {
+      "name": "unit",
+      "ms": 4972,
+      "status": "PASS",
+      "metrics": {
+        "passed": 289,
+        "failed": 0
+      }
+    },
+    {
+      "name": "build",
+      "ms": 6524,
+      "status": "PASS",
+      "metrics": {}
+    },
+    {
+      "name": "bundle",
+      "status": "PASS",
+      "metrics": {
+        "kb": 6195
+      }
+    },
+    {
+      "name": "punch",
+      "ms": 73,
+      "status": "PASS",
+      "metrics": {
+        "macroF1": 0.904,
+        "recall": 0.897,
+        "precision": 1,
+        "phantoms": 0
+      }
+    },
+    {
+      "name": "visual",
+      "ms": 237186,
+      "status": "PASS",
+      "metrics": {
+        "passed": 60,
+        "failed": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "name": "rules",
+      "status": "NOT RUN",
+      "note": "pass --rules to run"
+    }
+  ],
+  "comparison": [
+    {
+      "metric": "lint.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "lint.warnings",
+      "baseline": 23,
+      "value": 23,
+      "limit": "≤ 23",
+      "status": "PASS"
+    },
+    {
+      "metric": "typecheck.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.passed",
+      "baseline": 241,
+      "value": 289,
+      "limit": "≥ 241",
+      "status": "PASS"
+    },
+    {
+      "metric": "bundle.kb",
+      "baseline": 6598,
+      "value": 6195,
+      "limit": "≤ 6928",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.macroF1",
+      "baseline": 0.904,
+      "value": 0.904,
+      "limit": "≥ 0.9035000000000001",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.phantoms",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.passed",
+      "baseline": 49,
+      "value": 60,
+      "limit": "≥ 49",
+      "status": "PASS"
+    },
+    {
+      "metric": "rules.failed",
+      "status": "NOT RUN"
+    },
+    {
+      "metric": "rules.passed",
+      "status": "NOT RUN"
+    }
+  ],
+  "verdict": "ACCEPTED",
+  "verdictNote": "RED paths need the owner: lib/domain/scoreGuard.js (XP / rank / scoring), package.json (dependencies)",
+  "history": [
+    {
+      "state": "PENDING",
+      "at": "2026-11-08T07:18:21.184Z",
+      "note": "created"
+    },
+    {
+      "state": "PLANNING",
+      "at": "2026-11-08T07:18:21.184Z",
+      "note": "CV/QA audit implementation: One-Euro landmark filter with occlusion hold, live skeleton canvas overlay (decoupled rAF, DPR-aware, redraw only on new pose), server plausibility limits for punches/duration, reel feed windowing + media release, CV E2E with a synthetic boxer fake camera"
+    },
+    {
+      "state": "IMPLEMENTING",
+      "at": "2026-11-08T07:18:21.185Z",
+      "note": "17 changed file(s) vs @{upstream}, risk RED"
+    },
+    {
+      "state": "VERIFYING",
+      "at": "2026-11-08T07:18:21.185Z",
+      "note": ""
+    },
+    {
+      "state": "EVALUATING",
+      "at": "2026-11-08T07:23:16.185Z",
+      "note": ""
+    },
+    {
+      "state": "AWAITING_APPROVAL",
+      "at": "2026-11-08T07:23:16.186Z",
+      "note": "RED paths need the owner: lib/domain/scoreGuard.js (XP / rank / scoring), package.json (dependencies)"
+    },
+    {
+      "state": "ACCEPTED",
+      "at": "2026-11-08T07:24:19.846Z",
+      "note": "Owner 2026-11-08 request: architect / CV / QA audit with code. scoreGuard: physical-limit checks (≤6 punches/s, 5–900 s rounds) on top of the existing ones; package.json only adds the test:cv script (no dependency change). Punch metrics unchanged (macroF1 0.904)."
+    }
+  ],
+  "baselineCommit": "37f2e45",
+  "decision": {
+    "by": "owner",
+    "note": "Owner 2026-11-08 request: architect / CV / QA audit with code. scoreGuard: physical-limit checks (≤6 punches/s, 5–900 s rounds) on top of the existing ones; package.json only adds the test:cv script (no dependency change). Punch metrics unchanged (macroF1 0.904).",
+    "at": "2026-11-08T07:24:19.846Z"
+  }
+}

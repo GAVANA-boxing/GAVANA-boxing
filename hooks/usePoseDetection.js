@@ -8,6 +8,7 @@ import { analyzeSession } from "@/lib/boxingIntelligence";
 import { DefensiveDetector } from "@/lib/defensiveDetector";
 import { funnel, FUNNEL } from "@/lib/funnel";
 import { createReplayRecorder, buildReplay } from "@/lib/motionReplay";
+import { createLandmarkFilter } from "@/lib/pose/landmarkFilter";
 
 /**
  * MediaPipe files are served from /public/mediapipe/ (local static assets).
@@ -23,10 +24,7 @@ const LOCAL_WASM   = "/mediapipe/wasm";
 const MODEL_URL    =
   "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task";
 
-const THROTTLE_MS  = 100;  // ~10fps
-const SMOOTH_ALPHA = 0.35; // EMA weight for landmark smoothing
-// Key joint indices smoothed before metric computation
-const SMOOTH_IDX   = new Set([0, 11, 12, 13, 14, 15, 16, 23, 24, 27, 28]);
+const THROTTLE_MS  = 100;  // ~10fps — the punch detector's thresholds are tuned for this rate
 
 // Key landmark indices for joint-presence checks in debug overlay
 const KEY_JOINTS = {
@@ -95,7 +93,10 @@ export function usePoseDetection({ videoRef, isActive, stance = "orthodox", load
   const rafRef             = useRef(null);
   const frameMetricsRef    = useRef([]);
   const latestLandmarksRef = useRef(null);
-  const smoothedLmRef      = useRef(null); // EMA-smoothed landmark array
+  // One-Euro + occlusion hold (lib/pose/landmarkFilter) for overlay / metrics / head movement.
+  const filterRef          = useRef(null);
+  if (!filterRef.current) filterRef.current = createLandmarkFilter();
+  const frameIdRef         = useRef(0); // increments per filtered frame — lets the overlay skip redraws
   const detectorRef        = useRef(new PunchPhaseDetector());
 
   // The user's stance decides which hand is the jab (lead) hand.
@@ -172,27 +173,10 @@ export function usePoseDetection({ videoRef, isActive, stance = "orthodox", load
         const landmarks = res.landmarks?.[0];
         if (landmarks && landmarks.length >= 29) {
           if (!poseSeenRef.current) { poseSeenRef.current = true; funnel(FUNNEL.POSE_DETECTED); }
-          // ── EMA smoothing on key joint positions ──
-          if (!smoothedLmRef.current || smoothedLmRef.current.length !== landmarks.length) {
-            smoothedLmRef.current = landmarks.map((lm) => ({ ...lm }));
-          } else {
-            const s = smoothedLmRef.current;
-            for (let i = 0; i < landmarks.length; i++) {
-              if (SMOOTH_IDX.has(i)) {
-                s[i] = {
-                  ...landmarks[i],
-                  x: SMOOTH_ALPHA * landmarks[i].x + (1 - SMOOTH_ALPHA) * s[i].x,
-                  y: SMOOTH_ALPHA * landmarks[i].y + (1 - SMOOTH_ALPHA) * s[i].y,
-                  z: SMOOTH_ALPHA * (landmarks[i].z ?? 0) + (1 - SMOOTH_ALPHA) * (s[i].z ?? 0),
-                };
-              } else {
-                s[i] = landmarks[i];
-              }
-            }
-          }
-
-          const smoothed = smoothedLmRef.current;
+          // ── One-Euro smoothing + short-occlusion hold (raw landmarks still go to the detector) ──
+          const smoothed = filterRef.current.filter(landmarks, now);
           latestLandmarksRef.current = smoothed;
+          frameIdRef.current++;
           // 3D replay: metric, hip-centred world landmarks when available.
           replayRef.current.push(res.worldLandmarks?.[0] || landmarks, Date.now());
           detectCountRef.current++;
@@ -226,6 +210,7 @@ export function usePoseDetection({ videoRef, isActive, stance = "orthodox", load
         } else {
           latestLandmarksRef.current = null;
           lowerBodyVisRef.current = false;
+          filterRef.current.miss(now);
         }
       } catch (err) {
         frameErrorRef.current = err?.message || String(err);
@@ -243,7 +228,7 @@ export function usePoseDetection({ videoRef, isActive, stance = "orthodox", load
     if (isActive) {
       frameMetricsRef.current = [];
       latestLandmarksRef.current = null;
-      smoothedLmRef.current = null;
+      filterRef.current.reset();
       detectCountRef.current = 0;
       frameAttemptRef.current = 0;
       visSamplesRef.current = [];
@@ -459,6 +444,9 @@ export function usePoseDetection({ videoRef, isActive, stance = "orthodox", load
     const handLiveData = detectorRef.current.getHandLiveData();
 
     return {
+      // Filtered landmarks (normalized to the video frame) + a frame counter for overlays.
+      landmarks:          lm,
+      frameId:            frameIdRef.current,
       status:             poseStatus,
       error:              poseError,
       frameError:         frameErrorRef.current,
@@ -510,11 +498,15 @@ export function usePoseDetection({ videoRef, isActive, stance = "orthodox", load
     [],
   );
 
+  // Cheap read for overlays drawn every animation frame (no metrics / detector work).
+  const getLatestPose = useCallback(() => ({ landmarks: latestLandmarksRef.current, frameId: frameIdRef.current }), []);
+
   return {
     poseStatus,
     poseError,
     computeSessionSummary,
     getDebugInfo,
+    getLatestPose,
     getMotionReplay,
     latestLandmarksRef,
     frameMetricsRef,

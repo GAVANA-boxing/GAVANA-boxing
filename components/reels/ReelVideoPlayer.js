@@ -29,12 +29,21 @@ export default function ReelVideoPlayer({
   DemoReelVisual,
   ReelFallbackVisual,
 }) {
+  // Windowing: only the active reel and its neighbours (one back, two ahead) hold a <video>.
+  // The rest show their poster, so a long feed keeps ≤ 4 media elements alive — mobile
+  // browsers cap decoders (iOS) and keep buffers for every element that ever played.
+  const nearActive = index >= currentIndex - 1 && index <= currentIndex + 2;
   return (
     <>
       {reel.isDemo ? (
         <DemoReelVisual onUpload={() => router.push(`/${currentLocale}/upload`)} />
       ) : hasVideoError || !reel.videoUrl ? (
         <ReelFallbackVisual reel={reel} />
+      ) : !nearActive ? (
+        <div
+          aria-hidden="true"
+          style={{ ...styles.video, background: reel.thumbnailUrl ? `center / cover no-repeat url("${String(reel.thumbnailUrl).replace(/"/g, "%22")}")` : "#000" }}
+        />
       ) : (
         <video
           ref={(el) => {
@@ -45,6 +54,12 @@ export default function ReelVideoPlayer({
               el.setAttribute("playsinline", "");
               el.setAttribute("webkit-playsinline", "");
             } else {
+              // Unmounting (scrolled out of the window): release the network + decoder now
+              // instead of waiting for GC.
+              const old = videoRefs.current[reel.id];
+              if (old) {
+                try { old.pause(); old.removeAttribute("src"); old.load(); } catch { /* already gone */ }
+              }
               delete videoRefs.current[reel.id];
             }
           }}
