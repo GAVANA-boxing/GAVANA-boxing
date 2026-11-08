@@ -2,6 +2,10 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Audit (owner: "gavanag shalga shinjleed dugnelt garga")
+- Read-only audit of the whole app + 16 screens at 390 px → `docs/audit/2026-11-08-gavana-audit.md`
+  (MN). No code changed. Summary added to `docs/AI_KNOWN_ISSUES.md`.
+
 ## Roadmap Phase 5: personal procedural fighter
 - `lib/avatar/fighterStyle.js` (pure, 6 tests): skin (6 tones), hair (none / buzz / short / bun, colour),
   build (lean / medium / heavy) from the user's choice or seeded from the uid; gloves + waistband in the

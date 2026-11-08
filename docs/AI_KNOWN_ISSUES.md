@@ -1,5 +1,12 @@
 # Known issues
 
+- **Full product audit 2026-11-08: `docs/audit/2026-11-08-gavana-audit.md`** (needed / not needed,
+  inconsistencies, fake-looking numbers, usability). Top items: invented metrics shown as measured
+  (`lib/trainHelpers.js` telemetry + percentile), result score capped on screen but saved uncapped,
+  `HowToEarnXP` contradicts server XP, guard warnings never fire (`too_low` vs `"dropped"`), radar reads
+  `s.hits` (saved as `hitCount`), counter archetype named "Тохой тулаанч", AI prompt says "estimate"
+  missing numbers, privacy text vs `coach_memory`, `/reels` escapes CORE_MODE redirect.
+
 - Visual baselines were made in the Claude Code cloud container (Chromium 1243, Linux). On another
   machine the first run will differ — regenerate there with `npm run test:visual:update` before
   comparing.
