@@ -1,5 +1,12 @@
 # Known issues
 
+- **P0 privacy (rules): `training_sessions` and `user_training_profile` are `allow read: if true`** — anyone,
+  even signed out, can read every user's rounds and pose measurements; the privacy policy says these aren't
+  shown to others. Fix plan in `docs/audit/2026-11-08-architecture-cv-qa.md` §4.2 (server-written
+  `publicStats` for public profiles, then owner-only read + rules tests, owner deploys).
+- CV: inference runs on the main thread at ~10 fps (detector tuned for it); camera has no resolution
+  constraint; no App Check; punch dataset is 6 clips of one fighter. See the same doc §2–§4.
+
 - **Audit 2026-11-08** (`docs/audit/2026-11-08-gavana-audit.md`): A–D fixed the same day (see its section 6).
   Still open: Train idle screen overload; guest first round ("choose stance" with no control, 1.4 s
   auto-start); three design-token sources; server rank-up celebration compares stored XP only; duplicate

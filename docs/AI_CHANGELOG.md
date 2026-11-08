@@ -2,6 +2,15 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Architecture / CV / QA audit (owner request, 5 sections)
+- Report: `docs/audit/2026-11-08-architecture-cv-qa.md` (MN) — 20-point checklist with pass criteria and
+  status, performance plan (camera 640×480, requestVideoFrameCallback, Web Worker with backpressure),
+  occlusion / fast-punch logic, anti-tamper (App Check, round nonce, server landmark replay), rules review,
+  tests. Honest gaps called out: no Fight Knowledge Graph in code, reel feed hidden, no live overlay before.
+- Implemented (`b954d9d`): One-Euro landmark filter with occlusion hold, live skeleton overlay, server
+  plausibility limits, reel windowing + media release, `npm run test:cv` (synthetic boxer fake camera → real
+  MediaPipe → overlay; 2/2). Found P0: `training_sessions` world-readable (see AI_KNOWN_ISSUES).
+
 ## Launch readiness, part 2
 - First-party error reporting (no third-party service): `components/ErrorReporter.js` (window errors,
   unhandled rejections) and the route error boundaries send `client_error` events with
