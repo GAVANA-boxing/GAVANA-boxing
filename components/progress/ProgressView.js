@@ -6,6 +6,7 @@ import { shortDate } from "@/lib/progressStats";
 import HowToEarnXP from "@/components/rank/HowToEarnXP";
 import ScoreTrendChart from "@/components/progress/ScoreTrendChart";
 import { BRAND, btnPrimary, btnSecondary, card, displayTitle, kickerDot, kickerPill, sectionLabel } from "@/components/ui/brand";
+import { BENCHMARKS, benchmarkBests } from "@/lib/benchmarks";
 
 const MIX = [
   { key: "jab", label: "Jab", color: "#60A5FA" },
@@ -18,6 +19,7 @@ const MIX = [
  * app/[locale]/progress/page.js), so it can be previewed and tested with any data.
  */
 export default function ProgressView({ locale, t, loading, currentXP, rank, nextRank, rankPct, stats, dna, sessions, go }) {
+  const bests = benchmarkBests(sessions);
   const L = (mn, ko, en) => loc(locale, mn, ko, en);
   const date = (s) => shortDate(s.createdAt, locale);
   const mixTotal = stats.mix.jab + stats.mix.cross + stats.mix.hook;
@@ -111,7 +113,7 @@ export default function ProgressView({ locale, t, loading, currentXP, rank, next
         {/* Fighter DNA */}
         <button type="button" onClick={() => go("/fighter-profile")} style={{ ...card, ...rowBtn, marginTop: 12 }}>
           <span style={{ minWidth: 0, flex: 1 }}>
-            <span style={{ ...sectionLabel, display: "block" }}>Fighter DNA</span>
+            <span style={{ ...sectionLabel, display: "block" }}>{L("Тулаанчийн ДНХ", "파이터 DNA", "Fighter DNA")}</span>
             <span style={{ display: "block", marginTop: 6, fontSize: 17, fontWeight: 700, color: BRAND.text }}>
               {dna.building
                 ? L(`${3 - (dna.sessionsNeeded ?? 3)}/3 бэлтгэл — DNA нээгдэнэ`, `${3 - (dna.sessionsNeeded ?? 3)}/3 세션 — DNA 공개`, `${3 - (dna.sessionsNeeded ?? 3)}/3 sessions to unlock`)
@@ -131,6 +133,35 @@ export default function ProgressView({ locale, t, loading, currentXP, rank, next
           </span>
           <span aria-hidden="true" style={{ color: BRAND.faint, fontSize: 18 }}>→</span>
         </button>
+
+        {/* Benchmark tests — fixed rounds with a personal best (lib/benchmarks.js) */}
+        <section id="tests" data-testid="benchmarks" style={{ ...card, padding: "16px 18px", marginTop: 12 }}>
+          <p style={sectionLabel}>{L("Сорилтын тестүүд", "벤치마크 테스트", "Benchmark tests")}</p>
+          <p style={{ margin: "6px 0 0", fontSize: 13, color: BRAND.muted, lineHeight: 1.45 }}>
+            {L("Ижил нөхцөлтэй тогтмол раунд — давтаж хийгээд ахицаа хэмж.", "같은 조건의 고정 라운드 — 반복해서 성장을 측정하세요.", "Same round every time — repeat it to measure your progress.")}
+          </p>
+          <ul style={{ listStyle: "none", margin: "8px 0 0", padding: 0 }}>
+            {BENCHMARKS.map((b) => {
+              const best = bests[b.id];
+              return (
+                <li key={b.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderTop: `1px solid ${BRAND.line}` }}>
+                  <span aria-hidden="true" style={{ fontSize: 22, width: 28, textAlign: "center" }}>{b.icon}</span>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: "block", fontSize: 15, fontWeight: 700, color: BRAND.text }}>{L(b.name.mn, b.name.ko, b.name.en)}</span>
+                    <span style={{ display: "block", fontSize: 13, color: BRAND.muted, marginTop: 2 }}>
+                      {best
+                        ? L(`Шилдэг: ${best.bestScore.toFixed(1)} · ${best.bestPunches} цохилт`, `최고: ${best.bestScore.toFixed(1)} · 펀치 ${best.bestPunches}`, `Best: ${best.bestScore.toFixed(1)} · ${best.bestPunches} punches`)
+                        : L(b.goal.mn, b.goal.ko, b.goal.en)}
+                    </span>
+                  </span>
+                  <button type="button" onClick={() => go(`/train?drill=${b.id}`)} style={{ minHeight: 40, padding: "0 14px", borderRadius: 10, border: `1px solid ${BRAND.line}`, background: "rgba(255,255,255,0.04)", color: BRAND.text, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>
+                    {best ? L("Дахин", "다시", "Again") : L("Эхлэх", "시작", "Start")}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
 
         {/* Latest sessions */}
         {stats.count > 0 && (

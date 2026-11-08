@@ -45,8 +45,10 @@ import Image from "next/image";
 import { useCoachPageActions } from "@/hooks/useCoachPageActions";
 import { SPECIALTIES, VIBE_FILTERS } from "@/lib/coachConstants";
 import TechniqueQuickAsk from "@/components/coach/TechniqueQuickAsk";
+import AcademyPath from "@/components/coach/AcademyPath";
 import DNACoachingCTA from "@/components/coach/DNACoachingCTA";
 import AISparringPartner from "@/components/coach/AISparringPartner";
+import { CORE_MODE } from "@/lib/coreRoutes";
 
 export default function CoachPage() {
   const router = useRouter();
@@ -88,11 +90,15 @@ export default function CoachPage() {
     });
 
   const L = (mn, ko, en) => (locale === "mn" ? mn : locale === "ko" ? ko : en);
-  const TABS = [
-    { key: "ai", label: t("coachTabAI") },
-    { key: "coaches", label: t("coachTabCoaches") },
-    { key: "mine", label: t("coachFilterMyRequests") },
-  ];
+  // The human-coach marketplace (coach profiles, requests, applications) is outside the core
+  // loop: in core mode the Coach tab is the AI coach only.
+  const TABS = CORE_MODE
+    ? [{ key: "ai", label: t("coachTabAI") }]
+    : [
+        { key: "ai", label: t("coachTabAI") },
+        { key: "coaches", label: t("coachTabCoaches") },
+        { key: "mine", label: t("coachFilterMyRequests") },
+      ];
 
   return (
     <main style={{ minHeight: "100dvh", background: pageBackground, color: "#fff" }} className="page-enter">
@@ -103,7 +109,7 @@ export default function CoachPage() {
         />
 
         {/* Segmented control */}
-        <div role="tablist" style={{ ...glass, display: "flex", gap: 4, padding: 4, borderRadius: 999, marginBottom: 18 }}>
+        {TABS.length > 1 && <div role="tablist" style={{ ...glass, display: "flex", gap: 4, padding: 4, borderRadius: 999, marginBottom: 18 }}>
           {TABS.map(({ key, label }) => (
             <button
               key={key}
@@ -122,7 +128,7 @@ export default function CoachPage() {
               {label}
             </button>
           ))}
-        </div>
+        </div>}
       </div>
 
       {/* AI Coach tab */}
@@ -151,16 +157,32 @@ export default function CoachPage() {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={BRAND.faint} strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
           </button>
 
-          <CoachSectionBoundary fallbackText="Sparring partner unavailable">
+          <CoachSectionBoundary fallbackText={L("Спарринг хамтрагч ачаалсангүй", "스파링 파트너를 불러오지 못했어요", "Sparring partner unavailable")}>
             <AISparringPartner userArchetype={userArchetype} locale={locale} router={router} />
           </CoachSectionBoundary>
 
-          <CoachSectionBoundary fallbackText="DNA coaching unavailable">
+          <CoachSectionBoundary fallbackText={L("ДНХ зөвлөгөө ачаалсангүй", "DNA 코칭을 불러오지 못했어요", "DNA coaching unavailable")}>
             <DNACoachingCTA userArchetype={userArchetype} locale={locale} router={router} />
           </CoachSectionBoundary>
 
+          <button type="button" data-testid="weekly-plan" onClick={() => router.push(`/${locale}/workout/builder`)}
+            style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", minHeight: 64, padding: "12px 16px", borderRadius: 18, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "#fff", cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}>
+            <span aria-hidden="true" style={{ fontSize: 24 }}>🗓️</span>
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ display: "block", fontSize: 16, fontWeight: 800 }}>{L("Долоо хоногийн төлөвлөгөө", "주간 플랜", "Weekly plan")}</span>
+              <span style={{ display: "block", fontSize: 13, color: "rgba(255,255,255,0.65)", marginTop: 2 }}>{L("Зорилго, түвшин, өдрөө сонго — AI 7 хоногийн бэлтгэл гаргана", "목표·레벨·요일을 고르면 AI가 7일 훈련을 짜 줘요", "Pick goal, level and days — AI writes your week")}</span>
+            </span>
+            <span aria-hidden="true" style={{ color: "rgba(255,255,255,0.5)", fontSize: 18 }}>→</span>
+          </button>
+
           <div style={{ margin: "0 -16px" }}>
-            <CoachSectionBoundary fallbackText="Technique cards unavailable">
+            <CoachSectionBoundary fallbackText={L("Академи ачаалсангүй", "아카데미를 불러오지 못했어요", "Academy unavailable")}>
+              <AcademyPath user={user} locale={locale} router={router} />
+            </CoachSectionBoundary>
+          </div>
+
+          <div style={{ margin: "0 -16px" }}>
+            <CoachSectionBoundary fallbackText={L("Техникийн карт ачаалсангүй", "기술 카드를 불러오지 못했어요", "Technique cards unavailable")}>
               <TechniqueQuickAsk locale={locale} router={router} />
             </CoachSectionBoundary>
           </div>

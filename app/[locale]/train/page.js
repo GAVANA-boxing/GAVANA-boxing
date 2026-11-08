@@ -18,6 +18,7 @@ import RecordingHud from "@/components/train/RecordingHud";
 import { useTrainingData } from "@/hooks/useTrainingData";
 import { useCameraSession } from "@/hooks/useCameraSession";
 import { finalRoundScore } from "@/lib/scoreConfidence";
+import { BENCHMARKS } from "@/lib/benchmarks";
 import { calculateChallengeXP, getRankProgress } from "@/lib/xp";
 import { getChallengeRank } from "@/lib/utils";
 import { FIGHTERS } from "@/lib/fighters";
@@ -111,6 +112,7 @@ export default function TrainPage() {
   // A brand-new fighter (guest, or signed in with zero sessions) gets the 20s
   // "speed-test" drill — a 12-punch goal they can hit in seconds — instead of a
   // 2-minute session. Best-in-class apps land the first win in ~20-30s.
+  const benchmark = BENCHMARKS.find((b) => b.id === drillId) || null; // Progress → benchmark tests
   const isFirstWin = !challengeId && !drillId && (!user || totalSessionCount === 0);
   const drillConfig = getDrillConfig(challengeId || drillId || (isFirstWin ? "speed-test" : "default"));
 
@@ -242,7 +244,8 @@ export default function TrainPage() {
   };
 
   const goToChallenges = () => {
-    router.push(`/${locale}/${CORE_MODE ? "home" : "challenges"}`);
+    // Core mode: the challenges are personal benchmark tests on Progress.
+    router.push(`/${locale}/${CORE_MODE ? "progress#tests" : "challenges"}`);
   };
 
   // ── Post-session AI debrief ───────────────────────────────────────────────
@@ -810,7 +813,7 @@ export default function TrainPage() {
           <p style={styles.kicker}>
             {challengeUserId ? t("pvpChallengeMode") : activeChallenge ? t("challengeMode") : t("trainKicker")}
           </p>
-          <h1 style={styles.title}>{activeChallenge ? t(activeChallenge.titleKey) : t("trainTitle")}</h1>
+          <h1 style={styles.title}>{activeChallenge ? t(activeChallenge.titleKey) : benchmark ? loc(locale, benchmark.name.mn, benchmark.name.ko, benchmark.name.en) : t("trainTitle")}</h1>
           <p style={styles.subtitle}>{t("trainSubtitle")}</p>
           {challengeUserId && targetScore && (
             <div style={styles.pvpBanner}>

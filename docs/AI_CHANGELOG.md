@@ -2,6 +2,27 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Hidden features: the useful ones brought into the core loop (audit D; owner: "heregtei zuilsiig awch app deer gargan uyaldaa holbootoi ajluul")
+- **Benchmark tests** (the old global challenges, now personal): Progress → "Сорилтын тестүүд" — speed test
+  (20 s), combo test (30 s), jab minute (60 s), each with your best score and punches from your own sessions
+  (`lib/benchmarks.js`, tested); Start opens Train with `?drill=<id>` and the test's name as the title. Train's
+  "challenges" link goes there in core mode.
+- **Boxing Academy path** on the Coach tab: the 10 technique lessons in order with progress (n/10, ✓ per
+  lesson, next lesson button → guided round). Before, nothing in the app started lesson 1.
+- **AI weekly plan** (workout builder) on the Coach tab: un-hidden; the plan is saved on the device
+  (`lib/weeklyPlan.js`) instead of `training_programs` (readable by every signed-in user, so AI plans leaked
+  into everyone's program list); each training day has "Start training"; guests are asked to sign in.
+- Kept hidden (need other users / moderation / admin content): feed, reels, stories, explore, discover,
+  inbox, sparring, events, gyms, leaderboard, fighters directory, creator, programs.
+- Fixes: `/reels` (no locale) redirects to the localized route so core mode applies; `ai-analysis` hidden;
+  the human-coach marketplace (coach profiles, apply, dashboard, "Coaches"/"My requests" tabs) hidden in core
+  mode (the Coach tab is the AI coach); onboarding coach/gym buttons no longer land on hidden pages.
+- Cleanup: removed unused `ScrollRow`, `dashboard/charts/FighterHero`, `messages/*.json` (unused, garbled),
+  create-next-app SVGs; README rewritten (it had merge-conflict markers); "Джэб" → "жэб" in lessons; Coach
+  section error texts localized.
+- Run `20261108T043951Z-be32715` (RED: proxy.js; owner decision). Checked with curl on a production build:
+  /reels → /mn/reels → /mn/home; /mn/coach/apply|dashboard|<id> → /mn/coach; /mn/coach/chat 200.
+
 ## Clarity (audit C)
 - One fighting-style list: `lib/archetypes.js` (pressure / outboxer / counter / explosive / technician:
   names MN/KO/EN, one colour each, short descriptions, `normalizeArchetype` maps old onboarding keys

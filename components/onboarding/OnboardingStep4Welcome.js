@@ -89,7 +89,7 @@ export default function OnboardingStep4Welcome({
         <div style={s.ctaGroup}>
           {role === "coach" ? (
             <>
-              <button type="button" style={s.primaryBtn} disabled={saving} onClick={() => onFinish(`/${locale}/coach/dashboard`)}>
+              <button type="button" style={s.primaryBtn} disabled={saving} onClick={() => onFinish(CORE_MODE ? `/${locale}/home` : `/${locale}/coach/dashboard`)}>
                 🎓 {t("onboardingGoToCoachDash")}
               </button>
               <button type="button" style={s.ghostBtn} disabled={saving} onClick={() => onFinish(`/${locale}/${CORE_MODE ? "home" : "reels"}`)}>
@@ -98,7 +98,7 @@ export default function OnboardingStep4Welcome({
             </>
           ) : role === "gym" ? (
             <>
-              <button type="button" style={s.primaryBtn} disabled={saving} onClick={() => onFinish(`/${locale}/gyms/dashboard`)}>
+              <button type="button" style={s.primaryBtn} disabled={saving} onClick={() => onFinish(CORE_MODE ? `/${locale}/home` : `/${locale}/gyms/dashboard`)}>
                 🏋️ {t("onboardingRegisterGym")}
               </button>
               <button type="button" style={s.ghostBtn} disabled={saving} onClick={() => onFinish(`/${locale}/${CORE_MODE ? "home" : "reels"}`)}>

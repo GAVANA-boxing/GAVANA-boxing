@@ -114,6 +114,9 @@ export default function BuilderPlanResult({
   tipsLabel,
   saveLabel,
   savedLabel,
+  onTrain,
+  trainLabel,
+  savedNote,
   rebuildLabel,
 }) {
   const goalMeta = GOALS.find((g) => g.key === goal);
@@ -162,6 +165,11 @@ export default function BuilderPlanResult({
               ))}
             </ul>
           )}
+          {!day.isRest && onTrain && (
+            <button type="button" onClick={onTrain} style={{ marginTop: 10, minHeight: 40, padding: "0 14px", borderRadius: 10, border: "1px solid rgba(255,59,48,0.4)", background: "rgba(255,59,48,0.10)", color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}>
+              {trainLabel}
+            </button>
+          )}
         </CombatCard>
       ))}
 
@@ -194,6 +202,7 @@ export default function BuilderPlanResult({
         >
           {saved ? savedLabel : saving ? "…" : saveLabel}
         </button>
+        {saved && savedNote && <p style={{ margin: "6px 0 0", fontSize: 12.5, color: "rgba(255,255,255,0.6)", textAlign: "center" }}>{savedNote}</p>}
         <button type="button" style={s.rebuildBtn} onClick={onRebuild}>
           {rebuildLabel}
         </button>

@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { db, auth } from "@/lib/firebase";
+import { auth } from "@/lib/firebase";
+import { loadWeeklyPlan, saveWeeklyPlan } from "@/lib/weeklyPlan";
 import { useAuth } from "@/lib/AuthContext";
 import { getLocale, translate } from "@/lib/i18n";
 import BottomNav from "@/components/BottomNav";
-import { RED, pageBg } from "@/lib/tokens";
-import { GOALS, LEVELS, label, buildPrompt, parsePlan } from "@/components/workout/builderConstants";
+import { pageBg } from "@/lib/tokens";
+import { buildPrompt, parsePlan } from "@/components/workout/builderConstants";
 import BuilderHeader from "@/components/workout/BuilderHeader";
 import BuilderStepDots from "@/components/workout/BuilderStepDots";
 import BuilderStepGoal from "@/components/workout/BuilderStepGoal";
@@ -36,11 +36,12 @@ export default function WorkoutBuilderPage() {
   const [generating, setGenerating] = useState(false);
   const [plan, setPlan] = useState(null); // { days, tips, raw }
   const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
+  const saving = false;
   const [saved, setSaved] = useState(false);
 
   const handleGenerate = async () => {
     if (!goal || !level) return;
+    if (!user) { setError(t("wbErrAuth")); return; }
     setGenerating(true);
     setError("");
     setPlan(null);
@@ -73,41 +74,25 @@ export default function WorkoutBuilderPage() {
     }
   };
 
-  const handleSave = async () => {
-    if (!user?.uid || !plan || saving || saved) return;
-    if (!user) { setError(t("wbErrAuth")); return; }
-    setSaving(true);
-    try {
-      const goalMeta = GOALS.find((g) => g.key === goal);
-      const levelMeta = LEVELS.find((l) => l.key === level);
-      await addDoc(collection(db, "training_programs"), {
-        userId: user.uid,
-        title: `${goalMeta?.emoji || "🥊"} ${label(goalMeta || { en: goal }, locale)} — ${label(levelMeta || { en: level }, locale)}`,
-        description: t("wbSubtitle"),
-        level,
-        category: "AI Generated",
-        emoji: goalMeta?.emoji || "🤖",
-        color: RED,
-        duration: days * 7,
-        daysPerWeek: days,
-        sessionMinutes: duration,
-        planRaw: plan.raw,
-        createdAt: serverTimestamp(),
-        source: "ai_builder",
-      });
-      setSaved(true);
-    } catch {
-      setError(t("wbErrApi"));
-    } finally {
-      setSaving(false);
-    }
+  const handleSave = () => {
+    if (!plan || saved) return;
+    if (saveWeeklyPlan({ goal, level, days, duration, plan })) setSaved(true);
+    else setError(t("wbErrApi"));
   };
+
+  // A saved plan opens straight to its result view.
+  useEffect(() => {
+    const prev = loadWeeklyPlan();
+    if (!prev) return;
+    setGoal(prev.goal); setLevel(prev.level); setDays(prev.days || 3); setDuration(prev.duration || 45);
+    setPlan(prev.plan); setSaved(true); setStep(3);
+  }, []);
 
   const handleBack = () => {
     if (step > 0 && step < 3) {
       setStep(step - 1);
     } else {
-      router.push(`/${locale}/programs`);
+      router.push(`/${locale}/coach`);
     }
   };
 
@@ -181,12 +166,15 @@ export default function WorkoutBuilderPage() {
             tipsLabel={t("wbTips")}
             saveLabel={t("wbSave")}
             savedLabel={t("wbSaved")}
+            onTrain={() => router.push(`/${locale}/train`)}
+            trainLabel={locale === "mn" ? "Бэлтгэл эхлүүлэх →" : locale === "ko" ? "훈련 시작 →" : "Start training →"}
+            savedNote={locale === "mn" ? "Энэ төхөөрөмж дээр хадгалагдсан" : locale === "ko" ? "이 기기에 저장됨" : "Saved on this device"}
             rebuildLabel={t("wbRebuild")}
           />
         )}
       </div>
 
-      <BottomNav router={router} user={user} currentLocale={locale} activeTab="profile" />
+      <BottomNav router={router} user={user} currentLocale={locale} activeTab="coach" />
     </div>
   );
 }

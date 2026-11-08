@@ -1,30 +1,8 @@
-import { Suspense } from "react";
-import ReelsContent from "./ReelsContent";
+import { redirect } from "next/navigation";
 
-function LoadingFallback() {
-  return (
-    <div style={{
-      position: "fixed",
-      top: 0,
-      left: 0,
-      width: "100vw",
-      height: "100dvh",
-      background: "#000",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      color: "#fff",
-      fontSize: 16,
-    }}>
-      Loading reels...
-    </div>
-  );
-}
-
-export default function ReelsPage() {
-  return (
-    <Suspense fallback={<LoadingFallback />}>
-      <ReelsContent />
-    </Suspense>
-  );
+// The locale-less /reels used to render the feed directly, outside the proxy's
+// /(mn|en|ko)/… matcher — so CORE_MODE couldn't hide it. Send it to the localized route,
+// where the proxy decides (and core mode redirects to /home).
+export default function ReelsRedirect() {
+  redirect("/mn/reels");
 }

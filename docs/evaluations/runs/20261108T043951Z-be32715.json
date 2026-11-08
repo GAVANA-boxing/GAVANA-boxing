@@ -1,0 +1,393 @@
+{
+  "id": "20261108T043951Z-be32715",
+  "key": "356baeb2",
+  "task": "hidden features (audit D): benchmark tests with personal best on Progress (old challenges, solo), Boxing Academy path on Coach (10 lessons, progress), AI weekly plan builder surfaced and saved on device (was public training_programs), coach marketplace + ai-analysis hidden in core mode, /reels bypass closed, onboarding gym/coach dead ends, dead files/svgs/messages removed, README rewritten",
+  "branch": "claude/review-refactor-code-DUmiX",
+  "commit": "be32715",
+  "base": "@{upstream}",
+  "dirty": true,
+  "startedAt": "2026-11-08T04:39:51.150Z",
+  "finishedAt": "2026-11-08T04:44:23.914Z",
+  "durationS": 273,
+  "cost": {
+    "paidApiCalls": 0,
+    "note": "checks run locally; no paid APIs"
+  },
+  "change": {
+    "level": "RED",
+    "files": [
+      {
+        "path": "README.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "app/[locale]/coach/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/train/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/workout/builder/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/reels/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/ScrollRow.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/dashboard/charts/FighterHero.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/onboarding/OnboardingStep4Welcome.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/progress/ProgressView.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/workout/BuilderPlanResult.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/coreRoutes.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/lessons/l1.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/lessons/l10.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/lessons/l2.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/lessons/l4.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/lessons/l5.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/lessons/l6.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/lessons/l7.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/lessons/l8.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/lessons/l9.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "messages/en.json",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "messages/ko.json",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "messages/mn.json",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "proxy.js",
+        "level": "RED",
+        "why": "production / deploy config"
+      },
+      {
+        "path": "public/file.svg",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "public/globe.svg",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "public/next.svg",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "public/vercel.svg",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "public/window.svg",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "tests/visual/__screenshots__/progress-ko-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/progress-mn-360.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/progress-mn-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "components/coach/AcademyPath.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/benchmarks.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "lib/weeklyPlan.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "tests/benchmarks.test.js",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "name": "lint",
+      "ms": 43418,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0,
+        "warnings": 23
+      }
+    },
+    {
+      "name": "typecheck",
+      "ms": 1915,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0
+      }
+    },
+    {
+      "name": "unit",
+      "ms": 4307,
+      "status": "PASS",
+      "metrics": {
+        "passed": 275,
+        "failed": 0
+      }
+    },
+    {
+      "name": "build",
+      "ms": 6022,
+      "status": "PASS",
+      "metrics": {}
+    },
+    {
+      "name": "bundle",
+      "status": "PASS",
+      "metrics": {
+        "kb": 6180
+      }
+    },
+    {
+      "name": "punch",
+      "ms": 90,
+      "status": "PASS",
+      "metrics": {
+        "macroF1": 0.904,
+        "recall": 0.897,
+        "precision": 1,
+        "phantoms": 0
+      }
+    },
+    {
+      "name": "visual",
+      "ms": 216996,
+      "status": "PASS",
+      "metrics": {
+        "passed": 60,
+        "failed": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "name": "rules",
+      "status": "NOT RUN",
+      "note": "pass --rules to run"
+    }
+  ],
+  "comparison": [
+    {
+      "metric": "lint.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "lint.warnings",
+      "baseline": 23,
+      "value": 23,
+      "limit": "≤ 23",
+      "status": "PASS"
+    },
+    {
+      "metric": "typecheck.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.passed",
+      "baseline": 241,
+      "value": 275,
+      "limit": "≥ 241",
+      "status": "PASS"
+    },
+    {
+      "metric": "bundle.kb",
+      "baseline": 6598,
+      "value": 6180,
+      "limit": "≤ 6928",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.macroF1",
+      "baseline": 0.904,
+      "value": 0.904,
+      "limit": "≥ 0.9035000000000001",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.phantoms",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.passed",
+      "baseline": 49,
+      "value": 60,
+      "limit": "≥ 49",
+      "status": "PASS"
+    },
+    {
+      "metric": "rules.failed",
+      "status": "NOT RUN"
+    },
+    {
+      "metric": "rules.passed",
+      "status": "NOT RUN"
+    }
+  ],
+  "verdict": "ACCEPTED",
+  "verdictNote": "RED paths need the owner: proxy.js (production / deploy config)",
+  "history": [
+    {
+      "state": "PENDING",
+      "at": "2026-11-08T04:39:51.150Z",
+      "note": "created"
+    },
+    {
+      "state": "PLANNING",
+      "at": "2026-11-08T04:39:51.151Z",
+      "note": "hidden features (audit D): benchmark tests with personal best on Progress (old challenges, solo), Boxing Academy path on Coach (10 lessons, progress), AI weekly plan builder surfaced and saved on device (was public training_programs), coach marketplace + ai-analysis hidden in core mode, /reels bypass closed, onboarding gym/coach dead ends, dead files/svgs/messages removed, README rewritten"
+    },
+    {
+      "state": "IMPLEMENTING",
+      "at": "2026-11-08T04:39:51.151Z",
+      "note": "36 changed file(s) vs @{upstream}, risk RED"
+    },
+    {
+      "state": "VERIFYING",
+      "at": "2026-11-08T04:39:51.151Z",
+      "note": ""
+    },
+    {
+      "state": "EVALUATING",
+      "at": "2026-11-08T04:44:23.904Z",
+      "note": ""
+    },
+    {
+      "state": "AWAITING_APPROVAL",
+      "at": "2026-11-08T04:44:23.905Z",
+      "note": "RED paths need the owner: proxy.js (production / deploy config)"
+    },
+    {
+      "state": "ACCEPTED",
+      "at": "2026-11-08T04:44:50.467Z",
+      "note": "Owner 2026-11-08: 'nuusan file yu eshiig shalgaj heregtei zuilsiig awch app deer gargan uyaldaa holbootoi ajluul'. proxy.js: core mode also hides the human-coach marketplace pages under /coach (not /coach/chat). Verified with curl on a production build."
+    }
+  ],
+  "baselineCommit": "37f2e45",
+  "decision": {
+    "by": "owner",
+    "note": "Owner 2026-11-08: 'nuusan file yu eshiig shalgaj heregtei zuilsiig awch app deer gargan uyaldaa holbootoi ajluul'. proxy.js: core mode also hides the human-coach marketplace pages under /coach (not /coach/chat). Verified with curl on a production build.",
+    "at": "2026-11-08T04:44:50.467Z"
+  }
+}
