@@ -2,6 +2,20 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Less text, progress at a glance (owner, from phone screenshots: "too much text; I can't see how I improved")
+- `ProgressGlance` (components/progress): first rounds → latest rounds as two big numbers + ▲/▼ delta,
+  the score line, punches per round first → now, three icon tiles (rounds, best, streak). Under 4 rounds
+  it shows n/4 instead of a comparison. Math: `progressGlance` in lib/progressStats (windows never overlap;
+  4 unit tests). On Progress (replaces the 4 number tiles + the separate trend chart), Home (replaces the
+  rank + "skill" bars) and the DNA page's Progress tab (replaces 4 text-heavy cards).
+- Train start screen: one card at most (DailyHub picks by priority); no technique picker in core mode; the
+  two "today's focus" cards (English drill text, "Power · 6.2/10") removed.
+- DNA page: no summary paragraphs, top 3 style bars without numbers, no duplicate fighter list, no
+  confidence journey / timeline (@S4) / before-after table / milestone chips; non-Pro users see one Pro
+  block, not two.
+- Coach: "Coach sees" with Accuracy / Power / Speed numbers (not measured by the camera) → one localized
+  line "N раунд · дундаж X".
+
 ## Owner's 3 research docs applied (owner: "Ashigla", "Hii")
 - Digest + decisions: `docs/research/2026-11-08-research-digest.md` (what was verified in code, what was
   fixed, KPIs with events, AI validation protocol, Mongolian payment context). Shop UX rules (intent

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { progressStats, scoredSessions, sessionTime, shortDate } from "@/lib/progressStats";
+import { progressGlance, progressStats, scoredSessions, sessionTime, shortDate } from "@/lib/progressStats";
 
 const DAY = 86400000;
 const NOW = Date.UTC(2026, 10, 6);
@@ -55,5 +55,38 @@ describe("shortDate", () => {
     expect(shortDate(ts, "ko")).toBe("11월 5일");
     expect(shortDate(ts, "en")).toBe("Nov 5");
     expect(shortDate(null, "mn")).toBe("—");
+  });
+});
+
+
+describe("progressGlance — first rounds vs latest rounds", () => {
+  const day = 86_400_000;
+  const mk = (scores, punches) => scores.map((score, i) => ({
+    id: `s${i}`, type: "training", score,
+    createdAt: { seconds: (1_800_000_000_000 + i * day) / 1000 }, // i = 0 is the oldest
+    poseMetrics: punches ? { punchCount: punches[i] } : undefined,
+  }));
+
+  it("not ready under 4 rounds (no comparison from 1 vs 1)", () => {
+    const g = progressGlance(mk([5, 6, 7]));
+    expect(g).toMatchObject({ ready: false, count: 3, need: 4 });
+    expect(g.delta).toBeUndefined();
+  });
+
+  it("2 vs 2 at 4 rounds, 5 vs 5 from 10 rounds, windows never overlap", () => {
+    expect(progressGlance(mk([5, 5, 7, 7]))).toMatchObject({ ready: true, k: 2, start: 5, now: 7, delta: 2 });
+    const ten = progressGlance(mk([5, 5, 5, 5, 5, 7, 7, 7, 7, 7]));
+    expect(ten).toMatchObject({ k: 5, start: 5, now: 7, delta: 2 });
+    const odd = progressGlance(mk([4, 5, 6, 7, 8]));      // k = 2: first [4,5], latest [7,8]
+    expect(odd).toMatchObject({ k: 2, start: 4.5, now: 7.5, delta: 3 });
+  });
+
+  it("punches per round only when every round in both windows has a count", () => {
+    expect(progressGlance(mk([5, 5, 7, 7], [20, 30, 40, 50]))).toMatchObject({ punchesStart: 25, punchesNow: 45 });
+    expect(progressGlance(mk([5, 5, 7, 7], [20, 0, 40, 50])).punchesStart).toBeNull();
+  });
+
+  it("a drop is shown as a drop", () => {
+    expect(progressGlance(mk([8, 8, 6, 6])).delta).toBe(-2);
   });
 });

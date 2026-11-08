@@ -169,7 +169,7 @@ export default function VisualFixture() {
           locale={locale} t={t} loading={false} currentXP={xp}
           rank={getFighterRank(xp)} nextRank={getNextRank(xp)} rankPct={getRankProgress(xp)}
           stats={progressStats(SESSIONS, { now: NOW })} dna={computeFighterDNA({ sessions: SESSIONS, locale })}
-          sessions={SESSIONS} go={() => {}}
+          sessions={SESSIONS} go={() => {}} streak={6}
         />
       </main>
     );

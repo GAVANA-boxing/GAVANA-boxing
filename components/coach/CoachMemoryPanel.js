@@ -1,14 +1,22 @@
 "use client";
 
+import { loc } from "@/lib/loc";
+
 /**
- * Compact panel showing what the coach "sees" about the fighter —
- * derived from the coach snapshot (weak areas, strong areas, stats).
+ * One line of what the coach knows about the fighter: rounds + average score. (The movement-
+ * identity label is English-only in lib/combatIdentity, so it isn't shown in the MN/KO UI.)
+ * (No per-skill numbers here: "Power", "Accuracy" etc. are not measured by the camera, so
+ * showing them as scores was misleading — owner feedback 2026-11-08.)
  *
  * Props:
- *   coachSnapshot  {{ identity, weakAreas, strongAreas, totalSessions, avgScore }} | null
+ *   coachSnapshot  {{ totalSessions, avgScore }} | null
+ *   locale         "mn" | "ko" | "en"
  */
-export default function CoachMemoryPanel({ coachSnapshot }) {
+export default function CoachMemoryPanel({ coachSnapshot, locale = "en" }) {
   if (!coachSnapshot) return null;
+  const L = (mn, ko, en) => loc(locale, mn, ko, en);
+  const n = coachSnapshot.totalSessions || 0;
+  const avg = Number(coachSnapshot.avgScore);
 
   return (
     <div style={{
@@ -17,33 +25,13 @@ export default function CoachMemoryPanel({ coachSnapshot }) {
       borderRadius: 11,
       background: "rgba(255,255,255,0.025)",
       border: "1px solid rgba(255,255,255,0.07)",
+      display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center",
     }}>
-      <div style={{
-        fontSize: 11, fontWeight: 900, letterSpacing: 1.8,
-        color: "rgba(255,255,255,0.55)", textTransform: "uppercase", marginBottom: 7,
-      }}>
-        Coach sees
-      </div>
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-        {coachSnapshot.identity && (
-          <span style={{ fontSize: 12, fontWeight: 900, color: "rgba(255,255,255,0.7)", background: "rgba(255,255,255,0.06)", borderRadius: 999, padding: "3px 9px" }}>
-            {coachSnapshot.identity.primary}
-          </span>
-        )}
-        {coachSnapshot.weakAreas.slice(0, 2).map(([k, v]) => (
-          <span key={k} style={{ fontSize: 12, fontWeight: 800, color: "rgba(255,80,70,0.85)", background: "rgba(255,60,48,0.08)", borderRadius: 999, padding: "3px 8px" }}>
-            ⚠ {k} {v.toFixed(1)}
-          </span>
-        ))}
-        {coachSnapshot.strongAreas.slice(0, 1).map(([k, v]) => (
-          <span key={k} style={{ fontSize: 12, fontWeight: 800, color: "rgba(245,196,81,0.85)", background: "rgba(245,196,81,0.07)", borderRadius: 999, padding: "3px 8px" }}>
-            ⚡ {k} {v.toFixed(1)}
-          </span>
-        ))}
-        <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.55)", fontWeight: 700 }}>
-          {coachSnapshot.totalSessions} sessions · avg {coachSnapshot.avgScore.toFixed(1)}
-        </span>
-      </div>
+      <span aria-hidden="true" style={{ fontSize: 14 }}>🧠</span>
+      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", fontWeight: 700 }}>
+        {L(`${n} раунд`, `${n}라운드`, `${n} rounds`)}
+        {Number.isFinite(avg) && n > 0 ? ` · ${L("дундаж", "평균", "avg")} ${avg.toFixed(1)}` : ""}
+      </span>
     </div>
   );
 }

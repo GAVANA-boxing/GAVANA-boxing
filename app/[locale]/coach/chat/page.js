@@ -342,7 +342,7 @@ export default function AIChatPage() {
         t={t}
       />
 
-      <CoachMemoryPanel coachSnapshot={coachSnapshot} />
+      <CoachMemoryPanel coachSnapshot={coachSnapshot} locale={locale} />
 
       <div style={s.messages}>
         {messages.length === 0 && !loading && (
