@@ -1,6 +1,35 @@
 {
   "runs": [
     {
+      "id": "20261108T042629Z-620d50d",
+      "task": "clarity (audit C): one fighting-style list + colours (lib/archetypes), one site address (lib/site), MN/KO sidebar + labels (no English in MN core screens: round titles, drill tags, analysis, streak modal, tour, ghost, badges), one term each (дараалал, жэб, AI коуч, сүүдэр раунд vs өөрийгөө давах), boxer-named styles + default IQ removed, first-round card shows 'See my result', no auto share popup, push prompt once a week, onboarding 3 steps in core mode",
+      "verdict": "ACCEPTED",
+      "commit": "620d50d",
+      "at": "2026-11-08T04:31:05.876Z",
+      "durationS": 276,
+      "level": "YELLOW",
+      "failedSteps": [],
+      "notRun": [
+        "rules"
+      ],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 273,
+        "unit.failed": 0,
+        "bundle.kb": 6207,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 60,
+        "visual.failed": 0,
+        "visual.flaky": 0
+      },
+      "decision": null
+    },
+    {
       "id": "20261108T041019Z-4271867",
       "task": "GAVANA Pro + pricing: one plan in lib/pro.js (9,900₮/month, 79,000₮/year, MNT), only enforced perks (AI coach unlimited vs 10/day free, streak saves, DNA report server-gated), isProUser checks Stripe status, sale only when fully configured (/api/stripe/config), checkout plans + locale URLs, webhook write checked + customer saved, cancel via Stripe portal, single /pro page, removed false perks/USD tiers/dead upgrade links, terms updated",
       "verdict": "ACCEPTED",

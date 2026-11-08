@@ -57,7 +57,7 @@ export default function AppSidebar({ currentLocale }) {
     <aside style={sidebarStyle}>
       <SidebarLogo onLogoClick={() => go("home")} />
 
-      <SidebarNav isActive={isActive} onNavigate={go} />
+      <SidebarNav isActive={isActive} onNavigate={go} locale={locale} />
 
       {user && (
         <SidebarFooter

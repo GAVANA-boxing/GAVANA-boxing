@@ -1,6 +1,6 @@
 "use client";
 
-import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
+import { ARCHETYPE_DISPLAY } from "@/lib/archetypes";
 import { RED, RED_DARK, redAlpha } from "@/lib/tokens";
 import { loc } from "@/lib/loc";
 import s from "@/components/sparring/sparringStyles";

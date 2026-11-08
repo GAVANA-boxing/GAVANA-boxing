@@ -6,7 +6,7 @@ import { showRoute } from "@/lib/coreRoutes";
 
 // Core-loop focus: drop hidden routes, then any group left empty.
 const VISIBLE_NAV = NAV
-  .map(({ group, items }) => ({ group, items: items.filter(({ path }) => showRoute(path)) }))
+  .map(({ group, groupLabel, items }) => ({ group, groupLabel, items: items.filter(({ path }) => showRoute(path)) }))
   .filter(({ items }) => items.length > 0);
 
 const s = {
@@ -15,7 +15,7 @@ const s = {
   groupLabel: {
     fontSize: 11,
     fontWeight: 900,
-    color: "rgba(255,255,255,0.11)",
+    color: "rgba(255,255,255,0.45)",
     letterSpacing: 2,
     textTransform: "uppercase",
     padding: "0 10px",
@@ -73,12 +73,13 @@ const s = {
   },
 };
 
-export default function SidebarNav({ isActive, onNavigate }) {
+export default function SidebarNav({ isActive, onNavigate, locale = "mn" }) {
+  const tr = (v) => (typeof v === "string" ? v : v?.[locale] || v?.en || "");
   return (
     <nav style={s.nav}>
-      {VISIBLE_NAV.map(({ group, items }) => (
+      {VISIBLE_NAV.map(({ group, groupLabel, items }) => (
         <div key={group} style={s.navGroup}>
-          <div style={s.groupLabel}>{group}</div>
+          <div style={s.groupLabel}>{tr(groupLabel) || group}</div>
           {items.map(({ Icon, label, path }) => {
             const active = isActive(path);
             return (
@@ -94,10 +95,10 @@ export default function SidebarNav({ isActive, onNavigate }) {
                 </span>
                 <span style={{
                   ...s.navLabel,
-                  color: active ? "#fff" : "rgba(255,255,255,0.32)",
+                  color: active ? "#fff" : "rgba(255,255,255,0.66)",
                   fontWeight: active ? 700 : 500,
                 }}>
-                  {label}
+                  {tr(label)}
                 </span>
                 {active && <span style={s.activePip} />}
               </button>

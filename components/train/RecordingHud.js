@@ -5,6 +5,19 @@ import { FOCUS_COLORS } from "@/lib/drillConfig";
 import styles from "@/components/train/trainStyles";
 import { loc } from "@/lib/loc";
 
+// Drill tags (lib/drillConfig focusLabel) in the fighter's language: [mn, ko, en].
+const FOCUS_LABEL_TEXT = {
+  TRAINING: ["БЭЛТГЭЛ", "훈련", "TRAINING"],
+  FLOW: ["УРСГАЛ", "플로우", "FLOW"],
+  RHYTHM: ["ХЭМНЭЛ", "리듬", "RHYTHM"],
+  PRESSURE: ["ДАРАМТ", "압박", "PRESSURE"],
+  DEFENSE: ["ХАМГААЛАЛТ", "방어", "DEFENSE"],
+  MOVEMENT: ["ХӨДӨЛГӨӨН", "움직임", "MOVEMENT"],
+  "JAB RHYTHM": ["ЖЭБИЙН ХЭМНЭЛ", "잽 리듬", "JAB RHYTHM"],
+  "MAX SPEED": ["ДЭЭД ХУРД", "최고 속도", "MAX SPEED"],
+  COMBOS: ["КОМБО", "콤보", "COMBOS"],
+};
+
 export default function RecordingHud({
   hitCount,
   secondsLeft,
@@ -61,7 +74,7 @@ export default function RecordingHud({
             borderRadius: 4, padding: "2px 6px",
             textTransform: "uppercase",
           }}>
-            {drillConfig.focusLabel}
+            {(FOCUS_LABEL_TEXT[drillConfig.focusLabel] && loc(locale, ...FOCUS_LABEL_TEXT[drillConfig.focusLabel])) || drillConfig.focusLabel}
           </span>
         )}
 

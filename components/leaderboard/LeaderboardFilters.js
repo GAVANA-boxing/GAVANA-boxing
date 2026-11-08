@@ -1,7 +1,7 @@
 "use client";
 
 import styles from "@/components/leaderboard/leaderboardStyles";
-import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
+import { ARCHETYPE_DISPLAY } from "@/lib/archetypes";
 import { GOLD, redAlpha } from "@/lib/tokens";
 
 const WEIGHT_CLASSES = ["all", "-54", "-60", "-67", "-75", "-81", "+91"];
@@ -31,10 +31,7 @@ export default function LeaderboardFilters({
 
   const archetypeOptions = [
     { key: "all",       label: t("lbAllArchetype") },
-    { key: "pressure",  label: `${ARCHETYPE_DISPLAY.pressure.emoji} Pressure` },
-    { key: "counter",   label: `${ARCHETYPE_DISPLAY.counter.emoji} Counter` },
-    { key: "technical", label: `${ARCHETYPE_DISPLAY.technical.emoji} Technical` },
-    { key: "brawler",   label: `${ARCHETYPE_DISPLAY.brawler.emoji} Brawler` },
+    ...Object.keys(ARCHETYPE_DISPLAY).map((key) => ({ key, label: `${ARCHETYPE_DISPLAY[key].emoji} ${ARCHETYPE_DISPLAY[key].name.split(" ").pop()}` })),
   ];
 
   return (

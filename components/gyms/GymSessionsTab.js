@@ -2,14 +2,9 @@
 
 import EmptyState from "@/components/EmptyState";
 import { RED, GOLD } from "@/lib/tokens";
+import { ARCHETYPE_COLORS } from "@/lib/archetypes";
 
-const ARCH_COLORS = {
-  pressure: "#EF4444",
-  outboxer: "#3B82F6",
-  counter: "#8B5CF6",
-  explosive: "#F59E0B",
-  technician: "#10B981",
-};
+const ARCH_COLORS = ARCHETYPE_COLORS; // lib/archetypes.js
 
 export default function GymSessionsTab({ members, requesterUsers, locale, router, t, gym }) {
   if (members.length === 0) {

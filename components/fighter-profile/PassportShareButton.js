@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { GOLD, RADIUS, whiteAlpha } from "@/lib/tokens";
 import { ARCH_TRAINING_COLORS } from "@/lib/archetypeTraining";
+import { SITE_HOST } from "@/lib/site";
 
 const SHARE_L = {
   en: { sharePassport: "Share Passport", shared: "Shared!" },
@@ -91,10 +92,10 @@ export default function PassportShareButton({ dna, sessions, streak, locale }) {
         });
       }
 
-      // Bottom: gavana.app
+      // Bottom: the site address
       ctx.fillStyle = "rgba(255,255,255,0.15)";
       ctx.font = "bold 10px Arial";
-      ctx.fillText("gavana.app", 24, 348);
+      ctx.fillText(SITE_HOST, 24, 348);
 
       // Download or share
       const dataUrl = canvas.toDataURL("image/png");

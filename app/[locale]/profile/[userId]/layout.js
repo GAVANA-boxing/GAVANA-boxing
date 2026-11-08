@@ -3,6 +3,7 @@
 
 import { getLocale } from "@/lib/i18n";
 import { loc } from "@/lib/loc";
+import { archetypeName } from "@/lib/archetypes";
 
 const PROJECT = "gavana-boxing-89a22";
 const API_KEY = "AIzaSyDwVdR5oVYSXQbWL4jqNSNx9cqKuKxqt6c";
@@ -46,12 +47,7 @@ export async function generateMetadata({ params }) {
   const archetype   = str(fields.fighterArchetype);
   const weightClass = str(fields.weightClass);
 
-  const archetypeLabel = {
-    pressure:  "Pressure Fighter",
-    counter:   "Counter Puncher",
-    technical: "Technical Boxer",
-    brawler:   "Power Brawler",
-  }[archetype] || "";
+  const archetypeLabel = archetypeName(archetype, "en") || "";
 
   const desc = [
     archetypeLabel,

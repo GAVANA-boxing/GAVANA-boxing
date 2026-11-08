@@ -3,7 +3,7 @@
 import { memo, useCallback, useState } from "react";
 import { getFighterRank } from "@/lib/xp";
 import RankBadge from "@/components/RankBadge";
-import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
+import { ARCHETYPE_DISPLAY, normalizeArchetype } from "@/lib/archetypes";
 import { formatCompact } from "@/lib/utils";
 import { getRankMedal, getScoreColor, getAvatarUrl, getEntryBadges } from "@/lib/leaderboardHelpers";
 import Image from "next/image";
@@ -121,7 +121,7 @@ const LeaderboardEntry = memo(function LeaderboardEntry({ entry, index, profiles
           </div>
           {(() => {
             const arch = profile.fighterArchetype;
-            const ad = ARCHETYPE_DISPLAY[arch];
+            const ad = ARCHETYPE_DISPLAY[normalizeArchetype(arch)];
             if (!ad) return null;
             return (
               <span style={{

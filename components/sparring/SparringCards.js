@@ -1,7 +1,7 @@
 "use client";
 
 import { translate } from "@/lib/i18n";
-import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
+import { ARCHETYPE_DISPLAY, normalizeArchetype } from "@/lib/archetypes";
 import { RED, RED_DARK, GOLD, redAlpha , blackAlpha} from "@/lib/tokens";
 import { getWeightClassLabel } from "@/lib/weightClasses";
 import { c } from "@/components/sparring/sparringStyles";
@@ -24,7 +24,7 @@ const STAT_DEFS = [
 ];
 
 export function FighterCard({ post, isMe, onRequest, sent, requesting, locale, isDemo = false }) {
-  const arch = ARCHETYPE_DISPLAY[post.archetype];
+  const arch = ARCHETYPE_DISPLAY[normalizeArchetype(post.archetype)];
   const t = (key) => translate(locale, key);
   const isBusy = requesting === post.userId;
   const stats = ARCHETYPE_STATS[post.archetype] || null;
@@ -148,7 +148,7 @@ export function FighterCard({ post, isMe, onRequest, sent, requesting, locale, i
 }
 
 export function IncomingRequestCard({ req, onAccept, onDecline, accepting, declining, locale }) {
-  const arch = ARCHETYPE_DISPLAY[req.fromArchetype];
+  const arch = ARCHETYPE_DISPLAY[normalizeArchetype(req.fromArchetype)];
   const isBusy = accepting === req.id || declining === req.id;
   const timeAgo = formatAgo(req.createdAt, locale);
 

@@ -132,7 +132,7 @@ export default function GhostRoundPage() {
           replay={ghost}
           locale={locale}
           onClose={exit}
-          title={L("Ghost Round · Jab–Cross", "고스트 라운드 · 잽–크로스", "Ghost Round · Jab–Cross")}
+          title={L("Сүүдэр раунд · Жэб–Кросс", "고스트 라운드 · 잽–크로스", "Ghost Round · Jab–Cross")}
           subtitle={
             <>
               {L(
@@ -218,7 +218,7 @@ export default function GhostRoundPage() {
   return (
     <main style={{ minHeight: "100dvh", background: pageBackground, color: "#fff", padding: "calc(20px + env(safe-area-inset-top)) 16px 32px" }}>
       <div style={{ maxWidth: 520, margin: "0 auto", display: "flex", flexDirection: "column", gap: 14 }}>
-        <p style={{ ...kickerPill, alignSelf: "flex-start" }}><span style={kickerDot} />{L("Ghost Round · Jab–Cross", "고스트 라운드 · 잽–크로스", "Ghost Round · Jab–Cross")}</p>
+        <p style={{ ...kickerPill, alignSelf: "flex-start" }}><span style={kickerDot} />{L("Сүүдэр раунд · Жэб–Кросс", "고스트 라운드 · 잽–크로스", "Ghost Round · Jab–Cross")}</p>
 
         {noData ? (
           <p style={{ margin: 0, fontSize: FONT_SIZE.md, color: whiteAlpha(0.8), lineHeight: 1.5 }}>
@@ -230,7 +230,7 @@ export default function GhostRoundPage() {
           <>
             <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
               <span style={{ ...displayTitle, fontSize: 64, color: a.match >= 75 ? GREEN : a.match >= 50 ? GOLD : RED }}>{a.match}%</span>
-              <span style={{ fontSize: FONT_SIZE.base, color: whiteAlpha(0.6) }}>{L("Ghost-той таарсан", "고스트와 일치", "match with the ghost")}</span>
+              <span style={{ fontSize: FONT_SIZE.base, color: whiteAlpha(0.6) }}>{L("Сүүдэртэй таарсан", "고스트와 일치", "match with the ghost")}</span>
             </div>
 
             <div style={{ padding: 16, borderRadius: 20, background: redAlpha(0.1), border: `1px solid ${redAlpha(0.35)}` }}>
@@ -265,7 +265,7 @@ export default function GhostRoundPage() {
           {L("Дахин раунд", "다시 라운드", "Another round")}
         </button>
         <button type="button" onClick={exit} style={{ ...btnSecondary, fontFamily: "inherit", color: whiteAlpha(0.75) }}>
-          {L("Train руу буцах", "트레이닝으로", "Back to Train")}
+          {L("Бэлтгэл рүү буцах", "훈련으로", "Back to Train")}
         </button>
       </div>
 

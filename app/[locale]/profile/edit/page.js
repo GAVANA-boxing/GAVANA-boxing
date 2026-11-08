@@ -277,7 +277,7 @@ export default function EditProfilePage() {
           <WeightClassPicker value={weightClass} onChange={setWeightClass} t={t} />
 
           {/* Fighting style */}
-          <ArchetypePicker value={archetype} onChange={setArchetype} t={t} />
+          <ArchetypePicker value={archetype} onChange={setArchetype} t={t} locale={locale} />
 
           {error && <div style={styles.error}>{error}</div>}
 

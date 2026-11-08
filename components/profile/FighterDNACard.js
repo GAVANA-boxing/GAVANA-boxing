@@ -3,14 +3,9 @@
 import { RED, GOLD, RADIUS, whiteAlpha, goldAlpha, redAlpha } from "@/lib/tokens";
 import { ARCH_IMAGES } from "@/lib/archetypeTraining";
 import { DNA_LABELS, SIGNAL_LABELS } from "@/lib/profileLabels";
+import { ARCHETYPE_COLORS } from "@/lib/archetypes";
 
-const STYLE_COLORS = {
-  pressure:   "#FF3B30",
-  outboxer:   "#34D399",
-  counter:    "#3B82F6",
-  explosive:  "#F59E0B",
-  technician: "#F5C451",
-};
+const STYLE_COLORS = ARCHETYPE_COLORS; // lib/archetypes.js
 
 
 function StyleBar({ label, value, color }) {

@@ -1,13 +1,10 @@
 "use client";
 
 import { ARCH_TRAINING_COLORS } from "@/lib/archetypeTraining";
+import { ARCHETYPE_NAMES } from "@/lib/archetypes";
 import { GOLD } from "@/lib/tokens";
 
-const ARCH_DISPLAY_S = {
-  en: { pressure: "Pressure Fighter", outboxer: "Outboxer", counter: "Counter Fighter", explosive: "Explosive Fighter", technician: "Technician" },
-  mn: { pressure: "Дарамт тулаанч",   outboxer: "Аутбоксер", counter: "Контр тулаанч", explosive: "Тэсрэмтгий тулаанч", technician: "Техникч" },
-  ko: { pressure: "프레셔 파이터",     outboxer: "아웃복서",  counter: "카운터 파이터", explosive: "폭발적 파이터",        technician: "테크니션" },
-};
+const ARCH_DISPLAY_S = ARCHETYPE_NAMES; // lib/archetypes.js — the one list
 
 const SIG_L = {
   en: {
@@ -23,7 +20,7 @@ const SIG_L = {
     session2hint:  "1 more session unlocks your Fighter DNA",
     fewPunches:    "Too few punches counted to read a style yet — stand where your whole body is in frame.",
     session3hint:  "3 sessions complete. Your DNA is ready to view.",
-    trainAgain: "Train Again →", viewDNA: "View Your DNA →", viewProfile: "View Profile",
+    trainAgain: "Train Again →", viewDNA: "View Your DNA →", viewProfile: "View Profile", seeResult: "See my result",
     title1: "SESSION 1 COMPLETE", title2: "SESSION 2 COMPLETE", title3: "DNA ANALYSIS UNLOCKED",
     dnaJourney: "DNA JOURNEY",
   },
@@ -40,7 +37,7 @@ const SIG_L = {
     session2hint:  "1 бэлтгэл нэмбэл таны ДНХ нээгдэнэ",
     fewPunches:    "Хэв маяг уншихад цохилт хангалтгүй тоологдлоо — бүтэн биеэ кадрт багтаа.",
     session3hint:  "3 бэлтгэл дууслаа. ДНХ харахад бэлэн боллоо.",
-    trainAgain: "Дахин бэлтгэл хий →", viewDNA: "ДНХ харах →", viewProfile: "Профайл харах",
+    trainAgain: "Дахин бэлтгэл хий →", viewDNA: "ДНХ харах →", viewProfile: "Профайл харах", seeResult: "Үр дүнгээ харах",
     title1: "1-Р БЭЛТГЭЛ ДУУСЛАА", title2: "2-Р БЭЛТГЭЛ ДУУСЛАА", title3: "ДНХ ШИНЖИЛГЭЭ НЭЭГДЛАА",
     dnaJourney: "ДНХ АЯЛАЛ",
   },
@@ -57,7 +54,7 @@ const SIG_L = {
     session2hint:  "1회 더 훈련하면 파이터 DNA가 잠금 해제됩니다",
     fewPunches:    "스타일을 읽기엔 펀치가 너무 적어요 — 전신이 화면에 들어오게 서 주세요.",
     session3hint:  "3세션 완료. DNA를 확인할 준비가 되었습니다.",
-    trainAgain: "다시 훈련 →", viewDNA: "DNA 보기 →", viewProfile: "프로필 보기",
+    trainAgain: "다시 훈련 →", viewDNA: "DNA 보기 →", viewProfile: "프로필 보기", seeResult: "내 결과 보기",
     title1: "세션 1 완료", title2: "세션 2 완료", title3: "DNA 분석 잠금 해제",
     dnaJourney: "DNA 여정",
   },
@@ -192,42 +189,22 @@ export default function FirstSessionHook({ locale, firstSessionHook, setFirstSes
           </div>
         </div>
 
-        {/* CTAs — session 3 swaps primary/secondary */}
-        {sessionNum === 3 ? (
-          <>
-            <button
-              type="button"
-              onClick={() => { setFirstSessionHook(null); router.push(`/${locale}/fighter-profile`); }}
-              style={{ width: "100%", padding: "15px 0", borderRadius: 14, background: acc, border: "none", color: "#000", fontSize: 15, fontWeight: 900, letterSpacing: 0.5, cursor: "pointer", marginBottom: 12, boxShadow: `0 4px 24px ${acc}44` }}
-            >
-              {SL.viewDNA}
-            </button>
-            <button
-              type="button"
-              onClick={() => { setFirstSessionHook(null); handleTryAgain?.(); }}
-              style={{ width: "100%", padding: "11px 0", borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.45)", fontSize: 13, fontWeight: 800, cursor: "pointer" }}
-            >
-              {SL.trainAgain}
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              type="button"
-              onClick={() => { setFirstSessionHook(null); handleTryAgain?.(); }}
-              style={{ width: "100%", padding: "15px 0", borderRadius: 14, background: acc, border: "none", color: "#000", fontSize: 15, fontWeight: 900, letterSpacing: 0.5, cursor: "pointer", marginBottom: 12, boxShadow: `0 4px 24px ${acc}44` }}
-            >
-              {SL.trainAgain}
-            </button>
-            <button
-              type="button"
-              onClick={() => { setFirstSessionHook(null); router.push(`/${locale}/fighter-profile`); }}
-              style={{ width: "100%", padding: "11px 0", borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.45)", fontSize: 13, fontWeight: 800, cursor: "pointer" }}
-            >
-              {SL.viewProfile}
-            </button>
-          </>
-        )}
+        {/* CTAs. The round's result (score, the one fix, AI debrief) is right under this
+            card — "See my result" closes the card so a new fighter never loses it. */}
+        <button
+          type="button"
+          onClick={() => setFirstSessionHook(null)}
+          style={{ width: "100%", minHeight: 50, borderRadius: 14, background: acc, border: "none", color: "#000", fontSize: 15, fontWeight: 900, letterSpacing: 0.5, cursor: "pointer", marginBottom: 10, boxShadow: `0 4px 24px ${acc}44`, fontFamily: "inherit" }}
+        >
+          {SL.seeResult}
+        </button>
+        <button
+          type="button"
+          onClick={() => { setFirstSessionHook(null); if (sessionNum === 3) router.push(`/${locale}/fighter-profile`); else handleTryAgain?.(); }}
+          style={{ width: "100%", minHeight: 44, borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.8)", fontSize: 14, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}
+        >
+          {sessionNum === 3 ? SL.viewDNA : SL.trainAgain}
+        </button>
       </div>
     </div>
   );

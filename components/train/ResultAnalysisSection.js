@@ -245,7 +245,7 @@ export default function ResultAnalysisSection({
                 {poseMetrics.punchCount > 0 ? (
                   <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                     <span style={{ fontSize: 12, color: whiteAlpha(0.55) }}>·</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: whiteAlpha(0.55) }}>{poseMetrics.punchCount} PUNCHES</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: whiteAlpha(0.6) }}>{loc(locale, `${poseMetrics.punchCount} цохилт`, `펀치 ${poseMetrics.punchCount}`, `${poseMetrics.punchCount} PUNCHES`)}</span>
                   </div>
                 ) : poseMetrics?.frameCount >= 20 ? (
                   <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
@@ -272,91 +272,47 @@ export default function ResultAnalysisSection({
           })()}
 
           {(() => {
+            // Round analysis from lib/boxingIntelligence. Its style labels and cue sentences are
+            // English-only (and some style names were real boxers), so MN/KO show only the
+            // measured, translated parts; the boxer-named archetype and the default-70 "Ring IQ"
+            // number are not shown at all.
             const bi = poseMetrics.boxingIntelligence;
             if (!bi) return null;
-            const styleColor = bi.style === "explosive" ? "#F59E0B" : bi.style === "pressure" ? "#F87171" : bi.style === "outboxer" ? "#34D399" : "#94A3B8";
-            const { tactical, ringIQ, fighterDNA: dna, cornerAdvice, roundBreakdown: rounds } = bi;
+            const isEn = locale === "en";
+            const { tactical, cornerAdvice, roundBreakdown: rounds } = bi;
+            const def = bi.defensive;
+            const hasDefense = def && ((def.slipCount || 0) + (def.bobCount || 0)) > 0;
+            if (!isEn && !hasDefense && !rounds) return null;
             return (
               <>
-                <div style={{ marginBottom: 8, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                  {bi.styleLabel && bi.styleConfidence >= 0.3 && (
-                    <div style={{ padding: "3px 10px", borderRadius: 20, background: `${styleColor}14`, border: `1px solid ${styleColor}35`, fontSize: 12, fontWeight: 700, letterSpacing: 1.5, color: styleColor, textTransform: "uppercase" }}>{bi.styleLabel}</div>
-                  )}
-                  {tactical?.profileLabel && (
-                    <div style={{ padding: "3px 10px", borderRadius: 20, background: goldAlpha(0.10), border: `1px solid ${goldAlpha(0.28)}`, fontSize: 12, fontWeight: 700, letterSpacing: 1.2, color: GOLD, textTransform: "uppercase" }}>{tactical.profileLabel}</div>
-                  )}
-                  {bi.weakness && (
-                    <div style={{ fontSize: 12, color: whiteAlpha(0.55), fontWeight: 700 }}>Focus: <span style={{ color: "#F59E0B", fontWeight: 700 }}>{bi.weakness.label}</span></div>
-                  )}
-                </div>
-                {tactical?.tacticalCues?.length > 0 && (
+                {isEn && tactical?.tacticalCues?.length > 0 && (
                   <div style={{ marginBottom: 8, padding: "7px 10px", borderRadius: 8, background: goldAlpha(0.05), border: `1px solid ${goldAlpha(0.14)}` }}>
                     {tactical.tacticalCues.map((cue, i) => (
                       <div key={i} style={{ fontSize: 12.5, color: whiteAlpha(0.65), lineHeight: 1.55, paddingBottom: i < tactical.tacticalCues.length - 1 ? 4 : 0 }}>→ {cue}</div>
                     ))}
                   </div>
                 )}
-                {bi.defensive && (
-                  <div style={{ marginBottom: 8 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
-                      <div style={{ padding: "3px 10px", borderRadius: 20, background: "rgba(167,139,250,0.10)", border: "1px solid rgba(167,139,250,0.28)", fontSize: 12, fontWeight: 700, letterSpacing: 1.2, color: "#A78BFA", textTransform: "uppercase" }}>{bi.defensive.defensiveStyleLabel}</div>
-                      <span style={{ fontSize: 12, color: whiteAlpha(0.55), fontWeight: 700 }}>{bi.defensive.slipCount}s {bi.defensive.bobCount}b defensive actions</span>
-                    </div>
-                    {bi.defensive.defensiveCues?.length > 0 && (
-                      <div style={{ padding: "7px 10px", borderRadius: 8, background: "rgba(167,139,250,0.05)", border: "1px solid rgba(167,139,250,0.14)" }}>
-                        {bi.defensive.defensiveCues.map((cue, i) => (
-                          <div key={i} style={{ fontSize: 12.5, color: whiteAlpha(0.65), lineHeight: 1.55, paddingBottom: i < bi.defensive.defensiveCues.length - 1 ? 4 : 0 }}>→ {cue}</div>
-                        ))}
-                      </div>
-                    )}
+                {hasDefense && (
+                  <div style={{ marginBottom: 8, fontSize: 12.5, color: whiteAlpha(0.7), fontWeight: 700 }}>
+                    {loc(locale, `Хамгаалалт: мултралт ${def.slipCount || 0} · бөхийлт ${def.bobCount || 0}`, `방어: 슬립 ${def.slipCount || 0} · 밥 ${def.bobCount || 0}`, `Defense: ${def.slipCount || 0} slips · ${def.bobCount || 0} bobs`)}
                   </div>
                 )}
-                {ringIQ && (
-                  <div style={{ marginBottom: 8 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
-                      <div style={{ padding: "3px 10px", borderRadius: 20, background: "rgba(249,168,212,0.10)", border: "1px solid rgba(249,168,212,0.28)", fontSize: 12, fontWeight: 700, letterSpacing: 1.2, color: "#F9A8D4", textTransform: "uppercase" }}>{ringIQ.iqLabel}</div>
-                      <span style={{ fontSize: 12, color: whiteAlpha(0.55), fontWeight: 700 }}>IQ {ringIQ.iqScore}/100</span>
-                    </div>
-                    {ringIQ.cues?.length > 0 && (
-                      <div style={{ padding: "7px 10px", borderRadius: 8, background: "rgba(249,168,212,0.04)", border: "1px solid rgba(249,168,212,0.14)" }}>
-                        {ringIQ.cues.map((cue, i) => (
-                          <div key={i} style={{ fontSize: 12.5, color: whiteAlpha(0.65), lineHeight: 1.55, paddingBottom: i < ringIQ.cues.length - 1 ? 4 : 0 }}>→ {cue}</div>
-                        ))}
-                      </div>
-                    )}
+                {isEn && cornerAdvice?.length > 0 && (
+                  <div style={{ marginBottom: 8, padding: "8px 10px", borderRadius: 8, background: "rgba(110,231,183,0.04)", border: "1px solid rgba(110,231,183,0.14)" }}>
+                    {cornerAdvice.map((tip, i) => (
+                      <div key={i} style={{ fontSize: 12.5, color: whiteAlpha(0.7), lineHeight: 1.6, paddingBottom: i < cornerAdvice.length - 1 ? 5 : 0 }}>▸ {tip}</div>
+                    ))}
                   </div>
                 )}
-                {dna && (
-                  <div style={{ marginBottom: 8 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
-                      <div style={{ padding: "3px 10px", borderRadius: 20, background: "rgba(252,211,77,0.10)", border: "1px solid rgba(252,211,77,0.28)", fontSize: 12, fontWeight: 700, letterSpacing: 1.2, color: "#FCD34D", textTransform: "uppercase" }}>{dna.archetypeLabel}</div>
-                    </div>
-                    <div style={{ padding: "7px 10px", borderRadius: 8, background: "rgba(252,211,77,0.04)", border: "1px solid rgba(252,211,77,0.14)" }}>
-                      {dna.archetypeTraits?.map((trait, i) => (
-                        <div key={i} style={{ fontSize: 12.5, color: whiteAlpha(0.55), lineHeight: 1.55, paddingBottom: i < dna.archetypeTraits.length - 1 ? 3 : 0 }}>· {trait}</div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {cornerAdvice?.length > 0 && (
-                  <div style={{ marginBottom: 8 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.2, color: "#6EE7B7", textTransform: "uppercase", marginBottom: 5 }}>{loc(locale, "Булангийн зөвлөгөө", "코너 조언", "Corner advice")}</div>
-                    <div style={{ padding: "8px 10px", borderRadius: 8, background: "rgba(110,231,183,0.04)", border: "1px solid rgba(110,231,183,0.14)" }}>
-                      {cornerAdvice.map((tip, i) => (
-                        <div key={i} style={{ fontSize: 12.5, color: whiteAlpha(0.7), lineHeight: 1.6, paddingBottom: i < cornerAdvice.length - 1 ? 5 : 0 }}>▸ {tip}</div>
-                      ))}
-                    </div>
-                    {rounds && (
-                      <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-                        {[{ label: "1st half", data: rounds.round1 }, { label: "2nd half", data: rounds.round2 }].map(({ label, data }, i) => (
-                          <div key={i} style={{ flex: 1, padding: "5px 8px", borderRadius: 7, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                            <div style={{ fontSize: 11.5, color: whiteAlpha(0.55), fontWeight: 700, marginBottom: 2 }}>{label}</div>
-                            <div style={{ fontSize: 12.5, color: whiteAlpha(0.8), fontWeight: 700 }}>{data.count} punches</div>
-                            <div style={{ fontSize: 12, color: whiteAlpha(0.45), fontWeight: 700 }}>{data.pace}/min · q{data.avgQuality}</div>
-                          </div>
-                        ))}
+                {rounds && (
+                  <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
+                    {[{ label: loc(locale, "Эхний хагас", "전반", "1st half"), data: rounds.round1 }, { label: loc(locale, "Сүүлийн хагас", "후반", "2nd half"), data: rounds.round2 }].map(({ label, data }, i) => (
+                      <div key={i} style={{ flex: 1, padding: "6px 8px", borderRadius: 7, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                        <div style={{ fontSize: 12, color: whiteAlpha(0.6), fontWeight: 700, marginBottom: 2 }}>{label}</div>
+                        <div style={{ fontSize: 13, color: whiteAlpha(0.85), fontWeight: 700 }}>{loc(locale, `${data.count} цохилт`, `펀치 ${data.count}`, `${data.count} punches`)}</div>
+                        <div style={{ fontSize: 12, color: whiteAlpha(0.6), fontWeight: 700 }}>{loc(locale, `${data.pace}/мин`, `${data.pace}/분`, `${data.pace}/min`)}</div>
                       </div>
-                    )}
+                    ))}
                   </div>
                 )}
               </>
@@ -380,7 +336,10 @@ export default function ResultAnalysisSection({
               return (
                 <div style={{ marginBottom: 8, padding: "8px 12px", borderRadius: RADIUS.md, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)" }}>
                   <span style={{ fontSize: 13, color: whiteAlpha(0.55), fontWeight: 700 }}>
-                    {poseMetrics.punchCount} punches detected — type classification uncertain. Punch more directly toward camera for technique feedback.
+                    {loc(locale,
+                      `${poseMetrics.punchCount} цохилт тоологдсон ч төрлийг нь тодорхой ялгаж чадсангүй. Техникийн зөвлөгөө авахын тулд камер руу илүү чигээр цохи.`,
+                      `펀치 ${poseMetrics.punchCount}개를 감지했지만 종류를 확실히 구분하지 못했어요. 기술 피드백을 받으려면 카메라 쪽으로 더 곧게 치세요.`,
+                      `${poseMetrics.punchCount} punches detected — type classification uncertain. Punch more directly toward camera for technique feedback.`)}
                   </span>
                 </div>
               );
@@ -406,14 +365,14 @@ export default function ResultAnalysisSection({
           {(() => {
             const bd = poseMetrics?.punchBreakdown;
             if (!bd || !Object.keys(bd).length) return null;
-            const TYPE_LABEL = { jab: "JAB", cross: "CROSS", hook: "HOOK" };
+            const TYPE_LABEL = { jab: loc(locale, "ЖЭБ", "잽", "JAB"), cross: loc(locale, "КРОСС", "크로스", "CROSS"), hook: loc(locale, "ХУК", "훅", "HOOK") };
             return (
               <div style={{ marginTop: 8, display: "flex", gap: 6, flexWrap: "wrap" }}>
                 {["jab", "cross", "hook"].filter((k) => bd[k]).map((k) => (
                   <div key={k} style={{ flex: 1, minWidth: 64, padding: "7px 10px", borderRadius: RADIUS.md, background: whiteAlpha(0.03), border: `1px solid ${whiteAlpha(0.07)}`, textAlign: "center" }}>
                     <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: 1.5, color: whiteAlpha(0.55), marginBottom: 3 }}>{TYPE_LABEL[k]}</div>
                     <div style={{ fontSize: 18, fontWeight: 1000, color: "#fff", fontFamily: "var(--font-display, 'Anton', sans-serif)" }}>{bd[k].count}</div>
-                    <div style={{ fontSize: 12, color: whiteAlpha(0.55), fontWeight: 700 }}>avg {bd[k].avgAngle}°</div>
+                    <div style={{ fontSize: 12, color: whiteAlpha(0.6), fontWeight: 700 }}>{loc(locale, "дунд.", "평균", "avg")} {bd[k].avgAngle}°</div>
                   </div>
                 ))}
               </div>
@@ -522,7 +481,7 @@ export default function ResultAnalysisSection({
             </div>
             {streakFreezeUsed && (
               <div style={{ marginTop: 8, fontSize: 13, fontWeight: 800, color: "#3B82F6", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                🧊 {locale === "mn" ? "Streak freeze ашиглагдлаа — streak хадгалагдав"
+                🧊 {locale === "mn" ? "Дараалал хамгаалалт ашиглагдлаа — дараалал хадгалагдлаа"
                   : locale === "ko" ? "스트릭 프리즈 사용됨 — 연속 기록 유지"
                   : "Streak freeze used — streak saved"}
               </div>

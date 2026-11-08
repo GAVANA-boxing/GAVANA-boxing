@@ -1,14 +1,9 @@
 "use client";
 
 import { GOLD } from "@/lib/tokens";
+import { ARCHETYPE_COLORS } from "@/lib/archetypes";
 
-const ARCH_COLORS = {
-  pressure: "#EF4444",
-  outboxer: "#3B82F6",
-  counter: "#8B5CF6",
-  explosive: "#F59E0B",
-  technician: "#10B981",
-};
+const ARCH_COLORS = ARCHETYPE_COLORS; // lib/archetypes.js
 
 const ARCH_LABELS = {
   pressure:   { en: "Pressure Fighter", mn: "Дарамтын тулаанч", ko: "프레셔 파이터" },

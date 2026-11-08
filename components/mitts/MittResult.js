@@ -65,7 +65,7 @@ export default function MittResult({ summary, locale = "en", onAgain, onExit }) 
       </div>
 
       <button type="button" onClick={onAgain} style={{ ...btnPrimary, fontFamily: "inherit" }}>{L("Дахин раунд", "다시 라운드", "Another round")}</button>
-      <button type="button" onClick={onExit} style={{ ...btnSecondary, fontFamily: "inherit", color: whiteAlpha(0.8) }}>{L("Train руу буцах", "트레이닝으로", "Back to Train")}</button>
+      <button type="button" onClick={onExit} style={{ ...btnSecondary, fontFamily: "inherit", color: whiteAlpha(0.8) }}>{L("Бэлтгэл рүү буцах", "훈련으로", "Back to Train")}</button>
     </div>
   );
 }

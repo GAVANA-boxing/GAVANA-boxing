@@ -58,9 +58,9 @@ const CHALLENGES = {
 
 const ARCH_CUES = {
   pressure:   { en: ["Push forward!", "Don't let them breathe!", "Control the center!", "Keep the pressure on!", "Walk them down!"], mn: ["Урагш дар!", "Амрахыг өгөхгүй!", "Голыг эзэл!", "Дарамтыг хадгал!", "Урагшил!"], ko: ["전진하세요!", "숨 쉬게 하지 마세요!", "중앙 장악!", "프레셔 유지!", "밀어붙이세요!"] },
-  outboxer:   { en: ["Use your footwork!", "Work those angles!", "Stay on the outside!", "Pivot and reset!", "Control the range!"], mn: ["Хөдөлгөөнөө ашигла!", "Өнцгийг ажилла!", "Гаднаас ажилла!", "Эрж ре-сет хий!", "Зайг контролло!"], ko: ["풋워크 활용!", "앵글을 만드세요!", "아웃사이드 유지!", "피벗하고 리셋!", "레인지 컨트롤!"] },
+  outboxer:   { en: ["Use your footwork!", "Work those angles!", "Stay on the outside!", "Pivot and reset!", "Control the range!"], mn: ["Хөдөлгөөнөө ашигла!", "Өнцгийг ажилла!", "Гаднаас ажилла!", "Эргээд дахин байрлал ав!", "Зайгаа барь!"], ko: ["풋워크 활용!", "앵글을 만드세요!", "아웃사이드 유지!", "피벗하고 리셋!", "레인지 컨트롤!"] },
   counter:    { en: ["Wait for it...", "Set the trap!", "Time your counter!", "Patience — then fire!", "Let them come to you!"], mn: ["Хүлээ...", "Хавхаа тавь!", "Контрын цагаа тохируул!", "Тэвч — дараа цох!", "Ирэхийг нь хүлээ!"], ko: ["기다리세요...", "트랩 설정!", "카운터 타이밍!", "인내 후 반격!", "오게 내버려 두세요!"] },
-  explosive:  { en: ["Explode!", "Fast combinations!", "Burst and reset!", "Max power!", "Surprise them!"], mn: ["Тэсрэн!", "Хурдан комбо!", "Тэсрэж, ре-сет хий!", "Дээд хүч!", "Гэнэтлүүл!"], ko: ["폭발하세요!", "빠른 콤보!", "버스트 후 리셋!", "최대 파워!", "기습하세요!"] },
+  explosive:  { en: ["Explode!", "Fast combinations!", "Burst and reset!", "Max power!", "Surprise them!"], mn: ["Тэсрэн!", "Хурдан комбо!", "Тэсрээд, байрлалдаа буц!", "Дээд хүч!", "Гэнэтлүүл!"], ko: ["폭발하세요!", "빠른 콤보!", "버스트 후 리셋!", "최대 파워!", "기습하세요!"] },
   technician: { en: ["Perfect your form!", "Reset your stance!", "Stay systematic!", "Clean technique!", "Build the pattern!"], mn: ["Хэлбэрээ тогтоо!", "Байрлалаа буц!", "Системтэй бай!", "Цэвэр техник!", "Хэв маягаа буд!"], ko: ["폼을 완벽하게!", "스탠스 리셋!", "시스템대로!", "깔끔한 기술!", "패턴 구축!"] },
 };
 
@@ -586,7 +586,7 @@ export default function TrainPage() {
       return;
     }
     const DNA_MILESTONES = {
-      8:  { emoji: "🧬", en: "Archetype Signal Strong",   mn: "Archetype дохио хүчтэй",           ko: "아키타입 신호 강함",
+      8:  { emoji: "🧬", en: "Archetype Signal Strong",   mn: "Хэв маягийн дохио хүчтэй",           ko: "아키타입 신호 강함",
              hint: { en: "Your Fighter DNA is forming — check your profile!", mn: "Тулаанчийн ДНХ бүрдэж байна — профайлаа шалга!", ko: "파이터 DNA 형성 중 — 프로필 확인!" }, cta: true,
              firestoreKey: "milestoneUnlocked8" },
       15: { emoji: "⚗️", en: "Fighter Identity Emerging", mn: "Тулаанчийн мөн чанар бүрдэж байна", ko: "파이터 아이덴티티 형성",
@@ -1481,9 +1481,9 @@ export default function TrainPage() {
           <span style={{ fontSize: 22 }}>{badge.icon}</span>
           <div>
             <div style={{ fontSize: 11.5, fontWeight: 900, color: badge.tier === "gold" ? GOLD : badge.tier === "silver" ? "#A8A9AD" : "#CD7F32", letterSpacing: 1.5, textTransform: "uppercase" }}>
-              {locale === "mn" ? "Шинэ badge!" : locale === "ko" ? "배지 획득!" : "Badge Unlocked!"}
+              {locale === "mn" ? "Шинэ тэмдэг!" : locale === "ko" ? "배지 획득!" : "Badge Unlocked!"}
             </div>
-            <div style={{ fontSize: 13, fontWeight: 900, color: "#fff" }}>{badge.name}</div>
+            <div style={{ fontSize: 13, fontWeight: 900, color: "#fff" }}>{(locale === "mn" && badge.nameMn) || badge.name}</div>
           </div>
         </div>
       ))}

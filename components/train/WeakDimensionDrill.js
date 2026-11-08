@@ -11,7 +11,7 @@ const WEAK_DIMS = {
 };
 
 const DRILL_HINT = {
-  pressure:   { en: "Work the jab-cross at long range. Reset after each combo.",            mn: "Урт зайнаас жааб-кросс хий. Комбо болгоны дараа буц.",          ko: "장거리에서 잽-크로스. 콤보 후 리셋." },
+  pressure:   { en: "Work the jab-cross at long range. Reset after each combo.",            mn: "Урт зайнаас жэб-кросс хий. Комбо болгоны дараа буц.",          ko: "장거리에서 잽-크로스. 콤보 후 리셋." },
   outboxer:   { en: "Step in with a 3-punch burst. Stay tight, elbows in.",                mn: "3 цохилтоор ор. Тогтуу бай, тохойгоо дотогш.",                 ko: "3펀치 버스트로 진입. 팔꿈치 안으로." },
   counter:    { en: "Explode first — don't wait for the bait. Fire in 0.5 sec.",           mn: "Эхлээд тэсрэ — хүлээхгүй. 0.5 секундад цох.",                  ko: "먼저 터뜨려라 — 기다리지 마라. 0.5초 안에." },
   explosive:  { en: "Slow your combinations. Every punch has a purpose.",                  mn: "Комбиноо удаашруул. Цохилт бүр зорилготой.",                   ko: "콤비를 천천히. 모든 펀치에 목적이." },

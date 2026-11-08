@@ -1,5 +1,6 @@
+import { SITE_URL } from "@/lib/site";
 export default function robots() {
-  const base = process.env.NEXT_PUBLIC_SITE_URL || "https://gavana-boxing.vercel.app";
+  const base = SITE_URL;
   return {
     rules: [
       {

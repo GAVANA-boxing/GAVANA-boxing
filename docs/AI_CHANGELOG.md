@@ -2,6 +2,28 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Clarity (audit C)
+- One fighting-style list: `lib/archetypes.js` (pressure / outboxer / counter / explosive / technician:
+  names MN/KO/EN, one colour each, short descriptions, `normalizeArchetype` maps old onboarding keys
+  technical→technician, brawler→explosive). Onboarding, profile edit, share card, DNA engine, first-round
+  card, leaderboard/sparring and colour tables all use it; the unused `FighterStyleQuiz` is gone.
+- One site address: `lib/site.js` (`NEXT_PUBLIC_SITE_URL`, default gavana-boxing.vercel.app) for share text,
+  share cards, referral links, sitemap, robots (was a mix of gavana.app and the vercel address).
+- No English in the MN core screens: desktop sidebar (with readable contrast), round titles ("PRESSURE
+  INITIATOR" → "ДАРАМТ ЭХЛҮҮЛЭГЧ"), drill tags, punch-type tiles, round halves, streak modal, World Tour,
+  Ghost round, badges, onboarding "YOU'RE IN", "Train руу буцах", mangled cues ("Эрж ре-сет хий!").
+  The English-only analysis sentences show only in EN; the real-boxer style names ("Tank Davis") and the
+  "Ring IQ" number that started at 70 are not shown at all. The English-only "next focus" (built from the
+  removed made-up breakdown) is gone, so a round has fewer "one thing to fix" messages.
+- One word each: дараалал (streak), жэб (jab), AI коуч (coach); "Өөрийгөө давах" (beat your best) is no
+  longer also called "Ghost". The streak modal shows the daily streak (it showed the hidden challenge one).
+- After a round: the first-round card's main button is "See my result" (it used to clear the result);
+  the DNA share sheet opens from the Share button instead of popping up; the push-permission prompt waits a
+  week after "Dismiss" (was every new browser session).
+- Onboarding in core mode: stance → weekly goal → welcome (3 steps; the interest and role screens led to
+  hidden features and their answers weren't used).
+- Run `20261108T042629Z-620d50d` ACCEPTED (visual 60/60, stance screenshots updated).
+
 ## GAVANA Pro + pricing (owner: "Pro bolon uniig zow zohistoi zohioj taaruul")
 - One definition: `lib/pro.js` — **9,900₮ / month, 79,000₮ / year (−33%)**, charged in MNT. Perks are only
   ones enforced in code: AI coach unlimited (free: 10 chat messages/day, counted server-side in

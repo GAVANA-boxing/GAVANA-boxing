@@ -6,7 +6,6 @@ import { useAuth } from "@/lib/AuthContext";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { RED, redAlpha } from "@/lib/tokens";
 import s from "@/components/onboarding/onboardingStyles";
-import { TOTAL_STEPS } from "@/lib/onboardingConstants";
 import { useOnboardingActions } from "@/hooks/useOnboardingActions";
 import OnboardingIntroScreen from "@/components/onboarding/OnboardingIntroScreen";
 import OnboardingStep0Role from "@/components/onboarding/OnboardingStep0Role";
@@ -14,6 +13,7 @@ import OnboardingStep1Archetype from "@/components/onboarding/OnboardingStep1Arc
 import OnboardingStep2WeeklyGoal from "@/components/onboarding/OnboardingStep2WeeklyGoal";
 import OnboardingStep3FindGym from "@/components/onboarding/OnboardingStep3FindGym";
 import OnboardingStep4Welcome from "@/components/onboarding/OnboardingStep4Welcome";
+import { CORE_MODE } from "@/lib/coreRoutes";
 
 export default function OnboardingPage() {
   const pathname     = usePathname();
@@ -59,6 +59,11 @@ export default function OnboardingPage() {
     return <div style={s.loading}>…</div>;
   }
 
+  // Steps this fighter actually sees (core mode: stance → weekly goal → welcome).
+  const flow = CORE_MODE ? [1, 2, 4] : role === "fighter" || role == null ? [0, 1, 2, 3, 4] : [0, 4];
+  const totalSteps = flow.length;
+  const stepIndex = Math.max(0, flow.indexOf(step));
+
   if (showIntro) {
     return <OnboardingIntroScreen locale={locale} onNext={handleIntroNext} onSkipToTrain={skipToTraining} />;
   }
@@ -78,27 +83,21 @@ export default function OnboardingPage() {
       {/* Progress bar */}
       <div style={s.progressWrap}>
         <div style={s.progressRow}>
-          {Array.from({ length: TOTAL_STEPS }).map((_, n) => (
+          {Array.from({ length: totalSteps }).map((_, n) => (
             <div
               key={n}
               style={{
                 ...s.progressSeg,
-                background: n < (role === "fighter" ? step : step >= 4 ? TOTAL_STEPS : 0)
-                  ? RED
-                  : "rgba(255,255,255,0.1)",
-                boxShadow: n === (role === "fighter" ? step - 1 : step >= 4 ? TOTAL_STEPS - 1 : -1)
-                  ? `0 0 12px ${redAlpha(0.7)}`
-                  : "none",
+                background: n <= stepIndex ? RED : "rgba(255,255,255,0.1)",
+                boxShadow: n === stepIndex ? `0 0 12px ${redAlpha(0.7)}` : "none",
               }}
             />
           ))}
         </div>
         <div style={s.stepCounter}>
-          {step < TOTAL_STEPS
-            ? t("onboardingStepOf")
-                .replace("{current}", step + 1)
-                .replace("{total}", TOTAL_STEPS)
-            : null}
+          {t("onboardingStepOf")
+            .replace("{current}", stepIndex + 1)
+            .replace("{total}", totalSteps)}
         </div>
       </div>
 

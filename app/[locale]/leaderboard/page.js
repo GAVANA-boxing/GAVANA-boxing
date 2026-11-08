@@ -19,6 +19,7 @@ import YourRankCard from "@/components/leaderboard/YourRankCard";
 import WeeklyChampionBanner from "@/components/leaderboard/WeeklyChampionBanner";
 import LeaderboardPodium from "@/components/leaderboard/LeaderboardPodium";
 import LeaderboardEmptyState from "@/components/leaderboard/LeaderboardEmptyState";
+import { SITE_HOST } from "@/lib/site";
 
 export default function LeaderboardPage() {
   const params = useParams();
@@ -109,10 +110,10 @@ export default function LeaderboardPage() {
       : (currentUserAllTimeEntry?.bestScore ?? 0);
     if (!rank) return;
     const text = locale === "mn"
-      ? `GAVANA BOXING дээр миний rank #${rank} байна, score ${score}/10 🥊 gavana.app`
+      ? `GAVANA BOXING дээр миний rank #${rank} байна, score ${score}/10 🥊 ${SITE_HOST}`
       : locale === "ko"
-      ? `GAVANA BOXING에서 내 랭킹 #${rank}, 점수 ${score}/10 🥊 gavana.app`
-      : `I'm ranked #${rank} on GAVANA BOXING with ${score}/10 🥊 gavana.app`;
+      ? `GAVANA BOXING에서 내 랭킹 #${rank}, 점수 ${score}/10 🥊 ${SITE_HOST}`
+      : `I'm ranked #${rank} on GAVANA BOXING with ${score}/10 🥊 ${SITE_HOST}`;
     try {
       if (navigator.share) { await navigator.share({ text }); return; }
     } catch {}

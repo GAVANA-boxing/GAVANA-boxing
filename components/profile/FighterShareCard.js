@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { RADIUS, blackAlpha, whiteAlpha } from "@/lib/tokens";
-import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
+import { ARCHETYPE_DISPLAY, archetypeName, normalizeArchetype } from "@/lib/archetypes";
 import RankBadge from "@/components/RankBadge";
 import { useCombatMemory } from "@/hooks/useCombatMemory";
 import { computeMovementProfile } from "@/lib/combatMemory";
@@ -178,7 +178,8 @@ export default function FighterShareCard({
   const avatarInitial = (profileUser.displayName || profileUser.username || "F")[0].toUpperCase();
   const avatarSize    = isDesktop ? 92 : 68;
   const rankColor     = fighterRank?.color || CRED;
-  const arch          = profileUser.fighterArchetype ? ARCHETYPE_DISPLAY[profileUser.fighterArchetype] : null;
+  const archKey       = normalizeArchetype(profileUser.fighterArchetype);
+  const arch          = archKey ? { ...ARCHETYPE_DISPLAY[archKey], name: archetypeName(archKey, locale) } : null;
 
   // ── Image capture ────────────────────────────────────────────────────────
   const captureCard = useCallback(async () => {

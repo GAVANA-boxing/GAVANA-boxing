@@ -1,7 +1,8 @@
 import { showRoute } from "@/lib/coreRoutes";
+import { SITE_URL } from "@/lib/site";
 
 export default function sitemap() {
-  const base = process.env.NEXT_PUBLIC_SITE_URL || "https://gavana-boxing.vercel.app";
+  const base = SITE_URL;
   const locales = ["en", "mn", "ko"];
   const now = new Date().toISOString();
 

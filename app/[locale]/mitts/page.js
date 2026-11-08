@@ -208,7 +208,7 @@ export default function MittDrillPage() {
             {L("Эхлэх · 30 сек →", "시작 · 30초 →", "Start · 30 s →")}
           </button>
           <button type="button" onClick={exit} style={{ ...btnSecondary, fontFamily: "inherit", color: whiteAlpha(0.8) }}>
-            {L("Train руу буцах", "트레이닝으로", "Back to Train")}
+            {L("Бэлтгэл рүү буцах", "훈련으로", "Back to Train")}
           </button>
 
           {camError && (

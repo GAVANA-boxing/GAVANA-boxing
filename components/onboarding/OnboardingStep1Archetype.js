@@ -1,7 +1,7 @@
 "use client";
 
-import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
-import { WEIGHT_CLASSES, ARCHETYPE_DESCS } from "@/lib/onboardingConstants";
+import { ARCHETYPE_DISPLAY, ARCHETYPE_DESCS, archetypeName, normalizeArchetype } from "@/lib/archetypes";
+import { WEIGHT_CLASSES } from "@/lib/onboardingConstants";
 import s from "@/components/onboarding/onboardingStyles";
 import StancePhotoCheck from "@/components/onboarding/StancePhotoCheck";
 
@@ -71,7 +71,7 @@ export default function OnboardingStep1Archetype({
       <div style={s.archetypeGrid}>
         {Object.entries(ARCHETYPE_DISPLAY).map(([key, arch]) => {
           const desc = ARCHETYPE_DESCS[key];
-          const isSelected = archetype === key;
+          const isSelected = normalizeArchetype(archetype) === key;
           return (
             <button
               key={key}
@@ -86,7 +86,7 @@ export default function OnboardingStep1Archetype({
             >
               <span style={s.archetypeEmoji}>{arch.emoji}</span>
               <span style={{ ...s.archetypeName, color: isSelected ? arch.color : "#fff" }}>
-                {arch.name}
+                {archetypeName(key, locale)}
               </span>
               <span style={s.archetypeDesc}>{desc[locale] || desc.en}</span>
               {isSelected && (

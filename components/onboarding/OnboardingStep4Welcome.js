@@ -1,14 +1,12 @@
 "use client";
 
-import { ARCHETYPE_DISPLAY } from "@/components/FighterStyleQuiz";
+import { ARCHETYPE_DISPLAY, ARCHETYPE_COLORS, archetypeName, normalizeArchetype } from "@/lib/archetypes";
 import { WEEKLY_GOALS } from "@/lib/onboardingConstants";
 import { GOLD, redAlpha } from "@/lib/tokens";
 import s from "@/components/onboarding/onboardingStyles";
 import { CORE_MODE } from "@/lib/coreRoutes";
 
-const DIM_COLORS = {
-  pressure: "#EF4444", outboxer: "#3B82F6", counter: "#8B5CF6", explosive: "#F59E0B", technician: "#10B981",
-};
+const DIM_COLORS = ARCHETYPE_COLORS;
 
 const DIM_LABELS = {
   en: { pressure: "Pressure", outboxer: "Outboxer", counter: "Counter", explosive: "Explosive", technician: "Technician" },
@@ -26,7 +24,8 @@ export default function OnboardingStep4Welcome({
   redirectAfter,
   onFinish,
 }) {
-  const archetypeArch = archetype ? ARCHETYPE_DISPLAY[archetype] : null;
+  const archKey = normalizeArchetype(archetype);
+  const archetypeArch = archKey ? { ...ARCHETYPE_DISPLAY[archKey], name: archetypeName(archKey, locale) } : null;
   const selectedGoal = WEEKLY_GOALS.find((g) => g.value === weeklyGoal);
 
   return (
@@ -35,7 +34,7 @@ export default function OnboardingStep4Welcome({
         {role === "coach" ? "🎓" : role === "gym" ? "🏋️" : archetypeArch?.emoji || "🥊"}
       </div>
       <div style={{ animation: "fadeUp 0.5s ease 0.3s both" }}>
-        <p style={s.kicker}>YOU&rsquo;RE IN</p>
+        <p style={s.kicker}>{locale === "mn" ? "БЭЛЭН БОЛЛОО" : locale === "ko" ? "준비 완료" : "YOU’RE IN"}</p>
         <h1 style={s.title}>{t("onboardingWelcome")}</h1>
 
         {role === "coach" && (

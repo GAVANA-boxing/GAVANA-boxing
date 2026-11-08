@@ -19,8 +19,10 @@ const streakRowLabel = { color: "rgba(255,255,255,0.45)", fontSize: 13, fontWeig
 const streakRowValue = { color: "#fff", fontSize: 13, fontWeight: 900 };
 
 export default function StreakDetailModal({ profile, trainingSessions, t, onClose }) {
-  const challengeStreak = Number(profile?.challengeStreak) || 0;
-  const trainingStreak = Number(profile?.streakCount) || 0;
+  // The daily training streak (users.dailyStreak / bestDailyStreak, server-written) — the same
+  // number Home and Progress show. (This used to read the hidden challenge streak.)
+  const challengeStreak = Number(profile?.dailyStreak ?? profile?.streakCount) || 0;
+  const trainingStreak = Number(profile?.bestDailyStreak) || 0;
   const lastChallengeDate = profile?.lastChallengeDate || "";
   const hasAnyStreak = challengeStreak > 0 || trainingStreak > 0;
 
@@ -91,12 +93,12 @@ export default function StreakDetailModal({ profile, trainingSessions, t, onClos
             <div style={streakCardStyle}>
               <span style={streakCardLabel}>{t("streakCurrentDays")}</span>
               <span style={{ ...streakCardValue, color: "#FB923C" }}>{challengeStreak}</span>
-              <span style={streakCardUnit}>days</span>
+              <span style={streakCardUnit}>{t("streakDaysUnit")}</span>
             </div>
             <div style={streakCardStyle}>
               <span style={streakCardLabel}>{t("streakBestDays")}</span>
               <span style={{ ...streakCardValue, color: GOLD }}>{Math.max(challengeStreak, trainingStreak)}</span>
-              <span style={streakCardUnit}>days</span>
+              <span style={streakCardUnit}>{t("streakDaysUnit")}</span>
             </div>
           </div>
         )}
@@ -111,11 +113,11 @@ export default function StreakDetailModal({ profile, trainingSessions, t, onClos
             )}
             <div style={{ ...streakRowStyle }}>
               <span style={streakRowLabel}>{t("streakCurrentDays")}</span>
-              <span style={streakRowValue}>{challengeStreak} {challengeStreak === 1 ? "day" : "days"}</span>
+              <span style={streakRowValue}>{challengeStreak} {t("streakDaysUnit")}</span>
             </div>
             <div style={{ marginTop: 8 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                <span style={{ color: "rgba(255,255,255,0.45)", fontSize: 11, fontWeight: 700 }}>Streak progress</span>
+                <span style={{ color: "rgba(255,255,255,0.45)", fontSize: 11, fontWeight: 700 }}>{t("streakWeekProgress")}</span>
                 <span style={{ color: "#FB923C", fontSize: 11, fontWeight: 900 }}>{Math.min(100, Math.round((challengeStreak / 7) * 100))}%</span>
               </div>
               <div style={{ height: 6, borderRadius: RADIUS.full, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>

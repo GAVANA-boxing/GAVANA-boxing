@@ -1,14 +1,9 @@
 "use client";
 
 import EmptyState from "@/components/EmptyState";
+import { ARCHETYPE_COLORS } from "@/lib/archetypes";
 
-const ARCH_COLORS = {
-  pressure: "#EF4444",
-  outboxer: "#3B82F6",
-  counter: "#8B5CF6",
-  explosive: "#F59E0B",
-  technician: "#10B981",
-};
+const ARCH_COLORS = ARCHETYPE_COLORS; // lib/archetypes.js
 
 const ARCH_NAMES = {
   en: { pressure: "Pressure", outboxer: "Outboxer", counter: "Counter", explosive: "Explosive", technician: "Technician" },

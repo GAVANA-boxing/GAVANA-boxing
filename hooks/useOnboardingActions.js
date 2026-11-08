@@ -8,10 +8,12 @@ import { CORE_MODE, showRoute } from "@/lib/coreRoutes";
 
 export function useOnboardingActions({ user, locale, router }) {
   // showIntro: value-prop screen shown before profile-building steps
-  const [showIntro, setShowIntro] = useState(true);
+  // Core mode: the interest screen and the role step lead to hidden features (sparring,
+  // reels, gyms, coach marketplace) and their answers aren't used — start at the stance step.
+  const [showIntro, setShowIntro] = useState(!CORE_MODE);
   const [primaryInterest, setPrimaryInterest] = useState(null);
-  const [step, setStep] = useState(0);
-  const [role, setRole] = useState(null);
+  const [step, setStep] = useState(CORE_MODE ? 1 : 0);
+  const [role, setRole] = useState(CORE_MODE ? "fighter" : null);
   const [archetype, setArchetype] = useState(null);
   // Which foot is forward decides which hand is the jab — the detector labels
   // every punch by it, so it is asked here (the archetype is optional: Fighter

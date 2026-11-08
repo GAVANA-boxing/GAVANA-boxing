@@ -5,7 +5,7 @@ import styles from "@/components/train/trainStyles";
 import { computeScoreConfidence } from "@/lib/scoreConfidence";
 import {
   useCountUp, getIdentityWithSub, computeComparison,
-  getBestPunchType, getNextFocus, getMovementSummary,
+  getBestPunchType, getMovementSummary,
 } from "@/lib/trainResultHelpers";
 
 import ResultHeader          from "@/components/train/ResultHeader";
@@ -23,6 +23,8 @@ import MotionReplay3D        from "@/components/train/MotionReplay3D";
 import PunchTeardown         from "@/components/train/PunchTeardown";
 import { loc }               from "@/lib/loc";
 import { BRAND, btnSecondary } from "@/components/ui/brand";
+import { SITE_URL, SITE_HOST } from "@/lib/site";
+import { archetypeName } from "@/lib/archetypes";
 
 const MIN_PUNCHES = 5;
 
@@ -118,12 +120,8 @@ export default function TrainResultModal({
   const mustShowDetails = Boolean(challengeUserId || activeChallenge || pvpResult || rankUpInfo || missionJustCompleted);
   useEffect(() => { if (mustShowDetails) setDetailsOpen(true); }, [mustShowDetails]);
 
-  // Show DNA share card 1.5s after result saved with archetype
-  useEffect(() => {
-    if (!saved || !userArchetype || _cappedScore <= 0) return;
-    const t = setTimeout(() => setShowDnaShare(true), 1500);
-    return () => clearTimeout(t);
-  }, [saved, userArchetype, _cappedScore]);
+  // The DNA share card opens from the Share button (no auto-popup: after a round the
+  // result itself comes first, and at most one celebration shows).
 
   if (!result) return null;
 
@@ -141,7 +139,6 @@ export default function TrainResultModal({
   const hasMI          = movementSummary.length > 0;
   const hasTimeline    = timelineEvents.length > 0;
   const bestPunch      = getBestPunchType(poseMetrics);
-  const nextFocus      = getNextFocus(result, poseMetrics);
   const effectiveStreak = Math.max(userStreak || 0, missionNewStreak || 0);
 
   const headerMode = challengeUserId ? "pvp" : activeChallenge ? "challenge" : "train";
@@ -244,7 +241,7 @@ export default function TrainResultModal({
           onSave={onSave}
           onSaveChallengeResult={onSaveChallengeResult}
           onShareChallenge={onShareChallenge}
-          onShareTraining={onShareTraining}
+          onShareTraining={userArchetype && _cappedScore > 0 ? () => setShowDnaShare(true) : onShareTraining}
           onShareToFeed={onShareToFeed}
           onCreateChallengePost={onCreateChallengePost}
           onPostChallengeResponse={onPostChallengeResponse}
@@ -277,7 +274,6 @@ export default function TrainResultModal({
             ghostBestScore={ghostBestScore}
             effectivePunchCount={effectivePunchCount}
             bestPunch={bestPunch}
-            nextFocus={nextFocus}
             effectiveStreak={effectiveStreak}
             t={t}
           />
@@ -354,24 +350,16 @@ export default function TrainResultModal({
 
       {/* ── DNA SHARE SHEET ──────────────────────────────────────────── */}
       {showDnaShare && (() => {
-        const ARCH_LABELS = {
-          pressure:  { en: "Pressure Fighter", mn: "Pressure Fighter", ko: "압박형 파이터" },
-          outboxer:  { en: "Outboxer",          mn: "Outboxer",         ko: "아웃복서" },
-          counter:   { en: "Counter Puncher",   mn: "Counter Puncher",  ko: "카운터 펀처" },
-          technical: { en: "Technical Boxer",   mn: "Technical Boxer",  ko: "테크니컬 복서" },
-          brawler:   { en: "Brawler",            mn: "Brawler",          ko: "브롤러" },
-          slugger:   { en: "Slugger",            mn: "Slugger",          ko: "슬러거" },
-        };
-        const archLabel = ARCH_LABELS[userArchetype]?.[locale] || ARCH_LABELS[userArchetype]?.en || userArchetype?.toUpperCase();
+        const archLabel = archetypeName(userArchetype, locale) || "";
         const shareText = locale === "mn"
-          ? `Миний Fighter DNA: ${archLabel} 🥊\nОноо: ${_cappedScore.toFixed(1)}/10\ngavana-boxing.vercel.app`
+          ? `Миний Fighter DNA: ${archLabel} 🥊\nОноо: ${_cappedScore.toFixed(1)}/10\n${SITE_HOST}`
           : locale === "ko"
-          ? `내 파이터 DNA: ${archLabel} 🥊\n점수: ${_cappedScore.toFixed(1)}/10\ngavana-boxing.vercel.app`
-          : `My Fighter DNA: ${archLabel} 🥊\nScore: ${_cappedScore.toFixed(1)}/10\ngavana-boxing.vercel.app`;
+          ? `내 파이터 DNA: ${archLabel} 🥊\n점수: ${_cappedScore.toFixed(1)}/10\n${SITE_HOST}`
+          : `My Fighter DNA: ${archLabel} 🥊\nScore: ${_cappedScore.toFixed(1)}/10\n${SITE_HOST}`;
 
         const handleShare = async () => {
           if (navigator.share) {
-            try { await navigator.share({ text: shareText, url: "https://gavana-boxing.vercel.app" }); }
+            try { await navigator.share({ text: shareText, url: SITE_URL }); }
             catch (_) { /* cancelled */ }
           } else {
             navigator.clipboard?.writeText(shareText);

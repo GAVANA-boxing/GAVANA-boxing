@@ -1,13 +1,8 @@
 "use client";
 
 import styles from "@/components/profile/editProfileStyles";
+import { ARCHETYPE_KEYS, ARCHETYPE_COLORS, ARCHETYPE_EMOJI, archetypeName, normalizeArchetype } from "@/lib/archetypes";
 
-const ARCHETYPES = [
-  { value: "pressure",  emoji: "⚡", label: "Pressure",  color: "#F87171" },
-  { value: "counter",   emoji: "🎯", label: "Counter",   color: "#3B82F6" },
-  { value: "technical", emoji: "🧠", label: "Technical", color: "#A78BFA" },
-  { value: "brawler",   emoji: "🔥", label: "Brawler",   color: "#FB923C" },
-];
 
 /**
  * ArchetypePicker
@@ -16,14 +11,17 @@ const ARCHETYPES = [
  *   value     – string   currently selected archetype value (or "")
  *   onChange  – (value: string) => void   called with the new value (or "" to deselect)
  *   t         – (mn, ko, en) => string
+ *   locale    – "mn" | "ko" | "en"
  */
-export default function ArchetypePicker({ value, onChange, t }) {
+export default function ArchetypePicker({ value, onChange, t, locale = "mn" }) {
+  const current = normalizeArchetype(value);
   return (
     <div style={styles.field}>
       <label style={styles.label}>{t("Тулааны стиль", "파이팅 스타일", "Fighting style")}</label>
       <div style={styles.chips}>
-        {ARCHETYPES.map(({ value: v, emoji, label, color }) => {
-          const active = value === v;
+        {ARCHETYPE_KEYS.map((v) => {
+          const color = ARCHETYPE_COLORS[v];
+          const active = current === v;
           return (
             <button
               key={v}
@@ -41,7 +39,7 @@ export default function ArchetypePicker({ value, onChange, t }) {
                   : {}),
               }}
             >
-              {emoji} {label}
+              {ARCHETYPE_EMOJI[v]} {archetypeName(v, locale)}
             </button>
           );
         })}

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { GOLD, whiteAlpha } from "@/lib/tokens";
 import { ARCH_TRAINING_COLORS } from "@/lib/archetypeTraining";
 import { buildReferralUrl } from "@/lib/referral";
+import { SITE_URL, SITE_HOST } from "@/lib/site";
 
 const SHARE_L = {
   en: { cta: "Share Your DNA", copied: "Shared!", similarTo: "Similar To", mix: "Style Mix", ctaBig: "Discover your Fighter DNA" },
@@ -144,7 +145,7 @@ export default function DNAShareCard({ dna, displayName, locale, uid }) {
     ctx.fillStyle = "#fff"; ctx.font = "900 42px Arial";
     ctx.fillText(L.ctaBig, W / 2, by + 86);
     ctx.fillStyle = hexA(accent, 0.95); ctx.font = "900 34px Arial"; ctx.letterSpacing = "2px";
-    ctx.fillText("gavana.app", W / 2, by + 146);
+    ctx.fillText(SITE_HOST, W / 2, by + 146);
     ctx.letterSpacing = "0px"; ctx.textAlign = "left";
 
     return canvas;
@@ -156,7 +157,7 @@ export default function DNAShareCard({ dna, displayName, locale, uid }) {
       : locale === "ko"
       ? `내 파이터 DNA: ${dna.archetype} (${confidencePct}%) 🥊 당신은 어떤 파이터?`
       : `My Fighter DNA: ${dna.archetype} (${confidencePct}% signal) 🥊 What's yours?`;
-    const refUrl = uid ? buildReferralUrl(uid, locale) : "https://gavana.app";
+    const refUrl = uid ? buildReferralUrl(uid, locale) : SITE_URL;
 
     try {
       const canvas = await renderPoster();
@@ -266,7 +267,7 @@ export default function DNAShareCard({ dna, displayName, locale, uid }) {
 
         {/* GAVANA watermark */}
         <div style={{ padding: "8px 20px 12px", borderTop: `1px solid ${whiteAlpha(0.04)}`, display: "flex", justifyContent: "space-between" }}>
-          <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.15), textTransform: "uppercase" }}>GAVANA.APP</span>
+          <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2.5, color: whiteAlpha(0.15), textTransform: "uppercase" }}>{SITE_HOST}</span>
           <span style={{ fontSize: 11, fontWeight: 700, color: whiteAlpha(0.12) }}>{new Date().getFullYear()}</span>
         </div>
       </div>

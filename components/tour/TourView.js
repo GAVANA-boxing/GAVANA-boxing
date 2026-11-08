@@ -45,7 +45,7 @@ export default function TourView({ xp = 0, locale = "en", now = new Date(), go =
 
   return (
     <div style={{ maxWidth: 560, margin: "0 auto", display: "flex", flexDirection: "column", gap: 14 }}>
-      <p style={{ ...kickerPill, alignSelf: "flex-start" }}><span style={kickerDot} />World Tour</p>
+      <p style={{ ...kickerPill, alignSelf: "flex-start" }}><span style={kickerDot} />{L("Дэлхийн аялал", "월드 투어", "World Tour")}</p>
 
       <div>
         <h1 data-testid="tour-city" style={{ ...displayTitle, margin: 0, fontSize: 40 }}>{pick(stop.name)}</h1>

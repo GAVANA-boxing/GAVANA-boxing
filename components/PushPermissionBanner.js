@@ -13,6 +13,9 @@ const PB_L = {
   ko: { title: "알림 켜기", sub: "연속 기록이 끊기기 전에 알려드려요", allow: "허용", close: "닫기" },
 };
 
+const DISMISS_KEY = "gavana_push_banner_dismissed_at";
+const DISMISS_FOR_MS = 7 * 86_400_000;
+
 export default function PushPermissionBanner() {
   const { user } = useAuth();
   const pathname = usePathname();
@@ -27,7 +30,11 @@ export default function PushPermissionBanner() {
     if (!user) return;
     if (typeof window === "undefined" || !("Notification" in window)) return;
     if (Notification.permission !== "default") return;
-    try { if (sessionStorage.getItem("push-banner-dismissed")) return; } catch { /* ignore */ }
+    // Dismissed → don't ask again for a week (was: every new browser session).
+    try {
+      const at = Number(localStorage.getItem(DISMISS_KEY));
+      if (at && Date.now() - at < DISMISS_FOR_MS) return;
+    } catch { /* ignore */ }
 
     const timer = setTimeout(() => setShow(true), 6000);
     return () => clearTimeout(timer);
@@ -43,7 +50,7 @@ export default function PushPermissionBanner() {
 
   const handleDismiss = () => {
     setShow(false);
-    try { sessionStorage.setItem("push-banner-dismissed", "1"); } catch { /* ignore */ }
+    try { localStorage.setItem(DISMISS_KEY, String(Date.now())); } catch { /* ignore */ }
   };
 
   if (!show || isFocusPage(pathname)) return null;
