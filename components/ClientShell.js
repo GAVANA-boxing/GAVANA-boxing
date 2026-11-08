@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import dynamic from "next/dynamic";
 import { captureRefFromUrl } from "@/lib/referral";
+import ErrorReporter from "@/components/ErrorReporter";
 
 // ssr: false is only allowed inside Client Components — NOT in Server Component layout.js
 const OnboardingGate       = dynamic(() => import("@/components/OnboardingGate"));
@@ -16,6 +17,7 @@ export default function ClientShell() {
 
   return (
     <>
+      <ErrorReporter />
       <OnboardingGate />
       <AdminSessionBootstrap />
       <PWAInstallBanner />

@@ -2,6 +2,17 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Launch readiness, part 2
+- First-party error reporting (no third-party service): `components/ErrorReporter.js` (window errors,
+  unhandled rejections) and the route error boundaries send `client_error` events with
+  `meta = "<where>:<first 50 chars>"`, max 5 per page load, no duplicates (`lib/track.js`, tested). The
+  broken, unused `trackError` (referenced a moved constant) is gone.
+- `docs/LAUNCH.md` (MN): exact owner steps — merge/deploy and rollback, Vercel env vars, Firebase deploy
+  order (indexes + storage → service account → rules → functions, authorized domains), OpenAI budget,
+  Stripe MNT prices / webhook / portal, legal contact, a 7-step phone smoke test, what to monitor, known
+  limitations.
+- Run `20261108T051100Z-d73efec` ACCEPTED (unit 277, visual 60/60, rules 43/43).
+
 ## Launch readiness, part 1 (owner: "zah zeeld gargamaar baina … belen bolgo")
 - Measured on a production build: Lighthouse mobile (simulated slow 4G) — landing perf 58 / a11y 88,
   Train perf 36 (6.7 MB). Real throttled run (1.6 Mbps, 150 ms, CPU ×4): LCP 1.0–2.5 s on landing / Pro /

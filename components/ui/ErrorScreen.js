@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { reportClientError } from "@/lib/track";
 import { BRAND, btnPrimary, btnSecondary, displayTitle, kickerDot, kickerPill, pageBackground } from "@/components/ui/brand";
 
 /** Locale for error boundaries (they get no params): from the URL, so server and client agree. */
@@ -20,8 +22,10 @@ const T = {
  * load on purpose: it leaves the broken client state behind.
  * @param {{ reset?: () => void, message?: { mn: string, ko: string, en: string } }} props
  */
-export default function ErrorScreen({ reset, message }) {
-  const locale = errorLocale(usePathname());
+export default function ErrorScreen({ reset, message, error }) {
+  const pathname = usePathname();
+  const locale = errorLocale(pathname);
+  useEffect(() => { if (error) reportClientError(error, `boundary${String(pathname || "").replace(/^\/(mn|ko|en)/, "")}`); }, [error, pathname]);
   const t = T[locale];
   const sub = message?.[locale] || message?.en;
   return (

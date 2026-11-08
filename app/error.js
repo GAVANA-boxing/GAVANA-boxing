@@ -8,6 +8,6 @@ const MESSAGE = {
   en: "This page didn't load. Check your connection and try again.",
 };
 
-export default function RouteError({ reset }) {
-  return <ErrorScreen reset={reset} message={MESSAGE} />;
+export default function RouteError({ error, reset }) {
+  return <ErrorScreen reset={reset} message={MESSAGE} error={error} />;
 }

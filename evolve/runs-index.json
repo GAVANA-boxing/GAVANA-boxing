@@ -1,6 +1,35 @@
 {
   "runs": [
     {
+      "id": "20261108T051100Z-d73efec",
+      "task": "launch readiness 2: first-party client error reporting (window errors, rejections, route error boundaries → analytics client_error), launch checklist docs/LAUNCH.md",
+      "verdict": "ACCEPTED",
+      "commit": "d73efec",
+      "at": "2026-11-08T05:16:03.540Z",
+      "durationS": 303,
+      "level": "GREEN",
+      "failedSteps": [],
+      "notRun": [],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 277,
+        "unit.failed": 0,
+        "bundle.kb": 6216,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 60,
+        "visual.failed": 0,
+        "visual.flaky": 0,
+        "rules.passed": 43,
+        "rules.failed": 0
+      },
+      "decision": null
+    },
+    {
       "id": "20261108T050311Z-4ef3b7a",
       "task": "launch readiness: Firestore off the public pages (firebaseApp split, lazy profile/funnel/rank data: −116 KB gz), MediaPipe loads when Train is idle, no camera layout shift, WCAG contrast for filled red buttons + pinch-zoom allowed, guest first round (stance choice in the setup card, no score toast when too few punches), compact other-modes row, /pro metadata + sitemap, HSTS, owner launch-readiness panel",
       "verdict": "ACCEPTED",

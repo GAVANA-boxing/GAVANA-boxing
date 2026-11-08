@@ -8,6 +8,6 @@ const MESSAGE = {
   en: "The AI coach couldn't load. Check your connection and try again.",
 };
 
-export default function CoachError({ reset }) {
-  return <ErrorScreen reset={reset} message={MESSAGE} />;
+export default function CoachError({ error, reset }) {
+  return <ErrorScreen reset={reset} message={MESSAGE} error={error} />;
 }

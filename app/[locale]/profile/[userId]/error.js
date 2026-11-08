@@ -8,6 +8,6 @@ const MESSAGE = {
   en: "This profile couldn't be loaded. Try again.",
 };
 
-export default function ProfileError({ reset }) {
-  return <ErrorScreen reset={reset} message={MESSAGE} />;
+export default function ProfileError({ error, reset }) {
+  return <ErrorScreen reset={reset} message={MESSAGE} error={error} />;
 }
