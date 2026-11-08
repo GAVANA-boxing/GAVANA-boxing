@@ -2,6 +2,15 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Platform v2 step 1: Firestore rules + indexes for the dashboard collections (owner: "Hii")
+- `firestore.rules`: `video_analyses` (owner-only read; create only as `queued` without results; updates
+  limited to status / progress / results with ranges; frozen once `completed`; no `userId` change or extra
+  keys), `orders` (owner read, no client writes), `products` + `benchmarks` (public read, no client
+  writes), `users.stats` added to the server-only fields.
+- `firestore.indexes.json`: `video_analyses` and `orders` (userId ASC, createdAt DESC) — the hook's queries.
+- `scripts/rules-test/rules.test.mjs`: +29 emulator tests (72/72). Not deployed — owner deploys
+  (`docs/LAUNCH.md` §3). Docs: platform-v2 §5 rewritten from "proposal" to what is in the repo.
+
 ## Fighter Dashboard + platform v2 design (owner request: architecture, FKG, shop, dashboard, hook)
 - Design doc (MN): `docs/architecture/platform-v2.md` — Next.js structure, Fight Knowledge Graph (Firestore
   schema now, PostgreSQL DDL later), benchmark provenance + one normalisation, shop (own catalog, QPay

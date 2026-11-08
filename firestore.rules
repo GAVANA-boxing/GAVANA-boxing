@@ -74,7 +74,8 @@ service cloud.firestore {
             "sessionXpDay",
             "sessionXpCount",
             "challengeAwardDay",
-            "challengeAwardCount"
+            "challengeAwardCount",
+            "stats"
           ])) ||
         (isAuth() && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           "coachRating",
@@ -187,6 +188,57 @@ service cloud.firestore {
     match /user_training_profile/{userId} {
       allow read: if true;
       allow write: if isAuth() && request.auth.uid == userId;
+    }
+
+    // ─── Video analyses (uploaded clips analysed in the owner's browser) ──
+    // Private to the owner. Created as "queued"; the owner's analysis job moves it
+    // through processing → completed | failed. A completed analysis is frozen.
+    // Its score is client-computed, so it is NEVER read for XP / rank (those come
+    // only from /api/score/session).
+    match /video_analyses/{analysisId} {
+      function videoKeys() {
+        return ["userId", "createdAt", "updatedAt", "status", "progressPct", "durationSec", "thumbnailUrl",
+                "storagePath", "score", "punches", "poseFramesPct", "error"];
+      }
+      function validResults(d) {
+        return (!("progressPct" in d) || (d.progressPct is number && d.progressPct >= 0 && d.progressPct <= 100))
+          && (!("score" in d) || d.score == null || (d.score is number && d.score >= 0 && d.score <= 10))
+          && (!("punches" in d) || d.punches == null || (d.punches is int && d.punches >= 0 && d.punches <= 5000))
+          && (!("poseFramesPct" in d) || d.poseFramesPct == null || (d.poseFramesPct is number && d.poseFramesPct >= 0 && d.poseFramesPct <= 100));
+      }
+      allow read: if isOwner("userId");
+      allow create: if isAuth()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == "queued"
+        && request.resource.data.keys().hasOnly(videoKeys())
+        && !request.resource.data.keys().hasAny(["score", "punches", "poseFramesPct"]);
+      allow update: if isOwner("userId")
+        && resource.data.status != "completed"
+        && request.resource.data.status in ["queued", "processing", "completed", "failed"]
+        && request.resource.data.keys().hasOnly(videoKeys())
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+             "status", "progressPct", "durationSec", "thumbnailUrl", "score", "punches", "poseFramesPct", "error", "updatedAt"])
+        && validResults(request.resource.data);
+      allow delete: if isOwner("userId");
+    }
+
+    // ─── Shop ────────────────────────────────────────────────────
+    // Orders are created and moved through their states only by the server
+    // (checkout API + verified payment callback, service account). Owner reads.
+    match /orders/{orderId} {
+      allow read: if isOwner("userId");
+      allow write: if false;
+    }
+    // Catalog: public read, admin SDK writes.
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ─── Benchmarks (FKG reference profiles, with provenance) ──────
+    match /benchmarks/{sourceId} {
+      allow read: if true;
+      allow write: if false;
     }
 
     // ─── Badges ───────────────────────────────────────────────────

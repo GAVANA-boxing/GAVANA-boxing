@@ -1,6 +1,34 @@
 {
   "runs": [
     {
+      "id": "20261108T084020Z-eacce8b",
+      "task": "Firestore rules + indexes for video_analyses, orders, products, benchmarks; users.stats server-only; +29 rules tests",
+      "verdict": "ACCEPTED",
+      "commit": "eacce8b",
+      "at": "2026-11-08T08:41:39.013Z",
+      "durationS": 77,
+      "level": "RED",
+      "failedSteps": [],
+      "notRun": [
+        "visual"
+      ],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 298,
+        "unit.failed": 0,
+        "bundle.kb": 6250,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "rules.passed": 72,
+        "rules.failed": 0
+      },
+      "decision": "owner"
+    },
+    {
       "id": "20261108T075057Z-0cb2de0",
       "task": "Fighter dashboard: TS model + mappers, useFighterDashboard hook, Tailwind/lucide UI with SVG charts, demo fixture + visual baselines, platform v2 design doc",
       "verdict": "ACCEPTED",

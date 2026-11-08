@@ -4,7 +4,8 @@
 Shopify маягийн дэлгүүр, Fighter Dashboard (TS interface, App Router бүтэц, UI, `useFighterDashboard`).
 
 **Энэ баримтын төлөв:** dashboard-ын код (types, mappers, hook, UI, demo fixture) бичигдсэн. Firestore
-rules / indexes, төлбөрийн API, видео анализын pipeline — **санал** (RED, эзэмшигчийн зөвшөөрөл хэрэгтэй).
+rules + indexes (§5) repo-д нэмэгдсэн, emulator тест давсан — **deploy хийгдээгүй** (эзэмшигч deploy хийнэ).
+Төлбөрийн API, видео анализын pipeline — санал.
 
 ---
 
@@ -188,29 +189,25 @@ Dashboard нь `orders`-ыг `onSnapshot`-оор сонсдог тул webhook �
 давсан тул. Hover / touch tooltip, бүх утга хүснэгтээр бас уншигдана. Статус badge = icon + текст.
 Demo: `/{locale}/visual/dashboard`, `/{locale}/visual/dashboard-states` (fixture горимд).
 
-## 5. Санал болгож буй rules ба index (хэрэгжүүлээгүй — RED, эзэмшигчийн OK хэрэгтэй)
+## 5. Rules ба index (repo-д бий, deploy хийгдээгүй)
 
-```
-match /video_analyses/{id} {
-  allow read: if isOwner(resource.data.userId);
-  allow create: if isOwner(request.resource.data.userId) && request.resource.data.status == 'queued';
-  allow update: if isOwner(resource.data.userId)
-    && request.resource.data.diff(resource.data).affectedKeys()
-         .hasOnly(['status','progressPct','score','punches','poseFramesPct','thumbnailUrl','error','updatedAt']);
-  allow delete: if isOwner(resource.data.userId);
-}
-match /orders/{id}     { allow read: if isOwner(resource.data.userId); allow write: if false; } // сервер л
-match /benchmarks/{id} { allow read: if true; allow write: if false; }                        // админ SDK
-match /products/{id}   { allow read: if true; allow write: if false; }
-```
+Эзэмшигч «Hii» гэж зөвшөөрсний дараа (2026-11-08) `firestore.rules`-д нэмсэн, `scripts/rules-test`-д 29 тест:
+
+| Collection | Унших | Бичих |
+|---|---|---|
+| `video_analyses` | зөвхөн эзэмшигч (query `userId == uid` шаардана) | эзэмшигч: `queued` төлөвтэй үүсгэнэ (үр дүнгүй); `processing → completed / failed` шинэчилнэ; оноо 0–10, явц 0–100, цохилт 0–5000; `userId`, илүү талбар хориотой; `completed` болсны дараа өөрчлөгдөхгүй; устгаж болно |
+| `orders` | зөвхөн эзэмшигч | клиент огт бичихгүй (checkout API + баталгаажсан payment callback, service account) |
+| `products`, `benchmarks` | бүх хүн | клиент бичихгүй (admin SDK) |
+| `users.stats` | (users-ийн дүрмээр нийтэд) | клиент бичихгүй — серверийн aggregate |
 
 `firestore.indexes.json`: `video_analyses (userId ASC, createdAt DESC)`, `orders (userId ASC, createdAt DESC)`.
-Анхаар: `video_analyses`-ийн оноог клиент бичдэг тул XP-д **тооцохгүй** (XP зөвхөн `/api/score/session`).
+Deploy: `docs/LAUNCH.md` §3-ийн дарааллаар (эхлээд indexes, дараа нь rules).
+`video_analyses`-ийн оноог клиент бичдэг тул XP-д **тооцохгүй** (XP зөвхөн `/api/score/session`).
 Мөн нээлттэй P0: `training_sessions` / `user_training_profile` нь `allow read: if true` — §audit-д.
 
 ## 6. Дараалал
 
-1. (эзэмшигч) rules + index-ийг зөвшөөрөх → emulator тест → deploy.
+1. ~~rules + index + emulator тест~~ (хийсэн) → (эзэмшигч) deploy.
 2. `video_analyses` pipeline (upload → браузер анализ → status) — dashboard «Сүүлийн видео» амилна.
 3. QPay merchant гэрээ + `PaymentProvider` + checkout + callback + Ebarimt → «Захиалга» амилна.
 4. Зөвшөөрөлтэй жишиг клип цуглуулах → `benchmarks/{id}` нийтлэх → radar амилна.

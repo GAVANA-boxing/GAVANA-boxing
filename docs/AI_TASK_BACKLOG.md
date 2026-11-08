@@ -13,8 +13,8 @@ P1 (GREEN/YELLOW — can be done in cycles)
   `claude/**` pushes (no visual there); Coach AI eval-set growth.
 - Don't load MediaPipe on the /bag and /mitts intro screens (≈17 MB before the user starts).
 - Remove committed `build.log`; move old phase/release markdown into `docs/archive/`.
-- Platform v2 (`docs/architecture/platform-v2.md` §6), in order: (RED) rules + indexes for video_analyses /
-  orders / benchmarks / products with emulator tests → upload-analysis pipeline (status docs) → QPay
+- Platform v2 (`docs/architecture/platform-v2.md` §6), in order: (DONE in repo, owner deploys) rules + indexes
+  for video_analyses / orders / benchmarks / products with emulator tests → upload-analysis pipeline (status docs) → QPay
   `PaymentProvider` + checkout + verified callback + Ebarimt (RED: payments) → consented benchmark clips →
   turn on `NEXT_PUBLIC_FIGHTER_DASHBOARD` and link it.
 P2
