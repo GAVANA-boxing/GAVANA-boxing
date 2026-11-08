@@ -4,6 +4,8 @@
   even signed out, can read every user's rounds and pose measurements; the privacy policy says these aren't
   shown to others. Fix plan in `docs/audit/2026-11-08-architecture-cv-qa.md` §4.2 (server-written
   `publicStats` for public profiles, then owner-only read + rules tests, owner deploys).
+- Funnel: retry_round counts a round after a result in the same browser visit (sessionStorage), so a
+  retry the next day is a return (D1/D7), not a retry. D7 is from app_opened, not "first valid round".
 - Fighter dashboard (`/fighter-dashboard`, off by default): the orders, video-analysis and benchmark sections
   have no data source yet — rules + indexes for `video_analyses`, `orders`, `products`, `benchmarks` are in
   the repo but NOT deployed (`docs/architecture/platform-v2.md` §5); clip analysis works on-device (plays the clip

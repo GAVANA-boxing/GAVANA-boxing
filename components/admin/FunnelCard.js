@@ -124,7 +124,10 @@ export default function FunnelCard({ user, locale }) {
             <Metric label={loc(locale, "Шинэ хэрэглэгч", "신규 사용자", "New users")} value={data.cohortSize} />
             <Metric label={loc(locale, "WOW хүрэх хугацаа (p50)", "WOW 도달 (p50)", "Time to WOW (p50)")} value={secs(data.timeToWowMs?.p50)} color={GOLD} hint={`p75 ${secs(data.timeToWowMs?.p75)}`} />
             <Metric label={loc(locale, "Камер татгалзсан", "카메라 거부", "Camera denied")} value={data.cameraDenied} color={data.cameraDenied ? RED : undefined} />
-            <Metric label="D1 / D7" value={`${data.retention?.d1?.rate ?? 0}% / ${data.retention?.d7?.rate ?? 0}%`} color={GREEN} hint={`n=${data.retention?.d1?.eligible ?? 0}/${data.retention?.d7?.eligible ?? 0}`} />
+            <Metric label="D1 / D7 / D30" value={`${data.retention?.d1?.rate ?? 0}% / ${data.retention?.d7?.rate ?? 0}% / ${data.retention?.d30?.rate ?? 0}%`} color={GREEN} hint={`n=${data.retention?.d1?.eligible ?? 0}/${data.retention?.d7?.eligible ?? 0}/${data.retention?.d30?.eligible ?? 0}`} />
+            <Metric label={loc(locale, "Үр дүнгийн дараа дахин раунд", "결과 후 다시 라운드", "Another round after a result")} value={`${data.retry?.rate ?? 0}%`} color={GOLD} hint={`${data.retry?.n ?? 0}/${data.retry?.of ?? 0}`} />
+            <Metric label={loc(locale, "Хадгалахаар бүртгүүлэх дарсан", "저장하려고 가입 클릭", "Tapped sign up to save")} value={data.signupToSave?.n ?? 0} hint={`/${data.signupToSave?.of ?? 0}`} />
+            <Metric label={loc(locale, "Камергүй таймер раунд", "카메라 없이 타이머 라운드", "Camera-less timer rounds")} value={data.timerRounds ?? 0} />
           </div>
 
           {worst && data.cohortSize > 0 && (

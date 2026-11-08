@@ -4,7 +4,7 @@ export default function manifest() {
   return {
     name: "GAVANA Boxing",
     short_name: "GAVANA",
-    description: "Камер чинь бокс дасгалжуулагч чинь: 20 секундийн эхний раунд, цохилт бүр тоологдож, засах нэг зүйлээ ав.",
+    description: "20 секундийн сүүдрийн бокс: камер цохилт, хамгаалалтыг чинь ажиглаад дараагийн раундад засах нэг зүйлийг хэлнэ.",
     start_url: "/mn/home",
     scope: "/",
     display: "standalone",

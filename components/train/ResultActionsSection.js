@@ -4,6 +4,7 @@ import { loc } from "@/lib/loc";
 import { GOLD, RED, RADIUS, whiteAlpha, goldAlpha, redAlpha } from "@/lib/tokens";
 import styles from "@/components/train/trainStyles";
 import { CORE_MODE } from "@/lib/coreRoutes";
+import { funnel, FUNNEL } from "@/lib/funnel";
 
 
 // Stored value (English, used in history/analytics) → label per locale (mn, ko, en).
@@ -52,6 +53,11 @@ export default function ResultActionsSection({
   t,
   router,
 }) {
+  // A guest on the result screen choosing to sign up to keep this round (funnel KPI).
+  const signUpToSave = () => {
+    funnel(FUNNEL.SIGNUP_TO_SAVE, { locale });
+    router.push(`/${locale}/login?mode=signup&redirect=${encodeURIComponent(`/${locale}/train`)}`);
+  };
   const saveSession = useCallback(() => {
     const { motionHistory: _mh, punchEvents: _pe, coaching, ...poseMetricsForSave } = poseMetrics || {};
     const weaknesses = (coaching || []).filter(c => c.type === "improve").map(c => c.message).slice(0, 2);
@@ -131,7 +137,7 @@ export default function ResultActionsSection({
           <button
             type="button"
             style={{ ...styles.saveButton, borderColor: "rgba(245,196,81,0.45)", background: "rgba(245,196,81,0.10)", color: "#F5C451" }}
-            onClick={() => router.push(`/${locale}/login?mode=signup&redirect=${encodeURIComponent(`/${locale}/train`)}`)}
+            onClick={signUpToSave}
           >
             {loc(locale, "Профайл үүсгэж streak болон дэвшлийг хадгал →", "프로필 생성 — 스트릭과 진행 저장 →", "Create profile to save streak and progress →")}
           </button>
@@ -189,8 +195,8 @@ export default function ResultActionsSection({
         {!tooFewPunches && !activeChallenge && isGuest && (
           <button
             type="button"
-            onClick={() => router.push(`/${locale}/login?mode=signup&redirect=${encodeURIComponent(`/${locale}/train`)}`)}
-            style={{ width: "100%", minHeight: 38, background: "none", border: `1px solid ${whiteAlpha(0.07)}`, borderRadius: RADIUS.md, color: whiteAlpha(0.55), fontSize: 11, fontWeight: 800, cursor: "pointer" }}
+            onClick={signUpToSave}
+            style={{ width: "100%", minHeight: 40, background: "none", border: `1px solid ${whiteAlpha(0.07)}`, borderRadius: RADIUS.md, color: whiteAlpha(0.55), fontSize: 11, fontWeight: 800, cursor: "pointer" }}
           >
             {academyLesson
               ? loc(locale, "Профайл үүсгэж academy дэвшлийг хуваалцаарай →", "프로필 생성 후 아카데미 진행 상황 공유 →", "Create profile to share academy progress →")
@@ -233,8 +239,8 @@ export default function ResultActionsSection({
         {!tooFewPunches && !activeChallenge && isGuest && (
           <button
             type="button"
-            onClick={() => router.push(`/${locale}/login?mode=signup&redirect=${encodeURIComponent(`/${locale}/train`)}`)}
-            style={{ width: "100%", minHeight: 38, background: "none", border: `1px solid ${whiteAlpha(0.07)}`, borderRadius: RADIUS.md, color: whiteAlpha(0.55), fontSize: 11, fontWeight: 800, cursor: "pointer" }}
+            onClick={signUpToSave}
+            style={{ width: "100%", minHeight: 40, background: "none", border: `1px solid ${whiteAlpha(0.07)}`, borderRadius: RADIUS.md, color: whiteAlpha(0.55), fontSize: 11, fontWeight: 800, cursor: "pointer" }}
           >
             {loc(locale, "Профайл үүсгэж бусдыг challenge хийгээрэй →", "프로필 생성 후 다른 사람에게 도전 →", "Create profile to challenge others →")}
           </button>
@@ -277,7 +283,7 @@ export default function ResultActionsSection({
         {challengePostData && isGuest && (
           <button
             type="button"
-            onClick={() => router.push(`/${locale}/login?mode=signup&redirect=${encodeURIComponent(`/${locale}/train`)}`)}
+            onClick={signUpToSave}
             style={{ ...styles.saveButton, background: "linear-gradient(135deg, rgba(167,139,250,0.2) 0%, rgba(167,139,250,0.08) 100%)", border: "1px solid rgba(167,139,250,0.35)", color: "#C084FC", boxShadow: "none" }}
           >
             {loc(locale, "Профайл үүсгэж challenge-д хариулаарай →", "프로필 생성 후 챌린지 응답 →", "Create profile to respond to challenge →")}

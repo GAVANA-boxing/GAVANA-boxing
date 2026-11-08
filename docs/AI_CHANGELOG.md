@@ -2,6 +2,21 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Owner's 3 research docs applied (owner: "Ashigla", "Hii")
+- Digest + decisions: `docs/research/2026-11-08-research-digest.md` (what was verified in code, what was
+  fixed, KPIs with events, AI validation protocol, Mongolian payment context). Shop UX rules (intent
+  categories, decision-oriented product card, PDP order, Glove Finder, trust block, checkout, motion,
+  a11y, structured data, metric hierarchy with guardrails): `docs/architecture/platform-v2.md` §3.1.
+  Shop / QPay paused until the core-loop KPIs are measured; backlog reordered (CORE LOOP FIRST).
+- Landing, SEO, manifest, OG, /train metadata: no "your camera is your coach" / "every punch" / "exact
+  moments" / "what a coach would see" (MN/KO/EN) — "Train 20 seconds. Fix one thing."; punches counted
+  "while your arms are in frame".
+- Terms §3 (first round without an account), §7 (payment provider shown at checkout, not Stripe), §11
+  (close the account by email, 30 days — same as Privacy §6), MN/KO/EN.
+- Funnel: `retry_round` (a round after a result in the same visit), `timer_round_started` (no camera),
+  `signup_to_save` (guest result CTAs); admin funnel shows retry % with n/N, sign-ups to save, timer rounds,
+  D30. Two result CTAs 38 → 40 px tall. Tests: `tests/funnelKpis.test.js` (3).
+
 ## Platform v2 step 2: on-device clip analysis → video_analyses (owner: "Hii")
 - `hooks/useClipAnalysis.ts`: a chosen clip plays in the browser through the SAME pipeline as a live round
   (`usePoseDetection` → punch detector → `computeFinalScore`); real-time playback because the detector times

@@ -2,6 +2,18 @@
 
 Status: TODO · BLOCKED (needs approval) · DONE. Highest priority first.
 
+## CORE LOOP FIRST — from the owner's research (docs/research/2026-11-08-research-digest.md)
+Shop / QPay (platform v2 step 3) is PAUSED until these are measured.
+1. Real phone, start to end: no signup → valid round → result → another round (owner, on device).
+2. (DONE) KPI events: retry_round, timer_round_started, signup_to_save; admin shows retry % (n/N), D30.
+3. Orthodox / southpaw × mirrored-preview test matrix (tests only — the detector stays paused).
+4. Labelled clips from 12–20 consenting people (jab / cross / hook / unknown), split by person → per-class
+   F1, confusion, false positives / minute, unscorable % (RED: consent / data).
+5. No score / tip when confidence is low (check every result path, not only "NOT ENOUGH DATA").
+6. One tip per round reviewed by a coach (coach-approved %).
+7. 7-day simple program tied to the core loop.
+8. (DONE) Landing / Terms say only what is measured and true.
+
 ## EVOLVE — prioritized from the Phase Zero audit (docs/architecture/current-state.md)
 P0 (needs owner approval — RED)
 - Storage rules: `coach_applications/{uid}/*` readable by any signed-in user → owner/admin only; add
