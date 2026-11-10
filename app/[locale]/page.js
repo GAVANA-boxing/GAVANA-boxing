@@ -5,6 +5,8 @@ import CinematicIntro from "@/components/landing/CinematicIntro";
 import { localeMetadata } from "@/lib/seo";
 import { getLocale, translate } from "@/lib/i18n";
 import css from "@/components/landing/landing.module.css";
+import { FREE_INCLUDES, PRO_PERKS, PRO_PRICES, formatMnt } from "@/lib/pro";
+import { SITE_URL } from "@/lib/site";
 
 // Landing: one promise (20 seconds → one thing to fix; only claims we have measured), one action (start a
 // free 20-second first round). Only real, shipped features; no invented numbers.
@@ -46,7 +48,27 @@ export default async function LocalizedHomePage({ params }) {
   const L = (mn, ko, en) => pick(locale, mn, ko, en);
   const startHref = `/${locale}/train?autostart=1`;
   const startLabel = L("Үнэгүй раунд эхлүүлэх", "무료 라운드 시작", "Start a free round");
-  const micro = L("Бүртгэл шаардахгүй · Зөвхөн утасны камер", "가입 불필요 · 휴대폰 카메라만", "No signup · Just your phone camera");
+  const micro = L("Бүртгэл шаардахгүй · Зөвхөн утасны камер · Видео утсанд чинь үлдэнэ", "가입 불필요 · 휴대폰 카메라만 · 영상은 휴대폰에만", "No signup · Just your phone camera · Video stays on your phone");
+
+  const pageUrl = `${SITE_URL}/${locale}`;
+  const jsonLd = [
+    { "@context": "https://schema.org", "@type": "WebSite", name: "GAVANA Boxing", url: pageUrl, inLanguage: locale },
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      name: "GAVANA Boxing",
+      url: pageUrl,
+      inLanguage: locale,
+      applicationCategory: "SportsApplication",
+      operatingSystem: "Web (iOS, Android)",
+      description: L(
+        "Утсаа тавиад 20 секунд сүүдрийн бокс хий — камер цохилт, хамгаалалтыг чинь ажиглаад засах нэг зүйлийг хэлнэ.",
+        "휴대폰을 세우고 20초 섀도복싱 — 카메라가 펀치와 가드를 살펴 고칠 한 가지를 알려줍니다.",
+        "Prop up your phone and shadow box for 20 seconds — the camera watches your punches and guard and gives you one thing to fix.",
+      ),
+      offers: { "@type": "Offer", price: "0", priceCurrency: "MNT" },
+    },
+  ];
 
   const facts = [
     { v: L("20 сек", "20초", "20 sec"), l: L("эхний раунд", "첫 라운드", "first round") },
@@ -173,6 +195,31 @@ export default async function LocalizedHomePage({ params }) {
         </div>
       </section>
 
+      {/* Price — free vs Pro at a glance; every item comes from lib/pro.js (enforced in code). */}
+      <section className={css.section} id="price">
+        <p className={css.sectionKicker}>{L("Үнэ", "가격", "Price")}</p>
+        <div className={css.priceGrid}>
+          <div className={css.priceCard}>
+            <h3 className={css.cardTitle}>{L("Үнэгүй", "무료", "Free")}</h3>
+            <p className={css.priceValue}>0₮</p>
+            <ul className={css.priceList}>
+              {(FREE_INCLUDES[locale] || FREE_INCLUDES.en).slice(0, 3).map((x) => <li key={x}>✓ {x}</li>)}
+            </ul>
+          </div>
+          <div className={`${css.priceCard} ${css.priceCardPro}`}>
+            <h3 className={css.cardTitle}>GAVANA Pro</h3>
+            <p className={css.priceValue}>
+              {formatMnt(PRO_PRICES.monthly.amount)}<span className={css.pricePer}> / {L("сар", "월", "month")}</span>
+            </p>
+            <p className={css.priceAlt}>{L("эсвэл", "또는", "or")} {formatMnt(PRO_PRICES.yearly.amount)} / {L("жил", "년", "year")}</p>
+            <ul className={css.priceList}>
+              {PRO_PERKS.map((p) => <li key={p.key}>{p.icon} {p.title[locale] || p.title.en}</li>)}
+            </ul>
+            <Link href={`/${locale}/pro`} className={`${css.ghostLink} ${css.priceLink}`}>{L("Дэлгэрэнгүй", "자세히", "Details")} →</Link>
+          </div>
+        </div>
+      </section>
+
       <section className={css.final}>
         <div className={css.finalCard}>
           <h2 className={css.finalTitle}>{L("Эхний раунд чинь 20 секунд", "첫 라운드는 20초", "Your first round is 20 seconds")}</h2>
@@ -180,6 +227,13 @@ export default async function LocalizedHomePage({ params }) {
           <Link href={startHref} className={css.cta}>{startLabel}<Arrow /></Link>
         </div>
       </section>
+
+      {/* Structured data: the site and the app (free offer only — Pro isn't listed as an offer
+          until checkout is open everywhere). */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+      />
 
       <footer className={css.footer}>
         <span>© {new Date().getFullYear()} GAVANA Boxing</span>

@@ -2,6 +2,17 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Business-research quick wins (owner: "Hii" to items 1–4)
+- Landing: short Free vs Pro block (0₮ / 9,900₮ a month or 79,000₮ a year) — every line from lib/pro.js
+  (FREE_INCLUDES, PRO_PERKS, PRO_PRICES), link to /pro; the hero micro line adds "video stays on your phone".
+- Structured data on the landing: WebSite + SoftwareApplication (SportsApplication, free offer 0 MNT only —
+  Pro isn't listed as an offer while checkout can still be closed). hreflang / canonical / sitemap / robots
+  already existed (lib/seo.js, app/sitemap.js, app/robots.js).
+- Pro funnel events (already allowed by /api/analytics, never sent before): `upgrade_viewed` (meta open /
+  soon), `upgrade_clicked` (plan), `subscribed` (return URL only — the Stripe webhook stays the source of
+  truth). Admin funnel shows "Pro: viewed → checkout → returned".
+- Not done (needs the owner): support e-mail and social links, real testimonials, coach partners.
+
 ## Less text, progress at a glance (owner, from phone screenshots: "too much text; I can't see how I improved")
 - `ProgressGlance` (components/progress): first rounds → latest rounds as two big numbers + ▲/▼ delta,
   the score line, punches per round first → now, three icon tiles (rounds, best, streak). Under 4 rounds
