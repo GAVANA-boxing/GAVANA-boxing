@@ -1,9 +1,11 @@
 # Known issues
 
-- **P0 privacy (rules): `training_sessions` and `user_training_profile` are `allow read: if true`** — anyone,
-  even signed out, can read every user's rounds and pose measurements; the privacy policy says these aren't
-  shown to others. Fix plan in `docs/audit/2026-11-08-architecture-cv-qa.md` §4.2 (server-written
-  `publicStats` for public profiles, then owner-only read + rules tests, owner deploys).
+- P0 privacy FIXED in code (2026-11-10): `training_sessions` / `user_training_profile` owner-only; public
+  rank from server-written `users.publicXp`. Live only after the rules deploy (GitHub Action
+  `firebase-deploy.yml`, needs the owner's one secret). Until a user's next round their public rank falls
+  back to stored XP + streak (can show lower). Hidden features that read other people's rounds stop working
+  when the rules are live: leaderboard (`useLeaderboardData`), reel author stats (`useReelFeed`) — both
+  hidden in CORE_MODE; move them to `publicXp` before un-hiding.
 - Funnel: retry_round counts a round after a result in the same browser visit (sessionStorage), so a
   retry the next day is a return (D1/D7), not a retry. D7 is from app_opened, not "first valid round".
 - Fighter dashboard (`/fighter-dashboard`, off by default): the orders, video-analysis and benchmark sections

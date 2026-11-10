@@ -128,12 +128,17 @@ export default function UserProfilePage() {
   if (loading) return <ProfileLoadingSkeleton />;
   if (!user || !profileUser) return null; // Will redirect
 
-  const xp = getAccountXp({
+  // Own profile: the account XP from your own rounds. Someone else's: the server-written publicXp
+  // (their rounds are private); until their next round it falls back to stored XP + streak only.
+  const ownXp = getAccountXp({
     storedXp: profileUser?.xp,
     trainingSessions,
     streakDays: streakCount,
     bestStreakDays: Number(profileUser?.bestDailyStreak) || 0,
   });
+  const xp = isOwnProfile || !Number.isFinite(Number(profileUser?.publicXp)) || profileUser?.publicXp == null
+    ? ownXp
+    : Number(profileUser.publicXp);
   const fighterRank = getFighterRank(xp);
   const nextRank = getNextRank(xp);
   const rankProgress = getRankProgress(xp);

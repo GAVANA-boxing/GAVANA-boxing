@@ -2,6 +2,17 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Solo month, week 1: P0 privacy + Firebase deploy automation (owner: "чи ганцаараа хөгжүүл")
+- Plan: `docs/plan/2026-11-month.md`; daily scheduled work cycle (10:41 UB) into this session.
+- `training_sessions` and `user_training_profile`: owner-only read (were world-readable, against the privacy
+  policy). Public rank on other people's profiles now comes from `users.publicXp`, written by
+  `/api/score/session` after each award (`lib/server/publicXp.js` = getAccountXp over the user's rounds,
+  reading only `xpGained`); `publicXp` is server-only in the users rule. Profile no longer listens to other
+  people's rounds. +10 rules tests (92/92), +2 unit tests.
+- `.github/workflows/firebase-deploy.yml`: deploys rules / indexes / storage on main (or on demand) with
+  the owner's one secret; waits until `/api/health` shows this commit live and server writes on. New
+  `/api/health` (version + serverWrites only).
+
 ## Coach team — "my students" (owner: "Hii")
 - Coach: `/coach/team` — invite code (share), daily assignment (rounds per day 1–10, optional benchmark
   drill), one row per student: today's dots, rounds this week, last active, last score, first → latest ▲/▼.

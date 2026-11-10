@@ -250,9 +250,10 @@ export function useProfileData({ user, userId, authLoading, locale }) {
     };
   }, [authLoading, user?.uid, userId]);
 
-  // Listen to training sessions in real time
+  // Listen to training sessions in real time — own profile only: other people's rounds are
+  // private (firestore.rules); their rank comes from the server-written users.publicXp.
   useEffect(() => {
-    if (authLoading || !user?.uid || !userId) {
+    if (authLoading || !user?.uid || !userId || !isOwnProfile) {
       setTrainingSessions([]);
       return;
     }
@@ -298,7 +299,7 @@ export function useProfileData({ user, userId, authLoading, locale }) {
         unsubscribeTraining();
       }
     };
-  }, [authLoading, user?.uid, userId]);
+  }, [authLoading, user?.uid, userId, isOwnProfile]);
 
   // Detect rank-up during session — own profile only
   useEffect(() => {

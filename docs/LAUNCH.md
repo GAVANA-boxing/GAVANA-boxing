@@ -40,6 +40,10 @@ firebase deploy --only firestore:rules
 # 3) Буцаан татах push функцууд (өдөр бүр 18:00 / winback)
 firebase deploy --only functions
 ```
+- **Автомат deploy (2026-11-10-аас):** GitHub → Settings → Secrets and variables → Actions → New repository
+  secret: нэр `FIREBASE_SERVICE_ACCOUNT_BASE64`, утга — Vercel дээрх яг тэр утга. Үүнээс хойш rules / index /
+  storage нь main руу merge бүрт (эсвэл Actions → «Firebase deploy» → Run) өөрөө deploy хийгдэнэ; эхлээд
+  Vercel дээр шинэ код гарч, сервер XP бичих боломжтой эсэхийг `/api/health`-ээр шалгана.
 - Индексүүдэд dashboard-ын `video_analyses`, `orders` (userId + createdAt) орсон; rules-д `video_analyses`
   (зөвхөн эзэмшигч), `orders` (эзэмшигч уншина, сервер бичнэ), `products` / `benchmarks` (нийтэд уншина),
   `users.stats` (сервер л бичнэ) нэмэгдсэн — `npm run test:rules` 72/72.
