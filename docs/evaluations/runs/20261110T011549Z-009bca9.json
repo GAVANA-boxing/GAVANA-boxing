@@ -1,0 +1,243 @@
+{
+  "id": "20261110T011549Z-009bca9",
+  "key": "f406c512",
+  "task": "Research quick wins: landing Free vs Pro block + privacy line, WebSite/SoftwareApplication JSON-LD, Pro funnel events + admin view",
+  "branch": "claude/review-refactor-code-DUmiX",
+  "commit": "009bca9",
+  "base": "@{upstream}",
+  "dirty": true,
+  "startedAt": "2026-11-10T01:15:49.239Z",
+  "finishedAt": "2026-11-10T01:21:21.070Z",
+  "durationS": 332,
+  "cost": {
+    "paidApiCalls": 0,
+    "note": "checks run locally; no paid APIs"
+  },
+  "change": {
+    "level": "RED",
+    "files": [
+      {
+        "path": "app/[locale]/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/pro/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/api/admin/funnel/route.js",
+        "level": "RED",
+        "why": "auth / admin"
+      },
+      {
+        "path": "components/admin/FunnelCard.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/landing/landing.module.css",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "docs/AI_CHANGELOG.md",
+        "level": "GREEN",
+        "why": "docs"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "name": "lint",
+      "ms": 42532,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0,
+        "warnings": 23
+      }
+    },
+    {
+      "name": "typecheck",
+      "ms": 2583,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0
+      }
+    },
+    {
+      "name": "unit",
+      "ms": 6213,
+      "status": "PASS",
+      "metrics": {
+        "passed": 315,
+        "failed": 0
+      }
+    },
+    {
+      "name": "build",
+      "ms": 6503,
+      "status": "PASS",
+      "metrics": {}
+    },
+    {
+      "name": "bundle",
+      "status": "PASS",
+      "metrics": {
+        "kb": 6297
+      }
+    },
+    {
+      "name": "punch",
+      "ms": 69,
+      "status": "PASS",
+      "metrics": {
+        "macroF1": 0.904,
+        "recall": 0.897,
+        "precision": 1,
+        "phantoms": 0
+      }
+    },
+    {
+      "name": "visual",
+      "ms": 273916,
+      "status": "PASS",
+      "metrics": {
+        "passed": 66,
+        "failed": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "name": "rules",
+      "status": "NOT RUN",
+      "note": "pass --rules to run"
+    }
+  ],
+  "comparison": [
+    {
+      "metric": "lint.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "lint.warnings",
+      "baseline": 23,
+      "value": 23,
+      "limit": "≤ 23",
+      "status": "PASS"
+    },
+    {
+      "metric": "typecheck.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.passed",
+      "baseline": 241,
+      "value": 315,
+      "limit": "≥ 241",
+      "status": "PASS"
+    },
+    {
+      "metric": "bundle.kb",
+      "baseline": 6598,
+      "value": 6297,
+      "limit": "≤ 6928",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.macroF1",
+      "baseline": 0.904,
+      "value": 0.904,
+      "limit": "≥ 0.9035000000000001",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.phantoms",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.passed",
+      "baseline": 49,
+      "value": 66,
+      "limit": "≥ 49",
+      "status": "PASS"
+    },
+    {
+      "metric": "rules.failed",
+      "status": "NOT RUN"
+    },
+    {
+      "metric": "rules.passed",
+      "status": "NOT RUN"
+    }
+  ],
+  "verdict": "ACCEPTED",
+  "verdictNote": "RED paths need the owner: app/api/admin/funnel/route.js (auth / admin)",
+  "history": [
+    {
+      "state": "PENDING",
+      "at": "2026-11-10T01:15:49.239Z",
+      "note": "created"
+    },
+    {
+      "state": "PLANNING",
+      "at": "2026-11-10T01:15:49.239Z",
+      "note": "Research quick wins: landing Free vs Pro block + privacy line, WebSite/SoftwareApplication JSON-LD, Pro funnel events + admin view"
+    },
+    {
+      "state": "IMPLEMENTING",
+      "at": "2026-11-10T01:15:49.239Z",
+      "note": "6 changed file(s) vs @{upstream}, risk RED"
+    },
+    {
+      "state": "VERIFYING",
+      "at": "2026-11-10T01:15:49.239Z",
+      "note": ""
+    },
+    {
+      "state": "EVALUATING",
+      "at": "2026-11-10T01:21:21.060Z",
+      "note": ""
+    },
+    {
+      "state": "AWAITING_APPROVAL",
+      "at": "2026-11-10T01:21:21.060Z",
+      "note": "RED paths need the owner: app/api/admin/funnel/route.js (auth / admin)"
+    },
+    {
+      "state": "ACCEPTED",
+      "at": "2026-11-10T01:21:31.611Z",
+      "note": "Owner said 'Hii' (2026-11-10) to items 1-4 incl. 'Pro funnel events (Pro page viewed -> checkout started -> paid)'. The admin funnel route only gains a read-only 'pro' aggregate; its admin auth check is unchanged."
+    }
+  ],
+  "baselineCommit": "37f2e45",
+  "decision": {
+    "by": "owner",
+    "note": "Owner said 'Hii' (2026-11-10) to items 1-4 incl. 'Pro funnel events (Pro page viewed -> checkout started -> paid)'. The admin funnel route only gains a read-only 'pro' aggregate; its admin auth check is unchanged.",
+    "at": "2026-11-10T01:21:31.611Z"
+  }
+}

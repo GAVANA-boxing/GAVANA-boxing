@@ -7,6 +7,7 @@ import { useUserProfile } from "@/context/UserProfileProvider";
 import { getLocale } from "@/lib/i18n";
 import { BRAND, btnPrimary, btnSecondary, displayTitle, kickerDot, kickerPill, pageBackground } from "@/components/ui/brand";
 import { FREE_INCLUDES, PRO_PERKS, PRO_PRICES, formatMnt, isProUser } from "@/lib/pro";
+import { funnel } from "@/lib/funnel";
 
 // GAVANA Pro — the one page for the plan, its price, its perks, buying and managing it.
 // Pro is only sold when the server says checkout, webhook and activation are all set up
@@ -30,8 +31,18 @@ export default function ProPage() {
   const [subscribed, setSubscribed] = useState(false);
 
   useEffect(() => {
-    try { setSubscribed(new URLSearchParams(window.location.search).get("subscribed") === "1"); } catch { /* no URL */ }
-  }, []);
+    let back = false;
+    try { back = new URLSearchParams(window.location.search).get("subscribed") === "1"; } catch { /* no URL */ }
+    setSubscribed(back);
+    // Pro funnel: page seen → checkout started → came back from a successful checkout.
+    // ("subscribed" here is the return URL, not proof of payment — the webhook is the source of truth.)
+    if (back) funnel("subscribed", { locale, meta: "return" });
+  }, [locale]);
+
+  useEffect(() => {
+    if (sale === null) return;
+    funnel("upgrade_viewed", { locale, meta: sale.enabled ? "open" : "soon" });
+  }, [sale, locale]);
 
   useEffect(() => {
     let alive = true;
@@ -74,7 +85,7 @@ export default function ProPage() {
     if (!sale.enabled) return { label: L("Төлбөр удахгүй нээгдэнэ", "결제는 곧 열려요", "Payments open soon"), disabled: true };
     if (!user) return { label: L("Нэвтрээд Pro болох", "로그인하고 Pro 시작", "Sign in to get Pro"), onClick: () => router.push(`/${locale}/login?redirect=${encodeURIComponent(`/${locale}/pro`)}`) };
     const price = activePlan === "yearly" ? `${formatMnt(yearly)} / ${L("жил", "년", "year")}` : `${formatMnt(monthly)} / ${L("сар", "월", "month")}`;
-    return { label: `${L("Pro болох", "Pro 시작", "Get Pro")} · ${price}`, onClick: () => callApi("/api/stripe/checkout", { plan: activePlan }) };
+    return { label: `${L("Pro болох", "Pro 시작", "Get Pro")} · ${price}`, onClick: () => { funnel("upgrade_clicked", { locale, meta: activePlan }); callApi("/api/stripe/checkout", { plan: activePlan }); } };
   })();
 
   return (

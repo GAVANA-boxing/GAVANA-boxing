@@ -128,6 +128,7 @@ export default function FunnelCard({ user, locale }) {
             <Metric label={loc(locale, "Үр дүнгийн дараа дахин раунд", "결과 후 다시 라운드", "Another round after a result")} value={`${data.retry?.rate ?? 0}%`} color={GOLD} hint={`${data.retry?.n ?? 0}/${data.retry?.of ?? 0}`} />
             <Metric label={loc(locale, "Хадгалахаар бүртгүүлэх дарсан", "저장하려고 가입 클릭", "Tapped sign up to save")} value={data.signupToSave?.n ?? 0} hint={`/${data.signupToSave?.of ?? 0}`} />
             <Metric label={loc(locale, "Камергүй таймер раунд", "카메라 없이 타이머 라운드", "Camera-less timer rounds")} value={data.timerRounds ?? 0} />
+            <Metric label={loc(locale, "Pro: үзсэн → төлбөр эхэлсэн → буцсан", "Pro: 조회 → 결제 시작 → 복귀", "Pro: viewed → checkout → returned")} value={`${data.pro?.viewed ?? 0} → ${data.pro?.checkout ?? 0} → ${data.pro?.returned ?? 0}`} color={GOLD} />
           </div>
 
           {worst && data.cohortSize > 0 && (

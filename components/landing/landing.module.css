@@ -352,6 +352,25 @@
   vertical-align: 2px;
 }
 
+/* ── Price (free vs Pro) ─────────────────────────────── */
+.priceGrid { display: grid; gap: 14px; }
+@media (min-width: 640px) { .priceGrid { grid-template-columns: repeat(2, 1fr); gap: 18px; } }
+.priceCard {
+  padding: 24px 22px;
+  border-radius: 20px;
+  background: var(--lp-card);
+  border: 1px solid var(--lp-line);
+}
+.priceCardPro {
+  border-color: rgba(245, 196, 81, 0.35);
+  background: linear-gradient(145deg, rgba(245, 196, 81, 0.08), rgba(255, 255, 255, 0.02));
+}
+.priceValue { margin: 4px 0 0; font-family: var(--font-display); font-size: 36px; line-height: 1; color: var(--lp-text); }
+.pricePer { font-family: inherit; font-size: 16px; color: var(--lp-muted); }
+.priceAlt { margin: 8px 0 0; color: var(--lp-faint); font-size: 14px; }
+.priceLink { display: inline-flex; align-items: center; min-height: 40px; border-bottom: none; color: var(--lp-gold); }
+.priceList { list-style: none; margin: 16px 0 12px; padding: 0; display: grid; gap: 8px; color: var(--lp-muted); font-size: 15px; line-height: 1.4; }
+
 /* ── Final CTA ───────────────────────────────────────── */
 .final {
   max-width: 1080px;

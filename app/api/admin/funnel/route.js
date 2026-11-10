@@ -97,6 +97,13 @@ export const GET = withAdmin(async (req) => {
   const retry = { rate: pct(retried, sawResult.size), n: retried, of: sawResult.size };
   const timerRounds = cohortWith("timer_round_started").size;
   const signupToSave = { n: cohortWith("signup_to_save").size, of: sawResult.size };
+  // Pro funnel: browsers that saw /pro → started checkout → came back from a successful checkout
+  // (the return URL, not the payment itself — Stripe's webhook stays the source of truth).
+  const pro = {
+    viewed: cohortWith("upgrade_viewed").size,
+    checkout: cohortWith("upgrade_clicked").size,
+    returned: cohortWith("subscribed").size,
+  };
 
   const cameraDenied = new Set(
     events.filter((e) => e.event === "camera_denied" && cohort.has(e.anonId)).map((e) => e.anonId),
@@ -133,6 +140,7 @@ export const GET = withAdmin(async (req) => {
     retry,
     timerRounds,
     signupToSave,
+    pro,
     timeToWowMs: { p50: quantile(wow, 0.5), p75: quantile(wow, 0.75), n: wow.length },
     retention: { d1: retention(1), d7: retention(7), d30: retention(30) },
   });
