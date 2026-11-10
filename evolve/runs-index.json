@@ -1,6 +1,35 @@
 {
   "runs": [
     {
+      "id": "20261110T122242Z-2ea0731",
+      "task": "Coach team: /coach/team screen, join by code on Coach tab, assignment card on Home, server-only API + rules, privacy text, stricter visual overflow check",
+      "verdict": "ACCEPTED",
+      "commit": "2ea0731",
+      "at": "2026-11-10T12:28:05.388Z",
+      "durationS": 322,
+      "level": "RED",
+      "failedSteps": [],
+      "notRun": [],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 324,
+        "unit.failed": 0,
+        "bundle.kb": 6364,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 72,
+        "visual.failed": 0,
+        "visual.flaky": 0,
+        "rules.passed": 82,
+        "rules.failed": 0
+      },
+      "decision": "owner"
+    },
+    {
       "id": "20261110T011549Z-009bca9",
       "task": "Research quick wins: landing Free vs Pro block + privacy line, WebSite/SoftwareApplication JSON-LD, Pro funnel events + admin view",
       "verdict": "ACCEPTED",

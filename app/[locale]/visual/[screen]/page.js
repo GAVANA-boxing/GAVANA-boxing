@@ -23,6 +23,10 @@ import OnboardingStep1Archetype from "@/components/onboarding/OnboardingStep1Arc
 import FighterDashboard from "@/components/dashboard/fighter/FighterDashboard";
 import { MOCK_DASHBOARD, MOCK_PARTIAL_ERROR } from "@/lib/dashboard/mockData";
 import ClipAnalyzerFixture from "@/components/dashboard/fighter/ClipAnalyzerFixture";
+import CoachTeamView from "@/components/coach/team/CoachTeamView";
+import { CoachLinkCardView } from "@/components/coach/team/CoachLinkCard";
+import CoachAssignmentCard from "@/components/coach/team/CoachAssignmentCard";
+import { summarizeStudent } from "@/lib/coach/team";
 import { dashboardCopy } from "@/lib/dashboard/copy";
 
 // Fixed-data renders of screens that need a signed-in user, for the visual
@@ -147,6 +151,38 @@ export default function VisualFixture() {
   if (params?.screen === "teardown") {
     // A synthetic round: jab, arm-only cross with the guard dropped, jab, cross.
     return <PunchTeardown replay={TEARDOWN_REPLAY} locale={locale} onClose={() => {}} />;
+  }
+
+  // Coach team with demo students (rounds built through the same summary the API uses).
+  if (params?.screen === "coach-team") {
+    const H = 3_600_000;
+    const r = (hAgo, score) => ({ createdAt: NOW - hAgo * H, score });
+    const demo = [
+      ["Anu", [r(30, 5.8), r(54, 6.0), r(78, 6.4)]],
+      ["Bat-Erdene", [r(2, 7.4), r(3, 7.1), r(4, 7.0), r(50, 6.2), r(74, 6.0)]],
+      ["Saraa", [r(1, 6.9), r(26, 6.5), r(98, 6.1), r(122, 5.6)]],
+    ];
+    const tz = -480;
+    const students = demo.map(([name, rounds], i) => ({ uid: `u${i}`, name, summary: summarizeStudent(rounds, { now: NOW, tzOffsetMin: tz, roundsPerDay: 3 }) }));
+    return (
+      <main style={{ minHeight: "100dvh", background: pageBackground, color: "#fff" }}>
+        <CoachTeamView locale={locale} now={NOW} tzOffsetMin={tz}
+          team={{ name: null, code: "K7M4QX", roundsPerDay: 3, drill: "jab-minute" }}
+          students={students} onCreate={() => {}} onSave={() => {}} onRemove={() => {}} onShare={() => {}} />
+      </main>
+    );
+  }
+
+  // Student side: the coach's assignment on Home + the joined card on the Coach tab (+ the join form).
+  if (params?.screen === "coach-student") {
+    const team = { name: null, coachName: "Coach Ganbold", roundsPerDay: 3, drill: "jab-minute" };
+    return (
+      <main style={{ minHeight: "100dvh", background: pageBackground, color: "#fff", padding: "24px 16px", display: "flex", flexDirection: "column", gap: 16, maxWidth: 540, margin: "0 auto", boxSizing: "border-box" }}>
+        <CoachAssignmentCard locale={locale} team={team} todayCount={1} onStart={() => {}} />
+        <CoachLinkCardView locale={locale} team={team} loading={false} error={null} onJoin={() => {}} onLeave={() => {}} />
+        <CoachLinkCardView locale={locale} team={null} loading={false} error="not_found" onJoin={() => {}} onLeave={() => {}} />
+      </main>
+    );
   }
 
   // Fighter dashboard with demo data; "-states" = no benchmark published + orders offline.

@@ -11,6 +11,9 @@ const SCREENS = [
   // Fighter dashboard (demo data) and its empty-benchmark + offline-orders states.
   { name: "dashboard", path: "/visual/dashboard" },
   { name: "dashboard-states", path: "/visual/dashboard-states" },
+  // Coach team: the coach's "my students" screen and the student's side (assignment, join).
+  { name: "coach-team", path: "/visual/coach-team" },
+  { name: "coach-student", path: "/visual/coach-student" },
 ];
 const VARIANTS = [
   { id: "mn-390", locale: "mn", viewport: { width: 390, height: 844 } },
@@ -246,6 +249,8 @@ async function settle(page) {
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(1500);
   // No horizontal scrolling at any size.
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  // body too: with overflow-x: clip on html/body the document's scrollWidth stays at the viewport
+  // even when the content is wider and gets cut off on the right.
+  const overflow = await page.evaluate(() => Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - window.innerWidth);
   expect(overflow, "horizontal overflow (px)").toBeLessThanOrEqual(1);
 }
