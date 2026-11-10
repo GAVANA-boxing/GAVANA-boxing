@@ -31,6 +31,22 @@ await t("session: create with xpGained blocked", assertFails(setDoc(doc(alice, "
 await t("session: edit score blocked", assertFails(updateDoc(doc(alice, "training_sessions/s1"), { score: 10 })));
 await t("session: edit tag ok", assertSucceeds(updateDoc(doc(alice, "training_sessions/s1"), { sessionTag: "Bag" })));
 await t("session: other user's blocked", assertFails(updateDoc(doc(bob, "training_sessions/s1"), { sessionTag: "x" })));
+// P0 privacy: rounds and training profiles are owner-only; publicXp is server-only
+await env.withSecurityRulesDisabled(async (c) => {
+  const db = c.firestore();
+  await setDoc(doc(db, "training_sessions/priv1"), { userId: "alice", type: "training", score: 6 });
+  await setDoc(doc(db, "user_training_profile/alice"), { level: 2 });
+});
+await t("session: owner read ok", assertSucceeds(getDoc(doc(alice, "training_sessions/priv1"))));
+await t("session: other user read blocked", assertFails(getDoc(doc(bob, "training_sessions/priv1"))));
+await t("session: anon read blocked", assertFails(getDoc(doc(anon, "training_sessions/priv1"))));
+await t("session: owner query ok", assertSucceeds(getDocs(query(collection(alice, "training_sessions"), where("userId", "==", "alice")))));
+await t("session: query for someone else blocked", assertFails(getDocs(query(collection(bob, "training_sessions"), where("userId", "==", "alice")))));
+await t("session: unfiltered query blocked", assertFails(getDocs(collection(alice, "training_sessions"))));
+await t("training profile: owner read ok", assertSucceeds(getDoc(doc(alice, "user_training_profile/alice"))));
+await t("training profile: other read blocked", assertFails(getDoc(doc(bob, "user_training_profile/alice"))));
+await t("training profile: anon read blocked", assertFails(getDoc(doc(anon, "user_training_profile/alice"))));
+await t("users: publicXp blocked", assertFails(updateDoc(doc(alice, "users/alice"), { publicXp: 999999 })));
 await t("fcm: owner write", assertSucceeds(setDoc(doc(alice, "users/alice/fcmTokens/tok"), { token: "t" })));
 await t("fcm: other read blocked", assertFails(getDoc(doc(bob, "users/alice/fcmTokens/tok"))));
 // users.stats — server aggregate for the dashboard

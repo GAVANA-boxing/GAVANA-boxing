@@ -4,6 +4,7 @@ import { computeChallengeProgression, computeMissionProgression } from "@/lib/do
 import { checkSession, challengeAwardDecision, challengeResultId, resolveDateKeys, sessionXpDecision } from "@/lib/domain/scoreGuard";
 import { getCurrentSeasonId } from "@/lib/season";
 import { CORE_MODE } from "@/lib/coreRoutes";
+import { computePublicXp } from "@/lib/server/publicXp";
 
 // Server-authoritative progression. The client posts the raw session outcome;
 // the server recomputes XP / streak / rank with the shared pure math and writes
@@ -91,7 +92,13 @@ export const POST = withAuth(async (req, { uid }) => {
       if (!created) {
         return Response.json({ ok: true, alreadyAwarded: true, celebration: null });
       }
-      await firestorePatch(`users/${uid}`, { ...userUpdate, ...cap.userUpdate, updatedAt: new Date() });
+      const challengeUser = { ...userData, ...userUpdate, ...cap.userUpdate };
+      const challengePublicXp = await computePublicXp(uid, challengeUser);
+      await firestorePatch(`users/${uid}`, {
+        ...userUpdate, ...cap.userUpdate,
+        ...(challengePublicXp != null ? { publicXp: challengePublicXp } : {}),
+        updatedAt: new Date(),
+      });
 
       return Response.json({ ok: true, celebration, authoritative: userUpdate });
     }
@@ -112,7 +119,15 @@ export const POST = withAuth(async (req, { uid }) => {
     const decision = sessionXpDecision({ session, uid, userData, todayKey: dateKeys.todayKey });
     if (decision.sessionUpdate) await firestorePatch(`training_sessions/${trainingSessionId}`, decision.sessionUpdate);
 
-    await firestorePatch(`users/${uid}`, { ...userUpdate, ...(decision.userUpdate || {}), updatedAt: new Date() });
+    // Public rank for other people's screens (training_sessions are owner-only): the full account
+    // XP after this round, computed here (session xpGained already patched above).
+    const missionUser = { ...userData, ...userUpdate, ...(decision.userUpdate || {}) };
+    const publicXp = await computePublicXp(uid, missionUser);
+    await firestorePatch(`users/${uid}`, {
+      ...userUpdate, ...(decision.userUpdate || {}),
+      ...(publicXp != null ? { publicXp } : {}),
+      updatedAt: new Date(),
+    });
 
     return Response.json({ ok: true, alreadyCompleted, celebration, trainingXpGained: decision.xp, xpReason: decision.reason, authoritative: userUpdate });
   } catch (err) {

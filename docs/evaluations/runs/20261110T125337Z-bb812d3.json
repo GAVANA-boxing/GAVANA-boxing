@@ -1,0 +1,288 @@
+{
+  "id": "20261110T125337Z-bb812d3",
+  "key": "20650a31",
+  "task": "P0 privacy: owner-only training_sessions/user_training_profile, server-written publicXp for public rank, Firebase deploy workflow + /api/health",
+  "branch": "claude/review-refactor-code-DUmiX",
+  "commit": "bb812d3",
+  "base": "@{upstream}",
+  "dirty": true,
+  "startedAt": "2026-11-10T12:53:39.139Z",
+  "finishedAt": "2026-11-10T13:00:08.309Z",
+  "durationS": 389,
+  "cost": {
+    "paidApiCalls": 0,
+    "note": "checks run locally; no paid APIs"
+  },
+  "change": {
+    "level": "RED",
+    "files": [
+      {
+        "path": "app/[locale]/profile/[userId]/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/api/score/session/route.js",
+        "level": "RED",
+        "why": "XP / rank / scoring"
+      },
+      {
+        "path": "docs/AI_CHANGELOG.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "docs/AI_KNOWN_ISSUES.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "docs/LAUNCH.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "firestore.rules",
+        "level": "RED",
+        "why": "security rules"
+      },
+      {
+        "path": "hooks/useProfileData.js",
+        "level": "YELLOW",
+        "why": "hooks with data access"
+      },
+      {
+        "path": "scripts/rules-test/rules.test.mjs",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": ".github/workflows/firebase-deploy.yml",
+        "level": "RED",
+        "why": "production / deploy config"
+      },
+      {
+        "path": "app/api/health/route.js",
+        "level": "YELLOW",
+        "why": "API route"
+      },
+      {
+        "path": "docs/plan/2026-11-month.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "lib/server/publicXp.js",
+        "level": "YELLOW",
+        "why": "server / data helpers"
+      },
+      {
+        "path": "tests/publicXp.test.js",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "name": "lint",
+      "ms": 48748,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0,
+        "warnings": 23
+      }
+    },
+    {
+      "name": "typecheck",
+      "ms": 2819,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0
+      }
+    },
+    {
+      "name": "unit",
+      "ms": 5763,
+      "status": "PASS",
+      "metrics": {
+        "passed": 326,
+        "failed": 0
+      }
+    },
+    {
+      "name": "build",
+      "ms": 33465,
+      "status": "PASS",
+      "metrics": {}
+    },
+    {
+      "name": "bundle",
+      "status": "PASS",
+      "metrics": {
+        "kb": 6364
+      }
+    },
+    {
+      "name": "punch",
+      "ms": 80,
+      "status": "PASS",
+      "metrics": {
+        "macroF1": 0.904,
+        "recall": 0.897,
+        "precision": 1,
+        "phantoms": 0
+      }
+    },
+    {
+      "name": "visual",
+      "ms": 288336,
+      "status": "PASS",
+      "metrics": {
+        "passed": 72,
+        "failed": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "name": "rules",
+      "ms": 9942,
+      "status": "PASS",
+      "metrics": {
+        "passed": 92,
+        "failed": 0
+      }
+    }
+  ],
+  "comparison": [
+    {
+      "metric": "lint.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "lint.warnings",
+      "baseline": 23,
+      "value": 23,
+      "limit": "≤ 23",
+      "status": "PASS"
+    },
+    {
+      "metric": "typecheck.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.passed",
+      "baseline": 241,
+      "value": 326,
+      "limit": "≥ 241",
+      "status": "PASS"
+    },
+    {
+      "metric": "bundle.kb",
+      "baseline": 6598,
+      "value": 6364,
+      "limit": "≤ 6928",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.macroF1",
+      "baseline": 0.904,
+      "value": 0.904,
+      "limit": "≥ 0.9035000000000001",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.phantoms",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.passed",
+      "baseline": 49,
+      "value": 72,
+      "limit": "≥ 49",
+      "status": "PASS"
+    },
+    {
+      "metric": "rules.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "rules.passed",
+      "baseline": 24,
+      "value": 92,
+      "limit": "≥ 24",
+      "status": "PASS"
+    }
+  ],
+  "verdict": "ACCEPTED",
+  "verdictNote": "RED paths need the owner: app/api/score/session/route.js (XP / rank / scoring), firestore.rules (security rules), .github/workflows/firebase-deploy.yml (production / deploy config)",
+  "history": [
+    {
+      "state": "PENDING",
+      "at": "2026-11-10T12:53:39.139Z",
+      "note": "created"
+    },
+    {
+      "state": "PLANNING",
+      "at": "2026-11-10T12:53:39.139Z",
+      "note": "P0 privacy: owner-only training_sessions/user_training_profile, server-written publicXp for public rank, Firebase deploy workflow + /api/health"
+    },
+    {
+      "state": "IMPLEMENTING",
+      "at": "2026-11-10T12:53:39.139Z",
+      "note": "13 changed file(s) vs @{upstream}, risk RED"
+    },
+    {
+      "state": "VERIFYING",
+      "at": "2026-11-10T12:53:39.139Z",
+      "note": ""
+    },
+    {
+      "state": "EVALUATING",
+      "at": "2026-11-10T13:00:08.300Z",
+      "note": ""
+    },
+    {
+      "state": "AWAITING_APPROVAL",
+      "at": "2026-11-10T13:00:08.300Z",
+      "note": "RED paths need the owner: app/api/score/session/route.js (XP / rank / scoring), firestore.rules (security rules), .github/workflows/firebase-deploy.yml (production / deploy config)"
+    },
+    {
+      "state": "ACCEPTED",
+      "at": "2026-11-10T13:00:21.567Z",
+      "note": "Owner (2026-11-10): 'Chi gantsaaraa gavanag hogjuulene … ymar ch zowshoorluudiig bi ogno' + asked to start the 1-month plan whose week-1 item is this P0 privacy fix. Score route only adds the server-written publicXp (XP math unchanged, getAccountXp); rules make training_sessions / user_training_profile owner-only and publicXp server-only (92/92); the deploy workflow does nothing until the owner adds the secret and waits for /api/health."
+    }
+  ],
+  "baselineCommit": "37f2e45",
+  "decision": {
+    "by": "owner",
+    "note": "Owner (2026-11-10): 'Chi gantsaaraa gavanag hogjuulene … ymar ch zowshoorluudiig bi ogno' + asked to start the 1-month plan whose week-1 item is this P0 privacy fix. Score route only adds the server-written publicXp (XP math unchanged, getAccountXp); rules make training_sessions / user_training_profile owner-only and publicXp server-only (92/92); the deploy workflow does nothing until the owner adds the secret and waits for /api/health.",
+    "at": "2026-11-10T13:00:21.567Z"
+  }
+}

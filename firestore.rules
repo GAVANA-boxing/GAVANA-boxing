@@ -75,7 +75,8 @@ service cloud.firestore {
             "sessionXpCount",
             "challengeAwardDay",
             "challengeAwardCount",
-            "stats"
+            "stats",
+            "publicXp"
           ])) ||
         (isAuth() && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           "coachRating",
@@ -170,9 +171,11 @@ service cloud.firestore {
     }
 
     // ─── Training sessions / profile ─────────────────────────────
-    // Public read so leaderboard and profile views can aggregate scores.
+    // Private: only the owner reads their rounds (privacy policy §5). Other people's screens use
+    // the server-written users.publicXp for rank; coaches see summaries via /api/coach/team.
+    // (Queries must filter userId == your uid.)
     match /training_sessions/{sessionId} {
-      allow read: if true;
+      allow read: if isOwner("userId");
       // The client creates the session but may NOT set xpGained — the server
       // (/api/score/session, service account) stamps the authoritative value.
       // getAccountXp sums xpGained, so a client-set value would inflate rank/XP.
@@ -186,8 +189,7 @@ service cloud.firestore {
     }
 
     match /user_training_profile/{userId} {
-      allow read: if true;
-      allow write: if isAuth() && request.auth.uid == userId;
+      allow read, write: if isAuth() && request.auth.uid == userId;
     }
 
     // ─── Video analyses (uploaded clips analysed in the owner's browser) ──
