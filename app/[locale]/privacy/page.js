@@ -53,6 +53,7 @@ const T = {
         heading: "5. What other users can see",
         body: [
           "Your public profile: username, display name, profile photo, rank and any videos or posts you publish.",
+          "A coach's team, only if you join it with the coach's code: that coach sees your display name, how many rounds you did today and this week, your last score and how your scores have changed. You can leave the team at any time on the Coach page; the coach then sees nothing.",
           "Your email, training history and camera measurements are not shown to other users.",
           "We do not sell your personal data.",
         ],
@@ -139,6 +140,7 @@ const T = {
         body: [
           "Нийтийн профайл: хэрэглэгчийн нэр, харагдах нэр, профайл зураг, цол, мөн таны нийтэлсэн видео, пост.",
           "Имэйл, бэлтгэлийн түүх, камерын хэмжилт тань бусдад харагдахгүй.",
+          "Дасгалжуулагчийн баг — зөвхөн та түүний кодыг оруулж нэгдсэн бол: тэр дасгалжуулагч таны нэр, өнөөдөр болон энэ 7 хоногт хийсэн раундын тоо, сүүлийн оноо, оноо тань хэрхэн өөрчлөгдсөнийг харна. Коуч хуудаснаас хэдийд ч гарч болно; гарсны дараа юу ч харагдахгүй.",
           "Бид таны хувийн мэдээллийг худалддаггүй.",
         ],
       },
@@ -224,6 +226,7 @@ const T = {
         body: [
           "공개 프로필: 사용자 이름, 표시 이름, 프로필 사진, 랭크, 직접 게시한 영상이나 글.",
           "이메일, 훈련 기록, 카메라 측정값은 다른 사용자에게 보이지 않습니다.",
+          "코치 팀 — 코치의 코드를 입력해 참여한 경우에만: 그 코치는 내 이름, 오늘과 이번 주 라운드 수, 마지막 점수, 점수 변화를 봅니다. 코치 페이지에서 언제든지 나갈 수 있으며, 나가면 아무것도 보이지 않습니다.",
           "당사는 개인정보를 판매하지 않습니다.",
         ],
       },

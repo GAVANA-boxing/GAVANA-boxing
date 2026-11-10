@@ -252,6 +252,17 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // ─── Coach teams ("my students") ─────────────────────────────
+    // Only the server (/api/coach/team, /api/coach/membership, service account) reads and
+    // writes these: joining needs the invite code, and a coach sees students' summaries
+    // through the API, never their raw docs.
+    match /coach_teams/{coachUid} {
+      allow read, write: if false;
+    }
+    match /coach_members/{memberId} {
+      allow read, write: if false;
+    }
+
     // ─── Badges ───────────────────────────────────────────────────
     match /user_badges/{badgeId} {
       allow read: if true;

@@ -33,6 +33,7 @@ import BottomSheet from "@/components/BottomSheet";
 import EmptyState from "@/components/EmptyState";
 import SkeletonBlock from "@/components/SkeletonBlock";
 import { useAuth } from "@/lib/AuthContext";
+import CoachLinkCard from "@/components/coach/team/CoachLinkCard";
 import { useUserProfile } from "@/context/UserProfileProvider";
 import { getLocaleFromPathname, translate } from "@/lib/i18n";
 import { RED, RED_DARK, GOLD, redAlpha, goldAlpha } from "@/lib/tokens";
@@ -107,6 +108,9 @@ export default function CoachPage() {
           kicker={L("Дасгалжуулагч", "코치", "Coach")}
           title={tab === "ai" ? L("Чиний булан", "나의 코너", "Your corner") : tab === "coaches" ? t("coachMarketplace") : t("coachMyRequestsTitle")}
         />
+
+        {/* Coach team: a student joins with the coach's code; a coach opens "My students". */}
+        <CoachLinkCard user={user} locale={locale} />
 
         {/* Segmented control */}
         {TABS.length > 1 && <div role="tablist" style={{ ...glass, display: "flex", gap: 4, padding: 4, borderRadius: 999, marginBottom: 18 }}>

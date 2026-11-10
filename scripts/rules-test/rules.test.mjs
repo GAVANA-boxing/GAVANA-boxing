@@ -79,6 +79,17 @@ await t("products: anon read ok", assertSucceeds(getDoc(doc(anon, "products/glov
 await t("products: write blocked", assertFails(setDoc(doc(alice, "products/gloves"), { title: { en: "Free" } })));
 await t("benchmarks: anon read ok", assertSucceeds(getDoc(doc(anon, "benchmarks/coach"))));
 await t("benchmarks: write blocked", assertFails(setDoc(doc(alice, "benchmarks/coach"), { athletes: 1000 })));
+// coach teams — server only (invite code is the consent; coaches see summaries via the API)
+await env.withSecurityRulesDisabled(async (c) => {
+  const db = c.firestore();
+  await setDoc(doc(db, "coach_teams/bob"), { coachUid: "bob", code: "K7M4QX", roundsPerDay: 3 });
+  await setDoc(doc(db, "coach_members/bob_alice"), { coachUid: "bob", studentUid: "alice" });
+});
+await t("coach team: coach can't read own team doc directly", assertFails(getDoc(doc(bob, "coach_teams/bob"))));
+await t("coach team: others can't read (code stays secret)", assertFails(getDoc(doc(alice, "coach_teams/bob"))));
+await t("coach team: client can't create a team", assertFails(setDoc(doc(alice, "coach_teams/alice"), { coachUid: "alice", code: "AAAAAA" })));
+await t("coach team: client can't join by writing a member doc", assertFails(setDoc(doc(alice, "coach_members/carol_alice"), { coachUid: "carol", studentUid: "alice" })));
+await t("coach team: member doc not readable", assertFails(getDoc(doc(alice, "coach_members/bob_alice"))));
 console.log(results.join("\n"));
 if (results.some((r) => r.startsWith("FAIL"))) process.exitCode = 1;
 await env.cleanup();

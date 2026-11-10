@@ -2,6 +2,24 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Coach team — "my students" (owner: "Hii")
+- Coach: `/coach/team` — invite code (share), daily assignment (rounds per day 1–10, optional benchmark
+  drill), one row per student: today's dots, rounds this week, last active, last score, first → latest ▲/▼.
+  Students who still owe today's rounds are listed first.
+- Student: on the Coach tab, join with the code (or see the team / leave); on Home, the assignment card
+  (today's rounds as dots + one "Round →" button, to the drill if one is set).
+- Server only: `/api/coach/team` (GET view, POST save / remove), `/api/coach/membership` (GET, POST join /
+  leave; 10 wrong codes per 10 min per user), service account via `lib/server/coachTeam.js`
+  (`firestoreDelete`, `whereEq` added to lib/server/firestore.js). Collections `coach_teams`,
+  `coach_members`: no client access (rules + 5 emulator tests, 82/82). A coach sees name, rounds today /
+  this week, last score and first → latest — no pose data, video or messages. Privacy policy (MN/KO/EN).
+- Logic: `lib/coach/team.js` (code, limits, local-day counting by time-zone offset, summary, order) +
+  9 unit tests. Visual: `coach-team`, `coach-student` fixtures (6 baselines).
+- Visual tests' overflow check now also reads `body.scrollWidth` (overflow-x: clip hid a 422 px-wide page
+  at 360 px — the code input's built-in width; fixed with width 0). All other screens pass the stricter check.
+- Needs `FIREBASE_SERVICE_ACCOUNT_BASE64` on Vercel (already required for XP); without it the screens say
+  the server isn't set up.
+
 ## Business-research quick wins (owner: "Hii" to items 1–4)
 - Landing: short Free vs Pro block (0₮ / 9,900₮ a month or 79,000₮ a year) — every line from lib/pro.js
   (FREE_INCLUDES, PRO_PERKS, PRO_PRICES), link to /pro; the hero micro line adds "video stays on your phone".

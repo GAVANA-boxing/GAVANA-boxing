@@ -17,6 +17,9 @@ import { getLocalDateKey } from "@/lib/utils";
 import { RED, GOLD, whiteAlpha } from "@/lib/tokens";
 import BottomNav from "@/components/BottomNav";
 import ProgressGlance from "@/components/progress/ProgressGlance";
+import CoachAssignmentCard from "@/components/coach/team/CoachAssignmentCard";
+import { useCoachMembership } from "@/hooks/useCoachMembership";
+import { dayStartMs, toMs } from "@/lib/coach/team";
 import { CORE_MODE } from "@/lib/coreRoutes";
 
 const COND = "var(--font-condensed, 'Barlow Condensed', sans-serif)";
@@ -44,6 +47,9 @@ export default function HomePage() {
   const t = (key) => translate(locale, key);
   const { user, loading: authLoading } = useAuth();
   const { sessions } = useCombatMemory({ user });
+  const coach = useCoachMembership(user);
+  const today0 = dayStartMs(Date.now(), new Date().getTimezoneOffset());
+  const roundsToday = sessions.filter((s) => (s.type == null || s.type === "training") && toMs(s.createdAt) >= today0).length;
 
   // Shared, single-subscription profile (no per-page user-doc fetch).
   const { profile: userData } = useUserProfile();
@@ -168,6 +174,16 @@ export default function HomePage() {
           </div>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={whiteAlpha(0.58)} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 6 6 6-6 6"/></svg>
         </button>
+
+        {/* COACH ASSIGNMENT — only when the student joined a coach's team */}
+        {coach.team && (
+          <section style={S.sec}>
+            <CoachAssignmentCard
+              locale={locale} team={coach.team} todayCount={roundsToday}
+              onStart={() => go(coach.team.drill ? `/train?drill=${coach.team.drill}` : "/train")}
+            />
+          </section>
+        )}
 
         {/* PROGRESS — am I getting better? one glance (first rounds → latest rounds) */}
         {sessions.length > 0 && (
