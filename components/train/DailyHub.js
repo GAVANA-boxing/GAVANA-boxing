@@ -30,6 +30,7 @@ export default function DailyHub({
   missionJustCompleted,
   wrappedHandleStart,
   academyProgress = null,
+  onOpenLesson,
 }) {
   const effectiveMissionDone = missionCompletedToday || missionJustCompleted;
   const isBeginner  = isBeginnerUser(totalSessionCount ?? 999);
@@ -46,7 +47,7 @@ export default function DailyHub({
     [userStreak === 0 && totalSessionCount > 0 && !effectiveMissionDone,
       () => <StreakRecoveryMission locale={locale} wrappedHandleStart={wrappedHandleStart} />],
     [userStreak >= 3 && !effectiveMissionDone, () => <StreakRiskWarning locale={locale} userStreak={userStreak} />],
-    [isBeginner && academyNext, () => <AcademyNextCard lessonProgress={academyProgress} locale={locale} router={router} />],
+    [isBeginner && academyNext, () => <AcademyNextCard lessonProgress={academyProgress} locale={locale} router={router} onOpen={onOpenLesson} />],
     [userArchetype && dnaMission, () => (
       <DNADailyFocus locale={locale} mission={dnaMission} userArchetype={userArchetype} wrappedHandleStart={wrappedHandleStart} />
     )],

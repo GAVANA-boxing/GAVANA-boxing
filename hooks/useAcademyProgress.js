@@ -30,7 +30,8 @@ export function useAcademyProgress({ user }) {
     if (user?.uid) {
       // Seed once per signed-in user from the shared profile; don't re-clobber
       // the locally-mutated progress on every realtime tick.
-      if (profileLoading) return;
+      // Not known yet: say so, or a screen would show the guest / empty progress as this user's.
+      if (profileLoading) { setLoading(true); return; }
       if (seededForRef.current !== user.uid) {
         const ap = profile?.academyProgress || {};
         setLessonProgress(ap.lessonProgress || {});

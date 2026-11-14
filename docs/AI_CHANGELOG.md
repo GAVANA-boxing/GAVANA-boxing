@@ -19,9 +19,25 @@ One entry per cycle that changed code. Newest first.
   `users.academyProgress`. Replaces the beginner card, whose "lesson 3 of 6" was derived from the
   number of rounds and whose button led to a hidden page.
 - Lessons in teaching order, beginner → advanced (Double Jab was 9th, after the intermediate ones).
-- Tests: +11 unit (progress rules, order), render tests 153 → 163 (cards in three languages, statuses,
-  no boxer names), route test extended (three cues, details closed, one card), 5 visual baselines
-  (Home ×3 regenerated, lesson card ×2 new).
+- **Review of the two commits (each reviewed once; the second-reviewer pass hit the usage limit, so
+  every finding was checked by hand): 12 findings, fixed.** Three buttons did nothing when tapped ON
+  the Train page — the "next lesson" card on the start screen, and "again" / "next lesson" on the
+  after-round card: they pushed a URL the page was already on, and the page reads the lesson only on
+  mount. The page now opens a lesson in place (`openLesson`: clears the finished round first, then
+  sets the lesson and the address); "again" is the result screen's own button and is not repeated on
+  the card. The lesson status sits on the result itself (it was inside the folded details) and reads
+  the stored progress: a lesson finished earlier stays "Дууссан", the next lesson is the first one not
+  done (lessons can be done in any order), "all done" only when all are. One Academy lesson still
+  named a real boxer in its "common mistake" text — reworded in three languages, and a test now scans
+  every field a lesson card can print, in every language, for boxers' names. Home no longer shows the
+  empty / guest progress to a signed-in user while the profile loads. MN wording ("оноонд хүрвэл",
+  "Дууссан" everywhere). An early Finish in the mitt drill hides the record line. CV tests block the
+  service worker (it bypassed the "model cannot load" routes).
+- Tests: +11 unit (progress rules, order), render tests 153 → 175 (cards in three languages, every
+  status, handlers, no boxer names), `tests/cv/academy.spec.mjs` (a real round records the lesson from
+  the final score; "next lesson" after a finished lesson opens the next lesson on the same page), route
+  test extended (three cues, details closed, one card), 5 visual baselines (Home ×3 regenerated, lesson
+  card ×2 new).
 
 ## Hidden features, increment 1 — the three extra modes work on a cold start (owner: "nuusan code uudiig unshaad heregtei zuilsuudiig gargaad ajluulaad saijruulaad", "hylbar amar mortloo mash goy ui ux")
 Map first: five read-only readers over every hidden / unlinked area (train modes, learning content,

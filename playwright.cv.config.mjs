@@ -31,6 +31,9 @@ export default defineConfig({
       ],
     },
     permissions: ["camera"],
+    // page.route() does not see requests made by a service worker: without this the "model cannot
+    // load" tests would only break the model for part of the run.
+    serviceWorkers: "block",
     viewport: { width: 390, height: 844 },
   },
   webServer: {

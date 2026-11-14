@@ -648,6 +648,17 @@ export default function TrainPage() {
     if (fighter && lesson) setLessonContext({ fighter, lesson });
   }, []);
 
+  // Open an Academy lesson on this page (the "next lesson" cards). The lesson context above is
+  // read from the URL only on mount, so a router.push to this same page did nothing but change
+  // the address. Any finished round is cleared FIRST (same batch): the recording effect below
+  // must never see the old round's score under the new lesson id.
+  const openLesson = (al) => {
+    if (!al) return;
+    handleTryAgain();
+    setLessonContext({ academyLesson: al });
+    try { window.history.replaceState(null, "", `/${locale}/train?academyLesson=${al.id}`); } catch { /* address bar only */ }
+  };
+
   // ── Rotating cue for academy lessons during recording ────────────────────
   useEffect(() => {
     if (phase !== "recording" || !lessonContext?.academyLesson) {
@@ -1206,6 +1217,7 @@ export default function TrainPage() {
         {phase === "idle" && !lessonContext && (
           <DailyHub
             academyProgress={academyLessonProgress}
+            onOpenLesson={openLesson}
             locale={locale}
             t={t}
             router={router}
@@ -1363,6 +1375,8 @@ export default function TrainPage() {
         t={t}
         router={router}
         onTryAgain={handleTryAgain}
+        academyProgress={academyLessonProgress}
+        onNextLesson={openLesson}
         onSave={(params) => handleSave({ ...params, priorSessions: priorSessionsRef.current })}
         onSaveChallengeResult={handleSaveChallengeResult}
         onShareChallenge={handleShareChallenge}

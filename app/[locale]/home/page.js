@@ -198,7 +198,7 @@ export default function HomePage() {
         )}
 
         {/* ACADEMY — the next lesson, one tap (nothing when all ten are done) */}
-        {!academy.loading && (
+        {!authLoading && !academy.loading && (
           <section style={S.sec}>
             <AcademyNextCard lessonProgress={academy.lessonProgress} locale={locale} router={router} compact />
           </section>

@@ -22,7 +22,8 @@ test("an Academy lesson round is recorded from the final score — or not at all
     try { return JSON.parse(localStorage.getItem("gavana_academy_progress") || "null"); } catch { return null; }
   });
   const entry = stored?.lessonProgress?.["jab-mechanics"] || null;
-  const scored = await page.getByText(/ROUND RESULT/i).first().isVisible().catch(() => false);
+  // "Round result" is the kicker of BOTH states; the not-enough-data heading tells them apart.
+  const scored = !(await page.getByText(/NOT ENOUGH DATA/i).first().isVisible().catch(() => false));
   test.info().annotations.push({ type: "round", description: scored ? `scored, entry=${JSON.stringify(entry)}` : "not enough data" });
 
   if (scored) {
@@ -38,3 +39,32 @@ test("an Academy lesson round is recorded from the final score — or not at all
   }
   expect(errors).toEqual([]);
 });
+
+test("after a finished lesson, 'next lesson' opens the next lesson on the same page", async ({ page }) => {
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  // A defence lesson is done by completing a valid round (the score does not measure it).
+  await page.goto("/en/train?academyLesson=slip-defense&autostart=1", { waitUntil: "load" });
+  await expect(page.getByText(/ROUND RESULT|NOT ENOUGH DATA/i).first()).toBeVisible({ timeout: 120_000 });
+  const noData = await page.getByText(/NOT ENOUGH DATA/i).first().isVisible().catch(() => false);
+  test.skip(noData, "the synthetic round had too few punches to count for a lesson");
+
+  // The lesson status is on the result itself, not inside the folded details.
+  const card = page.getByTestId("academy-lesson-result");
+  await expect(card).toBeVisible();
+  await expect(card.getByTestId("academy-lesson-status")).toContainText("Done");
+  const next = card.getByTestId("academy-next-lesson");
+  await expect(next).toBeVisible();
+  const nextTitle = (await next.innerText()).replace(/^.*?:\s*/, "").replace(/→/g, "").replace(/\p{Extended_Pictographic}/gu, "").trim();
+  await next.click();
+
+  // The result is gone, the start screen shows the NEXT lesson's card, and the address follows.
+  await expect(page.getByTestId("academy-lesson-result")).toHaveCount(0);
+  const lessonCard = page.getByTestId("lesson-card");
+  await expect(lessonCard).toBeVisible({ timeout: 15_000 });
+  await expect(lessonCard).toContainText(nextTitle);
+  await expect(lessonCard).not.toContainText("Slip Defense");
+  expect(new URL(page.url()).searchParams.get("academyLesson")).not.toBe("slip-defense");
+  expect(errors).toEqual([]);
+});
+

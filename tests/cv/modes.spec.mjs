@@ -65,7 +65,7 @@ const fixModel = async (page) => { for (const p of MODEL) await page.unroute(p);
 
 test("mitt drill: no round starts while the pose model is still loading", async ({ page }) => {
   const release = await holdModel(page);
-  await page.goto("/en/mitts", { waitUntil: "domcontentloaded" });
+  await page.goto("/en/mitts", { waitUntil: "load" });
   await page.getByTestId("mitts-start").click();
   await expect(page.getByTestId("mitts-loading")).toBeVisible({ timeout: 20_000 });
   // 4 s later (the old countdown was 2.4 s) it is still waiting: spinner, no digits on the clock.
@@ -95,7 +95,7 @@ test("mitt drill: a model that cannot load → message, not a 0 % result; the ne
 
 test("ghost round: no round starts while the pose model is still loading", async ({ page }) => {
   const release = await holdModel(page);
-  await page.goto("/en/ghost", { waitUntil: "domcontentloaded" });
+  await page.goto("/en/ghost", { waitUntil: "load" });
   await page.getByRole("button", { name: /Copy it/i }).click({ timeout: 60_000 });
   await expect(page.getByTestId("ghost-loading")).toBeVisible({ timeout: 20_000 });
   await page.waitForTimeout(4000);

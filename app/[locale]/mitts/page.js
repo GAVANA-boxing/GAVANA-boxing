@@ -139,13 +139,16 @@ export default function MittDrillPage() {
     // Personal best for this level, kept on this device.
     // Only a full round can set a record: six quick hits and an early Finish must not become a
     // 100 % nobody can beat.
-    const nb = nextMittBest(bests[level], shown.length === schedule.length ? s : null);
+    const full = shown.length === schedule.length;
+    const nb = nextMittBest(bests[level], full ? s : null);
     if (nb.isNew) {
       const next = { ...bests, [level]: nb.best };
       try { localStorage.setItem(BEST_KEY, JSON.stringify(next)); } catch { /* private mode */ }
       setBests(next);
     }
-    setBest(nb);
+    // No record line for a round that could not count — "Your best 60 %" under a 100 % partial
+    // round would only contradict the screen.
+    setBest(full ? nb : null);
     setPhase("result");
     stopCamera();
     funnel("mitts_completed", { locale, meta: level, score: Math.round(s.accuracy * 100) / 10 });

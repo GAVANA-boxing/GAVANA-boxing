@@ -8,7 +8,9 @@ import { academySummary } from "@/lib/academyProgress";
 import { loc, tx } from "@/lib/loc";
 import { BRAND, card } from "@/components/ui/brand";
 
-export default function AcademyNextCard({ lessonProgress, locale = "en", router, compact = false }) {
+// onOpen(lesson): used on the Train page itself, where a router.push to the same page changes
+// only the URL (the lesson is read once on mount) — the page opens the lesson in place instead.
+export default function AcademyNextCard({ lessonProgress, locale = "en", router, onOpen, compact = false }) {
   const { total, done, next, nextIndex } = academySummary(ACADEMY_LESSONS, lessonProgress);
   if (!next) return null; // all lessons done — nothing to push
   const accent = next.accentColor || BRAND.gold;
@@ -18,7 +20,7 @@ export default function AcademyNextCard({ lessonProgress, locale = "en", router,
     <button
       type="button"
       data-testid="academy-next"
-      onClick={() => router.push(`/${locale}/train?academyLesson=${next.id}`)}
+      onClick={() => (onOpen ? onOpen(next) : router.push(`/${locale}/train?academyLesson=${next.id}`))}
       style={{
         ...card, width: "100%", display: "flex", alignItems: "center", gap: 12, minHeight: compact ? 64 : 76,
         padding: "12px 14px", cursor: "pointer", color: BRAND.text, fontFamily: "inherit", textAlign: "left",
