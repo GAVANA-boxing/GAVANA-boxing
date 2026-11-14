@@ -73,7 +73,7 @@ export default function TrainPage() {
   const t = (key) => translate(locale, key);
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useUserProfile();
-  const { recordSession } = useAcademyProgress({ user });
+  const { recordSession, lessonProgress: academyLessonProgress } = useAcademyProgress({ user });
 
   const [debugEnabled, setDebugEnabled] = useState(false);
   const [autoStart, setAutoStart] = useState(false);
@@ -661,14 +661,26 @@ export default function TrainPage() {
   }, [phase, lessonContext]);
 
   // ── Auto-record academy progress when result arrives ─────────────────────
+  // Recorded from the round's FINAL score and punch count, computed here: this effect first
+  // runs before the score effect above has replaced the pixel-counter score in state, and that
+  // early (uncapped) number used to be kept as the lesson's best score. A round with too few
+  // punches records nothing (lib/academyProgress.js).
   const lastRecordedRef = useRef({ lessonId: null, score: null });
   useEffect(() => {
-    if (!result?.score || !lessonContext?.academyLesson) return;
+    // A new round starts clean, so two rounds in a row with the same score are both recorded.
+    if (!result) { lastRecordedRef.current = { lessonId: null, score: null }; return; }
+    if (!result.score || !lessonContext?.academyLesson) return;
     const lid = lessonContext.academyLesson.id;
-    const score = result.score;
+    const pose = poseSessionSummary ?? computeSessionSummary();
+    const punches = roundPunchCount(pose, result.hitCount);
+    const { score } = finalRoundScore(pose?.score ?? result.score, {
+      punchCount: punches,
+      sessionConfidence: pose?.sessionConfidence ?? null,
+      cameraQuality: pose?.cameraQuality ?? null,
+    });
     if (lastRecordedRef.current.lessonId === lid && lastRecordedRef.current.score === score) return;
     lastRecordedRef.current = { lessonId: lid, score };
-    recordSession(lid, score);
+    recordSession(lid, score, punches);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result?.score, lessonContext?.academyLesson?.id]);
 
@@ -918,16 +930,14 @@ export default function TrainPage() {
           </div>
         )}
 
-        {/* Training Focus — shown when arriving from a fighter or academy lesson */}
+        {/* Training Focus — shown when arriving from an Academy lesson or a technique drill.
+            No Start button of its own: the dock below already has the one primary action. */}
         {lessonContext && canStart && (
           <TrainingFocusCard
-            fighterName={lessonContext.fighter?.name || lessonContext.academyLesson?.relatedFighterName}
             lesson={lessonContext.lesson}
             academyLesson={lessonContext.academyLesson}
             accent={lessonContext.fighter?.accent || lessonContext.academyLesson?.accentColor}
             locale={locale}
-            router={router}
-            onStart={handleStart}
           />
         )}
 
@@ -1191,9 +1201,11 @@ export default function TrainPage() {
           />
         )}
 
-        {/* ── Daily Hub — shown when idle only ─────────────────────────── */}
-        {phase === "idle" && (
+        {/* ── Daily Hub — shown when idle only. Not under a lesson card: one card on the
+            start screen. ─────────────────────────── */}
+        {phase === "idle" && !lessonContext && (
           <DailyHub
+            academyProgress={academyLessonProgress}
             locale={locale}
             t={t}
             router={router}

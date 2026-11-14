@@ -8,11 +8,10 @@ value for ONE user ÷ risk. Rules for all of it: one main action per screen, lit
 glance, nothing invented, no real boxers' names.
 1. (DONE) Mitt drill / Ghost round / Heavy bag: cold start, model-load failure, honest results, mitt
    personal best.
-2. Academy (the 10 lessons on the Coach tab are the real Academy; `/programs` is a different, empty
-   feature): pre-round card = title + 3 cues (rest behind "more"); MN / KO labels; "round done" instead of
-   "COMPLETE" for skills the round score doesn't measure; no progress on too-few-punches rounds; order
-   by difficulty; one card on the start screen when a lesson is active; "next lesson, N of 10" on Train
-   (replaces the beginner card, whose progress was derived from the round count) and on Home.
+2. (DONE) Academy (the 10 lessons on the Coach tab are the real Academy; `/programs` is a different,
+   empty feature): short lesson card, honest "done", next lesson on Home / Train. Left over: guest
+   progress (localStorage) is not merged into the account after sign-up; `BeginnerPathCard.js` and the
+   round-count logic in `lib/beginnerPath.js` are now unused.
 3. The 30 technique drills (`lib/fighterTechniques.js`) → style packs named by technique, not by boxer:
    stable ids, MN / KO titles, listed under the Academy, attempts recorded in `users.academyProgress`.
    `TechniqueQuickAsk` on Coach: no boxer names, tap opens the drill (free) instead of auto-sending a

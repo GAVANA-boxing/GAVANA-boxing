@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useUserProfile } from "@/context/UserProfileProvider";
+import { nextLessonEntry } from "@/lib/academyProgress";
+import { getLocalDateKey } from "@/lib/utils";
 
 const STORAGE_KEY = "gavana_academy_progress";
 const DEFAULT_PATH = "foundation";
@@ -60,20 +62,14 @@ export function useAcademyProgress({ user }) {
     }
   }, [user?.uid]);
 
-  const recordSession = useCallback((lessonId, score) => {
-    const today = new Date().toISOString().split("T")[0];
-    const completed = (score ?? 0) >= 6.5;
+  // One round with a lesson. `punches` is the round's punch count (roundPunchCount): a round the
+  // result screen calls "not enough data" records nothing. What "done" means per lesson lives in
+  // lib/academyProgress.js.
+  const recordSession = useCallback((lessonId, score, punches) => {
     setLessonProgress(prev => {
-      const existing = prev[lessonId] || {};
-      const next = {
-        ...prev,
-        [lessonId]: {
-          attempted: true,
-          completed: existing.completed || completed,
-          bestScore: Math.max(existing.bestScore || 0, score || 0),
-          lastTrained: today,
-        },
-      };
+      const entry = nextLessonEntry(prev[lessonId], lessonId, { score, punches, dateKey: getLocalDateKey() });
+      if (!entry) return prev;
+      const next = { ...prev, [lessonId]: entry };
       persist(next, currentPathId, true);
       return next;
     });

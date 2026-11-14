@@ -281,5 +281,20 @@ test("academy lesson opens on Train", async ({ page, context }) => {
   await page.goto("/mn/train?academyLesson=jab-mechanics", { waitUntil: "load" });
   await expect(page.getByText("Жэбийн техник").first()).toBeVisible({ timeout: 20_000 });
   await expect(page.getByText(/Ямар нэг юм буруудлаа/i)).toHaveCount(0);
+
+  // The lesson card: three cues; the rest waits behind "More". One primary action on the
+  // screen — the dock's Start button — so the card has no Start of its own.
+  const card = page.getByTestId("lesson-card");
+  await expect(card.getByTestId("lesson-cues").locator("li")).toHaveCount(3);
+  await expect(card.getByTestId("lesson-start")).toHaveCount(0);
+  await expect(card.getByTestId("lesson-details")).toHaveCount(0);
+  // One card on the start screen: no second "next lesson" card under the lesson itself.
+  await expect(page.getByTestId("academy-next")).toHaveCount(0);
+  await settle(page);
+  await expect(card).toHaveScreenshot("lesson-card-mn-390.png");
+  await card.getByTestId("lesson-more").click();
+  await expect(card.getByTestId("lesson-details")).toBeVisible();
+  await expect(card).toHaveScreenshot("lesson-card-open-mn-390.png");
+  expect((await card.getByTestId("lesson-more").boundingBox()).height).toBeGreaterThanOrEqual(44);
   expect(errors).toEqual([]);
 });

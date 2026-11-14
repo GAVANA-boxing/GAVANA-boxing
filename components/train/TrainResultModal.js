@@ -299,6 +299,7 @@ export default function TrainResultModal({
           <AcademyLessonCard
             academyLesson={academyLesson}
             result={result}
+            punches={effectivePunchCount}
             locale={locale}
             router={router}
           />

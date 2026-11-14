@@ -1,6 +1,35 @@
 {
   "runs": [
     {
+      "id": "20261114T185017Z-db1bd22",
+      "task": "Hidden features 2: Academy — short lesson card, honest done, next lesson on Home and Train, teaching order",
+      "verdict": "ACCEPTED",
+      "commit": "db1bd22",
+      "at": "2026-11-14T18:55:01.321Z",
+      "durationS": 284,
+      "level": "YELLOW",
+      "failedSteps": [],
+      "notRun": [
+        "rules"
+      ],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 634,
+        "unit.failed": 0,
+        "bundle.kb": 6374,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 74,
+        "visual.failed": 0,
+        "visual.flaky": 0
+      },
+      "decision": null
+    },
+    {
       "id": "20261114T183358Z-4d5cf19",
       "task": "Hidden features 1: mitts / ghost / bag cold start, model-load failure, honest results, mitt personal best",
       "verdict": "ACCEPTED",

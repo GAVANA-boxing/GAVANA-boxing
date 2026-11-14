@@ -18,6 +18,8 @@ import { RED, GOLD, whiteAlpha } from "@/lib/tokens";
 import BottomNav from "@/components/BottomNav";
 import ProgressGlance from "@/components/progress/ProgressGlance";
 import CoachAssignmentCard from "@/components/coach/team/CoachAssignmentCard";
+import AcademyNextCard from "@/components/train/AcademyNextCard";
+import { useAcademyProgress } from "@/hooks/useAcademyProgress";
 import { useCoachMembership } from "@/hooks/useCoachMembership";
 import { dayStartMs, toMs } from "@/lib/coach/team";
 import { CORE_MODE } from "@/lib/coreRoutes";
@@ -48,6 +50,7 @@ export default function HomePage() {
   const { user, loading: authLoading } = useAuth();
   const { sessions } = useCombatMemory({ user });
   const coach = useCoachMembership(user);
+  const academy = useAcademyProgress({ user });
   const today0 = dayStartMs(Date.now(), new Date().getTimezoneOffset());
   const roundsToday = sessions.filter((s) => (s.type == null || s.type === "training") && toMs(s.createdAt) >= today0).length;
 
@@ -191,6 +194,13 @@ export default function HomePage() {
           <section style={S.sec}>
             <div style={S.lbl}><span>{loc(locale, "Чиний ахиц", "내 성장", "Your progress")}</span></div>
             <ProgressGlance locale={locale} sessions={sessions} streak={streak} onOpen={() => go("/progress")} />
+          </section>
+        )}
+
+        {/* ACADEMY — the next lesson, one tap (nothing when all ten are done) */}
+        {!academy.loading && (
+          <section style={S.sec}>
+            <AcademyNextCard lessonProgress={academy.lessonProgress} locale={locale} router={router} compact />
           </section>
         )}
 

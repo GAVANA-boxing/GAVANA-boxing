@@ -2,6 +2,27 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Hidden features, increment 2 — one Academy, little text, honest progress
+- **Lesson card on Train** (`TrainingFocusCard`): title + three cues; the common mistake and the drill
+  steps wait behind "Дэлгэрэнгүй"; no Start button of its own (the dock has the one primary action); the
+  daily card is not stacked under it; all labels MN / KO / EN; a technique drill never prints a boxer's
+  name (the `fighterName` prop is gone).
+- **What "done" means** (`lib/academyProgress.js`): a punch lesson (jab, cross, hook, double jab, body
+  shot) is done at 6.5 — the round score reflects it; a defence / footwork lesson is done by completing
+  a valid round, never "passed" by a punch score. A too-few-punches round records nothing. Progress is
+  recorded from the round's final score (the uncapped pixel-counter score used to be kept as the
+  lesson's best) and with the local date.
+- **After the round** (`AcademyLessonCard`): "✓ Хийгдсэн" / "5.0 / 6.5", then one 48 px action — do it
+  again, or the next lesson; MN / KO / EN (it was mostly English).
+- **Next lesson, at a glance** (`AcademyNextCard`): on Home for everyone who hasn't finished, and on the
+  Train start screen for a beginner — lesson number, title, ten progress dots from the real
+  `users.academyProgress`. Replaces the beginner card, whose "lesson 3 of 6" was derived from the
+  number of rounds and whose button led to a hidden page.
+- Lessons in teaching order, beginner → advanced (Double Jab was 9th, after the intermediate ones).
+- Tests: +11 unit (progress rules, order), render tests 153 → 163 (cards in three languages, statuses,
+  no boxer names), route test extended (three cues, details closed, one card), 5 visual baselines
+  (Home ×3 regenerated, lesson card ×2 new).
+
 ## Hidden features, increment 1 — the three extra modes work on a cold start (owner: "nuusan code uudiig unshaad heregtei zuilsuudiig gargaad ajluulaad saijruulaad", "hylbar amar mortloo mash goy ui ux")
 Map first: five read-only readers over every hidden / unlinked area (train modes, learning content,
 competition, social video, gyms / human coaches) — what each does, whether it works at HEAD against the
