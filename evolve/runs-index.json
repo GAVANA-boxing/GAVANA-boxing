@@ -1,6 +1,35 @@
 {
   "runs": [
     {
+      "id": "20261114T124839Z-37b22f8",
+      "task": "Audit batch 1 third-review follow-ups: onboarding local echo, transient 503 classification, coach reply message + card, privacy text",
+      "verdict": "AWAITING_APPROVAL",
+      "commit": "37b22f8",
+      "at": "2026-11-14T12:54:13.981Z",
+      "durationS": 334,
+      "level": "RED",
+      "failedSteps": [],
+      "notRun": [],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 608,
+        "unit.failed": 0,
+        "bundle.kb": 6369,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 74,
+        "visual.failed": 0,
+        "visual.flaky": 0,
+        "rules.passed": 119,
+        "rules.failed": 0
+      },
+      "decision": null
+    },
+    {
       "id": "20261114T102012Z-e79f634",
       "task": "Audit batch 1 second-review follow-ups: drill builder prompt limit, fighter lesson bodyCue crash, coach reply variants, privacy text",
       "verdict": "ACCEPTED",
