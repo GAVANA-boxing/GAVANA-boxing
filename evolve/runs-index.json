@@ -1,6 +1,35 @@
 {
   "runs": [
     {
+      "id": "20261114T102012Z-e79f634",
+      "task": "Audit batch 1 second-review follow-ups: drill builder prompt limit, fighter lesson bodyCue crash, coach reply variants, privacy text",
+      "verdict": "ACCEPTED",
+      "commit": "e79f634",
+      "at": "2026-11-14T10:26:14.930Z",
+      "durationS": 359,
+      "level": "GREEN",
+      "failedSteps": [],
+      "notRun": [],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 600,
+        "unit.failed": 0,
+        "bundle.kb": 6367,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 74,
+        "visual.failed": 0,
+        "visual.flaky": 0,
+        "rules.passed": 119,
+        "rules.failed": 0
+      },
+      "decision": null
+    },
+    {
       "id": "20261114T070724Z-a1f2aea",
       "task": "Audit batch 1 + review follow-ups: Pro self-grant rules, signup field block, Academy crash, coach/team route, publicXp, coach chat, save flow, one punch count, guest hand-off gate, lastTrainingDate server-only, notification id rule, onboarding profile base",
       "verdict": "ACCEPTED",
