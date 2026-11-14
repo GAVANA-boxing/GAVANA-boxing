@@ -28,6 +28,8 @@ import { CoachLinkCardView } from "@/components/coach/team/CoachLinkCard";
 import CoachAssignmentCard from "@/components/coach/team/CoachAssignmentCard";
 import { summarizeStudent } from "@/lib/coach/team";
 import { dashboardCopy } from "@/lib/dashboard/copy";
+import { HomeHero, HomeStats, homeBackground } from "@/components/home/HomeHero";
+import AcademyNextCard from "@/components/train/AcademyNextCard";
 
 // Fixed-data renders of screens that need a signed-in user, for the visual
 // regression tests (tests/visual). Only exists when NEXT_PUBLIC_VISUAL_FIXTURES=1
@@ -103,6 +105,31 @@ export default function VisualFixture() {
           stance="orthodox" locale={locale}
           feedback={slip ? { outcome: "miss", reactionMs: null } : { outcome: "hit", reactionMs: 420 }}
         />
+      </main>
+    );
+  }
+
+  if (params?.screen === "home-card" || params?.screen === "home-poster") {
+    // Home v2 — the two layouts of the hero over the same (invented-for-the-fixture) numbers.
+    const layout = params.screen === "home-poster" ? "poster" : "card";
+    const L3 = (mn, ko, en) => (locale === "mn" ? mn : locale === "ko" ? ko : en);
+    return (
+      <main style={{ minHeight: "100dvh", background: homeBackground, color: "#fff", padding: "14px 16px 110px" }}>
+        <div style={{ maxWidth: 480, margin: "0 auto" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontFamily: "var(--font-display)", fontSize: 20, letterSpacing: "0.08em" }}>GAVANA</span>
+            <span aria-hidden="true" style={{ width: 44, height: 44, borderRadius: "50%", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.14)", display: "grid", placeItems: "center" }}>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            </span>
+          </div>
+          <HomeHero layout={layout} locale={locale} name={L3("Бат-Эрдэнэ", "바트에르덴", "Bat-Erdene")} rankName={t("rankBronzeBelt")} xp={1240} rankPct={62} nextRankName={t("rankSilverBelt") || null} streak={3} avatar="m" onStart={() => {}} />
+          <div style={{ marginTop: 14 }}>
+            <HomeStats locale={locale} week={[true, true, false, true, false, false, false]} todayIndex={3} weekLabels={L3(["Да", "Мя", "Лх", "Пү", "Ба", "Бя", "Ня"], ["월", "화", "수", "목", "금", "토", "일"], ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"])} avg={6.8} best={8.4} onOpen={() => {}} />
+          </div>
+          <div style={{ marginTop: 14 }}>
+            <AcademyNextCard lessonProgress={{ "jab-mechanics": { completed: true }, "cross-mechanics": { completed: true } }} locale={locale} router={{ push() {} }} compact />
+          </div>
+        </div>
       </main>
     );
   }
