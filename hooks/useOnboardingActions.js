@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { addDoc, collection, doc, getDocs, limit, query, serverTimestamp, updateDoc } from "firebase/firestore";
+import { addDoc, collection, doc, getDocs, limit, query, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { snapToDocs } from "@/lib/firestore";
 import { funnel, FUNNEL } from "@/lib/funnel";
@@ -34,11 +34,20 @@ export function useOnboardingActions({ user, locale, router }) {
     setStep(nextStep);
   };
 
+  // Profile writes during onboarding. setDoc + merge (not updateDoc): it also works when
+  // users/{uid} was never created (sign-up interrupted) — updateDoc failed silently there and the
+  // account was bounced between /onboarding and every other page forever. Capped at 5 s so a
+  // dead connection can't freeze the step (the write stays queued and syncs later).
+  const saveUser = (data) => Promise.race([
+    setDoc(doc(db, "users", user.uid), data, { merge: true }),
+    new Promise((resolve) => setTimeout(resolve, 5000)),
+  ]);
+
   const handleIntroNext = async (interest) => {
     setPrimaryInterest(interest);
     // Persist to localStorage for fast reads and Firestore for profile
     try { localStorage.setItem("gavana_primaryInterest", interest); } catch {}
-    try { await updateDoc(doc(db, "users", user.uid), { primaryInterest: interest }); } catch {}
+    try { await saveUser({ primaryInterest: interest }); } catch {}
     setShowIntro(false);
   };
 
@@ -46,7 +55,7 @@ export function useOnboardingActions({ user, locale, router }) {
     setRole(selectedRole);
     setSaving(true);
     try {
-      await updateDoc(doc(db, "users", user.uid), { role: selectedRole });
+      await saveUser({ role: selectedRole });
     } catch (e) { }
     setSaving(false);
     goTo(selectedRole === "fighter" ? 1 : 4);
@@ -57,7 +66,7 @@ export function useOnboardingActions({ user, locale, router }) {
     setSaving(true);
     try { localStorage.setItem("gavana_stance", stance); } catch { /* private mode */ }
     try {
-      await updateDoc(doc(db, "users", user.uid), {
+      await saveUser({
         role: "fighter",
         stance,
         ...(archetype ? { archetype, fighterArchetype: archetype } : {}),
@@ -74,7 +83,7 @@ export function useOnboardingActions({ user, locale, router }) {
     if (!weeklyGoal) return;
     setSaving(true);
     try {
-      await updateDoc(doc(db, "users", user.uid), { weeklyGoal });
+      await saveUser({ weeklyGoal });
     } catch (e) {
     } finally {
       setSaving(false);
@@ -112,10 +121,7 @@ export function useOnboardingActions({ user, locale, router }) {
   const finishOnboarding = async (dest) => {
     setSaving(true);
     try {
-      await updateDoc(doc(db, "users", user.uid), {
-        onboardingComplete: true,
-        "onboarding.completed": true,
-      });
+      await saveUser({ onboardingComplete: true, onboarding: { completed: true } });
     } catch {}
     funnel(FUNNEL.ONBOARDING_COMPLETED, { locale, meta: "full" });
     // Onboarding already explained the DNA idea — skip the duplicate /train overlay.
@@ -133,9 +139,9 @@ export function useOnboardingActions({ user, locale, router }) {
   const skipToTraining = async () => {
     setSaving(true);
     try {
-      await updateDoc(doc(db, "users", user.uid), {
+      await saveUser({
         onboardingComplete: true,
-        "onboarding.completed": true,
+        onboarding: { completed: true },
         onboardingDeferred: true,
         role: role || "fighter",
         primaryInterest: primaryInterest || "train",

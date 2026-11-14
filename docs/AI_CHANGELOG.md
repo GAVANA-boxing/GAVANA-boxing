@@ -2,6 +2,40 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Audit batch 1 — "make GAVANA flawless" (owner: "gavana g chamd daatgay", "Hiij baisan ajlaa urgeljluul")
+Read-only audit (9 dimensions planned; 3 verified so far: rules-vs-client, crash risk, core loop — 3 P0,
+12 P1, 14 P2, 4 P3; every finding re-checked by a second reviewer). Fixed in this batch:
+- **P0 Pro self-grant:** the legacy `tier` field granted Pro and was client-writable. `lib/pro.js` reads
+  only `subscriptionTier`; the users rule now blocks one list of server-only keys (`serverOnlyUserKeys`) on
+  update AND create (signup could set subscription / xp / isCoach before). `users` list needs sign-in.
+- **P0 Academy crash (the owner's "Ямар нэг юм буруудлаа" screen):** all 10 lessons rendered `{mn,ko,en}`
+  objects raw on Train. `tx()` in lib/loc.js; 62 render tests (10 lessons × 3 languages × 2 cards);
+  vitest now compiles JSX in `.js` components for `tests/*Render.test.js`.
+- **P1 coach team unreachable:** proxy.js redirected `/coach/team` to `/coach`. Pure
+  `coreRedirect(pathname)` in lib/coreRoutes.js + unit tests + a real-build route test through proxy.js.
+- **P1 public rank never read:** `useProfileData` dropped `publicXp`; `lib/profileXp.js`; other people's
+  profiles no longer show sections that need their private rounds.
+- **P1 coach chat:** empty replies when the model answered conversationally, redirect to login before auth
+  resolved, greeting / prompt with per-skill numbers nothing measures (`lib/coach/reply.js`,
+  `lib/buildCoachContext.js`). History shows a weakness only when the round's review has one.
+- **Save flow (core loop):** a round is written once (retry only re-asks the server for XP), a late save
+  can't mark the next round as saved, XP is shown only when the server awarded it (`awardedXp`), failure
+  to award keeps the button live ("XP дахин авах"). Guest round kept for sign-up by the same count the
+  result screen shows.
+- **One punch count per round** (`roundPunchCount`): the camera's count when there is a pose summary, the
+  pixel motion counter only without one. No pose data → "low" confidence (cap 7.5, manual save) instead of
+  "high" up to 10.0. The pose summary is no longer dropped for short rounds.
+- Result screen: no "Not enough data" flash before the score; timer-only round says the camera was off;
+  punch mix / live counter / profile button in MN / KO; tag chips hidden when nothing can be saved.
+- Camera preview no longer stays black when the camera is ready before auth; MediaRecorder removed (every
+  round was video-encoded and kept in memory for nothing).
+- Smaller: onboarding save can't hang (5 s) and works on a missing profile; follower notification id;
+  drills query uses an existing index; `pvp_challenges` index; share-card profile link; back buttons fall
+  back to a real page (`lib/nav.js`); tribe counts via `getCountFromServer`; privacy text §5 says what is
+  really public.
+- Tests: unit 489, rules 111, visual 74 (3 result baselines regenerated on purpose), CV 4.
+- NOT live until the rules deploy: the Firestore rule changes (same owner secret as before).
+
 ## Solo month, week 1: P0 privacy + Firebase deploy automation (owner: "чи ганцаараа хөгжүүл")
 - Plan: `docs/plan/2026-11-month.md`; daily scheduled work cycle (10:41 UB) into this session.
 - `training_sessions` and `user_training_profile`: owner-only read (were world-readable, against the privacy

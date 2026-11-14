@@ -7,9 +7,9 @@ import { loc } from "@/lib/loc";
 // three things a fighter looks at first. Same visual language as the landing.
 
 const MIX = [
-  { key: "jab", label: "Jab", color: "#60A5FA" },
-  { key: "cross", label: "Cross", color: BRAND.red },
-  { key: "hook", label: "Hook", color: BRAND.gold },
+  { key: "jab", label: ["Жэб", "잽", "Jab"], color: "#60A5FA" },
+  { key: "cross", label: ["Кросс", "크로스", "Cross"], color: BRAND.red },
+  { key: "hook", label: ["Хук", "훅", "Hook"], color: BRAND.gold },
 ];
 
 export default function ResultHeader({
@@ -19,6 +19,8 @@ export default function ResultHeader({
   minPunches,
   identity,
   displayScore,
+  finalScore = displayScore,   // the real score; displayScore is the count-up animation of it
+  cameraOff = false,           // the round ran on the timer only (camera blocked / missing)
   scoreConf,
   punchBreakdown = null,
   locale,
@@ -38,7 +40,9 @@ export default function ResultHeader({
 
   const mix = MIX.map((m) => ({ ...m, n: punchBreakdown?.[m.key]?.count || 0 }));
   const typed = mix.reduce((s, m) => s + m.n, 0);
-  const noData = tooFewPunches || displayScore <= 0;
+  // From the final score, not the animated one: the count-up starts at 0, which used to flash
+  // "Not enough data" before every valid result.
+  const noData = tooFewPunches || finalScore <= 0;
 
   return (
     <div style={{ padding: "22px 20px 18px", textAlign: "left", borderBottom: `1px solid ${BRAND.line}` }}>
@@ -55,10 +59,17 @@ export default function ResultHeader({
       {noData ? (
         <div style={{ marginTop: 18 }}>
           <h2 style={{ ...displayTitle, fontSize: 30, color: BRAND.muted }}>
-            {loc(locale, "Хангалтгүй өгөгдөл", "데이터 부족", "Not enough data")}
+            {cameraOff
+              ? loc(locale, "Раунд дууслаа", "라운드 완료", "Round done")
+              : loc(locale, "Хангалтгүй өгөгдөл", "데이터 부족", "Not enough data")}
           </h2>
           <p style={{ margin: "10px 0 0", fontSize: 15, color: BRAND.muted, lineHeight: 1.55 }}>
-            {tooFewPunches
+            {cameraOff
+              ? loc(locale,
+                  "Камер унтраалттай байсан тул оноо гараагүй. Камераа зөвшөөрөөд дахин хий.",
+                  "카메라가 꺼져 있어 점수가 없어요. 카메라를 허용하고 다시 해보세요.",
+                  "The camera was off, so there is no score. Allow the camera and go again.")
+              : tooFewPunches
               ? loc(locale,
                   `Шинжилгээнд хамгийн багадаа ${minPunches} цохилт хэрэгтэй — ${effectivePunchCount} бүртгэгдсэн. Бүтэн биеэ кадрт багтааж, дахин нэг раунд хий.`,
                   `분석하려면 최소 ${minPunches}번의 펀치가 필요해요 — ${effectivePunchCount}번 감지됨. 전신이 보이게 서서 다시 해보세요.`,
@@ -102,7 +113,7 @@ export default function ResultHeader({
                   {mix.map((m) => (
                     <span key={m.key} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, color: m.n ? BRAND.muted : BRAND.faint }}>
                       <span style={{ width: 7, height: 7, borderRadius: 2, background: m.color, opacity: m.n ? 1 : 0.35 }} />
-                      {m.label} {m.n}
+                      {loc(locale, ...m.label)} {m.n}
                     </span>
                   ))}
                 </div>

@@ -1,4 +1,5 @@
 // app/api/chat/route.js
+import { normalizeStructured, structuredToText } from "@/lib/coach/reply";
 import { getLocale } from "@/lib/i18n";
 import { firestoreGet, firestorePatch } from "@/lib/server/firestore";
 import { isProUser, AI_CHAT_FREE_DAILY } from "@/lib/pro";
@@ -367,20 +368,23 @@ export const POST = withAuth(async (req, { uid }) => {
     console.log(`[chat/route] OpenAI success — tokens:${completion.usage?.total_tokens ?? "?"} locale:${safeLocale} json_mode:${json_mode}`);
 
     if (json_mode) {
-      try {
-        const structured = JSON.parse(raw);
-        const cues = Array.isArray(structured.keyCues) ? structured.keyCues.map((c) => `• ${c}`).join("\n") : "";
-        const text = [
-          structured.title || "",
-          cues,
-          structured.commonMistake ? `\n⚠️ ${structured.commonMistake}` : "",
-          structured.drill ? `\n🎯 ${structured.drill}` : "",
-          structured.nextAction ? `\n✅ ${structured.nextAction}` : "",
-        ].filter(Boolean).join("\n");
-        return Response.json({ _source: "openai", structured, message: text, content: [{ type: "text", text }] }, { status: 200 });
-      } catch {
-        console.warn("[chat/route] JSON parse failed — falling back to plain text");
+      let parsed;
+      let isJson = true;
+      try { parsed = JSON.parse(raw); } catch { isJson = false; }
+      if (isJson) {
+        // Never forward the model's JSON as-is: wrong types are dropped / flattened, and the text
+        // form includes a conversational reply's `message` (it used to come out empty → the client
+        // showed its error sentence for every plain answer).
+        const structured = normalizeStructured(parsed);
+        const text = structuredToText(structured);
+        if (structured && text) {
+          return Response.json({ _source: "openai", structured, message: text, content: [{ type: "text", text }] }, { status: 200 });
+        }
+        // Valid JSON with nothing in it: an error message beats showing raw JSON to the user.
+        console.warn("[chat/route] JSON reply had nothing usable");
+        return errorResponse(safeLocale);
       }
+      console.warn("[chat/route] JSON parse failed — falling back to plain text");
     }
 
     return textResponse(raw);

@@ -53,6 +53,8 @@ export default function ResultAnalysisSection({
   missionNewStreak,
   streakFreezeUsed,
   rankUpInfo,
+  saved = false,
+  awardedXp = null,
   locale,
   t,
   router,
@@ -441,31 +443,19 @@ export default function ResultAnalysisSection({
         </>
       )}
 
-      {/* Combat Experience */}
-      <>
-        <SectionLabel label={t("trainLabelCombatExp")} />
-        <div style={{ borderRadius: RADIUS.md, padding: "12px 16px", background: whiteAlpha(0.025), border: `1px solid ${whiteAlpha(0.06)}` }}>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 5, marginBottom: 8 }}>
-            <span style={{ fontSize: 22, fontWeight: 1000, color: GOLD, fontFamily: "var(--font-display, 'Anton', sans-serif)" }}>+{result.xpGained}</span>
-            <span style={{ fontSize: 12.5, color: whiteAlpha(0.55), fontWeight: 800, letterSpacing: 1 }}>{loc(locale, "XP ЦУГЛУУЛСАН", "XP 획득", "XP EARNED")}</span>
-          </div>
-          {!activeChallenge && result.rankProgress > 0 && (
-            <>
-              <div style={{ height: 2, background: whiteAlpha(0.07), borderRadius: 2, overflow: "hidden", marginBottom: 8 }}>
-                <div style={{ height: "100%", width: `${result.rankProgress}%`, background: goldAlpha(0.55), borderRadius: 2, transition: "width 0.9s cubic-bezier(0.16,1,0.3,1)" }} />
-              </div>
-              <div style={{ fontSize: 12.5, color: whiteAlpha(0.55), fontWeight: 700 }}>
-                {loc(locale, `Цолны ахиц — ${result.rankProgress}%`, `랭크 진행 — ${result.rankProgress}%`, `Rank progress — ${result.rankProgress}%`)}
-              </div>
-            </>
-          )}
-          {hasMI && (
-            <div style={{ fontSize: 12.5, color: whiteAlpha(0.55), fontWeight: 700, marginTop: 4 }}>
-              {movementSummary[0].label.charAt(0).toUpperCase() + movementSummary[0].label.slice(1)} data recorded
+      {/* XP — only what the server really awarded for this saved round. (It used to print a
+          client estimate, e.g. "+133 XP EARNED", even on rounds that could not be saved.) */}
+      {saved && Number(awardedXp) > 0 && (
+        <>
+          <SectionLabel label={t("trainLabelCombatExp")} />
+          <div style={{ borderRadius: RADIUS.md, padding: "12px 16px", background: whiteAlpha(0.025), border: `1px solid ${whiteAlpha(0.06)}` }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
+              <span data-testid="awarded-xp" style={{ fontSize: 22, fontWeight: 1000, color: GOLD, fontFamily: "var(--font-display, 'Anton', sans-serif)" }}>+{awardedXp}</span>
+              <span style={{ fontSize: 12.5, color: whiteAlpha(0.55), fontWeight: 800, letterSpacing: 1 }}>{loc(locale, "XP ЦУГЛУУЛСАН", "XP 획득", "XP EARNED")}</span>
             </div>
-          )}
-        </div>
-      </>
+          </div>
+        </>
+      )}
 
       {/* Mission Complete */}
       {missionJustCompleted && (

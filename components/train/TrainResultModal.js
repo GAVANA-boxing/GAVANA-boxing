@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import styles from "@/components/train/trainStyles";
-import { computeScoreConfidence } from "@/lib/scoreConfidence";
+import { computeScoreConfidence, roundPunchCount } from "@/lib/scoreConfidence";
 import {
   useCountUp, getIdentityWithSub, computeComparison,
   getBestPunchType, getMovementSummary,
@@ -59,6 +59,8 @@ export default function TrainResultModal({
   saved,
   saveFailed = false,
   savedAttemptNumber,
+  xpPending = false,
+  awardedXp = null,
   locale,
   t,
   router,
@@ -87,7 +89,7 @@ export default function TrainResultModal({
   userArchetype = null,
 }) {
   // ── Score / confidence ──────────────────────────────────────────────────
-  const _punchCount  = poseMetrics?.punchCount ?? result?.hitCount ?? 0;
+  const _punchCount  = roundPunchCount(poseMetrics, result?.hitCount);
   const _scoreConf   = computeScoreConfidence(
     _punchCount,
     poseMetrics?.sessionConfidence ?? null,
@@ -126,7 +128,7 @@ export default function TrainResultModal({
   if (!result) return null;
 
   // ── Derived values ───────────────────────────────────────────────────────
-  const effectivePunchCount = poseMetrics?.punchCount ?? result.hitCount ?? 0;
+  const effectivePunchCount = _punchCount;
   const tooFewPunches       = effectivePunchCount < MIN_PUNCHES;
   const scoreConf           = _scoreConf;
   const isLowConfidence     = scoreConf === "low" || scoreConf === "none";
@@ -160,6 +162,8 @@ export default function TrainResultModal({
           minPunches={MIN_PUNCHES}
           identity={identity}
           displayScore={displayScore}
+          finalScore={_cappedScore}
+          cameraOff={Boolean(result.cameraOff)}
           scoreConf={scoreConf}
           locale={locale}
           t={t}
@@ -224,6 +228,7 @@ export default function TrainResultModal({
           saved={saved}
           saveFailed={saveFailed}
           savedAttemptNumber={savedAttemptNumber}
+          xpPending={xpPending}
           feedSharing={feedSharing}
           feedShared={feedShared}
           challengePosting={challengePosting}
@@ -285,7 +290,7 @@ export default function TrainResultModal({
         )}
 
         {/* ── COACH REVIEW ─────────────────────────────────────────── */}
-        {poseMetrics && (
+        {poseMetrics && !tooFewPunches && (
           <CoachReviewCard poseMetrics={poseMetrics} result={result} locale={locale} />
         )}
 
@@ -322,6 +327,8 @@ export default function TrainResultModal({
           missionNewStreak={missionNewStreak}
           streakFreezeUsed={streakFreezeUsed}
           rankUpInfo={rankUpInfo}
+          saved={saved}
+          awardedXp={awardedXp}
           locale={locale}
           t={t}
           router={router}

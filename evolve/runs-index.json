@@ -1,6 +1,35 @@
 {
   "runs": [
     {
+      "id": "20261113T045222Z-a1e7fd2",
+      "task": "Audit batch 1: Pro self-grant rules, signup field block, Academy lesson crash, coach/team route, publicXp wiring, coach chat honesty, save flow (no duplicate round, XP only when awarded), guest round gate, one punch count, timer-only result, no MediaRecorder",
+      "verdict": "AWAITING_APPROVAL",
+      "commit": "a1e7fd2",
+      "at": "2026-11-13T04:57:11.173Z",
+      "durationS": 289,
+      "level": "RED",
+      "failedSteps": [],
+      "notRun": [],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 489,
+        "unit.failed": 0,
+        "bundle.kb": 6366,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 74,
+        "visual.failed": 0,
+        "visual.flaky": 0,
+        "rules.passed": 111,
+        "rules.failed": 0
+      },
+      "decision": null
+    },
+    {
       "id": "20261110T125337Z-bb812d3",
       "task": "P0 privacy: owner-only training_sessions/user_training_profile, server-written publicXp for public rank, Firebase deploy workflow + /api/health",
       "verdict": "ACCEPTED",

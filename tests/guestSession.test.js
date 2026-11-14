@@ -39,12 +39,12 @@ describe("parseGuestSession", () => {
 });
 
 describe("slimPoseMetrics", () => {
-  it("drops heavy arrays and keeps up to 2 weaknesses", () => {
+  it("drops the heavy arrays and the English coaching strings", () => {
     const out = slimPoseMetrics({
-      score: 7, motionHistory: [1, 2], punchEvents: [3],
-      coaching: [{ type: "improve", message: "a" }, { type: "good", message: "b" }, { type: "improve", message: "c" }, { type: "improve", message: "d" }],
+      score: 7, motionHistory: [1, 2, 3], punchEvents: [{ t: 1 }],
+      coaching: [{ type: "improve", message: "a" }, { type: "good", message: "b" }, { type: "improve", message: "c" }],
     });
-    expect(out).toEqual({ score: 7, weaknesses: ["a", "c"] });
+    expect(out).toEqual({ score: 7 });
     expect(slimPoseMetrics(null)).toBeNull();
   });
 });
@@ -62,5 +62,20 @@ describe("buildTrainingSessionDoc", () => {
   it("prefers an explicit drillId and defaults sensibly", () => {
     expect(buildTrainingSessionDoc({ ...base, drillId: "shadowboxing" }).drillId).toBe("shadowboxing");
     expect(buildTrainingSessionDoc(base).drillId).toBe("default");
+  });
+});
+
+describe("guest round gate uses the count the result screen shows", () => {
+  const NOW2 = 1_800_000_000_000;
+  const base = (over) => ({ v: 1, savedAt: NOW2 - 1000, locale: "mn", result: { score: 7, hitCount: 2 }, movementEvents: [], ...over });
+  it("a round the camera counted (7 punches) is kept even if the motion counter saw 2", () => {
+    expect(parseGuestSession(base({ poseMetrics: { punchCount: 7 } }), NOW2)).not.toBeNull();
+  });
+  it("still refuses a round with fewer than 5 punches by both counts", () => {
+    expect(parseGuestSession(base({ poseMetrics: { punchCount: 3 } }), NOW2)).toBeNull();
+    expect(parseGuestSession(base({}), NOW2)).toBeNull();
+  });
+  it("refuses a round the result screen called 'not enough data' (camera 4, motion counter 9)", () => {
+    expect(parseGuestSession(base({ result: { score: 7, hitCount: 9 }, poseMetrics: { punchCount: 4 } }), NOW2)).toBeNull();
   });
 });

@@ -154,7 +154,7 @@ export default function FighterShareCard({
   }, []);
 
   // ── Combat identity (from combat memory sessions) ────────────────────────
-  const { sessions } = useCombatMemory({ user: profileUser, maxSessions: 30 });
+  const { sessions } = useCombatMemory({ user: { uid: profileUser.id || profileUser.uid }, maxSessions: 30 });
   const profile  = computeMovementProfile(sessions);
   const identity = profile ? deriveCombatIdentity(profile, sessions) : null;
 
@@ -172,7 +172,7 @@ export default function FighterShareCard({
     ? Math.max(...trainingSessions.map((s) => Number(s.score) || 0)).toFixed(1) : "—";
 
   const profileUrl = typeof window !== "undefined"
-    ? `${window.location.origin}/${locale}/profile/${profileUser.username || profileUser.uid}`
+    ? `${window.location.origin}/${locale}/profile/${profileUser.id || profileUser.uid}` // the route is keyed by uid, not username
     : "";
 
   const avatarInitial = (profileUser.displayName || profileUser.username || "F")[0].toUpperCase();

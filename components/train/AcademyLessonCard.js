@@ -1,6 +1,7 @@
 "use client";
 
 import { ACADEMY_LESSONS } from "@/lib/academyLessons";
+import { tx } from "@/lib/loc";
 
 const PASS_SCORE = 6.5;
 
@@ -39,7 +40,7 @@ export default function AcademyLessonCard({ academyLesson, result, locale, route
             ACADEMY LESSON · {L.progressTracked[locale] ?? L.progressTracked.en}
           </div>
           <div style={{ fontSize: 12, fontWeight: 900, color: "#fff", marginTop: 1 }}>
-            {academyLesson.title}
+            {tx(academyLesson.title, locale)}
           </div>
         </div>
         <div style={{ flexShrink: 0 }}>
@@ -77,7 +78,7 @@ export default function AcademyLessonCard({ academyLesson, result, locale, route
               {L.nextLesson[locale] ?? L.nextLesson.en}
             </div>
             <div style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.65)" }}>
-              {nextLesson.emoji} {nextLesson.title}
+              {nextLesson.emoji} {tx(nextLesson.title, locale)}
             </div>
           </div>
           <button

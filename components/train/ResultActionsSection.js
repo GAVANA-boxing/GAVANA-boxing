@@ -27,6 +27,7 @@ export default function ResultActionsSection({
   saving,
   saved,
   saveFailed = false,
+  xpPending = false,
   savedAttemptNumber,
   feedSharing,
   feedShared,
@@ -59,9 +60,7 @@ export default function ResultActionsSection({
     router.push(`/${locale}/login?mode=signup&redirect=${encodeURIComponent(`/${locale}/train`)}`);
   };
   const saveSession = useCallback(() => {
-    const { motionHistory: _mh, punchEvents: _pe, coaching, ...poseMetricsForSave } = poseMetrics || {};
-    const weaknesses = (coaching || []).filter(c => c.type === "improve").map(c => c.message).slice(0, 2);
-    if (weaknesses.length) poseMetricsForSave.weaknesses = weaknesses;
+    const { motionHistory: _mh, punchEvents: _pe, coaching: _c, ...poseMetricsForSave } = poseMetrics || {};
     onSave({ movementEvents: events, tag: sessionTag, poseMetrics: poseMetrics ? poseMetricsForSave : null });
   }, [poseMetrics, events, sessionTag, onSave]);
 
@@ -95,7 +94,7 @@ export default function ResultActionsSection({
           onClick={onTryAgain}>
           {isLowConfidence ? t("confidenceTryAgain") : activeChallenge ? t("challengeTryAgain") : t("trainTryAgain")}
         </button>
-        {!activeChallenge && !saved && (
+        {!activeChallenge && !saved && !tooFewPunches && (
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 2 }}>
             {SESSION_TAGS.map(([tag, label]) => (
               <button
@@ -116,12 +115,16 @@ export default function ResultActionsSection({
         {!tooFewPunches && !activeChallenge && !isGuest && (
           <button
             type="button"
-            style={{ ...styles.saveButton, ...(saved ? styles.saveButtonDone : {}), ...(isLowConfidence && !saved ? { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.45)", fontSize: 11 } : {}), opacity: saving || saved ? 0.65 : 1, cursor: saving || saved ? "default" : "pointer" }}
+            style={{ ...styles.saveButton, ...(saved ? styles.saveButtonDone : {}), ...(isLowConfidence && !saved ? { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.45)", fontSize: 11 } : {}), opacity: saving || (saved && !xpPending) ? 0.65 : 1, cursor: saving || (saved && !xpPending) ? "default" : "pointer" }}
             onClick={saveSession}
-            disabled={saving || saved}
+            // Saved but the server hasn't confirmed the XP: the button stays live and only
+            // re-asks for the XP (the round is not written again).
+            disabled={saving || (saved && !xpPending)}
           >
             {saving
               ? t("trainSaving")
+              : saved && xpPending
+                ? loc(locale, "Хадгалсан · XP дахин авах ↻", "저장됨 · XP 다시 받기 ↻", "Saved · get XP again ↻")
               : saved && savedAttemptNumber
                 ? t("trainAttemptSaved").replace("{n}", savedAttemptNumber)
                 : saved
@@ -298,7 +301,7 @@ export default function ResultActionsSection({
             onClick={() => router.push(`/${locale}/fighter-profile`)}
             style={{ width: "100%", minHeight: 40, background: "none", border: `1px solid ${whiteAlpha(0.08)}`, borderRadius: RADIUS.md, color: whiteAlpha(0.55), fontSize: 11, fontWeight: 800, cursor: "pointer", letterSpacing: 1, textTransform: "uppercase" }}
           >
-            View Fighter Profile →
+            {loc(locale, "Тулаанчийн профайл →", "파이터 프로필 →", "Fighter profile →")}
           </button>
         )}
       </div>

@@ -36,48 +36,57 @@ service cloud.firestore {
 
     // ─── Users ──────────────────────────────────────────────────
     match /users/{userId} {
-      // Public profile — world-readable, so it must hold NO private data.
+      // Public profile: one profile can be opened by anyone with its link (get), but only
+      // signed-in users can LIST / query profiles — no anonymous bulk download of every user.
       // Email lives in users_private/{uid}; a client may remove a legacy email
       // field here but never write one.
-      allow read: if true;
+      allow get: if true;
+      allow list: if isAuth();
+      // Fields only trusted server code may set (Stripe webhook, /api/score/session, admin):
+      // billing, roles and progression. Blocked on CREATE too — the client creates this doc at
+      // signup, so without that a brand-new account could simply start as Pro with any XP.
+      // `tier` is the legacy plan field (no longer read by lib/pro.js) and stays blocked.
+      function serverOnlyUserKeys() {
+        return [
+          "isAdmin",
+          "isCoach",
+          "coachVerified",
+          "coachFeatured",
+          "subscription",
+          "subscriptionTier",
+          "subscriptionUpdatedAt",
+          "tier",
+          "xp",
+          "rank",
+          "rankName",
+          "dailyStreak",
+          "bestDailyStreak",
+          "challengeStreak",
+          "lastChallengeDate",
+          "totalChallengesCompleted",
+          "dailyMissionCompleted",
+          "streakFreezes",
+          "streakFreezeMonth",
+          "sessionXpDay",
+          "sessionXpCount",
+          "challengeAwardDay",
+          "challengeAwardCount",
+          "stats",
+          "publicXp"
+        ];
+      }
       allow create: if isAuth() && request.auth.uid == userId
-        && !("email" in request.resource.data);
-      // Owner may update their own doc, but NOT security/billing OR progression
-      // fields — those are written only by trusted server code (Stripe webhook,
-      // admin claims, and the /api/score/session endpoint), which uses the
-      // service account and bypasses these rules. This blocks self-granting Pro
-      // (subscriptionTier) / admin (isAdmin) / coach (isCoach) and self-awarding
-      // XP, streaks or rank from the client.
+        && !("email" in request.resource.data)
+        && !request.resource.data.keys().hasAny(serverOnlyUserKeys());
+      // Owner may update their own doc, but NOT the server-only fields above — those are
+      // written with the service account, which bypasses these rules.
       // NOTE deploy order: set FIREBASE_SERVICE_ACCOUNT_BASE64 and confirm
       // /api/score/session works BEFORE deploying these rules — otherwise the
       // client fallback write is blocked and session saves fail.
       allow update: if (isAuth() && request.auth.uid == userId &&
           !("email" in request.resource.data &&
             request.resource.data.diff(resource.data).affectedKeys().hasAny(["email"])) &&
-          !request.resource.data.diff(resource.data).affectedKeys().hasAny([
-            "isAdmin",
-            "isCoach",
-            "subscription",
-            "subscriptionTier",
-            "subscriptionUpdatedAt",
-            "xp",
-            "rank",
-            "rankName",
-            "dailyStreak",
-            "bestDailyStreak",
-            "challengeStreak",
-            "lastChallengeDate",
-            "totalChallengesCompleted",
-            "dailyMissionCompleted",
-            "streakFreezes",
-            "streakFreezeMonth",
-            "sessionXpDay",
-            "sessionXpCount",
-            "challengeAwardDay",
-            "challengeAwardCount",
-            "stats",
-            "publicXp"
-          ])) ||
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(serverOnlyUserKeys())) ||
         (isAuth() && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           "coachRating",
           "coachTotalReviews"

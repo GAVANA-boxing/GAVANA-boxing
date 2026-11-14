@@ -36,15 +36,17 @@ export default function DrillsPage() {
     let active = true;
     (async () => {
       try {
+        // Uses the index that exists (userId, createdAt desc); the type filter runs here. The
+        // 3-field version needed an index that isn't deployed, so this load always failed.
         const q = query(
           collection(db, "training_sessions"),
           where("userId", "==", user.uid),
-          where("type", "==", "training"),
           orderBy("createdAt", "desc"),
-          limit(40),
+          limit(60),
         );
         const snap = await getDocs(q);
-        const sessions = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        const sessions = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+          .filter((s) => (s.type ?? "training") === "training").slice(0, 40);
         if (!active) return;
         const snapshot = buildCoachSnapshot({ sessions });
         setCoachSnapshot(snapshot);
@@ -54,7 +56,9 @@ export default function DrillsPage() {
         } else {
           setSelectedArea("Power");
         }
-      } catch { /* ignore */ }
+      } catch {
+        if (active) setSelectedArea("Power"); // never leave "Generate" disabled
+      }
     })();
     return () => { active = false; };
   }, [user?.uid]);

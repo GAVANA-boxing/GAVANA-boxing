@@ -1,5 +1,16 @@
 # Known issues
 
+- **Audit 2026-11-12 — still open** (findings: scratch notes of the audit run; fixed part in the changelog):
+  (a) the readable `users` doc still carries subscription state, last training day, DNA detail and the plan
+  — move them to an owner-only doc (privacy text says so meanwhile); (b) during a round the centre toast,
+  sound, vibration and flash still follow the pixel motion counter while the counter below shows the
+  camera's count; (c) Train reads the user's whole session history several times per visit and per save;
+  (d) timer-only rounds are not saved (no streak / mission credit) — product decision; (e) six audit
+  dimensions not run yet: xp-truth, api-security, text-load, i18n, a11y-layout, perf-mobile.
+- Rules in the repo (2026-11-10 privacy + 2026-11-12 server-only keys) are NOT live in Firebase until the
+  owner adds the deploy secret: production still has the old rules (world-readable rounds, `tier` /
+  subscription writable by the client). The app code no longer trusts `tier`, so Pro can't be self-granted
+  through it, but `subscriptionTier` stays client-writable until the deploy.
 - P0 privacy FIXED in code (2026-11-10): `training_sessions` / `user_training_profile` owner-only; public
   rank from server-written `users.publicXp`. Live only after the rules deploy (GitHub Action
   `firebase-deploy.yml`, needs the owner's one secret). Until a user's next round their public rank falls

@@ -36,7 +36,7 @@ export function useRankData({ user, authLoading }) {
             bestStreakDays: Number(profileData.bestDailyStreak) || 0,
           }));
           setSessionCount(sessionSnap.docs.length);
-          setTier(profileData.subscriptionTier || profileData.tier || null);
+          setTier(profileData.subscriptionTier || null);
         }
       } catch {
         if (active) setXp(0);

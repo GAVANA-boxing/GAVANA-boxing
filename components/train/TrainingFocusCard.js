@@ -1,7 +1,7 @@
 "use client";
 
 import { RED, PURPLE, RADIUS, redAlpha, goldAlpha, GOLD, WARNING } from "@/lib/tokens";
-import { loc } from "@/lib/loc";
+import { loc, tx } from "@/lib/loc";
 
 const ORANGE = WARNING;
 
@@ -60,9 +60,13 @@ export default function TrainingFocusCard({ fighterName, lesson, academyLesson, 
   const isAcademy = !!academyLesson;
 
   const sourceLabel = isAcademy ? "GAVANA ACADEMY" : fighterName;
-  const title = isAcademy ? academyLesson.title : lesson?.title;
-  const commonMistake = isAcademy ? academyLesson.commonMistake : lesson?.commonMistake;
-  const drillSteps = isAcademy ? academyLesson.drill?.steps : lesson?.drillSteps;
+  // Academy lessons (lib/lessons/*) hold localized objects { mn, ko, en }; fighter lessons hold
+  // strings. tx() turns either into a string — rendering the raw object crashed the whole page.
+  const title = tx(isAcademy ? academyLesson.title : lesson?.title, locale);
+  const commonMistake = tx(isAcademy ? academyLesson.commonMistake : lesson?.commonMistake, locale);
+  const drillSteps = ((isAcademy ? academyLesson.drill?.steps : lesson?.drillSteps) || []).map((s) => tx(s, locale)).filter(Boolean);
+  const keyCues = isAcademy ? (academyLesson.keyCues || []).map((c) => tx(c, locale)).filter(Boolean) : [];
+  const drillTitle = isAcademy ? tx(academyLesson.drill?.title, locale) : "";
 
   return (
     <div style={{
@@ -109,13 +113,13 @@ export default function TrainingFocusCard({ fighterName, lesson, academyLesson, 
       <div style={{ padding: "12px 14px" }}>
 
         {/* Key cues (academy) or body cue (fighter technique) */}
-        {isAcademy && academyLesson.keyCues?.length > 0 ? (
+        {isAcademy && keyCues.length > 0 ? (
           <div style={{ marginBottom: 10 }}>
             <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.5, color: ac, textTransform: "uppercase", marginBottom: 7 }}>
               {L("keyCues")}
             </div>
-            {academyLesson.keyCues.map((cue, i) => (
-              <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", marginBottom: i < academyLesson.keyCues.length - 1 ? 6 : 0 }}>
+            {keyCues.map((cue, i) => (
+              <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", marginBottom: i < keyCues.length - 1 ? 6 : 0 }}>
                 <div style={{
                   width: 16, height: 16, borderRadius: 4,
                   background: `${ac}18`, border: `1px solid ${ac}30`,
@@ -156,7 +160,7 @@ export default function TrainingFocusCard({ fighterName, lesson, academyLesson, 
           <div style={{ marginBottom: onStart ? 14 : 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 9 }}>
               <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.8, color: "rgba(255,255,255,0.55)", textTransform: "uppercase" }}>
-                {isAcademy ? academyLesson.drill?.title || L("drill") : L("drillSteps")}
+                {isAcademy ? drillTitle || L("drill") : L("drillSteps")}
               </span>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.05)" }} />
             </div>

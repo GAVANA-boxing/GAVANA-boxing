@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 import { getLocale, translate } from "@/lib/i18n";
 import { getFighterRank, getNextRank, getRankProgress } from "@/lib/xp";
 import { getAccountXp } from "@/lib/domain/progression";
+import { profileXp } from "@/lib/profileXp";
 import { computeEarnedBadges } from "@/lib/badges";
 import { computeFighterDNA } from "@/lib/fighterDNA";
 import { deriveRadarStats } from "@/lib/dashboardHelpers";
@@ -136,9 +137,7 @@ export default function UserProfilePage() {
     streakDays: streakCount,
     bestStreakDays: Number(profileUser?.bestDailyStreak) || 0,
   });
-  const xp = isOwnProfile || !Number.isFinite(Number(profileUser?.publicXp)) || profileUser?.publicXp == null
-    ? ownXp
-    : Number(profileUser.publicXp);
+  const xp = profileXp({ isOwnProfile, ownXp, publicXp: profileUser?.publicXp });
   const fighterRank = getFighterRank(xp);
   const nextRank = getNextRank(xp);
   const rankProgress = getRankProgress(xp);

@@ -224,7 +224,7 @@ export default function VisualFixture() {
           comparison={[{ label: t("score") || "Score", value: "+0.6", improved: true }]}
           movementSummary={[]} timelineEvents={[]} hasMI={false} hasTimeline={false} poseMetrics={POSE}
           ghostBestScore={6.8} missionJustCompleted missionStreakBonus={100} missionNewStreak={3}
-          rankUpInfo={null} locale={locale} t={t} router={{ push() {} }}
+          rankUpInfo={null} saved awardedXp={120} locale={locale} t={t} router={{ push() {} }}
         />
       </main>
     );

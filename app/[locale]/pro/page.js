@@ -8,6 +8,7 @@ import { getLocale } from "@/lib/i18n";
 import { BRAND, btnPrimary, btnSecondary, displayTitle, kickerDot, kickerPill, pageBackground } from "@/components/ui/brand";
 import { FREE_INCLUDES, PRO_PERKS, PRO_PRICES, formatMnt, isProUser } from "@/lib/pro";
 import { funnel } from "@/lib/funnel";
+import { backOr } from "@/lib/nav";
 
 // GAVANA Pro — the one page for the plan, its price, its perks, buying and managing it.
 // Pro is only sold when the server says checkout, webhook and activation are all set up
@@ -91,7 +92,7 @@ export default function ProPage() {
   return (
     <main style={{ minHeight: "100dvh", background: pageBackground, color: BRAND.text, padding: "16px 16px 120px" }}>
       <div style={{ maxWidth: 520, margin: "0 auto" }}>
-        <button type="button" onClick={() => router.back()} style={{ minHeight: 40, padding: "0 12px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.04)", color: "#fff", fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>
+        <button type="button" onClick={() => (subscribed ? router.push(`/${locale}/home`) : backOr(router, `/${locale}/home`))} style={{ minHeight: 40, padding: "0 12px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.04)", color: "#fff", fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>
           ← {L("Буцах", "뒤로", "Back")}
         </button>
 

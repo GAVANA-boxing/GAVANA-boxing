@@ -74,10 +74,11 @@ export default function HomePage() {
     let active = true;
     (async () => {
       try {
-        const { collection, getDocs, query, where } = await import("firebase/firestore");
+        // A count, not the documents: nobody's profile is downloaded just to show a number.
+        const { collection, getCountFromServer, query, where } = await import("firebase/firestore");
         const { db } = await import("@/lib/firebase");
-        const snap = await getDocs(query(collection(db, "users"), where("fighterDNA.archetypeKey", "==", dna.archetypeKey)));
-        if (active) setTribeCount(snap.size);
+        const snap = await getCountFromServer(query(collection(db, "users"), where("fighterDNA.archetypeKey", "==", dna.archetypeKey)));
+        if (active) setTribeCount(snap.data().count);
       } catch { /* silent */ }
     })();
     return () => { active = false; };
