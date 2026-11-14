@@ -50,7 +50,6 @@ export const POST = withAuth(async (request, { uid: callerUid }) => {
     // GAVANA Pro perk (lib/pro.js): checked here, not only in the browser.
     const isPro = isProUser({
       subscriptionTier: fsValue(fields.subscriptionTier),
-      tier: fsValue(fields.tier),
       subscription: fsValue(fields.subscription),
     });
     if (!isPro) return NextResponse.json({ error: "pro_required" }, { status: 402 });

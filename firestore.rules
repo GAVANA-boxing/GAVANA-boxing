@@ -36,48 +36,59 @@ service cloud.firestore {
 
     // ─── Users ──────────────────────────────────────────────────
     match /users/{userId} {
-      // Public profile — world-readable, so it must hold NO private data.
-      // Email lives in users_private/{uid}; a client may remove a legacy email
-      // field here but never write one.
-      allow read: if true;
+      // Public profile: one profile can be opened by anyone with its link (get). LIST / query
+      // needs a real account (not signed out, not an anonymous-provider guest). That is a speed
+      // bump, not a wall — anyone can make a free account — so this doc must hold NO private
+      // data. Email lives in users_private/{uid}; a client may remove a legacy email field here
+      // but never write one.
+      allow get: if true;
+      allow list: if isAuth() && request.auth.token.firebase.sign_in_provider != "anonymous";
+      // Fields only trusted server code may set (Stripe webhook, /api/score/session, admin):
+      // billing, roles and progression. Blocked on CREATE too — the client creates this doc at
+      // signup, so without that a brand-new account could simply start as Pro with any XP.
+      // `tier` is the legacy plan field (no longer read by lib/pro.js) and stays blocked.
+      function serverOnlyUserKeys() {
+        return [
+          "isAdmin",
+          "isCoach",
+          "coachVerified",
+          "coachFeatured",
+          "subscription",
+          "subscriptionTier",
+          "subscriptionUpdatedAt",
+          "tier",
+          "xp",
+          "rank",
+          "rankName",
+          "dailyStreak",
+          "bestDailyStreak",
+          "challengeStreak",
+          "lastChallengeDate",
+          "totalChallengesCompleted",
+          "dailyMissionCompleted",
+          "lastTrainingDate",
+          "streakFreezes",
+          "streakFreezeMonth",
+          "sessionXpDay",
+          "sessionXpCount",
+          "challengeAwardDay",
+          "challengeAwardCount",
+          "stats",
+          "publicXp"
+        ];
+      }
       allow create: if isAuth() && request.auth.uid == userId
-        && !("email" in request.resource.data);
-      // Owner may update their own doc, but NOT security/billing OR progression
-      // fields — those are written only by trusted server code (Stripe webhook,
-      // admin claims, and the /api/score/session endpoint), which uses the
-      // service account and bypasses these rules. This blocks self-granting Pro
-      // (subscriptionTier) / admin (isAdmin) / coach (isCoach) and self-awarding
-      // XP, streaks or rank from the client.
+        && !("email" in request.resource.data)
+        && !request.resource.data.keys().hasAny(serverOnlyUserKeys());
+      // Owner may update their own doc, but NOT the server-only fields above — those are
+      // written with the service account, which bypasses these rules.
       // NOTE deploy order: set FIREBASE_SERVICE_ACCOUNT_BASE64 and confirm
       // /api/score/session works BEFORE deploying these rules — otherwise the
       // client fallback write is blocked and session saves fail.
       allow update: if (isAuth() && request.auth.uid == userId &&
           !("email" in request.resource.data &&
             request.resource.data.diff(resource.data).affectedKeys().hasAny(["email"])) &&
-          !request.resource.data.diff(resource.data).affectedKeys().hasAny([
-            "isAdmin",
-            "isCoach",
-            "subscription",
-            "subscriptionTier",
-            "subscriptionUpdatedAt",
-            "xp",
-            "rank",
-            "rankName",
-            "dailyStreak",
-            "bestDailyStreak",
-            "challengeStreak",
-            "lastChallengeDate",
-            "totalChallengesCompleted",
-            "dailyMissionCompleted",
-            "streakFreezes",
-            "streakFreezeMonth",
-            "sessionXpDay",
-            "sessionXpCount",
-            "challengeAwardDay",
-            "challengeAwardCount",
-            "stats",
-            "publicXp"
-          ])) ||
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(serverOnlyUserKeys())) ||
         (isAuth() && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           "coachRating",
           "coachTotalReviews"
@@ -301,8 +312,12 @@ service cloud.firestore {
     // ─── Notifications ────────────────────────────────────────────
     match /notifications/{notifId} {
       allow read: if (isAuth() && resource.data.recipientId == request.auth.uid) || isRelatedReelOwner();
-      // actorId must match the caller to prevent impersonation spam.
-      allow create: if isAuth() && request.resource.data.actorId == request.auth.uid;
+      // actorId must match the caller to prevent impersonation spam. Ids starting with "nf_" are
+      // the one-per-pair follower notifications (nf_{recipient}_{actor}): only that actor may
+      // create that id, so nobody can occupy it first and block the real notification.
+      allow create: if isAuth() && request.resource.data.actorId == request.auth.uid
+        && (!notifId.matches('nf_.*')
+            || notifId == 'nf_' + request.resource.data.recipientId + '_' + request.auth.uid);
       allow update: if isAuth() && resource.data.recipientId == request.auth.uid;
       allow delete: if (isAuth() && resource.data.recipientId == request.auth.uid) || isRelatedReelOwner();
     }

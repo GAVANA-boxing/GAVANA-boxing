@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { finalRoundScore, computeScoreConfidence } from "@/lib/scoreConfidence";
+import { finalRoundScore, computeScoreConfidence, roundPunchCount } from "@/lib/scoreConfidence";
 
 describe("finalRoundScore — one score per round", () => {
   it("caps by confidence", () => {
@@ -14,5 +14,30 @@ describe("finalRoundScore — one score per round", () => {
   });
   it("matches computeScoreConfidence", () => {
     expect(finalRoundScore(5, { punchCount: 2 }).confidence).toBe(computeScoreConfidence(2, null, null));
+  });
+});
+
+describe("no pose data is never a confident score", () => {
+  it("5+ punches counted by the motion counter alone → low, capped at 7.5", () => {
+    expect(computeScoreConfidence(8, null, null)).toBe("low");
+    expect(finalRoundScore(10, { punchCount: 8 })).toEqual({ score: 7.5, confidence: "low" });
+  });
+  it("still 'none' under 5 punches, and pose data keeps its own level", () => {
+    expect(computeScoreConfidence(4, null, null)).toBe("none");
+    expect(computeScoreConfidence(8, "high", "full_body")).toBe("high");
+    expect(computeScoreConfidence(8, "high", null)).toBe("high");
+  });
+});
+
+describe("roundPunchCount — one punch count per round", () => {
+  it("uses the camera count whenever there is a pose summary, even when it is lower", () => {
+    expect(roundPunchCount({ punchCount: 4 }, 9)).toBe(4);
+    expect(roundPunchCount({ punchCount: 0 }, 9)).toBe(0);
+    expect(roundPunchCount({ punchCount: 12 }, 2)).toBe(12);
+  });
+  it("falls back to the motion counter only without a pose summary", () => {
+    expect(roundPunchCount(null, 7)).toBe(7);
+    expect(roundPunchCount({}, 7)).toBe(7);
+    expect(roundPunchCount(null, undefined)).toBe(0);
   });
 });

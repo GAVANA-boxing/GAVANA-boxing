@@ -113,8 +113,10 @@ export default function ProfileView({
 
           {/* Stat pills */}
           <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: 8, marginTop: 18 }}>
-            <Pill value={scores.length} label={L("бэлтгэл", "세션", "sessions")} />
-            <Pill value={best != null ? best.toFixed(1) : "—"} label={L("шилдэг", "최고", "best")} />
+            {/* Rounds are private: on someone else's profile there is nothing to count — show no
+                "0 sessions" / "best —" that would read as "this fighter never trained". */}
+            {isOwnProfile && <Pill value={scores.length} label={L("бэлтгэл", "세션", "sessions")} />}
+            {isOwnProfile && <Pill value={best != null ? best.toFixed(1) : "—"} label={L("шилдэг", "최고", "best")} />}
             <Pill value={xp.toLocaleString()} label="XP" />
             {social && <Pill value={social.followers} label={L("дагагч", "팔로워", "followers")} onClick={onFollowers} />}
             {social && <Pill value={social.following} label={L("дагаж буй", "팔로잉", "following")} onClick={onFollowing} />}
@@ -150,8 +152,9 @@ export default function ProfileView({
           </button>
         )}
 
-        {/* ── Achievements: rounded tiles, like story bubbles ── */}
-        <section style={{ marginTop: 26 }}>
+        {/* ── Achievements: rounded tiles, like story bubbles (own profile only: they are computed
+            from your rounds, which other people can't read) ── */}
+        {isOwnProfile && <section style={{ marginTop: 26 }}>
           <div style={sectionHead}>
             <p style={sectionLabel}>{L("Амжилт", "업적", "Achievements")}</p>
             <span style={{ fontSize: 13, color: BRAND.faint }}>{earned.length}/{ACHIEVEMENT_BADGES.length}</span>
@@ -160,10 +163,10 @@ export default function ProfileView({
             {earned.map((b) => <BadgeTile key={b.id} badge={b} locale={locale} earned />)}
             {locked.map((b) => <BadgeTile key={b.id} badge={b} locale={locale} />)}
           </div>
-        </section>
+        </section>}
 
-        {/* ── Sessions: bento grid ── */}
-        <section style={{ marginTop: 26 }}>
+        {/* ── Sessions: bento grid (own profile only — other people's rounds are private) ── */}
+        {isOwnProfile && <section style={{ marginTop: 26 }}>
           <div style={sectionHead}>
             <p style={sectionLabel}>{L("Бэлтгэлүүд", "세션", "Sessions")}</p>
             {sessions.length > 0 && <button type="button" onClick={() => go("/history")} style={linkBtn}>{L("Бүгд", "전체", "All")} →</button>}
@@ -185,7 +188,7 @@ export default function ProfileView({
               {isOwnProfile && <button type="button" onClick={() => go("/train")} style={btnPrimary}>{L("Раунд эхлүүлэх", "라운드 시작", "Start a round")}</button>}
             </div>
           )}
-        </section>
+        </section>}
 
         {/* ── Fighter DNA ── */}
         {isOwnProfile && dna && (

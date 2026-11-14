@@ -4,7 +4,8 @@ import { loc } from "@/lib/loc";
 
 // Same punch colours as the result's punch-mix bar (ResultHeader).
 const TYPE_COLOR = { jab: "#60A5FA", cross: "#FF3B30", hook: "#F5C451", uppercut: "#A78BFA" };
-const TYPE_LABEL = { jab: "Jab", cross: "Cross", hook: "Hook", uppercut: "Uppercut" };
+const TYPE_LABEL = { jab: ["Жэб", "잽", "Jab"], cross: ["Кросс", "크로스", "Cross"], hook: ["Хук", "훅", "Hook"], uppercut: ["Апперкот", "어퍼컷", "Uppercut"] };
+const typeLabel = (locale, type) => (TYPE_LABEL[type] ? loc(locale, ...TYPE_LABEL[type]) : type);
 
 export default function LivePunchCounter({ getDebugInfo, isActive, punchTarget, locale = "en" }) {
   const [count, setCount]         = useState(0);
@@ -139,7 +140,7 @@ export default function LivePunchCounter({ getDebugInfo, isActive, punchTarget, 
           >
             <span style={{ width: 8, height: 8, borderRadius: "50%", background: typeColor, boxShadow: `0 0 10px ${typeColor}` }} />
             <span style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>
-              {TYPE_LABEL[lastType] || lastType}
+              {typeLabel(locale, lastType)}
             </span>
             {fast && (
               <span style={{ fontSize: 11, fontWeight: 700, color: "#34D399" }}>
@@ -171,7 +172,7 @@ export default function LivePunchCounter({ getDebugInfo, isActive, punchTarget, 
             <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 13, fontWeight: 600, color: "#fff", opacity: i === arr.length - 1 ? 1 : 0.6 }}>
               {i > 0 && <span style={{ color: "rgba(255,255,255,0.55)" }}>·</span>}
               <span style={{ width: 6, height: 6, borderRadius: "50%", background: TYPE_COLOR[t] || "#fff" }} />
-              {TYPE_LABEL[t] || t}
+              {typeLabel(locale, t)}
             </span>
           ))}
         </div>

@@ -23,7 +23,9 @@ export function useDiscoverData({ userId, feedTab }) {
     try {
       const [reelsSnap, coachSnap] = await Promise.all([
         getDocs(query(collection(db, "reels"), orderBy("createdAt", "desc"), limit(80))),
-        getDocs(query(collection(db, "users"), where("isCoach", "==", true), limit(4))),
+        // Listing profiles needs a real account (firestore.rules): signed out, show the reels
+        // without the coach row instead of failing the whole page.
+        getDocs(query(collection(db, "users"), where("isCoach", "==", true), limit(4))).catch(() => ({ docs: [] })),
       ]);
       if (!active) return;
       setAllReels(snapToDocs(reelsSnap));

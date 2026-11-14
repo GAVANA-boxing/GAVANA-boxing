@@ -44,6 +44,16 @@ export function useTrainingActions({
   const [missionNewStreak, setMissionNewStreak] = useState(0);
   const [streakFreezeUsed, setStreakFreezeUsed] = useState(false);
   const [rankUpInfo, setRankUpInfo] = useState(null);
+  // The round is in History but the server hasn't confirmed its XP (scoring call failed).
+  const [xpPending, setXpPending] = useState(false);
+  // What the server really awarded for this round (null until it answers).
+  const [awardedXp, setAwardedXp] = useState(null);
+  // One round = one saved document. Set once the round's doc exists; a second "save" (retry)
+  // re-posts that id for scoring instead of writing the round again.
+  const savedSessionRef = useRef(null); // { id, attemptNumber }
+  // Bumped when a new round starts: a save still running for the previous round must not write
+  // its "saved" state into the next one.
+  const roundTokenRef = useRef(0);
   const challengeSavedRef = useRef(false);
   const [feedSharing,       setFeedSharing]       = useState(false);
   const [feedShared,        setFeedShared]        = useState(false);
@@ -147,7 +157,10 @@ export function useTrainingActions({
         return;
       }
 
-      // ── Fallback: legacy client transaction (server scoring not configured) ──
+      // ── Fallback: legacy client transaction — ONLY when server scoring is not configured. A
+      //    refusal (challenges off, daily cap) or a transient failure must not be worked around
+      //    by writing XP from the client. ──
+      if (srv.code !== "not_configured") throw new Error("score-failed");
       const rank = getChallengeRank(result.score);
       const xpGained = calculateChallengeXP(result.score, rank);
 
@@ -244,51 +257,80 @@ export function useTrainingActions({
   const handleSave = useCallback(async ({ movementEvents = [], tag = null, readiness = null, poseMetrics = null, priorSessions = [] } = {}) => {
     if (!user?.uid || !result) return;
 
+    const token = roundTokenRef.current;
+    const live = () => roundTokenRef.current === token; // still the same round on screen?
+
     setSaving(true);
     setSaveFailed(false);
     setError("");
 
     try {
-      const previousSessionsSnap = await getDocs(query(
-        collection(db, "training_sessions"),
-        where("userId", "==", user.uid),
-        where("reelId", "==", reelId)
-      ));
-      const previousAttempts = previousSessionsSnap.docs
-        .map((d) => d.data())
-        .filter((session) => session.type === "training").length;
-      const attemptNumber = previousAttempts + 1;
+      // ── 1. The round itself: written once. A retry reuses the saved document. ──
+      let sessionId;
+      let attemptNumber;
+      // A retry (XP re-ask) must not repeat what the first save already did after the write.
+      const firstSave = !savedSessionRef.current;
+      if (savedSessionRef.current) {
+        ({ id: sessionId, attemptNumber } = savedSessionRef.current);
+      } else {
+        const previousSessionsSnap = await getDocs(query(
+          collection(db, "training_sessions"),
+          where("userId", "==", user.uid),
+          where("reelId", "==", reelId)
+        ));
+        const previousAttempts = previousSessionsSnap.docs
+          .map((d) => d.data())
+          .filter((session) => session.type === "training").length;
+        attemptNumber = previousAttempts + 1;
 
-      // Note: xpGained is NOT written here — the server stamps the authoritative
-      // value (rules forbid the client from setting it). This is what getAccountXp
-      // sums, so letting the client set it would be a canonical-XP cheat.
-      const trainingRef = await addDoc(collection(db, "training_sessions"), {
-        ...buildTrainingSessionDoc({
-          uid: user.uid, result, reelId, attemptNumber, locale,
-          drillId, drillConfig, tag, readiness, movementEvents, poseMetrics,
-        }),
-        createdAt: serverTimestamp(),
-      });
+        // Note: xpGained is NOT written here — the server stamps the authoritative
+        // value (rules forbid the client from setting it). This is what getAccountXp
+        // sums, so letting the client set it would be a canonical-XP cheat.
+        const trainingRef = await addDoc(collection(db, "training_sessions"), {
+          ...buildTrainingSessionDoc({
+            uid: user.uid, result, reelId, attemptNumber, locale,
+            drillId, drillConfig, tag, readiness, movementEvents, poseMetrics,
+          }),
+          createdAt: serverTimestamp(),
+        });
+        sessionId = trainingRef.id;
+        if (live()) savedSessionRef.current = { id: sessionId, attemptNumber };
+      }
 
-      // Daily mission completion
+      // ── 2. XP / streak: the server decides. From here on the round IS saved; a scoring
+      //    failure must never be reported as "save failed" (that made "Retry" write it twice). ──
       const todayKey = getLocalDateKey();
       const yesterdayKey = getPreviousLocalDateKey();
       const userRef = doc(db, "users", user.uid);
-      const userSnap = await getDoc(userRef);
-      const userData = userSnap.exists() ? userSnap.data() : {};
+      let userData = {};
+      let userLoaded = false;
+      try {
+        const userSnap = await getDoc(userRef);
+        userData = userSnap.exists() ? userSnap.data() : {};
+        userLoaded = true;
+      } catch { /* the server reads its own copy */ }
       const alreadyCompleted = userData.dailyMissionCompleted === todayKey;
 
-      // Server-authoritative daily-mission XP/streak (falls back to the legacy
-      // client write while the server path isn't configured yet).
       const dateKeys = buildDateKeys();
-      const srv = await commitSessionProgression(user, {
+      const commit = () => commitSessionProgression(user, {
         type: "mission",
         locale,
         dateKeys,
-        trainingSessionId: trainingRef.id,
+        trainingSessionId: sessionId,
         score: result.score,
       });
+      let srv = await commit();
+      // One quiet retry for a transient failure (network blip, cold start). The server awards a
+      // session only once, so repeating the call is safe.
+      if (!srv.ok && srv.code === "error") {
+        await new Promise((r) => setTimeout(r, 1500));
+        srv = await commit();
+      }
+      if (!live()) return; // the user already started another round
+
       if (srv.ok) {
+        setXpPending(false);
+        setAwardedXp(Number.isFinite(Number(srv.trainingXpGained)) ? Number(srv.trainingXpGained) : 0);
         const cel = srv.celebration || {};
         if (cel.missionJustCompleted) {
           setMissionJustCompleted(true);
@@ -300,69 +342,107 @@ export function useTrainingActions({
             if (r) setTimeout(() => setRankUpInfo(r), 1200);
           }
         }
-      } else if (!alreadyCompleted) {
+      } else if (srv.code === "not_configured") {
+        // Server scoring isn't set up (no service account): the legacy client write. Once the
+        // rules that make XP server-only are deployed this write is refused — then the round is
+        // simply saved, not "failed". Nothing to retry here: asking again gives the same answer.
+        setXpPending(false);
+        try {
+          // Never compute XP / streak from a profile that could not be read: it would write
+          // first-day values over the real ones.
+          if (!userLoaded) throw new Error("user doc not read");
+          if (!alreadyCompleted) {
         const MISSION_XP = 50;
-        const lastDate = String(userData.lastTrainingDate || "");
-        const currentStreak = Number(userData.dailyStreak) || 0;
+            const lastDate = String(userData.lastTrainingDate || "");
+            const currentStreak = Number(userData.dailyStreak) || 0;
 
-        // ── Streak Protection (Pro perk) ──────────────────────────────────
-        // Pro/Champion get 2 streak freezes per month. Missing exactly one day
-        // consumes a freeze instead of resetting the streak to 1.
-        const isPro = isProUser(userData);
-        const monthKey = todayKey.slice(0, 7); // YYYY-MM
-        let freezes = Number(userData.streakFreezes);
-        if (userData.streakFreezeMonth !== monthKey || !Number.isFinite(freezes)) {
-          freezes = isPro ? PRO_STREAK_SAVES : 0; // replenish monthly allowance
-        }
-        const twoDaysAgoKey = getLocalDateKey(new Date(Date.now() - 2 * 86400000));
+            // ── Streak Protection (Pro perk) ──────────────────────────────────
+            // Pro/Champion get 2 streak freezes per month. Missing exactly one day
+            // consumes a freeze instead of resetting the streak to 1.
+            const isPro = isProUser(userData);
+            const monthKey = todayKey.slice(0, 7); // YYYY-MM
+            let freezes = Number(userData.streakFreezes);
+            if (userData.streakFreezeMonth !== monthKey || !Number.isFinite(freezes)) {
+              freezes = isPro ? PRO_STREAK_SAVES : 0; // replenish monthly allowance
+            }
+            const twoDaysAgoKey = getLocalDateKey(new Date(Date.now() - 2 * 86400000));
 
-        let newStreak;
-        let freezeUsed = false;
-        let freezesLeft = freezes;
-        if (lastDate === yesterdayKey) {
-          newStreak = currentStreak + 1;
-        } else if (isPro && freezes > 0 && currentStreak > 0 && lastDate === twoDaysAgoKey) {
-          // Missed exactly one day — a freeze saves the streak.
-          newStreak = currentStreak + 1;
-          freezeUsed = true;
-          freezesLeft = freezes - 1;
-        } else {
-          newStreak = 1;
-        }
+            let newStreak;
+            let freezeUsed = false;
+            let freezesLeft = freezes;
+            if (lastDate === yesterdayKey) {
+              newStreak = currentStreak + 1;
+            } else if (isPro && freezes > 0 && currentStreak > 0 && lastDate === twoDaysAgoKey) {
+              // Missed exactly one day — a freeze saves the streak.
+              newStreak = currentStreak + 1;
+              freezeUsed = true;
+              freezesLeft = freezes - 1;
+            } else {
+              newStreak = 1;
+            }
 
-        const streakBonus = newStreak === 3 ? 100 : newStreak === 7 ? 250 : 0;
-        const totalBonus = MISSION_XP + streakBonus;
-        const currentStoredXP = Number(userData.xp) || 0;
-        const newBest = Math.max(newStreak, Number(userData.bestDailyStreak) || 0);
+            const streakBonus = newStreak === 3 ? 100 : newStreak === 7 ? 250 : 0;
+            const totalBonus = MISSION_XP + streakBonus;
+            const currentStoredXP = Number(userData.xp) || 0;
+            const newBest = Math.max(newStreak, Number(userData.bestDailyStreak) || 0);
 
-        const newXP = currentStoredXP + totalBonus;
-        await setDoc(userRef, {
-          dailyMissionCompleted: todayKey,
-          lastTrainingDate: todayKey,
-          dailyStreak: newStreak,
-          bestDailyStreak: newBest,
-          streakFreezes: freezesLeft,
-          streakFreezeMonth: monthKey,
-          xp: newXP,
-          updatedAt: serverTimestamp(),
-        }, { merge: true });
+            const newXP = currentStoredXP + totalBonus;
+            await setDoc(userRef, {
+              dailyMissionCompleted: todayKey,
+              lastTrainingDate: todayKey,
+              dailyStreak: newStreak,
+              bestDailyStreak: newBest,
+              streakFreezes: freezesLeft,
+              streakFreezeMonth: monthKey,
+              xp: newXP,
+              updatedAt: serverTimestamp(),
+            }, { merge: true });
 
-        // Rank-up detection
-        const prevTrainRank = getFighterRank(currentStoredXP);
-        const newTrainRank = getFighterRank(newXP);
-        if (prevTrainRank.key !== newTrainRank.key) { setTimeout(() => setRankUpInfo(newTrainRank), 1200); }
+            // Rank-up detection
+            const prevTrainRank = getFighterRank(currentStoredXP);
+            const newTrainRank = getFighterRank(newXP);
+            if (prevTrainRank.key !== newTrainRank.key) { setTimeout(() => setRankUpInfo(newTrainRank), 1200); }
 
-        setMissionJustCompleted(true);
-        setMissionStreakBonus(streakBonus);
-        setMissionNewStreak(newStreak);
-        setStreakFreezeUsed(freezeUsed);
+            setMissionJustCompleted(true);
+            setMissionStreakBonus(streakBonus);
+            setMissionNewStreak(newStreak);
+            setStreakFreezeUsed(freezeUsed);
+          } else {
+            await setDoc(userRef, { lastTrainingDate: todayKey }, { merge: true });
+          }
+        } catch { /* the round is saved; XP stays with the server */ }
       } else {
-        // Still update lastTrainingDate even if mission already completed today
-        await setDoc(userRef, { lastTrainingDate: todayKey }, { merge: true });
+        setXpPending(true);
       }
+      if (!live()) return;
 
       setSaved(true);
       setSavedAttemptNumber(attemptNumber);
+
+      // Training profile + badges: with the first save, and again when a retry finally got the
+      // award (the first pass then ran with the streak from before it). The streak comes from
+      // the server's answer when it has one. Both writes are idempotent; fire and forget.
+      if (firstSave || srv.ok) {
+        let newStreak = srv.ok ? Number(srv.authoritative?.dailyStreak ?? srv.celebration?.newStreak) || 0 : 0;
+        if (!newStreak) {
+          // A late read error here must not turn a saved round into "save failed".
+          try { newStreak = Number((await getDoc(userRef)).data()?.dailyStreak) || 1; } catch { newStreak = 1; }
+        }
+        const breakdown = result.breakdown || {};
+        updateUserTrainingProfile(user.uid, {
+          lastScore: result.score,
+          dailyStreak: newStreak,
+          totalAttempts: attemptNumber,
+        }).catch(() => {});
+        checkAndAwardBadges(user.uid, {
+          totalAttempts: attemptNumber,
+          dailyStreak: newStreak,
+          accuracy: breakdown.accuracy,
+          speed: breakdown.speed,
+          category: "boxing",
+        }).catch(() => {});
+      }
+      if (!firstSave) return; // everything below ran with the first save
 
       // Fighter DNA + Combat Progress — compute from prior sessions + this result and save to user doc
       try {
@@ -376,10 +456,14 @@ export function useTrainingActions({
           if (snap) {
             await setDoc(userRef, { fighterDNA: snap, fighterDnaUpdatedAt: serverTimestamp() }, { merge: true });
           }
-          const prog     = computeCombatProgress({ sessions: sessionsForStats, streakDays: 0, locale, xp: Number(userData.xp) || 0 });
-          const progSnap = progressSnapshot(prog);
-          if (progSnap) {
-            await setDoc(userRef, { combatProgress: progSnap }, { merge: true });
+          // Needs the stored XP: skipped when the profile could not be read (it would be
+          // recomputed from 0 and written over the real one).
+          if (userLoaded) {
+            const prog     = computeCombatProgress({ sessions: sessionsForStats, streakDays: 0, locale, xp: Number(userData.xp) || 0 });
+            const progSnap = progressSnapshot(prog);
+            if (progSnap) {
+              await setDoc(userRef, { combatProgress: progSnap }, { merge: true });
+            }
           }
         }
       } catch { /* non-critical */ }
@@ -394,22 +478,6 @@ export function useTrainingActions({
           attemptNumber,
         }).catch(() => {});
       }
-
-      const newStreak = Number((await getDoc(doc(db, "users", user.uid))).data()?.dailyStreak) || 1;
-      const breakdown = result.breakdown || {};
-      updateUserTrainingProfile(user.uid, {
-        lastScore: result.score,
-        dailyStreak: newStreak,
-        totalAttempts: attemptNumber,
-      }).catch(() => {});
-
-      checkAndAwardBadges(user.uid, {
-        totalAttempts: attemptNumber,
-        dailyStreak: newStreak,
-        accuracy: breakdown.accuracy,
-        speed: breakdown.speed,
-        category: "boxing",
-      }).catch(() => {});
 
       // Notify the reel creator that someone attempted their challenge
       if (reelId && trainSourceUserId) {
@@ -435,10 +503,17 @@ export function useTrainingActions({
         }
       }
     } catch (err) {
-      setSaveFailed(true);
-      setError(t("trainSaveFailed"));
+      if (!live()) return;
+      if (savedSessionRef.current) {
+        // The round's document exists — it is saved; only what came after it failed.
+        setSaved(true);
+        setSavedAttemptNumber(savedSessionRef.current.attemptNumber);
+      } else {
+        setSaveFailed(true);
+        setError(t("trainSaveFailed"));
+      }
     } finally {
-      setSaving(false);
+      if (live()) setSaving(false);
     }
   }, [user, result, reelId, drillId, drillConfig, locale, t, setError, trainSourceUserId, creatorBestScore]);
 
@@ -563,6 +638,10 @@ export function useTrainingActions({
   }, [user, result, locale, setError]);
 
   const resetForNewSession = useCallback(() => {
+    roundTokenRef.current += 1;     // any save still running belongs to the old round
+    savedSessionRef.current = null;
+    setXpPending(false);
+    setAwardedXp(null);
     setSaving(false);
     setSaved(false);
     setSaveFailed(false);
@@ -590,7 +669,7 @@ export function useTrainingActions({
   }, []);
 
   return {
-    saving, saved, saveFailed, savedAttemptNumber,
+    saving, saved, saveFailed, savedAttemptNumber, xpPending, awardedXp,
     challengeSaving, challengeSaved, challengeSavedRef,
     missionJustCompleted, missionStreakBonus, missionNewStreak, streakFreezeUsed,
     rankUpInfo,

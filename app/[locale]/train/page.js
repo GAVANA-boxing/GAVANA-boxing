@@ -17,7 +17,7 @@ import PreGameCard from "@/components/train/PreGameCard";
 import RecordingHud from "@/components/train/RecordingHud";
 import { useTrainingData } from "@/hooks/useTrainingData";
 import { useCameraSession } from "@/hooks/useCameraSession";
-import { finalRoundScore } from "@/lib/scoreConfidence";
+import { finalRoundScore, roundPunchCount } from "@/lib/scoreConfidence";
 import { BENCHMARKS } from "@/lib/benchmarks";
 import { calculateChallengeXP, getRankProgress } from "@/lib/xp";
 import { getChallengeRank } from "@/lib/utils";
@@ -127,8 +127,6 @@ export default function TrainPage() {
   const {
     videoRef,
     streamRef,
-    recorderRef,
-    chunksRef,
     cameraState, setCameraState,
     cameraError,
     cameraRetryKey, setCameraRetryKey,
@@ -152,9 +150,6 @@ export default function TrainPage() {
     handleStart,
     handleTryAgain,
     finishRecording,
-    recordingEnabled, setRecordingEnabled,
-    recordedBlob,
-    thumbnailBlob,
   } = useCameraSession({
     drillConfig,
     currentXP,
@@ -203,7 +198,7 @@ export default function TrainPage() {
   };
 
   const {
-    saving, saved, saveFailed, savedAttemptNumber,
+    saving, saved, saveFailed, savedAttemptNumber, xpPending, awardedXp,
     challengeSaving, challengeSaved, challengeSavedRef,
     missionJustCompleted, missionStreakBonus, missionNewStreak, streakFreezeUsed,
     rankUpInfo,
@@ -348,12 +343,18 @@ export default function TrainPage() {
   // Guest → account hand-off: keep the guest's finished session so it becomes
   // their first real session when they sign up (GuestSessionClaimer saves it).
   useEffect(() => {
-    if (user || !result || (result.hitCount || 0) < 5) return;
+    // Gate on the count the result screen shows (the camera's punch count when there is one, the
+    // motion counter otherwise). This effect runs before the one that puts the pose summary in
+    // state, so read the summary directly: with the state value the first pass saw "no pose
+    // data" and kept a round the screen then called "not enough data".
+    if (user || !result) return;
+    const pose = poseSessionSummary ?? computeSessionSummary();
+    if (roundPunchCount(pose, result.hitCount) < 5) return;
     import("@/lib/guestSession").then(({ stashGuestSession }) => {
       stashGuestSession({
         result,
         movementEvents,
-        poseMetrics: poseSessionSummary,
+        poseMetrics: pose,
         drillId,
         drillConfig,
         reelId,
@@ -387,7 +388,7 @@ export default function TrainPage() {
     if (poseSummary) setPoseSessionSummary(poseSummary);
     const raw = poseSummary?.score ?? result.score;
     const { score, confidence } = finalRoundScore(raw, {
-      punchCount: poseSummary?.punchCount ?? result.hitCount ?? 0,
+      punchCount: roundPunchCount(poseSummary, result.hitCount),
       sessionConfidence: poseSummary?.sessionConfidence ?? null,
       cameraQuality: poseSummary?.cameraQuality ?? null,
     });
@@ -410,15 +411,18 @@ export default function TrainPage() {
 
   // Generate debrief when result appears
   useEffect(() => {
-    if (!result?.score) { setDebrief(null); setDebriefSource(null); setPoseSessionSummary(null); return; }
+    // The pose summary belongs to the round: drop it only when the round itself is gone. Dropping
+    // it for a low count made the result fall back to the pixel motion counter (a wrong punch
+    // count and an uncapped score).
+    if (!result) { setDebrief(null); setDebriefSource(null); setPoseSessionSummary(null); return; }
+    if (!result.score) { setDebrief(null); setDebriefSource(null); return; }
 
     // Capture pose summary (may already be set by score-override effect above)
     const poseSummary = computeSessionSummary();
-    // Skip debrief when punch count is too low — AI has nothing real to say
-    const effectivePunchCount = poseSummary?.punchCount ?? result.hitCount ?? 0;
-    if (effectivePunchCount < 5) { setDebrief(null); setDebriefLoading(false); setPoseSessionSummary(null); return; }
-
     if (poseSummary && !poseSessionSummary) setPoseSessionSummary(poseSummary);
+    // Skip debrief when punch count is too low — AI has nothing real to say
+    const effectivePunchCount = roundPunchCount(poseSummary, result.hitCount);
+    if (effectivePunchCount < 5) { setDebrief(null); setDebriefLoading(false); return; }
 
     const effectiveScore = poseSummary?.score ?? result.score;
 
@@ -735,7 +739,9 @@ export default function TrainPage() {
       video.removeEventListener("loadeddata", check);
       clearTimeout(timer);
     };
-  }, [cameraState]);
+  // authLoading: the <video> only mounts after auth resolves — if the camera was ready first,
+  // this must run again or the preview stays hidden (black stage) for the whole visit.
+  }, [cameraState, authLoading]);
 
   // ── Training Studio state (lib/trainSession.js) ─────────────────────────
   // One named state drives what the stage and the dock show. In development a
@@ -782,8 +788,9 @@ export default function TrainPage() {
       </button>
 
       <section style={styles.shell}>
-        {/* Incoming PVP challenge banner */}
-        {!isGuest && !challengeUserId && (
+        {/* Incoming PVP challenge banner — challenges are outside the core loop (its query also
+            needs an index that only exists with the full app) */}
+        {!CORE_MODE && !isGuest && !challengeUserId && (
           <IncomingChallengeBanner user={user} locale={locale} router={router} />
         )}
 
@@ -1184,48 +1191,6 @@ export default function TrainPage() {
           />
         )}
 
-        {/* Video recording toggle — the video is only used when sharing to the feed,
-            which is outside the core loop, so it is hidden in CORE_MODE. */}
-        {!CORE_MODE && phase === "idle" && !challengeUserId && !activeChallengePostId && typeof window !== "undefined" && window.MediaRecorder && (
-          <div style={{
-            margin: "0 0 8px",
-            padding: "10px 14px",
-            borderRadius: 12,
-            background: "rgba(255,255,255,0.03)",
-            border: `1px solid ${recordingEnabled ? "rgba(255,59,48,0.3)" : "rgba(255,255,255,0.07)"}`,
-            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
-          }}>
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.65)" }}>
-                {locale === "mn" ? "Видео бичлэг" : locale === "ko" ? "비디오 녹화" : "Record video"}
-              </div>
-              <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.55)", marginTop: 1 }}>
-                {locale === "mn" ? "Feed-д хуваалцах үед upload хийгдэнэ" : locale === "ko" ? "공유 시 업로드됩니다" : "Uploads when you share to feed"}
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setRecordingEnabled((v) => !v)}
-              style={{
-                flexShrink: 0, width: 44, height: 26, borderRadius: 13,
-                background: recordingEnabled ? RED : "rgba(255,255,255,0.1)",
-                border: "none", cursor: "pointer", position: "relative",
-                transition: "background 0.2s",
-              }}
-              aria-label={recordingEnabled ? "Disable recording" : "Enable recording"}
-            >
-              <div style={{
-                position: "absolute", top: 3,
-                left: recordingEnabled ? 21 : 3,
-                width: 20, height: 20, borderRadius: "50%",
-                background: "#fff",
-                transition: "left 0.2s",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
-              }} />
-            </button>
-          </div>
-        )}
-
         {/* ── Daily Hub — shown when idle only ─────────────────────────── */}
         {phase === "idle" && (
           <DailyHub
@@ -1379,6 +1344,8 @@ export default function TrainPage() {
         saved={saved}
         saveFailed={saveFailed}
         savedAttemptNumber={savedAttemptNumber}
+        xpPending={xpPending}
+        awardedXp={awardedXp}
         userArchetype={userArchetype}
         locale={locale}
         t={t}
@@ -1390,11 +1357,9 @@ export default function TrainPage() {
         onShareTraining={handleShareTraining}
         onShareToFeed={
           lessonContext?.academyLesson
-            ? () => handleShareAcademyToFeed({ poseMetrics: poseSessionSummary, academyLesson: lessonContext.academyLesson, videoBlob: recordedBlob, thumbnailBlob })
-            : () => handleShareToFeed({ poseMetrics: poseSessionSummary, videoBlob: recordedBlob, thumbnailBlob })
+            ? () => handleShareAcademyToFeed({ poseMetrics: poseSessionSummary, academyLesson: lessonContext.academyLesson })
+            : () => handleShareToFeed({ poseMetrics: poseSessionSummary })
         }
-        recordedBlob={recordedBlob}
-        thumbnailBlob={thumbnailBlob}
         feedSharing={feedSharing}
         feedShared={feedShared}
         sharedReelId={sharedReelId}

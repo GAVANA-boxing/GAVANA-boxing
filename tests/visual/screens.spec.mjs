@@ -254,3 +254,32 @@ async function settle(page) {
   const overflow = await page.evaluate(() => Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - window.innerWidth);
   expect(overflow, "horizontal overflow (px)").toBeLessThanOrEqual(1);
 }
+
+// The real build + proxy.js: pages the UI links to must open, not bounce. (2026-11: /coach/team
+// shipped behind a redirect to /coach — unit tests and fixtures never went through the proxy.)
+test("visible routes are served, hidden ones redirect (through proxy.js)", async ({ request }) => {
+  const get = (path) => request.get(path, { maxRedirects: 0 });
+  for (const path of ["/mn", "/mn/home", "/mn/train", "/mn/progress", "/mn/history", "/mn/coach", "/mn/coach/chat", "/mn/coach/team", "/ko/coach/team", "/mn/pro", "/mn/login", "/mn/privacy", "/mn/terms", "/en/fighter-profile"]) {
+    const res = await get(path);
+    expect(res.status(), `${path} should not redirect`).toBe(200);
+  }
+  for (const [path, to] of [["/mn/coach/apply", "/mn/coach"], ["/mn/coach/dashboard", "/mn/coach"], ["/mn/feed", "/mn/home"], ["/en/leaderboard", "/en/home"]]) {
+    const res = await get(path);
+    expect([307, 308], `${path} should redirect`).toContain(res.status());
+    expect(new URL(res.headers().location, "http://x").pathname).toBe(to);
+  }
+});
+
+// Boxing Academy: a lesson opened from the Coach tab must show its focus card on Train, not the
+// error screen (it crashed for all 10 lessons — localized objects were rendered raw).
+test("academy lesson opens on Train", async ({ page, context }) => {
+  await context.grantPermissions(["camera"]);
+  await prepare(page, "NotAllowedError");
+  await page.setViewportSize({ width: 390, height: 844 });
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto("/mn/train?academyLesson=jab-mechanics", { waitUntil: "load" });
+  await expect(page.getByText("Жэбийн техник").first()).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText(/Ямар нэг юм буруудлаа/i)).toHaveCount(0);
+  expect(errors).toEqual([]);
+});

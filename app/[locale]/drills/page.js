@@ -6,6 +6,7 @@ import { collection, query, where, getDocs, orderBy, limit } from "firebase/fire
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/AuthContext";
 import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
+import { buildDrillRequest } from "@/lib/drillRequest";
 import { RED } from "@/lib/tokens";
 import { loc } from "@/lib/loc";
 import { AREA_COLOR, cacheKey, readCache, writeCache } from "@/components/drills/drillsConstants";
@@ -36,15 +37,17 @@ export default function DrillsPage() {
     let active = true;
     (async () => {
       try {
+        // Uses the index that exists (userId, createdAt desc); the type filter runs here. The
+        // 3-field version needed an index that isn't deployed, so this load always failed.
         const q = query(
           collection(db, "training_sessions"),
           where("userId", "==", user.uid),
-          where("type", "==", "training"),
           orderBy("createdAt", "desc"),
-          limit(40),
+          limit(60),
         );
         const snap = await getDocs(q);
-        const sessions = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        const sessions = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+          .filter((s) => (s.type ?? "training") === "training").slice(0, 40);
         if (!active) return;
         const snapshot = buildCoachSnapshot({ sessions });
         setCoachSnapshot(snapshot);
@@ -54,7 +57,9 @@ export default function DrillsPage() {
         } else {
           setSelectedArea("Power");
         }
-      } catch { /* ignore */ }
+      } catch {
+        if (active) setSelectedArea("Power"); // never leave "Generate" disabled
+      }
     })();
     return () => { active = false; };
   }, [user?.uid]);
@@ -69,10 +74,12 @@ export default function DrillsPage() {
     setError(null);
     setDrills(null);
 
+    // The fighter context travels in `coachContext` (the route puts it in the system prompt).
+    // Prepended to the message it pushed the JSON instruction past the route's 800-character
+    // message limit, so the model never saw the format it had to answer in.
     const contextStr = coachSnapshot ? buildCoachContext({ snapshot: coachSnapshot, locale }) : "";
-    const prompt = `${contextStr ? contextStr + "\n\n" : ""}Generate exactly 5 boxing drills for the area: ${selectedArea}, drill type: ${selectedType}.
-Return ONLY valid JSON array, no markdown, no explanation:
-[{"name":"...","difficulty":"Beginner|Intermediate|Advanced","duration":"...","steps":["step1","step2","step3"]}]`;
+    const request = buildDrillRequest({ area: selectedArea, type: selectedType, context: contextStr, locale });
+    const prompt = request.messages[0].content;
 
     try {
       let idToken;
@@ -87,7 +94,7 @@ Return ONLY valid JSON array, no markdown, no explanation:
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
-        body: JSON.stringify({ messages: [{ role: "user", content: prompt }], persona: "analyst", locale }),
+        body: JSON.stringify(request),
       });
 
       if (!res.ok) {

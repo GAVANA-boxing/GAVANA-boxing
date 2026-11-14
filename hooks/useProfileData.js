@@ -142,7 +142,13 @@ export function useProfileData({ user, userId, authLoading, locale }) {
           bio: userData.bio || "",
           photoURL: userData.photoURL || userData.profileImageUrl || "",
           streakCount: Number(userData.dailyStreak ?? userData.streakCount) || 0,
+          bestDailyStreak: Number(userData.bestDailyStreak) || 0,
           xp: Number(userData.xp) || 0,
+          // Server-written account XP (lib/server/publicXp) — the rank other people see.
+          publicXp: Number.isFinite(Number(userData.publicXp)) && userData.publicXp != null ? Number(userData.publicXp) : null,
+          stance: userData.stance || null,
+          weightClass: userData.weightClass || null,
+          studiedFighters: Array.isArray(userData.studiedFighters) ? userData.studiedFighters : [],
           totalChallengesCompleted: Number(userData.totalChallengesCompleted) || 0,
           challengeStreak: Number(userData.challengeStreak) || 0,
           lastChallengeDate: userData.lastChallengeDate || "",

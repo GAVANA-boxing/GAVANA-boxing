@@ -1,5 +1,7 @@
 "use client";
 
+import { normalizeStructured } from "@/lib/coach/reply";
+
 const LABELS = {
   en: { cues: "Key Cues", mistake: "⚠️ Common Mistake", drill: "🎯 Drill", next: "✅ Next Action" },
   mn: { cues: "Гол зааварчилгаа", mistake: "⚠️ Алдаа", drill: "🎯 Дасгал", next: "✅ Дараагийн алхам" },
@@ -119,23 +121,34 @@ function FullCard({ title, keyCues = [], commonMistake, drill, nextAction, accen
 
 // ── Main export ───────────────────────────────────────────────────────────────
 export default function CoachResponseCard({ structured, accentColor, locale = "en" }) {
-  const { variant = "full", title, keyCues = [], commonMistake, drill, nextAction, message } = structured;
+  // Normalized again here (not only on the server / on load): this card must never throw on a
+  // reply of the wrong shape — it used to take the whole chat page down.
+  const safe = normalizeStructured(structured);
+  if (!safe) return null;
+  const { variant, title, keyCues, commonMistake, drill, nextAction, message } = safe;
 
   if (variant === "conversational") {
     return <ConversationalBubble message={message || title || ""} />;
   }
-  if (variant === "short") {
-    return <ShortCard title={title} keyCues={keyCues} accentColor={accentColor} />;
-  }
+  const card = variant === "short"
+    ? <ShortCard title={title} keyCues={keyCues} accentColor={accentColor} />
+    : (
+      <FullCard
+        title={title}
+        keyCues={keyCues}
+        commonMistake={commonMistake}
+        drill={drill}
+        nextAction={nextAction}
+        accentColor={accentColor}
+        locale={locale}
+      />
+    );
+  // A card can come with a sentence of its own: show it above the card instead of dropping it.
+  if (!message) return card;
   return (
-    <FullCard
-      title={title}
-      keyCues={keyCues}
-      commonMistake={commonMistake}
-      drill={drill}
-      nextAction={nextAction}
-      accentColor={accentColor}
-      locale={locale}
-    />
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <ConversationalBubble message={message} />
+      {card}
+    </div>
   );
 }

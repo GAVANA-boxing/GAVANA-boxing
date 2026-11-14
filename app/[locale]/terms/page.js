@@ -3,6 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { getLocale } from "@/lib/i18n";
 import { GOLD, RED } from "@/lib/tokens";
+import { backOr } from "@/lib/nav";
 
 const T = {
   en: {
@@ -391,7 +392,7 @@ export default function TermsPage() {
       }}>
         <button
           type="button"
-          onClick={() => router.back()}
+          onClick={() => backOr(router, `/${locale}`)}
           style={{
             background: "none", border: "none", color: "rgba(255,255,255,0.5)",
             fontSize: 15, cursor: "pointer", padding: "4px 0",

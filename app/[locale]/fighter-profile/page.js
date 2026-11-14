@@ -173,7 +173,7 @@ export default function FighterProfilePage() {
     let active = true;
     (async () => {
       try {
-        const { collection, getDocs, query, where } = await import("firebase/firestore");
+        const { collection, getCountFromServer, query, where } = await import("firebase/firestore");
         const { db } = await import("@/lib/firebase");
         const data = userProfile || {};
         if (active) {
@@ -182,16 +182,16 @@ export default function FighterProfilePage() {
           setIsPro(isProUser(data));
           setUserData(data);
         }
-        // Tribe counts — query all 5 archetypes in parallel
+        // Tribe counts — five COUNT queries (no profile documents are downloaded)
         const ARCH_KEYS = ["pressure", "outboxer", "counter", "explosive", "technician"];
         const archSnaps = await Promise.all(
           ARCH_KEYS.map((arch) =>
-            getDocs(query(collection(db, "users"), where("fighterDNA.archetypeKey", "==", arch)))
+            getCountFromServer(query(collection(db, "users"), where("fighterDNA.archetypeKey", "==", arch)))
           )
         );
         if (active) {
           const counts = {};
-          ARCH_KEYS.forEach((arch, i) => { counts[arch] = archSnaps[i].size; });
+          ARCH_KEYS.forEach((arch, i) => { counts[arch] = archSnaps[i].data().count; });
           setAllTribeCounts(counts);
           if (!dna.building && dna.archetypeKey) {
             setTribeCount(counts[dna.archetypeKey] ?? 0);

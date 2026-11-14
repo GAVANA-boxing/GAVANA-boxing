@@ -27,3 +27,39 @@ describe("core mode keeps every core page and hides the social ones", () => {
     }
   });
 });
+
+import { coreRedirect } from "@/lib/coreRoutes";
+
+describe("core-mode redirects (what proxy.js does) never hide a page the UI links to", () => {
+  // Every route a user can reach from the visible UI. If you add a page and link it, add it here.
+  const VISIBLE = [
+    "", "/home", "/train", "/progress", "/history", "/fighter-profile", "/coach", "/coach/chat",
+    "/coach/team", "/pro", "/login", "/onboarding", "/profile/abc123", "/profile/edit", "/tour",
+    "/ghost", "/mitts", "/bag", "/workout", "/drills", "/notifications", "/privacy", "/terms",
+    "/fighter-dashboard",
+  ];
+  for (const locale of ["mn", "ko", "en"]) {
+    for (const path of VISIBLE) {
+      it(`/${locale}${path} is let through`, () => {
+        expect(coreRedirect(`/${locale}${path}`, true)).toBeNull();
+        if (path) expect(coreRedirect(`/${locale}${path}/`, true)).toBeNull();
+      });
+    }
+  }
+
+  it("the human-coach marketplace under /coach stays hidden", () => {
+    for (const sub of ["apply", "dashboard", "someCoachUid"]) {
+      expect(coreRedirect(`/mn/coach/${sub}`, true)).toBe("/mn/coach");
+    }
+    expect(coreRedirect("/ko/coach/someCoachUid/book", true)).toBe("/ko/coach");
+  });
+
+  it("non-core sections go Home; nothing is redirected when core mode is off", () => {
+    expect(coreRedirect("/mn/feed", true)).toBe("/mn/home");
+    expect(coreRedirect("/en/reels/abc", true)).toBe("/en/home");
+    expect(coreRedirect("/en/leaderboard", true)).toBe("/en/home");
+    expect(coreRedirect("/mn/feed", false)).toBeNull();
+    expect(coreRedirect("/mn/coach/apply", false)).toBeNull();
+    expect(coreRedirect("/api/health", true)).toBeNull();
+  });
+});

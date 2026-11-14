@@ -1,8 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   resolveDateKeys, checkSession, sessionXpDecision, challengeAwardDecision, challengeResultId,
-  MAX_XP_SESSIONS_PER_DAY, MAX_CHALLENGE_AWARDS_PER_DAY, SESSION_CLAIM_WINDOW_MS, MAX_PUNCHES_PER_SECOND,
-} from "@/lib/domain/scoreGuard";
+  MAX_XP_SESSIONS_PER_DAY, MAX_CHALLENGE_AWARDS_PER_DAY, SESSION_CLAIM_WINDOW_MS, MAX_PUNCHES_PER_SECOND, sessionXpToReport } from "@/lib/domain/scoreGuard";
 
 const NOW = Date.UTC(2026, 10, 6, 12, 0, 0);
 const fresh = (over = {}) => ({
@@ -90,5 +89,23 @@ describe("checkSession — physically impossible numbers earn nothing", () => {
   });
   it("still caps total punches when the length is missing (older docs)", () => {
     expect(checkSession(fresh({ poseMetrics: { punchCount: 100000 } }), "u1", NOW).reason).toBe("implausible_punches");
+  });
+});
+
+describe("sessionXpToReport — what the result screen is told", () => {
+  it("a first award reports the XP just granted", () => {
+    expect(sessionXpToReport({ xp: 120, reason: "ok" }, { score: 8 })).toBe(120);
+  });
+  it("a repeated call reports the XP already stamped on the round, and grants nothing new", () => {
+    const session = { userId: "u1", score: 8, xpGained: 120 };
+    const d = sessionXpDecision({ session, uid: "u1", todayKey: "2026-11-06", nowMs: 0 });
+    expect(d).toMatchObject({ xp: 0, reason: "already_awarded", sessionUpdate: null, userUpdate: null });
+    expect(sessionXpToReport(d, session)).toBe(120);
+  });
+  it("a refused or capped round reports 0, never a negative or NaN", () => {
+    expect(sessionXpToReport({ xp: 0, reason: "daily_cap" }, { xpGained: 0 })).toBe(0);
+    expect(sessionXpToReport({ xp: 0, reason: "already_awarded" }, { xpGained: 0 })).toBe(0);
+    expect(sessionXpToReport({ xp: NaN, reason: "ok" }, null)).toBe(0);
+    expect(sessionXpToReport(null, null)).toBe(0);
   });
 });

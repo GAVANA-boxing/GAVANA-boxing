@@ -177,23 +177,11 @@ export default function HistoryPage() {
               const mix    = [["Jab", pb.jab?.count, "#60A5FA"], ["Cross", pb.cross?.count, BRAND.red], ["Hook", pb.hook?.count, BRAND.gold]].filter(([, n]) => n > 0);
               const styleCol = STYLE_COLOR[bi?.style];
               const showStyle = bi?.styleLabel && (bi.styleConfidence ?? 0) >= 0.3;
-              // Saved weaknesses (new sessions) or derived from breakdown (old sessions)
-              const weakness = (() => {
-                if (pm?.weaknesses?.length) return pm.weaknesses[0];
-                const bd = s.breakdown;
-                if (!bd) return null;
-                const entries = Object.entries(bd).filter(([, v]) => typeof v === "number");
-                if (!entries.length) return null;
-                const [key, val] = entries.reduce((a, b) => (b[1] < a[1] ? b : a));
-                if (val >= 6.5) return null;
-                const labels = {
-                  accuracy: L("Нарийвчлал", "정확도", "Accuracy"),
-                  speed: L("Хурд", "속도", "Speed"),
-                  power: L("Хүч", "파워", "Power"),
-                  consistency: L("Тогтвортой байдал", "일관성", "Consistency"),
-                };
-                return labels[key] ? `${L("Сайжруулах", "개선", "Improve")}: ${labels[key]} (${val.toFixed(1)})` : null;
-              })();
+              // The one thing to fix, as measured by the camera for that round (saved, localized, by
+              // lib/trainingSessionDoc). No fallback: the old one printed a "skill score" that was
+              // arithmetic on the round score, not a measurement.
+              const pw = s.techniqueReview?.priorityWeakness;
+              const weakness = typeof pw === "string" && pw.trim() && (!s.locale || s.locale === locale) ? pw.trim() : null;
 
               return (
                 <div key={s.id} style={{ ...card, display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", background: `radial-gradient(90% 120% at 0% 50%, ${col}14, transparent 55%), ${BRAND.card}` }}>

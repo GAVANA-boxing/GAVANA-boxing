@@ -25,8 +25,6 @@ export function useCameraSession({
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
-  const recorderRef = useRef(null);
-  const chunksRef = useRef([]);
   const stopHandledRef = useRef(false);
 
   const [cameraState, setCameraState] = useState("checking");
@@ -108,7 +106,6 @@ export function useCameraSession({
 
     return () => {
       active = false;
-      if (recorderRef.current?.state === "recording") recorderRef.current.stop();
       streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     };
@@ -137,8 +134,6 @@ export function useCameraSession({
     if (stopHandledRef.current) return;
     stopHandledRef.current = true;
 
-    if (recorderRef.current?.state === "recording") recorderRef.current.stop();
-
     isRecordingRef.current = false;
 
     if (timerIntervalRef.current) {
@@ -164,6 +159,8 @@ export function useCameraSession({
       rankProgress: getRankProgress(currentXP + xpGained),
       hitCount: hitCountRef.current,
       breakdown,
+      // Timer-only round (camera blocked / missing): the result says so instead of "0 punches".
+      cameraOff: !streamRef.current,
     });
     resetForNewSession();
   }, [currentXP, resetForNewSession, sessionSeconds, targetMovements]);
@@ -183,21 +180,9 @@ export function useCameraSession({
 
       const goTimer = window.setTimeout(() => {
         setShowGo(false);
-        chunksRef.current = [];
         stopHandledRef.current = false;
-
-        if (streamRef.current && window.MediaRecorder) {
-          try {
-            const recorder = new MediaRecorder(streamRef.current);
-            recorder.ondataavailable = (event) => {
-              if (event.data?.size) chunksRef.current.push(event.data);
-            };
-            recorder.start();
-            recorderRef.current = recorder;
-          } catch {
-            setError(t("trainRecordError"));
-          }
-        }
+        // No video is recorded: nothing in the core loop uses a clip, and encoding the camera
+        // for a whole round cost battery and detection fps on phones.
 
         setSecondsLeft(sessionSeconds);
         setPhase("recording");
@@ -213,7 +198,6 @@ export function useCameraSession({
 
     const timer = window.setTimeout(() => setCountdown((v) => v - 1), 1000);
     return () => window.clearTimeout(timer);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, countdown, sessionSeconds]);
 
   // ── Wall-clock session timer ─────────────────────────────────────────────
@@ -425,8 +409,6 @@ export function useCameraSession({
   return {
     videoRef,
     streamRef,
-    recorderRef,
-    chunksRef,
     cameraState, setCameraState,
     cameraError,
     cameraRetryKey, setCameraRetryKey,

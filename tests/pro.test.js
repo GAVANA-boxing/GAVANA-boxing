@@ -10,10 +10,13 @@ describe("isProUser", () => {
     expect(isProUser({ subscriptionTier: "", subscription: "active" })).toBe(false);
     expect(isProUser({ subscriptionTier: "fan", subscription: "active" })).toBe(false);
   });
-  it("keeps older docs that only have the tier", () => {
+  it("keeps older docs that only have the server-written subscriptionTier", () => {
     expect(isProUser({ subscriptionTier: "champion" })).toBe(true);
-    expect(isProUser({ tier: "pro" })).toBe(true);
     expect(isProUser(null)).toBe(false);
+  });
+  it("never trusts the legacy `tier` field (it was writable from the browser)", () => {
+    expect(isProUser({ tier: "pro" })).toBe(false);
+    expect(isProUser({ tier: "champion", subscription: "active" })).toBe(false);
   });
 });
 

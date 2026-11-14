@@ -6,6 +6,8 @@ import { useAuth } from "@/lib/AuthContext";
 import { useUserProfile } from "@/context/UserProfileProvider";
 import { auth } from "@/lib/firebase";
 import { getLocale, translate } from "@/lib/i18n";
+import { loc } from "@/lib/loc";
+import { repairSavedMessages } from "@/lib/coach/reply";
 import s from "@/components/coach/coachChatStyles";
 import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
 import { buildLastSessionMessage } from "@/lib/techniqueReview";
@@ -16,6 +18,7 @@ import CoachMemoryPanel from "@/components/coach/CoachMemoryPanel";
 import CoachEmptyState from "@/components/coach/CoachEmptyState";
 import CoachMessageList from "@/components/coach/CoachMessageList";
 import CoachInputArea from "@/components/coach/CoachInputArea";
+import { backOr } from "@/lib/nav";
 
 // ─── Persona config ───────────────────────────────────────────────────────────
 const PERSONAS = [
@@ -57,11 +60,15 @@ const PERSONAS = [
   },
 ];
 
+// The coachError sentence in every language — an old saved turn whose text is one of these but
+// which carries a real reply is repaired on load (lib/coach/reply repairSavedMessages).
+const COACH_ERROR_TEXTS = ["mn", "ko", "en"].map((l) => translate(l, "coachError"));
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function AIChatPage() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useUserProfile();
   const locale = getLocale(params?.locale);
   const t = (key) => translate(locale, key);
@@ -85,9 +92,11 @@ export default function AIChatPage() {
 
   const activePersona = PERSONAS.find((p) => p.id === persona) || PERSONAS[0];
 
+  // Wait for Firebase before deciding "signed out" — on a reload `user` is null for a moment,
+  // and redirecting then sent signed-in users to Home. Come back here after signing in.
   useEffect(() => {
-    if (user === null) router.replace(`/${locale}/login`);
-  }, [user, locale, router]);
+    if (!authLoading && !user) router.replace(`/${locale}/login?redirect=${encodeURIComponent(`/${locale}/coach/chat`)}`);
+  }, [authLoading, user, locale, router]);
 
   // Fetch fighter data and build coach context
   useEffect(() => {
@@ -148,8 +157,10 @@ export default function AIChatPage() {
   // Load chat history for current persona
   useEffect(() => {
     try {
+      // Saved turns are cleaned on the way in: a reply of the wrong shape (or an old turn stored
+      // as the error sentence) can't crash or mislabel the chat again.
       const saved = localStorage.getItem(`gavana_chat_${persona}`);
-      setMessages(saved ? JSON.parse(saved) : []);
+      setMessages(saved ? repairSavedMessages(JSON.parse(saved), COACH_ERROR_TEXTS) : []);
     } catch {
       setMessages([]);
     }
@@ -176,21 +187,16 @@ export default function AIChatPage() {
     setMessages((prev) => {
       if (prev.length > 0) return prev;
       greetingInjectedRef.current.add(persona);
-      const weakArea = coachSnapshot.weakAreas[0]?.[0];
-      const weakVal = coachSnapshot.weakAreas[0]?.[1]?.toFixed(1);
-      const strong = coachSnapshot.strongAreas[0]?.[0];
-      let text = "";
-      if (locale === "mn") {
-        text = `Сайн уу! Таны өгөгдлийг харлаа.\n\n` +
-          (weakArea ? `⚠ **${weakArea}** — ${weakVal}/10. Энэ хэсэгт илүү анхаарал хэрэгтэй байна.\n` : "") +
-          (strong ? `⚡ **${strong}** хүчтэй байна — үргэлжлүүл.\n\n` : "\n") +
-          `Юу дадлагажуулах, хэрхэн сайжруулах талаар асуугаарай.`;
-      } else {
-        text = `Hey! I checked your training data.\n\n` +
-          (weakArea ? `⚠ **${weakArea}** is at ${weakVal}/10 — that's your main growth area right now.\n` : "") +
-          (strong ? `⚡ **${strong}** is looking strong — keep building on it.\n\n` : "\n") +
-          `Ask me anything about drills, technique, or your next session.`;
-      }
+      // Measured facts only (rounds, average score) — no per-skill scores: those were arithmetic
+      // on the average, not measurements. One short line, in the user's language, no markdown.
+      const n = coachSnapshot.totalSessions || 0;
+      const avg = Number.isFinite(coachSnapshot.avgScore) ? coachSnapshot.avgScore.toFixed(1) : null;
+      const text = loc(
+        locale,
+        `Сайн уу! ${n} раунд${avg ? ` · дундаж ${avg}` : ""}. Юу сайжруулахаа асуугаарай.`,
+        `안녕하세요! ${n}라운드${avg ? ` · 평균 ${avg}` : ""}. 무엇을 개선할지 물어보세요.`,
+        `Hi! ${n} round${n === 1 ? "" : "s"}${avg ? ` · average ${avg}` : ""}. Ask me what to improve.`,
+      );
       return [{ role: "assistant", content: text, ts: Date.now() }];
     });
   }, [coachSnapshot, persona, locale]);
@@ -235,7 +241,7 @@ export default function AIChatPage() {
         body: JSON.stringify({ messages: next, persona, locale, coachContext: coachContextStr, json_mode: true }),
       });
       const data = await res.json();
-      const reply = data.content?.[0]?.text || data.message || t("coachError");
+      const reply = data.content?.[0]?.text || data.message || data.structured?.message || t("coachError");
       const newMsg = {
         role: "assistant", content: reply, ts: Date.now(),
         _source: data._source ?? (data.fallback ? "fallback" : data.aiError ? "error" : "openai"),
@@ -329,7 +335,7 @@ export default function AIChatPage() {
       <CoachHeader
         activePersona={activePersona}
         personaLabel={t(activePersona.nameKey)}
-        onBack={() => router.back()}
+        onBack={() => backOr(router, `/${locale}/coach`)}
         onClear={clearSession}
         clearLabel={t("coachClearChat")}
         backLabel={locale === "mn" ? "Буцах" : locale === "ko" ? "뒤로" : "Back"}

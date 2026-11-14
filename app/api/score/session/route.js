@@ -1,7 +1,7 @@
 import { withAuth } from "@/lib/withAuth";
 import { firestoreGet, firestorePatch, firestoreCreateWithId } from "@/lib/server/firestore";
 import { computeChallengeProgression, computeMissionProgression } from "@/lib/domain/awardXp";
-import { checkSession, challengeAwardDecision, challengeResultId, resolveDateKeys, sessionXpDecision } from "@/lib/domain/scoreGuard";
+import { checkSession, challengeAwardDecision, challengeResultId, resolveDateKeys, sessionXpDecision, sessionXpToReport } from "@/lib/domain/scoreGuard";
 import { getCurrentSeasonId } from "@/lib/season";
 import { CORE_MODE } from "@/lib/coreRoutes";
 import { computePublicXp } from "@/lib/server/publicXp";
@@ -31,8 +31,12 @@ function rateLimited(uid) {
   return e.count > 30;
 }
 
+// "Not configured" only when the service account is really not set. The same error is thrown
+// when it IS set but the token request failed once (cold start, network) — that is a transient
+// failure (500): the client retries it and keeps the round's XP pending. Answering 503 there
+// made the client give up on the round's XP for good.
 function notConfigured(err) {
-  return err instanceof Error && err.message === "service-account-unconfigured";
+  return err instanceof Error && err.message === "service-account-unconfigured" && !process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
 }
 
 export const POST = withAuth(async (req, { uid }) => {
@@ -129,7 +133,10 @@ export const POST = withAuth(async (req, { uid }) => {
       updatedAt: new Date(),
     });
 
-    return Response.json({ ok: true, alreadyCompleted, celebration, trainingXpGained: decision.xp, xpReason: decision.reason, authoritative: userUpdate });
+    // A repeated call for the same round (lost response, retry) awards nothing new — report the
+    // XP already stamped on it, so the result screen still shows what the round earned.
+    const trainingXpGained = sessionXpToReport(decision, session);
+    return Response.json({ ok: true, alreadyCompleted, celebration, trainingXpGained, xpReason: decision.reason, authoritative: userUpdate });
   } catch (err) {
     if (notConfigured(err)) {
       return Response.json({ error: "Scoring not configured", code: "not_configured" }, { status: 503 });
