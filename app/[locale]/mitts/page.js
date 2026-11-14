@@ -137,7 +137,9 @@ export default function MittDrillPage() {
     const s = summarizeRound(results);
     setSummary(s);
     // Personal best for this level, kept on this device.
-    const nb = nextMittBest(bests[level], s);
+    // Only a full round can set a record: six quick hits and an early Finish must not become a
+    // 100 % nobody can beat.
+    const nb = nextMittBest(bests[level], shown.length === schedule.length ? s : null);
     if (nb.isNew) {
       const next = { ...bests, [level]: nb.best };
       try { localStorage.setItem(BEST_KEY, JSON.stringify(next)); } catch { /* private mode */ }

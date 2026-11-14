@@ -50,10 +50,13 @@ export default function GhostRoundPage() {
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+  // The model loads when the page opens (a head start while the demo plays). After a failure it
+  // is switched off until the next tap, so "start again" really is a new attempt.
   const { getDebugInfo, getMotionReplay, poseStatus } = usePoseDetection({
     videoRef,
     isActive: phase === "round",
     stance,
+    load: camError !== "PoseFailed",
   });
 
   const stopCamera = useCallback(() => {

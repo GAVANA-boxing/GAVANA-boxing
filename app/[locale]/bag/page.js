@@ -53,7 +53,9 @@ export default function HeavyBagPage() {
   const statsRef = useRef(createBagStats());
   const videoRef = useRef(null);
   const streamRef = useRef(null);
-  const { getDebugInfo, poseStatus } = usePoseDetection({ videoRef, isActive: phase === "round" && camera === "on", stance, load: camera === "on" });
+  // load follows the round: each new round is a new attempt if the model failed before (it
+  // returns at once, still "ready", when the model is already there).
+  const { getDebugInfo, poseStatus } = usePoseDetection({ videoRef, isActive: phase === "round" && camera === "on", stance, load: camera === "on" && phase === "round" });
   // Read through a ref: getDebugInfo gets a new identity when the model finishes loading, and
   // the round clock must not restart because of it.
   const debug = useLatest(getDebugInfo);

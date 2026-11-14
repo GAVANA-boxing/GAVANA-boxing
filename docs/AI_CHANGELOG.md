@@ -43,9 +43,18 @@ Train's idle screen has an "other modes" row for them; what was wrong is that th
 - **Heavy bag:** same clock fix; says so while the camera AI is loading or failed (the bag still takes
   taps); the result shows punches, pace and the bag's biggest swing — the two "power" tiles are gone
   (that number was a per-punch-type formula, not a measurement).
-- Tests: `tests/cv/modes.spec.mjs` — real MediaPipe + fake camera through all three modes (clock only
-  counts down, result shown, model-load failure handled); +5 unit (personal best); 9 visual baselines
-  regenerated on purpose (mitts intro / result, bag intro).
+- **Review of the increment (reviewed + verified): 5 findings, fixed.** "Start again" after a model-load
+  failure did not work: in mitts the next tap bounced straight back (the hook cleared the old failure one
+  commit too late — it now clears it while `load` is off), in ghost it could never retry (the hook loads
+  on mount; `load` now turns off on the failure), in bag a failed model stayed failed for the page
+  (`load` follows the round). Found while testing the fix: the browser remembers a failed module fetch
+  for the life of the page, so the pose bundle is imported under a new URL after a failure
+  (`?retry=N`) — without it no retry could ever reach the network. A mitt round ended early with
+  Finish no longer sets the personal best.
+- Tests: `tests/cv/modes.spec.mjs` — real MediaPipe + fake camera through all three modes: the clock
+  only counts down; no round starts while the model is held back (mitts, ghost); a model that can't load
+  gives the message and the next tap retries and starts the round (mitts, ghost); +6 unit (personal
+  best); 9 visual baselines regenerated on purpose (mitts intro / result, bag intro).
 
 ## Audit batch 1 — "make GAVANA flawless" (owner: "gavana g chamd daatgay", "Hiij baisan ajlaa urgeljluul")
 Read-only audit (9 dimensions planned; 3 verified so far: rules-vs-client, crash risk, core loop — 3 P0,

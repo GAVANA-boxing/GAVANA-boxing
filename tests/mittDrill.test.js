@@ -139,6 +139,10 @@ describe("nextMittBest — personal best per level", () => {
     expect(nextMittBest(null, { total: 12, hits: 0, accuracy: 0, avgReactionMs: null })).toEqual({ best: null, isNew: false });
     expect(nextMittBest(null, null)).toEqual({ best: null, isNew: false });
   });
+  it("no summary (the page passes null for a round finished early) keeps the old record", () => {
+    const prev = { accuracy: 0.75, avgReactionMs: 600 };
+    expect(nextMittBest(prev, null)).toEqual({ best: prev, isNew: false });
+  });
   it("junk in storage is ignored", () => {
     expect(nextMittBest({ accuracy: "x" }, round(0.4, 800)).isNew).toBe(true);
     expect(nextMittBest("oops", round(0.4, 800)).isNew).toBe(true);

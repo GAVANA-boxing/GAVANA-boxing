@@ -36,6 +36,7 @@ const KEY_JOINTS = {
 
 // Singleton: only load once across all hook instances
 let _loadPromise = null;
+let _failedLoads = 0;
 
 async function loadPoseLandmarker() {
   if (_loadPromise) return _loadPromise;
@@ -43,7 +44,11 @@ async function loadPoseLandmarker() {
   _loadPromise = (async () => {
     // webpack-bypass dynamic import: new Function hides the import() from static analysis
     const runtimeImport = new Function("url", "return import(url)");
-    const { FilesetResolver, PoseLandmarker } = await runtimeImport(LOCAL_BUNDLE);
+    // After a failed attempt the bundle is imported under a new URL: the browser remembers a
+    // failed module fetch for the life of the page and would reject the same URL again without
+    // asking the network — "try again" could never work until a reload.
+    const bundleUrl = _failedLoads ? `${LOCAL_BUNDLE}?retry=${_failedLoads}` : LOCAL_BUNDLE;
+    const { FilesetResolver, PoseLandmarker } = await runtimeImport(bundleUrl);
 
     const vision = await FilesetResolver.forVisionTasks(LOCAL_WASM);
 
@@ -73,8 +78,8 @@ async function loadPoseLandmarker() {
     return landmarker;
   })();
 
-  // Don't cache a rejected promise — allow retry next mount
-  _loadPromise.catch(() => { _loadPromise = null; });
+  // Don't cache a rejected promise — allow a retry
+  _loadPromise.catch(() => { _loadPromise = null; _failedLoads += 1; });
 
   return _loadPromise;
 }
@@ -118,12 +123,17 @@ export function usePoseDetection({ videoRef, isActive, stance = "orthodox", load
 
   // ── Load PoseLandmarker ──────────────────────────────────────────────────
   useEffect(() => {
-    if (!load || landmarkerRef.current) return undefined;
+    if (!load) {
+      // Pages that load on demand turn `load` off between attempts. Forget an old failure HERE,
+      // while it is off — the next attempt must start from "loading". (Clearing it when `load`
+      // turns on again is one commit too late: the page's own effects in that commit still see
+      // "failed" and bounce the retry.)
+      setPoseStatus((s) => (s === "failed" ? "loading" : s));
+      setPoseError(null);
+      return undefined;
+    }
+    if (landmarkerRef.current) return undefined;
     let cancelled = false;
-    // A new attempt after a failed one (pages that load on demand turn `load` off and on again):
-    // show "loading" again instead of the old failure.
-    setPoseStatus((s) => (s === "failed" ? "loading" : s));
-    setPoseError(null);
 
     loadPoseLandmarker()
       .then((landmarker) => {

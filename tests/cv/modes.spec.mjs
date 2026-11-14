@@ -34,7 +34,7 @@ function expectClockNeverRestarts(seen) {
   expect(seen[seen.length - 1]).toBeLessThanOrEqual(2);
 }
 
-test("mitt drill: waits for the pose model, the clock never restarts, a result is shown", async ({ page }) => {
+test("mitt drill: the clock never restarts and a result is shown", async ({ page }) => {
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/en/mitts", { waitUntil: "load" });
@@ -42,10 +42,6 @@ test("mitt drill: waits for the pose model, the clock never restarts, a result i
 
   const clock = page.getByTestId("mitts-clock");
   await expect(clock).toBeVisible({ timeout: 20_000 });
-  // While the model loads there is a spinner and the clock shows "—": no round yet.
-  if (await page.getByTestId("mitts-loading").isVisible().catch(() => false)) {
-    expect(seconds(await clock.textContent())).toBeNull();
-  }
   await expect(clock).toHaveText(/0:\d\d/, { timeout: 90_000 }); // model ready → 3-2-1 → round
   const seen = await watchClock(page, clock, page.getByTestId("mitt-result"), 60_000);
   expectClockNeverRestarts(seen);
@@ -55,18 +51,73 @@ test("mitt drill: waits for the pose model, the clock never restarts, a result i
   expect(errors).toEqual([]);
 });
 
-test("mitt drill: a model that cannot load goes back to the start with a message, not a 0 % result", async ({ page }) => {
-  // Break the model download only (the page and the camera still work).
-  await page.route("**/*.task", (route) => route.abort());
-  await page.route("**/mediapipe/**", (route) => route.abort());
+// The model is everything under /mediapipe/ (bundle + wasm) plus the .task file.
+const MODEL = ["**/mediapipe/**", "**/*.task"];
+// Holds every model request until the test lets go (a timer could run out before the tap).
+const holdModel = async (page) => {
+  let release;
+  const gate = new Promise((r) => { release = r; });
+  for (const p of MODEL) await page.route(p, async (r) => { await gate; await r.continue(); });
+  return release;
+};
+const breakModel = async (page) => { for (const p of MODEL) await page.route(p, (r) => r.abort()); };
+const fixModel = async (page) => { for (const p of MODEL) await page.unroute(p); };
+
+test("mitt drill: no round starts while the pose model is still loading", async ({ page }) => {
+  const release = await holdModel(page);
+  await page.goto("/en/mitts", { waitUntil: "domcontentloaded" });
+  await page.getByTestId("mitts-start").click();
+  await expect(page.getByTestId("mitts-loading")).toBeVisible({ timeout: 20_000 });
+  // 4 s later (the old countdown was 2.4 s) it is still waiting: spinner, no digits on the clock.
+  await page.waitForTimeout(4000);
+  await expect(page.getByTestId("mitts-loading")).toBeVisible();
+  expect(seconds(await page.getByTestId("mitts-clock").textContent())).toBeNull();
+  // …and once the model arrives the round does start.
+  release();
+  await expect(page.getByTestId("mitts-clock")).toHaveText(/0:\d\d/, { timeout: 120_000 });
+});
+
+test("mitt drill: a model that cannot load → message, not a 0 % result; the next tap really retries", async ({ page }) => {
+  await breakModel(page);
   await page.goto("/en/mitts", { waitUntil: "load" });
   await page.getByTestId("mitts-start").click();
   await expect(page.getByText(/motion AI didn't load/i)).toBeVisible({ timeout: 60_000 });
   await expect(page.getByTestId("mitts-start")).toBeVisible();
   await expect(page.getByTestId("mitt-result")).toHaveCount(0);
+
+  // Connection back: ONE tap must wait for the model and start the round — not bounce straight
+  // back to the message on the stale failure.
+  await fixModel(page);
+  await page.getByTestId("mitts-start").click();
+  await expect(page.getByTestId("mitts-clock")).toHaveText(/0:\d\d/, { timeout: 120_000 });
+  await expect(page.getByText(/motion AI didn't load/i)).toHaveCount(0);
 });
 
-test("ghost round: waits for the pose model, the clock never restarts, a result is shown", async ({ page }) => {
+test("ghost round: no round starts while the pose model is still loading", async ({ page }) => {
+  const release = await holdModel(page);
+  await page.goto("/en/ghost", { waitUntil: "domcontentloaded" });
+  await page.getByRole("button", { name: /Copy it/i }).click({ timeout: 60_000 });
+  await expect(page.getByTestId("ghost-loading")).toBeVisible({ timeout: 20_000 });
+  await page.waitForTimeout(4000);
+  await expect(page.getByTestId("ghost-loading")).toBeVisible();
+  expect(seconds(await page.getByTestId("ghost-clock").textContent())).toBeNull();
+  release();
+  await expect(page.getByTestId("ghost-clock")).toHaveText(/0:\d\d/, { timeout: 120_000 });
+});
+
+test("ghost round: a model that cannot load → message; tapping again retries and starts the round", async ({ page }) => {
+  await breakModel(page);
+  await page.goto("/en/ghost", { waitUntil: "load" });
+  await page.getByRole("button", { name: /Copy it/i }).click({ timeout: 60_000 });
+  await expect(page.getByText(/motion AI didn't load/i)).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByTestId("ghost-result")).toHaveCount(0);
+
+  await fixModel(page);
+  await page.getByRole("button", { name: /Copy it/i }).click();
+  await expect(page.getByTestId("ghost-clock")).toHaveText(/0:\d\d/, { timeout: 120_000 });
+});
+
+test("ghost round: the clock never restarts and a result is shown", async ({ page }) => {
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/en/ghost", { waitUntil: "load" });
