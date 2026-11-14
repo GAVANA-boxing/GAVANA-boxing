@@ -4,6 +4,7 @@
 import { describe, it, expect } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { ACADEMY_LESSONS } from "@/lib/academyLessons";
+import { FIGHTER_TECHNIQUES } from "@/lib/fighterTechniques";
 import TrainingFocusCard from "@/components/train/TrainingFocusCard";
 import AcademyLessonCard from "@/components/train/AcademyLessonCard";
 import { tx } from "@/lib/loc";
@@ -46,6 +47,27 @@ describe("Boxing Academy lessons render", () => {
           expect(html).toContain(escapeHtml(tx(lesson.title, locale)));
           expect(html).not.toContain("[object Object]");
         }
+      });
+    }
+  }
+});
+
+// Fighter lessons (lib/fighterTechniques.js) open on Train from /train?fighter=…&lesson=…. Their
+// fields are localized objects too; `bodyCue` was still printed raw after the first fix.
+describe("fighter technique lessons render on Train", () => {
+  const all = Object.entries(FIGHTER_TECHNIQUES).flatMap(([fighterId, lessons]) => lessons.map((lesson) => ({ fighterId, lesson })));
+  it("there are lessons to test", () => {
+    expect(all.length).toBeGreaterThanOrEqual(10);
+  });
+  for (const { fighterId, lesson } of all) {
+    for (const locale of LOCALES) {
+      it(`${fighterId}/${lesson.id} · ${locale}: focus card`, () => {
+        const html = renderToStaticMarkup(
+          <TrainingFocusCard fighterName={fighterId} lesson={lesson} accent="#F5C451" locale={locale} router={router} onStart={() => {}} />,
+        );
+        expect(html).not.toContain("[object Object]");
+        expect(html).toContain(escapeHtml(tx(lesson.title, locale)));
+        if (lesson.bodyCue) expect(html).toContain(escapeHtml(tx(lesson.bodyCue, locale)));
       });
     }
   }

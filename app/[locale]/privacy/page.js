@@ -53,10 +53,10 @@ const T = {
       {
         heading: "5. What other users can see",
         body: [
-          "Your public profile: username, display name, profile photo, rank and XP, streak, fighter style and any videos or posts you publish.",
-          "Your profile record also holds your fighter-style summary, the day you last trained and your plan (free or Pro). Anyone with your profile link can open your profile; only signed-in users can search profiles. We are moving these extra fields to a private record.",
+          "Your public profile: username, display name, profile photo, bio, stance, weight class, rank and XP, streak, fighter style and any videos or posts you publish.",
+          "Your profile record also holds your fighter-style summary, skill levels, Academy lesson progress (best score and last date per lesson), weekly goal, role, the day you last trained and your plan (free or Pro). Anyone with your profile link can open your profile; only signed-in users can search profiles. We are moving these extra fields to a private record.",
           "A coach's team, only if you join it with the coach's code: that coach sees your display name, how many rounds you did today and this week, your last score and how your scores have changed. You can leave the team at any time on the Coach page; the coach then sees nothing.",
-          "Your email, training history and camera measurements are not shown to other users.",
+          "Your email and your individual rounds (each round's score, punch count and camera measurements) are not shown to other users.",
           "We do not sell your personal data.",
         ],
       },
@@ -140,9 +140,9 @@ const T = {
       {
         heading: "5. Бусад хэрэглэгчид юу харах вэ",
         body: [
-          "Нийтийн профайл: хэрэглэгчийн нэр, харагдах нэр, профайл зураг, цол ба XP, дараалал, тулааны хэв маяг, мөн таны нийтэлсэн видео, пост.",
-          "Профайлын бичлэгт мөн хэв маягийн товч дүгнэлт, сүүлд бэлтгэл хийсэн өдөр, багц (үнэгүй эсвэл Pro) хадгалагддаг. Профайлын холбоостой хүн профайлыг тань нээж чадна; профайл хайх нь зөвхөн нэвтэрсэн хэрэглэгчид боломжтой. Эдгээр нэмэлт талбарыг хувийн бичлэг рүү шилжүүлж байна.",
-          "Имэйл, бэлтгэлийн түүх, камерын хэмжилт тань бусдад харагдахгүй.",
+          "Нийтийн профайл: хэрэглэгчийн нэр, харагдах нэр, профайл зураг, танилцуулга, зогсолт, жингийн ангилал, цол ба XP, дараалал, тулааны хэв маяг, мөн таны нийтэлсэн видео, пост.",
+          "Профайлын бичлэгт мөн хэв маягийн товч дүгнэлт, ур чадварын түвшин, Academy хичээлийн ахиц (хичээл бүрийн шилдэг оноо, сүүлд хийсэн өдөр), 7 хоногийн зорилго, үүрэг, сүүлд бэлтгэл хийсэн өдөр, багц (үнэгүй эсвэл Pro) хадгалагддаг. Профайлын холбоостой хүн профайлыг тань нээж чадна; профайл хайх нь зөвхөн нэвтэрсэн хэрэглэгчид боломжтой. Эдгээр нэмэлт талбарыг хувийн бичлэг рүү шилжүүлж байна.",
+          "Имэйл болон раунд тус бүрийн мэдээлэл (оноо, цохилтын тоо, камерын хэмжилт) тань бусдад харагдахгүй.",
           "Дасгалжуулагчийн баг — зөвхөн та түүний кодыг оруулж нэгдсэн бол: тэр дасгалжуулагч таны нэр, өнөөдөр болон энэ 7 хоногт хийсэн раундын тоо, сүүлийн оноо, оноо тань хэрхэн өөрчлөгдсөнийг харна. Коуч хуудаснаас хэдийд ч гарч болно; гарсны дараа юу ч харагдахгүй.",
           "Бид таны хувийн мэдээллийг худалддаггүй.",
         ],
@@ -227,9 +227,9 @@ const T = {
       {
         heading: "5. 다른 사용자가 보는 것",
         body: [
-          "공개 프로필: 사용자 이름, 표시 이름, 프로필 사진, 랭크와 XP, 연속 기록, 파이터 스타일, 게시한 영상과 게시물.",
-          "프로필 기록에는 스타일 요약, 마지막 훈련 날짜, 플랜(무료 또는 Pro)도 저장됩니다. 프로필 링크가 있으면 누구나 프로필을 열 수 있으며, 프로필 검색은 로그인한 사용자만 할 수 있습니다. 이 추가 항목은 비공개 기록으로 옮기는 중입니다.",
-          "이메일, 훈련 기록, 카메라 측정값은 다른 사용자에게 보이지 않습니다.",
+          "공개 프로필: 사용자 이름, 표시 이름, 프로필 사진, 소개, 스탠스, 체급, 랭크와 XP, 연속 기록, 파이터 스타일, 게시한 영상과 게시물.",
+          "프로필 기록에는 스타일 요약, 스킬 레벨, 아카데미 레슨 진행도(레슨별 최고 점수와 마지막 날짜), 주간 목표, 역할, 마지막 훈련 날짜, 플랜(무료 또는 Pro)도 저장됩니다. 프로필 링크가 있으면 누구나 프로필을 열 수 있으며, 프로필 검색은 로그인한 사용자만 할 수 있습니다. 이 추가 항목은 비공개 기록으로 옮기는 중입니다.",
+          "이메일과 각 라운드의 정보(점수, 펀치 수, 카메라 측정값)는 다른 사용자에게 보이지 않습니다.",
           "코치 팀 — 코치의 코드를 입력해 참여한 경우에만: 그 코치는 내 이름, 오늘과 이번 주 라운드 수, 마지막 점수, 점수 변화를 봅니다. 코치 페이지에서 언제든지 나갈 수 있으며, 나가면 아무것도 보이지 않습니다.",
           "당사는 개인정보를 판매하지 않습니다.",
         ],

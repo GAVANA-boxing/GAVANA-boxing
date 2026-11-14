@@ -60,13 +60,15 @@ export default function TrainingFocusCard({ fighterName, lesson, academyLesson, 
   const isAcademy = !!academyLesson;
 
   const sourceLabel = isAcademy ? "GAVANA ACADEMY" : fighterName;
-  // Academy lessons (lib/lessons/*) hold localized objects { mn, ko, en }; fighter lessons hold
-  // strings. tx() turns either into a string — rendering the raw object crashed the whole page.
+  // Lesson fields are localized objects { mn, ko, en } in the Academy (lib/lessons/*) and in most
+  // fighter-lesson fields (lib/fighterTechniques.js), plain strings in a few. tx() turns either
+  // into a string — rendering the raw object crashed the whole page.
   const title = tx(isAcademy ? academyLesson.title : lesson?.title, locale);
   const commonMistake = tx(isAcademy ? academyLesson.commonMistake : lesson?.commonMistake, locale);
   const drillSteps = ((isAcademy ? academyLesson.drill?.steps : lesson?.drillSteps) || []).map((s) => tx(s, locale)).filter(Boolean);
   const keyCues = isAcademy ? (academyLesson.keyCues || []).map((c) => tx(c, locale)).filter(Boolean) : [];
   const drillTitle = isAcademy ? tx(academyLesson.drill?.title, locale) : "";
+  const bodyCue = tx(lesson?.bodyCue, locale);
 
   return (
     <div style={{
@@ -132,9 +134,9 @@ export default function TrainingFocusCard({ fighterName, lesson, academyLesson, 
               </div>
             ))}
           </div>
-        ) : lesson?.bodyCue ? (
+        ) : bodyCue ? (
           <CueRow
-            label={L("feelThis")} color={PURPLE} italic text={lesson.bodyCue}
+            label={L("feelThis")} color={PURPLE} italic text={bodyCue}
             icon={
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={PURPLE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>

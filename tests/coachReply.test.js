@@ -63,3 +63,33 @@ describe("repairSavedMessages — what is already in localStorage", () => {
     expect(repairSavedMessages("not an array")).toEqual([]);
   });
 });
+
+describe("the variant follows the content (the model can break the schema)", () => {
+  it("cues tagged conversational → shown as a card, and the text is not empty", () => {
+    const s = normalizeStructured({ variant: "conversational", keyCues: ["Chin down", "Snap back"] });
+    expect(s.variant).toBe("full");
+    expect(structuredToText(s)).toContain("Chin down");
+  });
+  it("a title with the real answer in `message` → conversational, the answer is kept", () => {
+    const s = normalizeStructured({ variant: "short", title: "Stay consistent", message: "Train three times a week." });
+    expect(s.variant).toBe("conversational");
+    expect(structuredToText(s)).toBe("Train three times a week.");
+  });
+  it("a short card with a drill → full card (the short one shows only title and cues)", () => {
+    expect(normalizeStructured({ variant: "short", drill: "3x1 min jab" }).variant).toBe("full");
+    expect(normalizeStructured({ variant: "short", title: "Jab", keyCues: ["Snap"], commonMistake: "Dropping the hand" }).variant).toBe("full");
+  });
+  it("well-formed replies keep their variant", () => {
+    expect(normalizeStructured({ variant: "short", title: "Jab", keyCues: ["Snap"] }).variant).toBe("short");
+    expect(normalizeStructured({ variant: "full", title: "Jab", keyCues: ["Snap"], drill: "3x1" }).variant).toBe("full");
+    expect(normalizeStructured({ variant: "conversational", message: "Hi" }).variant).toBe("conversational");
+  });
+  it("no reply shape gives an empty text", () => {
+    const shapes = [
+      { variant: "conversational", keyCues: ["a"] }, { variant: "conversational", drill: "d" }, { variant: "short", nextAction: "n" },
+      { variant: "full", message: "m" }, { variant: "short", title: "t" }, { variant: "nope", commonMistake: "c" },
+    ];
+    for (const raw of shapes) expect(structuredToText(normalizeStructured(raw)).length).toBeGreaterThan(0);
+  });
+});
+

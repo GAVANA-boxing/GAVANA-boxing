@@ -45,7 +45,17 @@ Read-only audit (9 dimensions planned; 3 verified so far: rules-vs-client, crash
   from a profile it could not read and no longer leaves a retry button that can't succeed; an XP retry
   doesn't repeat the post-save writes (challenge attempt, notifications); hidden Discover no longer
   fails whole when signed out.
-- Tests: unit 501, rules 119, visual 74 (3 result baselines regenerated on purpose), CV 4.
+- **Second review (routing / coach / text) — 4 more, fixed:** the AI drill builder's fighter context
+  was prepended to the message and pushed the JSON instruction past the route's 800-character limit
+  (it only started happening once this batch made the session query work) — the context now travels in
+  `coachContext` (`lib/drillRequest.js`, tested against the limit); fighter-technique lessons still
+  crashed Train on `bodyCue` (all 30 lessons now in the render test, 153 cases); a coach reply whose
+  variant hid its content (cues tagged conversational, answer under a title) now shows it; privacy §5
+  lists bio, stance, weight class and the other fields the readable profile record really holds.
+- Tests: unit 600, rules 119, visual 74 (3 result baselines regenerated on purpose), CV 4.
+- Review coverage: rules / client writes reviewed and verified by a second reviewer; save flow and
+  routing / coach / text reviewed once and each finding checked by hand against the code; the follow-up
+  commits were NOT independently reviewed (reviewer runs hit the usage limit twice) — tests only.
 - NOT live until the rules deploy: the Firestore rule changes (same owner secret as before).
 
 ## Solo month, week 1: P0 privacy + Firebase deploy automation (owner: "чи ганцаараа хөгжүүл")
