@@ -33,7 +33,19 @@ Read-only audit (9 dimensions planned; 3 verified so far: rules-vs-client, crash
   drills query uses an existing index; `pvp_challenges` index; share-card profile link; back buttons fall
   back to a real page (`lib/nav.js`); tribe counts via `getCountFromServer`; privacy text §5 says what is
   really public.
-- Tests: unit 489, rules 111, visual 74 (3 result baselines regenerated on purpose), CV 4.
+- **Independent review of the batch (2 areas reviewed, 1 verified by a second reviewer) — 10 follow-ups,
+  all fixed:** a guest round the screen called "not enough data" was still kept for sign-up (the stash
+  effect ran before the pose summary reached state) — the gate now lives in `stashGuestSession` itself
+  and is tested through the real write path; `lastTrainingDate` is server-only (a client could back-date
+  it and keep / grow a streak); follower-notification ids `nf_{recipient}_{actor}` can only be created
+  by that actor (a third party could occupy the id and block the notification); `users` list also
+  refuses anonymous-provider guests; onboarding that has to create the profile adds the sign-up identity
+  fields (`lib/baseProfile.js`, inside a transaction); a repeated scoring call reports the XP already
+  stamped on the round (`sessionXpToReport`) instead of 0; the legacy client fallback never computes XP
+  from a profile it could not read and no longer leaves a retry button that can't succeed; an XP retry
+  doesn't repeat the post-save writes (challenge attempt, notifications); hidden Discover no longer
+  fails whole when signed out.
+- Tests: unit 501, rules 119, visual 74 (3 result baselines regenerated on purpose), CV 4.
 - NOT live until the rules deploy: the Firestore rule changes (same owner secret as before).
 
 ## Solo month, week 1: P0 privacy + Firebase deploy automation (owner: "чи ганцаараа хөгжүүл")

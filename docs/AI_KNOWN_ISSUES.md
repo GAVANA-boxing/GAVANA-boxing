@@ -17,6 +17,9 @@
   back to stored XP + streak (can show lower). Hidden features that read other people's rounds stop working
   when the rules are live: leaderboard (`useLeaderboardData`), reel author stats (`useReelFeed`) — both
   hidden in CORE_MODE; move them to `publicXp` before un-hiding.
+- Listing `users` needs a real account since 2026-11-12. Hidden screens that list profiles while signed
+  out degrade or stay empty: discover (reels still load, no coach row / no people in search), the coach
+  marketplace (`useCoachPageData`), reels CoachSection. Check each before un-hiding.
 - Funnel: retry_round counts a round after a result in the same browser visit (sessionStorage), so a
   retry the next day is a return (D1/D7), not a retry. D7 is from app_opened, not "first valid round".
 - Fighter dashboard (`/fighter-dashboard`, off by default): the orders, video-analysis and benchmark sections

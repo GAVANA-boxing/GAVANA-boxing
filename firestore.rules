@@ -36,12 +36,13 @@ service cloud.firestore {
 
     // ─── Users ──────────────────────────────────────────────────
     match /users/{userId} {
-      // Public profile: one profile can be opened by anyone with its link (get), but only
-      // signed-in users can LIST / query profiles — no anonymous bulk download of every user.
-      // Email lives in users_private/{uid}; a client may remove a legacy email
-      // field here but never write one.
+      // Public profile: one profile can be opened by anyone with its link (get). LIST / query
+      // needs a real account (not signed out, not an anonymous-provider guest). That is a speed
+      // bump, not a wall — anyone can make a free account — so this doc must hold NO private
+      // data. Email lives in users_private/{uid}; a client may remove a legacy email field here
+      // but never write one.
       allow get: if true;
-      allow list: if isAuth();
+      allow list: if isAuth() && request.auth.token.firebase.sign_in_provider != "anonymous";
       // Fields only trusted server code may set (Stripe webhook, /api/score/session, admin):
       // billing, roles and progression. Blocked on CREATE too — the client creates this doc at
       // signup, so without that a brand-new account could simply start as Pro with any XP.
@@ -65,6 +66,7 @@ service cloud.firestore {
           "lastChallengeDate",
           "totalChallengesCompleted",
           "dailyMissionCompleted",
+          "lastTrainingDate",
           "streakFreezes",
           "streakFreezeMonth",
           "sessionXpDay",
@@ -310,8 +312,12 @@ service cloud.firestore {
     // ─── Notifications ────────────────────────────────────────────
     match /notifications/{notifId} {
       allow read: if (isAuth() && resource.data.recipientId == request.auth.uid) || isRelatedReelOwner();
-      // actorId must match the caller to prevent impersonation spam.
-      allow create: if isAuth() && request.resource.data.actorId == request.auth.uid;
+      // actorId must match the caller to prevent impersonation spam. Ids starting with "nf_" are
+      // the one-per-pair follower notifications (nf_{recipient}_{actor}): only that actor may
+      // create that id, so nobody can occupy it first and block the real notification.
+      allow create: if isAuth() && request.resource.data.actorId == request.auth.uid
+        && (!notifId.matches('nf_.*')
+            || notifId == 'nf_' + request.resource.data.recipientId + '_' + request.auth.uid);
       allow update: if isAuth() && resource.data.recipientId == request.auth.uid;
       allow delete: if (isAuth() && resource.data.recipientId == request.auth.uid) || isRelatedReelOwner();
     }

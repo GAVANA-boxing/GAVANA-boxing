@@ -344,14 +344,17 @@ export default function TrainPage() {
   // their first real session when they sign up (GuestSessionClaimer saves it).
   useEffect(() => {
     // Gate on the count the result screen shows (the camera's punch count when there is one, the
-    // motion counter otherwise) — gating on the motion counter alone dropped valid guest rounds.
-    const punches = roundPunchCount(poseSessionSummary, result?.hitCount);
-    if (user || !result || punches < 5) return;
+    // motion counter otherwise). This effect runs before the one that puts the pose summary in
+    // state, so read the summary directly: with the state value the first pass saw "no pose
+    // data" and kept a round the screen then called "not enough data".
+    if (user || !result) return;
+    const pose = poseSessionSummary ?? computeSessionSummary();
+    if (roundPunchCount(pose, result.hitCount) < 5) return;
     import("@/lib/guestSession").then(({ stashGuestSession }) => {
       stashGuestSession({
         result,
         movementEvents,
-        poseMetrics: poseSessionSummary,
+        poseMetrics: pose,
         drillId,
         drillConfig,
         reelId,

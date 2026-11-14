@@ -20,11 +20,12 @@ export function useDiscoverSearch() {
     setSearchError(false);
     try {
       const [usersSnap, reelsSnap] = await Promise.all([
-        getDocs(query(collection(db, "users"), limit(400))),
+        // Signed out, profiles can't be listed (firestore.rules): search the reels only.
+        getDocs(query(collection(db, "users"), limit(400))).catch(() => ({ docs: [] })),
         getDocs(query(collection(db, "reels"), limit(400))),
       ]);
       const users = [];
-      usersSnap.forEach((doc) => {
+      usersSnap.docs.forEach((doc) => {
         const d = doc.data();
         if (
           String(d.username || "").toLowerCase().includes(term) ||

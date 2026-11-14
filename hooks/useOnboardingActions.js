@@ -1,10 +1,13 @@
 "use client";
 import { useState } from "react";
-import { addDoc, collection, doc, getDocs, limit, query, serverTimestamp, setDoc } from "firebase/firestore";
+import { addDoc, collection, doc, getDocs, limit, query, runTransaction, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { snapToDocs } from "@/lib/firestore";
 import { funnel, FUNNEL } from "@/lib/funnel";
 import { CORE_MODE, showRoute } from "@/lib/coreRoutes";
+import { missingProfileBase } from "@/lib/baseProfile";
+import { getStoredRef } from "@/lib/referral";
+import { savePrivateEmail } from "@/lib/privateProfile";
 
 export function useOnboardingActions({ user, locale, router }) {
   // showIntro: value-prop screen shown before profile-building steps
@@ -38,10 +41,26 @@ export function useOnboardingActions({ user, locale, router }) {
   // users/{uid} was never created (sign-up interrupted) — updateDoc failed silently there and the
   // account was bounced between /onboarding and every other page forever. Capped at 5 s so a
   // dead connection can't freeze the step (the write stays queued and syncs later).
-  const saveUser = (data) => Promise.race([
-    setDoc(doc(db, "users", user.uid), data, { merge: true }),
-    new Promise((resolve) => setTimeout(resolve, 5000)),
-  ]);
+  //
+  // When there is no profile at all, the first write also adds the identity fields a sign-up
+  // writes (username, name, photo) — otherwise the account would exist with onboarding answers
+  // only and show as "user_ab12cd34" forever. Decided inside a transaction (a server read of the
+  // document), never from the cached profile, which is also empty while loading or offline.
+  const saveUser = (data) => {
+    const ref = doc(db, "users", user.uid);
+    const write = runTransaction(db, async (tx) => {
+      const snap = await tx.get(ref);
+      const created = !snap.exists();
+      const base = created
+        ? missingProfileBase({ uid: user.uid, email: user.email, displayName: user.displayName, photoURL: user.photoURL, referredBy: getStoredRef() })
+        : {};
+      tx.set(ref, { ...base, ...data }, { merge: true });
+      return created;
+    }).then((created) => {
+      if (created) savePrivateEmail(user.uid, user.email).catch(() => {});
+    }, () => setDoc(ref, data, { merge: true })); // offline / contention: the plain merge queues and syncs later
+    return Promise.race([write, new Promise((resolve) => setTimeout(resolve, 5000))]);
+  };
 
   const handleIntroNext = async (interest) => {
     setPrimaryInterest(interest);

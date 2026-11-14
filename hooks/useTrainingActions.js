@@ -265,6 +265,8 @@ export function useTrainingActions({
       // ── 1. The round itself: written once. A retry reuses the saved document. ──
       let sessionId;
       let attemptNumber;
+      // A retry (XP re-ask) must not repeat what the first save already did after the write.
+      const firstSave = !savedSessionRef.current;
       if (savedSessionRef.current) {
         ({ id: sessionId, attemptNumber } = savedSessionRef.current);
       } else {
@@ -298,9 +300,11 @@ export function useTrainingActions({
       const yesterdayKey = getPreviousLocalDateKey();
       const userRef = doc(db, "users", user.uid);
       let userData = {};
+      let userLoaded = false;
       try {
         const userSnap = await getDoc(userRef);
         userData = userSnap.exists() ? userSnap.data() : {};
+        userLoaded = true;
       } catch { /* the server reads its own copy */ }
       const alreadyCompleted = userData.dailyMissionCompleted === todayKey;
 
@@ -338,8 +342,12 @@ export function useTrainingActions({
       } else if (srv.code === "not_configured") {
         // Server scoring isn't set up (no service account): the legacy client write. Once the
         // rules that make XP server-only are deployed this write is refused — then the round is
-        // simply saved with its XP pending, not "failed".
+        // simply saved, not "failed". Nothing to retry here: asking again gives the same answer.
+        setXpPending(false);
         try {
+          // Never compute XP / streak from a profile that could not be read: it would write
+          // first-day values over the real ones.
+          if (!userLoaded) throw new Error("user doc not read");
           if (!alreadyCompleted) {
         const MISSION_XP = 50;
             const lastDate = String(userData.lastTrainingDate || "");
@@ -399,9 +407,7 @@ export function useTrainingActions({
           } else {
             await setDoc(userRef, { lastTrainingDate: todayKey }, { merge: true });
           }
-        } catch {
-          if (live()) setXpPending(true);
-        }
+        } catch { /* the round is saved; XP stays with the server */ }
       } else {
         setXpPending(true);
       }
@@ -409,6 +415,7 @@ export function useTrainingActions({
 
       setSaved(true);
       setSavedAttemptNumber(attemptNumber);
+      if (!firstSave) return; // everything below ran with the first save
 
       // Fighter DNA + Combat Progress — compute from prior sessions + this result and save to user doc
       try {

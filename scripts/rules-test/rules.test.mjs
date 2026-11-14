@@ -43,10 +43,18 @@ await t("signup: create with xp blocked", assertFails(setDoc(doc(carol, "users/c
 await t("signup: create with publicXp / streak blocked", assertFails(setDoc(doc(carol, "users/carol"), { ...signup, publicXp: 1000000, dailyStreak: 999 })));
 await t("signup: create with isCoach blocked", assertFails(setDoc(doc(carol, "users/carol"), { ...signup, isCoach: true })));
 await t("signup: the app's own signup doc ok", assertSucceeds(setDoc(doc(carol, "users/carol"), signup)));
-await t("signup: first write by merge (DNA snapshot) ok", assertSucceeds(setDoc(doc(env.authenticatedContext("dave").firestore(), "users/dave"), { fighterDNA: { archetypeKey: "counter" }, lastTrainingDate: "2026-11-13" }, { merge: true })));
+await t("signup: first write by merge (DNA snapshot) ok", assertSucceeds(setDoc(doc(env.authenticatedContext("dave").firestore(), "users/dave"), { fighterDNA: { archetypeKey: "counter" } }, { merge: true })));
+// the server derives the streak from lastTrainingDate — a client must not be able to back-date it
+await t("users: lastTrainingDate blocked (streak can't be forged)", assertFails(setDoc(doc(alice, "users/alice"), { lastTrainingDate: "2026-11-12" }, { merge: true })));
+await t("signup: create with lastTrainingDate blocked", assertFails(setDoc(doc(env.authenticatedContext("frank").firestore(), "users/frank"), { ...signup, lastTrainingDate: "2026-11-12" })));
 await t("users: anyone can open one profile", assertSucceeds(getDoc(doc(anon, "users/alice"))));
 await t("users: anonymous list / query blocked", assertFails(getDocs(collection(anon, "users"))));
 await t("users: anonymous filtered query blocked", assertFails(getDocs(query(collection(anon, "users"), where("isCoach", "==", true)))));
+{
+  const guest = env.authenticatedContext("guest1", { firebase: { sign_in_provider: "anonymous" } }).firestore();
+  await t("users: anonymous-provider guest can't list", assertFails(getDocs(collection(guest, "users"))));
+  await t("users: anonymous-provider guest can still open one profile", assertSucceeds(getDoc(doc(guest, "users/alice"))));
+}
 await t("users: signed-in query ok", assertSucceeds(getDocs(query(collection(alice, "users"), where("fighterDNA.archetypeKey", "==", "counter")))));
 // P0 privacy: rounds and training profiles are owner-only; publicXp is server-only
 await env.withSecurityRulesDisabled(async (c) => {
@@ -119,8 +127,14 @@ await t("notif: follower notification created by the actor", assertSucceeds(setD
 await t("notif: repeat follow can't rewrite it", assertFails(setDoc(nf, { ...follow, read: false, text: "again" })));
 await t("notif: can't be forged in someone else's name", assertFails(setDoc(doc(bob, "notifications/nf_alice_carol"), { ...follow, actorId: "carol" })));
 await t("notif: recipient reads it", assertSucceeds(getDoc(doc(alice, "notifications/nf_alice_bob"))));
+// a third party can't occupy someone else's follower-notification id (it would block the real one)
+await t("notif: can't squat another pair's id", assertFails(setDoc(doc(bob, "notifications/nf_alice_carol"), { recipientId: "x", actorId: "bob", type: "new_follower", read: false })));
+await t("notif: can't squat with a wrong recipient", assertFails(setDoc(doc(bob, "notifications/nf_carol_bob"), { recipientId: "alice", actorId: "bob", type: "new_follower", read: false })));
+await t("notif: ordinary auto-id notification still ok", assertSucceeds(setDoc(doc(bob, "notifications/abc123XYZ"), { recipientId: "alice", actorId: "bob", type: "like", read: false })));
 // onboarding: the first profile write by merge works even when users/{uid} was never created
 await t("onboarding: merge on a missing profile ok", assertSucceeds(setDoc(doc(env.authenticatedContext("erin").firestore(), "users/erin"), { onboardingComplete: true, onboarding: { completed: true }, role: "fighter" }, { merge: true })));
+// …and when onboarding has to create the profile it adds the sign-up identity fields (lib/baseProfile.js)
+await t("onboarding: creating a missing profile with identity fields ok", assertSucceeds(setDoc(doc(env.authenticatedContext("gina").firestore(), "users/gina"), { username: "gina", bio: "", referredBy: null, createdAt: "2026-11-14T08:00:00.000Z", displayName: "Gina", photoURL: "https://p/x.jpg", profileImageUrl: "https://p/x.jpg", role: "fighter", stance: "orthodox" }, { merge: true })));
 // coach teams — server only (invite code is the consent; coaches see summaries via the API)
 await env.withSecurityRulesDisabled(async (c) => {
   const db = c.firestore();
