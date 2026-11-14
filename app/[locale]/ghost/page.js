@@ -7,6 +7,7 @@ import { getLocale } from "@/lib/i18n";
 import { loc } from "@/lib/loc";
 import { cameraPermissionHelp } from "@/lib/cameraHelp";
 import { usePoseDetection } from "@/hooks/usePoseDetection";
+import { useLatest } from "@/hooks/useLatest";
 import { buildJabCrossReference } from "@/lib/ghost/reference";
 import { analyzeGhostRound } from "@/lib/ghost/analyze";
 import { funnel } from "@/lib/funnel";
@@ -60,6 +61,9 @@ export default function GhostRoundPage() {
     streamRef.current = null;
   }, []);
   useEffect(() => stopCamera, [stopCamera]);
+  // The round loop reads these through refs: their identity changes when the pose model
+  // finishes loading, and a loop that closed over the old ones never saw "ready".
+  const debug = useLatest(getDebugInfo);
 
   // Camera is requested inside the user's tap (best for iOS permissions/audio).
   const startRound = async () => {
@@ -85,13 +89,16 @@ export default function GhostRoundPage() {
     }
   }, [phase]);
 
-  // 3-2-1
+  // 3-2-1 — only once the pose model is ready (a round started earlier records nothing). If the
+  // model can't load, go back and say so.
   useEffect(() => {
     if (phase !== "countdown") return;
-    if (count <= 0) { setSecondsLeft(ROUND_SECONDS); setPunches(0); setPhase("round"); return; }
+    if (poseStatus === "failed") { stopCamera(); setPhase("watch"); setCamError("PoseFailed"); return; }
+    if (poseStatus !== "ready") return;
+    if (count <= 0) { setSecondsLeft(ROUND_SECONDS); setPunches(0); setCue(null); setPhase("round"); return; }
     const id = setTimeout(() => setCount((c) => c - 1), 800);
     return () => clearTimeout(id);
-  }, [phase, count]);
+  }, [phase, count, poseStatus, stopCamera]);
 
   const finish = useCallback(() => {
     const replay = getMotionReplay();
@@ -101,6 +108,7 @@ export default function GhostRoundPage() {
     stopCamera();
     funnel("ghost_round_completed", { locale, meta: analysis.tip, score: analysis.match / 10 });
   }, [getMotionReplay, ghost, stance, stopCamera, locale]);
+  const finishRef = useLatest(finish);
 
   // Round clock + live punch count + framing cue
   useEffect(() => {
@@ -110,17 +118,16 @@ export default function GhostRoundPage() {
     const id = setInterval(() => {
       const left = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
       setSecondsLeft(left);
-      const info = getDebugInfo();
+      const info = debug.current();
       setPunches(info.punchCount || 0);
-      if (info.status === "ready" && !info.landmarksDetected) {
+      if (!info.landmarksDetected) {
         misses += 1;
-        setCue(misses >= 6 ? L("Ухарч зогс — биеийг чинь харахгүй байна", "뒤로 물러서세요 — 몸이 보이지 않아요", "Step back — we can't see you") : null);
+        setCue(misses >= 6 ? "lost" : null);
       } else { misses = 0; setCue(null); }
-      if (left <= 0) { clearInterval(id); finish(); }
+      if (left <= 0) { clearInterval(id); finishRef.current(); }
     }, 400);
     return () => clearInterval(id);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase]);
+  }, [phase, debug, finishRef]);
 
   const exit = () => { stopCamera(); router.push(`/${locale}/train`); };
 
@@ -136,7 +143,7 @@ export default function GhostRoundPage() {
           subtitle={
             <>
               {L(
-                "Ажигла: jab-ийн үед хойд гар эрүүндээ, cross-д мөр урагшаа эргэнэ",
+                "Ажигла: жэбийн үед хойд гар эрүүндээ, кросст мөр урагшаа эргэнэ",
                 "보세요: 잽 때 뒷손은 턱에, 크로스 때 어깨가 앞으로 회전",
                 "Watch: rear hand stays on the chin during the jab; shoulders turn on the cross",
               )}
@@ -149,7 +156,9 @@ export default function GhostRoundPage() {
         />
         {camError && (
           <div role="alert" style={{ position: "fixed", left: 16, right: 16, bottom: 110, zIndex: 1300, padding: 12, borderRadius: RADIUS.md, background: `linear-gradient(${redAlpha(0.18)}, ${redAlpha(0.18)}), #141012`, border: `1px solid ${redAlpha(0.5)}`, boxShadow: `0 10px 30px ${blackAlpha(0.5)}`, color: "#fff", fontSize: FONT_SIZE.sm, lineHeight: 1.45 }}>
-            {camError === "NotAllowedError" || camError === "SecurityError"
+            {camError === "PoseFailed"
+              ? L("Хөдөлгөөн таних AI ачаалагдсангүй. Интернэтээ шалгаад дахин эхлүүлнэ үү.", "동작 인식 AI를 불러오지 못했어요. 인터넷을 확인하고 다시 시작하세요.", "The motion AI didn't load. Check your connection and start again.")
+              : camError === "NotAllowedError" || camError === "SecurityError"
               ? cameraPermissionHelp(typeof navigator !== "undefined" ? navigator.userAgent : "", locale, L("Дагаж хий", "따라 하기", "Copy it"))
               : L("Камер олдсонгүй эсвэл өөр апп ашиглаж байна. Хаагаад дахин оролдоно уу.", "카메라를 찾을 수 없거나 다른 앱이 사용 중입니다. 닫고 다시 시도하세요.", "No camera found, or another app is using it. Close it and try again.")}
           </div>
@@ -163,10 +172,15 @@ export default function GhostRoundPage() {
     return (
       <main style={{ position: "fixed", inset: 0, background: "#000", color: "#fff" }}>
         <video ref={videoRef} playsInline muted autoPlay style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", transform: "scaleX(-1)" }} />
-        <div style={{ position: "absolute", top: "calc(12px + env(safe-area-inset-top))", left: 12, right: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ padding: "6px 12px", borderRadius: RADIUS.full, background: blackAlpha(0.6), fontWeight: FONT_WEIGHT.black, fontSize: FONT_SIZE.md, fontVariantNumeric: "tabular-nums" }}>
+        <div style={{ position: "absolute", top: "calc(12px + env(safe-area-inset-top))", left: 12, right: 12, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+          <span data-testid="ghost-clock" style={{ padding: "6px 12px", borderRadius: RADIUS.full, background: blackAlpha(0.6), fontWeight: FONT_WEIGHT.black, fontSize: FONT_SIZE.md, fontVariantNumeric: "tabular-nums" }}>
             {phase === "round" ? `0:${String(secondsLeft).padStart(2, "0")}` : "—"}
           </span>
+          {phase === "round" && (
+            <button type="button" data-testid="ghost-finish" onClick={finish} style={{ minHeight: 44, padding: "6px 16px", borderRadius: RADIUS.full, border: `1px solid ${whiteAlpha(0.3)}`, background: blackAlpha(0.5), color: "#fff", fontSize: FONT_SIZE.sm, cursor: "pointer", fontFamily: "inherit" }}>
+              {L("Дуусгах", "종료", "Finish")}
+            </button>
+          )}
           <span style={{ padding: "6px 12px", borderRadius: RADIUS.full, background: blackAlpha(0.6), fontWeight: FONT_WEIGHT.bold, fontSize: FONT_SIZE.sm }}>
             👊 {punches}
           </span>
@@ -174,29 +188,33 @@ export default function GhostRoundPage() {
         {/* Ghost in the corner — copy it */}
         <div style={{ position: "absolute", right: 10, bottom: "calc(20px + env(safe-area-inset-bottom))", padding: 6, borderRadius: RADIUS.md, background: blackAlpha(0.45), border: "1px solid rgba(103,232,249,0.35)" }}>
           <GhostCanvas2D replay={ghost} size={120} />
-          <div style={{ textAlign: "center", fontSize: 11, fontWeight: FONT_WEIGHT.black, color: "#67e8f9", letterSpacing: 1 }}>GHOST</div>
+          <div style={{ textAlign: "center", fontSize: 11, fontWeight: FONT_WEIGHT.black, color: "#67e8f9", letterSpacing: 1 }}>{L("СҮҮДЭР", "고스트", "GHOST")}</div>
         </div>
         {phase === "countdown" && (
           <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", background: blackAlpha(0.35) }}>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 96, fontWeight: FONT_WEIGHT.ultra, lineHeight: 1 }}>{count > 0 ? count : "GO"}</div>
-              <div style={{ marginTop: 10, fontSize: FONT_SIZE.base, color: whiteAlpha(0.8) }}>
+            <div style={{ textAlign: "center", padding: 16 }}>
+              {poseStatus === "ready" ? (
+                <div style={{ fontSize: 96, fontWeight: FONT_WEIGHT.ultra, lineHeight: 1 }}>{count > 0 ? count : L("ЭХЭЛ", "시작", "GO")}</div>
+              ) : (
+                <div data-testid="ghost-loading" aria-hidden="true" style={{ width: 56, height: 56, margin: "0 auto", borderRadius: "50%", border: `4px solid ${whiteAlpha(0.2)}`, borderTopColor: "#fff", animation: "spin 0.8s linear infinite" }} />
+              )}
+              <div role="status" style={{ marginTop: 14, fontSize: FONT_SIZE.base, color: whiteAlpha(0.8) }}>
                 {poseStatus === "ready"
                   ? L("1.5–2 метр ухарч, бүх биеэ харуул", "1.5–2m 뒤로, 전신이 보이게", "Step back 1.5–2 m, full body in view")
                   : L("AI ачаалж байна…", "AI 로딩 중…", "Loading AI…")}
               </div>
+              {poseStatus !== "ready" && (
+                <button type="button" onClick={() => { stopCamera(); setPhase("watch"); }} style={{ marginTop: 18, minHeight: 44, padding: "0 18px", borderRadius: RADIUS.full, border: `1px solid ${whiteAlpha(0.3)}`, background: blackAlpha(0.5), color: "#fff", fontSize: FONT_SIZE.sm, cursor: "pointer", fontFamily: "inherit" }}>
+                  {L("Болих", "취소", "Cancel")}
+                </button>
+              )}
             </div>
           </div>
         )}
         {cue && phase === "round" && (
           <div role="status" style={{ position: "absolute", left: 16, right: 150, bottom: "calc(30px + env(safe-area-inset-bottom))", padding: "10px 12px", borderRadius: RADIUS.md, background: redAlpha(0.85), fontWeight: FONT_WEIGHT.bold, fontSize: FONT_SIZE.sm }}>
-            {cue}
+            {L("Ухарч зогс — биеийг чинь харахгүй байна", "뒤로 물러서세요 — 몸이 보이지 않아요", "Step back — we can't see you")}
           </div>
-        )}
-        {phase === "round" && (
-          <button type="button" onClick={finish} style={{ position: "absolute", left: 16, top: "calc(60px + env(safe-area-inset-top))", padding: "6px 12px", borderRadius: RADIUS.full, border: `1px solid ${whiteAlpha(0.3)}`, background: blackAlpha(0.5), color: "#fff", fontSize: FONT_SIZE.sm, cursor: "pointer" }}>
-            {L("Дуусгах", "종료", "Finish")}
-          </button>
         )}
       </main>
     );
@@ -205,19 +223,17 @@ export default function GhostRoundPage() {
   // ── RESULT ────────────────────────────────────────────────────────────
   const a = result?.analysis;
   const noData = !result?.replay;
-  const fmt = (x, d = 1) => (x == null ? "—" : Number(x).toFixed(d));
   const pct = (x) => (x == null ? "—" : `${Math.round(x * 100)}%`);
   const rows = a ? [
-    [L("Jab–cross комбо", "잽–크로스 콤보", "Jab–cross combos"), a.you.combos, a.ref.combos],
-    [L("Jab үед хойд гар дээр", "잽 때 뒷손 가드", "Rear hand up on jab"), pct(a.you.rearGuardOnJab), pct(a.ref.rearGuardOnJab)],
-    [L("Cross-ийн мөрний эргэлт", "크로스 어깨 회전", "Cross shoulder turn"), a.you.crossRotation == null ? "—" : `${Math.round(a.you.crossRotation)}°`, `${Math.round(a.ref.crossRotation)}°`],
-    [L("Jab сунгалт", "잽 리치", "Jab reach"), fmt(a.you.jabReach), fmt(a.ref.jabReach)],
-    [L("Cross сунгалт", "크로스 리치", "Cross reach"), fmt(a.you.crossReach), fmt(a.ref.crossReach)],
+    // Two rows a fighter can act on. (The combo count over 30 s against the ghost's fixed 3,
+    // and reach as a bare number in shoulder-widths, meant nothing on screen.)
+    [L("Жэбийн үед хойд гар дээр", "잽 때 뒷손 가드", "Rear hand up on jab"), pct(a.you.rearGuardOnJab), pct(a.ref.rearGuardOnJab)],
+    [L("Кроссын мөрний эргэлт", "크로스 어깨 회전", "Cross shoulder turn"), a.you.crossRotation == null ? "—" : `${Math.round(a.you.crossRotation)}°`, `${Math.round(a.ref.crossRotation)}°`],
   ] : [];
 
   return (
     <main style={{ minHeight: "100dvh", background: pageBackground, color: "#fff", padding: "calc(20px + env(safe-area-inset-top)) 16px 32px" }}>
-      <div style={{ maxWidth: 520, margin: "0 auto", display: "flex", flexDirection: "column", gap: 14 }}>
+      <div data-testid="ghost-result" style={{ maxWidth: 520, margin: "0 auto", display: "flex", flexDirection: "column", gap: 14 }}>
         <p style={{ ...kickerPill, alignSelf: "flex-start" }}><span style={kickerDot} />{L("Сүүдэр раунд · Жэб–Кросс", "고스트 라운드 · 잽–크로스", "Ghost Round · Jab–Cross")}</p>
 
         {noData ? (
@@ -244,7 +260,7 @@ export default function GhostRoundPage() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 64px 64px", padding: "10px 14px", fontSize: 12.5, fontWeight: 600, color: whiteAlpha(0.5), background: whiteAlpha(0.03) }}>
                 <span />
                 <span style={{ textAlign: "right" }}>{L("Чи", "나", "You")}</span>
-                <span style={{ textAlign: "right", color: "#67e8f9" }}>Ghost</span>
+                <span style={{ textAlign: "right", color: "#67e8f9" }}>{L("Сүүдэр", "고스트", "Ghost")}</span>
               </div>
               {rows.map(([label, you, ref]) => (
                 <div key={label} style={{ display: "grid", gridTemplateColumns: "1fr 64px 64px", padding: "11px 14px", borderTop: `1px solid ${whiteAlpha(0.06)}`, fontSize: 14 }}>
@@ -256,7 +272,7 @@ export default function GhostRoundPage() {
             </div>
 
             <button type="button" onClick={() => setCompareOpen(true)} style={{ ...btnSecondary, border: "1px solid rgba(103,232,249,0.45)", background: "rgba(103,232,249,0.1)", color: "#67e8f9", fontFamily: "inherit" }}>
-              🧊 {L("3D-ээр Ghost-той харьцуулах", "3D로 고스트와 비교", "Compare with the ghost in 3D")}
+              🧊 {L("Сүүдэртэй 3D-ээр харьцуулах", "3D로 고스트와 비교", "Compare with the ghost in 3D")}
             </button>
           </>
         )}

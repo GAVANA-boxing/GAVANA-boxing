@@ -120,6 +120,10 @@ export function usePoseDetection({ videoRef, isActive, stance = "orthodox", load
   useEffect(() => {
     if (!load || landmarkerRef.current) return undefined;
     let cancelled = false;
+    // A new attempt after a failed one (pages that load on demand turn `load` off and on again):
+    // show "loading" again instead of the old failure.
+    setPoseStatus((s) => (s === "failed" ? "loading" : s));
+    setPoseError(null);
 
     loadPoseLandmarker()
       .then((landmarker) => {

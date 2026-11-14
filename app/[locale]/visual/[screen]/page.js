@@ -117,7 +117,7 @@ export default function VisualFixture() {
     ]);
     return (
       <main style={{ minHeight: "100dvh", background: pageBackground, color: "#fff", padding: "20px 16px 32px" }}>
-        <MittResult summary={summary} locale={locale} onAgain={() => {}} onExit={() => {}} />
+        <MittResult summary={summary} best={{ best: { accuracy: summary.accuracy, avgReactionMs: summary.avgReactionMs }, isNew: true }} locale={locale} onAgain={() => {}} onExit={() => {}} />
       </main>
     );
   }

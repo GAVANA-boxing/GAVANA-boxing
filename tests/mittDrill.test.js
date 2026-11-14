@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildSchedule, judgeRound, summarizeRound, callAt, handsFor, rng, LEVELS, CALLS } from "@/lib/mittDrill";
+import { buildSchedule, judgeRound, summarizeRound, callAt, handsFor, rng, nextMittBest, MITT_BEST_MIN_CALLS, LEVELS, CALLS } from "@/lib/mittDrill";
 
 describe("buildSchedule", () => {
   it("is the same for the same seed and different for another", () => {
@@ -117,3 +117,31 @@ describe("callAt", () => {
     Object.values(LEVELS).forEach((l) => l.calls.forEach((c) => expect(CALLS[c]).toBeTruthy()));
   });
 });
+
+describe("nextMittBest — personal best per level", () => {
+  const round = (accuracy, avgReactionMs, total = 12) => ({ total, hits: Math.round(accuracy * total), accuracy, avgReactionMs });
+  it("the first full round sets the record", () => {
+    expect(nextMittBest(null, round(0.5, 620))).toEqual({ best: { accuracy: 0.5, avgReactionMs: 620 }, isNew: true });
+  });
+  it("a more accurate round beats it; a less accurate one does not", () => {
+    const prev = { accuracy: 0.75, avgReactionMs: 600 };
+    expect(nextMittBest(prev, round(0.83, 700)).isNew).toBe(true);
+    expect(nextMittBest(prev, round(0.5, 300))).toEqual({ best: prev, isNew: false });
+  });
+  it("same accuracy: the faster reaction wins", () => {
+    const prev = { accuracy: 0.75, avgReactionMs: 600 };
+    expect(nextMittBest(prev, round(0.75, 540)).best.avgReactionMs).toBe(540);
+    expect(nextMittBest(prev, round(0.75, 640)).isNew).toBe(false);
+    expect(nextMittBest(prev, round(0.75, null)).isNew).toBe(false);
+  });
+  it("a round finished early, or with no hit at all, never sets a record", () => {
+    expect(nextMittBest(null, round(1, 300, MITT_BEST_MIN_CALLS - 1))).toEqual({ best: null, isNew: false });
+    expect(nextMittBest(null, { total: 12, hits: 0, accuracy: 0, avgReactionMs: null })).toEqual({ best: null, isNew: false });
+    expect(nextMittBest(null, null)).toEqual({ best: null, isNew: false });
+  });
+  it("junk in storage is ignored", () => {
+    expect(nextMittBest({ accuracy: "x" }, round(0.4, 800)).isNew).toBe(true);
+    expect(nextMittBest("oops", round(0.4, 800)).isNew).toBe(true);
+  });
+});
+

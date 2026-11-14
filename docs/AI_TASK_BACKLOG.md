@@ -2,6 +2,45 @@
 
 Status: TODO · BLOCKED (needs approval) · DONE. Highest priority first.
 
+## HIDDEN FEATURES — owner 2026-11-14: "bring out what is useful, make it work, simple and beautiful"
+Map of every hidden / unlinked area (5 readers, one each, claims re-checked when implemented). Order =
+value for ONE user ÷ risk. Rules for all of it: one main action per screen, little text, progress at a
+glance, nothing invented, no real boxers' names.
+1. (DONE) Mitt drill / Ghost round / Heavy bag: cold start, model-load failure, honest results, mitt
+   personal best.
+2. Academy (the 10 lessons on the Coach tab are the real Academy; `/programs` is a different, empty
+   feature): pre-round card = title + 3 cues (rest behind "more"); MN / KO labels; "round done" instead of
+   "COMPLETE" for skills the round score doesn't measure; no progress on too-few-punches rounds; order
+   by difficulty; one card on the start screen when a lesson is active; "next lesson, N of 10" on Train
+   (replaces the beginner card, whose progress was derived from the round count) and on Home.
+3. The 30 technique drills (`lib/fighterTechniques.js`) → style packs named by technique, not by boxer:
+   stable ids, MN / KO titles, listed under the Academy, attempts recorded in `users.academyProgress`.
+   `TechniqueQuickAsk` on Coach: no boxer names, tap opens the drill (free) instead of auto-sending a
+   paid AI message.
+4. Variety that counts: the five unlinked preset drills in `lib/drillConfig.js` (shadowboxing,
+   jab-rhythm, pressure-drill, defense-slips, footwork) as chips on Train — they run through the normal
+   scored, saved round (XP, History, streak). AI drill builder: "ali" matched inside "valid" (Ali context
+   in every request), quota reply shown as a format error, model JSON rendered unchecked, "Do it now" →
+   a preset drill. AI weekly plan: blank plan on a quota / AI error, wall of text — unlink from Coach
+   until it is a short tracked plan.
+5. Notifications: the bell leads to a page nothing writes to for a solo user — server-written own-
+   progress events (rank up, new best, streak, coach assignment) or remove the bell. (RED: server writes.)
+6. Fighter share card: MN / KO strings, share link that works signed out. World Tour: one-line caption,
+   neutral arena names.
+7. Close rules that are open while the features are hidden (the Firestore API is reachable without the
+   UI) — RED, emulator tests first: any signed-in user can set `coachRating` / `coachTotalReviews` on any
+   user; `challenge_results` / `pvp_*` accept any score; reel counters accept any value and `reels`
+   create doesn't check `userId`; any member can rewrite a conversation; `training_programs` create by
+   anyone.
+Stay hidden (no value alone, invented content, or moderation / safety exposure): feed, reels, discover,
+explore, upload, story, creator, ai-analysis, inbox / DMs, leaderboard, challenges board, PvP, sparring,
+events, gyms, human-coach marketplace / apply / dashboard, fighters library pages, `/programs`. Later, if
+the owner wants a social layer: an XP board from `users.publicXp` (all-time only) or a team board inside
+the coach team; "beat my score" share link from a benchmark; coach → student note inside the team.
+Deletion candidates (owner's call — nothing is deleted without it): `/reels` (duplicate of `/feed`),
+explore, story, ai-analysis, `/api/rank-notify`, coach marketplace + apply + dashboard, gym dashboard,
+onboarding role / gym step, sparring intelligence card.
+
 ## CORE LOOP FIRST — from the owner's research (docs/research/2026-11-08-research-digest.md)
 Shop / QPay (platform v2 step 3) is PAUSED until these are measured.
 1. Real phone, start to end: no signup → valid round → result → another round (owner, on device).

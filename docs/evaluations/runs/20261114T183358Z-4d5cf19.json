@@ -1,0 +1,313 @@
+{
+  "id": "20261114T183358Z-4d5cf19",
+  "key": "5e504175",
+  "task": "Hidden features 1: mitts / ghost / bag cold start, model-load failure, honest results, mitt personal best",
+  "branch": "claude/review-refactor-code-DUmiX",
+  "commit": "4d5cf19",
+  "base": "@{upstream}",
+  "dirty": true,
+  "startedAt": "2026-11-14T18:33:58.708Z",
+  "finishedAt": "2026-11-14T18:38:43.967Z",
+  "durationS": 285,
+  "cost": {
+    "paidApiCalls": 0,
+    "note": "checks run locally; no paid APIs"
+  },
+  "change": {
+    "level": "YELLOW",
+    "files": [
+      {
+        "path": "app/[locale]/bag/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/ghost/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/mitts/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "app/[locale]/visual/[screen]/page.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "components/mitts/MittResult.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "docs/AI_CHANGELOG.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "docs/AI_KNOWN_ISSUES.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "docs/AI_TASK_BACKLOG.md",
+        "level": "GREEN",
+        "why": "docs"
+      },
+      {
+        "path": "hooks/usePoseDetection.js",
+        "level": "YELLOW",
+        "why": "hooks with data access"
+      },
+      {
+        "path": "lib/mittDrill.js",
+        "level": "GREEN",
+        "why": "UI / pure code"
+      },
+      {
+        "path": "tests/mittDrill.test.js",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/bag-ko-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/bag-mn-360.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/bag-mn-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/mitts-ko-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/mitts-mn-360.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/mitts-mn-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/mitts-result-ko-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/mitts-result-mn-360.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "tests/visual/__screenshots__/mitts-result-mn-390.png",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      },
+      {
+        "path": "hooks/useLatest.js",
+        "level": "YELLOW",
+        "why": "hooks with data access"
+      },
+      {
+        "path": "tests/cv/modes.spec.mjs",
+        "level": "GREEN",
+        "why": "tests / evaluation"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "name": "lint",
+      "ms": 37782,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0,
+        "warnings": 23
+      }
+    },
+    {
+      "name": "typecheck",
+      "ms": 1899,
+      "status": "PASS",
+      "metrics": {
+        "errors": 0
+      }
+    },
+    {
+      "name": "unit",
+      "ms": 5371,
+      "status": "PASS",
+      "metrics": {
+        "passed": 613,
+        "failed": 0
+      }
+    },
+    {
+      "name": "build",
+      "ms": 5814,
+      "status": "PASS",
+      "metrics": {}
+    },
+    {
+      "name": "bundle",
+      "status": "PASS",
+      "metrics": {
+        "kb": 6375
+      }
+    },
+    {
+      "name": "punch",
+      "ms": 59,
+      "status": "PASS",
+      "metrics": {
+        "macroF1": 0.904,
+        "recall": 0.897,
+        "precision": 1,
+        "phantoms": 0
+      }
+    },
+    {
+      "name": "visual",
+      "ms": 234322,
+      "status": "PASS",
+      "metrics": {
+        "passed": 74,
+        "failed": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "name": "rules",
+      "status": "NOT RUN",
+      "note": "pass --rules to run"
+    }
+  ],
+  "comparison": [
+    {
+      "metric": "lint.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "lint.warnings",
+      "baseline": 23,
+      "value": 23,
+      "limit": "≤ 23",
+      "status": "PASS"
+    },
+    {
+      "metric": "typecheck.errors",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "unit.passed",
+      "baseline": 241,
+      "value": 613,
+      "limit": "≥ 241",
+      "status": "PASS"
+    },
+    {
+      "metric": "bundle.kb",
+      "baseline": 6598,
+      "value": 6375,
+      "limit": "≤ 6928",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.macroF1",
+      "baseline": 0.904,
+      "value": 0.904,
+      "limit": "≥ 0.9035000000000001",
+      "status": "PASS"
+    },
+    {
+      "metric": "punch.phantoms",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.failed",
+      "baseline": 0,
+      "value": 0,
+      "limit": "≤ 0",
+      "status": "PASS"
+    },
+    {
+      "metric": "visual.passed",
+      "baseline": 49,
+      "value": 74,
+      "limit": "≥ 49",
+      "status": "PASS"
+    },
+    {
+      "metric": "rules.failed",
+      "status": "NOT RUN"
+    },
+    {
+      "metric": "rules.passed",
+      "status": "NOT RUN"
+    }
+  ],
+  "verdict": "ACCEPTED",
+  "verdictNote": "all run checks pass, no gate regressed",
+  "history": [
+    {
+      "state": "PENDING",
+      "at": "2026-11-14T18:33:58.708Z",
+      "note": "created"
+    },
+    {
+      "state": "PLANNING",
+      "at": "2026-11-14T18:33:58.708Z",
+      "note": "Hidden features 1: mitts / ghost / bag cold start, model-load failure, honest results, mitt personal best"
+    },
+    {
+      "state": "IMPLEMENTING",
+      "at": "2026-11-14T18:33:58.708Z",
+      "note": "22 changed file(s) vs @{upstream}, risk YELLOW"
+    },
+    {
+      "state": "VERIFYING",
+      "at": "2026-11-14T18:33:58.708Z",
+      "note": ""
+    },
+    {
+      "state": "EVALUATING",
+      "at": "2026-11-14T18:38:43.959Z",
+      "note": ""
+    },
+    {
+      "state": "ACCEPTED",
+      "at": "2026-11-14T18:38:43.959Z",
+      "note": "all run checks pass, no gate regressed"
+    }
+  ],
+  "baselineCommit": "37f2e45"
+}

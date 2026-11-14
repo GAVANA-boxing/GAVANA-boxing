@@ -2,6 +2,30 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Hidden features, increment 1 — the three extra modes work on a cold start (owner: "nuusan code uudiig unshaad heregtei zuilsuudiig gargaad ajluulaad saijruulaad", "hylbar amar mortloo mash goy ui ux")
+Map first: five read-only readers over every hidden / unlinked area (train modes, learning content,
+competition, social video, gyms / human coaches) — what each does, whether it works at HEAD against the
+rules, value for one user alone, risks, effort. Summary and the order of work: `docs/AI_TASK_BACKLOG.md`
+("HIDDEN FEATURES"). Correction to what I first told the owner: mitts / ghost / bag are NOT unlinked —
+Train's idle screen has an "other modes" row for them; what was wrong is that they broke on a cold start.
+- **Mitt drill, Ghost round:** the 3-2-1 waits for the pose model (spinner + Cancel) instead of starting
+  a round nothing can answer; a model that can't load goes back to the start with a message instead
+  of a silent 0 % result; the round clock no longer jumps back to 0:30 when the model becomes ready
+  (`hooks/useLatest.js`: the loop reads getDebugInfo through a ref). usePoseDetection shows "loading"
+  again on a retry after a failure.
+- **Mitt drill:** "we can't see you" cue; personal best per level kept on the device (`nextMittBest`),
+  shown on the start screen and on the result ("🏆 Шинэ рекорд"); MN name "Лапны дасгал", Бултах /
+  Шумбах instead of Slip / Roll; 44 px buttons.
+- **Ghost round:** Finish button in the top bar (44 px); the result table keeps the two rows a fighter
+  can act on (rear hand up on the jab, shoulder turn on the cross) — the combo count against the ghost's
+  fixed 3 and reach as a bare number are gone; Жэб / Кросс / Сүүдэр in MN.
+- **Heavy bag:** same clock fix; says so while the camera AI is loading or failed (the bag still takes
+  taps); the result shows punches, pace and the bag's biggest swing — the two "power" tiles are gone
+  (that number was a per-punch-type formula, not a measurement).
+- Tests: `tests/cv/modes.spec.mjs` — real MediaPipe + fake camera through all three modes (clock only
+  counts down, result shown, model-load failure handled); +5 unit (personal best); 9 visual baselines
+  regenerated on purpose (mitts intro / result, bag intro).
+
 ## Audit batch 1 — "make GAVANA flawless" (owner: "gavana g chamd daatgay", "Hiij baisan ajlaa urgeljluul")
 Read-only audit (9 dimensions planned; 3 verified so far: rules-vs-client, crash risk, core loop — 3 P0,
 12 P1, 14 P2, 4 P3; every finding re-checked by a second reviewer). Fixed in this batch:

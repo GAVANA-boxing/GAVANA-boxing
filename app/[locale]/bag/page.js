@@ -7,11 +7,12 @@ import { useUserProfile } from "@/context/UserProfileProvider";
 import { getLocale } from "@/lib/i18n";
 import { loc } from "@/lib/loc";
 import { usePoseDetection } from "@/hooks/usePoseDetection";
+import { useLatest } from "@/hooks/useLatest";
 import { createBagStats } from "@/lib/heavyBag";
 import { detectRenderCaps, qualityFor } from "@/lib/three/renderCaps";
 import { funnel } from "@/lib/funnel";
 import { btnPrimary, btnSecondary, displayTitle, kickerDot, kickerPill, pageBackground } from "@/components/ui/brand";
-import { RED, GOLD, GREEN, RADIUS, FONT_SIZE, FONT_WEIGHT, whiteAlpha, blackAlpha } from "@/lib/tokens";
+import { RED, GOLD, RADIUS, FONT_SIZE, FONT_WEIGHT, whiteAlpha, blackAlpha } from "@/lib/tokens";
 
 const HeavyBagScene = dynamic(() => import("@/components/bag/HeavyBagScene"), { ssr: false });
 const ROUND_S = 30;
@@ -52,7 +53,10 @@ export default function HeavyBagPage() {
   const statsRef = useRef(createBagStats());
   const videoRef = useRef(null);
   const streamRef = useRef(null);
-  const { getDebugInfo } = usePoseDetection({ videoRef, isActive: phase === "round" && camera === "on", stance, load: camera === "on" });
+  const { getDebugInfo, poseStatus } = usePoseDetection({ videoRef, isActive: phase === "round" && camera === "on", stance, load: camera === "on" });
+  // Read through a ref: getDebugInfo gets a new identity when the model finishes loading, and
+  // the round clock must not restart because of it.
+  const debug = useLatest(getDebugInfo);
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -95,6 +99,8 @@ export default function HeavyBagPage() {
     funnel("bag_completed", { locale });
   }, [stopCamera, locale]);
 
+  const finishRef = useLatest(finish);
+
   // Round clock + camera punches → bag hits.
   useEffect(() => {
     if (phase !== "round") return undefined;
@@ -104,17 +110,17 @@ export default function HeavyBagPage() {
       const elapsed = (performance.now() - t0) / 1000;
       setLeft(Math.max(0, Math.ceil(ROUND_S - elapsed)));
       if (camera === "on") {
-        const info = getDebugInfo();
+        const info = debug.current();
         const c = info.punchCount || 0;
         if (lastCount !== null) {
           for (let k = lastCount; k < c; k++) controlRef.current?.hit({ type: info.lastPunchType || "punch", hand: info.lastPunchHand, snapVelocity: info.lastSnapVelocity });
         }
         lastCount = c;
       }
-      if (elapsed >= ROUND_S) { clearInterval(id); finish(ROUND_S); }
+      if (elapsed >= ROUND_S) { clearInterval(id); finishRef.current(ROUND_S); }
     }, 80);
     return () => clearInterval(id);
-  }, [phase, camera, getDebugInfo, finish]);
+  }, [phase, camera, debug, finishRef]);
 
   const exit = () => { stopCamera(); router.push(`/${locale}/train`); };
 
@@ -122,7 +128,7 @@ export default function HeavyBagPage() {
     return (
       <main style={{ minHeight: "100dvh", background: pageBackground, color: "#fff", padding: "calc(20px + env(safe-area-inset-top)) 16px 32px" }}>
         <div style={{ maxWidth: 520, margin: "0 auto", display: "flex", flexDirection: "column", gap: 14 }}>
-          <p style={{ ...kickerPill, alignSelf: "flex-start" }}><span style={kickerDot} />{L("Шинэ · 3D физик", "새 기능 · 3D 물리", "New · 3D physics")}</p>
+          <p style={{ ...kickerPill, alignSelf: "flex-start" }}><span style={kickerDot} />{L("Тоглоомын горим", "게임 모드", "Game mode")}</p>
           <h1 style={{ ...displayTitle, margin: 0, fontSize: 40 }}>{L("Хүнд уут", "헤비백", "Heavy bag")}</h1>
           <p style={{ margin: 0, fontSize: 15, lineHeight: 1.55, color: whiteAlpha(0.75) }}>
             {L("Камерын өмнө цохь — 35 кг уут цохилт бүрт гинжиндээ савлаж, цохисон газраа хонхойно. Камергүй бол уут руу дар. 30 секунд.",
@@ -150,14 +156,14 @@ export default function HeavyBagPage() {
           <video ref={videoRef} playsInline muted autoPlay style={{ position: "absolute", right: 12, bottom: "calc(16px + env(safe-area-inset-bottom))", width: 96, height: 128, objectFit: "cover", borderRadius: 14, border: `1px solid ${whiteAlpha(0.25)}`, transform: "scaleX(-1)" }} />
         )}
         <div style={{ position: "absolute", top: "calc(12px + env(safe-area-inset-top))", left: 12, right: 12, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, pointerEvents: "none" }}>
-          <span style={{ padding: "6px 12px", borderRadius: RADIUS.full, background: blackAlpha(0.6), fontWeight: FONT_WEIGHT.black, fontSize: FONT_SIZE.md, fontVariantNumeric: "tabular-nums" }}>0:{String(left).padStart(2, "0")}</span>
-          <button type="button" onClick={() => finish(ROUND_S - left)} style={{ pointerEvents: "auto", minHeight: 40, padding: "6px 14px", borderRadius: RADIUS.full, border: `1px solid ${whiteAlpha(0.3)}`, background: blackAlpha(0.5), color: "#fff", fontSize: FONT_SIZE.sm, cursor: "pointer", fontFamily: "inherit" }}>{L("Дуусгах", "종료", "Finish")}</button>
+          <span data-testid="bag-clock" style={{ padding: "6px 12px", borderRadius: RADIUS.full, background: blackAlpha(0.6), fontWeight: FONT_WEIGHT.black, fontSize: FONT_SIZE.md, fontVariantNumeric: "tabular-nums" }}>0:{String(left).padStart(2, "0")}</span>
+          <button type="button" onClick={() => finish(ROUND_S - left)} style={{ pointerEvents: "auto", minHeight: 44, padding: "6px 16px", borderRadius: RADIUS.full, border: `1px solid ${whiteAlpha(0.3)}`, background: blackAlpha(0.5), color: "#fff", fontSize: FONT_SIZE.sm, cursor: "pointer", fontFamily: "inherit" }}>{L("Дуусгах", "종료", "Finish")}</button>
           <span style={{ padding: "6px 12px", borderRadius: RADIUS.full, background: blackAlpha(0.6), fontWeight: FONT_WEIGHT.bold, fontSize: FONT_SIZE.sm, fontVariantNumeric: "tabular-nums" }}>🥊 {count}</span>
         </div>
         {/* Power of the last hit + current swing */}
         <div style={{ position: "absolute", left: 12, right: camera === "on" ? 120 : 12, bottom: "calc(16px + env(safe-area-inset-bottom))", padding: "10px 12px", borderRadius: 16, background: blackAlpha(0.6), border: `1px solid ${whiteAlpha(0.12)}`, pointerEvents: "none" }}>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: whiteAlpha(0.75) }}>
-            <span>{last ? `${pick(TYPE_NAME[last.type] || TYPE_NAME.punch)} · ${L("хүч", "파워", "power")}` : L("Цохиж эхэл", "치기 시작", "Start punching")}</span>
+            <span>{last ? pick(TYPE_NAME[last.type] || TYPE_NAME.punch) : L("Цохиж эхэл", "치기 시작", "Start punching")}</span>
             <span style={{ fontVariantNumeric: "tabular-nums" }}>{L("Савлалт", "흔들림", "Swing")} {Math.round(swing)}°</span>
           </div>
           <div style={{ marginTop: 6, height: 10, borderRadius: 5, background: whiteAlpha(0.1), overflow: "hidden" }}>
@@ -165,6 +171,14 @@ export default function HeavyBagPage() {
           </div>
           {camera === "denied" && (
             <div style={{ marginTop: 6, fontSize: 12, color: whiteAlpha(0.7) }}>{L("Камергүй горим — уут руу дарж цохь.", "카메라 없음 — 백을 탭해서 치세요.", "No camera — tap the bag to punch.")}</div>
+          )}
+          {/* Until the pose model is ready the camera can't count punches — say so, and the bag still takes taps. */}
+          {camera === "on" && poseStatus !== "ready" && (
+            <div role="status" data-testid="bag-pose-status" style={{ marginTop: 6, fontSize: 12, color: whiteAlpha(0.7) }}>
+              {poseStatus === "failed"
+                ? L("Камерын AI ачаалагдсангүй — уут руу дарж цохь.", "카메라 AI를 불러오지 못했어요 — 백을 탭해서 치세요.", "The camera AI didn't load — tap the bag to punch.")
+                : L("AI ачаалж байна… түр уут руу дарж цохь.", "AI 로딩 중… 그동안 백을 탭하세요.", "Loading AI… tap the bag meanwhile.")}
+            </div>
           )}
         </div>
       </main>
@@ -177,11 +191,13 @@ export default function HeavyBagPage() {
       <div data-testid="bag-result" style={{ maxWidth: 520, margin: "0 auto", display: "flex", flexDirection: "column", gap: 14 }}>
         <p style={{ ...kickerPill, alignSelf: "flex-start" }}><span style={kickerDot} />{L("Хүнд уут · үр дүн", "헤비백 · 결과", "Heavy bag · result")}</p>
         <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-          <span style={{ ...displayTitle, fontSize: 64, color: s.avgPower >= 70 ? GREEN : GOLD }}>{s.punches}</span>
+          <span style={{ ...displayTitle, fontSize: 64, color: GOLD }}>{s.punches}</span>
           <span style={{ fontSize: 15, color: whiteAlpha(0.7) }}>{L("цохилт", "펀치", "punches")} · {s.perMinute}/{L("мин", "분", "min")}</span>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
-          {[[L("Дундаж хүч", "평균 파워", "Avg power"), s.avgPower], [L("Хамгийн хүчтэй", "최고 파워", "Best"), s.bestPower], [L("Их савлалт", "최대 흔들림", "Max swing"), `${s.maxSwingDeg}°`]].map(([label, value]) => (
+        {/* Counted punches, pace and how far the simulated bag swung. No "power" tiles: that
+            number was a formula per punch type, not a measurement. */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8 }}>
+          {[[L("Минутад", "분당", "Per minute"), s.perMinute], [L("Уутны их савлалт", "백 최대 흔들림", "Biggest swing"), `${s.maxSwingDeg}°`]].map(([label, value]) => (
             <div key={label} style={{ padding: "12px 10px", borderRadius: 16, background: whiteAlpha(0.04), border: `1px solid ${whiteAlpha(0.08)}` }}>
               <div style={{ fontSize: 12, color: whiteAlpha(0.6) }}>{label}</div>
               <div style={{ marginTop: 4, fontSize: 20, fontWeight: 900, fontVariantNumeric: "tabular-nums" }}>{value}</div>
