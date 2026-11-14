@@ -157,7 +157,10 @@ export function useTrainingActions({
         return;
       }
 
-      // ── Fallback: legacy client transaction (server scoring not configured) ──
+      // ── Fallback: legacy client transaction — ONLY when server scoring is not configured. A
+      //    refusal (challenges off, daily cap) or a transient failure must not be worked around
+      //    by writing XP from the client. ──
+      if (srv.code !== "not_configured") throw new Error("score-failed");
       const rank = getChallengeRank(result.score);
       const xpGained = calculateChallengeXP(result.score, rank);
 

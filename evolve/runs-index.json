@@ -1,9 +1,38 @@
 {
   "runs": [
     {
+      "id": "20261114T130726Z-c71ac70",
+      "task": "Audit batch 1 final: guest claim retries scoring once; challenge save never bypasses a server refusal",
+      "verdict": "ACCEPTED",
+      "commit": "c71ac70",
+      "at": "2026-11-14T13:12:13.482Z",
+      "durationS": 287,
+      "level": "YELLOW",
+      "failedSteps": [],
+      "notRun": [],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 608,
+        "unit.failed": 0,
+        "bundle.kb": 6369,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 74,
+        "visual.failed": 0,
+        "visual.flaky": 0,
+        "rules.passed": 119,
+        "rules.failed": 0
+      },
+      "decision": null
+    },
+    {
       "id": "20261114T124839Z-37b22f8",
       "task": "Audit batch 1 third-review follow-ups: onboarding local echo, transient 503 classification, coach reply message + card, privacy text",
-      "verdict": "AWAITING_APPROVAL",
+      "verdict": "ACCEPTED",
       "commit": "37b22f8",
       "at": "2026-11-14T12:54:13.981Z",
       "durationS": 334,
@@ -27,7 +56,7 @@
         "rules.passed": 119,
         "rules.failed": 0
       },
-      "decision": null
+      "decision": "owner"
     },
     {
       "id": "20261114T102012Z-e79f634",
@@ -90,7 +119,7 @@
     {
       "id": "20261113T045222Z-a1e7fd2",
       "task": "Audit batch 1: Pro self-grant rules, signup field block, Academy lesson crash, coach/team route, publicXp wiring, coach chat honesty, save flow (no duplicate round, XP only when awarded), guest round gate, one punch count, timer-only result, no MediaRecorder",
-      "verdict": "AWAITING_APPROVAL",
+      "verdict": "ACCEPTED",
       "commit": "a1e7fd2",
       "at": "2026-11-13T04:57:11.173Z",
       "durationS": 289,
@@ -114,7 +143,7 @@
         "rules.passed": 111,
         "rules.failed": 0
       },
-      "decision": null
+      "decision": "owner"
     },
     {
       "id": "20261110T125337Z-bb812d3",

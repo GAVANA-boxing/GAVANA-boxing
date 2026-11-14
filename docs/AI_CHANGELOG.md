@@ -63,11 +63,15 @@ Read-only audit (9 dimensions planned; 3 verified so far: rules-vs-client, crash
   fields keeps both (all 252 field combinations × 4 variants tested: nothing lost, nothing repeated);
   privacy §5 names the one case where a round's score is shown to someone else (a round started from
   their video / challenge link).
+- **Fourth review (the last follow-up commit): no new defect.** Two older gaps it pointed at, fixed: the
+  guest-round claim retries the scoring call once (it gave up on the XP after one transient failure);
+  the challenge save falls back to the client XP write only on "not configured", never past a server
+  refusal.
 - Tests: unit 608, rules 119, visual 74 (3 result baselines regenerated on purpose), CV 4.
 - Review coverage: batch commit — rules / client writes reviewed and verified by a second reviewer;
   save flow and routing / coach / text reviewed once, each finding checked by hand. Follow-up commits
-  1–2 — reviewed and verified. Each round found fewer and smaller things (10 → 4 → 6, one P1 in the
-  last, caused by a fix from the round before).
+  1–3 — reviewed and verified. Each round found fewer and smaller things (10 → 4 → 6 → 0 new; the one P1
+  after the first round came from a fix made in the round before it).
 - NOT live until the rules deploy: the Firestore rule changes (same owner secret as before).
 
 ## Solo month, week 1: P0 privacy + Firebase deploy automation (owner: "чи ганцаараа хөгжүүл")

@@ -13,6 +13,10 @@
   format". `CHAT_MESSAGE_LIMIT` in lib/drillRequest.js is a copy of the route's 800, not shared.
 - A repeated scoring call after a lost response shows the round's XP but not the mission / rank-up
   celebration (they were credited; only the card is missing).
+- `/train?challengeId=…` typed by hand in core mode: the round can't be saved (the challenge save is
+  always refused by the server, and the normal save is hidden while a challenge is active). No UI leads
+  there; decide together with whether challenges come back.
+- Guest claim: two scoring failures 1.5 s apart still lose that round's XP (the round itself is kept).
 - Rules in the repo (2026-11-10 privacy + 2026-11-12 server-only keys) are NOT live in Firebase until the
   owner adds the deploy secret: production still has the old rules (world-readable rounds, `tier` /
   subscription writable by the client). The app code no longer trusts `tier`, so Pro can't be self-granted
