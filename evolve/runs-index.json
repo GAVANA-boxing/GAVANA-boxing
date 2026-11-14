@@ -1,6 +1,35 @@
 {
   "runs": [
     {
+      "id": "20261114T070724Z-a1f2aea",
+      "task": "Audit batch 1 + review follow-ups: Pro self-grant rules, signup field block, Academy crash, coach/team route, publicXp, coach chat, save flow, one punch count, guest hand-off gate, lastTrainingDate server-only, notification id rule, onboarding profile base",
+      "verdict": "ACCEPTED",
+      "commit": "a1f2aea",
+      "at": "2026-11-14T07:13:04.336Z",
+      "durationS": 337,
+      "level": "GREEN",
+      "failedSteps": [],
+      "notRun": [],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 501,
+        "unit.failed": 0,
+        "bundle.kb": 6367,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 74,
+        "visual.failed": 0,
+        "visual.flaky": 0,
+        "rules.passed": 119,
+        "rules.failed": 0
+      },
+      "decision": null
+    },
+    {
       "id": "20261113T045222Z-a1e7fd2",
       "task": "Audit batch 1: Pro self-grant rules, signup field block, Academy lesson crash, coach/team route, publicXp wiring, coach chat honesty, save flow (no duplicate round, XP only when awarded), guest round gate, one punch count, timer-only result, no MediaRecorder",
       "verdict": "AWAITING_APPROVAL",
