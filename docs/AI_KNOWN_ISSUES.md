@@ -7,6 +7,12 @@
   camera's count; (c) Train reads the user's whole session history several times per visit and per save;
   (d) timer-only rounds are not saved (no streak / mission credit) — product decision; (e) six audit
   dimensions not run yet: xp-truth, api-security, text-load, i18n, a11y-layout, perf-mobile.
+- AI drill builder (`/drills`), found in review, not fixed yet: the system prompt's format rules
+  (emoji title + bullets) contradict "Return ONLY valid JSON"; `getFighterContext` matches "ali" inside
+  "valid", so the Ali context is added to every drill request; a quota reply is shown as "unexpected
+  format". `CHAT_MESSAGE_LIMIT` in lib/drillRequest.js is a copy of the route's 800, not shared.
+- A repeated scoring call after a lost response shows the round's XP but not the mission / rank-up
+  celebration (they were credited; only the card is missing).
 - Rules in the repo (2026-11-10 privacy + 2026-11-12 server-only keys) are NOT live in Firebase until the
   owner adds the deploy secret: production still has the old rules (world-readable rounds, `tier` /
   subscription writable by the client). The app code no longer trusts `tier`, so Pro can't be self-granted

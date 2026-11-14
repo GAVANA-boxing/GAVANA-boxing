@@ -52,10 +52,22 @@ Read-only audit (9 dimensions planned; 3 verified so far: rules-vs-client, crash
   crashed Train on `bodyCue` (all 30 lessons now in the render test, 153 cases); a coach reply whose
   variant hid its content (cues tagged conversational, answer under a title) now shows it; privacy §5
   lists bio, stance, weight class and the other fields the readable profile record really holds.
-- Tests: unit 600, rules 119, visual 74 (3 result baselines regenerated on purpose), CV 4.
-- Review coverage: rules / client writes reviewed and verified by a second reviewer; save flow and
-  routing / coach / text reviewed once and each finding checked by hand against the code; the follow-up
-  commits were NOT independently reviewed (reviewer runs hit the usage limit twice) — tests only.
+- **Third review (the two follow-up commits) — 6 more, fixed:** the onboarding write had been moved
+  into a transaction, which has no local echo, so "Start" on the last step could bounce the user back
+  to step 1 (OnboardingGate reads the live profile) — the answers go through the plain merge again
+  and the transaction only adds missing identity fields in the background (`missingIdentityFields`);
+  a transient 503 was treated as "server not configured" and gave up on the round's XP — the route
+  answers 503 only when the service account is really unset and the client reads the code
+  (`scoreFailure`); an XP retry refreshes the training profile / badges with the server's streak;
+  combatProgress isn't recomputed from an unread profile; a coach reply with a message AND card
+  fields keeps both (all 252 field combinations × 4 variants tested: nothing lost, nothing repeated);
+  privacy §5 names the one case where a round's score is shown to someone else (a round started from
+  their video / challenge link).
+- Tests: unit 608, rules 119, visual 74 (3 result baselines regenerated on purpose), CV 4.
+- Review coverage: batch commit — rules / client writes reviewed and verified by a second reviewer;
+  save flow and routing / coach / text reviewed once, each finding checked by hand. Follow-up commits
+  1–2 — reviewed and verified. Each round found fewer and smaller things (10 → 4 → 6, one P1 in the
+  last, caused by a fix from the round before).
 - NOT live until the rules deploy: the Firestore rule changes (same owner secret as before).
 
 ## Solo month, week 1: P0 privacy + Firebase deploy automation (owner: "чи ганцаараа хөгжүүл")

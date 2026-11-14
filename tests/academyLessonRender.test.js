@@ -61,7 +61,7 @@ describe("fighter technique lessons render on Train", () => {
   });
   for (const { fighterId, lesson } of all) {
     for (const locale of LOCALES) {
-      it(`${fighterId}/${lesson.id} · ${locale}: focus card`, () => {
+      it(`${fighterId} / ${tx(lesson.title, "en")} · ${locale}: focus card`, () => {
         const html = renderToStaticMarkup(
           <TrainingFocusCard fighterName={fighterId} lesson={lesson} accent="#F5C451" locale={locale} router={router} onStart={() => {}} />,
         );

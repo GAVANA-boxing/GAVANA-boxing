@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { missingProfileBase } from "@/lib/baseProfile";
+import { missingProfileBase, missingIdentityFields } from "@/lib/baseProfile";
 
 const NOW = new Date("2026-11-14T08:00:00.000Z");
 // firestore.rules serverOnlyUserKeys + email: a client create with any of these is refused.
@@ -26,3 +26,24 @@ describe("missingProfileBase — a profile that onboarding has to create", () =>
     for (const k of FORBIDDEN) expect(k in base).toBe(false);
   });
 });
+
+describe("missingIdentityFields — only what the stored profile lacks", () => {
+  const base = missingProfileBase({ uid: "u1", email: "bat@example.com", displayName: "Bat", photoURL: "https://p/x.jpg", now: NOW });
+  it("a normal profile (has a username) is left alone", () => {
+    expect(missingIdentityFields({ username: "bat", displayName: "" }, base)).toBeNull();
+  });
+  it("no document → the whole base", () => {
+    expect(missingIdentityFields(null, base)).toEqual(base);
+  });
+  it("a document with onboarding answers only → identity added, answers untouched", () => {
+    const add = missingIdentityFields({ role: "fighter", stance: "orthodox", onboardingComplete: true }, base);
+    expect(add).toMatchObject({ username: "bat", displayName: "Bat" });
+    expect("role" in add).toBe(false);
+    expect("onboardingComplete" in add).toBe(false);
+  });
+  it("never overwrites a stored value (a name typed at sign-up, an older createdAt, a bio)", () => {
+    const add = missingIdentityFields({ displayName: "Батаа", createdAt: "2026-01-01T00:00:00.000Z", bio: "southpaw", referredBy: "x" }, base);
+    expect(add).toEqual({ username: "bat", photoURL: "https://p/x.jpg", profileImageUrl: "https://p/x.jpg" });
+  });
+});
+

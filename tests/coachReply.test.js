@@ -84,12 +84,41 @@ describe("the variant follows the content (the model can break the schema)", () 
     expect(normalizeStructured({ variant: "full", title: "Jab", keyCues: ["Snap"], drill: "3x1" }).variant).toBe("full");
     expect(normalizeStructured({ variant: "conversational", message: "Hi" }).variant).toBe("conversational");
   });
-  it("no reply shape gives an empty text", () => {
-    const shapes = [
-      { variant: "conversational", keyCues: ["a"] }, { variant: "conversational", drill: "d" }, { variant: "short", nextAction: "n" },
-      { variant: "full", message: "m" }, { variant: "short", title: "t" }, { variant: "nope", commonMistake: "c" },
-    ];
-    for (const raw of shapes) expect(structuredToText(normalizeStructured(raw)).length).toBeGreaterThan(0);
+  it("a message sent together with card fields keeps both (message first, then the card)", () => {
+    const a = normalizeStructured({ variant: "conversational", message: "Here is the fix:", keyCues: ["Chin down", "Snap back"], drill: "3x1 min" });
+    expect(a.variant).toBe("full");
+    const ta = structuredToText(a);
+    expect(ta.indexOf("Here is the fix:")).toBe(0);
+    expect(ta).toContain("Chin down");
+    expect(ta).toContain("3x1 min");
+    const b = normalizeStructured({ variant: "full", title: "Jab", keyCues: ["Snap"], message: "Your last three rounds dropped the guard." });
+    const tb = structuredToText(b);
+    expect(tb).toContain("Your last three rounds dropped the guard.");
+    expect(tb).toContain("Jab");
+    expect(tb).toContain("Snap");
+  });
+  it("every field the model sent is in the text, for every variant and every combination", () => {
+    const FIELDS = { title: "TITLE", keyCues: ["CUE"], commonMistake: "MISTAKE", drill: "DRILL", nextAction: "NEXT", message: "MESSAGE" };
+    const names = Object.keys(FIELDS);
+    for (const variant of ["full", "short", "conversational", "unknown"]) {
+      for (let mask = 1; mask < 1 << names.length; mask++) {
+        const raw = { variant };
+        names.forEach((n, i) => { if (mask & (1 << i)) raw[n] = FIELDS[n]; });
+        const s = normalizeStructured(raw);
+        const text = structuredToText(s);
+        expect(text.length, JSON.stringify(raw)).toBeGreaterThan(0);
+        // The one allowed loss: a title above a plain message in a conversational reply.
+        const onlyTitleAndMessage = raw.title && raw.message && !raw.keyCues && !raw.commonMistake && !raw.drill && !raw.nextAction;
+        for (const n of names) {
+          if (!(n in raw)) continue;
+          if (n === "title" && onlyTitleAndMessage) continue;
+          const want = Array.isArray(FIELDS[n]) ? FIELDS[n][0] : FIELDS[n];
+          expect(text, `${n} lost in ${JSON.stringify(raw)}`).toContain(want);
+        }
+        // …and nothing is repeated.
+        for (const w of ["TITLE", "CUE", "MISTAKE", "DRILL", "NEXT", "MESSAGE"]) expect(text.split(w).length - 1, `${w} repeated in ${JSON.stringify(raw)}`).toBeLessThanOrEqual(1);
+      }
+    }
   });
 });
 

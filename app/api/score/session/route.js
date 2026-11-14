@@ -31,8 +31,12 @@ function rateLimited(uid) {
   return e.count > 30;
 }
 
+// "Not configured" only when the service account is really not set. The same error is thrown
+// when it IS set but the token request failed once (cold start, network) — that is a transient
+// failure (500): the client retries it and keeps the round's XP pending. Answering 503 there
+// made the client give up on the round's XP for good.
 function notConfigured(err) {
-  return err instanceof Error && err.message === "service-account-unconfigured";
+  return err instanceof Error && err.message === "service-account-unconfigured" && !process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
 }
 
 export const POST = withAuth(async (req, { uid }) => {

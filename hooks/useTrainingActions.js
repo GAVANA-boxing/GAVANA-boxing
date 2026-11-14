@@ -415,6 +415,30 @@ export function useTrainingActions({
 
       setSaved(true);
       setSavedAttemptNumber(attemptNumber);
+
+      // Training profile + badges: with the first save, and again when a retry finally got the
+      // award (the first pass then ran with the streak from before it). The streak comes from
+      // the server's answer when it has one. Both writes are idempotent; fire and forget.
+      if (firstSave || srv.ok) {
+        let newStreak = srv.ok ? Number(srv.authoritative?.dailyStreak ?? srv.celebration?.newStreak) || 0 : 0;
+        if (!newStreak) {
+          // A late read error here must not turn a saved round into "save failed".
+          try { newStreak = Number((await getDoc(userRef)).data()?.dailyStreak) || 1; } catch { newStreak = 1; }
+        }
+        const breakdown = result.breakdown || {};
+        updateUserTrainingProfile(user.uid, {
+          lastScore: result.score,
+          dailyStreak: newStreak,
+          totalAttempts: attemptNumber,
+        }).catch(() => {});
+        checkAndAwardBadges(user.uid, {
+          totalAttempts: attemptNumber,
+          dailyStreak: newStreak,
+          accuracy: breakdown.accuracy,
+          speed: breakdown.speed,
+          category: "boxing",
+        }).catch(() => {});
+      }
       if (!firstSave) return; // everything below ran with the first save
 
       // Fighter DNA + Combat Progress — compute from prior sessions + this result and save to user doc
@@ -429,10 +453,14 @@ export function useTrainingActions({
           if (snap) {
             await setDoc(userRef, { fighterDNA: snap, fighterDnaUpdatedAt: serverTimestamp() }, { merge: true });
           }
-          const prog     = computeCombatProgress({ sessions: sessionsForStats, streakDays: 0, locale, xp: Number(userData.xp) || 0 });
-          const progSnap = progressSnapshot(prog);
-          if (progSnap) {
-            await setDoc(userRef, { combatProgress: progSnap }, { merge: true });
+          // Needs the stored XP: skipped when the profile could not be read (it would be
+          // recomputed from 0 and written over the real one).
+          if (userLoaded) {
+            const prog     = computeCombatProgress({ sessions: sessionsForStats, streakDays: 0, locale, xp: Number(userData.xp) || 0 });
+            const progSnap = progressSnapshot(prog);
+            if (progSnap) {
+              await setDoc(userRef, { combatProgress: progSnap }, { merge: true });
+            }
           }
         }
       } catch { /* non-critical */ }
@@ -447,24 +475,6 @@ export function useTrainingActions({
           attemptNumber,
         }).catch(() => {});
       }
-
-      // A late read error here must not turn a saved round into "save failed".
-      let newStreak = 1;
-      try { newStreak = Number((await getDoc(doc(db, "users", user.uid))).data()?.dailyStreak) || 1; } catch { /* keep 1 */ }
-      const breakdown = result.breakdown || {};
-      updateUserTrainingProfile(user.uid, {
-        lastScore: result.score,
-        dailyStreak: newStreak,
-        totalAttempts: attemptNumber,
-      }).catch(() => {});
-
-      checkAndAwardBadges(user.uid, {
-        totalAttempts: attemptNumber,
-        dailyStreak: newStreak,
-        accuracy: breakdown.accuracy,
-        speed: breakdown.speed,
-        category: "boxing",
-      }).catch(() => {});
 
       // Notify the reel creator that someone attempted their challenge
       if (reelId && trainSourceUserId) {

@@ -130,18 +130,25 @@ export default function CoachResponseCard({ structured, accentColor, locale = "e
   if (variant === "conversational") {
     return <ConversationalBubble message={message || title || ""} />;
   }
-  if (variant === "short") {
-    return <ShortCard title={title} keyCues={keyCues} accentColor={accentColor} />;
-  }
+  const card = variant === "short"
+    ? <ShortCard title={title} keyCues={keyCues} accentColor={accentColor} />
+    : (
+      <FullCard
+        title={title}
+        keyCues={keyCues}
+        commonMistake={commonMistake}
+        drill={drill}
+        nextAction={nextAction}
+        accentColor={accentColor}
+        locale={locale}
+      />
+    );
+  // A card can come with a sentence of its own: show it above the card instead of dropping it.
+  if (!message) return card;
   return (
-    <FullCard
-      title={title}
-      keyCues={keyCues}
-      commonMistake={commonMistake}
-      drill={drill}
-      nextAction={nextAction}
-      accentColor={accentColor}
-      locale={locale}
-    />
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <ConversationalBubble message={message} />
+      {card}
+    </div>
   );
 }
