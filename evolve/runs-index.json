@@ -1,6 +1,35 @@
 {
   "runs": [
     {
+      "id": "20261115T115845Z-9a77430",
+      "task": "Design v2: Home screen (hero with our 3D boxer, rank + XP left, week dots, score dials) from the owner's references",
+      "verdict": "ACCEPTED",
+      "commit": "9a77430",
+      "at": "2026-11-15T12:04:27.370Z",
+      "durationS": 342,
+      "level": "GREEN",
+      "failedSteps": [],
+      "notRun": [
+        "rules"
+      ],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 669,
+        "unit.failed": 0,
+        "bundle.kb": 6377,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 80,
+        "visual.failed": 0,
+        "visual.flaky": 0
+      },
+      "decision": null
+    },
+    {
       "id": "20261114T232019Z-7915331",
       "task": "Academy + modes review fixes: lesson buttons open in place, status on the result from stored progress, no boxer name in lesson text, mitt early finish",
       "verdict": "ACCEPTED",

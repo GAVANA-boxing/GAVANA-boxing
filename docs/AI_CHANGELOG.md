@@ -2,6 +2,29 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Design v2 — Home (owner sent four UI references: "Ui ux design sanaa ogch baina", "hylbar amar mortloo mash goy ui ux")
+Taken from the references: a warm dark-red page, big rounded glass cards, a hero figure breaking out of
+its card, the rank in large display type, progress as dials / dots instead of sentences, a white pill
+with an arrow as the one primary action. Two layouts were built as fixtures and judged by three
+independent design judges (references fidelity, simplicity, mobile craft) — all three chose the card
+layout; their notes are applied below.
+- **Hero** (`components/home/HomeHero.js`): GAVANA's own 3D boxer (`public/images/hero-fighter-*-v2.webp`,
+  rendered from `public/models/boxer_*.glb` in a guard pose, neutral key light + gold rim; 23–25 KB; never
+  a photograph of a real person; male / female follows the avatar chosen in the 3D replay) breaks out of
+  a red → deep-burgundy card. The rank is the headline (auto-sized to its length and to the screen
+  width); under it the XP bar and "760 XP · Мөнгөн бүс хүртэл" (what is LEFT to the next rank, not a
+  bare total); a streak chip only when there is a streak; one full-width white "Раунд эхлэх →" pill.
+- **This week** (`WeekDots`): trained, today, missed and still-to-come days are four different states;
+  the count is "3 өдөр", not "3/7".
+- **Scores** (`ScoreDial`): average and best on the same dial with "/10"; the recent change (last 5
+  rounds vs the 5 before) as ▲ / ▼ only when it is known. With no scored round the tile is not drawn.
+- `lib/homeView.js` (pure): everything the screen shows from real XP and rounds; unknown → null.
+- Home now fits one phone screen: hero, week, scores, next Academy lesson, three icon links. Removed
+  from Home: the DNA text card, the "today's training" row, the first→latest glance card (still on
+  Progress), the weekly theme card (it led nowhere) and the tribe-count query.
+- Tests: +9 unit (`homeView`), +13 render (hero / stats / gauges: every empty state, long names,
+  languages), 9 visual baselines (real Home ×3 regenerated; fixtures with data ×3 and brand-new ×3).
+
 ## Hidden features, increment 2 — one Academy, little text, honest progress
 - **Lesson card on Train** (`TrainingFocusCard`): title + three cues; the common mistake and the drill
   steps wait behind "Дэлгэрэнгүй"; no Start button of its own (the dock has the one primary action); the
