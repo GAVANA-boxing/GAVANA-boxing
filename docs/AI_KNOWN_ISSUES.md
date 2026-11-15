@@ -1,5 +1,10 @@
 # Known issues
 
+- Extra modes (mitts, ghost, bag) still save nothing to the account: no XP, History or streak; the mitt
+  personal best lives only on the device. Counting them would need a server change (RED: data model).
+  Their E2E tests use the synthetic boxer on a fake camera — real punches on a phone are unverified.
+- Rules that stay open while features are hidden (see backlog "HIDDEN FEATURES" 7): `coachRating` on any
+  user, `challenge_results` / `pvp_*` scores, reel counters, conversations, `training_programs`.
 - **Audit 2026-11-12 — still open** (findings: scratch notes of the audit run; fixed part in the changelog):
   (a) the readable `users` doc still carries subscription state, last training day, DNA detail and the plan
   — move them to an owner-only doc (privacy text says so meanwhile); (b) during a round the centre toast,

@@ -65,6 +65,8 @@ export default function TrainResultModal({
   t,
   router,
   onTryAgain,
+  academyProgress = null,
+  onNextLesson,
   onSave,
   onSaveChallengeResult,
   onShareChallenge,
@@ -177,6 +179,22 @@ export default function TrainResultModal({
         {/* Order: score → the ONE fix → next action → everything else folded away */}
         {poseMetrics && !tooFewPunches && (
           <ActionSummary poseMetrics={poseMetrics} result={result} locale={locale} />
+        )}
+
+        {/* ── ACADEMY LESSON — did this round count for the lesson, and what is next. Up here,
+            not inside the folded details: it is the answer to "what now" for a lesson round. ── */}
+        {academyLesson && !tooFewPunches && (
+          <div style={{ paddingTop: 12 }}>
+            <AcademyLessonCard
+              academyLesson={academyLesson}
+              result={result}
+              punches={effectivePunchCount}
+              lessonProgress={academyProgress}
+              onNext={onNextLesson}
+              locale={locale}
+              router={router}
+            />
+          </div>
         )}
 
         {/* ── 3D TECHNIQUE BREAKDOWN — the user's own punches in 3D ─── */}
@@ -294,15 +312,6 @@ export default function TrainResultModal({
           <CoachReviewCard poseMetrics={poseMetrics} result={result} locale={locale} />
         )}
 
-        {/* ── ACADEMY LESSON REVIEW ────────────────────────────────── */}
-        {academyLesson && !tooFewPunches && (
-          <AcademyLessonCard
-            academyLesson={academyLesson}
-            result={result}
-            locale={locale}
-            router={router}
-          />
-        )}
 
         {/* ── SCROLLABLE ANALYSIS ──────────────────────────────────── */}
         <ResultAnalysisSection

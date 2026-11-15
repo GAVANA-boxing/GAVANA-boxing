@@ -16,11 +16,11 @@ const TIP = {
   "2": ["Кросс: хойд хөлөөрөө түлхэж, ташаагаа эргүүл.", "크로스: 뒷발로 밀고 골반을 돌리세요.", "Cross: push off the back foot and turn the hips."],
   "1-1": ["Давхар жэб: хоёр дахь жэбийг эхнийхээс хурдан.", "더블 잽: 두 번째 잽을 더 빠르게.", "Double jab: make the second jab quicker than the first."],
   "1-2": ["1-2: жэб буцахтай зэрэг кросс эхэлнэ.", "1-2: 잽이 돌아오는 순간 크로스 출발.", "1-2: the cross leaves as the jab comes back."],
-  slip: ["Slip: өвдгөө бага нугалж толгойгоо 10–15 см хажуу тийш.", "슬립: 무릎을 살짝 굽혀 머리를 10–15cm 옆으로.", "Slip: bend the knees a little, move the head 10–15 cm to the side."],
-  roll: ["Roll: өвдгөөр доош, U хэлбэрээр гар.", "롤: 무릎으로 내려가 U자로 빠져나오세요.", "Roll: drop with the knees, come out in a U."],
+  slip: ["Бултах: өвдгөө бага нугалж толгойгоо 10–15 см хажуу тийш.", "슬립: 무릎을 살짝 굽혀 머리를 10–15cm 옆으로.", "Slip: bend the knees a little, move the head 10–15 cm to the side."],
+  roll: ["Шумбах: өвдгөөр доош, U хэлбэрээр гар.", "롤: 무릎으로 내려가 U자로 빠져나오세요.", "Roll: drop with the knees, come out in a U."],
 };
 
-export default function MittResult({ summary, locale = "en", onAgain, onExit }) {
+export default function MittResult({ summary, best = null, locale = "en", onAgain, onExit }) {
   const L = (mn, ko, en) => loc(locale, mn, ko, en);
   const s = summary;
   const g = GRADE[s.grade];
@@ -28,7 +28,7 @@ export default function MittResult({ summary, locale = "en", onAgain, onExit }) 
 
   return (
     <div data-testid="mitt-result" style={{ maxWidth: 520, margin: "0 auto", display: "flex", flexDirection: "column", gap: 14 }}>
-      <p style={{ ...kickerPill, alignSelf: "flex-start" }}><span style={kickerDot} />{L("Mitt дасгал · хариу үйлдэл", "미트 드릴 · 반응", "Mitt drill · reaction")}</p>
+      <p style={{ ...kickerPill, alignSelf: "flex-start" }}><span style={kickerDot} />{L("Лапны дасгал · хариу үйлдэл", "미트 드릴 · 반응", "Mitt drill · reaction")}</p>
 
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
         <span style={{ ...displayTitle, fontSize: 64, color: g.color }}>{pct}%</span>
@@ -47,6 +47,18 @@ export default function MittResult({ summary, locale = "en", onAgain, onExit }) 
           </div>
         ))}
       </div>
+
+      {/* Personal best for this level (kept on this device) */}
+      {best?.best && (
+        <div data-testid="mitt-best" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "12px 14px", borderRadius: 16, background: best.isNew ? "rgba(245,196,81,0.12)" : whiteAlpha(0.04), border: `1px solid ${best.isNew ? "rgba(245,196,81,0.45)" : whiteAlpha(0.08)}` }}>
+          <span style={{ fontSize: 14, fontWeight: 700, color: best.isNew ? GOLD : whiteAlpha(0.75) }}>
+            {best.isNew ? L("🏆 Шинэ рекорд", "🏆 새 기록", "🏆 New best") : L("Таны шилдэг", "내 최고 기록", "Your best")}
+          </span>
+          <span style={{ fontSize: 16, fontWeight: 900, fontVariantNumeric: "tabular-nums" }}>
+            {Math.round(best.best.accuracy * 100)}%{best.best.avgReactionMs != null ? ` · ${best.best.avgReactionMs} ${L("мс", "ms", "ms")}` : ""}
+          </span>
+        </div>
+      )}
 
       {s.weakestCall && (
         <div style={{ padding: 16, borderRadius: 20, background: redAlpha(0.1), border: `1px solid ${redAlpha(0.35)}` }}>

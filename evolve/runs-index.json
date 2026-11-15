@@ -1,6 +1,122 @@
 {
   "runs": [
     {
+      "id": "20261114T232019Z-7915331",
+      "task": "Academy + modes review fixes: lesson buttons open in place, status on the result from stored progress, no boxer name in lesson text, mitt early finish",
+      "verdict": "ACCEPTED",
+      "commit": "7915331",
+      "at": "2026-11-14T23:25:16.060Z",
+      "durationS": 297,
+      "level": "YELLOW",
+      "failedSteps": [],
+      "notRun": [
+        "rules"
+      ],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 647,
+        "unit.failed": 0,
+        "bundle.kb": 6390,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 74,
+        "visual.failed": 0,
+        "visual.flaky": 0
+      },
+      "decision": null
+    },
+    {
+      "id": "20261114T190935Z-021fd44",
+      "task": "Hidden features 1 follow-ups: retry after a model-load failure (mitts, ghost, bag), full rounds only for the mitt record",
+      "verdict": "ACCEPTED",
+      "commit": "021fd44",
+      "at": "2026-11-14T19:14:09.060Z",
+      "durationS": 274,
+      "level": "YELLOW",
+      "failedSteps": [],
+      "notRun": [
+        "rules"
+      ],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 635,
+        "unit.failed": 0,
+        "bundle.kb": 6374,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 74,
+        "visual.failed": 0,
+        "visual.flaky": 0
+      },
+      "decision": null
+    },
+    {
+      "id": "20261114T185017Z-db1bd22",
+      "task": "Hidden features 2: Academy — short lesson card, honest done, next lesson on Home and Train, teaching order",
+      "verdict": "ACCEPTED",
+      "commit": "db1bd22",
+      "at": "2026-11-14T18:55:01.321Z",
+      "durationS": 284,
+      "level": "YELLOW",
+      "failedSteps": [],
+      "notRun": [
+        "rules"
+      ],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 634,
+        "unit.failed": 0,
+        "bundle.kb": 6374,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 74,
+        "visual.failed": 0,
+        "visual.flaky": 0
+      },
+      "decision": null
+    },
+    {
+      "id": "20261114T183358Z-4d5cf19",
+      "task": "Hidden features 1: mitts / ghost / bag cold start, model-load failure, honest results, mitt personal best",
+      "verdict": "ACCEPTED",
+      "commit": "4d5cf19",
+      "at": "2026-11-14T18:38:43.967Z",
+      "durationS": 285,
+      "level": "YELLOW",
+      "failedSteps": [],
+      "notRun": [
+        "rules"
+      ],
+      "metrics": {
+        "lint.errors": 0,
+        "lint.warnings": 23,
+        "typecheck.errors": 0,
+        "unit.passed": 613,
+        "unit.failed": 0,
+        "bundle.kb": 6375,
+        "punch.macroF1": 0.904,
+        "punch.recall": 0.897,
+        "punch.precision": 1,
+        "punch.phantoms": 0,
+        "visual.passed": 74,
+        "visual.failed": 0,
+        "visual.flaky": 0
+      },
+      "decision": null
+    },
+    {
       "id": "20261114T130726Z-c71ac70",
       "task": "Audit batch 1 final: guest claim retries scoring once; challenge save never bypasses a server refusal",
       "verdict": "ACCEPTED",

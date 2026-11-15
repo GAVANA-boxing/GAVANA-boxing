@@ -2,6 +2,76 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Hidden features, increment 2 — one Academy, little text, honest progress
+- **Lesson card on Train** (`TrainingFocusCard`): title + three cues; the common mistake and the drill
+  steps wait behind "Дэлгэрэнгүй"; no Start button of its own (the dock has the one primary action); the
+  daily card is not stacked under it; all labels MN / KO / EN; a technique drill never prints a boxer's
+  name (the `fighterName` prop is gone).
+- **What "done" means** (`lib/academyProgress.js`): a punch lesson (jab, cross, hook, double jab, body
+  shot) is done at 6.5 — the round score reflects it; a defence / footwork lesson is done by completing
+  a valid round, never "passed" by a punch score. A too-few-punches round records nothing. Progress is
+  recorded from the round's final score (the uncapped pixel-counter score used to be kept as the
+  lesson's best) and with the local date.
+- **After the round** (`AcademyLessonCard`): "✓ Хийгдсэн" / "5.0 / 6.5", then one 48 px action — do it
+  again, or the next lesson; MN / KO / EN (it was mostly English).
+- **Next lesson, at a glance** (`AcademyNextCard`): on Home for everyone who hasn't finished, and on the
+  Train start screen for a beginner — lesson number, title, ten progress dots from the real
+  `users.academyProgress`. Replaces the beginner card, whose "lesson 3 of 6" was derived from the
+  number of rounds and whose button led to a hidden page.
+- Lessons in teaching order, beginner → advanced (Double Jab was 9th, after the intermediate ones).
+- **Review of the two commits (each reviewed once; the second-reviewer pass hit the usage limit, so
+  every finding was checked by hand): 12 findings, fixed.** Three buttons did nothing when tapped ON
+  the Train page — the "next lesson" card on the start screen, and "again" / "next lesson" on the
+  after-round card: they pushed a URL the page was already on, and the page reads the lesson only on
+  mount. The page now opens a lesson in place (`openLesson`: clears the finished round first, then
+  sets the lesson and the address); "again" is the result screen's own button and is not repeated on
+  the card. The lesson status sits on the result itself (it was inside the folded details) and reads
+  the stored progress: a lesson finished earlier stays "Дууссан", the next lesson is the first one not
+  done (lessons can be done in any order), "all done" only when all are. One Academy lesson still
+  named a real boxer in its "common mistake" text — reworded in three languages, and a test now scans
+  every field a lesson card can print, in every language, for boxers' names. Home no longer shows the
+  empty / guest progress to a signed-in user while the profile loads. MN wording ("оноонд хүрвэл",
+  "Дууссан" everywhere). An early Finish in the mitt drill hides the record line. CV tests block the
+  service worker (it bypassed the "model cannot load" routes).
+- Tests: +11 unit (progress rules, order), render tests 153 → 175 (cards in three languages, every
+  status, handlers, no boxer names), `tests/cv/academy.spec.mjs` (a real round records the lesson from
+  the final score; "next lesson" after a finished lesson opens the next lesson on the same page), route
+  test extended (three cues, details closed, one card), 5 visual baselines (Home ×3 regenerated, lesson
+  card ×2 new).
+
+## Hidden features, increment 1 — the three extra modes work on a cold start (owner: "nuusan code uudiig unshaad heregtei zuilsuudiig gargaad ajluulaad saijruulaad", "hylbar amar mortloo mash goy ui ux")
+Map first: five read-only readers over every hidden / unlinked area (train modes, learning content,
+competition, social video, gyms / human coaches) — what each does, whether it works at HEAD against the
+rules, value for one user alone, risks, effort. Summary and the order of work: `docs/AI_TASK_BACKLOG.md`
+("HIDDEN FEATURES"). Correction to what I first told the owner: mitts / ghost / bag are NOT unlinked —
+Train's idle screen has an "other modes" row for them; what was wrong is that they broke on a cold start.
+- **Mitt drill, Ghost round:** the 3-2-1 waits for the pose model (spinner + Cancel) instead of starting
+  a round nothing can answer; a model that can't load goes back to the start with a message instead
+  of a silent 0 % result; the round clock no longer jumps back to 0:30 when the model becomes ready
+  (`hooks/useLatest.js`: the loop reads getDebugInfo through a ref). usePoseDetection shows "loading"
+  again on a retry after a failure.
+- **Mitt drill:** "we can't see you" cue; personal best per level kept on the device (`nextMittBest`),
+  shown on the start screen and on the result ("🏆 Шинэ рекорд"); MN name "Лапны дасгал", Бултах /
+  Шумбах instead of Slip / Roll; 44 px buttons.
+- **Ghost round:** Finish button in the top bar (44 px); the result table keeps the two rows a fighter
+  can act on (rear hand up on the jab, shoulder turn on the cross) — the combo count against the ghost's
+  fixed 3 and reach as a bare number are gone; Жэб / Кросс / Сүүдэр in MN.
+- **Heavy bag:** same clock fix; says so while the camera AI is loading or failed (the bag still takes
+  taps); the result shows punches, pace and the bag's biggest swing — the two "power" tiles are gone
+  (that number was a per-punch-type formula, not a measurement).
+- **Review of the increment (reviewed + verified): 5 findings, fixed.** "Start again" after a model-load
+  failure did not work: in mitts the next tap bounced straight back (the hook cleared the old failure one
+  commit too late — it now clears it while `load` is off), in ghost it could never retry (the hook loads
+  on mount; `load` now turns off on the failure), in bag a failed model stayed failed for the page
+  (`load` follows the round). Found while testing the fix: the browser remembers a failed module fetch
+  for the life of the page, so the pose bundle is imported under a new URL after a failure
+  (`?retry=N`) — without it no retry could ever reach the network. A mitt round ended early with
+  Finish no longer sets the personal best.
+- Tests: `tests/cv/modes.spec.mjs` — real MediaPipe + fake camera through all three modes: the clock
+  only counts down; no round starts while the model is held back (mitts, ghost); a model that can't load
+  gives the message and the next tap retries and starts the round (mitts, ghost); +6 unit (personal
+  best); 9 visual baselines regenerated on purpose (mitts intro / result, bag intro).
+
 ## Audit batch 1 — "make GAVANA flawless" (owner: "gavana g chamd daatgay", "Hiij baisan ajlaa urgeljluul")
 Read-only audit (9 dimensions planned; 3 verified so far: rules-vs-client, crash risk, core loop — 3 P0,
 12 P1, 14 P2, 4 P3; every finding re-checked by a second reviewer). Fixed in this batch:
