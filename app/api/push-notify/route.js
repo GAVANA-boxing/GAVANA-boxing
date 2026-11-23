@@ -1,5 +1,6 @@
 import { withAuth } from "@/lib/withAuth";
 import { pushCopy, PUSH_KINDS } from "@/lib/pushCopy";
+import { allowPair } from "@/lib/pairLimit";
 
 const PROJECT_ID = "gavana-boxing-89a22";
 
@@ -13,6 +14,7 @@ function isRateLimited(uid) {
   _rateMap.set(uid, entry);
   return entry.count > 20;
 }
+const _pairs = new Map();
 const FCM_V1_URL = `https://fcm.googleapis.com/v1/projects/${PROJECT_ID}/messages:send`;
 
 let _cachedToken = null;
@@ -81,6 +83,8 @@ export const POST = withAuth(async (req, { uid }) => {
   if (typeof recipientId !== "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(recipientId)) return Response.json({ error: "Invalid recipientId" }, { status: 400 });
   if (typeof kind !== "string" || !Object.hasOwn(PUSH_KINDS, kind)) return Response.json({ error: "Invalid kind" }, { status: 400 });
   if (recipientId === uid) return Response.json({ sent: 0 }); // no self-notify
+  // The same kind from the same person to the same person: 3 an hour (a follow / unfollow loop is spam).
+  if (!allowPair(_pairs, `${uid}>${recipientId}:${kind}`)) return Response.json({ error: "Rate limited" }, { status: 429 });
 
   const locale = await getRecipientLocale(recipientId, accessToken);
   const { title, body, url } = pushCopy(kind, { locale, actorName: typeof actorName === "string" ? actorName : "", actorId: uid });

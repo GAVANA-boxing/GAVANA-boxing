@@ -62,6 +62,17 @@ layout; their notes are applied below.
   test extended (three cues, details closed, one card), 5 visual baselines (Home ×3 regenerated, lesson
   card ×2 new).
 
+## Audit batch 2 (api-security, direct read of the routes) — owner: "Asuulgui urgeljluuleed hiildee"
+- All 18 API routes read: every one that touches user data is behind `withAuth` / `withAdmin`; Stripe
+  webhook verifies the signature; analytics is unauthenticated but rate-limited; score route is
+  server-authoritative. One gap fixed: `/api/push-notify` let one account send the same push to the
+  same stranger 20 times a minute — now 3 per hour per sender → recipient → kind (`lib/pairLimit.js`,
+  3 unit tests). Text and link were already chosen server-side.
+- Left (not an app risk): npm audit still lists 4 high advisories in `@grpc/grpc-js` (pulled in by the
+  Firebase web SDK; the browser build uses web channels, and the server routes call Firestore over
+  REST). Fixing needs a Firebase major bump — not worth the breakage risk now.
+- Not done: xp-truth, text-load, i18n, a11y-layout, perf-mobile dimensions.
+
 ## Hidden features, increment 1 — the three extra modes work on a cold start (owner: "nuusan code uudiig unshaad heregtei zuilsuudiig gargaad ajluulaad saijruulaad", "hylbar amar mortloo mash goy ui ux")
 Map first: five read-only readers over every hidden / unlinked area (train modes, learning content,
 competition, social video, gyms / human coaches) — what each does, whether it works at HEAD against the
