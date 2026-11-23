@@ -73,6 +73,12 @@ layout; their notes are applied below.
   REST). Fixing needs a Firebase major bump — not worth the breakage risk now.
 - Not done: xp-truth, text-load, i18n, a11y-layout, perf-mobile dimensions.
 
+## Audit batch 2 — xp-truth (direct read)
+- Home, Progress, sidebar, DNA and Train all read one XP (`useRankData` → `getAccountXp`); the result
+  screen shows only the XP the server awarded. One gap fixed: when that read failed the hook returned
+  0, so every screen showed the lowest rank — it now returns "unknown" and screens fall back to the
+  profile's stored XP.
+
 ## Audit batch 2 — i18n + touch targets (direct checks)
 - Locale files: 1,648 keys in each of en / mn / ko, none missing; only 2 mn and 1 ko values equal the English text
   (brand names). English left in the JSX of core screens: the fighter share card ("Scan to challenge",
