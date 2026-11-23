@@ -46,6 +46,7 @@ import Image from "next/image";
 import { useCoachPageActions } from "@/hooks/useCoachPageActions";
 import { SPECIALTIES, VIBE_FILTERS } from "@/lib/coachConstants";
 import AcademyPath from "@/components/coach/AcademyPath";
+import TechniquePacks from "@/components/coach/TechniquePacks";
 import DNACoachingCTA from "@/components/coach/DNACoachingCTA";
 import AISparringPartner from "@/components/coach/AISparringPartner";
 import { CORE_MODE } from "@/lib/coreRoutes";
@@ -176,7 +177,10 @@ export default function CoachPage() {
             </CoachSectionBoundary>
           </div>
 
-          {/* Technique quick-ask cards: removed — they named real boxers and sent a paid AI message on every tap. */}
+          {/* The 30 technique drills as four packs named by what they train (no boxer's name). */}
+          <CoachSectionBoundary fallbackText={L("Техникийн дасгал ачаалсангүй", "테크닉 드릴을 불러오지 못했어요", "Technique drills unavailable")}>
+            <div style={{ margin: "0 -16px" }}><TechniquePacks locale={locale} router={router} /></div>
+          </CoachSectionBoundary>
         </div>
       )}
 

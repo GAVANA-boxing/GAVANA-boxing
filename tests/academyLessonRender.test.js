@@ -9,6 +9,7 @@ import TrainingFocusCard from "@/components/train/TrainingFocusCard";
 import AcademyLessonCard from "@/components/train/AcademyLessonCard";
 import AcademyNextCard from "@/components/train/AcademyNextCard";
 import { FIGHTERS } from "@/lib/fighters";
+import TechniquePacks from "@/components/coach/TechniquePacks";
 import { tx } from "@/lib/loc";
 
 const LOCALES = ["mn", "ko", "en"];
@@ -217,3 +218,16 @@ function findByTestId(el, id) {
 function escapeHtml(s) {
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#x27;");
 }
+
+describe("TechniquePacks (Coach tab)", () => {
+  it("folded by default: one line, no boxer names, three languages", () => {
+    for (const locale of LOCALES) {
+      const html = renderToStaticMarkup(<TechniquePacks locale={locale} router={router} />);
+      expect(html).toContain("30");
+      expect(html).not.toContain("data-testid=\"pack-footwork\"");
+      for (const f of FIGHTERS) for (const w of String(f.name).split(/\s+/).filter((x) => x.length >= 5)) expect(html).not.toContain(w);
+    }
+    expect(renderToStaticMarkup(<TechniquePacks locale="mn" router={router} />)).toContain("Техникийн дасгал");
+  });
+});
+
