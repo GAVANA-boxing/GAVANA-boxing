@@ -1,11 +1,12 @@
 import { btnPrimary, btnSecondary, BRAND, displayTitle, kickerPill } from "@/components/ui/brand";
+import { homeBackground } from "@/components/home/HomeHero";
 import { BG, BORDER, BORDER_2, GOLD, RADIUS, RED, RED_DARK, TEXT, blackAlpha, goldAlpha, redAlpha, whiteAlpha } from "@/lib/tokens";
 
 const styles = {
   // ── Page shell ────────────────────────────────────────────────────────────
   page: {
     minHeight: "100dvh",
-    background: `radial-gradient(ellipse at 50% -5%, ${redAlpha(0.18)} 0%, transparent 48%), ${BG}`,
+    background: homeBackground, // design v2: the same warm dark-red page as Home
     color: TEXT,
     padding: "calc(68px + env(safe-area-inset-top)) 16px calc(120px + env(safe-area-inset-bottom))",
   },
