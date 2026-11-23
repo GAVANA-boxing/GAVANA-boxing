@@ -45,7 +45,6 @@ import { useCoachPageData } from "@/hooks/useCoachPageData";
 import Image from "next/image";
 import { useCoachPageActions } from "@/hooks/useCoachPageActions";
 import { SPECIALTIES, VIBE_FILTERS } from "@/lib/coachConstants";
-import TechniqueQuickAsk from "@/components/coach/TechniqueQuickAsk";
 import AcademyPath from "@/components/coach/AcademyPath";
 import DNACoachingCTA from "@/components/coach/DNACoachingCTA";
 import AISparringPartner from "@/components/coach/AISparringPartner";
@@ -169,15 +168,7 @@ export default function CoachPage() {
             <DNACoachingCTA userArchetype={userArchetype} locale={locale} router={router} />
           </CoachSectionBoundary>
 
-          <button type="button" data-testid="weekly-plan" onClick={() => router.push(`/${locale}/workout/builder`)}
-            style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", minHeight: 64, padding: "12px 16px", borderRadius: 18, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "#fff", cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}>
-            <span aria-hidden="true" style={{ fontSize: 24 }}>🗓️</span>
-            <span style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ display: "block", fontSize: 16, fontWeight: 800 }}>{L("Долоо хоногийн төлөвлөгөө", "주간 플랜", "Weekly plan")}</span>
-              <span style={{ display: "block", fontSize: 13, color: "rgba(255,255,255,0.65)", marginTop: 2 }}>{L("Зорилго, түвшин, өдрөө сонго — AI 7 хоногийн бэлтгэл гаргана", "목표·레벨·요일을 고르면 AI가 7일 훈련을 짜 줘요", "Pick goal, level and days — AI writes your week")}</span>
-            </span>
-            <span aria-hidden="true" style={{ color: "rgba(255,255,255,0.5)", fontSize: 18 }}>→</span>
-          </button>
+          {/* Weekly plan: unlinked until it is rebuilt as a short, tracked plan (it showed a blank plan on an AI error). */}
 
           <div style={{ margin: "0 -16px" }}>
             <CoachSectionBoundary fallbackText={L("Академи ачаалсангүй", "아카데미를 불러오지 못했어요", "Academy unavailable")}>
@@ -185,11 +176,7 @@ export default function CoachPage() {
             </CoachSectionBoundary>
           </div>
 
-          <div style={{ margin: "0 -16px" }}>
-            <CoachSectionBoundary fallbackText={L("Техникийн карт ачаалсангүй", "기술 카드를 불러오지 못했어요", "Technique cards unavailable")}>
-              <TechniqueQuickAsk locale={locale} router={router} />
-            </CoachSectionBoundary>
-          </div>
+          {/* Technique quick-ask cards: removed — they named real boxers and sent a paid AI message on every tap. */}
         </div>
       )}
 
