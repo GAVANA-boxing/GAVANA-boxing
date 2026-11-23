@@ -2,6 +2,10 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Hidden features, increment 4 — technique drill completion is recorded
+- A round with a technique drill (Coach tab → Train) records `drill:<fighter>/<n>` in `users.academyProgress` (valid ≥5-punch round = done; not score-gated); Coach packs show ✓.
+- Test: `techniquePacks.test.js` (progress key, too-few-punches records nothing).
+
 ## Hidden features, increment 3 — 30 technique drills as four packs (owner: "Urgeljluul")
 - `lib/techniquePacks.js`: every drill in exactly one of 4 packs (footwork, defence, combos, power), trilingual titles, no boxer names; `techniqueTitle` localizes the lesson card title on Train.
 - `components/coach/TechniquePacks.js`: one folded card on the Coach tab; a drill opens `/train?fighter=…&lesson=…`.
