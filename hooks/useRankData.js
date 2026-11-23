@@ -39,7 +39,9 @@ export function useRankData({ user, authLoading }) {
           setTier(profileData.subscriptionTier || null);
         }
       } catch {
-        if (active) setXp(0);
+        // Unknown, not zero: callers fall back to the profile's stored XP (a read error used to show
+        // everyone as the lowest rank).
+        if (active) setXp(null);
       } finally {
         if (active) setDataLoading(false);
       }
