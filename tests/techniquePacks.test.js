@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { techniquePacks, TECHNIQUE_PACKS, techniqueSlug, techniqueTitle } from "@/lib/techniquePacks";
+import { techniquePacks, TECHNIQUE_PACKS, techniqueSlug, techniqueTitle, drillProgressId } from "@/lib/techniquePacks";
 import { FIGHTER_TECHNIQUES } from "@/lib/fighterTechniques";
 import { FIGHTERS } from "@/lib/fighters";
 
@@ -38,5 +38,12 @@ describe("technique packs", () => {
   it("techniqueTitle gives the Mongolian / Korean / English title; unknown → null", () => {
     expect(techniqueTitle("mike-tyson", 0)).toEqual({ mn: "Толгойн хамгаалалттай орох", ko: "가드 올리고 들어가기", en: "Peekaboo Entry" });
     expect(techniqueTitle("nobody", 0)).toBeNull();
+  });
+  it("drill progress key matches the pack drill id; a valid round marks it done, too few punches nothing", async () => {
+    const { nextLessonEntry } = await import("../lib/academyProgress.js");
+    const d = techniquePacks("mn")[0].drills[0];
+    expect(`drill:${d.id}`).toBe(drillProgressId(...d.id.split("/")));
+    expect(nextLessonEntry(null, `drill:${d.id}`, { score: 4, punches: 8, dateKey: "2026-11-23" }).completed).toBe(true);
+    expect(nextLessonEntry(null, `drill:${d.id}`, { score: 4, punches: 2 })).toBeNull();
   });
 });

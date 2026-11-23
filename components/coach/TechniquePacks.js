@@ -10,7 +10,7 @@ import { BRAND, card, sectionLabel } from "@/components/ui/brand";
 const DIFF = { beginner: ["Анхан", "초급", "Beginner"], intermediate: ["Дунд", "중급", "Intermediate"], advanced: ["Ахисан", "고급", "Advanced"] };
 const DIFF_COLOR = { beginner: "#10B981", intermediate: "#F59E0B", advanced: "#F87171" };
 
-export default function TechniquePacks({ locale = "en", router }) {
+export default function TechniquePacks({ locale = "en", router, progress = {} }) {
   const [open, setOpen] = useState(false);
   const [packId, setPackId] = useState(null);
   const L = (mn, ko, en) => loc(locale, mn, ko, en);
@@ -52,6 +52,7 @@ export default function TechniquePacks({ locale = "en", router }) {
               <li key={d.id}>
                 <button type="button" data-testid="technique-drill" onClick={() => router.push(d.url)}
                   style={{ width: "100%", minHeight: 52, display: "flex", alignItems: "center", gap: 10, padding: "8px 0", background: "none", border: "none", borderTop: `1px solid ${BRAND.line}`, color: BRAND.text, fontFamily: "inherit", cursor: "pointer", textAlign: "left" }}>
+                  {progress[`drill:${d.id}`]?.completed && <span aria-label={L("Хийсэн", "완료", "Done")} style={{ flexShrink: 0, color: "#10B981", fontWeight: 800 }}>✓</span>}
                   <span style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 600, overflowWrap: "anywhere" }}>{loc(locale, d.title.mn, d.title.ko, d.title.en)}</span>
                   <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, color: DIFF_COLOR[d.difficulty] || BRAND.muted }}>{loc(locale, ...(DIFF[d.difficulty] || DIFF.intermediate))}</span>
                 </button>

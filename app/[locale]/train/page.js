@@ -22,7 +22,7 @@ import { BENCHMARKS } from "@/lib/benchmarks";
 import { calculateChallengeXP, getRankProgress } from "@/lib/xp";
 import { getChallengeRank } from "@/lib/utils";
 import { FIGHTERS } from "@/lib/fighters";
-import { techniqueTitle } from "@/lib/techniquePacks";
+import { techniqueTitle, drillProgressId } from "@/lib/techniquePacks";
 import { FIGHTER_TECHNIQUES } from "@/lib/fighterTechniques";
 import { ACADEMY_LESSONS } from "@/lib/academyLessons";
 import TrainingFocusCard from "@/components/train/TrainingFocusCard";
@@ -648,7 +648,7 @@ export default function TrainPage() {
     );
     // The drill's title in the user's language (lib/techniquePacks), not the English one.
     const lesson = idx >= 0 ? { ...lessons[idx], title: techniqueTitle(fighterId, idx) || lessons[idx].title } : null;
-    if (fighter && lesson) setLessonContext({ fighter, lesson });
+    if (fighter && lesson) setLessonContext({ fighter, lesson, drillId: drillProgressId(fighterId, idx) });
   }, []);
 
   // Open an Academy lesson on this page (the "next lesson" cards). The lesson context above is
@@ -683,8 +683,9 @@ export default function TrainPage() {
   useEffect(() => {
     // A new round starts clean, so two rounds in a row with the same score are both recorded.
     if (!result) { lastRecordedRef.current = { lessonId: null, score: null }; return; }
-    if (!result.score || !lessonContext?.academyLesson) return;
-    const lid = lessonContext.academyLesson.id;
+    // An Academy lesson, or a technique drill from the Coach tab (progress key drill:<fighter>/<n>).
+    const lid = lessonContext?.academyLesson?.id || lessonContext?.drillId;
+    if (!result.score || !lid) return;
     const pose = poseSessionSummary ?? computeSessionSummary();
     const punches = roundPunchCount(pose, result.hitCount);
     const { score } = finalRoundScore(pose?.score ?? result.score, {
@@ -696,7 +697,7 @@ export default function TrainPage() {
     lastRecordedRef.current = { lessonId: lid, score };
     recordSession(lid, score, punches);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [result?.score, lessonContext?.academyLesson?.id]);
+  }, [result?.score, lessonContext?.academyLesson?.id, lessonContext?.drillId]);
 
   // Auto-start when coming from landing with ?autostart=1
   const autoStartFiredRef = useRef(false);
