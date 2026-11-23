@@ -73,6 +73,15 @@ layout; their notes are applied below.
   REST). Fixing needs a Firebase major bump — not worth the breakage risk now.
 - Not done: xp-truth, text-load, i18n, a11y-layout, perf-mobile dimensions.
 
+## Audit batch 2 — i18n + touch targets (direct checks)
+- Locale files: 1,648 keys in each of en / mn / ko, none missing; only 2 mn and 1 ko values equal the English text
+  (brand names). English left in the JSX of core screens: the fighter share card ("Scan to challenge",
+  "Movement identity") and the English-only aria-labels of the main navigation and the 3D replay
+  (close, timeline) — now three languages.
+- Touch targets: result actions, punch teardown, 3D replay controls, coach team buttons raised from
+  40 to 44 px (9 visual baselines regenerated on purpose).
+- Still open: perf-mobile, text-load, xp-truth dimensions; 34–38 px controls in the hidden coach dashboard.
+
 ## Hidden features, increment 1 — the three extra modes work on a cold start (owner: "nuusan code uudiig unshaad heregtei zuilsuudiig gargaad ajluulaad saijruulaad", "hylbar amar mortloo mash goy ui ux")
 Map first: five read-only readers over every hidden / unlinked area (train modes, learning content,
 competition, social video, gyms / human coaches) — what each does, whether it works at HEAD against the

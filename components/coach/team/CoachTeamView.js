@@ -155,7 +155,7 @@ const wrap = {
   padding: "calc(24px + env(safe-area-inset-top)) 16px calc(110px + env(safe-area-inset-bottom))",
 };
 const pill = {
-  minHeight: 40, padding: "0 14px", borderRadius: 999, border: `1px solid ${BRAND.line}`,
+  minHeight: 44, padding: "0 14px", borderRadius: 999, border: `1px solid ${BRAND.line}`,
   background: "rgba(255,255,255,0.05)", color: BRAND.text, fontFamily: "inherit", fontSize: 14, fontWeight: 600, cursor: "pointer",
 };
 const stepBtn = {

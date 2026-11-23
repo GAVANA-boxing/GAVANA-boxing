@@ -589,7 +589,7 @@ const styles = {
     lineHeight: 1,
   },
   ghostToggleOn: {
-    minHeight: 40,
+    minHeight: 44,
     border: `1px solid ${whiteAlpha(0.2)}`,
     borderRadius: 12,
     background: whiteAlpha(0.08),
@@ -599,7 +599,7 @@ const styles = {
     cursor: "pointer",
   },
   ghostToggleOff: {
-    minHeight: 40,
+    minHeight: 44,
     border: `1px solid ${BORDER_2}`,
     borderRadius: 12,
     background: "transparent",

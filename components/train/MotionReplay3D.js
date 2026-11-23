@@ -248,7 +248,7 @@ export default function MotionReplay3D({ replay: rawReplay, ghost = null, locale
   const secs = (ms) => `${(ms / 1000).toFixed(1)}s`;
 
   const btn = (active) => ({
-    minHeight: 40, padding: "0 12px", borderRadius: RADIUS.sm, cursor: "pointer", fontFamily: "inherit",
+    minHeight: 44, padding: "0 12px", borderRadius: RADIUS.sm, cursor: "pointer", fontFamily: "inherit",
     fontSize: FONT_SIZE.sm, fontWeight: FONT_WEIGHT.bold,
     border: `1px solid ${active ? redAlpha(0.55) : whiteAlpha(0.12)}`,
     background: active ? redAlpha(0.16) : whiteAlpha(0.04),
@@ -272,7 +272,7 @@ export default function MotionReplay3D({ replay: rawReplay, ghost = null, locale
             )}
           </div>
         </div>
-        <button type="button" onClick={onClose} aria-label="Close" style={{ ...btn(false), fontSize: 18, padding: "4px 12px" }}>×</button>
+        <button type="button" onClick={onClose} aria-label={L("Хаах", "닫기", "Close")} style={{ ...btn(false), fontSize: 18, padding: "4px 12px" }}>×</button>
       </div>
 
       <div ref={mountRef} style={{ flex: 1, minHeight: 240, position: "relative", touchAction: "none" }}>
@@ -303,7 +303,7 @@ export default function MotionReplay3D({ replay: rawReplay, ghost = null, locale
             max={focus ? Math.round(focus.endT + FOCUS_PAD_MS) : Math.round(replay.duration)}
             value={Math.round(ui.t)}
             onChange={(e) => set({ t: Number(e.target.value), playing: false })}
-            aria-label="Timeline"
+            aria-label={L("Цагийн шугам", "타임라인", "Timeline")}
             style={{ width: "100%", accentColor: RED }}
           />
           {!focus && replay.punches.map((pk, i) => (
@@ -347,7 +347,7 @@ export default function MotionReplay3D({ replay: rawReplay, ghost = null, locale
                 const on = style.skin === c;
                 return (
                   <button key={c} type="button" role="radio" aria-checked={on} aria-label={`${L("Арьсны өнгө", "피부 톤", "Skin tone")} ${i + 1}`} onClick={() => setStyle({ skin: i })}
-                    style={{ width: 40, height: 40, borderRadius: RADIUS.full, cursor: "pointer", background: c, border: on ? `3px solid ${RED}` : `2px solid ${whiteAlpha(0.18)}` }} />
+                    style={{ width: 44, height: 44, borderRadius: RADIUS.full, cursor: "pointer", background: c, border: on ? `3px solid ${RED}` : `2px solid ${whiteAlpha(0.18)}` }} />
                 );
               })}
             </div>
