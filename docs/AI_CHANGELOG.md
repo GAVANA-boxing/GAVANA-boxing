@@ -2,6 +2,11 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Hidden features, increment 3 — 30 technique drills as four packs (owner: "Urgeljluul")
+- `lib/techniquePacks.js`: every drill in exactly one of 4 packs (footwork, defence, combos, power), trilingual titles, no boxer names; `techniqueTitle` localizes the lesson card title on Train.
+- `components/coach/TechniquePacks.js`: one folded card on the Coach tab; a drill opens `/train?fighter=…&lesson=…`.
+- Tests: `techniquePacks.test.js`, render test, visual "technique drill opens on Train". Full gate not used (Next nudge breaks its build step); lint/tsc/vitest/playwright + CI instead.
+
 ## Design v2 — Home (owner sent four UI references: "Ui ux design sanaa ogch baina", "hylbar amar mortloo mash goy ui ux")
 Taken from the references: a warm dark-red page, big rounded glass cards, a hero figure breaking out of
 its card, the rank in large display type, progress as dials / dots instead of sentences, a white pill

@@ -301,3 +301,19 @@ test("academy lesson opens on Train", async ({ page, context }) => {
   expect((await card.getByTestId("lesson-more").boundingBox()).height).toBeGreaterThanOrEqual(44);
   expect(errors).toEqual([]);
 });
+
+// A technique drill opens on Train as a lesson card with a title in the user's language and no boxer's name.
+test("technique drill opens on Train in Mongolian, without a boxer's name", async ({ page, context }) => {
+  await context.grantPermissions(["camera"]);
+  await prepare(page, "NotAllowedError");
+  await page.setViewportSize({ width: 390, height: 844 });
+  const errors = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto("/mn/train?fighter=mike-tyson&lesson=peekaboo-entry", { waitUntil: "load" });
+  const card = page.getByTestId("lesson-card");
+  await expect(card).toBeVisible({ timeout: 20_000 });
+  await expect(card).toContainText("Толгойн хамгаалалттай орох");
+  for (const name of ["Tyson", "Тайсон"]) await expect(card).not.toContainText(name);
+  expect(errors).toEqual([]);
+});
+

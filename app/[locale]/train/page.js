@@ -22,6 +22,7 @@ import { BENCHMARKS } from "@/lib/benchmarks";
 import { calculateChallengeXP, getRankProgress } from "@/lib/xp";
 import { getChallengeRank } from "@/lib/utils";
 import { FIGHTERS } from "@/lib/fighters";
+import { techniqueTitle } from "@/lib/techniquePacks";
 import { FIGHTER_TECHNIQUES } from "@/lib/fighterTechniques";
 import { ACADEMY_LESSONS } from "@/lib/academyLessons";
 import TrainingFocusCard from "@/components/train/TrainingFocusCard";
@@ -642,9 +643,11 @@ export default function TrainPage() {
     if (!fighterId || !lessonSlug) return;
     const fighter = FIGHTERS.find(f => f.id === fighterId);
     const lessons = FIGHTER_TECHNIQUES[fighterId] || [];
-    const lesson = lessons.find(l =>
+    const idx = lessons.findIndex(l =>
       l.title.toLowerCase().replace(/\s+/g, "-") === lessonSlug
     );
+    // The drill's title in the user's language (lib/techniquePacks), not the English one.
+    const lesson = idx >= 0 ? { ...lessons[idx], title: techniqueTitle(fighterId, idx) || lessons[idx].title } : null;
     if (fighter && lesson) setLessonContext({ fighter, lesson });
   }, []);
 
