@@ -2,6 +2,15 @@
 
 Status: TODO · BLOCKED (needs approval) · DONE. Highest priority first.
 
+## DESIGN V2 — from the owner's references (2026-11-14)
+1. (DONE) Home: hero with the fighter, rank, XP left, one action; week dots; score dials.
+2. Same language on the other core screens, one per cycle, each judged on screenshots before it ships:
+   Train start screen (glass dock, the lesson / next-lesson card), Progress (dials + the rank journey),
+   round result (score dial as the hero, one fix, one action), Coach tab, Profile.
+3. Shared pieces to move into `components/ui`: `glass`, `ArrowPill`, `homeBackground` (now in
+   `components/home/HomeHero.js`); replace the remaining emoji icons (lesson emoji, 🔥) with line icons.
+4. Hero image: a render per rank colour (gloves / trunks), and the user's own "classic" avatar.
+
 ## HIDDEN FEATURES — owner 2026-11-14: "bring out what is useful, make it work, simple and beautiful"
 Map of every hidden / unlinked area (5 readers, one each, claims re-checked when implemented). Order =
 value for ONE user ÷ risk. Rules for all of it: one main action per screen, little text, progress at a

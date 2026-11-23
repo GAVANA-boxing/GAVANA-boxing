@@ -10,10 +10,11 @@ import { BRAND, card } from "@/components/ui/brand";
 
 // onOpen(lesson): used on the Train page itself, where a router.push to the same page changes
 // only the URL (the lesson is read once on mount) — the page opens the lesson in place instead.
-export default function AcademyNextCard({ lessonProgress, locale = "en", router, onOpen, compact = false }) {
+export default function AcademyNextCard({ lessonProgress, locale = "en", router, onOpen, compact = false, accent: accentOverride = null }) {
   const { total, done, next, nextIndex } = academySummary(ACADEMY_LESSONS, lessonProgress);
   if (!next) return null; // all lessons done — nothing to push
-  const accent = next.accentColor || BRAND.gold;
+  // Each lesson has its own colour; a screen with its own palette (Home) passes one accent.
+  const accent = accentOverride || next.accentColor || BRAND.gold;
   const L = (mn, ko, en) => loc(locale, mn, ko, en);
 
   return (

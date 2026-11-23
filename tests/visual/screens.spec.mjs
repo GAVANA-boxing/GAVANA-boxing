@@ -5,6 +5,9 @@ import { test, expect } from "@playwright/test";
 // "train" is the camera-denied studio (getUserMedia rejected with NotAllowedError).
 const SCREENS = [
   { name: "today", path: "/home" },
+  // Home v2 with data (streak, week, score dials, trend) and for a brand-new account.
+  { name: "home", path: "/visual/home" },
+  { name: "home-new", path: "/visual/home-new" },
   { name: "train", path: "/train", mask: ["video", "canvas"], camera: "NotAllowedError" },
   { name: "result", path: "/visual/result" },
   { name: "progress", path: "/visual/progress" },

@@ -109,10 +109,15 @@ export default function VisualFixture() {
     );
   }
 
-  if (params?.screen === "home-card" || params?.screen === "home-poster") {
-    // Home v2 — the two layouts of the hero over the same (invented-for-the-fixture) numbers.
-    const layout = params.screen === "home-poster" ? "poster" : "card";
+  if (params?.screen === "home" || params?.screen === "home-new") {
+    // Home v2 with fixture numbers. "home": a fighter with rounds this week (the streak and the
+    // dots agree: Tue, Wed and today). "home-new": a brand-new account — no streak, no rounds.
+    const fresh = params.screen === "home-new";
     const L3 = (mn, ko, en) => (locale === "mn" ? mn : locale === "ko" ? ko : en);
+    const d = (trained, past, today = false) => ({ trained, past, today });
+    const week = fresh
+      ? { days: [d(false, true), d(false, true), d(false, true), d(false, false, true), d(false, false), d(false, false), d(false, false)], trainedCount: 0 }
+      : { days: [d(false, true), d(true, true), d(true, true), d(true, false, true), d(false, false), d(false, false), d(false, false)], trainedCount: 3 };
     return (
       <main style={{ minHeight: "100dvh", background: homeBackground, color: "#fff", padding: "14px 16px 110px" }}>
         <div style={{ maxWidth: 480, margin: "0 auto" }}>
@@ -122,12 +127,15 @@ export default function VisualFixture() {
               <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
             </span>
           </div>
-          <HomeHero layout={layout} locale={locale} name={L3("Бат-Эрдэнэ", "바트에르덴", "Bat-Erdene")} rankName={t("rankBronzeBelt")} xp={1240} rankPct={62} nextRankName={t("rankSilverBelt") || null} streak={3} avatar="m" onStart={() => {}} />
-          <div style={{ marginTop: 14 }}>
-            <HomeStats locale={locale} week={[true, true, false, true, false, false, false]} todayIndex={3} weekLabels={L3(["Да", "Мя", "Лх", "Пү", "Ба", "Бя", "Ня"], ["월", "화", "수", "목", "금", "토", "일"], ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"])} avg={6.8} best={8.4} onOpen={() => {}} />
+          <HomeHero locale={locale} name={L3("Бат-Эрдэнэ", "바트에르덴", "Bat-Erdene")}
+            rankName={t(fresh ? "rankAmateurBelt" : "rankBronzeBelt")} xp={fresh ? 0 : 1240} rankPct={fresh ? 0 : 62}
+            nextRankName={t(fresh ? "rankBronzeBelt" : "rankSilverBelt")} xpToNext={fresh ? 500 : 760} streak={fresh ? 0 : 3} avatar="m" onStart={() => {}} />
+          <div style={{ marginTop: 12 }}>
+            <HomeStats locale={locale} week={week} weekLabels={L3(["Да", "Мя", "Лх", "Пү", "Ба", "Бя", "Ня"], ["월", "화", "수", "목", "금", "토", "일"], ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"])}
+              rounds={fresh ? 0 : 14} avg={fresh ? null : 6.8} best={fresh ? null : 8.4} trend={fresh ? null : 0.4} onOpen={() => {}} />
           </div>
-          <div style={{ marginTop: 14 }}>
-            <AcademyNextCard lessonProgress={{ "jab-mechanics": { completed: true }, "cross-mechanics": { completed: true } }} locale={locale} router={{ push() {} }} compact />
+          <div style={{ marginTop: 12 }}>
+            <AcademyNextCard lessonProgress={fresh ? {} : { "jab-mechanics": { completed: true }, "cross-mechanics": { completed: true } }} locale={locale} router={{ push() {} }} compact accent="#F5C451" />
           </div>
         </div>
       </main>
