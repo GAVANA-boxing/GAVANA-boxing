@@ -25,8 +25,8 @@ export function ScoreDial({ value, max = 10, width = 112, stroke = 10, color = B
         {has && <path d={d} fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeDasharray={`${arc * f} ${arc}`} />}
       </svg>
       <span aria-hidden="true" style={{ position: "absolute", left: 0, right: 0, bottom: 0, textAlign: "center", lineHeight: 1, color: BRAND.text }}>
-        <span style={{ fontFamily: "var(--font-display)", fontSize: 30 }}>{text}</span>
-        {has && <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.6)" }}> /{max}</span>}
+        <span style={{ fontFamily: "var(--font-display)", fontSize: Math.round(width * 0.27) }}>{text}</span>
+        {has && <span style={{ fontSize: Math.max(13, Math.round(width * 0.11)), fontWeight: 700, color: "rgba(255,255,255,0.6)" }}> /{max}</span>}
       </span>
     </div>
   );

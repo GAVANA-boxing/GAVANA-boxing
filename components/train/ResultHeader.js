@@ -2,6 +2,7 @@
 
 import { BRAND, kickerPill, kickerDot, displayTitle } from "@/components/ui/brand";
 import { loc } from "@/lib/loc";
+import { ScoreDial } from "@/components/ui/gauges";
 
 // Result hero: what kind of round it was, the score, and the punch mix — the
 // three things a fighter looks at first. Same visual language as the landing.
@@ -26,6 +27,7 @@ export default function ResultHeader({
   locale,
   t,
 }) {
+  const L = (mn, ko, en) => loc(locale, mn, ko, en);
   const kicker = mode === "pvp"
     ? loc(locale, "Тулааны дүн", "대결 결과", "Fight result")
     : mode === "challenge"
@@ -82,19 +84,15 @@ export default function ResultHeader({
         </div>
       ) : (
         <>
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 14, marginTop: 16 }}>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-              <span style={{ ...displayTitle, fontSize: 68, lineHeight: 0.9 }}>{displayScore.toFixed(1)}</span>
-              <span style={{ fontSize: 16, fontWeight: 600, color: BRAND.faint }}>/10</span>
+          {/* The score as a dial (design v2): the number counts up inside it, the round's label beside it */}
+          <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 16 }}>
+            <div data-testid="result-score" style={{ flexShrink: 0 }}>
+              <ScoreDial value={displayScore} width={168} stroke={14} color={conf?.color || BRAND.gold} label={L("Оноо", "점수", "Score")} />
             </div>
-            <div style={{ minWidth: 0, paddingBottom: 4 }}>
-              <div style={{ ...displayTitle, fontSize: 20, color: BRAND.text, overflowWrap: "anywhere" }}>{identity?.title}</div>
-              {identity?.sub && <div style={{ marginTop: 4, fontSize: 13, color: BRAND.muted }}>{identity.sub}</div>}
+            <div style={{ minWidth: 0 }}>
+              <div style={{ ...displayTitle, fontSize: 24, color: BRAND.text, overflowWrap: "anywhere" }}>{identity?.title}</div>
+              {identity?.sub && <div style={{ marginTop: 6, fontSize: 14, color: BRAND.muted }}>{identity.sub}</div>}
             </div>
-          </div>
-
-          <div style={{ marginTop: 14, height: 6, borderRadius: 3, background: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${(displayScore / 10) * 100}%`, borderRadius: 3, background: `linear-gradient(90deg, ${BRAND.red}, ${BRAND.gold})`, transition: "width 0.04s linear" }} />
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 16 }}>
