@@ -95,7 +95,7 @@ export default function BottomNav({ router, user, currentLocale = "en", activeTa
         onPointerLeave={onInteractEnd}
         onPointerUp={onInteractEnd}
         onPointerCancel={onInteractEnd}
-        aria-label="Primary navigation"
+        aria-label={loc(locale, "Үндсэн цэс", "메인 메뉴", "Primary navigation")}
       >
         {CORE_MODE ? (
           <IconTab active={resolvedActiveTab === "home"} onClick={() => go("home", "/home")} label={loc(locale, "Нүүр", "홈", "Home")} showLabel={flashing === "home"}>

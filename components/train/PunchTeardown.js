@@ -106,7 +106,7 @@ export default function PunchTeardown({ replay, locale, onClose }) {
             const ph = td.phases[i];
             return (
               <button key={key} type="button" aria-pressed={on} onClick={() => seek(key === "extend" ? ph.endT : (ph.startT + ph.endT) / 2)} style={{
-                minHeight: 40, padding: "6px 4px", borderRadius: 8, textAlign: "center", cursor: "pointer", fontFamily: "inherit",
+                minHeight: 44, padding: "6px 4px", borderRadius: 8, textAlign: "center", cursor: "pointer", fontFamily: "inherit",
                 background: on ? redAlpha(0.85) : blackAlpha(0.55),
                 border: `1px solid ${on ? RED : whiteAlpha(0.14)}`,
                 color: on ? "#fff" : whiteAlpha(0.7), fontSize: 11, fontWeight: FONT_WEIGHT.black, letterSpacing: 0.4,
@@ -146,7 +146,7 @@ export default function PunchTeardown({ replay, locale, onClose }) {
           const on = i === sel;
           return (
             <button key={it.index} type="button" role="radio" aria-checked={on} onClick={() => setSel(i)} style={{
-              flexShrink: 0, minHeight: 40, padding: "0 12px", borderRadius: 999, cursor: "pointer", fontFamily: "inherit",
+              flexShrink: 0, minHeight: 44, padding: "0 12px", borderRadius: 999, cursor: "pointer", fontFamily: "inherit",
               display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 700,
               border: `1px solid ${on ? redAlpha(0.6) : whiteAlpha(0.14)}`,
               background: on ? redAlpha(0.16) : whiteAlpha(0.04), color: on ? "#fff" : whiteAlpha(0.8),

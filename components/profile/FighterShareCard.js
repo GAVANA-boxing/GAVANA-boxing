@@ -1,5 +1,6 @@
 "use client";
 
+import { loc } from "@/lib/loc";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { RADIUS, blackAlpha, whiteAlpha } from "@/lib/tokens";
 import { ARCHETYPE_DISPLAY, archetypeName, normalizeArchetype } from "@/lib/archetypes";
@@ -89,7 +90,7 @@ function CombatRadar({ stats, size = 160, uid = "fc" }) {
 }
 
 // ── QR + URL ──────────────────────────────────────────────────────────────────
-function ProfileUrlBlock({ url, qrSize = 72 }) {
+function ProfileUrlBlock({ url, qrSize = 72, locale = "en" }) {
   const [copied, setCopied] = useState(false);
   const canvasRef = useRef(null);
   useEffect(() => {
@@ -112,7 +113,7 @@ function ProfileUrlBlock({ url, qrSize = 72 }) {
         <canvas ref={canvasRef} style={{ borderRadius: 4 }} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 11, fontWeight: 900, color: "rgba(215,220,228,0.7)", marginBottom: 2, letterSpacing: "0.1em", textTransform: "uppercase" }}>Scan to Challenge</div>
+        <div style={{ fontSize: 11, fontWeight: 900, color: "rgba(215,220,228,0.7)", marginBottom: 2, letterSpacing: "0.1em", textTransform: "uppercase" }}>{loc(locale, "Скан хий — сорь", "스캔하고 도전", "Scan to challenge")}</div>
         <div style={{ fontSize: 11, color: CTEXT, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginBottom: 8 }}>
           {url.replace(/^https?:\/\//, "")}
         </div>
@@ -420,7 +421,7 @@ export default function FighterShareCard({
             {/* Desktop: combat identity right column */}
             {isDesktop && identity && (
               <div style={{ flex: 1, minWidth: 0, padding: "11px 13px", borderRadius: RADIUS.lg, background: "rgba(176,24,16,0.05)", border: `1px solid rgba(176,24,16,0.13)` }}>
-                <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: CTEXT, textTransform: "uppercase", marginBottom: 4 }}>Movement Identity</div>
+                <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: CTEXT, textTransform: "uppercase", marginBottom: 4 }}>{loc(locale, "Хөдөлгөөний хэв маяг", "움직임 스타일", "Movement identity")}</div>
                 <div style={{ fontSize: 14, fontWeight: 1000, color: "#fff", fontFamily: "var(--font-display, 'Anton', sans-serif)", lineHeight: 1.2, marginBottom: 4 }}>
                   {identity.primary}
                 </div>
@@ -442,7 +443,7 @@ export default function FighterShareCard({
           {/* ── Mobile: combat identity ── */}
           {!isDesktop && identity && (
             <div style={{ marginBottom: 10, padding: "9px 11px", borderRadius: RADIUS.lg, background: "rgba(176,24,16,0.05)", border: `1px solid rgba(176,24,16,0.12)` }}>
-              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: CTEXT, textTransform: "uppercase", marginBottom: 3 }}>Movement Identity</div>
+              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 2, color: CTEXT, textTransform: "uppercase", marginBottom: 3 }}>{loc(locale, "Хөдөлгөөний хэв маяг", "움직임 스타일", "Movement identity")}</div>
               <div style={{ fontSize: 12, fontWeight: 1000, color: "#fff", fontFamily: "var(--font-display, 'Anton', sans-serif)", lineHeight: 1.2, marginBottom: 3 }}>
                 {identity.primary}
               </div>
@@ -506,7 +507,7 @@ export default function FighterShareCard({
           <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${CSTEEL}, transparent)`, marginBottom: isDesktop ? 14 : 10 }} />
 
           {/* ── QR / URL ── */}
-          {profileUrl && <ProfileUrlBlock url={profileUrl} qrSize={isDesktop ? 80 : 60} />}
+          {profileUrl && <ProfileUrlBlock url={profileUrl} qrSize={isDesktop ? 80 : 60} locale={locale} />}
         </div>
 
         {/* ── Action buttons ── */}
