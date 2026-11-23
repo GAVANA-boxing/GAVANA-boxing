@@ -13,6 +13,7 @@ import { useCombatMemory } from "@/hooks/useCombatMemory";
 import BottomNav from "@/components/BottomNav";
 import RankPromotionModal from "@/components/RankPromotionModal";
 import ProgressView from "@/components/progress/ProgressView";
+import { homeBackground } from "@/components/home/HomeHero";
 
 // Progress: one place for "how am I doing" — the rank ladder (one XP number,
 // one ladder), the key numbers, the score trend, the punch mix, Fighter DNA and
@@ -70,5 +71,5 @@ export default function ProgressPage() {
 const page = {
   minHeight: "100dvh",
   color: "#fff",
-  background: "radial-gradient(ellipse 80% 40% at 50% -10%, rgba(255,59,48,0.16) 0%, transparent 60%), #08080a",
+  background: homeBackground,
 };

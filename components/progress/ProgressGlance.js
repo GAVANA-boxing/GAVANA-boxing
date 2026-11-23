@@ -6,7 +6,8 @@
 import { loc } from "@/lib/loc";
 import { progressGlance } from "@/lib/progressStats";
 import ScoreTrendChart from "@/components/progress/ScoreTrendChart";
-import { BRAND, card, displayTitle } from "@/components/ui/brand";
+import { BRAND, displayTitle } from "@/components/ui/brand";
+import { glass as card } from "@/components/home/HomeHero";
 
 const UP = "#34D399";
 const DOWN = "#F87171";

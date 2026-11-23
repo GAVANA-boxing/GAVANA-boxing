@@ -5,7 +5,8 @@ import { RANK_TIERS } from "@/lib/xp";
 import { shortDate } from "@/lib/progressStats";
 import HowToEarnXP from "@/components/rank/HowToEarnXP";
 import ProgressGlance from "@/components/progress/ProgressGlance";
-import { BRAND, btnSecondary, card, displayTitle, kickerDot, kickerPill, sectionLabel } from "@/components/ui/brand";
+import { BRAND, btnSecondary, displayTitle, kickerDot, kickerPill, sectionLabel } from "@/components/ui/brand";
+import { glass as card } from "@/components/home/HomeHero"; // design v2: the same glass card as Home
 import { BENCHMARKS, benchmarkBests } from "@/lib/benchmarks";
 
 const MIX = [
@@ -34,7 +35,7 @@ export default function ProgressView({ locale, t, loading, currentXP, rank, next
         </header>
 
         {/* Rank: one XP number, one ladder */}
-        <section style={{ ...card, padding: 18 }}>
+        <section style={{ ...card, padding: 18, background: "linear-gradient(135deg, rgba(200,55,45,0.55) 0%, rgba(143,26,28,0.45) 50%, rgba(58,13,16,0.5) 100%)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
             <span style={{ ...displayTitle, fontSize: 28 }}>{currentXP.toLocaleString()} <span style={{ fontSize: 14, color: BRAND.faint }}>XP</span></span>
             {nextRank && <span style={{ fontSize: 13, color: BRAND.muted, textAlign: "right" }}>{L("Дараагийн цол", "다음 등급", "Next")}: <b style={{ color: BRAND.text, fontWeight: 600 }}>{t(nextRank.key)}</b></span>}
