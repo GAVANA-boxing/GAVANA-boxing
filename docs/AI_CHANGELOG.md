@@ -73,6 +73,12 @@ layout; their notes are applied below.
   REST). Fixing needs a Firebase major bump — not worth the breakage risk now.
 - Not done: xp-truth, text-load, i18n, a11y-layout, perf-mobile dimensions.
 
+## Audit batch 2 — text-load on the Coach tab
+- The AI tab was a stack of eight blocks. Removed two: the weekly-plan link (it showed a blank saved plan on
+  an AI error / quota and is a wall of text) and the technique quick-ask strip (20 cards that printed real
+  boxers' names and sent a paid AI message on every tap). Left: chat, drill builder, sparring partner,
+  DNA coaching, the Academy. The code stays; both come back rebuilt (backlog "HIDDEN FEATURES" 3–4).
+
 ## Audit batch 2 — xp-truth (direct read)
 - Home, Progress, sidebar, DNA and Train all read one XP (`useRankData` → `getAccountXp`); the result
   screen shows only the XP the server awarded. One gap fixed: when that read failed the hook returned
