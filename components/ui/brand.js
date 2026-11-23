@@ -117,4 +117,5 @@ export const glassCard = {
 };
 
 // The page background every app page shares: near-black with a red glow on top.
-export const pageBackground = "radial-gradient(ellipse 80% 40% at 50% -10%, rgba(255,59,48,0.16) 0%, transparent 60%), #08080a";
+// Design v2: one warm dark-red page for every app screen (same as Home).
+export const pageBackground = "radial-gradient(120% 50% at 50% -8%, #5e161b 0%, #2c0d10 42%, transparent 80%), radial-gradient(90% 40% at 80% 62%, rgba(120,26,30,0.38) 0%, transparent 70%), #120708";
