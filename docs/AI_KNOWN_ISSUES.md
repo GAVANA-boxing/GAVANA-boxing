@@ -77,5 +77,5 @@
 - `npm audit` reports issues in the dependency tree (pre-existing; not introduced by R3F/cannon-es —
   check before upgrading).
 
-- **Perf (mobile, measured once, emulated slow 4G):** Train page JS 650–800 KB and it shows a spinner until Firebase auth resolves (guest rendering before auth is possible but changes the `authLoading` gate — needs care). Inter latin+cyrillic ~160 KB. See AI_CHANGELOG "Perf-mobile audit".
+- **Perf (mobile, measured once, emulated slow 4G):** Train / login are client-rendered: on emulated slow 4G the content appears after ~5.9 s / ~4.3 s because ~650–800 KB of JS must arrive first (bandwidth-bound; the server HTML is only a loading text). Lever: fewer bytes on the critical path (split heavy Train modules, drop shared chunks), or a server-rendered shell. Not a guest-before-auth problem. Inter latin+cyrillic ~160 KB. See AI_CHANGELOG "Perf-mobile audit".
 
