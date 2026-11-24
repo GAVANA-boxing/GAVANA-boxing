@@ -2,6 +2,12 @@
 
 One entry per cycle that changed code. Newest first.
 
+## AI drill builder fixes (/api/chat, drills page)
+- Fighter context now matches whole words only (`lib/chatFighterContext.js`): "ali" no longer fired inside "valid" and injected Muhammad Ali into every drill request.
+- `purpose: "drills"`: the server asks for the raw JSON array only (the chat-bubble FORMAT_INSTRUCTIONS contradicted it) and allows 1400 tokens (5 drills did not fit in 700).
+- Drills page: daily-limit reply (`quotaExceeded`) shows the limit message instead of "AI returned an unexpected format".
+- Test: `chatFighterContext.test.js`.
+
 ## Hidden features, increment 5 — the five preset drills are chips on Train
 - `components/train/DrillChips.js`: shadowboxing, jab rhythm, pressure, defence, footwork (name + length); a chip sets the round's drill in place (`setDrillId` from `useTrainingData`), tap again = default round. Hidden for challenges, reels, benchmarks and lessons.
 - Visual baselines of Train regenerated (chip row); new visual test "drill chips choose a preset drill".

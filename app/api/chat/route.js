@@ -5,6 +5,7 @@ import { firestoreGet, firestorePatch } from "@/lib/server/firestore";
 import { isProUser, AI_CHAT_FREE_DAILY } from "@/lib/pro";
 import { withAuth } from "@/lib/withAuth";
 import OpenAI from "openai";
+import { getFighterContext } from "@/lib/chatFighterContext";
 
 const _chatRateMap = new Map();
 function isChatRateLimited(key) {
@@ -64,28 +65,6 @@ const GAVANA_CONTEXT =
   "Never write more than what's needed. Silence is better than noise. " +
   "Honesty rule: only state measurements that appear in the data you were given. Never invent statistics, " +
   "percentages, punch counts or observations the camera did not report.";
-
-// ── Fighter-specific context injection ───────────────────────────────────────
-const FIGHTER_CONTEXT = {
-  "tyson":      "Mike Tyson fought from inside range using peekaboo defense. His signature: explosive entry + short hooks from hip load.",
-  "ali":        "Muhammad Ali used lateral movement, jab control, and pull-counters. He made opponents miss, then punished.",
-  "inoue":      "Naoya Inoue attacks the body first to open the head. Patient pressure with explosive counter timing.",
-  "bivol":      "Dmitry Bivol controls distance with a systematic jab. Guard resets after every punch. Never stationary.",
-  "lomachenko": "Vasyl Lomachenko creates angles through pivots. He attacks from unexpected angles — never straight lines.",
-  "canelo":     "Canelo uses shoulder roll to invite punches, then counters. Body shot patient builder — sets up the head shot.",
-  "golovkin":   "GGG throws double jab before every power shot. High volume, relentless forward pressure, body work opener.",
-  "mayweather": "Mayweather fights from Philly shell. Right hand lead disrupts opponents. Check hook on pressure. Defense = offense.",
-  "pacquiao":   "Manny Pacquiao steps outside the lead foot (southpaw angle). 5-punch combinations in 2 seconds. Never single shots.",
-  "duran":      "Roberto Duran gets inside immediately. Short punches, head pressure, psychological intimidation from bell 1.",
-};
-
-function getFighterContext(messages) {
-  const text = messages.map(m => typeof m?.content === 'string' ? m.content : '').join(' ').toLowerCase();
-  for (const [key, ctx] of Object.entries(FIGHTER_CONTEXT)) {
-    if (text.includes(key)) return `Fighter context: ${ctx}`;
-  }
-  return null;
-}
 
 // ── Language instructions ─────────────────────────────────────────────────────
 const LANGUAGE_INSTRUCTIONS = {
@@ -315,7 +294,12 @@ export const POST = withAuth(async (req, { uid }) => {
   const selectedPersona = PERSONAS[persona] || PERSONAS.drill;
   const langInstruction = LANGUAGE_INSTRUCTIONS[safeLocale] || LANGUAGE_INSTRUCTIONS.en;
   const isTechQ = isTechniqueQuestion(normalizedMessages);
-  const formatInstruction = json_mode
+  // The AI drill builder asks for a raw JSON array: the chat bubble format (emoji title, bullets)
+  // would contradict it and break the client's parse.
+  const isDrillBuilder = purpose === "drills";
+  const formatInstruction = isDrillBuilder
+    ? "FORMAT: Reply with ONLY the JSON array the user asked for. No markdown, no code fence, no emoji, no text before or after it."
+    : json_mode
     ? (JSON_SCHEMA_INSTRUCTIONS[safeLocale] || JSON_SCHEMA_INSTRUCTIONS.en)
     : (FORMAT_INSTRUCTIONS[safeLocale] || FORMAT_INSTRUCTIONS.en);
 
@@ -349,7 +333,7 @@ export const POST = withAuth(async (req, { uid }) => {
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const callOpts = {
       model: MODEL,
-      max_tokens: 700,
+      max_tokens: isDrillBuilder ? 1400 : 700, // 5 drills × 3 steps do not fit in 700 tokens
       temperature: 0.65,
       messages: [
         { role: "system", content: systemPrompt },
