@@ -149,3 +149,27 @@ describe("nextMittBest — personal best per level", () => {
   });
 });
 
+describe("mergeMittBests (account + device records)", () => {
+  it("takes the better record per level from either side", async () => {
+    const { mergeMittBests } = await import("../lib/mittDrill.js");
+    const r = mergeMittBests(
+      { easy: { accuracy: 0.8, avgReactionMs: 500 }, normal: { accuracy: 0.6, avgReactionMs: 700 } },
+      { easy: { accuracy: 0.7, avgReactionMs: 400 }, normal: { accuracy: 0.9, avgReactionMs: 650 }, hard: { accuracy: 0.5, avgReactionMs: null } },
+    );
+    expect(r.merged.easy.accuracy).toBe(0.8);
+    expect(r.merged.normal.accuracy).toBe(0.9);
+    expect(r.merged.hard.accuracy).toBe(0.5);
+    expect(r.changed).toBe(true);
+  });
+  it("ties go to the faster reaction; nothing new on the device → unchanged", async () => {
+    const { mergeMittBests } = await import("../lib/mittDrill.js");
+    expect(mergeMittBests({ easy: { accuracy: 0.8, avgReactionMs: 500 } }, { easy: { accuracy: 0.8, avgReactionMs: 450 } }).merged.easy.avgReactionMs).toBe(450);
+    const same = { easy: { accuracy: 0.8, avgReactionMs: 500 } };
+    expect(mergeMittBests(same, { easy: { accuracy: 0.5, avgReactionMs: 300 } })).toEqual({ merged: same, changed: false });
+  });
+  it("junk and unknown levels are dropped", async () => {
+    const { mergeMittBests } = await import("../lib/mittDrill.js");
+    expect(mergeMittBests({ easy: { accuracy: 5 } }, { nope: { accuracy: 0.9 }, normal: "x" })).toEqual({ merged: {}, changed: false });
+  });
+});
+

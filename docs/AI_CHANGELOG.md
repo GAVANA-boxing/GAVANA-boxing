@@ -2,6 +2,11 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Mitts records are saved on the account
+- `lib/mittDrill.js`: `betterMittBest`, `mergeMittBests` (account + device, best per level; junk dropped). `app/[locale]/mitts/page.js`: signed in → the account's `users.modeBests.mitts` and this device's records become one set once per sign-in (a guest's records join the account); a new personal best is saved to the account too (device copy kept as the fallback). Mitts rounds still do NOT feed XP or the Progress average (a reaction drill is not a punch-quality score).
+- Ghost and bag have no record to keep (no personal-best logic) — nothing to save there; revisit only if they get one.
+- Tests: 3 new in `mittDrill.test.js`; CV modes suite 7/7. The account write needs a signed-in session (no automated test) — first real check is the owner's.
+
 ## Guest Academy progress joins the account after sign-up
 - `lib/academyProgress.js mergeLessonProgress`: done stays done, higher best score, later date, from either side; `changed` says if anything needs saving.
 - `hooks/useAcademyProgress.js`: once per sign-in, the device's guest lessons are merged into the account's, saved with `setDoc(merge)`, and only then removed from the device (a failed save keeps them and retries next time). Before, a new fighter's first guest rounds disappeared from the lesson list at sign-up.
