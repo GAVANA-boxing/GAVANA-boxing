@@ -166,6 +166,25 @@ await t("program: create in own coach name ok", assertSucceeds(setDoc(doc(alice,
 await t("program: create as own AI-builder program ok", assertSucceeds(setDoc(doc(alice, "training_programs/p2"), { userId: "alice", title: "T" })));
 await t("program: cannot create in someone else's coach name", assertFails(setDoc(doc(alice, "training_programs/p3"), { coachId: "bob", title: "fake" })));
 await t("program: cannot create with no owner", assertFails(setDoc(doc(alice, "training_programs/p4"), { title: "orphan" })));
+// Audit batch 2b: leaderboard scores are server-written; PvP records can't be rewritten.
+await env.withSecurityRulesDisabled(async (c) => {
+  const db = c.firestore();
+  await setDoc(doc(db, "challenge_results/r1"), { userId: "alice", score: 7, challengeId: "speed-test" });
+  await setDoc(doc(db, "pvp_challenges/pc1"), { challengerId: "alice", opponentId: "bob", status: "pending" });
+  await setDoc(doc(db, "pvp_results/pr1"), { challengerId: "alice", opponentId: "bob", result: "win", challengerScore: 7, opponentScore: 6 });
+});
+await t("leaderboard: anyone can read results", assertSucceeds(getDoc(doc(anon, "challenge_results/r1"))));
+await t("leaderboard: client cannot create a result (forged score)", assertFails(setDoc(doc(alice, "challenge_results/r2"), { userId: "alice", score: 10, challengeId: "speed-test" })));
+await t("leaderboard: client cannot edit own result", assertFails(updateDoc(doc(alice, "challenge_results/r1"), { score: 10 })));
+await t("leaderboard: client cannot delete own result", assertFails(deleteDoc(doc(alice, "challenge_results/r1"))));
+await t("pvp: challenger can create a challenge", assertSucceeds(setDoc(doc(alice, "pvp_challenges/pc2"), { challengerId: "alice", opponentId: "bob", status: "pending" })));
+await t("pvp: cannot create a challenge in someone else's name", assertFails(setDoc(doc(bob, "pvp_challenges/pc3"), { challengerId: "alice", opponentId: "bob" })));
+await t("pvp: participants can read their challenge", assertSucceeds(getDoc(doc(bob, "pvp_challenges/pc1"))));
+await t("pvp: opponent cannot rewrite the challenge", assertFails(updateDoc(doc(bob, "pvp_challenges/pc1"), { challengerId: "bob", opponentId: "alice" })));
+await t("pvp: challenger can still withdraw", assertSucceeds(deleteDoc(doc(alice, "pvp_challenges/pc1"))));
+await t("pvp result: challenger can record a result", assertSucceeds(setDoc(doc(alice, "pvp_results/pr2"), { challengerId: "alice", opponentId: "bob", result: "win" })));
+await t("pvp result: neither side can flip a finished result", assertFails(updateDoc(doc(bob, "pvp_results/pr1"), { result: "loss", challengerScore: 1 })));
+await t("pvp result: challenger cannot edit it either", assertFails(updateDoc(doc(alice, "pvp_results/pr1"), { challengerScore: 10 })));
 console.log(results.join("\n"));
 if (results.some((r) => r.startsWith("FAIL"))) process.exitCode = 1;
 await env.cleanup();

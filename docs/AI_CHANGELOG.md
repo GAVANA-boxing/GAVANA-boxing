@@ -2,6 +2,12 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Firestore rules, audit batch 2b — leaderboard scores and PvP records (RED path: emulator tests first)
+- `challenge_results`: client create/update/delete closed. Only the server writes it (`/api/score/session`, service account); before, any signed-in user could create a result with any score under their own id (forged leaderboard). The legacy client fallback in `useTrainingActions` also writes `users.xp`, which rules already block, so it could not work with rules live anyway.
+- `pvp_challenges` / `pvp_results`: update closed (the app only creates and reads them; an update by either side could rewrite who challenges whom or flip a finished result). A challenger can still withdraw (delete) a challenge.
+- Found by reading the rules and the client's real reads/writes (no client path is blocked). Tests: 12 new, emulator suite 143/143. These tests were written together with the rules (the earlier batch was proven failing-first).
+- Still open: `users.coachRating` / `coachTotalReviews` can be set (0–5) by any signed-in user — the client recomputes a coach's average after a review. Needs a server-side computation (an API route) rather than a rules tweak; not done. Not live until `FIREBASE_SERVICE_ACCOUNT_BASE64` is set.
+
 ## Firestore rules, audit batch 2 — DM threads, messages, programs (RED path: emulator tests first)
 - Found by reading `firestore.rules`, proven by failing emulator tests before the fix: (1) any thread member could rewrite `conversations.members` (add a third person → they read the whole thread); (2) a message's sender could change its `conversationId` (move a message into someone else's thread) or `senderId`; (3) anyone could create a `training_programs` doc in another coach's name.
 - Fix: thread update only touches `lastMessage`, `lastMessageAt`, `lastMessageSenderId`, `unreadCount` (exactly what `ChatThread` writes); message update cannot change `conversationId` / `senderId` / `createdAt`; program create needs `coachId` or `userId` == your uid (the two creation sites do this).
