@@ -20,7 +20,7 @@ const TIP = {
   roll: ["Roll: өвдгөөр доош, U хэлбэрээр гар.", "롤: 무릎으로 내려가 U자로 빠져나오세요.", "Roll: drop with the knees, come out in a U."],
 };
 
-export default function MittResult({ summary, locale = "en", onAgain, onExit }) {
+export default function MittResult({ summary, locale = "en", newBest = false, onAgain, onExit }) {
   const L = (mn, ko, en) => loc(locale, mn, ko, en);
   const s = summary;
   const g = GRADE[s.grade];
@@ -34,6 +34,8 @@ export default function MittResult({ summary, locale = "en", onAgain, onExit }) 
         <span style={{ ...displayTitle, fontSize: 64, color: g.color }}>{pct}%</span>
         <span style={{ fontSize: 15, color: whiteAlpha(0.7) }}>{s.hits}/{s.total} {L("зөв", "성공", "hit")} · <b style={{ color: g.color }}>{loc(locale, ...g.label)}</b></span>
       </div>
+
+      {newBest && <div role="status" style={{ color: GOLD, fontWeight: 900, fontSize: 14 }}>🏆 {L("Шинэ шилдэг үр дүн!", "새 최고 기록!", "New personal best!")}</div>}
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
         {[

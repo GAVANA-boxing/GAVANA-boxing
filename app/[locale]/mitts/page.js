@@ -9,6 +9,8 @@ import { cameraPermissionHelp } from "@/lib/cameraHelp";
 import { usePoseDetection } from "@/hooks/usePoseDetection";
 import { buildSchedule, judgeRound, summarizeRound, callAt, LEVELS } from "@/lib/mittDrill";
 import { funnel } from "@/lib/funnel";
+import { useAuth } from "@/lib/AuthContext";
+import { bestEntry, isNewBest, readLocalBest, writeLocalBest } from "@/lib/mittBest";
 import MittCall from "@/components/mitts/MittCall";
 import MittResult from "@/components/mitts/MittResult";
 import { btnPrimary, btnSecondary, displayTitle, kickerDot, kickerPill, pageBackground } from "@/components/ui/brand";
@@ -19,7 +21,7 @@ const ROUND_MS = 30_000;
 /**
  * Mitt drill — a 30 s reaction round. The screen calls "1", "2", "1-2", "1-1",
  * "slip" or "roll"; answer with the right hand(s) or head movement before the
- * ring runs out. Uses the same pose detection as Train; nothing is saved.
+ * ring runs out. Uses the same pose detection as Train; your best result per level is saved (account, or this device for guests).
  */
 export default function MittDrillPage() {
   const params = useParams();
@@ -27,6 +29,7 @@ export default function MittDrillPage() {
   const locale = getLocale(params?.locale);
   const L = (mn, ko, en) => loc(locale, mn, ko, en);
   const { profile } = useUserProfile();
+  const { user } = useAuth();
 
   const [stance, setStance] = useState("orthodox");
   useEffect(() => {
@@ -43,6 +46,7 @@ export default function MittDrillPage() {
   const [now, setNow] = useState(0);           // ms since the round started
   const [feedback, setFeedback] = useState(null);
   const [summary, setSummary] = useState(null);
+  const [newBest, setNewBest] = useState(false);
 
   const schedule = useMemo(() => buildSchedule({ seed, durationMs: ROUND_MS, level }), [seed, level]);
   const actionsRef = useRef([]);
@@ -116,10 +120,25 @@ export default function MittDrillPage() {
     const results = judgeRound(shown, actionsRef.current, { stance, level });
     const s = summarizeRound(results);
     setSummary(s);
+    // Personal best per level: account when signed in, this device otherwise.
+    const prev = user?.uid ? profile?.mittBest?.[level] : readLocalBest()[level];
+    const better = isNewBest(prev, s);
+    setNewBest(better);
+    if (better) {
+      const entry = bestEntry(s);
+      if (user?.uid) {
+        import("firebase/firestore").then(async ({ doc, setDoc }) => {
+          const { db } = await import("@/lib/firebase");
+          await setDoc(doc(db, "users", user.uid), { mittBest: { [level]: entry } }, { merge: true });
+        }).catch(() => writeLocalBest(level, entry)); // keep it on the device if the save fails
+      } else {
+        writeLocalBest(level, entry);
+      }
+    }
     setPhase("result");
     stopCamera();
     funnel("mitts_completed", { locale, meta: level, score: Math.round(s.accuracy * 100) / 10 });
-  }, [schedule, stance, level, stopCamera, locale]);
+  }, [schedule, stance, level, stopCamera, locale, user?.uid, profile?.mittBest]);
 
   // Round loop: clock, collect what the camera saw, judge each call as its window closes.
   useEffect(() => {
@@ -265,7 +284,7 @@ export default function MittDrillPage() {
   // ── RESULT ────────────────────────────────────────────────────────────
   return (
     <main style={{ minHeight: "100dvh", background: pageBackground, color: "#fff", padding: "calc(20px + env(safe-area-inset-top)) 16px 32px" }}>
-      {summary && <MittResult summary={summary} locale={locale} onAgain={() => setPhase("intro")} onExit={exit} />}
+      {summary && <MittResult summary={summary} newBest={newBest} locale={locale} onAgain={() => setPhase("intro")} onExit={exit} />}
     </main>
   );
 }
