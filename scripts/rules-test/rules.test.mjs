@@ -146,6 +146,26 @@ await t("coach team: others can't read (code stays secret)", assertFails(getDoc(
 await t("coach team: client can't create a team", assertFails(setDoc(doc(alice, "coach_teams/alice"), { coachUid: "alice", code: "AAAAAA" })));
 await t("coach team: client can't join by writing a member doc", assertFails(setDoc(doc(alice, "coach_members/carol_alice"), { coachUid: "carol", studentUid: "alice" })));
 await t("coach team: member doc not readable", assertFails(getDoc(doc(alice, "coach_members/bob_alice"))));
+// Audit batch 2: DM threads keep exactly two members, messages can't be moved to another thread,
+// and a training program can only be created in your own name.
+await env.withSecurityRulesDisabled(async (c) => {
+  const db = c.firestore();
+  await setDoc(doc(db, "conversations/c1"), { members: ["alice", "bob"], lastMessage: "", unreadCount: { alice: 0, bob: 0 } });
+  await setDoc(doc(db, "conversations/c2"), { members: ["bob", "carol"], lastMessage: "", unreadCount: { bob: 0, carol: 0 } });
+  await setDoc(doc(db, "messages/m1"), { conversationId: "c1", senderId: "alice", text: "hi", read: false });
+});
+await t("dm: member updates last message / unread (what the app does)", assertSucceeds(updateDoc(doc(alice, "conversations/c1"), { lastMessage: "yo", lastMessageSenderId: "alice", "unreadCount.bob": 1 })));
+await t("dm: member marks own thread read", assertSucceeds(updateDoc(doc(bob, "conversations/c1"), { "unreadCount.bob": 0 })));
+await t("dm: member cannot add a third person", assertFails(updateDoc(doc(alice, "conversations/c1"), { members: ["alice", "bob", "carol"] })));
+await t("dm: member cannot swap the other person out", assertFails(updateDoc(doc(alice, "conversations/c1"), { members: ["alice", "carol"] })));
+await t("dm: non-member cannot update", assertFails(updateDoc(doc(carol, "conversations/c1"), { lastMessage: "x" })));
+await t("dm: sender can still edit own message text", assertSucceeds(updateDoc(doc(alice, "messages/m1"), { text: "hi!" })));
+await t("dm: sender cannot move a message into another thread", assertFails(updateDoc(doc(alice, "messages/m1"), { conversationId: "c2" })));
+await t("dm: sender cannot re-attribute a message", assertFails(updateDoc(doc(alice, "messages/m1"), { senderId: "bob" })));
+await t("program: create in own coach name ok", assertSucceeds(setDoc(doc(alice, "training_programs/p1"), { coachId: "alice", title: "T" })));
+await t("program: create as own AI-builder program ok", assertSucceeds(setDoc(doc(alice, "training_programs/p2"), { userId: "alice", title: "T" })));
+await t("program: cannot create in someone else's coach name", assertFails(setDoc(doc(alice, "training_programs/p3"), { coachId: "bob", title: "fake" })));
+await t("program: cannot create with no owner", assertFails(setDoc(doc(alice, "training_programs/p4"), { title: "orphan" })));
 console.log(results.join("\n"));
 if (results.some((r) => r.startsWith("FAIL"))) process.exitCode = 1;
 await env.cleanup();

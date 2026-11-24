@@ -2,6 +2,12 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Firestore rules, audit batch 2 — DM threads, messages, programs (RED path: emulator tests first)
+- Found by reading `firestore.rules`, proven by failing emulator tests before the fix: (1) any thread member could rewrite `conversations.members` (add a third person → they read the whole thread); (2) a message's sender could change its `conversationId` (move a message into someone else's thread) or `senderId`; (3) anyone could create a `training_programs` doc in another coach's name.
+- Fix: thread update only touches `lastMessage`, `lastMessageAt`, `lastMessageSenderId`, `unreadCount` (exactly what `ChatThread` writes); message update cannot change `conversationId` / `senderId` / `createdAt`; program create needs `coachId` or `userId` == your uid (the two creation sites do this).
+- Tests: 12 new in `scripts/rules-test/rules.test.mjs`, emulator suite 131/131 (was 119). Client code checked first (`ChatThread`, `lib/messaging`, `useCoachDashboardActions`), nothing it does is blocked.
+- NOT live until the owner adds the GitHub secret `FIREBASE_SERVICE_ACCOUNT_BASE64` (rules deploy is CI-gated). Still open (hidden features, not changed here): `pvp_challenges` / `pvp_results` updates by either participant have no field limits; `challenge_results` scores are client-claimed; `coachRating` update is open to any signed-in user.
+
 ## Mitts records are saved on the account
 - `lib/mittDrill.js`: `betterMittBest`, `mergeMittBests` (account + device, best per level; junk dropped). `app/[locale]/mitts/page.js`: signed in → the account's `users.modeBests.mitts` and this device's records become one set once per sign-in (a guest's records join the account); a new personal best is saved to the account too (device copy kept as the fallback). Mitts rounds still do NOT feed XP or the Progress average (a reaction drill is not a punch-quality score).
 - Ghost and bag have no record to keep (no personal-best logic) — nothing to save there; revisit only if they get one.
