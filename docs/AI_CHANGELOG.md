@@ -4,7 +4,8 @@ One entry per cycle that changed code. Newest first.
 
 ## Perf-mobile audit (production build, Pixel 5 emulation, slow 4G 1.6 Mbit/150 ms, CPU ×4; one run per route)
 - Finding: fonts were 369 KB on EVERY page (6 families, all preloaded); the headline waited for them — LCP train 6.5 s, login 4.9 s, landing 2.7 s. Train also shows only a spinner until auth resolves (JS-bound; not changed).
-- Fix (`app/layout.js`): `preload: false` for Geist Mono, Barlow Condensed, Roboto Condensed (they still load when a glyph needs them). Result, same method: fonts+other 394 → 230 KB/page; LCP train 0.63 s, login 0.64 s, progress 0.71 s, landing 1.8 s. Visual suite unchanged (82 passed).
+- Fix (`app/layout.js`): `preload: false` for Geist Mono, Barlow Condensed, Roboto Condensed (they still load when a glyph needs them). Fonts+other 394 → 230 KB per page; visual suite unchanged (82 passed).
+- CORRECTION (measured after the merge): the post-fix "LCP 0.6 s" on Train/login was the server-rendered "Ачааллаж байна…" text, not the page. Time until the real content (Train drill chips / login heading) is ~5.9 s / ~4.3 s on this emulation (before the fix the headline LCP was 6.5 s / 4.9 s), so the real gain is ~0.6 s, not 6 s. These pages are client-rendered behind the auth gate: all JS (~650–800 KB on Train, requested at once, bandwidth-bound; MediaPipe loads AFTER the content, so it is not the blocker) must arrive before anything but the loading text shows. Rendering as a guest before auth would NOT help (the content needs the same JS).
 - Not done / ideas: Train JS 650–800 KB (MediaPipe wrapper + 3D) and a spinner until auth resolves; Inter ships latin + cyrillic variable files (~160 KB); numbers are single runs on an emulated device, not field data.
 
 ## Design v2 — History
