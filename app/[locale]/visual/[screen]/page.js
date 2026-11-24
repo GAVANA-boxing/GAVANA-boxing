@@ -30,6 +30,7 @@ import { summarizeStudent } from "@/lib/coach/team";
 import { dashboardCopy } from "@/lib/dashboard/copy";
 import { HomeHero, HomeStats, homeBackground } from "@/components/home/HomeHero";
 import AcademyNextCard from "@/components/train/AcademyNextCard";
+import HistoryView from "@/components/history/HistoryView";
 
 // Fixed-data renders of screens that need a signed-in user, for the visual
 // regression tests (tests/visual). Only exists when NEXT_PUBLIC_VISUAL_FIXTURES=1
@@ -230,6 +231,12 @@ export default function VisualFixture() {
         videoAnalyzer={<ClipAnalyzerFixture copy={dashboardCopy(locale)} showLog={params.screen === "dashboard"} />}
       />
     );
+  }
+
+  if (params?.screen === "history") {
+    const tags = ["Bag", "Shadow", "Mitts"];
+    const list = SESSIONS.map((x, i) => ({ ...x, sessionTag: i % 3 === 0 ? tags[(i / 3) % 3] : undefined, xpGained: 20 + i }));
+    return <HistoryView sessions={list} locale={locale} router={{ push() {}, back() {} }} user={{ uid: "visual" }} onBack={() => {}} />;
   }
 
   if (params?.screen === "progress") {
