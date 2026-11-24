@@ -317,3 +317,17 @@ test("technique drill opens on Train in Mongolian, without a boxer's name", asyn
   expect(errors).toEqual([]);
 });
 
+// The five preset drills are chips on the Train start screen; a chip changes the round's length in place.
+test("train: drill chips choose a preset drill", async ({ page, context }) => {
+  await context.grantPermissions(["camera"]);
+  await prepare(page, "NotAllowedError");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/mn/train", { waitUntil: "load" });
+  const chip = page.getByTestId("drill-chip-footwork");
+  await expect(chip).toBeVisible({ timeout: 20_000 });
+  await chip.click();
+  await expect(chip).toHaveAttribute("aria-pressed", "true");
+  await chip.click();
+  await expect(chip).toHaveAttribute("aria-pressed", "false");
+});
+

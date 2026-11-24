@@ -171,6 +171,7 @@ export function useTrainingData({ user }) {
   return {
     reelId,
     drillId,
+    setDrillId,
     challengeId,
     trainSource,
     trainSourceUserId,
