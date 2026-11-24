@@ -185,6 +185,17 @@ await t("pvp: challenger can still withdraw", assertSucceeds(deleteDoc(doc(alice
 await t("pvp result: challenger can record a result", assertSucceeds(setDoc(doc(alice, "pvp_results/pr2"), { challengerId: "alice", opponentId: "bob", result: "win" })));
 await t("pvp result: neither side can flip a finished result", assertFails(updateDoc(doc(bob, "pvp_results/pr1"), { result: "loss", challengerScore: 1 })));
 await t("pvp result: challenger cannot edit it either", assertFails(updateDoc(doc(alice, "pvp_results/pr1"), { challengerScore: 10 })));
+// Audit batch 2c: a coach can schedule a session from a REAL request, in no one else's name.
+await env.withSecurityRulesDisabled(async (c) => {
+  await setDoc(doc(c.firestore(), "coach_requests/req1"), { coachId: "bob", userId: "alice", status: "accepted" });
+});
+const booking = { coachId: "bob", userId: "alice", requestId: "req1", date: "2026-12-01", time: "10:00", status: "scheduled" };
+await t("booking: coach schedules from a real request (the dashboard flow)", assertSucceeds(setDoc(doc(bob, "coach_bookings/b1"), booking)));
+await t("booking: student books in own name", assertSucceeds(setDoc(doc(alice, "coach_bookings/b2"), { coachId: "bob", userId: "alice", date: "2026-12-02", status: "pending" })));
+await t("booking: coach cannot book a student with no request between them", assertFails(setDoc(doc(bob, "coach_bookings/b3"), { ...booking, userId: "carol" })));
+await t("booking: coach cannot point at someone else's request", assertFails(setDoc(doc(carol, "coach_bookings/b4"), { ...booking, coachId: "carol" })));
+await t("booking: no requestId at all is refused for a coach-made booking", assertFails(setDoc(doc(bob, "coach_bookings/b5"), { coachId: "bob", userId: "alice", date: "2026-12-03" })));
+await t("booking: a stranger cannot create one for others", assertFails(setDoc(doc(carol, "coach_bookings/b6"), { coachId: "bob", userId: "alice", requestId: "req1" })));
 console.log(results.join("\n"));
 if (results.some((r) => r.startsWith("FAIL"))) process.exitCode = 1;
 await env.cleanup();

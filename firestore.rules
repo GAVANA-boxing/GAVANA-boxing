@@ -405,7 +405,17 @@ service cloud.firestore {
         resource.data.userId == request.auth.uid ||
         resource.data.coachId == request.auth.uid
       ));
-      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      // The student books in their own name — or the COACH books from a real request: the booking
+      // must point (requestId) at a coach_requests doc between exactly these two people. (The coach
+      // dashboard creates it with userId = the student; the old rule only allowed userId == caller,
+      // so a coach could not schedule a session at all.)
+      allow create: if isAuth() && (
+        request.resource.data.userId == request.auth.uid ||
+        (request.resource.data.coachId == request.auth.uid
+          && exists(/databases/$(database)/documents/coach_requests/$(request.resource.data.requestId))
+          && get(/databases/$(database)/documents/coach_requests/$(request.resource.data.requestId)).data.coachId == request.auth.uid
+          && get(/databases/$(database)/documents/coach_requests/$(request.resource.data.requestId)).data.userId == request.resource.data.userId)
+      );
       allow update: if isAuth() && (
         resource.data.userId == request.auth.uid ||
         resource.data.coachId == request.auth.uid

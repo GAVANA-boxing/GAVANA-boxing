@@ -2,6 +2,12 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Firestore rules, audit batch 2c — coach bookings, users-doc privacy check (RED path: emulator tests first)
+- Real bug: the coach dashboard creates a `coach_bookings` doc with `userId` = the STUDENT and `coachId` = the coach, but the rule only allowed `userId == caller`, so a coach could not schedule a session at all once these rules are live. Now: the student books in their own name, OR the coach books when `requestId` points at a `coach_requests` doc between exactly that coach and that student. Tests: 6 new (coach from a real request ok; coach with no request / wrong student / someone else's request / a stranger blocked). Emulator 149/149.
+- Users-doc privacy check (public `get`): the client writes no private field there (email already lives in `users_private`). Phone / address appear only in coach applications (owner-only) and gym docs (business listing, intended public). Nothing changed.
+- Known, left on purpose: `coach_bookings` with `status == "completed"` are publicly readable (the public coach profile counts them); they expose who trained with which coach and when. Move to a server-side count if that becomes a concern.
+- Not live until `FIREBASE_SERVICE_ACCOUNT_BASE64` is set.
+
 ## Firestore rules, audit batch 2b — leaderboard scores and PvP records (RED path: emulator tests first)
 - `challenge_results`: client create/update/delete closed. Only the server writes it (`/api/score/session`, service account); before, any signed-in user could create a result with any score under their own id (forged leaderboard). The legacy client fallback in `useTrainingActions` also writes `users.xp`, which rules already block, so it could not work with rules live anyway.
 - `pvp_challenges` / `pvp_results`: update closed (the app only creates and reads them; an update by either side could rewrite who challenges whom or flip a finished result). A challenger can still withdraw (delete) a challenge.
