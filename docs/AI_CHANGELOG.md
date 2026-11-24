@@ -2,6 +2,11 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Guest Academy progress joins the account after sign-up
+- `lib/academyProgress.js mergeLessonProgress`: done stays done, higher best score, later date, from either side; `changed` says if anything needs saving.
+- `hooks/useAcademyProgress.js`: once per sign-in, the device's guest lessons are merged into the account's, saved with `setDoc(merge)`, and only then removed from the device (a failed save keeps them and retries next time). Before, a new fighter's first guest rounds disappeared from the lesson list at sign-up.
+- Tests: 4 in `academyProgress.test.js`. The hook effect itself is not covered by an automated test (needs a signed-in Firebase session) — logic reviewed by reading; first real-device check belongs to the owner's sign-up test.
+
 ## Perf-mobile audit (production build, Pixel 5 emulation, slow 4G 1.6 Mbit/150 ms, CPU ×4; one run per route)
 - Finding: fonts were 369 KB on EVERY page (6 families, all preloaded); the headline waited for them — LCP train 6.5 s, login 4.9 s, landing 2.7 s. Train also shows only a spinner until auth resolves (JS-bound; not changed).
 - Fix (`app/layout.js`): `preload: false` for Geist Mono, Barlow Condensed, Roboto Condensed (they still load when a glyph needs them). Fonts+other 394 → 230 KB per page; visual suite unchanged (82 passed).
