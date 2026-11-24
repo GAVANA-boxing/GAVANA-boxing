@@ -3,12 +3,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useUserProfile } from "@/context/UserProfileProvider";
+import { useAuth } from "@/lib/AuthContext";
 import { getLocale } from "@/lib/i18n";
 import { loc } from "@/lib/loc";
 import { cameraPermissionHelp } from "@/lib/cameraHelp";
 import { usePoseDetection } from "@/hooks/usePoseDetection";
 import { useLatest } from "@/hooks/useLatest";
-import { buildSchedule, judgeRound, summarizeRound, callAt, nextMittBest, LEVELS } from "@/lib/mittDrill";
+import { buildSchedule, judgeRound, summarizeRound, callAt, nextMittBest, mergeMittBests, LEVELS } from "@/lib/mittDrill";
 import { funnel } from "@/lib/funnel";
 import MittCall from "@/components/mitts/MittCall";
 import MittResult from "@/components/mitts/MittResult";
@@ -18,6 +19,16 @@ import { RADIUS, FONT_SIZE, FONT_WEIGHT, whiteAlpha, redAlpha, blackAlpha } from
 const ROUND_MS = 30_000;
 const BEST_KEY = "gavana_mitts_best_v1"; // { easy, normal, hard } → { accuracy, avgReactionMs } — this device only
 
+/** Save the per-level records on the account. Never throws: the device copy is the fallback. */
+async function saveAccountBests(uid, bests) {
+  try {
+    const { doc, setDoc } = await import("firebase/firestore");
+    const { db } = await import("@/lib/firebase");
+    await setDoc(doc(db, "users", uid), { modeBests: { mitts: bests } }, { merge: true });
+    return true;
+  } catch { return false; }
+}
+
 function readBests() {
   try { const v = JSON.parse(localStorage.getItem(BEST_KEY) || "{}"); return v && typeof v === "object" ? v : {}; } catch { return {}; }
 }
@@ -25,15 +36,17 @@ function readBests() {
 /**
  * Mitt drill — a 30 s reaction round. The screen calls "1", "2", "1-2", "1-1",
  * "slip" or "roll"; answer with the right hand(s) or head movement before the
- * ring runs out. Uses the same pose detection as Train. Nothing goes to the server; the best
- * round per level is remembered on the device.
+ * ring runs out. Uses the same pose detection as Train. The best round per level is kept on the
+ * device and, for a signed-in fighter, on the account (users.modeBests.mitts) — a guest's records
+ * join the account at sign-in. Rounds are not scored into XP or the Progress average.
  */
 export default function MittDrillPage() {
   const params = useParams();
   const router = useRouter();
   const locale = getLocale(params?.locale);
   const L = (mn, ko, en) => loc(locale, mn, ko, en);
-  const { profile } = useUserProfile();
+  const { profile, loading: profileLoading } = useUserProfile();
+  const { user } = useAuth();
 
   const [stance, setStance] = useState("orthodox");
   useEffect(() => {
@@ -53,6 +66,16 @@ export default function MittDrillPage() {
   const [best, setBest] = useState(null);      // { best, isNew } for the level just played
   const [bests, setBests] = useState({});      // per-level records on this device (shown on the start screen)
   useEffect(() => { setBests(readBests()); }, []);
+  // Signed in: the account's records and this device's (a guest's) become one set, once.
+  const mergedForRef = useRef(null);
+  useEffect(() => {
+    if (!user?.uid || profileLoading || mergedForRef.current === user.uid) return;
+    mergedForRef.current = user.uid;
+    const { merged, changed } = mergeMittBests(profile?.modeBests?.mitts, readBests());
+    setBests(merged);
+    try { localStorage.setItem(BEST_KEY, JSON.stringify(merged)); } catch { /* private mode */ }
+    if (changed) saveAccountBests(user.uid, merged).then((ok) => { if (!ok) mergedForRef.current = null; });
+  }, [user?.uid, profile, profileLoading]);
   const [lost, setLost] = useState(false);     // the camera can't see the fighter right now
 
   const schedule = useMemo(() => buildSchedule({ seed, durationMs: ROUND_MS, level }), [seed, level]);
@@ -145,6 +168,7 @@ export default function MittDrillPage() {
       const next = { ...bests, [level]: nb.best };
       try { localStorage.setItem(BEST_KEY, JSON.stringify(next)); } catch { /* private mode */ }
       setBests(next);
+      if (user?.uid) saveAccountBests(user.uid, next);
     }
     // No record line for a round that could not count — "Your best 60 %" under a 100 % partial
     // round would only contradict the screen.
@@ -152,7 +176,7 @@ export default function MittDrillPage() {
     setPhase("result");
     stopCamera();
     funnel("mitts_completed", { locale, meta: level, score: Math.round(s.accuracy * 100) / 10 });
-  }, [schedule, stance, level, stopCamera, locale, bests]);
+  }, [schedule, stance, level, stopCamera, locale, bests, user?.uid]);
   const finishRef = useLatest(finish);
 
   // Round loop: clock, collect what the camera saw, judge each call as its window closes.
