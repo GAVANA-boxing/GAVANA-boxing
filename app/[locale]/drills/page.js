@@ -113,6 +113,9 @@ export default function DrillsPage() {
         throw new Error(data.message || (loc(locale, "AI коуч боломжгүй байна.", "AI 코치를 사용할 수 없어요.", "AI coach unavailable.")));
       }
 
+      // Daily AI limit reached: the reply is the limit message, not a format error.
+      if (data.quotaExceeded) throw new Error(data.message || loc(locale, "Өнөөдрийн AI хязгаар дууслаа.", "오늘의 AI 한도에 도달했어요.", "Today's AI limit is used up."));
+
       const text = data.message || "";
       console.log("[DrillsPage] response text (first 200):", text.slice(0, 200));
 
