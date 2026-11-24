@@ -2,6 +2,10 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Design v2 — History
+- History is now `components/history/HistoryView.js` (presentational) + a thin page that loads the rounds. Summary = the average as one dial + round and punch counts; the tag filter row shows only when some round has a tag.
+- New visual fixture `/visual/history` and baselines `history-{mn-390,mn-360,ko-390}` (checked by eye).
+
 ## Design v2 — Profile
 - `components/profile/ProfileView.js`: rank is the headline (size by name length, as on Home); the best round is one `ScoreDial` inside the rank card (own profile only; no rounds → nothing drawn); the separate "best" pill is gone.
 - Test: `profileViewRender.test.js`. No visual baseline: the profile route needs a signed-in user (not covered by the visual suite) — checked by render test only.

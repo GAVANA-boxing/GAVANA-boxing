@@ -11,6 +11,7 @@ const SCREENS = [
   { name: "train", path: "/train", mask: ["video", "canvas"], camera: "NotAllowedError" },
   { name: "result", path: "/visual/result" },
   { name: "progress", path: "/visual/progress" },
+  { name: "history", path: "/visual/history" },
   // Fighter dashboard (demo data) and its empty-benchmark + offline-orders states.
   { name: "dashboard", path: "/visual/dashboard" },
   { name: "dashboard-states", path: "/visual/dashboard-states" },
