@@ -76,3 +76,6 @@
   shaders rewritten in TSL.
 - `npm audit` reports issues in the dependency tree (pre-existing; not introduced by R3F/cannon-es —
   check before upgrading).
+
+- **Perf (mobile, measured once, emulated slow 4G):** Train page JS 650–800 KB and it shows a spinner until Firebase auth resolves (guest rendering before auth is possible but changes the `authLoading` gate — needs care). Inter latin+cyrillic ~160 KB. See AI_CHANGELOG "Perf-mobile audit".
+
