@@ -2,6 +2,11 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Perf-mobile audit (production build, Pixel 5 emulation, slow 4G 1.6 Mbit/150 ms, CPU ×4; one run per route)
+- Finding: fonts were 369 KB on EVERY page (6 families, all preloaded); the headline waited for them — LCP train 6.5 s, login 4.9 s, landing 2.7 s. Train also shows only a spinner until auth resolves (JS-bound; not changed).
+- Fix (`app/layout.js`): `preload: false` for Geist Mono, Barlow Condensed, Roboto Condensed (they still load when a glyph needs them). Result, same method: fonts+other 394 → 230 KB/page; LCP train 0.63 s, login 0.64 s, progress 0.71 s, landing 1.8 s. Visual suite unchanged (82 passed).
+- Not done / ideas: Train JS 650–800 KB (MediaPipe wrapper + 3D) and a spinner until auth resolves; Inter ships latin + cyrillic variable files (~160 KB); numbers are single runs on an emulated device, not field data.
+
 ## Design v2 — History
 - History is now `components/history/HistoryView.js` (presentational) + a thin page that loads the rounds. Summary = the average as one dial + round and punch counts; the tag filter row shows only when some round has a tag.
 - New visual fixture `/visual/history` and baselines `history-{mn-390,mn-360,ko-390}` (checked by eye).

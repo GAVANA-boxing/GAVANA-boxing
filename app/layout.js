@@ -23,9 +23,13 @@ const inter = Inter({
   subsets: ["latin", "latin-ext", "cyrillic", "cyrillic-ext"],
 });
 
+// Secondary faces are NOT preloaded: a <link rel=preload> makes every page fetch them before it
+// knows it needs them (perf audit, slow 4G: fonts were 369 KB on every page, 6 s to a headline).
+// They still load — only when a glyph that uses them is on the screen (unicode-range).
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  preload: false,
 });
 
 const bebasNeue = Bebas_Neue({
@@ -43,11 +47,13 @@ const barlowCondensed = Barlow_Condensed({
   variable: "--font-barlow",
   subsets: ["latin"],
   weight: ["400", "600", "700", "900"],
+  preload: false,
 });
 
 const robotoCondensed = Roboto_Condensed({
   variable: "--font-roboto-condensed",
   subsets: ["cyrillic", "cyrillic-ext"],
+  preload: false,
 });
 
 const FONT_VARS = [inter, geistMono, bebasNeue, oswald, barlowCondensed, robotoCondensed].map((f) => f.variable).join(" ");
