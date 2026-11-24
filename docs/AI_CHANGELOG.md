@@ -2,6 +2,10 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Hidden features, increment 5 — the five preset drills are chips on Train
+- `components/train/DrillChips.js`: shadowboxing, jab rhythm, pressure, defence, footwork (name + length); a chip sets the round's drill in place (`setDrillId` from `useTrainingData`), tap again = default round. Hidden for challenges, reels, benchmarks and lessons.
+- Visual baselines of Train regenerated (chip row); new visual test "drill chips choose a preset drill".
+
 ## Hidden features, increment 4 — technique drill completion is recorded
 - A round with a technique drill (Coach tab → Train) records `drill:<fighter>/<n>` in `users.academyProgress` (valid ≥5-punch round = done; not score-gated); Coach packs show ✓.
 - Test: `techniquePacks.test.js` (progress key, too-few-punches records nothing).

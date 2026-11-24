@@ -3,6 +3,9 @@ import { techniquePacks, TECHNIQUE_PACKS, techniqueSlug, techniqueTitle, drillPr
 import { FIGHTER_TECHNIQUES } from "@/lib/fighterTechniques";
 import { FIGHTERS } from "@/lib/fighters";
 
+import { PRESET_DRILLS, drillChipName } from "../components/train/DrillChips.js";
+import { DRILLS } from "../lib/drillConfig.js";
+
 describe("technique packs", () => {
   const packs = techniquePacks("mn");
   const all = packs.flatMap((p) => p.drills);
@@ -45,5 +48,14 @@ describe("technique packs", () => {
     expect(`drill:${d.id}`).toBe(drillProgressId(...d.id.split("/")));
     expect(nextLessonEntry(null, `drill:${d.id}`, { score: 4, punches: 8, dateKey: "2026-11-23" }).completed).toBe(true);
     expect(nextLessonEntry(null, `drill:${d.id}`, { score: 4, punches: 2 })).toBeNull();
+  });
+});
+
+describe("DrillChips", () => {
+  it("every preset exists in drillConfig and has a Mongolian name", () => {
+    for (const id of PRESET_DRILLS) {
+      expect(DRILLS[id]).toBeTruthy();
+      expect(drillChipName("mn", id)).not.toBe(id);
+    }
   });
 });

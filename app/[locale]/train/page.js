@@ -28,6 +28,7 @@ import { ACADEMY_LESSONS } from "@/lib/academyLessons";
 import TrainingFocusCard from "@/components/train/TrainingFocusCard";
 import { useAcademyProgress } from "@/hooks/useAcademyProgress";
 import { getDrillConfig } from "@/lib/drillConfig";
+import DrillChips from "@/components/train/DrillChips";
 import { buildCoachSnapshot, buildCoachContext } from "@/lib/buildCoachContext";
 import MilestoneCelebration from "@/components/MilestoneCelebration";
 import { usePoseDetection } from "@/hooks/usePoseDetection";
@@ -100,7 +101,7 @@ export default function TrainPage() {
   }, []);
 
   const {
-    reelId, drillId, challengeId, trainSource, trainSourceUserId,
+    reelId, drillId, setDrillId, challengeId, trainSource, trainSourceUserId,
     challengeUserId, creatorBestScore, targetScore,
     currentXP, sessionHistory, weeklySessionCount, userStreak,
     bestDailyStreak, missionCompletedToday, totalSessionCount,
@@ -1218,6 +1219,9 @@ export default function TrainPage() {
 
         {/* ── Daily Hub — shown when idle only. Not under a lesson card: one card on the
             start screen. ─────────────────────────── */}
+        {phase === "idle" && !lessonContext && !challengeId && !reelId && !benchmark && (
+          <DrillChips locale={locale} value={drillId} onChange={setDrillId} />
+        )}
         {phase === "idle" && !lessonContext && (
           <DailyHub
             academyProgress={academyLessonProgress}
