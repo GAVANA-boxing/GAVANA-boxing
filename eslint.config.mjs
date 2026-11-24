@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Vendored MediaPipe runtime copied by scripts/copy-mediapipe.js
     "public/mediapipe/**",
+    // Stray build output from a nested Next project (untracked)
+    "boxing-app/**",
   ]),
   // Disable React Compiler experimental rules that produce false positives
   // for valid React patterns (setState in effects, purity, memoization, refs).

@@ -2,6 +2,14 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Laptop test pass (branch claude/laptop-test)
+- Fix: guest Academy progress (localStorage) is now merged into the account on sign-up (`lib/academyMerge.js`,
+  `hooks/useAcademyProgress.js`); waits for the profile doc (sign-up writes it without merge), clears local copy
+  only after a successful save. +3 tests (`tests/academyMerge.test.js`).
+- Lint: `boxing-app/**` (stray untracked build output) ignored in `eslint.config.mjs`; it caused 253 false errors.
+- Found, not changed: /mitts saves nothing by design (page comment "nothing is saved"); saving a personal best
+  needs a data-model + rules decision from the owner.
+
 ## Architecture / CV / QA audit (owner request, 5 sections)
 - Report: `docs/audit/2026-11-08-architecture-cv-qa.md` (MN) — 20-point checklist with pass criteria and
   status, performance plan (camera 640×480, requestVideoFrameCallback, Web Worker with backpressure),

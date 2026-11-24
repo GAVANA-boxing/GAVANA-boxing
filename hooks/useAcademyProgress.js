@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useUserProfile } from "@/context/UserProfileProvider";
+import { mergeLessonProgress } from "@/lib/academyMerge";
 
 const STORAGE_KEY = "gavana_academy_progress";
 const DEFAULT_PATH = "foundation";
@@ -30,10 +31,31 @@ export function useAcademyProgress({ user }) {
       // the locally-mutated progress on every realtime tick.
       if (profileLoading) return;
       if (seededForRef.current !== user.uid) {
+        const local = loadLocal();
+        const hasGuest = Object.keys(local.lessonProgress || {}).length > 0;
+        // Sign-up writes the profile doc without merge; wait for it before
+        // saving guest progress, or that write would erase it.
+        if (hasGuest && !profile) return;
         const ap = profile?.academyProgress || {};
-        setLessonProgress(ap.lessonProgress || {});
-        setCurrentPathIdState(ap.currentPathId || DEFAULT_PATH);
+        const merged = hasGuest
+          ? mergeLessonProgress(ap.lessonProgress, local.lessonProgress)
+          : (ap.lessonProgress || {});
+        const pathId = ap.currentPathId || local.currentPathId || DEFAULT_PATH;
+        setLessonProgress(merged);
+        setCurrentPathIdState(pathId);
         seededForRef.current = user.uid;
+        if (hasGuest) {
+          (async () => {
+            try {
+              const { doc, setDoc } = await import("firebase/firestore");
+              const { db } = await import("@/lib/firebase");
+              await setDoc(doc(db, "users", user.uid), {
+                academyProgress: { lessonProgress: merged, currentPathId: pathId },
+              }, { merge: true });
+              localStorage.removeItem(STORAGE_KEY); // only after a successful save
+            } catch { /* keep local copy; retried on next load */ }
+          })();
+        }
       }
       setLoading(false);
     } else {
