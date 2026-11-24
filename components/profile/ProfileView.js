@@ -7,6 +7,7 @@ import { getWeightClassLabel } from "@/lib/weightClasses";
 import { ACHIEVEMENT_BADGES, TIER_COLOR } from "@/lib/badges";
 import { BRAND, btnPrimary, btnSecondary, displayTitle, glass, glassCard, sectionLabel } from "@/components/ui/brand";
 import { GlassIconButton as GlassIcon } from "@/components/ui/BrandHeader";
+import { ScoreDial } from "@/components/ui/gauges";
 
 /**
  * The profile page's content — presentational only (data comes from
@@ -116,7 +117,6 @@ export default function ProfileView({
             {/* Rounds are private: on someone else's profile there is nothing to count — show no
                 "0 sessions" / "best —" that would read as "this fighter never trained". */}
             {isOwnProfile && <Pill value={scores.length} label={L("бэлтгэл", "세션", "sessions")} />}
-            {isOwnProfile && <Pill value={best != null ? best.toFixed(1) : "—"} label={L("шилдэг", "최고", "best")} />}
             <Pill value={xp.toLocaleString()} label="XP" />
             {social && <Pill value={social.followers} label={L("дагагч", "팔로워", "followers")} onClick={onFollowers} />}
             {social && <Pill value={social.following} label={L("дагаж буй", "팔로잉", "following")} onClick={onFollowing} />}
@@ -138,7 +138,7 @@ export default function ProfileView({
             <span aria-hidden="true" style={{ position: "absolute", width: 160, height: 160, right: -40, top: -60, borderRadius: "50%", background: tint, opacity: 0.28, filter: "blur(40px)" }} />
             <span style={{ flex: 1, minWidth: 0, position: "relative" }}>
               <span style={{ ...sectionLabel, color: tint, display: "block" }}>{L("Цол", "등급", "Rank")}</span>
-              <span style={{ ...displayTitle, display: "block", fontSize: 24, marginTop: 6 }}>{t(rank.key)}</span>
+              <span data-testid="profile-rank" style={{ ...displayTitle, display: "block", fontSize: rankSize(t(rank.key)), lineHeight: 1.05, marginTop: 6 }}>{t(rank.key)}</span>
               <span style={{ display: "block", height: 6, borderRadius: 3, background: "rgba(255,255,255,0.08)", overflow: "hidden", marginTop: 12 }}>
                 <span style={{ display: "block", height: "100%", width: `${Math.round(rankPct)}%`, background: `linear-gradient(90deg, ${tint}, ${BRAND.gold})`, borderRadius: 3 }} />
               </span>
@@ -148,6 +148,13 @@ export default function ProfileView({
                   : L("Хамгийн дээд цол", "최고 등급", "Top rank")}
               </span>
             </span>
+            {/* The best round as a dial — your own profile only (rounds are private). */}
+            {isOwnProfile && best != null && (
+              <span data-testid="profile-best" style={{ position: "relative", flexShrink: 0, textAlign: "center" }}>
+                <ScoreDial value={best} width={96} stroke={9} color={tint} label={L("шилдэг", "최고", "best")} />
+                <span style={{ display: "block", marginTop: 2, fontSize: 12, color: BRAND.faint }}>{L("шилдэг", "최고", "best")}</span>
+              </span>
+            )}
             <Chevron />
           </button>
         )}
@@ -216,6 +223,9 @@ export default function ProfileView({
     </div>
   );
 }
+
+// The rank is the headline: as large as fits, whatever its length (same rule as Home).
+const rankSize = (name) => { const n = String(name || "").length; return n <= 8 ? 34 : n <= 11 ? 30 : n <= 15 ? 26 : 22; };
 
 function Pill({ value, label, onClick }) {
   const Tag = onClick ? "button" : "span";

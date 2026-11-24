@@ -2,6 +2,10 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Design v2 — Profile
+- `components/profile/ProfileView.js`: rank is the headline (size by name length, as on Home); the best round is one `ScoreDial` inside the rank card (own profile only; no rounds → nothing drawn); the separate "best" pill is gone.
+- Test: `profileViewRender.test.js`. No visual baseline: the profile route needs a signed-in user (not covered by the visual suite) — checked by render test only.
+
 ## AI drill builder fixes (/api/chat, drills page)
 - Fighter context now matches whole words only (`lib/chatFighterContext.js`): "ali" no longer fired inside "valid" and injected Muhammad Ali into every drill request.
 - `purpose: "drills"`: the server asks for the raw JSON array only (the chat-bubble FORMAT_INSTRUCTIONS contradicted it) and allows 1400 tokens (5 drills did not fit in 700).
