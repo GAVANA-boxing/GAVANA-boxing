@@ -159,10 +159,11 @@ service cloud.firestore {
     }
 
     // ─── Challenge results (public leaderboard scores) ───────────
+    // Written ONLY by the server (/api/score/session, service account): a client-written score
+    // would let anyone put any number on the leaderboard. Clients only read.
     match /challenge_results/{resultId} {
       allow read: if true;
-      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if isAuth() && resource.data.userId == request.auth.uid;
+      allow create, update, delete: if false;
     }
 
     // ─── AI feedback ─────────────────────────────────────────────
@@ -426,10 +427,9 @@ service cloud.firestore {
         resource.data.opponentId == request.auth.uid
       );
       allow create: if isAuth() && request.resource.data.challengerId == request.auth.uid;
-      allow update: if isAuth() && (
-        resource.data.challengerId == request.auth.uid ||
-        resource.data.opponentId == request.auth.uid
-      );
+      // The app only creates and reads challenges; an update by either side could rewrite who is
+      // challenging whom, so there is none.
+      allow update: if false;
       allow delete: if isAuth() && resource.data.challengerId == request.auth.uid;
     }
 
@@ -441,10 +441,8 @@ service cloud.firestore {
         resource.data.opponentId == request.auth.uid
       );
       allow create: if isAuth() && request.resource.data.challengerId == request.auth.uid;
-      allow update: if isAuth() && (
-        resource.data.challengerId == request.auth.uid ||
-        resource.data.challengedUserId == request.auth.uid
-      );
+      // A finished result is a record: either side could otherwise flip the winner or the scores.
+      allow update: if false;
       allow delete: if false;
     }
 
