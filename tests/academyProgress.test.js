@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { lessonRoundResult, nextLessonEntry, academySummary, isScoredLesson, ACADEMY_PASS_SCORE } from "@/lib/academyProgress";
+import { mergeLessonProgress, lessonRoundResult, nextLessonEntry, academySummary, isScoredLesson, ACADEMY_PASS_SCORE } from "@/lib/academyProgress";
 import { ACADEMY_LESSONS } from "@/lib/academyLessons";
 
 describe("what one round means for a lesson", () => {
@@ -62,3 +62,30 @@ describe("lesson order", () => {
     expect(new Set(ACADEMY_LESSONS.map((l) => l.id)).size).toBe(10);
   });
 });
+
+describe("mergeLessonProgress (guest → account after sign-up)", () => {
+  it("guest lessons are added to an empty account", () => {
+    const g = { "jab-mechanics": { attempted: true, completed: true, bestScore: 7.2, lastTrained: "2026-11-20" } };
+    const r = mergeLessonProgress({}, g);
+    expect(r.changed).toBe(true);
+    expect(r.merged["jab-mechanics"]).toEqual(g["jab-mechanics"]);
+  });
+  it("done stays done, best score is the higher, date the later — from either side", () => {
+    const a = { x: { attempted: true, completed: true, bestScore: 6.8, lastTrained: "2026-11-10" } };
+    const g = { x: { attempted: true, completed: false, bestScore: 7.4, lastTrained: "2026-11-22" } };
+    const m = mergeLessonProgress(a, g).merged.x;
+    expect(m).toEqual({ attempted: true, completed: true, bestScore: 7.4, lastTrained: "2026-11-22" });
+  });
+  it("nothing new on the device → unchanged, account object content kept", () => {
+    const a = { x: { attempted: true, completed: true, bestScore: 8, lastTrained: "2026-11-22" } };
+    const g = { x: { attempted: true, completed: false, bestScore: 6, lastTrained: "2026-11-01" } };
+    const r = mergeLessonProgress(a, g);
+    expect(r.changed).toBe(false);
+    expect(r.merged).toEqual(a);
+  });
+  it("garbage on either side is ignored, never throws", () => {
+    expect(mergeLessonProgress(null, undefined)).toEqual({ merged: {}, changed: false });
+    expect(mergeLessonProgress({ a: 1 }, { b: null, c: "x" }).changed).toBe(false);
+  });
+});
+

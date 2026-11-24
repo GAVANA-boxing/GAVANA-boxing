@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useUserProfile } from "@/context/UserProfileProvider";
-import { nextLessonEntry } from "@/lib/academyProgress";
+import { nextLessonEntry, mergeLessonProgress } from "@/lib/academyProgress";
 import { getLocalDateKey } from "@/lib/utils";
 
 const STORAGE_KEY = "gavana_academy_progress";
@@ -62,6 +62,33 @@ export function useAcademyProgress({ user }) {
       if (showPrompt) setGuestPrompt(true);
     }
   }, [user?.uid]);
+
+  // A guest's lessons (kept on this device) join the account's progress once, right after sign-in /
+  // sign-up — without this, the first rounds a new fighter did as a guest vanished from the lesson
+  // list. The device copy is removed only after the account copy was saved.
+  const guestMergedRef = useRef(null);
+  useEffect(() => {
+    if (!user?.uid || profileLoading || seededForRef.current !== user.uid) return;
+    if (guestMergedRef.current === user.uid) return;
+    guestMergedRef.current = user.uid;
+    const guest = loadLocal().lessonProgress;
+    if (!guest || !Object.keys(guest).length) return;
+    const { merged, changed } = mergeLessonProgress(profile?.academyProgress?.lessonProgress, guest);
+    setLessonProgress(merged);
+    const clearDevice = () => { try { localStorage.removeItem(STORAGE_KEY); } catch { } };
+    if (!changed) { clearDevice(); return; }
+    (async () => {
+      try {
+        const { doc, setDoc } = await import("firebase/firestore");
+        const { db } = await import("@/lib/firebase");
+        await setDoc(doc(db, "users", user.uid), {
+          academyProgress: { lessonProgress: merged, currentPathId: profile?.academyProgress?.currentPathId || currentPathId },
+        }, { merge: true });
+        clearDevice();
+      } catch { guestMergedRef.current = null; } // not saved: keep the device copy, try again next time
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid, profile, profileLoading, loading]);
 
   // One round with a lesson. `punches` is the round's punch count (roundPunchCount): a round the
   // result screen calls "not enough data" records nothing. What "done" means per lesson lives in
