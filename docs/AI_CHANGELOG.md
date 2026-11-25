@@ -2,6 +2,14 @@
 
 One entry per cycle that changed code. Newest first.
 
+## Pro by bank transfer (card payments are closed; owner: "Hii" — first revenue path)
+- People: `/pro` shows a "Банкаар төлөх" card (only when all four `NEXT_PUBLIC_PAY_BANK / _ACCOUNT / _HOLDER / _CONTACT` are set — otherwise the old "payments soon" note; nothing is invented): the owner's account, THEIR code `G-<8 chars of uid>` to write in the transfer note, and where to send it.
+- Owner: `/mn/admin` → "Pro олгох" (`/admin/pro`): type the code + 1 or 12 months → `POST /api/admin/grant-pro` (ADMIN_UIDS only, service account) finds the account by uid prefix (exactly one match, else 404/409), writes `subscription:"manual"`, `subscriptionTier:"pro"`, `proUntil`, logs the grant in server-only `pro_grants`. Paying while Pro is running extends from its end.
+- `lib/pro.js isProUser`: a manual grant is Pro only until `proUntil` (no/invalid date → not Pro; never open-ended). `app/api/dna-report` now passes `proUntil` too (it builds its own user object). Stripe users unchanged; legacy `tier` still never grants Pro.
+- Manual-Pro users see "Pro идэвхтэй · <date>" instead of the Stripe portal button.
+- Tests: `manualPay.test.js` (reference, config, grant dates/extension, isProUser), `bankTransferRender.test.js`; visual `pro-bank` ×3 (checked by eye). vitest 709, visual 85.
+- Needs from the owner (not code): the four `NEXT_PUBLIC_PAY_*` env vars on Vercel, `ADMIN_UIDS` (and `NEXT_PUBLIC_ADMIN_UIDS` for the admin page) containing the owner's uid, `FIREBASE_SERVICE_ACCOUNT_BASE64` on Vercel (server writes). Not tested end-to-end (needs a signed-in admin session + the service account).
+
 ## Firestore rules, audit batch 2c — coach bookings, users-doc privacy check (RED path: emulator tests first)
 - Real bug: the coach dashboard creates a `coach_bookings` doc with `userId` = the STUDENT and `coachId` = the coach, but the rule only allowed `userId == caller`, so a coach could not schedule a session at all once these rules are live. Now: the student books in their own name, OR the coach books when `requestId` points at a `coach_requests` doc between exactly that coach and that student. Tests: 6 new (coach from a real request ok; coach with no request / wrong student / someone else's request / a stranger blocked). Emulator 149/149.
 - Users-doc privacy check (public `get`): the client writes no private field there (email already lives in `users_private`). Phone / address appear only in coach applications (owner-only) and gym docs (business listing, intended public). Nothing changed.
