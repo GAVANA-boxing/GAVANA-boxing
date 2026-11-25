@@ -9,12 +9,21 @@ import { BRAND, btnPrimary, btnSecondary, displayTitle, kickerDot, kickerPill, p
 import { FREE_INCLUDES, PRO_PERKS, PRO_PRICES, formatMnt, isProUser } from "@/lib/pro";
 import { funnel } from "@/lib/funnel";
 import { backOr } from "@/lib/nav";
+import { manualPayConfig, paymentReference } from "@/lib/manualPay";
+import BankTransferCard from "@/components/pro/BankTransferCard";
 
 // GAVANA Pro — the one page for the plan, its price, its perks, buying and managing it.
 // Pro is only sold when the server says checkout, webhook and activation are all set up
 // (/api/stripe/config); until then the page says so plainly instead of showing a buy button.
 
 const GOLD = "#F5C451";
+// Each NEXT_PUBLIC_ variable is spelled out so Next can inline it into the client bundle.
+const MANUAL_PAY = manualPayConfig({
+  NEXT_PUBLIC_PAY_BANK: process.env.NEXT_PUBLIC_PAY_BANK,
+  NEXT_PUBLIC_PAY_ACCOUNT: process.env.NEXT_PUBLIC_PAY_ACCOUNT,
+  NEXT_PUBLIC_PAY_HOLDER: process.env.NEXT_PUBLIC_PAY_HOLDER,
+  NEXT_PUBLIC_PAY_CONTACT: process.env.NEXT_PUBLIC_PAY_CONTACT,
+});
 
 export default function ProPage() {
   const params = useParams();
@@ -82,6 +91,10 @@ export default function ProPage() {
 
   const cta = (() => {
     if (authLoading || sale === null) return { label: "…", disabled: true };
+    if (isPro && profile?.subscription === "manual") {
+      const until = profile?.proUntil ? new Date(profile.proUntil).toLocaleDateString(locale === "mn" ? "mn-MN" : locale === "ko" ? "ko-KR" : "en-GB") : "";
+      return { label: `${L("Pro идэвхтэй", "Pro 이용 중", "Pro active")}${until ? ` · ${until}` : ""}`, disabled: true };
+    }
     if (isPro) return { label: L("Гишүүнчлэл удирдах", "멤버십 관리", "Manage membership"), onClick: () => callApi("/api/stripe/portal", {}), secondary: true };
     if (!sale.enabled) return { label: L("Төлбөр удахгүй нээгдэнэ", "결제는 곧 열려요", "Payments open soon"), disabled: true };
     if (!user) return { label: L("Нэвтрээд Pro болох", "로그인하고 Pro 시작", "Sign in to get Pro"), onClick: () => router.push(`/${locale}/login?redirect=${encodeURIComponent(`/${locale}/pro`)}`) };
@@ -155,12 +168,17 @@ export default function ProPage() {
             {busy ? "…" : cta.label}
           </button>
           {error && <p role="alert" style={{ margin: "10px 0 0", fontSize: 13, color: "#FCA5A5" }}>{error}</p>}
-          {sale && !sale.enabled && !isPro && (
+          {sale && !sale.enabled && !isPro && !MANUAL_PAY && (
             <p style={{ margin: "10px 0 0", fontSize: 13, lineHeight: 1.45, color: BRAND.muted }}>
               {L("Төлбөрийн систем холбогдмогц энд нээгдэнэ. Одоогоор үнэгүй бүх боломж ажиллаж байна.", "결제 시스템이 연결되면 여기서 열려요. 지금은 무료 기능이 모두 작동해요.", "This opens here once payments are connected. All free features work now.")}
             </p>
           )}
         </section>
+
+        {sale && !sale.enabled && !isPro && !authLoading && (
+          <BankTransferCard locale={locale} config={MANUAL_PAY} reference={user ? paymentReference(user.uid) : null}
+            onSignIn={() => router.push(`/${locale}/login?redirect=${encodeURIComponent(`/${locale}/pro`)}`)} />
+        )}
 
         {/* Free */}
         <section style={{ marginTop: 18, borderRadius: 16, padding: 16, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>

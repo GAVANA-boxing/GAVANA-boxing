@@ -12,6 +12,8 @@ const SCREENS = [
   { name: "result", path: "/visual/result" },
   { name: "progress", path: "/visual/progress" },
   { name: "history", path: "/visual/history" },
+  // Pro: the bank-transfer card (card payments are closed; the owner grants Pro by hand).
+  { name: "pro-bank", path: "/visual/pro-bank" },
   // Fighter dashboard (demo data) and its empty-benchmark + offline-orders states.
   { name: "dashboard", path: "/visual/dashboard" },
   { name: "dashboard-states", path: "/visual/dashboard-states" },

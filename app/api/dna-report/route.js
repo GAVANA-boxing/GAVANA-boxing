@@ -51,6 +51,7 @@ export const POST = withAuth(async (request, { uid: callerUid }) => {
     const isPro = isProUser({
       subscriptionTier: fsValue(fields.subscriptionTier),
       subscription: fsValue(fields.subscription),
+      proUntil: fsValue(fields.proUntil), // a bank-transfer (manual) Pro lasts until this date
     });
     if (!isPro) return NextResponse.json({ error: "pro_required" }, { status: 402 });
 

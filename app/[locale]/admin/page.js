@@ -208,6 +208,13 @@ export default function AdminDashboardPage() {
               >
                 {label(locale, "Featured", "Онцлох", "추천")}
               </button>
+              <button
+                type="button"
+                onClick={() => router.push(`/${locale}/admin/pro`)}
+                style={{ flex: 1, padding: "12px 10px", borderRadius: 12, border: `1px solid rgba(52,211,153,0.3)`, background: "rgba(52,211,153,0.07)", color: "#34D399", fontSize: 12, fontWeight: 900, cursor: "pointer" }}
+              >
+                {label(locale, "Grant Pro", "Pro олгох", "Pro 부여")}
+              </button>
             </div>
 
             {/* Recent events */}

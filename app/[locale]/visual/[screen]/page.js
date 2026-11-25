@@ -31,6 +31,7 @@ import { dashboardCopy } from "@/lib/dashboard/copy";
 import { HomeHero, HomeStats, homeBackground } from "@/components/home/HomeHero";
 import AcademyNextCard from "@/components/train/AcademyNextCard";
 import HistoryView from "@/components/history/HistoryView";
+import BankTransferCard from "@/components/pro/BankTransferCard";
 
 // Fixed-data renders of screens that need a signed-in user, for the visual
 // regression tests (tests/visual). Only exists when NEXT_PUBLIC_VISUAL_FIXTURES=1
@@ -230,6 +231,16 @@ export default function VisualFixture() {
         state={state} locale={locale} onRetry={() => {}}
         videoAnalyzer={<ClipAnalyzerFixture copy={dashboardCopy(locale)} showLog={params.screen === "dashboard"} />}
       />
+    );
+  }
+
+  if (params?.screen === "pro-bank") {
+    return (
+      <main style={{ minHeight: "100dvh", background: pageBackground, padding: "24px 16px" }}>
+        <div style={{ maxWidth: 520, margin: "0 auto" }}>
+          <BankTransferCard locale={locale} config={{ bank: "Хаан банк", account: "5000000000", holder: "Овог Нэр", contact: "@gavana_pay" }} reference="G-AbC123xY" />
+        </div>
+      </main>
     );
   }
 
